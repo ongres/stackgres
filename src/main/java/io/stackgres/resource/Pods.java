@@ -18,16 +18,15 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
-import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodBuilder;
 import io.fabric8.kubernetes.api.model.PodList;
 import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.app.KubernetesClientFactory;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Path("/api/v1alpha1/pod")
 public class Pods {
@@ -40,6 +39,9 @@ public class Pods {
   @Inject
   KubernetesClientFactory kubClientFactory;
 
+  /**
+   * Create a new Pod with the specification.
+   */
   @POST
   @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
   @Produces(MediaType.APPLICATION_JSON)
@@ -88,6 +90,9 @@ public class Pods {
     }
   }
 
+  /**
+   * List all pods in namespace.
+   */
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   public PodList list() {

@@ -3,38 +3,40 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.crd;
+package io.stackgres.crd.sgcluster;
 
 import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
 import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinitionBuilder;
 
-public class StackGresClusterCrd {
+public class StackGresClusterDefinition {
 
-  private StackGresClusterCrd() {}
+  private StackGresClusterDefinition() {
+    throw new AssertionError("No instances for you!");
+  }
 
-  public static final String CRD_GROUP = "stackgres.io";
-  public static final String CRD_VERSION = "v1alpha1";
-  public static final String CRD_KIND = "StackGresCluster";
-  public static final String CRD_SINGULAR = "sgcluster";
-  public static final String CRD_PLURAL = "sgclusters";
-  public static final String CRD_NAME = CRD_PLURAL + "." + CRD_GROUP;
-  public static final String CRD_APIVERSION = CRD_GROUP + "/" + CRD_VERSION;
+  public static final String GROUP = "stackgres.io";
+  public static final String VERSION = "v1alpha1";
+  public static final String KIND = "StackGresCluster";
+  public static final String SINGULAR = "sgcluster";
+  public static final String PLURAL = "sgclusters";
+  public static final String NAME = PLURAL + "." + GROUP;
+  public static final String APIVERSION = GROUP + "/" + VERSION;
 
   public static final CustomResourceDefinition CR_DEFINITION =
       new CustomResourceDefinitionBuilder()
           .withApiVersion("apiextensions.k8s.io/v1beta1")
           .withNewMetadata()
-          .withName(CRD_NAME)
+          .withName(NAME)
           .endMetadata()
           .withNewSpec()
-          .withGroup(CRD_GROUP)
-          .withVersion(CRD_VERSION)
+          .withGroup(GROUP)
+          .withVersion(VERSION)
           .withScope("Namespaced")
           .withNewNames()
-          .withKind(CRD_KIND)
-          .withListKind(CRD_KIND + "List")
-          .withSingular(CRD_SINGULAR)
-          .withPlural(CRD_PLURAL)
+          .withKind(KIND)
+          .withListKind(KIND + "List")
+          .withSingular(SINGULAR)
+          .withPlural(PLURAL)
           .endNames()
           .endSpec()
           .build();

@@ -5,17 +5,11 @@
 
 package io.stackgres.resource;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.FormParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
 
 import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
 import io.fabric8.kubernetes.api.model.LabelSelectorBuilder;
@@ -23,16 +17,17 @@ import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.PodTemplateSpecBuilder;
 import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ResourceRequirementsBuilder;
-import io.fabric8.kubernetes.api.model.apps.Deployment;
-import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
+import io.fabric8.kubernetes.api.model.apps.ReplicaSet;
+import io.fabric8.kubernetes.api.model.apps.ReplicaSetBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.app.KubernetesClientFactory;
+import io.stackgres.crd.sgcluster.StackGresCluster;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Path("/api/v1alpha1/deployment")
-public class Deployments {
+@ApplicationScoped
+public class SgReplicaSets {
 
   private static final Logger log = LoggerFactory.getLogger(Deployments.class);
 
@@ -43,40 +38,36 @@ public class Deployments {
   KubernetesClientFactory kubClientFactory;
 
   /**
-   * Create a new deployment.
+   * Create a new ReplicaSet.
    */
-  @POST
-  @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-  @Produces(MediaType.APPLICATION_JSON)
-  public Deployment create(@FormParam("deployName") String deployName,
-      @FormParam("replicas") Integer replicas, @FormParam("podCpu") String podCpu,
-      @FormParam("podMem") String podMem) throws IOException {
+  public ReplicaSet create(StackGresCluster sgcluster) {
 
-    log.debug("Creating deploy name: {}", deployName);
-    log.debug("Replicas: {}", replicas);
-    log.debug("podCpu: {}", podCpu);
-    log.debug("podMem: {}", podMem);
+    log.debug("Creating cluster name: {}", sgcluster.getMetadata().getName());
 
     Map<String, String> labels = new HashMap<>();
-    labels.put("app", namespace);
+    labels.put("app", "stackgres");
+    labels.put("cluster", sgcluster.getMetadata().getName());
 
     Map<String, Quantity> limits = new HashMap<>(2);
-    if (!"".equals(podCpu)) {
-      limits.put("cpu", new Quantity(podCpu));
+    if (!"".equals(sgcluster.getSpec().getCpu())) {
+      limits.put("cpu", new Quantity(sgcluster.getSpec().getCpu()));
     }
-    if (!"".equals(podMem)) {
-      limits.put("memory", new Quantity(podMem));
+    if (!"".equals(sgcluster.getSpec().getMemory())) {
+      limits.put("memory", new Quantity(sgcluster.getSpec().getMemory()));
     }
 
+    String gen = Long.toHexString(Double.doubleToLongBits(Math.random()));
+    gen = gen.substring(2, 7);
+
     try (KubernetesClient client = kubClientFactory.retrieveKubernetesClient()) {
-      Deployment deploy = new DeploymentBuilder()
-          .withKind("Deployment")
+      ReplicaSet rs = new ReplicaSetBuilder()
+          .withKind("ReplicaSet")
           .withNewMetadata()
-          .withName(deployName)
+          .withName(sgcluster.getMetadata().getName() + "-" + gen)
           .withLabels(labels)
           .endMetadata()
           .withNewSpec()
-          .withReplicas(replicas)
+          .withReplicas(1)
           .withSelector(new LabelSelectorBuilder()
               .addToMatchLabels(labels)
               .build())
@@ -96,10 +87,10 @@ public class Deployments {
           .endSpec()
           .build();
 
-      log.debug("Creating or replacing deployment: {}", deployName);
+      log.debug("Creating or replacing deployment: {}", sgcluster.getMetadata().getName());
 
-      client.apps().deployments().inNamespace(namespace).createOrReplace(deploy);
-      return deploy;
+      client.apps().replicaSets().inNamespace(namespace).createOrReplace(rs);
+      return rs;
     }
   }
 

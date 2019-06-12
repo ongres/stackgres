@@ -11,26 +11,23 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
-import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import io.fabric8.kubernetes.api.model.Namespace;
 import io.fabric8.kubernetes.api.model.NamespaceBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.VersionInfo;
-import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
-import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.kubernetes.internal.KubernetesDeserializer;
 import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
-import io.stackgres.crd.StackGresCluster;
-import io.stackgres.crd.StackGresClusterCrd;
-import io.stackgres.crd.StackGresClusterDoneable;
-import io.stackgres.crd.StackGresClusterList;
+import io.stackgres.crd.sgcluster.StackGresCluster;
+import io.stackgres.crd.sgcluster.StackGresClusterDefinition;
+import io.stackgres.crd.sgcluster.StackGresClusterDoneable;
+import io.stackgres.crd.sgcluster.StackGresClusterList;
 import io.stackgres.watcher.StackGresClusterWatcher;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
 public class StackGresOperatorApp {
@@ -42,6 +39,9 @@ public class StackGresOperatorApp {
 
   @Inject
   KubernetesClientFactory kubClientFactory;
+
+  @Inject
+  StackGresClusterWatcher watcher;
 
   void onStart(@Observes StartupEvent ev) {
     LOGGER.info("The application is starting...");
@@ -55,7 +55,7 @@ public class StackGresOperatorApp {
           .build();
       client.namespaces().createOrReplace(ns);
       LOGGER.info("Created or replaced namespace: {}", ns);
-      startClusterCRDWatcher(client);
+      startClusterCrdWatcher(client);
     }
   }
 
@@ -63,26 +63,24 @@ public class StackGresOperatorApp {
     LOGGER.info("The application is stopping...");
   }
 
-  private void startClusterCRDWatcher(KubernetesClient client) {
+  private void startClusterCrdWatcher(KubernetesClient client) {
     LOGGER.info("startClusterCRDWatcher");
-    createCRDIfNotExists(client, StackGresClusterCrd.CR_DEFINITION,
-        StackGresClusterCrd.CRD_NAME::equals);
+    createCrdIfNotExists(client, StackGresClusterDefinition.CR_DEFINITION,
+        StackGresClusterDefinition.NAME::equals);
 
-    KubernetesDeserializer.registerCustomKind(StackGresClusterCrd.CRD_APIVERSION,
-        StackGresClusterCrd.CRD_KIND, StackGresCluster.class);
+    KubernetesDeserializer.registerCustomKind(StackGresClusterDefinition.APIVERSION,
+        StackGresClusterDefinition.KIND, StackGresCluster.class);
 
-    NonNamespaceOperation<StackGresCluster, StackGresClusterList, StackGresClusterDoneable, Resource<StackGresCluster, StackGresClusterDoneable>> clusterClient =
-        kubClientFactory.retrieveKubernetesClient()
-            .customResources(StackGresClusterCrd.CR_DEFINITION,
-                StackGresCluster.class,
-                StackGresClusterList.class,
-                StackGresClusterDoneable.class)
-            .inNamespace(namespace);
-
-    clusterClient.watch(new StackGresClusterWatcher());
+    kubClientFactory.retrieveKubernetesClient()
+        .customResources(StackGresClusterDefinition.CR_DEFINITION,
+            StackGresCluster.class,
+            StackGresClusterList.class,
+            StackGresClusterDoneable.class)
+        .inNamespace(namespace)
+        .watch(watcher);
   }
 
-  private static void createCRDIfNotExists(KubernetesClient client,
+  private static void createCrdIfNotExists(KubernetesClient client,
       CustomResourceDefinition definition, Predicate<String> matcher) {
     boolean exists = client.customResourceDefinitions().list().getItems().stream()
         .map(CustomResourceDefinition::getMetadata)
@@ -99,8 +97,6 @@ public class StackGresOperatorApp {
     LOGGER.info("Major        : {}", versionInfo.getMajor());
     LOGGER.info("Minor        : {}", versionInfo.getMinor());
     LOGGER.info("GitVersion   : {}", versionInfo.getGitVersion());
-    LOGGER.info("BuildDate    : {}", versionInfo.getBuildDate());
-    LOGGER.info("GoVersion    : {}", versionInfo.getGoVersion());
   }
 
 }

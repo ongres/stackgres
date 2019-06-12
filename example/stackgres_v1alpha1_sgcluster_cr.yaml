@@ -1,6 +1,7 @@
 apiVersion: stackgres.io/v1alpha1
 kind: StackGresCluster
 metadata:
-  name: stackgres-cluster
+  clusterName: stackgrescl
+  name: stackgres-cluster1
 spec:
-  size: 2
+  instances: 3

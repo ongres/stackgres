@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.crd;
+package io.stackgres.crd.sgcluster;
 
 import com.google.common.base.MoreObjects;
 

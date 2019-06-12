@@ -3,34 +3,54 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.crd;
+package io.stackgres.crd.sgcluster;
+
+import javax.validation.constraints.Min;
 
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.MoreObjects;
-
 import io.fabric8.kubernetes.api.model.KubernetesResource;
 
-@SuppressWarnings("rawtypes")
 @JsonDeserialize(using = JsonDeserializer.None.class)
-public class StackGresClusterSpec implements KubernetesResource {
+public class StackGresClusterSpec implements KubernetesResource<StackGresCluster> {
 
   private static final long serialVersionUID = -5276087851826599719L;
 
-  private int size;
+  @Min(1)
+  private int instances;
+  private String cpu;
+  private String memory;
 
-  public int getSize() {
-    return size;
+  public int getInstances() {
+    return instances;
   }
 
-  public void setSize(int size) {
-    this.size = size;
+  public void setInstances(int instances) {
+    this.instances = instances;
+  }
+
+  public String getCpu() {
+    return cpu;
+  }
+
+  public void setCpu(String cpu) {
+    this.cpu = cpu;
+  }
+
+  public String getMemory() {
+    return memory;
+  }
+
+  public void setMemory(String memory) {
+    this.memory = memory;
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
-        .add("size", size)
+        .add("cpu", cpu)
+        .add("memory", memory)
         .toString();
   }
 

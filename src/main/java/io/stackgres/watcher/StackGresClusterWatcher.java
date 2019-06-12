@@ -5,16 +5,24 @@
 
 package io.stackgres.watcher;
 
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+
+import io.fabric8.kubernetes.api.model.apps.ReplicaSet;
+import io.fabric8.kubernetes.client.KubernetesClientException;
+import io.fabric8.kubernetes.client.Watcher;
+import io.stackgres.crd.sgcluster.StackGresCluster;
+import io.stackgres.resource.SgReplicaSets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.fabric8.kubernetes.client.KubernetesClientException;
-import io.fabric8.kubernetes.client.Watcher;
-import io.stackgres.crd.StackGresCluster;
-
+@ApplicationScoped
 public class StackGresClusterWatcher implements Watcher<StackGresCluster> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(StackGresClusterWatcher.class);
+
+  @Inject
+  SgReplicaSets sgReplicas;
 
   @Override
   public void eventReceived(Action action, StackGresCluster resource) {
@@ -24,6 +32,10 @@ public class StackGresClusterWatcher implements Watcher<StackGresCluster> {
     switch (action) {
       case ADDED:
         LOGGER.info("Starting the cluster with name '{}'", clusterName);
+        for (int i = 0; i < resource.getSpec().getInstances(); i++) {
+          ReplicaSet rs = sgReplicas.create(resource);
+          LOGGER.info("ReplicaSet created '{}'", rs);
+        }
         break;
       case DELETED:
         LOGGER.info("Deleting the cluster with name '{}'", clusterName);
