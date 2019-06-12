@@ -5,22 +5,35 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>io.stackgres</groupId>
   <artifactId>stackgres-operator</artifactId>
-  <version>1.0.0-SNAPSHOT</version>
+  <version>1.0alpha1-SNAPSHOT</version>
   <inceptionYear>2019</inceptionYear>
   <organization>
     <name>OnGres, Inc.</name>
     <url>https://www.ongres.com</url>
   </organization>
   <properties>
-    <kubernetes-client.version>4.2.2</kubernetes-client.version>
-    <surefire-plugin.version>3.0.0-M3</surefire-plugin.version>
-    <maven.compiler.target>1.8</maven.compiler.target>
-    <quarkus.version>0.16.1</quarkus.version>
-    <maven.compiler.source>1.8</maven.compiler.source>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <!-- Java compilation -->
+    <java.version>1.8</java.version>
+    <maven.compiler.source>${java.version}</maven.compiler.source>
+    <maven.compiler.target>${java.version}</maven.compiler.target>
+    <!-- Dependencies versions -->
+    <quarkus.version>0.16.1</quarkus.version>
+    <kubernetes-client.version>4.3.0</kubernetes-client.version>
+    <spotbugs.version>3.1.12</spotbugs.version>
+    <guava.version>27.1-jre</guava.version>
+    <checkstyle.version>8.21</checkstyle.version>
+    <!-- Plugins versions -->
     <enforcer-plugin.version>3.0.0-M2</enforcer-plugin.version>
     <compiler-plugin.version>3.8.1</compiler-plugin.version>
-    <guava.version>27.1-jre</guava.version>
+    <surefire-plugin.version>3.0.0-M3</surefire-plugin.version>
+    <checkstyle-plugin.version>3.1.0</checkstyle-plugin.version>
+    <spotbugs-plugin.version>3.1.12</spotbugs-plugin.version>
+    <!-- Checkstyle properties -->
+    <checkstyle.config.location>${project.basedir}/src/main/checkstyle/checkstyle.xml</checkstyle.config.location>
+    <checkstyle.suppression.location>${project.basedir}/src/main/checkstyle/checkstyle-suppressions.xml</checkstyle.suppression.location>
+    <checkstyle.consoleOutput>true</checkstyle.consoleOutput>
+    <checkstyle.header.file>.header</checkstyle.header.file>
   </properties>
   <dependencyManagement>
     <dependencies>
@@ -135,19 +148,89 @@
             <configuration>
               <rules>
                 <requireMavenVersion>
-                  <version>[3.6,)</version>
+                  <version>[3.6.1,)</version>
                 </requireMavenVersion>
                 <requireJavaVersion>
-                  <version>[1.8,)</version>
+                  <version>${java.version}</version>
                 </requireJavaVersion>
+                <requireProperty>
+                  <property>java.vm.name</property>
+                  <regex>^OpenJDK GraalVM.*</regex>
+                  <regexMessage>GraalVM is required to compile.</regexMessage>
+                </requireProperty>
+                <!--
+                <requireEnvironmentVariable>
+                  <variableName>GRAALVM_HOME</variableName>
+                </requireEnvironmentVariable>
+                -->
               </rules>
             </configuration>
           </execution>
         </executions>
       </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <version>${checkstyle-plugin.version}</version>
+        <executions>
+          <execution>
+            <id>validate</id>
+            <configuration>
+              <propertyExpansion>config_loc=${project.basedir}/src/main/checkstyle</propertyExpansion>
+              <violationSeverity>error</violationSeverity>
+              <failOnViolation>true</failOnViolation>
+              <failsOnError>true</failsOnError>
+              <includeTestSourceDirectory>true</includeTestSourceDirectory>
+            </configuration>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+        <dependencies>
+          <dependency>
+            <groupId>com.puppycrawl.tools</groupId>
+            <artifactId>checkstyle</artifactId>
+            <version>${checkstyle.version}</version>
+          </dependency>
+        </dependencies>
+      </plugin>
     </plugins>
   </build>
   <profiles>
+    <profile>
+      <id>safer</id> <!-- Slower but safer profile used to look for errors before pushing to SCM -->
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>com.github.spotbugs</groupId>
+            <artifactId>spotbugs-maven-plugin</artifactId>
+            <version>${spotbugs-plugin.version}</version>
+            <configuration>
+              <effort>Max</effort>
+              <threshold>Low</threshold>
+              <xmlOutput>true</xmlOutput>
+            </configuration>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>check</goal>
+                </goals>
+              </execution>
+            </executions>
+            <dependencies>
+              <!-- overwrite dependency on spotbugs if you want to specify 
+                the version of spotbugs -->
+              <dependency>
+                <groupId>com.github.spotbugs</groupId>
+                <artifactId>spotbugs</artifactId>
+                <version>${spotbugs.version}</version>
+              </dependency>
+            </dependencies>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
     <profile>
       <id>native</id>
       <activation>
