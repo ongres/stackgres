@@ -3,14 +3,18 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
   xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
+
   <groupId>io.stackgres</groupId>
   <artifactId>stackgres-operator</artifactId>
   <version>1.0alpha1-SNAPSHOT</version>
+
   <inceptionYear>2019</inceptionYear>
+
   <organization>
     <name>OnGres, Inc.</name>
     <url>https://www.ongres.com</url>
   </organization>
+
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <!-- Java compilation -->
@@ -23,9 +27,11 @@
     <spotbugs.version>3.1.12</spotbugs.version>
     <guava.version>27.1-jre</guava.version>
     <checkstyle.version>8.21</checkstyle.version>
+    <checker.version>2.8.2</checker.version>
     <!-- Plugins versions -->
     <enforcer-plugin.version>3.0.0-M2</enforcer-plugin.version>
     <compiler-plugin.version>3.8.1</compiler-plugin.version>
+    <jar-plugin.version>3.1.2</jar-plugin.version>
     <surefire-plugin.version>3.0.0-M3</surefire-plugin.version>
     <checkstyle-plugin.version>3.1.0</checkstyle-plugin.version>
     <spotbugs-plugin.version>3.1.12</spotbugs-plugin.version>
@@ -34,7 +40,9 @@
     <checkstyle.suppression.location>${project.basedir}/src/main/checkstyle/checkstyle-suppressions.xml</checkstyle.suppression.location>
     <checkstyle.consoleOutput>true</checkstyle.consoleOutput>
     <checkstyle.header.file>.header</checkstyle.header.file>
+    <annotatedJdk>${org.checkerframework:jdk8:jar}</annotatedJdk>
   </properties>
+
   <dependencyManagement>
     <dependencies>
       <dependency>
@@ -53,6 +61,7 @@
       </dependency>
     </dependencies>
   </dependencyManagement>
+
   <dependencies>
     <dependency>
       <groupId>io.quarkus</groupId>
@@ -102,13 +111,28 @@
           <groupId>org.checkerframework</groupId>
           <artifactId>checker-qual</artifactId>
         </exclusion>
-        <exclusion>
-          <groupId>com.google.errorprone</groupId>
-          <artifactId>error_prone_annotations</artifactId>
-        </exclusion>
       </exclusions>
     </dependency>
+    <dependency>
+      <groupId>org.checkerframework</groupId>
+      <artifactId>checker</artifactId>
+      <version>${checker.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.checkerframework</groupId>
+      <artifactId>checker-qual</artifactId>
+      <version>${checker.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.checkerframework</groupId>
+      <artifactId>jdk8</artifactId>
+      <version>${checker.version}</version>
+      <scope>provided</scope>
+    </dependency>
   </dependencies>
+
   <build>
     <plugins>
       <plugin>
@@ -124,6 +148,10 @@
         </executions>
       </plugin>
       <plugin>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>${jar-plugin.version}</version>
+      </plugin>
+      <plugin>
         <artifactId>maven-surefire-plugin</artifactId>
         <version>${surefire-plugin.version}</version>
         <configuration>
@@ -135,6 +163,23 @@
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
         <version>${compiler-plugin.version}</version>
+        <configuration>
+          <compilerArguments>
+            <Xmaxerrs>10000</Xmaxerrs>
+            <Xmaxwarns>10000</Xmaxwarns>
+          </compilerArguments>
+          <annotationProcessors>
+            <annotationProcessor>org.checkerframework.checker.nullness.NullnessChecker</annotationProcessor>
+            <annotationProcessor>org.checkerframework.checker.interning.InterningChecker</annotationProcessor>
+            <annotationProcessor>org.checkerframework.checker.fenum.FenumChecker</annotationProcessor>
+            <annotationProcessor>org.checkerframework.checker.formatter.FormatterChecker</annotationProcessor>
+          </annotationProcessors>
+          <compilerArgs>
+            <arg>-Xbootclasspath/p:${annotatedJdk}</arg>
+            <arg>-AprintErrorStack</arg>
+            <arg>-Awarns</arg>
+          </compilerArgs>
+        </configuration>
       </plugin>
       <plugin>
         <artifactId>maven-enforcer-plugin</artifactId>
@@ -197,6 +242,7 @@
       </plugin>
     </plugins>
   </build>
+
   <profiles>
     <profile>
       <id>safer</id> <!-- Slower but safer profile used to look for errors before pushing to SCM -->

@@ -5,8 +5,6 @@
 
 package io.stackgres.crd.sgcluster;
 
-import javax.validation.constraints.Min;
-
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.MoreObjects;
@@ -17,7 +15,6 @@ public class StackGresClusterSpec implements KubernetesResource<StackGresCluster
 
   private static final long serialVersionUID = -5276087851826599719L;
 
-  @Min(1)
   private int instances;
   private String cpu;
   private String memory;
@@ -49,6 +46,7 @@ public class StackGresClusterSpec implements KubernetesResource<StackGresCluster
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
+        .omitNullValues()
         .add("cpu", cpu)
         .add("memory", memory)
         .toString();

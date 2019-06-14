@@ -79,11 +79,12 @@ public class Pods {
 
       client.pods().inNamespace(namespace).createOrReplace(pod);
 
-
       PodList listPod = client.pods().inNamespace(namespace).list();
       for (Pod item : listPod.getItems()) {
         log.debug(item.getMetadata().getName());
-        pod = item.getMetadata().getName().equals(podName) ? item : null;
+        if (item.getMetadata().getName().equals(podName)) {
+          pod = item;
+        }
       }
 
       return pod;

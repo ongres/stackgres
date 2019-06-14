@@ -11,44 +11,50 @@ import java.util.Map;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import io.fabric8.kubernetes.api.model.ConfigMapVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
 import io.fabric8.kubernetes.api.model.LabelSelectorBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.PodTemplateSpecBuilder;
 import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ResourceRequirementsBuilder;
-import io.fabric8.kubernetes.api.model.apps.ReplicaSet;
-import io.fabric8.kubernetes.api.model.apps.ReplicaSetBuilder;
+import io.fabric8.kubernetes.api.model.VolumeBuilder;
+import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
+import io.fabric8.kubernetes.api.model.apps.StatefulSet;
+import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.app.KubernetesClientFactory;
 import io.stackgres.crd.sgcluster.StackGresCluster;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
-public class SgReplicaSets {
+public class SgStatefulSets {
 
-  private static final Logger log = LoggerFactory.getLogger(Deployments.class);
+  private static final Logger log = LoggerFactory.getLogger(SgStatefulSets.class);
 
   @ConfigProperty(name = "stackgres.namespace", defaultValue = "stackgres")
+  @NonNull
   String namespace;
 
   @Inject
+  @NonNull
   KubernetesClientFactory kubClientFactory;
 
   /**
-   * Create a new ReplicaSet.
+   * Create a new StatefulSet based on the StackGresCluster definition.
    */
-  public ReplicaSet create(StackGresCluster sgcluster) {
+  public StatefulSet create(@NonNull StackGresCluster sgcluster) {
 
     log.debug("Creating cluster name: {}", sgcluster.getMetadata().getName());
 
     Map<String, String> labels = new HashMap<>();
     labels.put("app", "stackgres");
-    labels.put("cluster", sgcluster.getMetadata().getName());
+    labels.put("stackgres-cluster", sgcluster.getMetadata().getName());
 
-    Map<String, Quantity> limits = new HashMap<>(2);
+    Map<String, Quantity> limits = new HashMap<>();
     if (!"".equals(sgcluster.getSpec().getCpu())) {
       limits.put("cpu", new Quantity(sgcluster.getSpec().getCpu()));
     }
@@ -56,21 +62,20 @@ public class SgReplicaSets {
       limits.put("memory", new Quantity(sgcluster.getSpec().getMemory()));
     }
 
-    String gen = Long.toHexString(Double.doubleToLongBits(Math.random()));
-    gen = gen.substring(2, 7);
+    // String gen = Long.toHexString(Double.doubleToLongBits(Math.random())).substring(2, 7);
 
     try (KubernetesClient client = kubClientFactory.retrieveKubernetesClient()) {
-      ReplicaSet rs = new ReplicaSetBuilder()
-          .withKind("ReplicaSet")
+      StatefulSet rs = new StatefulSetBuilder()
           .withNewMetadata()
-          .withName(sgcluster.getMetadata().getName() + "-" + gen)
+          .withName(sgcluster.getMetadata().getName())
           .withLabels(labels)
           .endMetadata()
           .withNewSpec()
-          .withReplicas(1)
+          .withReplicas(sgcluster.getSpec().getInstances())
           .withSelector(new LabelSelectorBuilder()
               .addToMatchLabels(labels)
               .build())
+          .withServiceName(sgcluster.getMetadata().getName())
           .withTemplate(new PodTemplateSpecBuilder()
               .withMetadata(new ObjectMetaBuilder()
                   .addToLabels(labels)
@@ -81,15 +86,25 @@ public class SgReplicaSets {
               .withImage("postgres:11")
               .withResources(new ResourceRequirementsBuilder().addToLimits(limits).build())
               .withPorts(new ContainerPortBuilder().withContainerPort(5432).build())
+              .withVolumeMounts(new VolumeMountBuilder()
+                  .withName("config-volume")
+                  .withMountPath("/etc/stackgres")
+                  .build())
               .endContainer()
+              .withVolumes(new VolumeBuilder()
+                  .withName("config-volume")
+                  .withConfigMap(new ConfigMapVolumeSourceBuilder()
+                      .withName(sgcluster.getMetadata().getName())
+                      .build())
+                  .build())
               .endSpec()
               .build())
           .endSpec()
           .build();
 
-      log.debug("Creating or replacing deployment: {}", sgcluster.getMetadata().getName());
+      log.debug("Creating or replacing: {}", sgcluster.getMetadata().getName());
 
-      client.apps().replicaSets().inNamespace(namespace).createOrReplace(rs);
+      client.apps().statefulSets().inNamespace(namespace).createOrReplace(rs);
       return rs;
     }
   }

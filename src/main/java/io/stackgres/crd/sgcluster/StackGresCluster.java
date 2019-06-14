@@ -6,7 +6,6 @@
 package io.stackgres.crd.sgcluster;
 
 import com.google.common.base.MoreObjects;
-
 import io.fabric8.kubernetes.client.CustomResource;
 
 public class StackGresCluster extends CustomResource {
@@ -26,6 +25,7 @@ public class StackGresCluster extends CustomResource {
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
+        .omitNullValues()
         .add("apiVersion", getApiVersion())
         .add("metadata", getMetadata())
         .add("spec", spec)
