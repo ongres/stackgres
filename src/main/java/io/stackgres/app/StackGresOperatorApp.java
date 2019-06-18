@@ -5,6 +5,7 @@
 
 package io.stackgres.app;
 
+import java.net.SocketTimeoutException;
 import java.util.function.Predicate;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -16,6 +17,7 @@ import io.fabric8.kubernetes.api.model.NamespaceBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.VersionInfo;
 import io.fabric8.kubernetes.internal.KubernetesDeserializer;
 import io.quarkus.runtime.ShutdownEvent;
@@ -56,6 +58,11 @@ public class StackGresOperatorApp {
       client.namespaces().createOrReplace(ns);
       LOGGER.info("Created or replaced namespace: {}", ns);
       startClusterCrdWatcher(client);
+    } catch (KubernetesClientException e) {
+      if (e.getCause() instanceof SocketTimeoutException) {
+        LOGGER.error("Kubernetes cluster is not reachable, check your connection.");
+      }
+      throw e;
     }
   }
 

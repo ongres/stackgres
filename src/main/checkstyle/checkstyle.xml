@@ -32,6 +32,8 @@
     <property name="eachLine" value="true" />
   </module>
 
+  <module name="NewlineAtEndOfFile"/>
+
   <module name="RegexpSingleline">
         <!-- \s matches whitespace character, $ matches end of line. -->
     <property name="format" value="\s+$" />

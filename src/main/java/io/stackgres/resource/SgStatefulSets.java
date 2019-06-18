@@ -62,8 +62,6 @@ public class SgStatefulSets {
       limits.put("memory", new Quantity(sgcluster.getSpec().getMemory()));
     }
 
-    // String gen = Long.toHexString(Double.doubleToLongBits(Math.random())).substring(2, 7);
-
     try (KubernetesClient client = kubClientFactory.retrieveKubernetesClient()) {
       StatefulSet rs = new StatefulSetBuilder()
           .withNewMetadata()

@@ -14,7 +14,6 @@ import javax.inject.Inject;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.ServiceList;
-import io.fabric8.kubernetes.api.model.ServicePort;
 import io.fabric8.kubernetes.api.model.ServicePortBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.app.KubernetesClientFactory;
@@ -46,38 +45,54 @@ public class SgServices {
     labels.put("app", "stackgres");
     labels.put("stackgres-cluster", serviceName);
 
-    ServicePort ports = new ServicePortBuilder()
-        .withProtocol("TCP")
-        .withPort(port)
-        .build();
-
+    labels.put("role", "master");
     try (KubernetesClient client = kubClientFactory.retrieveKubernetesClient()) {
-      Service service = new ServiceBuilder()
-          .withKind("Service")
+      Service service1 = new ServiceBuilder()
           .withNewMetadata()
-          .withName(serviceName)
+          .withName(serviceName + "-primary")
           .withLabels(labels)
           .endMetadata()
           .withNewSpec()
           .withSelector(labels)
-          .withPorts(ports)
-          .withClusterIP("None")
+          .withPorts(new ServicePortBuilder()
+              .withProtocol("TCP")
+              .withPort(port)
+              .build())
+          .withType("ClusterIP")
           .endSpec()
           .build();
 
-      LOGGER.debug("Creating service: {}", serviceName);
+      LOGGER.debug("Creating service ReadWrite: {}-{}", serviceName, "primary");
+      client.services().inNamespace(namespace).createOrReplace(service1);
 
-      client.services().inNamespace(namespace).createOrReplace(service);
+      labels.put("role", "replica");
+      Service service2 = new ServiceBuilder()
+          .withNewMetadata()
+          .withName(serviceName + "-replica")
+          .withLabels(labels)
+          .endMetadata()
+          .withNewSpec()
+          .withSelector(labels)
+          .withPorts(new ServicePortBuilder()
+              .withProtocol("TCP")
+              .withPort(port)
+              .build())
+          .withType("ClusterIP")
+          .endSpec()
+          .build();
+
+      LOGGER.debug("Creating service ReadOnly: {}-{}", serviceName, "replica");
+      client.services().inNamespace(namespace).createOrReplace(service2);
 
       ServiceList listServices = client.services().inNamespace(namespace).list();
       for (Service item : listServices.getItems()) {
         LOGGER.debug(item.getMetadata().getName());
-        if (item.getMetadata().getName().equals(serviceName)) {
-          service = item;
+        if (item.getMetadata().getName().equals(serviceName + "-primary")) {
+          service1 = item;
         }
       }
 
-      return service;
+      return service1;
     }
   }
 
