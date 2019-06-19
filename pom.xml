@@ -198,11 +198,11 @@
                 <requireJavaVersion>
                   <version>${java.version}</version>
                 </requireJavaVersion>
-                <requireProperty>
+                <!--<requireProperty>
                   <property>java.vm.name</property>
                   <regex>^OpenJDK.*GraalVM.*</regex>
                   <regexMessage>GraalVM is required to compile.</regexMessage>
-                </requireProperty>
+                </requireProperty>-->
                 <!--
                 <requireEnvironmentVariable>
                   <variableName>GRAALVM_HOME</variableName>
