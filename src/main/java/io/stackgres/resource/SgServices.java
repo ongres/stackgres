@@ -38,7 +38,7 @@ public class SgServices {
   /**
    * Create the Service associated to the cluster.
    */
-  public @NonNull Service create(@NonNull String serviceName, @NonNull Integer port) {
+  public @NonNull Service create(@NonNull String serviceName, @NonNull Integer postgresPort) {
     LOGGER.debug("Creating service name: {}", serviceName);
 
     Map<String, String> labels = new HashMap<>();
@@ -54,10 +54,11 @@ public class SgServices {
           .endMetadata()
           .withNewSpec()
           .withSelector(labels)
-          .withPorts(new ServicePortBuilder()
-              .withProtocol("TCP")
-              .withPort(port)
-              .build())
+          .withPorts(
+              new ServicePortBuilder()
+                  .withProtocol("TCP")
+                  .withPort(postgresPort)
+                  .build())
           .withType("ClusterIP")
           .endSpec()
           .build();
@@ -73,10 +74,11 @@ public class SgServices {
           .endMetadata()
           .withNewSpec()
           .withSelector(labels)
-          .withPorts(new ServicePortBuilder()
-              .withProtocol("TCP")
-              .withPort(port)
-              .build())
+          .withPorts(
+              new ServicePortBuilder()
+                  .withProtocol("TCP")
+                  .withPort(postgresPort)
+                  .build())
           .withType("ClusterIP")
           .endSpec()
           .build();

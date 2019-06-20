@@ -5,13 +5,16 @@
 
 package io.stackgres.app;
 
+import java.io.IOException;
 import java.net.SocketTimeoutException;
+import java.nio.charset.StandardCharsets;
 import java.util.function.Predicate;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
+import com.google.common.io.Resources;
 import io.fabric8.kubernetes.api.model.Namespace;
 import io.fabric8.kubernetes.api.model.NamespaceBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
@@ -46,7 +49,7 @@ public class StackGresOperatorApp {
   StackGresClusterWatcher watcher;
 
   void onStart(@Observes StartupEvent ev) {
-    LOGGER.info("The application is starting...");
+    printArt();
     try (KubernetesClient client = kubClientFactory.retrieveKubernetesClient()) {
       log(client.getVersion());
       // Create a namespace for all our stuff
@@ -100,10 +103,16 @@ public class StackGresOperatorApp {
   }
 
   private static void log(VersionInfo versionInfo) {
-    LOGGER.info("Version details of this Kubernetes cluster :-");
-    LOGGER.info("Major        : {}", versionInfo.getMajor());
-    LOGGER.info("Minor        : {}", versionInfo.getMinor());
-    LOGGER.info("GitVersion   : {}", versionInfo.getGitVersion());
+    LOGGER.info("Version of this Kubernetes cluster: {}", versionInfo.getGitVersion());
+  }
+
+  private static void printArt() {
+    try {
+      System.out.println(Resources.toString(Resources.getResource("banner.txt"),
+          StandardCharsets.UTF_8));
+    } catch (IOException e) {
+      // Ignore
+    }
   }
 
 }

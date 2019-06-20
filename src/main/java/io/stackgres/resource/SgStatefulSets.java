@@ -11,13 +11,20 @@ import java.util.Map;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import io.fabric8.kubernetes.api.model.ConfigMapEnvSourceBuilder;
 import io.fabric8.kubernetes.api.model.ConfigMapVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
+import io.fabric8.kubernetes.api.model.EnvFromSourceBuilder;
+import io.fabric8.kubernetes.api.model.EnvVarBuilder;
+import io.fabric8.kubernetes.api.model.EnvVarSourceBuilder;
 import io.fabric8.kubernetes.api.model.LabelSelectorBuilder;
+import io.fabric8.kubernetes.api.model.LocalObjectReferenceBuilder;
+import io.fabric8.kubernetes.api.model.ObjectFieldSelectorBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.PodTemplateSpecBuilder;
 import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ResourceRequirementsBuilder;
+import io.fabric8.kubernetes.api.model.SecretKeySelectorBuilder;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
@@ -79,15 +86,52 @@ public class SgStatefulSets {
                   .addToLabels(labels)
                   .build())
               .withNewSpec()
+              .withShareProcessNamespace(true)
               .addNewContainer()
               .withName("sg-postgres")
-              .withImage("postgres:11")
+              .withImage("registry.gitlab.com/ongresinc/artifacts-builder/patroni-postgresql")
               .withResources(new ResourceRequirementsBuilder().addToLimits(limits).build())
-              .withPorts(new ContainerPortBuilder().withContainerPort(5432).build())
+              .withImagePullPolicy("Always")
+              .withPorts(
+                  new ContainerPortBuilder()
+                      .withContainerPort(5432).build(),
+                  new ContainerPortBuilder()
+                      .withContainerPort(8008).build())
               .withVolumeMounts(new VolumeMountBuilder()
                   .withName("config-volume")
                   .withMountPath("/etc/stackgres")
                   .build())
+              .withEnvFrom(new EnvFromSourceBuilder()
+                  .withConfigMapRef(new ConfigMapEnvSourceBuilder()
+                      .withName(sgcluster.getMetadata().getName()).build())
+                  .build())
+              .withEnv(
+                  new EnvVarBuilder().withName("PATRONI_NAME")
+                      .withValueFrom(new EnvVarSourceBuilder().withFieldRef(
+                          new ObjectFieldSelectorBuilder().withFieldPath("metadata.name").build())
+                          .build())
+                      .build(),
+                  new EnvVarBuilder().withName("PATRONI_KUBERNETES_POD_IP")
+                      .withValueFrom(new EnvVarSourceBuilder().withFieldRef(
+                          new ObjectFieldSelectorBuilder().withFieldPath("status.podIP").build())
+                          .build())
+                      .build(),
+                  new EnvVarBuilder().withName("PATRONI_SUPERUSER_PASSWORD")
+                      .withValueFrom(new EnvVarSourceBuilder().withSecretKeyRef(
+                          new SecretKeySelectorBuilder()
+                              .withName(sgcluster.getMetadata().getName())
+                              .withKey("superuser-password")
+                              .build())
+                          .build())
+                      .build(),
+                  new EnvVarBuilder().withName("PATRONI_REPLICATION_PASSWORD")
+                      .withValueFrom(new EnvVarSourceBuilder().withSecretKeyRef(
+                          new SecretKeySelectorBuilder()
+                              .withName(sgcluster.getMetadata().getName())
+                              .withKey("replication-password")
+                              .build())
+                          .build())
+                      .build())
               .endContainer()
               .withVolumes(new VolumeBuilder()
                   .withName("config-volume")
@@ -95,6 +139,8 @@ public class SgStatefulSets {
                       .withName(sgcluster.getMetadata().getName())
                       .build())
                   .build())
+              .withImagePullSecrets(new LocalObjectReferenceBuilder()
+                  .withName("registry-secret").build())
               .endSpec()
               .build())
           .endSpec()

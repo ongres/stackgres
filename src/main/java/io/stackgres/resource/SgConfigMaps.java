@@ -7,6 +7,7 @@ package io.stackgres.resource;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -37,11 +38,31 @@ public class SgConfigMaps {
   /**
    * Create the Service associated to the cluster.
    */
-  public @NonNull ConfigMap create(@NonNull String configMapName, @NonNull String patroniScope) {
+  public @NonNull ConfigMap create(@NonNull String configMapName) {
     LOGGER.debug("Creating service name: {}", configMapName);
 
+    Map<String, String> labels = new HashMap<>();
+    labels.put("app", "stackgres");
+    labels.put("stackgres-cluster", configMapName);
+
+    String patroniLabels = labels.entrySet().stream()
+        .map(f -> f.getKey() + ": \"" + f.getValue() + "\"")
+        .collect(Collectors.joining(", ", "{", "}"));
+
     Map<String, String> data = new HashMap<>();
-    data.put("PATRONI_SCOPE", patroniScope);
+    data.put("PATRONI_SCOPE", configMapName);
+    data.put("PATRONI_KUBERNETES_NAMESPACE", namespace);
+    data.put("PATRONI_SUPERUSER_USERNAME", "postgres");
+    data.put("PATRONI_REPLICATION_USERNAME", "replication");
+    data.put("PATRONI_KUBERNETES_USE_ENDPOINTS", "true");
+    data.put("PATRONI_KUBERNETES_LABELS", patroniLabels);
+    data.put("PATRONI_POSTGRESQL_LISTEN", "0.0.0.0");
+    data.put("PATRONI_RESTAPI_LISTEN", "0.0.0.0:8008");
+    data.put("PATRONI_POSTGRESQL_DATA_DIR", "/var/lib/postgresql/data");
+    data.put("PATRONI_POSTGRESQL_BIN_DIR", "/usr/lib/postgresql/11/bin");
+    data.put("PATRONI_CONFIG_DIR", "/var/lib/postgresql/data");
+    data.put("PATRONI_POSTGRESQL_PORT", "5432");
+    data.put("PATRONI_POSTGRES_UNIX_SOCKET_DIRECTORY", "/var/run/postgresql");
 
     try (KubernetesClient client = kubClientFactory.retrieveKubernetesClient()) {
       ConfigMap cm = new ConfigMapBuilder()
