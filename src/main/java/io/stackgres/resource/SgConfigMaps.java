@@ -17,6 +17,7 @@ import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.ConfigMapList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.app.KubernetesClientFactory;
+import io.stackgres.util.QuarkusProfile;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
@@ -64,7 +65,11 @@ public class SgConfigMaps {
     data.put("PATRONI_CONFIG_DIR", "/var/lib/postgresql/data");
     data.put("PATRONI_POSTGRESQL_PORT", "5432");
     data.put("PATRONI_POSTGRES_UNIX_SOCKET_DIRECTORY", "/var/run/postgresql");
-    data.put("PATRONI_LOG_LEVEL", "DEBUG");
+
+    if (QuarkusProfile.getActiveProfile().isDev()) {
+      LOGGER.debug("PATRONI_LOG_LEVEL: {}", "DEBUG");
+      data.put("PATRONI_LOG_LEVEL", "DEBUG");
+    }
 
     try (KubernetesClient client = kubClientFactory.retrieveKubernetesClient()) {
       ConfigMap cm = new ConfigMapBuilder()
