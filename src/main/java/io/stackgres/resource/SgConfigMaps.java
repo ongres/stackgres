@@ -52,6 +52,7 @@ public class SgConfigMaps {
     Map<String, String> data = new HashMap<>();
     data.put("PATRONI_SCOPE", configMapName);
     data.put("PATRONI_KUBERNETES_NAMESPACE", namespace);
+    data.put("DCS_ENABLE_KUBERNETES_API", "true");
     data.put("PATRONI_SUPERUSER_USERNAME", "postgres");
     data.put("PATRONI_REPLICATION_USERNAME", "replication");
     data.put("PATRONI_KUBERNETES_USE_ENDPOINTS", "true");
@@ -63,6 +64,7 @@ public class SgConfigMaps {
     data.put("PATRONI_CONFIG_DIR", "/var/lib/postgresql/data");
     data.put("PATRONI_POSTGRESQL_PORT", "5432");
     data.put("PATRONI_POSTGRES_UNIX_SOCKET_DIRECTORY", "/var/run/postgresql");
+    data.put("PATRONI_LOG_LEVEL", "DEBUG");
 
     try (KubernetesClient client = kubClientFactory.retrieveKubernetesClient()) {
       ConfigMap cm = new ConfigMapBuilder()

@@ -87,6 +87,7 @@ public class SgStatefulSets {
                   .build())
               .withNewSpec()
               .withShareProcessNamespace(true)
+              .withServiceAccountName(sgcluster.getMetadata().getName())
               .addNewContainer()
               .withName("sg-postgres")
               .withImage("registry.gitlab.com/ongresinc/artifacts-builder/patroni-postgresql")

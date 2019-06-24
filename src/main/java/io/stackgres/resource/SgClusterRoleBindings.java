@@ -8,6 +8,8 @@ package io.stackgres.resource;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import io.fabric8.kubernetes.api.model.ServiceAccount;
+import io.fabric8.kubernetes.api.model.ServiceAccountBuilder;
 import io.fabric8.kubernetes.api.model.rbac.ClusterRoleBinding;
 import io.fabric8.kubernetes.api.model.rbac.ClusterRoleBindingBuilder;
 import io.fabric8.kubernetes.api.model.rbac.ClusterRoleBindingList;
@@ -40,6 +42,15 @@ public class SgClusterRoleBindings {
     LOGGER.debug("Creating ClusterRoleBinding: {}", name);
 
     try (KubernetesClient client = kubClientFactory.retrieveKubernetesClient()) {
+      ServiceAccount sa = new ServiceAccountBuilder()
+          .withNewMetadata()
+          .withName(name)
+          .withNamespace(namespace)
+          .endMetadata()
+          .build();
+
+      client.serviceAccounts().inNamespace(namespace).createOrReplace(sa);
+
       ClusterRoleBinding crb = new ClusterRoleBindingBuilder()
           .withNewMetadata()
           .withName(name)
