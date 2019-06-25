@@ -14,12 +14,12 @@ import java.util.UUID;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.api.model.SecretList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.app.KubernetesClientFactory;
+import io.stackgres.util.ResourceUtils;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
@@ -69,7 +69,6 @@ public class SgSecrets {
 
       SecretList list = client.secrets().inNamespace(namespace).list();
       for (Secret item : list.getItems()) {
-        LOGGER.debug(item.getMetadata().getName());
         if (item.getMetadata().getName().equals(secretName)) {
           secret = item;
         }
@@ -80,10 +79,7 @@ public class SgSecrets {
   }
 
   private boolean exists(@NonNull KubernetesClient client, @NonNull String secretName) {
-    return client.secrets().list().getItems().stream()
-        .map(Secret::getMetadata)
-        .map(ObjectMeta::getName)
-        .anyMatch(secretName::equals);
+    return ResourceUtils.exists(client.secrets().list().getItems(), secretName);
   }
 
   private static String generatePassword() {
