@@ -43,8 +43,8 @@ public class SgConfigMaps {
     LOGGER.debug("Creating service name: {}", configMapName);
 
     Map<String, String> labels = new HashMap<>();
-    labels.put("app", "stackgres");
-    labels.put("stackgres-cluster", configMapName);
+    labels.put("app", "StackGres");
+    labels.put("cluster-name", configMapName);
 
     String patroniLabels = labels.entrySet().stream()
         .map(f -> f.getKey() + ": \"" + f.getValue() + "\"")
@@ -53,7 +53,6 @@ public class SgConfigMaps {
     Map<String, String> data = new HashMap<>();
     data.put("PATRONI_SCOPE", configMapName);
     data.put("PATRONI_KUBERNETES_NAMESPACE", namespace);
-    data.put("DCS_ENABLE_KUBERNETES_API", "true");
     data.put("PATRONI_SUPERUSER_USERNAME", "postgres");
     data.put("PATRONI_REPLICATION_USERNAME", "replication");
     data.put("PATRONI_KUBERNETES_USE_ENDPOINTS", "true");

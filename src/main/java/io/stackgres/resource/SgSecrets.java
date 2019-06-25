@@ -45,8 +45,8 @@ public class SgSecrets {
     LOGGER.debug("Creating Secret: {}", secretName);
 
     Map<String, String> labels = new HashMap<>();
-    labels.put("app", "stackgres");
-    labels.put("stackgres-cluster", secretName);
+    labels.put("app", "StackGres");
+    labels.put("cluster-name", secretName);
 
     Map<String, String> data = new HashMap<>();
     data.put("superuser-password", generatePassword());

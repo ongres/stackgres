@@ -58,8 +58,8 @@ public class SgStatefulSets {
     log.debug("Creating cluster name: {}", sgcluster.getMetadata().getName());
 
     Map<String, String> labels = new HashMap<>();
-    labels.put("app", "stackgres");
-    labels.put("stackgres-cluster", sgcluster.getMetadata().getName());
+    labels.put("app", "StackGres");
+    labels.put("cluster-name", sgcluster.getMetadata().getName());
 
     Map<String, Quantity> limits = new HashMap<>();
     if (!"".equals(sgcluster.getSpec().getCpu())) {

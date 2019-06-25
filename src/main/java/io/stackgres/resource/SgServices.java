@@ -42,8 +42,8 @@ public class SgServices {
     LOGGER.debug("Creating service name: {}", serviceName);
 
     Map<String, String> labels = new HashMap<>();
-    labels.put("app", "stackgres");
-    labels.put("stackgres-cluster", serviceName);
+    labels.put("app", "StackGres");
+    labels.put("cluster-name", serviceName);
 
     labels.put("role", "master");
     try (KubernetesClient client = kubClientFactory.retrieveKubernetesClient()) {
