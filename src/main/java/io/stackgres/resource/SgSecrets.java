@@ -41,12 +41,12 @@ public class SgSecrets {
   /**
    * Create the Service associated to the cluster.
    */
-  public @NonNull Secret create(@NonNull String secretName) {
-    LOGGER.debug("Creating Secret: {}", secretName);
+  public @NonNull Secret create(@NonNull String name) {
+    LOGGER.debug("Creating Secret: {}", name);
 
     Map<String, String> labels = new HashMap<>();
     labels.put("app", "StackGres");
-    labels.put("cluster-name", secretName);
+    labels.put("cluster-name", name);
 
     Map<String, String> data = new HashMap<>();
     data.put("superuser-password", generatePassword());
@@ -54,10 +54,10 @@ public class SgSecrets {
 
     try (KubernetesClient client = kubClientFactory.retrieveKubernetesClient()) {
       Secret secret = new Secret();
-      if (!exists(client, secretName)) {
+      if (!exists(client, name)) {
         secret = new SecretBuilder()
             .withNewMetadata()
-            .withName(secretName)
+            .withName(name)
             .withLabels(labels)
             .endMetadata()
             .withType("Opaque")
@@ -69,7 +69,7 @@ public class SgSecrets {
 
       SecretList list = client.secrets().inNamespace(namespace).list();
       for (Secret item : list.getItems()) {
-        if (item.getMetadata().getName().equals(secretName)) {
+        if (item.getMetadata().getName().equals(name)) {
           secret = item;
         }
       }
@@ -79,11 +79,12 @@ public class SgSecrets {
   }
 
   private boolean exists(@NonNull KubernetesClient client, @NonNull String secretName) {
-    return ResourceUtils.exists(client.secrets().list().getItems(), secretName);
+    return ResourceUtils.exists(client.secrets().inNamespace(namespace).list().getItems(),
+        secretName);
   }
 
   private static String generatePassword() {
-    return base64(UUID.randomUUID().toString().substring(0, 16).getBytes(StandardCharsets.UTF_8));
+    return base64(UUID.randomUUID().toString().substring(4, 20).getBytes(StandardCharsets.UTF_8));
   }
 
   private static String base64(byte[] bytes) {

@@ -39,19 +39,19 @@ public class SgConfigMaps {
   /**
    * Create the Service associated to the cluster.
    */
-  public @NonNull ConfigMap create(@NonNull String configMapName) {
-    LOGGER.debug("Creating service name: {}", configMapName);
+  public @NonNull ConfigMap create(@NonNull String name) {
+    LOGGER.debug("Creating service name: {}", name);
 
     Map<String, String> labels = new HashMap<>();
     labels.put("app", "StackGres");
-    labels.put("cluster-name", configMapName);
+    labels.put("cluster-name", name);
 
     String patroniLabels = labels.entrySet().stream()
         .map(f -> f.getKey() + ": \"" + f.getValue() + "\"")
         .collect(Collectors.joining(", ", "{", "}"));
 
     Map<String, String> data = new HashMap<>();
-    data.put("PATRONI_SCOPE", configMapName);
+    data.put("PATRONI_SCOPE", name);
     data.put("PATRONI_KUBERNETES_NAMESPACE", namespace);
     data.put("PATRONI_SUPERUSER_USERNAME", "postgres");
     data.put("PATRONI_REPLICATION_USERNAME", "replication");
@@ -73,19 +73,19 @@ public class SgConfigMaps {
     try (KubernetesClient client = kubClientFactory.retrieveKubernetesClient()) {
       ConfigMap cm = new ConfigMapBuilder()
           .withNewMetadata()
-          .withName(configMapName)
+          .withName(name)
           .endMetadata()
           .withData(data)
           .build();
 
-      LOGGER.debug("Creating config map: {}", configMapName);
+      LOGGER.debug("Creating config map: {}", name);
 
       client.configMaps().inNamespace(namespace).createOrReplace(cm);
 
       ConfigMapList list = client.configMaps().inNamespace(namespace).list();
       for (ConfigMap item : list.getItems()) {
         LOGGER.debug(item.getMetadata().getName());
-        if (item.getMetadata().getName().equals(configMapName)) {
+        if (item.getMetadata().getName().equals(name)) {
           cm = item;
         }
       }

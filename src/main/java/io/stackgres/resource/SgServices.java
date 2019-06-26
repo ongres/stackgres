@@ -38,18 +38,18 @@ public class SgServices {
   /**
    * Create the Service associated to the cluster.
    */
-  public @NonNull Service create(@NonNull String serviceName, @NonNull Integer postgresPort) {
-    LOGGER.debug("Creating service name: {}", serviceName);
+  public @NonNull Service create(@NonNull String name, @NonNull Integer postgresPort) {
+    LOGGER.debug("Creating service name: {}", name);
 
     Map<String, String> labels = new HashMap<>();
     labels.put("app", "StackGres");
-    labels.put("cluster-name", serviceName);
+    labels.put("cluster-name", name);
 
     labels.put("role", "master");
     try (KubernetesClient client = kubClientFactory.retrieveKubernetesClient()) {
       Service service1 = new ServiceBuilder()
           .withNewMetadata()
-          .withName(serviceName + "-primary")
+          .withName(name + "-primary")
           .withLabels(labels)
           .endMetadata()
           .withNewSpec()
@@ -63,13 +63,13 @@ public class SgServices {
           .endSpec()
           .build();
 
-      LOGGER.debug("Creating service ReadWrite: {}-{}", serviceName, "primary");
+      LOGGER.debug("Creating service ReadWrite: {}-{}", name, "primary");
       client.services().inNamespace(namespace).createOrReplace(service1);
 
       labels.put("role", "replica");
       Service service2 = new ServiceBuilder()
           .withNewMetadata()
-          .withName(serviceName + "-replica")
+          .withName(name + "-replica")
           .withLabels(labels)
           .endMetadata()
           .withNewSpec()
@@ -83,13 +83,13 @@ public class SgServices {
           .endSpec()
           .build();
 
-      LOGGER.debug("Creating service ReadOnly: {}-{}", serviceName, "replica");
+      LOGGER.debug("Creating service ReadOnly: {}-{}", name, "replica");
       client.services().inNamespace(namespace).createOrReplace(service2);
 
       ServiceList listServices = client.services().inNamespace(namespace).list();
       for (Service item : listServices.getItems()) {
         LOGGER.debug(item.getMetadata().getName());
-        if (item.getMetadata().getName().equals(serviceName + "-primary")) {
+        if (item.getMetadata().getName().equals(name + "-primary")) {
           service1 = item;
         }
       }

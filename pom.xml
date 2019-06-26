@@ -6,7 +6,7 @@
 
   <groupId>io.stackgres</groupId>
   <artifactId>stackgres-operator</artifactId>
-  <version>1.0alpha1-SNAPSHOT</version>
+  <version>0.5alpha1-SNAPSHOT</version>
 
   <inceptionYear>2019</inceptionYear>
 
