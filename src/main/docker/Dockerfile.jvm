@@ -7,11 +7,11 @@
 #
 # Then, build the image with:
 #
-# docker build -f src/main/docker/Dockerfile.jvm -t quarkus/stackgres-jvm .
+# docker build -f src/main/docker/Dockerfile.jvm -t stackgres/stackgres-operator .
 #
 # Then run the container using:
 #
-# docker run -i --rm -p 8080:8080 quarkus/stackgres-jvm
+# docker run -i --rm -p 8080:8080 stackgres/stackgres-operator
 #
 ###
 FROM fabric8/java-alpine-openjdk8-jre

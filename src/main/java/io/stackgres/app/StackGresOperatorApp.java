@@ -5,16 +5,13 @@
 
 package io.stackgres.app;
 
-import java.io.IOException;
 import java.net.SocketTimeoutException;
-import java.nio.charset.StandardCharsets;
 import java.util.function.Predicate;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
-import com.google.common.io.Resources;
 import io.fabric8.kubernetes.api.model.Namespace;
 import io.fabric8.kubernetes.api.model.NamespaceBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
@@ -106,13 +103,21 @@ public class StackGresOperatorApp {
     LOGGER.info("Version of this Kubernetes cluster: {}", versionInfo.getGitVersion());
   }
 
-  private static void printArt() {
-    try {
-      System.out.println(Resources.toString(Resources.getResource("banner.txt"),
-          StandardCharsets.UTF_8));
-    } catch (IOException e) {
-      // Ignore
-    }
+  private void printArt() {
+    // try {
+    // System.out.println(Resources.toString(Resources.getResource("banner.txt"),
+    // StandardCharsets.UTF_8));
+    System.out.println("   _____ _             _     _____               \n" +
+        "  / ____| |           | |   / ____|              \n" +
+        " | (___ | |_ __ _  ___| | _| |  __ _ __ ___  ___ \n" +
+        "  \\___ \\| __/ _` |/ __| |/ / | |_ | '__/ _ \\/ __|\n" +
+        "  ____) | || (_| | (__|   <| |__| | | |  __/\\__ \\\n" +
+        " |_____/ \\__\\__,_|\\___|_|\\_\\\\_____|_|  \\___||___/\n" +
+        "                                   by OnGres Inc.\n" +
+        "");
+    // } catch (IOException e) {
+    // // Ignore
+    // }
   }
 
 }
