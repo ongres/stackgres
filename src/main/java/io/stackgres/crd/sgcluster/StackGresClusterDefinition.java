@@ -10,10 +10,6 @@ import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinitionBui
 
 public class StackGresClusterDefinition {
 
-  private StackGresClusterDefinition() {
-    throw new AssertionError("No instances for you!");
-  }
-
   public static final String GROUP = "stackgres.io";
   public static final String VERSION = "v1alpha1";
   public static final String KIND = "StackGresCluster";
@@ -40,5 +36,9 @@ public class StackGresClusterDefinition {
           .endNames()
           .endSpec()
           .build();
+
+  private StackGresClusterDefinition() {
+    throw new AssertionError("No instances for you!");
+  }
 
 }

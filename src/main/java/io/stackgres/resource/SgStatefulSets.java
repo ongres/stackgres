@@ -37,17 +37,16 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@SuppressWarnings("initialization.fields.uninitialized")
 @ApplicationScoped
 public class SgStatefulSets {
 
   private static final Logger log = LoggerFactory.getLogger(SgStatefulSets.class);
 
   @ConfigProperty(name = "stackgres.namespace", defaultValue = "stackgres")
-  @NonNull
   String namespace;
 
   @Inject
-  @NonNull
   KubernetesClientFactory kubClientFactory;
 
   /**
