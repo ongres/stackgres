@@ -31,7 +31,10 @@
     <!-- Plugins versions -->
     <enforcer-plugin.version>3.0.0-M2</enforcer-plugin.version>
     <compiler-plugin.version>3.8.1</compiler-plugin.version>
+    <compiler-plugin.version>3.8.1</compiler-plugin.version>
     <jar-plugin.version>3.1.2</jar-plugin.version>
+    <clean-plugin.version>3.1.0</clean-plugin.version>
+    <resources-plugin.version>3.1.0</resources-plugin.version>
     <surefire-plugin.version>3.0.0-M3</surefire-plugin.version>
     <checkstyle-plugin.version>3.1.0</checkstyle-plugin.version>
     <spotbugs-plugin.version>3.1.12</spotbugs-plugin.version>
@@ -117,6 +120,12 @@
   </dependencies>
 
   <build>
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+        <filtering>true</filtering>
+      </resource>
+    </resources>
     <plugins>
       <plugin>
         <groupId>io.quarkus</groupId>
@@ -133,6 +142,14 @@
       <plugin>
         <artifactId>maven-jar-plugin</artifactId>
         <version>${jar-plugin.version}</version>
+      </plugin>
+      <plugin>
+        <artifactId>maven-clean-plugin</artifactId>
+        <version>${clean-plugin.version}</version>
+      </plugin>
+      <plugin>
+        <artifactId>maven-resources-plugin</artifactId>
+        <version>${resources-plugin.version}</version>
       </plugin>
       <plugin>
         <artifactId>maven-surefire-plugin</artifactId>
