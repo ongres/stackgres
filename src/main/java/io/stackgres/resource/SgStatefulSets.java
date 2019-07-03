@@ -29,10 +29,10 @@ import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
+import io.fabric8.kubernetes.api.model.apps.StatefulSetSpec;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.app.KubernetesClientFactory;
 import io.stackgres.crd.sgcluster.StackGresCluster;
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,43 +52,43 @@ public class SgStatefulSets {
   /**
    * Create a new StatefulSet based on the StackGresCluster definition.
    */
-  public StatefulSet create(@NonNull StackGresCluster sgcluster) {
-
-    log.debug("Creating cluster name: {}", sgcluster.getMetadata().getName());
+  public StatefulSet create(StackGresCluster resource) {
+    final String name = resource.getMetadata().getName();
+    log.debug("Creating cluster name: {}", name);
 
     Map<String, String> labels = new HashMap<>();
     labels.put("app", "StackGres");
-    labels.put("cluster-name", sgcluster.getMetadata().getName());
+    labels.put("cluster-name", name);
 
     Map<String, Quantity> limits = new HashMap<>();
-    if (!"".equals(sgcluster.getSpec().getCpu())) {
-      limits.put("cpu", new Quantity(sgcluster.getSpec().getCpu()));
+    if (!"".equals(resource.getSpec().getCpu())) {
+      limits.put("cpu", new Quantity(resource.getSpec().getCpu()));
     }
-    if (!"".equals(sgcluster.getSpec().getMemory())) {
-      limits.put("memory", new Quantity(sgcluster.getSpec().getMemory()));
+    if (!"".equals(resource.getSpec().getMemory())) {
+      limits.put("memory", new Quantity(resource.getSpec().getMemory()));
     }
 
     try (KubernetesClient client = kubClientFactory.retrieveKubernetesClient()) {
       StatefulSet rs = new StatefulSetBuilder()
           .withNewMetadata()
-          .withName(sgcluster.getMetadata().getName())
+          .withName(name)
           .withLabels(labels)
           .endMetadata()
           .withNewSpec()
-          .withReplicas(sgcluster.getSpec().getInstances())
+          .withReplicas(resource.getSpec().getInstances())
           .withSelector(new LabelSelectorBuilder()
               .addToMatchLabels(labels)
               .build())
-          .withServiceName(sgcluster.getMetadata().getName())
+          .withServiceName(name)
           .withTemplate(new PodTemplateSpecBuilder()
               .withMetadata(new ObjectMetaBuilder()
                   .addToLabels(labels)
                   .build())
               .withNewSpec()
               .withShareProcessNamespace(true)
-              .withServiceAccountName(sgcluster.getMetadata().getName())
+              .withServiceAccountName(name)
               .addNewContainer()
-              .withName(sgcluster.getMetadata().getName())
+              .withName(name)
               .withImage("registry.gitlab.com/ongresinc/artifacts-builder/patroni-postgresql")
               .withResources(new ResourceRequirementsBuilder().addToLimits(limits).build())
               .withImagePullPolicy("Always")
@@ -103,7 +103,7 @@ public class SgStatefulSets {
                   .build())
               .withEnvFrom(new EnvFromSourceBuilder()
                   .withConfigMapRef(new ConfigMapEnvSourceBuilder()
-                      .withName(sgcluster.getMetadata().getName()).build())
+                      .withName(name).build())
                   .build())
               .withEnv(
                   new EnvVarBuilder().withName("PATRONI_NAME")
@@ -119,7 +119,7 @@ public class SgStatefulSets {
                   new EnvVarBuilder().withName("PATRONI_SUPERUSER_PASSWORD")
                       .withValueFrom(new EnvVarSourceBuilder().withSecretKeyRef(
                           new SecretKeySelectorBuilder()
-                              .withName(sgcluster.getMetadata().getName())
+                              .withName(name)
                               .withKey("superuser-password")
                               .build())
                           .build())
@@ -127,7 +127,7 @@ public class SgStatefulSets {
                   new EnvVarBuilder().withName("PATRONI_REPLICATION_PASSWORD")
                       .withValueFrom(new EnvVarSourceBuilder().withSecretKeyRef(
                           new SecretKeySelectorBuilder()
-                              .withName(sgcluster.getMetadata().getName())
+                              .withName(name)
                               .withKey("replication-password")
                               .build())
                           .build())
@@ -136,7 +136,7 @@ public class SgStatefulSets {
               .withVolumes(new VolumeBuilder()
                   .withName("config-volume")
                   .withConfigMap(new ConfigMapVolumeSourceBuilder()
-                      .withName(sgcluster.getMetadata().getName())
+                      .withName(name)
                       .build())
                   .build())
               .withImagePullSecrets(new LocalObjectReferenceBuilder()
@@ -146,11 +146,60 @@ public class SgStatefulSets {
           .endSpec()
           .build();
 
-      log.debug("Creating or replacing: {}", sgcluster.getMetadata().getName());
+      log.debug("Creating: {}", name);
 
-      client.apps().statefulSets().inNamespace(namespace).createOrReplace(rs);
+      client.apps().statefulSets().inNamespace(namespace).create(rs);
       return rs;
     }
+  }
+
+  /**
+   * Update the specification of the cluster.
+   */
+  public StatefulSet update(StackGresCluster resource) {
+    final String name = resource.getMetadata().getName();
+
+    try (KubernetesClient client = kubClientFactory.retrieveKubernetesClient()) {
+      StatefulSet ss = client.apps().statefulSets().inNamespace(namespace).withName(name).get();
+
+      if (ss != null) {
+        int instances = resource.getSpec().getInstances();
+
+        StatefulSetSpec spec = ss.getSpec();
+        if (spec.getReplicas() != instances) {
+          spec.setReplicas(instances);
+        }
+        ss.setSpec(spec);
+
+        client.apps().statefulSets().inNamespace(namespace).createOrReplace(ss);
+      }
+
+      return ss;
+    }
+  }
+
+  /**
+   * Delete resource.
+   */
+  public StatefulSet delete(StackGresCluster resource) {
+    try (KubernetesClient client = kubClientFactory.retrieveKubernetesClient()) {
+      return delete(client, resource);
+    }
+  }
+
+  /**
+   * Delete resource.
+   */
+  public StatefulSet delete(KubernetesClient client, StackGresCluster resource) {
+    final String name = resource.getMetadata().getName();
+
+    StatefulSet ss = client.apps().statefulSets().inNamespace(namespace).withName(name).get();
+    if (ss != null) {
+      client.apps().statefulSets().inNamespace(namespace).withName(name).withGracePeriod(0L)
+          .delete();
+    }
+
+    return ss;
   }
 
 }

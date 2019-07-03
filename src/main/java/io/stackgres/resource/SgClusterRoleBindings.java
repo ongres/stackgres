@@ -17,7 +17,7 @@ import io.fabric8.kubernetes.api.model.rbac.RoleRefBuilder;
 import io.fabric8.kubernetes.api.model.rbac.SubjectBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.app.KubernetesClientFactory;
-import org.checkerframework.checker.nullness.qual.NonNull;
+import io.stackgres.crd.sgcluster.StackGresCluster;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,7 +37,8 @@ public class SgClusterRoleBindings {
   /**
    * Create the Service associated to the cluster.
    */
-  public @NonNull ClusterRoleBinding create(@NonNull String name) {
+  public ClusterRoleBinding create(StackGresCluster sgcluster) {
+    final String name = sgcluster.getMetadata().getName();
     LOGGER.debug("Creating ClusterRoleBinding: {}", name);
 
     try (KubernetesClient client = kubClientFactory.retrieveKubernetesClient()) {
@@ -48,7 +49,7 @@ public class SgClusterRoleBindings {
           .endMetadata()
           .build();
 
-      client.serviceAccounts().inNamespace(namespace).createOrReplace(sa);
+      client.serviceAccounts().inNamespace(namespace).create(sa);
 
       ClusterRoleBinding crb = new ClusterRoleBindingBuilder()
           .withNewMetadata()
@@ -66,7 +67,7 @@ public class SgClusterRoleBindings {
               .build())
           .build();
 
-      client.rbac().clusterRoleBindings().inNamespace(namespace).createOrReplace(crb);
+      client.rbac().clusterRoleBindings().inNamespace(namespace).create(crb);
 
       ClusterRoleBindingList list =
           client.rbac().clusterRoleBindings().inNamespace(namespace).list();
@@ -79,6 +80,38 @@ public class SgClusterRoleBindings {
 
       return crb;
     }
+  }
+
+  /**
+   * Delete resource.
+   */
+  public ClusterRoleBinding delete(StackGresCluster resource) {
+    try (KubernetesClient client = kubClientFactory.retrieveKubernetesClient()) {
+      return delete(client, resource);
+    }
+  }
+
+  /**
+   * Delete resource.
+   */
+  public ClusterRoleBinding delete(KubernetesClient client, StackGresCluster resource) {
+    final String name = resource.getMetadata().getName();
+
+    ClusterRoleBinding crb = client.rbac().clusterRoleBindings().inNamespace(namespace)
+        .withName(name).get();
+    if (crb != null) {
+      client.rbac().clusterRoleBindings().inNamespace(namespace).withName(name).withGracePeriod(0L)
+          .delete();
+    }
+
+    ServiceAccount servAccount = client.serviceAccounts().inNamespace(namespace)
+        .withName(name).get();
+    if (servAccount != null) {
+      client.serviceAccounts().inNamespace(namespace).withName(name).withGracePeriod(0L)
+          .delete();
+    }
+
+    return crb;
   }
 
 }

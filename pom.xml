@@ -23,7 +23,6 @@
     <maven.compiler.target>${java.version}</maven.compiler.target>
     <!-- Dependencies versions -->
     <quarkus.version>0.18.0</quarkus.version>
-    <kubernetes-client.version>4.3.0</kubernetes-client.version>
     <spotbugs.version>3.1.12</spotbugs.version>
     <guava.version>28.0-jre</guava.version>
     <checkstyle.version>8.22</checkstyle.version>
@@ -297,7 +296,7 @@
                 </goals>
                 <configuration>
                   <enableHttpUrlHandler>true</enableHttpUrlHandler>
-                  <additionalBuildArgs>-H:IncludeResources=.*/banner.txt,-H:Log=registerResource:verbose</additionalBuildArgs>
+                  <additionalBuildArgs>-H:IncludeResources=.*/banner.txt</additionalBuildArgs>
                 </configuration>
               </execution>
             </executions>

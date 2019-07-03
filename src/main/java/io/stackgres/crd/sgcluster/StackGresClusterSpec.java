@@ -47,6 +47,7 @@ public class StackGresClusterSpec implements KubernetesResource<StackGresCluster
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .omitNullValues()
+        .add("instances", instances)
         .add("cpu", cpu)
         .add("memory", memory)
         .toString();

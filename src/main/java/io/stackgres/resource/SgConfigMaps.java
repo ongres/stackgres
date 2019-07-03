@@ -17,8 +17,8 @@ import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.ConfigMapList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.app.KubernetesClientFactory;
+import io.stackgres.crd.sgcluster.StackGresCluster;
 import io.stackgres.util.QuarkusProfile;
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,17 +30,16 @@ public class SgConfigMaps {
   private static final Logger LOGGER = LoggerFactory.getLogger(SgConfigMaps.class);
 
   @ConfigProperty(name = "stackgres.namespace", defaultValue = "stackgres")
-  @NonNull
   String namespace;
 
   @Inject
-  @NonNull
   KubernetesClientFactory kubClientFactory;
 
   /**
    * Create the Service associated to the cluster.
    */
-  public @NonNull ConfigMap create(@NonNull String name) {
+  public ConfigMap create(StackGresCluster sgcluster) {
+    final String name = sgcluster.getMetadata().getName();
     LOGGER.debug("Creating service name: {}", name);
 
     Map<String, String> labels = new HashMap<>();
@@ -93,6 +92,29 @@ public class SgConfigMaps {
 
       return cm;
     }
+  }
+
+  /**
+   * Delete resource.
+   */
+  public ConfigMap delete(StackGresCluster resource) {
+    try (KubernetesClient client = kubClientFactory.retrieveKubernetesClient()) {
+      return delete(client, resource);
+    }
+  }
+
+  /**
+   * Delete resource.
+   */
+  public ConfigMap delete(KubernetesClient client, StackGresCluster resource) {
+    final String name = resource.getMetadata().getName();
+
+    ConfigMap secret = client.configMaps().inNamespace(namespace).withName(name).get();
+    if (secret != null) {
+      client.configMaps().inNamespace(namespace).withName(name).withGracePeriod(0L).delete();
+    }
+
+    return secret;
   }
 
 }

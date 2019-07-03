@@ -8,7 +8,6 @@ package io.stackgres.app;
 import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.nio.charset.StandardCharsets;
-import java.util.function.Predicate;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
@@ -17,7 +16,6 @@ import javax.inject.Inject;
 import com.google.common.io.Resources;
 import io.fabric8.kubernetes.api.model.Namespace;
 import io.fabric8.kubernetes.api.model.NamespaceBuilder;
-import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
@@ -29,6 +27,7 @@ import io.stackgres.crd.sgcluster.StackGresCluster;
 import io.stackgres.crd.sgcluster.StackGresClusterDefinition;
 import io.stackgres.crd.sgcluster.StackGresClusterDoneable;
 import io.stackgres.crd.sgcluster.StackGresClusterList;
+import io.stackgres.util.ResourceUtils;
 import io.stackgres.watcher.StackGresClusterWatcher;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
@@ -77,7 +76,7 @@ public class StackGresOperatorApp {
   private void startClusterCrdWatcher(KubernetesClient client) {
     LOGGER.info("startClusterCRDWatcher");
     createCrdIfNotExists(client, StackGresClusterDefinition.CR_DEFINITION,
-        StackGresClusterDefinition.NAME::equals);
+        StackGresClusterDefinition.NAME);
 
     KubernetesDeserializer.registerCustomKind(StackGresClusterDefinition.APIVERSION,
         StackGresClusterDefinition.KIND, StackGresCluster.class);
@@ -92,11 +91,9 @@ public class StackGresOperatorApp {
   }
 
   private static void createCrdIfNotExists(KubernetesClient client,
-      CustomResourceDefinition definition, Predicate<String> matcher) {
-    boolean exists = client.customResourceDefinitions().list().getItems().stream()
-        .map(CustomResourceDefinition::getMetadata)
-        .map(ObjectMeta::getName)
-        .anyMatch(matcher);
+      CustomResourceDefinition definition, String name) {
+    boolean exists = ResourceUtils.exists(client.customResourceDefinitions().list().getItems(),
+        name);
 
     if (!exists) {
       client.customResourceDefinitions().create(definition);

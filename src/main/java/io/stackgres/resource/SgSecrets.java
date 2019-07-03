@@ -19,6 +19,7 @@ import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.api.model.SecretList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.app.KubernetesClientFactory;
+import io.stackgres.crd.sgcluster.StackGresCluster;
 import io.stackgres.util.ResourceUtils;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
@@ -40,7 +41,8 @@ public class SgSecrets {
   /**
    * Create the Service associated to the cluster.
    */
-  public @NonNull Secret create(@NonNull String name) {
+  public Secret create(StackGresCluster sgcluster) {
+    final String name = sgcluster.getMetadata().getName();
     LOGGER.debug("Creating Secret: {}", name);
 
     Map<String, String> labels = new HashMap<>();
@@ -89,4 +91,28 @@ public class SgSecrets {
   private static String base64(byte[] bytes) {
     return Base64.getEncoder().encodeToString(bytes);
   }
+
+  /**
+   * Delete resource.
+   */
+  public Secret delete(StackGresCluster resource) {
+    try (KubernetesClient client = kubClientFactory.retrieveKubernetesClient()) {
+      return delete(client, resource);
+    }
+  }
+
+  /**
+   * Delete resource.
+   */
+  public Secret delete(KubernetesClient client, StackGresCluster resource) {
+    final String name = resource.getMetadata().getName();
+
+    Secret secret = client.secrets().inNamespace(namespace).withName(name).get();
+    if (secret != null) {
+      client.secrets().inNamespace(namespace).withName(name).withGracePeriod(0L).delete();
+    }
+
+    return secret;
+  }
+
 }

@@ -17,7 +17,7 @@ import io.fabric8.kubernetes.api.model.ServiceList;
 import io.fabric8.kubernetes.api.model.ServicePortBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.app.KubernetesClientFactory;
-import org.checkerframework.checker.nullness.qual.NonNull;
+import io.stackgres.crd.sgcluster.StackGresCluster;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,7 +37,8 @@ public class SgServices {
   /**
    * Create the Service associated to the cluster.
    */
-  public @NonNull Service create(@NonNull String name, @NonNull Integer postgresPort) {
+  public Service create(StackGresCluster sgcluster) {
+    final String name = sgcluster.getMetadata().getName();
     LOGGER.debug("Creating service name: {}", name);
 
     Map<String, String> labels = new HashMap<>();
@@ -46,7 +47,7 @@ public class SgServices {
 
     labels.put("role", "master");
     try (KubernetesClient client = kubClientFactory.retrieveKubernetesClient()) {
-      Service service1 = new ServiceBuilder()
+      Service readWriteService = new ServiceBuilder()
           .withNewMetadata()
           .withName(name + "-primary")
           .withLabels(labels)
@@ -56,17 +57,17 @@ public class SgServices {
           .withPorts(
               new ServicePortBuilder()
                   .withProtocol("TCP")
-                  .withPort(postgresPort)
+                  .withPort(5432)
                   .build())
           .withType("ClusterIP")
           .endSpec()
           .build();
 
       LOGGER.debug("Creating service ReadWrite: {}-{}", name, "primary");
-      client.services().inNamespace(namespace).createOrReplace(service1);
+      client.services().inNamespace(namespace).createOrReplace(readWriteService);
 
       labels.put("role", "replica");
-      Service service2 = new ServiceBuilder()
+      Service readOnlyService = new ServiceBuilder()
           .withNewMetadata()
           .withName(name + "-replica")
           .withLabels(labels)
@@ -76,25 +77,52 @@ public class SgServices {
           .withPorts(
               new ServicePortBuilder()
                   .withProtocol("TCP")
-                  .withPort(postgresPort)
+                  .withPort(5432)
                   .build())
           .withType("ClusterIP")
           .endSpec()
           .build();
 
       LOGGER.debug("Creating service ReadOnly: {}-{}", name, "replica");
-      client.services().inNamespace(namespace).createOrReplace(service2);
+      client.services().inNamespace(namespace).createOrReplace(readOnlyService);
 
       ServiceList listServices = client.services().inNamespace(namespace).list();
       for (Service item : listServices.getItems()) {
         LOGGER.debug(item.getMetadata().getName());
         if (item.getMetadata().getName().equals(name + "-primary")) {
-          service1 = item;
+          readWriteService = item;
         }
       }
 
-      return service1;
+      return readWriteService;
     }
+  }
+
+  /**
+   * Delete resource.
+   */
+  public Service delete(StackGresCluster resource) {
+    try (KubernetesClient client = kubClientFactory.retrieveKubernetesClient()) {
+      return delete(client, resource);
+    }
+  }
+
+  /**
+   * Delete resource.
+   */
+  public Service delete(KubernetesClient client, StackGresCluster resource) {
+    final String name = resource.getMetadata().getName();
+    deleteService(client, name + "-replica");
+    return deleteService(client, name + "-primary");
+  }
+
+  private Service deleteService(KubernetesClient client, String srvName) {
+    Service srv = client.services().inNamespace(namespace).withName(srvName).get();
+    if (srv != null) {
+      client.services().inNamespace(namespace).withName(srvName)
+          .withGracePeriod(0L).delete();
+    }
+    return srv;
   }
 
 }
