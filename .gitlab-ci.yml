@@ -1,0 +1,69 @@
+# GraalVM Quarkus image
+image: quay.io/quarkus/centos-quarkus-maven:19.0.2
+
+variables:
+  # This will suppress any download for dependencies and plugins or upload messages which would clutter the console log.
+  # `showDateTime` will show the passed time in milliseconds. You need to specify `--batch-mode` to make this work.
+  MAVEN_OPTS: "-Dhttps.protocols=TLSv1.2 -Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=WARN -Dorg.slf4j.simpleLogger.showDateTime=true -Djava.awt.headless=true"
+  # As of Maven 3.3.0 instead of this you may define these options in `.mvn/maven.config` so the same config is used
+  # when running from the command line.
+  # `installAtEnd` and `deployAtEnd` are only effective with recent version of the corresponding plugins.
+  MAVEN_CLI_OPTS: "--batch-mode --errors --fail-at-end --show-version -DinstallAtEnd=true -DdeployAtEnd=true"
+
+# Cache downloaded dependencies and plugins between builds.
+# To keep cache across branches add 'key: "$CI_JOB_NAME"'
+cache:
+  paths:
+    - .m2/repository
+
+stages:
+  - compile
+  - verify
+  - package
+  - deploy
+
+maven compile:
+  stage: compile
+  tags:
+    - stackgres-runner
+  script:
+    - 'mvn $MAVEN_CLI_OPTS clean compile'
+
+verify code:
+  stage: verify
+  tags:
+    - stackgres-runner
+  script:
+    - 'mvn $MAVEN_CLI_OPTS verify -Psafer'
+
+native-image build:
+  stage: package
+  tags:
+    - stackgres-runner
+  script:
+    - 'mvn $MAVEN_CLI_OPTS package -Pnative'
+    - 'mkdir -p target/javalib/'
+    - 'cp $GRAALVM_HOME/jre/lib/amd64/libsunec.so target/javalib/'
+    - 'cp $GRAALVM_HOME/jre/lib/security/cacerts target/'
+  artifacts:
+    paths:
+      - target/
+    expire_in: 1 day
+
+oci-image deploy:
+  image: quay.io/openshift-pipeline/buildah:stable
+  stage: deploy
+  tags:
+    - stackgres-runner
+  dependencies:
+    - native-image build
+  only:
+    - tags
+  script:
+    - 'export STORAGE_DRIVER=vfs'
+    - 'TAG_VER=${CI_COMMIT_TAG:-"test"}'
+    - 'echo $TAG_VER'
+    - 'buildah bud -f src/main/docker/Dockerfile.native -t stackgres .'
+    - 'CONTAINER_ID=$(buildah from stackgres)'
+    - 'buildah commit --squash $CONTAINER_ID stackgres/operator:$TAG_VER'
+    - 'buildah push stackgres/operator:$TAG_VER docker://docker.io/stackgres/operator:$TAG_VER'
