@@ -26,7 +26,7 @@
     <spotbugs.version>3.1.12</spotbugs.version>
     <guava.version>28.0-jre</guava.version>
     <checkstyle.version>8.22</checkstyle.version>
-    <checker.version>2.8.2</checker.version>
+    <checker.version>2.9.0</checker.version>
     <!-- Plugins versions -->
     <enforcer-plugin.version>3.0.0-M2</enforcer-plugin.version>
     <compiler-plugin.version>3.8.1</compiler-plugin.version>
@@ -197,47 +197,18 @@
                 <requireJavaVersion>
                   <version>${java.version}</version>
                 </requireJavaVersion>
-                <!--<requireProperty>
+                <requireProperty>
                   <property>java.vm.name</property>
                   <regex>^OpenJDK.*GraalVM.*</regex>
                   <regexMessage>GraalVM is required to compile.</regexMessage>
-                </requireProperty>-->
-                <!--
+                </requireProperty>
                 <requireEnvironmentVariable>
                   <variableName>GRAALVM_HOME</variableName>
                 </requireEnvironmentVariable>
-                -->
               </rules>
             </configuration>
           </execution>
         </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-checkstyle-plugin</artifactId>
-        <version>${checkstyle-plugin.version}</version>
-        <executions>
-          <execution>
-            <id>validate</id>
-            <configuration>
-              <propertyExpansion>config_loc=${project.basedir}/src/main/checkstyle</propertyExpansion>
-              <violationSeverity>error</violationSeverity>
-              <failOnViolation>true</failOnViolation>
-              <failsOnError>true</failsOnError>
-              <includeTestSourceDirectory>true</includeTestSourceDirectory>
-            </configuration>
-            <goals>
-              <goal>check</goal>
-            </goals>
-          </execution>
-        </executions>
-        <dependencies>
-          <dependency>
-            <groupId>com.puppycrawl.tools</groupId>
-            <artifactId>checkstyle</artifactId>
-            <version>${checkstyle.version}</version>
-          </dependency>
-        </dependencies>
       </plugin>
     </plugins>
   </build>
@@ -270,6 +241,33 @@
                 <groupId>com.github.spotbugs</groupId>
                 <artifactId>spotbugs</artifactId>
                 <version>${spotbugs.version}</version>
+              </dependency>
+            </dependencies>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-checkstyle-plugin</artifactId>
+            <version>${checkstyle-plugin.version}</version>
+            <executions>
+              <execution>
+                <id>validate</id>
+                <configuration>
+                  <propertyExpansion>config_loc=${project.basedir}/src/main/checkstyle</propertyExpansion>
+                  <violationSeverity>error</violationSeverity>
+                  <failOnViolation>true</failOnViolation>
+                  <failsOnError>true</failsOnError>
+                  <includeTestSourceDirectory>true</includeTestSourceDirectory>
+                </configuration>
+                <goals>
+                  <goal>check</goal>
+                </goals>
+              </execution>
+            </executions>
+            <dependencies>
+              <dependency>
+                <groupId>com.puppycrawl.tools</groupId>
+                <artifactId>checkstyle</artifactId>
+                <version>${checkstyle.version}</version>
               </dependency>
             </dependencies>
           </plugin>
