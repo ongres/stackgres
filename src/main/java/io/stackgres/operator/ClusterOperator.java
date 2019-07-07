@@ -19,7 +19,7 @@ import io.stackgres.resource.SgStatefulSets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@SuppressWarnings("initialization.fields.uninitialized")
+//@SuppressWarnings("initialization.fields.uninitialized")
 @ApplicationScoped
 public class ClusterOperator {
 
@@ -49,31 +49,30 @@ public class ClusterOperator {
    * @param resource Custom Resource with the specification to create the cluster
    */
   public void newStackGresCluster(StackGresCluster resource) {
-    LOGGER.info("Creating the cluster with name '{}'", resource.getMetadata().getName());
-
     sgClusterRoles.create(resource);
     sgSecrets.create(resource);
     sgServices.create(resource);
     sgConfigMaps.create(resource);
     sgStatefulSets.create(resource);
+    LOGGER.info("Cluster created: '{}'", resource.getMetadata().getName());
   }
 
   public void updateStackGresCluster(StackGresCluster resource) {
-    LOGGER.info("Updating the cluster with name '{}'", resource.getMetadata().getName());
     sgStatefulSets.update(resource);
+    LOGGER.info("Cluster updated: '{}'", resource.getMetadata().getName());
   }
 
   /**
    * Delete full cluster.
    */
   public void deleteStackGresCluster(StackGresCluster resource) {
-    LOGGER.info("Deleting the cluster with name '{}'", resource.getMetadata().getName());
     try (KubernetesClient client = kubClientFactory.retrieveKubernetesClient()) {
       sgServices.delete(client, resource);
       sgStatefulSets.delete(client, resource);
       sgClusterRoles.delete(client, resource);
       sgSecrets.delete(client, resource);
       sgConfigMaps.delete(client, resource);
+      LOGGER.info("Cluster deleted: '{}'", resource.getMetadata().getName());
     }
   }
 

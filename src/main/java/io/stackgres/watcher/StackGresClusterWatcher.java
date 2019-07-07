@@ -26,8 +26,8 @@ public class StackGresClusterWatcher implements Watcher<StackGresCluster> {
 
   @Override
   public void eventReceived(Action action, StackGresCluster resource) {
-    LOGGER.info("Received an event with action : {} and the following resource : {}",
-        action, resource);
+    LOGGER.info("Received an event with action: <{}>", action);
+    LOGGER.debug("Action on resource: {}", resource);
     switch (action) {
       case ADDED:
         operator.newStackGresCluster(resource);

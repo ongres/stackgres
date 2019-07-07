@@ -39,45 +39,51 @@ public class SgClusterRoleBindings {
    */
   public ClusterRoleBinding create(StackGresCluster sgcluster) {
     final String name = sgcluster.getMetadata().getName();
-    LOGGER.debug("Creating ClusterRoleBinding: {}", name);
 
     try (KubernetesClient client = kubClientFactory.retrieveKubernetesClient()) {
-      ServiceAccount sa = new ServiceAccountBuilder()
-          .withNewMetadata()
-          .withName(name)
-          .withNamespace(namespace)
-          .endMetadata()
-          .build();
 
-      client.serviceAccounts().inNamespace(namespace).create(sa);
+      ServiceAccount sa = client.serviceAccounts().inNamespace(namespace).withName(name).get();
+      if (sa == null) {
+        sa = new ServiceAccountBuilder()
+            .withNewMetadata()
+            .withName(name)
+            .withNamespace(namespace)
+            .endMetadata()
+            .build();
+        client.serviceAccounts().inNamespace(namespace).create(sa);
+      }
 
-      ClusterRoleBinding crb = new ClusterRoleBindingBuilder()
-          .withNewMetadata()
-          .withName(name)
-          .endMetadata()
-          .withSubjects(new SubjectBuilder()
-              .withKind("ServiceAccount")
-              .withName(name)
-              .withNamespace(namespace)
-              .build())
-          .withRoleRef(new RoleRefBuilder()
-              .withKind("ClusterRole")
-              .withName("cluster-admin")
-              .withApiGroup("rbac.authorization.k8s.io")
-              .build())
-          .build();
+      ClusterRoleBinding crb = client.rbac().clusterRoleBindings().inNamespace(namespace)
+          .withName(name).get();
+      if (crb == null) {
+        crb = new ClusterRoleBindingBuilder()
+            .withNewMetadata()
+            .withName(name)
+            .endMetadata()
+            .withSubjects(new SubjectBuilder()
+                .withKind("ServiceAccount")
+                .withName(name)
+                .withNamespace(namespace)
+                .build())
+            .withRoleRef(new RoleRefBuilder()
+                .withKind("ClusterRole")
+                .withName("cluster-admin")
+                .withApiGroup("rbac.authorization.k8s.io")
+                .build())
+            .build();
 
-      client.rbac().clusterRoleBindings().inNamespace(namespace).create(crb);
+        client.rbac().clusterRoleBindings().inNamespace(namespace).create(crb);
+      }
 
       ClusterRoleBindingList list =
           client.rbac().clusterRoleBindings().inNamespace(namespace).list();
       for (ClusterRoleBinding item : list.getItems()) {
-        LOGGER.debug(item.getMetadata().getName());
         if (item.getMetadata().getName().equals(name)) {
           crb = item;
         }
       }
 
+      LOGGER.debug("Creating ClusterRoleBinding: {}", name);
       return crb;
     }
   }
@@ -100,15 +106,15 @@ public class SgClusterRoleBindings {
     ClusterRoleBinding crb = client.rbac().clusterRoleBindings().inNamespace(namespace)
         .withName(name).get();
     if (crb != null) {
-      client.rbac().clusterRoleBindings().inNamespace(namespace).withName(name).withGracePeriod(0L)
-          .delete();
+      client.rbac().clusterRoleBindings().inNamespace(namespace).withName(name).delete();
+      LOGGER.debug("Deleting ClusterRoleBinding: {}", name);
     }
 
     ServiceAccount servAccount = client.serviceAccounts().inNamespace(namespace)
         .withName(name).get();
     if (servAccount != null) {
-      client.serviceAccounts().inNamespace(namespace).withName(name).withGracePeriod(0L)
-          .delete();
+      client.serviceAccounts().inNamespace(namespace).withName(name).delete();
+      LOGGER.debug("Deleting ServiceAccount: {}", name);
     }
 
     return crb;

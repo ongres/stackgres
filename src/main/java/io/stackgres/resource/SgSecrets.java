@@ -43,7 +43,6 @@ public class SgSecrets {
    */
   public Secret create(StackGresCluster sgcluster) {
     final String name = sgcluster.getMetadata().getName();
-    LOGGER.debug("Creating Secret: {}", name);
 
     Map<String, String> labels = new HashMap<>();
     labels.put("app", "StackGres");
@@ -75,6 +74,7 @@ public class SgSecrets {
         }
       }
 
+      LOGGER.debug("Creating Secret: {}", name);
       return secret;
     }
   }
@@ -109,7 +109,8 @@ public class SgSecrets {
 
     Secret secret = client.secrets().inNamespace(namespace).withName(name).get();
     if (secret != null) {
-      client.secrets().inNamespace(namespace).withName(name).withGracePeriod(0L).delete();
+      client.secrets().inNamespace(namespace).withName(name).delete();
+      LOGGER.debug("Deleting Secret: {}", name);
     }
 
     return secret;

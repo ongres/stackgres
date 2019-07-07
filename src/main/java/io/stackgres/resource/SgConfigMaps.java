@@ -40,7 +40,6 @@ public class SgConfigMaps {
    */
   public ConfigMap create(StackGresCluster sgcluster) {
     final String name = sgcluster.getMetadata().getName();
-    LOGGER.debug("Creating service name: {}", name);
 
     Map<String, String> labels = new HashMap<>();
     labels.put("app", "StackGres");
@@ -66,7 +65,6 @@ public class SgConfigMaps {
     data.put("PATRONI_POSTGRES_UNIX_SOCKET_DIRECTORY", "/var/run/postgresql");
 
     if (QuarkusProfile.getActiveProfile().isDev()) {
-      LOGGER.debug("PATRONI_LOG_LEVEL: {}", "DEBUG");
       data.put("PATRONI_LOG_LEVEL", "DEBUG");
     }
 
@@ -78,18 +76,16 @@ public class SgConfigMaps {
           .withData(data)
           .build();
 
-      LOGGER.debug("Creating config map: {}", name);
-
       client.configMaps().inNamespace(namespace).createOrReplace(cm);
 
       ConfigMapList list = client.configMaps().inNamespace(namespace).list();
       for (ConfigMap item : list.getItems()) {
-        LOGGER.debug(item.getMetadata().getName());
         if (item.getMetadata().getName().equals(name)) {
           cm = item;
         }
       }
 
+      LOGGER.debug("Creating ConfigMap: {}", name);
       return cm;
     }
   }
@@ -109,12 +105,13 @@ public class SgConfigMaps {
   public ConfigMap delete(KubernetesClient client, StackGresCluster resource) {
     final String name = resource.getMetadata().getName();
 
-    ConfigMap secret = client.configMaps().inNamespace(namespace).withName(name).get();
-    if (secret != null) {
-      client.configMaps().inNamespace(namespace).withName(name).withGracePeriod(0L).delete();
+    ConfigMap cm = client.configMaps().inNamespace(namespace).withName(name).get();
+    if (cm != null) {
+      client.configMaps().inNamespace(namespace).withName(name).delete();
+      LOGGER.debug("Deleting ConfigMap: {}", name);
     }
 
-    return secret;
+    return cm;
   }
 
 }

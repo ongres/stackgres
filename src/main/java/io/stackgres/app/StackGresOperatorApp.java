@@ -19,7 +19,6 @@ import io.fabric8.kubernetes.api.model.NamespaceBuilder;
 import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
-import io.fabric8.kubernetes.client.VersionInfo;
 import io.fabric8.kubernetes.internal.KubernetesDeserializer;
 import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
@@ -51,7 +50,7 @@ public class StackGresOperatorApp {
   void onStart(@Observes StartupEvent ev) {
     printArt();
     try (KubernetesClient client = kubClientFactory.retrieveKubernetesClient()) {
-      log(client.getVersion());
+      log(client);
       // Create a namespace for all our stuff
       Namespace ns = new NamespaceBuilder()
           .withNewMetadata()
@@ -59,7 +58,7 @@ public class StackGresOperatorApp {
           .endMetadata()
           .build();
       client.namespaces().createOrReplace(ns);
-      LOGGER.info("Created or replaced namespace: {}", ns);
+      LOGGER.debug("Created or replaced namespace: {}", ns);
       startClusterCrdWatcher(client);
     } catch (KubernetesClientException e) {
       if (e.getCause() instanceof SocketTimeoutException) {
@@ -74,7 +73,7 @@ public class StackGresOperatorApp {
   }
 
   private void startClusterCrdWatcher(KubernetesClient client) {
-    LOGGER.info("startClusterCRDWatcher");
+    LOGGER.info("CRD Watcher: {}", StackGresClusterDefinition.NAME);
     createCrdIfNotExists(client, StackGresClusterDefinition.CR_DEFINITION,
         StackGresClusterDefinition.NAME);
 
@@ -100,8 +99,10 @@ public class StackGresOperatorApp {
     }
   }
 
-  private static void log(VersionInfo versionInfo) {
-    LOGGER.info("Version of this Kubernetes cluster: {}", versionInfo.getGitVersion());
+  private static void log(KubernetesClient client) {
+    LOGGER.info("Version of this Kubernetes cluster: {}", client.getVersion().getGitVersion());
+    LOGGER.info("URL of this Kubernetes cluster: {}", client.getMasterUrl());
+    LOGGER.info("Default namespace selected: {}", client.getNamespace());
   }
 
   private void printArt() {

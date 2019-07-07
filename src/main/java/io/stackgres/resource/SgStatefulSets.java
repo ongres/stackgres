@@ -22,8 +22,6 @@ import io.fabric8.kubernetes.api.model.LocalObjectReferenceBuilder;
 import io.fabric8.kubernetes.api.model.ObjectFieldSelectorBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.PodTemplateSpecBuilder;
-import io.fabric8.kubernetes.api.model.Quantity;
-import io.fabric8.kubernetes.api.model.ResourceRequirementsBuilder;
 import io.fabric8.kubernetes.api.model.SecretKeySelectorBuilder;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
@@ -54,22 +52,13 @@ public class SgStatefulSets {
    */
   public StatefulSet create(StackGresCluster resource) {
     final String name = resource.getMetadata().getName();
-    log.debug("Creating cluster name: {}", name);
 
     Map<String, String> labels = new HashMap<>();
     labels.put("app", "StackGres");
     labels.put("cluster-name", name);
 
-    Map<String, Quantity> limits = new HashMap<>();
-    if (!"".equals(resource.getSpec().getCpu())) {
-      limits.put("cpu", new Quantity(resource.getSpec().getCpu()));
-    }
-    if (!"".equals(resource.getSpec().getMemory())) {
-      limits.put("memory", new Quantity(resource.getSpec().getMemory()));
-    }
-
     try (KubernetesClient client = kubClientFactory.retrieveKubernetesClient()) {
-      StatefulSet rs = new StatefulSetBuilder()
+      StatefulSet statefulSet = new StatefulSetBuilder()
           .withNewMetadata()
           .withName(name)
           .withLabels(labels)
@@ -89,8 +78,8 @@ public class SgStatefulSets {
               .withServiceAccountName(name)
               .addNewContainer()
               .withName(name)
-              .withImage("registry.gitlab.com/ongresinc/artifacts-builder/patroni-postgresql")
-              .withResources(new ResourceRequirementsBuilder().addToLimits(limits).build())
+              .withImage("docker.io/ongres/patroni:11.4")
+              // .withResources(new ResourceRequirementsBuilder().addToLimits(limits).build())
               .withImagePullPolicy("Always")
               .withPorts(
                   new ContainerPortBuilder()
@@ -145,11 +134,10 @@ public class SgStatefulSets {
               .build())
           .endSpec()
           .build();
+      client.apps().statefulSets().inNamespace(namespace).createOrReplace(statefulSet);
 
-      log.debug("Creating: {}", name);
-
-      client.apps().statefulSets().inNamespace(namespace).create(rs);
-      return rs;
+      log.debug("Creating StatefulSet: {}", name);
+      return statefulSet;
     }
   }
 
@@ -160,21 +148,22 @@ public class SgStatefulSets {
     final String name = resource.getMetadata().getName();
 
     try (KubernetesClient client = kubClientFactory.retrieveKubernetesClient()) {
-      StatefulSet ss = client.apps().statefulSets().inNamespace(namespace).withName(name).get();
-
-      if (ss != null) {
+      StatefulSet statefulSet =
+          client.apps().statefulSets().inNamespace(namespace).withName(name).get();
+      if (statefulSet != null) {
         int instances = resource.getSpec().getInstances();
 
-        StatefulSetSpec spec = ss.getSpec();
+        StatefulSetSpec spec = statefulSet.getSpec();
         if (spec.getReplicas() != instances) {
           spec.setReplicas(instances);
         }
-        ss.setSpec(spec);
+        statefulSet.setSpec(spec);
 
-        client.apps().statefulSets().inNamespace(namespace).createOrReplace(ss);
+        client.apps().statefulSets().inNamespace(namespace).createOrReplace(statefulSet);
       }
 
-      return ss;
+      log.debug("Updating StatefulSet: {}", name);
+      return statefulSet;
     }
   }
 
@@ -193,13 +182,15 @@ public class SgStatefulSets {
   public StatefulSet delete(KubernetesClient client, StackGresCluster resource) {
     final String name = resource.getMetadata().getName();
 
-    StatefulSet ss = client.apps().statefulSets().inNamespace(namespace).withName(name).get();
-    if (ss != null) {
-      client.apps().statefulSets().inNamespace(namespace).withName(name).withGracePeriod(0L)
+    StatefulSet statefulSet = client.apps().statefulSets().inNamespace(namespace)
+        .withName(name).get();
+    if (statefulSet != null) {
+      client.apps().statefulSets().inNamespace(namespace).withName(name).cascading(true)
           .delete();
+      log.debug("Deleting StatefulSet: {}", name);
     }
 
-    return ss;
+    return statefulSet;
   }
 
 }

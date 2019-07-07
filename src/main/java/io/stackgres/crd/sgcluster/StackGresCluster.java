@@ -8,6 +8,7 @@ package io.stackgres.crd.sgcluster;
 import com.google.common.base.MoreObjects;
 import io.fabric8.kubernetes.client.CustomResource;
 
+@SuppressWarnings("initialization.fields.uninitialized")
 public class StackGresCluster extends CustomResource {
 
   private static final long serialVersionUID = -5276087851826599719L;

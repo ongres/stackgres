@@ -28,6 +28,9 @@ public class SgServices {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SgServices.class);
 
+  private static final String READ_WRITE_SERVICE = "-primary";
+  private static final String READ_ONLY_SERVICE = "-replica";
+
   @ConfigProperty(name = "stackgres.namespace", defaultValue = "stackgres")
   String namespace;
 
@@ -39,7 +42,6 @@ public class SgServices {
    */
   public Service create(StackGresCluster sgcluster) {
     final String name = sgcluster.getMetadata().getName();
-    LOGGER.debug("Creating service name: {}", name);
 
     Map<String, String> labels = new HashMap<>();
     labels.put("app", "StackGres");
@@ -49,7 +51,7 @@ public class SgServices {
     try (KubernetesClient client = kubClientFactory.retrieveKubernetesClient()) {
       Service readWriteService = new ServiceBuilder()
           .withNewMetadata()
-          .withName(name + "-primary")
+          .withName(name + READ_WRITE_SERVICE)
           .withLabels(labels)
           .endMetadata()
           .withNewSpec()
@@ -63,13 +65,13 @@ public class SgServices {
           .endSpec()
           .build();
 
-      LOGGER.debug("Creating service ReadWrite: {}-{}", name, "primary");
+      LOGGER.info("Creating service ReadWrite: {}{}", name, READ_WRITE_SERVICE);
       client.services().inNamespace(namespace).createOrReplace(readWriteService);
 
       labels.put("role", "replica");
       Service readOnlyService = new ServiceBuilder()
           .withNewMetadata()
-          .withName(name + "-replica")
+          .withName(name + READ_ONLY_SERVICE)
           .withLabels(labels)
           .endMetadata()
           .withNewSpec()
@@ -83,13 +85,13 @@ public class SgServices {
           .endSpec()
           .build();
 
-      LOGGER.debug("Creating service ReadOnly: {}-{}", name, "replica");
+      LOGGER.info("Creating service ReadOnly: {}{}", name, READ_ONLY_SERVICE);
       client.services().inNamespace(namespace).createOrReplace(readOnlyService);
 
       ServiceList listServices = client.services().inNamespace(namespace).list();
       for (Service item : listServices.getItems()) {
         LOGGER.debug(item.getMetadata().getName());
-        if (item.getMetadata().getName().equals(name + "-primary")) {
+        if (item.getMetadata().getName().equals(name + READ_WRITE_SERVICE)) {
           readWriteService = item;
         }
       }
@@ -112,15 +114,15 @@ public class SgServices {
    */
   public Service delete(KubernetesClient client, StackGresCluster resource) {
     final String name = resource.getMetadata().getName();
-    deleteService(client, name + "-replica");
-    return deleteService(client, name + "-primary");
+    deleteService(client, name + READ_ONLY_SERVICE);
+    return deleteService(client, name + READ_WRITE_SERVICE);
   }
 
-  private Service deleteService(KubernetesClient client, String srvName) {
-    Service srv = client.services().inNamespace(namespace).withName(srvName).get();
+  private Service deleteService(KubernetesClient client, String name) {
+    Service srv = client.services().inNamespace(namespace).withName(name).get();
     if (srv != null) {
-      client.services().inNamespace(namespace).withName(srvName)
-          .withGracePeriod(0L).delete();
+      client.services().inNamespace(namespace).withName(name).delete();
+      LOGGER.debug("Deleting Service: {}", name);
     }
     return srv;
   }
