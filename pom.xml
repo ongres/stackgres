@@ -15,6 +15,18 @@
     <url>https://www.ongres.com</url>
   </organization>
 
+  <licenses>
+    <license>
+      <name>GNU Affero General Public License 3.0</name>
+      <url>https://www.gnu.org/licenses/agpl-3.0.txt</url>
+    </license>
+  </licenses>
+
+  <scm>
+    <url>https://gitlab.com/stackgres/stackgres</url>
+    <developerConnection>scm:git:git@gitlab.com:stackgres/stackgres.git</developerConnection>
+  </scm>
+
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <!-- Java compilation -->
