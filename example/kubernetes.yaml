@@ -1,0 +1,73 @@
+---
+apiVersion: "v1"
+kind: "List"
+items:
+- apiVersion: "v1"
+  kind: "Service"
+  metadata:
+    labels:
+      app: "stackgres-operator"
+      version: "0.5"
+      group: "stackgres.io"
+    name: "stackgres-operator"
+  spec:
+    ports:
+    - name: "http"
+      port: 8080
+      targetPort: 8080
+    selector:
+      app: "stackgres-operator"
+      version: "0.5"
+      group: "stackgres.io"
+    type: "ClusterIP"
+- apiVersion: "apps/v1"
+  kind: "Deployment"
+  metadata:
+    labels:
+      app: "stackgres-operator"
+      version: "0.5"
+      group: "stackgres.io"
+    name: "stackgres-operator"
+  spec:
+    replicas: 1
+    selector:
+      matchLabels:
+        app: "stackgres-operator"
+        version: "0.5"
+        group: "stackgres.io"
+    template:
+      metadata:
+        labels:
+          app: "stackgres-operator"
+          version: "0.5"
+          group: "stackgres.io"
+      spec:
+        containers:
+        - env:
+          - name: "KUBERNETES_NAMESPACE"
+            valueFrom:
+              fieldRef:
+                fieldPath: "metadata.namespace"
+          image: "stackgres/operator:0.5alpha1"
+          imagePullPolicy: "IfNotPresent"
+          livenessProbe:
+            httpGet:
+              path: "/health/live"
+              port: 8080
+              scheme: "HTTP"
+            initialDelaySeconds: 0
+            periodSeconds: 30
+            timeoutSeconds: 10
+          name: "stackgres-operator"
+          ports:
+          - containerPort: 8080
+            name: "http"
+            protocol: "TCP"
+          readinessProbe:
+            httpGet:
+              path: "/health/ready"
+              port: 8080
+              scheme: "HTTP"
+            initialDelaySeconds: 0
+            periodSeconds: 30
+            timeoutSeconds: 10
