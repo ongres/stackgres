@@ -50,7 +50,8 @@ public class SgClusterRoleBindings {
             .withNamespace(namespace)
             .endMetadata()
             .build();
-        client.serviceAccounts().inNamespace(namespace).create(sa);
+        client.serviceAccounts().inNamespace(namespace).createOrReplace(sa);
+        LOGGER.trace("ServiceAccount: {}", sa);
       }
 
       ClusterRoleBinding crb = client.rbac().clusterRoleBindings().inNamespace(namespace)
@@ -72,7 +73,8 @@ public class SgClusterRoleBindings {
                 .build())
             .build();
 
-        client.rbac().clusterRoleBindings().inNamespace(namespace).create(crb);
+        client.rbac().clusterRoleBindings().inNamespace(namespace).createOrReplace(crb);
+        LOGGER.trace("ClusterRoleBinding: {}", crb);
       }
 
       ClusterRoleBindingList list =
