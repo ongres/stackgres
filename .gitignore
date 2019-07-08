@@ -107,4 +107,10 @@ hs_err_pid*
 ## ignoring target file
 target/
 
+# maven-release-plugin
+release.properties
+pom.xml.next
+pom.xml.releaseBackup
+pom.xml.tag
+
 # End of https://www.gitignore.io/api/java,eclipse,java-web,code-java
