@@ -1,19 +1,18 @@
 ####
 # This Dockerfile is used in order to build a container that runs the Quarkus application in native (no JVM) mode
 #
-# Before building the docker image run:
+# Before building the container image run:
 #
 # ./mvnw package -Pnative -Dnative-image.docker-build=true
 # ./mvnw package -Pnative -Dnative-image.container-runtime=podman
 #
 # Then, build the image with:
 #
-# docker build -f src/main/docker/Dockerfile.native -t stackgres/stackgres-operator .
 # buildah bud -f src/main/docker/Dockerfile.native -t stackgres/operator:0.5 .
 #
 # Then run the container using:
 #
-# docker run -i --rm -p 8080:8080 stackgres/stackgres-operator
+# podman run -i --rm -p 8080:8080 stackgres/stackgres-operator
 #
 ###
 FROM registry.access.redhat.com/ubi8-minimal

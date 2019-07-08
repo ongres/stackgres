@@ -20,6 +20,7 @@ stages:
   - compile
   - verify
   - package
+  - check-release
   - deploy
 
 maven compile:
@@ -50,6 +51,15 @@ native-image build:
       - target/
     expire_in: 1 day
 
+enforce release:
+  stage: check-release
+  tags:
+    - stackgres-runner
+  script:
+    - 'mvn $MAVEN_CLI_OPTS enforcer:enforce@enforce-no-snapshots'
+  only:
+    - tags
+
 oci-image deploy:
   image: quay.io/openshift-pipeline/buildah:stable
   stage: deploy
@@ -61,9 +71,8 @@ oci-image deploy:
     - tags
   script:
     - 'export STORAGE_DRIVER=vfs'
-    - 'TAG_VER=${CI_COMMIT_TAG:-"test"}'
-    - 'echo $TAG_VER'
-    - 'buildah bud -f src/main/docker/Dockerfile.native -t stackgres .'
-    - 'CONTAINER_ID=$(buildah from stackgres)'
-    - 'buildah commit --squash $CONTAINER_ID stackgres/operator:$TAG_VER'
-    - 'buildah push stackgres/operator:$TAG_VER docker://docker.io/stackgres/operator:$TAG_VER'
+    - 'CONTAINER_TAG=${CI_COMMIT_TAG:-"$CI_COMMIT_REF_NAME"}'
+    - 'buildah bud -f .gitlab/Dockerfile -t stackgres-build .'
+    - 'CONTAINER_ID=$(buildah from stackgres-build)'
+    - 'buildah commit --squash $CONTAINER_ID stackgres/operator:$CONTAINER_TAG'
+    - 'buildah push stackgres/operator:$CONTAINER_TAG docker://docker.io/stackgres/operator:$CONTAINER_TAG'

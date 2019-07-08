@@ -68,6 +68,14 @@
     </dependency>
     <dependency>
       <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-kubernetes</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-smallrye-health</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
       <artifactId>quarkus-junit5</artifactId>
       <scope>test</scope>
     </dependency>
@@ -197,6 +205,16 @@
                 <requireJavaVersion>
                   <version>${java.version}</version>
                 </requireJavaVersion>
+              </rules>
+            </configuration>
+          </execution>
+          <execution>
+            <id>enforce-graalvm</id>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <rules>
                 <requireProperty>
                   <property>java.vm.name</property>
                   <regex>^OpenJDK.*GraalVM.*</regex>
@@ -205,6 +223,16 @@
                 <requireEnvironmentVariable>
                   <variableName>GRAALVM_HOME</variableName>
                 </requireEnvironmentVariable>
+              </rules>
+            </configuration>
+          </execution>
+          <execution>
+            <id>enforce-no-snapshots</id>
+            <configuration>
+              <rules>
+                <requireReleaseVersion>
+                  <message>No Snapshots Allowed!</message>
+                </requireReleaseVersion>
               </rules>
             </configuration>
           </execution>
@@ -235,7 +263,7 @@
               </execution>
             </executions>
             <dependencies>
-              <!-- overwrite dependency on spotbugs if you want to specify 
+              <!-- overwrite dependency on spotbugs if you want to specify
                 the version of spotbugs -->
               <dependency>
                 <groupId>com.github.spotbugs</groupId>
