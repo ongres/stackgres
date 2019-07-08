@@ -65,6 +65,7 @@ public class SgSecrets {
             .build();
 
         client.secrets().inNamespace(namespace).create(secret);
+        LOGGER.trace("Secret: {}", secret);
       }
 
       SecretList list = client.secrets().inNamespace(namespace).list();

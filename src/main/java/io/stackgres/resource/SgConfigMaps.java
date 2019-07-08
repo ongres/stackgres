@@ -77,6 +77,7 @@ public class SgConfigMaps {
           .build();
 
       client.configMaps().inNamespace(namespace).createOrReplace(cm);
+      LOGGER.trace("ConfigMap: {}", cm);
 
       ConfigMapList list = client.configMaps().inNamespace(namespace).list();
       for (ConfigMap item : list.getItems()) {

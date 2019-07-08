@@ -30,6 +30,7 @@ public class SgServices {
 
   private static final String READ_WRITE_SERVICE = "-primary";
   private static final String READ_ONLY_SERVICE = "-replica";
+  private static final String CONFIG_SERVICE = "-config";
 
   @ConfigProperty(name = "stackgres.namespace", defaultValue = "stackgres")
   String namespace;
@@ -65,8 +66,9 @@ public class SgServices {
           .endSpec()
           .build();
 
-      LOGGER.info("Creating service ReadWrite: {}{}", name, READ_WRITE_SERVICE);
+      LOGGER.debug("Creating service ReadWrite: {}{}", name, READ_WRITE_SERVICE);
       client.services().inNamespace(namespace).createOrReplace(readWriteService);
+      LOGGER.trace("Service: {}", readWriteService);
 
       labels.put("role", "replica");
       Service readOnlyService = new ServiceBuilder()
@@ -85,12 +87,12 @@ public class SgServices {
           .endSpec()
           .build();
 
-      LOGGER.info("Creating service ReadOnly: {}{}", name, READ_ONLY_SERVICE);
+      LOGGER.debug("Creating service ReadOnly: {}{}", name, READ_ONLY_SERVICE);
       client.services().inNamespace(namespace).createOrReplace(readOnlyService);
+      LOGGER.trace("Service: {}", readOnlyService);
 
       ServiceList listServices = client.services().inNamespace(namespace).list();
       for (Service item : listServices.getItems()) {
-        LOGGER.debug(item.getMetadata().getName());
         if (item.getMetadata().getName().equals(name + READ_WRITE_SERVICE)) {
           readWriteService = item;
         }
@@ -114,6 +116,7 @@ public class SgServices {
    */
   public Service delete(KubernetesClient client, StackGresCluster resource) {
     final String name = resource.getMetadata().getName();
+    deleteService(client, name + CONFIG_SERVICE);
     deleteService(client, name + READ_ONLY_SERVICE);
     return deleteService(client, name + READ_WRITE_SERVICE);
   }

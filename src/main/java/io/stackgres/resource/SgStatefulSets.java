@@ -12,7 +12,6 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.ConfigMapEnvSourceBuilder;
-import io.fabric8.kubernetes.api.model.ConfigMapVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
 import io.fabric8.kubernetes.api.model.EnvFromSourceBuilder;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
@@ -24,6 +23,7 @@ import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.PodTemplateSpecBuilder;
 import io.fabric8.kubernetes.api.model.SecretKeySelectorBuilder;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
+import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
@@ -39,7 +39,7 @@ import org.slf4j.LoggerFactory;
 @ApplicationScoped
 public class SgStatefulSets {
 
-  private static final Logger log = LoggerFactory.getLogger(SgStatefulSets.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(SgStatefulSets.class);
 
   @ConfigProperty(name = "stackgres.namespace", defaultValue = "stackgres")
   String namespace;
@@ -56,6 +56,11 @@ public class SgStatefulSets {
     Map<String, String> labels = new HashMap<>();
     labels.put("app", "StackGres");
     labels.put("cluster-name", name);
+
+    VolumeMount pgSocket = new VolumeMountBuilder()
+        .withName("pg-socket")
+        .withMountPath("/var/run/postgresql")
+        .build();
 
     try (KubernetesClient client = kubClientFactory.retrieveKubernetesClient()) {
       StatefulSet statefulSet = new StatefulSetBuilder()
@@ -79,17 +84,11 @@ public class SgStatefulSets {
               .addNewContainer()
               .withName(name)
               .withImage("docker.io/ongres/patroni:11.4")
-              // .withResources(new ResourceRequirementsBuilder().addToLimits(limits).build())
               .withImagePullPolicy("Always")
               .withPorts(
-                  new ContainerPortBuilder()
-                      .withContainerPort(5432).build(),
-                  new ContainerPortBuilder()
-                      .withContainerPort(8008).build())
-              .withVolumeMounts(new VolumeMountBuilder()
-                  .withName("config-volume")
-                  .withMountPath("/etc/stackgres")
-                  .build())
+                  new ContainerPortBuilder().withContainerPort(5432).build(),
+                  new ContainerPortBuilder().withContainerPort(8008).build())
+              .withVolumeMounts(pgSocket)
               .withEnvFrom(new EnvFromSourceBuilder()
                   .withConfigMapRef(new ConfigMapEnvSourceBuilder()
                       .withName(name).build())
@@ -122,21 +121,42 @@ public class SgStatefulSets {
                           .build())
                       .build())
               .endContainer()
+              .addNewContainer()
+              .withName("postgres-util")
+              .withImage("docker.io/ongres/postgres-util:11.4")
+              .withImagePullPolicy("Always")
+              .withNewSecurityContext()
+              .withNewCapabilities()
+              .addNewAdd("SYS_PTRACE")
+              .endCapabilities()
+              .endSecurityContext()
+              .addNewEnv()
+              .withName("PG_VERSION")
+              .withValue("11")
+              .endEnv()
+              .withStdin(true)
+              .withTty(true)
+              .withCommand("/bin/sh")
+              .withArgs("-c", "while true; do sleep 10; done")
+              .withVolumeMounts(pgSocket)
+              .endContainer()
               .withVolumes(new VolumeBuilder()
-                  .withName("config-volume")
-                  .withConfigMap(new ConfigMapVolumeSourceBuilder()
-                      .withName(name)
-                      .build())
+                  .withName("pg-socket")
+                  .withNewEmptyDir()
+                  .withMedium("Memory")
+                  .endEmptyDir()
                   .build())
               .withImagePullSecrets(new LocalObjectReferenceBuilder()
                   .withName("registry-secret").build())
+              .withTerminationGracePeriodSeconds(0L)
               .endSpec()
               .build())
           .endSpec()
           .build();
       client.apps().statefulSets().inNamespace(namespace).createOrReplace(statefulSet);
 
-      log.debug("Creating StatefulSet: {}", name);
+      LOGGER.debug("Creating StatefulSet: {}", name);
+      LOGGER.trace("StatefulSet: {}", statefulSet);
       return statefulSet;
     }
   }
@@ -162,7 +182,7 @@ public class SgStatefulSets {
         client.apps().statefulSets().inNamespace(namespace).createOrReplace(statefulSet);
       }
 
-      log.debug("Updating StatefulSet: {}", name);
+      LOGGER.debug("Updating StatefulSet: {}", name);
       return statefulSet;
     }
   }
@@ -187,7 +207,7 @@ public class SgStatefulSets {
     if (statefulSet != null) {
       client.apps().statefulSets().inNamespace(namespace).withName(name).cascading(true)
           .delete();
-      log.debug("Deleting StatefulSet: {}", name);
+      LOGGER.debug("Deleting StatefulSet: {}", name);
     }
 
     return statefulSet;
