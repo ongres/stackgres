@@ -4,7 +4,7 @@
 
   <groupId>io.stackgres</groupId>
   <artifactId>stackgres-operator</artifactId>
-  <version>0.5alpha3-SNAPSHOT</version>
+  <version>0.5</version>
 
   <inceptionYear>2019</inceptionYear>
 
@@ -23,7 +23,7 @@
   <scm>
     <url>https://gitlab.com/stackgres/stackgres</url>
     <developerConnection>scm:git:git@gitlab.com:stackgres/stackgres.git</developerConnection>
-    <tag>HEAD</tag>
+    <tag>0.5</tag>
   </scm>
 
   <properties>
