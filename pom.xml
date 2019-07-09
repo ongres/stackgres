@@ -220,24 +220,6 @@
             </configuration>
           </execution>
           <execution>
-            <id>enforce-graalvm</id>
-            <goals>
-              <goal>enforce</goal>
-            </goals>
-            <configuration>
-              <rules>
-                <requireProperty>
-                  <property>java.vm.name</property>
-                  <regex>^OpenJDK.*GraalVM.*</regex>
-                  <regexMessage>GraalVM is required to compile.</regexMessage>
-                </requireProperty>
-                <requireEnvironmentVariable>
-                  <variableName>GRAALVM_HOME</variableName>
-                </requireEnvironmentVariable>
-              </rules>
-            </configuration>
-          </execution>
-          <execution>
             <id>enforce-no-snapshots</id>
             <configuration>
               <rules>

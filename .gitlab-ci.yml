@@ -61,7 +61,7 @@ enforce release:
     - tags
 
 oci-image deploy:
-  image: quay.io/openshift-pipeline/buildah:stable
+  image: docker.io/ongres/builder:latest
   stage: deploy
   tags:
     - stackgres-runner
