@@ -75,4 +75,4 @@ oci-image deploy:
     - 'buildah bud -f .gitlab/Dockerfile -t stackgres-build .'
     - 'CONTAINER_ID=$(buildah from stackgres-build)'
     - 'buildah commit --squash $CONTAINER_ID stackgres/operator:$CONTAINER_TAG'
-    - 'buildah push stackgres/operator:$CONTAINER_TAG docker://docker.io/stackgres/operator:$CONTAINER_TAG'
+    - 'buildah push --authfile $REGISTRY_AUTH_FILE stackgres/operator:$CONTAINER_TAG docker://docker.io/stackgres/operator:$CONTAINER_TAG'
