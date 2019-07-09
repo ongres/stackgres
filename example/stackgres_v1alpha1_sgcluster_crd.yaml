@@ -9,5 +9,5 @@ spec:
     kind: StackGresCluster
     listKind: StackGresClusterList
     plural: sgclusters
-	singular: sgcluster
-  scope: Namespaced
+    singular: sgcluster
+    scope: Namespaced
