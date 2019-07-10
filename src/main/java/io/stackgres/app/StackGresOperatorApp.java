@@ -41,9 +41,6 @@ public class StackGresOperatorApp {
   @ConfigProperty(name = "stackgres.namespace", defaultValue = "stackgres")
   String namespace;
 
-  @ConfigProperty(name = "quarkus.application.version")
-  String version;
-
   @Inject
   KubernetesClientFactory kubClientFactory;
 
@@ -113,7 +110,6 @@ public class StackGresOperatorApp {
       System.out.println(Resources.toString(
           Resources.getResource(StackGresOperatorApp.class, "/META-INF/banner.txt"),
           StandardCharsets.UTF_8));
-      LOGGER.info("StackGres version: {}", version);
     } catch (IOException e) {
       // Ignore
     }
