@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>io.stackgres</groupId>
@@ -115,17 +117,15 @@
           <groupId>com.google.guava</groupId>
           <artifactId>listenablefuture</artifactId>
         </exclusion>
+        <exclusion>
+          <groupId>org.checkerframework</groupId>
+          <artifactId>checker-qual</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
     <dependency>
       <groupId>org.checkerframework</groupId>
       <artifactId>checker</artifactId>
-      <version>${checker.version}</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.checkerframework</groupId>
-      <artifactId>checker-qual</artifactId>
       <version>${checker.version}</version>
       <scope>provided</scope>
     </dependency>
@@ -181,23 +181,6 @@
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
         <version>${compiler-plugin.version}</version>
-        <configuration>
-          <compilerArguments>
-            <Xmaxerrs>10000</Xmaxerrs>
-            <Xmaxwarns>10000</Xmaxwarns>
-          </compilerArguments>
-          <annotationProcessors>
-            <annotationProcessor>org.checkerframework.checker.nullness.NullnessChecker</annotationProcessor>
-            <annotationProcessor>org.checkerframework.checker.interning.InterningChecker</annotationProcessor>
-            <annotationProcessor>org.checkerframework.checker.fenum.FenumChecker</annotationProcessor>
-            <annotationProcessor>org.checkerframework.checker.formatter.FormatterChecker</annotationProcessor>
-          </annotationProcessors>
-          <compilerArgs>
-            <arg>-Xbootclasspath/p:${annotatedJdk}</arg>
-            <arg>-AprintErrorStack</arg>
-            <arg>-Awarns</arg>
-          </compilerArgs>
-        </configuration>
       </plugin>
       <plugin>
         <artifactId>maven-enforcer-plugin</artifactId>
@@ -299,9 +282,31 @@
               </dependency>
             </dependencies>
           </plugin>
+          <plugin>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <version>${compiler-plugin.version}</version>
+            <configuration>
+              <compilerArguments>
+                <Xmaxerrs>10000</Xmaxerrs>
+                <Xmaxwarns>10000</Xmaxwarns>
+              </compilerArguments>
+              <annotationProcessors>
+                <annotationProcessor>org.checkerframework.checker.nullness.NullnessChecker</annotationProcessor>
+                <annotationProcessor>org.checkerframework.checker.interning.InterningChecker</annotationProcessor>
+                <annotationProcessor>org.checkerframework.checker.fenum.FenumChecker</annotationProcessor>
+                <annotationProcessor>org.checkerframework.checker.formatter.FormatterChecker</annotationProcessor>
+              </annotationProcessors>
+              <compilerArgs>
+                <arg>-Xbootclasspath/p:${annotatedJdk}</arg>
+                <arg>-AprintErrorStack</arg>
+                <!-- <arg>-Awarns</arg> -->
+              </compilerArgs>
+            </configuration>
+          </plugin>
         </plugins>
       </build>
     </profile>
+
     <profile>
       <id>native</id>
       <activation>
