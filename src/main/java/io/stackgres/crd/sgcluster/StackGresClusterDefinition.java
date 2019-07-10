@@ -20,6 +20,7 @@ public class StackGresClusterDefinition {
 
   public static final CustomResourceDefinition CR_DEFINITION =
       new CustomResourceDefinitionBuilder()
+          .withApiVersion("apiextensions.k8s.io/v1beta1")
           .withNewMetadata()
           .withName(NAME)
           .endMetadata()
