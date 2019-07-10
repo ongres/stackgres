@@ -2,6 +2,64 @@
 apiVersion: "v1"
 kind: "List"
 items:
+- apiVersion: v1
+  kind: Namespace
+  metadata:
+    name: "stackgres"
+- apiVersion: v1
+  kind: ServiceAccount
+  metadata:
+    name: "stackgres-operator"
+    namespace: "stackgres"
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: ClusterRole
+  metadata:
+    name: "stackgres-operator"
+    namespace: "stackgres"
+  rules:
+  - apiGroups: ["", "apps", "extensions", "rbac.authorization.k8s.io"] # "" indicates the core API group
+    resources:
+    - pods
+    - pods/exec
+    - services
+    - endpoints
+    - persistentvolumeclaims
+    - configmaps
+    - secrets
+    - statefulsets
+    - deployments
+    - clusterroles
+    - clusterrolebindings
+    - serviceaccounts
+    - namespaces
+    verbs:
+    - '*'
+  - apiGroups: ["apiextensions.k8s.io", "customresourcedefinitions.apiextensions.k8s.io"]
+    resources:
+    - customresourcedefinitions
+    verbs:
+    - '*'
+  - apiGroups: ["stackgres.io"]
+    resources:
+    - sgclusters
+    verbs:
+    - watch
+    - list
+    - get
+    - update
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: ClusterRoleBinding
+  metadata:
+    name: "stackgres-operator"
+    namespace: "stackgres"
+  subjects:
+  - kind: ServiceAccount
+    name: "stackgres-operator"
+    namespace: "stackgres"
+  roleRef:
+    kind: ClusterRole
+    name: "stackgres-operator"
+    apiGroup: rbac.authorization.k8s.io
 - apiVersion: "v1"
   kind: "Service"
   metadata:
@@ -10,6 +68,7 @@ items:
       version: "0.5.2"
       group: "stackgres.io"
     name: "stackgres-operator"
+    namespace: "stackgres"
   spec:
     ports:
     - name: "http"
@@ -28,6 +87,7 @@ items:
       version: "0.5.2"
       group: "stackgres.io"
     name: "stackgres-operator"
+    namespace: "stackgres"
   spec:
     replicas: 1
     selector:
@@ -42,6 +102,7 @@ items:
           version: "0.5.2"
           group: "stackgres.io"
       spec:
+        serviceAccountName: "stackgres-operator"
         containers:
         - env:
           - name: "KUBERNETES_NAMESPACE"
