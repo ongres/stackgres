@@ -41,6 +41,9 @@ public class StackGresOperatorApp {
   @ConfigProperty(name = "stackgres.namespace", defaultValue = "stackgres")
   String namespace;
 
+  @ConfigProperty(name = "quarkus.application.version")
+  String version;
+
   @Inject
   KubernetesClientFactory kubClientFactory;
 
@@ -100,7 +103,7 @@ public class StackGresOperatorApp {
   }
 
   private static void log(KubernetesClient client) {
-    LOGGER.info("Version of this Kubernetes cluster: {}", client.getVersion().getGitVersion());
+    LOGGER.info("Kubernetes version: {}", client.getVersion().getGitVersion());
     LOGGER.info("URL of this Kubernetes cluster: {}", client.getMasterUrl());
     LOGGER.info("Default namespace selected: {}", client.getNamespace());
   }
@@ -110,6 +113,7 @@ public class StackGresOperatorApp {
       System.out.println(Resources.toString(
           Resources.getResource(StackGresOperatorApp.class, "/META-INF/banner.txt"),
           StandardCharsets.UTF_8));
+      LOGGER.info("StackGres version: {}", version);
     } catch (IOException e) {
       // Ignore
     }
