@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>io.stackgres</groupId>
@@ -33,14 +35,11 @@
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>
     <!-- Dependencies versions -->
-    <quarkus.version>0.18.0</quarkus.version>
+    <quarkus.version>0.19.1</quarkus.version>
     <spotbugs.version>3.1.12</spotbugs.version>
-    <guava.version>28.0-jre</guava.version>
     <checkstyle.version>8.22</checkstyle.version>
     <checker.version>2.9.0</checker.version>
     <!-- Plugins versions -->
-    <enforcer-plugin.version>3.0.0-M2</enforcer-plugin.version>
-    <compiler-plugin.version>3.8.1</compiler-plugin.version>
     <compiler-plugin.version>3.8.1</compiler-plugin.version>
     <jar-plugin.version>3.1.2</jar-plugin.version>
     <clean-plugin.version>3.1.0</clean-plugin.version>
@@ -48,12 +47,14 @@
     <surefire-plugin.version>3.0.0-M3</surefire-plugin.version>
     <checkstyle-plugin.version>3.1.0</checkstyle-plugin.version>
     <spotbugs-plugin.version>3.1.12</spotbugs-plugin.version>
+    <pmd-plugin.version>3.12.0</pmd-plugin.version>
+    <enforcer-plugin.version>3.0.0-M2</enforcer-plugin.version>
+    <dependendency-plugin.version>3.1.1</dependendency-plugin.version>
     <!-- Checkstyle properties -->
     <checkstyle.config.location>${project.basedir}/src/main/checkstyle/checkstyle.xml</checkstyle.config.location>
     <checkstyle.suppression.location>${project.basedir}/src/main/checkstyle/checkstyle-suppressions.xml</checkstyle.suppression.location>
     <checkstyle.consoleOutput>true</checkstyle.consoleOutput>
     <checkstyle.header.file>.header</checkstyle.header.file>
-    <annotatedJdk>${org.checkerframework:jdk8:jar}</annotatedJdk>
   </properties>
 
   <dependencyManagement>
@@ -179,6 +180,13 @@
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
         <version>${compiler-plugin.version}</version>
+        <configuration>
+          <compilerArgs>
+            <arg>-Xlint:all</arg>
+          </compilerArgs>
+          <showDeprecation>true</showDeprecation>
+          <showWarnings>true</showWarnings>
+        </configuration>
       </plugin>
       <plugin>
         <artifactId>maven-enforcer-plugin</artifactId>
@@ -219,6 +227,74 @@
           <pushChanges>false</pushChanges>
         </configuration>
       </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <version>${checkstyle-plugin.version}</version>
+        <configuration>
+          <propertyExpansion>config_loc=${project.basedir}/src/main/checkstyle</propertyExpansion>
+          <violationSeverity>error</violationSeverity>
+          <failOnViolation>true</failOnViolation>
+          <failsOnError>true</failsOnError>
+          <includeTestSourceDirectory>true</includeTestSourceDirectory>
+          <linkXRef>false</linkXRef>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+        <dependencies>
+          <dependency>
+            <groupId>com.puppycrawl.tools</groupId>
+            <artifactId>checkstyle</artifactId>
+            <version>${checkstyle.version}</version>
+          </dependency>
+        </dependencies>
+      </plugin>
+      <plugin>
+        <groupId>com.github.spotbugs</groupId>
+        <artifactId>spotbugs-maven-plugin</artifactId>
+        <version>${spotbugs-plugin.version}</version>
+        <configuration>
+          <effort>Max</effort>
+          <threshold>Low</threshold>
+          <xmlOutput>true</xmlOutput>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+        <dependencies>
+          <dependency>
+            <groupId>com.github.spotbugs</groupId>
+            <artifactId>spotbugs</artifactId>
+            <version>${spotbugs.version}</version>
+          </dependency>
+        </dependencies>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-pmd-plugin</artifactId>
+        <version>${pmd-plugin.version}</version>
+        <configuration>
+          <failOnViolation>true</failOnViolation> <!-- this is actually true by default, but can be disabled -->
+          <printFailingErrors>true</printFailingErrors>
+          <linkXRef>false</linkXRef>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
 
@@ -228,57 +304,15 @@
       <build>
         <plugins>
           <plugin>
-            <groupId>com.github.spotbugs</groupId>
-            <artifactId>spotbugs-maven-plugin</artifactId>
-            <version>${spotbugs-plugin.version}</version>
-            <configuration>
-              <effort>Max</effort>
-              <threshold>Low</threshold>
-              <xmlOutput>true</xmlOutput>
-            </configuration>
+            <artifactId>maven-dependency-plugin</artifactId>
+            <version>${dependendency-plugin.version}</version>
             <executions>
               <execution>
                 <goals>
-                  <goal>check</goal>
+                  <goal>properties</goal>
                 </goals>
               </execution>
             </executions>
-            <dependencies>
-              <!-- overwrite dependency on spotbugs if you want to specify
-                the version of spotbugs -->
-              <dependency>
-                <groupId>com.github.spotbugs</groupId>
-                <artifactId>spotbugs</artifactId>
-                <version>${spotbugs.version}</version>
-              </dependency>
-            </dependencies>
-          </plugin>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-checkstyle-plugin</artifactId>
-            <version>${checkstyle-plugin.version}</version>
-            <executions>
-              <execution>
-                <id>validate</id>
-                <configuration>
-                  <propertyExpansion>config_loc=${project.basedir}/src/main/checkstyle</propertyExpansion>
-                  <violationSeverity>error</violationSeverity>
-                  <failOnViolation>true</failOnViolation>
-                  <failsOnError>true</failsOnError>
-                  <includeTestSourceDirectory>true</includeTestSourceDirectory>
-                </configuration>
-                <goals>
-                  <goal>check</goal>
-                </goals>
-              </execution>
-            </executions>
-            <dependencies>
-              <dependency>
-                <groupId>com.puppycrawl.tools</groupId>
-                <artifactId>checkstyle</artifactId>
-                <version>${checkstyle.version}</version>
-              </dependency>
-            </dependencies>
           </plugin>
           <plugin>
             <artifactId>maven-compiler-plugin</artifactId>
@@ -288,15 +322,23 @@
                 <Xmaxerrs>10000</Xmaxerrs>
                 <Xmaxwarns>10000</Xmaxwarns>
               </compilerArguments>
+              <annotationProcessorPaths>
+                <path>
+                  <groupId>org.checkerframework</groupId>
+                  <artifactId>checker</artifactId>
+                  <version>${checker.version}</version>
+                </path>
+              </annotationProcessorPaths>
               <annotationProcessors>
                 <annotationProcessor>org.checkerframework.checker.nullness.NullnessChecker</annotationProcessor>
                 <annotationProcessor>org.checkerframework.checker.interning.InterningChecker</annotationProcessor>
-                <annotationProcessor>org.checkerframework.checker.fenum.FenumChecker</annotationProcessor>
                 <annotationProcessor>org.checkerframework.checker.formatter.FormatterChecker</annotationProcessor>
+                <annotationProcessor>org.checkerframework.checker.optional.OptionalChecker</annotationProcessor>
+                <annotationProcessor>org.checkerframework.checker.propkey.PropertyKeyChecker</annotationProcessor>
               </annotationProcessors>
               <compilerArgs>
-                <arg>-Xbootclasspath/p:${annotatedJdk}</arg>
-                <arg>-AprintErrorStack</arg>
+                <arg>-Xbootclasspath/p:${org.checkerframework:jdk8:jar}</arg>
+                <arg>-AsuppressWarnings=uninitialized</arg>
                 <!-- <arg>-Awarns</arg> -->
               </compilerArgs>
             </configuration>

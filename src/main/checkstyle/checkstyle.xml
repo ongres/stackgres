@@ -32,7 +32,7 @@
     <property name="eachLine" value="true" />
   </module>
 
-  <module name="NewlineAtEndOfFile"/>
+  <module name="NewlineAtEndOfFile" />
 
   <module name="RegexpSingleline">
         <!-- \s matches whitespace character, $ matches end of line. -->
@@ -107,6 +107,7 @@
     <module name="EmptyLineSeparator">
       <property name="allowNoEmptyLineBetweenFields" value="true" />
       <property name="allowMultipleEmptyLines" value="false" />
+      <property name="allowMultipleEmptyLinesInsideClassMembers" value="false" />
     </module>
     <module name="SeparatorWrap">
       <property name="id" value="SeparatorWrapDot" />

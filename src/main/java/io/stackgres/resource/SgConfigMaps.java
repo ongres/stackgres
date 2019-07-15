@@ -23,7 +23,6 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@SuppressWarnings("initialization.fields.uninitialized")
 @ApplicationScoped
 public class SgConfigMaps {
 
@@ -56,7 +55,7 @@ public class SgConfigMaps {
     data.put("PATRONI_REPLICATION_USERNAME", "replication");
     data.put("PATRONI_KUBERNETES_USE_ENDPOINTS", "true");
     data.put("PATRONI_KUBERNETES_LABELS", patroniLabels);
-    data.put("PATRONI_POSTGRESQL_LISTEN", "0.0.0.0");
+    data.put("PATRONI_POSTGRESQL_LISTEN", "0.0.0.0:5432");
     data.put("PATRONI_RESTAPI_LISTEN", "0.0.0.0:8008");
     data.put("PATRONI_POSTGRESQL_DATA_DIR", "/var/lib/postgresql/data");
     data.put("PATRONI_POSTGRESQL_BIN_DIR", "/usr/lib/postgresql/11/bin");

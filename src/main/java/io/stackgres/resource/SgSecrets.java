@@ -21,12 +21,10 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.app.KubernetesClientFactory;
 import io.stackgres.crd.sgcluster.StackGresCluster;
 import io.stackgres.util.ResourceUtils;
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@SuppressWarnings("initialization.fields.uninitialized")
 @ApplicationScoped
 public class SgSecrets {
 
@@ -80,7 +78,7 @@ public class SgSecrets {
     }
   }
 
-  private boolean exists(@NonNull KubernetesClient client, @NonNull String secretName) {
+  private boolean exists(KubernetesClient client, String secretName) {
     return ResourceUtils.exists(client.secrets().inNamespace(namespace).list().getItems(),
         secretName);
   }
