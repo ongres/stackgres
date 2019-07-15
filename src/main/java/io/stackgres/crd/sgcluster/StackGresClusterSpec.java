@@ -12,7 +12,6 @@ import com.google.common.base.MoreObjects;
 import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
-@SuppressWarnings("initialization.fields.uninitialized")
 @JsonDeserialize(using = JsonDeserializer.None.class)
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection

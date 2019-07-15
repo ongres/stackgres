@@ -32,7 +32,6 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@SuppressWarnings("initialization.fields.uninitialized")
 @ApplicationScoped
 public class StackGresOperatorApp {
 
@@ -110,8 +109,8 @@ public class StackGresOperatorApp {
       System.out.println(Resources.toString(
           Resources.getResource(StackGresOperatorApp.class, "/META-INF/banner.txt"),
           StandardCharsets.UTF_8));
-    } catch (IOException e) {
-      // Ignore
+    } catch (IOException ignored) {
+      // ignored, not important if we can't print the ASCII-art.
     }
   }
 

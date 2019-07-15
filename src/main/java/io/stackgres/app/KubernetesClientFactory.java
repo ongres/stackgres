@@ -13,7 +13,6 @@ import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
-@SuppressWarnings("initialization.fields.uninitialized")
 @ApplicationScoped
 public class KubernetesClientFactory {
 

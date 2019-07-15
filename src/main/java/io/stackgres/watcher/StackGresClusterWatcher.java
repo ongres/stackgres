@@ -15,7 +15,6 @@ import io.stackgres.operator.ClusterOperator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@SuppressWarnings("initialization.fields.uninitialized")
 @ApplicationScoped
 public class StackGresClusterWatcher implements Watcher<StackGresCluster> {
 
