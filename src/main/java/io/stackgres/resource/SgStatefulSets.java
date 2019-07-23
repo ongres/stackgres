@@ -5,7 +5,6 @@
 
 package io.stackgres.resource;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -31,7 +30,7 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSetSpec;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.app.KubernetesClientFactory;
 import io.stackgres.crd.sgcluster.StackGresCluster;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
+import io.stackgres.util.ResourceUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,9 +38,6 @@ import org.slf4j.LoggerFactory;
 public class SgStatefulSets {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SgStatefulSets.class);
-
-  @ConfigProperty(name = "stackgres.namespace", defaultValue = "stackgres")
-  String namespace;
 
   @Inject
   KubernetesClientFactory kubClientFactory;
@@ -51,14 +47,13 @@ public class SgStatefulSets {
    */
   public StatefulSet create(StackGresCluster resource) {
     final String name = resource.getMetadata().getName();
+    final String namespace = resource.getMetadata().getNamespace();
 
-    Map<String, String> labels = new HashMap<>();
-    labels.put("app", "StackGres");
-    labels.put("cluster-name", name);
+    Map<String, String> labels = ResourceUtils.defaultLabels(name);
 
     VolumeMount pgSocket = new VolumeMountBuilder()
         .withName("pg-socket")
-        .withMountPath("/var/run/postgresql")
+        .withMountPath("/run/postgresql")
         .build();
 
     StatefulSet statefulSet = new StatefulSetBuilder()
@@ -166,6 +161,7 @@ public class SgStatefulSets {
    */
   public StatefulSet update(StackGresCluster resource) {
     final String name = resource.getMetadata().getName();
+    final String namespace = resource.getMetadata().getNamespace();
 
     try (KubernetesClient client = kubClientFactory.retrieveKubernetesClient()) {
       StatefulSet statefulSet =
@@ -201,13 +197,14 @@ public class SgStatefulSets {
    */
   public StatefulSet delete(KubernetesClient client, StackGresCluster resource) {
     final String name = resource.getMetadata().getName();
+    final String namespace = resource.getMetadata().getNamespace();
 
     StatefulSet statefulSet = client.apps().statefulSets().inNamespace(namespace)
         .withName(name).get();
     if (statefulSet != null) {
-      client.apps().statefulSets().inNamespace(namespace).withName(name).cascading(true)
-          .delete();
-      LOGGER.debug("Deleting StatefulSet: {}", name);
+      Boolean deleted = client.apps().statefulSets().inNamespace(namespace).withName(name)
+          .cascading(true).delete();
+      LOGGER.debug("Deleting StatefulSet: {}, success: {}", name, deleted);
     }
 
     return statefulSet;

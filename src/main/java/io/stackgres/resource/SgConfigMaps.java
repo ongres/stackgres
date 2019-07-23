@@ -19,7 +19,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.app.KubernetesClientFactory;
 import io.stackgres.crd.sgcluster.StackGresCluster;
 import io.stackgres.util.QuarkusProfile;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
+import io.stackgres.util.ResourceUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,21 +28,17 @@ public class SgConfigMaps {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SgConfigMaps.class);
 
-  @ConfigProperty(name = "stackgres.namespace", defaultValue = "stackgres")
-  String namespace;
-
   @Inject
   KubernetesClientFactory kubClientFactory;
 
   /**
    * Create the Service associated to the cluster.
    */
-  public ConfigMap create(StackGresCluster sgcluster) {
-    final String name = sgcluster.getMetadata().getName();
+  public ConfigMap create(StackGresCluster resource) {
+    final String name = resource.getMetadata().getName();
+    final String namespace = resource.getMetadata().getNamespace();
 
-    Map<String, String> labels = new HashMap<>();
-    labels.put("app", "StackGres");
-    labels.put("cluster-name", name);
+    Map<String, String> labels = ResourceUtils.defaultLabels(name);
 
     String patroniLabels = labels.entrySet().stream()
         .map(f -> f.getKey() + ": \"" + f.getValue() + "\"")
@@ -57,11 +53,11 @@ public class SgConfigMaps {
     data.put("PATRONI_KUBERNETES_LABELS", patroniLabels);
     data.put("PATRONI_POSTGRESQL_LISTEN", "0.0.0.0:5432");
     data.put("PATRONI_RESTAPI_LISTEN", "0.0.0.0:8008");
+    data.put("PATRONI_POSTGRESQL_PORT", "5432");
     data.put("PATRONI_POSTGRESQL_DATA_DIR", "/var/lib/postgresql/data");
     data.put("PATRONI_POSTGRESQL_BIN_DIR", "/usr/lib/postgresql/11/bin");
     data.put("PATRONI_CONFIG_DIR", "/var/lib/postgresql/data");
-    data.put("PATRONI_POSTGRESQL_PORT", "5432");
-    data.put("PATRONI_POSTGRES_UNIX_SOCKET_DIRECTORY", "/var/run/postgresql");
+    data.put("PATRONI_POSTGRES_UNIX_SOCKET_DIRECTORY", "/run/postgresql");
 
     if (QuarkusProfile.getActiveProfile().isDev()) {
       data.put("PATRONI_LOG_LEVEL", "DEBUG");
@@ -104,6 +100,7 @@ public class SgConfigMaps {
    */
   public ConfigMap delete(KubernetesClient client, StackGresCluster resource) {
     final String name = resource.getMetadata().getName();
+    final String namespace = resource.getMetadata().getNamespace();
 
     ConfigMap cm = client.configMaps().inNamespace(namespace).withName(name).get();
     if (cm != null) {

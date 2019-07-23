@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator;
+package io.stackgres.controller;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -20,9 +20,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
-public class ClusterOperator {
+public class ClusterController {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(ClusterOperator.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(ClusterController.class);
 
   @Inject
   KubernetesClientFactory kubClientFactory;

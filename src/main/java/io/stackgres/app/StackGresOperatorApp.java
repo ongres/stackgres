@@ -41,14 +41,14 @@ public class StackGresOperatorApp {
   String namespace;
 
   @Inject
-  KubernetesClientFactory kubClientFactory;
+  KubernetesClientFactory kubeClient;
 
   @Inject
   StackGresClusterWatcher watcher;
 
   void onStart(@Observes StartupEvent ev) {
     printArt();
-    try (KubernetesClient client = kubClientFactory.retrieveKubernetesClient()) {
+    try (KubernetesClient client = kubeClient.retrieveKubernetesClient()) {
       log(client);
       // Create a namespace for all our stuff
       Namespace ns = new NamespaceBuilder()
@@ -79,12 +79,12 @@ public class StackGresOperatorApp {
     KubernetesDeserializer.registerCustomKind(StackGresClusterDefinition.APIVERSION,
         StackGresClusterDefinition.KIND, StackGresCluster.class);
 
-    kubClientFactory.retrieveKubernetesClient()
+    kubeClient.retrieveKubernetesClient()
         .customResources(StackGresClusterDefinition.CR_DEFINITION,
             StackGresCluster.class,
             StackGresClusterList.class,
             StackGresClusterDoneable.class)
-        .inNamespace(namespace)
+        .inAnyNamespace()
         .watch(watcher);
   }
 
@@ -101,7 +101,6 @@ public class StackGresOperatorApp {
   private static void log(KubernetesClient client) {
     LOGGER.info("Kubernetes version: {}", client.getVersion().getGitVersion());
     LOGGER.info("URL of this Kubernetes cluster: {}", client.getMasterUrl());
-    LOGGER.info("Default namespace selected: {}", client.getNamespace());
   }
 
   private void printArt() {
