@@ -43,12 +43,13 @@ native-image build:
     - stackgres-runner
   script:
     - 'mvn $MAVEN_CLI_OPTS package -Pnative'
-    - 'mkdir -p target/javalib/'
-    - 'cp $GRAALVM_HOME/jre/lib/amd64/libsunec.so target/javalib/'
+    - 'cp $GRAALVM_HOME/jre/lib/amd64/libsunec.so target/'
     - 'cp $GRAALVM_HOME/jre/lib/security/cacerts target/'
   artifacts:
     paths:
-      - target/
+      - target/libsunec.so
+      - target/cacerts
+      - target/*-runner
     expire_in: 1 day
 
 enforce release:
@@ -70,9 +71,6 @@ oci-image deploy:
   only:
     - tags
   script:
-    - 'export STORAGE_DRIVER=vfs'
-    - 'CONTAINER_TAG=${CI_COMMIT_TAG:-"$CI_COMMIT_REF_NAME"}'
-    - 'buildah bud -f .gitlab/Dockerfile -t stackgres-build .'
-    - 'CONTAINER_ID=$(buildah from stackgres-build)'
-    - 'buildah commit --squash $CONTAINER_ID stackgres/operator:$CONTAINER_TAG'
-    - 'buildah push --authfile $REGISTRY_AUTH_FILE stackgres/operator:$CONTAINER_TAG docker://docker.io/stackgres/operator:$CONTAINER_TAG'
+    - 'CONTAINER_NAME=stackgres/operator:${CI_COMMIT_TAG:-"$CI_COMMIT_REF_NAME"}'
+    - './.gitlab/buildah-stackgres.sh $CONTAINER_NAME'
+    - 'buildah push --authfile $REGISTRY_AUTH_FILE $CONTAINER_NAME docker://docker.io/$CONTAINER_NAME'
