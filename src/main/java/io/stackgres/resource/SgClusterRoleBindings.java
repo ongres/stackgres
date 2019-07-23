@@ -18,7 +18,6 @@ import io.fabric8.kubernetes.api.model.rbac.SubjectBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.app.KubernetesClientFactory;
 import io.stackgres.crd.sgcluster.StackGresCluster;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,17 +26,15 @@ public class SgClusterRoleBindings {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SgClusterRoleBindings.class);
 
-  @ConfigProperty(name = "stackgres.namespace", defaultValue = "stackgres")
-  String namespace;
-
   @Inject
   KubernetesClientFactory kubClientFactory;
 
   /**
    * Create the Service associated to the cluster.
    */
-  public ClusterRoleBinding create(StackGresCluster sgcluster) {
-    final String name = sgcluster.getMetadata().getName();
+  public ClusterRoleBinding create(StackGresCluster resource) {
+    final String name = resource.getMetadata().getName();
+    final String namespace = resource.getMetadata().getNamespace();
 
     try (KubernetesClient client = kubClientFactory.retrieveKubernetesClient()) {
 
@@ -103,6 +100,7 @@ public class SgClusterRoleBindings {
    */
   public ClusterRoleBinding delete(KubernetesClient client, StackGresCluster resource) {
     final String name = resource.getMetadata().getName();
+    final String namespace = resource.getMetadata().getNamespace();
 
     ClusterRoleBinding crb = client.rbac().clusterRoleBindings().inNamespace(namespace)
         .withName(name).get();

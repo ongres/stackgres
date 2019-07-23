@@ -10,8 +10,8 @@ import javax.inject.Inject;
 
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.Watcher;
+import io.stackgres.controller.ClusterController;
 import io.stackgres.crd.sgcluster.StackGresCluster;
-import io.stackgres.operator.ClusterOperator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,7 +21,7 @@ public class StackGresClusterWatcher implements Watcher<StackGresCluster> {
   private static final Logger LOGGER = LoggerFactory.getLogger(StackGresClusterWatcher.class);
 
   @Inject
-  ClusterOperator operator;
+  ClusterController operator;
 
   @Override
   public void eventReceived(Action action, StackGresCluster resource) {
@@ -45,6 +45,7 @@ public class StackGresClusterWatcher implements Watcher<StackGresCluster> {
   @Override
   public void onClose(KubernetesClientException cause) {
     LOGGER.error("onClose was called, ", cause);
+    Runtime.getRuntime().halt(1);
   }
 
 }

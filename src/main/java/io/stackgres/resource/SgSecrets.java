@@ -9,6 +9,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -16,12 +17,10 @@ import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
-import io.fabric8.kubernetes.api.model.SecretList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.app.KubernetesClientFactory;
 import io.stackgres.crd.sgcluster.StackGresCluster;
 import io.stackgres.util.ResourceUtils;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,21 +29,17 @@ public class SgSecrets {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SgSecrets.class);
 
-  @ConfigProperty(name = "stackgres.namespace", defaultValue = "stackgres")
-  String namespace;
-
   @Inject
   KubernetesClientFactory kubClientFactory;
 
   /**
    * Create the Service associated to the cluster.
    */
-  public Secret create(StackGresCluster sgcluster) {
-    final String name = sgcluster.getMetadata().getName();
+  public Secret create(StackGresCluster resource) {
+    final String name = resource.getMetadata().getName();
+    final String namespace = resource.getMetadata().getNamespace();
 
-    Map<String, String> labels = new HashMap<>();
-    labels.put("app", "StackGres");
-    labels.put("cluster-name", name);
+    Map<String, String> labels = ResourceUtils.defaultLabels(name);
 
     Map<String, String> data = new HashMap<>();
     data.put("superuser-password", generatePassword());
@@ -52,7 +47,7 @@ public class SgSecrets {
 
     try (KubernetesClient client = kubClientFactory.retrieveKubernetesClient()) {
       Secret secret = new Secret();
-      if (!exists(client, name)) {
+      if (!exists(client, name, namespace)) {
         secret = new SecretBuilder()
             .withNewMetadata()
             .withName(name)
@@ -66,19 +61,17 @@ public class SgSecrets {
         LOGGER.trace("Secret: {}", secret);
       }
 
-      SecretList list = client.secrets().inNamespace(namespace).list();
-      for (Secret item : list.getItems()) {
-        if (item.getMetadata().getName().equals(name)) {
-          secret = item;
-        }
-      }
+      Optional<Secret> created = client.secrets().inNamespace(namespace).list().getItems()
+          .stream()
+          .filter(p -> p.getMetadata().getName().equals(name))
+          .findAny();
 
       LOGGER.debug("Creating Secret: {}", name);
-      return secret;
+      return created.orElse(secret);
     }
   }
 
-  private boolean exists(KubernetesClient client, String secretName) {
+  private boolean exists(KubernetesClient client, String secretName, String namespace) {
     return ResourceUtils.exists(client.secrets().inNamespace(namespace).list().getItems(),
         secretName);
   }
@@ -105,6 +98,7 @@ public class SgSecrets {
    */
   public Secret delete(KubernetesClient client, StackGresCluster resource) {
     final String name = resource.getMetadata().getName();
+    final String namespace = resource.getMetadata().getNamespace();
 
     Secret secret = client.secrets().inNamespace(namespace).withName(name).get();
     if (secret != null) {

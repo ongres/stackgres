@@ -5,7 +5,9 @@
 
 package io.stackgres.util;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
@@ -28,6 +30,16 @@ public class ResourceUtils {
         .map(HasMetadata::getMetadata)
         .map(ObjectMeta::getName)
         .anyMatch(name::equals);
+  }
+
+  /**
+   * Mutable list of default labels used as selectors in K8s resources.
+   */
+  public static Map<String, String> defaultLabels(String clusterName) {
+    Map<String, String> labels = new HashMap<>();
+    labels.put("app", "StackGres");
+    labels.put("cluster-name", clusterName);
+    return labels;
   }
 
 }
