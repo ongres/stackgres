@@ -46,7 +46,6 @@ public class SgConfigMaps {
 
     Map<String, String> data = new HashMap<>();
     data.put("PATRONI_SCOPE", name);
-    data.put("PATRONI_KUBERNETES_NAMESPACE", namespace);
     data.put("PATRONI_SUPERUSER_USERNAME", "postgres");
     data.put("PATRONI_REPLICATION_USERNAME", "replication");
     data.put("PATRONI_KUBERNETES_USE_ENDPOINTS", "true");

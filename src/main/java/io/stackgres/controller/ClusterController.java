@@ -11,8 +11,8 @@ import javax.inject.Inject;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.app.KubernetesClientFactory;
 import io.stackgres.crd.sgcluster.StackGresCluster;
-import io.stackgres.resource.SgClusterRoleBindings;
 import io.stackgres.resource.SgConfigMaps;
+import io.stackgres.resource.SgPatroniRole;
 import io.stackgres.resource.SgSecrets;
 import io.stackgres.resource.SgServices;
 import io.stackgres.resource.SgStatefulSets;
@@ -40,7 +40,7 @@ public class ClusterController {
   SgSecrets sgSecrets;
 
   @Inject
-  SgClusterRoleBindings sgClusterRoles;
+  SgPatroniRole sgRole;
 
   /**
    * Create all the infrastructure of StackGres.
@@ -48,7 +48,7 @@ public class ClusterController {
    * @param resource Custom Resource with the specification to create the cluster
    */
   public void newStackGresCluster(StackGresCluster resource) {
-    sgClusterRoles.create(resource);
+    sgRole.create(resource);
     sgSecrets.create(resource);
     sgServices.create(resource);
     sgConfigMaps.create(resource);
@@ -68,7 +68,7 @@ public class ClusterController {
     try (KubernetesClient client = kubClientFactory.retrieveKubernetesClient()) {
       sgServices.delete(client, resource);
       sgStatefulSets.delete(client, resource);
-      sgClusterRoles.delete(client, resource);
+      sgRole.delete(client, resource);
       sgSecrets.delete(client, resource);
       sgConfigMaps.delete(client, resource);
       LOGGER.info("Cluster deleted: '{}'", resource.getMetadata().getName());

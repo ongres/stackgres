@@ -5,6 +5,7 @@
 
 package io.stackgres.util;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,13 +34,13 @@ public class ResourceUtils {
   }
 
   /**
-   * Mutable list of default labels used as selectors in K8s resources.
+   * Unmodifiable Map of default labels used as selectors in K8s resources.
    */
   public static Map<String, String> defaultLabels(String clusterName) {
     Map<String, String> labels = new HashMap<>();
     labels.put("app", "StackGres");
     labels.put("cluster-name", clusterName);
-    return labels;
+    return Collections.unmodifiableMap(labels);
   }
 
 }

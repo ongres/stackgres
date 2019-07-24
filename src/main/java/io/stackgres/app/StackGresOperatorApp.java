@@ -14,8 +14,6 @@ import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
 import com.google.common.io.Resources;
-import io.fabric8.kubernetes.api.model.Namespace;
-import io.fabric8.kubernetes.api.model.NamespaceBuilder;
 import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
@@ -28,7 +26,6 @@ import io.stackgres.crd.sgcluster.StackGresClusterDoneable;
 import io.stackgres.crd.sgcluster.StackGresClusterList;
 import io.stackgres.util.ResourceUtils;
 import io.stackgres.watcher.StackGresClusterWatcher;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,9 +33,6 @@ import org.slf4j.LoggerFactory;
 public class StackGresOperatorApp {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(StackGresOperatorApp.class);
-
-  @ConfigProperty(name = "stackgres.namespace", defaultValue = "stackgres")
-  String namespace;
 
   @Inject
   KubernetesClientFactory kubeClient;
@@ -50,14 +44,6 @@ public class StackGresOperatorApp {
     printArt();
     try (KubernetesClient client = kubeClient.retrieveKubernetesClient()) {
       log(client);
-      // Create a namespace for all our stuff
-      Namespace ns = new NamespaceBuilder()
-          .withNewMetadata()
-          .withName(namespace)
-          .endMetadata()
-          .build();
-      client.namespaces().createOrReplace(ns);
-      LOGGER.debug("Created or replaced namespace: {}", ns);
       startClusterCrdWatcher(client);
     } catch (KubernetesClientException e) {
       if (e.getCause() instanceof SocketTimeoutException) {
