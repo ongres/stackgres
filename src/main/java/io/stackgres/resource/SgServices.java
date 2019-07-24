@@ -5,6 +5,7 @@
 
 package io.stackgres.resource;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -41,23 +42,7 @@ public class SgServices {
     }
   }
 
-  private Service createConfigService(String serviceName) {
-    LOGGER.debug("Creating service: {}", serviceName);
-    return new ServiceBuilder()
-        .withNewMetadata()
-        .withName(serviceName)
-        .withLabels(ResourceUtils.defaultLabels(serviceName))
-        .endMetadata()
-        .withNewSpec()
-        .withClusterIP("None")
-        .endSpec()
-        .build();
-  }
-
-  private Service createService(String serviceName, String role) {
-    Map<String, String> labels = ResourceUtils.defaultLabels(serviceName);
-    labels.put("role", role); // role is set by Patroni
-
+  private Service createConfigService(String serviceName, Map<String, String> labels) {
     LOGGER.debug("Creating service: {}", serviceName);
     return new ServiceBuilder()
         .withNewMetadata()
@@ -65,12 +50,28 @@ public class SgServices {
         .withLabels(labels)
         .endMetadata()
         .withNewSpec()
-        .withSelector(labels)
+        .withClusterIP("None")
+        .endSpec()
+        .build();
+  }
+
+  private Service createService(String serviceName, String role, Map<String, String> labels) {
+    final Map<String, String> labelsRole = new HashMap<>(labels);
+    labelsRole.put("role", role); // role is set by Patroni
+
+    LOGGER.debug("Creating service: {}", serviceName);
+    return new ServiceBuilder()
+        .withNewMetadata()
+        .withName(serviceName)
+        .withLabels(labelsRole)
+        .endMetadata()
+        .withNewSpec()
+        .withSelector(labelsRole)
         .withPorts(new ServicePortBuilder()
             .withProtocol("TCP")
             .withPort(5432)
             .build())
-        .withType("LoadBalancer")
+        .withType("NodePort")
         .endSpec()
         .build();
   }
@@ -78,14 +79,15 @@ public class SgServices {
   private Service createServices(KubernetesClient client, StackGresCluster resource) {
     final String name = resource.getMetadata().getName();
     final String namespace = resource.getMetadata().getNamespace();
+    final Map<String, String> labels = ResourceUtils.defaultLabels(name);
 
-    Service config = createConfigService(name + CONFIG_SERVICE);
-    client.services().inNamespace(namespace).createOrReplace(config);
+    Service config = createConfigService(name + CONFIG_SERVICE, labels);
+    config = client.services().inNamespace(namespace).createOrReplace(config);
 
-    Service primary = createService(name + READ_WRITE_SERVICE, "master");
+    Service primary = createService(name + READ_WRITE_SERVICE, "master", labels);
     client.services().inNamespace(namespace).createOrReplace(primary);
 
-    Service replicas = createService(name + READ_ONLY_SERVICE, "replica");
+    Service replicas = createService(name + READ_ONLY_SERVICE, "replica", labels);
     client.services().inNamespace(namespace).createOrReplace(replicas);
 
     return config;

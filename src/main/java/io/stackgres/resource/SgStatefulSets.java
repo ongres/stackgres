@@ -16,7 +16,6 @@ import io.fabric8.kubernetes.api.model.EnvFromSourceBuilder;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.EnvVarSourceBuilder;
 import io.fabric8.kubernetes.api.model.LabelSelectorBuilder;
-import io.fabric8.kubernetes.api.model.LocalObjectReferenceBuilder;
 import io.fabric8.kubernetes.api.model.ObjectFieldSelectorBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.PodTemplateSpecBuilder;
@@ -73,7 +72,7 @@ public class SgStatefulSets {
                 .build())
             .withNewSpec()
             .withShareProcessNamespace(true)
-            .withServiceAccountName(name)
+            .withServiceAccountName(name + SgPatroniRole.SUFIX)
             .addNewContainer()
             .withName(name)
             .withImage("docker.io/ongres/patroni:11.4")
@@ -90,6 +89,12 @@ public class SgStatefulSets {
                 new EnvVarBuilder().withName("PATRONI_NAME")
                     .withValueFrom(new EnvVarSourceBuilder().withFieldRef(
                         new ObjectFieldSelectorBuilder().withFieldPath("metadata.name").build())
+                        .build())
+                    .build(),
+                new EnvVarBuilder().withName("PATRONI_KUBERNETES_NAMESPACE")
+                    .withValueFrom(new EnvVarSourceBuilder().withFieldRef(
+                        new ObjectFieldSelectorBuilder().withFieldPath("metadata.namespace")
+                            .build())
                         .build())
                     .build(),
                 new EnvVarBuilder().withName("PATRONI_KUBERNETES_POD_IP")
@@ -139,8 +144,6 @@ public class SgStatefulSets {
                 .withMedium("Memory")
                 .endEmptyDir()
                 .build())
-            .withImagePullSecrets(new LocalObjectReferenceBuilder()
-                .withName("registry-secret").build())
             .withTerminationGracePeriodSeconds(0L)
             .endSpec()
             .build())
