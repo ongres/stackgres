@@ -46,7 +46,7 @@
     <resources-plugin.version>3.1.0</resources-plugin.version>
     <surefire-plugin.version>3.0.0-M3</surefire-plugin.version>
     <checkstyle-plugin.version>3.1.0</checkstyle-plugin.version>
-    <spotbugs-plugin.version>3.1.12</spotbugs-plugin.version>
+    <spotbugs-plugin.version>3.1.12.1</spotbugs-plugin.version>
     <pmd-plugin.version>3.12.0</pmd-plugin.version>
     <enforcer-plugin.version>3.0.0-M2</enforcer-plugin.version>
     <dependendency-plugin.version>3.1.1</dependendency-plugin.version>
@@ -101,38 +101,10 @@
       <artifactId>guava</artifactId>
       <exclusions>
         <exclusion>
-          <groupId>org.codehaus.mojo</groupId>
-          <artifactId>animal-sniffer-annotations</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>com.google.j2objc</groupId>
-          <artifactId>j2objc-annotations</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>com.google.code.findbugs</groupId>
-          <artifactId>jsr305</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>com.google.guava</groupId>
-          <artifactId>listenablefuture</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.checkerframework</groupId>
-          <artifactId>checker-qual</artifactId>
+          <groupId>*</groupId>
+          <artifactId>*</artifactId>
         </exclusion>
       </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.checkerframework</groupId>
-      <artifactId>checker</artifactId>
-      <version>${checker.version}</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.checkerframework</groupId>
-      <artifactId>jdk8</artifactId>
-      <version>${checker.version}</version>
-      <scope>provided</scope>
     </dependency>
   </dependencies>
 
@@ -301,6 +273,26 @@
   <profiles>
     <profile>
       <id>safer</id> <!-- Slower but safer profile used to look for errors before pushing to SCM -->
+      <dependencies>
+        <dependency>
+          <groupId>com.google.errorprone</groupId>
+          <artifactId>error_prone_annotations</artifactId>
+          <version>2.3.3</version>
+          <scope>provided</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.checkerframework</groupId>
+          <artifactId>checker</artifactId>
+          <version>${checker.version}</version>
+          <scope>provided</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.checkerframework</groupId>
+          <artifactId>jdk8</artifactId>
+          <version>${checker.version}</version>
+          <scope>provided</scope>
+        </dependency>
+      </dependencies>
       <build>
         <plugins>
           <plugin>
@@ -318,6 +310,7 @@
             <artifactId>maven-compiler-plugin</artifactId>
             <version>${compiler-plugin.version}</version>
             <configuration>
+              <fork>true</fork>
               <compilerArguments>
                 <Xmaxerrs>10000</Xmaxerrs>
                 <Xmaxwarns>10000</Xmaxwarns>
@@ -339,7 +332,8 @@
               <compilerArgs>
                 <arg>-Xbootclasspath/p:${org.checkerframework:jdk8:jar}</arg>
                 <arg>-AsuppressWarnings=uninitialized</arg>
-                <!-- <arg>-Awarns</arg> -->
+                <arg>-Xlint:all</arg>
+                <arg>-Xlint:-processing</arg> <!-- Ignore warning: No processor claimed any of these annotations -->
               </compilerArgs>
             </configuration>
           </plugin>
