@@ -19,8 +19,8 @@ import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.app.KubernetesClientFactory;
+import io.stackgres.common.ResourceUtils;
 import io.stackgres.crd.sgcluster.StackGresCluster;
-import io.stackgres.util.ResourceUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

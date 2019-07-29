@@ -11,9 +11,9 @@ buildah run "$CONTAINER_BASE" -- microdnf clean all
 
 # Include binaries
 buildah config --workingdir='/app/' "$CONTAINER_BASE"
-buildah copy --chown stackgres:stackgres "$CONTAINER_BASE" 'target/*-runner' '/app/stackgres-operator'
-buildah copy "$CONTAINER_BASE" 'target/libsunec.so' '/app/libsunec.so'
-buildah copy "$CONTAINER_BASE" 'target/cacerts' '/app/cacerts'
+buildah copy --chown stackgres:stackgres "$CONTAINER_BASE" 'operator/target/*-runner' '/app/stackgres-operator'
+buildah copy "$CONTAINER_BASE" 'operator/target/libsunec.so' '/app/libsunec.so'
+buildah copy "$CONTAINER_BASE" 'operator/target/cacerts' '/app/cacerts'
 buildah run "$CONTAINER_BASE" -- chmod 775 '/app'
 
 ## Run our server and expose the port

@@ -5,8 +5,10 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>io.stackgres</groupId>
-  <artifactId>stackgres-operator</artifactId>
+  <artifactId>stackgres-parent</artifactId>
   <version>0.6-SNAPSHOT</version>
+  <packaging>pom</packaging>
+  <name>Parent POM</name>
 
   <inceptionYear>2019</inceptionYear>
 
@@ -22,6 +24,12 @@
     </license>
   </licenses>
 
+  <modules>
+    <module>build-config</module>
+    <module>common</module>
+    <module>operator</module>
+  </modules>
+
   <scm>
     <url>https://gitlab.com/stackgres/stackgres</url>
     <developerConnection>scm:git:git@gitlab.com:stackgres/stackgres.git</developerConnection>
@@ -36,9 +44,10 @@
     <maven.compiler.target>${java.version}</maven.compiler.target>
     <!-- Dependencies versions -->
     <quarkus.version>0.19.1</quarkus.version>
+    <checkstyle.version>8.23</checkstyle.version>
     <spotbugs.version>3.1.12</spotbugs.version>
-    <checkstyle.version>8.22</checkstyle.version>
     <checker.version>2.9.0</checker.version>
+    <pmd.version>6.17.0</pmd.version>
     <!-- Plugins versions -->
     <compiler-plugin.version>3.8.1</compiler-plugin.version>
     <jar-plugin.version>3.1.2</jar-plugin.version>
@@ -49,12 +58,12 @@
     <spotbugs-plugin.version>3.1.12.1</spotbugs-plugin.version>
     <pmd-plugin.version>3.12.0</pmd-plugin.version>
     <enforcer-plugin.version>3.0.0-M2</enforcer-plugin.version>
-    <dependendency-plugin.version>3.1.1</dependendency-plugin.version>
-    <!-- Checkstyle properties -->
-    <checkstyle.config.location>${project.basedir}/src/main/checkstyle/checkstyle.xml</checkstyle.config.location>
-    <checkstyle.suppression.location>${project.basedir}/src/main/checkstyle/checkstyle-suppressions.xml</checkstyle.suppression.location>
-    <checkstyle.consoleOutput>true</checkstyle.consoleOutput>
-    <checkstyle.header.file>.header</checkstyle.header.file>
+    <dependency-plugin.version>3.1.1</dependency-plugin.version>
+    <!-- Checkstyle, SpotBugs and PMD properties -->
+    <checkstyle.config.location>stackgres/checkstyle/checkstyle.xml</checkstyle.config.location>
+    <checkstyle.suppression.location>stackgres/checkstyle/checkstyle-suppressions.xml</checkstyle.suppression.location>
+    <checkstyle.header.file>stackgres/checkstyle/header-copyright</checkstyle.header.file>
+    <spotbugs.excluded.location>stackgres/spotbugs/spotbugs-exclude.xml</spotbugs.excluded.location>
   </properties>
 
   <dependencyManagement>
@@ -80,7 +89,7 @@
     </dependency>
     <dependency>
       <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-kubernetes</artifactId>
+      <artifactId>quarkus-hibernate-validator</artifactId>
     </dependency>
     <dependency>
       <groupId>io.quarkus</groupId>
@@ -109,25 +118,7 @@
   </dependencies>
 
   <build>
-    <resources>
-      <resource>
-        <directory>src/main/resources</directory>
-        <filtering>true</filtering>
-      </resource>
-    </resources>
     <plugins>
-      <plugin>
-        <groupId>io.quarkus</groupId>
-        <artifactId>quarkus-maven-plugin</artifactId>
-        <version>${quarkus.version}</version>
-        <executions>
-          <execution>
-            <goals>
-              <goal>build</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
       <plugin>
         <artifactId>maven-jar-plugin</artifactId>
         <version>${jar-plugin.version}</version>
@@ -199,74 +190,6 @@
           <pushChanges>false</pushChanges>
         </configuration>
       </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-checkstyle-plugin</artifactId>
-        <version>${checkstyle-plugin.version}</version>
-        <configuration>
-          <propertyExpansion>config_loc=${project.basedir}/src/main/checkstyle</propertyExpansion>
-          <violationSeverity>error</violationSeverity>
-          <failOnViolation>true</failOnViolation>
-          <failsOnError>true</failsOnError>
-          <includeTestSourceDirectory>true</includeTestSourceDirectory>
-          <linkXRef>false</linkXRef>
-        </configuration>
-        <executions>
-          <execution>
-            <goals>
-              <goal>check</goal>
-            </goals>
-          </execution>
-        </executions>
-        <dependencies>
-          <dependency>
-            <groupId>com.puppycrawl.tools</groupId>
-            <artifactId>checkstyle</artifactId>
-            <version>${checkstyle.version}</version>
-          </dependency>
-        </dependencies>
-      </plugin>
-      <plugin>
-        <groupId>com.github.spotbugs</groupId>
-        <artifactId>spotbugs-maven-plugin</artifactId>
-        <version>${spotbugs-plugin.version}</version>
-        <configuration>
-          <effort>Max</effort>
-          <threshold>Low</threshold>
-          <xmlOutput>true</xmlOutput>
-        </configuration>
-        <executions>
-          <execution>
-            <goals>
-              <goal>check</goal>
-            </goals>
-          </execution>
-        </executions>
-        <dependencies>
-          <dependency>
-            <groupId>com.github.spotbugs</groupId>
-            <artifactId>spotbugs</artifactId>
-            <version>${spotbugs.version}</version>
-          </dependency>
-        </dependencies>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-pmd-plugin</artifactId>
-        <version>${pmd-plugin.version}</version>
-        <configuration>
-          <failOnViolation>true</failOnViolation> <!-- this is actually true by default, but can be disabled -->
-          <printFailingErrors>true</printFailingErrors>
-          <linkXRef>false</linkXRef>
-        </configuration>
-        <executions>
-          <execution>
-            <goals>
-              <goal>check</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
     </plugins>
   </build>
 
@@ -296,8 +219,102 @@
       <build>
         <plugins>
           <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-checkstyle-plugin</artifactId>
+            <version>${checkstyle-plugin.version}</version>
+            <configuration>
+              <violationSeverity>error</violationSeverity>
+              <failOnViolation>true</failOnViolation>
+              <failsOnError>true</failsOnError>
+              <linkXRef>false</linkXRef>
+              <consoleOutput>true</consoleOutput>
+              <configLocation>${checkstyle.config.location}</configLocation>
+              <suppressionsLocation>${checkstyle.suppression.location}</suppressionsLocation>
+              <headerLocation>${checkstyle.header.file}</headerLocation>
+            </configuration>
+            <dependencies>
+              <dependency>
+                <groupId>com.puppycrawl.tools</groupId>
+                <artifactId>checkstyle</artifactId>
+                <version>${checkstyle.version}</version>
+              </dependency>
+              <dependency>
+                <groupId>io.stackgres</groupId>
+                <artifactId>build-config</artifactId>
+                <version>1.0</version>
+              </dependency>
+            </dependencies>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>check</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>com.github.spotbugs</groupId>
+            <artifactId>spotbugs-maven-plugin</artifactId>
+            <version>${spotbugs-plugin.version}</version>
+            <configuration>
+              <effort>Max</effort>
+              <threshold>Low</threshold>
+              <xmlOutput>true</xmlOutput>
+              <failOnError>true</failOnError>
+              <excludeFilterFile>${spotbugs.excluded.location}</excludeFilterFile>
+            </configuration>
+            <dependencies>
+              <dependency>
+                <groupId>com.github.spotbugs</groupId>
+                <artifactId>spotbugs</artifactId>
+                <version>${spotbugs.version}</version>
+              </dependency>
+              <dependency>
+                <groupId>io.stackgres</groupId>
+                <artifactId>build-config</artifactId>
+                <version>1.0</version>
+              </dependency>
+            </dependencies>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>check</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-pmd-plugin</artifactId>
+            <version>${pmd-plugin.version}</version>
+            <configuration>
+              <failOnViolation>true</failOnViolation> <!-- this is actually true by default, but can be disabled -->
+              <printFailingErrors>true</printFailingErrors>
+              <linkXRef>false</linkXRef>
+            </configuration>
+            <dependencies>
+              <dependency>
+                <groupId>net.sourceforge.pmd</groupId>
+                <artifactId>pmd-java</artifactId>
+                <version>${pmd.version}</version>
+              </dependency>
+              <dependency>
+                <groupId>io.stackgres</groupId>
+                <artifactId>build-config</artifactId>
+                <version>1.0</version>
+              </dependency>
+            </dependencies>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>check</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
             <artifactId>maven-dependency-plugin</artifactId>
-            <version>${dependendency-plugin.version}</version>
+            <version>${dependency-plugin.version}</version>
             <executions>
               <execution>
                 <goals>
@@ -336,52 +353,6 @@
                 <arg>-Xlint:-processing</arg> <!-- Ignore warning: No processor claimed any of these annotations -->
               </compilerArgs>
             </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-
-    <profile>
-      <id>native</id>
-      <activation>
-        <property>
-          <name>native</name>
-        </property>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-maven-plugin</artifactId>
-            <version>${quarkus.version}</version>
-            <executions>
-              <execution>
-                <goals>
-                  <goal>native-image</goal>
-                </goals>
-                <configuration>
-                  <enableHttpUrlHandler>true</enableHttpUrlHandler>
-                  <additionalBuildArgs>-H:IncludeResources=.*/banner.txt</additionalBuildArgs>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-          <plugin>
-            <artifactId>maven-failsafe-plugin</artifactId>
-            <version>${surefire-plugin.version}</version>
-            <executions>
-              <execution>
-                <goals>
-                  <goal>integration-test</goal>
-                  <goal>verify</goal>
-                </goals>
-                <configuration>
-                  <systemProperties>
-                    <native.image.path>${project.build.directory}/${project.build.finalName}-runner</native.image.path>
-                  </systemProperties>
-                </configuration>
-              </execution>
-            </executions>
           </plugin>
         </plugins>
       </build>
