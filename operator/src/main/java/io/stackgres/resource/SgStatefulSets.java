@@ -28,8 +28,8 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetSpec;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.app.KubernetesClientFactory;
+import io.stackgres.common.ResourceUtils;
 import io.stackgres.crd.sgcluster.StackGresCluster;
-import io.stackgres.util.ResourceUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,7 +71,7 @@ public class SgStatefulSets {
                 .addToLabels(labels)
                 .build())
             .withNewSpec()
-            .withShareProcessNamespace(true)
+            .withShareProcessNamespace(Boolean.TRUE)
             .withServiceAccountName(name + SgPatroniRole.SUFIX)
             .addNewContainer()
             .withName(name)
@@ -132,8 +132,8 @@ public class SgStatefulSets {
             .withName("PG_VERSION")
             .withValue("11")
             .endEnv()
-            .withStdin(true)
-            .withTty(true)
+            .withStdin(Boolean.TRUE)
+            .withTty(Boolean.TRUE)
             .withCommand("/bin/sh")
             .withArgs("-c", "while true; do sleep 10; done")
             .withVolumeMounts(pgSocket)
@@ -178,7 +178,8 @@ public class SgStatefulSets {
         }
         statefulSet.setSpec(spec);
 
-        client.apps().statefulSets().inNamespace(namespace).createOrReplace(statefulSet);
+        statefulSet = client.apps().statefulSets().inNamespace(namespace)
+            .createOrReplace(statefulSet);
       }
 
       LOGGER.debug("Updating StatefulSet: {}", name);

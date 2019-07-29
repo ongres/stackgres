@@ -43,8 +43,8 @@ native-image build:
     - stackgres-runner
   script:
     - 'mvn $MAVEN_CLI_OPTS package -Pnative'
-    - 'cp $GRAALVM_HOME/jre/lib/amd64/libsunec.so target/'
-    - 'cp $GRAALVM_HOME/jre/lib/security/cacerts target/'
+    - 'cp $GRAALVM_HOME/jre/lib/amd64/libsunec.so operator/target/'
+    - 'cp $GRAALVM_HOME/jre/lib/security/cacerts operator/target/'
   artifacts:
     paths:
       - target/libsunec.so

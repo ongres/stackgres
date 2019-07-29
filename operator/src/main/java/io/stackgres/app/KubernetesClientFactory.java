@@ -13,9 +13,6 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 @ApplicationScoped
 public class KubernetesClientFactory {
 
-  /**
-   * Create a default Kubernetes Client.
-   */
   public KubernetesClient retrieveKubernetesClient() {
     return new DefaultKubernetesClient();
   }
