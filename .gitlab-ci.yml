@@ -47,9 +47,9 @@ native-image build:
     - 'cp $GRAALVM_HOME/jre/lib/security/cacerts operator/target/'
   artifacts:
     paths:
-      - target/libsunec.so
-      - target/cacerts
-      - target/*-runner
+      - operator/target/libsunec.so
+      - operator/target/cacerts
+      - operator/target/*-runner
     expire_in: 1 day
 
 enforce release:
