@@ -25,7 +25,6 @@
   </licenses>
 
   <modules>
-    <module>build-config</module>
     <module>common</module>
     <module>operator</module>
   </modules>
@@ -60,10 +59,10 @@
     <enforcer-plugin.version>3.0.0-M2</enforcer-plugin.version>
     <dependency-plugin.version>3.1.1</dependency-plugin.version>
     <!-- Checkstyle, SpotBugs and PMD properties -->
-    <checkstyle.config.location>stackgres/checkstyle/checkstyle.xml</checkstyle.config.location>
-    <checkstyle.suppression.location>stackgres/checkstyle/checkstyle-suppressions.xml</checkstyle.suppression.location>
-    <checkstyle.header.file>stackgres/checkstyle/header-copyright</checkstyle.header.file>
-    <spotbugs.excluded.location>stackgres/spotbugs/spotbugs-exclude.xml</spotbugs.excluded.location>
+    <checkstyle.config.location>checks/checkstyle/checkstyle.xml</checkstyle.config.location>
+    <checkstyle.suppressions.location>checks/checkstyle/suppressions.xml</checkstyle.suppressions.location>
+    <checkstyle.header.file>checks/checkstyle/header-copyright</checkstyle.header.file>
+    <spotbugs.excludeFilterFile>checks/spotbugs/spotbugs-exclude.xml</spotbugs.excludeFilterFile>
   </properties>
 
   <dependencyManagement>
@@ -126,10 +125,6 @@
       <plugin>
         <artifactId>maven-clean-plugin</artifactId>
         <version>${clean-plugin.version}</version>
-      </plugin>
-      <plugin>
-        <artifactId>maven-resources-plugin</artifactId>
-        <version>${resources-plugin.version}</version>
       </plugin>
       <plugin>
         <artifactId>maven-surefire-plugin</artifactId>
@@ -222,30 +217,23 @@
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-checkstyle-plugin</artifactId>
             <version>${checkstyle-plugin.version}</version>
-            <configuration>
-              <violationSeverity>error</violationSeverity>
-              <failOnViolation>true</failOnViolation>
-              <failsOnError>true</failsOnError>
-              <linkXRef>false</linkXRef>
-              <consoleOutput>true</consoleOutput>
-              <configLocation>${checkstyle.config.location}</configLocation>
-              <suppressionsLocation>${checkstyle.suppression.location}</suppressionsLocation>
-              <headerLocation>${checkstyle.header.file}</headerLocation>
-            </configuration>
             <dependencies>
               <dependency>
                 <groupId>com.puppycrawl.tools</groupId>
                 <artifactId>checkstyle</artifactId>
                 <version>${checkstyle.version}</version>
               </dependency>
-              <dependency>
-                <groupId>io.stackgres</groupId>
-                <artifactId>build-config</artifactId>
-                <version>1.0</version>
-              </dependency>
             </dependencies>
             <executions>
               <execution>
+                <id>validate</id>
+                <configuration>
+                  <violationSeverity>error</violationSeverity>
+                  <failOnViolation>true</failOnViolation>
+                  <failsOnError>true</failsOnError>
+                  <consoleOutput>true</consoleOutput>
+                  <linkXRef>false</linkXRef>
+                </configuration>
                 <goals>
                   <goal>check</goal>
                 </goals>
@@ -261,7 +249,6 @@
               <threshold>Low</threshold>
               <xmlOutput>true</xmlOutput>
               <failOnError>true</failOnError>
-              <excludeFilterFile>${spotbugs.excluded.location}</excludeFilterFile>
             </configuration>
             <dependencies>
               <dependency>
@@ -269,14 +256,10 @@
                 <artifactId>spotbugs</artifactId>
                 <version>${spotbugs.version}</version>
               </dependency>
-              <dependency>
-                <groupId>io.stackgres</groupId>
-                <artifactId>build-config</artifactId>
-                <version>1.0</version>
-              </dependency>
             </dependencies>
             <executions>
               <execution>
+                <id>validate</id>
                 <goals>
                   <goal>check</goal>
                 </goals>
@@ -298,14 +281,10 @@
                 <artifactId>pmd-java</artifactId>
                 <version>${pmd.version}</version>
               </dependency>
-              <dependency>
-                <groupId>io.stackgres</groupId>
-                <artifactId>build-config</artifactId>
-                <version>1.0</version>
-              </dependency>
             </dependencies>
             <executions>
               <execution>
+                <id>validate</id>
                 <goals>
                   <goal>check</goal>
                 </goals>
