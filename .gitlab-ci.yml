@@ -1,5 +1,5 @@
 # GraalVM Quarkus image
-image: quay.io/quarkus/centos-quarkus-maven:19.0.2
+image: docker.io/ongres/ubi-graalvm-maven:19.1.1
 
 variables:
   # This will suppress any download for dependencies and plugins or upload messages which would clutter the console log.
