@@ -3,19 +3,19 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.controller;
+package io.stackgres.operator.controller;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.stackgres.app.KubernetesClientFactory;
-import io.stackgres.crd.sgcluster.StackGresCluster;
-import io.stackgres.resource.SgConfigMaps;
-import io.stackgres.resource.SgPatroniRole;
-import io.stackgres.resource.SgSecrets;
-import io.stackgres.resource.SgServices;
-import io.stackgres.resource.SgStatefulSets;
+import io.stackgres.operator.app.KubernetesClientFactory;
+import io.stackgres.operator.crd.sgcluster.StackGresCluster;
+import io.stackgres.operator.resource.SgConfigMaps;
+import io.stackgres.operator.resource.SgPatroniRole;
+import io.stackgres.operator.resource.SgSecrets;
+import io.stackgres.operator.resource.SgServices;
+import io.stackgres.operator.resource.SgStatefulSets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

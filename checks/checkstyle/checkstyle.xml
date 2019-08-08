@@ -21,8 +21,15 @@
   <property name="severity" value="error" />
 
   <property name="fileExtensions" value="java, properties, xml" />
-    <!-- Checks for whitespace                               -->
-    <!-- See http://checkstyle.sf.net/config_whitespace.html -->
+
+  <!-- Excludes all 'module-info.java' files              -->
+  <!-- See https://checkstyle.org/config_filefilters.html -->
+  <module name="BeforeExecutionExclusionFileFilter">
+    <property name="fileNamePattern" value="module\-info\.java$" />
+  </module>
+
+  <!-- Checks for whitespace                               -->
+  <!-- See http://checkstyle.sf.net/config_whitespace.html -->
   <module name="FileTabCharacter">
     <property name="eachLine" value="true" />
   </module>
@@ -30,7 +37,7 @@
   <module name="NewlineAtEndOfFile" />
 
   <module name="RegexpSingleline">
-        <!-- \s matches whitespace character, $ matches end of line. -->
+    <!-- \s matches whitespace character, $ matches end of line. -->
     <property name="format" value="\s+$" />
     <property name="message" value="Line has trailing spaces." />
   </module>
@@ -79,11 +86,12 @@
       <property name="id" value="RightCurlyAlone" />
       <property name="option" value="alone" />
       <property name="tokens"
-        value="CLASS_DEF, METHOD_DEF, CTOR_DEF, LITERAL_FOR, LITERAL_WHILE, STATIC_INIT,
+        value="CLASS_DEF, METHOD_DEF, LITERAL_FOR, LITERAL_WHILE, STATIC_INIT,
                     INSTANCE_INIT" />
     </module>
     <module name="WhitespaceAround">
       <property name="allowEmptyConstructors" value="true" />
+      <property name="allowEmptyLambdas" value="true" />
       <property name="allowEmptyMethods" value="true" />
       <property name="allowEmptyTypes" value="true" />
       <property name="allowEmptyLoops" value="true" />
@@ -115,13 +123,13 @@
       <property name="option" value="EOL" />
     </module>
     <module name="SeparatorWrap">
-            <!-- ELLIPSIS is EOL until https://github.com/google/styleguide/issues/258 -->
+      <!-- ELLIPSIS is EOL until https://github.com/google/styleguide/issues/258 -->
       <property name="id" value="SeparatorWrapEllipsis" />
       <property name="tokens" value="ELLIPSIS" />
       <property name="option" value="EOL" />
     </module>
     <module name="SeparatorWrap">
-            <!-- ARRAY_DECLARATOR is EOL until https://github.com/google/styleguide/issues/259 -->
+      <!-- ARRAY_DECLARATOR is EOL until https://github.com/google/styleguide/issues/259 -->
       <property name="id" value="SeparatorWrapArrayDeclarator" />
       <property name="tokens" value="ARRAY_DECLARATOR" />
       <property name="option" value="EOL" />
@@ -159,6 +167,11 @@
       <property name="format" value="^[a-z]([a-z0-9][a-zA-Z0-9]*)?$" />
       <message key="name.invalidPattern"
         value="Catch parameter name ''{0}'' must match pattern ''{1}''." />
+    </module>
+    <module name="LambdaParameterName">
+      <property name="format" value="^[a-z]([a-z0-9][a-zA-Z0-9]*)?$" />
+      <message key="name.invalidPattern"
+        value="Lambda parameter name ''{0}'' must match pattern ''{1}''." />
     </module>
     <module name="LocalVariableName">
       <property name="tokens" value="VARIABLE_DEF" />
@@ -237,6 +250,7 @@
       <property name="allowSamelineMultipleAnnotations" value="true" />
     </module>
     <module name="NonEmptyAtclauseDescription" />
+    <module name="InvalidJavadocPosition" />
     <module name="JavadocTagContinuationIndentation" />
     <module name="SummaryJavadoc">
       <property name="forbiddenSummaryFragments"
@@ -253,9 +267,13 @@
       <property name="allowMissingParamTags" value="true" />
       <property name="allowMissingThrowsTags" value="true" />
       <property name="allowMissingReturnTag" value="true" />
-      <property name="minLineCount" value="2" />
       <property name="allowedAnnotations" value="Override, Test" />
       <property name="allowThrowsTagsForSubclasses" value="true" />
+    </module>
+    <module name="MissingJavadocMethod">
+      <property name="scope" value="public" />
+      <property name="minLineCount" value="2" />
+      <property name="allowedAnnotations" value="Override, Test" />
     </module>
     <module name="MethodName">
       <property name="format" value="^[a-z][a-z0-9][a-zA-Z0-9_]*$" />

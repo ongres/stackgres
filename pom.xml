@@ -42,11 +42,12 @@
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>
     <!-- Dependencies versions -->
-    <quarkus.version>0.19.1</quarkus.version>
+    <quarkus.version>0.20.0</quarkus.version>
     <checkstyle.version>8.23</checkstyle.version>
-    <spotbugs.version>3.1.12</spotbugs.version>
-    <checker.version>2.9.0</checker.version>
+    <spotbugs.version>4.0.0-beta3</spotbugs.version>
+    <checker.version>2.10.0</checker.version>
     <pmd.version>6.17.0</pmd.version>
+    <errorprone.version>2.3.3</errorprone.version>
     <!-- Plugins versions -->
     <compiler-plugin.version>3.8.1</compiler-plugin.version>
     <jar-plugin.version>3.1.2</jar-plugin.version>
@@ -54,15 +55,15 @@
     <resources-plugin.version>3.1.0</resources-plugin.version>
     <surefire-plugin.version>3.0.0-M3</surefire-plugin.version>
     <checkstyle-plugin.version>3.1.0</checkstyle-plugin.version>
-    <spotbugs-plugin.version>3.1.12.1</spotbugs-plugin.version>
+    <spotbugs-plugin.version>3.1.12.2</spotbugs-plugin.version>
     <pmd-plugin.version>3.12.0</pmd-plugin.version>
     <enforcer-plugin.version>3.0.0-M2</enforcer-plugin.version>
     <dependency-plugin.version>3.1.1</dependency-plugin.version>
     <!-- Checkstyle, SpotBugs and PMD properties -->
     <checkstyle.config.location>checks/checkstyle/checkstyle.xml</checkstyle.config.location>
     <checkstyle.suppressions.location>checks/checkstyle/suppressions.xml</checkstyle.suppressions.location>
-    <checkstyle.header.file>checks/checkstyle/header-copyright</checkstyle.header.file>
-    <spotbugs.excludeFilterFile>checks/spotbugs/spotbugs-exclude.xml</spotbugs.excludeFilterFile>
+    <checkstyle.header.file>checks/checkstyle/header.txt</checkstyle.header.file>
+    <spotbugs.excludeFilterFile>checks/spotbugs/exclude.xml</spotbugs.excludeFilterFile>
   </properties>
 
   <dependencyManagement>
@@ -78,32 +79,6 @@
   </dependencyManagement>
 
   <dependencies>
-    <dependency>
-      <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-resteasy-jsonb</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-kubernetes-client</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-hibernate-validator</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-smallrye-health</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-junit5</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>io.rest-assured</groupId>
-      <artifactId>rest-assured</artifactId>
-      <scope>test</scope>
-    </dependency>
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
@@ -191,26 +166,6 @@
   <profiles>
     <profile>
       <id>safer</id> <!-- Slower but safer profile used to look for errors before pushing to SCM -->
-      <dependencies>
-        <dependency>
-          <groupId>com.google.errorprone</groupId>
-          <artifactId>error_prone_annotations</artifactId>
-          <version>2.3.3</version>
-          <scope>provided</scope>
-        </dependency>
-        <dependency>
-          <groupId>org.checkerframework</groupId>
-          <artifactId>checker</artifactId>
-          <version>${checker.version}</version>
-          <scope>provided</scope>
-        </dependency>
-        <dependency>
-          <groupId>org.checkerframework</groupId>
-          <artifactId>jdk8</artifactId>
-          <version>${checker.version}</version>
-          <scope>provided</scope>
-        </dependency>
-      </dependencies>
       <build>
         <plugins>
           <plugin>
@@ -227,6 +182,7 @@
             <executions>
               <execution>
                 <id>validate</id>
+                <phase>validate</phase>
                 <configuration>
                   <violationSeverity>error</violationSeverity>
                   <failOnViolation>true</failOnViolation>
@@ -291,6 +247,31 @@
               </execution>
             </executions>
           </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <profile>
+      <id>checker</id> <!-- Checker Framework profile -->
+      <dependencies>
+        <dependency>
+          <groupId>org.checkerframework</groupId>
+          <artifactId>checker</artifactId>
+          <version>${checker.version}</version>
+        </dependency>
+        <dependency>
+          <groupId>org.checkerframework</groupId>
+          <artifactId>jdk8</artifactId>
+          <version>${checker.version}</version>
+        </dependency>
+        <dependency>
+          <groupId>com.google.errorprone</groupId>
+          <artifactId>error_prone_annotations</artifactId>
+          <version>${errorprone.version}</version>
+        </dependency>
+      </dependencies>
+      <build>
+        <plugins>
           <plugin>
             <artifactId>maven-dependency-plugin</artifactId>
             <version>${dependency-plugin.version}</version>
@@ -330,6 +311,7 @@
                 <arg>-AsuppressWarnings=uninitialized</arg>
                 <arg>-Xlint:all</arg>
                 <arg>-Xlint:-processing</arg> <!-- Ignore warning: No processor claimed any of these annotations -->
+                <arg>-Xlint:-path</arg> <!-- Ignore warning: bad path element -->
               </compilerArgs>
             </configuration>
           </plugin>

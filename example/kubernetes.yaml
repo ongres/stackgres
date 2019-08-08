@@ -111,24 +111,24 @@ items:
                 fieldPath: "metadata.namespace"
           image: "stackgres/operator:0.5.2"
           imagePullPolicy: "IfNotPresent"
-          livenessProbe:
-            httpGet:
-              path: "/health/live"
-              port: 8080
-              scheme: "HTTP"
-            initialDelaySeconds: 0
-            periodSeconds: 30
-            timeoutSeconds: 10
           name: "stackgres-operator"
           ports:
           - containerPort: 8080
             name: "http"
             protocol: "TCP"
+          livenessProbe:
+            httpGet:
+              path: "/health/live"
+              port: 8080
+              scheme: "HTTP"
+            initialDelaySeconds: 5
+            periodSeconds: 30
+            timeoutSeconds: 10
           readinessProbe:
             httpGet:
               path: "/health/ready"
               port: 8080
               scheme: "HTTP"
-            initialDelaySeconds: 0
+            initialDelaySeconds: 5
             periodSeconds: 30
             timeoutSeconds: 10

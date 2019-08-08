@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.app;
+package io.stackgres.operator.app;
 
 import java.io.IOException;
 import java.net.SocketTimeoutException;
@@ -21,11 +21,13 @@ import io.fabric8.kubernetes.internal.KubernetesDeserializer;
 import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
 import io.stackgres.common.ResourceUtils;
-import io.stackgres.crd.sgcluster.StackGresCluster;
-import io.stackgres.crd.sgcluster.StackGresClusterDefinition;
-import io.stackgres.crd.sgcluster.StackGresClusterDoneable;
-import io.stackgres.crd.sgcluster.StackGresClusterList;
-import io.stackgres.watcher.StackGresClusterWatcher;
+import io.stackgres.operator.crd.pgconfig.StackGresPostgresConfig;
+import io.stackgres.operator.crd.pgconfig.StackGresPostgresConfigDefinition;
+import io.stackgres.operator.crd.sgcluster.StackGresCluster;
+import io.stackgres.operator.crd.sgcluster.StackGresClusterDefinition;
+import io.stackgres.operator.crd.sgcluster.StackGresClusterDoneable;
+import io.stackgres.operator.crd.sgcluster.StackGresClusterList;
+import io.stackgres.operator.watcher.StackGresClusterWatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,7 +45,8 @@ public class StackGresOperatorApp {
   void onStart(@Observes StartupEvent ev) {
     printArt();
     try (KubernetesClient client = kubeClient.retrieveKubernetesClient()) {
-      log(client);
+      LOGGER.info("Kubernetes version: {}", client.getVersion().getGitVersion());
+      LOGGER.info("URL of this Kubernetes cluster: {}", client.getMasterUrl());
       startClusterCrdWatcher(client);
     } catch (KubernetesClientException e) {
       if (e.getCause() instanceof SocketTimeoutException) {
@@ -58,12 +61,16 @@ public class StackGresOperatorApp {
   }
 
   private void startClusterCrdWatcher(KubernetesClient client) {
-    LOGGER.info("CRD Watcher: {}", StackGresClusterDefinition.NAME);
     createCrdIfNotExists(client, StackGresClusterDefinition.CR_DEFINITION,
         StackGresClusterDefinition.NAME);
+    createCrdIfNotExists(client, StackGresPostgresConfigDefinition.CR_DEFINITION,
+        StackGresPostgresConfigDefinition.NAME);
 
     KubernetesDeserializer.registerCustomKind(StackGresClusterDefinition.APIVERSION,
         StackGresClusterDefinition.KIND, StackGresCluster.class);
+
+    KubernetesDeserializer.registerCustomKind(StackGresPostgresConfigDefinition.APIVERSION,
+        StackGresPostgresConfigDefinition.KIND, StackGresPostgresConfig.class);
 
     kubeClient.retrieveKubernetesClient()
         .customResources(StackGresClusterDefinition.CR_DEFINITION,
@@ -72,6 +79,8 @@ public class StackGresOperatorApp {
             StackGresClusterDoneable.class)
         .inAnyNamespace()
         .watch(watcher);
+
+    LOGGER.info("CRD Watcher: {}", StackGresClusterDefinition.NAME);
   }
 
   private static void createCrdIfNotExists(KubernetesClient client,
@@ -80,13 +89,9 @@ public class StackGresOperatorApp {
         name);
 
     if (!exists) {
-      client.customResourceDefinitions().create(definition);
+      CustomResourceDefinition crd = client.customResourceDefinitions().create(definition);
+      LOGGER.debug("CRD created: {}", crd.getMetadata().getName());
     }
-  }
-
-  private static void log(KubernetesClient client) {
-    LOGGER.info("Kubernetes version: {}", client.getVersion().getGitVersion());
-    LOGGER.info("URL of this Kubernetes cluster: {}", client.getMasterUrl());
   }
 
   private void printArt() {

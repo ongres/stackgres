@@ -1,0 +1,12 @@
+apiVersion: stackgres.io/v1alpha1
+kind: StackGresPostgresConfig
+metadata:
+  name: postgresconf
+spec:
+  pg_version: 11
+  postgresql.conf:
+      shared_buffers: '64MB'
+      random_page_cost: '1.5'
+      password_encryption: 'scram-sha-256'
+      wal_level: 'minimal' # Blacklisted
+      wal_compression: 'on'

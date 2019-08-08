@@ -3,15 +3,15 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.watcher;
+package io.stackgres.operator.watcher;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.Watcher;
-import io.stackgres.controller.ClusterController;
-import io.stackgres.crd.sgcluster.StackGresCluster;
+import io.stackgres.operator.controller.ClusterController;
+import io.stackgres.operator.crd.sgcluster.StackGresCluster;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
