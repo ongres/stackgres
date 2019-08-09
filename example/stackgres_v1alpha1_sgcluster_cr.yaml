@@ -4,3 +4,5 @@ metadata:
   name: stackgres-example
 spec:
   instances: 3
+  pg_version: 11
+  pg_config: postgresconf

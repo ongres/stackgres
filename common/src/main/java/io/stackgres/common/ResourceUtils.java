@@ -5,11 +5,10 @@
 
 package io.stackgres.common;
 
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 
@@ -34,13 +33,10 @@ public class ResourceUtils {
   }
 
   /**
-   * Unmodifiable Map of default labels used as selectors in K8s resources.
+   * ImmutableMap of default labels used as selectors in K8s resources.
    */
   public static Map<String, String> defaultLabels(String clusterName) {
-    Map<String, String> labels = new HashMap<>();
-    labels.put("app", "StackGres");
-    labels.put("cluster-name", clusterName);
-    return Collections.unmodifiableMap(labels);
+    return ImmutableMap.of("app", "StackGres", "cluster-name", clusterName);
   }
 
 }

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.resource;
+package io.stackgres.operator.resource;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -18,8 +18,8 @@ import io.fabric8.kubernetes.api.model.rbac.RoleBuilder;
 import io.fabric8.kubernetes.api.model.rbac.RoleRefBuilder;
 import io.fabric8.kubernetes.api.model.rbac.SubjectBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.stackgres.app.KubernetesClientFactory;
-import io.stackgres.crd.sgcluster.StackGresCluster;
+import io.stackgres.operator.app.KubernetesClientFactory;
+import io.stackgres.operator.crd.sgcluster.StackGresCluster;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -74,13 +74,8 @@ public class SgPatroniRole {
           .endMetadata()
           .addToRules(new PolicyRuleBuilder()
               .withApiGroups("")
-              .withResources("configmaps")
+              .withResources("endpoints", "configmaps")
               .withVerbs("create", "get", "list", "patch", "update", "watch")
-              .build())
-          .addToRules(new PolicyRuleBuilder()
-              .withApiGroups("")
-              .withResources("endpoints")
-              .withVerbs("get", "patch", "update", "create", "list", "watch")
               .build())
           .addToRules(new PolicyRuleBuilder()
               .withApiGroups("")

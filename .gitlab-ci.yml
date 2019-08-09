@@ -37,6 +37,14 @@ verify code:
   script:
     - 'mvn $MAVEN_CLI_OPTS verify -Psafer'
 
+verify checker:
+  stage: verify
+  tags:
+    - stackgres-runner
+  script:
+    - 'mvn $MAVEN_CLI_OPTS verify -Pchecker'
+  allow_failure: true
+
 native-image build:
   stage: package
   tags:
