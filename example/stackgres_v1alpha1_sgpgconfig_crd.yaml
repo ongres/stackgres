@@ -8,7 +8,7 @@ spec:
   scope: Namespaced
   names:
     kind: StackGresPostgresConfig
-    listKind: StackGresConfigList
+    listKind: StackGresPostgresConfigList
     plural: sgpgconfigs
     singular: sgpgconfig
   validation:

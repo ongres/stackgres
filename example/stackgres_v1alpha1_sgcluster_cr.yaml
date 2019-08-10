@@ -6,3 +6,4 @@ spec:
   instances: 3
   pg_version: 11
   pg_config: postgresconf
+  resource_profile: size-xs

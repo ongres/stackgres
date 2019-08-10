@@ -27,6 +27,8 @@ import io.stackgres.operator.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.crd.sgcluster.StackGresClusterDefinition;
 import io.stackgres.operator.crd.sgcluster.StackGresClusterDoneable;
 import io.stackgres.operator.crd.sgcluster.StackGresClusterList;
+import io.stackgres.operator.crd.sgprofile.StackGresProfile;
+import io.stackgres.operator.crd.sgprofile.StackGresProfileDefinition;
 import io.stackgres.operator.watcher.StackGresClusterWatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,6 +73,9 @@ public class StackGresOperatorApp {
 
     KubernetesDeserializer.registerCustomKind(StackGresPostgresConfigDefinition.APIVERSION,
         StackGresPostgresConfigDefinition.KIND, StackGresPostgresConfig.class);
+
+    KubernetesDeserializer.registerCustomKind(StackGresProfileDefinition.APIVERSION,
+        StackGresProfileDefinition.KIND, StackGresProfile.class);
 
     kubeClient.retrieveKubernetesClient()
         .customResources(StackGresClusterDefinition.CR_DEFINITION,
