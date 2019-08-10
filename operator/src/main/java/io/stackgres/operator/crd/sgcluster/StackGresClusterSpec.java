@@ -35,6 +35,10 @@ public class StackGresClusterSpec implements KubernetesResource<StackGresCluster
   @NotNull
   private String postgresConfig;
 
+  @JsonProperty("resource_profile")
+  @NotNull
+  private String resourceProfile;
+
   public int getInstances() {
     return instances;
   }
@@ -59,6 +63,14 @@ public class StackGresClusterSpec implements KubernetesResource<StackGresCluster
     this.postgresConfig = postgresConfig;
   }
 
+  public String getResourceProfile() {
+    return resourceProfile;
+  }
+
+  public void setResourceProfile(String resourceProfile) {
+    this.resourceProfile = resourceProfile;
+  }
+
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
@@ -66,6 +78,7 @@ public class StackGresClusterSpec implements KubernetesResource<StackGresCluster
         .add("instances", instances)
         .add("pg_version", postgresVersion)
         .add("pg_config", postgresConfig)
+        .add("resource_profile", resourceProfile)
         .toString();
   }
 

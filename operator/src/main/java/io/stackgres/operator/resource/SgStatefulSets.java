@@ -50,6 +50,10 @@ import io.stackgres.operator.crd.pgconfig.StackGresPostgresConfigDefinition;
 import io.stackgres.operator.crd.pgconfig.StackGresPostgresConfigDoneable;
 import io.stackgres.operator.crd.pgconfig.StackGresPostgresConfigList;
 import io.stackgres.operator.crd.sgcluster.StackGresCluster;
+import io.stackgres.operator.crd.sgprofile.StackGresProfile;
+import io.stackgres.operator.crd.sgprofile.StackGresProfileDefinition;
+import io.stackgres.operator.crd.sgprofile.StackGresProfileDoneable;
+import io.stackgres.operator.crd.sgprofile.StackGresProfileList;
 import io.stackgres.operator.parameters.Blacklist;
 import io.stackgres.operator.patroni.PatroniConfig;
 import org.slf4j.Logger;
@@ -70,6 +74,14 @@ public class SgStatefulSets {
     final String name = resource.getMetadata().getName();
     final String namespace = resource.getMetadata().getNamespace();
     final String pg_version = resource.getSpec().getPostgresVersion();
+    final Optional<StackGresProfile> profile = getProfile(resource);
+
+    StackGresProfile p = profile.get();
+    Map<String, Quantity> request =
+        ImmutableMap.of("cpu", new Quantity(p.getSpec().getCpu()),
+            "memory", new Quantity(p.getSpec().getMemory()));
+    Map<String, Quantity> storage =
+        ImmutableMap.of("storage", new Quantity(p.getSpec().getStorage()));
 
     Map<String, String> labels = ResourceUtils.defaultLabels(name);
 
@@ -103,7 +115,7 @@ public class SgStatefulSets {
             .withServiceAccountName(name + SgPatroniRole.SUFIX)
             .addNewContainer()
             .withName(name)
-            .withImage("docker.io/ongres/patroni:" + pg_version)
+            .withImage("docker.io/ongres/patroni:11.5")
             .withImagePullPolicy("Always")
             .withSecurityContext(new SecurityContextBuilder()
                 .withRunAsUser(999L)
@@ -168,10 +180,13 @@ public class SgStatefulSets {
                 .withInitialDelaySeconds(5)
                 .withPeriodSeconds(30)
                 .build())
+            .withResources(new ResourceRequirementsBuilder()
+                .withRequests(request)
+                .build())
             .endContainer()
             .addNewContainer()
             .withName("postgres-util")
-            .withImage("docker.io/ongres/postgres-util:" + pg_version)
+            .withImage("docker.io/ongres/postgres-util:11.5")
             .withImagePullPolicy("Always")
             .withNewSecurityContext()
             .withNewCapabilities()
@@ -213,7 +228,7 @@ public class SgStatefulSets {
             .withSpec(new PersistentVolumeClaimSpecBuilder()
                 .withAccessModes("ReadWriteMany")
                 .withResources(new ResourceRequirementsBuilder()
-                    .withRequests(ImmutableMap.of("storage", new Quantity("2Gi")))
+                    .withRequests(storage)
                     .build())
                 .build())
             .build())
@@ -311,6 +326,25 @@ public class SgStatefulSets {
                 StackGresPostgresConfigDoneable.class)
             .inNamespace(namespace)
             .withName(pgConfig)
+            .get());
+      }
+    }
+    return Optional.empty();
+  }
+
+  private Optional<StackGresProfile> getProfile(StackGresCluster resource) {
+    final String namespace = resource.getMetadata().getNamespace();
+    final String profileName = resource.getSpec().getResourceProfile();
+    LOGGER.debug("StackGres Profile Name: {}", profileName);
+    if (profileName != null) {
+      try (KubernetesClient client = kubClientFactory.retrieveKubernetesClient()) {
+        return Optional.ofNullable(client
+            .customResources(StackGresProfileDefinition.CR_DEFINITION,
+                StackGresProfile.class,
+                StackGresProfileList.class,
+                StackGresProfileDoneable.class)
+            .inNamespace(namespace)
+            .withName(profileName)
             .get());
       }
     }
