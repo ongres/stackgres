@@ -65,7 +65,7 @@ items:
   metadata:
     labels:
       app: "stackgres-operator"
-      version: "0.5.2"
+      version: "0.6alpha1"
       group: "stackgres.io"
     name: "stackgres-operator"
     namespace: "stackgres"
@@ -76,7 +76,7 @@ items:
       targetPort: 8080
     selector:
       app: "stackgres-operator"
-      version: "0.5.2"
+      version: "0.6alpha1"
       group: "stackgres.io"
     type: "ClusterIP"
 - apiVersion: "apps/v1"
@@ -84,7 +84,7 @@ items:
   metadata:
     labels:
       app: "stackgres-operator"
-      version: "0.5.2"
+      version: "0.6alpha1"
       group: "stackgres.io"
     name: "stackgres-operator"
     namespace: "stackgres"
@@ -93,13 +93,13 @@ items:
     selector:
       matchLabels:
         app: "stackgres-operator"
-        version: "0.5.2"
+        version: "0.6alpha1"
         group: "stackgres.io"
     template:
       metadata:
         labels:
           app: "stackgres-operator"
-          version: "0.5.2"
+          version: "0.6alpha1"
           group: "stackgres.io"
       spec:
         serviceAccountName: "stackgres-operator"
@@ -109,7 +109,7 @@ items:
             valueFrom:
               fieldRef:
                 fieldPath: "metadata.namespace"
-          image: "stackgres/operator:0.5.2"
+          image: "stackgres/operator:0.6alpha1"
           imagePullPolicy: "IfNotPresent"
           name: "stackgres-operator"
           ports:
