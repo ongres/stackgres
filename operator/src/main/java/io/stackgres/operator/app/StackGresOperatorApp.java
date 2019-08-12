@@ -67,6 +67,8 @@ public class StackGresOperatorApp {
         StackGresClusterDefinition.NAME);
     createCrdIfNotExists(client, StackGresPostgresConfigDefinition.CR_DEFINITION,
         StackGresPostgresConfigDefinition.NAME);
+    createCrdIfNotExists(client, StackGresProfileDefinition.CR_DEFINITION,
+        StackGresProfileDefinition.NAME);
 
     KubernetesDeserializer.registerCustomKind(StackGresClusterDefinition.APIVERSION,
         StackGresClusterDefinition.KIND, StackGresCluster.class);

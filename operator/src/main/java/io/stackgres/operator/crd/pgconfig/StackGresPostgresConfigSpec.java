@@ -21,7 +21,7 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 @JsonDeserialize(using = JsonDeserializer.None.class)
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class StackGresPostgresConfigSpec implements KubernetesResource<StackGresPostgresConfig> {
+public class StackGresPostgresConfigSpec implements KubernetesResource {
 
   private static final long serialVersionUID = -5276087851826599719L;
 
