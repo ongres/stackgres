@@ -214,8 +214,7 @@ public class SgStatefulSets {
                 .withName("data-permissions")
                 .withImage("busybox")
                 .withCommand("/bin/sh", "-c")
-                .withArgs("chmod -R 700 /var/lib/postgresql/data",
-                    "&& chown -R 999:999 /var/lib/postgresql/data")
+                .withArgs("chmod -R 700 /var/lib/postgresql/data && chown -R 999:999 /var/lib/postgresql/data")
                 .withVolumeMounts(pgData)
                 .build())
             .endSpec()
@@ -226,7 +225,7 @@ public class SgStatefulSets {
                 .withLabels(labels)
                 .build())
             .withSpec(new PersistentVolumeClaimSpecBuilder()
-                .withAccessModes("ReadWriteMany")
+                .withAccessModes("ReadWriteOnce")
                 .withResources(new ResourceRequirementsBuilder()
                     .withRequests(storage)
                     .build())
