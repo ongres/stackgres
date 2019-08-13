@@ -3,7 +3,7 @@ kind: StackGresProfile
 metadata:
   name: size-xs
 spec:
-  cpu: "1"
+  cpu: "400m"
   memory: "1Gi"
   storage: "10Gi"
 ---
