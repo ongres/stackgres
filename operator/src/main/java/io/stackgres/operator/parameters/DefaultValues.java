@@ -5,35 +5,34 @@
 
 package io.stackgres.operator.parameters;
 
-import java.util.HashMap;
 import java.util.Map;
+
+import com.google.common.collect.ImmutableMap;
 
 public class DefaultValues {
 
-  private static final Map<String, String> values;
+  private static final Map<String, String> defaults;
 
   static {
-    values = new HashMap<>();
-    values.put("checkpoint_completion_target", "0.9");
-    values.put("checkpoint_timeout", "15min");
-    values.put("default_statistics_target", "250");
-    values.put("wal_level", "logical");
-    values.put("wal_compression", "on");
-    values.put("wal_log_hints", "on");
-    values.put("lc_messages", "C");
-    values.put("hot_standby_feedback", "on");
-    values.put("min_wal_size", "512MB");
-    values.put("max_wal_size", "2GB");
-    values.put("random_page_cost", "3.0");
-    values.put("track_activity_query_size", "2048");
-    values.put("archive_mode", "on");
-    values.put("archive_command", "/bin/true");
+    defaults = ImmutableMap.<String, String>builder()
+        .put("checkpoint_completion_target", "0.9")
+        .put("checkpoint_timeout", "15min")
+        .put("default_statistics_target", "250")
+        .put("wal_level", "logical")
+        .put("wal_compression", "on")
+        .put("wal_log_hints", "on")
+        .put("lc_messages", "C")
+        .put("random_page_cost", "3.0")
+        .put("track_activity_query_size", "2048")
+        .put("archive_mode", "on")
+        .put("archive_command", "/bin/true")
+        .build();
   }
 
   private DefaultValues() {}
 
   public static Map<String, String> getDefaultValues() {
-    return values;
+    return defaults;
   }
 
 }
