@@ -7,16 +7,14 @@
 #
 # Then, build the image with:
 #
-# docker build -f src/main/docker/Dockerfile.jvm -t stackgres/stackgres-operator .
+# docker build -f src/main/docker/Dockerfile.jvm -t stackgres/operator-jvm .
 #
 # Then run the container using:
 #
-# docker run -i --rm -p 8080:8080 stackgres/stackgres-operator
+# docker run -i --rm -p 8080:8080 stackgres/operator-jvm
 #
 ###
-FROM fabric8/java-alpine-openjdk8-jre
-ENV JAVA_OPTIONS="-Dquarkus.http.host=0.0.0.0 -Djava.util.logging.manager=org.jboss.logmanager.LogManager"
-ENV AB_ENABLED=jmx_exporter
+FROM azul/zulu-openjdk-alpine:8-jre
 COPY target/lib/* /deployments/lib/
 COPY target/*-runner.jar /deployments/app.jar
-ENTRYPOINT [ "/deployments/run-java.sh" ]
+ENTRYPOINT [ "java", "-jar", "/deployments/app.jar", "-Dquarkus.http.host=0.0.0.0", "-Djava.util.logging.manager=org.jboss.logmanager.LogManager" ]

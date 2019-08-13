@@ -76,23 +76,25 @@ public class SgStatefulSets {
     final String pg_version = resource.getSpec().getPostgresVersion();
     final Optional<StackGresProfile> profile = getProfile(resource);
 
-    StackGresProfile p = profile.get();
-    Map<String, Quantity> request =
-        ImmutableMap.of("cpu", new Quantity(p.getSpec().getCpu()),
-            "memory", new Quantity(p.getSpec().getMemory()));
-    Map<String, Quantity> storage =
-        ImmutableMap.of("storage", new Quantity(p.getSpec().getStorage()));
+    Map<String, Quantity> request = null;
+    Map<String, Quantity> storage = null;
+    if (profile.isPresent()) {
+      request = ImmutableMap.of("cpu", new Quantity(profile.get().getSpec().getCpu()),
+          "memory", new Quantity(profile.get().getSpec().getMemory()));
+      storage = ImmutableMap.of("storage", new Quantity(profile.get().getSpec().getStorage()));
+    }
 
     Map<String, String> labels = ResourceUtils.defaultLabels(name);
 
     VolumeMount pgSocket = new VolumeMountBuilder()
         .withName("pg-socket")
         .withMountPath("/run/postgresql")
+
         .build();
 
     VolumeMount pgData = new VolumeMountBuilder()
         .withName("pg-data")
-        .withMountPath("/var/lib/postgresql/data")
+        .withMountPath("/var/lib/postgresql")
         .build();
 
     StatefulSet statefulSet = new StatefulSetBuilder()
@@ -114,7 +116,7 @@ public class SgStatefulSets {
             .withShareProcessNamespace(Boolean.TRUE)
             .withServiceAccountName(name + SgPatroniRole.SUFIX)
             .addNewContainer()
-            .withName(name)
+            .withName("patroni")
             .withImage("docker.io/ongres/patroni:11.5")
             .withImagePullPolicy("Always")
             .withSecurityContext(new SecurityContextBuilder()
@@ -213,8 +215,9 @@ public class SgStatefulSets {
             .withInitContainers(new ContainerBuilder()
                 .withName("data-permissions")
                 .withImage("busybox")
-                .withCommand("/bin/sh", "-c")
-                .withArgs("chmod -R 700 /var/lib/postgresql/data && chown -R 999:999 /var/lib/postgresql/data")
+                .withCommand("/bin/sh")
+                .withArgs("-c", "chmod 755 /var/lib/postgresql "
+                    + "&& chown 999:999 /var/lib/postgresql")
                 .withVolumeMounts(pgData)
                 .build())
             .endSpec()

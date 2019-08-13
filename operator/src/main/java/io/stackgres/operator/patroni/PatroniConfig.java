@@ -16,20 +16,28 @@ public class PatroniConfig {
 
   @JsonProperty("ttl")
   private Integer ttl;
+
   @JsonProperty("loop_wait")
   private Integer loopWait;
+
   @JsonProperty("retry_timeout")
   private Integer retryTimeout;
+
   @JsonProperty("maximum_lag_on_failover")
   private Integer maximumLagOnFailover;
+
   @JsonProperty("check_timeline")
   private Boolean checkTimeline;
+
   @JsonProperty("master_start_timeout")
   private Integer masterStartTimeout;
+
   @JsonProperty("synchronous_mode")
   private Boolean synchronousMode;
+
   @JsonProperty("synchronous_mode_strict")
   private Boolean synchronousModeStrict;
+
   @JsonProperty("postgresql")
   private PostgreSql postgresql;
 
@@ -110,8 +118,10 @@ public class PatroniConfig {
 
     @JsonProperty("use_slots")
     private Boolean useSlots;
+
     @JsonProperty("use_pg_rewind")
     private Boolean usePgRewind;
+
     @JsonProperty("parameters")
     private Map<String, String> parameters;
 

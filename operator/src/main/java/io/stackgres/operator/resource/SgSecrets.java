@@ -77,7 +77,7 @@ public class SgSecrets {
   }
 
   private static String generatePassword() {
-    return base64(UUID.randomUUID().toString().substring(4, 20).getBytes(StandardCharsets.UTF_8));
+    return base64(UUID.randomUUID().toString().substring(4, 22).getBytes(StandardCharsets.UTF_8));
   }
 
   private static String base64(byte[] bytes) {
