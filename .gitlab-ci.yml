@@ -45,7 +45,7 @@ verify checker:
     - 'mvn $MAVEN_CLI_OPTS verify -Pchecker'
   allow_failure: true
 
-native-image build:
+build:
   stage: package
   tags:
     - stackgres-runner
@@ -58,6 +58,8 @@ native-image build:
       - operator/target/libsunec.so
       - operator/target/cacerts
       - operator/target/*-runner
+      - operator/target/lib/
+      - operator/target/*-runner.jar
     expire_in: 1 day
 
 enforce release:
@@ -69,13 +71,13 @@ enforce release:
   only:
     - tags
 
-oci-image deploy:
+oci-image-native deploy:
   image: docker.io/ongres/builder:latest
   stage: deploy
   tags:
     - stackgres-runner
   dependencies:
-    - native-image build
+    - build
   only:
     - tags
   script:
