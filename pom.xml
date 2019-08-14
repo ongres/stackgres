@@ -43,6 +43,7 @@
     <maven.compiler.target>${java.version}</maven.compiler.target>
     <!-- Dependencies versions -->
     <quarkus.version>0.20.0</quarkus.version>
+    <kubernetes-client.version>4.4.1</kubernetes-client.version>
     <checkstyle.version>8.23</checkstyle.version>
     <spotbugs.version>4.0.0-beta3</spotbugs.version>
     <checker.version>2.10.0</checker.version>
@@ -69,11 +70,9 @@
   <dependencyManagement>
     <dependencies>
       <dependency>
-        <groupId>com.fasterxml.jackson</groupId>
-        <artifactId>jackson-bom</artifactId>
-        <version>2.9.9.20190807</version>
-        <type>pom</type>
-        <scope>import</scope>
+        <groupId>io.fabric8</groupId>
+        <artifactId>kubernetes-client</artifactId>
+        <version>${kubernetes-client.version}</version>
       </dependency>
       <dependency>
         <groupId>io.quarkus</groupId>
@@ -95,6 +94,12 @@
           <artifactId>*</artifactId>
         </exclusion>
       </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.checkerframework</groupId>
+      <artifactId>checker-qual</artifactId>
+      <version>${checker.version}</version>
+      <scope>provided</scope>
     </dependency>
   </dependencies>
 
