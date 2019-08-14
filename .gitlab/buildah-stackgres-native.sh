@@ -1,4 +1,6 @@
-#!/bin/bash -x
+#!/bin/bash
+
+set -e
 
 CONTAINER_BASE=$(buildah from "registry.access.redhat.com/ubi8-minimal:8.0")
 

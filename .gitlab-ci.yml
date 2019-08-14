@@ -82,5 +82,19 @@ oci-image-native deploy:
     - tags
   script:
     - 'CONTAINER_NAME=stackgres/operator:${CI_COMMIT_TAG:-"$CI_COMMIT_REF_NAME"}'
-    - './.gitlab/buildah-stackgres.sh $CONTAINER_NAME'
+    - './.gitlab/buildah-stackgres-native.sh $CONTAINER_NAME'
+    - 'buildah push --authfile $REGISTRY_AUTH_FILE $CONTAINER_NAME docker://docker.io/$CONTAINER_NAME'
+
+oci-image-jvm deploy:
+  image: docker.io/ongres/builder:latest
+  stage: deploy
+  tags:
+    - stackgres-runner
+  dependencies:
+    - build
+  only:
+    - tags
+  script:
+    - 'CONTAINER_NAME=stackgres/operator:${CI_COMMIT_TAG:-"$CI_COMMIT_REF_NAME"}-jvm'
+    - './.gitlab/buildah-stackgres-jvm.sh $CONTAINER_NAME'
     - 'buildah push --authfile $REGISTRY_AUTH_FILE $CONTAINER_NAME docker://docker.io/$CONTAINER_NAME'
