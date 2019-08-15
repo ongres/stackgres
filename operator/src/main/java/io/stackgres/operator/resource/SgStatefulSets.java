@@ -15,7 +15,6 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.ConfigMapEnvSourceBuilder;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
@@ -32,7 +31,6 @@ import io.fabric8.kubernetes.api.model.PersistentVolumeClaimBuilder;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaimSpecBuilder;
 import io.fabric8.kubernetes.api.model.PodTemplateSpecBuilder;
 import io.fabric8.kubernetes.api.model.ProbeBuilder;
-import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ResourceRequirementsBuilder;
 import io.fabric8.kubernetes.api.model.SecretKeySelectorBuilder;
 import io.fabric8.kubernetes.api.model.SecurityContextBuilder;
@@ -76,12 +74,11 @@ public class SgStatefulSets {
     final String pg_version = resource.getSpec().getPostgresVersion();
     final Optional<StackGresProfile> profile = getProfile(resource);
 
-    Map<String, Quantity> request = null;
-    Map<String, Quantity> storage = null;
+    Optional<ResourcesConfig> rc = Optional.empty();
     if (profile.isPresent()) {
-      request = ImmutableMap.of("cpu", new Quantity(profile.get().getSpec().getCpu()),
-          "memory", new Quantity(profile.get().getSpec().getMemory()));
-      storage = ImmutableMap.of("storage", new Quantity(profile.get().getSpec().getStorage()));
+      rc = Optional.<ResourcesConfig>of(new ResourcesConfig(profile.get().getSpec().getCpu(),
+          profile.get().getSpec().getMemory(),
+          profile.get().getSpec().getStorage()));
     }
 
     Map<String, String> labels = ResourceUtils.defaultLabels(name);
@@ -183,7 +180,7 @@ public class SgStatefulSets {
                 .withPeriodSeconds(30)
                 .build())
             .withResources(new ResourceRequirementsBuilder()
-                .withRequests(request)
+                .withRequests(rc.orElse(new ResourcesConfig("250m", "256Mi", "1Gi")).getRequests())
                 .build())
             .endContainer()
             .addNewContainer()
@@ -230,7 +227,8 @@ public class SgStatefulSets {
             .withSpec(new PersistentVolumeClaimSpecBuilder()
                 .withAccessModes("ReadWriteOnce")
                 .withResources(new ResourceRequirementsBuilder()
-                    .withRequests(storage)
+                    .withRequests(
+                        rc.orElse(new ResourcesConfig("250m", "256Mi", "1Gi")).getStorage())
                     .build())
                 .build())
             .build())
