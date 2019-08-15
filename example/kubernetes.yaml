@@ -69,7 +69,7 @@ kind: "Deployment"
 metadata:
   labels:
     app: "stackgres-operator"
-    version: "0.6-jvm"
+    version: "0.6alpha4-jvm"
     group: "stackgres.io"
   name: "stackgres-operator"
   namespace: "stackgres"
@@ -78,20 +78,20 @@ spec:
   selector:
     matchLabels:
       app: "stackgres-operator"
-      version: "0.6-jvm"
+      version: "0.6alpha4-jvm"
       group: "stackgres.io"
   template:
     metadata:
       labels:
         app: "stackgres-operator"
-        version: "0.6-jvm"
+        version: "0.6alpha4-jvm"
         group: "stackgres.io"
     spec:
       serviceAccountName: "stackgres-operator"
       containers:
-        image: "stackgres/operator:0.6-jvm"
+      - name: "stackgres-operator"
+        image: "stackgres/operator:0.6alpha4-jvm"
         imagePullPolicy: "Always"
-        name: "stackgres-operator"
         ports:
         - containerPort: 8080
           name: "http"

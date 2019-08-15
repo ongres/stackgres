@@ -105,7 +105,7 @@ public class SgServices {
             .withProtocol("TCP")
             .withPort(5432)
             .build())
-        .withType("NodePort")
+        .withType("LoadBalancer")
         .endSpec()
         .build();
   }
