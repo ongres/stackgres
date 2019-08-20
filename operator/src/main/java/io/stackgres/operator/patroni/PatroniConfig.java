@@ -7,11 +7,17 @@ package io.stackgres.operator.patroni;
 
 import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import io.quarkus.runtime.annotations.RegisterForReflection;
 
+@JsonDeserialize
+@JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(Include.NON_EMPTY)
+@RegisterForReflection
 public class PatroniConfig {
 
   @JsonProperty("ttl")
@@ -113,7 +119,10 @@ public class PatroniConfig {
     this.postgresql = postgresql;
   }
 
+  @JsonDeserialize
+  @JsonIgnoreProperties(ignoreUnknown = true)
   @JsonInclude(Include.NON_EMPTY)
+  @RegisterForReflection
   public static class PostgreSql {
 
     @JsonProperty("use_slots")
