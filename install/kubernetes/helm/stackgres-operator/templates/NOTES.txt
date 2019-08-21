@@ -1,0 +1,17 @@
+Release Name: {{ .Release.Name }}
+StackGres Version: {{ .Values.stackgresVersion }}
+
+Check if the operator was successfuly deploy:
+- kubectl get deployment -n{{ .Values.operatorNamespace }}
+
+To create a StackGres cluster create and execute a YAML  file with:
+
+apiVersion: stackgres.io/v1alpha1
+kind: StackGresCluster
+metadata:
+  name: stackgres-example
+spec:
+  instances: 3
+  pg_version: {{ .Values.global.postgresVersion }}
+  pg_config: postgresconf
+  resource_profile: size-xs

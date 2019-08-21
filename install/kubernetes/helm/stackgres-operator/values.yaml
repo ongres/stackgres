@@ -1,0 +1,13 @@
+
+global:  
+  postgresVersion: 11
+
+operatorName: "stackgres-operator"
+operatorNamespace: "stackgres"
+stackgresVersion: "0.6beta1-jvm"
+group: "stackgres.io"
+
+image:
+  name: "stackgres/operator"
+  tag: "0.6beta1-jvm"
+  pullPolicy: "IfNotPresent"
