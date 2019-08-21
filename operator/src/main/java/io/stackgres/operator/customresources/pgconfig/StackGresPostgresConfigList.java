@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.crd.pgconfig;
+package io.stackgres.operator.customresources.pgconfig;
 
 import io.fabric8.kubernetes.client.CustomResourceList;
 

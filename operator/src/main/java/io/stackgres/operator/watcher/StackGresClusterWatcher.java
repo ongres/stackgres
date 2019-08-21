@@ -11,7 +11,7 @@ import javax.inject.Inject;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.Watcher;
 import io.stackgres.operator.controller.ClusterController;
-import io.stackgres.operator.crd.sgcluster.StackGresCluster;
+import io.stackgres.operator.customresources.sgcluster.StackGresCluster;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

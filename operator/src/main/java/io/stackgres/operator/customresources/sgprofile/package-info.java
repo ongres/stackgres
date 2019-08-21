@@ -7,4 +7,4 @@
  * Custom Resource for StackGres resources profile.
  */
 
-package io.stackgres.operator.crd.sgprofile;
+package io.stackgres.operator.customresources.sgprofile;

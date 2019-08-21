@@ -7,4 +7,4 @@
  * Custom Resource for the main StackGres Cluster.
  */
 
-package io.stackgres.operator.crd.sgcluster;
+package io.stackgres.operator.customresources.sgcluster;

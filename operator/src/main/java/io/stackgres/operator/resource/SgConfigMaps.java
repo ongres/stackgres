@@ -20,7 +20,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.QuarkusProfile;
 import io.stackgres.common.ResourceUtils;
 import io.stackgres.operator.app.KubernetesClientFactory;
-import io.stackgres.operator.crd.sgcluster.StackGresCluster;
+import io.stackgres.operator.customresources.sgcluster.StackGresCluster;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,7 +38,7 @@ public class SgConfigMaps {
   public ConfigMap create(StackGresCluster resource) {
     final String name = resource.getMetadata().getName();
     final String namespace = resource.getMetadata().getNamespace();
-    final String pg_version = resource.getSpec().getPostgresVersion();
+    final Integer pg_version = resource.getSpec().getPostgresVersion();
 
     Map<String, String> labels = ResourceUtils.defaultLabels(name);
 
