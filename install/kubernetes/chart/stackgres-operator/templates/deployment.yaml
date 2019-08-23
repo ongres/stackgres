@@ -1,0 +1,48 @@
+apiVersion: "apps/v1"
+kind: "Deployment"
+metadata:
+  labels:
+    app: {{ .Values.operatorName }}
+    version: {{ .Values.stackgresVersion }}
+    group: {{ .Values.group }}
+  name: {{ .Values.operatorName }}
+  namespace: {{ .Values.operatorNamespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Values.operatorName }}
+      version: {{ .Values.stackgresVersion }}
+      group: {{ .Values.group }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.operatorName }}
+        version: {{ .Values.stackgresVersion }}
+        group: {{ .Values.group }}
+    spec:
+      serviceAccountName: {{ .Values.operatorName }}
+      containers:
+      - name: {{ .Values.operatorName }}
+        image: "{{ .Values.image.name }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}        
+        ports:
+        - containerPort: 8080
+          name: "http"
+          protocol: "TCP"
+        livenessProbe:
+          httpGet:
+            path: "/health/live"
+            port: 8080
+            scheme: "HTTP"
+          initialDelaySeconds: 5
+          periodSeconds: 30
+          timeoutSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: "/health/ready"
+            port: 8080
+            scheme: "HTTP"
+          initialDelaySeconds: 5
+          periodSeconds: 30
+          timeoutSeconds: 2
