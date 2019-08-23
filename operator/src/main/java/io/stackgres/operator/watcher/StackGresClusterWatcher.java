@@ -45,7 +45,7 @@ public class StackGresClusterWatcher implements Watcher<StackGresCluster> {
   @Override
   public void onClose(KubernetesClientException cause) {
     LOGGER.error("onClose was called, ", cause);
-    Runtime.getRuntime().halt(1);
+    new Thread(() -> System.exit(1)).start();
   }
 
 }

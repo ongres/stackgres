@@ -48,9 +48,9 @@ public class StackGresOperatorApp {
     try (KubernetesClient client = kubeClient.retrieveKubernetesClient()) {
       LOGGER.info("Kubernetes version: {}", client.getVersion().getGitVersion());
       LOGGER.info("URL of this Kubernetes cluster: {}", client.getMasterUrl());
-      if (!hasCustomResource(client, StackGresProfileDefinition.NAME) ||
-          !hasCustomResource(client, StackGresPostgresConfigDefinition.NAME) ||
-          !hasCustomResource(client, StackGresClusterDefinition.NAME)) {
+      if (!hasCustomResource(client, StackGresProfileDefinition.NAME)
+          || !hasCustomResource(client, StackGresPostgresConfigDefinition.NAME)
+          || !hasCustomResource(client, StackGresClusterDefinition.NAME)) {
         new Thread(() -> System.exit(1)).start();
       }
       registerCustomResources();

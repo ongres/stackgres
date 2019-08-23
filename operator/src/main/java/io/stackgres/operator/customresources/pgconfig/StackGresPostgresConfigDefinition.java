@@ -15,7 +15,6 @@ public class StackGresPostgresConfigDefinition {
   public static final String NAME = PLURAL + "." + GROUP;
   public static final String APIVERSION = GROUP + "/" + VERSION;
 
-
   private StackGresPostgresConfigDefinition() {
     throw new AssertionError("No instances for you!");
   }

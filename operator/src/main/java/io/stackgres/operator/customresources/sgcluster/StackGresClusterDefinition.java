@@ -7,7 +7,7 @@ package io.stackgres.operator.customresources.sgcluster;
 
 public class StackGresClusterDefinition {
 
-  private static final String GROUP = "stackgres.io";
+  public static final String GROUP = "stackgres.io";
   public static final String VERSION = "v1alpha1";
   public static final String KIND = "StackGresCluster";
   public static final String SINGULAR = "sgcluster";
