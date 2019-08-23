@@ -10,7 +10,7 @@ import javax.inject.Inject;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.operator.app.KubernetesClientFactory;
-import io.stackgres.operator.crd.sgcluster.StackGresCluster;
+import io.stackgres.operator.customresources.sgcluster.StackGresCluster;
 import io.stackgres.operator.resource.SgConfigMaps;
 import io.stackgres.operator.resource.SgPatroniRole;
 import io.stackgres.operator.resource.SgSecrets;

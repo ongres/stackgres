@@ -3,20 +3,19 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.crd.sgcluster;
+package io.stackgres.operator.customresources.sgcluster;
 
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.MoreObjects;
 import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
-@JsonDeserialize(using = JsonDeserializer.None.class)
+@JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
 public class StackGresClusterSpec implements KubernetesResource {
@@ -28,8 +27,8 @@ public class StackGresClusterSpec implements KubernetesResource {
   private int instances;
 
   @JsonProperty("pg_version")
-  @NotNull
-  private String postgresVersion;
+  @Min(value = 11, message = "PostgreSQL version should be at least 11")
+  private Integer postgresVersion;
 
   @JsonProperty("pg_config")
   @NotNull
@@ -47,11 +46,11 @@ public class StackGresClusterSpec implements KubernetesResource {
     this.instances = instances;
   }
 
-  public String getPostgresVersion() {
+  public Integer getPostgresVersion() {
     return postgresVersion;
   }
 
-  public void setPostgresVersion(String postgresVersion) {
+  public void setPostgresVersion(Integer postgresVersion) {
     this.postgresVersion = postgresVersion;
   }
 

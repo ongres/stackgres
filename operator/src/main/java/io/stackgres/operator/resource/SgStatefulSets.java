@@ -37,21 +37,22 @@ import io.fabric8.kubernetes.api.model.SecurityContextBuilder;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
+import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetSpec;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.ResourceUtils;
 import io.stackgres.operator.app.KubernetesClientFactory;
-import io.stackgres.operator.crd.pgconfig.StackGresPostgresConfig;
-import io.stackgres.operator.crd.pgconfig.StackGresPostgresConfigDefinition;
-import io.stackgres.operator.crd.pgconfig.StackGresPostgresConfigDoneable;
-import io.stackgres.operator.crd.pgconfig.StackGresPostgresConfigList;
-import io.stackgres.operator.crd.sgcluster.StackGresCluster;
-import io.stackgres.operator.crd.sgprofile.StackGresProfile;
-import io.stackgres.operator.crd.sgprofile.StackGresProfileDefinition;
-import io.stackgres.operator.crd.sgprofile.StackGresProfileDoneable;
-import io.stackgres.operator.crd.sgprofile.StackGresProfileList;
+import io.stackgres.operator.customresources.pgconfig.StackGresPostgresConfig;
+import io.stackgres.operator.customresources.pgconfig.StackGresPostgresConfigDefinition;
+import io.stackgres.operator.customresources.pgconfig.StackGresPostgresConfigDoneable;
+import io.stackgres.operator.customresources.pgconfig.StackGresPostgresConfigList;
+import io.stackgres.operator.customresources.sgcluster.StackGresCluster;
+import io.stackgres.operator.customresources.sgprofile.StackGresProfile;
+import io.stackgres.operator.customresources.sgprofile.StackGresProfileDefinition;
+import io.stackgres.operator.customresources.sgprofile.StackGresProfileDoneable;
+import io.stackgres.operator.customresources.sgprofile.StackGresProfileList;
 import io.stackgres.operator.parameters.Blacklist;
 import io.stackgres.operator.patroni.PatroniConfig;
 import org.slf4j.Logger;
@@ -71,7 +72,7 @@ public class SgStatefulSets {
   public StatefulSet create(StackGresCluster resource) {
     final String name = resource.getMetadata().getName();
     final String namespace = resource.getMetadata().getNamespace();
-    final String pg_version = resource.getSpec().getPostgresVersion();
+    final Integer pg_version = resource.getSpec().getPostgresVersion();
     final Optional<StackGresProfile> profile = getProfile(resource);
 
     Optional<ResourcesConfig> rc = Optional.empty();
@@ -194,7 +195,7 @@ public class SgStatefulSets {
             .endSecurityContext()
             .addNewEnv()
             .withName("PG_VERSION")
-            .withValue(pg_version)
+            .withValue(pg_version.toString())
             .endEnv()
             .withStdin(Boolean.TRUE)
             .withTty(Boolean.TRUE)
@@ -319,14 +320,18 @@ public class SgStatefulSets {
     LOGGER.debug("PostgresConfig Name: {}", pgConfig);
     if (pgConfig != null) {
       try (KubernetesClient client = kubClientFactory.retrieveKubernetesClient()) {
-        return Optional.ofNullable(client
-            .customResources(StackGresPostgresConfigDefinition.CR_DEFINITION,
-                StackGresPostgresConfig.class,
-                StackGresPostgresConfigList.class,
-                StackGresPostgresConfigDoneable.class)
-            .inNamespace(namespace)
-            .withName(pgConfig)
-            .get());
+        Optional<CustomResourceDefinition> crd =
+            ResourceUtils.getCustomResource(client, StackGresPostgresConfigDefinition.NAME);
+        if (crd.isPresent()) {
+          return Optional.ofNullable(client
+              .customResources(crd.get(),
+                  StackGresPostgresConfig.class,
+                  StackGresPostgresConfigList.class,
+                  StackGresPostgresConfigDoneable.class)
+              .inNamespace(namespace)
+              .withName(pgConfig)
+              .get());
+        }
       }
     }
     return Optional.empty();
@@ -338,14 +343,18 @@ public class SgStatefulSets {
     LOGGER.debug("StackGres Profile Name: {}", profileName);
     if (profileName != null) {
       try (KubernetesClient client = kubClientFactory.retrieveKubernetesClient()) {
-        return Optional.ofNullable(client
-            .customResources(StackGresProfileDefinition.CR_DEFINITION,
-                StackGresProfile.class,
-                StackGresProfileList.class,
-                StackGresProfileDoneable.class)
-            .inNamespace(namespace)
-            .withName(profileName)
-            .get());
+        Optional<CustomResourceDefinition> crd =
+            ResourceUtils.getCustomResource(client, StackGresProfileDefinition.NAME);
+        if (crd.isPresent()) {
+          return Optional.ofNullable(client
+              .customResources(crd.get(),
+                  StackGresProfile.class,
+                  StackGresProfileList.class,
+                  StackGresProfileDoneable.class)
+              .inNamespace(namespace)
+              .withName(profileName)
+              .get());
+        }
       }
     }
     return Optional.empty();

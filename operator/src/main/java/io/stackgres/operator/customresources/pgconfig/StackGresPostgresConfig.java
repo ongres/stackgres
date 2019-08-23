@@ -3,22 +3,22 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.crd.sgprofile;
+package io.stackgres.operator.customresources.pgconfig;
 
 import com.google.common.base.MoreObjects;
 import io.fabric8.kubernetes.client.CustomResource;
 
-public class StackGresProfile extends CustomResource {
+public class StackGresPostgresConfig extends CustomResource {
 
   private static final long serialVersionUID = -5276087851826599719L;
 
-  private StackGresProfileSpec spec;
+  private StackGresPostgresConfigSpec spec;
 
-  public StackGresProfileSpec getSpec() {
+  public StackGresPostgresConfigSpec getSpec() {
     return spec;
   }
 
-  public void setSpec(StackGresProfileSpec spec) {
+  public void setSpec(StackGresPostgresConfigSpec spec) {
     this.spec = spec;
   }
 

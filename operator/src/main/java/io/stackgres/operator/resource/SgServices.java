@@ -21,7 +21,7 @@ import io.fabric8.kubernetes.api.model.ServicePortBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.ResourceUtils;
 import io.stackgres.operator.app.KubernetesClientFactory;
-import io.stackgres.operator.crd.sgcluster.StackGresCluster;
+import io.stackgres.operator.customresources.sgcluster.StackGresCluster;
 import io.stackgres.operator.parameters.DefaultValues;
 import io.stackgres.operator.patroni.PatroniConfig;
 import org.slf4j.Logger;

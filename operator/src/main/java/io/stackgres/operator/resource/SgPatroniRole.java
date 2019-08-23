@@ -19,7 +19,7 @@ import io.fabric8.kubernetes.api.model.rbac.RoleRefBuilder;
 import io.fabric8.kubernetes.api.model.rbac.SubjectBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.operator.app.KubernetesClientFactory;
-import io.stackgres.operator.crd.sgcluster.StackGresCluster;
+import io.stackgres.operator.customresources.sgcluster.StackGresCluster;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
