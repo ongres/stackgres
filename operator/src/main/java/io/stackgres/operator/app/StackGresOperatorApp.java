@@ -48,9 +48,11 @@ public class StackGresOperatorApp {
     try (KubernetesClient client = kubeClient.retrieveKubernetesClient()) {
       LOGGER.info("Kubernetes version: {}", client.getVersion().getGitVersion());
       LOGGER.info("URL of this Kubernetes cluster: {}", client.getMasterUrl());
-      checkCustomResourceOnStart(client, StackGresProfileDefinition.NAME);
-      checkCustomResourceOnStart(client, StackGresPostgresConfigDefinition.NAME);
-      checkCustomResourceOnStart(client, StackGresClusterDefinition.NAME);
+      if (!hasCustomResource(client, StackGresProfileDefinition.NAME) ||
+          !hasCustomResource(client, StackGresPostgresConfigDefinition.NAME) ||
+          !hasCustomResource(client, StackGresClusterDefinition.NAME)) {
+        new Thread(() -> System.exit(1)).start();
+      }
       registerCustomResources();
       startClusterCrdWatcher(client);
     } catch (KubernetesClientException e) {
@@ -74,8 +76,6 @@ public class StackGresOperatorApp {
                 StackGresClusterDoneable.class)
             .inAnyNamespace()
             .watch(watcher));
-
-    LOGGER.info("CRD Watcher: {}", StackGresClusterDefinition.NAME);
   }
 
   private void registerCustomResources() {
@@ -89,12 +89,12 @@ public class StackGresOperatorApp {
         StackGresProfileDefinition.KIND, StackGresProfile.class);
   }
 
-  private void checkCustomResourceOnStart(KubernetesClient client,
-      String crdName) {
+  private boolean hasCustomResource(KubernetesClient client, String crdName) {
     if (!ResourceUtils.getCustomResource(client, crdName).isPresent()) {
-      LOGGER.error("CRD not found, please create it first: {}",
-          crdName);
+      LOGGER.error("CRD not found, please create it first: {}", crdName);
+      return false;
     }
+    return true;
   }
 
   private void printArt() {
