@@ -4,10 +4,10 @@ global:
 
 operatorName: "stackgres-operator"
 operatorNamespace: "stackgres"
-stackgresVersion: "0.6beta1-jvm"
+operatorVersion: "master"
 group: "stackgres.io"
 
 image:
   name: "stackgres/operator"
-  tag: "0.6beta1-jvm"
+  tag: "master-jvm"
   pullPolicy: "IfNotPresent"
