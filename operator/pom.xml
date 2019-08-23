@@ -73,16 +73,6 @@
           <name>native</name>
         </property>
       </activation>
-      <dependencies>
-        <!-- Workaround for:
-          Error: Class initialization failed: org.hibernate.validator.internal.constraintvalidators.bv.time.past.PastValidatorForReadablePartial
-          Original exception that caused the problem: java.lang.NoClassDefFoundError: org/joda/time/ReadableInstant -->
-        <dependency>
-          <groupId>joda-time</groupId>
-          <artifactId>joda-time</artifactId>
-          <version>2.10.3</version>
-        </dependency>
-      </dependencies>
       <build>
         <plugins>
           <plugin>
