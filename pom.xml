@@ -44,7 +44,7 @@
     <kubernetes-client.version>4.4.1</kubernetes-client.version>
     <checkstyle.version>8.23</checkstyle.version>
     <spotbugs.version>4.0.0-beta3</spotbugs.version>
-    <checker.version>2.10.0</checker.version>
+    <checker.version>2.10.1</checker.version>
     <pmd.version>6.17.0</pmd.version>
     <errorprone.version>2.3.3</errorprone.version>
     <!-- Plugins versions -->

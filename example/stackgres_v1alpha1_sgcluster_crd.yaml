@@ -5,9 +5,9 @@ metadata:
 spec:
   group: stackgres.io
   version: v1alpha1
+  scope: Namespaced
   names:
     kind: StackGresCluster
     listKind: StackGresClusterList
     plural: sgclusters
     singular: sgcluster
-    scope: Namespaced

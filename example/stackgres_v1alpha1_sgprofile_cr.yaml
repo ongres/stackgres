@@ -3,9 +3,9 @@ kind: StackGresProfile
 metadata:
   name: size-xs
 spec:
-  cpu: "400m"
-  memory: "1Gi"
-  storage: "10Gi"
+  cpu: "500m"
+  memory: "512Mi"
+  storage: "5Gi"
 ---
 apiVersion: stackgres.io/v1alpha1
 kind: StackGresProfile

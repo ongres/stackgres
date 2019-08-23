@@ -12,8 +12,10 @@ import io.fabric8.kubernetes.api.model.Quantity;
 
 public class ResourcesConfig {
 
-  Map<String, Quantity> request;
-  Map<String, Quantity> storage;
+  public static final ResourcesConfig DEFAULT = new ResourcesConfig("100m", "256Mi", "1Gi");
+
+  private Map<String, Quantity> request;
+  private Map<String, Quantity> storage;
 
   /**
    * Resources Configuration holder.
