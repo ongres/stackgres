@@ -1,5 +1,7 @@
 Release Name: {{ .Release.Name }}
-StackGres Version: {{ .Values.stackgresVersion }}
+StackGres Version: {{ .Values.operatorVersion }}
+Image: {{ .Values.image.name }}:{{ .Values.image.tag }}
+
 
 Check if the operator was successfuly deploy:
 - kubectl get deployment -n{{ .Values.operatorNamespace }}

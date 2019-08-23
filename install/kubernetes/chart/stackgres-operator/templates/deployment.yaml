@@ -3,7 +3,7 @@ kind: "Deployment"
 metadata:
   labels:
     app: {{ .Values.operatorName }}
-    version: {{ .Values.stackgresVersion }}
+    #version: {{ .Values.operatorVersion }}
     group: {{ .Values.group }}
   name: {{ .Values.operatorName }}
   namespace: {{ .Values.operatorNamespace }}
@@ -12,19 +12,19 @@ spec:
   selector:
     matchLabels:
       app: {{ .Values.operatorName }}
-      version: {{ .Values.stackgresVersion }}
+      #version: {{ .Values.operatorVersion }}
       group: {{ .Values.group }}
   template:
     metadata:
       labels:
         app: {{ .Values.operatorName }}
-        version: {{ .Values.stackgresVersion }}
+        #version: {{ .Values.operatorVersion }}
         group: {{ .Values.group }}
     spec:
       serviceAccountName: {{ .Values.operatorName }}
       containers:
       - name: {{ .Values.operatorName }}
-        image: "{{ .Values.image.name }}:{{ .Values.image.tag }}"
+        image: "{{ .Values.image.name }}:{{ .Values.operatorVersion }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}        
         ports:
         - containerPort: 8080
