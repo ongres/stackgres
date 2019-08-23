@@ -1,5 +1,5 @@
 # GraalVM Quarkus image
-image: docker.io/ongres/ubi-graalvm-maven:19.1.1
+image: docker.io/ongres/ubi-graalvm-maven:19.2.0
 
 variables:
   # This will suppress any download for dependencies and plugins or upload messages which would clutter the console log.
@@ -80,6 +80,7 @@ oci-image-native deploy:
     - build
   only:
     - tags
+    - master
   script:
     - 'CONTAINER_NAME=stackgres/operator:${CI_COMMIT_TAG:-"$CI_COMMIT_REF_NAME"}'
     - './.gitlab/buildah-stackgres-native.sh $CONTAINER_NAME'
@@ -94,6 +95,7 @@ oci-image-jvm deploy:
     - build
   only:
     - tags
+    - master
   script:
     - 'CONTAINER_NAME=stackgres/operator:${CI_COMMIT_TAG:-"$CI_COMMIT_REF_NAME"}-jvm'
     - './.gitlab/buildah-stackgres-jvm.sh $CONTAINER_NAME'
