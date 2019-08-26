@@ -9,13 +9,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.internal.SerializationUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ResourceUtils {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(ResourceUtils.class);
 
   private ResourceUtils() {
     throw new AssertionError("No instances for you!");
@@ -52,6 +58,22 @@ public class ResourceUtils {
   public static Optional<CustomResourceDefinition> getCustomResource(KubernetesClient client,
       String crdName) {
     return Optional.ofNullable(client.customResourceDefinitions().withName(crdName).get());
+  }
+
+  /**
+   * Log in debug the YAML of kubernetes resources passed as argument.
+   *
+   * @param resource KubernetesResource that has metadata
+   */
+  public static void logAsYaml(HasMetadata resource) {
+    try {
+      if (LOGGER.isDebugEnabled()) {
+        LOGGER.debug("{}: {}", resource.getClass().getSimpleName(),
+            SerializationUtils.dumpWithoutRuntimeStateAsYaml(resource));
+      }
+    } catch (JsonProcessingException e) {
+      LOGGER.debug("Error dump as Yaml:", e);
+    }
   }
 
 }

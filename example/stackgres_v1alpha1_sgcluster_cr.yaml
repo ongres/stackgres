@@ -3,7 +3,7 @@ kind: StackGresCluster
 metadata:
   name: stackgres-example
 spec:
-  instances: 3
+  instances: 1
   pg_version: 11
   pg_config: postgresconf
   resource_profile: size-xs

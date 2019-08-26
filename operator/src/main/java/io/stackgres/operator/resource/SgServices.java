@@ -21,9 +21,9 @@ import io.fabric8.kubernetes.api.model.ServicePortBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.ResourceUtils;
 import io.stackgres.operator.app.KubernetesClientFactory;
+import io.stackgres.operator.configuration.PatroniConfig;
 import io.stackgres.operator.customresources.sgcluster.StackGresCluster;
 import io.stackgres.operator.parameters.DefaultValues;
-import io.stackgres.operator.patroni.PatroniConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -117,12 +117,15 @@ public class SgServices {
 
     Service config = createConfigService(name + CONFIG_SERVICE, labels);
     config = client.services().inNamespace(namespace).createOrReplace(config);
+    ResourceUtils.logAsYaml(config);
 
     Service primary = createService(name + READ_WRITE_SERVICE, "master", labels);
     client.services().inNamespace(namespace).createOrReplace(primary);
+    ResourceUtils.logAsYaml(primary);
 
     Service replicas = createService(name + READ_ONLY_SERVICE, "replica", labels);
     client.services().inNamespace(namespace).createOrReplace(replicas);
+    ResourceUtils.logAsYaml(replicas);
 
     createConfigurationEndpoint(client, name, namespace, labels);
 
@@ -136,8 +139,7 @@ public class SgServices {
     if (epConfig == null) {
       epConfig = createConfigEndpoint(name + CONFIG_SERVICE, labels);
       epConfig = client.endpoints().inNamespace(namespace).create(epConfig);
-      LOGGER.debug("Creating Endpoint: {}", name);
-      LOGGER.trace("Creating Endpoint: {}", epConfig);
+      ResourceUtils.logAsYaml(epConfig);
     }
   }
 

@@ -3,51 +3,93 @@ kind: StackGresProfile
 metadata:
   name: size-xs
 spec:
-  cpu: "500m"
-  memory: "512Mi"
-  storage: "5Gi"
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "512Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+  volume:
+    size: 5Gi
+    # storageClass: my-sc
 ---
 apiVersion: stackgres.io/v1alpha1
 kind: StackGresProfile
 metadata:
   name: size-s
 spec:
-  cpu: "1"
-  memory: "2Gi"
-  storage: "25Gi"
+  resources:
+    requests:
+      cpu: "1"
+      memory: "2Gi"
+    limits:
+      cpu: "1"
+      memory: "2Gi"
+  volume:
+    size: "25Gi"
+    # storageClass: my-sc
 ---
 apiVersion: stackgres.io/v1alpha1
 kind: StackGresProfile
 metadata:
   name: size-m
 spec:
-  cpu: "2"
-  memory: "4Gi"
-  storage: "38Gi"
+  resources:
+    requests:
+      cpu: "2"
+      memory: "4Gi"
+    limits:
+      cpu: "2"
+      memory: "4Gi"
+  volume:
+    size: "38Gi"
+    # storageClass: my-sc
 ---
 apiVersion: stackgres.io/v1alpha1
 kind: StackGresProfile
 metadata:
   name: size-l
 spec:
-  cpu: "4"
-  memory: "8Gi"
-  storage: "115Gi"
+  resources:
+    requests:
+      cpu: "4"
+      memory: "8Gi"
+    limits:
+      cpu: "4"
+      memory: "8Gi"
+  volume:
+    size: "115Gi"
+    # storageClass: my-sc
 ---
 apiVersion: stackgres.io/v1alpha1
 kind: StackGresProfile
 metadata:
   name: size-xl
 spec:
-  cpu: "6"
-  memory: "16Gi"
-  storage: "270Gi"
+  resources:
+    requests:
+      cpu: "6"
+      memory: "16Gi"
+    limits:
+      cpu: "6"
+      memory: "16Gi"
+  volume:
+    size: "270Gi"
+    # storageClass: my-sc
 ---
 apiVersion: stackgres.io/v1alpha1
 kind: StackGresProfile
 metadata:
   name: size-xxl
 spec:
-  cpu: "8"
-  memory: "32Gi"
-  storage: "580Gi"
+  resources:
+    requests:
+      cpu: "8"
+      memory: "32Gi"
+    limits:
+      cpu: "8"
+      memory: "32Gi"
+  volume:
+    size: "580Gi"
+    # storageClass: my-sc

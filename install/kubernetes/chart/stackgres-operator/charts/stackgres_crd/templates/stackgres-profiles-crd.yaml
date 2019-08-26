@@ -18,4 +18,14 @@ spec:
       required: ["spec"]
       properties:
         spec:
-          required: ["cpu","memory","storage"]
+          required: ["resources","volume"]
+          properties:
+            resources:
+              required: ["requests","limits"]
+              properties:
+                requests:
+                  required: ["cpu","memory"]
+                limits:
+                  required: ["cpu","memory"]
+            volume:
+              required: ["size"]
