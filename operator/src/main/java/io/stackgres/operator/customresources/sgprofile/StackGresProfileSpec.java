@@ -5,13 +5,13 @@
 
 package io.stackgres.operator.customresources.sgprofile;
 
-import javax.validation.constraints.NotEmpty;
+import javax.validation.Valid;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.google.common.base.MoreObjects;
 import io.fabric8.kubernetes.api.model.KubernetesResource;
+import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
 @JsonDeserialize
@@ -21,48 +21,28 @@ public class StackGresProfileSpec implements KubernetesResource {
 
   private static final long serialVersionUID = -1037668102382589521L;
 
-  @JsonProperty("cpu")
-  @NotEmpty
-  private String cpu;
-  @JsonProperty("memory")
-  @NotEmpty
-  private String memory;
-  @JsonProperty("storage")
-  @NotEmpty
-  private String storage;
+  @JsonProperty("resources")
+  @Valid
+  private ResourceRequirements resources;
 
-  public String getCpu() {
-    return cpu;
+  @JsonProperty("volume")
+  @Valid
+  private VolumeConfig volume;
+
+  public ResourceRequirements getResources() {
+    return resources;
   }
 
-  public void setCpu(String cpu) {
-    this.cpu = cpu;
+  public void setResources(ResourceRequirements resources) {
+    this.resources = resources;
   }
 
-  public String getMemory() {
-    return memory;
+  public VolumeConfig getVolume() {
+    return volume;
   }
 
-  public void setMemory(String memory) {
-    this.memory = memory;
-  }
-
-  public String getStorage() {
-    return storage;
-  }
-
-  public void setStorage(String storage) {
-    this.storage = storage;
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .omitNullValues()
-        .add("cpu", cpu)
-        .add("memory", memory)
-        .add("storage", storage)
-        .toString();
+  public void setVolume(VolumeConfig volume) {
+    this.volume = volume;
   }
 
 }

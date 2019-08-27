@@ -31,7 +31,7 @@ import io.fabric8.kubernetes.api.model.PersistentVolumeClaimBuilder;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaimSpecBuilder;
 import io.fabric8.kubernetes.api.model.PodTemplateSpecBuilder;
 import io.fabric8.kubernetes.api.model.ProbeBuilder;
-import io.fabric8.kubernetes.api.model.ResourceRequirementsBuilder;
+import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import io.fabric8.kubernetes.api.model.SecretKeySelectorBuilder;
 import io.fabric8.kubernetes.api.model.SecurityContextBuilder;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
@@ -44,6 +44,9 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSetSpec;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.ResourceUtils;
 import io.stackgres.operator.app.KubernetesClientFactory;
+import io.stackgres.operator.configuration.ImmutableStorageConfig;
+import io.stackgres.operator.configuration.PatroniConfig;
+import io.stackgres.operator.configuration.StorageConfig;
 import io.stackgres.operator.customresources.pgconfig.StackGresPostgresConfig;
 import io.stackgres.operator.customresources.pgconfig.StackGresPostgresConfigDefinition;
 import io.stackgres.operator.customresources.pgconfig.StackGresPostgresConfigDoneable;
@@ -54,7 +57,6 @@ import io.stackgres.operator.customresources.sgprofile.StackGresProfileDefinitio
 import io.stackgres.operator.customresources.sgprofile.StackGresProfileDoneable;
 import io.stackgres.operator.customresources.sgprofile.StackGresProfileList;
 import io.stackgres.operator.parameters.Blacklist;
-import io.stackgres.operator.patroni.PatroniConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,19 +77,26 @@ public class SgStatefulSets {
     final Integer pg_version = resource.getSpec().getPostgresVersion();
     final Optional<StackGresProfile> profile = getProfile(resource);
 
-    Optional<ResourcesConfig> rc = Optional.empty();
+    ResourceRequirements resources = new ResourceRequirements();
+    StorageConfig storage = ImmutableStorageConfig.builder().size("").build();
     if (profile.isPresent()) {
-      rc = Optional.<ResourcesConfig>of(new ResourcesConfig(profile.get().getSpec().getCpu(),
-          profile.get().getSpec().getMemory(),
-          profile.get().getSpec().getStorage()));
+      resources = profile.get().getSpec().getResources();
+      storage = ImmutableStorageConfig.builder()
+          .size(profile.get().getSpec().getVolume().getSize())
+          .storageClass(profile.get().getSpec().getVolume().getStorageClass())
+          .build();
     }
+
+    PersistentVolumeClaimSpecBuilder volumeClaimSpec = new PersistentVolumeClaimSpecBuilder()
+        .withAccessModes("ReadWriteOnce")
+        .withResources(storage.getResourceRequirements())
+        .withStorageClassName(storage.getStorageClass());
 
     Map<String, String> labels = ResourceUtils.defaultLabels(name);
 
     VolumeMount pgSocket = new VolumeMountBuilder()
         .withName("pg-socket")
         .withMountPath("/run/postgresql")
-
         .build();
 
     VolumeMount pgData = new VolumeMountBuilder()
@@ -181,10 +190,7 @@ public class SgStatefulSets {
                 .withInitialDelaySeconds(5)
                 .withPeriodSeconds(10)
                 .build())
-            .withResources(new ResourceRequirementsBuilder()
-                .withRequests(rc.orElse(ResourcesConfig.DEFAULT).getRequests())
-                .withLimits(rc.orElse(ResourcesConfig.DEFAULT).getRequests())
-                .build())
+            .withResources(resources)
             .endContainer()
             .addNewContainer()
             .withName("postgres-util")
@@ -227,15 +233,12 @@ public class SgStatefulSets {
                 .withName("pg-data")
                 .withLabels(labels)
                 .build())
-            .withSpec(new PersistentVolumeClaimSpecBuilder()
-                .withAccessModes("ReadWriteOnce")
-                .withResources(new ResourceRequirementsBuilder()
-                    .withRequests(rc.orElse(ResourcesConfig.DEFAULT).getStorage())
-                    .build())
-                .build())
+            .withSpec(volumeClaimSpec.build())
             .build())
         .endSpec()
         .build();
+
+    ResourceUtils.logAsYaml(statefulSet);
 
     try (KubernetesClient client = kubClientFactory.retrieveKubernetesClient()) {
       StatefulSet ss = client.apps().statefulSets().inNamespace(namespace).withName(name).get();
@@ -384,6 +387,7 @@ public class SgStatefulSets {
         statefulSet = client.apps().statefulSets().inNamespace(namespace)
             .createOrReplace(statefulSet);
       }
+      ResourceUtils.logAsYaml(statefulSet);
 
       LOGGER.debug("Updating StatefulSet: {}", name);
       return statefulSet;

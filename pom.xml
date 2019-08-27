@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>io.stackgres</groupId>
@@ -41,7 +43,8 @@
     <maven.compiler.target>${java.version}</maven.compiler.target>
     <!-- Dependencies versions -->
     <quarkus.version>0.21.1</quarkus.version>
-    <kubernetes-client.version>4.4.1</kubernetes-client.version>
+    <kubernetes-client.version>4.4.2</kubernetes-client.version>
+    <immutables.version>2.7.5</immutables.version>
     <checkstyle.version>8.23</checkstyle.version>
     <spotbugs.version>4.0.0-beta3</spotbugs.version>
     <checker.version>2.10.1</checker.version>
@@ -92,6 +95,12 @@
           <artifactId>*</artifactId>
         </exclusion>
       </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.immutables</groupId>
+      <artifactId>value</artifactId>
+      <version>${immutables.version}</version>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.checkerframework</groupId>
@@ -303,14 +312,8 @@
                 <Xmaxerrs>10000</Xmaxerrs>
                 <Xmaxwarns>10000</Xmaxwarns>
               </compilerArguments>
-              <annotationProcessorPaths>
-                <path>
-                  <groupId>org.checkerframework</groupId>
-                  <artifactId>checker</artifactId>
-                  <version>${checker.version}</version>
-                </path>
-              </annotationProcessorPaths>
               <annotationProcessors>
+                <annotationProcessor>org.immutables.processor.ProxyProcessor</annotationProcessor>
                 <annotationProcessor>org.checkerframework.checker.nullness.NullnessChecker</annotationProcessor>
                 <annotationProcessor>org.checkerframework.checker.interning.InterningChecker</annotationProcessor>
                 <annotationProcessor>org.checkerframework.checker.formatter.FormatterChecker</annotationProcessor>

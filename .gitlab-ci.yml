@@ -37,13 +37,13 @@ verify code:
   script:
     - 'mvn $MAVEN_CLI_OPTS verify -Psafer'
 
-verify checker:
-  stage: verify
-  tags:
-    - stackgres-runner
-  script:
-    - 'mvn $MAVEN_CLI_OPTS verify -Pchecker'
-  allow_failure: true
+#verify checker:
+#  stage: verify
+#  tags:
+#    - stackgres-runner
+#  script:
+#    - 'mvn $MAVEN_CLI_OPTS verify -Pchecker'
+#  allow_failure: true
 
 build:
   stage: package
