@@ -30,6 +30,7 @@ public class DefaultValues {
         .put("shared_preload_libraries", "pg_stat_statements")
         .put("track_io_timing", "on")
         .put("track_functions", "pl")
+        .put("extra_float_digits", "1")
         .build();
   }
 

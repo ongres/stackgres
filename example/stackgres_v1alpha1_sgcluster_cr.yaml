@@ -7,3 +7,6 @@ spec:
   pg_version: 11
   pg_config: postgresconf
   resource_profile: size-xs
+  sidecars:
+  - pgbouncer
+  - postgres-utils

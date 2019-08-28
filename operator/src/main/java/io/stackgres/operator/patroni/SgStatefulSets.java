@@ -3,10 +3,11 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.resource;
+package io.stackgres.operator.patroni;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -15,7 +16,10 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapEnvSourceBuilder;
+import io.fabric8.kubernetes.api.model.ConfigMapVolumeSourceBuilder;
+import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
 import io.fabric8.kubernetes.api.model.Endpoints;
@@ -23,6 +27,7 @@ import io.fabric8.kubernetes.api.model.EnvFromSourceBuilder;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.EnvVarSourceBuilder;
 import io.fabric8.kubernetes.api.model.HTTPGetActionBuilder;
+import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.LabelSelectorBuilder;
 import io.fabric8.kubernetes.api.model.ObjectFieldSelectorBuilder;
@@ -34,6 +39,7 @@ import io.fabric8.kubernetes.api.model.ProbeBuilder;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import io.fabric8.kubernetes.api.model.SecretKeySelectorBuilder;
 import io.fabric8.kubernetes.api.model.SecurityContextBuilder;
+import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
@@ -57,6 +63,9 @@ import io.stackgres.operator.customresources.sgprofile.StackGresProfileDefinitio
 import io.stackgres.operator.customresources.sgprofile.StackGresProfileDoneable;
 import io.stackgres.operator.customresources.sgprofile.StackGresProfileList;
 import io.stackgres.operator.parameters.Blacklist;
+import io.stackgres.sidecars.Sidecar;
+import io.stackgres.sidecars.pgbouncer.PgBouncer;
+import io.stackgres.sidecars.pgutils.PostgresUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -121,7 +130,7 @@ public class SgStatefulSets {
                 .build())
             .withNewSpec()
             .withShareProcessNamespace(Boolean.TRUE)
-            .withServiceAccountName(name + SgPatroniRole.SUFIX)
+            .withServiceAccountName(name + SgPatroniRole.SUFFIX)
             .addNewContainer()
             .withName("patroni")
             .withImage("docker.io/ongres/patroni:11.5")
@@ -192,25 +201,6 @@ public class SgStatefulSets {
                 .build())
             .withResources(resources)
             .endContainer()
-            .addNewContainer()
-            .withName("postgres-util")
-            .withImage("docker.io/ongres/postgres-util:11.5")
-            .withImagePullPolicy("Always")
-            .withNewSecurityContext()
-            .withNewCapabilities()
-            .addNewAdd("SYS_PTRACE")
-            .endCapabilities()
-            .endSecurityContext()
-            .addNewEnv()
-            .withName("PG_VERSION")
-            .withValue(pg_version.toString())
-            .endEnv()
-            .withStdin(Boolean.TRUE)
-            .withTty(Boolean.TRUE)
-            .withCommand("/bin/sh")
-            .withArgs("-c", "while true; do sleep 10; done")
-            .withVolumeMounts(pgSocket)
-            .endContainer()
             .withVolumes(new VolumeBuilder()
                 .withName("pg-socket")
                 .withNewEmptyDir()
@@ -238,14 +228,27 @@ public class SgStatefulSets {
         .endSpec()
         .build();
 
-    ResourceUtils.logAsYaml(statefulSet);
-
     try (KubernetesClient client = kubClientFactory.retrieveKubernetesClient()) {
+      if (resource.getSpec().getSidecars().contains("postgres-utils")) {
+        PostgresUtil pgutils = new PostgresUtil();
+        injectContainer(statefulSet, pgutils);
+        List<HasMetadata> listResources = pgutils.createDependencies();
+        applyDependencies(client, listResources, namespace);
+      }
+      if (resource.getSpec().getSidecars().contains("pgbouncer")) {
+        PgBouncer pgbouncer = new PgBouncer(name);
+        injectContainer(statefulSet, pgbouncer);
+        List<HasMetadata> listResources = pgbouncer.createDependencies();
+        applyDependencies(client, listResources, namespace);
+        injertVolumeConfigMap(statefulSet, pgbouncer, listResources);
+      }
+
       StatefulSet ss = client.apps().statefulSets().inNamespace(namespace).withName(name).get();
       if (ss == null) {
         statefulSet = client.apps().statefulSets().inNamespace(namespace).create(statefulSet);
         LOGGER.debug("Creating StatefulSet: {}", name);
       }
+      ResourceUtils.logAsYaml(statefulSet);
     }
 
     Optional<StackGresPostgresConfig> pgConfig = getPostgresConfig(resource);
@@ -415,6 +418,58 @@ public class SgStatefulSets {
 
     LOGGER.debug("Deleting StatefulSet: {}, success: {}", name, deleted);
     return deleted;
+  }
+
+  private void injectContainer(StatefulSet sts, Sidecar sidecar) {
+    List<Container> listContainers = sts.getSpec().getTemplate().getSpec().getContainers();
+    for (Container c : listContainers) {
+      if (c.getName().equals(sidecar.getName())) {
+        // Sidecar already included
+        return;
+      }
+    }
+    listContainers.add(sidecar.create());
+    sts.getSpec().getTemplate().getSpec().setContainers(listContainers);
+  }
+
+  private void injertVolumeConfigMap(StatefulSet sts, Sidecar sidecar,
+      List<HasMetadata> listResources) {
+    List<Volume> listVolume = sts.getSpec().getTemplate().getSpec().getVolumes();
+    for (Volume v : listVolume) {
+      if (v.getName().equals(sidecar.getName())) {
+        return;
+      }
+    }
+
+    for (HasMetadata res : listResources) {
+      if (res instanceof ConfigMap) {
+        Volume vm = new VolumeBuilder()
+            .withName(sidecar.getName())
+            .withConfigMap(new ConfigMapVolumeSourceBuilder()
+                .withName(res.getMetadata().getName()).build())
+            .build();
+        listVolume.add(vm);
+      }
+    }
+    sts.getSpec().getTemplate().getSpec().setVolumes(listVolume);
+  }
+
+  private void applyDependencies(KubernetesClient client, List<HasMetadata> listResources,
+      final String namespace) {
+    for (HasMetadata dep : listResources) {
+      ResourceUtils.logAsYaml(dep);
+      client.resource(dep).inNamespace(namespace).createOrReplace();
+    }
+  }
+
+  private void removeContainer(StatefulSet sts, Sidecar sidecar) {
+    List<Container> listContainers = sts.getSpec().getTemplate().getSpec().getContainers();
+    for (Container c : listContainers) {
+      if (c.getName().equals(sidecar.getName())) {
+        listContainers.remove(c);
+      }
+    }
+    sts.getSpec().getTemplate().getSpec().setContainers(listContainers);
   }
 
 }

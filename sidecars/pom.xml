@@ -9,14 +9,19 @@
     <version>0.6beta2-SNAPSHOT</version>
   </parent>
 
-  <artifactId>common</artifactId>
+  <artifactId>sidecars</artifactId>
   <packaging>jar</packaging>
-  <name>Common utilities</name>
+  <name>Sidecars containers</name>
 
   <dependencies>
     <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-kubernetes-client</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.stackgres</groupId>
+      <artifactId>common</artifactId>
+      <version>${project.version}</version>
     </dependency>
   </dependencies>
 

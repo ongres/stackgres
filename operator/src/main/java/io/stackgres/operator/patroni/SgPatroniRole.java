@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.resource;
+package io.stackgres.operator.patroni;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
 @ApplicationScoped
 public class SgPatroniRole {
 
-  public static final String SUFIX = "-patroni";
+  public static final String SUFFIX = "-patroni";
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SgPatroniRole.class);
 
@@ -37,7 +37,7 @@ public class SgPatroniRole {
    * Create the Service associated to the cluster.
    */
   public void create(StackGresCluster resource) {
-    final String name = resource.getMetadata().getName() + SUFIX;
+    final String name = resource.getMetadata().getName() + SUFFIX;
     final String namespace = resource.getMetadata().getNamespace();
 
     try (KubernetesClient client = kubClientFactory.retrieveKubernetesClient()) {
@@ -133,7 +133,7 @@ public class SgPatroniRole {
    * Delete resource.
    */
   public void delete(KubernetesClient client, StackGresCluster resource) {
-    final String name = resource.getMetadata().getName() + SUFIX;
+    final String name = resource.getMetadata().getName() + SUFFIX;
     final String namespace = resource.getMetadata().getNamespace();
 
     RoleBinding roleBind = client.rbac().roleBindings().inNamespace(namespace)

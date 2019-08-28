@@ -51,7 +51,7 @@ public class StackGresOperatorApp {
       if (!hasCustomResource(client, StackGresProfileDefinition.NAME)
           || !hasCustomResource(client, StackGresPostgresConfigDefinition.NAME)
           || !hasCustomResource(client, StackGresClusterDefinition.NAME)) {
-        new Thread(() -> System.exit(1)).start();
+        throw new RuntimeException("Some required CRDs does not exists");
       }
       registerCustomResources();
       startClusterCrdWatcher(client);

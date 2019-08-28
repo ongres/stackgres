@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.customresources.sgcluster;
 
+import java.util.List;
+
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 
@@ -38,6 +40,9 @@ public class StackGresClusterSpec implements KubernetesResource {
   @NotNull
   private String resourceProfile;
 
+  @JsonProperty("sidecars")
+  private List<String> sidecars;
+
   public int getInstances() {
     return instances;
   }
@@ -68,6 +73,14 @@ public class StackGresClusterSpec implements KubernetesResource {
 
   public void setResourceProfile(String resourceProfile) {
     this.resourceProfile = resourceProfile;
+  }
+
+  public List<String> getSidecars() {
+    return sidecars;
+  }
+
+  public void setSidecars(List<String> sidecars) {
+    this.sidecars = sidecars;
   }
 
   @Override
