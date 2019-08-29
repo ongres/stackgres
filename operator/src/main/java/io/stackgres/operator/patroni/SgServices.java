@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.resource;
+package io.stackgres.operator.patroni;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -15,6 +15,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.EndpointsBuilder;
+import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.ServicePortBuilder;
@@ -104,6 +105,7 @@ public class SgServices {
         .withPorts(new ServicePortBuilder()
             .withProtocol("TCP")
             .withPort(5432)
+            .withTargetPort(new IntOrString(6432))
             .build())
         .withType("LoadBalancer")
         .endSpec()

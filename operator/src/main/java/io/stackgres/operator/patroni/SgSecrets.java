@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.resource;
+package io.stackgres.operator.patroni;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;

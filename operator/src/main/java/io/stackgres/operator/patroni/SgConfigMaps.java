@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.resource;
+package io.stackgres.operator.patroni;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -52,8 +52,8 @@ public class SgConfigMaps {
     Map<String, String> data = new HashMap<>();
     data.put("PATRONI_SCOPE", name);
     data.put("PATRONI_SUPERUSER_USERNAME", "postgres");
-    data.put("PATRONI_REPLICATION_USERNAME", "replicator");
     data.put("PATRONI_KUBERNETES_USE_ENDPOINTS", "true");
+    data.put("PATRONI_REPLICATION_USERNAME", "replicator");
     data.put("PATRONI_KUBERNETES_LABELS", patroniLabels);
     data.put("PATRONI_POSTGRESQL_LISTEN", "0.0.0.0:5432");
     data.put("PATRONI_RESTAPI_LISTEN", "0.0.0.0:8008");
@@ -69,6 +69,7 @@ public class SgConfigMaps {
       ConfigMap cm = new ConfigMapBuilder()
           .withNewMetadata()
           .withName(name)
+          .withLabels(ResourceUtils.defaultLabels(name))
           .endMetadata()
           .withData(data)
           .build();
@@ -82,6 +83,7 @@ public class SgConfigMaps {
           cm = item;
         }
       }
+      ResourceUtils.logAsYaml(cm);
 
       LOGGER.debug("Creating ConfigMap: {}", name);
       return cm;

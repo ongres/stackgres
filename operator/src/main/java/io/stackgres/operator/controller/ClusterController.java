@@ -11,11 +11,11 @@ import javax.inject.Inject;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.operator.app.KubernetesClientFactory;
 import io.stackgres.operator.customresources.sgcluster.StackGresCluster;
-import io.stackgres.operator.resource.SgConfigMaps;
-import io.stackgres.operator.resource.SgPatroniRole;
-import io.stackgres.operator.resource.SgSecrets;
-import io.stackgres.operator.resource.SgServices;
-import io.stackgres.operator.resource.SgStatefulSets;
+import io.stackgres.operator.patroni.SgConfigMaps;
+import io.stackgres.operator.patroni.SgPatroniRole;
+import io.stackgres.operator.patroni.SgSecrets;
+import io.stackgres.operator.patroni.SgServices;
+import io.stackgres.operator.patroni.SgStatefulSets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
