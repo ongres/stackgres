@@ -83,7 +83,7 @@ public class SgStatefulSets {
   public StatefulSet create(StackGresCluster resource) {
     final String name = resource.getMetadata().getName();
     final String namespace = resource.getMetadata().getNamespace();
-    final Integer pg_version = resource.getSpec().getPostgresVersion();
+    // final Integer pg_version = resource.getSpec().getPostgresVersion();
     final Optional<StackGresProfile> profile = getProfile(resource);
 
     ResourceRequirements resources = new ResourceRequirements();
@@ -462,14 +462,14 @@ public class SgStatefulSets {
     }
   }
 
-  private void removeContainer(StatefulSet sts, Sidecar sidecar) {
-    List<Container> listContainers = sts.getSpec().getTemplate().getSpec().getContainers();
-    for (Container c : listContainers) {
-      if (c.getName().equals(sidecar.getName())) {
-        listContainers.remove(c);
-      }
-    }
-    sts.getSpec().getTemplate().getSpec().setContainers(listContainers);
-  }
+  // private void removeContainer(StatefulSet sts, Sidecar sidecar) {
+  // List<Container> listContainers = sts.getSpec().getTemplate().getSpec().getContainers();
+  // for (Container c : listContainers) {
+  // if (c.getName().equals(sidecar.getName())) {
+  // listContainers.remove(c);
+  // }
+  // }
+  // sts.getSpec().getTemplate().getSpec().setContainers(listContainers);
+  // }
 
 }

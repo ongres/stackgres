@@ -65,22 +65,22 @@ public class PgBouncer implements Sidecar {
 
   @Override
   public List<HasMetadata> createDependencies() {
-    String configFile = "[databases]\n" +
-        " * = host=/run/postgresql \n" +
-        "\n" +
-        "[pgbouncer]\n" +
-        " listen_port = 6432\n" +
-        " listen_addr = 0.0.0.0\n" +
-        " unix_socket_dir = /run/postgresql\n" +
-        " auth_type = md5\n" +
-        " auth_query = SELECT usename, passwd FROM pg_shadow WHERE usename=$1\n" +
-        " admin_users = postgres\n" +
-        " user = postgres\n" +
-        " pool_mode = session\n" +
-        " max_client_conn = 100\n" +
-        " default_pool_size = 20\n" +
-        " ignore_startup_parameters = extra_float_digits\n" +
-        "";
+    String configFile = "[databases]\n"
+        + " * = host=/run/postgresql \n"
+        + "\n"
+        + "[pgbouncer]\n"
+        + " listen_port = 6432\n"
+        + " listen_addr = 0.0.0.0\n"
+        + " unix_socket_dir = /run/postgresql\n"
+        + " auth_type = md5\n"
+        + " auth_query = SELECT usename, passwd FROM pg_shadow WHERE usename=$1\n"
+        + " admin_users = postgres\n"
+        + " user = postgres\n"
+        + " pool_mode = session\n"
+        + " max_client_conn = 100\n"
+        + " default_pool_size = 20\n"
+        + " ignore_startup_parameters = extra_float_digits\n"
+        + "";
     Map<String, String> data = ImmutableMap.of("pgbouncer.ini", configFile);
 
     ConfigMap cm = new ConfigMapBuilder()
@@ -94,6 +94,5 @@ public class PgBouncer implements Sidecar {
 
     return ImmutableList.of(cm);
   }
-
 
 }

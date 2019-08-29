@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2019 OnGres, Inc.
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
 
 package io.stackgres.sidecars;
 
@@ -8,10 +12,10 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 
 public interface Sidecar {
 
-  public String getName();
+  String getName();
 
-  public Container create();
+  Container create();
 
-  public List<HasMetadata> createDependencies();
+  List<HasMetadata> createDependencies();
 
 }
