@@ -6,6 +6,7 @@
 package io.stackgres.operator.patroni;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -385,6 +386,23 @@ public class SgStatefulSets {
           spec.setReplicas(instances);
         }
 
+        List<String> sidecars = resource.getSpec().getSidecars();
+        removeContainer(statefulSet, sidecars);
+        for (String sidecar : sidecars) {
+          if (sidecar.contains("postgres-utils")) {
+            PostgresUtil pgutils = new PostgresUtil();
+            injectContainer(statefulSet, pgutils);
+            List<HasMetadata> listResources = pgutils.createDependencies();
+            applyDependencies(client, listResources, namespace);
+          } else if (sidecar.contains("pgbouncer")) {
+            PgBouncer pgbouncer = new PgBouncer(name);
+            injectContainer(statefulSet, pgbouncer);
+            List<HasMetadata> listResources = pgbouncer.createDependencies();
+            applyDependencies(client, listResources, namespace);
+            injertVolumeConfigMap(statefulSet, pgbouncer, listResources);
+          }
+        }
+
         getPostgresConfig(resource).ifPresent(c -> applyPostgresConf(resource, c));
 
         statefulSet = client.apps().statefulSets().inNamespace(namespace)
@@ -462,14 +480,17 @@ public class SgStatefulSets {
     }
   }
 
-  // private void removeContainer(StatefulSet sts, Sidecar sidecar) {
-  // List<Container> listContainers = sts.getSpec().getTemplate().getSpec().getContainers();
-  // for (Container c : listContainers) {
-  // if (c.getName().equals(sidecar.getName())) {
-  // listContainers.remove(c);
-  // }
-  // }
-  // sts.getSpec().getTemplate().getSpec().setContainers(listContainers);
-  // }
+  private void removeContainer(StatefulSet sts, List<String> sidecar) {
+    LOGGER.debug("List of sidecars: {}", sidecar);
+    List<Container> listContainers = sts.getSpec().getTemplate().getSpec().getContainers();
+    List<Container> containers = new ArrayList<>(listContainers);
+    for (Container c : listContainers) {
+      if (!sidecar.contains(c.getName()) && !c.getName().equals("patroni")) {
+        LOGGER.debug("Removing sidecar: {}", c.getName());
+        containers.remove(c);
+      }
+    }
+    sts.getSpec().getTemplate().getSpec().setContainers(containers);
+  }
 
 }
