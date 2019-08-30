@@ -24,7 +24,7 @@ spec:
       serviceAccountName: {{ .Values.operatorName }}
       containers:
       - name: {{ .Values.operatorName }}
-        image: "{{ .Values.image.name }}:{{ .Values.operatorVersion }}"
+        image: "{{ .Values.image.name }}:{{ .Values.image.tag }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}        
         ports:
         - containerPort: 8080
