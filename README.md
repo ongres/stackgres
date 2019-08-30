@@ -36,11 +36,19 @@ with GraalVM allowing amazingly fast boot time and incredibly low RSS memory.
 
 ### Getting Started
 
-You can deploy the StackGres operator by using `kubectl apply -f example/kubernetes.yaml`.
+You can deploy the StackGres operator by using
+
+```
+kubectl apply -f example/kubernetes.yaml
+```
 
 Once the operator is up and running in your Kubernetes cluster you can deploy new clusters using
-`kubectl -nstackgres apply -f example/stackgres_v1alpha1_sgcluster_cr.yaml` you can edit the instances
-field with the number of replicas you want to deploy.
+
+```
+kubectl -n stackgres apply -f example/stackgres_v1alpha1_sgcluster_cr.yaml
+```
+
+you can edit the instances field with the number of replicas you want to deploy.
 
 ## Building
 
@@ -58,15 +66,22 @@ the compile phase. The native-image generation has been tested on Linux only but
 
 The build process is bootstraped in a multistage Dockerfile, to run the build:
 
-`buildah bud -f src/main/docker/Dockerfile.multistage -t stackgres/operator .`
+```
+buildah bud -f src/main/docker/Dockerfile.multistage -t stackgres/operator .
+```
 
 This multistage Dockerfile also generates a container image with the operator.
 To run the generated container image just use:
 
-`podman run -i --rm -p 8080:8080 localhost/stackgres/operator`
+```
+podman run -i --rm -p 8080:8080 localhost/stackgres/operator
+```
 
 Once you start the operator, it start watching the CRD resource for StackGres that can be deployed using:
-`kubectl -nstackgres apply -f example/stackgres_v1alpha1_sgcluster_cr.yaml`
+
+```
+kubectl -n stackgres apply -f example/stackgres_v1alpha1_sgcluster_cr.yaml
+```
 
 ### Building locally
 
@@ -82,13 +97,30 @@ The prerequisites are the same for any Quarkus-based application.
 
 #### Compiling and running
 
-To create the native executable you can use `./mvnw package -Pnative`. This will generate an artifact
-called `stackgres-operator-${project.version}-runner`.
+To create the native executable you can use
 
-You can omit the profile `-Pnative` to generate a normal jar that can be run using the JVM.
+```
+./mvnw package -P native
+```
+
+this will generate an artifact called `stackgres-operator-${project.version}-runner`.
+
+You can omit the profile `-P native` to generate a normal jar that can be run using the JVM.
 
 Once you start the operator, it start watching the CRD resource for StackGres that can be deployed using:
-`kubectl -nstackgres apply -f example/stackgres_v1alpha1_sgcluster_cr.yaml`
+
+```
+kubectl -n stackgres apply -f example/stackgres_v1alpha1_sgcluster_cr.yaml
+```
+
+#### Integration tests
+
+Integration tests requires docker to be installed. Also the docker server have to listen to address and port 172.17.0.1:2376.
+To run the ITs:
+
+```
+./mvnw verify -P integration
+```
 
 ---
 
