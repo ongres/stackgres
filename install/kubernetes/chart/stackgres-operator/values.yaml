@@ -1,6 +1,6 @@
 
-global:  
-  postgresVersion: 11
+postgresVersion:
+  minimum: 11.5
 
 operatorName: "stackgres-operator"
 operatorNamespace: "stackgres"
@@ -11,3 +11,19 @@ image:
   name: "stackgres/operator"
   tag: "master-jvm"
   pullPolicy: "IfNotPresent"
+
+crd:
+  create: true
+  version: "v1alpha1"
+
+serviceAccount:
+  create: true
+
+rbac:
+  create: true
+
+namespace:
+  create: true
+
+deploy:
+  create: true

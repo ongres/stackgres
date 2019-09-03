@@ -2,30 +2,41 @@ apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
 metadata:
   name: sgprofiles.{{ .Values.group }}
-  # annotations:
-  #   "helm.sh/hook": crd-install
+  annotations:
+    "helm.sh/hook": crd-install
 spec:
   group: {{ .Values.group }}
-  version: {{ .Values.version }}
+  versions:
+    - name: v1
+      served: true
+      storage: true
   scope: Namespaced
   names:
     kind: StackGresProfile
     listKind: StackGresProfileList
     plural: sgprofiles
     singular: sgprofile
+  preserveUnknownFields: false #Force to use structural schema
   validation:
     openAPIV3Schema:
       required: ["spec"]
+      type: object
+      description: "Params for resources"
       properties:
         spec:
-          required: ["resources","volume"]
-          properties:
+          type: string       
+          properties:            
             resources:
-              required: ["requests","limits"]
+              type: object              
               properties:
                 requests:
+                  type: string
                   required: ["cpu","memory"]
                 limits:
+                  type: string
                   required: ["cpu","memory"]
+              required: ["requests","limits"]
             volume:
+              type: string
               required: ["size"]
+          required: ["resources","volume"]

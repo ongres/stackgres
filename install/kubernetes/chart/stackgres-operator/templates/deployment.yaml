@@ -1,24 +1,27 @@
+{{ if .Values.deploy.create }}
 apiVersion: "apps/v1"
 kind: "Deployment"
 metadata:
   labels:
     app: {{ .Values.operatorName }}
-    #version: {{ .Values.operatorVersion }}
+    version: {{ .Values.operatorVersion }}
     group: {{ .Values.group }}
   name: {{ .Values.operatorName }}
+  {{- if .Values.namespace.create }}
   namespace: {{ .Values.operatorNamespace }}
+  {{- end }}
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: {{ .Values.operatorName }}
-      #version: {{ .Values.operatorVersion }}
+      version: {{ .Values.operatorVersion }}
       group: {{ .Values.group }}
   template:
     metadata:
       labels:
         app: {{ .Values.operatorName }}
-        #version: {{ .Values.operatorVersion }}
+        version: {{ .Values.operatorVersion }}
         group: {{ .Values.group }}
     spec:
       serviceAccountName: {{ .Values.operatorName }}
@@ -46,3 +49,4 @@ spec:
           initialDelaySeconds: 5
           periodSeconds: 30
           timeoutSeconds: 2
+{{ end }}
