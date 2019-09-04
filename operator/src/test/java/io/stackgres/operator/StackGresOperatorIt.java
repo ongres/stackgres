@@ -38,7 +38,7 @@ public class StackGresOperatorIt extends AbstractStackGresOperatorIt {
     ItHelper.waitUntil(Unchecked.supplier(() -> kind.execute("bash", "-l", "-c",
         "kubectl get pod -n  " + namespace + " stackgres-example-0"
             + " && echo 1 || true")),
-        s -> !s.noneMatch(line -> line.equals("1")), 10, ChronoUnit.SECONDS,
+        s -> !s.noneMatch(line -> line.equals("1")), 60, ChronoUnit.SECONDS,
         s -> Assertions.fail(
             "Timeout while checking creation of"
                 + " pod 'stackgres-example-0' in namespace '" + namespace + "':\n"
@@ -53,7 +53,7 @@ public class StackGresOperatorIt extends AbstractStackGresOperatorIt {
     ItHelper.waitUntil(Unchecked.supplier(() -> kind.execute("bash", "-l", "-c",
         "kubectl exec -t -n " + namespace + " stackgres-example-0 -c postgres-util --"
             + " bash -c \"psql -t -A -U postgres -p 5432 -c 'SELECT 1' || true\"")),
-        s -> !s.noneMatch(line -> line.equals("1")), 10, ChronoUnit.SECONDS,
+        s -> !s.noneMatch(line -> line.equals("1")), 60, ChronoUnit.SECONDS,
         s -> Assertions.fail(
             "Timeout while checking connection available to postgres of"
                 + " pod 'stackgres-example-0' in namespace '" + namespace + "':\n"
@@ -66,7 +66,7 @@ public class StackGresOperatorIt extends AbstractStackGresOperatorIt {
         "kubectl exec -t -n " + namespace + " stackgres-example-0 -c postgres-util --"
             + " bash -c \"PGPASSWORD=test psql -t -A"
             + " -U test -d postgres -p 6432 -c 'SELECT 1' || true\"")),
-        s -> !s.noneMatch(line -> line.equals("1")), 10, ChronoUnit.SECONDS,
+        s -> !s.noneMatch(line -> line.equals("1")), 60, ChronoUnit.SECONDS,
         s -> Assertions.fail(
             "Timeout while checking connection available to pgbouncer of"
                 + " pod 'stackgres-example-0' in namespace '" + namespace + "':\n"
