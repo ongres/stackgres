@@ -66,13 +66,14 @@ public class PgBouncer implements Sidecar {
   @Override
   public List<HasMetadata> createDependencies() {
     String configFile = "[databases]\n"
-        + " * = host=/run/postgresql \n"
+        + " * = \n"
         + "\n"
         + "[pgbouncer]\n"
         + " listen_port = 6432\n"
         + " listen_addr = 0.0.0.0\n"
         + " unix_socket_dir = /run/postgresql\n"
         + " auth_type = md5\n"
+        + " auth_user = postgres\n"
         + " auth_query = SELECT usename, passwd FROM pg_shadow WHERE usename=$1\n"
         + " admin_users = postgres\n"
         + " user = postgres\n"
