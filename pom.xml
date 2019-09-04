@@ -59,6 +59,7 @@
     <clean-plugin.version>3.1.0</clean-plugin.version>
     <resources-plugin.version>3.1.0</resources-plugin.version>
     <surefire-plugin.version>3.0.0-M3</surefire-plugin.version>
+    <failsafe-plugin.version>3.0.0-M3</failsafe-plugin.version>
     <checkstyle-plugin.version>3.1.0</checkstyle-plugin.version>
     <spotbugs-plugin.version>3.1.12.2</spotbugs-plugin.version>
     <pmd-plugin.version>3.12.0</pmd-plugin.version>
@@ -114,7 +115,7 @@
     <dependency>
       <groupId>javax.annotation</groupId>
       <artifactId>javax.annotation-api</artifactId>
-      <version>${javax.annotation-api.version}</version>
+      <version>${javax.annotation-api.version}</version><!--$NO-MVN-MAN-VER$-->
     </dependency>
     <dependency>
       <groupId>org.checkerframework</groupId>
