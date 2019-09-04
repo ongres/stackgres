@@ -35,22 +35,31 @@ verify code:
   tags:
     - stackgres-runner
   script:
-    - 'mvn $MAVEN_CLI_OPTS verify -Psafer'
+    - 'mvn $MAVEN_CLI_OPTS verify -P safer'
 
 #verify checker:
 #  stage: verify
 #  tags:
 #    - stackgres-runner
 #  script:
-#    - 'mvn $MAVEN_CLI_OPTS verify -Pchecker'
+#    - 'mvn $MAVEN_CLI_OPTS verify -P checker'
 #  allow_failure: true
+
+integration test:
+  stage: verify
+  tags:
+    - stackgres-runner
+  variables:
+    DOCKER_HOST: tcp://172.17.0.1:2376
+  script:
+    - 'mvn $MAVEN_CLI_OPTS verify -P integration'
 
 build:
   stage: package
   tags:
     - stackgres-runner
   script:
-    - 'mvn $MAVEN_CLI_OPTS package -Pnative'
+    - 'mvn $MAVEN_CLI_OPTS package -P native'
     - 'cp $GRAALVM_HOME/jre/lib/amd64/libsunec.so operator/target/'
     - 'cp $GRAALVM_HOME/jre/lib/security/cacerts operator/target/'
   artifacts:
