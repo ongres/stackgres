@@ -5,11 +5,16 @@
 
 package io.stackgres.sidecars.pgbouncer;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.Container;
@@ -18,21 +23,39 @@ import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
+import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
+import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.ResourceUtils;
+import io.stackgres.common.sgcluster.StackGresCluster;
 import io.stackgres.sidecars.Sidecar;
+import io.stackgres.sidecars.pgbouncer.customresources.StackGresPgbouncerConfig;
+import io.stackgres.sidecars.pgbouncer.customresources.StackGresPgbouncerConfigDefinition;
+import io.stackgres.sidecars.pgbouncer.customresources.StackGresPgbouncerConfigDoneable;
+import io.stackgres.sidecars.pgbouncer.customresources.StackGresPgbouncerConfigList;
+import io.stackgres.sidecars.pgbouncer.parameters.Blacklist;
+import io.stackgres.sidecars.pgbouncer.parameters.DefaultValues;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class PgBouncer implements Sidecar {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(PgBouncer.class);
 
   private static final String NAME = "pgbouncer";
   private static final String IMAGE = "docker.io/ongres/pgbouncer:1.11";
 
   private final String clusterName;
-
   private final String configMapName;
+  private final Supplier<KubernetesClient> kubernetesClientSupplier;
 
-  public PgBouncer(String clusterName) {
+  /**
+   * Create a {@code PgBouncer} instance.
+   */
+  public PgBouncer(String clusterName, Supplier<KubernetesClient> kubernetesClientSupplier) {
     this.clusterName = clusterName;
     this.configMapName = clusterName + "-pgbouncer-config";
+    this.kubernetesClientSupplier = kubernetesClientSupplier;
   }
 
   @Override
@@ -64,24 +87,28 @@ public class PgBouncer implements Sidecar {
   }
 
   @Override
-  public List<HasMetadata> createDependencies() {
+  public List<HasMetadata> createDependencies(StackGresCluster resource) {
+    Optional<StackGresPgbouncerConfig> config = getPgbouncerConfig(resource);
+    Map<String, String> newParams = config.map(c -> c.getSpec().getPgbouncerConf())
+        .orElseGet(HashMap::new);
+    // Blacklist removal
+    for (String bl : Blacklist.getBlacklistParameters()) {
+      newParams.remove(bl);
+    }
+    Map<String, String> params = new HashMap<>(DefaultValues.getDefaultValues());
+
+    for (Map.Entry<String, String> entry : newParams.entrySet()) {
+      params.put(entry.getKey(), entry.getValue());
+    }
+
     String configFile = "[databases]\n"
         + " * = \n"
         + "\n"
         + "[pgbouncer]\n"
-        + " listen_port = 6432\n"
-        + " listen_addr = 0.0.0.0\n"
-        + " unix_socket_dir = /run/postgresql\n"
-        + " auth_type = md5\n"
-        + " auth_user = postgres\n"
-        + " auth_query = SELECT usename, passwd FROM pg_shadow WHERE usename=$1\n"
-        + " admin_users = postgres\n"
-        + " user = postgres\n"
-        + " pool_mode = session\n"
-        + " max_client_conn = 100\n"
-        + " default_pool_size = 20\n"
-        + " ignore_startup_parameters = extra_float_digits\n"
-        + "";
+        + params.entrySet().stream()
+        .map(entry -> " " + entry.getKey() + " = " + entry.getValue())
+        .collect(Collectors.joining("\n"))
+        + "\n";
     Map<String, String> data = ImmutableMap.of("pgbouncer.ini", configFile);
 
     ConfigMap cm = new ConfigMapBuilder()
@@ -94,6 +121,29 @@ public class PgBouncer implements Sidecar {
         .build();
 
     return ImmutableList.of(cm);
+  }
+
+  private Optional<StackGresPgbouncerConfig> getPgbouncerConfig(StackGresCluster resource) {
+    final String namespace = resource.getMetadata().getNamespace();
+    final String pgbouncerConfig = resource.getSpec().getPgbouncerConfig();
+    LOGGER.debug("PgbouncerConfig Name: {}", pgbouncerConfig);
+    if (pgbouncerConfig != null) {
+      try (KubernetesClient client = kubernetesClientSupplier.get()) {
+        Optional<CustomResourceDefinition> crd =
+            ResourceUtils.getCustomResource(client, StackGresPgbouncerConfigDefinition.NAME);
+        if (crd.isPresent()) {
+          return Optional.ofNullable(client
+              .customResources(crd.get(),
+                  StackGresPgbouncerConfig.class,
+                  StackGresPgbouncerConfigList.class,
+                  StackGresPgbouncerConfigDoneable.class)
+              .inNamespace(namespace)
+              .withName(pgbouncerConfig)
+              .get());
+        }
+      }
+    }
+    return Optional.empty();
   }
 
 }

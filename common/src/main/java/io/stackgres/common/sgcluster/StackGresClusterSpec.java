@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.customresources.sgcluster;
+package io.stackgres.common.sgcluster;
 
 import java.util.List;
 
@@ -40,6 +40,10 @@ public class StackGresClusterSpec implements KubernetesResource {
   @NotNull
   private String resourceProfile;
 
+  @JsonProperty("pgbouncer_config")
+  @NotNull
+  private String pgbouncerConfig;
+
   @JsonProperty("sidecars")
   private List<String> sidecars;
 
@@ -75,6 +79,14 @@ public class StackGresClusterSpec implements KubernetesResource {
     this.resourceProfile = resourceProfile;
   }
 
+  public String getPgbouncerConfig() {
+    return pgbouncerConfig;
+  }
+
+  public void setPgbouncerConfig(String pgbouncerConfig) {
+    this.pgbouncerConfig = pgbouncerConfig;
+  }
+
   public List<String> getSidecars() {
     return sidecars;
   }
@@ -91,6 +103,7 @@ public class StackGresClusterSpec implements KubernetesResource {
         .add("pg_version", postgresVersion)
         .add("pg_config", postgresConfig)
         .add("resource_profile", resourceProfile)
+        .add("pgbouncer_config", pgbouncerConfig)
         .toString();
   }
 

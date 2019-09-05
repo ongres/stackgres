@@ -17,6 +17,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapEnvSourceBuilder;
 import io.fabric8.kubernetes.api.model.ConfigMapVolumeSourceBuilder;
@@ -50,15 +51,15 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetSpec;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.ResourceUtils;
+import io.stackgres.common.sgcluster.StackGresCluster;
 import io.stackgres.operator.app.KubernetesClientFactory;
 import io.stackgres.operator.configuration.ImmutableStorageConfig;
 import io.stackgres.operator.configuration.PatroniConfig;
 import io.stackgres.operator.configuration.StorageConfig;
-import io.stackgres.operator.customresources.pgconfig.StackGresPostgresConfig;
-import io.stackgres.operator.customresources.pgconfig.StackGresPostgresConfigDefinition;
-import io.stackgres.operator.customresources.pgconfig.StackGresPostgresConfigDoneable;
-import io.stackgres.operator.customresources.pgconfig.StackGresPostgresConfigList;
-import io.stackgres.operator.customresources.sgcluster.StackGresCluster;
+import io.stackgres.operator.customresources.sgpgconfig.StackGresPostgresConfig;
+import io.stackgres.operator.customresources.sgpgconfig.StackGresPostgresConfigDefinition;
+import io.stackgres.operator.customresources.sgpgconfig.StackGresPostgresConfigDoneable;
+import io.stackgres.operator.customresources.sgpgconfig.StackGresPostgresConfigList;
 import io.stackgres.operator.customresources.sgprofile.StackGresProfile;
 import io.stackgres.operator.customresources.sgprofile.StackGresProfileDefinition;
 import io.stackgres.operator.customresources.sgprofile.StackGresProfileDoneable;
@@ -67,6 +68,7 @@ import io.stackgres.operator.parameters.Blacklist;
 import io.stackgres.sidecars.Sidecar;
 import io.stackgres.sidecars.pgbouncer.PgBouncer;
 import io.stackgres.sidecars.pgutils.PostgresUtil;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -229,17 +231,17 @@ public class SgStatefulSets {
         .endSpec()
         .build();
 
-    try (KubernetesClient client = kubClientFactory.retrieveKubernetesClient()) {
+    try (KubernetesClient client = kubClientFactory.create()) {
       if (resource.getSpec().getSidecars().contains("postgres-utils")) {
         PostgresUtil pgutils = new PostgresUtil();
         injectContainer(statefulSet, pgutils);
-        List<HasMetadata> listResources = pgutils.createDependencies();
+        List<HasMetadata> listResources = pgutils.createDependencies(resource);
         applyDependencies(client, listResources, namespace);
       }
       if (resource.getSpec().getSidecars().contains("pgbouncer")) {
-        PgBouncer pgbouncer = new PgBouncer(name);
+        PgBouncer pgbouncer = new PgBouncer(name, kubClientFactory::create);
         injectContainer(statefulSet, pgbouncer);
-        List<HasMetadata> listResources = pgbouncer.createDependencies();
+        List<HasMetadata> listResources = pgbouncer.createDependencies(resource);
         applyDependencies(client, listResources, namespace);
         injertVolumeConfigMap(statefulSet, pgbouncer, listResources);
       }
@@ -263,7 +265,7 @@ public class SgStatefulSets {
   private void applyPostgresConf(StackGresCluster resource, StackGresPostgresConfig config) {
     final String name = resource.getMetadata().getName();
     final String namespace = resource.getMetadata().getNamespace();
-    try (KubernetesClient client = kubClientFactory.retrieveKubernetesClient()) {
+    try (KubernetesClient client = kubClientFactory.create()) {
       Endpoints endpoint = null;
       String conf = null;
       PatroniConfig patroniConf = new PatroniConfig();
@@ -327,7 +329,7 @@ public class SgStatefulSets {
     final String pgConfig = resource.getSpec().getPostgresConfig();
     LOGGER.debug("PostgresConfig Name: {}", pgConfig);
     if (pgConfig != null) {
-      try (KubernetesClient client = kubClientFactory.retrieveKubernetesClient()) {
+      try (KubernetesClient client = kubClientFactory.create()) {
         Optional<CustomResourceDefinition> crd =
             ResourceUtils.getCustomResource(client, StackGresPostgresConfigDefinition.NAME);
         if (crd.isPresent()) {
@@ -350,7 +352,7 @@ public class SgStatefulSets {
     final String profileName = resource.getSpec().getResourceProfile();
     LOGGER.debug("StackGres Profile Name: {}", profileName);
     if (profileName != null) {
-      try (KubernetesClient client = kubClientFactory.retrieveKubernetesClient()) {
+      try (KubernetesClient client = kubClientFactory.create()) {
         Optional<CustomResourceDefinition> crd =
             ResourceUtils.getCustomResource(client, StackGresProfileDefinition.NAME);
         if (crd.isPresent()) {
@@ -375,7 +377,7 @@ public class SgStatefulSets {
     final String name = resource.getMetadata().getName();
     final String namespace = resource.getMetadata().getNamespace();
 
-    try (KubernetesClient client = kubClientFactory.retrieveKubernetesClient()) {
+    try (KubernetesClient client = kubClientFactory.create()) {
       StatefulSet statefulSet =
           client.apps().statefulSets().inNamespace(namespace).withName(name).get();
       if (statefulSet != null) {
@@ -392,12 +394,12 @@ public class SgStatefulSets {
           if (sidecar.contains("postgres-utils")) {
             PostgresUtil pgutils = new PostgresUtil();
             injectContainer(statefulSet, pgutils);
-            List<HasMetadata> listResources = pgutils.createDependencies();
+            List<HasMetadata> listResources = pgutils.createDependencies(resource);
             applyDependencies(client, listResources, namespace);
           } else if (sidecar.contains("pgbouncer")) {
-            PgBouncer pgbouncer = new PgBouncer(name);
+            PgBouncer pgbouncer = new PgBouncer(name, kubClientFactory::create);
             injectContainer(statefulSet, pgbouncer);
-            List<HasMetadata> listResources = pgbouncer.createDependencies();
+            List<HasMetadata> listResources = pgbouncer.createDependencies(resource);
             applyDependencies(client, listResources, namespace);
             injertVolumeConfigMap(statefulSet, pgbouncer, listResources);
           }
@@ -419,7 +421,7 @@ public class SgStatefulSets {
    * Delete resource.
    */
   public Boolean delete(StackGresCluster resource) {
-    try (KubernetesClient client = kubClientFactory.retrieveKubernetesClient()) {
+    try (KubernetesClient client = kubClientFactory.create()) {
       return delete(client, resource);
     }
   }

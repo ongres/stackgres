@@ -21,9 +21,9 @@ import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.ServicePortBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.ResourceUtils;
+import io.stackgres.common.sgcluster.StackGresCluster;
 import io.stackgres.operator.app.KubernetesClientFactory;
 import io.stackgres.operator.configuration.PatroniConfig;
-import io.stackgres.operator.customresources.sgcluster.StackGresCluster;
 import io.stackgres.operator.parameters.DefaultValues;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,7 +44,7 @@ public class SgServices {
    * Create the Service associated to the cluster.
    */
   public Service create(StackGresCluster resource) {
-    try (KubernetesClient client = kubClientFactory.retrieveKubernetesClient()) {
+    try (KubernetesClient client = kubClientFactory.create()) {
       return createServices(client, resource);
     }
   }
@@ -149,7 +149,7 @@ public class SgServices {
    * Delete resource.
    */
   public void delete(StackGresCluster resource) {
-    try (KubernetesClient client = kubClientFactory.retrieveKubernetesClient()) {
+    try (KubernetesClient client = kubClientFactory.create()) {
       delete(client, resource);
     }
   }

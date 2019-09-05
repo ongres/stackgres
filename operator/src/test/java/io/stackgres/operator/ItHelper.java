@@ -108,6 +108,7 @@ public class ItHelper {
     Arrays.asList(new String[] {
         "/resources/stackgres-v1alpha1-sgprofile-crd.yaml",
         "/resources/stackgres-v1alpha1-sgpgconfig-crd.yaml",
+        "/resources/stackgres-v1alpha1-sgpgbouncerconfig-crd.yaml",
         "/resources/stackgres-v1alpha1-sgcluster-crd.yaml"
     })
         .forEach(Unchecked.consumer(crdFile -> {
@@ -125,6 +126,7 @@ public class ItHelper {
     Arrays.asList(new String[] {
         "/resources/stackgres-v1alpha1-sgprofile-crd.yaml",
         "/resources/stackgres-v1alpha1-sgpgconfig-crd.yaml",
+        "/resources/stackgres-v1alpha1-sgpgbouncerconfig-crd.yaml",
         "/resources/stackgres-v1alpha1-sgcluster-crd.yaml"
     })
         .forEach(Unchecked.consumer(crdFile -> {
@@ -141,7 +143,8 @@ public class ItHelper {
   public static void createStackGresConfigs(Container kind, String namespace) throws Exception {
     Arrays.asList(new String[] {
         "/resources/stackgres-v1alpha1-sgprofile-cr.yaml",
-        "/resources/stackgres-v1alpha1-sgpgconfig-cr.yaml"
+        "/resources/stackgres-v1alpha1-sgpgconfig-cr.yaml",
+        "/resources/stackgres-v1alpha1-sgpgbouncerconfig-cr.yaml"
     })
         .forEach(Unchecked.consumer(crFile -> {
           LOGGER.info("Creating CR from file '" + crFile + "' in namespace '" + namespace + "'");

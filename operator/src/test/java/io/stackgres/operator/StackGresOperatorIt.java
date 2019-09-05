@@ -45,7 +45,7 @@ public class StackGresOperatorIt extends AbstractStackGresOperatorIt {
                 + s.collect(Collectors.joining("\n"))));
     ItHelper.waitUntil(Unchecked.supplier(() -> kind.execute("bash", "-l", "-c",
         "kubectl describe pod -n  " + namespace + " stackgres-example-0")),
-        s -> !s.noneMatch(line -> line.equals("    Ready:          True")), 120, ChronoUnit.SECONDS,
+        s -> !s.noneMatch(line -> line.equals("Status:         Running")), 120, ChronoUnit.SECONDS,
         s -> Assertions.fail(
             "Timeout while checking availability of"
                 + " pod 'stackgres-example-0' in namespace '" + namespace + "':\n"

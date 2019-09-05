@@ -3,11 +3,11 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.customresources.pgconfig;
+package io.stackgres.common.sgcluster;
 
 import io.fabric8.kubernetes.client.CustomResourceList;
 
-public class StackGresPostgresConfigList extends CustomResourceList<StackGresPostgresConfig> {
+public class StackGresClusterList extends CustomResourceList<StackGresCluster> {
 
   private static final long serialVersionUID = -5276087851826599719L;
 

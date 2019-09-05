@@ -7,4 +7,4 @@
  * Custom Resource for PostgreSQL configuration parameters.
  */
 
-package io.stackgres.operator.customresources.pgconfig;
+package io.stackgres.operator.customresources.sgpgconfig;
