@@ -52,7 +52,7 @@ integration test:
   variables:
     DOCKER_HOST: tcp://172.17.0.1:2376
   script:
-    - 'mvn $MAVEN_CLI_OPTS verify -P integration'
+    - 'flock -w 3600 /tmp/stackgres-integration-test mvn $MAVEN_CLI_OPTS verify -P integration'
 
 build:
   stage: package
