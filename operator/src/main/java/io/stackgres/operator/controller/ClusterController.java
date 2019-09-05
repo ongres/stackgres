@@ -9,8 +9,8 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.stackgres.common.sgcluster.StackGresCluster;
 import io.stackgres.operator.app.KubernetesClientFactory;
-import io.stackgres.operator.customresources.sgcluster.StackGresCluster;
 import io.stackgres.operator.patroni.SgConfigMaps;
 import io.stackgres.operator.patroni.SgPatroniRole;
 import io.stackgres.operator.patroni.SgSecrets;
@@ -65,7 +65,7 @@ public class ClusterController {
    * Delete full cluster.
    */
   public void deleteStackGresCluster(StackGresCluster resource) {
-    try (KubernetesClient client = kubClientFactory.retrieveKubernetesClient()) {
+    try (KubernetesClient client = kubClientFactory.create()) {
       sgServices.delete(client, resource);
       sgStatefulSets.delete(client, resource);
       sgRole.delete(client, resource);

@@ -9,6 +9,7 @@ import java.util.List;
 
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.stackgres.common.sgcluster.StackGresCluster;
 
 public interface Sidecar {
 
@@ -16,6 +17,6 @@ public interface Sidecar {
 
   Container create();
 
-  List<HasMetadata> createDependencies();
+  List<HasMetadata> createDependencies(StackGresCluster resource);
 
 }
