@@ -24,8 +24,8 @@ spec:
       description: "Params for resources"
       properties:
         spec:
-          type: object       
-          properties:            
+          type: object
+          properties:
             cpuRequests:
               type: string
             memoryRequests:

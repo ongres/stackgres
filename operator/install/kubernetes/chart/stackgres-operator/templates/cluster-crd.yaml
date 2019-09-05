@@ -10,7 +10,7 @@ spec:
     - name: {{ .Values.crd.version }}
       served: true
       storage: true
-  scope: Namespaced  
+  scope: Namespaced
   names:
     kind: StackGresCluster
     listKind: StackGresClusterList

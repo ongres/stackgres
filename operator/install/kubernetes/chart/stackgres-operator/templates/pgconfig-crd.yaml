@@ -26,7 +26,7 @@ spec:
           type: object
           properties:
             pg_version:
-              type: string              
+              type: string
             postgresql.conf:
               type: object
           required: ["pg_version","postgresql.conf"]
