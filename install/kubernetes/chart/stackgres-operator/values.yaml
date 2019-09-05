@@ -1,6 +1,6 @@
 
 postgresVersion:
-  minimum: 11.5
+  minimum: "11.5"
 
 operatorName: "stackgres-operator"
 operatorNamespace: "stackgres"

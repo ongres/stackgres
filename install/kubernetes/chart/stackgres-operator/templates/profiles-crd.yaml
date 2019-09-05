@@ -7,7 +7,7 @@ metadata:
 spec:
   group: {{ .Values.group }}
   versions:
-    - name: v1
+    - name: {{ .Values.crd.version }}
       served: true
       storage: true
   scope: Namespaced
@@ -24,19 +24,16 @@ spec:
       description: "Params for resources"
       properties:
         spec:
-          type: string       
+          type: object       
           properties:            
-            resources:
-              type: object              
-              properties:
-                requests:
-                  type: string
-                  required: ["cpu","memory"]
-                limits:
-                  type: string
-                  required: ["cpu","memory"]
-              required: ["requests","limits"]
-            volume:
+            cpuRequests:
               type: string
-              required: ["size"]
-          required: ["resources","volume"]
+            memoryRequests:
+              type: string
+            cpuLimits:
+              type: string
+            memoryLimits:
+              type: string
+            volumeSize:
+              type: string
+          required: ["cpuRequests","memoryRequests","cpuLimits","memoryLimits","volumeSize"]

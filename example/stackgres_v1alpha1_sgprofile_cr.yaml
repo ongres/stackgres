@@ -3,93 +3,69 @@ kind: StackGresProfile
 metadata:
   name: size-xs
 spec:
-  resources:
-    requests:
-      cpu: "500m"
-      memory: "512Mi"
-    limits:
-      cpu: "500m"
-      memory: "512Mi"
-  volume:
-    size: 5Gi
-    # storageClass: my-sc
+  cpuRequests: "500m"
+  memoryRequests: "512Mi"
+  cpuLimits: "500m"
+  memoryLimits: "512Mi"
+  volumeSize: "5Gi"
+  # storageClass: my-sc
 ---
 apiVersion: stackgres.io/v1alpha1
 kind: StackGresProfile
 metadata:
   name: size-s
 spec:
-  resources:
-    requests:
-      cpu: "1"
-      memory: "2Gi"
-    limits:
-      cpu: "1"
-      memory: "2Gi"
-  volume:
-    size: "25Gi"
-    # storageClass: my-sc
+  cpuRequests: "1"
+  memoryRequests: "2Gi"
+  cpuLimits: "1"
+  memoryLimits: "2Gi"
+  volumeSize: "25Gi"
+  # storageClass: my-sc
 ---
 apiVersion: stackgres.io/v1alpha1
 kind: StackGresProfile
 metadata:
   name: size-m
 spec:
-  resources:
-    requests:
-      cpu: "2"
-      memory: "4Gi"
-    limits:
-      cpu: "2"
-      memory: "4Gi"
-  volume:
-    size: "38Gi"
-    # storageClass: my-sc
+  cpuRequests: "2"
+  memoryRequests: "4Gi"
+  cpuLimits: "2"
+  memoryLimits: "4Gi"
+  volumeSize: "38Gi"
+  # storageClass: my-sc
 ---
 apiVersion: stackgres.io/v1alpha1
 kind: StackGresProfile
 metadata:
   name: size-l
 spec:
-  resources:
-    requests:
-      cpu: "4"
-      memory: "8Gi"
-    limits:
-      cpu: "4"
-      memory: "8Gi"
-  volume:
-    size: "115Gi"
-    # storageClass: my-sc
+  cpuRequests: "4"
+  memoryRequests: "8Gi"
+  cpuLimits: "4"
+  memoryLimits: "8Gi"
+  volumeSize: "115Gi"
+  # storageClass: my-sc
 ---
 apiVersion: stackgres.io/v1alpha1
 kind: StackGresProfile
 metadata:
   name: size-xl
 spec:
-  resources:
-    requests:
-      cpu: "6"
-      memory: "16Gi"
-    limits:
-      cpu: "6"
-      memory: "16Gi"
-  volume:
-    size: "270Gi"
-    # storageClass: my-sc
+  cpuRequests: "6"
+  memoryRequests: "16Gi"
+  cpuLimits: "6"
+  memoryLimits: "16Gi"
+  volumeSize: "270Gi"
+  # storageClass: my-sc
 ---
 apiVersion: stackgres.io/v1alpha1
 kind: StackGresProfile
 metadata:
   name: size-xxl
 spec:
-  resources:
-    requests:
-      cpu: "8"
-      memory: "32Gi"
-    limits:
-      cpu: "8"
-      memory: "32Gi"
-  volume:
-    size: "580Gi"
-    # storageClass: my-sc
+  cpuRequests: "8"
+  memoryRequests: "32Gi"
+  cpuLimits: "8"
+  memoryLimits: "32Gi"
+  volumeSize: "580Gi"
+  # storageClass: my-sc

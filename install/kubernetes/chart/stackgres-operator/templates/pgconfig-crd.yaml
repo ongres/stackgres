@@ -7,7 +7,7 @@ metadata:
 spec:
   group: {{ .Values.group }}
   versions:
-    - name: v1
+    - name: {{ .Values.crd.version }}
       served: true
       storage: true
   scope: Namespaced
@@ -26,8 +26,7 @@ spec:
           type: object
           properties:
             pg_version:
-              type: float
-              minimum: {{ .Values.postgresVersion.minimum }}
+              type: string              
             postgresql.conf:
               type: object
           required: ["pg_version","postgresql.conf"]
