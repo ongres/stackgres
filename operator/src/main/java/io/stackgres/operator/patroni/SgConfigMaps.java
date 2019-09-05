@@ -19,8 +19,9 @@ import io.fabric8.kubernetes.api.model.ConfigMapList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.QuarkusProfile;
 import io.stackgres.common.ResourceUtils;
+import io.stackgres.common.sgcluster.StackGresCluster;
 import io.stackgres.operator.app.KubernetesClientFactory;
-import io.stackgres.operator.customresources.sgcluster.StackGresCluster;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,7 +66,7 @@ public class SgConfigMaps {
       data.put("PATRONI_LOG_LEVEL", "DEBUG");
     }
 
-    try (KubernetesClient client = kubClientFactory.retrieveKubernetesClient()) {
+    try (KubernetesClient client = kubClientFactory.create()) {
       ConfigMap cm = new ConfigMapBuilder()
           .withNewMetadata()
           .withName(name)
@@ -94,7 +95,7 @@ public class SgConfigMaps {
    * Delete resource.
    */
   public ConfigMap delete(StackGresCluster resource) {
-    try (KubernetesClient client = kubClientFactory.retrieveKubernetesClient()) {
+    try (KubernetesClient client = kubClientFactory.create()) {
       return delete(client, resource);
     }
   }

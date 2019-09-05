@@ -20,12 +20,12 @@ import io.fabric8.kubernetes.internal.KubernetesDeserializer;
 import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
 import io.stackgres.common.ResourceUtils;
-import io.stackgres.operator.customresources.pgconfig.StackGresPostgresConfig;
-import io.stackgres.operator.customresources.pgconfig.StackGresPostgresConfigDefinition;
-import io.stackgres.operator.customresources.sgcluster.StackGresCluster;
-import io.stackgres.operator.customresources.sgcluster.StackGresClusterDefinition;
-import io.stackgres.operator.customresources.sgcluster.StackGresClusterDoneable;
-import io.stackgres.operator.customresources.sgcluster.StackGresClusterList;
+import io.stackgres.common.sgcluster.StackGresCluster;
+import io.stackgres.common.sgcluster.StackGresClusterDefinition;
+import io.stackgres.common.sgcluster.StackGresClusterDoneable;
+import io.stackgres.common.sgcluster.StackGresClusterList;
+import io.stackgres.operator.customresources.sgpgconfig.StackGresPostgresConfig;
+import io.stackgres.operator.customresources.sgpgconfig.StackGresPostgresConfigDefinition;
 import io.stackgres.operator.customresources.sgprofile.StackGresProfile;
 import io.stackgres.operator.customresources.sgprofile.StackGresProfileDefinition;
 import io.stackgres.operator.watcher.StackGresClusterWatcher;
@@ -45,7 +45,7 @@ public class StackGresOperatorApp {
 
   void onStart(@Observes StartupEvent ev) {
     printArt();
-    try (KubernetesClient client = kubeClient.retrieveKubernetesClient()) {
+    try (KubernetesClient client = kubeClient.create()) {
       LOGGER.info("Kubernetes version: {}", client.getVersion().getGitVersion());
       LOGGER.info("URL of this Kubernetes cluster: {}", client.getMasterUrl());
       if (!hasCustomResource(client, StackGresProfileDefinition.NAME)
@@ -69,7 +69,7 @@ public class StackGresOperatorApp {
 
   private void startClusterCrdWatcher(KubernetesClient client) {
     ResourceUtils.getCustomResource(client, StackGresClusterDefinition.NAME)
-        .ifPresent(crd -> kubeClient.retrieveKubernetesClient()
+        .ifPresent(crd -> kubeClient.create()
             .customResources(crd,
                 StackGresCluster.class,
                 StackGresClusterList.class,

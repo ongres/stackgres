@@ -19,8 +19,9 @@ import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.ResourceUtils;
+import io.stackgres.common.sgcluster.StackGresCluster;
 import io.stackgres.operator.app.KubernetesClientFactory;
-import io.stackgres.operator.customresources.sgcluster.StackGresCluster;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,7 +46,7 @@ public class SgSecrets {
     data.put("superuser-password", generatePassword());
     data.put("replication-password", generatePassword());
 
-    try (KubernetesClient client = kubClientFactory.retrieveKubernetesClient()) {
+    try (KubernetesClient client = kubClientFactory.create()) {
       Secret secret = new Secret();
       if (!exists(client, name, namespace)) {
         secret = new SecretBuilder()
@@ -88,7 +89,7 @@ public class SgSecrets {
    * Delete resource.
    */
   public Secret delete(StackGresCluster resource) {
-    try (KubernetesClient client = kubClientFactory.retrieveKubernetesClient()) {
+    try (KubernetesClient client = kubClientFactory.create()) {
       return delete(client, resource);
     }
   }

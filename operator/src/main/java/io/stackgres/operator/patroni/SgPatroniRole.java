@@ -18,8 +18,9 @@ import io.fabric8.kubernetes.api.model.rbac.RoleBuilder;
 import io.fabric8.kubernetes.api.model.rbac.RoleRefBuilder;
 import io.fabric8.kubernetes.api.model.rbac.SubjectBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.stackgres.common.sgcluster.StackGresCluster;
 import io.stackgres.operator.app.KubernetesClientFactory;
-import io.stackgres.operator.customresources.sgcluster.StackGresCluster;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,7 +41,7 @@ public class SgPatroniRole {
     final String name = resource.getMetadata().getName() + SUFFIX;
     final String namespace = resource.getMetadata().getNamespace();
 
-    try (KubernetesClient client = kubClientFactory.retrieveKubernetesClient()) {
+    try (KubernetesClient client = kubClientFactory.create()) {
       createServiceAccount(name, namespace, client);
       createRole(name, namespace, client);
       createRoleBinding(name, namespace, client);
@@ -124,7 +125,7 @@ public class SgPatroniRole {
    * Delete resource.
    */
   public void delete(StackGresCluster resource) {
-    try (KubernetesClient client = kubClientFactory.retrieveKubernetesClient()) {
+    try (KubernetesClient client = kubClientFactory.create()) {
       delete(client, resource);
     }
   }

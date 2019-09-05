@@ -52,7 +52,7 @@ integration test:
   variables:
     DOCKER_HOST: tcp://172.17.0.1:2376
   script:
-    - 'mvn $MAVEN_CLI_OPTS verify -P integration'
+    - 'flock -w 3600 /tmp/stackgres-integration-test mvn $MAVEN_CLI_OPTS verify -P integration'
 
 build:
   stage: package
@@ -89,11 +89,11 @@ oci-image-native deploy:
     - build
   only:
     - tags
-    - master
+    - development
   script:
     - 'CONTAINER_NAME=stackgres/operator:${CI_COMMIT_TAG:-"$CI_COMMIT_REF_NAME"}'
     - './.gitlab/buildah-stackgres-native.sh $CONTAINER_NAME'
-    - 'buildah push --authfile $REGISTRY_AUTH_FILE $CONTAINER_NAME docker://docker.io/$CONTAINER_NAME'
+    - 'buildah push --format=docker --authfile $REGISTRY_AUTH_FILE $CONTAINER_NAME docker://docker.io/$CONTAINER_NAME'
 
 oci-image-jvm deploy:
   image: docker.io/ongres/builder:latest
@@ -104,8 +104,8 @@ oci-image-jvm deploy:
     - build
   only:
     - tags
-    - master
+    - development
   script:
     - 'CONTAINER_NAME=stackgres/operator:${CI_COMMIT_TAG:-"$CI_COMMIT_REF_NAME"}-jvm'
     - './.gitlab/buildah-stackgres-jvm.sh $CONTAINER_NAME'
-    - 'buildah push --authfile $REGISTRY_AUTH_FILE $CONTAINER_NAME docker://docker.io/$CONTAINER_NAME'
+    - 'buildah push --format=docker --authfile $REGISTRY_AUTH_FILE $CONTAINER_NAME docker://docker.io/$CONTAINER_NAME'

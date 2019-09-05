@@ -13,6 +13,7 @@ import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
+import io.stackgres.common.sgcluster.StackGresCluster;
 import io.stackgres.sidecars.Sidecar;
 
 public class PostgresUtil implements Sidecar {
@@ -48,7 +49,7 @@ public class PostgresUtil implements Sidecar {
   }
 
   @Override
-  public List<HasMetadata> createDependencies() {
+  public List<HasMetadata> createDependencies(StackGresCluster resource) {
     return ImmutableList.of();
   }
 
