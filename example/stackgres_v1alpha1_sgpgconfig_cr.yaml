@@ -3,7 +3,7 @@ kind: StackGresPostgresConfig
 metadata:
   name: postgresconf
 spec:
-  pg_version: 11
+  pg_version: "11.5"
   postgresql.conf:
       shared_buffers: '256MB'
       random_page_cost: '1.5'

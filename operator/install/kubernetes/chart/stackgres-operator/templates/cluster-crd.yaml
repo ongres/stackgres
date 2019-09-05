@@ -7,10 +7,10 @@ metadata:
 spec:
   group: {{ .Values.group }}
   versions:
-    - name: v1
+    - name: {{ .Values.crd.version }}
       served: true
       storage: true
-  scope: Namespaced  
+  scope: Namespaced
   names:
     kind: StackGresCluster
     listKind: StackGresClusterList

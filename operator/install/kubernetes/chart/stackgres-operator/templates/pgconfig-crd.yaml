@@ -7,27 +7,26 @@ metadata:
 spec:
   group: {{ .Values.group }}
   versions:
-    - name: v1
+    - name: {{ .Values.crd.version }}
       served: true
       storage: true
   scope: Namespaced
   names:
-    kind: StackGresPgbouncerConfig
-    listKind: StackGresPgbouncerConfigList
-    plural: sgpgbouncerconfigs
-    singular: sgpgbouncerconfig
+    kind: StackGresPostgresConfig
+    listKind: StackGresPostgresConfigList
+    plural: sgpgconfigs
+    singular: sgpgconfig
   validation:
     openAPIV3Schema:
       type: object
       required: ["spec"]
-      description: "Params for Pgbouncer configuration"
+      description: "Params for PostgreSQL configuration"
       properties:
         spec:
           type: object
           properties:
-            pgbouncer_version:
+            pg_version:
               type: string
-              minimum: {{ .Values.pgbouncerVersion.default }}
-            pgbouncer.ini:
+            postgresql.conf:
               type: object
-          required: ["pgbouncer_version","pgbouncer.ini"]
+          required: ["pg_version","postgresql.conf"]

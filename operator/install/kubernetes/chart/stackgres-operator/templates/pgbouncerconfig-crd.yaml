@@ -12,22 +12,21 @@ spec:
       storage: true
   scope: Namespaced
   names:
-    kind: StackGresPostgresConfig
-    listKind: StackGresPostgresConfigList
-    plural: sgpgconfigs
-    singular: sgpgconfig
+    kind: StackGresPgbouncerConfig
+    listKind: StackGresPgbouncerConfigList
+    plural: sgpgbouncerconfigs
+    singular: sgpgbouncerconfig
   validation:
     openAPIV3Schema:
       type: object
       required: ["spec"]
-      description: "Params for PostgreSQL configuration"
+      description: "Params for Pgbouncer configuration"
       properties:
         spec:
           type: object
           properties:
-            pg_version:
-              type: float
-              minimum: {{ .Values.postgresVersion.minimum }}
-            postgresql.conf:
+            pgbouncer_version:
+              type: string
+            pgbouncer.ini:
               type: object
-          required: ["pg_version","postgresql.conf"]
+          required: ["pgbouncer_version","pgbouncer.ini"]

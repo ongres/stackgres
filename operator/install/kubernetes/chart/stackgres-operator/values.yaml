@@ -1,10 +1,3 @@
-
-postgresVersion:
-  minimum: 11.5
-
-pgbouncerVersion:
-  default: 1.11
-
 operatorName: "stackgres-operator"
 operatorNamespace: "stackgres"
 operatorVersion: "master"
