@@ -165,6 +165,45 @@
               </execution>
             </executions>
           </plugin>
+          <plugin>
+            <groupId>io.fabric8</groupId>
+            <artifactId>docker-maven-plugin</artifactId>
+            <version>${docker-maven-plugin.version}</version>
+            <configuration>
+              <restartPolicy>
+                  <name>on-failure</name>
+                  <retry>3</retry>
+              </restartPolicy>
+            </configuration>
+            <executions>
+              <execution>
+                <id>build-stackgres-it-container</id>
+                <phase>pre-integration-test</phase>
+                <goals>
+                    <goal>build</goal>
+                </goals>
+                <configuration>
+                  <images>
+                    <image>
+                      <name>stackgres/it</name>
+                      <build>
+                        <from>communitycloud/docker-client:1.11.0</from>
+                        <cleanup>try</cleanup>
+                        <optimise>true</optimise>
+                        <runCmds>
+                          <run>wget -q -L -O /bin/kubectl https://storage.googleapis.com/kubernetes-release/release/v1.12.10/bin/linux/amd64/kubectl</run>
+                          <run>chmod a+x /bin/kubectl</run>
+                          <run>wget -q -L -O /bin/kind  https://github.com/kubernetes-sigs/kind/releases/download/v0.5.1/kind-$(uname)-amd64</run>
+                          <run>chmod a+x /bin/kind</run>
+                          <run>wget -q -L https://get.helm.sh/helm-v2.14.3-linux-amd64.tar.gz -O -|tar xz --strip-components=1 -C /bin -f - linux-amd64/helm</run>
+                        </runCmds>
+                      </build>
+                    </image>
+                  </images>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
         </plugins>
       </build>
     </profile>
