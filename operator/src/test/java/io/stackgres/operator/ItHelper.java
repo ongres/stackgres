@@ -3,26 +3,6 @@ package io.stackgres.operator;
 import static io.quarkus.test.common.PathTestHelper.getAppClassLocation;
 import static io.quarkus.test.common.PathTestHelper.getTestClassesLocation;
 
-import com.ongres.junit.docker.Container;
-
-import io.quarkus.bootstrap.BootstrapClassLoaderFactory;
-import io.quarkus.bootstrap.BootstrapException;
-import io.quarkus.bootstrap.util.IoUtils;
-import io.quarkus.bootstrap.util.PropertyUtils;
-import io.quarkus.builder.BuildChainBuilder;
-import io.quarkus.builder.BuildContext;
-import io.quarkus.builder.BuildStep;
-import io.quarkus.deployment.ClassOutput;
-import io.quarkus.deployment.QuarkusClassWriter;
-import io.quarkus.deployment.builditem.TestAnnotationBuildItem;
-import io.quarkus.deployment.builditem.TestClassPredicateBuildItem;
-import io.quarkus.deployment.util.IoUtil;
-import io.quarkus.runner.RuntimeRunner;
-import io.quarkus.runner.TransformerTarget;
-import io.quarkus.runtime.LaunchMode;
-import io.quarkus.test.common.PathTestHelper;
-import io.quarkus.test.junit.QuarkusTest;
-
 import java.io.Closeable;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -55,6 +35,26 @@ import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 
+import com.ongres.junit.docker.Container;
+
+import io.quarkus.bootstrap.BootstrapClassLoaderFactory;
+import io.quarkus.bootstrap.BootstrapException;
+import io.quarkus.bootstrap.util.IoUtils;
+import io.quarkus.bootstrap.util.PropertyUtils;
+import io.quarkus.builder.BuildChainBuilder;
+import io.quarkus.builder.BuildContext;
+import io.quarkus.builder.BuildStep;
+import io.quarkus.deployment.ClassOutput;
+import io.quarkus.deployment.QuarkusClassWriter;
+import io.quarkus.deployment.builditem.TestAnnotationBuildItem;
+import io.quarkus.deployment.builditem.TestClassPredicateBuildItem;
+import io.quarkus.deployment.util.IoUtil;
+import io.quarkus.runner.RuntimeRunner;
+import io.quarkus.runner.TransformerTarget;
+import io.quarkus.runtime.LaunchMode;
+import io.quarkus.test.common.PathTestHelper;
+import io.quarkus.test.junit.QuarkusTest;
+
 import org.jooq.lambda.Unchecked;
 import org.jooq.lambda.fi.lang.CheckedRunnable;
 import org.objectweb.asm.ClassReader;
@@ -69,12 +69,21 @@ public class ItHelper {
 
   public final static Predicate<String> EXCLUDE_TTY_WARNING = line -> !line.equals("stdin: is not a tty");
 
+
+  /**
+   * IT helper method.
+   */
+  public static void copyResources(Container kind) throws Exception {
+    kind.execute("rm", "-Rf", "/resources").forEach(line -> LOGGER.info(line));
+    kind.copyResourcesIn("/", ItHelper.class, "/resources");
+  }
+
   /**
    * It helper method.
    */
   public static void restartKind(Container kind) throws Exception {
     LOGGER.info("Restarting kind");
-    kind.execute("bash", "/resources/restart-kind.sh")
+    kind.execute("bash", "/scripts/restart-kind.sh")
         .filter(EXCLUDE_TTY_WARNING)
         .forEach(line -> LOGGER.info(line));
   }
@@ -104,37 +113,27 @@ public class ItHelper {
   /**
    * It helper method.
    */
-  public static void deleteStackGresCRDsIfExists(Container kind) throws Exception {
-    Arrays.asList(new String[] {
-        "/resources/stackgres-v1alpha1-sgprofile-crd.yaml",
-        "/resources/stackgres-v1alpha1-sgpgconfig-crd.yaml",
-        "/resources/stackgres-v1alpha1-sgpgbouncerconfig-crd.yaml",
-        "/resources/stackgres-v1alpha1-sgcluster-crd.yaml"
-    })
-        .forEach(Unchecked.consumer(crdFile -> {
-          LOGGER.info("Deleting if exists CRD from '" + crdFile + "'");
-          kind.execute("bash", "-l", "-c", "kubectl delete --ignore-not-found -f " + crdFile)
-              .filter(EXCLUDE_TTY_WARNING)
-              .forEach(line -> LOGGER.info(line));
-        }));
+  public static void deleteStackGresOperatorHelmChartIfExists(Container kind) throws Exception {
+    LOGGER.info("Deleting if exists stackgres-operator helm");
+    kind.execute("bash", "-l", "-c", "helm template /resources/stackgres-operator"
+        + " --name stackgres-operator --set-string deploy.create=false"
+        + " | kubectl delete --ignore-not-found -f -")
+        .filter(EXCLUDE_TTY_WARNING)
+        .forEach(line -> LOGGER.info(line));
+    kind.execute("bash", "-l", "-c", "helm delete stackgres-operator --purge || true")
+        .filter(EXCLUDE_TTY_WARNING)
+        .forEach(line -> LOGGER.info(line));
   }
 
   /**
    * It helper method.
    */
-  public static void createStackGresCRDs(Container kind) throws Exception {
-    Arrays.asList(new String[] {
-        "/resources/stackgres-v1alpha1-sgprofile-crd.yaml",
-        "/resources/stackgres-v1alpha1-sgpgconfig-crd.yaml",
-        "/resources/stackgres-v1alpha1-sgpgbouncerconfig-crd.yaml",
-        "/resources/stackgres-v1alpha1-sgcluster-crd.yaml"
-    })
-        .forEach(Unchecked.consumer(crdFile -> {
-          LOGGER.info("Creating CRD from '" + crdFile + "'");
-          kind.execute("bash", "-l", "-c", "kubectl create -f " + crdFile)
-            .filter(EXCLUDE_TTY_WARNING)
-            .forEach(line -> LOGGER.info(line));
-        }));
+  public static void installStackGresOperatorHelmChart(Container kind) throws Exception {
+    LOGGER.info("Installing stackgres-operator helm chart");
+    kind.execute("bash", "-l", "-c", "helm install /resources/stackgres-operator"
+        + " --name stackgres-operator --set-string deploy.create=false")
+      .filter(EXCLUDE_TTY_WARNING)
+      .forEach(line -> LOGGER.info(line));
   }
 
   /**

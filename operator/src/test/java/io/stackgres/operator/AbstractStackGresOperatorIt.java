@@ -29,10 +29,9 @@ public abstract class AbstractStackGresOperatorIt extends AbstractIt {
 
   @BeforeEach
   public void setupOperator(@ContainerParam("kind") Container kind) throws Exception {
-    ItHelper.deleteStackGresCRDsIfExists(kind);
-    ItHelper.deleteNamespaceIfExists(kind, namespace);
-    ItHelper.createStackGresCRDs(kind);
-    ItHelper.createNamespace(kind, namespace);
+    ItHelper.copyResources(kind);
+    ItHelper.deleteStackGresOperatorHelmChartIfExists(kind);
+    ItHelper.installStackGresOperatorHelmChart(kind);
     final int operatorPort = getFreePort();
     OperatorRunner operatorRunner = ItHelper.createOperator(getClass(), kind, operatorPort);
     CompletableFuture<Void> operator = runAsync(() -> operatorRunner.run());
