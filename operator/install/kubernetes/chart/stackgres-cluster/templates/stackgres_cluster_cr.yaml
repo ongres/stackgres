@@ -1,0 +1,16 @@
+apiVersion: stackgres.io/{{ .Values.crd.version }}
+kind: StackGresCluster
+metadata:
+  name: {{ .Values.cluster.name }}
+spec:
+  instances: {{ .Values.cluster.instances }}
+  pg_version: {{ .Values.postgresql.version }}
+  pg_config: {{ .Values.cluster.pgconfig }}
+  resource_profile: {{ .Values.cluster.profile }}
+  sidecars:
+  {{- if .Values.sidecar.pooling }}
+  - pgbouncer
+  {{ end }}
+  {{- if .Values.sidecar.utils }}
+  - postgres-utils
+  {{- end }}
