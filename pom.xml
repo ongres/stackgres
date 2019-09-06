@@ -65,6 +65,7 @@
     <pmd-plugin.version>3.12.0</pmd-plugin.version>
     <enforcer-plugin.version>3.0.0-M2</enforcer-plugin.version>
     <dependency-plugin.version>3.1.1</dependency-plugin.version>
+    <docker-maven-plugin.version>0.31.0</docker-maven-plugin.version>
     <!-- Checkstyle, SpotBugs and PMD properties -->
     <checkstyle.config.location>checks/checkstyle/checkstyle.xml</checkstyle.config.location>
     <checkstyle.suppressions.location>checks/checkstyle/suppressions.xml</checkstyle.suppressions.location>
