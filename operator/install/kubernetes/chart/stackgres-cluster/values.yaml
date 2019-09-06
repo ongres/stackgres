@@ -1,0 +1,15 @@
+postgresql:
+  version: "11.5"
+
+cluster:
+  name: "stackgres"
+  instance: 1
+  pgconfig: postgresconf
+  profile: size-xs
+
+sidecar:
+  pooling: true
+  utils: true
+
+crd:
+  version: v1alpha1
