@@ -17,6 +17,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableMap;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapEnvSourceBuilder;
@@ -38,6 +39,7 @@ import io.fabric8.kubernetes.api.model.PersistentVolumeClaimBuilder;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaimSpecBuilder;
 import io.fabric8.kubernetes.api.model.PodTemplateSpecBuilder;
 import io.fabric8.kubernetes.api.model.ProbeBuilder;
+import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import io.fabric8.kubernetes.api.model.SecretKeySelectorBuilder;
 import io.fabric8.kubernetes.api.model.SecurityContextBuilder;
@@ -92,10 +94,15 @@ public class SgStatefulSets {
     ResourceRequirements resources = new ResourceRequirements();
     StorageConfig storage = ImmutableStorageConfig.builder().size("").build();
     if (profile.isPresent()) {
-      resources = profile.get().getSpec().getResources();
+      resources.setRequests(ImmutableMap.of(
+          "cpu", new Quantity(profile.get().getSpec().getCpuRequests()),
+          "memory", new Quantity(profile.get().getSpec().getMemoryRequests())));
+      resources.setLimits(ImmutableMap.of(
+          "cpu", new Quantity(profile.get().getSpec().getCpuLimits()),
+          "memory", new Quantity(profile.get().getSpec().getMemoryLimits())));
       storage = ImmutableStorageConfig.builder()
-          .size(profile.get().getSpec().getVolume().getSize())
-          .storageClass(profile.get().getSpec().getVolume().getStorageClass())
+          .size(profile.get().getSpec().getVolumeSize())
+          .storageClass(profile.get().getSpec().getVolumeStorageClass())
           .build();
     }
 

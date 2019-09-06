@@ -1,5 +1,8 @@
 package io.stackgres.operator;
 
+import java.time.temporal.ChronoUnit;
+import java.util.stream.Collectors;
+
 import com.ongres.junit.docker.Container;
 import com.ongres.junit.docker.ContainerParam;
 import com.ongres.junit.docker.DockerContainer;
@@ -7,9 +10,6 @@ import com.ongres.junit.docker.DockerExtension;
 import com.ongres.junit.docker.Environment;
 import com.ongres.junit.docker.Mount;
 import com.ongres.junit.docker.WaitFor;
-
-import java.time.temporal.ChronoUnit;
-import java.util.stream.Collectors;
 
 import org.jooq.lambda.Unchecked;
 import org.junit.jupiter.api.Assertions;
@@ -20,13 +20,13 @@ import org.junit.jupiter.api.Test;
       alias = "kind",
       image = "stackgres/it:latest",
       arguments = { "/bin/bash", "-c",
-          "bash /resources/restart-kind.sh;"
+          "bash /scripts/restart-kind.sh;"
               + " seq -s ' ' 10000000 10000910;"
               + " while true; do sleep 1; done" },
       waitFor = @WaitFor(value = "Kind started k8s cluster", timeout = 300_000),
       environments = { @Environment(key = "DOCKER_HOST", value = "tcp://172.17.0.1:2376") },
       mounts = {
-          @Mount(path = "/resources", value = "@/log4j2.xml"),
+          @Mount(path = "/scripts", value = "/restart-kind.sh"),
       })
 })
 public class StackGresOperatorIt extends AbstractStackGresOperatorIt {

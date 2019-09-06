@@ -14,20 +14,20 @@ kind create cluster --name "$CONTAINER_NAME" --image kindest/node:v1.12.10
 sed -i 's#^    server:.*$#    server: 'https://"$(docker inspect -f '{{ .NetworkSettings.IPAddress }}' kind-control-plane)"':6443#' "$(kind get kubeconfig-path --name="$CONTAINER_NAME")"
 export KUBECONFIG="$(kind get kubeconfig-path --name="$CONTAINER_NAME")"
 echo "export KUBECONFIG='$(kind get kubeconfig-path --name="$CONTAINER_NAME")'" > /root/.bashrc
-#cat << 'EOF' | kubectl apply -f -
-#kind: ClusterRoleBinding
-#apiVersion: rbac.authorization.k8s.io/v1beta1
-#metadata:
-#  name: tiller-clusterrolebinding
-#subjects:
-#- kind: ServiceAccount
-#  name: default
-#  namespace: kube-system
-#roleRef:
-#  kind: ClusterRole
-#  name: cluster-admin
-#  apiGroup: ""
-#EOF
-#helm init --history-max 20
-#while ! helm version > /dev/null 2>&1; do sleep 0.5; done
+cat << 'EOF' | kubectl apply -f -
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: tiller-clusterrolebinding
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: kube-system
+roleRef:
+  kind: ClusterRole
+  name: cluster-admin
+  apiGroup: ""
+EOF
+helm init --history-max 20
+while ! helm version > /dev/null 2>&1; do sleep 0.5; done
 echo "Kind started k8s cluster"
