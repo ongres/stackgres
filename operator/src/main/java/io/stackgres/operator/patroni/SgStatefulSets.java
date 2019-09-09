@@ -66,7 +66,7 @@ import io.stackgres.operator.customresources.sgprofile.StackGresProfile;
 import io.stackgres.operator.customresources.sgprofile.StackGresProfileDefinition;
 import io.stackgres.operator.customresources.sgprofile.StackGresProfileDoneable;
 import io.stackgres.operator.customresources.sgprofile.StackGresProfileList;
-import io.stackgres.operator.parameters.Blacklist;
+import io.stackgres.operator.patroni.parameters.Blacklist;
 import io.stackgres.sidecars.Sidecar;
 import io.stackgres.sidecars.pgbouncer.PgBouncer;
 import io.stackgres.sidecars.pgutils.PostgresUtil;

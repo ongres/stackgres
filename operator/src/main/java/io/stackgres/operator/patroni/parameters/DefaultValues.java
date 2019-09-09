@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.sidecars.pgbouncer.parameters;
+package io.stackgres.operator.patroni.parameters;
 
 import java.util.Map;
 import java.util.Properties;
@@ -30,7 +30,7 @@ public class DefaultValues {
     Properties properties = new Properties();
     try {
       properties.load(DefaultValues.class.getResourceAsStream(
-          "/pgbouncer-default-values.properties"));
+          "/postgresql-default-values.properties"));
     } catch (Exception ex) {
       throw new RuntimeException(ex);
     }

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.sidecars.pgbouncer.parameters;
+package io.stackgres.operator.patroni.parameters;
 
 import java.util.List;
 import java.util.Properties;
@@ -30,7 +30,7 @@ public class Blacklist {
     Properties properties = new Properties();
     try {
       properties.load(Blacklist.class.getResourceAsStream(
-          "/pgbouncer-blacklist.properties"));
+          "/postgresql-blacklist.properties"));
     } catch (Exception ex) {
       throw new RuntimeException(ex);
     }
