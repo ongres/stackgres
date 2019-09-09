@@ -15,6 +15,8 @@ import java.util.UUID;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import com.google.common.collect.ImmutableMap;
+
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -59,7 +61,11 @@ public class SgSecrets {
             .build();
 
         client.secrets().inNamespace(namespace).create(secret);
-        LOGGER.trace("Secret: {}", secret);
+        LOGGER.trace("Secret: {}", new SecretBuilder(secret)
+            .withData(ImmutableMap.of(
+                "superuser-password", "<obfuscated>",
+                "replication-password", "<obfuscated>"))
+            .build());
       }
 
       Optional<Secret> created = client.secrets().inNamespace(namespace).list().getItems()
