@@ -116,7 +116,7 @@ public class ItHelper {
   public static void deleteStackGresOperatorHelmChartIfExists(Container kind) throws Exception {
     LOGGER.info("Deleting if exists stackgres-operator helm");
     kind.execute("bash", "-l", "-c", "helm template /resources/stackgres-operator"
-        + " --name stackgres-operator --set-string deploy.create=false"
+        + " --name stackgres-operator"
         + " | kubectl delete --ignore-not-found -f -")
         .filter(EXCLUDE_TTY_WARNING)
         .forEach(line -> LOGGER.info(line));
@@ -131,7 +131,7 @@ public class ItHelper {
   public static void installStackGresOperatorHelmChart(Container kind) throws Exception {
     LOGGER.info("Installing stackgres-operator helm chart");
     kind.execute("bash", "-l", "-c", "helm install /resources/stackgres-operator"
-        + " --name stackgres-operator --set-string deploy.create=false")
+        + " --name stackgres-operator --set deploy.create=false")
       .filter(EXCLUDE_TTY_WARNING)
       .forEach(line -> LOGGER.info(line));
   }
