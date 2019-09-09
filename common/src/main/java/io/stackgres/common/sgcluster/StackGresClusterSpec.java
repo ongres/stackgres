@@ -29,8 +29,7 @@ public class StackGresClusterSpec implements KubernetesResource {
   private int instances;
 
   @JsonProperty("pg_version")
-  @Min(value = 11, message = "PostgreSQL version should be at least 11")
-  private Integer postgresVersion;
+  private String postgresVersion;
 
   @JsonProperty("pg_config")
   @NotNull
@@ -55,11 +54,11 @@ public class StackGresClusterSpec implements KubernetesResource {
     this.instances = instances;
   }
 
-  public Integer getPostgresVersion() {
+  public String getPostgresVersion() {
     return postgresVersion;
   }
 
-  public void setPostgresVersion(Integer postgresVersion) {
+  public void setPostgresVersion(String postgresVersion) {
     this.postgresVersion = postgresVersion;
   }
 

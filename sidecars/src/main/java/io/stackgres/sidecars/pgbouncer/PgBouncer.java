@@ -43,7 +43,8 @@ public class PgBouncer implements Sidecar {
   private static final Logger LOGGER = LoggerFactory.getLogger(PgBouncer.class);
 
   private static final String NAME = "pgbouncer";
-  private static final String IMAGE = "docker.io/ongres/pgbouncer:1.11";
+  private static final String IMAGE_PREFIX = "docker.io/ongres/pgbouncer:";
+  private static final String DEFAULT_VERSION = "1.11";
 
   private final String clusterName;
   private final String configMapName;
@@ -59,7 +60,11 @@ public class PgBouncer implements Sidecar {
   }
 
   @Override
-  public Container create() {
+  public Container create(StackGresCluster resource) {
+    Optional<StackGresPgbouncerConfig> config = getPgbouncerConfig(resource);
+    final String pgbouncerVersion = config.map(c -> c.getSpec().getPgbouncerVersion())
+        .orElse(DEFAULT_VERSION);
+
     VolumeMount pgSocket = new VolumeMountBuilder()
         .withName("pg-socket")
         .withMountPath("/run/postgresql")
@@ -73,7 +78,7 @@ public class PgBouncer implements Sidecar {
 
     ContainerBuilder container = new ContainerBuilder();
     container.withName(NAME)
-        .withImage(IMAGE)
+        .withImage(IMAGE_PREFIX + pgbouncerVersion)
         .withImagePullPolicy("Always")
         .withPorts(new ContainerPortBuilder().withContainerPort(6432).build())
         .withVolumeMounts(pgSocket, pgbouncerConfig);

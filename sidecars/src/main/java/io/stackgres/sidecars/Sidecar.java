@@ -15,7 +15,7 @@ public interface Sidecar {
 
   String getName();
 
-  Container create();
+  Container create(StackGresCluster resource);
 
   List<HasMetadata> createDependencies(StackGresCluster resource);
 
