@@ -24,7 +24,7 @@ public class PostgresUtil implements Sidecar {
   public PostgresUtil() {}
 
   @Override
-  public Container create() {
+  public Container create(StackGresCluster resource) {
     VolumeMount pgSocket = new VolumeMountBuilder()
         .withName("pg-socket")
         .withMountPath("/run/postgresql")

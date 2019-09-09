@@ -18,7 +18,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.TemporalUnit;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
@@ -55,7 +54,6 @@ import io.quarkus.runtime.LaunchMode;
 import io.quarkus.test.common.PathTestHelper;
 import io.quarkus.test.junit.QuarkusTest;
 
-import org.jooq.lambda.Unchecked;
 import org.jooq.lambda.fi.lang.CheckedRunnable;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
@@ -114,7 +112,7 @@ public class ItHelper {
    * It helper method.
    */
   public static void deleteStackGresOperatorHelmChartIfExists(Container kind) throws Exception {
-    LOGGER.info("Deleting if exists stackgres-operator helm");
+    LOGGER.info("Deleting if exists stackgres-operator helm chart");
     kind.execute("bash", "-l", "-c", "helm template /resources/stackgres-operator"
         + " --name stackgres-operator"
         + " | kubectl delete --ignore-not-found -f -")
@@ -131,7 +129,8 @@ public class ItHelper {
   public static void installStackGresOperatorHelmChart(Container kind) throws Exception {
     LOGGER.info("Installing stackgres-operator helm chart");
     kind.execute("bash", "-l", "-c", "helm install /resources/stackgres-operator"
-        + " --name stackgres-operator --set deploy.create=false")
+        + " --name stackgres-operator"
+        + " --set deploy.create=false")
       .filter(EXCLUDE_TTY_WARNING)
       .forEach(line -> LOGGER.info(line));
   }
@@ -139,35 +138,36 @@ public class ItHelper {
   /**
    * It helper method.
    */
-  public static void createStackGresConfigs(Container kind, String namespace) throws Exception {
-    Arrays.asList(new String[] {
-        "/resources/stackgres-v1alpha1-sgprofile-cr.yaml",
-        "/resources/stackgres-v1alpha1-sgpgconfig-cr.yaml",
-        "/resources/stackgres-v1alpha1-sgpgbouncerconfig-cr.yaml"
-    })
-        .forEach(Unchecked.consumer(crFile -> {
-          LOGGER.info("Creating CR from file '" + crFile + "' in namespace '" + namespace + "'");
-          kind.execute("bash", "-l", "-c",
-              "kubectl create -n " + namespace + " -f " + crFile)
-              .filter(EXCLUDE_TTY_WARNING)
-              .forEach(line -> LOGGER.info(line));
-        }));
+  public static void installStackGresConfigs(Container kind, String namespace) throws Exception {
+    LOGGER.info("Deleting if exists stackgres-cluster helm chart for configs");
+    kind.execute("bash", "-l", "-c", "helm delete stackgres-cluster-configs --purge || true")
+        .filter(EXCLUDE_TTY_WARNING)
+        .forEach(line -> LOGGER.info(line));
+    LOGGER.info("Installing stackgres-cluster helm chart for configs");
+    kind.execute("bash", "-l", "-c", "helm install /resources/stackgres-cluster"
+        + " --namespace " + namespace
+        + " --name stackgres-cluster-configs"
+        + " --set cluster.create=false")
+      .filter(EXCLUDE_TTY_WARNING)
+      .forEach(line -> LOGGER.info(line));
   }
 
   /**
    * It helper method.
    */
-  public static void createStackGresCluster(Container kind, String namespace) throws Exception {
-    Arrays.asList(new String[] {
-        "/resources/stackgres-v1alpha1-sgcluster-cr.yaml"
-    })
-        .forEach(Unchecked.consumer(crFile -> {
-          LOGGER.info("Creating CR from file '" + crFile + "' in namespace '" + namespace + "'");
-          kind.execute("bash", "-l", "-c",
-              "kubectl create -n " + namespace + " -f " + crFile)
-              .filter(EXCLUDE_TTY_WARNING)
-              .forEach(line -> LOGGER.info(line));
-        }));
+  public static void installStackGresCluster(Container kind, String namespace, String name) throws Exception {
+    LOGGER.info("Deleting if exists stackgres-cluster helm chart for cluster with name " + name);
+    kind.execute("bash", "-l", "-c", "helm delete stackgres-cluster-" + name + " --purge || true")
+        .filter(EXCLUDE_TTY_WARNING)
+        .forEach(line -> LOGGER.info(line));
+    LOGGER.info("Installing stackgres-cluster helm chart for cluster with name " + name);
+    kind.execute("bash", "-l", "-c", "helm install /resources/stackgres-cluster"
+        + " --namespace " + namespace
+        + " --name stackgres-cluster-" + name
+        + " --set config.create=false --set profiles.create=false"
+        + " --set-string cluster.name=" + name)
+      .filter(EXCLUDE_TTY_WARNING)
+      .forEach(line -> LOGGER.info(line));
   }
 
   /**

@@ -1,10 +1,11 @@
+{{ if .Values.profiles.create }}
 apiVersion: stackgres.io/{{ .Values.crd.version }}
 kind: StackGresProfile
 metadata:
   name: size-xs
 spec:
   cpu: "500m"
-  memory: "512Mi"  
+  memory: "512Mi"
   volumeSize: "5Gi"
   # storageClass: my-sc
 ---
@@ -14,7 +15,7 @@ metadata:
   name: size-s
 spec:
   cpu: "1"
-  memory: "2Gi"  
+  memory: "2Gi"
   volumeSize: "25Gi"
   # storageClass: my-sc
 ---
@@ -24,7 +25,7 @@ metadata:
   name: size-m
 spec:
   cpu: "2"
-  memory: "4Gi"  
+  memory: "4Gi"
   volumeSize: "38Gi"
   # storageClass: my-sc
 ---
@@ -34,7 +35,7 @@ metadata:
   name: size-l
 spec:
   cpu: "4"
-  memory: "8Gi"  
+  memory: "8Gi"
   volumeSize: "115Gi"
   # storageClass: my-sc
 ---
@@ -44,7 +45,7 @@ metadata:
   name: size-xl
 spec:
   cpu: "6"
-  memory: "16Gi"  
+  memory: "16Gi"
   volumeSize: "270Gi"
   # storageClass: my-sc
 ---
@@ -54,6 +55,7 @@ metadata:
   name: size-xxl
 spec:
   cpu: "8"
-  memory: "32Gi"  
+  memory: "32Gi"
   volumeSize: "580Gi"
   # storageClass: my-sc
+{{ end }}

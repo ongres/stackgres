@@ -79,6 +79,9 @@ public class SgStatefulSets {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SgStatefulSets.class);
 
+  private static final String NAME = "patroni";
+  private static final String IMAGE_PREFIX = "docker.io/ongres/patroni:";
+
   @Inject
   KubernetesClientFactory kubClientFactory;
 
@@ -88,6 +91,7 @@ public class SgStatefulSets {
   public StatefulSet create(StackGresCluster resource) {
     final String name = resource.getMetadata().getName();
     final String namespace = resource.getMetadata().getNamespace();
+    final String pgVersion = resource.getSpec().getPostgresVersion();
     // final Integer pg_version = resource.getSpec().getPostgresVersion();
     final Optional<StackGresProfile> profile = getProfile(resource);
 
@@ -142,8 +146,8 @@ public class SgStatefulSets {
             .withShareProcessNamespace(Boolean.TRUE)
             .withServiceAccountName(name + SgPatroniRole.SUFFIX)
             .addNewContainer()
-            .withName("patroni")
-            .withImage("docker.io/ongres/patroni:11.5")
+            .withName(NAME)
+            .withImage(IMAGE_PREFIX + pgVersion)
             .withImagePullPolicy("Always")
             .withSecurityContext(new SecurityContextBuilder()
                 .withRunAsUser(999L)
@@ -241,13 +245,13 @@ public class SgStatefulSets {
     try (KubernetesClient client = kubClientFactory.create()) {
       if (resource.getSpec().getSidecars().contains("postgres-utils")) {
         PostgresUtil pgutils = new PostgresUtil();
-        injectContainer(statefulSet, pgutils);
+        injectContainer(resource, statefulSet, pgutils);
         List<HasMetadata> listResources = pgutils.createDependencies(resource);
         applyDependencies(client, listResources, namespace);
       }
       if (resource.getSpec().getSidecars().contains("pgbouncer")) {
         PgBouncer pgbouncer = new PgBouncer(name, kubClientFactory::create);
-        injectContainer(statefulSet, pgbouncer);
+        injectContainer(resource, statefulSet, pgbouncer);
         List<HasMetadata> listResources = pgbouncer.createDependencies(resource);
         applyDependencies(client, listResources, namespace);
         injertVolumeConfigMap(statefulSet, pgbouncer, listResources);
@@ -400,12 +404,12 @@ public class SgStatefulSets {
         for (String sidecar : sidecars) {
           if (sidecar.contains("postgres-utils")) {
             PostgresUtil pgutils = new PostgresUtil();
-            injectContainer(statefulSet, pgutils);
+            injectContainer(resource, statefulSet, pgutils);
             List<HasMetadata> listResources = pgutils.createDependencies(resource);
             applyDependencies(client, listResources, namespace);
           } else if (sidecar.contains("pgbouncer")) {
             PgBouncer pgbouncer = new PgBouncer(name, kubClientFactory::create);
-            injectContainer(statefulSet, pgbouncer);
+            injectContainer(resource, statefulSet, pgbouncer);
             List<HasMetadata> listResources = pgbouncer.createDependencies(resource);
             applyDependencies(client, listResources, namespace);
             injertVolumeConfigMap(statefulSet, pgbouncer, listResources);
@@ -447,7 +451,7 @@ public class SgStatefulSets {
     return deleted;
   }
 
-  private void injectContainer(StatefulSet sts, Sidecar sidecar) {
+  private void injectContainer(StackGresCluster resource, StatefulSet sts, Sidecar sidecar) {
     List<Container> listContainers = sts.getSpec().getTemplate().getSpec().getContainers();
     for (Container c : listContainers) {
       if (c.getName().equals(sidecar.getName())) {
@@ -455,7 +459,7 @@ public class SgStatefulSets {
         return;
       }
     }
-    listContainers.add(sidecar.create());
+    listContainers.add(sidecar.create(resource));
     sts.getSpec().getTemplate().getSpec().setContainers(listContainers);
   }
 
