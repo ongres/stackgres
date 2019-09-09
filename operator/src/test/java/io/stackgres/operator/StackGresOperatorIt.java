@@ -31,45 +31,48 @@ import org.junit.jupiter.api.Test;
 })
 public class StackGresOperatorIt extends AbstractStackGresOperatorIt {
 
+  private final String CLUSTER_NAME = "test";
+
   @Test
   public void createClusterTest(@ContainerParam("kind") Container kind) throws Exception {
-    ItHelper.createStackGresConfigs(kind, namespace);
-    ItHelper.createStackGresCluster(kind, namespace);
+    ItHelper.installStackGresConfigs(kind, namespace);
+    ItHelper.installStackGresCluster(kind, namespace, CLUSTER_NAME);
     ItHelper.waitUntil(Unchecked.supplier(() -> kind.execute("bash", "-l", "-c",
-        "kubectl get pod -n  " + namespace + " stackgres-example-0"
+        "kubectl get pod -n  " + namespace + " " + CLUSTER_NAME + "-0"
             + " && echo 1 || true")),
         s -> !s.noneMatch(line -> line.equals("1")), 60, ChronoUnit.SECONDS,
         s -> Assertions.fail(
             "Timeout while checking creation of"
-                + " pod 'stackgres-example-0' in namespace '" + namespace + "':\n"
+                + " pod '" + CLUSTER_NAME + "-0' in namespace '" + namespace + "':\n"
                 + s.collect(Collectors.joining("\n"))));
     ItHelper.waitUntil(Unchecked.supplier(() -> kind.execute("bash", "-l", "-c",
-        "kubectl describe pod -n  " + namespace + " stackgres-example-0")),
+        "kubectl describe pod -n  " + namespace + " " + CLUSTER_NAME + "-0")),
         s -> !s.noneMatch(line -> line.matches("Status:\\s+Running")), 120, ChronoUnit.SECONDS,
         s -> Assertions.fail(
             "Timeout while checking availability of"
-                + " pod 'stackgres-example-0' in namespace '" + namespace + "':\n"
+                + " pod '" + CLUSTER_NAME + "-0' in namespace '" + namespace + "':\n"
                 + s.collect(Collectors.joining("\n"))));
     ItHelper.waitUntil(Unchecked.supplier(() -> kind.execute("bash", "-l", "-c",
-        "kubectl exec -t -n " + namespace + " stackgres-example-0 -c postgres-util --"
+        "kubectl exec -t -n " + namespace + " " + CLUSTER_NAME + "-0 -c postgres-util --"
             + " bash -c \"psql -t -A -U postgres -p 5432 -c 'SELECT 1' || true\"")),
         s -> !s.noneMatch(line -> line.equals("1")), 60, ChronoUnit.SECONDS,
         s -> Assertions.fail(
             "Timeout while checking connection available to postgres of"
-                + " pod 'stackgres-example-0' in namespace '" + namespace + "':\n"
+                + " pod '" + CLUSTER_NAME + "-0' in namespace '" + namespace + "':\n"
                 + s.collect(Collectors.joining("\n"))));
     kind.execute("bash", "-l", "-c",
-        "kubectl exec -t -n " + namespace + " stackgres-example-0 -c postgres-util --"
-            + " bash -c \"psql -t -A -U postgres -p 5432 -c 'CREATE USER test WITH PASSWORD '\\\"'test'\\\"\"")
+        "kubectl exec -t -n " + namespace + " " + CLUSTER_NAME + "-0 -c postgres-util --"
+            + " bash -c \"psql -t -A -U postgres -p 5432"
+            + " -c 'CREATE USER test WITH PASSWORD '\\\"'test'\\\"\"")
         .forEach(line -> LOGGER.info(line));
     ItHelper.waitUntil(Unchecked.supplier(() -> kind.execute("bash", "-l", "-c",
-        "kubectl exec -t -n " + namespace + " stackgres-example-0 -c postgres-util --"
+        "kubectl exec -t -n " + namespace + " " + CLUSTER_NAME + "-0 -c postgres-util --"
             + " bash -c \"PGPASSWORD=test psql -t -A"
             + " -U test -d postgres -p 6432 -c 'SELECT 1' || true\"")),
         s -> !s.noneMatch(line -> line.equals("1")), 60, ChronoUnit.SECONDS,
         s -> Assertions.fail(
             "Timeout while checking connection available to pgbouncer of"
-                + " pod 'stackgres-example-0' in namespace '" + namespace + "':\n"
+                + " pod '" + CLUSTER_NAME + "-0' in namespace '" + namespace + "':\n"
                 + s.collect(Collectors.joining("\n"))));
   }
 }

@@ -1,4 +1,5 @@
-apiVersion: stackgres.io/v1alpha1
+{{ if .Values.profiles.create }}
+apiVersion: stackgres.io/{{ .Values.crd.version }}
 kind: StackGresProfile
 metadata:
   name: size-xs
@@ -7,9 +8,10 @@ spec:
   memoryRequests: "512Mi"
   cpuLimits: "500m"
   memoryLimits: "512Mi"
-  volumeSize: 5Gi
+  volumeSize: "5Gi"
+  # storageClass: my-sc
 ---
-apiVersion: stackgres.io/v1alpha1
+apiVersion: stackgres.io/{{ .Values.crd.version }}
 kind: StackGresProfile
 metadata:
   name: size-s
@@ -19,8 +21,9 @@ spec:
   cpuLimits: "1"
   memoryLimits: "2Gi"
   volumeSize: "25Gi"
+  # storageClass: my-sc
 ---
-apiVersion: stackgres.io/v1alpha1
+apiVersion: stackgres.io/{{ .Values.crd.version }}
 kind: StackGresProfile
 metadata:
   name: size-m
@@ -30,8 +33,9 @@ spec:
   cpuLimits: "2"
   memoryLimits: "4Gi"
   volumeSize: "38Gi"
+  # storageClass: my-sc
 ---
-apiVersion: stackgres.io/v1alpha1
+apiVersion: stackgres.io/{{ .Values.crd.version }}
 kind: StackGresProfile
 metadata:
   name: size-l
@@ -41,8 +45,9 @@ spec:
   cpuLimits: "4"
   memoryLimits: "8Gi"
   volumeSize: "115Gi"
+  # storageClass: my-sc
 ---
-apiVersion: stackgres.io/v1alpha1
+apiVersion: stackgres.io/{{ .Values.crd.version }}
 kind: StackGresProfile
 metadata:
   name: size-xl
@@ -52,8 +57,9 @@ spec:
   cpuLimits: "6"
   memoryLimits: "16Gi"
   volumeSize: "270Gi"
+  # storageClass: my-sc
 ---
-apiVersion: stackgres.io/v1alpha1
+apiVersion: stackgres.io/{{ .Values.crd.version }}
 kind: StackGresProfile
 metadata:
   name: size-xxl
@@ -63,3 +69,5 @@ spec:
   cpuLimits: "8"
   memoryLimits: "32Gi"
   volumeSize: "580Gi"
+  # storageClass: my-sc
+{{ end }}

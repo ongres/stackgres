@@ -1,12 +1,14 @@
+{{ if .Values.config.create }}
 apiVersion: stackgres.io/{{ .Values.crd.version }}
 kind: StackGresPostgresConfig
 metadata:
   name: {{ .Values.cluster.pgconfig }}
 spec:
-  pg_version: "{{ .Values.postgresql.version }}"
+  pg_version: "{{ .Values.config.postgresql.version }}"
   postgresql.conf:
       shared_buffers: '256MB'
       random_page_cost: '1.5'
       password_encryption: 'scram-sha-256'
       wal_level: 'minimal' # Blacklisted
       wal_compression: 'on'
+{{ end }}

@@ -39,7 +39,9 @@ public class SgConfigMaps {
   public ConfigMap create(StackGresCluster resource) {
     final String name = resource.getMetadata().getName();
     final String namespace = resource.getMetadata().getNamespace();
-    final Integer pg_version = resource.getSpec().getPostgresVersion();
+    final String pgVersion = resource.getSpec().getPostgresVersion();
+    final String majorPgVersion = pgVersion.indexOf('.') > -1
+        ? pgVersion.substring(0, pgVersion.indexOf('.')) : pgVersion;
 
     Map<String, String> labels = ResourceUtils.defaultLabels(name);
 
@@ -59,7 +61,7 @@ public class SgConfigMaps {
     data.put("PATRONI_POSTGRESQL_LISTEN", "0.0.0.0:5432");
     data.put("PATRONI_RESTAPI_LISTEN", "0.0.0.0:8008");
     data.put("PATRONI_POSTGRESQL_DATA_DIR", "/var/lib/postgresql/data");
-    data.put("PATRONI_POSTGRESQL_BIN_DIR", "/usr/lib/postgresql/" + pg_version + "/bin");
+    data.put("PATRONI_POSTGRESQL_BIN_DIR", "/usr/lib/postgresql/" + majorPgVersion + "/bin");
     data.put("PATRONI_POSTGRES_UNIX_SOCKET_DIRECTORY", "/run/postgresql");
 
     if (QuarkusProfile.getActiveProfile().isDev()) {

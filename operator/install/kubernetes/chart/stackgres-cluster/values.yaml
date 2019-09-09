@@ -1,10 +1,16 @@
-postgresql:
-  version: "11.5"
+config:
+  create: true
+  postgresql:
+    version: "11.5"
+  pgbouncer:
+    version: "1.11"
 
 cluster:
+  create: true
   name: "stackgres"
-  instance: 1
+  instances: 1
   pgconfig: postgresconf
+  pgbouncerconfig: pgbouncerconf
   profile: size-xs
 
 sidecar:
@@ -13,3 +19,6 @@ sidecar:
 
 crd:
   version: v1alpha1
+
+profiles:
+  create: true
