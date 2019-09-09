@@ -21,21 +21,13 @@ public class StackGresProfileSpec implements KubernetesResource {
 
   private static final long serialVersionUID = -1037668102382589521L;
 
-  @JsonProperty("cpuRequests")
+  @JsonProperty("cpu")
   @NotBlank
-  private String cpuRequests;
+  private String cpu;
 
-  @JsonProperty("memoryRequests")
+  @JsonProperty("memory")
   @NotBlank
-  private String memoryRequests;
-
-  @JsonProperty("cpuLimits")
-  @NotBlank
-  private String cpuLimits;
-
-  @JsonProperty("memoryLimits")
-  @NotBlank
-  private String memoryLimits;
+  private String memory;
 
   @JsonProperty("volumeSize")
   @NotBlank
@@ -45,36 +37,20 @@ public class StackGresProfileSpec implements KubernetesResource {
   @NotBlank
   private String volumeStorageClass;
 
-  public String getCpuRequests() {
-    return cpuRequests;
+  public String getCpu() {
+    return cpu;
   }
 
-  public void setCpuRequests(String cpuRequests) {
-    this.cpuRequests = cpuRequests;
+  public void setCpu(String cpu) {
+    this.cpu = cpu;
   }
 
-  public String getMemoryRequests() {
-    return memoryRequests;
+  public String getMemory() {
+    return memory;
   }
 
-  public void setMemoryRequests(String memoryRequests) {
-    this.memoryRequests = memoryRequests;
-  }
-
-  public String getCpuLimits() {
-    return cpuLimits;
-  }
-
-  public void setCpuLimits(String cpuLimits) {
-    this.cpuLimits = cpuLimits;
-  }
-
-  public String getMemoryLimits() {
-    return memoryLimits;
-  }
-
-  public void setMemoryLimits(String memoryLimits) {
-    this.memoryLimits = memoryLimits;
+  public void setMemory(String memory) {
+    this.memory = memory;
   }
 
   public String getVolumeSize() {
