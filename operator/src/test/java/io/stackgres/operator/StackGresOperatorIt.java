@@ -20,7 +20,7 @@ import org.junit.jupiter.api.Test;
       alias = "kind",
       image = "stackgres/it:latest",
       arguments = { "/bin/bash", "-c",
-          "bash /scripts/restart-kind.sh;"
+          "bash /scripts/restart-kind.sh 3;"
               + " seq -s ' ' 10000000 10000910;"
               + " while true; do sleep 1; done" },
       waitFor = @WaitFor(value = "Kind started k8s cluster", timeout = 300_000),
