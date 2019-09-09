@@ -24,7 +24,8 @@ import io.stackgres.common.ResourceUtils;
 import io.stackgres.common.sgcluster.StackGresCluster;
 import io.stackgres.operator.app.KubernetesClientFactory;
 import io.stackgres.operator.configuration.PatroniConfig;
-import io.stackgres.operator.parameters.DefaultValues;
+import io.stackgres.operator.patroni.parameters.DefaultValues;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
