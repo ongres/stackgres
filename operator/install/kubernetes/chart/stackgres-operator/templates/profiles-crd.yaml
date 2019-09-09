@@ -26,14 +26,10 @@ spec:
         spec:
           type: object
           properties:
-            cpuRequests:
+            cpu:
               type: string
-            memoryRequests:
-              type: string
-            cpuLimits:
-              type: string
-            memoryLimits:
-              type: string
+            memory:
+              type: string            
             volumeSize:
               type: string
-          required: ["cpuRequests","memoryRequests","cpuLimits","memoryLimits","volumeSize"]
+          required: ["cpu","memory","volumeSize"]
