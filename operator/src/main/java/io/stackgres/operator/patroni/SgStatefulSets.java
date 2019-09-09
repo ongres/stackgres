@@ -95,11 +95,11 @@ public class SgStatefulSets {
     StorageConfig storage = ImmutableStorageConfig.builder().size("").build();
     if (profile.isPresent()) {
       resources.setRequests(ImmutableMap.of(
-          "cpu", new Quantity(profile.get().getSpec().getCpuRequests()),
-          "memory", new Quantity(profile.get().getSpec().getMemoryRequests())));
+          "cpu", new Quantity(profile.get().getSpec().getCpu()),
+          "memory", new Quantity(profile.get().getSpec().getMemory())));
       resources.setLimits(ImmutableMap.of(
-          "cpu", new Quantity(profile.get().getSpec().getCpuLimits()),
-          "memory", new Quantity(profile.get().getSpec().getMemoryLimits())));
+          "cpu", new Quantity(profile.get().getSpec().getCpu()),
+          "memory", new Quantity(profile.get().getSpec().getMemory())));
       storage = ImmutableStorageConfig.builder()
           .size(profile.get().getSpec().getVolumeSize())
           .storageClass(profile.get().getSpec().getVolumeStorageClass())
