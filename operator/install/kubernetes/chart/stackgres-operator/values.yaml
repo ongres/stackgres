@@ -1,11 +1,11 @@
 operatorName: "stackgres-operator"
 operatorNamespace: "stackgres"
-operatorVersion: "master"
+operatorVersion: "development"
 group: "stackgres.io"
 
 image:
   name: "stackgres/operator"
-  tag: "master-jvm"
+  tag: "development-jvm"
   pullPolicy: "IfNotPresent"
 
 crd:

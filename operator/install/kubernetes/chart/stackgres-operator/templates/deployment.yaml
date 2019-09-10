@@ -4,7 +4,7 @@ kind: "Deployment"
 metadata:
   labels:
     app: {{ .Values.operatorName }}
-    version: {{ .Values.operatorVersion }}
+    version: "{{ .Values.operatorVersion }}"
     group: {{ .Values.group }}
   name: {{ .Values.operatorName }}
   {{- if .Values.namespace.create }}
@@ -15,13 +15,13 @@ spec:
   selector:
     matchLabels:
       app: {{ .Values.operatorName }}
-      version: {{ .Values.operatorVersion }}
+      version: "{{ .Values.operatorVersion }}"
       group: {{ .Values.group }}
   template:
     metadata:
       labels:
         app: {{ .Values.operatorName }}
-        version: {{ .Values.operatorVersion }}
+        version: "{{ .Values.operatorVersion }}"
         group: {{ .Values.group }}
     spec:
       serviceAccountName: {{ .Values.operatorName }}
