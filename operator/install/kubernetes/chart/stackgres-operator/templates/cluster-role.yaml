@@ -17,7 +17,12 @@ rules:
   - secrets
   - statefulsets
   - deployments
+  - clusterroles
+  - clusterrolebindings
+  - serviceaccounts
   - namespaces
+  - roles
+  - rolebindings
   verbs:
   - get
   - list
@@ -41,3 +46,12 @@ rules:
   - list
   - get
   - update
+- apiGroups: ["{{ .Values.group }}"]
+  resources:
+  - sgpgconfigs
+  - sgprofiles
+  - sgconnectiongpoolingconfigs
+  verbs:
+  - watch
+  - list
+  - get
