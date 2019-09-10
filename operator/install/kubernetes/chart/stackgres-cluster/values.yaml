@@ -10,7 +10,7 @@ cluster:
   name: "stackgres"
   instances: 1
   pgconfig: postgresconf
-  pgbouncerconfig: pgbouncerconf
+  poolingconfig: pgbouncerconf
   profile: size-xs
 
 sidecar:
