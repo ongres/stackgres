@@ -130,7 +130,7 @@ public class PgBouncer implements Sidecar {
 
   private Optional<StackGresPgbouncerConfig> getPgbouncerConfig(StackGresCluster resource) {
     final String namespace = resource.getMetadata().getNamespace();
-    final String pgbouncerConfig = resource.getSpec().getPgbouncerConfig();
+    final String pgbouncerConfig = resource.getSpec().getConnectionPoolingConfig();
     LOGGER.debug("PgbouncerConfig Name: {}", pgbouncerConfig);
     if (pgbouncerConfig != null) {
       try (KubernetesClient client = kubernetesClientSupplier.get()) {

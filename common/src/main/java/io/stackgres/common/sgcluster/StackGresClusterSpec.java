@@ -43,6 +43,10 @@ public class StackGresClusterSpec implements KubernetesResource {
   @NotNull
   private String connectionPoolingConfig;
 
+  @JsonProperty("storage_class")
+  @NotNull
+  private String storageClass;
+
   @JsonProperty("sidecars")
   private List<String> sidecars;
 
@@ -78,12 +82,20 @@ public class StackGresClusterSpec implements KubernetesResource {
     this.resourceProfile = resourceProfile;
   }
 
-  public String getPgbouncerConfig() {
+  public String getConnectionPoolingConfig() {
     return connectionPoolingConfig;
   }
 
   public void setConnectionPoolingConfig(String connectionPoolingConfig) {
     this.connectionPoolingConfig = connectionPoolingConfig;
+  }
+
+  public String getStorageClass() {
+    return storageClass;
+  }
+
+  public void setStorageClass(String storageClass) {
+    this.storageClass = storageClass;
   }
 
   public List<String> getSidecars() {
@@ -103,6 +115,8 @@ public class StackGresClusterSpec implements KubernetesResource {
         .add("pg_config", postgresConfig)
         .add("resource_profile", resourceProfile)
         .add("connection_pooling_config", connectionPoolingConfig)
+        .add("storage_class", storageClass)
+        .add("sidecars", sidecars)
         .toString();
   }
 

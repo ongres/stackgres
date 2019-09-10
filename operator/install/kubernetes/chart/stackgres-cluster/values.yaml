@@ -12,6 +12,7 @@ cluster:
   pgconfig: postgresconf
   poolingconfig: pgbouncerconf
   profile: size-xs
+  storageclass: standard
 
 sidecar:
   pooling: true

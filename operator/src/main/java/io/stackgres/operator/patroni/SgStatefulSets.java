@@ -101,7 +101,10 @@ public class SgStatefulSets {
     final Optional<StackGresProfile> profile = getProfile(resource);
 
     ResourceRequirements resources = new ResourceRequirements();
-    StorageConfig storage = ImmutableStorageConfig.builder().size("").build();
+    StorageConfig storage = ImmutableStorageConfig.builder()
+        .size("")
+        .storageClass(resource.getSpec().getStorageClass())
+        .build();
     if (profile.isPresent()) {
       resources.setRequests(ImmutableMap.of(
           "cpu", new Quantity(profile.get().getSpec().getCpu()),
@@ -111,7 +114,7 @@ public class SgStatefulSets {
           "memory", new Quantity(profile.get().getSpec().getMemory())));
       storage = ImmutableStorageConfig.builder()
           .size(profile.get().getSpec().getVolumeSize())
-          .storageClass(profile.get().getSpec().getVolumeStorageClass())
+          .storageClass(resource.getSpec().getStorageClass())
           .build();
     }
 

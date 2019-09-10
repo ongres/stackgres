@@ -7,7 +7,6 @@ spec:
   cpu: "500m"
   memory: "512Mi"
   volumeSize: "5Gi"
-  # storageClass: my-sc
 ---
 apiVersion: stackgres.io/{{ .Values.crd.version }}
 kind: StackGresProfile
@@ -17,7 +16,6 @@ spec:
   cpu: "1"
   memory: "2Gi"
   volumeSize: "25Gi"
-  # storageClass: my-sc
 ---
 apiVersion: stackgres.io/{{ .Values.crd.version }}
 kind: StackGresProfile
@@ -27,7 +25,6 @@ spec:
   cpu: "2"
   memory: "4Gi"
   volumeSize: "38Gi"
-  # storageClass: my-sc
 ---
 apiVersion: stackgres.io/{{ .Values.crd.version }}
 kind: StackGresProfile
@@ -37,7 +34,6 @@ spec:
   cpu: "4"
   memory: "8Gi"
   volumeSize: "115Gi"
-  # storageClass: my-sc
 ---
 apiVersion: stackgres.io/{{ .Values.crd.version }}
 kind: StackGresProfile
@@ -47,7 +43,6 @@ spec:
   cpu: "6"
   memory: "16Gi"
   volumeSize: "270Gi"
-  # storageClass: my-sc
 ---
 apiVersion: stackgres.io/{{ .Values.crd.version }}
 kind: StackGresProfile
@@ -57,5 +52,4 @@ spec:
   cpu: "8"
   memory: "32Gi"
   volumeSize: "580Gi"
-  # storageClass: my-sc
 {{ end }}
