@@ -7,11 +7,11 @@ spec:
   instances: {{ .Values.cluster.instances }}
   pg_version: {{ .Values.config.postgresql.version }}
   pg_config: {{ .Values.cluster.pgconfig }}
-  pgbouncer_config: {{ .Values.cluster.pgbouncerconfig }}
+  connection_pooling_config: {{ .Values.cluster.poolingconfig }}
   resource_profile: {{ .Values.cluster.profile }}
   sidecars:
   {{- if .Values.sidecar.pooling }}
-  - pgbouncer
+  - connection-pooling
   {{ end }}
   {{- if .Values.sidecar.utils }}
   - postgres-utils

@@ -9,9 +9,9 @@ public class StackGresPgbouncerConfigDefinition {
 
   public static final String GROUP = "stackgres.io";
   public static final String VERSION = "v1alpha1";
-  public static final String KIND = "StackGresPgbouncerConfig";
-  public static final String SINGULAR = "sgpgbouncerconfig";
-  public static final String PLURAL = "sgpgbouncerconfigs";
+  public static final String KIND = "StackGresConnectionPoolingConfig";
+  public static final String SINGULAR = "sgconnectionpoolingconfig";
+  public static final String PLURAL = "sgconnectionpoolingconfigs";
   public static final String NAME = PLURAL + "." + GROUP;
   public static final String APIVERSION = GROUP + "/" + VERSION;
 

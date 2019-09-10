@@ -269,7 +269,7 @@ public class SgStatefulSets {
         List<HasMetadata> listResources = pgutils.createDependencies(resource);
         applyDependencies(client, listResources, namespace);
       }
-      if (resource.getSpec().getSidecars().contains("pgbouncer")) {
+      if (resource.getSpec().getSidecars().contains("connection-pooling")) {
         PgBouncer pgbouncer = new PgBouncer(name, kubClientFactory::create);
         injectContainer(resource, statefulSet, pgbouncer);
         List<HasMetadata> listResources = pgbouncer.createDependencies(resource);
@@ -427,7 +427,7 @@ public class SgStatefulSets {
             injectContainer(resource, statefulSet, pgutils);
             List<HasMetadata> listResources = pgutils.createDependencies(resource);
             applyDependencies(client, listResources, namespace);
-          } else if (sidecar.contains("pgbouncer")) {
+          } else if (sidecar.contains("connection-pooling")) {
             PgBouncer pgbouncer = new PgBouncer(name, kubClientFactory::create);
             injectContainer(resource, statefulSet, pgbouncer);
             List<HasMetadata> listResources = pgbouncer.createDependencies(resource);

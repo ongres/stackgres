@@ -55,7 +55,7 @@ public class PgBouncer implements Sidecar {
    */
   public PgBouncer(String clusterName, Supplier<KubernetesClient> kubernetesClientSupplier) {
     this.clusterName = clusterName;
-    this.configMapName = clusterName + "-pgbouncer-config";
+    this.configMapName = clusterName + "-connection-pooling-config";
     this.kubernetesClientSupplier = kubernetesClientSupplier;
   }
 

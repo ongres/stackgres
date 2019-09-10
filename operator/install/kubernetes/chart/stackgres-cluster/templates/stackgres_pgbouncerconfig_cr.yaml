@@ -1,8 +1,8 @@
 {{ if .Values.config.create }}
 apiVersion: stackgres.io/{{ .Values.crd.version }}
-kind: StackGresPgbouncerConfig
+kind: StackGresConnectionPoolingConfig
 metadata:
-  name: {{ .Values.cluster.pgbouncerconfig }}
+  name: {{ .Values.cluster.poolingconfig }}
 spec:
   pgbouncer_version: "{{ .Values.config.pgbouncer.version }}"
   pgbouncer.ini:
