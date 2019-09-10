@@ -31,13 +31,13 @@ spec:
               type: string
             pg_config:
               type: string
-            pgbouncer_config:
+            connection_pooling_config:
               type: string
             resource_profile:
               type: string
             sidecars:
               type: object
-          required: ["instances","pg_version","postgresql.conf"]
+          required: ["instances","pg_version","pg_config","connection_pooling_config","resource_profile","sidecars"]
 
 
 
