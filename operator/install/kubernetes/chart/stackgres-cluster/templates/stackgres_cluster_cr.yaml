@@ -9,6 +9,7 @@ spec:
   pg_config: {{ .Values.cluster.pgconfig }}
   connection_pooling_config: {{ .Values.cluster.poolingconfig }}
   resource_profile: {{ .Values.cluster.profile }}
+  storage_class: {{ .Values.cluster.storageclass }}
   sidecars:
   {{- if .Values.sidecar.pooling }}
   - connection-pooling
