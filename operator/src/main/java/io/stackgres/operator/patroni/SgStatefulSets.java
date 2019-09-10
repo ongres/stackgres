@@ -17,8 +17,10 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
+import io.fabric8.kubernetes.api.model.AffinityBuilder;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapEnvSourceBuilder;
 import io.fabric8.kubernetes.api.model.ConfigMapVolumeSourceBuilder;
@@ -33,10 +35,13 @@ import io.fabric8.kubernetes.api.model.HTTPGetActionBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.LabelSelectorBuilder;
+import io.fabric8.kubernetes.api.model.LabelSelectorRequirementBuilder;
 import io.fabric8.kubernetes.api.model.ObjectFieldSelectorBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaimBuilder;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaimSpecBuilder;
+import io.fabric8.kubernetes.api.model.PodAffinityTermBuilder;
+import io.fabric8.kubernetes.api.model.PodAntiAffinityBuilder;
 import io.fabric8.kubernetes.api.model.PodTemplateSpecBuilder;
 import io.fabric8.kubernetes.api.model.ProbeBuilder;
 import io.fabric8.kubernetes.api.model.Quantity;
@@ -143,6 +148,21 @@ public class SgStatefulSets {
                 .addToLabels(labels)
                 .build())
             .withNewSpec()
+            .withAffinity(new AffinityBuilder()
+                .withPodAntiAffinity(new PodAntiAffinityBuilder()
+                    .addAllToRequiredDuringSchedulingIgnoredDuringExecution(ImmutableList.of(
+                        new PodAffinityTermBuilder()
+                        .withLabelSelector(new LabelSelectorBuilder()
+                            .withMatchExpressions(new LabelSelectorRequirementBuilder()
+                                .withKey(ResourceUtils.APP_KEY)
+                                .withOperator("In")
+                                .withValues(ResourceUtils.APP_NAME)
+                                .build())
+                            .build())
+                        .withTopologyKey("kubernetes.io/hostname")
+                        .build()))
+                    .build())
+                .build())
             .withShareProcessNamespace(Boolean.TRUE)
             .withServiceAccountName(name + SgPatroniRole.SUFFIX)
             .addNewContainer()

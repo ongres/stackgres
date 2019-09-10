@@ -21,6 +21,10 @@ import org.slf4j.LoggerFactory;
 
 public class ResourceUtils {
 
+  public static final String APP_KEY = "app";
+  public static final String APP_NAME = "StackGres";
+  public static final String CLUSTER_NAME_KEY = "cluster-name";
+
   private static final Logger LOGGER = LoggerFactory.getLogger(ResourceUtils.class);
 
   private ResourceUtils() {
@@ -45,7 +49,7 @@ public class ResourceUtils {
    * ImmutableMap of default labels used as selectors in K8s resources.
    */
   public static Map<String, String> defaultLabels(String clusterName) {
-    return ImmutableMap.of("app", "StackGres", "cluster-name", clusterName);
+    return ImmutableMap.of(APP_KEY, APP_NAME, CLUSTER_NAME_KEY, clusterName);
   }
 
   /**
