@@ -29,7 +29,5 @@ spec:
             cpu:
               type: string
             memory:
-              type: string            
-            volumeSize:
               type: string
-          required: ["cpu","memory","volumeSize"]
+          required: ["cpu","memory"]

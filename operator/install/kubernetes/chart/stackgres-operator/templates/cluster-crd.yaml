@@ -35,11 +35,22 @@ spec:
               type: string
             resource_profile:
               type: string
+            volume_size:
+              type: string
             storage_class:
               type: string
             sidecars:
               type: object
-          required: ["instances","pg_version","pg_config","connection_pooling_config","resource_profile","storage_class","sidecars"]
+          required: [
+            "instances",
+            "pg_version",
+            "pg_config",
+            "connection_pooling_config",
+            "resource_profile",
+            "volume_size",
+            "storage_class",
+            "sidecars"
+          ]
 
 
 

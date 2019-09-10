@@ -43,6 +43,10 @@ public class StackGresClusterSpec implements KubernetesResource {
   @NotNull
   private String connectionPoolingConfig;
 
+  @JsonProperty("volume_size")
+  @NotNull
+  private String volumeSize;
+
   @JsonProperty("storage_class")
   @NotNull
   private String storageClass;
@@ -90,6 +94,14 @@ public class StackGresClusterSpec implements KubernetesResource {
     this.connectionPoolingConfig = connectionPoolingConfig;
   }
 
+  public String getVolumeSize() {
+    return volumeSize;
+  }
+
+  public void setVolumeSize(String volumeSize) {
+    this.volumeSize = volumeSize;
+  }
+
   public String getStorageClass() {
     return storageClass;
   }
@@ -115,6 +127,7 @@ public class StackGresClusterSpec implements KubernetesResource {
         .add("pg_config", postgresConfig)
         .add("resource_profile", resourceProfile)
         .add("connection_pooling_config", connectionPoolingConfig)
+        .add("volume_size", volumeSize)
         .add("storage_class", storageClass)
         .add("sidecars", sidecars)
         .toString();

@@ -29,14 +29,6 @@ public class StackGresProfileSpec implements KubernetesResource {
   @NotBlank
   private String memory;
 
-  @JsonProperty("volumeSize")
-  @NotBlank
-  private String volumeSize;
-
-  @JsonProperty("volumeStorageClass")
-  @NotBlank
-  private String volumeStorageClass;
-
   public String getCpu() {
     return cpu;
   }
@@ -51,22 +43,6 @@ public class StackGresProfileSpec implements KubernetesResource {
 
   public void setMemory(String memory) {
     this.memory = memory;
-  }
-
-  public String getVolumeSize() {
-    return volumeSize;
-  }
-
-  public void setVolumeSize(String volumeSize) {
-    this.volumeSize = volumeSize;
-  }
-
-  public String getVolumeStorageClass() {
-    return volumeStorageClass;
-  }
-
-  public void setVolumeStorageClass(String volumeStorageClass) {
-    this.volumeStorageClass = volumeStorageClass;
   }
 
 }
