@@ -97,13 +97,15 @@ public class SgStatefulSets {
     final String name = resource.getMetadata().getName();
     final String namespace = resource.getMetadata().getNamespace();
     final String pgVersion = resource.getSpec().getPostgresVersion();
-    // final Integer pg_version = resource.getSpec().getPostgresVersion();
     final Optional<StackGresProfile> profile = getProfile(resource);
 
     ResourceRequirements resources = new ResourceRequirements();
     StorageConfig storage = ImmutableStorageConfig.builder()
-        .size("")
-        .storageClass(resource.getSpec().getStorageClass())
+        .size(resource.getSpec().getVolumeSize())
+        .storageClass(Optional.ofNullable(
+            resource.getSpec().getStorageClass())
+            .filter(storageClass -> storageClass.isEmpty())
+            .orElse("standard"))
         .build();
     if (profile.isPresent()) {
       resources.setRequests(ImmutableMap.of(
@@ -112,10 +114,6 @@ public class SgStatefulSets {
       resources.setLimits(ImmutableMap.of(
           "cpu", new Quantity(profile.get().getSpec().getCpu()),
           "memory", new Quantity(profile.get().getSpec().getMemory())));
-      storage = ImmutableStorageConfig.builder()
-          .size(profile.get().getSpec().getVolumeSize())
-          .storageClass(resource.getSpec().getStorageClass())
-          .build();
     }
 
     PersistentVolumeClaimSpecBuilder volumeClaimSpec = new PersistentVolumeClaimSpecBuilder()
