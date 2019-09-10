@@ -16,4 +16,29 @@ spec:
     listKind: StackGresClusterList
     plural: sgclusters
     singular: sgcluster
-    
+  validation:
+    openAPIV3Schema:
+    type: object
+    required: ["spec"]
+    description: "Params for StackGres Cluster creation"
+    properties:
+        spec:
+          type: object
+          properties:
+            instances:
+              type: integer
+            pg_version:
+              type: string
+            pg_config:
+              type: string
+            pgbouncer_config:
+              type: string
+            resource_profile:
+              type: string
+            sidecars:
+              type: object
+          required: ["instances","pg_version","postgresql.conf"]
+
+
+
+
