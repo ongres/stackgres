@@ -1,8 +1,9 @@
 #!/bin/bash
 set -e
+KUBERNETES_VERSION="${KUBERNETES_VERSION:-1.12.10}"
 CONTAINER_NAME="$(docker inspect -f '{{.Name}}' "$(hostname)"|cut -d '/' -f 2)"
 #echo "Installing kubectl"
-#wget -q -L -O /bin/kubectl https://storage.googleapis.com/kubernetes-release/release/v1.12.10/bin/linux/amd64/kubectl
+#wget -q -L -O /bin/kubectl https://storage.googleapis.com/kubernetes-release/release/v${KUBERNETES_VERSION}/bin/linux/amd64/kubectl
 #chmod a+x /bin/kubectl
 #echo "Installing kind"
 #wget -q -L -O /bin/kind  https://github.com/kubernetes-sigs/kind/releases/download/v0.5.1/kind-$(uname)-amd64
@@ -34,7 +35,7 @@ then
     echo '- role: worker' >> kind-config.yaml
   done
 fi
-kind create cluster --config kind-config.yaml --name "$CONTAINER_NAME" --image kindest/node:v1.12.10
+kind create cluster --config kind-config.yaml --name "$CONTAINER_NAME" --image kindest/node:v${KUBERNETES_VERSION}
 sed -i 's#^    server:.*$#    server: 'https://"$(docker inspect -f '{{ .NetworkSettings.IPAddress }}' kind-control-plane)"':6443#' "$(kind get kubeconfig-path --name="$CONTAINER_NAME")"
 export KUBECONFIG="$(kind get kubeconfig-path --name="$CONTAINER_NAME")"
 echo "export KUBECONFIG='$(kind get kubeconfig-path --name="$CONTAINER_NAME")'" > /root/.bashrc
