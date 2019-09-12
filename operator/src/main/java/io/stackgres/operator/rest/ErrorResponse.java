@@ -1,8 +1,18 @@
 package io.stackgres.operator.rest;
 
 public class ErrorResponse {
+  private String type;
   private String message;
   private String documentationLink;
+
+  public String getType() {
+    return type;
+  }
+
+  public ErrorResponse setType(String type) {
+    this.type = type;
+    return this;
+  }
 
   public String getMessage() {
     return message;
@@ -22,7 +32,7 @@ public class ErrorResponse {
     return this;
   }
 
-  public static ErrorResponse create(String message) {
-    return new ErrorResponse().setMessage(message);
+  public static ErrorResponse create(Throwable throwable) {
+    return new ErrorResponse().setType(throwable.getClass().getName()).setMessage(throwable.getMessage());
   }
 }

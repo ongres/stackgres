@@ -82,9 +82,11 @@ import org.slf4j.LoggerFactory;
 @ApplicationScoped
 public class SgStatefulSets {
 
+  public static final String PATRONI_CONTAINER_NAME = "patroni";
+  public static final String VOLUME_NAME = "pg-data";
+
   private static final Logger LOGGER = LoggerFactory.getLogger(SgStatefulSets.class);
 
-  private static final String NAME = "patroni";
   private static final String IMAGE_PREFIX = "docker.io/ongres/patroni:";
 
   @Inject
@@ -129,7 +131,7 @@ public class SgStatefulSets {
         .build();
 
     VolumeMount pgData = new VolumeMountBuilder()
-        .withName("pg-data")
+        .withName(VOLUME_NAME)
         .withMountPath("/var/lib/postgresql")
         .build();
 
@@ -167,7 +169,7 @@ public class SgStatefulSets {
             .withShareProcessNamespace(Boolean.TRUE)
             .withServiceAccountName(name + SgPatroniRole.SUFFIX)
             .addNewContainer()
-            .withName(NAME)
+            .withName(PATRONI_CONTAINER_NAME)
             .withImage(IMAGE_PREFIX + pgVersion)
             .withImagePullPolicy("Always")
             .withSecurityContext(new SecurityContextBuilder()
@@ -255,7 +257,7 @@ public class SgStatefulSets {
             .build())
         .withVolumeClaimTemplates(new PersistentVolumeClaimBuilder()
             .withMetadata(new ObjectMetaBuilder()
-                .withName("pg-data")
+                .withName(VOLUME_NAME)
                 .withLabels(labels)
                 .build())
             .withSpec(volumeClaimSpec.build())

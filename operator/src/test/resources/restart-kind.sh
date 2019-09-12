@@ -36,7 +36,7 @@ then
   done
 fi
 kind create cluster --config kind-config.yaml --name "$CONTAINER_NAME" --image kindest/node:v${KUBERNETES_VERSION}
-sed -i 's#^    server:.*$#    server: 'https://"$(docker inspect -f '{{ .NetworkSettings.IPAddress }}' kind-control-plane)"':6443#' "$(kind get kubeconfig-path --name="$CONTAINER_NAME")"
+sed -i 's#^    server:.*$#    server: 'https://"$(docker inspect -f '{{ .NetworkSettings.IPAddress }}' ${CONTAINER_NAME}-control-plane)"':6443#' "$(kind get kubeconfig-path --name="$CONTAINER_NAME")"
 export KUBECONFIG="$(kind get kubeconfig-path --name="$CONTAINER_NAME")"
 echo "export KUBECONFIG='$(kind get kubeconfig-path --name="$CONTAINER_NAME")'" > /root/.bashrc
 cat << 'EOF' | kubectl apply -f -
