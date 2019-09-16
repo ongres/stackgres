@@ -11,10 +11,10 @@ var currentCluster = "";
 var serverIP = "";
 
 //Test API
-var apiURL = 'http://192.168.1.10:7978/';
+//var apiURL = 'http://192.168.1.10:7978/';
 
 //Prod API
-//var apiURL = location.href;
+var apiURL = "/";
 
 
 const router = new VueRouter({

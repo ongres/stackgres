@@ -3,7 +3,7 @@ var PoolConfig = Vue.component("pool-config", {
 		<div id="pool-config">
 			<header>
 				<h2 class="title">POSTGRESQL CONNECTION POOLING</h2>
-				<h3 class="subtitle">K8S Cluster: 255.255.255.255</h3>
+				<h3 class="subtitle">K8S Cluster: {{ serverIP }}</h3>
 			</header>
 
 			<div class="content">

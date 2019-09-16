@@ -3,7 +3,7 @@ var SGProfiles = Vue.component("sg-profile", {
 		<div id="sg-profile">
 			<header>
 				<h2 class="title">PostgreSQL instance profiles</h2>
-				<h3 class="subtitle">K8S Cluster: 255.255.255.255</h3>
+				<h3 class="subtitle">K8S Cluster: {{ serverIP }}</h3>
 			</header>
 
 			<div class="content">
