@@ -8,12 +8,13 @@ var pgConf = [];
 var poolConf = [];
 var profiles = [];
 var currentCluster = "";
+var serverIP = "";
 
 //Test API
 //var apiURL = 'http://192.168.1.10:7978/';
 
 //Prod API
-var apiURL = "/";
+var apiURL = location.href;
 
 
 const router = new VueRouter({
@@ -126,6 +127,18 @@ new Vue({
   		//clusters: []
 	},
 	mounted () {
+
+    /* Server IP */
+        axios
+        .get(apiURL+'kubernetes-cluster-info',
+          { headers: {
+            'content-type': 'application/json'
+          }
+        })
+        .then( function(response) {
+          serverIP = response.data;
+          console.log(response.data.substring(8).replace("/",""));
+        });
 
 		/* Clusters Data */
     	axios

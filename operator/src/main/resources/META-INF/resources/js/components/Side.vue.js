@@ -7,7 +7,7 @@ var Side = Vue.component("sg-side", {
 
 			<div id="cluster-id">
 				<span>K8S CLUSTER</span>
-				<h2>255.255.255.255</h2>
+				<h2>{{ serverIP }}</h2>
 			</div>
 
 			<div id="sets">
