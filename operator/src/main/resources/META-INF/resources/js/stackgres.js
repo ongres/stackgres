@@ -119,7 +119,7 @@ new Vue({
 
 		/* Clusters Data */
     	axios
-      	.get(apiURL+'/cluster',
+      	.get(apiURL+'cluster',
       		{ headers: {
       				'content-type': 'application/json'
       			}
@@ -143,7 +143,7 @@ new Vue({
 
       	/* PostgreSQL Config */
       	axios
-      	.get(apiURL+'/pgconfig',
+      	.get(apiURL+'pgconfig',
       		{ headers: {
       			'content-type': 'application/json'
       		}
@@ -159,7 +159,7 @@ new Vue({
 
       	/* Connection Pooling Config */
       	axios
-      	.get(apiURL+'/connpoolconfig',
+      	.get(apiURL+'connpoolconfig',
       		{ headers: {
       			'content-type': 'application/json'
       		}
@@ -175,7 +175,7 @@ new Vue({
 
       	/* Profiles */
       	axios
-      	.get(apiURL+'/profile',
+      	.get(apiURL+'profile',
       		{ headers: {
       			'content-type': 'application/json'
       		}
