@@ -37,6 +37,9 @@ public class StackGresConnectionPoolingConfigResource {
   @Inject
   KubernetesClientFactory kubeClient;
 
+  /**
+   * Return the list of {@code StackGresPgbouncerConfig}.
+   */
   @GET
   public List<StackGresPgbouncerConfig> list() {
     try (KubernetesClient client = kubeClient.create()) {
@@ -52,6 +55,9 @@ public class StackGresConnectionPoolingConfigResource {
     }
   }
 
+  /**
+   * Return a {@code StackGresPgbouncerConfig}.
+   */
   @Path("/{namespace}/{name}")
   @GET
   public StackGresPgbouncerConfig get(@PathParam("namespace") String namespace,
@@ -71,48 +77,57 @@ public class StackGresConnectionPoolingConfigResource {
     }
   }
 
+  /**
+   * Create a {@code StackGresPgbouncerConfig}.
+   */
   @POST
   public void create(StackGresPgbouncerConfig cluster) {
     try (KubernetesClient client = kubeClient.create()) {
       CustomResourceDefinition crd = ResourceUtils.getCustomResource(
           client, StackGresPgbouncerConfigDefinition.NAME)
-        .orElseThrow(() -> new RuntimeException("StackGres is not correctly installed:"
+          .orElseThrow(() -> new RuntimeException("StackGres is not correctly installed:"
             + " CRD " + StackGresPgbouncerConfigDefinition.NAME + " not found."));
       client.customResources(crd,
           StackGresPgbouncerConfig.class,
           StackGresPgbouncerConfigList.class,
           StackGresPgbouncerConfigDoneable.class)
-      .create(cluster);
+        .create(cluster);
     }
   }
 
+  /**
+   * Delete a {@code StackGresPgbouncerConfig}.
+   */
   @DELETE
   public void delete(StackGresPgbouncerConfig cluster) {
     try (KubernetesClient client = kubeClient.create()) {
       CustomResourceDefinition crd = ResourceUtils.getCustomResource(
           client, StackGresPgbouncerConfigDefinition.NAME)
-        .orElseThrow(() -> new RuntimeException("StackGres is not correctly installed:"
-            + " CRD " + StackGresPgbouncerConfigDefinition.NAME + " not found."));
+          .orElseThrow(() -> new RuntimeException("StackGres is not correctly installed:"
+              + " CRD " + StackGresPgbouncerConfigDefinition.NAME + " not found."));
       client.customResources(crd,
           StackGresPgbouncerConfig.class,
           StackGresPgbouncerConfigList.class,
           StackGresPgbouncerConfigDoneable.class)
-      .delete(cluster);
+        .delete(cluster);
     }
   }
 
+  /**
+   * Create or update a {@code StackGresPgbouncerConfig}.
+   */
   @PUT
   public void update(StackGresPgbouncerConfig cluster) {
     try (KubernetesClient client = kubeClient.create()) {
       CustomResourceDefinition crd = ResourceUtils.getCustomResource(
           client, StackGresPgbouncerConfigDefinition.NAME)
-        .orElseThrow(() -> new RuntimeException("StackGres is not correctly installed:"
-            + " CRD " + StackGresPgbouncerConfigDefinition.NAME + " not found."));
+          .orElseThrow(() -> new RuntimeException("StackGres is not correctly installed:"
+              + " CRD " + StackGresPgbouncerConfigDefinition.NAME + " not found."));
       client.customResources(crd,
           StackGresPgbouncerConfig.class,
           StackGresPgbouncerConfigList.class,
           StackGresPgbouncerConfigDoneable.class)
-      .createOrReplace(cluster);
+        .createOrReplace(cluster);
     }
   }
 }

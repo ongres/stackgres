@@ -6,6 +6,7 @@
 package io.stackgres.operator.customresources.sgprofile;
 
 import com.google.common.base.MoreObjects;
+
 import io.fabric8.kubernetes.client.CustomResource;
 
 public class StackGresProfile extends CustomResource {

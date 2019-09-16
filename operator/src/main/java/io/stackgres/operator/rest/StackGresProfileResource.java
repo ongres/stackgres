@@ -37,6 +37,9 @@ public class StackGresProfileResource {
   @Inject
   KubernetesClientFactory kubeClient;
 
+  /**
+   * Return the list of {@code StackGresProfile}.
+   */
   @GET
   public List<StackGresProfile> list() {
     try (KubernetesClient client = kubeClient.create()) {
@@ -52,6 +55,9 @@ public class StackGresProfileResource {
     }
   }
 
+  /**
+   * Return a {@code StackGresProfile}.
+   */
   @Path("/{namespace}/{name}")
   @GET
   public StackGresProfile get(@PathParam("namespace") String namespace,
@@ -71,48 +77,57 @@ public class StackGresProfileResource {
     }
   }
 
+  /**
+   * Create a {@code StackGresProfile}.
+   */
   @POST
   public void create(StackGresProfile cluster) {
     try (KubernetesClient client = kubeClient.create()) {
       CustomResourceDefinition crd = ResourceUtils.getCustomResource(
           client, StackGresProfileDefinition.NAME)
-        .orElseThrow(() -> new RuntimeException("StackGres is not correctly installed:"
-            + " CRD " + StackGresProfileDefinition.NAME + " not found."));
+          .orElseThrow(() -> new RuntimeException("StackGres is not correctly installed:"
+              + " CRD " + StackGresProfileDefinition.NAME + " not found."));
       client.customResources(crd,
           StackGresProfile.class,
           StackGresProfileList.class,
           StackGresProfileDoneable.class)
-      .create(cluster);
+        .create(cluster);
     }
   }
 
+  /**
+   * Delete a {@code StackGresProfile}.
+   */
   @DELETE
   public void delete(StackGresProfile cluster) {
     try (KubernetesClient client = kubeClient.create()) {
       CustomResourceDefinition crd = ResourceUtils.getCustomResource(
           client, StackGresProfileDefinition.NAME)
-        .orElseThrow(() -> new RuntimeException("StackGres is not correctly installed:"
-            + " CRD " + StackGresProfileDefinition.NAME + " not found."));
+          .orElseThrow(() -> new RuntimeException("StackGres is not correctly installed:"
+              + " CRD " + StackGresProfileDefinition.NAME + " not found."));
       client.customResources(crd,
           StackGresProfile.class,
           StackGresProfileList.class,
           StackGresProfileDoneable.class)
-      .delete(cluster);
+        .delete(cluster);
     }
   }
 
+  /**
+   * Create or update a {@code StackGresProfile}.
+   */
   @PUT
   public void update(StackGresProfile cluster) {
     try (KubernetesClient client = kubeClient.create()) {
       CustomResourceDefinition crd = ResourceUtils.getCustomResource(
           client, StackGresProfileDefinition.NAME)
-        .orElseThrow(() -> new RuntimeException("StackGres is not correctly installed:"
-            + " CRD " + StackGresProfileDefinition.NAME + " not found."));
+          .orElseThrow(() -> new RuntimeException("StackGres is not correctly installed:"
+              + " CRD " + StackGresProfileDefinition.NAME + " not found."));
       client.customResources(crd,
           StackGresProfile.class,
           StackGresProfileList.class,
           StackGresProfileDoneable.class)
-      .createOrReplace(cluster);
+        .createOrReplace(cluster);
     }
   }
 }

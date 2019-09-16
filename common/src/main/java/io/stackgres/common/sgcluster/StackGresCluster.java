@@ -6,6 +6,7 @@
 package io.stackgres.common.sgcluster;
 
 import com.google.common.base.MoreObjects;
+
 import io.fabric8.kubernetes.client.CustomResource;
 
 public class StackGresCluster extends CustomResource {

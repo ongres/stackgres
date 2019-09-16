@@ -72,7 +72,8 @@ public class PatroniStatsScripts {
   private static String get(String scriptKey) {
     String script = STATS_SCRIPTS.get(scriptKey);
     if (script == null) {
-      throw new IllegalStateException("Key " + scriptKey + " not found in patroni-stats.properties");
+      throw new IllegalStateException(
+          "Key " + scriptKey + " not found in patroni-stats.properties");
     }
     return script;
   }

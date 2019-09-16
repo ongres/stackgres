@@ -37,6 +37,9 @@ public class StackGresPostgresConfigResource {
   @Inject
   KubernetesClientFactory kubeClient;
 
+  /**
+   * Return the list of {@code StackGresPostgresConfig}.
+   */
   @GET
   public List<StackGresPostgresConfig> list() {
     try (KubernetesClient client = kubeClient.create()) {
@@ -52,6 +55,9 @@ public class StackGresPostgresConfigResource {
     }
   }
 
+  /**
+   * Return a {@code StackGresPostgresConfig}.
+   */
   @Path("/{namespace}/{name}")
   @GET
   public StackGresPostgresConfig get(@PathParam("namespace") String namespace,
@@ -71,48 +77,57 @@ public class StackGresPostgresConfigResource {
     }
   }
 
+  /**
+   * Create a {@code StackGresPostgresConfig}.
+   */
   @POST
   public void create(StackGresPostgresConfig cluster) {
     try (KubernetesClient client = kubeClient.create()) {
       CustomResourceDefinition crd = ResourceUtils.getCustomResource(
           client, StackGresPostgresConfigDefinition.NAME)
-        .orElseThrow(() -> new RuntimeException("StackGres is not correctly installed:"
-            + " CRD " + StackGresPostgresConfigDefinition.NAME + " not found."));
+          .orElseThrow(() -> new RuntimeException("StackGres is not correctly installed:"
+              + " CRD " + StackGresPostgresConfigDefinition.NAME + " not found."));
       client.customResources(crd,
           StackGresPostgresConfig.class,
           StackGresPostgresConfigList.class,
           StackGresPostgresConfigDoneable.class)
-      .create(cluster);
+        .create(cluster);
     }
   }
 
+  /**
+   * Delete a {@code StackGresPostgresConfig}.
+   */
   @DELETE
   public void delete(StackGresPostgresConfig cluster) {
     try (KubernetesClient client = kubeClient.create()) {
       CustomResourceDefinition crd = ResourceUtils.getCustomResource(
           client, StackGresPostgresConfigDefinition.NAME)
-        .orElseThrow(() -> new RuntimeException("StackGres is not correctly installed:"
-            + " CRD " + StackGresPostgresConfigDefinition.NAME + " not found."));
+          .orElseThrow(() -> new RuntimeException("StackGres is not correctly installed:"
+              + " CRD " + StackGresPostgresConfigDefinition.NAME + " not found."));
       client.customResources(crd,
           StackGresPostgresConfig.class,
           StackGresPostgresConfigList.class,
           StackGresPostgresConfigDoneable.class)
-      .delete(cluster);
+        .delete(cluster);
     }
   }
 
+  /**
+   * Create or update a {@code StackGresPostgresConfig}.
+   */
   @PUT
   public void update(StackGresPostgresConfig cluster) {
     try (KubernetesClient client = kubeClient.create()) {
       CustomResourceDefinition crd = ResourceUtils.getCustomResource(
           client, StackGresPostgresConfigDefinition.NAME)
-        .orElseThrow(() -> new RuntimeException("StackGres is not correctly installed:"
-            + " CRD " + StackGresPostgresConfigDefinition.NAME + " not found."));
+          .orElseThrow(() -> new RuntimeException("StackGres is not correctly installed:"
+              + " CRD " + StackGresPostgresConfigDefinition.NAME + " not found."));
       client.customResources(crd,
           StackGresPostgresConfig.class,
           StackGresPostgresConfigList.class,
           StackGresPostgresConfigDoneable.class)
-      .createOrReplace(cluster);
+        .createOrReplace(cluster);
     }
   }
 }

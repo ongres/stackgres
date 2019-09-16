@@ -14,6 +14,7 @@ import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
 import com.google.common.io.Resources;
+
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.internal.KubernetesDeserializer;
@@ -29,6 +30,7 @@ import io.stackgres.operator.customresources.sgpgconfig.StackGresPostgresConfigD
 import io.stackgres.operator.customresources.sgprofile.StackGresProfile;
 import io.stackgres.operator.customresources.sgprofile.StackGresProfileDefinition;
 import io.stackgres.operator.watcher.StackGresClusterWatcher;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

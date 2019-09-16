@@ -6,6 +6,7 @@
 package io.stackgres.sidecars.pgbouncer.customresources;
 
 import com.google.common.base.MoreObjects;
+
 import io.fabric8.kubernetes.client.CustomResource;
 
 public class StackGresPgbouncerConfig extends CustomResource {

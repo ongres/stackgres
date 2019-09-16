@@ -8,6 +8,7 @@ package io.stackgres.sidecars.pgutils;
 import java.util.List;
 
 import com.google.common.collect.ImmutableList;
+
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;

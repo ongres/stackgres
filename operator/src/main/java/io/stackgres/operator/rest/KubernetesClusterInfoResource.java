@@ -24,6 +24,9 @@ public class KubernetesClusterInfoResource {
   @Inject
   KubernetesClientFactory kubeClient;
 
+  /**
+   * Return kubernetes cluster info.
+   */
   @GET
   public Response info() {
     try (KubernetesClient client = kubeClient.create()) {

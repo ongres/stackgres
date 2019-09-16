@@ -52,10 +52,10 @@ import io.stackgres.operator.customresources.sgprofile.StackGresProfileDoneable;
 import io.stackgres.operator.customresources.sgprofile.StackGresProfileList;
 import io.stackgres.operator.patroni.SgStatefulSets;
 
+import okhttp3.Response;
+
 import org.jooq.lambda.Unchecked;
 import org.jooq.lambda.tuple.Tuple;
-
-import okhttp3.Response;
 
 @Path("/cluster")
 @Produces(MediaType.APPLICATION_JSON)
@@ -65,6 +65,9 @@ public class StackGresClusterResource {
   @Inject
   KubernetesClientFactory kubeClient;
 
+  /**
+   * Return the list of {@code StackGresCluster}.
+   */
   @GET
   public List<StackGresCluster> list() {
     try (KubernetesClient client = kubeClient.create()) {
@@ -83,6 +86,9 @@ public class StackGresClusterResource {
     }
   }
 
+  /**
+   * Return a {@code StackGresCluster}.
+   */
   @Path("/{namespace}/{name}")
   @GET
   public StackGresCluster get(@PathParam("namespace") String namespace,
@@ -233,48 +239,57 @@ public class StackGresClusterResource {
     return cluster;
   }
 
+  /**
+   * Create a {@code StackGresCluster}.
+   */
   @POST
   public void create(StackGresCluster cluster) {
     try (KubernetesClient client = kubeClient.create()) {
       CustomResourceDefinition crd = ResourceUtils.getCustomResource(
           client, StackGresClusterDefinition.NAME)
-        .orElseThrow(() -> new RuntimeException("StackGres is not correctly installed:"
-            + " CRD " + StackGresClusterDefinition.NAME + " not found."));
+          .orElseThrow(() -> new RuntimeException("StackGres is not correctly installed:"
+              + " CRD " + StackGresClusterDefinition.NAME + " not found."));
       client.customResources(crd,
           StackGresCluster.class,
           StackGresClusterList.class,
           StackGresClusterDoneable.class)
-      .create(cluster);
+        .create(cluster);
     }
   }
 
+  /**
+   * Delete a {@code StackGresCluster}.
+   */
   @DELETE
   public void delete(StackGresCluster cluster) {
     try (KubernetesClient client = kubeClient.create()) {
       CustomResourceDefinition crd = ResourceUtils.getCustomResource(
           client, StackGresClusterDefinition.NAME)
-        .orElseThrow(() -> new RuntimeException("StackGres is not correctly installed:"
-            + " CRD " + StackGresClusterDefinition.NAME + " not found."));
+          .orElseThrow(() -> new RuntimeException("StackGres is not correctly installed:"
+              + " CRD " + StackGresClusterDefinition.NAME + " not found."));
       client.customResources(crd,
           StackGresCluster.class,
           StackGresClusterList.class,
           StackGresClusterDoneable.class)
-      .delete(cluster);
+        .delete(cluster);
     }
   }
 
+  /**
+   * Create or update a {@code StackGresCluster}.
+   */
   @PUT
   public void update(StackGresCluster cluster) {
     try (KubernetesClient client = kubeClient.create()) {
       CustomResourceDefinition crd = ResourceUtils.getCustomResource(
           client, StackGresClusterDefinition.NAME)
-        .orElseThrow(() -> new RuntimeException("StackGres is not correctly installed:"
-            + " CRD " + StackGresClusterDefinition.NAME + " not found."));
+          .orElseThrow(() -> new RuntimeException("StackGres is not correctly installed:"
+              + " CRD " + StackGresClusterDefinition.NAME + " not found."));
       client.customResources(crd,
           StackGresCluster.class,
           StackGresClusterList.class,
           StackGresClusterDoneable.class)
-      .createOrReplace(cluster);
+        .createOrReplace(cluster);
     }
   }
 
@@ -284,69 +299,69 @@ public class StackGresClusterResource {
     try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         ByteArrayOutputStream errorStream = new ByteArrayOutputStream();
         ByteArrayOutputStream errorCodeStream = new ByteArrayOutputStream();
-      ExecWatch execWatch = client.pods()
-          .inNamespace(pod.getMetadata().getNamespace())
-          .withName(pod.getMetadata().getName())
-          .inContainer(container)
-          .writingOutput(outputStream)
-          .writingError(errorStream)
-          .writingErrorChannel(errorCodeStream)
-          .usingListener(new ExecListener() {
-            @Override
-            public void onOpen(Response response) {
-            }
+        ExecWatch execWatch = client.pods()
+            .inNamespace(pod.getMetadata().getNamespace())
+            .withName(pod.getMetadata().getName())
+            .inContainer(container)
+            .writingOutput(outputStream)
+            .writingError(errorStream)
+            .writingErrorChannel(errorCodeStream)
+            .usingListener(new ExecListener() {
+              @Override
+              public void onOpen(Response response) {
+              }
 
-            @Override
-            public void onFailure(Throwable t, Response response) {
-              completableFuture.completeExceptionally(t);
-            }
+              @Override
+              public void onFailure(Throwable t, Response response) {
+                completableFuture.completeExceptionally(t);
+              }
 
-            @Override
-            public void onClose(int code, String reason) {
-              try {
-                outputStream.write(errorStream.toByteArray());
-                Status status = Serialization.unmarshal(
-                    new String(errorCodeStream.toByteArray(), Charsets.UTF_8), Status.class);
+              @Override
+              public void onClose(int code, String reason) {
+                try {
+                  outputStream.write(errorStream.toByteArray());
+                  Status status = Serialization.unmarshal(
+                      new String(errorCodeStream.toByteArray(), Charsets.UTF_8), Status.class);
 
-                int exitCode = status.getStatus().equals("Success") ? 0
-                    : Integer.parseInt(status.getDetails().getCauses().stream()
-                        .filter(cause -> cause.getReason() != null)
-                        .filter(cause -> cause.getReason().equals("ExitCode"))
-                        .map(StatusCause::getMessage)
-                        .findFirst().orElse("-1"));
-                if (exitCode != 0) {
-                  try (ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(
-                      outputStream.toByteArray());
-                  InputStreamReader inputStreamReader = new InputStreamReader(
-                      byteArrayInputStream, Charsets.UTF_8);
-                  BufferedReader bufferedReader = new BufferedReader(inputStreamReader)) {
-                    completableFuture.completeExceptionally(new RuntimeException(
-                        "Command exited with code " + exitCode + " on container " + container
-                        + " of pod " + pod.getMetadata().getName()
-                        + " in namespace " + pod.getMetadata().getNamespace()
-                        + " with arguments " + Arrays.asList(args) + ": "
-                        + status.getDetails().getCauses().stream()
+                  int exitCode = status.getStatus().equals("Success") ? 0
+                      : Integer.parseInt(status.getDetails().getCauses().stream()
+                          .filter(cause -> cause.getReason() != null)
+                          .filter(cause -> cause.getReason().equals("ExitCode"))
+                          .map(StatusCause::getMessage)
+                          .findFirst().orElse("-1"));
+                  if (exitCode != 0) {
+                    try (ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(
+                        outputStream.toByteArray());
+                        InputStreamReader inputStreamReader = new InputStreamReader(
+                            byteArrayInputStream, Charsets.UTF_8);
+                        BufferedReader bufferedReader = new BufferedReader(inputStreamReader)) {
+                      completableFuture.completeExceptionally(new RuntimeException(
+                          "Command exited with code " + exitCode + " on container " + container
+                          + " of pod " + pod.getMetadata().getName()
+                          + " in namespace " + pod.getMetadata().getNamespace()
+                          + " with arguments " + Arrays.asList(args) + ": "
+                          + status.getDetails().getCauses().stream()
                           .filter(cause -> cause.getMessage() != null)
                           .map(StatusCause::getMessage)
                           .findFirst().orElse("Unknown cause") + "\n"
-                        + bufferedReader.lines().collect(Collectors.joining("\n"))));
+                          + bufferedReader.lines().collect(Collectors.joining("\n"))));
+                    }
                   }
-                }
 
-                completableFuture.complete(null);
-              } catch (Exception ex) {
-                completableFuture.completeExceptionally(ex);
+                  completableFuture.complete(null);
+                } catch (Exception ex) {
+                  completableFuture.completeExceptionally(ex);
+                }
               }
-            }
-          })
-          .exec(args)) {
+            })
+            .exec(args)) {
       completableFuture.join();
 
       try (ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(
           outputStream.toByteArray());
-      InputStreamReader inputStreamReader = new InputStreamReader(
-          byteArrayInputStream, Charsets.UTF_8);
-      BufferedReader bufferedReader = new BufferedReader(inputStreamReader)) {
+          InputStreamReader inputStreamReader = new InputStreamReader(
+              byteArrayInputStream, Charsets.UTF_8);
+          BufferedReader bufferedReader = new BufferedReader(inputStreamReader)) {
         return bufferedReader.lines().collect(Collectors.toList());
       }
     }
