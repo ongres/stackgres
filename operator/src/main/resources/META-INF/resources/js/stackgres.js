@@ -9,7 +9,7 @@ var poolConf = [];
 var profiles = [];
 var currentCluster = "";
 
-var apiURL = 'http://192.168.1.10:7978';
+var apiURL = location.href;
 
 
 const router = new VueRouter({
