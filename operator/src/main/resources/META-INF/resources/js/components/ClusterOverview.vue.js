@@ -3,7 +3,7 @@ var ClusterOverview = Vue.component("cluster-overview", {
 		<div id="cluster-overview">
 			<header>
 				<h2 class="title">OVERVIEW</h2>
-				<h3 class="subtitle">K8S Cluster: 255.255.255.255</h3>
+				<h3 class="subtitle">K8S Cluster: {{ serverIP }}</h3>
 			</header>
 
 			<div class="content">
