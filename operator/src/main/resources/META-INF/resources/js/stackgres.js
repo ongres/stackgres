@@ -94,7 +94,7 @@ router.beforeEach((to, from, next) => {
         // if not, redirect to home page.
         //var nav = document.getElementById("nav"); 
 
-        console.log(to);
+        //console.log(to);
 
         if (currentCluster == '' && ( from.path.includes("profiles") || from.path.includes("configurations") ) && (to.path != ('/information/'+to.params.name)) ) { 
             //check codition is false
