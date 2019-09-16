@@ -9,7 +9,7 @@ var poolConf = [];
 var profiles = [];
 var currentCluster = "";
 
-var apiURL = location.href;
+var apiURL = '/';
 
 
 const router = new VueRouter({
