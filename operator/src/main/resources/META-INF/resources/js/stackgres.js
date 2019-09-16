@@ -93,13 +93,16 @@ router.beforeEach((to, from, next) => {
         // this route requires condition to be accessed
         // if not, redirect to home page.
         //var nav = document.getElementById("nav"); 
-        if (currentCluster == '' && ( from.path.includes("profiles") || from.path.includes("configurations") ) ) { 
+
+        console.log(to);
+
+        if (currentCluster == '' && ( from.path.includes("profiles") || from.path.includes("configurations") ) && (to.path != ('/information/'+to.params.name)) ) { 
             //check codition is false
             //console.log(from);
             next({ path: '/'}) 
         } else { 
             //check codition is true
-            console.log(from);
+            //console.log(from);
             next() 
         } 
     } else { 
@@ -137,7 +140,7 @@ new Vue({
         })
         .then( function(response) {
           serverIP = response.data;
-          console.log(response.data.substring(8).replace("/",""));
+          //console.log(response.data.substring(8).replace("/",""));
         });
 
 		/* Clusters Data */
