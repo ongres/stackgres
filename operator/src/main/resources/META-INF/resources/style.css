@@ -1,0 +1,569 @@
+/* Reset CSS*/
+article,aside,details,figcaption,figure,footer,header,hgroup,hr,menu,nav,section{display:block}a,hr{padding:0}abbr,address,article,aside,audio,b,blockquote,body,canvas,caption,cite,code,dd,del,details,dfn,div,dl,dt,em,fieldset,figcaption,figure,footer,form,h1,h2,h3,h4,h5,h6,header,hgroup,html,i,iframe,img,ins,kbd,label,legend,li,mark,menu,nav,object,ol,p,pre,q,samp,section,small,span,strong,sub,summary,sup,table,tbody,td,tfoot,th,thead,time,tr,ul,var,video{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:0 0}ins,mark{background-color:#ff9;color:#000}body{line-height:1}nav ul{list-style:none}blockquote,q{quotes:none}blockquote:after,blockquote:before,q:after,q:before{content:'';content:none}a{margin:0;font-size:100%;vertical-align:baseline;background:0 0}ins{text-decoration:none}mark{font-style:italic;font-weight:700}del{text-decoration:line-through}abbr[title],dfn[title]{border-bottom:1px dotted;cursor:help}table{border-collapse:collapse;border-spacing:0}hr{height:1px;border:0;border-top:1px solid #ccc;margin:1em 0}input,select{vertical-align:middle}
+
+/* Fonts */
+@import url('https://fonts.googleapis.com/css?family=Nunito:300,600&display=swap');
+
+/* General */
+:root {
+	--blue: #00ADB5;
+	--green: #00F900;
+	--red: #FF2600;
+	--gray1: #F0F0F1;
+	--gray2: #D3D3D6;
+	--gray3: #A6A7AE;
+	--gray4: #7A7B85;
+	--gray5: #4D4F5C;
+	--black: #020E14;
+
+}
+
+::selection {
+    color: #fff;
+    background: #00ADB5;
+}
+
+*:focus, *:active {
+    outline: none;
+}
+
+::-webkit-scrollbar-track
+{
+    -webkit-box-shadow: none;
+    background-color: #F5F5F5;
+    border: 0;
+}
+
+::-webkit-scrollbar
+{
+    width: 5px;
+    height: 5px;
+    background-color: #F5F5F5;
+}
+
+::-webkit-scrollbar-thumb
+{
+    background-color: #00ADB5;
+    border: 0;
+    border-radius: 3px;
+}
+
+body, html {
+    font-family: "Nunito", "Helvetica", "Arial", sans-serif;
+    font-size: .9rem;
+    font-weight: 300;
+    line-height: 1.2;
+    color: var(--gray5);
+    overflow-x:hidden;
+	-webkit-font-smoothing: subpixel-antialiased;
+	-moz-osx-font-smoothing: subpixel-antialiased;
+	font-smoothing: subpixel-antialiased;
+}
+
+body.noscroll, html.noscroll {
+    overflow: hidden;
+}
+
+main {
+    overflow: hidden;
+}
+
+* {
+	box-sizing: border-box;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-weight: 600;
+}
+
+.btn {
+    background: var(--blue);
+    color: #fff;
+    border-radius: 20px;
+    padding: 10px 20px;
+    text-decoration: none;
+    text-transform: uppercase;
+    font-size: .8rem;
+    display: inline-block;
+}
+
+a {
+	color: var(--blue);
+	text-decoration: none;
+}
+
+strong {
+    font-weight: 600;
+}
+
+/* Main Structure */
+aside {
+    display: block;
+    float: left;
+    height: 100vh;
+    overflow-x: hidden;
+    overflow-y: auto;
+    position: fixed;
+}
+
+#side {
+    width: 250px;
+    background: #FBFBFC;
+}
+
+#nav {
+    left: 250px;
+    width: 60px;
+    border-right: 1px solid var(--gray1);
+    border-left: 1px solid var(--gray1);
+}
+
+#main {
+    margin-left: 310px;
+	float: left;
+    width: calc(100% - 310px);
+    display: block;
+    min-height: 100vh;
+    padding: 60px 40px;
+}
+
+.cta {
+    text-align: center;
+    display: block;
+    margin: 40px auto;
+}
+
+/* Sidebar */
+#logo {
+    display: block;
+    height: 60px;
+    line-height: 60px;
+    text-align: center;
+    color: var(--blue);
+    font-size: 1.3rem;
+}
+
+#logo h1 {
+    font-weight: 300;
+}
+
+#cluster-id {
+    border-top: 1px solid var(--gray1);
+    border-bottom: 1px solid var(--gray1);
+    text-align: center;
+    height: 60px;
+    padding-top: 10px;
+}
+
+#cluster-id span {
+    font-size: .8rem;
+}
+
+#sets {
+    overflow: auto;
+    height: calc(100vh - 180px);
+}
+
+.set {
+    border-bottom: 1px solid var(--gray1);
+    border-left: 4px solid transparent;
+    padding: 20px;
+    text-transform: uppercase;
+    height: auto;
+    max-height: 100vh;
+    transition: max-height 1s ease-out;
+}
+
+.set.active {
+    border-left-color: var(--blue);
+}
+
+#sets a:not(.addnew) {
+    display: inline-block;
+    width: 90%;
+}
+
+#sets h3, #sets h4 {
+    display: inline-block;
+    margin-bottom: 20px;
+    position: relative;
+    cursor: pointer;
+    color: var(--gray5);
+}
+
+#sets h4 {
+	margin-bottom: 10px;
+}
+
+#sets h3:before {
+    content: "▾";
+    font-size: .8rem;
+    position: relative;
+    top: -2px;
+    margin-right: 8px;
+}
+
+#sets > .hide {
+    max-height: 55px;
+    height: auto;
+    overflow: hidden;
+    transition: height 1s ease-out;
+}
+
+#sets > .hide h3:before {
+	transform: rotate(180deg);
+}
+
+#sets .item {
+    padding-left: 16px;
+    display: block;
+    margin-bottom: 10px;
+    cursor: pointer;
+    color: initial;
+}
+
+#sets .item.router-link-active {
+    font-weight: bold;
+    color: var(--blue);
+}
+
+.addnew {
+    float: right;
+    background: var(--blue);
+    display: block;
+    width: 15px;
+    height: 15px;
+    border-radius: 100%;
+    color: #fff;
+    font-weight: bold;
+    text-align: center;
+    line-height: 12px;
+    text-decoration: none;
+    font-size: 1rem;
+}
+
+.addnew {
+    display: none;
+} 
+
+.conf > .item:not(:last-of-type) {
+    padding-bottom: 15px;
+}
+
+footer {
+    position: absolute;
+    bottom: 0;
+    min-height: 60px;
+    line-height: 60px;
+    border-top: 1px solid var(--gray1);
+    width: 100%;
+}
+
+#credits {
+    text-align: center;
+    font-size: .8rem;
+}
+
+#credits span {
+    color: var(--blue);
+}
+
+
+#nav svg {
+    fill: var(--gray3);
+    width: 20px;
+    height: 25px;
+    margin: 0 auto;
+    display: block;
+}
+
+#nav:not(.disabled) .top .router-link-active svg, #nav .view.router-link-active svg {
+    fill: var(--blue);
+}
+
+#nav .view svg {
+    width: 25px;
+}
+
+#nav a.nav-item {
+    width: 60px;
+    height: 59px;
+    display: block;
+    padding: 17px 0;
+    border-bottom: 1px solid var(--gray1);
+}
+
+#nav #collapse {
+    background: var(--blue);
+    height: 61px;
+    padding: 10px 0;
+}
+
+#collapse svg {
+    fill: #fff;
+    stroke: #fff;
+    width: 40px;
+    height: auto;
+}
+
+#nav #notifications {
+    position: relative;
+    height: 60px;
+}
+
+#nav.disabled .top svg {
+    opacity: .3;
+}
+
+#notifications .count {
+    position: absolute;
+    top: 15px;
+    left: 11px;
+    width: 21px;
+    height: 21px;
+    z-index: 1;
+    background: var(--blue);
+    border-radius: 100%;
+    line-height: 15px;
+    color: #fff;
+    text-align: center;
+    font-size: 10px;
+    border: 3px solid #fff;
+    display: none;
+}
+
+#notifications.active .count {
+	display: block;
+}
+
+.tooltip {
+    position: fixed;
+    background: #fff;
+    padding: 12px 20px;
+    border: 1px solid var(--gray1);
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.1);
+    margin-left: 70px;
+    display: none;
+}
+
+.tooltip.show {
+	display: block;
+}
+
+#nav:not(.disabled) .top .tooltip {
+    display: none !important;
+}
+
+.tooltip:before {
+    border: 1px solid var(--gray1);
+    display: block;
+    content: " ";
+    position: absolute;
+    left: -6px;
+    width: 10px;
+    height: 10px;
+    background: #fff;
+    transform: rotate(45deg);
+    top: calc(50% - 6px);
+    z-index: 1;
+    border-right: 0;
+    border-top: 0;
+}
+
+.tooltip.pos1 {
+	margin-top: -170px;
+}
+
+.tooltip.pos2 {
+	margin-top: -110px;
+}
+
+.tooltip.pos3 {
+	margin-top: -50px;
+}
+
+footer .tooltip p {
+    margin: 15px 0;
+    line-height: 1.3;
+}
+
+.help .tooltip {
+    margin-top: -90px;
+}
+
+#notifications .tooltip {
+    bottom: 10px;
+    padding: 5px 20px;
+}
+
+#notifications .tooltip:before {
+    top: auto;
+    bottom: 20px;
+}
+
+#notifications hr {
+    width: calc(100% + 40px);
+    margin-left: -20px;
+}
+
+footer .tooltip p:first-of-type {
+    font-size: .8rem;
+    color: var(--gray3);
+}
+
+/* Main Container */
+#main header {
+    text-transform: uppercase;
+    height: 60px;
+    margin-bottom: 15px;
+}
+
+.title {
+    color: var(--blue);
+    padding-top: 12px;
+    font-size: 1.1rem;
+}
+
+.subtitle {
+    font-weight: 300;
+}
+
+.table .row {
+    display: flex;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--gray1);
+}
+
+.head h4 {
+    color: var(--gray3);
+    font-weight: 300;
+    text-transform: uppercase;
+    font-size: .8rem;
+    letter-spacing: .3px;
+}
+
+
+.table .col {
+    flex-grow: 1;
+    flex-basis: 0;
+    text-align: center;
+}
+
+.table .col.number {
+    text-align: right;
+}
+
+.table .col.text {
+    text-transform: uppercase;
+    text-align: left;
+}
+
+.table .col.status {
+    text-align: left;
+    text-transform: uppercase;
+}
+
+.table .status > span, .status-legend .status > span {
+    background: var(--gray1);
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border-radius: 100%;
+    font-size: 11px;
+    line-height: 16px;
+    color: #fff;
+    margin-right: 10px;
+    text-align: center;
+}
+
+.table .status.running > span, .status-legend .status.running > span {
+    background: var(--blue);
+}
+
+.table .status.pending > span, .status-legend .status.pending > span {
+    color: var(--gray5);
+}
+
+.table .status.failed > span, .status-legend .status.failed > span {
+    background: var(--red);
+}
+
+.status-legend {
+    margin: 20px 0;
+}
+
+li.status {
+    display: inline-block;
+    list-style: none;
+    margin-left: 30px;
+}
+
+.status-legend .status > span {
+    margin-right: 3px;
+}
+
+.content .box {
+    border: 1px solid var(--gray1);
+    padding: 0 30px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.1);
+    font-size: 1rem;
+    overflow: hidden;
+    height: 50px;
+    transition: height .3s ease-out;
+}
+
+.content .box.show {
+    height: auto;
+    transition: height .3s ease-out;
+}
+
+.box h4 {
+    text-transform: uppercase;
+    padding: 15px 0;
+    position: relative;
+    left: -15px;
+    cursor: pointer;
+}
+
+.box h4:before {
+    content: "▾";
+    font-size: .8rem;
+    position: relative;
+    top: -2px;
+    margin-right: 8px;
+}
+
+.box span {
+    display: block;
+    text-transform: uppercase;
+    color: var(--gray3);
+    font-size: .9rem;
+    margin-bottom: 5px;
+}
+
+.box hr {
+    border: 0;
+    border-bottom: 1px solid var(--gray2);
+}
+
+ul.params {
+    margin-bottom: 20px;
+}
+
+.params li {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.profiles .box {
+    padding-bottom: 20px;
+}
+
+
+
+
+
+
