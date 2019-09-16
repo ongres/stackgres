@@ -88,8 +88,10 @@ oci-image-native deploy:
   dependencies:
     - build
   only:
-    - tags
-    - development
+    variables:
+      - $CI_COMMIT_REF_NAME == "development"
+      - $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
+      - $DO_DEPLOY
   script:
     - 'CONTAINER_NAME=stackgres/operator:${CI_COMMIT_TAG:-"$CI_COMMIT_REF_NAME"}'
     - './.gitlab/buildah-stackgres-native.sh $CONTAINER_NAME'
@@ -103,8 +105,10 @@ oci-image-jvm deploy:
   dependencies:
     - build
   only:
-    - tags
-    - development
+    variables:
+      - $CI_COMMIT_REF_NAME == "development"
+      - $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
+      - $DO_DEPLOY
   script:
     - 'CONTAINER_NAME=stackgres/operator:${CI_COMMIT_TAG:-"$CI_COMMIT_REF_NAME"}-jvm'
     - './.gitlab/buildah-stackgres-jvm.sh $CONTAINER_NAME'
