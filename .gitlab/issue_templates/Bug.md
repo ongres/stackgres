@@ -6,7 +6,7 @@ filtered by the "bug" label.
 
 Issue tracker:
 
-- https://gitlab.com/stackgres/stackgres/issues?label_name%5B%5D=Bug
+- https://gitlab.com/ongresinc/stackgres/issues?label_name%5B%5D=Bug
 
 and verify the issue you're about to submit isn't a duplicate.
 --->
@@ -32,4 +32,4 @@ and verify the issue you're about to submit isn't a duplicate.
 (Paste any relevant logs - please use code blocks (```) to format console output,
 logs, and code as it's very hard to read otherwise.)
 
-/label ~Bug
+/label ~Bug ~StackGres

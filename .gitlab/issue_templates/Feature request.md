@@ -16,4 +16,4 @@
 
 ### Links / references
 
-/label ~"Feature Request"
+/label ~"Feature Request" ~StackGres
