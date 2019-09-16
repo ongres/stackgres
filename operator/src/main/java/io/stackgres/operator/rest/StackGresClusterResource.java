@@ -76,6 +76,7 @@ public class StackGresClusterResource {
               StackGresCluster.class,
               StackGresClusterList.class,
               StackGresClusterDoneable.class)
+              .inAnyNamespace()
               .list()
               .getItems()
               .stream()

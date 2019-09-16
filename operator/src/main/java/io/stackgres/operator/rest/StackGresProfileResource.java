@@ -48,6 +48,7 @@ public class StackGresProfileResource {
               StackGresProfile.class,
               StackGresProfileList.class,
               StackGresProfileDoneable.class)
+              .inAnyNamespace()
               .list()
               .getItems())
           .orElseThrow(() -> new RuntimeException("StackGres is not correctly installed:"

@@ -48,6 +48,7 @@ public class StackGresConnectionPoolingConfigResource {
               StackGresPgbouncerConfig.class,
               StackGresPgbouncerConfigList.class,
               StackGresPgbouncerConfigDoneable.class)
+              .inAnyNamespace()
               .list()
               .getItems())
           .orElseThrow(() -> new RuntimeException("StackGres is not correctly installed:"

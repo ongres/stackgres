@@ -48,6 +48,7 @@ public class StackGresPostgresConfigResource {
               StackGresPostgresConfig.class,
               StackGresPostgresConfigList.class,
               StackGresPostgresConfigDoneable.class)
+              .inAnyNamespace()
               .list()
               .getItems())
           .orElseThrow(() -> new RuntimeException("StackGres is not correctly installed:"
