@@ -11,11 +11,11 @@ var Nav = Vue.component("sg-nav", {
 			</router-link>
 
 			<div class="top">
-				<router-link :to="this.$route.params.name == null ? '/information/' : '/information/'+this.$route.params.name" title="Information" class="info nav-item">
+				<router-link :to="( (this.$route.params.name == null) || (currentCluster == '') ) ? '/' : '/information/'+this.$route.params.name" title="Information" class="info nav-item">
 					<svg xmlns="http://www.w3.org/2000/svg" width="22" height="20.167" viewBox="0 0 22 20.167"><path data-name="Trazado 2236" d="M11 0C5.19 0 0 3.874 0 9.173a8.082 8.082 0 0 0 1.876 5.156c.05 1.678-.938 4.085-1.827 5.837a26.4 26.4 0 0 0 7.313-2.325C15.829 19.9 22 14.721 22 9.173 22 3.845 16.774 0 11 0zm.917 13.75h-1.834v-5.5h1.833zM11 6.646A1.146 1.146 0 1 1 12.146 5.5 1.146 1.146 0 0 1 11 6.646z"/></svg>
 				</router-link>
 
-				<router-link :to="this.$route.params.name == null ? '/status/' : '/status/'+this.$route.params.name" title="Status" class="status nav-item">
+				<router-link :to="( (this.$route.params.name == null) || (currentCluster == '') ) ? '/' : '/status/'+this.$route.params.name" title="Status" class="status nav-item">
 					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="20" viewBox="0 0 24 20"><path data-name="Trazado 2238" d="M18.905 12c-2.029 2.4-4.862 5-7.905 8C5.107 14.2 0 9.866 0 5.629 0-.525 8.114-1.958 11 2.953c2.865-4.875 11-3.5 11 2.676A6.323 6.323 0 0 1 21.5 8h-6.275a.7.7 0 0 0-.61.358l-.813 1.45-2.27-4.437a.7.7 0 0 0-1.2-.081L8.454 8H7.227a2 2 0 1 0 0 2h1.956a.7.7 0 0 0 .573-.3l.989-1.406L13 12.856a.7.7 0 0 0 1.227.052L15.987 10H24v2z" fill-rule="evenodd"/></svg>
 				</router-link>
 

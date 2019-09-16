@@ -9,7 +9,11 @@ var poolConf = [];
 var profiles = [];
 var currentCluster = "";
 
-var apiURL = location.href;
+//Test API
+var apiURL = 'http://192.168.1.10:7978/';
+
+//Prod API
+//var apiURL = location.href;
 
 
 const router = new VueRouter({
@@ -18,7 +22,7 @@ const router = new VueRouter({
     		path: '/overview/', 
     		component: ClusterOverview,
     		meta: {
-    			conditionalRoute: true
+    			conditionalRoute: false
     		},
     	},
     	{	
@@ -84,13 +88,13 @@ const router = new VueRouter({
 router.replace({ path: '', redirect: '/' });
 
 router.beforeEach((to, from, next) => { 
-    /*if (to.matched.some(record => record.meta.conditionalRoute)) { 
+    if (to.matched.some(record => record.meta.conditionalRoute)) { 
         // this route requires condition to be accessed
         // if not, redirect to home page.
-        var nav = document.getElementById("nav"); 
-        if (nav.classList.contains("disabled")) { 
+        //var nav = document.getElementById("nav"); 
+        if (currentCluster == '' && ( from.path.includes("profiles") || from.path.includes("configurations") ) ) { 
             //check codition is false
-            console.log(from);
+            //console.log(from);
             next({ path: '/'}) 
         } else { 
             //check codition is true
@@ -99,12 +103,18 @@ router.beforeEach((to, from, next) => {
         } 
     } else { 
         next() // make sure to always call next()! 
-    } */
+    } 
 
-   	if ( ( to.path.includes("information") || to.path.includes("status") ) && ( from.path.includes("profiles") || from.path.includes("configurations") ) )
+   	/*if ( ( to.path.includes("information") || to.path.includes("status") ) && ( from.path.includes("profiles") || from.path.includes("configurations") ) ){
+      console.log("Cluster: "+currentCluster);
     	next('/');
+    }
     else
-		next();
+      next()*/
+
+    //currentCluster = document.querySelector(".clu .router-link-exact-active").text;
+    //currentCluster = $(".clu .router-link-exact-active").text();
+		//next();
 });
 
 /* eslint-disable no-new */
@@ -198,7 +208,7 @@ $(document).ready(function(){
 
 	$(document).on("click", ".clu a", function(){
 		$(".clu .router-link-active:not(.router-link-exact-active)").removeClass("router-link-active");
-		currentCluster = $(".clu .router-link-exact-active").text();
+		currentCluster = $(this).text();
 
 
 		$("#nav").removeClass("disabled");
@@ -206,8 +216,9 @@ $(document).ready(function(){
 		//console.log(router.history.current.params.name);
 	});
 
-	$(document).on("click", ".clu a, .prof a", function(){
+	$(document).on("click", ".conf a, .prof a", function(){
 		currentCluster = '';
+    $("#nav").addClass("disabled");
 	});
 
 	$(document).on("click", ".box h4", function(){
