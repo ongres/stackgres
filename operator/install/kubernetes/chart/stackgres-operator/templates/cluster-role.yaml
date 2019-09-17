@@ -2,9 +2,6 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: {{ .Values.operatorName }}
-  {{- if .Values.namespace.create }}
-  namespace: {{ .Values.operatorNamespace }}
-  {{- end }}
 rules:
 - apiGroups: ["", "apps", "extensions", "rbac.authorization.k8s.io"] # "" indicates the core API group
   resources:

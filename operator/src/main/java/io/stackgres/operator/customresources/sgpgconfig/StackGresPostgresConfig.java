@@ -6,6 +6,7 @@
 package io.stackgres.operator.customresources.sgpgconfig;
 
 import com.google.common.base.MoreObjects;
+
 import io.fabric8.kubernetes.client.CustomResource;
 
 public class StackGresPostgresConfig extends CustomResource {

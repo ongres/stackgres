@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en" xml:lang="en">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>StackGres</title>
+		<meta name="description" content="">
+		<meta name="author" content="">
+		<meta name="robots" content="index, follow">
+
+		<!--
+		<link rel="apple-touch-icon" sizes="180x180" href="favicon/apple-touch-icon.png">
+		<link rel="icon" type="image/png" sizes="32x32" href="favicon/favicon-32x32.png">
+		<link rel="icon" type="image/png" sizes="16x16" href="favicon/favicon-16x16.png">
+		<link rel="manifest" href="favicon/site.webmanifest">
+		<link rel="mask-icon" href="favicon/safari-pinned-tab.svg" color="#00adb5">
+		<meta name="msapplication-TileColor" content="#00aba9">
+		<meta name="theme-color" content="#ffffff">
+		-->
+
+		<link rel="stylesheet" type="text/css" href="style.css">
+
+		<!-- Demo Data -->
+		<!--
+		<script src="js/data/pgcluster.js"></script>
+		<script src="js/data/pgconf.js"></script>
+		<script src="js/data/poolconf.js"></script>
+		<script src="js/data/profiles.js"></script>
+		-->
+
+		<!-- PROD vue / 2.6.0 -->
+		<script src="js/vue.min.js"></script>
+		
+		<!-- DEV vue / 2.6.0 -->
+		<!--<script src="js/vue.js"></script>-->
+		
+		<script src="js/vue-router.js"></script>
+		<script src="js/axios.min.js"></script>
+	</head>
+<body>
+	
+	<div id="app">
+		<sg-side></sg-side>
+		<sg-nav></sg-nav>
+		<router-view id="main"></router-view>
+	</div>
+
+	<!-- Components -->
+	<script type="text/javascript" src="js/components/ClusterOverview.vue.js"></script>
+	<script type="text/javascript" src="js/components/ClusterInfo.vue.js"></script>
+	<script type="text/javascript" src="js/components/ClusterStatus.vue.js"></script>
+	<script type="text/javascript" src="js/components/Side.vue.js"></script>
+	<script type="text/javascript" src="js/components/Nav.vue.js"></script>
+	<script type="text/javascript" src="js/components/PgConfig.vue.js"></script>
+	<script type="text/javascript" src="js/components/PoolConfig.vue.js"></script>
+	<script type="text/javascript" src="js/components/SGProfiles.vue.js"></script>
+
+	<script type="text/javascript" src="js/jquery-3.4.1.min.js"></script>
+	<script type="text/javascript" src="js/stackgres.js"></script>
+
+</body>
+</html>

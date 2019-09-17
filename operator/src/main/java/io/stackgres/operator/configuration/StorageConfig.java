@@ -8,8 +8,10 @@ package io.stackgres.operator.configuration;
 import java.util.Map;
 
 import com.google.common.collect.ImmutableMap;
+
 import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
+
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.immutables.value.Value;
 

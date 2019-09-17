@@ -16,6 +16,7 @@ import io.stackgres.operator.patroni.SgPatroniRole;
 import io.stackgres.operator.patroni.SgSecrets;
 import io.stackgres.operator.patroni.SgServices;
 import io.stackgres.operator.patroni.SgStatefulSets;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
