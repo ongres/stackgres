@@ -216,6 +216,17 @@ public class SgStatefulSets {
                             .withKey("replication-password")
                             .build())
                         .build())
+                    .build(),
+                new EnvVarBuilder().withName("PATRONI_authenticator_PASSWORD")
+                    .withValueFrom(new EnvVarSourceBuilder().withSecretKeyRef(
+                        new SecretKeySelectorBuilder()
+                            .withName(name)
+                            .withKey("authenticator-password")
+                            .build())
+                        .build())
+                    .build(),
+                new EnvVarBuilder().withName("PATRONI_authenticator_OPTIONS")
+                    .withValue("superuser")
                     .build())
             .withLivenessProbe(new ProbeBuilder()
                 .withHttpGet(new HTTPGetActionBuilder()

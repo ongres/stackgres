@@ -47,6 +47,7 @@ public class SgSecrets {
     Map<String, String> data = new HashMap<>();
     data.put("superuser-password", generatePassword());
     data.put("replication-password", generatePassword());
+    data.put("authenticator-password", generatePassword());
 
     try (KubernetesClient client = kubClientFactory.create()) {
       Secret secret = new Secret();
@@ -62,9 +63,9 @@ public class SgSecrets {
 
         client.secrets().inNamespace(namespace).create(secret);
         LOGGER.trace("Secret: {}", new SecretBuilder(secret)
-            .withData(ImmutableMap.of(
-                "superuser-password", "<obfuscated>",
-                "replication-password", "<obfuscated>"))
+            .withData(data.entrySet().stream()
+                .collect(ImmutableMap.toImmutableMap(
+                    e -> e.getKey(), e -> "<obfuscated>")))
             .build());
       }
 
