@@ -60,15 +60,11 @@ public class StackGresOperatorIt extends AbstractStackGresOperatorIt {
             "Timeout while checking connection available to postgres of"
                 + " pod '" + CLUSTER_NAME + "-0' in namespace '" + namespace + "':\n"
                 + s.collect(Collectors.joining("\n"))));
-    kind.execute("bash", "-l", "-c",
-        "kubectl exec -t -n " + namespace + " " + CLUSTER_NAME + "-0 -c postgres-util --"
-            + " bash -c \"psql -t -A -U postgres -p 5432"
-            + " -c 'CREATE USER test WITH PASSWORD '\\\"'test'\\\"\"")
-        .forEach(line -> LOGGER.info(line));
     ItHelper.waitUntil(Unchecked.supplier(() -> kind.execute("bash", "-l", "-c",
         "kubectl exec -t -n " + namespace + " " + CLUSTER_NAME + "-0 -c postgres-util --"
-            + " bash -c \"PGPASSWORD=test psql -t -A"
-            + " -U test -d postgres -p 6432 -c 'SELECT 1' || true\"")),
+            + " bash -c \"PGPASSWORD=$(kubectl get secret " + CLUSTER_NAME + " -n " + namespace
+            + " -o yaml | grep superuser-password | cut -d ':' -f 2 | tr -d ' ' | base64 -d)"
+            + " psql -t -A -U postgres -d postgres -p 6432 -c 'SELECT 1' || true\"")),
         s -> !s.noneMatch(line -> line.equals("1")), 60, ChronoUnit.SECONDS,
         s -> Assertions.fail(
             "Timeout while checking connection available to pgbouncer of"
