@@ -17,7 +17,7 @@ cluster:
 
 sidecar:
   pooling: true
-  utils: true
+  util: true
   prometheus: true
 
 crd:

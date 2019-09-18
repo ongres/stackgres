@@ -22,12 +22,12 @@ import javax.ws.rs.core.MediaType;
 
 import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.stackgres.common.ResourceUtils;
+import io.stackgres.common.customresource.sgpgconfig.StackGresPostgresConfig;
+import io.stackgres.common.customresource.sgpgconfig.StackGresPostgresConfigDefinition;
+import io.stackgres.common.customresource.sgpgconfig.StackGresPostgresConfigDoneable;
+import io.stackgres.common.customresource.sgpgconfig.StackGresPostgresConfigList;
+import io.stackgres.common.resource.ResourceUtil;
 import io.stackgres.operator.app.KubernetesClientFactory;
-import io.stackgres.operator.customresources.sgpgconfig.StackGresPostgresConfig;
-import io.stackgres.operator.customresources.sgpgconfig.StackGresPostgresConfigDefinition;
-import io.stackgres.operator.customresources.sgpgconfig.StackGresPostgresConfigDoneable;
-import io.stackgres.operator.customresources.sgpgconfig.StackGresPostgresConfigList;
 
 @Path("/pgconfig")
 @Produces(MediaType.APPLICATION_JSON)
@@ -43,7 +43,7 @@ public class StackGresPostgresConfigResource {
   @GET
   public List<StackGresPostgresConfig> list() {
     try (KubernetesClient client = kubeClient.create()) {
-      return ResourceUtils.getCustomResource(client, StackGresPostgresConfigDefinition.NAME)
+      return ResourceUtil.getCustomResource(client, StackGresPostgresConfigDefinition.NAME)
           .map(crd -> client.customResources(crd,
               StackGresPostgresConfig.class,
               StackGresPostgresConfigList.class,
@@ -64,7 +64,7 @@ public class StackGresPostgresConfigResource {
   public StackGresPostgresConfig get(@PathParam("namespace") String namespace,
       @PathParam("name") String name) {
     try (KubernetesClient client = kubeClient.create()) {
-      return ResourceUtils.getCustomResource(client, StackGresPostgresConfigDefinition.NAME)
+      return ResourceUtil.getCustomResource(client, StackGresPostgresConfigDefinition.NAME)
           .map(crd -> Optional.ofNullable(client.customResources(crd,
               StackGresPostgresConfig.class,
               StackGresPostgresConfigList.class,
@@ -84,7 +84,7 @@ public class StackGresPostgresConfigResource {
   @POST
   public void create(StackGresPostgresConfig cluster) {
     try (KubernetesClient client = kubeClient.create()) {
-      CustomResourceDefinition crd = ResourceUtils.getCustomResource(
+      CustomResourceDefinition crd = ResourceUtil.getCustomResource(
           client, StackGresPostgresConfigDefinition.NAME)
           .orElseThrow(() -> new RuntimeException("StackGres is not correctly installed:"
               + " CRD " + StackGresPostgresConfigDefinition.NAME + " not found."));
@@ -102,7 +102,7 @@ public class StackGresPostgresConfigResource {
   @DELETE
   public void delete(StackGresPostgresConfig cluster) {
     try (KubernetesClient client = kubeClient.create()) {
-      CustomResourceDefinition crd = ResourceUtils.getCustomResource(
+      CustomResourceDefinition crd = ResourceUtil.getCustomResource(
           client, StackGresPostgresConfigDefinition.NAME)
           .orElseThrow(() -> new RuntimeException("StackGres is not correctly installed:"
               + " CRD " + StackGresPostgresConfigDefinition.NAME + " not found."));
@@ -120,7 +120,7 @@ public class StackGresPostgresConfigResource {
   @PUT
   public void update(StackGresPostgresConfig cluster) {
     try (KubernetesClient client = kubeClient.create()) {
-      CustomResourceDefinition crd = ResourceUtils.getCustomResource(
+      CustomResourceDefinition crd = ResourceUtil.getCustomResource(
           client, StackGresPostgresConfigDefinition.NAME)
           .orElseThrow(() -> new RuntimeException("StackGres is not correctly installed:"
               + " CRD " + StackGresPostgresConfigDefinition.NAME + " not found."));
