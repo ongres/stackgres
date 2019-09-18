@@ -16,7 +16,7 @@ import org.mockito.Mock;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-public abstract class ValidationResourceTest<T extends AdmissionReview> {
+public abstract class ValidationResourceTest<T extends AdmissionReview<?>> {
 
     @Mock
     protected ValidationPipeline<T> pipeline;

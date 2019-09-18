@@ -45,7 +45,6 @@ import io.stackgres.operator.common.StackGresClusterConfig;
 import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operator.configuration.ImmutableStorageConfig;
 import io.stackgres.operator.configuration.StorageConfig;
-import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfile;
 import io.stackgres.operator.resource.ResourceUtil;
 
@@ -248,6 +247,7 @@ public class StackGresStatefulSet {
             .build())
         .withVolumeClaimTemplates(new PersistentVolumeClaimBuilder()
             .withMetadata(new ObjectMetaBuilder()
+                .withNamespace(namespace)
                 .withName(VOLUME_NAME)
                 .withLabels(labels)
                 .build())
@@ -262,15 +262,6 @@ public class StackGresStatefulSet {
             .iterator())
         .add(statefulSet)
         .build();
-  }
-
-  /**
-   * Check if the resource is the StatefulSet based on the StackGresCluster definition.
-   */
-  public static boolean is(StackGresCluster cluster, HasMetadata sgResource) {
-    return sgResource.getKind().equals("StatefulSet")
-        && sgResource.getMetadata().getNamespace().equals(cluster.getMetadata().getNamespace())
-        && sgResource.getMetadata().getName().equals(cluster.getMetadata().getName());
   }
 
 }

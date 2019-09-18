@@ -56,6 +56,9 @@ import org.slf4j.LoggerFactory;
 public class PostgresExporter
     implements StackGresSidecarTransformer<StackGresPostgresExporterConfig> {
 
+  public static final String EXPORTER_SERVICE_MONITOR = "-stackgres-prometheus-postgres-exporter";
+  public static final String EXPORTER_SERVICE = "-prometheus-postgres-exporter";
+
   private static final Logger LOGGER = LoggerFactory.getLogger(PostgresExporter.class);
 
   private static final String NAME = "prometheus-postgres-exporter";
@@ -132,7 +135,7 @@ public class PostgresExporter
         new ServiceBuilder()
             .withNewMetadata()
             .withNamespace(config.getCluster().getMetadata().getNamespace())
-            .withName(config.getCluster().getMetadata().getName() + "-" + NAME)
+            .withName(config.getCluster().getMetadata().getName() + EXPORTER_SERVICE)
             .withLabels(ImmutableMap.<String, String>builder()
                 .putAll(labels)
                 .put("container", NAME)
@@ -158,7 +161,7 @@ public class PostgresExporter
           serviceMonitor.setApiVersion(ServiceMonitorDefinition.APIVERSION);
           serviceMonitor.setMetadata(new ObjectMetaBuilder()
               .withName(config.getCluster().getMetadata().getName()
-                  + "-stackgres-prometheus-postgres-exporter")
+                  + EXPORTER_SERVICE_MONITOR)
               .withLabels(pi.getMatchLabels())
               .withNamespace(pi.getNamespace())
               .build());

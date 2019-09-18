@@ -6,9 +6,6 @@
 package io.stackgres.operator.controller;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 
@@ -16,20 +13,25 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+
 import io.fabric8.kubernetes.api.model.EventBuilder;
 import io.fabric8.kubernetes.api.model.EventSourceBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectReferenceBuilder;
 import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
-import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.quarkus.scheduler.Scheduled;
 import io.stackgres.operator.app.KubernetesClientFactory;
 import io.stackgres.operator.common.SidecarEntry;
 import io.stackgres.operator.common.StackGresClusterConfig;
 import io.stackgres.operator.common.StackGresSidecarTransformer;
 import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
+import io.stackgres.operator.customresource.sgcluster.StackGresClusterDefinition;
+import io.stackgres.operator.customresource.sgcluster.StackGresClusterDoneable;
+import io.stackgres.operator.customresource.sgcluster.StackGresClusterList;
 import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfigDefinition;
 import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfigDoneable;
@@ -40,8 +42,9 @@ import io.stackgres.operator.customresource.sgprofile.StackGresProfileDoneable;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfileList;
 import io.stackgres.operator.patroni.Patroni;
 import io.stackgres.operator.resource.ResourceUtil;
-import io.stackgres.operator.services.ResourceCreationSelector;
+import io.stackgres.operator.services.ResourceHandlerSelector;
 import io.stackgres.operator.services.SidecarFinder;
+
 import org.jooq.lambda.Unchecked;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,7 +64,7 @@ public class ClusterController {
   Patroni patroni;
 
   @Inject
-  ResourceCreationSelector creationSelector;
+  ResourceHandlerSelector handlerSelector;
 
   @Inject
   ClusterStatusManager statusManager;
@@ -72,30 +75,24 @@ public class ClusterController {
    * @param cluster Custom Resource with the specification to create the cluster
    */
   public void create(StackGresCluster cluster) throws Exception {
-    try (KubernetesClient client = kubClientFactory.create()) {
-      try {
-        StackGresClusterConfig config = getClusterConfig(cluster, client);
-        List<HasMetadata> sgResources = patroni.getResources(config);
-        for (HasMetadata sgResource : sgResources) {
-          creationSelector.createOrReplace(client, sgResource);
-        }
-        LOGGER.info("Cluster created: '{}.{}'",
-            cluster.getMetadata().getNamespace(),
-            cluster.getMetadata().getName());
-        sendEvent(EventReason.CLUSTER_CREATED,
-            "StackGres Cluster " + cluster.getMetadata().getName() + " created",
-            cluster, client);
-      } catch (RuntimeException ex) {
-        sendEvent(EventReason.CLUSTER_CONFIG_ERROR,
-            "StackGres Cluster " + cluster.getMetadata().getName() + " creation failed: "
-                + ex.getMessage(),
-            cluster, client);
-        throw new RuntimeException(
-            "Error while creating resource " + cluster.getMetadata().getNamespace() + "."
-                + cluster.getMetadata().getName() + " of type " + cluster.getKind()
-                + " (API version " + cluster.getApiVersion() + ")",
-            ex);
-      }
+    try {
+      syncResources();
+      LOGGER.info("Cluster created: '{}.{}'",
+          cluster.getMetadata().getNamespace(),
+          cluster.getMetadata().getName());
+      sendEvent(EventReason.CLUSTER_CREATED,
+          "StackGres Cluster " + cluster.getMetadata().getName() + " created",
+          cluster);
+    } catch (RuntimeException ex) {
+      sendEvent(EventReason.CLUSTER_CONFIG_ERROR,
+          "StackGres Cluster " + cluster.getMetadata().getName() + " creation failed: "
+              + ex.getMessage(),
+          cluster);
+      throw new RuntimeException(
+          "Error while creating resource " + cluster.getMetadata().getNamespace() + "."
+              + cluster.getMetadata().getName() + " of type " + cluster.getKind()
+              + " (API version " + cluster.getApiVersion() + ")",
+          ex);
     }
   }
 
@@ -105,33 +102,26 @@ public class ClusterController {
    * @param cluster Custom Resource with the specification to create the cluster
    */
   public void update(StackGresCluster cluster) throws Exception {
-    try (KubernetesClient client = kubClientFactory.create()) {
-      try {
-        StackGresClusterConfig config = getClusterConfig(cluster, client);
-        List<HasMetadata> sgResources = patroni.getResources(config);
-        for (HasMetadata sgResource : sgResources) {
-          patroni.update(config, sgResource, client);
-        }
-        LOGGER.info("Cluster updated: '{}.{}'",
-            cluster.getMetadata().getNamespace(),
-            cluster.getMetadata().getName());
-        sendEvent(EventReason.CLUSTER_UPDATED,
-            "StackGres Cluster " + cluster.getMetadata().getName() + " updated",
-            cluster, client);
-        statusManager.updatePendingRestart(cluster);
-        statusManager.sendCondition(ClusterStatusCondition.FALSE_FAILED, cluster);
-      } catch (RuntimeException ex) {
-        //statusManager.sendCondition(ClusterStatusCondition.CLUSTER_CONFIG_ERROR, cluster);
-        sendEvent(EventReason.CLUSTER_CONFIG_ERROR,
-            "StackGres Cluster " + cluster.getMetadata().getName() + " update failed: "
-                + ex.getMessage(),
-            cluster, client);
-        throw new RuntimeException(
-            "Error while updating resource " + cluster.getMetadata().getNamespace() + "."
-                + cluster.getMetadata().getName() + " of type " + cluster.getKind()
-                + " (API version " + cluster.getApiVersion() + ")",
-            ex);
-      }
+    try {
+      syncResources();
+      LOGGER.info("Cluster updated: '{}.{}'",
+          cluster.getMetadata().getNamespace(),
+          cluster.getMetadata().getName());
+      sendEvent(EventReason.CLUSTER_UPDATED,
+          "StackGres Cluster " + cluster.getMetadata().getName() + " updated",
+          cluster);
+      statusManager.updatePendingRestart(cluster);
+      statusManager.sendCondition(ClusterStatusCondition.FALSE_FAILED, cluster);
+    } catch (Exception ex) {
+      sendEvent(EventReason.CLUSTER_CONFIG_ERROR,
+          "StackGres Cluster " + cluster.getMetadata().getName() + " update failed: "
+              + ex.getMessage(),
+          cluster);
+      throw new RuntimeException(
+          "Error while updating resource " + cluster.getMetadata().getNamespace() + "."
+              + cluster.getMetadata().getName() + " of type " + cluster.getKind()
+              + " (API version " + cluster.getApiVersion() + ")",
+          ex);
     }
   }
 
@@ -139,41 +129,132 @@ public class ClusterController {
    * Delete full cluster.
    */
   public void delete(StackGresCluster cluster) throws Exception {
+    try {
+      syncResources();
+      LOGGER.info("Cluster deleted: '{}.{}'",
+          cluster.getMetadata().getNamespace(),
+          cluster.getMetadata().getName());
+      sendEvent(EventReason.CLUSTER_DELETED,
+          "StackGres Cluster " + cluster.getMetadata().getName() + " deleted",
+          cluster);
+    } catch (Exception ex) {
+      sendEvent(EventReason.CLUSTER_CONFIG_ERROR,
+          "StackGres Cluster " + cluster.getMetadata().getName() + " deletion failed: "
+              + ex.getMessage(),
+          cluster);
+      throw new RuntimeException(
+          "Error while deleting resource " + cluster.getMetadata().getNamespace() + "."
+              + cluster.getMetadata().getName() + " of type " + cluster.getKind()
+              + " (API version " + cluster.getApiVersion() + ")",
+          ex);
+    }
+  }
+
+  /**
+   * Synchronize cluster every specified interval.
+   */
+  @Scheduled(every = "PT5S")
+  public void synchronize() {
+    try {
+      LOGGER.info("Synchronizing clusters");
+      syncResources();
+      LOGGER.info("Clusters synchronized");
+    } catch (Exception ex) {
+      LOGGER.error("Error while synchronizing clusters", ex);
+    }
+  }
+
+  private synchronized void syncResources() {
     try (KubernetesClient client = kubClientFactory.create()) {
-      try {
-        StackGresClusterConfig config = getClusterConfig(cluster, client);
-        List<HasMetadata> sgResources = new ArrayList<>(patroni.getResources(config));
-        Collections.reverse(sgResources);
-        for (HasMetadata sgResource : sgResources) {
-          if (sgResource instanceof StatefulSet) {
-            client.apps().statefulSets()
-                .inNamespace(sgResource.getMetadata().getNamespace())
-                .withName(sgResource.getMetadata().getName())
-                .cascading(false)
-                .delete();
+      ImmutableList<StackGresClusterConfig> existingClusters = getExistingClusters(client);
+      ImmutableList<HasMetadata> existingOrphanResources = getExistingOrphanResources(
+          client, existingClusters);
+      for (HasMetadata existingOrphanResource : existingOrphanResources) {
+        LOGGER.info("Deleteing resource {}.{} of type {}"
+            + " since does not belong to any cluster",
+            existingOrphanResource.getMetadata().getNamespace(),
+            existingOrphanResource.getMetadata().getName(),
+            existingOrphanResource.getKind());
+        handlerSelector.delete(client, null, existingOrphanResource);
+      }
+      for (StackGresClusterConfig clusterConfig : existingClusters) {
+        LOGGER.info("Syncing cluster: '{}.{}'",
+            clusterConfig.getCluster().getMetadata().getNamespace(),
+            clusterConfig.getCluster().getMetadata().getName());
+        ImmutableList<HasMetadata> existingResources = getExistingResources(client, clusterConfig);
+        ImmutableList<HasMetadata> requiredResources = patroni.getResources(clusterConfig)
+            .stream()
+            .collect(ImmutableList.toImmutableList());
+        for (HasMetadata requiredResource : requiredResources) {
+          if (isResourceEqualsToAnyOf(clusterConfig, requiredResource, existingResources)) {
+            LOGGER.info("Found resource {}.{} of type {}",
+                requiredResource.getMetadata().getNamespace(),
+                requiredResource.getMetadata().getName(),
+                requiredResource.getKind());
             continue;
           }
-          client.resource(sgResource).delete();
+          Optional<HasMetadata> matchingResource = findResourceFrom(
+              requiredResource, existingResources);
+          if (matchingResource.isPresent()) {
+            HasMetadata existingResource = matchingResource.get();
+            LOGGER.info("Updating resource {}.{} of type {}"
+                + " to meet cluster requirements",
+                existingResource.getMetadata().getNamespace(),
+                existingResource.getMetadata().getName(),
+                existingResource.getKind());
+            handlerSelector.update(clusterConfig, existingResource, requiredResource);
+            handlerSelector.patch(client, clusterConfig, existingResource);
+          } else {
+            LOGGER.info("Creating resource {}.{} of type {}",
+                requiredResource.getMetadata().getNamespace(),
+                requiredResource.getMetadata().getName(),
+                requiredResource.getKind());
+            handlerSelector.create(client, clusterConfig, requiredResource);
+          }
         }
-        LOGGER.info("Cluster deleted: '{}.{}'",
-            cluster.getMetadata().getNamespace(),
-            cluster.getMetadata().getName());
-        sendEvent(EventReason.CLUSTER_DELETED,
-            "StackGres Cluster " + cluster.getMetadata().getName() + " deleted",
-            cluster, client);
-      } catch (RuntimeException ex) {
-        sendEvent(EventReason.CLUSTER_CONFIG_ERROR,
-            "StackGres Cluster " + cluster.getMetadata().getName() + " deletion failed: "
-                + ex.getMessage(),
-            cluster, client);
-        throw new RuntimeException(
-            "Error while deleting resource " + cluster.getMetadata().getNamespace() + "."
-                + cluster.getMetadata().getName() + " of type " + cluster.getKind()
-                + " (API version " + cluster.getApiVersion() + ")",
-            ex);
-
+        for (HasMetadata existingResource : existingResources) {
+          if (!findResourceFrom(existingResource, requiredResources).isPresent()
+              && !handlerSelector.isManaged(clusterConfig, existingResource)) {
+            LOGGER.info("Deleteing resource {}.{} of type {}"
+                + " since does not belong to existing cluster",
+                existingResource.getMetadata().getNamespace(),
+                existingResource.getMetadata().getName(),
+                existingResource.getKind());
+            handlerSelector.delete(client, null, existingResource);
+          }
+        }
+        LOGGER.info("Cluster synced: '{}.{}'",
+            clusterConfig.getCluster().getMetadata().getNamespace(),
+            clusterConfig.getCluster().getMetadata().getName());
       }
     }
+  }
+
+  private Optional<HasMetadata> findResourceFrom(HasMetadata resource,
+      ImmutableList<HasMetadata> resources) {
+    return resources.stream()
+        .filter(otherResource -> resource.getKind()
+            .equals(otherResource.getKind()))
+        .filter(otherResource -> resource.getMetadata().getNamespace()
+            .equals(otherResource.getMetadata().getNamespace()))
+        .filter(otherResource -> resource.getMetadata().getName()
+            .equals(otherResource.getMetadata().getName()))
+        .findAny();
+  }
+
+  private boolean isResourceEqualsToAnyOf(
+      StackGresClusterConfig config,
+      HasMetadata requiredResource,
+      ImmutableList<HasMetadata> existingResources) {
+    return existingResources.stream()
+        .filter(otherResource -> requiredResource.getKind()
+            .equals(otherResource.getKind()))
+        .filter(otherResource -> requiredResource.getMetadata().getNamespace()
+            .equals(otherResource.getMetadata().getNamespace()))
+        .filter(otherResource -> requiredResource.getMetadata().getName()
+            .equals(otherResource.getMetadata().getName()))
+        .anyMatch(existingResource -> handlerSelector
+            .equals(config, existingResource, requiredResource));
   }
 
   private StackGresClusterConfig getClusterConfig(StackGresCluster cluster,
@@ -192,7 +273,137 @@ public class ClusterController {
   private <T extends CustomResource> SidecarEntry<T> getSidecarEntry(StackGresCluster cluster,
       KubernetesClient client, StackGresSidecarTransformer<T> sidecar) throws Exception {
     Optional<T> sidecarConfig = sidecar.getConfig(cluster, client);
-    return new SidecarEntry<>(sidecar, sidecarConfig);
+    return new SidecarEntry<T>(sidecar, sidecarConfig);
+  }
+
+  private ImmutableList<StackGresClusterConfig> getExistingClusters(KubernetesClient client) {
+    return ResourceUtil.getCustomResource(client, StackGresClusterDefinition.NAME)
+      .map(crd -> client
+          .customResources(crd,
+              StackGresCluster.class,
+              StackGresClusterList.class,
+              StackGresClusterDoneable.class)
+          .list()
+          .getItems()
+          .stream()
+          .map(cluster -> getClusterConfig(cluster, client))
+          .collect(ImmutableList.toImmutableList()))
+      .orElseThrow(() -> new IllegalStateException("StackGres is not correctly installed:"
+          + " CRD " + StackGresClusterDefinition.NAME + " not found."));
+  }
+
+  private ImmutableList<HasMetadata> getExistingOrphanResources(KubernetesClient client,
+      ImmutableList<StackGresClusterConfig> existingClusters) {
+    ImmutableMap<String, String> labels = ImmutableMap.of(
+        ResourceUtil.APP_KEY, ResourceUtil.APP_NAME);
+    String[] existingClusterNames = existingClusters
+        .stream()
+        .map(cluster -> cluster.getCluster().getMetadata().getName())
+        .toArray(String[]::new);
+    return ImmutableList.<HasMetadata>builder()
+        .addAll(client.serviceAccounts()
+            .inAnyNamespace()
+            .withLabels(labels)
+            .withLabelNotIn(ResourceUtil.CLUSTER_NAME_KEY, existingClusterNames)
+            .list()
+            .getItems())
+        .addAll(client.rbac().roles()
+            .inAnyNamespace()
+            .withLabels(labels)
+            .withLabelNotIn(ResourceUtil.CLUSTER_NAME_KEY, existingClusterNames)
+            .list()
+            .getItems())
+        .addAll(client.rbac().roleBindings()
+            .inAnyNamespace()
+            .withLabels(labels)
+            .withLabelNotIn(ResourceUtil.CLUSTER_NAME_KEY, existingClusterNames)
+            .list()
+            .getItems())
+        .addAll(client.secrets()
+            .inAnyNamespace()
+            .withLabels(labels)
+            .withLabelNotIn(ResourceUtil.CLUSTER_NAME_KEY, existingClusterNames)
+            .list()
+            .getItems())
+        .addAll(client.services()
+            .inAnyNamespace()
+            .withLabels(labels)
+            .withLabelNotIn(ResourceUtil.CLUSTER_NAME_KEY, existingClusterNames)
+            .list()
+            .getItems())
+        .addAll(client.endpoints()
+            .inAnyNamespace()
+            .withLabels(labels)
+            .withLabelNotIn(ResourceUtil.CLUSTER_NAME_KEY, existingClusterNames)
+            .list()
+            .getItems())
+        .addAll(client.configMaps()
+            .inAnyNamespace()
+            .withLabels(labels)
+            .withLabelNotIn(ResourceUtil.CLUSTER_NAME_KEY, existingClusterNames)
+            .list()
+            .getItems())
+        .addAll(client.apps().statefulSets()
+            .inAnyNamespace()
+            .withLabels(labels)
+            .withLabelNotIn(ResourceUtil.CLUSTER_NAME_KEY, existingClusterNames)
+            .list()
+            .getItems())
+        .build()
+        .stream()
+        .collect(ImmutableList.toImmutableList());
+  }
+
+  private ImmutableList<HasMetadata> getExistingResources(KubernetesClient client,
+      StackGresClusterConfig cluster) {
+    ImmutableMap<String, String> labels = ImmutableMap.of(
+        ResourceUtil.APP_KEY, ResourceUtil.APP_NAME,
+        ResourceUtil.CLUSTER_NAME_KEY, cluster.getCluster().getMetadata().getName());
+    String namespace = cluster.getCluster().getMetadata().getNamespace();
+    return ImmutableList.<HasMetadata>builder()
+        .addAll(client.serviceAccounts()
+            .inNamespace(namespace)
+            .withLabels(labels)
+            .list()
+            .getItems())
+        .addAll(client.rbac().roles()
+            .inNamespace(namespace)
+            .withLabels(labels)
+            .list()
+            .getItems())
+        .addAll(client.rbac().roleBindings()
+            .inNamespace(namespace)
+            .withLabels(labels)
+            .list()
+            .getItems())
+        .addAll(client.secrets()
+            .inNamespace(namespace)
+            .withLabels(labels)
+            .list()
+            .getItems())
+        .addAll(client.services()
+            .inNamespace(namespace)
+            .withLabels(labels)
+            .list()
+            .getItems())
+        .addAll(client.endpoints()
+            .inNamespace(namespace)
+            .withLabels(labels)
+            .list()
+            .getItems())
+        .addAll(client.configMaps()
+            .inNamespace(namespace)
+            .withLabels(labels)
+            .list()
+            .getItems())
+        .addAll(client.apps().statefulSets()
+            .inNamespace(namespace)
+            .withLabels(labels)
+            .list()
+            .getItems())
+        .build()
+        .stream()
+        .collect(ImmutableList.toImmutableList());
   }
 
   private Optional<StackGresPostgresConfig> getPostgresConfig(StackGresCluster cluster,

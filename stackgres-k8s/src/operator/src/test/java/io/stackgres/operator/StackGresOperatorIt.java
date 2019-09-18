@@ -62,7 +62,7 @@ public class StackGresOperatorIt extends AbstractStackGresOperatorIt {
                   + s.collect(Collectors.joining("\n"))));
       ItHelper.waitUntil(Unchecked.supplier(() -> kind.execute("sh", "-l", "-c",
           "kubectl describe pod -n  " + namespace + " " + CLUSTER_NAME + "-" + instance)),
-          s -> s.anyMatch(line -> line.matches("  Ready\\s+True\\s*")), 120, ChronoUnit.SECONDS,
+          s -> s.anyMatch(line -> line.matches("  Ready\\s+True\\s*")), 180, ChronoUnit.SECONDS,
           s -> Assertions.fail(
               "Timeout while checking availability of"
                   + " pod '" + CLUSTER_NAME + "-" + instance

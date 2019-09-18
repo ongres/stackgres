@@ -6,6 +6,7 @@
 package io.stackgres.operator.configuration;
 
 import java.util.Map;
+import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -159,6 +160,71 @@ public class PatroniConfig {
       this.parameters = parameters;
     }
 
+    @Override
+    public int hashCode() {
+      return Objects.hash(parameters, usePgRewind, useSlots);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (this == obj) {
+        return true;
+      }
+      if (obj == null) {
+        return false;
+      }
+      if (!(obj instanceof PostgreSql)) {
+        return false;
+      }
+      PostgreSql other = (PostgreSql) obj;
+      return Objects.equals(parameters, other.parameters)
+          && Objects.equals(usePgRewind, other.usePgRewind)
+          && Objects.equals(useSlots, other.useSlots);
+    }
+
+    @Override
+    public String toString() {
+      return "PostgreSql [useSlots=" + useSlots + ", usePgRewind=" + usePgRewind + ", parameters="
+          + parameters + "]";
+    }
+
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(checkTimeline, loopWait, masterStartTimeout, maximumLagOnFailover,
+        postgresql, retryTimeout, synchronousMode, synchronousModeStrict, ttl);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (obj == null) {
+      return false;
+    }
+    if (!(obj instanceof PatroniConfig)) {
+      return false;
+    }
+    PatroniConfig other = (PatroniConfig) obj;
+    return Objects.equals(checkTimeline, other.checkTimeline)
+        && Objects.equals(loopWait, other.loopWait)
+        && Objects.equals(masterStartTimeout, other.masterStartTimeout)
+        && Objects.equals(maximumLagOnFailover, other.maximumLagOnFailover)
+        && Objects.equals(postgresql, other.postgresql)
+        && Objects.equals(retryTimeout, other.retryTimeout)
+        && Objects.equals(synchronousMode, other.synchronousMode)
+        && Objects.equals(synchronousModeStrict, other.synchronousModeStrict)
+        && Objects.equals(ttl, other.ttl);
+  }
+
+  @Override
+  public String toString() {
+    return "PatroniConfig [ttl=" + ttl + ", loopWait=" + loopWait + ", retryTimeout=" + retryTimeout
+        + ", maximumLagOnFailover=" + maximumLagOnFailover + ", checkTimeline=" + checkTimeline
+        + ", masterStartTimeout=" + masterStartTimeout + ", synchronousMode=" + synchronousMode
+        + ", synchronousModeStrict=" + synchronousModeStrict + ", postgresql=" + postgresql + "]";
   }
 
 }

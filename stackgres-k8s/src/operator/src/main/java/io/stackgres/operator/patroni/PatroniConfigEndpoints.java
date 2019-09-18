@@ -15,16 +15,14 @@ import com.google.common.collect.ImmutableMap;
 
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.EndpointsBuilder;
-import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.operator.common.StackGresClusterConfig;
 import io.stackgres.operator.configuration.PatroniConfig;
-import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.operator.patroni.parameters.Blacklist;
 import io.stackgres.operator.patroni.parameters.DefaultValues;
 import io.stackgres.operator.resource.ResourceUtil;
 
-public class PatroniEndpoints {
+public class PatroniConfigEndpoints {
 
   public static final String PATRONI_CONFIG_KEY = "config";
 
@@ -70,15 +68,6 @@ public class PatroniEndpoints {
         .withAnnotations(ImmutableMap.of(PATRONI_CONFIG_KEY, patroniConfigJson))
         .endMetadata()
         .build();
-  }
-
-  /**
-   * Check if the resource is the EndPoint associated with the cluster.
-   */
-  public static boolean is(StackGresCluster cluster, HasMetadata sgResource) {
-    return sgResource.getKind().equals("Endpoints")
-        && sgResource.getMetadata().getNamespace().equals(cluster.getMetadata().getNamespace())
-        && sgResource.getMetadata().getName().equals(cluster.getMetadata().getName());
   }
 
 }
