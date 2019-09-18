@@ -72,6 +72,7 @@
     <checkstyle.suppressions.location>checks/checkstyle/suppressions.xml</checkstyle.suppressions.location>
     <checkstyle.header.file>checks/checkstyle/header.txt</checkstyle.header.file>
     <spotbugs.excludeFilterFile>checks/spotbugs/exclude.xml</spotbugs.excludeFilterFile>
+    <jersey.version>2.29</jersey.version>
   </properties>
 
   <dependencyManagement>

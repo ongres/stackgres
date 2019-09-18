@@ -22,6 +22,8 @@ local.properties
 .loadpath
 .recommenders
 
+### Idea ###
+.idea/
 # External tool builders
 .externalToolBuilders/
 
