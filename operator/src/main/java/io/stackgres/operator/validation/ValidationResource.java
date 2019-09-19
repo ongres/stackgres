@@ -14,6 +14,8 @@ import javax.ws.rs.core.MediaType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.UUID;
+
 @Path("/validation")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
@@ -24,8 +26,11 @@ public class ValidationResource {
   @POST
   public AdmissionResponse validate(AdmissionReview cluster) {
 
+    UUID requestUid = cluster.getRequest().getUid();
+    LOGGER.info("Validating admission review " + requestUid.toString());
+
     AdmissionResponse response = new AdmissionResponse();
-    response.setUid(cluster.getRequest().getUid());
+    response.setUid(requestUid);
     response.setAllowed(true);
     return response;
 
