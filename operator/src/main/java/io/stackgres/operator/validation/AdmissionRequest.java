@@ -1,11 +1,16 @@
+/*
+ * Copyright (C) 2019 OnGres, Inc.
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
 package io.stackgres.operator.validation;
+
+import java.util.UUID;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.fabric8.kubernetes.api.model.GroupVersionKind;
 import io.fabric8.kubernetes.api.model.GroupVersionResource;
 import io.fabric8.kubernetes.api.model.authentication.UserInfo;
-
-import java.util.UUID;
 
 public class AdmissionRequest {
 
