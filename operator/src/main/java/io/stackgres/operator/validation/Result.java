@@ -10,6 +10,18 @@ public class Result {
   private Integer code;
   private String message;
 
+  public Result() {
+  }
+
+  public Result(Integer code) {
+    this.code = code;
+  }
+
+  public Result(Integer code, String message) {
+    this.code = code;
+    this.message = message;
+  }
+
   public Integer getCode() {
     return code;
   }
@@ -22,7 +34,4 @@ public class Result {
     return message;
   }
 
-  public void setMessage(String message) {
-    this.message = message;
-  }
 }

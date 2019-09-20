@@ -2,13 +2,21 @@ package io.stackgres.operator.validation;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.stackgres.operator.validation.validators.AlwaysSuccess;
+import io.stackgres.operator.validation.validators.ValidationPipeline;
+import io.stackgres.operator.validation.validators.Validator;
 import org.apache.commons.io.IOUtils;
+import org.glassfish.hk2.api.TypeLiteral;
+import org.glassfish.hk2.utilities.BuilderHelper;
+import org.glassfish.jersey.internal.inject.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.JerseyTest;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import javax.enterprise.inject.Instance;
+import javax.inject.Singleton;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.MediaType;
@@ -16,8 +24,10 @@ import javax.ws.rs.core.Response;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
-import java.util.UUID;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -37,8 +47,21 @@ class ValidationResourceTest extends JerseyTest {
 
   @Override
   protected Application configure() {
-    return new ResourceConfig(ValidationResource.class);
+    return new ResourceConfig(ValidationResource.class)
+        .register(new AbstractBinder(){
+
+      @Override
+      protected void configure() {
+
+        ValidationPipeline pipeline = new ValidationPipeline(getValidators());
+
+        bind(pipeline).to(ValidationPipeline.class).in(Singleton.class);
+
+      }
+    });
   }
+
+
 
   private static final ObjectMapper mapper = new ObjectMapper();
 
@@ -109,5 +132,51 @@ class ValidationResourceTest extends JerseyTest {
 
     assertEquals(requestUid, admissionResponse.getUid());
 
+  }
+
+  private static Instance<Validator> getValidators(){
+    return new Instance<Validator>() {
+      @Override
+      public Instance<Validator> select(Annotation... annotations) {
+        return null;
+      }
+
+      @Override
+      public <U extends Validator> Instance<U> select(Class<U> aClass, Annotation... annotations) {
+        return null;
+      }
+
+      @Override
+      public <U extends Validator> Instance<U> select(javax.enterprise.util.TypeLiteral<U> typeLiteral, Annotation... annotations) {
+        return null;
+      }
+
+
+      @Override
+      public boolean isUnsatisfied() {
+        return false;
+      }
+
+      @Override
+      public boolean isAmbiguous() {
+        return false;
+      }
+
+      @Override
+      public void destroy(Validator validator) {
+
+      }
+
+      @Override
+      public Iterator<Validator> iterator() {
+        Iterable<Validator> validators = Collections.singletonList(new AlwaysSuccess());
+        return validators.iterator();
+      }
+
+      @Override
+      public Validator get() {
+        return null;
+      }
+    };
   }
 }

@@ -1,0 +1,19 @@
+apiVersion: admissionregistration.k8s.io/v1beta1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: sgvalidator.{{ .Values.group }}
+webhooks:
+  - name: sgvalidator.{{ .Values.group }}
+    admissionReviewVersions: ["v1beta1"]
+    rules:
+      - operations: ["CREATE", "UPDATE", "DELETE"]
+        apiGroups: ["*"]
+        apiVersions: ["*"]
+        resources: ["*"]
+        scope: "*"
+    clientConfig:
+      service:
+        namespace: {{ .Values.operatorNamespace }}
+        name: {{ .Values.operatorName }}
+        path: /validation
+        port: 8080
