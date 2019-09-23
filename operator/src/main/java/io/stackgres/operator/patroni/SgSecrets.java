@@ -45,9 +45,12 @@ public class SgSecrets {
     Map<String, String> labels = ResourceUtils.defaultLabels(name);
 
     Map<String, String> data = new HashMap<>();
-    data.put("superuser-password", generatePassword());
-    data.put("replication-password", generatePassword());
-    data.put("authenticator-password", generatePassword());
+    String superuserPassword = generatePassword();
+    String replicationPassword = generatePassword();
+    String authenticatorPassword = generatePassword();
+    data.put("superuser-password", base64(superuserPassword));
+    data.put("replication-password", base64(replicationPassword));
+    data.put("authenticator-password", base64(authenticatorPassword));
 
     try (KubernetesClient client = kubClientFactory.create()) {
       Secret secret = new Secret();
@@ -85,11 +88,11 @@ public class SgSecrets {
   }
 
   private static String generatePassword() {
-    return base64(UUID.randomUUID().toString().substring(4, 22).getBytes(StandardCharsets.UTF_8));
+    return UUID.randomUUID().toString().substring(4, 22);
   }
 
-  private static String base64(byte[] bytes) {
-    return Base64.getEncoder().encodeToString(bytes);
+  private static String base64(String text) {
+    return Base64.getEncoder().encodeToString(text.getBytes(StandardCharsets.UTF_8));
   }
 
   /**

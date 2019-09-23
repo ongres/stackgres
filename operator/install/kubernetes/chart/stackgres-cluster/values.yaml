@@ -18,6 +18,7 @@ cluster:
 sidecar:
   pooling: true
   utils: true
+  prometheus: true
 
 crd:
   version: v1alpha1
