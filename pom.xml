@@ -43,7 +43,7 @@
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>
     <!-- Dependencies versions -->
-    <quarkus.version>0.21.2</quarkus.version>
+    <quarkus.version>0.22.0</quarkus.version>
     <jool.version>0.9.14</jool.version>
     <kubernetes-client.version>4.6.0</kubernetes-client.version>
     <immutables.version>2.7.5</immutables.version>
