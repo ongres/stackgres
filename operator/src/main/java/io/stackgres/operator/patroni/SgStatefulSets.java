@@ -74,6 +74,7 @@ import io.stackgres.operator.customresources.sgprofile.StackGresProfileList;
 import io.stackgres.operator.patroni.parameters.Blacklist;
 import io.stackgres.sidecars.Sidecar;
 import io.stackgres.sidecars.pgbouncer.PgBouncer;
+import io.stackgres.sidecars.pgexporter.PostgresExporter;
 import io.stackgres.sidecars.pgutils.PostgresUtil;
 
 import org.slf4j.Logger;
@@ -289,6 +290,13 @@ public class SgStatefulSets {
         List<HasMetadata> listResources = pgbouncer.createDependencies(resource);
         applyDependencies(client, listResources, namespace);
         injertVolumeConfigMap(statefulSet, pgbouncer, listResources);
+      }
+      if (resource.getSpec().getSidecars().contains("prometheus-postgres-exporter")) {
+        PostgresExporter pgexporter = new PostgresExporter();
+        injectContainer(resource, statefulSet, pgexporter);
+        List<HasMetadata> listResources = pgexporter.createDependencies(resource);
+        applyDependencies(client, listResources, namespace);
+        injertVolumeConfigMap(statefulSet, pgexporter, listResources);
       }
 
       StatefulSet ss = client.apps().statefulSets().inNamespace(namespace).withName(name).get();
