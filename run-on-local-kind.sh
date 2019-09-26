@@ -7,7 +7,7 @@ TEMP_DIRECTORY="tmp"
 rm -rf $TEMP_DIRECTORY
 mkdir $TEMP_DIRECTORY
 
-./operator/src/test/resources/certs/self-signed-certificates.sh
+./self-signed-certificates.sh
 
 
 mvn clean test package
@@ -27,6 +27,8 @@ kubectl patch deploy --namespace kube-system tiller-deploy -p '{"spec":{"templat
 sleep 60
 
 CA_BUNDLE=$(kubectl get csr ${SERVICE_NAME}.${NAMESPACE} -o jsonpath='{.status.certificate}')
+CA_BUNDLE_LINE=$(cat operator/install/kubernetes/chart/stackgres-operator/values.yaml | grep caBundle:)
+
 sed -i "s/  caBundle:.*/  caBundle: ${CA_BUNDLE}/g" operator/install/kubernetes/chart/stackgres-operator/values.yaml
 
 helm install --name stackgres-operator operator/install/kubernetes/chart/stackgres-operator/
@@ -36,7 +38,7 @@ kubectl create secret generic ${SERVICE_NAME}.${NAMESPACE} \
         --from-file=server.crt=server.crt \
         -n ${NAMESPACE}
 
-sed -i 's/  caBundle:.*/  caBundle: ${CA_BUNDLE}/g' operator/install/kubernetes/chart/stackgres-operator/values.yaml
+sed -i "s/  caBundle:.*/${CA_BUNDLE_LINE}/g" operator/install/kubernetes/chart/stackgres-operator/values.yaml
 
 rm server.crt
 rm server-key.pem

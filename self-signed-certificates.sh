@@ -46,7 +46,5 @@ CA_BUNDLE=$(kubectl get csr ${SERVICE_NAME}.${NAMESPACE} -o jsonpath='{.status.c
 
 echo ${CA_BUNDLE} | openssl base64 -d -A -out server.crt
 
-sed -i "s/  caBundle:.*/  caBundle: ${CA_BUNDLE}/g" operator/install/kubernetes/chart/stackgres-operator/values.yaml
-
 docker cp server.crt kind-control-plane:/usr/local/share/ca-certificates/validator.crt
 docker exec -it kind-control-plane sh -c "update-ca-certificates"

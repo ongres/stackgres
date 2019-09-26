@@ -158,8 +158,8 @@
     <profile>
       <id>integration</id>
       <properties>
-        <quarkus.http.ssl.certificate.file>resources/server.crt</quarkus.http.ssl.certificate.file>
-        <quarkus.http.ssl.certificate.key-file>resources/root.key</quarkus.http.ssl.certificate.key-file>
+        <quarkus.http.ssl.certificate.file>src/test/resources/certs/server.crt</quarkus.http.ssl.certificate.file>
+        <quarkus.http.ssl.certificate.key-file>src/test/resources/certs/server-key.pem</quarkus.http.ssl.certificate.key-file>
       </properties>
       <build>
         <plugins>
