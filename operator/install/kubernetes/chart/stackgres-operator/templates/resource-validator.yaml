@@ -1,3 +1,4 @@
+{{- if .Values.validator.create }}
 apiVersion: admissionregistration.k8s.io/v1beta1
 kind: ValidatingWebhookConfiguration
 metadata:
@@ -5,15 +6,18 @@ metadata:
 webhooks:
   - name: sgvalidator.{{ .Values.group }}
     admissionReviewVersions: ["v1beta1"]
+    sideEffects: None
     rules:
       - operations: ["CREATE", "UPDATE", "DELETE"]
-        apiGroups: ["*"]
+        apiGroups: ["stackgres.io"]
         apiVersions: ["*"]
-        resources: ["*"]
+        resources: ["sgclusters"]
         scope: "*"
+    failurePolicy: Ignore
     clientConfig:
       service:
         namespace: {{ .Values.operatorNamespace }}
         name: {{ .Values.operatorName }}
         path: /validation
-        port: 8080
+        caBundle: {{ .Values.validator.caBundle }}
+{{ end }}

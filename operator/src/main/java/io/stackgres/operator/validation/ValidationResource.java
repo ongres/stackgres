@@ -7,6 +7,7 @@ package io.stackgres.operator.validation;
 
 import java.util.UUID;
 
+import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
@@ -14,6 +15,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import io.quarkus.runtime.StartupEvent;
 import io.stackgres.operator.validation.validators.ValidationFailed;
 import io.stackgres.operator.validation.validators.ValidationPipeline;
 import org.slf4j.Logger;
@@ -29,17 +31,30 @@ public class ValidationResource {
   @Inject
   private ValidationPipeline pipeline;
 
-  @POST
-  public AdmissionResponse validate(AdmissionReview cluster) {
+  void onStart(@Observes StartupEvent ev) {
+    LOGGER.info("Validation resource started");
+  }
 
-    UUID requestUid = cluster.getRequest().getUid();
-    LOGGER.info("Validating admission review " + requestUid.toString());
+  @POST
+  public AdmissionReviewResponse validate(AdmissionReview admissionReview) {
+
+    AdmissionRequest request = admissionReview.getRequest();
+    UUID requestUid = request.getUid();
+    LOGGER.info("Validating admission review " + requestUid.toString()
+        + " of kind " + request.getKind().toString());
 
     AdmissionResponse response = new AdmissionResponse();
     response.setUid(requestUid);
 
+    AdmissionReviewResponse reviewResponse = new AdmissionReviewResponse();
+    reviewResponse.setResponse(response);
+
+    reviewResponse.setGroup(admissionReview.getGroup());
+    reviewResponse.setKind(admissionReview.getKind());
+    reviewResponse.setVersion(admissionReview.getVersion());
+
     try {
-      pipeline.validator(cluster);
+      pipeline.validator(admissionReview);
       response.setAllowed(true);
     } catch (ValidationFailed validationFailed) {
       Result result = validationFailed.getResult();
@@ -49,7 +64,7 @@ public class ValidationResource {
       response.setStatus(result);
     }
 
-    return response;
+    return reviewResponse;
 
   }
 

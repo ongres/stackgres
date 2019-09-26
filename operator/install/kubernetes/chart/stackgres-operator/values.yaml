@@ -23,3 +23,8 @@ namespace:
 
 deploy:
   create: true
+
+validator:
+  create: true
+  caBundle: ${CA_BUNDLE}
+

@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.operatorName }}
+  namespace:  {{ .Values.operatorNamespace }}
+spec:
+  selector:
+    app: {{ .Values.operatorName }}
+  ports:
+    - protocol: TCP
+      port: 443
+      targetPort: 8443

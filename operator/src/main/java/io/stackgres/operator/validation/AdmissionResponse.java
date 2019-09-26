@@ -7,6 +7,9 @@ package io.stackgres.operator.validation;
 
 import java.util.UUID;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class AdmissionResponse {
 
   private UUID uid;

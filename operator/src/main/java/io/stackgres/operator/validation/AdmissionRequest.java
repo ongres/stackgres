@@ -7,10 +7,10 @@ package io.stackgres.operator.validation;
 
 import java.util.UUID;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import io.fabric8.kubernetes.api.model.GroupVersionKind;
 import io.fabric8.kubernetes.api.model.GroupVersionResource;
 import io.fabric8.kubernetes.api.model.authentication.UserInfo;
+import io.stackgres.common.sgcluster.StackGresCluster;
 
 public class AdmissionRequest {
 
@@ -36,11 +36,11 @@ public class AdmissionRequest {
 
   private UserInfo userInfo;
 
-  private JsonNode object;
+  private StackGresCluster object;
 
-  private JsonNode oldObject;
+  private StackGresCluster oldObject;
 
-  private JsonNode options;
+  private StackGresCluster options;
 
   private boolean dryRun;
 
@@ -132,27 +132,27 @@ public class AdmissionRequest {
     this.userInfo = userInfo;
   }
 
-  public JsonNode getObject() {
+  public StackGresCluster getObject() {
     return object;
   }
 
-  public void setObject(JsonNode object) {
+  public void setObject(StackGresCluster object) {
     this.object = object;
   }
 
-  public JsonNode getOldObject() {
+  public StackGresCluster getOldObject() {
     return oldObject;
   }
 
-  public void setOldObject(JsonNode oldObject) {
+  public void setOldObject(StackGresCluster oldObject) {
     this.oldObject = oldObject;
   }
 
-  public JsonNode getOptions() {
+  public StackGresCluster getOptions() {
     return options;
   }
 
-  public void setOptions(JsonNode options) {
+  public void setOptions(StackGresCluster options) {
     this.options = options;
   }
 

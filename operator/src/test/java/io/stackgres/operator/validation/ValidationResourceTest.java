@@ -98,9 +98,9 @@ class ValidationResourceTest extends JerseyTest {
 
 
 
-    JsonNode admissionResponse = mapper.readTree(rawContent);
+    JsonNode admissionResponse = mapper.readTree(rawContent).get("response");
 
-    assertTrue(admissionResponse.has("status"));
+    assertFalse(admissionResponse.has("status"));
 
   }
 
@@ -111,9 +111,9 @@ class ValidationResourceTest extends JerseyTest {
 
     Response response = target("/validation").request(MediaType.APPLICATION_JSON).post(Entity.json(requestBody));
 
-    AdmissionResponse admissionResponse = response.readEntity(AdmissionResponse.class);
+    AdmissionReviewResponse admissionResponse = response.readEntity(AdmissionReviewResponse.class);
 
-    assertTrue(admissionResponse.isAllowed());
+    assertTrue(admissionResponse.getResponse().isAllowed());
 
   }
 
@@ -128,9 +128,9 @@ class ValidationResourceTest extends JerseyTest {
 
     Response response = target("/validation").request(MediaType.APPLICATION_JSON).post(Entity.json(requestBody));
 
-    AdmissionResponse admissionResponse = response.readEntity(AdmissionResponse.class);
+    AdmissionReviewResponse admissionResponse = response.readEntity(AdmissionReviewResponse.class);
 
-    assertEquals(requestUid, admissionResponse.getUid());
+    assertEquals(requestUid, admissionResponse.getResponse().getUid());
 
   }
 
