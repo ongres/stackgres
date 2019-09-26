@@ -20,15 +20,15 @@ import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.internal.KubernetesDeserializer;
 import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
-import io.stackgres.common.ResourceUtils;
-import io.stackgres.common.sgcluster.StackGresCluster;
-import io.stackgres.common.sgcluster.StackGresClusterDefinition;
-import io.stackgres.common.sgcluster.StackGresClusterDoneable;
-import io.stackgres.common.sgcluster.StackGresClusterList;
-import io.stackgres.operator.customresources.sgpgconfig.StackGresPostgresConfig;
-import io.stackgres.operator.customresources.sgpgconfig.StackGresPostgresConfigDefinition;
-import io.stackgres.operator.customresources.sgprofile.StackGresProfile;
-import io.stackgres.operator.customresources.sgprofile.StackGresProfileDefinition;
+import io.stackgres.common.customresource.sgcluster.StackGresCluster;
+import io.stackgres.common.customresource.sgcluster.StackGresClusterDefinition;
+import io.stackgres.common.customresource.sgcluster.StackGresClusterDoneable;
+import io.stackgres.common.customresource.sgcluster.StackGresClusterList;
+import io.stackgres.common.customresource.sgpgconfig.StackGresPostgresConfig;
+import io.stackgres.common.customresource.sgpgconfig.StackGresPostgresConfigDefinition;
+import io.stackgres.common.customresource.sgprofile.StackGresProfile;
+import io.stackgres.common.customresource.sgprofile.StackGresProfileDefinition;
+import io.stackgres.common.resource.ResourceUtil;
 import io.stackgres.operator.watcher.StackGresClusterWatcher;
 
 import org.slf4j.Logger;
@@ -70,7 +70,7 @@ public class StackGresOperatorApp {
   }
 
   private void startClusterCrdWatcher(KubernetesClient client) {
-    ResourceUtils.getCustomResource(client, StackGresClusterDefinition.NAME)
+    ResourceUtil.getCustomResource(client, StackGresClusterDefinition.NAME)
         .ifPresent(crd -> kubeClient.create()
             .customResources(crd,
                 StackGresCluster.class,
@@ -92,7 +92,7 @@ public class StackGresOperatorApp {
   }
 
   private boolean hasCustomResource(KubernetesClient client, String crdName) {
-    if (!ResourceUtils.getCustomResource(client, crdName).isPresent()) {
+    if (!ResourceUtil.getCustomResource(client, crdName).isPresent()) {
       LOGGER.error("CRD not found, please create it first: {}", crdName);
       return false;
     }

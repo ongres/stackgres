@@ -22,7 +22,7 @@ import javax.ws.rs.core.MediaType;
 
 import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.stackgres.common.ResourceUtils;
+import io.stackgres.common.resource.ResourceUtil;
 import io.stackgres.operator.app.KubernetesClientFactory;
 import io.stackgres.sidecars.pgbouncer.customresources.StackGresPgbouncerConfig;
 import io.stackgres.sidecars.pgbouncer.customresources.StackGresPgbouncerConfigDefinition;
@@ -43,7 +43,7 @@ public class StackGresConnectionPoolingConfigResource {
   @GET
   public List<StackGresPgbouncerConfig> list() {
     try (KubernetesClient client = kubeClient.create()) {
-      return ResourceUtils.getCustomResource(client, StackGresPgbouncerConfigDefinition.NAME)
+      return ResourceUtil.getCustomResource(client, StackGresPgbouncerConfigDefinition.NAME)
           .map(crd -> client.customResources(crd,
               StackGresPgbouncerConfig.class,
               StackGresPgbouncerConfigList.class,
@@ -64,7 +64,7 @@ public class StackGresConnectionPoolingConfigResource {
   public StackGresPgbouncerConfig get(@PathParam("namespace") String namespace,
       @PathParam("name") String name) {
     try (KubernetesClient client = kubeClient.create()) {
-      return ResourceUtils.getCustomResource(client, StackGresPgbouncerConfigDefinition.NAME)
+      return ResourceUtil.getCustomResource(client, StackGresPgbouncerConfigDefinition.NAME)
           .map(crd -> Optional.ofNullable(client.customResources(crd,
               StackGresPgbouncerConfig.class,
               StackGresPgbouncerConfigList.class,
@@ -84,7 +84,7 @@ public class StackGresConnectionPoolingConfigResource {
   @POST
   public void create(StackGresPgbouncerConfig cluster) {
     try (KubernetesClient client = kubeClient.create()) {
-      CustomResourceDefinition crd = ResourceUtils.getCustomResource(
+      CustomResourceDefinition crd = ResourceUtil.getCustomResource(
           client, StackGresPgbouncerConfigDefinition.NAME)
           .orElseThrow(() -> new RuntimeException("StackGres is not correctly installed:"
             + " CRD " + StackGresPgbouncerConfigDefinition.NAME + " not found."));
@@ -102,7 +102,7 @@ public class StackGresConnectionPoolingConfigResource {
   @DELETE
   public void delete(StackGresPgbouncerConfig cluster) {
     try (KubernetesClient client = kubeClient.create()) {
-      CustomResourceDefinition crd = ResourceUtils.getCustomResource(
+      CustomResourceDefinition crd = ResourceUtil.getCustomResource(
           client, StackGresPgbouncerConfigDefinition.NAME)
           .orElseThrow(() -> new RuntimeException("StackGres is not correctly installed:"
               + " CRD " + StackGresPgbouncerConfigDefinition.NAME + " not found."));
@@ -120,7 +120,7 @@ public class StackGresConnectionPoolingConfigResource {
   @PUT
   public void update(StackGresPgbouncerConfig cluster) {
     try (KubernetesClient client = kubeClient.create()) {
-      CustomResourceDefinition crd = ResourceUtils.getCustomResource(
+      CustomResourceDefinition crd = ResourceUtil.getCustomResource(
           client, StackGresPgbouncerConfigDefinition.NAME)
           .orElseThrow(() -> new RuntimeException("StackGres is not correctly installed:"
               + " CRD " + StackGresPgbouncerConfigDefinition.NAME + " not found."));

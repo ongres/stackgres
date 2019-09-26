@@ -15,7 +15,10 @@ spec:
   {{- if .Values.sidecar.pooling }}
   - connection-pooling
   {{ end }}
-  {{- if .Values.sidecar.utils }}
-  - postgres-utils
+  {{- if .Values.sidecar.util }}
+  - postgres-util
+  {{- end }}
+  {{- if .Values.sidecar.prometheus }}
+  - prometheus-postgres-exporter
   {{- end }}
 {{ end }}

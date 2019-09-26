@@ -10,7 +10,7 @@ import java.util.UUID;
 import io.fabric8.kubernetes.api.model.GroupVersionKind;
 import io.fabric8.kubernetes.api.model.GroupVersionResource;
 import io.fabric8.kubernetes.api.model.authentication.UserInfo;
-import io.stackgres.common.sgcluster.StackGresCluster;
+import io.stackgres.common.customresource.sgcluster.StackGresCluster;
 
 public class AdmissionRequest {
 
