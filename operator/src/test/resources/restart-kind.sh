@@ -55,4 +55,7 @@ roleRef:
 EOF
 helm init --history-max 20
 while ! helm version > /dev/null 2>&1; do sleep 0.5; done
+
+./certs/self-signed-certificates.sh
 echo "Kind started k8s cluster"
+

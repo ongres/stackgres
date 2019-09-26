@@ -73,6 +73,8 @@
     <checkstyle.header.file>checks/checkstyle/header.txt</checkstyle.header.file>
     <spotbugs.excludeFilterFile>checks/spotbugs/exclude.xml</spotbugs.excludeFilterFile>
     <jersey.version>2.29</jersey.version>
+    <quarkus.http.ssl.certificate.file>/etc/operator/certs/server.crt</quarkus.http.ssl.certificate.file>
+    <quarkus.http.ssl.certificate.key-file>/etc/operator/certs/root.key</quarkus.http.ssl.certificate.key-file>
   </properties>
 
   <dependencyManagement>

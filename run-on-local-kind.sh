@@ -7,7 +7,7 @@ TEMP_DIRECTORY="tmp"
 rm -rf $TEMP_DIRECTORY
 mkdir $TEMP_DIRECTORY
 
-./self-signed-certificates.sh
+./operator/src/test/resources/certs/self-signed-certificates.sh
 
 
 mvn clean test package

@@ -25,6 +25,6 @@ deploy:
   create: true
 
 validator:
-  create: false
+  create: true
   caBundle: ${CA_BUNDLE}
 

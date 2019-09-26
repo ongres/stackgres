@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Test;
       environments = { @Environment(key = "DOCKER_HOST", value = "tcp://172.17.0.1:2376") },
       mounts = {
           @Mount(path = "/scripts", value = "/restart-kind.sh"),
+          @Mount(path = "/scripts/certs", value = "/certs/self-signed-certificates.sh")
       })
 })
 public class StackGresOperatorIt extends AbstractStackGresOperatorIt {
