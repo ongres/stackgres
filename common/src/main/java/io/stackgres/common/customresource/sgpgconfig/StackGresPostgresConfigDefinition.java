@@ -5,18 +5,16 @@
 
 package io.stackgres.common.customresource.sgpgconfig;
 
-public class StackGresPostgresConfigDefinition {
+import io.stackgres.common.StackGresUtil;
 
-  public static final String GROUP = "stackgres.io";
-  public static final String VERSION = "v1alpha1";
+public enum StackGresPostgresConfigDefinition {
+
+  ;
+
   public static final String KIND = "StackGresPostgresConfig";
   public static final String SINGULAR = "sgpgconfig";
   public static final String PLURAL = "sgpgconfigs";
-  public static final String NAME = PLURAL + "." + GROUP;
-  public static final String APIVERSION = GROUP + "/" + VERSION;
-
-  private StackGresPostgresConfigDefinition() {
-    throw new AssertionError("No instances for you!");
-  }
+  public static final String NAME = PLURAL + "." + StackGresUtil.GROUP;
+  public static final String APIVERSION = StackGresUtil.GROUP + "/" + StackGresUtil.CRD_VERSION;
 
 }

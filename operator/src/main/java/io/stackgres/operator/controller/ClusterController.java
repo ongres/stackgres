@@ -5,23 +5,29 @@
 
 package io.stackgres.operator.controller;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import com.google.common.collect.ImmutableList;
 
+import io.fabric8.kubernetes.api.model.EventBuilder;
+import io.fabric8.kubernetes.api.model.EventSourceBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.ObjectReferenceBuilder;
 import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.SidecarEntry;
 import io.stackgres.common.StackGresClusterConfig;
 import io.stackgres.common.StackGresSidecarTransformer;
+import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.customresource.sgcluster.StackGresCluster;
 import io.stackgres.common.customresource.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.customresource.sgpgconfig.StackGresPostgresConfigDefinition;
@@ -58,22 +64,28 @@ public class ClusterController {
    */
   public void create(StackGresCluster cluster) throws Exception {
     try (KubernetesClient client = kubClientFactory.create()) {
-      StackGresClusterConfig config = getClusterConfig(cluster, client);
-      List<HasMetadata> sgResources = patroni.getResources(config);
-      for (HasMetadata sgResource : sgResources) {
-        try {
+      try {
+        StackGresClusterConfig config = getClusterConfig(cluster, client);
+        List<HasMetadata> sgResources = patroni.getResources(config);
+        for (HasMetadata sgResource : sgResources) {
           client.resource(sgResource).createOrReplace();
-        } catch (RuntimeException ex) {
-          throw new RuntimeException(
-              "Error while creating resource " + sgResource.getMetadata().getNamespace() + "."
-                  + sgResource.getMetadata().getName() + " of type " + sgResource.getKind()
-                  + " (API version " + sgResource.getApiVersion() + ")",
-              ex);
         }
+        LOGGER.info("Cluster created: '{}.{}'",
+            cluster.getMetadata().getNamespace(),
+            cluster.getMetadata().getName());
+        sendEvent(EventReason.CLUSTER_CREATED,
+            "StackGres Cluster " + cluster.getMetadata().getName() + " created",
+            cluster, client);
+      } catch (RuntimeException ex) {
+        sendEvent(EventReason.CLUSTER_CONFIG_ERROR,
+            "StackGres Cluster " + cluster.getMetadata().getName() + " creation failed: "
+                + ex.getMessage(), cluster, client);
+        throw new RuntimeException(
+            "Error while creating resource " + cluster.getMetadata().getNamespace() + "."
+                + cluster.getMetadata().getName() + " of type " + cluster.getKind()
+                + " (API version " + cluster.getApiVersion() + ")",
+            ex);
       }
-      LOGGER.info("Cluster created: '{}.{}'",
-          cluster.getMetadata().getNamespace(),
-          cluster.getMetadata().getName());
     }
   }
 
@@ -84,22 +96,28 @@ public class ClusterController {
    */
   public void update(StackGresCluster cluster) throws Exception {
     try (KubernetesClient client = kubClientFactory.create()) {
-      StackGresClusterConfig config = getClusterConfig(cluster, client);
-      List<HasMetadata> sgResources = patroni.getResources(config);
-      for (HasMetadata sgResource : sgResources) {
-        try {
+      try {
+        StackGresClusterConfig config = getClusterConfig(cluster, client);
+        List<HasMetadata> sgResources = patroni.getResources(config);
+        for (HasMetadata sgResource : sgResources) {
           client.resource(sgResource).createOrReplace();
-        } catch (RuntimeException ex) {
-          throw new RuntimeException(
-              "Error while updating resource " + sgResource.getMetadata().getNamespace() + "."
-                  + sgResource.getMetadata().getName() + " of type " + sgResource.getKind()
-                  + " (API version " + sgResource.getApiVersion() + ")",
-              ex);
         }
+        LOGGER.info("Cluster updated: '{}.{}'",
+            cluster.getMetadata().getNamespace(),
+            cluster.getMetadata().getName());
+        sendEvent(EventReason.CLUSTER_UPDATED,
+            "StackGres Cluster " + cluster.getMetadata().getName() + " updated",
+            cluster, client);
+      } catch (RuntimeException ex) {
+        sendEvent(EventReason.CLUSTER_CONFIG_ERROR,
+            "StackGres Cluster " + cluster.getMetadata().getName() + " update failed: "
+                + ex.getMessage(), cluster, client);
+        throw new RuntimeException(
+            "Error while updating resource " + cluster.getMetadata().getNamespace() + "."
+                + cluster.getMetadata().getName() + " of type " + cluster.getKind()
+                + " (API version " + cluster.getApiVersion() + ")",
+            ex);
       }
-      LOGGER.info("Cluster updated: '{}.{}'",
-          cluster.getMetadata().getNamespace(),
-          cluster.getMetadata().getName());
     }
   }
 
@@ -108,23 +126,29 @@ public class ClusterController {
    */
   public void delete(StackGresCluster cluster) throws Exception {
     try (KubernetesClient client = kubClientFactory.create()) {
-      StackGresClusterConfig config = getClusterConfig(cluster, client);
-      List<HasMetadata> sgResources = new ArrayList<>(patroni.getResources(config));
-      Collections.reverse(sgResources);
-      for (HasMetadata sgResource : sgResources) {
-        try {
-          client.resource(sgResource).deletingExisting();
-        } catch (RuntimeException ex) {
-          throw new RuntimeException(
-              "Error while deleting resource " + sgResource.getMetadata().getNamespace() + "."
-                  + sgResource.getMetadata().getName() + " of type " + sgResource.getKind()
-                  + " (API version " + sgResource.getApiVersion() + ")",
-              ex);
+      try {
+        StackGresClusterConfig config = getClusterConfig(cluster, client);
+        List<HasMetadata> sgResources = new ArrayList<>(patroni.getResources(config));
+        Collections.reverse(sgResources);
+        for (HasMetadata sgResource : sgResources) {
+          client.resource(sgResource).delete();
         }
+        LOGGER.info("Cluster deleted: '{}.{}'",
+            cluster.getMetadata().getNamespace(),
+            cluster.getMetadata().getName());
+        sendEvent(EventReason.CLUSTER_DELETED,
+            "StackGres Cluster " + cluster.getMetadata().getName() + " deleted",
+            cluster, client);
+      } catch (RuntimeException ex) {
+        sendEvent(EventReason.CLUSTER_CONFIG_ERROR,
+            "StackGres Cluster " + cluster.getMetadata().getName() + " deletion failed: "
+                + ex.getMessage(), cluster, client);
+        throw new RuntimeException(
+            "Error while deleting resource " + cluster.getMetadata().getNamespace() + "."
+                + cluster.getMetadata().getName() + " of type " + cluster.getKind()
+                + " (API version " + cluster.getApiVersion() + ")",
+            ex);
       }
-      LOGGER.info("Cluster deleted: '{}.{}'",
-          cluster.getMetadata().getNamespace(),
-          cluster.getMetadata().getName());
     }
   }
 
@@ -187,6 +211,55 @@ public class ClusterController {
       }
     }
     return Optional.empty();
+  }
+
+  /**
+   * Send an event.
+   */
+  public void sendEvent(EventReason reason, String message) {
+    sendEvent(reason, message);
+  }
+
+  /**
+   * Send an event related to a stackgres cluster.
+   */
+  public void sendEvent(EventReason reason, String message, StackGresCluster cluster) {
+    try (KubernetesClient client = kubClientFactory.create()) {
+      sendEvent(reason, message, cluster, client);
+    }
+  }
+
+  private void sendEvent(EventReason reason, String message, StackGresCluster cluster,
+      KubernetesClient client) {
+    Instant now = Instant.now();
+    Long id = new Random().nextLong();
+    EventBuilder eventBuilder = new EventBuilder()
+        .withNewMetadata()
+        .withName(cluster.getMetadata().getName() + "." + Long.toHexString(id))
+        .withNamespace(StackGresUtil.OPERATOR_NAMESPACE)
+        .withLabels(cluster == null ? ResourceUtil.defaultLabels()
+            : ResourceUtil.defaultLabels(cluster.getMetadata().getName()))
+        .endMetadata()
+        .withFirstTimestamp(now.toString())
+        .withLastTimestamp(now.toString())
+        .withMessage(message)
+        .withReason(reason.reason())
+        .withSource(new EventSourceBuilder()
+            .withComponent(StackGresUtil.OPERATOR_NAME)
+            .build());
+
+    if (cluster != null) {
+      eventBuilder.withInvolvedObject(new ObjectReferenceBuilder()
+          .withApiVersion(cluster.getApiVersion())
+          .withKind(cluster.getKind())
+          .withNamespace(cluster.getMetadata().getNamespace())
+          .withName(cluster.getMetadata().getName())
+          .withResourceVersion(cluster.getMetadata().getResourceVersion())
+          .withUid(cluster.getMetadata().getUid())
+          .build());
+    }
+
+    client.events().create(eventBuilder.build());
   }
 
 }

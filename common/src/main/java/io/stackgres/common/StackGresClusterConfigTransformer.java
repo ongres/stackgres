@@ -11,6 +11,6 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 
 public interface StackGresClusterConfigTransformer {
 
-  public List<HasMetadata> getResources(StackGresClusterConfig config);
+  List<HasMetadata> getResources(StackGresClusterConfig config);
 
 }

@@ -18,14 +18,14 @@ import io.stackgres.common.customresource.sgcluster.StackGresCluster;
 public interface StackGresSidecarTransformer<T extends CustomResource>
     extends StackGresClusterConfigTransformer {
 
-  public Container getContainer(StackGresClusterConfig config);
+  Container getContainer(StackGresClusterConfig config);
 
-  public default Optional<T> getConfig(StackGresCluster cluster,
+  default Optional<T> getConfig(StackGresCluster cluster,
       KubernetesClient client) throws Exception {
     return Optional.empty();
   }
 
-  public default ImmutableList<Volume> getVolumes(StackGresClusterConfig config) {
+  default ImmutableList<Volume> getVolumes(StackGresClusterConfig config) {
     return ImmutableList.of();
   }
 

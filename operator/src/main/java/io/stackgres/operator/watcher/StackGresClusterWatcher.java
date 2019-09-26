@@ -12,6 +12,7 @@ import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.Watcher;
 import io.stackgres.common.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.controller.ClusterController;
+import io.stackgres.operator.controller.EventReason;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,13 +44,15 @@ public class StackGresClusterWatcher implements Watcher<StackGresCluster> {
           throw new UnsupportedOperationException("Action not supported: " + action);
       }
     } catch (Exception ex) {
-      throw new RuntimeException(ex);
+      LOGGER.error("Error while performing action: <{}>", action, ex);
     }
   }
 
   @Override
   public void onClose(KubernetesClientException cause) {
     LOGGER.error("onClose was called, ", cause);
+    operator.sendEvent(EventReason.OPERATOR_ERROR,
+        "Watcher was closed unexpectedly: " + cause.getMessage());
     new Thread(() -> System.exit(1)).start();
   }
 

@@ -40,6 +40,14 @@ public class StackGresOperatorIt extends AbstractStackGresOperatorIt {
     ItHelper.installStackGresConfigs(kind, namespace);
     ItHelper.installStackGresCluster(kind, namespace, CLUSTER_NAME);
     ItHelper.waitUntil(Unchecked.supplier(() -> kind.execute("bash", "-l", "-c",
+        "kubectl get events -n " + namespace + " -o wide"
+            + " | sed 's/\\s\\+/ /g' | grep 'ClusterCreated StackGresCluster' && echo 1 || true")),
+        s -> s.anyMatch(line -> line.equals("1")), 60, ChronoUnit.SECONDS,
+        s -> Assertions.fail(
+            "Timeout while checking creation of event for "
+                + " cluster '" + CLUSTER_NAME + " in namespace '" + namespace + "':\n"
+                + s.collect(Collectors.joining("\n"))));
+    ItHelper.waitUntil(Unchecked.supplier(() -> kind.execute("bash", "-l", "-c",
         "kubectl get pod -n  " + namespace + " " + CLUSTER_NAME + "-0"
             + " && echo 1 || true")),
         s -> s.anyMatch(line -> line.equals("1")), 60, ChronoUnit.SECONDS,

@@ -50,6 +50,13 @@ public class ResourceUtil {
   /**
    * ImmutableMap of default labels used as selectors in K8s resources.
    */
+  public static Map<String, String> defaultLabels() {
+    return ImmutableMap.of(APP_KEY, APP_NAME);
+  }
+
+  /**
+   * ImmutableMap of default labels used as selectors in K8s resources.
+   */
   public static Map<String, String> defaultLabels(String clusterName) {
     return ImmutableMap.of(APP_KEY, APP_NAME, CLUSTER_NAME_KEY, clusterName);
   }

@@ -19,7 +19,7 @@ public enum StackGresSidecar {
   private final String name;
   private final StackGresSidecarTransformer<?> sidecar;
 
-  private StackGresSidecar(String name, StackGresSidecarTransformer<?> sidecar) {
+  StackGresSidecar(String name, StackGresSidecarTransformer<?> sidecar) {
     this.name = name;
     this.sidecar = sidecar;
   }
