@@ -33,6 +33,9 @@ spec:
         - containerPort: 8080
           name: "http"
           protocol: "TCP"
+        - containerPort: 8443
+          name: "https"
+          protocol: "TCP"
         livenessProbe:
           httpGet:
             path: "/health/live"
@@ -49,4 +52,12 @@ spec:
           initialDelaySeconds: 5
           periodSeconds: 30
           timeoutSeconds: 2
+        volumeMounts:
+          - name: operator-certs
+            mountPath: /etc/operator/certs
+            readOnly: true
+      volumes:
+        - name: operator-certs
+          secret:
+            secretName: {{ .Values.operatorName }}.{{ .Values.operatorNamespace }}
 {{ end }}

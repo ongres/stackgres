@@ -7,7 +7,7 @@ CONTAINER_NAME="$(docker inspect -f '{{.Name}}' "$(hostname)"|cut -d '/' -f 2)"
 #chmod a+x /bin/kubectl
 #echo "Installing kind"
 #wget -q -L -O /bin/kind  https://github.com/kubernetes-sigs/kind/releases/download/v0.5.1/kind-$(uname)-amd64
-#chmod a+x /bin/kind
+  #chmod a+x /bin/kind
 #echo "Installing helm"
 #wget -q -L https://get.helm.sh/helm-v2.14.3-linux-amd64.tar.gz -O -|tar xz --strip-components=1 -C /bin -f - linux-amd64/helm
 kind delete cluster --name "$CONTAINER_NAME" || true
@@ -55,4 +55,6 @@ roleRef:
 EOF
 helm init --history-max 20
 while ! helm version > /dev/null 2>&1; do sleep 0.5; done
+
 echo "Kind started k8s cluster"
+
