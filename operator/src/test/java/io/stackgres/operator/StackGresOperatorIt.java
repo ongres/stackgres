@@ -12,9 +12,7 @@ import com.ongres.junit.docker.Container;
 import com.ongres.junit.docker.ContainerParam;
 import com.ongres.junit.docker.DockerContainer;
 import com.ongres.junit.docker.DockerExtension;
-import com.ongres.junit.docker.Environment;
-import com.ongres.junit.docker.Mount;
-import com.ongres.junit.docker.WaitFor;
+import com.ongres.junit.docker.WhenReuse;
 
 import org.jooq.lambda.Unchecked;
 import org.junit.jupiter.api.Assertions;
@@ -23,18 +21,9 @@ import org.junit.jupiter.api.Test;
 @DockerExtension({
   @DockerContainer(
       alias = "kind",
-      image = "stackgres/it:latest",
-      arguments = { "/bin/bash", "-c",
-          "set -e;"
-              + "bash /scripts/restart-kind.sh 3;"
-              + " seq -s ' ' 10000000 10000910;"
-              + " while true; do sleep 1; done" },
-      waitFor = @WaitFor(value = "Kind started k8s cluster", timeout = 300_000),
-      environments = { @Environment(key = "DOCKER_HOST", value = "${DOCKER_HOST}") },
-      mounts = {
-          @Mount(path = "/scripts", value = "/restart-kind.sh"),
-          @Mount(path = "/var/run/docker.sock", value = "/var/run/docker.sock", system = true),
-      })
+      extendedBy = KindConfiguration.class,
+      whenReuse = WhenReuse.ALWAYS,
+      stopIfChanged = true)
 })
 public class StackGresOperatorIt extends AbstractStackGresOperatorIt {
 
