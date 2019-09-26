@@ -14,18 +14,19 @@ import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
-import io.stackgres.common.sgcluster.StackGresCluster;
-import io.stackgres.sidecars.Sidecar;
+import io.fabric8.kubernetes.client.CustomResource;
+import io.stackgres.common.StackGresClusterConfig;
+import io.stackgres.common.StackGresSidecarTransformer;
 
-public class PostgresUtil implements Sidecar {
+public class PostgresUtil implements StackGresSidecarTransformer<CustomResource> {
 
   private static final String NAME = "postgres-util";
-  private static final String IMAGE = "docker.io/ongres/postgres-util:11.5";
+  private static final String IMAGE = "docker.io/ongres/postgres-util:";
 
   public PostgresUtil() {}
 
   @Override
-  public Container create(StackGresCluster resource) {
+  public Container getContainer(StackGresClusterConfig config) {
     VolumeMount pgSocket = new VolumeMountBuilder()
         .withName("pg-socket")
         .withMountPath("/run/postgresql")
@@ -33,7 +34,7 @@ public class PostgresUtil implements Sidecar {
 
     ContainerBuilder container = new ContainerBuilder();
     container.withName(NAME)
-        .withImage(IMAGE)
+        .withImage(IMAGE + config.getCluster().getSpec().getPostgresVersion())
         .withImagePullPolicy("Always")
         .withStdin(Boolean.TRUE)
         .withTty(Boolean.TRUE)
@@ -45,12 +46,7 @@ public class PostgresUtil implements Sidecar {
   }
 
   @Override
-  public String getName() {
-    return NAME;
-  }
-
-  @Override
-  public List<HasMetadata> createDependencies(StackGresCluster resource) {
+  public List<HasMetadata> getResources(StackGresClusterConfig config) {
     return ImmutableList.of();
   }
 

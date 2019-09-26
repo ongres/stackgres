@@ -5,18 +5,16 @@
 
 package io.stackgres.sidecars.pgbouncer.customresources;
 
-public class StackGresPgbouncerConfigDefinition {
+import io.stackgres.common.StackGresUtil;
 
-  public static final String GROUP = "stackgres.io";
-  public static final String VERSION = "v1alpha1";
+public enum StackGresPgbouncerConfigDefinition {
+
+  ;
+
   public static final String KIND = "StackGresConnectionPoolingConfig";
   public static final String SINGULAR = "sgconnectionpoolingconfig";
   public static final String PLURAL = "sgconnectionpoolingconfigs";
-  public static final String NAME = PLURAL + "." + GROUP;
-  public static final String APIVERSION = GROUP + "/" + VERSION;
-
-  private StackGresPgbouncerConfigDefinition() {
-    throw new AssertionError("No instances for you!");
-  }
+  public static final String NAME = PLURAL + "." + StackGresUtil.GROUP;
+  public static final String APIVERSION = StackGresUtil.GROUP + "/" + StackGresUtil.CRD_VERSION;
 
 }

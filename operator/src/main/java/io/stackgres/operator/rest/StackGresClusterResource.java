@@ -38,19 +38,19 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.ExecListener;
 import io.fabric8.kubernetes.client.dsl.ExecWatch;
 import io.fabric8.kubernetes.client.utils.Serialization;
-import io.stackgres.common.ResourceUtils;
-import io.stackgres.common.sgcluster.StackGresCluster;
-import io.stackgres.common.sgcluster.StackGresClusterDefinition;
-import io.stackgres.common.sgcluster.StackGresClusterDoneable;
-import io.stackgres.common.sgcluster.StackGresClusterList;
-import io.stackgres.common.sgcluster.StackGresClusterPodStatus;
-import io.stackgres.common.sgcluster.StackGresClusterStatus;
+import io.stackgres.common.customresource.sgcluster.StackGresCluster;
+import io.stackgres.common.customresource.sgcluster.StackGresClusterDefinition;
+import io.stackgres.common.customresource.sgcluster.StackGresClusterDoneable;
+import io.stackgres.common.customresource.sgcluster.StackGresClusterList;
+import io.stackgres.common.customresource.sgcluster.StackGresClusterPodStatus;
+import io.stackgres.common.customresource.sgcluster.StackGresClusterStatus;
+import io.stackgres.common.customresource.sgprofile.StackGresProfile;
+import io.stackgres.common.customresource.sgprofile.StackGresProfileDefinition;
+import io.stackgres.common.customresource.sgprofile.StackGresProfileDoneable;
+import io.stackgres.common.customresource.sgprofile.StackGresProfileList;
+import io.stackgres.common.resource.ResourceUtil;
 import io.stackgres.operator.app.KubernetesClientFactory;
-import io.stackgres.operator.customresources.sgprofile.StackGresProfile;
-import io.stackgres.operator.customresources.sgprofile.StackGresProfileDefinition;
-import io.stackgres.operator.customresources.sgprofile.StackGresProfileDoneable;
-import io.stackgres.operator.customresources.sgprofile.StackGresProfileList;
-import io.stackgres.operator.patroni.SgStatefulSets;
+import io.stackgres.operator.patroni.StackGresStatefulSet;
 
 import okhttp3.Response;
 
@@ -71,7 +71,7 @@ public class StackGresClusterResource {
   @GET
   public List<StackGresCluster> list() {
     try (KubernetesClient client = kubeClient.create()) {
-      return ResourceUtils.getCustomResource(client, StackGresClusterDefinition.NAME)
+      return ResourceUtil.getCustomResource(client, StackGresClusterDefinition.NAME)
           .map(crd -> client.customResources(crd,
               StackGresCluster.class,
               StackGresClusterList.class,
@@ -95,7 +95,7 @@ public class StackGresClusterResource {
   public StackGresCluster get(@PathParam("namespace") String namespace,
       @PathParam("name") String name) {
     try (KubernetesClient client = kubeClient.create()) {
-      return ResourceUtils.getCustomResource(client, StackGresClusterDefinition.NAME)
+      return ResourceUtil.getCustomResource(client, StackGresClusterDefinition.NAME)
           .map(crd -> Optional.ofNullable(client.customResources(crd,
               StackGresCluster.class,
               StackGresClusterList.class,
@@ -117,7 +117,7 @@ public class StackGresClusterResource {
     Optional<Pod> masterPod = client.pods()
         .inNamespace(cluster.getMetadata().getNamespace())
         .withLabels(ImmutableMap.<String, String>builder()
-            .putAll(ResourceUtils.defaultLabels(cluster.getMetadata().getName()))
+            .putAll(ResourceUtil.defaultLabels(cluster.getMetadata().getName()))
             .put("role", "master")
             .build())
         .list()
@@ -125,7 +125,7 @@ public class StackGresClusterResource {
         .stream()
         .findAny();
 
-    ResourceUtils.getCustomResource(client, StackGresProfileDefinition.NAME)
+    ResourceUtil.getCustomResource(client, StackGresProfileDefinition.NAME)
         .flatMap(crd -> Optional.ofNullable(client.customResources(crd,
             StackGresProfile.class,
             StackGresProfileList.class,
@@ -140,7 +140,7 @@ public class StackGresClusterResource {
 
     cluster.getStatus().setCpuFound(masterPod
         .map(Unchecked.function(pod -> exec(
-            client, pod, SgStatefulSets.PATRONI_CONTAINER_NAME,
+            client, pod, StackGresStatefulSet.PATRONI_CONTAINER_NAME,
             "bash", "-c", PatroniStatsScripts.getCpuFound())
             .stream()
             .findAny()
@@ -149,7 +149,7 @@ public class StackGresClusterResource {
 
     cluster.getStatus().setMemoryFound(masterPod
         .map(Unchecked.function(pod -> exec(
-            client, pod, SgStatefulSets.PATRONI_CONTAINER_NAME,
+            client, pod, StackGresStatefulSet.PATRONI_CONTAINER_NAME,
             "bash", "-c", PatroniStatsScripts.getMemoryFound())
             .stream()
             .findAny()
@@ -158,7 +158,7 @@ public class StackGresClusterResource {
 
     cluster.getStatus().setMemoryUsed(masterPod
         .map(Unchecked.function(pod -> exec(
-            client, pod, SgStatefulSets.PATRONI_CONTAINER_NAME,
+            client, pod, StackGresStatefulSet.PATRONI_CONTAINER_NAME,
             "bash", "-c", PatroniStatsScripts.getMemoryUsed())
             .stream()
             .findAny()
@@ -167,7 +167,7 @@ public class StackGresClusterResource {
 
     cluster.getStatus().setDiskFound(masterPod
         .map(Unchecked.function(pod -> exec(
-            client, pod, SgStatefulSets.PATRONI_CONTAINER_NAME,
+            client, pod, StackGresStatefulSet.PATRONI_CONTAINER_NAME,
             "bash", "-c", PatroniStatsScripts.getDiskFound())
             .stream()
             .findAny()
@@ -176,7 +176,7 @@ public class StackGresClusterResource {
 
     cluster.getStatus().setDiskUsed(masterPod
         .map(Unchecked.function(pod -> exec(
-            client, pod, SgStatefulSets.PATRONI_CONTAINER_NAME,
+            client, pod, StackGresStatefulSet.PATRONI_CONTAINER_NAME,
             "bash", "-c", PatroniStatsScripts.getDiskUsed())
             .stream()
             .findAny()
@@ -185,7 +185,7 @@ public class StackGresClusterResource {
 
     cluster.getStatus().setAverageLoad1m(masterPod
         .map(Unchecked.function(pod -> exec(
-            client, pod, SgStatefulSets.PATRONI_CONTAINER_NAME,
+            client, pod, StackGresStatefulSet.PATRONI_CONTAINER_NAME,
             "bash", "-c", PatroniStatsScripts.getLoad1m())
             .stream()
             .findAny()
@@ -194,7 +194,7 @@ public class StackGresClusterResource {
 
     cluster.getStatus().setAverageLoad5m(masterPod
         .map(Unchecked.function(pod -> exec(
-            client, pod, SgStatefulSets.PATRONI_CONTAINER_NAME,
+            client, pod, StackGresStatefulSet.PATRONI_CONTAINER_NAME,
             "bash", "-c", PatroniStatsScripts.getLoad5m())
             .stream()
             .findAny()
@@ -203,7 +203,7 @@ public class StackGresClusterResource {
 
     cluster.getStatus().setAverageLoad10m(masterPod
         .map(Unchecked.function(pod -> exec(
-            client, pod, SgStatefulSets.PATRONI_CONTAINER_NAME,
+            client, pod, StackGresStatefulSet.PATRONI_CONTAINER_NAME,
             "bash", "-c", PatroniStatsScripts.getLoad10m())
             .stream()
             .findAny()
@@ -212,7 +212,7 @@ public class StackGresClusterResource {
 
     cluster.getStatus().setPods(client.pods()
         .inNamespace(cluster.getMetadata().getNamespace())
-        .withLabels(ResourceUtils.defaultLabels(cluster.getMetadata().getName()))
+        .withLabels(ResourceUtil.defaultLabels(cluster.getMetadata().getName()))
         .list()
         .getItems()
         .stream()
@@ -246,7 +246,7 @@ public class StackGresClusterResource {
   @POST
   public void create(StackGresCluster cluster) {
     try (KubernetesClient client = kubeClient.create()) {
-      CustomResourceDefinition crd = ResourceUtils.getCustomResource(
+      CustomResourceDefinition crd = ResourceUtil.getCustomResource(
           client, StackGresClusterDefinition.NAME)
           .orElseThrow(() -> new RuntimeException("StackGres is not correctly installed:"
               + " CRD " + StackGresClusterDefinition.NAME + " not found."));
@@ -264,7 +264,7 @@ public class StackGresClusterResource {
   @DELETE
   public void delete(StackGresCluster cluster) {
     try (KubernetesClient client = kubeClient.create()) {
-      CustomResourceDefinition crd = ResourceUtils.getCustomResource(
+      CustomResourceDefinition crd = ResourceUtil.getCustomResource(
           client, StackGresClusterDefinition.NAME)
           .orElseThrow(() -> new RuntimeException("StackGres is not correctly installed:"
               + " CRD " + StackGresClusterDefinition.NAME + " not found."));
@@ -282,7 +282,7 @@ public class StackGresClusterResource {
   @PUT
   public void update(StackGresCluster cluster) {
     try (KubernetesClient client = kubeClient.create()) {
-      CustomResourceDefinition crd = ResourceUtils.getCustomResource(
+      CustomResourceDefinition crd = ResourceUtil.getCustomResource(
           client, StackGresClusterDefinition.NAME)
           .orElseThrow(() -> new RuntimeException("StackGres is not correctly installed:"
               + " CRD " + StackGresClusterDefinition.NAME + " not found."));

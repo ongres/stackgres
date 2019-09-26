@@ -65,15 +65,15 @@
         <directory>src/main/resources</directory>
         <filtering>true</filtering>
       </resource>
+      <resource>
+        <directory>install/kubernetes/chart</directory>
+        <filtering>false</filtering>
+      </resource>
     </resources>
     <testResources>
       <testResource>
         <directory>src/test/resources</directory>
         <filtering>true</filtering>
-      </testResource>
-      <testResource>
-        <directory>install/kubernetes/chart</directory>
-        <filtering>false</filtering>
       </testResource>
     </testResources>
     <plugins>

@@ -23,11 +23,12 @@ import io.fabric8.kubernetes.api.model.ServicePortBuilder;
 import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
-import io.stackgres.common.ResourceUtils;
-import io.stackgres.common.sgcluster.StackGresCluster;
-import io.stackgres.sidecars.Sidecar;
+import io.fabric8.kubernetes.client.CustomResource;
+import io.stackgres.common.StackGresClusterConfig;
+import io.stackgres.common.StackGresSidecarTransformer;
+import io.stackgres.common.resource.ResourceUtil;
 
-public class PostgresExporter implements Sidecar {
+public class PostgresExporter implements StackGresSidecarTransformer<CustomResource> {
 
   private static final String NAME = "prometheus-postgres-exporter";
   private static final String IMAGE = "docker.io/ongres/prometheus-postgres-exporter:0.5.1";
@@ -35,7 +36,7 @@ public class PostgresExporter implements Sidecar {
   public PostgresExporter() {}
 
   @Override
-  public Container create(StackGresCluster resource) {
+  public Container getContainer(StackGresClusterConfig config) {
     VolumeMount pgSocket = new VolumeMountBuilder()
         .withName("pg-socket")
         .withMountPath("/run/postgresql")
@@ -57,7 +58,7 @@ public class PostgresExporter implements Sidecar {
             .withName("POSTGRES_EXPORTER_PASSWORD")
             .withValueFrom(new EnvVarSourceBuilder().withSecretKeyRef(
                 new SecretKeySelectorBuilder()
-                .withName(resource.getMetadata().getName())
+                .withName(config.getCluster().getMetadata().getName())
                 .withKey("superuser-password")
                 .build())
                 .build())
@@ -71,14 +72,9 @@ public class PostgresExporter implements Sidecar {
   }
 
   @Override
-  public String getName() {
-    return NAME;
-  }
-
-  @Override
-  public List<HasMetadata> createDependencies(StackGresCluster resource) {
-    Map<String, String> labels = ResourceUtils.defaultLabels(
-        resource.getMetadata().getName());
+  public List<HasMetadata> getResources(StackGresClusterConfig config) {
+    Map<String, String> labels = ResourceUtil.defaultLabels(
+        config.getCluster().getMetadata().getName());
     return ImmutableList.of(
         new ServiceBuilder()
         .withNewMetadata()

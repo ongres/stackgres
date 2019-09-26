@@ -1,3 +1,8 @@
+/*
+ * Copyright (C) 2019 OnGres, Inc.
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
 package io.stackgres.operator;
 
 import static io.quarkus.test.common.PathTestHelper.getAppClassLocation;
@@ -53,6 +58,7 @@ import io.quarkus.runner.TransformerTarget;
 import io.quarkus.runtime.LaunchMode;
 import io.quarkus.test.common.PathTestHelper;
 import io.quarkus.test.junit.QuarkusTest;
+import io.stackgres.operator.app.StackGresOperatorApp;
 
 import org.jooq.lambda.fi.lang.CheckedRunnable;
 import org.objectweb.asm.ClassReader;
@@ -73,7 +79,8 @@ public class ItHelper {
    */
   public static void copyResources(Container kind) throws Exception {
     kind.execute("rm", "-Rf", "/resources").forEach(line -> LOGGER.info(line));
-    kind.copyResourcesIn("/", ItHelper.class, "/resources");
+    kind.copyResourcesIn("/stackgres-operator", StackGresOperatorApp.class, "/resources/stackgres-operator");
+    kind.copyResourcesIn("/stackgres-cluster", StackGresOperatorApp.class, "/resources/stackgres-cluster");
   }
 
   /**

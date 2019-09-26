@@ -22,12 +22,12 @@ import javax.ws.rs.core.MediaType;
 
 import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.stackgres.common.ResourceUtils;
+import io.stackgres.common.customresource.sgprofile.StackGresProfile;
+import io.stackgres.common.customresource.sgprofile.StackGresProfileDefinition;
+import io.stackgres.common.customresource.sgprofile.StackGresProfileDoneable;
+import io.stackgres.common.customresource.sgprofile.StackGresProfileList;
+import io.stackgres.common.resource.ResourceUtil;
 import io.stackgres.operator.app.KubernetesClientFactory;
-import io.stackgres.operator.customresources.sgprofile.StackGresProfile;
-import io.stackgres.operator.customresources.sgprofile.StackGresProfileDefinition;
-import io.stackgres.operator.customresources.sgprofile.StackGresProfileDoneable;
-import io.stackgres.operator.customresources.sgprofile.StackGresProfileList;
 
 @Path("/profile")
 @Produces(MediaType.APPLICATION_JSON)
@@ -43,7 +43,7 @@ public class StackGresProfileResource {
   @GET
   public List<StackGresProfile> list() {
     try (KubernetesClient client = kubeClient.create()) {
-      return ResourceUtils.getCustomResource(client, StackGresProfileDefinition.NAME)
+      return ResourceUtil.getCustomResource(client, StackGresProfileDefinition.NAME)
           .map(crd -> client.customResources(crd,
               StackGresProfile.class,
               StackGresProfileList.class,
@@ -64,7 +64,7 @@ public class StackGresProfileResource {
   public StackGresProfile get(@PathParam("namespace") String namespace,
       @PathParam("name") String name) {
     try (KubernetesClient client = kubeClient.create()) {
-      return ResourceUtils.getCustomResource(client, StackGresProfileDefinition.NAME)
+      return ResourceUtil.getCustomResource(client, StackGresProfileDefinition.NAME)
           .map(crd -> Optional.ofNullable(client.customResources(crd,
               StackGresProfile.class,
               StackGresProfileList.class,
@@ -84,7 +84,7 @@ public class StackGresProfileResource {
   @POST
   public void create(StackGresProfile cluster) {
     try (KubernetesClient client = kubeClient.create()) {
-      CustomResourceDefinition crd = ResourceUtils.getCustomResource(
+      CustomResourceDefinition crd = ResourceUtil.getCustomResource(
           client, StackGresProfileDefinition.NAME)
           .orElseThrow(() -> new RuntimeException("StackGres is not correctly installed:"
               + " CRD " + StackGresProfileDefinition.NAME + " not found."));
@@ -102,7 +102,7 @@ public class StackGresProfileResource {
   @DELETE
   public void delete(StackGresProfile cluster) {
     try (KubernetesClient client = kubeClient.create()) {
-      CustomResourceDefinition crd = ResourceUtils.getCustomResource(
+      CustomResourceDefinition crd = ResourceUtil.getCustomResource(
           client, StackGresProfileDefinition.NAME)
           .orElseThrow(() -> new RuntimeException("StackGres is not correctly installed:"
               + " CRD " + StackGresProfileDefinition.NAME + " not found."));
@@ -120,7 +120,7 @@ public class StackGresProfileResource {
   @PUT
   public void update(StackGresProfile cluster) {
     try (KubernetesClient client = kubeClient.create()) {
-      CustomResourceDefinition crd = ResourceUtils.getCustomResource(
+      CustomResourceDefinition crd = ResourceUtil.getCustomResource(
           client, StackGresProfileDefinition.NAME)
           .orElseThrow(() -> new RuntimeException("StackGres is not correctly installed:"
               + " CRD " + StackGresProfileDefinition.NAME + " not found."));
