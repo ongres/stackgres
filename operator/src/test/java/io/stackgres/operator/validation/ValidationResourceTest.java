@@ -6,8 +6,6 @@ import io.stackgres.operator.validation.validators.AlwaysSuccess;
 import io.stackgres.operator.validation.validators.ValidationPipeline;
 import io.stackgres.operator.validation.validators.Validator;
 import org.apache.commons.io.IOUtils;
-import org.glassfish.hk2.api.TypeLiteral;
-import org.glassfish.hk2.utilities.BuilderHelper;
 import org.glassfish.jersey.internal.inject.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.JerseyTest;
@@ -25,7 +23,6 @@ import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
@@ -79,7 +76,7 @@ class ValidationResourceTest extends JerseyTest {
   @Test
   void givenValidAllowedRequest_thenReturnedStatusShouldBe200() {
 
-    String requestBody = getFileAsString("allowed_requests/sample_valid_allowed_request.json");
+    String requestBody = getFileAsString("allowed_requests/valid_creation.json");
 
     Response response = target("/validation").request(MediaType.APPLICATION_JSON).post(Entity.json(requestBody));
 
@@ -90,7 +87,7 @@ class ValidationResourceTest extends JerseyTest {
   @Test
   void givenValidAllowedRequest_thenResponseShouldNotContainStatusProperty() throws IOException {
 
-    String requestBody = getFileAsString("allowed_requests/sample_valid_allowed_request.json");
+    String requestBody = getFileAsString("allowed_requests/valid_creation.json");
 
     Response response = target("/validation").request(MediaType.APPLICATION_JSON).post(Entity.json(requestBody));
 
@@ -107,7 +104,7 @@ class ValidationResourceTest extends JerseyTest {
   @Test
   void givenValidAllowedRequest_thenAdmissionShouldBeAllowed() {
 
-    String requestBody = getFileAsString("allowed_requests/sample_valid_allowed_request.json");
+    String requestBody = getFileAsString("allowed_requests/valid_creation.json");
 
     Response response = target("/validation").request(MediaType.APPLICATION_JSON).post(Entity.json(requestBody));
 
@@ -120,7 +117,7 @@ class ValidationResourceTest extends JerseyTest {
   @Test
   void givenValidAllowedRequest_thenResponseUidShouldMatchRequestUid() throws IOException {
 
-    String requestBody = getFileAsString("allowed_requests/sample_valid_allowed_request.json");
+    String requestBody = getFileAsString("allowed_requests/valid_creation.json");
 
     JsonNode admissionRequest = mapper.readTree(requestBody);
 
