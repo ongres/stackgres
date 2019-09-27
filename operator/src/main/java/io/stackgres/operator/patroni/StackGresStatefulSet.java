@@ -247,7 +247,6 @@ public class StackGresStatefulSet {
 
     return ImmutableList.<HasMetadata>builder()
         .addAll(() -> config.getSidecars().stream()
-            .filter(sidecarEntry -> sidecarEntry.getConfig().isPresent())
             .flatMap(sidecarEntry -> sidecarEntry.getSidecar().getResources(config).stream())
             .iterator())
         .add(statefulSet)
