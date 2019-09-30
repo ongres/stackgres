@@ -41,6 +41,7 @@ import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
+import io.fabric8.kubernetes.api.model.apps.StatefulSetUpdateStrategyBuilder;
 import io.stackgres.common.StackGresClusterConfig;
 import io.stackgres.common.customresource.sgprofile.StackGresProfile;
 import io.stackgres.common.resource.ResourceUtil;
@@ -86,6 +87,10 @@ public class StackGresStatefulSet {
         .withStorageClassName(storage.getStorageClass());
 
     Map<String, String> labels = ResourceUtil.defaultLabels(name);
+    Map<String, String> podLabels = ImmutableMap.<String, String>builder()
+        .putAll(labels)
+        .put("disruptible", "true")
+        .build();
 
     VolumeMount pgSocket = new VolumeMountBuilder()
         .withName("pg-socket")
@@ -106,12 +111,15 @@ public class StackGresStatefulSet {
         .withNewSpec()
         .withReplicas(config.getCluster().getSpec().getInstances())
         .withSelector(new LabelSelectorBuilder()
-            .addToMatchLabels(labels)
+            .addToMatchLabels(podLabels)
+            .build())
+        .withUpdateStrategy(new StatefulSetUpdateStrategyBuilder()
+            .withType("OnDelete")
             .build())
         .withServiceName(name)
         .withTemplate(new PodTemplateSpecBuilder()
             .withMetadata(new ObjectMetaBuilder()
-                .addToLabels(labels)
+                .addToLabels(podLabels)
                 .build())
             .withNewSpec()
             .withAffinity(new AffinityBuilder()
@@ -247,7 +255,6 @@ public class StackGresStatefulSet {
 
     return ImmutableList.<HasMetadata>builder()
         .addAll(() -> config.getSidecars().stream()
-            .filter(sidecarEntry -> sidecarEntry.getConfig().isPresent())
             .flatMap(sidecarEntry -> sidecarEntry.getSidecar().getResources(config).stream())
             .iterator())
         .add(statefulSet)
