@@ -5,7 +5,7 @@ metadata:
   name: {{ .Values.cluster.poolingconfig }}
 spec:
   pgbouncer_version: "{{ .Values.config.pgbouncer.version }}"
-  pgbouncer.ini:
+  Vale:
       pool_mode: transaction
       max_client_conn: '200'
       default_pool_size: '200'

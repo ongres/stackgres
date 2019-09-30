@@ -6,6 +6,7 @@
 package io.stackgres.operator.validation.cluster;
 
 import java.util.Optional;
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import io.stackgres.common.customresource.sgcluster.StackGresCluster;
@@ -14,6 +15,7 @@ import io.stackgres.operator.services.StackgresProfileFinder;
 import io.stackgres.operator.validation.AdmissionReview;
 import io.stackgres.operator.validation.ValidationFailed;
 
+@ApplicationScoped
 public class ProfileReference implements ClusterValidator {
 
   private StackgresProfileFinder profileFinder;
