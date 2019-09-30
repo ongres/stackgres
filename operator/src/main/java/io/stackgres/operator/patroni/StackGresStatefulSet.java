@@ -41,6 +41,7 @@ import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
+import io.fabric8.kubernetes.api.model.apps.StatefulSetUpdateStrategyBuilder;
 import io.stackgres.common.StackGresClusterConfig;
 import io.stackgres.common.customresource.sgprofile.StackGresProfile;
 import io.stackgres.common.resource.ResourceUtil;
@@ -107,6 +108,9 @@ public class StackGresStatefulSet {
         .withReplicas(config.getCluster().getSpec().getInstances())
         .withSelector(new LabelSelectorBuilder()
             .addToMatchLabels(labels)
+            .build())
+        .withUpdateStrategy(new StatefulSetUpdateStrategyBuilder()
+            .withType("OnDelete")
             .build())
         .withServiceName(name)
         .withTemplate(new PodTemplateSpecBuilder()
