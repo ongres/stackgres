@@ -1,14 +1,22 @@
+/*
+ *
+ *  * Copyright (C) 2019 OnGres, Inc.
+ *  * SPDX-License-Identifier: AGPL-3.0-or-later
+ *
+ *
+ */
+
 package io.stackgres.operator.validation.cluster;
 
 import java.util.Optional;
 import java.util.Random;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.stackgres.common.customresource.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.customresource.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.operator.services.PostgresConfigFinder;
 import io.stackgres.operator.utils.JsonUtil;
 import io.stackgres.operator.validation.AdmissionReview;
+import io.stackgres.operator.validation.Operation;
 import io.stackgres.operator.validation.ValidationFailed;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -21,11 +29,6 @@ class PostgresVersionTest {
 
   private static final String[] supportedPostgresMajorVersions = {"9.4", "9.5", "9.6", "10", "11"};
   private static final String[] latestPostgresMinorVersions = {"24", "19", "15", "10", "5"};
-
-  private static final ObjectMapper mapper = new ObjectMapper();
-
-
-
 
   private static String getRandomPostgresVersion() {
     Random r = new Random();
@@ -75,12 +78,14 @@ class PostgresVersionTest {
   void givenInconsistentPostgresVersion_shouldFail() {
 
     final AdmissionReview review = JsonUtil
-        .readFromJson("allowed_requests/invalid_creation_pgreference_version.json", AdmissionReview.class);
+        .readFromJson("allowed_requests/invalid_creation_pgreference_version.json",
+            AdmissionReview.class);
 
     StackGresClusterSpec spec = review.getRequest().getObject().getSpec();
     String postgresProfile = spec.getPostgresConfig();
 
-    when(configFinder.findPostgresConfig(eq(postgresProfile))).thenReturn(Optional.of(postgresConfig));
+    when(configFinder.findPostgresConfig(eq(postgresProfile)))
+        .thenReturn(Optional.of(postgresConfig));
 
     ValidationFailed exception = assertThrows(ValidationFailed.class, () -> {
       validator.validate(review);
@@ -88,7 +93,8 @@ class PostgresVersionTest {
 
     String resultMessage = exception.getResult().getMessage();
 
-    assertEquals("Invalid pg_version, must be 11.x to use pfConfig postgresconf", resultMessage);
+    assertEquals("Invalid pg_version, must be 11.x to use pfConfig postgresconf",
+        resultMessage);
 
     verify(configFinder).findPostgresConfig(eq(postgresProfile));
   }
@@ -143,7 +149,8 @@ class PostgresVersionTest {
     StackGresClusterSpec spec = review.getRequest().getObject().getSpec();
     String postgresProfile = spec.getPostgresConfig();
 
-    when(configFinder.findPostgresConfig(eq(postgresProfile))).thenReturn(Optional.of(postgresConfig));
+    when(configFinder.findPostgresConfig(eq(postgresProfile)))
+        .thenReturn(Optional.of(postgresConfig));
 
     validator.validate(review);
 
@@ -163,7 +170,8 @@ class PostgresVersionTest {
     String postgresProfile = spec.getPostgresConfig();
     postgresConfig.getSpec().setPgVersion("10.5");
 
-    when(configFinder.findPostgresConfig(eq(postgresProfile))).thenReturn(Optional.of(postgresConfig));
+    when(configFinder.findPostgresConfig(eq(postgresProfile)))
+        .thenReturn(Optional.of(postgresConfig));
 
     ValidationFailed exception = assertThrows(ValidationFailed.class, () -> {
       validator.validate(review);
@@ -171,10 +179,32 @@ class PostgresVersionTest {
 
     String resultMessage = exception.getResult().getMessage();
 
-    assertEquals("Invalid pg_version, must be 10.x to use pfConfig postgresconf", resultMessage);
+    assertEquals("Invalid pg_version, must be 10.x to use pfConfig postgresconf",
+        resultMessage);
 
     verify(configFinder).findPostgresConfig(eq(postgresProfile));
 
+
+  }
+
+  @Test
+  void givenADeleteUpdate_shouldDoNothing() throws ValidationFailed {
+
+    final AdmissionReview review = JsonUtil
+        .readFromJson("allowed_requests/postgres_config_update.json",
+            AdmissionReview.class);
+
+    review.getRequest().setOperation(Operation.DELETE);
+
+    StackGresClusterSpec spec = review.getRequest().getObject().getSpec();
+    String postgresProfile = spec.getPostgresConfig();
+
+    when(configFinder.findPostgresConfig(eq(postgresProfile)))
+        .thenReturn(Optional.of(postgresConfig));
+
+    validator.validate(review);
+
+    verify(configFinder, never()).findPostgresConfig(eq(postgresProfile));
 
   }
 
