@@ -87,6 +87,10 @@ public class StackGresStatefulSet {
         .withStorageClassName(storage.getStorageClass());
 
     Map<String, String> labels = ResourceUtil.defaultLabels(name);
+    Map<String, String> podLabels = ImmutableMap.<String, String>builder()
+        .putAll(labels)
+        .put("disruptible", "true")
+        .build();
 
     VolumeMount pgSocket = new VolumeMountBuilder()
         .withName("pg-socket")
@@ -107,7 +111,7 @@ public class StackGresStatefulSet {
         .withNewSpec()
         .withReplicas(config.getCluster().getSpec().getInstances())
         .withSelector(new LabelSelectorBuilder()
-            .addToMatchLabels(labels)
+            .addToMatchLabels(podLabels)
             .build())
         .withUpdateStrategy(new StatefulSetUpdateStrategyBuilder()
             .withType("OnDelete")
@@ -115,7 +119,7 @@ public class StackGresStatefulSet {
         .withServiceName(name)
         .withTemplate(new PodTemplateSpecBuilder()
             .withMetadata(new ObjectMetaBuilder()
-                .addToLabels(labels)
+                .addToLabels(podLabels)
                 .build())
             .withNewSpec()
             .withAffinity(new AffinityBuilder()
