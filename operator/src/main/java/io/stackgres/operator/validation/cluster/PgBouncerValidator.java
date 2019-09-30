@@ -46,7 +46,7 @@ public class PgBouncerValidator implements ClusterValidator {
   }
 
   private void checkIfPoolingConfigExists(AdmissionReview review,
-                                          String onError) throws ValidationFailed  {
+                                          String onError) throws ValidationFailed {
 
     StackGresCluster cluster = review.getRequest().getObject();
     String poolingConfig = cluster.getSpec().getConnectionPoolingConfig();
@@ -54,7 +54,7 @@ public class PgBouncerValidator implements ClusterValidator {
     Optional<StackGresPgbouncerConfig> poolingConfigOpt = configFinder
         .findPgBouncerConfig(poolingConfig);
 
-    if (!poolingConfigOpt.isPresent()){
+    if (!poolingConfigOpt.isPresent()) {
       throw new ValidationFailed(onError);
     }
   }
