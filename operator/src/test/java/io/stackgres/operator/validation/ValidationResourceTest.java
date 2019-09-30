@@ -6,8 +6,6 @@ import io.stackgres.operator.validation.validators.AlwaysSuccess;
 import io.stackgres.operator.validation.validators.ValidationPipeline;
 import io.stackgres.operator.validation.validators.Validator;
 import org.apache.commons.io.IOUtils;
-import org.glassfish.hk2.api.TypeLiteral;
-import org.glassfish.hk2.utilities.BuilderHelper;
 import org.glassfish.jersey.internal.inject.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.JerseyTest;
@@ -25,7 +23,6 @@ import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 

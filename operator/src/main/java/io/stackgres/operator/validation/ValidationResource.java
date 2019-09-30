@@ -35,6 +35,9 @@ public class ValidationResource {
     LOGGER.info("Validation resource started");
   }
 
+  /**
+   * Admission Web hook callback.
+   */
   @POST
   public AdmissionReviewResponse validate(AdmissionReview admissionReview) {
 
