@@ -2,9 +2,9 @@ package io.stackgres.operator.validation;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.stackgres.operator.validation.validators.AlwaysSuccess;
-import io.stackgres.operator.validation.validators.ValidationPipeline;
-import io.stackgres.operator.validation.validators.ClusterValidator;
+import io.stackgres.operator.validation.cluster.AlwaysSuccess;
+import io.stackgres.operator.validation.cluster.ClusterValidationPipeline;
+import io.stackgres.operator.validation.cluster.ClusterValidator;
 import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.internal.inject.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -50,9 +50,9 @@ class ValidationResourceTest extends JerseyTest {
       @Override
       protected void configure() {
 
-        ValidationPipeline pipeline = new ValidationPipeline(getValidators());
+        ClusterValidationPipeline pipeline = new ClusterValidationPipeline(getValidators());
 
-        bind(pipeline).to(ValidationPipeline.class).in(Singleton.class);
+        bind(pipeline).to(ClusterValidationPipeline.class).in(Singleton.class);
 
       }
     });

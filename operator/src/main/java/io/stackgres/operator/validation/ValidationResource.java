@@ -15,8 +15,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import io.quarkus.runtime.StartupEvent;
-import io.stackgres.operator.validation.validators.ValidationFailed;
-import io.stackgres.operator.validation.validators.ValidationPipeline;
+import io.stackgres.operator.validation.cluster.ClusterValidationPipeline;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,7 +27,7 @@ public class ValidationResource {
   private static final Logger LOGGER = LoggerFactory.getLogger(ValidationResource.class);
 
   @Inject
-  private ValidationPipeline pipeline;
+  private ClusterValidationPipeline pipeline;
 
   void onStart(@Observes StartupEvent ev) {
     LOGGER.info("Validation resource started");

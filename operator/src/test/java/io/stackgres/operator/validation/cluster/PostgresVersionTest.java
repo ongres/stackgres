@@ -1,4 +1,4 @@
-package io.stackgres.operator.validation.validators;
+package io.stackgres.operator.validation.cluster;
 
 import java.util.Optional;
 import java.util.Random;
@@ -9,6 +9,7 @@ import io.stackgres.common.customresource.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.operator.services.PostgresConfigFinder;
 import io.stackgres.operator.utils.JsonUtil;
 import io.stackgres.operator.validation.AdmissionReview;
+import io.stackgres.operator.validation.ValidationFailed;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -71,6 +72,28 @@ class PostgresVersionTest {
   }
 
   @Test
+  void givenInconsistentPostgresVersion_shouldFail() {
+
+    final AdmissionReview review = JsonUtil
+        .readFromJson("allowed_requests/invalid_creation_pgreference_version.json", AdmissionReview.class);
+
+    StackGresClusterSpec spec = review.getRequest().getObject().getSpec();
+    String postgresProfile = spec.getPostgresConfig();
+
+    when(configFinder.findPostgresConfig(eq(postgresProfile))).thenReturn(Optional.of(postgresConfig));
+
+    ValidationFailed exception = assertThrows(ValidationFailed.class, () -> {
+      validator.validate(review);
+    });
+
+    String resultMessage = exception.getResult().getMessage();
+
+    assertEquals("Invalid pg_version, must be 11.x to use pfConfig postgresconf", resultMessage);
+
+    verify(configFinder).findPostgresConfig(eq(postgresProfile));
+  }
+
+  @Test
   void givenMajorPostgresVersionUpdate_shouldFail() {
 
     final AdmissionReview review = JsonUtil
@@ -108,6 +131,51 @@ class PostgresVersionTest {
     assertEquals("Invalid pg_config value " + postgresProfile, resultMessage);
 
     verify(configFinder).findPostgresConfig(eq(postgresProfile));
+  }
+
+  @Test
+  void givenValidPostgresConfigUpdate_shouldNotFail() throws ValidationFailed {
+
+    final AdmissionReview review = JsonUtil
+        .readFromJson("allowed_requests/postgres_config_update.json",
+            AdmissionReview.class);
+
+    StackGresClusterSpec spec = review.getRequest().getObject().getSpec();
+    String postgresProfile = spec.getPostgresConfig();
+
+    when(configFinder.findPostgresConfig(eq(postgresProfile))).thenReturn(Optional.of(postgresConfig));
+
+    validator.validate(review);
+
+    verify(configFinder).findPostgresConfig(eq(postgresProfile));
+
+
+  }
+
+  @Test
+  void givenInvalidPostgresConfigUpdate_shouldFail() {
+
+    final AdmissionReview review = JsonUtil
+        .readFromJson("allowed_requests/postgres_config_update.json",
+            AdmissionReview.class);
+
+    StackGresClusterSpec spec = review.getRequest().getObject().getSpec();
+    String postgresProfile = spec.getPostgresConfig();
+    postgresConfig.getSpec().setPgVersion("10.5");
+
+    when(configFinder.findPostgresConfig(eq(postgresProfile))).thenReturn(Optional.of(postgresConfig));
+
+    ValidationFailed exception = assertThrows(ValidationFailed.class, () -> {
+      validator.validate(review);
+    });
+
+    String resultMessage = exception.getResult().getMessage();
+
+    assertEquals("Invalid pg_version, must be 10.x to use pfConfig postgresconf", resultMessage);
+
+    verify(configFinder).findPostgresConfig(eq(postgresProfile));
+
+
   }
 
 

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.validation.validators;
+package io.stackgres.operator.validation.cluster;
 
 import javax.enterprise.context.ApplicationScoped;
 

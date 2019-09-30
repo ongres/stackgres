@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.validation.validators;
+package io.stackgres.operator.validation.cluster;
 
 import java.util.Optional;
 import javax.enterprise.context.ApplicationScoped;
@@ -13,6 +13,7 @@ import io.stackgres.common.customresource.sgcluster.StackGresCluster;
 import io.stackgres.common.customresource.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.operator.services.PostgresConfigFinder;
 import io.stackgres.operator.validation.AdmissionReview;
+import io.stackgres.operator.validation.ValidationFailed;
 
 @ApplicationScoped
 public class PostgresVersion implements ClusterValidator {
@@ -31,31 +32,21 @@ public class PostgresVersion implements ClusterValidator {
 
     String givenPgVersion = cluster.getSpec().getPostgresVersion();
     String givenMajorVersion = getMajorVersion(givenPgVersion);
+    String pgConfig = cluster.getSpec().getPostgresConfig();
 
     switch (review.getRequest().getOperation()) {
       case CREATE:
-
-        String pgConfig = cluster.getSpec().getPostgresConfig();
-        Optional<StackGresPostgresConfig> postgresConfigOpt = configFinder
-            .findPostgresConfig(pgConfig);
-
-        if (postgresConfigOpt.isPresent()) {
-
-          StackGresPostgresConfig postgresConfig = postgresConfigOpt.get();
-          String pgVersion = postgresConfig.getSpec().getPgVersion();
-          String configuredMajorVersion = getMajorVersion(pgVersion);
-
-          if (!configuredMajorVersion.equals(givenMajorVersion)) {
-            throw new ValidationFailed("Invalid pg_version, must be "
-                + configuredMajorVersion + ".x to use pfConfig " + pgConfig);
-          }
-
-        } else {
-          throw new ValidationFailed("Invalid pg_config value " + pgConfig);
-        }
+        validateAgainstConfiguration(givenMajorVersion, pgConfig);
         break;
       case UPDATE:
+
         StackGresCluster oldCluster = review.getRequest().getOldObject();
+
+        String oldPgConfig = oldCluster.getSpec().getPostgresConfig();
+        if (!oldPgConfig.equals(pgConfig)) {
+          validateAgainstConfiguration(givenMajorVersion, pgConfig);
+        }
+
         String oldPgVersion = oldCluster.getSpec().getPostgresVersion();
 
         String oldPgMajorVersion = getMajorVersion(oldPgVersion);
@@ -67,6 +58,27 @@ public class PostgresVersion implements ClusterValidator {
       default:
     }
 
+  }
+
+  private void validateAgainstConfiguration(String givenMajorVersion, String pgConfig)
+      throws ValidationFailed {
+    Optional<StackGresPostgresConfig> postgresConfigOpt = configFinder
+        .findPostgresConfig(pgConfig);
+
+    if (postgresConfigOpt.isPresent()) {
+
+      StackGresPostgresConfig postgresConfig = postgresConfigOpt.get();
+      String pgVersion = postgresConfig.getSpec().getPgVersion();
+      String configuredMajorVersion = getMajorVersion(pgVersion);
+
+      if (!configuredMajorVersion.equals(givenMajorVersion)) {
+        throw new ValidationFailed("Invalid pg_version, must be "
+            + configuredMajorVersion + ".x to use pfConfig " + pgConfig);
+      }
+
+    } else {
+      throw new ValidationFailed("Invalid pg_config value " + pgConfig);
+    }
   }
 
   public static String getMajorVersion(String pgVersion) {

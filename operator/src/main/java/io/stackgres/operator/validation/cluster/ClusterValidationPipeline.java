@@ -3,21 +3,22 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.validation.validators;
+package io.stackgres.operator.validation.cluster;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
 import io.stackgres.operator.validation.AdmissionReview;
+import io.stackgres.operator.validation.ValidationFailed;
 
 @ApplicationScoped
-public class ValidationPipeline {
+public class ClusterValidationPipeline {
 
   private Instance<ClusterValidator> validators;
 
   @Inject
-  public ValidationPipeline(Instance<ClusterValidator> validators) {
+  public ClusterValidationPipeline(Instance<ClusterValidator> validators) {
     this.validators = validators;
   }
 
