@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.stackgres.operator.validation.validators.AlwaysSuccess;
 import io.stackgres.operator.validation.validators.ValidationPipeline;
-import io.stackgres.operator.validation.validators.Validator;
+import io.stackgres.operator.validation.validators.ClusterValidator;
 import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.internal.inject.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -131,20 +131,20 @@ class ValidationResourceTest extends JerseyTest {
 
   }
 
-  private static Instance<Validator> getValidators(){
-    return new Instance<Validator>() {
+  private static Instance<ClusterValidator> getValidators(){
+    return new Instance<ClusterValidator>() {
       @Override
-      public Instance<Validator> select(Annotation... annotations) {
+      public Instance<ClusterValidator> select(Annotation... annotations) {
         return null;
       }
 
       @Override
-      public <U extends Validator> Instance<U> select(Class<U> aClass, Annotation... annotations) {
+      public <U extends ClusterValidator> Instance<U> select(Class<U> aClass, Annotation... annotations) {
         return null;
       }
 
       @Override
-      public <U extends Validator> Instance<U> select(javax.enterprise.util.TypeLiteral<U> typeLiteral, Annotation... annotations) {
+      public <U extends ClusterValidator> Instance<U> select(javax.enterprise.util.TypeLiteral<U> typeLiteral, Annotation... annotations) {
         return null;
       }
 
@@ -160,18 +160,18 @@ class ValidationResourceTest extends JerseyTest {
       }
 
       @Override
-      public void destroy(Validator validator) {
+      public void destroy(ClusterValidator validator) {
 
       }
 
       @Override
-      public Iterator<Validator> iterator() {
-        Iterable<Validator> validators = Collections.singletonList(new AlwaysSuccess());
+      public Iterator<ClusterValidator> iterator() {
+        Iterable<ClusterValidator> validators = Collections.singletonList(new AlwaysSuccess());
         return validators.iterator();
       }
 
       @Override
-      public Validator get() {
+      public ClusterValidator get() {
         return null;
       }
     };

@@ -6,7 +6,6 @@
 package io.stackgres.operator.validation;
 
 import java.util.UUID;
-
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
@@ -15,8 +14,6 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quarkus.runtime.StartupEvent;
 import io.stackgres.operator.validation.validators.ValidationFailed;
 import io.stackgres.operator.validation.validators.ValidationPipeline;

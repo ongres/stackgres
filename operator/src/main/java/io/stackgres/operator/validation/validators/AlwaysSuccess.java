@@ -10,7 +10,7 @@ import javax.enterprise.context.ApplicationScoped;
 import io.stackgres.operator.validation.AdmissionReview;
 
 @ApplicationScoped
-public class AlwaysSuccess implements Validator {
+public class AlwaysSuccess implements ClusterValidator {
 
   @Override
   public void validate(AdmissionReview review) {

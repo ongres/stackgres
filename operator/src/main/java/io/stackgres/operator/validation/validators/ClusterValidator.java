@@ -7,7 +7,7 @@ package io.stackgres.operator.validation.validators;
 
 import io.stackgres.operator.validation.AdmissionReview;
 
-public interface Validator {
+public interface ClusterValidator {
 
   void validate(AdmissionReview review) throws ValidationFailed;
 

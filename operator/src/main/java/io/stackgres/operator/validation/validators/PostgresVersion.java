@@ -9,14 +9,13 @@ import java.util.Optional;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.customresource.sgcluster.StackGresCluster;
 import io.stackgres.common.customresource.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.operator.services.PostgresConfigFinder;
 import io.stackgres.operator.validation.AdmissionReview;
 
 @ApplicationScoped
-public class PostgresVersion implements Validator {
+public class PostgresVersion implements ClusterValidator {
 
   private PostgresConfigFinder configFinder;
 
