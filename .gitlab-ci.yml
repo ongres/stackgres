@@ -49,8 +49,6 @@ integration test:
   stage: verify
   tags:
     - stackgres-runner
-  variables:
-    DOCKER_HOST: tcp://172.17.0.1:2375
   script:
     - 'flock -w 3600 /tmp/stackgres-integration-test mvn $MAVEN_CLI_OPTS verify -P integration'
 

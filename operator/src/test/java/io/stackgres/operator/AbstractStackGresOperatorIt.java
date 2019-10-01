@@ -5,11 +5,6 @@
 
 package io.stackgres.operator;
 
-import com.ongres.junit.docker.Container;
-import com.ongres.junit.docker.ContainerParam;
-
-import io.stackgres.operator.ItHelper.OperatorRunner;
-
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -17,6 +12,9 @@ import java.util.concurrent.CompletableFuture;
 
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
+
+import com.ongres.junit.docker.Container;
+import com.ongres.junit.docker.ContainerParam;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,18 +32,20 @@ public abstract class AbstractStackGresOperatorIt extends AbstractIt {
 
   @BeforeEach
   public void setupOperator(@ContainerParam("kind") Container kind) throws Exception {
+    final int operatorPort = getFreePort();
+    final int operatorSslPort = getFreePort();
     ItHelper.copyResources(kind);
     ItHelper.deleteStackGresOperatorHelmChartIfExists(kind);
-    ItHelper.installStackGresOperatorHelmChart(kind);
-    final int operatorPort = getFreePort();
-    OperatorRunner operatorRunner = ItHelper.createOperator(getClass(), kind, operatorPort);
+    ItHelper.installStackGresOperatorHelmChart(kind, operatorSslPort);
+    OperatorRunner operatorRunner = ItHelper.createOperator(
+        getClass(), kind, operatorPort, operatorSslPort);
     CompletableFuture<Void> operator = runAsync(() -> operatorRunner.run());
     this.operator = () -> {
       operatorRunner.close();
       operator.join();
     };
     operatorClient = ClientBuilder.newClient().target("http://localhost:" + operatorPort);
-    ItHelper.waitUntilOperatorIsReady(operatorClient);
+    ItHelper.waitUntilOperatorIsReady(operator, operatorClient);
   }
 
   private int getFreePort() throws IOException {
@@ -58,7 +58,9 @@ public abstract class AbstractStackGresOperatorIt extends AbstractIt {
 
   @AfterEach
   public void teardownOperator() throws Exception {
-    operator.close();
+    if (operator != null) {
+      operator.close();
+    }
   }
 
 }

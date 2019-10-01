@@ -78,7 +78,8 @@ public class PostgresExporter implements StackGresSidecarTransformer<CustomResou
     return ImmutableList.of(
         new ServiceBuilder()
         .withNewMetadata()
-        .withName(NAME)
+        .withNamespace(config.getCluster().getMetadata().getNamespace())
+        .withName(config.getCluster().getMetadata().getName() + "-" + NAME)
         .withLabels(ImmutableMap.<String, String>builder()
             .putAll(labels)
             .put("container", NAME)

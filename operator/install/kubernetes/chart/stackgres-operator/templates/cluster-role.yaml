@@ -20,6 +20,7 @@ rules:
   - namespaces
   - roles
   - rolebindings
+  - events
   verbs:
   - get
   - list

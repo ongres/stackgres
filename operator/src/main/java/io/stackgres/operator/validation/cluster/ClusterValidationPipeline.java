@@ -22,6 +22,9 @@ public class ClusterValidationPipeline {
     this.validators = validators;
   }
 
+  /**
+   * Validate all {@code Validator}s in sequence.
+   */
   public void validator(AdmissionReview admissionReview) throws ValidationFailed {
 
     for (ClusterValidator validator: validators) {

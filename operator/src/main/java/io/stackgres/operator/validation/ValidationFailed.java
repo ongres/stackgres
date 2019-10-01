@@ -9,6 +9,8 @@ import io.stackgres.operator.validation.Result;
 
 public class ValidationFailed extends Exception {
 
+  private static final long serialVersionUID = 6127484041987197268L;
+
   private Result result;
 
   public ValidationFailed(String message) {
