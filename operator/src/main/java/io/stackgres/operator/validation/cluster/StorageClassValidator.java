@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.validation.cluster;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.storage.StorageClass;
@@ -13,6 +14,7 @@ import io.stackgres.operator.services.KubernetesResourceFinder;
 import io.stackgres.operator.validation.AdmissionReview;
 import io.stackgres.operator.validation.ValidationFailed;
 
+@ApplicationScoped
 public class StorageClassValidator implements ClusterValidator {
 
   private KubernetesResourceFinder<StorageClass> finder;

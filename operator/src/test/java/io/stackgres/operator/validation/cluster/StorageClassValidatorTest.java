@@ -128,8 +128,6 @@ class StorageClassValidatorTest {
             AdmissionReview.class);
     review.getRequest().setOperation(Operation.DELETE);
 
-    String storageClass = review.getRequest().getObject().getSpec().getStorageClass();
-
     validator.validate(review);
 
     verify(storageClassFinder, never()).findByName(anyString());
