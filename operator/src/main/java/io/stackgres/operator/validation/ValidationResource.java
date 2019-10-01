@@ -26,8 +26,12 @@ public class ValidationResource {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ValidationResource.class);
 
-  @Inject
   private ClusterValidationPipeline pipeline;
+
+  @Inject
+  public ValidationResource(ClusterValidationPipeline pipeline) {
+    this.pipeline = pipeline;
+  }
 
   void onStart(@Observes StartupEvent ev) {
     LOGGER.info("Validation resource started");
