@@ -7,7 +7,7 @@ package io.stackgres.operator.validation.cluster;
 
 import java.util.Optional;
 
-import io.stackgres.operator.services.KubernetesResourceFinder;
+import io.stackgres.operator.services.KubernetesCustomResourceFinder;
 import io.stackgres.operator.utils.JsonUtil;
 import io.stackgres.operator.validation.AdmissionReview;
 import io.stackgres.operator.validation.Operation;
@@ -32,7 +32,7 @@ class PgBouncerValidatorTest {
   private PgBouncerValidator validator;
 
   @Mock()
-  private KubernetesResourceFinder<StackGresPgbouncerConfig> configFinder;
+  private KubernetesCustomResourceFinder<StackGresPgbouncerConfig> configFinder;
 
   private StackGresPgbouncerConfig pgbouncerConfig;
 
@@ -51,12 +51,13 @@ class PgBouncerValidatorTest {
         .readFromJson("allowed_requests/valid_creation.json", AdmissionReview.class);
 
     String poolingConfig = review.getRequest().getObject().getSpec().getConnectionPoolingConfig();
-    when(configFinder.findByName(poolingConfig))
+    String namespace = review.getRequest().getObject().getMetadata().getNamespace();
+    when(configFinder.findByNameAndNamespace(poolingConfig, namespace))
         .thenReturn(Optional.of(pgbouncerConfig));
 
     validator.validate(review);
 
-    verify(configFinder).findByName(eq(poolingConfig));
+    verify(configFinder).findByNameAndNamespace(eq(poolingConfig), eq(namespace));
 
   }
 
@@ -67,8 +68,9 @@ class PgBouncerValidatorTest {
         .readFromJson("allowed_requests/valid_creation.json", AdmissionReview.class);
 
     String poolingConfig = review.getRequest().getObject().getSpec().getConnectionPoolingConfig();
+    String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
-    when(configFinder.findByName(poolingConfig))
+    when(configFinder.findByNameAndNamespace(poolingConfig, namespace))
         .thenReturn(Optional.empty());
 
     ValidationFailed ex = assertThrows(ValidationFailed.class, () -> {
@@ -89,7 +91,9 @@ class PgBouncerValidatorTest {
 
     String poolingConfig = review.getRequest().getObject().getSpec().getConnectionPoolingConfig();
 
-    when(configFinder.findByName(poolingConfig))
+    String namespace = review.getRequest().getObject().getMetadata().getNamespace();
+
+    when(configFinder.findByNameAndNamespace(poolingConfig, namespace))
         .thenReturn(Optional.empty());
 
     ValidationFailed ex = assertThrows(ValidationFailed.class, () -> {
@@ -101,7 +105,7 @@ class PgBouncerValidatorTest {
     assertEquals("Cannot update to pooling config " + poolingConfig
         + " because it doesn't exists", resultMessage);
 
-    verify(configFinder).findByName(eq(poolingConfig));
+    verify(configFinder).findByNameAndNamespace(eq(poolingConfig), eq(namespace));
 
   }
 
@@ -113,13 +117,14 @@ class PgBouncerValidatorTest {
 
     String poolingConfig = review.getRequest().getObject().getSpec().getConnectionPoolingConfig();
 
+    String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
-    when(configFinder.findByName(poolingConfig))
+    when(configFinder.findByNameAndNamespace(poolingConfig, namespace))
         .thenReturn(Optional.of(pgbouncerConfig));
 
     validator.validate(review);
 
-    verify(configFinder).findByName(eq(poolingConfig));
+    verify(configFinder).findByNameAndNamespace(eq(poolingConfig), eq(namespace));
 
   }
 
@@ -132,9 +137,11 @@ class PgBouncerValidatorTest {
 
     String poolingConfig = review.getRequest().getObject().getSpec().getConnectionPoolingConfig();
 
+    String namespace = review.getRequest().getObject().getMetadata().getNamespace();
+
     validator.validate(review);
 
-    verify(configFinder, never()).findByName(eq(poolingConfig));
+    verify(configFinder, never()).findByNameAndNamespace(eq(poolingConfig), eq(namespace));
 
   }
 

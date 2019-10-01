@@ -9,7 +9,7 @@ package io.stackgres.operator.validation.cluster;
 import java.util.Optional;
 
 import io.stackgres.common.customresource.sgprofile.StackGresProfile;
-import io.stackgres.operator.services.KubernetesResourceFinder;
+import io.stackgres.operator.services.KubernetesCustomResourceFinder;
 import io.stackgres.operator.utils.JsonUtil;
 import io.stackgres.operator.validation.AdmissionReview;
 import io.stackgres.operator.validation.Operation;
@@ -33,7 +33,7 @@ class ProfileReferenceValidatorValidatorTest {
   private ProfileReferenceValidator validator;
 
   @Mock
-  private KubernetesResourceFinder<StackGresProfile> profileFinder;
+  private KubernetesCustomResourceFinder<StackGresProfile> profileFinder;
 
   private StackGresProfile xsProfile;
 
@@ -53,12 +53,14 @@ class ProfileReferenceValidatorValidatorTest {
         .readFromJson("allowed_requests/valid_creation.json", AdmissionReview.class);
 
     String resourceProfile = review.getRequest().getObject().getSpec().getResourceProfile();
-    when(profileFinder.findByName(resourceProfile))
+    String namespace = review.getRequest().getObject().getMetadata().getNamespace();
+
+    when(profileFinder.findByNameAndNamespace(resourceProfile, namespace))
         .thenReturn(Optional.of(xsProfile));
 
     validator.validate(review);
 
-    verify(profileFinder).findByName(eq(resourceProfile));
+    verify(profileFinder).findByNameAndNamespace(eq(resourceProfile), eq(namespace));
 
   }
 
@@ -69,8 +71,9 @@ class ProfileReferenceValidatorValidatorTest {
         .readFromJson("allowed_requests/valid_creation.json", AdmissionReview.class);
 
     String resourceProfile = review.getRequest().getObject().getSpec().getResourceProfile();
+    String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
-    when(profileFinder.findByName(resourceProfile))
+    when(profileFinder.findByNameAndNamespace(resourceProfile, namespace))
         .thenReturn(Optional.empty());
 
     ValidationFailed ex = assertThrows(ValidationFailed.class, () -> {
@@ -81,6 +84,7 @@ class ProfileReferenceValidatorValidatorTest {
 
     assertEquals("Invalid profile " + resourceProfile, resultMessage);
 
+    verify(profileFinder).findByNameAndNamespace(anyString(), anyString());
   }
 
   @Test
@@ -90,8 +94,9 @@ class ProfileReferenceValidatorValidatorTest {
         .readFromJson("allowed_requests/profile_config_update.json", AdmissionReview.class);
 
     String resourceProfile = review.getRequest().getObject().getSpec().getResourceProfile();
+    String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
-    when(profileFinder.findByName(resourceProfile))
+    when(profileFinder.findByNameAndNamespace(resourceProfile, namespace))
         .thenReturn(Optional.empty());
 
     ValidationFailed ex = assertThrows(ValidationFailed.class, () -> {
@@ -103,7 +108,7 @@ class ProfileReferenceValidatorValidatorTest {
     assertEquals("Cannot update to profile " + resourceProfile
         + " because it doesn't exists", resultMessage);
 
-    verify(profileFinder).findByName(eq(resourceProfile));
+    verify(profileFinder).findByNameAndNamespace(anyString(), anyString());
 
   }
 
@@ -114,16 +119,17 @@ class ProfileReferenceValidatorValidatorTest {
         .readFromJson("allowed_requests/profile_config_update.json", AdmissionReview.class);
 
     String resourceProfile = review.getRequest().getObject().getSpec().getResourceProfile();
+    String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
     StackGresProfile sProfile = JsonUtil.readFromJson("stackgres_profiles/size-s.json",
         StackGresProfile.class);
 
-    when(profileFinder.findByName(resourceProfile))
+    when(profileFinder.findByNameAndNamespace(resourceProfile, namespace))
         .thenReturn(Optional.of(sProfile));
 
     validator.validate(review);
 
-    verify(profileFinder).findByName(eq(resourceProfile));
+    verify(profileFinder).findByNameAndNamespace(anyString(), anyString());
 
   }
 
@@ -134,11 +140,9 @@ class ProfileReferenceValidatorValidatorTest {
         .readFromJson("allowed_requests/profile_config_update.json", AdmissionReview.class);
     review.getRequest().setOperation(Operation.DELETE);
 
-    String resourceProfile = review.getRequest().getObject().getSpec().getResourceProfile();
-
     validator.validate(review);
 
-    verify(profileFinder, never()).findByName(eq(resourceProfile));
+    verify(profileFinder, never()).findByNameAndNamespace(anyString(), anyString());
 
   }
 

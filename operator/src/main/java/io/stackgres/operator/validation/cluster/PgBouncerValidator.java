@@ -10,7 +10,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import io.stackgres.common.customresource.sgcluster.StackGresCluster;
-import io.stackgres.operator.services.KubernetesResourceFinder;
+import io.stackgres.operator.services.KubernetesCustomResourceFinder;
 import io.stackgres.operator.validation.AdmissionReview;
 import io.stackgres.operator.validation.ValidationFailed;
 import io.stackgres.sidecars.pgbouncer.customresources.StackGresPgbouncerConfig;
@@ -18,10 +18,10 @@ import io.stackgres.sidecars.pgbouncer.customresources.StackGresPgbouncerConfig;
 @ApplicationScoped
 public class PgBouncerValidator implements ClusterValidator {
 
-  private KubernetesResourceFinder<StackGresPgbouncerConfig> configFinder;
+  private KubernetesCustomResourceFinder<StackGresPgbouncerConfig> configFinder;
 
   @Inject
-  public PgBouncerValidator(KubernetesResourceFinder<StackGresPgbouncerConfig> configFinder) {
+  public PgBouncerValidator(KubernetesCustomResourceFinder<StackGresPgbouncerConfig> configFinder) {
     this.configFinder = configFinder;
   }
 
@@ -50,9 +50,10 @@ public class PgBouncerValidator implements ClusterValidator {
 
     StackGresCluster cluster = review.getRequest().getObject();
     String poolingConfig = cluster.getSpec().getConnectionPoolingConfig();
+    String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
     Optional<StackGresPgbouncerConfig> poolingConfigOpt = configFinder
-        .findByName(poolingConfig);
+        .findByNameAndNamespace(poolingConfig, namespace);
 
     if (!poolingConfigOpt.isPresent()) {
       throw new ValidationFailed(onError);

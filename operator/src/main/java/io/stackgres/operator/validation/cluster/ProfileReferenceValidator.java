@@ -11,17 +11,17 @@ import javax.inject.Inject;
 
 import io.stackgres.common.customresource.sgcluster.StackGresCluster;
 import io.stackgres.common.customresource.sgprofile.StackGresProfile;
-import io.stackgres.operator.services.KubernetesResourceFinder;
+import io.stackgres.operator.services.KubernetesCustomResourceFinder;
 import io.stackgres.operator.validation.AdmissionReview;
 import io.stackgres.operator.validation.ValidationFailed;
 
 @ApplicationScoped
 public class ProfileReferenceValidator implements ClusterValidator {
 
-  private KubernetesResourceFinder<StackGresProfile> profileFinder;
+  private KubernetesCustomResourceFinder<StackGresProfile> profileFinder;
 
   @Inject
-  public ProfileReferenceValidator(KubernetesResourceFinder<StackGresProfile> profileFinder) {
+  public ProfileReferenceValidator(KubernetesCustomResourceFinder<StackGresProfile> profileFinder) {
     this.profileFinder = profileFinder;
   }
 
@@ -48,8 +48,10 @@ public class ProfileReferenceValidator implements ClusterValidator {
       throws ValidationFailed {
     StackGresCluster cluster = review.getRequest().getObject();
     String resourceProfile = cluster.getSpec().getResourceProfile();
+    String namespace = cluster.getMetadata().getNamespace();
 
-    Optional<StackGresProfile> profileOpt = profileFinder.findByName(resourceProfile);
+    Optional<StackGresProfile> profileOpt = profileFinder
+        .findByNameAndNamespace(resourceProfile, namespace);
 
     if (!profileOpt.isPresent()) {
       throw new ValidationFailed(onError);

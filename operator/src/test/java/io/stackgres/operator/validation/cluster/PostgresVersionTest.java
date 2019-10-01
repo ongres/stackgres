@@ -13,7 +13,7 @@ import java.util.Random;
 
 import io.stackgres.common.customresource.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.customresource.sgpgconfig.StackGresPostgresConfig;
-import io.stackgres.operator.services.KubernetesResourceFinder;
+import io.stackgres.operator.services.KubernetesCustomResourceFinder;
 import io.stackgres.operator.utils.JsonUtil;
 import io.stackgres.operator.validation.AdmissionReview;
 import io.stackgres.operator.validation.Operation;
@@ -48,12 +48,12 @@ class PostgresVersionTest {
   private PostgresVersion validator;
 
   @Mock
-  private KubernetesResourceFinder<StackGresPostgresConfig> configFinder;
+  private KubernetesCustomResourceFinder<StackGresPostgresConfig> configFinder;
 
   private StackGresPostgresConfig postgresConfig;
 
   @BeforeEach
-  void setUp() throws Exception {
+  void setUp() {
     validator = new PostgresVersion(configFinder);
 
     postgresConfig = JsonUtil.readFromJson("postgres_config/default_postgres.json",
@@ -70,7 +70,10 @@ class PostgresVersionTest {
     StackGresClusterSpec spec = review.getRequest().getObject().getSpec();
     String postgresProfile = spec.getPostgresConfig();
 
-    when(configFinder.findByName(eq(postgresProfile))).thenReturn(Optional.of(postgresConfig));
+    String namespace = review.getRequest().getObject().getMetadata().getNamespace();
+
+    when(configFinder.findByNameAndNamespace(eq(postgresProfile), eq(namespace)))
+        .thenReturn(Optional.of(postgresConfig));
 
     final String randomMajorVersion = getRandomPostgresVersion();
     spec.setPostgresVersion(randomMajorVersion);
@@ -78,7 +81,7 @@ class PostgresVersionTest {
 
     validator.validate(review);
 
-    verify(configFinder).findByName(eq(postgresProfile));
+    verify(configFinder).findByNameAndNamespace(eq(postgresProfile), eq(namespace));
   }
 
   @Test
@@ -90,8 +93,9 @@ class PostgresVersionTest {
 
     StackGresClusterSpec spec = review.getRequest().getObject().getSpec();
     String postgresProfile = spec.getPostgresConfig();
+    String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
-    when(configFinder.findByName(eq(postgresProfile)))
+    when(configFinder.findByNameAndNamespace(eq(postgresProfile), eq(namespace)))
         .thenReturn(Optional.of(postgresConfig));
 
     ValidationFailed exception = assertThrows(ValidationFailed.class, () -> {
@@ -103,7 +107,7 @@ class PostgresVersionTest {
     assertEquals("Invalid pg_version, must be 11.x to use pfConfig postgresconf",
         resultMessage);
 
-    verify(configFinder).findByName(eq(postgresProfile));
+    verify(configFinder).findByNameAndNamespace(eq(postgresProfile), eq(namespace));
   }
 
   @Test
@@ -132,8 +136,10 @@ class PostgresVersionTest {
 
     StackGresClusterSpec spec = review.getRequest().getObject().getSpec();
     String postgresProfile = spec.getPostgresConfig();
+    String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
-    when(configFinder.findByName(eq(postgresProfile))).thenReturn(Optional.empty());
+    when(configFinder.findByNameAndNamespace(eq(postgresProfile), eq(namespace)))
+        .thenReturn(Optional.empty());
 
     ValidationFailed exception = assertThrows(ValidationFailed.class, () -> {
       validator.validate(review);
@@ -143,7 +149,7 @@ class PostgresVersionTest {
 
     assertEquals("Invalid pg_config value " + postgresProfile, resultMessage);
 
-    verify(configFinder).findByName(eq(postgresProfile));
+    verify(configFinder).findByNameAndNamespace(eq(postgresProfile), eq(namespace));
   }
 
   @Test
@@ -155,14 +161,14 @@ class PostgresVersionTest {
 
     StackGresClusterSpec spec = review.getRequest().getObject().getSpec();
     String postgresProfile = spec.getPostgresConfig();
+    String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
-    when(configFinder.findByName(eq(postgresProfile)))
+    when(configFinder.findByNameAndNamespace(eq(postgresProfile), eq(namespace)))
         .thenReturn(Optional.of(postgresConfig));
 
     validator.validate(review);
 
-    verify(configFinder).findByName(eq(postgresProfile));
-
+    verify(configFinder).findByNameAndNamespace(eq(postgresProfile), eq(namespace));
 
   }
 
@@ -177,7 +183,8 @@ class PostgresVersionTest {
     String postgresProfile = spec.getPostgresConfig();
     postgresConfig.getSpec().setPgVersion("10.5");
 
-    when(configFinder.findByName(eq(postgresProfile)))
+    String namespace = review.getRequest().getObject().getMetadata().getNamespace();
+    when(configFinder.findByNameAndNamespace(eq(postgresProfile), eq(namespace)))
         .thenReturn(Optional.of(postgresConfig));
 
     ValidationFailed exception = assertThrows(ValidationFailed.class, () -> {
@@ -189,8 +196,7 @@ class PostgresVersionTest {
     assertEquals("Invalid pg_version, must be 10.x to use pfConfig postgresconf",
         resultMessage);
 
-    verify(configFinder).findByName(eq(postgresProfile));
-
+    verify(configFinder).findByNameAndNamespace(eq(postgresProfile), eq(namespace));
 
   }
 
@@ -203,12 +209,9 @@ class PostgresVersionTest {
 
     review.getRequest().setOperation(Operation.DELETE);
 
-    StackGresClusterSpec spec = review.getRequest().getObject().getSpec();
-    String postgresProfile = spec.getPostgresConfig();
-
     validator.validate(review);
 
-    verify(configFinder, never()).findByName(eq(postgresProfile));
+    verify(configFinder, never()).findByNameAndNamespace(anyString(), anyString());
 
   }
 

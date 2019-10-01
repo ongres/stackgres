@@ -11,17 +11,17 @@ import javax.inject.Inject;
 
 import io.stackgres.common.customresource.sgcluster.StackGresCluster;
 import io.stackgres.common.customresource.sgpgconfig.StackGresPostgresConfig;
-import io.stackgres.operator.services.KubernetesResourceFinder;
+import io.stackgres.operator.services.KubernetesCustomResourceFinder;
 import io.stackgres.operator.validation.AdmissionReview;
 import io.stackgres.operator.validation.ValidationFailed;
 
 @ApplicationScoped
 public class PostgresVersion implements ClusterValidator {
 
-  private KubernetesResourceFinder<StackGresPostgresConfig> configFinder;
+  private KubernetesCustomResourceFinder<StackGresPostgresConfig> configFinder;
 
   @Inject
-  public PostgresVersion(KubernetesResourceFinder<StackGresPostgresConfig> configFinder) {
+  public PostgresVersion(KubernetesCustomResourceFinder<StackGresPostgresConfig> configFinder) {
     this.configFinder = configFinder;
   }
 
@@ -33,10 +33,11 @@ public class PostgresVersion implements ClusterValidator {
     String givenPgVersion = cluster.getSpec().getPostgresVersion();
     String givenMajorVersion = getMajorVersion(givenPgVersion);
     String pgConfig = cluster.getSpec().getPostgresConfig();
+    String namespace = cluster.getMetadata().getNamespace();
 
     switch (review.getRequest().getOperation()) {
       case CREATE:
-        validateAgainstConfiguration(givenMajorVersion, pgConfig);
+        validateAgainstConfiguration(givenMajorVersion, pgConfig, namespace);
         break;
       case UPDATE:
 
@@ -44,7 +45,7 @@ public class PostgresVersion implements ClusterValidator {
 
         String oldPgConfig = oldCluster.getSpec().getPostgresConfig();
         if (!oldPgConfig.equals(pgConfig)) {
-          validateAgainstConfiguration(givenMajorVersion, pgConfig);
+          validateAgainstConfiguration(givenMajorVersion, pgConfig, namespace);
         }
 
         String oldPgVersion = oldCluster.getSpec().getPostgresVersion();
@@ -60,10 +61,12 @@ public class PostgresVersion implements ClusterValidator {
 
   }
 
-  private void validateAgainstConfiguration(String givenMajorVersion, String pgConfig)
+  private void validateAgainstConfiguration(String givenMajorVersion,
+                                            String pgConfig,
+                                            String namespace)
       throws ValidationFailed {
     Optional<StackGresPostgresConfig> postgresConfigOpt = configFinder
-        .findByName(pgConfig);
+        .findByNameAndNamespace(pgConfig, namespace);
 
     if (postgresConfigOpt.isPresent()) {
 
