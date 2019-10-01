@@ -76,3 +76,18 @@ rules:
   - watch
   - list
   - get
+{{- if .Values.prometheus.allowAutobind }}
+- apiGroups: ["monitoring.coreos.com"]
+  resources:
+  - servicemonitors
+  verbs:
+  - list
+  - get
+  - create
+- apiGroups: ["monitoring.coreos.com"]
+  resources:
+  - prometheus
+  verbs:
+  - list
+  - get
+{{- end }}

@@ -4,7 +4,7 @@
  */
 
 /**
- * Custom Resource for PostgreSQL configuration parameters.
+ * Custom Resource for Pgbouncer configuration parameters.
  */
 
 package io.stackgres.sidecars.pgbouncer.customresources;

@@ -7,7 +7,6 @@ package io.stackgres.sidecars.pgbouncer.customresources;
 
 import java.util.Map;
 
-import javax.validation.constraints.Min;
 import javax.validation.constraints.NotEmpty;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -26,7 +25,6 @@ public class StackGresPgbouncerConfigSpec implements KubernetesResource {
   private static final long serialVersionUID = 2000013861182789247L;
 
   @JsonProperty("pgbouncer_version")
-  @Min(value = 11, message = "Pgbouncer version should be at least 1.11")
   private String pgbouncerVersion;
 
   @JsonProperty("pgbouncer.ini")

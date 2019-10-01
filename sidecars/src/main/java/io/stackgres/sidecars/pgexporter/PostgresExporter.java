@@ -7,6 +7,7 @@ package io.stackgres.sidecars.pgexporter;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -17,26 +18,33 @@ import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.EnvVarSourceBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.SecretKeySelectorBuilder;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.ServicePortBuilder;
 import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
-import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.StackGresClusterConfig;
 import io.stackgres.common.StackGresSidecarTransformer;
 import io.stackgres.common.resource.ResourceUtil;
+import io.stackgres.sidecars.pgexporter.customresources.ServiceMonitor;
+import io.stackgres.sidecars.pgexporter.customresources.ServiceMonitorDefinition;
+import io.stackgres.sidecars.pgexporter.customresources.StackGresPostgresExporterConfig;
 
-public class PostgresExporter implements StackGresSidecarTransformer<CustomResource> {
+public class PostgresExporter
+    implements StackGresSidecarTransformer<StackGresPostgresExporterConfig> {
 
   private static final String NAME = "prometheus-postgres-exporter";
-  private static final String IMAGE = "docker.io/ongres/prometheus-postgres-exporter:0.5.1";
+  private static final String IMAGE = "docker.io/ongres/prometheus-postgres-exporter:";
+  private static final String DEFAULT_VERSION = "0.5.1";
 
   public PostgresExporter() {}
 
   @Override
   public Container getContainer(StackGresClusterConfig config) {
+    Optional<StackGresPostgresExporterConfig> postgresExporterConfig =
+        config.getSidecarConfig(this);
     VolumeMount pgSocket = new VolumeMountBuilder()
         .withName("pg-socket")
         .withMountPath("/run/postgresql")
@@ -44,7 +52,9 @@ public class PostgresExporter implements StackGresSidecarTransformer<CustomResou
 
     ContainerBuilder container = new ContainerBuilder();
     container.withName(NAME)
-        .withImage(IMAGE)
+        .withImage(IMAGE + postgresExporterConfig
+            .map(c -> c.getSpec().getPostgresExporterVersion())
+            .orElse(DEFAULT_VERSION))
         .withImagePullPolicy("Always")
         .withEnv(new EnvVarBuilder()
             .withName("DATA_SOURCE_NAME")
@@ -75,7 +85,10 @@ public class PostgresExporter implements StackGresSidecarTransformer<CustomResou
   public List<HasMetadata> getResources(StackGresClusterConfig config) {
     Map<String, String> labels = ResourceUtil.defaultLabels(
         config.getCluster().getMetadata().getName());
-    return ImmutableList.of(
+    Optional<StackGresPostgresExporterConfig> postgresExporterConfig =
+        config.getSidecarConfig(this);
+    ImmutableList.Builder<HasMetadata> resourcesBuilder = ImmutableList.builder();
+    resourcesBuilder.add(
         new ServiceBuilder()
         .withNewMetadata()
         .withNamespace(config.getCluster().getMetadata().getNamespace())
@@ -93,6 +106,19 @@ public class PostgresExporter implements StackGresSidecarTransformer<CustomResou
                 .build())
             .build())
         .build());
+    if (postgresExporterConfig
+        .flatMap(c -> Optional.ofNullable(c.getSpec().getCreateServiceMonitor()))
+        .orElse(false)) {
+      ServiceMonitor serviceMonitor = new ServiceMonitor();
+      serviceMonitor.setKind(ServiceMonitorDefinition.KIND);
+      serviceMonitor.setApiVersion(ServiceMonitorDefinition.APIVERSION);
+      serviceMonitor.setMetadata(new ObjectMetaBuilder()
+          .withName("stackgres-prometheus-postgres-exporter")
+          .withLabels(ImmutableMap.of("team", "stackgres-prometheus-postgres-exporter"))
+          .build());
+      resourcesBuilder.add(serviceMonitor);
+    }
+    return resourcesBuilder.build();
   }
 
 }
