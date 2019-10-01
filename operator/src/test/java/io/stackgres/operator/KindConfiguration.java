@@ -21,6 +21,7 @@ import com.ongres.junit.docker.WaitFor;
     environments = { @Environment(key = "DOCKER_HOST", value = "${DOCKER_HOST}") },
     mounts = {
         @Mount(path = "/scripts", value = "/restart-kind.sh"),
+        @Mount(path = "/certs", value = "/certs/server.crt"),
         @Mount(path = "/var/run/docker.sock", value = "/var/run/docker.sock", system = true),
     })
 public interface KindConfiguration {

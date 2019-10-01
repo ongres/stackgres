@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.BiFunction;
@@ -133,13 +134,40 @@ public class ItHelper {
   /**
    * It helper method.
    */
-  public static void installStackGresOperatorHelmChart(Container kind) throws Exception {
+  public static void installStackGresOperatorHelmChart(Container kind, int sslPort)
+      throws Exception {
     LOGGER.info("Installing stackgres-operator helm chart");
     kind.execute("bash", "-l", "-c", "helm install /resources/stackgres-operator"
         + " --name stackgres-operator"
-        + " --set deploy.create=false")
+        + " --set deploy.create=false"
+        + " --set service.create=false")
       .filter(EXCLUDE_TTY_WARNING)
       .forEach(line -> LOGGER.info(line));
+    kind.execute("bash", "-l", "-c", "cat << 'EOF' | kubectl create -f -\n"
+        + "kind: Service\n"
+        + "apiVersion: v1\n"
+        + "metadata:\n"
+        + "  namespace: stackgres\n"
+        + "  name: stackgres-operator\n"
+        + "spec:\n"
+        + "  ports:\n"
+        + "   - port: 443\n"
+        + "     targetPort: " + sslPort + "\n"
+        + "---\n"
+        + "kind: Endpoints\n"
+        + "apiVersion: v1\n"
+        + "metadata:\n"
+        + "  namespace: stackgres\n"
+        + "  name: stackgres-operator\n"
+        + "subsets:\n"
+        + " - addresses:\n"
+        + "    - ip: 172.17.0.1\n"
+        + "   ports:\n"
+        + "    - port: " + sslPort + "\n"
+        + "EOF")
+        .filter(EXCLUDE_TTY_WARNING)
+        .forEach(line -> LOGGER.info(line));
+
   }
 
   /**
@@ -180,7 +208,8 @@ public class ItHelper {
   /**
    * It helper method.
    */
-  public static void waitUntilOperatorIsReady(WebTarget operatorClient) throws Exception {
+  public static void waitUntilOperatorIsReady(CompletableFuture<Void> operator,
+      WebTarget operatorClient) throws Exception {
     Instant timeout = Instant.now().plusSeconds(30);
     while (true) {
       if (Instant.now().isAfter(timeout)) {
@@ -188,6 +217,9 @@ public class ItHelper {
       }
       TimeUnit.MILLISECONDS.sleep(100);
       try {
+        if (operator.isDone()) {
+          operator.join();
+        }
         if (operatorClient.path("/health")
             .request(MediaType.APPLICATION_JSON)
             .get().getStatusInfo().equals(Status.OK)) {
@@ -210,7 +242,8 @@ public class ItHelper {
    * Code has been copied and adapted from {@code QuarkusTestExtension} to allow start/stop
    * quarkus application inside a test.
    */
-  public static OperatorRunner createOperator(Class<?> testClass, Container kind, int port) throws Exception {
+  public static OperatorRunner createOperator(Class<?> testClass, Container kind, int port,
+      int sslPort) throws Exception {
     return new OperatorRunner() {
       private URLClassLoader appCl;
       private ClassLoader originalCl;
@@ -252,6 +285,7 @@ public class ItHelper {
               .substring("    client-key-data: ".length()));
           LOGGER.info("Setup fabric8 to connect to {}", System.getProperty("kubernetes.master"));
           System.setProperty("quarkus.http.test-port", String.valueOf(port));
+          System.setProperty("quarkus.http.test-ssl-port", String.valueOf(sslPort));
 
           Path appClassLocation = getAppClassLocation(testClass);
 

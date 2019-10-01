@@ -36,6 +36,11 @@ then
   done
 fi
 kind create cluster --config kind-config.yaml --name "$CONTAINER_NAME" --image kindest/node:v${KUBERNETES_VERSION}
+for node in $(kind get nodes --name "$CONTAINER_NAME")
+do
+  docker cp /certs/server.crt $node:/usr/local/share/ca-certificates/validator.crt
+  docker exec -t $node sh -c "update-ca-certificates"
+done
 sed -i 's#^    server:.*$#    server: 'https://"$(docker inspect -f '{{ .NetworkSettings.IPAddress }}' ${CONTAINER_NAME}-control-plane)"':6443#' "$(kind get kubeconfig-path --name="$CONTAINER_NAME")"
 export KUBECONFIG="$(kind get kubeconfig-path --name="$CONTAINER_NAME")"
 echo "export KUBECONFIG='$(kind get kubeconfig-path --name="$CONTAINER_NAME")'" > /root/.bashrc

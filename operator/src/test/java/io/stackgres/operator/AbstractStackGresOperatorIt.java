@@ -36,16 +36,18 @@ public abstract class AbstractStackGresOperatorIt extends AbstractIt {
   public void setupOperator(@ContainerParam("kind") Container kind) throws Exception {
     ItHelper.copyResources(kind);
     ItHelper.deleteStackGresOperatorHelmChartIfExists(kind);
-    ItHelper.installStackGresOperatorHelmChart(kind);
     final int operatorPort = getFreePort();
-    OperatorRunner operatorRunner = ItHelper.createOperator(getClass(), kind, operatorPort);
+    final int operatorSslPort = getFreePort();
+    ItHelper.installStackGresOperatorHelmChart(kind, operatorSslPort);
+    OperatorRunner operatorRunner = ItHelper.createOperator(
+        getClass(), kind, operatorPort, operatorSslPort);
     CompletableFuture<Void> operator = runAsync(() -> operatorRunner.run());
     this.operator = () -> {
       operatorRunner.close();
       operator.join();
     };
     operatorClient = ClientBuilder.newClient().target("http://localhost:" + operatorPort);
-    ItHelper.waitUntilOperatorIsReady(operatorClient);
+    ItHelper.waitUntilOperatorIsReady(operator, operatorClient);
   }
 
   private int getFreePort() throws IOException {
@@ -58,7 +60,9 @@ public abstract class AbstractStackGresOperatorIt extends AbstractIt {
 
   @AfterEach
   public void teardownOperator() throws Exception {
-    operator.close();
+    if (operator != null) {
+      operator.close();
+    }
   }
 
 }
