@@ -16,12 +16,12 @@ import io.stackgres.operator.validation.AdmissionReview;
 import io.stackgres.operator.validation.ValidationFailed;
 
 @ApplicationScoped
-public class ProfileReference implements ClusterValidator {
+public class ProfileReferenceValidator implements ClusterValidator {
 
   private StackgresProfileFinder profileFinder;
 
   @Inject
-  public ProfileReference(StackgresProfileFinder profileFinder) {
+  public ProfileReferenceValidator(StackgresProfileFinder profileFinder) {
     this.profileFinder = profileFinder;
   }
 

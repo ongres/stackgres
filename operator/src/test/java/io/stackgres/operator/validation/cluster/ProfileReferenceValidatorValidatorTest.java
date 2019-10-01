@@ -21,9 +21,9 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import static org.mockito.Mockito.*;
 
-class ProfileReferenceValidatorTest {
+class ProfileReferenceValidatorValidatorTest {
 
-  private ProfileReference validator;
+  private ProfileReferenceValidator validator;
 
   private StackgresProfileFinder profileFinder;
 
@@ -32,7 +32,7 @@ class ProfileReferenceValidatorTest {
   @BeforeEach
   void setUp() throws Exception {
     profileFinder = mock(StackgresProfileFinder.class);
-    validator = new ProfileReference(profileFinder);
+    validator = new ProfileReferenceValidator(profileFinder);
 
     xsProfile = JsonUtil.readFromJson("stackgres_profiles/size-xs.json",
         StackGresProfile.class);
