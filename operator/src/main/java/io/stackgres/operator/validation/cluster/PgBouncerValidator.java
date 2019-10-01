@@ -10,7 +10,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import io.stackgres.common.customresource.sgcluster.StackGresCluster;
-import io.stackgres.operator.services.PgBouncerConfigFinder;
+import io.stackgres.operator.services.KubernetesResourceFinder;
 import io.stackgres.operator.validation.AdmissionReview;
 import io.stackgres.operator.validation.ValidationFailed;
 import io.stackgres.sidecars.pgbouncer.customresources.StackGresPgbouncerConfig;
@@ -18,10 +18,10 @@ import io.stackgres.sidecars.pgbouncer.customresources.StackGresPgbouncerConfig;
 @ApplicationScoped
 public class PgBouncerValidator implements ClusterValidator {
 
-  private PgBouncerConfigFinder configFinder;
+  private KubernetesResourceFinder<StackGresPgbouncerConfig> configFinder;
 
   @Inject
-  public PgBouncerValidator(PgBouncerConfigFinder configFinder) {
+  public PgBouncerValidator(KubernetesResourceFinder<StackGresPgbouncerConfig> configFinder) {
     this.configFinder = configFinder;
   }
 
@@ -52,7 +52,7 @@ public class PgBouncerValidator implements ClusterValidator {
     String poolingConfig = cluster.getSpec().getConnectionPoolingConfig();
 
     Optional<StackGresPgbouncerConfig> poolingConfigOpt = configFinder
-        .findPgBouncerConfig(poolingConfig);
+        .findByName(poolingConfig);
 
     if (!poolingConfigOpt.isPresent()) {
       throw new ValidationFailed(onError);

@@ -13,7 +13,7 @@ import io.stackgres.common.customresource.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.operator.app.KubernetesClientFactory;
 
 @ApplicationScoped
-public class PostgresConfigFinderImpl implements PostgresConfigFinder {
+public class PostgresConfigFinderImpl implements KubernetesResourceFinder<StackGresPostgresConfig> {
 
   private KubernetesClientFactory kubClientFactory;
 
@@ -23,7 +23,7 @@ public class PostgresConfigFinderImpl implements PostgresConfigFinder {
   }
 
   @Override
-  public Optional<StackGresPostgresConfig> findPostgresConfig(String postgresProfile) {
+  public Optional<StackGresPostgresConfig> findByName(String postgresProfile) {
     return Optional.empty();
   }
 

@@ -7,17 +7,18 @@ package io.stackgres.operator.validation.cluster;
 
 import javax.inject.Inject;
 
+import io.fabric8.kubernetes.api.model.storage.StorageClass;
 import io.stackgres.common.customresource.sgcluster.StackGresCluster;
-import io.stackgres.operator.services.StorageClassFinder;
+import io.stackgres.operator.services.KubernetesResourceFinder;
 import io.stackgres.operator.validation.AdmissionReview;
 import io.stackgres.operator.validation.ValidationFailed;
 
 public class StorageClassValidator implements ClusterValidator {
 
-  private StorageClassFinder finder;
+  private KubernetesResourceFinder<StorageClass> finder;
 
   @Inject
-  public StorageClassValidator(StorageClassFinder finder) {
+  public StorageClassValidator(KubernetesResourceFinder<StorageClass> finder) {
     this.finder = finder;
   }
 
@@ -43,7 +44,7 @@ public class StorageClassValidator implements ClusterValidator {
 
   private void checkIfStorageClassExist(String storageClass, String onError)
       throws ValidationFailed {
-    if (!finder.findStorageClass(storageClass).isPresent()) {
+    if (!finder.findByName(storageClass).isPresent()) {
       throw new ValidationFailed(onError);
     }
   }

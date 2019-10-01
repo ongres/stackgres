@@ -11,17 +11,17 @@ import javax.inject.Inject;
 
 import io.stackgres.common.customresource.sgcluster.StackGresCluster;
 import io.stackgres.common.customresource.sgpgconfig.StackGresPostgresConfig;
-import io.stackgres.operator.services.PostgresConfigFinder;
+import io.stackgres.operator.services.KubernetesResourceFinder;
 import io.stackgres.operator.validation.AdmissionReview;
 import io.stackgres.operator.validation.ValidationFailed;
 
 @ApplicationScoped
 public class PostgresVersion implements ClusterValidator {
 
-  private PostgresConfigFinder configFinder;
+  private KubernetesResourceFinder<StackGresPostgresConfig> configFinder;
 
   @Inject
-  public PostgresVersion(PostgresConfigFinder configFinder) {
+  public PostgresVersion(KubernetesResourceFinder<StackGresPostgresConfig> configFinder) {
     this.configFinder = configFinder;
   }
 
@@ -63,7 +63,7 @@ public class PostgresVersion implements ClusterValidator {
   private void validateAgainstConfiguration(String givenMajorVersion, String pgConfig)
       throws ValidationFailed {
     Optional<StackGresPostgresConfig> postgresConfigOpt = configFinder
-        .findPostgresConfig(pgConfig);
+        .findByName(pgConfig);
 
     if (postgresConfigOpt.isPresent()) {
 

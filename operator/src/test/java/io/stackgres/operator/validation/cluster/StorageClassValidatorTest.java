@@ -8,29 +8,35 @@ package io.stackgres.operator.validation.cluster;
 import java.util.Optional;
 
 import io.fabric8.kubernetes.api.model.storage.StorageClass;
-import io.stackgres.operator.services.StorageClassFinder;
+import io.stackgres.operator.services.KubernetesResourceFinder;
 import io.stackgres.operator.utils.JsonUtil;
 import io.stackgres.operator.validation.AdmissionReview;
 import io.stackgres.operator.validation.Operation;
 import io.stackgres.operator.validation.ValidationFailed;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
+@RunWith(MockitoJUnitRunner.class)
 class StorageClassValidatorTest {
 
   private StorageClassValidator validator;
 
-  private StorageClassFinder storageClassFinder;
+  @Mock
+  private KubernetesResourceFinder<StorageClass> storageClassFinder;
 
   private final static StorageClass DEFAULT_STORAGE_CLASS = JsonUtil.readFromJson("storage_class/standard.json", StorageClass.class);
 
   @BeforeEach
   void setUp() {
-
-    storageClassFinder = mock(StorageClassFinder.class);
     validator = new StorageClassValidator(storageClassFinder);
 
   }
@@ -42,12 +48,12 @@ class StorageClassValidatorTest {
         .readFromJson("allowed_requests/valid_creation.json", AdmissionReview.class);
 
     String storageClass = review.getRequest().getObject().getSpec().getStorageClass();
-    when(storageClassFinder.findStorageClass(storageClass))
+    when(storageClassFinder.findByName(storageClass))
         .thenReturn(Optional.of(DEFAULT_STORAGE_CLASS));
 
     validator.validate(review);
 
-    verify(storageClassFinder).findStorageClass(eq(storageClass));
+    verify(storageClassFinder).findByName(eq(storageClass));
 
   }
 
@@ -59,7 +65,7 @@ class StorageClassValidatorTest {
 
     String storageClass = review.getRequest().getObject().getSpec().getStorageClass();
 
-    when(storageClassFinder.findStorageClass(storageClass))
+    when(storageClassFinder.findByName(storageClass))
         .thenReturn(Optional.empty());
 
     ValidationFailed ex = assertThrows(ValidationFailed.class, () -> {
@@ -80,7 +86,7 @@ class StorageClassValidatorTest {
 
     String storageClass = review.getRequest().getObject().getSpec().getStorageClass();
 
-    when(storageClassFinder.findStorageClass(storageClass))
+    when(storageClassFinder.findByName(storageClass))
         .thenReturn(Optional.empty());
 
     ValidationFailed ex = assertThrows(ValidationFailed.class, () -> {
@@ -92,7 +98,7 @@ class StorageClassValidatorTest {
     assertEquals("Cannot update to storage class " + storageClass
         + " because it doesn't exists", resultMessage);
 
-    verify(storageClassFinder).findStorageClass(eq(storageClass));
+    verify(storageClassFinder).findByName(eq(storageClass));
 
   }
 
@@ -105,12 +111,12 @@ class StorageClassValidatorTest {
 
     String storageClass = review.getRequest().getObject().getSpec().getStorageClass();
 
-    when(storageClassFinder.findStorageClass(storageClass))
+    when(storageClassFinder.findByName(storageClass))
         .thenReturn(Optional.of(DEFAULT_STORAGE_CLASS));
 
     validator.validate(review);
 
-    verify(storageClassFinder).findStorageClass(eq(storageClass));
+    verify(storageClassFinder).findByName(eq(storageClass));
 
   }
 
@@ -124,12 +130,9 @@ class StorageClassValidatorTest {
 
     String storageClass = review.getRequest().getObject().getSpec().getStorageClass();
 
-    when(storageClassFinder.findStorageClass(storageClass))
-        .thenReturn(Optional.of(DEFAULT_STORAGE_CLASS));
-
     validator.validate(review);
 
-    verify(storageClassFinder, never()).findStorageClass(anyString());
+    verify(storageClassFinder, never()).findByName(anyString());
 
   }
 }

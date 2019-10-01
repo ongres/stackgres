@@ -7,7 +7,7 @@ package io.stackgres.operator.validation.cluster;
 
 import java.util.Optional;
 
-import io.stackgres.operator.services.PgBouncerConfigFinder;
+import io.stackgres.operator.services.KubernetesResourceFinder;
 import io.stackgres.operator.utils.JsonUtil;
 import io.stackgres.operator.validation.AdmissionReview;
 import io.stackgres.operator.validation.Operation;
@@ -15,24 +15,29 @@ import io.stackgres.operator.validation.ValidationFailed;
 import io.stackgres.sidecars.pgbouncer.customresources.StackGresPgbouncerConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
-
+@ExtendWith(MockitoExtension.class)
+@RunWith(MockitoJUnitRunner.class)
 class PgBouncerValidatorTest {
 
   private PgBouncerValidator validator;
 
-  private PgBouncerConfigFinder configFinder;
+  @Mock()
+  private KubernetesResourceFinder<StackGresPgbouncerConfig> configFinder;
 
   private StackGresPgbouncerConfig pgbouncerConfig;
 
   @BeforeEach
   void setUp(){
-    configFinder = mock(PgBouncerConfigFinder.class);
-
     validator = new PgBouncerValidator(configFinder);
 
     pgbouncerConfig = JsonUtil.readFromJson("pgbouncer_config/default.json", StackGresPgbouncerConfig.class);
@@ -46,12 +51,12 @@ class PgBouncerValidatorTest {
         .readFromJson("allowed_requests/valid_creation.json", AdmissionReview.class);
 
     String poolingConfig = review.getRequest().getObject().getSpec().getConnectionPoolingConfig();
-    when(configFinder.findPgBouncerConfig(poolingConfig))
+    when(configFinder.findByName(poolingConfig))
         .thenReturn(Optional.of(pgbouncerConfig));
 
     validator.validate(review);
 
-    verify(configFinder).findPgBouncerConfig(eq(poolingConfig));
+    verify(configFinder).findByName(eq(poolingConfig));
 
   }
 
@@ -63,7 +68,7 @@ class PgBouncerValidatorTest {
 
     String poolingConfig = review.getRequest().getObject().getSpec().getConnectionPoolingConfig();
 
-    when(configFinder.findPgBouncerConfig(poolingConfig))
+    when(configFinder.findByName(poolingConfig))
         .thenReturn(Optional.empty());
 
     ValidationFailed ex = assertThrows(ValidationFailed.class, () -> {
@@ -84,7 +89,7 @@ class PgBouncerValidatorTest {
 
     String poolingConfig = review.getRequest().getObject().getSpec().getConnectionPoolingConfig();
 
-    when(configFinder.findPgBouncerConfig(poolingConfig))
+    when(configFinder.findByName(poolingConfig))
         .thenReturn(Optional.empty());
 
     ValidationFailed ex = assertThrows(ValidationFailed.class, () -> {
@@ -96,7 +101,7 @@ class PgBouncerValidatorTest {
     assertEquals("Cannot update to pooling config " + poolingConfig
         + " because it doesn't exists", resultMessage);
 
-    verify(configFinder).findPgBouncerConfig(eq(poolingConfig));
+    verify(configFinder).findByName(eq(poolingConfig));
 
   }
 
@@ -109,12 +114,12 @@ class PgBouncerValidatorTest {
     String poolingConfig = review.getRequest().getObject().getSpec().getConnectionPoolingConfig();
 
 
-    when(configFinder.findPgBouncerConfig(poolingConfig))
+    when(configFinder.findByName(poolingConfig))
         .thenReturn(Optional.of(pgbouncerConfig));
 
     validator.validate(review);
 
-    verify(configFinder).findPgBouncerConfig(eq(poolingConfig));
+    verify(configFinder).findByName(eq(poolingConfig));
 
   }
 
@@ -127,12 +132,9 @@ class PgBouncerValidatorTest {
 
     String poolingConfig = review.getRequest().getObject().getSpec().getConnectionPoolingConfig();
 
-    when(configFinder.findPgBouncerConfig(poolingConfig))
-        .thenReturn(Optional.of(pgbouncerConfig));
-
     validator.validate(review);
 
-    verify(configFinder, never()).findPgBouncerConfig(eq(poolingConfig));
+    verify(configFinder, never()).findByName(eq(poolingConfig));
 
   }
 

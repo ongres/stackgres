@@ -56,7 +56,7 @@
     <errorprone.version>2.3.3</errorprone.version>
     <docker-junit-extension.version>1.2.7</docker-junit-extension.version>
     <jersey.version>2.29</jersey.version>
-    <mockito.version>1.10.19</mockito.version>
+    <mockito.version>3.0.0</mockito.version>
     <!-- Plugins versions -->
     <compiler-plugin.version>3.8.1</compiler-plugin.version>
     <jar-plugin.version>3.1.2</jar-plugin.version>

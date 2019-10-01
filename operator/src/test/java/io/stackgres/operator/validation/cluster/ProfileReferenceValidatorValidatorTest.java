@@ -9,29 +9,36 @@ package io.stackgres.operator.validation.cluster;
 import java.util.Optional;
 
 import io.stackgres.common.customresource.sgprofile.StackGresProfile;
-import io.stackgres.operator.services.StackgresProfileFinder;
+import io.stackgres.operator.services.KubernetesResourceFinder;
 import io.stackgres.operator.utils.JsonUtil;
 import io.stackgres.operator.validation.AdmissionReview;
 import io.stackgres.operator.validation.Operation;
 import io.stackgres.operator.validation.ValidationFailed;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
+@RunWith(MockitoJUnitRunner.class)
 class ProfileReferenceValidatorValidatorTest {
 
   private ProfileReferenceValidator validator;
 
-  private StackgresProfileFinder profileFinder;
+  @Mock
+  private KubernetesResourceFinder<StackGresProfile> profileFinder;
 
   private StackGresProfile xsProfile;
 
   @BeforeEach
   void setUp() throws Exception {
-    profileFinder = mock(StackgresProfileFinder.class);
     validator = new ProfileReferenceValidator(profileFinder);
 
     xsProfile = JsonUtil.readFromJson("stackgres_profiles/size-xs.json",
@@ -46,12 +53,12 @@ class ProfileReferenceValidatorValidatorTest {
         .readFromJson("allowed_requests/valid_creation.json", AdmissionReview.class);
 
     String resourceProfile = review.getRequest().getObject().getSpec().getResourceProfile();
-    when(profileFinder.findProfile(resourceProfile))
+    when(profileFinder.findByName(resourceProfile))
         .thenReturn(Optional.of(xsProfile));
 
     validator.validate(review);
 
-    verify(profileFinder).findProfile(eq(resourceProfile));
+    verify(profileFinder).findByName(eq(resourceProfile));
 
   }
 
@@ -63,7 +70,7 @@ class ProfileReferenceValidatorValidatorTest {
 
     String resourceProfile = review.getRequest().getObject().getSpec().getResourceProfile();
 
-    when(profileFinder.findProfile(resourceProfile))
+    when(profileFinder.findByName(resourceProfile))
         .thenReturn(Optional.empty());
 
     ValidationFailed ex = assertThrows(ValidationFailed.class, () -> {
@@ -84,7 +91,7 @@ class ProfileReferenceValidatorValidatorTest {
 
     String resourceProfile = review.getRequest().getObject().getSpec().getResourceProfile();
 
-    when(profileFinder.findProfile(resourceProfile))
+    when(profileFinder.findByName(resourceProfile))
         .thenReturn(Optional.empty());
 
     ValidationFailed ex = assertThrows(ValidationFailed.class, () -> {
@@ -96,7 +103,7 @@ class ProfileReferenceValidatorValidatorTest {
     assertEquals("Cannot update to profile " + resourceProfile
         + " because it doesn't exists", resultMessage);
 
-    verify(profileFinder).findProfile(eq(resourceProfile));
+    verify(profileFinder).findByName(eq(resourceProfile));
 
   }
 
@@ -111,12 +118,12 @@ class ProfileReferenceValidatorValidatorTest {
     StackGresProfile sProfile = JsonUtil.readFromJson("stackgres_profiles/size-s.json",
         StackGresProfile.class);
 
-    when(profileFinder.findProfile(resourceProfile))
+    when(profileFinder.findByName(resourceProfile))
         .thenReturn(Optional.of(sProfile));
 
     validator.validate(review);
 
-    verify(profileFinder).findProfile(eq(resourceProfile));
+    verify(profileFinder).findByName(eq(resourceProfile));
 
   }
 
@@ -129,12 +136,9 @@ class ProfileReferenceValidatorValidatorTest {
 
     String resourceProfile = review.getRequest().getObject().getSpec().getResourceProfile();
 
-    when(profileFinder.findProfile(resourceProfile))
-        .thenReturn(Optional.of(xsProfile));
-
     validator.validate(review);
 
-    verify(profileFinder, never()).findProfile(eq(resourceProfile));
+    verify(profileFinder, never()).findByName(eq(resourceProfile));
 
   }
 

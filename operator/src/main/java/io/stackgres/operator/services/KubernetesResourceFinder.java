@@ -7,9 +7,8 @@ package io.stackgres.operator.services;
 
 import java.util.Optional;
 
-import io.fabric8.kubernetes.api.model.storage.StorageClass;
+public interface KubernetesResourceFinder<T> {
 
-public interface StorageClassFinder {
+  Optional<T> findByName(String name);
 
-  Optional<StorageClass> findStorageClass(String name);
 }
