@@ -7,6 +7,7 @@ package io.stackgres.operator.services;
 
 import java.util.Optional;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
@@ -18,6 +19,7 @@ import io.stackgres.common.customresource.sgprofile.StackGresProfileList;
 import io.stackgres.common.resource.ResourceUtil;
 import io.stackgres.operator.app.KubernetesClientFactory;
 
+@ApplicationScoped
 public class ProfileConfigFinder implements KubernetesCustomResourceFinder<StackGresProfile> {
 
   private KubernetesClientFactory kubClientFactory;
