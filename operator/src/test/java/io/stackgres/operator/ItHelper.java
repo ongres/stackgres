@@ -99,8 +99,7 @@ public class ItHelper {
     LOGGER.info("Installing stackgres-operator helm chart");
     kind.execute("bash", "-l", "-c", "helm install /resources/stackgres-operator"
         + " --name stackgres-operator"
-        + " --set deploy.create=false"
-        + " --set service.create=false")
+        + " --set deploy.create=false")
       .filter(EXCLUDE_TTY_WARNING)
       .forEach(line -> LOGGER.info(line));
     kind.execute("bash", "-l", "-c", "cat << 'EOF' | kubectl create -f -\n"
