@@ -6,15 +6,18 @@
 package io.stackgres.operator;
 
 import java.net.ConnectException;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.TemporalUnit;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.WebTarget;
@@ -25,6 +28,8 @@ import com.ongres.junit.docker.Container;
 
 import io.stackgres.operator.app.StackGresOperatorApp;
 
+import org.apache.commons.io.IOUtils;
+import org.jooq.lambda.Unchecked;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -102,6 +107,20 @@ public class ItHelper {
         + " --set deploy.create=false")
       .filter(EXCLUDE_TTY_WARNING)
       .forEach(line -> LOGGER.info(line));
+    Process process = new ProcessBuilder("bash", "-ec",
+        "cat /proc/net/fib_trie | tr -d ' |-' | grep -F '172.17.0' | grep -v -F '172.17.0.0'")
+        .start();
+    CompletableFuture<String> dockerInterfaceIp = CompletableFuture.supplyAsync(
+        Unchecked.supplier(() -> IOUtils.readLines(
+            process.getInputStream(), StandardCharsets.UTF_8)
+            .stream().findAny().get()));
+    CompletableFuture<List<String>> dockerInterfaceIpError = CompletableFuture.supplyAsync(
+        Unchecked.supplier(() -> IOUtils.readLines(
+            process.getErrorStream(), StandardCharsets.UTF_8)));
+    if (process.waitFor() != 0) {
+      throw new RuntimeException("Can not retrieve docker interface IP:\n"
+          + dockerInterfaceIpError.join().stream().collect(Collectors.joining("\n")));
+    }
     kind.execute("bash", "-l", "-c", "cat << 'EOF' | kubectl create -f -\n"
         + "kind: Service\n"
         + "apiVersion: v1\n"
@@ -120,7 +139,7 @@ public class ItHelper {
         + "  name: stackgres-operator\n"
         + "subsets:\n"
         + " - addresses:\n"
-        + "    - ip: 172.17.0.1\n"
+        + "    - ip: " + dockerInterfaceIp.join() + "\n"
         + "   ports:\n"
         + "    - port: " + sslPort + "\n"
         + "EOF")
