@@ -24,8 +24,7 @@ public class PostgresConfigValidator implements ClusterValidator {
 
   private KubernetesCustomResourceFinder<StackGresPostgresConfig> configFinder;
 
-
-  private Set<String> supportedPostgresVersions = new LinkedHashSet<>();;
+  private Set<String> supportedPostgresVersions = new LinkedHashSet<>();
 
   @Inject
   public PostgresConfigValidator(
@@ -34,25 +33,18 @@ public class PostgresConfigValidator implements ClusterValidator {
       @ConfigProperty(name = "stackgres.supported.minor.versions") List<Integer> minorVersions) {
     this.configFinder = configFinder;
 
-    for (int i = 0; i < majorVersions.size(); i++){
+    for (int i = 0; i < majorVersions.size(); i++) {
 
       String majorVersion = majorVersions.get(i);
       Integer latestMinorVersion = minorVersions.get(i);
 
-      for(int j = 0; j <= latestMinorVersion; j++){
+      for (int j = 0; j <= latestMinorVersion; j++) {
         supportedPostgresVersions.add(majorVersion + "." + j);
       }
 
     }
 
   }
-
-  @ConfigProperty(name = "stackgres.supported.major.versions")
-  private String majorVersions;
-
-  @ConfigProperty(name = "stackgres.latest.minor.versions")
-  private String minorVersions;
-
 
   @Override
   public void validate(AdmissionReview review) throws ValidationFailed {
@@ -65,12 +57,11 @@ public class PostgresConfigValidator implements ClusterValidator {
     checkIfProvided(givenPgVersion, "pg_version");
     checkIfProvided(pgConfig, "pg_config");
 
-    if (!isPostgresVersionSupported(givenPgVersion)){
+    if (!isPostgresVersionSupported(givenPgVersion)) {
       throw new ValidationFailed("Unsupported pg_version " + givenPgVersion
           + ".  Supported postgres versions are: "
           + String.join(", ", supportedPostgresVersions));
     }
-
 
     String givenMajorVersion = getMajorVersion(givenPgVersion);
     String namespace = cluster.getMetadata().getNamespace();
@@ -129,7 +120,7 @@ public class PostgresConfigValidator implements ClusterValidator {
     return pgVersion.substring(0, versionSplit);
   }
 
-  private boolean isPostgresVersionSupported(String version){
+  private boolean isPostgresVersionSupported(String version) {
     return supportedPostgresVersions.contains(version);
   }
 

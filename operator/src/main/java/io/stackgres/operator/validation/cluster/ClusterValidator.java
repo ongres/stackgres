@@ -13,7 +13,7 @@ public interface ClusterValidator {
   void validate(AdmissionReview review) throws ValidationFailed;
 
   default void checkIfProvided(String value, String field) throws ValidationFailed {
-    if (value == null || value.isEmpty()){
+    if (value == null || value.isEmpty()) {
       throw new ValidationFailed(field + " must be provided");
     }
   }
