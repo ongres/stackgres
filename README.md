@@ -36,16 +36,16 @@ with GraalVM allowing amazingly fast boot time and incredibly low RSS memory.
 
 ### Getting Started
 
-You can deploy the StackGres operator by using
+You can deploy the StackGres operator by using [helm](https://helm.sh/):
 
 ```
-kubectl apply -f example/kubernetes.yaml
+helm template --name stackgres-operator operator/install/kubernetes/chart/stackgres-operator | kubectl create -f -
 ```
 
 Once the operator is up and running in your Kubernetes cluster you can deploy new clusters using
 
 ```
-kubectl -n stackgres apply -f example/stackgres_v1alpha1_sgcluster_cr.yaml
+helm template --name my-cluster operator/install/kubernetes/chart/stackgres-cluster | kubectl create -f -
 ```
 
 you can edit the instances field with the number of replicas you want to deploy.
@@ -80,7 +80,7 @@ podman run -i --rm -p 8080:8080 localhost/stackgres/operator
 Once you start the operator, it start watching the CRD resource for StackGres that can be deployed using:
 
 ```
-kubectl -n stackgres apply -f example/stackgres_v1alpha1_sgcluster_cr.yaml
+helm template --name stackgres-cluster operator/install/kubernetes/chart/stackgres-cluster | kubectl create -f -
 ```
 
 ### Building locally
@@ -110,13 +110,12 @@ You can omit the profile `-P native` to generate a normal jar that can be run us
 Once you start the operator, it start watching the CRD resource for StackGres that can be deployed using:
 
 ```
-kubectl -n stackgres apply -f example/stackgres_v1alpha1_sgcluster_cr.yaml
+helm template --name stackgres-cluster operator/install/kubernetes/chart/stackgres-cluster | kubectl create -f -
 ```
 
 #### Integration tests
 
-Integration tests requires docker to be installed. Also the docker server have to listen to address and port 172.17.0.1:2376.
-To run the ITs:
+Integration tests requires docker to be installed (if not on Linux set the environment variable `DOCKER_HOST` pointing to the protocol, host and port of the docker daemon). To run the ITs:
 
 ```
 ./mvnw verify -P integration
