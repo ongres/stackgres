@@ -261,7 +261,7 @@ public class ClusterController {
           .build());
     }
 
-    client.events().create(eventBuilder.build());
+    client.resource(eventBuilder.build()).createOrReplace();
   }
 
 }
