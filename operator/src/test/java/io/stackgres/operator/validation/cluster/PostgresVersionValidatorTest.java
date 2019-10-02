@@ -8,8 +8,12 @@
 
 package io.stackgres.operator.validation.cluster;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.Random;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import io.stackgres.common.customresource.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.customresource.sgpgconfig.StackGresPostgresConfig;
@@ -26,26 +30,58 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @RunWith(MockitoJUnitRunner.class)
-class PostgresVersionTest {
+class PostgresVersionValidatorTest {
 
-  private static final String[] supportedPostgresMajorVersions = {"9.4", "9.5", "9.6", "10", "11"};
-  private static final String[] latestPostgresMinorVersions = {"24", "19", "15", "10", "5"};
+  private static final int[] supportedPostgresMajorVersions = {10, 11};
+  private static final int[] latestPostgresMinorVersions = {10, 5};
 
   private static String getRandomPostgresVersion() {
     Random r = new Random();
-    int versionIndex = r.nextInt(5);
-    String majorVersion = supportedPostgresMajorVersions[versionIndex];
-    String minorVersion = latestPostgresMinorVersions[versionIndex];
+    int versionIndex = r.nextInt(2);
+    int majorVersion = supportedPostgresMajorVersions[versionIndex];
+    int minorVersion = latestPostgresMinorVersions[versionIndex];
+    minorVersion = r.nextInt(minorVersion + 1);
     return majorVersion + "." + minorVersion;
   }
 
-  private PostgresVersion validator;
+  private static boolean isPostgresVersionValid(String version){
+    int[] versionNumbers = Arrays.stream(version.split("\\.")).mapToInt(Integer::parseInt)
+        .toArray();
+
+    for (int i = 0; i < supportedPostgresMajorVersions.length; i++){
+      if (versionNumbers[1] == supportedPostgresMajorVersions[i]){
+        if(versionNumbers[2] <= latestPostgresMinorVersions[i]){
+          return true;
+        }
+      }
+    }
+    return false;
+
+  }
+
+  private static String getRandomInvalidPostgresVersion() {
+    String version;
+
+    Random r = new Random();
+    do{
+
+      Stream<String> versionDigits = r.ints(1, 100)
+          .limit(2).mapToObj(i -> Integer.valueOf(i).toString());
+
+      version = String.join(".", versionDigits.collect(Collectors.toList()));
+
+    } while(isPostgresVersionValid(version));
+
+    return version;
+
+  }
+
+  private PostgresConfigValidator validator;
 
   @Mock
   private KubernetesCustomResourceFinder<StackGresPostgresConfig> configFinder;
@@ -54,7 +90,15 @@ class PostgresVersionTest {
 
   @BeforeEach
   void setUp() {
-    validator = new PostgresVersion(configFinder);
+
+    List<String> majorVersions = Arrays.stream(supportedPostgresMajorVersions).boxed()
+        .map(Object::toString)
+        .collect(Collectors.toList());
+
+    List<Integer> minorVersions = Arrays.stream(latestPostgresMinorVersions).boxed()
+        .collect(Collectors.toList());
+
+    validator = new PostgresConfigValidator(configFinder, majorVersions, minorVersions);
 
     postgresConfig = JsonUtil.readFromJson("postgres_config/default_postgres.json",
         StackGresPostgresConfig.class);
@@ -88,7 +132,7 @@ class PostgresVersionTest {
   void givenInconsistentPostgresVersion_shouldFail() {
 
     final AdmissionReview review = JsonUtil
-        .readFromJson("allowed_requests/invalid_creation_pgreference_version.json",
+        .readFromJson("allowed_requests/invalid_creation_pg_version.json",
             AdmissionReview.class);
 
     StackGresClusterSpec spec = review.getRequest().getObject().getSpec();
@@ -108,6 +152,65 @@ class PostgresVersionTest {
         resultMessage);
 
     verify(configFinder).findByNameAndNamespace(eq(postgresProfile), eq(namespace));
+  }
+
+  @Test
+  void givenAnEmptyPostgresVersion_shouldFail() {
+
+    final AdmissionReview review = JsonUtil
+        .readFromJson("allowed_requests/invalid_creation_empty_pg_version.json",
+            AdmissionReview.class);
+
+    ValidationFailed exception = assertThrows(ValidationFailed.class, () -> {
+      validator.validate(review);
+    });
+
+    String resultMessage = exception.getResult().getMessage();
+
+    assertEquals("pg_version must be provided",
+        resultMessage);
+
+    verify(configFinder, never()).findByNameAndNamespace(anyString(), anyString());
+  }
+
+  @Test
+  void givenNoPostgresVersion_shouldFail() {
+
+    final AdmissionReview review = JsonUtil
+        .readFromJson("allowed_requests/invalid_creation_no_pg_version.json",
+            AdmissionReview.class);
+
+    ValidationFailed exception = assertThrows(ValidationFailed.class, () -> {
+      validator.validate(review);
+    });
+
+    String resultMessage = exception.getResult().getMessage();
+
+    assertEquals("pg_version must be provided",
+        resultMessage);
+
+    verify(configFinder, never()).findByNameAndNamespace(anyString(), anyString());
+  }
+
+  @Test
+  void givenInvalidPostgresVersion_shouldFail() {
+
+    final AdmissionReview review = JsonUtil
+        .readFromJson("allowed_requests/invalid_creation_no_pg_version.json",
+            AdmissionReview.class);
+
+    String postgresVersion = getRandomInvalidPostgresVersion();
+    review.getRequest().getObject().getSpec().setPostgresVersion(postgresVersion);
+
+    ValidationFailed exception = assertThrows(ValidationFailed.class, () -> {
+      validator.validate(review);
+    });
+
+    String resultMessage = exception.getResult().getMessage();
+
+    assertTrue(resultMessage.contains("Unsupported pg_version " + postgresVersion));
+
+    verify(configFinder, never()).findByNameAndNamespace(anyString(), anyString());
   }
 
   @Test
@@ -150,6 +253,46 @@ class PostgresVersionTest {
     assertEquals("Invalid pg_config value " + postgresProfile, resultMessage);
 
     verify(configFinder).findByNameAndNamespace(eq(postgresProfile), eq(namespace));
+  }
+
+  @Test
+  void givenEmptyPostgresConfigReference_shouldFail() {
+
+    final AdmissionReview review = JsonUtil
+        .readFromJson("allowed_requests/valid_creation.json", AdmissionReview.class);
+
+    StackGresClusterSpec spec = review.getRequest().getObject().getSpec();
+    spec.setPostgresConfig("");
+
+    ValidationFailed exception = assertThrows(ValidationFailed.class, () -> {
+      validator.validate(review);
+    });
+
+    String resultMessage = exception.getResult().getMessage();
+
+    assertEquals("pg_config must be provided", resultMessage);
+
+    verify(configFinder, never()).findByNameAndNamespace(anyString(), anyString());
+  }
+
+  @Test
+  void givenNoPostgresConfigReference_shouldFail() {
+
+    final AdmissionReview review = JsonUtil
+        .readFromJson("allowed_requests/valid_creation.json", AdmissionReview.class);
+
+    StackGresClusterSpec spec = review.getRequest().getObject().getSpec();
+    spec.setPostgresConfig(null);
+
+    ValidationFailed exception = assertThrows(ValidationFailed.class, () -> {
+      validator.validate(review);
+    });
+
+    String resultMessage = exception.getResult().getMessage();
+
+    assertEquals("pg_config must be provided", resultMessage);
+
+    verify(configFinder, never()).findByNameAndNamespace(anyString(), anyString());
   }
 
   @Test
