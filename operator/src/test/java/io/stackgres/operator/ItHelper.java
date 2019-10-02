@@ -54,7 +54,7 @@ public class ItHelper {
    */
   public static void restartKind(Container kind) throws Exception {
     LOGGER.info("Restarting kind");
-    kind.execute("bash", "/scripts/restart-kind.sh")
+    kind.execute("sh", "/scripts/restart-kind.sh")
         .filter(EXCLUDE_TTY_WARNING)
         .forEach(line -> LOGGER.info(line));
   }
@@ -64,7 +64,7 @@ public class ItHelper {
    */
   public static void createNamespace(Container kind, String namespace) throws Exception {
     LOGGER.info("Create namespace '" + namespace + "'");
-    kind.execute("bash", "-l", "-c",
+    kind.execute("sh", "-l", "-c",
         "kubectl create namespace " + namespace)
         .filter(EXCLUDE_TTY_WARNING)
         .forEach(line -> LOGGER.info(line));
@@ -75,7 +75,7 @@ public class ItHelper {
    */
   public static void deleteNamespaceIfExists(Container kind, String namespace) throws Exception {
     LOGGER.info("Deleting namespace if exists '" + namespace + "'");
-    kind.execute("bash", "-l", "-c",
+    kind.execute("sh", "-l", "-c",
         "kubectl delete namespace --ignore-not-found " + namespace)
         .filter(EXCLUDE_TTY_WARNING)
         .forEach(line -> LOGGER.info(line));
@@ -86,12 +86,12 @@ public class ItHelper {
    */
   public static void deleteStackGresOperatorHelmChartIfExists(Container kind) throws Exception {
     LOGGER.info("Deleting if exists stackgres-operator helm chart");
-    kind.execute("bash", "-l", "-c", "helm template /resources/stackgres-operator"
+    kind.execute("sh", "-l", "-c", "helm template /resources/stackgres-operator"
         + " --name stackgres-operator"
         + " | kubectl delete --ignore-not-found -f -")
         .filter(EXCLUDE_TTY_WARNING)
         .forEach(line -> LOGGER.info(line));
-    kind.execute("bash", "-l", "-c", "helm delete stackgres-operator --purge || true")
+    kind.execute("sh", "-l", "-c", "helm delete stackgres-operator --purge || true")
         .filter(EXCLUDE_TTY_WARNING)
         .forEach(line -> LOGGER.info(line));
   }
@@ -102,12 +102,12 @@ public class ItHelper {
   public static void installStackGresOperatorHelmChart(Container kind, int sslPort)
       throws Exception {
     LOGGER.info("Installing stackgres-operator helm chart");
-    kind.execute("bash", "-l", "-c", "helm install /resources/stackgres-operator"
+    kind.execute("sh", "-l", "-c", "helm install /resources/stackgres-operator"
         + " --name stackgres-operator"
         + " --set deploy.create=false")
       .filter(EXCLUDE_TTY_WARNING)
       .forEach(line -> LOGGER.info(line));
-    Process process = new ProcessBuilder("bash", "-ec",
+    Process process = new ProcessBuilder("sh", "-ec",
         "cat /proc/net/fib_trie | tr -d ' |-' | grep -F '172.17.0' | grep -v -F '172.17.0.0'")
         .start();
     CompletableFuture<String> dockerInterfaceIp = CompletableFuture.supplyAsync(
@@ -121,7 +121,7 @@ public class ItHelper {
       throw new RuntimeException("Can not retrieve docker interface IP:\n"
           + dockerInterfaceIpError.join().stream().collect(Collectors.joining("\n")));
     }
-    kind.execute("bash", "-l", "-c", "cat << 'EOF' | kubectl create -f -\n"
+    kind.execute("sh", "-l", "-c", "cat << 'EOF' | kubectl create -f -\n"
         + "kind: Service\n"
         + "apiVersion: v1\n"
         + "metadata:\n"
@@ -153,11 +153,11 @@ public class ItHelper {
    */
   public static void installStackGresConfigs(Container kind, String namespace) throws Exception {
     LOGGER.info("Deleting if exists stackgres-cluster helm chart for configs");
-    kind.execute("bash", "-l", "-c", "helm delete stackgres-cluster-configs --purge || true")
+    kind.execute("sh", "-l", "-c", "helm delete stackgres-cluster-configs --purge || true")
         .filter(EXCLUDE_TTY_WARNING)
         .forEach(line -> LOGGER.info(line));
     LOGGER.info("Installing stackgres-cluster helm chart for configs");
-    kind.execute("bash", "-l", "-c", "helm install /resources/stackgres-cluster"
+    kind.execute("sh", "-l", "-c", "helm install /resources/stackgres-cluster"
         + " --namespace " + namespace
         + " --name stackgres-cluster-configs"
         + " --set cluster.create=false")
@@ -170,11 +170,11 @@ public class ItHelper {
    */
   public static void installStackGresCluster(Container kind, String namespace, String name) throws Exception {
     LOGGER.info("Deleting if exists stackgres-cluster helm chart for cluster with name " + name);
-    kind.execute("bash", "-l", "-c", "helm delete stackgres-cluster-" + name + " --purge || true")
+    kind.execute("sh", "-l", "-c", "helm delete stackgres-cluster-" + name + " --purge || true")
         .filter(EXCLUDE_TTY_WARNING)
         .forEach(line -> LOGGER.info(line));
     LOGGER.info("Installing stackgres-cluster helm chart for cluster with name " + name);
-    kind.execute("bash", "-l", "-c", "helm install /resources/stackgres-cluster"
+    kind.execute("sh", "-l", "-c", "helm install /resources/stackgres-cluster"
         + " --namespace " + namespace
         + " --name stackgres-cluster-" + name
         + " --set config.create=false --set profiles.create=false"
@@ -188,7 +188,7 @@ public class ItHelper {
    */
   public static void waitUntilOperatorIsReady(CompletableFuture<Void> operator,
       WebTarget operatorClient) throws Exception {
-    Instant timeout = Instant.now().plusSeconds(30);
+    Instant timeout = Instant.now().plusSeconds(180);
     while (true) {
       if (Instant.now().isAfter(timeout)) {
         throw new TimeoutException();

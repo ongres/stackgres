@@ -22,7 +22,7 @@ spec:
         image: "bitnami/kubectl:latest"
         imagePullPolicy: "Always"
         command:
-          - "/bin/bash"
+          - "/bin/sh"
           - "-ecx"
           - |
             function init() {
