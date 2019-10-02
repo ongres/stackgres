@@ -29,7 +29,7 @@ public class ValidationResource {
   private static final Logger LOGGER = LoggerFactory.getLogger(ValidationResource.class);
 
   @Inject
-  private ValidationPipeline pipeline;
+  ValidationPipeline pipeline;
 
   void onStart(@Observes StartupEvent ev) {
     LOGGER.info("Validation resource started");
