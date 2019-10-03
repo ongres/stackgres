@@ -30,7 +30,7 @@ public class PostgresConfigValidator implements ClusterValidator {
   public PostgresConfigValidator(
       KubernetesCustomResourceFinder<StackGresPostgresConfig> configFinder,
       @ConfigProperty(name = "stackgres.supported.major.versions") List<String> majorVersions,
-      @ConfigProperty(name = "stackgres.supported.minor.versions") List<Integer> minorVersions) {
+      @ConfigProperty(name = "stackgres.latest.minor.versions") List<Integer> minorVersions) {
     this.configFinder = configFinder;
 
     for (int i = 0; i < majorVersions.size(); i++) {

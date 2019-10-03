@@ -11,10 +11,10 @@ import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.stackgres.common.customresource.sgpgconfig.StackGresPostgresConfigDefinition;
 import io.stackgres.common.resource.ResourceUtil;
 import io.stackgres.operator.app.KubernetesClientFactory;
 import io.stackgres.sidecars.pgbouncer.customresources.StackGresPgbouncerConfig;
+import io.stackgres.sidecars.pgbouncer.customresources.StackGresPgbouncerConfigDefinition;
 import io.stackgres.sidecars.pgbouncer.customresources.StackGresPgbouncerConfigDoneable;
 import io.stackgres.sidecars.pgbouncer.customresources.StackGresPgbouncerConfigList;
 
@@ -33,7 +33,7 @@ public class PgBouncerConfigFinder
   public Optional<StackGresPgbouncerConfig> findByNameAndNamespace(String name, String namespace) {
     try (KubernetesClient client = kubClientFactory.create()) {
       Optional<CustomResourceDefinition> crd =
-          ResourceUtil.getCustomResource(client, StackGresPostgresConfigDefinition.NAME);
+          ResourceUtil.getCustomResource(client, StackGresPgbouncerConfigDefinition.NAME);
       if (crd.isPresent()) {
 
         return Optional.ofNullable(client

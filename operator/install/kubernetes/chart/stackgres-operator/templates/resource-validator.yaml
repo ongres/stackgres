@@ -13,7 +13,7 @@ webhooks:
         apiVersions: ["*"]
         resources: ["sgclusters"]
         scope: "*"
-    failurePolicy: Ignore
+    failurePolicy: Fail
     clientConfig:
       service:
         namespace: {{ .Values.operatorNamespace }}
