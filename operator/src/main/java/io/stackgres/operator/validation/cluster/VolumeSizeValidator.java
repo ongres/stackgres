@@ -9,7 +9,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.enterprise.context.ApplicationScoped;
 
-import io.stackgres.operator.validation.AdmissionReview;
+import io.stackgres.operator.validation.StackgresClusterReview;
 import io.stackgres.operator.validation.ValidationFailed;
 
 @ApplicationScoped
@@ -21,7 +21,7 @@ public class VolumeSizeValidator implements ClusterValidator {
   private static final Pattern VOLUME_SIZE_PATTERN = Pattern.compile(VOLUME_SIZE_EXPR);
 
   @Override
-  public void validate(AdmissionReview review) throws ValidationFailed {
+  public void validate(StackgresClusterReview review) throws ValidationFailed {
 
     String volumeSize = review.getRequest().getObject().getSpec().getVolumeSize();
 

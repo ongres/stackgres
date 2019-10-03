@@ -135,16 +135,27 @@ public class ItHelper {
    */
   public static void installStackGresConfigs(Container kind, String namespace) throws Exception {
     LOGGER.info("Deleting if exists stackgres-cluster helm chart for configs");
-    kind.execute("bash", "-l", "-c", "helm delete stackgres-cluster-configs --purge || true")
-        .filter(EXCLUDE_TTY_WARNING)
-        .forEach(line -> LOGGER.info(line));
-    LOGGER.info("Installing stackgres-cluster helm chart for configs");
-    kind.execute("bash", "-l", "-c", "helm install /resources/stackgres-cluster"
-        + " --namespace " + namespace
-        + " --name stackgres-cluster-configs"
-        + " --set cluster.create=false")
-      .filter(EXCLUDE_TTY_WARNING)
-      .forEach(line -> LOGGER.info(line));
+    try{
+
+      kind.execute("bash", "-l", "-c", "helm delete stackgres-cluster-configs --purge || true")
+          .filter(EXCLUDE_TTY_WARNING)
+          .forEach(line -> LOGGER.info(line));
+    } catch (Exception ex){
+      LOGGER.error("Error deleting existent cluster", ex);
+      throw ex;
+    }
+    try {
+      LOGGER.info("Installing stackgres-cluster helm chart for configs");
+      kind.execute("bash", "-l", "-c", "helm install /resources/stackgres-cluster"
+          + " --namespace " + namespace
+          + " --name stackgres-cluster-configs"
+          + " --set cluster.create=false")
+          .filter(EXCLUDE_TTY_WARNING)
+          .forEach(line -> LOGGER.info(line));
+    } catch (Exception ex){
+      LOGGER.error("Error installing cluster in namespace " + namespace, ex);
+      throw ex;
+    }
   }
 
   /**

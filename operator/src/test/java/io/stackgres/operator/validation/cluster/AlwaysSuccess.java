@@ -7,13 +7,13 @@ package io.stackgres.operator.validation.cluster;
 
 import javax.enterprise.context.ApplicationScoped;
 
-import io.stackgres.operator.validation.AdmissionReview;
+import io.stackgres.operator.validation.StackgresClusterReview;
 
 @ApplicationScoped
 public class AlwaysSuccess implements ClusterValidator {
 
   @Override
-  public void validate(AdmissionReview review) {
+  public void validate(StackgresClusterReview review) {
   }
 
 }

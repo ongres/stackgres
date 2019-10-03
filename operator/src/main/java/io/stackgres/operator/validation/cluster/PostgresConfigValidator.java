@@ -15,7 +15,7 @@ import javax.inject.Inject;
 import io.stackgres.common.customresource.sgcluster.StackGresCluster;
 import io.stackgres.common.customresource.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.operator.services.KubernetesCustomResourceFinder;
-import io.stackgres.operator.validation.AdmissionReview;
+import io.stackgres.operator.validation.StackgresClusterReview;
 import io.stackgres.operator.validation.ValidationFailed;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
@@ -47,7 +47,7 @@ public class PostgresConfigValidator implements ClusterValidator {
   }
 
   @Override
-  public void validate(AdmissionReview review) throws ValidationFailed {
+  public void validate(StackgresClusterReview review) throws ValidationFailed {
 
     StackGresCluster cluster = review.getRequest().getObject();
 

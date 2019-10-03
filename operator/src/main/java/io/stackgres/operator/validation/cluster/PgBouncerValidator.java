@@ -11,7 +11,7 @@ import javax.inject.Inject;
 
 import io.stackgres.common.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.services.KubernetesCustomResourceFinder;
-import io.stackgres.operator.validation.AdmissionReview;
+import io.stackgres.operator.validation.StackgresClusterReview;
 import io.stackgres.operator.validation.ValidationFailed;
 import io.stackgres.sidecars.pgbouncer.customresources.StackGresPgbouncerConfig;
 
@@ -26,7 +26,7 @@ public class PgBouncerValidator implements ClusterValidator {
   }
 
   @Override
-  public void validate(AdmissionReview review) throws ValidationFailed {
+  public void validate(StackgresClusterReview review) throws ValidationFailed {
 
     StackGresCluster cluster = review.getRequest().getObject();
     String poolingConfig = cluster.getSpec().getConnectionPoolingConfig();
@@ -45,7 +45,7 @@ public class PgBouncerValidator implements ClusterValidator {
 
   }
 
-  private void checkIfPoolingConfigExists(AdmissionReview review,
+  private void checkIfPoolingConfigExists(StackgresClusterReview review,
                                           String onError) throws ValidationFailed {
 
     StackGresCluster cluster = review.getRequest().getObject();

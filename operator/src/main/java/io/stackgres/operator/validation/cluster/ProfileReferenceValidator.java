@@ -12,7 +12,7 @@ import javax.inject.Inject;
 import io.stackgres.common.customresource.sgcluster.StackGresCluster;
 import io.stackgres.common.customresource.sgprofile.StackGresProfile;
 import io.stackgres.operator.services.KubernetesCustomResourceFinder;
-import io.stackgres.operator.validation.AdmissionReview;
+import io.stackgres.operator.validation.StackgresClusterReview;
 import io.stackgres.operator.validation.ValidationFailed;
 
 @ApplicationScoped
@@ -26,7 +26,7 @@ public class ProfileReferenceValidator implements ClusterValidator {
   }
 
   @Override
-  public void validate(AdmissionReview review) throws ValidationFailed {
+  public void validate(StackgresClusterReview review) throws ValidationFailed {
 
     StackGresCluster cluster = review.getRequest().getObject();
     String resourceProfile = cluster.getSpec().getResourceProfile();
@@ -44,7 +44,7 @@ public class ProfileReferenceValidator implements ClusterValidator {
 
   }
 
-  private void checkIfProfileExists(AdmissionReview review, String onError)
+  private void checkIfProfileExists(StackgresClusterReview review, String onError)
       throws ValidationFailed {
     StackGresCluster cluster = review.getRequest().getObject();
     String resourceProfile = cluster.getSpec().getResourceProfile();

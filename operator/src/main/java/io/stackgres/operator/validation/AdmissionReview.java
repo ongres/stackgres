@@ -7,17 +7,17 @@ package io.stackgres.operator.validation;
 
 import io.fabric8.kubernetes.api.model.GroupVersionKind;
 
-public class AdmissionReview extends GroupVersionKind {
+public abstract class AdmissionReview<T> extends GroupVersionKind {
 
   private static final long serialVersionUID = -7649295266069293729L;
 
-  private AdmissionRequest request;
+  private AdmissionRequest<T> request;
 
-  public AdmissionRequest getRequest() {
+  public AdmissionRequest<T> getRequest() {
     return request;
   }
 
-  public void setRequest(AdmissionRequest request) {
+  public void setRequest(AdmissionRequest<T> request) {
     this.request = request;
   }
 }

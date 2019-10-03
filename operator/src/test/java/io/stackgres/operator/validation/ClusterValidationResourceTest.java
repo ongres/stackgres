@@ -36,7 +36,7 @@ import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class ValidationResourceTest extends JerseyTest {
+class ClusterValidationResourceTest extends JerseyTest {
 
   @BeforeEach
   @Override
@@ -52,7 +52,7 @@ class ValidationResourceTest extends JerseyTest {
 
   @Override
   protected Application configure() {
-    return new ResourceConfig(ValidationResource.class)
+    return new ResourceConfig(ClusterValidationResource.class)
         .register(new AbstractBinder(){
 
       @Override
@@ -86,7 +86,7 @@ class ValidationResourceTest extends JerseyTest {
 
     String requestBody = getFileAsString("allowed_requests/valid_creation.json");
 
-    Response response = target("/validation").request(MediaType.APPLICATION_JSON).post(Entity.json(requestBody));
+    Response response = target("/cluster/validation").request(MediaType.APPLICATION_JSON).post(Entity.json(requestBody));
 
     assertEquals(200, response.getStatus());
 
@@ -97,7 +97,7 @@ class ValidationResourceTest extends JerseyTest {
 
     String requestBody = getFileAsString("allowed_requests/valid_creation.json");
 
-    Response response = target("/validation").request(MediaType.APPLICATION_JSON).post(Entity.json(requestBody));
+    Response response = target("/cluster/validation").request(MediaType.APPLICATION_JSON).post(Entity.json(requestBody));
 
     String rawContent = response.readEntity(String.class);
 
@@ -114,7 +114,7 @@ class ValidationResourceTest extends JerseyTest {
 
     String requestBody = getFileAsString("allowed_requests/valid_creation.json");
 
-    Response response = target("/validation").request(MediaType.APPLICATION_JSON).post(Entity.json(requestBody));
+    Response response = target("/cluster/validation").request(MediaType.APPLICATION_JSON).post(Entity.json(requestBody));
 
     AdmissionReviewResponse admissionResponse = response.readEntity(AdmissionReviewResponse.class);
 
@@ -131,7 +131,7 @@ class ValidationResourceTest extends JerseyTest {
 
     UUID requestUid = UUID.fromString(admissionRequest.get("request").get("uid").asText());
 
-    Response response = target("/validation").request(MediaType.APPLICATION_JSON).post(Entity.json(requestBody));
+    Response response = target("/cluster/validation").request(MediaType.APPLICATION_JSON).post(Entity.json(requestBody));
 
     AdmissionReviewResponse admissionResponse = response.readEntity(AdmissionReviewResponse.class);
 

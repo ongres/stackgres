@@ -15,21 +15,22 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import io.quarkus.runtime.StartupEvent;
+import io.stackgres.common.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.validation.cluster.ClusterValidationPipeline;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Path("/validation")
+@Path("/cluster/validation")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-public class ValidationResource {
+public class ClusterValidationResource {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(ValidationResource.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(ClusterValidationResource.class);
 
   private ClusterValidationPipeline pipeline;
 
   @Inject
-  public ValidationResource(ClusterValidationPipeline pipeline) {
+  public ClusterValidationResource(ClusterValidationPipeline pipeline) {
     this.pipeline = pipeline;
   }
 
@@ -41,9 +42,9 @@ public class ValidationResource {
    * Admission Web hook callback.
    */
   @POST
-  public AdmissionReviewResponse validate(AdmissionReview admissionReview) {
+  public AdmissionReviewResponse validate(StackgresClusterReview admissionReview) {
 
-    AdmissionRequest request = admissionReview.getRequest();
+    AdmissionRequest<StackGresCluster> request = admissionReview.getRequest();
     UUID requestUid = request.getUid();
     LOGGER.info("Validating admission review " + requestUid.toString()
         + " of kind " + request.getKind().toString());

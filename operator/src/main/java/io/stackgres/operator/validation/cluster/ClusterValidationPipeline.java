@@ -9,7 +9,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
-import io.stackgres.operator.validation.AdmissionReview;
+import io.stackgres.operator.validation.StackgresClusterReview;
 import io.stackgres.operator.validation.ValidationFailed;
 
 @ApplicationScoped
@@ -25,9 +25,9 @@ public class ClusterValidationPipeline {
   /**
    * Validate all {@code Validator}s in sequence.
    */
-  public void validator(AdmissionReview admissionReview) throws ValidationFailed {
+  public void validator(StackgresClusterReview admissionReview) throws ValidationFailed {
 
-    for (ClusterValidator validator: validators) {
+    for (ClusterValidator validator : validators) {
 
       validator.validate(admissionReview);
 

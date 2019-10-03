@@ -11,7 +11,7 @@ import javax.inject.Inject;
 import io.fabric8.kubernetes.api.model.storage.StorageClass;
 import io.stackgres.common.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.services.KubernetesResourceFinder;
-import io.stackgres.operator.validation.AdmissionReview;
+import io.stackgres.operator.validation.StackgresClusterReview;
 import io.stackgres.operator.validation.ValidationFailed;
 
 @ApplicationScoped
@@ -25,7 +25,7 @@ public class StorageClassValidator implements ClusterValidator {
   }
 
   @Override
-  public void validate(AdmissionReview review) throws ValidationFailed {
+  public void validate(StackgresClusterReview review) throws ValidationFailed {
 
     StackGresCluster cluster = review.getRequest().getObject();
     String storageClass = cluster.getSpec().getStorageClass();
