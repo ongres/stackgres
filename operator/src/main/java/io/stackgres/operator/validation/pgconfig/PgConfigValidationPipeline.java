@@ -9,7 +9,6 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
-import io.stackgres.common.customresource.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.operator.validation.PgConfigReview;
 import io.stackgres.operator.validation.ValidationFailed;
 import io.stackgres.operator.validation.ValidationPipeline;
