@@ -8,15 +8,10 @@ package io.stackgres.operator.validation.cluster;
 import io.stackgres.operator.validation.AdmissionReview;
 import io.stackgres.operator.validation.StackgresClusterReview;
 import io.stackgres.operator.validation.ValidationFailed;
+import io.stackgres.operator.validation.Validator;
 
-public interface ClusterValidator {
+public interface ClusterValidator extends Validator<StackgresClusterReview> {
 
-  void validate(StackgresClusterReview review) throws ValidationFailed;
 
-  default void checkIfProvided(String value, String field) throws ValidationFailed {
-    if (value == null || value.isEmpty()) {
-      throw new ValidationFailed(field + " must be provided");
-    }
-  }
 
 }

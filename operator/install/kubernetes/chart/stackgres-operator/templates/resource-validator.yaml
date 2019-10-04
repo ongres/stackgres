@@ -2,9 +2,9 @@
 apiVersion: admissionregistration.k8s.io/v1beta1
 kind: ValidatingWebhookConfiguration
 metadata:
-  name: sgvalidator.{{ .Values.group }}
+  name: sgvalidator.sgcluster.{{ .Values.group }}
 webhooks:
-  - name: sgvalidator.{{ .Values.group }}
+  - name: sgvalidator.sgcluster.{{ .Values.group }}
     admissionReviewVersions: ["v1beta1"]
     sideEffects: None
     rules:
@@ -18,6 +18,28 @@ webhooks:
       service:
         namespace: {{ .Values.operatorNamespace }}
         name: {{ .Values.operatorName }}
-        path: /validation
+        path: '/validation/cluster'
+        caBundle: {{ .Values.validator.caBundle }}
+---
+apiVersion: admissionregistration.k8s.io/v1beta1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: sgvalidator.sgpgconfig.{{ .Values.group }}
+webhooks:
+  - name: sgvalidator.sgpgconfig.{{ .Values.group }}
+    admissionReviewVersions: ["v1beta1"]
+    sideEffects: None
+    rules:
+      - operations: ["CREATE", "UPDATE", "DELETE"]
+        apiGroups: ["stackgres.io"]
+        apiVersions: ["*"]
+        resources: ["sgpgconfigs"]
+        scope: "*"
+    failurePolicy: Fail
+    clientConfig:
+      service:
+        namespace: {{ .Values.operatorNamespace }}
+        name: {{ .Values.operatorName }}
+        path: '/validation/pgconfig'
         caBundle: {{ .Values.validator.caBundle }}
 {{ end }}

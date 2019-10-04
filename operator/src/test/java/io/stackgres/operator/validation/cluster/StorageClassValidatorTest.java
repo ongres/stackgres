@@ -45,7 +45,7 @@ class StorageClassValidatorTest {
   void givenValidStorageClassOnCreation_shouldNotFail() throws ValidationFailed {
 
     final StackgresClusterReview review = JsonUtil
-        .readFromJson("allowed_requests/valid_creation.json", StackgresClusterReview.class);
+        .readFromJson("cluster_allow_requests/valid_creation.json", StackgresClusterReview.class);
 
     String storageClass = review.getRequest().getObject().getSpec().getStorageClass();
     when(storageClassFinder.findByName(storageClass))
@@ -61,7 +61,7 @@ class StorageClassValidatorTest {
   void giveInvalidStorageClassOnCreation_shouldFail() {
 
     final StackgresClusterReview review = JsonUtil
-        .readFromJson("allowed_requests/valid_creation.json", StackgresClusterReview.class);
+        .readFromJson("cluster_allow_requests/valid_creation.json", StackgresClusterReview.class);
 
     String storageClass = review.getRequest().getObject().getSpec().getStorageClass();
 
@@ -82,7 +82,7 @@ class StorageClassValidatorTest {
   void giveAnAttemptToUpdateToAUnknownStorageClass_shouldFail() {
 
     final StackgresClusterReview review = JsonUtil
-        .readFromJson("allowed_requests/storage_class_config_update.json", StackgresClusterReview.class);
+        .readFromJson("cluster_allow_requests/storage_class_config_update.json", StackgresClusterReview.class);
 
     String storageClass = review.getRequest().getObject().getSpec().getStorageClass();
 
@@ -106,7 +106,7 @@ class StorageClassValidatorTest {
   void giveAnAttemptToUpdateToAKnownStorageClass_shouldNotFail() throws ValidationFailed {
 
     final StackgresClusterReview review = JsonUtil
-        .readFromJson("allowed_requests/storage_class_config_update.json",
+        .readFromJson("cluster_allow_requests/storage_class_config_update.json",
             StackgresClusterReview.class);
 
     String storageClass = review.getRequest().getObject().getSpec().getStorageClass();
@@ -124,7 +124,7 @@ class StorageClassValidatorTest {
   void giveAnAttemptToDelete_shouldNotFail() throws ValidationFailed {
 
     final StackgresClusterReview review = JsonUtil
-        .readFromJson("allowed_requests/storage_class_config_update.json",
+        .readFromJson("cluster_allow_requests/storage_class_config_update.json",
             StackgresClusterReview.class);
     review.getRequest().setOperation(Operation.DELETE);
 

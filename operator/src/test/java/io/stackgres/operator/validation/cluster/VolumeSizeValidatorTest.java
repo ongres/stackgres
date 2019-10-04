@@ -23,7 +23,7 @@ class VolumeSizeValidatorTest {
   public void setUp() {
 
     defaultReview = JsonUtil
-        .readFromJson("allowed_requests/valid_creation.json", StackgresClusterReview.class);
+        .readFromJson("cluster_allow_requests/valid_creation.json", StackgresClusterReview.class);
 
   }
 

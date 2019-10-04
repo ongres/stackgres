@@ -1,0 +1,93 @@
+{
+  "kind": "AdmissionReview",
+  "request": {
+    "uid": "b45405d8-36dd-4302-9c13-f07d30ba57c5",
+    "kind": {
+      "kind": "StackGresPostgresConfig",
+      "group": "stackgres.io",
+      "version": "v1alpha1"
+    },
+    "resource": {
+      "group": "stackgres.io",
+      "resource": "sgpgconfigs",
+      "version": "v1alpha1"
+    },
+    "subResource": null,
+    "requestKind": {
+      "kind": "StackGresPostgresConfig",
+      "group": "stackgres.io",
+      "version": "v1alpha1"
+    },
+    "requestResource": {
+      "group": "stackgres.io",
+      "resource": "sgpgconfigs",
+      "version": "v1alpha1"
+    },
+    "requestSubResource": null,
+    "name": "postgresconf",
+    "namespace": "default",
+    "operation": "UPDATE",
+    "userInfo": {
+      "groups": [
+        "system:masters",
+        "system:authenticated"
+      ],
+      "username": "kubernetes-admin"
+    },
+    "object": {
+      "kind": "StackGresPostgresConfig",
+      "apiVersion": "stackgres.io/v1alpha1",
+      "metadata": {
+        "annotations": {
+          "helm.sh/hook-weight": "1",
+          "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"stackgres.io/v1alpha1\",\"kind\":\"StackGresPostgresConfig\",\"metadata\":{\"annotations\":{\"helm.sh/hook-weight\":\"1\"},\"name\":\"postgresconf\",\"namespace\":\"default\"},\"spec\":{\"pg_version\":\"11.5\",\"postgresql.conf\":{\"password_encryption\":\"scram-sha-256\",\"random_page_cost\":\"1.5\",\"shared_buffers\":\"512MB\",\"wal_compression\":\"on\",\"wal_level\":\"minimal\"}}}\n"
+        },
+        "creationTimestamp": "2019-10-04T08:48:36Z",
+        "generation": 2,
+        "name": "postgresconf",
+        "namespace": "default",
+        "resourceVersion": "786",
+        "uid": "c7104846-7eb4-41cb-a04a-784aa27f1a1e"
+      },
+      "spec": {
+        "pg_version": "11.5",
+        "postgresql.conf": {
+          "password_encryption": "scram-sha-256",
+          "random_page_cost": "1.5",
+          "shared_buffers": "512MB",
+          "wal_compression": "on"
+        }
+      }
+    },
+    "oldObject": {
+      "kind": "StackGresPostgresConfig",
+      "apiVersion": "stackgres.io/v1alpha1",
+      "metadata": {
+        "creationTimestamp": "2019-10-04T08:48:36Z",
+        "generation": 1,
+        "name": "postgresconf",
+        "namespace": "default",
+        "resourceVersion": "786",
+        "uid": "c7104846-7eb4-41cb-a04a-784aa27f1a1e"
+      },
+      "spec": {
+        "pg_version": "11.5",
+        "postgresql.conf": {
+          "password_encryption": "scram-sha-256",
+          "random_page_cost": "1.5",
+          "shared_buffers": "256MB",
+          "wal_compression": "on",
+          "wal_level": "minimal"
+        }
+      }
+    },
+    "options": {
+      "kind": "UpdateOptions",
+      "apiVersion": "meta.k8s.io/v1",
+      "metadata": {},
+      "spec": null
+    },
+    "dryRun": false
+  },
+  "apiVersion": "admission.k8s.io/v1beta1"
+}

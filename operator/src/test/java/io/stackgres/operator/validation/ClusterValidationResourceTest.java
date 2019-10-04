@@ -84,9 +84,9 @@ class ClusterValidationResourceTest extends JerseyTest {
   @Test
   void givenValidAllowedRequest_thenReturnedStatusShouldBe200() {
 
-    String requestBody = getFileAsString("allowed_requests/valid_creation.json");
+    String requestBody = getFileAsString("cluster_allow_requests/valid_creation.json");
 
-    Response response = target("/cluster/validation").request(MediaType.APPLICATION_JSON).post(Entity.json(requestBody));
+    Response response = target("/validation/cluster").request(MediaType.APPLICATION_JSON).post(Entity.json(requestBody));
 
     assertEquals(200, response.getStatus());
 
@@ -95,9 +95,9 @@ class ClusterValidationResourceTest extends JerseyTest {
   @Test
   void givenValidAllowedRequest_thenResponseShouldNotContainStatusProperty() throws IOException {
 
-    String requestBody = getFileAsString("allowed_requests/valid_creation.json");
+    String requestBody = getFileAsString("cluster_allow_requests/valid_creation.json");
 
-    Response response = target("/cluster/validation").request(MediaType.APPLICATION_JSON).post(Entity.json(requestBody));
+    Response response = target("/validation/cluster").request(MediaType.APPLICATION_JSON).post(Entity.json(requestBody));
 
     String rawContent = response.readEntity(String.class);
 
@@ -112,9 +112,9 @@ class ClusterValidationResourceTest extends JerseyTest {
   @Test
   void givenValidAllowedRequest_thenAdmissionShouldBeAllowed() {
 
-    String requestBody = getFileAsString("allowed_requests/valid_creation.json");
+    String requestBody = getFileAsString("cluster_allow_requests/valid_creation.json");
 
-    Response response = target("/cluster/validation").request(MediaType.APPLICATION_JSON).post(Entity.json(requestBody));
+    Response response = target("/validation/cluster").request(MediaType.APPLICATION_JSON).post(Entity.json(requestBody));
 
     AdmissionReviewResponse admissionResponse = response.readEntity(AdmissionReviewResponse.class);
 
@@ -125,13 +125,13 @@ class ClusterValidationResourceTest extends JerseyTest {
   @Test
   void givenValidAllowedRequest_thenResponseUidShouldMatchRequestUid() throws IOException {
 
-    String requestBody = getFileAsString("allowed_requests/valid_creation.json");
+    String requestBody = getFileAsString("cluster_allow_requests/valid_creation.json");
 
     JsonNode admissionRequest = mapper.readTree(requestBody);
 
     UUID requestUid = UUID.fromString(admissionRequest.get("request").get("uid").asText());
 
-    Response response = target("/cluster/validation").request(MediaType.APPLICATION_JSON).post(Entity.json(requestBody));
+    Response response = target("/validation/cluster").request(MediaType.APPLICATION_JSON).post(Entity.json(requestBody));
 
     AdmissionReviewResponse admissionResponse = response.readEntity(AdmissionReviewResponse.class);
 

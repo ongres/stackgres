@@ -11,9 +11,10 @@ import javax.inject.Inject;
 
 import io.stackgres.operator.validation.StackgresClusterReview;
 import io.stackgres.operator.validation.ValidationFailed;
+import io.stackgres.operator.validation.ValidationPipeline;
 
 @ApplicationScoped
-public class ClusterValidationPipeline {
+public class ClusterValidationPipeline implements ValidationPipeline<StackgresClusterReview> {
 
   private Instance<ClusterValidator> validators;
 
@@ -25,7 +26,7 @@ public class ClusterValidationPipeline {
   /**
    * Validate all {@code Validator}s in sequence.
    */
-  public void validator(StackgresClusterReview admissionReview) throws ValidationFailed {
+  public void validate(StackgresClusterReview admissionReview) throws ValidationFailed {
 
     for (ClusterValidator validator : validators) {
 

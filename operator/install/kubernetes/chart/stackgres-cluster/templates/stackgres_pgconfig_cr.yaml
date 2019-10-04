@@ -9,6 +9,5 @@ spec:
       shared_buffers: '256MB'
       random_page_cost: '1.5'
       password_encryption: 'scram-sha-256'
-      wal_level: 'minimal' # Blacklisted
       wal_compression: 'on'
 {{ end }}
