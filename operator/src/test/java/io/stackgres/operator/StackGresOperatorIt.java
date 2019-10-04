@@ -31,7 +31,7 @@ public class StackGresOperatorIt extends AbstractStackGresOperatorIt {
 
   @Test
   public void createClusterTest(@ContainerParam("kind") Container kind) throws Exception {
-    ItHelper.installStackGresConfigs(kind, namespace);
+    //ItHelper.installStackGresConfigs(kind, namespace);
     ItHelper.installStackGresCluster(kind, namespace, CLUSTER_NAME);
     ItHelper.waitUntil(Unchecked.supplier(() -> kind.execute("bash", "-l", "-c",
         "kubectl get events -n " + namespace + " -o wide"

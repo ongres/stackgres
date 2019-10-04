@@ -170,7 +170,7 @@ public class ItHelper {
     kind.execute("bash", "-l", "-c", "helm install /resources/stackgres-cluster"
         + " --namespace " + namespace
         + " --name stackgres-cluster-" + name
-        + " --set config.create=false --set profiles.create=false"
+        + " --set config.create=true --set profiles.create=true"
         + " --set-string cluster.name=" + name)
       .filter(EXCLUDE_TTY_WARNING)
       .forEach(line -> LOGGER.info(line));
