@@ -6,14 +6,15 @@
 package io.stackgres.operator.validation;
 
 import java.util.UUID;
+import javax.enterprise.event.Observes;
+import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import io.quarkus.runtime.StartupEvent;
 import io.stackgres.common.customresource.sgpgconfig.StackGresPostgresConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,23 +24,30 @@ import org.slf4j.LoggerFactory;
 @Consumes(MediaType.APPLICATION_JSON)
 public class PostgresConfigValidationResource {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(ClusterValidationResource.class);
+  private static final Logger LOGGER = LoggerFactory
+      .getLogger(PostgresConfigValidationResource.class);
+
+  private ValidationPipeline<PgConfigReview> validationPipeline;
+
+  @Inject
+  public PostgresConfigValidationResource(ValidationPipeline<PgConfigReview> validationPipeline) {
+    this.validationPipeline = validationPipeline;
+  }
+
+  void onStart(@Observes StartupEvent ev) {
+    LOGGER.info("Postgres configuration validation resource started");
+  }
 
   /**
    * Admission Web hook callback.
    */
   @POST
-  public AdmissionReviewResponse validate(PgConfigReview admissionReview)
-      throws JsonProcessingException {
+  public AdmissionReviewResponse validate(PgConfigReview admissionReview) {
     AdmissionRequest<StackGresPostgresConfig> request = admissionReview.getRequest();
 
     UUID requestUid = request.getUid();
     LOGGER.info("Validating admission review " + requestUid.toString()
         + " of kind " + request.getKind().toString());
-    ObjectMapper mapper = new ObjectMapper();
-    String json = mapper.writeValueAsString(admissionReview);
-    LOGGER.info("validating: " + json);
-
     AdmissionResponse response = new AdmissionResponse();
     response.setUid(requestUid);
 
@@ -50,7 +58,15 @@ public class PostgresConfigValidationResource {
     reviewResponse.setKind(admissionReview.getKind());
     reviewResponse.setVersion(admissionReview.getVersion());
 
-    response.setAllowed(true);
+    try {
+      validationPipeline.validate(admissionReview);
+      response.setAllowed(false);
+    } catch (ValidationFailed vfex) {
+      LOGGER.error("Cannot proceed with request " + requestUid.toString()
+          + ", validation failed ", vfex);
+      response.setAllowed(false);
+      response.setStatus(vfex.getResult());
+    }
 
     return reviewResponse;
 
