@@ -92,7 +92,7 @@ public class AdmissionRequest<T> {
   }
 
   public String getRequestSubResource() {
-    return requestSubResoure;
+    return requestSubResource;
   }
 
   public void setRequestSubResource(String requestSubResource) {

@@ -8,4 +8,6 @@ package io.stackgres.operator.validation;
 import io.stackgres.common.customresource.sgpgconfig.StackGresPostgresConfig;
 
 public class PgConfigReview extends AdmissionReview<StackGresPostgresConfig> {
+
+  private static final long serialVersionUID = 1L;
 }
