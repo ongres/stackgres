@@ -60,12 +60,17 @@ public class PostgresConfigValidationResource {
 
     try {
       validationPipeline.validate(admissionReview);
-      response.setAllowed(false);
+      response.setAllowed(true);
     } catch (ValidationFailed vfex) {
       LOGGER.error("Cannot proceed with request " + requestUid.toString()
           + ", validation failed ", vfex);
       response.setAllowed(false);
       response.setStatus(vfex.getResult());
+    } catch (Exception ex) {
+      LOGGER.error("Cannot complete the validation pipeline due to some unexpected error: ", ex);
+      Result status = new Result(500, ex.getMessage());
+      response.setAllowed(false);
+      response.setStatus(status);
     }
 
     return reviewResponse;

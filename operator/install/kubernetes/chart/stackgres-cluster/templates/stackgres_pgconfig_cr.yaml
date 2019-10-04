@@ -3,6 +3,7 @@ apiVersion: stackgres.io/{{ .Values.crd.version }}
 kind: StackGresPostgresConfig
 metadata:
   name: {{ .Values.cluster.pgconfig }}
+
 spec:
   pg_version: "{{ .Values.config.postgresql.version }}"
   postgresql.conf:
