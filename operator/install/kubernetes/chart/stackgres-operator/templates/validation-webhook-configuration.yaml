@@ -1,8 +1,8 @@
-{{- if .Values.validator.create }}
+{{- if and .Values.cert.key .Values.cert.crt .Values.validator.create }}
 apiVersion: admissionregistration.k8s.io/v1beta1
 kind: ValidatingWebhookConfiguration
 metadata:
-  name: {{ .Values.operatorName }}
+  name: {{ .Values.operatorName }}-cluster-validator
   {{- if .Values.namespace.create }}
   namespace: {{ .Values.operatorNamespace }}
   {{- end }}
@@ -19,6 +19,29 @@ webhooks:
       service:
         namespace: {{ .Values.operatorNamespace }}
         name: {{ .Values.operatorName }}
-        path: /validation
-      caBundle: {{ .Values.cert.crt }}
+        path: '/validation/cluster'
+        caBundle: {{ .Values.cert.crt }}
+---
+apiVersion: admissionregistration.k8s.io/v1beta1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: {{ .Values.operatorName }}-pgconfig-validator
+  {{- if .Values.namespace.create }}
+  namespace: {{ .Values.operatorNamespace }}
+  {{- end }}
+webhooks:
+  - name: {{ .Values.operatorName }}.{{ .Values.operatorNamespace }}.svc
+    sideEffects: None
+    rules:
+      - operations: ["CREATE", "UPDATE", "DELETE"]
+        apiGroups: ["stackgres.io"]
+        apiVersions: ["*"]
+        resources: ["sgpgconfigs"]
+    failurePolicy: Fail
+    clientConfig:
+      service:
+        namespace: {{ .Values.operatorNamespace }}
+        name: {{ .Values.operatorName }}
+        path: '/validation/pgconfig'
+        caBundle: {{ .Values.cert.crt }}
 {{ end }}

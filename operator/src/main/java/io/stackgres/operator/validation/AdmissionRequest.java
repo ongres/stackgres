@@ -10,9 +10,8 @@ import java.util.UUID;
 import io.fabric8.kubernetes.api.model.GroupVersionKind;
 import io.fabric8.kubernetes.api.model.GroupVersionResource;
 import io.fabric8.kubernetes.api.model.authentication.UserInfo;
-import io.stackgres.common.customresource.sgcluster.StackGresCluster;
 
-public class AdmissionRequest {
+public class AdmissionRequest<T> {
 
   private UUID uid;
 
@@ -36,11 +35,11 @@ public class AdmissionRequest {
 
   private UserInfo userInfo;
 
-  private StackGresCluster object;
+  private T object;
 
-  private StackGresCluster oldObject;
+  private T oldObject;
 
-  private StackGresCluster options;
+  private T options;
 
   private boolean dryRun;
 
@@ -132,27 +131,27 @@ public class AdmissionRequest {
     this.userInfo = userInfo;
   }
 
-  public StackGresCluster getObject() {
+  public T getObject() {
     return object;
   }
 
-  public void setObject(StackGresCluster object) {
+  public void setObject(T object) {
     this.object = object;
   }
 
-  public StackGresCluster getOldObject() {
+  public T getOldObject() {
     return oldObject;
   }
 
-  public void setOldObject(StackGresCluster oldObject) {
+  public void setOldObject(T oldObject) {
     this.oldObject = oldObject;
   }
 
-  public StackGresCluster getOptions() {
+  public T getOptions() {
     return options;
   }
 
-  public void setOptions(StackGresCluster options) {
+  public void setOptions(T options) {
     this.options = options;
   }
 

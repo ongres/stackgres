@@ -3,6 +3,8 @@ apiVersion: stackgres.io/{{ .Values.crd.version }}
 kind: StackGresConnectionPoolingConfig
 metadata:
   name: {{ .Values.cluster.poolingconfig }}
+  annotations:
+    "helm.sh/hook": "pre-install"
 spec:
   pgbouncer_version: "{{ .Values.config.pgbouncer.version }}"
   pgbouncer.ini:

@@ -1,4 +1,4 @@
-{{- if and (not .Values.cert.key) .Values.deploy.create }}
+{{- if and (or (not .Values.cert.key) (not .Values.cert.crt)) .Values.deploy.create }}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -34,6 +34,8 @@ spec:
               then
                 kubectl delete secret {{ .Values.operatorName }}-init
               fi
+              kubectl delete validatingwebhookconfiguration {{ .Values.operatorName }}-cluster-validator || true
+              kubectl delete validatingwebhookconfiguration {{ .Values.operatorName }}-pgconfig-validator || true
               cat << EOF >> /tmp/csr.conf
             [req]
             req_extensions = v3_req
@@ -106,11 +108,11 @@ spec:
                 -o jsonpath='{.status.certificate}')"
               
               {{- if .Values.validator.create }}
-              cat << EOF | kubectl apply -f -
+              cat << EOF | kubectl create -f -
             apiVersion: admissionregistration.k8s.io/v1beta1
             kind: ValidatingWebhookConfiguration
             metadata:
-              name: {{ .Values.operatorName }}
+              name: {{ .Values.operatorName }}-cluster-validator
               {{- if .Values.namespace.create }}
               namespace: {{ .Values.operatorNamespace }}
               {{- end }}
@@ -127,8 +129,31 @@ spec:
                   service:
                     namespace: {{ .Values.operatorNamespace }}
                     name: {{ .Values.operatorName }}
-                    path: /validation
-                  caBundle: ${CRT}
+                    path: '/validation/cluster'
+                    caBundle: ${CRT}
+            ---
+            apiVersion: admissionregistration.k8s.io/v1beta1
+            kind: ValidatingWebhookConfiguration
+            metadata:
+              name: {{ .Values.operatorName }}-pgconfig-validator
+              {{- if .Values.namespace.create }}
+              namespace: {{ .Values.operatorNamespace }}
+              {{- end }}
+            webhooks:
+              - name: {{ .Values.operatorName }}.{{ .Values.operatorNamespace }}.svc
+                sideEffects: None
+                rules:
+                  - operations: ["CREATE", "UPDATE", "DELETE"]
+                    apiGroups: ["stackgres.io"]
+                    apiVersions: ["*"]
+                    resources: ["sgpgconfigs"]
+                failurePolicy: Fail
+                clientConfig:
+                  service:
+                    namespace: {{ .Values.operatorNamespace }}
+                    name: {{ .Values.operatorName }}
+                    path: '/validation/pgconfig'
+                    caBundle: ${CRT}
             EOF
               {{ end }}
               
@@ -142,7 +167,7 @@ spec:
               {{- end }}
             type: Opaque
             data:
-              root.key: $(cat /tmp/root.key | base64 | tr -d '\n')
+              root.key: ${KEY}
               server.crt: ${CRT}
             EOF
             }

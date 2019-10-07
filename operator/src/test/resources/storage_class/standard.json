@@ -1,0 +1,21 @@
+{
+  "apiVersion": "storage.k8s.io/v1",
+  "kind": "StorageClass",
+  "metadata": {
+    "annotations": {
+      "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"storage.k8s.io/v1\",\"kind\":\"StorageClass\",\"metadata\":{\"annotations\":{\"storageclass.beta.kubernetes.io/is-default-class\":\"true\"},\"labels\":{\"addonmanager.kubernetes.io/mode\":\"EnsureExists\"},\"name\":\"standard\"},\"provisioner\":\"kubernetes.io/host-path\"}\n",
+      "storageclass.beta.kubernetes.io/is-default-class": "true"
+    },
+    "creationTimestamp": "2019-10-01T09:40:26Z",
+    "labels": {
+      "addonmanager.kubernetes.io/mode": "EnsureExists"
+    },
+    "name": "standard",
+    "resourceVersion": "247",
+    "selfLink": "/apis/storage.k8s.io/v1/storageclasses/standard",
+    "uid": "112d6459-4aff-43a0-9e3d-75916c9ab388"
+  },
+  "provisioner": "kubernetes.io/host-path",
+  "reclaimPolicy": "Delete",
+  "volumeBindingMode": "Immediate"
+}

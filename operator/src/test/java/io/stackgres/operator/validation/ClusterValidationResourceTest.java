@@ -1,10 +1,18 @@
+/*
+ *
+ *  * Copyright (C) 2019 OnGres, Inc.
+ *  * SPDX-License-Identifier: AGPL-3.0-or-later
+ *
+ *
+ */
+
 package io.stackgres.operator.validation;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.stackgres.operator.validation.validators.AlwaysSuccess;
-import io.stackgres.operator.validation.validators.ValidationPipeline;
-import io.stackgres.operator.validation.validators.Validator;
+import io.stackgres.operator.validation.cluster.AlwaysSuccess;
+import io.stackgres.operator.validation.cluster.ClusterValidationPipeline;
+import io.stackgres.operator.validation.cluster.ClusterValidator;
 import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.internal.inject.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -28,7 +36,7 @@ import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class ValidationResourceTest extends JerseyTest {
+class ClusterValidationResourceTest extends JerseyTest {
 
   @BeforeEach
   @Override
@@ -44,15 +52,15 @@ class ValidationResourceTest extends JerseyTest {
 
   @Override
   protected Application configure() {
-    return new ResourceConfig(ValidationResource.class)
+    return new ResourceConfig(ClusterValidationResource.class)
         .register(new AbstractBinder(){
 
       @Override
       protected void configure() {
 
-        ValidationPipeline pipeline = new ValidationPipeline(getValidators());
+        ClusterValidationPipeline pipeline = new ClusterValidationPipeline(getValidators());
 
-        bind(pipeline).to(ValidationPipeline.class).in(Singleton.class);
+        bind(pipeline).to(ClusterValidationPipeline.class).in(Singleton.class);
 
       }
     });
@@ -76,9 +84,9 @@ class ValidationResourceTest extends JerseyTest {
   @Test
   void givenValidAllowedRequest_thenReturnedStatusShouldBe200() {
 
-    String requestBody = getFileAsString("allowed_requests/sample_valid_allowed_request.json");
+    String requestBody = getFileAsString("cluster_allow_requests/valid_creation.json");
 
-    Response response = target("/validation").request(MediaType.APPLICATION_JSON).post(Entity.json(requestBody));
+    Response response = target("/validation/cluster").request(MediaType.APPLICATION_JSON).post(Entity.json(requestBody));
 
     assertEquals(200, response.getStatus());
 
@@ -87,9 +95,9 @@ class ValidationResourceTest extends JerseyTest {
   @Test
   void givenValidAllowedRequest_thenResponseShouldNotContainStatusProperty() throws IOException {
 
-    String requestBody = getFileAsString("allowed_requests/sample_valid_allowed_request.json");
+    String requestBody = getFileAsString("cluster_allow_requests/valid_creation.json");
 
-    Response response = target("/validation").request(MediaType.APPLICATION_JSON).post(Entity.json(requestBody));
+    Response response = target("/validation/cluster").request(MediaType.APPLICATION_JSON).post(Entity.json(requestBody));
 
     String rawContent = response.readEntity(String.class);
 
@@ -104,9 +112,9 @@ class ValidationResourceTest extends JerseyTest {
   @Test
   void givenValidAllowedRequest_thenAdmissionShouldBeAllowed() {
 
-    String requestBody = getFileAsString("allowed_requests/sample_valid_allowed_request.json");
+    String requestBody = getFileAsString("cluster_allow_requests/valid_creation.json");
 
-    Response response = target("/validation").request(MediaType.APPLICATION_JSON).post(Entity.json(requestBody));
+    Response response = target("/validation/cluster").request(MediaType.APPLICATION_JSON).post(Entity.json(requestBody));
 
     AdmissionReviewResponse admissionResponse = response.readEntity(AdmissionReviewResponse.class);
 
@@ -117,13 +125,13 @@ class ValidationResourceTest extends JerseyTest {
   @Test
   void givenValidAllowedRequest_thenResponseUidShouldMatchRequestUid() throws IOException {
 
-    String requestBody = getFileAsString("allowed_requests/sample_valid_allowed_request.json");
+    String requestBody = getFileAsString("cluster_allow_requests/valid_creation.json");
 
     JsonNode admissionRequest = mapper.readTree(requestBody);
 
     UUID requestUid = UUID.fromString(admissionRequest.get("request").get("uid").asText());
 
-    Response response = target("/validation").request(MediaType.APPLICATION_JSON).post(Entity.json(requestBody));
+    Response response = target("/validation/cluster").request(MediaType.APPLICATION_JSON).post(Entity.json(requestBody));
 
     AdmissionReviewResponse admissionResponse = response.readEntity(AdmissionReviewResponse.class);
 
@@ -131,20 +139,20 @@ class ValidationResourceTest extends JerseyTest {
 
   }
 
-  private static Instance<Validator> getValidators(){
-    return new Instance<Validator>() {
+  private static Instance<ClusterValidator> getValidators(){
+    return new Instance<ClusterValidator>() {
       @Override
-      public Instance<Validator> select(Annotation... annotations) {
+      public Instance<ClusterValidator> select(Annotation... annotations) {
         return null;
       }
 
       @Override
-      public <U extends Validator> Instance<U> select(Class<U> aClass, Annotation... annotations) {
+      public <U extends ClusterValidator> Instance<U> select(Class<U> aClass, Annotation... annotations) {
         return null;
       }
 
       @Override
-      public <U extends Validator> Instance<U> select(javax.enterprise.util.TypeLiteral<U> typeLiteral, Annotation... annotations) {
+      public <U extends ClusterValidator> Instance<U> select(javax.enterprise.util.TypeLiteral<U> typeLiteral, Annotation... annotations) {
         return null;
       }
 
@@ -160,18 +168,18 @@ class ValidationResourceTest extends JerseyTest {
       }
 
       @Override
-      public void destroy(Validator validator) {
+      public void destroy(ClusterValidator validator) {
 
       }
 
       @Override
-      public Iterator<Validator> iterator() {
-        Iterable<Validator> validators = Collections.singletonList(new AlwaysSuccess());
+      public Iterator<ClusterValidator> iterator() {
+        Iterable<ClusterValidator> validators = Collections.singletonList(new AlwaysSuccess());
         return validators.iterator();
       }
 
       @Override
-      public Validator get() {
+      public ClusterValidator get() {
         return null;
       }
     };
