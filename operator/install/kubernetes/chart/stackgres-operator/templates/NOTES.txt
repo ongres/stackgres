@@ -2,7 +2,11 @@ Release Name: {{ .Release.Name }}
 StackGres Version: {{ .Values.operatorVersion }}
 Image: {{ .Values.image.name }}:{{ .Values.image.tag }}
 
+{{- if not .Values.cert.autoapprove }}
+To complete the process approve operator certificate signing request:
+- kubectl certificate approve {{ .Values.operatorName }}
+{{- end }}
 
-Check if the operator was successfuly deploy:
+Check if the operator was successfuly deployed:
 - kubectl get deployment -n{{ .Values.operatorNamespace }}
 

@@ -1,8 +1,9 @@
 #!/bin/sh
 
-set -e
-
+IMAGE_NAME="${IMAGE_NAME:-"stackgres/operator:development"}"
 CONTAINER_BASE=$(buildah from "registry.access.redhat.com/ubi8-minimal:8.0")
+
+APP_OPTS="-Dquarkus.http.host=0.0.0.0 -Dquarkus.http.port=8080 -Dquarkus.http.ssl-port=8443 -Djava.util.logging.manager=org.jboss.logmanager.LogManager"
 
 # Maintainance tasks
 buildah run --net "host" "$CONTAINER_BASE" -- microdnf update -y
@@ -19,9 +20,10 @@ buildah copy "$CONTAINER_BASE" 'operator/target/cacerts' '/app/cacerts'
 buildah run "$CONTAINER_BASE" -- chmod 775 '/app'
 
 ## Run our server and expose the port
-buildah config --cmd "./stackgres-operator -Dquarkus.http.host=0.0.0.0 -Djavax.net.ssl.trustStore=/app/cacerts" "$CONTAINER_BASE"
+buildah config --cmd "./stackgres-operator $APP_OPTS" "$CONTAINER_BASE"
 buildah config --port 8080 "$CONTAINER_BASE"
 buildah config --user stackgres:stackgres "$CONTAINER_BASE"
 
 ## Commit this container to an image name
-buildah commit --squash "$CONTAINER_BASE" "${1:-"stackgres/operator:test"}"
+buildah commit --squash "$CONTAINER_BASE" "$IMAGE_NAME"
+buildah push "$IMAGE_NAME" docker-daemon:$IMAGE_NAME

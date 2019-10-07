@@ -5,12 +5,12 @@ metadata:
   name: {{ .Values.cluster.name }}
 spec:
   instances: {{ .Values.cluster.instances }}
-  pg_version: {{ .Values.config.postgresql.version }}
-  pg_config: {{ .Values.cluster.pgconfig }}
-  connection_pooling_config: {{ .Values.cluster.poolingconfig }}
-  resource_profile: {{ .Values.cluster.profile }}
-  volume_size: {{ .Values.cluster.volumesize }}
-  storage_class: {{ .Values.cluster.storageclass }}
+  pg_version: '{{ .Values.config.postgresql.version }}'
+  pg_config: '{{ .Values.cluster.pgconfig }}'
+  connection_pooling_config: '{{ .Values.cluster.poolingconfig }}'
+  resource_profile: '{{ .Values.cluster.profile }}'
+  volume_size: '{{ .Values.cluster.volumesize }}'
+  storage_class: '{{ .Values.cluster.storageclass }}'
   sidecars:
   {{- if .Values.sidecar.pooling }}
   - connection-pooling

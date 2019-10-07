@@ -32,6 +32,26 @@ rules:
 - apiGroups: ["storage.k8s.io"]
   resources: ["storageclasses"]
   verbs: ["get", "list"]
+- apiGroups: ["certificates.k8s.io"]
+  resources:
+  - certificatesigningrequests
+  verbs:
+  - get
+  - create
+  - delete
+{{- if .Values.cert.autoapprove }}
+- apiGroups: ["certificates.k8s.io"]
+  resources:
+  - certificatesigningrequests/approval
+  verbs:
+  - update
+{{- end }}
+- apiGroups: ["admissionregistration.k8s.io"]
+  resources:
+  - validatingwebhookconfigurations
+  verbs:
+  - create
+  - delete
 - apiGroups: ["apiextensions.k8s.io", "customresourcedefinitions.apiextensions.k8s.io"]
   resources:
   - customresourcedefinitions

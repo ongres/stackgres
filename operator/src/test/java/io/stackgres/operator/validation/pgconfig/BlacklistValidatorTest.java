@@ -5,8 +5,10 @@
 
 package io.stackgres.operator.validation.pgconfig;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
@@ -14,9 +16,8 @@ import io.stackgres.common.customresource.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.operator.utils.JsonUtil;
 import io.stackgres.operator.validation.PgConfigReview;
 import io.stackgres.operator.validation.ValidationFailed;
-import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
 class BlacklistValidatorTest {
 

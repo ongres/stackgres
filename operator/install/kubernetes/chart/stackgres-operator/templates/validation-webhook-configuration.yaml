@@ -1,45 +1,47 @@
-{{- if .Values.validator.create }}
+{{- if and .Values.cert.key .Values.cert.crt .Values.validator.create }}
 apiVersion: admissionregistration.k8s.io/v1beta1
 kind: ValidatingWebhookConfiguration
 metadata:
-  name: sgvalidator.sgcluster.{{ .Values.group }}
+  name: {{ .Values.operatorName }}-cluster-validator
+  {{- if .Values.namespace.create }}
+  namespace: {{ .Values.operatorNamespace }}
+  {{- end }}
 webhooks:
-  - name: sgvalidator.sgcluster.{{ .Values.group }}
-    admissionReviewVersions: ["v1beta1"]
+  - name: {{ .Values.operatorName }}.{{ .Values.operatorNamespace }}.svc
     sideEffects: None
     rules:
       - operations: ["CREATE", "UPDATE", "DELETE"]
         apiGroups: ["stackgres.io"]
         apiVersions: ["*"]
         resources: ["sgclusters"]
-        scope: "*"
     failurePolicy: Fail
     clientConfig:
       service:
         namespace: {{ .Values.operatorNamespace }}
         name: {{ .Values.operatorName }}
         path: '/validation/cluster'
-        caBundle: {{ .Values.validator.caBundle }}
+        caBundle: {{ .Values.cert.crt }}
 ---
 apiVersion: admissionregistration.k8s.io/v1beta1
 kind: ValidatingWebhookConfiguration
 metadata:
-  name: sgvalidator.sgpgconfig.{{ .Values.group }}
+  name: {{ .Values.operatorName }}-pgconfig-validator
+  {{- if .Values.namespace.create }}
+  namespace: {{ .Values.operatorNamespace }}
+  {{- end }}
 webhooks:
-  - name: sgvalidator.sgpgconfig.{{ .Values.group }}
-    admissionReviewVersions: ["v1beta1"]
+  - name: {{ .Values.operatorName }}.{{ .Values.operatorNamespace }}.svc
     sideEffects: None
     rules:
       - operations: ["CREATE", "UPDATE", "DELETE"]
         apiGroups: ["stackgres.io"]
         apiVersions: ["*"]
         resources: ["sgpgconfigs"]
-        scope: "*"
     failurePolicy: Fail
     clientConfig:
       service:
         namespace: {{ .Values.operatorNamespace }}
         name: {{ .Values.operatorName }}
         path: '/validation/pgconfig'
-        caBundle: {{ .Values.validator.caBundle }}
+        caBundle: {{ .Values.cert.crt }}
 {{ end }}

@@ -18,10 +18,10 @@ spec:
     singular: sgcluster
   validation:
     openAPIV3Schema:
-    type: object
-    required: ["spec"]
-    description: "Params for StackGres Cluster creation"
-    properties:
+      type: object
+      required: ["spec"]
+      description: "Params for StackGres Cluster creation"
+      properties:
         spec:
           type: object
           properties:
@@ -40,7 +40,7 @@ spec:
             storage_class:
               type: string
             sidecars:
-              type: object
+              type: array
           required: [
             "instances",
             "pg_version",

@@ -141,7 +141,7 @@ public class StackGresClusterResource {
     cluster.getStatus().setCpuFound(masterPod
         .map(Unchecked.function(pod -> exec(
             client, pod, StackGresStatefulSet.PATRONI_CONTAINER_NAME,
-            "bash", "-c", PatroniStatsScripts.getCpuFound())
+            "sh", "-c", PatroniStatsScripts.getCpuFound())
             .stream()
             .findAny()
             .orElse(null)))
@@ -150,7 +150,7 @@ public class StackGresClusterResource {
     cluster.getStatus().setMemoryFound(masterPod
         .map(Unchecked.function(pod -> exec(
             client, pod, StackGresStatefulSet.PATRONI_CONTAINER_NAME,
-            "bash", "-c", PatroniStatsScripts.getMemoryFound())
+            "sh", "-c", PatroniStatsScripts.getMemoryFound())
             .stream()
             .findAny()
             .orElse(null)))
@@ -159,7 +159,7 @@ public class StackGresClusterResource {
     cluster.getStatus().setMemoryUsed(masterPod
         .map(Unchecked.function(pod -> exec(
             client, pod, StackGresStatefulSet.PATRONI_CONTAINER_NAME,
-            "bash", "-c", PatroniStatsScripts.getMemoryUsed())
+            "sh", "-c", PatroniStatsScripts.getMemoryUsed())
             .stream()
             .findAny()
             .orElse(null)))
@@ -168,7 +168,7 @@ public class StackGresClusterResource {
     cluster.getStatus().setDiskFound(masterPod
         .map(Unchecked.function(pod -> exec(
             client, pod, StackGresStatefulSet.PATRONI_CONTAINER_NAME,
-            "bash", "-c", PatroniStatsScripts.getDiskFound())
+            "sh", "-c", PatroniStatsScripts.getDiskFound())
             .stream()
             .findAny()
             .orElse(null)))
@@ -177,7 +177,7 @@ public class StackGresClusterResource {
     cluster.getStatus().setDiskUsed(masterPod
         .map(Unchecked.function(pod -> exec(
             client, pod, StackGresStatefulSet.PATRONI_CONTAINER_NAME,
-            "bash", "-c", PatroniStatsScripts.getDiskUsed())
+            "sh", "-c", PatroniStatsScripts.getDiskUsed())
             .stream()
             .findAny()
             .orElse(null)))
@@ -186,7 +186,7 @@ public class StackGresClusterResource {
     cluster.getStatus().setAverageLoad1m(masterPod
         .map(Unchecked.function(pod -> exec(
             client, pod, StackGresStatefulSet.PATRONI_CONTAINER_NAME,
-            "bash", "-c", PatroniStatsScripts.getLoad1m())
+            "sh", "-c", PatroniStatsScripts.getLoad1m())
             .stream()
             .findAny()
             .orElse(null)))
@@ -195,7 +195,7 @@ public class StackGresClusterResource {
     cluster.getStatus().setAverageLoad5m(masterPod
         .map(Unchecked.function(pod -> exec(
             client, pod, StackGresStatefulSet.PATRONI_CONTAINER_NAME,
-            "bash", "-c", PatroniStatsScripts.getLoad5m())
+            "sh", "-c", PatroniStatsScripts.getLoad5m())
             .stream()
             .findAny()
             .orElse(null)))
@@ -204,7 +204,7 @@ public class StackGresClusterResource {
     cluster.getStatus().setAverageLoad10m(masterPod
         .map(Unchecked.function(pod -> exec(
             client, pod, StackGresStatefulSet.PATRONI_CONTAINER_NAME,
-            "bash", "-c", PatroniStatsScripts.getLoad10m())
+            "sh", "-c", PatroniStatsScripts.getLoad10m())
             .stream()
             .findAny()
             .orElse(null)))

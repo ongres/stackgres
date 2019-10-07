@@ -235,8 +235,10 @@ public class ClusterController {
     Long id = new Random().nextLong();
     EventBuilder eventBuilder = new EventBuilder()
         .withNewMetadata()
-        .withName(cluster.getMetadata().getName() + "." + Long.toHexString(id))
-        .withNamespace(StackGresUtil.OPERATOR_NAMESPACE)
+        .withName((cluster == null ? StackGresUtil.OPERATOR_NAME : cluster.getMetadata().getName())
+            + "." + Long.toHexString(id))
+        .withNamespace(cluster == null ? StackGresUtil.OPERATOR_NAMESPACE
+            : cluster.getMetadata().getNamespace())
         .withLabels(cluster == null ? ResourceUtil.defaultLabels()
             : ResourceUtil.defaultLabels(cluster.getMetadata().getName()))
         .endMetadata()
@@ -259,7 +261,7 @@ public class ClusterController {
           .build());
     }
 
-    client.events().create(eventBuilder.build());
+    client.resource(eventBuilder.build()).createOrReplace();
   }
 
 }

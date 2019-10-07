@@ -215,17 +215,263 @@
                     <image>
                       <name>stackgres/it</name>
                       <build>
-                        <from>communitycloud/docker-client:1.11.0</from>
+                        <from>docker</from>
                         <cleanup>try</cleanup>
                         <optimise>true</optimise>
                         <runCmds>
-                          <run>wget -q -L -O /bin/kubectl https://storage.googleapis.com/kubernetes-release/release/v1.12.10/bin/linux/amd64/kubectl</run>
+                          <run>wget -q -O /bin/kubectl https://storage.googleapis.com/kubernetes-release/release/v1.12.10/bin/linux/amd64/kubectl</run>
                           <run>chmod a+x /bin/kubectl</run>
-                          <run>wget -q -L -O /bin/kind  https://github.com/kubernetes-sigs/kind/releases/download/v0.5.1/kind-$(uname)-amd64</run>
+                          <run>wget -q -O /bin/kind  https://github.com/kubernetes-sigs/kind/releases/download/v0.5.1/kind-$(uname)-amd64</run>
                           <run>chmod a+x /bin/kind</run>
-                          <run>wget -q -L https://get.helm.sh/helm-v2.14.3-linux-amd64.tar.gz -O -|tar xz --strip-components=1 -C /bin -f - linux-amd64/helm</run>
+                          <run>wget -q https://get.helm.sh/helm-v2.14.3-linux-amd64.tar.gz -O -|tar xz --strip-components=1 -C /bin -f - linux-amd64/helm</run>
                         </runCmds>
                       </build>
+                    </image>
+                  </images>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>build-image-jvm</id>
+      <properties>
+        <docker.removeVolumes>true</docker.removeVolumes>
+      </properties>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>io.fabric8</groupId>
+            <artifactId>docker-maven-plugin</artifactId>
+            <version>${docker-maven-plugin.version}</version>
+            <executions>
+              <execution>
+                <id>build-stackgres-it-container</id>
+                <phase>package</phase>
+                <goals>
+                    <goal>build</goal>
+                </goals>
+                <configuration>
+                  <images>
+                    <image>
+                      <name>stackgres/it</name>
+                      <build>
+                        <from>docker</from>
+                        <cleanup>try</cleanup>
+                        <optimise>true</optimise>
+                        <runCmds>
+                          <run>wget -q -O /bin/kubectl https://storage.googleapis.com/kubernetes-release/release/v1.12.10/bin/linux/amd64/kubectl</run>
+                          <run>chmod a+x /bin/kubectl</run>
+                          <run>wget -q -O /bin/kind  https://github.com/kubernetes-sigs/kind/releases/download/v0.5.1/kind-$(uname)-amd64</run>
+                          <run>chmod a+x /bin/kind</run>
+                          <run>wget -q https://get.helm.sh/helm-v2.14.3-linux-amd64.tar.gz -O -|tar xz --strip-components=1 -C /bin -f - linux-amd64/helm</run>
+                        </runCmds>
+                      </build>
+                    </image>
+                  </images>
+                </configuration>
+              </execution>
+              <execution>
+                <id>build-image</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>stop</goal>
+                  <goal>start</goal>
+                </goals>
+                <configuration>
+                  <images>
+                    <image>
+                      <alias>build-image</alias>
+                      <name>ongres/builder</name>
+                      <run>
+                        <namingStrategy>alias</namingStrategy>
+                        <privileged>true</privileged>
+                        <entrypoint>
+                          <arg>/bin/sh</arg>
+                          <arg>-ex</arg>
+                          <arg>/operator/src/main/buildah/build-image-jvm.sh</arg>
+                        </entrypoint>
+                        <wait>
+                          <time>300000</time>
+                          <exit>0</exit>
+                        </wait>
+                        <log>
+                          <prefix>build-image|</prefix>
+                          <date>default</date>
+                        </log>
+                        <env>
+                          <IMAGE_NAME>${env.IMAGE_NAME}</IMAGE_NAME>
+                          <DOCKER_HOST>${env.DOCKER_HOST}</DOCKER_HOST>
+                        </env>
+                        <volumes>
+                          <bind>
+                            <volume>${project.basedir}:/operator:ro</volume>
+                            <volume>/var/lib/containers</volume>
+                            <volume>/var/run/docker.sock:/var/run/docker.sock</volume>
+                          </bind>
+                        </volumes>
+                        <autoRemove>true</autoRemove>
+                      </run>
+                    </image>
+                    <image>
+                      <alias>kind-load</alias>
+                      <name>stackgres/it</name>
+                      <run>
+                        <namingStrategy>alias</namingStrategy>
+                        <entrypoint>
+                          <arg>/bin/sh</arg>
+                          <arg>-exc</arg>
+                          <arg>
+                        IMAGE_NAME="${IMAGE_NAME:-"stackgres/operator:development-jvm"}"
+                        CONTAINER_NAME="$(docker inspect -f '{{.Name}}' "$(hostname)"|cut -d '/' -f 2|sed 's/^kind-load/kind/')"
+                        kind load docker-image --name "$CONTAINER_NAME" "$IMAGE_NAME" || true
+                          </arg>
+                        </entrypoint>
+                        <wait>
+                          <time>300000</time>
+                          <exit>0</exit>
+                        </wait>
+                        <log>
+                          <prefix>kind-load|</prefix>
+                          <date>default</date>
+                        </log>
+                        <env>
+                          <IMAGE_NAME>${env.IMAGE_NAME}</IMAGE_NAME>
+                          <DOCKER_HOST>${env.DOCKER_HOST}</DOCKER_HOST>
+                        </env>
+                        <volumes>
+                          <bind>
+                            <volume>/var/run/docker.sock:/var/run/docker.sock</volume>
+                            <volume>/var/lib/docker:/var/lib/docker:ro</volume>
+                          </bind>
+                        </volumes>
+                        <autoRemove>true</autoRemove>
+                      </run>
+                    </image>
+                  </images>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>build-image-native</id>
+      <properties>
+        <docker.removeVolumes>true</docker.removeVolumes>
+      </properties>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>io.fabric8</groupId>
+            <artifactId>docker-maven-plugin</artifactId>
+            <version>${docker-maven-plugin.version}</version>
+            <executions>
+              <execution>
+                <id>build-stackgres-it-container</id>
+                <phase>package</phase>
+                <goals>
+                    <goal>build</goal>
+                </goals>
+                <configuration>
+                  <images>
+                    <image>
+                      <name>stackgres/it</name>
+                      <build>
+                        <from>docker</from>
+                        <cleanup>try</cleanup>
+                        <optimise>true</optimise>
+                        <runCmds>
+                          <run>wget -q -O /bin/kubectl https://storage.googleapis.com/kubernetes-release/release/v1.12.10/bin/linux/amd64/kubectl</run>
+                          <run>chmod a+x /bin/kubectl</run>
+                          <run>wget -q -O /bin/kind  https://github.com/kubernetes-sigs/kind/releases/download/v0.5.1/kind-$(uname)-amd64</run>
+                          <run>chmod a+x /bin/kind</run>
+                          <run>wget -q https://get.helm.sh/helm-v2.14.3-linux-amd64.tar.gz -O -|tar xz --strip-components=1 -C /bin -f - linux-amd64/helm</run>
+                        </runCmds>
+                      </build>
+                    </image>
+                  </images>
+                </configuration>
+              </execution>
+              <execution>
+                <id>build-image</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>stop</goal>
+                  <goal>start</goal>
+                </goals>
+                <configuration>
+                  <images>
+                    <image>
+                      <alias>build-image</alias>
+                      <name>ongres/builder</name>
+                      <run>
+                        <namingStrategy>alias</namingStrategy>
+                        <privileged>true</privileged>
+                        <entrypoint>
+                          <arg>/bin/sh</arg>
+                          <arg>-ex</arg>
+                          <arg>/operator/src/main/buildah/build-image-native.sh</arg>
+                        </entrypoint>
+                        <wait>
+                          <time>300000</time>
+                          <exit>0</exit>
+                        </wait>
+                        <log>
+                          <prefix>build-image|</prefix>
+                          <date>default</date>
+                        </log>
+                        <env>
+                          <IMAGE_NAME>${env.IMAGE_NAME}</IMAGE_NAME>
+                          <DOCKER_HOST>${env.DOCKER_HOST}</DOCKER_HOST>
+                        </env>
+                        <volumes>
+                          <bind>
+                            <volume>${project.basedir}:/operator:ro</volume>
+                            <volume>/var/lib/containers</volume>
+                            <volume>/var/run/docker.sock:/var/run/docker.sock</volume>
+                          </bind>
+                        </volumes>
+                        <autoRemove>true</autoRemove>
+                      </run>
+                    </image>
+                    <image>
+                      <alias>kind-load</alias>
+                      <name>stackgres/it</name>
+                      <run>
+                        <namingStrategy>alias</namingStrategy>
+                        <entrypoint>
+                          <arg>/bin/sh</arg>
+                          <arg>-exc</arg>
+                          <arg>
+                        IMAGE_NAME="${IMAGE_NAME:-"stackgres/operator:development-jvm"}"
+                        CONTAINER_NAME="$(docker inspect -f '{{.Name}}' "$(hostname)"|cut -d '/' -f 2|sed 's/^kind-load/kind/')"
+                        kind load docker-image --name "$CONTAINER_NAME" "$IMAGE_NAME" || true
+                          </arg>
+                        </entrypoint>
+                        <wait>
+                          <time>300000</time>
+                          <exit>0</exit>
+                        </wait>
+                        <log>
+                          <prefix>kind-load|</prefix>
+                          <date>default</date>
+                        </log>
+                        <env>
+                          <IMAGE_NAME>${env.IMAGE_NAME}</IMAGE_NAME>
+                          <DOCKER_HOST>${env.DOCKER_HOST}</DOCKER_HOST>
+                        </env>
+                        <volumes>
+                          <bind>
+                            <volume>/var/run/docker.sock:/var/run/docker.sock</volume>
+                            <volume>/var/lib/docker:/var/lib/docker:ro</volume>
+                          </bind>
+                        </volumes>
+                        <autoRemove>true</autoRemove>
+                      </run>
                     </image>
                   </images>
                 </configuration>

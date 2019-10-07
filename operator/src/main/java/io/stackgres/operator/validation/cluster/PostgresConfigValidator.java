@@ -22,9 +22,9 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 @ApplicationScoped
 public class PostgresConfigValidator implements ClusterValidator {
 
-  private KubernetesCustomResourceFinder<StackGresPostgresConfig> configFinder;
+  private final KubernetesCustomResourceFinder<StackGresPostgresConfig> configFinder;
 
-  private Set<String> supportedPostgresVersions = new LinkedHashSet<>();
+  private final Set<String> supportedPostgresVersions;
 
   @Inject
   public PostgresConfigValidator(
@@ -32,7 +32,12 @@ public class PostgresConfigValidator implements ClusterValidator {
       @ConfigProperty(name = "stackgres.supported.major.versions") List<String> majorVersions,
       @ConfigProperty(name = "stackgres.latest.minor.versions") List<Integer> minorVersions) {
     this.configFinder = configFinder;
+    this.supportedPostgresVersions = getSupportedPostgresVersions(majorVersions, minorVersions);
+  }
 
+  private Set<String> getSupportedPostgresVersions(List<String> majorVersions,
+      List<Integer> minorVersions) {
+    Set<String> supportedPostgresVersions = new LinkedHashSet<>();
     for (int i = 0; i < majorVersions.size(); i++) {
 
       String majorVersion = majorVersions.get(i);
@@ -44,6 +49,7 @@ public class PostgresConfigValidator implements ClusterValidator {
 
     }
 
+    return supportedPostgresVersions;
   }
 
   @Override
