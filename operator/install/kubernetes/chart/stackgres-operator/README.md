@@ -13,11 +13,11 @@
 
 Run the next command (make sure you are in the root path of the [repository](https://gitlab.com/stackgres/stackgres)).
 
-`helm install --name stackgres-operator install/kubernetes/chart/stackgres-operator/`
+`helm install --name stackgres-operator install/kubernetes/chart/stackgres-operator`
 
 ## Create the StackGres Operator with a specific version
 
-`helm install --name stackgres-operator --set operatorVersion="master"  install/kubernetes/chart/stackgres-operator`
+`helm install --name stackgres-operator --set operatorVersion="0.6"  install/kubernetes/chart/stackgres-operator`
 
 > Note: If you want to se the execution without installing, add `--dry-run --debug` at the end
 

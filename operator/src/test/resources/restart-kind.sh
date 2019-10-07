@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 set -e
 KUBERNETES_VERSION="${KUBERNETES_VERSION:-1.12.10}"
 CONTAINER_NAME="$(docker inspect -f '{{.Name}}' "$(hostname)"|cut -d '/' -f 2)"
@@ -43,7 +43,7 @@ do
 done
 sed -i 's#^    server:.*$#    server: 'https://"$(docker inspect -f '{{ .NetworkSettings.IPAddress }}' ${CONTAINER_NAME}-control-plane)"':6443#' "$(kind get kubeconfig-path --name="$CONTAINER_NAME")"
 export KUBECONFIG="$(kind get kubeconfig-path --name="$CONTAINER_NAME")"
-echo "export KUBECONFIG='$(kind get kubeconfig-path --name="$CONTAINER_NAME")'" > /root/.bashrc
+echo "export KUBECONFIG='$(kind get kubeconfig-path --name="$CONTAINER_NAME")'" > /root/.profile
 cat << 'EOF' | kubectl apply -f -
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1beta1

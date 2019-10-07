@@ -92,9 +92,9 @@ public class OperatorRunner implements CheckedRunnable, Closeable {
   }
 
   private void setup() throws Exception {
-    List<String> kubeconfig = kind.execute("bash", "-l", "-c", "cat $KUBECONFIG")
+    List<String> kubeconfig = kind.execute("sh", "-l", "-c", "cat $KUBECONFIG")
         .collect(Collectors.toList());
-    List<String> operatorSecret = kind.execute("bash", "-l", "-c",
+    List<String> operatorSecret = kind.execute("sh", "-l", "-c",
         "kubectl get secret -n stackgres -o yaml"
             + " \"$(kubectl get secret -n stackgres"
             + " | grep stackgres-operator-token-"

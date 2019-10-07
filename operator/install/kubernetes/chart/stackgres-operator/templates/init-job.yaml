@@ -1,0 +1,155 @@
+{{- if and (not .Values.cert.key) .Values.deploy.create }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: "{{ .Values.operatorName }}-init"
+  {{- if .Values.namespace.create }}
+  namespace: {{ .Values.operatorNamespace }}
+  {{- end }}
+  labels:
+    app: StackGres
+    scope: init
+spec:
+  template:
+    metadata:
+      labels:
+        app: StackGres
+        scope: init
+    spec:
+      serviceAccountName: {{ .Values.operatorName }}
+      containers:
+      - name: "{{ .Values.operatorName }}-init"
+        image: "bitnami/kubectl:latest"
+        imagePullPolicy: "Always"
+        command:
+          - "/bin/sh"
+          - "-ecx"
+          - |
+            function init() {
+              if kubectl get csr {{ .Values.operatorName }}
+              then
+                kubectl delete csr {{ .Values.operatorName }}
+              fi
+              if kubectl get secret {{ .Values.operatorName }}-init
+              then
+                kubectl delete secret {{ .Values.operatorName }}-init
+              fi
+              cat << EOF >> /tmp/csr.conf
+            [req]
+            req_extensions = v3_req
+            distinguished_name = req_distinguished_name
+            [req_distinguished_name]
+            [ v3_req ]
+            basicConstraints = CA:FALSE
+            keyUsage = nonRepudiation, digitalSignature, keyEncipherment
+            extendedKeyUsage = serverAuth
+            subjectAltName = @alt_names
+            [alt_names]
+            DNS.1 = {{ .Values.operatorName }}
+            DNS.2 = {{ .Values.operatorName }}.{{ .Values.operatorNamespace }}
+            DNS.3 = {{ .Values.operatorName }}.{{ .Values.operatorNamespace }}.svc
+            DNS.4 = {{ .Values.operatorName }}.{{ .Values.operatorNamespace }}.svc.cluster.local
+            EOF
+              
+              openssl req -new -nodes -text -keyout /tmp/root.key \
+                  -subj "/CN={{ .Values.operatorName }}.{{ .Values.operatorNamespace }}.svc" \
+                  -out /tmp/server.csr \
+                  -config /tmp/csr.conf
+              
+              cat << EOF | kubectl create -f -
+            apiVersion: v1
+            kind: Secret
+            metadata:
+              name: {{ .Values.operatorName }}-init
+              {{- if .Values.namespace.create }}
+              namespace: {{ .Values.operatorNamespace }}
+              {{- end }}
+            type: Opaque
+            data:
+              key: $(cat /tmp/root.key | base64 | tr -d '\n')
+            EOF
+              
+              cat << EOF | kubectl create -f -
+            apiVersion: certificates.k8s.io/v1beta1
+            kind: CertificateSigningRequest
+            metadata:
+              name: {{ .Values.operatorName }}
+              {{- if .Values.namespace.create }}
+              namespace: {{ .Values.operatorNamespace }}
+              {{- end }}
+            spec:
+              request: $(cat /tmp/server.csr | base64 | tr -d '\n')
+              usages:
+              - digital signature
+              - key encipherment
+              - server auth
+            EOF
+              
+              if ! kubectl get csr {{ .Values.operatorName }} -o yaml|grep -q '^    type: Approved$'
+              then
+                {{- if .Values.cert.autoapprove }}
+                kubectl certificate approve {{ .Values.operatorName }}
+                {{- end }}
+                echo -n "Waiting for CSR approval"
+                until kubectl get csr {{ .Values.operatorName }} -o yaml|grep -q '^    type: Approved$'
+                do
+                  echo -n .
+                  sleep 5
+                done
+                echo approved
+              fi
+              KEY="$(kubectl get secret \
+                {{ .Values.operatorName }}-init \
+                -o jsonpath='{.data.key}')"
+              CRT="$(kubectl get csr \
+                {{ .Values.operatorName }} \
+                -o jsonpath='{.status.certificate}')"
+              
+              {{- if .Values.validator.create }}
+              cat << EOF | kubectl apply -f -
+            apiVersion: admissionregistration.k8s.io/v1beta1
+            kind: ValidatingWebhookConfiguration
+            metadata:
+              name: {{ .Values.operatorName }}
+              {{- if .Values.namespace.create }}
+              namespace: {{ .Values.operatorNamespace }}
+              {{- end }}
+            webhooks:
+              - name: {{ .Values.operatorName }}.{{ .Values.operatorNamespace }}.svc
+                sideEffects: None
+                rules:
+                  - operations: ["CREATE", "UPDATE", "DELETE"]
+                    apiGroups: ["stackgres.io"]
+                    apiVersions: ["*"]
+                    resources: ["sgclusters"]
+                failurePolicy: Fail
+                clientConfig:
+                  service:
+                    namespace: {{ .Values.operatorNamespace }}
+                    name: {{ .Values.operatorName }}
+                    path: /validation
+                  caBundle: ${CRT}
+            EOF
+              {{ end }}
+              
+              cat << EOF | kubectl create -f -
+            apiVersion: v1
+            kind: Secret
+            metadata:
+              name: {{ .Values.operatorName }}
+              {{- if .Values.namespace.create }}
+              namespace: {{ .Values.operatorNamespace }}
+              {{- end }}
+            type: Opaque
+            data:
+              root.key: $(cat /tmp/root.key | base64 | tr -d '\n')
+              server.crt: ${CRT}
+            EOF
+            }
+            
+            until init
+            do
+              sleep 5
+            done
+      restartPolicy: OnFailure
+{{ end }}

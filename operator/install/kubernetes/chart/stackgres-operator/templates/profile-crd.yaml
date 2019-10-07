@@ -16,7 +16,6 @@ spec:
     listKind: StackGresProfileList
     plural: sgprofiles
     singular: sgprofile
-  preserveUnknownFields: false #Force to use structural schema
   validation:
     openAPIV3Schema:
       required: ["spec"]

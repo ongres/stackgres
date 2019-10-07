@@ -2,22 +2,23 @@
 apiVersion: admissionregistration.k8s.io/v1beta1
 kind: ValidatingWebhookConfiguration
 metadata:
-  name: sgvalidator.{{ .Values.group }}
+  name: {{ .Values.operatorName }}
+  {{- if .Values.namespace.create }}
+  namespace: {{ .Values.operatorNamespace }}
+  {{- end }}
 webhooks:
-  - name: sgvalidator.{{ .Values.group }}
-    admissionReviewVersions: ["v1beta1"]
+  - name: {{ .Values.operatorName }}.{{ .Values.operatorNamespace }}.svc
     sideEffects: None
     rules:
       - operations: ["CREATE", "UPDATE", "DELETE"]
         apiGroups: ["stackgres.io"]
         apiVersions: ["*"]
         resources: ["sgclusters"]
-        scope: "*"
-    failurePolicy: Ignore
+    failurePolicy: Fail
     clientConfig:
       service:
         namespace: {{ .Values.operatorNamespace }}
         name: {{ .Values.operatorName }}
         path: /validation
-        caBundle: {{ .Values.validator.caBundle }}
+      caBundle: {{ .Values.cert.crt }}
 {{ end }}
