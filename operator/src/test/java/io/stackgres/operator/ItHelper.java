@@ -12,6 +12,7 @@ import java.time.Instant;
 import java.time.temporal.TemporalUnit;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
@@ -99,8 +100,8 @@ public class ItHelper {
   /**
    * It helper method.
    */
-  public static void installStackGresOperatorHelmChart(Container kind, int sslPort)
-      throws Exception {
+  public static void installStackGresOperatorHelmChart(Container kind, int sslPort,
+      Executor executor) throws Exception {
     LOGGER.info("Installing stackgres-operator helm chart");
     kind.execute("sh", "-l", "-c", "helm install /resources/stackgres-operator"
         + " --name stackgres-operator"
@@ -113,10 +114,10 @@ public class ItHelper {
     CompletableFuture<String> dockerInterfaceIp = CompletableFuture.supplyAsync(
         Unchecked.supplier(() -> IOUtils.readLines(
             process.getInputStream(), StandardCharsets.UTF_8)
-            .stream().findAny().get()));
+            .stream().findAny().get()), executor);
     CompletableFuture<List<String>> dockerInterfaceIpError = CompletableFuture.supplyAsync(
         Unchecked.supplier(() -> IOUtils.readLines(
-            process.getErrorStream(), StandardCharsets.UTF_8)));
+            process.getErrorStream(), StandardCharsets.UTF_8)), executor);
     if (process.waitFor() != 0) {
       throw new RuntimeException("Can not retrieve docker interface IP:\n"
           + dockerInterfaceIpError.join().stream().collect(Collectors.joining("\n")));

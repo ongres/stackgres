@@ -29,6 +29,7 @@ import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.StackGresClusterConfig;
 import io.stackgres.common.StackGresSidecarTransformer;
+import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.customresource.sgcluster.StackGresCluster;
 import io.stackgres.common.resource.ResourceUtil;
 import io.stackgres.sidecars.pgbouncer.customresources.StackGresPgbouncerConfig;
@@ -41,8 +42,8 @@ import io.stackgres.sidecars.pgbouncer.parameters.DefaultValues;
 public class PgBouncer implements StackGresSidecarTransformer<StackGresPgbouncerConfig> {
 
   private static final String NAME = "pgbouncer";
-  private static final String IMAGE_PREFIX = "docker.io/ongres/pgbouncer:";
-  private static final String DEFAULT_VERSION = "1.11";
+  private static final String IMAGE_PREFIX = "docker.io/ongres/pgbouncer:v%s-build-%s";
+  private static final String DEFAULT_VERSION = "1.11.0";
   private static final String CONFIG_SUFFIX = "-connection-pooling-config";
 
   @Override
@@ -104,7 +105,8 @@ public class PgBouncer implements StackGresSidecarTransformer<StackGresPgbouncer
 
     ContainerBuilder container = new ContainerBuilder();
     container.withName(NAME)
-        .withImage(IMAGE_PREFIX + pgbouncerVersion)
+        .withImage(String.format(IMAGE_PREFIX,
+            pgbouncerVersion, StackGresUtil.CONTAINER_BUILD))
         .withImagePullPolicy("Always")
         .withPorts(new ContainerPortBuilder().withContainerPort(6432).build())
         .withVolumeMounts(pgSocket, pgbouncerIni);

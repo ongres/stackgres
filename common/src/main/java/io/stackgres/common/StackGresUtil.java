@@ -5,9 +5,12 @@
 
 package io.stackgres.common;
 
+import java.util.Optional;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
+import com.google.common.base.Preconditions;
 
 public enum StackGresUtil {
 
@@ -17,8 +20,10 @@ public enum StackGresUtil {
   public static final String OPERATOR_NAMESPACE = INSTANCE.operatorNamespace;
   public static final String OPERATOR_VERSION = INSTANCE.operatorVersion;
 
-  public static final String GROUP = INSTANCE.group;
+  public static final String CRD_GROUP = INSTANCE.group;
   public static final String CRD_VERSION = INSTANCE.version;
+
+  public static final String CONTAINER_BUILD = INSTANCE.containerBuild;
 
   private final String operatorName;
   private final String operatorNamespace;
@@ -27,16 +32,31 @@ public enum StackGresUtil {
   private final String group;
   private final String version;
 
+  private final String containerBuild;
+
   StackGresUtil() {
     try {
       ObjectMapper objectMapper = new YAMLMapper();
       JsonNode operatorConfig = objectMapper.readTree(
           StackGresUtil.class.getResourceAsStream("/stackgres-operator/values.yaml"));
-      operatorName = operatorConfig.get("operatorName").asText();
-      operatorNamespace = operatorConfig.get("operatorNamespace").asText();
-      operatorVersion = operatorConfig.get("operatorVersion").asText();
-      group = operatorConfig.get("group").asText();
-      version = operatorConfig.get("crd").get("version").asText();
+      operatorName = Optional.ofNullable(System.getenv("OPERATOR_NAME"))
+          .orElseGet(() -> operatorConfig.get("operatorName").asText());
+      operatorNamespace = Optional.ofNullable(System.getenv("OPERATOR_NAMESPACE"))
+          .orElseGet(() -> operatorConfig.get("operatorNamespace").asText());
+      operatorVersion = Optional.ofNullable(System.getenv("OPERATOR_VERSION"))
+          .orElseGet(() -> operatorConfig.get("operatorVersion").asText());
+      group = Optional.ofNullable(System.getenv("CRD_GROUP"))
+          .orElseGet(() -> operatorConfig.get("group").asText());
+      version = Optional.ofNullable(System.getenv("CRD_VERSION"))
+          .orElseGet(() -> operatorConfig.get("crd").get("version").asText());
+      containerBuild = Optional.ofNullable(System.getenv("CONTAINER_BUILD"))
+          .orElseGet(() -> operatorConfig.get("containerBuild").asText());
+      Preconditions.checkNotNull(operatorName);
+      Preconditions.checkNotNull(operatorNamespace);
+      Preconditions.checkNotNull(operatorVersion);
+      Preconditions.checkNotNull(group);
+      Preconditions.checkNotNull(version);
+      Preconditions.checkNotNull(containerBuild);
     } catch (RuntimeException ex) {
       throw ex;
     } catch (Exception ex) {

@@ -36,7 +36,7 @@ public abstract class AbstractStackGresOperatorIt extends AbstractIt {
     final int operatorSslPort = getFreePort();
     ItHelper.copyResources(kind);
     ItHelper.deleteStackGresOperatorHelmChartIfExists(kind);
-    ItHelper.installStackGresOperatorHelmChart(kind, operatorSslPort);
+    ItHelper.installStackGresOperatorHelmChart(kind, operatorSslPort, executor);
     OperatorRunner operatorRunner = ItHelper.createOperator(
         getClass(), kind, operatorPort, operatorSslPort);
     CompletableFuture<Void> operator = runAsync(() -> operatorRunner.run());

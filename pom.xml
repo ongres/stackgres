@@ -42,6 +42,8 @@
     <java.version>1.8</java.version>
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>
+    <!-- Containers build version -->
+    <container.build>1-dev</container.build>
     <!-- Dependencies versions -->
     <quarkus.version>0.22.0</quarkus.version>
     <jool.version>0.9.14</jool.version>
@@ -268,6 +270,19 @@
                   </pluginExecutionFilter>
                   <action>
                     <execute></execute>
+                  </action>
+                </pluginExecution>
+                <pluginExecution>
+                  <pluginExecutionFilter>
+                    <groupId>io.quarkus</groupId>
+                    <artifactId>quarkus-maven-plugin</artifactId>
+                    <versionRange>[0.22.0,)</versionRange>
+                    <goals>
+                      <goal>build</goal>
+                    </goals>
+                  </pluginExecutionFilter>
+                  <action>
+                    <ignore></ignore>
                   </action>
                 </pluginExecution>
               </pluginExecutions>
