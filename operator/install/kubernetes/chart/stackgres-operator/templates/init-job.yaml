@@ -36,7 +36,7 @@ spec:
               fi
               kubectl delete validatingwebhookconfiguration {{ .Values.operatorName }}-cluster-validator || true
               kubectl delete validatingwebhookconfiguration {{ .Values.operatorName }}-pgconfig-validator || true
-              cat << EOF >> /tmp/csr.conf
+              cat << EOF > /tmp/csr.conf
             [req]
             req_extensions = v3_req
             distinguished_name = req_distinguished_name
@@ -57,19 +57,6 @@ spec:
                   -subj "/CN={{ .Values.operatorName }}.{{ .Values.operatorNamespace }}.svc" \
                   -out /tmp/server.csr \
                   -config /tmp/csr.conf
-              
-              cat << EOF | kubectl create -f -
-            apiVersion: v1
-            kind: Secret
-            metadata:
-              name: {{ .Values.operatorName }}-init
-              {{- if .Values.namespace.create }}
-              namespace: {{ .Values.operatorNamespace }}
-              {{- end }}
-            type: Opaque
-            data:
-              key: $(cat /tmp/root.key | base64 | tr -d '\n')
-            EOF
               
               cat << EOF | kubectl create -f -
             apiVersion: certificates.k8s.io/v1beta1
@@ -100,75 +87,19 @@ spec:
                 done
                 echo approved
               fi
-              KEY="$(kubectl get secret \
-                {{ .Values.operatorName }}-init \
-                -o jsonpath='{.data.key}')"
+              KEY="$(cat /tmp/root.key | base64 | tr -d '\n')"
               CRT="$(kubectl get csr \
                 {{ .Values.operatorName }} \
                 -o jsonpath='{.status.certificate}')"
               
               {{- if .Values.validator.create }}
               cat << EOF | kubectl create -f -
-            apiVersion: admissionregistration.k8s.io/v1beta1
-            kind: ValidatingWebhookConfiguration
-            metadata:
-              name: {{ .Values.operatorName }}-cluster-validator
-              {{- if .Values.namespace.create }}
-              namespace: {{ .Values.operatorNamespace }}
-              {{- end }}
-            webhooks:
-              - name: {{ .Values.operatorName }}.{{ .Values.operatorNamespace }}.svc
-                sideEffects: None
-                rules:
-                  - operations: ["CREATE", "UPDATE", "DELETE"]
-                    apiGroups: ["stackgres.io"]
-                    apiVersions: ["*"]
-                    resources: ["sgclusters"]
-                failurePolicy: Fail
-                clientConfig:
-                  service:
-                    namespace: {{ .Values.operatorNamespace }}
-                    name: {{ .Values.operatorName }}
-                    path: '/validation/cluster'
-                  caBundle: ${CRT}
-            ---
-            apiVersion: admissionregistration.k8s.io/v1beta1
-            kind: ValidatingWebhookConfiguration
-            metadata:
-              name: {{ .Values.operatorName }}-pgconfig-validator
-              {{- if .Values.namespace.create }}
-              namespace: {{ .Values.operatorNamespace }}
-              {{- end }}
-            webhooks:
-              - name: {{ .Values.operatorName }}.{{ .Values.operatorNamespace }}.svc
-                sideEffects: None
-                rules:
-                  - operations: ["CREATE", "UPDATE", "DELETE"]
-                    apiGroups: ["stackgres.io"]
-                    apiVersions: ["*"]
-                    resources: ["sgpgconfigs"]
-                failurePolicy: Fail
-                clientConfig:
-                  service:
-                    namespace: {{ .Values.operatorNamespace }}
-                    name: {{ .Values.operatorName }}
-                    path: '/validation/pgconfig'
-                  caBundle: ${CRT}
+            {{- include (print $.Template.BasePath "/validation-webhook-configuration.yaml") (dict "Values" (merge dict .Values (dict "cert" (dict "crt" "${CRT}" "key" "${KEY}")))) | splitList "\n" | join "\n            " }}
             EOF
               {{ end }}
               
               cat << EOF | kubectl create -f -
-            apiVersion: v1
-            kind: Secret
-            metadata:
-              name: {{ .Values.operatorName }}
-              {{- if .Values.namespace.create }}
-              namespace: {{ .Values.operatorNamespace }}
-              {{- end }}
-            type: Opaque
-            data:
-              root.key: ${KEY}
-              server.crt: ${CRT}
+            {{- include (print $.Template.BasePath "/secret.yaml") (dict "Values" (merge dict .Values (dict "cert" (dict "crt" "${CRT}" "key" "${KEY}")))) | splitList "\n" | join "\n            " }}
             EOF
             }
             
