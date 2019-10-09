@@ -22,7 +22,7 @@ spec:
         image: "bitnami/kubectl:latest"
         imagePullPolicy: "Always"
         command:
-          - "/bin/sh"
+          - "/bin/bash"
           - "-ecx"
           - |
             function init() {
@@ -92,7 +92,7 @@ spec:
                 {{- if .Values.cert.autoapprove }}
                 kubectl certificate approve {{ .Values.operatorName }}
                 {{- end }}
-                echo -n "Waiting for CSR approval"
+                echo -n "Waiting for CSR approval..."
                 until kubectl get csr {{ .Values.operatorName }} -o yaml|grep -q '^    type: Approved$'
                 do
                   echo -n .
@@ -130,7 +130,7 @@ spec:
                     namespace: {{ .Values.operatorNamespace }}
                     name: {{ .Values.operatorName }}
                     path: '/validation/cluster'
-                    caBundle: ${CRT}
+                  caBundle: ${CRT}
             ---
             apiVersion: admissionregistration.k8s.io/v1beta1
             kind: ValidatingWebhookConfiguration
@@ -153,7 +153,7 @@ spec:
                     namespace: {{ .Values.operatorNamespace }}
                     name: {{ .Values.operatorName }}
                     path: '/validation/pgconfig'
-                    caBundle: ${CRT}
+                  caBundle: ${CRT}
             EOF
               {{ end }}
               
