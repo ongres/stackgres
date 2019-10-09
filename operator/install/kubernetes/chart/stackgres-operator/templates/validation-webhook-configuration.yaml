@@ -20,7 +20,7 @@ webhooks:
         namespace: {{ .Values.operatorNamespace }}
         name: {{ .Values.operatorName }}
         path: '/validation/cluster'
-        caBundle: {{ .Values.cert.crt }}
+      caBundle: {{ .Values.cert.crt }}
 ---
 apiVersion: admissionregistration.k8s.io/v1beta1
 kind: ValidatingWebhookConfiguration
@@ -43,5 +43,5 @@ webhooks:
         namespace: {{ .Values.operatorNamespace }}
         name: {{ .Values.operatorName }}
         path: '/validation/pgconfig'
-        caBundle: {{ .Values.cert.crt }}
+      caBundle: {{ .Values.cert.crt }}
 {{ end }}
