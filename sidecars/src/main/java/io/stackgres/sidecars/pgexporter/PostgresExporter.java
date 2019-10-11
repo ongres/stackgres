@@ -35,8 +35,8 @@ import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.kubernetes.internal.KubernetesDeserializer;
 import io.stackgres.common.StackGresClusterConfig;
 import io.stackgres.common.StackGresSidecarTransformer;
-import io.stackgres.common.customresource.sgcluster.StackGresCluster;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.customresource.sgcluster.StackGresCluster;
 import io.stackgres.common.resource.ResourceUtil;
 import io.stackgres.sidecars.pgexporter.customresources.PrometheusInstallation;
 import io.stackgres.sidecars.pgexporter.customresources.PrometheusPort;
@@ -79,9 +79,9 @@ public class PostgresExporter
     ContainerBuilder container = new ContainerBuilder();
     container.withName(NAME)
         .withImage(String.format(IMAGE_NAME,
-        postgresExporterConfig
-            .map(c -> c.getSpec().getPostgresExporterVersion())
-            .orElse(DEFAULT_VERSION), StackGresUtil.CONTAINER_BUILD))
+            postgresExporterConfig
+                .map(c -> c.getSpec().getPostgresExporterVersion())
+                .orElse(DEFAULT_VERSION), StackGresUtil.CONTAINER_BUILD))
         .withImagePullPolicy("Always")
         .withEnv(new EnvVarBuilder()
                 .withName("DATA_SOURCE_NAME")
