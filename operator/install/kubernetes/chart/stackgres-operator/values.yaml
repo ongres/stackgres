@@ -1,6 +1,7 @@
 operatorName: "stackgres-operator"
 operatorNamespace: "stackgres"
 operatorVersion: "development"
+containerBuild: "1-dev"
 group: "stackgres.io"
 
 image:

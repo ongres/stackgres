@@ -17,11 +17,12 @@ import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.StackGresClusterConfig;
 import io.stackgres.common.StackGresSidecarTransformer;
+import io.stackgres.common.StackGresUtil;
 
 public class PostgresUtil implements StackGresSidecarTransformer<CustomResource> {
 
   private static final String NAME = "postgres-util";
-  private static final String IMAGE = "docker.io/ongres/postgres-util:";
+  private static final String IMAGE_NAME = "docker.io/ongres/postgres-util:v%s-build-%s";
 
   public PostgresUtil() {}
 
@@ -34,7 +35,8 @@ public class PostgresUtil implements StackGresSidecarTransformer<CustomResource>
 
     ContainerBuilder container = new ContainerBuilder();
     container.withName(NAME)
-        .withImage(IMAGE + config.getCluster().getSpec().getPostgresVersion())
+        .withImage(String.format(IMAGE_NAME,
+            config.getCluster().getSpec().getPostgresVersion(), StackGresUtil.CONTAINER_BUILD))
         .withImagePullPolicy("Always")
         .withStdin(Boolean.TRUE)
         .withTty(Boolean.TRUE)

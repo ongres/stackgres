@@ -134,7 +134,7 @@ public class OperatorRunner implements CheckedRunnable, Closeable {
     } else {
       runnerBuilder.addAdditionalArchive(testClassLocation);
       testWiringClassesDir =
-          Paths.get("").normalize().toAbsolutePath().resolve("target").resolve("wiring-classes");
+          Paths.get("").normalize().toAbsolutePath().resolve("target").resolve("test-wiring-classes");
       if (Files.exists(testWiringClassesDir)) {
         IoUtils.recursiveDelete(testWiringClassesDir);
       }
@@ -147,7 +147,9 @@ public class OperatorRunner implements CheckedRunnable, Closeable {
     }
 
     runtimeRunner = runnerBuilder.setLaunchMode(LaunchMode.TEST).setClassLoader(appCl)
-        .setTarget(appClassLocation).addAdditionalArchive(testWiringClassesDir)
+        .setTarget(appClassLocation)
+        .setWiringClassesDir(testWiringClassesDir)
+        .addAdditionalArchive(testWiringClassesDir)
         .setClassOutput(new ClassOutput() {
           @Override
           public void writeClass(boolean applicationClass, String className, byte[] data)

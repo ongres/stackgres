@@ -29,6 +29,12 @@ spec:
       - name: {{ .Values.operatorName }}
         image: "{{ .Values.image.name }}:{{ .Values.image.tag }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
+        evn:
+          OPERATOR_NAME: {{ .Values.operatorName }}
+          OPERATOR_NAMESPACE: {{ .Values.operatorNamespace }}
+          CRD_GROUP: {{ .Values.group }}
+          CRD_VERSION: {{ .Values.crd.version }}
+          CONTAINER_BUILD: {{ .Values.containerBuild }}
         ports:
         - containerPort: 8080
           name: "http"
