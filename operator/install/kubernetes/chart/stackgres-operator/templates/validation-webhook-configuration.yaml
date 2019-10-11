@@ -2,12 +2,12 @@
 apiVersion: admissionregistration.k8s.io/v1beta1
 kind: ValidatingWebhookConfiguration
 metadata:
-  name: {{ .Values.operatorName }}-cluster-validator
+  name: {{ .Values.operatorName }}-cluster
   {{- if .Values.namespace.create }}
   namespace: {{ .Values.operatorNamespace }}
   {{- end }}
 webhooks:
-  - name: {{ .Values.operatorName }}.{{ .Values.operatorNamespace }}.svc
+  - name: cluster.{{ .Values.operatorName }}.{{ .Values.operatorNamespace }}
     sideEffects: None
     rules:
       - operations: ["CREATE", "UPDATE", "DELETE"]
@@ -20,17 +20,17 @@ webhooks:
         namespace: {{ .Values.operatorNamespace }}
         name: {{ .Values.operatorName }}
         path: '/validation/cluster'
-        caBundle: {{ .Values.cert.crt }}
+      caBundle: {{ .Values.cert.crt }}
 ---
 apiVersion: admissionregistration.k8s.io/v1beta1
 kind: ValidatingWebhookConfiguration
 metadata:
-  name: {{ .Values.operatorName }}-pgconfig-validator
+  name: {{ .Values.operatorName }}-pgconfig
   {{- if .Values.namespace.create }}
   namespace: {{ .Values.operatorNamespace }}
   {{- end }}
 webhooks:
-  - name: {{ .Values.operatorName }}.{{ .Values.operatorNamespace }}.svc
+  - name: pgconfig.{{ .Values.operatorName }}.{{ .Values.operatorNamespace }}
     sideEffects: None
     rules:
       - operations: ["CREATE", "UPDATE", "DELETE"]
@@ -43,5 +43,5 @@ webhooks:
         namespace: {{ .Values.operatorNamespace }}
         name: {{ .Values.operatorName }}
         path: '/validation/pgconfig'
-        caBundle: {{ .Values.cert.crt }}
+      caBundle: {{ .Values.cert.crt }}
 {{ end }}
