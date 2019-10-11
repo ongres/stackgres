@@ -54,11 +54,11 @@ public class PostgresConfigValidationResource {
     AdmissionReviewResponse reviewResponse = new AdmissionReviewResponse();
     reviewResponse.setResponse(response);
 
-    reviewResponse.setGroup(admissionReview.getGroup());
-    reviewResponse.setKind(admissionReview.getKind());
-    reviewResponse.setVersion(admissionReview.getVersion());
-
     try {
+
+      reviewResponse.setGroup(admissionReview.getGroup());
+      reviewResponse.setKind(admissionReview.getKind());
+      reviewResponse.setVersion(admissionReview.getVersion());
       validationPipeline.validate(admissionReview);
       response.setAllowed(true);
     } catch (ValidationFailed vfex) {

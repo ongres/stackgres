@@ -87,6 +87,8 @@ rules:
 - apiGroups: ["monitoring.coreos.com"]
   resources:
   - prometheus
+  - prometheuses
+  - podmonitors
   verbs:
   - list
   - get

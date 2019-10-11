@@ -5,6 +5,8 @@
 
 package io.stackgres.sidecars.pgexporter.customresources;
 
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -26,6 +28,9 @@ public class StackGresPostgresExporterConfigSpec implements KubernetesResource {
   @JsonProperty("create_service_monitor")
   private Boolean createServiceMonitor;
 
+  @JsonProperty("prometheus_installations")
+  private List<PrometheusInstallation> prometheusInstallations;
+
   public String getPostgresExporterVersion() {
     return postgresExporterVersion;
   }
@@ -40,6 +45,14 @@ public class StackGresPostgresExporterConfigSpec implements KubernetesResource {
 
   public void setCreateServiceMonitor(Boolean createServiceMonitor) {
     this.createServiceMonitor = createServiceMonitor;
+  }
+
+  public List<PrometheusInstallation> getPrometheusInstallations() {
+    return prometheusInstallations;
+  }
+
+  public void setPrometheusInstallations(List<PrometheusInstallation> prometheusInstallations) {
+    this.prometheusInstallations = prometheusInstallations;
   }
 
   @Override

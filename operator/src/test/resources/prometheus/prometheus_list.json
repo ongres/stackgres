@@ -1,0 +1,71 @@
+{
+  "apiVersion": "v1",
+  "items": [
+    {
+      "apiVersion": "monitoring.coreos.com/v1",
+      "kind": "Prometheus",
+      "metadata": {
+        "creationTimestamp": "2019-10-07T16:13:52Z",
+        "generation": 1,
+        "labels": {
+          "app": "prometheus-operator-prometheus",
+          "chart": "prometheus-operator-6.11.0",
+          "heritage": "Tiller",
+          "release": "winsome-abalone"
+        },
+        "name": "winsome-abalone-prometheus-prometheus",
+        "namespace": "default",
+        "resourceVersion": "1530",
+        "selfLink": "/apis/monitoring.coreos.com/v1/namespaces/default/prometheuses/winsome-abalone-prometheus-prometheus",
+        "uid": "942a25d4-1e64-4567-a6b7-3eb2971ec9d0"
+      },
+      "spec": {
+        "alerting": {
+          "alertmanagers": [
+            {
+              "name": "winsome-abalone-prometheus-alertmanager",
+              "namespace": "default",
+              "pathPrefix": "/",
+              "port": "web"
+            }
+          ]
+        },
+        "baseImage": "quay.io/prometheus/prometheus",
+        "enableAdminAPI": false,
+        "externalUrl": "http://winsome-abalone-prometheus-prometheus.default:9090",
+        "listenLocal": false,
+        "logFormat": "logfmt",
+        "logLevel": "info",
+        "paused": false,
+        "replicas": 1,
+        "retention": "10d",
+        "routePrefix": "/",
+        "ruleNamespaceSelector": {},
+        "ruleSelector": {
+          "matchLabels": {
+            "app": "prometheus-operator",
+            "release": "winsome-abalone"
+          }
+        },
+        "securityContext": {
+          "fsGroup": 2000,
+          "runAsNonRoot": true,
+          "runAsUser": 1000
+        },
+        "serviceAccountName": "winsome-abalone-prometheus-prometheus",
+        "serviceMonitorNamespaceSelector": {},
+        "serviceMonitorSelector": {
+          "matchLabels": {
+            "release": "winsome-abalone"
+          }
+        },
+        "version": "v2.12.0"
+      }
+    }
+  ],
+  "kind": "List",
+  "metadata": {
+    "resourceVersion": "",
+    "selfLink": ""
+  }
+}

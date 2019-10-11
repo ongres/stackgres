@@ -13,13 +13,13 @@ public class ServiceMonitor extends CustomResource {
 
   private static final long serialVersionUID = 2719099984653736636L;
 
-  private StackGresPostgresExporterConfigSpec spec;
+  private ServiceMonitorSpec spec;
 
-  public StackGresPostgresExporterConfigSpec getSpec() {
+  public ServiceMonitorSpec getSpec() {
     return spec;
   }
 
-  public void setSpec(StackGresPostgresExporterConfigSpec spec) {
+  public void setSpec(ServiceMonitorSpec spec) {
     this.spec = spec;
   }
 

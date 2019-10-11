@@ -9,11 +9,10 @@ import io.fabric8.kubernetes.api.builder.Function;
 import io.fabric8.kubernetes.client.CustomResourceDoneable;
 
 public class ServiceMonitorDoneable
-    extends CustomResourceDoneable<StackGresPostgresExporterConfig> {
+    extends CustomResourceDoneable<ServiceMonitor> {
 
-  public ServiceMonitorDoneable(StackGresPostgresExporterConfig resource,
-      Function<StackGresPostgresExporterConfig, StackGresPostgresExporterConfig> function) {
+  public ServiceMonitorDoneable(ServiceMonitor resource,
+                                Function<ServiceMonitor, ServiceMonitor> function) {
     super(resource, function);
   }
-
 }

@@ -4,6 +4,8 @@ config:
     version: "11.5"
   pgbouncer:
     version: "1.11"
+  postgres_exporter:
+    version: "0.5.1"
 
 cluster:
   create: true
@@ -18,10 +20,13 @@ cluster:
 sidecar:
   pooling: true
   util: true
-  prometheus: true
+  prometheus:
+    create: true
+    allow_autobind: true
 
 crd:
   version: v1alpha1
 
 profiles:
   create: true
+
