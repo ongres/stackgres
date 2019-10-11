@@ -26,12 +26,15 @@ import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.StackGresClusterConfig;
 import io.stackgres.common.StackGresSidecarTransformer;
+import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.resource.ResourceUtil;
 
 public class PostgresExporter implements StackGresSidecarTransformer<CustomResource> {
 
   private static final String NAME = "prometheus-postgres-exporter";
-  private static final String IMAGE = "docker.io/ongres/prometheus-postgres-exporter:0.5.1";
+  private static final String IMAGE_NAME =
+      "docker.io/ongres/prometheus-postgres-exporter:v%s-build-%s";
+  private static final String DEFAULT_VERSION = "0.5.1";
 
   public PostgresExporter() {}
 
@@ -44,7 +47,8 @@ public class PostgresExporter implements StackGresSidecarTransformer<CustomResou
 
     ContainerBuilder container = new ContainerBuilder();
     container.withName(NAME)
-        .withImage(IMAGE)
+        .withImage(String.format(IMAGE_NAME,
+            DEFAULT_VERSION, StackGresUtil.CONTAINER_BUILD))
         .withImagePullPolicy("Always")
         .withEnv(new EnvVarBuilder()
             .withName("DATA_SOURCE_NAME")

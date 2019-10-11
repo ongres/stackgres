@@ -26,8 +26,6 @@ public class PatroniConfigMap {
     final String name = config.getCluster().getMetadata().getName();
     final String namespace = config.getCluster().getMetadata().getNamespace();
     final String pgVersion = config.getCluster().getSpec().getPostgresVersion();
-    final String majorPgVersion = pgVersion.indexOf('.') > -1
-        ? pgVersion.substring(0, pgVersion.indexOf('.')) : pgVersion;
 
     Map<String, String> labels = ResourceUtil.defaultLabels(name);
 
@@ -47,7 +45,7 @@ public class PatroniConfigMap {
     data.put("PATRONI_POSTGRESQL_LISTEN", "0.0.0.0:5432");
     data.put("PATRONI_RESTAPI_LISTEN", "0.0.0.0:8008");
     data.put("PATRONI_POSTGRESQL_DATA_DIR", "/var/lib/postgresql/data");
-    data.put("PATRONI_POSTGRESQL_BIN_DIR", "/usr/lib/postgresql/" + majorPgVersion + "/bin");
+    data.put("PATRONI_POSTGRESQL_BIN_DIR", "/usr/lib/postgresql/" + pgVersion + "/bin");
     data.put("PATRONI_POSTGRES_UNIX_SOCKET_DIRECTORY", "/run/postgresql");
 
     if (QuarkusProfile.getActiveProfile().isDev()) {

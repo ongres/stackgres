@@ -43,6 +43,7 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetUpdateStrategyBuilder;
 import io.stackgres.common.StackGresClusterConfig;
+import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.customresource.sgprofile.StackGresProfile;
 import io.stackgres.common.resource.ResourceUtil;
 import io.stackgres.operator.configuration.ImmutableStorageConfig;
@@ -53,7 +54,8 @@ public class StackGresStatefulSet {
   public static final String PATRONI_CONTAINER_NAME = "patroni";
   public static final String VOLUME_NAME = "pg-data";
 
-  private static final String IMAGE_PREFIX = "docker.io/ongres/patroni:";
+  private static final String IMAGE_PREFIX = "docker.io/ongres/patroni:v%s-pg%s-build-%s";
+  private static final String PATRONI_VERSION = "1.6.0";
 
   /**
    * Create a new StatefulSet based on the StackGresCluster definition.
@@ -141,7 +143,8 @@ public class StackGresStatefulSet {
             .withServiceAccountName(name + PatroniRole.SUFFIX)
             .addNewContainer()
             .withName(PATRONI_CONTAINER_NAME)
-            .withImage(IMAGE_PREFIX + pgVersion)
+            .withImage(String.format(IMAGE_PREFIX,
+                PATRONI_VERSION, pgVersion, StackGresUtil.CONTAINER_BUILD))
             .withImagePullPolicy("Always")
             .withSecurityContext(new SecurityContextBuilder()
                 .withRunAsUser(999L)

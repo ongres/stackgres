@@ -107,6 +107,7 @@
         <version>${quarkus.version}</version>
         <executions>
           <execution>
+            <id>quarkus-augmentation</id>
             <goals>
               <goal>build</goal>
             </goals>
