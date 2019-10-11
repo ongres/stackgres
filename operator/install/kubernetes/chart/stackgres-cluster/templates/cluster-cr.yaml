@@ -14,7 +14,7 @@ spec:
   sidecars:
   {{- if .Values.sidecar.pooling }}
   - connection-pooling
-  {{ end }}
+  {{- end }}
   {{- if .Values.sidecar.util }}
   - postgres-util
   {{- end }}

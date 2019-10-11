@@ -16,6 +16,7 @@ spec:
     listKind: StackGresPostgresConfigList
     plural: sgpgconfigs
     singular: sgpgconfig
+  preserveUnknownFields: false
   validation:
     openAPIV3Schema:
       type: object
@@ -27,6 +28,9 @@ spec:
           properties:
             pg_version:
               type: string
+              enum:
+              - "11.5"
+              - "12"
             postgresql.conf:
               type: object
           required: ["pg_version","postgresql.conf"]

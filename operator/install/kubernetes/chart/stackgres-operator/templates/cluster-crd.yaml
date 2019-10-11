@@ -16,41 +16,49 @@ spec:
     listKind: StackGresClusterList
     plural: sgclusters
     singular: sgcluster
+  preserveUnknownFields: false
   validation:
     openAPIV3Schema:
       type: object
       required: ["spec"]
       description: "Params for StackGres Cluster creation"
       properties:
-        spec:
-          type: object
-          properties:
-            instances:
-              type: integer
-            pg_version:
-              type: string
-            pg_config:
-              type: string
-            connection_pooling_config:
-              type: string
-            resource_profile:
-              type: string
-            volume_size:
-              type: string
-            storage_class:
-              type: string
-            sidecars:
-              type: array
-          required: [
-            "instances",
-            "pg_version",
-            "pg_config",
-            "connection_pooling_config",
-            "resource_profile",
-            "volume_size",
-            "storage_class",
-            "sidecars"
-          ]
+          spec:
+            type: object
+            properties:
+              instances:
+                type: integer
+                minimun: 1
+              pg_version:
+                type: string
+                enum:
+                - "11.5"
+                - "12.0"
+              pg_config:
+                type: string
+              connection_pooling_config:
+                type: string
+              resource_profile:
+                type: string
+              volume_size:
+                type: string
+                pattern: '[0-9]+[,.]?[0-9]*([\/][0-9]+[,.]?[0-9]*)*(MiB|GiB|TiB)'
+              storage_class:
+                type: string
+              sidecars:
+                type: array
+                items:
+                  type: string
+            required: [
+              "instances",
+              "pg_version",
+              "pg_config",
+              "connection_pooling_config",
+              "resource_profile",
+              "volume_size",
+              "storage_class",
+              "sidecars"
+            ]
 
 
 

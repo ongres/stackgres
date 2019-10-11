@@ -7,7 +7,7 @@ metadata:
     "helm.sh/hook": "pre-install"
 spec:
   cpu: "500m"
-  memory: "512Mi"
+  memory: "512MiB"
 ---
 apiVersion: stackgres.io/{{ .Values.crd.version }}
 kind: StackGresProfile
@@ -16,8 +16,8 @@ metadata:
   annotations:
     "helm.sh/hook": "pre-install"
 spec:
-  cpu: "1"
-  memory: "2Gi"
+  cpu: "1000m"
+  memory: "2GiB"
 ---
 apiVersion: stackgres.io/{{ .Values.crd.version }}
 kind: StackGresProfile
@@ -26,8 +26,8 @@ metadata:
   annotations:
     "helm.sh/hook": "pre-install"
 spec:
-  cpu: "2"
-  memory: "4Gi"
+  cpu: "2000m"
+  memory: "4GiB"
 ---
 apiVersion: stackgres.io/{{ .Values.crd.version }}
 kind: StackGresProfile
@@ -36,8 +36,8 @@ metadata:
   annotations:
     "helm.sh/hook": "pre-install"
 spec:
-  cpu: "4"
-  memory: "8Gi"
+  cpu: "4000m"
+  memory: "8GiB"
 ---
 apiVersion: stackgres.io/{{ .Values.crd.version }}
 kind: StackGresProfile
@@ -46,8 +46,8 @@ metadata:
   annotations:
     "helm.sh/hook": "pre-install"
 spec:
-  cpu: "6"
-  memory: "16Gi"
+  cpu: "6000m"
+  memory: "16GiB"
 ---
 apiVersion: stackgres.io/{{ .Values.crd.version }}
 kind: StackGresProfile
@@ -56,6 +56,6 @@ metadata:
   annotations:
     "helm.sh/hook": "pre-install"
 spec:
-  cpu: "8"
-  memory: "32Gi"
+  cpu: "8000m"
+  memory: "32GiB"
 {{ end }}

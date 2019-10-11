@@ -16,6 +16,7 @@ spec:
     listKind: StackGresConnectionPoolingConfigList
     plural: sgconnectionpoolingconfigs
     singular: sgconnectionpoolingconfig
+  preserveUnknownFields: false
   validation:
     openAPIV3Schema:
       type: object
@@ -27,6 +28,9 @@ spec:
           properties:
             pgbouncer_version:
               type: string
+              enum:
+              - "1.10"
+              - "1.11"
               description: "pgbouncer version"
             pgbouncer.ini:
               type: object
