@@ -47,9 +47,7 @@ import io.stackgres.sidecars.pgexporter.customresources.ServiceMonitorList;
 import io.stackgres.sidecars.pgexporter.customresources.ServiceMonitorSpec;
 import io.stackgres.sidecars.pgexporter.customresources.StackGresPostgresExporterConfig;
 import io.stackgres.sidecars.pgexporter.customresources.StackGresPostgresExporterConfigSpec;
-import io.stackgres.sidecars.prometheus.customresources.PrometheusConfig;
 import io.stackgres.sidecars.prometheus.customresources.PrometheusConfigDefinition;
-import io.stackgres.sidecars.prometheus.customresources.PrometheusConfigDoneable;
 import io.stackgres.sidecars.prometheus.customresources.PrometheusConfigList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -212,28 +210,26 @@ public class PostgresExporter
       crd.ifPresent(cr -> {
         List<PrometheusInstallation> prometheusInstallations = new ArrayList<>();
         spec.setPrometheusInstallations(prometheusInstallations);
-        PrometheusConfigList prometheusConfigs = client.customResources(cr,
-            PrometheusConfig.class,
-            PrometheusConfigList.class,
-            PrometheusConfigDoneable.class)
-            .inAnyNamespace().list();
 
-        prometheusConfigs.getItems().stream()
-            .filter(pc -> pc.getSpec().getServiceMonitorSelector().getMatchLabels() != null)
-            .filter(pc -> !pc.getSpec().getServiceMonitorSelector().getMatchLabels().isEmpty())
-            .forEach(pc -> {
+        scanner.findResources().ifPresent(pcs -> {
+          pcs.getItems().stream()
+              .filter(pc -> pc.getSpec().getServiceMonitorSelector().getMatchLabels() != null)
+              .filter(pc -> !pc.getSpec().getServiceMonitorSelector().getMatchLabels().isEmpty())
+              .forEach(pc -> {
 
-              PrometheusInstallation pi = new PrometheusInstallation();
-              pi.setNamespace(pc.getMetadata().getNamespace());
+                PrometheusInstallation pi = new PrometheusInstallation();
+                pi.setNamespace(pc.getMetadata().getNamespace());
 
-              ImmutableMap<String, String> matchLabels = ImmutableMap
-                  .copyOf(pc.getSpec().getServiceMonitorSelector().getMatchLabels());
+                ImmutableMap<String, String> matchLabels = ImmutableMap
+                    .copyOf(pc.getSpec().getServiceMonitorSelector().getMatchLabels());
 
-              pi.setMatchLabels(matchLabels);
-              prometheusInstallations.add(pi);
-              spec.setCreateServiceMonitor(true);
+                pi.setMatchLabels(matchLabels);
+                prometheusInstallations.add(pi);
+                spec.setCreateServiceMonitor(true);
 
-            });
+              });
+        });
+
       });
 
     } else {

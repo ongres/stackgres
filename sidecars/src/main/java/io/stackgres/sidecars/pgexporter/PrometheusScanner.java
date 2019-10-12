@@ -10,7 +10,6 @@ import java.util.Optional;
 import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.resource.ResourceUtil;
-import io.stackgres.sidecars.pgexporter.KubernetesScanner;
 import io.stackgres.sidecars.prometheus.customresources.PrometheusConfig;
 import io.stackgres.sidecars.prometheus.customresources.PrometheusConfigDefinition;
 import io.stackgres.sidecars.prometheus.customresources.PrometheusConfigDoneable;
