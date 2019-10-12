@@ -154,6 +154,9 @@ public class PostgresExporter
           serviceMonitor.setSpec(spec);
           LabelSelector selector = new LabelSelector();
           spec.setSelector(selector);
+          LabelSelector namespaceSelector = new LabelSelector();
+          namespaceSelector.setAdditionalProperty("any", true);
+          spec.setNamespaceSelector(namespaceSelector);
 
           selector.setMatchLabels(labels);
           PrometheusPort port = new PrometheusPort();
