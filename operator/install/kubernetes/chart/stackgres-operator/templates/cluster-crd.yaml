@@ -16,7 +16,6 @@ spec:
     listKind: StackGresClusterList
     plural: sgclusters
     singular: sgcluster
-  preserveUnknownFields: false
   validation:
     openAPIV3Schema:
       type: object
@@ -42,7 +41,7 @@ spec:
                 type: string
               volume_size:
                 type: string
-                pattern: '[0-9]+[,.]?[0-9]*([\/][0-9]+[,.]?[0-9]*)*(MiB|GiB|TiB)'
+                pattern: '^[0-9]+(\.[0-9]+)?(Mi|Gi|Ti)$'
               storage_class:
                 type: string
               sidecars:

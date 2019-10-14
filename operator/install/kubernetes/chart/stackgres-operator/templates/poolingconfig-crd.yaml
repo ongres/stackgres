@@ -16,7 +16,6 @@ spec:
     listKind: StackGresConnectionPoolingConfigList
     plural: sgconnectionpoolingconfigs
     singular: sgconnectionpoolingconfig
-  preserveUnknownFields: false
   validation:
     openAPIV3Schema:
       type: object

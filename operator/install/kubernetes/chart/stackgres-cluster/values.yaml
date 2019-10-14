@@ -12,7 +12,7 @@ cluster:
   pgconfig: postgresconf
   poolingconfig: pgbouncerconf
   profile: size-xs
-  volumesize: 5GiB
+  volumesize: 5Gi
   storageclass: standard
 
 sidecar:
