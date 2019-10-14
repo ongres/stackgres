@@ -27,6 +27,9 @@ spec:
           properties:
             pg_version:
               type: string
+              enum:
+              - "11"
+              - "12"
             postgresql.conf:
               type: object
           required: ["pg_version","postgresql.conf"]
