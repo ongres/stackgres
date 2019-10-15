@@ -28,26 +28,34 @@ spec:
               instances:
                 type: integer
                 minimun: 1
+                description: "Number of instances to be created"
               pg_version:
                 type: string
                 enum:
                 - "11.5"
                 - "12.0"
+                description: "PostgreSQL version for the new cluster"
               pg_config:
                 type: string
+                description: "PostgreSQL configuration to apply"
               connection_pooling_config:
                 type: string
+                description: "Pooling configuration to apply"
               resource_profile:
                 type: string
+                description: "Resource profile size to apply"
               volume_size:
                 type: string
                 pattern: '^[0-9]+(\.[0-9]+)?(Mi|Gi|Ti)$'
+                description: "Storage volume size"
               storage_class:
                 type: string
+                description: "Storage class name to be used for the cluster"
               sidecars:
                 type: array
                 items:
                   type: string
+                description: "List of sidecars to include in the cluster"
             required: [
               "instances",
               "pg_version",
