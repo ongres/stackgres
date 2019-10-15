@@ -8,7 +8,8 @@ spec:
   selector:
     app: {{ .Values.operatorName }}
   ports:
-    - protocol: TCP
+    - name: operator
+      protocol: TCP
       port: 443
-      targetPort: 8443
+      targetPort: 443
 {{ end }}

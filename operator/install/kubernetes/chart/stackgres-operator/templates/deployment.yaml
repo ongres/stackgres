@@ -29,13 +29,19 @@ spec:
       - name: {{ .Values.operatorName }}
         image: "{{ .Values.image.name }}:{{ .Values.image.tag }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
-        evn:
-          OPERATOR_NAME: {{ .Values.operatorName }}
-          OPERATOR_NAMESPACE: {{ .Values.operatorNamespace }}
-          CRD_GROUP: {{ .Values.group }}
-          CRD_VERSION: {{ .Values.crd.version }}
-          CONTAINER_BUILD: {{ .Values.containerBuild }}
-          PROMETHEUS_AUTOBIND: {{ .Values.allowAutobind }}
+        env:
+          - name: OPERATOR_NAME
+            value: {{ .Values.operatorName }}
+          - name: OPERATOR_NAMESPACE
+            value: {{ .Values.operatorNamespace }}
+          - name: CRD_GROUP
+            value: {{ .Values.group }}
+          - name: CRD_VERSION
+            value: {{ .Values.crd.version }}
+          - name: CONTAINER_BUILD
+            value: {{ .Values.containerBuild }}
+          - name: PROMETHEUS_AUTOBIND
+            value: {{ .Values.allowAutobind }}
         ports:
         - containerPort: 8080
           name: "http"
@@ -63,8 +69,30 @@ spec:
           - name: operator-certs
             mountPath: /etc/operator/certs
             readOnly: true
+      {{- if .Values.grafana }}
+      {{- if and .Values.grafana.url .Values.grafana.token .Values.grafana.httpHost }}
+      - name: {{ .Values.operatorName }}-nginx
+        image: "nginx:1.17.4-alpine"
+        imagePullPolicy: IfNotPresent
+        args: [ '/bin/sh', '-exc', 'cat /etc/nginx/conf.d/stackgres-operator.conf; nginx-debug -g "daemon off;";' ]
+        ports:
+        - containerPort: 444
+          name: "https"
+          protocol: "TCP"
+        volumeMounts:
+          - name: operator-certs
+            mountPath: /etc/operator/certs
+            readOnly: true
+          - name: operator-nginx
+            mountPath: /etc/nginx/conf.d
+            readOnly: true
+      {{ end }}
+      {{ end }}
       volumes:
         - name: operator-certs
           secret:
             secretName: {{ .Values.operatorName }}
+        - name: operator-nginx
+          configMap:
+            name: {{ .Values.operatorName }}-nginx
 {{ end }}
