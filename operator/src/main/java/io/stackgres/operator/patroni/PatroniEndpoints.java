@@ -15,7 +15,9 @@ import com.google.common.collect.ImmutableMap;
 
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.EndpointsBuilder;
+import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.common.StackGresClusterConfig;
+import io.stackgres.common.customresource.sgcluster.StackGresCluster;
 import io.stackgres.common.customresource.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.resource.ResourceUtil;
 import io.stackgres.operator.configuration.PatroniConfig;
@@ -66,6 +68,15 @@ public class PatroniEndpoints {
         .withAnnotations(ImmutableMap.of("config", patroniConfigJson))
         .endMetadata()
         .build();
+  }
+
+  /**
+   * Check if the resource is the EndPoint associated with the cluster.
+   */
+  public static boolean is(StackGresCluster cluster, HasMetadata sgResource) {
+    return sgResource.getKind().equals("Endpoints")
+        && sgResource.getMetadata().getNamespace().equals(cluster.getMetadata().getNamespace())
+        && sgResource.getMetadata().getName().equals(cluster.getMetadata().getName());
   }
 
 }

@@ -37,4 +37,9 @@ public class Patroni implements StackGresClusterConfigTransformer {
         .build();
   }
 
+  public boolean isManaged(StackGresClusterConfig config, HasMetadata sgResource) {
+    return PatroniSecret.is(config.getCluster(), sgResource)
+        || PatroniEndpoints.is(config.getCluster(), sgResource);
+  }
+
 }

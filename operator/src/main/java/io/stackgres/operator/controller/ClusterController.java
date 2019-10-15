@@ -18,6 +18,7 @@ import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.EventBuilder;
 import io.fabric8.kubernetes.api.model.EventSourceBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.ObjectReferenceBuilder;
 import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.CustomResource;
@@ -104,6 +105,15 @@ public class ClusterController {
         StackGresClusterConfig config = getClusterConfig(cluster, client);
         List<HasMetadata> sgResources = patroni.getResources(config);
         for (HasMetadata sgResource : sgResources) {
+          if (patroni.isManaged(config, sgResource)) {
+            continue;
+          }
+          HasMetadata existingResource = client.resource(sgResource).get();
+          if (existingResource != null) {
+            ObjectMeta sgMeta = sgResource.getMetadata();
+            sgResource.setMetadata(existingResource.getMetadata());
+            sgResource.getMetadata().setLabels(sgMeta.getLabels());
+          }
           client.resource(sgResource).createOrReplace();
         }
         LOGGER.info("Cluster updated: '{}.{}'",
