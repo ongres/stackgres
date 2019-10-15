@@ -170,7 +170,7 @@ public class ItHelper {
   /**
    * It helper method.
    */
-  public static void installStackGresCluster(Container kind, String namespace, String name) throws Exception {
+  public static void installStackGresCluster(Container kind, String namespace, String name, int instances) throws Exception {
     LOGGER.info("Deleting if exists stackgres-cluster helm chart for cluster with name " + name);
     kind.execute("sh", "-l", "-c", "helm delete stackgres-cluster-" + name + " --purge || true")
         .filter(EXCLUDE_TTY_WARNING)
@@ -180,7 +180,32 @@ public class ItHelper {
         + " --namespace " + namespace
         + " --name stackgres-cluster-" + name
         + " --set config.create=false --set profiles.create=false"
-        + " --set-string cluster.name=" + name)
+        + " --set-string cluster.name=" + name
+        + " --set cluster.instances=" + instances)
+      .filter(EXCLUDE_TTY_WARNING)
+      .forEach(line -> LOGGER.info(line));
+  }
+
+  /**
+   * It helper method.
+   */
+  public static void upgradeStackGresCluster(Container kind, String namespace, String name, int instances) throws Exception {
+    LOGGER.info("Upgrade stackgres-cluster helm chart for cluster with name " + name);
+    kind.execute("sh", "-l", "-c", "helm upgrade stackgres-cluster-" + name
+        + " /resources/stackgres-cluster"
+        + " --set config.create=false --set profiles.create=false"
+        + " --set-string cluster.name=" + name
+        + " --set cluster.instances=" + instances)
+      .filter(EXCLUDE_TTY_WARNING)
+      .forEach(line -> LOGGER.info(line));
+  }
+
+  /**
+   * It helper method.
+   */
+  public static void deleteStackGresCluster(Container kind, String namespace, String name) throws Exception {
+    LOGGER.info("Upgrade stackgres-cluster helm chart for cluster with name " + name);
+    kind.execute("sh", "-l", "-c", "helm delete stackgres-cluster-" + name)
       .filter(EXCLUDE_TTY_WARNING)
       .forEach(line -> LOGGER.info(line));
   }

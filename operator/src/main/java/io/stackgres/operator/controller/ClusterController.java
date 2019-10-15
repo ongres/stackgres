@@ -11,14 +11,15 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
+
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import com.google.common.collect.ImmutableList;
+
 import io.fabric8.kubernetes.api.model.EventBuilder;
 import io.fabric8.kubernetes.api.model.EventSourceBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.ObjectReferenceBuilder;
 import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.CustomResource;
@@ -41,6 +42,7 @@ import io.stackgres.operator.app.KubernetesClientFactory;
 import io.stackgres.operator.patroni.Patroni;
 import io.stackgres.operator.services.ResourceCreationSelector;
 import io.stackgres.operator.services.SidecarFinder;
+
 import org.jooq.lambda.Unchecked;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -105,16 +107,7 @@ public class ClusterController {
         StackGresClusterConfig config = getClusterConfig(cluster, client);
         List<HasMetadata> sgResources = patroni.getResources(config);
         for (HasMetadata sgResource : sgResources) {
-          if (patroni.isManaged(config, sgResource)) {
-            continue;
-          }
-          HasMetadata existingResource = client.resource(sgResource).get();
-          if (existingResource != null) {
-            ObjectMeta sgMeta = sgResource.getMetadata();
-            sgResource.setMetadata(existingResource.getMetadata());
-            sgResource.getMetadata().setLabels(sgMeta.getLabels());
-          }
-          client.resource(sgResource).createOrReplace();
+          patroni.update(config, sgResource, client);
         }
         LOGGER.info("Cluster updated: '{}.{}'",
             cluster.getMetadata().getNamespace(),

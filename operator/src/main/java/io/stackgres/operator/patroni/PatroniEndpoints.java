@@ -26,6 +26,8 @@ import io.stackgres.operator.patroni.parameters.DefaultValues;
 
 public class PatroniEndpoints {
 
+  public static final String PATRONI_CONFIG_KEY = "config";
+
   /**
    * Create the EndPoint associated with the cluster.
    */
@@ -65,7 +67,7 @@ public class PatroniEndpoints {
         .withNamespace(namespace)
         .withName(name + PatroniServices.CONFIG_SERVICE)
         .withLabels(labels)
-        .withAnnotations(ImmutableMap.of("config", patroniConfigJson))
+        .withAnnotations(ImmutableMap.of(PATRONI_CONFIG_KEY, patroniConfigJson))
         .endMetadata()
         .build();
   }

@@ -44,6 +44,7 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetUpdateStrategyBuilder;
 import io.stackgres.common.StackGresClusterConfig;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.customresource.sgcluster.StackGresCluster;
 import io.stackgres.common.customresource.sgprofile.StackGresProfile;
 import io.stackgres.common.resource.ResourceUtil;
 import io.stackgres.operator.configuration.ImmutableStorageConfig;
@@ -262,6 +263,15 @@ public class StackGresStatefulSet {
             .iterator())
         .add(statefulSet)
         .build();
+  }
+
+  /**
+   * Check if the resource is the StatefulSet based on the StackGresCluster definition.
+   */
+  public static boolean is(StackGresCluster cluster, HasMetadata sgResource) {
+    return sgResource.getKind().equals("StatefulSet")
+        && sgResource.getMetadata().getNamespace().equals(cluster.getMetadata().getNamespace())
+        && sgResource.getMetadata().getName().equals(cluster.getMetadata().getName());
   }
 
 }
