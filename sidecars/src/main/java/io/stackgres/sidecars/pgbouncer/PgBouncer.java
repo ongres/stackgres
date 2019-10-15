@@ -10,10 +10,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import javax.inject.Singleton;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.ConfigMapVolumeSourceBuilder;
@@ -27,6 +27,7 @@ import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.stackgres.common.Sidecar;
 import io.stackgres.common.StackGresClusterConfig;
 import io.stackgres.common.StackGresSidecarTransformer;
 import io.stackgres.common.StackGresUtil;
@@ -39,6 +40,8 @@ import io.stackgres.sidecars.pgbouncer.customresources.StackGresPgbouncerConfigL
 import io.stackgres.sidecars.pgbouncer.parameters.Blacklist;
 import io.stackgres.sidecars.pgbouncer.parameters.DefaultValues;
 
+@Sidecar("connection-pooling")
+@Singleton
 public class PgBouncer implements StackGresSidecarTransformer<StackGresPgbouncerConfig> {
 
   private static final String NAME = "pgbouncer";
@@ -125,7 +128,7 @@ public class PgBouncer implements StackGresSidecarTransformer<StackGresPgbouncer
 
   @Override
   public Optional<StackGresPgbouncerConfig> getConfig(StackGresCluster cluster,
-      KubernetesClient client) throws Exception {
+                                                      KubernetesClient client) throws Exception {
     final String namespace = cluster.getMetadata().getNamespace();
     final String pgbouncerConfig = cluster.getSpec().getConnectionPoolingConfig();
     if (pgbouncerConfig != null) {

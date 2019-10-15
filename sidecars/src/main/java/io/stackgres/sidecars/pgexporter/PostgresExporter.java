@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import javax.inject.Singleton;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -33,6 +34,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.kubernetes.internal.KubernetesDeserializer;
+import io.stackgres.common.Sidecar;
 import io.stackgres.common.StackGresClusterConfig;
 import io.stackgres.common.StackGresSidecarTransformer;
 import io.stackgres.common.StackGresUtil;
@@ -52,6 +54,8 @@ import io.stackgres.sidecars.prometheus.customresources.PrometheusConfigList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Singleton
+@Sidecar("prometheus-postgres-exporter")
 public class PostgresExporter
     implements StackGresSidecarTransformer<StackGresPostgresExporterConfig> {
 
