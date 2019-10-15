@@ -28,8 +28,8 @@ spec:
             pgbouncer_version:
               type: string
               enum:
-              - "1.10"
-              - "1.11"
+              - "1.10.0"
+              - "1.11.0"
               description: "pgbouncer version"
             pgbouncer.ini:
               type: object
