@@ -38,6 +38,8 @@ import io.stackgres.common.customresource.sgprofile.StackGresProfileList;
 import io.stackgres.common.resource.ResourceUtil;
 import io.stackgres.operator.app.KubernetesClientFactory;
 import io.stackgres.operator.patroni.Patroni;
+import io.stackgres.operator.services.ResourceCreationSelector;
+import io.stackgres.operator.services.SidecarFinder;
 import org.jooq.lambda.Unchecked;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,6 +58,9 @@ public class ClusterController {
   @Inject
   Patroni patroni;
 
+  @Inject
+  ResourceCreationSelector creationSelector;
+
   /**
    * Create all the infrastructure of StackGres.
    *
@@ -67,7 +72,7 @@ public class ClusterController {
         StackGresClusterConfig config = getClusterConfig(cluster, client);
         List<HasMetadata> sgResources = patroni.getResources(config);
         for (HasMetadata sgResource : sgResources) {
-          client.resource(sgResource).createOrReplace();
+          creationSelector.createOrReplace(client, sgResource);
         }
         LOGGER.info("Cluster created: '{}.{}'",
             cluster.getMetadata().getNamespace(),

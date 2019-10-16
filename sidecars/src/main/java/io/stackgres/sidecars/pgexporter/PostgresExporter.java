@@ -10,6 +10,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import com.google.common.collect.ImmutableList;
@@ -28,28 +30,21 @@ import io.fabric8.kubernetes.api.model.ServicePortBuilder;
 import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
-import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
-import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.dsl.MixedOperation;
-import io.fabric8.kubernetes.client.dsl.Resource;
-import io.fabric8.kubernetes.internal.KubernetesDeserializer;
 import io.stackgres.common.Sidecar;
 import io.stackgres.common.StackGresClusterConfig;
 import io.stackgres.common.StackGresSidecarTransformer;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.config.ConfigContext;
 import io.stackgres.common.customresource.sgcluster.StackGresCluster;
 import io.stackgres.common.resource.ResourceUtil;
 import io.stackgres.sidecars.pgexporter.customresources.PrometheusInstallation;
 import io.stackgres.sidecars.pgexporter.customresources.PrometheusPort;
 import io.stackgres.sidecars.pgexporter.customresources.ServiceMonitor;
 import io.stackgres.sidecars.pgexporter.customresources.ServiceMonitorDefinition;
-import io.stackgres.sidecars.pgexporter.customresources.ServiceMonitorDoneable;
-import io.stackgres.sidecars.pgexporter.customresources.ServiceMonitorList;
 import io.stackgres.sidecars.pgexporter.customresources.ServiceMonitorSpec;
 import io.stackgres.sidecars.pgexporter.customresources.StackGresPostgresExporterConfig;
 import io.stackgres.sidecars.pgexporter.customresources.StackGresPostgresExporterConfigSpec;
-import io.stackgres.sidecars.prometheus.customresources.PrometheusConfigDefinition;
 import io.stackgres.sidecars.prometheus.customresources.PrometheusConfigList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,7 +61,15 @@ public class PostgresExporter
       "docker.io/ongres/prometheus-postgres-exporter:v%s-build-%s";
   private static final String DEFAULT_VERSION = "0.5.1";
 
-  public PostgresExporter() {
+  private KubernetesScanner<PrometheusConfigList> prometheusScanner;
+
+  private ConfigContext configContext;
+
+  @Inject
+  public PostgresExporter(KubernetesScanner<PrometheusConfigList> prometheusScanner,
+                          ConfigContext configContext) {
+    this.prometheusScanner = prometheusScanner;
+    this.configContext = configContext;
   }
 
   @Override
@@ -165,27 +168,7 @@ public class PostgresExporter
           port.setPort(NAME);
           spec.setEndpoints(Collections.singletonList(port));
 
-          try (DefaultKubernetesClient client = new DefaultKubernetesClient()) {
-            KubernetesDeserializer.registerCustomKind(ServiceMonitorDefinition.APIVERSION,
-                ServiceMonitorDefinition.KIND, ServiceMonitor.class);
-
-            Optional<CustomResourceDefinition> crd =
-                ResourceUtil.getCustomResource(client, ServiceMonitorDefinition.NAME);
-
-            crd.ifPresent(cr -> {
-              MixedOperation<ServiceMonitor,
-                  ServiceMonitorList,
-                  ServiceMonitorDoneable,
-                  Resource<ServiceMonitor,
-                      ServiceMonitorDoneable>> prometheusCli = client
-                  .customResource(cr,
-                      ServiceMonitor.class,
-                      ServiceMonitorList.class,
-                      ServiceMonitorDoneable.class);
-              prometheusCli.inNamespace(pi.getNamespace()).createOrReplace(serviceMonitor);
-            });
-
-          }
+          resourcesBuilder.add(serviceMonitor);
 
         });
       }
@@ -195,31 +178,26 @@ public class PostgresExporter
 
   @Override
   public Optional<StackGresPostgresExporterConfig> getConfig(StackGresCluster cluster,
-                                                             KubernetesClient client)
-      throws Exception {
+                                                             KubernetesClient client) {
 
     StackGresPostgresExporterConfig sgpec = new StackGresPostgresExporterConfig();
     StackGresPostgresExporterConfigSpec spec = new StackGresPostgresExporterConfigSpec();
     sgpec.setSpec(spec);
 
-    KubernetesScanner<PrometheusConfigList> scanner = new PrometheusScanner(client);
-
     spec.setPostgresExporterVersion(cluster.getSpec().getPostgresExporterVersion());
 
-    if (cluster.getSpec().getPrometheusAutobind()) {
+    boolean isAutobindAllowed = Boolean
+        .parseBoolean(configContext.getProp(ConfigContext.PROMETHEUS_AUTOBIND)
+        .orElse("false"));
+
+    if (isAutobindAllowed && cluster.getSpec().getPrometheusAutobind()) {
       LOGGER.info("Prometheus auto bind enabled, looking for prometheus installations");
-      Optional<CustomResourceDefinition> crd =
-          ResourceUtil.getCustomResource(client, PrometheusConfigDefinition.NAME);
 
-      crd.ifPresent(cr -> {
-        List<PrometheusInstallation> prometheusInstallations = new ArrayList<>();
-        spec.setPrometheusInstallations(prometheusInstallations);
-
-        scanner.findResources().ifPresent(pcs -> {
-          pcs.getItems().stream()
+      List<PrometheusInstallation> prometheusInstallations = prometheusScanner.findResources()
+          .map(pcs -> pcs.getItems().stream()
               .filter(pc -> pc.getSpec().getServiceMonitorSelector().getMatchLabels() != null)
               .filter(pc -> !pc.getSpec().getServiceMonitorSelector().getMatchLabels().isEmpty())
-              .forEach(pc -> {
+              .map(pc -> {
 
                 PrometheusInstallation pi = new PrometheusInstallation();
                 pi.setNamespace(pc.getMetadata().getNamespace());
@@ -228,13 +206,16 @@ public class PostgresExporter
                     .copyOf(pc.getSpec().getServiceMonitorSelector().getMatchLabels());
 
                 pi.setMatchLabels(matchLabels);
-                prometheusInstallations.add(pi);
-                spec.setCreateServiceMonitor(true);
+                return pi;
 
-              });
-        });
+              }).collect(Collectors.toList())).orElse(new ArrayList<>());
 
-      });
+      if (!prometheusInstallations.isEmpty()) {
+        spec.setCreateServiceMonitor(true);
+        spec.setPrometheusInstallations(prometheusInstallations);
+      } else {
+        spec.setCreateServiceMonitor(false);
+      }
 
     } else {
       spec.setCreateServiceMonitor(false);
