@@ -8,6 +8,7 @@ package io.stackgres.sidecars.pgexporter;
 import java.util.Optional;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -22,6 +23,7 @@ public class PrometheusScanner implements KubernetesScanner<PrometheusConfigList
 
   private KubernetesClient client;
 
+  @Inject
   public PrometheusScanner(KubernetesClient client) {
     this.client = client;
   }

@@ -40,6 +40,6 @@ public class ConfigLoader implements ConfigContext {
 
   @Override
   public Optional<String> getProp(String prop) {
-    return Optional.empty();
+    return Optional.ofNullable(contextProperties.get(prop));
   }
 }
