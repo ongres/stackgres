@@ -161,7 +161,8 @@ public class ItHelper {
     kind.execute("sh", "-l", "-c", "helm install /resources/stackgres-cluster"
         + " --namespace " + namespace
         + " --name stackgres-cluster-configs"
-        + " --set cluster.create=false")
+        + " --set cluster.create=false"
+        + " || true")
       .filter(EXCLUDE_TTY_WARNING)
       .forEach(line -> LOGGER.info(line));
   }
