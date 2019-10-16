@@ -8,7 +8,7 @@ spec:
   selector:
     app: {{ .Values.operatorName }}
   ports:
-    - name: operator
+    - name: https
       protocol: TCP
       port: 443
       targetPort: 443

@@ -20,7 +20,7 @@ import io.stackgres.operator.validation.cluster.ClusterValidationPipeline;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Path("/validation/cluster")
+@Path("/stackgres/validation/cluster")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class ClusterValidationResource {

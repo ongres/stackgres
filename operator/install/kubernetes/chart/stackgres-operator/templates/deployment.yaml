@@ -69,7 +69,6 @@ spec:
           - name: operator-certs
             mountPath: /etc/operator/certs
             readOnly: true
-      {{- if .Values.grafana }}
       {{- if and .Values.grafana.url .Values.grafana.token .Values.grafana.httpHost }}
       - name: {{ .Values.operatorName }}-nginx
         image: "nginx:1.17.4-alpine"
@@ -86,7 +85,6 @@ spec:
           - name: operator-nginx
             mountPath: /etc/nginx/conf.d
             readOnly: true
-      {{ end }}
       {{ end }}
       volumes:
         - name: operator-certs

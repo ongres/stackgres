@@ -19,7 +19,7 @@ import io.stackgres.common.customresource.sgpgconfig.StackGresPostgresConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Path("/validation/pgconfig")
+@Path("/stackgres/validation/pgconfig")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class PostgresConfigValidationResource {

@@ -34,7 +34,17 @@ cert:
 prometheus:
   allowAutobind: true
 
-grafana:
-  url: "http://localhost:3000/d/000000039/postgresql-database?orgId=1&refresh=10s&from=1571132619682&to=1571154219683&var-interval=%24__auto_interval_interval&var-namespace=&var-release=&var-instance=10.244.0.2%3A9153&var-datname=All&var-mode=All"
-  token: "eyJrIjoiczFwRFVhcDBoR3ZRNUQwRWYzOEFUQUJ0bTNjM0tGNWkiLCJuIjoic3RhY2tncmVzIiwiaWQiOjF9"
-  httpHost: "prometheus-operator-grafana.default.svc"
+grafana: {}
+  # Create grafana dashboard for postgres exporter and copy/paste share URL:
+  # - Grafana > Create > Import > Grafana.com Dashboard 9628
+  # Copy/paste grafana dashboard URL for postgres exporter:
+  # - Grafana > Dashboard > Manage > Select postgres exporter dashboard > Copy URL
+  # url: "http://localhost:3000/d/000000039/postgresql-database?orgId=1&refresh=10s"
+  # Create and copy/paste grafana API token:
+  # - Grafana > Configuration > API Keys > Add API key (for viewer) > Copy key value
+  # token: "eyJrIjoidXc4NXJPa1VOdmNHVkFYMGJuME9zcnJucnBYRU1FQTMiLCJuIjoic3RhY2tncmVzIiwiaWQiOjF9"
+  # Copy and paste grafana service hostname:
+  # - kubectl get service prometheus-operator-grafana --template $'{{ .metadata.name }}.{{ .metadata.namespace }}.svc\n'
+  # httpHost: "prometheus-operator-grafana.default.svc"
+  # Set the HTTP scheme used by grafana:
+  # schema: "http"

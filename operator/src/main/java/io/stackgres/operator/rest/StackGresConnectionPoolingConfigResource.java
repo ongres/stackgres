@@ -29,7 +29,7 @@ import io.stackgres.sidecars.pgbouncer.customresources.StackGresPgbouncerConfigD
 import io.stackgres.sidecars.pgbouncer.customresources.StackGresPgbouncerConfigDoneable;
 import io.stackgres.sidecars.pgbouncer.customresources.StackGresPgbouncerConfigList;
 
-@Path("/connpoolconfig")
+@Path("/stackgres/connpoolconfig")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class StackGresConnectionPoolingConfigResource {

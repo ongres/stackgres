@@ -33,6 +33,9 @@ public class StackGresClusterPodStatus implements KubernetesResource {
   @JsonProperty("role")
   private String role;
 
+  @JsonProperty("ip")
+  private String ip;
+
   @JsonProperty("status")
   @NotNull
   private String status;
@@ -67,6 +70,14 @@ public class StackGresClusterPodStatus implements KubernetesResource {
     this.role = role;
   }
 
+  public String getIp() {
+    return ip;
+  }
+
+  public void setIp(String ip) {
+    this.ip = ip;
+  }
+
   public String getStatus() {
     return status;
   }
@@ -98,6 +109,7 @@ public class StackGresClusterPodStatus implements KubernetesResource {
         .add("namespace", namespace)
         .add("name", name)
         .add("role", role)
+        .add("ip", ip)
         .add("status", status)
         .add("containers", containers)
         .add("containersReady", containersReady)

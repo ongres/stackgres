@@ -16,7 +16,7 @@ import javax.ws.rs.core.Response;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.operator.app.KubernetesClientFactory;
 
-@Path("/kubernetes-cluster-info")
+@Path("/stackgres/kubernetes-cluster-info")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class KubernetesClusterInfoResource {
