@@ -3,7 +3,7 @@ config:
   postgresql:
     version: "11.5"
   pgbouncer:
-    version: "1.11"
+    version: "1.11.0"
   postgres_exporter:
     version: "0.5.1"
 
@@ -14,7 +14,7 @@ cluster:
   pgconfig: postgresconf
   poolingconfig: pgbouncerconf
   profile: size-xs
-  volumesize: 500Gi
+  volumesize: 5Gi
   storageclass: standard
 
 sidecar:

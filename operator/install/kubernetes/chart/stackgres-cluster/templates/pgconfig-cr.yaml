@@ -6,7 +6,7 @@ metadata:
   annotations:
     "helm.sh/hook": "pre-install"
 spec:
-  pg_version: "{{ .Values.config.postgresql.version }}"
+  pg_version: "{{ index (.Values.config.postgresql.version | splitList ".") 0 }}"
   postgresql.conf:
       shared_buffers: '256MB'
       random_page_cost: '1.5'
