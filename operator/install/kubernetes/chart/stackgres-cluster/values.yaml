@@ -3,7 +3,7 @@ config:
   postgresql:
     version: "11.5"
   pgbouncer:
-    version: "1.11"
+    version: "1.11.0"
 
 cluster:
   create: true
