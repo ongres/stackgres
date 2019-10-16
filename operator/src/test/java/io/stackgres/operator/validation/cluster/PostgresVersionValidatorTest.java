@@ -49,6 +49,11 @@ class PostgresVersionValidatorTest {
     return majorVersion + "." + minorVersion;
   }
 
+  private static String getMajorPostgresVersion(String pgVersion) {
+    int versionSplit = pgVersion.lastIndexOf('.');
+    return pgVersion.substring(0, versionSplit);
+  }
+
   private static boolean isPostgresVersionValid(String version){
     int[] versionNumbers = Arrays.stream(version.split("\\.")).mapToInt(Integer::parseInt)
         .toArray();
@@ -121,7 +126,7 @@ class PostgresVersionValidatorTest {
 
     final String randomMajorVersion = getRandomPostgresVersion();
     spec.setPostgresVersion(randomMajorVersion);
-    postgresConfig.getSpec().setPgVersion(randomMajorVersion.split("\\.")[0]);
+    postgresConfig.getSpec().setPgVersion(getMajorPostgresVersion(randomMajorVersion));
 
     validator.validate(review);
 
@@ -148,7 +153,7 @@ class PostgresVersionValidatorTest {
 
     String resultMessage = exception.getResult().getMessage();
 
-    assertEquals("Invalid pg_version, must be 11.x to use pfConfig postgresconf",
+    assertEquals("Invalid pg_version, must be 11 to use pfConfig postgresconf",
         resultMessage);
 
     verify(configFinder).findByNameAndNamespace(eq(postgresProfile), eq(namespace));
@@ -336,7 +341,7 @@ class PostgresVersionValidatorTest {
 
     String resultMessage = exception.getResult().getMessage();
 
-    assertEquals("Invalid pg_version, must be 10.x to use pfConfig postgresconf",
+    assertEquals("Invalid pg_version, must be 10 to use pfConfig postgresconf",
         resultMessage);
 
     verify(configFinder).findByNameAndNamespace(eq(postgresProfile), eq(namespace));
