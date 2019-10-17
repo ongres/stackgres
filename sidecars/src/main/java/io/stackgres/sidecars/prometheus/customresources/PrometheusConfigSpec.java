@@ -18,6 +18,8 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 @RegisterForReflection
 public class PrometheusConfigSpec implements KubernetesResource {
 
+  private static final long serialVersionUID = 1L;
+
   private Alerting alerting;
 
   private String baseImage;
