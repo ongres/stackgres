@@ -7,6 +7,7 @@ package io.stackgres.sidecars.pgexporter;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -115,8 +116,14 @@ public class PostgresExporter
 
   @Override
   public List<HasMetadata> getResources(StackGresClusterConfig config) {
-    Map<String, String> labels = ResourceUtil.defaultLabels(
+
+    final Map<String, String> map = ResourceUtil.defaultLabels(
         config.getCluster().getMetadata().getName());
+    Map<String, String> labels = new ImmutableMap.Builder<String, String>()
+        .putAll(map)
+        .put("cluster-namespace", config.getCluster().getMetadata().getNamespace())
+        .build();
+
     Optional<StackGresPostgresExporterConfig> postgresExporterConfig =
         config.getSidecarConfig(this);
     ImmutableList.Builder<HasMetadata> resourcesBuilder = ImmutableList.builder();
@@ -131,7 +138,7 @@ public class PostgresExporter
                 .build())
             .endMetadata()
             .withSpec(new ServiceSpecBuilder()
-                .withSelector(labels)
+                .withSelector(map)
                 .withPorts(new ServicePortBuilder()
                     .withName(NAME)
                     .withPort(9187)

@@ -37,8 +37,8 @@ import static org.mockito.Mockito.*;
 @RunWith(MockitoJUnitRunner.class)
 class PostgresVersionValidatorTest {
 
-  private static final int[] supportedPostgresMajorVersions = {10, 11};
-  private static final int[] latestPostgresMinorVersions = {10, 5};
+  private static final int[] supportedPostgresMajorVersions = {11, 12};
+  private static final int[] latestPostgresMinorVersions = {5, 0};
 
   private static String getRandomPostgresVersion() {
     Random r = new Random();
@@ -121,7 +121,7 @@ class PostgresVersionValidatorTest {
 
     final String randomMajorVersion = getRandomPostgresVersion();
     spec.setPostgresVersion(randomMajorVersion);
-    postgresConfig.getSpec().setPgVersion(randomMajorVersion);
+    postgresConfig.getSpec().setPgVersion(randomMajorVersion.split("\\.")[0]);
 
     validator.validate(review);
 
@@ -324,7 +324,7 @@ class PostgresVersionValidatorTest {
 
     StackGresClusterSpec spec = review.getRequest().getObject().getSpec();
     String postgresProfile = spec.getPostgresConfig();
-    postgresConfig.getSpec().setPgVersion("10.5");
+    postgresConfig.getSpec().setPgVersion("10");
 
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
     when(configFinder.findByNameAndNamespace(eq(postgresProfile), eq(namespace)))
