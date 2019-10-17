@@ -15,7 +15,9 @@ import com.google.common.collect.ImmutableMap;
 
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.EndpointsBuilder;
+import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.common.StackGresClusterConfig;
+import io.stackgres.common.customresource.sgcluster.StackGresCluster;
 import io.stackgres.common.customresource.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.resource.ResourceUtil;
 import io.stackgres.operator.configuration.PatroniConfig;
@@ -23,6 +25,8 @@ import io.stackgres.operator.patroni.parameters.Blacklist;
 import io.stackgres.operator.patroni.parameters.DefaultValues;
 
 public class PatroniEndpoints {
+
+  public static final String PATRONI_CONFIG_KEY = "config";
 
   /**
    * Create the EndPoint associated with the cluster.
@@ -63,9 +67,18 @@ public class PatroniEndpoints {
         .withNamespace(namespace)
         .withName(name + PatroniServices.CONFIG_SERVICE)
         .withLabels(labels)
-        .withAnnotations(ImmutableMap.of("config", patroniConfigJson))
+        .withAnnotations(ImmutableMap.of(PATRONI_CONFIG_KEY, patroniConfigJson))
         .endMetadata()
         .build();
+  }
+
+  /**
+   * Check if the resource is the EndPoint associated with the cluster.
+   */
+  public static boolean is(StackGresCluster cluster, HasMetadata sgResource) {
+    return sgResource.getKind().equals("Endpoints")
+        && sgResource.getMetadata().getNamespace().equals(cluster.getMetadata().getNamespace())
+        && sgResource.getMetadata().getName().equals(cluster.getMetadata().getName());
   }
 
 }

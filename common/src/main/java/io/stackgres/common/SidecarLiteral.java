@@ -9,6 +9,8 @@ import javax.enterprise.util.AnnotationLiteral;
 
 public class SidecarLiteral extends AnnotationLiteral<Sidecar> implements Sidecar {
 
+  private static final long serialVersionUID = 1L;
+
   private final String value;
 
   public SidecarLiteral(String value) {

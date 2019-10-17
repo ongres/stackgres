@@ -9,6 +9,8 @@ import io.fabric8.kubernetes.client.CustomResource;
 
 public class PrometheusConfig extends CustomResource {
 
+  private static final long serialVersionUID = 1L;
+
   private PrometheusConfigSpec spec;
 
   public PrometheusConfigSpec getSpec() {

@@ -8,4 +8,7 @@ package io.stackgres.sidecars.prometheus.customresources;
 import io.fabric8.kubernetes.client.CustomResourceList;
 
 public class PrometheusConfigList extends CustomResourceList<PrometheusConfig> {
+
+  private static final long serialVersionUID = 1L;
+
 }

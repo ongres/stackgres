@@ -18,5 +18,9 @@ import javax.inject.Qualifier;
 @Documented
 public @interface Kind {
 
+  /**
+   * The kind.
+   */
   String value();
+
 }
