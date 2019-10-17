@@ -30,3 +30,6 @@ validator:
 
 cert:
   autoapprove: true
+
+prometheus:
+  allowAutobind: true

@@ -11,6 +11,12 @@ spec:
   resource_profile: '{{ .Values.cluster.profile }}'
   volume_size: '{{ .Values.cluster.volumesize }}'
   storage_class: '{{ .Values.cluster.storageclass }}'
+  postgres_exporter_version: '{{ .Values.config.postgres_exporter.version }}'
+  {{- if .Values.sidecar.prometheus.create }}
+  prometheus_autobind: {{ .Values.sidecar.prometheus.allow_autobind }}
+  {{- else }}
+  prometheus_autobind: false
+  {{- end }}
   sidecars:
   {{- if .Values.sidecar.pooling }}
   - connection-pooling
@@ -18,7 +24,7 @@ spec:
   {{- if .Values.sidecar.util }}
   - postgres-util
   {{- end }}
-  {{- if .Values.sidecar.prometheus }}
+  {{- if .Values.sidecar.prometheus.create }}
   - prometheus-postgres-exporter
   {{- end }}
 {{ end }}

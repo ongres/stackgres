@@ -6,19 +6,22 @@
 package io.stackgres.sidecars.pgutils;
 
 import java.util.List;
+import javax.inject.Singleton;
 
 import com.google.common.collect.ImmutableList;
-
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.fabric8.kubernetes.client.CustomResource;
+import io.stackgres.common.Sidecar;
 import io.stackgres.common.StackGresClusterConfig;
 import io.stackgres.common.StackGresSidecarTransformer;
 import io.stackgres.common.StackGresUtil;
 
+@Sidecar("postgres-util")
+@Singleton
 public class PostgresUtil implements StackGresSidecarTransformer<CustomResource> {
 
   private static final String NAME = "postgres-util";

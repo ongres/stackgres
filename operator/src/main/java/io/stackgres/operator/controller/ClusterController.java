@@ -11,12 +11,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
-
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import com.google.common.collect.ImmutableList;
-
 import io.fabric8.kubernetes.api.model.EventBuilder;
 import io.fabric8.kubernetes.api.model.EventSourceBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
@@ -40,8 +38,8 @@ import io.stackgres.common.customresource.sgprofile.StackGresProfileList;
 import io.stackgres.common.resource.ResourceUtil;
 import io.stackgres.operator.app.KubernetesClientFactory;
 import io.stackgres.operator.patroni.Patroni;
-import io.stackgres.sidecars.StackGresSidecar;
-
+import io.stackgres.operator.services.ResourceCreationSelector;
+import io.stackgres.operator.services.SidecarFinder;
 import org.jooq.lambda.Unchecked;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,7 +53,13 @@ public class ClusterController {
   KubernetesClientFactory kubClientFactory;
 
   @Inject
+  SidecarFinder sidecarFinder;
+
+  @Inject
   Patroni patroni;
+
+  @Inject
+  ResourceCreationSelector creationSelector;
 
   /**
    * Create all the infrastructure of StackGres.
@@ -68,7 +72,7 @@ public class ClusterController {
         StackGresClusterConfig config = getClusterConfig(cluster, client);
         List<HasMetadata> sgResources = patroni.getResources(config);
         for (HasMetadata sgResource : sgResources) {
-          client.resource(sgResource).createOrReplace();
+          creationSelector.createOrReplace(client, sgResource);
         }
         LOGGER.info("Cluster created: '{}.{}'",
             cluster.getMetadata().getNamespace(),
@@ -159,7 +163,7 @@ public class ClusterController {
         .withProfile(getProfile(cluster, client))
         .withPostgresConfig(getPostgresConfig(cluster, client))
         .withSidecars(cluster.getSpec().getSidecars().stream()
-            .map(sidecar -> StackGresSidecar.fromName(sidecar).getSidecar())
+            .map(sidecar -> sidecarFinder.getSidecarTransformer(sidecar))
             .map(Unchecked.function(sidecar -> getSidecarEntry(cluster, client, sidecar)))
             .collect(ImmutableList.toImmutableList()))
         .build();

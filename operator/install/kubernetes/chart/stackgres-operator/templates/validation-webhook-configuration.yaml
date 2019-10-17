@@ -10,7 +10,7 @@ webhooks:
   - name: cluster.{{ .Values.operatorName }}.{{ .Values.operatorNamespace }}
     sideEffects: None
     rules:
-      - operations: ["CREATE", "UPDATE", "DELETE"]
+      - operations: ["CREATE", "UPDATE"]
         apiGroups: ["stackgres.io"]
         apiVersions: ["*"]
         resources: ["sgclusters"]

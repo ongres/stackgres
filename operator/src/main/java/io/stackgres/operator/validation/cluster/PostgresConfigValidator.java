@@ -109,11 +109,10 @@ public class PostgresConfigValidator implements ClusterValidator {
 
       StackGresPostgresConfig postgresConfig = postgresConfigOpt.get();
       String pgVersion = postgresConfig.getSpec().getPgVersion();
-      String configuredMajorVersion = getMajorVersion(pgVersion);
 
-      if (!configuredMajorVersion.equals(givenMajorVersion)) {
+      if (!pgVersion.equals(givenMajorVersion)) {
         throw new ValidationFailed("Invalid pg_version, must be "
-            + configuredMajorVersion + ".x to use pfConfig " + pgConfig);
+            + pgVersion + ".x to use pfConfig " + pgConfig);
       }
 
     } else {

@@ -36,6 +36,10 @@ public class StackGresClusterSpec implements KubernetesResource {
   @NotNull
   private String postgresConfig;
 
+  @JsonProperty("postgres_exporter_version")
+  @NotNull
+  private String postgresExporterVersion;
+
   @JsonProperty("resource_profile")
   @NotNull
   private String resourceProfile;
@@ -51,6 +55,9 @@ public class StackGresClusterSpec implements KubernetesResource {
   @JsonProperty("storage_class")
   @NotNull
   private String storageClass;
+
+  @JsonProperty("prometheus_autobind")
+  private Boolean prometheusAutobind;
 
   @JsonProperty("sidecars")
   private List<String> sidecars;
@@ -77,6 +84,14 @@ public class StackGresClusterSpec implements KubernetesResource {
 
   public void setPostgresConfig(String postgresConfig) {
     this.postgresConfig = postgresConfig;
+  }
+
+  public String getPostgresExporterVersion() {
+    return postgresExporterVersion;
+  }
+
+  public void setPostgresExporterVersion(String postgresExporterVersion) {
+    this.postgresExporterVersion = postgresExporterVersion;
   }
 
   public String getResourceProfile() {
@@ -109,6 +124,14 @@ public class StackGresClusterSpec implements KubernetesResource {
 
   public void setStorageClass(String storageClass) {
     this.storageClass = storageClass;
+  }
+
+  public Boolean getPrometheusAutobind() {
+    return prometheusAutobind;
+  }
+
+  public void setPrometheusAutobind(Boolean prometheusAutobind) {
+    this.prometheusAutobind = prometheusAutobind;
   }
 
   public List<String> getSidecars() {

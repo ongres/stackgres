@@ -35,6 +35,7 @@ spec:
           CRD_GROUP: {{ .Values.group }}
           CRD_VERSION: {{ .Values.crd.version }}
           CONTAINER_BUILD: {{ .Values.containerBuild }}
+          PROMETHEUS_AUTOBIND: {{ .Values.allowAutobind }}
         ports:
         - containerPort: 8080
           name: "http"

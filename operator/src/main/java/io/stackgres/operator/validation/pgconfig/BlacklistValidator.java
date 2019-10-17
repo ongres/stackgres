@@ -10,9 +10,12 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import javax.enterprise.context.ApplicationScoped;
+
 import io.stackgres.operator.validation.PgConfigReview;
 import io.stackgres.operator.validation.ValidationFailed;
 
+@ApplicationScoped
 public class BlacklistValidator implements PgConfigValidator {
 
   private static final Set<String> BLACKLIST = new HashSet<>(Arrays.asList(BLACKLIST_PROPERTIES));
