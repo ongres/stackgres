@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
 
 import com.ongres.junit.docker.Container;
 
+import io.fabric8.kubernetes.client.Config;
 import io.quarkus.bootstrap.BootstrapClassLoaderFactory;
 import io.quarkus.bootstrap.BootstrapException;
 import io.quarkus.bootstrap.util.IoUtils;
@@ -108,16 +109,18 @@ public class OperatorRunner implements CheckedRunnable, Closeable {
             + " | sed 's/\\s\\+/ /g'"
             + " | cut -d ' ' -f 1)\"")
         .collect(Collectors.toList());
-    System.setProperty("kubernetes.master", kubeconfig.stream()
+    System.setProperty(Config.KUBERNETES_AUTH_TRYKUBECONFIG_SYSTEM_PROPERTY, Boolean.FALSE.toString());
+    System.setProperty(Config.KUBERNETES_AUTH_TRYSERVICEACCOUNT_SYSTEM_PROPERTY, Boolean.FALSE.toString());
+    System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, kubeconfig.stream()
         .filter(line -> line.startsWith("    server: "))
         .findAny().get()
         .substring("    server: ".length()));
-    System.setProperty("kubernetes.certs.ca.data", operatorSecret.stream()
+    System.setProperty(Config.KUBERNETES_CA_CERTIFICATE_DATA_SYSTEM_PROPERTY, operatorSecret.stream()
         .filter(line -> line.startsWith("  ca.crt: "))
         .map(line -> line.substring("  ca.crt: ".length()))
         .map(secret -> new String(Base64.getDecoder().decode(secret), StandardCharsets.UTF_8))
         .findAny().get());
-    System.setProperty("kubernetes.auth.token", operatorSecret.stream()
+    System.setProperty(Config.KUBERNETES_OAUTH_TOKEN_SYSTEM_PROPERTY, operatorSecret.stream()
         .filter(line -> line.startsWith("  token: "))
         .map(line -> line.substring("  token: ".length()))
         .map(secret -> new String(Base64.getDecoder().decode(secret), StandardCharsets.UTF_8))
