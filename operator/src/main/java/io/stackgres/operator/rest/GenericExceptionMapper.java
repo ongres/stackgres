@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.rest;
 
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Provider;
@@ -20,6 +21,7 @@ public class GenericExceptionMapper implements ExceptionMapper<Throwable> {
   @Override
   public Response toResponse(Throwable throwable) {
     LOGGER.error("An error occurred in the REST API", throwable);
-    return Response.serverError().entity(ErrorResponse.create(throwable)).build();
+    return Response.serverError().type(MediaType.APPLICATION_JSON)
+        .entity(ErrorResponse.create(throwable)).build();
   }
 }
