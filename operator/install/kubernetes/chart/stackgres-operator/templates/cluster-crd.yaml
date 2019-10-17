@@ -27,7 +27,7 @@ spec:
             properties:
               instances:
                 type: integer
-                minimun: 1
+                minimum: 1
                 description: "Number of instances to be created"
               pg_version:
                 type: string
