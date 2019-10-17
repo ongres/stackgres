@@ -14,7 +14,7 @@ var serverIP = "";
 //var apiURL = 'http://192.168.1.10:7978/';
 
 //Prod API
-var apiURL = "/stackgres";
+var apiURL = "/stackgres/";
 
 
 const router = new VueRouter({
