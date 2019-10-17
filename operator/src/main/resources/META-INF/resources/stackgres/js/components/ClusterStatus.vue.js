@@ -17,6 +17,10 @@ var ClusterStatus = Vue.component("cluster-status", {
 							<h4>Status</h4>
 						</div>
 
+						<!--<div class="col text">
+							<h4>View Report</h4>
+						</div>-->
+
 						<div class="col">
 							<h4>Containers</h4>
 						</div>
@@ -28,6 +32,9 @@ var ClusterStatus = Vue.component("cluster-status", {
 						<div :class="'col status '+pod.status.toLowerCase()">
 							<span>{{ pod.status.charAt(0) }}</span> {{ pod.role }}
 						</div>
+						<!--<div class="col link">
+							{{ pod.ip }}:{{ pod.port }}
+						</div>-->
 						<div class="col">
 							{{ pod.containersReady }} / {{ pod.containers }}
 						</div>

@@ -2,20 +2,21 @@ Vue.use(VueRouter);
 
 var navItems = document.getElementsByClassName("nav-item");
 
-var clustersList = [];
-var clustersData = [];
-var pgConf = [];
-var poolConf = [];
-var profiles = [];
-var currentCluster = "";
-var serverIP = "";
+var clustersList = [],
+    clustersData = [],
+    pgConf = [],
+    poolConf = [],
+    profiles = [],
+    currentCluster = "",
+    currentPod = "",
+    serverIP = "";
 
 //Test API
 //var apiURL = 'http://192.168.1.10:7978/';
+var apiURL = '/stackgres/';
 
 //Prod API
-var apiURL = "/stackgres/";
-
+//var apiURL = "/";
 
 const router = new VueRouter({
 	routes: [
@@ -68,20 +69,42 @@ const router = new VueRouter({
     			conditionalRoute: false
     		},
     	},
-    	{	
-    		path: '/profiles/', 
-    		component: SGProfiles,
-    		meta: {
-    			conditionalRoute: false
-    		},
-    	},
-    	{	
-    		path: '/profiles/:name', 
-    		component: SGProfiles,
-    		meta: {
-    			conditionalRoute: false
-    		},
-    	},
+    	{  
+        path: '/profiles/', 
+        component: SGProfiles,
+        meta: {
+          conditionalRoute: false
+        },
+      },
+      { 
+        path: '/profiles/:name', 
+        component: SGProfiles,
+        meta: {
+          conditionalRoute: false
+        },
+      },
+      { 
+        path: '/grafana/', 
+        component: Grafana,
+        meta: {
+          conditionalRoute: false
+        },
+      },
+      { 
+        path: '/grafana/:name', 
+        component: Grafana,
+        meta: {
+          conditionalRoute: false
+        },
+      },
+      ,
+      { 
+        path: '/grafana/:name/:pod', 
+        component: Grafana,
+        meta: {
+          conditionalRoute: false
+        },
+      },
 
   	],
 });
@@ -97,28 +120,14 @@ router.beforeEach((to, from, next) => {
         //console.log(to);
 
         if (currentCluster == '' && ( from.path.includes("profiles") || from.path.includes("configurations") ) && (to.path != ('/information/'+to.params.name)) ) { 
-            //check codition is false
-            //console.log(from);
             next({ path: '/'}) 
         } else { 
-            //check codition is true
-            //console.log(from);
             next() 
         } 
     } else { 
         next() // make sure to always call next()! 
     } 
 
-   	/*if ( ( to.path.includes("information") || to.path.includes("status") ) && ( from.path.includes("profiles") || from.path.includes("configurations") ) ){
-      console.log("Cluster: "+currentCluster);
-    	next('/');
-    }
-    else
-      next()*/
-
-    //currentCluster = document.querySelector(".clu .router-link-exact-active").text;
-    //currentCluster = $(".clu .router-link-exact-active").text();
-		//next();
 });
 
 /* eslint-disable no-new */
@@ -132,88 +141,88 @@ new Vue({
 	mounted () {
 
     /* Server IP */
-        axios
-        .get(apiURL+'kubernetes-cluster-info',
-          { headers: {
-            'content-type': 'application/json'
-          }
-        })
-        .then( function(response) {
-          serverIP = response.data;
-          //console.log(response.data.substring(8).replace("/",""));
-        });
+    axios
+    .get(apiURL+'kubernetes-cluster-info',
+      { headers: {
+        'content-type': 'application/json'
+      }
+    })
+    .then( function(response) {
+      serverIP = response.data;
+      //console.log(response.data.substring(8).replace("/",""));
+    });
 
 		/* Clusters Data */
+  	axios
+    	.get(apiURL+'cluster',
+    		{ headers: {
+    				'content-type': 'application/json'
+    			}
+    		}
+    	)
+    	.then( function(response){
+
+    		response.data.forEach( function(item, index){
+			    clustersData[item.metadata.name] = { 
+  			    name: item.metadata.name,
+  			    data: item 
+  			  };
+
+  			  clustersList.push({
+  			  	name: item.metadata.name,
+  			  	data: item
+  			  });
+		    });
+    		
+    	});
+
+    	/* PostgreSQL Config */
     	axios
-      	.get(apiURL+'cluster',
-      		{ headers: {
-      				'content-type': 'application/json'
-      			}
-      		}
-      	)
-      	.then( function(response){
+    	.get(apiURL+'pgconfig',
+    		{ headers: {
+    			'content-type': 'application/json'
+    		}
+    	})
+    	.then( function(response) {
+    		response.data.forEach( function(item, index) {
+    			pgConf.push({
+    				"name": item.metadata.name,
+    			"data": item 
+    			})
+    		});
+    	});
 
-      		response.data.forEach( function(item, index){
-			  clustersData[item.metadata.name] = { 
-			    name: item.metadata.name,
-			    data: item 
-			  };
+    	/* Connection Pooling Config */
+    	axios
+    	.get(apiURL+'connpoolconfig',
+    		{ headers: {
+    			'content-type': 'application/json'
+    		}
+    	})
+    	.then( function(response) {
+    		response.data.forEach( function(item, index) {
+    			poolConf.push({
+    				"name": item.metadata.name,
+    			"data": item 
+    			})
+    		});
+    	});
 
-			  clustersList.push({
-			  	name: item.metadata.name,
-			  	data: item
-			  });
-			});
-      		
-      	});
-
-      	/* PostgreSQL Config */
-      	axios
-      	.get(apiURL+'pgconfig',
-      		{ headers: {
-      			'content-type': 'application/json'
-      		}
-      	})
-      	.then( function(response) {
-      		response.data.forEach( function(item, index) {
-      			pgConf.push({
-      				"name": item.metadata.name,
-	    			"data": item 
-      			})
-      		});
-      	});
-
-      	/* Connection Pooling Config */
-      	axios
-      	.get(apiURL+'connpoolconfig',
-      		{ headers: {
-      			'content-type': 'application/json'
-      		}
-      	})
-      	.then( function(response) {
-      		response.data.forEach( function(item, index) {
-      			poolConf.push({
-      				"name": item.metadata.name,
-	    			"data": item 
-      			})
-      		});
-      	});
-
-      	/* Profiles */
-      	axios
-      	.get(apiURL+'profile',
-      		{ headers: {
-      			'content-type': 'application/json'
-      		}
-      	})
-      	.then( function(response) {
-      		response.data.forEach( function(item, index) {
-      			profiles.push({
-      				"name": item.metadata.name,
-	    			"data": item 
-      			})
-      		});
-      	});
+    	/* Profiles */
+    	axios
+    	.get(apiURL+'profile',
+    		{ headers: {
+    			'content-type': 'application/json'
+    		}
+    	})
+    	.then( function(response) {
+    		response.data.forEach( function(item, index) {
+    			profiles.push({
+    				"name": item.metadata.name,
+    			"data": item 
+    			})
+    		});
+    	});
   	}
 })
 
@@ -278,7 +287,7 @@ $(document).ready(function(){
 
 			$("#nav .tooltip.show").prop("class","tooltip").hide();
 			$(this).siblings(".tooltip").fadeIn().addClass("show");
-			$("#nav .top .tooltip").addClass("pos"+($(this).index()+2));
+			$("#nav .top .tooltip").addClass("pos"+($(this).index()+1));
 	});
 
 	$("#nav .bottom a.nav-item").click(function(){
@@ -294,5 +303,25 @@ $(document).ready(function(){
 	$(".clu .item").click(function(){
 		$("#nav").removeClass("disabled");
 	});
+
+  /* Disable Grafana KEY functions */
+  $(".grafana iframe").contents().find("body").keyup( function(e) {
+    switch (e.keyCode) {
+      case 27: // 'Esc'
+        event.returnValue = false;
+        event.keyCode = 0;
+        alert("ESC");
+        break;
+    }
+  });
+
+  $(".grafana iframe").load( function() {
+
+    setTimeout(function(){
+      $(".grafana iframe").contents().find("head")
+      .append($("<style type='text/css' id='hideBars'>  .navbar, .sidemenu {display:none !important;}  </style>"));
+    }, 3000);
+    
+  });
 
 });
