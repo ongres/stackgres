@@ -60,31 +60,27 @@ public class Patroni implements StackGresClusterConfigTransformer {
       KubernetesClient client) {
     if (isEndpoints(config, sgResource)) {
       Endpoints endpoints = (Endpoints) sgResource;
-      Endpoints existingEndpoints = client.resource(endpoints).get();
-      if (existingEndpoints != null) {
-        existingEndpoints.getMetadata().getAnnotations()
-            .put(PatroniEndpoints.PATRONI_CONFIG_KEY,
-                endpoints.getMetadata().getAnnotations()
-                .get(PatroniEndpoints.PATRONI_CONFIG_KEY));
-        client.endpoints()
-            .inNamespace(sgResource.getMetadata().getNamespace())
-            .withName(sgResource.getMetadata().getName())
-            .patch(existingEndpoints);
-      } else {
+      Endpoints editedEndpoints = client.endpoints()
+          .inNamespace(sgResource.getMetadata().getNamespace())
+          .withName(sgResource.getMetadata().getName())
+          .edit()
+          .editMetadata()
+          .addToAnnotations(PatroniEndpoints.PATRONI_CONFIG_KEY,
+              endpoints.getMetadata().getAnnotations()
+              .get(PatroniEndpoints.PATRONI_CONFIG_KEY))
+          .endMetadata()
+          .done();
+      if (editedEndpoints == null) {
         client.resource(sgResource).createOrReplace();
       }
     }
     if (isStatefulSet(config, sgResource)) {
       StatefulSet statefulSet = (StatefulSet) sgResource;
-      StatefulSet existingStatefulSet = client.resource(statefulSet).get();
-      if (existingStatefulSet != null) {
-        existingStatefulSet.getSpec().setReplicas(
-            statefulSet.getSpec().getReplicas());
-        client.apps().statefulSets()
-            .inNamespace(sgResource.getMetadata().getNamespace())
-            .withName(sgResource.getMetadata().getName())
-            .patch(existingStatefulSet);
-      } else {
+      StatefulSet editedStatefulSet = client.apps().statefulSets()
+          .inNamespace(sgResource.getMetadata().getNamespace())
+          .withName(sgResource.getMetadata().getName())
+          .scale(statefulSet.getSpec().getReplicas(), false);
+      if (editedStatefulSet == null) {
         client.resource(sgResource).createOrReplace();
       }
     }
