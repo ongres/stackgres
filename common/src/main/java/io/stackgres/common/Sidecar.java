@@ -18,5 +18,9 @@ import javax.inject.Qualifier;
 @Documented
 public @interface Sidecar {
 
+  /**
+   * The sidecar name.
+   */
   String value();
+
 }

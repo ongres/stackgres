@@ -9,6 +9,8 @@ import javax.enterprise.util.AnnotationLiteral;
 
 public class KindLiteral extends AnnotationLiteral<Kind> implements Kind {
 
+  private static final long serialVersionUID = 1L;
+
   private final String value;
 
   public KindLiteral(String value) {
