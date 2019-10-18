@@ -31,17 +31,17 @@ spec:
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         env:
           - name: OPERATOR_NAME
-            value: {{ .Values.operatorName }}
+            value: "{{ .Values.operatorName }}"
           - name: OPERATOR_NAMESPACE
-            value: {{ .Values.operatorNamespace }}
+            value: "{{ .Values.operatorNamespace }}"
           - name: CRD_GROUP
-            value: {{ .Values.group }}
+            value: "{{ .Values.group }}"
           - name: CRD_VERSION
-            value: {{ .Values.crd.version }}
+            value: "{{ .Values.crd.version }}"
           - name: CONTAINER_BUILD
-            value: {{ .Values.containerBuild }}
+            value: "{{ .Values.containerBuild }}"
           - name: PROMETHEUS_AUTOBIND
-            value: '{{ .Values.prometheus.allowAutobind }}'
+            value: "{{ .Values.prometheus.allowAutobind }}"
         ports:
         - containerPort: 8080
           name: "http"
