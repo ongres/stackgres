@@ -49,10 +49,7 @@ then
 fi
 sed -i 's#^    server:.*$#    server: 'https://"$(docker inspect -f '{{ .NetworkSettings.IPAddress }}' ${CONTAINER_NAME}-control-plane)"':6443#' "$(kind get kubeconfig-path --name="$CONTAINER_NAME")"
 export KUBECONFIG="$(kind get kubeconfig-path --name="$CONTAINER_NAME")"
-if [ -f "/root/.profile" ]
-then
-  echo "export KUBECONFIG='$(kind get kubeconfig-path --name="$CONTAINER_NAME")'" > "/root/.profile"
-fi
+echo "export KUBECONFIG='$(kind get kubeconfig-path --name="$CONTAINER_NAME")'" > "$HOME/.profile"
 cat << 'EOF' | kubectl apply -f -
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1beta1
