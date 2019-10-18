@@ -18,24 +18,21 @@ cache:
 
 stages:
   - compile
-  - verify
   - package
+  - integration test
   - check-release
   - deploy
 
-maven compile:
+compile:
   stage: compile
   tags:
     - stackgres-runner
   script:
-    - 'mvn $MAVEN_CLI_OPTS clean compile'
-
-verify code:
-  stage: verify
-  tags:
-    - stackgres-runner
-  script:
-    - 'mvn $MAVEN_CLI_OPTS verify -P safer'
+    - 'mvn $MAVEN_CLI_OPTS clean verify -P safer'
+  artifacts:
+    paths:
+      - target
+      - '*/target'
 
 #verify checker:
 #  stage: verify
@@ -45,17 +42,12 @@ verify code:
 #    - 'mvn $MAVEN_CLI_OPTS verify -P checker'
 #  allow_failure: true
 
-integration test:
-  stage: verify
-  tags:
-    - stackgres-runner
-  script:
-    - 'flock -w 3600 /tmp/stackgres-integration-test mvn $MAVEN_CLI_OPTS verify -P integration'
-
-build:
+native image:
   stage: package
   tags:
     - stackgres-runner
+  dependencies:
+    - compile
   script:
     - 'mvn $MAVEN_CLI_OPTS package -P native'
     - 'cp $GRAALVM_HOME/jre/lib/amd64/libsunec.so operator/target/'
@@ -73,41 +65,77 @@ enforce release:
   stage: check-release
   tags:
     - stackgres-runner
+  dependencies:
+    - compile
   script:
     - 'mvn $MAVEN_CLI_OPTS enforcer:enforce@enforce-no-snapshots'
   only:
     - tags
 
-oci-image-native deploy:
-  image: docker.io/ongres/builder:latest
-  stage: deploy
+integration test:
+  stage: integration test
   tags:
     - stackgres-runner
   dependencies:
-    - build
-  only:
-    variables:
-      - $CI_COMMIT_REF_NAME == "development"
-      - $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
-      - $DO_DEPLOY
+    - compile
   script:
-    - 'CONTAINER_NAME=stackgres/operator:${CI_COMMIT_TAG:-"$CI_COMMIT_REF_NAME"}'
-    - './.gitlab/buildah-stackgres-native.sh $CONTAINER_NAME'
-    - 'buildah push --format=docker --authfile $REGISTRY_AUTH_FILE $CONTAINER_NAME docker://docker.io/$CONTAINER_NAME'
+    - 'flock -w 3600 /tmp/stackgres-integration-test mvn $MAVEN_CLI_OPTS verify -P integration'
 
-oci-image-jvm deploy:
+integration test jvm image:
+  stage: integration test
+  tags:
+    - stackgres-runner
+  dependencies:
+    - compile
+  variables:
+    OPERATOR_IN_KUBERNETES: "true"
+  script:
+    - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_REF_NAME"}"-jvm'
+    - 'export IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
+    - 'flock -w 3600 /tmp/stackgres-integration-test-jvm-image mvn $MAVEN_CLI_OPTS verify -P build-image-jvm,integration -DargLine=-Dcom.ongres.junit.docker.runnerId=jvm-image'
+
+integration test native image:
+  stage: integration test
+  tags:
+    - stackgres-runner
+  dependencies:
+    - compile
+    - native image
+  variables:
+    OPERATOR_IN_KUBERNETES: "true"
+  script:
+    - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_REF_NAME"}"'
+    - 'export IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
+    - 'flock -w 3600 /tmp/stackgres-integration-test-native-image mvn $MAVEN_CLI_OPTS verify -P build-image-native,integration -DargLine=-Dcom.ongres.junit.docker.runnerId=native-image'
+
+deploy jvm image:
   image: docker.io/ongres/builder:latest
   stage: deploy
   tags:
     - stackgres-runner
-  dependencies:
-    - build
+  script:
+    - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_REF_NAME"}"-jvm'
+    - 'export IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
+    - 'buildah pull docker-daemon:"$IMAGE_NAME"'
+    - 'buildah push --format=docker --authfile $REGISTRY_AUTH_FILE $IMAGE_NAME "docker://docker.io/$IMAGE_NAME"'
   only:
     variables:
       - $CI_COMMIT_REF_NAME == "development"
       - $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
       - $DO_DEPLOY
+
+deploy native image:
+  image: docker.io/ongres/builder:latest
+  stage: deploy
+  tags:
+    - stackgres-runner
   script:
-    - 'CONTAINER_NAME=stackgres/operator:${CI_COMMIT_TAG:-"$CI_COMMIT_REF_NAME"}-jvm'
-    - './.gitlab/buildah-stackgres-jvm.sh $CONTAINER_NAME'
-    - 'buildah push --format=docker --authfile $REGISTRY_AUTH_FILE $CONTAINER_NAME docker://docker.io/$CONTAINER_NAME'
+    - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_REF_NAME"}"'
+    - 'export IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
+    - 'buildah pull docker-daemon:"$IMAGE_NAME"'
+    - 'buildah push --format=docker --authfile $REGISTRY_AUTH_FILE $IMAGE_NAME "docker://docker.io/$IMAGE_NAME"'
+  only:
+    variables:
+      - $CI_COMMIT_REF_NAME == "development"
+      - $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
+      - $DO_DEPLOY

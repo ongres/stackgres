@@ -45,7 +45,7 @@ public abstract class AbstractStackGresOperatorIt extends AbstractIt {
       operator.join();
     };
     operatorClient = ClientBuilder.newClient().target("http://localhost:" + operatorPort);
-    ItHelper.waitUntilOperatorIsReady(operator, operatorClient);
+    ItHelper.waitUntilOperatorIsReady(operator, operatorClient, kind);
   }
 
   private int getFreePort() throws IOException {

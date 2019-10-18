@@ -5,13 +5,16 @@
 
 package io.stackgres.operator;
 
+import java.io.IOException;
 import java.net.ConnectException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalUnit;
 import java.util.Base64;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
@@ -32,6 +35,7 @@ import io.stackgres.operator.app.StackGresOperatorApp;
 
 import org.apache.commons.io.IOUtils;
 import org.jooq.lambda.Unchecked;
+import org.junit.jupiter.api.Assertions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,6 +43,9 @@ public class ItHelper {
 
   private final static Logger LOGGER = LoggerFactory.getLogger(ItHelper.class);
 
+  public final static boolean OPERATOR_IN_KUBERNETES = Boolean.valueOf(System.getenv("OPERATOR_IN_KUBERNETES"));
+  public final static String IMAGE_TAG = Optional.ofNullable(System.getenv("IMAGE_TAG"))
+      .orElse("development-jvm");
   public final static Predicate<String> EXCLUDE_TTY_WARNING = line -> !line.equals("stdin: is not a tty");
 
 
@@ -105,6 +112,24 @@ public class ItHelper {
    */
   public static void installStackGresOperatorHelmChart(Container kind, int sslPort,
       Executor executor) throws Exception {
+    if (OPERATOR_IN_KUBERNETES) {
+      LOGGER.info("Loading stackgres operator image stackgres/operator:" + IMAGE_TAG);
+      kind.execute("sh", "-l", "-c",
+        "CONTAINER_NAME=\"$(docker inspect -f '{{.Name}}' \"$(hostname)\"|cut -d '/' -f 2)\";"
+        + "kind load docker-image --name \"$CONTAINER_NAME\""
+          + " stackgres/operator:" + IMAGE_TAG)
+        .filter(EXCLUDE_TTY_WARNING)
+        .forEach(line -> LOGGER.info(line));
+      LOGGER.info("Installing stackgres-operator helm chart");
+      kind.execute("sh", "-l", "-c", "helm install /resources/stackgres-operator"
+          + " --name stackgres-operator"
+          + " --set-string image.tag=" + IMAGE_TAG
+          + " --set-string image.pullPolicy=Never")
+        .filter(EXCLUDE_TTY_WARNING)
+        .forEach(line -> LOGGER.info(line));
+      return;
+    }
+
     LOGGER.info("Installing stackgres-operator helm chart");
     kind.execute("sh", "-l", "-c", "helm install /resources/stackgres-operator"
         + " --name stackgres-operator"
@@ -153,7 +178,6 @@ public class ItHelper {
         + "EOF")
         .filter(EXCLUDE_TTY_WARNING)
         .forEach(line -> LOGGER.info(line));
-
   }
 
   /**
@@ -221,7 +245,21 @@ public class ItHelper {
    * It helper method.
    */
   public static void waitUntilOperatorIsReady(CompletableFuture<Void> operator,
-      WebTarget operatorClient) throws Exception {
+      WebTarget operatorClient, Container kind) throws Exception {
+    if (OPERATOR_IN_KUBERNETES) {
+      waitUntil(Unchecked.supplier(() -> kind.execute("sh", "-l", "-c",
+          "kubectl get pod -n stackgres"
+              + " | grep 'stackgres-operator'"
+              + " | grep -v 'stackgres-operator-init'"
+              + " | cut -d ' ' -f 1"
+              + " | xargs kubectl describe pod -n  stackgres ")),
+          s -> s.anyMatch(line -> line.matches("  Ready\\s+True\\s*")), 120, ChronoUnit.SECONDS,
+          s -> Assertions.fail(
+              "Timeout while checking availability of"
+                  + " stackgres-operator pod:\n"
+                  + s.collect(Collectors.joining("\n"))));
+      return;
+    }
     Instant timeout = Instant.now().plusSeconds(180);
     while (true) {
       if (Instant.now().isAfter(timeout)) {
@@ -254,7 +292,25 @@ public class ItHelper {
    */
   public static OperatorRunner createOperator(Class<?> testClass, Container kind, int port,
       int sslPort) throws Exception {
-    return new OperatorRunner(testClass, kind, port, sslPort);
+    if (OPERATOR_IN_KUBERNETES) {
+      return new DummyOperator();
+    }
+
+    return new OperatorRunnerImpl(testClass, kind, port, sslPort);
+  }
+
+  private static class DummyOperator implements OperatorRunner {
+    private final CompletableFuture<Void> future = new CompletableFuture<Void>();
+
+    @Override
+    public void close() throws IOException {
+      future.complete(null);
+    }
+
+    @Override
+    public void run() throws Throwable {
+      future.join();
+    }
   }
 
   public static <T> void waitUntil(Supplier<T> supplier, Predicate<T> condition, int timeout,
