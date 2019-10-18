@@ -69,11 +69,10 @@ spec:
           - name: operator-certs
             mountPath: /etc/operator/certs
             readOnly: true
-      {{- if and .Values.grafana.url .Values.grafana.token .Values.grafana.httpHost }}
       - name: {{ .Values.operatorName }}-nginx
         image: "nginx:1.17.4-alpine"
         imagePullPolicy: IfNotPresent
-        args: [ '/bin/sh', '-exc', 'cat /etc/nginx/conf.d/stackgres-operator.conf; nginx-debug -g "daemon off;";' ]
+        args: [ '/bin/sh', '-exc', 'cat /etc/nginx/conf.d/stackgres-operator.conf; nginx -g "daemon off;";' ]
         ports:
         - containerPort: 444
           name: "https"
@@ -85,7 +84,6 @@ spec:
           - name: operator-nginx
             mountPath: /etc/nginx/conf.d
             readOnly: true
-      {{ end }}
       volumes:
         - name: operator-certs
           secret:

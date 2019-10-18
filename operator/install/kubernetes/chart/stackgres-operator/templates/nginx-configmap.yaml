@@ -8,8 +8,6 @@ metadata:
 data:
   stackgres-operator.conf: |
     server {
-        error_log /var/log/nginx/error.log debug;
-        
         server_name  localhost;
         
         listen       443 ssl;
