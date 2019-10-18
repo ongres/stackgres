@@ -19,12 +19,12 @@ data:
         {{- if and .Values.grafana.url .Values.grafana.token .Values.grafana.httpHost }}
         location /grafana {
             add_header Content-Type text/plain;
-            return 200 "{{ regexReplaceAll "^https?://[^/]+(/.*)$" .Values.grafana.url "${1}" }}";
+            return 200 "$scheme://$http_host{{ regexReplaceAll "^https?://[^/]+(/.*)$" .Values.grafana.url "${1}" }}";
         }
         {{ end }}
         
-        location ~ ^/$ {
-            return 302 $scheme://$http_host/stackgres;
+        location ~ ^(/|/stackgres)$ {
+            return 302 "$scheme://$http_host/stackgres/";
         }
         
         location ~ ^/stackgres {
@@ -34,7 +34,6 @@ data:
             proxy_set_header X-Forwarded-Host $host;
             proxy_set_header X-Forwarded-Server $host;
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            index index.html index.htm;
             proxy_pass http://localhost:8080;
         }
         
@@ -47,6 +46,7 @@ data:
             index index.html index.htm;
             {{- if and .Values.grafana.url .Values.grafana.token .Values.grafana.httpHost }}
             proxy_set_header Authorization "Bearer {{ .Values.grafana.token }}";
+            proxy_hide_header X-Frame-Options;
             proxy_pass "{{ default "http" .Values.grafana.scheme }}://{{ regexReplaceAll "/" .Values.grafana.httpHost "" }}";
             {{ else }}
             return 404;
