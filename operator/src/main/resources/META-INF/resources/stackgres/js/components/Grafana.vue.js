@@ -14,7 +14,7 @@ var Grafana = Vue.component("grafana", {
 			</header>
 
 			<div class="content grafana">
-				<iframe :src="grafana"></iframe>				
+				<iframe :src="grafana"></iframe>
 			</div>
 		</div>`,
 	data: function() {
@@ -30,30 +30,27 @@ var Grafana = Vue.component("grafana", {
 	computed: function() {
 		this.fetchData()
 	},
-  	watch: {
-    	'$route': 'fetchData'
-  	},
-  	methods: {
-	    fetchData () {
-	      // Grafana service
+	watch: {
+		'$route': 'fetchData'
+	},
+	methods: {
+		fetchData () {
+			// Grafana service
 			let vm = this;
-			
-			$.get("http://localhost:8080/grafana", function(data) {
-			  vm.grafana = data;
-			  vm.grafana += '&theme=light&kiosk';
-			  //vm.grafana += '&var-instance='+vm.$route.params.pod;
-			  //alert("POD0: "+clustersData[this.$route.params.name].data.status.pods[0].ip);
-			  //vm.grafana += '&var-instance='+this.$route.params.pod;
-			  //vm.grafana += '&var-instance=10.244.2.11:9187';
-			});
 
 			vm.pods = clustersData[this.$route.params.name].data.status.pods;
 
-			if(this.$route.params.pod.length)
-				$(".grafana iframe").prop("src",vm.grafana+'&var-instance='+this.$route.params.pod);
-			else
-				$(".grafana iframe").prop("src",vm.grafana+'&var-instance='+vm.pods.first().ip+':9187');
-			
-	    }
+			$.get("/grafana", function(data) {
+				let url = data;
+				url += (url.includes('?') ? '&' : '?') + 'theme=light&kiosk';
+
+				if(vm.$route.params.pod && vm.$route.params.pod.length)
+					url = url+'&var-instance='+vm.$route.params.pod;
+				else
+					url = url+'&var-instance='+vm.pods[0].ip+':9187';
+				vm.grafana = url;
+				$(".grafana iframe").prop("src", url);
+			});
+		}
 	}
 })
