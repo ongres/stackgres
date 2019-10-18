@@ -36,7 +36,7 @@ var ClusterStatus = Vue.component("cluster-status", {
 							{{ pod.ip }}:{{ pod.port }}
 						</div>-->
 						<div class="col">
-							{{ pod.containersReady }} / {{ pod.containers }}
+							{{ pod.containers_ready }} / {{ pod.containers }}
 						</div>
 					</div>
 				</div>

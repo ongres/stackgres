@@ -27,16 +27,16 @@ var ClusterInfo = Vue.component("cluster-info", {
 					</div>
 					<div class="row">
 						<div class="col">
-							{{ cluster.data.status.cpuRequested + ' (avg. load ' + cluster.data.status.averageLoad1m + ')' }}
+							{{ cluster.data.status.cpu_requested + ' (avg. load ' + cluster.data.status.average_load_1m + ')' }}
 						</div>
 						<div class="col">
-							{{ cluster.data.status.memoryRequested }}
+							{{ cluster.data.status.memory_requested }}
 						</div>
 						<div class="col">
-							{{ cluster.data.status.diskUsed + '/' + cluster.data.spec.volumeSize }}
+							{{ cluster.data.status.disk_used + '/' + cluster.data.spec.volume_size }}
 						</div>
 						<div class="col">
-							{{ cluster.data.status.podsReady + '/' + cluster.data.spec.instances }}
+							{{ cluster.data.status.pods_ready + '/' + cluster.data.spec.instances }}
 						</div>
 					</div>
 				</div>
