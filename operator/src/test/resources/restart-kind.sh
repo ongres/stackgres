@@ -1,7 +1,10 @@
 #!/bin/sh
 set -e
 KUBERNETES_VERSION="${KUBERNETES_VERSION:-1.12.10}"
-CONTAINER_NAME="$(docker inspect -f '{{.Name}}' "$(hostname)"|cut -d '/' -f 2)"
+if [ -z "$CONTAINER_NAME" ]
+then
+  CONTAINER_NAME="$(docker inspect -f '{{.Name}}' "$(hostname)"|cut -d '/' -f 2)"
+fi
 #echo "Installing kubectl"
 #wget -q -L -O /bin/kubectl https://storage.googleapis.com/kubernetes-release/release/v${KUBERNETES_VERSION}/bin/linux/amd64/kubectl
 #chmod a+x /bin/kubectl
@@ -36,14 +39,20 @@ then
   done
 fi
 kind create cluster --config kind-config.yaml --name "$CONTAINER_NAME" --image kindest/node:v${KUBERNETES_VERSION}
-for node in $(kind get nodes --name "$CONTAINER_NAME")
-do
-  docker cp /certs/server.crt $node:/usr/local/share/ca-certificates/validator.crt
-  docker exec -t $node sh -c "update-ca-certificates"
-done
+if [ -f /certs/server.crt ]
+then
+  for node in $(kind get nodes --name "$CONTAINER_NAME")
+  do
+    docker cp /certs/server.crt $node:/usr/local/share/ca-certificates/validator.crt
+    docker exec -t $node sh -c "update-ca-certificates"
+  done
+fi
 sed -i 's#^    server:.*$#    server: 'https://"$(docker inspect -f '{{ .NetworkSettings.IPAddress }}' ${CONTAINER_NAME}-control-plane)"':6443#' "$(kind get kubeconfig-path --name="$CONTAINER_NAME")"
 export KUBECONFIG="$(kind get kubeconfig-path --name="$CONTAINER_NAME")"
-echo "export KUBECONFIG='$(kind get kubeconfig-path --name="$CONTAINER_NAME")'" > /root/.profile
+if [ -f "/root/.profile" ]
+then
+  echo "export KUBECONFIG='$(kind get kubeconfig-path --name="$CONTAINER_NAME")'" > "/root/.profile"
+fi
 cat << 'EOF' | kubectl apply -f -
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1beta1
