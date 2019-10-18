@@ -232,7 +232,7 @@ public class ClusterController {
    * Send an event.
    */
   public void sendEvent(EventReason reason, String message) {
-    sendEvent(reason, message);
+    sendEvent(reason, message, null);
   }
 
   /**
