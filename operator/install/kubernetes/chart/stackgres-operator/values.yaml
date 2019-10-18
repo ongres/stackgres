@@ -1,12 +1,12 @@
 operatorName: "stackgres-operator"
 operatorNamespace: "stackgres"
-operatorVersion: "development"
-containerBuild: "1-dev"
+operatorVersion: "0.7"
+containerBuild: "1"
 group: "stackgres.io"
 
 image:
   name: "stackgres/operator"
-  tag: "development-jvm"
+  tag: "0.7-jvm"
   pullPolicy: "IfNotPresent"
 
 crd:
