@@ -43,7 +43,7 @@ public class StackGresClusterPodStatus implements KubernetesResource {
   @JsonProperty("containers")
   private String containers;
 
-  @JsonProperty("containersReady")
+  @JsonProperty("containers_ready")
   private String containersReady;
 
   public String getNamespace() {
