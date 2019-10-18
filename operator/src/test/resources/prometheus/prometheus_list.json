@@ -5,26 +5,26 @@
       "apiVersion": "monitoring.coreos.com/v1",
       "kind": "Prometheus",
       "metadata": {
-        "creationTimestamp": "2019-10-07T16:13:52Z",
+        "creationTimestamp": "2019-10-18T09:39:05Z",
         "generation": 1,
         "labels": {
           "app": "prometheus-operator-prometheus",
-          "chart": "prometheus-operator-6.11.0",
+          "chart": "prometheus-operator-6.19.1",
           "heritage": "Tiller",
-          "release": "winsome-abalone"
+          "release": "prometheus"
         },
-        "name": "winsome-abalone-prometheus-prometheus",
-        "namespace": "default",
-        "resourceVersion": "1530",
-        "selfLink": "/apis/monitoring.coreos.com/v1/namespaces/default/prometheuses/winsome-abalone-prometheus-prometheus",
-        "uid": "942a25d4-1e64-4567-a6b7-3eb2971ec9d0"
+        "name": "prometheus-prometheus-oper-prometheus",
+        "namespace": "monitor",
+        "resourceVersion": "787",
+        "selfLink": "/apis/monitoring.coreos.com/v1/namespaces/monitor/prometheuses/prometheus-prometheus-oper-prometheus",
+        "uid": "201db57c-f18b-11e9-bf5f-0242ac110002"
       },
       "spec": {
         "alerting": {
           "alertmanagers": [
             {
-              "name": "winsome-abalone-prometheus-alertmanager",
-              "namespace": "default",
+              "name": "prometheus-prometheus-oper-alertmanager",
+              "namespace": "monitor",
               "pathPrefix": "/",
               "port": "web"
             }
@@ -32,11 +32,17 @@
         },
         "baseImage": "quay.io/prometheus/prometheus",
         "enableAdminAPI": false,
-        "externalUrl": "http://winsome-abalone-prometheus-prometheus.default:9090",
+        "externalUrl": "http://prometheus-prometheus-oper-prometheus.monitor:9090",
         "listenLocal": false,
         "logFormat": "logfmt",
         "logLevel": "info",
         "paused": false,
+        "podMonitorNamespaceSelector": {},
+        "podMonitorSelector": {
+          "matchLabels": {
+            "release": "prometheus"
+          }
+        },
         "replicas": 1,
         "retention": "10d",
         "routePrefix": "/",
@@ -44,7 +50,7 @@
         "ruleSelector": {
           "matchLabels": {
             "app": "prometheus-operator",
-            "release": "winsome-abalone"
+            "release": "prometheus"
           }
         },
         "securityContext": {
@@ -52,11 +58,11 @@
           "runAsNonRoot": true,
           "runAsUser": 1000
         },
-        "serviceAccountName": "winsome-abalone-prometheus-prometheus",
+        "serviceAccountName": "prometheus-prometheus-oper-prometheus",
         "serviceMonitorNamespaceSelector": {},
         "serviceMonitorSelector": {
           "matchLabels": {
-            "release": "winsome-abalone"
+            "release": "prometheus"
           }
         },
         "version": "v2.12.0"

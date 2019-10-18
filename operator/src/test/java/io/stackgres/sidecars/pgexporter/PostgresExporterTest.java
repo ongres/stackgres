@@ -130,7 +130,7 @@ class PostgresExporterTest {
 
     PrometheusConfig promethueusConfig = prometheusConfigList.getItems().get(0);
 
-    assertEquals("default", promethueusConfig.getMetadata().getNamespace());
+    assertEquals(exporterConfig.getSpec().getPrometheusInstallations().get(0).getNamespace(), promethueusConfig.getMetadata().getNamespace());
 
     verify(prometheusScanner).findResources();
 
