@@ -54,6 +54,7 @@ public class StackGresClusterCondition extends CustomResourceDefinitionCondition
         .add("type", getType())
         .add("status", getStatus())
         .add("reason", getReason())
+        .add("lastTransitionTime", getLastTransitionTime())
         .toString();
   }
 

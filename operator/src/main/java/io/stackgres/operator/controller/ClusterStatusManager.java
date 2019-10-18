@@ -6,6 +6,7 @@
 package io.stackgres.operator.controller;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -53,6 +54,12 @@ public class ClusterStatusManager {
 
     if (cluster.getStatus() == null) {
       cluster.setStatus(new StackGresClusterStatus());
+    }
+
+    if (cluster.getStatus().getConditions().stream().anyMatch(
+        c -> Instant.parse(c.getLastTransitionTime())
+            .isBefore(now.plus(1, ChronoUnit.MINUTES)))) {
+      return;
     }
 
     // copy list of current conditions
