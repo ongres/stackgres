@@ -16,7 +16,6 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import com.google.common.collect.ImmutableList;
-
 import io.fabric8.kubernetes.api.model.EventBuilder;
 import io.fabric8.kubernetes.api.model.EventSourceBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
@@ -42,7 +41,6 @@ import io.stackgres.operator.app.KubernetesClientFactory;
 import io.stackgres.operator.patroni.Patroni;
 import io.stackgres.operator.services.ResourceCreationSelector;
 import io.stackgres.operator.services.SidecarFinder;
-
 import org.jooq.lambda.Unchecked;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,6 +61,9 @@ public class ClusterController {
 
   @Inject
   ResourceCreationSelector creationSelector;
+
+  @Inject
+  ClusterStatusManager statusManager;
 
   /**
    * Create all the infrastructure of StackGres.
@@ -86,7 +87,8 @@ public class ClusterController {
       } catch (RuntimeException ex) {
         sendEvent(EventReason.CLUSTER_CONFIG_ERROR,
             "StackGres Cluster " + cluster.getMetadata().getName() + " creation failed: "
-                + ex.getMessage(), cluster, client);
+                + ex.getMessage(),
+            cluster, client);
         throw new RuntimeException(
             "Error while creating resource " + cluster.getMetadata().getNamespace() + "."
                 + cluster.getMetadata().getName() + " of type " + cluster.getKind()
@@ -115,10 +117,14 @@ public class ClusterController {
         sendEvent(EventReason.CLUSTER_UPDATED,
             "StackGres Cluster " + cluster.getMetadata().getName() + " updated",
             cluster, client);
+        statusManager.updatePendingRestart(cluster);
+        statusManager.sendCondition(ClusterStatusCondition.FALSE_FAILED, cluster);
       } catch (RuntimeException ex) {
+        //statusManager.sendCondition(ClusterStatusCondition.CLUSTER_CONFIG_ERROR, cluster);
         sendEvent(EventReason.CLUSTER_CONFIG_ERROR,
             "StackGres Cluster " + cluster.getMetadata().getName() + " update failed: "
-                + ex.getMessage(), cluster, client);
+                + ex.getMessage(),
+            cluster, client);
         throw new RuntimeException(
             "Error while updating resource " + cluster.getMetadata().getNamespace() + "."
                 + cluster.getMetadata().getName() + " of type " + cluster.getKind()
@@ -149,12 +155,14 @@ public class ClusterController {
       } catch (RuntimeException ex) {
         sendEvent(EventReason.CLUSTER_CONFIG_ERROR,
             "StackGres Cluster " + cluster.getMetadata().getName() + " deletion failed: "
-                + ex.getMessage(), cluster, client);
+                + ex.getMessage(),
+            cluster, client);
         throw new RuntimeException(
             "Error while deleting resource " + cluster.getMetadata().getNamespace() + "."
                 + cluster.getMetadata().getName() + " of type " + cluster.getKind()
                 + " (API version " + cluster.getApiVersion() + ")",
             ex);
+
       }
     }
   }
@@ -175,7 +183,7 @@ public class ClusterController {
   private <T extends CustomResource> SidecarEntry<T> getSidecarEntry(StackGresCluster cluster,
       KubernetesClient client, StackGresSidecarTransformer<T> sidecar) throws Exception {
     Optional<T> sidecarConfig = sidecar.getConfig(cluster, client);
-    return new SidecarEntry<T>(sidecar, sidecarConfig);
+    return new SidecarEntry<>(sidecar, sidecarConfig);
   }
 
   private Optional<StackGresPostgresConfig> getPostgresConfig(StackGresCluster cluster,

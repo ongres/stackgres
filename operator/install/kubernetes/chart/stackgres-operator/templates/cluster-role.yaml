@@ -67,6 +67,7 @@ rules:
   - list
   - get
   - update
+  - patch
 - apiGroups: ["{{ .Values.group }}"]
   resources:
   - sgpgconfigs
@@ -76,6 +77,7 @@ rules:
   - watch
   - list
   - get
+  - patch
 {{- if .Values.prometheus.allowAutobind }}
 - apiGroups: ["monitoring.coreos.com"]
   resources:
