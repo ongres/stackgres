@@ -29,7 +29,7 @@ import io.stackgres.common.customresource.sgpgconfig.StackGresPostgresConfigList
 import io.stackgres.common.resource.ResourceUtil;
 import io.stackgres.operator.app.KubernetesClientFactory;
 
-@Path("/pgconfig")
+@Path("/stackgres/pgconfig")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class StackGresPostgresConfigResource {

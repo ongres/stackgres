@@ -29,7 +29,7 @@ import io.stackgres.common.customresource.sgprofile.StackGresProfileList;
 import io.stackgres.common.resource.ResourceUtil;
 import io.stackgres.operator.app.KubernetesClientFactory;
 
-@Path("/profile")
+@Path("/stackgres/profile")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class StackGresProfileResource {

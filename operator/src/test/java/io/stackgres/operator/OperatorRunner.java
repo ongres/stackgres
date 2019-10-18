@@ -171,7 +171,6 @@ public class OperatorRunner implements CheckedRunnable, Closeable {
 
     runtimeRunner = runnerBuilder.setLaunchMode(LaunchMode.TEST).setClassLoader(appCl)
         .setTarget(appClassLocation)
-        .setWiringClassesDir(testWiringClassesDir)
         .addAdditionalArchive(testWiringClassesDir)
         .setClassOutput(new ClassOutput() {
           @Override

@@ -86,7 +86,7 @@ class ClusterValidationResourceTest extends JerseyTest {
 
     String requestBody = getFileAsString("cluster_allow_requests/valid_creation.json");
 
-    Response response = target("/validation/cluster").request(MediaType.APPLICATION_JSON).post(Entity.json(requestBody));
+    Response response = target("/stackgres/validation/cluster").request(MediaType.APPLICATION_JSON).post(Entity.json(requestBody));
 
     assertEquals(200, response.getStatus());
 
@@ -97,7 +97,7 @@ class ClusterValidationResourceTest extends JerseyTest {
 
     String requestBody = getFileAsString("cluster_allow_requests/valid_creation.json");
 
-    Response response = target("/validation/cluster").request(MediaType.APPLICATION_JSON).post(Entity.json(requestBody));
+    Response response = target("/stackgres/validation/cluster").request(MediaType.APPLICATION_JSON).post(Entity.json(requestBody));
 
     String rawContent = response.readEntity(String.class);
 
@@ -114,7 +114,7 @@ class ClusterValidationResourceTest extends JerseyTest {
 
     String requestBody = getFileAsString("cluster_allow_requests/valid_creation.json");
 
-    Response response = target("/validation/cluster").request(MediaType.APPLICATION_JSON).post(Entity.json(requestBody));
+    Response response = target("/stackgres/validation/cluster").request(MediaType.APPLICATION_JSON).post(Entity.json(requestBody));
 
     AdmissionReviewResponse admissionResponse = response.readEntity(AdmissionReviewResponse.class);
 
@@ -131,7 +131,7 @@ class ClusterValidationResourceTest extends JerseyTest {
 
     UUID requestUid = UUID.fromString(admissionRequest.get("request").get("uid").asText());
 
-    Response response = target("/validation/cluster").request(MediaType.APPLICATION_JSON).post(Entity.json(requestBody));
+    Response response = target("/stackgres/validation/cluster").request(MediaType.APPLICATION_JSON).post(Entity.json(requestBody));
 
     AdmissionReviewResponse admissionResponse = response.readEntity(AdmissionReviewResponse.class);
 

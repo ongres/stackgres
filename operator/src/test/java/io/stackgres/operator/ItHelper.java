@@ -10,6 +10,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.TemporalUnit;
+import java.util.Base64;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
@@ -89,6 +90,8 @@ public class ItHelper {
     LOGGER.info("Deleting if exists stackgres-operator helm chart");
     kind.execute("sh", "-l", "-c", "helm template /resources/stackgres-operator"
         + " --name stackgres-operator"
+        + " --set-string cert.crt=undefined"
+        + " --set-string cert.key=undefined"
         + " | kubectl delete --ignore-not-found -f -")
         .filter(EXCLUDE_TTY_WARNING)
         .forEach(line -> LOGGER.info(line));
@@ -105,7 +108,11 @@ public class ItHelper {
     LOGGER.info("Installing stackgres-operator helm chart");
     kind.execute("sh", "-l", "-c", "helm install /resources/stackgres-operator"
         + " --name stackgres-operator"
-        + " --set deploy.create=false")
+        + " --set deploy.create=false"
+        + " --set-string cert.crt=" + Base64.getEncoder().encodeToString(
+            IOUtils.toByteArray(ItHelper.class.getResourceAsStream("/certs/server.crt")))
+        + " --set-string cert.key=" + Base64.getEncoder().encodeToString(
+            IOUtils.toByteArray(ItHelper.class.getResourceAsStream("/certs/server-key.pem"))))
       .filter(EXCLUDE_TTY_WARNING)
       .forEach(line -> LOGGER.info(line));
     Process process = new ProcessBuilder("sh", "-ec",

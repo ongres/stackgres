@@ -57,7 +57,7 @@ import okhttp3.Response;
 import org.jooq.lambda.Unchecked;
 import org.jooq.lambda.tuple.Tuple;
 
-@Path("/cluster")
+@Path("/stackgres/cluster")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class StackGresClusterResource {
@@ -220,6 +220,7 @@ public class StackGresClusterResource {
         .peek(t -> t.v2.setNamespace(t.v1.getMetadata().getNamespace()))
         .peek(t -> t.v2.setName(t.v1.getMetadata().getName()))
         .peek(t -> t.v2.setRole(t.v1.getMetadata().getLabels().get("role")))
+        .peek(t -> t.v2.setIp(t.v1.getStatus().getPodIP()))
         .peek(t -> t.v2.setStatus(t.v1.getStatus().getPhase()))
         .peek(t -> t.v2.setContainers(String.valueOf(t.v1.getSpec()
             .getContainers().size())))

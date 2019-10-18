@@ -112,7 +112,7 @@ public class PostgresConfigValidator implements ClusterValidator {
 
       if (!pgVersion.equals(givenMajorVersion)) {
         throw new ValidationFailed("Invalid pg_version, must be "
-            + pgVersion + ".x to use pfConfig " + pgConfig);
+            + pgVersion + " to use pfConfig " + pgConfig);
       }
 
     } else {
