@@ -1,0 +1,37 @@
+# Release 0.7
+
+## NOTES
+
+This release includes new functionalities and bug fixes. In particular you will be able to connect your StackGres cluster to an existing prometheus (automatically if you are using prometheus-operator in the same k8s cluster):
+
+```
+helm install stable/prometheus-operator
+helm install --name stackgres-operator operator/install/kubernetes/chart/stackgres-operator
+helm install --name stackgres-cluster operator/install/kubernetes/chart/stackgres-cluster
+```
+
+## CHANGELOG
+
+* [Prometues postgres exporter](https://github.com/wrouesnel/postgres_exporter) sidecar with option to autobind to prometheus
+* A flaming new StackGres Web UI that will allow to monitor the StackGres cluster
+* Integration with grafana dashboard in the StackGres Web UI
+* Validation admission webhooks and openAPIV3Schema validations to check correcteness of the created StackGres cluster and configurations CRs
+* Support for PostgreSQL 12.0
+
+# Release 0.6
+
+## NOTES
+
+This release includes new functionalities and bug fixes. Among other we added support for connection pooling with pgbouncer and the ability to install StackGres operator and StackGres clusters using helm:
+
+```
+helm install --name stackgres-operator operator/install/kubernetes/chart/stackgres-operator
+helm install --name stackgres-cluster operator/install/kubernetes/chart/stackgres-cluster
+```
+
+## CHANGELOG
+
+* Operator and cluster helm charts
+* Connection pooling with pgbouncer.
+* Anty affinity pattern to have only one postgresql running for each kubernetes node
+
