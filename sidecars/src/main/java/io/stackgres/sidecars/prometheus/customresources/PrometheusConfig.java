@@ -6,7 +6,9 @@
 package io.stackgres.sidecars.prometheus.customresources;
 
 import io.fabric8.kubernetes.client.CustomResource;
+import io.quarkus.runtime.annotations.RegisterForReflection;
 
+@RegisterForReflection
 public class PrometheusConfig extends CustomResource {
 
   private static final long serialVersionUID = 1L;

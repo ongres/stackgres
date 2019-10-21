@@ -8,7 +8,9 @@ package io.stackgres.common.customresource.sgcluster;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
 import io.fabric8.kubernetes.client.CustomResource;
+import io.quarkus.runtime.annotations.RegisterForReflection;
 
+@RegisterForReflection
 public class StackGresCluster extends CustomResource {
 
   private static final long serialVersionUID = -5276087851826599719L;
