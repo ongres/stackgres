@@ -14,6 +14,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.quarkus.runtime.StartupEvent;
 import io.stackgres.common.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.validation.cluster.ClusterValidationPipeline;
@@ -42,7 +43,8 @@ public class ClusterValidationResource {
    * Admission Web hook callback.
    */
   @POST
-  public AdmissionReviewResponse validate(StackgresClusterReview admissionReview) {
+  public AdmissionReviewResponse validate(StackgresClusterReview admissionReview)
+      throws JsonProcessingException {
 
     AdmissionRequest<StackGresCluster> request = admissionReview.getRequest();
     UUID requestUid = request.getUid();

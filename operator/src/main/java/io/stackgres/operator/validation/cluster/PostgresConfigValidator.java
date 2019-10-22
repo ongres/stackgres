@@ -36,7 +36,7 @@ public class PostgresConfigValidator implements ClusterValidator {
   }
 
   private Set<String> getSupportedPostgresVersions(List<String> majorVersions,
-      List<Integer> minorVersions) {
+                                                   List<Integer> minorVersions) {
     Set<String> supportedPostgresVersions = new LinkedHashSet<>();
     for (int i = 0; i < majorVersions.size(); i++) {
 
@@ -56,6 +56,10 @@ public class PostgresConfigValidator implements ClusterValidator {
   public void validate(StackgresClusterReview review) throws ValidationFailed {
 
     StackGresCluster cluster = review.getRequest().getObject();
+
+    if (cluster == null) {
+      return;
+    }
 
     String givenPgVersion = cluster.getSpec().getPostgresVersion();
     String pgConfig = cluster.getSpec().getPostgresConfig();
@@ -87,11 +91,10 @@ public class PostgresConfigValidator implements ClusterValidator {
 
         String oldPgVersion = oldCluster.getSpec().getPostgresVersion();
 
-        String oldPgMajorVersion = getMajorVersion(oldPgVersion);
-        if (!givenMajorVersion.equals(oldPgMajorVersion)) {
-          throw new ValidationFailed("Invalid pg_version update, only minor version of postgres "
-              + "can be updated, current major version: " + oldPgMajorVersion);
+        if (!givenPgVersion.equals(oldPgVersion)) {
+          throw new ValidationFailed("pg_version cannot be updated");
         }
+
         break;
       default:
     }
