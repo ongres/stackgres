@@ -231,8 +231,24 @@ class PostgresVersionValidatorTest {
 
     String resultMessage = exception.getResult().getMessage();
 
-    assertEquals("Invalid pg_version update, only minor version of postgres can be " +
-        "updated, current major version: 10", resultMessage);
+    assertEquals("pg_version cannot be updated", resultMessage);
+
+  }
+
+  @Test
+  void givenMinorPostgresVersionUpdate_shouldFail() {
+
+    final StackgresClusterReview review = JsonUtil
+        .readFromJson("cluster_allow_requests/minor_postgres_version_update.json",
+            StackgresClusterReview.class);
+
+    ValidationFailed exception = assertThrows(ValidationFailed.class, () -> {
+      validator.validate(review);
+    });
+
+    String resultMessage = exception.getResult().getMessage();
+
+    assertEquals("pg_version cannot be updated", resultMessage);
 
   }
 
@@ -301,7 +317,7 @@ class PostgresVersionValidatorTest {
   }
 
   @Test
-  void givenValidPostgresConfigUpdate_shouldNotFail() throws ValidationFailed {
+  void givenPostgresConfigUpdate_shouldFail() throws ValidationFailed {
 
     final StackgresClusterReview review = JsonUtil
         .readFromJson("cluster_allow_requests/postgres_config_update.json",
@@ -312,28 +328,7 @@ class PostgresVersionValidatorTest {
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
     when(configFinder.findByNameAndNamespace(eq(postgresProfile), eq(namespace)))
-        .thenReturn(Optional.of(postgresConfig));
-
-    validator.validate(review);
-
-    verify(configFinder).findByNameAndNamespace(eq(postgresProfile), eq(namespace));
-
-  }
-
-  @Test
-  void givenInvalidPostgresConfigUpdate_shouldFail() {
-
-    final StackgresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/postgres_config_update.json",
-            StackgresClusterReview.class);
-
-    StackGresClusterSpec spec = review.getRequest().getObject().getSpec();
-    String postgresProfile = spec.getPostgresConfig();
-    postgresConfig.getSpec().setPgVersion("10");
-
-    String namespace = review.getRequest().getObject().getMetadata().getNamespace();
-    when(configFinder.findByNameAndNamespace(eq(postgresProfile), eq(namespace)))
-        .thenReturn(Optional.of(postgresConfig));
+        .thenReturn(Optional.empty());
 
     ValidationFailed exception = assertThrows(ValidationFailed.class, () -> {
       validator.validate(review);
@@ -341,21 +336,22 @@ class PostgresVersionValidatorTest {
 
     String resultMessage = exception.getResult().getMessage();
 
-    assertEquals("Invalid pg_version, must be 10 to use pfConfig postgresconf",
-        resultMessage);
+    assertEquals("Invalid pg_config value " + postgresProfile, resultMessage);
 
     verify(configFinder).findByNameAndNamespace(eq(postgresProfile), eq(namespace));
 
   }
 
+
   @Test
   void givenADeleteUpdate_shouldDoNothing() throws ValidationFailed {
 
     final StackgresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/postgres_config_update.json",
+        .readFromJson("cluster_allow_requests/valid_deletion.json",
             StackgresClusterReview.class);
 
     review.getRequest().setOperation(Operation.DELETE);
+
 
     validator.validate(review);
 
