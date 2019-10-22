@@ -5,6 +5,9 @@
 
 package io.stackgres.operator.rest;
 
+import io.quarkus.runtime.annotations.RegisterForReflection;
+
+@RegisterForReflection
 public class ErrorResponse {
   private String type;
   private String message;

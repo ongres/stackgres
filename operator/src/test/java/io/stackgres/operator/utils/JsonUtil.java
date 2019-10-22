@@ -15,7 +15,7 @@ public class JsonUtil {
   public static  <T> T readFromJson(String resource, Class<T> clazz){
     if (clazz.getPackage().getName().startsWith("io.stackgres")){
       if (clazz.getAnnotation(RegisterForReflection.class) == null){
-        throw new NullPointerException("class " + clazz.getName() + " must have the annotation: " + ReflectiveOperationException.class);
+        throw new NullPointerException("class " + clazz.getName() + " must have the annotation: " + RegisterForReflection.class);
       }
     }
     try (InputStream is = ClassLoader.getSystemResourceAsStream(resource)){
