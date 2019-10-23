@@ -45,7 +45,7 @@ public class ClusterStatusManager {
     }
   }
 
-  public void sendCondition(ClusterStatusCondition reason, StackGresCluster cluster,
+  private void sendCondition(ClusterStatusCondition reason, StackGresCluster cluster,
       KubernetesClient client) {
     Instant now = Instant.now();
 
@@ -84,13 +84,16 @@ public class ClusterStatusManager {
     }
   }
 
+  /**
+   * Update pending restart status condition.
+   */
   public void updatePendingRestart(StackGresCluster cluster) {
     try (KubernetesClient client = kubClientFactory.create()) {
       updatePendingRestart(cluster, client);
     }
   }
 
-  public void updatePendingRestart(StackGresCluster cluster, KubernetesClient client) {
+  private void updatePendingRestart(StackGresCluster cluster, KubernetesClient client) {
     if (isPendingRestart(cluster, client)) {
       sendCondition(ClusterStatusCondition.PATRONI_REQUIRES_RESTART, cluster, client);
     } else {
@@ -98,13 +101,16 @@ public class ClusterStatusManager {
     }
   }
 
+  /**
+   * Check pending restart status condition.
+   */
   public boolean isPendingRestart(StackGresCluster cluster) {
     try (KubernetesClient client = kubClientFactory.create()) {
       return isPendingRestart(cluster, client);
     }
   }
 
-  public boolean isPendingRestart(StackGresCluster cluster, KubernetesClient client) {
+  private boolean isPendingRestart(StackGresCluster cluster, KubernetesClient client) {
     final String name = cluster.getMetadata().getName();
     final String namespace = cluster.getMetadata().getNamespace();
     final Map<String, String> labels = ResourceUtil.defaultLabels(name);
