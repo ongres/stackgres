@@ -33,23 +33,15 @@ public class KubernetesOperatorRunner implements OperatorRunner {
   @Override
   public void run() throws Throwable {
     ItHelper.waitUntilOperatorIsReady(future, null, kind);
-    CompletableFuture<String> runnerLogPid = new CompletableFuture<String>();
     CompletableFuture<Void> runnerLogFuture = CompletableFuture.runAsync(() -> {
       try {
         kind.execute("sh", "-l", "-c",
-            "echo $$;"
-                + " trap 'kill $(jobs -p)' EXIT;"
-                + " kubectl get pod -n stackgres"
+            " kubectl get pod -n stackgres"
                 + " | grep 'stackgres-operator'"
                 + " | grep -v 'stackgres-operator-init'"
                 + " | cut -d ' ' -f 1"
                 + " | xargs kubectl logs -n stackgres -c stackgres-operator -f ")
             .filter(ItHelper.EXCLUDE_TTY_WARNING)
-            .peek(line -> {
-              if (!runnerLogPid.isDone()) {
-                runnerLogPid.complete(line);
-              }
-            })
             .forEach(line -> LOGGER.info(line));
       } catch (Exception ex) {
         return;
@@ -58,10 +50,12 @@ public class KubernetesOperatorRunner implements OperatorRunner {
     future.join();
     CompletableFuture.runAsync(Unchecked.runnable(() -> {
       kind.execute("sh", "-l", "-c",
-          "kill " + runnerLogPid.join())
+          "ps | grep ' kubectl logs ' | grep -v ' grep '"
+              + " | grep -v ' xargs kubectl logs '"
+              + " | cut -d ' ' -f 1 | xargs -r kill")
           .filter(ItHelper.EXCLUDE_TTY_WARNING)
           .forEach(line -> LOGGER.info(line));
-    }), executor);
+    }), executor).join();
      runnerLogFuture.join();
   }
 }
