@@ -30,7 +30,8 @@ public class DependenciesValidator implements PgConfigValidator {
   public void validate(PgConfigReview review) throws ValidationFailed {
 
     if (review.getRequest().getOperation() == Operation.DELETE) {
-      Optional<StackGresClusterList> clusters = clusterScanner.findResources(review.getRequest().getNamespace());
+      Optional<StackGresClusterList> clusters = clusterScanner
+          .findResources(review.getRequest().getNamespace());
 
       if (clusters.isPresent()) {
         for (StackGresCluster i : clusters.get().getItems()) {
