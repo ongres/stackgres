@@ -5,9 +5,6 @@
 
 package io.stackgres.operator.validation.pgconfig;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
 import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
@@ -16,16 +13,14 @@ import io.stackgres.common.customresource.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.operator.utils.JsonUtil;
 import io.stackgres.operator.validation.PgConfigReview;
 import io.stackgres.operator.validation.ValidationFailed;
-
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class BlacklistValidatorTest {
 
-  private static String[] BLACKLISTED_PROPERTIES = {"max_connections",
-      "max_locks_per_transaction", "max_worker_processes", "max_prepared_transactions",
-      "wal_level", "wal_log_hints", "track_commit_timestamp", "max_wal_senders",
-      "max_replication_slots", "wal_keep_segments", "listen_addresses", "port", "cluster_name",
-      "hot_standby"};
+  private static String[] BLACKLISTED_PROPERTIES = PgConfigValidator.BLACKLIST_PROPERTIES;
 
   private BlacklistValidator validator = new BlacklistValidator();
 

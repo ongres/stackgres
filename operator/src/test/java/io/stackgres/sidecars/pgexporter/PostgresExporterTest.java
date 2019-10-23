@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.Optional;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.stackgres.common.KubernetesScanner;
 import io.stackgres.common.config.ConfigContext;
 import io.stackgres.common.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.utils.JsonUtil;

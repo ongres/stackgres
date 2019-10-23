@@ -33,7 +33,7 @@ webhooks:
   - name: pgconfig.{{ .Values.operatorName }}.{{ .Values.operatorNamespace }}
     sideEffects: None
     rules:
-      - operations: ["CREATE", "UPDATE"]
+      - operations: ["CREATE", "UPDATE", "DELETE"]
         apiGroups: ["stackgres.io"]
         apiVersions: ["*"]
         resources: ["sgpgconfigs"]

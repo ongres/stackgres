@@ -6,12 +6,12 @@
 package io.stackgres.sidecars.pgexporter;
 
 import java.util.Optional;
-
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.stackgres.common.KubernetesScanner;
 import io.stackgres.common.resource.ResourceUtil;
 import io.stackgres.sidecars.prometheus.customresources.PrometheusConfig;
 import io.stackgres.sidecars.prometheus.customresources.PrometheusConfigDefinition;
@@ -39,5 +39,17 @@ public class PrometheusScanner implements KubernetesScanner<PrometheusConfigList
         PrometheusConfigList.class,
         PrometheusConfigDoneable.class)
         .inAnyNamespace().list());
+  }
+
+  @Override
+  public Optional<PrometheusConfigList> findResources(String namespace) {
+    Optional<CustomResourceDefinition> crd =
+        ResourceUtil.getCustomResource(client, PrometheusConfigDefinition.NAME);
+
+    return crd.map(cr -> client.customResources(cr,
+        PrometheusConfig.class,
+        PrometheusConfigList.class,
+        PrometheusConfigDoneable.class)
+        .inNamespace(namespace).list());
   }
 }
