@@ -45,7 +45,7 @@
     <!-- Dependencies versions -->
     <quarkus.version>0.22.0</quarkus.version>
     <jool.version>0.9.14</jool.version>
-    <kubernetes-client.version>4.6.0</kubernetes-client.version>
+    <kubernetes-client.version>4.6.1</kubernetes-client.version>
     <immutables.version>2.7.5</immutables.version>
     <javax.annotation-api.version>1.3.2</javax.annotation-api.version>
     <javax.validation-api.version>2.0.1.Final</javax.validation-api.version>
