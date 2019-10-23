@@ -90,7 +90,7 @@ helm template --name stackgres-cluster operator/install/kubernetes/chart/stackgr
 The prerequisites are the same for any Quarkus-based application.
 
 - JDK 1.8+ installed with `JAVA_HOME` configured appropriately.
-- GraalVM installed from the GraalVM web site. Using the community edition is enough. Version 19.0.2 is required.
+- GraalVM installed from the GraalVM web site. Using the community edition is enough.
 - The `GRAALVM_HOME` environment variable configured appropriately.
 - The `native-image` tool must be installed; this can be done by running `gu install native-image` from your GraalVM directory.
 - A working C developer environment.
@@ -145,7 +145,7 @@ We love the concept of GitLab’s stewardship, and in the same spirit, we promis
 StackGres will always be open source software.
 
 ### What PostgreSQL versions are supported?
-As of now, PostgreSQL major version 11. Version 12 (currently in beta) will be added soon.
+As of now, PostgreSQL major version 11 and 12.
 
 ### Where does it run?
 StackGres has been designed to run on any Kubernetes-certified platform. Whether is a
