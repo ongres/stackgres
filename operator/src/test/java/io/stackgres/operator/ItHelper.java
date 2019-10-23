@@ -5,7 +5,6 @@
 
 package io.stackgres.operator;
 
-import java.io.IOException;
 import java.net.ConnectException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -290,27 +289,13 @@ public class ItHelper {
    * Code has been copied and adapted from {@code QuarkusTestExtension} to allow start/stop
    * quarkus application inside a test.
    */
-  public static OperatorRunner createOperator(Class<?> testClass, Container kind, int port,
-      int sslPort) throws Exception {
+  public static OperatorRunner createOperator(Container kind, Class<?> testClass, int port,
+      int sslPort, Executor executor) throws Exception {
     if (OPERATOR_IN_KUBERNETES) {
-      return new DummyOperator();
+      return new KubernetesOperatorRunner(kind, executor);
     }
 
-    return new OperatorRunnerImpl(testClass, kind, port, sslPort);
-  }
-
-  private static class DummyOperator implements OperatorRunner {
-    private final CompletableFuture<Void> future = new CompletableFuture<Void>();
-
-    @Override
-    public void close() throws IOException {
-      future.complete(null);
-    }
-
-    @Override
-    public void run() throws Throwable {
-      future.join();
-    }
+    return new LocalOperatorRunner(kind, testClass, port, sslPort);
   }
 
   public static <T> void waitUntil(Supplier<T> supplier, Predicate<T> condition, int timeout,

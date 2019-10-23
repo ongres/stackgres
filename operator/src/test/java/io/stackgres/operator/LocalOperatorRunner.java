@@ -68,12 +68,12 @@ import org.objectweb.asm.ClassWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class OperatorRunnerImpl implements OperatorRunner {
+public class LocalOperatorRunner implements OperatorRunner {
 
-  private final static Logger LOGGER = LoggerFactory.getLogger(OperatorRunnerImpl.class);
+  private final static Logger LOGGER = LoggerFactory.getLogger(LocalOperatorRunner.class);
 
-  private final Class<?> testClass;
   private final Container kind;
+  private final Class<?> testClass;
   private final int port;
   private final int sslPort;
 
@@ -81,10 +81,10 @@ public class OperatorRunnerImpl implements OperatorRunner {
   private ClassLoader originalCl;
   private RuntimeRunner runtimeRunner;
 
-  public OperatorRunnerImpl(Class<?> testClass, Container kind, int port, int sslPort) {
+  public LocalOperatorRunner(Container kind, Class<?> testClass, int port, int sslPort) {
     super();
-    this.testClass = testClass;
     this.kind = kind;
+    this.testClass = testClass;
     this.port = port;
     this.sslPort = sslPort;
   }
