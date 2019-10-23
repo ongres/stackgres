@@ -1,14 +1,8 @@
 package io.stackgres.operator;
 
 
-import com.google.common.reflect.ClassPath;
-import io.quarkus.runtime.annotations.RegisterForReflection;
-import io.stackgres.operator.rest.GenericExceptionMapper;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import javax.ws.rs.*;
-import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
@@ -16,8 +10,24 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.HEAD;
+import javax.ws.rs.OPTIONS;
+import javax.ws.rs.PATCH;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Response;
+
+import com.google.common.reflect.ClassPath;
+
+import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.operator.rest.GenericExceptionMapper;
+
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 class ResourcesSerializationTest {
 
@@ -91,15 +101,15 @@ class ResourcesSerializationTest {
   static Stream<Method> getRestMethods() {
     return getClassesInStackGres()
         .filter(classInfo -> {
-          final Class clazz = classInfo.load();
+          final Class<?> clazz = classInfo.load();
           return clazz.getAnnotation(Path.class) != null;
         })
         .filter(classInfo -> {
-          final Class clazz = classInfo.load();
+          final Class<?> clazz = classInfo.load();
           return clazz.getAnnotation(Produces.class) != null;
         })
         .flatMap(classInfo -> {
-          final Class clazz = classInfo.load();
+          final Class<?> clazz = classInfo.load();
           return Arrays.stream(clazz.getMethods())
               .filter(method -> method.getAnnotation(POST.class) != null
                   || method.getAnnotation(GET.class) != null

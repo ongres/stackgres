@@ -38,14 +38,14 @@ public abstract class AbstractStackGresOperatorIt extends AbstractIt {
     ItHelper.deleteStackGresOperatorHelmChartIfExists(kind);
     ItHelper.installStackGresOperatorHelmChart(kind, operatorSslPort, executor);
     OperatorRunner operatorRunner = ItHelper.createOperator(
-        getClass(), kind, operatorPort, operatorSslPort);
+        kind, getClass(), operatorPort, operatorSslPort, executor);
     CompletableFuture<Void> operator = runAsync(() -> operatorRunner.run());
     this.operator = () -> {
       operatorRunner.close();
       operator.join();
     };
     operatorClient = ClientBuilder.newClient().target("http://localhost:" + operatorPort);
-    ItHelper.waitUntilOperatorIsReady(operator, operatorClient);
+    ItHelper.waitUntilOperatorIsReady(operator, operatorClient, kind);
   }
 
   private int getFreePort() throws IOException {
