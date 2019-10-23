@@ -48,6 +48,7 @@ public class PostgresConfigValidationResource {
     UUID requestUid = request.getUid();
     LOGGER.info("Validating admission review " + requestUid.toString()
         + " of kind " + request.getKind().toString());
+
     AdmissionResponse response = new AdmissionResponse();
     response.setUid(requestUid);
 
