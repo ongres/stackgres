@@ -4,11 +4,26 @@ image: docker.io/ongres/ubi-graalvm-maven:19.2.1
 variables:
   # This will suppress any download for dependencies and plugins or upload messages which would clutter the console log.
   # `showDateTime` will show the passed time in milliseconds. You need to specify `--batch-mode` to make this work.
-  MAVEN_OPTS: "-Dhttps.protocols=TLSv1.2 -Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=WARN -Dorg.slf4j.simpleLogger.showDateTime=true -XX:+TieredCompilation -XX:TieredStopAtLevel=1 -Djava.awt.headless=true -XX:+UseParallelOldGC"
+  MAVEN_OPTS: |
+               -Dhttps.protocols=TLSv1.2
+               -Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository
+               -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=WARN
+               -Dorg.slf4j.simpleLogger.showDateTime=true
+               -XX:+TieredCompilation
+               -XX:TieredStopAtLevel=1
+               -Djava.awt.headless=true
+               -XX:+UseParallelOldGC
   # As of Maven 3.3.0 instead of this you may define these options in `.mvn/maven.config` so the same config is used
   # when running from the command line.
   # `installAtEnd` and `deployAtEnd` are only effective with recent version of the corresponding plugins.
-  MAVEN_CLI_OPTS: "--batch-mode --errors --fail-at-end --show-version -DinstallAtEnd=true -DdeployAtEnd=true"
+  MAVEN_CLI_OPTS: |
+                   -f stackgres-k8s/src/pom.xml
+                   --batch-mode
+                   --errors
+                   --fail-at-end
+                   --show-version
+                   -DinstallAtEnd=true
+                   -DdeployAtEnd=true
 
 # Cache downloaded dependencies and plugins between builds.
 # To keep cache across branches add 'key: "$CI_JOB_NAME"'
@@ -50,15 +65,15 @@ native image:
     - compile
   script:
     - 'mvn $MAVEN_CLI_OPTS package -P native'
-    - 'cp $GRAALVM_HOME/jre/lib/amd64/libsunec.so operator/target/'
-    - 'cp $GRAALVM_HOME/jre/lib/security/cacerts operator/target/'
+    - 'cp $GRAALVM_HOME/jre/lib/amd64/libsunec.so stackgres-k8s/src/operator/target/'
+    - 'cp $GRAALVM_HOME/jre/lib/security/cacerts stackgres-k8s/src/operator/target/'
   artifacts:
     paths:
-      - operator/target/libsunec.so
-      - operator/target/cacerts
-      - operator/target/*-runner
-      - operator/target/lib/
-      - operator/target/*-runner.jar
+      - stackgres-k8s/src/operator/target/libsunec.so
+      - stackgres-k8s/src/operator/target/cacerts
+      - stackgres-k8s/src/operator/target/stackgres-operator-runner
+      - stackgres-k8s/src/operator/target/lib/
+      - stackgres-k8s/src/operator/target/stackgres-operator-runner.jar
     expire_in: 1 day
 
 enforce release:
@@ -89,8 +104,16 @@ integration test jvm image:
     - compile
   variables:
     OPERATOR_IN_KUBERNETES: "true"
+  retry: 2
   script:
     - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_REF_NAME"}"-jvm'
+    - |
+      if ([ "$CI_COMMIT_REF_NAME" != "development" ] \
+          && [[ -z "$CI_COMMIT_TAG" || "$CI_COMMIT_TAG" =~ ^latest-.*$ ]] \
+          && [ ! -z "$DO_DEPLOY" ])
+      then
+        export IMAGE_TAG=development-jvm
+      fi
     - 'export IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
     - 'flock -w 3600 /tmp/stackgres-integration-test-jvm-image mvn $MAVEN_CLI_OPTS verify -P build-image-jvm,integration -DargLine=-Dcom.ongres.junit.docker.runnerId=jvm-image'
 
@@ -105,6 +128,13 @@ integration test native image:
     OPERATOR_IN_KUBERNETES: "true"
   script:
     - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_REF_NAME"}"'
+    - |
+      if ([ "$CI_COMMIT_REF_NAME" != "development" ] \
+          && [[ -z "$CI_COMMIT_TAG" || "$CI_COMMIT_TAG" =~ ^latest-.*$ ]] \
+          && [ ! -z "$DO_DEPLOY" ])
+      then
+        export IMAGE_TAG=development
+      fi
     - 'export IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
     - 'flock -w 3600 /tmp/stackgres-integration-test-native-image mvn $MAVEN_CLI_OPTS verify -P build-image-native,integration -DargLine=-Dcom.ongres.junit.docker.runnerId=native-image'
 

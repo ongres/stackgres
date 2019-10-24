@@ -1,0 +1,92 @@
+{{ if .Values.deploy.create }}
+apiVersion: "apps/v1"
+kind: "Deployment"
+metadata:
+  labels:
+    app: {{ .Release.Name }}
+    version: "{{ .Chart.Version }}"
+    group: {{ .Values.group }}
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}
+      version: "{{ .Chart.Version }}"
+      group: {{ .Values.group }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}
+        version: "{{ .Chart.Version }}"
+        group: {{ .Values.group }}
+    spec:
+      serviceAccountName: {{ .Release.Name }}
+      containers:
+      - name: {{ .Release.Name }}
+        image: "{{ .Values.image.name }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        env:
+          - name: OPERATOR_NAME
+            value: "{{ .Release.Name }}"
+          - name: OPERATOR_NAMESPACE
+            value: "{{ .Release.Namespace }}"
+          - name: CRD_GROUP
+            value: "{{ .Values.group }}"
+          - name: CRD_VERSION
+            value: "{{ .Values.crd.version }}"
+          - name: CONTAINER_BUILD
+            value: "{{ .Values.containerBuild }}"
+          - name: PROMETHEUS_AUTOBIND
+            value: "{{ .Values.prometheus.allowAutobind }}"
+        ports:
+        - containerPort: 8080
+          name: "http"
+          protocol: "TCP"
+        - containerPort: 8443
+          name: "https"
+          protocol: "TCP"
+        livenessProbe:
+          httpGet:
+            path: "/health/live"
+            port: 8080
+            scheme: "HTTP"
+          initialDelaySeconds: 5
+          periodSeconds: 30
+          timeoutSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: "/health/ready"
+            port: 8080
+            scheme: "HTTP"
+          initialDelaySeconds: 5
+          periodSeconds: 30
+          timeoutSeconds: 2
+        volumeMounts:
+          - name: operator-certs
+            mountPath: /etc/operator/certs
+            readOnly: true
+      - name: {{ .Release.Name }}-nginx
+        image: "nginx:1.17.4-alpine"
+        imagePullPolicy: IfNotPresent
+        args: [ '/bin/sh', '-exc', 'cat /etc/nginx/conf.d/stackgres-operator.conf; nginx -g "daemon off;";' ]
+        ports:
+        - containerPort: 444
+          name: "https"
+          protocol: "TCP"
+        volumeMounts:
+          - name: operator-certs
+            mountPath: /etc/operator/certs
+            readOnly: true
+          - name: operator-nginx
+            mountPath: /etc/nginx/conf.d
+            readOnly: true
+      volumes:
+        - name: operator-certs
+          secret:
+            secretName: {{ .Release.Name }}
+        - name: operator-nginx
+          configMap:
+            name: {{ .Release.Name }}-nginx
+{{ end }}

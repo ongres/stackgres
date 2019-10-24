@@ -1,7 +1,0 @@
-apiVersion: v1
-appVersion: "1.0"
-description: StackGres Operator
-name: stackgres-operator
-version: 0.6
-maintainers: 
-  - name: OnGres Inc.
