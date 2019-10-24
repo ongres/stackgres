@@ -3,6 +3,7 @@ package io.stackgres.operator;
 import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
 
 import com.ongres.junit.docker.Container;
 
@@ -48,14 +49,20 @@ public class KubernetesOperatorRunner implements OperatorRunner {
       }
     }, executor);
     future.join();
-    CompletableFuture.runAsync(Unchecked.runnable(() -> {
-      kind.execute("sh", "-l", "-c",
-          "ps | grep ' kubectl logs ' | grep -v ' grep '"
-              + " | grep -v ' xargs kubectl logs '"
-              + " | cut -d ' ' -f 1 | xargs -r kill")
-          .filter(ItHelper.EXCLUDE_TTY_WARNING)
-          .forEach(line -> LOGGER.info(line));
-    }), executor).join();
+    CompletableFuture<Void> runnerLogKillerStopper = new CompletableFuture<>();
+    CompletableFuture<Void> runnerLogKiller = CompletableFuture.runAsync(Unchecked.runnable(() -> {
+      while (!runnerLogKillerStopper.isDone()) {
+        kind.execute("sh", "-l", "-c",
+            "ps | grep ' kubectl logs ' | grep -v ' grep '"
+                + " | grep -v ' xargs kubectl logs '"
+                + " | cut -d ' ' -f 1 | xargs -r kill")
+            .filter(ItHelper.EXCLUDE_TTY_WARNING)
+            .forEach(line -> LOGGER.info(line));
+        TimeUnit.SECONDS.sleep(1);
+      }
+    }), executor);
      runnerLogFuture.join();
+     runnerLogKillerStopper.complete(null);
+     runnerLogKiller.join();
   }
 }
