@@ -110,7 +110,7 @@ integration test jvm image:
     - |
       if ([ "$CI_COMMIT_REF_NAME" != "development" ] \
           && [[ -z "$CI_COMMIT_TAG" || "$CI_COMMIT_TAG" =~ ^latest-.*$ ]] \
-          && [ ! -z "$DO_DEPLOY" ])
+          && [ -z "$DO_DEPLOY" ])
       then
         export IMAGE_TAG=development-jvm
       fi
@@ -131,7 +131,7 @@ integration test native image:
     - |
       if ([ "$CI_COMMIT_REF_NAME" != "development" ] \
           && [[ -z "$CI_COMMIT_TAG" || "$CI_COMMIT_TAG" =~ ^latest-.*$ ]] \
-          && [ ! -z "$DO_DEPLOY" ])
+          && [ -z "$DO_DEPLOY" ])
       then
         export IMAGE_TAG=development
       fi
