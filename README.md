@@ -39,87 +39,16 @@ with GraalVM allowing amazingly fast boot time and incredibly low RSS memory.
 You can deploy the StackGres operator by using [helm](https://helm.sh/):
 
 ```
-helm template --name stackgres-operator operator/install/kubernetes/chart/stackgres-operator | kubectl create -f -
+helm install --namespace stackgres --name stackgres-operator operator/install/kubernetes/chart/stackgres-operator
 ```
 
 Once the operator is up and running in your Kubernetes cluster you can deploy new clusters using
 
 ```
-helm template --name my-cluster operator/install/kubernetes/chart/stackgres-cluster | kubectl create -f -
+helm install --namespace stackgres --name my-cluster operator/install/kubernetes/chart/stackgres-cluster
 ```
 
 you can edit the instances field with the number of replicas you want to deploy.
-
-## Building
-
-For build this project you need to have GraalVM installed locally or directly use a container to bootstrap
-the compile phase. The native-image generation has been tested on Linux only but should also work on macOS.
-
-### Building using a container
-
-#### Prerequisites
-
-- buildah
-- podman
-
-#### Compiling and running
-
-The build process is bootstraped in a multistage Dockerfile, to run the build:
-
-```
-buildah bud -f src/main/docker/Dockerfile.multistage -t stackgres/operator .
-```
-
-This multistage Dockerfile also generates a container image with the operator.
-To run the generated container image just use:
-
-```
-podman run -i --rm -p 8080:8080 localhost/stackgres/operator
-```
-
-Once you start the operator, it start watching the CRD resource for StackGres that can be deployed using:
-
-```
-helm template --name stackgres-cluster operator/install/kubernetes/chart/stackgres-cluster | kubectl create -f -
-```
-
-### Building locally
-
-#### Prerequisites
-
-The prerequisites are the same for any Quarkus-based application.
-
-- JDK 1.8+ installed with `JAVA_HOME` configured appropriately.
-- GraalVM installed from the GraalVM web site. Using the community edition is enough.
-- The `GRAALVM_HOME` environment variable configured appropriately.
-- The `native-image` tool must be installed; this can be done by running `gu install native-image` from your GraalVM directory.
-- A working C developer environment.
-
-#### Compiling and running
-
-To create the native executable you can use
-
-```
-./mvnw package -P native
-```
-
-this will generate an artifact called `stackgres-operator-${project.version}-runner`.
-
-You can omit the profile `-P native` to generate a normal jar that can be run using the JVM.
-
-Once you start the operator, it start watching the CRD resource for StackGres that can be deployed using:
-
-```
-helm template --name stackgres-cluster operator/install/kubernetes/chart/stackgres-cluster | kubectl create -f -
-```
-
-#### Integration tests
-
-Integration tests requires docker to be installed (if not on Linux set the environment variable `DOCKER_HOST` pointing to the protocol, host and port of the docker daemon). To run the ITs:
-
-```
-./mvnw verify -P integration
-```
 
 ---
 

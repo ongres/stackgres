@@ -1,0 +1,12 @@
+Release Name: {{ .Release.Name }}
+StackGres Version: {{ .Chart.Version }}
+Image: {{ .Values.image.name }}:{{ .Values.image.tag }}
+
+{{- if not .Values.cert.autoapprove }}
+To complete the process approve operator certificate signing request:
+- kubectl certificate approve {{ .Release.Name }}
+{{- end }}
+
+Check if the operator was successfuly deployed:
+- kubectl get deployment -n {{ .Release.Namespace }}
+
