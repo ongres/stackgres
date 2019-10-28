@@ -1,0 +1,54 @@
+{
+  "kind": "AdmissionReview",
+  "request": {
+    "uid": "c4bc4b70-f719-11e9-b325-0242ac110002",
+    "kind": {
+      "kind": "StackGresProfile",
+      "group": "stackgres.io",
+      "version": "v1alpha1"
+    },
+    "resource": {
+      "group": "stackgres.io",
+      "resource": "sgprofiles",
+      "version": "v1alpha1"
+    },
+    "subResource": null,
+    "requestKind": null,
+    "requestResource": null,
+    "requestSubResource": null,
+    "name": null,
+    "namespace": "postgresql",
+    "operation": "CREATE",
+    "userInfo": {
+      "groups": [
+        "system:serviceaccounts",
+        "system:serviceaccounts:kube-system",
+        "system:authenticated"
+      ],
+      "uid": "639586b3-f719-11e9-b325-0242ac110002",
+      "username": "system:serviceaccount:kube-system:tiller"
+    },
+    "object": {
+      "kind": "StackGresProfile",
+      "apiVersion": "stackgres.io/v1alpha1",
+      "metadata": {
+        "annotations": {
+          "helm.sh/hook": "pre-install"
+        },
+        "creationTimestamp": "2019-10-25T11:22:45Z",
+        "generation": 1,
+        "name": "size-xs",
+        "namespace": "postgresql",
+        "uid": "c4bc460a-f719-11e9-b325-0242ac110002"
+      },
+      "spec": {
+        "cpu": "500m",
+        "memory": "512Mi"
+      }
+    },
+    "oldObject": null,
+    "options": null,
+    "dryRun": false
+  },
+  "apiVersion": "admission.k8s.io/v1beta1"
+}

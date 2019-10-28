@@ -3,51 +3,33 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.validation.pgconfig;
+package io.stackgres.operator.validation;
 
 import java.util.Optional;
 
 import io.stackgres.operator.common.KubernetesScanner;
+import io.stackgres.operator.customresource.sgcluster.StackGresClusterDefinition;
 import io.stackgres.operator.customresource.sgcluster.StackGresClusterList;
 import io.stackgres.operator.utils.JsonUtil;
-import io.stackgres.operator.validation.PgConfigReview;
-import io.stackgres.operator.validation.ValidationFailed;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
-;
+public abstract class DependenciesValidatorTest<T extends AdmissionReview, V extends DependenciesValidator<T>> {
 
-@ExtendWith(MockitoExtension.class)
-@RunWith(MockitoJUnitRunner.class)
-class DependenciesValidatorTest {
-
-  private DependenciesValidator validator;
+  protected DependenciesValidator<T> validator;
 
   @Mock
-  private KubernetesScanner<StackGresClusterList> clusterScanner;
-
-
-  @BeforeEach
-  void setUp() {
-
-    validator = new DependenciesValidator(clusterScanner);
-
-  }
+  protected KubernetesScanner<StackGresClusterList> clusterScanner;
 
   @Test
-  void givenAReviewCreation_itShouldDoNothing() throws ValidationFailed {
+  protected abstract void givenAReviewCreation_itShouldDoNothing() throws ValidationFailed;
 
-    PgConfigReview review = JsonUtil.readFromJson("pgconfig_allow_request/valid_pgconfig.json",
-        PgConfigReview.class);
+  protected void givenAReviewCreation_itShouldDoNothing(T review) throws ValidationFailed {
 
     validator.validate(review);
 
@@ -57,51 +39,47 @@ class DependenciesValidatorTest {
   }
 
   @Test
-  void givenAReviewUpdate_itShouldDoNothing() throws ValidationFailed {
+  protected abstract void givenAReviewUpdate_itShouldDoNothing() throws ValidationFailed;
 
-    PgConfigReview review = JsonUtil.readFromJson("pgconfig_allow_request/valid_pgconfig_update.json",
-        PgConfigReview.class);
-
+  protected void givenAReviewUpdate_itShouldDoNothing(T review) throws ValidationFailed {
     validator.validate(review);
 
     verify(clusterScanner, never()).findResources();
     verify(clusterScanner, never()).findResources(anyString());
-
   }
 
   @Test
-  void givenAReviewDelete_itShouldFailIfIsAClusterDependsOnIt() throws ValidationFailed {
+  protected abstract void givenAReviewDelete_itShouldFailIfIsAClusterDependsOnIt();
 
-    PgConfigReview review = JsonUtil
-        .readFromJson("pgconfig_allow_request/pgconfig_delete.json",
-            PgConfigReview.class);
+  protected void givenAReviewDelete_itShouldFailIfIsAClusterDependsOnIt(T review) {
 
     StackGresClusterList clusterList = JsonUtil.readFromJson("stackgres_cluster/list.json",
-        StackGresClusterList.class);
+            StackGresClusterList.class);
 
     when(clusterScanner.findResources(review.getRequest().getNamespace()))
-        .thenReturn(Optional.of(clusterList));
-
+            .thenReturn(Optional.of(clusterList));
 
     ValidationFailed ex = assertThrows(ValidationFailed.class, () -> {
       validator.validate(review);
     });
 
-    assertEquals("Can't delete sppgconfig " + review.getRequest().getName() + " because " +
-        "the spcluster " + clusterList.getItems().get(0).getMetadata().getName()
-        + " dependes on it", ex.getResult().getMessage());
+    assertEquals("Can't delete "
+                    + review.getRequest().getResource().getResource()
+                    + "." + review.getRequest().getKind().getGroup()
+                    + " " + review.getRequest().getName() + " because the "
+                    + StackGresClusterDefinition.NAME + " "
+                    + clusterList.getItems().get(0).getMetadata().getName() + " depends on it"
+            , ex.getResult().getMessage());
 
   }
 
   @Test
-  void givenAReviewDelete_itShouldNotFailIfNotClusterDependsOnIt() throws ValidationFailed {
+  protected abstract void givenAReviewDelete_itShouldNotFailIfNotClusterDependsOnIt() throws ValidationFailed;
 
-    PgConfigReview review = JsonUtil
-        .readFromJson("pgconfig_allow_request/pgconfig_delete.json",
-            PgConfigReview.class);
+  protected void givenAReviewDelete_itShouldNotFailIfNotClusterDependsOnIt(T review) throws ValidationFailed {
 
     when(clusterScanner.findResources(review.getRequest().getNamespace()))
-        .thenReturn(Optional.empty());
+            .thenReturn(Optional.empty());
 
     validator.validate(review);
 

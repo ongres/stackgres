@@ -9,6 +9,9 @@
 .classpath
 factoryConfiguration.json
 
+### VS code ###
+.vscode/
+
 ### Eclipse ###
 .metadata
 bin/

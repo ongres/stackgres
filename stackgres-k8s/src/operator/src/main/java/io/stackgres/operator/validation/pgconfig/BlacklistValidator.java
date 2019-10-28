@@ -12,6 +12,7 @@ import java.util.Set;
 
 import javax.enterprise.context.ApplicationScoped;
 
+import io.stackgres.operator.validation.Operation;
 import io.stackgres.operator.validation.PgConfigReview;
 import io.stackgres.operator.validation.ValidationFailed;
 
@@ -23,16 +24,20 @@ public class BlacklistValidator implements PgConfigValidator {
   @Override
   public void validate(PgConfigReview review) throws ValidationFailed {
 
-    Map<String, String> confProperties = review.getRequest()
-        .getObject().getSpec().getPostgresqlConf();
+    Operation operation = review.getRequest().getOperation();
+    if (operation == Operation.CREATE || operation == Operation.UPDATE) {
+      Map<String, String> confProperties = review.getRequest()
+          .getObject().getSpec().getPostgresqlConf();
 
-    String[] blacklistedProperties = confProperties.keySet().stream()
-        .filter(BLACKLIST::contains).toArray(String[]::new);
-    int blacklistCount = blacklistedProperties.length;
+      String[] blacklistedProperties = confProperties.keySet().stream()
+          .filter(BLACKLIST::contains).toArray(String[]::new);
+      int blacklistCount = blacklistedProperties.length;
 
-    if (blacklistCount > 0) {
-      throw new ValidationFailed("Invalid postgres configuration, properties: "
-          + String.join(", ", blacklistedProperties) + " cannot be settled");
+      if (blacklistCount > 0) {
+        throw new ValidationFailed("Invalid postgres configuration, properties: "
+            + String.join(", ", blacklistedProperties) + " cannot be settled");
+      }
+
     }
   }
 }

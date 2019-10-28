@@ -1,4 +1,34 @@
+/*
+ * Copyright (C) 2019 OnGres, Inc.
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
 package io.stackgres.operator.validation.profile;
 
-public class SgProfileValidationPipeline {
+import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.Any;
+import javax.enterprise.inject.Instance;
+import javax.inject.Inject;
+
+import io.stackgres.operator.validation.SgProfileReview;
+import io.stackgres.operator.validation.ValidationFailed;
+import io.stackgres.operator.validation.ValidationPipeline;
+
+@ApplicationScoped
+public class SgProfileValidationPipeline implements ValidationPipeline<SgProfileReview> {
+
+  private Instance<SgProfileValidator> validators;
+
+  @Inject
+  public SgProfileValidationPipeline(@Any Instance<SgProfileValidator> validators) {
+    this.validators = validators;
+  }
+
+  @Override
+  public void validate(SgProfileReview review) throws ValidationFailed {
+
+    for (SgProfileValidator validator : validators) {
+      validator.validate(review);
+    }
+  }
 }

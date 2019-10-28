@@ -40,4 +40,46 @@ webhooks:
         name: {{ .Release.Name }}
         path: '/stackgres/validation/pgconfig'
       caBundle: {{ .Values.cert.crt }}
+---
+apiVersion: admissionregistration.k8s.io/v1beta1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: {{ .Values.operatorName }}-pgbouncer
+  namespace: {{ .Release.Namespace }}
+webhooks:
+  - name: pgbouncer.{{ .Values.operatorName }}.{{ .Values.operatorNamespace }}
+    sideEffects: None
+    rules:
+      - operations: ["CREATE", "UPDATE", "DELETE"]
+        apiGroups: ["stackgres.io"]
+        apiVersions: ["*"]
+        resources: ["sgconnectionpoolingconfigs"]
+    failurePolicy: Fail
+    clientConfig:
+      service:
+        namespace: {{ .Release.Namespace }}
+        name: {{ .Values.operatorName }}
+        path: '/stackgres/validation/pgbouncer'
+      caBundle: {{ .Values.cert.crt }}
+---
+apiVersion: admissionregistration.k8s.io/v1beta1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: {{ .Values.operatorName }}-sgprofile
+  namespace: {{ .Release.Namespace }}
+webhooks:
+  - name: sgprofile.{{ .Values.operatorName }}.{{ .Values.operatorNamespace }}
+    sideEffects: None
+    rules:
+      - operations: ["CREATE", "UPDATE", "DELETE"]
+        apiGroups: ["stackgres.io"]
+        apiVersions: ["*"]
+        resources: ["sgprofiles"]
+    failurePolicy: Fail
+    clientConfig:
+      service:
+        namespace: {{ .Release.Namespace }}
+        name: {{ .Values.operatorName }}
+        path: '/stackgres/validation/sgprofile'
+      caBundle: {{ .Values.cert.crt }}
 {{ end }}

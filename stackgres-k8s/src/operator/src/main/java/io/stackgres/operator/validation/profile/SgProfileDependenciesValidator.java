@@ -17,17 +17,17 @@ import io.stackgres.operator.validation.ValidationFailed;
 
 @ApplicationScoped
 public class SgProfileDependenciesValidator extends DependenciesValidator<SgProfileReview>
-        implements SgProfileValidator {
+    implements SgProfileValidator {
 
-    @Inject
-    public SgProfileDependenciesValidator(KubernetesScanner<StackGresClusterList> clusterScanner) {
-        super(clusterScanner);
-    }
+  @Inject
+  public SgProfileDependenciesValidator(KubernetesScanner<StackGresClusterList> clusterScanner) {
+    super(clusterScanner);
+  }
 
-    @Override
-    protected void validate(SgProfileReview review, StackGresCluster i) throws ValidationFailed {
-        if (i.getSpec().getResourceProfile().equals(review.getRequest().getName())) {
-            fail(review, i);
-        }
+  @Override
+  protected void validate(SgProfileReview review, StackGresCluster i) throws ValidationFailed {
+    if (i.getSpec().getResourceProfile().equals(review.getRequest().getName())) {
+      fail(review, i);
     }
+  }
 }

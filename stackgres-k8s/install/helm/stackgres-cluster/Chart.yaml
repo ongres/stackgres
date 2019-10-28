@@ -21,4 +21,3 @@ engine: gotpl
 icon: https://assets.gitlab-static.net/uploads/-/system/project/avatar/12584701/logo-stackgres.png?width=64
 appVersion: 0.8-SNAPSHOT
 deprecated: false
-tillerVersion: "=2.14.3"
