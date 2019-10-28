@@ -326,13 +326,8 @@ public class ItHelper {
     Instant end = Instant.now().plus(Duration.of(timeout, unit));
     while (true) {
       if (Instant.now().isAfter(end)) {
-        try {
-          onTimeout.run();
-        } catch (Exception ex) {
-          LOGGER.error("An error occurred after timeout when waiting for a condition to occurr",
-              ex);
-          break;
-        }
+        onTimeout.run();
+        throw new TimeoutException("Timeout after waiting for the specified condition");
       }
       TimeUnit.SECONDS.sleep(1);
       try {

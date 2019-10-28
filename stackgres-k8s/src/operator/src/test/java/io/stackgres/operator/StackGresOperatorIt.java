@@ -44,6 +44,8 @@ public class StackGresOperatorIt extends AbstractStackGresOperatorIt {
     checkStackGresCluster(kind, 1);
     ItHelper.upgradeStackGresCluster(kind, namespace, CLUSTER_NAME, 2);
     checkStackGresCluster(kind, 2);
+    ItHelper.deleteStackGresCluster(kind, namespace, CLUSTER_NAME);
+    checkStackGresClusterDeletion(kind);
   }
 
   private void checkStackGresCluster(Container kind, int instances) throws Exception {
@@ -89,5 +91,16 @@ public class StackGresOperatorIt extends AbstractStackGresOperatorIt {
                   + "' in namespace '" + namespace + "':\n"
                   + s.collect(Collectors.joining("\n"))));
     }
+  }
+
+  private void checkStackGresClusterDeletion(Container kind) throws Exception {
+    ItHelper.waitUntil(Unchecked.supplier(() -> kind.execute("sh", "-l", "-c",
+        "kubectl describe statefulset -n  " + namespace + " " + CLUSTER_NAME + " || echo 1")),
+        s -> s.anyMatch(line -> line.equals("1")), 60, ChronoUnit.SECONDS,
+        s -> Assertions.fail(
+            "Timeout while checking deletion of"
+                + " StatefulSet '" + CLUSTER_NAME
+                + "' in namespace '" + namespace + "':\n"
+                + s.collect(Collectors.joining("\n"))));
   }
 }
