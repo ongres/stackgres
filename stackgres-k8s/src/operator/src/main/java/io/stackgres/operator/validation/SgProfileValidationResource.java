@@ -6,6 +6,7 @@
 package io.stackgres.operator.validation;
 
 import javax.enterprise.event.Observes;
+import javax.enterprise.inject.Any;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
@@ -27,7 +28,7 @@ public class SgProfileValidationResource implements ValidationResource<SgProfile
   private ValidationPipeline<SgProfileReview> pipeline;
 
   @Inject
-  public SgProfileValidationResource(ValidationPipeline<SgProfileReview> pipeline) {
+  public SgProfileValidationResource(@Any ValidationPipeline<SgProfileReview> pipeline) {
     this.pipeline = pipeline;
   }
 
