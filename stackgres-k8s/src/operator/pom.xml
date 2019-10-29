@@ -148,7 +148,10 @@
                 </goals>
                 <configuration>
                   <enableHttpUrlHandler>true</enableHttpUrlHandler>
-                  <additionalBuildArgs>-H:IncludeResources=.*/banner.txt</additionalBuildArgs>
+                  <additionalBuildArgs>
+                    <additionalBuildArg>-H:IncludeResources=.*/banner.txt</additionalBuildArg>
+                    <additionalBuildArg>-H:ReflectionConfigurationFiles=${project.basedir}/reflection-config.json</additionalBuildArg>
+                  </additionalBuildArgs>
                   <enableReports>false</enableReports>
                 </configuration>
               </execution>
