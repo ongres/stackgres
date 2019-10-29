@@ -11,7 +11,6 @@ import io.fabric8.kubernetes.api.model.GroupVersionKind;
 import io.fabric8.kubernetes.api.model.GroupVersionResource;
 import io.fabric8.kubernetes.api.model.authentication.UserInfo;
 import io.quarkus.runtime.annotations.RegisterForReflection;
-import io.stackgres.operatorframework.Operation;
 
 @RegisterForReflection
 public class AdmissionRequest<T> {

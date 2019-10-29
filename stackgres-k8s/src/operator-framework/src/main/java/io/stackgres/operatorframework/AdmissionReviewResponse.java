@@ -7,7 +7,6 @@ package io.stackgres.operatorframework;
 
 import io.fabric8.kubernetes.api.model.GroupVersionKind;
 import io.quarkus.runtime.annotations.RegisterForReflection;
-import io.stackgres.operatorframework.AdmissionResponse;
 
 @RegisterForReflection
 public class AdmissionReviewResponse extends GroupVersionKind {

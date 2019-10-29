@@ -8,7 +8,6 @@ package io.stackgres.operatorframework;
 import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import io.stackgres.operatorframework.Result;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class AdmissionResponse {

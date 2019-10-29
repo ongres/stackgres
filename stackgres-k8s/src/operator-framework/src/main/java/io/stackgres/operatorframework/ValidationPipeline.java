@@ -5,8 +5,6 @@
 
 package io.stackgres.operatorframework;
 
-import io.stackgres.operatorframework.ValidationFailed;
-
 public interface ValidationPipeline<T> {
 
   void validate(T review) throws ValidationFailed;

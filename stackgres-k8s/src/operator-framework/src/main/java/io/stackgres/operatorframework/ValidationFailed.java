@@ -5,8 +5,6 @@
 
 package io.stackgres.operatorframework;
 
-import io.stackgres.operatorframework.Result;
-
 public class ValidationFailed extends Exception {
 
   private static final long serialVersionUID = 6127484041987197268L;
