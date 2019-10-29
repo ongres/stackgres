@@ -12,7 +12,7 @@ import java.util.Set;
 import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.operator.utils.JsonUtil;
 import io.stackgres.operator.validation.PgConfigReview;
-import io.stackgres.operator.validation.ValidationFailed;
+import io.stackgres.operatorframework.ValidationFailed;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -33,7 +33,6 @@ class BlacklistValidatorTest {
 
     validator.validate(review);
 
-
   }
 
   @Test
@@ -41,6 +40,16 @@ class BlacklistValidatorTest {
 
     PgConfigReview review = JsonUtil.readFromJson("pgconfig_allow_request/valid_pgconfig_update.json",
         PgConfigReview.class);
+
+    validator.validate(review);
+
+  }
+
+  @Test
+  void givenConfigurationDeletion_shouldNotFail() throws ValidationFailed {
+
+    PgConfigReview review = JsonUtil.readFromJson("pgconfig_allow_request/pgconfig_delete.json",
+            PgConfigReview.class);
 
     validator.validate(review);
 

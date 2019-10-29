@@ -13,7 +13,7 @@ import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.services.KubernetesCustomResourceFinder;
 import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfig;
 import io.stackgres.operator.validation.StackgresClusterReview;
-import io.stackgres.operator.validation.ValidationFailed;
+import io.stackgres.operatorframework.ValidationFailed;
 
 @ApplicationScoped
 public class PgBouncerValidator implements ClusterValidator {

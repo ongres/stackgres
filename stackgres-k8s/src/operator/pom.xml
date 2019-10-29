@@ -34,13 +34,13 @@
       <groupId>io.stackgres</groupId>
       <artifactId>stackgres-common</artifactId>
       <version>${project.version}</version>
-    </dependency>
+    </dependency>-->
     <dependency>
       <groupId>io.stackgres</groupId>
       <artifactId>stackgres-operator-framework</artifactId>
       <version>${project.version}</version>
     </dependency>
--->
+
 
     <dependency>
       <groupId>org.mockito</groupId>
@@ -56,18 +56,6 @@
     <dependency>
       <groupId>javax.validation</groupId>
       <artifactId>validation-api</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-resteasy-jackson</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-kubernetes-client</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-smallrye-health</artifactId>
     </dependency>
     <dependency>
       <groupId>io.quarkus</groupId>
@@ -160,7 +148,10 @@
                 </goals>
                 <configuration>
                   <enableHttpUrlHandler>true</enableHttpUrlHandler>
-                  <additionalBuildArgs>-H:IncludeResources=.*/banner.txt</additionalBuildArgs>
+                  <additionalBuildArgs>
+                    <additionalBuildArg>-H:IncludeResources=.*/banner.txt</additionalBuildArg>
+                    <additionalBuildArg>-H:ReflectionConfigurationFiles=${project.basedir}/reflection-config.json</additionalBuildArg>
+                  </additionalBuildArgs>
                   <enableReports>false</enableReports>
                 </configuration>
               </execution>

@@ -10,7 +10,7 @@ import java.util.regex.Pattern;
 import javax.enterprise.context.ApplicationScoped;
 
 import io.stackgres.operator.validation.StackgresClusterReview;
-import io.stackgres.operator.validation.ValidationFailed;
+import io.stackgres.operatorframework.ValidationFailed;
 
 @ApplicationScoped
 public class VolumeSizeValidator implements ClusterValidator {

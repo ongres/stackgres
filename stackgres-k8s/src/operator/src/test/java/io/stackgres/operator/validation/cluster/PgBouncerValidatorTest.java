@@ -10,9 +10,9 @@ import java.util.Optional;
 import io.stackgres.operator.services.KubernetesCustomResourceFinder;
 import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfig;
 import io.stackgres.operator.utils.JsonUtil;
-import io.stackgres.operator.validation.Operation;
+import io.stackgres.operatorframework.Operation;
 import io.stackgres.operator.validation.StackgresClusterReview;
-import io.stackgres.operator.validation.ValidationFailed;
+import io.stackgres.operatorframework.ValidationFailed;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

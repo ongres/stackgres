@@ -12,7 +12,7 @@ import io.fabric8.kubernetes.api.model.storage.StorageClass;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.services.KubernetesResourceFinder;
 import io.stackgres.operator.validation.StackgresClusterReview;
-import io.stackgres.operator.validation.ValidationFailed;
+import io.stackgres.operatorframework.ValidationFailed;
 
 @ApplicationScoped
 public class StorageClassValidator implements ClusterValidator {
