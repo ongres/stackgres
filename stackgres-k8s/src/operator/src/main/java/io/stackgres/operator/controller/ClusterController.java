@@ -21,6 +21,7 @@ import io.fabric8.kubernetes.api.model.EventSourceBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectReferenceBuilder;
 import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
+import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.operator.app.KubernetesClientFactory;
@@ -144,6 +145,14 @@ public class ClusterController {
         List<HasMetadata> sgResources = new ArrayList<>(patroni.getResources(config));
         Collections.reverse(sgResources);
         for (HasMetadata sgResource : sgResources) {
+          if (sgResource instanceof StatefulSet) {
+            client.apps().statefulSets()
+                .inNamespace(sgResource.getMetadata().getNamespace())
+                .withName(sgResource.getMetadata().getName())
+                .cascading(false)
+                .delete();
+            continue;
+          }
           client.resource(sgResource).delete();
         }
         LOGGER.info("Cluster deleted: '{}.{}'",
