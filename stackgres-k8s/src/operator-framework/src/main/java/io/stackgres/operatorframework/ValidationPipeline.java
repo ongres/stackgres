@@ -3,7 +3,9 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.validation;
+package io.stackgres.operatorframework;
+
+import io.stackgres.operatorframework.ValidationFailed;
 
 public interface ValidationPipeline<T> {
 

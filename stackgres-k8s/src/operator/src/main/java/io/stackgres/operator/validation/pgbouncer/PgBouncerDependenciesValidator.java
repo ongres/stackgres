@@ -13,7 +13,7 @@ import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.customresource.sgcluster.StackGresClusterList;
 import io.stackgres.operator.validation.DependenciesValidator;
 import io.stackgres.operator.validation.PgBouncerReview;
-import io.stackgres.operator.validation.ValidationFailed;
+import io.stackgres.operatorframework.ValidationFailed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

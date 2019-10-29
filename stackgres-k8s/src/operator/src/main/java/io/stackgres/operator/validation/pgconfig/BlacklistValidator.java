@@ -9,12 +9,11 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-
 import javax.enterprise.context.ApplicationScoped;
 
-import io.stackgres.operator.validation.Operation;
 import io.stackgres.operator.validation.PgConfigReview;
-import io.stackgres.operator.validation.ValidationFailed;
+import io.stackgres.operatorframework.Operation;
+import io.stackgres.operatorframework.ValidationFailed;
 
 @ApplicationScoped
 public class BlacklistValidator implements PgConfigValidator {

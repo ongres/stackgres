@@ -13,6 +13,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.stackgres.operator.validation.cluster.AlwaysSuccess;
 import io.stackgres.operator.validation.cluster.ClusterValidationPipeline;
 import io.stackgres.operator.validation.cluster.ClusterValidator;
+import io.stackgres.operatorframework.AdmissionReviewResponse;
 import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.internal.inject.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;

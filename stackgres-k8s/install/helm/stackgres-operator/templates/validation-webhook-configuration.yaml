@@ -44,10 +44,10 @@ webhooks:
 apiVersion: admissionregistration.k8s.io/v1beta1
 kind: ValidatingWebhookConfiguration
 metadata:
-  name: {{ .Values.operatorName }}-pgbouncer
+  name: {{ .Release.Name }}-pgbouncer
   namespace: {{ .Release.Namespace }}
 webhooks:
-  - name: pgbouncer.{{ .Values.operatorName }}.{{ .Values.operatorNamespace }}
+  - name: pgbouncer.{{ .Release.Name }}.{{ .Release.Namespace }}
     sideEffects: None
     rules:
       - operations: ["CREATE", "UPDATE", "DELETE"]
@@ -58,17 +58,17 @@ webhooks:
     clientConfig:
       service:
         namespace: {{ .Release.Namespace }}
-        name: {{ .Values.operatorName }}
+        name: {{ .Release.Name }}
         path: '/stackgres/validation/pgbouncer'
       caBundle: {{ .Values.cert.crt }}
 ---
 apiVersion: admissionregistration.k8s.io/v1beta1
 kind: ValidatingWebhookConfiguration
 metadata:
-  name: {{ .Values.operatorName }}-sgprofile
+  name: {{ .Release.Name }}-sgprofile
   namespace: {{ .Release.Namespace }}
 webhooks:
-  - name: sgprofile.{{ .Values.operatorName }}.{{ .Values.operatorNamespace }}
+  - name: sgprofile.{{ .Release.Name }}.{{ .Release.Namespace }}
     sideEffects: None
     rules:
       - operations: ["CREATE", "UPDATE", "DELETE"]
@@ -79,7 +79,7 @@ webhooks:
     clientConfig:
       service:
         namespace: {{ .Release.Namespace }}
-        name: {{ .Values.operatorName }}
+        name: {{ .Release.Name }}
         path: '/stackgres/validation/sgprofile'
       caBundle: {{ .Values.cert.crt }}
 {{ end }}

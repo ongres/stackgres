@@ -7,6 +7,7 @@ package io.stackgres.operator.validation;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfig;
+import io.stackgres.operatorframework.AdmissionReview;
 
 @RegisterForReflection
 public class PgConfigReview extends AdmissionReview<StackGresPostgresConfig> {

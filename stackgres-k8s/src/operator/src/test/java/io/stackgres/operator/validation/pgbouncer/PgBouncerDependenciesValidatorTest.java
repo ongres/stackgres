@@ -8,7 +8,7 @@ package io.stackgres.operator.validation.pgbouncer;
 import io.stackgres.operator.utils.JsonUtil;
 import io.stackgres.operator.validation.DependenciesValidatorTest;
 import io.stackgres.operator.validation.PgBouncerReview;
-import io.stackgres.operator.validation.ValidationFailed;
+import io.stackgres.operatorframework.ValidationFailed;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

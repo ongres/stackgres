@@ -15,6 +15,8 @@ import javax.ws.rs.core.MediaType;
 
 import io.quarkus.runtime.StartupEvent;
 import io.stackgres.operator.validation.cluster.ClusterValidationPipeline;
+import io.stackgres.operatorframework.AdmissionReviewResponse;
+import io.stackgres.operatorframework.ValidationResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

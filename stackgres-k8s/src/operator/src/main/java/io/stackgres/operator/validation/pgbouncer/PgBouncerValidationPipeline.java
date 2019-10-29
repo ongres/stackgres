@@ -11,8 +11,8 @@ import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
 import io.stackgres.operator.validation.PgBouncerReview;
-import io.stackgres.operator.validation.ValidationFailed;
-import io.stackgres.operator.validation.ValidationPipeline;
+import io.stackgres.operatorframework.ValidationFailed;
+import io.stackgres.operatorframework.ValidationPipeline;
 
 @ApplicationScoped
 public class PgBouncerValidationPipeline implements ValidationPipeline<PgBouncerReview> {

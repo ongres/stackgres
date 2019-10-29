@@ -11,6 +11,10 @@ import io.stackgres.operator.common.KubernetesScanner;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.customresource.sgcluster.StackGresClusterDefinition;
 import io.stackgres.operator.customresource.sgcluster.StackGresClusterList;
+import io.stackgres.operatorframework.AdmissionReview;
+import io.stackgres.operatorframework.Operation;
+import io.stackgres.operatorframework.ValidationFailed;
+import io.stackgres.operatorframework.Validator;
 
 public abstract class DependenciesValidator<T extends AdmissionReview> implements Validator<T> {
 

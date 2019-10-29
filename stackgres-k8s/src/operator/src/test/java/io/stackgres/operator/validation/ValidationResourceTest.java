@@ -5,6 +5,11 @@
 
 package io.stackgres.operator.validation;
 
+import io.stackgres.operatorframework.AdmissionReview;
+import io.stackgres.operatorframework.AdmissionReviewResponse;
+import io.stackgres.operatorframework.ValidationFailed;
+import io.stackgres.operatorframework.ValidationPipeline;
+import io.stackgres.operatorframework.ValidationResource;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
