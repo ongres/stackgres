@@ -6,13 +6,11 @@
 package io.stackgres.operator.configuration;
 
 import java.util.Map;
+import java.util.Optional;
 
 import com.google.common.collect.ImmutableMap;
-
 import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
-
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.immutables.value.Value;
 
 @Value.Immutable
@@ -20,8 +18,7 @@ public abstract class StorageConfig {
 
   public abstract String getSize();
 
-  @Nullable
-  public abstract String getStorageClass();
+  public abstract Optional<String> getStorageClass();
 
   @Value.Derived
   Map<String, Quantity> getStorage() {

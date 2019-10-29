@@ -28,7 +28,7 @@
     <module>common</module>
     <module>operator-framework</module>
     <module>operator</module>
-    <module>cli</module>
+    <!-- <module>cli</module> -->
   </modules>
 
   <scm>
@@ -44,7 +44,7 @@
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>
     <!-- Dependencies versions -->
-    <quarkus.version>0.26.1</quarkus.version>
+    <quarkus.version>0.27.0</quarkus.version>
     <jool.version>0.9.14</jool.version>
     <kubernetes-client.version>4.6.1</kubernetes-client.version>
     <immutables.version>2.7.5</immutables.version>
@@ -86,8 +86,10 @@
     <dependencies>
       <dependency>
         <groupId>io.fabric8</groupId>
-        <artifactId>kubernetes-client</artifactId>
+        <artifactId>kubernetes-client-bom</artifactId>
         <version>${kubernetes-client.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
       </dependency>
       <dependency>
         <groupId>io.quarkus</groupId>
@@ -127,22 +129,6 @@
       <version>${immutables.version}</version>
       <scope>provided</scope>
     </dependency>
-    <dependency>
-      <groupId>javax.annotation</groupId>
-      <artifactId>javax.annotation-api</artifactId>
-      <version>${javax.annotation-api.version}</version><!--$NO-MVN-MAN-VER$-->
-    </dependency>
-    <dependency>
-      <groupId>javax.validation</groupId>
-      <artifactId>validation-api</artifactId>
-      <version>${javax.validation-api.version}</version><!--$NO-MVN-MAN-VER$-->
-    </dependency>
-    <dependency>
-      <groupId>org.checkerframework</groupId>
-      <artifactId>checker-qual</artifactId>
-      <version>${checker.version}</version>
-      <scope>provided</scope>
-    </dependency>
   </dependencies>
 
   <build>
@@ -170,6 +156,7 @@
         <configuration>
           <compilerArgs>
             <arg>-Xlint:all</arg>
+            <arg>-Xlint:-processing</arg> <!-- Ignore warning: No processor claimed any of these annotations -->
           </compilerArgs>
           <showDeprecation>true</showDeprecation>
           <showWarnings>true</showWarnings>
@@ -250,8 +237,17 @@
           <groupId>org.jboss.jandex</groupId>
           <artifactId>jandex-maven-plugin</artifactId>
           <version>${jandex-maven-plugin.version}</version>
+          <executions>
+            <execution>
+              <id>make-index</id>
+              <goals>
+                <goal>jandex</goal>
+              </goals>
+            </execution>
+          </executions>
         </plugin>
-        <!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
+        <!--This plugin's configuration is used to store Eclipse m2e settings only.
+            It has no influence on the Maven build itself.-->
         <plugin>
           <groupId>org.eclipse.m2e</groupId>
           <artifactId>lifecycle-mapping</artifactId>
@@ -276,7 +272,7 @@
                   <pluginExecutionFilter>
                     <groupId>io.quarkus</groupId>
                     <artifactId>quarkus-maven-plugin</artifactId>
-                    <versionRange>[0.22.0,)</versionRange>
+                    <versionRange>[${quarkus.version},)</versionRange>
                     <goals>
                       <goal>build</goal>
                     </goals>

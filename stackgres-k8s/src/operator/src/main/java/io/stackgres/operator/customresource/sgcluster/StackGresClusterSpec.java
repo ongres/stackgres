@@ -8,13 +8,13 @@ package io.stackgres.operator.customresource.sgcluster;
 import java.util.List;
 
 import javax.validation.constraints.Min;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.MoreObjects;
-
 import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
@@ -26,18 +26,18 @@ public class StackGresClusterSpec implements KubernetesResource {
   private static final long serialVersionUID = -5276087851826599719L;
 
   @JsonProperty("instances")
-  @Min(1)
+  @Min(value = 1, message = "You need at least 1 instance in the cluster")
   private int instances;
 
   @JsonProperty("pg_version")
+  @NotBlank(message = "PostgreSQL version is required")
   private String postgresVersion;
 
   @JsonProperty("pg_config")
-  @NotNull
+  @NotBlank(message = "You need to associate a Postgres configuration to this cluster")
   private String postgresConfig;
 
   @JsonProperty("postgres_exporter_version")
-  @NotNull
   private String postgresExporterVersion;
 
   @JsonProperty("resource_profile")

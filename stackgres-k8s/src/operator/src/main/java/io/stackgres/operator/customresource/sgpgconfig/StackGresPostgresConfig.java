@@ -5,8 +5,10 @@
 
 package io.stackgres.operator.customresource.sgpgconfig;
 
-import com.google.common.base.MoreObjects;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 
+import com.google.common.base.MoreObjects;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
@@ -15,6 +17,8 @@ public class StackGresPostgresConfig extends CustomResource {
 
   private static final long serialVersionUID = -5276087851826599719L;
 
+  @NotNull(message = "The specification of StackGresPostgresConfig is required")
+  @Valid
   private StackGresPostgresConfigSpec spec;
 
   public StackGresPostgresConfigSpec getSpec() {
