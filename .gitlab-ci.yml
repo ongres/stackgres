@@ -34,6 +34,7 @@ cache:
 stages:
   - compile
   - package
+  - pre integration test
   - integration test
   - check-release
   - deploy
@@ -48,14 +49,6 @@ compile:
     paths:
       - target
       - '*/target'
-
-#verify checker:
-#  stage: verify
-#  tags:
-#    - stackgres-runner
-#  script:
-#    - 'mvn $MAVEN_CLI_OPTS verify -P checker'
-#  allow_failure: true
 
 native image:
   stage: package
@@ -87,6 +80,42 @@ enforce release:
   only:
     - tags
 
+reset kind:
+  stage: pre integration test
+  tags:
+    - stackgres-runner
+  variables:
+    KIND_SUFFIX: "none"
+  script:
+    - 'flock -w 3600 /tmp/stackgres-integration-test mvn $MAVEN_CLI_OPTS verify -P reset-kind'
+  only:
+    variables:
+      - $RESET_KIND
+
+reset kind jvm image:
+  stage: pre integration test
+  tags:
+    - stackgres-runner
+  variables:
+    KIND_SUFFIX: jvm-image
+  script:
+    - 'flock -w 3600 /tmp/stackgres-integration-test-jvm-image mvn $MAVEN_CLI_OPTS verify -P reset-kind'
+  only:
+    variables:
+      - $RESET_KIND
+
+reset kind native image:
+  stage: pre integration test
+  tags:
+    - stackgres-runner
+  variables:
+    KIND_SUFFIX: native-image
+  script:
+    - 'flock -w 3600 /tmp/stackgres-integration-test-native-image mvn $MAVEN_CLI_OPTS verify -P reset-kind'
+  only:
+    variables:
+      - $RESET_KIND
+
 integration test:
   stage: integration test
   tags:
@@ -104,6 +133,7 @@ integration test jvm image:
     - compile
   variables:
     OPERATOR_IN_KUBERNETES: "true"
+    KIND_SUFFIX: jvm-image
   retry: 2
   script:
     - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_REF_NAME"}"-jvm'
@@ -115,7 +145,7 @@ integration test jvm image:
         export IMAGE_TAG=development-jvm
       fi
     - 'export IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
-    - 'flock -w 3600 /tmp/stackgres-integration-test-jvm-image mvn $MAVEN_CLI_OPTS verify -P build-image-jvm,integration -DargLine=-Dcom.ongres.junit.docker.runnerId=jvm-image'
+    - 'flock -w 3600 /tmp/stackgres-integration-test-jvm-image mvn $MAVEN_CLI_OPTS verify -P build-image-jvm,integration -DargLine=-Dcom.ongres.junit.docker.runnerId="$KIND_SUFFIX"'
 
 integration test native image:
   stage: integration test
@@ -126,6 +156,7 @@ integration test native image:
     - native image
   variables:
     OPERATOR_IN_KUBERNETES: "true"
+    KIND_SUFFIX: native-image
   script:
     - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_REF_NAME"}"'
     - |
@@ -136,7 +167,7 @@ integration test native image:
         export IMAGE_TAG=development
       fi
     - 'export IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
-    - 'flock -w 3600 /tmp/stackgres-integration-test-native-image mvn $MAVEN_CLI_OPTS verify -P build-image-native,integration -DargLine=-Dcom.ongres.junit.docker.runnerId=native-image'
+    - 'flock -w 3600 /tmp/stackgres-integration-test-native-image mvn $MAVEN_CLI_OPTS verify -P build-image-native,integration -DargLine=-Dcom.ongres.junit.docker.runnerId="$KIND_SUFFIX"'
 
 deploy jvm image:
   image: docker.io/ongres/builder:latest
