@@ -41,7 +41,7 @@ public class AdmissionRequest<T> {
 
   private T oldObject;
 
-  private T options;
+  private GroupVersionKind options;
 
   private boolean dryRun;
 
@@ -149,11 +149,11 @@ public class AdmissionRequest<T> {
     this.oldObject = oldObject;
   }
 
-  public T getOptions() {
+  public GroupVersionKind getOptions() {
     return options;
   }
 
-  public void setOptions(T options) {
+  public void setOptions(GroupVersionKind options) {
     this.options = options;
   }
 
