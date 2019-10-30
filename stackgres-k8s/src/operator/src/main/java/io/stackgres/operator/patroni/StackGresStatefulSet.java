@@ -11,7 +11,6 @@ import java.util.Optional;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-
 import io.fabric8.kubernetes.api.model.AffinityBuilder;
 import io.fabric8.kubernetes.api.model.ConfigMapEnvSourceBuilder;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
@@ -87,7 +86,7 @@ public class StackGresStatefulSet {
     PersistentVolumeClaimSpecBuilder volumeClaimSpec = new PersistentVolumeClaimSpecBuilder()
         .withAccessModes("ReadWriteOnce")
         .withResources(storage.getResourceRequirements())
-        .withStorageClassName(storage.getStorageClass());
+        .withStorageClassName(storage.getStorageClass().orElse(null));
 
     Map<String, String> labels = ResourceUtil.defaultLabels(name);
     Map<String, String> podLabels = ImmutableMap.<String, String>builder()

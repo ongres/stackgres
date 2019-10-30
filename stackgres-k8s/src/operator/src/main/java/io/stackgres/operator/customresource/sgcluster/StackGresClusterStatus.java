@@ -68,9 +68,6 @@ public class StackGresClusterStatus implements KubernetesResource {
   @JsonProperty("pods_ready")
   private String podsReady;
 
-  @JsonProperty("replicas")
-  private String replicas;
-
   @JsonProperty("conditions")
   @JsonInclude(JsonInclude.Include.NON_EMPTY)
   private List<StackGresClusterCondition> conditions = new ArrayList<>();
@@ -191,14 +188,6 @@ public class StackGresClusterStatus implements KubernetesResource {
     this.podsReady = podsReady;
   }
 
-  public String getReplicas() {
-    return replicas;
-  }
-
-  public void setReplicas(String replicas) {
-    this.replicas = replicas;
-  }
-
   public List<StackGresClusterCondition> getConditions() {
     return conditions;
   }
@@ -223,7 +212,6 @@ public class StackGresClusterStatus implements KubernetesResource {
         .add("average_load_10m", averageLoad10m)
         .add("pods", pods)
         .add("pods_ready", podsReady)
-        .add("replicas", replicas)
         .add("conditions", conditions)
         .toString();
   }

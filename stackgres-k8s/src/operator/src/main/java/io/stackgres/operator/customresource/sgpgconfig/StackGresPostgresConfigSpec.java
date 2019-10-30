@@ -7,13 +7,13 @@ package io.stackgres.operator.customresource.sgpgconfig;
 
 import java.util.Map;
 
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.MoreObjects;
-
 import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
@@ -25,10 +25,11 @@ public class StackGresPostgresConfigSpec implements KubernetesResource {
   private static final long serialVersionUID = -5276087851826599719L;
 
   @JsonProperty("pg_version")
+  @NotBlank(message = "The PostgreSQL version is required")
   private String pgVersion;
 
   @JsonProperty("postgresql.conf")
-  @NotEmpty
+  @NotEmpty(message = "postgresql.conf should not be empty")
   private Map<String, String> postgresqlConf;
 
   public String getPgVersion() {

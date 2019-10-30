@@ -5,6 +5,9 @@
 
 package io.stackgres.operator.customresource.sgcluster;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
 import io.fabric8.kubernetes.client.CustomResource;
@@ -16,6 +19,8 @@ public class StackGresCluster extends CustomResource {
   private static final long serialVersionUID = -5276087851826599719L;
 
   @JsonProperty("spec")
+  @NotNull(message = "The specification of the cluster is required")
+  @Valid
   private StackGresClusterSpec spec;
 
   @JsonProperty("status")

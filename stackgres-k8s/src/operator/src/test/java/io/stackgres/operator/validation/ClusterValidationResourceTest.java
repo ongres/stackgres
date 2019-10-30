@@ -8,6 +8,28 @@
 
 package io.stackgres.operator.validation;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.annotation.Annotation;
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.UUID;
+
+import javax.enterprise.inject.Instance;
+import javax.inject.Singleton;
+import javax.validation.Validation;
+import javax.validation.Validator;
+import javax.validation.ValidatorFactory;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.Application;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.stackgres.operator.validation.cluster.AlwaysSuccess;
@@ -21,21 +43,6 @@ import org.glassfish.jersey.test.JerseyTest;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import javax.enterprise.inject.Instance;
-import javax.inject.Singleton;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.lang.annotation.Annotation;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 class ClusterValidationResourceTest extends JerseyTest {
 
@@ -58,8 +65,10 @@ class ClusterValidationResourceTest extends JerseyTest {
 
       @Override
       protected void configure() {
+        ValidatorFactory factory =  Validation.buildDefaultValidatorFactory();
+        Validator validator = factory.getValidator();
 
-        ClusterValidationPipeline pipeline = new ClusterValidationPipeline(getValidators());
+        ClusterValidationPipeline pipeline = new ClusterValidationPipeline(getValidators(), validator);
 
         bind(pipeline).to(ClusterValidationPipeline.class).in(Singleton.class);
 
@@ -101,8 +110,6 @@ class ClusterValidationResourceTest extends JerseyTest {
     Response response = target("/stackgres/validation/cluster").request(MediaType.APPLICATION_JSON).post(Entity.json(requestBody));
 
     String rawContent = response.readEntity(String.class);
-
-
 
     JsonNode admissionResponse = mapper.readTree(rawContent).get("response");
 

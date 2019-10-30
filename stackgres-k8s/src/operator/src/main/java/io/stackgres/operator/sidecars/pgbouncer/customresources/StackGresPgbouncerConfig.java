@@ -5,8 +5,9 @@
 
 package io.stackgres.operator.sidecars.pgbouncer.customresources;
 
-import com.google.common.base.MoreObjects;
+import javax.validation.constraints.NotNull;
 
+import com.google.common.base.MoreObjects;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
@@ -15,6 +16,7 @@ public class StackGresPgbouncerConfig extends CustomResource {
 
   private static final long serialVersionUID = 2719099984653736636L;
 
+  @NotNull(message = "The specification of StackGresPgbouncerConfig is required")
   private StackGresPgbouncerConfigSpec spec;
 
   public StackGresPgbouncerConfigSpec getSpec() {

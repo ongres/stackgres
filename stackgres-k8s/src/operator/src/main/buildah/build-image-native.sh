@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -e
+
 IMAGE_NAME="${IMAGE_NAME:-"stackgres/operator:development"}"
 CONTAINER_BASE=$(buildah from "registry.access.redhat.com/ubi8-minimal:8.0")
 
