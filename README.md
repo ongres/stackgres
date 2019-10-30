@@ -1,6 +1,6 @@
 # StackGres
 
-[![pipeline status](https://gitlab.com/stackgres/stackgres/badges/master/pipeline.svg)](https://gitlab.com/stackgres/stackgres/commits/master)
+[![master status](https://gitlab.com/ongresinc/stackgres/badges/master/pipeline.svg?style=flat-square)](https://gitlab.com/ongresinc/stackgres/commits/master)
 
 > StackGres - Enterprise-grade, Full Stack PostgreSQL on Kubernetes
 
