@@ -24,7 +24,7 @@ import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.quarkus.runtime.StartupEvent;
 import io.stackgres.operator.app.ObjectMapperProvider;
 import io.stackgres.operator.common.StackGresClusterConfig;
-import io.stackgres.operator.services.AbstractResourceHandler;
+import io.stackgres.operator.resource.AbstractResourceHandler;
 import io.stackgres.operatorframework.resource.PairVisitor;
 import io.stackgres.operatorframework.resource.ResourcePairVisitor;
 

@@ -5,10 +5,14 @@
 
 package io.stackgres.operator.sidecars.pgexporter.customresources;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.google.common.base.MoreObjects;
 
 import io.fabric8.kubernetes.client.CustomResource;
+import io.quarkus.runtime.annotations.RegisterForReflection;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
+@RegisterForReflection
 public class ServiceMonitor extends CustomResource {
 
   private static final long serialVersionUID = 2719099984653736636L;
@@ -28,6 +32,7 @@ public class ServiceMonitor extends CustomResource {
     return MoreObjects.toStringHelper(this)
         .omitNullValues()
         .add("apiVersion", getApiVersion())
+        .add("kind", getKind())
         .add("metadata", getMetadata())
         .add("spec", spec)
         .toString();

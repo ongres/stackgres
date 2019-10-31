@@ -7,33 +7,26 @@ package io.stackgres.operator.sidecars.pgexporter.customresources;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.MoreObjects;
+
 import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.fabric8.kubernetes.api.model.LabelSelector;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
+@JsonIgnoreProperties(ignoreUnknown = true)
 @RegisterForReflection
 public class ServiceMonitorSpec implements KubernetesResource {
 
   private static final long serialVersionUID = 2000013861182789247L;
 
-  private LabelSelector namespaceSelector;
-
   private LabelSelector selector;
-
-  private List<PrometheusPort> endpoints;
-
-  public LabelSelector getNamespaceSelector() {
-    return namespaceSelector;
-  }
-
-  public void setNamespaceSelector(LabelSelector namespaceSelector) {
-    this.namespaceSelector = namespaceSelector;
-  }
+  private NamespaceSelector namespaceSelector;
+  private List<Endpoint> endpoints;
 
   public LabelSelector getSelector() {
     return selector;
@@ -43,11 +36,19 @@ public class ServiceMonitorSpec implements KubernetesResource {
     this.selector = selector;
   }
 
-  public List<PrometheusPort> getEndpoints() {
+  public NamespaceSelector getNamespaceSelector() {
+    return namespaceSelector;
+  }
+
+  public void setNamespaceSelector(NamespaceSelector namespaceSelector) {
+    this.namespaceSelector = namespaceSelector;
+  }
+
+  public List<Endpoint> getEndpoints() {
     return endpoints;
   }
 
-  public void setEndpoints(List<PrometheusPort> endpoints) {
+  public void setEndpoints(List<Endpoint> endpoints) {
     this.endpoints = endpoints;
   }
 

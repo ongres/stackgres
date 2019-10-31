@@ -9,7 +9,7 @@ package io.stackgres.operator.validation.cluster;
 import java.util.Optional;
 
 import io.stackgres.operator.customresource.sgprofile.StackGresProfile;
-import io.stackgres.operator.services.KubernetesCustomResourceFinder;
+import io.stackgres.operator.resource.KubernetesCustomResourceFinder;
 import io.stackgres.operator.utils.JsonUtil;
 import io.stackgres.operator.validation.StackgresClusterReview;
 import io.stackgres.operatorframework.Operation;

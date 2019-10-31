@@ -12,7 +12,7 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.quarkus.runtime.StartupEvent;
 import io.stackgres.operator.common.StackGresClusterConfig;
-import io.stackgres.operator.services.AbstractResourceHandler;
+import io.stackgres.operator.resource.AbstractResourceHandler;
 import io.stackgres.operatorframework.resource.PairVisitor;
 import io.stackgres.operatorframework.resource.ResourcePairVisitor;
 

@@ -11,7 +11,7 @@ import javax.enterprise.event.Observes;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.quarkus.runtime.StartupEvent;
 import io.stackgres.operator.common.StackGresClusterConfig;
-import io.stackgres.operator.services.AbstractResourceHandler;
+import io.stackgres.operator.resource.AbstractResourceHandler;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,7 +37,7 @@ public class PrometheusEndpointsHandler extends AbstractResourceHandler {
   }
 
   @Override
-  public boolean isManaged(StackGresClusterConfig config, HasMetadata existingResource) {
+  public boolean isManaged() {
     return true;
   }
 

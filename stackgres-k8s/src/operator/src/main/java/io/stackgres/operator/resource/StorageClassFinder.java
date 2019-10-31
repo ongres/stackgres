@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.services;
+package io.stackgres.operator.resource;
 
 import java.util.Optional;
 import javax.enterprise.context.ApplicationScoped;

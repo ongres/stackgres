@@ -34,6 +34,7 @@ public class StackGresProfile extends CustomResource {
     return MoreObjects.toStringHelper(this)
         .omitNullValues()
         .add("apiVersion", getApiVersion())
+        .add("kind", getKind())
         .add("metadata", getMetadata())
         .add("spec", spec)
         .toString();

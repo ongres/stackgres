@@ -14,7 +14,7 @@ import javax.inject.Inject;
 
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfig;
-import io.stackgres.operator.services.KubernetesCustomResourceFinder;
+import io.stackgres.operator.resource.KubernetesCustomResourceFinder;
 import io.stackgres.operator.validation.StackgresClusterReview;
 import io.stackgres.operatorframework.ValidationFailed;
 import org.eclipse.microprofile.config.inject.ConfigProperty;

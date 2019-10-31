@@ -11,11 +11,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
@@ -39,8 +41,9 @@ import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operator.config.ConfigContext;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.resource.ResourceUtil;
+import io.stackgres.operator.sidecars.pgexporter.customresources.Endpoint;
+import io.stackgres.operator.sidecars.pgexporter.customresources.NamespaceSelector;
 import io.stackgres.operator.sidecars.pgexporter.customresources.PrometheusInstallation;
-import io.stackgres.operator.sidecars.pgexporter.customresources.PrometheusPort;
 import io.stackgres.operator.sidecars.pgexporter.customresources.ServiceMonitor;
 import io.stackgres.operator.sidecars.pgexporter.customresources.ServiceMonitorDefinition;
 import io.stackgres.operator.sidecars.pgexporter.customresources.ServiceMonitorSpec;
@@ -58,6 +61,7 @@ public class PostgresExporter
 
   public static final String EXPORTER_SERVICE_MONITOR = "-stackgres-prometheus-postgres-exporter";
   public static final String EXPORTER_SERVICE = "-prometheus-postgres-exporter";
+  public static final String CLUSTER_NAMESPACE_KEY = "cluster-namespace";
 
   private static final Logger LOGGER = LoggerFactory.getLogger(PostgresExporter.class);
 
@@ -125,7 +129,7 @@ public class PostgresExporter
         config.getCluster().getMetadata().getName());
     Map<String, String> labels = new ImmutableMap.Builder<String, String>()
         .putAll(defaultLabels)
-        .put("cluster-namespace", config.getCluster().getMetadata().getNamespace())
+        .put(CLUSTER_NAMESPACE_KEY, config.getCluster().getMetadata().getNamespace())
         .build();
 
     Optional<StackGresPostgresExporterConfig> postgresExporterConfig =
@@ -162,7 +166,11 @@ public class PostgresExporter
           serviceMonitor.setMetadata(new ObjectMetaBuilder()
               .withName(config.getCluster().getMetadata().getName()
                   + EXPORTER_SERVICE_MONITOR)
-              .withLabels(pi.getMatchLabels())
+              .withLabels(ImmutableMap.<String, String>builder()
+                  .putAll(pi.getMatchLabels())
+                  .putAll(ResourceUtil.defaultLabels(config.getCluster().getMetadata().getName()))
+                  .put(CLUSTER_NAMESPACE_KEY, config.getCluster().getMetadata().getNamespace())
+                  .build())
               .withNamespace(pi.getNamespace())
               .build());
 
@@ -170,12 +178,12 @@ public class PostgresExporter
           serviceMonitor.setSpec(spec);
           LabelSelector selector = new LabelSelector();
           spec.setSelector(selector);
-          LabelSelector namespaceSelector = new LabelSelector();
-          namespaceSelector.setAdditionalProperty("any", true);
+          NamespaceSelector namespaceSelector = new NamespaceSelector();
+          namespaceSelector.setAny(true);
           spec.setNamespaceSelector(namespaceSelector);
 
           selector.setMatchLabels(labels);
-          PrometheusPort port = new PrometheusPort();
+          Endpoint port = new Endpoint();
           port.setPort(NAME);
           spec.setEndpoints(Collections.singletonList(port));
 

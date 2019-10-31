@@ -8,7 +8,7 @@ package io.stackgres.operator.validation.cluster;
 import java.util.Optional;
 
 import io.fabric8.kubernetes.api.model.storage.StorageClass;
-import io.stackgres.operator.services.KubernetesResourceFinder;
+import io.stackgres.operator.resource.KubernetesResourceFinder;
 import io.stackgres.operator.utils.JsonUtil;
 import io.stackgres.operator.validation.StackgresClusterReview;
 import io.stackgres.operatorframework.Operation;

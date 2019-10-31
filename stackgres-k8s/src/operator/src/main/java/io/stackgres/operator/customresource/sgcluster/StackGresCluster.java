@@ -47,6 +47,7 @@ public class StackGresCluster extends CustomResource {
     return MoreObjects.toStringHelper(this)
         .omitNullValues()
         .add("apiVersion", getApiVersion())
+        .add("kind", getKind())
         .add("metadata", getMetadata())
         .add("spec", spec)
         .add("status", status)
