@@ -45,6 +45,10 @@ compile:
     - stackgres-runner
   script:
     - 'mvn $MAVEN_CLI_OPTS clean verify -P safer'
+  artifacts:
+    paths:
+      - stackgres-k8s/src/target
+      - stackgres-k8s/src/*/target
 
 native image:
   stage: package
