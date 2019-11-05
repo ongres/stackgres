@@ -21,6 +21,9 @@ public class ValidationFailed extends Exception {
     result = new Result(500, message);
   }
 
+  /**
+   * Create a {@code ValidationFailed} instance.
+   */
   public ValidationFailed(Set<? extends ConstraintViolation<?>> violations) {
     super(violations.stream()
         .map(cv -> cv.getMessage())
