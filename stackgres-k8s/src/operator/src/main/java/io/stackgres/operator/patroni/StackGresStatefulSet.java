@@ -35,6 +35,7 @@ import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import io.fabric8.kubernetes.api.model.SecretKeySelectorBuilder;
 import io.fabric8.kubernetes.api.model.SecurityContextBuilder;
+import io.fabric8.kubernetes.api.model.TCPSocketActionBuilder;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
@@ -203,14 +204,12 @@ public class StackGresStatefulSet {
                     .withValue("superuser")
                     .build())
             .withLivenessProbe(new ProbeBuilder()
-                .withHttpGet(new HTTPGetActionBuilder()
-                    .withPath("/health")
-                    .withPort(new IntOrString(8008))
-                    .withScheme("HTTP")
+                .withTcpSocket(new TCPSocketActionBuilder()
+                    .withPort(new IntOrString(5432))
                     .build())
-                .withInitialDelaySeconds(600)
-                .withPeriodSeconds(60)
-                .withFailureThreshold(5)
+                .withInitialDelaySeconds(15)
+                .withPeriodSeconds(20)
+                .withFailureThreshold(6)
                 .build())
             .withReadinessProbe(new ProbeBuilder()
                 .withHttpGet(new HTTPGetActionBuilder()
