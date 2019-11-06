@@ -34,6 +34,11 @@ public class PatroniConfigEndpoints {
     final Map<String, String> labels = ResourceUtil.defaultLabels(name);
     Optional<StackGresPostgresConfig> pgconfig = config.getPostgresConfig();
     Map<String, String> params = new HashMap<>(DefaultValues.getDefaultValues());
+
+    if (config.getBackupConfig().isPresent()) {
+      params.put("archive_command", "wal-g wal-push %p");
+    }
+
     if (pgconfig.isPresent()) {
       Map<String, String> userParams = pgconfig.get().getSpec().getPostgresqlConf();
       // Blacklist removal

@@ -30,7 +30,6 @@ import io.fabric8.kubernetes.api.model.SecretKeySelectorBuilder;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.ServicePortBuilder;
 import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
-import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.operator.common.ConfigContext;
@@ -41,6 +40,7 @@ import io.stackgres.operator.common.StackGresClusterConfig;
 import io.stackgres.operator.common.StackGresSidecarTransformer;
 import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
+import io.stackgres.operator.patroni.StackGresStatefulSet;
 import io.stackgres.operator.resource.ResourceUtil;
 import io.stackgres.operator.sidecars.pgexporter.customresources.Endpoint;
 import io.stackgres.operator.sidecars.pgexporter.customresources.NamespaceSelector;
@@ -86,10 +86,6 @@ public class PostgresExporter
   public Container getContainer(StackGresClusterConfig config) {
     Optional<StackGresPostgresExporterConfig> postgresExporterConfig =
         config.getSidecarConfig(this);
-    VolumeMount pgSocket = new VolumeMountBuilder()
-        .withName("pg-socket")
-        .withMountPath("/run/postgresql")
-        .build();
 
     ContainerBuilder container = new ContainerBuilder();
     container.withName(NAME)
@@ -118,7 +114,10 @@ public class PostgresExporter
         .withPorts(new ContainerPortBuilder()
             .withContainerPort(9187)
             .build())
-        .withVolumeMounts(pgSocket);
+        .withVolumeMounts(new VolumeMountBuilder()
+            .withName(StackGresStatefulSet.SOCKET_VOLUME_NAME)
+            .withMountPath("/run/postgresql")
+            .build());
 
     return container.build();
   }

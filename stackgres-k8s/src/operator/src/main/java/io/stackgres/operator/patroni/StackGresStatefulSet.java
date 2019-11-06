@@ -5,22 +5,29 @@
 
 package io.stackgres.operator.patroni;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.io.Resources;
+
 import io.fabric8.kubernetes.api.model.AffinityBuilder;
 import io.fabric8.kubernetes.api.model.ConfigMapEnvSourceBuilder;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
 import io.fabric8.kubernetes.api.model.EnvFromSourceBuilder;
+import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.EnvVarSourceBuilder;
 import io.fabric8.kubernetes.api.model.HTTPGetActionBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.IntOrString;
+import io.fabric8.kubernetes.api.model.KeyToPathBuilder;
 import io.fabric8.kubernetes.api.model.LabelSelectorBuilder;
 import io.fabric8.kubernetes.api.model.LabelSelectorRequirementBuilder;
 import io.fabric8.kubernetes.api.model.ObjectFieldSelectorBuilder;
@@ -34,29 +41,38 @@ import io.fabric8.kubernetes.api.model.ProbeBuilder;
 import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import io.fabric8.kubernetes.api.model.SecretKeySelectorBuilder;
+import io.fabric8.kubernetes.api.model.SecretVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.SecurityContextBuilder;
 import io.fabric8.kubernetes.api.model.TCPSocketActionBuilder;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
-import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetUpdateStrategyBuilder;
+import io.fabric8.kubernetes.api.model.batch.CronJobBuilder;
+import io.fabric8.kubernetes.api.model.batch.JobTemplateSpecBuilder;
 import io.stackgres.operator.common.StackGresClusterConfig;
 import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operator.configuration.ImmutableStorageConfig;
 import io.stackgres.operator.configuration.StorageConfig;
+import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfig;
+import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfigSpec;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfile;
 import io.stackgres.operator.resource.ResourceUtil;
 import io.stackgres.operator.sidecars.envoy.Envoy;
 
+import org.jooq.lambda.Unchecked;
+
 public class StackGresStatefulSet {
 
   public static final String PATRONI_CONTAINER_NAME = "patroni";
-  public static final String VOLUME_NAME = "pg-data";
+  public static final String DATA_VOLUME_NAME = "pg-data";
+  public static final String SOCKET_VOLUME_NAME = "pg-socket";
+  public static final String GCS_CREDENTIALS_VOLUME_NAME = "gcs-credentials";
 
   private static final String IMAGE_PREFIX = "docker.io/ongres/patroni:v%s-pg%s-build-%s";
   private static final String PATRONI_VERSION = "1.6.0";
+  private static final String GCS_CREDENTIALS_PATH = "/google-service-account-key.json";
 
   /**
    * Create a new StatefulSet based on the StackGresCluster definition.
@@ -84,26 +100,173 @@ public class StackGresStatefulSet {
           "memory", new Quantity(profile.get().getSpec().getMemory())));
     }
 
-    PersistentVolumeClaimSpecBuilder volumeClaimSpec = new PersistentVolumeClaimSpecBuilder()
+    final PersistentVolumeClaimSpecBuilder volumeClaimSpec = new PersistentVolumeClaimSpecBuilder()
         .withAccessModes("ReadWriteOnce")
         .withResources(storage.getResourceRequirements())
         .withStorageClassName(storage.getStorageClass().orElse(null));
 
-    Map<String, String> labels = ResourceUtil.defaultLabels(name);
-    Map<String, String> podLabels = ImmutableMap.<String, String>builder()
+    final Map<String, String> labels = ResourceUtil.defaultLabels(name);
+    final Map<String, String> podLabels = ImmutableMap.<String, String>builder()
         .putAll(labels)
         .put("disruptible", "true")
         .build();
 
-    VolumeMount pgSocket = new VolumeMountBuilder()
-        .withName("pg-socket")
-        .withMountPath("/run/postgresql")
-        .build();
+    ImmutableList.Builder<EnvVar> environmentsBuilder = ImmutableList.<EnvVar>builder().add(
+        new EnvVarBuilder().withName("PATRONI_NAME")
+        .withValueFrom(new EnvVarSourceBuilder()
+            .withFieldRef(
+                new ObjectFieldSelectorBuilder()
+                .withFieldPath("metadata.name").build())
+            .build())
+        .build(),
+        new EnvVarBuilder().withName("PATRONI_KUBERNETES_NAMESPACE")
+        .withValueFrom(new EnvVarSourceBuilder()
+            .withFieldRef(
+                new ObjectFieldSelectorBuilder()
+                .withFieldPath("metadata.namespace")
+                .build())
+            .build())
+        .build(),
+        new EnvVarBuilder().withName("PATRONI_KUBERNETES_POD_IP")
+        .withValueFrom(
+            new EnvVarSourceBuilder()
+            .withFieldRef(
+                new ObjectFieldSelectorBuilder()
+                .withFieldPath("status.podIP")
+                .build())
+            .build())
+        .build(),
+        new EnvVarBuilder()
+        .withName("PATRONI_POSTGRESQL_CONNECT_ADDRESS")
+        .withValue("$(PATRONI_KUBERNETES_POD_IP):" + Envoy.REPLICATION_ENTRY_PORT)
+        .build(),
+        new EnvVarBuilder().withName("PATRONI_SUPERUSER_PASSWORD")
+        .withValueFrom(new EnvVarSourceBuilder()
+            .withSecretKeyRef(
+                new SecretKeySelectorBuilder()
+                .withName(name)
+                .withKey("superuser-password")
+                .build())
+            .build())
+        .build(),
+        new EnvVarBuilder().withName("PATRONI_REPLICATION_PASSWORD")
+        .withValueFrom(new EnvVarSourceBuilder()
+            .withSecretKeyRef(
+                new SecretKeySelectorBuilder()
+                .withName(name)
+                .withKey("replication-password")
+                .build())
+            .build())
+        .build(),
+        new EnvVarBuilder().withName("PATRONI_authenticator_PASSWORD")
+        .withValueFrom(new EnvVarSourceBuilder()
+            .withSecretKeyRef(
+                new SecretKeySelectorBuilder()
+                .withName(name)
+                .withKey("authenticator-password")
+                .build())
+            .build())
+        .build(),
+        new EnvVarBuilder().withName("PATRONI_authenticator_OPTIONS")
+        .withValue("superuser")
+        .build());
 
-    VolumeMount pgData = new VolumeMountBuilder()
-        .withName(VOLUME_NAME)
-        .withMountPath("/var/lib/postgresql")
-        .build();
+    if (config.getBackupConfig().isPresent()) {
+      environmentsBuilder.add(
+          new EnvVarBuilder().withName("PGPASSWORD")
+          .withValueFrom(new EnvVarSourceBuilder()
+              .withSecretKeyRef(
+                  new SecretKeySelectorBuilder()
+                  .withName(name)
+                  .withKey("superuser-password")
+                  .build())
+              .build())
+          .build());
+    }
+
+    if (config.getBackupConfig()
+        .map(backupConfig -> backupConfig.getSpec().getPgpConfiguration())
+        .isPresent()) {
+      environmentsBuilder.add(
+          new EnvVarBuilder()
+          .withName("WALG_PGP_KEY")
+          .withValueFrom(new EnvVarSourceBuilder()
+              .withSecretKeyRef(
+                  config.getBackupConfig()
+                    .map(backupConfig -> backupConfig.getSpec().getPgpConfiguration())
+                    .map(pgpConfiguration -> pgpConfiguration.getKey()).get())
+              .build())
+          .build());
+    }
+
+    if (config.getBackupConfig()
+        .map(backupConfig -> backupConfig.getSpec().getStorage().getS3())
+        .isPresent()) {
+      environmentsBuilder.add(
+          new EnvVarBuilder()
+          .withName("AWS_ACCESS_KEY_ID")
+          .withValueFrom(new EnvVarSourceBuilder()
+              .withSecretKeyRef(
+                  config.getBackupConfig()
+                    .map(backupConfig -> backupConfig.getSpec().getStorage().getS3())
+                    .map(s3Storage -> s3Storage.getCredentials())
+                    .map(awsCredentials -> awsCredentials.getAccessKey()).get())
+              .build())
+          .build(),
+          new EnvVarBuilder()
+          .withName("AWS_SECRET_ACCESS_KEY")
+          .withValueFrom(new EnvVarSourceBuilder()
+              .withSecretKeyRef(
+                  config.getBackupConfig()
+                    .map(backupConfig -> backupConfig.getSpec().getStorage().getS3())
+                    .map(s3Storage -> s3Storage.getCredentials())
+                    .map(awsCredentials -> awsCredentials.getSecretKey()).get())
+              .build())
+          .build());
+    }
+
+    if (config.getBackupConfig()
+        .map(backupConfig -> backupConfig.getSpec().getStorage().getGcs())
+        .isPresent()) {
+      environmentsBuilder.add(
+          new EnvVarBuilder()
+          .withName("GOOGLE_APPLICATION_CREDENTIALS")
+          .withValue(GCS_CREDENTIALS_PATH)
+          .withValueFrom(new EnvVarSourceBuilder()
+              .withSecretKeyRef(
+                  config.getBackupConfig()
+                    .map(backupConfig -> backupConfig.getSpec().getStorage().getGcs())
+                    .map(s3Storage -> s3Storage.getCredentials())
+                    .map(awsCredentials -> awsCredentials.getServiceAccountJsonKey()).get())
+              .build())
+          .build());
+    }
+
+    if (config.getBackupConfig()
+        .map(backupConfig -> backupConfig.getSpec().getStorage().getAzureblob())
+        .isPresent()) {
+      environmentsBuilder.add(
+          new EnvVarBuilder()
+          .withName("AZURE_STORAGE_ACCOUNT")
+          .withValueFrom(new EnvVarSourceBuilder()
+              .withSecretKeyRef(
+                  config.getBackupConfig()
+                    .map(backupConfig -> backupConfig.getSpec().getStorage().getAzureblob())
+                    .map(s3Storage -> s3Storage.getCredentials())
+                    .map(awsCredentials -> awsCredentials.getAccount()).get())
+              .build())
+          .build(),
+          new EnvVarBuilder()
+          .withName("AZURE_STORAGE_ACCESS_KEY")
+          .withValueFrom(new EnvVarSourceBuilder()
+              .withSecretKeyRef(
+                  config.getBackupConfig()
+                    .map(backupConfig -> backupConfig.getSpec().getStorage().getAzureblob())
+                    .map(s3Storage -> s3Storage.getCredentials())
+                    .map(awsCredentials -> awsCredentials.getAccessKey()).get())
+              .build())
+          .build());
+    }
 
     StatefulSet statefulSet = new StatefulSetBuilder()
         .withNewMetadata()
@@ -159,7 +322,15 @@ public class StackGresStatefulSet {
                     .withName(PatroniConfigMap.POSTGRES_REPLICATION_PORT_NAME)
                     .withContainerPort(Envoy.REPLICATION_ENTRY_PORT).build(),
                 new ContainerPortBuilder().withContainerPort(8008).build())
-            .withVolumeMounts(pgSocket, pgData)
+            .withVolumeMounts(
+                new VolumeMountBuilder()
+                .withName(SOCKET_VOLUME_NAME)
+                .withMountPath("/run/postgresql")
+                .build(),
+                new VolumeMountBuilder()
+                .withName(DATA_VOLUME_NAME)
+                .withMountPath("/var/lib/postgresql")
+                .build())
             .withEnvFrom(new EnvFromSourceBuilder()
                 .withConfigMapRef(new ConfigMapEnvSourceBuilder()
                     .withName(name).build())
@@ -230,12 +401,30 @@ public class StackGresStatefulSet {
                 .build())
             .withResources(resources)
             .endContainer()
-            .withVolumes(new VolumeBuilder()
-                .withName("pg-socket")
-                .withNewEmptyDir()
-                .withMedium("Memory")
-                .endEmptyDir()
-                .build())
+            .withVolumes(Stream.concat(
+                Stream.of(config.getBackupConfig()
+                    .map(backupConfig -> backupConfig.getSpec().getStorage().getGcs()))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .map(gcsStorage -> new VolumeBuilder()
+                    .withName(GCS_CREDENTIALS_VOLUME_NAME)
+                    .withSecret(new SecretVolumeSourceBuilder()
+                        .withSecretName(gcsStorage.getCredentials()
+                            .getServiceAccountJsonKey().getName())
+                        .withItems(new KeyToPathBuilder()
+                            .withKey(gcsStorage.getCredentials()
+                                .getServiceAccountJsonKey().getKey())
+                            .withPath(GCS_CREDENTIALS_PATH)
+                            .build())
+                        .build())
+                    .build()),
+                Stream.of(new VolumeBuilder()
+                    .withName(SOCKET_VOLUME_NAME)
+                    .withNewEmptyDir()
+                    .withMedium("Memory")
+                    .endEmptyDir()
+                    .build()))
+                .collect(ImmutableList.toImmutableList()))
             .withTerminationGracePeriodSeconds(60L)
             .withInitContainers(new ContainerBuilder()
                 .withName("data-permissions")
@@ -243,7 +432,11 @@ public class StackGresStatefulSet {
                 .withCommand("/bin/sh")
                 .withArgs("-c", "chmod 755 /var/lib/postgresql "
                     + "&& chown 999:999 /var/lib/postgresql")
-                .withVolumeMounts(pgData)
+                .withVolumeMounts(
+                    new VolumeMountBuilder()
+                    .withName(DATA_VOLUME_NAME)
+                    .withMountPath("/var/lib/postgresql")
+                    .build())
                 .build())
             .addAllToContainers(config.getSidecars().stream()
                 .map(sidecarEntry -> sidecarEntry.getSidecar().getContainer(config))
@@ -256,7 +449,7 @@ public class StackGresStatefulSet {
         .withVolumeClaimTemplates(new PersistentVolumeClaimBuilder()
             .withMetadata(new ObjectMetaBuilder()
                 .withNamespace(namespace)
-                .withName(VOLUME_NAME)
+                .withName(DATA_VOLUME_NAME)
                 .withLabels(labels)
                 .build())
             .withSpec(volumeClaimSpec.build())
@@ -267,6 +460,100 @@ public class StackGresStatefulSet {
     return ImmutableList.<HasMetadata>builder()
         .addAll(() -> config.getSidecars().stream()
             .flatMap(sidecarEntry -> sidecarEntry.getSidecar().getResources(config).stream())
+            .iterator())
+        .addAll(Stream.of(config.getBackupConfig())
+            .filter(Optional::isPresent)
+            .map(Unchecked.function(backupConfig -> new CronJobBuilder()
+                .withNewMetadata()
+                .withNamespace(namespace)
+                .withName(name + "-backup")
+                .withLabels(labels)
+                .endMetadata()
+                .withNewSpec()
+                .withConcurrencyPolicy("Replace")
+                .withFailedJobsHistoryLimit(10)
+                .withStartingDeadlineSeconds(config.getBackupConfig()
+                    .map(StackGresBackupConfig::getSpec)
+                    .map(StackGresBackupConfigSpec::getFullWindow)
+                    .orElse(5) * 60L)
+                .withSchedule(config.getBackupConfig()
+                    .map(StackGresBackupConfig::getSpec)
+                    .map(StackGresBackupConfigSpec::getFullSchedule)
+                    .orElse("0 5 * * *"))
+                .withJobTemplate(new JobTemplateSpecBuilder()
+                    .withNewMetadata()
+                    .withNamespace(namespace)
+                    .withName(name + "-backup")
+                    .withLabels(labels)
+                    .endMetadata()
+                    .withNewSpec()
+                    .withNewTemplate()
+                    .withNewMetadata()
+                    .withNamespace(namespace)
+                    .withName(name + "-backup")
+                    .withLabels(ImmutableMap.<String, String>builder()
+                        .putAll(labels)
+                        .put("role", "backup")
+                        .build())
+                    .endMetadata()
+                    .withNewSpec()
+                    .withServiceAccountName(name + PatroniRole.SUFFIX)
+                    .withContainers(new ContainerBuilder()
+                        .withImage("bitnami/kubectl:latest")
+                        .withEnv(
+                            new EnvVarBuilder()
+                            .withName("CLUSTER_NAMESPACE")
+                            .withValue(namespace)
+                            .build(),
+                            new EnvVarBuilder()
+                            .withName("CLUSTER_NAME")
+                            .withValue(name)
+                            .build(),
+                            new EnvVarBuilder()
+                            .withName("CLUSTER_LABELS")
+                            .withValue(labels
+                                .entrySet()
+                                .stream()
+                                .map(e -> e.getKey() + "=" + e.getValue())
+                                .collect(Collectors.joining(",")))
+                            .build(),
+                            new EnvVarBuilder().withName("POD_NAME")
+                            .withValueFrom(
+                                new EnvVarSourceBuilder()
+                                .withFieldRef(
+                                    new ObjectFieldSelectorBuilder()
+                                    .withFieldPath("metadata.name")
+                                    .build())
+                                .build())
+                            .build(),
+                            new EnvVarBuilder()
+                            .withName("RETAIN")
+                            .withValue(config.getBackupConfig()
+                                .map(StackGresBackupConfig::getSpec)
+                                .map(StackGresBackupConfigSpec::getRetention)
+                                .map(String::valueOf)
+                                .orElse("5"))
+                            .build(),
+                            new EnvVarBuilder()
+                            .withName("WINDOW")
+                            .withValue(config.getBackupConfig()
+                                .map(StackGresBackupConfig::getSpec)
+                                .map(StackGresBackupConfigSpec::getFullWindow)
+                                .map(window -> window * 60)
+                                .map(String::valueOf)
+                                .orElse("3600"))
+                            .build())
+                        .withCommand("/bin/bash", "-ecx", Resources
+                            .asCharSource(Class.class.getResource("/backup-cronjob.sh"),
+                                StandardCharsets.UTF_8)
+                            .read())
+                        .build())
+                    .endSpec()
+                    .endTemplate()
+                    .endSpec()
+                    .build())
+                .endSpec()
+                .build()))
             .iterator())
         .add(statefulSet)
         .build();

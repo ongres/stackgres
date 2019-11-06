@@ -22,7 +22,6 @@ import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
-import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -31,6 +30,7 @@ import io.stackgres.operator.common.StackGresClusterConfig;
 import io.stackgres.operator.common.StackGresSidecarTransformer;
 import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
+import io.stackgres.operator.patroni.StackGresStatefulSet;
 import io.stackgres.operator.resource.ResourceUtil;
 import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfig;
 import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfigDefinition;
@@ -96,23 +96,21 @@ public class PgBouncer implements StackGresSidecarTransformer<StackGresPgbouncer
     final String pgbouncerVersion = pgbouncerConfig.map(c -> c.getSpec().getPgbouncerVersion())
         .orElse(DEFAULT_VERSION);
 
-    VolumeMount pgSocket = new VolumeMountBuilder()
-        .withName("pg-socket")
-        .withMountPath("/run/postgresql")
-        .build();
-
-    VolumeMount pgbouncerIni = new VolumeMountBuilder()
-        .withName(NAME)
-        .withMountPath("/etc/pgbouncer")
-        .withReadOnly(Boolean.TRUE)
-        .build();
-
     ContainerBuilder container = new ContainerBuilder();
     container.withName(NAME)
         .withImage(String.format(IMAGE_PREFIX,
             pgbouncerVersion, StackGresUtil.CONTAINER_BUILD))
         .withImagePullPolicy("Always")
-        .withVolumeMounts(pgSocket, pgbouncerIni);
+        .withVolumeMounts(
+            new VolumeMountBuilder()
+            .withName(StackGresStatefulSet.SOCKET_VOLUME_NAME)
+            .withMountPath("/run/postgresql")
+            .build(),
+            new VolumeMountBuilder()
+            .withName(NAME)
+            .withMountPath("/etc/pgbouncer")
+            .withReadOnly(Boolean.TRUE)
+            .build());
 
     return container.build();
   }

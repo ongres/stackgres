@@ -18,6 +18,13 @@ cluster:
   profile: size-xs
   volumesize: 5Gi
   storageclass: standard
+  backup:
+    retention: 5
+    fullSchedule: "0 5 * * *"
+    fullWindow: 60
+    compressionMethod: lz4
+    uploadDiskConcurrency: 1 
+    tarSizeThreshold: 1073741823
 
 sidecar:
   pooling: true
@@ -31,4 +38,3 @@ crd:
 
 profiles:
   create: true
-
