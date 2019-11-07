@@ -30,7 +30,7 @@ public class PatroniSecretHandler extends AbstractResourceHandler {
   }
 
   @Override
-  public boolean handleResource(StackGresClusterConfig config, HasMetadata resource) {
+  public boolean isHandlerForResource(StackGresClusterConfig config, HasMetadata resource) {
     return config != null
         && resource.getKind().equals("Secret")
         && resource.getMetadata().getNamespace().equals(

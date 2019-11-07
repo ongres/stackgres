@@ -95,7 +95,7 @@ public class ResourceHandlerSelectorImpl implements ResourceHandlerSelector {
   private ResourceHandler selectResourceHandler(StackGresClusterConfig config,
       HasMetadata resource) {
     Optional<ResourceHandler> customHandler = handlers.stream()
-        .filter(handler -> handler.handleResource(config, resource)).findAny();
+        .filter(handler -> handler.isHandlerForResource(config, resource)).findAny();
 
     if (customHandler.isPresent()) {
       return customHandler.get();

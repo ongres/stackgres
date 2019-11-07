@@ -24,7 +24,7 @@ public interface ResourceHandler {
     return false;
   }
 
-  default boolean handleResource(StackGresClusterConfig config, HasMetadata resource) {
+  default boolean isHandlerForResource(StackGresClusterConfig config, HasMetadata resource) {
     return false;
   }
 
