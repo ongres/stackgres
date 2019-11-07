@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.services;
+package io.stackgres.operator.resource;
 
 import java.util.Optional;
 import javax.enterprise.context.ApplicationScoped;
@@ -16,7 +16,6 @@ import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfigDefinition;
 import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfigDoneable;
 import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfigList;
-import io.stackgres.operator.resource.ResourceUtil;
 
 @ApplicationScoped
 public class PostgresConfigFinder

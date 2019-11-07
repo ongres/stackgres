@@ -5,14 +5,23 @@
 
 package io.stackgres.operator.sidecars.pgexporter;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import java.util.HashMap;
 import java.util.Optional;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.stackgres.operator.common.ConfigContext;
+import io.stackgres.operator.common.ConfigProperty;
 import io.stackgres.operator.common.KubernetesScanner;
-import io.stackgres.operator.config.ConfigContext;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
-import io.stackgres.operator.sidecars.pgexporter.PostgresExporter;
 import io.stackgres.operator.sidecars.pgexporter.customresources.StackGresPostgresExporterConfig;
 import io.stackgres.operator.sidecars.prometheus.customresources.PrometheusConfig;
 import io.stackgres.operator.sidecars.prometheus.customresources.PrometheusConfigList;
@@ -25,9 +34,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @RunWith(MockitoJUnitRunner.class)
@@ -90,7 +96,7 @@ class PostgresExporterTest {
   void givenNoPrometheusInTheClusterAndAutobindSettled_itShouldNotFlagTheCreationOfServiceMonitor() {
 
     when(prometheusScanner.findResources()).thenReturn(Optional.empty());
-    when(configContext.getProp(ConfigContext.PROMETHEUS_AUTOBIND))
+    when(configContext.getProperty(ConfigProperty.PROMETHEUS_AUTOBIND))
         .thenReturn(Optional.of(Boolean.TRUE.toString()));
 
     StackGresPostgresExporterConfig exporterConfig = invokeGetConfig();
@@ -106,7 +112,7 @@ class PostgresExporterTest {
   @Test
   void givenAutobindSettledToFalse_ItShouldNotEvenLookForPrometheusInstallations() {
 
-    when(configContext.getProp(ConfigContext.PROMETHEUS_AUTOBIND))
+    when(configContext.getProperty(ConfigProperty.PROMETHEUS_AUTOBIND))
         .thenReturn(Optional.of(Boolean.TRUE.toString()));
 
     cluster.getSpec().setPrometheusAutobind(false);
@@ -122,7 +128,7 @@ class PostgresExporterTest {
 
     when(prometheusScanner.findResources()).thenReturn(Optional.of(prometheusConfigList));
 
-    when(configContext.getProp(ConfigContext.PROMETHEUS_AUTOBIND))
+    when(configContext.getProperty(ConfigProperty.PROMETHEUS_AUTOBIND))
         .thenReturn(Optional.of(Boolean.TRUE.toString()));
 
     StackGresPostgresExporterConfig exporterConfig = invokeGetConfig();
@@ -142,7 +148,7 @@ class PostgresExporterTest {
   @Test
   void givenPrometheusInTheClusterButNotMatchLabelConfiguredAndAutobindSettled__itShouldNotFlagTheCreationOfServiceMonitor() {
 
-    when(configContext.getProp(ConfigContext.PROMETHEUS_AUTOBIND))
+    when(configContext.getProperty(ConfigProperty.PROMETHEUS_AUTOBIND))
         .thenReturn(Optional.of(Boolean.TRUE.toString()));
 
     when(prometheusScanner.findResources()).thenReturn(Optional.of(prometheusConfigList));
@@ -163,7 +169,7 @@ class PostgresExporterTest {
   @Test
   void givenAutobindSettledButNotAllowed_ItShouldNotEvenLookForPrometheusInstallations() {
 
-    when(configContext.getProp(ConfigContext.PROMETHEUS_AUTOBIND))
+    when(configContext.getProperty(ConfigProperty.PROMETHEUS_AUTOBIND))
         .thenReturn(Optional.of(Boolean.FALSE.toString()));
 
     StackGresPostgresExporterConfig exporterConfig = invokeGetConfig();

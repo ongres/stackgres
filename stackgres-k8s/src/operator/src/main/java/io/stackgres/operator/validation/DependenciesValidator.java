@@ -16,7 +16,7 @@ import io.stackgres.operatorframework.Operation;
 import io.stackgres.operatorframework.ValidationFailed;
 import io.stackgres.operatorframework.Validator;
 
-public abstract class DependenciesValidator<T extends AdmissionReview> implements Validator<T> {
+public abstract class DependenciesValidator<T extends AdmissionReview<?>> implements Validator<T> {
 
   private KubernetesScanner<StackGresClusterList> clusterScanner;
 

@@ -10,16 +10,19 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public interface ValidationResource<T extends AdmissionReview> {
+public interface ValidationResource<T extends AdmissionReview<?>> {
 
   Logger logger = LoggerFactory
       .getLogger(ValidationResource.class);
 
   AdmissionReviewResponse validate(T admissionReview);
 
+  /**
+   * Validate a review using a {@code ValidationPipeline}.
+   */
   default AdmissionReviewResponse validate(T admissionReview, ValidationPipeline<T> pipeline) {
 
-    AdmissionRequest request = admissionReview.getRequest();
+    AdmissionRequest<?> request = admissionReview.getRequest();
     UUID requestUid = request.getUid();
     logger.info("Validating admission review " + requestUid.toString()
         + " of kind " + request.getKind().toString());

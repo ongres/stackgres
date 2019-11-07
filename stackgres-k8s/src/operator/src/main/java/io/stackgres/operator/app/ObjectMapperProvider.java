@@ -11,6 +11,7 @@ import javax.inject.Singleton;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 
 @ApplicationScoped
 public class ObjectMapperProvider {
@@ -25,6 +26,7 @@ public class ObjectMapperProvider {
   public ObjectMapper objectMapper() {
     ObjectMapper objectMapper = new ObjectMapper();
     objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    objectMapper.enable(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS);
     return objectMapper;
   }
 

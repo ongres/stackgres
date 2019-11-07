@@ -21,4 +21,5 @@ public class KindLiteral extends AnnotationLiteral<Kind> implements Kind {
   public String value() {
     return value;
   }
+
 }

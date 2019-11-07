@@ -252,7 +252,7 @@ public class ItHelper {
    * It helper method.
    */
   public static void deleteStackGresCluster(Container kind, String namespace, String name) throws Exception {
-    LOGGER.info("Upgrade stackgres-cluster helm chart for cluster with name " + name);
+    LOGGER.info("Delete stackgres-cluster helm chart for cluster with name " + name);
     kind.execute("sh", "-l", "-c", "helm delete stackgres-cluster-" + name)
       .filter(EXCLUDE_TTY_WARNING)
       .forEach(line -> LOGGER.info(line));

@@ -11,7 +11,7 @@ import javax.inject.Inject;
 
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfile;
-import io.stackgres.operator.services.KubernetesCustomResourceFinder;
+import io.stackgres.operator.resource.KubernetesCustomResourceFinder;
 import io.stackgres.operator.validation.StackgresClusterReview;
 import io.stackgres.operatorframework.ValidationFailed;
 

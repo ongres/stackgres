@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.services;
+package io.stackgres.operator.resource;
 
 import java.util.Optional;
 
@@ -17,7 +17,6 @@ import io.stackgres.operator.customresource.sgprofile.StackGresProfile;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfileDefinition;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfileDoneable;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfileList;
-import io.stackgres.operator.resource.ResourceUtil;
 
 @ApplicationScoped
 public class ProfileConfigFinder implements KubernetesCustomResourceFinder<StackGresProfile> {

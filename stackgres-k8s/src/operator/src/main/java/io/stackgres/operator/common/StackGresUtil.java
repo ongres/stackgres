@@ -10,8 +10,6 @@ import java.util.Properties;
 
 import com.google.common.base.Preconditions;
 
-import io.stackgres.operator.config.ConfigContext;
-
 public enum StackGresUtil {
 
   INSTANCE;
@@ -42,20 +40,13 @@ public enum StackGresUtil {
     try {
       Properties properties = new Properties();
       properties.load(StackGresUtil.class.getResourceAsStream("/application.properties"));
-      operatorName = Optional.ofNullable(System.getenv(ConfigContext.OPERATOR_NAME))
-          .orElseGet(() -> properties.getProperty("stackgres.operatorName"));
-      operatorNamespace = Optional.ofNullable(System.getenv(ConfigContext.OPERATOR_NAMESPACE))
-          .orElseGet(() -> properties.getProperty("stackgres.operatorNamespace"));
-      operatorVersion = Optional.ofNullable(System.getenv(ConfigContext.OPERATOR_VERSION))
-          .orElseGet(() -> properties.getProperty("stackgres.operatorVersion"));
-      group = Optional.ofNullable(System.getenv(ConfigContext.CRD_GROUP))
-          .orElseGet(() -> properties.getProperty("stackgres.group"));
-      version = Optional.ofNullable(System.getenv(ConfigContext.CRD_VERSION))
-          .orElseGet(() -> properties.getProperty("stackgres.crd.version"));
-      containerBuild = Optional.ofNullable(System.getenv(ConfigContext.CONTAINER_BUILD))
-          .orElseGet(() -> properties.getProperty("stackgres.containerBuild"));
-      prometheusAutobind = Optional.ofNullable(System.getenv(ConfigContext.PROMETHEUS_AUTOBIND))
-          .orElseGet(() -> properties.getProperty("stackgres.prometheus.allowAutobind"));
+      operatorName = getProperty(properties, ConfigProperty.OPERATOR_NAME);
+      operatorNamespace = getProperty(properties, ConfigProperty.OPERATOR_NAMESPACE);
+      operatorVersion = getProperty(properties, ConfigProperty.OPERATOR_VERSION);
+      group = getProperty(properties, ConfigProperty.CRD_GROUP);
+      version = getProperty(properties, ConfigProperty.CRD_VERSION);
+      containerBuild = getProperty(properties, ConfigProperty.CONTAINER_BUILD);
+      prometheusAutobind = getProperty(properties, ConfigProperty.PROMETHEUS_AUTOBIND);
       Preconditions.checkNotNull(operatorName);
       Preconditions.checkNotNull(operatorNamespace);
       Preconditions.checkNotNull(operatorVersion);
@@ -68,6 +59,11 @@ public enum StackGresUtil {
     } catch (Exception ex) {
       throw new RuntimeException(ex);
     }
+  }
+
+  private static String getProperty(Properties properties, ConfigProperty configProperty) {
+    return Optional.ofNullable(System.getenv(configProperty.property()))
+        .orElseGet(() -> properties.getProperty(configProperty.systemProperty()));
   }
 
 }

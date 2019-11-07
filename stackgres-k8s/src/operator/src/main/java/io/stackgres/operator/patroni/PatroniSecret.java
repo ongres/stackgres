@@ -11,7 +11,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
@@ -49,15 +48,6 @@ public class PatroniSecret {
 
   private static String base64(byte[] bytes) {
     return Base64.getEncoder().encodeToString(bytes);
-  }
-
-  /**
-   * CHeck if resource is the Secret for patroni associated to the cluster.
-   */
-  public static boolean is(StackGresCluster cluster, HasMetadata sgResource) {
-    return sgResource.getKind().equals("Secret")
-        && sgResource.getMetadata().getNamespace().equals(cluster.getMetadata().getNamespace())
-        && sgResource.getMetadata().getName().equals(cluster.getMetadata().getName());
   }
 
 }
