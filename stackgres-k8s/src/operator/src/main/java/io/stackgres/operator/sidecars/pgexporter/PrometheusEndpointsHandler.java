@@ -6,25 +6,13 @@
 package io.stackgres.operator.sidecars.pgexporter;
 
 import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.event.Observes;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.quarkus.runtime.StartupEvent;
 import io.stackgres.operator.common.StackGresClusterConfig;
 import io.stackgres.operator.resource.AbstractResourceHandler;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 @ApplicationScoped
 public class PrometheusEndpointsHandler extends AbstractResourceHandler {
-
-  private static final Logger LOGGER = LoggerFactory
-      .getLogger(PrometheusEndpointsHandler.class);
-
-  void onStart(@Observes StartupEvent ev) {
-    LOGGER.info("Prometheus monitored endpoints handler registered");
-  }
 
   @Override
   public boolean isHandlerForResource(StackGresClusterConfig config, HasMetadata resource) {

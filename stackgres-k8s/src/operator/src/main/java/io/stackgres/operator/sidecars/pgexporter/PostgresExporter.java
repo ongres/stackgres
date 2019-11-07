@@ -33,12 +33,13 @@ import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.stackgres.operator.common.ConfigContext;
+import io.stackgres.operator.common.ConfigProperty;
 import io.stackgres.operator.common.KubernetesScanner;
 import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.common.StackGresClusterConfig;
 import io.stackgres.operator.common.StackGresSidecarTransformer;
 import io.stackgres.operator.common.StackGresUtil;
-import io.stackgres.operator.config.ConfigContext;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.resource.ResourceUtil;
 import io.stackgres.operator.sidecars.pgexporter.customresources.Endpoint;
@@ -206,7 +207,7 @@ public class PostgresExporter
     spec.setPostgresExporterVersion(cluster.getSpec().getPostgresExporterVersion());
 
     boolean isAutobindAllowed = Boolean
-        .parseBoolean(configContext.getProp(ConfigContext.PROMETHEUS_AUTOBIND)
+        .parseBoolean(configContext.getProperty(ConfigProperty.PROMETHEUS_AUTOBIND)
         .orElse("false"));
 
     if (isAutobindAllowed && cluster.getSpec().getPrometheusAutobind()) {

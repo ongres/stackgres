@@ -6,28 +6,16 @@
 package io.stackgres.operator.patroni;
 
 import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.event.Observes;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Secret;
-import io.quarkus.runtime.StartupEvent;
 import io.stackgres.operator.common.StackGresClusterConfig;
 import io.stackgres.operator.resource.AbstractResourceHandler;
 import io.stackgres.operatorframework.resource.PairVisitor;
 import io.stackgres.operatorframework.resource.ResourcePairVisitor;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 @ApplicationScoped
 public class PatroniSecretHandler extends AbstractResourceHandler {
-
-  private static final Logger LOGGER = LoggerFactory
-      .getLogger(PatroniSecretHandler.class);
-
-  void onStart(@Observes StartupEvent ev) {
-    LOGGER.info("Patroni secret handler registered");
-  }
 
   @Override
   public boolean isHandlerForResource(StackGresClusterConfig config, HasMetadata resource) {

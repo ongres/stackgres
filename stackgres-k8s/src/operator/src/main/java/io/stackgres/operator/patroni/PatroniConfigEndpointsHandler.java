@@ -10,7 +10,6 @@ import java.util.AbstractMap.SimpleEntry;
 import java.util.Map;
 
 import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -21,7 +20,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
-import io.quarkus.runtime.StartupEvent;
 import io.stackgres.operator.app.ObjectMapperProvider;
 import io.stackgres.operator.common.StackGresClusterConfig;
 import io.stackgres.operator.resource.AbstractResourceHandler;
@@ -44,10 +42,6 @@ public class PatroniConfigEndpointsHandler extends AbstractResourceHandler {
   public PatroniConfigEndpointsHandler(ObjectMapperProvider objectMapperProvider) {
     super();
     this.objectMapper = objectMapperProvider.objectMapper();
-  }
-
-  void onStart(@Observes StartupEvent ev) {
-    LOGGER.info("Patroni config endpoints handler registered");
   }
 
   @Override

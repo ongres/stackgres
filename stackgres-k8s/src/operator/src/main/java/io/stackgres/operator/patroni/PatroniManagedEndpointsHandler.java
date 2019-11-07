@@ -6,25 +6,13 @@
 package io.stackgres.operator.patroni;
 
 import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.event.Observes;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.quarkus.runtime.StartupEvent;
 import io.stackgres.operator.common.StackGresClusterConfig;
 import io.stackgres.operator.resource.AbstractResourceHandler;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 @ApplicationScoped
 public class PatroniManagedEndpointsHandler extends AbstractResourceHandler {
-
-  private static final Logger LOGGER = LoggerFactory
-      .getLogger(PatroniManagedEndpointsHandler.class);
-
-  void onStart(@Observes StartupEvent ev) {
-    LOGGER.info("Patroni managed endpoints handler registered");
-  }
 
   @Override
   public boolean isHandlerForResource(StackGresClusterConfig config, HasMetadata resource) {
