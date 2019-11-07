@@ -19,8 +19,8 @@ data:
         }
         {{ end }}
         
-        location ~ ^(/|/stackgres)$ {
-            return 302 "$scheme://$http_host/stackgres/";
+        location ~ ^(/|/stackgres|/stackgres/)$ {
+            return 302 "$scheme://$http_host/stackgres/index.html";
         }
         
         location ~ ^/stackgres {
