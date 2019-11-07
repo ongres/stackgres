@@ -70,10 +70,14 @@ public class PatroniConfigMap {
     data.put("PGHOST", "/run/postgresql");
     data.put("WALG_COMPRESSION_METHOD", getFromConfig(
         config, StackGresBackupConfigSpec::getCompressionMethod));
-    data.put("WALG_NETWORK_RATE_LIMIT", getFromConfig(
-        config, StackGresBackupConfigSpec::getNetworkRateLimit));
-    data.put("WALG_DISK_RATE_LIMIT", getFromConfig(
-        config, StackGresBackupConfigSpec::getDiskRateLimit));
+    if (hasFromConfig(config, StackGresBackupConfigSpec::getNetworkRateLimit)) {
+      data.put("WALG_NETWORK_RATE_LIMIT", getFromConfig(
+          config, StackGresBackupConfigSpec::getNetworkRateLimit));
+    }
+    if (hasFromConfig(config, StackGresBackupConfigSpec::getDiskRateLimit)) {
+      data.put("WALG_DISK_RATE_LIMIT", getFromConfig(
+          config, StackGresBackupConfigSpec::getDiskRateLimit));
+    }
     data.put("WALG_UPLOAD_DISK_CONCURRENCY", getFromConfig(
         config, StackGresBackupConfigSpec::getUploadDiskConcurrency));
     data.put("WALG_TAR_SIZE_THRESHOLD", getFromConfig(
@@ -124,6 +128,15 @@ public class PatroniConfigMap {
         .endMetadata()
         .withData(data)
         .build();
+  }
+
+  private static <T> boolean hasFromConfig(StackGresClusterConfig config,
+      Function<StackGresBackupConfigSpec, T> getter) {
+    return config.getBackupConfig()
+        .map(StackGresBackupConfig::getSpec)
+        .map(getter)
+        .map(PatroniConfigMap::convertEnvValue)
+        .isPresent();
   }
 
   private static <T> String getFromConfig(StackGresClusterConfig config,

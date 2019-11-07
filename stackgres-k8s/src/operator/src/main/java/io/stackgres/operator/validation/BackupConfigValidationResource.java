@@ -20,23 +20,23 @@ import io.stackgres.operatorframework.ValidationResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Path("/stackgres/validation/sgpgconfig")
+@Path("/stackgres/validation/sgbackupconfig")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-public class PostgresConfigValidationResource implements ValidationResource<PgConfigReview> {
+public class BackupConfigValidationResource implements ValidationResource<BackupConfigReview> {
 
   private static final Logger LOGGER = LoggerFactory
-      .getLogger(PostgresConfigValidationResource.class);
+      .getLogger(BackupConfigValidationResource.class);
 
-  private ValidationPipeline<PgConfigReview> validationPipeline;
+  private ValidationPipeline<BackupConfigReview> validationPipeline;
 
   @Inject
-  public PostgresConfigValidationResource(ValidationPipeline<PgConfigReview> validationPipeline) {
+  public BackupConfigValidationResource(ValidationPipeline<BackupConfigReview> validationPipeline) {
     this.validationPipeline = validationPipeline;
   }
 
   void onStart(@Observes StartupEvent ev) {
-    LOGGER.info("Postgres configuration validation resource started");
+    LOGGER.info("Backup configuration validation resource started");
   }
 
   /**
@@ -44,7 +44,7 @@ public class PostgresConfigValidationResource implements ValidationResource<PgCo
    */
   @POST
   @Override
-  public AdmissionReviewResponse validate(PgConfigReview admissionReview) {
+  public AdmissionReviewResponse validate(BackupConfigReview admissionReview) {
     return validate(admissionReview, validationPipeline);
 
   }

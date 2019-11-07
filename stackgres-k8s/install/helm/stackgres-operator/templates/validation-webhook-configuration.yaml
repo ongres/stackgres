@@ -2,7 +2,7 @@
 apiVersion: admissionregistration.k8s.io/v1beta1
 kind: ValidatingWebhookConfiguration
 metadata:
-  name: {{ .Release.Name }}-cluster
+  name: {{ .Release.Name }}-sgcluster
   namespace: {{ .Release.Namespace }}
 webhooks:
   - name: cluster.{{ .Release.Name }}.{{ .Release.Namespace }}
@@ -17,13 +17,13 @@ webhooks:
       service:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
-        path: '/stackgres/validation/cluster'
+        path: '/stackgres/validation/sgcluster'
       caBundle: {{ .Values.cert.crt }}
 ---
 apiVersion: admissionregistration.k8s.io/v1beta1
 kind: ValidatingWebhookConfiguration
 metadata:
-  name: {{ .Release.Name }}-pgconfig
+  name: {{ .Release.Name }}-sgpgconfig
   namespace: {{ .Release.Namespace }}
 webhooks:
   - name: pgconfig.{{ .Release.Name }}.{{ .Release.Namespace }}
@@ -38,13 +38,13 @@ webhooks:
       service:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
-        path: '/stackgres/validation/pgconfig'
+        path: '/stackgres/validation/sgpgconfig'
       caBundle: {{ .Values.cert.crt }}
 ---
 apiVersion: admissionregistration.k8s.io/v1beta1
 kind: ValidatingWebhookConfiguration
 metadata:
-  name: {{ .Release.Name }}-pgbouncer
+  name: {{ .Release.Name }}-sgpgbouncer
   namespace: {{ .Release.Namespace }}
 webhooks:
   - name: pgbouncer.{{ .Release.Name }}.{{ .Release.Namespace }}
@@ -59,7 +59,7 @@ webhooks:
       service:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
-        path: '/stackgres/validation/pgbouncer'
+        path: '/stackgres/validation/sgpgbouncer'
       caBundle: {{ .Values.cert.crt }}
 ---
 apiVersion: admissionregistration.k8s.io/v1beta1
@@ -81,5 +81,26 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/validation/sgprofile'
+      caBundle: {{ .Values.cert.crt }}
+---
+apiVersion: admissionregistration.k8s.io/v1beta1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: {{ .Release.Name }}-sgbackupconfig
+  namespace: {{ .Release.Namespace }}
+webhooks:
+  - name: sgprofile.{{ .Release.Name }}.{{ .Release.Namespace }}
+    sideEffects: None
+    rules:
+      - operations: ["CREATE", "UPDATE", "DELETE"]
+        apiGroups: ["stackgres.io"]
+        apiVersions: ["*"]
+        resources: ["sgbackupconfig"]
+    failurePolicy: Fail
+    clientConfig:
+      service:
+        namespace: {{ .Release.Namespace }}
+        name: {{ .Release.Name }}
+        path: '/stackgres/validation/sgbackupconfig'
       caBundle: {{ .Values.cert.crt }}
 {{ end }}

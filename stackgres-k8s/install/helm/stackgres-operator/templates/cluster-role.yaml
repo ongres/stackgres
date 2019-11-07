@@ -3,7 +3,7 @@ kind: ClusterRole
 metadata:
   name: {{ .Release.Name }}
 rules:
-- apiGroups: ["", "apps", "extensions", "rbac.authorization.k8s.io"] # "" indicates the core API group
+- apiGroups: ["", "apps", "extensions", "rbac.authorization.k8s.io", "batch"] # "" indicates the core API group
   resources:
   - pods
   - pods/exec
@@ -21,6 +21,7 @@ rules:
   - roles
   - rolebindings
   - events
+  - cronjobs
   verbs:
   - get
   - list
@@ -73,6 +74,7 @@ rules:
   - sgpgconfigs
   - sgprofiles
   - sgconnectionpoolingconfigs
+  - sgbackupconfigs
   verbs:
   - watch
   - list

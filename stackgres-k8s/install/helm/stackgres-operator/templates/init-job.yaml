@@ -25,8 +25,11 @@ spec:
           - |
             kubectl delete csr --ignore-not-found {{ .Release.Name }}
             kubectl delete secret --ignore-not-found {{ .Release.Name }}-init
-            kubectl delete validatingwebhookconfiguration --ignore-not-found {{ .Release.Name }}-cluster
-            kubectl delete validatingwebhookconfiguration --ignore-not-found {{ .Release.Name }}-pgconfig
+            kubectl delete validatingwebhookconfiguration --ignore-not-found {{ .Release.Name }}-sgcluster
+            kubectl delete validatingwebhookconfiguration --ignore-not-found {{ .Release.Name }}-sgpgconfig
+            kubectl delete validatingwebhookconfiguration --ignore-not-found {{ .Release.Name }}-sgpgbouncer
+            kubectl delete validatingwebhookconfiguration --ignore-not-found {{ .Release.Name }}-sgprofile
+            kubectl delete validatingwebhookconfiguration --ignore-not-found {{ .Release.Name }}-sgbackupconfig
             cat << EOF > /tmp/csr.conf
             [req]
             req_extensions = v3_req

@@ -29,6 +29,10 @@ import io.stackgres.operator.app.KubernetesClientFactory;
 import io.stackgres.operator.common.SidecarEntry;
 import io.stackgres.operator.common.StackGresClusterConfig;
 import io.stackgres.operator.common.StackGresSidecarTransformer;
+import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfig;
+import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfigDefinition;
+import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfigDoneable;
+import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfigList;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.customresource.sgcluster.StackGresClusterDefinition;
 import io.stackgres.operator.customresource.sgcluster.StackGresClusterDoneable;
@@ -285,6 +289,7 @@ public class ClusterReconciliationCycle {
         .withCluster(cluster)
         .withProfile(getProfile(cluster, client))
         .withPostgresConfig(getPostgresConfig(cluster, client))
+        .withBackupConfig(getBackupConfig(cluster, client))
         .withSidecars(cluster.getSpec().getSidecars().stream()
             .map(sidecar -> sidecarFinder.getSidecarTransformer(sidecar))
             .map(Unchecked.function(sidecar -> getSidecarEntry(cluster, client, sidecar)))
@@ -350,6 +355,27 @@ public class ClusterReconciliationCycle {
                 StackGresPostgresConfigDoneable.class)
             .inNamespace(namespace)
             .withName(pgConfig)
+            .get());
+      }
+    }
+    return Optional.empty();
+  }
+
+  private Optional<StackGresBackupConfig> getBackupConfig(StackGresCluster cluster,
+      KubernetesClient client) {
+    final String namespace = cluster.getMetadata().getNamespace();
+    final String backupConfig = cluster.getSpec().getBackupConfig();
+    if (backupConfig != null) {
+      Optional<CustomResourceDefinition> crd =
+          ResourceUtil.getCustomResource(client, StackGresBackupConfigDefinition.NAME);
+      if (crd.isPresent()) {
+        return Optional.ofNullable(client
+            .customResources(crd.get(),
+                StackGresBackupConfig.class,
+                StackGresBackupConfigList.class,
+                StackGresBackupConfigDoneable.class)
+            .inNamespace(namespace)
+            .withName(backupConfig)
             .get());
       }
     }

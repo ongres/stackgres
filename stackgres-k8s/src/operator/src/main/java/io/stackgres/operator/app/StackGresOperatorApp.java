@@ -25,6 +25,10 @@ import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
 import io.stackgres.operator.controller.ClusterReconciliationCycle;
 import io.stackgres.operator.controller.ClusterResourceWatcherFactory;
+import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfig;
+import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfigDefinition;
+import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfigDoneable;
+import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfigList;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.customresource.sgcluster.StackGresClusterDefinition;
 import io.stackgres.operator.customresource.sgcluster.StackGresClusterDoneable;
@@ -110,6 +114,25 @@ public class StackGresOperatorApp {
     }
   }
 
+  private void registerResources() {
+    KubernetesDeserializer.registerCustomKind(StackGresClusterDefinition.APIVERSION,
+        StackGresClusterDefinition.KIND, StackGresCluster.class);
+
+    KubernetesDeserializer.registerCustomKind(StackGresPostgresConfigDefinition.APIVERSION,
+        StackGresPostgresConfigDefinition.KIND, StackGresPostgresConfig.class);
+
+    KubernetesDeserializer.registerCustomKind(StackGresPgbouncerConfigDefinition.APIVERSION,
+        StackGresPgbouncerConfigDefinition.KIND, StackGresPgbouncerConfig.class);
+
+    KubernetesDeserializer.registerCustomKind(StackGresProfileDefinition.APIVERSION,
+        StackGresProfileDefinition.KIND, StackGresProfile.class);
+
+    KubernetesDeserializer.registerCustomKind(StackGresBackupConfigDefinition.APIVERSION,
+        StackGresBackupConfigDefinition.KIND, StackGresBackupConfig.class);
+
+    handlerSelector.registerKinds();
+  }
+
   private void startClusterWatchers(KubernetesClient client) {
     ResourceUtil.getCustomResource(client, StackGresClusterDefinition.NAME)
         .ifPresent(crd -> kubeClient.create()
@@ -143,22 +166,14 @@ public class StackGresOperatorApp {
                 StackGresProfileDoneable.class)
             .inAnyNamespace()
             .watch(watcherFactory.createWatcher()));
-  }
-
-  private void registerResources() {
-    KubernetesDeserializer.registerCustomKind(StackGresClusterDefinition.APIVERSION,
-        StackGresClusterDefinition.KIND, StackGresCluster.class);
-
-    KubernetesDeserializer.registerCustomKind(StackGresPostgresConfigDefinition.APIVERSION,
-        StackGresPostgresConfigDefinition.KIND, StackGresPostgresConfig.class);
-
-    KubernetesDeserializer.registerCustomKind(StackGresPgbouncerConfigDefinition.APIVERSION,
-        StackGresPgbouncerConfigDefinition.KIND, StackGresPgbouncerConfig.class);
-
-    KubernetesDeserializer.registerCustomKind(StackGresProfileDefinition.APIVERSION,
-        StackGresProfileDefinition.KIND, StackGresProfile.class);
-
-    handlerSelector.registerKinds();
+    ResourceUtil.getCustomResource(client, StackGresBackupConfigDefinition.NAME)
+        .ifPresent(crd -> kubeClient.create()
+            .customResources(crd,
+                StackGresBackupConfig.class,
+                StackGresBackupConfigList.class,
+                StackGresBackupConfigDoneable.class)
+            .inAnyNamespace()
+            .watch(watcherFactory.createWatcher()));
   }
 
   private boolean hasCustomResource(KubernetesClient client, String crdName) {

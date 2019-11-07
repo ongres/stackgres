@@ -41,6 +41,10 @@ import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.WeightedPodAffinityTerm;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetSpec;
+import io.fabric8.kubernetes.api.model.batch.CronJob;
+import io.fabric8.kubernetes.api.model.batch.CronJobSpec;
+import io.fabric8.kubernetes.api.model.batch.JobSpec;
+import io.fabric8.kubernetes.api.model.batch.JobTemplateSpec;
 import io.fabric8.kubernetes.api.model.rbac.Role;
 import io.fabric8.kubernetes.api.model.rbac.RoleBinding;
 
@@ -101,6 +105,7 @@ public class ResourcePairVisitor<T> {
         .lastVisitIfBothInstanceOf(Secret.class, this::visitSecret)
         .lastVisitIfBothInstanceOf(ConfigMap.class, this::visitConfigMap)
         .lastVisitIfBothInstanceOf(Endpoints.class, this::visitEndpoints)
+        .lastVisitIfBothInstanceOf(CronJob.class, this::visitCronJob)
         .lastVisit(this::visitUnknown);
   }
 
@@ -121,6 +126,66 @@ public class ResourcePairVisitor<T> {
     return pairVisitor.visit()
         .visitWith(StatefulSet::getSpec, StatefulSet::setSpec,
             this::visitStatefulSetSpec);
+  }
+
+  /**
+   * Visit using a pair visitor.
+   */
+  public PairVisitor<CronJob, T> visitCronJob(
+      PairVisitor<CronJob, T> pairVisitor) {
+    return pairVisitor.visit()
+        .visitWith(CronJob::getSpec, CronJob::setSpec,
+            this::visitCronJobSpec)
+        .visitMap(CronJob::getAdditionalProperties);
+  }
+
+  /**
+   * Visit using a pair visitor.
+   */
+  public PairVisitor<CronJobSpec, T> visitCronJobSpec(
+      PairVisitor<CronJobSpec, T> pairVisitor) {
+    return pairVisitor.visit()
+        .visit(CronJobSpec::getConcurrencyPolicy, CronJobSpec::setConcurrencyPolicy)
+        .visit(CronJobSpec::getFailedJobsHistoryLimit, CronJobSpec::setFailedJobsHistoryLimit)
+        .visit(CronJobSpec::getSchedule, CronJobSpec::setSchedule)
+        .visit(CronJobSpec::getStartingDeadlineSeconds, CronJobSpec::setStartingDeadlineSeconds)
+        .visit(CronJobSpec::getSuccessfulJobsHistoryLimit,
+            CronJobSpec::setSuccessfulJobsHistoryLimit, 3)
+        .visit(CronJobSpec::getSuspend, CronJobSpec::setSuspend, false)
+        .visitWith(CronJobSpec::getJobTemplate, CronJobSpec::setJobTemplate,
+            this::visitJobTemplateSpec)
+        .visitMap(CronJobSpec::getAdditionalProperties);
+  }
+
+  /**
+   * Visit using a pair visitor.
+   */
+  public PairVisitor<JobTemplateSpec, T> visitJobTemplateSpec(
+      PairVisitor<JobTemplateSpec, T> pairVisitor) {
+    return pairVisitor.visit()
+        .visitWith(JobTemplateSpec::getMetadata, JobTemplateSpec::setMetadata,
+            this::visitMetadata)
+        .visitWith(JobTemplateSpec::getSpec, JobTemplateSpec::setSpec,
+            this::visitJobSpec)
+        .visitMap(JobTemplateSpec::getAdditionalProperties);
+  }
+
+  /**
+   * Visit using a pair visitor.
+   */
+  public PairVisitor<JobSpec, T> visitJobSpec(
+      PairVisitor<JobSpec, T> pairVisitor) {
+    return pairVisitor.visit()
+        .visit(JobSpec::getActiveDeadlineSeconds, JobSpec::setActiveDeadlineSeconds)
+        .visit(JobSpec::getBackoffLimit, JobSpec::setBackoffLimit)
+        .visit(JobSpec::getCompletions, JobSpec::setCompletions)
+        .visit(JobSpec::getManualSelector, JobSpec::setManualSelector)
+        .visit(JobSpec::getParallelism, JobSpec::setParallelism)
+        .visit(JobSpec::getSelector, JobSpec::setSelector)
+        .visit(JobSpec::getTtlSecondsAfterFinished, JobSpec::setTtlSecondsAfterFinished)
+        .visitWith(JobSpec::getTemplate, JobSpec::setTemplate,
+            this::visitPodTemplateSpec)
+        .visitMap(JobSpec::getAdditionalProperties);
   }
 
   /**
@@ -308,7 +373,7 @@ public class ResourcePairVisitor<T> {
         .visit(PodSpec::getShareProcessNamespace, PodSpec::setShareProcessNamespace)
         .visit(PodSpec::getSubdomain, PodSpec::setSubdomain)
         .visit(PodSpec::getTerminationGracePeriodSeconds,
-            PodSpec::setTerminationGracePeriodSeconds)
+            PodSpec::setTerminationGracePeriodSeconds, 30L)
         .visitWith(PodSpec::getSecurityContext, PodSpec::setSecurityContext,
             this::visitPodSecurityContext,
             () -> new PodSecurityContext())

@@ -72,6 +72,7 @@ public class StackGresStatefulSet {
 
   private static final String IMAGE_PREFIX = "docker.io/ongres/patroni:v%s-pg%s-build-%s";
   private static final String PATRONI_VERSION = "1.6.0";
+  private static final String BACKUP_SUFFIX = "-backup";
   private static final String GCS_CREDENTIALS_PATH = "/google-service-account-key.json";
 
   /**
@@ -426,7 +427,8 @@ public class StackGresStatefulSet {
                     .build()))
                 .collect(ImmutableList.toImmutableList()))
             .withTerminationGracePeriodSeconds(60L)
-            .withInitContainers(new ContainerBuilder()
+            .withInitContainers(
+                new ContainerBuilder()
                 .withName("data-permissions")
                 .withImage("busybox")
                 .withCommand("/bin/sh")
@@ -436,6 +438,19 @@ public class StackGresStatefulSet {
                     new VolumeMountBuilder()
                     .withName(DATA_VOLUME_NAME)
                     .withMountPath("/var/lib/postgresql")
+                    .build())
+                .build(),
+                new ContainerBuilder()
+                .withName("wal-g-wrapper")
+                .withImage("busybox")
+                .withCommand("/bin/sh", "-ecx", Resources
+                    .asCharSource(Class.class.getResource("/create-wal-g-wrapper.sh"),
+                        StandardCharsets.UTF_8)
+                    .read())
+                .withVolumeMounts(
+                    new VolumeMountBuilder()
+                    .withName(WAL_G_WRAPPER_VOLUME_NAME)
+                    .withMountPath("/wal-g-wrapper")
                     .build())
                 .build())
             .addAllToContainers(config.getSidecars().stream()
@@ -466,7 +481,7 @@ public class StackGresStatefulSet {
             .map(Unchecked.function(backupConfig -> new CronJobBuilder()
                 .withNewMetadata()
                 .withNamespace(namespace)
-                .withName(name + "-backup")
+                .withName(name + BACKUP_SUFFIX)
                 .withLabels(labels)
                 .endMetadata()
                 .withNewSpec()
@@ -483,22 +498,24 @@ public class StackGresStatefulSet {
                 .withJobTemplate(new JobTemplateSpecBuilder()
                     .withNewMetadata()
                     .withNamespace(namespace)
-                    .withName(name + "-backup")
+                    .withName(name + BACKUP_SUFFIX)
                     .withLabels(labels)
                     .endMetadata()
                     .withNewSpec()
                     .withNewTemplate()
                     .withNewMetadata()
                     .withNamespace(namespace)
-                    .withName(name + "-backup")
+                    .withName(name + BACKUP_SUFFIX)
                     .withLabels(ImmutableMap.<String, String>builder()
                         .putAll(labels)
                         .put("role", "backup")
                         .build())
                     .endMetadata()
                     .withNewSpec()
+                    .withRestartPolicy("OnFailure")
                     .withServiceAccountName(name + PatroniRole.SUFFIX)
                     .withContainers(new ContainerBuilder()
+                        .withName(name + BACKUP_SUFFIX)
                         .withImage("bitnami/kubectl:latest")
                         .withEnv(
                             new EnvVarBuilder()
