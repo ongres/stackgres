@@ -42,7 +42,7 @@ spec:
                   properties:
                     prefix:
                       type: string
-                      pattern: 's3://[^/]+(/[^/]*)*$'
+                      pattern: '(s3|https?)://[^/]+(/[^/]*)*$'
                       description: "The AWS S3 bucket and prefix (eg. s3://bucket/path/to/folder)"
                     credentials:
                       type: object
@@ -95,7 +95,7 @@ spec:
                     cseKmsRegion:
                       type: string
                       description: "To configure AWS KMS key region for client side encryption and decryption (i.e., eu-west-1)"
-                  required: [ "prefix", "secret" ]
+                  required: [ "prefix", "credentials" ]
                 gcs:
                   type: object
                   description: "Google Cloud Storage configuration"
@@ -120,7 +120,7 @@ spec:
                               description: "Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names"
                           required: [ "key", "name" ]
                       required: [ "serviceAccountJsonKey" ]
-                  required: [ "prefix", "secret" ]
+                  required: [ "prefix", "credentials" ]
                 azureblob:
                   type: object
                   description: "Azure Blob Storage configuration"
@@ -162,7 +162,7 @@ spec:
                     maxBuffers:
                       type: int
                       description: "Overrides the default maximum number of upload buffers. By default, at most 3 buffers are used concurrently"
-                  required: [ "prefix", "secret" ]
+                  required: [ "prefix", "credentials" ]
               required: ["type"]
             configuration:
               type: object

@@ -9,6 +9,7 @@ spec:
   pg_config: '{{ .Values.cluster.pgconfig }}'
   connection_pooling_config: '{{ .Values.cluster.poolingconfig }}'
   resource_profile: '{{ .Values.cluster.profile }}'
+  backup_config: '{{ .Values.cluster.backup.name }}'
   volume_size: '{{ .Values.cluster.volumesize }}'
   storage_class: '{{ .Values.cluster.storageclass }}'
   postgres_exporter_version: '{{ .Values.config.postgres_exporter.version }}'

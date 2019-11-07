@@ -19,12 +19,16 @@ cluster:
   volumesize: 5Gi
   storageclass: standard
   backup:
+    name: backupconf
     retention: 5
     fullSchedule: "0 5 * * *"
     fullWindow: 60
     compressionMethod: lz4
-    uploadDiskConcurrency: 1 
+    uploadDiskConcurrency: 1
     tarSizeThreshold: 1073741823
+    s3: {}
+    gcs: {}
+    azureblob: {}
 
 sidecar:
   pooling: true

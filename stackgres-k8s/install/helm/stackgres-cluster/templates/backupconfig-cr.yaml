@@ -2,7 +2,7 @@
 apiVersion: stackgres.io/{{ .Values.crd.version }}
 kind: StackGresBackupConfig
 metadata:
-  name: {{ .Values.cluster.backupconfig }}
+  name: {{ .Values.cluster.backup.name }}
   annotations:
     "helm.sh/hook": "pre-install"
 spec:
@@ -10,68 +10,83 @@ spec:
     {{- if .Values.cluster.backup.volume }}
     type: volume
     volume: "{{ .Values.cluster.backup.volume }}"
-    {{ end }}
+    {{- end }}
     {{- if .Values.cluster.backup.s3 }}
     type: s3
     s3:
       prefix: "{{ .Values.cluster.backup.s3.prefix }}"
-      secret: "{{ .Values.cluster.backup.s3.secret }}"
+      credentials:
+        accessKey:
+          name: "{{ .Values.cluster.backup.s3.accessKey.name }}"
+          key: "{{ .Values.cluster.backup.s3.accessKey.key }}"
+        secretKey:
+          name: "{{ .Values.cluster.backup.s3.secretKey.name }}"
+          key: "{{ .Values.cluster.backup.s3.secretKey.key }}"
       {{- if .Values.cluster.backup.s3.region }}
       region: "{{ .Values.cluster.backup.s3.region }}"
-      {{ end }}
+      {{- end }}
       {{- if .Values.cluster.backup.s3.endpoint }}
       endpoint: "{{ .Values.cluster.backup.s3.endpoint }}"
-      {{ end }}
+      {{- end }}
       {{- if .Values.cluster.backup.s3.forcePathStyle }}
       forcePathStyle: "{{ .Values.cluster.backup.s3.forcePathStyle }}"
-      {{ end }}
+      {{- end }}
       {{- if .Values.cluster.backup.s3.storageClass }}
       storageClass: "{{ .Values.cluster.backup.s3.storageClass }}"
-      {{ end }}
+      {{- end }}
       {{- if .Values.cluster.backup.s3.sse }}
       sse: "{{ .Values.cluster.backup.s3.sse }}"
-      {{ end }}
+      {{- end }}
       {{- if .Values.cluster.backup.s3.sseKmsId }}
       sseKmsId: "{{ .Values.cluster.backup.s3.sseKmsId }}"
-      {{ end }}
+      {{- end }}
       {{- if .Values.cluster.backup.s3.cseKmsId }}
       cseKmsId: "{{ .Values.cluster.backup.s3.cseKmsId }}"
-      {{ end }}
+      {{- end }}
       {{- if .Values.cluster.backup.s3.cseKmsRegion }}
       cseKmsRegion: "{{ .Values.cluster.backup.s3.cseKmsRegion }}"
-      {{ end }}
-    {{ end }}
+      {{- end }}
+    {{- end }}
     {{- if .Values.cluster.backup.gcs }}
     type: gcs
     gcs:
       prefix: "{{ .Values.cluster.backup.gcs.prefix }}"
-      secret: "{{ .Values.cluster.backup.gcs.secret }}"
-    {{ end }}
+      credentials:
+        serviceAccountJsonKey:
+          name: "{{ .Values.cluster.backup.gcs.serviceAccountJsonKey.name }}"
+          key: "{{ .Values.cluster.backup.gcs.serviceAccountJsonKey.key }}"
+    {{- end }}
     {{- if .Values.cluster.backup.azureblob }}
     type: azureblob
     azureblob:
       prefix: "{{ .Values.cluster.backup.azureblob.prefix }}"
-      secret: "{{ .Values.cluster.backup.azureblob.secret }}"
+      credentials:
+        account:
+          name: "{{ .Values.cluster.backup.azureblobk.account.name }}"
+          key: "{{ .Values.cluster.backup.azureblob.account.key }}"
+        accessKey:
+          name: "{{ .Values.cluster.backup.azureblob.accessKey.name }}"
+          key: "{{ .Values.cluster.backup.azureblob.accessKey.key }}"
       {{- if .Values.cluster.backup.azureblob.bufferSize }}
       bufferSize: {{ .Values.cluster.backup.azureblob.bufferSize }}
-      {{ end }}
+      {{- end }}
       {{- if .Values.cluster.backup.azureblob.maxBuffers }}
       maxBuffers: {{ .Values.cluster.backup.azureblob.maxBuffers }}
-      {{ end }}
-    {{ end }}
+      {{- end }}
+    {{- end }}
   retention: {{ .Values.cluster.backup.retention }}
   fullSchedule: "{{ .Values.cluster.backup.fullSchedule }}"
   fullWindow: {{ .Values.cluster.backup.fullWindow }}
   compressionMethod: "{{ .Values.cluster.backup.compressionMethod }}"
   {{- if .Values.cluster.backup.networkRateLimit }}
   networkRateLimit: {{ .Values.cluster.backup.networkRateLimit }}
-  {{ end }}
+  {{- end }}
   {{- if .Values.cluster.backup.diskRateLimit }}
   diskRateLimit: {{ .Values.cluster.backup.diskRateLimit }}
-  {{ end }}
+  {{- end }}
   uploadDiskConcurrency: {{ .Values.cluster.backup.uploadDiskConcurrency }}
   {{- if .Values.cluster.backup.pgpSecret }}
   pgpSecret: "{{ .Values.cluster.backup.pgpSecret }}"
-  {{ end }}
+  {{- end }}
   tarSizeThreshold: {{ .Values.cluster.backup.tarSizeThreshold }}
 {{ end }}
