@@ -36,7 +36,7 @@ public class PatroniConfigEndpoints {
     Map<String, String> params = new HashMap<>(DefaultValues.getDefaultValues());
 
     if (config.getBackupConfig().isPresent()) {
-      params.put("archive_command", "/usr/bin/wal-g-wrapper %p");
+      params.put("archive_command", "/bin/sh /wal-g-wrapper/wal-g wal-push %p");
     }
 
     if (pgconfig.isPresent()) {

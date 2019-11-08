@@ -1,6 +1,6 @@
-cat << EOF > /usr/bin/wal-g-wrapper
+cat << EOF > /wal-g-wrapper/wal-g
 #/bin/sh
-$(set)
-exec wal-g wal-push "\$1"
+$(env | grep -v "^_" | sed 's/^/export /')
+exec wal-g "\$@"
 EOF
-chmod a+x /usr/bin/wal-g-wrapper
+chmod a+x /wal-g-wrapper/wal-g

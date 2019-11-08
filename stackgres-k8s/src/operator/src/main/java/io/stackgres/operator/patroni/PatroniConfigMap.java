@@ -18,6 +18,7 @@ import io.stackgres.operator.common.QuarkusProfile;
 import io.stackgres.operator.common.StackGresClusterConfig;
 import io.stackgres.operator.customresource.sgbackupconfig.AwsS3Storage;
 import io.stackgres.operator.customresource.sgbackupconfig.AzureBlobStorage;
+import io.stackgres.operator.customresource.sgbackupconfig.BackupVolume;
 import io.stackgres.operator.customresource.sgbackupconfig.GoogleCloudStorage;
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfigSpec;
@@ -83,9 +84,9 @@ public class PatroniConfigMap {
     data.put("WALG_TAR_SIZE_THRESHOLD", getFromConfig(
         config, StackGresBackupConfigSpec::getTarSizeThreshold));
 
-    Optional<String> storageForVolume = getStorageFor(config, Storage::getVolume);
+    Optional<BackupVolume> storageForVolume = getStorageFor(config, Storage::getVolume);
     if (storageForVolume.isPresent()) {
-      data.put("WALG_FILE_PREFIX", "/var/lib/postgresql/backups");
+      data.put("WALG_FILE_PREFIX", StackGresStatefulSet.BACKUP_VOLUME_PATH);
     }
 
     Optional<AwsS3Storage> storageForS3 = getStorageFor(config, Storage::getS3);

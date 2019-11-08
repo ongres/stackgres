@@ -7,6 +7,8 @@ package io.stackgres.operator.validation.backupconfig;
 
 import javax.enterprise.context.ApplicationScoped;
 
+import com.google.common.collect.ImmutableList;
+
 import io.stackgres.operator.validation.BackupConfigReview;
 import io.stackgres.operatorframework.Operation;
 import io.stackgres.operatorframework.ValidationFailed;
@@ -90,6 +92,34 @@ public class SourceTypeValidator implements BackupConfigValidator {
           .getStorage().getAzureblob().getCredentials() == null) {
         throw new ValidationFailed("Invalid backup configuration,"
             + " source azureblob credentials must be set when source type is azureblob");
+      }
+
+      if (ImmutableList.of("s3", "gcs", "azureblob").contains(storageType)
+          && review.getRequest().getObject().getSpec()
+          .getStorage().getVolume() != null) {
+        throw new ValidationFailed("Invalid backup configuration,"
+            + " source volume must not be set when source type is " + storageType);
+      }
+
+      if (ImmutableList.of("volume", "gcs", "azureblob").contains(storageType)
+          && review.getRequest().getObject().getSpec()
+          .getStorage().getS3() != null) {
+        throw new ValidationFailed("Invalid backup configuration,"
+            + " source s3 must not be set when source type is " + storageType);
+      }
+
+      if (ImmutableList.of("volume", "s3", "azureblob").contains(storageType)
+          && review.getRequest().getObject().getSpec()
+          .getStorage().getGcs() != null) {
+        throw new ValidationFailed("Invalid backup configuration,"
+            + " source gcs must not be set when source type is " + storageType);
+      }
+
+      if (ImmutableList.of("volume", "s3", "gcs").contains(storageType)
+          && review.getRequest().getObject().getSpec()
+          .getStorage().getAzureblob() != null) {
+        throw new ValidationFailed("Invalid backup configuration,"
+            + " source azureblob must not be set when source type is " + storageType);
       }
 
     }

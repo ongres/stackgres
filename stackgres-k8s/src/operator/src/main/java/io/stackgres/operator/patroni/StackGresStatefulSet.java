@@ -66,14 +66,18 @@ import org.jooq.lambda.Unchecked;
 public class StackGresStatefulSet {
 
   public static final String PATRONI_CONTAINER_NAME = "patroni";
-  public static final String DATA_VOLUME_NAME = "pg-data";
-  public static final String SOCKET_VOLUME_NAME = "pg-socket";
+  public static final String DATA_VOLUME_NAME = "data";
+  public static final String SOCKET_VOLUME_NAME = "socket";
+  public static final String BACKUP_VOLUME_NAME = "backup";
+  public static final String BACKUP_VOLUME_PATH = "/var/lib/postgresql/backups";
   public static final String GCS_CREDENTIALS_VOLUME_NAME = "gcs-credentials";
+  public static final String WAL_G_WRAPPER_VOLUME_NAME = "wal-g-wrapper";
 
   private static final String IMAGE_PREFIX = "docker.io/ongres/patroni:v%s-pg%s-build-%s";
   private static final String PATRONI_VERSION = "1.6.0";
   private static final String BACKUP_SUFFIX = "-backup";
-  private static final String GCS_CREDENTIALS_PATH = "/google-service-account-key.json";
+  private static final String GCS_CONFIG_PATH = "/.gcs";
+  private static final String GCS_CREDENTIALS_FILE_NAME = "google-service-account-key.json";
 
   /**
    * Create a new StatefulSet based on the StackGresCluster definition.
@@ -232,7 +236,7 @@ public class StackGresStatefulSet {
       environmentsBuilder.add(
           new EnvVarBuilder()
           .withName("GOOGLE_APPLICATION_CREDENTIALS")
-          .withValue(GCS_CREDENTIALS_PATH)
+          .withValue(GCS_CONFIG_PATH + "/" + GCS_CREDENTIALS_FILE_NAME)
           .withValueFrom(new EnvVarSourceBuilder()
               .withSecretKeyRef(
                   config.getBackupConfig()
@@ -323,7 +327,8 @@ public class StackGresStatefulSet {
                     .withName(PatroniConfigMap.POSTGRES_REPLICATION_PORT_NAME)
                     .withContainerPort(Envoy.REPLICATION_ENTRY_PORT).build(),
                 new ContainerPortBuilder().withContainerPort(8008).build())
-            .withVolumeMounts(
+            .withVolumeMounts(Stream.of(
+                Stream.of(
                 new VolumeMountBuilder()
                 .withName(SOCKET_VOLUME_NAME)
                 .withMountPath("/run/postgresql")
@@ -331,7 +336,27 @@ public class StackGresStatefulSet {
                 new VolumeMountBuilder()
                 .withName(DATA_VOLUME_NAME)
                 .withMountPath("/var/lib/postgresql")
-                .build())
+                .build(),
+                new VolumeMountBuilder()
+                .withName(WAL_G_WRAPPER_VOLUME_NAME)
+                .withMountPath("/wal-g-wrapper")
+                .build()),
+                Stream.of(config.getBackupConfig()
+                    .map(backupConfig -> backupConfig.getSpec().getStorage().getGcs()))
+                .filter(Optional::isPresent)
+                .map(gcsStorage -> new VolumeMountBuilder()
+                    .withName(GCS_CREDENTIALS_VOLUME_NAME)
+                    .withMountPath(GCS_CONFIG_PATH)
+                    .build()),
+                Stream.of(config.getBackupConfig()
+                    .map(backupConfig -> backupConfig.getSpec().getStorage().getVolume()))
+                .filter(Optional::isPresent)
+                .map(gcsStorage -> new VolumeMountBuilder()
+                    .withName(BACKUP_VOLUME_NAME)
+                    .withMountPath(BACKUP_VOLUME_PATH)
+                    .build()))
+                .flatMap(stream -> stream)
+                .collect(ImmutableList.toImmutableList()))
             .withEnvFrom(new EnvFromSourceBuilder()
                 .withConfigMapRef(new ConfigMapEnvSourceBuilder()
                     .withName(name).build())
@@ -402,7 +427,47 @@ public class StackGresStatefulSet {
                 .build())
             .withResources(resources)
             .endContainer()
-            .withVolumes(Stream.concat(
+            .withVolumes(Stream.of(
+                Stream.of(
+                    new VolumeBuilder()
+                    .withName(SOCKET_VOLUME_NAME)
+                    .withNewEmptyDir()
+                    .withMedium("Memory")
+                    .endEmptyDir()
+                    .build(),
+                    new VolumeBuilder()
+                    .withName(WAL_G_WRAPPER_VOLUME_NAME)
+                    .withNewEmptyDir()
+                    .withMedium("Memory")
+                    .endEmptyDir()
+                    .build()),
+                Stream.of(config.getBackupConfig()
+                    .map(backupConfig -> backupConfig.getSpec().getStorage().getVolume())
+                    .map(volume -> volume.getNfs()))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .map(volumeSource -> new VolumeBuilder()
+                    .withName(BACKUP_VOLUME_NAME)
+                    .withNfs(volumeSource)
+                    .build()),
+                Stream.of(config.getBackupConfig()
+                    .map(backupConfig -> backupConfig.getSpec().getStorage().getVolume())
+                    .map(volume -> volume.getCephfs()))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .map(volumeSource -> new VolumeBuilder()
+                    .withName(BACKUP_VOLUME_NAME)
+                    .withCephfs(volumeSource)
+                    .build()),
+                Stream.of(config.getBackupConfig()
+                    .map(backupConfig -> backupConfig.getSpec().getStorage().getVolume())
+                    .map(volume -> volume.getGlusterfs()))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .map(volumeSource -> new VolumeBuilder()
+                    .withName(BACKUP_VOLUME_NAME)
+                    .withGlusterfs(volumeSource)
+                    .build()),
                 Stream.of(config.getBackupConfig()
                     .map(backupConfig -> backupConfig.getSpec().getStorage().getGcs()))
                 .filter(Optional::isPresent)
@@ -415,25 +480,21 @@ public class StackGresStatefulSet {
                         .withItems(new KeyToPathBuilder()
                             .withKey(gcsStorage.getCredentials()
                                 .getServiceAccountJsonKey().getKey())
-                            .withPath(GCS_CREDENTIALS_PATH)
+                            .withPath(GCS_CREDENTIALS_FILE_NAME)
                             .build())
                         .build())
-                    .build()),
-                Stream.of(new VolumeBuilder()
-                    .withName(SOCKET_VOLUME_NAME)
-                    .withNewEmptyDir()
-                    .withMedium("Memory")
-                    .endEmptyDir()
                     .build()))
+                .flatMap(stream -> stream)
                 .collect(ImmutableList.toImmutableList()))
             .withTerminationGracePeriodSeconds(60L)
             .withInitContainers(
                 new ContainerBuilder()
                 .withName("data-permissions")
                 .withImage("busybox")
-                .withCommand("/bin/sh")
-                .withArgs("-c", "chmod 755 /var/lib/postgresql "
-                    + "&& chown 999:999 /var/lib/postgresql")
+                .withCommand("/bin/sh", "-ecx", Stream.of(
+                    "chmod 755 /var/lib/postgresql",
+                    "chown 999:999 /var/lib/postgresql")
+                    .collect(Collectors.joining(" && ")))
                 .withVolumeMounts(
                     new VolumeMountBuilder()
                     .withName(DATA_VOLUME_NAME)
@@ -443,10 +504,15 @@ public class StackGresStatefulSet {
                 new ContainerBuilder()
                 .withName("wal-g-wrapper")
                 .withImage("busybox")
-                .withCommand("/bin/sh", "-ecx", Resources
+                .withCommand("/bin/sh", "-ecx", Unchecked.supplier(() -> Resources
                     .asCharSource(Class.class.getResource("/create-wal-g-wrapper.sh"),
                         StandardCharsets.UTF_8)
-                    .read())
+                    .read()).get())
+                .withEnvFrom(new EnvFromSourceBuilder()
+                    .withConfigMapRef(new ConfigMapEnvSourceBuilder()
+                        .withName(name).build())
+                    .build())
+                .withEnv(environmentsBuilder.build())
                 .withVolumeMounts(
                     new VolumeMountBuilder()
                     .withName(WAL_G_WRAPPER_VOLUME_NAME)
