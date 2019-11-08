@@ -27,7 +27,7 @@ import org.junit.jupiter.api.Test;
 })
 public class StackGresOperatorIt extends AbstractStackGresOperatorIt {
 
-  private final String CLUSTER_NAME = "test";
+  private final String CLUSTER_NAME = "stackgres";
 
   @Test
   public void createClusterTest(@ContainerParam("kind") Container kind) throws Exception {

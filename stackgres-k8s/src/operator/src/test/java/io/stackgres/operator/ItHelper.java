@@ -127,6 +127,14 @@ public class ItHelper {
    */
   public static void installStackGresOperatorHelmChart(Container kind, String namespace,
       int sslPort, Executor executor) throws Exception {
+    LOGGER.info("Installing minio helm chart");
+    kind.execute("sh", "-l", "-c", "helm delete minio --purge || true;"
+        + " helm install stable/minio  --version 2.5.18"
+        + " --namespace stackgres --name minio"
+        + " --set buckets[0].name=stackgres,buckets[0].policy=none,buckets[0].purge=true")
+        .filter(EXCLUDE_TTY_WARNING)
+        .forEach(line -> LOGGER.info(line));
+
     if (OPERATOR_IN_KUBERNETES) {
       LOGGER.info("Loading stackgres operator image stackgres/operator:" + IMAGE_TAG);
       kind.execute("sh", "-l", "-c",
@@ -210,7 +218,16 @@ public class ItHelper {
         + " --namespace " + namespace
         + " --name stackgres-cluster-configs"
         + " --set cluster.create=false"
-        + " || true")
+        + " --set-string cluster.backup.fullSchedule='*/1 * * * *'"
+        + " --set cluster.backup.fullWindow=1"
+        + " --set-string cluster.backup.s3.prefix=s3://stackgres"
+        + " --set-string cluster.backup.s3.endpoint=http://minio.stackgres.svc:9000"
+        + " --set cluster.backup.s3.forcePathStyle=true"
+        + " --set-string  cluster.backup.s3.region=k8s"
+        + " --set-string cluster.backup.s3.accessKey.name=minio"
+        + " --set-string cluster.backup.s3.accessKey.key=accesskey"
+        + " --set-string cluster.backup.s3.secretKey.name=minio"
+        + " --set-string cluster.backup.s3.secretKey.key=secretkey")
       .filter(EXCLUDE_TTY_WARNING)
       .forEach(line -> LOGGER.info(line));
   }
