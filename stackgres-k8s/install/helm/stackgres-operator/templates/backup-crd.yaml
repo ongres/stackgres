@@ -173,7 +173,6 @@ spec:
                   description: "Retains specified number of full backups. Default is 5"
                 fullSchedule:
                   type: string
-                  pattern: "^(0*([0-5]?[0-9])|\\*)\\s+(0*([0-1]?[0-9]|2[0-3])|\\*)\\s+(0*([1-9]|[1-2][0-9]|3[0-1])|\\*)\\s+(0*([1-9]|1[0-2])|\\*)\\s+(0*([1-7]|[1-2][0-9])|\\*)$"
                   description: "Specify when to perform full backups using cron syntax:\n<minute: 0 to 59, or *> <hour: 0 to 23, or * for any value. All times UTC> <day of the month: 1 to 31, or *> <month: 1 to 12, or *> <day of the week: 0 to 7 (0 and 7 both represent Sunday), or *>. If not specified full backups will be performed each day at 05:00 UTC"
                 fullWindow:
                   type: int

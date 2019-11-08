@@ -29,7 +29,7 @@ spec:
       endpoint: "{{ .Values.cluster.backup.s3.endpoint }}"
       {{- end }}
       {{- if .Values.cluster.backup.s3.forcePathStyle }}
-      forcePathStyle: "{{ .Values.cluster.backup.s3.forcePathStyle }}"
+      forcePathStyle: {{ .Values.cluster.backup.s3.forcePathStyle }}
       {{- end }}
       {{- if .Values.cluster.backup.s3.storageClass }}
       storageClass: "{{ .Values.cluster.backup.s3.storageClass }}"
@@ -86,7 +86,10 @@ spec:
   {{- end }}
   uploadDiskConcurrency: {{ .Values.cluster.backup.uploadDiskConcurrency }}
   {{- if .Values.cluster.backup.pgpSecret }}
-  pgpSecret: "{{ .Values.cluster.backup.pgpSecret }}"
+  pgpConfiguation:
+    key:
+      name: "{{ .Values.cluster.backup.pgpConfiguration.name }}"
+      key: "{{ .Values.cluster.backup.pgpConfiguration.key }}"
   {{- end }}
   tarSizeThreshold: {{ .Values.cluster.backup.tarSizeThreshold }}
 {{ end }}

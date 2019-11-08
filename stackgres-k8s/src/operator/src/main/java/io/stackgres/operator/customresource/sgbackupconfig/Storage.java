@@ -24,7 +24,7 @@ public class Storage {
   private String type;
 
   @JsonProperty("volume")
-  private String volume;
+  private BackupVolume volume;
 
   @JsonProperty("s3")
   private AwsS3Storage s3;
@@ -43,11 +43,11 @@ public class Storage {
     this.type = type;
   }
 
-  public String getVolume() {
+  public BackupVolume getVolume() {
     return volume;
   }
 
-  public void setVolume(String volume) {
+  public void setVolume(BackupVolume volume) {
     this.volume = volume;
   }
 
