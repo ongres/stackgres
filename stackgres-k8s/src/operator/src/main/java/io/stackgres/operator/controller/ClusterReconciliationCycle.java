@@ -258,7 +258,7 @@ public class ClusterReconciliationCycle {
       handlerSelector.delete(client, null, existingOrphanResource);
       deletedClusters.add(Tuple.tuple(
           existingOrphanResource.getMetadata().getNamespace(),
-          existingOrphanResource.getMetadata().getName()));
+          existingOrphanResource.getMetadata().getLabels().get(ResourceUtil.CLUSTER_NAME_KEY)));
     }
 
     for (Tuple2<String, String> deletedCluster : deletedClusters) {
