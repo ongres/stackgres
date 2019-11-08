@@ -12,6 +12,7 @@ spec:
   volume_size: '{{ .Values.cluster.volumesize }}'
   storage_class: '{{ .Values.cluster.storageclass }}'
   postgres_exporter_version: '{{ .Values.config.postgres_exporter.version }}'
+  envoy_version: '{{ .Values.config.envoy.version }}'
   {{- if .Values.sidecar.prometheus.create }}
   prometheus_autobind: {{ .Values.sidecar.prometheus.allow_autobind }}
   {{- else }}
@@ -27,4 +28,5 @@ spec:
   {{- if .Values.sidecar.prometheus.create }}
   - prometheus-postgres-exporter
   {{- end }}
+  - envoy
 {{ end }}

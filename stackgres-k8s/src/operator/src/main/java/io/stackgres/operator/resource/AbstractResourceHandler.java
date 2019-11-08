@@ -84,7 +84,9 @@ public abstract class AbstractResourceHandler implements ResourceHandler {
 
   @Override
   public HasMetadata create(KubernetesClient client, HasMetadata resource) {
-    return getResourceOperation(client, resource).create(resource);
+    return getResourceOperation(client, resource)
+        .inNamespace(resource.getMetadata().getNamespace())
+        .create(resource);
   }
 
   @Override

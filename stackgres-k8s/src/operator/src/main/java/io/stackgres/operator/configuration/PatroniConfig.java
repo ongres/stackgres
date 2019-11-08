@@ -49,6 +49,9 @@ public class PatroniConfig {
   @JsonProperty("postgresql")
   private PostgreSql postgresql;
 
+  @JsonProperty("standby_cluster")
+  private StandbyCluster standbyCluster;
+
   public Integer getTtl() {
     return ttl;
   }
@@ -119,6 +122,14 @@ public class PatroniConfig {
 
   public void setPostgresql(PostgreSql postgresql) {
     this.postgresql = postgresql;
+  }
+
+  public StandbyCluster getStandbyCluster() {
+    return standbyCluster;
+  }
+
+  public void setStandbyCluster(StandbyCluster standbyCluster) {
+    this.standbyCluster = standbyCluster;
   }
 
   @JsonDeserialize

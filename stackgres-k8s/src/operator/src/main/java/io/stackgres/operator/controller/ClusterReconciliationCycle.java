@@ -11,6 +11,7 @@ import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
@@ -68,6 +69,8 @@ public class ClusterReconciliationCycle {
 
   private boolean close = false;
 
+  private AtomicInteger reconciliationCount = new AtomicInteger(0);
+
   /**
    * Create a {@code ClusterReconciliationCycle} instance.
    */
@@ -116,23 +119,35 @@ public class ClusterReconciliationCycle {
   }
 
   private void reconciliationCycle() {
+
+    final int cycleId = reconciliationCount.incrementAndGet();
+
+    String cycleName = "Reconciliation Cycle " + cycleId;
+
+    LOGGER.trace("Stating " + cycleName);
     try (KubernetesClient client = kubClientFactory.create()) {
+      LOGGER.trace(cycleName + " getting existing clusters");
       ImmutableList<StackGresClusterConfig> existingClusters = getExistingClusters(client);
+      LOGGER.trace(cycleName + " deleting orphan resources");
       deleteOrphanResources(client, existingClusters);
 
       for (StackGresClusterConfig clusterConfig : existingClusters) {
         StackGresCluster cluster = clusterConfig.getCluster();
+
+        String clusterId = cluster.getMetadata().getNamespace() + "."
+            + cluster.getMetadata().getName();
+
         try {
+          LOGGER.trace(cycleName + " reconciling cluster " + cluster.getMetadata().getName());
           reconcileExistingCluster(client, clusterConfig);
         } catch (Exception ex) {
-          LOGGER.error("Cluster " + cluster.getMetadata().getNamespace() + "."
-              + cluster.getMetadata().getName() + " reconciliation failed", ex);
+          LOGGER.error(cycleName + " failed reconciling StackGres cluster " + clusterId, ex);
           eventController.sendEvent(EventReason.CLUSTER_CONFIG_ERROR,
-              "StackGres Cluster " + cluster.getMetadata().getNamespace() + "."
-                  + cluster.getMetadata().getName() + " reconciliation failed: "
+              "StackGres Cluster " + clusterId + " reconciliation failed: "
                   + ex.getMessage(), cluster);
         }
       }
+      LOGGER.trace(cycleName + " ended successfully");
     } catch (Exception ex) {
       LOGGER.error("Cluster reconciliation cycle failed", ex);
       eventController.sendEvent(EventReason.CLUSTER_CONFIG_ERROR,
@@ -290,6 +305,7 @@ public class ClusterReconciliationCycle {
               StackGresCluster.class,
               StackGresClusterList.class,
               StackGresClusterDoneable.class)
+          .inAnyNamespace()
           .list()
           .getItems()
           .stream()

@@ -40,6 +40,9 @@ public class StackGresClusterSpec implements KubernetesResource {
   @JsonProperty("postgres_exporter_version")
   private String postgresExporterVersion;
 
+  @JsonProperty("envoy_version")
+  private String envoyVersion;
+
   @JsonProperty("resource_profile")
   @NotNull
   private String resourceProfile;
@@ -92,6 +95,14 @@ public class StackGresClusterSpec implements KubernetesResource {
 
   public void setPostgresExporterVersion(String postgresExporterVersion) {
     this.postgresExporterVersion = postgresExporterVersion;
+  }
+
+  public String getEnvoyVersion() {
+    return envoyVersion;
+  }
+
+  public void setEnvoyVersion(String envoyVersion) {
+    this.envoyVersion = envoyVersion;
   }
 
   public String getResourceProfile() {

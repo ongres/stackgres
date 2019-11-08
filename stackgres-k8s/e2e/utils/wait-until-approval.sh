@@ -1,0 +1,10 @@
+#!/bin/bash
+
+while true;do
+  CRS_STATUS=$(kubectl get csr stackgres-operator -o jsonpath='{.status.conditions[0].type}')
+  if [[ $CRS_STATUS == "Approved" ]]; then
+    break;
+  fi
+  sleep 1
+done
+echo "Certificate approved"

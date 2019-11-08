@@ -100,6 +100,7 @@ public class PrometheusServiceMonitorHandler implements ResourceHandler {
   public HasMetadata create(KubernetesClient client, HasMetadata resource) {
     return getServiceMonitorClient(client)
         .map(crClient -> crClient
+            .inNamespace(resource.getMetadata().getNamespace())
             .create((ServiceMonitor) resource))
         .orElse(null);
   }
