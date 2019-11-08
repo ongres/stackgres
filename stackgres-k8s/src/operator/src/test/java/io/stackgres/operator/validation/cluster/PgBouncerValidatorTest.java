@@ -7,7 +7,7 @@ package io.stackgres.operator.validation.cluster;
 
 import java.util.Optional;
 
-import io.stackgres.operator.resource.KubernetesCustomResourceFinder;
+import io.stackgres.operator.resource.AbstractKubernetesCustomResourceFinder;
 import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfig;
 import io.stackgres.operator.utils.JsonUtil;
 import io.stackgres.operatorframework.Operation;
@@ -30,16 +30,16 @@ import static org.mockito.Mockito.*;
 @RunWith(MockitoJUnitRunner.class)
 class PgBouncerValidatorTest {
 
-  private PgBouncerValidator validator;
+  private PoolingConfigValidator validator;
 
   @Mock()
-  private KubernetesCustomResourceFinder<StackGresPgbouncerConfig> configFinder;
+  private AbstractKubernetesCustomResourceFinder<StackGresPgbouncerConfig> configFinder;
 
   private StackGresPgbouncerConfig pgbouncerConfig;
 
   @BeforeEach
   void setUp(){
-    validator = new PgBouncerValidator(configFinder);
+    validator = new PoolingConfigValidator(configFinder);
 
     pgbouncerConfig = JsonUtil.readFromJson("pgbouncer_config/default.json", StackGresPgbouncerConfig.class);
 

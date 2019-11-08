@@ -5,45 +5,40 @@
 
 package io.stackgres.operator.resource;
 
-import java.util.Optional;
-
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
-import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.api.model.Doneable;
+import io.fabric8.kubernetes.api.model.KubernetesResourceList;
 import io.stackgres.operator.app.KubernetesClientFactory;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfile;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfileDefinition;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfileDoneable;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfileList;
 
+import org.jooq.lambda.tuple.Tuple;
+import org.jooq.lambda.tuple.Tuple5;
+
 @ApplicationScoped
-public class ProfileConfigFinder implements KubernetesCustomResourceFinder<StackGresProfile> {
+public class ProfileConfigFinder extends AbstractKubernetesCustomResourceFinder<StackGresProfile> {
 
-  private KubernetesClientFactory kubClientFactory;
+  private final KubernetesClientFactory kubernetesClientFactory;
 
+  /**
+   * Create a {@code ProfileConfigFinder} instance.
+   */
   @Inject
-  public ProfileConfigFinder(KubernetesClientFactory kubClientFactory) {
-    this.kubClientFactory = kubClientFactory;
+  public ProfileConfigFinder(KubernetesClientFactory kubernetesClientFactory) {
+    this.kubernetesClientFactory = kubernetesClientFactory;
   }
 
   @Override
-  public Optional<StackGresProfile> findByNameAndNamespace(String name, String namespace) {
-    try (KubernetesClient client = kubClientFactory.create()) {
-      Optional<CustomResourceDefinition> crd =
-          ResourceUtil.getCustomResource(client, StackGresProfileDefinition.NAME);
-      if (crd.isPresent()) {
-        return Optional.ofNullable(client
-            .customResources(crd.get(),
-                StackGresProfile.class,
-                StackGresProfileList.class,
-                StackGresProfileDoneable.class)
-            .inNamespace(namespace)
-            .withName(name)
-            .get());
-      }
-    }
-    return Optional.empty();
+  protected Tuple5<KubernetesClientFactory, String, Class<StackGresProfile>,
+      Class<? extends KubernetesResourceList<StackGresProfile>>,
+          Class<? extends Doneable<StackGresProfile>>> arguments() {
+    return Tuple.tuple(kubernetesClientFactory, StackGresProfileDefinition.NAME,
+        StackGresProfile.class, StackGresProfileList.class,
+        StackGresProfileDoneable.class);
   }
+
 }

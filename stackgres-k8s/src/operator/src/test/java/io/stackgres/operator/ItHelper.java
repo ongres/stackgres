@@ -128,9 +128,8 @@ public class ItHelper {
   public static void installStackGresOperatorHelmChart(Container kind, String namespace,
       int sslPort, Executor executor) throws Exception {
     LOGGER.info("Installing minio helm chart");
-    kind.execute("sh", "-l", "-c", "helm delete minio --purge || true;"
-        + " helm install stable/minio  --version 2.5.18"
-        + " --namespace stackgres --name minio"
+    kind.execute("sh", "-l", "-c", "helm upgrade minio stable/minio"
+        + " --install --version 2.5.18 --namespace stackgres"
         + " --set buckets[0].name=stackgres,buckets[0].policy=none,buckets[0].purge=true")
         .filter(EXCLUDE_TTY_WARNING)
         .forEach(line -> LOGGER.info(line));
@@ -218,6 +217,7 @@ public class ItHelper {
         + " --namespace " + namespace
         + " --name stackgres-cluster-configs"
         + " --set cluster.create=false"
+        + " --set cluster.backup.retention=5"
         + " --set-string cluster.backup.fullSchedule='*/1 * * * *'"
         + " --set cluster.backup.fullWindow=1"
         + " --set-string cluster.backup.s3.prefix=s3://stackgres"

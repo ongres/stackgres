@@ -31,6 +31,19 @@ cluster:
     #pgpConfiguration:
     #  name: pgpConfiguration
     #  key: key
+    volume: {}
+    #  nfs: # see https://kubernetes.io/docs/concepts/storage/volumes#nfs
+    #    path:
+    #    server:
+    #  cephfs: # see https://releases.k8s.io/HEAD/examples/volumes/cephfs/README.md#how-to-use-it
+    #    monitors: []
+    #    path:
+    #    secretFile:
+    #    secretRef:
+    #    user:
+    #  glusterfs: # see https://releases.k8s.io/HEAD/examples/volumes/glusterfs/README.md#create-a-pod
+    #    endpoints: 
+    #    path:
     s3: {}
     #  prefix: s3://stackgres
     #  accessKey:

@@ -37,6 +37,7 @@ public abstract class AbstractStackGresOperatorIt extends AbstractIt {
     ItHelper.copyResources(kind);
     ItHelper.deleteStackGresOperatorHelmChartIfExists(kind, namespace);
     ItHelper.deleteNamespaceIfExists(kind, namespace);
+    ItHelper.createNamespace(kind, namespace);
     ItHelper.installStackGresOperatorHelmChart(kind, namespace, operatorSslPort, executor);
     OperatorRunner operatorRunner = ItHelper.createOperator(
         kind, getClass(), operatorPort, operatorSslPort, executor);

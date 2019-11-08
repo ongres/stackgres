@@ -13,6 +13,7 @@ import com.ongres.junit.docker.ContainerParam;
 import com.ongres.junit.docker.DockerContainer;
 import com.ongres.junit.docker.DockerExtension;
 import com.ongres.junit.docker.WhenReuse;
+import com.spotify.docker.client.exceptions.DockerException;
 
 import org.jooq.lambda.Unchecked;
 import org.junit.jupiter.api.Assertions;
@@ -44,6 +45,7 @@ public class StackGresOperatorIt extends AbstractStackGresOperatorIt {
     checkStackGresCluster(kind, 1);
     ItHelper.upgradeStackGresCluster(kind, namespace, CLUSTER_NAME, 2);
     checkStackGresCluster(kind, 2);
+    checkStackGresBackups(kind);
     ItHelper.deleteStackGresCluster(kind, namespace, CLUSTER_NAME);
     checkStackGresClusterDeletion(kind);
   }
@@ -93,6 +95,33 @@ public class StackGresOperatorIt extends AbstractStackGresOperatorIt {
                   + "' in namespace '" + namespace + "':\n"
                   + s.collect(Collectors.joining("\n"))));
     }
+  }
+
+  private void checkStackGresBackups(Container kind)
+      throws DockerException, InterruptedException, Exception {
+    String walFileName = kind.execute("sh", "-l", "-c",
+        "kubectl exec -t -n " + namespace + " "+ CLUSTER_NAME + "-" + 0
+        + " -c postgres-util -- sh -c \"psql -t -A -U postgres -p 5432"
+        + " -c 'SELECT r.file_name from pg_walfile_name_offset(pg_switch_wal()) as r'\"")
+        .filter(ItHelper.EXCLUDE_TTY_WARNING)
+        .findFirst()
+        .get();
+    ItHelper.waitUntil(Unchecked.supplier(() -> kind.execute("sh", "-l", "-c",
+        "kubectl exec -t -n " + namespace + " "
+            + CLUSTER_NAME + "-" + 0 + " -c patroni --"
+            + " sh -c \"wal-g wal-fetch " + walFileName + " /tmp/" + walFileName + "\" && echo 1")),
+        s -> s.anyMatch(line -> line.equals("1")), 60, ChronoUnit.SECONDS,
+        s -> Assertions.fail(
+            "Timeout while checking archive_command is working properly:\n"
+                + s.collect(Collectors.joining("\n"))));
+    ItHelper.waitUntil(Unchecked.supplier(() -> kind.execute("sh", "-l", "-c",
+        "kubectl exec -t -n " + namespace + " "
+            + CLUSTER_NAME + "-" + 0 + " -c patroni --"
+            + " sh -c \"wal-g backup-list | grep -n . | cut -d : -f 1\"")),
+        s -> s.anyMatch(line -> line.equals("2")), 60, ChronoUnit.SECONDS,
+        s -> Assertions.fail(
+            "Timeout while checking full backup are working properly:\n"
+                + s.collect(Collectors.joining("\n"))));
   }
 
   private void checkStackGresClusterDeletion(Container kind) throws Exception {

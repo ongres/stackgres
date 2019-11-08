@@ -13,7 +13,7 @@ import io.stackgres.operatorframework.Operation;
 import io.stackgres.operatorframework.ValidationFailed;
 
 @ApplicationScoped
-public class SourceVolumeValidator implements BackupConfigValidator {
+public class StorageVolumeValidator implements BackupConfigValidator {
 
   @Override
   public void validate(BackupConfigReview review) throws ValidationFailed {
@@ -35,11 +35,11 @@ public class SourceVolumeValidator implements BackupConfigValidator {
             + " source volume requires any of nfs, cephfs or glusterfs to be set");
       }
 
-      if ((volume.getNfs() != null
+      if ((volume.getNfs() != null //NOPMD
           && volume.getCephfs() != null)
-          || (volume.getNfs() != null
+          || (volume.getNfs() != null //NOPMD
           && volume.getGlusterfs() != null)
-          || (volume.getCephfs() != null
+          || (volume.getCephfs() != null //NOPMD
           && volume.getGlusterfs() != null)) {
         throw new ValidationFailed("Invalid backup configuration,"
             + " source volume requires only one of nfs, cephfs or glusterfs to be set");

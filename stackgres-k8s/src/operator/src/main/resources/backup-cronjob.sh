@@ -1,20 +1,51 @@
-CURRENT_TIMESTAMP="$(date +%s)"
-kubectl get cronjob.batch -n "${CLUSTER_NAMESPACE}" "${CLUSTER_NAME}"-backup --template $'
-BACKUP_STATUS={{ if .metadata.annotations.backupStatus }}{{ .metadata.annotations.backupStatus }}{{ else }}completed{{ end }}\n
-BACKUP_TIMESTAMP={{ if .metadata.annotations.backupTimestamp }}{{ .metadata.annotations.backupTimestamp }}{{ else }}0{{ end }}\n
-RESOURCE_VERSION={{ .metadata.resourceVersion }}\n
-LAST_SCHEDULE_TIME="$(date -d "{{ .status.lastScheduleTime }}" +%s)"\n
-' > /tmp/current-backup-cronjob
-source /tmp/current-backup-cronjob
-if [ "$BACKUP_STATUS" == "completed" ] \
-  || [ "$(kubectl get pod -n "${CLUSTER_NAMESPACE}" \
-    -l "${CLUSTER_LABELS},role=backup" -o name | grep -v "${POD_NAME}" | wc -l)" -eq 0 ]
+try_lock() {
+  kubectl get cronjob.batch -n "${CLUSTER_NAMESPACE}" "${CLUSTER_NAME}"-backup --template '
+  LOCK_POD={{ if .metadata.annotations.lockPod }}{{ .metadata.annotations.lockPod }}{{ else }}{{ end }}
+  LOCK_TIMESTAMP={{ if .metadata.annotations.lockTimestamp }}{{ .metadata.annotations.lockTimestamp }}{{ else }}0{{ end }}
+  RESOURCE_VERSION={{ .metadata.resourceVersion }}
+  ' > /tmp/current-backup-cronjob
+  source /tmp/current-backup-cronjob
+  CURRENT_TIMESTAMP="$(date +%s)"
+  if [ "$POD_NAME" != "$LOCK_POD" ] && [ "$((CURRENT_TIMESTAMP-LOCK_TIMESTAMP))" -lt 15 ]
+  then
+    echo "Locked already by $LOCK_POD at $(date -d @"$LOCK_TIMESTAMP" --iso-8601 --utc)"
+    exit 1
+  fi
+  kubectl annotate cronjob.batch -n "${CLUSTER_NAMESPACE}" "${CLUSTER_NAME}"-backup \
+    --resource-version "$RESOURCE_VERSION" --overwrite "lockPod=$POD_NAME" "lockTimestamp=$CURRENT_TIMESTAMP"
+}
+
+try_lock
+(
+while true
+do
+  sleep 5
+  try_lock
+done
+) &
+try_lock_pid=$!
+
+(
+kubectl get pod -n "${CLUSTER_NAMESPACE}" -l "${CLUSTER_LABELS},role=master" -o name > /tmp/current-master
+if [ ! -s /tmp/current-master ]
 then
-  kubectl annotate cronjob.batch -n "${CLUSTER_NAMESPACE}" "${CLUSTER_NAME}"-backup \
-    --resource-version "$RESOURCE_VERSION" "backupStatus=started,backupTimestamp=$CURRENT_TIMESTAMP"
-  kubectl get pod -n "${CLUSTER_NAMESPACE}" -l "${CLUSTER_LABELS},role=maste" -o name \
-    | xargs -I % kubectl exec -n "${CLUSTER_NAMESPACE}" % -c patroni \
-    -- sh -l -c "wal-g backup-push /var/lib/postgresql/data/ -f; wal-g delete retain FULL $RETAIN" || true
-  kubectl annotate cronjob.batch -n "${CLUSTER_NAMESPACE}" "${CLUSTER_NAME}"-backup \
-    --resource-version "$RESOURCE_VERSION" "backupStatus=completed,backupTimestamp=$CURRENT_TIMESTAMP"
+  kubectl get pod -n "${CLUSTER_NAMESPACE}" -l "${CLUSTER_LABELS}" >&2
+  echo >&2
+  echo "Unable to find master, backup aborted" >&2
+  exit 1
+fi
+cat << EOF | kubectl exec -i -n "${CLUSTER_NAMESPACE}" "$(cat /tmp/current-master)" -c patroni \
+  -- sh -l -ex
+wal-g backup-push /var/lib/postgresql/data/ -f
+wal-g delete retain FULL "$RETAIN" --confirm || true
+EOF
+) &
+pid=$!
+
+wait -n "$pid" "$try_lock_pid"
+if kill -0 "$pid" 2>/dev/null
+then
+  kill "$pid"
+else
+  kill "$try_lock_pid"
 fi

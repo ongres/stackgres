@@ -8,9 +8,9 @@ package io.stackgres.operator.validation.pgbouncer;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import io.stackgres.operator.common.KubernetesScanner;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.customresource.sgcluster.StackGresClusterList;
+import io.stackgres.operator.resource.KubernetesResourceScanner;
 import io.stackgres.operator.validation.DependenciesValidator;
 import io.stackgres.operator.validation.PgBouncerReview;
 import io.stackgres.operatorframework.ValidationFailed;
@@ -25,7 +25,8 @@ public class PgBouncerDependenciesValidator extends DependenciesValidator<PgBoun
       .getLogger(PgBouncerDependenciesValidator.class);
 
   @Inject
-  public PgBouncerDependenciesValidator(KubernetesScanner<StackGresClusterList> clusterScanner) {
+  public PgBouncerDependenciesValidator(
+      KubernetesResourceScanner<StackGresClusterList> clusterScanner) {
     super(clusterScanner);
   }
 

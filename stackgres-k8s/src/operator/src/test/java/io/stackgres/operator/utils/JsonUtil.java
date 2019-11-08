@@ -20,7 +20,7 @@ public class JsonUtil {
     }
     try (InputStream is = ClassLoader.getSystemResourceAsStream(resource)){
       if (is == null){
-        throw new IllegalArgumentException("resource " + resource + "not found");
+        throw new IllegalArgumentException("resource " + resource + " not found");
       }
       String json = IOUtils.toString(is, StandardCharsets.UTF_8);
       return jsonMapper.readValue(json, clazz);

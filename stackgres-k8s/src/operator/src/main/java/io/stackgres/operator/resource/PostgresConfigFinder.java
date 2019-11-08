@@ -5,48 +5,41 @@
 
 package io.stackgres.operator.resource;
 
-import java.util.Optional;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
-import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.api.model.Doneable;
+import io.fabric8.kubernetes.api.model.KubernetesResourceList;
 import io.stackgres.operator.app.KubernetesClientFactory;
 import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfigDefinition;
 import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfigDoneable;
 import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfigList;
 
+import org.jooq.lambda.tuple.Tuple;
+import org.jooq.lambda.tuple.Tuple5;
+
 @ApplicationScoped
 public class PostgresConfigFinder
-    implements KubernetesCustomResourceFinder<StackGresPostgresConfig> {
+    extends AbstractKubernetesCustomResourceFinder<StackGresPostgresConfig> {
 
-  private KubernetesClientFactory kubClientFactory;
+  private final KubernetesClientFactory kubernetesClientFactory;
 
+  /**
+   * Create a {@code PostgresConfigFinder} instance.
+   */
   @Inject
-  public PostgresConfigFinder(KubernetesClientFactory kubClientFactory) {
-    this.kubClientFactory = kubClientFactory;
+  public PostgresConfigFinder(KubernetesClientFactory kubernetesClientFactory) {
+    this.kubernetesClientFactory = kubernetesClientFactory;
   }
 
   @Override
-  public Optional<StackGresPostgresConfig> findByNameAndNamespace(String name, String namespace) {
-
-    try (KubernetesClient client = kubClientFactory.create()) {
-      Optional<CustomResourceDefinition> crd =
-          ResourceUtil.getCustomResource(client, StackGresPostgresConfigDefinition.NAME);
-      if (crd.isPresent()) {
-
-        return Optional.ofNullable(client
-            .customResources(crd.get(),
-                StackGresPostgresConfig.class,
-                StackGresPostgresConfigList.class,
-                StackGresPostgresConfigDoneable.class)
-            .inNamespace(namespace)
-            .withName(name)
-            .get());
-      }
-    }
-    return Optional.empty();
+  protected Tuple5<KubernetesClientFactory, String, Class<StackGresPostgresConfig>,
+      Class<? extends KubernetesResourceList<StackGresPostgresConfig>>,
+          Class<? extends Doneable<StackGresPostgresConfig>>> arguments() {
+    return Tuple.tuple(kubernetesClientFactory, StackGresPostgresConfigDefinition.NAME,
+        StackGresPostgresConfig.class, StackGresPostgresConfigList.class,
+        StackGresPostgresConfigDoneable.class);
   }
 
 }

@@ -7,10 +7,10 @@ package io.stackgres.operator.validation;
 
 import java.util.Optional;
 
-import io.stackgres.operator.common.KubernetesScanner;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.customresource.sgcluster.StackGresClusterDefinition;
 import io.stackgres.operator.customresource.sgcluster.StackGresClusterList;
+import io.stackgres.operator.resource.KubernetesResourceScanner;
 import io.stackgres.operatorframework.AdmissionReview;
 import io.stackgres.operatorframework.Operation;
 import io.stackgres.operatorframework.ValidationFailed;
@@ -18,12 +18,12 @@ import io.stackgres.operatorframework.Validator;
 
 public abstract class DependenciesValidator<T extends AdmissionReview<?>> implements Validator<T> {
 
-  private KubernetesScanner<StackGresClusterList> clusterScanner;
+  private KubernetesResourceScanner<StackGresClusterList> clusterScanner;
 
   public DependenciesValidator() {
   }
 
-  public DependenciesValidator(KubernetesScanner<StackGresClusterList> clusterScanner) {
+  public DependenciesValidator(KubernetesResourceScanner<StackGresClusterList> clusterScanner) {
     this.clusterScanner = clusterScanner;
   }
 

@@ -3,8 +3,10 @@ apiVersion: stackgres.io/{{ .Values.crd.version }}
 kind: StackGresPostgresConfig
 metadata:
   name: {{ .Values.cluster.pgconfig }}
+  {{- if .Values.cluster.create }}
   annotations:
     "helm.sh/hook": "pre-install"
+  {{- end }}
 spec:
   pg_version: "{{ index (.Values.config.postgresql.version | splitList ".") 0 }}"
   postgresql.conf:

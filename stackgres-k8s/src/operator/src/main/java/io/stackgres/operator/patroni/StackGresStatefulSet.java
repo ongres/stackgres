@@ -66,6 +66,7 @@ import org.jooq.lambda.Unchecked;
 public class StackGresStatefulSet {
 
   public static final String PATRONI_CONTAINER_NAME = "patroni";
+  public static final String BACKUP_SUFFIX = "-backup";
   public static final String DATA_VOLUME_NAME = "data";
   public static final String SOCKET_VOLUME_NAME = "socket";
   public static final String BACKUP_VOLUME_NAME = "backup";
@@ -75,7 +76,6 @@ public class StackGresStatefulSet {
 
   private static final String IMAGE_PREFIX = "docker.io/ongres/patroni:v%s-pg%s-build-%s";
   private static final String PATRONI_VERSION = "1.6.0";
-  private static final String BACKUP_SUFFIX = "-backup";
   private static final String GCS_CONFIG_PATH = "/.gcs";
   private static final String GCS_CREDENTIALS_FILE_NAME = "google-service-account-key.json";
 
@@ -113,6 +113,7 @@ public class StackGresStatefulSet {
     final Map<String, String> labels = ResourceUtil.defaultLabels(name);
     final Map<String, String> podLabels = ImmutableMap.<String, String>builder()
         .putAll(labels)
+        .put("cluster", "true")
         .put("disruptible", "true")
         .build();
 
@@ -175,19 +176,6 @@ public class StackGresStatefulSet {
         new EnvVarBuilder().withName("PATRONI_authenticator_OPTIONS")
         .withValue("superuser")
         .build());
-
-    if (config.getBackupConfig().isPresent()) {
-      environmentsBuilder.add(
-          new EnvVarBuilder().withName("PGPASSWORD")
-          .withValueFrom(new EnvVarSourceBuilder()
-              .withSecretKeyRef(
-                  new SecretKeySelectorBuilder()
-                  .withName(name)
-                  .withKey("superuser-password")
-                  .build())
-              .build())
-          .build());
-    }
 
     if (config.getBackupConfig()
         .map(backupConfig -> backupConfig.getSpec().getPgpConfiguration())
@@ -297,15 +285,20 @@ public class StackGresStatefulSet {
                 .withPodAntiAffinity(new PodAntiAffinityBuilder()
                     .addAllToRequiredDuringSchedulingIgnoredDuringExecution(ImmutableList.of(
                         new PodAffinityTermBuilder()
-                            .withLabelSelector(new LabelSelectorBuilder()
-                                .withMatchExpressions(new LabelSelectorRequirementBuilder()
-                                    .withKey(ResourceUtil.APP_KEY)
-                                    .withOperator("In")
-                                    .withValues(ResourceUtil.APP_NAME)
-                                    .build())
+                        .withLabelSelector(new LabelSelectorBuilder()
+                            .withMatchExpressions(new LabelSelectorRequirementBuilder()
+                                .withKey(ResourceUtil.APP_KEY)
+                                .withOperator("In")
+                                .withValues(ResourceUtil.APP_NAME)
+                                .build(),
+                                new LabelSelectorRequirementBuilder()
+                                .withKey("cluster")
+                                .withOperator("In")
+                                .withValues("true")
                                 .build())
-                            .withTopologyKey("kubernetes.io/hostname")
-                            .build()))
+                            .build())
+                        .withTopologyKey("kubernetes.io/hostname")
+                        .build()))
                     .build())
                 .build())
             .withShareProcessNamespace(Boolean.TRUE)
@@ -361,53 +354,7 @@ public class StackGresStatefulSet {
                 .withConfigMapRef(new ConfigMapEnvSourceBuilder()
                     .withName(name).build())
                 .build())
-            .withEnv(
-                new EnvVarBuilder().withName("PATRONI_NAME")
-                    .withValueFrom(new EnvVarSourceBuilder().withFieldRef(
-                        new ObjectFieldSelectorBuilder().withFieldPath("metadata.name").build())
-                        .build())
-                    .build(),
-                new EnvVarBuilder().withName("PATRONI_KUBERNETES_NAMESPACE")
-                    .withValueFrom(new EnvVarSourceBuilder().withFieldRef(
-                        new ObjectFieldSelectorBuilder().withFieldPath("metadata.namespace")
-                            .build())
-                        .build())
-                    .build(),
-                new EnvVarBuilder().withName("PATRONI_KUBERNETES_POD_IP")
-                    .withValueFrom(new EnvVarSourceBuilder().withFieldRef(
-                        new ObjectFieldSelectorBuilder().withFieldPath("status.podIP").build())
-                        .build())
-                    .build(),
-                new EnvVarBuilder().withName("PATRONI_POSTGRESQL_CONNECT_ADDRESS")
-                    .withValue("$(PATRONI_KUBERNETES_POD_IP):" + Envoy.REPLICATION_ENTRY_PORT)
-                    .build(),
-                new EnvVarBuilder().withName("PATRONI_SUPERUSER_PASSWORD")
-                    .withValueFrom(new EnvVarSourceBuilder().withSecretKeyRef(
-                        new SecretKeySelectorBuilder()
-                            .withName(name)
-                            .withKey("superuser-password")
-                            .build())
-                        .build())
-                    .build(),
-                new EnvVarBuilder().withName("PATRONI_REPLICATION_PASSWORD")
-                    .withValueFrom(new EnvVarSourceBuilder().withSecretKeyRef(
-                        new SecretKeySelectorBuilder()
-                            .withName(name)
-                            .withKey("replication-password")
-                            .build())
-                        .build())
-                    .build(),
-                new EnvVarBuilder().withName("PATRONI_authenticator_PASSWORD")
-                    .withValueFrom(new EnvVarSourceBuilder().withSecretKeyRef(
-                        new SecretKeySelectorBuilder()
-                            .withName(name)
-                            .withKey("authenticator-password")
-                            .build())
-                        .build())
-                    .build(),
-                new EnvVarBuilder().withName("PATRONI_authenticator_OPTIONS")
-                    .withValue("superuser")
-                    .build())
+            .withEnv(environmentsBuilder.build())
             .withLivenessProbe(new ProbeBuilder()
                 .withTcpSocket(new TCPSocketActionBuilder()
                     .withPort(new IntOrString(5432))

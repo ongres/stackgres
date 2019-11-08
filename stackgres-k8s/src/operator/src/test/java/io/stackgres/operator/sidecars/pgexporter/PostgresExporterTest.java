@@ -20,8 +20,8 @@ import java.util.Optional;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.operator.common.ConfigContext;
 import io.stackgres.operator.common.ConfigProperty;
-import io.stackgres.operator.common.KubernetesScanner;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
+import io.stackgres.operator.resource.KubernetesResourceScanner;
 import io.stackgres.operator.sidecars.pgexporter.customresources.StackGresPostgresExporterConfig;
 import io.stackgres.operator.sidecars.prometheus.customresources.PrometheusConfig;
 import io.stackgres.operator.sidecars.prometheus.customresources.PrometheusConfigList;
@@ -45,7 +45,7 @@ class PostgresExporterTest {
   private KubernetesClient client;
 
   @Mock
-  private KubernetesScanner<PrometheusConfigList> prometheusScanner;
+  private KubernetesResourceScanner<PrometheusConfigList> prometheusScanner;
 
   @Mock
   private ConfigContext configContext;

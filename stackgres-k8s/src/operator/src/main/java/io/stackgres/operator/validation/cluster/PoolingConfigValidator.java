@@ -6,6 +6,7 @@
 package io.stackgres.operator.validation.cluster;
 
 import java.util.Optional;
+
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
@@ -16,12 +17,13 @@ import io.stackgres.operator.validation.StackgresClusterReview;
 import io.stackgres.operatorframework.ValidationFailed;
 
 @ApplicationScoped
-public class PgBouncerValidator implements ClusterValidator {
+public class PoolingConfigValidator implements ClusterValidator {
 
   private KubernetesCustomResourceFinder<StackGresPgbouncerConfig> configFinder;
 
   @Inject
-  public PgBouncerValidator(KubernetesCustomResourceFinder<StackGresPgbouncerConfig> configFinder) {
+  public PoolingConfigValidator(
+      KubernetesCustomResourceFinder<StackGresPgbouncerConfig> configFinder) {
     this.configFinder = configFinder;
   }
 

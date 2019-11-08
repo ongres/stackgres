@@ -3,13 +3,41 @@ apiVersion: stackgres.io/{{ .Values.crd.version }}
 kind: StackGresBackupConfig
 metadata:
   name: {{ .Values.cluster.backup.name }}
+  {{- if .Values.cluster.create }}
   annotations:
     "helm.sh/hook": "pre-install"
+  {{- end }}
 spec:
   storage:
     {{- if .Values.cluster.backup.volume }}
     type: volume
-    volume: "{{ .Values.cluster.backup.volume }}"
+    volume:
+    {{- if .Values.cluster.backup.volume.nfs }}
+      nfs:
+        path: "{{ .Values.cluster.backup.volume.nfs.path }}"
+        server: "{{ .Values.cluster.backup.volume.nfs.server }}"
+    {{- end }}
+    {{- if .Values.cluster.backup.volume.cephfs }}
+      cephfs:
+        monitors:
+        {{- range .Values.cluster.backup.volume.cephfs.monitors }}
+        - "{{ . }}"
+        {{- end }}
+        path: "{{ .Values.cluster.backup.volume.cephfs.path }}"
+        {{- if .Values.cluster.backup.volume.cephfs.secretFile }}
+        secretFile: "{{ .Values.cluster.backup.volume.cephfs.secretFile }}"
+        {{- end }}
+        {{- if .Values.cluster.backup.volume.cephfs.secretReference }}
+        secretReference:
+          name: "{{ .Values.cluster.backup.volume.cephfs.secretReference }}"
+        {{- end }}
+        user: "{{ .Values.cluster.backup.volume.cephfs.user }}"
+    {{- end }}
+    {{- if .Values.cluster.backup.volume.glusterfs }}
+      glusterfs:
+        endpoints: "{{ .Values.cluster.backup.volume.glusterfs.endpoints }}"
+        path: "{{ .Values.cluster.backup.volume.glusterfs.path }}"
+    {{- end }}
     {{- end }}
     {{- if .Values.cluster.backup.s3 }}
     type: s3

@@ -17,7 +17,7 @@ import java.util.stream.Stream;
 
 import io.stackgres.operator.customresource.sgcluster.StackGresClusterSpec;
 import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfig;
-import io.stackgres.operator.resource.KubernetesCustomResourceFinder;
+import io.stackgres.operator.resource.AbstractKubernetesCustomResourceFinder;
 import io.stackgres.operator.utils.JsonUtil;
 import io.stackgres.operator.validation.StackgresClusterReview;
 import io.stackgres.operatorframework.Operation;
@@ -89,7 +89,7 @@ class PostgresVersionValidatorTest {
   private PostgresConfigValidator validator;
 
   @Mock
-  private KubernetesCustomResourceFinder<StackGresPostgresConfig> configFinder;
+  private AbstractKubernetesCustomResourceFinder<StackGresPostgresConfig> configFinder;
 
   private StackGresPostgresConfig postgresConfig;
 

@@ -3,14 +3,14 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.common;
+package io.stackgres.operator.resource;
 
 import java.util.Optional;
 
 /*
  * Look for resources T in the kubernetes cluster
  */
-public interface KubernetesScanner<T> {
+public interface KubernetesResourceScanner<T> {
 
 
   /**

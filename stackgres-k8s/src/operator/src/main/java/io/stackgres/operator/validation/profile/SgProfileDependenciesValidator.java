@@ -8,9 +8,9 @@ package io.stackgres.operator.validation.profile;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import io.stackgres.operator.common.KubernetesScanner;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.customresource.sgcluster.StackGresClusterList;
+import io.stackgres.operator.resource.KubernetesResourceScanner;
 import io.stackgres.operator.validation.DependenciesValidator;
 import io.stackgres.operator.validation.SgProfileReview;
 import io.stackgres.operatorframework.ValidationFailed;
@@ -20,7 +20,8 @@ public class SgProfileDependenciesValidator extends DependenciesValidator<SgProf
     implements SgProfileValidator {
 
   @Inject
-  public SgProfileDependenciesValidator(KubernetesScanner<StackGresClusterList> clusterScanner) {
+  public SgProfileDependenciesValidator(
+      KubernetesResourceScanner<StackGresClusterList> clusterScanner) {
     super(clusterScanner);
   }
 

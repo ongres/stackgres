@@ -34,13 +34,13 @@ import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.operator.common.ConfigContext;
 import io.stackgres.operator.common.ConfigProperty;
-import io.stackgres.operator.common.KubernetesScanner;
 import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.common.StackGresClusterConfig;
 import io.stackgres.operator.common.StackGresSidecarTransformer;
 import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.patroni.StackGresStatefulSet;
+import io.stackgres.operator.resource.KubernetesResourceScanner;
 import io.stackgres.operator.resource.ResourceUtil;
 import io.stackgres.operator.sidecars.pgexporter.customresources.Endpoint;
 import io.stackgres.operator.sidecars.pgexporter.customresources.NamespaceSelector;
@@ -71,12 +71,12 @@ public class PostgresExporter
       "docker.io/ongres/prometheus-postgres-exporter:v%s-build-%s";
   private static final String DEFAULT_VERSION = "0.5.1";
 
-  private KubernetesScanner<PrometheusConfigList> prometheusScanner;
+  private KubernetesResourceScanner<PrometheusConfigList> prometheusScanner;
 
   private ConfigContext configContext;
 
   @Inject
-  public PostgresExporter(KubernetesScanner<PrometheusConfigList> prometheusScanner,
+  public PostgresExporter(KubernetesResourceScanner<PrometheusConfigList> prometheusScanner,
                           ConfigContext configContext) {
     this.prometheusScanner = prometheusScanner;
     this.configContext = configContext;

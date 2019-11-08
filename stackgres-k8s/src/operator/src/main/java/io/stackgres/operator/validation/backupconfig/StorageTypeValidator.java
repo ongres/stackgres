@@ -14,7 +14,7 @@ import io.stackgres.operatorframework.Operation;
 import io.stackgres.operatorframework.ValidationFailed;
 
 @ApplicationScoped
-public class SourceTypeValidator implements BackupConfigValidator {
+public class StorageTypeValidator implements BackupConfigValidator {
 
   @Override
   public void validate(BackupConfigReview review) throws ValidationFailed {

@@ -7,9 +7,9 @@ package io.stackgres.operator.validation;
 
 import java.util.Optional;
 
-import io.stackgres.operator.common.KubernetesScanner;
 import io.stackgres.operator.customresource.sgcluster.StackGresClusterDefinition;
 import io.stackgres.operator.customresource.sgcluster.StackGresClusterList;
+import io.stackgres.operator.resource.KubernetesResourceScanner;
 import io.stackgres.operator.utils.JsonUtil;
 import io.stackgres.operatorframework.AdmissionReview;
 import io.stackgres.operatorframework.ValidationFailed;
@@ -26,7 +26,7 @@ public abstract class DependenciesValidatorTest<T extends AdmissionReview<?>, V 
   protected DependenciesValidator<T> validator;
 
   @Mock
-  protected KubernetesScanner<StackGresClusterList> clusterScanner;
+  protected KubernetesResourceScanner<StackGresClusterList> clusterScanner;
 
   @Test
   protected abstract void givenAReviewCreation_itShouldDoNothing() throws ValidationFailed;
