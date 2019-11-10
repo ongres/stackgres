@@ -87,6 +87,7 @@ public class Envoy implements StackGresSidecarTransformer<CustomResource> {
     } else {
       envoyConfPath = "envoy/envoy_nopgbouncer.yaml";
     }
+
     try (InputStream is = ClassLoader.getSystemClassLoader()
         .getSystemResourceAsStream(envoyConfPath)) {
 
