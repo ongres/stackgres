@@ -13,7 +13,11 @@ spec:
   backup_config: '{{ .Values.cluster.backup.name }}'
   {{- end }}
   volume_size: '{{ .Values.cluster.volumesize }}'
+  {{- if not .Values.cluster.storageclass }}
+  storage_class: ''
+  {{- else }}
   storage_class: '{{ .Values.cluster.storageclass }}'
+  {{- end }}
   postgres_exporter_version: '{{ .Values.config.postgres_exporter.version }}'
   envoy_version: '{{ .Values.config.envoy.version }}'
   {{- if .Values.sidecar.prometheus.create }}
