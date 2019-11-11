@@ -54,11 +54,13 @@ public class BackupConfigValidator implements ClusterValidator {
     String backupConfig = cluster.getSpec().getBackupConfig();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
-    Optional<StackGresBackupConfig> backupConfigOpt = configFinder
-        .findByNameAndNamespace(backupConfig, namespace);
+    if (backupConfig != null) {
+      Optional<StackGresBackupConfig> backupConfigOpt = configFinder
+          .findByNameAndNamespace(backupConfig, namespace);
 
-    if (!backupConfigOpt.isPresent()) {
-      throw new ValidationFailed(onError);
+      if (!backupConfigOpt.isPresent()) {
+        throw new ValidationFailed(onError);
+      }
     }
   }
 
