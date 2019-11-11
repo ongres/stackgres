@@ -38,8 +38,9 @@ public class StackGresOperatorIt extends AbstractStackGresOperatorIt {
 
   @Test
   public void createClusterTest(@ContainerParam("kind") Container kind) throws Exception {
-    ItHelper.installStackGresConfigs(kind, namespace);
-    ItHelper.installStackGresCluster(kind, namespace, CLUSTER_NAME, 1);
+    ItHelper.installMinioHelmChart(kind);
+    ItHelper.installStackGresConfigs(kind, namespace, true);
+    ItHelper.installStackGresCluster(kind, namespace, CLUSTER_NAME, 1, true);
     checkStackGresEvent(kind, EventReason.CLUSTER_CREATED, StackGresCluster.class);
     checkStackGresCluster(kind, 1);
     ItHelper.upgradeStackGresCluster(kind, namespace, CLUSTER_NAME, 2);
