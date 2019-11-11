@@ -17,16 +17,16 @@ echo "INFO: Starting test"
 function ports_check(){
   RESPONSE_5432=$(run_query.sh -i 0 -p 5432 -c $CLUSTER_NAME -n $CLUSTER_NAMESPACE)
   RESPONSE_5433=$(run_query.sh -i 0 -p 5433 -c $CLUSTER_NAME -n $CLUSTER_NAMESPACE)
-  RESPONSE_5434=$(run_query.sh -i 0 -p 5434 -c $CLUSTER_NAME -n $CLUSTER_NAMESPACE)
+  RESPONSE_5435=$(run_query.sh -i 0 -p 5435 -c $CLUSTER_NAME -n $CLUSTER_NAMESPACE)
 
-  if [ "$RESPONSE_5432" == "1" ] && [ "$RESPONSE_5433" == "1" ] && [ "$RESPONSE_5434" == "1" ]
+  if [ "$RESPONSE_5432" == "1" ] && [ "$RESPONSE_5433" == "1" ] && [ "$RESPONSE_5435" == "1" ]
   then
     
     RESPONSE_5432=$(run_query.sh -i 1 -p 5432 -c $CLUSTER_NAME -n $CLUSTER_NAMESPACE)
     RESPONSE_5433=$(run_query.sh -i 1 -p 5433 -c $CLUSTER_NAME -n $CLUSTER_NAMESPACE)
-    RESPONSE_5434=$(run_query.sh -i 1 -p 5434 -c $CLUSTER_NAME -n $CLUSTER_NAMESPACE)
+    RESPONSE_5435=$(run_query.sh -i 1 -p 5435 -c $CLUSTER_NAME -n $CLUSTER_NAMESPACE)
     
-    if [ "$RESPONSE_5432" == "1" ] && [ "$RESPONSE_5433" == "1" ] && [ "$RESPONSE_5434" == "1" ]
+    if [ "$RESPONSE_5432" == "1" ] && [ "$RESPONSE_5433" == "1" ] && [ "$RESPONSE_5435" == "1" ]
     then
       echo "SUCCESS: All ports are ok"
     else 
