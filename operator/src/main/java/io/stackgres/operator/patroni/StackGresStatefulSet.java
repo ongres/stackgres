@@ -58,8 +58,6 @@ public class StackGresStatefulSet {
   private static final String IMAGE_PREFIX = "docker.io/ongres/patroni:v%s-pg%s-build-%s";
   private static final String PATRONI_VERSION = "1.6.0";
 
-  private static final String DEFAULT_STORAGE_CLASS = "standard";
-
   /**
    * Create a new StatefulSet based on the StackGresCluster definition.
    */
@@ -69,14 +67,19 @@ public class StackGresStatefulSet {
     final String pgVersion = config.getCluster().getSpec().getPostgresVersion();
     final Optional<StackGresProfile> profile = config.getProfile();
 
-    ResourceRequirements resources = new ResourceRequirements();
+    // storageClass arg is @Nullable.
+    // As per https://gitlab.com/ongresinc/stackgres/issues/151,
+    // if storageClass is not specified, a null value will cause the default SC to be used.
     StorageConfig storage = ImmutableStorageConfig.builder()
         .size(config.getCluster().getSpec().getVolumeSize())
         .storageClass(Optional.ofNullable(
             config.getCluster().getSpec().getStorageClass())
             .filter(storageClass -> ! storageClass.isEmpty())
-            .orElse(DEFAULT_STORAGE_CLASS))
+            .get()
+        )
         .build();
+
+    ResourceRequirements resources = new ResourceRequirements();
     if (profile.isPresent()) {
       resources.setRequests(ImmutableMap.of(
           "cpu", new Quantity(profile.get().getSpec().getCpu()),
