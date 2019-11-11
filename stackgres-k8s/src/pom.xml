@@ -78,8 +78,6 @@
     <checkstyle.suppressions.location>${project.basedir}/checks/checkstyle/suppressions.xml</checkstyle.suppressions.location>
     <checkstyle.header.file>${project.basedir}/checks/checkstyle/header.txt</checkstyle.header.file>
     <spotbugs.excludeFilterFile>${project.basedir}/checks/spotbugs/exclude.xml</spotbugs.excludeFilterFile>
-    <quarkus.http.ssl.certificate.file>/etc/operator/certs/server.crt</quarkus.http.ssl.certificate.file>
-    <quarkus.http.ssl.certificate.key-file>/etc/operator/certs/root.key</quarkus.http.ssl.certificate.key-file>
   </properties>
 
   <dependencyManagement>
