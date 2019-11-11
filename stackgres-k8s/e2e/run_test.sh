@@ -1,7 +1,7 @@
 #!/bin/bash
 echo "Preparing environment"
 . envs/init.sh
-. envs/kind.sh
+. envs/kind.sh &> env.log
 
 echo "Functional tests results" > results.log
 
