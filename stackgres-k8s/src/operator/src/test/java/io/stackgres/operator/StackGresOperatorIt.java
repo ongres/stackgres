@@ -17,8 +17,8 @@ import com.spotify.docker.client.exceptions.DockerException;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Service;
-import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.stackgres.operator.controller.EventReason;
+import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.sidecars.envoy.Envoy;
 
 import org.jooq.lambda.Unchecked;
@@ -40,10 +40,10 @@ public class StackGresOperatorIt extends AbstractStackGresOperatorIt {
   public void createClusterTest(@ContainerParam("kind") Container kind) throws Exception {
     ItHelper.installStackGresConfigs(kind, namespace);
     ItHelper.installStackGresCluster(kind, namespace, CLUSTER_NAME, 1);
-    checkStackGresEvent(kind, EventReason.CLUSTER_CREATED, StatefulSet.class);
+    checkStackGresEvent(kind, EventReason.CLUSTER_CREATED, StackGresCluster.class);
     checkStackGresCluster(kind, 1);
     ItHelper.upgradeStackGresCluster(kind, namespace, CLUSTER_NAME, 2);
-    checkStackGresEvent(kind, EventReason.CLUSTER_UPDATED, StatefulSet.class);
+    checkStackGresEvent(kind, EventReason.CLUSTER_UPDATED, StackGresCluster.class);
     checkStackGresCluster(kind, 2);
     checkStackGresBackups(kind);
     ItHelper.deleteStackGresCluster(kind, namespace, CLUSTER_NAME);
