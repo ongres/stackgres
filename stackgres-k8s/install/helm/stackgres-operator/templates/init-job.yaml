@@ -8,7 +8,7 @@ metadata:
     app: StackGres
     scope: init
   annotations:
-    "helm.sh/hook": pre-install
+    "helm.sh/hook": post-install
     "helm.sh/hook-delete-policy": hook-succeeded
 spec:
   template:
