@@ -390,7 +390,8 @@ public class ItHelper {
     while (true) {
       if (Instant.now().isAfter(end)) {
         onTimeout.run();
-        throw new TimeoutException("Timeout after waiting for the specified condition");
+        throw new TimeoutException("Timeout after waiting for the specified condition for "
+            + Duration.of(timeout, unit).getSeconds() + " seconds");
       }
       TimeUnit.SECONDS.sleep(1);
       try {
