@@ -320,16 +320,6 @@ public class ItHelper {
     if (OPERATOR_IN_KUBERNETES) {
       waitUntil(Unchecked.supplier(() -> kind.execute("sh", "-l", "-c",
           "kubectl get pod -n stackgres -o name"
-              + " | grep '^pod/stackgres-operator-init-'"
-              + " | xargs kubectl describe -n  stackgres ")),
-          s -> s.anyMatch(line -> line.matches("^Status:\\s+Succeeded\\s*")), 120, ChronoUnit.SECONDS,
-          s -> Assertions.fail(
-              "Timeout while checking availability of"
-                  + " stackgres-operator pod:\n"
-                  + s.collect(Collectors.joining("\n"))));
-
-      waitUntil(Unchecked.supplier(() -> kind.execute("sh", "-l", "-c",
-          "kubectl get pod -n stackgres -o name"
               + " | grep '^pod/stackgres-operator-'"
               + " | grep -v '^pod/stackgres-operator-init'"
               + " | xargs kubectl describe -n  stackgres ")),
