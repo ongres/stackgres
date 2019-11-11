@@ -5,7 +5,7 @@ metadata:
   name: {{ .Release.Name }}-sgcluster
   namespace: {{ .Release.Namespace }}
 webhooks:
-  - name: cluster.{{ .Release.Name }}.{{ .Release.Namespace }}
+  - name: sgcluster.{{ .Release.Name }}.{{ .Release.Namespace }}
     sideEffects: None
     rules:
       - operations: ["CREATE", "UPDATE"]
@@ -26,7 +26,7 @@ metadata:
   name: {{ .Release.Name }}-sgpgconfig
   namespace: {{ .Release.Namespace }}
 webhooks:
-  - name: pgconfig.{{ .Release.Name }}.{{ .Release.Namespace }}
+  - name: sgpgconfig.{{ .Release.Name }}.{{ .Release.Namespace }}
     sideEffects: None
     rules:
       - operations: ["CREATE", "UPDATE", "DELETE"]
@@ -44,10 +44,10 @@ webhooks:
 apiVersion: admissionregistration.k8s.io/v1beta1
 kind: ValidatingWebhookConfiguration
 metadata:
-  name: {{ .Release.Name }}-sgpgbouncer
+  name: {{ .Release.Name }}-sgconnectionpoolingconfig
   namespace: {{ .Release.Namespace }}
 webhooks:
-  - name: pgbouncer.{{ .Release.Name }}.{{ .Release.Namespace }}
+  - name: sgconnectionpoolingconfig.{{ .Release.Name }}.{{ .Release.Namespace }}
     sideEffects: None
     rules:
       - operations: ["CREATE", "UPDATE", "DELETE"]
@@ -59,7 +59,7 @@ webhooks:
       service:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
-        path: '/stackgres/validation/sgpgbouncer'
+        path: '/stackgres/validation/sgconnectionpoolingconfig'
       caBundle: {{ .Values.cert.crt }}
 ---
 apiVersion: admissionregistration.k8s.io/v1beta1
@@ -89,7 +89,7 @@ metadata:
   name: {{ .Release.Name }}-sgbackupconfig
   namespace: {{ .Release.Namespace }}
 webhooks:
-  - name: sgprofile.{{ .Release.Name }}.{{ .Release.Namespace }}
+  - name: sgbackupconfig.{{ .Release.Name }}.{{ .Release.Namespace }}
     sideEffects: None
     rules:
       - operations: ["CREATE", "UPDATE", "DELETE"]
