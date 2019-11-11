@@ -198,12 +198,31 @@ public class ItHelper {
         .forEach(line -> LOGGER.info(line));
   }
 
-  public static void installMinioHelmChart(Container kind)
+  public static void installMinioHelmChart(Container kind, String namespace, String clusterNamespace)
       throws DockerException, InterruptedException {
     LOGGER.info("Installing minio helm chart");
     kind.execute("sh", "-l", "-c", "helm upgrade minio stable/minio"
-        + " --install --version 2.5.18 --namespace minio"
+        + " --install --version 2.5.18 --namespace " + namespace
         + " --set buckets[0].name=stackgres,buckets[0].policy=none,buckets[0].purge=true")
+        .filter(EXCLUDE_TTY_WARNING)
+        .forEach(line -> LOGGER.info(line));
+    kind.execute("sh", "-l", "-c", "kubectl get secret -n minio minio -o yaml"
+        + " | sed 's/  namespace: " + namespace + "/  namespace: " + clusterNamespace + "/'"
+        + " | kubectl create --namespace " + clusterNamespace + " -f -")
+        .filter(EXCLUDE_TTY_WARNING)
+        .forEach(line -> LOGGER.info(line));
+    kind.execute("sh", "-l", "-c", "cat << 'EOF' | kubectl create -f -\n"
+        + "kind: Service\n"
+        + "apiVersion: v1\n"
+        + "metadata:\n"
+        + "  namespace: " + clusterNamespace + "\n"
+        + "  name: minio\n"
+        + "spec:\n"
+        + "  type: ExternalName\n"
+        + "  externalName: minio." + namespace + ".svc.cluster.local\n"
+        + "  ports:\n"
+        + "   - port: 9000\n"
+        + "EOF")
         .filter(EXCLUDE_TTY_WARNING)
         .forEach(line -> LOGGER.info(line));
   }
@@ -222,7 +241,7 @@ public class ItHelper {
         + " --namespace " + namespace
         + " --name stackgres-cluster-configs"
         + " --set cluster.create=false"
-        + getMinioOptions(withMinio))
+        + getMinioOptions(withMinio, namespace))
       .filter(EXCLUDE_TTY_WARNING)
       .forEach(line -> LOGGER.info(line));
   }
@@ -248,18 +267,18 @@ public class ItHelper {
         + " --set config.create=false --set profiles.create=false"
         + " --set-string cluster.name=" + name
         + " --set cluster.instances=" + instances
-        + getMinioOptions(withMinio))
+        + getMinioOptions(withMinio, namespace))
       .filter(EXCLUDE_TTY_WARNING)
       .forEach(line -> LOGGER.info(line));
   }
 
-  private static String getMinioOptions(boolean withMinio) {
+  private static String getMinioOptions(boolean withMinio, String namespace) {
     return !withMinio ? "" :
       " --set cluster.backup.retention=5"
       + " --set-string cluster.backup.fullSchedule='*/1 * * * *'"
       + " --set cluster.backup.fullWindow=1"
       + " --set-string cluster.backup.s3.prefix=s3://stackgres"
-      + " --set-string cluster.backup.s3.endpoint=http://minio.minio.svc:9000"
+      + " --set-string cluster.backup.s3.endpoint=http://minio." + namespace + ".svc:9000"
       + " --set cluster.backup.s3.forcePathStyle=true"
       + " --set-string  cluster.backup.s3.region=k8s"
       + " --set-string cluster.backup.s3.accessKey.name=minio"
