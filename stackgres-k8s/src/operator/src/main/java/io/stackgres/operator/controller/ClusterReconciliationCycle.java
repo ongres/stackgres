@@ -128,7 +128,7 @@ public class ClusterReconciliationCycle {
 
     String cycleName = "Reconciliation Cycle " + cycleId;
 
-    LOGGER.trace("Stating " + cycleName);
+    LOGGER.trace("Starting " + cycleName);
     try (KubernetesClient client = kubClientFactory.create()) {
       LOGGER.trace(cycleName + " getting existing clusters");
       ImmutableList<StackGresClusterConfig> existingClusters = getExistingClusters(client);
