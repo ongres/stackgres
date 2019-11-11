@@ -282,12 +282,21 @@ public class ItHelper {
       WebTarget operatorClient, Container kind) throws Exception {
     if (OPERATOR_IN_KUBERNETES) {
       waitUntil(Unchecked.supplier(() -> kind.execute("sh", "-l", "-c",
-          "kubectl get pod -n stackgres"
-              + " | grep 'stackgres-operator'"
-              + " | grep -v 'stackgres-operator-init'"
-              + " | cut -d ' ' -f 1"
-              + " | xargs kubectl describe pod -n  stackgres ")),
-          s -> s.anyMatch(line -> line.matches("  Ready\\s+True\\s*")), 120, ChronoUnit.SECONDS,
+          "kubectl get pod -n stackgres -o name"
+              + " | grep '^pod/stackgres-operator-init-'"
+              + " | xargs kubectl describe -n  stackgres ")),
+          s -> s.anyMatch(line -> line.matches("^Status:\\s+Succeeded\\s*")), 120, ChronoUnit.SECONDS,
+          s -> Assertions.fail(
+              "Timeout while checking availability of"
+                  + " stackgres-operator pod:\n"
+                  + s.collect(Collectors.joining("\n"))));
+
+      waitUntil(Unchecked.supplier(() -> kind.execute("sh", "-l", "-c",
+          "kubectl get pod -n stackgres -o name"
+              + " | grep '^pod/stackgres-operator-'"
+              + " | grep -v '^pod/stackgres-operator-init'"
+              + " | xargs kubectl describe -n  stackgres ")),
+          s -> s.anyMatch(line -> line.matches("^  Ready\\s+True\\s*")), 120, ChronoUnit.SECONDS,
           s -> Assertions.fail(
               "Timeout while checking availability of"
                   + " stackgres-operator pod:\n"

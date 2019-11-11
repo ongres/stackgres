@@ -30,6 +30,10 @@ spec:
             kubectl delete validatingwebhookconfiguration --ignore-not-found {{ .Release.Name }}-sgconnectionpoolingconfig
             kubectl delete validatingwebhookconfiguration --ignore-not-found {{ .Release.Name }}-sgprofile
             kubectl delete validatingwebhookconfiguration --ignore-not-found {{ .Release.Name }}-sgbackupconfig
+            kubectl get pod -n {{ .Release.Namespace }} -o name \
+              | grep '^pod/{{ .Release.Name }}-' \
+              | grep -v '^pod/{{ .Release.Name }}-init-' \
+              | xargs -r -L 1 -I % kubectl delete -n {{ .Release.Namespace }} % --ignore-not-found
             cat << EOF > /tmp/csr.conf
             [req]
             req_extensions = v3_req
