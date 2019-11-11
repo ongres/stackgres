@@ -1,0 +1,49 @@
+static_resources:
+  listeners:
+    - name: postgres_listener
+      per_connection_buffer_limit_bytes: 32768  # 32 KiB
+      address:
+        socket_address:
+          address: 0.0.0.0
+          port_value: 5432
+      filter_chains:
+        - filters:
+            - name: envoy.tcp_proxy
+              typed_config:
+                "@type": type.googleapis.com/envoy.config.filter.network.tcp_proxy.v2.TcpProxy
+                stat_prefix: ingress_tcp
+                cluster: postgres_pool_cluster
+    - name: postgres_replication_listener
+      per_connection_buffer_limit_bytes: 32768  # 32 KiB
+      address:
+        socket_address:
+          address: 0.0.0.0
+          port_value: 5433
+      filter_chains:
+        - filters:
+            - name: envoy.tcp_proxy
+              typed_config:
+                "@type": type.googleapis.com/envoy.config.filter.network.tcp_proxy.v2.TcpProxy
+                stat_prefix: ingress_tcp
+                cluster: postgres_replication_cluster
+  clusters:
+    - name: postgres_replication_cluster
+      connect_timeout: 1s
+      per_connection_buffer_limit_bytes: 32768 # 32 KiB
+      hosts:
+        socket_address:
+          address: 127.0.0.1
+          port_value: 5434
+    - name: postgres_pool_cluster
+      connect_timeout: 1s
+      per_connection_buffer_limit_bytes: 32768 # 32 KiB
+      hosts:
+        socket_address:
+          address: 127.0.0.1
+          port_value: 5435
+admin:
+  access_log_path: "/dev/null"
+  address:
+    socket_address:
+      address: 0.0.0.0
+      port_value: 8001

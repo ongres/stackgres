@@ -48,6 +48,7 @@ import io.stackgres.operator.configuration.ImmutableStorageConfig;
 import io.stackgres.operator.configuration.StorageConfig;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfile;
 import io.stackgres.operator.resource.ResourceUtil;
+import io.stackgres.operator.sidecars.envoy.Envoy;
 
 public class StackGresStatefulSet {
 
@@ -128,15 +129,15 @@ public class StackGresStatefulSet {
                 .withPodAntiAffinity(new PodAntiAffinityBuilder()
                     .addAllToRequiredDuringSchedulingIgnoredDuringExecution(ImmutableList.of(
                         new PodAffinityTermBuilder()
-                        .withLabelSelector(new LabelSelectorBuilder()
-                            .withMatchExpressions(new LabelSelectorRequirementBuilder()
-                                .withKey(ResourceUtil.APP_KEY)
-                                .withOperator("In")
-                                .withValues(ResourceUtil.APP_NAME)
+                            .withLabelSelector(new LabelSelectorBuilder()
+                                .withMatchExpressions(new LabelSelectorRequirementBuilder()
+                                    .withKey(ResourceUtil.APP_KEY)
+                                    .withOperator("In")
+                                    .withValues(ResourceUtil.APP_NAME)
+                                    .build())
                                 .build())
-                            .build())
-                        .withTopologyKey("kubernetes.io/hostname")
-                        .build()))
+                            .withTopologyKey("kubernetes.io/hostname")
+                            .build()))
                     .build())
                 .build())
             .withShareProcessNamespace(Boolean.TRUE)
@@ -151,7 +152,12 @@ public class StackGresStatefulSet {
                 .withAllowPrivilegeEscalation(Boolean.FALSE)
                 .build())
             .withPorts(
-                new ContainerPortBuilder().withContainerPort(5432).build(),
+                new ContainerPortBuilder()
+                    .withName(PatroniConfigMap.POSTGRES_PORT_NAME)
+                    .withContainerPort(Envoy.PG_ENTRY_PORT).build(),
+                new ContainerPortBuilder()
+                    .withName(PatroniConfigMap.POSTGRES_REPLICATION_PORT_NAME)
+                    .withContainerPort(Envoy.REPLICATION_ENTRY_PORT).build(),
                 new ContainerPortBuilder().withContainerPort(8008).build())
             .withVolumeMounts(pgSocket, pgData)
             .withEnvFrom(new EnvFromSourceBuilder()
@@ -174,6 +180,9 @@ public class StackGresStatefulSet {
                     .withValueFrom(new EnvVarSourceBuilder().withFieldRef(
                         new ObjectFieldSelectorBuilder().withFieldPath("status.podIP").build())
                         .build())
+                    .build(),
+                new EnvVarBuilder().withName("PATRONI_POSTGRESQL_CONNECT_ADDRESS")
+                    .withValue("$(PATRONI_KUBERNETES_POD_IP):" + Envoy.REPLICATION_ENTRY_PORT)
                     .build(),
                 new EnvVarBuilder().withName("PATRONI_SUPERUSER_PASSWORD")
                     .withValueFrom(new EnvVarSourceBuilder().withSecretKeyRef(

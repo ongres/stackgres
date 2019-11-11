@@ -19,7 +19,6 @@ import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.ConfigMapVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
-import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
@@ -44,6 +43,8 @@ import io.stackgres.operator.sidecars.pgbouncer.parameters.DefaultValues;
 @Singleton
 public class PgBouncer implements StackGresSidecarTransformer<StackGresPgbouncerConfig> {
 
+  public static final int PG_REPLICATION_PORT = 5435;
+  public static final int PG_PORT = 5434;
   private static final String NAME = "pgbouncer";
   private static final String IMAGE_PREFIX = "docker.io/ongres/pgbouncer:v%s-build-%s";
   private static final String DEFAULT_VERSION = "1.11.0";
@@ -68,7 +69,7 @@ public class PgBouncer implements StackGresSidecarTransformer<StackGresPgbouncer
     }
 
     String configFile = "[databases]\n"
-        + " * = \n"
+        + " * = port = " + PG_PORT + "\n"
         + "\n"
         + "[pgbouncer]\n"
         + params.entrySet().stream()
@@ -111,7 +112,6 @@ public class PgBouncer implements StackGresSidecarTransformer<StackGresPgbouncer
         .withImage(String.format(IMAGE_PREFIX,
             pgbouncerVersion, StackGresUtil.CONTAINER_BUILD))
         .withImagePullPolicy("Always")
-        .withPorts(new ContainerPortBuilder().withContainerPort(6432).build())
         .withVolumeMounts(pgSocket, pgbouncerIni);
 
     return container.build();

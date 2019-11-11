@@ -6,6 +6,8 @@ config:
     version: "1.11.0"
   postgres_exporter:
     version: "0.5.1"
+  envoy:
+    version: "1.12.0"
 
 cluster:
   create: true

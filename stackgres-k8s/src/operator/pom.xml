@@ -145,6 +145,7 @@
                   <enableHttpUrlHandler>true</enableHttpUrlHandler>
                   <additionalBuildArgs>
                     <additionalBuildArg>-H:IncludeResources=.*/banner.txt</additionalBuildArg>
+                    <additionalBuildArg>-H:IncludeResources=.*/*.yaml</additionalBuildArg>
                   </additionalBuildArgs>
                   <enableReports>false</enableReports>
                 </configuration>

@@ -10,7 +10,6 @@ import java.util.Map;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.stackgres.operator.common.QuarkusProfile;
@@ -18,6 +17,9 @@ import io.stackgres.operator.common.StackGresClusterConfig;
 import io.stackgres.operator.resource.ResourceUtil;
 
 public class PatroniConfigMap {
+
+  static final String POSTGRES_PORT_NAME = "pgport";
+  static final String POSTGRES_REPLICATION_PORT_NAME = "pgreplication";
 
   /**
    * Create the ConfigMap associated with the cluster.
@@ -42,7 +44,8 @@ public class PatroniConfigMap {
     data.put("PATRONI_KUBERNETES_USE_ENDPOINTS", "true");
     data.put("PATRONI_REPLICATION_USERNAME", "replicator");
     data.put("PATRONI_KUBERNETES_LABELS", patroniLabels);
-    data.put("PATRONI_POSTGRESQL_LISTEN", "0.0.0.0:5432");
+    data.put("PATRONI_POSTGRESQL_LISTEN", "127.0.0.1:" + PatroniServices.PG_PORT);
+
     data.put("PATRONI_RESTAPI_LISTEN", "0.0.0.0:8008");
     data.put("PATRONI_POSTGRESQL_DATA_DIR", "/var/lib/postgresql/data");
     data.put("PATRONI_POSTGRESQL_BIN_DIR", "/usr/lib/postgresql/" + pgVersion + "/bin");
