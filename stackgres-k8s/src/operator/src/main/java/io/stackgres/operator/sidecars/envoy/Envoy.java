@@ -88,37 +88,39 @@ public class Envoy implements StackGresSidecarTransformer<CustomResource> {
       envoyConfPath = "envoy/envoy_nopgbouncer.yaml";
     }
 
-    try (InputStream is = ClassLoader.getSystemClassLoader()
+    try (InputStream is = ClassLoader
         .getSystemResourceAsStream(envoyConfPath)) {
 
       if (is == null) {
         throw new IllegalStateException("envoy configuration file not found");
       }
 
-      Scanner s = new Scanner(is).useDelimiter("\\A");
+      try (Scanner s = new Scanner(is)) {
+        s.useDelimiter("\\A");
 
-      if (!s.hasNext()) {
-        throw new IllegalStateException("envoy configuration file not found");
+        if (!s.hasNext()) {
+          throw new IllegalStateException("envoy configuration file not found");
+        }
+
+        String envoyConf = s.next();
+        Map<String, String> data = ImmutableMap.of("default_envoy.yaml", envoyConf);
+
+        String name = config.getCluster().getMetadata().getName();
+        String namespace = config.getCluster().getMetadata().getNamespace();
+        String configMapName = name + CONFIG_SUFFIX;
+
+        ConfigMap cm = new ConfigMapBuilder()
+            .withNewMetadata()
+            .withNamespace(namespace)
+            .withName(configMapName)
+            .withLabels(ResourceUtil.defaultLabels(name))
+            .endMetadata()
+            .withData(data)
+            .build();
+
+        return ImmutableList.of(cm);
+
       }
-
-      String envoyConf = s.next();
-      Map<String, String> data = ImmutableMap.of("default_envoy.yaml", envoyConf);
-
-      String name = config.getCluster().getMetadata().getName();
-      String namespace = config.getCluster().getMetadata().getNamespace();
-      String configMapName = name + CONFIG_SUFFIX;
-
-      ConfigMap cm = new ConfigMapBuilder()
-          .withNewMetadata()
-          .withNamespace(namespace)
-          .withName(configMapName)
-          .withLabels(ResourceUtil.defaultLabels(name))
-          .endMetadata()
-          .withData(data)
-          .build();
-
-      return ImmutableList.of(cm);
-
     } catch (IOException e) {
       throw new IllegalStateException("couldn't read envoy config file", e);
     }
