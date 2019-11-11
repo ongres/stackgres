@@ -142,10 +142,6 @@ public class StackGresStatefulSet {
                 .build())
             .build())
         .build(),
-        new EnvVarBuilder()
-        .withName("PATRONI_POSTGRESQL_CONNECT_ADDRESS")
-        .withValue("$(PATRONI_KUBERNETES_POD_IP):" + Envoy.REPLICATION_ENTRY_PORT)
-        .build(),
         new EnvVarBuilder().withName("PATRONI_SUPERUSER_PASSWORD")
         .withValueFrom(new EnvVarSourceBuilder()
             .withSecretKeyRef(
@@ -307,6 +303,10 @@ public class StackGresStatefulSet {
             .withName(PATRONI_CONTAINER_NAME)
             .withImage(String.format(IMAGE_PREFIX,
                 PATRONI_VERSION, pgVersion, StackGresUtil.CONTAINER_BUILD))
+            .withCommand("/bin/sh", "-exc", Unchecked.supplier(() -> Resources
+                .asCharSource(Class.class.getResource("/start-patroni.sh"),
+                    StandardCharsets.UTF_8)
+                .read()).get())
             .withImagePullPolicy("Always")
             .withSecurityContext(new SecurityContextBuilder()
                 .withRunAsUser(999L)
@@ -318,7 +318,7 @@ public class StackGresStatefulSet {
                     .withContainerPort(Envoy.PG_ENTRY_PORT).build(),
                 new ContainerPortBuilder()
                     .withName(PatroniConfigMap.POSTGRES_REPLICATION_PORT_NAME)
-                    .withContainerPort(Envoy.REPLICATION_ENTRY_PORT).build(),
+                    .withContainerPort(Envoy.PG_RAW_ENTRY_PORT).build(),
                 new ContainerPortBuilder().withContainerPort(8008).build())
             .withVolumeMounts(Stream.of(
                 Stream.of(

@@ -18,15 +18,12 @@ import io.fabric8.kubernetes.api.model.ServicePortBuilder;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.resource.ResourceUtil;
 import io.stackgres.operator.sidecars.envoy.Envoy;
-import io.stackgres.operator.sidecars.pgbouncer.PgBouncer;
 
 public class PatroniServices {
 
   public static final String READ_WRITE_SERVICE = "-primary";
   public static final String READ_ONLY_SERVICE = "-replica";
   public static final String CONFIG_SERVICE = "-config";
-  public static final int PG_PORT = PgBouncer.PG_PORT;
-  public static final int REPLICATION_PORT = PgBouncer.PG_REPLICATION_PORT;
 
   /**
    * Create the Services associated with the cluster.
@@ -79,7 +76,7 @@ public class PatroniServices {
             new ServicePortBuilder()
                 .withProtocol("TCP")
                 .withName(PatroniConfigMap.POSTGRES_REPLICATION_PORT_NAME)
-                .withPort(Envoy.REPLICATION_ENTRY_PORT)
+                .withPort(Envoy.PG_RAW_ENTRY_PORT)
                 .withTargetPort(new IntOrString(PatroniConfigMap.POSTGRES_REPLICATION_PORT_NAME))
                 .build())
         .withType("ClusterIP")

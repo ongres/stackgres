@@ -5,14 +5,15 @@
 
 package io.stackgres.operator.sidecars.envoy;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
-import java.util.Scanner;
 
+import javax.inject.Inject;
 import javax.inject.Singleton;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
@@ -25,40 +26,54 @@ import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
-import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.fabric8.kubernetes.client.CustomResource;
+import io.stackgres.operator.app.YamlMapperProvider;
 import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.common.StackGresClusterConfig;
 import io.stackgres.operator.common.StackGresSidecarTransformer;
 import io.stackgres.operator.resource.ResourceUtil;
+
+import org.jooq.lambda.Seq;
 
 @Singleton
 @Sidecar("envoy")
 public class Envoy implements StackGresSidecarTransformer<CustomResource> {
 
   public static final int PG_ENTRY_PORT = 5432;
-  public static final int REPLICATION_ENTRY_PORT = 5433;
+  public static final int PG_RAW_ENTRY_PORT = 5433;
+  public static final int PG_PORT = 5434;
+  public static final int PG_RAW_PORT = 5435;
+
   private static final String NAME = "envoy";
   private static final String IMAGE_NAME = "docker.io/envoyproxy/envoy:v%s";
   private static final String CONFIG_SUFFIX = "-envoy-config";
+  private static final ImmutableMap<String, Integer> LISTEN_SOCKET_ADDRESS_PORT_MAPPING =
+      ImmutableMap.of(
+          "postgres_entry_port", PG_ENTRY_PORT,
+          "postgres_raw_entry_port", PG_RAW_ENTRY_PORT);
+  private static final ImmutableMap<String, Integer> CLUSTER_SOCKET_ADDRESS_PORT_MAPPING =
+      ImmutableMap.of(
+          "postgres_port", PG_PORT,
+          "postgres_raw_port", PG_RAW_PORT);
+
+  @Inject
+  YamlMapperProvider yamlMapperProvider;
 
   @Override
   public Container getContainer(StackGresClusterConfig config) {
-    VolumeMount envoyVolume = new VolumeMountBuilder()
-        .withName(NAME)
-        .withMountPath("/etc/envoy")
-        .withNewReadOnly(true)
-        .build();
-
     ContainerBuilder container = new ContainerBuilder();
     container.withName(NAME)
         .withImage(String.format(IMAGE_NAME, config.getCluster().getSpec().getEnvoyVersion()))
         .withImagePullPolicy("Always")
-        .withVolumeMounts(envoyVolume)
+        .withVolumeMounts(new VolumeMountBuilder()
+            .withName(NAME)
+            .withMountPath("/etc/envoy")
+            .withNewReadOnly(true)
+            .build())
         .withPorts(
             new ContainerPortBuilder().withContainerPort(PG_ENTRY_PORT).build(),
-            new ContainerPortBuilder().withContainerPort(REPLICATION_ENTRY_PORT).build())
+            new ContainerPortBuilder().withContainerPort(PG_RAW_ENTRY_PORT).build())
         .withCommand("/usr/local/bin/envoy")
         .withArgs("-c", "/etc/envoy/default_envoy.yaml", "-l", "debug");
 
@@ -78,48 +93,57 @@ public class Envoy implements StackGresSidecarTransformer<CustomResource> {
   @Override
   public List<HasMetadata> getResources(StackGresClusterConfig config) {
 
-    String envoyConfPath;
+    final String envoyConfPath;
     if (config.getCluster().getSpec().getSidecars().contains("connection-pooling")) {
-      envoyConfPath = "envoy/default_envoy.yaml";
+      envoyConfPath = "/envoy/default_envoy.yaml";
     } else {
-      envoyConfPath = "envoy/envoy_nopgbouncer.yaml";
+      envoyConfPath = "/envoy/envoy_nopgbouncer.yaml";
     }
 
-    try (InputStream is = ClassLoader
-        .getSystemResourceAsStream(envoyConfPath)) {
+    try {
+      YAMLMapper yamlMapper = yamlMapperProvider.yamlMapper();
+      ObjectNode envoyConfig = (ObjectNode) yamlMapper
+          .readTree(getClass().getResource(envoyConfPath));
+      Seq.seq((ArrayNode) envoyConfig.get("static_resources").get("listeners"))
+          .map(listener -> listener
+              .get("address")
+              .get("socket_address"))
+          .cast(ObjectNode.class)
+          .forEach(socketAddress -> socketAddress.put("port_value",
+              LISTEN_SOCKET_ADDRESS_PORT_MAPPING.get(socketAddress
+                  .get("port_value")
+                  .asText())));
 
-      if (is == null) {
-        throw new IllegalStateException("envoy configuration file not found");
-      }
+      Seq.seq((ArrayNode) envoyConfig.get("static_resources").get("clusters"))
+          .map(cluster -> cluster
+              .get("hosts")
+              .get("socket_address"))
+          .cast(ObjectNode.class)
+          .forEach(socketAddress -> socketAddress.put("port_value",
+              CLUSTER_SOCKET_ADDRESS_PORT_MAPPING.get(socketAddress
+                  .get("port_value")
+                  .asText())));
 
-      try (Scanner s = new Scanner(is)) {
-        s.useDelimiter("\\A");
+      Map<String, String> data = ImmutableMap.of("default_envoy.yaml",
+          yamlMapper.writeValueAsString(envoyConfig));
 
-        if (!s.hasNext()) {
-          throw new IllegalStateException("envoy configuration file not found");
-        }
+      String name = config.getCluster().getMetadata().getName();
+      String namespace = config.getCluster().getMetadata().getNamespace();
+      String configMapName = name + CONFIG_SUFFIX;
 
-        String envoyConf = s.next();
-        Map<String, String> data = ImmutableMap.of("default_envoy.yaml", envoyConf);
+      ConfigMap cm = new ConfigMapBuilder()
+          .withNewMetadata()
+          .withNamespace(namespace)
+          .withName(configMapName)
+          .withLabels(ResourceUtil.defaultLabels(name))
+          .endMetadata()
+          .withData(data)
+          .build();
 
-        String name = config.getCluster().getMetadata().getName();
-        String namespace = config.getCluster().getMetadata().getNamespace();
-        String configMapName = name + CONFIG_SUFFIX;
+      return ImmutableList.of(cm);
 
-        ConfigMap cm = new ConfigMapBuilder()
-            .withNewMetadata()
-            .withNamespace(namespace)
-            .withName(configMapName)
-            .withLabels(ResourceUtil.defaultLabels(name))
-            .endMetadata()
-            .withData(data)
-            .build();
-
-        return ImmutableList.of(cm);
-
-      }
-    } catch (IOException e) {
-      throw new IllegalStateException("couldn't read envoy config file", e);
+    } catch (Exception ex) {
+      throw new IllegalStateException("couldn't read envoy config file", ex);
     }
 
   }

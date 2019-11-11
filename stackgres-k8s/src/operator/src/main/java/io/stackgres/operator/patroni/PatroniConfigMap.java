@@ -12,6 +12,7 @@ import java.util.function.Function;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.stackgres.operator.common.QuarkusProfile;
@@ -24,6 +25,7 @@ import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfig
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfigSpec;
 import io.stackgres.operator.customresource.sgbackupconfig.Storage;
 import io.stackgres.operator.resource.ResourceUtil;
+import io.stackgres.operator.sidecars.envoy.Envoy;
 
 public class PatroniConfigMap {
 
@@ -53,7 +55,9 @@ public class PatroniConfigMap {
     data.put("PATRONI_KUBERNETES_USE_ENDPOINTS", "true");
     data.put("PATRONI_REPLICATION_USERNAME", "replicator");
     data.put("PATRONI_KUBERNETES_LABELS", patroniLabels);
-    data.put("PATRONI_POSTGRESQL_LISTEN", "127.0.0.1:" + PatroniServices.PG_PORT);
+    data.put("PATRONI_POSTGRESQL_LISTEN", "127.0.0.1:" + Envoy.PG_RAW_PORT);
+    data.put("PATRONI_POSTGRESQL_CONNECT_ADDRESS",
+        "${PATRONI_KUBERNETES_POD_IP}:" + Envoy.PG_RAW_ENTRY_PORT);
 
     data.put("PATRONI_RESTAPI_LISTEN", "0.0.0.0:8008");
     data.put("PATRONI_POSTGRESQL_DATA_DIR", "/var/lib/postgresql/data");
@@ -65,7 +69,7 @@ public class PatroniConfigMap {
     }
 
     data.put("PGDATA", "/var/lib/postgresql/data");
-    data.put("PGPORT", "5432");
+    data.put("PGPORT", String.valueOf(Envoy.PG_RAW_PORT));
     data.put("PGUSER", "postgres");
     data.put("PGDATABASE", "postgres");
     data.put("PGHOST", "/run/postgresql");
