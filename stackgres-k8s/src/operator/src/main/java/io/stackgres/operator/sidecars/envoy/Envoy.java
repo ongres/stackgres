@@ -10,10 +10,12 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+
 import javax.inject.Singleton;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.ConfigMapVolumeSourceBuilder;
@@ -30,24 +32,19 @@ import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.common.StackGresClusterConfig;
 import io.stackgres.operator.common.StackGresSidecarTransformer;
 import io.stackgres.operator.resource.ResourceUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Singleton
 @Sidecar("envoy")
 public class Envoy implements StackGresSidecarTransformer<CustomResource> {
+
   public static final int PG_ENTRY_PORT = 5432;
   public static final int REPLICATION_ENTRY_PORT = 5433;
   private static final String NAME = "envoy";
   private static final String IMAGE_NAME = "docker.io/envoyproxy/envoy:v%s";
   private static final String CONFIG_SUFFIX = "-envoy-config";
-  private static final Logger LOGGER = LoggerFactory.getLogger(Envoy.class);
 
   @Override
   public Container getContainer(StackGresClusterConfig config) {
-
-    LOGGER.info("installing envoy container");
-
     VolumeMount envoyVolume = new VolumeMountBuilder()
         .withName(NAME)
         .withMountPath("/etc/envoy")

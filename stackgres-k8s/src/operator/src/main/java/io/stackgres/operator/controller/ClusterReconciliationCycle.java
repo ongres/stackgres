@@ -163,7 +163,7 @@ public class ClusterReconciliationCycle {
   private void reconcileExistingCluster(KubernetesClient client,
       StackGresClusterConfig clusterConfig) {
     StackGresCluster cluster = clusterConfig.getCluster();
-    LOGGER.info("Syncing cluster: '{}.{}'",
+    LOGGER.debug("Syncing cluster: '{}.{}'",
         cluster.getMetadata().getNamespace(),
         cluster.getMetadata().getName());
     boolean created = false;
@@ -239,7 +239,7 @@ public class ClusterReconciliationCycle {
           + cluster.getMetadata().getName() + " created", cluster);
     }
 
-    LOGGER.info("Cluster synced: '{}.{}'",
+    LOGGER.debug("Cluster synced: '{}.{}'",
         cluster.getMetadata().getNamespace(),
         cluster.getMetadata().getName());
   }

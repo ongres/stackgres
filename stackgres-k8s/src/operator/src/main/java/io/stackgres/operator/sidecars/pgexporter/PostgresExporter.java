@@ -156,9 +156,6 @@ public class PostgresExporter
 
     postgresExporterConfig.ifPresent(c -> {
       if (Optional.ofNullable(c.getSpec().getCreateServiceMonitor()).orElse(false)) {
-
-        LOGGER.info("Creating prometheus service monitor");
-
         c.getSpec().getPrometheusInstallations().forEach(pi -> {
           ServiceMonitor serviceMonitor = new ServiceMonitor();
           serviceMonitor.setKind(ServiceMonitorDefinition.KIND);
@@ -210,7 +207,7 @@ public class PostgresExporter
         .orElse("false"));
 
     if (isAutobindAllowed && cluster.getSpec().getPrometheusAutobind()) {
-      LOGGER.info("Prometheus auto bind enabled, looking for prometheus installations");
+      LOGGER.trace("Prometheus auto bind enabled, looking for prometheus installations");
 
       List<PrometheusInstallation> prometheusInstallations = prometheusScanner.findResources()
           .map(pcs -> pcs.getItems().stream()
