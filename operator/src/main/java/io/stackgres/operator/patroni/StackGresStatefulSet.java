@@ -75,7 +75,7 @@ public class StackGresStatefulSet {
         .storageClass(Optional.ofNullable(
             config.getCluster().getSpec().getStorageClass())
             .filter(storageClass -> ! storageClass.isEmpty())
-            .get()
+            .orElse(null)
         )
         .build();
 
