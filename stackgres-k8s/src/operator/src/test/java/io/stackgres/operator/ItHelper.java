@@ -252,7 +252,7 @@ public class ItHelper {
   public static void installStackGresCluster(Container kind, String namespace, String name,
       int instances, boolean withMinio) throws Exception {
     LOGGER.info("Deleting if exists stackgres-cluster helm chart for cluster with name " + name);
-    kind.execute("sh", "-l", "-c", "helm delete stackgres-cluster-" + name + " --purge || true")
+    kind.execute("sh", "-l", "-c", "helm delete " + name + " --purge || true")
         .filter(EXCLUDE_TTY_WARNING)
         .forEach(line -> LOGGER.info(line));
     LOGGER.info("Deleting if exists stackgres-cluster resources for cluster with name " + name);
@@ -263,7 +263,7 @@ public class ItHelper {
     LOGGER.info("Installing stackgres-cluster helm chart for cluster with name " + name);
     kind.execute("sh", "-l", "-c", "helm install /resources/stackgres-cluster"
         + " --namespace " + namespace
-        + " --name stackgres-cluster-" + name
+        + " --name " + name
         + " --set config.create=false --set profiles.create=false"
         + " --set-string cluster.name=" + name
         + " --set cluster.instances=" + instances
@@ -293,7 +293,7 @@ public class ItHelper {
   public static void upgradeStackGresCluster(Container kind, String namespace, String name,
       int instances) throws Exception {
     LOGGER.info("Upgrade stackgres-cluster helm chart for cluster with name " + name);
-    kind.execute("sh", "-l", "-c", "helm upgrade stackgres-cluster-" + name
+    kind.execute("sh", "-l", "-c", "helm upgrade " + name
         + " /resources/stackgres-cluster --reuse-values"
         + " --set config.create=false --set profiles.create=false"
         + " --set-string cluster.name=" + name
@@ -307,7 +307,7 @@ public class ItHelper {
    */
   public static void deleteStackGresCluster(Container kind, String namespace, String name) throws Exception {
     LOGGER.info("Delete stackgres-cluster helm chart for cluster with name " + name);
-    kind.execute("sh", "-l", "-c", "helm delete stackgres-cluster-" + name)
+    kind.execute("sh", "-l", "-c", "helm delete " + name)
       .filter(EXCLUDE_TTY_WARNING)
       .forEach(line -> LOGGER.info(line));
   }
