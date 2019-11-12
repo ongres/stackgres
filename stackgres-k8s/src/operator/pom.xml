@@ -97,10 +97,6 @@
         <directory>src/main/resources</directory>
         <filtering>true</filtering>
       </resource>
-      <resource>
-        <directory>install/kubernetes/chart</directory>
-        <filtering>false</filtering>
-      </resource>
     </resources>
     <testResources>
       <testResource>
@@ -126,6 +122,12 @@
   </build>
 
   <profiles>
+    <profile>
+      <id>safer</id>
+      <properties>
+        <check-operator-values>true</check-operator-values>
+      </properties>
+    </profile>
     <profile>
       <id>native</id>
       <activation>
