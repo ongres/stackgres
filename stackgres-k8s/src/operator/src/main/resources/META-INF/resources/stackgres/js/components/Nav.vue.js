@@ -33,7 +33,7 @@ var Nav = Vue.component("sg-nav", {
 					</a>
 
 					<div class="tooltip">
-						<p>NEED SOME HELP?</p>
+						<span>NEED SOME HELP?</span>
 						<p>
 							Contact us at<br/>
 							<a href="mailto:mail@stackgres.io">mail@stackgres.io</a>
@@ -41,17 +41,17 @@ var Nav = Vue.component("sg-nav", {
 					</div>
 				</div>
 
-				<div id="notifications" class="active">
+				<div id="notifications">
 					<a href="#" title="Notifications" class="nav-item">
 						<span class="loader"></span>
-						<span class="count">5</span>
+						<span class="count zero">0</span>
 						<svg xmlns="http://www.w3.org/2000/svg" width="20" height="24" viewBox="0 0 20 24"><path data-name="Trazado 2239" d="M13.137 3.945a2.1 2.1 0 0 1-1.037-1.82 2.1 2.1 0 1 0-4.193 0 2.1 2.1 0 0 1-1.041 1.82C2.195 6.657 4.877 15.66 0 17.251V19h20v-1.749c-4.877-1.591-2.195-10.594-6.863-13.306zM13 21a3.066 3.066 0 0 1-2.971 3A3.118 3.118 0 0 1 7 21z"/></svg>
 					</a>
 
 					<div class="tooltip">
-						<p>NOTIFICATIONS</p>
+						<span>NOTIFICATIONS</span>
 						<hr/>
-						<p>Changes have been saved succesfully.</p>
+						<p class="zero">There are no new notifications.</p>
 					</div>
 				</div>
 			</footer>

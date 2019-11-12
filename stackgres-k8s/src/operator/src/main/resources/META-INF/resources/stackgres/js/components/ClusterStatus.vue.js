@@ -59,18 +59,19 @@ var ClusterStatus = Vue.component("cluster-status", {
 		</div>`,
 	data: function() {
 		return {
-	      pods: null
+	      pods: []
 	    }
 	},
-	created () {
-		this.fetchData()
+	mounted: function () {
+		this.fetchData();
 	},
-  	watch: {
+ 	watch: {
     	'$route': 'fetchData'
   	},
-  	methods: {
-	    fetchData () {
-	      this.pods = clustersData[this.$route.params.name].data.status.pods 
+	methods: {
+	    fetchData() {
+	      	let vc = this;
+			vc.pods = clustersData[this.$route.params.name].data.status.pods 
 	    }
 	}
 })
