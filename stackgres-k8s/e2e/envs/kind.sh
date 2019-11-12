@@ -10,6 +10,8 @@ reset(){
   load-operator-kind.sh
 
   cd $LOCAL_PATH
+  helm delete --purge stackgres-operator
+  helm template --name stackgres-operator --namespace stackgres $STACKGRES_PATH/install/helm/stackgres-operator | kubectl delete --ignore-not-found -f -
   helm install --name stackgres-operator --namespace stackgres $STACKGRES_PATH/install/helm/stackgres-operator
 
   wait-all-pods-ready.sh

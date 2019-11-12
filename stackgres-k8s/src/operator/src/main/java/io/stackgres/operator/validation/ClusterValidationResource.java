@@ -20,7 +20,7 @@ import io.stackgres.operatorframework.ValidationResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Path("/stackgres/validation/cluster")
+@Path("/stackgres/validation/sgcluster")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class ClusterValidationResource implements ValidationResource<StackgresClusterReview> {

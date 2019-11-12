@@ -11,7 +11,7 @@ curl_grafana_api() {
 dashboard_id=9628
 dashboard_json="$(cat << EOF
 {
-  "dashboard": $(curl_grafana_api "$grafana_host@localhost:3000/api/gnet/dashboards/$dashboard_id" | jq .json),
+  "dashboard": $(curl_grafana_api "$grafana_host/api/gnet/dashboards/$dashboard_id" | jq .json),
   "overwrite": true,
   "inputs": [{
     "name": "DS_PROMETHEUS",

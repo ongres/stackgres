@@ -1,0 +1,123 @@
+{{ if and .Values.config.create (or .Values.cluster.backup.volume .Values.cluster.backup.s3 .Values.cluster.backup.gcs .Values.cluster.backup.azureblob) }}
+apiVersion: stackgres.io/{{ .Values.crd.version }}
+kind: StackGresBackupConfig
+metadata:
+  name: {{ .Values.cluster.backup.name }}
+  {{- if .Values.cluster.create }}
+  annotations:
+    "helm.sh/hook": "pre-install"
+  {{- end }}
+spec:
+  storage:
+    {{- if .Values.cluster.backup.volume }}
+    type: volume
+    volume:
+    {{- if .Values.cluster.backup.volume.nfs }}
+      nfs:
+        path: "{{ .Values.cluster.backup.volume.nfs.path }}"
+        server: "{{ .Values.cluster.backup.volume.nfs.server }}"
+    {{- end }}
+    {{- if .Values.cluster.backup.volume.cephfs }}
+      cephfs:
+        monitors:
+        {{- range .Values.cluster.backup.volume.cephfs.monitors }}
+        - "{{ . }}"
+        {{- end }}
+        path: "{{ .Values.cluster.backup.volume.cephfs.path }}"
+        {{- if .Values.cluster.backup.volume.cephfs.secretFile }}
+        secretFile: "{{ .Values.cluster.backup.volume.cephfs.secretFile }}"
+        {{- end }}
+        {{- if .Values.cluster.backup.volume.cephfs.secretReference }}
+        secretReference:
+          name: "{{ .Values.cluster.backup.volume.cephfs.secretReference }}"
+        {{- end }}
+        user: "{{ .Values.cluster.backup.volume.cephfs.user }}"
+    {{- end }}
+    {{- if .Values.cluster.backup.volume.glusterfs }}
+      glusterfs:
+        endpoints: "{{ .Values.cluster.backup.volume.glusterfs.endpoints }}"
+        path: "{{ .Values.cluster.backup.volume.glusterfs.path }}"
+    {{- end }}
+    {{- end }}
+    {{- if .Values.cluster.backup.s3 }}
+    type: s3
+    s3:
+      prefix: "{{ .Values.cluster.backup.s3.prefix }}"
+      credentials:
+        accessKey:
+          name: "{{ .Values.cluster.backup.s3.accessKey.name }}"
+          key: "{{ .Values.cluster.backup.s3.accessKey.key }}"
+        secretKey:
+          name: "{{ .Values.cluster.backup.s3.secretKey.name }}"
+          key: "{{ .Values.cluster.backup.s3.secretKey.key }}"
+      {{- if .Values.cluster.backup.s3.region }}
+      region: "{{ .Values.cluster.backup.s3.region }}"
+      {{- end }}
+      {{- if .Values.cluster.backup.s3.endpoint }}
+      endpoint: "{{ .Values.cluster.backup.s3.endpoint }}"
+      {{- end }}
+      {{- if .Values.cluster.backup.s3.forcePathStyle }}
+      forcePathStyle: {{ .Values.cluster.backup.s3.forcePathStyle }}
+      {{- end }}
+      {{- if .Values.cluster.backup.s3.storageClass }}
+      storageClass: "{{ .Values.cluster.backup.s3.storageClass }}"
+      {{- end }}
+      {{- if .Values.cluster.backup.s3.sse }}
+      sse: "{{ .Values.cluster.backup.s3.sse }}"
+      {{- end }}
+      {{- if .Values.cluster.backup.s3.sseKmsId }}
+      sseKmsId: "{{ .Values.cluster.backup.s3.sseKmsId }}"
+      {{- end }}
+      {{- if .Values.cluster.backup.s3.cseKmsId }}
+      cseKmsId: "{{ .Values.cluster.backup.s3.cseKmsId }}"
+      {{- end }}
+      {{- if .Values.cluster.backup.s3.cseKmsRegion }}
+      cseKmsRegion: "{{ .Values.cluster.backup.s3.cseKmsRegion }}"
+      {{- end }}
+    {{- end }}
+    {{- if .Values.cluster.backup.gcs }}
+    type: gcs
+    gcs:
+      prefix: "{{ .Values.cluster.backup.gcs.prefix }}"
+      credentials:
+        serviceAccountJsonKey:
+          name: "{{ .Values.cluster.backup.gcs.serviceAccountJsonKey.name }}"
+          key: "{{ .Values.cluster.backup.gcs.serviceAccountJsonKey.key }}"
+    {{- end }}
+    {{- if .Values.cluster.backup.azureblob }}
+    type: azureblob
+    azureblob:
+      prefix: "{{ .Values.cluster.backup.azureblob.prefix }}"
+      credentials:
+        account:
+          name: "{{ .Values.cluster.backup.azureblobk.account.name }}"
+          key: "{{ .Values.cluster.backup.azureblob.account.key }}"
+        accessKey:
+          name: "{{ .Values.cluster.backup.azureblob.accessKey.name }}"
+          key: "{{ .Values.cluster.backup.azureblob.accessKey.key }}"
+      {{- if .Values.cluster.backup.azureblob.bufferSize }}
+      bufferSize: {{ .Values.cluster.backup.azureblob.bufferSize }}
+      {{- end }}
+      {{- if .Values.cluster.backup.azureblob.maxBuffers }}
+      maxBuffers: {{ .Values.cluster.backup.azureblob.maxBuffers }}
+      {{- end }}
+    {{- end }}
+  retention: {{ .Values.cluster.backup.retention }}
+  fullSchedule: "{{ .Values.cluster.backup.fullSchedule }}"
+  fullWindow: {{ .Values.cluster.backup.fullWindow }}
+  compressionMethod: "{{ .Values.cluster.backup.compressionMethod }}"
+  {{- if .Values.cluster.backup.networkRateLimit }}
+  networkRateLimit: {{ .Values.cluster.backup.networkRateLimit }}
+  {{- end }}
+  {{- if .Values.cluster.backup.diskRateLimit }}
+  diskRateLimit: {{ .Values.cluster.backup.diskRateLimit }}
+  {{- end }}
+  uploadDiskConcurrency: {{ .Values.cluster.backup.uploadDiskConcurrency }}
+  {{- if .Values.cluster.backup.pgpSecret }}
+  pgpConfiguation:
+    key:
+      name: "{{ .Values.cluster.backup.pgpConfiguration.name }}"
+      key: "{{ .Values.cluster.backup.pgpConfiguration.key }}"
+  {{- end }}
+  tarSizeThreshold: {{ .Values.cluster.backup.tarSizeThreshold }}
+{{ end }}

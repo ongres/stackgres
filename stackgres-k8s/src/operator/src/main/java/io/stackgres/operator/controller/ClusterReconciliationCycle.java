@@ -29,6 +29,10 @@ import io.stackgres.operator.app.KubernetesClientFactory;
 import io.stackgres.operator.common.SidecarEntry;
 import io.stackgres.operator.common.StackGresClusterConfig;
 import io.stackgres.operator.common.StackGresSidecarTransformer;
+import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfig;
+import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfigDefinition;
+import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfigDoneable;
+import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfigList;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.customresource.sgcluster.StackGresClusterDefinition;
 import io.stackgres.operator.customresource.sgcluster.StackGresClusterDoneable;
@@ -124,7 +128,7 @@ public class ClusterReconciliationCycle {
 
     String cycleName = "Reconciliation Cycle " + cycleId;
 
-    LOGGER.trace("Stating " + cycleName);
+    LOGGER.trace("Starting " + cycleName);
     try (KubernetesClient client = kubClientFactory.create()) {
       LOGGER.trace(cycleName + " getting existing clusters");
       ImmutableList<StackGresClusterConfig> existingClusters = getExistingClusters(client);
@@ -159,7 +163,7 @@ public class ClusterReconciliationCycle {
   private void reconcileExistingCluster(KubernetesClient client,
       StackGresClusterConfig clusterConfig) {
     StackGresCluster cluster = clusterConfig.getCluster();
-    LOGGER.info("Syncing cluster: '{}.{}'",
+    LOGGER.debug("Syncing cluster: '{}.{}'",
         cluster.getMetadata().getNamespace(),
         cluster.getMetadata().getName());
     boolean created = false;
@@ -235,7 +239,7 @@ public class ClusterReconciliationCycle {
           + cluster.getMetadata().getName() + " created", cluster);
     }
 
-    LOGGER.info("Cluster synced: '{}.{}'",
+    LOGGER.debug("Cluster synced: '{}.{}'",
         cluster.getMetadata().getNamespace(),
         cluster.getMetadata().getName());
   }
@@ -254,7 +258,7 @@ public class ClusterReconciliationCycle {
       handlerSelector.delete(client, null, existingOrphanResource);
       deletedClusters.add(Tuple.tuple(
           existingOrphanResource.getMetadata().getNamespace(),
-          existingOrphanResource.getMetadata().getName()));
+          existingOrphanResource.getMetadata().getLabels().get(ResourceUtil.CLUSTER_NAME_KEY)));
     }
 
     for (Tuple2<String, String> deletedCluster : deletedClusters) {
@@ -285,6 +289,7 @@ public class ClusterReconciliationCycle {
         .withCluster(cluster)
         .withProfile(getProfile(cluster, client))
         .withPostgresConfig(getPostgresConfig(cluster, client))
+        .withBackupConfig(getBackupConfig(cluster, client))
         .withSidecars(cluster.getSpec().getSidecars().stream()
             .map(sidecar -> sidecarFinder.getSidecarTransformer(sidecar))
             .map(Unchecked.function(sidecar -> getSidecarEntry(cluster, client, sidecar)))
@@ -350,6 +355,27 @@ public class ClusterReconciliationCycle {
                 StackGresPostgresConfigDoneable.class)
             .inNamespace(namespace)
             .withName(pgConfig)
+            .get());
+      }
+    }
+    return Optional.empty();
+  }
+
+  private Optional<StackGresBackupConfig> getBackupConfig(StackGresCluster cluster,
+      KubernetesClient client) {
+    final String namespace = cluster.getMetadata().getNamespace();
+    final String backupConfig = cluster.getSpec().getBackupConfig();
+    if (backupConfig != null) {
+      Optional<CustomResourceDefinition> crd =
+          ResourceUtil.getCustomResource(client, StackGresBackupConfigDefinition.NAME);
+      if (crd.isPresent()) {
+        return Optional.ofNullable(client
+            .customResources(crd.get(),
+                StackGresBackupConfig.class,
+                StackGresBackupConfigList.class,
+                StackGresBackupConfigDoneable.class)
+            .inNamespace(namespace)
+            .withName(backupConfig)
             .get());
       }
     }

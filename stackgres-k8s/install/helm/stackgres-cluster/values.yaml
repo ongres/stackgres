@@ -17,8 +17,71 @@ cluster:
   poolingconfig: pgbouncerconf
   profile: size-xs
   volumesize: 5Gi
-  storageclass: standard
-
+  ## If defined, storageClassName: <storageclass>
+  ## If set to "-", storageClassName: "", which disables dynamic provisioning
+  ## If undefined (the default) or set to null, no storageClassName spec is
+  ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
+  ##   GKE, AWS & OpenStack)
+  #storageclass: "-"
+  backup:
+    name: backupconf
+    retention: 5
+    fullSchedule: "0 5 * * *"
+    fullWindow: 60
+    compressionMethod: lz4
+    uploadDiskConcurrency: 1
+    tarSizeThreshold: 1073741823
+    #networkRateLimit:
+    #diskRateLimit:
+    #pgpConfiguration:
+    #  name: pgpConfiguration
+    #  key: key
+    nfs:
+      create: true
+    volume: {}
+    #  nfs: # see https://kubernetes.io/docs/concepts/storage/volumes#nfs
+    #    path:
+    #    server:
+    #  cephfs: # see https://releases.k8s.io/HEAD/examples/volumes/cephfs/README.md#how-to-use-it
+    #    monitors: []
+    #    path:
+    #    secretFile:
+    #    secretRef:
+    #    user:
+    #  glusterfs: # see https://releases.k8s.io/HEAD/examples/volumes/glusterfs/README.md#create-a-pod
+    #    endpoints: 
+    #    path:
+    s3: {}
+    #  prefix: s3://stackgres
+    #  accessKey:
+    #    name: minio
+    #    key: accesskey
+    #  secretKey:
+    #    name: minio
+    #    key: secretkey
+    #  region: k8s
+    #  endpoint: minio.stackgres.svc
+    #  forcePathStyle: true
+    #  storageClass:
+    #  sse:
+    #  sseKmsId:
+    #  cseKmsId:
+    #  cseKmsRegion:
+    gcs: {}
+    #  prefix: gcs://stackgres
+    #  serviceAccountJsonKey:
+    #    name: gcs
+    #    key: key
+    azureblob: {}
+    #  prefix: azure://stackgres
+    #  account:
+    #    name: azureblob
+    #    key: account
+    #  accessKey:
+    #    name: azureblob
+    #    key: accesskey
+    #  bufferSize:
+    #  maxBuffers:
 sidecar:
   pooling: true
   util: true
@@ -31,4 +94,3 @@ crd:
 
 profiles:
   create: true
-

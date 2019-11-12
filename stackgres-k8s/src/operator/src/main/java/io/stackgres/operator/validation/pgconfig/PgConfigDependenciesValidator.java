@@ -9,9 +9,9 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Any;
 import javax.inject.Inject;
 
-import io.stackgres.operator.common.KubernetesScanner;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.customresource.sgcluster.StackGresClusterList;
+import io.stackgres.operator.resource.KubernetesResourceScanner;
 import io.stackgres.operator.validation.DependenciesValidator;
 import io.stackgres.operator.validation.PgConfigReview;
 import io.stackgres.operatorframework.ValidationFailed;
@@ -22,7 +22,7 @@ public class PgConfigDependenciesValidator extends DependenciesValidator<PgConfi
 
   @Inject
   public PgConfigDependenciesValidator(
-      @Any KubernetesScanner<StackGresClusterList> clusterScanner) {
+      @Any KubernetesResourceScanner<StackGresClusterList> clusterScanner) {
     super(clusterScanner);
   }
 

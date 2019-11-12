@@ -1,3 +1,7 @@
+if [ ! -z "$REUSE_KIND" ]
+then
+  exit 0
+fi
 kind delete cluster || true
 KUBERNETES_VERSION="${KUBERNETES_VERSION:-1.12.10}"
 cat << EOF > kind-config.yaml

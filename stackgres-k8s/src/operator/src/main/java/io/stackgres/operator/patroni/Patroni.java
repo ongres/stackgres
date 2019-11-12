@@ -8,6 +8,7 @@ package io.stackgres.operator.patroni;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
@@ -18,8 +19,12 @@ import io.stackgres.operator.common.StackGresClusterConfigTransformer;
 @ApplicationScoped
 public class Patroni implements StackGresClusterConfigTransformer {
 
+  private final ObjectMapper objectMapper;
+
   @Inject
-  ObjectMapperProvider objectMapperProvider;
+  public Patroni(ObjectMapperProvider objectMapperProvider) {
+    this.objectMapper = objectMapperProvider.objectMapper();
+  }
 
   @Override
   public ImmutableList<HasMetadata> getResources(StackGresClusterConfig config) {
@@ -29,8 +34,8 @@ public class Patroni implements StackGresClusterConfigTransformer {
         .add(PatroniRole.createRoleBinding(config.getCluster()))
         .add(PatroniSecret.create(config.getCluster()))
         .addAll(PatroniServices.createServices(config.getCluster()))
-        .add(PatroniConfigEndpoints.create(config, objectMapperProvider.objectMapper()))
-        .add(PatroniConfigMap.create(config, objectMapperProvider.objectMapper()))
+        .add(PatroniConfigEndpoints.create(config, objectMapper))
+        .add(PatroniConfigMap.create(config, objectMapper))
         .addAll(StackGresStatefulSet.create(config))
         .build();
   }

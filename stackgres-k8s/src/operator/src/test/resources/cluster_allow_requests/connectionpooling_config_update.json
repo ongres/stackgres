@@ -51,7 +51,7 @@
         "pg_version": "11.4",
         "pg_config": "postgresconf",
         "resource_profile": "size-xs",
-        "connection_pooling_config": "pgbouncerconf",
+        "connection_pooling_config": "newpgbouncerconf",
         "volume_size": "5Gi",
         "storage_class": "standard",
         "sidecars": [
@@ -77,7 +77,7 @@
         "pg_version": "11.3",
         "pg_config": "postgresconf",
         "resource_profile": "size-xs",
-        "connection_pooling_config": "oldpgbouncerconf",
+        "connection_pooling_config": "pgbouncerconf",
         "volume_size": "5Gi",
         "storage_class": "standard",
         "sidecars": [

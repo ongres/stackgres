@@ -51,6 +51,7 @@
         "pg_version": "11.5",
         "pg_config": "postgresconf",
         "resource_profile": "size-xs",
+        "backup_config": "backupconf",
         "connection_pooling_config": "pgbouncerconf",
         "volume_size": "5Gi",
         "storage_class": "standard",

@@ -2,15 +2,24 @@
 apiVersion: stackgres.io/{{ .Values.crd.version }}
 kind: StackGresCluster
 metadata:
-  name: {{ .Values.cluster.name }}
+  name: {{ .Release.Name }}
 spec:
   instances: {{ .Values.cluster.instances }}
   pg_version: '{{ .Values.config.postgresql.version }}'
   pg_config: '{{ .Values.cluster.pgconfig }}'
   connection_pooling_config: '{{ .Values.cluster.poolingconfig }}'
   resource_profile: '{{ .Values.cluster.profile }}'
+  {{- if or .Values.cluster.backup.volume .Values.cluster.backup.s3 .Values.cluster.backup.gcs .Values.cluster.backup.azureblob }}
+  backup_config: '{{ .Values.cluster.backup.name }}'
+  {{- end }}
   volume_size: '{{ .Values.cluster.volumesize }}'
-  storage_class: '{{ .Values.cluster.storageclass }}'
+  {{- if .Values.cluster.storageclass }}
+  {{- if eq "-" .Values.cluster.storageclass }}
+  storage_class: ""
+  {{- else }}
+  storage_class: {{ .Values.cluster.storageclass }}
+  {{- end }}
+  {{- end }}
   postgres_exporter_version: '{{ .Values.config.postgres_exporter.version }}'
   envoy_version: '{{ .Values.config.envoy.version }}'
   {{- if .Values.sidecar.prometheus.create }}

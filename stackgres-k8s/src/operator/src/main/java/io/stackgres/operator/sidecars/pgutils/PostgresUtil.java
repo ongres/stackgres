@@ -6,19 +6,21 @@
 package io.stackgres.operator.sidecars.pgutils;
 
 import java.util.List;
+
 import javax.inject.Singleton;
 
 import com.google.common.collect.ImmutableList;
+
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.common.StackGresClusterConfig;
 import io.stackgres.operator.common.StackGresSidecarTransformer;
 import io.stackgres.operator.common.StackGresUtil;
+import io.stackgres.operator.patroni.StackGresStatefulSet;
 
 @Sidecar("postgres-util")
 @Singleton
@@ -31,11 +33,6 @@ public class PostgresUtil implements StackGresSidecarTransformer<CustomResource>
 
   @Override
   public Container getContainer(StackGresClusterConfig config) {
-    VolumeMount pgSocket = new VolumeMountBuilder()
-        .withName("pg-socket")
-        .withMountPath("/run/postgresql")
-        .build();
-
     ContainerBuilder container = new ContainerBuilder();
     container.withName(NAME)
         .withImage(String.format(IMAGE_NAME,
@@ -45,7 +42,10 @@ public class PostgresUtil implements StackGresSidecarTransformer<CustomResource>
         .withTty(Boolean.TRUE)
         .withCommand("/bin/sh")
         .withArgs("-c", "while true; do sleep 10; done")
-        .withVolumeMounts(pgSocket);
+        .withVolumeMounts(new VolumeMountBuilder()
+            .withName(StackGresStatefulSet.SOCKET_VOLUME_NAME)
+            .withMountPath("/run/postgresql")
+            .build());
 
     return container.build();
   }

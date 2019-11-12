@@ -9,7 +9,7 @@ package io.stackgres.operator.validation.cluster;
 import java.util.Optional;
 
 import io.stackgres.operator.customresource.sgprofile.StackGresProfile;
-import io.stackgres.operator.resource.KubernetesCustomResourceFinder;
+import io.stackgres.operator.resource.AbstractKubernetesCustomResourceFinder;
 import io.stackgres.operator.utils.JsonUtil;
 import io.stackgres.operator.validation.StackgresClusterReview;
 import io.stackgres.operatorframework.Operation;
@@ -33,7 +33,7 @@ class ProfileReferenceValidatorValidatorTest {
   private ProfileReferenceValidator validator;
 
   @Mock
-  private KubernetesCustomResourceFinder<StackGresProfile> profileFinder;
+  private AbstractKubernetesCustomResourceFinder<StackGresProfile> profileFinder;
 
   private StackGresProfile xsProfile;
 

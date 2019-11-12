@@ -13,6 +13,13 @@ import com.ongres.junit.docker.ContainerParam;
 import com.ongres.junit.docker.DockerContainer;
 import com.ongres.junit.docker.DockerExtension;
 import com.ongres.junit.docker.WhenReuse;
+import com.spotify.docker.client.exceptions.DockerException;
+
+import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.Service;
+import io.stackgres.operator.controller.EventReason;
+import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
+import io.stackgres.operator.sidecars.envoy.Envoy;
 
 import org.jooq.lambda.Unchecked;
 import org.junit.jupiter.api.Assertions;
@@ -27,25 +34,36 @@ import org.junit.jupiter.api.Test;
 })
 public class StackGresOperatorIt extends AbstractStackGresOperatorIt {
 
-  private final String CLUSTER_NAME = "test";
+  private final String CLUSTER_NAME = "stackgres";
 
   @Test
   public void createClusterTest(@ContainerParam("kind") Container kind) throws Exception {
-    ItHelper.installStackGresConfigs(kind, namespace);
-    ItHelper.installStackGresCluster(kind, namespace, CLUSTER_NAME, 1);
+    ItHelper.installMinioHelmChart(kind, "minio", namespace);
+    ItHelper.installStackGresConfigs(kind, namespace, true);
+    ItHelper.installStackGresCluster(kind, namespace, CLUSTER_NAME, 1, true);
+    checkStackGresEvent(kind, EventReason.CLUSTER_CREATED, StackGresCluster.class);
+    checkStackGresCluster(kind, 1);
+    ItHelper.upgradeStackGresCluster(kind, namespace, CLUSTER_NAME, 2);
+    checkStackGresEvent(kind, EventReason.CLUSTER_UPDATED, StackGresCluster.class);
+    checkStackGresCluster(kind, 2);
+    checkStackGresBackups(kind);
+    ItHelper.deleteStackGresCluster(kind, namespace, CLUSTER_NAME);
+    checkStackGresEvent(kind, EventReason.CLUSTER_DELETED, Service.class);
+    checkStackGresClusterDeletion(kind);
+  }
+
+  private void checkStackGresEvent(Container kind, EventReason eventReason,
+      Class<? extends HasMetadata> resourceClass) throws Exception {
     ItHelper.waitUntil(Unchecked.supplier(() -> kind.execute("sh", "-l", "-c",
         "kubectl get events -n " + namespace + " -o wide"
-            + " | sed 's/\\s\\+/ /g' | grep 'ClusterCreated StackGresCluster' && echo 1 || true")),
+            + " | sed 's/\\s\\+/ /g' | grep "
+            + "'" + eventReason.reason() + " " + resourceClass.getSimpleName() + "'"
+            + " && echo 1")),
         s -> s.anyMatch(line -> line.equals("1")), 60, ChronoUnit.SECONDS,
         s -> Assertions.fail(
             "Timeout while checking creation of event for "
                 + " cluster '" + CLUSTER_NAME + " in namespace '" + namespace + "':\n"
                 + s.collect(Collectors.joining("\n"))));
-    checkStackGresCluster(kind, 1);
-    ItHelper.upgradeStackGresCluster(kind, namespace, CLUSTER_NAME, 2);
-    checkStackGresCluster(kind, 2);
-    ItHelper.deleteStackGresCluster(kind, namespace, CLUSTER_NAME);
-    checkStackGresClusterDeletion(kind);
   }
 
   private void checkStackGresCluster(Container kind, int instances) throws Exception {
@@ -53,7 +71,7 @@ public class StackGresOperatorIt extends AbstractStackGresOperatorIt {
       String instance = String.valueOf(instanceIndex);
       ItHelper.waitUntil(Unchecked.supplier(() -> kind.execute("sh", "-l", "-c",
           "kubectl get pod -n  " + namespace + " " + CLUSTER_NAME + "-" + instance
-              + " && echo 1 || true")),
+              + " && echo 1")),
           s -> s.anyMatch(line -> line.equals("1")), 60, ChronoUnit.SECONDS,
           s -> Assertions.fail(
               "Timeout while checking creation of"
@@ -71,9 +89,8 @@ public class StackGresOperatorIt extends AbstractStackGresOperatorIt {
       ItHelper.waitUntil(Unchecked.supplier(() -> kind.execute("sh", "-l", "-c",
           "kubectl exec -t -n " + namespace + " "
               + CLUSTER_NAME + "-" + instance + " -c postgres-util --"
-              + " sh -c \"PGPASSWORD=$(kubectl get secret " + CLUSTER_NAME + " -n " + namespace
-              + " -o yaml | grep superuser-password | cut -d ':' -f 2 | tr -d ' ' | base64 -d)"
-              + " psql -t -A -U postgres -d postgres -p 5432 -h 127.0.0.1  -c 'SELECT 1'\"")),
+              + " sh -c \"psql -t -A -U postgres -d postgres -p " + Envoy.PG_RAW_PORT
+              + " -c 'SELECT 1'\"")),
           s -> s.anyMatch(line -> line.equals("1")), 60, ChronoUnit.SECONDS,
           s -> Assertions.fail(
               "Timeout while checking connection available to postgres of"
@@ -81,18 +98,58 @@ public class StackGresOperatorIt extends AbstractStackGresOperatorIt {
                   + "' in namespace '" + namespace + "':\n"
                   + s.collect(Collectors.joining("\n"))));
       ItHelper.waitUntil(Unchecked.supplier(() -> kind.execute("sh", "-l", "-c",
-          "kubectl exec -t -n " + namespace
-              + " " + CLUSTER_NAME + "-" + instance + " -c postgres-util --"
+          "kubectl exec -t -n " + namespace + " "
+              + CLUSTER_NAME + "-" + instance + " -c postgres-util --"
               + " sh -c \"PGPASSWORD=$(kubectl get secret " + CLUSTER_NAME + " -n " + namespace
               + " -o yaml | grep superuser-password | cut -d ':' -f 2 | tr -d ' ' | base64 -d)"
-              + " psql -t -A -U postgres -d postgres -p 5433 -h 127.0.0.1  -c 'SELECT 1'\"")),
+              + " psql -t -A -U postgres -d postgres -p " + Envoy.PG_ENTRY_PORT + " -h localhost"
+              + " -c 'SELECT 1'\"")),
           s -> s.anyMatch(line -> line.equals("1")), 60, ChronoUnit.SECONDS,
           s -> Assertions.fail(
-              "Timeout while checking connection available to pgbouncer of"
+              "Timeout while checking connection available to postgres of"
+                  + " pod '" + CLUSTER_NAME + "-" + instance
+                  + "' in namespace '" + namespace + "':\n"
+                  + s.collect(Collectors.joining("\n"))));
+      ItHelper.waitUntil(Unchecked.supplier(() -> kind.execute("sh", "-l", "-c",
+          "kubectl exec -t -n " + namespace + " "
+              + CLUSTER_NAME + "-" + instance + " -c postgres-util --"
+              + " sh -c \"PGPASSWORD=$(kubectl get secret " + CLUSTER_NAME + " -n " + namespace
+              + " -o yaml | grep superuser-password | cut -d ':' -f 2 | tr -d ' ' | base64 -d)"
+              + " psql -t -A -U postgres -d postgres -p 5433 -h localhost  -c 'SELECT 1'\"")),
+          s -> s.anyMatch(line -> line.equals("1")), 60, ChronoUnit.SECONDS,
+          s -> Assertions.fail(
+              "Timeout while checking connection available to postgres of"
                   + " pod '" + CLUSTER_NAME + "-" + instance
                   + "' in namespace '" + namespace + "':\n"
                   + s.collect(Collectors.joining("\n"))));
     }
+  }
+
+  private void checkStackGresBackups(Container kind)
+      throws DockerException, InterruptedException, Exception {
+    String walFileName = kind.execute("sh", "-l", "-c",
+        "kubectl exec -t -n " + namespace + " "+ CLUSTER_NAME + "-" + 0
+        + " -c postgres-util -- sh -c \"psql -t -A -U postgres -p " + Envoy.PG_RAW_PORT
+        + " -c 'SELECT r.file_name from pg_walfile_name_offset(pg_switch_wal()) as r'\"")
+        .filter(ItHelper.EXCLUDE_TTY_WARNING)
+        .findFirst()
+        .get();
+    ItHelper.waitUntil(Unchecked.supplier(() -> kind.execute("sh", "-l", "-c",
+        "kubectl exec -t -n " + namespace + " "
+            + CLUSTER_NAME + "-" + 0 + " -c patroni --"
+            + " sh -c \"wal-g wal-fetch " + walFileName + " /tmp/" + walFileName + " && echo 1\"")),
+        s -> s.anyMatch(line -> line.equals("1")), 60, ChronoUnit.SECONDS,
+        s -> Assertions.fail(
+            "Timeout while checking archive_command is working properly:\n"
+                + s.collect(Collectors.joining("\n"))));
+    ItHelper.waitUntil(Unchecked.supplier(() -> kind.execute("sh", "-l", "-c",
+        "kubectl exec -t -n " + namespace + " "
+            + CLUSTER_NAME + "-" + 0 + " -c patroni --"
+            + " sh -c \"wal-g backup-list | grep -n . | cut -d : -f 1\"")),
+        s -> s.anyMatch(line -> line.equals("2")), 60, ChronoUnit.SECONDS,
+        s -> Assertions.fail(
+            "Timeout while checking full backup are working properly:\n"
+                + s.collect(Collectors.joining("\n"))));
   }
 
   private void checkStackGresClusterDeletion(Container kind) throws Exception {

@@ -72,7 +72,7 @@ spec:
         imagePullPolicy: IfNotPresent
         args: [ '/bin/sh', '-exc', 'cat /etc/nginx/conf.d/stackgres-operator.conf; nginx -g "daemon off;";' ]
         ports:
-        - containerPort: 444
+        - containerPort: 443
           name: "https"
           protocol: "TCP"
         volumeMounts:

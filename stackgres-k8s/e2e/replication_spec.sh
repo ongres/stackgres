@@ -4,6 +4,8 @@ TEMP_DIRECTORY=$(mktemp -d)
 CLUSTER_NAME=stackgres
 source testlib.sh
 
+helm delete --purge "$CLUSTER_NAMESPACE" || true
+helm template --name $CLUSTER_NAMESPACE --namespace $CLUSTER_NAMESPACE $STACKGRES_PATH/install/helm/stackgres-cluster/ | kubectl delete --namespace $CLUSTER_NAMESPACE --ignore-not-found -f -
 helm install --name replication --namespace $CLUSTER_NAMESPACE $STACKGRES_PATH/install/helm/stackgres-cluster/ --set cluster.instances=2 > cluster.log
 
 sleep 2

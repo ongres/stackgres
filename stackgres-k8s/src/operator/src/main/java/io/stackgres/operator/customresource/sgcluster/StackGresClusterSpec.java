@@ -51,12 +51,14 @@ public class StackGresClusterSpec implements KubernetesResource {
   @NotNull
   private String connectionPoolingConfig;
 
+  @JsonProperty("backup_config")
+  private String backupConfig;
+
   @JsonProperty("volume_size")
   @NotNull
   private String volumeSize;
 
   @JsonProperty("storage_class")
-  @NotNull
   private String storageClass;
 
   @JsonProperty("prometheus_autobind")
@@ -121,6 +123,14 @@ public class StackGresClusterSpec implements KubernetesResource {
     this.connectionPoolingConfig = connectionPoolingConfig;
   }
 
+  public String getBackupConfig() {
+    return backupConfig;
+  }
+
+  public void setBackupConfig(String backupConfig) {
+    this.backupConfig = backupConfig;
+  }
+
   public String getVolumeSize() {
     return volumeSize;
   }
@@ -162,6 +172,7 @@ public class StackGresClusterSpec implements KubernetesResource {
         .add("pg_config", postgresConfig)
         .add("resource_profile", resourceProfile)
         .add("connection_pooling_config", connectionPoolingConfig)
+        .add("backup_config", backupConfig)
         .add("volume_size", volumeSize)
         .add("storage_class", storageClass)
         .add("sidecars", sidecars)

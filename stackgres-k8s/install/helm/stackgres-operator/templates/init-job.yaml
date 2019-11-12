@@ -7,6 +7,9 @@ metadata:
   labels:
     app: StackGres
     scope: init
+  annotations:
+    "helm.sh/hook": post-install
+    "helm.sh/hook-delete-policy": hook-succeeded
 spec:
   template:
     metadata:
@@ -24,9 +27,16 @@ spec:
           - "-ecx"
           - |
             kubectl delete csr --ignore-not-found {{ .Release.Name }}
-            kubectl delete secret --ignore-not-found {{ .Release.Name }}-init
-            kubectl delete validatingwebhookconfiguration --ignore-not-found {{ .Release.Name }}-cluster
-            kubectl delete validatingwebhookconfiguration --ignore-not-found {{ .Release.Name }}-pgconfig
+            kubectl delete secret --ignore-not-found {{ .Release.Name }}
+            kubectl delete validatingwebhookconfiguration --ignore-not-found {{ .Release.Name }}-sgcluster
+            kubectl delete validatingwebhookconfiguration --ignore-not-found {{ .Release.Name }}-sgpgconfig
+            kubectl delete validatingwebhookconfiguration --ignore-not-found {{ .Release.Name }}-sgconnectionpoolingconfig
+            kubectl delete validatingwebhookconfiguration --ignore-not-found {{ .Release.Name }}-sgprofile
+            kubectl delete validatingwebhookconfiguration --ignore-not-found {{ .Release.Name }}-sgbackupconfig
+            kubectl get pod -n {{ .Release.Namespace }} -o name \
+              | grep '^pod/{{ .Release.Name }}-' \
+              | grep -v '^pod/{{ .Release.Name }}-init-' \
+              | xargs -r -L 1 -I % kubectl delete -n {{ .Release.Namespace }} % --ignore-not-found
             cat << EOF > /tmp/csr.conf
             [req]
             req_extensions = v3_req

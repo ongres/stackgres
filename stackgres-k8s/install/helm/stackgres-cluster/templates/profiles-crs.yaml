@@ -3,8 +3,10 @@ apiVersion: stackgres.io/{{ .Values.crd.version }}
 kind: StackGresProfile
 metadata:
   name: size-xs
+  {{- if .Values.cluster.create }}
   annotations:
     "helm.sh/hook": "pre-install"
+  {{- end }}
 spec:
   cpu: "500m"
   memory: "512Mi"
@@ -13,8 +15,10 @@ apiVersion: stackgres.io/{{ .Values.crd.version }}
 kind: StackGresProfile
 metadata:
   name: size-s
+  {{- if .Values.cluster.create }}
   annotations:
     "helm.sh/hook": "pre-install"
+  {{- end }}
 spec:
   cpu: "1"
   memory: "2Gi"
@@ -23,8 +27,10 @@ apiVersion: stackgres.io/{{ .Values.crd.version }}
 kind: StackGresProfile
 metadata:
   name: size-m
+  {{- if .Values.cluster.create }}
   annotations:
     "helm.sh/hook": "pre-install"
+  {{- end }}
 spec:
   cpu: "2"
   memory: "4Gi"
@@ -33,8 +39,10 @@ apiVersion: stackgres.io/{{ .Values.crd.version }}
 kind: StackGresProfile
 metadata:
   name: size-l
+  {{- if .Values.cluster.create }}
   annotations:
     "helm.sh/hook": "pre-install"
+  {{- end }}
 spec:
   cpu: "4"
   memory: "8Gi"
@@ -43,8 +51,10 @@ apiVersion: stackgres.io/{{ .Values.crd.version }}
 kind: StackGresProfile
 metadata:
   name: size-xl
+  {{- if .Values.cluster.create }}
   annotations:
     "helm.sh/hook": "pre-install"
+  {{- end }}
 spec:
   cpu: "6"
   memory: "16Gi"
@@ -53,8 +63,10 @@ apiVersion: stackgres.io/{{ .Values.crd.version }}
 kind: StackGresProfile
 metadata:
   name: size-xxl
+  {{- if .Values.cluster.create }}
   annotations:
     "helm.sh/hook": "pre-install"
+  {{- end }}
 spec:
   cpu: "8"
   memory: "32Gi"

@@ -10,10 +10,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
 import javax.inject.Singleton;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.ConfigMapVolumeSourceBuilder;
@@ -22,7 +24,6 @@ import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
-import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -31,7 +32,9 @@ import io.stackgres.operator.common.StackGresClusterConfig;
 import io.stackgres.operator.common.StackGresSidecarTransformer;
 import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
+import io.stackgres.operator.patroni.StackGresStatefulSet;
 import io.stackgres.operator.resource.ResourceUtil;
+import io.stackgres.operator.sidecars.envoy.Envoy;
 import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfig;
 import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfigDefinition;
 import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfigDoneable;
@@ -43,8 +46,6 @@ import io.stackgres.operator.sidecars.pgbouncer.parameters.DefaultValues;
 @Singleton
 public class PgBouncer implements StackGresSidecarTransformer<StackGresPgbouncerConfig> {
 
-  public static final int PG_REPLICATION_PORT = 5435;
-  public static final int PG_PORT = 5434;
   private static final String NAME = "pgbouncer";
   private static final String IMAGE_PREFIX = "docker.io/ongres/pgbouncer:v%s-build-%s";
   private static final String DEFAULT_VERSION = "1.11.0";
@@ -69,9 +70,10 @@ public class PgBouncer implements StackGresSidecarTransformer<StackGresPgbouncer
     }
 
     String configFile = "[databases]\n"
-        + " * = port = " + PG_PORT + "\n"
+        + " * = port = " + Envoy.PG_RAW_PORT + "\n"
         + "\n"
         + "[pgbouncer]\n"
+        + "listen_port = " + Envoy.PG_PORT + "\n"
         + params.entrySet().stream()
         .map(entry -> " " + entry.getKey() + " = " + entry.getValue())
         .collect(Collectors.joining("\n"))
@@ -96,23 +98,21 @@ public class PgBouncer implements StackGresSidecarTransformer<StackGresPgbouncer
     final String pgbouncerVersion = pgbouncerConfig.map(c -> c.getSpec().getPgbouncerVersion())
         .orElse(DEFAULT_VERSION);
 
-    VolumeMount pgSocket = new VolumeMountBuilder()
-        .withName("pg-socket")
-        .withMountPath("/run/postgresql")
-        .build();
-
-    VolumeMount pgbouncerIni = new VolumeMountBuilder()
-        .withName(NAME)
-        .withMountPath("/etc/pgbouncer")
-        .withReadOnly(Boolean.TRUE)
-        .build();
-
     ContainerBuilder container = new ContainerBuilder();
     container.withName(NAME)
         .withImage(String.format(IMAGE_PREFIX,
             pgbouncerVersion, StackGresUtil.CONTAINER_BUILD))
         .withImagePullPolicy("Always")
-        .withVolumeMounts(pgSocket, pgbouncerIni);
+        .withVolumeMounts(
+            new VolumeMountBuilder()
+            .withName(StackGresStatefulSet.SOCKET_VOLUME_NAME)
+            .withMountPath("/run/postgresql")
+            .build(),
+            new VolumeMountBuilder()
+            .withName(NAME)
+            .withMountPath("/etc/pgbouncer")
+            .withReadOnly(Boolean.TRUE)
+            .build());
 
     return container.build();
   }

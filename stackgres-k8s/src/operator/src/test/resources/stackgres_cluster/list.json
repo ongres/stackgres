@@ -21,6 +21,7 @@
         "postgres_exporter_version": "0.5.1",
         "prometheus_autobind": true,
         "resource_profile": "size-xs",
+        "backup_config": "backupconf",
         "sidecars": [
           "connection-pooling",
           "postgres-util",

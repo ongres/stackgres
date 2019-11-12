@@ -21,7 +21,7 @@ import io.stackgres.operatorframework.ValidationResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Path("/stackgres/validation/pgbouncer")
+@Path("/stackgres/validation/sgconnectionpoolingconfig")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class PgBouncerValidationResource implements ValidationResource<PgBouncerReview> {

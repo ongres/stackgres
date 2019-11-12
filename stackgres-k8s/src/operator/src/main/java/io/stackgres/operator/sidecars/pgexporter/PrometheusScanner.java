@@ -5,51 +5,40 @@
 
 package io.stackgres.operator.sidecars.pgexporter;
 
-import java.util.Optional;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
+import io.fabric8.kubernetes.api.model.Doneable;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.stackgres.operator.common.KubernetesScanner;
-import io.stackgres.operator.resource.ResourceUtil;
+import io.stackgres.operator.resource.AbstractKubernetesCustomResourceScanner;
 import io.stackgres.operator.sidecars.prometheus.customresources.PrometheusConfig;
 import io.stackgres.operator.sidecars.prometheus.customresources.PrometheusConfigDefinition;
 import io.stackgres.operator.sidecars.prometheus.customresources.PrometheusConfigDoneable;
 import io.stackgres.operator.sidecars.prometheus.customresources.PrometheusConfigList;
 
+import org.jooq.lambda.tuple.Tuple;
+import org.jooq.lambda.tuple.Tuple5;
+
 @ApplicationScoped
-public class PrometheusScanner implements KubernetesScanner<PrometheusConfigList> {
+public class PrometheusScanner
+    extends AbstractKubernetesCustomResourceScanner<PrometheusConfig, PrometheusConfigList> {
 
-  private KubernetesClient client;
+  private final KubernetesClient client;
 
+  /**
+   * Create a {@code PrometheusScanner} instance.
+   */
   @Inject
   public PrometheusScanner(KubernetesClient client) {
     this.client = client;
   }
 
   @Override
-  public Optional<PrometheusConfigList> findResources() {
-
-    Optional<CustomResourceDefinition> crd =
-        ResourceUtil.getCustomResource(client, PrometheusConfigDefinition.NAME);
-
-    return crd.map(cr -> client.customResources(cr,
-        PrometheusConfig.class,
-        PrometheusConfigList.class,
-        PrometheusConfigDoneable.class)
-        .inAnyNamespace().list());
+  protected Tuple5<KubernetesClient, String, Class<PrometheusConfig>,
+      Class<PrometheusConfigList>, Class<? extends Doneable<PrometheusConfig>>> arguments() {
+    return Tuple.tuple(client, PrometheusConfigDefinition.NAME,
+        PrometheusConfig.class, PrometheusConfigList.class,
+        PrometheusConfigDoneable.class);
   }
 
-  @Override
-  public Optional<PrometheusConfigList> findResources(String namespace) {
-    Optional<CustomResourceDefinition> crd =
-        ResourceUtil.getCustomResource(client, PrometheusConfigDefinition.NAME);
-
-    return crd.map(cr -> client.customResources(cr,
-        PrometheusConfig.class,
-        PrometheusConfigList.class,
-        PrometheusConfigDoneable.class)
-        .inNamespace(namespace).list());
-  }
 }

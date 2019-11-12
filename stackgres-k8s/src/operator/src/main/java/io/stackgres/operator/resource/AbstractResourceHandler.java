@@ -20,6 +20,7 @@ import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceAccount;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
+import io.fabric8.kubernetes.api.model.batch.CronJob;
 import io.fabric8.kubernetes.api.model.rbac.Role;
 import io.fabric8.kubernetes.api.model.rbac.RoleBinding;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -47,6 +48,7 @@ public abstract class AbstractResourceHandler implements ResourceHandler {
       .put(Secret.class, client -> client.secrets())
       .put(ConfigMap.class, client -> client.configMaps())
       .put(Endpoints.class, client -> client.endpoints())
+      .put(CronJob.class, client -> client.batch().cronjobs())
       .build();
 
   @Override

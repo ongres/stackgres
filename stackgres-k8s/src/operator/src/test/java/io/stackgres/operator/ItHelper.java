@@ -31,6 +31,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 
 import com.ongres.junit.docker.Container;
+import com.spotify.docker.client.exceptions.DockerException;
 
 import org.apache.commons.io.IOUtils;
 import org.jooq.lambda.Unchecked;
@@ -197,10 +198,40 @@ public class ItHelper {
         .forEach(line -> LOGGER.info(line));
   }
 
+  public static void installMinioHelmChart(Container kind, String namespace, String clusterNamespace)
+      throws DockerException, InterruptedException {
+    LOGGER.info("Installing minio helm chart");
+    kind.execute("sh", "-l", "-c", "helm upgrade minio stable/minio"
+        + " --install --version 2.5.18 --namespace " + namespace
+        + " --set buckets[0].name=stackgres,buckets[0].policy=none,buckets[0].purge=true")
+        .filter(EXCLUDE_TTY_WARNING)
+        .forEach(line -> LOGGER.info(line));
+    kind.execute("sh", "-l", "-c", "kubectl get secret -n minio minio -o yaml"
+        + " | sed 's/  namespace: " + namespace + "/  namespace: " + clusterNamespace + "/'"
+        + " | kubectl create --namespace " + clusterNamespace + " -f -")
+        .filter(EXCLUDE_TTY_WARNING)
+        .forEach(line -> LOGGER.info(line));
+    kind.execute("sh", "-l", "-c", "cat << 'EOF' | kubectl create -f -\n"
+        + "kind: Service\n"
+        + "apiVersion: v1\n"
+        + "metadata:\n"
+        + "  namespace: " + clusterNamespace + "\n"
+        + "  name: minio\n"
+        + "spec:\n"
+        + "  type: ExternalName\n"
+        + "  externalName: minio." + namespace + ".svc.cluster.local\n"
+        + "  ports:\n"
+        + "   - port: 9000\n"
+        + "EOF")
+        .filter(EXCLUDE_TTY_WARNING)
+        .forEach(line -> LOGGER.info(line));
+  }
+
   /**
    * It helper method.
    */
-  public static void installStackGresConfigs(Container kind, String namespace) throws Exception {
+  public static void installStackGresConfigs(Container kind, String namespace, boolean withMinio)
+      throws Exception {
     LOGGER.info("Deleting if exists stackgres-cluster helm chart for configs");
     kind.execute("sh", "-l", "-c", "helm delete stackgres-cluster-configs --purge || true")
         .filter(EXCLUDE_TTY_WARNING)
@@ -210,7 +241,7 @@ public class ItHelper {
         + " --namespace " + namespace
         + " --name stackgres-cluster-configs"
         + " --set cluster.create=false"
-        + " || true")
+        + getMinioOptions(withMinio, namespace))
       .filter(EXCLUDE_TTY_WARNING)
       .forEach(line -> LOGGER.info(line));
   }
@@ -218,29 +249,52 @@ public class ItHelper {
   /**
    * It helper method.
    */
-  public static void installStackGresCluster(Container kind, String namespace, String name, int instances) throws Exception {
+  public static void installStackGresCluster(Container kind, String namespace, String name,
+      int instances, boolean withMinio) throws Exception {
     LOGGER.info("Deleting if exists stackgres-cluster helm chart for cluster with name " + name);
-    kind.execute("sh", "-l", "-c", "helm delete stackgres-cluster-" + name + " --purge || true")
+    kind.execute("sh", "-l", "-c", "helm delete " + name + " --purge || true")
+        .filter(EXCLUDE_TTY_WARNING)
+        .forEach(line -> LOGGER.info(line));
+    LOGGER.info("Deleting if exists stackgres-cluster resources for cluster with name " + name);
+    kind.execute("sh", "-l", "-c", "kubectl delete statefulset"
+        + " -n " + namespace + " " + name + " --ignore-not-found")
         .filter(EXCLUDE_TTY_WARNING)
         .forEach(line -> LOGGER.info(line));
     LOGGER.info("Installing stackgres-cluster helm chart for cluster with name " + name);
     kind.execute("sh", "-l", "-c", "helm install /resources/stackgres-cluster"
         + " --namespace " + namespace
-        + " --name stackgres-cluster-" + name
+        + " --name " + name
         + " --set config.create=false --set profiles.create=false"
         + " --set-string cluster.name=" + name
-        + " --set cluster.instances=" + instances)
+        + " --set cluster.instances=" + instances
+        + getMinioOptions(withMinio, namespace))
       .filter(EXCLUDE_TTY_WARNING)
       .forEach(line -> LOGGER.info(line));
+  }
+
+  private static String getMinioOptions(boolean withMinio, String namespace) {
+    return !withMinio ? "" :
+      " --set cluster.backup.retention=5"
+      + " --set-string cluster.backup.fullSchedule='*/1 * * * *'"
+      + " --set cluster.backup.fullWindow=1"
+      + " --set-string cluster.backup.s3.prefix=s3://stackgres"
+      + " --set-string cluster.backup.s3.endpoint=http://minio." + namespace + ".svc:9000"
+      + " --set cluster.backup.s3.forcePathStyle=true"
+      + " --set-string  cluster.backup.s3.region=k8s"
+      + " --set-string cluster.backup.s3.accessKey.name=minio"
+      + " --set-string cluster.backup.s3.accessKey.key=accesskey"
+      + " --set-string cluster.backup.s3.secretKey.name=minio"
+      + " --set-string cluster.backup.s3.secretKey.key=secretkey";
   }
 
   /**
    * It helper method.
    */
-  public static void upgradeStackGresCluster(Container kind, String namespace, String name, int instances) throws Exception {
+  public static void upgradeStackGresCluster(Container kind, String namespace, String name,
+      int instances) throws Exception {
     LOGGER.info("Upgrade stackgres-cluster helm chart for cluster with name " + name);
-    kind.execute("sh", "-l", "-c", "helm upgrade stackgres-cluster-" + name
-        + " /resources/stackgres-cluster"
+    kind.execute("sh", "-l", "-c", "helm upgrade " + name
+        + " /resources/stackgres-cluster --reuse-values"
         + " --set config.create=false --set profiles.create=false"
         + " --set-string cluster.name=" + name
         + " --set cluster.instances=" + instances)
@@ -253,7 +307,7 @@ public class ItHelper {
    */
   public static void deleteStackGresCluster(Container kind, String namespace, String name) throws Exception {
     LOGGER.info("Delete stackgres-cluster helm chart for cluster with name " + name);
-    kind.execute("sh", "-l", "-c", "helm delete stackgres-cluster-" + name)
+    kind.execute("sh", "-l", "-c", "helm delete " + name)
       .filter(EXCLUDE_TTY_WARNING)
       .forEach(line -> LOGGER.info(line));
   }
@@ -265,12 +319,11 @@ public class ItHelper {
       WebTarget operatorClient, Container kind) throws Exception {
     if (OPERATOR_IN_KUBERNETES) {
       waitUntil(Unchecked.supplier(() -> kind.execute("sh", "-l", "-c",
-          "kubectl get pod -n stackgres"
-              + " | grep 'stackgres-operator'"
-              + " | grep -v 'stackgres-operator-init'"
-              + " | cut -d ' ' -f 1"
-              + " | xargs kubectl describe pod -n  stackgres ")),
-          s -> s.anyMatch(line -> line.matches("  Ready\\s+True\\s*")), 120, ChronoUnit.SECONDS,
+          "kubectl get pod -n stackgres -o name"
+              + " | grep '^pod/stackgres-operator-'"
+              + " | grep -v '^pod/stackgres-operator-init'"
+              + " | xargs kubectl describe -n  stackgres ")),
+          s -> s.anyMatch(line -> line.matches("^  Ready\\s+True\\s*")), 120, ChronoUnit.SECONDS,
           s -> Assertions.fail(
               "Timeout while checking availability of"
                   + " stackgres-operator pod:\n"
@@ -327,7 +380,8 @@ public class ItHelper {
     while (true) {
       if (Instant.now().isAfter(end)) {
         onTimeout.run();
-        throw new TimeoutException("Timeout after waiting for the specified condition");
+        throw new TimeoutException("Timeout after waiting for the specified condition for "
+            + Duration.of(timeout, unit).getSeconds() + " seconds");
       }
       TimeUnit.SECONDS.sleep(1);
       try {
