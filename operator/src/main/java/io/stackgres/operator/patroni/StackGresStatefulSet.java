@@ -58,6 +58,8 @@ public class StackGresStatefulSet {
   private static final String IMAGE_PREFIX = "docker.io/ongres/patroni:v%s-pg%s-build-%s";
   private static final String PATRONI_VERSION = "1.6.0";
 
+  private static final String DEFAULT_STORAGE_CLASS = "standard";
+
   /**
    * Create a new StatefulSet based on the StackGresCluster definition.
    */
@@ -72,8 +74,8 @@ public class StackGresStatefulSet {
         .size(config.getCluster().getSpec().getVolumeSize())
         .storageClass(Optional.ofNullable(
             config.getCluster().getSpec().getStorageClass())
-            .filter(storageClass -> storageClass.isEmpty())
-            .orElse("standard"))
+            .filter(storageClass -> ! storageClass.isEmpty())
+            .orElse(DEFAULT_STORAGE_CLASS))
         .build();
     if (profile.isPresent()) {
       resources.setRequests(ImmutableMap.of(
