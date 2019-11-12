@@ -32,12 +32,16 @@ public class StorageClassValidator implements ClusterValidator {
 
     switch (review.getRequest().getOperation()) {
       case CREATE:
-        checkIfStorageClassExist(storageClass, "Storage class "
-            + storageClass + " not found");
+        if (storageClass != null && !storageClass.isEmpty()) {
+          checkIfStorageClassExist(storageClass, "Storage class "
+              + storageClass + " not found");
+        }
         break;
       case UPDATE:
-        checkIfStorageClassExist(storageClass, "Cannot update to storage class "
-            + storageClass + " because it doesn't exists");
+        if (storageClass != null && !storageClass.isEmpty()) {
+          checkIfStorageClassExist(storageClass, "Cannot update to storage class "
+              + storageClass + " because it doesn't exists");
+        }
         break;
       default:
     }

@@ -63,7 +63,6 @@ spec:
               "connection_pooling_config",
               "resource_profile",
               "volume_size",
-              "storage_class",
               "sidecars"
             ]
 

@@ -93,8 +93,7 @@ public class StackGresStatefulSet {
         .size(config.getCluster().getSpec().getVolumeSize())
         .storageClass(Optional.ofNullable(
             config.getCluster().getSpec().getStorageClass())
-            .filter(storageClass -> storageClass.isEmpty())
-            .orElse("standard"))
+            .orElse(null))
         .build();
     if (profile.isPresent()) {
       resources.setRequests(ImmutableMap.of(
@@ -108,7 +107,7 @@ public class StackGresStatefulSet {
     final PersistentVolumeClaimSpecBuilder volumeClaimSpec = new PersistentVolumeClaimSpecBuilder()
         .withAccessModes("ReadWriteOnce")
         .withResources(storage.getResourceRequirements())
-        .withStorageClassName(storage.getStorageClass().orElse(null));
+        .withStorageClassName(storage.getStorageClass());
 
     final Map<String, String> labels = ResourceUtil.defaultLabels(name);
     final Map<String, String> podLabels = ImmutableMap.<String, String>builder()

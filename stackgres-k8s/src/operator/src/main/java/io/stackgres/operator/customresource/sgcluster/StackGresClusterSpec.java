@@ -59,7 +59,6 @@ public class StackGresClusterSpec implements KubernetesResource {
   private String volumeSize;
 
   @JsonProperty("storage_class")
-  @NotNull
   private String storageClass;
 
   @JsonProperty("prometheus_autobind")

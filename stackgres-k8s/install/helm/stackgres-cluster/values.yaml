@@ -17,7 +17,12 @@ cluster:
   poolingconfig: pgbouncerconf
   profile: size-xs
   volumesize: 5Gi
-  #storageclass: ""
+  ## If defined, storageClassName: <storageclass>
+  ## If set to "-", storageClassName: "", which disables dynamic provisioning
+  ## If undefined (the default) or set to null, no storageClassName spec is
+  ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
+  ##   GKE, AWS & OpenStack)
+  #storageclass: "-"
   backup:
     name: backupconf
     retention: 5
@@ -31,6 +36,8 @@ cluster:
     #pgpConfiguration:
     #  name: pgpConfiguration
     #  key: key
+    nfs:
+      create: true
     volume: {}
     #  nfs: # see https://kubernetes.io/docs/concepts/storage/volumes#nfs
     #    path:
