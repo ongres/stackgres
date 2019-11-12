@@ -20,14 +20,13 @@ var clustersList = [],
     ];
 
 //Local Json "API"
-var apiURL = './js/data/';
+//var apiURL = './js/data/';
 
 //Test API
 //var apiURL = 'http://192.168.1.10:7978/';
-//var apiURL = '/stackgres/';
 
 //Prod API
-//var apiURL = "/";
+var apiURL = '/stackgres/';
 
 const router = new VueRouter({
   routes: [
