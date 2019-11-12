@@ -316,41 +316,6 @@
                         <autoRemove>true</autoRemove>
                       </run>
                     </image>
-                    <image>
-                      <alias>kind-load</alias>
-                      <name>stackgres/it</name>
-                      <run>
-                        <namingStrategy>alias</namingStrategy>
-                        <entrypoint>
-                          <arg>/bin/sh</arg>
-                          <arg>-exc</arg>
-                          <arg>
-                        IMAGE_NAME="${IMAGE_NAME:-"stackgres/operator:development-jvm"}"
-                        CONTAINER_NAME="$(docker inspect -f '{{.Name}}' "$(hostname)"|cut -d '/' -f 2|sed 's/^kind-load/kind/')"
-                        kind load docker-image --name "$CONTAINER_NAME" "$IMAGE_NAME" || true
-                          </arg>
-                        </entrypoint>
-                        <wait>
-                          <time>300000</time>
-                          <exit>0</exit>
-                        </wait>
-                        <log>
-                          <prefix>kind-load|</prefix>
-                          <date>default</date>
-                        </log>
-                        <env>
-                          <IMAGE_NAME>${env.IMAGE_NAME}</IMAGE_NAME>
-                          <DOCKER_HOST>${env.DOCKER_HOST}</DOCKER_HOST>
-                        </env>
-                        <volumes>
-                          <bind>
-                            <volume>/var/run/docker.sock:/var/run/docker.sock</volume>
-                            <volume>/var/lib/docker:/var/lib/docker:ro</volume>
-                          </bind>
-                        </volumes>
-                        <autoRemove>true</autoRemove>
-                      </run>
-                    </image>
                   </images>
                 </configuration>
               </execution>
@@ -434,41 +399,6 @@
                             <volume>${project.basedir}:/operator:ro</volume>
                             <volume>/var/lib/containers</volume>
                             <volume>/var/run/docker.sock:/var/run/docker.sock</volume>
-                          </bind>
-                        </volumes>
-                        <autoRemove>true</autoRemove>
-                      </run>
-                    </image>
-                    <image>
-                      <alias>kind-load</alias>
-                      <name>stackgres/it</name>
-                      <run>
-                        <namingStrategy>alias</namingStrategy>
-                        <entrypoint>
-                          <arg>/bin/sh</arg>
-                          <arg>-exc</arg>
-                          <arg>
-                        IMAGE_NAME="${IMAGE_NAME:-"stackgres/operator:development-jvm"}"
-                        CONTAINER_NAME="$(docker inspect -f '{{.Name}}' "$(hostname)"|cut -d '/' -f 2|sed 's/^kind-load/kind/')"
-                        kind load docker-image --name "$CONTAINER_NAME" "$IMAGE_NAME" || true
-                          </arg>
-                        </entrypoint>
-                        <wait>
-                          <time>300000</time>
-                          <exit>0</exit>
-                        </wait>
-                        <log>
-                          <prefix>kind-load|</prefix>
-                          <date>default</date>
-                        </log>
-                        <env>
-                          <IMAGE_NAME>${env.IMAGE_NAME}</IMAGE_NAME>
-                          <DOCKER_HOST>${env.DOCKER_HOST}</DOCKER_HOST>
-                        </env>
-                        <volumes>
-                          <bind>
-                            <volume>/var/run/docker.sock:/var/run/docker.sock</volume>
-                            <volume>/var/lib/docker:/var/lib/docker:ro</volume>
                           </bind>
                         </volumes>
                         <autoRemove>true</autoRemove>
