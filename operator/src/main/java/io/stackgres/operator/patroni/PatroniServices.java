@@ -71,7 +71,7 @@ public class PatroniServices {
             .withPort(5432)
             .withTargetPort(new IntOrString(6432))
             .build())
-        .withType("LoadBalancer")
+        .withType("ClusterIP")
         .endSpec()
         .build();
   }
