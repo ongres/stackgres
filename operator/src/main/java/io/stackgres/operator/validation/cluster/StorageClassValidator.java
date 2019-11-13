@@ -46,7 +46,8 @@ public class StorageClassValidator implements ClusterValidator {
 
   private void checkIfStorageClassExist(String storageClass, String onError)
       throws ValidationFailed {
-    if (!finder.findByName(storageClass).isPresent()) {
+    if (storageClass != null && !storageClass.isEmpty()
+        && !finder.findByName(storageClass).isPresent()) {
       throw new ValidationFailed(onError);
     }
   }
