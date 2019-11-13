@@ -155,7 +155,8 @@ public class PostgresExporter
           serviceMonitor.setKind(ServiceMonitorDefinition.KIND);
           serviceMonitor.setApiVersion(ServiceMonitorDefinition.APIVERSION);
           serviceMonitor.setMetadata(new ObjectMetaBuilder()
-              .withName(config.getCluster().getMetadata().getName()
+              .withName(config.getCluster().getMetadata().getNamespace()
+                  + "-" + config.getCluster().getMetadata().getName()
                   + "-stackgres-prometheus-postgres-exporter")
               .withLabels(pi.getMatchLabels())
               .withNamespace(pi.getNamespace())
