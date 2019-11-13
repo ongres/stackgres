@@ -9,6 +9,9 @@ metadata:
   labels:
     app: StackGres
     scope: init
+  annotations:
+    "helm.sh/hook": post-install
+    "helm.sh/hook-delete-policy": hook-succeeded
 spec:
   template:
     metadata:
@@ -26,9 +29,13 @@ spec:
           - "-ecx"
           - |
             kubectl delete csr --ignore-not-found {{ .Values.operatorName }}
-            kubectl delete secret --ignore-not-found {{ .Values.operatorName }}-init
+            kubectl delete secret --ignore-not-found {{ .Values.operatorName }}
             kubectl delete validatingwebhookconfiguration --ignore-not-found {{ .Values.operatorName }}-cluster
             kubectl delete validatingwebhookconfiguration --ignore-not-found {{ .Values.operatorName }}-pgconfig
+            kubectl get pod -o name \
+              | grep '^pod/{{ .Release.Name }}-' \
+              | grep -v '^pod/{{ .Release.Name }}-init-' \
+              | xargs -r -L 1 -I % kubectl delete % --ignore-not-found
             cat << EOF > /tmp/csr.conf
             [req]
             req_extensions = v3_req
