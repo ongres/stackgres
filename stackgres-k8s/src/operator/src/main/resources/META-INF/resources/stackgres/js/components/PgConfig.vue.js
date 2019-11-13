@@ -3,7 +3,7 @@ var PgConfig = Vue.component("pg-config", {
 		<div id="pg-config">
 			<header>
 				<h2 class="title">POSTGRESQL CONFIGURATIONS</h2>
-				<h3 class="subtitle">K8S Cluster: {{ serverIP }}</h3>
+				<!-- <h3 class="subtitle">K8S Cluster: {{ serverIP }}</h3> -->
 			</header>
 
 			<div class="content">
@@ -14,11 +14,11 @@ var PgConfig = Vue.component("pg-config", {
 						{{ conf.data.metadata.namespace }}
 						<hr>
 						<span>PostgreSQL Version</span>
-						{{ conf.data.spec.pgVersion }}
+						{{ conf.data.spec.pg_version }}
 						<hr>
 						<span>Params</span>
 						<ul class="params">
-							<li v-for="(item, index) in conf.data.spec.postgresqlConf">
+							<li v-for="(item, index) in conf.data.spec['postgresql.conf']">
 								<strong>{{ index }}:</strong> {{ item }}<br/>
 							</li>
 						</ul>
@@ -32,76 +32,9 @@ var PgConfig = Vue.component("pg-config", {
 			config: []		
 		}
 	},
-	/*created: function() {
-
-		let vm = this;
-		vm.config = pgConf;
-
-	},*/
 	created: function() {
 
-		let vm = this;
-		
-		/*if (typeof(this.$route.params.name) !== 'undefined'){ // If filtered by name
-			var name = this.$route.params.name;
-
-			console.log("Change to: "+name);
-
-			for(let i=0; i < pgConf.length; i++ ){
-
-				if(pgConf[i].data.metadata.name == name) {
-					var config = { 
-						"name": name,
-					    "data": pgConf[i].data
-					};
-
-					vm.config.push(config);
-					break;					
-				}
-			}
-
-			vm.show = 'show';
-
-			console.log(vm.config);			
-		} else { // If listing every conf*/
-			
-			vm.config = pgConf;
-
-		//}
-
-	},
-	/*beforeRouteUpdate (to, from, next) {
-
-		let vm = this;
-
-		if (to.params.name !== 'undefined'){ // If filtered by name
-			var name = this.$route.params.name;
-
-			console.log("Change to: "+name);
-
-			for(let i=0; i < pgConf.length; i++ ){
-
-				if(pgConf[i].data.metadata.name == name) {
-					var config = { 
-						"name": name,
-					    "data": pgConf[i].data
-					};
-
-					vm.config.push(config);
-					break;					
-				}
-			}
-
-			vm.show = 'show';
-
-		} else { // If listing every conf
-			let vm = this;
-			vm.config = pgConf;
-			vm.show = '';
-
-			console.log("Enter BEFORE");
-		}
-		
-		next();
-	}*/
+		let vc = this;
+		vc.config = pgConf;
+	}
 })

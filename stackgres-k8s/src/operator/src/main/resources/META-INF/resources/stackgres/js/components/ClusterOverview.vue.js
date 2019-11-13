@@ -3,7 +3,7 @@ var ClusterOverview = Vue.component("cluster-overview", {
 		<div id="cluster-overview">
 			<header>
 				<h2 class="title">OVERVIEW</h2>
-				<h3 class="subtitle">K8S Cluster: {{ serverIP }}</h3>
+				<!--<h3 class="subtitle">K8S Cluster: {{ serverIP }}</h3>-->
 			</header>
 
 			<div class="content">
@@ -41,16 +41,16 @@ var ClusterOverview = Vue.component("cluster-overview", {
 							{{ cluster.data.spec.instances }}
 						</div>
 						<div class="col">
-							{{ cluster.data.status.cpuRequested }}
+							{{ cluster.data.status.cpu_requested }}
 						</div>
 						<div class="col">
-							{{ cluster.data.status.memoryRequested }}
+							{{ cluster.data.status.memory_requested }}
 						</div>
 						<div class="col">
-							{{ cluster.data.spec.volumeSize }}
+							{{ cluster.data.spec.volume_size }}
 						</div>
 						<div class="col">
-							{{ cluster.data.status.podsReady + '/' + cluster.data.spec.instances }}
+							{{ cluster.data.status.pods_ready + '/' + cluster.data.spec.instances }}
 						</div>
 					</div>
 				</div>
