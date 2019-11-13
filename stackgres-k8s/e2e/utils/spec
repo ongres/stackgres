@@ -1,0 +1,88 @@
+#!/bin/sh
+
+test_before_all() {
+  true
+}
+
+test_install() {
+  helm install $HELM_OPTS --name "$CLUSTER_NAME" \
+      --namespace "$CLUSTER_NAMESPACE" "$STACKGRES_PATH/install/helm/stackgres-cluster/"
+  
+  wait_pods_running "$CLUSTER_NAMESPACE" "$(test_install_pods)"
+}
+
+test_install_pods() {
+  echo 1
+}
+
+test_after_all() {
+  true
+}
+
+test() {
+  echo "You should define a test function"
+  false
+}
+
+spec() {
+  SPEC_FILE="$1"
+  SPEC_BEFORE_FILE="$SPEC_FILE.before"
+  SPEC_AFTER_FILE="$SPEC_FILE.after"
+  SPEC_VALUES_FILE="$1.values.yaml"
+  SPEC_NAME="$(basename "$SPEC_FILE")"
+  CLUSTER_NAMESPACE="$SPEC_NAME"
+  CLUSTER_NAME="$SPEC_NAME"
+  SKIP_SPEC_INSTALL="${SKIP_SPEC_INSTALL:-false}"
+  SKIP_SPEC_BEFORE_ALL="${SKIP_SPEC_BEFORE_ALL:-false}"
+  SKIP_SPEC_AFTER_ALL="${SKIP_SPEC_AFTER_ALL:-false}"
+  LOG_PATH="$TARGET_PATH/logs/$SPEC_NAME"
+  export SPEC_FILE SPEC_NAME CLUSTER_NAMESPACE CLUSTER_NAME LOG_PATH
+  
+  mkdir -p "$LOG_PATH"
+  
+  HELM_OPTS=""
+  
+  if [ -f "$SPEC_VALUES_FILE" ]
+  then
+    HELM_OPTS="$HELM_OPTS -f $SPEC_VALUES_FILE"
+  fi
+  
+  . "$SPEC_FILE"
+  
+  echo "Running $SPEC_NAME tests"
+  > "$LOG_PATH/$SPEC_NAME.log"
+  (set +ex
+    sh +x -c 'echo $$; exec tail -f '"$LOG_PATH/$SPEC_NAME.log" | \
+    (
+    read pid
+    trap_kill "$pid"
+    while read line
+    do
+      echo "[$SPEC_NAME] $line"
+    done
+    )
+  ) &
+  try_function run_spec >> "$LOG_PATH/$SPEC_NAME.log" 2>&1
+  if ! "$RESULT"
+  then
+    echo "$SPEC_NAME. FAIL. See file $LOG_PATH/$SPEC_NAME.log for details" >> "$TARGET_PATH/logs/results.log"
+    return "$EXIT_CODE"
+  fi
+  echo "$SPEC_NAME. SUCCESS." >> "$TARGET_PATH/logs"/results.log
+}
+
+run_spec() {
+  if [ "$SKIP_SPEC_BEFORE_ALL" != true ]
+  then
+    test_before_all
+  fi
+  
+  if [ "$SKIP_SPEC_INSTALL" != true ]
+  then
+    test_install
+  fi
+  
+  test
+  
+  test_after_all
+}

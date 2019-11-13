@@ -95,7 +95,7 @@ webhooks:
       - operations: ["CREATE", "UPDATE", "DELETE"]
         apiGroups: ["stackgres.io"]
         apiVersions: ["*"]
-        resources: ["sgbackupconfig"]
+        resources: ["sgbackupconfigs"]
     failurePolicy: Fail
     clientConfig:
       service:

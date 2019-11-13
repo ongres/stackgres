@@ -1,0 +1,56 @@
+KIND_NAME="${KIND_NAME:-kind}"
+KUBECONFIG="$(kind get kubeconfig-path  --name "$KIND_NAME")"
+
+export KUBECONFIG KIND_NAME
+
+reuse_k8s() {
+  if ! kind get clusters | grep -q "^$KIND_NAME$" \
+      || ! docker inspect "$KIND_NAME-control-plane" -f '{{ .State.Status }}' | grep -q 'running'
+  then
+    echo "Can not reuse kind environment $KIND_NAME"
+    reset_k8s
+    return
+  fi
+  
+  echo "Reusing kind environment $KIND_NAME"
+  
+  KIND_CONFIG="$(kind get kubeconfig-path --name "$KIND_NAME")"
+  mkdir -p "$(dirname "$KIND_CONFIG")"
+  if [ "$USE_KIND_INTERNAL" = true ]
+  then
+    kind get kubeconfig --name "$KIND_NAME" --internal > "$KIND_CONFIG"
+  else
+    kind get kubeconfig --name "$KIND_NAME" > "$KIND_CONFIG"
+  fi
+}
+
+reset_k8s() {
+  echo "Setting up kind environment $KIND_NAME..."
+  
+  kind delete cluster --name "$KIND_NAME" || true
+  cat << EOF > "$TARGET_PATH/kind-config.yaml"
+  kind: Cluster
+  apiVersion: kind.sigs.k8s.io/v1alpha3
+  nodes:
+  - role: control-plane
+  - role: worker
+  - role: worker
+EOF
+  
+  kind create cluster --name "$KIND_NAME" --config "$TARGET_PATH/kind-config.yaml" --image "kindest/node:v${KUBERNETES_VERSION}"
+  
+  if [ "$USE_KIND_INTERNAL" = true ]
+  then
+    kind get kubeconfig --name "$KIND_NAME" --internal > "$(kind get kubeconfig-path --name "$KIND_NAME")"
+  fi
+  
+  echo "...done"
+}
+
+load_operator_k8s() {
+  echo "Loading operator image $IMAGE_NAME in kind environemnt $KIND_NAME..."
+  
+  kind load docker-image --name "$KIND_NAME" "$IMAGE_NAME"
+  
+  echo "...done"
+}

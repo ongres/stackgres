@@ -1,0 +1,63 @@
+#!/bin/sh
+
+test_install_pods() {
+  echo 2
+}
+
+test() {
+  run_test "Checking that all 4 ports (5432, 5433, 5434, 5435) in the patroni pods are openned and listening for queries" ports_check
+  
+  run_test "Checking that is possible to connect using services is working" service_check
+}
+
+ports_check() {
+
+  RESPONSE_5432="$(run_query -i 0 -p 5432)"
+  RESPONSE_5433="$(run_query -i 0 -p 5433)"
+  RESPONSE_5434="$(run_query -i 0 -p 5434)"
+  RESPONSE_5435="$(run_query -i 0 -p 5435)"
+
+  if [ "$RESPONSE_5432" = "1" ] && [ "$RESPONSE_5433" = "1" ] && [ "$RESPONSE_5434" = "1" ] && [ "$RESPONSE_5435" = "1" ]
+  then
+    
+    RESPONSE_5432="$(run_query -i 1 -p 5432)"
+    RESPONSE_5433="$(run_query -i 1 -p 5433)"
+    RESPONSE_5434="$(run_query -i 1 -p 5434)"
+    RESPONSE_5435="$(run_query -i 1 -p 5435)"
+    
+    if [ "$RESPONSE_5432" = "1" ] && [ "$RESPONSE_5433" = "1" ] && [ "$RESPONSE_5434" = "1" ] && [ "$RESPONSE_5435" = "1" ]
+    then
+      return 0
+    else 
+      echo "FAIL: Not all 4 ports of the replica node are working"
+      return 1
+    fi
+    
+  else 
+      echo "FAIL: Not all 4 ports of the primary node are working"
+      return 1
+  fi
+
+}
+
+service_check() {
+  RESPONSE_PRIMARY="$(run_query -h "$CLUSTER_NAME"-primary -i 1 -p 5432)"
+
+  if [ "$RESPONSE_PRIMARY" = "1" ]
+  then
+
+    RESPONSE_REPLICA="$(run_query -h "$CLUSTER_NAME"-replica -i 0 -p 5432)"
+    if [ "$RESPONSE_REPLICA" = "1" ]
+    then
+      echo "SUCCESS: Connections are possible using services"
+      return 0
+    else
+      echo "FAIL: Cannot connect to replica db using a kubernetes service"
+      return 1
+    fi  
+
+  else
+    echo "FAIL: Cannot connect to primary db using a kubernetes service"
+    return 1
+  fi
+}

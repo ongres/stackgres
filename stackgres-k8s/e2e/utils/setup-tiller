@@ -1,0 +1,13 @@
+#!/bin/sh
+
+setup_tiller() {
+  helm init
+  
+  wait_tiller_is_loaded
+  
+  kubectl get serviceaccount --namespace kube-system tiller | grep -q '^tiller\s' \
+    || kubectl create serviceaccount --namespace kube-system tiller
+  kubectl get clusterrolebinding tiller-cluster-rule | grep -q '^tiller-cluster-rule\s' \
+    || kubectl create clusterrolebinding tiller-cluster-rule --clusterrole=cluster-admin --serviceaccount=kube-system:tiller
+  kubectl patch deploy --namespace kube-system tiller-deploy -p '{"spec":{"template":{"spec":{"serviceAccount":"tiller"}}}}'
+}

@@ -1,0 +1,15 @@
+#!/bin/sh
+
+watch_pods_new_state(){
+  clear
+  kubectl get pods --all-namespaces
+  echo ""
+}
+
+watch_pods() {
+  while true
+  do
+    watch_pods_new_state
+    sleep 2
+  done
+}

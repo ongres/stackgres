@@ -1,0 +1,17 @@
+#!/bin/sh
+
+run_test() {
+  local TEST_NAME="$1"
+  local LOG_FILE="$TARGET_PATH/logs/$SPEC_NAME/$(echo "$TEST_NAME"|tr " " "-").log"
+  echo "Running test $TEST_NAME"
+  > "$LOG_FILE"
+  tail -f "$LOG_FILE" &
+  trap_kill "$!"
+  try_function "$2" >> "$LOG_FILE" 2>&1
+  if ! "$RESULT"
+  then
+    echo "$TEST_NAME. FAIL. See file $LOG_FILE for details"
+    return "$EXIT_CODE"
+  fi
+  echo "$TEST_NAME. SUCCESS."
+}
