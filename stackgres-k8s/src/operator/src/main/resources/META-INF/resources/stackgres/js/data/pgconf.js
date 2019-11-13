@@ -11,7 +11,7 @@
         "uid": "51f882e5-3218-491f-a961-39fccd2611df"
     },
     "spec": {
-        "pg_version": "11.5",
+        "pgVersion": "11.5",
         "postgresql.conf": {
             "password_encryption": "scram-sha-256",
             "random_page_cost": "1.5",
@@ -34,7 +34,7 @@
         "uid": "51f882e5-3218-491f-a961-39fccd2611df"
     },
     "spec": {
-        "pg_version": "10.3",
+        "pgVersion": "10.3",
         "postgresql.conf": {
             "password_encryption": "scram-sha-256",
             "random_page_cost": "1.5",

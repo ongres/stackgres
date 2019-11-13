@@ -16,7 +16,7 @@ var poolconf = [{
             "max_client_conn": "200",
             "pool_mode": "transaction"
         },
-        "pgbouncer_version": "1.11"
+        "pgbouncerVersion": "1.11"
     }
 },
 ]

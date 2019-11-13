@@ -33,7 +33,7 @@ var ClusterInfo = Vue.component("cluster-info", {
 							{{ cluster.data.status.memory_requested }}
 						</div>
 						<div class="col">
-							{{ cluster.data.status.disk_used + '/' + cluster.data.spec.volume_size }}
+							{{ cluster.data.status.disk_used + '/' + cluster.data.spec.volumeSize }}
 						</div>
 						<div class="col">
 							{{ cluster.data.status.pods_ready + '/' + cluster.data.spec.instances }}

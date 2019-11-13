@@ -24,7 +24,7 @@ public class StackGresPgbouncerConfigSpec implements KubernetesResource {
 
   private static final long serialVersionUID = 2000013861182789247L;
 
-  @JsonProperty("pgbouncer_version")
+  @JsonProperty("pgbouncerVersion")
   @NotBlank(message = "The PgBouncer version is required")
   private String pgbouncerVersion;
 
@@ -52,7 +52,7 @@ public class StackGresPgbouncerConfigSpec implements KubernetesResource {
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .omitNullValues()
-        .add("pgbouncer_version", pgbouncerVersion)
+        .add("pgbouncerVersion", pgbouncerVersion)
         .add("pgbouncer.ini", pgbouncerConf)
         .toString();
   }
