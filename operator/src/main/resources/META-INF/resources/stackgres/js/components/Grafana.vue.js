@@ -27,28 +27,25 @@ var Grafana = Vue.component("grafana", {
 	created: function() {
 		this.fetchData()
 	},
-	computed: function() {
-		this.fetchData()
-	},
 	watch: {
 		'$route': 'fetchData'
 	},
 	methods: {
 		fetchData () {
 			// Grafana service
-			let vm = this;
+			let vc = this;
 
-			vm.pods = clustersData[this.$route.params.name].data.status.pods;
+			vc.pods = clustersData[this.$route.params.name].data.status.pods;
 
 			$.get("/grafana", function(data) {
 				let url = data;
 				url += (url.includes('?') ? '&' : '?') + 'theme=light&kiosk';
 
-				if(vm.$route.params.pod && vm.$route.params.pod.length)
-					url = url+'&var-instance='+vm.$route.params.pod;
+				if(vc.$route.params.pod && vc.$route.params.pod.length)
+					url = url+'&var-instance='+vc.$route.params.pod;
 				else
-					url = url+'&var-instance='+vm.pods[0].ip+':9187';
-				vm.grafana = url;
+					url = url+'&var-instance='+vc.pods[0].ip+':9187';
+				vc.grafana = url;
 				$(".grafana iframe").prop("src", url);
 			});
 		}

@@ -1,0 +1,122 @@
+[
+  {
+    "kind": "StackGresProfile",
+    "apiVersion": "stackgres.io/v1alpha1",
+    "metadata": {
+      "annotations": {
+        "helm.sh/hook": "pre-install"
+      },
+      "creationTimestamp": "2019-11-07T16:18:42Z",
+      "generation": 1,
+      "name": "size-l",
+      "namespace": "stackgres",
+      "resourceVersion": "9940",
+      "selfLink": "/apis/stackgres.io/v1alpha1/namespaces/stackgres/sgprofiles/size-l",
+      "uid": "4410ab6e-017a-11ea-9ca4-0242ac110004"
+    },
+    "spec": {
+      "cpu": "4",
+      "memory": "8Gi"
+    }
+  },
+  {
+    "kind": "StackGresProfile",
+    "apiVersion": "stackgres.io/v1alpha1",
+    "metadata": {
+      "annotations": {
+        "helm.sh/hook": "pre-install"
+      },
+      "creationTimestamp": "2019-11-07T16:18:42Z",
+      "generation": 1,
+      "name": "size-m",
+      "namespace": "stackgres",
+      "resourceVersion": "9941",
+      "selfLink": "/apis/stackgres.io/v1alpha1/namespaces/stackgres/sgprofiles/size-m",
+      "uid": "44145ec0-017a-11ea-9ca4-0242ac110004"
+    },
+    "spec": {
+      "cpu": "2",
+      "memory": "4Gi"
+    }
+  },
+  {
+    "kind": "StackGresProfile",
+    "apiVersion": "stackgres.io/v1alpha1",
+    "metadata": {
+      "annotations": {
+        "helm.sh/hook": "pre-install"
+      },
+      "creationTimestamp": "2019-11-07T16:18:42Z",
+      "generation": 1,
+      "name": "size-s",
+      "namespace": "stackgres",
+      "resourceVersion": "9942",
+      "selfLink": "/apis/stackgres.io/v1alpha1/namespaces/stackgres/sgprofiles/size-s",
+      "uid": "44174706-017a-11ea-9ca4-0242ac110004"
+    },
+    "spec": {
+      "cpu": "1",
+      "memory": "2Gi"
+    }
+  },
+  {
+    "kind": "StackGresProfile",
+    "apiVersion": "stackgres.io/v1alpha1",
+    "metadata": {
+      "annotations": {
+        "helm.sh/hook": "pre-install"
+      },
+      "creationTimestamp": "2019-11-07T16:18:42Z",
+      "generation": 1,
+      "name": "size-xl",
+      "namespace": "stackgres",
+      "resourceVersion": "9943",
+      "selfLink": "/apis/stackgres.io/v1alpha1/namespaces/stackgres/sgprofiles/size-xl",
+      "uid": "4419a7ae-017a-11ea-9ca4-0242ac110004"
+    },
+    "spec": {
+      "cpu": "6",
+      "memory": "16Gi"
+    }
+  },
+  {
+    "kind": "StackGresProfile",
+    "apiVersion": "stackgres.io/v1alpha1",
+    "metadata": {
+      "annotations": {
+        "helm.sh/hook": "pre-install"
+      },
+      "creationTimestamp": "2019-11-07T16:18:42Z",
+      "generation": 1,
+      "name": "size-xs",
+      "namespace": "stackgres",
+      "resourceVersion": "9944",
+      "selfLink": "/apis/stackgres.io/v1alpha1/namespaces/stackgres/sgprofiles/size-xs",
+      "uid": "441c6a55-017a-11ea-9ca4-0242ac110004"
+    },
+    "spec": {
+      "cpu": "500m",
+      "memory": "512Mi"
+    }
+  },
+  {
+    "kind": "StackGresProfile",
+    "apiVersion": "stackgres.io/v1alpha1",
+    "metadata": {
+      "annotations": {
+        "helm.sh/hook": "pre-install"
+      },
+      "creationTimestamp": "2019-11-07T16:18:42Z",
+      "generation": 1,
+      "name": "size-xxl",
+      "namespace": "stackgres",
+      "resourceVersion": "9945",
+      "selfLink": "/apis/stackgres.io/v1alpha1/namespaces/stackgres/sgprofiles/size-xxl",
+      "uid": "441fe67a-017a-11ea-9ca4-0242ac110004"
+    },
+    "spec": {
+      "cpu": "8",
+      "memory": "32Gi"
+    }
+  }
+]
