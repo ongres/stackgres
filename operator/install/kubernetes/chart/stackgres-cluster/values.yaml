@@ -15,7 +15,12 @@ cluster:
   poolingconfig: pgbouncerconf
   profile: size-xs
   volumesize: 5Gi
-  storageclass: standard
+  ## If defined, storageClassName: <storageclass>
+  ## If set to "-", storageClassName: "", which disables dynamic provisioning
+  ## If undefined (the default) or set to null, no storageClassName spec is
+  ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
+  ##   GKE, AWS & OpenStack)
+  #storageclass: "-"
 
 sidecar:
   pooling: true
