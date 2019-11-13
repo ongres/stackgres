@@ -1,11 +1,10 @@
 #!/bin/bash
 CLUSTER_NAMESPACE=pgbouncerem
 TEMP_DIRECTORY=$(mktemp -d)
+CLUSTER_NAME=pgbouncerem
 source testlib.sh
 
-helm delete --purge "$CLUSTER_NAMESPACE" || true
-helm template --name $CLUSTER_NAMESPACE --namespace $CLUSTER_NAMESPACE $STACKGRES_PATH/install/helm/stackgres-cluster/ | kubectl delete --namespace $CLUSTER_NAMESPACE --ignore-not-found -f -
-helm install --name $CLUSTER_NAMESPACE --namespace $CLUSTER_NAMESPACE $STACKGRES_PATH/install/helm/stackgres-cluster/ > cluster.log
+helm install --name $CLUSTER_NAME --namespace $CLUSTER_NAMESPACE $STACKGRES_PATH/install/helm/stackgres-cluster/ > cluster.log
 sleep 2
 wait-all-pods-ready.sh
 

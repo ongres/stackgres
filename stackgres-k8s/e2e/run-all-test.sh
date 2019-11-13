@@ -1,16 +1,15 @@
 #!/bin/bash
 echo "Preparing environment"
 . envs/init.sh
-. envs/kind.sh &> env.log
+. envs/kind.sh
 
 echo "Functional tests results" > results.log
 
 source testlib.sh
 
-SPECS=$(ls | grep _spec.sh)
-for s in $SPECS
+for s in $(find -name '*-spec.sh')
 do
-  spec $s &
+  spec "$s" &
 done
 wait
 cat results.log
