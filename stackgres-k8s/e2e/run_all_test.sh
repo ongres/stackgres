@@ -3,6 +3,9 @@ echo "Preparing environment"
 . envs/init.sh
 . envs/kind.sh &> env.log
 
+prepare_environment "kind"
+
+
 echo "Functional tests results" > results.log
 
 source testlib.sh

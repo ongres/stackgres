@@ -97,10 +97,12 @@ public class ResourceHandlerSelectorImpl implements ResourceHandlerSelector {
     Optional<ResourceHandler> customHandler = handlers.stream()
         .filter(handler -> handler.isHandlerForResource(config, resource)).findAny();
 
-    if (customHandler.isPresent()) {
-      return customHandler.get();
-    }
+    return customHandler.orElseGet(() -> getResourceHandler(resource));
 
+  }
+
+  @Override
+  public ResourceHandler getResourceHandler(HasMetadata resource) {
     Instance<ResourceHandler> kindHandler = handlers
         .select(new KindLiteral(resource.getKind()));
 

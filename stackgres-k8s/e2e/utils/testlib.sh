@@ -1,3 +1,4 @@
+#!/bin/bash
 function run_test(){
     TEST_NAME=$1
     LOG_FILE=${TEST_NAME//" "/"-"}.log
@@ -7,7 +8,6 @@ function run_test(){
     then
       cat $LOG_FILE
       echo "$TEST_NAME. SUCCESS."
-      exit 0
     else
       cat $LOG_FILE
       echo "$TEST_NAME. FAIL. See file $LOG_FILE.log for details"
@@ -26,4 +26,77 @@ function spec(){
     else
       echo "$SPEC_NAME. FAIL. See file $SPEC_NAME.log for details" >> results.log
     fi
+}
+
+function remove_cluster(){
+
+  RELEASE=$1
+
+  NAMESPACE=$(helm ls | grep $RELEASE | awk '{print $11}')
+
+  echo "Deleting release $RELEASE"
+  helm template --name $RELEASE --namespace $NAMESPACE $STACKGRES_PATH/install/helm/stackgres-cluster/ | kubectl delete --namespace $NAMESPACE --ignore-not-found -f - &> /dev/null
+  helm delete --purge $RELEASE
+
+  if [ "$NAMESPACE" != "default" ] || [ "$NAMESPACE" != "kube-system" ] || [ "$NAMESPACE" != "kube-public" ]
+  then
+
+    if kubectl get namespaces $NAMESPACE &> /dev/null
+    then
+      echo "Deleting namespace $NAMESPACE"
+      kubectl delete namespace $NAMESPACE
+    fi
+
+  fi
+
+  wait-all-pods-ready.sh
+}
+
+function remove_cluster_if_exists(){
+
+  RELEASE=$1
+
+  if helm get $RELEASE &> /dev/null
+  then
+  
+    remove_cluster $RELEASE
+
+  fi
+  
+}
+
+function create_or_replace_cluster(){
+
+  RELEASE=$1
+  NAMESPACE=$2
+    
+  if [ -z $3 ]
+  then 
+    INSTANCES=1
+  else
+    INSTANCES=$3
+  fi
+  
+  if helm get $RELEASE &> /dev/null
+  then
+    INSTALLED_NAMESPACE=$(helm ls | grep $RELEASE | awk '{print $11}')
+    
+    if [ "$INSTALLED_NAMESPACE" = "$NAMESPACE" ]
+    then
+
+      helm upgrade $RELEASE $STACKGRES_PATH/install/helm/stackgres-cluster/ --set cluster.instances=$INSTANCES
+
+    else
+
+      remove_cluster $RELEASE
+      helm install --name $RELEASE --namespace $NAMESPACE $STACKGRES_PATH/install/helm/stackgres-cluster/ --set cluster.instances=$INSTANCES
+    fi      
+    
+  else
+    helm install --name $RELEASE --namespace $NAMESPACE $STACKGRES_PATH/install/helm/stackgres-cluster/ --set cluster.instances=$INSTANCES
+  fi   
+
+  sleep 10
+  wait-all-pods-ready.sh 
+
 }

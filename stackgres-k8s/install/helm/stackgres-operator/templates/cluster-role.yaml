@@ -69,6 +69,8 @@ rules:
   - get
   - update
   - patch
+  - create
+  - delete
 - apiGroups: ["{{ .Values.group }}"]
   resources:
   - sgpgconfigs
