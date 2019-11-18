@@ -38,4 +38,5 @@ public interface ResourceHandlerSelector {
 
   boolean delete(KubernetesClient client, StackGresClusterConfig config, HasMetadata resource);
 
+  ResourceHandler getResourceHandler(HasMetadata resource);
 }

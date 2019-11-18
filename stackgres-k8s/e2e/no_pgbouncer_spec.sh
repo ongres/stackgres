@@ -1,12 +1,12 @@
 #!/bin/bash
 CLUSTER_NAMESPACE=nopgbouncer
 TEMP_DIRECTORY=$(mktemp -d)
-CLUSTER_NAME=stackgres
+CLUSTER_NAME=nopgbouncer
 source testlib.sh
 
-helm delete --purge "$CLUSTER_NAMESPACE" || true
-helm template --name $CLUSTER_NAMESPACE --namespace $CLUSTER_NAMESPACE $STACKGRES_PATH/install/helm/stackgres-cluster/ | kubectl delete --namespace $CLUSTER_NAMESPACE --ignore-not-found -f -
-helm install --name nopgbouncer --namespace $CLUSTER_NAMESPACE $STACKGRES_PATH/install/helm/stackgres-cluster/ --set cluster.instances=2 --set sidecar.pooling=false  > cluster.log
+remove_cluster_if_exists $CLUSTER_NAME
+
+helm install --name $CLUSTER_NAME --namespace $CLUSTER_NAMESPACE $STACKGRES_PATH/install/helm/stackgres-cluster/ --set cluster.instances=2 --set sidecar.pooling=false  > cluster.log
 
 sleep 2
 
@@ -40,7 +40,7 @@ function ports_check(){
   fi
 }
 
-run_test "Checking that all 3 ports (5432, 5433, 5434) in the patroni pods are openned and listeing for queries" ports_check
+run_test "Checking that all 3 ports (5432, 5433, 5435) in the patroni pods are openned and listeing for queries" ports_check
 
 function service_check(){
   RESPONSE_PRIMARY=$(run_query.sh -h $CLUSTER_NAME-primary -i 1 -p 5432 -c $CLUSTER_NAME -n $CLUSTER_NAMESPACE)
@@ -66,7 +66,7 @@ function service_check(){
 run_test "Checking that is possible to connect using services is working" service_check
 
 function check_pgbouncer(){
-  run_query.sh -i 0 -p 5435 -c $CLUSTER_NAME -n $CLUSTER_NAMESPACE &> /dev/null
+  run_query.sh -i 0 -p 5434 -c $CLUSTER_NAME -n $CLUSTER_NAMESPACE &> /dev/null
 
   if [ $? -eq 0 ]
   then
@@ -74,7 +74,7 @@ function check_pgbouncer(){
     exit 1
   else
     
-    run_query.sh -i 1 -p 5435 -c $CLUSTER_NAME -n $CLUSTER_NAMESPACE &> /dev/null
+    run_query.sh -i 1 -p 5434 -c $CLUSTER_NAME -n $CLUSTER_NAMESPACE &> /dev/null
     if [ $? -eq 0 ]
     then
       echo "FAIL: pgbouncer port on replica server is open"

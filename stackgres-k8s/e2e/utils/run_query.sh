@@ -28,4 +28,3 @@ while getopts ":c:n:i:q:p:h:d:" opt; do
 done
 
 kubectl exec -t -n $CLUSTER_NAMESPACE $CLUSTER-$INSTANCE -c postgres-util -- sh -c "PGPASSWORD=$(kubectl -n $CLUSTER_NAMESPACE get secrets $CLUSTER -o jsonpath='{.data.superuser-password}' | base64 --decode) PGCONNECT_TIMEOUT=5 psql -t -A -U postgres -d $DATABASE -p $PORT -c $QUERY -h $HOST"
-

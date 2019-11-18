@@ -4,8 +4,8 @@ CLUSTER_NAMESPACE=pgconfigrem
 TEMP_DIRECTORY=$(mktemp -d)
 source testlib.sh
 
-helm delete --purge "$CLUSTER_NAMESPACE" || true
-helm template --name $CLUSTER_NAMESPACE --namespace $CLUSTER_NAMESPACE $STACKGRES_PATH/install/helm/stackgres-cluster/ | kubectl delete --namespace $CLUSTER_NAMESPACE --ignore-not-found -f -
+remove_cluster_if_exists $CLUSTER_NAMESPACE
+
 helm install --name $CLUSTER_NAMESPACE --namespace $CLUSTER_NAMESPACE $STACKGRES_PATH/install/helm/stackgres-cluster > cluster.log
 
 sleep 2
@@ -42,7 +42,7 @@ run_test "Trying to delete pgconfig with cluster running" delete_with_cluster
 
 function delete_whitout_cluster(){
 
-  kubectl get -n $CLUSTER_NAMESPACE sgclusters.stackgres.io stackgres -o yaml | kubectl delete -f -
+  kubectl get -n $CLUSTER_NAMESPACE sgclusters.stackgres.io $CLUSTER_NAMESPACE -o yaml | kubectl delete -f -
 
   sleep 10
   wait-all-pods-ready.sh

@@ -1,12 +1,12 @@
 #!/bin/bash
 CLUSTER_NAMESPACE=connectivity
 TEMP_DIRECTORY=$(mktemp -d)
-CLUSTER_NAME=stackgres
+CLUSTER_NAME=connectivity
 source testlib.sh
 
-helm delete --purge "$CLUSTER_NAMESPACE" || true
-helm template --name $CLUSTER_NAMESPACE --namespace $CLUSTER_NAMESPACE $STACKGRES_PATH/install/helm/stackgres-cluster/ | kubectl delete --namespace $CLUSTER_NAMESPACE --ignore-not-found -f -
-helm install --name $CLUSTER_NAMESPACE --namespace $CLUSTER_NAMESPACE $STACKGRES_PATH/install/helm/stackgres-cluster/ --set cluster.instances=2 > cluster.log
+remove_cluster_if_exists $CLUSTER_NAME
+
+helm install --name $CLUSTER_NAME --namespace $CLUSTER_NAMESPACE $STACKGRES_PATH/install/helm/stackgres-cluster/ --set cluster.instances=2 > cluster.log
 
 sleep 2
 
