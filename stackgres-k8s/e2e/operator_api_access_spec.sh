@@ -30,16 +30,24 @@ function check_cluster_in_list(){
   fi
 }
 
-function get_cluster_status(){
+
+function get_cluster_http_status(){
 
   HTTP_STATUS=$(run_curl.sh -r "stackgres/cluster/$CLUSTER_NAMESPACE/$CLUSTER_NAME" -e "-LI -o /dev/null -w %{http_code}")
   echo $HTTP_STATUS
 
 }
 
+function get_cluster_stats(){
+
+  HTTP_STATUS=$(run_curl.sh -r "stackgres/cluster/status/$CLUSTER_NAMESPACE/$CLUSTER_NAME" -e "-LI -o /dev/null -w %{http_code}")
+  echo $HTTP_STATUS
+
+}
+
 function check_cluster_directly(){
 
-  HTTP_STATUS=$(get_cluster_status)
+  HTTP_STATUS=$(get_cluster_http_status)
 
   if [ $HTTP_STATUS -eq 200 ]
   then
@@ -52,9 +60,27 @@ function check_cluster_directly(){
 
 }
 
-run_test "Chat that a created cluster can be accessed directly through the API" check_cluster_directly
+function test_cluster_stats_are_loaded(){
+  
+  HTTP_STATUS=$(get_cluster_stats)
+
+  if [ $HTTP_STATUS -eq 200 ]
+  then
+    echo "Cluster $CLUSTER_NAME status was found by the api"
+    exit 0
+  else
+    echo "Cluster $CLUSTER_NAME stats was not found by the api"
+    exit 1
+  fi
+
+  
+}
+
+run_test "Check that a created cluster can be accessed directly through the API" check_cluster_directly
 
 run_test "Check that a created cluster is included in the response" check_cluster_in_list
+
+run_test "Check that the status endpoint are returning the pod stats" test_cluster_stats_are_loaded
 
 function check_cluster_removed_from_list(){
   
@@ -272,7 +298,7 @@ function test_api_delete_cluster_is_invible(){
 
   delete_cluster_with_api
 
-  HTTP_STATUS=$(get_cluster_status)
+  HTTP_STATUS=$(get_cluster_http_status)
 
   if [ $HTTP_STATUS = "404" ]
   then

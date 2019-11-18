@@ -19,11 +19,13 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
-import io.stackgres.operator.app.KubernetesClientFactory;
+import io.fabric8.kubernetes.client.CustomResourceList;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
+import io.stackgres.operator.customresource.sgcluster.StackGresClusterList;
 import io.stackgres.operator.resource.CustomResourceScheduler;
+import io.stackgres.operator.resource.KubernetesCustomResourceFinder;
 import io.stackgres.operator.resource.KubernetesResourceScanner;
-import io.stackgres.operator.resource.dto.Cluster;
+import io.stackgres.operator.resource.dto.ClusterStatus;
 
 @Path("/stackgres/cluster")
 @Produces(MediaType.APPLICATION_JSON)
@@ -31,21 +33,25 @@ import io.stackgres.operator.resource.dto.Cluster;
 public class StackGresClusterResource {
 
   @Inject
-  KubernetesClientFactory kubeClient;
+  KubernetesResourceScanner<StackGresClusterList> clusterScanner;
 
   @Inject
-  KubernetesResourceScanner<List<Cluster>> clusterScanner;
+  KubernetesCustomResourceFinder<StackGresCluster> clusterFinder;
 
   @Inject
   CustomResourceScheduler<StackGresCluster> clusterScheduler;
+
+  @Inject
+  KubernetesCustomResourceFinder<ClusterStatus> statusFinder;
 
   /**
    * Return the list of {@code StackGresCluster}.
    */
   @GET
-  public List<Cluster> list() {
+  public List<StackGresCluster> list() {
 
-    return clusterScanner.findResources().orElse(new ArrayList<>());
+    return clusterScanner.findResources().map(CustomResourceList::getItems)
+        .orElse(new ArrayList<>());
 
   }
 
@@ -54,15 +60,24 @@ public class StackGresClusterResource {
    */
   @Path("/{namespace}/{name}")
   @GET
-  public Cluster get(@PathParam("namespace") String namespace,
+  public StackGresCluster get(@PathParam("namespace") String namespace,
                      @PathParam("name") String name) {
 
-    return clusterScanner
-        .findResources(namespace)
-        .flatMap(clusters -> clusters.stream()
-            .filter(c -> c.getMetadata().getName().equals(name))
-            .findFirst()
-        ).orElseThrow(NotFoundException::new);
+    return clusterFinder.findByNameAndNamespace(name, namespace)
+        .orElseThrow(NotFoundException::new);
+
+  }
+
+  /**
+   * Return a {@code ClusterStatus}.
+   */
+  @Path("/status/{namespace}/{name}")
+  @GET
+  public ClusterStatus status(@PathParam("namespace") String namespace,
+                              @PathParam("name") String name) {
+
+    return statusFinder.findByNameAndNamespace(name, namespace)
+        .orElseThrow(NotFoundException::new);
 
   }
 
