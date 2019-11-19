@@ -26,5 +26,5 @@ then
   cat "$TARGET_PATH/logs/results.log"
 else
   cat "$TARGET_PATH/logs/results.log"
-  exit 1
+  exit "$EXIT_CODE"
 fi

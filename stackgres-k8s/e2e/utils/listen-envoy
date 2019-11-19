@@ -10,7 +10,7 @@ listen_envoy() {
   CLUSTER=stackgres
   INSTANCE=0
   CLUSTER_NAMESPACE="$(kubectl get pods --all-namespaces | grep $CLUSTER-$INSTANCE | cut -d ' ' -f 1)"
-  
+
   while getopts ":c:n:i:" opt; do
     case $opt in
       c) CLUSTER="$OPTARG"
@@ -23,7 +23,7 @@ listen_envoy() {
       ;;
     esac
   done
-  
+
   while true;do
     list_envoy_new_state
     sleep 2

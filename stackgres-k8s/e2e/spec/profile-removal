@@ -2,7 +2,7 @@
 
 test() {
   run_test "Trying to delete size-xs with cluster running" delete_with_cluster
-  
+
   run_test "Trying to delete size-xs without cluster running" delete_whitout_cluster
 }
 delete_with_cluster(){
@@ -12,7 +12,7 @@ delete_with_cluster(){
     echo "INFO: It should not be able to delete size-xs"
     return 1
   else
-    echo "SUCCESS: Good it has failed"  
+    echo "SUCCESS: Good it has failed"
     return 0
   fi
 

@@ -2,7 +2,7 @@
 
 test() {
   run_test "Trying to delete sgconnectionpoolingconfigs with cluster running" delete_with_cluster
-  
+
   run_test "Trying to delete sgconnectionpoolingconfigs without a cluster running" delete_whitout_cluster
 }
 
@@ -37,7 +37,7 @@ delete_whitout_cluster() {
   then
     echo "SUCCESS: Good. It has deleted the configuration"
     return 0
-  else  
+  else
     ERROR="$(cat "$LOG_PATH/test2.log")"
     echo "FAIL: It should be able to delete the pgbouncerconf. ERROR $ERROR"
     return 1

@@ -8,8 +8,8 @@ wait_tiller_is_loaded() {
       echo "Tiller loaded"
       break
     fi
-  
-    sleep 1
-  
+
+    sleep 2
+
   done
 }

@@ -6,7 +6,7 @@ try_function() {
     echo "You must specify a function to try" >&2
     exit 1
   fi
-  
+
   local FUNCTION="$1"
   shift
   local E_UNSET=true

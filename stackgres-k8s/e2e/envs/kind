@@ -1,3 +1,5 @@
+#!/bin/sh
+
 KIND_NAME="${KIND_NAME:-kind}"
 KUBECONFIG="$(kind get kubeconfig-path  --name "$KIND_NAME")"
 
@@ -11,9 +13,9 @@ reuse_k8s() {
     reset_k8s
     return
   fi
-  
+
   echo "Reusing kind environment $KIND_NAME"
-  
+
   KIND_CONFIG="$(kind get kubeconfig-path --name "$KIND_NAME")"
   mkdir -p "$(dirname "$KIND_CONFIG")"
   if [ "$USE_KIND_INTERNAL" = true ]
@@ -26,7 +28,7 @@ reuse_k8s() {
 
 reset_k8s() {
   echo "Setting up kind environment $KIND_NAME..."
-  
+
   kind delete cluster --name "$KIND_NAME" || true
   cat << EOF > "$TARGET_PATH/kind-config.yaml"
   kind: Cluster
@@ -36,21 +38,21 @@ reset_k8s() {
   - role: worker
   - role: worker
 EOF
-  
+
   kind create cluster --name "$KIND_NAME" --config "$TARGET_PATH/kind-config.yaml" --image "kindest/node:v${KUBERNETES_VERSION}"
-  
+
   if [ "$USE_KIND_INTERNAL" = true ]
   then
     kind get kubeconfig --name "$KIND_NAME" --internal > "$(kind get kubeconfig-path --name "$KIND_NAME")"
   fi
-  
+
   echo "...done"
 }
 
 load_operator_k8s() {
   echo "Loading operator image $IMAGE_NAME in kind environemnt $KIND_NAME..."
-  
+
   kind load docker-image --name "$KIND_NAME" "$IMAGE_NAME"
-  
+
   echo "...done"
 }

@@ -6,9 +6,9 @@ test_install_pods() {
 
 test() {
   run_query -p 5432 -h "$CLUSTER_NAME-primary" -i 1 -q "'CREATE DATABASE test;'"
-  
+
   run_test "Checking that replication is working" create_database_replica
-  
+
   run_test "Data replication" insert_data
 }
 
@@ -43,7 +43,7 @@ insert_data(){
       return 1
     fi
   else
-    echo "FAIL: inserts on the primary db where not sucessful."  
+    echo "FAIL: inserts on the primary db where not sucessful."
     return 1
   fi
 }

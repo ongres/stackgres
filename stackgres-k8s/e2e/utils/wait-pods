@@ -30,8 +30,8 @@ wait_pods_terminated() {
   local START="$(date +%s)"
   while [ "$((START + TIMEOUT))" -gt "$(date +%s)" ]
   do
-    PODS_NOT_TERMINATED="$(kubectl get pods "$NAMESPACE_OPT" | wc -l)"
-    if [ "$PODS_NOT_TERMINATED" != "$EXPECTED_REMAINING_PODS" ]
+    REMAINING_PODS="$(kubectl get pods "$NAMESPACE_OPT" -o name | wc -l)"
+    if [ "$REMAINING_PODS" -le "$EXPECTED_REMAINING_PODS" ]
     then
       echo "$([ -z "$1" ] && echo "All pods terminated" || echo "All pods terminated in namespace $1")"
       return

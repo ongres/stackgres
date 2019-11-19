@@ -10,7 +10,7 @@ listen_patroni() {
   local CLUSTER=stackgres
   local INSTANCE=0
   local CLUSTER_NAMESPACE="$(kubectl get pods --all-namespaces | grep "$CLUSTER-$INSTANCE" | cut -d ' ' -f 1)"
-  
+
   while getopts ":c:n:i:" opt; do
     case $opt in
       c) CLUSTER="$OPTARG"
@@ -23,7 +23,7 @@ listen_patroni() {
       ;;
     esac
   done
-  
+
   while true;do
     listen_patroni_new_state
     sleep 2

@@ -32,21 +32,21 @@ trap_callback() {
 
 setup_k8s() {
   . "$(dirname "$0")/envs/$ENV"
-  
+
   rm -rf "$TARGET_PATH"
   mkdir -p "$TARGET_PATH/logs"
   trap 'trap_callback' EXIT
   trap 'exit $?' HUP INT QUIT PIPE TERM
-  
+
   if [ "$REUSE_KIND" != true ]
   then
     reset_k8s
   else
     reuse_k8s
   fi
-  
+
   setup_tiller
-  
+
   if [ "$BUILD_OPERATOR" = true ] \
     && (
       ! helm list | grep -q "^stackgres-operator\s" \
@@ -55,7 +55,7 @@ setup_k8s() {
   then
     mvn -f "$STACKGRES_PATH/src/pom.xml" -q clean package -P build-image-jvm
   fi
-  
+
   if ! helm list | grep -q "^stackgres-operator\s" \
     || [ "$REUSE_OPERATOR" != true ]
   then
@@ -78,6 +78,13 @@ setup_k8s() {
     fi
     helm install --name stackgres-operator --namespace stackgres "$STACKGRES_PATH/install/helm/stackgres-operator" \
       --set-string image.tag="$IMAGE_TAG" --set-string image.pullPolicy=Never
+    if [ "$DEBUG_OPERATOR" = true ]
+    then
+      wait_pods_running stackgres
+      kubectl set env -n stackgres deployment/stackgres-operator \
+        DEBUG_OPERATOR="$DEBUG_OPERATOR" DEBUG_OPERATOR_SUSPEND="$DEBUG_OPERATOR_SUSPEND"
+      kubectl delete pod -n stackgres "$(kubectl get pod -n stackgres -o name|cut -d / -f 2|tail -n 1)"
+    fi
   else
     helm list -a \
       | tail -n +2 \
@@ -92,7 +99,7 @@ setup_k8s() {
         | xargs -r -n 1 -I % -P 0 kubectl delete %
     fi
   fi
-  
+
   wait_pods_running stackgres
   wait_pods_running
 }

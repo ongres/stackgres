@@ -2,7 +2,7 @@
 
 test() {
   run_test "Trying to delete pgconfig with cluster running" delete_with_cluster
-  
+
   run_test "Trying to delete pgconfig without cluster running" delete_whitout_cluster
 }
 
@@ -13,14 +13,14 @@ delete_with_cluster() {
     echo "FAIL: It should not be able to delete sgspconfig"
     return 1
   else
-    echo "SUCCESS: Good it has failed"  
+    echo "SUCCESS: Good it has failed"
   fi
 
   if grep -q "Can't delete sgpgconfigs.stackgres.io postgresconf" "$LOG_PATH/test1.log"
   then
     echo "SUCCESS: Error message was the expected"
     return 0
-  else  
+  else
     ERROR="$(cat "$LOG_PATH/test1.log")"
     echo "FAIL: Error is not what it should be. ERROR ${ERROR}"
     return 1

@@ -32,7 +32,7 @@ run_curl() {
       ;;
     esac
   done
-  
+
   if [ -n "${DATA_FILENAME}" ]
   then
     tar cf - "$DATA_FILENAME" | kubectl exec -i -n "$NAMESPACE" "$POD" -- tar xf - -C /tmp
@@ -63,6 +63,6 @@ run_jq() {
       ;;
     esac
   done
-  
+
   kubectl exec -i -n "$NAMESPACE" "$POD" -- jq "$@"
 }

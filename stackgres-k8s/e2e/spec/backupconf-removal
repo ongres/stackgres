@@ -11,7 +11,7 @@ test_before_all() {
 
 test() {
   run_test "Trying to delete backupconfig with cluster running" delete_with_cluster
-  
+
   run_test "Trying to delete backupconfig without cluster running" delete_whitout_cluster
 }
 
@@ -29,7 +29,7 @@ delete_with_cluster() {
   then
     echo "SUCCESS: Error message was the expected"
     return 0
-  else  
+  else
     ERROR="$(cat "$LOG_PATH/test1.log")"
     echo "FAIL: Error is not what it should be. ERROR ${ERROR}"
     return 1
@@ -39,7 +39,7 @@ delete_with_cluster() {
 delete_whitout_cluster() {
   kubectl get -n "$CLUSTER_NAMESPACE" sgclusters.stackgres.io "$CLUSTER_NAME" -o yaml | kubectl delete -f -
 
-  wait_pods_terminated "$CLUSTER_NAMESPACE"
+  wait_pods_terminated "$CLUSTER_NAMESPACE" 1
 
   if kubectl get -n "$CLUSTER_NAMESPACE" sgbackupconfigs.stackgres.io backupconf -o yaml \
     | kubectl delete -f - > "${LOG_PATH}/test2.log" 2>&1

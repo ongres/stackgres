@@ -24,6 +24,43 @@ To use these functions just run the following command:
 sh e2e <function name>
 ```
 
+## Run on CI
+
+CI uses a meven profile to run e2e tests in docker. You can test e2e locally using docker with the following command:
+
+```
+mvn clean verify -P build-image-jvm,integration,e2e -DskipITs
+```
+
+e2e test can also be used with native image:
+
+```
+IMAGE_TAG=development IMAGE_NAME=stackgres/operator:$IMAGE_TAG mvn clean verify -P native,build-image-native,integration,e2e -DskipITs
+```
+
+## Environment variables
+
+Some environment variables allow to control how e2e test behave:
+
+* `ENV`: This set the environment to script to use in order to setup the kubernetes cluster.
+* `KUBERNETES_VERSION`: This set the kubernetes cluster version to setup (default: 1.12).
+* `IMAGE_TAG`: The tag of the operator image to use in the e2e test (default: development-jvm).
+* `TIMEOUT`: Some operation wait on pods to be running or terminated. This environment variable controls the timeout in seconds of those operations (default: 3 minutes).
+* `DEBUG_OPERATOR`: Enable operator debug (you must rebuild the operator image for this to work).
+* `DEBUG_OPERATOR_SUSPEND`: Suspend operator JVM Enable operator debug (you must rebuild the operator image for this to work).
+* `REUSE_OPERATOR`: To avoid recreating the operator set this environment variable to true to reuse an installed operator if already exists.
+* `BUILD_OPERATOR`: To avoid rebuilding the operator set this environment variable to false.
+* `RESET_NAMESPACES`: Set this to false to disable namespaces reset.
+
+### Kind
+
+Those environment variable affect the e2e test only if kind environment is used.
+
+* `KIND_NAME`: The name of the kind cluster.
+* `REUSE_KIND`: Kind setup can be very expensive in terms of time. Set this environment variable to true to reuse a kind cluster if already exists.
+* `KIND_NAME`: The name of the kind cluster.
+* `USE_KIND_INTERNAL`: Set to true to use docker internal IPs for kubernetes configuration to access the kind cluster (some systems like mac and windows will not work with this).
+
 ## Write a test
 
 A test is a sequence of commands that must pass some checks written in a spec script file inside the `spec` folder.

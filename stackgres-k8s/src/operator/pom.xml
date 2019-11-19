@@ -297,8 +297,6 @@
                         </log>
                         <env>
                           <IMAGE_NAME>${env.IMAGE_NAME}</IMAGE_NAME>
-                          <DEBUG_OPERATOR>${env.DEBUG_OPERATOR}</DEBUG_OPERATOR>
-                          <DEBUG_OPERATOR_SUSPEND>${env.DEBUG_OPERATOR_SUSPEND}</DEBUG_OPERATOR_SUSPEND>
                           <DOCKER_HOST>${env.DOCKER_HOST}</DOCKER_HOST>
                         </env>
                         <volumes>

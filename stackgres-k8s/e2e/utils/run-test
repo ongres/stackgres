@@ -3,7 +3,11 @@
 run_test() {
   local TEST_NAME="$1"
   local LOG_FILE="$TARGET_PATH/logs/$SPEC_NAME/$(echo "$TEST_NAME"|tr " " "-").log"
+  echo
+  echo "----------------------------------------------------------------"
   echo "Running test $TEST_NAME"
+  echo "----------------------------------------------------------------"
+  echo
   > "$LOG_FILE"
   tail -f "$LOG_FILE" &
   trap_kill "$!"
