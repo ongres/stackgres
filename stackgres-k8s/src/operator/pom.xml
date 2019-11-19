@@ -588,7 +588,7 @@
         <docker.removeVolumes>true</docker.removeVolumes>
         <e2e.skipImageBuild>false</e2e.skipImageBuild>
         <e2e.imageName>e2e-runner</e2e.imageName>
-        <e2e.containreAlias>e2e-runner</e2e.containreAlias>
+        <e2e.containerAlias>e2e-runner</e2e.containerAlias>
       </properties>
       <build>
         <plugins>
@@ -641,11 +641,11 @@
                 </goals>
                 <configuration>
                   <containerNamePattern>%a</containerNamePattern>
-                  <stopNamePattern>%a</stopNamePattern>
+                  <stopNamePattern>${e2e.containerAlias}</stopNamePattern>
                   <images>
                     <image>
-                      <stopNamePattern>%a</stopNamePattern>
-                      <removeNamePattern>%a</removeNamePattern>
+                      <stopNamePattern>${e2e.containerAlias}</stopNamePattern>
+                      <removeNamePattern>${e2e.containerAlias}</removeNamePattern>
                       <alias>${e2e.containerAlias}</alias>
                       <name>${e2e.imageName}</name>
                       <run>
