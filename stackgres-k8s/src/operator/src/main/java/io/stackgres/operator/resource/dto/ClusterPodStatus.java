@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.customresource.sgcluster;
+package io.stackgres.operator.resource.dto;
 
 import javax.validation.constraints.NotNull;
 
@@ -12,15 +12,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.MoreObjects;
 
-import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class StackGresClusterPodStatus implements KubernetesResource {
-
-  private static final long serialVersionUID = -9014732818865130712L;
+public class ClusterPodStatus {
 
   @JsonProperty("namespace")
   @NotNull
@@ -43,7 +40,7 @@ public class StackGresClusterPodStatus implements KubernetesResource {
   @JsonProperty("containers")
   private String containers;
 
-  @JsonProperty("containers_ready")
+  @JsonProperty("containersReady")
   private String containersReady;
 
   public String getNamespace() {

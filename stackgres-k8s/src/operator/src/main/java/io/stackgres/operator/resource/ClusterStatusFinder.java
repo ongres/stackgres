@@ -29,12 +29,12 @@ import io.fabric8.kubernetes.client.dsl.ExecWatch;
 import io.fabric8.kubernetes.client.utils.Serialization;
 import io.stackgres.operator.app.KubernetesClientFactory;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
-import io.stackgres.operator.customresource.sgcluster.StackGresClusterPodStatus;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfile;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfileDefinition;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfileDoneable;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfileList;
 import io.stackgres.operator.patroni.StackGresStatefulSet;
+import io.stackgres.operator.resource.dto.ClusterPodStatus;
 import io.stackgres.operator.resource.dto.ClusterStatus;
 import io.stackgres.operator.rest.PatroniStatsScripts;
 import okhttp3.Response;
@@ -170,7 +170,7 @@ public class ClusterStatusFinder implements KubernetesCustomResourceFinder<Clust
             .list()
             .getItems()
             .stream()
-            .map(pod -> Tuple.tuple(pod, new StackGresClusterPodStatus()))
+            .map(pod -> Tuple.tuple(pod, new ClusterPodStatus()))
             .peek(t -> t.v2.setNamespace(t.v1.getMetadata().getNamespace()))
             .peek(t -> t.v2.setName(t.v1.getMetadata().getName()))
             .peek(t -> t.v2.setRole(t.v1.getMetadata().getLabels().get("role")))

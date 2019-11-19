@@ -16,31 +16,31 @@ public class ClusterSpec {
   @JsonProperty("instances")
   private int instances;
 
-  @JsonProperty("pg_version")
+  @JsonProperty("pgVersion")
   private String postgresVersion;
 
-  @JsonProperty("pg_config")
+  @JsonProperty("pgConfig")
   private String postgresConfig;
 
-  @JsonProperty("postgres_exporter_version")
+  @JsonProperty("postgresExporterVersion")
   private String postgresExporterVersion;
 
-  @JsonProperty("envoy_version")
+  @JsonProperty("envoyVersion")
   private String envoyVersion;
 
-  @JsonProperty("resource_profile")
+  @JsonProperty("resourceProfile")
   private String resourceProfile;
 
-  @JsonProperty("connection_pooling_config")
+  @JsonProperty("connectionPoolingConfig")
   private String connectionPoolingConfig;
 
-  @JsonProperty("volume_size")
+  @JsonProperty("volumeSize")
   private String volumeSize;
 
-  @JsonProperty("storage_class")
+  @JsonProperty("storageClass")
   private String storageClass;
 
-  @JsonProperty("prometheus_autobind")
+  @JsonProperty("prometheusAutobind")
   private Boolean prometheusAutobind;
 
   @JsonProperty("sidecars")

@@ -156,7 +156,7 @@ metadata:
 #  annotations:
 #    "helm.sh/hook": "pre-install"
 spec:
-  pg_version: "12"
+  pgVersion: "12"
   postgresql.conf:
       shared_buffers: '256MB'
       random_page_cost: '1.5'
@@ -190,14 +190,14 @@ metadata:
   name: stackgres
 spec:
   instances: 3
-  pg_version: '12.0'
-  pg_config: 'postgresconf'
-  connection_pooling_config: 'pgbouncerconf'
-  resource_profile: 'size-xs'
-  volume_size: '5Gi'
-  storage_class: 'standard'
-  postgres_exporter_version: '0.5.1'
-  prometheus_autobind: true
+  pgVersion: '12.0'
+  pgConfig: 'postgresconf'
+  connectionPoolingConfig: 'pgbouncerconf'
+  resourceProfile: 'size-xs'
+  volumeSize: '5Gi'
+  storageClass: 'standard'
+  postgresExporterVersion: '0.5.1'
+  prometheusAutobind: true
   sidecars:
   - connection-pooling
   - postgres-util

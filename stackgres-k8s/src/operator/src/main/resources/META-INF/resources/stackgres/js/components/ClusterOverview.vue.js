@@ -41,16 +41,16 @@ var ClusterOverview = Vue.component("cluster-overview", {
 							{{ cluster.data.spec.instances }}
 						</div>
 						<div class="col">
-							{{ cluster.data.status.cpu_requested }}
+							{{ cluster.data.status.cpuRequested }}
 						</div>
 						<div class="col">
-							{{ cluster.data.status.memory_requested }}
+							{{ cluster.data.status.memoryRequested }}
 						</div>
 						<div class="col">
-							{{ cluster.data.spec.volume_size }}
+							{{ cluster.data.spec.volumeSize }}
 						</div>
 						<div class="col">
-							{{ cluster.data.status.pods_ready + '/' + cluster.data.spec.instances }}
+							{{ cluster.data.status.podsReady + '/' + cluster.data.spec.instances }}
 						</div>
 					</div>
 				</div>
