@@ -48,9 +48,9 @@ setup_k8s() {
   setup_tiller
   
   if [ "$BUILD_OPERATOR" = true ] \
-    || (
-      helm list | grep -q "^stackgres-operator\s" \
-      && [ "$REUSE_OPERATOR" = true ]
+    && (
+      ! helm list | grep -q "^stackgres-operator\s" \
+      || [ "$REUSE_OPERATOR" != true ]
     )
   then
     mvn -f "$STACKGRES_PATH/src/pom.xml" -q clean package -P build-image-jvm

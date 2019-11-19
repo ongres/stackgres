@@ -1,9 +1,9 @@
 #!/bin/sh
 
 run_query() {
-  local CLUSTER_NAME="$CLUSTER_NAME"
+  local NAME="${CLUSTER_NAME:-stackgres}"
   local INSTANCE=0
-  local CLUSTER_NAMESPACE="$CLUSTER_NAMESPACE"
+  local NAMESPACE="${CLUSTER_NAMESPACE:-stackgres}"
   local QUERY="'SELECT 1'"
   local PORT=5432
   local HOST=127.0.0.1
@@ -11,9 +11,9 @@ run_query() {
   
   while getopts ":c:n:i:q:p:h:d:" opt; do
     case $opt in
-      c) CLUSTER_NAME="$OPTARG"
+      c) NAME="$OPTARG"
       ;;
-      n) CLUSTER_NAMESPACE="$OPTARG"
+      n) NAMESPACE="$OPTARG"
       ;;
       i) INSTANCE="$OPTARG"
       ;;
@@ -26,9 +26,10 @@ run_query() {
       d) DATABASE="$OPTARG"
       ;;
       \?) echo "Invalid option -$OPTARG" >&2
+      return 1
       ;;
     esac
   done
   
-  kubectl exec -t -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-$INSTANCE" -c postgres-util -- sh -c "PGPASSWORD=$(kubectl -n "$CLUSTER_NAMESPACE" get secrets "$CLUSTER_NAME" -o jsonpath='{.data.superuser-password}' | base64 -d) PGCONNECT_TIMEOUT=5 psql -t -A -U postgres -d $DATABASE -p $PORT -c $QUERY -h $HOST"
+  kubectl exec -t -n "$NAMESPACE" "$NAME-$INSTANCE" -c postgres-util -- sh -c "PGPASSWORD=$(kubectl -n "$NAMESPACE" get secrets "$NAME" -o jsonpath='{.data.superuser-password}' | base64 -d) PGCONNECT_TIMEOUT=5 psql -t -A -U postgres -d $DATABASE -p $PORT -c $QUERY -h $HOST"
 }

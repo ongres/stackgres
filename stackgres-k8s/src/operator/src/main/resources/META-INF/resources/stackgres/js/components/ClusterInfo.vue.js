@@ -3,7 +3,7 @@ var ClusterInfo = Vue.component("cluster-info", {
 		<div id="cluster-info">
 			<header>
 				<h2 class="title">INFO</h2>
-				<h3 class="subtitle">{{ cluster.name }}</h3>
+				<!--<h3 class="subtitle">{{ cluster.name }}</h3>-->
 			</header>
 
 			<div class="content">
@@ -49,7 +49,7 @@ var ClusterInfo = Vue.component("cluster-info", {
 	},
 	created () {
 		this.fetchData()
-		currentCluster = this.$route.params.name;
+		vm.currentCluster = this.$route.params.name;
 	},
   	watch: {
     	'$route': 'fetchData'

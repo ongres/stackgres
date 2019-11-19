@@ -26,11 +26,12 @@ wait_pods_running() {
 
 wait_pods_terminated() {
   local NAMESPACE_OPT="$([ -z "$1" ] && echo "--all-namespaces" || echo "--namespace=$1")"
+  local EXPECTED_REMAINING_PODS="${2:-0}"
   local START="$(date +%s)"
   while [ "$((START + TIMEOUT))" -gt "$(date +%s)" ]
   do
     PODS_NOT_TERMINATED="$(kubectl get pods "$NAMESPACE_OPT" | wc -l)"
-    if [ "$PODS_NOT_TERMINATED" != "0" ]
+    if [ "$PODS_NOT_TERMINATED" != "$EXPECTED_REMAINING_PODS" ]
     then
       echo "$([ -z "$1" ] && echo "All pods terminated" || echo "All pods terminated in namespace $1")"
       return

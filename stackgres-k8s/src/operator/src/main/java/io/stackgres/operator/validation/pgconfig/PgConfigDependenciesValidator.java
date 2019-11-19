@@ -6,7 +6,6 @@
 package io.stackgres.operator.validation.pgconfig;
 
 import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.inject.Any;
 import javax.inject.Inject;
 
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
@@ -22,7 +21,7 @@ public class PgConfigDependenciesValidator extends DependenciesValidator<PgConfi
 
   @Inject
   public PgConfigDependenciesValidator(
-      @Any KubernetesResourceScanner<StackGresClusterList> clusterScanner) {
+      KubernetesResourceScanner<StackGresClusterList> clusterScanner) {
     super(clusterScanner);
   }
 

@@ -1,0 +1,68 @@
+#!/bin/sh
+
+run_curl() {
+  local POD=curl
+  local NAMESPACE="${CLUSTER_NAMESPACE:-stackgres}"
+  local SERVICE_NAMESPACE=stackgres
+  local SERVICE=stackgres-operator
+  local RESOURCE_PATH="stackgres/cluster"
+  local EXTRA_PARAMETERS=""
+  local CONTENT_TYPE="application/json"
+  local DATA_FILENAME=""
+  while getopts ":p:n:s:N:r:c:e:d:" opt; do
+    case $opt in
+      p) POD="$OPTARG"
+      ;;
+      n) NAMESPACE="$OPTARG"
+      ;;
+      s) SERVICE="$OPTARG"
+      ;;
+      N) SERVICE_NAMESPACE="$OPTARG"
+      ;;
+      r) RESOURCE_PATH="$OPTARG"
+      ;;
+      e) EXTRA_PARAMETERS="$OPTARG"
+      ;;
+      c) CONTENT_TYPE="$OPTARG"
+      ;;
+      d) DATA_FILENAME="$OPTARG";
+      ;;
+      \?) echo "Invalid option -$OPTARG" >&2
+      return 1
+      ;;
+    esac
+  done
+  
+  if [ -n "${DATA_FILENAME}" ]
+  then
+    tar cf - "$DATA_FILENAME" | kubectl exec -i -n "$NAMESPACE" "$POD" -- tar xf - -C /tmp
+    kubectl exec -i -n "$NAMESPACE" "$POD" -- \
+      curl -k "https://$SERVICE.$SERVICE_NAMESPACE.svc.cluster.local/$RESOURCE_PATH" \
+      -H "Content-Type: $CONTENT_TYPE" \
+      --data @"/tmp/$DATA_FILENAME" -s $EXTRA_PARAMETERS
+  else
+    kubectl exec -i -n "$NAMESPACE" "$POD" -- \
+      curl -k "https://$SERVICE.$SERVICE_NAMESPACE.svc.cluster.local/$RESOURCE_PATH" \
+      -H "Content-Type: $CONTENT_TYPE" \
+      -s $EXTRA_PARAMETERS
+  fi
+}
+
+run_jq() {
+  local POD=curl
+  local NAMESPACE="${CLUSTER_NAMESPACE:-stackgres}"
+  while getopts ":p:n:" opt; do
+    case $opt in
+      p) POD="$OPTARG"
+      shift 2
+      ;;
+      n) NAMESPACE="$OPTARG"
+      shift 2
+      ;;
+      \?)
+      ;;
+    esac
+  done
+  
+  kubectl exec -i -n "$NAMESPACE" "$POD" -- jq "$@"
+}

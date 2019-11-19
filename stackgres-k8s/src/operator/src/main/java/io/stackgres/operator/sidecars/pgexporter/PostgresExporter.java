@@ -76,8 +76,9 @@ public class PostgresExporter
   private ConfigContext configContext;
 
   @Inject
-  public PostgresExporter(KubernetesResourceScanner<PrometheusConfigList> prometheusScanner,
-                          ConfigContext configContext) {
+  public PostgresExporter(
+      KubernetesResourceScanner<PrometheusConfigList> prometheusScanner,
+      ConfigContext configContext) {
     this.prometheusScanner = prometheusScanner;
     this.configContext = configContext;
   }
