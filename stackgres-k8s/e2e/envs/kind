@@ -49,6 +49,16 @@ EOF
   echo "...done"
 }
 
+delete_k8s() {
+  echo "Deleting kind environment $KIND_NAME..."
+
+  kind delete cluster --name "$KIND_NAME" || true
+
+  rm -f "$(kind get kubeconfig-path --name "$KIND_NAME")"
+
+  echo "...done"
+}
+
 load_operator_k8s() {
   echo "Loading operator image $IMAGE_NAME in kind environemnt $KIND_NAME..."
 
