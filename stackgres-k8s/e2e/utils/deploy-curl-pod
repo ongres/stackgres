@@ -1,0 +1,21 @@
+#!/bin/sh
+
+deploy_curl_pod() {
+  local NAMESPACE="${1:-default}"
+
+  cat << EOF | kubectl apply -f -
+  apiVersion: v1
+  kind: Pod
+  metadata:
+    name: curl
+    namespace: $NAMESPACE
+  spec:
+    containers:
+    - image: k8spatterns/curl-jq
+      command: [ "sh", "-c", "while true; do sleep 300; done" ]
+      imagePullPolicy: IfNotPresent
+      name: busybox
+    restartPolicy: Always
+    terminationGracePeriodSeconds: 0
+EOF
+}

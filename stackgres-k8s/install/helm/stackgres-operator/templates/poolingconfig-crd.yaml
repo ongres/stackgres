@@ -25,7 +25,7 @@ spec:
         spec:
           type: object
           properties:
-            pgbouncer_version:
+            pgbouncerVersion:
               type: string
               enum:
               - "1.10.0"
@@ -34,4 +34,4 @@ spec:
             pgbouncer.ini:
               type: object
               description: "pgbouncer.ini configuration"
-          required: ["pgbouncer_version"]
+          required: ["pgbouncerVersion"]

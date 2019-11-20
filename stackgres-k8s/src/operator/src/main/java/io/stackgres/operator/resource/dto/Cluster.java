@@ -11,6 +11,8 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 @RegisterForReflection
 public class Cluster extends CustomResource {
 
+  private static final long serialVersionUID = 1L;
+
   private ClusterSpec spec;
 
   private ClusterStatus status;

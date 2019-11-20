@@ -13,14 +13,14 @@
     },
     "spec": {
       "instances": 2,
-      "pg_version": "11.5",
-      "pg_config": "postgresconf",
-      "postgres_exporter_version": "0.5.1",
-      "resource_profile": "size-xs",
-      "connection_pooling_config": "pgbouncerconf",
-      "volume_size": "5Gi",
-      "storage_class": "standard",
-      "prometheus_autobind": true,
+      "pgVersion": "11.5",
+      "pgConfig": "postgresconf",
+      "postgresExporterVersion": "0.5.1",
+      "resourceProfile": "size-xs",
+      "connectionPoolingConfig": "pgbouncerconf",
+      "volumeSize": "5Gi",
+      "storageClass": "standard",
+      "prometheusAutobind": true,
       "sidecars": [
         "connection-pooling",
         "postgres-util",
@@ -28,16 +28,16 @@
       ]
     },
     "status": {
-      "cpu_requested": "500m",
-      "cpu_found": "16",
-      "memory_requested": "512Mi",
-      "memory_found": "63Gi",
-      "memory_used": "15Gi",
-      "disk_found": "34Gi",
-      "disk_used": "72Mi",
-      "average_load_1m": "1.10",
-      "average_load_5m": "1.10",
-      "average_load_10m": "1.12",
+      "cpuRequested": "500m",
+      "cpuFound": "16",
+      "memoryRequested": "512Mi",
+      "memoryFound": "63Gi",
+      "memoryUsed": "15Gi",
+      "diskFound": "34Gi",
+      "diskUsed": "72Mi",
+      "averageLoad1m": "1.10",
+      "averageLoad5m": "1.10",
+      "averageLoad10m": "1.12",
       "pods": [
         {
           "namespace": "stackgres",
@@ -46,7 +46,7 @@
           "ip": "10.244.2.24",
           "status": "Running",
           "containers": "4",
-          "containers_ready": "4"
+          "containersReady": "4"
         },
         {
           "namespace": "stackgres",
@@ -55,7 +55,7 @@
           "ip": "10.244.1.22",
           "status": "Running",
           "containers": "4",
-          "containers_ready": "4"
+          "containersReady": "4"
         },
         {
           "namespace": "stackgres",
@@ -64,10 +64,10 @@
           "ip": "33.33.33.33",
           "status": "Running",
           "containers": "3",
-          "containers_ready": "3"
+          "containersReady": "3"
         }
       ],
-      "pods_ready": "2"
+      "podsReady": "2"
     }
   },
     {
@@ -84,14 +84,14 @@
     },
     "spec": {
       "instances": 2,
-      "pg_version": "11.5",
-      "pg_config": "postgresconf",
-      "postgres_exporter_version": "0.5.1",
-      "resource_profile": "size-xs",
-      "connection_pooling_config": "pgbouncerconf",
-      "volume_size": "5Gi",
-      "storage_class": "standard",
-      "prometheus_autobind": true,
+      "pgVersion": "11.5",
+      "pgConfig": "postgresconf",
+      "postgresExporterVersion": "0.5.1",
+      "resourceProfile": "size-xs",
+      "connectionPoolingConfig": "pgbouncerconf",
+      "volumeSize": "5Gi",
+      "storageClass": "standard",
+      "prometheusAutobind": true,
       "sidecars": [
         "connection-pooling",
         "postgres-util",
@@ -99,16 +99,16 @@
       ]
     },
     "status": {
-      "cpu_requested": "500m",
-      "cpu_found": "16",
-      "memory_requested": "512Mi",
-      "memory_found": "63Gi",
-      "memory_used": "15Gi",
-      "disk_found": "34Gi",
-      "disk_used": "72Mi",
-      "average_load_1m": "1.10",
-      "average_load_5m": "1.10",
-      "average_load_10m": "1.12",
+      "cpuRequested": "500m",
+      "cpuFound": "16",
+      "memoryRequested": "512Mi",
+      "memoryFound": "63Gi",
+      "memoryUsed": "15Gi",
+      "diskFound": "34Gi",
+      "diskUsed": "72Mi",
+      "averageLoad1m": "1.10",
+      "averageLoad5m": "1.10",
+      "averageLoad10m": "1.12",
       "pods": [
         {
           "namespace": "stackgres",
@@ -117,7 +117,7 @@
           "ip": "10.244.2.24",
           "status": "Running",
           "containers": "4",
-          "containers_ready": "4"
+          "containersReady": "4"
         },
         {
           "namespace": "stackgres",
@@ -126,7 +126,7 @@
           "ip": "10.244.1.22",
           "status": "Running",
           "containers": "4",
-          "containers_ready": "4"
+          "containersReady": "4"
         },
         {
           "namespace": "stackgres",
@@ -135,10 +135,10 @@
           "ip": "33.33.33.33",
           "status": "Running",
           "containers": "3",
-          "containers_ready": "3"
+          "containersReady": "3"
         }
       ],
-      "pods_ready": "3"
+      "podsReady": "3"
     }
   }
 ]

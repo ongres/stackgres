@@ -22,7 +22,7 @@ public class StackGresPostgresExporterConfigSpec implements KubernetesResource {
 
   private static final long serialVersionUID = 2000013861182789247L;
 
-  @JsonProperty("postgres_exporter_version")
+  @JsonProperty("postgresExporterVersion")
   private String postgresExporterVersion;
 
   @JsonProperty("create_service_monitor")
@@ -59,7 +59,7 @@ public class StackGresPostgresExporterConfigSpec implements KubernetesResource {
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .omitNullValues()
-        .add("postgres_exporter_version", postgresExporterVersion)
+        .add("postgresExporterVersion", postgresExporterVersion)
         .add("create_service_monitor", createServiceMonitor)
         .toString();
   }

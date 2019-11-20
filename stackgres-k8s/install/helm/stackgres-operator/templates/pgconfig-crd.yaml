@@ -25,7 +25,7 @@ spec:
         spec:
           type: object
           properties:
-            pg_version:
+            pgVersion:
               type: string
               enum:
               - "11"
@@ -34,4 +34,4 @@ spec:
             postgresql.conf:
               type: object
               description: "List of PostgreSQL configuration parameters with their values"
-          required: ["pg_version","postgresql.conf"]
+          required: ["pgVersion","postgresql.conf"]

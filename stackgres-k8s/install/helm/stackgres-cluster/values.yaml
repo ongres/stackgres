@@ -4,7 +4,7 @@ config:
     version: "11.5"
   pgbouncer:
     version: "1.11.0"
-  postgres_exporter:
+  postgresExporter:
     version: "0.5.1"
   envoy:
     version: "1.12.0"
@@ -16,7 +16,7 @@ cluster:
   pgconfig: postgresconf
   poolingconfig: pgbouncerconf
   profile: size-xs
-  volumesize: 5Gi
+  volumeSize: 5Gi
   ## If defined, storageClassName: <storageclass>
   ## If set to "-", storageClassName: "", which disables dynamic provisioning
   ## If undefined (the default) or set to null, no storageClassName spec is
@@ -87,7 +87,7 @@ sidecar:
   util: true
   prometheus:
     create: true
-    allow_autobind: true
+    allowAutobind: true
 
 crd:
   version: v1alpha1

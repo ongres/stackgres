@@ -1,14 +1,14 @@
 {
-  "cpu_requested": "500m",
-  "cpu_found": "8",
-  "memory_requested": "512Mi",
-  "memory_found": "16Gi",
-  "memory_used": "14Gi",
-  "disk_found": "8.0Gi",
-  "disk_used": "72Mi",
-  "average_load_1m": "1.06",
-  "average_load_5m": "1.10",
-  "average_load_10m": "0.97",
+  "cpuRequested": "500m",
+  "cpuFound": "8",
+  "memoryRequested": "512Mi",
+  "memoryFound": "16Gi",
+  "memoryUsed": "14Gi",
+  "diskFound": "8.0Gi",
+  "diskUsed": "72Mi",
+  "averageLoad1m": "1.06",
+  "averageLoad5m": "1.10",
+  "averageLoad10m": "0.97",
   "pods": [
     {
       "namespace": "postgresql",
@@ -17,7 +17,7 @@
       "ip": "10.244.2.8",
       "status": "Running",
       "containers": "5",
-      "containers_ready": "5"
+      "containersReady": "5"
     },
     {
       "namespace": "postgresql",
@@ -26,8 +26,8 @@
       "ip": "10.244.1.6",
       "status": "Running",
       "containers": "5",
-      "containers_ready": "5"
+      "containersReady": "5"
     }
   ],
-  "pods_ready": "2"
+  "podsReady": "2"
 }

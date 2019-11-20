@@ -15,7 +15,7 @@
       "uid": "440c5c94-017a-11ea-9ca4-0242ac110004"
     },
     "spec": {
-      "pg_version": "11",
+      "pgVersion": "11",
       "postgresql.conf": {
         "password_encryption": "scram-sha-256",
         "random_page_cost": "1.5",

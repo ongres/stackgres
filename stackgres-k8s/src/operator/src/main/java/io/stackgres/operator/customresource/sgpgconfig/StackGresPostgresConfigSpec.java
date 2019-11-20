@@ -24,7 +24,7 @@ public class StackGresPostgresConfigSpec implements KubernetesResource {
 
   private static final long serialVersionUID = -5276087851826599719L;
 
-  @JsonProperty("pg_version")
+  @JsonProperty("pgVersion")
   @NotBlank(message = "The PostgreSQL version is required")
   private String pgVersion;
 
@@ -52,7 +52,7 @@ public class StackGresPostgresConfigSpec implements KubernetesResource {
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .omitNullValues()
-        .add("pg_version", pgVersion)
+        .add("pgVersion", pgVersion)
         .add("postgresql.conf", postgresqlConf)
         .toString();
   }

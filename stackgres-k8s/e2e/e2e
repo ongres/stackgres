@@ -1,0 +1,120 @@
+#!/bin/sh
+
+set -e
+
+IMAGE_TAG="${IMAGE_TAG:-development-jvm}"
+IMAGE_NAME="stackgres/operator:$IMAGE_TAG"
+KUBERNETES_VERSION="${KUBERNETES_VERSION:-1.12.10}"
+ENV="${ENV:-kind}"
+TARGET_PATH="$(dirname "$0")/target"
+BUILD_OPERATOR="${BUILD_OPERATOR:-true}"
+WAIT_OPERATOR="${WAIT_OPERATOR:-true}"
+RESET_NAMESPACES="${RESET_NAMESPACE:-true}"
+TIMEOUT="${TIMEOUT:-180}"
+
+if [ -z "$STACKGRES_PATH" ]
+then
+  STACKGRES_PATH="$(dirname "$0")/.."
+fi
+OPERATOR_CHART_PATH="${OPERATOR_CHART_PATH:-"$STACKGRES_PATH/install/helm/stackgres-cluster/"}"
+CLUSTER_CHART_PATH="${CLUSTER_CHART_PATH:-"$STACKGRES_PATH/install/helm/stackgres-cluster/"}"
+
+export IMAGE_TAG IMAGE_NAME KUBERNETES_VERSION CLUSTER_CHART_PATH ENV TARGET_PATH TIMEOUT
+
+for util in $(find "$(dirname "$0")/utils" -type f)
+do
+  . "$util"
+done
+
+trap_kill() {
+  echo "$1" >> "$TARGET_PATH/trap-kill"
+}
+
+trap_callback() {
+  if [ -s "$TARGET_PATH/trap-kill" ]
+  then
+    kill $(cat "$TARGET_PATH/trap-kill")
+  fi
+}
+
+setup_k8s() {
+  . "$(dirname "$0")/envs/$ENV"
+
+  rm -rf "$TARGET_PATH"
+  mkdir -p "$TARGET_PATH/logs"
+  trap 'trap_callback' EXIT
+  trap 'exit $?' HUP INT QUIT PIPE TERM
+
+  if [ "$REUSE_KIND" != true ]
+  then
+    reset_k8s
+  else
+    reuse_k8s
+  fi
+
+  setup_tiller
+
+  if [ "$BUILD_OPERATOR" = true ] \
+    && (
+      ! helm list | grep -q "^stackgres-operator\s" \
+      || [ "$REUSE_OPERATOR" != true ]
+    )
+  then
+    mvn -f "$STACKGRES_PATH/src/pom.xml" -q clean package -P build-image-jvm
+  fi
+
+  if ! helm list | grep -q "^stackgres-operator\s" \
+    || [ "$REUSE_OPERATOR" != true ]
+  then
+    load_operator_k8s
+
+    helm list -a \
+      | tail -n +2 \
+      | sed 's/\s\+/ /g' \
+      | cut -d ' ' -f 1 \
+      | xargs -r -n 1 -I % helm delete --purge %
+    helm template --name stackgres-operator --namespace stackgres "$OPERATOR_CHART_PATH" \
+      | kubectl delete -f - --ignore-not-found
+    kubectl get validatingwebhookconfigurations.admissionregistration.k8s.io -o name \
+      | xargs -r -n 1 -I % kubectl delete %
+    if [ "$RESET_NAMESPACES" = true ]
+    then
+      kubectl get namespace -o name \
+        | grep -v "\(default\|kube-system\|kube-public\)" \
+        | xargs -r -n 1 -I % -P 0 kubectl delete %
+    fi
+    helm install --name stackgres-operator --namespace stackgres "$OPERATOR_CHART_PATH" \
+      --set-string image.tag="$IMAGE_TAG" --set-string image.pullPolicy=Never
+    if [ "$DEBUG_OPERATOR" = true ]
+    then
+      wait_pods_running stackgres
+      kubectl set env -n stackgres deployment/stackgres-operator \
+        DEBUG_OPERATOR="$DEBUG_OPERATOR" DEBUG_OPERATOR_SUSPEND="$DEBUG_OPERATOR_SUSPEND"
+      kubectl delete pod -n stackgres "$(kubectl get pod -n stackgres -o name|cut -d / -f 2|tail -n 1)"
+    fi
+  else
+    helm list -a \
+      | tail -n +2 \
+      | sed 's/\s\+/ /g' \
+      | cut -d ' ' -f 1 \
+      | grep -v "stackgres-operator" \
+      | xargs -r -n 1 -I % helm delete --purge %
+    if [ "$RESET_NAMESPACES" = true ]
+    then
+      kubectl get namespace -o name \
+        | grep -v "\(default\|kube-system\|kube-public\|stackgres\)" \
+        | xargs -r -n 1 -I % -P 0 kubectl delete %
+    fi
+  fi
+
+  if [ "$WAIT_OPERATOR" = true ]
+  then
+    wait_pods_running stackgres
+  fi
+  wait_pods_running
+}
+
+if [ "$(basename "$0")" = "e2e" -a ! -z "$1" ]
+then
+  "$@"
+fi

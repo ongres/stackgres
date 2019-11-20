@@ -11,47 +11,46 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.quarkus.runtime.annotations.RegisterForReflection;
-import io.stackgres.operator.customresource.sgcluster.StackGresClusterPodStatus;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
 public class ClusterStatus {
 
-  @JsonProperty("cpu_requested")
+  @JsonProperty("cpuRequested")
   private String cpuRequested;
 
-  @JsonProperty("cpu_found")
+  @JsonProperty("cpuFound")
   private String cpuFound;
 
-  @JsonProperty("memory_requested")
+  @JsonProperty("memoryRequested")
   private String memoryRequested;
 
-  @JsonProperty("memory_found")
+  @JsonProperty("memoryFound")
   private String memoryFound;
 
-  @JsonProperty("memory_used")
+  @JsonProperty("memoryUsed")
   private String memoryUsed;
 
-  @JsonProperty("disk_found")
+  @JsonProperty("diskFound")
   private String diskFound;
 
-  @JsonProperty("disk_used")
+  @JsonProperty("diskUsed")
   private String diskUsed;
 
-  @JsonProperty("average_load_1m")
+  @JsonProperty("averageLoad1m")
   private String averageLoad1m;
 
-  @JsonProperty("average_load_5m")
+  @JsonProperty("averageLoad5m")
   private String averageLoad5m;
 
-  @JsonProperty("average_load_10m")
+  @JsonProperty("averageLoad10m")
   private String averageLoad10m;
 
   @JsonProperty("pods")
-  private List<StackGresClusterPodStatus> pods;
+  private List<ClusterPodStatus> pods;
 
-  @JsonProperty("pods_ready")
+  @JsonProperty("podsReady")
   private String podsReady;
 
   public String getCpuRequested() {
@@ -134,11 +133,11 @@ public class ClusterStatus {
     this.averageLoad10m = averageLoad10m;
   }
 
-  public List<StackGresClusterPodStatus> getPods() {
+  public List<ClusterPodStatus> getPods() {
     return pods;
   }
 
-  public void setPods(List<StackGresClusterPodStatus> pods) {
+  public void setPods(List<ClusterPodStatus> pods) {
     this.pods = pods;
   }
 

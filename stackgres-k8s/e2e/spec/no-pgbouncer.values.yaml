@@ -1,0 +1,4 @@
+cluster:
+  instances: 2
+sidecar:
+  pooling: false

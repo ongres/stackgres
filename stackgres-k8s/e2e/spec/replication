@@ -1,0 +1,49 @@
+#!/bin/sh
+
+test_install_pods() {
+  echo 2
+}
+
+test() {
+  run_query -p 5432 -h "$CLUSTER_NAME-primary" -i 1 -q "'CREATE DATABASE test;'"
+
+  run_test "Checking that replication is working" create_database_replica
+
+  run_test "Data replication" insert_data
+}
+
+create_database_replica() {
+  if run_query -p 5432 -h "$CLUSTER_NAME-replica" -i 1 -q "'CREATE TABLE fibonacci(num integer);'" -d test > "${LOG_PATH}/test1.log"
+  then
+    echo "FAIL: Its possible to create tables in the replica node"
+    return 1
+  else
+    echo "SUCCESS: Good it should not be able to create tables in the replica db" 
+    return 0
+  fi
+}
+
+insert_data(){
+  run_query -p 5432 -h "$CLUSTER_NAME-primary" -i 1 -q "'CREATE TABLE fibonacci(num integer);'" -d test
+  run_query -p 5432 -h "$CLUSTER_NAME-primary" -i 1 -q "'INSERT INTO fibonacci(num) VALUES (1);'" -d test
+  run_query -p 5432 -h "$CLUSTER_NAME-primary" -i 1 -q "'INSERT INTO fibonacci(num) VALUES (2);'" -d test
+  run_query -p 5432 -h "$CLUSTER_NAME-primary" -i 1 -q "'INSERT INTO fibonacci(num) VALUES (3);'" -d test
+
+  PRIMARY_RESPONSE=$(run_query -p 5432 -h "$CLUSTER_NAME-primary" -i 1 -q "'SELECT num FROM fibonacci;'" -d "test")
+  REPLICA_RESPONSE=$(run_query -p 5432 -h "$CLUSTER_NAME-replica" -i 1 -q "'SELECT num FROM fibonacci;'" -d "test")
+
+  if [ "$(echo "$PRIMARY_RESPONSE" | tr -d '\n')" = "123" ]
+  then
+    if [ "$(echo "$PRIMARY_RESPONSE" | tr -d '\n')" = "$(echo "$REPLICA_RESPONSE" | tr -d '\n')" ]
+    then
+      echo "SUCCESS: replication is working"
+      return 0
+    else
+      echo "FAIL: replication is not working. The records don't match in the fibonacci table"
+      return 1
+    fi
+  else
+    echo "FAIL: inserts on the primary db where not sucessful."
+    return 1
+  fi
+}

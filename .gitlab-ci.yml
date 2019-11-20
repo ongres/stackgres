@@ -34,8 +34,8 @@ cache:
 stages:
   - compile
   - package
-  - pre integration test
-  - integration test
+  - pre test
+  - test
   - check-release
   - deploy
 
@@ -57,6 +57,7 @@ native image:
   dependencies:
     - compile
   script:
+    - MAVEN_CLI_OPTS="$MAVEN_CLI_OPTS -DskipTests"
     - 'mvn $MAVEN_CLI_OPTS package -P native'
     - 'cp $GRAALVM_HOME/jre/lib/amd64/libsunec.so stackgres-k8s/src/operator/target/'
     - 'cp $GRAALVM_HOME/jre/lib/security/cacerts stackgres-k8s/src/operator/target/'
@@ -76,58 +77,124 @@ enforce release:
   dependencies:
     - compile
   script:
+    - MAVEN_CLI_OPTS="$MAVEN_CLI_OPTS -DskipTests -Dquarkus.skipAugmentation=true"
     - 'mvn $MAVEN_CLI_OPTS enforcer:enforce@enforce-no-snapshots'
   only:
     - tags
 
+build test images:
+  stage: pre test
+  tags:
+    - stackgres-runner
+  dependencies:
+    - compile
+  script:
+    - MAVEN_CLI_OPTS="$MAVEN_CLI_OPTS -DskipTests -Dquarkus.skipAugmentation=true"
+    - 'mvn $MAVEN_CLI_OPTS pre-integration-test -P integration'
+    - 'mvn $MAVEN_CLI_OPTS pre-integration-test -P e2e -De2e.imageName="e2e-runner-${CI_COMMIT_TAG:-"$CI_COMMIT_REF_NAME"}"'
+
+build jvm image:
+  stage: pre test
+  tags:
+    - stackgres-runner
+  dependencies:
+    - compile
+  script:
+    - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_REF_NAME"}"-jvm'
+    - 'export IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
+    - MAVEN_CLI_OPTS="$MAVEN_CLI_OPTS -DskipTests"
+    - 'mvn $MAVEN_CLI_OPTS package -P build-image-jvm'
+
+build native image:
+  stage: pre test
+  tags:
+    - stackgres-runner
+  dependencies:
+    - compile
+    - native image
+  script:
+    - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_REF_NAME"}"'
+    - 'export IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
+    - MAVEN_CLI_OPTS="$MAVEN_CLI_OPTS -DskipTests"
+    - 'mvn $MAVEN_CLI_OPTS package -P build-image-native'
+
 reset kind:
-  stage: pre integration test
+  stage: pre test
   tags:
     - stackgres-runner
   variables:
     KIND_SUFFIX: "none"
   script:
+    - MAVEN_CLI_OPTS="$MAVEN_CLI_OPTS -DskipTests -Dquarkus.skipAugmentation=true"
     - 'flock -w 3600 /tmp/stackgres-integration-test mvn $MAVEN_CLI_OPTS verify -P reset-kind'
   only:
     variables:
       - $RESET_KIND
 
 reset kind jvm image:
-  stage: pre integration test
+  stage: pre test
   tags:
     - stackgres-runner
   variables:
     KIND_SUFFIX: jvm-image
   script:
+    - MAVEN_CLI_OPTS="$MAVEN_CLI_OPTS -DskipTests -Dquarkus.skipAugmentation=true"
     - 'flock -w 3600 /tmp/stackgres-integration-test-jvm-image mvn $MAVEN_CLI_OPTS verify -P reset-kind'
   only:
     variables:
       - $RESET_KIND
 
 reset kind native image:
-  stage: pre integration test
+  stage: pre test
   tags:
     - stackgres-runner
   variables:
     KIND_SUFFIX: native-image
   script:
+    - MAVEN_CLI_OPTS="$MAVEN_CLI_OPTS -DskipTests -Dquarkus.skipAugmentation=true"
     - 'flock -w 3600 /tmp/stackgres-integration-test-native-image mvn $MAVEN_CLI_OPTS verify -P reset-kind'
   only:
     variables:
       - $RESET_KIND
 
+reset kind e2e jvm image:
+  stage: pre test
+  tags:
+    - stackgres-runner
+  variables:
+    KIND_SUFFIX: e2e-jvm-image
+  script:
+    - MAVEN_CLI_OPTS="$MAVEN_CLI_OPTS -DskipTests -Dquarkus.skipAugmentation=true"
+    - 'flock -w 3600 /tmp/stackgres-integration-test-e2e-jvm-image mvn $MAVEN_CLI_OPTS verify -P reset-kind'
+  only:
+    variables:
+      - $RESET_KIND
+
+reset kind e2e native image:
+  stage: pre test
+  tags:
+    - stackgres-runner
+  variables:
+    KIND_SUFFIX: e2e-native-image
+  script:
+    - MAVEN_CLI_OPTS="$MAVEN_CLI_OPTS -DskipTests -Dquarkus.skipAugmentation=true"
+    - 'flock -w 3600 /tmp/stackgres-integration-test-e2e-native-image mvn $MAVEN_CLI_OPTS verify -P reset-kind'
+  only:
+    variables:
+      - $RESET_KIND
+
 integration test:
-  stage: integration test
+  stage: test
   tags:
     - stackgres-runner
   dependencies:
     - compile
   retry: 2
   script:
-    - 'flock -w 3600 /tmp/stackgres-integration-test mvn $MAVEN_CLI_OPTS verify -P integration'
+    - 'flock -w 3600 /tmp/stackgres-integration-test mvn $MAVEN_CLI_OPTS integration-test -P integration'
 
 integration test jvm image:
-  stage: integration test
+  stage: test
   tags:
     - stackgres-runner
   dependencies:
@@ -138,37 +205,22 @@ integration test jvm image:
   retry: 2
   script:
     - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_REF_NAME"}"-jvm'
-    - |
-      if ([ "$CI_COMMIT_REF_NAME" != "development" ] \
-          && [[ -z "$CI_COMMIT_TAG" || "$CI_COMMIT_TAG" =~ ^latest-.*$ ]] \
-          && [ -z "$DO_DEPLOY" ])
-      then
-        export IMAGE_TAG=development-jvm
-      fi
     - 'export IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
-    - 'flock -w 3600 /tmp/stackgres-integration-test-jvm-image mvn $MAVEN_CLI_OPTS verify -P build-image-jvm,integration -DargLine=-Dcom.ongres.junit.docker.runnerId="$KIND_SUFFIX"'
+    - 'flock -w 3600 /tmp/stackgres-integration-test-jvm-image mvn $MAVEN_CLI_OPTS integration-test -P integration -DargLine=-Dcom.ongres.junit.docker.runnerId="$KIND_SUFFIX"'
 
 integration test native image:
-  stage: integration test
+  stage: test
   tags:
     - stackgres-runner
   dependencies:
     - compile
-    - native image
   variables:
     OPERATOR_IN_KUBERNETES: "true"
     KIND_SUFFIX: native-image
   script:
     - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_REF_NAME"}"'
-    - |
-      if ([ "$CI_COMMIT_REF_NAME" != "development" ] \
-          && [[ -z "$CI_COMMIT_TAG" || "$CI_COMMIT_TAG" =~ ^latest-.*$ ]] \
-          && [ -z "$DO_DEPLOY" ])
-      then
-        export IMAGE_TAG=development
-      fi
     - 'export IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
-    - 'flock -w 3600 /tmp/stackgres-integration-test-native-image mvn $MAVEN_CLI_OPTS verify -P build-image-native,integration -DargLine=-Dcom.ongres.junit.docker.runnerId="$KIND_SUFFIX"'
+    - 'flock -w 3600 /tmp/stackgres-integration-test-native-image mvn $MAVEN_CLI_OPTS integration-test -P integration -DargLine=-Dcom.ongres.junit.docker.runnerId="$KIND_SUFFIX"'
 
 deploy jvm image:
   image: docker.io/ongres/builder:latest

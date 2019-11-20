@@ -1,0 +1,26 @@
+#!/bin/sh
+
+try_function() {
+  if [ -z "$1" ]
+  then
+    echo "You must specify a function to try" >&2
+    exit 1
+  fi
+
+  local FUNCTION="$1"
+  shift
+  local E_UNSET=true
+  if echo "$-" | grep -q e
+  then
+    E_UNSET=false
+  fi
+  "$E_UNSET" || set +e
+  (set -e; "$FUNCTION" "$@")
+  EXIT_CODE="$?"
+  "$E_UNSET" || set -e
+  RESULT=false
+  if [ "$EXIT_CODE" = 0 ]
+  then
+    RESULT=true
+  fi
+}
