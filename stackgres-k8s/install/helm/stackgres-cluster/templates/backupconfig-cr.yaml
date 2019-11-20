@@ -1,4 +1,4 @@
-{{ if and .Values.config.create (or .Values.cluster.backup.volume .Values.cluster.backup.s3 .Values.cluster.backup.gcs .Values.cluster.backup.azureblob) }}
+{{ if and .Values.config.create (or .Values.cluster.backup.nfs.create .Values.cluster.backup.volume .Values.cluster.backup.s3 .Values.cluster.backup.gcs .Values.cluster.backup.azureblob) }}
 apiVersion: stackgres.io/{{ .Values.crd.version }}
 kind: StackGresBackupConfig
 metadata:
@@ -9,6 +9,13 @@ metadata:
   {{- end }}
 spec:
   storage:
+    {{- if .Values.cluster.backup.nfs.create }}
+    type: volume
+    volume:
+      nfs:
+        path: "/{{ .Release.Name }}"
+        server: "{{ .Release.Name }}-nfs.{{ .Release.Namespace }}.svc"
+    {{- end }}
     {{- if .Values.cluster.backup.volume }}
     type: volume
     volume:

@@ -1,0 +1,25 @@
+{{ if and .Values.cluster.create .Values.cluster.backup.nfs.create }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-nfs
+  labels:
+    role: nfs
+spec:
+  type: ClusterIP
+  ports:
+    - port: 2049
+      targetPort: nfs
+      protocol: TCP
+      name: nfs
+    - port: 20048
+      targetPort: mountd
+      protocol: TCP
+      name: mountd
+    - port: 51413
+      targetPort: rpcbind
+      protocol: TCP
+      name: rpcbind
+  selector:
+    role: nfs
+{{ end }}

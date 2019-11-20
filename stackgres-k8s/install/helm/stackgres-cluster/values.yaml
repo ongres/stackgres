@@ -23,6 +23,14 @@ cluster:
   #storageclass: "-"
   backup:
     name: backupconf
+    create: true
+    ## If defined, storageClassName: <storageclass>
+    ## If set to "-", storageClassName: "", which disables dynamic provisioning
+    ## If undefined (the default) or set to null, no storageClassName spec is
+    ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
+    ##   GKE, AWS & OpenStack)
+    #storageclass: "-"
+    size: 10Gi
     retention: 5
     fullSchedule: "0 5 * * *"
     fullWindow: 60
