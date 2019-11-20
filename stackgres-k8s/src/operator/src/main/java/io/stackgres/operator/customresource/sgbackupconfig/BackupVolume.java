@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.customresource.sgbackupconfig;
 
+import javax.validation.constraints.NotNull;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -20,6 +22,10 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 @RegisterForReflection
 public class BackupVolume {
 
+  @JsonProperty("type")
+  @NotNull(message = "The storage type is required")
+  private String type;
+
   @JsonProperty("nfs")
   private NFSVolumeSource nfs;
 
@@ -28,6 +34,14 @@ public class BackupVolume {
 
   @JsonProperty("glusterfs")
   private GlusterfsVolumeSource glusterfs;
+
+  public String getType() {
+    return type;
+  }
+
+  public void setType(String type) {
+    this.type = type;
+  }
 
   public NFSVolumeSource getNfs() {
     return nfs;
@@ -57,6 +71,7 @@ public class BackupVolume {
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .omitNullValues()
+        .add("type", type)
         .add("nfs", nfs)
         .add("cephfs", cephfs)
         .add("glusterfs", glusterfs)

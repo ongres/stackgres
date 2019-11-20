@@ -28,6 +28,26 @@ public class StorageVolumeValidator implements BackupConfigValidator {
 
       BackupVolume volume = review.getRequest().getObject().getSpec()
           .getStorage().getVolume();
+      String volumeType = volume.getType();
+
+      if (volumeType.equals("nfs")
+          && volume.getNfs() == null) {
+        throw new ValidationFailed("Invalid backup configuration,"
+            + " nfs source volume must be set when source type is nfs");
+      }
+
+      if (volumeType.equals("cephfs")
+          && volume.getNfs() == null) {
+        throw new ValidationFailed("Invalid backup configuration,"
+            + " cephfs source volume must be set when source type is cephfs");
+      }
+
+      if (volumeType.equals("glusterfs")
+          && volume.getNfs() == null) {
+        throw new ValidationFailed("Invalid backup configuration,"
+            + " glusterfs source volume must be set when source type is glusterfs");
+      }
+
       if (volume.getNfs() == null
           && volume.getCephfs() == null
           && volume.getGlusterfs() == null) {

@@ -20,11 +20,11 @@ import io.stackgres.operator.common.QuarkusProfile;
 import io.stackgres.operator.common.StackGresClusterConfig;
 import io.stackgres.operator.customresource.sgbackupconfig.AwsS3Storage;
 import io.stackgres.operator.customresource.sgbackupconfig.AzureBlobStorage;
+import io.stackgres.operator.customresource.sgbackupconfig.BackupStorage;
 import io.stackgres.operator.customresource.sgbackupconfig.BackupVolume;
 import io.stackgres.operator.customresource.sgbackupconfig.GoogleCloudStorage;
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfigSpec;
-import io.stackgres.operator.customresource.sgbackupconfig.Storage;
 import io.stackgres.operator.resource.ResourceUtil;
 import io.stackgres.operator.sidecars.envoy.Envoy;
 
@@ -89,12 +89,12 @@ public class PatroniConfigMap {
     data.put("WALG_TAR_SIZE_THRESHOLD", getFromConfig(
         config, StackGresBackupConfigSpec::getTarSizeThreshold));
 
-    Optional<BackupVolume> storageForVolume = getStorageFor(config, Storage::getVolume);
+    Optional<BackupVolume> storageForVolume = getStorageFor(config, BackupStorage::getVolume);
     if (storageForVolume.isPresent()) {
       data.put("WALG_FILE_PREFIX", StackGresStatefulSet.BACKUP_VOLUME_PATH);
     }
 
-    Optional<AwsS3Storage> storageForS3 = getStorageFor(config, Storage::getS3);
+    Optional<AwsS3Storage> storageForS3 = getStorageFor(config, BackupStorage::getS3);
     if (storageForS3.isPresent()) {
       data.put("WALG_S3_PREFIX", getFromS3(storageForS3, AwsS3Storage::getPrefix));
       data.put("AWS_REGION", getFromS3(storageForS3, AwsS3Storage::getRegion));
@@ -107,12 +107,13 @@ public class PatroniConfigMap {
       data.put("WALG_CSE_KMS_REGION", getFromS3(storageForS3, AwsS3Storage::getCseKmsRegion));
     }
 
-    Optional<GoogleCloudStorage> storageForGcs = getStorageFor(config, Storage::getGcs);
+    Optional<GoogleCloudStorage> storageForGcs = getStorageFor(config, BackupStorage::getGcs);
     if (storageForGcs.isPresent()) {
       data.put("WALG_GCS_PREFIX", getFromGcs(storageForGcs, GoogleCloudStorage::getPrefix));
     }
 
-    Optional<AzureBlobStorage> storageForAzureBlob = getStorageFor(config, Storage::getAzureblob);
+    Optional<AzureBlobStorage> storageForAzureBlob = getStorageFor(
+        config, BackupStorage::getAzureblob);
     if (storageForS3.isPresent()) {
       data.put("WALG_AZ_PREFIX", getFromAzureBlob(
           storageForAzureBlob, AzureBlobStorage::getPrefix));
@@ -156,7 +157,7 @@ public class PatroniConfigMap {
   }
 
   private static <T> Optional<T> getStorageFor(StackGresClusterConfig config,
-      Function<Storage, T> getter) {
+      Function<BackupStorage, T> getter) {
     return config.getBackupConfig()
         .map(StackGresBackupConfig::getSpec)
         .map(StackGresBackupConfigSpec::getStorage)
