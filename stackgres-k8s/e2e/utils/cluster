@@ -34,17 +34,17 @@ create_or_replace_cluster() {
 
     if [ "$INSTALLED_NAMESPACE" = "$NAMESPACE" ]
     then
-      helm upgrade "$RELEASE" "$STACKGRES_PATH/install/helm/stackgres-cluster" \
+      helm upgrade "$RELEASE" "$CLUSTER_CHART_PATH" \
         --set cluster.instances="$INSTANCES" "$@"
     else
       remove_cluster "$RELEASE"
       helm install --name "$RELEASE" --namespace "$NAMESPACE" \
-        "$STACKGRES_PATH/install/helm/stackgres-cluster/" \
+        "$CLUSTER_CHART_PATH" \
         --set cluster.instances="$INSTANCES" "$@"
     fi
   else
     helm install --name "$RELEASE" --namespace "$NAMESPACE" \
-      "$STACKGRES_PATH/install/helm/stackgres-cluster" \
+      "$CLUSTER_CHART_PATH" \
       --set cluster.instances="$INSTANCES" "$@"
   fi
 }

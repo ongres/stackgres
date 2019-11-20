@@ -222,42 +222,6 @@ integration test native image:
     - 'export IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
     - 'flock -w 3600 /tmp/stackgres-integration-test-native-image mvn $MAVEN_CLI_OPTS integration-test -P integration -DargLine=-Dcom.ongres.junit.docker.runnerId="$KIND_SUFFIX"'
 
-e2e test jvm image:
-  stage: test
-  tags:
-    - stackgres-runner
-  dependencies:
-    - compile
-  variables:
-    REUSE_KIND: "true"
-    KIND_SUFFIX: e2e-jvm-image
-  script:
-    - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_REF_NAME"}-jvm"'
-    - 'export IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
-    - 'export KIND_NAME="kind-$KIND_SUFFIX"'
-    - 'flock -w 3600 /tmp/stackgres-integration-test-e2e-jvm-image mvn $MAVEN_CLI_OPTS integration-test -P e2e -De2e.skipImageBuild=true -De2e.imageName="e2e-runner-${CI_COMMIT_TAG:-"$CI_COMMIT_REF_NAME"}" -De2e.containerAlias="e2e-runner-${CI_COMMIT_TAG:-"$CI_COMMIT_REF_NAME"}-jvm"'
-  artifacts:
-    paths:
-      - stackgres-k8s/e2e/logs
-
-e2e test native image:
-  stage: test
-  tags:
-    - stackgres-runner
-  dependencies:
-    - compile
-  variables:
-    REUSE_KIND: "true"
-    KIND_SUFFIX: e2e-native-image
-  script:
-    - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_REF_NAME"}"'
-    - 'export IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
-    - 'export KIND_NAME="kind-$KIND_SUFFIX"'
-    - 'flock -w 3600 /tmp/stackgres-integration-test-e2e-native-image mvn $MAVEN_CLI_OPTS integration-test -P e2e -De2e.skipImageBuild=true -De2e.imageName="e2e-runner-${CI_COMMIT_TAG:-"$CI_COMMIT_REF_NAME"}" -De2e.containerAlias="e2e-runner-${CI_COMMIT_TAG:-"$CI_COMMIT_REF_NAME"}-native"'
-  artifacts:
-    paths:
-      - stackgres-k8s/e2e/logs
-
 deploy jvm image:
   image: docker.io/ongres/builder:latest
   stage: deploy

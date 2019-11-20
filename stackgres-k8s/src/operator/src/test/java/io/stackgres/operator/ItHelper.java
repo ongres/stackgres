@@ -41,7 +41,7 @@ import org.slf4j.LoggerFactory;
 
 public class ItHelper {
 
-  private final static Logger LOGGER = LoggerFactory.getLogger(ItHelper.class);
+  private final static Logger LOGGER = LoggerFactory.getLogger("ItHelper");
 
   public final static boolean OPERATOR_IN_KUBERNETES = Boolean.valueOf(System.getenv("OPERATOR_IN_KUBERNETES"));
   public final static String IMAGE_TAG = Optional.ofNullable(System.getenv("IMAGE_TAG"))
@@ -54,11 +54,12 @@ public class ItHelper {
    */
   public static void copyResources(Container kind) throws Exception {
     kind.execute("rm", "-Rf", "/resources").forEach(line -> LOGGER.info(line));
-    Path helmChartPath = Paths.get("../..");
-    kind.copyIn(helmChartPath.resolve("install/helm/stackgres-operator"),
+    Path k8sPath = Paths.get("../..");
+    kind.copyIn(k8sPath.resolve("install/helm/stackgres-operator"),
         "/resources/stackgres-operator");
-    kind.copyIn(helmChartPath.resolve("install/helm/stackgres-cluster"),
+    kind.copyIn(k8sPath.resolve("install/helm/stackgres-cluster"),
         "/resources/stackgres-cluster");
+    kind.copyIn(k8sPath.resolve("e2e"), "/resources/e2e");
   }
 
   /**

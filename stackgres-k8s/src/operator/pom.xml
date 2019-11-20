@@ -218,6 +218,9 @@
                         <from>docker</from>
                         <cleanup>try</cleanup>
                         <optimise>true</optimise>
+                        <ports>
+                          <port>8001</port>
+                        </ports>
                         <runCmds>
                           <run>wget -q -O /bin/kubectl https://storage.googleapis.com/kubernetes-release/release/v1.12.10/bin/linux/amd64/kubectl</run>
                           <run>chmod a+x /bin/kubectl</run>
@@ -570,120 +573,6 @@
                           <bind>
                             <volume>/var/run/docker.sock:/var/run/docker.sock</volume>
                             <volume>/var/lib/docker:/var/lib/docker:ro</volume>
-                          </bind>
-                        </volumes>
-                      </run>
-                    </image>
-                  </images>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-    <profile>
-      <id>e2e</id>
-      <properties>
-        <docker.removeVolumes>true</docker.removeVolumes>
-        <e2e.skipImageBuild>false</e2e.skipImageBuild>
-        <e2e.imageName>e2e-runner</e2e.imageName>
-        <e2e.containerAlias>e2e-runner</e2e.containerAlias>
-      </properties>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>io.fabric8</groupId>
-            <artifactId>docker-maven-plugin</artifactId>
-            <version>${docker-maven-plugin.version}</version>
-            <executions>
-              <execution>
-                <id>build-e2e-runner</id>
-                <phase>pre-integration-test</phase>
-                <goals>
-                  <goal>build</goal>
-                </goals>
-                <configuration>
-                  <skipBuild>${e2e.skipImageBuild}</skipBuild>
-                  <containerNamePattern>%a</containerNamePattern>
-                  <images>
-                    <image>
-                      <alias>${e2e.containerAlias}</alias>
-                      <name>${e2e.imageName}</name>
-                      <build>
-                        <from>stackgres/it</from>
-                        <assembly>
-                          <targetDir>/stackgres</targetDir>
-                          <inline>
-                            <fileSets>
-                              <fileSet>
-                                <directory>${project.basedir}/../..</directory>
-                                <outputDirectory>/</outputDirectory>
-                                <excludes>
-                                  <exclude>**/target/docker/**</exclude>
-                                </excludes>
-                              </fileSet>
-                            </fileSets>
-                          </inline>
-                        </assembly>
-                      </build>
-                    </image>
-                  </images>
-                </configuration>
-              </execution>
-              <execution>
-                <id>e2e-runner</id>
-                <phase>integration-test</phase>
-                <goals>
-                  <goal>stop</goal>
-                  <goal>start</goal>
-                  <goal>stop</goal>
-                </goals>
-                <configuration>
-                  <containerNamePattern>%a</containerNamePattern>
-                  <stopNamePattern>${e2e.containerAlias}</stopNamePattern>
-                  <images>
-                    <image>
-                      <stopNamePattern>${e2e.containerAlias}</stopNamePattern>
-                      <removeNamePattern>${e2e.containerAlias}</removeNamePattern>
-                      <alias>${e2e.containerAlias}</alias>
-                      <name>${e2e.imageName}</name>
-                      <run>
-                        <privileged>true</privileged>
-                        <workingDir>/stackgres/e2e</workingDir>
-                        <entrypoint>
-                          <arg>/bin/sh</arg>
-                          <arg>-ec</arg>
-                          <arg>
-                          if ! sh run-all-tests.sh
-                          then
-                            sh e2e show_logs
-                            exit 1
-                          fi
-                          </arg>
-                        </entrypoint>
-                        <wait>
-                          <time>1200000</time>
-                          <exit>0</exit>
-                        </wait>
-                        <log>
-                          <prefix>e2e-runner|</prefix>
-                          <date>default</date>
-                        </log>
-                        <env>
-                          <KIND_NAME>${env.KIND_NAME}</KIND_NAME>
-                          <REUSE_KIND>${env.REUSE_KIND}</REUSE_KIND>
-                          <USE_KIND_INTERNAL>true</USE_KIND_INTERNAL>
-                          <BUILD_OPERATOR>false</BUILD_OPERATOR>
-                          <REUSE_OPERATOR>${env.REUSE_OPERATOR}</REUSE_OPERATOR>
-                          <RESET_NAMESPACES>${env.RESET_NAMESPACES}</RESET_NAMESPACES>
-                          <KUBERNETES_VERSION>${env.KUBERNETES_VERSION}</KUBERNETES_VERSION>
-                          <IMAGE_TAG>${env.IMAGE_TAG}</IMAGE_TAG>
-                          <DOCKER_HOST>${env.DOCKER_HOST}</DOCKER_HOST>
-                        </env>
-                        <volumes>
-                          <bind>
-                            <volume>/var/run/docker.sock:/var/run/docker.sock</volume>
                           </bind>
                         </volumes>
                       </run>

@@ -5,14 +5,21 @@ set -e
 IMAGE_TAG="${IMAGE_TAG:-development-jvm}"
 IMAGE_NAME="stackgres/operator:$IMAGE_TAG"
 KUBERNETES_VERSION="${KUBERNETES_VERSION:-1.12.10}"
-STACKGRES_PATH="$(dirname "$0")/.."
 ENV="${ENV:-kind}"
 TARGET_PATH="$(dirname "$0")/target"
 BUILD_OPERATOR="${BUILD_OPERATOR:-true}"
+WAIT_OPERATOR="${WAIT_OPERATOR:-true}"
 RESET_NAMESPACES="${RESET_NAMESPACE:-true}"
 TIMEOUT="${TIMEOUT:-180}"
 
-export IMAGE_TAG IMAGE_NAME KUBERNETES_VERSION STACKGRES_PATH ENV TARGET_PATH TIMEOUT
+if [ -z "$STACKGRES_PATH" ]
+then
+  STACKGRES_PATH="$(dirname "$0")/.."
+fi
+OPERATOR_CHART_PATH="${OPERATOR_CHART_PATH:-"$STACKGRES_PATH/install/helm/stackgres-cluster/"}"
+CLUSTER_CHART_PATH="${CLUSTER_CHART_PATH:-"$STACKGRES_PATH/install/helm/stackgres-cluster/"}"
+
+export IMAGE_TAG IMAGE_NAME KUBERNETES_VERSION CLUSTER_CHART_PATH ENV TARGET_PATH TIMEOUT
 
 for util in $(find "$(dirname "$0")/utils" -type f)
 do
@@ -66,7 +73,7 @@ setup_k8s() {
       | sed 's/\s\+/ /g' \
       | cut -d ' ' -f 1 \
       | xargs -r -n 1 -I % helm delete --purge %
-    helm template --name stackgres-operator --namespace stackgres "$STACKGRES_PATH/install/helm/stackgres-operator" \
+    helm template --name stackgres-operator --namespace stackgres "$OPERATOR_CHART_PATH" \
       | kubectl delete -f - --ignore-not-found
     kubectl get validatingwebhookconfigurations.admissionregistration.k8s.io -o name \
       | xargs -r -n 1 -I % kubectl delete %
@@ -76,7 +83,7 @@ setup_k8s() {
         | grep -v "\(default\|kube-system\|kube-public\)" \
         | xargs -r -n 1 -I % -P 0 kubectl delete %
     fi
-    helm install --name stackgres-operator --namespace stackgres "$STACKGRES_PATH/install/helm/stackgres-operator" \
+    helm install --name stackgres-operator --namespace stackgres "$OPERATOR_CHART_PATH" \
       --set-string image.tag="$IMAGE_TAG" --set-string image.pullPolicy=Never
     if [ "$DEBUG_OPERATOR" = true ]
     then
@@ -100,7 +107,10 @@ setup_k8s() {
     fi
   fi
 
-  wait_pods_running stackgres
+  if [ "$WAIT_OPERATOR" = true ]
+  then
+    wait_pods_running stackgres
+  fi
   wait_pods_running
 }
 
