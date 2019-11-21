@@ -319,9 +319,9 @@ test_api_delete_profile_is_invible(){
 
   if [ $HTTP_STATUS = "404" ]
   then
-    echo "Cluster removed from the API"    
+    echo "Profile removed from the API"    
   else
-    echo "Cluster wasn't removed from the API"
+    echo "Profile wasn't removed from the API"
     return 1
   fi
 
