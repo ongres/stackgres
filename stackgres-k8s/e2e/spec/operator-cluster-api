@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 test_install() {
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1
@@ -84,10 +84,16 @@ test_cluster_stats_are_loaded() {
   fi
 }
 
-check_cluster_removed() {
-  remove_cluster_if_exists "$CLUSTER_NAME"
+remove_cluster_cr_if_exists(){
+  if kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"
+  then
+     kubectl delete sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"
+  fi
+}
 
-  wait_pods_terminated "$CLUSTER_NAMESPACE" 1
+check_cluster_removed() {
+
+  remove_cluster_cr_if_exists
 
   local CLUSTER_IN_RESPONSE
   CLUSTER_IN_RESPONSE="$(run_curl -r "stackgres/cluster" \
@@ -117,25 +123,14 @@ check_cluster_removed() {
 }
 
 create_cluster_with_api() {
-  kubectl delete namespace "$CLUSTER_NAMESPACE" --ignore-not-found
-
-  remove_cluster_if_exists "$CLUSTER_NAME"
-
-  wait_pods_terminated "$CLUSTER_NAMESPACE" 0
-
-  create_or_replace_cluster "$CLUSTER_NAME-configs" "$CLUSTER_NAMESPACE" 0 --set cluster.create=false
-
-  deploy_curl_pod "$CLUSTER_NAMESPACE"
-
-  wait_pods_running "$CLUSTER_NAMESPACE" 1
+  remove_cluster_cr_if_exists
 
   local HTTP_STATUS
   HTTP_STATUS="$(run_curl -r "stackgres/cluster" -d "$LOG_PATH/stackgres-cluster.json" -e '-X POST -w %{http_code} -o /dev/null')"
 
   if [ "$HTTP_STATUS" = "200" ] || [ "$HTTP_STATUS" = "202" ] || [ "$HTTP_STATUS" = "204" ]
   then
-    echo "request acknowledged by the operator"
-    wait_pods_running "$CLUSTER_NAMESPACE" 2
+    echo "request acknowledged by the operator"   
     return 0
   else
     ERROR_RESPONSE="$(run_curl -r "stackgres/cluster" -d "$LOG_PATH/stackgres-cluster.json" -e '-X POST')"
@@ -172,8 +167,7 @@ update_cluster_instances_with_api() {
 
   if [ "$HTTP_STATUS" = "200" ] || [ "$HTTP_STATUS" = "202" ] || [ "$HTTP_STATUS" = "204" ]
   then
-    echo "request acknowledged by the operator"
-    wait_pods_running "$CLUSTER_NAMESPACE" 3
+    echo "request acknowledged by the operator"    
     return 0
   else
     ERROR_RESPONSE="$(run_curl -r "stackgres/cluster" -d "$LOG_PATH/stackgres-cluster.json" -e '-X PUT')"
@@ -211,8 +205,7 @@ delete_cluster_with_api() {
 
   if [ "$HTTP_STATUS" = "200" ] || [ "$HTTP_STATUS" = "202" ] || [ "$HTTP_STATUS" = "204" ]
   then
-    echo "request acknowledged by the operator"
-    wait_pods_terminated "$CLUSTER_NAMESPACE" 1
+    echo "request acknowledged by the operator"    
     return 0
   else
     ERROR_RESPONSE="$(run_curl -r "stackgres/cluster" -d "$LOG_PATH/stackgres-cluster.json" -e '-X PUT')"

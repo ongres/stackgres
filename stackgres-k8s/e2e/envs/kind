@@ -1,11 +1,12 @@
 #!/bin/sh
 
 KIND_NAME="${KIND_NAME:-kind}"
-KUBECONFIG="$(kind get kubeconfig-path  --name "$KIND_NAME")"
+KUBECONFIG="$(kind get kubeconfig-path --name "$KIND_NAME")"
 
 export KUBECONFIG KIND_NAME
 
 reuse_k8s() {
+  
   if ! kind get clusters | grep -q "^$KIND_NAME$" \
       || ! docker inspect "$KIND_NAME-control-plane" -f '{{ .State.Status }}' | grep -q 'running'
   then
@@ -16,13 +17,11 @@ reuse_k8s() {
 
   echo "Reusing kind environment $KIND_NAME"
 
-  KIND_CONFIG="$(kind get kubeconfig-path --name "$KIND_NAME")"
-  mkdir -p "$(dirname "$KIND_CONFIG")"
   if [ "$USE_KIND_INTERNAL" = true ]
   then
+    KIND_CONFIG="$(kind get kubeconfig-path --name "$KIND_NAME")"
+    mkdir -p "$(dirname "$KIND_CONFIG")"
     kind get kubeconfig --name "$KIND_NAME" --internal > "$KIND_CONFIG"
-  else
-    kind get kubeconfig --name "$KIND_NAME" > "$KIND_CONFIG"
   fi
 }
 

@@ -18,4 +18,16 @@ deploy_curl_pod() {
     restartPolicy: Always
     terminationGracePeriodSeconds: 0
 EOF
+
+  while true
+  do
+
+    if kubectl get pods -n "$NAMESPACE" curl | grep Running | grep 1/1; then
+      echo "Tiller loaded"
+      break
+    fi
+
+    sleep 2
+
+  done
 }

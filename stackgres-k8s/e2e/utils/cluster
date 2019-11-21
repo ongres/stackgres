@@ -48,3 +48,13 @@ create_or_replace_cluster() {
       --set cluster.instances="$INSTANCES" "$@"
   fi
 }
+
+delete_namespace_if_exists() {
+  local NAMESPACE="$1"
+  shift 1
+
+  if kubectl get namespaces $NAMESPACE &> /dev/null
+  then
+    kubectl delete namespace $NAMESPACE
+  fi
+}  
