@@ -1,0 +1,39 @@
+baseURL = "/"
+languageCode = "en-US"
+defaultContentLanguage = "en"
+
+title = "StackGres Documentation"
+theme = "sg-doc"
+metaDataFormat = "yaml"
+defaultContentLanguageInSubdir = false
+
+[params]
+  editURL = "https://github.com/matcornic/hugo-theme-learn/edit/master/exampleSite/content/"
+  description = "Documentation for StackGres"
+  author = "OnGres"
+  showVisitedLinks = true
+  disableBreadcrumb = false
+  disableNextPrev = false
+  themeVariant = "stackgres"
+
+[outputs]
+home = [ "HTML", "RSS", "JSON"]
+
+[Languages]
+	[Languages.en]
+		title = "StackGres Documentation"
+		weight = 1
+		languageName = "English"
+		contentDir = "content/en"
+
+		[[Languages.en.menu.shortcuts]]
+		name = "<i class='fab fa-fw fa-gitlab'></i> GitLab repo"
+		identifier = "ds"
+		url = "https://gitlab.com/ongresinc/stackgres"
+		weight = 10
+
+		[[Languages.en.menu.shortcuts]]
+		name = "<i class='fas fa-fw fa-bookmark'></i> Documentation Guidelines"
+		identifier = "hugodoc"
+		url = "https://gohugo.io/"
+		weight = 20
