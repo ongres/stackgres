@@ -23,7 +23,7 @@ EOF
   do
 
     if kubectl get pods -n "$NAMESPACE" curl | grep Running | grep 1/1; then
-      echo "Tiller loaded"
+      echo "curl loaded"
       break
     fi
 
