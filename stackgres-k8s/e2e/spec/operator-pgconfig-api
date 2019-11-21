@@ -320,9 +320,9 @@ test_api_delete_pgconfig_is_invible(){
 
   if [ $HTTP_STATUS = "404" ]
   then
-    echo "Cluster removed from the API"    
+    echo "Postgres config removed from the API"    
   else
-    echo "Cluster wasn't removed from the API"
+    echo "Postgres config removed from the API"
     return 1
   fi
 
