@@ -46,7 +46,7 @@ setup_k8s() {
   trap 'trap_callback' EXIT
   trap 'exit $?' HUP INT QUIT PIPE TERM
 
-  if [ "$REUSE_KIND" != true ]
+  if [ "$REUSE_K8S" != true ]
   then
     reset_k8s
   else
