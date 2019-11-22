@@ -69,6 +69,9 @@ native image:
       - stackgres-k8s/src/operator/target/lib/
       - stackgres-k8s/src/operator/target/stackgres-operator-runner.jar
     expire_in: 1 day
+  only:
+    variables:
+      - $RESET_KIND
 
 enforce release:
   stage: check-release
@@ -91,7 +94,9 @@ build test images:
   script:
     - MAVEN_CLI_OPTS="$MAVEN_CLI_OPTS -DskipTests -Dquarkus.skipAugmentation=true"
     - 'mvn $MAVEN_CLI_OPTS pre-integration-test -P integration'
-    - 'mvn $MAVEN_CLI_OPTS pre-integration-test -P e2e -De2e.imageName="e2e-runner-${CI_COMMIT_TAG:-"$CI_COMMIT_REF_NAME"}"'
+  only:
+    variables:
+      - $RESET_KIND
 
 build jvm image:
   stage: pre test
@@ -104,6 +109,9 @@ build jvm image:
     - 'export IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
     - MAVEN_CLI_OPTS="$MAVEN_CLI_OPTS -DskipTests"
     - 'mvn $MAVEN_CLI_OPTS package -P build-image-jvm'
+  only:
+    variables:
+      - $RESET_KIND
 
 build native image:
   stage: pre test
@@ -117,6 +125,9 @@ build native image:
     - 'export IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
     - MAVEN_CLI_OPTS="$MAVEN_CLI_OPTS -DskipTests"
     - 'mvn $MAVEN_CLI_OPTS package -P build-image-native'
+  only:
+    variables:
+      - $RESET_KIND
 
 reset kind:
   stage: pre test
@@ -157,32 +168,6 @@ reset kind native image:
     variables:
       - $RESET_KIND
 
-reset kind e2e jvm image:
-  stage: pre test
-  tags:
-    - stackgres-runner
-  variables:
-    KIND_SUFFIX: e2e-jvm-image
-  script:
-    - MAVEN_CLI_OPTS="$MAVEN_CLI_OPTS -DskipTests -Dquarkus.skipAugmentation=true"
-    - 'flock -w 3600 /tmp/stackgres-integration-test-e2e-jvm-image mvn $MAVEN_CLI_OPTS verify -P reset-kind'
-  only:
-    variables:
-      - $RESET_KIND
-
-reset kind e2e native image:
-  stage: pre test
-  tags:
-    - stackgres-runner
-  variables:
-    KIND_SUFFIX: e2e-native-image
-  script:
-    - MAVEN_CLI_OPTS="$MAVEN_CLI_OPTS -DskipTests -Dquarkus.skipAugmentation=true"
-    - 'flock -w 3600 /tmp/stackgres-integration-test-e2e-native-image mvn $MAVEN_CLI_OPTS verify -P reset-kind'
-  only:
-    variables:
-      - $RESET_KIND
-
 integration test:
   stage: test
   tags:
@@ -191,7 +176,7 @@ integration test:
     - compile
   retry: 2
   script:
-    - 'flock -w 3600 /tmp/stackgres-integration-test mvn $MAVEN_CLI_OPTS integration-test -P integration'
+    - 'flock -w 3600 /tmp/stackgres-integration-test mvn $MAVEN_CLI_OPTS verify -P integration'
 
 integration test jvm image:
   stage: test
@@ -206,7 +191,10 @@ integration test jvm image:
   script:
     - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_REF_NAME"}"-jvm'
     - 'export IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
-    - 'flock -w 3600 /tmp/stackgres-integration-test-jvm-image mvn $MAVEN_CLI_OPTS integration-test -P integration -DargLine=-Dcom.ongres.junit.docker.runnerId="$KIND_SUFFIX"'
+    - 'flock -w 3600 /tmp/stackgres-integration-test-jvm-image mvn $MAVEN_CLI_OPTS verify -P integration -DargLine=-Dcom.ongres.junit.docker.runnerId="$KIND_SUFFIX"'
+  only:
+    variables:
+      - $RESET_KIND
 
 integration test native image:
   stage: test
@@ -220,7 +208,10 @@ integration test native image:
   script:
     - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_REF_NAME"}"'
     - 'export IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
-    - 'flock -w 3600 /tmp/stackgres-integration-test-native-image mvn $MAVEN_CLI_OPTS integration-test -P integration -DargLine=-Dcom.ongres.junit.docker.runnerId="$KIND_SUFFIX"'
+    - 'flock -w 3600 /tmp/stackgres-integration-test-native-image mvn $MAVEN_CLI_OPTS verify -P integration -DargLine=-Dcom.ongres.junit.docker.runnerId="$KIND_SUFFIX"'
+  only:
+    variables:
+      - $RESET_KIND
 
 deploy jvm image:
   image: docker.io/ongres/builder:latest

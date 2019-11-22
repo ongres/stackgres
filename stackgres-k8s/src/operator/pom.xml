@@ -175,9 +175,10 @@
             <version>${failsafe-plugin.version}</version>
             <executions>
               <execution>
+                <id>integration-test</id>
+                <phase>integration-test</phase>
                 <goals>
                   <goal>integration-test</goal>
-                  <goal>verify</goal>
                 </goals>
                 <configuration>
                   <trimStackTrace>false</trimStackTrace>
@@ -189,6 +190,13 @@
                   <excludes>
                   </excludes>
                 </configuration>
+              </execution>
+              <execution>
+                <id>verify</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>verify</goal>
+                </goals>
               </execution>
             </executions>
           </plugin>
