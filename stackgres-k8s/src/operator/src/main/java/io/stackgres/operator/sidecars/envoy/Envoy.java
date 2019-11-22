@@ -44,9 +44,10 @@ public class Envoy implements StackGresSidecarTransformer<CustomResource> {
   public static final int PG_RAW_ENTRY_PORT = 5433;
   public static final int PG_PORT = 5434;
   public static final int PG_RAW_PORT = 5435;
+  public static final String NAME = "envoy";
 
-  private static final String NAME = "envoy";
   private static final String IMAGE_NAME = "docker.io/envoyproxy/envoy:v%s";
+  private static final String DEFAULT_VERSION = "1.12.1";
   private static final String CONFIG_SUFFIX = "-envoy-config";
   private static final ImmutableMap<String, Integer> LISTEN_SOCKET_ADDRESS_PORT_MAPPING =
       ImmutableMap.of(
@@ -64,7 +65,7 @@ public class Envoy implements StackGresSidecarTransformer<CustomResource> {
   public Container getContainer(StackGresClusterConfig config) {
     ContainerBuilder container = new ContainerBuilder();
     container.withName(NAME)
-        .withImage(String.format(IMAGE_NAME, config.getCluster().getSpec().getEnvoyVersion()))
+        .withImage(String.format(IMAGE_NAME, DEFAULT_VERSION))
         .withImagePullPolicy("Always")
         .withVolumeMounts(new VolumeMountBuilder()
             .withName(NAME)

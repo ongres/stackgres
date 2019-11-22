@@ -21,9 +21,7 @@ public class StackGresProfileResource
     extends AbstractCustomResourceRestService<StackGresProfile, StackGresProfileList> {
 
   public StackGresProfileResource() {
-
     super(StackGresProfileDefinition.NAME);
-
   }
 
 }
