@@ -85,9 +85,6 @@ public class PostgresExporter
 
   @Override
   public Container getContainer(StackGresClusterConfig config) {
-    Optional<StackGresPostgresExporterConfig> postgresExporterConfig =
-        config.getSidecarConfig(this);
-
     ContainerBuilder container = new ContainerBuilder();
     container.withName(NAME)
         .withImage(String.format(IMAGE_NAME, DEFAULT_VERSION, StackGresUtil.CONTAINER_BUILD))
