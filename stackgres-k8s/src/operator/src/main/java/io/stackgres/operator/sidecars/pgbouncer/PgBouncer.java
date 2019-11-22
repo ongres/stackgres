@@ -48,7 +48,7 @@ public class PgBouncer implements StackGresSidecarTransformer<StackGresPgbouncer
 
   private static final String NAME = "pgbouncer";
   private static final String IMAGE_PREFIX = "docker.io/ongres/pgbouncer:v%s-build-%s";
-  private static final String DEFAULT_VERSION = "1.11.0";
+  private static final String DEFAULT_VERSION = "1.12.0";
   private static final String CONFIG_SUFFIX = "-connection-pooling-config";
 
   @Override
