@@ -30,6 +30,7 @@ spec:
     {{- if not (or .Values.cluster.backup.volume .Values.cluster.backup.s3 .Values.cluster.backup.gcs .Values.cluster.backup.azureblob) }}
     type: volume
     volume:
+      size: "{{ .Values.cluster.backup.volumeSize }}"
       type: nfs
       nfs:
         path: "/{{ .Release.Name }}/backups"
@@ -38,6 +39,7 @@ spec:
     {{- if .Values.cluster.backup.volume }}
     type: volume
     volume:
+      size: "{{ .Values.cluster.backup.volumeSize }}"
     {{- if .Values.cluster.backup.volume.nfs }}
       type: nfs
       nfs:

@@ -19,10 +19,15 @@ import io.fabric8.kubernetes.api.model.EnvVarSource;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.LabelSelector;
 import io.fabric8.kubernetes.api.model.NodeAffinity;
+import io.fabric8.kubernetes.api.model.NodeSelector;
+import io.fabric8.kubernetes.api.model.NodeSelectorRequirement;
+import io.fabric8.kubernetes.api.model.NodeSelectorTerm;
 import io.fabric8.kubernetes.api.model.ObjectFieldSelector;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
+import io.fabric8.kubernetes.api.model.PersistentVolume;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaimSpec;
+import io.fabric8.kubernetes.api.model.PersistentVolumeSpec;
 import io.fabric8.kubernetes.api.model.PodAffinity;
 import io.fabric8.kubernetes.api.model.PodAffinityTerm;
 import io.fabric8.kubernetes.api.model.PodAntiAffinity;
@@ -38,6 +43,7 @@ import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceAccount;
 import io.fabric8.kubernetes.api.model.ServiceSpec;
 import io.fabric8.kubernetes.api.model.Volume;
+import io.fabric8.kubernetes.api.model.VolumeNodeAffinity;
 import io.fabric8.kubernetes.api.model.WeightedPodAffinityTerm;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetSpec;
@@ -213,6 +219,107 @@ public class ResourcePairVisitor<T, C> {
         .visitWith(JobSpec::getTemplate, JobSpec::setTemplate,
             this::visitPodTemplateSpec)
         .visitMap(JobSpec::getAdditionalProperties);
+  }
+
+  /**
+   * Visit using a pair visitor.
+   */
+  public PairVisitor<PersistentVolume, T> visitPersistentVolume(
+      PairVisitor<PersistentVolume, T> pairVisitor) {
+    return pairVisitor.visit()
+        .visitWith(PersistentVolume::getSpec, PersistentVolume::setSpec,
+            this::visitPersistentVolumeSpec)
+        .visitMap(PersistentVolume::getAdditionalProperties);
+  }
+
+  /**
+   * Visit using a pair visitor.
+   */
+  public PairVisitor<PersistentVolumeSpec, T> visitPersistentVolumeSpec(
+      PairVisitor<PersistentVolumeSpec, T> pairVisitor) {
+    return pairVisitor.visit()
+        .visitList(PersistentVolumeSpec::getAccessModes, PersistentVolumeSpec::setAccessModes)
+        .visitList(PersistentVolumeSpec::getMountOptions, PersistentVolumeSpec::setMountOptions)
+        .visitWith(PersistentVolumeSpec::getNodeAffinity, PersistentVolumeSpec::setNodeAffinity,
+            this::visitVolumeNodeAffinity)
+        .visit(PersistentVolumeSpec::getPersistentVolumeReclaimPolicy,
+            PersistentVolumeSpec::setPersistentVolumeReclaimPolicy)
+        .visit(PersistentVolumeSpec::getStorageClassName, PersistentVolumeSpec::setStorageClassName)
+        .visit(PersistentVolumeSpec::getVolumeMode, PersistentVolumeSpec::setVolumeMode)
+        .visit(PersistentVolumeSpec::getAwsElasticBlockStore,
+            PersistentVolumeSpec::setAwsElasticBlockStore)
+        .visit(PersistentVolumeSpec::getAzureDisk, PersistentVolumeSpec::setAzureDisk)
+        .visit(PersistentVolumeSpec::getAzureFile, PersistentVolumeSpec::setAzureFile)
+        .visitMap(PersistentVolumeSpec::getCapacity, PersistentVolumeSpec::setCapacity)
+        .visit(PersistentVolumeSpec::getCephfs, PersistentVolumeSpec::setCephfs)
+        .visit(PersistentVolumeSpec::getCinder, PersistentVolumeSpec::setCinder)
+        .visit(PersistentVolumeSpec::getCsi, PersistentVolumeSpec::setCsi)
+        .visit(PersistentVolumeSpec::getFc, PersistentVolumeSpec::setFc)
+        .visit(PersistentVolumeSpec::getFlexVolume, PersistentVolumeSpec::setFlexVolume)
+        .visit(PersistentVolumeSpec::getFlocker, PersistentVolumeSpec::setFlocker)
+        .visit(PersistentVolumeSpec::getGcePersistentDisk,
+            PersistentVolumeSpec::setGcePersistentDisk)
+        .visit(PersistentVolumeSpec::getGlusterfs, PersistentVolumeSpec::setGlusterfs)
+        .visit(PersistentVolumeSpec::getHostPath, PersistentVolumeSpec::setHostPath)
+        .visit(PersistentVolumeSpec::getIscsi, PersistentVolumeSpec::setIscsi)
+        .visit(PersistentVolumeSpec::getLocal, PersistentVolumeSpec::setLocal)
+        .visit(PersistentVolumeSpec::getNfs, PersistentVolumeSpec::setNfs)
+        .visit(PersistentVolumeSpec::getPhotonPersistentDisk,
+            PersistentVolumeSpec::setPhotonPersistentDisk)
+        .visit(PersistentVolumeSpec::getPortworxVolume, PersistentVolumeSpec::setPortworxVolume)
+        .visit(PersistentVolumeSpec::getQuobyte, PersistentVolumeSpec::setQuobyte)
+        .visit(PersistentVolumeSpec::getRbd, PersistentVolumeSpec::setRbd)
+        .visit(PersistentVolumeSpec::getScaleIO, PersistentVolumeSpec::setScaleIO)
+        .visit(PersistentVolumeSpec::getStorageos, PersistentVolumeSpec::setStorageos)
+        .visit(PersistentVolumeSpec::getVsphereVolume, PersistentVolumeSpec::setVsphereVolume)
+        .visitMap(PersistentVolumeSpec::getAdditionalProperties);
+  }
+
+  /**
+   * Visit using a pair visitor.
+   */
+  public PairVisitor<VolumeNodeAffinity, T> visitVolumeNodeAffinity(
+      PairVisitor<VolumeNodeAffinity, T> pairVisitor) {
+    return pairVisitor.visit()
+        .visitWith(VolumeNodeAffinity::getRequired, VolumeNodeAffinity::setRequired,
+            this::visitNodeSelector)
+        .visitMap(VolumeNodeAffinity::getAdditionalProperties);
+  }
+
+  /**
+   * Visit using a pair visitor.
+   */
+  public PairVisitor<NodeSelector, T> visitNodeSelector(
+      PairVisitor<NodeSelector, T> pairVisitor) {
+    return pairVisitor.visit()
+        .visitListWith(NodeSelector::getNodeSelectorTerms, NodeSelector::setNodeSelectorTerms,
+            this::visitNodeSelectorTerm)
+        .visitMap(NodeSelector::getAdditionalProperties);
+  }
+
+  /**
+   * Visit using a pair visitor.
+   */
+  public PairVisitor<NodeSelectorTerm, T> visitNodeSelectorTerm(
+      PairVisitor<NodeSelectorTerm, T> pairVisitor) {
+    return pairVisitor.visit()
+        .visitListWith(NodeSelectorTerm::getMatchExpressions, NodeSelectorTerm::setMatchExpressions,
+            this::visitNodeSelectorRequirement)
+        .visitListWith(NodeSelectorTerm::getMatchFields, NodeSelectorTerm::setMatchFields,
+            this::visitNodeSelectorRequirement)
+        .visitMap(NodeSelectorTerm::getAdditionalProperties);
+  }
+
+  /**
+   * Visit using a pair visitor.
+   */
+  public PairVisitor<NodeSelectorRequirement, T> visitNodeSelectorRequirement(
+      PairVisitor<NodeSelectorRequirement, T> pairVisitor) {
+    return pairVisitor.visit()
+        .visit(NodeSelectorRequirement::getKey, NodeSelectorRequirement::setKey)
+        .visit(NodeSelectorRequirement::getOperator, NodeSelectorRequirement::setOperator)
+        .visitList(NodeSelectorRequirement::getValues, NodeSelectorRequirement::setValues)
+        .visitMap(NodeSelectorRequirement::getAdditionalProperties);
   }
 
   /**
@@ -780,12 +887,10 @@ public class ResourcePairVisitor<T, C> {
     return pairVisitor.visit()
         .visit(ObjectMeta::getClusterName, ObjectMeta::setClusterName)
         .visit(ObjectMeta::getDeletionGracePeriodSeconds,
-            ObjectMeta::setDeletionGracePeriodSeconds)
+            ObjectMeta::setDeletionGracePeriodSeconds, 0L)
         .visit(ObjectMeta::getName, ObjectMeta::setName)
         .visit(ObjectMeta::getNamespace, ObjectMeta::setNamespace)
-        .visitList(ObjectMeta::getFinalizers, ObjectMeta::setFinalizers)
         .visitMap(ObjectMeta::getAdditionalProperties)
-        .visitMap(ObjectMeta::getAnnotations, ObjectMeta::setAnnotations)
         .visitMap(ObjectMeta::getLabels, ObjectMeta::setLabels);
   }
 

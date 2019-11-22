@@ -6,6 +6,7 @@
 package io.stackgres.operator.controller;
 
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -206,8 +207,8 @@ public class ClusterReconciliationCycle {
         .stream()
         .filter(otherResource -> resource.getKind()
             .equals(otherResource.getKind()))
-        .filter(otherResource -> resource.getMetadata().getNamespace()
-            .equals(otherResource.getMetadata().getNamespace()))
+        .filter(otherResource -> Objects.equals(resource.getMetadata().getNamespace(),
+            otherResource.getMetadata().getNamespace()))
         .filter(otherResource -> resource.getMetadata().getName()
             .equals(otherResource.getMetadata().getName()))
         .findAny();
@@ -219,10 +220,9 @@ public class ClusterReconciliationCycle {
         client, existingClusters);
     Set<Tuple2<String, String>> deletedClusters = new HashSet<>();
     for (HasMetadata existingOrphanResource : existingOrphanResources) {
-      LOGGER.debug("Deleteing resource {}.{} of type {}"
+      LOGGER.debug("Deleteing resource {} of type {}"
           + " since does not belong to any cluster",
-          existingOrphanResource.getMetadata().getNamespace(),
-          existingOrphanResource.getMetadata().getName(),
+          getResourceIdentifier(existingOrphanResource),
           existingOrphanResource.getKind());
       handlerSelector.delete(client, null, existingOrphanResource);
       deletedClusters.add(Tuple.tuple(
@@ -231,9 +231,8 @@ public class ClusterReconciliationCycle {
     }
 
     for (Tuple2<String, String> deletedCluster : deletedClusters) {
-      LOGGER.info("Cluster deleted: '{}.{}'",
-          deletedCluster.v1,
-          deletedCluster.v2);
+      LOGGER.info("Cluster deleted: '{}'",
+          getResourceIdentifier(deletedCluster.v1, deletedCluster.v2));
       eventController.sendEvent(EventReason.CLUSTER_DELETED,
           "StackGres Cluster " + deletedCluster.v1 + "."
               + deletedCluster.v2 + " deleted");
@@ -364,6 +363,18 @@ public class ClusterReconciliationCycle {
       }
     }
     return Optional.empty();
+  }
+
+  private String getResourceIdentifier(HasMetadata resource) {
+    return getResourceIdentifier(resource.getMetadata().getNamespace(),
+        resource.getMetadata().getName());
+  }
+
+  private String getResourceIdentifier(String namespace, String name) {
+    if (namespace == null) {
+      return name;
+    }
+    return namespace + "." + name;
   }
 
 }

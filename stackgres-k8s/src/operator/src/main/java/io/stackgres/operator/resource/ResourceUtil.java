@@ -34,6 +34,7 @@ public class ResourceUtil {
   public static final String APP_KEY = "app";
   public static final String APP_NAME = "StackGres";
   public static final String CLUSTER_NAME_KEY = "cluster-name";
+  public static final String CLUSTER_NAMESPACE_KEY = "cluster-namespace";
   public static final String CLUSTER_KEY = "cluster";
   public static final String DISRUPTIBLE_KEY = "disruptible";
   public static final String ROLE_KEY = "role";
@@ -73,6 +74,14 @@ public class ResourceUtil {
    */
   public static Map<String, String> defaultLabels(String clusterName) {
     return ImmutableMap.of(APP_KEY, APP_NAME, CLUSTER_NAME_KEY, clusterName);
+  }
+
+  /**
+   * ImmutableMap of default labels used as selectors in K8s resources.
+   */
+  public static Map<String, String> defaultLabels(String clusterNamespace, String clusterName) {
+    return ImmutableMap.of(APP_KEY, APP_NAME, CLUSTER_NAMESPACE_KEY, clusterNamespace,
+        CLUSTER_NAME_KEY, clusterName);
   }
 
   /**

@@ -30,6 +30,7 @@ cluster:
     compressionMethod: lz4
     uploadDiskConcurrency: 1
     tarSizeThreshold: 1073741823
+    volumeSize: 10Gi # Only affects volume sources
     ## If defined, storageClassName: <storageClass>
     ## If set to "-", storageClassName: "", which disables dynamic provisioning
     ## If undefined (the default) or set to null, no storageClassName spec is

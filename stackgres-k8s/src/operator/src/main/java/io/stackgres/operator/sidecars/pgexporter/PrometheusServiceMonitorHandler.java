@@ -5,6 +5,9 @@
 
 package io.stackgres.operator.sidecars.pgexporter;
 
+import java.util.AbstractMap.SimpleEntry;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -59,16 +62,20 @@ public class PrometheusServiceMonitorHandler implements ResourceHandler {
   @Override
   public Stream<HasMetadata> getOrphanResources(KubernetesClient client,
       ImmutableList<StackGresClusterConfig> existingConfigs) {
+    ImmutableList<Map.Entry<String, String>> existingConfigsLabels = existingConfigs.stream()
+        .map(config -> new SimpleEntry<>(config.getCluster().getMetadata().getName(),
+            config.getCluster().getMetadata().getNamespace()))
+        .collect(ImmutableList.toImmutableList());
     return getServiceMonitorClient(client)
         .map(crClient -> crClient
             .inAnyNamespace()
             .withLabels(ResourceUtil.defaultLabels())
-            .withLabelNotIn(ResourceUtil.CLUSTER_NAME_KEY, existingConfigs.stream()
-                .map(config -> config.getCluster().getMetadata().getName())
-                .toArray(String[]::new))
             .list()
             .getItems()
             .stream()
+            .filter(serviceMonitor -> !existingConfigsLabels.stream()
+                .allMatch(e -> Objects.equals(e.getValue(),
+                    serviceMonitor.getMetadata().getLabels().get(e.getKey()))))
             .map(cr -> (HasMetadata) cr))
         .orElse(Stream.empty());
   }
@@ -79,9 +86,9 @@ public class PrometheusServiceMonitorHandler implements ResourceHandler {
     return getServiceMonitorClient(client)
         .map(crClient -> crClient
             .inAnyNamespace()
-            .withLabels(ResourceUtil.defaultLabels(config.getCluster().getMetadata().getName()))
-            .withLabel(PostgresExporter.CLUSTER_NAMESPACE_KEY,
-                config.getCluster().getMetadata().getNamespace())
+            .withLabels(ResourceUtil.defaultLabels(
+                config.getCluster().getMetadata().getNamespace(),
+                config.getCluster().getMetadata().getName()))
             .list()
             .getItems()
             .stream()

@@ -12,8 +12,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.MoreObjects;
 
-import io.fabric8.kubernetes.api.model.CephFSVolumeSource;
-import io.fabric8.kubernetes.api.model.GlusterfsVolumeSource;
+import io.fabric8.kubernetes.api.model.CephFSPersistentVolumeSource;
+import io.fabric8.kubernetes.api.model.GlusterfsPersistentVolumeSource;
 import io.fabric8.kubernetes.api.model.NFSVolumeSource;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
@@ -22,18 +22,30 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 @RegisterForReflection
 public class BackupVolume {
 
+  @JsonProperty("size")
+  @NotNull(message = "The volume size is required")
+  private String size;
+
   @JsonProperty("type")
-  @NotNull(message = "The storage type is required")
+  @NotNull(message = "The volume type is required")
   private String type;
 
   @JsonProperty("nfs")
   private NFSVolumeSource nfs;
 
   @JsonProperty("cephfs")
-  private CephFSVolumeSource cephfs;
+  private CephFSPersistentVolumeSource cephfs;
 
   @JsonProperty("glusterfs")
-  private GlusterfsVolumeSource glusterfs;
+  private GlusterfsPersistentVolumeSource glusterfs;
+
+  public String getSize() {
+    return size;
+  }
+
+  public void setSize(String size) {
+    this.size = size;
+  }
 
   public String getType() {
     return type;
@@ -51,19 +63,19 @@ public class BackupVolume {
     this.nfs = nfs;
   }
 
-  public CephFSVolumeSource getCephfs() {
+  public CephFSPersistentVolumeSource getCephfs() {
     return cephfs;
   }
 
-  public void setCephfs(CephFSVolumeSource cephfs) {
+  public void setCephfs(CephFSPersistentVolumeSource cephfs) {
     this.cephfs = cephfs;
   }
 
-  public GlusterfsVolumeSource getGlusterfs() {
+  public GlusterfsPersistentVolumeSource getGlusterfs() {
     return glusterfs;
   }
 
-  public void setGlusterfs(GlusterfsVolumeSource glusterfs) {
+  public void setGlusterfs(GlusterfsPersistentVolumeSource glusterfs) {
     this.glusterfs = glusterfs;
   }
 
@@ -71,6 +83,7 @@ public class BackupVolume {
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .omitNullValues()
+        .add("size", size)
         .add("type", type)
         .add("nfs", nfs)
         .add("cephfs", cephfs)

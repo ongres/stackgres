@@ -29,6 +29,10 @@ spec:
               type: object
               description: "Backup storage configuration"
               properties:
+                size:
+                  type: string
+                  pattern: '^[0-9]+(\.[0-9]+)?(Mi|Gi|Ti)$'
+                  description: "The size of the volume source"
                 type:
                   type: string
                   enum: [ "volume", "s3", "gcs", "azureblob" ]
@@ -80,7 +84,7 @@ spec:
                           type: string
                           description: "Optional: User is the rados user name, default is admin More info: https://releases.k8s.io/HEAD/examples/volumes/cephfs/README.md#how-to-use-it"
                       required: [ "monitors" ]
-                  required: [ "type" ]
+                  required: [ "type", "size" ]
                 s3:
                   type: object
                   description: "Amazon Web Services S3 configuration"

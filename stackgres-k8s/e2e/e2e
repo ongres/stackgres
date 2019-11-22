@@ -34,7 +34,7 @@ trap_callback() {
   if [ -s "$TARGET_PATH/trap-kill" ]
   then
     sleep 1 # Let the tails write to output remaining logs.
-    kill $(cat "$TARGET_PATH/trap-kill")
+    kill $(cat "$TARGET_PATH/trap-kill") || true
   fi
 }
 
