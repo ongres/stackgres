@@ -1,4 +1,4 @@
-{{ if and .Values.cluster.create .Values.cluster.backup.nfs.create }}
+{{ if and .Values.config.create .Values.cluster.backup.create (not (or .Values.cluster.backup.volume .Values.cluster.backup.s3 .Values.cluster.backup.gcs .Values.cluster.backup.azureblob)) }}
 apiVersion: v1
 kind: Service
 metadata:
@@ -16,7 +16,7 @@ spec:
       targetPort: mountd
       protocol: TCP
       name: mountd
-    - port: 51413
+    - port: 111
       targetPort: rpcbind
       protocol: TCP
       name: rpcbind

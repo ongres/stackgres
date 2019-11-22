@@ -9,7 +9,7 @@ spec:
   pgConfig: '{{ .Values.cluster.pgconfig }}'
   connectionPoolingConfig: '{{ .Values.cluster.poolingconfig }}'
   resourceProfile: '{{ .Values.cluster.profile }}'
-  {{- if or .Values.cluster.backup.nfs.create .Values.cluster.backup.volume .Values.cluster.backup.volume .Values.cluster.backup.s3 .Values.cluster.backup.gcs .Values.cluster.backup.azureblob }}
+  {{- if .Values.cluster.backup.create }}
   backupConfig: '{{ .Values.cluster.backup.name }}'
   {{- end }}
   volumeSize: '{{ .Values.cluster.volumeSize }}'

@@ -1,4 +1,4 @@
-{{ if and .Values.config.create (or .Values.cluster.backup.nfs.create .Values.cluster.backup.volume .Values.cluster.backup.s3 .Values.cluster.backup.gcs .Values.cluster.backup.azureblob) }}
+{{ if and .Values.config.create .Values.cluster.backup.create }}
 apiVersion: stackgres.io/{{ .Values.crd.version }}
 kind: StackGresBackupConfig
 metadata:
@@ -8,23 +8,44 @@ metadata:
     "helm.sh/hook": "pre-install"
   {{- end }}
 spec:
+  retention: {{ .Values.cluster.backup.retention }}
+  fullSchedule: "{{ .Values.cluster.backup.fullSchedule }}"
+  fullWindow: {{ .Values.cluster.backup.fullWindow }}
+  compressionMethod: "{{ .Values.cluster.backup.compressionMethod }}"
+  {{- if .Values.cluster.backup.networkRateLimit }}
+  networkRateLimit: {{ .Values.cluster.backup.networkRateLimit }}
+  {{- end }}
+  {{- if .Values.cluster.backup.diskRateLimit }}
+  diskRateLimit: {{ .Values.cluster.backup.diskRateLimit }}
+  {{- end }}
+  uploadDiskConcurrency: {{ .Values.cluster.backup.uploadDiskConcurrency }}
+  {{- if .Values.cluster.backup.pgpSecret }}
+  pgpConfiguation:
+    key:
+      name: "{{ .Values.cluster.backup.pgpConfiguration.name }}"
+      key: "{{ .Values.cluster.backup.pgpConfiguration.key }}"
+  {{- end }}
+  tarSizeThreshold: {{ .Values.cluster.backup.tarSizeThreshold }}
   storage:
-    {{- if .Values.cluster.backup.nfs.create }}
+    {{- if not (or .Values.cluster.backup.volume .Values.cluster.backup.s3 .Values.cluster.backup.gcs .Values.cluster.backup.azureblob) }}
     type: volume
     volume:
+      type: nfs
       nfs:
-        path: "/{{ .Release.Name }}"
-        server: "{{ .Release.Name }}-nfs.{{ .Release.Namespace }}.svc"
+        path: "/{{ .Release.Name }}/backups"
+        server: "{{ .Release.Name }}-nfs.{{ .Release.Namespace }}.svc.cluster.local"
     {{- end }}
     {{- if .Values.cluster.backup.volume }}
     type: volume
     volume:
     {{- if .Values.cluster.backup.volume.nfs }}
+      type: nfs
       nfs:
         path: "{{ .Values.cluster.backup.volume.nfs.path }}"
         server: "{{ .Values.cluster.backup.volume.nfs.server }}"
     {{- end }}
     {{- if .Values.cluster.backup.volume.cephfs }}
+      type: cephfs
       cephfs:
         monitors:
         {{- range .Values.cluster.backup.volume.cephfs.monitors }}
@@ -41,6 +62,7 @@ spec:
         user: "{{ .Values.cluster.backup.volume.cephfs.user }}"
     {{- end }}
     {{- if .Values.cluster.backup.volume.glusterfs }}
+      type: glusterfs
       glusterfs:
         endpoints: "{{ .Values.cluster.backup.volume.glusterfs.endpoints }}"
         path: "{{ .Values.cluster.backup.volume.glusterfs.path }}"
@@ -109,22 +131,4 @@ spec:
       maxBuffers: {{ .Values.cluster.backup.azureblob.maxBuffers }}
       {{- end }}
     {{- end }}
-  retention: {{ .Values.cluster.backup.retention }}
-  fullSchedule: "{{ .Values.cluster.backup.fullSchedule }}"
-  fullWindow: {{ .Values.cluster.backup.fullWindow }}
-  compressionMethod: "{{ .Values.cluster.backup.compressionMethod }}"
-  {{- if .Values.cluster.backup.networkRateLimit }}
-  networkRateLimit: {{ .Values.cluster.backup.networkRateLimit }}
-  {{- end }}
-  {{- if .Values.cluster.backup.diskRateLimit }}
-  diskRateLimit: {{ .Values.cluster.backup.diskRateLimit }}
-  {{- end }}
-  uploadDiskConcurrency: {{ .Values.cluster.backup.uploadDiskConcurrency }}
-  {{- if .Values.cluster.backup.pgpSecret }}
-  pgpConfiguation:
-    key:
-      name: "{{ .Values.cluster.backup.pgpConfiguration.name }}"
-      key: "{{ .Values.cluster.backup.pgpConfiguration.key }}"
-  {{- end }}
-  tarSizeThreshold: {{ .Values.cluster.backup.tarSizeThreshold }}
 {{ end }}
