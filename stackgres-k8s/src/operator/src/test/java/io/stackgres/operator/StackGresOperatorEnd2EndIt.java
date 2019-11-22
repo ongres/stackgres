@@ -5,11 +5,6 @@
 
 package io.stackgres.operator;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.net.ConnectException;
-import java.net.InetSocketAddress;
-import java.net.Socket;
 import java.util.Optional;
 
 import com.ongres.junit.docker.Container;
@@ -35,39 +30,13 @@ public class StackGresOperatorEnd2EndIt extends AbstractStackGresOperatorIt {
 
   @Test
   public void end2EndTest(@ContainerParam("kind") Container kind) throws Exception {
-    runAsync(() -> {
-      while (true) {
-        try (Socket socket = new Socket()) {
-          socket.connect(new InetSocketAddress("127.0.0.1", kind.getPort(8001)));
-          OutputStream outputStream = socket.getOutputStream();
-          while (socket.isConnected()) {
-            try {
-              outputStream.write('.');
-              outputStream.flush();
-            } catch (IOException ex) {
-              break;
-            }
-            Thread.sleep(100);
-          }
-          break;
-        } catch (ConnectException ex) {
-          continue;
-        }
-      }
-    });
     kind.execute("sh", "-ec",
-        "echo 'Running e2e tests from it'\n"
+        "echo 'Running "
+            + (RUN_E2E_TEST.isPresent()
+                ? RUN_E2E_TEST.get() + " e2e test"
+                    : "all e2e tests") + " from it'\n"
             + "cd /resources/e2e\n"
-            + "("
-            + "  echo | nc -l -p 8001 -s 0.0.0.0 > /dev/null\n"
-            + "  echo Connection lost! Exiting..."
-            + "  kill -1 $$\n"
-            + ") &"
-            + "lock_monitor_pid=$!\n"
-            + "trap_callback() {\n"
-            + "  kill $lock_monitor_pid\n"
-            + "}\n"
-            + "trap trap_callback EXIT\n"
+            + "echo $$ > /tmp/trap_kill\n"
             + "export KIND_NAME=\"$(docker inspect -f '{{.Name}}' \"$(hostname)\"|cut -d '/' -f 2)\"\n"
             + "export IMAGE_TAG=" + ItHelper.IMAGE_TAG + "\n"
             + "export REUSE_KIND=true\n"

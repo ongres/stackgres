@@ -32,6 +32,7 @@ public abstract class AbstractStackGresOperatorIt extends AbstractIt {
 
   @BeforeEach
   public void setupOperator(@ContainerParam("kind") Container kind) throws Exception {
+    ItHelper.trapKill(kind);
     final int operatorPort = getFreePort();
     final int operatorSslPort = getFreePort();
     ItHelper.copyResources(kind);

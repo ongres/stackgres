@@ -48,6 +48,20 @@ public class ItHelper {
       .orElse("development-jvm");
   public final static Predicate<String> EXCLUDE_TTY_WARNING = line -> !line.equals("stdin: is not a tty");
 
+  /**
+   * IT helper method.
+   */
+  public static void trapKill(Container kind) throws Exception {
+    kind.execute("sh", "-c", "[ -s /tmp/trap_kill ]"
+        + " && kill -1 $(cat /tmp/trap_kill) 2>/dev/null || true")
+      .forEach(line -> LOGGER.info(line));
+    Path k8sPath = Paths.get("../..");
+    kind.copyIn(k8sPath.resolve("install/helm/stackgres-operator"),
+        "/resources/stackgres-operator");
+    kind.copyIn(k8sPath.resolve("install/helm/stackgres-cluster"),
+        "/resources/stackgres-cluster");
+    kind.copyIn(k8sPath.resolve("e2e"), "/resources/e2e");
+  }
 
   /**
    * IT helper method.
