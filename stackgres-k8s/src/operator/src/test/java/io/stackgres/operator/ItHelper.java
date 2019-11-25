@@ -31,7 +31,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 
 import com.ongres.junit.docker.Container;
-import com.spotify.docker.client.exceptions.DockerException;
 
 import org.apache.commons.io.IOUtils;
 import org.jooq.lambda.Unchecked;
@@ -214,7 +213,7 @@ public class ItHelper {
   }
 
   public static void installMinioHelmChart(Container kind, String namespace, String clusterNamespace)
-      throws DockerException, InterruptedException {
+      throws Exception {
     LOGGER.info("Installing minio helm chart");
     kind.execute("sh", "-l", "-c", "helm upgrade minio stable/minio"
         + " --install --version 2.5.18 --namespace " + namespace
