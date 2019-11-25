@@ -8,6 +8,8 @@ package io.stackgres.operator.app;
 import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -20,6 +22,7 @@ import com.google.common.io.Resources;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
+import io.fabric8.kubernetes.client.Watch;
 import io.fabric8.kubernetes.internal.KubernetesDeserializer;
 import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
@@ -48,6 +51,7 @@ import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbounc
 import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfigDoneable;
 import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfigList;
 
+import org.jooq.lambda.Unchecked;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,6 +66,7 @@ public class StackGresOperatorApp {
   private final ClusterResourceWatcherFactory watcherFactory;
   private final ScheduledExecutorService scheduledExecutorService =
       Executors.newScheduledThreadPool(1, r -> new Thread(r, "ClusterControllerShceduler"));
+  private final List<Watch> watches = new ArrayList<>();
 
   /**
    * Create a {@code StackGresOperatorApp} instance.
@@ -102,6 +107,7 @@ public class StackGresOperatorApp {
   void onStop(@Observes ShutdownEvent ev) {
     LOGGER.info("The application is stopping...");
     scheduledExecutorService.shutdown();
+    watches.forEach(Unchecked.consumer(Watch::close));
   }
 
   private void reconcile() {
@@ -134,46 +140,56 @@ public class StackGresOperatorApp {
   }
 
   private void startClusterWatchers(KubernetesClient client) {
-    ResourceUtil.getCustomResource(client, StackGresClusterDefinition.NAME)
-        .ifPresent(crd -> kubeClient.create()
+    watches.add(
+        ResourceUtil.getCustomResource(client, StackGresClusterDefinition.NAME)
+        .map(crd -> kubeClient.create()
             .customResources(crd,
                 StackGresCluster.class,
                 StackGresClusterList.class,
                 StackGresClusterDoneable.class)
             .inAnyNamespace()
-            .watch(watcherFactory.createWatcher()));
-    ResourceUtil.getCustomResource(client, StackGresPostgresConfigDefinition.NAME)
-        .ifPresent(crd -> kubeClient.create()
+            .watch(watcherFactory.createWatcher()))
+        .orElseThrow(() -> new IllegalStateException("Some required CRDs does not exists")));
+    watches.add(
+        ResourceUtil.getCustomResource(client, StackGresPostgresConfigDefinition.NAME)
+        .map(crd -> kubeClient.create()
             .customResources(crd,
                 StackGresPostgresConfig.class,
                 StackGresPostgresConfigList.class,
                 StackGresPostgresConfigDoneable.class)
             .inAnyNamespace()
-            .watch(watcherFactory.createWatcher()));
-    ResourceUtil.getCustomResource(client, StackGresPgbouncerConfigDefinition.NAME)
-        .ifPresent(crd -> kubeClient.create()
+            .watch(watcherFactory.createWatcher()))
+        .orElseThrow(() -> new IllegalStateException("Some required CRDs does not exists")));
+    watches.add(
+        ResourceUtil.getCustomResource(client, StackGresPgbouncerConfigDefinition.NAME)
+        .map(crd -> kubeClient.create()
             .customResources(crd,
                 StackGresPgbouncerConfig.class,
                 StackGresPgbouncerConfigList.class,
                 StackGresPgbouncerConfigDoneable.class)
             .inAnyNamespace()
-            .watch(watcherFactory.createWatcher()));
-    ResourceUtil.getCustomResource(client, StackGresProfileDefinition.NAME)
-        .ifPresent(crd -> kubeClient.create()
+            .watch(watcherFactory.createWatcher()))
+        .orElseThrow(() -> new IllegalStateException("Some required CRDs does not exists")));
+    watches.add(
+        ResourceUtil.getCustomResource(client, StackGresProfileDefinition.NAME)
+        .map(crd -> kubeClient.create()
             .customResources(crd,
                 StackGresProfile.class,
                 StackGresProfileList.class,
                 StackGresProfileDoneable.class)
             .inAnyNamespace()
-            .watch(watcherFactory.createWatcher()));
-    ResourceUtil.getCustomResource(client, StackGresBackupConfigDefinition.NAME)
-        .ifPresent(crd -> kubeClient.create()
+            .watch(watcherFactory.createWatcher()))
+        .orElseThrow(() -> new IllegalStateException("Some required CRDs does not exists")));
+    watches.add(
+        ResourceUtil.getCustomResource(client, StackGresBackupConfigDefinition.NAME)
+        .map(crd -> kubeClient.create()
             .customResources(crd,
                 StackGresBackupConfig.class,
                 StackGresBackupConfigList.class,
                 StackGresBackupConfigDoneable.class)
             .inAnyNamespace()
-            .watch(watcherFactory.createWatcher()));
+            .watch(watcherFactory.createWatcher()))
+        .orElseThrow(() -> new IllegalStateException("Some required CRDs does not exists")));
   }
 
   private boolean hasCustomResource(KubernetesClient client, String crdName) {
