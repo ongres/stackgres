@@ -183,9 +183,22 @@
                 <configuration>
                   <trimStackTrace>false</trimStackTrace>
                   <includes>
-                    <include>**/It*.java</include>
-                    <include>**/*It.java</include>
-                    <include>**/*ItCase.java</include>
+                    <include>**/StackGresOperatorIt.java</include>
+                  </includes>
+                  <excludes>
+                  </excludes>
+                </configuration>
+              </execution>
+              <execution>
+                <id>e2e-test</id>
+                <phase>integration-test</phase>
+                <goals>
+                  <goal>integration-test</goal>
+                </goals>
+                <configuration>
+                  <trimStackTrace>false</trimStackTrace>
+                  <includes>
+                    <include>**/StackGresOperatorEnd2EndIt.java</include>
                   </includes>
                   <excludes>
                   </excludes>

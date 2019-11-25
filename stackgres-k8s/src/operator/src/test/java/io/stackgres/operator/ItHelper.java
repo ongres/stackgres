@@ -368,19 +368,18 @@ public class ItHelper {
     }
   }
 
-
   /**
    * IT helper method.
    * Code has been copied and adapted from {@code QuarkusTestExtension} to allow start/stop
    * quarkus application inside a test.
    */
-  public static OperatorRunner createOperator(Container kind, Class<?> testClass, int port,
+  public static OperatorRunner createOperator(Container kind, int port,
       int sslPort, Executor executor) throws Exception {
     if (OPERATOR_IN_KUBERNETES) {
       return new KubernetesOperatorRunner(kind, executor);
     }
 
-    return new LocalOperatorRunner(kind, testClass, port, sslPort);
+    return new LocalOperatorRunner(kind, ItHelper.class, port, sslPort);
   }
 
   public static <T> void waitUntil(Supplier<T> supplier, Predicate<T> condition, int timeout,
