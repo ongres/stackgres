@@ -24,16 +24,21 @@ import org.junit.jupiter.api.Test;
 })
 public class StackGresOperatorEnd2EndIt extends AbstractStackGresOperatorIt {
 
-  private static final Optional<String> RUN_E2E_TEST = Optional.ofNullable(
-      Optional.ofNullable(System.getenv("RUN_E2E_TEST"))
-      .orElse(System.getProperty("e2e.runTest")));
+  private static final Optional<String> E2E_TEST = Optional.ofNullable(
+      Optional.ofNullable(System.getenv("E2E_TEST"))
+      .orElse(System.getProperty("e2e.test")));
+
+  private static final Optional<Boolean> E2E_DEBUG = Optional.ofNullable(
+      Optional.ofNullable(System.getenv("E2E_DEBUG"))
+      .orElse(System.getProperty("e2e.debug")))
+      .map(Boolean::valueOf);
 
   @Test
   public void end2EndTest(@ContainerParam("kind") Container kind) throws Exception {
     kind.execute("sh", "-ec",
         "echo 'Running "
-            + (RUN_E2E_TEST.isPresent()
-                ? RUN_E2E_TEST.get() + " e2e test"
+            + (E2E_TEST.isPresent()
+                ? E2E_TEST.get() + " e2e test"
                     : "all e2e tests") + " from it'\n"
             + "cd /resources/e2e\n"
             + "echo $$ > /tmp/trap_kill\n"
@@ -46,13 +51,15 @@ public class StackGresOperatorEnd2EndIt extends AbstractStackGresOperatorIt {
             + "export WAIT_OPERATOR=false\n"
             + "export RESET_NAMESPACES=true\n"
             + "export CLUSTER_CHART_PATH=/resources/stackgres-cluster\n"
-            + (RUN_E2E_TEST.isPresent()
-            ? "if ! sh run-test.sh " + RUN_E2E_TEST.get() + "\n"
+            + (E2E_TEST.isPresent()
+            ? "if ! sh " + (E2E_DEBUG.orElse(false) ? "-x" : "")
+                + " run-test.sh " + E2E_TEST.get() + "\n"
             + "then\n"
             + "  sh e2e show_logs\n"
             + "  exit 1\n"
             + "fi\n"
-            : "if ! sh run-all-tests.sh\n"
+            : "if ! sh " + (E2E_DEBUG.orElse(false) ? "-x" : "")
+                + " run-all-tests.sh\n"
             + "then\n"
             + "  sh e2e show_logs\n"
             + "  exit 1\n"
