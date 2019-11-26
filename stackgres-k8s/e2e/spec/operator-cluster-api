@@ -87,7 +87,13 @@ test_cluster_stats_are_loaded() {
 remove_cluster_cr_if_exists(){
   if kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"
   then
-     kubectl delete sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"
+    kubectl delete sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"
+    
+    while kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"
+    do    
+      echo "Waiting for cluster CR to be deleted"
+      sleep 2
+    done
   fi
 }
 
@@ -140,17 +146,17 @@ create_cluster_with_api() {
 }
 
 test_api_created_cluster_is_visible() {
+
   create_cluster_with_api
 
-  CLUSTER_STATUS="$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -o jsonpath='{.status.phase}')"
-
-  if [ "$CLUSTER_STATUS" = Running ]
+  if kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"
   then
     echo "Cluster created with the API"
   else
-    echo "Cluster not created or in invalid status: $CLUSTER_STATUS"
+    echo "Cluster CR was not created"
     return 1
   fi
+
 
   check_cluster_directly
 }
@@ -216,6 +222,14 @@ delete_cluster_with_api() {
 
 test_api_delete_cluster_is_visible() {
   delete_cluster_with_api
+
+  local RETRIES=0
+  while kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" && [ $RETRIES -lt 3 ]
+  do    
+    echo "Waiting for cluster CR to be deleted"
+    sleep 2
+    RETRIES=$((RETRIES+1))
+  done
 
   local HTTP_STATUS
   HTTP_STATUS="$(get_cluster_http_status)"
