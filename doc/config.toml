@@ -8,7 +8,6 @@ metaDataFormat = "yaml"
 defaultContentLanguageInSubdir = false
 
 [params]
-  editURL = "https://github.com/matcornic/hugo-theme-learn/edit/master/exampleSite/content/"
   description = "Documentation for StackGres"
   author = "OnGres"
   showVisitedLinks = true
