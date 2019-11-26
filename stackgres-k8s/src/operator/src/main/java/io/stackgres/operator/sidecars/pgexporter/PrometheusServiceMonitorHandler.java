@@ -135,7 +135,11 @@ public class PrometheusServiceMonitorHandler implements ResourceHandler {
             ServiceMonitorDoneable.class));
   }
 
-  private class ServiceMonitorVisitor<T> extends ResourcePairVisitor<T> {
+  private class ServiceMonitorVisitor<T> extends ResourcePairVisitor<T, Void> {
+
+    public ServiceMonitorVisitor() {
+      super(null);
+    }
 
     @Override
     public PairVisitor<HasMetadata, T> visit(

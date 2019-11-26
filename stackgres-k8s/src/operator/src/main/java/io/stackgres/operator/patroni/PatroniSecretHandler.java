@@ -37,7 +37,11 @@ public class PatroniSecretHandler extends AbstractResourceHandler {
     return ResourcePairVisitor.update(new EndpointsVisitor<>(), existingResource, requiredResource);
   }
 
-  private static class EndpointsVisitor<T> extends ResourcePairVisitor<T> {
+  private static class EndpointsVisitor<T> extends ResourcePairVisitor<T, Void> {
+
+    public EndpointsVisitor() {
+      super(null);
+    }
 
     @Override
     public PairVisitor<HasMetadata, T> visit(

@@ -37,7 +37,11 @@ public class BackupCronJobHandler extends AbstractResourceHandler {
     return ResourcePairVisitor.update(new CronJobVisitor<>(), existingResource, requiredResource);
   }
 
-  private class CronJobVisitor<T> extends ResourcePairVisitor<T> {
+  private class CronJobVisitor<T> extends ResourcePairVisitor<T, Void> {
+
+    public CronJobVisitor() {
+      super(null);
+    }
 
     @Override
     public PairVisitor<HasMetadata, T> visit(

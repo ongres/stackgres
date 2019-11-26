@@ -48,22 +48,41 @@ import io.fabric8.kubernetes.api.model.batch.JobTemplateSpec;
 import io.fabric8.kubernetes.api.model.rbac.Role;
 import io.fabric8.kubernetes.api.model.rbac.RoleBinding;
 
-public class ResourcePairVisitor<T> {
+public class ResourcePairVisitor<T, C> {
+
+  private final C context;
+
+  public ResourcePairVisitor(C context) {
+    super();
+    this.context = context;
+  }
+
+  public C getContext() {
+    return context;
+  }
 
   /**
    * Compare resources skipping non-static fields and considering null as default
    * if any is defined.
    */
   public static boolean equals(HasMetadata left, HasMetadata right) {
-    return equals(new ResourcePairVisitor<>(), left, right);
+    return equals(new ResourcePairVisitor<Boolean, Void>(null), left, right);
+  }
+
+  /**
+   * Compare resources skipping non-static fields and considering null as default
+   * if any is defined.
+   */
+  public static <C> boolean equals(HasMetadata left, HasMetadata right, C context) {
+    return equals(new ResourcePairVisitor<Boolean, C>(context), left, right);
   }
 
   /**
    * Compare resources skipping non-static fields and considering null as default
    * if any is defined using the specified visitor.
    */
-  public static boolean equals(
-      ResourcePairVisitor<Boolean> resourceVisitor,
+  public static <C> boolean equals(
+      ResourcePairVisitor<Boolean, C> resourceVisitor,
       HasMetadata left, HasMetadata right) {
     return resourceVisitor.visit(
         new PairComparator<>(left, right)).result();
@@ -74,14 +93,22 @@ public class ResourcePairVisitor<T> {
    * and considering null as default if defined.
    */
   public static HasMetadata update(HasMetadata toUpdate, HasMetadata withUpdates) {
-    return update(new ResourcePairVisitor<HasMetadata>(), toUpdate, withUpdates);
+    return update(new ResourcePairVisitor<HasMetadata, Void>(null), toUpdate, withUpdates);
+  }
+
+  /**
+   * Update left resource with right resource skipping non-static fields
+   * and considering null as default if defined.
+   */
+  public static <C> HasMetadata update(HasMetadata toUpdate, HasMetadata withUpdates, C context) {
+    return update(new ResourcePairVisitor<HasMetadata, C>(context), toUpdate, withUpdates);
   }
 
   /**
    * Update left resource with right resource skipping non-static fields
    * and considering null as default if defined using the specified visitor.
    */
-  public static HasMetadata update(ResourcePairVisitor<HasMetadata> resourceVisitor,
+  public static <C> HasMetadata update(ResourcePairVisitor<HasMetadata, C> resourceVisitor,
       HasMetadata toUpdate, HasMetadata withUpdates) {
     return resourceVisitor.visit(
         new PairUpdater<>(toUpdate, withUpdates)).result();

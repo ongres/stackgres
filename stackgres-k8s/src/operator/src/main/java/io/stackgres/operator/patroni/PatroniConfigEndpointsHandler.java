@@ -64,7 +64,11 @@ public class PatroniConfigEndpointsHandler extends AbstractResourceHandler {
     return ResourcePairVisitor.update(new EndpointsVisitor<>(), existingResource, requiredResource);
   }
 
-  private class EndpointsVisitor<T> extends ResourcePairVisitor<T> {
+  private class EndpointsVisitor<T> extends ResourcePairVisitor<T, Void> {
+
+    public EndpointsVisitor() {
+      super(null);
+    }
 
     @Override
     public PairVisitor<HasMetadata, T> visit(
