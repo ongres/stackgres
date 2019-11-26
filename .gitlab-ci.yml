@@ -91,9 +91,6 @@ build test images:
   script:
     - MAVEN_CLI_OPTS="$MAVEN_CLI_OPTS -DskipTests -Dquarkus.skipAugmentation=true"
     - 'mvn $MAVEN_CLI_OPTS pre-integration-test -P integration'
-  only:
-    variables:
-      - $RESET_KIND
 
 build jvm image:
   stage: pre test
