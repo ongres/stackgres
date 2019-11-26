@@ -75,7 +75,7 @@ public class StackGresStatefulSet {
   public static final String WAL_G_WRAPPER_VOLUME_NAME = "wal-g-wrapper";
 
   private static final String IMAGE_PREFIX = "docker.io/ongres/patroni:v%s-pg%s-build-%s";
-  private static final String PATRONI_VERSION = "1.6.0";
+  private static final String PATRONI_VERSION = "1.6.1";
   private static final String GCS_CONFIG_PATH = "/.gcs";
   private static final String GCS_CREDENTIALS_FILE_NAME = "google-service-account-key.json";
 

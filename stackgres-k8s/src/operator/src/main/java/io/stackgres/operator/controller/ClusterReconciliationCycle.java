@@ -12,6 +12,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Stream;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
@@ -49,6 +50,7 @@ import io.stackgres.operator.patroni.Patroni;
 import io.stackgres.operator.resource.ResourceHandlerSelector;
 import io.stackgres.operator.resource.ResourceUtil;
 import io.stackgres.operator.resource.SidecarFinder;
+import io.stackgres.operator.sidecars.envoy.Envoy;
 
 import org.jooq.lambda.Unchecked;
 import org.jooq.lambda.tuple.Tuple;
@@ -290,7 +292,13 @@ public class ClusterReconciliationCycle {
         .withProfile(getProfile(cluster, client))
         .withPostgresConfig(getPostgresConfig(cluster, client))
         .withBackupConfig(getBackupConfig(cluster, client))
-        .withSidecars(cluster.getSpec().getSidecars().stream()
+        .withSidecars(Stream.of(
+            Stream.of(Optional.of(Envoy.NAME)
+            .filter(envoy -> !cluster.getSpec().getSidecars().contains(envoy)))
+            .filter(Optional::isPresent)
+            .map(Optional::get),
+            cluster.getSpec().getSidecars().stream())
+            .flatMap(s -> s)
             .map(sidecar -> sidecarFinder.getSidecarTransformer(sidecar))
             .map(Unchecked.function(sidecar -> getSidecarEntry(cluster, client, sidecar)))
             .collect(ImmutableList.toImmutableList()))

@@ -25,9 +25,6 @@ public class ClusterSpec {
   @JsonProperty("postgresExporterVersion")
   private String postgresExporterVersion;
 
-  @JsonProperty("envoyVersion")
-  private String envoyVersion;
-
   @JsonProperty("resourceProfile")
   private String resourceProfile;
 
@@ -76,14 +73,6 @@ public class ClusterSpec {
 
   public void setPostgresExporterVersion(String postgresExporterVersion) {
     this.postgresExporterVersion = postgresExporterVersion;
-  }
-
-  public String getEnvoyVersion() {
-    return envoyVersion;
-  }
-
-  public void setEnvoyVersion(String envoyVersion) {
-    this.envoyVersion = envoyVersion;
   }
 
   public String getResourceProfile() {

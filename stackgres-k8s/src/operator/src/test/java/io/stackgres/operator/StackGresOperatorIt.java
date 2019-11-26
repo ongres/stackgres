@@ -13,7 +13,6 @@ import com.ongres.junit.docker.ContainerParam;
 import com.ongres.junit.docker.DockerContainer;
 import com.ongres.junit.docker.DockerExtension;
 import com.ongres.junit.docker.WhenReuse;
-import com.spotify.docker.client.exceptions.DockerException;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Service;
@@ -126,7 +125,7 @@ public class StackGresOperatorIt extends AbstractStackGresOperatorIt {
   }
 
   private void checkStackGresBackups(Container kind)
-      throws DockerException, InterruptedException, Exception {
+      throws InterruptedException, Exception {
     String walFileName = kind.execute("sh", "-l", "-c",
         "kubectl exec -t -n " + namespace + " "+ CLUSTER_NAME + "-" + 0
         + " -c postgres-util -- sh -c \"psql -t -A -U postgres -p " + Envoy.PG_RAW_PORT

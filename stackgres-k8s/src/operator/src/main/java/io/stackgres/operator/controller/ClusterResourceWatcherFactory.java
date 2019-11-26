@@ -64,14 +64,14 @@ public class ClusterResourceWatcherFactory {
     @Override
     public void onClose(KubernetesClientException cause) {
       if (cause == null) {
-        LOGGER.error("onClose was called");
+        LOGGER.info("onClose was called");
       } else {
         LOGGER.error("onClose was called, ", cause);
+        eventController.sendEvent(EventReason.OPERATOR_ERROR,
+            "Watcher was closed unexpectedly: " + (cause != null && cause.getMessage() != null
+            ? cause.getMessage() : "unknown reason"));
+        new Thread(() -> System.exit(1)).start();
       }
-      eventController.sendEvent(EventReason.OPERATOR_ERROR,
-          "Watcher was closed unexpectedly: " + (cause != null && cause.getMessage() != null
-              ? cause.getMessage() : "unknown reason"));
-      new Thread(() -> System.exit(1)).start();
     }
   }
 

@@ -21,9 +21,12 @@ import org.junit.jupiter.api.BeforeEach;
 
 public abstract class AbstractStackGresOperatorIt extends AbstractIt {
 
+  private static final int OPERATOR_PORT = getFreePort();
+  private static final int OPERATOR_SSL_PORT = getFreePort();
+
   protected final String namespace = getNamespace();
 
-  private Closeable operator;
+  private Closeable operatorClose;
   private WebTarget operatorClient;
 
   protected String getNamespace() {
@@ -33,35 +36,35 @@ public abstract class AbstractStackGresOperatorIt extends AbstractIt {
   @BeforeEach
   public void setupOperator(@ContainerParam("kind") Container kind) throws Exception {
     ItHelper.trapKill(kind);
-    final int operatorPort = getFreePort();
-    final int operatorSslPort = getFreePort();
     ItHelper.copyResources(kind);
     ItHelper.deleteStackGresOperatorHelmChartIfExists(kind, namespace);
     ItHelper.deleteNamespaceIfExists(kind, namespace);
-    ItHelper.installStackGresOperatorHelmChart(kind, namespace, operatorSslPort, executor);
+    ItHelper.installStackGresOperatorHelmChart(kind, namespace, OPERATOR_SSL_PORT, executor);
     OperatorRunner operatorRunner = ItHelper.createOperator(
-        kind, getClass(), operatorPort, operatorSslPort, executor);
+        kind, OPERATOR_PORT, OPERATOR_SSL_PORT, executor);
     CompletableFuture<Void> operator = runAsync(() -> operatorRunner.run());
-    this.operator = () -> {
+    this.operatorClose = () -> {
       operatorRunner.close();
       operator.join();
     };
-    operatorClient = ClientBuilder.newClient().target("http://localhost:" + operatorPort);
+    operatorClient = ClientBuilder.newClient().target("http://localhost:" + OPERATOR_PORT);
     ItHelper.waitUntilOperatorIsReady(operator, operatorClient, kind);
   }
 
-  private int getFreePort() throws IOException {
+  private static int getFreePort() {
     final int freePort;
     try (ServerSocket serverSocket = new ServerSocket(0)) {
       freePort = serverSocket.getLocalPort();
+    } catch (IOException ex) {
+      throw new RuntimeException(ex);
     }
     return freePort;
   }
 
   @AfterEach
   public void teardownOperator() throws Exception {
-    if (operator != null) {
-      operator.close();
+    if (operatorClose != null) {
+      operatorClose.close();
     }
   }
 

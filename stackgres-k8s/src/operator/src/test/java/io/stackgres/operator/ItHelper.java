@@ -31,7 +31,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 
 import com.ongres.junit.docker.Container;
-import com.spotify.docker.client.exceptions.DockerException;
 
 import org.apache.commons.io.IOUtils;
 import org.jooq.lambda.Unchecked;
@@ -214,7 +213,7 @@ public class ItHelper {
   }
 
   public static void installMinioHelmChart(Container kind, String namespace, String clusterNamespace)
-      throws DockerException, InterruptedException {
+      throws Exception {
     LOGGER.info("Installing minio helm chart");
     kind.execute("sh", "-l", "-c", "helm upgrade minio stable/minio"
         + " --install --version 2.5.18 --namespace " + namespace
@@ -369,19 +368,18 @@ public class ItHelper {
     }
   }
 
-
   /**
    * IT helper method.
    * Code has been copied and adapted from {@code QuarkusTestExtension} to allow start/stop
    * quarkus application inside a test.
    */
-  public static OperatorRunner createOperator(Container kind, Class<?> testClass, int port,
+  public static OperatorRunner createOperator(Container kind, int port,
       int sslPort, Executor executor) throws Exception {
     if (OPERATOR_IN_KUBERNETES) {
       return new KubernetesOperatorRunner(kind, executor);
     }
 
-    return new LocalOperatorRunner(kind, testClass, port, sslPort);
+    return new LocalOperatorRunner(kind, ItHelper.class, port, sslPort);
   }
 
   public static <T> void waitUntil(Supplier<T> supplier, Predicate<T> condition, int timeout,

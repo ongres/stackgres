@@ -21,7 +21,6 @@ spec:
   {{- end }}
   {{- end }}
   postgresExporterVersion: '{{ .Values.config.postgresExporter.version }}'
-  envoyVersion: '{{ .Values.config.envoy.version }}'
   {{- if .Values.sidecar.prometheus.create }}
   prometheusAutobind: {{ .Values.sidecar.prometheus.allowAutobind }}
   {{- else }}
@@ -37,5 +36,4 @@ spec:
   {{- if .Values.sidecar.prometheus.create }}
   - prometheus-postgres-exporter
   {{- end }}
-  - envoy
 {{ end }}

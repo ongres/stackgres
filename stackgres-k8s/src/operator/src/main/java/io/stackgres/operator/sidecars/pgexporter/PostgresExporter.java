@@ -69,7 +69,7 @@ public class PostgresExporter
   private static final String NAME = "prometheus-postgres-exporter";
   private static final String IMAGE_NAME =
       "docker.io/ongres/prometheus-postgres-exporter:v%s-build-%s";
-  private static final String DEFAULT_VERSION = "0.5.1";
+  private static final String DEFAULT_VERSION = "0.7.0";
 
   private KubernetesResourceScanner<PrometheusConfigList> prometheusScanner;
 
