@@ -85,15 +85,9 @@ public class PostgresExporter
 
   @Override
   public Container getContainer(StackGresClusterConfig config) {
-    Optional<StackGresPostgresExporterConfig> postgresExporterConfig =
-        config.getSidecarConfig(this);
-
     ContainerBuilder container = new ContainerBuilder();
     container.withName(NAME)
-        .withImage(String.format(IMAGE_NAME,
-            postgresExporterConfig
-                .map(c -> c.getSpec().getPostgresExporterVersion())
-                .orElse(DEFAULT_VERSION), StackGresUtil.CONTAINER_BUILD))
+        .withImage(String.format(IMAGE_NAME, DEFAULT_VERSION, StackGresUtil.CONTAINER_BUILD))
         .withImagePullPolicy("Always")
         .withEnv(new EnvVarBuilder()
                 .withName("DATA_SOURCE_NAME")
@@ -200,8 +194,6 @@ public class PostgresExporter
     StackGresPostgresExporterConfig sgpec = new StackGresPostgresExporterConfig();
     StackGresPostgresExporterConfigSpec spec = new StackGresPostgresExporterConfigSpec();
     sgpec.setSpec(spec);
-
-    spec.setPostgresExporterVersion(cluster.getSpec().getPostgresExporterVersion());
 
     boolean isAutobindAllowed = Boolean
         .parseBoolean(configContext.getProperty(ConfigProperty.PROMETHEUS_AUTOBIND)
