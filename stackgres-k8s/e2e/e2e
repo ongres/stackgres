@@ -64,6 +64,10 @@ setup_k8s() {
   fi
 
   if ! helm list | grep -q "^stackgres-operator\s" \
+    || ! kubectl get namespaces stackgres -o name \
+      | grep -q "^namespace/stackgres$" \
+    || ! kubectl get deployments.apps -n stackgres stackgres-operator -o name \
+      | grep -q "^deployment.apps/stackgres-operator$" \
     || [ "$REUSE_OPERATOR" != true ]
   then
     load_operator_k8s
@@ -72,6 +76,7 @@ setup_k8s() {
       | tail -n +2 \
       | sed 's/\s\+/ /g' \
       | cut -d ' ' -f 1 \
+      | grep -v "\(minio\)" \
       | xargs -r -n 1 -I % helm delete --purge %
     helm template --name stackgres-operator --namespace stackgres "$OPERATOR_CHART_PATH" \
       | kubectl delete -f - --ignore-not-found
@@ -97,7 +102,7 @@ setup_k8s() {
       | tail -n +2 \
       | sed 's/\s\+/ /g' \
       | cut -d ' ' -f 1 \
-      | grep -v "stackgres-operator" \
+      | grep -v "\(stackgres-operator\|minio\)" \
       | xargs -r -n 1 -I % helm delete --purge %
     if [ "$RESET_NAMESPACES" = true ]
     then
