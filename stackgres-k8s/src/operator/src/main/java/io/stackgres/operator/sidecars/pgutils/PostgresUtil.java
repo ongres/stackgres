@@ -17,9 +17,9 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.operator.common.Sidecar;
-import io.stackgres.operator.common.StackGresClusterConfig;
 import io.stackgres.operator.common.StackGresSidecarTransformer;
 import io.stackgres.operator.common.StackGresUtil;
+import io.stackgres.operator.controller.ResourceGeneratorContext;
 import io.stackgres.operator.patroni.StackGresStatefulSet;
 
 @Sidecar("postgres-util")
@@ -32,11 +32,12 @@ public class PostgresUtil implements StackGresSidecarTransformer<CustomResource>
   public PostgresUtil() {}
 
   @Override
-  public Container getContainer(StackGresClusterConfig config) {
+  public Container getContainer(ResourceGeneratorContext context) {
     ContainerBuilder container = new ContainerBuilder();
     container.withName(NAME)
         .withImage(String.format(IMAGE_NAME,
-            config.getCluster().getSpec().getPostgresVersion(), StackGresUtil.CONTAINER_BUILD))
+            context.getClusterConfig().getCluster().getSpec().getPostgresVersion(),
+            StackGresUtil.CONTAINER_BUILD))
         .withImagePullPolicy("Always")
         .withStdin(Boolean.TRUE)
         .withTty(Boolean.TRUE)
@@ -51,7 +52,7 @@ public class PostgresUtil implements StackGresSidecarTransformer<CustomResource>
   }
 
   @Override
-  public List<HasMetadata> getResources(StackGresClusterConfig config) {
+  public List<HasMetadata> getResources(ResourceGeneratorContext context) {
     return ImmutableList.of();
   }
 

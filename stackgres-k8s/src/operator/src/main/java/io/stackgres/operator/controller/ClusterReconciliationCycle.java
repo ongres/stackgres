@@ -18,6 +18,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
@@ -27,6 +28,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
 import io.stackgres.operator.app.KubernetesClientFactory;
+import io.stackgres.operator.app.ObjectMapperProvider;
 import io.stackgres.operator.common.SidecarEntry;
 import io.stackgres.operator.common.StackGresClusterConfig;
 import io.stackgres.operator.common.StackGresSidecarTransformer;
@@ -72,6 +74,7 @@ public class ClusterReconciliationCycle {
   private final ExecutorService executorService = Executors.newSingleThreadExecutor(
       r -> new Thread(r, "ReconciliationCycle"));
   private final ArrayBlockingQueue<Boolean> arrayBlockingQueue = new ArrayBlockingQueue<>(1);
+  private final ObjectMapper objectMapper;
 
   private boolean close = false;
 
@@ -83,7 +86,8 @@ public class ClusterReconciliationCycle {
   @Inject
   public ClusterReconciliationCycle(KubernetesClientFactory kubClientFactory,
       SidecarFinder sidecarFinder, Patroni patroni, ResourceHandlerSelector handlerSelector,
-      ClusterStatusManager statusManager, EventController eventController) {
+      ClusterStatusManager statusManager, EventController eventController,
+      ObjectMapperProvider objectMapperProvider) {
     super();
     this.kubClientFactory = kubClientFactory;
     this.sidecarFinder = sidecarFinder;
@@ -91,6 +95,7 @@ public class ClusterReconciliationCycle {
     this.handlerSelector = handlerSelector;
     this.statusManager = statusManager;
     this.eventController = eventController;
+    this.objectMapper = objectMapperProvider.objectMapper();
   }
 
   void onStart(@Observes StartupEvent ev) {
@@ -145,7 +150,11 @@ public class ClusterReconciliationCycle {
           LOGGER.trace(cycleName + " reconciling cluster " + cluster.getMetadata().getName());
           ImmutableList<HasMetadata> existingResourcesOnly = getExistingResources(
               client, clusterConfig);
-          ImmutableList<HasMetadata> requiredResourcesOnly = patroni.getResources(clusterConfig);
+          ImmutableList<HasMetadata> requiredResourcesOnly = patroni.getResources(
+              ImmutableResourceGeneratorContext.builder()
+              .clusterConfig(clusterConfig)
+              .addAllExistingResources(existingResourcesOnly)
+              .build());
           ImmutableList<Tuple2<HasMetadata, Optional<HasMetadata>>> existingResources =
               existingResourcesOnly
               .stream()
@@ -165,6 +174,7 @@ public class ClusterReconciliationCycle {
             .withHandlerSelector(handlerSelector)
             .withStatusManager(statusManager)
             .withClient(client)
+            .withObjectMapper(objectMapper)
             .withClusterConfig(clusterConfig)
             .withRequiredResources(requiredResources)
             .withExistingResources(existingResources)

@@ -51,15 +51,18 @@ public class ItHelper {
    * IT helper method.
    */
   public static void trapKill(Container kind) throws Exception {
-    kind.execute("sh", "-c", "[ -s /tmp/trap_kill ]"
-        + " && kill -1 $(cat /tmp/trap_kill) 2>/dev/null || true")
+    kind.execute("sh", "-c",
+        "#!/bin/sh"
+            + "[ -s /tmp/trap_kill ] && kill -1 $(cat /tmp/trap_kill) 2>/dev/null || true\n"
+            + "if [ \"$(ps | sed 's/^ \\+//' | grep -v 'sleep 1' \\"
+            + "  | cut -d ' ' -f 1 | grep -v '^1$' | tail -n +2 \\"
+            + "  | wc -l)\" -gt 0 ]\n"
+            + "then\n"
+            + "  ps | sed 's/^ \\+//' | grep -v 'sleep 1' \\"
+            + "    | cut -d ' ' -f 1 | grep -v '^1$' | tail -n +2 \\"
+            + "    | xargs -r -n 1 -I % kill %\n"
+            + "fi\n")
       .forEach(line -> LOGGER.info(line));
-    Path k8sPath = Paths.get("../..");
-    kind.copyIn(k8sPath.resolve("install/helm/stackgres-operator"),
-        "/resources/stackgres-operator");
-    kind.copyIn(k8sPath.resolve("install/helm/stackgres-cluster"),
-        "/resources/stackgres-cluster");
-    kind.copyIn(k8sPath.resolve("e2e"), "/resources/e2e");
   }
 
   /**

@@ -34,8 +34,10 @@ public class PatroniServices {
     final Map<String, String> labels = ResourceUtil.defaultLabels(name);
 
     Service config = createConfigService(namespace, name + CONFIG_SERVICE, labels);
-    Service primary = createService(namespace, name + READ_WRITE_SERVICE, "master", labels);
-    Service replicas = createService(namespace, name + READ_ONLY_SERVICE, "replica", labels);
+    Service primary = createService(namespace, name + READ_WRITE_SERVICE,
+        ResourceUtil.PRIMARY_ROLE, labels);
+    Service replicas = createService(namespace, name + READ_ONLY_SERVICE,
+        ResourceUtil.REPLICA_ROLE, labels);
 
     return ImmutableList.of(config, primary, replicas);
   }
@@ -57,7 +59,7 @@ public class PatroniServices {
   private static Service createService(String namespace, String serviceName, String role,
                                        Map<String, String> labels) {
     final Map<String, String> labelsRole = new HashMap<>(labels);
-    labelsRole.put("role", role); // role is set by Patroni
+    labelsRole.put(ResourceUtil.ROLE_KEY, role); // role is set by Patroni
 
     return new ServiceBuilder()
         .withNewMetadata()

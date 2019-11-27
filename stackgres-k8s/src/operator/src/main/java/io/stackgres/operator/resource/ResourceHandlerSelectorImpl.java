@@ -19,6 +19,7 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.operator.common.KindLiteral;
 import io.stackgres.operator.common.StackGresClusterConfig;
+import io.stackgres.operator.controller.ResourceHandlerContext;
 
 @ApplicationScoped
 public class ResourceHandlerSelectorImpl implements ResourceHandlerSelector {
@@ -31,22 +32,32 @@ public class ResourceHandlerSelectorImpl implements ResourceHandlerSelector {
   }
 
   @Override
-  public boolean equals(StackGresClusterConfig config, HasMetadata existingResource,
-      HasMetadata requiredResource) {
-    return selectResourceHandler(config, requiredResource)
-        .equals(existingResource, requiredResource);
+  public boolean equals(ResourceHandlerContext resourceHandlerContext,
+      HasMetadata existingResource, HasMetadata requiredResource) {
+    return selectResourceHandler(resourceHandlerContext.getClusterConfig(), requiredResource)
+        .equals(resourceHandlerContext, existingResource, requiredResource);
   }
 
   @Override
-  public HasMetadata update(StackGresClusterConfig config, HasMetadata existingResource,
-      HasMetadata requiredResource) {
-    return selectResourceHandler(config, requiredResource)
-        .update(existingResource, requiredResource);
+  public HasMetadata update(ResourceHandlerContext resourceHandlerContext,
+      HasMetadata existingResource, HasMetadata requiredResource) {
+    return selectResourceHandler(resourceHandlerContext.getClusterConfig(), requiredResource)
+        .update(resourceHandlerContext, existingResource, requiredResource);
   }
 
   @Override
   public boolean isManaged(StackGresClusterConfig config, HasMetadata existingResource) {
     return selectResourceHandler(config, existingResource).isManaged();
+  }
+
+  @Override
+  public boolean skipCreation(StackGresClusterConfig config, HasMetadata requiredResource) {
+    return selectResourceHandler(config, requiredResource).skipCreation();
+  }
+
+  @Override
+  public boolean skipDeletion(StackGresClusterConfig config, HasMetadata requiredResource) {
+    return selectResourceHandler(config, requiredResource).skipDeletion();
   }
 
   @Override
@@ -104,7 +115,7 @@ public class ResourceHandlerSelectorImpl implements ResourceHandlerSelector {
   @Override
   public ResourceHandler getResourceHandler(HasMetadata resource) {
     Instance<ResourceHandler> kindHandler = handlers
-        .select(new KindLiteral(resource.getKind()));
+        .select(new KindLiteral(resource.getClass()));
 
     if (kindHandler.isResolvable()) {
       return kindHandler.get();

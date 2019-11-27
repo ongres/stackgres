@@ -7,7 +7,10 @@ package io.stackgres.operator.resource;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.ImmutableMap;
@@ -26,6 +29,11 @@ public class ResourceUtil {
   public static final String APP_KEY = "app";
   public static final String APP_NAME = "StackGres";
   public static final String CLUSTER_NAME_KEY = "cluster-name";
+  public static final String CLUSTER_KEY = "cluster";
+  public static final String DISRUPTIBLE_KEY = "disruptible";
+  public static final String ROLE_KEY = "role";
+  public static final String PRIMARY_ROLE = "master";
+  public static final String REPLICA_ROLE = "replica";
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ResourceUtil.class);
 
@@ -55,10 +63,47 @@ public class ResourceUtil {
   }
 
   /**
-   * ImmutableMap of default labels used as selectors in K8s resources.
+   * ImmutableMap of default labels used as selectors in K8s resources
+   * outside of the namespace of the cluster.
    */
   public static Map<String, String> defaultLabels(String clusterName) {
     return ImmutableMap.of(APP_KEY, APP_NAME, CLUSTER_NAME_KEY, clusterName);
+  }
+
+  /**
+   * ImmutableMap of default labels used as selectors in K8s pods
+   * that are part of the cluster.
+   */
+  public static Map<String, String> defaultPodLabels(String clusterName) {
+    return ImmutableMap.of(APP_KEY, APP_NAME, CLUSTER_NAME_KEY, clusterName,
+        CLUSTER_KEY, Boolean.TRUE.toString(), DISRUPTIBLE_KEY, Boolean.TRUE.toString());
+  }
+
+  public static boolean isPrimary(Map<String, String> labels) {
+    return Objects.equals(labels.get(ResourceUtil.ROLE_KEY), ResourceUtil.PRIMARY_ROLE);
+  }
+
+  public static boolean isNonDisruptiblePrimary(Map<String, String> labels) {
+    return isPrimary(labels)
+        && Objects.equals(labels.get(ResourceUtil.DISRUPTIBLE_KEY), Boolean.FALSE.toString());
+  }
+
+  public static String getNameWithIndexPattern(String name) {
+    return "^" + Pattern.quote(name + "-") + "([0-9]+)$";
+  }
+
+  /**
+   * Extract the index of a StatefulSet's pod.
+   */
+  public static Integer extractPodIndex(ObjectMeta clusterMetadata, ObjectMeta podMetadata) {
+    Matcher matcher = Pattern.compile(getNameWithIndexPattern(clusterMetadata.getName()))
+        .matcher(podMetadata.getName());
+    if (matcher.find()) {
+      return Integer.parseInt(matcher.group(1));
+    }
+    throw new IllegalStateException("Can not extract index from pod "
+        + podMetadata.getNamespace() + "." + podMetadata.getName() + " for cluster "
+        + clusterMetadata.getNamespace() + "." + clusterMetadata.getName());
   }
 
   /**

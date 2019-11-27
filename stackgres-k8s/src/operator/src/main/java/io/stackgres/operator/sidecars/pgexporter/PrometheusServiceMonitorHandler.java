@@ -19,6 +19,7 @@ import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.kubernetes.internal.KubernetesDeserializer;
 import io.stackgres.operator.common.Kind;
 import io.stackgres.operator.common.StackGresClusterConfig;
+import io.stackgres.operator.controller.ResourceHandlerContext;
 import io.stackgres.operator.resource.ResourceHandler;
 import io.stackgres.operator.resource.ResourceUtil;
 import io.stackgres.operator.sidecars.pgexporter.customresources.Endpoint;
@@ -31,18 +32,20 @@ import io.stackgres.operator.sidecars.pgexporter.customresources.ServiceMonitorS
 import io.stackgres.operatorframework.resource.PairVisitor;
 import io.stackgres.operatorframework.resource.ResourcePairVisitor;
 
-@Kind("ServiceMonitor")
+@Kind(ServiceMonitor.class)
 @ApplicationScoped
 public class PrometheusServiceMonitorHandler implements ResourceHandler {
 
   @Override
-  public boolean equals(HasMetadata existingResource, HasMetadata requiredResource) {
+  public boolean equals(ResourceHandlerContext resourceHandlerContext,
+      HasMetadata existingResource, HasMetadata requiredResource) {
     return ResourcePairVisitor.equals(new ServiceMonitorVisitor<>(),
         existingResource, requiredResource);
   }
 
   @Override
-  public HasMetadata update(HasMetadata existingResource, HasMetadata requiredResource) {
+  public HasMetadata update(ResourceHandlerContext resourceHandlerContext,
+      HasMetadata existingResource, HasMetadata requiredResource) {
     return ResourcePairVisitor.update(new ServiceMonitorVisitor<>(),
         existingResource, requiredResource);
   }

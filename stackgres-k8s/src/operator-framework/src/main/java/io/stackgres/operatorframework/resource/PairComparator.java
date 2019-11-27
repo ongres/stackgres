@@ -75,19 +75,26 @@ class PairComparator<T> extends PairVisitor<T, Boolean> {
   }
 
   @Override
-  public <O, S> PairVisitor<T, Boolean> visitWith(Function<T, O> getter,
-      BiConsumer<T, O> setter,
-      Function<PairVisitor<O, S>, PairVisitor<O, S>> subVisitor) {
-    return returnResult(equalsAny(getter,
-        pv -> subVisitor.apply(pv.as()).resultAs()));
+  public <O> PairVisitor<T, Boolean> visitTransformed(
+      Function<T, O> getter, BiConsumer<T, O> setter,
+      BiFunction<O, O, O> leftTransformer, BiFunction<O, O, O> rightTransformer) {
+    return returnResult(equalsAnyTransformed(getter, leftTransformer, rightTransformer));
   }
 
   @Override
   public <O, S> PairVisitor<T, Boolean> visitWith(Function<T, O> getter,
       BiConsumer<T, O> setter,
+      Function<PairVisitor<O, S>, PairVisitor<O, S>> subVisitor) {
+    return returnResult(equalsAnyWith(getter,
+        pv -> subVisitor.apply(pv.as()).resultAs()));
+  }
+
+  @Override
+  public <O, S> PairVisitor<T, Boolean> visitWithUsingDefaultFrom(Function<T, O> getter,
+      BiConsumer<T, O> setter,
       Function<PairVisitor<O, S>, PairVisitor<O, S>> subVisitor,
       Supplier<O> defaultValue) {
-    return returnResult(equalsAnyWithDefault(getter,
+    return returnResult(equalsAnyWithUsingDefaultFrom(getter,
         pv -> subVisitor.apply(pv.as()).resultAs(),
         defaultValue));
   }
@@ -96,18 +103,26 @@ class PairComparator<T> extends PairVisitor<T, Boolean> {
     return equals(getter.apply(left), getter.apply(right));
   }
 
-  <O> boolean equalsAny(Function<T, O> getter,
-      Predicate<PairVisitor<O, Boolean>> tester) {
-    return tester.test(get(getter));
-  }
-
   <O> boolean equalsAnyWithDefault(Function<T, O> getter, Function<T, O> defaultGetter) {
     return equals(
         Optional.ofNullable(getter.apply(left)).orElseGet(() -> defaultGetter.apply(left)),
         Optional.ofNullable(getter.apply(right)).orElseGet(() -> defaultGetter.apply(right)));
   }
 
-  <O> boolean equalsAnyWithDefault(Function<T, O> getter,
+  <O> boolean equalsAnyTransformed(Function<T, O> getter,
+      BiFunction<O, O, O> leftTransformer, BiFunction<O, O, O> rightTransformer) {
+    O leftValue = getter.apply(left);
+    O rightValue = getter.apply(right);
+    return equals(leftTransformer.apply(leftValue, rightValue),
+        rightTransformer.apply(leftValue, rightValue));
+  }
+
+  <O> boolean equalsAnyWith(Function<T, O> getter,
+      Predicate<PairVisitor<O, Boolean>> tester) {
+    return tester.test(get(getter));
+  }
+
+  <O> boolean equalsAnyWithUsingDefaultFrom(Function<T, O> getter,
       Predicate<PairVisitor<O, Boolean>> tester, Supplier<O> defaultValue) {
     return tester.test(getOrDefault(getter, defaultValue));
   }

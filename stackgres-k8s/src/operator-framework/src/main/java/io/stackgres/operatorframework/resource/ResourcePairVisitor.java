@@ -73,7 +73,7 @@ public class ResourcePairVisitor<T, C> {
    * Compare resources skipping non-static fields and considering null as default
    * if any is defined.
    */
-  public static <C> boolean equals(HasMetadata left, HasMetadata right, C context) {
+  public static <C> boolean equals(C context, HasMetadata left, HasMetadata right) {
     return equals(new ResourcePairVisitor<Boolean, C>(context), left, right);
   }
 
@@ -100,7 +100,7 @@ public class ResourcePairVisitor<T, C> {
    * Update left resource with right resource skipping non-static fields
    * and considering null as default if defined.
    */
-  public static <C> HasMetadata update(HasMetadata toUpdate, HasMetadata withUpdates, C context) {
+  public static <C> HasMetadata update(C context, HasMetadata toUpdate, HasMetadata withUpdates) {
     return update(new ResourcePairVisitor<HasMetadata, C>(context), toUpdate, withUpdates);
   }
 
@@ -401,7 +401,7 @@ public class ResourcePairVisitor<T, C> {
         .visit(PodSpec::getSubdomain, PodSpec::setSubdomain)
         .visit(PodSpec::getTerminationGracePeriodSeconds,
             PodSpec::setTerminationGracePeriodSeconds, 30L)
-        .visitWith(PodSpec::getSecurityContext, PodSpec::setSecurityContext,
+        .visitWithUsingDefaultFrom(PodSpec::getSecurityContext, PodSpec::setSecurityContext,
             this::visitPodSecurityContext,
             () -> new PodSecurityContext())
         .visitList(PodSpec::getHostAliases, PodSpec::setHostAliases)
@@ -504,7 +504,7 @@ public class ResourcePairVisitor<T, C> {
         .visit(Container::getName, Container::setName)
         .visitWith(Container::getReadinessProbe, Container::setReadinessProbe,
             this::visitProbe)
-        .visitWith(Container::getResources, Container::setResources,
+        .visitWithUsingDefaultFrom(Container::getResources, Container::setResources,
             this::visitResourceRequirements, () -> new ResourceRequirements())
         .visit(Container::getSecurityContext, Container::setSecurityContext)
         .visit(Container::getStdin, Container::setStdin)

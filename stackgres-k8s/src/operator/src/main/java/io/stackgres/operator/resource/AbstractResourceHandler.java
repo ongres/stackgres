@@ -16,6 +16,7 @@ import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesResourceList;
+import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceAccount;
@@ -27,6 +28,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.stackgres.operator.common.StackGresClusterConfig;
+import io.stackgres.operator.controller.ResourceHandlerContext;
 import io.stackgres.operatorframework.resource.ResourcePairVisitor;
 
 public abstract class AbstractResourceHandler implements ResourceHandler {
@@ -49,16 +51,21 @@ public abstract class AbstractResourceHandler implements ResourceHandler {
       .put(ConfigMap.class, client -> client.configMaps())
       .put(Endpoints.class, client -> client.endpoints())
       .put(CronJob.class, client -> client.batch().cronjobs())
+      .put(Pod.class, client -> client.pods())
       .build();
 
   @Override
-  public boolean equals(HasMetadata existingResource, HasMetadata requiredResource) {
-    return ResourcePairVisitor.equals(existingResource, requiredResource);
+  public boolean equals(ResourceHandlerContext resourceHandlerContext,
+      HasMetadata existingResource, HasMetadata requiredResource) {
+    return ResourcePairVisitor.equals(resourceHandlerContext,
+        existingResource, requiredResource);
   }
 
   @Override
-  public HasMetadata update(HasMetadata existingResource, HasMetadata requiredResource) {
-    return ResourcePairVisitor.update(existingResource, requiredResource);
+  public HasMetadata update(ResourceHandlerContext resourceHandlerContext,
+      HasMetadata existingResource, HasMetadata requiredResource) {
+    return ResourcePairVisitor.update(resourceHandlerContext,
+        existingResource, requiredResource);
   }
 
   @Override

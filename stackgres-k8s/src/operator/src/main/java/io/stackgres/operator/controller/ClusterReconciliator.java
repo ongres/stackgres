@@ -8,6 +8,7 @@ package io.stackgres.operator.controller;
 import java.util.Objects;
 import java.util.Optional;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
@@ -16,11 +17,12 @@ import io.stackgres.operator.common.StackGresClusterConfig;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.resource.ResourceHandlerSelector;
 
+import org.jooq.lambda.Unchecked;
 import org.jooq.lambda.tuple.Tuple2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ClusterReconciliator {
+public class ClusterReconciliator implements ResourceHandlerContext {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ClusterReconciliator.class);
 
@@ -28,6 +30,7 @@ public class ClusterReconciliator {
   private final ClusterStatusManager statusManager;
   private final EventController eventController;
   private final KubernetesClient client;
+  private final ObjectMapper objectMapper;
   private final StackGresClusterConfig clusterConfig;
   private final StackGresCluster cluster;
   private final ImmutableList<Tuple2<HasMetadata, Optional<HasMetadata>>> requiredResources;
@@ -38,6 +41,7 @@ public class ClusterReconciliator {
     Objects.requireNonNull(builder.statusManager);
     Objects.requireNonNull(builder.eventController);
     Objects.requireNonNull(builder.client);
+    Objects.requireNonNull(builder.objectMapper);
     Objects.requireNonNull(builder.clusterConfig);
     Objects.requireNonNull(builder.existingResources);
     Objects.requireNonNull(builder.requiredResources);
@@ -45,6 +49,7 @@ public class ClusterReconciliator {
     this.statusManager = builder.statusManager;
     this.eventController = builder.eventController;
     this.client = builder.client;
+    this.objectMapper = builder.objectMapper;
     this.clusterConfig = builder.clusterConfig;
     this.cluster = builder.clusterConfig.getCluster();
     this.existingResources = builder.existingResources;
@@ -70,7 +75,7 @@ public class ClusterReconciliator {
       Optional<HasMetadata> matchingResource = requiredResource.v2;
       if (matchingResource
           .map(existingResource -> handlerSelector.equals(
-              clusterConfig, existingResource, requiredResource.v1))
+              this, existingResource, requiredResource.v1))
           .orElse(false)) {
         LOGGER.trace("Found resource {}.{} of type {}",
             requiredResource.v1.getMetadata().getNamespace(),
@@ -85,10 +90,19 @@ public class ClusterReconciliator {
             existingResource.getMetadata().getNamespace(),
             existingResource.getMetadata().getName(),
             existingResource.getKind());
-        handlerSelector.update(clusterConfig, existingResource, requiredResource.v1);
-        handlerSelector.patch(client, clusterConfig, existingResource);
+        HasMetadata updatedExistingResource = Unchecked.supplier(() -> objectMapper.treeToValue(
+            objectMapper.valueToTree(existingResource), existingResource.getClass())).get();
+        handlerSelector.update(this, updatedExistingResource, requiredResource.v1);
+        handlerSelector.patch(client, clusterConfig, updatedExistingResource);
         updated = true;
       } else {
+        if (handlerSelector.skipCreation(clusterConfig, requiredResource.v1)) {
+          LOGGER.trace("Skip creation for resource {}.{} of type {}",
+              requiredResource.v1.getMetadata().getNamespace(),
+              requiredResource.v1.getMetadata().getName(),
+              requiredResource.v1.getKind());
+          continue;
+        }
         LOGGER.debug("Creating resource {}.{} of type {}",
             requiredResource.v1.getMetadata().getNamespace(),
             requiredResource.v1.getMetadata().getName(),
@@ -100,6 +114,13 @@ public class ClusterReconciliator {
     for (Tuple2<HasMetadata, Optional<HasMetadata>> existingResource : existingResources) {
       if (!existingResource.v2.isPresent()
           && !handlerSelector.isManaged(clusterConfig, existingResource.v1)) {
+        if (handlerSelector.skipDeletion(clusterConfig, existingResource.v1)) {
+          LOGGER.trace("Skip deletion for resource {}.{} of type {}",
+              existingResource.v1.getMetadata().getNamespace(),
+              existingResource.v1.getMetadata().getName(),
+              existingResource.v1.getKind());
+          continue;
+        }
         LOGGER.debug("Deleteing resource {}.{} of type {}"
             + " since does not belong to existing cluster",
             existingResource.v1.getMetadata().getNamespace(),
@@ -151,6 +172,7 @@ public class ClusterReconciliator {
     private ClusterStatusManager statusManager;
     private EventController eventController;
     private KubernetesClient client;
+    private ObjectMapper objectMapper;
     private StackGresClusterConfig clusterConfig;
     private ImmutableList<Tuple2<HasMetadata, Optional<HasMetadata>>> existingResources;
     private ImmutableList<Tuple2<HasMetadata, Optional<HasMetadata>>> requiredResources;
@@ -174,6 +196,11 @@ public class ClusterReconciliator {
 
     public Builder withClient(KubernetesClient client) {
       this.client = client;
+      return this;
+    }
+
+    public Builder withObjectMapper(ObjectMapper objectMapper) {
+      this.objectMapper = objectMapper;
       return this;
     }
 
