@@ -116,9 +116,9 @@ public class ClusterReconciliationCycle {
           break;
         }
         reconciliationCycle();
-      } catch (InterruptedException ex) {
+      } catch (Exception ex) {
         LOGGER.error("Reconciliation cycle loop was interrupted", ex);
-        break;
+        new Thread(() -> System.exit(1)).start();
       }
     }
     LOGGER.info("Cluster reconciliation cycle loop stopped");
