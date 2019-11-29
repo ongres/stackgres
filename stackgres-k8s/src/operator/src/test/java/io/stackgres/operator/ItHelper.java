@@ -52,15 +52,27 @@ public class ItHelper {
    */
   public static void trapKill(Container kind) throws Exception {
     kind.execute("sh", "-c",
-        "#!/bin/sh"
-            + "[ -s /tmp/trap_kill ] && kill -1 $(cat /tmp/trap_kill) 2>/dev/null || true\n"
-            + "if [ \"$(ps | sed 's/^ \\+//' | grep -v 'sleep 1' \\"
-            + "  | cut -d ' ' -f 1 | grep -v '^1$' | tail -n +2 \\"
-            + "  | wc -l)\" -gt 0 ]\n"
+        "#!/bin/sh\n"
+            + "TIMEOUT=20\n"
+            + "START=\"$(date +%s)\"\n"
+            + "while [ \"$((START + TIMEOUT))\" -gt \"$(date +%s)\" ] \\\n"
+            + "  && ! ps -o pid,ppid,args | sed 's/^ \\+//' | sed 's/ \\+/ /g' \\\n"
+            + "  | grep -v '^\\([0-9]\\+ \\)\\?\\(1\\|'\"$$\"'\\) ' \\\n"
+            + "  | cut -d ' ' -f 1 | tail -n +2 \\\n"
+            + "  | wc -l | grep -q '^0$'\n"
+            + "do\n"
+            + "  echo 'Killing following unwanted processes:'\n"
+            + "  ps -o pid,ppid,args | sed 's/^ \\+//' | sed 's/ \\+/ /g' \\\n"
+            + "    | grep -v '^\\([0-9]\\+ \\)\\?\\(1\\|'\"$$\"'\\) '\n"
+            + "  ps -o pid,ppid,args | sed 's/^ \\+//' | sed 's/ \\+/ /g' \\\n"
+            + "    | grep -v '^\\([0-9]\\+ \\)\\?\\(1\\|'\"$$\"'\\) ' \\\n"
+            + "    | cut -d ' ' -f 1 | tail -n +2 \\\n"
+            + "    | xargs -r -n 1 -I % kill % >/dev/null 2>&1 || true\n"
+            + "done\n"
+            + "if [ \"$((START + TIMEOUT))\" -le \"$(date +%s)\" ]\n"
             + "then\n"
-            + "  ps | sed 's/^ \\+//' | grep -v 'sleep 1' \\"
-            + "    | cut -d ' ' -f 1 | grep -v '^1$' | tail -n +2 \\"
-            + "    | xargs -r -n 1 -I % kill %\n"
+            + "  echo 'Timeout while trying to kill unwanted processes'\n"
+            + "  exit 1\n"
             + "fi\n")
       .forEach(line -> LOGGER.info(line));
   }
