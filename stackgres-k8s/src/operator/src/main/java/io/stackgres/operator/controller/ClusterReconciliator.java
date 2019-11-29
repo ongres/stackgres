@@ -71,6 +71,50 @@ public class ClusterReconciliator implements ResourceHandlerContext {
   void reconcile() {
     boolean created = false;
     boolean updated = false;
+    for (Tuple2<HasMetadata, Optional<HasMetadata>> existingResource : existingResources) {
+      if (existingResource.v1.getMetadata().getOwnerReferences().stream()
+          .map(ownerReference -> ownerReference.getApiVersion()
+              .equals(cluster.getApiVersion())
+              && ownerReference.getKind()
+              .equals(cluster.getKind())
+              && ownerReference.getName()
+              .equals(cluster.getMetadata().getName())
+              && ownerReference.getUid()
+              .equals(cluster.getMetadata().getUid()))
+          .map(resourceBelongsToCurrentCluster -> !resourceBelongsToCurrentCluster)
+          .findFirst()
+          .orElse(true)
+          && !handlerSelector.isManaged(clusterConfig, existingResource.v1)) {
+        if (handlerSelector.skipDeletion(clusterConfig, existingResource.v1)) {
+          LOGGER.trace("Skip deletion for resource {}.{} of type {}",
+              existingResource.v1.getMetadata().getNamespace(),
+              existingResource.v1.getMetadata().getName(),
+              existingResource.v1.getKind());
+          continue;
+        }
+        LOGGER.debug("Deleteing resource {}.{} of type {}"
+            + " since belong to an older version of an existing cluster",
+            existingResource.v1.getMetadata().getNamespace(),
+            existingResource.v1.getMetadata().getName(),
+            existingResource.v1.getKind());
+        handlerSelector.delete(client, clusterConfig, existingResource.v1);
+      } else if (!existingResource.v2.isPresent()
+          && !handlerSelector.isManaged(clusterConfig, existingResource.v1)) {
+        if (handlerSelector.skipDeletion(clusterConfig, existingResource.v1)) {
+          LOGGER.trace("Skip deletion for resource {}.{} of type {}",
+              existingResource.v1.getMetadata().getNamespace(),
+              existingResource.v1.getMetadata().getName(),
+              existingResource.v1.getKind());
+          continue;
+        }
+        LOGGER.debug("Deleteing resource {}.{} of type {}"
+            + " since does not belong to existing cluster",
+            existingResource.v1.getMetadata().getNamespace(),
+            existingResource.v1.getMetadata().getName(),
+            existingResource.v1.getKind());
+        handlerSelector.delete(client, clusterConfig, existingResource.v1);
+      }
+    }
     for (Tuple2<HasMetadata, Optional<HasMetadata>> requiredResource : requiredResources) {
       Optional<HasMetadata> matchingResource = requiredResource.v2;
       if (matchingResource
@@ -109,25 +153,6 @@ public class ClusterReconciliator implements ResourceHandlerContext {
             requiredResource.v1.getKind());
         handlerSelector.create(client, clusterConfig, requiredResource.v1);
         created = true;
-      }
-    }
-    for (Tuple2<HasMetadata, Optional<HasMetadata>> existingResource : existingResources) {
-      if (!existingResource.v2.isPresent()
-          && !handlerSelector.isManaged(clusterConfig, existingResource.v1)) {
-        if (handlerSelector.skipDeletion(clusterConfig, existingResource.v1)) {
-          LOGGER.trace("Skip deletion for resource {}.{} of type {}",
-              existingResource.v1.getMetadata().getNamespace(),
-              existingResource.v1.getMetadata().getName(),
-              existingResource.v1.getKind());
-          continue;
-        }
-        LOGGER.debug("Deleteing resource {}.{} of type {}"
-            + " since does not belong to existing cluster",
-            existingResource.v1.getMetadata().getNamespace(),
-            existingResource.v1.getMetadata().getName(),
-            existingResource.v1.getKind());
-        handlerSelector.delete(client, clusterConfig, existingResource.v1);
-        updated = true;
       }
     }
 
