@@ -11,6 +11,7 @@ import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
@@ -106,6 +107,10 @@ public class ClusterReconciliationCycle {
     close = true;
     reconcile();
     executorService.shutdown();
+    arrayBlockingQueue.offer(true);
+    while (!arrayBlockingQueue.isEmpty()) {
+      TimeUnit.MICROSECONDS.sleep(20);
+    }
   }
 
   public void reconcile() {
@@ -123,7 +128,6 @@ public class ClusterReconciliationCycle {
         reconciliationCycle();
       } catch (Exception ex) {
         LOGGER.error("Reconciliation cycle loop was interrupted", ex);
-        new Thread(() -> System.exit(1)).start();
       }
     }
     LOGGER.info("Cluster reconciliation cycle loop stopped");
