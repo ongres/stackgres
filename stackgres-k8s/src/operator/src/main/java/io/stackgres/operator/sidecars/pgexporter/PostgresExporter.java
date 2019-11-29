@@ -141,6 +141,8 @@ public class PostgresExporter
                 .putAll(labels)
                 .put("container", NAME)
                 .build())
+            .withOwnerReferences(ImmutableList.of(ResourceUtil.getOwnerReference(
+                context.getClusterConfig().getCluster())))
             .endMetadata()
             .withSpec(new ServiceSpecBuilder()
                 .withSelector(defaultLabels)
@@ -158,6 +160,7 @@ public class PostgresExporter
           serviceMonitor.setKind(ServiceMonitorDefinition.KIND);
           serviceMonitor.setApiVersion(ServiceMonitorDefinition.APIVERSION);
           serviceMonitor.setMetadata(new ObjectMetaBuilder()
+              .withNamespace(pi.getNamespace())
               .withName(context.getClusterConfig().getCluster().getMetadata().getName()
                   + EXPORTER_SERVICE_MONITOR)
               .withLabels(ImmutableMap.<String, String>builder()
@@ -167,7 +170,8 @@ public class PostgresExporter
                   .put(CLUSTER_NAMESPACE_KEY, context.getClusterConfig().getCluster()
                       .getMetadata().getNamespace())
                   .build())
-              .withNamespace(pi.getNamespace())
+              .withOwnerReferences(ImmutableList.of(ResourceUtil.getOwnerReference(
+                  context.getClusterConfig().getCluster())))
               .build());
 
           ServiceMonitorSpec spec = new ServiceMonitorSpec();

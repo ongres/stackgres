@@ -33,22 +33,23 @@ public class PatroniServices {
     final String namespace = cluster.getMetadata().getNamespace();
     final Map<String, String> labels = ResourceUtil.defaultLabels(name);
 
-    Service config = createConfigService(namespace, name + CONFIG_SERVICE, labels);
+    Service config = createConfigService(namespace, name + CONFIG_SERVICE, labels, cluster);
     Service primary = createService(namespace, name + READ_WRITE_SERVICE,
-        ResourceUtil.PRIMARY_ROLE, labels);
+        ResourceUtil.PRIMARY_ROLE, labels, cluster);
     Service replicas = createService(namespace, name + READ_ONLY_SERVICE,
-        ResourceUtil.REPLICA_ROLE, labels);
+        ResourceUtil.REPLICA_ROLE, labels, cluster);
 
     return ImmutableList.of(config, primary, replicas);
   }
 
   private static Service createConfigService(String namespace, String serviceName,
-                                             Map<String, String> labels) {
+      Map<String, String> labels, StackGresCluster cluster) {
     return new ServiceBuilder()
         .withNewMetadata()
         .withNamespace(namespace)
         .withName(serviceName)
         .withLabels(labels)
+        .withOwnerReferences(ImmutableList.of(ResourceUtil.getOwnerReference(cluster)))
         .endMetadata()
         .withNewSpec()
         .withClusterIP("None")
@@ -57,7 +58,7 @@ public class PatroniServices {
   }
 
   private static Service createService(String namespace, String serviceName, String role,
-                                       Map<String, String> labels) {
+      Map<String, String> labels, StackGresCluster cluster) {
     final Map<String, String> labelsRole = new HashMap<>(labels);
     labelsRole.put(ResourceUtil.ROLE_KEY, role); // role is set by Patroni
 
@@ -66,6 +67,7 @@ public class PatroniServices {
         .withNamespace(namespace)
         .withName(serviceName)
         .withLabels(labelsRole)
+        .withOwnerReferences(ImmutableList.of(ResourceUtil.getOwnerReference(cluster)))
         .endMetadata()
         .withNewSpec()
         .withSelector(labelsRole)

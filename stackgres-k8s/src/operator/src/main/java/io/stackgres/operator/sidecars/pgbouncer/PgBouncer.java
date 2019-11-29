@@ -86,6 +86,8 @@ public class PgBouncer implements StackGresSidecarTransformer<StackGresPgbouncer
         .withNamespace(namespace)
         .withName(configMapName)
         .withLabels(ResourceUtil.defaultLabels(name))
+        .withOwnerReferences(ImmutableList.of(ResourceUtil.getOwnerReference(
+            context.getClusterConfig().getCluster())))
         .endMetadata()
         .withData(data)
         .build();

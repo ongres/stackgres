@@ -17,6 +17,10 @@ import com.google.common.collect.ImmutableMap;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
+import io.fabric8.kubernetes.api.model.ObjectReference;
+import io.fabric8.kubernetes.api.model.ObjectReferenceBuilder;
+import io.fabric8.kubernetes.api.model.OwnerReference;
+import io.fabric8.kubernetes.api.model.OwnerReferenceBuilder;
 import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.internal.SerializationUtils;
@@ -132,6 +136,33 @@ public class ResourceUtil {
     } catch (JsonProcessingException e) {
       LOGGER.debug("Error dump as Yaml:", e);
     }
+  }
+
+  /**
+   * Get the object reference of any resource.
+   */
+  public static ObjectReference getObjectReference(HasMetadata resource) {
+    return new ObjectReferenceBuilder()
+        .withApiVersion(resource.getApiVersion())
+        .withKind(resource.getKind())
+        .withNamespace(resource.getMetadata().getNamespace())
+        .withName(resource.getMetadata().getName())
+        .withResourceVersion(resource.getMetadata().getResourceVersion())
+        .withUid(resource.getMetadata().getUid())
+        .build();
+  }
+
+  /**
+   * Get the owner reference of any resource.
+   */
+  public static OwnerReference getOwnerReference(HasMetadata resource) {
+    return new OwnerReferenceBuilder()
+        .withApiVersion(resource.getApiVersion())
+        .withKind(resource.getKind())
+        .withName(resource.getMetadata().getName())
+        .withUid(resource.getMetadata().getUid())
+        .withController(true)
+        .build();
   }
 
 }

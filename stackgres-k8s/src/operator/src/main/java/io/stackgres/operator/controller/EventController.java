@@ -14,10 +14,10 @@ import javax.inject.Inject;
 import io.fabric8.kubernetes.api.model.EventBuilder;
 import io.fabric8.kubernetes.api.model.EventSourceBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.kubernetes.api.model.ObjectReferenceBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.operator.app.KubernetesClientFactory;
 import io.stackgres.operator.common.StackGresUtil;
+import io.stackgres.operator.resource.ResourceUtil;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,14 +77,7 @@ public class EventController {
         .withSource(new EventSourceBuilder()
             .withComponent(StackGresUtil.OPERATOR_NAME)
             .build())
-        .withInvolvedObject(new ObjectReferenceBuilder()
-            .withApiVersion(involvedObject.getApiVersion())
-            .withKind(involvedObject.getKind())
-            .withNamespace(involvedObject.getMetadata().getNamespace())
-            .withName(involvedObject.getMetadata().getName())
-            .withResourceVersion(involvedObject.getMetadata().getResourceVersion())
-            .withUid(involvedObject.getMetadata().getUid())
-            .build())
+        .withInvolvedObject(ResourceUtil.getObjectReference(involvedObject))
         .build())
         .createOrReplace();
   }

@@ -139,6 +139,8 @@ public class Envoy implements StackGresSidecarTransformer<CustomResource> {
           .withNamespace(namespace)
           .withName(configMapName)
           .withLabels(ResourceUtil.defaultLabels(name))
+          .withOwnerReferences(ImmutableList.of(ResourceUtil.getOwnerReference(
+              context.getClusterConfig().getCluster())))
           .endMetadata()
           .withData(data)
           .build();

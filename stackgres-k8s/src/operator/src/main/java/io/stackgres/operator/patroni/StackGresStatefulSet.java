@@ -263,6 +263,7 @@ public class StackGresStatefulSet {
         .withNamespace(namespace)
         .withName(name)
         .withLabels(labels)
+        .withOwnerReferences(ImmutableList.of(ResourceUtil.getOwnerReference(config.getCluster())))
         .endMetadata()
         .withNewSpec()
         .withReplicas(config.getCluster().getSpec().getInstances())
@@ -497,6 +498,8 @@ public class StackGresStatefulSet {
                 .withNamespace(namespace)
                 .withName(name + BACKUP_SUFFIX)
                 .withLabels(labels)
+                .withOwnerReferences(ImmutableList.of(
+                    ResourceUtil.getOwnerReference(config.getCluster())))
                 .endMetadata()
                 .withNewSpec()
                 .withConcurrencyPolicy("Replace")
