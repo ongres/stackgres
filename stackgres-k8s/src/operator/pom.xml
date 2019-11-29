@@ -182,23 +182,12 @@
                 </goals>
                 <configuration>
                   <trimStackTrace>false</trimStackTrace>
+                  <forkCount>1</forkCount>
+                  <reuseFork>false</reuseFork>
                   <includes>
-                    <include>**/StackGresOperatorIt.java</include>
-                  </includes>
-                  <excludes>
-                  </excludes>
-                </configuration>
-              </execution>
-              <execution>
-                <id>e2e-test</id>
-                <phase>integration-test</phase>
-                <goals>
-                  <goal>integration-test</goal>
-                </goals>
-                <configuration>
-                  <trimStackTrace>false</trimStackTrace>
-                  <includes>
-                    <include>**/StackGresOperatorEnd2EndIt.java</include>
+                    <include>**/It*.java</include>
+                    <include>**/*It.java</include>
+                    <include>**/*ItCase.java</include>
                   </includes>
                   <excludes>
                   </excludes>
