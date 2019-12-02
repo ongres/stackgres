@@ -41,7 +41,6 @@ public class StackGresOperatorEnd2EndIt extends AbstractStackGresOperatorIt {
                 ? E2E_TEST.get() + " e2e test"
                     : "all e2e tests") + " from it'\n"
             + "cd /resources/e2e\n"
-            + "echo $$ > /tmp/trap_kill\n"
             + "export KIND_NAME=\"$(docker inspect -f '{{.Name}}' \"$(hostname)\"|cut -d '/' -f 2)\"\n"
             + "export IMAGE_TAG=" + ItHelper.IMAGE_TAG + "\n"
             + "export REUSE_KIND=true\n"
