@@ -72,7 +72,9 @@ public class ClusterResourceScheduler implements CustomResourceScheduler<StackGr
           StackGresClusterList.class,
           StackGresClusterDoneable.class)
           .inNamespace(delete.getMetadata().getNamespace())
-          .delete(delete);
+          .withName(delete.getMetadata().getName())
+          .withPropagationPolicy("Foreground")
+          .delete();
     }
   }
 }
