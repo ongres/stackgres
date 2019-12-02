@@ -7,6 +7,7 @@ package io.stackgres.operator.patroni;
 
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Stream;
 
 import javax.enterprise.context.ApplicationScoped;
 
@@ -139,27 +140,25 @@ public class StackGresStatefulSetPodHandler extends AbstractResourceHandler {
     }
 
     private boolean isPodIndexGreaterThanRequiredReplicas(ObjectMeta podMetadata) {
-      return getContext().getRequiredResources()
-      .stream()
-      .map(t -> t.v1)
-      .filter(requiredResource -> requiredResource instanceof StatefulSet)
-      .map(requiredResource -> (StatefulSet) requiredResource)
-      .anyMatch(requiredStatefulSet -> requiredStatefulSet
-          .getSpec().getReplicas() <= ResourceUtil.extractPodIndex(
-              getContext().getClusterConfig().getCluster().getMetadata(),
-              podMetadata));
+      return isPodIndexGreaterThanReplicas(
+          getContext().getRequiredResources().stream().map(t -> t.v1),
+          podMetadata);
     }
 
     private boolean isPodIndexGreaterThanExistingReplicas(ObjectMeta podMetadata) {
-      return getContext().getExistingResources()
-      .stream()
-      .map(t -> t.v1)
-      .filter(existingResource -> existingResource instanceof StatefulSet)
-      .map(existingResource -> (StatefulSet) existingResource)
-      .anyMatch(existingStatefulSet -> existingStatefulSet
-          .getSpec().getReplicas() <= ResourceUtil.extractPodIndex(
-              getContext().getClusterConfig().getCluster().getMetadata(),
-              podMetadata));
+      return isPodIndexGreaterThanReplicas(
+          getContext().getExistingResources().stream().map(t -> t.v1),
+          podMetadata);
+    }
+
+    private boolean isPodIndexGreaterThanReplicas(Stream<HasMetadata> resources,
+        ObjectMeta podMetadata) {
+      return resources
+      .filter(resource -> resource instanceof StatefulSet)
+      .map(resource -> (StatefulSet) resource)
+      .anyMatch(statefulSet -> ResourceUtil.extractPodIndex(
+              getContext().getClusterConfig().getCluster(),
+              podMetadata) >= statefulSet.getSpec().getReplicas());
     }
   }
 }

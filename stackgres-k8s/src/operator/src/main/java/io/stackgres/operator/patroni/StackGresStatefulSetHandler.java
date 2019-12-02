@@ -131,9 +131,9 @@ public class StackGresStatefulSetHandler extends AbstractResourceHandler {
       return getContext().getExistingResources().stream()
           .map(t -> t.v1)
           .filter(this::isPrimary)
-          .anyMatch(existingResource -> requiredReplicas >= ResourceUtil.extractPodIndex(
-              getContext().getClusterConfig().getCluster().getMetadata(),
-              existingResource.getMetadata()));
+          .anyMatch(existingResource -> ResourceUtil.extractPodIndex(
+              getContext().getClusterConfig().getCluster(),
+              existingResource.getMetadata()) >= requiredReplicas);
     }
 
     public boolean isPrimary(HasMetadata existingResource) {

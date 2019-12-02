@@ -24,6 +24,7 @@ import io.fabric8.kubernetes.api.model.OwnerReferenceBuilder;
 import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.internal.SerializationUtils;
+import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -99,15 +100,15 @@ public class ResourceUtil {
   /**
    * Extract the index of a StatefulSet's pod.
    */
-  public static Integer extractPodIndex(ObjectMeta clusterMetadata, ObjectMeta podMetadata) {
-    Matcher matcher = Pattern.compile(getNameWithIndexPattern(clusterMetadata.getName()))
+  public static Integer extractPodIndex(StackGresCluster cluster, ObjectMeta podMetadata) {
+    Matcher matcher = Pattern.compile(getNameWithIndexPattern(cluster.getMetadata().getName()))
         .matcher(podMetadata.getName());
     if (matcher.find()) {
       return Integer.parseInt(matcher.group(1));
     }
     throw new IllegalStateException("Can not extract index from pod "
         + podMetadata.getNamespace() + "." + podMetadata.getName() + " for cluster "
-        + clusterMetadata.getNamespace() + "." + clusterMetadata.getName());
+        + cluster.getMetadata().getNamespace() + "." + cluster.getMetadata().getName());
   }
 
   /**
