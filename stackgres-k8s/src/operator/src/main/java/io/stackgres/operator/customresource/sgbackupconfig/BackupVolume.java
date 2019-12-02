@@ -12,9 +12,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.MoreObjects;
 
-import io.fabric8.kubernetes.api.model.CephFSPersistentVolumeSource;
-import io.fabric8.kubernetes.api.model.GlusterfsPersistentVolumeSource;
-import io.fabric8.kubernetes.api.model.NFSVolumeSource;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
 @JsonDeserialize
@@ -26,18 +23,8 @@ public class BackupVolume {
   @NotNull(message = "The volume size is required")
   private String size;
 
-  @JsonProperty("type")
-  @NotNull(message = "The volume type is required")
-  private String type;
-
-  @JsonProperty("nfs")
-  private NFSVolumeSource nfs;
-
-  @JsonProperty("cephfs")
-  private CephFSPersistentVolumeSource cephfs;
-
-  @JsonProperty("glusterfs")
-  private GlusterfsPersistentVolumeSource glusterfs;
+  @JsonProperty("writeManyStorageClass")
+  private String writeManyStorageClass;
 
   public String getSize() {
     return size;
@@ -47,36 +34,12 @@ public class BackupVolume {
     this.size = size;
   }
 
-  public String getType() {
-    return type;
+  public String getWriteManyStorageClass() {
+    return writeManyStorageClass;
   }
 
-  public void setType(String type) {
-    this.type = type;
-  }
-
-  public NFSVolumeSource getNfs() {
-    return nfs;
-  }
-
-  public void setNfs(NFSVolumeSource nfs) {
-    this.nfs = nfs;
-  }
-
-  public CephFSPersistentVolumeSource getCephfs() {
-    return cephfs;
-  }
-
-  public void setCephfs(CephFSPersistentVolumeSource cephfs) {
-    this.cephfs = cephfs;
-  }
-
-  public GlusterfsPersistentVolumeSource getGlusterfs() {
-    return glusterfs;
-  }
-
-  public void setGlusterfs(GlusterfsPersistentVolumeSource glusterfs) {
-    this.glusterfs = glusterfs;
+  public void setWriteManyStorageClass(String writeManyStorageClass) {
+    this.writeManyStorageClass = writeManyStorageClass;
   }
 
   @Override
@@ -84,10 +47,7 @@ public class BackupVolume {
     return MoreObjects.toStringHelper(this)
         .omitNullValues()
         .add("size", size)
-        .add("type", type)
-        .add("nfs", nfs)
-        .add("cephfs", cephfs)
-        .add("glusterfs", glusterfs)
+        .add("writeManyStorageClass", writeManyStorageClass)
         .toString();
   }
 

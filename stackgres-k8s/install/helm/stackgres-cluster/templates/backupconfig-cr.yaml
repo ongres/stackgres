@@ -3,6 +3,11 @@ apiVersion: stackgres.io/{{ .Values.crd.version }}
 kind: StackGresBackupConfig
 metadata:
   name: {{ .Values.cluster.backup.name }}
+  labels:
+    app: {{ template "stackgres-cluster.name" . }}
+    chart: {{ template "stackgres-cluster.chart" . }}
+    heritage: {{ .Release.Service }}
+    release: {{ .Release.Name }}
   {{- if .Values.cluster.create }}
   annotations:
     "helm.sh/hook": "pre-install"
@@ -27,48 +32,23 @@ spec:
   {{- end }}
   tarSizeThreshold: {{ .Values.cluster.backup.tarSizeThreshold }}
   storage:
-    {{- if not (or .Values.cluster.backup.volume .Values.cluster.backup.s3 .Values.cluster.backup.gcs .Values.cluster.backup.azureblob) }}
+    {{- if not (or .Values.cluster.backup.volumeWriteManyStorageClass .Values.cluster.backup.s3 .Values.cluster.backup.gcs .Values.cluster.backup.azureblob) }}
     type: volume
     volume:
       size: "{{ .Values.cluster.backup.volumeSize }}"
-      type: nfs
-      nfs:
-        path: "/{{ .Release.Name }}/backups"
-        server: "{{ .Release.Name }}-nfs.{{ .Release.Namespace }}.svc.cluster.local"
+      writeManyStorageClass: "{{ print .Release.Namespace "-" .Release.Name "-nfs" }}"
     {{- end }}
-    {{- if .Values.cluster.backup.volume }}
+    {{- if .Values.cluster.backup.volumeWriteManyStorageClass }}
     type: volume
     volume:
       size: "{{ .Values.cluster.backup.volumeSize }}"
-    {{- if .Values.cluster.backup.volume.nfs }}
-      type: nfs
-      nfs:
-        path: "{{ .Values.cluster.backup.volume.nfs.path }}"
-        server: "{{ .Values.cluster.backup.volume.nfs.server }}"
-    {{- end }}
-    {{- if .Values.cluster.backup.volume.cephfs }}
-      type: cephfs
-      cephfs:
-        monitors:
-        {{- range .Values.cluster.backup.volume.cephfs.monitors }}
-        - "{{ . }}"
-        {{- end }}
-        path: "{{ .Values.cluster.backup.volume.cephfs.path }}"
-        {{- if .Values.cluster.backup.volume.cephfs.secretFile }}
-        secretFile: "{{ .Values.cluster.backup.volume.cephfs.secretFile }}"
-        {{- end }}
-        {{- if .Values.cluster.backup.volume.cephfs.secretReference }}
-        secretReference:
-          name: "{{ .Values.cluster.backup.volume.cephfs.secretReference }}"
-        {{- end }}
-        user: "{{ .Values.cluster.backup.volume.cephfs.user }}"
-    {{- end }}
-    {{- if .Values.cluster.backup.volume.glusterfs }}
-      type: glusterfs
-      glusterfs:
-        endpoints: "{{ .Values.cluster.backup.volume.glusterfs.endpoints }}"
-        path: "{{ .Values.cluster.backup.volume.glusterfs.path }}"
-    {{- end }}
+      {{- if .Values.cluster.backup.volumeWriteManyStorageClass }}
+      {{- if eq "-" .Values.cluster.backup.volumeWriteManyStorageClass }}
+      writeManyStorageClass: ""
+      {{- else }}
+      writeManyStorageClass: {{ .Values.cluster.backup.volumeWriteManyStorageClass }}
+      {{- end }}
+      {{- end }}
     {{- end }}
     {{- if .Values.cluster.backup.s3 }}
     type: s3

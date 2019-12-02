@@ -27,7 +27,9 @@ import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.PersistentVolume;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaimSpec;
+import io.fabric8.kubernetes.api.model.PersistentVolumeClaimVolumeSource;
 import io.fabric8.kubernetes.api.model.PersistentVolumeSpec;
+import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodAffinity;
 import io.fabric8.kubernetes.api.model.PodAffinityTerm;
 import io.fabric8.kubernetes.api.model.PodAntiAffinity;
@@ -139,6 +141,8 @@ public class ResourcePairVisitor<T, C> {
         .lastVisitIfBothInstanceOf(ConfigMap.class, this::visitConfigMap)
         .lastVisitIfBothInstanceOf(Endpoints.class, this::visitEndpoints)
         .lastVisitIfBothInstanceOf(CronJob.class, this::visitCronJob)
+        .lastVisitIfBothInstanceOf(Pod.class, this::visitPod)
+        .lastVisitIfBothInstanceOf(PersistentVolumeClaim.class, this::visitPersistentVolumeClaim)
         .lastVisit(this::visitUnknown);
   }
 
@@ -445,8 +449,6 @@ public class ResourcePairVisitor<T, C> {
             PersistentVolumeClaimSpec::setStorageClassName)
         .visit(PersistentVolumeClaimSpec::getVolumeMode,
             PersistentVolumeClaimSpec::setVolumeMode)
-        .visit(PersistentVolumeClaimSpec::getVolumeName,
-            PersistentVolumeClaimSpec::setVolumeName)
         .visitList(PersistentVolumeClaimSpec::getAccessModes,
             PersistentVolumeClaimSpec::setAccessModes)
         .visitMap(PersistentVolumeClaimSpec::getAdditionalProperties)
@@ -570,7 +572,8 @@ public class ResourcePairVisitor<T, C> {
         .visit(Volume::getHostPath, Volume::setHostPath)
         .visit(Volume::getIscsi, Volume::setIscsi)
         .visit(Volume::getNfs, Volume::setNfs)
-        .visit(Volume::getPersistentVolumeClaim, Volume::setPersistentVolumeClaim)
+        .visitWith(Volume::getPersistentVolumeClaim, Volume::setPersistentVolumeClaim,
+            this::visitPersistentVolumeClaimVolumeSource)
         .visit(Volume::getPhotonPersistentDisk, Volume::setPhotonPersistentDisk)
         .visit(Volume::getPortworxVolume, Volume::setPortworxVolume)
         .visit(Volume::getProjected, Volume::setProjected)
@@ -595,6 +598,19 @@ public class ResourcePairVisitor<T, C> {
         .visitList(ConfigMapVolumeSource::getItems, ConfigMapVolumeSource::setItems)
         .visit(ConfigMapVolumeSource::getOptional, ConfigMapVolumeSource::setOptional)
         .visitMap(ConfigMapVolumeSource::getAdditionalProperties);
+  }
+
+  /**
+   * Visit using a pair visitor.
+   */
+  public PairVisitor<PersistentVolumeClaimVolumeSource, T> visitPersistentVolumeClaimVolumeSource(
+      PairVisitor<PersistentVolumeClaimVolumeSource, T> pairVisitor) {
+    return pairVisitor.visit()
+        .visit(PersistentVolumeClaimVolumeSource::getClaimName,
+            PersistentVolumeClaimVolumeSource::setClaimName)
+        .visit(PersistentVolumeClaimVolumeSource::getReadOnly,
+            PersistentVolumeClaimVolumeSource::setReadOnly, false)
+        .visitMap(PersistentVolumeClaimVolumeSource::getAdditionalProperties);
   }
 
   /**
@@ -882,15 +898,25 @@ public class ResourcePairVisitor<T, C> {
   /**
    * Visit using a pair visitor.
    */
+  public PairVisitor<Pod, T> visitPod(
+      PairVisitor<Pod, T> pairVisitor) {
+    return pairVisitor.visit()
+        .visitWith(Pod::getSpec, Pod::setSpec,
+            this::visitPodSpec)
+        .visitMap(Pod::getAdditionalProperties);
+  }
+
+  /**
+   * Visit using a pair visitor.
+   */
   public PairVisitor<ObjectMeta, T> visitMetadata(
       PairVisitor<ObjectMeta, T> pairVisitor) {
     return pairVisitor.visit()
         .visit(ObjectMeta::getClusterName, ObjectMeta::setClusterName)
-        .visit(ObjectMeta::getDeletionGracePeriodSeconds,
-            ObjectMeta::setDeletionGracePeriodSeconds, 0L)
-        .visit(ObjectMeta::getName, ObjectMeta::setName)
-        .visit(ObjectMeta::getNamespace, ObjectMeta::setNamespace)
-        .visitMap(ObjectMeta::getAdditionalProperties)
+        .visit(ObjectMeta::getName)
+        .visit(ObjectMeta::getNamespace)
+        .visitMap(ObjectMeta::getAdditionalProperties, (objectMeta, map) -> map.entrySet()
+            .forEach(e -> objectMeta.setAdditionalProperty(e.getKey(), e.getValue())))
         .visitMap(ObjectMeta::getLabels, ObjectMeta::setLabels);
   }
 

@@ -1,12 +1,14 @@
 #!/bin/sh
 
-test_install_pods() {
-  echo 2
-}
-
 test_before_all() {
   helm install stable/minio --name "$SPEC_NAME-minio" --namespace "$CLUSTER_NAMESPACE" \
     --version 2.5.18 --set buckets[0].name=stackgres,buckets[0].policy=none,buckets[0].purge=true
+}
+
+test_install() {
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1
+
+  wait_pods_running "$CLUSTER_NAMESPACE" 2
 }
 
 test() {

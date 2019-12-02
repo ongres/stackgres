@@ -3,6 +3,11 @@ apiVersion: stackgres.io/{{ .Values.crd.version }}
 kind: StackGresCluster
 metadata:
   name: {{ .Release.Name }}
+  labels:
+    app: {{ template "stackgres-cluster.name" . }}
+    chart: {{ template "stackgres-cluster.chart" . }}
+    heritage: {{ .Release.Service }}
+    release: {{ .Release.Name }}
 spec:
   instances: {{ .Values.cluster.instances }}
   pgVersion: '{{ .Values.config.postgresql.version }}'
@@ -13,14 +18,13 @@ spec:
   backupConfig: '{{ .Values.cluster.backup.name }}'
   {{- end }}
   volumeSize: '{{ .Values.cluster.volumeSize }}'
-  {{- if .Values.cluster.storageclass }}
-  {{- if eq "-" .Values.cluster.storageclass }}
+  {{- if .Values.cluster.storageClass }}
+  {{- if eq "-" .Values.cluster.storageClass }}
   storageClass: ""
   {{- else }}
-  storageClass: {{ .Values.cluster.storageclass }}
+  storageClass: {{ .Values.cluster.storageClass }}
   {{- end }}
   {{- end }}
-  postgresExporterVersion: '{{ .Values.config.postgresExporter.version }}'
   {{- if .Values.sidecar.prometheus.create }}
   prometheusAutobind: {{ .Values.sidecar.prometheus.allowAutobind }}
   {{- else }}

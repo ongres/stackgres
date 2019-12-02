@@ -37,9 +37,6 @@ public class StackGresClusterSpec implements KubernetesResource {
   @NotBlank(message = "You need to associate a Postgres configuration to this cluster")
   private String postgresConfig;
 
-  @JsonProperty("postgresExporterVersion")
-  private String postgresExporterVersion;
-
   @JsonProperty("resourceProfile")
   @NotNull
   private String resourceProfile;
@@ -86,14 +83,6 @@ public class StackGresClusterSpec implements KubernetesResource {
 
   public void setPostgresConfig(String postgresConfig) {
     this.postgresConfig = postgresConfig;
-  }
-
-  public String getPostgresExporterVersion() {
-    return postgresExporterVersion;
-  }
-
-  public void setPostgresExporterVersion(String postgresExporterVersion) {
-    this.postgresExporterVersion = postgresExporterVersion;
   }
 
   public String getResourceProfile() {

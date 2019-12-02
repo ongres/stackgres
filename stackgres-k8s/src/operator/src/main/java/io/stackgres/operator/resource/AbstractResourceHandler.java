@@ -16,6 +16,7 @@ import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesResourceList;
+import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.Service;
@@ -52,6 +53,7 @@ public abstract class AbstractResourceHandler implements ResourceHandler {
       .put(Endpoints.class, client -> client.endpoints())
       .put(CronJob.class, client -> client.batch().cronjobs())
       .put(Pod.class, client -> client.pods())
+      .put(PersistentVolumeClaim.class, client -> client.persistentVolumeClaims())
       .build();
 
   @Override

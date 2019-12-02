@@ -18,7 +18,6 @@
         "instances": 1,
         "pgConfig": "postgresconf",
         "pgVersion": "11.5",
-        "postgresExporterVersion": "0.5.1",
         "prometheusAutobind": true,
         "resourceProfile": "size-xs",
         "backupConfig": "backupconf",

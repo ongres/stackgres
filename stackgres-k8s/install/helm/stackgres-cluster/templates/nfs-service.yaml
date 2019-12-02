@@ -1,10 +1,13 @@
-{{ if and .Values.config.create .Values.cluster.backup.create (not (or .Values.cluster.backup.volume .Values.cluster.backup.s3 .Values.cluster.backup.gcs .Values.cluster.backup.azureblob)) }}
+{{ if and .Values.config.create .Values.cluster.backup.create (not (or .Values.cluster.backup.volumeWriteManyStorageClass .Values.cluster.backup.s3 .Values.cluster.backup.gcs .Values.cluster.backup.azureblob)) }}
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ .Release.Name }}-nfs
+  name: {{ template "nfs-storage-class.name" . }}
   labels:
-    role: nfs
+    app: {{ template "stackgres-cluster.name" . }}
+    chart: {{ template "stackgres-cluster.chart" . }}
+    heritage: {{ .Release.Service }}
+    release: {{ .Release.Name }}
 spec:
   type: ClusterIP
   ports:
@@ -16,10 +19,15 @@ spec:
       targetPort: mountd
       protocol: TCP
       name: mountd
-    - port: 111
-      targetPort: rpcbind
+    - port: 51413
+      targetPort: rpcbind-tcp
       protocol: TCP
-      name: rpcbind
+      name: rpcbind-tcp
+    - port: 51413
+      targetPort: rpcbind-udp
+      protocol: UDP
+      name: rpcbind-udp
   selector:
-    role: nfs
-{{ end }}
+    app: {{ template "stackgres-cluster.name" . }}
+    release: {{ .Release.Name }}
+{{- end -}}

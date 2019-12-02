@@ -118,7 +118,6 @@ public class PostgresExporter
 
   @Override
   public List<HasMetadata> getResources(ResourceGeneratorContext context) {
-
     final Map<String, String> defaultLabels = ResourceUtil.defaultLabels(
         context.getClusterConfig().getCluster().getMetadata().getName());
     Map<String, String> labels = new ImmutableMap.Builder<String, String>()
@@ -166,8 +165,6 @@ public class PostgresExporter
                   .putAll(pi.getMatchLabels())
                   .putAll(labels)
                   .build())
-              .withOwnerReferences(ImmutableList.of(ResourceUtil.getOwnerReference(
-                  context.getClusterConfig().getCluster())))
               .build());
 
           ServiceMonitorSpec spec = new ServiceMonitorSpec();
@@ -193,8 +190,7 @@ public class PostgresExporter
 
   @Override
   public Optional<StackGresPostgresExporterConfig> getConfig(StackGresCluster cluster,
-                                                             KubernetesClient client) {
-
+      KubernetesClient client) {
     StackGresPostgresExporterConfig sgpec = new StackGresPostgresExporterConfig();
     StackGresPostgresExporterConfigSpec spec = new StackGresPostgresExporterConfigSpec();
     sgpec.setSpec(spec);
@@ -235,6 +231,5 @@ public class PostgresExporter
     }
 
     return Optional.of(sgpec);
-
   }
 }

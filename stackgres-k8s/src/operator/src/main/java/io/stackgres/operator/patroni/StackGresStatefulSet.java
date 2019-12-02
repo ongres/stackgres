@@ -33,12 +33,10 @@ import io.fabric8.kubernetes.api.model.LabelSelectorBuilder;
 import io.fabric8.kubernetes.api.model.LabelSelectorRequirementBuilder;
 import io.fabric8.kubernetes.api.model.ObjectFieldSelectorBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
-import io.fabric8.kubernetes.api.model.PersistentVolume;
-import io.fabric8.kubernetes.api.model.PersistentVolumeBuilder;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaimBuilder;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaimSpecBuilder;
-import io.fabric8.kubernetes.api.model.PersistentVolumeSpecBuilder;
+import io.fabric8.kubernetes.api.model.PersistentVolumeClaimVolumeSource;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodAffinityTermBuilder;
 import io.fabric8.kubernetes.api.model.PodAntiAffinityBuilder;
@@ -78,7 +76,6 @@ public class StackGresStatefulSet {
   public static final String DATA_SUFFIX = "-data";
   public static final String BACKUP_SUFFIX = "-backup";
   public static final String SOCKET_VOLUME_NAME = "socket";
-  public static final String BACKUP_VOLUME_NAME = "backup";
   public static final String BACKUP_VOLUME_PATH = "/var/lib/postgresql/backups";
   public static final String GCS_CREDENTIALS_VOLUME_NAME = "gcs-credentials";
   public static final String WAL_G_WRAPPER_VOLUME_NAME = "wal-g-wrapper";
@@ -107,6 +104,7 @@ public class StackGresStatefulSet {
           "cpu", new Quantity(profile.get().getSpec().getCpu()),
           "memory", new Quantity(profile.get().getSpec().getMemory())));
     }
+
     StorageConfig dataStorageConfig = ImmutableStorageConfig.builder()
         .size(config.getCluster().getSpec().getVolumeSize())
         .storageClass(Optional.ofNullable(
@@ -192,35 +190,6 @@ public class StackGresStatefulSet {
           .build());
     }
 
-    final Optional<PersistentVolume> backupVolume = config.getBackupConfig()
-        .map(backupConfig -> backupConfig.getSpec().getStorage().getVolume())
-        .map(volume -> {
-          StorageConfig backupStorageConfig = ImmutableStorageConfig.builder()
-              .size(volume.getSize())
-              .build();
-          PersistentVolumeSpecBuilder volumeSpecBuilder = new PersistentVolumeSpecBuilder()
-              .withCapacity(backupStorageConfig.getStorage())
-              .withAccessModes("ReadWriteMany")
-              .withPersistentVolumeReclaimPolicy("Delete");
-          if (volume.getNfs() != null) {
-            volumeSpecBuilder.withNfs(volume.getNfs());
-          } else if (volume.getCephfs() != null) {
-            volumeSpecBuilder.withCephfs(volume.getCephfs());
-          } else if (volume.getGlusterfs() != null) {
-            volumeSpecBuilder.withGlusterfs(volume.getGlusterfs());
-          } else {
-            throw new IllegalStateException("Unable to set persistent volume value");
-          }
-          return volumeSpecBuilder.build();
-        })
-        .map(volumeSpec -> new PersistentVolumeBuilder()
-          .withNewMetadata()
-          .withName(namespace + "-" + name + BACKUP_SUFFIX)
-          .withLabels(ResourceUtil.defaultLabels(namespace, name))
-          .endMetadata()
-          .withSpec(volumeSpec)
-          .build());
-
     final Optional<PersistentVolumeClaim> backupVolumeClaim = config.getBackupConfig()
         .map(backupConfig -> backupConfig.getSpec().getStorage().getVolume())
         .map(volume -> {
@@ -232,10 +201,12 @@ public class StackGresStatefulSet {
               .withName(name + BACKUP_SUFFIX)
               .withNamespace(namespace)
               .withLabels(labels)
+              .withOwnerReferences(ImmutableList.of(
+                  ResourceUtil.getOwnerReference(config.getCluster())))
               .endMetadata()
               .withNewSpec()
               .withAccessModes("ReadWriteMany")
-              .withStorageClassName("")
+              .withStorageClassName(volume.getWriteManyStorageClass())
               .withResources(backupStorageConfig.getResourceRequirements())
               .endSpec()
               .build();
@@ -389,18 +360,18 @@ public class StackGresStatefulSet {
                 .withMountPath("/wal-g-wrapper")
                 .build()),
                 Stream.of(config.getBackupConfig()
+                    .map(backupConfig -> backupConfig.getSpec().getStorage().getVolume()))
+                .filter(Optional::isPresent)
+                .map(volumeStorage -> new VolumeMountBuilder()
+                    .withName(name + BACKUP_SUFFIX)
+                    .withMountPath(BACKUP_VOLUME_PATH)
+                    .build()),
+                Stream.of(config.getBackupConfig()
                     .map(backupConfig -> backupConfig.getSpec().getStorage().getGcs()))
                 .filter(Optional::isPresent)
                 .map(gcsStorage -> new VolumeMountBuilder()
                     .withName(GCS_CREDENTIALS_VOLUME_NAME)
                     .withMountPath(GCS_CONFIG_PATH)
-                    .build()),
-                Stream.of(config.getBackupConfig()
-                    .map(backupConfig -> backupConfig.getSpec().getStorage().getVolume()))
-                .filter(Optional::isPresent)
-                .map(gcsStorage -> new VolumeMountBuilder()
-                    .withName(name + BACKUP_SUFFIX)
-                    .withMountPath(BACKUP_VOLUME_PATH)
                     .build()))
                 .flatMap(stream -> stream)
                 .collect(ImmutableList.toImmutableList()))
@@ -443,31 +414,13 @@ public class StackGresStatefulSet {
                     .endEmptyDir()
                     .build()),
                 Stream.of(config.getBackupConfig()
-                    .map(backupConfig -> backupConfig.getSpec().getStorage().getVolume())
-                    .map(volume -> volume.getNfs()))
+                    .map(backupConfig -> backupConfig.getSpec().getStorage().getVolume()))
                 .filter(Optional::isPresent)
                 .map(Optional::get)
-                .map(volumeSource -> new VolumeBuilder()
-                    .withName(BACKUP_VOLUME_NAME)
-                    .withNfs(volumeSource)
-                    .build()),
-                Stream.of(config.getBackupConfig()
-                    .map(backupConfig -> backupConfig.getSpec().getStorage().getVolume())
-                    .map(volume -> volume.getCephfs()))
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .map(volumeSource -> new VolumeBuilder()
-                    .withName(BACKUP_VOLUME_NAME)
-                    .withCephfs(volumeSource)
-                    .build()),
-                Stream.of(config.getBackupConfig()
-                    .map(backupConfig -> backupConfig.getSpec().getStorage().getVolume())
-                    .map(volume -> volume.getGlusterfs()))
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .map(volumeSource -> new VolumeBuilder()
-                    .withName(BACKUP_VOLUME_NAME)
-                    .withGlusterfs(volumeSource)
+                .map(volumeStorage -> new VolumeBuilder()
+                    .withName(name + BACKUP_SUFFIX)
+                    .withPersistentVolumeClaim(new PersistentVolumeClaimVolumeSource(
+                        name + BACKUP_SUFFIX, false))
                     .build()),
                 Stream.of(config.getBackupConfig()
                     .map(backupConfig -> backupConfig.getSpec().getStorage().getGcs()))
@@ -536,20 +489,17 @@ public class StackGresStatefulSet {
             .withLabels(labels)
             .endMetadata()
             .withSpec(volumeClaimSpec.build())
-            .build()),
-            Stream.of(backupVolumeClaim)
-            .filter(Optional::isPresent)
-            .map(Optional::get))
+            .build()))
             .flatMap(s -> s)
             .toArray(PersistentVolumeClaim[]::new))
         .endSpec()
         .build();
 
     return ImmutableList.<HasMetadata>builder()
-        .addAll(() -> config.getSidecars().stream()
+        .addAll(config.getSidecars().stream()
             .flatMap(sidecarEntry -> sidecarEntry.getSidecar().getResources(context).stream())
             .iterator())
-        .addAll(Stream.of(backupVolume)
+        .addAll(Stream.of(backupVolumeClaim)
             .filter(Optional::isPresent)
             .map(Optional::get)
             .iterator())

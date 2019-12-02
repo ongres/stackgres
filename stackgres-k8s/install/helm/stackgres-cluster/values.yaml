@@ -4,8 +4,6 @@ config:
     version: "11.6"
   pgbouncer:
     version: "1.12.0"
-  postgresExporter:
-    version: "0.7.0"
 
 cluster:
   create: true
@@ -29,31 +27,18 @@ cluster:
     compressionMethod: lz4
     uploadDiskConcurrency: 1
     tarSizeThreshold: 1073741823
-    volumeSize: 10Gi # Only affects volume sources
-    ## If defined, storageClassName: <storageClass>
-    ## If set to "-", storageClassName: "", which disables dynamic provisioning
-    ## If undefined (the default) or set to null, no storageClassName spec is
-    ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
-    ##   GKE, AWS & OpenStack)
-    #storageClass: "-" # Only affect creation of default NFS volume
     #networkRateLimit:
     #diskRateLimit:
     #pgpConfiguration:
     #  name: pgpConfiguration
     #  key: key
-    volume: {}
-    #  nfs: # see https://kubernetes.io/docs/concepts/storage/volumes#nfs
-    #    path:
-    #    server:
-    #  cephfs: # see https://releases.k8s.io/HEAD/examples/volumes/cephfs/README.md#how-to-use-it
-    #    monitors: []
-    #    path:
-    #    secretFile:
-    #    secretRef:
-    #    user:
-    #  glusterfs: # see https://releases.k8s.io/HEAD/examples/volumes/glusterfs/README.md#create-a-pod
-    #    endpoints: 
-    #    path:
+    volumeSize: 5Gi # Only affects volume sources
+    ## If defined, storageClassName: <volumeWriteManyStorageClass>
+    ## If set to "-", storageClassName: "", which disables dynamic provisioning
+    ## If undefined (the default) or set to null, no storageClassName spec is
+    ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
+    ##   GKE, AWS & OpenStack)
+    #volumeWriteManyStorageClass: "-"
     s3: {}
     #  prefix: s3://stackgres
     #  accessKey:
@@ -97,3 +82,10 @@ crd:
 
 profiles:
   create: true
+
+## If defined, storageClassName: <nfsStorageClass>
+## If set to "-", storageClassName: "", which disables dynamic provisioning
+## If undefined (the default) or set to null, no storageClassName spec is
+##   set, choosing the default provisioner.  (gp2 on AWS, standard on
+##   GKE, AWS & OpenStack)
+#nfsStorageClass: "-"

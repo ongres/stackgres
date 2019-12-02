@@ -13,7 +13,7 @@ import io.stackgres.operator.common.StackGresClusterConfig;
 import io.stackgres.operator.resource.AbstractResourceHandler;
 
 @ApplicationScoped
-public class PatroniManagedEndpointsHandler extends AbstractResourceHandler {
+public class PatroniEndpointsHandler extends AbstractResourceHandler {
 
   @Override
   public boolean isHandlerForResource(StackGresClusterConfig config, HasMetadata resource) {
@@ -26,7 +26,9 @@ public class PatroniManagedEndpointsHandler extends AbstractResourceHandler {
         || resource.getMetadata().getName().equals(
             config.getCluster().getMetadata().getName() + PatroniServices.READ_WRITE_SERVICE)
         || resource.getMetadata().getName().equals(
-            config.getCluster().getMetadata().getName() + PatroniServices.READ_ONLY_SERVICE));
+            config.getCluster().getMetadata().getName() + PatroniServices.READ_ONLY_SERVICE)
+        || resource.getMetadata().getName().equals(
+            config.getCluster().getMetadata().getName() + PatroniServices.FAILOVER_SERVICE));
   }
 
   @Override

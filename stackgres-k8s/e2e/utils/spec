@@ -5,7 +5,7 @@ test_before_all() {
 }
 
 test_install() {
-  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "$(test_install_pods)" $HELM_OPTS
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "$(test_install_pods)"
 
   wait_pods_running "$CLUSTER_NAMESPACE" "$(test_install_pods)"
 }
@@ -39,19 +39,17 @@ spec() {
 
   mkdir -p "$LOG_PATH"
 
-  HELM_OPTS=""
-
-  if [ -f "$SPEC_VALUES_FILE" ]
+  if [ ! -f "$SPEC_VALUES_FILE" ]
   then
-    HELM_OPTS="$HELM_OPTS -f $SPEC_VALUES_FILE"
+    SPEC_VALUES_FILE="spec/default.values.yaml"
   fi
 
   . "$SPEC_FILE"
 
   echo
-  echo "----------------------------------------------------------------"
+  echo "================================================================"
   echo "Running $SPEC_NAME tests"
-  echo "----------------------------------------------------------------"
+  echo "================================================================"
   echo
 
   > "$LOG_PATH/$SPEC_NAME.log"

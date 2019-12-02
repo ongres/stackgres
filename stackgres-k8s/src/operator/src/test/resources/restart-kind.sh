@@ -36,17 +36,12 @@ then
     docker exec -t $node sh -c "update-ca-certificates"
   done
 fi
-for node in $(kind get nodes --name "$KIND_NAME")
-do
-  docker exec -t $node sh -c 'DEBIAN_FRONTEND=noninteractive apt-get update -y -qq < /dev/null > /dev/null'
-  docker exec -t $node sh -c 'DEBIAN_FRONTEND=noninteractive apt-get install -y -qq nfs-common < /dev/null > /dev/null'
-done
 sed -i 's#^    server:.*$#    server: 'https://"$(docker inspect -f '{{ .NetworkSettings.IPAddress }}' ${KIND_NAME}-control-plane)"':6443#' "$(kind get kubeconfig-path --name="$KIND_NAME")"
 export KUBECONFIG="$(kind get kubeconfig-path --name="$KIND_NAME")"
 echo "export KUBECONFIG='$(kind get kubeconfig-path --name="$KIND_NAME")'" > "$HOME/.profile"
 # Patch coredns to version 1.3.1 (see https://github.com/coredns/coredns/issues/2391)
-kubectl patch deployment -n kube-system coredns --type json \
-  --patch '[{"op":"replace","path":"/spec/template/spec/containers/0/image","value":"k8s.gcr.io/coredns:1.3.1"}]'
+# kubectl patch deployment -n kube-system coredns --type json \
+#   --patch '[{"op":"replace","path":"/spec/template/spec/containers/0/image","value":"k8s.gcr.io/coredns:1.3.1"}]'
 cat << 'EOF' | kubectl apply -f -
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1beta1

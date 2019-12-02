@@ -34,9 +34,9 @@ class StorageValidatorTest {
   }
 
   @Test
-  void givenCreationWithVolumeAndS3Properties_shouldFail(){
+  void givenCreationWithGcsAndS3Properties_shouldFail(){
 
-    BackupConfigReview review = JsonUtil.readFromJson("backupconfig_allow_request/invalid_creation_volume_and_s3.json",
+    BackupConfigReview review = JsonUtil.readFromJson("backupconfig_allow_request/invalid_creation_gcs_and_s3.json",
         BackupConfigReview.class);
 
     ValidationFailed ex = assertThrows(ValidationFailed.class, () -> {
@@ -45,7 +45,7 @@ class StorageValidatorTest {
 
     String errorMessage = ex.getResult().getMessage();
     assertEquals("Invalid backup configuration,"
-        + " source volume must not be set when source type is s3", errorMessage);
+        + " source gcs must not be set when source type is s3", errorMessage);
   }
 
 }

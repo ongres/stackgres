@@ -62,10 +62,13 @@
             "prefix": "s3://stackgres",
             "region": "k8s"
           },
-          "volume": {
-            "nfs": {
-              "server": "nfs.stackgres.svc",
-              "path": "/stackgres"
+          "gcs": {
+            "prefix": "s3://test",
+            "credentials": {
+              "serviceAccountJsonKey": {
+                "name": "test",
+                "key": "serviceAccountJsonKey"
+              }
             }
           },
           "type": "s3"

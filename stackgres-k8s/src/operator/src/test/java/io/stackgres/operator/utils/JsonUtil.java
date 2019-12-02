@@ -25,7 +25,7 @@ public class JsonUtil {
       String json = IOUtils.toString(is, StandardCharsets.UTF_8);
       return jsonMapper.readValue(json, clazz);
     } catch (IOException e) {
-      throw new IllegalArgumentException("could not open resource " + resource);
+      throw new IllegalArgumentException("could not open resource " + resource, e);
     }
   }
 

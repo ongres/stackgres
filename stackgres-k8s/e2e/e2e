@@ -55,6 +55,9 @@ setup_k8s() {
 
   setup_tiller
 
+  helm dependency update "$OPERATOR_CHART_PATH"
+  helm dependency update "$CLUSTER_CHART_PATH"
+
   if [ "$BUILD_OPERATOR" = true ] \
     && (
       ! helm list | grep -q "^stackgres-operator\s" \

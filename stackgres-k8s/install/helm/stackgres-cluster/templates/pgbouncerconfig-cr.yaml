@@ -3,6 +3,11 @@ apiVersion: stackgres.io/{{ .Values.crd.version }}
 kind: StackGresConnectionPoolingConfig
 metadata:
   name: {{ .Values.cluster.poolingconfig }}
+  labels:
+    app: {{ template "stackgres-cluster.name" . }}
+    chart: {{ template "stackgres-cluster.chart" . }}
+    heritage: {{ .Release.Service }}
+    release: {{ .Release.Name }}
   {{- if .Values.cluster.create }}
   annotations:
     "helm.sh/hook": "pre-install"

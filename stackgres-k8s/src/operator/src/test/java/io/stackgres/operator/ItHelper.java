@@ -303,7 +303,8 @@ public class ItHelper {
 
   private static String getMinioOptions(boolean withMinio, String namespace) {
     return !withMinio ? "" :
-      " --set cluster.backup.retention=5"
+      " --set cluster.backup.nfs.create=false"
+      + " --set cluster.backup.retention=5"
       + " --set-string cluster.backup.fullSchedule='*/1 * * * *'"
       + " --set cluster.backup.fullWindow=1"
       + " --set-string cluster.backup.s3.prefix=s3://stackgres"

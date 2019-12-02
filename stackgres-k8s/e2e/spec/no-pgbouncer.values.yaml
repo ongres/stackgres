@@ -1,4 +1,5 @@
 cluster:
-  instances: 2
+  backup:
+    create: false
 sidecar:
   pooling: false
