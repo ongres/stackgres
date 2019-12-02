@@ -9,9 +9,9 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
@@ -77,6 +77,7 @@ public class ClusterReconciliationCycle {
   private final ArrayBlockingQueue<Boolean> arrayBlockingQueue = new ArrayBlockingQueue<>(1);
   private final ObjectMapper objectMapper;
 
+  private final CompletableFuture<Void> stopped = new CompletableFuture<>();
   private boolean close = false;
 
   private AtomicInteger reconciliationCount = new AtomicInteger(0);
@@ -108,9 +109,7 @@ public class ClusterReconciliationCycle {
     reconcile();
     executorService.shutdown();
     arrayBlockingQueue.offer(true);
-    while (!arrayBlockingQueue.isEmpty()) {
-      TimeUnit.MICROSECONDS.sleep(20);
-    }
+    stopped.join();
   }
 
   public void reconcile() {
@@ -131,6 +130,7 @@ public class ClusterReconciliationCycle {
       }
     }
     LOGGER.info("Cluster reconciliation cycle loop stopped");
+    stopped.complete(null);
   }
 
   private void reconciliationCycle() {
