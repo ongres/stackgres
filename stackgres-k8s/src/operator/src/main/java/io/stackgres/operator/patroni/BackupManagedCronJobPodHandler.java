@@ -7,26 +7,23 @@ package io.stackgres.operator.patroni;
 
 import javax.enterprise.context.ApplicationScoped;
 
-import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.Pod;
 import io.stackgres.operator.common.StackGresClusterConfig;
 import io.stackgres.operator.resource.AbstractResourceHandler;
 
 @ApplicationScoped
-public class PatroniManagedEndpointsHandler extends AbstractResourceHandler {
+public class BackupManagedCronJobPodHandler extends AbstractResourceHandler {
 
   @Override
   public boolean isHandlerForResource(StackGresClusterConfig config, HasMetadata resource) {
     return config != null
-        && resource instanceof Endpoints
+        && resource instanceof Pod
         && resource.getMetadata().getNamespace().equals(
             config.getCluster().getMetadata().getNamespace())
-        && (resource.getMetadata().getName().equals(
-            config.getCluster().getMetadata().getName())
-        || resource.getMetadata().getName().equals(
-            config.getCluster().getMetadata().getName() + PatroniServices.READ_WRITE_SERVICE)
-        || resource.getMetadata().getName().equals(
-            config.getCluster().getMetadata().getName() + PatroniServices.READ_ONLY_SERVICE));
+        && resource.getMetadata().getName().startsWith(
+            config.getCluster().getMetadata().getName()
+            + StackGresStatefulSet.BACKUP_SUFFIX + "-");
   }
 
   @Override

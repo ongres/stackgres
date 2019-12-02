@@ -11,6 +11,7 @@ import java.util.Optional;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.EndpointsBuilder;
@@ -70,6 +71,7 @@ public class PatroniConfigEndpoints {
         .withName(name + PatroniServices.CONFIG_SERVICE)
         .withLabels(labels)
         .withAnnotations(ImmutableMap.of(PATRONI_CONFIG_KEY, patroniConfigJson))
+        .withOwnerReferences(ImmutableList.of(ResourceUtil.getOwnerReference(config.getCluster())))
         .endMetadata()
         .build();
   }

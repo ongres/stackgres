@@ -9,7 +9,9 @@ import javax.enterprise.context.ApplicationScoped;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
+import io.fabric8.kubernetes.api.model.batch.CronJob;
 import io.stackgres.operator.common.StackGresClusterConfig;
+import io.stackgres.operator.controller.ResourceHandlerContext;
 import io.stackgres.operator.resource.AbstractResourceHandler;
 import io.stackgres.operatorframework.resource.PairVisitor;
 import io.stackgres.operatorframework.resource.ResourcePairVisitor;
@@ -20,7 +22,7 @@ public class BackupCronJobHandler extends AbstractResourceHandler {
   @Override
   public boolean isHandlerForResource(StackGresClusterConfig config, HasMetadata resource) {
     return config != null
-        && resource.getKind().equals("CronJob")
+        && resource instanceof CronJob
         && resource.getMetadata().getNamespace().equals(
             config.getCluster().getMetadata().getNamespace())
         && resource.getMetadata().getName().equals(
@@ -28,16 +30,24 @@ public class BackupCronJobHandler extends AbstractResourceHandler {
   }
 
   @Override
-  public boolean equals(HasMetadata existingResource, HasMetadata requiredResource) {
-    return ResourcePairVisitor.equals(new CronJobVisitor<>(), existingResource, requiredResource);
+  public boolean equals(ResourceHandlerContext resourceHandlerContext,
+      HasMetadata existingResource, HasMetadata requiredResource) {
+    return ResourcePairVisitor.equals(new CronJobVisitor<>(resourceHandlerContext),
+        existingResource, requiredResource);
   }
 
   @Override
-  public HasMetadata update(HasMetadata existingResource, HasMetadata requiredResource) {
-    return ResourcePairVisitor.update(new CronJobVisitor<>(), existingResource, requiredResource);
+  public HasMetadata update(ResourceHandlerContext resourceHandlerContext,
+      HasMetadata existingResource, HasMetadata requiredResource) {
+    return ResourcePairVisitor.update(new CronJobVisitor<>(resourceHandlerContext),
+        existingResource, requiredResource);
   }
 
-  private class CronJobVisitor<T> extends ResourcePairVisitor<T> {
+  private class CronJobVisitor<T> extends ResourcePairVisitor<T, ResourceHandlerContext> {
+
+    public CronJobVisitor(ResourceHandlerContext resourceHandlerContext) {
+      super(resourceHandlerContext);
+    }
 
     @Override
     public PairVisitor<HasMetadata, T> visit(

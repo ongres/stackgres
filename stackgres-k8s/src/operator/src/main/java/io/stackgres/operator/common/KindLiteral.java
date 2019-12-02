@@ -7,18 +7,20 @@ package io.stackgres.operator.common;
 
 import javax.enterprise.util.AnnotationLiteral;
 
+import io.fabric8.kubernetes.api.model.HasMetadata;
+
 public class KindLiteral extends AnnotationLiteral<Kind> implements Kind {
 
   private static final long serialVersionUID = 1L;
 
-  private final String value;
+  private final Class<? extends HasMetadata> value;
 
-  public KindLiteral(String value) {
+  public KindLiteral(Class<? extends HasMetadata> value) {
     this.value = value;
   }
 
   @Override
-  public String value() {
+  public Class<? extends HasMetadata> value() {
     return value;
   }
 

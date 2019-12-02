@@ -4,7 +4,7 @@ try_function() {
   if [ -z "$1" ]
   then
     echo "You must specify a function to try" >&2
-    exit 1
+    return 1
   fi
 
   local FUNCTION="$1"

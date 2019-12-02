@@ -51,15 +51,30 @@ public class ItHelper {
    * IT helper method.
    */
   public static void trapKill(Container kind) throws Exception {
-    kind.execute("sh", "-c", "[ -s /tmp/trap_kill ]"
-        + " && kill -1 $(cat /tmp/trap_kill) 2>/dev/null || true")
+    kind.execute("sh", "-c",
+        "#!/bin/sh\n"
+            + "TIMEOUT=20\n"
+            + "START=\"$(date +%s)\"\n"
+            + "while [ \"$((START + TIMEOUT))\" -gt \"$(date +%s)\" ] \\\n"
+            + "  && ! ps -o pid,ppid,args | sed 's/^ \\+//' | sed 's/ \\+/ /g' \\\n"
+            + "  | grep -v '^\\([0-9]\\+ \\)\\?\\(1\\|'\"$$\"'\\) ' \\\n"
+            + "  | cut -d ' ' -f 1 | tail -n +2 \\\n"
+            + "  | wc -l | grep -q '^0$'\n"
+            + "do\n"
+            + "  echo 'Killing following unwanted processes:'\n"
+            + "  ps -o pid,ppid,args | sed 's/^ \\+//' | sed 's/ \\+/ /g' \\\n"
+            + "    | grep -v '^\\([0-9]\\+ \\)\\?\\(1\\|'\"$$\"'\\) '\n"
+            + "  ps -o pid,ppid,args | sed 's/^ \\+//' | sed 's/ \\+/ /g' \\\n"
+            + "    | grep -v '^\\([0-9]\\+ \\)\\?\\(1\\|'\"$$\"'\\) ' \\\n"
+            + "    | cut -d ' ' -f 1 | tail -n +2 \\\n"
+            + "    | xargs -r -n 1 -I % kill % >/dev/null 2>&1 || true\n"
+            + "done\n"
+            + "if [ \"$((START + TIMEOUT))\" -le \"$(date +%s)\" ]\n"
+            + "then\n"
+            + "  echo 'Timeout while trying to kill unwanted processes'\n"
+            + "  exit 1\n"
+            + "fi\n")
       .forEach(line -> LOGGER.info(line));
-    Path k8sPath = Paths.get("../..");
-    kind.copyIn(k8sPath.resolve("install/helm/stackgres-operator"),
-        "/resources/stackgres-operator");
-    kind.copyIn(k8sPath.resolve("install/helm/stackgres-cluster"),
-        "/resources/stackgres-cluster");
-    kind.copyIn(k8sPath.resolve("e2e"), "/resources/e2e");
   }
 
   /**

@@ -11,6 +11,7 @@ import javax.inject.Inject;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.Watcher;
+import io.quarkus.runtime.Application;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,7 +71,7 @@ public class ClusterResourceWatcherFactory {
         eventController.sendEvent(EventReason.OPERATOR_ERROR,
             "Watcher was closed unexpectedly: " + (cause != null && cause.getMessage() != null
             ? cause.getMessage() : "unknown reason"));
-        new Thread(() -> System.exit(1)).start();
+        new Thread(() -> Application.currentApplication().stop()).start();
       }
     }
   }

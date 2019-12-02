@@ -11,6 +11,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import com.google.common.collect.ImmutableList;
+
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
@@ -36,6 +38,7 @@ public class PatroniSecret {
         .withNamespace(namespace)
         .withName(name)
         .withLabels(labels)
+        .withOwnerReferences(ImmutableList.of(ResourceUtil.getOwnerReference(cluster)))
         .endMetadata()
         .withType("Opaque")
         .withData(data)

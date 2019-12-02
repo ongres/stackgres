@@ -13,8 +13,8 @@ import com.google.common.collect.ImmutableList;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.operator.app.ObjectMapperProvider;
-import io.stackgres.operator.common.StackGresClusterConfig;
 import io.stackgres.operator.common.StackGresClusterConfigTransformer;
+import io.stackgres.operator.controller.ResourceGeneratorContext;
 
 @ApplicationScoped
 public class Patroni implements StackGresClusterConfigTransformer {
@@ -27,16 +27,16 @@ public class Patroni implements StackGresClusterConfigTransformer {
   }
 
   @Override
-  public ImmutableList<HasMetadata> getResources(StackGresClusterConfig config) {
+  public ImmutableList<HasMetadata> getResources(ResourceGeneratorContext context) {
     return ImmutableList.<HasMetadata>builder()
-        .add(PatroniRole.createServiceAccount(config.getCluster()))
-        .add(PatroniRole.createRole(config.getCluster()))
-        .add(PatroniRole.createRoleBinding(config.getCluster()))
-        .add(PatroniSecret.create(config.getCluster()))
-        .addAll(PatroniServices.createServices(config.getCluster()))
-        .add(PatroniConfigEndpoints.create(config, objectMapper))
-        .add(PatroniConfigMap.create(config, objectMapper))
-        .addAll(StackGresStatefulSet.create(config))
+        .add(PatroniRole.createServiceAccount(context.getClusterConfig().getCluster()))
+        .add(PatroniRole.createRole(context.getClusterConfig().getCluster()))
+        .add(PatroniRole.createRoleBinding(context.getClusterConfig().getCluster()))
+        .add(PatroniSecret.create(context.getClusterConfig().getCluster()))
+        .addAll(PatroniServices.createServices(context.getClusterConfig().getCluster()))
+        .add(PatroniConfigEndpoints.create(context.getClusterConfig(), objectMapper))
+        .add(PatroniConfigMap.create(context.getClusterConfig(), objectMapper))
+        .addAll(StackGresStatefulSet.create(context))
         .build();
   }
 

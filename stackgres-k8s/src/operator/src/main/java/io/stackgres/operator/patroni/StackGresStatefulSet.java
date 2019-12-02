@@ -8,6 +8,7 @@ package io.stackgres.operator.patroni;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -34,8 +35,10 @@ import io.fabric8.kubernetes.api.model.ObjectFieldSelectorBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaimBuilder;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaimSpecBuilder;
+import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodAffinityTermBuilder;
 import io.fabric8.kubernetes.api.model.PodAntiAffinityBuilder;
+import io.fabric8.kubernetes.api.model.PodBuilder;
 import io.fabric8.kubernetes.api.model.PodTemplateSpecBuilder;
 import io.fabric8.kubernetes.api.model.ProbeBuilder;
 import io.fabric8.kubernetes.api.model.Quantity;
@@ -55,12 +58,14 @@ import io.stackgres.operator.common.StackGresClusterConfig;
 import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operator.configuration.ImmutableStorageConfig;
 import io.stackgres.operator.configuration.StorageConfig;
+import io.stackgres.operator.controller.ResourceGeneratorContext;
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfigSpec;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfile;
 import io.stackgres.operator.resource.ResourceUtil;
 import io.stackgres.operator.sidecars.envoy.Envoy;
 
+import org.jooq.lambda.Seq;
 import org.jooq.lambda.Unchecked;
 
 public class StackGresStatefulSet {
@@ -82,7 +87,8 @@ public class StackGresStatefulSet {
   /**
    * Create a new StatefulSet based on the StackGresCluster definition.
    */
-  public static List<HasMetadata> create(StackGresClusterConfig config) {
+  public static List<HasMetadata> create(ResourceGeneratorContext context) {
+    StackGresClusterConfig config = context.getClusterConfig();
     final String name = config.getCluster().getMetadata().getName();
     final String namespace = config.getCluster().getMetadata().getNamespace();
     final String pgVersion = config.getCluster().getSpec().getPostgresVersion();
@@ -110,11 +116,7 @@ public class StackGresStatefulSet {
         .withStorageClassName(storage.getStorageClass());
 
     final Map<String, String> labels = ResourceUtil.defaultLabels(name);
-    final Map<String, String> podLabels = ImmutableMap.<String, String>builder()
-        .putAll(labels)
-        .put("cluster", "true")
-        .put("disruptible", "true")
-        .build();
+    final Map<String, String> podLabels = ResourceUtil.defaultPodLabels(name);
 
     ImmutableList.Builder<EnvVar> environmentsBuilder = ImmutableList.<EnvVar>builder().add(
         new EnvVarBuilder().withName("PATRONI_NAME")
@@ -261,6 +263,7 @@ public class StackGresStatefulSet {
         .withNamespace(namespace)
         .withName(name)
         .withLabels(labels)
+        .withOwnerReferences(ImmutableList.of(ResourceUtil.getOwnerReference(config.getCluster())))
         .endMetadata()
         .withNewSpec()
         .withReplicas(config.getCluster().getSpec().getInstances())
@@ -466,10 +469,10 @@ public class StackGresStatefulSet {
                     .build())
                 .build())
             .addAllToContainers(config.getSidecars().stream()
-                .map(sidecarEntry -> sidecarEntry.getSidecar().getContainer(config))
+                .map(sidecarEntry -> sidecarEntry.getSidecar().getContainer(context))
                 .collect(ImmutableList.toImmutableList()))
             .addAllToVolumes(config.getSidecars().stream()
-                .flatMap(sidecarEntry -> sidecarEntry.getSidecar().getVolumes(config).stream())
+                .flatMap(sidecarEntry -> sidecarEntry.getSidecar().getVolumes(context).stream())
                 .collect(ImmutableList.toImmutableList()))
             .endSpec()
             .build())
@@ -486,7 +489,7 @@ public class StackGresStatefulSet {
 
     return ImmutableList.<HasMetadata>builder()
         .addAll(() -> config.getSidecars().stream()
-            .flatMap(sidecarEntry -> sidecarEntry.getSidecar().getResources(config).stream())
+            .flatMap(sidecarEntry -> sidecarEntry.getSidecar().getResources(context).stream())
             .iterator())
         .addAll(Stream.of(config.getBackupConfig())
             .filter(Optional::isPresent)
@@ -495,6 +498,8 @@ public class StackGresStatefulSet {
                 .withNamespace(namespace)
                 .withName(name + BACKUP_SUFFIX)
                 .withLabels(labels)
+                .withOwnerReferences(ImmutableList.of(
+                    ResourceUtil.getOwnerReference(config.getCluster())))
                 .endMetadata()
                 .withNewSpec()
                 .withConcurrencyPolicy("Replace")
@@ -584,6 +589,19 @@ public class StackGresStatefulSet {
                 .endSpec()
                 .build()))
             .iterator())
+        .addAll(Seq.seq(context.getExistingResources())
+            .filter(existingResource -> existingResource instanceof Pod)
+            .map(existingPod -> existingPod.getMetadata())
+            .filter(existingPodMetadata -> Objects.equals(
+                existingPodMetadata.getLabels().get(ResourceUtil.CLUSTER_KEY),
+                Boolean.TRUE.toString()))
+            .map(existingPodMetadata -> new PodBuilder()
+                .withNewMetadata()
+                .withNamespace(existingPodMetadata.getNamespace())
+                .withName(existingPodMetadata.getName())
+                .withLabels(podLabels)
+                .endMetadata()
+                .build()))
         .add(statefulSet)
         .build();
   }

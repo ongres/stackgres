@@ -10,6 +10,7 @@ import javax.enterprise.context.ApplicationScoped;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.stackgres.operator.common.StackGresClusterConfig;
+import io.stackgres.operator.controller.ResourceHandlerContext;
 import io.stackgres.operator.resource.AbstractResourceHandler;
 import io.stackgres.operatorframework.resource.PairVisitor;
 import io.stackgres.operatorframework.resource.ResourcePairVisitor;
@@ -20,7 +21,7 @@ public class PatroniSecretHandler extends AbstractResourceHandler {
   @Override
   public boolean isHandlerForResource(StackGresClusterConfig config, HasMetadata resource) {
     return config != null
-        && resource.getKind().equals("Secret")
+        && resource instanceof Secret
         && resource.getMetadata().getNamespace().equals(
             config.getCluster().getMetadata().getNamespace())
         && resource.getMetadata().getName().equals(
@@ -28,16 +29,24 @@ public class PatroniSecretHandler extends AbstractResourceHandler {
   }
 
   @Override
-  public boolean equals(HasMetadata existingResource, HasMetadata requiredResource) {
-    return ResourcePairVisitor.equals(new EndpointsVisitor<>(), existingResource, requiredResource);
+  public boolean equals(ResourceHandlerContext resourceHandlerContext,
+      HasMetadata existingResource, HasMetadata requiredResource) {
+    return ResourcePairVisitor.equals(new EndpointsVisitor<>(resourceHandlerContext),
+        existingResource, requiredResource);
   }
 
   @Override
-  public HasMetadata update(HasMetadata existingResource, HasMetadata requiredResource) {
-    return ResourcePairVisitor.update(new EndpointsVisitor<>(), existingResource, requiredResource);
+  public HasMetadata update(ResourceHandlerContext resourceHandlerContext,
+      HasMetadata existingResource, HasMetadata requiredResource) {
+    return ResourcePairVisitor.update(new EndpointsVisitor<>(resourceHandlerContext),
+        existingResource, requiredResource);
   }
 
-  private static class EndpointsVisitor<T> extends ResourcePairVisitor<T> {
+  private static class EndpointsVisitor<T> extends ResourcePairVisitor<T, ResourceHandlerContext> {
+
+    public EndpointsVisitor(ResourceHandlerContext resourceHandlerContext) {
+      super(resourceHandlerContext);
+    }
 
     @Override
     public PairVisitor<HasMetadata, T> visit(

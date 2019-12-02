@@ -69,6 +69,7 @@ spec() {
   try_function run_spec >> "$LOG_PATH/$SPEC_NAME.log" 2>&1
   if ! "$RESULT"
   then
+    echo "$SPEC_NAME. FAIL. See file $LOG_PATH/$SPEC_NAME.log for details" > "$TARGET_PATH/$SPEC_NAME.failed"
     echo "$SPEC_NAME. FAIL. See file $LOG_PATH/$SPEC_NAME.log for details" >> "$TARGET_PATH/logs/results.log"
     return "$EXIT_CODE"
   fi

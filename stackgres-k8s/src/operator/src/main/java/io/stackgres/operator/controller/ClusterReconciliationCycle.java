@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -18,6 +19,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
@@ -27,6 +29,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
 import io.stackgres.operator.app.KubernetesClientFactory;
+import io.stackgres.operator.app.ObjectMapperProvider;
 import io.stackgres.operator.common.SidecarEntry;
 import io.stackgres.operator.common.StackGresClusterConfig;
 import io.stackgres.operator.common.StackGresSidecarTransformer;
@@ -72,7 +75,9 @@ public class ClusterReconciliationCycle {
   private final ExecutorService executorService = Executors.newSingleThreadExecutor(
       r -> new Thread(r, "ReconciliationCycle"));
   private final ArrayBlockingQueue<Boolean> arrayBlockingQueue = new ArrayBlockingQueue<>(1);
+  private final ObjectMapper objectMapper;
 
+  private final CompletableFuture<Void> stopped = new CompletableFuture<>();
   private boolean close = false;
 
   private AtomicInteger reconciliationCount = new AtomicInteger(0);
@@ -83,7 +88,8 @@ public class ClusterReconciliationCycle {
   @Inject
   public ClusterReconciliationCycle(KubernetesClientFactory kubClientFactory,
       SidecarFinder sidecarFinder, Patroni patroni, ResourceHandlerSelector handlerSelector,
-      ClusterStatusManager statusManager, EventController eventController) {
+      ClusterStatusManager statusManager, EventController eventController,
+      ObjectMapperProvider objectMapperProvider) {
     super();
     this.kubClientFactory = kubClientFactory;
     this.sidecarFinder = sidecarFinder;
@@ -91,6 +97,7 @@ public class ClusterReconciliationCycle {
     this.handlerSelector = handlerSelector;
     this.statusManager = statusManager;
     this.eventController = eventController;
+    this.objectMapper = objectMapperProvider.objectMapper();
   }
 
   void onStart(@Observes StartupEvent ev) {
@@ -101,6 +108,8 @@ public class ClusterReconciliationCycle {
     close = true;
     reconcile();
     executorService.shutdown();
+    arrayBlockingQueue.offer(true);
+    stopped.join();
   }
 
   public void reconcile() {
@@ -116,18 +125,16 @@ public class ClusterReconciliationCycle {
           break;
         }
         reconciliationCycle();
-      } catch (InterruptedException ex) {
+      } catch (Exception ex) {
         LOGGER.error("Reconciliation cycle loop was interrupted", ex);
-        break;
       }
     }
     LOGGER.info("Cluster reconciliation cycle loop stopped");
+    stopped.complete(null);
   }
 
   private void reconciliationCycle() {
-
     final int cycleId = reconciliationCount.incrementAndGet();
-
     String cycleName = "Reconciliation Cycle " + cycleId;
 
     LOGGER.trace("Starting " + cycleName);
@@ -145,7 +152,38 @@ public class ClusterReconciliationCycle {
 
         try {
           LOGGER.trace(cycleName + " reconciling cluster " + cluster.getMetadata().getName());
-          reconcileExistingCluster(client, clusterConfig);
+          ImmutableList<HasMetadata> existingResourcesOnly = getExistingResources(
+              client, clusterConfig);
+          ImmutableList<HasMetadata> requiredResourcesOnly = patroni.getResources(
+              ImmutableResourceGeneratorContext.builder()
+              .clusterConfig(clusterConfig)
+              .addAllExistingResources(existingResourcesOnly)
+              .build());
+          ImmutableList<Tuple2<HasMetadata, Optional<HasMetadata>>> existingResources =
+              existingResourcesOnly
+              .stream()
+              .map(existingResource -> Tuple.tuple(existingResource,
+                  findResourceIn(existingResource, requiredResourcesOnly)))
+              .collect(ImmutableList.toImmutableList());
+          ImmutableList<Tuple2<HasMetadata, Optional<HasMetadata>>> requiredResources =
+              requiredResourcesOnly
+              .stream()
+              .map(requiredResource -> Tuple.tuple(requiredResource,
+                  Optional.of(findResourceIn(requiredResource, existingResourcesOnly))
+                  .filter(Optional::isPresent)
+                  .orElseGet(() -> handlerSelector.find(client, clusterConfig, requiredResource))))
+              .collect(ImmutableList.toImmutableList());
+          ClusterReconciliator.builder()
+            .withEventController(eventController)
+            .withHandlerSelector(handlerSelector)
+            .withStatusManager(statusManager)
+            .withClient(client)
+            .withObjectMapper(objectMapper)
+            .withClusterConfig(clusterConfig)
+            .withRequiredResources(requiredResources)
+            .withExistingResources(existingResources)
+            .build()
+            .reconcile();
         } catch (Exception ex) {
           LOGGER.error(cycleName + " failed reconciling StackGres cluster " + clusterId, ex);
           eventController.sendEvent(EventReason.CLUSTER_CONFIG_ERROR,
@@ -162,88 +200,17 @@ public class ClusterReconciliationCycle {
     }
   }
 
-  private void reconcileExistingCluster(KubernetesClient client,
-      StackGresClusterConfig clusterConfig) {
-    StackGresCluster cluster = clusterConfig.getCluster();
-    LOGGER.debug("Syncing cluster: '{}.{}'",
-        cluster.getMetadata().getNamespace(),
-        cluster.getMetadata().getName());
-    boolean created = false;
-    boolean updated = false;
-    ImmutableList<HasMetadata> existingResources = getExistingResources(client, clusterConfig);
-    ImmutableList<HasMetadata> requiredResources = patroni.getResources(clusterConfig)
+  private Optional<HasMetadata> findResourceIn(HasMetadata resource,
+      ImmutableList<HasMetadata> resources) {
+    return resources
         .stream()
-        .collect(ImmutableList.toImmutableList());
-    for (HasMetadata requiredResource : requiredResources) {
-      Optional<HasMetadata> matchingResource =
-          Optional.of(findResourceFrom(requiredResource, existingResources))
-          .filter(Optional::isPresent)
-          .orElseGet(() -> handlerSelector.find(client, clusterConfig, requiredResource));
-      if (matchingResource
-          .map(existingResource -> handlerSelector.equals(
-              clusterConfig, existingResource, requiredResource))
-          .orElse(false)) {
-        LOGGER.trace("Found resource {}.{} of type {}",
-            requiredResource.getMetadata().getNamespace(),
-            requiredResource.getMetadata().getName(),
-            requiredResource.getKind());
-        continue;
-      }
-      if (matchingResource.isPresent()) {
-        HasMetadata existingResource = matchingResource.get();
-        LOGGER.debug("Updating resource {}.{} of type {}"
-            + " to meet cluster requirements",
-            existingResource.getMetadata().getNamespace(),
-            existingResource.getMetadata().getName(),
-            existingResource.getKind());
-        handlerSelector.update(clusterConfig, existingResource, requiredResource);
-        handlerSelector.patch(client, clusterConfig, existingResource);
-        updated = true;
-      } else {
-        LOGGER.debug("Creating resource {}.{} of type {}",
-            requiredResource.getMetadata().getNamespace(),
-            requiredResource.getMetadata().getName(),
-            requiredResource.getKind());
-        handlerSelector.create(client, clusterConfig, requiredResource);
-        created = true;
-      }
-    }
-    for (HasMetadata existingResource : existingResources) {
-      if (!findResourceFrom(existingResource, requiredResources).isPresent()
-          && !handlerSelector.isManaged(clusterConfig, existingResource)) {
-        LOGGER.debug("Deleteing resource {}.{} of type {}"
-            + " since does not belong to existing cluster",
-            existingResource.getMetadata().getNamespace(),
-            existingResource.getMetadata().getName(),
-            existingResource.getKind());
-        handlerSelector.delete(client, null, existingResource);
-        updated = true;
-      }
-    }
-
-    if (updated) {
-      LOGGER.info("Cluster updated: '{}.{}'",
-          cluster.getMetadata().getNamespace(),
-          cluster.getMetadata().getName());
-      eventController.sendEvent(EventReason.CLUSTER_UPDATED,
-          "StackGres Cluster " + cluster.getMetadata().getNamespace() + "."
-          + cluster.getMetadata().getName() + " updated", cluster);
-      statusManager.updatePendingRestart(cluster);
-      statusManager.sendCondition(ClusterStatusCondition.FALSE_FAILED, cluster);
-    }
-
-    if (created && !updated) {
-      LOGGER.info("Cluster created: '{}.{}'",
-          cluster.getMetadata().getNamespace(),
-          cluster.getMetadata().getName());
-      eventController.sendEvent(EventReason.CLUSTER_CREATED,
-          "StackGres Cluster " + cluster.getMetadata().getNamespace() + "."
-          + cluster.getMetadata().getName() + " created", cluster);
-    }
-
-    LOGGER.debug("Cluster synced: '{}.{}'",
-        cluster.getMetadata().getNamespace(),
-        cluster.getMetadata().getName());
+        .filter(otherResource -> resource.getKind()
+            .equals(otherResource.getKind()))
+        .filter(otherResource -> resource.getMetadata().getNamespace()
+            .equals(otherResource.getMetadata().getNamespace()))
+        .filter(otherResource -> resource.getMetadata().getName()
+            .equals(otherResource.getMetadata().getName()))
+        .findAny();
   }
 
   private void deleteOrphanResources(KubernetesClient client,
@@ -271,18 +238,6 @@ public class ClusterReconciliationCycle {
           "StackGres Cluster " + deletedCluster.v1 + "."
               + deletedCluster.v2 + " deleted");
     }
-  }
-
-  private Optional<HasMetadata> findResourceFrom(HasMetadata resource,
-      ImmutableList<HasMetadata> resources) {
-    return resources.stream()
-        .filter(otherResource -> resource.getKind()
-            .equals(otherResource.getKind()))
-        .filter(otherResource -> resource.getMetadata().getNamespace()
-            .equals(otherResource.getMetadata().getNamespace()))
-        .filter(otherResource -> resource.getMetadata().getName()
-            .equals(otherResource.getMetadata().getName()))
-        .findAny();
   }
 
   private StackGresClusterConfig getClusterConfig(StackGresCluster cluster,

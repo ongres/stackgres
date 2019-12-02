@@ -35,9 +35,9 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.operator.common.ConfigContext;
 import io.stackgres.operator.common.ConfigProperty;
 import io.stackgres.operator.common.Sidecar;
-import io.stackgres.operator.common.StackGresClusterConfig;
 import io.stackgres.operator.common.StackGresSidecarTransformer;
 import io.stackgres.operator.common.StackGresUtil;
+import io.stackgres.operator.controller.ResourceGeneratorContext;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.patroni.StackGresStatefulSet;
 import io.stackgres.operator.resource.KubernetesResourceScanner;
@@ -84,7 +84,7 @@ public class PostgresExporter
   }
 
   @Override
-  public Container getContainer(StackGresClusterConfig config) {
+  public Container getContainer(ResourceGeneratorContext context) {
     ContainerBuilder container = new ContainerBuilder();
     container.withName(NAME)
         .withImage(String.format(IMAGE_NAME, DEFAULT_VERSION, StackGresUtil.CONTAINER_BUILD))
@@ -101,7 +101,7 @@ public class PostgresExporter
                 .withName("POSTGRES_EXPORTER_PASSWORD")
                 .withValueFrom(new EnvVarSourceBuilder().withSecretKeyRef(
                     new SecretKeySelectorBuilder()
-                        .withName(config.getCluster().getMetadata().getName())
+                        .withName(context.getClusterConfig().getCluster().getMetadata().getName())
                         .withKey("superuser-password")
                         .build())
                     .build())
@@ -118,27 +118,31 @@ public class PostgresExporter
   }
 
   @Override
-  public List<HasMetadata> getResources(StackGresClusterConfig config) {
+  public List<HasMetadata> getResources(ResourceGeneratorContext context) {
 
     final Map<String, String> defaultLabels = ResourceUtil.defaultLabels(
-        config.getCluster().getMetadata().getName());
+        context.getClusterConfig().getCluster().getMetadata().getName());
     Map<String, String> labels = new ImmutableMap.Builder<String, String>()
         .putAll(defaultLabels)
-        .put(CLUSTER_NAMESPACE_KEY, config.getCluster().getMetadata().getNamespace())
+        .put(CLUSTER_NAMESPACE_KEY,
+            context.getClusterConfig().getCluster().getMetadata().getNamespace())
         .build();
 
     Optional<StackGresPostgresExporterConfig> postgresExporterConfig =
-        config.getSidecarConfig(this);
+        context.getClusterConfig().getSidecarConfig(this);
     ImmutableList.Builder<HasMetadata> resourcesBuilder = ImmutableList.builder();
     resourcesBuilder.add(
         new ServiceBuilder()
             .withNewMetadata()
-            .withNamespace(config.getCluster().getMetadata().getNamespace())
-            .withName(config.getCluster().getMetadata().getName() + EXPORTER_SERVICE)
+            .withNamespace(context.getClusterConfig().getCluster().getMetadata().getNamespace())
+            .withName(context.getClusterConfig().getCluster().getMetadata()
+                .getName() + EXPORTER_SERVICE)
             .withLabels(ImmutableMap.<String, String>builder()
                 .putAll(labels)
                 .put("container", NAME)
                 .build())
+            .withOwnerReferences(ImmutableList.of(ResourceUtil.getOwnerReference(
+                context.getClusterConfig().getCluster())))
             .endMetadata()
             .withSpec(new ServiceSpecBuilder()
                 .withSelector(defaultLabels)
@@ -156,14 +160,18 @@ public class PostgresExporter
           serviceMonitor.setKind(ServiceMonitorDefinition.KIND);
           serviceMonitor.setApiVersion(ServiceMonitorDefinition.APIVERSION);
           serviceMonitor.setMetadata(new ObjectMetaBuilder()
-              .withName(config.getCluster().getMetadata().getName()
+              .withNamespace(pi.getNamespace())
+              .withName(context.getClusterConfig().getCluster().getMetadata().getName()
                   + EXPORTER_SERVICE_MONITOR)
               .withLabels(ImmutableMap.<String, String>builder()
                   .putAll(pi.getMatchLabels())
-                  .putAll(ResourceUtil.defaultLabels(config.getCluster().getMetadata().getName()))
-                  .put(CLUSTER_NAMESPACE_KEY, config.getCluster().getMetadata().getNamespace())
+                  .putAll(ResourceUtil.defaultLabels(context.getClusterConfig().getCluster()
+                      .getMetadata().getName()))
+                  .put(CLUSTER_NAMESPACE_KEY, context.getClusterConfig().getCluster()
+                      .getMetadata().getNamespace())
                   .build())
-              .withNamespace(pi.getNamespace())
+              .withOwnerReferences(ImmutableList.of(ResourceUtil.getOwnerReference(
+                  context.getClusterConfig().getCluster())))
               .build());
 
           ServiceMonitorSpec spec = new ServiceMonitorSpec();

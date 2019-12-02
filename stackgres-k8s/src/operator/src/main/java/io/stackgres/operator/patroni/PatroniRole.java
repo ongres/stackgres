@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.patroni;
 
+import com.google.common.collect.ImmutableList;
+
 import io.fabric8.kubernetes.api.model.ServiceAccount;
 import io.fabric8.kubernetes.api.model.ServiceAccountBuilder;
 import io.fabric8.kubernetes.api.model.rbac.PolicyRuleBuilder;
@@ -30,6 +32,7 @@ public class PatroniRole {
           .withName(cluster.getMetadata().getName() + SUFFIX)
           .withNamespace(cluster.getMetadata().getNamespace())
           .withLabels(ResourceUtil.defaultLabels(cluster.getMetadata().getName()))
+          .withOwnerReferences(ImmutableList.of(ResourceUtil.getOwnerReference(cluster)))
           .endMetadata()
           .build();
   }
@@ -43,6 +46,7 @@ public class PatroniRole {
         .withName(cluster.getMetadata().getName() + SUFFIX)
         .withNamespace(cluster.getMetadata().getNamespace())
         .withLabels(ResourceUtil.defaultLabels(cluster.getMetadata().getName()))
+        .withOwnerReferences(ImmutableList.of(ResourceUtil.getOwnerReference(cluster)))
         .endMetadata()
         .addToRules(new PolicyRuleBuilder()
             .withApiGroups("")
@@ -86,6 +90,7 @@ public class PatroniRole {
         .withName(cluster.getMetadata().getName() + SUFFIX)
         .withNamespace(cluster.getMetadata().getNamespace())
         .withLabels(ResourceUtil.defaultLabels(cluster.getMetadata().getName()))
+        .withOwnerReferences(ImmutableList.of(ResourceUtil.getOwnerReference(cluster)))
         .endMetadata()
         .withSubjects(new SubjectBuilder()
             .withKind("ServiceAccount")
