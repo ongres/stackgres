@@ -183,7 +183,7 @@
                 <configuration>
                   <trimStackTrace>false</trimStackTrace>
                   <forkCount>1</forkCount>
-                  <reuseFork>false</reuseFork>
+                  <reuseForks>false</reuseForks>
                   <includes>
                     <include>**/It*.java</include>
                     <include>**/*It.java</include>
