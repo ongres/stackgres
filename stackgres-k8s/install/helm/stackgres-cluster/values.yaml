@@ -9,7 +9,6 @@ config:
 
 cluster:
   create: true
-  name: "stackgres"
   instances: 1
   pgconfig: postgresconf
   poolingconfig: pgbouncerconf
