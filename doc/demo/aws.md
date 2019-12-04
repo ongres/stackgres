@@ -76,6 +76,9 @@ eksctl create cluster \
 --nodes-max $maxnode \
 --node-ami  auto
 ```
+> Check each of this values to make sure is going to work with your AWS project.
+
+#### 2.3.-   Create your kubeconfig file with the AWS CLI
 
 #### 2.3.-   Create your kubeconfig file with the AWS CLI
 
