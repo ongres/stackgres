@@ -298,7 +298,7 @@ test_delete_pgpooling_with_api(){
 
   delete_pgpooling_with_api
 
-  if kubectl get sgconnectionpoolingconfigs.stackgres.io -n $CLUSTER_NAMESPACE $PGPOOLING
+  if wait_until kubectl get sgconnectionpoolingconfigs.stackgres.io -n $CLUSTER_NAMESPACE $PGPOOLING
   then
     echo "pgpooling was not deleted"
     return 1
@@ -316,9 +316,7 @@ test_api_delete_pgpooling_is_invible(){
   
   delete_pgpooling_with_api
 
-  HTTP_STATUS=$(get_pgpooling_status)
-
-  if [ $HTTP_STATUS = "404" ]
+  if wait_until eval '[ "$(get_pgpooling_status)" = "404" ]'
   then
     echo "Pooling config removed from the API"    
   else

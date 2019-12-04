@@ -35,44 +35,36 @@ check_backup_after_kill_nfs() {
 }
 
 check_backup() {
-  LSN="$(kubectl exec -t -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-"$1" -c postgres-util -- \
+  NODE="$1"
+  CURRENT_LSN="$(kubectl exec -t -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-"$NODE" -c postgres-util -- \
     psql -t -A -U postgres -p 5435 -c \
-    'SELECT r.file_name from pg_walfile_name_offset(pg_switch_wal()) as r')"
-
-  local RESULT=false
-  local START="$(date +%s)"
-  while [ "$((START + TIMEOUT))" -gt "$(date +%s)" ]
+    'SELECT r.file_name from pg_walfile_name_offset(pg_current_wal_lsn()) as r')"
+  while true
   do
-    if kubectl exec -t -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-"$1" -c patroni -- \
-      wal-g wal-fetch "$LSN" "/tmp/$LSN"
+    LSN="$(kubectl exec -t -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-"$NODE" -c postgres-util -- \
+      psql -t -A -U postgres -p 5435 -c \
+      'SELECT r.file_name from pg_walfile_name_offset(pg_switch_wal()) as r')"
+    if [ "$CURRENT_LSN" != "$LSN" ]
     then
-      echo "SUCCESS. The WAL is available"
-      RESULT=true
       break
     fi
     sleep 2
   done
-  if ! "$RESULT"
+
+  if wait_until kubectl exec -t -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-"$NODE" -c patroni -- \
+    wal-g wal-fetch "$LSN" "/tmp/$LSN"
   then
+    echo "SUCCESS. The WAL is available"
+  else
     echo "FAIL. The WAL is not available"
     return 1
   fi
 
-  local RESULT=false
-  local START="$(date +%s)"
-  while [ "$((START + TIMEOUT))" -gt "$(date +%s)" ]
-  do
-    if [ "$(kubectl exec -t -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-"$1" -c patroni -- \
-      wal-g backup-list | wc -l)" -gt 0 ]
-    then
-      echo "SUCCESS. The full backup is available"
-      RESULT=true
-      break
-    fi
-    sleep 2
-  done
-  if ! "$RESULT"
+  if wait_until eval '[ "$(kubectl exec -t -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-"$NODE" -c patroni -- \
+      wal-g backup-list | wc -l)" -gt 0 ]'
   then
+    echo "SUCCESS. The full backup is available"
+  else
     echo "FAIL. The full backup is not available"
     return 1
   fi
@@ -88,20 +80,10 @@ check_switchover() {
     return 1
   fi
 
-  local RESULT=false
-  local START="$(date +%s)"
-  while [ "$((START + TIMEOUT))" -gt "$(date +%s)" ]
-  do
-    if run_query -i 0 -p 5432
-    then
-      echo "SUCCESS. The replica becomed available"
-      RESULT=true
-      break
-    fi
-    sleep 2
-  done
-  if ! "$RESULT"
+  if wait_until run_query -i 0 -p 5432
   then
+    echo "SUCCESS. The replica becomed available"
+  else
     echo "FAIL. The replica is not available"
     return 1
   fi

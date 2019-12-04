@@ -1,0 +1,17 @@
+#!/bin/sh
+
+wait_until() {
+  local RESULT=false
+  local START="$(date +%s)"
+  >"$LOG_PATH/wait-until.log"
+  while [ "$((START + TIMEOUT))" -gt "$(date +%s)" ]
+  do
+    if "$@" >>"$LOG_PATH/wait-until.log" 2>&1
+    then
+      return
+    fi
+    sleep 2
+  done
+  cat "$LOG_PATH/wait-until.log"
+  return 1
+}

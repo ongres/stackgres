@@ -297,7 +297,7 @@ test_delete_profile_with_api(){
 
   delete_profile_with_api
 
-  if kubectl get sgprofiles.stackgres.io -n $CLUSTER_NAMESPACE $PROFILE
+  if wait_until kubectl get sgprofiles.stackgres.io -n $CLUSTER_NAMESPACE $PROFILE
   then
     echo "profile was not deleted"
     return 1
@@ -315,9 +315,7 @@ test_api_delete_profile_is_invible(){
   
   delete_profile_with_api
 
-  HTTP_STATUS=$(get_profile_status)
-
-  if [ $HTTP_STATUS = "404" ]
+  if wait_until eval '[ "$(get_profile_status)" = "404" ]'
   then
     echo "Profile removed from the API"    
   else

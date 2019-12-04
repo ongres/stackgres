@@ -1,6 +1,6 @@
 #!/bin/sh
 
-test_install() {  
+test_install() {
   PGCONFIG=postgresconf
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 --set cluster.create=false --set cluster.pgconfig=$PGCONFIG
@@ -12,14 +12,13 @@ test_install() {
     > "$LOG_PATH/default-pgconfig.json"
 
   kubectl delete sgpgconfigs.stackgres.io -n $CLUSTER_NAMESPACE $PGCONFIG  
-  
 }
 
-test_after_all(){
+test_after_all() {
   unset PGCONFIG
 }
 
-test(){
+test() {
 
   run_test "Chat that a created pgconfig can be accessed directly through the API" check_pgconfig_directly
 
@@ -44,7 +43,7 @@ test(){
 }
 
 
-create_pgconfig(){
+create_pgconfig() {
 
   cat "$LOG_PATH/default-pgconfig.json" | kubectl apply -f -
 
@@ -55,7 +54,7 @@ create_pgconfig(){
   
 }
 
-delete_pgconfig_only(){
+delete_pgconfig_only() {
 
   echo "Deleting pgconfig if there is any"
   if kubectl get sgpgconfigs.stackgres.io -n $CLUSTER_NAMESPACE $PGCONFIG
@@ -77,7 +76,7 @@ delete_pgconfig_only(){
 }
 
 
-check_pgconfig_in_list(){
+check_pgconfig_in_list() {
 
   create_pgconfig
   local PGCONFIG_IN_RESPONSE
@@ -95,14 +94,14 @@ check_pgconfig_in_list(){
   fi
 }
 
-get_pgconfig_status(){
+get_pgconfig_status() {
   local HTTP_STATUS
   HTTP_STATUS=$(run_curl -r "stackgres/pgconfig/$CLUSTER_NAMESPACE/$PGCONFIG" -n $CLUSTER_NAMESPACE -e "-LI -o /dev/null -w %{http_code}")
   echo $HTTP_STATUS
 
 }
 
-check_pgconfig_directly(){
+check_pgconfig_directly() {
   local HTTP_STATUS
   create_pgconfig
   HTTP_STATUS=$(get_pgconfig_status)
@@ -120,7 +119,7 @@ check_pgconfig_directly(){
 
 
 
-check_pgconfig_removed_from_list(){
+check_pgconfig_removed_from_list() {
   
   delete_pgconfig_only
   local  PGCONFIG_IN_RESPONSE
@@ -138,7 +137,7 @@ check_pgconfig_removed_from_list(){
 
 }
 
-check_pgconfig_deletion_directly(){
+check_pgconfig_deletion_directly() {
 
   delete_pgconfig_only
   local HTTP_STATUS
@@ -158,7 +157,7 @@ check_pgconfig_deletion_directly(){
 
 
 
-create_pgconfig_with_api(){ 
+create_pgconfig_with_api() { 
 
   echo "Creating pgconfig $PGCONFIG with the operator API"
 
@@ -182,7 +181,7 @@ create_pgconfig_with_api(){
 
 }
 
-test_pgconfig_create_with_api(){
+test_pgconfig_create_with_api() {
 
   create_pgconfig_with_api
 
@@ -200,7 +199,7 @@ test_pgconfig_create_with_api(){
 
 
 
-api_created_cluster_visible(){
+api_created_cluster_visible() {
 
   create_pgconfig_with_api
 
@@ -209,7 +208,7 @@ api_created_cluster_visible(){
 }
 
 
-update_pg_config_shared_buffers_with_api(){
+update_pg_config_shared_buffers_with_api() {
 
   local TMP_JSON
   local HTTP_STATUS
@@ -232,7 +231,7 @@ update_pg_config_shared_buffers_with_api(){
 
 }
 
-test_update_pgconfig_with_api(){
+test_update_pgconfig_with_api() {
   local PGCONFIG_SHARED_BUFFERS
 
   create_pgconfig
@@ -250,11 +249,11 @@ test_update_pgconfig_with_api(){
   
 }
 
-get_pgconfig_from_api(){
+get_pgconfig_from_api() {
   echo $(run_curl -r "stackgres/pgconfig/$CLUSTER_NAMESPACE/$PGCONFIG" -n "$CLUSTER_NAMESPACE")
 }
 
-test_api_updated_pgconfig_is_visible(){
+test_api_updated_pgconfig_is_visible() {
 
   local PGCONFIG_SHARED_BUFFERS
 
@@ -272,7 +271,7 @@ test_api_updated_pgconfig_is_visible(){
   
 }
 
-delete_pgconfig_with_api(){
+delete_pgconfig_with_api() {
 
   local HTTP_STATUS
   
@@ -292,13 +291,13 @@ delete_pgconfig_with_api(){
 
 }
 
-test_delete_pgconfig_with_api(){
+test_delete_pgconfig_with_api() {
 
   create_pgconfig
 
   delete_pgconfig_with_api
 
-  if kubectl get sgpgconfigs.stackgres.io -n $CLUSTER_NAMESPACE $PGCONFIG
+  if wait_until kubectl get sgpgconfigs.stackgres.io -n $CLUSTER_NAMESPACE $PGCONFIG
   then
     echo "pgconfig was not deleted"
     return 1
@@ -309,18 +308,16 @@ test_delete_pgconfig_with_api(){
 }
 
 
-test_api_delete_pgconfig_is_invible(){
+test_api_delete_pgconfig_is_invible() {
   local HTTP_STATUS
 
   create_pgconfig
   
   delete_pgconfig_with_api
 
-  HTTP_STATUS=$(get_pgconfig_status)
-
-  if [ $HTTP_STATUS = "404" ]
+  if wait_until eval '[ "$(get_pgconfig_status)" = "404" ]'
   then
-    echo "Postgres config removed from the API"    
+    echo "Postgres config removed from the API"
   else
     echo "Postgres config removed from the API"
     return 1
