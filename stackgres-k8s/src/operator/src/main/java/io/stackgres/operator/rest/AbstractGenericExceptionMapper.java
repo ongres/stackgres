@@ -1,0 +1,52 @@
+/*
+ * Copyright (C) 2019 OnGres, Inc.
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
+package io.stackgres.operator.rest;
+
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.UriInfo;
+import javax.ws.rs.ext.ExceptionMapper;
+
+import io.stackgres.operator.validation.ValidationUtil;
+import io.stackgres.operatorframework.AdmissionResponse;
+import io.stackgres.operatorframework.Result;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+public class AbstractGenericExceptionMapper<T extends Throwable> implements ExceptionMapper<T> {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(
+      AbstractGenericExceptionMapper.class);
+
+  @Context
+  private UriInfo uriInfo;
+
+  @Override
+  public Response toResponse(T throwable) {
+    LOGGER.error("An error occurred in the REST API", throwable);
+
+    int status = Status.INTERNAL_SERVER_ERROR.getStatusCode();
+    if (throwable instanceof WebApplicationException) {
+      status = WebApplicationException.class.cast(throwable).getResponse().getStatus();
+    }
+
+    if (uriInfo != null && uriInfo.getPath().startsWith(ValidationUtil.VALIDATION_PATH + "/")) {
+      AdmissionResponse admissionResponse = new AdmissionResponse();
+      admissionResponse.setAllowed(false);
+      admissionResponse.setStatus(new Result(status, throwable.getMessage()));
+      return Response.ok().type(MediaType.APPLICATION_JSON)
+          .entity(admissionResponse).build();
+    }
+
+    return Response.status(status).type(MediaType.APPLICATION_JSON)
+        .entity(ErrorResponse.create(throwable)).build();
+  }
+
+}

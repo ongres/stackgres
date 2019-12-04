@@ -8,8 +8,10 @@ package io.stackgres.operator.rest;
 import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Provider;
 
+import org.jboss.resteasy.spi.ReaderException;
+
 @Provider
-public class GenericExceptionMapper extends AbstractGenericExceptionMapper<Throwable>
-    implements ExceptionMapper<Throwable> {
+public class ReaderExceptionMapper extends AbstractGenericExceptionMapper<ReaderException>
+    implements ExceptionMapper<ReaderException> {
 
 }
