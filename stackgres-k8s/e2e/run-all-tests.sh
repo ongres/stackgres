@@ -14,6 +14,7 @@ export REUSE_K8S=true
 export BUILD_OPERATOR=false
 export REUSE_OPERATOR=true
 
+PARALLELISM="${PARALLELISM:-8}"
 COUNT=0
 SPECS_TO_RUN=""
 SH_OPTS=$(! echo $- | grep -q x || echo "-x")
@@ -23,7 +24,7 @@ for SPEC in $SPECS
 do
   COUNT="$((COUNT+1))"
   SPECS_TO_RUN="$SPECS_TO_RUN $SPEC"
-  if [ "$((COUNT%8))" -eq 0 -o "$COUNT" -eq "$SPEC_COUNT" ]
+  if [ "$((COUNT%PARALLELISM))" -eq 0 -o "$COUNT" -eq "$SPEC_COUNT" ]
   then
     setup_k8s
     if ! echo "$SPECS_TO_RUN" | tr ' ' '\n' \
