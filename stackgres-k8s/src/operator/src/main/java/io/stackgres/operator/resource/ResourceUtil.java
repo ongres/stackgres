@@ -88,9 +88,18 @@ public class ResourceUtil {
    * ImmutableMap of default labels used as selectors in K8s pods
    * that are part of the cluster.
    */
-  public static Map<String, String> defaultPodLabels(String clusterName) {
+  public static Map<String, String> statefulSetPodLabels(String clusterName) {
     return ImmutableMap.of(APP_KEY, APP_NAME, CLUSTER_NAME_KEY, clusterName,
         CLUSTER_KEY, Boolean.TRUE.toString(), DISRUPTIBLE_KEY, Boolean.TRUE.toString());
+  }
+
+  /**
+   * ImmutableMap of default labels used as selectors in K8s pods
+   * that are part of the cluster.
+   */
+  public static Map<String, String> patroniClusterLabels(String clusterName) {
+    return ImmutableMap.of(APP_KEY, APP_NAME, CLUSTER_NAME_KEY, clusterName,
+        CLUSTER_KEY, Boolean.TRUE.toString());
   }
 
   public static boolean isPrimary(Map<String, String> labels) {

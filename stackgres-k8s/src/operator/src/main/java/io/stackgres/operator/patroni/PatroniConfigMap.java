@@ -41,7 +41,7 @@ public class PatroniConfigMap {
     final String namespace = config.getCluster().getMetadata().getNamespace();
     final String pgVersion = config.getCluster().getSpec().getPostgresVersion();
 
-    Map<String, String> labels = ResourceUtil.defaultLabels(name);
+    Map<String, String> labels = ResourceUtil.patroniClusterLabels(name);
 
     final String patroniLabels;
     try {

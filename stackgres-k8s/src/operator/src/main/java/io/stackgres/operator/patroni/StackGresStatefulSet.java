@@ -117,7 +117,7 @@ public class StackGresStatefulSet {
         .withStorageClassName(dataStorageConfig.getStorageClass());
 
     final Map<String, String> labels = ResourceUtil.defaultLabels(name);
-    final Map<String, String> podLabels = ResourceUtil.defaultPodLabels(name);
+    final Map<String, String> podLabels = ResourceUtil.statefulSetPodLabels(name);
 
     ImmutableList.Builder<EnvVar> environmentsBuilder = ImmutableList.<EnvVar>builder().add(
         new EnvVarBuilder().withName("PATRONI_NAME")

@@ -36,6 +36,11 @@ then
     docker exec -t $node sh -c "update-ca-certificates"
   done
 fi
+for node in $(kind get nodes --name "$KIND_NAME")
+do
+  docker exec -t $node sh -c 'DEBIAN_FRONTEND=noninteractive apt-get update -y -qq < /dev/null > /dev/null'
+  docker exec -t $node sh -c 'DEBIAN_FRONTEND=noninteractive apt-get install -y -qq nfs-common < /dev/null > /dev/null'
+done
 sed -i 's#^    server:.*$#    server: 'https://"$(docker inspect -f '{{ .NetworkSettings.IPAddress }}' ${KIND_NAME}-control-plane)"':6443#' "$(kind get kubeconfig-path --name="$KIND_NAME")"
 export KUBECONFIG="$(kind get kubeconfig-path --name="$KIND_NAME")"
 echo "export KUBECONFIG='$(kind get kubeconfig-path --name="$KIND_NAME")'" > "$HOME/.profile"

@@ -11,6 +11,8 @@ BUILD_OPERATOR="${BUILD_OPERATOR:-true}"
 WAIT_OPERATOR="${WAIT_OPERATOR:-true}"
 RESET_NAMESPACES="${RESET_NAMESPACE:-true}"
 TIMEOUT="${TIMEOUT:-180}"
+TRAP_ENABLED="${TRAP_ENABLED:-false}"
+SKIP_K8S_SETUP="${SKIP_K8S_SETUP:-false}"
 
 if [ -z "$STACKGRES_PATH" ]
 then
@@ -39,12 +41,21 @@ trap_callback() {
 }
 
 setup_k8s() {
-  . "$(dirname "$0")/envs/$ENV"
+  if ! $TRAP_ENABLED
+  then
+    rm -rf "$TARGET_PATH"
+    mkdir -p "$TARGET_PATH/logs"
+    trap 'trap_callback' EXIT
+    trap 'exit $?' HUP INT QUIT PIPE TERM
+    export TRAP_ENABLED=true
+  fi
 
-  rm -rf "$TARGET_PATH"
-  mkdir -p "$TARGET_PATH/logs"
-  trap 'trap_callback' EXIT
-  trap 'exit $?' HUP INT QUIT PIPE TERM
+  if [ "$SKIP_K8S_SETUP" = true ]
+  then
+    return
+  fi
+
+  . "$(dirname "$0")/envs/$ENV"
 
   if [ "$REUSE_K8S" != true ]
   then
@@ -112,8 +123,8 @@ setup_k8s() {
     if [ "$RESET_NAMESPACES" = true ]
     then
       kubectl get namespace -o name \
-        | grep -v "^namespace/\(default\|kube-system\|kube-public\|minio\|stackgres\)$" \
-        | xargs -r -n 1 -I % -P 0 kubectl delete %
+        | grep -v "^namespace/\(default\|kube-system\|kube-public\|minio\|stackgres\)$" | cut -d / -f 2 \
+        | xargs -r -n 1 -I % -P 0 kubectl delete namespace %
     fi
   fi
 
