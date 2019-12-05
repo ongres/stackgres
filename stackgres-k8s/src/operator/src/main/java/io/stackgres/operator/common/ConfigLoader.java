@@ -23,6 +23,7 @@ public class ConfigLoader implements ConfigContext {
       .put(ConfigProperty.OPERATOR_NAME, StackGresUtil.OPERATOR_NAME)
       .put(ConfigProperty.OPERATOR_VERSION, StackGresUtil.OPERATOR_VERSION)
       .put(ConfigProperty.PROMETHEUS_AUTOBIND, StackGresUtil.PROMETHEUS_AUTOBIND)
+      .put(ConfigProperty.OPERATOR_IP, StackGresUtil.OPERATOR_IP)
       .build();
 
   @Override

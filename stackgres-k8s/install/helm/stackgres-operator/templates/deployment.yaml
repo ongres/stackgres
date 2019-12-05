@@ -40,6 +40,10 @@ spec:
             value: "{{ .Values.containerBuild }}"
           - name: PROMETHEUS_AUTOBIND
             value: "{{ .Values.prometheus.allowAutobind }}"
+          - name: OPERATOR_IP
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
         ports:
         - containerPort: 8080
           name: "http"

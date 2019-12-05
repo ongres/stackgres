@@ -11,7 +11,7 @@ import java.util.Set;
 
 import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.operator.utils.JsonUtil;
-import io.stackgres.operator.validation.PgConfigReview;
+import io.stackgres.operator.common.PgConfigReview;
 import io.stackgres.operatorframework.ValidationFailed;
 import org.junit.jupiter.api.Test;
 

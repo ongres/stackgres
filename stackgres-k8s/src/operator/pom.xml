@@ -16,6 +16,7 @@
   <properties>
     <stackgres.operatorName>stackgres-operator</stackgres.operatorName>
     <stackgres.operatorNamespace>stackgres</stackgres.operatorNamespace>
+    <stackgres.operatorIP>localhost</stackgres.operatorIP>
     <stackgres.operatorVersion>${project.version}</stackgres.operatorVersion>
     <stackgres.containerBuild>2-dev</stackgres.containerBuild>
     <stackgres.group>stackgres.io</stackgres.group>

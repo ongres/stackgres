@@ -5,7 +5,7 @@
 
 package io.stackgres.operator.validation.profile;
 
-import io.stackgres.operator.validation.SgProfileReview;
+import io.stackgres.operator.common.SgProfileReview;
 import io.stackgres.operatorframework.Validator;
 
 interface SgProfileValidator extends Validator<SgProfileReview> {

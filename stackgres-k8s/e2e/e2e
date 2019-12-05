@@ -84,6 +84,8 @@ setup_k8s() {
       | kubectl delete -f - --ignore-not-found
     kubectl get validatingwebhookconfigurations.admissionregistration.k8s.io -o name \
       | xargs -r -n 1 -I % kubectl delete %
+    kubectl get mutatingwebhookconfigurations.admissionregistration.k8s.io -o name \
+      | xargs -r -n 1 -I % kubectl delete %
     if [ "$RESET_NAMESPACES" = true ]
     then
       kubectl get namespace -o name \

@@ -6,15 +6,14 @@
 package io.stackgres.operator.validation.cluster;
 
 import java.util.Set;
-
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 
+import io.stackgres.operator.common.StackgresClusterReview;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
-import io.stackgres.operator.validation.StackgresClusterReview;
 import io.stackgres.operatorframework.ValidationFailed;
 import io.stackgres.operatorframework.ValidationPipeline;
 

@@ -6,7 +6,7 @@
 package io.stackgres.operator.validation.cluster;
 
 import io.stackgres.operator.utils.JsonUtil;
-import io.stackgres.operator.validation.StackgresClusterReview;
+import io.stackgres.operator.common.StackgresClusterReview;
 import io.stackgres.operatorframework.ValidationFailed;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;

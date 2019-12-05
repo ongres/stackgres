@@ -9,9 +9,9 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.storage.StorageClass;
+import io.stackgres.operator.common.StackgresClusterReview;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.resource.KubernetesResourceFinder;
-import io.stackgres.operator.validation.StackgresClusterReview;
 import io.stackgres.operatorframework.ValidationFailed;
 
 @ApplicationScoped
