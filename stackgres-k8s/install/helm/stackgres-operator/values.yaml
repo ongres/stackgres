@@ -42,3 +42,10 @@ grafana: {}
   # httpHost: "prometheus-operator-grafana.default.svc"
   # Set the HTTP scheme used by grafana:
   # schema: "http"
+
+#Following options are for developers only, but can also be useful in some cases ;)
+developer: {}
+  # logLevel: info
+  # enableJvmDebug: false # Only work with JVM version and allow connect 
+  #                       # on port 8000 of operator Pod with jdb or similar
+  # enableJvmDebugSuspend: false

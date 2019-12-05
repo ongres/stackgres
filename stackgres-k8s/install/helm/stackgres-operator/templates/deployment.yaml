@@ -40,6 +40,22 @@ spec:
             value: "{{ .Values.containerBuild }}"
           - name: PROMETHEUS_AUTOBIND
             value: "{{ .Values.prometheus.allowAutobind }}"
+          {{- if .Values.developer.logLevel }}
+          - name: OPERATOR_LOG_LEVEL
+            value: "{{ .Values.developer.logLevel }}"
+          {{- end }}
+          {{- if .Values.developer.showStackTraces }}
+          - name: OPERATOR_SHOW_STACK_TRACES
+            value: "{{ .Values.developer.showStackTraces }}"
+          {{- end }}
+          {{- if .Values.developer.enableJvmDebug }}
+          - name: DEBUG_OPERATOR
+            value: "{{ .Values.developer.enableJvmDebug }}"
+          {{- end }}
+          {{- if .Values.developer.enableJvmDebugSuspend }}
+          - name: DEBUG_OPERATOR_SUSPEND
+            value: "{{ .Values.developer.enableJvmDebugSuspend }}"
+          {{- end }}
           - name: OPERATOR_IP
             valueFrom:
               fieldRef:
