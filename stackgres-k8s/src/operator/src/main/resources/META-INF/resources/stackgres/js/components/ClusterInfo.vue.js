@@ -58,7 +58,7 @@ var ClusterInfo = Vue.component("cluster-info", {
 
 			/* Clusters Data */
 		    axios
-		    .get(apiURL+'clusters/status/'+vm.$route.params.namespace+'/'+vm.$route.params.name,
+		    .get(apiURL+'cluster/status/'+vm.$route.params.namespace+'/'+vm.$route.params.name,
 		    	{ headers: {
 		            'content-type': 'application/json'
 		          }
