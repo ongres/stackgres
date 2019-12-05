@@ -60,7 +60,7 @@ spec() {
     trap_kill "$pid"
     while read line
     do
-      echo "[$SPEC_NAME] $line"
+      echo "$(date +"%Y-%m-%d %H:%M:%S") [$SPEC_NAME] $line"
     done
     )
   ) &
