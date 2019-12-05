@@ -521,7 +521,7 @@ var vm = new Vue({
 
     setInterval( function(){
       this.fetchAPI();
-    }.bind(this), 5000);
+    }.bind(this), 10000);
 
   }
 });
