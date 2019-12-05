@@ -44,12 +44,12 @@ cd stackgres
 export namecluster = name of my cluster
 export version     =  version you will used for kubernetes
 export region      =  region of deployment
-export node-type   = Node Size
+export nodetype    = Node Size
 export nodes       = Total of nodes
 export minnode     = Minimal nodes
 export maxnode     = Maxima nodes
 ```
-> for more information abount [Node Size ](https://aws.amazon.com/es/ec2/instance-types/)
+> For more information about [Node Size ](https://aws.amazon.com/es/ec2/instance-types/)
 
 For example :
 ```
@@ -61,7 +61,7 @@ export nodes=3
 export minnode=1
 export maxnode=4
 ```
-> Currently the only version supported is 1.14 for [kubernetes](https://docs.aws.amazon.com/eks/latest/userguide/kubernetes-versions.html)
+> Currently the only version supported is  1.12.0 - 1.16.0 for [kubernetes](https://docs.aws.amazon.com/eks/latest/userguide/kubernetes-versions.html)
 
 #### 2.2.- create cluster
 ```
@@ -76,12 +76,11 @@ eksctl create cluster \
 --nodes-max $maxnode \
 --node-ami  auto
 ```
-> Check each of this values to make sure is going to work with your AWS project.
 
 #### 2.3.-   Create your kubeconfig file with the AWS CLI
 
 
-`aws eks --region region update-kubeconfig --name namecluster`
+`aws eks --region $region update-kubeconfig --name $namecluster`
 
 
 ## 3.-  Now, verify cluster information
@@ -111,10 +110,14 @@ or
 ## 7.- Now, we are going to create the StackGres cluster
 
 ### 7.1.- Create cluster
-`helm  --name stackgres-cluter stackgres-k8s/install/helm/stackgres-cluster/`
+`helm  install --name stackgres-cluster stackgres-k8s/install/helm/stackgres-cluster/`
 
-> If you do not want to use the Cluster by default, you can generate the CRDs one by one, [in this way](crd.md)
+> If you do not want to use the Cluster by default, you can generate the CRDs one by one, [in this way](cr.md)
 
+#### 7.1.1.- Add  other cluster
+`helm upgrade  stackgres-cluster --version 3 stackgres-k8s/install/helm/stackgres-cluster/ --set-string cluster.instances=3`
+
+> Is necessary you have the resources for deployment
 ### 7.2.- Verify the cluster
 
 `kubectl get pods --all-namespaces -o json | jq '.items' | jq -c '.[] | select (.metadata.labels.app == "StackGres") | select (.metadata.labels.cluster == "true")' | jq '.metadata.name' -r`
@@ -130,7 +133,8 @@ or
 
 ## 8.-  Create a port-forward to access the web UI
 
-`kubectl get pods --all-namespaces -o json | jq '.items' | jq -c '.[] | select (.metadata.name | contains("stackgres-operator"))' | jq '.metadata.name' -r`
+`kubectl port-forward  "$(kubectl get pods --all-namespaces -o json | jq '.items' | jq -c '.[] | select (.metadata.name | contains("stackgres-orator"))' | jq '.metadata.name' -r)" 8883:443
+`
 
 ### 8.1.- Access the Web UI
 [Go to UI](https://127.0.0.1:8443 )

@@ -52,7 +52,7 @@ export namegroup=testgroup
 > Currently the only version supported is 1.14 for [kubernetes]()
 
 #### 2.2.- Create group
-`az group create --name $namegroup --location $region`
+`az group create --name $namegroup --location $location`
 #### 2.3.- create cluster
 `az aks create --name $namecluster --resource-group $namegroup --location $location --node-count $nodes`
 #### 2.4.- Coneccion cluster
@@ -87,8 +87,12 @@ or
 ### 7.1.- Create cluster
 `helm  --name stackgres-cluter stackgres-k8s/install/helm/stackgres-cluster/`
 
-> If you do not want to use the Cluster by default, you can generate the CRDs one by one, [in this way](crd.md)
+> If you do not want to use the Cluster by default, you can generate the CRDs one by one, [in this way](cr.md)
 
+#### 7.1.1.- Add  other cluster
+`helm upgrade  stackgres-cluster --version 3 stackgres-k8s/install/helm/stackgres-cluster/ --set-string cluster.instances=3`
+
+> Is necessary you have the resources for deployment
 ### 7.2.- Verify the cluster
 
 `kubectl get pods --all-namespaces -o json | jq '.items' | jq -c '.[] | select (.metadata.labels.app == "StackGres") | select (.metadata.labels.cluster == "true")' | jq '.metadata.name' -r`
@@ -104,7 +108,8 @@ or
 
 ## 8.-  Create a port-forward to access the web UI
 
-`kubectl get pods --all-namespaces -o json | jq '.items' | jq -c '.[] | select (.metadata.name | contains("stackgres-operator"))' | jq '.metadata.name' -r`
+`kubectl port-forward  "$(kubectl get pods --all-namespaces -o json | jq '.items' | jq -c '.[] | select (.metadata.name | contains("stackgres-orator"))' | jq '.metadata.name' -r)" 8883:443`
+
 
 ### 8.1.- Access the Web UI
 [Go to UI](https://127.0.0.1:8443 )

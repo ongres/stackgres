@@ -7,8 +7,142 @@
  1. pgbouncerconfig-cr.yaml
  1. cluster-cr.yaml
 
-### Create each file with the content below:
+## 1.- Create each file with the content below:
 
-`profiles-crs.yaml` Custom resources for instances size(memory and cpu):
+`profiles-cr.yaml` Custom resources for instances size(memory and cpu):
+
 ```
-``` 
+apiVersion: stackgres.io/v1alpha1
+kind: StackGresProfile
+metadata:
+  name: size-xs
+  annotations:
+    "helm.sh/hook": "pre-install"
+spec:
+  cpu: "500m"
+  memory: "512Mi"
+---
+apiVersion: stackgres.io/v1alpha1
+kind: StackGresProfile
+metadata:
+  name: size-s
+  annotations:
+    "helm.sh/hook": "pre-install"
+spec:
+  cpu: "1"
+  memory: "2Gi"
+---
+apiVersion: stackgres.io/v1alpha1
+kind: StackGresProfile
+metadata:
+  name: size-m
+  annotations:
+    "helm.sh/hook": "pre-install"
+spec:
+  cpu: "2"
+  memory: "4Gi"
+---
+apiVersion: stackgres.io/v1alpha1
+kind: StackGresProfile
+metadata:
+  name: size-l
+  annotations:
+    "helm.sh/hook": "pre-install"
+spec:
+  cpu: "4"
+  memory: "8Gi"
+---
+apiVersion: stackgres.io/v1alpha1
+kind: StackGresProfile
+metadata:
+  name: size-xl
+  annotations:
+    "helm.sh/hook": "pre-install"
+spec:
+  cpu: "6"
+  memory: "16Gi"
+---
+apiVersion: stackgres.io/v1alpha1
+kind: StackGresProfile
+metadata:
+  name: size-xxl
+  annotations:
+    "helm.sh/hook": "pre-install"
+spec:
+  cpu: "8"
+  memory: "32Gi"
+```
+`pgconfig-cr.yaml`  Custom resource for PosgreSQL configuration:
+```
+apiVersion: stackgres.io/v1alpha1
+kind: StackGresPostgresConfig
+metadata:
+  name: postgresconf
+  annotations:
+    "helm.sh/hook": "pre-install"
+spec:
+  pgVersion: "11"
+  postgresql.conf:
+      shared_buffers: '256MB'
+      random_page_cost: '1.5'
+      password_encryption: 'scram-sha-256'
+      wal_compression: 'on'
+```
+
+`pgbouncerconfig-cr.yaml` Custom resource for pgbouncer configuration:
+
+```
+apiVersion: stackgres.io/v1alpha1
+kind: StackGresConnectionPoolingConfig
+metadata:
+  name: pgbouncerconf
+  annotations:
+    "helm.sh/hook": "pre-install"
+spec:
+  pgbouncerVersion: "1.12.0"
+  pgbouncer.ini:
+      pool_mode: transaction
+      max_client_conn: '200'
+      default_pool_size: '200'
+```
+`cluster-cr.yaml` Custom resource for StackGres cluster
+
+```
+apiVersion: stackgres.io/v1alpha1
+kind: StackGresCluster
+metadata:
+  name: jaundiced-ladybug
+spec:
+  instances: 1
+  pgVersion: '11.6'
+  pgConfig: 'postgresconf'
+  connectionPoolingConfig: 'pgbouncerconf'
+  resourceProfile: 'size-xs'
+  volumeSize: '5Gi'
+  postgresExporterVersion: '0.7.0'
+  prometheusAutobind: true
+  sidecars:
+  - connection-pooling
+  - postgres-util
+  - prometheus-postgres-exporter
+```
+### 2.- Once you have the files created, apply it to the k8s cluster:
+
+```
+kubectel apply -f _your_directory/profiles-cr.yaml
+kubectel apply -f _your_directory/pgconfig-cr.yaml
+kubectel apply -f _your_directory/pgbouncerconfig-cr.yaml
+kubectel apply -f _your_directory/cluster-cr.yaml
+
+```
+
+> Note: This last file will create all the StackGres cluster resources
+
+
+## Now, you can continue with the previous manual depends you cloud :
+
+[azure verify the cluster ](https://gitlab.com/sancfc/sg/blob/master/azure.md#72-verify-the-cluster)
+
+[aws verify the cluster](https://gitlab.com/sancfc/sg/blob/master/aws.md#72-verify-the-cluster)
+
+[GCP verify the cluster](https://gitlab.com/sancfc/sg/blob/master/gcloud.md#72-verify-the-cluster)
