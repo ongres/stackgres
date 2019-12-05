@@ -12,6 +12,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import javax.inject.Qualifier;
 
+import io.fabric8.kubernetes.api.model.HasMetadata;
+
 @Qualifier
 @Target({ElementType.TYPE, ElementType.METHOD, ElementType.PARAMETER, ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
@@ -21,6 +23,6 @@ public @interface Kind {
   /**
    * The kind.
    */
-  String value();
+  Class<? extends HasMetadata> value();
 
 }

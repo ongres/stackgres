@@ -38,35 +38,35 @@ public class PatroniStatsScripts {
   }
 
   public static String getCpuFound() {
-    return get("cpu_found");
+    return get("cpuFound");
   }
 
   public static String getMemoryFound() {
-    return get("memory_found");
+    return get("memoryFound");
   }
 
   public static String getMemoryUsed() {
-    return get("memory_used");
+    return get("memoryUsed");
   }
 
   public static String getDiskFound() {
-    return get("disk_found");
+    return get("diskFound");
   }
 
   public static String getDiskUsed() {
-    return get("disk_used");
+    return get("diskUsed");
   }
 
   public static String getLoad1m() {
-    return get("load_1m");
+    return get("load1m");
   }
 
   public static String getLoad5m() {
-    return get("load_5m");
+    return get("load5m");
   }
 
   public static String getLoad10m() {
-    return get("load_10m");
+    return get("load10m");
   }
 
   private static String get(String scriptKey) {

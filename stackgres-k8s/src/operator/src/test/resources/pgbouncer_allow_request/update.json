@@ -42,7 +42,7 @@
         "uid": "af37ff0f-f66f-11e9-8982-0242ac110002"
       },
       "spec": {
-        "pgbouncer_version": "1.11.0",
+        "pgbouncerVersion": "1.11.0",
         "pgbouncer.ini": {
           "default_pool_size": "200",
           "max_client_conn": "200",
@@ -64,7 +64,7 @@
         "uid": "af37ff0f-f66f-11e9-8982-0242ac110002"
       },
       "spec": {
-        "pgbouncer_version": "1.11.0",
+        "pgbouncerVersion": "1.11.0",
         "pgbouncer.ini": {
           "default_pool_size": "100",
           "max_client_conn": "200",

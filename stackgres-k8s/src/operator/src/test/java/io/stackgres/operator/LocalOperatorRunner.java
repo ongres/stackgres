@@ -8,11 +8,12 @@ package io.stackgres.operator;
 import static io.quarkus.test.common.PathTestHelper.getAppClassLocation;
 import static io.quarkus.test.common.PathTestHelper.getTestClassesLocation;
 
+import java.io.BufferedReader;
 import java.io.Closeable;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -33,6 +34,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -72,6 +74,17 @@ public class LocalOperatorRunner implements OperatorRunner {
 
   private final static Logger LOGGER = LoggerFactory.getLogger(LocalOperatorRunner.class);
 
+  /**
+   * As part of the test run we need to create files in the test-classes directory
+   *
+   * We attempt to clean these up with a shutdown hook, but if the processes is killed (e.g. hitting the red
+   * IDE button) it can leave these files behind which interfere with subsequent runs.
+   *
+   * To fix this we create a file that contains the names of all the files we have created, and at the start of a new
+   * run we remove them if this file exists.
+   */
+  private static final String CREATED_FILES = "CREATED_FILES.txt";
+
   private final Container kind;
   private final Class<?> testClass;
   private final int port;
@@ -80,6 +93,7 @@ public class LocalOperatorRunner implements OperatorRunner {
   private URLClassLoader appCl;
   private ClassLoader originalCl;
   private RuntimeRunner runtimeRunner;
+  private CompletableFuture<Void> running = new CompletableFuture<>();
 
   public LocalOperatorRunner(Container kind, Class<?> testClass, int port, int sslPort) {
     super();
@@ -91,6 +105,7 @@ public class LocalOperatorRunner implements OperatorRunner {
 
   @Override
   public void close() throws IOException {
+    running.join();
     if (runtimeRunner != null) {
       runtimeRunner.close();
     }
@@ -106,6 +121,7 @@ public class LocalOperatorRunner implements OperatorRunner {
   public void run() throws Exception {
     setup();
     runtimeRunner.run();
+    running.complete(null);
   }
 
   private void setup() throws Exception {
@@ -175,39 +191,42 @@ public class LocalOperatorRunner implements OperatorRunner {
       }
     }
 
-    runtimeRunner = runnerBuilder.setLaunchMode(LaunchMode.TEST).setClassLoader(appCl)
+    Path createdFilesPath = testWiringClassesDir.resolve(CREATED_FILES);
+    if (Files.exists(createdFilesPath)) {
+      cleanupOldRun(createdFilesPath);
+    }
+    this.runtimeRunner = runnerBuilder
+        .setLaunchMode(LaunchMode.TEST)
+        .setClassLoader(appCl)
         .setTarget(appClassLocation)
         .addAdditionalArchive(testWiringClassesDir)
         .setClassOutput(new ClassOutput() {
           @Override
-          public void writeClass(boolean applicationClass, String className, byte[] data)
-              throws IOException {
+          public void writeClass(boolean applicationClass, String className, byte[] data) throws IOException {
             Path location = testWiringClassesDir.resolve(className.replace('.', '/') + ".class");
             Files.createDirectories(location.getParent());
-            try (FileOutputStream out = new FileOutputStream(location.toFile())) {
-              out.write(data);
-            }
+            writeToCreatedFile(testWiringClassesDir, createdFilesPath, location);
+            Files.write(location, data);
           }
 
           @Override
           public void writeResource(String name, byte[] data) throws IOException {
             Path location = testWiringClassesDir.resolve(name);
             Files.createDirectories(location.getParent());
-            try (FileOutputStream out = new FileOutputStream(location.toFile())) {
-              out.write(data);
-            }
+            writeToCreatedFile(testWiringClassesDir, createdFilesPath, location);
+            Files.write(location, data);
           }
-        }).setTransformerTarget(new TransformerTarget() {
+        })
+        .setTransformerTarget(new TransformerTarget() {
           @Override
           public void setTransformers(
               Map<String, List<BiFunction<String, ClassVisitor, ClassVisitor>>> functions) {
             ClassLoader main = Thread.currentThread().getContextClassLoader();
 
-            // we need to use a temp class loader, or the old resource location will be cached
+            //we need to use a temp class loader, or the old resource location will be cached
             ClassLoader temp = new ClassLoader() {
               @Override
-              protected Class<?> loadClass(String name, boolean resolve)
-                  throws ClassNotFoundException {
+              protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
                 // First, check if the class has already been loaded
                 Class<?> c = findLoadedClass(name);
                 if (c == null) {
@@ -234,7 +253,7 @@ public class LocalOperatorRunner implements OperatorRunner {
               String resourceName = e.getKey().replace('.', '/') + ".class";
               try (InputStream stream = temp.getResourceAsStream(resourceName)) {
                 if (stream == null) {
-                  System.err.println("Failed to transform " + e.getKey());
+                  LOGGER.error("Failed to transform " + e.getKey());
                   continue;
                 }
                 byte[] data = IoUtil.readBytes(stream);
@@ -262,15 +281,15 @@ public class LocalOperatorRunner implements OperatorRunner {
 
                 Path location = testWiringClassesDir.resolve(resourceName);
                 Files.createDirectories(location.getParent());
-                try (FileOutputStream out = new FileOutputStream(location.toFile())) {
-                  out.write(cw.toByteArray());
-                }
+                writeToCreatedFile(testWiringClassesDir, createdFilesPath, location);
+                Files.write(location, cw.toByteArray());
               } catch (IOException ex) {
-                ex.printStackTrace();
+                LOGGER.error("Error", ex);
               }
             }
           }
-        }).addChainCustomizer(new Consumer<BuildChainBuilder>() {
+        })
+        .addChainCustomizer(new Consumer<BuildChainBuilder>() {
           @Override
           public void accept(BuildChainBuilder buildChainBuilder) {
             buildChainBuilder.addBuildStep(new BuildStep() {
@@ -283,9 +302,11 @@ public class LocalOperatorRunner implements OperatorRunner {
                   }
                 }));
               }
-            }).produces(TestClassPredicateBuildItem.class).build();
+            }).produces(TestClassPredicateBuildItem.class)
+            .build();
           }
-        }).addChainCustomizer(new Consumer<BuildChainBuilder>() {
+        })
+        .addChainCustomizer(new Consumer<BuildChainBuilder>() {
           @Override
           public void accept(BuildChainBuilder buildChainBuilder) {
             buildChainBuilder.addBuildStep(new BuildStep() {
@@ -293,19 +314,11 @@ public class LocalOperatorRunner implements OperatorRunner {
               public void execute(BuildContext context) {
                 context.produce(new TestAnnotationBuildItem(QuarkusTest.class.getName()));
               }
-            }).produces(TestAnnotationBuildItem.class).build();
+            }).produces(TestAnnotationBuildItem.class)
+            .build();
           }
-        }).build();
-  }
-
-  private Path getClassLocation(Class<?> reference, Closer closer) throws URISyntaxException, IOException {
-    String resource = reference.getName().replace('.', File.separatorChar) + ".class";
-    URI resourceUri = URI.create(reference.getClassLoader()
-        .getResource(resource).toURI().toString().replace(resource, ""));
-    final Path classLocation;
-    closer.register(createFileSystemIfNotFound(resourceUri));
-    classLocation = Paths.get(resourceUri);
-    return classLocation;
+        })
+        .build();
   }
 
   private ClassLoader setCCL(ClassLoader cl) {
@@ -344,6 +357,36 @@ public class LocalOperatorRunner implements OperatorRunner {
     } catch (BootstrapException e) {
       throw new IllegalStateException("Failed to create the boostrap class loader", e);
     }
+  }
+
+  private void writeToCreatedFile(final Path testWiringClassesDir,
+      Path createdFilesPath, Path location) throws IOException {
+    try (OutputStream created = Files.newOutputStream(createdFilesPath)) {
+      created.write((testWiringClassesDir.relativize(location).toString() + "\n").getBytes(StandardCharsets.UTF_8));
+      created.flush();
+    }
+  }
+
+  private void cleanupOldRun(Path createdFilesPath) {
+      try (BufferedReader reader = Files.newBufferedReader(createdFilesPath)) {
+        String line;
+        while ((line = reader.readLine()) != null) {
+          Files.deleteIfExists(createdFilesPath.getParent().resolve(line));
+        }
+        Files.deleteIfExists(createdFilesPath);
+      } catch (IOException ex) {
+        LOGGER.error("Error", ex);
+      }
+  }
+
+  private Path getClassLocation(Class<?> reference, Closer closer) throws URISyntaxException, IOException {
+    String resource = reference.getName().replace('.', File.separatorChar) + ".class";
+    URI resourceUri = URI.create(reference.getClassLoader()
+        .getResource(resource).toURI().toString().replace(resource, ""));
+    final Path classLocation;
+    closer.register(createFileSystemIfNotFound(resourceUri));
+    classLocation = Paths.get(resourceUri);
+    return classLocation;
   }
 
   private Closeable createFileSystemIfNotFound(URI uri) throws IOException, URISyntaxException {

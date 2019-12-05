@@ -1,0 +1,33 @@
+{
+  "cpuRequested": "500m",
+  "cpuFound": "8",
+  "memoryRequested": "512Mi",
+  "memoryFound": "16Gi",
+  "memoryUsed": "14Gi",
+  "diskFound": "8.0Gi",
+  "diskUsed": "72Mi",
+  "averageLoad1m": "1.06",
+  "averageLoad5m": "1.10",
+  "averageLoad10m": "0.97",
+  "pods": [
+    {
+      "namespace": "postgresql",
+      "name": "stackgres-0",
+      "role": "master",
+      "ip": "10.244.2.8",
+      "status": "Running",
+      "containers": "5",
+      "containersReady": "5"
+    },
+    {
+      "namespace": "postgresql",
+      "name": "stackgres-1",
+      "role": "replica",
+      "ip": "10.244.1.6",
+      "status": "Running",
+      "containers": "5",
+      "containersReady": "5"
+    }
+  ],
+  "podsReady": "2"
+}

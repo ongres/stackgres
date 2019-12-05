@@ -66,11 +66,11 @@ public class PostgresConfigValidator implements ClusterValidator {
     String givenPgVersion = cluster.getSpec().getPostgresVersion();
     String pgConfig = cluster.getSpec().getPostgresConfig();
 
-    checkIfProvided(givenPgVersion, "pg_version");
-    checkIfProvided(pgConfig, "pg_config");
+    checkIfProvided(givenPgVersion, "pgVersion");
+    checkIfProvided(pgConfig, "pgConfig");
 
     if (!isPostgresVersionSupported(givenPgVersion)) {
-      throw new ValidationFailed("Unsupported pg_version " + givenPgVersion
+      throw new ValidationFailed("Unsupported pgVersion " + givenPgVersion
           + ".  Supported postgres versions are: "
           + String.join(", ", supportedPostgresVersions));
     }
@@ -94,7 +94,7 @@ public class PostgresConfigValidator implements ClusterValidator {
         String oldPgVersion = oldCluster.getSpec().getPostgresVersion();
 
         if (!givenPgVersion.equals(oldPgVersion)) {
-          throw new ValidationFailed("pg_version cannot be updated");
+          throw new ValidationFailed("pgVersion cannot be updated");
         }
 
         break;
@@ -116,12 +116,12 @@ public class PostgresConfigValidator implements ClusterValidator {
       String pgVersion = postgresConfig.getSpec().getPgVersion();
 
       if (!pgVersion.equals(givenMajorVersion)) {
-        throw new ValidationFailed("Invalid pg_version, must be "
+        throw new ValidationFailed("Invalid pgVersion, must be "
             + pgVersion + " to use pfConfig " + pgConfig);
       }
 
     } else {
-      throw new ValidationFailed("Invalid pg_config value " + pgConfig);
+      throw new ValidationFailed("Invalid pgConfig value " + pgConfig);
     }
   }
 

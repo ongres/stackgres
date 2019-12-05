@@ -1,15 +1,12 @@
 package io.stackgres.operator;
 
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.stream.Stream;
-
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.HEAD;
@@ -22,12 +19,12 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 
 import com.google.common.reflect.ClassPath;
-
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.operator.rest.GenericExceptionMapper;
-
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class ResourcesSerializationTest {
 
@@ -65,9 +62,12 @@ class ResourcesSerializationTest {
 
           if (Collection.class.isAssignableFrom(returnType)) {
             Arrays.stream(((ParameterizedType) method.getGenericReturnType()).getActualTypeArguments()).forEach(gt -> {
-              Class<?> gType = (Class<?>) gt;
-              assertNotNull(gType.getAnnotation(RegisterForReflection.class), "class "
-                  + gType.getName() + " must be annotated with register for reflection");
+              if (gt instanceof java.lang.Class){
+                Class<?> gType = (Class<?>) gt;
+                assertNotNull(gType.getAnnotation(RegisterForReflection.class), "class "
+                    + gType.getName() + " must be annotated with register for reflection");
+              }
+
             });
           }
 

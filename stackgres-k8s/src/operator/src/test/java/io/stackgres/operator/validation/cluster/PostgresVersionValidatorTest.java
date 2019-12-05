@@ -153,7 +153,7 @@ class PostgresVersionValidatorTest {
 
     String resultMessage = exception.getResult().getMessage();
 
-    assertEquals("Invalid pg_version, must be 11 to use pfConfig postgresconf",
+    assertEquals("Invalid pgVersion, must be 11 to use pfConfig postgresconf",
         resultMessage);
 
     verify(configFinder).findByNameAndNamespace(eq(postgresProfile), eq(namespace));
@@ -172,7 +172,7 @@ class PostgresVersionValidatorTest {
 
     String resultMessage = exception.getResult().getMessage();
 
-    assertEquals("pg_version must be provided",
+    assertEquals("pgVersion must be provided",
         resultMessage);
 
     verify(configFinder, never()).findByNameAndNamespace(anyString(), anyString());
@@ -191,7 +191,7 @@ class PostgresVersionValidatorTest {
 
     String resultMessage = exception.getResult().getMessage();
 
-    assertEquals("pg_version must be provided",
+    assertEquals("pgVersion must be provided",
         resultMessage);
 
     verify(configFinder, never()).findByNameAndNamespace(anyString(), anyString());
@@ -213,7 +213,7 @@ class PostgresVersionValidatorTest {
 
     String resultMessage = exception.getResult().getMessage();
 
-    assertTrue(resultMessage.contains("Unsupported pg_version " + postgresVersion));
+    assertTrue(resultMessage.contains("Unsupported pgVersion " + postgresVersion));
 
     verify(configFinder, never()).findByNameAndNamespace(anyString(), anyString());
   }
@@ -231,7 +231,7 @@ class PostgresVersionValidatorTest {
 
     String resultMessage = exception.getResult().getMessage();
 
-    assertEquals("pg_version cannot be updated", resultMessage);
+    assertEquals("pgVersion cannot be updated", resultMessage);
 
   }
 
@@ -248,7 +248,7 @@ class PostgresVersionValidatorTest {
 
     String resultMessage = exception.getResult().getMessage();
 
-    assertEquals("pg_version cannot be updated", resultMessage);
+    assertEquals("pgVersion cannot be updated", resultMessage);
 
   }
 
@@ -271,7 +271,7 @@ class PostgresVersionValidatorTest {
 
     String resultMessage = exception.getResult().getMessage();
 
-    assertEquals("Invalid pg_config value " + postgresProfile, resultMessage);
+    assertEquals("Invalid pgConfig value " + postgresProfile, resultMessage);
 
     verify(configFinder).findByNameAndNamespace(eq(postgresProfile), eq(namespace));
   }
@@ -291,7 +291,7 @@ class PostgresVersionValidatorTest {
 
     String resultMessage = exception.getResult().getMessage();
 
-    assertEquals("pg_config must be provided", resultMessage);
+    assertEquals("pgConfig must be provided", resultMessage);
 
     verify(configFinder, never()).findByNameAndNamespace(anyString(), anyString());
   }
@@ -311,7 +311,7 @@ class PostgresVersionValidatorTest {
 
     String resultMessage = exception.getResult().getMessage();
 
-    assertEquals("pg_config must be provided", resultMessage);
+    assertEquals("pgConfig must be provided", resultMessage);
 
     verify(configFinder, never()).findByNameAndNamespace(anyString(), anyString());
   }
@@ -336,7 +336,7 @@ class PostgresVersionValidatorTest {
 
     String resultMessage = exception.getResult().getMessage();
 
-    assertEquals("Invalid pg_config value " + postgresProfile, resultMessage);
+    assertEquals("Invalid pgConfig value " + postgresProfile, resultMessage);
 
     verify(configFinder).findByNameAndNamespace(eq(postgresProfile), eq(namespace));
 

@@ -8,7 +8,7 @@ metadata:
     "helm.sh/hook": "pre-install"
   {{- end }}
 spec:
-  pgbouncer_version: "{{ .Values.config.pgbouncer.version }}"
+  pgbouncerVersion: "{{ .Values.config.pgbouncer.version }}"
   pgbouncer.ini:
       pool_mode: transaction
       max_client_conn: '200'

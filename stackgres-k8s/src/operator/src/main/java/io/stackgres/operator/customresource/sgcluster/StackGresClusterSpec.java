@@ -29,39 +29,36 @@ public class StackGresClusterSpec implements KubernetesResource {
   @Min(value = 1, message = "You need at least 1 instance in the cluster")
   private int instances;
 
-  @JsonProperty("pg_version")
+  @JsonProperty("pgVersion")
   @NotBlank(message = "PostgreSQL version is required")
   private String postgresVersion;
 
-  @JsonProperty("pg_config")
+  @JsonProperty("pgConfig")
   @NotBlank(message = "You need to associate a Postgres configuration to this cluster")
   private String postgresConfig;
 
-  @JsonProperty("postgres_exporter_version")
+  @JsonProperty("postgresExporterVersion")
   private String postgresExporterVersion;
 
-  @JsonProperty("envoy_version")
-  private String envoyVersion;
-
-  @JsonProperty("resource_profile")
+  @JsonProperty("resourceProfile")
   @NotNull
   private String resourceProfile;
 
-  @JsonProperty("connection_pooling_config")
+  @JsonProperty("connectionPoolingConfig")
   @NotNull
   private String connectionPoolingConfig;
 
-  @JsonProperty("backup_config")
+  @JsonProperty("backupConfig")
   private String backupConfig;
 
-  @JsonProperty("volume_size")
+  @JsonProperty("volumeSize")
   @NotNull
   private String volumeSize;
 
-  @JsonProperty("storage_class")
+  @JsonProperty("storageClass")
   private String storageClass;
 
-  @JsonProperty("prometheus_autobind")
+  @JsonProperty("prometheusAutobind")
   private Boolean prometheusAutobind;
 
   @JsonProperty("sidecars")
@@ -97,14 +94,6 @@ public class StackGresClusterSpec implements KubernetesResource {
 
   public void setPostgresExporterVersion(String postgresExporterVersion) {
     this.postgresExporterVersion = postgresExporterVersion;
-  }
-
-  public String getEnvoyVersion() {
-    return envoyVersion;
-  }
-
-  public void setEnvoyVersion(String envoyVersion) {
-    this.envoyVersion = envoyVersion;
   }
 
   public String getResourceProfile() {
@@ -168,13 +157,13 @@ public class StackGresClusterSpec implements KubernetesResource {
     return MoreObjects.toStringHelper(this)
         .omitNullValues()
         .add("instances", instances)
-        .add("pg_version", postgresVersion)
-        .add("pg_config", postgresConfig)
-        .add("resource_profile", resourceProfile)
-        .add("connection_pooling_config", connectionPoolingConfig)
-        .add("backup_config", backupConfig)
-        .add("volume_size", volumeSize)
-        .add("storage_class", storageClass)
+        .add("pgVersion", postgresVersion)
+        .add("pgConfig", postgresConfig)
+        .add("resourceProfile", resourceProfile)
+        .add("connectionPoolingConfig", connectionPoolingConfig)
+        .add("backupConfig", backupConfig)
+        .add("volumeSize", volumeSize)
+        .add("storageClass", storageClass)
         .add("sidecars", sidecars)
         .toString();
   }

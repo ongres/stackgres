@@ -11,23 +11,23 @@
       "uid": "02eb2f60-b428-4ec4-88f0-989df44f3407"
   },
   "spec": {
-      "connection_pooling_config": "pgbouncerconf",
+      "connectionPoolingConfig": "pgbouncerconf",
       "instances": 1,
-      "pg_config": "postgresconf",
-      "pg_version": 11.5,
-      "resource_profile": "size-xs",
+      "pgConfig": "postgresconf",
+      "pgVersion": 11.5,
+      "resourceProfile": "size-xs",
       "sidecars": [
           "connection-pooling",
           "postgres-utils"
       ],
-      "storage_class": "standard",
-      "volume_size": "5Gi"
+      "storageClass": "standard",
+      "volumeSize": "5Gi"
   },
   "status": {
     "disk_usage": "1.2Gi",
-    "average_load_1m": "2.31",
-    "average_load_5m": "2.39",
-    "average_load_10m": "2.87",
+    "averageLoad1m": "2.31",
+    "averageLoad5m": "2.39",
+    "averageLoad10m": "2.87",
     "connections": "1",
     "health": "2/3",
     "pods": [

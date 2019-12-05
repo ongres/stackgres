@@ -1,0 +1,14 @@
+cluster:
+  instances: 1
+  backup:
+    s3:
+      prefix: s3://stackgres
+      endpoint: http://backupconf-removal-minio.backupconf-removal.svc:9000
+      forcePathStyle: true
+      region: k8s
+      accessKey:
+        name: backupconf-removal-minio
+        key: accesskey
+      secretKey:
+        name: backupconf-removal-minio
+        key: secretkey

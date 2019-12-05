@@ -1,0 +1,47 @@
+#!/bin/sh
+
+test() {
+  run_test "Trying to delete size-xs with cluster running" delete_with_cluster
+
+  run_test "Trying to delete size-xs without cluster running" delete_whitout_cluster
+}
+delete_with_cluster(){
+  if kubectl get -n "$CLUSTER_NAMESPACE" sgprofiles.stackgres.io size-xs -o yaml \
+    | kubectl delete -f - > "${LOG_PATH}/test1.log" 2>&1
+  then
+    echo "INFO: It should not be able to delete size-xs"
+    return 1
+  else
+    echo "SUCCESS: Good it has failed"
+    return 0
+  fi
+
+  if grep -q "Can't delete sgprofiles.stackgres.io size-xs" "$LOG_PATH/test1.log"
+  then
+    echo "SUCCESS: Error message was the expected"
+    return 0
+  else
+    ERROR="$(cat "$LOG_PATH/test1.log")"
+    echo "FAIL: Error is not what it should be. ERROR ${ERROR}"
+    return 1
+  fi
+}
+
+delete_whitout_cluster(){
+
+  kubectl get -n "$CLUSTER_NAMESPACE" sgclusters.stackgres.io "$CLUSTER_NAME" -o yaml | kubectl delete -f -
+
+  wait_pods_terminated "$CLUSTER_NAMESPACE"
+
+  if kubectl get -n "$CLUSTER_NAMESPACE" sgprofiles.stackgres.io size-xs -o yaml \
+    | kubectl delete -f - > "${LOG_PATH}/test2.log" 2>&1
+  then
+    echo "SUCCESS: Good. It has deleted the configuration"
+    return 0
+  else
+    ERROR="$(cat "$LOG_PATH/test2.log")"
+    echo "FAIL: It should be able to delete the size-xs. ERROR ${ERROR}"
+    return 1
+  fi
+
+}

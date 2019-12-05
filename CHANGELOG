@@ -1,3 +1,19 @@
+# Release 0.7.1
+
+## NOTES
+
+* Added documentation
+* Use default storage class in cluster helm chart
+
+## FIXES
+
+* Allow null and empty storage class names
+* Use ClusterIP instead of LoadBalancer in stackgres services
+* Added permissions to modify service monitors
+* Multiple fixes and improvement in the UI
+* Fixed certificate unknown authority when reinstalling operator
+* Fixed the prometheus integration was colliding if two stackgres cluster has the same name
+
 # Release 0.7
 
 ## NOTES

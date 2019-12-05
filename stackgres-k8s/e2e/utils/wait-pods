@@ -1,0 +1,44 @@
+#!/bin/sh
+
+wait_pods_running() {
+  local NAMESPACE_OPT="$([ -z "$1" ] && echo "--all-namespaces" || echo "--namespace=$1")"
+  local EXPECTED_RUNNING_PODS="${2:-1}"
+  local START="$(date +%s)"
+  while [ "$((START + TIMEOUT))" -gt "$(date +%s)" ]
+  do
+    RUNNING_PODS="$(kubectl get pods "$NAMESPACE_OPT" | grep "Running" | wc -l)"
+    RUNNING_CONTAINERS="$(kubectl get pods "$NAMESPACE_OPT" | grep "Running" \
+      | grep '[0-9]\+/[0-9]\+' -o | cut -d '/' -f 1 | tr '\n' ' ')"
+    EXPECTED_CONTAINERS="$(kubectl get pods "$NAMESPACE_OPT" | grep "Running" \
+      | grep '[0-9]\+/[0-9]\+' -o | cut -d '/' -f 2 | tr '\n' ' ')"
+    if [ "$RUNNING_PODS" -ge "$EXPECTED_RUNNING_PODS" \
+      -a "$RUNNING_CONTAINERS" = "$EXPECTED_CONTAINERS" ]
+    then
+      echo "$([ -z "$1" ] && echo "All pods running" || echo "All pods running in namespace $1")"
+      return
+    fi
+    sleep 2
+  done
+  echo "$([ -z "$1" ] && echo "Timeout while waiting for all pods to become running" \
+    || echo "Timeout while waiting for all pods to become running in namespace $1")"
+  return 1
+}
+
+wait_pods_terminated() {
+  local NAMESPACE_OPT="$([ -z "$1" ] && echo "--all-namespaces" || echo "--namespace=$1")"
+  local EXPECTED_REMAINING_PODS="${2:-0}"
+  local START="$(date +%s)"
+  while [ "$((START + TIMEOUT))" -gt "$(date +%s)" ]
+  do
+    REMAINING_PODS="$(kubectl get pods "$NAMESPACE_OPT" -o name | wc -l)"
+    if [ "$REMAINING_PODS" -le "$EXPECTED_REMAINING_PODS" ]
+    then
+      echo "$([ -z "$1" ] && echo "All pods terminated" || echo "All pods terminated in namespace $1")"
+      return
+    fi
+    sleep 2
+  done
+  echo "$([ -z "$1" ] && echo "Timeout while waiting for all pods to terminate" \
+    || echo "Timeout while waiting for all pods to terminate in namespace $1")"
+  return 1
+}

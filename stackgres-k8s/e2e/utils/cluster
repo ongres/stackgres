@@ -1,0 +1,60 @@
+#!/bin/sh
+
+remove_cluster() {
+  local RELEASE="$1"
+  local NAMESPACE
+  NAMESPACE="$(helm ls | grep "^$RELEASE\s" | awk '{print $11}')"
+
+  echo "Deleting release $RELEASE"
+  helm get manifest "$RELEASE" \
+    | kubectl delete --namespace "$NAMESPACE" --ignore-not-found -f -
+  helm get hooks "$RELEASE" \
+    | kubectl delete --namespace "$NAMESPACE" --ignore-not-found -f -
+  helm delete --purge "$RELEASE"
+}
+
+remove_cluster_if_exists() {
+  local RELEASE="$1"
+
+  if helm get "$RELEASE" > /dev/null 2>&1
+  then
+    remove_cluster "$RELEASE"
+  fi
+}
+
+create_or_replace_cluster() {
+  local RELEASE="$1"
+  local NAMESPACE="$2"
+  local INSTANCES="$3"
+  shift 3
+
+  if helm get "$RELEASE" > /dev/null 2>&1
+  then
+    INSTALLED_NAMESPACE="$(helm ls | grep "^$RELEASE\s" | awk '{print $11}')"
+
+    if [ "$INSTALLED_NAMESPACE" = "$NAMESPACE" ]
+    then
+      helm upgrade "$RELEASE" "$CLUSTER_CHART_PATH" \
+        --set cluster.instances="$INSTANCES" "$@"
+    else
+      remove_cluster "$RELEASE"
+      helm install --name "$RELEASE" --namespace "$NAMESPACE" \
+        "$CLUSTER_CHART_PATH" \
+        --set cluster.instances="$INSTANCES" "$@"
+    fi
+  else
+    helm install --name "$RELEASE" --namespace "$NAMESPACE" \
+      "$CLUSTER_CHART_PATH" \
+      --set cluster.instances="$INSTANCES" "$@"
+  fi
+}
+
+delete_namespace_if_exists() {
+  local NAMESPACE="$1"
+  shift 1
+
+  if kubectl get namespaces $NAMESPACE &> /dev/null
+  then
+    kubectl delete namespace $NAMESPACE
+  fi
+}  

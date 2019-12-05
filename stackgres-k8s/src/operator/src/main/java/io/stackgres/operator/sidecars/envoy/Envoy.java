@@ -30,8 +30,8 @@ import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.operator.app.YamlMapperProvider;
 import io.stackgres.operator.common.Sidecar;
-import io.stackgres.operator.common.StackGresClusterConfig;
 import io.stackgres.operator.common.StackGresSidecarTransformer;
+import io.stackgres.operator.controller.ResourceGeneratorContext;
 import io.stackgres.operator.resource.ResourceUtil;
 
 import org.jooq.lambda.Seq;
@@ -44,9 +44,10 @@ public class Envoy implements StackGresSidecarTransformer<CustomResource> {
   public static final int PG_RAW_ENTRY_PORT = 5433;
   public static final int PG_PORT = 5434;
   public static final int PG_RAW_PORT = 5435;
+  public static final String NAME = "envoy";
 
-  private static final String NAME = "envoy";
   private static final String IMAGE_NAME = "docker.io/envoyproxy/envoy:v%s";
+  private static final String DEFAULT_VERSION = "1.12.1";
   private static final String CONFIG_SUFFIX = "-envoy-config";
   private static final ImmutableMap<String, Integer> LISTEN_SOCKET_ADDRESS_PORT_MAPPING =
       ImmutableMap.of(
@@ -61,10 +62,10 @@ public class Envoy implements StackGresSidecarTransformer<CustomResource> {
   YamlMapperProvider yamlMapperProvider;
 
   @Override
-  public Container getContainer(StackGresClusterConfig config) {
+  public Container getContainer(ResourceGeneratorContext context) {
     ContainerBuilder container = new ContainerBuilder();
     container.withName(NAME)
-        .withImage(String.format(IMAGE_NAME, config.getCluster().getSpec().getEnvoyVersion()))
+        .withImage(String.format(IMAGE_NAME, DEFAULT_VERSION))
         .withImagePullPolicy("Always")
         .withVolumeMounts(new VolumeMountBuilder()
             .withName(NAME)
@@ -81,20 +82,22 @@ public class Envoy implements StackGresSidecarTransformer<CustomResource> {
   }
 
   @Override
-  public ImmutableList<Volume> getVolumes(StackGresClusterConfig config) {
+  public ImmutableList<Volume> getVolumes(ResourceGeneratorContext context) {
     return ImmutableList.of(new VolumeBuilder()
         .withName(NAME)
         .withConfigMap(new ConfigMapVolumeSourceBuilder()
-            .withName(config.getCluster().getMetadata().getName() + CONFIG_SUFFIX)
+            .withName(context.getClusterConfig().getCluster().getMetadata()
+                .getName() + CONFIG_SUFFIX)
             .build())
         .build());
   }
 
   @Override
-  public List<HasMetadata> getResources(StackGresClusterConfig config) {
+  public List<HasMetadata> getResources(ResourceGeneratorContext context) {
 
     final String envoyConfPath;
-    if (config.getCluster().getSpec().getSidecars().contains("connection-pooling")) {
+    if (context.getClusterConfig().getCluster().getSpec()
+        .getSidecars().contains("connection-pooling")) {
       envoyConfPath = "/envoy/default_envoy.yaml";
     } else {
       envoyConfPath = "/envoy/envoy_nopgbouncer.yaml";
@@ -127,8 +130,8 @@ public class Envoy implements StackGresSidecarTransformer<CustomResource> {
       Map<String, String> data = ImmutableMap.of("default_envoy.yaml",
           yamlMapper.writeValueAsString(envoyConfig));
 
-      String name = config.getCluster().getMetadata().getName();
-      String namespace = config.getCluster().getMetadata().getNamespace();
+      String name = context.getClusterConfig().getCluster().getMetadata().getName();
+      String namespace = context.getClusterConfig().getCluster().getMetadata().getNamespace();
       String configMapName = name + CONFIG_SUFFIX;
 
       ConfigMap cm = new ConfigMapBuilder()
@@ -136,6 +139,8 @@ public class Envoy implements StackGresSidecarTransformer<CustomResource> {
           .withNamespace(namespace)
           .withName(configMapName)
           .withLabels(ResourceUtil.defaultLabels(name))
+          .withOwnerReferences(ImmutableList.of(ResourceUtil.getOwnerReference(
+              context.getClusterConfig().getCluster())))
           .endMetadata()
           .withData(data)
           .build();

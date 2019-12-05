@@ -25,13 +25,12 @@ spec:
         spec:
           type: object
           properties:
-            pgbouncer_version:
+            pgbouncerVersion:
               type: string
               enum:
-              - "1.10.0"
-              - "1.11.0"
+              - "1.12.0"
               description: "pgbouncer version"
             pgbouncer.ini:
               type: object
               description: "pgbouncer.ini configuration"
-          required: ["pgbouncer_version"]
+          required: ["pgbouncerVersion"]

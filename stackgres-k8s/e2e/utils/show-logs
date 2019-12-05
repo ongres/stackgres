@@ -1,0 +1,34 @@
+#!/bin/sh
+
+show_logs() {
+  find "$(realpath "$TARGET_PATH/logs")" -name '*.log' -type f \
+    | grep -v -F 'logs/results.log' | while read log
+    do
+      echo
+      echo ------------------------------------------------------------------
+      echo "$log"
+      echo ------------------------------------------------------------------
+      cat "$log"
+      echo ------------------------------------------------------------------
+      echo
+    done
+}
+
+show_failed_logs() {
+  find "$(realpath "$TARGET_PATH")" -name '*.failed' -type f \
+    | while read failed
+      do
+        find "$(realpath "$TARGET_PATH")/logs/$(basename "$failed" | sed 's/^\([^.]\+\)\.failed/\1/')" \
+          -name '*.log' -type f
+      done \
+    | while read log
+    do
+      echo
+      echo ------------------------------------------------------------------
+      echo "$log"
+      echo ------------------------------------------------------------------
+      cat "$log"
+      echo ------------------------------------------------------------------
+      echo
+    done
+}

@@ -1,0 +1,16 @@
+#!/bin/sh
+
+run_test() {
+  local TEST_NAME="$1"
+  echo
+  echo "----------------------------------------------------------------"
+  echo "Running test $TEST_NAME"
+  echo "----------------------------------------------------------------"
+  echo
+  try_function "$2"
+  if ! "$RESULT"
+  then
+    return "$EXIT_CODE"
+  fi
+  echo "$TEST_NAME. SUCCESS."
+}

@@ -31,7 +31,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 
 import com.ongres.junit.docker.Container;
-import com.spotify.docker.client.exceptions.DockerException;
 
 import org.apache.commons.io.IOUtils;
 import org.jooq.lambda.Unchecked;
@@ -41,24 +40,54 @@ import org.slf4j.LoggerFactory;
 
 public class ItHelper {
 
-  private final static Logger LOGGER = LoggerFactory.getLogger(ItHelper.class);
+  private final static Logger LOGGER = LoggerFactory.getLogger("ItHelper");
 
   public final static boolean OPERATOR_IN_KUBERNETES = Boolean.valueOf(System.getenv("OPERATOR_IN_KUBERNETES"));
   public final static String IMAGE_TAG = Optional.ofNullable(System.getenv("IMAGE_TAG"))
       .orElse("development-jvm");
   public final static Predicate<String> EXCLUDE_TTY_WARNING = line -> !line.equals("stdin: is not a tty");
 
+  /**
+   * IT helper method.
+   */
+  public static void trapKill(Container kind) throws Exception {
+    kind.execute("sh", "-c",
+        "#!/bin/sh\n"
+            + "TIMEOUT=20\n"
+            + "START=\"$(date +%s)\"\n"
+            + "while [ \"$((START + TIMEOUT))\" -gt \"$(date +%s)\" ] \\\n"
+            + "  && ! ps -o pid,ppid,args | sed 's/^ \\+//' | sed 's/ \\+/ /g' \\\n"
+            + "  | grep -v '^\\([0-9]\\+ \\)\\?\\(1\\|'\"$$\"'\\) ' \\\n"
+            + "  | cut -d ' ' -f 1 | tail -n +2 \\\n"
+            + "  | wc -l | grep -q '^0$'\n"
+            + "do\n"
+            + "  echo 'Killing following unwanted processes:'\n"
+            + "  ps -o pid,ppid,args | sed 's/^ \\+//' | sed 's/ \\+/ /g' \\\n"
+            + "    | grep -v '^\\([0-9]\\+ \\)\\?\\(1\\|'\"$$\"'\\) '\n"
+            + "  ps -o pid,ppid,args | sed 's/^ \\+//' | sed 's/ \\+/ /g' \\\n"
+            + "    | grep -v '^\\([0-9]\\+ \\)\\?\\(1\\|'\"$$\"'\\) ' \\\n"
+            + "    | cut -d ' ' -f 1 | tail -n +2 \\\n"
+            + "    | xargs -r -n 1 -I % kill % >/dev/null 2>&1 || true\n"
+            + "done\n"
+            + "if [ \"$((START + TIMEOUT))\" -le \"$(date +%s)\" ]\n"
+            + "then\n"
+            + "  echo 'Timeout while trying to kill unwanted processes'\n"
+            + "  exit 1\n"
+            + "fi\n")
+      .forEach(line -> LOGGER.info(line));
+  }
 
   /**
    * IT helper method.
    */
   public static void copyResources(Container kind) throws Exception {
     kind.execute("rm", "-Rf", "/resources").forEach(line -> LOGGER.info(line));
-    Path helmChartPath = Paths.get("../..");
-    kind.copyIn(helmChartPath.resolve("install/helm/stackgres-operator"),
+    Path k8sPath = Paths.get("../..");
+    kind.copyIn(k8sPath.resolve("install/helm/stackgres-operator"),
         "/resources/stackgres-operator");
-    kind.copyIn(helmChartPath.resolve("install/helm/stackgres-cluster"),
+    kind.copyIn(k8sPath.resolve("install/helm/stackgres-cluster"),
         "/resources/stackgres-cluster");
+    kind.copyIn(k8sPath.resolve("e2e"), "/resources/e2e");
   }
 
   /**
@@ -199,7 +228,7 @@ public class ItHelper {
   }
 
   public static void installMinioHelmChart(Container kind, String namespace, String clusterNamespace)
-      throws DockerException, InterruptedException {
+      throws Exception {
     LOGGER.info("Installing minio helm chart");
     kind.execute("sh", "-l", "-c", "helm upgrade minio stable/minio"
         + " --install --version 2.5.18 --namespace " + namespace
@@ -354,19 +383,18 @@ public class ItHelper {
     }
   }
 
-
   /**
    * IT helper method.
    * Code has been copied and adapted from {@code QuarkusTestExtension} to allow start/stop
    * quarkus application inside a test.
    */
-  public static OperatorRunner createOperator(Container kind, Class<?> testClass, int port,
+  public static OperatorRunner createOperator(Container kind, int port,
       int sslPort, Executor executor) throws Exception {
     if (OPERATOR_IN_KUBERNETES) {
       return new KubernetesOperatorRunner(kind, executor);
     }
 
-    return new LocalOperatorRunner(kind, testClass, port, sslPort);
+    return new LocalOperatorRunner(kind, ItHelper.class, port, sslPort);
   }
 
   public static <T> void waitUntil(Supplier<T> supplier, Predicate<T> condition, int timeout,

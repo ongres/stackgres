@@ -69,6 +69,8 @@ rules:
   - get
   - update
   - patch
+  - create
+  - delete
 - apiGroups: ["{{ .Values.group }}"]
   resources:
   - sgpgconfigs
@@ -76,10 +78,13 @@ rules:
   - sgconnectionpoolingconfigs
   - sgbackupconfigs
   verbs:
+  - create
   - watch
   - list
   - get
+  - update
   - patch
+  - delete
 {{- if .Values.prometheus.allowAutobind }}
 - apiGroups: ["monitoring.coreos.com"]
   resources:

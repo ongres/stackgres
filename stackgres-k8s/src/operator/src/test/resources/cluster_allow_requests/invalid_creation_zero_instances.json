@@ -48,11 +48,11 @@
       },
       "spec": {
         "instances": 0,
-        "pg_config": "postgresconf",
-        "resource_profile": "size-xs",
-        "connection_pooling_config": "pgbouncerconf",
-        "volume_size": "5Gi",
-        "storage_class": "standard",
+        "pgConfig": "postgresconf",
+        "resourceProfile": "size-xs",
+        "connectionPoolingConfig": "pgbouncerconf",
+        "volumeSize": "5Gi",
+        "storageClass": "standard",
         "sidecars": [
           "connection-pooling",
           "postgres-util",

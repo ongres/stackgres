@@ -24,6 +24,7 @@
 
     <quarkus.http.ssl.certificate.file>/etc/operator/certs/server.crt</quarkus.http.ssl.certificate.file>
     <quarkus.http.ssl.certificate.key-file>/etc/operator/certs/root.key</quarkus.http.ssl.certificate.key-file>
+    <quarkus.skipAugmentation>false</quarkus.skipAugmentation>
 
     <checkstyle.config.location>${project.basedir}/../checks/checkstyle/checkstyle.xml</checkstyle.config.location>
     <checkstyle.suppressions.location>${project.basedir}/../checks/checkstyle/suppressions.xml</checkstyle.suppressions.location>
@@ -97,10 +98,6 @@
         <directory>src/main/resources</directory>
         <filtering>true</filtering>
       </resource>
-      <resource>
-        <directory>install/kubernetes/chart</directory>
-        <filtering>false</filtering>
-      </resource>
     </resources>
     <testResources>
       <testResource>
@@ -119,6 +116,9 @@
             <goals>
               <goal>build</goal>
             </goals>
+            <configuration>
+              <skip>${quarkus.skipAugmentation}</skip>
+            </configuration>
           </execution>
         </executions>
       </plugin>
@@ -126,6 +126,12 @@
   </build>
 
   <profiles>
+    <profile>
+      <id>safer</id>
+      <properties>
+        <check-operator-values>true</check-operator-values>
+      </properties>
+    </profile>
     <profile>
       <id>native</id>
       <activation>
@@ -169,12 +175,15 @@
             <version>${failsafe-plugin.version}</version>
             <executions>
               <execution>
+                <id>integration-test</id>
+                <phase>integration-test</phase>
                 <goals>
                   <goal>integration-test</goal>
-                  <goal>verify</goal>
                 </goals>
                 <configuration>
                   <trimStackTrace>false</trimStackTrace>
+                  <forkCount>1</forkCount>
+                  <reuseForks>false</reuseForks>
                   <includes>
                     <include>**/It*.java</include>
                     <include>**/*It.java</include>
@@ -183,6 +192,13 @@
                   <excludes>
                   </excludes>
                 </configuration>
+              </execution>
+              <execution>
+                <id>verify</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>verify</goal>
+                </goals>
               </execution>
             </executions>
           </plugin>
@@ -212,10 +228,13 @@
                         <from>docker</from>
                         <cleanup>try</cleanup>
                         <optimise>true</optimise>
+                        <ports>
+                          <port>8001</port>
+                        </ports>
                         <runCmds>
                           <run>wget -q -O /bin/kubectl https://storage.googleapis.com/kubernetes-release/release/v1.12.10/bin/linux/amd64/kubectl</run>
                           <run>chmod a+x /bin/kubectl</run>
-                          <run>wget -q -O /bin/kind  https://github.com/kubernetes-sigs/kind/releases/download/v0.5.1/kind-$(uname)-amd64</run>
+                          <run>wget -q -O /bin/kind  https://github.com/kubernetes-sigs/kind/releases/download/v0.6.0/kind-$(uname)-amd64</run>
                           <run>chmod a+x /bin/kind</run>
                           <run>wget -q https://get.helm.sh/helm-v2.14.3-linux-amd64.tar.gz -O -|tar xz --strip-components=1 -C /bin -f - linux-amd64/helm</run>
                         </runCmds>
@@ -265,6 +284,9 @@
                               <fileSet>
                                 <directory>${project.basedir}</directory>
                                 <outputDirectory>/</outputDirectory>
+                                <excludes>
+                                  <exclude>target/docker/**</exclude>
+                                </excludes>
                               </fileSet>
                             </fileSets>
                           </inline>
@@ -342,6 +364,9 @@
                               <fileSet>
                                 <directory>${project.basedir}</directory>
                                 <outputDirectory>/</outputDirectory>
+                                <excludes>
+                                  <exclude>target/docker/**</exclude>
+                                </excludes>
                               </fileSet>
                             </fileSets>
                           </inline>

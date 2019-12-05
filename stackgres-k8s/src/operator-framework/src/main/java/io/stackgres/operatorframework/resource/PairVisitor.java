@@ -23,6 +23,14 @@ public abstract class PairVisitor<T, R> {
     this.right = right;
   }
 
+  public T getLeft() {
+    return left;
+  }
+
+  public T getRight() {
+    return right;
+  }
+
   public boolean bothInstanceOf(Class<?> resourceClass) {
     return resourceClass.isAssignableFrom(left.getClass())
         && resourceClass.isAssignableFrom(right.getClass());
@@ -74,11 +82,15 @@ public abstract class PairVisitor<T, R> {
   public abstract <O> PairVisitor<T, R> visitUsingDefaultFrom(Function<T, O> getter,
       BiConsumer<T, O> setter, Function<T, O> defaultGetter);
 
+  public abstract <O> PairVisitor<T, R> visitTransformed(
+      Function<T, O> getter, BiConsumer<T, O> setter,
+      BiFunction<O, O, O> leftTransformer, BiFunction<O, O, O> rightTransformer);
+
   public abstract <O, S> PairVisitor<T, R> visitWith(Function<T, O> getter,
       BiConsumer<T, O> setter,
       Function<PairVisitor<O, S>, PairVisitor<O, S>> subVisitor);
 
-  public abstract <O, S> PairVisitor<T, R> visitWith(Function<T, O> getter,
+  public abstract <O, S> PairVisitor<T, R> visitWithUsingDefaultFrom(Function<T, O> getter,
       BiConsumer<T, O> setter,
       Function<PairVisitor<O, S>, PairVisitor<O, S>> subVisitor,
       Supplier<O> defaultValue);
@@ -176,6 +188,12 @@ public abstract class PairVisitor<T, R> {
     }
 
     @Override
+    public <O> PairVisitor<T, R> visitTransformed(Function<T, O> getter, BiConsumer<T, O> setter,
+        BiFunction<O, O, O> leftTransformer, BiFunction<O, O, O> rightTransformer) {
+      return this;
+    }
+
+    @Override
     public <O, S> PairVisitor<T, R> visitWith(Function<T, O> getter,
         BiConsumer<T, O> setter,
         Function<PairVisitor<O, S>, PairVisitor<O, S>> subVisitor) {
@@ -183,7 +201,7 @@ public abstract class PairVisitor<T, R> {
     }
 
     @Override
-    public <O, S> PairVisitor<T, R> visitWith(
+    public <O, S> PairVisitor<T, R> visitWithUsingDefaultFrom(
         Function<T, O> getter, BiConsumer<T, O> setter,
         Function<PairVisitor<O, S>, PairVisitor<O, S>> subVisitor,
         Supplier<O> defaultValue) {

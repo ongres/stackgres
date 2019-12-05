@@ -54,28 +54,34 @@ class PairUpdater<T> extends PairVisitor<T, T> {
   @Override
   public <O> PairVisitor<T, T> visit(Function<T, O> getter, BiConsumer<T, O> setter,
       O defaultValue) {
-    return updateAnyWithDefault(getter, setter, t -> defaultValue);
+    return updateAnyUsingDefaultFrom(getter, setter, t -> defaultValue);
   }
 
   @Override
   public <O> PairVisitor<T, T> visitUsingDefaultFrom(Function<T, O> getter,
       BiConsumer<T, O> setter, Function<T, O> defaultGetter) {
-    return updateAnyWithDefault(getter, setter, defaultGetter);
+    return updateAnyUsingDefaultFrom(getter, setter, defaultGetter);
+  }
+
+  @Override
+  public <O> PairVisitor<T, T> visitTransformed(Function<T, O> getter, BiConsumer<T, O> setter,
+      BiFunction<O, O, O> leftTransformer, BiFunction<O, O, O> rightTransformer) {
+    return updateAnyTransformed(getter, setter, rightTransformer);
   }
 
   @Override
   public <O, S> PairVisitor<T, T> visitWith(Function<T, O> getter,
       BiConsumer<T, O> setter,
       Function<PairVisitor<O, S>, PairVisitor<O, S>> subVisitor) {
-    return updateAny(getter, setter, subVisitor);
+    return updateAnyWith(getter, setter, subVisitor);
   }
 
   @Override
-  public <O, S> PairVisitor<T, T> visitWith(Function<T, O> getter,
+  public <O, S> PairVisitor<T, T> visitWithUsingDefaultFrom(Function<T, O> getter,
       BiConsumer<T, O> setter,
       Function<PairVisitor<O, S>, PairVisitor<O, S>> subVisitor,
       Supplier<O> defaultValue) {
-    return updateAnyWithDefault(getter, setter, subVisitor,
+    return updateAnyWithUsingDefaultFrom(getter, setter, subVisitor,
         defaultValue);
   }
 
@@ -94,21 +100,28 @@ class PairUpdater<T> extends PairVisitor<T, T> {
     return this;
   }
 
-  <O, S> PairUpdater<T> updateAny(Function<T, O> getter, BiConsumer<T, O> setter,
-      Function<PairVisitor<O, S>, PairVisitor<O, S>> subVisitor) {
-    setter.accept(left, subVisitor.apply(get(getter).as()).resultAs());
-    return this;
-  }
-
-  <O> PairUpdater<T> updateAnyWithDefault(Function<T, O> getter, BiConsumer<T, O> setter,
+  <O> PairUpdater<T> updateAnyUsingDefaultFrom(Function<T, O> getter, BiConsumer<T, O> setter,
       Function<T, O> defaultGetter) {
     setter.accept(left, Optional.ofNullable(getter.apply(right))
         .orElseGet(() -> defaultGetter.apply(right)));
     return this;
   }
 
-  <O, S> PairUpdater<T> updateAnyWithDefault(Function<T, O> getter, BiConsumer<T, O> setter,
-      Function<PairVisitor<O, S>, PairVisitor<O, S>> subVisitor,
+  <O> PairUpdater<T> updateAnyTransformed(Function<T, O> getter, BiConsumer<T, O> setter,
+      BiFunction<O, O, O> rightTransformer) {
+    setter.accept(left, rightTransformer.apply(getter.apply(left),
+        getter.apply(right)));
+    return this;
+  }
+
+  <O, S> PairUpdater<T> updateAnyWith(Function<T, O> getter, BiConsumer<T, O> setter,
+      Function<PairVisitor<O, S>, PairVisitor<O, S>> subVisitor) {
+    setter.accept(left, subVisitor.apply(get(getter).as()).resultAs());
+    return this;
+  }
+
+  <O, S> PairUpdater<T> updateAnyWithUsingDefaultFrom(Function<T, O> getter,
+      BiConsumer<T, O> setter, Function<PairVisitor<O, S>, PairVisitor<O, S>> subVisitor,
       Supplier<O> defaultValue) {
     setter.accept(left, subVisitor.apply(getOrDefault(getter, defaultValue).as()).resultAs());
     return this;

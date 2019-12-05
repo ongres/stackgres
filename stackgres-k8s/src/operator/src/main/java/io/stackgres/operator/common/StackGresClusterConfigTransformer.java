@@ -8,9 +8,10 @@ package io.stackgres.operator.common;
 import java.util.List;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.stackgres.operator.controller.ResourceGeneratorContext;
 
 public interface StackGresClusterConfigTransformer {
 
-  List<HasMetadata> getResources(StackGresClusterConfig config);
+  List<HasMetadata> getResources(ResourceGeneratorContext context);
 
 }

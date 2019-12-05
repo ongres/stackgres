@@ -14,21 +14,21 @@
         "uid": "bfb53778-f59a-11e9-b1b5-0242ac110002"
       },
       "spec": {
-        "connection_pooling_config": "pgbouncerconf",
+        "connectionPoolingConfig": "pgbouncerconf",
         "instances": 1,
-        "pg_config": "postgresconf",
-        "pg_version": "11.5",
-        "postgres_exporter_version": "0.5.1",
-        "prometheus_autobind": true,
-        "resource_profile": "size-xs",
-        "backup_config": "backupconf",
+        "pgConfig": "postgresconf",
+        "pgVersion": "11.5",
+        "postgresExporterVersion": "0.5.1",
+        "prometheusAutobind": true,
+        "resourceProfile": "size-xs",
+        "backupConfig": "backupconf",
         "sidecars": [
           "connection-pooling",
           "postgres-util",
           "prometheus-postgres-exporter"
         ],
-        "storage_class": "standard",
-        "volume_size": "5Gi"
+        "storageClass": "standard",
+        "volumeSize": "5Gi"
       }
     }
   ],

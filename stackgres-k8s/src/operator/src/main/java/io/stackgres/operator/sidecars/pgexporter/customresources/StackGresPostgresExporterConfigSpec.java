@@ -22,22 +22,11 @@ public class StackGresPostgresExporterConfigSpec implements KubernetesResource {
 
   private static final long serialVersionUID = 2000013861182789247L;
 
-  @JsonProperty("postgres_exporter_version")
-  private String postgresExporterVersion;
-
   @JsonProperty("create_service_monitor")
   private Boolean createServiceMonitor;
 
   @JsonProperty("prometheus_installations")
   private List<PrometheusInstallation> prometheusInstallations;
-
-  public String getPostgresExporterVersion() {
-    return postgresExporterVersion;
-  }
-
-  public void setPostgresExporterVersion(String postgresExporterVersion) {
-    this.postgresExporterVersion = postgresExporterVersion;
-  }
 
   public Boolean getCreateServiceMonitor() {
     return createServiceMonitor;
@@ -59,7 +48,6 @@ public class StackGresPostgresExporterConfigSpec implements KubernetesResource {
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .omitNullValues()
-        .add("postgres_exporter_version", postgresExporterVersion)
         .add("create_service_monitor", createServiceMonitor)
         .toString();
   }

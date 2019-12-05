@@ -8,6 +8,7 @@ package io.stackgres.operator;
 import com.ongres.junit.docker.DockerContainer;
 import com.ongres.junit.docker.Environment;
 import com.ongres.junit.docker.Mount;
+import com.ongres.junit.docker.Port;
 import com.ongres.junit.docker.WaitFor;
 
 @DockerContainer(
@@ -20,9 +21,15 @@ import com.ongres.junit.docker.WaitFor;
     waitFor = @WaitFor(value = "Kind started k8s cluster", timeout = 1_200_000),
     environments = { @Environment(key = "DOCKER_HOST", value = "${DOCKER_HOST}") },
     mounts = {
-        @Mount(path = "/scripts", value = "/restart-kind.sh"),
-        @Mount(path = "/certs", value = "/certs/server.crt"),
-        @Mount(path = "/var/run/docker.sock", value = "/var/run/docker.sock", system = true),
+        @Mount(reference = KindConfiguration.class,
+            path = "/scripts", value = "/restart-kind.sh"),
+        @Mount(reference = KindConfiguration.class,
+            path = "/certs", value = "/certs/server.crt"),
+        @Mount(reference = KindConfiguration.class,
+            path = "/var/run/docker.sock", value = "/var/run/docker.sock", system = true),
+    },
+    ports = {
+        @Port(internal = 8001)
     })
 public interface KindConfiguration {
 }
