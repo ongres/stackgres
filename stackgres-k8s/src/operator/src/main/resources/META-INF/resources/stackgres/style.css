@@ -161,8 +161,7 @@ aside {
     display: block;
     float: left;
     height: 100vh;
-    overflow-x: hidden;
-    overflow-y: auto;
+    overflow: hidden;
     position: fixed;
 }
 
@@ -207,17 +206,166 @@ aside {
     font-weight: 300;
 }
 
-#cluster-id {
+#namespaces {
     border-top: 1px solid var(--gray1);
     border-bottom: 1px solid var(--gray1);
     text-align: center;
-    height: 60px;
+    height: auto;
+    min-height: 80px;
     padding-top: 10px;
+    text-transform: uppercase;
 }
 
-#cluster-id span {
-    font-size: .8rem;
+#namespaces strong {
+    font-size: .9rem;
+    display: block;
 }
+
+#namespaces a {
+    display: block;
+    text-align: center;
+    width: 100%;
+    padding: 0.5em;
+}
+
+ul.zg-ul-select {
+    display: none;
+  border-radius: 2px;
+  box-sizing: border-box;
+  cursor: pointer;
+  margin: 10px auto 20px;
+    padding: 0;
+    width: 80%;
+    height: 0;
+    position: relative;
+    z-index: 99;
+}
+
+ul.zg-ul-select.active {
+    height: auto;
+    display: block;
+}
+ul.zg-ul-select li {
+  border-radius: 3px;
+  display: none;
+}
+ul.zg-ul-select li.active {
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  border: 1px solid var(--blue);
+    border-radius: 3px;
+    color: var(--blue);
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  position: relative;
+  -webkit-box-pack: justify;
+      -ms-flex-pack: justify;
+          justify-content: space-between;
+}
+
+ul.zg-ul-select.active li {
+      border: 1px solid var(--blue);
+    border-top: 0;
+  box-shadow: none;
+  display: block;
+  border-radius: 0;
+  background: #fff;
+}
+ul.zg-ul-select.active li:hover {
+  background: #00979e;
+}
+
+ul.zg-ul-select.active li:hover a {
+    color: #fff;
+}
+
+ul.zg-ul-select.active li.active {
+  background: var(--blue);
+  border-radius: 0;
+}
+
+ul.zg-ul-select.active li.active a {
+    color: #fff;
+}
+
+ul.zg-ul-select.active li.active:hover {
+  background: #00979e;
+}
+
+#selected--zg-ul-select {
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  box-sizing: border-box;
+  color: #111;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: justify;
+      -ms-flex-pack: justify;
+          justify-content: space-between;
+  width: auto;
+  -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+     -khtml-user-select: none; /* Konqueror HTML */
+       -moz-user-select: none; /* Old versions of Firefox */
+        -ms-user-select: none; /* Internet Explorer/Edge */
+            user-select: none; /* Non-prefixed version, currently
+                                  supported by Chrome, Opera and Firefox */
+}
+
+#selected--zg-ul-select.active {
+    border: 1px solid var(--blue);
+    color: var(--blue);
+    border-radius: 3px;
+    padding: 0.5em;
+    width: 80%;
+    height: 30px;
+    margin: 10px auto -10px;
+    display: block;
+    text-align: center;
+}
+
+#selected--zg-ul-select.open {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+
+ul.zg-ul-select:not(.active) li.active:after, #selected--zg-ul-select.active:after {
+    display: block;
+    content: " ";
+    border: 1px solid var(--blue);
+    width: 6px;
+    height: 6px;
+    transform: rotate(45deg);
+    border-top: 0;
+    border-left: 0;
+    position: absolute;
+    right: 13px;
+    top: 9px;
+}
+
+ #selected--zg-ul-select {
+    position: relative;
+    cursor: pointer;
+ }
+
+#selected--zg-ul-select:after {
+    transform: rotate(225deg);
+    top: 12px;
+}
+
+#selected--zg-ul-select.open:after {
+    transform: rotate(-135deg);
+    top: 12px;
+}
+
+
+
+
 
 #sets {
     overflow: auto;
@@ -255,6 +403,16 @@ aside {
     margin-bottom: 10px;
 }
 
+#sets h3 { 
+    -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+     -khtml-user-select: none; /* Konqueror HTML */
+       -moz-user-select: none; /* Old versions of Firefox */
+        -ms-user-select: none; /* Internet Explorer/Edge */
+            user-select: none; /* Non-prefixed version, currently
+                                  supported by Chrome, Opera and Firefox */
+} 
+
 #sets h3:before {
     content: "▾";
     font-size: .8rem;
@@ -282,7 +440,11 @@ aside {
     color: initial;
 }
 
-#sets .item.router-link-active {
+#sets .item a {
+    color: initial;
+}
+
+#sets a.router-link-active {
     font-weight: bold;
     color: var(--blue);
 }
@@ -339,6 +501,10 @@ footer {
 
 #nav:not(.disabled) .top .router-link-active svg, #nav .view.router-link-active svg {
     fill: var(--blue);
+}
+
+.router-link-active[href="#/"] svg {
+    fill: var(--gray3) !important;
 }
 
 #nav .view svg {
@@ -503,7 +669,7 @@ footer .tooltip span {
     font-weight: 300;
 }
 
-.table .row {
+.table .row, .boxes .row {
     display: flex;
     padding: 9px 0;
     border-bottom: 1px solid var(--gray1);
@@ -518,9 +684,12 @@ footer .tooltip span {
 }
 
 
-.table .col {
+.table .col, .boxes .col {
     flex-grow: 1;
     flex-basis: 0;
+}
+
+.table .col {
     text-align: center;
 }
 
@@ -631,6 +800,23 @@ ul.params {
     display: block;
     margin-bottom: 5px;
 }
+
+ul.params .params {
+    padding-left: 20px;
+    margin-bottom: 10px;
+}
+
+ul.params .params li {
+    margin-bottom: 0;
+}
+
+.boxes .col.right {
+    margin-left: -30px;
+    padding-left: 30px;
+    margin-bottom: 30px;
+    border-left: 1px solid var(--gray2);
+}
+
 
 .profiles .box {
     padding-bottom: 20px;

@@ -3,7 +3,7 @@ var ClusterOverview = Vue.component("cluster-overview", {
 		<div id="cluster-overview">
 			<header>
 				<h2 class="title">OVERVIEW</h2>
-				<!--<h3 class="subtitle">K8S Cluster: {{ serverIP }}</h3>-->
+				<h3 class="subtitle">Namespace: {{ currentNamespace }}</h3>
 			</header>
 
 			<div class="content">
@@ -33,26 +33,34 @@ var ClusterOverview = Vue.component("cluster-overview", {
 							<h4>Health</h4>
 						</div>
 					</div>
-					<div v-for="cluster in clusters" class="row">
-						<div class="col text">
-							{{ cluster.name }}
+					<template v-for="cluster in clusters">
+						<div class="row" v-if="cluster.data.metadata.namespace == currentNamespace">
+							<div class="col text">
+								{{ cluster.name }}
+							</div>
+							<div class="col">
+								{{ cluster.data.spec.instances }}
+							</div>
+							
+							<template v-for="profile in profiles">
+								<template v-if="(profile.data.metadata.namespace == currentNamespace) && (cluster.data.spec.resourceProfile == profile.name)">
+									<div class="col">
+										{{ profile.data.spec.cpu }}
+									</div>
+									<div class="col">
+										{{ profile.data.spec.memory }}
+									</div>
+								</template>
+							</template>
+
+							<div class="col">
+								{{ cluster.data.spec.volumeSize }}
+							</div>
+							<div class="col">
+								<!-- {{ cluster.data.status.pods_ready }} -->*** / {{ cluster.data.spec.instances }}
+							</div>
 						</div>
-						<div class="col">
-							{{ cluster.data.spec.instances }}
-						</div>
-						<div class="col">
-							{{ cluster.data.status.cpu_requested }}
-						</div>
-						<div class="col">
-							{{ cluster.data.status.memory_requested }}
-						</div>
-						<div class="col">
-							{{ cluster.data.spec.volume_size }}
-						</div>
-						<div class="col">
-							{{ cluster.data.status.pods_ready + '/' + cluster.data.spec.instances }}
-						</div>
-					</div>
+					</template>
 				</div>
 				<!--<div class="cta">
 					<a href="#" class="btn">Create New Cluster</a>
@@ -62,10 +70,32 @@ var ClusterOverview = Vue.component("cluster-overview", {
 	data: function() {
 		
 		return {
-	      clusters: null
+	      //clusters: null
 	    }
 	},
-	created: function() {
-		this.clusters = clustersList;
-	}
+	computed: {
+		clusters () {
+			return store.state.clusters
+		},
+
+		currentNamespace () {
+			return store.state.currentNamespace
+		},
+
+		profiles () {
+			return store.state.profiles
+		}
+	},
+	/*mounted: function() {
+		
+		setTimeout(function(){
+			$('#sets .set').each(function(){
+	        if($(this).find('a.item').length)
+	          	$(this).slideDown();
+	        else
+	        	$(this).slideUp();
+	    });
+		},500);
+
+	}*/
 })

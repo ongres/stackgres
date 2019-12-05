@@ -3,12 +3,12 @@ var SGProfiles = Vue.component("sg-profile", {
 		<div id="sg-profile">
 			<header>
 				<h2 class="title">PostgreSQL instance profiles</h2>
-				<!--<h3 class="subtitle">K8S Cluster: {{ serverIP }}</h3>-->
+				<h3 class="subtitle">Namespace: {{ currentNamespace }} </h3>
 			</header>
 
 			<div class="content">
 				<div class="profiles boxes">
-					<div v-for="prof in profiles" class="box" v-bind:class="{'show':($route.params.name == prof.name)}">
+					<div v-for="prof in profiles" class="box" v-bind:class="{'show':($route.params.name == prof.name)}" v-if="prof.data.metadata.namespace == currentNamespace">
 						<h4>{{ prof.name }}</h4>
 						<span>Namespace</span>
 						{{ prof.data.metadata.namespace }}
@@ -25,12 +25,18 @@ var SGProfiles = Vue.component("sg-profile", {
 	data: function() {
 
 		return {
-			profiles: []
+			
 		}
 	},
-	created: function() {
+	computed: {
 
-		let vc = this;
-		vc.profiles = profiles;
+		profiles () {
+			return store.state.profiles
+		},
+
+		currentNamespace () {
+			return store.state.currentNamespace
+		},
+
 	}
 })

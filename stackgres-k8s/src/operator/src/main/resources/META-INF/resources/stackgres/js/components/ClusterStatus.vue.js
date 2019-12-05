@@ -7,7 +7,7 @@ var ClusterStatus = Vue.component("cluster-status", {
 			</header>
 
 			<div class="content">
-				<div class="table">
+				<div class="table" v-if="dataReady">
 					<div class="head row">
 						<div class="col text">
 							<h4>Pod Name</h4>
@@ -25,7 +25,7 @@ var ClusterStatus = Vue.component("cluster-status", {
 							<h4>Containers</h4>
 						</div>
 					</div>
-					<div v-for="pod in pods" class="row">
+					<div v-for="pod in cluster.data.pods" class="row">
 						<div class="col text">
 							{{ pod.name }}
 						</div>
@@ -59,19 +59,65 @@ var ClusterStatus = Vue.component("cluster-status", {
 		</div>`,
 	data: function() {
 		return {
-	      pods: []
+	      dataReady: false,
+	      polling: null
 	    }
 	},
-	mounted: function () {
-		this.fetchData();
-	},
- 	watch: {
-    	'$route': 'fetchData'
-  	},
 	methods: {
-	    fetchData() {
-	      	let vc = this;
-			vc.pods = clustersData[this.$route.params.name].data.status.pods 
-	    }
-	}
+		
+		fetchAPI: function() {
+			vc = this;
+
+			/*store.commit('setCurrentCluster', vm.$route.params.name);
+			console.log("Current cluster: "+store.state.currentCluster)*/
+
+			/* Clusters Data */
+		    axios
+		    .get(apiURL+'clusters/status/'+vm.$route.params.namespace+'/'+vm.$route.params.name,
+		    	{ headers: {
+		            'content-type': 'application/json'
+		          }
+		        }
+	      	)
+	      	.then( function(response){
+
+	        	store.commit('setCurrentCluster', { 
+	              	name: vm.$route.params.name,
+	              	data: response.data
+              	});
+
+	        	vc.dataReady = true;
+
+	      	});
+		}
+
+	},
+	mounted: function() {
+
+		var count = 0;
+
+		this.fetchAPI();
+	    
+	    this.polling = setInterval( function(){
+	    	//count++;
+	      	this.fetchAPI();
+
+	      	//console.log("Interval run #"+count);
+
+	    }.bind(this), 5000);
+
+	    //$('.clu .'+vm.$route.params.name).addClass("active");
+	    
+	},
+	computed: {
+
+		cluster () {
+			//console.log(store.state.currentCluster);
+			return store.state.currentCluster
+		}
+	},
+	beforeDestroy () {
+		clearInterval(this.polling);
+		//console.log('Interval cleared');
+	} 
 })

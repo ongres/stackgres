@@ -3,12 +3,12 @@ var PgConfig = Vue.component("pg-config", {
 		<div id="pg-config">
 			<header>
 				<h2 class="title">POSTGRESQL CONFIGURATIONS</h2>
-				<!-- <h3 class="subtitle">K8S Cluster: {{ serverIP }}</h3> -->
+				<h3 class="subtitle">Namespace: {{ currentNamespace }} </h3>
 			</header>
 
 			<div class="content">
 				<div class="boxes">
-					<div v-for="conf in config" class="box" v-bind:class="{'show':($route.params.name == conf.name)}">
+					<div v-for="conf in config" class="box" v-bind:class="{'show':($route.params.name == conf.name)}" v-if="conf.data.metadata.namespace == currentNamespace">
 						<h4>{{ conf.name }}</h4>
 						<span>Configuration Namespace</span>
 						{{ conf.data.metadata.namespace }}
@@ -29,12 +29,18 @@ var PgConfig = Vue.component("pg-config", {
 	data: function() {
 
 		return {
-			config: []		
+			
 		}
 	},
-	created: function() {
+	computed: {
 
-		let vc = this;
-		vc.config = pgConf;
+		config () {
+			return store.state.pgConfig
+		},
+
+		currentNamespace () {
+			return store.state.currentNamespace
+		},
+
 	}
 })
