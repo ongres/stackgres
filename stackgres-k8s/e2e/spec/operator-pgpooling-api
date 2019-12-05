@@ -269,12 +269,12 @@ test_delete_pgpooling_with_api() {
 
   delete_pgpooling_with_api
 
-  if wait_until kubectl get sgconnectionpoolingconfigs.stackgres.io -n $CLUSTER_NAMESPACE $PGPOOLING
+  if wait_until eval '! kubectl get sgconnectionpoolingconfigs.stackgres.io -n $CLUSTER_NAMESPACE $PGPOOLING'
   then
+    echo "pgpooling was deleted"
+  else
     echo "pgpooling was not deleted"
     return 1
-  else
-    echo "pgpooling was deleted"
   fi
 }
 

@@ -268,12 +268,12 @@ test_delete_profile_with_api() {
 
   delete_profile_with_api
 
-  if wait_until kubectl get sgprofiles.stackgres.io -n $CLUSTER_NAMESPACE $PROFILE
+  if wait_until eval '! kubectl get sgprofiles.stackgres.io -n $CLUSTER_NAMESPACE $PROFILE'
   then
+    echo "profile was deleted"
+  else
     echo "profile was not deleted"
     return 1
-  else
-    echo "profile was deleted"
   fi
 }
 

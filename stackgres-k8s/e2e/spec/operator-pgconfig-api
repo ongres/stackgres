@@ -259,12 +259,12 @@ test_delete_pgconfig_with_api() {
 
   delete_pgconfig_with_api
 
-  if wait_until kubectl get sgpgconfigs.stackgres.io -n $CLUSTER_NAMESPACE $PGCONFIG
+  if wait_until eval '! kubectl get sgpgconfigs.stackgres.io -n $CLUSTER_NAMESPACE $PGCONFIG'
   then
+    echo "pgconfig was deleted"
+  else
     echo "pgconfig was not deleted"
     return 1
-  else
-    echo "pgconfig was deleted"
   fi
 }
 
