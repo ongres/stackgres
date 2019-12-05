@@ -223,7 +223,7 @@ delete_cluster_with_api() {
 test_api_delete_cluster_is_visible() {
   delete_cluster_with_api
 
-  if wait [ "$(get_cluster_http_status)" = "404" ]
+  if wait_until eval '[ "$(get_cluster_http_status)" = "404" ]'
   then
     echo "Cluster removed from the API"
   else
