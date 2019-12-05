@@ -42,14 +42,14 @@ const router = new VueRouter({
         path: '/information/:namespace/:name', 
         component: ClusterInfo,
         meta: {
-          conditionalRoute: true
+          conditionalRoute: false
         },
       },
       { 
         path: '/status/:namespace/:name', 
         component: ClusterStatus,
         meta: {
-          conditionalRoute: true
+          conditionalRoute: false
         },
       },
       { 
@@ -144,7 +144,7 @@ router.beforeEach((to, from, next) => {
 
         //console.log(to);
 
-        if ( (store.state.currentCluster.length === 0) && ( from.path.includes("profiles") || from.path.includes("configurations") ) && (to.path != ('/information/'+to.params.name)) ) { 
+        if (store.state.currentCluster == {} && ( from.path.includes("profiles") || from.path.includes("configurations") ) && (to.path != ('/information/'++to.params.name)) ) { 
             next({ path: '/'}) 
         } else { 
             next() 
@@ -284,8 +284,8 @@ var vm = new Vue({
 
       $("#loader").show();
       
-      if(!doneInit)
-        namespaces.length = 0;
+      /*if(!doneInit)
+        namespaces.length = 0;*/
 
       /* Clusters Data */
       axios
@@ -313,6 +313,8 @@ var vm = new Vue({
 
               if(store.state.currentNamespace == ' ') {
                 store.commit('setCurrentNamespace', item.metadata.namespace);
+                router.push('/overview/'+store.state.currentNamespace);
+                $('#selected--zg-ul-select').text(store.state.currentNamespace).addClass('active');
               }
             
             } else {
@@ -328,10 +330,10 @@ var vm = new Vue({
           
           console.log('Clusters Data updated');
           
-          if(doneInit)
+          /*if(doneInit)
             notify('Clusters Data updated');
           else
-            doneInit = true;
+            doneInit = true;*/
 
         }
         
@@ -512,9 +514,6 @@ var vm = new Vue({
     });*/
     
     this.fetchAPI();
-
-    router.push('/overview/'+store.state.currentNamespace);
-    $('#selected--zg-ul-select').text(store.state.currentNamespace).addClass('active');
 
     /*$("#loader").click(function(){
       vm.fetchAPI();
