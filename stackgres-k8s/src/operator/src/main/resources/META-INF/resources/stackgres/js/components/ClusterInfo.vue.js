@@ -44,7 +44,7 @@ var ClusterInfo = Vue.component("cluster-info", {
 		</div>`,
 	data: function() {
 		return {
-	      dataReady: false,
+	      dataReady: true,
 	      polling: null
 	    }
 	},
@@ -81,7 +81,10 @@ var ClusterInfo = Vue.component("cluster-info", {
 
 		var count = 0;
 
-		this.fetchAPI();
+		if (store.state.currentCluster.length === 0) {
+			this.fetchAPI();
+			this.dataReady = false;
+		}
 	    
 	    this.polling = setInterval( function(){
 	    	//count++;
