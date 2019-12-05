@@ -80,9 +80,6 @@ eksctl create cluster \
 
 #### 2.3.-   Create your kubeconfig file with the AWS CLI
 
-#### 2.3.-   Create your kubeconfig file with the AWS CLI
-
-
 `aws eks --region $region update-kubeconfig --name $namecluster`
 
 
