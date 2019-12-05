@@ -102,7 +102,11 @@ setup_k8s() {
     then
       kubectl get namespace -o name \
         | grep -v "^namespace/\(default\|kube-system\|kube-public\|minio\)$" \
-        | xargs -r -n 1 -I % -P 0 kubectl delete %
+        | xargs -r -n 1 -I % -P 0 sh -ec '
+        kubectl delete namespace % &
+        sleep 3
+        kubectl delete pod -n % --all --force --grace-period 0
+        wait'
     fi
     helm install --name stackgres-operator --namespace stackgres "$OPERATOR_CHART_PATH" \
       --set-string image.tag="$IMAGE_TAG" --set-string image.pullPolicy=Never
@@ -124,7 +128,11 @@ setup_k8s() {
     then
       kubectl get namespace -o name \
         | grep -v "^namespace/\(default\|kube-system\|kube-public\|minio\|stackgres\)$" | cut -d / -f 2 \
-        | xargs -r -n 1 -I % -P 0 kubectl delete namespace %
+        | xargs -r -n 1 -I % -P 0 sh -ec '
+        kubectl delete namespace % &
+        sleep 3
+        kubectl delete pod -n % --all --force --grace-period 0
+        wait'
     fi
   fi
 
