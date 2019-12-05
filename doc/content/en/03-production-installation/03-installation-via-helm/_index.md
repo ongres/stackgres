@@ -45,6 +45,7 @@ You can specify following parameters values:
 
 * `config.create`: If true create configuration CRs.
 * `config.postgresql.version`: The PostgreSQL versio to use.
+* `profiles.create`: If true creates the default profiles.
 * `cluster.create`: If true create the cluster (useful to just create configurations).
 * `cluster.instances`: The number of instances in the cluster.
 * `cluster.pgconfig`: The PostgreSQL configuration CR name.
@@ -52,9 +53,17 @@ You can specify following parameters values:
 * `cluster.profile`: The profile name used to create cluster's Pods.
 * `cluster.volumeSize`: The size set in the persistent volume claim of PostgreSQL data.
 * `cluster.storageclass`: The storage class used for the persisitent volume claim of PostgreSQL data.
- If defined, storageClassName: <storageclass>. If set to "-", storageClassName: "", which disables dynamic provisioning.
+ If defined, storageClassName: <storageClass>. If set to "-", storageClassName: "", which disables dynamic provisioning.
  If undefined (the default) or set to null, no storageClassName spec is set, choosing the default provisioner.
  (gp2 on AWS, standard on GKE, AWS & OpenStack).
+ 
+#### Backups
+
+By default the chart create a storage class backed by an NFS server and associate it to the `cluster.backup.volumeWriteManyStorageClass`
+ parameter. To avoid the creation of the NFS storage class just specify the `cluster.backup.volumeWriteManyStorageClass` or fill any of
+ the `cluster.backup.s3`, `cluster.backup.gcs` or `cluster.backup.azureblob` sections.
+ 
+* `cluster.backup.create`: If true create and set the backup configuration for the cluster.
 * `cluster.backup.name`: The backup configuration CR name.
 * `cluster.backup.retention`: Retains specified number of full backups. Default is 5.
 * `cluster.backup.fullSchedule`: Specify when to perform full backups using cron syntax:
@@ -77,7 +86,15 @@ You can specify following parameters values:
 * `cluster.backup.pgpConfiguration.key`: The key in the secret with the private key of the OpenPGP configuration for encryption and decryption backups.
 * `cluster.backup.nfs.create`: If true create a storage class backed by an NFS server that will be used to store backups.
 
-#### Amazon Web Services S3
+##### Volume Source
+
+* `cluster.backup.volumeSize`: Define the size of the volume used for backups.
+* `cluster.backup.volumeWriteManyStorageClass`: Define the storage class name that will be used to store backups. Must support ReadWriteMany mode access mode.
+ If defined, storageClassName: <volumeWriteManyStorageClass>. If set to "-", storageClassName: "", which disables dynamic provisioning.
+ If undefined (the default) or set to null, no storageClassName spec is set, choosing the default provisioner.
+ (gp2 on AWS, standard on GKE, AWS & OpenStack).
+
+##### Amazon Web Services S3
 
 * `cluster.backup.s3.prefix`: The AWS S3 bucket and prefix (eg. s3://bucket/path/to/folder).
 * `cluster.backup.s3.accessKey.name`: The name of secret with the access key credentials to access AWS S3 for writing and reading.
@@ -97,13 +114,13 @@ You can specify following parameters values:
  (region or cseKmsRegion required to be set when using AWS KMS key client side encryption).
 * `cluster.backup.s3.cseKmsRegion`: To configure AWS KMS key region for client side encryption and decryption (i.e., eu-west-1).
 
-#### Google Cloud Storage
+##### Google Cloud Storage
 
 * `cluster.backup.gcs.prefix`: Specify where to store backups (eg. gs://x4m-test-bucket/walg-folder).
 * `cluster.backup.gcs.serviceAccountJsonKey.name`: The name of secret with service account json key to access GCS for writing and reading.
 * `cluster.backup.gcs.serviceAccountJsonKey.key`: The key in the secret with service account json key to access GCS for writing and reading.
 
-#### Azure Blob Storage
+##### Azure Blob Storage
 
 * `cluster.backup.azureblob.prefix`: Specify where to store backups in Azure storage (eg. azure://test-container/walg-folder).
 * `cluster.backup.azureblob.account.name`: The name of secret with storage account name to access Azure Blob Storage for writing and reading.
@@ -115,9 +132,12 @@ You can specify following parameters values:
 * `cluster.backup.azureblob.bufferSize`: Overrides the default upload buffer size of 67108864 bytes (64 MB). Note that the size of the buffer
  must be specified in bytes. Therefore, to use 32 MB sized buffers, this variable should be set to 33554432 bytes.
 * `cluster.backup.azureblob.maxBuffers`: Overrides the default maximum number of upload buffers. By default, at most 3 buffers are used concurrently.
-* `sidecar.pooling`: true
-* `sidecar.util`: true
-* `sidecar.prometheus.create`: true
-* `sidecar.prometheus.allowAutobind`: true
-* `profiles.create`: true
 
+#### Sidecars
+
+* `sidecar.pooling`: If true enables connection pooling sidecar.
+* `sidecar.util`: If true enables util sidecar.
+* `sidecar.prometheus.create`: If true enables prometheus exporter sidecar.
+* `sidecar.prometheus.allowAutobind`: If true allow autobind prometheus exporter to the available prometheus
+ installed using the [prometheus-operator](https://github.com/coreos/prometheus-operator) by creating required
+ `ServiceMonitor` custom resources.
