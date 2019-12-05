@@ -327,7 +327,8 @@ public class StackGresStatefulSet {
                 .build())
                 .filter(affinity -> Optional.ofNullable(
                     config.getCluster().getSpec().getNonProduction())
-                    .map(nonProduction -> !nonProduction.getDisableClusterPodAntiAffinity())
+                    .map(nonProduction -> nonProduction.getDisableClusterPodAntiAffinity())
+                    .map(disableClusterPodAntiAffinity -> !disableClusterPodAntiAffinity)
                     .orElse(true))
                 .orElse(null))
             .withShareProcessNamespace(Boolean.TRUE)
