@@ -76,7 +76,6 @@ eksctl create cluster \
 --nodes-max $maxnode \
 --node-ami  auto
 ```
-> Check each of this values to make sure is going to work with your AWS project.
 
 #### 2.3.-   Create your kubeconfig file with the AWS CLI
 
@@ -114,7 +113,7 @@ or
 
 > If you do not want to use the Cluster by default, you can generate the CRDs one by one, [in this way](cr.md)
 
-#### 7.1.1.- Add  other cluster
+#### 7.1.1.- Add another cluster
 `helm upgrade  stackgres-cluster --version 3 stackgres-k8s/install/helm/stackgres-cluster/ --set-string cluster.instances=3`
 
 > Is necessary you have the resources for deployment
