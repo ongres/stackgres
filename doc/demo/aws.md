@@ -113,7 +113,7 @@ or
 
 > If you do not want to use the Cluster by default, you can generate the CRDs one by one, [in this way](cr.md)
 
-#### 7.1.1.- Add another cluster
+#### 7.1.1.- Adding another cluster
 `helm upgrade  stackgres-cluster --version 3 stackgres-k8s/install/helm/stackgres-cluster/ --set-string cluster.instances=3`
 
 > Is necessary you have the resources for deployment
