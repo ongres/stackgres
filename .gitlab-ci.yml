@@ -24,6 +24,8 @@ variables:
                    --show-version
                    -DinstallAtEnd=true
                    -DdeployAtEnd=true
+  E2E_PARALLEL: 32
+  E2E_TIMEOUT: 300
 
 # Cache downloaded dependencies and plugins between builds.
 # To keep cache across branches add 'key: "$CI_JOB_NAME"'
