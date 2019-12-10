@@ -17,8 +17,7 @@ test() {
 
   run_test "Checking that backup is working after switchover" check_backup_after_switchover
 
-  echo 'Skipping "Checking that backup is working after killing NFS server"'
-  #run_test "Checking that backup is working after killing NFS server" check_backup_after_kill_nfs
+  run_test "Checking that backup is working after killing NFS server" check_backup_after_kill_nfs
 }
 
 check_backup_before_switchover() {

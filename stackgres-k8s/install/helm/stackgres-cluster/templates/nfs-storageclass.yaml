@@ -11,5 +11,5 @@ metadata:
 provisioner: {{ template "nfs-storage-class.provisionerName" . }}
 reclaimPolicy: "Delete"
 allowVolumeExpansion: true
-mountOptions: [ "vers=4.1", "noac", "sync", "noatime", "nodiratime" ]
+mountOptions: [ "vers=4.1", "soft", "noac", "sync", "noatime", "nodiratime" ]
 {{- end -}}
