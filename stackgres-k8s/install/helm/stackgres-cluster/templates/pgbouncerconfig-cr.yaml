@@ -13,7 +13,6 @@ metadata:
     "helm.sh/hook": "pre-install"
   {{- end }}
 spec:
-  pgbouncerVersion: "{{ .Values.config.pgbouncer.version }}"
   {{- with (index .Values.config.pgbouncer "pgbouncer.ini") }}
   pgbouncer.ini:
   {{- range $key, $value := . }}
