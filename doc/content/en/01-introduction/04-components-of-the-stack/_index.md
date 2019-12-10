@@ -6,16 +6,20 @@ weight: 4
 # Components of the Stack
 
 Running Postgres in production requires "a RedHat" of PostgreSQL. A curated set of open source components built,
-verified and packaged together. Postgres is like the Linux kernel!
+verified and packaged together. In this sense Postgres is like the Linux kernel, it needs many components around
+it to provide what a Linux distribution provide.
 
-Exists an ecosystem of tools built around Postgres that can be used to build a production ready Postgres. This is what
-we call a stack of components.
+Exists an ecosystem of tools built around Postgres that can be used to build a Postgres distribution. This is what
+we call the stack of components.
 
-Chose the right component of the stack is a hard task. Exists many components that overlap functionalities or have
-pros and cons that have to be take into account before chosing one or another. It is required an high understanding
-of all the components in order to chose the right one.
+Chosing the right component of this stack is an hard task. Exists many components that overlap functionalities or have
+pros and cons to take into account before chosing one over another. It is required an high understanding of all the 
+components in order to chose the ones that fit together and provide a production ready Postgres distribution.
 
 ![Components of the Stack](stack.png "Components of the Stack")
+
+Our Postgres distribution is composed on a central core component (Postgres) and some other components that fulfill
+requirements in each different area required in the Postgres production distribution.
 
 ## Core
 
@@ -55,12 +59,10 @@ Exists 3 alternatives solutions:
 
 Which one to chose?
 
-And, where should the connection pooling be placed?
-
-* Client-side
-* Server-side
-* Middle-ware
-* Some or all of the above
+For StackGres PgBouncer was the chosen solution. It is enough simple and stable to be used for connection pooling. It has
+a cons that is the lack of multithreading that can lead to a saturation of CPU when connections increase over a vertain limit
+that depends on the perfromnace of a sigle core of the CPU where it is running. Odyssey will be a good candidate to replace
+PgBouncer when it will become more mature.
 
 ## High availability
 
@@ -77,6 +79,10 @@ one among them:
 * [pg_autofailover](https://github.com/citusdata/pg_auto_failover)
 * [PAF](https://dalibo.github.io/PAF/)
 * [Stolon](https://github.com/sorintlab/stolon)
+
+Patroni is the HA solution chosen for StackGres. It is a well proved solution that relies on distributed consensus
+algorithms in order to provide a consistent mechanism for master election. In particular it is able to use the same
+distributed consensus algorithm used by Kubernetes so that it does not requires installation of other services.
 
 ## Backup and disaster recovery
 
@@ -95,6 +101,11 @@ Also, where do we store our backups?
 
 And finally, will our backup work when needed or will it fail?
 
+Wal-g, the successor of Wal-e, is the most complete and lightweight solution to provide both incremental (trought archive
+command) and full backup support. Also, it provides out of the box features that allow store backup in a persistent volume
+(using a storage class that supports `ReadWriteMany` access mode) or a cloud storage between AWS S3, Google Cloud Storage
+or Azure Blob Storage. It also allow configure aspects like bandwidth or disk usage rate or encryption (with pgp).
+
 ## Log
 
 We want to sotre our logs distributed across all our containers in a central location and be able to analyze them when
@@ -107,7 +118,10 @@ all the logs in Postgres using [Timescale](https://github.com/timescale/timescal
 How do I locate the master, if it might be changing? How do I obtain traffic metrics? It is possible to manage traffic:
 duplicate, A/B to test cluster or event inspect it?
 
-* [Envoy](https://www.envoyproxy.io/): open source edge and service proxy, designed for cloud-native applications
+[Envoy](https://www.envoyproxy.io/) is an open source edge and service proxy, designed for cloud-native applications. It is
+extensible in order to provide advanced funcionality based on the actual traffic (for example the Postgres could be parsed
+in order to offer stats) or on connection characteristic (like the TLS certificate in order to chose to which node the
+connection have to be dispatched.
 
 ## Monitoring
 
@@ -122,17 +136,17 @@ Which monitoring solution can we use to monitor a Postgres cluster?
 * [DataDog](https://www.datadoghq.com/)
 * [Prometheus](https://prometheus.io/)
 
-* [PostgreSQL Server Exporter](https://github.com/wrouesnel/postgres_exporter): Prometheus exporter for PostgreSQL server metrics.
+StackGres approach here is to enable as much monitoring solution as possible. Currently only Prometheus can connect
+to StackGres stats using the [PostgreSQL Server Exporter](https://github.com/wrouesnel/postgres_exporter).
 
 ## User interface
 
 Exists some user interface to interact with Postgres like pgadmin or dbviewer that allow to look at the database content
-and configuration. We need a user interface that is capable of manage an entire cluster. How I list the clusters? How many
-nodes have a cluster? What is the status of replication? How many resources are used by a node? How to get monitoring info 
-of a particular node?
+and configuration. We need a user interface that is capable of manage an entire cluster. How do I list the clusters?
+How many nodes have a cluster? What is the status of replication? How many resources are used by a node? How to get
+monitoring info of a particular node?
 
-Some tools exists like:
+StackGres provide a Web and CLI user interface able to monitor and interact with the created StackGres clusters. It allow
+to do basic and advanced tasks like list/get/create/update/delete a cluster or execute a switchover or a backup recovery.
 
-* [ClusterControl](https://severalnines.com/product/clustercontrol/clustercontrol-community-edition)
-* [Elephant Shed](https://elephant-shed.io/)
-
+The Web interface is also able to integrate with Grafana in order to allow see stats of each node of the cluster.
