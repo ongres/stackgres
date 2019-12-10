@@ -176,6 +176,13 @@ const store = new Vuex.Store({
     updateNamespaces (state, namespace) {
       //state.namespaces.length = 0;
       state.namespaces.push(namespace);
+
+      if( store.state.currentNamespace == ' ') {
+        store.commit('setCurrentNamespace', namespace);
+        router.push('/overview/'+store.state.currentNamespace);
+        $('#selected--zg-ul-select').text(store.state.currentNamespace).addClass('active');
+      }
+      
     },
 
     setCurrentCluster (state, cluster) {
@@ -310,12 +317,6 @@ var vm = new Vue({
             if(store.state.namespaces.indexOf(item.metadata.namespace) === -1) {
             
               store.commit('updateNamespaces', item.metadata.namespace);
-
-              if(store.state.currentNamespace == ' ') {
-                store.commit('setCurrentNamespace', item.metadata.namespace);
-                router.push('/overview/'+store.state.currentNamespace);
-                $('#selected--zg-ul-select').text(store.state.currentNamespace).addClass('active');
-              }
             
             } else {
               //console.log("Namespace ya existe");
@@ -496,7 +497,7 @@ var vm = new Vue({
         $("#loader").fadeOut(500);
         //$("#loader").hide();  
       }, 1500);
-      
+
     }
 
   },
