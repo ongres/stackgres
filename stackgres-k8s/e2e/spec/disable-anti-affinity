@@ -1,0 +1,5 @@
+#!/bin/sh
+
+test_install_pods() {
+  echo 3
+}

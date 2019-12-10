@@ -1,0 +1,2 @@
+nonProduction:
+  disableClusterPodAntiAffinity: true
