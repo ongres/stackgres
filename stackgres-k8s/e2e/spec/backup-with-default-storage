@@ -17,7 +17,7 @@ test() {
 
   run_test "Checking that backup is working after switchover" check_backup_after_switchover
 
-  run_test "Checking that backup is working after killing NFS server" check_backup_after_kill_nfs
+  run_test "Checking that backup is working after killing storage provider service" check_backup_after_kill_storage_provider_service
 }
 
 check_backup_before_switchover() {
@@ -28,7 +28,7 @@ check_backup_after_switchover() {
   check_backup 1
 }
 
-check_backup_after_kill_nfs() {
+check_backup_after_kill_storage_provider_service() {
   kubectl get pod -n "$CLUSTER_NAMESPACE" -o name | grep "^pod/$CLUSTER_NAME-minio-" \
     | xargs -r -n 1 -I % kubectl delete -n "$CLUSTER_NAMESPACE" %
 
@@ -37,23 +37,15 @@ check_backup_after_kill_nfs() {
 
 check_backup() {
   NODE="$1"
-  CURRENT_LSN="$(kubectl exec -t -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-"$NODE" -c postgres-util -- \
+  CURRENT_WAL_FILE="$(kubectl exec -t -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-"$NODE" -c postgres-util -- \
     psql -t -A -U postgres -p 5435 -c \
     'SELECT r.file_name from pg_walfile_name_offset(pg_current_wal_lsn()) as r')"
-  while true
-  do
-    LSN="$(kubectl exec -t -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-"$NODE" -c postgres-util -- \
+  wait_until eval '[ "$(kubectl exec -t -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-"$NODE" -c postgres-util -- \
       psql -t -A -U postgres -p 5435 -c \
-      'SELECT r.file_name from pg_walfile_name_offset(pg_switch_wal()) as r')"
-    if [ "$CURRENT_LSN" != "$LSN" ]
-    then
-      break
-    fi
-    sleep 2
-  done
+      "SELECT r.file_name from pg_walfile_name_offset(pg_switch_wal()) as r")" != "$CURRENT_WAL_FILE" ]
 
   if wait_until kubectl exec -t -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-"$NODE" -c patroni -- \
-    wal-g wal-fetch "$LSN" "/tmp/$LSN"
+    wal-g wal-fetch "$CURRENT_WAL_FILE" "/tmp/$CURRENT_WAL_FILE"
   then
     echo "SUCCESS. The WAL is available"
   else

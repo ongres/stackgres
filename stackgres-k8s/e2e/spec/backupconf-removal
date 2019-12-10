@@ -13,16 +13,16 @@ test() {
 }
 
 delete_with_cluster() {
-  if kubectl get -n "$CLUSTER_NAMESPACE" sgbackupconfigs.stackgres.io backupconf -o yaml \
+  if kubectl get -n "$CLUSTER_NAMESPACE" sgbackupconfigs.stackgres.io "$CLUSTER_NAME" -o yaml \
     | kubectl delete -f - > "${LOG_PATH}/test1.log" 2>&1
   then
-    echo "FAIL: It should not be able to delete sgspconfig"
+    echo "FAIL: It should not be able to delete sgbackupconf"
     return 1
   else
     echo "SUCCESS: Good it has failed"
   fi
 
-  if grep -q "Can't delete sgbackupconfigs.stackgres.io backupconf" "$LOG_PATH/test1.log"
+  if grep -q "Can't delete sgbackupconfigs.stackgres.io $CLUSTER_NAME" "$LOG_PATH/test1.log"
   then
     echo "SUCCESS: Error message was the expected"
     return 0
@@ -38,7 +38,7 @@ delete_whitout_cluster() {
 
   wait_pods_terminated "$CLUSTER_NAMESPACE" 1
 
-  if kubectl get -n "$CLUSTER_NAMESPACE" sgbackupconfigs.stackgres.io backupconf -o yaml \
+  if kubectl get -n "$CLUSTER_NAMESPACE" sgbackupconfigs.stackgres.io "$CLUSTER_NAME" -o yaml \
     | kubectl delete -f - > "${LOG_PATH}/test2.log" 2>&1
   then
     echo "SUCCESS: Good. It has deleted the configuration"

@@ -1,8 +1,20 @@
-{{ if and .Values.config.create .Values.cluster.backup.create }}
+{{- /*
+Throw an error if create minio without default backup options
+*/ -}}
+{{- if and .Values.cluster.backup.minio.create (not (and .Values.cluster.create .Values.cluster.backup.create (not (or .Values.cluster.backup.volumeWriteManyStorageClass .Values.cluster.backup.s3 .Values.cluster.backup.gcs .Values.cluster.backup.azureblob)))) -}}
+{{- fail "Disable minio creation (--set cluster.backup.minio.create=false) if not using default backup values or not creating backup configuration" -}}
+{{- end -}}
+{{- /*
+Throw an error if not create minio with default backup options
+*/ -}}
+{{- if and (not .Values.cluster.backup.minio.create) (and .Values.cluster.create .Values.cluster.backup.create (not (or .Values.cluster.backup.volumeWriteManyStorageClass .Values.cluster.backup.s3 .Values.cluster.backup.gcs .Values.cluster.backup.azureblob))) -}}
+{{- fail "Enable minio creation (--set cluster.backup.minio.create=true) if using default backup values and creating cluster with backup configuration" -}}
+{{- end -}}
+{{ if and .Values.cluster.create .Values.cluster.backup.create }}
 apiVersion: stackgres.io/{{ .Values.crd.version }}
 kind: StackGresBackupConfig
 metadata:
-  name: {{ .Values.cluster.backup.name }}
+  name: {{ .Release.Name }}
   labels:
     app: {{ template "stackgres-cluster.name" . }}
     chart: {{ template "stackgres-cluster.chart" . }}

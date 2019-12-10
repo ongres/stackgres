@@ -27,6 +27,8 @@ cluster:
     compressionMethod: lz4
     uploadDiskConcurrency: 1
     tarSizeThreshold: 1073741823
+    minio:
+      create: true
     #networkRateLimit:
     #diskRateLimit:
     #pgpConfiguration:
@@ -81,7 +83,24 @@ crd:
   version: v1alpha1
 
 profiles:
-  create: true
+  - name: size-xs
+    cpu: "500m"
+    memory: "512Mi"
+  - name: size-s
+    cpu: "1"
+    memory: "2Gi"
+  - name: size-m
+    cpu: "2"
+    memory: "4Gi"
+  - name: size-l
+    cpu: "4"
+    memory: "8Gi"
+  - name: size-xl
+    cpu: "6"
+    memory: "16Gi"
+  - name: size-xxl
+    cpu: "8"
+    memory: "32Gi"
 
 minio:
   buckets:

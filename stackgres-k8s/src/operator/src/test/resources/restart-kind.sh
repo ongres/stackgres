@@ -32,15 +32,20 @@ if [ -f /certs/server.crt ]
 then
   for node in $(kind get nodes --name "$KIND_NAME")
   do
+    (
     docker cp /certs/server.crt $node:/usr/local/share/ca-certificates/validator.crt
     docker exec -t $node sh -c "update-ca-certificates"
+    ) &
   done
 fi
 for node in $(kind get nodes --name "$KIND_NAME")
 do
+  (
   docker exec -t $node sh -c 'DEBIAN_FRONTEND=noninteractive apt-get update -y -qq < /dev/null > /dev/null'
   docker exec -t $node sh -c 'DEBIAN_FRONTEND=noninteractive apt-get install -y -qq nfs-common < /dev/null > /dev/null'
+  ) &
 done
+wait
 sed -i 's#^    server:.*$#    server: 'https://"$(docker inspect -f '{{ .NetworkSettings.IPAddress }}' ${KIND_NAME}-control-plane)"':6443#' "$(kind get kubeconfig-path --name="$KIND_NAME")"
 export KUBECONFIG="$(kind get kubeconfig-path --name="$KIND_NAME")"
 echo "export KUBECONFIG='$(kind get kubeconfig-path --name="$KIND_NAME")'" > "$HOME/.profile"
@@ -63,6 +68,31 @@ roleRef:
 EOF
 helm init --history-max 20
 while ! helm version > /dev/null 2>&1; do sleep 0.5; done
-
+cat << 'EOF' | kubectl apply -f -
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: cpu-limit-range
+spec:
+  limits:
+  - default:
+      cpu: 0.1
+    defaultRequest:
+      cpu: 0.1
+    type: Container
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: mem-limit-range
+spec:
+  limits:
+  - default:
+      memory: 16Mi
+    defaultRequest:
+      memory: 16Mi
+    type: Container
+EOF
 echo "Kind started k8s cluster"
 

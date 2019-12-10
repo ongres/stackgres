@@ -15,7 +15,7 @@ spec:
   connectionPoolingConfig: '{{ .Values.cluster.poolingconfig }}'
   resourceProfile: '{{ .Values.cluster.profile }}'
   {{- if .Values.cluster.backup.create }}
-  backupConfig: '{{ .Values.cluster.backup.name }}'
+  backupConfig: '{{ .Release.Name }}'
   {{- end }}
   volumeSize: '{{ .Values.cluster.volumeSize }}'
   {{- if .Values.cluster.storageClass }}

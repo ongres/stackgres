@@ -8,6 +8,7 @@ package io.stackgres.operator;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 import javax.ws.rs.client.ClientBuilder;
@@ -21,10 +22,15 @@ import org.junit.jupiter.api.BeforeEach;
 
 public abstract class AbstractStackGresOperatorIt extends AbstractIt {
 
+  private static final Optional<Boolean> RESTART_KIND = Optional.ofNullable(
+      Optional.ofNullable(System.getenv("RESTART_KIND"))
+      .orElse(System.getProperty("it.restartKind")))
+      .map(Boolean::valueOf);
   private static final int OPERATOR_PORT = getFreePort();
   private static final int OPERATOR_SSL_PORT = getFreePort();
 
   protected final String namespace = getNamespace();
+  protected final int kindSize = getKindSize();
 
   private Closeable operatorClose;
   private WebTarget operatorClient;
@@ -33,12 +39,20 @@ public abstract class AbstractStackGresOperatorIt extends AbstractIt {
     return "stackgres";
   }
 
+  protected int getKindSize() {
+    return 3;
+  }
+
   @BeforeEach
   public void setupOperator(@ContainerParam("kind") Container kind) throws Exception {
     ItHelper.trapKill(kind);
     ItHelper.copyResources(kind);
-    ItHelper.deleteStackGresOperatorHelmChartIfExists(kind, namespace);
-    ItHelper.deleteNamespaceIfExists(kind, namespace);
+    if (!ItHelper.isKindStarted(kind) || RESTART_KIND.orElse(false)) {
+      ItHelper.restartKind(kind, kindSize);
+    } else {
+      ItHelper.deleteStackGresOperatorHelmChartIfExists(kind, namespace);
+      ItHelper.deleteNamespaceIfExists(kind, namespace);
+    }
     ItHelper.installStackGresOperatorHelmChart(kind, namespace, OPERATOR_SSL_PORT, executor);
     OperatorRunner operatorRunner = ItHelper.createOperator(
         kind, OPERATOR_PORT, OPERATOR_SSL_PORT, executor);

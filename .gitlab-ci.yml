@@ -90,6 +90,7 @@ build test images:
     - stackgres-runner
   dependencies:
     - compile
+  retry: 2
   script:
     - MAVEN_CLI_OPTS="$MAVEN_CLI_OPTS -DskipTests -Dquarkus.skipAugmentation=true"
     - 'mvn $MAVEN_CLI_OPTS pre-integration-test -P integration'
@@ -100,6 +101,7 @@ build jvm image:
     - stackgres-runner
   dependencies:
     - compile
+  retry: 2
   script:
     - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_REF_NAME"}"-jvm'
     - 'export IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
@@ -113,50 +115,12 @@ build native image:
   dependencies:
     - compile
     - native image
+  retry: 2
   script:
     - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_REF_NAME"}"'
     - 'export IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
     - MAVEN_CLI_OPTS="$MAVEN_CLI_OPTS -DskipTests"
     - 'mvn $MAVEN_CLI_OPTS package -P build-image-native'
-
-reset kind:
-  stage: pre test
-  tags:
-    - stackgres-runner
-  variables:
-    KIND_SUFFIX: "none"
-  script:
-    - MAVEN_CLI_OPTS="$MAVEN_CLI_OPTS -DskipTests -Dquarkus.skipAugmentation=true"
-    - 'flock -w 3600 /tmp/stackgres-integration-test mvn $MAVEN_CLI_OPTS verify -P reset-kind'
-  only:
-    variables:
-      - $RESET_KIND
-
-reset kind jvm image:
-  stage: pre test
-  tags:
-    - stackgres-runner
-  variables:
-    KIND_SUFFIX: jvm-image
-  script:
-    - MAVEN_CLI_OPTS="$MAVEN_CLI_OPTS -DskipTests -Dquarkus.skipAugmentation=true"
-    - 'flock -w 3600 /tmp/stackgres-integration-test-jvm-image mvn $MAVEN_CLI_OPTS verify -P reset-kind'
-  only:
-    variables:
-      - $RESET_KIND
-
-reset kind native image:
-  stage: pre test
-  tags:
-    - stackgres-runner
-  variables:
-    KIND_SUFFIX: native-image
-  script:
-    - MAVEN_CLI_OPTS="$MAVEN_CLI_OPTS -DskipTests -Dquarkus.skipAugmentation=true"
-    - 'flock -w 3600 /tmp/stackgres-integration-test-native-image mvn $MAVEN_CLI_OPTS verify -P reset-kind'
-  only:
-    variables:
-      - $RESET_KIND
 
 integration test:
   stage: test

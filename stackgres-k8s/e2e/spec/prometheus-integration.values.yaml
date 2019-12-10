@@ -6,7 +6,7 @@ cluster:
       create: false
 sidecar:
   prometheus:
-    allowAutobind: false
+    allowAutobind: true
 profiles:
   - name: size-xs
     cpu: 500m

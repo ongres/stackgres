@@ -18,7 +18,7 @@ PARALLELISM="${PARALLELISM:-8}"
 COUNT=0
 SPECS_TO_RUN=""
 SH_OPTS=$(! echo $- | grep -q x || echo "-x")
-RESULT=true
+OVERALL_RESULT=true
 SPEC_COUNT="$(echo "$SPECS" | tr ' ' '\n' | wc -l)"
 for SPEC in $SPECS
 do
@@ -30,13 +30,13 @@ do
     if ! echo "$SPECS_TO_RUN" | tr ' ' '\n' | tail -n +2 \
       | xargs -r -n 1 -I % -P 0 sh $SH_OPTS "$(dirname "$0")/e2e" spec "%"
     then
-      RESULT=false
+      OVERALL_RESULT=false
     fi
     SPECS_TO_RUN=""
   fi
 done
 
-if $RESULT
+if $OVERALL_RESULT
 then
   cat "$TARGET_PATH/logs/results.log"
 else

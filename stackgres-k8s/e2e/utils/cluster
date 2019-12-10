@@ -57,4 +57,4 @@ delete_namespace_if_exists() {
   then
     kubectl delete namespace $NAMESPACE
   fi
-}  
+}

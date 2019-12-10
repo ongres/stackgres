@@ -1,5 +1,14 @@
 cluster:
+  volumeSize: 128Mi
   backup:
     create: false
+    minio:
+      create: false
 sidecar:
   pooling: false
+  prometheus:
+    allowAutobind: false
+profiles:
+  - name: size-xs
+    cpu: 500m
+    memory: 256Mi

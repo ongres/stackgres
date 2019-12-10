@@ -37,9 +37,8 @@ public class StackGresOperatorIt extends AbstractStackGresOperatorIt {
 
   @Test
   public void createClusterTest(@ContainerParam("kind") Container kind) throws Exception {
-    ItHelper.installMinioHelmChart(kind, "minio", namespace);
-    ItHelper.installStackGresConfigs(kind, namespace, true);
-    ItHelper.installStackGresCluster(kind, namespace, CLUSTER_NAME, 1, true);
+    ItHelper.installStackGresConfigs(kind, namespace);
+    ItHelper.installStackGresCluster(kind, namespace, CLUSTER_NAME, 1);
     checkStackGresEvent(kind, EventReason.CLUSTER_CREATED, StackGresCluster.class);
     checkStackGresCluster(kind, 1);
     ItHelper.upgradeStackGresCluster(kind, namespace, CLUSTER_NAME, 2);
@@ -126,17 +125,25 @@ public class StackGresOperatorIt extends AbstractStackGresOperatorIt {
 
   private void checkStackGresBackups(Container kind)
       throws InterruptedException, Exception {
-    String walFileName = kind.execute("sh", "-l", "-c",
+    String currentWalFileName = kind.execute("sh", "-l", "-c",
         "kubectl exec -t -n " + namespace + " "+ CLUSTER_NAME + "-" + 0
         + " -c postgres-util -- sh -c \"psql -t -A -U postgres -p " + Envoy.PG_RAW_PORT
-        + " -c 'SELECT r.file_name from pg_walfile_name_offset(pg_switch_wal()) as r'\"")
+        + " -c 'SELECT r.file_name from pg_walfile_name_offset(pg_current_wal_lsn()) as r'\"")
         .filter(ItHelper.EXCLUDE_TTY_WARNING)
         .findFirst()
         .get();
     ItHelper.waitUntil(Unchecked.supplier(() -> kind.execute("sh", "-l", "-c",
+        "kubectl exec -t -n " + namespace + " "+ CLUSTER_NAME + "-" + 0
+        + " -c postgres-util -- sh -c \"psql -t -A -U postgres -p " + Envoy.PG_RAW_PORT
+        + " -c 'SELECT r.file_name from pg_walfile_name_offset(pg_switch_wal()) as r'\"")),
+        s -> s.anyMatch(newWalFileName -> newWalFileName.equals(currentWalFileName)), 60, ChronoUnit.SECONDS,
+        s -> Assertions.fail(
+            "Timeout while waiting switch of wal file " + currentWalFileName + ":\n"
+                + s.collect(Collectors.joining("\n"))));
+    ItHelper.waitUntil(Unchecked.supplier(() -> kind.execute("sh", "-l", "-c",
         "kubectl exec -t -n " + namespace + " "
             + CLUSTER_NAME + "-" + 0 + " -c patroni --"
-            + " sh -c \"wal-g wal-fetch " + walFileName + " /tmp/" + walFileName + " && echo 1\"")),
+            + " sh -c \"wal-g wal-fetch " + currentWalFileName + " /tmp/" + currentWalFileName + " && echo 1\"")),
         s -> s.anyMatch(line -> line.equals("1")), 60, ChronoUnit.SECONDS,
         s -> Assertions.fail(
             "Timeout while checking archive_command is working properly:\n"

@@ -66,6 +66,8 @@ setup_k8s() {
 
   setup_tiller
 
+  setup_default_limits 0.1 0.1 16Mi 16Mi
+
   helm dependency update "$OPERATOR_CHART_PATH"
   helm dependency update "$CLUSTER_CHART_PATH"
 
