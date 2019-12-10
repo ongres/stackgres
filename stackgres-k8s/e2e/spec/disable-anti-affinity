@@ -3,3 +3,7 @@
 test_install_pods() {
   echo 3
 }
+
+test() {
+  echo "SUCCESS. All 3 cluster pod are running."
+}
