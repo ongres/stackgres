@@ -61,7 +61,7 @@ public class StackGresClusterSpec implements KubernetesResource {
   @JsonProperty("sidecars")
   private List<String> sidecars;
 
-  @JsonProperty("nonProductionOptions")
+  @JsonProperty("nonProduction")
   private NonProduction nonProduction;
 
   public int getInstances() {

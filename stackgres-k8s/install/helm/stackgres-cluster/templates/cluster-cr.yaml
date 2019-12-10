@@ -40,7 +40,7 @@ spec:
   {{- if .Values.sidecar.prometheus.create }}
   - prometheus-postgres-exporter
   {{- end }}
-  {{- if .Values.cluster.nonProduction }}
+  {{- if .Values.nonProduction }}
   nonProduction:
   {{- if .Values.nonProduction.disableClusterPodAntiAffinity }}
     disableClusterPodAntiAffinity: {{ .Values.nonProduction.disableClusterPodAntiAffinity }}
