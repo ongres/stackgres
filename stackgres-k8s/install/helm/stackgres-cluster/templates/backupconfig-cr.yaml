@@ -33,10 +33,19 @@ spec:
   tarSizeThreshold: {{ .Values.cluster.backup.tarSizeThreshold }}
   storage:
     {{- if not (or .Values.cluster.backup.volumeWriteManyStorageClass .Values.cluster.backup.s3 .Values.cluster.backup.gcs .Values.cluster.backup.azureblob) }}
-    type: volume
-    volume:
-      size: "{{ .Values.cluster.backup.volumeSize }}"
-      writeManyStorageClass: "{{ print .Release.Namespace "-" .Release.Name "-nfs" }}"
+    type: s3
+    s3:
+      prefix: s3://stackgres
+      endpoint: http://{{ .Release.Name }}-minio.{{ .Release.Namespace }}.svc:9000
+      forcePathStyle: true
+      region: k8s
+      credentials:
+        accessKey:
+          name: {{ .Release.Name }}-minio
+          key: accesskey
+        secretKey:
+          name: {{ .Release.Name }}-minio
+          key: secretkey
     {{- end }}
     {{- if .Values.cluster.backup.volumeWriteManyStorageClass }}
     type: volume

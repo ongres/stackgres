@@ -29,7 +29,8 @@ check_backup_after_switchover() {
 }
 
 check_backup_after_kill_nfs() {
-  kubectl delete pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-nfs-0
+  kubectl get pod -n "$CLUSTER_NAMESPACE" -o name | grep "^pod/$CLUSTER_NAME-minio-" \
+    | xargs -r -n 1 -I % kubectl delete -n "$CLUSTER_NAMESPACE" %
 
   check_backup 1
 }

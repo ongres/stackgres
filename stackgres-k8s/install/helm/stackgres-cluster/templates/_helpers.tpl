@@ -17,13 +17,6 @@ Create chart name and version as used by the chart label.
 {{/*
 Expand the name of the nfs storage class resources.
 */}}
-{{- define "nfs-storage-class.name" -}}
-{{- print (default .Release.Name .Values.nameOverride) "-nfs" | trunc 63 | trimSuffix "-" -}}
-{{- end -}}
-
-{{/*
-Create nfs storage class provisioner name.
-*/}}
-{{- define "nfs-storage-class.provisionerName" -}}
-cluster.local/{{ template "nfs-storage-class.name" . -}}
+{{- if and .Values.config.create .Values.cluster.backup.create (not (or .Values.cluster.backup.volumeWriteManyStorageClass .Values.cluster.backup.s3 .Values.cluster.backup.gcs .Values.cluster.backup.azureblob)) }}
+{{ set .Values.minio (dict "enabled" true) }}
 {{- end -}}
