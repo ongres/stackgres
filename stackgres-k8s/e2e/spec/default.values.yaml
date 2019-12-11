@@ -1,9 +1,10 @@
-cluster:
-  volumeSize: 128Mi
+config:
   backup:
     create: false
     minio:
       create: false
+cluster:
+  volumeSize: 128Mi
 sidecar:
   prometheus:
     allowAutobind: false

@@ -50,7 +50,7 @@ public class ItHelper {
   /**
    * IT helper method.
    */
-  public static void trapKill(Container kind) throws Exception {
+  public static void killUnwantedProcesses(Container kind) throws Exception {
     kind.execute("sh", "-c",
         "#!/bin/sh\n"
             + "TIMEOUT=20\n"
@@ -95,23 +95,18 @@ public class ItHelper {
   /**
    * It helper method.
    */
-  public static boolean isKindStarted(Container kind) throws Exception {
-    return kind.execute("sh", "-lec", ""
-        + "if [ -z \"$KIND_NAME\" ]\n"
-        + "then\n"
-        + "  KIND_NAME=\"$(docker inspect -f '{{.Name}}' \"$(hostname)\"|cut -d '/' -f 2)\"\n"
-        + "fi\n"
-        + "kind get clusters | grep -q \"^$KIND_NAME$\" && echo 1 || true")
-        .filter(EXCLUDE_TTY_WARNING)
-        .anyMatch(line -> line.equals("1"));
-  }
-
-  /**
-   * It helper method.
-   */
-  public static void restartKind(Container kind, int size) throws Exception {
+  public static void resetKind(Container kind, int size, boolean reuse) throws Exception {
+    if (reuse) {
+      LOGGER.info("Reusing kind");
+      kind.execute("sh", "-c",
+          "REUSE_KIND=true sh /resources/restart-kind.sh " + size)
+          .filter(EXCLUDE_TTY_WARNING)
+          .forEach(line -> LOGGER.info(line));
+      return;
+    }
     LOGGER.info("Restarting kind");
-    kind.execute("sh", "/resources/restart-kind.sh", String.valueOf(size))
+    kind.execute("sh", "-c",
+        "REUSE_KIND=false sh /resources/restart-kind.sh " + size)
         .filter(EXCLUDE_TTY_WARNING)
         .forEach(line -> LOGGER.info(line));
   }
@@ -249,7 +244,10 @@ public class ItHelper {
         + " --set-string profiles[0].cpu=500m"
         + " --set-string profiles[0].memory=256Mi"
         + " --set cluster.create=false"
-        + " --set cluster.backup.minio.create=false")
+        + " --set config.backup.retention=5"
+        + " --set-string config.backup.fullSchedule='*/1 * * * *'"
+        + " --set config.backup.fullWindow=1"
+        + " --set-string minio.persistence.size=128Mi")
       .filter(EXCLUDE_TTY_WARNING)
       .forEach(line -> LOGGER.info(line));
   }
@@ -277,10 +275,7 @@ public class ItHelper {
         + " --set-string cluster.name=" + name
         + " --set cluster.instances=" + instances
         + " --set-string cluster.volumeSize=128Mi"
-        + " --set cluster.backup.retention=5"
-        + " --set-string cluster.backup.fullSchedule='*/1 * * * *'"
-        + " --set cluster.backup.fullWindow=1"
-        + " --set-string minio.persistence.size=128Mi")
+        + " --set config.backup.minio.create=false")
       .filter(EXCLUDE_TTY_WARNING)
       .forEach(line -> LOGGER.info(line));
   }
@@ -298,10 +293,7 @@ public class ItHelper {
         + " --set-string cluster.name=" + name
         + " --set cluster.instances=" + instances
         + " --set-string cluster.volumeSize=128Mi"
-        + " --set cluster.backup.retention=5"
-        + " --set-string cluster.backup.fullSchedule='*/1 * * * *'"
-        + " --set cluster.backup.fullWindow=1"
-        + " --set-string minio.persistence.size=128Mi")
+        + " --set config.backup.minio.create=false")
       .filter(EXCLUDE_TTY_WARNING)
       .forEach(line -> LOGGER.info(line));
   }

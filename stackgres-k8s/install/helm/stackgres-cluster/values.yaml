@@ -4,22 +4,7 @@ config:
     version: "11.6"
   pgbouncer:
     version: "1.12.0"
-
-cluster:
-  create: true
-  instances: 1
-  pgconfig: postgresconf
-  poolingconfig: pgbouncerconf
-  profile: size-xs
-  volumeSize: 5Gi
-  ## If defined, storageClassName: <storageClass>
-  ## If set to "-", storageClassName: "", which disables dynamic provisioning
-  ## If undefined (the default) or set to null, no storageClassName spec is
-  ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
-  ##   GKE, AWS & OpenStack)
-  #storageClass: "-"
   backup:
-    name: backupconf
     create: true
     retention: 5
     fullSchedule: "0 5 * * *"
@@ -72,6 +57,22 @@ cluster:
     #    key: accesskey
     #  bufferSize:
     #  maxBuffers:
+
+cluster:
+  create: true
+  instances: 1
+  pgconfig: postgresconf
+  poolingconfig: pgbouncerconf
+  backupconfig: backupconf
+  profile: size-xs
+  volumeSize: 5Gi
+  ## If defined, storageClassName: <storageClass>
+  ## If set to "-", storageClassName: "", which disables dynamic provisioning
+  ## If undefined (the default) or set to null, no storageClassName spec is
+  ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
+  ##   GKE, AWS & OpenStack)
+  #storageClass: "-"
+
 sidecar:
   pooling: true
   util: true

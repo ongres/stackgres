@@ -14,8 +14,8 @@ spec:
   pgConfig: '{{ .Values.cluster.pgconfig }}'
   connectionPoolingConfig: '{{ .Values.cluster.poolingconfig }}'
   resourceProfile: '{{ .Values.cluster.profile }}'
-  {{- if .Values.cluster.backup.create }}
-  backupConfig: '{{ .Release.Name }}'
+  {{- if .Values.config.backup.create }}
+  backupConfig: '{{ .Values.cluster.backupconfig }}'
   {{- end }}
   volumeSize: '{{ .Values.cluster.volumeSize }}'
   {{- if .Values.cluster.storageClass }}

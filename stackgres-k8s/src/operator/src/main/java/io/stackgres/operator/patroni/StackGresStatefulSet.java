@@ -76,7 +76,9 @@ public class StackGresStatefulSet {
   public static final String DATA_SUFFIX = "-data";
   public static final String BACKUP_SUFFIX = "-backup";
   public static final String SOCKET_VOLUME_NAME = "socket";
-  public static final String BACKUP_VOLUME_PATH = "/var/lib/postgresql/backups";
+  public static final String PG_VOLUME_PATH = "/var/lib/postgresql";
+  public static final String DATA_VOLUME_PATH = PG_VOLUME_PATH + "/data";
+  public static final String BACKUP_VOLUME_PATH = PG_VOLUME_PATH + "/backups";
   public static final String GCS_CREDENTIALS_VOLUME_NAME = "gcs-credentials";
   public static final String WAL_G_WRAPPER_VOLUME_NAME = "wal-g-wrapper";
 
@@ -353,7 +355,7 @@ public class StackGresStatefulSet {
                 .build(),
                 new VolumeMountBuilder()
                 .withName(name + DATA_SUFFIX)
-                .withMountPath("/var/lib/postgresql")
+                .withMountPath(PG_VOLUME_PATH)
                 .build(),
                 new VolumeMountBuilder()
                 .withName(WAL_G_WRAPPER_VOLUME_NAME)
@@ -452,7 +454,7 @@ public class StackGresStatefulSet {
                 .withVolumeMounts(
                     new VolumeMountBuilder()
                     .withName(name + DATA_SUFFIX)
-                    .withMountPath("/var/lib/postgresql")
+                    .withMountPath(PG_VOLUME_PATH)
                     .build())
                 .build(),
                 new ContainerBuilder()

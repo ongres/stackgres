@@ -13,21 +13,25 @@ fi
 #chmod a+x /bin/kind
 #echo "Installing helm"
 #wget -q -L https://get.helm.sh/helm-v2.14.3-linux-amd64.tar.gz -O -|tar xz --strip-components=1 -C /bin -f - linux-amd64/helm
-kind delete cluster --name "$KIND_NAME" || true
-cat << EOF > kind-config.yaml
+if [ "$REUSE_KIND" != "true" ] \
+  || ! kind get nodes --name "$KIND_NAME" | wc -l | grep -q "^$1$"
+then
+  kind delete cluster --name "$KIND_NAME" || true
+  cat << EOF > kind-config.yaml
 kind: Cluster
 apiVersion: kind.sigs.k8s.io/v1alpha3
 nodes:
 - role: control-plane
 EOF
-if [ ! -z "$1" ] && [ "$1" -ge 2 ]
-then
-  for i in $(seq 2 "$1")
-  do
-    echo '- role: worker' >> kind-config.yaml
-  done
+  if [ ! -z "$1" ] && [ "$1" -ge 2 ]
+  then
+    for i in $(seq 2 "$1")
+    do
+      echo '- role: worker' >> kind-config.yaml
+    done
+  fi
+  kind create cluster --config kind-config.yaml --name "$KIND_NAME" --image "kindest/node:v${KUBERNETES_VERSION}"
 fi
-kind create cluster --config kind-config.yaml --name "$KIND_NAME" --image kindest/node:v${KUBERNETES_VERSION}
 if [ -f /certs/server.crt ]
 then
   for node in $(kind get nodes --name "$KIND_NAME")
@@ -46,12 +50,16 @@ do
   ) &
 done
 wait
-sed -i 's#^    server:.*$#    server: 'https://"$(docker inspect -f '{{ .NetworkSettings.IPAddress }}' ${KIND_NAME}-control-plane)"':6443#' "$(kind get kubeconfig-path --name="$KIND_NAME")"
 export KUBECONFIG="$(kind get kubeconfig-path --name="$KIND_NAME")"
-echo "export KUBECONFIG='$(kind get kubeconfig-path --name="$KIND_NAME")'" > "$HOME/.profile"
-# Patch coredns to version 1.3.1 (see https://github.com/coredns/coredns/issues/2391)
-# kubectl patch deployment -n kube-system coredns --type json \
-#   --patch '[{"op":"replace","path":"/spec/template/spec/containers/0/image","value":"k8s.gcr.io/coredns:1.3.1"}]'
+mkdir -p "$(dirname "$KUBECONFIG")"
+kind get kubeconfig --internal --name "$KIND_NAME" > "$KUBECONFIG"
+echo "export KUBECONFIG='$KUBECONFIG'" > "$HOME/.profile"
+if echo "$KUBERNETES_VERSION" | grep -q '^1\.12\.'
+then
+  # Patch coredns to version 1.3.1 (see https://github.com/coredns/coredns/issues/2391)
+  kubectl patch deployment -n kube-system coredns --type json \
+    --patch '[{"op":"replace","path":"/spec/template/spec/containers/0/image","value":"k8s.gcr.io/coredns:1.3.1"}]'
+fi
 cat << 'EOF' | kubectl apply -f -
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1beta1
@@ -94,5 +102,8 @@ spec:
       memory: 16Mi
     type: Container
 EOF
+helm repo update
+helm dependency update /resources/stackgres-operator
+helm dependency update /resources/stackgres-cluster
 echo "Kind started k8s cluster"
 

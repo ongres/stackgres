@@ -1,20 +1,20 @@
 {{- /*
 Throw an error if create minio without default backup options
 */ -}}
-{{- if and .Values.cluster.backup.minio.create (not (and .Values.cluster.create .Values.cluster.backup.create (not (or .Values.cluster.backup.volumeWriteManyStorageClass .Values.cluster.backup.s3 .Values.cluster.backup.gcs .Values.cluster.backup.azureblob)))) -}}
-{{- fail "Disable minio creation (--set cluster.backup.minio.create=false) if not using default backup values or not creating backup configuration" -}}
+{{- if and .Values.config.backup.minio.create (not (and .Values.config.create .Values.config.backup.create (not (or .Values.config.backup.volumeWriteManyStorageClass .Values.config.backup.s3 .Values.config.backup.gcs .Values.config.backup.azureblob)))) -}}
+{{- fail "Disable minio creation (--set config.backup.minio.create=false) if not using default backup values or not creating backup configuration" -}}
 {{- end -}}
 {{- /*
 Throw an error if not create minio with default backup options
 */ -}}
-{{- if and (not .Values.cluster.backup.minio.create) (and .Values.cluster.create .Values.cluster.backup.create (not (or .Values.cluster.backup.volumeWriteManyStorageClass .Values.cluster.backup.s3 .Values.cluster.backup.gcs .Values.cluster.backup.azureblob))) -}}
-{{- fail "Enable minio creation (--set cluster.backup.minio.create=true) if using default backup values and creating cluster with backup configuration" -}}
+{{- if and (not .Values.config.backup.minio.create) (and .Values.config.create .Values.config.backup.create (not (or .Values.config.backup.volumeWriteManyStorageClass .Values.config.backup.s3 .Values.config.backup.gcs .Values.config.backup.azureblob))) -}}
+{{- fail "Enable minio creation (--set config.backup.minio.create=true) if using default backup values and creating backup configuration" -}}
 {{- end -}}
-{{ if and .Values.cluster.create .Values.cluster.backup.create }}
+{{ if and .Values.config.create .Values.config.backup.create }}
 apiVersion: stackgres.io/{{ .Values.crd.version }}
 kind: StackGresBackupConfig
 metadata:
-  name: {{ .Release.Name }}
+  name: {{ .Values.cluster.backupconfig }}
   labels:
     app: {{ template "stackgres-cluster.name" . }}
     chart: {{ template "stackgres-cluster.chart" . }}
@@ -25,26 +25,26 @@ metadata:
     "helm.sh/hook": "pre-install"
   {{- end }}
 spec:
-  retention: {{ .Values.cluster.backup.retention }}
-  fullSchedule: "{{ .Values.cluster.backup.fullSchedule }}"
-  fullWindow: {{ .Values.cluster.backup.fullWindow }}
-  compressionMethod: "{{ .Values.cluster.backup.compressionMethod }}"
-  {{- if .Values.cluster.backup.networkRateLimit }}
-  networkRateLimit: {{ .Values.cluster.backup.networkRateLimit }}
+  retention: {{ .Values.config.backup.retention }}
+  fullSchedule: "{{ .Values.config.backup.fullSchedule }}"
+  fullWindow: {{ .Values.config.backup.fullWindow }}
+  compressionMethod: "{{ .Values.config.backup.compressionMethod }}"
+  {{- if .Values.config.backup.networkRateLimit }}
+  networkRateLimit: {{ .Values.config.backup.networkRateLimit }}
   {{- end }}
-  {{- if .Values.cluster.backup.diskRateLimit }}
-  diskRateLimit: {{ .Values.cluster.backup.diskRateLimit }}
+  {{- if .Values.config.backup.diskRateLimit }}
+  diskRateLimit: {{ .Values.config.backup.diskRateLimit }}
   {{- end }}
-  uploadDiskConcurrency: {{ .Values.cluster.backup.uploadDiskConcurrency }}
-  {{- if .Values.cluster.backup.pgpSecret }}
+  uploadDiskConcurrency: {{ .Values.config.backup.uploadDiskConcurrency }}
+  {{- if .Values.config.backup.pgpSecret }}
   pgpConfiguation:
     key:
-      name: "{{ .Values.cluster.backup.pgpConfiguration.name }}"
-      key: "{{ .Values.cluster.backup.pgpConfiguration.key }}"
+      name: "{{ .Values.config.backup.pgpConfiguration.name }}"
+      key: "{{ .Values.config.backup.pgpConfiguration.key }}"
   {{- end }}
-  tarSizeThreshold: {{ .Values.cluster.backup.tarSizeThreshold }}
+  tarSizeThreshold: {{ .Values.config.backup.tarSizeThreshold }}
   storage:
-    {{- if not (or .Values.cluster.backup.volumeWriteManyStorageClass .Values.cluster.backup.s3 .Values.cluster.backup.gcs .Values.cluster.backup.azureblob) }}
+    {{- if not (or .Values.config.backup.volumeWriteManyStorageClass .Values.config.backup.s3 .Values.config.backup.gcs .Values.config.backup.azureblob) }}
     type: s3
     s3:
       prefix: s3://stackgres
@@ -59,79 +59,79 @@ spec:
           name: {{ .Release.Name }}-minio
           key: secretkey
     {{- end }}
-    {{- if .Values.cluster.backup.volumeWriteManyStorageClass }}
+    {{- if .Values.config.backup.volumeWriteManyStorageClass }}
     type: volume
     volume:
-      size: "{{ .Values.cluster.backup.volumeSize }}"
-      {{- if .Values.cluster.backup.volumeWriteManyStorageClass }}
-      {{- if eq "-" .Values.cluster.backup.volumeWriteManyStorageClass }}
+      size: "{{ .Values.config.backup.volumeSize }}"
+      {{- if .Values.config.backup.volumeWriteManyStorageClass }}
+      {{- if eq "-" .Values.config.backup.volumeWriteManyStorageClass }}
       writeManyStorageClass: ""
       {{- else }}
-      writeManyStorageClass: {{ .Values.cluster.backup.volumeWriteManyStorageClass }}
+      writeManyStorageClass: {{ .Values.config.backup.volumeWriteManyStorageClass }}
       {{- end }}
       {{- end }}
     {{- end }}
-    {{- if .Values.cluster.backup.s3 }}
+    {{- if .Values.config.backup.s3 }}
     type: s3
     s3:
-      prefix: "{{ .Values.cluster.backup.s3.prefix }}"
+      prefix: "{{ .Values.config.backup.s3.prefix }}"
       credentials:
         accessKey:
-          name: "{{ .Values.cluster.backup.s3.accessKey.name }}"
-          key: "{{ .Values.cluster.backup.s3.accessKey.key }}"
+          name: "{{ .Values.config.backup.s3.accessKey.name }}"
+          key: "{{ .Values.config.backup.s3.accessKey.key }}"
         secretKey:
-          name: "{{ .Values.cluster.backup.s3.secretKey.name }}"
-          key: "{{ .Values.cluster.backup.s3.secretKey.key }}"
-      {{- if .Values.cluster.backup.s3.region }}
-      region: "{{ .Values.cluster.backup.s3.region }}"
+          name: "{{ .Values.config.backup.s3.secretKey.name }}"
+          key: "{{ .Values.config.backup.s3.secretKey.key }}"
+      {{- if .Values.config.backup.s3.region }}
+      region: "{{ .Values.config.backup.s3.region }}"
       {{- end }}
-      {{- if .Values.cluster.backup.s3.endpoint }}
-      endpoint: "{{ .Values.cluster.backup.s3.endpoint }}"
+      {{- if .Values.config.backup.s3.endpoint }}
+      endpoint: "{{ .Values.config.backup.s3.endpoint }}"
       {{- end }}
-      {{- if .Values.cluster.backup.s3.forcePathStyle }}
-      forcePathStyle: {{ .Values.cluster.backup.s3.forcePathStyle }}
+      {{- if .Values.config.backup.s3.forcePathStyle }}
+      forcePathStyle: {{ .Values.config.backup.s3.forcePathStyle }}
       {{- end }}
-      {{- if .Values.cluster.backup.s3.storageClass }}
-      storageClass: "{{ .Values.cluster.backup.s3.storageClass }}"
+      {{- if .Values.config.backup.s3.storageClass }}
+      storageClass: "{{ .Values.config.backup.s3.storageClass }}"
       {{- end }}
-      {{- if .Values.cluster.backup.s3.sse }}
-      sse: "{{ .Values.cluster.backup.s3.sse }}"
+      {{- if .Values.config.backup.s3.sse }}
+      sse: "{{ .Values.config.backup.s3.sse }}"
       {{- end }}
-      {{- if .Values.cluster.backup.s3.sseKmsId }}
-      sseKmsId: "{{ .Values.cluster.backup.s3.sseKmsId }}"
+      {{- if .Values.config.backup.s3.sseKmsId }}
+      sseKmsId: "{{ .Values.config.backup.s3.sseKmsId }}"
       {{- end }}
-      {{- if .Values.cluster.backup.s3.cseKmsId }}
-      cseKmsId: "{{ .Values.cluster.backup.s3.cseKmsId }}"
+      {{- if .Values.config.backup.s3.cseKmsId }}
+      cseKmsId: "{{ .Values.config.backup.s3.cseKmsId }}"
       {{- end }}
-      {{- if .Values.cluster.backup.s3.cseKmsRegion }}
-      cseKmsRegion: "{{ .Values.cluster.backup.s3.cseKmsRegion }}"
+      {{- if .Values.config.backup.s3.cseKmsRegion }}
+      cseKmsRegion: "{{ .Values.config.backup.s3.cseKmsRegion }}"
       {{- end }}
     {{- end }}
-    {{- if .Values.cluster.backup.gcs }}
+    {{- if .Values.config.backup.gcs }}
     type: gcs
     gcs:
-      prefix: "{{ .Values.cluster.backup.gcs.prefix }}"
+      prefix: "{{ .Values.config.backup.gcs.prefix }}"
       credentials:
         serviceAccountJsonKey:
-          name: "{{ .Values.cluster.backup.gcs.serviceAccountJsonKey.name }}"
-          key: "{{ .Values.cluster.backup.gcs.serviceAccountJsonKey.key }}"
+          name: "{{ .Values.config.backup.gcs.serviceAccountJsonKey.name }}"
+          key: "{{ .Values.config.backup.gcs.serviceAccountJsonKey.key }}"
     {{- end }}
-    {{- if .Values.cluster.backup.azureblob }}
+    {{- if .Values.config.backup.azureblob }}
     type: azureblob
     azureblob:
-      prefix: "{{ .Values.cluster.backup.azureblob.prefix }}"
+      prefix: "{{ .Values.config.backup.azureblob.prefix }}"
       credentials:
         account:
-          name: "{{ .Values.cluster.backup.azureblobk.account.name }}"
-          key: "{{ .Values.cluster.backup.azureblob.account.key }}"
+          name: "{{ .Values.config.backup.azureblobk.account.name }}"
+          key: "{{ .Values.config.backup.azureblob.account.key }}"
         accessKey:
-          name: "{{ .Values.cluster.backup.azureblob.accessKey.name }}"
-          key: "{{ .Values.cluster.backup.azureblob.accessKey.key }}"
-      {{- if .Values.cluster.backup.azureblob.bufferSize }}
-      bufferSize: {{ .Values.cluster.backup.azureblob.bufferSize }}
+          name: "{{ .Values.config.backup.azureblob.accessKey.name }}"
+          key: "{{ .Values.config.backup.azureblob.accessKey.key }}"
+      {{- if .Values.config.backup.azureblob.bufferSize }}
+      bufferSize: {{ .Values.config.backup.azureblob.bufferSize }}
       {{- end }}
-      {{- if .Values.cluster.backup.azureblob.maxBuffers }}
-      maxBuffers: {{ .Values.cluster.backup.azureblob.maxBuffers }}
+      {{- if .Values.config.backup.azureblob.maxBuffers }}
+      maxBuffers: {{ .Values.config.backup.azureblob.maxBuffers }}
       {{- end }}
     {{- end }}
 {{ end }}
