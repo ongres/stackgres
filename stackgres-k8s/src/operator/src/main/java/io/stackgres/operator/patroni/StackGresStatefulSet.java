@@ -50,6 +50,7 @@ import io.fabric8.kubernetes.api.model.SecretVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.SecurityContextBuilder;
 import io.fabric8.kubernetes.api.model.TCPSocketActionBuilder;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
+import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
@@ -448,14 +449,30 @@ public class StackGresStatefulSet {
                 .withName("data-permissions")
                 .withImage("busybox")
                 .withCommand("/bin/sh", "-ecx", Stream.of(
-                    "chmod 755 /var/lib/postgresql",
-                    "chown 999:999 /var/lib/postgresql")
+                    Stream.of(config.getBackupConfig()
+                        .map(backupConfig -> backupConfig.getSpec().getStorage().getVolume()))
+                    .filter(Optional::isPresent)
+                    .map(volumeStorage -> "mkdir -p " + BACKUP_VOLUME_PATH
+                        + "/" + namespace + "/" + name),
+                    Stream.of(
+                    "chmod -R 755 " + PG_VOLUME_PATH,
+                    "chown -R 999:999 " + PG_VOLUME_PATH))
+                    .flatMap(s -> s)
                     .collect(Collectors.joining(" && ")))
-                .withVolumeMounts(
-                    new VolumeMountBuilder()
-                    .withName(name + DATA_SUFFIX)
-                    .withMountPath(PG_VOLUME_PATH)
-                    .build())
+                .withVolumeMounts(Stream.of(
+                    Stream.of(new VolumeMountBuilder()
+                        .withName(name + DATA_SUFFIX)
+                        .withMountPath(PG_VOLUME_PATH)
+                        .build()),
+                    Stream.of(config.getBackupConfig()
+                        .map(backupConfig -> backupConfig.getSpec().getStorage().getVolume()))
+                    .filter(Optional::isPresent)
+                    .map(volumeStorage -> new VolumeMountBuilder()
+                        .withName(name + BACKUP_SUFFIX)
+                        .withMountPath(BACKUP_VOLUME_PATH)
+                        .build()))
+                    .flatMap(s -> s)
+                    .toArray(VolumeMount[]::new))
                 .build(),
                 new ContainerBuilder()
                 .withName("wal-g-wrapper")
