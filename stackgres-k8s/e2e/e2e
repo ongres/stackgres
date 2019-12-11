@@ -28,6 +28,8 @@ do
   . "$util"
 done
 
+. "$(dirname "$0")/envs/$ENV"
+
 trap_kill() {
   echo "$1" >> "$TARGET_PATH/trap-kill"
 }
@@ -54,8 +56,6 @@ setup_k8s() {
   then
     return
   fi
-
-  . "$(dirname "$0")/envs/$ENV"
 
   if [ "$REUSE_K8S" != true ]
   then
