@@ -98,6 +98,7 @@ public class InitializationQueueImpl implements InitializationQueue {
     operatorIP = context.getProperty(ConfigProperty.OPERATOR_IP)
         .orElseThrow(() -> new IllegalStateException("Operator ip is not configured"));
     if (operatorIP.equals(LOCALHOST)) {
+      LOGGER.trace("Operator IP address is localhost");
       stage = InitializationStage.CONTAINERS_READY;
     }
   }
