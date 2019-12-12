@@ -157,6 +157,7 @@
                     <additionalBuildArg>-H:IncludeResources=.*/banner.txt</additionalBuildArg>
                     <additionalBuildArg>-H:IncludeResources=.*/*.yaml</additionalBuildArg>
                     <additionalBuildArg>-H:IncludeResources=.*/*.sh</additionalBuildArg>
+                    <additionalBuildArg>-H:IncludeResources=.*/*.properties</additionalBuildArg>
                   </additionalBuildArgs>
                   <enableReports>false</enableReports>
                 </configuration>

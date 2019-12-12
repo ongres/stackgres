@@ -37,9 +37,7 @@ public class StackGresOperatorEnd2EndIt extends AbstractStackGresOperatorIt {
   public void end2EndTest(@ContainerParam("kind") Container kind) throws Exception {
     kind.execute("sh", "-ec",
         "echo 'Running "
-            + (E2E_TEST.isPresent()
-                ? E2E_TEST.get() + " e2e test"
-                    : "all e2e tests") + " from it'\n"
+            + (E2E_TEST.map(s -> s + " e2e test").orElse("all e2e tests")) + " from it'\n"
             + "cd /resources/e2e\n"
             + "export KIND_NAME=\"$(docker inspect -f '{{.Name}}' \"$(hostname)\"|cut -d '/' -f 2)\"\n"
             + "export IMAGE_TAG=" + ItHelper.IMAGE_TAG + "\n"
@@ -51,21 +49,19 @@ public class StackGresOperatorEnd2EndIt extends AbstractStackGresOperatorIt {
             + "export RESET_NAMESPACES=true\n"
             + "export USE_EXTERNAL_OPERATOR=true\n"
             + "export CLUSTER_CHART_PATH=/resources/stackgres-cluster\n"
-            + (E2E_TEST.isPresent()
-            ? "if ! sh " + (E2E_DEBUG.orElse(false) ? "-x" : "")
-                + " run-test.sh " + E2E_TEST.get() + "\n"
+            + (E2E_TEST.map(value -> "if ! sh " + (E2E_DEBUG.orElse(false) ? "-x" : "")
+            + " run-test.sh " + value + "\n"
             + "then\n"
             + "  sh e2e show_failed_logs\n"
             + "  exit 1\n"
-            + "fi\n"
-            : "if ! sh " + (E2E_DEBUG.orElse(false) ? "-x" : "")
-                + " run-all-tests.sh\n"
+            + "fi\n").orElseGet(() -> "if ! sh " + (E2E_DEBUG.orElse(false) ? "-x" : "")
+            + " run-all-tests.sh\n"
             + "then\n"
             + "  sh e2e show_failed_logs\n"
             + "  exit 1\n"
-            + "fi\n"))
+            + "fi\n")))
         .filter(ItHelper.EXCLUDE_TTY_WARNING)
-        .forEach(line -> LOGGER.info(line));
+        .forEach(LOGGER::info);
   }
 
 }

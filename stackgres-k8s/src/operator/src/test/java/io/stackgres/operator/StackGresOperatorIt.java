@@ -134,24 +134,15 @@ public class StackGresOperatorIt extends AbstractStackGresOperatorIt {
         .findFirst()
         .get();
 
-
-    String newWalFileName = kind.execute("sh", "-l", "-c",
+    ItHelper.waitUntil(Unchecked.supplier(() -> kind.execute("sh", "-l", "-c",
         "kubectl exec -t -n " + namespace + " " + CLUSTER_NAME + "-" + 0
             + " -c postgres-util -- sh -c \"psql -t -A -U postgres -p " + Envoy.PG_RAW_PORT
             + " -c 'SELECT r.file_name from pg_walfile_name_offset(pg_switch_wal()) as r'\"")
         .filter(ItHelper.EXCLUDE_TTY_WARNING)
         .findFirst()
-        .get();
+        .get()), s -> !s.equals(oldWalFile), 60, ChronoUnit.SECONDS,
+        s -> Assertions.fail("Timeout while switching wal files"));
 
-    while (newWalFileName.equals(oldWalFile)) {
-      newWalFileName = kind.execute("sh", "-l", "-c",
-          "kubectl exec -t -n " + namespace + " " + CLUSTER_NAME + "-" + 0
-              + " -c postgres-util -- sh -c \"psql -t -A -U postgres -p " + Envoy.PG_RAW_PORT
-              + " -c 'SELECT r.file_name from pg_walfile_name_offset(pg_switch_wal()) as r'\"")
-          .filter(ItHelper.EXCLUDE_TTY_WARNING)
-          .findFirst()
-          .get();
-    }
     ItHelper.waitUntil(Unchecked.supplier(() -> kind.execute("sh", "-l", "-c",
           "kubectl exec -t -n " + namespace + " "
               + CLUSTER_NAME + "-" + 0 + " -c patroni --"
