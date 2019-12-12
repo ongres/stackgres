@@ -2,8 +2,17 @@ config:
   create: true
   postgresql:
     version: "11.6"
+    postgresql.conf:
+      shared_buffers: '256MB'
+      random_page_cost: '1.5'
+      password_encryption: 'scram-sha-256'
+      wal_compression: 'on'
   pgbouncer:
     version: "1.12.0"
+    pgbouncer.ini:
+      pool_mode: transaction
+      max_client_conn: '200'
+      default_pool_size: '200'
   backup:
     create: true
     retention: 5

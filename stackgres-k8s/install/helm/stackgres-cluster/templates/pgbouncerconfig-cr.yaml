@@ -14,8 +14,10 @@ metadata:
   {{- end }}
 spec:
   pgbouncerVersion: "{{ .Values.config.pgbouncer.version }}"
+  {{- with (index .Values.config.pgbouncer "pgbouncer.ini") }}
   pgbouncer.ini:
-      pool_mode: transaction
-      max_client_conn: '200'
-      default_pool_size: '200'
+  {{- range $key, $value := . }}
+    {{ $key }}: '{{ $value }}'
+  {{- end }}
+  {{- end }}
 {{ end }}

@@ -1,4 +1,7 @@
 config:
+  postgresql:
+    postgresql.conf:
+      shared_buffers: '32MB'
   backup:
     create: false
     minio:
@@ -10,7 +13,3 @@ sidecar:
   pooling: false
   prometheus:
     allowAutobind: false
-profiles:
-  - name: size-xs
-    cpu: 500m
-    memory: 256Mi

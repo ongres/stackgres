@@ -240,9 +240,7 @@ public class ItHelper {
     kind.execute("sh", "-l", "-c", "helm install /resources/stackgres-cluster"
         + " --namespace " + namespace
         + " --name stackgres-cluster-configs"
-        + " --set-string profiles[0].name=size-xs"
-        + " --set-string profiles[0].cpu=500m"
-        + " --set-string profiles[0].memory=256Mi"
+        + " --set-string config.postgresql[postgresql.conf].shared_buffers=32MB"
         + " --set cluster.create=false"
         + " --set config.backup.retention=5"
         + " --set-string config.backup.fullSchedule='*/1 * * * *'"

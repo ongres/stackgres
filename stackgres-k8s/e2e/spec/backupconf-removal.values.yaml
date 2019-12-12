@@ -1,4 +1,7 @@
 config:
+  postgresql:
+    postgresql.conf:
+      shared_buffers: '32MB'
   backup:
     # Avoid backups before waiting for pods (since backup pods could biase the wait)
     fullSchedule: '0 5 31 2 *'
@@ -7,10 +10,6 @@ cluster:
 sidecar:
   prometheus:
     allowAutobind: false
-profiles:
-  - name: size-xs
-    cpu: 500m
-    memory: 256Mi
 minio:
   persistence:
     size: 128Mi
