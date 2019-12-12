@@ -1,7 +1,25 @@
 #!/bin/sh
 
 test_install() {
-  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2
+  if [ "$ENV" = "kind" ]
+  then
+    cat << EOF > "$LOG_PATH/minio-affinity.yaml"
+minio:
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+            - key: "kubernetes.io/hostname"
+              operator: "In"
+              values: [ "${KIND_NAME}-worker" ]
+EOF
+  else
+    > "$LOG_PATH/minio-affinity.yaml"
+  fi
+
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
+    -f "$LOG_PATH/minio-affinity.yaml"
 
   wait_pods_running "$CLUSTER_NAMESPACE" 3
 

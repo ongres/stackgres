@@ -1,9 +1,27 @@
 #!/bin/sh
 
 test_install() {
+  if [ "$ENV" = "kind" ]
+  then
+    cat << EOF > "$LOG_PATH/affinity.yaml"
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+          - key: "kubernetes.io/hostname"
+            operator: "In"
+            values: [ "${KIND_NAME}-worker" ]
+EOF
+  else
+    > "$LOG_PATH/affinity.yaml"
+  fi
+
   helm install stable/nfs-server-provisioner --version 0.3.2 \
     --name nfs-server-provisioner \
-    --namespace "$CLUSTER_NAMESPACE"
+    --namespace "$CLUSTER_NAMESPACE" \
+    --set persistence.enabled=true \
+    -f "$LOG_PATH/affinity.yaml"
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2
 
@@ -21,7 +39,7 @@ test() {
 
   run_test "Checking that backup is working after switchover" check_backup_after_switchover
 
-  run_test "Checking that backup is working after killing storage provider service" check_backup_after_kill_storage_provider_service
+#  run_test "Checking that backup is working after killing storage provider service" check_backup_after_kill_storage_provider_service
 }
 
 check_backup_before_switchover() {
