@@ -6,7 +6,6 @@
 package io.stackgres.operator.common;
 
 import java.util.Optional;
-
 import javax.inject.Singleton;
 
 import com.google.common.collect.ImmutableMap;
@@ -14,7 +13,7 @@ import com.google.common.collect.ImmutableMap;
 @Singleton
 public class ConfigLoader implements ConfigContext {
 
-  private static final ImmutableMap<ConfigProperty, String> CONTEXT_PROPERTY = ImmutableMap
+  private static final ImmutableMap<ConfigProperty, String> DEFAULT_CONTEXT = ImmutableMap
       .<ConfigProperty, String>builder()
       .put(ConfigProperty.CONTAINER_BUILD, StackGresUtil.CONTAINER_BUILD)
       .put(ConfigProperty.CRD_GROUP, StackGresUtil.CRD_GROUP)
@@ -28,6 +27,14 @@ public class ConfigLoader implements ConfigContext {
 
   @Override
   public Optional<String> getProperty(ConfigProperty configProperty) {
-    return Optional.ofNullable(CONTEXT_PROPERTY.get(configProperty));
+
+    Optional<String> envProp = Optional.ofNullable(System.getenv(configProperty.property()));
+    if (envProp.isPresent()) {
+      return envProp;
+    } else {
+      return Optional.ofNullable(DEFAULT_CONTEXT.get(configProperty));
+    }
+
   }
+
 }
