@@ -104,6 +104,9 @@ profiles:
     memory: "32Gi"
 
 minio:
+  persistence:
+    enabled: true
+    size: 10Gi
   buckets:
     - name: stackgres
       policy: none

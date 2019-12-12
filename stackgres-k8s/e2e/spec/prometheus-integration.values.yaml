@@ -5,6 +5,7 @@ config:
       create: false
 cluster:
   volumeSize: 128Mi
+  backupconfig: null
 sidecar:
   prometheus:
     allowAutobind: true
