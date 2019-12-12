@@ -16,6 +16,10 @@ fi
 if [ "$REUSE_KIND" != "true" ] \
   || ! kind get nodes --name "$KIND_NAME" | wc -l | grep -q "^$1$"
 then
+  REUSE_KIND=false
+fi
+if [ "$REUSE_KIND" != "true" ]
+then
   kind delete cluster --name "$KIND_NAME" || true
   cat << EOF > kind-config.yaml
 kind: Cluster
@@ -31,36 +35,38 @@ EOF
     done
   fi
   kind create cluster --config kind-config.yaml --name "$KIND_NAME" --image "kindest/node:v${KUBERNETES_VERSION}"
-fi
-if [ -f /certs/server.crt ]
-then
+  if [ -f /certs/server.crt ]
+  then
+    for node in $(kind get nodes --name "$KIND_NAME")
+    do
+      (
+      docker cp /certs/server.crt $node:/usr/local/share/ca-certificates/validator.crt
+      docker exec -t $node sh -c "update-ca-certificates"
+      ) &
+    done
+  fi
   for node in $(kind get nodes --name "$KIND_NAME")
   do
     (
-    docker cp /certs/server.crt $node:/usr/local/share/ca-certificates/validator.crt
-    docker exec -t $node sh -c "update-ca-certificates"
+    docker exec -t $node sh -c 'DEBIAN_FRONTEND=noninteractive apt-get update -y -qq < /dev/null > /dev/null'
+    docker exec -t $node sh -c 'DEBIAN_FRONTEND=noninteractive apt-get install -y -qq nfs-common < /dev/null > /dev/null'
     ) &
   done
+  wait
 fi
-for node in $(kind get nodes --name "$KIND_NAME")
-do
-  (
-  docker exec -t $node sh -c 'DEBIAN_FRONTEND=noninteractive apt-get update -y -qq < /dev/null > /dev/null'
-  docker exec -t $node sh -c 'DEBIAN_FRONTEND=noninteractive apt-get install -y -qq nfs-common < /dev/null > /dev/null'
-  ) &
-done
-wait
 export KUBECONFIG="$(kind get kubeconfig-path --name="$KIND_NAME")"
 mkdir -p "$(dirname "$KUBECONFIG")"
 kind get kubeconfig --internal --name "$KIND_NAME" > "$KUBECONFIG"
 echo "export KUBECONFIG='$KUBECONFIG'" > "$HOME/.profile"
-if echo "$KUBERNETES_VERSION" | grep -q '^1\.12\.'
+if [ "$REUSE_KIND" != "true" ]
 then
-  # Patch coredns to version 1.3.1 (see https://github.com/coredns/coredns/issues/2391)
-  kubectl patch deployment -n kube-system coredns --type json \
-    --patch '[{"op":"replace","path":"/spec/template/spec/containers/0/image","value":"k8s.gcr.io/coredns:1.3.1"}]'
-fi
-cat << 'EOF' | kubectl apply -f -
+  if echo "$KUBERNETES_VERSION" | grep -q '^1\.12\.'
+  then
+    # Patch coredns to version 1.3.1 (see https://github.com/coredns/coredns/issues/2391)
+    kubectl patch deployment -n kube-system coredns --type json \
+      --patch '[{"op":"replace","path":"/spec/template/spec/containers/0/image","value":"k8s.gcr.io/coredns:1.3.1"}]'
+  fi
+  cat << 'EOF' | kubectl apply -f -
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1beta1
 metadata:
@@ -74,9 +80,9 @@ roleRef:
   name: cluster-admin
   apiGroup: ""
 EOF
-helm init --history-max 20
-while ! helm version > /dev/null 2>&1; do sleep 0.5; done
-cat << 'EOF' | kubectl apply -f -
+  helm init --history-max 20
+  while ! helm version > /dev/null 2>&1; do sleep 0.5; done
+  cat << 'EOF' | kubectl apply -f -
 ---
 apiVersion: v1
 kind: LimitRange
@@ -102,6 +108,7 @@ spec:
       memory: 16Mi
     type: Container
 EOF
+fi
 helm repo update
 helm dependency update /resources/stackgres-operator
 helm dependency update /resources/stackgres-cluster
