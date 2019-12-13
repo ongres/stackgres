@@ -455,7 +455,7 @@ public class StackGresStatefulSet {
                     .map(volumeStorage -> "mkdir -p " + BACKUP_VOLUME_PATH
                         + "/" + namespace + "/" + name),
                     Stream.of(
-                    "chmod -R 755 " + PG_VOLUME_PATH,
+                    "chmod -R 700 " + PG_VOLUME_PATH,
                     "chown -R 999:999 " + PG_VOLUME_PATH))
                     .flatMap(s -> s)
                     .collect(Collectors.joining(" && ")))
