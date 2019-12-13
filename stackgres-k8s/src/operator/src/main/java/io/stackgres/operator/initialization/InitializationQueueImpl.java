@@ -25,6 +25,7 @@ import javax.inject.Singleton;
 import io.fabric8.kubernetes.api.model.ContainerStatus;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.quarkus.runtime.Application;
 import io.stackgres.operator.app.KubernetesClientFactory;
 import io.stackgres.operator.common.ConfigContext;
 import io.stackgres.operator.common.ConfigProperty;
@@ -273,7 +274,14 @@ public class InitializationQueueImpl implements InitializationQueue {
       if (isOperatorReady) {
         int attempts = retries.addAndGet(1);
         flushQueue();
-        if (initializationQueue.isEmpty() || attempts >= 5) {
+        if (initializationQueue.isEmpty()) {
+          scheduler.shutdown();
+          return;
+        }
+        if (attempts >= 5) {
+          LOGGER.error("Couldn't complete the initialization phase after 5 attemps.  "
+              + "Shutting down...");
+          new Thread(() -> Application.currentApplication().stop()).start();
           scheduler.shutdown();
         }
       }

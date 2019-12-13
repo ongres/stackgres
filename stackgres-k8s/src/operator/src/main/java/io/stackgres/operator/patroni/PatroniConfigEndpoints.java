@@ -38,6 +38,8 @@ public class PatroniConfigEndpoints {
 
     if (config.getBackupConfig().isPresent()) {
       params.put("archive_command", "/bin/sh /wal-g-wrapper/wal-g wal-push %p");
+    } else {
+      params.put("archive_command", "/bin/true");
     }
 
     if (pgconfig.isPresent()) {
