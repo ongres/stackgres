@@ -90,7 +90,7 @@ remove_cluster_cr_if_exists(){
     kubectl delete sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"
     
     while kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"
-    do    
+    do  
       echo "Waiting for cluster CR to be deleted"
       sleep 2
     done
@@ -98,7 +98,6 @@ remove_cluster_cr_if_exists(){
 }
 
 check_cluster_removed() {
-
   remove_cluster_cr_if_exists
 
   local CLUSTER_IN_RESPONSE
@@ -136,7 +135,7 @@ create_cluster_with_api() {
 
   if [ "$HTTP_STATUS" = "200" ] || [ "$HTTP_STATUS" = "202" ] || [ "$HTTP_STATUS" = "204" ]
   then
-    echo "request acknowledged by the operator"   
+    echo "request acknowledged by the operator"
     return 0
   else
     ERROR_RESPONSE="$(run_curl -r "stackgres/cluster" -d "$LOG_PATH/stackgres-cluster.json" -e '-X POST')"
@@ -146,7 +145,6 @@ create_cluster_with_api() {
 }
 
 test_api_created_cluster_is_visible() {
-
   create_cluster_with_api
 
   if kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"
@@ -223,18 +221,7 @@ delete_cluster_with_api() {
 test_api_delete_cluster_is_visible() {
   delete_cluster_with_api
 
-  local RETRIES=0
-  while kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" && [ $RETRIES -lt 3 ]
-  do    
-    echo "Waiting for cluster CR to be deleted"
-    sleep 2
-    RETRIES=$((RETRIES+1))
-  done
-
-  local HTTP_STATUS
-  HTTP_STATUS="$(get_cluster_http_status)"
-
-  if [ "$HTTP_STATUS" = "404" ]
+  if wait_until eval '[ "$(get_cluster_http_status)" = "404" ]'
   then
     echo "Cluster removed from the API"
   else

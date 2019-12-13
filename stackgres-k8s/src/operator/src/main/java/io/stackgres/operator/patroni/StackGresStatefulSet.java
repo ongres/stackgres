@@ -33,8 +33,10 @@ import io.fabric8.kubernetes.api.model.LabelSelectorBuilder;
 import io.fabric8.kubernetes.api.model.LabelSelectorRequirementBuilder;
 import io.fabric8.kubernetes.api.model.ObjectFieldSelectorBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
+import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaimBuilder;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaimSpecBuilder;
+import io.fabric8.kubernetes.api.model.PersistentVolumeClaimVolumeSource;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodAffinityTermBuilder;
 import io.fabric8.kubernetes.api.model.PodAntiAffinityBuilder;
@@ -48,6 +50,7 @@ import io.fabric8.kubernetes.api.model.SecretVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.SecurityContextBuilder;
 import io.fabric8.kubernetes.api.model.TCPSocketActionBuilder;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
+import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
@@ -71,16 +74,17 @@ import org.jooq.lambda.Unchecked;
 public class StackGresStatefulSet {
 
   public static final String PATRONI_CONTAINER_NAME = "patroni";
+  public static final String DATA_SUFFIX = "-data";
   public static final String BACKUP_SUFFIX = "-backup";
-  public static final String DATA_VOLUME_NAME = "data";
   public static final String SOCKET_VOLUME_NAME = "socket";
-  public static final String BACKUP_VOLUME_NAME = "backup";
-  public static final String BACKUP_VOLUME_PATH = "/var/lib/postgresql/backups";
+  public static final String PG_VOLUME_PATH = "/var/lib/postgresql";
+  public static final String DATA_VOLUME_PATH = PG_VOLUME_PATH + "/data";
+  public static final String BACKUP_VOLUME_PATH = PG_VOLUME_PATH + "/backups";
   public static final String GCS_CREDENTIALS_VOLUME_NAME = "gcs-credentials";
   public static final String WAL_G_WRAPPER_VOLUME_NAME = "wal-g-wrapper";
 
   private static final String IMAGE_PREFIX = "docker.io/ongres/patroni:v%s-pg%s-build-%s";
-  private static final String PATRONI_VERSION = "1.6.1";
+  private static final String PATRONI_VERSION = "1.6.3";
   private static final String GCS_CONFIG_PATH = "/.gcs";
   private static final String GCS_CREDENTIALS_FILE_NAME = "google-service-account-key.json";
 
@@ -94,29 +98,29 @@ public class StackGresStatefulSet {
     final String pgVersion = config.getCluster().getSpec().getPostgresVersion();
     final Optional<StackGresProfile> profile = config.getProfile();
 
-    ResourceRequirements resources = new ResourceRequirements();
-    StorageConfig storage = ImmutableStorageConfig.builder()
+    ResourceRequirements podResources = new ResourceRequirements();
+    if (profile.isPresent()) {
+      podResources.setRequests(ImmutableMap.of(
+          "cpu", new Quantity(profile.get().getSpec().getCpu()),
+          "memory", new Quantity(profile.get().getSpec().getMemory())));
+      podResources.setLimits(ImmutableMap.of(
+          "cpu", new Quantity(profile.get().getSpec().getCpu()),
+          "memory", new Quantity(profile.get().getSpec().getMemory())));
+    }
+
+    StorageConfig dataStorageConfig = ImmutableStorageConfig.builder()
         .size(config.getCluster().getSpec().getVolumeSize())
         .storageClass(Optional.ofNullable(
             config.getCluster().getSpec().getStorageClass())
             .orElse(null))
         .build();
-    if (profile.isPresent()) {
-      resources.setRequests(ImmutableMap.of(
-          "cpu", new Quantity(profile.get().getSpec().getCpu()),
-          "memory", new Quantity(profile.get().getSpec().getMemory())));
-      resources.setLimits(ImmutableMap.of(
-          "cpu", new Quantity(profile.get().getSpec().getCpu()),
-          "memory", new Quantity(profile.get().getSpec().getMemory())));
-    }
-
     final PersistentVolumeClaimSpecBuilder volumeClaimSpec = new PersistentVolumeClaimSpecBuilder()
         .withAccessModes("ReadWriteOnce")
-        .withResources(storage.getResourceRequirements())
-        .withStorageClassName(storage.getStorageClass());
+        .withResources(dataStorageConfig.getResourceRequirements())
+        .withStorageClassName(dataStorageConfig.getStorageClass());
 
     final Map<String, String> labels = ResourceUtil.defaultLabels(name);
-    final Map<String, String> podLabels = ResourceUtil.defaultPodLabels(name);
+    final Map<String, String> podLabels = ResourceUtil.statefulSetPodLabels(name);
 
     ImmutableList.Builder<EnvVar> environmentsBuilder = ImmutableList.<EnvVar>builder().add(
         new EnvVarBuilder().withName("PATRONI_NAME")
@@ -188,6 +192,28 @@ public class StackGresStatefulSet {
               .build())
           .build());
     }
+
+    final Optional<PersistentVolumeClaim> backupVolumeClaim = config.getBackupConfig()
+        .map(backupConfig -> backupConfig.getSpec().getStorage().getVolume())
+        .map(volume -> {
+          StorageConfig backupStorageConfig = ImmutableStorageConfig.builder()
+              .size(volume.getSize())
+              .build();
+          return new PersistentVolumeClaimBuilder()
+              .withNewMetadata()
+              .withName(name + BACKUP_SUFFIX)
+              .withNamespace(namespace)
+              .withLabels(labels)
+              .withOwnerReferences(ImmutableList.of(
+                  ResourceUtil.getOwnerReference(config.getCluster())))
+              .endMetadata()
+              .withNewSpec()
+              .withAccessModes("ReadWriteMany")
+              .withStorageClassName(volume.getWriteManyStorageClass())
+              .withResources(backupStorageConfig.getResourceRequirements())
+              .endSpec()
+              .build();
+        });
 
     if (config.getBackupConfig()
         .map(backupConfig -> backupConfig.getSpec().getStorage().getS3())
@@ -306,7 +332,7 @@ public class StackGresStatefulSet {
             .withImage(String.format(IMAGE_PREFIX,
                 PATRONI_VERSION, pgVersion, StackGresUtil.CONTAINER_BUILD))
             .withCommand("/bin/sh", "-exc", Unchecked.supplier(() -> Resources
-                .asCharSource(Class.class.getResource("/start-patroni.sh"),
+                .asCharSource(StackGresStatefulSet.class.getResource("/start-patroni.sh"),
                     StandardCharsets.UTF_8)
                 .read()).get())
             .withImagePullPolicy("Always")
@@ -329,26 +355,26 @@ public class StackGresStatefulSet {
                 .withMountPath("/run/postgresql")
                 .build(),
                 new VolumeMountBuilder()
-                .withName(DATA_VOLUME_NAME)
-                .withMountPath("/var/lib/postgresql")
+                .withName(name + DATA_SUFFIX)
+                .withMountPath(PG_VOLUME_PATH)
                 .build(),
                 new VolumeMountBuilder()
                 .withName(WAL_G_WRAPPER_VOLUME_NAME)
                 .withMountPath("/wal-g-wrapper")
                 .build()),
                 Stream.of(config.getBackupConfig()
+                    .map(backupConfig -> backupConfig.getSpec().getStorage().getVolume()))
+                .filter(Optional::isPresent)
+                .map(volumeStorage -> new VolumeMountBuilder()
+                    .withName(name + BACKUP_SUFFIX)
+                    .withMountPath(BACKUP_VOLUME_PATH)
+                    .build()),
+                Stream.of(config.getBackupConfig()
                     .map(backupConfig -> backupConfig.getSpec().getStorage().getGcs()))
                 .filter(Optional::isPresent)
                 .map(gcsStorage -> new VolumeMountBuilder()
                     .withName(GCS_CREDENTIALS_VOLUME_NAME)
                     .withMountPath(GCS_CONFIG_PATH)
-                    .build()),
-                Stream.of(config.getBackupConfig()
-                    .map(backupConfig -> backupConfig.getSpec().getStorage().getVolume()))
-                .filter(Optional::isPresent)
-                .map(gcsStorage -> new VolumeMountBuilder()
-                    .withName(BACKUP_VOLUME_NAME)
-                    .withMountPath(BACKUP_VOLUME_PATH)
                     .build()))
                 .flatMap(stream -> stream)
                 .collect(ImmutableList.toImmutableList()))
@@ -374,7 +400,7 @@ public class StackGresStatefulSet {
                 .withInitialDelaySeconds(5)
                 .withPeriodSeconds(10)
                 .build())
-            .withResources(resources)
+            .withResources(podResources)
             .endContainer()
             .withVolumes(Stream.of(
                 Stream.of(
@@ -391,31 +417,13 @@ public class StackGresStatefulSet {
                     .endEmptyDir()
                     .build()),
                 Stream.of(config.getBackupConfig()
-                    .map(backupConfig -> backupConfig.getSpec().getStorage().getVolume())
-                    .map(volume -> volume.getNfs()))
+                    .map(backupConfig -> backupConfig.getSpec().getStorage().getVolume()))
                 .filter(Optional::isPresent)
                 .map(Optional::get)
-                .map(volumeSource -> new VolumeBuilder()
-                    .withName(BACKUP_VOLUME_NAME)
-                    .withNfs(volumeSource)
-                    .build()),
-                Stream.of(config.getBackupConfig()
-                    .map(backupConfig -> backupConfig.getSpec().getStorage().getVolume())
-                    .map(volume -> volume.getCephfs()))
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .map(volumeSource -> new VolumeBuilder()
-                    .withName(BACKUP_VOLUME_NAME)
-                    .withCephfs(volumeSource)
-                    .build()),
-                Stream.of(config.getBackupConfig()
-                    .map(backupConfig -> backupConfig.getSpec().getStorage().getVolume())
-                    .map(volume -> volume.getGlusterfs()))
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .map(volumeSource -> new VolumeBuilder()
-                    .withName(BACKUP_VOLUME_NAME)
-                    .withGlusterfs(volumeSource)
+                .map(volumeStorage -> new VolumeBuilder()
+                    .withName(name + BACKUP_SUFFIX)
+                    .withPersistentVolumeClaim(new PersistentVolumeClaimVolumeSource(
+                        name + BACKUP_SUFFIX, false))
                     .build()),
                 Stream.of(config.getBackupConfig()
                     .map(backupConfig -> backupConfig.getSpec().getStorage().getGcs()))
@@ -441,20 +449,37 @@ public class StackGresStatefulSet {
                 .withName("data-permissions")
                 .withImage("busybox")
                 .withCommand("/bin/sh", "-ecx", Stream.of(
-                    "chmod 755 /var/lib/postgresql",
-                    "chown 999:999 /var/lib/postgresql")
+                    Stream.of(config.getBackupConfig()
+                        .map(backupConfig -> backupConfig.getSpec().getStorage().getVolume()))
+                    .filter(Optional::isPresent)
+                    .map(volumeStorage -> "mkdir -p " + BACKUP_VOLUME_PATH
+                        + "/" + namespace + "/" + name),
+                    Stream.of(
+                    "chmod -R 700 " + PG_VOLUME_PATH,
+                    "chown -R 999:999 " + PG_VOLUME_PATH))
+                    .flatMap(s -> s)
                     .collect(Collectors.joining(" && ")))
-                .withVolumeMounts(
-                    new VolumeMountBuilder()
-                    .withName(DATA_VOLUME_NAME)
-                    .withMountPath("/var/lib/postgresql")
-                    .build())
+                .withVolumeMounts(Stream.of(
+                    Stream.of(new VolumeMountBuilder()
+                        .withName(name + DATA_SUFFIX)
+                        .withMountPath(PG_VOLUME_PATH)
+                        .build()),
+                    Stream.of(config.getBackupConfig()
+                        .map(backupConfig -> backupConfig.getSpec().getStorage().getVolume()))
+                    .filter(Optional::isPresent)
+                    .map(volumeStorage -> new VolumeMountBuilder()
+                        .withName(name + BACKUP_SUFFIX)
+                        .withMountPath(BACKUP_VOLUME_PATH)
+                        .build()))
+                    .flatMap(s -> s)
+                    .toArray(VolumeMount[]::new))
                 .build(),
                 new ContainerBuilder()
                 .withName("wal-g-wrapper")
                 .withImage("busybox")
                 .withCommand("/bin/sh", "-ecx", Unchecked.supplier(() -> Resources
-                    .asCharSource(Class.class.getResource("/create-wal-g-wrapper.sh"),
+                    .asCharSource(
+                        StackGresStatefulSet.class.getResource("/create-wal-g-wrapper.sh"),
                         StandardCharsets.UTF_8)
                     .read()).get())
                 .withEnvFrom(new EnvFromSourceBuilder()
@@ -476,20 +501,27 @@ public class StackGresStatefulSet {
                 .collect(ImmutableList.toImmutableList()))
             .endSpec()
             .build())
-        .withVolumeClaimTemplates(new PersistentVolumeClaimBuilder()
-            .withMetadata(new ObjectMetaBuilder()
-                .withNamespace(namespace)
-                .withName(DATA_VOLUME_NAME)
-                .withLabels(labels)
-                .build())
+        .withVolumeClaimTemplates(Stream.of(
+            Stream.of(new PersistentVolumeClaimBuilder()
+            .withNewMetadata()
+            .withNamespace(namespace)
+            .withName(name + DATA_SUFFIX)
+            .withLabels(labels)
+            .endMetadata()
             .withSpec(volumeClaimSpec.build())
-            .build())
+            .build()))
+            .flatMap(s -> s)
+            .toArray(PersistentVolumeClaim[]::new))
         .endSpec()
         .build();
 
     return ImmutableList.<HasMetadata>builder()
-        .addAll(() -> config.getSidecars().stream()
+        .addAll(config.getSidecars().stream()
             .flatMap(sidecarEntry -> sidecarEntry.getSidecar().getResources(context).stream())
+            .iterator())
+        .addAll(Stream.of(backupVolumeClaim)
+            .filter(Optional::isPresent)
+            .map(Optional::get)
             .iterator())
         .addAll(Stream.of(config.getBackupConfig())
             .filter(Optional::isPresent)
@@ -578,7 +610,8 @@ public class StackGresStatefulSet {
                                 .orElse("3600"))
                             .build())
                         .withCommand("/bin/bash", "-ecx", Resources
-                            .asCharSource(Class.class.getResource("/backup-cronjob.sh"),
+                            .asCharSource(
+                                StackGresStatefulSet.class.getResource("/backup-cronjob.sh"),
                                 StandardCharsets.UTF_8)
                             .read())
                         .build())

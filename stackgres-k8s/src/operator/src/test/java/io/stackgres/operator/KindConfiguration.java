@@ -15,7 +15,7 @@ import com.ongres.junit.docker.WaitFor;
     image = "stackgres/it:latest",
     arguments = { "/bin/sh", "-c",
         "set -e;"
-            + "sh /scripts/restart-kind.sh 3;"
+            + "echo 'Kind started k8s cluster';"
             + "seq -s ' ' 10000000 10000910;"
             + "while true; do sleep 1; done" },
     waitFor = @WaitFor(value = "Kind started k8s cluster", timeout = 1_200_000),

@@ -1,73 +1,21 @@
-{{ if .Values.profiles.create }}
-apiVersion: stackgres.io/{{ .Values.crd.version }}
-kind: StackGresProfile
-metadata:
-  name: size-xs
-  {{- if .Values.cluster.create }}
-  annotations:
-    "helm.sh/hook": "pre-install"
-  {{- end }}
-spec:
-  cpu: "500m"
-  memory: "512Mi"
+{{ if .Values.profiles }}
+{{- range .Values.profiles }}
 ---
-apiVersion: stackgres.io/{{ .Values.crd.version }}
+apiVersion: stackgres.io/{{ $.Values.crd.version }}
 kind: StackGresProfile
 metadata:
-  name: size-s
-  {{- if .Values.cluster.create }}
+  name: {{ .name }}
+  labels:
+    app: {{ template "stackgres-cluster.name" $ }}
+    chart: {{ template "stackgres-cluster.chart" $ }}
+    heritage: {{ $.Release.Service }}
+    release: {{ $.Release.Name }}
+  {{- if $.Values.cluster.create }}
   annotations:
     "helm.sh/hook": "pre-install"
   {{- end }}
 spec:
-  cpu: "1"
-  memory: "2Gi"
----
-apiVersion: stackgres.io/{{ .Values.crd.version }}
-kind: StackGresProfile
-metadata:
-  name: size-m
-  {{- if .Values.cluster.create }}
-  annotations:
-    "helm.sh/hook": "pre-install"
-  {{- end }}
-spec:
-  cpu: "2"
-  memory: "4Gi"
----
-apiVersion: stackgres.io/{{ .Values.crd.version }}
-kind: StackGresProfile
-metadata:
-  name: size-l
-  {{- if .Values.cluster.create }}
-  annotations:
-    "helm.sh/hook": "pre-install"
-  {{- end }}
-spec:
-  cpu: "4"
-  memory: "8Gi"
----
-apiVersion: stackgres.io/{{ .Values.crd.version }}
-kind: StackGresProfile
-metadata:
-  name: size-xl
-  {{- if .Values.cluster.create }}
-  annotations:
-    "helm.sh/hook": "pre-install"
-  {{- end }}
-spec:
-  cpu: "6"
-  memory: "16Gi"
----
-apiVersion: stackgres.io/{{ .Values.crd.version }}
-kind: StackGresProfile
-metadata:
-  name: size-xxl
-  {{- if .Values.cluster.create }}
-  annotations:
-    "helm.sh/hook": "pre-install"
-  {{- end }}
-spec:
-  cpu: "8"
-  memory: "32Gi"
-{{ end }}
+  cpu: "{{ .cpu }}"
+  memory: "{{ .memory }}"
+{{- end }}
+{{- end }}

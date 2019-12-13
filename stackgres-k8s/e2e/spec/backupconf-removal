@@ -1,12 +1,9 @@
 #!/bin/sh
 
-test_install_pods() {
-  echo 2
-}
+test_install() {
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1
 
-test_before_all() {
-  helm install stable/minio --name "$SPEC_NAME-minio" --namespace "$CLUSTER_NAMESPACE" \
-    --version 2.5.18 --set buckets[0].name=stackgres,buckets[0].policy=none,buckets[0].purge=true
+  wait_pods_running "$CLUSTER_NAMESPACE" 2
 }
 
 test() {
@@ -19,7 +16,7 @@ delete_with_cluster() {
   if kubectl get -n "$CLUSTER_NAMESPACE" sgbackupconfigs.stackgres.io backupconf -o yaml \
     | kubectl delete -f - > "${LOG_PATH}/test1.log" 2>&1
   then
-    echo "FAIL: It should not be able to delete sgspconfig"
+    echo "FAIL: It should not be able to delete sgbackupconf"
     return 1
   else
     echo "SUCCESS: Good it has failed"

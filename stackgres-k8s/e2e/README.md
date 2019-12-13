@@ -48,6 +48,7 @@ Some environment variables allow to control how e2e test behave:
 * `TIMEOUT`: Some operation wait on pods to be running or terminated. This environment variable controls the timeout in seconds of those operations (default: 3 minutes).
 * `DEBUG_OPERATOR`: Enable operator debug (you must rebuild the operator image for this to work).
 * `DEBUG_OPERATOR_SUSPEND`: Suspend operator JVM Enable operator debug (you must rebuild the operator image for this to work).
+* `REUSE_K8S`: Kubernetes cluster setup can be very expensive in terms of time. Set this environment variable to true to reuse a kubernetes cluster if already exists.
 * `REUSE_OPERATOR`: To avoid recreating the operator set this environment variable to true to reuse an installed operator if already exists.
 * `BUILD_OPERATOR`: To avoid rebuilding the operator set this environment variable to false.
 * `RESET_NAMESPACES`: Set this to false to disable namespaces reset.
@@ -57,7 +58,6 @@ Some environment variables allow to control how e2e test behave:
 Those environment variable affect the e2e test only if kind environment is used.
 
 * `KIND_NAME`: The name of the kind cluster.
-* `REUSE_KIND`: Kind setup can be very expensive in terms of time. Set this environment variable to true to reuse a kind cluster if already exists.
 * `KIND_NAME`: The name of the kind cluster.
 * `USE_KIND_INTERNAL`: Set to true to use docker internal IPs for kubernetes configuration to access the kind cluster (some systems like mac and windows will not work with this).
 

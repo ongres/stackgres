@@ -32,7 +32,7 @@ public class PatroniConfigEndpoints {
   public static Endpoints create(StackGresClusterConfig config, ObjectMapper objectMapper) {
     final String name = config.getCluster().getMetadata().getName();
     final String namespace = config.getCluster().getMetadata().getNamespace();
-    final Map<String, String> labels = ResourceUtil.defaultLabels(name);
+    final Map<String, String> labels = ResourceUtil.patroniClusterLabels(name);
     Optional<StackGresPostgresConfig> pgconfig = config.getPostgresConfig();
     Map<String, String> params = new HashMap<>(DefaultValues.getDefaultValues());
 

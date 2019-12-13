@@ -51,12 +51,12 @@
     <javax.annotation-api.version>1.3.2</javax.annotation-api.version>
     <javax.validation-api.version>2.0.1.Final</javax.validation-api.version>
     <jsr305.version>3.0.2</jsr305.version>
-    <checkstyle.version>8.23</checkstyle.version>
+    <checkstyle.version>8.27</checkstyle.version>
     <spotbugs.version>4.0.0-beta3</spotbugs.version>
     <checker.version>2.10.1</checker.version>
     <pmd.version>6.19.0</pmd.version>
     <errorprone.version>2.3.3</errorprone.version>
-    <docker-junit-extension.version>1.2.9</docker-junit-extension.version>
+    <docker-junit-extension.version>1.2.10</docker-junit-extension.version>
     <jersey.version>2.29</jersey.version>
     <mockito.version>3.0.0</mockito.version>
     <log4j.version>2.11.2</log4j.version>
@@ -235,6 +235,9 @@
               <failsOnError>true</failsOnError>
               <consoleOutput>true</consoleOutput>
               <linkXRef>false</linkXRef>
+              <includeResources>false</includeResources>
+              <includeTestSourceDirectory>false</includeTestSourceDirectory>
+              <includeTestResources>false</includeTestResources>
             </configuration>
             <goals>
               <goal>check</goal>

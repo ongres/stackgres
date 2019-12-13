@@ -119,3 +119,5 @@ pom.xml.releaseBackup
 pom.xml.tag
 
 # End of https://www.gitignore.io/api/java,eclipse,java-web,code-java
+**/helm/*/charts/*.tgz
+**/helm/*/requirements.lock

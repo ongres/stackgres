@@ -125,7 +125,7 @@ public class LocalOperatorRunner implements OperatorRunner {
   }
 
   private void setup() throws Exception {
-    List<String> kubeconfig = kind.execute("sh", "-l", "-c", "cat $KUBECONFIG")
+    List<String> kubeconfig = kind.execute("sh", "-l", "-c", "cat \"${KUBECONFIG:-$HOME/.kube/config}\"")
         .collect(Collectors.toList());
     List<String> operatorSecret = kind.execute("sh", "-l", "-c",
         "kubectl get secret -n stackgres -o yaml"

@@ -24,8 +24,11 @@ public abstract class StorageConfig {
   @Nullable
   public abstract String getStorageClass();
 
+  /**
+   * The request definition for StorageConfig.
+   */
   @Value.Derived
-  Map<String, Quantity> getStorage() {
+  public Map<String, Quantity> getStorage() {
     final ImmutableMap.Builder<String, Quantity> req = ImmutableMap.builder();
     req.put("storage", new Quantity(getSize()));
     return req.build();
@@ -33,8 +36,6 @@ public abstract class StorageConfig {
 
   /**
    * The request definition for StorageConfig.
-   *
-   * @return ResourceRequirements
    */
   @Value.Derived
   public ResourceRequirements getResourceRequirements() {

@@ -14,7 +14,6 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.MoreObjects;
 import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.quarkus.runtime.annotations.RegisterForReflection;
-import io.stackgres.operator.resource.dto.ClusterPodStatus;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -23,31 +22,9 @@ public class StackGresClusterStatus implements KubernetesResource {
 
   private static final long serialVersionUID = 4714141925270158016L;
 
-  @JsonProperty("pods")
-  private List<ClusterPodStatus> pods;
-
-  @JsonProperty("podsReady")
-  private String podsReady;
-
   @JsonProperty("conditions")
   @JsonInclude(JsonInclude.Include.NON_EMPTY)
   private List<StackGresClusterCondition> conditions = new ArrayList<>();
-
-  public List<ClusterPodStatus> getPods() {
-    return pods;
-  }
-
-  public void setPods(List<ClusterPodStatus> pods) {
-    this.pods = pods;
-  }
-
-  public String getPodsReady() {
-    return podsReady;
-  }
-
-  public void setPodsReady(String podsReady) {
-    this.podsReady = podsReady;
-  }
 
   public List<StackGresClusterCondition> getConditions() {
     return conditions;
@@ -61,8 +38,6 @@ public class StackGresClusterStatus implements KubernetesResource {
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .omitNullValues()
-        .add("pods", pods)
-        .add("podsReady", podsReady)
         .add("conditions", conditions)
         .toString();
   }

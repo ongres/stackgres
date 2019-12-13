@@ -17,7 +17,7 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class Storage {
+public class BackupStorage {
 
   @JsonProperty("type")
   @NotNull(message = "The storage type is required")

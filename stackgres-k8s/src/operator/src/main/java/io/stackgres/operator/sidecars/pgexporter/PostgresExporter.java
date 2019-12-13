@@ -62,7 +62,6 @@ public class PostgresExporter
 
   public static final String EXPORTER_SERVICE_MONITOR = "-stackgres-prometheus-postgres-exporter";
   public static final String EXPORTER_SERVICE = "-prometheus-postgres-exporter";
-  public static final String CLUSTER_NAMESPACE_KEY = "cluster-namespace";
 
   private static final Logger LOGGER = LoggerFactory.getLogger(PostgresExporter.class);
 
@@ -119,13 +118,12 @@ public class PostgresExporter
 
   @Override
   public List<HasMetadata> getResources(ResourceGeneratorContext context) {
-
     final Map<String, String> defaultLabels = ResourceUtil.defaultLabels(
         context.getClusterConfig().getCluster().getMetadata().getName());
     Map<String, String> labels = new ImmutableMap.Builder<String, String>()
-        .putAll(defaultLabels)
-        .put(CLUSTER_NAMESPACE_KEY,
-            context.getClusterConfig().getCluster().getMetadata().getNamespace())
+        .putAll(ResourceUtil.defaultLabels(
+            context.getClusterConfig().getCluster().getMetadata().getNamespace(),
+            context.getClusterConfig().getCluster().getMetadata().getName()))
         .build();
 
     Optional<StackGresPostgresExporterConfig> postgresExporterConfig =
@@ -165,13 +163,8 @@ public class PostgresExporter
                   + EXPORTER_SERVICE_MONITOR)
               .withLabels(ImmutableMap.<String, String>builder()
                   .putAll(pi.getMatchLabels())
-                  .putAll(ResourceUtil.defaultLabels(context.getClusterConfig().getCluster()
-                      .getMetadata().getName()))
-                  .put(CLUSTER_NAMESPACE_KEY, context.getClusterConfig().getCluster()
-                      .getMetadata().getNamespace())
+                  .putAll(labels)
                   .build())
-              .withOwnerReferences(ImmutableList.of(ResourceUtil.getOwnerReference(
-                  context.getClusterConfig().getCluster())))
               .build());
 
           ServiceMonitorSpec spec = new ServiceMonitorSpec();
@@ -197,8 +190,7 @@ public class PostgresExporter
 
   @Override
   public Optional<StackGresPostgresExporterConfig> getConfig(StackGresCluster cluster,
-                                                             KubernetesClient client) {
-
+      KubernetesClient client) {
     StackGresPostgresExporterConfig sgpec = new StackGresPostgresExporterConfig();
     StackGresPostgresExporterConfigSpec spec = new StackGresPostgresExporterConfigSpec();
     sgpec.setSpec(spec);
@@ -239,6 +231,5 @@ public class PostgresExporter
     }
 
     return Optional.of(sgpec);
-
   }
 }

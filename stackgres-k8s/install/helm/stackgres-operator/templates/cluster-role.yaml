@@ -22,6 +22,7 @@ rules:
   - rolebindings
   - events
   - cronjobs
+  - persistentvolumeclaims
   verbs:
   - get
   - list
