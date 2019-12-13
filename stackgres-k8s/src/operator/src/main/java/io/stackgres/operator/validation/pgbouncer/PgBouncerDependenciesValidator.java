@@ -8,11 +8,11 @@ package io.stackgres.operator.validation.pgbouncer;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import io.stackgres.operator.common.PgBouncerReview;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.customresource.sgcluster.StackGresClusterList;
 import io.stackgres.operator.resource.KubernetesResourceScanner;
 import io.stackgres.operator.validation.DependenciesValidator;
-import io.stackgres.operator.validation.PgBouncerReview;
 import io.stackgres.operatorframework.ValidationFailed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

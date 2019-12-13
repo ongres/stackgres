@@ -25,9 +25,12 @@ public enum StackGresUtil {
 
   public static final String PROMETHEUS_AUTOBIND = INSTANCE.prometheusAutobind;
 
+  public static final String OPERATOR_IP = INSTANCE.operatorIp;
+
   private final String operatorName;
   private final String operatorNamespace;
   private final String operatorVersion;
+  private final String operatorIp;
 
   private final String group;
   private final String version;
@@ -47,6 +50,7 @@ public enum StackGresUtil {
       version = getProperty(properties, ConfigProperty.CRD_VERSION);
       containerBuild = getProperty(properties, ConfigProperty.CONTAINER_BUILD);
       prometheusAutobind = getProperty(properties, ConfigProperty.PROMETHEUS_AUTOBIND);
+      operatorIp = getProperty(properties, ConfigProperty.OPERATOR_IP);
       Preconditions.checkNotNull(operatorName);
       Preconditions.checkNotNull(operatorNamespace);
       Preconditions.checkNotNull(operatorVersion);

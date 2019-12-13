@@ -18,6 +18,10 @@ public class AdmissionResponse {
 
   private Result status;
 
+  private String patchType;
+
+  private String patch;
+
   public UUID getUid() {
     return uid;
   }
@@ -40,5 +44,21 @@ public class AdmissionResponse {
 
   public void setStatus(Result status) {
     this.status = status;
+  }
+
+  public String getPatchType() {
+    return patchType;
+  }
+
+  public void setPatchType(String patchType) {
+    this.patchType = patchType;
+  }
+
+  public String getPatch() {
+    return patch;
+  }
+
+  public void setPatch(String patch) {
+    this.patch = patch;
   }
 }

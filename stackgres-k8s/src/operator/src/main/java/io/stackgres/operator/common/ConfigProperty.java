@@ -8,6 +8,7 @@ package io.stackgres.operator.common;
 public enum ConfigProperty {
   OPERATOR_NAME("stackgres.operatorName"),
   OPERATOR_NAMESPACE("stackgres.operatorNamespace"),
+  OPERATOR_IP("stackgres.operatorIP"),
   OPERATOR_VERSION("stackgres.operatorVersion"),
   CRD_GROUP("stackgres.group"),
   CRD_VERSION("stackgres.crd.version"),

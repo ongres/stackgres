@@ -8,11 +8,11 @@ package io.stackgres.operator.validation.profile;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import io.stackgres.operator.common.SgProfileReview;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.customresource.sgcluster.StackGresClusterList;
 import io.stackgres.operator.resource.KubernetesResourceScanner;
 import io.stackgres.operator.validation.DependenciesValidator;
-import io.stackgres.operator.validation.SgProfileReview;
 import io.stackgres.operatorframework.ValidationFailed;
 
 @ApplicationScoped

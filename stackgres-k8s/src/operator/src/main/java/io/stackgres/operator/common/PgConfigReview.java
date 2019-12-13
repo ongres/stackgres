@@ -3,14 +3,14 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.validation;
+package io.stackgres.operator.common;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
-import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfig;
+import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.operatorframework.AdmissionReview;
 
 @RegisterForReflection
-public class PgBouncerReview extends AdmissionReview<StackGresPgbouncerConfig> {
+public class PgConfigReview extends AdmissionReview<StackGresPostgresConfig> {
 
   private static final long serialVersionUID = 1L;
 }

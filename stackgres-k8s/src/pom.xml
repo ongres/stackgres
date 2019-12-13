@@ -60,6 +60,7 @@
     <jersey.version>2.29</jersey.version>
     <mockito.version>3.0.0</mockito.version>
     <log4j.version>2.11.2</log4j.version>
+    <jackson.dataformat.properties>2.9.10</jackson.dataformat.properties>
     <!-- Plugins versions -->
     <compiler-plugin.version>3.8.1</compiler-plugin.version>
     <jar-plugin.version>3.2.0</jar-plugin.version>
@@ -134,6 +135,12 @@
       <artifactId>jsr305</artifactId>
       <version>${jsr305.version}</version>
     </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.dataformat</groupId>
+      <artifactId>jackson-dataformat-properties</artifactId>
+      <version>${jackson.dataformat.properties}</version>
+    </dependency>
+
   </dependencies>
 
   <build>

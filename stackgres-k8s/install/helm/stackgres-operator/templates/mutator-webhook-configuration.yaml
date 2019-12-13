@@ -1,0 +1,107 @@
+{{- if and .Values.cert.key .Values.cert.crt }}
+apiVersion: admissionregistration.k8s.io/v1beta1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: {{ .Release.Name }}-sgcluster
+  namespace: {{ .Release.Namespace }}
+webhooks:
+  - name: sgcluster.{{ .Release.Name }}.{{ .Release.Namespace }}
+    sideEffects: None
+    rules:
+      - operations: ["CREATE"]
+        apiGroups: ["stackgres.io"]
+        apiVersions: ["*"]
+        resources: ["sgclusters"]
+    failurePolicy: Fail
+    clientConfig:
+      service:
+        namespace: {{ .Release.Namespace }}
+        name: {{ .Release.Name }}
+        path: '/stackgres/mutation/sgcluster'
+      caBundle: {{ .Values.cert.crt }}
+---
+apiVersion: admissionregistration.k8s.io/v1beta1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: {{ .Release.Name }}-sgpgconfig
+  namespace: {{ .Release.Namespace }}
+webhooks:
+  - name: sgpgconfig.{{ .Release.Name }}.{{ .Release.Namespace }}
+    sideEffects: None
+    rules:
+      - operations: ["CREATE"]
+        apiGroups: ["stackgres.io"]
+        apiVersions: ["*"]
+        resources: ["sgpgconfigs"]
+    failurePolicy: Fail
+    clientConfig:
+      service:
+        namespace: {{ .Release.Namespace }}
+        name: {{ .Release.Name }}
+        path: '/stackgres/mutation/sgpgconfig'
+      caBundle: {{ .Values.cert.crt }}
+---
+apiVersion: admissionregistration.k8s.io/v1beta1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: {{ .Release.Name }}-sgconnectionpoolingconfig
+  namespace: {{ .Release.Namespace }}
+webhooks:
+  - name: sgconnectionpoolingconfig.{{ .Release.Name }}.{{ .Release.Namespace }}
+    sideEffects: None
+    rules:
+      - operations: ["CREATE"]
+        apiGroups: ["stackgres.io"]
+        apiVersions: ["*"]
+        resources: ["sgconnectionpoolingconfigs"]
+    failurePolicy: Fail
+    clientConfig:
+      service:
+        namespace: {{ .Release.Namespace }}
+        name: {{ .Release.Name }}
+        path: '/stackgres/mutation/sgconnectionpoolingconfig'
+      caBundle: {{ .Values.cert.crt }}
+---
+apiVersion: admissionregistration.k8s.io/v1beta1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: {{ .Release.Name }}-sgprofile
+  namespace: {{ .Release.Namespace }}
+webhooks:
+  - name: sgprofile.{{ .Release.Name }}.{{ .Release.Namespace }}
+    sideEffects: None
+    rules:
+      - operations: ["CREATE"]
+        apiGroups: ["stackgres.io"]
+        apiVersions: ["*"]
+        resources: ["sgprofiles"]
+    failurePolicy: Fail
+    clientConfig:
+      service:
+        namespace: {{ .Release.Namespace }}
+        name: {{ .Release.Name }}
+        path: '/stackgres/mutation/sgprofile'
+      caBundle: {{ .Values.cert.crt }}
+---
+apiVersion: admissionregistration.k8s.io/v1beta1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: {{ .Release.Name }}-sgbackupconfig
+  namespace: {{ .Release.Namespace }}
+webhooks:
+  - name: sgbackupconfig.{{ .Release.Name }}.{{ .Release.Namespace }}
+    sideEffects: None
+    rules:
+      - operations: ["CREATE"]
+        apiGroups: ["stackgres.io"]
+        apiVersions: ["*"]
+        resources: ["sgbackupconfigs"]
+    failurePolicy: Fail
+    clientConfig:
+      service:
+        namespace: {{ .Release.Namespace }}
+        name: {{ .Release.Name }}
+        path: '/stackgres/mutation/sgbackupconfig'
+      caBundle: {{ .Values.cert.crt }}
+{{ end }}
+
