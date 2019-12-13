@@ -16,6 +16,10 @@ fi
 if [ "$REUSE_KIND" != "true" ] \
   || ! kind get nodes --name "$KIND_NAME" | wc -l | grep -q "^$1$"
 then
+  if [ "$REUSE_KIND" = "true" ]
+  then
+    echo "Kind not running, starting it!"
+  fi
   REUSE_KIND=false
 fi
 if [ "$REUSE_KIND" != "true" ]
