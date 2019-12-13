@@ -332,7 +332,7 @@ public class StackGresStatefulSet {
             .withImage(String.format(IMAGE_PREFIX,
                 PATRONI_VERSION, pgVersion, StackGresUtil.CONTAINER_BUILD))
             .withCommand("/bin/sh", "-exc", Unchecked.supplier(() -> Resources
-                .asCharSource(Class.class.getResource("/start-patroni.sh"),
+                .asCharSource(StackGresStatefulSet.class.getResource("/start-patroni.sh"),
                     StandardCharsets.UTF_8)
                 .read()).get())
             .withImagePullPolicy("Always")
@@ -478,7 +478,8 @@ public class StackGresStatefulSet {
                 .withName("wal-g-wrapper")
                 .withImage("busybox")
                 .withCommand("/bin/sh", "-ecx", Unchecked.supplier(() -> Resources
-                    .asCharSource(Class.class.getResource("/create-wal-g-wrapper.sh"),
+                    .asCharSource(
+                        StackGresStatefulSet.class.getResource("/create-wal-g-wrapper.sh"),
                         StandardCharsets.UTF_8)
                     .read()).get())
                 .withEnvFrom(new EnvFromSourceBuilder()
@@ -609,7 +610,8 @@ public class StackGresStatefulSet {
                                 .orElse("3600"))
                             .build())
                         .withCommand("/bin/bash", "-ecx", Resources
-                            .asCharSource(Class.class.getResource("/backup-cronjob.sh"),
+                            .asCharSource(
+                                StackGresStatefulSet.class.getResource("/backup-cronjob.sh"),
                                 StandardCharsets.UTF_8)
                             .read())
                         .build())
