@@ -16,6 +16,7 @@
   <properties>
     <stackgres.operatorName>stackgres-operator</stackgres.operatorName>
     <stackgres.operatorNamespace>stackgres</stackgres.operatorNamespace>
+    <stackgres.operatorIP>localhost</stackgres.operatorIP>
     <stackgres.operatorVersion>${project.version}</stackgres.operatorVersion>
     <stackgres.containerBuild>2-dev</stackgres.containerBuild>
     <stackgres.group>stackgres.io</stackgres.group>
@@ -162,6 +163,7 @@
                     <additionalBuildArg>-H:IncludeResources=.*/banner.txt</additionalBuildArg>
                     <additionalBuildArg>-H:IncludeResources=.*/*.yaml</additionalBuildArg>
                     <additionalBuildArg>-H:IncludeResources=.*/*.sh</additionalBuildArg>
+                    <additionalBuildArg>-H:IncludeResources=.*/*.properties</additionalBuildArg>
                   </additionalBuildArgs>
                   <enableReports>false</enableReports>
                 </configuration>

@@ -143,7 +143,8 @@ public class StackGresOperatorIt extends AbstractStackGresOperatorIt {
     ItHelper.waitUntil(Unchecked.supplier(() -> kind.execute("sh", "-l", "-c",
         "kubectl exec -t -n " + namespace + " "
             + CLUSTER_NAME + "-" + 0 + " -c patroni --"
-            + " sh -c \"wal-g wal-fetch " + currentWalFileName + " /tmp/" + currentWalFileName + " && echo 1\"")),
+            + " sh -c \"wal-g wal-fetch " + currentWalFileName
+            + " /tmp/" + currentWalFileName + " && echo 1\"")),
         s -> s.anyMatch(line -> line.equals("1")), 60, ChronoUnit.SECONDS,
         s -> Assertions.fail(
             "Timeout while checking archive_command is working properly:\n"

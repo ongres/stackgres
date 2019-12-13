@@ -97,6 +97,9 @@ spec:
             EOF
             {{ end }}
             cat << EOF | kubectl create -f -
+            {{- include (print $.Template.BasePath "/mutator-webhook-configuration.yaml") (dict "Release" .Release "Chart" .Chart "Files" .Files "Capabilities" .Capabilities "Values" (merge dict .Values (dict "cert" (dict "crt" "${CRT}" "key" "${KEY}")))) | splitList "\n" | join "\n            " }}
+            EOF
+            cat << EOF | kubectl create -f -
             {{- include (print $.Template.BasePath "/secret.yaml") (dict "Release" .Release "Chart" .Chart "Files" .Files "Capabilities" .Capabilities "Values" (merge dict .Values (dict "cert" (dict "crt" "${CRT}" "key" "${KEY}")))) | splitList "\n" | join "\n            " }}
             EOF
       restartPolicy: OnFailure

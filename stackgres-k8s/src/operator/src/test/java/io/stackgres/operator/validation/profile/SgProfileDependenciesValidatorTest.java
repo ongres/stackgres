@@ -7,7 +7,7 @@ package io.stackgres.operator.validation.profile;
 
 import io.stackgres.operator.utils.JsonUtil;
 import io.stackgres.operator.validation.DependenciesValidatorTest;
-import io.stackgres.operator.validation.SgProfileReview;
+import io.stackgres.operator.common.SgProfileReview;
 import io.stackgres.operatorframework.ValidationFailed;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

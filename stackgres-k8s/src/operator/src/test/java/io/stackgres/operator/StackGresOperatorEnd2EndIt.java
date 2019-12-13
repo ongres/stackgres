@@ -45,9 +45,7 @@ public class StackGresOperatorEnd2EndIt extends AbstractStackGresOperatorIt {
   public void end2EndTest(@ContainerParam("kind") Container kind) throws Exception {
     kind.execute("sh", "-ec",
         "echo 'Running "
-            + (E2E_TEST.isPresent()
-                ? E2E_TEST.get() + " e2e test"
-                    : "all e2e tests") + " from it'\n"
+            + (E2E_TEST.map(s -> s + " e2e test").orElse("all e2e tests")) + " from it'\n"
             + "cd /resources/e2e\n"
             + "export KIND_NAME=\"$(docker inspect -f '{{.Name}}' \"$(hostname)\"|cut -d '/' -f 2)\"\n"
             + "export IMAGE_TAG=" + ItHelper.IMAGE_TAG + "\n"
@@ -76,7 +74,7 @@ public class StackGresOperatorEnd2EndIt extends AbstractStackGresOperatorIt {
             + "  exit 1\n"
             + "fi\n"))
         .filter(ItHelper.EXCLUDE_TTY_WARNING)
-        .forEach(line -> LOGGER.info(line));
+        .forEach(LOGGER::info);
   }
 
 }

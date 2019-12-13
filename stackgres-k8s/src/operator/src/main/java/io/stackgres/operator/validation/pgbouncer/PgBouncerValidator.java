@@ -5,7 +5,7 @@
 
 package io.stackgres.operator.validation.pgbouncer;
 
-import io.stackgres.operator.validation.PgBouncerReview;
+import io.stackgres.operator.common.PgBouncerReview;
 import io.stackgres.operatorframework.Validator;
 
 public interface PgBouncerValidator extends Validator<PgBouncerReview> {
