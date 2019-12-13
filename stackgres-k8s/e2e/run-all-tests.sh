@@ -31,6 +31,7 @@ do
       | xargs -r -n 1 -I % -P 0 sh $SH_OPTS "$(dirname "$0")/e2e" spec "%"
     then
       OVERALL_RESULT=false
+      break;
     fi
     SPECS_TO_RUN=""
   fi
