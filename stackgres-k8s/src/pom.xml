@@ -228,6 +228,9 @@
               <failsOnError>true</failsOnError>
               <consoleOutput>true</consoleOutput>
               <linkXRef>false</linkXRef>
+              <includeResources>false</includeResources>
+              <includeTestSourceDirectory>false</includeTestSourceDirectory>
+              <includeTestResources>false</includeTestResources>
             </configuration>
             <goals>
               <goal>check</goal>
