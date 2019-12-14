@@ -13,8 +13,10 @@ import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.ExceptionMapper;
 
+import io.stackgres.operator.mutation.MutationUtil;
 import io.stackgres.operator.validation.ValidationUtil;
 import io.stackgres.operatorframework.AdmissionResponse;
+import io.stackgres.operatorframework.AdmissionReviewResponse;
 import io.stackgres.operatorframework.Result;
 
 import org.slf4j.Logger;
@@ -37,12 +39,15 @@ public class AbstractGenericExceptionMapper<T extends Throwable> implements Exce
       status = WebApplicationException.class.cast(throwable).getResponse().getStatus();
     }
 
-    if (uriInfo != null && uriInfo.getPath().startsWith(ValidationUtil.VALIDATION_PATH + "/")) {
+    if (uriInfo != null && (uriInfo.getPath().startsWith(ValidationUtil.VALIDATION_PATH + "/")
+        || uriInfo.getPath().startsWith(MutationUtil.MUTATION_PATH + "/"))) {
       AdmissionResponse admissionResponse = new AdmissionResponse();
       admissionResponse.setAllowed(false);
       admissionResponse.setStatus(new Result(status, throwable.getMessage()));
+      AdmissionReviewResponse admissionReviewResponse = new AdmissionReviewResponse();
+      admissionReviewResponse.setResponse(admissionResponse);
       return Response.ok().type(MediaType.APPLICATION_JSON)
-          .entity(admissionResponse).build();
+          .entity(admissionReviewResponse).build();
     }
 
     return Response.status(status).type(MediaType.APPLICATION_JSON)
