@@ -305,7 +305,7 @@ public class StackGresStatefulSet {
                 .addToLabels(podLabels)
                 .build())
             .withNewSpec()
-            .withAffinity(new AffinityBuilder()
+            .withAffinity(Optional.of(new AffinityBuilder()
                 .withPodAntiAffinity(new PodAntiAffinityBuilder()
                     .addAllToRequiredDuringSchedulingIgnoredDuringExecution(ImmutableList.of(
                         new PodAffinityTermBuilder()
@@ -325,6 +325,12 @@ public class StackGresStatefulSet {
                         .build()))
                     .build())
                 .build())
+                .filter(affinity -> Optional.ofNullable(
+                    config.getCluster().getSpec().getNonProduction())
+                    .map(nonProduction -> nonProduction.getDisableClusterPodAntiAffinity())
+                    .map(disableClusterPodAntiAffinity -> !disableClusterPodAntiAffinity)
+                    .orElse(true))
+                .orElse(null))
             .withShareProcessNamespace(Boolean.TRUE)
             .withServiceAccountName(name + PatroniRole.SUFFIX)
             .addNewContainer()

@@ -8,7 +8,6 @@ config:
       password_encryption: 'scram-sha-256'
       wal_compression: 'on'
   pgbouncer:
-    version: "1.12.0"
     pgbouncer.ini:
       pool_mode: transaction
       max_client_conn: '200'
@@ -120,3 +119,7 @@ minio:
     - name: stackgres
       policy: none
       purge: true
+
+#You should only set following options for non production environment
+nonProductionOptions:
+  disableClusterPodAntiAffinity: true

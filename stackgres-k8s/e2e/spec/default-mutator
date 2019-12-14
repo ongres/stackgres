@@ -68,7 +68,6 @@ create_empty_pg_bouncer(){
     name: $PGCBOUNCER
     namespace: $CLUSTER_NAMESPACE
   spec:
-    pgbouncerVersion: "1.12.0"
     pgbouncer.ini:
       unsignificant: true
 EOF

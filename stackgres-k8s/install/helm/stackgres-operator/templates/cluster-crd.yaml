@@ -31,9 +31,6 @@ spec:
                 description: "Number of instances to be created"
               pgVersion:
                 type: string
-                enum:
-                - "11.6"
-                - "12.1"
                 description: "PostgreSQL version for the new cluster"
               pgConfig:
                 type: string

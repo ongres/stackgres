@@ -16,7 +16,6 @@ public class DefaultPgBouncerFactory
     extends AbstractCustomResourceFactory<StackGresPgbouncerConfig> {
 
   public static final String NAME = "defaultpgbouncer";
-  public static final String DEFAULT_PG_BOUNCER_VERSION = "1.12.0";
   public static final String PGBOUNCER_DEFAULT_VALUES = "pgbouncer-default-values.properties";
 
   @Override
@@ -29,7 +28,6 @@ public class DefaultPgBouncerFactory
     config.getMetadata().setNamespace(namespace);
 
     StackGresPgbouncerConfigSpec spec = new StackGresPgbouncerConfigSpec();
-    spec.setPgbouncerVersion(DEFAULT_PG_BOUNCER_VERSION);
     spec.setPgbouncerConf(getDefaultValues());
     config.setSpec(spec);
 
