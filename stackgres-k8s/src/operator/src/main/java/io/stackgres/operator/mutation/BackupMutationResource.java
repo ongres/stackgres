@@ -21,7 +21,7 @@ import io.stackgres.operatorframework.MutationResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Path("/stackgres/mutation/sgbackupconfig")
+@Path(MutationUtil.BACKUPCONFIG_MUTATION_PATH)
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class BackupMutationResource implements MutationResource<BackupConfigReview> {

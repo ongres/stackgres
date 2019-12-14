@@ -21,7 +21,7 @@ import io.stackgres.operatorframework.MutationResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Path("/stackgres/mutation/sgconnectionpoolingconfig")
+@Path(MutationUtil.CONNPOOLCONFIG_MUTATION_PATH)
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class SgPgBouncerMutationResource implements MutationResource<PgBouncerReview> {
