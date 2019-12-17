@@ -5,8 +5,6 @@
 
 package io.stackgres.operator.sidecars.pgexporter;
 
-import java.util.AbstractMap.SimpleEntry;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -35,6 +33,9 @@ import io.stackgres.operatorframework.resource.ResourceHandler;
 import io.stackgres.operatorframework.resource.ResourceHandlerContext;
 import io.stackgres.operatorframework.resource.ResourcePairVisitor;
 
+import org.jooq.lambda.tuple.Tuple;
+import org.jooq.lambda.tuple.Tuple2;
+
 @Kind(ServiceMonitor.class)
 @ApplicationScoped
 public class PrometheusServiceMonitorHandler implements ResourceHandler<StackGresClusterConfig> {
@@ -62,9 +63,10 @@ public class PrometheusServiceMonitorHandler implements ResourceHandler<StackGre
   @Override
   public Stream<HasMetadata> getOrphanResources(KubernetesClient client,
       ImmutableList<StackGresClusterConfig> existingConfigs) {
-    ImmutableList<Map.Entry<String, String>> existingConfigsLabels = existingConfigs.stream()
-        .map(config -> new SimpleEntry<>(config.getCluster().getMetadata().getName(),
-            config.getCluster().getMetadata().getNamespace()))
+    ImmutableList<Tuple2<String, String>> existingConfigsLabels = existingConfigs.stream()
+        .map(config -> Tuple.tuple(
+            config.getCluster().getMetadata().getNamespace(),
+            config.getCluster().getMetadata().getName()))
         .collect(ImmutableList.toImmutableList());
     return getServiceMonitorClient(client)
         .map(crClient -> crClient
@@ -73,9 +75,15 @@ public class PrometheusServiceMonitorHandler implements ResourceHandler<StackGre
             .list()
             .getItems()
             .stream()
-            .filter(serviceMonitor -> !existingConfigsLabels.stream()
-                .allMatch(e -> Objects.equals(e.getValue(),
-                    serviceMonitor.getMetadata().getLabels().get(e.getKey()))))
+            .filter(serviceMonitor -> !(
+                existingConfigsLabels.stream()
+                .anyMatch(e -> Objects.equals(e.v1,
+                    serviceMonitor.getMetadata().getLabels().get(
+                        ResourceUtil.CLUSTER_NAMESPACE_KEY)))
+                && existingConfigsLabels.stream()
+                .anyMatch(e -> Objects.equals(e.v2,
+                    serviceMonitor.getMetadata().getLabels().get(
+                        ResourceUtil.CLUSTER_NAME_KEY)))))
             .map(cr -> (HasMetadata) cr))
         .orElse(Stream.empty());
   }
