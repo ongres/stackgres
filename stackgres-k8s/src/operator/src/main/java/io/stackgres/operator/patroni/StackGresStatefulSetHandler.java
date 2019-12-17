@@ -12,17 +12,17 @@ import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetSpec;
 import io.stackgres.operator.common.StackGresClusterConfig;
-import io.stackgres.operator.controller.ResourceHandlerContext;
-import io.stackgres.operator.resource.AbstractResourceHandler;
+import io.stackgres.operator.resource.AbstractStackGresClusterResourceHandler;
 import io.stackgres.operator.resource.ResourceUtil;
 import io.stackgres.operatorframework.resource.PairVisitor;
+import io.stackgres.operatorframework.resource.ResourceHandlerContext;
 import io.stackgres.operatorframework.resource.ResourcePairVisitor;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
-public class StackGresStatefulSetHandler extends AbstractResourceHandler {
+public class StackGresStatefulSetHandler extends AbstractStackGresClusterResourceHandler {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(StackGresStatefulSetHandler.class);
 
@@ -37,23 +37,24 @@ public class StackGresStatefulSetHandler extends AbstractResourceHandler {
   }
 
   @Override
-  public boolean equals(ResourceHandlerContext resourceHandlerContext,
+  public boolean equals(ResourceHandlerContext<StackGresClusterConfig> resourceHandlerContext,
       HasMetadata existingResource, HasMetadata requiredResource) {
     return ResourcePairVisitor.equals(new StatefulSetVisitor<>(resourceHandlerContext),
         existingResource, requiredResource);
   }
 
   @Override
-  public HasMetadata update(ResourceHandlerContext resourceHandlerContext,
+  public HasMetadata update(ResourceHandlerContext<StackGresClusterConfig> resourceHandlerContext,
       HasMetadata existingResource, HasMetadata requiredResource) {
     return ResourcePairVisitor.update(new StatefulSetVisitor<>(resourceHandlerContext),
         existingResource, requiredResource);
   }
 
   private static class StatefulSetVisitor<T>
-      extends ResourcePairVisitor<T, ResourceHandlerContext> {
+      extends ResourcePairVisitor<T, ResourceHandlerContext<StackGresClusterConfig>> {
 
-    public StatefulSetVisitor(ResourceHandlerContext resourceHandlerContext) {
+    public StatefulSetVisitor(
+        ResourceHandlerContext<StackGresClusterConfig> resourceHandlerContext) {
       super(resourceHandlerContext);
     }
 
@@ -102,8 +103,8 @@ public class StackGresStatefulSetHandler extends AbstractResourceHandler {
           && isNonDisruptiblePrimaryNotExisting()) {
         LOGGER.debug("Not downscaling cluster {}.{} since there is no primary Pod "
             + " or is not marked as non disruptible",
-            getContext().getClusterConfig().getCluster().getMetadata().getNamespace(),
-            getContext().getClusterConfig().getCluster().getMetadata().getName());
+            getContext().getConfig().getCluster().getMetadata().getNamespace(),
+            getContext().getConfig().getCluster().getMetadata().getName());
         return existingReplicas;
       }
 
@@ -111,8 +112,8 @@ public class StackGresStatefulSetHandler extends AbstractResourceHandler {
         if (existingReplicas > requiredReplicas) {
           LOGGER.debug("Downscaling StatefulSet for cluster {}.{} to requested instances minus 1"
               + " since the primary Pod has an index above the maximum index for the statefulset",
-              getContext().getClusterConfig().getCluster().getMetadata().getNamespace(),
-              getContext().getClusterConfig().getCluster().getMetadata().getName());
+              getContext().getConfig().getCluster().getMetadata().getNamespace(),
+              getContext().getConfig().getCluster().getMetadata().getName());
         }
         return requiredReplicas - 1;
       }
@@ -132,7 +133,7 @@ public class StackGresStatefulSetHandler extends AbstractResourceHandler {
           .map(t -> t.v1)
           .filter(this::isPrimary)
           .anyMatch(existingResource -> ResourceUtil.extractPodIndex(
-              getContext().getClusterConfig().getCluster(),
+              getContext().getConfig().getCluster(),
               existingResource.getMetadata()) >= requiredReplicas);
     }
 

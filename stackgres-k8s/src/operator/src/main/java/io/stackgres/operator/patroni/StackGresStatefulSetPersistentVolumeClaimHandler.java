@@ -10,10 +10,11 @@ import javax.enterprise.context.ApplicationScoped;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.stackgres.operator.common.StackGresClusterConfig;
-import io.stackgres.operator.resource.AbstractResourceHandler;
+import io.stackgres.operator.resource.AbstractStackGresClusterResourceHandler;
 
 @ApplicationScoped
-public class StackGresStatefulSetPersistentVolumeClaimHandler extends AbstractResourceHandler {
+public class StackGresStatefulSetPersistentVolumeClaimHandler
+    extends AbstractStackGresClusterResourceHandler {
 
   @Override
   public boolean isHandlerForResource(StackGresClusterConfig config, HasMetadata resource) {

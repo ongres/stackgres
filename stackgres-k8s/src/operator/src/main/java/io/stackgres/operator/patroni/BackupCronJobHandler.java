@@ -11,13 +11,13 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.batch.CronJob;
 import io.stackgres.operator.common.StackGresClusterConfig;
-import io.stackgres.operator.controller.ResourceHandlerContext;
-import io.stackgres.operator.resource.AbstractResourceHandler;
+import io.stackgres.operator.resource.AbstractStackGresClusterResourceHandler;
 import io.stackgres.operatorframework.resource.PairVisitor;
+import io.stackgres.operatorframework.resource.ResourceHandlerContext;
 import io.stackgres.operatorframework.resource.ResourcePairVisitor;
 
 @ApplicationScoped
-public class BackupCronJobHandler extends AbstractResourceHandler {
+public class BackupCronJobHandler extends AbstractStackGresClusterResourceHandler {
 
   @Override
   public boolean isHandlerForResource(StackGresClusterConfig config, HasMetadata resource) {
@@ -30,22 +30,23 @@ public class BackupCronJobHandler extends AbstractResourceHandler {
   }
 
   @Override
-  public boolean equals(ResourceHandlerContext resourceHandlerContext,
+  public boolean equals(ResourceHandlerContext<StackGresClusterConfig> resourceHandlerContext,
       HasMetadata existingResource, HasMetadata requiredResource) {
     return ResourcePairVisitor.equals(new CronJobVisitor<>(resourceHandlerContext),
         existingResource, requiredResource);
   }
 
   @Override
-  public HasMetadata update(ResourceHandlerContext resourceHandlerContext,
+  public HasMetadata update(ResourceHandlerContext<StackGresClusterConfig> resourceHandlerContext,
       HasMetadata existingResource, HasMetadata requiredResource) {
     return ResourcePairVisitor.update(new CronJobVisitor<>(resourceHandlerContext),
         existingResource, requiredResource);
   }
 
-  private class CronJobVisitor<T> extends ResourcePairVisitor<T, ResourceHandlerContext> {
+  private class CronJobVisitor<T>
+      extends ResourcePairVisitor<T, ResourceHandlerContext<StackGresClusterConfig>> {
 
-    public CronJobVisitor(ResourceHandlerContext resourceHandlerContext) {
+    public CronJobVisitor(ResourceHandlerContext<StackGresClusterConfig> resourceHandlerContext) {
       super(resourceHandlerContext);
     }
 

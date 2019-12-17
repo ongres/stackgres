@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.resource;
+package io.stackgres.operatorframework.resource;
 
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -12,15 +12,13 @@ import com.google.common.collect.ImmutableList;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.stackgres.operator.common.StackGresClusterConfig;
-import io.stackgres.operator.controller.ResourceHandlerContext;
 
-public interface ResourceHandler {
+public interface ResourceHandler<T> {
 
-  boolean equals(ResourceHandlerContext resourceHandlerContext,
+  boolean equals(ResourceHandlerContext<T> resourceHandlerContext,
       HasMetadata existingResource, HasMetadata requiredResource);
 
-  HasMetadata update(ResourceHandlerContext resourceHandlerContext,
+  HasMetadata update(ResourceHandlerContext<T> resourceHandlerContext,
       HasMetadata existingResource, HasMetadata requiredResource);
 
   default boolean isManaged() {
@@ -35,17 +33,17 @@ public interface ResourceHandler {
     return false;
   }
 
-  default boolean isHandlerForResource(StackGresClusterConfig config, HasMetadata resource) {
+  default boolean isHandlerForResource(T config, HasMetadata resource) {
     return false;
   }
 
   void registerKind();
 
   Stream<HasMetadata> getOrphanResources(
-                  KubernetesClient client, ImmutableList<StackGresClusterConfig> existingConfigs);
+                  KubernetesClient client, ImmutableList<T> existingConfigs);
 
   Stream<HasMetadata> getResources(
-                  KubernetesClient client, StackGresClusterConfig config);
+                  KubernetesClient client, T config);
 
   Optional<HasMetadata> find(KubernetesClient client, HasMetadata resource);
 
@@ -54,5 +52,9 @@ public interface ResourceHandler {
   HasMetadata patch(KubernetesClient client, HasMetadata resource);
 
   boolean delete(KubernetesClient client, HasMetadata resource);
+
+  String getConfigNamespaceOf(HasMetadata resource);
+
+  String getConfigNameOf(HasMetadata resource);
 
 }

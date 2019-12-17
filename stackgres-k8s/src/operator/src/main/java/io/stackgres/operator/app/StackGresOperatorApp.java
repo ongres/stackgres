@@ -26,6 +26,7 @@ import io.fabric8.kubernetes.client.Watch;
 import io.fabric8.kubernetes.internal.KubernetesDeserializer;
 import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
+import io.stackgres.operator.common.StackGresClusterConfig;
 import io.stackgres.operator.controller.ClusterReconciliationCycle;
 import io.stackgres.operator.controller.ClusterResourceWatcherFactory;
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfig;
@@ -44,12 +45,12 @@ import io.stackgres.operator.customresource.sgprofile.StackGresProfile;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfileDefinition;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfileDoneable;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfileList;
-import io.stackgres.operator.resource.ResourceHandlerSelector;
 import io.stackgres.operator.resource.ResourceUtil;
 import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfig;
 import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfigDefinition;
 import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfigDoneable;
 import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfigList;
+import io.stackgres.operatorframework.resource.ResourceHandlerSelector;
 
 import org.jooq.lambda.Unchecked;
 import org.slf4j.Logger;
@@ -61,7 +62,7 @@ public class StackGresOperatorApp {
   private static final Logger LOGGER = LoggerFactory.getLogger(StackGresOperatorApp.class);
 
   private final KubernetesClientFactory kubeClient;
-  private final ResourceHandlerSelector handlerSelector;
+  private final ResourceHandlerSelector<StackGresClusterConfig> handlerSelector;
   private final ClusterReconciliationCycle clusterReconciliationCycle;
   private final ClusterResourceWatcherFactory watcherFactory;
   private final ScheduledExecutorService scheduledExecutorService =
@@ -73,7 +74,7 @@ public class StackGresOperatorApp {
    */
   @Inject
   public StackGresOperatorApp(KubernetesClientFactory kubeClient,
-      ResourceHandlerSelector handlerSelector,
+      ResourceHandlerSelector<StackGresClusterConfig> handlerSelector,
       ClusterReconciliationCycle clusterReconciliationCycle,
       ClusterResourceWatcherFactory watcherFactory) {
     super();

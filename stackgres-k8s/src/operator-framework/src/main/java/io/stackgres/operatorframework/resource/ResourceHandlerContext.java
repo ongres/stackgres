@@ -3,20 +3,19 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.controller;
+package io.stackgres.operatorframework.resource;
 
 import java.util.Optional;
 
 import com.google.common.collect.ImmutableList;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.stackgres.operator.common.StackGresClusterConfig;
 
 import org.jooq.lambda.tuple.Tuple2;
 
-public interface ResourceHandlerContext {
+public interface ResourceHandlerContext<T> {
 
-  StackGresClusterConfig getClusterConfig();
+  T getConfig();
 
   ImmutableList<Tuple2<HasMetadata, Optional<HasMetadata>>> getExistingResources();
 

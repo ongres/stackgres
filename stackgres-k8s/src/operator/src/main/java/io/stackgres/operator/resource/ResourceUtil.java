@@ -111,8 +111,12 @@ public class ResourceUtil {
         && Objects.equals(labels.get(ResourceUtil.DISRUPTIBLE_KEY), Boolean.FALSE.toString());
   }
 
+  public static String getIndexPattern() {
+    return "^.*-([0-9]+)$";
+  }
+
   public static String getNameWithIndexPattern(String name) {
-    return "^" + Pattern.quote(name + "-") + "([0-9]+)$";
+    return "^" + Pattern.quote(name) + "-([0-9]+)$";
   }
 
   /**

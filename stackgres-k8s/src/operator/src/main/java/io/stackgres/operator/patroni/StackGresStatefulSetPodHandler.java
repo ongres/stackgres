@@ -18,10 +18,10 @@ import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.stackgres.operator.common.StackGresClusterConfig;
-import io.stackgres.operator.controller.ResourceHandlerContext;
-import io.stackgres.operator.resource.AbstractResourceHandler;
+import io.stackgres.operator.resource.AbstractStackGresClusterResourceHandler;
 import io.stackgres.operator.resource.ResourceUtil;
 import io.stackgres.operatorframework.resource.PairVisitor;
+import io.stackgres.operatorframework.resource.ResourceHandlerContext;
 import io.stackgres.operatorframework.resource.ResourcePairVisitor;
 
 import org.jooq.lambda.Seq;
@@ -29,7 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
-public class StackGresStatefulSetPodHandler extends AbstractResourceHandler {
+public class StackGresStatefulSetPodHandler extends AbstractStackGresClusterResourceHandler {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(
       StackGresStatefulSetPodHandler.class);
@@ -38,10 +38,10 @@ public class StackGresStatefulSetPodHandler extends AbstractResourceHandler {
   public boolean isHandlerForResource(StackGresClusterConfig config, HasMetadata resource) {
     return config != null
         && resource instanceof Pod
-        && resource.getMetadata().getNamespace().equals(
-            config.getCluster().getMetadata().getNamespace())
         && Objects.equals(resource.getMetadata().getLabels().get(ResourceUtil.CLUSTER_KEY),
             Boolean.TRUE.toString())
+        && resource.getMetadata().getNamespace().equals(
+            config.getCluster().getMetadata().getNamespace())
         && resource.getMetadata().getName().matches(ResourceUtil.getNameWithIndexPattern(
             config.getCluster().getMetadata().getName()));
   }
@@ -57,23 +57,23 @@ public class StackGresStatefulSetPodHandler extends AbstractResourceHandler {
   }
 
   @Override
-  public boolean equals(ResourceHandlerContext resourceHandlerContext,
+  public boolean equals(ResourceHandlerContext<StackGresClusterConfig> resourceHandlerContext,
       HasMetadata existingResource, HasMetadata requiredResource) {
     return ResourcePairVisitor.equals(new PodVisitor<>(resourceHandlerContext),
         existingResource, requiredResource);
   }
 
   @Override
-  public HasMetadata update(ResourceHandlerContext resourceHandlerContext,
+  public HasMetadata update(ResourceHandlerContext<StackGresClusterConfig> resourceHandlerContext,
       HasMetadata existingResource, HasMetadata requiredResource) {
     return ResourcePairVisitor.update(new PodVisitor<>(resourceHandlerContext),
         existingResource, requiredResource);
   }
 
   private static class PodVisitor<T>
-      extends ResourcePairVisitor<T, ResourceHandlerContext> {
+      extends ResourcePairVisitor<T, ResourceHandlerContext<StackGresClusterConfig>> {
 
-    public PodVisitor(ResourceHandlerContext resourceHandlerContext) {
+    public PodVisitor(ResourceHandlerContext<StackGresClusterConfig> resourceHandlerContext) {
       super(resourceHandlerContext);
     }
 
@@ -119,8 +119,8 @@ public class StackGresStatefulSetPodHandler extends AbstractResourceHandler {
           LOGGER.debug("Settind Pod {}.{} for cluster {}.{} as non disruptible since it is primary"
               + " and his index is above the maximum index for the StatefulSet",
               podMetadata.getNamespace(), podMetadata.getName(),
-              getContext().getClusterConfig().getCluster().getMetadata().getNamespace(),
-              getContext().getClusterConfig().getCluster().getMetadata().getName());
+              getContext().getConfig().getCluster().getMetadata().getNamespace(),
+              getContext().getConfig().getCluster().getMetadata().getName());
         }
         disruptibleValue = Boolean.FALSE.toString();
       } else {
@@ -157,7 +157,7 @@ public class StackGresStatefulSetPodHandler extends AbstractResourceHandler {
       .filter(resource -> resource instanceof StatefulSet)
       .map(resource -> (StatefulSet) resource)
       .anyMatch(statefulSet -> ResourceUtil.extractPodIndex(
-              getContext().getClusterConfig().getCluster(),
+              getContext().getConfig().getCluster(),
               podMetadata) >= statefulSet.getSpec().getReplicas());
     }
   }

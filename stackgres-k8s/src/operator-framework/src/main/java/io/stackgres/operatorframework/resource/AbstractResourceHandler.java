@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.resource;
+package io.stackgres.operatorframework.resource;
 
 import java.util.Optional;
 import java.util.function.Function;
@@ -28,11 +28,9 @@ import io.fabric8.kubernetes.api.model.rbac.RoleBinding;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
-import io.stackgres.operator.common.StackGresClusterConfig;
-import io.stackgres.operator.controller.ResourceHandlerContext;
 import io.stackgres.operatorframework.resource.ResourcePairVisitor;
 
-public abstract class AbstractResourceHandler implements ResourceHandler {
+public abstract class AbstractResourceHandler<T> implements ResourceHandler<T> {
 
   protected static final ImmutableMap<Class<? extends HasMetadata>,
       Function<KubernetesClient,
@@ -57,14 +55,14 @@ public abstract class AbstractResourceHandler implements ResourceHandler {
       .build();
 
   @Override
-  public boolean equals(ResourceHandlerContext resourceHandlerContext,
+  public boolean equals(ResourceHandlerContext<T> resourceHandlerContext,
       HasMetadata existingResource, HasMetadata requiredResource) {
     return ResourcePairVisitor.equals(resourceHandlerContext,
         existingResource, requiredResource);
   }
 
   @Override
-  public HasMetadata update(ResourceHandlerContext resourceHandlerContext,
+  public HasMetadata update(ResourceHandlerContext<T> resourceHandlerContext,
       HasMetadata existingResource, HasMetadata requiredResource) {
     return ResourcePairVisitor.update(resourceHandlerContext,
         existingResource, requiredResource);
@@ -76,12 +74,12 @@ public abstract class AbstractResourceHandler implements ResourceHandler {
 
   @Override
   public Stream<HasMetadata> getOrphanResources(KubernetesClient client,
-      ImmutableList<StackGresClusterConfig> existingConfigs) {
+      ImmutableList<T> existingConfigs) {
     return Stream.empty();
   }
 
   @Override
-  public Stream<HasMetadata> getResources(KubernetesClient client, StackGresClusterConfig config) {
+  public Stream<HasMetadata> getResources(KubernetesClient client, T config) {
     return Stream.empty();
   }
 
@@ -115,13 +113,17 @@ public abstract class AbstractResourceHandler implements ResourceHandler {
   }
 
   @SuppressWarnings("unchecked")
-  private <T extends HasMetadata> MixedOperation<T, ? extends KubernetesResourceList<T>, ?,
-      ? extends Resource<T, ?>> getResourceOperation(KubernetesClient client, T resource) {
-    return (MixedOperation<T, ? extends KubernetesResourceList<T>, ?, ? extends Resource<T, ?>>)
-        Optional.ofNullable(STACKGRES_RESOURCE_OPERATIONS.get(resource.getClass()))
+  private <M extends HasMetadata> MixedOperation<M, ? extends KubernetesResourceList<M>, ?,
+      ? extends Resource<M, ?>> getResourceOperation(KubernetesClient client, M resource) {
+    return (MixedOperation<M, ? extends KubernetesResourceList<M>, ?, ? extends Resource<M, ?>>)
+        Optional.ofNullable(getResourceOperations(resource))
         .map(function -> function.apply(client))
         .orElseThrow(() -> new RuntimeException("Resource of type " + resource.getKind()
             + " is not configured"));
   }
+
+  protected abstract <M extends HasMetadata> Function<KubernetesClient,
+      MixedOperation<? extends HasMetadata, ? extends KubernetesResourceList<? extends HasMetadata>,
+          ?, ? extends Resource<? extends HasMetadata, ?>>> getResourceOperations(M resource);
 
 }

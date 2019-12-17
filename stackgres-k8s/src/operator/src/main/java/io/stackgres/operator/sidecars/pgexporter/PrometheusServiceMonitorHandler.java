@@ -20,10 +20,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.kubernetes.internal.KubernetesDeserializer;
-import io.stackgres.operator.common.Kind;
 import io.stackgres.operator.common.StackGresClusterConfig;
-import io.stackgres.operator.controller.ResourceHandlerContext;
-import io.stackgres.operator.resource.ResourceHandler;
 import io.stackgres.operator.resource.ResourceUtil;
 import io.stackgres.operator.sidecars.pgexporter.customresources.Endpoint;
 import io.stackgres.operator.sidecars.pgexporter.customresources.NamespaceSelector;
@@ -32,22 +29,25 @@ import io.stackgres.operator.sidecars.pgexporter.customresources.ServiceMonitorD
 import io.stackgres.operator.sidecars.pgexporter.customresources.ServiceMonitorDoneable;
 import io.stackgres.operator.sidecars.pgexporter.customresources.ServiceMonitorList;
 import io.stackgres.operator.sidecars.pgexporter.customresources.ServiceMonitorSpec;
+import io.stackgres.operatorframework.resource.Kind;
 import io.stackgres.operatorframework.resource.PairVisitor;
+import io.stackgres.operatorframework.resource.ResourceHandler;
+import io.stackgres.operatorframework.resource.ResourceHandlerContext;
 import io.stackgres.operatorframework.resource.ResourcePairVisitor;
 
 @Kind(ServiceMonitor.class)
 @ApplicationScoped
-public class PrometheusServiceMonitorHandler implements ResourceHandler {
+public class PrometheusServiceMonitorHandler implements ResourceHandler<StackGresClusterConfig> {
 
   @Override
-  public boolean equals(ResourceHandlerContext resourceHandlerContext,
+  public boolean equals(ResourceHandlerContext<StackGresClusterConfig> resourceHandlerContext,
       HasMetadata existingResource, HasMetadata requiredResource) {
     return ResourcePairVisitor.equals(new ServiceMonitorVisitor<>(),
         existingResource, requiredResource);
   }
 
   @Override
-  public HasMetadata update(ResourceHandlerContext resourceHandlerContext,
+  public HasMetadata update(ResourceHandlerContext<StackGresClusterConfig> resourceHandlerContext,
       HasMetadata existingResource, HasMetadata requiredResource) {
     return ResourcePairVisitor.update(new ServiceMonitorVisitor<>(),
         existingResource, requiredResource);
@@ -195,6 +195,16 @@ public class PrometheusServiceMonitorHandler implements ResourceHandler {
           .visitList(NamespaceSelector::getMatchNames, NamespaceSelector::setMatchNames);
     }
 
+  }
+
+  @Override
+  public String getConfigNamespaceOf(HasMetadata resource) {
+    return resource.getMetadata().getLabels().get(ResourceUtil.CLUSTER_NAMESPACE_KEY);
+  }
+
+  @Override
+  public String getConfigNameOf(HasMetadata resource) {
+    return resource.getMetadata().getLabels().get(ResourceUtil.CLUSTER_NAME_KEY);
   }
 
 }

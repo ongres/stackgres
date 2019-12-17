@@ -16,7 +16,8 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.operator.common.StackGresClusterConfig;
 
 @ApplicationScoped
-public class DefaultResourceHandler extends AbstractResourceHandler {
+public class DefaultStackGresClusterResourceHandler
+    extends AbstractStackGresClusterResourceHandler {
 
   @Override
   public Stream<HasMetadata> getOrphanResources(KubernetesClient client,

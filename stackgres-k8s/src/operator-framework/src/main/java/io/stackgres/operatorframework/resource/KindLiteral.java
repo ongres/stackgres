@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.common;
+package io.stackgres.operatorframework.resource;
 
 import javax.enterprise.util.AnnotationLiteral;
 
