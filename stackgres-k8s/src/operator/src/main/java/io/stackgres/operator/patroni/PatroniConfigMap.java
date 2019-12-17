@@ -16,6 +16,7 @@ import com.google.common.collect.ImmutableList;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
+import io.stackgres.operator.cluster.StackGresStatefulSet;
 import io.stackgres.operator.common.QuarkusProfile;
 import io.stackgres.operator.common.StackGresClusterConfig;
 import io.stackgres.operator.customresource.sgbackupconfig.AwsS3Storage;
@@ -30,8 +31,8 @@ import io.stackgres.operator.sidecars.envoy.Envoy;
 
 public class PatroniConfigMap {
 
-  static final String POSTGRES_PORT_NAME = "pgport";
-  static final String POSTGRES_REPLICATION_PORT_NAME = "pgreplication";
+  public static final String POSTGRES_PORT_NAME = "pgport";
+  public static final String POSTGRES_REPLICATION_PORT_NAME = "pgreplication";
 
   /**
    * Create the ConfigMap associated with the cluster.

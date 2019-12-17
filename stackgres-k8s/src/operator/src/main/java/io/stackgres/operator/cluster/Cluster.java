@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.patroni;
+package io.stackgres.operator.cluster;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -15,14 +15,19 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.operator.app.ObjectMapperProvider;
 import io.stackgres.operator.common.StackGresClusterConfigTransformer;
 import io.stackgres.operator.controller.ResourceGeneratorContext;
+import io.stackgres.operator.patroni.PatroniConfigEndpoints;
+import io.stackgres.operator.patroni.PatroniConfigMap;
+import io.stackgres.operator.patroni.PatroniRole;
+import io.stackgres.operator.patroni.PatroniSecret;
+import io.stackgres.operator.patroni.PatroniServices;
 
 @ApplicationScoped
-public class Patroni implements StackGresClusterConfigTransformer {
+public class Cluster implements StackGresClusterConfigTransformer {
 
   private final ObjectMapper objectMapper;
 
   @Inject
-  public Patroni(ObjectMapperProvider objectMapperProvider) {
+  public Cluster(ObjectMapperProvider objectMapperProvider) {
     this.objectMapper = objectMapperProvider.objectMapper();
   }
 

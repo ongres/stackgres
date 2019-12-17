@@ -16,11 +16,11 @@ import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.fabric8.kubernetes.client.CustomResource;
+import io.stackgres.operator.cluster.StackGresStatefulSet;
 import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.common.StackGresSidecarTransformer;
 import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operator.controller.ResourceGeneratorContext;
-import io.stackgres.operator.patroni.StackGresStatefulSet;
 
 @Sidecar("postgres-util")
 @Singleton

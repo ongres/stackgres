@@ -22,6 +22,7 @@ import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
 import io.stackgres.operator.app.KubernetesClientFactory;
 import io.stackgres.operator.app.ObjectMapperProvider;
+import io.stackgres.operator.cluster.Cluster;
 import io.stackgres.operator.common.SidecarEntry;
 import io.stackgres.operator.common.StackGresClusterConfig;
 import io.stackgres.operator.common.StackGresSidecarTransformer;
@@ -41,7 +42,6 @@ import io.stackgres.operator.customresource.sgprofile.StackGresProfile;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfileDefinition;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfileDoneable;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfileList;
-import io.stackgres.operator.patroni.Patroni;
 import io.stackgres.operator.resource.ResourceUtil;
 import io.stackgres.operator.resource.SidecarFinder;
 import io.stackgres.operator.sidecars.envoy.Envoy;
@@ -57,7 +57,7 @@ public class ClusterReconciliationCycle
     extends AbstractReconciliationCycle<StackGresClusterConfig> {
 
   private final SidecarFinder sidecarFinder;
-  private final Patroni patroni;
+  private final Cluster cluster;
   private final ClusterStatusManager statusManager;
   private final EventController eventController;
 
@@ -66,14 +66,14 @@ public class ClusterReconciliationCycle
    */
   @Inject
   public ClusterReconciliationCycle(KubernetesClientFactory kubClientFactory,
-      SidecarFinder sidecarFinder, Patroni patroni,
+      SidecarFinder sidecarFinder, Cluster cluster,
       ResourceHandlerSelector<StackGresClusterConfig> handlerSelector,
       ClusterStatusManager statusManager, EventController eventController,
       ObjectMapperProvider objectMapperProvider) {
     super("Cluster", kubClientFactory::create, StackGresClusterConfig::getCluster,
         handlerSelector, objectMapperProvider.objectMapper());
     this.sidecarFinder = sidecarFinder;
-    this.patroni = patroni;
+    this.cluster = cluster;
     this.statusManager = statusManager;
     this.eventController = eventController;
   }
@@ -81,7 +81,7 @@ public class ClusterReconciliationCycle
   public ClusterReconciliationCycle() {
     super();
     this.sidecarFinder = null;
-    this.patroni = null;
+    this.cluster = null;
     this.statusManager = null;
     this.eventController = null;
   }
@@ -130,7 +130,7 @@ public class ClusterReconciliationCycle
   @Override
   protected ImmutableList<HasMetadata> getRequiredResources(StackGresClusterConfig config,
       ImmutableList<HasMetadata> existingResourcesOnly) {
-    return patroni.getResources(
+    return cluster.getResources(
         ImmutableResourceGeneratorContext.builder()
         .clusterConfig(config)
         .addAllExistingResources(existingResourcesOnly)

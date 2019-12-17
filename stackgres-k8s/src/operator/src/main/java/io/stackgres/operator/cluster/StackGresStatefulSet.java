@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.patroni;
+package io.stackgres.operator.cluster;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -65,6 +65,8 @@ import io.stackgres.operator.controller.ResourceGeneratorContext;
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfigSpec;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfile;
+import io.stackgres.operator.patroni.PatroniConfigMap;
+import io.stackgres.operator.patroni.PatroniRole;
 import io.stackgres.operator.resource.ResourceUtil;
 import io.stackgres.operator.sidecars.envoy.Envoy;
 

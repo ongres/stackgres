@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.patroni;
+package io.stackgres.operator.cluster;
 
 import javax.enterprise.context.ApplicationScoped;
 
