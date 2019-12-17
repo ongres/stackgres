@@ -19,8 +19,6 @@ test_install() {
 
   wait_pods_running "$PROMETHEUS_NAMESPACE" 8
 
-  wait_pods_running stackgres 1
-
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1
 
   deploy_curl_pod "$CLUSTER_NAMESPACE"
@@ -115,7 +113,7 @@ check_grafana_embedded(){
 
   kubectl set env deployment/stackgres-operator -n stackgres GRAFANA_EMBEDDED=false
 
-  wait_pods_running 1
+  wait_pods_running stackgres 1
 
   local GRAFANA_EMBEDDED=$(get_grafana_embedded)
 
@@ -131,7 +129,7 @@ check_grafana_embedded(){
 
   kubectl set env deployment/stackgres-operator -n stackgres GRAFANA_EMBEDDED=true
 
-  wait_pods_running 1
+  wait_pods_running stackgres 1
 
   GRAFANA_EMBEDDED=$(get_grafana_embedded)
   if [ "$GRAFANA_EMBEDDED" = "true" ]
