@@ -1,5 +1,5 @@
 # GraalVM Quarkus image
-image: docker.io/ongres/ubi-graalvm-maven:19.2.1
+image: docker.io/ongres/ubi-graalvm-maven:19.3.1-java8
 
 variables:
   # This will suppress any download for dependencies and plugins or upload messages which would clutter the console log.
@@ -9,8 +9,6 @@ variables:
                -Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository
                -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=WARN
                -Dorg.slf4j.simpleLogger.showDateTime=true
-               -XX:+TieredCompilation
-               -XX:TieredStopAtLevel=1
                -Djava.awt.headless=true
                -XX:+UseParallelOldGC
   # As of Maven 3.3.0 instead of this you may define these options in `.mvn/maven.config` so the same config is used
