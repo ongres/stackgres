@@ -35,6 +35,7 @@ public class ResourceUtil {
   public static final String APP_NAME = "StackGres";
   public static final String CLUSTER_NAME_KEY = "cluster-name";
   public static final String CLUSTER_NAMESPACE_KEY = "cluster-namespace";
+  public static final String BACKUP_NAME_KEY = "cluster-name";
   public static final String CLUSTER_KEY = "cluster";
   public static final String DISRUPTIBLE_KEY = "disruptible";
   public static final String ROLE_KEY = "role";
@@ -62,22 +63,22 @@ public class ResourceUtil {
   }
 
   /**
-   * ImmutableMap of default labels used as selectors in K8s resources.
+   * ImmutableMap of cluster labels used as selectors in K8s resources.
    */
   public static Map<String, String> defaultLabels() {
     return ImmutableMap.of(APP_KEY, APP_NAME);
   }
 
   /**
-   * ImmutableMap of default labels used as selectors in K8s resources
-   * outside of the namespace of the cluster.
+   * ImmutableMap of cluster labels used as selectors in K8s resources.
    */
   public static Map<String, String> defaultLabels(String clusterName) {
     return ImmutableMap.of(APP_KEY, APP_NAME, CLUSTER_NAME_KEY, clusterName);
   }
 
   /**
-   * ImmutableMap of default labels used as selectors in K8s resources.
+   * ImmutableMap of cluster labels used as selectors in K8s resources
+   * outside of the namespace of the cluster.
    */
   public static Map<String, String> defaultLabels(String clusterNamespace, String clusterName) {
     return ImmutableMap.of(APP_KEY, APP_NAME, CLUSTER_NAMESPACE_KEY, clusterNamespace,
@@ -100,6 +101,13 @@ public class ResourceUtil {
   public static Map<String, String> patroniClusterLabels(String clusterName) {
     return ImmutableMap.of(APP_KEY, APP_NAME, CLUSTER_NAME_KEY, clusterName,
         CLUSTER_KEY, Boolean.TRUE.toString());
+  }
+
+  /**
+   * ImmutableMap of backup labels used as selectors in K8s resources.
+   */
+  public static Map<String, String> backupLabels(String backupName) {
+    return ImmutableMap.of(APP_KEY, APP_NAME, BACKUP_NAME_KEY, backupName);
   }
 
   public static boolean isPrimary(Map<String, String> labels) {

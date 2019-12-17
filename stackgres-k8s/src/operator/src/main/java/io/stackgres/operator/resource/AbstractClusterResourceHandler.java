@@ -28,7 +28,7 @@ import io.fabric8.kubernetes.client.dsl.Resource;
 import io.stackgres.operator.common.StackGresClusterConfig;
 import io.stackgres.operatorframework.resource.AbstractResourceHandler;
 
-public abstract class AbstractStackGresClusterResourceHandler
+public abstract class AbstractClusterResourceHandler
     extends AbstractResourceHandler<StackGresClusterConfig> {
 
   protected static final ImmutableMap<Class<? extends HasMetadata>,

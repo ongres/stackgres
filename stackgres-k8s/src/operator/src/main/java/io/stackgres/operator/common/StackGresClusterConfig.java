@@ -21,7 +21,7 @@ public class StackGresClusterConfig {
   private final Optional<StackGresPostgresConfig> postgresConfig;
   private final Optional<StackGresBackupConfig> backupConfig;
   private final Optional<StackGresProfile> profile;
-  private final ImmutableList<SidecarEntry<?>> sidecars;
+  private final ImmutableList<SidecarEntry<?, StackGresClusterConfig>> sidecars;
 
   private StackGresClusterConfig(Builder builder) {
     this.cluster = builder.cluster;
@@ -47,7 +47,7 @@ public class StackGresClusterConfig {
     return profile;
   }
 
-  public ImmutableList<SidecarEntry<?>> getSidecars() {
+  public ImmutableList<SidecarEntry<?, StackGresClusterConfig>> getSidecars() {
     return sidecars;
   }
 
@@ -55,9 +55,9 @@ public class StackGresClusterConfig {
    * Return a sidecar config if present.
    */
   @SuppressWarnings("unchecked")
-  public <T extends CustomResource, S extends StackGresSidecarTransformer<T>>
+  public <T extends CustomResource, C, S extends StackGresSidecarTransformer<T, C>>
       Optional<T> getSidecarConfig(S sidecar) {
-    for (SidecarEntry<?> entry : sidecars) {
+    for (SidecarEntry<?, ?> entry : sidecars) {
       if (entry.getSidecar() == sidecar) {
         return entry.getConfig().map(config -> (T) config);
       }
@@ -82,7 +82,7 @@ public class StackGresClusterConfig {
     private Optional<StackGresPostgresConfig> postgresConfig;
     private Optional<StackGresBackupConfig> backupConfig;
     private Optional<StackGresProfile> profile;
-    private ImmutableList<SidecarEntry<?>> sidecars;
+    private ImmutableList<SidecarEntry<?, StackGresClusterConfig>> sidecars;
 
     private Builder() {
     }
@@ -107,7 +107,7 @@ public class StackGresClusterConfig {
       return this;
     }
 
-    public Builder withSidecars(ImmutableList<SidecarEntry<?>> sidecars) {
+    public Builder withSidecars(ImmutableList<SidecarEntry<?, StackGresClusterConfig>> sidecars) {
       this.sidecars = sidecars;
       return this;
     }

@@ -93,8 +93,8 @@ public class StackGresStatefulSet {
   /**
    * Create a new StatefulSet based on the StackGresCluster definition.
    */
-  public static List<HasMetadata> create(ResourceGeneratorContext context) {
-    StackGresClusterConfig config = context.getClusterConfig();
+  public static List<HasMetadata> create(ResourceGeneratorContext<StackGresClusterConfig> context) {
+    StackGresClusterConfig config = context.getConfig();
     final String name = config.getCluster().getMetadata().getName();
     final String namespace = config.getCluster().getMetadata().getNamespace();
     final String pgVersion = config.getCluster().getSpec().getPostgresVersion();

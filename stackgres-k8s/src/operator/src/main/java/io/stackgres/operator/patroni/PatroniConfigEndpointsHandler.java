@@ -23,7 +23,7 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.stackgres.operator.app.ObjectMapperProvider;
 import io.stackgres.operator.common.StackGresClusterConfig;
-import io.stackgres.operator.resource.AbstractStackGresClusterResourceHandler;
+import io.stackgres.operator.resource.AbstractClusterResourceHandler;
 import io.stackgres.operatorframework.resource.PairVisitor;
 import io.stackgres.operatorframework.resource.ResourceHandlerContext;
 import io.stackgres.operatorframework.resource.ResourcePairVisitor;
@@ -33,7 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
-public class PatroniConfigEndpointsHandler extends AbstractStackGresClusterResourceHandler {
+public class PatroniConfigEndpointsHandler extends AbstractClusterResourceHandler {
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(PatroniConfigEndpointsHandler.class);

@@ -16,17 +16,17 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.operator.controller.ResourceGeneratorContext;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 
-public interface StackGresSidecarTransformer<T extends CustomResource>
-    extends StackGresClusterConfigTransformer {
+public interface StackGresSidecarTransformer<T extends CustomResource, C>
+    extends StackGresClusterConfigTransformer<C> {
 
-  Container getContainer(ResourceGeneratorContext context);
+  Container getContainer(ResourceGeneratorContext<C> context);
 
   default Optional<T> getConfig(StackGresCluster cluster,
       KubernetesClient client) throws Exception {
     return Optional.empty();
   }
 
-  default ImmutableList<Volume> getVolumes(ResourceGeneratorContext context) {
+  default ImmutableList<Volume> getVolumes(ResourceGeneratorContext<C> context) {
     return ImmutableList.of();
   }
 

@@ -7,7 +7,8 @@ package io.stackgres.operator.resource;
 
 import io.stackgres.operator.common.StackGresSidecarTransformer;
 
-public interface SidecarFinder {
+public interface SidecarFinder<C> {
 
-  StackGresSidecarTransformer<?> getSidecarTransformer(String name);
+  StackGresSidecarTransformer<?, C> getSidecarTransformer(String name);
+
 }

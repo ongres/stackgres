@@ -13,22 +13,22 @@ import com.google.common.collect.ImmutableList;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.stackgres.operator.common.StackGresClusterConfig;
+import io.stackgres.operator.customresource.sgbackup.StackGresBackup;
 
 @ApplicationScoped
-public class DefaultStackGresClusterResourceHandler
-    extends AbstractStackGresClusterResourceHandler {
+public class DefaultBackupResourceHandler
+    extends AbstractBackupResourceHandler {
 
   @Override
   public Stream<HasMetadata> getOrphanResources(KubernetesClient client,
-      ImmutableList<StackGresClusterConfig> existingConfigs) {
+      ImmutableList<StackGresBackup> existingConfigs) {
     return STACKGRES_RESOURCE_OPERATIONS.values()
         .stream()
         .flatMap(resourceOperationGetter -> resourceOperationGetter.apply(client)
             .inAnyNamespace()
             .withLabels(ResourceUtil.defaultLabels())
-            .withLabelNotIn(ResourceUtil.CLUSTER_NAME_KEY, existingConfigs.stream()
-                .map(config -> config.getCluster().getMetadata().getName())
+            .withLabelNotIn(ResourceUtil.BACKUP_NAME_KEY, existingConfigs.stream()
+                .map(config -> config.getMetadata().getName())
                 .toArray(String[]::new))
             .list()
             .getItems()
@@ -37,12 +37,12 @@ public class DefaultStackGresClusterResourceHandler
 
   @Override
   public Stream<HasMetadata> getResources(KubernetesClient client,
-      StackGresClusterConfig config) {
+      StackGresBackup config) {
     return STACKGRES_RESOURCE_OPERATIONS.values()
         .stream()
         .flatMap(resourceOperationGetter -> resourceOperationGetter.apply(client)
-            .inNamespace(config.getCluster().getMetadata().getNamespace())
-            .withLabels(ResourceUtil.defaultLabels(config.getCluster().getMetadata().getName()))
+            .inNamespace(config.getMetadata().getNamespace())
+            .withLabels(ResourceUtil.backupLabels(config.getMetadata().getName()))
             .list()
             .getItems()
             .stream());

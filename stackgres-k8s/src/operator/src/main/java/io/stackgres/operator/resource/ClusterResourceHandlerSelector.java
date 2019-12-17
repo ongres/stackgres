@@ -21,18 +21,18 @@ import io.stackgres.operatorframework.resource.KindLiteral;
 import io.stackgres.operatorframework.resource.ResourceHandler;
 
 @ApplicationScoped
-public class StackGresResourceHandlerSelector
+public class ClusterResourceHandlerSelector
     extends AbstractResourceHandlerSelector<StackGresClusterConfig> {
 
   private final Instance<ResourceHandler<StackGresClusterConfig>> handlers;
 
   @Inject
-  public StackGresResourceHandlerSelector(
+  public ClusterResourceHandlerSelector(
       @Any Instance<ResourceHandler<StackGresClusterConfig>> handlers) {
     this.handlers = handlers;
   }
 
-  public StackGresResourceHandlerSelector() {
+  public ClusterResourceHandlerSelector() {
     if (Arrays.asList(new Exception().fillInStackTrace()
         .getStackTrace())
         .stream()
@@ -58,8 +58,8 @@ public class StackGresResourceHandlerSelector
 
   @Override
   protected Optional<ResourceHandler<StackGresClusterConfig>> getDefaultResourceHandler() {
-    Instance<DefaultStackGresClusterResourceHandler> instance = handlers.select(
-        DefaultStackGresClusterResourceHandler.class);
+    Instance<DefaultClusterResourceHandler> instance = handlers.select(
+        DefaultClusterResourceHandler.class);
     return instance.isResolvable() ? Optional.of(instance.get()) : Optional.empty();
   }
 

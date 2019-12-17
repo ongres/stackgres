@@ -10,10 +10,10 @@ import javax.enterprise.context.ApplicationScoped;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.stackgres.operator.common.StackGresClusterConfig;
-import io.stackgres.operator.resource.AbstractStackGresClusterResourceHandler;
+import io.stackgres.operator.resource.AbstractClusterResourceHandler;
 
 @ApplicationScoped
-public class BackupManagedCronJobPodHandler extends AbstractStackGresClusterResourceHandler {
+public class BackupManagedCronJobPodHandler extends AbstractClusterResourceHandler {
 
   @Override
   public boolean isHandlerForResource(StackGresClusterConfig config, HasMetadata resource) {

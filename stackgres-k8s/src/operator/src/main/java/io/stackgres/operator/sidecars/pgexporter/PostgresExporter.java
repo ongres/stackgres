@@ -36,6 +36,7 @@ import io.stackgres.operator.cluster.StackGresStatefulSet;
 import io.stackgres.operator.common.ConfigContext;
 import io.stackgres.operator.common.ConfigProperty;
 import io.stackgres.operator.common.Sidecar;
+import io.stackgres.operator.common.StackGresClusterConfig;
 import io.stackgres.operator.common.StackGresSidecarTransformer;
 import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operator.controller.ResourceGeneratorContext;
@@ -58,7 +59,8 @@ import org.slf4j.LoggerFactory;
 @Singleton
 @Sidecar("prometheus-postgres-exporter")
 public class PostgresExporter
-    implements StackGresSidecarTransformer<StackGresPostgresExporterConfig> {
+    implements StackGresSidecarTransformer<StackGresPostgresExporterConfig,
+        StackGresClusterConfig> {
 
   public static final String EXPORTER_SERVICE_MONITOR = "-stackgres-prometheus-postgres-exporter";
   public static final String EXPORTER_SERVICE = "-prometheus-postgres-exporter";
@@ -83,7 +85,7 @@ public class PostgresExporter
   }
 
   @Override
-  public Container getContainer(ResourceGeneratorContext context) {
+  public Container getContainer(ResourceGeneratorContext<StackGresClusterConfig> context) {
     ContainerBuilder container = new ContainerBuilder();
     container.withName(NAME)
         .withImage(String.format(IMAGE_NAME, DEFAULT_VERSION, StackGresUtil.CONTAINER_BUILD))
@@ -100,7 +102,7 @@ public class PostgresExporter
                 .withName("POSTGRES_EXPORTER_PASSWORD")
                 .withValueFrom(new EnvVarSourceBuilder().withSecretKeyRef(
                     new SecretKeySelectorBuilder()
-                        .withName(context.getClusterConfig().getCluster().getMetadata().getName())
+                        .withName(context.getConfig().getCluster().getMetadata().getName())
                         .withKey("superuser-password")
                         .build())
                     .build())
@@ -117,30 +119,30 @@ public class PostgresExporter
   }
 
   @Override
-  public List<HasMetadata> getResources(ResourceGeneratorContext context) {
+  public List<HasMetadata> getResources(ResourceGeneratorContext<StackGresClusterConfig> context) {
     final Map<String, String> defaultLabels = ResourceUtil.defaultLabels(
-        context.getClusterConfig().getCluster().getMetadata().getName());
+        context.getConfig().getCluster().getMetadata().getName());
     Map<String, String> labels = new ImmutableMap.Builder<String, String>()
         .putAll(ResourceUtil.defaultLabels(
-            context.getClusterConfig().getCluster().getMetadata().getNamespace(),
-            context.getClusterConfig().getCluster().getMetadata().getName()))
+            context.getConfig().getCluster().getMetadata().getNamespace(),
+            context.getConfig().getCluster().getMetadata().getName()))
         .build();
 
     Optional<StackGresPostgresExporterConfig> postgresExporterConfig =
-        context.getClusterConfig().getSidecarConfig(this);
+        context.getConfig().getSidecarConfig(this);
     ImmutableList.Builder<HasMetadata> resourcesBuilder = ImmutableList.builder();
     resourcesBuilder.add(
         new ServiceBuilder()
             .withNewMetadata()
-            .withNamespace(context.getClusterConfig().getCluster().getMetadata().getNamespace())
-            .withName(context.getClusterConfig().getCluster().getMetadata()
+            .withNamespace(context.getConfig().getCluster().getMetadata().getNamespace())
+            .withName(context.getConfig().getCluster().getMetadata()
                 .getName() + EXPORTER_SERVICE)
             .withLabels(ImmutableMap.<String, String>builder()
                 .putAll(labels)
                 .put("container", NAME)
                 .build())
             .withOwnerReferences(ImmutableList.of(ResourceUtil.getOwnerReference(
-                context.getClusterConfig().getCluster())))
+                context.getConfig().getCluster())))
             .endMetadata()
             .withSpec(new ServiceSpecBuilder()
                 .withSelector(defaultLabels)
@@ -159,7 +161,7 @@ public class PostgresExporter
           serviceMonitor.setApiVersion(ServiceMonitorDefinition.APIVERSION);
           serviceMonitor.setMetadata(new ObjectMetaBuilder()
               .withNamespace(pi.getNamespace())
-              .withName(context.getClusterConfig().getCluster().getMetadata().getName()
+              .withName(context.getConfig().getCluster().getMetadata().getName()
                   + EXPORTER_SERVICE_MONITOR)
               .withLabels(ImmutableMap.<String, String>builder()
                   .putAll(pi.getMatchLabels())

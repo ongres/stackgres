@@ -10,13 +10,13 @@ import javax.enterprise.context.ApplicationScoped;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.stackgres.operator.common.StackGresClusterConfig;
-import io.stackgres.operator.resource.AbstractStackGresClusterResourceHandler;
+import io.stackgres.operator.resource.AbstractClusterResourceHandler;
 import io.stackgres.operatorframework.resource.PairVisitor;
 import io.stackgres.operatorframework.resource.ResourceHandlerContext;
 import io.stackgres.operatorframework.resource.ResourcePairVisitor;
 
 @ApplicationScoped
-public class PatroniSecretHandler extends AbstractStackGresClusterResourceHandler {
+public class PatroniSecretHandler extends AbstractClusterResourceHandler {
 
   @Override
   public boolean isHandlerForResource(StackGresClusterConfig config, HasMetadata resource) {

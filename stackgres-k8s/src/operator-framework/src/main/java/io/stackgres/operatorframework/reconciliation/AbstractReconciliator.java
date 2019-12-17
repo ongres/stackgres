@@ -33,18 +33,6 @@ public abstract class AbstractReconciliator<T> implements ResourceHandlerContext
   protected final ImmutableList<Tuple2<HasMetadata, Optional<HasMetadata>>> requiredResources;
   protected final ImmutableList<Tuple2<HasMetadata, Optional<HasMetadata>>> existingResources;
 
-  public AbstractReconciliator() {
-    System.out.println("Test");
-    this.name = null;
-    this.handlerSelector = null;
-    this.client = null;
-    this.objectMapper = null;
-    this.config = null;
-    this.configResource = null;
-    this.requiredResources = null;
-    this.existingResources = null;
-  }
-
   protected AbstractReconciliator(String name, ResourceHandlerSelector<T> handlerSelector,
       KubernetesClient client, ObjectMapper objectMapper, T config, HasMetadata configResource,
       ImmutableList<Tuple2<HasMetadata, Optional<HasMetadata>>> requiredResources,

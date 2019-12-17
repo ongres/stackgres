@@ -12,7 +12,7 @@ import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetSpec;
 import io.stackgres.operator.common.StackGresClusterConfig;
-import io.stackgres.operator.resource.AbstractStackGresClusterResourceHandler;
+import io.stackgres.operator.resource.AbstractClusterResourceHandler;
 import io.stackgres.operator.resource.ResourceUtil;
 import io.stackgres.operatorframework.resource.PairVisitor;
 import io.stackgres.operatorframework.resource.ResourceHandlerContext;
@@ -22,7 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
-public class StackGresStatefulSetHandler extends AbstractStackGresClusterResourceHandler {
+public class StackGresStatefulSetHandler extends AbstractClusterResourceHandler {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(StackGresStatefulSetHandler.class);
 

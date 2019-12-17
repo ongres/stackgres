@@ -46,15 +46,6 @@ public abstract class AbstractReconciliationCycle<T> {
 
   private AtomicInteger reconciliationCount = new AtomicInteger(0);
 
-  public AbstractReconciliationCycle() {
-    this.name = null;
-    this.clientSupplier = null;
-    this.configGetter = null;
-    this.handlerSelector = null;
-    this.objectMapper = null;
-    this.executorService = null;
-  }
-
   protected AbstractReconciliationCycle(String name, Supplier<KubernetesClient> clientSupplier,
       Function<T, HasMetadata> configGetter, ResourceHandlerSelector<T> handlerSelector,
       ObjectMapper objectMapper) {

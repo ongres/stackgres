@@ -10,10 +10,10 @@ import javax.enterprise.context.ApplicationScoped;
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.operator.common.StackGresClusterConfig;
-import io.stackgres.operator.resource.AbstractStackGresClusterResourceHandler;
+import io.stackgres.operator.resource.AbstractClusterResourceHandler;
 
 @ApplicationScoped
-public class PrometheusEndpointsHandler extends AbstractStackGresClusterResourceHandler {
+public class PrometheusEndpointsHandler extends AbstractClusterResourceHandler {
 
   @Override
   public boolean isHandlerForResource(StackGresClusterConfig config, HasMetadata resource) {
