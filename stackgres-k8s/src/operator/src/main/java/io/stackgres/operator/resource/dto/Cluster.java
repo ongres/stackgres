@@ -16,7 +16,7 @@ public class Cluster extends CustomResource {
 
   private StackGresClusterSpec spec;
 
-  private ClusterStatus status;
+  private ClusterResourceConsumtion status;
 
   public StackGresClusterSpec getSpec() {
     return spec;
@@ -26,11 +26,11 @@ public class Cluster extends CustomResource {
     this.spec = spec;
   }
 
-  public ClusterStatus getStatus() {
+  public ClusterResourceConsumtion getStatus() {
     return status;
   }
 
-  public void setStatus(ClusterStatus status) {
+  public void setStatus(ClusterResourceConsumtion status) {
     this.status = status;
   }
 }

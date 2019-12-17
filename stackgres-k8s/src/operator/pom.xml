@@ -22,6 +22,7 @@
     <stackgres.group>stackgres.io</stackgres.group>
     <stackgres.crd.version>v1alpha1</stackgres.crd.version>
     <stackgres.prometheus.allowAutobind>true</stackgres.prometheus.allowAutobind>
+    <stackgres.prometheus.grafanaEmbedded>false</stackgres.prometheus.grafanaEmbedded>
 
     <quarkus.http.ssl.certificate.file>/etc/operator/certs/server.crt</quarkus.http.ssl.certificate.file>
     <quarkus.http.ssl.certificate.key-file>/etc/operator/certs/root.key</quarkus.http.ssl.certificate.key-file>
