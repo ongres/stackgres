@@ -18,7 +18,8 @@ import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.customresource.sgcluster.StackGresClusterDefinition;
 import io.stackgres.operator.customresource.sgcluster.StackGresClusterList;
 import io.stackgres.operator.resource.KubernetesCustomResourceFinder;
-import io.stackgres.operator.resource.dto.ClusterStatus;
+import io.stackgres.operator.resource.dto.ClusterPodConfig;
+import io.stackgres.operator.resource.dto.ClusterResourceConsumtion;
 
 @Path("/stackgres/cluster")
 @Produces(MediaType.APPLICATION_JSON)
@@ -27,7 +28,10 @@ public class StackGresClusterResource
     extends AbstractCustomResourceRestService<StackGresCluster, StackGresClusterList> {
 
   @Inject
-  KubernetesCustomResourceFinder<ClusterStatus> statusFinder;
+  KubernetesCustomResourceFinder<ClusterResourceConsumtion> statusFinder;
+
+  @Inject
+  KubernetesCustomResourceFinder<ClusterPodConfig> detailsFinder;
 
   public StackGresClusterResource() {
     super(StackGresClusterDefinition.NAME);
@@ -38,12 +42,20 @@ public class StackGresClusterResource
    */
   @Path("/status/{namespace}/{name}")
   @GET
-  public ClusterStatus status(@PathParam("namespace") String namespace,
-                              @PathParam("name") String name) {
+  public ClusterResourceConsumtion status(@PathParam("namespace") String namespace,
+                                          @PathParam("name") String name) {
 
     return statusFinder.findByNameAndNamespace(name, namespace)
         .orElseThrow(NotFoundException::new);
 
+  }
+
+  @Path("/pods/{namespace}/{name}")
+  @GET
+  public ClusterPodConfig details(@PathParam("namespace") String namespace,
+                                  @PathParam("name") String name) {
+    return detailsFinder.findByNameAndNamespace(namespace, name)
+        .orElseThrow(NotFoundException::new);
   }
 
 }

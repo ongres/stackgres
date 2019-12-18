@@ -60,6 +60,10 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: status.podIP
+          {{- if and .Values.grafana.url .Values.grafana.token .Values.grafana.httpHost }}
+          - name: GRAFANA_EMBEDDED          
+            value: "true"
+          {{ end }}
         ports:
         - containerPort: 8080
           name: "http"

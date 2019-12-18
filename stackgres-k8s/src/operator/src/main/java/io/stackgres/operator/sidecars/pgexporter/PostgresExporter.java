@@ -62,10 +62,10 @@ public class PostgresExporter
 
   public static final String EXPORTER_SERVICE_MONITOR = "-stackgres-prometheus-postgres-exporter";
   public static final String EXPORTER_SERVICE = "-prometheus-postgres-exporter";
+  public static final String NAME = "prometheus-postgres-exporter";
 
   private static final Logger LOGGER = LoggerFactory.getLogger(PostgresExporter.class);
 
-  private static final String NAME = "prometheus-postgres-exporter";
   private static final String IMAGE_NAME =
       "docker.io/ongres/prometheus-postgres-exporter:v%s-build-%s";
   private static final String DEFAULT_VERSION = "0.7.0";

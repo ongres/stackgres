@@ -13,7 +13,8 @@ public enum ConfigProperty {
   CRD_GROUP("stackgres.group"),
   CRD_VERSION("stackgres.crd.version"),
   CONTAINER_BUILD("stackgres.containerBuild"),
-  PROMETHEUS_AUTOBIND("stackgres.prometheus.allowAutobind");
+  PROMETHEUS_AUTOBIND("stackgres.prometheus.allowAutobind"),
+  GRAFANA_EMBEDDED("stackgres.prometheus.grafanaEmbedded");
 
   private final String systemProperty;
 
