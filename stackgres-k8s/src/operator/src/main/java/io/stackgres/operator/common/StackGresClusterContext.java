@@ -10,25 +10,28 @@ import java.util.Optional;
 import com.google.common.collect.ImmutableList;
 
 import io.fabric8.kubernetes.client.CustomResource;
+import io.stackgres.operator.customresource.sgbackup.StackGresBackup;
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfile;
 
-public class StackGresClusterConfig {
+public class StackGresClusterContext {
 
   private final StackGresCluster cluster;
   private final Optional<StackGresPostgresConfig> postgresConfig;
   private final Optional<StackGresBackupConfig> backupConfig;
   private final Optional<StackGresProfile> profile;
-  private final ImmutableList<SidecarEntry<?, StackGresClusterConfig>> sidecars;
+  private final ImmutableList<SidecarEntry<?, StackGresClusterContext>> sidecars;
+  private final ImmutableList<StackGresBackup> backups;
 
-  private StackGresClusterConfig(Builder builder) {
+  private StackGresClusterContext(Builder builder) {
     this.cluster = builder.cluster;
     this.postgresConfig = builder.postgresConfig;
     this.backupConfig = builder.backupConfig;
     this.profile = builder.profile;
     this.sidecars = builder.sidecars;
+    this.backups = builder.backups;
   }
 
   public StackGresCluster getCluster() {
@@ -47,8 +50,12 @@ public class StackGresClusterConfig {
     return profile;
   }
 
-  public ImmutableList<SidecarEntry<?, StackGresClusterConfig>> getSidecars() {
+  public ImmutableList<SidecarEntry<?, StackGresClusterContext>> getSidecars() {
     return sidecars;
+  }
+
+  public ImmutableList<StackGresBackup> getBackups() {
+    return backups;
   }
 
   /**
@@ -67,7 +74,7 @@ public class StackGresClusterConfig {
   }
 
   /**
-   * Creates builder to build {@link StackGresClusterConfig}.
+   * Creates builder to build {@link StackGresClusterContext}.
    * @return created builder
    */
   public static Builder builder() {
@@ -75,14 +82,15 @@ public class StackGresClusterConfig {
   }
 
   /**
-   * Builder to build {@link StackGresClusterConfig}.
+   * Builder to build {@link StackGresClusterContext}.
    */
   public static final class Builder {
     private StackGresCluster cluster;
     private Optional<StackGresPostgresConfig> postgresConfig;
     private Optional<StackGresBackupConfig> backupConfig;
     private Optional<StackGresProfile> profile;
-    private ImmutableList<SidecarEntry<?, StackGresClusterConfig>> sidecars;
+    private ImmutableList<SidecarEntry<?, StackGresClusterContext>> sidecars;
+    private ImmutableList<StackGresBackup> backups;
 
     private Builder() {
     }
@@ -107,13 +115,18 @@ public class StackGresClusterConfig {
       return this;
     }
 
-    public Builder withSidecars(ImmutableList<SidecarEntry<?, StackGresClusterConfig>> sidecars) {
+    public Builder withSidecars(ImmutableList<SidecarEntry<?, StackGresClusterContext>> sidecars) {
       this.sidecars = sidecars;
       return this;
     }
 
-    public StackGresClusterConfig build() {
-      return new StackGresClusterConfig(this);
+    public Builder withBackups(ImmutableList<StackGresBackup> backups) {
+      this.backups = backups;
+      return this;
+    }
+
+    public StackGresClusterContext build() {
+      return new StackGresClusterContext(this);
     }
   }
 

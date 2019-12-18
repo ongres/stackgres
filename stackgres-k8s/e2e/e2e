@@ -10,7 +10,7 @@ TARGET_PATH="$(dirname "$0")/target"
 BUILD_OPERATOR="${BUILD_OPERATOR:-true}"
 WAIT_OPERATOR="${WAIT_OPERATOR:-true}"
 RESET_NAMESPACES="${RESET_NAMESPACE:-true}"
-TIMEOUT="${TIMEOUT:-600}"
+TIMEOUT="${TIMEOUT:-180}"
 TRAP_ENABLED="${TRAP_ENABLED:-false}"
 SKIP_K8S_SETUP="${SKIP_K8S_SETUP:-false}"
 
@@ -106,11 +106,7 @@ setup_k8s() {
     then
       kubectl get namespace -o name \
         | grep -v "^namespace/\(default\|kube-system\|kube-public\|minio\)$" \
-        | xargs -r -n 1 -I % -P 0 sh -ec '
-        kubectl delete namespace % &
-        sleep 3
-        kubectl delete pod -n % --all --force --grace-period 0
-        wait'
+        | xargs -r -n 1 -I % -P 0 kubectl delete namespace %
     fi
     helm install --name stackgres-operator --namespace stackgres "$OPERATOR_CHART_PATH" \
       --set-string image.tag="$IMAGE_TAG" --set-string image.pullPolicy=Never
@@ -132,11 +128,7 @@ setup_k8s() {
     then
       kubectl get namespace -o name \
         | grep -v "^namespace/\(default\|kube-system\|kube-public\|minio\|stackgres\)$" | cut -d / -f 2 \
-        | xargs -r -n 1 -I % -P 0 sh -ec '
-        kubectl delete namespace % &
-        sleep 3
-        kubectl delete pod -n % --all --force --grace-period 0
-        wait'
+        | xargs -r -n 1 -I % -P 0 kubectl delete namespace %
     fi
   fi
 

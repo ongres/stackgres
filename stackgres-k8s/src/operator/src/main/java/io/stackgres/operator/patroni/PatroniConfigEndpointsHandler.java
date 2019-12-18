@@ -22,7 +22,7 @@ import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.stackgres.operator.app.ObjectMapperProvider;
-import io.stackgres.operator.common.StackGresClusterConfig;
+import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.resource.AbstractClusterResourceHandler;
 import io.stackgres.operatorframework.resource.PairVisitor;
 import io.stackgres.operatorframework.resource.ResourceHandlerContext;
@@ -47,33 +47,34 @@ public class PatroniConfigEndpointsHandler extends AbstractClusterResourceHandle
   }
 
   @Override
-  public boolean isHandlerForResource(StackGresClusterConfig config, HasMetadata resource) {
-    return config != null
+  public boolean isHandlerForResource(StackGresClusterContext context, HasMetadata resource) {
+    return context != null
         && resource instanceof Endpoints
         && resource.getMetadata().getNamespace().equals(
-            config.getCluster().getMetadata().getNamespace())
+            context.getCluster().getMetadata().getNamespace())
         && resource.getMetadata().getName().equals(
-            config.getCluster().getMetadata().getName() + PatroniServices.CONFIG_SERVICE);
+            context.getCluster().getMetadata().getName() + PatroniServices.CONFIG_SERVICE);
   }
 
   @Override
-  public boolean equals(ResourceHandlerContext<StackGresClusterConfig> resourceHandlerContext,
+  public boolean equals(ResourceHandlerContext<StackGresClusterContext> resourceHandlerContext,
       HasMetadata existingResource, HasMetadata requiredResource) {
     return ResourcePairVisitor.equals(new EndpointsVisitor<>(resourceHandlerContext),
         existingResource, requiredResource);
   }
 
   @Override
-  public HasMetadata update(ResourceHandlerContext<StackGresClusterConfig> resourceHandlerContext,
+  public HasMetadata update(ResourceHandlerContext<StackGresClusterContext> resourceHandlerContext,
       HasMetadata existingResource, HasMetadata requiredResource) {
     return ResourcePairVisitor.update(new EndpointsVisitor<>(resourceHandlerContext),
         existingResource, requiredResource);
   }
 
   private class EndpointsVisitor<T>
-      extends ResourcePairVisitor<T, ResourceHandlerContext<StackGresClusterConfig>> {
+      extends ResourcePairVisitor<T, ResourceHandlerContext<StackGresClusterContext>> {
 
-    public EndpointsVisitor(ResourceHandlerContext<StackGresClusterConfig> resourceHandlerContext) {
+    public EndpointsVisitor(
+        ResourceHandlerContext<StackGresClusterContext> resourceHandlerContext) {
       super(resourceHandlerContext);
     }
 

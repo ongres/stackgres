@@ -41,10 +41,6 @@ public class StackGresClusterCondition implements KubernetesResource {
   @NotBlank(message = "The condition type is required")
   private String type;
 
-  public StackGresClusterCondition() {
-    super();
-  }
-
   /**
    * Constructor of the required fields.
    *
@@ -56,6 +52,9 @@ public class StackGresClusterCondition implements KubernetesResource {
     this.type = type;
     this.status = status;
     this.reason = reason;
+  }
+
+  public StackGresClusterCondition() {
   }
 
   public String getLastTransitionTime() {

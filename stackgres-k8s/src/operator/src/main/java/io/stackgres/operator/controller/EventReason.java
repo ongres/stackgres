@@ -14,6 +14,10 @@ public enum EventReason {
   CLUSTER_UPDATED(NORMAL, "ClusterUpdated"),
   CLUSTER_DELETED(NORMAL, "ClusterDeleted"),
   CLUSTER_CONFIG_ERROR(WARNING, "ClusterConfigFailed"),
+  BACKUP_CREATED(NORMAL, "BackupCreated"),
+  BACKUP_UPDATED(NORMAL, "BackupUpdated"),
+  BACKUP_DELETED(NORMAL, "BackupDeleted"),
+  BACKUP_CONFIG_ERROR(WARNING, "BackupConfigFailed"),
   OPERATOR_ERROR(WARNING, "OperatorError");
 
   private final String type;

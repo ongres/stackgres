@@ -28,13 +28,13 @@ public abstract class AbstractReconciliator<T> implements ResourceHandlerContext
   protected final ResourceHandlerSelector<T> handlerSelector;
   protected final KubernetesClient client;
   protected final ObjectMapper objectMapper;
-  protected final T config;
-  protected final HasMetadata configResource;
+  protected final T context;
+  protected final HasMetadata contextResource;
   protected final ImmutableList<Tuple2<HasMetadata, Optional<HasMetadata>>> requiredResources;
   protected final ImmutableList<Tuple2<HasMetadata, Optional<HasMetadata>>> existingResources;
 
   protected AbstractReconciliator(String name, ResourceHandlerSelector<T> handlerSelector,
-      KubernetesClient client, ObjectMapper objectMapper, T config, HasMetadata configResource,
+      KubernetesClient client, ObjectMapper objectMapper, T context, HasMetadata contextResource,
       ImmutableList<Tuple2<HasMetadata, Optional<HasMetadata>>> requiredResources,
       ImmutableList<Tuple2<HasMetadata, Optional<HasMetadata>>> existingResources) {
     super();
@@ -42,15 +42,15 @@ public abstract class AbstractReconciliator<T> implements ResourceHandlerContext
     this.handlerSelector = handlerSelector;
     this.client = client;
     this.objectMapper = objectMapper;
-    this.config = config;
-    this.configResource = configResource;
+    this.context = context;
+    this.contextResource = contextResource;
     this.requiredResources = requiredResources;
     this.existingResources = existingResources;
   }
 
   @Override
   public T getConfig() {
-    return config;
+    return context;
   }
 
   @Override
@@ -69,18 +69,18 @@ public abstract class AbstractReconciliator<T> implements ResourceHandlerContext
     for (Tuple2<HasMetadata, Optional<HasMetadata>> existingResource : existingResources) {
       if (existingResource.v1.getMetadata().getOwnerReferences().stream()
           .map(ownerReference -> ownerReference.getApiVersion()
-              .equals(configResource.getApiVersion())
+              .equals(contextResource.getApiVersion())
               && ownerReference.getKind()
-              .equals(configResource.getKind())
+              .equals(contextResource.getKind())
               && ownerReference.getName()
-              .equals(configResource.getMetadata().getName())
+              .equals(contextResource.getMetadata().getName())
               && ownerReference.getUid()
-              .equals(configResource.getMetadata().getUid()))
+              .equals(contextResource.getMetadata().getUid()))
           .map(resourceBelongsToCurrentConfig -> !resourceBelongsToCurrentConfig)
           .findFirst()
           .orElse(true)
-          && !handlerSelector.isManaged(config, existingResource.v1)) {
-        if (handlerSelector.skipDeletion(config, existingResource.v1)) {
+          && !handlerSelector.isManaged(context, existingResource.v1)) {
+        if (handlerSelector.skipDeletion(context, existingResource.v1)) {
           LOGGER.trace("Skip deletion for resource {}.{} of type {}",
               existingResource.v1.getMetadata().getNamespace(),
               existingResource.v1.getMetadata().getName(),
@@ -92,10 +92,10 @@ public abstract class AbstractReconciliator<T> implements ResourceHandlerContext
             existingResource.v1.getMetadata().getNamespace(),
             existingResource.v1.getMetadata().getName(),
             existingResource.v1.getKind());
-        handlerSelector.delete(client, config, existingResource.v1);
+        handlerSelector.delete(client, context, existingResource.v1);
       } else if (!existingResource.v2.isPresent()
-          && !handlerSelector.isManaged(config, existingResource.v1)) {
-        if (handlerSelector.skipDeletion(config, existingResource.v1)) {
+          && !handlerSelector.isManaged(context, existingResource.v1)) {
+        if (handlerSelector.skipDeletion(context, existingResource.v1)) {
           LOGGER.trace("Skip deletion for resource {}.{} of type {}",
               existingResource.v1.getMetadata().getNamespace(),
               existingResource.v1.getMetadata().getName(),
@@ -107,7 +107,7 @@ public abstract class AbstractReconciliator<T> implements ResourceHandlerContext
             existingResource.v1.getMetadata().getNamespace(),
             existingResource.v1.getMetadata().getName(),
             existingResource.v1.getKind());
-        handlerSelector.delete(client, config, existingResource.v1);
+        handlerSelector.delete(client, context, existingResource.v1);
       }
     }
     for (Tuple2<HasMetadata, Optional<HasMetadata>> requiredResource : requiredResources) {
@@ -132,10 +132,10 @@ public abstract class AbstractReconciliator<T> implements ResourceHandlerContext
         HasMetadata updatedExistingResource = Unchecked.supplier(() -> objectMapper.treeToValue(
             objectMapper.valueToTree(existingResource), existingResource.getClass())).get();
         handlerSelector.update(this, updatedExistingResource, requiredResource.v1);
-        handlerSelector.patch(client, config, updatedExistingResource);
+        handlerSelector.patch(client, context, updatedExistingResource);
         updated = true;
       } else {
-        if (handlerSelector.skipCreation(config, requiredResource.v1)) {
+        if (handlerSelector.skipCreation(context, requiredResource.v1)) {
           LOGGER.trace("Skip creation for resource {}.{} of type {}",
               requiredResource.v1.getMetadata().getNamespace(),
               requiredResource.v1.getMetadata().getName(),
@@ -146,28 +146,28 @@ public abstract class AbstractReconciliator<T> implements ResourceHandlerContext
             requiredResource.v1.getMetadata().getNamespace(),
             requiredResource.v1.getMetadata().getName(),
             requiredResource.v1.getKind());
-        handlerSelector.create(client, config, requiredResource.v1);
+        handlerSelector.create(client, context, requiredResource.v1);
         created = true;
       }
     }
 
     if (updated) {
       LOGGER.info(name + " updated: '{}.{}'",
-          configResource.getMetadata().getNamespace(),
-          configResource.getMetadata().getName());
+          contextResource.getMetadata().getNamespace(),
+          contextResource.getMetadata().getName());
       onConfigUpdated();
     }
 
     if (created && !updated) {
       LOGGER.info(name + " created: '{}.{}'",
-          configResource.getMetadata().getNamespace(),
-          configResource.getMetadata().getName());
+          contextResource.getMetadata().getNamespace(),
+          contextResource.getMetadata().getName());
       onConfigCreated();
     }
 
     LOGGER.debug(name + " synced: '{}.{}'",
-        configResource.getMetadata().getNamespace(),
-        configResource.getMetadata().getName());
+        contextResource.getMetadata().getNamespace(),
+        contextResource.getMetadata().getName());
   }
 
   protected abstract void onConfigCreated();

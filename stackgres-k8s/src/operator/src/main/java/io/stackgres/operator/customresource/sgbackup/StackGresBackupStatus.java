@@ -21,12 +21,13 @@ public class StackGresBackupStatus implements KubernetesResource {
 
   private static final long serialVersionUID = 4124027524757318245L;
 
+  private String backupConfig;
   private String phase;
   private String pod;
   private String failureReason;
   private String name;
-  private String lastModified;
-  private String walSegmentBackupStart;
+  private String time;
+  private String walFileName;
   private String startTime;
   private String finishTime;
   private String hostname;
@@ -34,9 +35,20 @@ public class StackGresBackupStatus implements KubernetesResource {
   private String pgVersion;
   private String startLsn;
   private String finishLsn;
-  private Long size;
+  private Boolean isPermanent;
+  private String systemIdentifier;
+  private Long uncompressedSize;
+  private Long compressedSize;
   private Map<String, String> controlData;
   private Boolean tested;
+
+  public String getBackupConfig() {
+    return backupConfig;
+  }
+
+  public void setBackupConfig(String backupConfig) {
+    this.backupConfig = backupConfig;
+  }
 
   public String getPhase() {
     return phase;
@@ -70,20 +82,20 @@ public class StackGresBackupStatus implements KubernetesResource {
     this.name = name;
   }
 
-  public String getLastModified() {
-    return lastModified;
+  public String getTime() {
+    return time;
   }
 
-  public void setLastModified(String lastModified) {
-    this.lastModified = lastModified;
+  public void setTime(String time) {
+    this.time = time;
   }
 
-  public String getWalSegmentBackupStart() {
-    return walSegmentBackupStart;
+  public String getWalFileName() {
+    return walFileName;
   }
 
-  public void setWalSegmentBackupStart(String walSegmentBackupStart) {
-    this.walSegmentBackupStart = walSegmentBackupStart;
+  public void setWalFileName(String walFileName) {
+    this.walFileName = walFileName;
   }
 
   public String getStartTime() {
@@ -142,12 +154,36 @@ public class StackGresBackupStatus implements KubernetesResource {
     this.finishLsn = finishLsn;
   }
 
-  public Long getSize() {
-    return size;
+  public Boolean getIsPermanent() {
+    return isPermanent;
   }
 
-  public void setSize(Long size) {
-    this.size = size;
+  public void setIsPermanent(Boolean isPermanent) {
+    this.isPermanent = isPermanent;
+  }
+
+  public String getSystemIdentifier() {
+    return systemIdentifier;
+  }
+
+  public void setSystemIdentifier(String systemIdentifier) {
+    this.systemIdentifier = systemIdentifier;
+  }
+
+  public Long getUncompressedSize() {
+    return uncompressedSize;
+  }
+
+  public void setUncompressedSize(Long uncompressedSize) {
+    this.uncompressedSize = uncompressedSize;
+  }
+
+  public Long getCompressedSize() {
+    return compressedSize;
+  }
+
+  public void setCompressedSize(Long compressedSize) {
+    this.compressedSize = compressedSize;
   }
 
   public Map<String, String> getControlData() {
@@ -170,12 +206,13 @@ public class StackGresBackupStatus implements KubernetesResource {
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .omitNullValues()
+        .add("backupConfig", backupConfig)
         .add("phase", phase)
         .add("pod", pod)
         .add("failureReason", failureReason)
         .add("name", name)
-        .add("lastModified", lastModified)
-        .add("walSegmentBackupStart", walSegmentBackupStart)
+        .add("time", time)
+        .add("walFileName", walFileName)
         .add("startTime", startTime)
         .add("finishTime", finishTime)
         .add("hostname", hostname)
@@ -183,7 +220,10 @@ public class StackGresBackupStatus implements KubernetesResource {
         .add("pgVersion", pgVersion)
         .add("startLsn", startLsn)
         .add("finishLsn", finishLsn)
-        .add("size", size)
+        .add("isPermanent", isPermanent)
+        .add("systemIdentifier", systemIdentifier)
+        .add("uncompressedSize", uncompressedSize)
+        .add("compressedSize", compressedSize)
         .add("controlData", controlData)
         .add("tested", tested)
         .toString();

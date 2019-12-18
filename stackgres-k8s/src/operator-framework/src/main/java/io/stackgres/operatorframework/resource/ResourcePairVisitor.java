@@ -51,6 +51,7 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetSpec;
 import io.fabric8.kubernetes.api.model.batch.CronJob;
 import io.fabric8.kubernetes.api.model.batch.CronJobSpec;
+import io.fabric8.kubernetes.api.model.batch.Job;
 import io.fabric8.kubernetes.api.model.batch.JobSpec;
 import io.fabric8.kubernetes.api.model.batch.JobTemplateSpec;
 import io.fabric8.kubernetes.api.model.rbac.Role;
@@ -141,6 +142,7 @@ public class ResourcePairVisitor<T, C> {
         .lastVisitIfBothInstanceOf(ConfigMap.class, this::visitConfigMap)
         .lastVisitIfBothInstanceOf(Endpoints.class, this::visitEndpoints)
         .lastVisitIfBothInstanceOf(CronJob.class, this::visitCronJob)
+        .lastVisitIfBothInstanceOf(Job.class, this::visitJob)
         .lastVisitIfBothInstanceOf(Pod.class, this::visitPod)
         .lastVisitIfBothInstanceOf(PersistentVolumeClaim.class, this::visitPersistentVolumeClaim)
         .lastVisit(this::visitUnknown);
@@ -192,6 +194,17 @@ public class ResourcePairVisitor<T, C> {
         .visitWith(CronJobSpec::getJobTemplate, CronJobSpec::setJobTemplate,
             this::visitJobTemplateSpec)
         .visitMap(CronJobSpec::getAdditionalProperties);
+  }
+
+  /**
+   * Visit using a pair visitor.
+   */
+  public PairVisitor<Job, T> visitJob(
+      PairVisitor<Job, T> pairVisitor) {
+    return pairVisitor.visit()
+        .visitWith(Job::getSpec, Job::setSpec,
+            this::visitJobSpec)
+        .visitMap(Job::getAdditionalProperties);
   }
 
   /**

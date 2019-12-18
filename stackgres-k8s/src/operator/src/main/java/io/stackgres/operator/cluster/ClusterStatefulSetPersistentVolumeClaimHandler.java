@@ -9,21 +9,21 @@ import javax.enterprise.context.ApplicationScoped;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
-import io.stackgres.operator.common.StackGresClusterConfig;
+import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.resource.AbstractClusterResourceHandler;
 
 @ApplicationScoped
-public class StackGresStatefulSetPersistentVolumeClaimHandler
+public class ClusterStatefulSetPersistentVolumeClaimHandler
     extends AbstractClusterResourceHandler {
 
   @Override
-  public boolean isHandlerForResource(StackGresClusterConfig config, HasMetadata resource) {
-    return config != null
+  public boolean isHandlerForResource(StackGresClusterContext context, HasMetadata resource) {
+    return context != null
         && resource instanceof PersistentVolumeClaim
         && resource.getMetadata().getNamespace().equals(
-            config.getCluster().getMetadata().getNamespace())
+            context.getCluster().getMetadata().getNamespace())
         && resource.getMetadata().getName().startsWith(
-            config.getCluster().getMetadata().getName() + StackGresStatefulSet.DATA_SUFFIX + "-");
+            context.getCluster().getMetadata().getName() + ClusterStatefulSet.DATA_SUFFIX + "-");
   }
 
   @Override

@@ -13,14 +13,14 @@ import com.google.common.collect.ImmutableList;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.stackgres.operator.common.StackGresClusterConfig;
+import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operatorframework.reconciliation.AbstractReconciliator;
 import io.stackgres.operatorframework.resource.ResourceHandlerSelector;
 
 import org.jooq.lambda.tuple.Tuple2;
 
-public class ClusterReconciliator extends AbstractReconciliator<StackGresClusterConfig> {
+public class ClusterReconciliator extends AbstractReconciliator<StackGresClusterContext> {
 
   private final ClusterStatusManager statusManager;
   private final EventController eventController;
@@ -28,7 +28,7 @@ public class ClusterReconciliator extends AbstractReconciliator<StackGresCluster
   private ClusterReconciliator(Builder builder) {
     super("Cluster", builder.handlerSelector,
         builder.client, builder.objectMapper,
-        builder.clusterConfig, builder.clusterConfig.getCluster(),
+        builder.clusterContext, builder.clusterContext.getCluster(),
         builder.requiredResources,
         builder.existingResources);
     Objects.requireNonNull(builder.handlerSelector);
@@ -36,7 +36,7 @@ public class ClusterReconciliator extends AbstractReconciliator<StackGresCluster
     Objects.requireNonNull(builder.eventController);
     Objects.requireNonNull(builder.client);
     Objects.requireNonNull(builder.objectMapper);
-    Objects.requireNonNull(builder.clusterConfig);
+    Objects.requireNonNull(builder.clusterContext);
     Objects.requireNonNull(builder.existingResources);
     Objects.requireNonNull(builder.requiredResources);
     this.statusManager = builder.statusManager;
@@ -46,18 +46,18 @@ public class ClusterReconciliator extends AbstractReconciliator<StackGresCluster
   @Override
   protected void onConfigCreated() {
     eventController.sendEvent(EventReason.CLUSTER_CREATED,
-        "StackGres Cluster " + configResource.getMetadata().getNamespace() + "."
-        + configResource.getMetadata().getName() + " created", configResource);
+        "StackGres Cluster " + contextResource.getMetadata().getNamespace() + "."
+        + contextResource.getMetadata().getName() + " created", contextResource);
   }
 
   @Override
   protected void onConfigUpdated() {
     eventController.sendEvent(EventReason.CLUSTER_UPDATED,
-        "StackGres Cluster " + configResource.getMetadata().getNamespace() + "."
-        + configResource.getMetadata().getName() + " updated", configResource);
-    statusManager.updatePendingRestart((StackGresCluster) configResource);
+        "StackGres Cluster " + contextResource.getMetadata().getNamespace() + "."
+        + contextResource.getMetadata().getName() + " updated", contextResource);
+    statusManager.updatePendingRestart((StackGresCluster) contextResource);
     statusManager.sendCondition(ClusterStatusCondition.FALSE_FAILED,
-        (StackGresCluster) configResource);
+        (StackGresCluster) contextResource);
   }
 
   /**
@@ -72,19 +72,19 @@ public class ClusterReconciliator extends AbstractReconciliator<StackGresCluster
    * Builder to build {@link ClusterReconciliator}.
    */
   public static final class Builder {
-    private ResourceHandlerSelector<StackGresClusterConfig> handlerSelector;
+    private ResourceHandlerSelector<StackGresClusterContext> handlerSelector;
     private ClusterStatusManager statusManager;
     private EventController eventController;
     private KubernetesClient client;
     private ObjectMapper objectMapper;
-    private StackGresClusterConfig clusterConfig;
+    private StackGresClusterContext clusterContext;
     private ImmutableList<Tuple2<HasMetadata, Optional<HasMetadata>>> existingResources;
     private ImmutableList<Tuple2<HasMetadata, Optional<HasMetadata>>> requiredResources;
 
     private Builder() {}
 
     public Builder withHandlerSelector(
-        ResourceHandlerSelector<StackGresClusterConfig> handlerSelector) {
+        ResourceHandlerSelector<StackGresClusterContext> handlerSelector) {
       this.handlerSelector = handlerSelector;
       return this;
     }
@@ -109,8 +109,8 @@ public class ClusterReconciliator extends AbstractReconciliator<StackGresCluster
       return this;
     }
 
-    public Builder withClusterConfig(StackGresClusterConfig clusterConfig) {
-      this.clusterConfig = clusterConfig;
+    public Builder withClusterContext(StackGresClusterContext clusterContext) {
+      this.clusterContext = clusterContext;
       return this;
     }
 

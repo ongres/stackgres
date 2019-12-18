@@ -24,6 +24,9 @@ spec:
         spec:
           type:
           properties:
+            clusterName:
+              type: string
+              description: "The name of the cluster where the backup will or has been taken."
             isPermanent:
               type: boolean
               description: "Indicate if this backup is permanent and should not be removed by retention process."
@@ -32,7 +35,7 @@ spec:
           properties:
             phase:
               type: string
-              enum: [ "pending", "completed", "failed" ]
+              enum: [ "Pending", "Completed", "Failed" ]
               description: "The phase of the backup."
             pod:
               type: string
@@ -40,19 +43,19 @@ spec:
             failureReason:
               type: string
               description: "If the phase is failed this field will contain a message with the failure reason."
-            backupConf:
+            backupConfig:
               type: string
               description: "The name of the backup configuration used to perform this backup."
             name:
               type: string
               description: "The name of the backup."
-            lastModified:
+            time:
               type: string
               format: date-time
-              description: "The last modified date of the backup."
-            walSegmentBackupStart:
+              description: "The date of the backup."
+            walFileName:
               type: string
-              description: "The WAL segment when backup was started."
+              description: "The WAL file name when backup was started."
             startTime:
               type: string
               format: date-time
@@ -76,10 +79,20 @@ spec:
             finishLsn:
               type: string
               description: "The LSN of when backup finished."
-            size:
+            isPermanent:
+              type: boolean
+              description: "Indicate internally if this backup is permanent and should not be removed by retention process."
+            systemIdentifier:
+              type: string
+              description: "The internal system identifier of this backup."
+            uncompressedSize:
               type: integer
               format: int64
-              description: "The size in bytes of the backup."
+              description: "The size in bytes of the uncompressed backup."
+            compressedSize:
+              type: integer
+              format: int64
+              description: "The size in bytes of the compressed backup."
             controlData:
               type: object
               description: "An object containing data from the output of pg_controldata on the backup."

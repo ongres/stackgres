@@ -5,7 +5,6 @@
 
 package io.stackgres.operator.resource;
 
-import java.util.Arrays;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -14,50 +13,43 @@ import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
-import io.quarkus.arc.Arc;
-import io.stackgres.operator.common.StackGresClusterConfig;
+import io.stackgres.operator.common.ArcUtil;
+import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operatorframework.resource.AbstractResourceHandlerSelector;
 import io.stackgres.operatorframework.resource.KindLiteral;
 import io.stackgres.operatorframework.resource.ResourceHandler;
 
 @ApplicationScoped
 public class ClusterResourceHandlerSelector
-    extends AbstractResourceHandlerSelector<StackGresClusterConfig> {
+    extends AbstractResourceHandlerSelector<StackGresClusterContext> {
 
-  private final Instance<ResourceHandler<StackGresClusterConfig>> handlers;
+  private final Instance<ResourceHandler<StackGresClusterContext>> handlers;
 
   @Inject
   public ClusterResourceHandlerSelector(
-      @Any Instance<ResourceHandler<StackGresClusterConfig>> handlers) {
+      @Any Instance<ResourceHandler<StackGresClusterContext>> handlers) {
     this.handlers = handlers;
   }
 
   public ClusterResourceHandlerSelector() {
-    if (Arrays.asList(new Exception().fillInStackTrace()
-        .getStackTrace())
-        .stream()
-        .noneMatch(stackTraceElement -> stackTraceElement.getClassName()
-            .equals(Arc.class.getName()))) {
-      throw new IllegalStateException("Public no-args constructor can only be used from "
-          + Arc.class.getName() + " class");
-    }
+    ArcUtil.checkPublicNoArgsConstructorIsCalledFromArc();
     this.handlers = null;
   }
 
   @Override
-  protected Stream<ResourceHandler<StackGresClusterConfig>> getResourceHandlers() {
+  protected Stream<ResourceHandler<StackGresClusterContext>> getResourceHandlers() {
     return handlers.stream();
   }
 
   @Override
-  protected Optional<ResourceHandler<StackGresClusterConfig>> selectResourceHandler(
+  protected Optional<ResourceHandler<StackGresClusterContext>> selectResourceHandler(
       KindLiteral kindLiteral) {
-    Instance<ResourceHandler<StackGresClusterConfig>> instance = handlers.select(kindLiteral);
+    Instance<ResourceHandler<StackGresClusterContext>> instance = handlers.select(kindLiteral);
     return instance.isResolvable() ? Optional.of(instance.get()) : Optional.empty();
   }
 
   @Override
-  protected Optional<ResourceHandler<StackGresClusterConfig>> getDefaultResourceHandler() {
+  protected Optional<ResourceHandler<StackGresClusterContext>> getDefaultResourceHandler() {
     Instance<DefaultClusterResourceHandler> instance = handlers.select(
         DefaultClusterResourceHandler.class);
     return instance.isResolvable() ? Optional.of(instance.get()) : Optional.empty();

@@ -15,7 +15,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.EndpointsBuilder;
-import io.stackgres.operator.common.StackGresClusterConfig;
+import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.configuration.PatroniConfig;
 import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.operator.patroni.parameters.Blacklist;
@@ -29,14 +29,14 @@ public class PatroniConfigEndpoints {
   /**
    * Create the EndPoint associated with the cluster.
    */
-  public static Endpoints create(StackGresClusterConfig config, ObjectMapper objectMapper) {
-    final String name = config.getCluster().getMetadata().getName();
-    final String namespace = config.getCluster().getMetadata().getNamespace();
+  public static Endpoints create(StackGresClusterContext context, ObjectMapper objectMapper) {
+    final String name = context.getCluster().getMetadata().getName();
+    final String namespace = context.getCluster().getMetadata().getNamespace();
     final Map<String, String> labels = ResourceUtil.patroniClusterLabels(name);
-    Optional<StackGresPostgresConfig> pgconfig = config.getPostgresConfig();
+    Optional<StackGresPostgresConfig> pgconfig = context.getPostgresConfig();
     Map<String, String> params = new HashMap<>(DefaultValues.getDefaultValues());
 
-    if (config.getBackupConfig().isPresent()) {
+    if (context.getBackupConfig().isPresent()) {
       params.put("archive_command", "/bin/sh /wal-g-wrapper/wal-g wal-push %p");
     } else {
       params.put("archive_command", "/bin/true");
@@ -73,7 +73,7 @@ public class PatroniConfigEndpoints {
         .withName(name + PatroniServices.CONFIG_SERVICE)
         .withLabels(labels)
         .withAnnotations(ImmutableMap.of(PATRONI_CONFIG_KEY, patroniConfigJson))
-        .withOwnerReferences(ImmutableList.of(ResourceUtil.getOwnerReference(config.getCluster())))
+        .withOwnerReferences(ImmutableList.of(ResourceUtil.getOwnerReference(context.getCluster())))
         .endMetadata()
         .build();
   }

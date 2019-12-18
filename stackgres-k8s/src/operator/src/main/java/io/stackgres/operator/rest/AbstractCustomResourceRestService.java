@@ -6,7 +6,7 @@
 package io.stackgres.operator.rest;
 
 import java.util.List;
-import javax.inject.Inject;
+
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.NotFoundException;
@@ -25,31 +25,19 @@ public class AbstractCustomResourceRestService<R extends CustomResource,
     L extends CustomResourceList<R>>
     implements CustomResourceRestService<R> {
 
-  private KubernetesResourceScanner<L> scanner;
+  private final KubernetesResourceScanner<L> scanner;
+  private final KubernetesCustomResourceFinder<R> finder;
+  private final CustomResourceScheduler<R> scheduler;
+  private final String resourceDefinition;
 
-  private KubernetesCustomResourceFinder<R> finder;
-
-  private CustomResourceScheduler<R> scheduler;
-
-  private String resourceDefinition;
-
-  AbstractCustomResourceRestService(String resourceDefinition) {
-    this.resourceDefinition = resourceDefinition;
-  }
-
-  @Inject
-  public void setScanner(KubernetesResourceScanner<L> scanner) {
+  AbstractCustomResourceRestService(KubernetesResourceScanner<L> scanner,
+      KubernetesCustomResourceFinder<R> finder, CustomResourceScheduler<R> scheduler,
+      String resourceDefinition) {
+    super();
     this.scanner = scanner;
-  }
-
-  @Inject
-  public void setFinder(KubernetesCustomResourceFinder<R> finder) {
     this.finder = finder;
-  }
-
-  @Inject
-  public void setScheduler(CustomResourceScheduler<R> scheduler) {
     this.scheduler = scheduler;
+    this.resourceDefinition = resourceDefinition;
   }
 
   /**

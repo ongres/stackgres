@@ -18,7 +18,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.kubernetes.internal.KubernetesDeserializer;
-import io.stackgres.operator.common.StackGresClusterConfig;
+import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.resource.ResourceUtil;
 import io.stackgres.operator.sidecars.pgexporter.customresources.Endpoint;
 import io.stackgres.operator.sidecars.pgexporter.customresources.NamespaceSelector;
@@ -38,17 +38,17 @@ import org.jooq.lambda.tuple.Tuple2;
 
 @Kind(ServiceMonitor.class)
 @ApplicationScoped
-public class PrometheusServiceMonitorHandler implements ResourceHandler<StackGresClusterConfig> {
+public class PrometheusServiceMonitorHandler implements ResourceHandler<StackGresClusterContext> {
 
   @Override
-  public boolean equals(ResourceHandlerContext<StackGresClusterConfig> resourceHandlerContext,
+  public boolean equals(ResourceHandlerContext<StackGresClusterContext> resourceHandlerContext,
       HasMetadata existingResource, HasMetadata requiredResource) {
     return ResourcePairVisitor.equals(new ServiceMonitorVisitor<>(),
         existingResource, requiredResource);
   }
 
   @Override
-  public HasMetadata update(ResourceHandlerContext<StackGresClusterConfig> resourceHandlerContext,
+  public HasMetadata update(ResourceHandlerContext<StackGresClusterContext> resourceHandlerContext,
       HasMetadata existingResource, HasMetadata requiredResource) {
     return ResourcePairVisitor.update(new ServiceMonitorVisitor<>(),
         existingResource, requiredResource);
@@ -62,11 +62,11 @@ public class PrometheusServiceMonitorHandler implements ResourceHandler<StackGre
 
   @Override
   public Stream<HasMetadata> getOrphanResources(KubernetesClient client,
-      ImmutableList<StackGresClusterConfig> existingConfigs) {
-    ImmutableList<Tuple2<String, String>> existingConfigsLabels = existingConfigs.stream()
-        .map(config -> Tuple.tuple(
-            config.getCluster().getMetadata().getNamespace(),
-            config.getCluster().getMetadata().getName()))
+      ImmutableList<StackGresClusterContext> existingContexts) {
+    ImmutableList<Tuple2<String, String>> existingConfigsLabels = existingContexts.stream()
+        .map(context -> Tuple.tuple(
+            context.getCluster().getMetadata().getNamespace(),
+            context.getCluster().getMetadata().getName()))
         .collect(ImmutableList.toImmutableList());
     return getServiceMonitorClient(client)
         .map(crClient -> crClient
@@ -90,13 +90,13 @@ public class PrometheusServiceMonitorHandler implements ResourceHandler<StackGre
 
   @Override
   public Stream<HasMetadata> getResources(KubernetesClient client,
-      StackGresClusterConfig config) {
+      StackGresClusterContext context) {
     return getServiceMonitorClient(client)
         .map(crClient -> crClient
             .inAnyNamespace()
             .withLabels(ResourceUtil.defaultLabels(
-                config.getCluster().getMetadata().getNamespace(),
-                config.getCluster().getMetadata().getName()))
+                context.getCluster().getMetadata().getNamespace(),
+                context.getCluster().getMetadata().getName()))
             .list()
             .getItems()
             .stream()
@@ -206,12 +206,12 @@ public class PrometheusServiceMonitorHandler implements ResourceHandler<StackGre
   }
 
   @Override
-  public String getConfigNamespaceOf(HasMetadata resource) {
+  public String getContextNamespaceOf(HasMetadata resource) {
     return resource.getMetadata().getLabels().get(ResourceUtil.CLUSTER_NAMESPACE_KEY);
   }
 
   @Override
-  public String getConfigNameOf(HasMetadata resource) {
+  public String getContextNameOf(HasMetadata resource) {
     return resource.getMetadata().getLabels().get(ResourceUtil.CLUSTER_NAME_KEY);
   }
 

@@ -13,8 +13,9 @@ import com.google.common.collect.ImmutableList;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.operator.app.ObjectMapperProvider;
-import io.stackgres.operator.common.StackGresClusterConfig;
+import io.stackgres.operator.backup.Backup;
 import io.stackgres.operator.common.StackGresClusterConfigTransformer;
+import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.controller.ResourceGeneratorContext;
 import io.stackgres.operator.patroni.PatroniConfigEndpoints;
 import io.stackgres.operator.patroni.PatroniConfigMap;
@@ -23,7 +24,7 @@ import io.stackgres.operator.patroni.PatroniSecret;
 import io.stackgres.operator.patroni.PatroniServices;
 
 @ApplicationScoped
-public class Cluster implements StackGresClusterConfigTransformer<StackGresClusterConfig> {
+public class Cluster implements StackGresClusterConfigTransformer<StackGresClusterContext> {
 
   private final ObjectMapper objectMapper;
 
@@ -34,16 +35,18 @@ public class Cluster implements StackGresClusterConfigTransformer<StackGresClust
 
   @Override
   public ImmutableList<HasMetadata> getResources(
-      ResourceGeneratorContext<StackGresClusterConfig> context) {
+      ResourceGeneratorContext<StackGresClusterContext> context) {
     return ImmutableList.<HasMetadata>builder()
-        .add(PatroniRole.createServiceAccount(context.getConfig().getCluster()))
-        .add(PatroniRole.createRole(context.getConfig().getCluster()))
-        .add(PatroniRole.createRoleBinding(context.getConfig().getCluster()))
-        .add(PatroniSecret.create(context.getConfig().getCluster()))
-        .addAll(PatroniServices.createServices(context.getConfig().getCluster()))
-        .add(PatroniConfigEndpoints.create(context.getConfig(), objectMapper))
-        .add(PatroniConfigMap.create(context.getConfig(), objectMapper))
-        .addAll(StackGresStatefulSet.create(context))
+        .add(PatroniRole.createServiceAccount(context.getContext().getCluster()))
+        .add(PatroniRole.createRole(context.getContext().getCluster()))
+        .add(PatroniRole.createRoleBinding(context.getContext().getCluster()))
+        .add(PatroniSecret.create(context.getContext().getCluster()))
+        .addAll(PatroniServices.createServices(context.getContext().getCluster()))
+        .add(PatroniConfigEndpoints.create(context.getContext(), objectMapper))
+        .add(PatroniConfigMap.create(context.getContext(), objectMapper))
+        .addAll(BackupCronJob.create(context))
+        .addAll(ClusterStatefulSet.create(context))
+        .addAll(Backup.create(context))
         .build();
   }
 

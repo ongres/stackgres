@@ -11,23 +11,24 @@ import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
 import io.stackgres.operator.common.SidecarLiteral;
-import io.stackgres.operator.common.StackGresClusterConfig;
+import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresSidecarTransformer;
 
 @ApplicationScoped
-public class ClusterSidecarFinder implements SidecarFinder<StackGresClusterConfig> {
+public class ClusterSidecarFinder implements SidecarFinder<StackGresClusterContext> {
 
-  private final Instance<StackGresSidecarTransformer<?, StackGresClusterConfig>> transformers;
+  private final Instance<StackGresSidecarTransformer<?, StackGresClusterContext>> transformers;
 
   @Inject
   public ClusterSidecarFinder(
-      @Any Instance<StackGresSidecarTransformer<?, StackGresClusterConfig>> transformers) {
+      @Any Instance<StackGresSidecarTransformer<?, StackGresClusterContext>> transformers) {
     this.transformers = transformers;
   }
 
   @Override
-  public StackGresSidecarTransformer<?, StackGresClusterConfig> getSidecarTransformer(String name) {
-    Instance<StackGresSidecarTransformer<?, StackGresClusterConfig>> transformer = transformers
+  public StackGresSidecarTransformer<?, StackGresClusterContext> getSidecarTransformer(
+      String name) {
+    Instance<StackGresSidecarTransformer<?, StackGresClusterContext>> transformer = transformers
         .select(new SidecarLiteral(name));
     if (transformer.isResolvable()) {
       return transformer.get();

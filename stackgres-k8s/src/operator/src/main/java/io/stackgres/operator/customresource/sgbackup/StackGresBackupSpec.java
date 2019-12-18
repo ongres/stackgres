@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.customresource.sgbackup;
 
+import javax.validation.constraints.NotNull;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -21,10 +23,11 @@ public class StackGresBackupSpec implements KubernetesResource {
   private static final long serialVersionUID = 4124027524757318245L;
 
   @JsonProperty("clusterName")
+  @NotNull(message = "The cluster name is required")
   private String clusterName;
 
-  @JsonProperty("isPermenent")
-  private Boolean isPermenent;
+  @JsonProperty("isPermanent")
+  private Boolean isPermanent;
 
   public String getClusterName() {
     return clusterName;
@@ -34,12 +37,12 @@ public class StackGresBackupSpec implements KubernetesResource {
     this.clusterName = clusterName;
   }
 
-  public Boolean getIsPermenent() {
-    return isPermenent;
+  public Boolean getIsPermanent() {
+    return isPermanent;
   }
 
-  public void setIsPermenent(Boolean isPermenent) {
-    this.isPermenent = isPermenent;
+  public void setIsPermanent(Boolean isPermanent) {
+    this.isPermanent = isPermanent;
   }
 
   @Override
@@ -47,7 +50,7 @@ public class StackGresBackupSpec implements KubernetesResource {
     return MoreObjects.toStringHelper(this)
         .omitNullValues()
         .add("clusterName", clusterName)
-        .add("isPermenent", isPermenent)
+        .add("isPermanent", isPermanent)
         .toString();
   }
 

@@ -73,12 +73,12 @@ public abstract class AbstractResourceHandler<T> implements ResourceHandler<T> {
 
   @Override
   public Stream<HasMetadata> getOrphanResources(KubernetesClient client,
-      ImmutableList<T> existingConfigs) {
+      ImmutableList<T> existingContexts) {
     return Stream.empty();
   }
 
   @Override
-  public Stream<HasMetadata> getResources(KubernetesClient client, T config) {
+  public Stream<HasMetadata> getResources(KubernetesClient client, T context) {
     return Stream.empty();
   }
 

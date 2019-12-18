@@ -6,6 +6,7 @@
 package io.stackgres.operatorframework.reconciliation;
 
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -35,7 +36,7 @@ public abstract class AbstractReconciliationCycle<T> {
 
   protected final String name;
   protected final Supplier<KubernetesClient> clientSupplier;
-  protected final Function<T, HasMetadata> configGetter;
+  protected final Function<T, HasMetadata> resourceGetter;
   protected final ResourceHandlerSelector<T> handlerSelector;
   protected final ObjectMapper objectMapper;
   private final ExecutorService executorService;
@@ -47,12 +48,12 @@ public abstract class AbstractReconciliationCycle<T> {
   private AtomicInteger reconciliationCount = new AtomicInteger(0);
 
   protected AbstractReconciliationCycle(String name, Supplier<KubernetesClient> clientSupplier,
-      Function<T, HasMetadata> configGetter, ResourceHandlerSelector<T> handlerSelector,
+      Function<T, HasMetadata> resourceGetter, ResourceHandlerSelector<T> handlerSelector,
       ObjectMapper objectMapper) {
     super();
     this.name = name;
     this.clientSupplier = clientSupplier;
-    this.configGetter = configGetter;
+    this.resourceGetter = resourceGetter;
     this.handlerSelector = handlerSelector;
     this.objectMapper = objectMapper;
     this.executorService = Executors.newSingleThreadExecutor(
@@ -98,24 +99,24 @@ public abstract class AbstractReconciliationCycle<T> {
 
     LOGGER.trace("Starting " + cycleName);
     try (KubernetesClient client = clientSupplier.get()) {
-      LOGGER.trace(cycleName + " getting existing clusters");
-      ImmutableList<T> existingConfigs = getExistingConfigs(client);
+      LOGGER.trace(cycleName + " getting existing " + name.toLowerCase(Locale.US) + " list");
+      ImmutableList<T> existingContexts = getExistingConfigs(client);
       LOGGER.trace(cycleName + " deleting orphan resources");
-      deleteOrphanResources(client, existingConfigs);
+      deleteOrphanResources(client, existingContexts);
 
-      for (T config : existingConfigs) {
-        HasMetadata configResource = configGetter.apply(config);
+      for (T context : existingContexts) {
+        HasMetadata contextResource = resourceGetter.apply(context);
 
-        String configId = configResource.getMetadata().getNamespace() + "."
-            + configResource.getMetadata().getName();
+        String contextId = contextResource.getMetadata().getNamespace() + "."
+            + contextResource.getMetadata().getName();
 
         try {
-          LOGGER.trace(cycleName + " reconciling cluster "
-              + configResource.getMetadata().getName());
+          LOGGER.trace(cycleName + " reconciling " + name.toLowerCase(Locale.US) + " "
+              + contextResource.getMetadata().getName());
           ImmutableList<HasMetadata> existingResourcesOnly = getExistingResources(
-              client, config);
+              client, context);
           ImmutableList<HasMetadata> requiredResourcesOnly = getRequiredResources(
-              config, existingResourcesOnly);
+              context, existingResourcesOnly);
           ImmutableList<Tuple2<HasMetadata, Optional<HasMetadata>>> existingResources =
               existingResourcesOnly
               .stream()
@@ -128,12 +129,13 @@ public abstract class AbstractReconciliationCycle<T> {
               .map(requiredResource -> Tuple.tuple(requiredResource,
                   Optional.of(findResourceIn(requiredResource, existingResourcesOnly))
                   .filter(Optional::isPresent)
-                  .orElseGet(() -> handlerSelector.find(client, config, requiredResource))))
+                  .orElseGet(() -> handlerSelector.find(client, context, requiredResource))))
               .collect(ImmutableList.toImmutableList());
-          createReconciliator(client, config, requiredResources, existingResources).reconcile();
+          createReconciliator(client, context, requiredResources, existingResources).reconcile();
         } catch (Exception ex) {
-          LOGGER.error(cycleName + " failed reconciling " + name + " " + configId, ex);
-          onConfigError(config, configResource, ex);
+          LOGGER.error(cycleName + " failed reconciling " + name.toLowerCase(Locale.US)
+              + " " + contextId, ex);
+          onConfigError(context, contextResource, ex);
         }
       }
       LOGGER.trace(cycleName + " ended successfully");
@@ -145,13 +147,13 @@ public abstract class AbstractReconciliationCycle<T> {
 
   protected abstract void onError(Exception ex);
 
-  protected abstract void onConfigError(T config, HasMetadata configResource, Exception ex);
+  protected abstract void onConfigError(T context, HasMetadata contextResource, Exception ex);
 
-  protected abstract AbstractReconciliator<T> createReconciliator(KubernetesClient client, T config,
-      ImmutableList<Tuple2<HasMetadata, Optional<HasMetadata>>> requiredResources,
+  protected abstract AbstractReconciliator<T> createReconciliator(KubernetesClient client,
+      T context, ImmutableList<Tuple2<HasMetadata, Optional<HasMetadata>>> requiredResources,
       ImmutableList<Tuple2<HasMetadata, Optional<HasMetadata>>> existingResources);
 
-  protected abstract ImmutableList<HasMetadata> getRequiredResources(T config,
+  protected abstract ImmutableList<HasMetadata> getRequiredResources(T context,
       ImmutableList<HasMetadata> existingResourcesOnly);
 
   private Optional<HasMetadata> findResourceIn(HasMetadata resource,
@@ -174,7 +176,7 @@ public abstract class AbstractReconciliationCycle<T> {
     Set<Tuple2<String, String>> deletedClusters = new HashSet<>();
     for (HasMetadata existingOrphanResource : existingOrphanResources) {
       LOGGER.debug("Deleteing resource {} of type {}"
-          + " since does not belong to any cluster",
+          + " since does not belong to any " + name.toLowerCase(Locale.US),
           getResourceIdentifier(existingOrphanResource),
           existingOrphanResource.getKind());
       handlerSelector.delete(client, null, existingOrphanResource);
@@ -205,9 +207,9 @@ public abstract class AbstractReconciliationCycle<T> {
   }
 
   private ImmutableList<HasMetadata> getExistingResources(KubernetesClient client,
-      T config) {
+      T context) {
     return ImmutableList.<HasMetadata>builder()
-        .addAll(handlerSelector.getResources(client, config)
+        .addAll(handlerSelector.getResources(client, context)
             .iterator())
         .build()
         .stream()

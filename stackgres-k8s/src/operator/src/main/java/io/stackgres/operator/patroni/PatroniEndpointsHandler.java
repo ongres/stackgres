@@ -9,26 +9,26 @@ import javax.enterprise.context.ApplicationScoped;
 
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.stackgres.operator.common.StackGresClusterConfig;
+import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.resource.AbstractClusterResourceHandler;
 
 @ApplicationScoped
 public class PatroniEndpointsHandler extends AbstractClusterResourceHandler {
 
   @Override
-  public boolean isHandlerForResource(StackGresClusterConfig config, HasMetadata resource) {
-    return config != null
+  public boolean isHandlerForResource(StackGresClusterContext context, HasMetadata resource) {
+    return context != null
         && resource instanceof Endpoints
         && resource.getMetadata().getNamespace().equals(
-            config.getCluster().getMetadata().getNamespace())
+            context.getCluster().getMetadata().getNamespace())
         && (resource.getMetadata().getName().equals(
-            config.getCluster().getMetadata().getName())
+            context.getCluster().getMetadata().getName())
         || resource.getMetadata().getName().equals(
-            config.getCluster().getMetadata().getName() + PatroniServices.READ_WRITE_SERVICE)
+            context.getCluster().getMetadata().getName() + PatroniServices.READ_WRITE_SERVICE)
         || resource.getMetadata().getName().equals(
-            config.getCluster().getMetadata().getName() + PatroniServices.READ_ONLY_SERVICE)
+            context.getCluster().getMetadata().getName() + PatroniServices.READ_ONLY_SERVICE)
         || resource.getMetadata().getName().equals(
-            config.getCluster().getMetadata().getName() + PatroniServices.FAILOVER_SERVICE));
+            context.getCluster().getMetadata().getName() + PatroniServices.FAILOVER_SERVICE));
   }
 
   @Override

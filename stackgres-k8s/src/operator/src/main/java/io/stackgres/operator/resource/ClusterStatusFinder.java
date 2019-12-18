@@ -18,7 +18,8 @@ import io.fabric8.kubernetes.api.model.ContainerStatus;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.operator.app.KubernetesClientFactory;
-import io.stackgres.operator.cluster.StackGresStatefulSet;
+import io.stackgres.operator.cluster.ClusterStatefulSet;
+import io.stackgres.operator.common.ArcUtil;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfile;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfileDefinition;
@@ -34,12 +35,11 @@ import org.jooq.lambda.tuple.Tuple;
 @ApplicationScoped
 public class ClusterStatusFinder implements KubernetesCustomResourceFinder<ClusterStatus> {
 
-  @Inject
-  KubernetesCustomResourceFinder<StackGresCluster> clusterFinder;
+  final KubernetesCustomResourceFinder<StackGresCluster> clusterFinder;
+
+  final KubernetesClientFactory kubClientFactory;
 
   @Inject
-  KubernetesClientFactory kubClientFactory;
-
   public ClusterStatusFinder(KubernetesClientFactory kubClientFactory,
                              KubernetesCustomResourceFinder<StackGresCluster> clusterFinder) {
     this.kubClientFactory = kubClientFactory;
@@ -47,6 +47,9 @@ public class ClusterStatusFinder implements KubernetesCustomResourceFinder<Clust
   }
 
   public ClusterStatusFinder() {
+    ArcUtil.checkPublicNoArgsConstructorIsCalledFromArc();
+    this.kubClientFactory = null;
+    this.clusterFinder = null;
   }
 
   @Override
@@ -190,7 +193,7 @@ public class ClusterStatusFinder implements KubernetesCustomResourceFinder<Clust
 
   private List<String> exec(KubernetesClient client, Pod pod, String... args)
       throws Exception {
-    return PodExec.exec(client, pod, StackGresStatefulSet.PATRONI_CONTAINER_NAME, args);
+    return PodExec.exec(client, pod, ClusterStatefulSet.PATRONI_CONTAINER_NAME, args);
   }
 
 }

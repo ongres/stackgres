@@ -3,50 +3,55 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.cluster;
+package io.stackgres.operator.backup;
 
 import javax.enterprise.context.ApplicationScoped;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
-import io.fabric8.kubernetes.api.model.batch.CronJob;
+import io.fabric8.kubernetes.api.model.batch.Job;
+import io.stackgres.operator.cluster.ClusterStatefulSet;
 import io.stackgres.operator.common.StackGresClusterContext;
+import io.stackgres.operator.customresource.sgbackup.StackGresBackupDefinition;
 import io.stackgres.operator.resource.AbstractClusterResourceHandler;
 import io.stackgres.operatorframework.resource.PairVisitor;
 import io.stackgres.operatorframework.resource.ResourceHandlerContext;
 import io.stackgres.operatorframework.resource.ResourcePairVisitor;
 
 @ApplicationScoped
-public class BackupCronJobHandler extends AbstractClusterResourceHandler {
+public class BackupJobHandler extends AbstractClusterResourceHandler {
 
   @Override
   public boolean isHandlerForResource(StackGresClusterContext context, HasMetadata resource) {
     return context != null
-        && resource instanceof CronJob
+        && resource instanceof Job
         && resource.getMetadata().getNamespace().equals(
             context.getCluster().getMetadata().getNamespace())
-        && resource.getMetadata().getName().equals(
-            context.getCluster().getMetadata().getName() + ClusterStatefulSet.BACKUP_SUFFIX);
+        && context.getBackups().stream().anyMatch(backup -> resource.getMetadata().getName().equals(
+            context.getCluster().getMetadata().getName() + ClusterStatefulSet.BACKUP_SUFFIX
+            + "-" + backup.getMetadata().getName()))
+        && resource.getMetadata().getOwnerReferences().stream()
+        .anyMatch(owner -> owner.getKind().equals(StackGresBackupDefinition.KIND));
   }
 
   @Override
   public boolean equals(ResourceHandlerContext<StackGresClusterContext> resourceHandlerContext,
       HasMetadata existingResource, HasMetadata requiredResource) {
-    return ResourcePairVisitor.equals(new CronJobVisitor<>(resourceHandlerContext),
+    return ResourcePairVisitor.equals(new JobVisitor<>(resourceHandlerContext),
         existingResource, requiredResource);
   }
 
   @Override
   public HasMetadata update(ResourceHandlerContext<StackGresClusterContext> resourceHandlerContext,
       HasMetadata existingResource, HasMetadata requiredResource) {
-    return ResourcePairVisitor.update(new CronJobVisitor<>(resourceHandlerContext),
+    return ResourcePairVisitor.update(new JobVisitor<>(resourceHandlerContext),
         existingResource, requiredResource);
   }
 
-  private class CronJobVisitor<T>
+  private class JobVisitor<T>
       extends ResourcePairVisitor<T, ResourceHandlerContext<StackGresClusterContext>> {
 
-    public CronJobVisitor(ResourceHandlerContext<StackGresClusterContext> resourceHandlerContext) {
+    public JobVisitor(ResourceHandlerContext<StackGresClusterContext> resourceHandlerContext) {
       super(resourceHandlerContext);
     }
 
@@ -57,11 +62,11 @@ public class BackupCronJobHandler extends AbstractClusterResourceHandler {
           .visit(HasMetadata::getApiVersion, HasMetadata::setApiVersion)
           .visit(HasMetadata::getKind)
           .visitWith(HasMetadata::getMetadata, HasMetadata::setMetadata,
-              this::visitCronJobMetadata)
-          .lastVisit(this::visitCronJob);
+              this::visitJobMetadata)
+          .lastVisit(this::visitJob);
     }
 
-    public PairVisitor<ObjectMeta, T> visitCronJobMetadata(
+    public PairVisitor<ObjectMeta, T> visitJobMetadata(
         PairVisitor<ObjectMeta, T> pairVisitor) {
       return pairVisitor.visit()
           .visit(ObjectMeta::getClusterName, ObjectMeta::setClusterName)

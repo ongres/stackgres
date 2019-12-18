@@ -23,9 +23,14 @@ import io.quarkus.runtime.StartupEvent;
 import io.stackgres.operator.app.KubernetesClientFactory;
 import io.stackgres.operator.app.ObjectMapperProvider;
 import io.stackgres.operator.cluster.Cluster;
+import io.stackgres.operator.common.ArcUtil;
 import io.stackgres.operator.common.SidecarEntry;
-import io.stackgres.operator.common.StackGresClusterConfig;
+import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresSidecarTransformer;
+import io.stackgres.operator.customresource.sgbackup.StackGresBackup;
+import io.stackgres.operator.customresource.sgbackup.StackGresBackupDefinition;
+import io.stackgres.operator.customresource.sgbackup.StackGresBackupDoneable;
+import io.stackgres.operator.customresource.sgbackup.StackGresBackupList;
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfigDefinition;
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfigDoneable;
@@ -54,7 +59,7 @@ import org.jooq.lambda.tuple.Tuple2;
 
 @ApplicationScoped
 public class ClusterReconciliationCycle
-    extends AbstractReconciliationCycle<StackGresClusterConfig> {
+    extends AbstractReconciliationCycle<StackGresClusterContext> {
 
   private final ClusterSidecarFinder sidecarFinder;
   private final Cluster cluster;
@@ -67,10 +72,10 @@ public class ClusterReconciliationCycle
   @Inject
   public ClusterReconciliationCycle(KubernetesClientFactory kubClientFactory,
       ClusterSidecarFinder sidecarFinder, Cluster cluster,
-      ResourceHandlerSelector<StackGresClusterConfig> handlerSelector,
+      ResourceHandlerSelector<StackGresClusterContext> handlerSelector,
       ClusterStatusManager statusManager, EventController eventController,
       ObjectMapperProvider objectMapperProvider) {
-    super("Cluster", kubClientFactory::create, StackGresClusterConfig::getCluster,
+    super("Cluster", kubClientFactory::create, StackGresClusterContext::getCluster,
         handlerSelector, objectMapperProvider.objectMapper());
     this.sidecarFinder = sidecarFinder;
     this.cluster = cluster;
@@ -80,6 +85,7 @@ public class ClusterReconciliationCycle
 
   public ClusterReconciliationCycle() {
     super(null, null, c -> null, null, null);
+    ArcUtil.checkPublicNoArgsConstructorIsCalledFromArc();
     this.sidecarFinder = null;
     this.cluster = null;
     this.statusManager = null;
@@ -102,7 +108,7 @@ public class ClusterReconciliationCycle
   }
 
   @Override
-  protected void onConfigError(StackGresClusterConfig config, HasMetadata configResource,
+  protected void onConfigError(StackGresClusterContext context, HasMetadata configResource,
       Exception ex) {
     eventController.sendEvent(EventReason.CLUSTER_CONFIG_ERROR,
         "StackGres Cluster " + configResource.getMetadata().getNamespace() + "."
@@ -111,8 +117,8 @@ public class ClusterReconciliationCycle
   }
 
   @Override
-  protected AbstractReconciliator<StackGresClusterConfig> createReconciliator(
-      KubernetesClient client, StackGresClusterConfig config,
+  protected AbstractReconciliator<StackGresClusterContext> createReconciliator(
+      KubernetesClient client, StackGresClusterContext context,
       ImmutableList<Tuple2<HasMetadata, Optional<HasMetadata>>> requiredResources,
       ImmutableList<Tuple2<HasMetadata, Optional<HasMetadata>>> existingResources) {
     return ClusterReconciliator.builder()
@@ -121,18 +127,18 @@ public class ClusterReconciliationCycle
         .withStatusManager(statusManager)
         .withClient(client)
         .withObjectMapper(objectMapper)
-        .withClusterConfig(config)
+        .withClusterContext(context)
         .withRequiredResources(requiredResources)
         .withExistingResources(existingResources)
         .build();
   }
 
   @Override
-  protected ImmutableList<HasMetadata> getRequiredResources(StackGresClusterConfig config,
+  protected ImmutableList<HasMetadata> getRequiredResources(StackGresClusterContext context,
       ImmutableList<HasMetadata> existingResourcesOnly) {
     return cluster.getResources(
-        ImmutableResourceGeneratorContext.<StackGresClusterConfig>builder()
-        .config(config)
+        ImmutableResourceGeneratorContext.<StackGresClusterContext>builder()
+        .context(context)
         .addAllExistingResources(existingResourcesOnly)
         .build());
   }
@@ -145,7 +151,7 @@ public class ClusterReconciliationCycle
   }
 
   @Override
-  protected ImmutableList<StackGresClusterConfig> getExistingConfigs(KubernetesClient client) {
+  protected ImmutableList<StackGresClusterContext> getExistingConfigs(KubernetesClient client) {
     return ResourceUtil.getCustomResource(client, StackGresClusterDefinition.NAME)
         .map(crd -> client
             .customResources(crd,
@@ -162,31 +168,30 @@ public class ClusterReconciliationCycle
             + " CRD " + StackGresClusterDefinition.NAME + " not found."));
   }
 
-  private StackGresClusterConfig getClusterConfig(StackGresCluster cluster,
+  private StackGresClusterContext getClusterConfig(StackGresCluster cluster,
       KubernetesClient client) {
-    return StackGresClusterConfig.builder()
+    return StackGresClusterContext.builder()
         .withCluster(cluster)
         .withProfile(getProfile(cluster, client))
         .withPostgresConfig(getPostgresConfig(cluster, client))
         .withBackupConfig(getBackupConfig(cluster, client))
         .withSidecars(Stream.of(
-            Stream.of(Optional.of(Envoy.NAME)
-            .filter(envoy -> !cluster.getSpec().getSidecars().contains(envoy)))
-            .filter(Optional::isPresent)
-            .map(Optional::get),
+            Stream.of(Envoy.NAME)
+            .filter(envoy -> !cluster.getSpec().getSidecars().contains(envoy)),
             cluster.getSpec().getSidecars().stream())
             .flatMap(s -> s)
             .map(sidecar -> sidecarFinder.getSidecarTransformer(sidecar))
             .map(Unchecked.function(sidecar -> getSidecarEntry(cluster, client, sidecar)))
             .collect(ImmutableList.toImmutableList()))
+        .withBackups(getBackups(cluster, client))
         .build();
   }
 
-  private <T extends CustomResource> SidecarEntry<T, StackGresClusterConfig> getSidecarEntry(
+  private <T extends CustomResource> SidecarEntry<T, StackGresClusterContext> getSidecarEntry(
       StackGresCluster cluster, KubernetesClient client,
-      StackGresSidecarTransformer<T, StackGresClusterConfig> sidecar) throws Exception {
+      StackGresSidecarTransformer<T, StackGresClusterContext> sidecar) throws Exception {
     Optional<T> sidecarConfig = sidecar.getConfig(cluster, client);
-    return new SidecarEntry<T, StackGresClusterConfig>(sidecar, sidecarConfig);
+    return new SidecarEntry<T, StackGresClusterContext>(sidecar, sidecarConfig);
   }
 
   private Optional<StackGresPostgresConfig> getPostgresConfig(StackGresCluster cluster,
@@ -250,6 +255,25 @@ public class ClusterReconciliationCycle
       }
     }
     return Optional.empty();
+  }
+
+  private ImmutableList<StackGresBackup> getBackups(StackGresCluster cluster,
+      KubernetesClient client) {
+    final String namespace = cluster.getMetadata().getNamespace();
+    final String name = cluster.getMetadata().getName();
+    return ResourceUtil.getCustomResource(client, StackGresBackupDefinition.NAME)
+        .map(crd -> client
+            .customResources(crd,
+                StackGresBackup.class,
+                StackGresBackupList.class,
+                StackGresBackupDoneable.class)
+            .inNamespace(namespace)
+            .list()
+            .getItems()
+            .stream()
+            .filter(backup -> backup.getSpec().getClusterName().equals(name))
+            .collect(ImmutableList.toImmutableList()))
+        .orElse(ImmutableList.of());
   }
 
 }

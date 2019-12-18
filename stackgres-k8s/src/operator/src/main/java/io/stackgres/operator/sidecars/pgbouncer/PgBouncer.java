@@ -27,9 +27,9 @@ import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.stackgres.operator.cluster.StackGresStatefulSet;
+import io.stackgres.operator.cluster.ClusterStatefulSet;
 import io.stackgres.operator.common.Sidecar;
-import io.stackgres.operator.common.StackGresClusterConfig;
+import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresSidecarTransformer;
 import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operator.controller.ResourceGeneratorContext;
@@ -46,7 +46,7 @@ import io.stackgres.operator.sidecars.pgbouncer.parameters.DefaultValues;
 @Sidecar("connection-pooling")
 @Singleton
 public class PgBouncer
-    implements StackGresSidecarTransformer<StackGresPgbouncerConfig, StackGresClusterConfig> {
+    implements StackGresSidecarTransformer<StackGresPgbouncerConfig, StackGresClusterContext> {
 
   private static final String NAME = "pgbouncer";
   private static final String IMAGE_PREFIX = "docker.io/ongres/pgbouncer:v%s-build-%s";
@@ -54,12 +54,12 @@ public class PgBouncer
   private static final String CONFIG_SUFFIX = "-connection-pooling-config";
 
   @Override
-  public List<HasMetadata> getResources(ResourceGeneratorContext<StackGresClusterConfig> context) {
-    String namespace = context.getConfig().getCluster().getMetadata().getNamespace();
-    String name = context.getConfig().getCluster().getMetadata().getName();
+  public List<HasMetadata> getResources(ResourceGeneratorContext<StackGresClusterContext> context) {
+    String namespace = context.getContext().getCluster().getMetadata().getNamespace();
+    String name = context.getContext().getCluster().getMetadata().getName();
     String configMapName = name + CONFIG_SUFFIX;
     Optional<StackGresPgbouncerConfig> pgbouncerConfig =
-        context.getConfig().getSidecarConfig(this);
+        context.getContext().getSidecarConfig(this);
     Map<String, String> newParams = pgbouncerConfig.map(c -> c.getSpec().getPgbouncerConf())
         .orElseGet(HashMap::new);
     // Blacklist removal
@@ -89,7 +89,7 @@ public class PgBouncer
         .withName(configMapName)
         .withLabels(ResourceUtil.defaultLabels(name))
         .withOwnerReferences(ImmutableList.of(ResourceUtil.getOwnerReference(
-            context.getConfig().getCluster())))
+            context.getContext().getCluster())))
         .endMetadata()
         .withData(data)
         .build();
@@ -98,7 +98,7 @@ public class PgBouncer
   }
 
   @Override
-  public Container getContainer(ResourceGeneratorContext<StackGresClusterConfig> context) {
+  public Container getContainer(ResourceGeneratorContext<StackGresClusterContext> context) {
     ContainerBuilder container = new ContainerBuilder();
     container.withName(NAME)
         .withImage(String.format(IMAGE_PREFIX,
@@ -106,7 +106,7 @@ public class PgBouncer
         .withImagePullPolicy("Always")
         .withVolumeMounts(
             new VolumeMountBuilder()
-            .withName(StackGresStatefulSet.SOCKET_VOLUME_NAME)
+            .withName(ClusterStatefulSet.SOCKET_VOLUME_NAME)
             .withMountPath("/run/postgresql")
             .build(),
             new VolumeMountBuilder()
@@ -120,11 +120,11 @@ public class PgBouncer
 
   @Override
   public ImmutableList<Volume> getVolumes(
-      ResourceGeneratorContext<StackGresClusterConfig> context) {
+      ResourceGeneratorContext<StackGresClusterContext> context) {
     return ImmutableList.of(new VolumeBuilder()
         .withName(NAME)
         .withConfigMap(new ConfigMapVolumeSourceBuilder()
-            .withName(context.getConfig().getCluster().getMetadata()
+            .withName(context.getContext().getCluster().getMetadata()
                 .getName() + CONFIG_SUFFIX).build())
         .build());
   }

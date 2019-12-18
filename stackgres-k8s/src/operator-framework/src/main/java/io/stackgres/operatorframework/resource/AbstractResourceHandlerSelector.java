@@ -90,13 +90,13 @@ public abstract class AbstractResourceHandlerSelector<T> implements ResourceHand
   @Override
   public String getConfigNamespaceOf(HasMetadata resource) {
     return getResourceHandler(resource)
-        .getConfigNamespaceOf(resource);
+        .getContextNamespaceOf(resource);
   }
 
   @Override
   public String getConfigNameOf(HasMetadata resource) {
     return getResourceHandler(resource)
-        .getConfigNameOf(resource);
+        .getContextNameOf(resource);
   }
 
   private ResourceHandler<T> selectResourceHandler(T config,

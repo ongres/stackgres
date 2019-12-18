@@ -11,7 +11,7 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetSpec;
-import io.stackgres.operator.common.StackGresClusterConfig;
+import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.resource.AbstractClusterResourceHandler;
 import io.stackgres.operator.resource.ResourceUtil;
 import io.stackgres.operatorframework.resource.PairVisitor;
@@ -22,39 +22,39 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
-public class StackGresStatefulSetHandler extends AbstractClusterResourceHandler {
+public class ClusterStatefulSetHandler extends AbstractClusterResourceHandler {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(StackGresStatefulSetHandler.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(ClusterStatefulSetHandler.class);
 
   @Override
-  public boolean isHandlerForResource(StackGresClusterConfig config, HasMetadata resource) {
-    return config != null
+  public boolean isHandlerForResource(StackGresClusterContext context, HasMetadata resource) {
+    return context != null
         && resource instanceof StatefulSet
         && resource.getMetadata().getNamespace().equals(
-            config.getCluster().getMetadata().getNamespace())
+            context.getCluster().getMetadata().getNamespace())
         && resource.getMetadata().getName().equals(
-            config.getCluster().getMetadata().getName());
+            context.getCluster().getMetadata().getName());
   }
 
   @Override
-  public boolean equals(ResourceHandlerContext<StackGresClusterConfig> resourceHandlerContext,
+  public boolean equals(ResourceHandlerContext<StackGresClusterContext> resourceHandlerContext,
       HasMetadata existingResource, HasMetadata requiredResource) {
     return ResourcePairVisitor.equals(new StatefulSetVisitor<>(resourceHandlerContext),
         existingResource, requiredResource);
   }
 
   @Override
-  public HasMetadata update(ResourceHandlerContext<StackGresClusterConfig> resourceHandlerContext,
+  public HasMetadata update(ResourceHandlerContext<StackGresClusterContext> resourceHandlerContext,
       HasMetadata existingResource, HasMetadata requiredResource) {
     return ResourcePairVisitor.update(new StatefulSetVisitor<>(resourceHandlerContext),
         existingResource, requiredResource);
   }
 
   private static class StatefulSetVisitor<T>
-      extends ResourcePairVisitor<T, ResourceHandlerContext<StackGresClusterConfig>> {
+      extends ResourcePairVisitor<T, ResourceHandlerContext<StackGresClusterContext>> {
 
     public StatefulSetVisitor(
-        ResourceHandlerContext<StackGresClusterConfig> resourceHandlerContext) {
+        ResourceHandlerContext<StackGresClusterContext> resourceHandlerContext) {
       super(resourceHandlerContext);
     }
 

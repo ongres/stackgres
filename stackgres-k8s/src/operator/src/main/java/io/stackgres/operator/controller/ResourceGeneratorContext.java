@@ -14,7 +14,7 @@ import org.immutables.value.Value.Immutable;
 @Immutable
 public interface ResourceGeneratorContext<T> {
 
-  T getConfig();
+  T getContext();
 
   ImmutableList<HasMetadata> getExistingResources();
 

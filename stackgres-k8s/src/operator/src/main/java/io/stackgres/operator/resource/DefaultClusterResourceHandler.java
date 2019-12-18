@@ -13,7 +13,7 @@ import com.google.common.collect.ImmutableList;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.stackgres.operator.common.StackGresClusterConfig;
+import io.stackgres.operator.common.StackGresClusterContext;
 
 @ApplicationScoped
 public class DefaultClusterResourceHandler
@@ -21,14 +21,14 @@ public class DefaultClusterResourceHandler
 
   @Override
   public Stream<HasMetadata> getOrphanResources(KubernetesClient client,
-      ImmutableList<StackGresClusterConfig> existingConfigs) {
+      ImmutableList<StackGresClusterContext> existingContexts) {
     return STACKGRES_RESOURCE_OPERATIONS.values()
         .stream()
         .flatMap(resourceOperationGetter -> resourceOperationGetter.apply(client)
             .inAnyNamespace()
             .withLabels(ResourceUtil.defaultLabels())
-            .withLabelNotIn(ResourceUtil.CLUSTER_NAME_KEY, existingConfigs.stream()
-                .map(config -> config.getCluster().getMetadata().getName())
+            .withLabelNotIn(ResourceUtil.CLUSTER_NAME_KEY, existingContexts.stream()
+                .map(context -> context.getCluster().getMetadata().getName())
                 .toArray(String[]::new))
             .list()
             .getItems()
@@ -37,12 +37,12 @@ public class DefaultClusterResourceHandler
 
   @Override
   public Stream<HasMetadata> getResources(KubernetesClient client,
-      StackGresClusterConfig config) {
+      StackGresClusterContext context) {
     return STACKGRES_RESOURCE_OPERATIONS.values()
         .stream()
         .flatMap(resourceOperationGetter -> resourceOperationGetter.apply(client)
-            .inNamespace(config.getCluster().getMetadata().getNamespace())
-            .withLabels(ResourceUtil.defaultLabels(config.getCluster().getMetadata().getName()))
+            .inNamespace(context.getCluster().getMetadata().getNamespace())
+            .withLabels(ResourceUtil.defaultLabels(context.getCluster().getMetadata().getName()))
             .list()
             .getItems()
             .stream());

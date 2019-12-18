@@ -33,17 +33,17 @@ public interface ResourceHandler<T> {
     return false;
   }
 
-  default boolean isHandlerForResource(T config, HasMetadata resource) {
+  default boolean isHandlerForResource(T context, HasMetadata resource) {
     return false;
   }
 
   void registerKind();
 
   Stream<HasMetadata> getOrphanResources(
-                  KubernetesClient client, ImmutableList<T> existingConfigs);
+                  KubernetesClient client, ImmutableList<T> existingContexts);
 
   Stream<HasMetadata> getResources(
-                  KubernetesClient client, T config);
+                  KubernetesClient client, T context);
 
   Optional<HasMetadata> find(KubernetesClient client, HasMetadata resource);
 
@@ -53,8 +53,8 @@ public interface ResourceHandler<T> {
 
   boolean delete(KubernetesClient client, HasMetadata resource);
 
-  String getConfigNamespaceOf(HasMetadata resource);
+  String getContextNamespaceOf(HasMetadata resource);
 
-  String getConfigNameOf(HasMetadata resource);
+  String getContextNameOf(HasMetadata resource);
 
 }

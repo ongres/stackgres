@@ -41,6 +41,7 @@ public class ResourceUtil {
   public static final String ROLE_KEY = "role";
   public static final String PRIMARY_ROLE = "master";
   public static final String REPLICA_ROLE = "replica";
+  public static final String BACKUP_ROLE = "backup";
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ResourceUtil.class);
 
@@ -65,14 +66,14 @@ public class ResourceUtil {
   /**
    * ImmutableMap of cluster labels used as selectors in K8s resources.
    */
-  public static Map<String, String> defaultLabels() {
+  public static ImmutableMap<String, String> defaultLabels() {
     return ImmutableMap.of(APP_KEY, APP_NAME);
   }
 
   /**
    * ImmutableMap of cluster labels used as selectors in K8s resources.
    */
-  public static Map<String, String> defaultLabels(String clusterName) {
+  public static ImmutableMap<String, String> defaultLabels(String clusterName) {
     return ImmutableMap.of(APP_KEY, APP_NAME, CLUSTER_NAME_KEY, clusterName);
   }
 
@@ -80,7 +81,8 @@ public class ResourceUtil {
    * ImmutableMap of cluster labels used as selectors in K8s resources
    * outside of the namespace of the cluster.
    */
-  public static Map<String, String> defaultLabels(String clusterNamespace, String clusterName) {
+  public static ImmutableMap<String, String> defaultLabels(String clusterNamespace,
+      String clusterName) {
     return ImmutableMap.of(APP_KEY, APP_NAME, CLUSTER_NAMESPACE_KEY, clusterNamespace,
         CLUSTER_NAME_KEY, clusterName);
   }
@@ -89,7 +91,7 @@ public class ResourceUtil {
    * ImmutableMap of default labels used as selectors in K8s pods
    * that are part of the cluster.
    */
-  public static Map<String, String> statefulSetPodLabels(String clusterName) {
+  public static ImmutableMap<String, String> statefulSetPodLabels(String clusterName) {
     return ImmutableMap.of(APP_KEY, APP_NAME, CLUSTER_NAME_KEY, clusterName,
         CLUSTER_KEY, Boolean.TRUE.toString(), DISRUPTIBLE_KEY, Boolean.TRUE.toString());
   }
@@ -98,7 +100,7 @@ public class ResourceUtil {
    * ImmutableMap of default labels used as selectors in K8s pods
    * that are part of the cluster.
    */
-  public static Map<String, String> patroniClusterLabels(String clusterName) {
+  public static ImmutableMap<String, String> patroniClusterLabels(String clusterName) {
     return ImmutableMap.of(APP_KEY, APP_NAME, CLUSTER_NAME_KEY, clusterName,
         CLUSTER_KEY, Boolean.TRUE.toString());
   }
@@ -106,7 +108,7 @@ public class ResourceUtil {
   /**
    * ImmutableMap of backup labels used as selectors in K8s resources.
    */
-  public static Map<String, String> backupLabels(String backupName) {
+  public static ImmutableMap<String, String> backupLabels(String backupName) {
     return ImmutableMap.of(APP_KEY, APP_NAME, BACKUP_NAME_KEY, backupName);
   }
 

@@ -20,16 +20,17 @@ import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceAccount;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.batch.CronJob;
+import io.fabric8.kubernetes.api.model.batch.Job;
 import io.fabric8.kubernetes.api.model.rbac.Role;
 import io.fabric8.kubernetes.api.model.rbac.RoleBinding;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
-import io.stackgres.operator.common.StackGresClusterConfig;
+import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operatorframework.resource.AbstractResourceHandler;
 
 public abstract class AbstractClusterResourceHandler
-    extends AbstractResourceHandler<StackGresClusterConfig> {
+    extends AbstractResourceHandler<StackGresClusterContext> {
 
   protected static final ImmutableMap<Class<? extends HasMetadata>,
       Function<KubernetesClient,
@@ -51,6 +52,7 @@ public abstract class AbstractClusterResourceHandler
       .put(CronJob.class, client -> client.batch().cronjobs())
       .put(Pod.class, client -> client.pods())
       .put(PersistentVolumeClaim.class, client -> client.persistentVolumeClaims())
+      .put(Job.class, client -> client.batch().jobs())
       .build();
 
   @Override
@@ -61,12 +63,12 @@ public abstract class AbstractClusterResourceHandler
   }
 
   @Override
-  public String getConfigNamespaceOf(HasMetadata resource) {
+  public String getContextNamespaceOf(HasMetadata resource) {
     return resource.getMetadata().getNamespace();
   }
 
   @Override
-  public String getConfigNameOf(HasMetadata resource) {
+  public String getContextNameOf(HasMetadata resource) {
     return resource.getMetadata().getLabels().get(ResourceUtil.CLUSTER_NAME_KEY);
   }
 

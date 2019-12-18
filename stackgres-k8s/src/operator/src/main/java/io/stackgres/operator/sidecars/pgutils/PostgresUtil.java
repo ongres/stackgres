@@ -16,9 +16,9 @@ import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.fabric8.kubernetes.client.CustomResource;
-import io.stackgres.operator.cluster.StackGresStatefulSet;
+import io.stackgres.operator.cluster.ClusterStatefulSet;
 import io.stackgres.operator.common.Sidecar;
-import io.stackgres.operator.common.StackGresClusterConfig;
+import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresSidecarTransformer;
 import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operator.controller.ResourceGeneratorContext;
@@ -26,7 +26,7 @@ import io.stackgres.operator.controller.ResourceGeneratorContext;
 @Sidecar("postgres-util")
 @Singleton
 public class PostgresUtil
-    implements StackGresSidecarTransformer<CustomResource, StackGresClusterConfig> {
+    implements StackGresSidecarTransformer<CustomResource, StackGresClusterContext> {
 
   private static final String NAME = "postgres-util";
   private static final String IMAGE_NAME = "docker.io/ongres/postgres-util:v%s-build-%s";
@@ -34,11 +34,11 @@ public class PostgresUtil
   public PostgresUtil() {}
 
   @Override
-  public Container getContainer(ResourceGeneratorContext<StackGresClusterConfig> context) {
+  public Container getContainer(ResourceGeneratorContext<StackGresClusterContext> context) {
     ContainerBuilder container = new ContainerBuilder();
     container.withName(NAME)
         .withImage(String.format(IMAGE_NAME,
-            context.getConfig().getCluster().getSpec().getPostgresVersion(),
+            context.getContext().getCluster().getSpec().getPostgresVersion(),
             StackGresUtil.CONTAINER_BUILD))
         .withImagePullPolicy("Always")
         .withStdin(Boolean.TRUE)
@@ -46,7 +46,7 @@ public class PostgresUtil
         .withCommand("/bin/sh")
         .withArgs("-c", "while true; do sleep 10; done")
         .withVolumeMounts(new VolumeMountBuilder()
-            .withName(StackGresStatefulSet.SOCKET_VOLUME_NAME)
+            .withName(ClusterStatefulSet.SOCKET_VOLUME_NAME)
             .withMountPath("/run/postgresql")
             .build());
 
@@ -54,7 +54,7 @@ public class PostgresUtil
   }
 
   @Override
-  public List<HasMetadata> getResources(ResourceGeneratorContext<StackGresClusterConfig> context) {
+  public List<HasMetadata> getResources(ResourceGeneratorContext<StackGresClusterContext> context) {
     return ImmutableList.of();
   }
 
