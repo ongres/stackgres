@@ -231,7 +231,6 @@ public class ResourcePairVisitor<T, C> {
         .visit(JobSpec::getCompletions, JobSpec::setCompletions)
         .visit(JobSpec::getManualSelector, JobSpec::setManualSelector)
         .visit(JobSpec::getParallelism, JobSpec::setParallelism)
-        .visit(JobSpec::getSelector, JobSpec::setSelector)
         .visit(JobSpec::getTtlSecondsAfterFinished, JobSpec::setTtlSecondsAfterFinished)
         .visitWith(JobSpec::getTemplate, JobSpec::setTemplate,
             this::visitPodTemplateSpec)
