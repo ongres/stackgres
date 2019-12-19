@@ -7,6 +7,7 @@ article,aside,details,figcaption,figure,footer,header,hgroup,hr,menu,nav,section
 /* General */
 :root {
     --blue: #00ADB5;
+    --lblue: #00c5ce;
     --green: #00F900;
     --red: #FF2600;
     --gray1: #F0F0F1;
@@ -274,7 +275,7 @@ ul.zg-ul-select.active li {
   background: #fff;
 }
 ul.zg-ul-select.active li:hover {
-  background: #00979e;
+  background: var(--lblue);
 }
 
 ul.zg-ul-select.active li:hover a {
@@ -291,7 +292,7 @@ ul.zg-ul-select.active li.active a {
 }
 
 ul.zg-ul-select.active li.active:hover {
-  background: #00979e;
+  background: var(--lblue);
 }
 
 #selected--zg-ul-select {
