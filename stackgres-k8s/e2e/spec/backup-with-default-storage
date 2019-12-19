@@ -104,7 +104,7 @@ metadata:
   name: "$BACKUP_NAME"
 spec:
   clusterName: "$CLUSTER_NAME"
-  isPermanent: false
+  isPermanent: true
 EOF
 
   if wait_until eval '[ "$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \

@@ -5,7 +5,6 @@
 
 package io.stackgres.operator.patroni;
 
-import java.lang.management.ManagementFactory;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -29,10 +28,15 @@ import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfig
 import io.stackgres.operator.resource.ResourceUtil;
 import io.stackgres.operator.sidecars.envoy.Envoy;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class PatroniConfigMap {
 
   public static final String POSTGRES_PORT_NAME = "pgport";
   public static final String POSTGRES_REPLICATION_PORT_NAME = "pgreplication";
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(PatroniConfigMap.class);
 
   /**
    * Create the ConfigMap associated with the cluster.
@@ -67,8 +71,7 @@ public class PatroniConfigMap {
     data.put("PATRONI_POSTGRESQL_BIN_DIR", "/usr/lib/postgresql/" + pgVersion + "/bin");
     data.put("PATRONI_POSTGRES_UNIX_SOCKET_DIRECTORY", "/run/postgresql");
 
-    if (ManagementFactory.getRuntimeMXBean()
-        .getInputArguments().toString().indexOf("jdwp") >= 0) {
+    if (LOGGER.isTraceEnabled()) {
       data.put("PATRONI_LOG_LEVEL", "DEBUG");
     }
 
@@ -130,8 +133,7 @@ public class PatroniConfigMap {
           storageForAzureBlob, AzureBlobStorage::getMaxBuffers));
     }
 
-    if (ManagementFactory.getRuntimeMXBean()
-        .getInputArguments().toString().indexOf("jdwp") >= 0) {
+    if (LOGGER.isTraceEnabled()) {
       data.put("WALG_LOG_LEVEL", "DEVEL");
     }
 

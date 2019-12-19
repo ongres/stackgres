@@ -32,8 +32,12 @@ import io.stackgres.operator.patroni.PatroniRole;
 import io.stackgres.operator.resource.ResourceUtil;
 
 import org.jooq.lambda.Unchecked;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class BackupCronJob {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(BackupCronJob.class);
 
   /**
    * Create a new CronJob based on the StackGresCluster definition.
@@ -44,8 +48,6 @@ public class BackupCronJob {
     String namespace = clusterContext.getCluster().getMetadata().getNamespace();
     String name = clusterContext.getCluster().getMetadata().getName();
     ImmutableMap<String, String> labels = ResourceUtil.clusterLabels(clusterContext.getCluster());
-    ImmutableMap<String, String> podLabels = ResourceUtil.backupPodLabels(
-        clusterContext.getCluster());
     return ImmutableList.<HasMetadata>builder()
         .addAll(Stream.of(clusterContext.getBackupConfig())
             .filter(Optional::isPresent)
@@ -73,14 +75,12 @@ public class BackupCronJob {
                     .withNewMetadata()
                     .withNamespace(namespace)
                     .withName(ClusterStatefulSet.backupName(clusterContext))
-                    .withLabels(labels)
                     .endMetadata()
                     .withNewSpec()
                     .withNewTemplate()
                     .withNewMetadata()
                     .withNamespace(namespace)
                     .withName(ClusterStatefulSet.backupName(clusterContext))
-                    .withLabels(podLabels)
                     .endMetadata()
                     .withNewSpec()
                     .withRestartPolicy("OnFailure")
@@ -188,8 +188,8 @@ public class BackupCronJob {
                                 .map(String::valueOf)
                                 .orElse("3600"))
                             .build())
-                        .withCommand("/bin/bash", "-c", Resources
-                            .asCharSource(
+                        .withCommand("/bin/bash", "-c" + (LOGGER.isTraceEnabled() ? "x" : ""),
+                            Resources.asCharSource(
                                 BackupCronJob.class.getResource("/create-backup.sh"),
                                 StandardCharsets.UTF_8)
                             .read())

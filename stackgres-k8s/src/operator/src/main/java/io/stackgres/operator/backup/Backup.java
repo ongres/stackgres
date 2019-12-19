@@ -33,8 +33,12 @@ import io.stackgres.operator.patroni.PatroniRole;
 import io.stackgres.operator.resource.ResourceUtil;
 
 import org.jooq.lambda.Unchecked;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Backup {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(Backup.class);
 
   public static String backupJobName(StackGresBackup backup,
       StackGresClusterContext clusterContext) {
@@ -71,8 +75,6 @@ public class Backup {
     String name = backup.getMetadata().getName();
     String clusterName = backup.getSpec().getClusterName();
     ImmutableMap<String, String> labels = ResourceUtil.clusterLabels(clusterContext.getCluster());
-    ImmutableMap<String, String> podLabels = ResourceUtil.backupPodLabels(
-        clusterContext.getCluster());
     StackGresBackupConfig backupConfig = clusterContext.getBackupConfig().get();
     return new JobBuilder()
         .withNewMetadata()
@@ -91,7 +93,7 @@ public class Backup {
         .withNewMetadata()
         .withNamespace(namespace)
         .withName(backupJobName(backup, clusterContext))
-        .withLabels(podLabels)
+        .withLabels(labels)
         .endMetadata()
         .withNewSpec()
         .withRestartPolicy("OnFailure")
@@ -196,8 +198,8 @@ public class Backup {
                     .map(String::valueOf)
                     .orElse("3600"))
                 .build())
-            .withCommand("/bin/bash", "-c", Unchecked.supplier(() -> Resources
-                .asCharSource(
+            .withCommand("/bin/bash", "-c" + (LOGGER.isTraceEnabled() ? "x" : ""),
+                Unchecked.supplier(() -> Resources.asCharSource(
                     ClusterStatefulSet.class.getResource("/create-backup.sh"),
                     StandardCharsets.UTF_8)
                 .read()).get())

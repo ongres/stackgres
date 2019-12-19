@@ -216,8 +216,25 @@ public class ResourcePairVisitor<T, C> {
         .visitWith(JobTemplateSpec::getMetadata, JobTemplateSpec::setMetadata,
             this::visitMetadata)
         .visitWith(JobTemplateSpec::getSpec, JobTemplateSpec::setSpec,
-            this::visitJobSpec)
+            this::visitJobSpecFromJobTemplateSpec)
         .visitMap(JobTemplateSpec::getAdditionalProperties);
+  }
+
+  /**
+   * Visit using a pair visitor.
+   */
+  public PairVisitor<JobSpec, T> visitJobSpecFromJobTemplateSpec(
+      PairVisitor<JobSpec, T> pairVisitor) {
+    return pairVisitor.visit()
+        .visit(JobSpec::getActiveDeadlineSeconds, JobSpec::setActiveDeadlineSeconds)
+        .visit(JobSpec::getBackoffLimit, JobSpec::setBackoffLimit)
+        .visit(JobSpec::getCompletions, JobSpec::setCompletions)
+        .visit(JobSpec::getManualSelector, JobSpec::setManualSelector)
+        .visit(JobSpec::getParallelism, JobSpec::setParallelism)
+        .visit(JobSpec::getTtlSecondsAfterFinished, JobSpec::setTtlSecondsAfterFinished)
+        .visitWith(JobSpec::getTemplate, JobSpec::setTemplate,
+            this::visitPodTemplateSpec)
+        .visitMap(JobSpec::getAdditionalProperties);
   }
 
   /**
@@ -231,9 +248,10 @@ public class ResourcePairVisitor<T, C> {
         .visit(JobSpec::getCompletions, JobSpec::setCompletions)
         .visit(JobSpec::getManualSelector, JobSpec::setManualSelector)
         .visit(JobSpec::getParallelism, JobSpec::setParallelism)
-        .visit(JobSpec::getTtlSecondsAfterFinished, JobSpec::setTtlSecondsAfterFinished)
+        .visit(JobSpec::getTtlSecondsAfterFinished, JobSpec::setTtlSecondsAfterFinished,
+            300)
         .visitWith(JobSpec::getTemplate, JobSpec::setTemplate,
-            this::visitPodTemplateSpec)
+            this::visitPodTemplateSpecFromJobSpec)
         .visitMap(JobSpec::getAdditionalProperties);
   }
 
@@ -488,6 +506,19 @@ public class ResourcePairVisitor<T, C> {
     return pairVisitor.visit()
         .visitWith(PodTemplateSpec::getMetadata, PodTemplateSpec::setMetadata,
         this::visitMetadata)
+        .visitMap(PodTemplateSpec::getAdditionalProperties)
+        .visitWith(PodTemplateSpec::getSpec, PodTemplateSpec::setSpec,
+            this::visitPodSpec);
+  }
+
+  /**
+   * Visit using a pair visitor.
+   */
+  public PairVisitor<PodTemplateSpec, T> visitPodTemplateSpecFromJobSpec(
+      PairVisitor<PodTemplateSpec, T> pairVisitor) {
+    return pairVisitor.visit()
+        .visitWith(PodTemplateSpec::getMetadata, PodTemplateSpec::setMetadata,
+        this::visitMetadataWithoutLabels)
         .visitMap(PodTemplateSpec::getAdditionalProperties)
         .visitWith(PodTemplateSpec::getSpec, PodTemplateSpec::setSpec,
             this::visitPodSpec);
@@ -930,6 +961,19 @@ public class ResourcePairVisitor<T, C> {
         .visitMap(ObjectMeta::getAdditionalProperties, (objectMeta, map) -> map.entrySet()
             .forEach(e -> objectMeta.setAdditionalProperty(e.getKey(), e.getValue())))
         .visitMap(ObjectMeta::getLabels, ObjectMeta::setLabels);
+  }
+
+  /**
+   * Visit using a pair visitor.
+   */
+  public PairVisitor<ObjectMeta, T> visitMetadataWithoutLabels(
+      PairVisitor<ObjectMeta, T> pairVisitor) {
+    return pairVisitor.visit()
+        .visit(ObjectMeta::getClusterName, ObjectMeta::setClusterName)
+        .visit(ObjectMeta::getName)
+        .visit(ObjectMeta::getNamespace)
+        .visitMap(ObjectMeta::getAdditionalProperties, (objectMeta, map) -> map.entrySet()
+            .forEach(e -> objectMeta.setAdditionalProperty(e.getKey(), e.getValue())));
   }
 
 }
