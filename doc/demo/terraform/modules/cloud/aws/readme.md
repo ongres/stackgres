@@ -74,7 +74,7 @@ azs_vpc | A list of availability zones in the region| list(string)|	[]|	no
 private_subnets_vpc | A list of private subnets inside the VPC|	list(string)|	[]|	no
 public_subnets_vpc | A list of public subnets inside the VPC|	list(string)|	[]|	no
 enable_nat_gateway_vpc| Should be true if you want to provision NAT Gateways for each of your private networks|	bool|	"false"|	no
-enable_vpn_gateway_vpc| Should be true if you want to create a new VPN Gateway resource and attach it to the VPC|	bool|	"false"	no
+enable_vpn_gateway_vpc| Should be true if you want to create a new VPN Gateway resource and attach it to the VPC|	bool|	"false"|	no
 enable_dns_hostnames_vpc| Should be true to enable DNS hostnames in the Default VPC|	bool|	"false"|	no
 cluster_name_eks|Name of the EKS cluster. Also used as a prefix in names of related resources|	string|	n/a|	yes
 cluster_version_eks | Kubernetes version to use for the EKS cluster|	string|	"1.14"|	no
