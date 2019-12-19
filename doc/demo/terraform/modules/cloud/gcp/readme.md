@@ -84,7 +84,8 @@ project_gke | The project ID to host the cluster in (required) |string| n/a | ye
 name_gke | The name of the cluster (required) |string| n/a | yes
 region_gke| The region to host the cluster in (optional if zonal cluster / required if regional)|	string|	"null"|	no
 zones_gke | The zones to host the cluster in (optional if regional cluster / required if zonal)|	list(string)	|<list>|	no
-name_np | The name node pools | string | n/a| yes  machine_type_np | The type machine | string | n/a |yes
+name_np | The name node pools | string | n/a| yes 
+machine_type_np | The type machine | string | n/a |yes
 min_count_np | The minimal  number of nodes | string | n/a|yes
 max_count_np  | The maximum number of nodes | string | n/a|yes
 disk_size_gb_np | The disk size for the machine |string | 100 |n/a|  yes
