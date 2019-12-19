@@ -97,15 +97,10 @@ public class PgBouncer implements StackGresSidecarTransformer<StackGresPgbouncer
 
   @Override
   public Container getContainer(ResourceGeneratorContext context) {
-    Optional<StackGresPgbouncerConfig> pgbouncerConfig =
-        context.getClusterConfig().getSidecarConfig(this);
-    final String pgbouncerVersion = pgbouncerConfig.map(c -> c.getSpec().getPgbouncerVersion())
-        .orElse(DEFAULT_VERSION);
-
     ContainerBuilder container = new ContainerBuilder();
     container.withName(NAME)
         .withImage(String.format(IMAGE_PREFIX,
-            pgbouncerVersion, StackGresUtil.CONTAINER_BUILD))
+            DEFAULT_VERSION, StackGresUtil.CONTAINER_BUILD))
         .withImagePullPolicy("Always")
         .withVolumeMounts(
             new VolumeMountBuilder()

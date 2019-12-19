@@ -35,17 +35,17 @@ create_or_replace_cluster() {
     if [ "$INSTALLED_NAMESPACE" = "$NAMESPACE" ]
     then
       helm upgrade "$RELEASE" "$CLUSTER_CHART_PATH" \
-        --set cluster.instances="$INSTANCES" "$@"
+        --set cluster.instances="$INSTANCES" -f "$SPEC_VALUES_FILE" "$@"
     else
       remove_cluster "$RELEASE"
       helm install --name "$RELEASE" --namespace "$NAMESPACE" \
         "$CLUSTER_CHART_PATH" \
-        --set cluster.instances="$INSTANCES" "$@"
+        --set cluster.instances="$INSTANCES" -f "$SPEC_VALUES_FILE" "$@"
     fi
   else
     helm install --name "$RELEASE" --namespace "$NAMESPACE" \
       "$CLUSTER_CHART_PATH" \
-      --set cluster.instances="$INSTANCES" "$@"
+      --set cluster.instances="$INSTANCES" -f "$SPEC_VALUES_FILE" "$@"
   fi
 }
 
@@ -57,4 +57,4 @@ delete_namespace_if_exists() {
   then
     kubectl delete namespace $NAMESPACE
   fi
-}  
+}

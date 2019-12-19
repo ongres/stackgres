@@ -9,7 +9,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
-import io.stackgres.operator.validation.PgConfigReview;
+import io.stackgres.operator.common.PgConfigReview;
 import io.stackgres.operatorframework.ValidationFailed;
 import io.stackgres.operatorframework.ValidationPipeline;
 

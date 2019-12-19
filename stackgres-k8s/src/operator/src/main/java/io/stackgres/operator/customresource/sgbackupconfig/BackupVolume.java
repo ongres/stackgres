@@ -5,14 +5,13 @@
 
 package io.stackgres.operator.customresource.sgbackupconfig;
 
+import javax.validation.constraints.NotNull;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.MoreObjects;
 
-import io.fabric8.kubernetes.api.model.CephFSVolumeSource;
-import io.fabric8.kubernetes.api.model.GlusterfsVolumeSource;
-import io.fabric8.kubernetes.api.model.NFSVolumeSource;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
 @JsonDeserialize
@@ -20,46 +19,35 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 @RegisterForReflection
 public class BackupVolume {
 
-  @JsonProperty("nfs")
-  private NFSVolumeSource nfs;
+  @JsonProperty("size")
+  @NotNull(message = "The volume size is required")
+  private String size;
 
-  @JsonProperty("cephfs")
-  private CephFSVolumeSource cephfs;
+  @JsonProperty("writeManyStorageClass")
+  private String writeManyStorageClass;
 
-  @JsonProperty("glusterfs")
-  private GlusterfsVolumeSource glusterfs;
-
-  public NFSVolumeSource getNfs() {
-    return nfs;
+  public String getSize() {
+    return size;
   }
 
-  public void setNfs(NFSVolumeSource nfs) {
-    this.nfs = nfs;
+  public void setSize(String size) {
+    this.size = size;
   }
 
-  public CephFSVolumeSource getCephfs() {
-    return cephfs;
+  public String getWriteManyStorageClass() {
+    return writeManyStorageClass;
   }
 
-  public void setCephfs(CephFSVolumeSource cephfs) {
-    this.cephfs = cephfs;
-  }
-
-  public GlusterfsVolumeSource getGlusterfs() {
-    return glusterfs;
-  }
-
-  public void setGlusterfs(GlusterfsVolumeSource glusterfs) {
-    this.glusterfs = glusterfs;
+  public void setWriteManyStorageClass(String writeManyStorageClass) {
+    this.writeManyStorageClass = writeManyStorageClass;
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .omitNullValues()
-        .add("nfs", nfs)
-        .add("cephfs", cephfs)
-        .add("glusterfs", glusterfs)
+        .add("size", size)
+        .add("writeManyStorageClass", writeManyStorageClass)
         .toString();
   }
 

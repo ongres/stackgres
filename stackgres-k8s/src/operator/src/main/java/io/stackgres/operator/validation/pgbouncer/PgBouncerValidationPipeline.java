@@ -10,7 +10,7 @@ import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
-import io.stackgres.operator.validation.PgBouncerReview;
+import io.stackgres.operator.common.PgBouncerReview;
 import io.stackgres.operatorframework.ValidationFailed;
 import io.stackgres.operatorframework.ValidationPipeline;
 

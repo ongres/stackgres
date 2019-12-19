@@ -3,15 +3,21 @@ apiVersion: stackgres.io/{{ .Values.crd.version }}
 kind: StackGresPostgresConfig
 metadata:
   name: {{ .Values.cluster.pgconfig }}
+  labels:
+    app: {{ template "stackgres-cluster.name" . }}
+    chart: {{ template "stackgres-cluster.chart" . }}
+    heritage: {{ .Release.Service }}
+    release: {{ .Release.Name }}
   {{- if .Values.cluster.create }}
   annotations:
     "helm.sh/hook": "pre-install"
   {{- end }}
 spec:
   pgVersion: "{{ index (.Values.config.postgresql.version | splitList ".") 0 }}"
+  {{- with (index .Values.config.postgresql "postgresql.conf") }}
   postgresql.conf:
-      shared_buffers: '256MB'
-      random_page_cost: '1.5'
-      password_encryption: 'scram-sha-256'
-      wal_compression: 'on'
+  {{- range $key, $value := . }}
+    {{ $key }}: '{{ $value }}'
+  {{- end }}
+  {{- end }}
 {{ end }}

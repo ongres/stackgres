@@ -33,17 +33,23 @@ public class StackGresOperatorEnd2EndIt extends AbstractStackGresOperatorIt {
       .orElse(System.getProperty("e2e.debug")))
       .map(Boolean::valueOf);
 
+  private static final Optional<String> E2E_TIMEOUT = Optional.ofNullable(
+      Optional.ofNullable(System.getenv("E2E_TIMEOUT"))
+      .orElse(System.getProperty("e2e.timeout")));
+
+  private static final Optional<String> E2E_PARALLELISM = Optional.ofNullable(
+      Optional.ofNullable(System.getenv("E2E_PARALLELISM"))
+      .orElse(System.getProperty("e2e.parallelism")));
+
   @Test
   public void end2EndTest(@ContainerParam("kind") Container kind) throws Exception {
     kind.execute("sh", "-ec",
         "echo 'Running "
-            + (E2E_TEST.isPresent()
-                ? E2E_TEST.get() + " e2e test"
-                    : "all e2e tests") + " from it'\n"
+            + (E2E_TEST.map(s -> s + " e2e test").orElse("all e2e tests")) + " from it'\n"
             + "cd /resources/e2e\n"
             + "export KIND_NAME=\"$(docker inspect -f '{{.Name}}' \"$(hostname)\"|cut -d '/' -f 2)\"\n"
             + "export IMAGE_TAG=" + ItHelper.IMAGE_TAG + "\n"
-            + "export REUSE_KIND=true\n"
+            + "export REUSE_K8S=true\n"
             + "export USE_KIND_INTERNAL=true\n"
             + "export BUILD_OPERATOR=false\n"
             + "export REUSE_OPERATOR=true\n"
@@ -51,6 +57,9 @@ public class StackGresOperatorEnd2EndIt extends AbstractStackGresOperatorIt {
             + "export RESET_NAMESPACES=true\n"
             + "export USE_EXTERNAL_OPERATOR=true\n"
             + "export CLUSTER_CHART_PATH=/resources/stackgres-cluster\n"
+            + "export OPERATOR_CHART_PATH=/resources/stackgres-operator\n"
+            + (E2E_TIMEOUT.isPresent() ? "export TIMEOUT=" + E2E_TIMEOUT.get() + "\n" : "")
+            + (E2E_PARALLELISM.isPresent() ? "export PARALLELISM=" + E2E_PARALLELISM.get() + "\n" : "")
             + (E2E_TEST.isPresent()
             ? "if ! sh " + (E2E_DEBUG.orElse(false) ? "-x" : "")
                 + " run-test.sh " + E2E_TEST.get() + "\n"
@@ -65,7 +74,7 @@ public class StackGresOperatorEnd2EndIt extends AbstractStackGresOperatorIt {
             + "  exit 1\n"
             + "fi\n"))
         .filter(ItHelper.EXCLUDE_TTY_WARNING)
-        .forEach(line -> LOGGER.info(line));
+        .forEach(LOGGER::info);
   }
 
 }

@@ -22,6 +22,7 @@ rules:
   - rolebindings
   - events
   - cronjobs
+  - persistentvolumeclaims
   verbs:
   - get
   - list
@@ -50,6 +51,7 @@ rules:
 - apiGroups: ["admissionregistration.k8s.io"]
   resources:
   - validatingwebhookconfigurations
+  - mutatingwebhookconfigurations
   verbs:
   - create
   - delete

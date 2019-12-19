@@ -2,53 +2,38 @@ config:
   create: true
   postgresql:
     version: "11.6"
+    postgresql.conf:
+      shared_buffers: '256MB'
+      random_page_cost: '1.5'
+      password_encryption: 'scram-sha-256'
+      wal_compression: 'on'
   pgbouncer:
-    version: "1.12.0"
-  postgresExporter:
-    version: "0.7.0"
-
-cluster:
-  create: true
-  name: "stackgres"
-  instances: 1
-  pgconfig: postgresconf
-  poolingconfig: pgbouncerconf
-  profile: size-xs
-  volumeSize: 5Gi
-  ## If defined, storageClassName: <storageclass>
-  ## If set to "-", storageClassName: "", which disables dynamic provisioning
-  ## If undefined (the default) or set to null, no storageClassName spec is
-  ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
-  ##   GKE, AWS & OpenStack)
-  #storageclass: "-"
+    pgbouncer.ini:
+      pool_mode: transaction
+      max_client_conn: '200'
+      default_pool_size: '200'
   backup:
-    name: backupconf
+    create: true
     retention: 5
     fullSchedule: "0 5 * * *"
     fullWindow: 60
     compressionMethod: lz4
     uploadDiskConcurrency: 1
     tarSizeThreshold: 1073741823
+    minio:
+      create: true
     #networkRateLimit:
     #diskRateLimit:
     #pgpConfiguration:
     #  name: pgpConfiguration
     #  key: key
-    nfs:
-      create: true
-    volume: {}
-    #  nfs: # see https://kubernetes.io/docs/concepts/storage/volumes#nfs
-    #    path:
-    #    server:
-    #  cephfs: # see https://releases.k8s.io/HEAD/examples/volumes/cephfs/README.md#how-to-use-it
-    #    monitors: []
-    #    path:
-    #    secretFile:
-    #    secretRef:
-    #    user:
-    #  glusterfs: # see https://releases.k8s.io/HEAD/examples/volumes/glusterfs/README.md#create-a-pod
-    #    endpoints: 
-    #    path:
+    volumeSize: 5Gi # Only affects volume sources
+    ## If defined, storageClassName: <volumeWriteManyStorageClass>
+    ## If set to "-", storageClassName: "", which disables dynamic provisioning
+    ## If undefined (the default) or set to null, no storageClassName spec is
+    ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
+    ##   GKE, AWS & OpenStack)
+    #volumeWriteManyStorageClass: "-"
     s3: {}
     #  prefix: s3://stackgres
     #  accessKey:
@@ -80,6 +65,22 @@ cluster:
     #    key: accesskey
     #  bufferSize:
     #  maxBuffers:
+
+cluster:
+  create: true
+  instances: 1
+  pgconfig: postgresconf
+  poolingconfig: pgbouncerconf
+  backupconfig: backupconf
+  profile: size-xs
+  volumeSize: 5Gi
+  ## If defined, storageClassName: <storageClass>
+  ## If set to "-", storageClassName: "", which disables dynamic provisioning
+  ## If undefined (the default) or set to null, no storageClassName spec is
+  ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
+  ##   GKE, AWS & OpenStack)
+  #storageClass: "-"
+
 sidecar:
   pooling: true
   util: true
@@ -91,4 +92,34 @@ crd:
   version: v1alpha1
 
 profiles:
-  create: true
+  - name: size-xs
+    cpu: "500m"
+    memory: "512Mi"
+  - name: size-s
+    cpu: "1"
+    memory: "2Gi"
+  - name: size-m
+    cpu: "2"
+    memory: "4Gi"
+  - name: size-l
+    cpu: "4"
+    memory: "8Gi"
+  - name: size-xl
+    cpu: "6"
+    memory: "16Gi"
+  - name: size-xxl
+    cpu: "8"
+    memory: "32Gi"
+
+minio:
+  persistence:
+    enabled: true
+    size: 10Gi
+  buckets:
+    - name: stackgres
+      policy: none
+      purge: true
+
+#You should only set following options for non production environment
+nonProductionOptions:
+  disableClusterPodAntiAffinity: true

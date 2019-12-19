@@ -8,11 +8,13 @@ package io.stackgres.operator.common;
 public enum ConfigProperty {
   OPERATOR_NAME("stackgres.operatorName"),
   OPERATOR_NAMESPACE("stackgres.operatorNamespace"),
+  OPERATOR_IP("stackgres.operatorIP"),
   OPERATOR_VERSION("stackgres.operatorVersion"),
   CRD_GROUP("stackgres.group"),
   CRD_VERSION("stackgres.crd.version"),
   CONTAINER_BUILD("stackgres.containerBuild"),
-  PROMETHEUS_AUTOBIND("stackgres.prometheus.allowAutobind");
+  PROMETHEUS_AUTOBIND("stackgres.prometheus.allowAutobind"),
+  GRAFANA_EMBEDDED("stackgres.prometheus.grafanaEmbedded");
 
   private final String systemProperty;
 

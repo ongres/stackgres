@@ -37,9 +37,6 @@ public class StackGresClusterSpec implements KubernetesResource {
   @NotBlank(message = "You need to associate a Postgres configuration to this cluster")
   private String postgresConfig;
 
-  @JsonProperty("postgresExporterVersion")
-  private String postgresExporterVersion;
-
   @JsonProperty("resourceProfile")
   @NotNull
   private String resourceProfile;
@@ -64,6 +61,9 @@ public class StackGresClusterSpec implements KubernetesResource {
   @JsonProperty("sidecars")
   private List<String> sidecars;
 
+  @JsonProperty("nonProduction")
+  private NonProduction nonProduction;
+
   public int getInstances() {
     return instances;
   }
@@ -86,14 +86,6 @@ public class StackGresClusterSpec implements KubernetesResource {
 
   public void setPostgresConfig(String postgresConfig) {
     this.postgresConfig = postgresConfig;
-  }
-
-  public String getPostgresExporterVersion() {
-    return postgresExporterVersion;
-  }
-
-  public void setPostgresExporterVersion(String postgresExporterVersion) {
-    this.postgresExporterVersion = postgresExporterVersion;
   }
 
   public String getResourceProfile() {
@@ -152,6 +144,14 @@ public class StackGresClusterSpec implements KubernetesResource {
     this.sidecars = sidecars;
   }
 
+  public NonProduction getNonProduction() {
+    return nonProduction;
+  }
+
+  public void setNonProduction(NonProduction nonProduction) {
+    this.nonProduction = nonProduction;
+  }
+
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
@@ -165,6 +165,7 @@ public class StackGresClusterSpec implements KubernetesResource {
         .add("volumeSize", volumeSize)
         .add("storageClass", storageClass)
         .add("sidecars", sidecars)
+        .add("nonProduction", nonProduction)
         .toString();
   }
 

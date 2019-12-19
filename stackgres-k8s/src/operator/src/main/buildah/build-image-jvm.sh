@@ -19,6 +19,14 @@ if [ \"$DEBUG_OPERATOR\" = true ]
 then
   JAVA_OPTS=\"$JAVA_OPTS -agentlib:jdwp=transport=dt_socket,server=y,address=8000,suspend=$([ \"$DEBUG_OPERATOR_SUSPEND\" = true ] && echo y || echo n)\"
 fi
+if [ ! -z \"$OPERATOR_LOG_LEVEL\" ]
+then
+  JAVA_OPTS=\"$JAVA_OPTS -Dquarkus.log.level=$OPERATOR_LOG_LEVEL\"
+fi
+if [ \"$OPERATOR_SHOW_STACK_TRACES\" = true ]
+then
+  JAVA_OPTS=\"$JAVA_OPTS -Dquarkus.log.console.format=%d{yyyy-MM-dd HH:mm:ss,SSS} %-5p [%c{4.}] (%t) %s%e%n\"
+fi
 exec java $JAVA_OPTS -jar /app/stackgres-operator.jar $APP_OPTS
 "' "$CONTAINER_BASE"
 buildah config --port 8080 "$CONTAINER_BASE"

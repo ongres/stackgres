@@ -1,0 +1,47 @@
+#!/bin/sh
+
+reuse_k8s() {
+  if ! minikube status > /dev/null 2>&1 \
+    || ! kubectl cluster-info > /dev/null 2>&1
+  then
+    echo "Can not reuse minikube environment"
+    reset_k8s
+    return
+  fi
+
+  echo "Reusing minikube environment"
+}
+
+reset_k8s() {
+  echo "Setting up minikube environment..."
+
+  minikube delete || true
+
+  minikube start
+
+  echo "...done"
+}
+
+delete_k8s() {
+  echo "Deleting minikube environment..."
+
+  minikube delete || true
+
+  echo "...done"
+}
+
+load_operator_k8s() {
+  echo "Loading operator image $IMAGE_NAME in minikube environemnt..."
+
+  local IMAGE_USER="$(dirname "$IMAGE_NAME")"
+  local IMAGE_MINIKUBE_NAME="$(basename "$IMAGE_NAME"|tr ':' '_')"
+  mkdir -p "$HOME/.minikube/cache/images/$IMAGE_USER"
+  docker save "$IMAGE_NAME" > "$HOME/.minikube/cache/images/$IMAGE_USER/$IMAGE_MINIKUBE_NAME"
+  minikube cache add "$IMAGE_NAME"
+  if [ "$USE_MINIKUBE_CRIO" = true ]
+  then
+    minikube ssh -- su root -l -c "'podman tag \"localhost/$IMAGE_NAME\" \"docker.io/$IMAGE_NAME\"'"
+  fi
+
+  echo "...done"
+}

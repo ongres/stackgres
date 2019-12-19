@@ -6,7 +6,6 @@
 package io.stackgres.operator.common;
 
 import java.util.Optional;
-
 import javax.inject.Singleton;
 
 import com.google.common.collect.ImmutableMap;
@@ -14,7 +13,7 @@ import com.google.common.collect.ImmutableMap;
 @Singleton
 public class ConfigLoader implements ConfigContext {
 
-  private static final ImmutableMap<ConfigProperty, String> CONTEXT_PROPERTY = ImmutableMap
+  private static final ImmutableMap<ConfigProperty, String> DEFAULT_CONTEXT = ImmutableMap
       .<ConfigProperty, String>builder()
       .put(ConfigProperty.CONTAINER_BUILD, StackGresUtil.CONTAINER_BUILD)
       .put(ConfigProperty.CRD_GROUP, StackGresUtil.CRD_GROUP)
@@ -23,10 +22,19 @@ public class ConfigLoader implements ConfigContext {
       .put(ConfigProperty.OPERATOR_NAME, StackGresUtil.OPERATOR_NAME)
       .put(ConfigProperty.OPERATOR_VERSION, StackGresUtil.OPERATOR_VERSION)
       .put(ConfigProperty.PROMETHEUS_AUTOBIND, StackGresUtil.PROMETHEUS_AUTOBIND)
+      .put(ConfigProperty.OPERATOR_IP, StackGresUtil.OPERATOR_IP)
       .build();
 
   @Override
   public Optional<String> getProperty(ConfigProperty configProperty) {
-    return Optional.ofNullable(CONTEXT_PROPERTY.get(configProperty));
+
+    Optional<String> envProp = Optional.ofNullable(System.getenv(configProperty.property()));
+    if (envProp.isPresent()) {
+      return envProp;
+    } else {
+      return Optional.ofNullable(DEFAULT_CONTEXT.get(configProperty));
+    }
+
   }
+
 }

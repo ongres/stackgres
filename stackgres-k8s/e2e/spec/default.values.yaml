@@ -1,0 +1,14 @@
+config:
+  postgresql:
+    postgresql.conf:
+      shared_buffers: '32MB'
+  backup:
+    create: false
+    minio:
+      create: false
+cluster:
+  volumeSize: 128Mi
+  backupconfig: null
+sidecar:
+  prometheus:
+    allowAutobind: false

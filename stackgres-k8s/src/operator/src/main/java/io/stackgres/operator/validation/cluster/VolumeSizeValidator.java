@@ -9,7 +9,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.enterprise.context.ApplicationScoped;
 
-import io.stackgres.operator.validation.StackgresClusterReview;
+import io.stackgres.operator.common.StackgresClusterReview;
 import io.stackgres.operatorframework.ValidationFailed;
 
 @ApplicationScoped

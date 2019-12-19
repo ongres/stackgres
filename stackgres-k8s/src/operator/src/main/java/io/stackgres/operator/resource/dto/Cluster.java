@@ -7,29 +7,30 @@ package io.stackgres.operator.resource.dto;
 
 import io.fabric8.kubernetes.client.CustomResource;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.operator.customresource.sgcluster.StackGresClusterSpec;
 
 @RegisterForReflection
 public class Cluster extends CustomResource {
 
   private static final long serialVersionUID = 1L;
 
-  private ClusterSpec spec;
+  private StackGresClusterSpec spec;
 
-  private ClusterStatus status;
+  private ClusterResourceConsumtion status;
 
-  public ClusterSpec getSpec() {
+  public StackGresClusterSpec getSpec() {
     return spec;
   }
 
-  public void setSpec(ClusterSpec spec) {
+  public void setSpec(StackGresClusterSpec spec) {
     this.spec = spec;
   }
 
-  public ClusterStatus getStatus() {
+  public ClusterResourceConsumtion getStatus() {
     return status;
   }
 
-  public void setStatus(ClusterStatus status) {
+  public void setStatus(ClusterResourceConsumtion status) {
     this.status = status;
   }
 }

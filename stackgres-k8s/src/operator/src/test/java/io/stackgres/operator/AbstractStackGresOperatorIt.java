@@ -8,7 +8,9 @@ package io.stackgres.operator;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
@@ -21,10 +23,15 @@ import org.junit.jupiter.api.BeforeEach;
 
 public abstract class AbstractStackGresOperatorIt extends AbstractIt {
 
+  private static final Optional<Boolean> RESET_KIND = Optional.ofNullable(
+      Optional.ofNullable(System.getenv("RESET_KIND"))
+      .orElse(System.getProperty("it.resetKind")))
+      .map(Boolean::valueOf);
   private static final int OPERATOR_PORT = getFreePort();
   private static final int OPERATOR_SSL_PORT = getFreePort();
 
   protected final String namespace = getNamespace();
+  protected final int kindSize = getKindSize();
 
   private Closeable operatorClose;
   private WebTarget operatorClient;
@@ -33,10 +40,15 @@ public abstract class AbstractStackGresOperatorIt extends AbstractIt {
     return "stackgres";
   }
 
+  protected int getKindSize() {
+    return 3;
+  }
+
   @BeforeEach
   public void setupOperator(@ContainerParam("kind") Container kind) throws Exception {
-    ItHelper.trapKill(kind);
+    ItHelper.killUnwantedProcesses(kind);
     ItHelper.copyResources(kind);
+    ItHelper.resetKind(kind, kindSize, !RESET_KIND.orElse(false));
     ItHelper.deleteStackGresOperatorHelmChartIfExists(kind, namespace);
     ItHelper.deleteNamespaceIfExists(kind, namespace);
     ItHelper.installStackGresOperatorHelmChart(kind, namespace, OPERATOR_SSL_PORT, executor);
@@ -64,7 +76,7 @@ public abstract class AbstractStackGresOperatorIt extends AbstractIt {
   @AfterEach
   public void teardownOperator() throws Exception {
     if (operatorClose != null) {
-      operatorClose.close();
+      runAsync(() -> operatorClose.close()).get(10, TimeUnit.SECONDS);
     }
   }
 

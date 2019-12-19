@@ -16,11 +16,13 @@
   <properties>
     <stackgres.operatorName>stackgres-operator</stackgres.operatorName>
     <stackgres.operatorNamespace>stackgres</stackgres.operatorNamespace>
+    <stackgres.operatorIP>localhost</stackgres.operatorIP>
     <stackgres.operatorVersion>${project.version}</stackgres.operatorVersion>
     <stackgres.containerBuild>2-dev</stackgres.containerBuild>
     <stackgres.group>stackgres.io</stackgres.group>
     <stackgres.crd.version>v1alpha1</stackgres.crd.version>
     <stackgres.prometheus.allowAutobind>true</stackgres.prometheus.allowAutobind>
+    <stackgres.prometheus.grafanaEmbedded>false</stackgres.prometheus.grafanaEmbedded>
 
     <quarkus.http.ssl.certificate.file>/etc/operator/certs/server.crt</quarkus.http.ssl.certificate.file>
     <quarkus.http.ssl.certificate.key-file>/etc/operator/certs/root.key</quarkus.http.ssl.certificate.key-file>
@@ -86,6 +88,12 @@
     <dependency>
       <groupId>org.glassfish.jersey.test-framework.providers</groupId>
       <artifactId>jersey-test-framework-provider-grizzly2</artifactId>
+      <version>${jersey.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.glassfish.jersey.media</groupId>
+      <artifactId>jersey-media-json-jackson</artifactId>
       <version>${jersey.version}</version>
       <scope>test</scope>
     </dependency>
@@ -156,6 +164,7 @@
                     <additionalBuildArg>-H:IncludeResources=.*/banner.txt</additionalBuildArg>
                     <additionalBuildArg>-H:IncludeResources=.*/*.yaml</additionalBuildArg>
                     <additionalBuildArg>-H:IncludeResources=.*/*.sh</additionalBuildArg>
+                    <additionalBuildArg>-H:IncludeResources=.*/*.properties</additionalBuildArg>
                   </additionalBuildArgs>
                   <enableReports>false</enableReports>
                 </configuration>
@@ -236,7 +245,7 @@
                           <run>chmod a+x /bin/kubectl</run>
                           <run>wget -q -O /bin/kind  https://github.com/kubernetes-sigs/kind/releases/download/v0.6.0/kind-$(uname)-amd64</run>
                           <run>chmod a+x /bin/kind</run>
-                          <run>wget -q https://get.helm.sh/helm-v2.14.3-linux-amd64.tar.gz -O -|tar xz --strip-components=1 -C /bin -f - linux-amd64/helm</run>
+                          <run>wget -q https://get.helm.sh/helm-v2.16.1-linux-amd64.tar.gz -O -|tar xz --strip-components=1 -C /bin -f - linux-amd64/helm</run>
                         </runCmds>
                       </build>
                     </image>

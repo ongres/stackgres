@@ -1,11 +1,8 @@
 #!/bin/sh
 
 setup_tiller() {
-
   if ! kubectl get pods --all-namespaces  | grep tiller | grep Running | grep 1/1; then
     helm init
-
-    helm repo update
 
     wait_tiller_is_loaded
 
@@ -17,6 +14,8 @@ setup_tiller() {
   else 
     echo "Tiller already loaded"
   fi 
+
+  helm repo update
 }
 
 is_tiller_loaded(){

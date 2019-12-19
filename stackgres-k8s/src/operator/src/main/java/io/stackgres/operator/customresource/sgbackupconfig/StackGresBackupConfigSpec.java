@@ -25,7 +25,7 @@ public class StackGresBackupConfigSpec implements KubernetesResource {
 
   @JsonProperty("storage")
   @NotNull(message = "The storage is required")
-  private Storage storage;
+  private BackupStorage storage;
 
   @JsonProperty("retention")
   @Positive(message = "retention should be greater than zero")
@@ -55,11 +55,11 @@ public class StackGresBackupConfigSpec implements KubernetesResource {
   @JsonProperty("tarSizeThreshold")
   private long tarSizeThreshold;
 
-  public Storage getStorage() {
+  public BackupStorage getStorage() {
     return storage;
   }
 
-  public void setStorage(Storage storage) {
+  public void setStorage(BackupStorage storage) {
     this.storage = storage;
   }
 

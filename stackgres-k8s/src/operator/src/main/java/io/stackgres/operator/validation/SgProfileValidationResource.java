@@ -15,13 +15,14 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import io.quarkus.runtime.StartupEvent;
+import io.stackgres.operator.common.SgProfileReview;
 import io.stackgres.operatorframework.AdmissionReviewResponse;
 import io.stackgres.operatorframework.ValidationPipeline;
 import io.stackgres.operatorframework.ValidationResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Path("/stackgres/validation/sgprofile")
+@Path(ValidationUtil.PROFILE_VALIDATION_PATH)
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class SgProfileValidationResource implements ValidationResource<SgProfileReview> {

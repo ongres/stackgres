@@ -1,0 +1,117 @@
+#!/bin/sh
+
+test_install() {
+  if [ "$ENV" = "kind" ]
+  then
+    cat << EOF > "$LOG_PATH/minio-affinity.yaml"
+minio:
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+            - key: "kubernetes.io/hostname"
+              operator: "In"
+              values: [ "${KIND_NAME}-worker" ]
+EOF
+  else
+    > "$LOG_PATH/minio-affinity.yaml"
+  fi
+
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
+    -f "$LOG_PATH/minio-affinity.yaml"
+
+  wait_pods_running "$CLUSTER_NAMESPACE" 3
+
+  # Avoid backups before waiting for pods (since backup pods could biase the wait)
+  kubectl patch sgbackupconfig -n "$CLUSTER_NAMESPACE" backupconf --type json \
+    --patch '[{"op":"replace","path":"/spec/fullSchedule","value":"*/1 * * * *"}]'
+}
+
+test() {
+  run_test "Checking that backup is working before switchover" check_backup_before_switchover
+
+  run_test "Checking that switchover is working" check_switchover
+
+  run_test "Checking that backup is working after switchover" check_backup_after_switchover
+
+  run_test "Checking that backup is working after killing storage provider service" check_backup_after_kill_storage_provider_service
+}
+
+check_backup_before_switchover() {
+  check_backup 0
+}
+
+check_backup_after_switchover() {
+  check_backup 1
+}
+
+check_backup_after_kill_storage_provider_service() {
+  kubectl get pod -n "$CLUSTER_NAMESPACE" -o name | grep "^pod/$CLUSTER_NAME-minio-" \
+    | xargs -r -n 1 -I % kubectl delete -n "$CLUSTER_NAMESPACE" %
+
+  check_backup 1
+}
+
+check_backup() {
+  NODE="$1"
+  CURRENT_WAL_FILE="$(kubectl exec -t -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-"$NODE" -c postgres-util -- \
+    psql -t -A -U postgres -p 5435 -c \
+    'SELECT r.file_name from pg_walfile_name_offset(pg_current_wal_lsn()) as r')"
+  wait_until eval '[ "$(kubectl exec -t -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-"$NODE" -c postgres-util -- \
+      psql -t -A -U postgres -p 5435 -c \
+      "SELECT r.file_name from pg_walfile_name_offset(pg_switch_wal()) as r")" != "$CURRENT_WAL_FILE" ]'
+
+  if wait_until kubectl exec -t -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-"$NODE" -c patroni -- \
+    wal-g wal-fetch "$CURRENT_WAL_FILE" "/tmp/$CURRENT_WAL_FILE"
+  then
+    echo "SUCCESS. The WAL is available"
+  else
+    echo "FAIL. The WAL is not available"
+    return 1
+  fi
+
+  if wait_until eval '[ "$(kubectl exec -t -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-"$NODE" -c patroni -- \
+      wal-g backup-list | wc -l)" -gt 0 ]'
+  then
+    echo "SUCCESS. The full backup is available"
+  else
+    echo "FAIL. The full backup is not available"
+    return 1
+  fi
+}
+
+check_switchover() {
+  if kubectl exec -t -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-0 -c patroni -- \
+    patronictl switchover --master "$CLUSTER_NAME"-0 --candidate "$CLUSTER_NAME"-1 --force
+  then
+    echo "SUCCESS. The switchover has been performed"
+  else
+    echo "FAIL. The switchover operation failed"
+    return 1
+  fi
+
+  if wait_until run_query -i 0 -p 5432
+  then
+    echo "SUCCESS. The replica becomed available"
+  else
+    echo "FAIL. The replica is not available"
+    return 1
+  fi
+
+  if ! run_query -i 1 -p 5432 -q "'SELECT pg_is_in_recovery()'" | grep -q '^t$'
+  then
+    echo "SUCCESS. The primary is now the node at index 1"
+  else
+    echo "FAIL. The node at index 1 is not the primary"
+    return 1
+  fi
+
+  if ! run_query -i 0 -p 5432 -q "'SELECT pg_is_in_recovery()'" | grep -q '^f$'
+  then
+    echo "SUCCESS. The replica is now the node at index 0"
+  else
+    echo "FAIL. The node at index 0 is not a replica"
+    return 1
+  fi
+}

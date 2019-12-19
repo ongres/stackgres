@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.Set;
 import javax.enterprise.context.ApplicationScoped;
 
-import io.stackgres.operator.validation.PgConfigReview;
+import io.stackgres.operator.common.PgConfigReview;
 import io.stackgres.operatorframework.Operation;
 import io.stackgres.operatorframework.ValidationFailed;
 

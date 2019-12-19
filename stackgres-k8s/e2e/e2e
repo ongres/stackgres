@@ -10,7 +10,9 @@ TARGET_PATH="$(dirname "$0")/target"
 BUILD_OPERATOR="${BUILD_OPERATOR:-true}"
 WAIT_OPERATOR="${WAIT_OPERATOR:-true}"
 RESET_NAMESPACES="${RESET_NAMESPACE:-true}"
-TIMEOUT="${TIMEOUT:-180}"
+TIMEOUT="${TIMEOUT:-600}"
+TRAP_ENABLED="${TRAP_ENABLED:-false}"
+SKIP_K8S_SETUP="${SKIP_K8S_SETUP:-false}"
 
 if [ -z "$STACKGRES_PATH" ]
 then
@@ -26,6 +28,8 @@ do
   . "$util"
 done
 
+. "$(dirname "$0")/envs/$ENV"
+
 trap_kill() {
   echo "$1" >> "$TARGET_PATH/trap-kill"
 }
@@ -34,19 +38,26 @@ trap_callback() {
   if [ -s "$TARGET_PATH/trap-kill" ]
   then
     sleep 1 # Let the tails write to output remaining logs.
-    kill $(cat "$TARGET_PATH/trap-kill")
+    kill $(cat "$TARGET_PATH/trap-kill") || true
   fi
 }
 
 setup_k8s() {
-  . "$(dirname "$0")/envs/$ENV"
+  if ! $TRAP_ENABLED
+  then
+    rm -rf "$TARGET_PATH"
+    mkdir -p "$TARGET_PATH/logs"
+    trap 'trap_callback' EXIT
+    trap 'exit $?' HUP INT QUIT PIPE TERM
+    export TRAP_ENABLED=true
+  fi
 
-  rm -rf "$TARGET_PATH"
-  mkdir -p "$TARGET_PATH/logs"
-  trap 'trap_callback' EXIT
-  trap 'exit $?' HUP INT QUIT PIPE TERM
+  if [ "$SKIP_K8S_SETUP" = true ]
+  then
+    return
+  fi
 
-  if [ "$REUSE_KIND" != true ]
+  if [ "$REUSE_K8S" != true ]
   then
     reset_k8s
   else
@@ -54,6 +65,11 @@ setup_k8s() {
   fi
 
   setup_tiller
+
+  setup_default_limits 0.1 0.1 16Mi 16Mi
+
+  helm dependency update "$OPERATOR_CHART_PATH"
+  helm dependency update "$CLUSTER_CHART_PATH"
 
   if [ "$BUILD_OPERATOR" = true ] \
     && (
@@ -84,11 +100,17 @@ setup_k8s() {
       | kubectl delete -f - --ignore-not-found
     kubectl get validatingwebhookconfigurations.admissionregistration.k8s.io -o name \
       | xargs -r -n 1 -I % kubectl delete %
+    kubectl get mutatingwebhookconfigurations.admissionregistration.k8s.io -o name \
+      | xargs -r -n 1 -I % kubectl delete %
     if [ "$RESET_NAMESPACES" = true ]
     then
       kubectl get namespace -o name \
         | grep -v "^namespace/\(default\|kube-system\|kube-public\|minio\)$" \
-        | xargs -r -n 1 -I % -P 0 kubectl delete %
+        | xargs -r -n 1 -I % -P 0 sh -ec '
+        kubectl delete namespace % &
+        sleep 3
+        kubectl delete pod -n % --all --force --grace-period 0
+        wait'
     fi
     helm install --name stackgres-operator --namespace stackgres "$OPERATOR_CHART_PATH" \
       --set-string image.tag="$IMAGE_TAG" --set-string image.pullPolicy=Never
@@ -109,8 +131,12 @@ setup_k8s() {
     if [ "$RESET_NAMESPACES" = true ]
     then
       kubectl get namespace -o name \
-        | grep -v "^namespace/\(default\|kube-system\|kube-public\|minio\|stackgres\)$" \
-        | xargs -r -n 1 -I % -P 0 kubectl delete %
+        | grep -v "^namespace/\(default\|kube-system\|kube-public\|minio\|stackgres\)$" | cut -d / -f 2 \
+        | xargs -r -n 1 -I % -P 0 sh -ec '
+        kubectl delete namespace % &
+        sleep 3
+        kubectl delete pod -n % --all --force --grace-period 0
+        wait'
     fi
   fi
 

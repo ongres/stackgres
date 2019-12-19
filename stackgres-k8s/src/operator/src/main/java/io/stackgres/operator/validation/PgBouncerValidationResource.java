@@ -15,13 +15,14 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import io.quarkus.runtime.StartupEvent;
+import io.stackgres.operator.common.PgBouncerReview;
 import io.stackgres.operatorframework.AdmissionReviewResponse;
 import io.stackgres.operatorframework.ValidationPipeline;
 import io.stackgres.operatorframework.ValidationResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Path("/stackgres/validation/sgconnectionpoolingconfig")
+@Path(ValidationUtil.CONNPOOLCONFIG_VALIDATION_PATH)
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class PgBouncerValidationResource implements ValidationResource<PgBouncerReview> {
