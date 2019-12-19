@@ -18,14 +18,20 @@
 
 		<link rel="stylesheet" type="text/css" href="style.css">
 
-		<!-- PROD vue / 2.6.0 -->
+		<!-- PROD vue / v2.6.0 -->
 		<!-- <script src="js/vue.min.js"></script> -->
 		
-		<!-- DEV vue / 2.6.0 -->
+		<!-- DEV vue / v2.6.0 -->
 		<script src="js/vue.js"></script>
 		
+		<!-- Vue Router v3.1.3 -->
 		<script src="js/vue-router.js"></script>
+
+		<!-- Axios v0.19.0 -->
 		<script src="js/axios.min.js"></script>
+
+		<!-- VueX v3.1.2 -->
+		<script src="js/vuex.js"></script>
 	</head>
 <body>
 
@@ -37,6 +43,12 @@
 		<router-view id="main"></router-view>
 	</div>
 
+	<!-- Extra Libraries -->
+	<script type="text/javascript" src="js/lib/moment.min.js"></script>
+	<script type="text/javascript" src="js/lib/later.min.js"></script>
+	<script type="text/javascript" src="js/lib/prettycron.js"></script>
+	<script type="text/javascript" src="js/lib/jquery-3.4.1.min.js"></script>
+
 	<!-- Components -->
 	<script type="text/javascript" src="js/components/ClusterOverview.vue.js"></script>
 	<script type="text/javascript" src="js/components/ClusterInfo.vue.js"></script>
@@ -45,10 +57,11 @@
 	<script type="text/javascript" src="js/components/Nav.vue.js"></script>
 	<script type="text/javascript" src="js/components/PgConfig.vue.js"></script>
 	<script type="text/javascript" src="js/components/PoolConfig.vue.js"></script>
+	<script type="text/javascript" src="js/components/BackupConfig.vue.js"></script>
 	<script type="text/javascript" src="js/components/SGProfiles.vue.js"></script>
 	<script type="text/javascript" src="js/components/Grafana.vue.js"></script>
 
-	<script type="text/javascript" src="js/jquery-3.4.1.min.js"></script>
+	<!-- General Scripts -->
 	<script type="text/javascript" src="js/stackgres.js"></script>
 
 </body>

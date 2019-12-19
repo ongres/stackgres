@@ -1,24 +1,25 @@
 [
-  {
+  { 
     "kind": "StackGresCluster",
     "apiVersion": "stackgres.io/v1alpha1",
     "metadata": {
-      "creationTimestamp": "2019-11-07T16:18:42Z",
+      "creationTimestamp": "2019-12-02T11:21:59Z",
       "generation": 1,
       "name": "stackgres",
       "namespace": "stackgres",
-      "resourceVersion": "9947",
+      "resourceVersion": "502759",
       "selfLink": "/apis/stackgres.io/v1alpha1/namespaces/stackgres/sgclusters/stackgres",
-      "uid": "4425961b-017a-11ea-9ca4-0242ac110004"
+      "uid": "f4984400-14f5-11ea-bbf8-0242ac110011"
     },
     "spec": {
       "instances": 2,
-      "pgVersion": "11.5",
+      "pgVersion": "11.6",
       "pgConfig": "postgresconf",
+      "postgresExporterVersion": "0.7.0",
       "resourceProfile": "size-xs",
       "connectionPoolingConfig": "pgbouncerconf",
+      "backupConfig": "backupconf",
       "volumeSize": "5Gi",
-      "storageClass": "standard",
       "prometheusAutobind": true,
       "sidecars": [
         "connection-pooling",
@@ -26,69 +27,29 @@
         "prometheus-postgres-exporter"
       ]
     },
-    "status": {
-      "cpuRequested": "500m",
-      "cpuFound": "16",
-      "memoryRequested": "512Mi",
-      "memoryFound": "63Gi",
-      "memoryUsed": "15Gi",
-      "diskFound": "34Gi",
-      "diskUsed": "72Mi",
-      "averageLoad1m": "1.10",
-      "averageLoad5m": "1.10",
-      "averageLoad10m": "1.12",
-      "pods": [
-        {
-          "namespace": "stackgres",
-          "name": "stackgres-0",
-          "role": "master",
-          "ip": "10.244.2.24",
-          "status": "Running",
-          "containers": "4",
-          "containersReady": "4"
-        },
-        {
-          "namespace": "stackgres",
-          "name": "stackgres-1",
-          "role": "replica",
-          "ip": "10.244.1.22",
-          "status": "Running",
-          "containers": "4",
-          "containersReady": "4"
-        },
-        {
-          "namespace": "stackgres",
-          "name": "stackgres-2",
-          "role": "replica",
-          "ip": "33.33.33.33",
-          "status": "Running",
-          "containers": "3",
-          "containersReady": "3"
-        }
-      ],
-      "podsReady": "2"
-    }
+    "status": null
   },
-    {
+  { 
     "kind": "StackGresCluster",
     "apiVersion": "stackgres.io/v1alpha1",
     "metadata": {
-      "creationTimestamp": "2019-11-07T16:18:42Z",
+      "creationTimestamp": "2019-12-02T11:21:59Z",
       "generation": 1,
-      "name": "stackgres-2",
-      "namespace": "stackgres",
-      "resourceVersion": "9947",
+      "name": "stackgres-YYY",
+      "namespace": "stackgres-Y",
+      "resourceVersion": "502759",
       "selfLink": "/apis/stackgres.io/v1alpha1/namespaces/stackgres/sgclusters/stackgres",
-      "uid": "4425961b-017a-11ea-9ca4-0242ac110004"
+      "uid": "f4984400-14f5-11ea-bbf8-0242ac110011"
     },
     "spec": {
       "instances": 2,
-      "pgVersion": "11.5",
+      "pgVersion": "11.6",
       "pgConfig": "postgresconf",
-      "resourceProfile": "size-xs",
+      "postgresExporterVersion": "0.7.0",
+      "resourceProfile": "size-s-Y",
       "connectionPoolingConfig": "pgbouncerconf",
+      "backupConfig": "backupconf",
       "volumeSize": "5Gi",
-      "storageClass": "standard",
       "prometheusAutobind": true,
       "sidecars": [
         "connection-pooling",
@@ -96,47 +57,36 @@
         "prometheus-postgres-exporter"
       ]
     },
-    "status": {
-      "cpuRequested": "500m",
-      "cpuFound": "16",
-      "memoryRequested": "512Mi",
-      "memoryFound": "63Gi",
-      "memoryUsed": "15Gi",
-      "diskFound": "34Gi",
-      "diskUsed": "72Mi",
-      "averageLoad1m": "1.10",
-      "averageLoad5m": "1.10",
-      "averageLoad10m": "1.12",
-      "pods": [
-        {
-          "namespace": "stackgres",
-          "name": "stackgres-0",
-          "role": "master",
-          "ip": "10.244.2.24",
-          "status": "Running",
-          "containers": "4",
-          "containersReady": "4"
-        },
-        {
-          "namespace": "stackgres",
-          "name": "stackgres-1",
-          "role": "replica",
-          "ip": "10.244.1.22",
-          "status": "Running",
-          "containers": "4",
-          "containersReady": "4"
-        },
-        {
-          "namespace": "stackgres",
-          "name": "stackgres-2",
-          "role": "replica",
-          "ip": "33.33.33.33",
-          "status": "Running",
-          "containers": "3",
-          "containersReady": "3"
-        }
-      ],
-      "podsReady": "3"
-    }
+    "status": null
+  },
+  { 
+    "kind": "StackGresCluster",
+    "apiVersion": "stackgres.io/v1alpha1",
+    "metadata": {
+      "creationTimestamp": "2019-12-02T11:21:59Z",
+      "generation": 1,
+      "name": "stackgres-ZZZ",
+      "namespace": "stackgres-Z",
+      "resourceVersion": "502759",
+      "selfLink": "/apis/stackgres.io/v1alpha1/namespaces/stackgres/sgclusters/stackgres",
+      "uid": "f4984400-14f5-11ea-bbf8-0242ac110011"
+    },
+    "spec": {
+      "instances": 2,
+      "pgVersion": "11.6",
+      "pgConfig": "postgresconf",
+      "postgresExporterVersion": "0.7.0",
+      "resourceProfile": "size-m-Z",
+      "connectionPoolingConfig": "pgbouncerconf",
+      "backupConfig": "backupconf",
+      "volumeSize": "5Gi",
+      "prometheusAutobind": true,
+      "sidecars": [
+        "connection-pooling",
+        "postgres-util",
+        "prometheus-postgres-exporter"
+      ]
+    },
+    "status": null
   }
 ]

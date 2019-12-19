@@ -3,7 +3,7 @@ var ClusterInfo = Vue.component("cluster-info", {
 		<div id="cluster-info">
 			<header>
 				<h2 class="title">INFO</h2>
-				<!--<h3 class="subtitle">{{ cluster.name }}</h3>-->
+				<h3 class="subtitle">{{ $route.params.name }}</h3>
 			</header>
 
 			<div class="content">
@@ -25,18 +25,18 @@ var ClusterInfo = Vue.component("cluster-info", {
 							<h4>Health</h4>
 						</div>
 					</div>
-					<div class="row">
+					<div class="row" v-if="dataReady">
 						<div class="col">
-							{{ cluster.data.status.cpuRequested + ' (avg. load ' + cluster.data.status.averageLoad1m + ')' }}
+							{{ cluster.data.cpuRequested }} (avg. load {{ cluster.data.averageLoad1m }} )
 						</div>
 						<div class="col">
-							{{ cluster.data.status.memoryRequested }}
+							{{ cluster.data.memoryRequested }}
 						</div>
 						<div class="col">
-							{{ cluster.data.status.diskUsed + '/' + cluster.data.spec.volumeSize }}
+							{{ cluster.data.diskUsed }} / {{ cluster.data.diskFound }}
 						</div>
 						<div class="col">
-							{{ cluster.data.status.podsReady + '/' + cluster.data.spec.instances }}
+							{{ cluster.data.podsReady }} / {{ cluster.data.pods.length }}
 						</div>
 					</div>
 				</div>
@@ -44,19 +44,69 @@ var ClusterInfo = Vue.component("cluster-info", {
 		</div>`,
 	data: function() {
 		return {
-	      cluster: null
+	      dataReady: false,
+	      polling: null
 	    }
 	},
-	created () {
-		this.fetchData()
-		vm.currentCluster = this.$route.params.name;
+	methods: {
+		
+		fetchAPI: function() {
+			vc = this;
+
+			/*store.commit('setCurrentCluster', vm.$route.params.name);
+			console.log("Current cluster: "+store.state.currentCluster)*/
+
+			/* Clusters Data */
+		    axios
+		    .get(apiURL+'cluster/status/'+vm.$route.params.namespace+'/'+vm.$route.params.name,
+		    	{ headers: {
+		            'content-type': 'application/json'
+		          }
+		        }
+	      	)
+	      	.then( function(response){
+
+	        	store.commit('setCurrentCluster', { 
+	              	name: vm.$route.params.name,
+	              	data: response.data
+              	});
+
+	        	vc.dataReady = true;
+	        			        
+	      	});
+		}
+
 	},
-  	watch: {
-    	'$route': 'fetchData'
-  	},
-  	methods: {
-	    fetchData () {
-	      this.cluster = clustersData[this.$route.params.name]  
-	    }
-	}	
+	created: function() {
+
+		if ( (store.state.currentCluster.length > 0) && (store.state.currentCluster.name == vm.$route.params.name) ) {
+			this.dataReady = true;
+		}
+	},
+	mounted: function() {
+
+		var count = 0;
+
+		this.fetchAPI();
+	    
+	    this.polling = setInterval( function(){
+	    	//count++;
+	      	this.fetchAPI();
+
+	      	//console.log("Interval run #"+count);
+
+	    }.bind(this), 5000);
+	    
+	},
+	computed: {
+
+		cluster () {
+			//console.log(store.state.currentCluster);
+			return store.state.currentCluster
+		}
+	},
+	beforeDestroy () {
+		clearInterval(this.polling);
+		//console.log('Interval cleared');
+	} 
 })

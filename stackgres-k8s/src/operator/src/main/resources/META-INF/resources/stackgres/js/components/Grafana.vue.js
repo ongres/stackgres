@@ -20,22 +20,23 @@ var Grafana = Vue.component("grafana", {
 	data: function() {
 
 		return {
-			pods: [],
 			grafana: ""
 		}
 	},
 	created: function() {
 		this.fetchData()
 	},
-	watch: {
-		'$route': 'fetchData'
+	mounted: {
+
+		pods () {
+			return store.currentCluster.data.status.pods
+		}
+
 	},
 	methods: {
 		fetchData () {
 			// Grafana service
 			let vc = this;
-
-			vc.pods = clustersData[this.$route.params.name].data.status.pods;
 
 			$.get("/grafana", function(data) {
 				let url = data;
