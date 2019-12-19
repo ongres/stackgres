@@ -36,6 +36,13 @@ import org.jooq.lambda.Unchecked;
 
 public class Backup {
 
+  public static String backupJobName(StackGresBackup backup,
+      StackGresClusterContext clusterContext) {
+    String name = backup.getMetadata().getName();
+    return ResourceUtil.resourceName(
+        name + ClusterStatefulSet.BACKUP_SUFFIX);
+  }
+
   public static ImmutableList<HasMetadata> create(
       ResourceGeneratorContext<StackGresClusterContext> context) {
     StackGresClusterContext clusterContext = context.getContext();
@@ -63,12 +70,14 @@ public class Backup {
     String namespace = backup.getMetadata().getNamespace();
     String name = backup.getMetadata().getName();
     String clusterName = backup.getSpec().getClusterName();
-    ImmutableMap<String, String> labels = ResourceUtil.backupLabels(name);
+    ImmutableMap<String, String> labels = ResourceUtil.clusterLabels(clusterContext.getCluster());
+    ImmutableMap<String, String> podLabels = ResourceUtil.backupPodLabels(
+        clusterContext.getCluster());
     StackGresBackupConfig backupConfig = clusterContext.getBackupConfig().get();
     return new JobBuilder()
         .withNewMetadata()
         .withNamespace(namespace)
-        .withName(clusterName + ClusterStatefulSet.BACKUP_SUFFIX + "-" + name)
+        .withName(backupJobName(backup, clusterContext))
         .withLabels(labels)
         .withOwnerReferences(ImmutableList.of(
             ResourceUtil.getOwnerReference(backup)))
@@ -81,17 +90,14 @@ public class Backup {
         .withNewTemplate()
         .withNewMetadata()
         .withNamespace(namespace)
-        .withName(clusterName + ClusterStatefulSet.BACKUP_SUFFIX + "-" + name)
-        .withLabels(ImmutableMap.<String, String>builder()
-            .putAll(labels)
-            .put(ResourceUtil.ROLE_KEY, ResourceUtil.BACKUP_ROLE)
-            .build())
+        .withName(backupJobName(backup, clusterContext))
+        .withLabels(podLabels)
         .endMetadata()
         .withNewSpec()
         .withRestartPolicy("OnFailure")
-        .withServiceAccountName(name + PatroniRole.SUFFIX)
+        .withServiceAccountName(PatroniRole.roleName(clusterContext))
         .withContainers(new ContainerBuilder()
-            .withName(clusterName + ClusterStatefulSet.BACKUP_SUFFIX + "-" + name)
+            .withName("create-backup")
             .withImage("bitnami/kubectl:latest")
             .withEnv(
                 new EnvVarBuilder()
@@ -155,10 +161,6 @@ public class Backup {
                 new EnvVarBuilder()
                 .withName("PATRONI_REPLICA_ROLE")
                 .withValue(ResourceUtil.REPLICA_ROLE)
-                .build(),
-                new EnvVarBuilder()
-                .withName("BACKUP_ROLE")
-                .withValue(ResourceUtil.BACKUP_ROLE)
                 .build(),
                 new EnvVarBuilder()
                 .withName("CLUSTER_LABELS")

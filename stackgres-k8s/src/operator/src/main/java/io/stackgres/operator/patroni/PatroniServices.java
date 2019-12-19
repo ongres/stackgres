@@ -15,6 +15,7 @@ import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.ServicePortBuilder;
+import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.resource.ResourceUtil;
 import io.stackgres.operator.sidecars.envoy.Envoy;
@@ -26,18 +27,38 @@ public class PatroniServices {
   public static final String FAILOVER_SERVICE = "-failover";
   public static final String CONFIG_SERVICE = "-config";
 
+  public static String readWriteName(StackGresClusterContext clusterContext) {
+    String name = clusterContext.getCluster().getMetadata().getName();
+    return ResourceUtil.resourceName(name + READ_WRITE_SERVICE);
+  }
+
+  public static String readOnlyName(StackGresClusterContext clusterContext) {
+    String name = clusterContext.getCluster().getMetadata().getName();
+    return ResourceUtil.resourceName(name + READ_ONLY_SERVICE);
+  }
+
+  public static String failoverName(StackGresClusterContext clusterContext) {
+    return ResourceUtil.resourceName(
+        ResourceUtil.clusterScope(clusterContext.getCluster()) + FAILOVER_SERVICE);
+  }
+
+  public static String configName(StackGresClusterContext clusterContext) {
+    return ResourceUtil.resourceName(
+        ResourceUtil.clusterScope(clusterContext.getCluster()) + CONFIG_SERVICE);
+  }
+
   /**
    * Create the Services associated with the cluster.
    */
-  public static List<Service> createServices(StackGresCluster cluster) {
-    final String name = cluster.getMetadata().getName();
+  public static List<Service> createServices(StackGresClusterContext context) {
+    final StackGresCluster cluster = context.getCluster();
     final String namespace = cluster.getMetadata().getNamespace();
-    final Map<String, String> labels = ResourceUtil.defaultLabels(name);
+    final Map<String, String> labels = ResourceUtil.clusterLabels(context.getCluster());
 
-    Service config = createConfigService(namespace, name + CONFIG_SERVICE, labels, cluster);
-    Service primary = createService(namespace, name + READ_WRITE_SERVICE,
+    Service config = createConfigService(namespace, configName(context), labels, cluster);
+    Service primary = createService(namespace, readWriteName(context),
         ResourceUtil.PRIMARY_ROLE, labels, cluster);
-    Service replicas = createService(namespace, name + READ_ONLY_SERVICE,
+    Service replicas = createService(namespace, readOnlyName(context),
         ResourceUtil.REPLICA_ROLE, labels, cluster);
 
     return ImmutableList.of(config, primary, replicas);

@@ -59,8 +59,17 @@ public class Envoy implements StackGresSidecarTransformer<CustomResource, StackG
           "postgres_port", PG_PORT,
           "postgres_raw_port", PG_RAW_PORT);
 
+  final YamlMapperProvider yamlMapperProvider;
+
   @Inject
-  YamlMapperProvider yamlMapperProvider;
+  public Envoy(YamlMapperProvider yamlMapperProvider) {
+    this.yamlMapperProvider = yamlMapperProvider;
+  }
+
+  public static String configName(StackGresClusterContext clusterContext) {
+    String name = clusterContext.getCluster().getMetadata().getName();
+    return ResourceUtil.resourceName(name + CONFIG_SUFFIX);
+  }
 
   @Override
   public Container getContainer(ResourceGeneratorContext<StackGresClusterContext> context) {
@@ -88,8 +97,7 @@ public class Envoy implements StackGresSidecarTransformer<CustomResource, StackG
     return ImmutableList.of(new VolumeBuilder()
         .withName(NAME)
         .withConfigMap(new ConfigMapVolumeSourceBuilder()
-            .withName(context.getContext().getCluster().getMetadata()
-                .getName() + CONFIG_SUFFIX)
+            .withName(configName(context.getContext()))
             .build())
         .build());
   }
@@ -132,15 +140,14 @@ public class Envoy implements StackGresSidecarTransformer<CustomResource, StackG
       Map<String, String> data = ImmutableMap.of("default_envoy.yaml",
           yamlMapper.writeValueAsString(envoyConfig));
 
-      String name = context.getContext().getCluster().getMetadata().getName();
       String namespace = context.getContext().getCluster().getMetadata().getNamespace();
-      String configMapName = name + CONFIG_SUFFIX;
+      String configMapName = configName(context.getContext());
 
       ConfigMap cm = new ConfigMapBuilder()
           .withNewMetadata()
           .withNamespace(namespace)
           .withName(configMapName)
-          .withLabels(ResourceUtil.defaultLabels(name))
+          .withLabels(ResourceUtil.clusterLabels(context.getContext().getCluster()))
           .withOwnerReferences(ImmutableList.of(ResourceUtil.getOwnerReference(
               context.getContext().getCluster())))
           .endMetadata()

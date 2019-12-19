@@ -37,11 +37,11 @@ public class Cluster implements StackGresClusterConfigTransformer<StackGresClust
   public ImmutableList<HasMetadata> getResources(
       ResourceGeneratorContext<StackGresClusterContext> context) {
     return ImmutableList.<HasMetadata>builder()
-        .add(PatroniRole.createServiceAccount(context.getContext().getCluster()))
-        .add(PatroniRole.createRole(context.getContext().getCluster()))
-        .add(PatroniRole.createRoleBinding(context.getContext().getCluster()))
-        .add(PatroniSecret.create(context.getContext().getCluster()))
-        .addAll(PatroniServices.createServices(context.getContext().getCluster()))
+        .add(PatroniRole.createServiceAccount(context.getContext()))
+        .add(PatroniRole.createRole(context.getContext()))
+        .add(PatroniRole.createRoleBinding(context.getContext()))
+        .add(PatroniSecret.create(context.getContext()))
+        .addAll(PatroniServices.createServices(context.getContext()))
         .add(PatroniConfigEndpoints.create(context.getContext(), objectMapper))
         .add(PatroniConfigMap.create(context.getContext(), objectMapper))
         .addAll(BackupCronJob.create(context))

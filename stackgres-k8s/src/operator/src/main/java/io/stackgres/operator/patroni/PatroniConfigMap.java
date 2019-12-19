@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.patroni;
 
+import java.lang.management.ManagementFactory;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -17,7 +18,6 @@ import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.stackgres.operator.cluster.ClusterStatefulSet;
-import io.stackgres.operator.common.QuarkusProfile;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.customresource.sgbackupconfig.AwsS3Storage;
 import io.stackgres.operator.customresource.sgbackupconfig.AzureBlobStorage;
@@ -42,7 +42,7 @@ public class PatroniConfigMap {
     final String namespace = context.getCluster().getMetadata().getNamespace();
     final String pgVersion = context.getCluster().getSpec().getPostgresVersion();
 
-    Map<String, String> labels = ResourceUtil.patroniClusterLabels(name);
+    Map<String, String> labels = ResourceUtil.patroniClusterLabels(context.getCluster());
 
     final String patroniLabels;
     try {
@@ -52,11 +52,12 @@ public class PatroniConfigMap {
     }
 
     Map<String, String> data = new HashMap<>();
-    data.put("PATRONI_SCOPE", name);
-    data.put("PATRONI_SUPERUSER_USERNAME", "postgres");
-    data.put("PATRONI_KUBERNETES_USE_ENDPOINTS", "true");
-    data.put("PATRONI_REPLICATION_USERNAME", "replicator");
+    data.put("PATRONI_SCOPE", ResourceUtil.clusterScope(context.getCluster()));
+    data.put("PATRONI_KUBERNETES_SCOPE_LABEL", ResourceUtil.clusterScopeKey());
     data.put("PATRONI_KUBERNETES_LABELS", patroniLabels);
+    data.put("PATRONI_KUBERNETES_USE_ENDPOINTS", "true");
+    data.put("PATRONI_SUPERUSER_USERNAME", "postgres");
+    data.put("PATRONI_REPLICATION_USERNAME", "replicator");
     data.put("PATRONI_POSTGRESQL_LISTEN", "127.0.0.1:" + Envoy.PG_RAW_PORT);
     data.put("PATRONI_POSTGRESQL_CONNECT_ADDRESS",
         "${PATRONI_KUBERNETES_POD_IP}:" + Envoy.PG_RAW_ENTRY_PORT);
@@ -66,7 +67,8 @@ public class PatroniConfigMap {
     data.put("PATRONI_POSTGRESQL_BIN_DIR", "/usr/lib/postgresql/" + pgVersion + "/bin");
     data.put("PATRONI_POSTGRES_UNIX_SOCKET_DIRECTORY", "/run/postgresql");
 
-    if (QuarkusProfile.getActiveProfile().isDev()) {
+    if (ManagementFactory.getRuntimeMXBean()
+        .getInputArguments().toString().indexOf("jdwp") >= 0) {
       data.put("PATRONI_LOG_LEVEL", "DEBUG");
     }
 
@@ -128,7 +130,8 @@ public class PatroniConfigMap {
           storageForAzureBlob, AzureBlobStorage::getMaxBuffers));
     }
 
-    if (QuarkusProfile.getActiveProfile().isDev()) {
+    if (ManagementFactory.getRuntimeMXBean()
+        .getInputArguments().toString().indexOf("jdwp") >= 0) {
       data.put("WALG_LOG_LEVEL", "DEVEL");
     }
 
@@ -137,7 +140,8 @@ public class PatroniConfigMap {
         .withNamespace(namespace)
         .withName(name)
         .withLabels(labels)
-        .withOwnerReferences(ImmutableList.of(ResourceUtil.getOwnerReference(context.getCluster())))
+        .withOwnerReferences(ImmutableList.of(
+            ResourceUtil.getOwnerReference(context.getCluster())))
         .endMetadata()
         .withData(data)
         .build();

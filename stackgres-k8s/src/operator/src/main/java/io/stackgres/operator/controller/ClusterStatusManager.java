@@ -111,9 +111,8 @@ public class ClusterStatusManager {
   }
 
   private boolean isPendingRestart(StackGresCluster cluster, KubernetesClient client) {
-    final String name = cluster.getMetadata().getName();
     final String namespace = cluster.getMetadata().getNamespace();
-    final Map<String, String> labels = ResourceUtil.defaultLabels(name);
+    final Map<String, String> labels = ResourceUtil.clusterLabels(cluster);
 
     PodList pods = client.pods().inNamespace(namespace).withLabels(labels).list();
 

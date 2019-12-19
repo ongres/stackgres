@@ -16,25 +16,31 @@ import io.fabric8.kubernetes.api.model.rbac.RoleBindingBuilder;
 import io.fabric8.kubernetes.api.model.rbac.RoleBuilder;
 import io.fabric8.kubernetes.api.model.rbac.RoleRefBuilder;
 import io.fabric8.kubernetes.api.model.rbac.SubjectBuilder;
+import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operator.customresource.sgbackup.StackGresBackupDefinition;
-import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.resource.ResourceUtil;
 
 public class PatroniRole {
 
   public static final String SUFFIX = "-patroni";
 
+  public static String roleName(StackGresClusterContext clusterContext) {
+    String name = clusterContext.getCluster().getMetadata().getName();
+    return ResourceUtil.resourceName(name + SUFFIX);
+  }
+
   /**
    * Create the ServiceAccount for patroni associated to the cluster.
    */
-  public static ServiceAccount createServiceAccount(StackGresCluster cluster) {
+  public static ServiceAccount createServiceAccount(StackGresClusterContext context) {
     return new ServiceAccountBuilder()
           .withNewMetadata()
-          .withName(cluster.getMetadata().getName() + SUFFIX)
-          .withNamespace(cluster.getMetadata().getNamespace())
-          .withLabels(ResourceUtil.defaultLabels(cluster.getMetadata().getName()))
-          .withOwnerReferences(ImmutableList.of(ResourceUtil.getOwnerReference(cluster)))
+          .withName(roleName(context))
+          .withNamespace(context.getCluster().getMetadata().getNamespace())
+          .withLabels(ResourceUtil.clusterLabels(context.getCluster()))
+          .withOwnerReferences(ImmutableList.of(
+              ResourceUtil.getOwnerReference(context.getCluster())))
           .endMetadata()
           .build();
   }
@@ -42,13 +48,14 @@ public class PatroniRole {
   /**
    * Create the Role for patroni associated to the cluster.
    */
-  public static Role createRole(StackGresCluster cluster) {
+  public static Role createRole(StackGresClusterContext context) {
     return new RoleBuilder()
         .withNewMetadata()
-        .withName(cluster.getMetadata().getName() + SUFFIX)
-        .withNamespace(cluster.getMetadata().getNamespace())
-        .withLabels(ResourceUtil.defaultLabels(cluster.getMetadata().getName()))
-        .withOwnerReferences(ImmutableList.of(ResourceUtil.getOwnerReference(cluster)))
+        .withName(roleName(context))
+        .withNamespace(context.getCluster().getMetadata().getNamespace())
+        .withLabels(ResourceUtil.clusterLabels(context.getCluster()))
+        .withOwnerReferences(ImmutableList.of(
+            ResourceUtil.getOwnerReference(context.getCluster())))
         .endMetadata()
         .addToRules(new PolicyRuleBuilder()
             .withApiGroups("")
@@ -91,22 +98,22 @@ public class PatroniRole {
   /**
    * Create the RoleBinding for patroni associated to the cluster.
    */
-  public static RoleBinding createRoleBinding(StackGresCluster cluster) {
+  public static RoleBinding createRoleBinding(StackGresClusterContext context) {
     return new RoleBindingBuilder()
         .withNewMetadata()
-        .withName(cluster.getMetadata().getName() + SUFFIX)
-        .withNamespace(cluster.getMetadata().getNamespace())
-        .withLabels(ResourceUtil.defaultLabels(cluster.getMetadata().getName()))
-        .withOwnerReferences(ImmutableList.of(ResourceUtil.getOwnerReference(cluster)))
+        .withName(roleName(context))
+        .withNamespace(context.getCluster().getMetadata().getNamespace())
+        .withLabels(ResourceUtil.clusterLabels(context.getCluster()))
+        .withOwnerReferences(ImmutableList.of(ResourceUtil.getOwnerReference(context.getCluster())))
         .endMetadata()
         .withSubjects(new SubjectBuilder()
             .withKind("ServiceAccount")
-            .withName(cluster.getMetadata().getName() + SUFFIX)
-            .withNamespace(cluster.getMetadata().getNamespace())
+            .withName(roleName(context))
+            .withNamespace(context.getCluster().getMetadata().getNamespace())
             .build())
         .withRoleRef(new RoleRefBuilder()
             .withKind("Role")
-            .withName(cluster.getMetadata().getName() + SUFFIX)
+            .withName(roleName(context))
             .withApiGroup("rbac.authorization.k8s.io")
             .build())
         .build();

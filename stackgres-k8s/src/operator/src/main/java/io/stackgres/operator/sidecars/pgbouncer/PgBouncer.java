@@ -53,11 +53,15 @@ public class PgBouncer
   private static final String DEFAULT_VERSION = "1.12.0";
   private static final String CONFIG_SUFFIX = "-connection-pooling-config";
 
+  public static String configName(StackGresClusterContext clusterContext) {
+    String name = clusterContext.getCluster().getMetadata().getName();
+    return ResourceUtil.resourceName(name + CONFIG_SUFFIX);
+  }
+
   @Override
   public List<HasMetadata> getResources(ResourceGeneratorContext<StackGresClusterContext> context) {
     String namespace = context.getContext().getCluster().getMetadata().getNamespace();
-    String name = context.getContext().getCluster().getMetadata().getName();
-    String configMapName = name + CONFIG_SUFFIX;
+    String configMapName = configName(context.getContext());
     Optional<StackGresPgbouncerConfig> pgbouncerConfig =
         context.getContext().getSidecarConfig(this);
     Map<String, String> newParams = pgbouncerConfig.map(c -> c.getSpec().getPgbouncerConf())
@@ -87,7 +91,7 @@ public class PgBouncer
         .withNewMetadata()
         .withNamespace(namespace)
         .withName(configMapName)
-        .withLabels(ResourceUtil.defaultLabels(name))
+        .withLabels(ResourceUtil.clusterLabels(context.getContext().getCluster()))
         .withOwnerReferences(ImmutableList.of(ResourceUtil.getOwnerReference(
             context.getContext().getCluster())))
         .endMetadata()
@@ -124,8 +128,8 @@ public class PgBouncer
     return ImmutableList.of(new VolumeBuilder()
         .withName(NAME)
         .withConfigMap(new ConfigMapVolumeSourceBuilder()
-            .withName(context.getContext().getCluster().getMetadata()
-                .getName() + CONFIG_SUFFIX).build())
+            .withName(configName(context.getContext()))
+            .build())
         .build());
   }
 

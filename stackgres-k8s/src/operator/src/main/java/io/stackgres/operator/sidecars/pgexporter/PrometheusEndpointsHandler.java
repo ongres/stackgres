@@ -22,7 +22,7 @@ public class PrometheusEndpointsHandler extends AbstractClusterResourceHandler {
         && resource.getMetadata().getNamespace().equals(
             context.getCluster().getMetadata().getNamespace())
         && resource.getMetadata().getName().equals(
-            context.getCluster().getMetadata().getName() + PostgresExporter.EXPORTER_SERVICE);
+            PostgresExporter.serviceName(context));
   }
 
   @Override

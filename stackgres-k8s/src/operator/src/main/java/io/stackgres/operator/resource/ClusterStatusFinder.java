@@ -64,7 +64,7 @@ public class ClusterStatusFinder implements KubernetesCustomResourceFinder<Clust
         Optional<Pod> masterPod = client.pods()
             .inNamespace(cluster.getMetadata().getNamespace())
             .withLabels(ImmutableMap.<String, String>builder()
-                .putAll(ResourceUtil.defaultLabels(cluster.getMetadata().getName()))
+                .putAll(ResourceUtil.clusterLabels(cluster))
                 .put("role", "master")
                 .build())
             .list()
@@ -159,7 +159,7 @@ public class ClusterStatusFinder implements KubernetesCustomResourceFinder<Clust
 
         status.setPods(client.pods()
             .inNamespace(cluster.getMetadata().getNamespace())
-            .withLabels(ResourceUtil.defaultLabels(cluster.getMetadata().getName()))
+            .withLabels(ResourceUtil.clusterLabels(cluster))
             .list()
             .getItems()
             .stream()

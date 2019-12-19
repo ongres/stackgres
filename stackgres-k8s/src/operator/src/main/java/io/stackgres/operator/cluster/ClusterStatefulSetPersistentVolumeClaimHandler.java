@@ -23,7 +23,7 @@ public class ClusterStatefulSetPersistentVolumeClaimHandler
         && resource.getMetadata().getNamespace().equals(
             context.getCluster().getMetadata().getNamespace())
         && resource.getMetadata().getName().startsWith(
-            context.getCluster().getMetadata().getName() + ClusterStatefulSet.DATA_SUFFIX + "-");
+            ClusterStatefulSet.dataName(context) + "-");
   }
 
   @Override

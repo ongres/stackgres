@@ -26,7 +26,7 @@ public class BackupCronJobHandler extends AbstractClusterResourceHandler {
         && resource.getMetadata().getNamespace().equals(
             context.getCluster().getMetadata().getNamespace())
         && resource.getMetadata().getName().equals(
-            context.getCluster().getMetadata().getName() + ClusterStatefulSet.BACKUP_SUFFIX);
+            ClusterStatefulSet.backupName(context));
   }
 
   @Override

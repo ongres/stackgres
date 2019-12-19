@@ -43,7 +43,9 @@ public class BackupCronJob {
     StackGresClusterContext clusterContext = context.getContext();
     String namespace = clusterContext.getCluster().getMetadata().getNamespace();
     String name = clusterContext.getCluster().getMetadata().getName();
-    ImmutableMap<String, String> labels = ResourceUtil.defaultLabels(name);
+    ImmutableMap<String, String> labels = ResourceUtil.clusterLabels(clusterContext.getCluster());
+    ImmutableMap<String, String> podLabels = ResourceUtil.backupPodLabels(
+        clusterContext.getCluster());
     return ImmutableList.<HasMetadata>builder()
         .addAll(Stream.of(clusterContext.getBackupConfig())
             .filter(Optional::isPresent)
@@ -51,7 +53,7 @@ public class BackupCronJob {
             .map(Unchecked.function(backupConfig -> new CronJobBuilder()
                 .withNewMetadata()
                 .withNamespace(namespace)
-                .withName(name + ClusterStatefulSet.BACKUP_SUFFIX)
+                .withName(ClusterStatefulSet.backupName(clusterContext))
                 .withLabels(labels)
                 .withOwnerReferences(ImmutableList.of(
                     ResourceUtil.getOwnerReference(clusterContext.getCluster())))
@@ -70,24 +72,21 @@ public class BackupCronJob {
                 .withJobTemplate(new JobTemplateSpecBuilder()
                     .withNewMetadata()
                     .withNamespace(namespace)
-                    .withName(name + ClusterStatefulSet.BACKUP_SUFFIX)
+                    .withName(ClusterStatefulSet.backupName(clusterContext))
                     .withLabels(labels)
                     .endMetadata()
                     .withNewSpec()
                     .withNewTemplate()
                     .withNewMetadata()
                     .withNamespace(namespace)
-                    .withName(name + ClusterStatefulSet.BACKUP_SUFFIX)
-                    .withLabels(ImmutableMap.<String, String>builder()
-                        .putAll(labels)
-                        .put(ResourceUtil.ROLE_KEY, ResourceUtil.BACKUP_ROLE)
-                        .build())
+                    .withName(ClusterStatefulSet.backupName(clusterContext))
+                    .withLabels(podLabels)
                     .endMetadata()
                     .withNewSpec()
                     .withRestartPolicy("OnFailure")
-                    .withServiceAccountName(name + PatroniRole.SUFFIX)
+                    .withServiceAccountName(PatroniRole.roleName(clusterContext))
                     .withContainers(new ContainerBuilder()
-                        .withName(name + ClusterStatefulSet.BACKUP_SUFFIX)
+                        .withName("create-backup")
                         .withImage("bitnami/kubectl:latest")
                         .withEnv(
                             new EnvVarBuilder()
@@ -100,7 +99,7 @@ public class BackupCronJob {
                             .build(),
                             new EnvVarBuilder()
                             .withName("CRONJOB_NAME")
-                            .withValue(name + ClusterStatefulSet.BACKUP_SUFFIX)
+                            .withValue(ClusterStatefulSet.backupName(clusterContext))
                             .build(),
                             new EnvVarBuilder()
                             .withName("BACKUP_CONFIG")
@@ -141,10 +140,6 @@ public class BackupCronJob {
                             new EnvVarBuilder()
                             .withName("PATRONI_REPLICA_ROLE")
                             .withValue(ResourceUtil.REPLICA_ROLE)
-                            .build(),
-                            new EnvVarBuilder()
-                            .withName("BACKUP_ROLE")
-                            .withValue(ResourceUtil.BACKUP_ROLE)
                             .build(),
                             new EnvVarBuilder()
                             .withName("IS_CRONJOB")

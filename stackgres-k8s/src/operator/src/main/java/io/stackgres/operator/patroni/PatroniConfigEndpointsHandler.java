@@ -53,7 +53,7 @@ public class PatroniConfigEndpointsHandler extends AbstractClusterResourceHandle
         && resource.getMetadata().getNamespace().equals(
             context.getCluster().getMetadata().getNamespace())
         && resource.getMetadata().getName().equals(
-            context.getCluster().getMetadata().getName() + PatroniServices.CONFIG_SERVICE);
+            PatroniServices.configName(context));
   }
 
   @Override

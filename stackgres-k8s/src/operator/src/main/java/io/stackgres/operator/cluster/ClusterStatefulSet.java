@@ -86,6 +86,16 @@ public class ClusterStatefulSet {
   private static final String GCS_CONFIG_PATH = "/.gcs";
   private static final String GCS_CREDENTIALS_FILE_NAME = "google-service-account-key.json";
 
+  public static String dataName(StackGresClusterContext clusterContext) {
+    String name = clusterContext.getCluster().getMetadata().getName();
+    return ResourceUtil.resourceName(name + ClusterStatefulSet.DATA_SUFFIX);
+  }
+
+  public static String backupName(StackGresClusterContext clusterContext) {
+    String name = clusterContext.getCluster().getMetadata().getName();
+    return ResourceUtil.resourceName(name + ClusterStatefulSet.BACKUP_SUFFIX);
+  }
+
   /**
    * Create a new StatefulSet based on the StackGresCluster definition.
    */
@@ -118,8 +128,9 @@ public class ClusterStatefulSet {
         .withResources(dataStorageConfig.getResourceRequirements())
         .withStorageClassName(dataStorageConfig.getStorageClass());
 
-    final Map<String, String> labels = ResourceUtil.defaultLabels(name);
-    final Map<String, String> podLabels = ResourceUtil.statefulSetPodLabels(name);
+    final Map<String, String> labels = ResourceUtil.clusterLabels(clusterContext.getCluster());
+    final Map<String, String> podLabels = ResourceUtil.statefulSetPodLabels(
+        clusterContext.getCluster());
 
     ImmutableList.Builder<EnvVar> environmentsBuilder = ImmutableList.<EnvVar>builder().add(
         new EnvVarBuilder().withName("PATRONI_NAME")
@@ -200,7 +211,7 @@ public class ClusterStatefulSet {
               .build();
           return new PersistentVolumeClaimBuilder()
               .withNewMetadata()
-              .withName(name + BACKUP_SUFFIX)
+              .withName(backupName(clusterContext))
               .withNamespace(namespace)
               .withLabels(labels)
               .withOwnerReferences(ImmutableList.of(
@@ -332,7 +343,7 @@ public class ClusterStatefulSet {
                     .orElse(true))
                 .orElse(null))
             .withShareProcessNamespace(Boolean.TRUE)
-            .withServiceAccountName(name + PatroniRole.SUFFIX)
+            .withServiceAccountName(PatroniRole.roleName(clusterContext))
             .addNewContainer()
             .withName(PATRONI_CONTAINER_NAME)
             .withImage(String.format(IMAGE_PREFIX,
@@ -361,7 +372,7 @@ public class ClusterStatefulSet {
                 .withMountPath("/run/postgresql")
                 .build(),
                 new VolumeMountBuilder()
-                .withName(name + DATA_SUFFIX)
+                .withName(dataName(clusterContext))
                 .withMountPath(PG_VOLUME_PATH)
                 .build(),
                 new VolumeMountBuilder()
@@ -372,7 +383,7 @@ public class ClusterStatefulSet {
                     .map(backupConfig -> backupConfig.getSpec().getStorage().getVolume()))
                 .filter(Optional::isPresent)
                 .map(volumeStorage -> new VolumeMountBuilder()
-                    .withName(name + BACKUP_SUFFIX)
+                    .withName(backupName(clusterContext))
                     .withMountPath(BACKUP_VOLUME_PATH)
                     .build()),
                 Stream.of(clusterContext.getBackupConfig()
@@ -427,9 +438,9 @@ public class ClusterStatefulSet {
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .map(volumeStorage -> new VolumeBuilder()
-                    .withName(name + BACKUP_SUFFIX)
+                    .withName(backupName(clusterContext))
                     .withPersistentVolumeClaim(new PersistentVolumeClaimVolumeSource(
-                        name + BACKUP_SUFFIX, false))
+                        backupName(clusterContext), false))
                     .build()),
                 Stream.of(clusterContext.getBackupConfig()
                     .map(backupConfig -> backupConfig.getSpec().getStorage().getGcs()))
@@ -467,14 +478,14 @@ public class ClusterStatefulSet {
                     .collect(Collectors.joining(" && ")))
                 .withVolumeMounts(Stream.of(
                     Stream.of(new VolumeMountBuilder()
-                        .withName(name + DATA_SUFFIX)
+                        .withName(dataName(clusterContext))
                         .withMountPath(PG_VOLUME_PATH)
                         .build()),
                     Stream.of(clusterContext.getBackupConfig()
                         .map(backupConfig -> backupConfig.getSpec().getStorage().getVolume()))
                     .filter(Optional::isPresent)
                     .map(volumeStorage -> new VolumeMountBuilder()
-                        .withName(name + BACKUP_SUFFIX)
+                        .withName(backupName(clusterContext))
                         .withMountPath(BACKUP_VOLUME_PATH)
                         .build()))
                     .flatMap(s -> s)
@@ -511,7 +522,7 @@ public class ClusterStatefulSet {
             Stream.of(new PersistentVolumeClaimBuilder()
             .withNewMetadata()
             .withNamespace(namespace)
-            .withName(name + DATA_SUFFIX)
+            .withName(dataName(clusterContext))
             .withLabels(labels)
             .endMetadata()
             .withSpec(volumeClaimSpec.build())

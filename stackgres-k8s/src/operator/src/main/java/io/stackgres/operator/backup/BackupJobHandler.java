@@ -10,7 +10,6 @@ import javax.enterprise.context.ApplicationScoped;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.batch.Job;
-import io.stackgres.operator.cluster.ClusterStatefulSet;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.customresource.sgbackup.StackGresBackupDefinition;
 import io.stackgres.operator.resource.AbstractClusterResourceHandler;
@@ -28,8 +27,7 @@ public class BackupJobHandler extends AbstractClusterResourceHandler {
         && resource.getMetadata().getNamespace().equals(
             context.getCluster().getMetadata().getNamespace())
         && context.getBackups().stream().anyMatch(backup -> resource.getMetadata().getName().equals(
-            context.getCluster().getMetadata().getName() + ClusterStatefulSet.BACKUP_SUFFIX
-            + "-" + backup.getMetadata().getName()))
+            Backup.backupJobName(backup, context)))
         && resource.getMetadata().getOwnerReferences().stream()
         .anyMatch(owner -> owner.getKind().equals(StackGresBackupDefinition.KIND));
   }

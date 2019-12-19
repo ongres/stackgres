@@ -24,11 +24,11 @@ public class PatroniEndpointsHandler extends AbstractClusterResourceHandler {
         && (resource.getMetadata().getName().equals(
             context.getCluster().getMetadata().getName())
         || resource.getMetadata().getName().equals(
-            context.getCluster().getMetadata().getName() + PatroniServices.READ_WRITE_SERVICE)
+            PatroniServices.readWriteName(context))
         || resource.getMetadata().getName().equals(
-            context.getCluster().getMetadata().getName() + PatroniServices.READ_ONLY_SERVICE)
+            PatroniServices.readOnlyName(context))
         || resource.getMetadata().getName().equals(
-            context.getCluster().getMetadata().getName() + PatroniServices.FAILOVER_SERVICE));
+            PatroniServices.failoverName(context)));
   }
 
   @Override

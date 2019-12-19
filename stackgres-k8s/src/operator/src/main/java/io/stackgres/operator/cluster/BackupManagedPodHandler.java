@@ -22,8 +22,7 @@ public class BackupManagedPodHandler extends AbstractClusterResourceHandler {
         && resource.getMetadata().getNamespace().equals(
             context.getCluster().getMetadata().getNamespace())
         && resource.getMetadata().getName().startsWith(
-            context.getCluster().getMetadata().getName()
-            + ClusterStatefulSet.BACKUP_SUFFIX + "-");
+            ClusterStatefulSet.backupName(context) + "-");
   }
 
   @Override

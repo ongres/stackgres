@@ -13,6 +13,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.EndpointsBuilder;
 import io.stackgres.operator.common.StackGresClusterContext;
@@ -30,9 +31,8 @@ public class PatroniConfigEndpoints {
    * Create the EndPoint associated with the cluster.
    */
   public static Endpoints create(StackGresClusterContext context, ObjectMapper objectMapper) {
-    final String name = context.getCluster().getMetadata().getName();
     final String namespace = context.getCluster().getMetadata().getNamespace();
-    final Map<String, String> labels = ResourceUtil.patroniClusterLabels(name);
+    final Map<String, String> labels = ResourceUtil.patroniClusterLabels(context.getCluster());
     Optional<StackGresPostgresConfig> pgconfig = context.getPostgresConfig();
     Map<String, String> params = new HashMap<>(DefaultValues.getDefaultValues());
 
@@ -70,7 +70,7 @@ public class PatroniConfigEndpoints {
     return new EndpointsBuilder()
         .withNewMetadata()
         .withNamespace(namespace)
-        .withName(name + PatroniServices.CONFIG_SERVICE)
+        .withName(PatroniServices.configName(context))
         .withLabels(labels)
         .withAnnotations(ImmutableMap.of(PATRONI_CONFIG_KEY, patroniConfigJson))
         .withOwnerReferences(ImmutableList.of(ResourceUtil.getOwnerReference(context.getCluster())))

@@ -66,7 +66,7 @@ public class PrometheusServiceMonitorHandler implements ResourceHandler<StackGre
     ImmutableList<Tuple2<String, String>> existingConfigsLabels = existingContexts.stream()
         .map(context -> Tuple.tuple(
             context.getCluster().getMetadata().getNamespace(),
-            context.getCluster().getMetadata().getName()))
+            ResourceUtil.clusterUid(context.getCluster())))
         .collect(ImmutableList.toImmutableList());
     return getServiceMonitorClient(client)
         .map(crClient -> crClient
@@ -83,7 +83,7 @@ public class PrometheusServiceMonitorHandler implements ResourceHandler<StackGre
                 && existingConfigsLabels.stream()
                 .anyMatch(e -> Objects.equals(e.v2,
                     serviceMonitor.getMetadata().getLabels().get(
-                        ResourceUtil.CLUSTER_NAME_KEY)))))
+                        ResourceUtil.CLUSTER_UID_KEY)))))
             .map(cr -> (HasMetadata) cr))
         .orElse(Stream.empty());
   }
@@ -94,9 +94,8 @@ public class PrometheusServiceMonitorHandler implements ResourceHandler<StackGre
     return getServiceMonitorClient(client)
         .map(crClient -> crClient
             .inAnyNamespace()
-            .withLabels(ResourceUtil.defaultLabels(
-                context.getCluster().getMetadata().getNamespace(),
-                context.getCluster().getMetadata().getName()))
+            .withLabels(ResourceUtil.clusterCrossNamespaceLabels(
+                context.getCluster()))
             .list()
             .getItems()
             .stream()

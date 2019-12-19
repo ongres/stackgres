@@ -72,9 +72,8 @@ public class PostgresExporter
       "docker.io/ongres/prometheus-postgres-exporter:v%s-build-%s";
   private static final String DEFAULT_VERSION = "0.7.0";
 
-  private KubernetesResourceScanner<PrometheusConfigList> prometheusScanner;
-
-  private ConfigContext configContext;
+  private final KubernetesResourceScanner<PrometheusConfigList> prometheusScanner;
+  private final ConfigContext configContext;
 
   @Inject
   public PostgresExporter(
@@ -82,6 +81,17 @@ public class PostgresExporter
       ConfigContext configContext) {
     this.prometheusScanner = prometheusScanner;
     this.configContext = configContext;
+  }
+
+  public static String serviceName(StackGresClusterContext clusterContext) {
+    String name = clusterContext.getCluster().getMetadata().getName();
+    return ResourceUtil.resourceName(name + EXPORTER_SERVICE);
+  }
+
+  public static String serviceMonitorName(StackGresClusterContext clusterContext) {
+    String namespace = clusterContext.getCluster().getMetadata().getNamespace();
+    String name = clusterContext.getCluster().getMetadata().getName();
+    return ResourceUtil.resourceName(namespace + "-" + name + EXPORTER_SERVICE_MONITOR);
   }
 
   @Override
@@ -120,12 +130,11 @@ public class PostgresExporter
 
   @Override
   public List<HasMetadata> getResources(ResourceGeneratorContext<StackGresClusterContext> context) {
-    final Map<String, String> defaultLabels = ResourceUtil.defaultLabels(
-        context.getContext().getCluster().getMetadata().getName());
+    final Map<String, String> defaultLabels = ResourceUtil.clusterLabels(
+        context.getContext().getCluster());
     Map<String, String> labels = new ImmutableMap.Builder<String, String>()
-        .putAll(ResourceUtil.defaultLabels(
-            context.getContext().getCluster().getMetadata().getNamespace(),
-            context.getContext().getCluster().getMetadata().getName()))
+        .putAll(ResourceUtil.clusterCrossNamespaceLabels(
+            context.getContext().getCluster()))
         .build();
 
     Optional<StackGresPostgresExporterConfig> postgresExporterConfig =
@@ -135,8 +144,7 @@ public class PostgresExporter
         new ServiceBuilder()
             .withNewMetadata()
             .withNamespace(context.getContext().getCluster().getMetadata().getNamespace())
-            .withName(context.getContext().getCluster().getMetadata()
-                .getName() + EXPORTER_SERVICE)
+            .withName(serviceName(context.getContext()))
             .withLabels(ImmutableMap.<String, String>builder()
                 .putAll(labels)
                 .put("container", NAME)
@@ -161,8 +169,7 @@ public class PostgresExporter
           serviceMonitor.setApiVersion(ServiceMonitorDefinition.APIVERSION);
           serviceMonitor.setMetadata(new ObjectMetaBuilder()
               .withNamespace(pi.getNamespace())
-              .withName(context.getContext().getCluster().getMetadata().getName()
-                  + EXPORTER_SERVICE_MONITOR)
+              .withName(serviceMonitorName(context.getContext()))
               .withLabels(ImmutableMap.<String, String>builder()
                   .putAll(pi.getMatchLabels())
                   .putAll(labels)
