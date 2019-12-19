@@ -17,8 +17,9 @@ reset_k8s() {
 
   minikube delete || true
 
-  minikube start
+  minikube start --kubernetes-version $KUBERNETES_VERSION --memory '2000mb' --cpus $E2E_PARALLEL
 
+  
   echo "...done"
 }
 

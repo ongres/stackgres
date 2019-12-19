@@ -2,6 +2,8 @@
 
 . "$(dirname "$0")/e2e"
 
+E2E_PARALLEL="${E2E_PARALLEL:-8}"
+
 echo "Preparing environment"
 
 setup_k8s
@@ -14,7 +16,6 @@ export REUSE_K8S=true
 export BUILD_OPERATOR=false
 export REUSE_OPERATOR=true
 
-PARALLELISM="${PARALLELISM:-8}"
 COUNT=0
 SPECS_TO_RUN=""
 SH_OPTS=$(! echo $- | grep -q x || echo "-x")
@@ -24,7 +25,7 @@ for SPEC in $SPECS
 do
   COUNT="$((COUNT+1))"
   SPECS_TO_RUN="$SPECS_TO_RUN $SPEC"
-  if [ "$((COUNT%PARALLELISM))" -eq 0 -o "$COUNT" -eq "$SPEC_COUNT" ]
+  if [ "$((COUNT%E2E_PARALLEL))" -eq 0 -o "$COUNT" -eq "$SPEC_COUNT" ]
   then
     setup_k8s
     if ! echo "$SPECS_TO_RUN" | tr ' ' '\n' | tail -n +2 \
