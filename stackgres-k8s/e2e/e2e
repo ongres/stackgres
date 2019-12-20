@@ -31,26 +31,36 @@ done
 . "$(dirname "$0")/envs/$ENV"
 
 trap_kill() {
-  echo "$1" >> "$TARGET_PATH/trap-kill"
+  echo "$1" >> "$TRAP_FILE"
 }
 
 trap_callback() {
-  if [ -s "$TARGET_PATH/trap-kill" ]
+  if [ -s "$TRAP_FILE" ]
   then
-    sleep 1 # Let the tails write to output remaining logs.
-    kill $(cat "$TARGET_PATH/trap-kill") || true
+    sleep 1 || true # Let the tails write to output remaining logs.
+    kill $(cat "$TRAP_FILE") >/dev/null 2>&1 || true
   fi
 }
 
+if [ -z "$TRAP_FILE" ]
+then
+  mkdir -p "$TARGET_PATH"
+  TRAP_FILE="$TARGET_PATH/trap-kill-$(shuf -i 0-65535 -n 1)"
+  export TRAP_FILE
+  trap 'trap_callback' EXIT
+  trap 'exit $?' HUP INT QUIT PIPE TERM
+fi
+
+trap_kill_all() {
+  local file
+  for file in $(find "$TARGET_PATH" -name 'trap-kill-*')
+  do
+    kill $(cat "$file") >/dev/null 2>&1 || true
+  done
+}
+
 setup_k8s() {
-  if ! $TRAP_ENABLED
-  then
-    rm -rf "$TARGET_PATH"
-    mkdir -p "$TARGET_PATH/logs"
-    trap 'trap_callback' EXIT
-    trap 'exit $?' HUP INT QUIT PIPE TERM
-    export TRAP_ENABLED=true
-  fi
+  mkdir -p "$TARGET_PATH/logs"
 
   if [ "$SKIP_K8S_SETUP" = true ]
   then
