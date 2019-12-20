@@ -18,3 +18,7 @@ variable "region_aws" {
   default = "us-west-2"
   description = "Name region"
 }
+
+
+variable "client_id" {}
+variable "client_secret" {}

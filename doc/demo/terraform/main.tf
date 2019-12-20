@@ -9,7 +9,10 @@ provider "aws" {
   profile = var.profile
 }
 
-
+provider "azurerm" {
+    version = "~>1.5"
+}
+/*
 // Module GCP
 module "gcp" {
 source                  ="./modules/cloud/gcp"
@@ -52,4 +55,20 @@ cluster_name_eks         = "aws-cluster"
 cluster_version_eks      = "1.14"
 instance_type_eks        = "m4.large"
 asg_max_size_eks         = 5
+}
+*/
+
+module "azure" {
+source                   ="./modules/cloud/azure"
+g_name_az = "group-k8s"
+g_location_az = "West Europe"
+name_az= "azure-k8s"
+dns_prefix_az = "dns-k8s"
+kubernetes_version_az= "1.15.5"
+name_np= "k8s"
+node_count_np= "1"
+os_disk_size_gb_np ="40"
+vm_size_az= "Standard_D2_v2"
+client_id= var.client_id
+client_secret= var.client_secret
 }
