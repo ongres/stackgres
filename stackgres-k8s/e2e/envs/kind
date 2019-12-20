@@ -1,7 +1,7 @@
 #!/bin/sh
 
 KIND_NAME="${KIND_NAME:-kind}"
-KUBECONFIG="$(kind get kubeconfig-path --name "$KIND_NAME")"
+KUBECONFIG="$(kind get kubeconfig-path --name "$KIND_NAME" 2>/dev/null)"
 
 export KUBECONFIG KIND_NAME
 
