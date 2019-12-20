@@ -57,6 +57,7 @@ test_after_all(){
   kubectl delete customresourcedefinitions.apiextensions.k8s.io servicemonitors.monitoring.coreos.com || true
 
   unset PROMETHEUS_NAMESPACE
+  unset GRAFANA_CREDENTIALS
 }
 
 test(){
