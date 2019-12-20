@@ -8,36 +8,31 @@ package io.stackgres.operator.resource;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import io.fabric8.kubernetes.api.model.Doneable;
-import io.fabric8.kubernetes.client.KubernetesClient;
+import io.stackgres.operator.app.KubernetesClientFactory;
+import io.stackgres.operator.common.ArcUtil;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.customresource.sgcluster.StackGresClusterDefinition;
 import io.stackgres.operator.customresource.sgcluster.StackGresClusterDoneable;
 import io.stackgres.operator.customresource.sgcluster.StackGresClusterList;
 
-import org.jooq.lambda.tuple.Tuple;
-import org.jooq.lambda.tuple.Tuple5;
-
 @ApplicationScoped
 public class ClusterScanner
-    extends AbstractKubernetesCustomResourceScanner<StackGresCluster, StackGresClusterList> {
-
-  private final KubernetesClient client;
+    extends AbstractKubernetesCustomResourceScanner<StackGresCluster, StackGresClusterList,
+    StackGresClusterDoneable> {
 
   /**
    * Create a {@code ClusterScanner} instance.
    */
   @Inject
-  public ClusterScanner(KubernetesClient client) {
-    this.client = client;
-  }
-
-  @Override
-  protected Tuple5<KubernetesClient, String, Class<StackGresCluster>,
-      Class<StackGresClusterList>, Class<? extends Doneable<StackGresCluster>>> arguments() {
-    return Tuple.tuple(client, StackGresClusterDefinition.NAME,
+  public ClusterScanner(KubernetesClientFactory clientFactory) {
+    super(clientFactory, StackGresClusterDefinition.NAME,
         StackGresCluster.class, StackGresClusterList.class,
         StackGresClusterDoneable.class);
+  }
+
+  public ClusterScanner() {
+    super(null, null, null, null, null);
+    ArcUtil.checkPublicNoArgsConstructorIsCalledFromArc();
   }
 
 }

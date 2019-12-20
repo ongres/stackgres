@@ -8,35 +8,28 @@ package io.stackgres.operator.resource;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import io.fabric8.kubernetes.api.model.Doneable;
-import io.fabric8.kubernetes.client.KubernetesClient;
+import io.stackgres.operator.app.KubernetesClientFactory;
+import io.stackgres.operator.common.ArcUtil;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfile;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfileDefinition;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfileDoneable;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfileList;
-import org.jooq.lambda.tuple.Tuple;
-import org.jooq.lambda.tuple.Tuple5;
 
 @ApplicationScoped
 public class ProfileScanner
-    extends AbstractKubernetesCustomResourceScanner<StackGresProfile, StackGresProfileList> {
-
-  private final KubernetesClient client;
+    extends AbstractKubernetesCustomResourceScanner<StackGresProfile, StackGresProfileList,
+    StackGresProfileDoneable> {
 
   @Inject
-  public ProfileScanner(KubernetesClient client) {
-    this.client = client;
-  }
-
-  @Override
-  protected Tuple5<KubernetesClient, String,
-      Class<StackGresProfile>,
-      Class<StackGresProfileList>,
-      Class<? extends Doneable<StackGresProfile>>> arguments() {
-
-    return Tuple.tuple(client, StackGresProfileDefinition.NAME,
+  public ProfileScanner(KubernetesClientFactory clientFactory) {
+    super(clientFactory, StackGresProfileDefinition.NAME,
         StackGresProfile.class, StackGresProfileList.class,
         StackGresProfileDoneable.class);
-
   }
+
+  public ProfileScanner() {
+    super(null, null, null, null, null);
+    ArcUtil.checkPublicNoArgsConstructorIsCalledFromArc();
+  }
+
 }

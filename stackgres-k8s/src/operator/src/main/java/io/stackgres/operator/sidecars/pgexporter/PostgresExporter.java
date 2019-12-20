@@ -41,7 +41,7 @@ import io.stackgres.operator.common.StackGresSidecarTransformer;
 import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operator.controller.ResourceGeneratorContext;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
-import io.stackgres.operator.resource.KubernetesResourceScanner;
+import io.stackgres.operator.resource.KubernetesCustomResourceScanner;
 import io.stackgres.operator.resource.ResourceUtil;
 import io.stackgres.operator.sidecars.pgexporter.customresources.Endpoint;
 import io.stackgres.operator.sidecars.pgexporter.customresources.NamespaceSelector;
@@ -51,7 +51,7 @@ import io.stackgres.operator.sidecars.pgexporter.customresources.ServiceMonitorD
 import io.stackgres.operator.sidecars.pgexporter.customresources.ServiceMonitorSpec;
 import io.stackgres.operator.sidecars.pgexporter.customresources.StackGresPostgresExporterConfig;
 import io.stackgres.operator.sidecars.pgexporter.customresources.StackGresPostgresExporterConfigSpec;
-import io.stackgres.operator.sidecars.prometheus.customresources.PrometheusConfigList;
+import io.stackgres.operator.sidecars.prometheus.customresources.PrometheusConfig;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,12 +72,12 @@ public class PostgresExporter
       "docker.io/ongres/prometheus-postgres-exporter:v%s-build-%s";
   private static final String DEFAULT_VERSION = "0.7.0";
 
-  private final KubernetesResourceScanner<PrometheusConfigList> prometheusScanner;
+  private final KubernetesCustomResourceScanner<PrometheusConfig> prometheusScanner;
   private final ConfigContext configContext;
 
   @Inject
   public PostgresExporter(
-      KubernetesResourceScanner<PrometheusConfigList> prometheusScanner,
+      KubernetesCustomResourceScanner<PrometheusConfig> prometheusScanner,
       ConfigContext configContext) {
     this.prometheusScanner = prometheusScanner;
     this.configContext = configContext;
@@ -212,7 +212,7 @@ public class PostgresExporter
       LOGGER.trace("Prometheus auto bind enabled, looking for prometheus installations");
 
       List<PrometheusInstallation> prometheusInstallations = prometheusScanner.findResources()
-          .map(pcs -> pcs.getItems().stream()
+          .map(pcs -> pcs.stream()
               .filter(pc -> pc.getSpec().getServiceMonitorSelector().getMatchLabels() != null)
               .filter(pc -> !pc.getSpec().getServiceMonitorSelector().getMatchLabels().isEmpty())
               .map(pc -> {

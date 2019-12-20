@@ -13,27 +13,25 @@ import javax.ws.rs.core.MediaType;
 
 import io.stackgres.operator.common.ArcUtil;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfile;
-import io.stackgres.operator.customresource.sgprofile.StackGresProfileDefinition;
-import io.stackgres.operator.customresource.sgprofile.StackGresProfileList;
 import io.stackgres.operator.resource.CustomResourceScheduler;
 import io.stackgres.operator.resource.KubernetesCustomResourceFinder;
-import io.stackgres.operator.resource.KubernetesResourceScanner;
+import io.stackgres.operator.resource.KubernetesCustomResourceScanner;
 
 @Path("/stackgres/profile")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class StackGresProfileResource
-    extends AbstractCustomResourceRestService<StackGresProfile, StackGresProfileList> {
+    extends AbstractCustomResourceRestService<StackGresProfile> {
 
   @Inject
-  public StackGresProfileResource(KubernetesResourceScanner<StackGresProfileList> scanner,
+  public StackGresProfileResource(KubernetesCustomResourceScanner<StackGresProfile> scanner,
       KubernetesCustomResourceFinder<StackGresProfile> finder,
       CustomResourceScheduler<StackGresProfile> scheduler) {
-    super(scanner, finder, scheduler, StackGresProfileDefinition.NAME);
+    super(scanner, finder, scheduler);
   }
 
   public StackGresProfileResource() {
-    super(null, null, null, null);
+    super(null, null, null);
     ArcUtil.checkPublicNoArgsConstructorIsCalledFromArc();
   }
 

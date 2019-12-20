@@ -5,12 +5,12 @@
 
 package io.stackgres.operator.validation;
 
+import java.util.List;
 import java.util.Optional;
 
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.customresource.sgcluster.StackGresClusterDefinition;
-import io.stackgres.operator.customresource.sgcluster.StackGresClusterList;
-import io.stackgres.operator.resource.KubernetesResourceScanner;
+import io.stackgres.operator.resource.KubernetesCustomResourceScanner;
 import io.stackgres.operatorframework.AdmissionReview;
 import io.stackgres.operatorframework.Operation;
 import io.stackgres.operatorframework.ValidationFailed;
@@ -18,23 +18,20 @@ import io.stackgres.operatorframework.Validator;
 
 public abstract class DependenciesValidator<T extends AdmissionReview<?>> implements Validator<T> {
 
-  private KubernetesResourceScanner<StackGresClusterList> clusterScanner;
+  private final KubernetesCustomResourceScanner<StackGresCluster> clusterScanner;
 
-  public DependenciesValidator() {
-  }
-
-  public DependenciesValidator(KubernetesResourceScanner<StackGresClusterList> clusterScanner) {
+  public DependenciesValidator(KubernetesCustomResourceScanner<StackGresCluster> clusterScanner) {
     this.clusterScanner = clusterScanner;
   }
 
   @Override
   public void validate(T review) throws ValidationFailed {
     if (review.getRequest().getOperation() == Operation.DELETE) {
-      Optional<StackGresClusterList> clusters = clusterScanner
+      Optional<List<StackGresCluster>> clusters = clusterScanner
           .findResources(review.getRequest().getNamespace());
 
       if (clusters.isPresent()) {
-        for (StackGresCluster i : clusters.get().getItems()) {
+        for (StackGresCluster i : clusters.get()) {
           validate(review, i);
         }
       }

@@ -16,33 +16,31 @@ import javax.ws.rs.core.MediaType;
 
 import io.stackgres.operator.common.ArcUtil;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
-import io.stackgres.operator.customresource.sgcluster.StackGresClusterDefinition;
-import io.stackgres.operator.customresource.sgcluster.StackGresClusterList;
 import io.stackgres.operator.resource.CustomResourceScheduler;
 import io.stackgres.operator.resource.KubernetesCustomResourceFinder;
-import io.stackgres.operator.resource.KubernetesResourceScanner;
+import io.stackgres.operator.resource.KubernetesCustomResourceScanner;
 import io.stackgres.operator.resource.dto.ClusterStatus;
 
 @Path("/stackgres/cluster")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class StackGresClusterResource
-    extends AbstractCustomResourceRestService<StackGresCluster, StackGresClusterList> {
+    extends AbstractCustomResourceRestService<StackGresCluster> {
 
   final KubernetesCustomResourceFinder<ClusterStatus> statusFinder;
 
   @Inject
   public StackGresClusterResource(
-      KubernetesResourceScanner<StackGresClusterList> scanner,
+      KubernetesCustomResourceScanner<StackGresCluster> scanner,
       KubernetesCustomResourceFinder<StackGresCluster> finder,
       CustomResourceScheduler<StackGresCluster> scheduler,
       KubernetesCustomResourceFinder<ClusterStatus> statusFinder) {
-    super(scanner, finder, scheduler, StackGresClusterDefinition.NAME);
+    super(scanner, finder, scheduler);
     this.statusFinder = statusFinder;
   }
 
   public StackGresClusterResource() {
-    super(null, null, null, null);
+    super(null, null, null);
     ArcUtil.checkPublicNoArgsConstructorIsCalledFromArc();
     this.statusFinder = null;
   }

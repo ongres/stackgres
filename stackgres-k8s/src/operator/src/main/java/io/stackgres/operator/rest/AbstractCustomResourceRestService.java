@@ -16,28 +16,23 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 
 import io.fabric8.kubernetes.client.CustomResource;
-import io.fabric8.kubernetes.client.CustomResourceList;
 import io.stackgres.operator.resource.CustomResourceScheduler;
 import io.stackgres.operator.resource.KubernetesCustomResourceFinder;
-import io.stackgres.operator.resource.KubernetesResourceScanner;
+import io.stackgres.operator.resource.KubernetesCustomResourceScanner;
 
-public class AbstractCustomResourceRestService<R extends CustomResource,
-    L extends CustomResourceList<R>>
+public class AbstractCustomResourceRestService<R extends CustomResource>
     implements CustomResourceRestService<R> {
 
-  private final KubernetesResourceScanner<L> scanner;
+  private final KubernetesCustomResourceScanner<R> scanner;
   private final KubernetesCustomResourceFinder<R> finder;
   private final CustomResourceScheduler<R> scheduler;
-  private final String resourceDefinition;
 
-  AbstractCustomResourceRestService(KubernetesResourceScanner<L> scanner,
-      KubernetesCustomResourceFinder<R> finder, CustomResourceScheduler<R> scheduler,
-      String resourceDefinition) {
+  AbstractCustomResourceRestService(KubernetesCustomResourceScanner<R> scanner,
+      KubernetesCustomResourceFinder<R> finder, CustomResourceScheduler<R> scheduler) {
     super();
     this.scanner = scanner;
     this.finder = finder;
     this.scheduler = scheduler;
-    this.resourceDefinition = resourceDefinition;
   }
 
   /**
@@ -48,9 +43,7 @@ public class AbstractCustomResourceRestService<R extends CustomResource,
   @Override
   @GET
   public List<R> list() {
-    return scanner.findResources()
-        .map(CustomResourceList::getItems)
-        .orElseThrow(() -> new RuntimeException("CRD " + resourceDefinition + " not found."));
+    return scanner.getResources();
   }
 
   /**

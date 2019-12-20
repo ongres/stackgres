@@ -14,27 +14,25 @@ import javax.ws.rs.core.MediaType;
 import io.stackgres.operator.common.ArcUtil;
 import io.stackgres.operator.resource.CustomResourceScheduler;
 import io.stackgres.operator.resource.KubernetesCustomResourceFinder;
-import io.stackgres.operator.resource.KubernetesResourceScanner;
+import io.stackgres.operator.resource.KubernetesCustomResourceScanner;
 import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfig;
-import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfigDefinition;
-import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfigList;
 
 @Path("/stackgres/connpoolconfig")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class StackGresConnectionPoolingConfigResource extends
-    AbstractCustomResourceRestService<StackGresPgbouncerConfig, StackGresPgbouncerConfigList> {
+    AbstractCustomResourceRestService<StackGresPgbouncerConfig> {
 
   @Inject
   public StackGresConnectionPoolingConfigResource(
-      KubernetesResourceScanner<StackGresPgbouncerConfigList> scanner,
+      KubernetesCustomResourceScanner<StackGresPgbouncerConfig> scanner,
       KubernetesCustomResourceFinder<StackGresPgbouncerConfig> finder,
       CustomResourceScheduler<StackGresPgbouncerConfig> scheduler) {
-    super(scanner, finder, scheduler, StackGresPgbouncerConfigDefinition.NAME);
+    super(scanner, finder, scheduler);
   }
 
   public StackGresConnectionPoolingConfigResource() {
-    super(null, null, null, null);
+    super(null, null, null);
     ArcUtil.checkPublicNoArgsConstructorIsCalledFromArc();
   }
 

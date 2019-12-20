@@ -5,28 +5,32 @@
 
 package io.stackgres.operator.validation;
 
-import java.util.Optional;
-
-import io.stackgres.operator.customresource.sgcluster.StackGresClusterDefinition;
-import io.stackgres.operator.customresource.sgcluster.StackGresClusterList;
-import io.stackgres.operator.resource.KubernetesResourceScanner;
-import io.stackgres.operator.utils.JsonUtil;
-import io.stackgres.operatorframework.AdmissionReview;
-import io.stackgres.operatorframework.ValidationFailed;
-import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.util.Optional;
+
+import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
+import io.stackgres.operator.customresource.sgcluster.StackGresClusterDefinition;
+import io.stackgres.operator.customresource.sgcluster.StackGresClusterList;
+import io.stackgres.operator.resource.KubernetesCustomResourceScanner;
+import io.stackgres.operator.utils.JsonUtil;
+import io.stackgres.operatorframework.AdmissionReview;
+import io.stackgres.operatorframework.ValidationFailed;
+
+import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 
 public abstract class DependenciesValidatorTest<T extends AdmissionReview<?>, V extends DependenciesValidator<T>> {
 
   protected DependenciesValidator<T> validator;
 
   @Mock
-  protected KubernetesResourceScanner<StackGresClusterList> clusterScanner;
+  protected KubernetesCustomResourceScanner<StackGresCluster> clusterScanner;
 
   @Test
   protected abstract void givenAReviewCreation_itShouldDoNothing() throws ValidationFailed;
@@ -59,7 +63,7 @@ public abstract class DependenciesValidatorTest<T extends AdmissionReview<?>, V 
             StackGresClusterList.class);
 
     when(clusterScanner.findResources(review.getRequest().getNamespace()))
-            .thenReturn(Optional.of(clusterList));
+            .thenReturn(Optional.of(clusterList.getItems()));
 
     ValidationFailed ex = assertThrows(ValidationFailed.class, () -> {
       validator.validate(review);

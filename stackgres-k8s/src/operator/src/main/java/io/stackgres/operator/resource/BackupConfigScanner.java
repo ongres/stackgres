@@ -16,20 +16,21 @@ import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfig
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfigList;
 
 @ApplicationScoped
-public class BackupConfigFinder
-    extends AbstractKubernetesCustomResourceFinder<StackGresBackupConfig> {
+public class BackupConfigScanner
+    extends AbstractKubernetesCustomResourceScanner<StackGresBackupConfig,
+    StackGresBackupConfigList, StackGresBackupConfigDoneable> {
 
   /**
-   * Create a {@code BackupConfigFinder} instance.
+   * Create a {@code BackupConfigScanner} instance.
    */
   @Inject
-  public BackupConfigFinder(KubernetesClientFactory clientFactory) {
+  public BackupConfigScanner(KubernetesClientFactory clientFactory) {
     super(clientFactory, StackGresBackupConfigDefinition.NAME,
         StackGresBackupConfig.class, StackGresBackupConfigList.class,
         StackGresBackupConfigDoneable.class);
   }
 
-  public BackupConfigFinder() {
+  public BackupConfigScanner() {
     super(null, null, null, null, null);
     ArcUtil.checkPublicNoArgsConstructorIsCalledFromArc();
   }
