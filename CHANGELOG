@@ -1,3 +1,32 @@
+# Release 0.8-alpha1
+
+## NOTES
+
+* Added automatic backups
+* Added defaults CRs
+* Non production options (to run many instances of a cluster in a single node)
+* Developer options (log level and debug mode)
+* Default backup storage with MinIO
+* Allow postgres and pgbouncer parametrization from helm chart
+* Generate default global and immutable configurations for stackgres clusters
+* Added support for kubernetes 1.16
+* Deleting clusters using foreground propagation policy
+* Allow to scale down preventing disruption of master
+* Added owner reference to all resourced created for a cluster
+* Updated postgres to version 11.6,12.1 and patorni to version 1.6.1
+* Updated pgbouncer version to 1.12.0
+* Updated envoy version to 1.12.1 and add sidecar by default
+* Updated postgres exporter version to 0.8.0
+* Profile and pg configs can now be created, updated and deleted through the operator REST API.
+* Rename app properties of CRD to use camelcase names
+
+## FIXES
+
+* Improved UI response time
+* Avoid validate components versions in CRD open API v3 spec
+* Archive command should never be specified by the user so it's now blacklisted
+* Multiple UI usability fixes
+
 # Release 0.7.1
 
 ## NOTES

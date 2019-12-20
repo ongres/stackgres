@@ -1,9 +1,9 @@
-containerBuild: "2-dev"
+containerBuild: "2-alpha1"
 group: "stackgres.io"
 
 image:
   name: "stackgres/operator"
-  tag: "development-jvm"
+  tag: "0.8-alpha1-jvm"
   pullPolicy: "IfNotPresent"
 
 crd:
