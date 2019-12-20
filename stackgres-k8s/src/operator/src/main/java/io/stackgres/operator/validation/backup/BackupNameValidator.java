@@ -10,6 +10,8 @@ import java.util.Optional;
 
 import javax.enterprise.context.ApplicationScoped;
 
+import io.stackgres.operator.customresource.sgbackup.StackGresBackup;
+import io.stackgres.operator.customresource.sgbackup.StackGresBackupStatus;
 import io.stackgres.operator.validation.BackupReview;
 import io.stackgres.operatorframework.ValidationFailed;
 
@@ -18,15 +20,16 @@ public class BackupNameValidator implements BackupValidator {
 
   @Override
   public void validate(BackupReview review) throws ValidationFailed {
-    String name = Optional.ofNullable(review.getRequest().getObject().getStatus())
-        .map(status -> status.getName())
-        .orElse(null);
-    String oldName = Optional.ofNullable(review.getRequest().getOldObject().getStatus())
-        .map(status -> status.getName())
-        .orElse(null);
-
     switch (review.getRequest().getOperation()) {
       case UPDATE:
+        String name = Optional.ofNullable(review.getRequest().getObject())
+            .map(StackGresBackup::getStatus)
+            .map(StackGresBackupStatus::getName)
+            .orElse(null);
+        String oldName = Optional.ofNullable(review.getRequest().getOldObject())
+            .map(StackGresBackup::getStatus)
+            .map(StackGresBackupStatus::getName)
+            .orElse(null);
         if (oldName != null && !Objects.equals(oldName, name)) {
           throw new ValidationFailed("Update of backups name is forbidden");
         }
