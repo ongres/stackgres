@@ -5,14 +5,9 @@ test_install() {
   PROMETHEUS_NAMESPACE="$CLUSTER_NAMESPACE-monitor"
 
   helm del --purge prometheus || true
-  kubectl delete namespace "$PROMETHEUS_NAMESPACE" || true
-  kubectl delete customresourcedefinitions.apiextensions.k8s.io alertmanagers.monitoring.coreos.com || true 
-  kubectl delete customresourcedefinitions.apiextensions.k8s.io podmonitors.monitoring.coreos.com || true
-  kubectl delete customresourcedefinitions.apiextensions.k8s.io prometheuses.monitoring.coreos.com || true
-  kubectl delete customresourcedefinitions.apiextensions.k8s.io prometheusrules.monitoring.coreos.com || true
-  kubectl delete customresourcedefinitions.apiextensions.k8s.io servicemonitors.monitoring.coreos.com || true
 
-  helm template --namespace $PROMETHEUS_NAMESPACE --name prometheus stable/prometheus-operator | kubectl delete -n $PROMETHEUS_NAMESPACE --ignore-not-found -f -
+  helm template --namespace $PROMETHEUS_NAMESPACE --name prometheus stable/prometheus-operator \
+    | kubectl delete -n $PROMETHEUS_NAMESPACE --ignore-not-found -f -
 
   helm install --namespace $PROMETHEUS_NAMESPACE --name prometheus stable/prometheus-operator || true
   
@@ -25,14 +20,6 @@ test_install() {
 }
 
 test_after_all(){
-  helm del --purge prometheus || true
-  kubectl delete namespace "$PROMETHEUS_NAMESPACE" || true
-  kubectl delete customresourcedefinitions.apiextensions.k8s.io alertmanagers.monitoring.coreos.com || true 
-  kubectl delete customresourcedefinitions.apiextensions.k8s.io podmonitors.monitoring.coreos.com || true
-  kubectl delete customresourcedefinitions.apiextensions.k8s.io prometheuses.monitoring.coreos.com || true
-  kubectl delete customresourcedefinitions.apiextensions.k8s.io prometheusrules.monitoring.coreos.com || true
-  kubectl delete customresourcedefinitions.apiextensions.k8s.io servicemonitors.monitoring.coreos.com || true
-
   unset PROMETHEUS_NAMESPACE
 }
 

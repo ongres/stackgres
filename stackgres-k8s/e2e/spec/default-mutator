@@ -9,21 +9,7 @@ test_install() {
   DEFAULT_PROFILE="defaultprofile"
   DEFAULT_BACKUP="defaultbackupconfig"
 
-  kubectl delete namespace $CLUSTER_NAMESPACE || true
-  kubectl create namespace $CLUSTER_NAMESPACE
   deploy_curl_pod "$CLUSTER_NAMESPACE"
-}
-
-test_after_all(){
-  unset OPERATOR_NAMESPACE
-  unset PGCONFIG
-  unset DEFAULT_PGCONFIG
-  unset PGCBOUNCER
-  unset DEFAULT_PGCBOUNCER
-  unset DEFAULT_PROFILE
-  unset DEFAULT_BACKUP
-
-  kubectl delete namespace $CLUSTER_NAMESPACE || true
 }
 
 test(){

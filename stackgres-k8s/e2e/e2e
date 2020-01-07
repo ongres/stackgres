@@ -9,7 +9,6 @@ ENV="${ENV:-kind}"
 TARGET_PATH="$(dirname "$0")/target"
 BUILD_OPERATOR="${BUILD_OPERATOR:-true}"
 WAIT_OPERATOR="${WAIT_OPERATOR:-true}"
-RESET_NAMESPACES="${RESET_NAMESPACE:-true}"
 TIMEOUT="${TIMEOUT:-180}"
 TRAP_ENABLED="${TRAP_ENABLED:-false}"
 SKIP_K8S_SETUP="${SKIP_K8S_SETUP:-false}"
@@ -104,7 +103,6 @@ setup_k8s() {
       | tail -n +2 \
       | sed 's/\s\+/ /g' \
       | cut -d ' ' -f 1 \
-      | grep -v "^\(minio\)$" \
       | xargs -r -n 1 -I % helm delete --purge %
     helm template --name stackgres-operator --namespace stackgres "$OPERATOR_CHART_PATH" \
       | kubectl delete -f - --ignore-not-found
@@ -112,12 +110,35 @@ setup_k8s() {
       | xargs -r -n 1 -I % kubectl delete %
     kubectl get mutatingwebhookconfigurations.admissionregistration.k8s.io -o name \
       | xargs -r -n 1 -I % kubectl delete %
-    if [ "$RESET_NAMESPACES" = true ]
-    then
-      kubectl get namespace -o name \
-        | grep -v "^namespace/\(default\|kube-system\|kube-public\|minio\)$" \
-        | xargs -r -n 1 -I % -P 0 kubectl delete namespace %
-    fi
+    kubectl get crd -o name \
+      | xargs -r -n 1 -I % kubectl delete %
+    kubectl get namespace -o name \
+      | grep -v "^namespace/\(default\|kube-system\|kube-public\)$" | cut -d / -f 2 \
+      | xargs -r -n 1 -I % -P 0 kubectl delete namespace % --timeout=180s \
+      || kubectl get namespace -o name \
+        | grep -v "^namespace/\(default\|kube-system\|kube-public\)$" | cut -d / -f 2 \
+        | xargs -r -n 1 -I @ -P 0 sh $(! echo $- | grep -q x || echo "-x") -ec '
+          kubectl proxy --port 0 > "'"$TARGET_PATH"'/@.port" 2>&1 &
+          proxy_pid=$!
+          echo "$proxy_pid" >> "'"$TRAP_FILE"'"
+          sleep 1
+          port="$(sed "s/^[^:]\+:\([0-9]\+\)$/\1/" "'"$TARGET_PATH"'/@.port")"
+          curl -s -X PUT -H "Content-Type: application/json" \
+            --data-binary "$(kubectl get namespace "@" -o json \
+            | tr -d "\n" | sed "s/\"finalizers\": \[[^]]\+\]/\"finalizers\": []/")" \
+            "http://localhost:$port/api/v1/namespaces/@/finalize"
+          kill "$proxy_pid" >/dev/null 2>&1
+          END="$(($(date +%s)+'"$TIMEOUT"'))"
+          while kubectl get namespace "@" -o name >/dev/null 2>&1
+          do
+            if [ "$(date +%s)" -gt "$END" ]
+            then
+              echo "Timeout while waiting for namespace @ to be removed"
+              exit 1
+            fi
+            sleep 1
+          done
+        '
     helm install --name stackgres-operator --namespace stackgres "$OPERATOR_CHART_PATH" \
       --set-string image.tag="$IMAGE_TAG" --set-string image.pullPolicy=Never
     if [ "$DEBUG_OPERATOR" = true ]
@@ -132,14 +153,38 @@ setup_k8s() {
       | tail -n +2 \
       | sed 's/\s\+/ /g' \
       | cut -d ' ' -f 1 \
-      | grep -v "^\(stackgres-operator\|minio\)$" \
+      | grep -v "^\(stackgres-operator\)$" \
       | xargs -r -n 1 -I % helm delete --purge %
-    if [ "$RESET_NAMESPACES" = true ]
-    then
-      kubectl get namespace -o name \
-        | grep -v "^namespace/\(default\|kube-system\|kube-public\|minio\|stackgres\)$" | cut -d / -f 2 \
-        | xargs -r -n 1 -I % -P 0 kubectl delete namespace %
-    fi
+    kubectl get crd -o name \
+      | grep -v '\.stackgres\.io$' \
+      | xargs -r -n 1 -I % kubectl delete %
+    kubectl get namespace -o name \
+      | grep -v "^namespace/\(default\|kube-system\|kube-public\|stackgres\)$" | cut -d / -f 2 \
+      | xargs -r -n 1 -I % -P 0 kubectl delete namespace % --timeout=180s \
+      || kubectl get namespace -o name \
+        | grep -v "^namespace/\(default\|kube-system\|kube-public\|stackgres\)$" | cut -d / -f 2 \
+        | xargs -r -n 1 -I @ -P 0 sh $(! echo $- | grep -q x || echo "-x") -ec '
+          kubectl proxy --port 0 > "'"$TARGET_PATH"'/@.port" 2>&1 &
+          proxy_pid=$!
+          echo "$proxy_pid" >> "'"$TRAP_FILE"'"
+          sleep 1
+          port="$(sed "s/^[^:]\+:\([0-9]\+\)$/\1/" "'"$TARGET_PATH"'/@.port")"
+          curl -s -X PUT -H "Content-Type: application/json" \
+            --data-binary "$(kubectl get namespace "@" -o json \
+            | tr -d "\n" | sed "s/\"finalizers\": \[[^]]\+\]/\"finalizers\": []/")" \
+            "http://localhost:$port/api/v1/namespaces/@/finalize" >/dev/null
+          kill "$proxy_pid" >/dev/null 2>&1
+          END="$(($(date +%s)+'"$TIMEOUT"'))"
+          while kubectl get namespace "@" -o name >/dev/null 2>&1
+          do
+            if [ "$(date +%s)" -gt "$END" ]
+            then
+              echo "Timeout while waiting for namespace @ to be removed"
+              exit 1
+            fi
+            sleep 1
+          done
+        '
   fi
 
   if [ "$WAIT_OPERATOR" = true ]
