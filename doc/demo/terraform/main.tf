@@ -4,15 +4,12 @@ provider "google" {
   region      = var.region_gcp
 }
 
-provider "aws" {
-  region = var.region_aws
-  profile = var.profile
-}
+provider "aws" {}
 
 provider "azurerm" {
     version = "~>1.5"
 }
-/*
+
 // Module GCP
 module "gcp" {
 source                  ="./modules/cloud/gcp"
@@ -56,7 +53,6 @@ cluster_version_eks      = "1.14"
 instance_type_eks        = "m4.large"
 asg_max_size_eks         = 5
 }
-*/
 
 module "azure" {
 source                   ="./modules/cloud/azure"

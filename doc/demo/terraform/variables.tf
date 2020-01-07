@@ -8,17 +8,8 @@ variable "project" {
     description = "The name of projects in GCP"
 }
 
-variable "profile" {
-    default = "benchmark"
-    description = "Name profile"
-}
 
-
-variable "region_aws" {
-  default = "us-west-2"
-  description = "Name region"
-}
-
-
+/*
 variable "client_id" {}
 variable "client_secret" {}
+*/

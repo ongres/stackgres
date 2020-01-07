@@ -31,11 +31,11 @@ _These instructions will allow you to create Cluster Kubernetes in AWS_
 
 2.- Create an execution plan:
 
-`terraform plan -target=module.gcp`
+`terraform plan -target=module.aws`
 
 3.- Deployment the infrastructure:  
 
-`terraform apply -target=module.gcp`
+`terraform apply -target=module.aws`
 
 [For more information](https://www.terraform.io/docs/commands/index.html)
 
