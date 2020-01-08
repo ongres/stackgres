@@ -15,11 +15,3 @@ sidecar:
 minio:
   persistence:
     size: 128Mi
-  affinity:
-    nodeAffinity:
-      requiredDuringSchedulingIgnoredDuringExecution:
-        nodeSelectorTerms:
-          - matchExpressions:
-            - key: "kubernetes.io/hostname"
-              operator: "In"
-              values: [ "kind-worker", "kind-jvm-image-worker", "kind-native-image-worker" ]
