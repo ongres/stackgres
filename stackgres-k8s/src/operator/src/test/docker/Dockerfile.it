@@ -6,9 +6,11 @@
 # docker build -f src/test/docker/Dockerfile.it -t stackgres/it:latest .
 #
 ###
-FROM communitycloud/docker-client:1.11.0
-RUN wget -q -L -O /bin/kubectl https://storage.googleapis.com/kubernetes-release/release/v1.12.10/bin/linux/amd64/kubectl
+FROM docker
+RUN wget -q -O /bin/kubectl https://storage.googleapis.com/kubernetes-release/release/v1.12.10/bin/linux/amd64/kubectl
 RUN chmod a+x /bin/kubectl
-RUN wget -q -L -O /bin/kind  https://github.com/kubernetes-sigs/kind/releases/download/v0.5.1/kind-$(uname)-amd64
+RUN wget -q -O /bin/kind  https://github.com/kubernetes-sigs/kind/releases/download/v0.6.0/kind-$(uname)-amd64
 RUN chmod a+x /bin/kind
-RUN wget -q -L https://get.helm.sh/helm-v2.14.3-linux-amd64.tar.gz -O -|tar xz --strip-components=1 -C /bin -f - linux-amd64/helm linux-amd64/tiller
+RUN wget -q https://get.helm.sh/helm-v2.16.1-linux-amd64.tar.gz -O -|tar xz --strip-components=1 -C /bin -f - linux-amd64/helm
+RUN wget -q -O /bin/curl https://github.com/dtschan/curl-static/releases/download/v7.63.0/curl
+RUN chmod a+x /bin/curl

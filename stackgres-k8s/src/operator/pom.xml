@@ -233,21 +233,9 @@
                     <image>
                       <name>stackgres/it</name>
                       <build>
-                        <from>docker</from>
-                        <cleanup>try</cleanup>
+                        <cleanup>remove</cleanup>
                         <optimise>true</optimise>
-                        <ports>
-                          <port>8001</port>
-                        </ports>
-                        <runCmds>
-                          <run>wget -q -O /bin/kubectl https://storage.googleapis.com/kubernetes-release/release/v1.12.10/bin/linux/amd64/kubectl</run>
-                          <run>chmod a+x /bin/kubectl</run>
-                          <run>wget -q -O /bin/kind  https://github.com/kubernetes-sigs/kind/releases/download/v0.6.0/kind-$(uname)-amd64</run>
-                          <run>chmod a+x /bin/kind</run>
-                          <run>wget -q https://get.helm.sh/helm-v2.16.1-linux-amd64.tar.gz -O -|tar xz --strip-components=1 -C /bin -f - linux-amd64/helm</run>
-                          <run>wget -q -O /bin/curl https://github.com/dtschan/curl-static/releases/download/v7.63.0/curl</run>
-                          <run>chmod a+x /bin/curl</run>
-                        </runCmds>
+                        <dockerFile>${project.basedir}/src/test/docker/Dockerfile.it</dockerFile>
                       </build>
                     </image>
                   </images>
