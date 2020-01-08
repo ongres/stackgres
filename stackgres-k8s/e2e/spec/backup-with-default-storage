@@ -103,7 +103,7 @@ metadata:
   namespace: "$CLUSTER_NAMESPACE"
   name: "$BACKUP_NAME"
 spec:
-  clusterName: "$CLUSTER_NAME"
+  cluster: "$CLUSTER_NAME"
   isPermanent: true
 EOF
 

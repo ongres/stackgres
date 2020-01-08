@@ -73,7 +73,7 @@ public class Backup {
       StackGresClusterContext clusterContext) {
     String namespace = backup.getMetadata().getNamespace();
     String name = backup.getMetadata().getName();
-    String clusterName = backup.getSpec().getClusterName();
+    String cluster = backup.getSpec().getCluster();
     ImmutableMap<String, String> labels = ResourceUtil.clusterLabels(clusterContext.getCluster());
     StackGresBackupConfig backupConfig = clusterContext.getBackupConfig().get();
     return new JobBuilder()
@@ -112,11 +112,11 @@ public class Backup {
                 .build(),
                 new EnvVarBuilder()
                 .withName("CLUSTER_NAME")
-                .withValue(clusterName)
+                .withValue(cluster)
                 .build(),
                 new EnvVarBuilder()
                 .withName("CRONJOB_NAME")
-                .withValue(clusterName + ClusterStatefulSet.BACKUP_SUFFIX)
+                .withValue(cluster + ClusterStatefulSet.BACKUP_SUFFIX)
                 .build(),
                 new EnvVarBuilder()
                 .withName("BACKUP_IS_PERMANENT")

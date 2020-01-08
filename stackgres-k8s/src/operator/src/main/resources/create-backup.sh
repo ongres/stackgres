@@ -33,7 +33,7 @@ done
 try_lock_pid=$!
 
 backup_cr_template="{{ range .items }}"
-backup_cr_template="${backup_cr_template}{{ .spec.clusterName }}"
+backup_cr_template="${backup_cr_template}{{ .spec.cluster }}"
 backup_cr_template="${backup_cr_template}:{{ .metadata.name }}"
 backup_cr_template="${backup_cr_template}:{{ .status.phase }}"
 backup_cr_template="${backup_cr_template}:{{ with .status.name }}{{ . }}{{ end }}"
@@ -67,7 +67,7 @@ $(kubectl get cronjob -n "$CLUSTER_NAMESPACE" "$CRONJOB_NAME" \
     uid: {{ .metadata.uid }}
 ')
 spec:
-  clusterName: "$CLUSTER_NAME"
+  cluster: "$CLUSTER_NAME"
   isPermanent: false
 status:
   phase: "$BACKUP_PHASE_PENDING"

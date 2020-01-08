@@ -22,19 +22,19 @@ public class StackGresBackupSpec implements KubernetesResource {
 
   private static final long serialVersionUID = 4124027524757318245L;
 
-  @JsonProperty("clusterName")
+  @JsonProperty("cluster")
   @NotNull(message = "The cluster name is required")
-  private String clusterName;
+  private String cluster;
 
   @JsonProperty("isPermanent")
   private Boolean isPermanent;
 
-  public String getClusterName() {
-    return clusterName;
+  public String getCluster() {
+    return cluster;
   }
 
-  public void setClusterName(String clusterName) {
-    this.clusterName = clusterName;
+  public void setCluster(String cluster) {
+    this.cluster = cluster;
   }
 
   public Boolean getIsPermanent() {
@@ -49,7 +49,7 @@ public class StackGresBackupSpec implements KubernetesResource {
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .omitNullValues()
-        .add("clusterName", clusterName)
+        .add("cluster", cluster)
         .add("isPermanent", isPermanent)
         .toString();
   }

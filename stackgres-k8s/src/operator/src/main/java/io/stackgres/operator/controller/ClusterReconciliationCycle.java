@@ -271,7 +271,7 @@ public class ClusterReconciliationCycle
             .list()
             .getItems()
             .stream()
-            .filter(backup -> backup.getSpec().getClusterName().equals(name))
+            .filter(backup -> backup.getSpec().getCluster().equals(name))
             .collect(ImmutableList.toImmutableList()))
         .orElse(ImmutableList.of());
   }
