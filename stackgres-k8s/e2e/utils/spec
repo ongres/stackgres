@@ -52,6 +52,7 @@ spec() {
   echo "================================================================"
   echo
 
+  START="$(date +%s)"
   > "$LOG_PATH/$SPEC_NAME.log"
   (set +ex
     sh +x -c 'echo $$; exec tail -f '"$LOG_PATH/$SPEC_NAME.log" \
@@ -71,7 +72,7 @@ spec() {
     echo "$SPEC_NAME. FAIL. See file $LOG_PATH/$SPEC_NAME.log for details" >> "$TARGET_PATH/logs/results.log"
     return "$EXIT_CODE"
   fi
-  echo "$SPEC_NAME. SUCCESS." >> "$TARGET_PATH/logs"/results.log
+  echo "$SPEC_NAME. SUCCESS. Test took $(($date +%s)-START)) seconds" >> "$TARGET_PATH/logs"/results.log
 }
 
 run_spec() {
