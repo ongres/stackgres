@@ -2,7 +2,7 @@
 
 set -e
 
-SHELL="${SHELL:-sh}"
+SHELL="$(readlink /proc/$$/exe)"
 IMAGE_TAG="${IMAGE_TAG:-development-jvm}"
 IMAGE_NAME="stackgres/operator:$IMAGE_TAG"
 KUBERNETES_VERSION="${KUBERNETES_VERSION:-1.12.10}"
@@ -21,7 +21,7 @@ fi
 OPERATOR_CHART_PATH="${OPERATOR_CHART_PATH:-"$STACKGRES_PATH/install/helm/stackgres-operator/"}"
 CLUSTER_CHART_PATH="${CLUSTER_CHART_PATH:-"$STACKGRES_PATH/install/helm/stackgres-cluster/"}"
 
-export IMAGE_TAG IMAGE_NAME KUBERNETES_VERSION CLUSTER_CHART_PATH ENV TARGET_PATH TIMEOUT
+export SHELL IMAGE_TAG IMAGE_NAME KUBERNETES_VERSION CLUSTER_CHART_PATH ENV TARGET_PATH TIMEOUT
 
 for util in $(find "$(dirname "$0")/utils" -type f)
 do
