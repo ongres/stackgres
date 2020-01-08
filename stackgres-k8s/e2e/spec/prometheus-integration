@@ -45,7 +45,7 @@ check_exporter_service(){
 
 check_service_monitor(){
 
-  local SERVICE_MONITOR="$CLUSTER_NAME-stackgres-prometheus-postgres-exporter"
+  local SERVICE_MONITOR="$CLUSTER_NAMESPACE-$CLUSTER_NAME-stackgres-prometheus-postgres-exporter"
 
   if kubectl get servicemonitors.monitoring.coreos.com -n "$PROMETHEUS_NAMESPACE" $SERVICE_MONITOR
   then
