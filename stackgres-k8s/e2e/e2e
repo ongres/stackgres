@@ -118,6 +118,8 @@ setup_k8s() {
       || kubectl get namespace -o name \
         | grep -v "^namespace/\(default\|kube-system\|kube-public\)$" | cut -d / -f 2 \
         | xargs -r -n 1 -I @ -P 0 sh $(! echo $- | grep -q x || echo "-x") -ec '
+          kubectl get pod -n @ -o name \
+            | xargs -r -n 1 -I % kubectl delete -n @ % --grace-period=0 --force
           kubectl proxy --port 0 > "'"$TARGET_PATH"'/@.port" 2>&1 &
           proxy_pid=$!
           echo "$proxy_pid" >> "'"$TRAP_FILE"'"
@@ -164,6 +166,8 @@ setup_k8s() {
       || kubectl get namespace -o name \
         | grep -v "^namespace/\(default\|kube-system\|kube-public\|stackgres\)$" | cut -d / -f 2 \
         | xargs -r -n 1 -I @ -P 0 sh $(! echo $- | grep -q x || echo "-x") -ec '
+          kubectl get pod -n @ -o name \
+            | xargs -r -n 1 -I % kubectl delete -n @ % --grace-period=0 --force
           kubectl proxy --port 0 > "'"$TARGET_PATH"'/@.port" 2>&1 &
           proxy_pid=$!
           echo "$proxy_pid" >> "'"$TRAP_FILE"'"
