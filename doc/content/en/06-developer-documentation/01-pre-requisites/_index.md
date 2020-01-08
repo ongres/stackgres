@@ -20,7 +20,7 @@ weight: 1
 * Install build-essential, libz-dev, zliblg-dev by running: sudo apt-get install build-essential libz-dev zlib1g-dev
 * Add ``'docker.io'`` to the podman's list of search registries. 
   To do that, edit the file /etc/containers/registries.conf look for '[registries.search]', in the line it shuold be the 
-  list of the search registries simply add ``'docker.io'`` so it should look like this: registries = [``'docker.io``']
+  list of the search registries simply add ``'docker.io'`` so it should look like this: `registries = ['docker.io']`
 * Go to the directory stackgres/stackgres-k8s/src and run: mvn clean install
 
 
