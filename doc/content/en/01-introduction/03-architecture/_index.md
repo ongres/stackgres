@@ -13,6 +13,27 @@ Postgres requires an operator to provide additional knowledge of how to maintain
 all the components. The StackGres operator allow to deploy a StackGres cluster using a few custom
 resources created by the user.
 
+### Operator availability concerns
+
+Operator availability only affect operational plane, data plane is not affected
+ at all since the database will work as expected when the operator is offline.
+ There is a best effort in miantaining the operator available. It is expected
+ that if at some point the operator is unavailable and this could lead to
+ unavailability of following operational aspects:
+
+* Cluster creation / update
+* Cluster configuration creation / update / deletion
+* Backups generation
+* Reconciliation of modified resources controlled by the operator (when
+ modified by the user or some other means)
+
+Operator unavailablility does not affect following functional aspects:
+
+* Database high availability
+* Connection pooling
+* Incremental backups
+* Stats collection
+
 ## The Cluster
 
 A StackGres cluster is basically a StatefulSet where each Pod is a database instance. The StatefulSet guarantee
