@@ -1,6 +1,6 @@
 #!/bin/sh
 
-wait_until_approval() {
+wait_certificate_approval() {
   while true
   do
     CRS_STATUS="$(kubectl get csr stackgres-operator -o jsonpath='{.status.conditions[0].type}')"

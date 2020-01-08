@@ -3,8 +3,8 @@
 wait_pods_running() {
   local NAMESPACE_OPT="$([ -z "$1" ] && echo "--all-namespaces" || echo "--namespace=$1")"
   local EXPECTED_RUNNING_PODS="${2:-1}"
-  local START="$(date +%s)"
-  while [ "$((START + TIMEOUT))" -gt "$(date +%s)" ]
+  local END="$(($(date +%s) + (TIMEOUT * EXPECTED_RUNNING_PODS)))"
+  while [ "$(date +%s)" -lt "$END" ]
   do
     RUNNING_PODS="$(kubectl get pods "$NAMESPACE_OPT" | grep "Running" | wc -l)"
     RUNNING_CONTAINERS="$(kubectl get pods "$NAMESPACE_OPT" | grep "Running" \
@@ -29,8 +29,8 @@ wait_pods_running() {
 wait_pods_terminated() {
   local NAMESPACE_OPT="$([ -z "$1" ] && echo "--all-namespaces" || echo "--namespace=$1")"
   local EXPECTED_REMAINING_PODS="${2:-0}"
-  local START="$(date +%s)"
-  while [ "$((START + TIMEOUT))" -gt "$(date +%s)" ]
+  local END="$(($(date +%s) + (TIMEOUT * EXPECTED_REMAINING_PODS)))"
+  while [ "$(date +%s)" -lt "$END" ]
   do
     REMAINING_PODS="$(kubectl get pods "$NAMESPACE_OPT" -o name | wc -l)"
     if [ "$REMAINING_PODS" -le "$EXPECTED_REMAINING_PODS" ]
