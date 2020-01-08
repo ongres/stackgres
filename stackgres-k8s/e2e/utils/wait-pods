@@ -3,6 +3,11 @@
 wait_pods_running() {
   local NAMESPACE_OPT="$([ -z "$1" ] && echo "--all-namespaces" || echo "--namespace=$1")"
   local EXPECTED_RUNNING_PODS="${2:-1}"
+  if [ "$EXPECTED_RUNNING_PODS" -lt 1 ]
+  then
+    >&2 echo "Must specify a number of expected running pods of 1 or more"
+    return 1
+  fi
   local END="$(($(date +%s) + (TIMEOUT * EXPECTED_RUNNING_PODS)))"
   while [ "$(date +%s)" -lt "$END" ]
   do
@@ -29,7 +34,18 @@ wait_pods_running() {
 wait_pods_terminated() {
   local NAMESPACE_OPT="$([ -z "$1" ] && echo "--all-namespaces" || echo "--namespace=$1")"
   local EXPECTED_REMAINING_PODS="${2:-0}"
-  local END="$(($(date +%s) + (TIMEOUT * EXPECTED_REMAINING_PODS)))"
+  if [ "$EXPECTED_REMAINING_PODS" -lt 0 ]
+  then
+    >&2 echo "Must specify a number of expected remaining pods of 0 or more"
+    return 1
+  fi
+  local END
+  if [ "$EXPECTED_REMAINING_PODS" -gt 0 ]
+  then
+    END="$(($(date +%s) + (TIMEOUT * EXPECTED_REMAINING_PODS)))"
+  else
+    END="$(($(date +%s) + TIMEOUT))"
+  fi
   while [ "$(date +%s)" -lt "$END" ]
   do
     REMAINING_PODS="$(kubectl get pods "$NAMESPACE_OPT" -o name | wc -l)"
