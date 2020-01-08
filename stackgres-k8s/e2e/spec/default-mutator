@@ -9,6 +9,7 @@ test_install() {
   DEFAULT_PROFILE="defaultprofile"
   DEFAULT_BACKUP="defaultbackupconfig"
 
+  kubectl create namespace "$CLUSTER_NAMESPACE"
   deploy_curl_pod "$CLUSTER_NAMESPACE"
 }
 
