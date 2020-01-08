@@ -75,15 +75,13 @@ public class PrometheusServiceMonitorHandler implements ResourceHandler<StackGre
             .list()
             .getItems()
             .stream()
-            .filter(serviceMonitor -> !(
-                existingConfigsLabels.stream()
+            .filter(serviceMonitor -> !existingConfigsLabels.stream()
                 .anyMatch(e -> Objects.equals(e.v1,
                     serviceMonitor.getMetadata().getLabels().get(
-                        ResourceUtil.CLUSTER_NAMESPACE_KEY)))
-                && existingConfigsLabels.stream()
-                .anyMatch(e -> Objects.equals(e.v2,
-                    serviceMonitor.getMetadata().getLabels().get(
-                        ResourceUtil.CLUSTER_UID_KEY)))))
+                        ResourceUtil.CLUSTER_NAMESPACE_KEY))
+                    && Objects.equals(e.v2,
+                        serviceMonitor.getMetadata().getLabels().get(
+                            ResourceUtil.CLUSTER_UID_KEY))))
             .map(cr -> (HasMetadata) cr))
         .orElse(Stream.empty());
   }
