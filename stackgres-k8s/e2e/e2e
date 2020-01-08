@@ -2,6 +2,7 @@
 
 set -e
 
+SHELL="${SHELL:-sh}"
 IMAGE_TAG="${IMAGE_TAG:-development-jvm}"
 IMAGE_NAME="stackgres/operator:$IMAGE_TAG"
 KUBERNETES_VERSION="${KUBERNETES_VERSION:-1.12.10}"
@@ -117,7 +118,7 @@ setup_k8s() {
       | xargs -r -n 1 -I % -P 0 kubectl delete namespace % --timeout=180s \
       || kubectl get namespace -o name \
         | grep -v "^namespace/\(default\|kube-system\|kube-public\)$" | cut -d / -f 2 \
-        | xargs -r -n 1 -I @ -P 0 sh $(! echo $- | grep -q x || echo "-x") -ec '
+        | xargs -r -n 1 -I @ -P 0 "$SHELL" $(! echo $- | grep -q x || echo "-x") -ec '
           kubectl get pod -n @ -o name \
             | xargs -r -n 1 -I % kubectl delete -n @ % --grace-period=0 --force
           kubectl proxy --port 0 > "'"$TARGET_PATH"'/@.port" 2>&1 &
@@ -165,7 +166,7 @@ setup_k8s() {
       | xargs -r -n 1 -I % -P 0 kubectl delete namespace % --timeout=180s \
       || kubectl get namespace -o name \
         | grep -v "^namespace/\(default\|kube-system\|kube-public\|stackgres\)$" | cut -d / -f 2 \
-        | xargs -r -n 1 -I @ -P 0 sh $(! echo $- | grep -q x || echo "-x") -ec '
+        | xargs -r -n 1 -I @ -P 0 "$SHELL" $(! echo $- | grep -q x || echo "-x") -ec '
           kubectl get pod -n @ -o name \
             | xargs -r -n 1 -I % kubectl delete -n @ % --grace-period=0 --force
           kubectl proxy --port 0 > "'"$TARGET_PATH"'/@.port" 2>&1 &

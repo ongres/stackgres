@@ -61,7 +61,7 @@ pod_logs() {
       | tr -d '{}' | tr , '\n' | grep '"name"' | tr -d '"' | cut -d : -f 2)
     do
       (set +ex
-        sh +x -c 'echo $$; exec kubectl logs -n "'"$(echo "$pod" | cut -d / -f 1)"'" "'"$(echo "$pod" | cut -d / -f 2)"'" -c "'"$container"'" -f' \
+        "$SHELL" +x -c 'echo $$; exec kubectl logs -n "'"$(echo "$pod" | cut -d / -f 1)"'" "'"$(echo "$pod" | cut -d / -f 2)"'" -c "'"$container"'" -f' \
           | (
           read pid
           trap_kill "$pid"

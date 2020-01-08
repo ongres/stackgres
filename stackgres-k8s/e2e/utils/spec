@@ -55,7 +55,7 @@ spec() {
   START="$(date +%s)"
   > "$LOG_PATH/$SPEC_NAME.log"
   (set +ex
-    sh +x -c 'echo $$; exec tail -f '"$LOG_PATH/$SPEC_NAME.log" \
+    "$SHELL" +x -c 'echo $$; exec tail -f '"$LOG_PATH/$SPEC_NAME.log" \
       | (
       read pid
       trap_kill "$pid"
