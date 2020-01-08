@@ -3,33 +3,17 @@ title: Building StackGres
 weight: 2
 ---
 
-# Building StackGres
-Build stackgres images are fairly simple. You can build in two forms:
- * build a using zulu JVM as a base image (Default)
- * compa
-
-## Building stackgres zulu based image
-
-Compiles fast but has a higher memory footprint. So it useful for local environment testing
-
-Go to the stackgres/stackgres-k8s/src folder and the execute:
+To build stackgres run the following command inside folder `stackgres-k8s/src`:
 
 ```
-mvn clean verify -P build-image-jvm
+./mvnw clean install
 ```
 
-You can find the image in th stackgres/operator repository tagged as development-jvm
+## Build with checks
 
-## Building stackgres native image
-
-Takes long to compile but has a lower memory footprint.  Is recommended for production workloads. 
-
-The native image use GraalVM but at the expense of some limitations. So once your development is ready, be sure to test it with the native image. 
-
-To generate a native image simpleme run:
+Build with strength checks is needed in order to contribute to the project (since the CI will run those checks).
+ To do so simply add the `safer` profile:
 
 ```
-mvn clean verify -P native,build-image-native
+./mvnw clean install -P safer
 ```
-
-
