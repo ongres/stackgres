@@ -27,6 +27,12 @@ CLUSTER_CHART_PATH="${CLUSTER_CHART_PATH:-"$STACKGRES_PATH/install/helm/stackgre
 
 export SHELL IMAGE_TAG IMAGE_NAME KUBERNETES_VERSION CLUSTER_CHART_PATH E2E_ENV TARGET_PATH E2E_TIMEOUT
 
+if ! command -v local > /dev/null 2>&1
+then
+  >&2 echo "You are probably using an AT&T Korn Shell or any other shell that does not support local variables in POSIX functions."
+  exit 1
+fi
+
 for util in $(find "$(dirname "$0")/utils" -type f)
 do
   . "$util"
