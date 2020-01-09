@@ -131,16 +131,9 @@ setup_k8s() {
         | xargs -r -n 1 -I @ -P 0 "$SHELL" $(! echo $- | grep -q x || echo "-x") -ec '
           kubectl get pod -n @ -o name \
             | xargs -r -n 1 -I % kubectl delete -n @ % --grace-period=0 --force
-          kubectl proxy --port 0 > "'"$TARGET_PATH"'/@.port" 2>&1 &
-          proxy_pid=$!
-          echo "$proxy_pid" >> "'"$TRAP_FILE"'"
-          sleep 1
-          port="$(sed "s/^[^:]\+:\([0-9]\+\)$/\1/" "'"$TARGET_PATH"'/@.port")"
-          curl -s -X PUT -H "Content-Type: application/json" \
-            --data-binary "$(kubectl get namespace "@" -o json \
-            | tr -d "\n" | sed "s/\"finalizers\": \[[^]]\+\]/\"finalizers\": []/")" \
-            "http://localhost:$port/api/v1/namespaces/@/finalize"
-          kill "$proxy_pid" >/dev/null 2>&1
+          kubectl get namespace "@" -o json \
+            | tr -d "\n" | sed "s/\"finalizers\": \[[^]]\+\]/\"finalizers\": []/" \
+            | kubectl replace --raw /api/v1/namespaces/@/finalize -f -
           END="$(($(date +%s)+'"$E2E_TIMEOUT"'))"
           while kubectl get namespace "@" -o name >/dev/null 2>&1
           do
@@ -179,16 +172,9 @@ setup_k8s() {
         | xargs -r -n 1 -I @ -P 0 "$SHELL" $(! echo $- | grep -q x || echo "-x") -ec '
           kubectl get pod -n @ -o name \
             | xargs -r -n 1 -I % kubectl delete -n @ % --grace-period=0 --force
-          kubectl proxy --port 0 > "'"$TARGET_PATH"'/@.port" 2>&1 &
-          proxy_pid=$!
-          echo "$proxy_pid" >> "'"$TRAP_FILE"'"
-          sleep 1
-          port="$(sed "s/^[^:]\+:\([0-9]\+\)$/\1/" "'"$TARGET_PATH"'/@.port")"
-          curl -s -X PUT -H "Content-Type: application/json" \
-            --data-binary "$(kubectl get namespace "@" -o json \
-            | tr -d "\n" | sed "s/\"finalizers\": \[[^]]\+\]/\"finalizers\": []/")" \
-            "http://localhost:$port/api/v1/namespaces/@/finalize" >/dev/null
-          kill "$proxy_pid" >/dev/null 2>&1
+          kubectl get namespace "@" -o json \
+            | tr -d "\n" | sed "s/\"finalizers\": \[[^]]\+\]/\"finalizers\": []/" \
+            | kubectl replace --raw /api/v1/namespaces/@/finalize -f -
           END="$(($(date +%s)+'"$E2E_TIMEOUT"'))"
           while kubectl get namespace "@" -o name >/dev/null 2>&1
           do
