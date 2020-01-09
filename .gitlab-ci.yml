@@ -106,7 +106,7 @@ build jvm image:
     - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_REF_NAME"}"-jvm'
     - 'export IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
     - MAVEN_CLI_OPTS="$MAVEN_CLI_OPTS -DskipTests"
-    - 'mvn $MAVEN_CLI_OPTS package -P build-image-jvm'
+    - 'flock -w 3600 /tmp/stackgres-build-jvm-image mvn $MAVEN_CLI_OPTS package -P build-image-jvm'
 
 build native image:
   stage: pre test
@@ -120,7 +120,7 @@ build native image:
     - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_REF_NAME"}"'
     - 'export IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
     - MAVEN_CLI_OPTS="$MAVEN_CLI_OPTS -DskipTests"
-    - 'mvn $MAVEN_CLI_OPTS package -P build-image-native'
+    - 'flock -w 3600 /tmp/stackgres-build-native-image mvn $MAVEN_CLI_OPTS package -P build-image-native'
 
 integration test:
   stage: test

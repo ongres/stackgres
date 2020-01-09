@@ -274,6 +274,7 @@
                       <alias>ongres-jvm-builder</alias>
                       <name>ongres-jvm-builder</name>
                       <build>
+                        <cleanup>remove</cleanup>
                         <from>ongres/builder</from>
                         <assembly>
                           <targetDir>/operator</targetDir>
@@ -354,6 +355,7 @@
                       <alias>ongres-native-builder</alias>
                       <name>ongres-native-builder</name>
                       <build>
+                        <cleanup>remove</cleanup>
                         <from>ongres/builder</from>
                         <assembly>
                           <targetDir>/operator</targetDir>
