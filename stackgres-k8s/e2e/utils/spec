@@ -72,7 +72,7 @@ spec() {
     echo "$SPEC_NAME. FAIL. See file $LOG_PATH/$SPEC_NAME.log for details" >> "$TARGET_PATH/logs/results.log"
     return "$EXIT_CODE"
   fi
-  echo "$SPEC_NAME. SUCCESS. Test took $($(date +%s)-START)) seconds" >> "$TARGET_PATH/logs"/results.log
+  echo "$SPEC_NAME. SUCCESS. Test took $(($(date +%s)-START)) seconds" >> "$TARGET_PATH/logs"/results.log
 }
 
 run_spec() {
