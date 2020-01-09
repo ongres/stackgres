@@ -28,6 +28,7 @@ spec() {
   SPEC_BEFORE_FILE="$SPEC_FILE.before"
   SPEC_AFTER_FILE="$SPEC_FILE.after"
   SPEC_VALUES_FILE="$1.values.yaml"
+  SPEC_PATH="$(dirname "$SPEC_FILE")"
   SPEC_NAME="$(basename "$SPEC_FILE")"
   CLUSTER_NAMESPACE="$SPEC_NAME"
   CLUSTER_NAME="$SPEC_NAME"
@@ -41,7 +42,7 @@ spec() {
 
   if [ ! -f "$SPEC_VALUES_FILE" ]
   then
-    SPEC_VALUES_FILE="spec/default.values.yaml"
+    SPEC_VALUES_FILE="$SPEC_PATH/default.values.yaml"
   fi
 
   . "$SPEC_FILE"
