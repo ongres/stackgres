@@ -24,7 +24,7 @@ for SPEC in $(echo $SPECS)
 do
   COUNT="$((COUNT+1))"
   SPECS_TO_RUN="$SPECS_TO_RUN $SPEC"
-  if [ "$((COUNT%PARALLELISM))" -eq 0 -o "$COUNT" -eq "$SPEC_COUNT" ]
+  if [ "$((COUNT%E2E_PARALLELISM))" -eq 0 -o "$COUNT" -eq "$SPEC_COUNT" ]
   then
     setup_k8s
     if ! echo "$SPECS_TO_RUN" | tr ' ' '\n' | tail -n +2 \
