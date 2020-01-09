@@ -20,7 +20,7 @@ SPECS_TO_RUN=""
 SH_OPTS=$(! echo $- | grep -q x || echo "-x")
 OVERALL_RESULT=true
 SPEC_COUNT="$(echo "$SPECS" | tr ' ' '\n' | wc -l)"
-for SPEC in $SPECS
+for SPEC in $(echo $SPECS)
 do
   COUNT="$((COUNT+1))"
   SPECS_TO_RUN="$SPECS_TO_RUN $SPEC"
