@@ -88,7 +88,8 @@ enforce release:
     - MAVEN_CLI_OPTS="$MAVEN_CLI_OPTS -DskipTests -Dquarkus.skipAugmentation=true"
     - 'mvn $MAVEN_CLI_OPTS enforcer:enforce@enforce-no-snapshots'
   only:
-    - tags
+    variables:
+      - $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
 
 build test images:
   stage: pre test
