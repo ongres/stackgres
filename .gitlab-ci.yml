@@ -128,8 +128,6 @@ integration test:
     - stackgres-runner
   dependencies:
     - compile
-  variables:
-    E2E_DEBUG: "true"
   script:
     - 'flock -w 3600 /tmp/stackgres-integration-test mvn $MAVEN_CLI_OPTS verify -P integration'
 
