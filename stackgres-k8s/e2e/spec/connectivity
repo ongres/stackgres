@@ -1,10 +1,10 @@
 #!/bin/sh
 
-test_install_pods() {
+e2e_test_install_pods() {
   echo 2
 }
 
-test() {
+e2e_test() {
   run_test "Checking that all 4 ports (5432, 5433, 5434, 5435) in the patroni pods are openned and listening for queries" ports_check
 
   run_test "Checking that is possible to connect using services is working" service_check

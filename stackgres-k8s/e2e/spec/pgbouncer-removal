@@ -1,6 +1,6 @@
 #!/bin/sh
 
-test() {
+e2e_test() {
   run_test "Trying to delete sgconnectionpoolingconfigs with cluster running" delete_with_cluster
 
   run_test "Trying to delete sgconnectionpoolingconfigs without a cluster running" delete_whitout_cluster

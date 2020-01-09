@@ -1,10 +1,10 @@
 #!/bin/sh
 
-test_install_pods() {
+e2e_test_install_pods() {
   echo 2
 }
 
-test() {
+e2e_test() {
   run_test "Checking that primary is working" create_database_primary
 
   run_test "Checking that replication is working" create_database_replica

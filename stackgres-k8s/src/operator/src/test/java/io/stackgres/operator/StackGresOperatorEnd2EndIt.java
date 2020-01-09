@@ -58,8 +58,8 @@ public class StackGresOperatorEnd2EndIt extends AbstractStackGresOperatorIt {
             + "export USE_EXTERNAL_OPERATOR=true\n"
             + "export CLUSTER_CHART_PATH=/resources/stackgres-cluster\n"
             + "export OPERATOR_CHART_PATH=/resources/stackgres-operator\n"
-            + (E2E_TIMEOUT.isPresent() ? "export TIMEOUT=" + E2E_TIMEOUT.get() + "\n" : "")
-            + (E2E_PARALLELISM.isPresent() ? "export PARALLELISM=" + E2E_PARALLELISM.get() + "\n" : "")
+            + (E2E_TIMEOUT.isPresent() ? "export E2E_TIMEOUT=" + E2E_TIMEOUT.get() + "\n" : "")
+            + (E2E_PARALLELISM.isPresent() ? "export E2E_PARALLELISM=" + E2E_PARALLELISM.get() + "\n" : "")
             + (E2E_TEST.isPresent()
             ? "if ! sh " + (E2E_DEBUG.orElse(false) ? "-x" : "")
                 + " run-test.sh " + E2E_TEST.get() + "\n"

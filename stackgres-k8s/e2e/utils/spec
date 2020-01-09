@@ -1,24 +1,24 @@
 #!/bin/sh
 
-test_before_all() {
+e2e_test_before_all() {
   true
 }
 
-test_install() {
-  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "$(test_install_pods)"
+e2e_test_install() {
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "$(e2e_test_install_pods)"
 
-  wait_pods_running "$CLUSTER_NAMESPACE" "$(test_install_pods)"
+  wait_pods_running "$CLUSTER_NAMESPACE" "$(e2e_test_install_pods)"
 }
 
-test_install_pods() {
+e2e_test_install_pods() {
   echo 1
 }
 
-test_after_all() {
+e2e_test_after_all() {
   true
 }
 
-test() {
+e2e_test() {
   echo "You should define a test function"
   false
 }
@@ -79,15 +79,15 @@ spec() {
 run_spec() {
   if [ "$SKIP_SPEC_BEFORE_ALL" != true ]
   then
-    test_before_all
+    e2e_test_before_all
   fi
 
   if [ "$SKIP_SPEC_INSTALL" != true ]
   then
-    test_install
+    e2e_test_install
   fi
 
-  test
+  e2e_test
 
-  test_after_all
+  e2e_test_after_all
 }

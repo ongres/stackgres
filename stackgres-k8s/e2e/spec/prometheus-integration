@@ -1,6 +1,6 @@
 #!/bin/sh
 
-test_install() {  
+e2e_test_install() {  
 
   PROMETHEUS_NAMESPACE="$CLUSTER_NAMESPACE-monitor"
 
@@ -17,11 +17,11 @@ test_install() {
 
 }
 
-test_after_all(){
+e2e_test_after_all(){
   unset PROMETHEUS_NAMESPACE
 }
 
-test(){
+e2e_test(){
   run_test "Check that exporter service is created" check_exporter_service
   run_test "Check that service monitor was created" check_service_monitor
 }

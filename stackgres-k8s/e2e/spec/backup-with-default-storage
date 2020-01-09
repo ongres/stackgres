@@ -1,7 +1,7 @@
 #!/bin/sh
 
-test_install() {
-  if [ "$ENV" = "kind" ]
+e2e_test_install() {
+  if [ "$E2E_ENV" = "kind" ]
   then
     cat << EOF > "$LOG_PATH/minio-affinity.yaml"
 minio:
@@ -28,7 +28,7 @@ EOF
     --patch '[{"op":"replace","path":"/spec/fullSchedule","value":"*/1 * * * *"}]'
 }
 
-test() {
+e2e_test() {
   run_test "Checking that backup is working before switchover" check_backup_before_switchover
 
   run_test "Checking that switchover is working" check_switchover

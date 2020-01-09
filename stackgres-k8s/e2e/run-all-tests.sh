@@ -14,7 +14,7 @@ export REUSE_K8S=true
 export BUILD_OPERATOR=false
 export REUSE_OPERATOR=true
 
-PARALLELISM="${PARALLELISM:-8}"
+E2E_PARALLELISM="${E2E_PARALLELISM:-8}"
 COUNT=0
 SPECS_TO_RUN=""
 SH_OPTS=$(! echo $- | grep -q x || echo "-x")

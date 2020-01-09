@@ -10,11 +10,11 @@ fi
 IMAGE_TAG="${IMAGE_TAG:-development-jvm}"
 IMAGE_NAME="stackgres/operator:$IMAGE_TAG"
 KUBERNETES_VERSION="${KUBERNETES_VERSION:-1.12.10}"
-ENV="${ENV:-kind}"
+E2E_ENV="${E2E_ENV:-kind}"
 TARGET_PATH="$(dirname "$0")/target"
 BUILD_OPERATOR="${BUILD_OPERATOR:-true}"
 WAIT_OPERATOR="${WAIT_OPERATOR:-true}"
-TIMEOUT="${TIMEOUT:-180}"
+E2E_TIMEOUT="${E2E_TIMEOUT:-180}"
 TRAP_ENABLED="${TRAP_ENABLED:-false}"
 SKIP_K8S_SETUP="${SKIP_K8S_SETUP:-false}"
 
@@ -25,14 +25,14 @@ fi
 OPERATOR_CHART_PATH="${OPERATOR_CHART_PATH:-"$STACKGRES_PATH/install/helm/stackgres-operator/"}"
 CLUSTER_CHART_PATH="${CLUSTER_CHART_PATH:-"$STACKGRES_PATH/install/helm/stackgres-cluster/"}"
 
-export SHELL IMAGE_TAG IMAGE_NAME KUBERNETES_VERSION CLUSTER_CHART_PATH ENV TARGET_PATH TIMEOUT
+export SHELL IMAGE_TAG IMAGE_NAME KUBERNETES_VERSION CLUSTER_CHART_PATH E2E_ENV TARGET_PATH E2E_TIMEOUT
 
 for util in $(find "$(dirname "$0")/utils" -type f)
 do
   . "$util"
 done
 
-. "$(dirname "$0")/envs/$ENV"
+. "$(dirname "$0")/envs/$E2E_ENV"
 
 trap_kill() {
   echo "$1" >> "$TRAP_FILE"
@@ -119,7 +119,7 @@ setup_k8s() {
       | xargs -r -n 1 -I % kubectl delete %
     kubectl get namespace -o name \
       | grep -v "^namespace/\(default\|kube-system\|kube-public\)$" | cut -d / -f 2 \
-      | xargs -r -n 1 -I % -P 0 kubectl delete namespace % --timeout="$((1 + TIMEOUT / 10))s" \
+      | xargs -r -n 1 -I % -P 0 kubectl delete namespace % --timeout="$((1 + E2E_TIMEOUT / 10))s" \
       || kubectl get namespace -o name \
         | grep -v "^namespace/\(default\|kube-system\|kube-public\)$" | cut -d / -f 2 \
         | xargs -r -n 1 -I @ -P 0 "$SHELL" $(! echo $- | grep -q x || echo "-x") -ec '
@@ -135,7 +135,7 @@ setup_k8s() {
             | tr -d "\n" | sed "s/\"finalizers\": \[[^]]\+\]/\"finalizers\": []/")" \
             "http://localhost:$port/api/v1/namespaces/@/finalize"
           kill "$proxy_pid" >/dev/null 2>&1
-          END="$(($(date +%s)+'"$TIMEOUT"'))"
+          END="$(($(date +%s)+'"$E2E_TIMEOUT"'))"
           while kubectl get namespace "@" -o name >/dev/null 2>&1
           do
             if [ "$(date +%s)" -gt "$END" ]
@@ -167,7 +167,7 @@ setup_k8s() {
       | xargs -r -n 1 -I % kubectl delete %
     kubectl get namespace -o name \
       | grep -v "^namespace/\(default\|kube-system\|kube-public\|stackgres\)$" | cut -d / -f 2 \
-      | xargs -r -n 1 -I % -P 0 kubectl delete namespace % --timeout="$((1 + TIMEOUT / 10))s" \
+      | xargs -r -n 1 -I % -P 0 kubectl delete namespace % --timeout="$((1 + E2E_TIMEOUT / 10))s" \
       || kubectl get namespace -o name \
         | grep -v "^namespace/\(default\|kube-system\|kube-public\|stackgres\)$" | cut -d / -f 2 \
         | xargs -r -n 1 -I @ -P 0 "$SHELL" $(! echo $- | grep -q x || echo "-x") -ec '
@@ -183,7 +183,7 @@ setup_k8s() {
             | tr -d "\n" | sed "s/\"finalizers\": \[[^]]\+\]/\"finalizers\": []/")" \
             "http://localhost:$port/api/v1/namespaces/@/finalize" >/dev/null
           kill "$proxy_pid" >/dev/null 2>&1
-          END="$(($(date +%s)+'"$TIMEOUT"'))"
+          END="$(($(date +%s)+'"$E2E_TIMEOUT"'))"
           while kubectl get namespace "@" -o name >/dev/null 2>&1
           do
             if [ "$(date +%s)" -gt "$END" ]

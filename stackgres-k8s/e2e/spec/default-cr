@@ -1,6 +1,6 @@
 #!/bin/sh
 
-test_install() {
+e2e_test_install() {
   OPERATOR_NAMESPACE="stackgres"
   DEFAULT_PGCONFIG="defaultpgconfig"
   DEFAULT_PGCBOUNCER="defaultpgbouncer"
@@ -8,7 +8,7 @@ test_install() {
   DEFAULT_BACKUP="defaultbackupconfig"
 }
 
-test_after_all(){
+e2e_test_after_all(){
   unset OPERATOR_NAMESPACE
   unset DEFAULT_PGCONFIG
   unset DEFAULT_PGCBOUNCER
@@ -17,7 +17,7 @@ test_after_all(){
 }
 
 
-test() {
+e2e_test() {
   run_test "Postgres default config creation" default_pg_config
 
   run_test "Postgres default config update" default_pg_config_update

@@ -1,10 +1,10 @@
 #!/bin/sh
 
-test_install_pods() {
+e2e_test_install_pods() {
   echo 2
 }
 
-test() {
+e2e_test() {
   run_test "Checking that switchover is working" check_switchover
 
   run_test "Checking that scaledown is working" check_scaledown
@@ -24,7 +24,7 @@ check_switchover() {
 
   local RESULT=false
   local START="$(date +%s)"
-  while [ "$((START + TIMEOUT))" -gt "$(date +%s)" ]
+  while [ "$((START + E2E_TIMEOUT))" -gt "$(date +%s)" ]
   do
     if run_query -i 0 -p 5432
     then

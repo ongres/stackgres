@@ -1,6 +1,6 @@
 #!/bin/sh
 
-test_install() {
+e2e_test_install() {
   PGPOOLING=pgbouncerconf
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 --set cluster.create=false --set cluster.poolingconfig=$PGPOOLING
@@ -14,11 +14,11 @@ test_install() {
   kubectl delete sgconnectionpoolingconfigs.stackgres.io -n $CLUSTER_NAMESPACE $PGPOOLING
 }
 
-test_after_all() {
+e2e_test_after_all() {
   unset PGPOOLING
 }
 
-test() {
+e2e_test() {
   run_test "Chat that a created pgpooling can be accessed directly through the API" check_pgpooling_directly
 
   run_test "Check that a created pgpooling is included in the response" check_pgpooling_in_list

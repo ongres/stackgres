@@ -1,12 +1,12 @@
 #!/bin/sh
 
-test_install() {
+e2e_test_install() {
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1
 
   wait_pods_running "$CLUSTER_NAMESPACE" 2
 }
 
-test() {
+e2e_test() {
   run_test "Trying to delete backupconfig with cluster running" delete_with_cluster
 
   run_test "Trying to delete backupconfig without cluster running" delete_whitout_cluster

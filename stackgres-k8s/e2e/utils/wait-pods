@@ -8,7 +8,7 @@ wait_pods_running() {
     >&2 echo "Must specify a number of expected running pods of 1 or more"
     return 1
   fi
-  local END="$(($(date +%s) + (TIMEOUT * EXPECTED_RUNNING_PODS)))"
+  local END="$(($(date +%s) + (E2E_TIMEOUT * EXPECTED_RUNNING_PODS)))"
   while [ "$(date +%s)" -lt "$END" ]
   do
     RUNNING_PODS="$(kubectl get pods "$NAMESPACE_OPT" | grep "Running" | wc -l)"
@@ -42,9 +42,9 @@ wait_pods_terminated() {
   local END
   if [ "$EXPECTED_REMAINING_PODS" -gt 0 ]
   then
-    END="$(($(date +%s) + (TIMEOUT * EXPECTED_REMAINING_PODS)))"
+    END="$(($(date +%s) + (E2E_TIMEOUT * EXPECTED_REMAINING_PODS)))"
   else
-    END="$(($(date +%s) + TIMEOUT))"
+    END="$(($(date +%s) + E2E_TIMEOUT))"
   fi
   while [ "$(date +%s)" -lt "$END" ]
   do
