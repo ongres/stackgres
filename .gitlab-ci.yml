@@ -24,7 +24,7 @@ variables:
                    --show-version
                    -DinstallAtEnd=true
                    -DdeployAtEnd=true
-  E2E_PARALLEL: 32
+  E2E_PARALLELISM: 32
   E2E_TIMEOUT: 600
 
 # Cache downloaded dependencies and plugins between builds.
