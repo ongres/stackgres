@@ -39,12 +39,12 @@ run_curl() {
     kubectl exec -i -n "$NAMESPACE" "$POD" -- \
       curl -k "https://$SERVICE.$SERVICE_NAMESPACE.svc.cluster.local/$RESOURCE_PATH" \
       -H "Content-Type: $CONTENT_TYPE" \
-      --data @"/tmp/$DATA_FILENAME" -s $EXTRA_PARAMETERS
+      --data @"/tmp/$DATA_FILENAME" -s $(echo $EXTRA_PARAMETERS)
   else
     kubectl exec -i -n "$NAMESPACE" "$POD" -- \
       curl -k "https://$SERVICE.$SERVICE_NAMESPACE.svc.cluster.local/$RESOURCE_PATH" \
       -H "Content-Type: $CONTENT_TYPE" \
-      -s $EXTRA_PARAMETERS
+      -s $(echo $EXTRA_PARAMETERS)
   fi
 }
 
