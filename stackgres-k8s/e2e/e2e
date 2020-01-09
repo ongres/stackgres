@@ -3,6 +3,10 @@
 set -e
 
 SHELL="$(readlink /proc/$$/exe)"
+if [ "$(basename "$SHELL")" = busybox ]
+then
+  SHELL=sh
+fi
 IMAGE_TAG="${IMAGE_TAG:-development-jvm}"
 IMAGE_NAME="stackgres/operator:$IMAGE_TAG"
 KUBERNETES_VERSION="${KUBERNETES_VERSION:-1.12.10}"
