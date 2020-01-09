@@ -262,8 +262,8 @@
                 <id>build-image</id>
                 <phase>package</phase>
                 <goals>
-                  <goal>build</goal>
                   <goal>stop</goal>
+                  <goal>build</goal>
                   <goal>start</goal>
                   <goal>stop</goal>
                 </goals>
