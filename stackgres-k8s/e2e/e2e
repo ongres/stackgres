@@ -119,7 +119,7 @@ setup_k8s() {
       | xargs -r -n 1 -I % kubectl delete %
     kubectl get namespace -o name \
       | grep -v "^namespace/\(default\|kube-system\|kube-public\)$" | cut -d / -f 2 \
-      | xargs -r -n 1 -I % -P 0 kubectl delete namespace % --timeout="$((1 + TIMEOUT / 3))s" \
+      | xargs -r -n 1 -I % -P 0 kubectl delete namespace % --timeout="$((1 + TIMEOUT / 10))s" \
       || kubectl get namespace -o name \
         | grep -v "^namespace/\(default\|kube-system\|kube-public\)$" | cut -d / -f 2 \
         | xargs -r -n 1 -I @ -P 0 "$SHELL" $(! echo $- | grep -q x || echo "-x") -ec '
@@ -167,7 +167,7 @@ setup_k8s() {
       | xargs -r -n 1 -I % kubectl delete %
     kubectl get namespace -o name \
       | grep -v "^namespace/\(default\|kube-system\|kube-public\|stackgres\)$" | cut -d / -f 2 \
-      | xargs -r -n 1 -I % -P 0 kubectl delete namespace % --timeout="$((1 + TIMEOUT / 3))s" \
+      | xargs -r -n 1 -I % -P 0 kubectl delete namespace % --timeout="$((1 + TIMEOUT / 10))s" \
       || kubectl get namespace -o name \
         | grep -v "^namespace/\(default\|kube-system\|kube-public\|stackgres\)$" | cut -d / -f 2 \
         | xargs -r -n 1 -I @ -P 0 "$SHELL" $(! echo $- | grep -q x || echo "-x") -ec '
