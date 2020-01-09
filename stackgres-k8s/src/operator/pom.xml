@@ -381,7 +381,7 @@
                           <arg>/operator/src/main/buildah/build-image-native.sh</arg>
                         </entrypoint>
                         <wait>
-                          <time>300000</time>
+                          <time>600000</time>
                           <exit>0</exit>
                         </wait>
                         <log>
