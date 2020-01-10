@@ -13,35 +13,38 @@ import javax.inject.Inject;
 import io.stackgres.operator.customresource.sgbackup.BackupPhase;
 import io.stackgres.operator.customresource.sgbackup.StackGresBackup;
 import io.stackgres.operator.patroni.PatroniRole;
-import io.stackgres.operator.resource.BackupFinder;
+import io.stackgres.operator.resource.BackupScanner;
 import io.stackgres.operator.validation.BackupReview;
 import io.stackgres.operatorframework.ValidationFailed;
 
 @ApplicationScoped
 public class ForbidDeletionValidator implements BackupValidator {
 
-  private final BackupFinder backupFinder;
+  private final BackupScanner backupScanner;
 
   @Inject
-  public ForbidDeletionValidator(BackupFinder backupFinder) {
+  public ForbidDeletionValidator(BackupScanner backupScanner) {
     super();
-    this.backupFinder = backupFinder;
+    this.backupScanner = backupScanner;
   }
 
   @Override
   public void validate(BackupReview review) throws ValidationFailed {
     switch (review.getRequest().getOperation()) {
       case DELETE: {
-        StackGresBackup backup = backupFinder.findByNameAndNamespace(review.getRequest().getName(),
-            review.getRequest().getNamespace()).orElseThrow(() -> new ValidationFailed(
-                "Can not retrieve backup " + review.getRequest().getNamespace()
-                + "." + review.getRequest().getName()));
-        if (Optional.of(backup.getStatus())
+        Optional<StackGresBackup> backup = backupScanner.findResources(
+            review.getRequest().getNamespace())
+            .flatMap(backups -> backups.stream()
+                .filter(b -> b.getMetadata().getName().equals(review.getRequest().getName()))
+                .findFirst());
+        if (backup.map(b -> b.getStatus())
             .map(status -> !status.getPhase().equals(BackupPhase.FAILED.label()))
             .orElse(true)
-            && !review.getRequest().getUserInfo().getUsername().equals(
+            && backup
+            .map(b -> !review.getRequest().getUserInfo().getUsername().equals(
             "system:serviceaccount:" + review.getRequest().getNamespace() + ":"
-                + PatroniRole.roleName(backup.getSpec().getCluster()))) {
+                + PatroniRole.roleName(b.getSpec().getCluster())))
+            .orElse(true)) {
           throw new ValidationFailed("Deletion of backups is forbidden"
               + " use isPermanent flag and retention to control"
               + " backup deletion");
