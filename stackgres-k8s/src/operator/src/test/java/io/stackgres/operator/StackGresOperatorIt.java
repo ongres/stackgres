@@ -22,8 +22,8 @@ import io.stackgres.operator.sidecars.envoy.Envoy;
 
 import org.jooq.lambda.Unchecked;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 
 @DockerExtension({
   @DockerContainer(
@@ -32,7 +32,7 @@ import org.junit.jupiter.api.Test;
       whenReuse = WhenReuse.ALWAYS,
       stopIfChanged = true)
 })
-@Disabled("reduce CI duration")
+@DisabledIfEnvironmentVariable(named = "DISABLE_IT", matches = "true")
 public class StackGresOperatorIt extends AbstractStackGresOperatorIt {
 
   private final String CLUSTER_NAME = "stackgres";

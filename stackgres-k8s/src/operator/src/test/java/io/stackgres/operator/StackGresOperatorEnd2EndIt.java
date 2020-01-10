@@ -14,6 +14,7 @@ import com.ongres.junit.docker.DockerExtension;
 import com.ongres.junit.docker.WhenReuse;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 
 @DockerExtension({
   @DockerContainer(
@@ -22,6 +23,7 @@ import org.junit.jupiter.api.Test;
       whenReuse = WhenReuse.ALWAYS,
       stopIfChanged = true)
 })
+@DisabledIfEnvironmentVariable(named = "DISABLE_E2E", matches = "true")
 public class StackGresOperatorEnd2EndIt extends AbstractStackGresOperatorIt {
 
   private static final Optional<String> E2E_TEST = Optional.ofNullable(
