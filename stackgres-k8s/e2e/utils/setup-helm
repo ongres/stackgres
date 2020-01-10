@@ -1,6 +1,6 @@
 #!/bin/sh
 
-setup_tiller() {
+setup_helm() {
   if ! kubectl get pods --all-namespaces  | grep tiller | grep Running | grep 1/1; then
     helm init
 
@@ -12,7 +12,7 @@ setup_tiller() {
       || kubectl create clusterrolebinding tiller-cluster-rule --clusterrole=cluster-admin --serviceaccount=kube-system:tiller
     kubectl patch deploy --namespace kube-system tiller-deploy -p '{"spec":{"template":{"spec":{"serviceAccount":"tiller"}}}}'
   else 
-    echo "Tiller already loaded"
+    helm init --client-only
   fi 
 
   helm repo update
@@ -31,7 +31,6 @@ wait_tiller_is_loaded() {
   do
 
     if kubectl get pods --all-namespaces  | grep tiller | grep Running | grep 1/1; then
-      echo "Tiller loaded"
       break
     fi
 

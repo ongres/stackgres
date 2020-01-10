@@ -84,7 +84,7 @@ setup_k8s() {
     reuse_k8s
   fi
 
-  setup_tiller
+  setup_helm
 
   setup_default_limits 0.1 0.1 16Mi 16Mi
 
