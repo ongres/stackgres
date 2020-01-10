@@ -21,9 +21,8 @@ import io.stackgres.operatorframework.ValidationPipeline;
 @ApplicationScoped
 public class BackupValidationPipeline implements ValidationPipeline<BackupReview> {
 
-  Validator validator;
-
-  Instance<BackupValidator> validators;
+  private final Validator validator;
+  private final Instance<BackupValidator> validators;
 
   @Inject
   public BackupValidationPipeline(Instance<BackupValidator> validators, Validator validator) {
@@ -35,19 +34,19 @@ public class BackupValidationPipeline implements ValidationPipeline<BackupReview
    * Validate all {@code Validator}s in sequence.
    */
   @Override
-  public void validate(BackupReview admissionReview) throws ValidationFailed {
+  public void validate(BackupReview review) throws ValidationFailed {
+    StackGresBackup backup = review.getRequest().getObject();
+    if (backup != null) {
+      Set<ConstraintViolation<StackGresBackup>> violations = validator.validate(backup);
 
-    StackGresBackup backup = admissionReview.getRequest().getObject();
-    Set<ConstraintViolation<StackGresBackup>> violations = validator.validate(backup);
-
-    if (!violations.isEmpty()) {
-      throw new ValidationFailed(violations);
+      if (!violations.isEmpty()) {
+        throw new ValidationFailed(violations);
+      }
     }
 
     for (BackupValidator validator : validators) {
-      validator.validate(admissionReview);
+      validator.validate(review);
     }
-
   }
 
 }

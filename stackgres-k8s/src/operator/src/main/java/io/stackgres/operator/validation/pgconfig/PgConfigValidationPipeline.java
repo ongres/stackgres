@@ -5,30 +5,44 @@
 
 package io.stackgres.operator.validation.pgconfig;
 
+import java.util.Set;
+
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
+import javax.validation.ConstraintViolation;
+import javax.validation.Validator;
 
 import io.stackgres.operator.common.PgConfigReview;
+import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.operatorframework.ValidationFailed;
 import io.stackgres.operatorframework.ValidationPipeline;
 
 @ApplicationScoped
 public class PgConfigValidationPipeline implements ValidationPipeline<PgConfigReview> {
 
-  private Instance<PgConfigValidator> validators;
+  private final Validator validator;
+  private final Instance<PgConfigValidator> validators;
 
   @Inject
-  public PgConfigValidationPipeline(Instance<PgConfigValidator> validators) {
+  public PgConfigValidationPipeline(Validator validator, Instance<PgConfigValidator> validators) {
+    this.validator = validator;
     this.validators = validators;
   }
 
   @Override
   public void validate(PgConfigReview review) throws ValidationFailed {
+    StackGresPostgresConfig pgConfig = review.getRequest().getObject();
+    if (pgConfig != null) {
+      Set<ConstraintViolation<StackGresPostgresConfig>> violations = validator.validate(pgConfig);
+
+      if (!violations.isEmpty()) {
+        throw new ValidationFailed(violations);
+      }
+    }
 
     for (PgConfigValidator validator : validators) {
       validator.validate(review);
     }
-
   }
 }
