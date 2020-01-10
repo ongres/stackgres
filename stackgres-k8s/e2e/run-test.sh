@@ -3,7 +3,6 @@
 . "$(dirname "$0")/e2e"
 
 echo "Preparing environment"
-
 setup_k8s
 
 echo "Functional tests results" > "$TARGET_PATH/logs/results.log"

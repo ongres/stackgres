@@ -2,6 +2,8 @@
 
 . "$(dirname "$0")/e2e"
 
+E2E_PARALLELISM="${E2E_PARALLELISM:-8}"
+
 echo "Preparing environment"
 
 setup_k8s
@@ -14,7 +16,6 @@ export REUSE_K8S=true
 export BUILD_OPERATOR=false
 export REUSE_OPERATOR=true
 
-E2E_PARALLELISM="${E2E_PARALLELISM:-8}"
 COUNT=0
 SPECS_TO_RUN=""
 SH_OPTS=$(! echo $- | grep -q x || echo "-x")

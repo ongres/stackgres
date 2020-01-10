@@ -14,28 +14,21 @@ The native-image generation has been tested on Linux only but should also work o
 
 #### Prerequisites
 
-- buildah
-- podman
+- docker
 
 #### Compiling and running
 
-The build process is bootstraped in a multistage Dockerfile, to run the build:
+The build process is bootstraped in a maven profile, to run the build:
 
 ```
-buildah bud -f src/main/docker/Dockerfile.multistage -t stackgres/operator .
+./mvnw clean package -P build-image-jvm
 ```
 
-This multistage Dockerfile also generates a container image with the operator.
-To run the generated container image just use:
+The image is loaded in local docker registry. You will have to upload the generated image to the registry used
+by kubernetes. Then to deploy the operator run from the project roor folder:
 
 ```
-podman run -i --rm -p 8080:8080 localhost/stackgres/operator
-```
-
-Once you start the operator, it start watching the CRD resource for StackGres that can be deployed using:
-
-```
-helm template --name stackgres-cluster operator/install/kubernetes/chart/stackgres-cluster | kubectl create -f -
+helm install --name stackgres-cluster --namespace stackgres stackgres-k8s/install/helm/stackgres-cluster
 ```
 
 ### Building locally
@@ -55,17 +48,14 @@ The prerequisites are the same for any Quarkus-based application.
 To create the native executable you can use
 
 ```
-./mvnw package -P native
+./mvnw package -P native,build-image-native
 ```
 
-this will generate an artifact called `stackgres-operator-${project.version}-runner`.
-
-You can omit the profile `-P native` to generate a normal jar that can be run using the JVM.
-
-Once you start the operator, it start watching the CRD resource for StackGres that can be deployed using:
+The image is loaded in local docker registry. You will have to upload the generated image to the registry used
+by kubernetes. Then to deploy the operator run from the project roor folder:
 
 ```
-helm template --name stackgres-cluster operator/install/kubernetes/chart/stackgres-cluster | kubectl create -f -
+helm install --name stackgres-cluster --namespace stackgres stackgres-k8s/install/helm/stackgres-cluster
 ```
 
 #### Integration tests

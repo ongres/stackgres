@@ -17,7 +17,9 @@ e2e_test() {
 
   run_test "Check that a created cluster is included in the response" check_cluster_in_list
 
-  run_test "Check that the status endpoint are returning the pod stats" test_cluster_stats_are_loaded
+  run_test "Check that the status endpoint are returning the master stats" test_cluster_stats_are_loaded
+
+  run_test "Check that the pod config endpoint are returning the pod details" test_cluster_pod_config_are_loaded
 
   run_test "Check that a cluster was removed after its deletion in the API" check_cluster_removed
 
@@ -56,6 +58,12 @@ get_cluster_stats(){
   echo $HTTP_STATUS
 }
 
+get_cluster_pod_configs(){
+  local HTTP_STATUS
+  HTTP_STATUS="$(run_curl -r "stackgres/cluster/pods/$CLUSTER_NAMESPACE/$CLUSTER_NAME" -e "-LI -o /dev/null -w %{http_code}")"
+  echo $HTTP_STATUS
+}
+
 check_cluster_directly() {
   local HTTP_STATUS
   HTTP_STATUS="$(get_cluster_http_status)"
@@ -80,6 +88,20 @@ test_cluster_stats_are_loaded() {
     return 0
   else
     echo "Cluster $CLUSTER_NAME stats was not found by the api"
+    return 1
+  fi
+}
+
+test_cluster_pod_config_are_loaded(){
+  local HTTP_STATUS
+  HTTP_STATUS="$(get_cluster_pod_configs)"
+
+  if [ "$HTTP_STATUS" -eq 200 ]
+  then
+    echo "Cluster $CLUSTER_NAME pod configs was found by the api"
+    return 0
+  else
+    echo "Cluster $CLUSTER_NAME pod configs was not found by the api"
     return 1
   fi
 }

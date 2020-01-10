@@ -3,12 +3,12 @@ var PoolConfig = Vue.component("pool-config", {
 		<div id="pool-config">
 			<header>
 				<h2 class="title">POSTGRESQL CONNECTION POOLING</h2>
-				<!-- <h3 class="subtitle">K8S Cluster: {{ serverIP }}</h3> -->
+				<h3 class="subtitle">Namespace: {{ currentNamespace }} </h3>
 			</header>
 
 			<div class="content">
 				<div class="boxes">
-					<div v-for="conf in config" class="box" v-bind:class="{'show':($route.params.name == conf.name)}">
+					<div v-for="conf in config" class="box" v-bind:class="{'show':($route.params.name == conf.name)}" v-if="conf.data.metadata.namespace == currentNamespace">
 						<h4>{{ conf.name }}</h4>
 						<span>Namespace</span>
 						<strong>{{ conf.data.metadata.namespace }}</strong>
@@ -26,12 +26,18 @@ var PoolConfig = Vue.component("pool-config", {
 	data: function() {
 
 		return {
-			config: [],
+			
 		}
 	},
-	created: function() {
+	computed: {
 
-		let vc = this;		
-		vc.config = poolConf;
+		config () {
+			return store.state.poolConfig
+		},
+
+		currentNamespace () {
+			return store.state.currentNamespace
+		},
+
 	}
 })

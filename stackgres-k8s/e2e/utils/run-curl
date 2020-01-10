@@ -8,6 +8,7 @@ run_curl() {
   local RESOURCE_PATH="stackgres/cluster"
   local EXTRA_PARAMETERS=""
   local CONTENT_TYPE="application/json"
+  local ACCEPT="application/json"
   local DATA_FILENAME=""
   while getopts ":p:n:s:N:r:c:e:d:" opt; do
     case $opt in
@@ -39,11 +40,13 @@ run_curl() {
     kubectl exec -i -n "$NAMESPACE" "$POD" -- \
       curl -k "https://$SERVICE.$SERVICE_NAMESPACE.svc.cluster.local/$RESOURCE_PATH" \
       -H "Content-Type: $CONTENT_TYPE" \
+      -H "Accept: $ACCEPT"  \
       --data @"/tmp/$DATA_FILENAME" -s $(echo $EXTRA_PARAMETERS)
   else
     kubectl exec -i -n "$NAMESPACE" "$POD" -- \
       curl -k "https://$SERVICE.$SERVICE_NAMESPACE.svc.cluster.local/$RESOURCE_PATH" \
       -H "Content-Type: $CONTENT_TYPE" \
+      -H "Accept: $ACCEPT" \
       -s $(echo $EXTRA_PARAMETERS)
   fi
 }

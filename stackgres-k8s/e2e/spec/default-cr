@@ -44,7 +44,9 @@ e2e_test() {
 }
 
 check_existence(){
-  if kubectl get "$1.stackgres.io" -n $OPERATOR_NAMESPACE $2
+
+  
+  if wait_until eval "kubectl get "$1.stackgres.io" -n $OPERATOR_NAMESPACE $2"
   then
     echo "$2 found" 
   else

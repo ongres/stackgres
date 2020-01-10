@@ -5,8 +5,6 @@
 
 package io.stackgres.operator.resource.dto;
 
-import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -15,7 +13,7 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class ClusterStatus {
+public class ClusterResourceConsumtion {
 
   @JsonProperty("cpuRequested")
   private String cpuRequested;
@@ -46,12 +44,6 @@ public class ClusterStatus {
 
   @JsonProperty("averageLoad10m")
   private String averageLoad10m;
-
-  @JsonProperty("pods")
-  private List<ClusterPodStatus> pods;
-
-  @JsonProperty("podsReady")
-  private String podsReady;
 
   public String getCpuRequested() {
     return cpuRequested;
@@ -133,19 +125,4 @@ public class ClusterStatus {
     this.averageLoad10m = averageLoad10m;
   }
 
-  public List<ClusterPodStatus> getPods() {
-    return pods;
-  }
-
-  public void setPods(List<ClusterPodStatus> pods) {
-    this.pods = pods;
-  }
-
-  public String getPodsReady() {
-    return podsReady;
-  }
-
-  public void setPodsReady(String podsReady) {
-    this.podsReady = podsReady;
-  }
 }
