@@ -26,8 +26,11 @@ public class PatroniRole {
   public static final String SUFFIX = "-patroni";
 
   public static String roleName(StackGresClusterContext clusterContext) {
-    String name = clusterContext.getCluster().getMetadata().getName();
-    return ResourceUtil.resourceName(name + SUFFIX);
+    return roleName(clusterContext.getCluster().getMetadata().getName());
+  }
+
+  public static String roleName(String clusterName) {
+    return ResourceUtil.resourceName(clusterName + SUFFIX);
   }
 
   /**

@@ -31,7 +31,7 @@ public class ClusterValidator implements BackupValidator {
   public void validate(BackupReview review) throws ValidationFailed {
 
     StackGresBackup backup = review.getRequest().getObject();
-    String cluster = backup.getSpec().getCluster();
+    String cluster = backup != null ? backup.getSpec().getCluster() : null;
 
     switch (review.getRequest().getOperation()) {
       case CREATE:
