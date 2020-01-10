@@ -78,6 +78,7 @@ native image:
       - $CI_COMMIT_REF_NAME == "master"
       - $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
       - $DO_DEPLOY
+      - $DO_NATIVE
 
 enforce release:
   stage: check-release
@@ -135,6 +136,7 @@ build native image:
       - $CI_COMMIT_REF_NAME == "master"
       - $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
       - $DO_DEPLOY
+      - $DO_NATIVE
 
 integration test:
   stage: test
@@ -178,6 +180,7 @@ integration test native image:
       - $CI_COMMIT_REF_NAME == "master"
       - $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
       - $DO_DEPLOY
+      - $DO_NATIVE
 
 deploy jvm image:
   image: docker.io/ongres/builder:latest
