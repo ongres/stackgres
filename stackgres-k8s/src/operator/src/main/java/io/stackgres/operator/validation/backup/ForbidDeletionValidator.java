@@ -18,7 +18,7 @@ public class ForbidDeletionValidator implements BackupValidator {
     switch (review.getRequest().getOperation()) {
       case DELETE:
         throw new ValidationFailed("Deletion of backups is forbidden"
-            + " user isPermanent flag and retention to control"
+            + " use isPermanent flag and retention to control"
             + " backup deletion");
       default:
     }
