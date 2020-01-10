@@ -101,7 +101,9 @@ public class ItHelper {
               + "export KIND_NAME=\"$(docker inspect -f '{{.Name}}' \"$(hostname)\"|cut -d '/' -f 2)\"\n"
               + "export REUSE_K8S=true\n"
               + "export USE_KIND_INTERNAL=true\n"
-              + "sh e2e reuse_k8s\n")
+              + "sh e2e reuse_k8s\n"
+              + "sh e2e setup_helm\n"
+              + "sh e2e setup_default_limits 0.1 0.1 16Mi 16Mi\n")
           .filter(ItHelper.EXCLUDE_TTY_WARNING)
           .forEach(LOGGER::info);
       return;
@@ -112,7 +114,9 @@ public class ItHelper {
         + "export KIND_NAME=\"$(docker inspect -f '{{.Name}}' \"$(hostname)\"|cut -d '/' -f 2)\"\n"
         + "export REUSE_K8S=true\n"
         + "export USE_KIND_INTERNAL=true\n"
-        + "sh e2e reset_k8s\n")
+        + "sh e2e reset_k8s\n"
+        + "sh e2e setup_helm\n"
+        + "sh e2e setup_default_limits 0.1 0.1 16Mi 16Mi\n")
     .filter(ItHelper.EXCLUDE_TTY_WARNING)
     .forEach(LOGGER::info);
   }
