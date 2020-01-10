@@ -36,7 +36,8 @@ public class PatroniConfigMap {
   public static final String POSTGRES_PORT_NAME = "pgport";
   public static final String POSTGRES_REPLICATION_PORT_NAME = "pgreplication";
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(PatroniConfigMap.class);
+  private static final Logger PATRONI_LOGGER = LoggerFactory.getLogger("patroni");
+  private static final Logger WAL_G_LOGGER = LoggerFactory.getLogger("wal-g");
 
   /**
    * Create the ConfigMap associated with the cluster.
@@ -71,7 +72,7 @@ public class PatroniConfigMap {
     data.put("PATRONI_POSTGRESQL_BIN_DIR", "/usr/lib/postgresql/" + pgVersion + "/bin");
     data.put("PATRONI_POSTGRES_UNIX_SOCKET_DIRECTORY", "/run/postgresql");
 
-    if (LOGGER.isTraceEnabled()) {
+    if (PATRONI_LOGGER.isTraceEnabled()) {
       data.put("PATRONI_LOG_LEVEL", "DEBUG");
     }
 
@@ -133,7 +134,7 @@ public class PatroniConfigMap {
           storageForAzureBlob, AzureBlobStorage::getMaxBuffers));
     }
 
-    if (LOGGER.isTraceEnabled()) {
+    if (WAL_G_LOGGER.isTraceEnabled()) {
       data.put("WALG_LOG_LEVEL", "DEVEL");
     }
 
