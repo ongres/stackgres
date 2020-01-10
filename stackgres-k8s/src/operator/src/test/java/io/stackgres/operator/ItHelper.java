@@ -83,8 +83,6 @@ public class ItHelper {
   public static void copyResources(Container kind) throws Exception {
     kind.execute("rm", "-Rf", "/resources").forEach(line -> LOGGER.info(line));
     Path k8sPath = Paths.get("../..");
-    kind.copyIn(ItHelper.class.getResourceAsStream("/restart-kind.sh"),
-        "/resources/restart-kind.sh");
     kind.copyIn(k8sPath.resolve("install/helm/stackgres-operator"),
         "/resources/stackgres-operator");
     kind.copyIn(k8sPath.resolve("install/helm/stackgres-cluster"),
@@ -98,17 +96,25 @@ public class ItHelper {
   public static void resetKind(Container kind, int size, boolean reuse) throws Exception {
     if (reuse) {
       LOGGER.info("Reusing kind");
-      kind.execute("sh", "-c",
-          "REUSE_KIND=true sh /resources/restart-kind.sh " + size)
-          .filter(EXCLUDE_TTY_WARNING)
-          .forEach(line -> LOGGER.info(line));
+      kind.execute("sh", "-ec",
+              "cd /resources/e2e\n"
+              + "export KIND_NAME=\"$(docker inspect -f '{{.Name}}' \"$(hostname)\"|cut -d '/' -f 2)\"\n"
+              + "export REUSE_K8S=true\n"
+              + "export USE_KIND_INTERNAL=true\n"
+              + "sh e2e reuse_k8s\n")
+          .filter(ItHelper.EXCLUDE_TTY_WARNING)
+          .forEach(LOGGER::info);
       return;
     }
     LOGGER.info("Restarting kind");
-    kind.execute("sh", "-c",
-        "REUSE_KIND=false sh /resources/restart-kind.sh " + size)
-        .filter(EXCLUDE_TTY_WARNING)
-        .forEach(line -> LOGGER.info(line));
+    kind.execute("sh", "-ec",
+        "cd /resources/e2e\n"
+        + "export KIND_NAME=\"$(docker inspect -f '{{.Name}}' \"$(hostname)\"|cut -d '/' -f 2)\"\n"
+        + "export REUSE_K8S=true\n"
+        + "export USE_KIND_INTERNAL=true\n"
+        + "sh e2e reset_k8s\n")
+    .filter(ItHelper.EXCLUDE_TTY_WARNING)
+    .forEach(LOGGER::info);
   }
 
   /**
