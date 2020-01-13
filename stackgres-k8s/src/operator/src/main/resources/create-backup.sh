@@ -244,19 +244,19 @@ EOF
       {"op":"replace","path":"/status/phase","value":"'"$BACKUP_PHASE_COMPLETED"'"},
       {"op":"replace","path":"/status/name","value":"'"$WAL_G_BACKUP_NAME"'"},
       {"op":"replace","path":"/status/failureReason","value":""},
-      {"op":"replace","path":"/status/time","value":"'"$(cat /tmp/current-backup | grep "^time:" | cut -d : -f 2-)"'"},
-      {"op":"replace","path":"/status/walFileName","value":"'"$(cat /tmp/current-backup | grep "^wal_file_name:" | cut -d : -f 2-)"'"},
-      {"op":"replace","path":"/status/startTime","value":"'"$(cat /tmp/current-backup | grep "^start_time:" | cut -d : -f 2-)"'"},
-      {"op":"replace","path":"/status/finishTime","value":"'"$(cat /tmp/current-backup | grep "^finish_time:" | cut -d : -f 2-)"'"},
-      {"op":"replace","path":"/status/hostname","value":"'"$(cat /tmp/current-backup | grep "^hostname:" | cut -d : -f 2-)"'"},
-      {"op":"replace","path":"/status/dataDir","value":"'"$(cat /tmp/current-backup | grep "^data_dir:" | cut -d : -f 2-)"'"},
-      {"op":"replace","path":"/status/pgVersion","value":"'"$(cat /tmp/current-backup | grep "^pg_version:" | cut -d : -f 2-)"'"},
-      {"op":"replace","path":"/status/startLsn","value":"'"$(cat /tmp/current-backup | grep "^start_lsn:" | cut -d : -f 2-)"'"},
-      {"op":"replace","path":"/status/finishLsn","value":"'"$(cat /tmp/current-backup | grep "^finish_lsn:" | cut -d : -f 2-)"'"},
-      {"op":"replace","path":"/status/isPermanent","value":'"$(cat /tmp/current-backup | grep "^is_permanent:" | cut -d : -f 2-)"'},
-      {"op":"replace","path":"/status/systemIdentifier","value":"'"$(cat /tmp/current-backup | grep "^system_identifier:" | cut -d : -f 2-)"'"},
-      {"op":"replace","path":"/status/uncompressedSize","value":'"$(cat /tmp/current-backup | grep "^uncompressed_size:" | cut -d : -f 2-)"'},
-      {"op":"replace","path":"/status/compressedSize","value":'"$(cat /tmp/current-backup | grep "^compressed_size:" | cut -d : -f 2-)"'}
+      {"op":"replace","path":"/status/time","value":"'"$(grep "^time:" /tmp/current-backup | cut -d : -f 2-)"'"},
+      {"op":"replace","path":"/status/walFileName","value":"'"$(grep "^wal_file_name:" /tmp/current-backup | cut -d : -f 2-)"'"},
+      {"op":"replace","path":"/status/startTime","value":"'"$(grep "^start_time:" /tmp/current-backup | cut -d : -f 2-)"'"},
+      {"op":"replace","path":"/status/finishTime","value":"'"$(grep "^finish_time:" /tmp/current-backup | cut -d : -f 2-)"'"},
+      {"op":"replace","path":"/status/hostname","value":"'"$(grep "^hostname:" /tmp/current-backup | cut -d : -f 2-)"'"},
+      {"op":"replace","path":"/status/dataDir","value":"'"$(grep "^data_dir:" /tmp/current-backup | cut -d : -f 2-)"'"},
+      {"op":"replace","path":"/status/pgVersion","value":"'"$(grep "^pg_version:" /tmp/current-backup | cut -d : -f 2-)"'"},
+      {"op":"replace","path":"/status/startLsn","value":"'"$(grep "^start_lsn:" /tmp/current-backup | cut -d : -f 2-)"'"},
+      {"op":"replace","path":"/status/finishLsn","value":"'"$(grep "^finish_lsn:" /tmp/current-backup | cut -d : -f 2-)"'"},
+      {"op":"replace","path":"/status/isPermanent","value":'"$(grep "^is_permanent:" /tmp/current-backup | cut -d : -f 2-)"'},
+      {"op":"replace","path":"/status/systemIdentifier","value":"'"$(grep "^system_identifier:" /tmp/current-backup | cut -d : -f 2-)"'"},
+      {"op":"replace","path":"/status/uncompressedSize","value":'"$(grep "^uncompressed_size:" /tmp/current-backup | cut -d : -f 2-)"'},
+      {"op":"replace","path":"/status/compressedSize","value":'"$(grep "^compressed_size:" /tmp/current-backup | cut -d : -f 2-)"'}
       ]'
   fi
   echo "Cleaning up backup CRs"
