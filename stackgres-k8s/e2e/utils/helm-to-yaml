@@ -1,0 +1,73 @@
+#!/bin/sh
+
+operator_to_yaml() {
+  if [ "$REUSE_K8S" != true ]
+  then
+    reset_k8s > /dev/null
+  else
+    reuse_k8s > /dev/null
+  fi
+
+  setup_helm > /dev/null
+
+  helm_cleanup > /dev/null
+
+  k8s_cleanup > /dev/null
+
+  helm_to_yaml "$OPERATOR_CHART_PATH" "$@"
+}
+
+cluster_to_yaml() {
+  NAMESPACE=stackgres operator_to_yaml | kubectl create -f - > /dev/null
+
+  wait_pods_running stackgres 1
+
+  helm_to_yaml "$CLUSTER_CHART_PATH" "$@"
+}
+
+helm_to_yaml() {
+  CREATE_NAMESPACE="$([ -z "$NAMESPACE" ] && echo false || echo true)"
+  NAMESPACE="${NAMESPACE:-default}"
+  CHART_PATH="$1"
+  shift
+
+  if [ ! -d "$CHART_PATH" ]
+  then
+    >&2 echo "Path $CHART_PATH is not a directory"
+    exit 1
+  fi
+
+  (
+  if "$CREATE_NAMESPACE"
+  then
+    cat << EOF
+---
+# namespace
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: $NAMESPACE
+EOF
+  fi
+  helm install --dry-run --debug --namespace "$NAMESPACE" "$CHART_PATH" "$@" \
+    | ("$CREATE_NAMESPACE" && cat || grep -v "^  namespace: \"$NAMESPACE\"$") \
+    | (
+      PRINT=false
+      while IFS="$(echo ' ' | tr ' ' '\n')" read -r line
+      do
+        if echo "$line" | grep -q '\(^HOOKS:\|^MANIFEST:\)'
+        then
+          PRINT=true
+        elif echo "$line" | grep -q '^WARNING:'
+        then
+          PRINT=false
+        elif "$PRINT"
+        then
+          cat << EOF
+$line
+EOF
+        fi
+      done
+    )
+  )
+}
