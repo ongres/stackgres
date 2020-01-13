@@ -63,9 +63,36 @@ public abstract class AbstractReconciliator<T> implements ResourceHandlerContext
     return requiredResources;
   }
 
+  private enum Operation {
+    NONE,
+    CREATED,
+    UPDATED
+  }
+
   void reconcile() {
-    boolean created = false;
-    boolean updated = false;
+    deleteUnwantedResources();
+    Operation result = createOrUpdateRequiredResources();
+
+    if (result == Operation.UPDATED) {
+      LOGGER.info(name + " updated: '{}.{}'",
+          contextResource.getMetadata().getNamespace(),
+          contextResource.getMetadata().getName());
+      onConfigUpdated();
+    }
+
+    if (result == Operation.CREATED) {
+      LOGGER.info(name + " created: '{}.{}'",
+          contextResource.getMetadata().getNamespace(),
+          contextResource.getMetadata().getName());
+      onConfigCreated();
+    }
+
+    LOGGER.debug(name + " synced: '{}.{}'",
+        contextResource.getMetadata().getNamespace(),
+        contextResource.getMetadata().getName());
+  }
+
+  private void deleteUnwantedResources() {
     for (Tuple2<HasMetadata, Optional<HasMetadata>> existingResource : existingResources) {
       if (existingResource.v1.getMetadata().getOwnerReferences().stream()
           .map(ownerReference -> ownerReference.getApiVersion()
@@ -110,6 +137,11 @@ public abstract class AbstractReconciliator<T> implements ResourceHandlerContext
         handlerSelector.delete(client, context, existingResource.v1);
       }
     }
+  }
+
+  private Operation createOrUpdateRequiredResources() {
+    boolean created = false;
+    boolean updated = false;
     for (Tuple2<HasMetadata, Optional<HasMetadata>> requiredResource : requiredResources) {
       Optional<HasMetadata> matchingResource = requiredResource.v2;
       if (matchingResource
@@ -152,22 +184,14 @@ public abstract class AbstractReconciliator<T> implements ResourceHandlerContext
     }
 
     if (updated) {
-      LOGGER.info(name + " updated: '{}.{}'",
-          contextResource.getMetadata().getNamespace(),
-          contextResource.getMetadata().getName());
-      onConfigUpdated();
+      return Operation.UPDATED;
     }
 
-    if (created && !updated) {
-      LOGGER.info(name + " created: '{}.{}'",
-          contextResource.getMetadata().getNamespace(),
-          contextResource.getMetadata().getName());
-      onConfigCreated();
+    if (created && ! updated) {
+      return Operation.CREATED;
     }
 
-    LOGGER.debug(name + " synced: '{}.{}'",
-        contextResource.getMetadata().getNamespace(),
-        contextResource.getMetadata().getName());
+    return Operation.NONE;
   }
 
   protected abstract void onConfigCreated();
