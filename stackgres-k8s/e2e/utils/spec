@@ -14,13 +14,19 @@ e2e_test_install_pods() {
   echo 1
 }
 
-e2e_test_after_all() {
-  true
-}
-
 e2e_test() {
   echo "You should define a test function"
   false
+}
+
+e2e_test_uninstall() {
+  helm_cleanup_chart "$CLUSTER_NAME"
+
+  k8s_cleanup_namespace "$CLUSTER_NAMESPACE"
+}
+
+e2e_test_after_all() {
+  true
 }
 
 spec() {
@@ -88,6 +94,11 @@ run_spec() {
   fi
 
   e2e_test
+
+  if [ "$SKIP_SPEC_UNINSTALL" != true ]
+  then
+    e2e_test_uninstall
+  fi
 
   e2e_test_after_all
 }

@@ -14,4 +14,4 @@ sidecar:
     allowAutobind: false
 minio:
   persistence:
-    size: 128Mi
+    size: 2Gi

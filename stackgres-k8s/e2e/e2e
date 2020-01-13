@@ -38,6 +38,10 @@ do
   . "$util"
 done
 
+operator_pull_policy() {
+  echo Never
+}
+
 . "$(dirname "$0")/envs/$E2E_ENV"
 
 trap_kill() {
@@ -110,43 +114,11 @@ setup_k8s() {
   then
     load_operator_k8s
 
-    helm list -a \
-      | tail -n +2 \
-      | sed 's/\s\+/ /g' \
-      | cut -d ' ' -f 1 \
-      | xargs -r -n 1 -I % helm delete --purge %
-    helm template --name stackgres-operator --namespace stackgres "$OPERATOR_CHART_PATH" \
-      | kubectl delete -f - --ignore-not-found
-    kubectl get validatingwebhookconfigurations.admissionregistration.k8s.io -o name \
-      | xargs -r -n 1 -I % kubectl delete %
-    kubectl get mutatingwebhookconfigurations.admissionregistration.k8s.io -o name \
-      | xargs -r -n 1 -I % kubectl delete %
-    kubectl get crd -o name \
-      | xargs -r -n 1 -I % kubectl delete %
-    kubectl get namespace -o name \
-      | grep -v "^namespace/\(default\|kube-system\|kube-public\)$" | cut -d / -f 2 \
-      | xargs -r -n 1 -I % -P 0 kubectl delete namespace % --timeout="$((1 + E2E_TIMEOUT / 10))s" \
-      || kubectl get namespace -o name \
-        | grep -v "^namespace/\(default\|kube-system\|kube-public\)$" | cut -d / -f 2 \
-        | xargs -r -n 1 -I @ -P 0 "$SHELL" $(! echo $- | grep -q x || echo "-x") -ec '
-          kubectl get pod -n @ -o name \
-            | xargs -r -n 1 -I % kubectl delete -n @ % --grace-period=0 --force
-          kubectl get namespace "@" -o json \
-            | tr -d "\n" | sed "s/\"finalizers\": \[[^]]\+\]/\"finalizers\": []/" \
-            | kubectl replace --raw /api/v1/namespaces/@/finalize -f -
-          END="$(($(date +%s)+'"$E2E_TIMEOUT"'))"
-          while kubectl get namespace "@" -o name >/dev/null 2>&1
-          do
-            if [ "$(date +%s)" -gt "$END" ]
-            then
-              echo "Timeout while waiting for namespace @ to be removed"
-              exit 1
-            fi
-            sleep 1
-          done
-        '
+    helm_cleanup
+    k8s_cleanup
+
     helm install --name stackgres-operator --namespace stackgres "$OPERATOR_CHART_PATH" \
-      --set-string image.tag="$IMAGE_TAG" --set-string image.pullPolicy=Never
+      --set-string image.tag="$IMAGE_TAG" --set-string "image.pullPolicy=$(operator_pull_policy)"
     if [ "$DEBUG_OPERATOR" = true ]
     then
       wait_pods_running stackgres
@@ -155,37 +127,8 @@ setup_k8s() {
       kubectl delete pod -n stackgres "$(kubectl get pod -n stackgres -o name|cut -d / -f 2|tail -n 1)"
     fi
   else
-    helm list -a \
-      | tail -n +2 \
-      | sed 's/\s\+/ /g' \
-      | cut -d ' ' -f 1 \
-      | grep -v "^\(stackgres-operator\)$" \
-      | xargs -r -n 1 -I % helm delete --purge %
-    kubectl get crd -o name \
-      | grep -v '\.stackgres\.io$' \
-      | xargs -r -n 1 -I % kubectl delete %
-    kubectl get namespace -o name \
-      | grep -v "^namespace/\(default\|kube-system\|kube-public\|stackgres\)$" | cut -d / -f 2 \
-      | xargs -r -n 1 -I % -P 0 kubectl delete namespace % --timeout="$((1 + E2E_TIMEOUT / 10))s" \
-      || kubectl get namespace -o name \
-        | grep -v "^namespace/\(default\|kube-system\|kube-public\|stackgres\)$" | cut -d / -f 2 \
-        | xargs -r -n 1 -I @ -P 0 "$SHELL" $(! echo $- | grep -q x || echo "-x") -ec '
-          kubectl get pod -n @ -o name \
-            | xargs -r -n 1 -I % kubectl delete -n @ % --grace-period=0 --force
-          kubectl get namespace "@" -o json \
-            | tr -d "\n" | sed "s/\"finalizers\": \[[^]]\+\]/\"finalizers\": []/" \
-            | kubectl replace --raw /api/v1/namespaces/@/finalize -f -
-          END="$(($(date +%s)+'"$E2E_TIMEOUT"'))"
-          while kubectl get namespace "@" -o name >/dev/null 2>&1
-          do
-            if [ "$(date +%s)" -gt "$END" ]
-            then
-              echo "Timeout while waiting for namespace @ to be removed"
-              exit 1
-            fi
-            sleep 1
-          done
-        '
+    helm_cleanup_but_operator
+    k8s_cleanup_but_operator
   fi
 
   if [ "$WAIT_OPERATOR" = true ]
