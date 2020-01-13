@@ -9,7 +9,7 @@ import javax.enterprise.context.ApplicationScoped;
 
 import com.google.common.collect.ImmutableList;
 
-import io.stackgres.operator.validation.BackupConfigReview;
+import io.stackgres.operator.common.BackupConfigReview;
 import io.stackgres.operatorframework.Operation;
 import io.stackgres.operatorframework.ValidationFailed;
 

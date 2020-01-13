@@ -6,7 +6,8 @@
 package io.stackgres.operator.mutation.backup;
 
 import com.github.fge.jackson.jsonpointer.JsonPointer;
-import io.stackgres.operator.validation.BackupConfigReview;
+
+import io.stackgres.operator.common.BackupConfigReview;
 import io.stackgres.operatorframework.JsonPatchMutator;
 
 public interface BackupMutator extends JsonPatchMutator<BackupConfigReview> {

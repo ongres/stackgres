@@ -14,7 +14,8 @@ import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
 import com.github.fge.jsonpatch.JsonPatchOperation;
-import io.stackgres.operator.validation.BackupConfigReview;
+
+import io.stackgres.operator.common.BackupConfigReview;
 import io.stackgres.operatorframework.JsonPatchMutationPipeline;
 
 @ApplicationScoped

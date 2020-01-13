@@ -13,8 +13,8 @@ import javax.inject.Inject;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 
+import io.stackgres.operator.common.BackupConfigReview;
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfig;
-import io.stackgres.operator.validation.BackupConfigReview;
 import io.stackgres.operatorframework.ValidationFailed;
 import io.stackgres.operatorframework.ValidationPipeline;
 

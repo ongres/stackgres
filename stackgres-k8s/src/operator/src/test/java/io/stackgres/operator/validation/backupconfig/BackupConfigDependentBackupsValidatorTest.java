@@ -14,12 +14,12 @@ import static org.mockito.Mockito.when;
 
 import java.util.Optional;
 
+import io.stackgres.operator.common.BackupConfigReview;
 import io.stackgres.operator.customresource.sgbackup.StackGresBackup;
 import io.stackgres.operator.customresource.sgbackup.StackGresBackupDefinition;
 import io.stackgres.operator.customresource.sgbackup.StackGresBackupList;
 import io.stackgres.operator.resource.KubernetesCustomResourceScanner;
 import io.stackgres.operator.utils.JsonUtil;
-import io.stackgres.operator.validation.BackupConfigReview;
 import io.stackgres.operatorframework.ValidationFailed;
 
 import org.junit.jupiter.api.BeforeEach;

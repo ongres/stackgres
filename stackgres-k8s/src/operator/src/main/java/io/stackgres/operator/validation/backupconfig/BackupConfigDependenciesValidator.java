@@ -10,9 +10,9 @@ import javax.enterprise.inject.Any;
 import javax.inject.Inject;
 
 import io.stackgres.operator.common.ArcUtil;
+import io.stackgres.operator.common.BackupConfigReview;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.resource.KubernetesCustomResourceScanner;
-import io.stackgres.operator.validation.BackupConfigReview;
 import io.stackgres.operator.validation.DependenciesValidator;
 import io.stackgres.operatorframework.ValidationFailed;
 

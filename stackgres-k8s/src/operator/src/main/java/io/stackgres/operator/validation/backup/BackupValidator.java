@@ -5,7 +5,7 @@
 
 package io.stackgres.operator.validation.backup;
 
-import io.stackgres.operator.validation.BackupReview;
+import io.stackgres.operator.common.BackupReview;
 import io.stackgres.operatorframework.Validator;
 
 public interface BackupValidator extends Validator<BackupReview> {

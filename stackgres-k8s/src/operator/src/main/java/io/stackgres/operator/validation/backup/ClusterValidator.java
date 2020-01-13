@@ -10,10 +10,10 @@ import java.util.Optional;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import io.stackgres.operator.common.BackupReview;
 import io.stackgres.operator.customresource.sgbackup.StackGresBackup;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.resource.KubernetesCustomResourceFinder;
-import io.stackgres.operator.validation.BackupReview;
 import io.stackgres.operatorframework.ValidationFailed;
 
 @ApplicationScoped

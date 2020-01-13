@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.validation;
+package io.stackgres.operator.common;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfig;

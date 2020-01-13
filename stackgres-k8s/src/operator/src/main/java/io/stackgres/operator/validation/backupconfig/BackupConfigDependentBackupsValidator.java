@@ -8,10 +8,10 @@ package io.stackgres.operator.validation.backupconfig;
 import java.util.List;
 import java.util.Optional;
 
+import io.stackgres.operator.common.BackupConfigReview;
 import io.stackgres.operator.customresource.sgbackup.StackGresBackup;
 import io.stackgres.operator.customresource.sgbackup.StackGresBackupDefinition;
 import io.stackgres.operator.resource.KubernetesCustomResourceScanner;
-import io.stackgres.operator.validation.BackupConfigReview;
 import io.stackgres.operatorframework.Operation;
 import io.stackgres.operatorframework.ValidationFailed;
 import io.stackgres.operatorframework.Validator;

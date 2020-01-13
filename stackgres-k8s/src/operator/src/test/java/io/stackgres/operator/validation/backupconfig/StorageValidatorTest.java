@@ -8,8 +8,8 @@ package io.stackgres.operator.validation.backupconfig;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import io.stackgres.operator.common.BackupConfigReview;
 import io.stackgres.operator.utils.JsonUtil;
-import io.stackgres.operator.validation.BackupConfigReview;
 import io.stackgres.operatorframework.ValidationFailed;
 
 import org.junit.jupiter.api.Test;
