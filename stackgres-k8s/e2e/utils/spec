@@ -1,24 +1,24 @@
 #!/bin/sh
 
-test_before_all() {
+e2e_test_before_all() {
   true
 }
 
-test_install() {
-  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "$(test_install_pods)"
+e2e_test_install() {
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "$(e2e_test_install_pods)"
 
-  wait_pods_running "$CLUSTER_NAMESPACE" "$(test_install_pods)"
+  wait_pods_running "$CLUSTER_NAMESPACE" "$(e2e_test_install_pods)"
 }
 
-test_install_pods() {
+e2e_test_install_pods() {
   echo 1
 }
 
-test_after_all() {
+e2e_test_after_all() {
   true
 }
 
-test() {
+e2e_test() {
   echo "You should define a test function"
   false
 }
@@ -28,6 +28,7 @@ spec() {
   SPEC_BEFORE_FILE="$SPEC_FILE.before"
   SPEC_AFTER_FILE="$SPEC_FILE.after"
   SPEC_VALUES_FILE="$1.values.yaml"
+  SPEC_PATH="$(dirname "$SPEC_FILE")"
   SPEC_NAME="$(basename "$SPEC_FILE")"
   CLUSTER_NAMESPACE="$SPEC_NAME"
   CLUSTER_NAME="$SPEC_NAME"
@@ -41,7 +42,7 @@ spec() {
 
   if [ ! -f "$SPEC_VALUES_FILE" ]
   then
-    SPEC_VALUES_FILE="spec/default.values.yaml"
+    SPEC_VALUES_FILE="$SPEC_PATH/default.values.yaml"
   fi
 
   . "$SPEC_FILE"
@@ -52,17 +53,18 @@ spec() {
   echo "================================================================"
   echo
 
+  local START="$(date +%s)"
   > "$LOG_PATH/$SPEC_NAME.log"
   (set +ex
-    sh +x -c 'echo $$; exec tail -f '"$LOG_PATH/$SPEC_NAME.log" | \
-    (
-    read pid
-    trap_kill "$pid"
-    while read line
-    do
-      echo "$(date +"%Y-%m-%d %H:%M:%S") [$SPEC_NAME] $line"
-    done
-    )
+    "$SHELL" +x -c 'echo $$; exec tail -f '"$LOG_PATH/$SPEC_NAME.log" \
+      | (
+      read pid
+      trap_kill "$pid"
+      while read line
+      do
+        echo "$(date +"%Y-%m-%d %H:%M:%S") [$SPEC_NAME] $line"
+      done
+      )
   ) &
   try_function run_spec >> "$LOG_PATH/$SPEC_NAME.log" 2>&1
   if ! "$RESULT"
@@ -71,21 +73,21 @@ spec() {
     echo "$SPEC_NAME. FAIL. See file $LOG_PATH/$SPEC_NAME.log for details" >> "$TARGET_PATH/logs/results.log"
     return "$EXIT_CODE"
   fi
-  echo "$SPEC_NAME. SUCCESS." >> "$TARGET_PATH/logs"/results.log
+  echo "$SPEC_NAME. SUCCESS. Test took $(($(date +%s)-START)) seconds" >> "$TARGET_PATH/logs"/results.log
 }
 
 run_spec() {
   if [ "$SKIP_SPEC_BEFORE_ALL" != true ]
   then
-    test_before_all
+    e2e_test_before_all
   fi
 
   if [ "$SKIP_SPEC_INSTALL" != true ]
   then
-    test_install
+    e2e_test_install
   fi
 
-  test
+  e2e_test
 
-  test_after_all
+  e2e_test_after_all
 }

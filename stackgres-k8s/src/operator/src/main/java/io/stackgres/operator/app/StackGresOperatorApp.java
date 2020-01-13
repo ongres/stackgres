@@ -26,8 +26,13 @@ import io.fabric8.kubernetes.client.Watch;
 import io.fabric8.kubernetes.internal.KubernetesDeserializer;
 import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
+import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.controller.ClusterReconciliationCycle;
 import io.stackgres.operator.controller.ClusterResourceWatcherFactory;
+import io.stackgres.operator.customresource.sgbackup.StackGresBackup;
+import io.stackgres.operator.customresource.sgbackup.StackGresBackupDefinition;
+import io.stackgres.operator.customresource.sgbackup.StackGresBackupDoneable;
+import io.stackgres.operator.customresource.sgbackup.StackGresBackupList;
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfigDefinition;
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfigDoneable;
@@ -44,12 +49,12 @@ import io.stackgres.operator.customresource.sgprofile.StackGresProfile;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfileDefinition;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfileDoneable;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfileList;
-import io.stackgres.operator.resource.ResourceHandlerSelector;
 import io.stackgres.operator.resource.ResourceUtil;
 import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfig;
 import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfigDefinition;
 import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfigDoneable;
 import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfigList;
+import io.stackgres.operatorframework.resource.ResourceHandlerSelector;
 
 import org.jooq.lambda.Unchecked;
 import org.slf4j.Logger;
@@ -61,7 +66,7 @@ public class StackGresOperatorApp {
   private static final Logger LOGGER = LoggerFactory.getLogger(StackGresOperatorApp.class);
 
   private final KubernetesClientFactory kubeClient;
-  private final ResourceHandlerSelector handlerSelector;
+  private final ResourceHandlerSelector<StackGresClusterContext> handlerSelector;
   private final ClusterReconciliationCycle clusterReconciliationCycle;
   private final ClusterResourceWatcherFactory watcherFactory;
   private final ScheduledExecutorService scheduledExecutorService =
@@ -73,7 +78,7 @@ public class StackGresOperatorApp {
    */
   @Inject
   public StackGresOperatorApp(KubernetesClientFactory kubeClient,
-      ResourceHandlerSelector handlerSelector,
+      ResourceHandlerSelector<StackGresClusterContext> handlerSelector,
       ClusterReconciliationCycle clusterReconciliationCycle,
       ClusterResourceWatcherFactory watcherFactory) {
     super();
@@ -84,7 +89,6 @@ public class StackGresOperatorApp {
   }
 
   void onStart(@Observes StartupEvent ev) {
-    scheduledExecutorService.schedule(this::reconcile, 10, TimeUnit.SECONDS);
     printArt();
     try (KubernetesClient client = kubeClient.create()) {
       LOGGER.info("Kubernetes version: {}", client.getVersion().getGitVersion());
@@ -96,6 +100,7 @@ public class StackGresOperatorApp {
       }
       registerResources();
       startClusterWatchers(client);
+      scheduledExecutorService.scheduleAtFixedRate(this::reconcile, 0, 10, TimeUnit.SECONDS);
     } catch (KubernetesClientException e) {
       if (e.getCause() instanceof SocketTimeoutException) {
         LOGGER.error("Kubernetes cluster is not reachable, check your connection.");
@@ -111,13 +116,7 @@ public class StackGresOperatorApp {
   }
 
   private void reconcile() {
-    try {
-      clusterReconciliationCycle.reconcile();
-    } finally {
-      if (!scheduledExecutorService.isShutdown()) {
-        scheduledExecutorService.schedule(this::reconcile, 10, TimeUnit.SECONDS);
-      }
-    }
+    clusterReconciliationCycle.reconcile();
   }
 
   private void registerResources() {
@@ -136,6 +135,9 @@ public class StackGresOperatorApp {
     KubernetesDeserializer.registerCustomKind(StackGresBackupConfigDefinition.APIVERSION,
         StackGresBackupConfigDefinition.KIND, StackGresBackupConfig.class);
 
+    KubernetesDeserializer.registerCustomKind(StackGresBackupDefinition.APIVERSION,
+        StackGresBackupDefinition.KIND, StackGresBackup.class);
+
     handlerSelector.registerKinds();
   }
 
@@ -148,7 +150,7 @@ public class StackGresOperatorApp {
                 StackGresClusterList.class,
                 StackGresClusterDoneable.class)
             .inAnyNamespace()
-            .watch(watcherFactory.createWatcher()))
+            .watch(watcherFactory.createWatcher(action -> clusterReconciliationCycle.reconcile())))
         .orElseThrow(() -> new IllegalStateException("Some required CRDs does not exists")));
     watches.add(
         ResourceUtil.getCustomResource(client, StackGresPostgresConfigDefinition.NAME)
@@ -158,7 +160,7 @@ public class StackGresOperatorApp {
                 StackGresPostgresConfigList.class,
                 StackGresPostgresConfigDoneable.class)
             .inAnyNamespace()
-            .watch(watcherFactory.createWatcher()))
+            .watch(watcherFactory.createWatcher(action -> clusterReconciliationCycle.reconcile())))
         .orElseThrow(() -> new IllegalStateException("Some required CRDs does not exists")));
     watches.add(
         ResourceUtil.getCustomResource(client, StackGresPgbouncerConfigDefinition.NAME)
@@ -168,7 +170,7 @@ public class StackGresOperatorApp {
                 StackGresPgbouncerConfigList.class,
                 StackGresPgbouncerConfigDoneable.class)
             .inAnyNamespace()
-            .watch(watcherFactory.createWatcher()))
+            .watch(watcherFactory.createWatcher(action -> clusterReconciliationCycle.reconcile())))
         .orElseThrow(() -> new IllegalStateException("Some required CRDs does not exists")));
     watches.add(
         ResourceUtil.getCustomResource(client, StackGresProfileDefinition.NAME)
@@ -178,7 +180,7 @@ public class StackGresOperatorApp {
                 StackGresProfileList.class,
                 StackGresProfileDoneable.class)
             .inAnyNamespace()
-            .watch(watcherFactory.createWatcher()))
+            .watch(watcherFactory.createWatcher(action -> clusterReconciliationCycle.reconcile())))
         .orElseThrow(() -> new IllegalStateException("Some required CRDs does not exists")));
     watches.add(
         ResourceUtil.getCustomResource(client, StackGresBackupConfigDefinition.NAME)
@@ -188,7 +190,17 @@ public class StackGresOperatorApp {
                 StackGresBackupConfigList.class,
                 StackGresBackupConfigDoneable.class)
             .inAnyNamespace()
-            .watch(watcherFactory.createWatcher()))
+            .watch(watcherFactory.createWatcher(action -> clusterReconciliationCycle.reconcile())))
+        .orElseThrow(() -> new IllegalStateException("Some required CRDs does not exists")));
+    watches.add(
+        ResourceUtil.getCustomResource(client, StackGresBackupDefinition.NAME)
+        .map(crd -> kubeClient.create()
+            .customResources(crd,
+                StackGresBackup.class,
+                StackGresBackupList.class,
+                StackGresBackupDoneable.class)
+            .inAnyNamespace()
+            .watch(watcherFactory.createWatcher(action -> clusterReconciliationCycle.reconcile())))
         .orElseThrow(() -> new IllegalStateException("Some required CRDs does not exists")));
   }
 

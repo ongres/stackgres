@@ -5,12 +5,12 @@
 
 package io.stackgres.operator.validation.backupconfig;
 
+import io.stackgres.operator.common.BackupConfigReview;
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfig;
-import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
 import io.stackgres.operator.utils.JsonUtil;
 import io.stackgres.operator.validation.AbstractDefaultConfigKeeper;
-import io.stackgres.operator.validation.BackupConfigReview;
 import io.stackgres.operator.validation.DefaultKeeperTest;
+
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 

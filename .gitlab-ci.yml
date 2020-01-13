@@ -24,8 +24,9 @@ variables:
                    --show-version
                    -DinstallAtEnd=true
                    -DdeployAtEnd=true
-  E2E_PARALLEL: 32
+  E2E_PARALLELISM: 32
   E2E_TIMEOUT: 600
+  DISABLE_IT: "true"
 
 # Cache downloaded dependencies and plugins between builds.
 # To keep cache across branches add 'key: "$CI_JOB_NAME"'
@@ -71,6 +72,13 @@ native image:
       - stackgres-k8s/src/operator/target/lib/
       - stackgres-k8s/src/operator/target/stackgres-operator-runner.jar
     expire_in: 1 day
+  only:
+    variables:
+      - $CI_COMMIT_REF_NAME == "development"
+      - $CI_COMMIT_REF_NAME == "master"
+      - $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
+      - $DO_DEPLOY
+      - $DO_NATIVE
 
 enforce release:
   stage: check-release
@@ -82,7 +90,8 @@ enforce release:
     - MAVEN_CLI_OPTS="$MAVEN_CLI_OPTS -DskipTests -Dquarkus.skipAugmentation=true"
     - 'mvn $MAVEN_CLI_OPTS enforcer:enforce@enforce-no-snapshots'
   only:
-    - tags
+    variables:
+      - $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
 
 build test images:
   stage: pre test
@@ -106,7 +115,7 @@ build jvm image:
     - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_REF_NAME"}"-jvm'
     - 'export IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
     - MAVEN_CLI_OPTS="$MAVEN_CLI_OPTS -DskipTests"
-    - 'mvn $MAVEN_CLI_OPTS package -P build-image-jvm'
+    - 'flock -w 3600 /tmp/stackgres-build-jvm-image mvn $MAVEN_CLI_OPTS package -P build-image-jvm'
 
 build native image:
   stage: pre test
@@ -120,7 +129,14 @@ build native image:
     - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_REF_NAME"}"'
     - 'export IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
     - MAVEN_CLI_OPTS="$MAVEN_CLI_OPTS -DskipTests"
-    - 'mvn $MAVEN_CLI_OPTS package -P build-image-native'
+    - 'flock -w 3600 /tmp/stackgres-build-native-image mvn $MAVEN_CLI_OPTS package -P build-image-native'
+  only:
+    variables:
+      - $CI_COMMIT_REF_NAME == "development"
+      - $CI_COMMIT_REF_NAME == "master"
+      - $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
+      - $DO_DEPLOY
+      - $DO_NATIVE
 
 integration test:
   stage: test
@@ -128,7 +144,6 @@ integration test:
     - stackgres-runner
   dependencies:
     - compile
-  retry: 2
   script:
     - 'flock -w 3600 /tmp/stackgres-integration-test mvn $MAVEN_CLI_OPTS verify -P integration'
 
@@ -141,7 +156,6 @@ integration test jvm image:
   variables:
     OPERATOR_IN_KUBERNETES: "true"
     KIND_SUFFIX: jvm-image
-  retry: 2
   script:
     - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_REF_NAME"}"-jvm'
     - 'export IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
@@ -160,6 +174,13 @@ integration test native image:
     - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_REF_NAME"}"'
     - 'export IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
     - 'flock -w 3600 /tmp/stackgres-integration-test-native-image mvn $MAVEN_CLI_OPTS verify -P integration -DargLine=-Dcom.ongres.junit.docker.runnerId="$KIND_SUFFIX"'
+  only:
+    variables:
+      - $CI_COMMIT_REF_NAME == "development"
+      - $CI_COMMIT_REF_NAME == "master"
+      - $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
+      - $DO_DEPLOY
+      - $DO_NATIVE
 
 deploy jvm image:
   image: docker.io/ongres/builder:latest

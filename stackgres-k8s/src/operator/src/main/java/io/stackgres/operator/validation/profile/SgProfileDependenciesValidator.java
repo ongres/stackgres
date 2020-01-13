@@ -8,10 +8,10 @@ package io.stackgres.operator.validation.profile;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import io.stackgres.operator.common.ArcUtil;
 import io.stackgres.operator.common.SgProfileReview;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
-import io.stackgres.operator.customresource.sgcluster.StackGresClusterList;
-import io.stackgres.operator.resource.KubernetesResourceScanner;
+import io.stackgres.operator.resource.KubernetesCustomResourceScanner;
 import io.stackgres.operator.validation.DependenciesValidator;
 import io.stackgres.operatorframework.ValidationFailed;
 
@@ -21,8 +21,13 @@ public class SgProfileDependenciesValidator extends DependenciesValidator<SgProf
 
   @Inject
   public SgProfileDependenciesValidator(
-      KubernetesResourceScanner<StackGresClusterList> clusterScanner) {
+      KubernetesCustomResourceScanner<StackGresCluster> clusterScanner) {
     super(clusterScanner);
+  }
+
+  public SgProfileDependenciesValidator() {
+    super(null);
+    ArcUtil.checkPublicNoArgsConstructorIsCalledFromArc();
   }
 
   @Override

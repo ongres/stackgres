@@ -6,7 +6,7 @@
 package io.stackgres.operator.rest;
 
 import java.util.List;
-import javax.inject.Inject;
+
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.NotFoundException;
@@ -16,39 +16,22 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 
 import io.fabric8.kubernetes.client.CustomResource;
-import io.fabric8.kubernetes.client.CustomResourceList;
 import io.stackgres.operator.resource.CustomResourceScheduler;
 import io.stackgres.operator.resource.KubernetesCustomResourceFinder;
-import io.stackgres.operator.resource.KubernetesResourceScanner;
+import io.stackgres.operator.resource.KubernetesCustomResourceScanner;
 
-public class AbstractCustomResourceRestService<R extends CustomResource,
-    L extends CustomResourceList<R>>
+public class AbstractCustomResourceRestService<R extends CustomResource>
     implements CustomResourceRestService<R> {
 
-  private KubernetesResourceScanner<L> scanner;
+  private final KubernetesCustomResourceScanner<R> scanner;
+  private final KubernetesCustomResourceFinder<R> finder;
+  private final CustomResourceScheduler<R> scheduler;
 
-  private KubernetesCustomResourceFinder<R> finder;
-
-  private CustomResourceScheduler<R> scheduler;
-
-  private String resourceDefinition;
-
-  AbstractCustomResourceRestService(String resourceDefinition) {
-    this.resourceDefinition = resourceDefinition;
-  }
-
-  @Inject
-  public void setScanner(KubernetesResourceScanner<L> scanner) {
+  AbstractCustomResourceRestService(KubernetesCustomResourceScanner<R> scanner,
+      KubernetesCustomResourceFinder<R> finder, CustomResourceScheduler<R> scheduler) {
+    super();
     this.scanner = scanner;
-  }
-
-  @Inject
-  public void setFinder(KubernetesCustomResourceFinder<R> finder) {
     this.finder = finder;
-  }
-
-  @Inject
-  public void setScheduler(CustomResourceScheduler<R> scheduler) {
     this.scheduler = scheduler;
   }
 
@@ -60,9 +43,7 @@ public class AbstractCustomResourceRestService<R extends CustomResource,
   @Override
   @GET
   public List<R> list() {
-    return scanner.findResources()
-        .map(CustomResourceList::getItems)
-        .orElseThrow(() -> new RuntimeException("CRD " + resourceDefinition + " not found."));
+    return scanner.getResources();
   }
 
   /**

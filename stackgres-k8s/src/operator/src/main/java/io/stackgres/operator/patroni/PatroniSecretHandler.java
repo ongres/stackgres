@@ -9,42 +9,44 @@ import javax.enterprise.context.ApplicationScoped;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Secret;
-import io.stackgres.operator.common.StackGresClusterConfig;
-import io.stackgres.operator.controller.ResourceHandlerContext;
-import io.stackgres.operator.resource.AbstractResourceHandler;
+import io.stackgres.operator.common.StackGresClusterContext;
+import io.stackgres.operator.resource.AbstractClusterResourceHandler;
 import io.stackgres.operatorframework.resource.PairVisitor;
+import io.stackgres.operatorframework.resource.ResourceHandlerContext;
 import io.stackgres.operatorframework.resource.ResourcePairVisitor;
 
 @ApplicationScoped
-public class PatroniSecretHandler extends AbstractResourceHandler {
+public class PatroniSecretHandler extends AbstractClusterResourceHandler {
 
   @Override
-  public boolean isHandlerForResource(StackGresClusterConfig config, HasMetadata resource) {
-    return config != null
+  public boolean isHandlerForResource(StackGresClusterContext context, HasMetadata resource) {
+    return context != null
         && resource instanceof Secret
         && resource.getMetadata().getNamespace().equals(
-            config.getCluster().getMetadata().getNamespace())
+            context.getCluster().getMetadata().getNamespace())
         && resource.getMetadata().getName().equals(
-            config.getCluster().getMetadata().getName());
+            context.getCluster().getMetadata().getName());
   }
 
   @Override
-  public boolean equals(ResourceHandlerContext resourceHandlerContext,
+  public boolean equals(ResourceHandlerContext<StackGresClusterContext> resourceHandlerContext,
       HasMetadata existingResource, HasMetadata requiredResource) {
     return ResourcePairVisitor.equals(new EndpointsVisitor<>(resourceHandlerContext),
         existingResource, requiredResource);
   }
 
   @Override
-  public HasMetadata update(ResourceHandlerContext resourceHandlerContext,
+  public HasMetadata update(ResourceHandlerContext<StackGresClusterContext> resourceHandlerContext,
       HasMetadata existingResource, HasMetadata requiredResource) {
     return ResourcePairVisitor.update(new EndpointsVisitor<>(resourceHandlerContext),
         existingResource, requiredResource);
   }
 
-  private static class EndpointsVisitor<T> extends ResourcePairVisitor<T, ResourceHandlerContext> {
+  private static class EndpointsVisitor<T>
+      extends ResourcePairVisitor<T, ResourceHandlerContext<StackGresClusterContext>> {
 
-    public EndpointsVisitor(ResourceHandlerContext resourceHandlerContext) {
+    public EndpointsVisitor(
+        ResourceHandlerContext<StackGresClusterContext> resourceHandlerContext) {
       super(resourceHandlerContext);
     }
 

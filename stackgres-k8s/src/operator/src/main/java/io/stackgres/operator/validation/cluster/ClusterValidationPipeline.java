@@ -20,9 +20,8 @@ import io.stackgres.operatorframework.ValidationPipeline;
 @ApplicationScoped
 public class ClusterValidationPipeline implements ValidationPipeline<StackgresClusterReview> {
 
-  Validator validator;
-
-  Instance<ClusterValidator> validators;
+  private final Validator validator;
+  private final Instance<ClusterValidator> validators;
 
   @Inject
   public ClusterValidationPipeline(Instance<ClusterValidator> validators, Validator validator) {
@@ -34,19 +33,19 @@ public class ClusterValidationPipeline implements ValidationPipeline<StackgresCl
    * Validate all {@code Validator}s in sequence.
    */
   @Override
-  public void validate(StackgresClusterReview admissionReview) throws ValidationFailed {
+  public void validate(StackgresClusterReview review) throws ValidationFailed {
+    StackGresCluster cluster = review.getRequest().getObject();
+    if (cluster != null) {
+      Set<ConstraintViolation<StackGresCluster>> violations = validator.validate(cluster);
 
-    StackGresCluster cluster = admissionReview.getRequest().getObject();
-    Set<ConstraintViolation<StackGresCluster>> violations = validator.validate(cluster);
-
-    if (!violations.isEmpty()) {
-      throw new ValidationFailed(violations);
+      if (!violations.isEmpty()) {
+        throw new ValidationFailed(violations);
+      }
     }
 
     for (ClusterValidator validator : validators) {
-      validator.validate(admissionReview);
+      validator.validate(review);
     }
-
   }
 
 }

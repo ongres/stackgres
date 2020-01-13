@@ -23,6 +23,7 @@ rules:
   - events
   - cronjobs
   - persistentvolumeclaims
+  - jobs
   verbs:
   - get
   - list
@@ -79,6 +80,7 @@ rules:
   - sgprofiles
   - sgconnectionpoolingconfigs
   - sgbackupconfigs
+  - sgbackups
   verbs:
   - create
   - watch

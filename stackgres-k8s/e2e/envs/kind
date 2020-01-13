@@ -1,12 +1,27 @@
 #!/bin/sh
 
 KIND_NAME="${KIND_NAME:-kind}"
-KUBECONFIG="$(kind get kubeconfig-path --name "$KIND_NAME")"
 
-export KUBECONFIG KIND_NAME
+export KIND_NAME
+
+update_k8s_config() {
+  mkdir -p "$HOME/.kube"
+  kind get kubeconfig --name "$KIND_NAME" --internal \
+    > "$HOME/.kube/config-$KIND_NAME"
+
+  (
+  if [ -s "$HOME/.kube/config" ]
+  then
+    KUBECONFIG="$HOME/.kube/config-$KIND_NAME":"$HOME/.kube/config" \
+      kubectl config view --raw > "$HOME/.kube/config-merged"
+    mv "$HOME/.kube/config-merged" "$HOME/.kube/config"
+  else
+    mv "$HOME/.kube/config-$KIND_NAME" "$HOME/.kube/config"
+  fi
+  )
+}
 
 reuse_k8s() {
-  
   if ! kind get clusters | grep -q "^$KIND_NAME$" \
       || ! docker inspect "$KIND_NAME-control-plane" -f '{{ .State.Status }}' | grep -q 'running'
   then
@@ -17,12 +32,7 @@ reuse_k8s() {
 
   echo "Reusing kind environment $KIND_NAME"
 
-  if [ "$USE_KIND_INTERNAL" = true ]
-  then
-    KIND_CONFIG="$(kind get kubeconfig-path --name "$KIND_NAME")"
-    mkdir -p "$(dirname "$KIND_CONFIG")"
-    kind get kubeconfig --name "$KIND_NAME" --internal > "$KIND_CONFIG"
-  fi
+  update_k8s_config
 }
 
 reset_k8s() {
@@ -49,8 +59,7 @@ EOF
 
   if [ "$USE_KIND_INTERNAL" = true ]
   then
-    kind get kubeconfig --name "$KIND_NAME" --internal \
-      > "$(kind get kubeconfig-path --name "$KIND_NAME")"
+    update_k8s_config
   fi
 
   if echo "$KUBERNETES_VERSION" | grep -q '^1\.12\.'

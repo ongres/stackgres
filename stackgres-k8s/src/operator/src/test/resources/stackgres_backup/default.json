@@ -1,0 +1,37 @@
+{
+  "apiVersion": "stackgres.io/v1alpha1",
+  "kind": "StackGresBackup",
+  "metadata": {
+    "creationTimestamp": "2019-10-23T13:41:00Z",
+    "generation": 1,
+    "name": "test",
+    "namespace": "postgresql",
+    "resourceVersion": "629",
+    "selfLink": "/apis/stackgres.io/v1alpha1/namespaces/postgresql/sgbackups/test",
+    "uid": "bfb53778-f59a-11e9-b1b5-0242ac110002"
+  },
+  "spec": {
+    "cluster": "stackgres",
+    "isPermanent": false
+  },
+  "status": {
+    "backupConfig": "backupconf",
+    "compressedSize": 6686407,
+    "dataDir": "/var/lib/postgresql/data",
+    "failureReason": "",
+    "finishLsn": "218104056",
+    "finishTime": "2020-01-10T08:56:09.098819Z",
+    "hostname": "backup-with-default-storage-1",
+    "isPermanent": false,
+    "name": "base_00000002000000000000000D",
+    "pgVersion": "110006",
+    "phase": "Completed",
+    "pod": "backup-with-default-storage-backup-1578646560-mr7pg",
+    "startLsn": "218103848",
+    "startTime": "2020-01-10T08:56:06.879707Z",
+    "systemIdentifier": "6780234708837765169",
+    "time": "2020-01-10T08:56:09.119Z",
+    "uncompressedSize": 24037855,
+    "walFileName": "00000002000000000000000D"
+  }
+}

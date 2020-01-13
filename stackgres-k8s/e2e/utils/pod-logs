@@ -1,0 +1,78 @@
+#!/bin/sh
+
+pod_logs() {
+  local pods
+  local pod
+  local container
+  local template
+  local namespace
+  local owner_kind
+  template='{{ range .items }}{'
+  template="$template"'"name":"{{ .metadata.namespace }}/{{ .metadata.name }}",'
+  template="$template"'"owner":"{{ with .metadata.ownerReferences }}{{ with index . 0 }}{{ .kind }}{{ end }}{{ end }}"'
+  template="$template"'}{{ printf "\n" }}{{ end }}'
+  local pod_template
+  pod_template='{{ range .spec.containers }}{'
+  pod_template="$pod_template"'"name":"{{ .name }}"'
+  pod_template="$pod_template"'}{{ printf "\n" }}{{ end }}'
+  while [ "$#" -gt 0 ]
+  do
+    case "$1" in
+      -n)
+        shift
+        namespace="$1"
+        shift
+        ;;
+      -o)
+        shift
+        owner_kind="$1"
+        shift
+        ;;
+      *)
+        echo >&2 "Unknown parameter $1 (use: -n <namespace>; -o <owner kind>)"
+        return 1
+        ;;
+    esac
+  done
+  while true
+  do
+    pod="$(kubectl get pod $([ -z "$namespace" ] && echo '--all-namespaces' || echo '-n '"$namespace") --template "$template" \
+      | grep "$([ -z "$owner_kind" ] && echo '.' || echo '"owner":"'"$owner_kind"'"')" \
+      | tr -d '{}' | tr , '\n' | grep '"name"' | tr -d '"' | cut -d : -f 2 \
+      | grep -v "^\($(echo $pods)\)$" | head -n 1)"
+    if [ -z "$pod" ] || ! kubectl get pod -n "$(echo "$pod" | cut -d / -f 1)" "$(echo "$pod" | cut -d / -f 2)" \
+      --template "$pod_template" \
+      | tr -d '{}' | tr , '\n' | grep '"name"' | tr -d '"' | cut -d : -f 2 \
+      | xargs -r -n 1 -I % kubectl logs -n "$(echo "$pod" | cut -d / -f 1)" "$(echo "$pod" | cut -d / -f 2)" -c "%" \
+      > /dev/null 2>&1
+    then
+      for pod in $(echo "$pods" | sed 's/\\|/\n/g')
+      do
+        if ! kill -0 "$(eval "echo \$$(echo "$pod" | cut -d / -f 1 | tr '-' '_')_$(echo "$pod" | cut -d / -f 2 | tr '-' '_')")" >/dev/null 2>&1
+        then
+          pods="$(echo "$pods" | sed 's#\\|$pod\(\\\|$\)#\1#')"
+        fi
+      done
+      sleep 1
+      continue
+    fi
+    for container in $(kubectl get pod -n "$(echo "$pod" | cut -d / -f 1)" "$(echo "$pod" | cut -d / -f 2)" \
+      --template "$pod_template" \
+      | tr -d '{}' | tr , '\n' | grep '"name"' | tr -d '"' | cut -d : -f 2)
+    do
+      (set +ex
+        "$SHELL" +x -c 'echo $$; exec kubectl logs -n "'"$(echo "$pod" | cut -d / -f 1)"'" "'"$(echo "$pod" | cut -d / -f 2)"'" -c "'"$container"'" -f' \
+          | (
+          read pid
+          trap_kill "$pid"
+          while read line
+          do
+            echo "[$pod] $line"
+          done
+          )
+      ) &
+      eval "$(echo "$pod" | cut -d / -f 1 | tr '-' '_')_$(echo "$pod" | cut -d / -f 2 | tr '-' '_')=$!"
+    done
+    pods="$pods\|$pod"
+  done
+}

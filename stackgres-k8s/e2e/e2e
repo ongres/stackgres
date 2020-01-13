@@ -2,15 +2,19 @@
 
 set -e
 
+SHELL="$(readlink /proc/$$/exe)"
+if [ "$(basename "$SHELL")" = busybox ]
+then
+  SHELL=sh
+fi
 IMAGE_TAG="${IMAGE_TAG:-development-jvm}"
 IMAGE_NAME="stackgres/operator:$IMAGE_TAG"
 KUBERNETES_VERSION="${KUBERNETES_VERSION:-1.12.10}"
-ENV="${ENV:-kind}"
+E2E_ENV="${E2E_ENV:-kind}"
 TARGET_PATH="$(dirname "$0")/target"
 BUILD_OPERATOR="${BUILD_OPERATOR:-true}"
 WAIT_OPERATOR="${WAIT_OPERATOR:-true}"
-RESET_NAMESPACES="${RESET_NAMESPACE:-true}"
-TIMEOUT="${TIMEOUT:-600}"
+E2E_TIMEOUT="${E2E_TIMEOUT:-180}"
 TRAP_ENABLED="${TRAP_ENABLED:-false}"
 SKIP_K8S_SETUP="${SKIP_K8S_SETUP:-false}"
 
@@ -21,36 +25,52 @@ fi
 OPERATOR_CHART_PATH="${OPERATOR_CHART_PATH:-"$STACKGRES_PATH/install/helm/stackgres-operator/"}"
 CLUSTER_CHART_PATH="${CLUSTER_CHART_PATH:-"$STACKGRES_PATH/install/helm/stackgres-cluster/"}"
 
-export IMAGE_TAG IMAGE_NAME KUBERNETES_VERSION CLUSTER_CHART_PATH ENV TARGET_PATH TIMEOUT
+export SHELL IMAGE_TAG IMAGE_NAME KUBERNETES_VERSION CLUSTER_CHART_PATH E2E_ENV TARGET_PATH E2E_TIMEOUT
+
+if ! command -v local > /dev/null 2>&1
+then
+  >&2 echo "You are probably using an AT&T Korn Shell or any other shell that does not support local variables in POSIX functions."
+  exit 1
+fi
 
 for util in $(find "$(dirname "$0")/utils" -type f)
 do
   . "$util"
 done
 
-. "$(dirname "$0")/envs/$ENV"
+. "$(dirname "$0")/envs/$E2E_ENV"
 
 trap_kill() {
-  echo "$1" >> "$TARGET_PATH/trap-kill"
+  echo "$1" >> "$TRAP_FILE"
 }
 
 trap_callback() {
-  if [ -s "$TARGET_PATH/trap-kill" ]
+  if [ -s "$TRAP_FILE" ]
   then
-    sleep 1 # Let the tails write to output remaining logs.
-    kill $(cat "$TARGET_PATH/trap-kill") || true
+    sleep 1 || true # Let the tails write to output remaining logs.
+    kill $(cat "$TRAP_FILE") >/dev/null 2>&1 || true
   fi
 }
 
+if [ -z "$TRAP_FILE" ]
+then
+  mkdir -p "$TARGET_PATH"
+  TRAP_FILE="$TARGET_PATH/trap-kill-$(shuf -i 0-65535 -n 1)"
+  export TRAP_FILE
+  trap 'trap_callback' EXIT
+  trap 'exit $?' HUP INT QUIT PIPE TERM
+fi
+
+trap_kill_all() {
+  local file
+  for file in $(find "$TARGET_PATH" -name 'trap-kill-*')
+  do
+    kill $(cat "$file") >/dev/null 2>&1 || true
+  done
+}
+
 setup_k8s() {
-  if ! $TRAP_ENABLED
-  then
-    rm -rf "$TARGET_PATH"
-    mkdir -p "$TARGET_PATH/logs"
-    trap 'trap_callback' EXIT
-    trap 'exit $?' HUP INT QUIT PIPE TERM
-    export TRAP_ENABLED=true
-  fi
+  mkdir -p "$TARGET_PATH/logs"
 
   if [ "$SKIP_K8S_SETUP" = true ]
   then
@@ -64,7 +84,7 @@ setup_k8s() {
     reuse_k8s
   fi
 
-  setup_tiller
+  setup_helm
 
   setup_default_limits 0.1 0.1 16Mi 16Mi
 
@@ -94,7 +114,6 @@ setup_k8s() {
       | tail -n +2 \
       | sed 's/\s\+/ /g' \
       | cut -d ' ' -f 1 \
-      | grep -v "^\(minio\)$" \
       | xargs -r -n 1 -I % helm delete --purge %
     helm template --name stackgres-operator --namespace stackgres "$OPERATOR_CHART_PATH" \
       | kubectl delete -f - --ignore-not-found
@@ -102,16 +121,30 @@ setup_k8s() {
       | xargs -r -n 1 -I % kubectl delete %
     kubectl get mutatingwebhookconfigurations.admissionregistration.k8s.io -o name \
       | xargs -r -n 1 -I % kubectl delete %
-    if [ "$RESET_NAMESPACES" = true ]
-    then
-      kubectl get namespace -o name \
-        | grep -v "^namespace/\(default\|kube-system\|kube-public\|minio\)$" \
-        | xargs -r -n 1 -I % -P 0 sh -ec '
-        kubectl delete namespace % &
-        sleep 3
-        kubectl delete pod -n % --all --force --grace-period 0
-        wait'
-    fi
+    kubectl get crd -o name \
+      | xargs -r -n 1 -I % kubectl delete %
+    kubectl get namespace -o name \
+      | grep -v "^namespace/\(default\|kube-system\|kube-public\)$" | cut -d / -f 2 \
+      | xargs -r -n 1 -I % -P 0 kubectl delete namespace % --timeout="$((1 + E2E_TIMEOUT / 10))s" \
+      || kubectl get namespace -o name \
+        | grep -v "^namespace/\(default\|kube-system\|kube-public\)$" | cut -d / -f 2 \
+        | xargs -r -n 1 -I @ -P 0 "$SHELL" $(! echo $- | grep -q x || echo "-x") -ec '
+          kubectl get pod -n @ -o name \
+            | xargs -r -n 1 -I % kubectl delete -n @ % --grace-period=0 --force
+          kubectl get namespace "@" -o json \
+            | tr -d "\n" | sed "s/\"finalizers\": \[[^]]\+\]/\"finalizers\": []/" \
+            | kubectl replace --raw /api/v1/namespaces/@/finalize -f -
+          END="$(($(date +%s)+'"$E2E_TIMEOUT"'))"
+          while kubectl get namespace "@" -o name >/dev/null 2>&1
+          do
+            if [ "$(date +%s)" -gt "$END" ]
+            then
+              echo "Timeout while waiting for namespace @ to be removed"
+              exit 1
+            fi
+            sleep 1
+          done
+        '
     helm install --name stackgres-operator --namespace stackgres "$OPERATOR_CHART_PATH" \
       --set-string image.tag="$IMAGE_TAG" --set-string image.pullPolicy=Never
     if [ "$DEBUG_OPERATOR" = true ]
@@ -126,18 +159,33 @@ setup_k8s() {
       | tail -n +2 \
       | sed 's/\s\+/ /g' \
       | cut -d ' ' -f 1 \
-      | grep -v "^\(stackgres-operator\|minio\)$" \
+      | grep -v "^\(stackgres-operator\)$" \
       | xargs -r -n 1 -I % helm delete --purge %
-    if [ "$RESET_NAMESPACES" = true ]
-    then
-      kubectl get namespace -o name \
-        | grep -v "^namespace/\(default\|kube-system\|kube-public\|minio\|stackgres\)$" | cut -d / -f 2 \
-        | xargs -r -n 1 -I % -P 0 sh -ec '
-        kubectl delete namespace % &
-        sleep 3
-        kubectl delete pod -n % --all --force --grace-period 0
-        wait'
-    fi
+    kubectl get crd -o name \
+      | grep -v '\.stackgres\.io$' \
+      | xargs -r -n 1 -I % kubectl delete %
+    kubectl get namespace -o name \
+      | grep -v "^namespace/\(default\|kube-system\|kube-public\|stackgres\)$" | cut -d / -f 2 \
+      | xargs -r -n 1 -I % -P 0 kubectl delete namespace % --timeout="$((1 + E2E_TIMEOUT / 10))s" \
+      || kubectl get namespace -o name \
+        | grep -v "^namespace/\(default\|kube-system\|kube-public\|stackgres\)$" | cut -d / -f 2 \
+        | xargs -r -n 1 -I @ -P 0 "$SHELL" $(! echo $- | grep -q x || echo "-x") -ec '
+          kubectl get pod -n @ -o name \
+            | xargs -r -n 1 -I % kubectl delete -n @ % --grace-period=0 --force
+          kubectl get namespace "@" -o json \
+            | tr -d "\n" | sed "s/\"finalizers\": \[[^]]\+\]/\"finalizers\": []/" \
+            | kubectl replace --raw /api/v1/namespaces/@/finalize -f -
+          END="$(($(date +%s)+'"$E2E_TIMEOUT"'))"
+          while kubectl get namespace "@" -o name >/dev/null 2>&1
+          do
+            if [ "$(date +%s)" -gt "$END" ]
+            then
+              echo "Timeout while waiting for namespace @ to be removed"
+              exit 1
+            fi
+            sleep 1
+          done
+        '
   fi
 
   if [ "$WAIT_OPERATOR" = true ]

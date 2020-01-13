@@ -14,6 +14,7 @@ import com.ongres.junit.docker.DockerExtension;
 import com.ongres.junit.docker.WhenReuse;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 
 @DockerExtension({
   @DockerContainer(
@@ -22,6 +23,7 @@ import org.junit.jupiter.api.Test;
       whenReuse = WhenReuse.ALWAYS,
       stopIfChanged = true)
 })
+@DisabledIfEnvironmentVariable(named = "DISABLE_E2E", matches = "true")
 public class StackGresOperatorEnd2EndIt extends AbstractStackGresOperatorIt {
 
   private static final Optional<String> E2E_TEST = Optional.ofNullable(
@@ -47,6 +49,7 @@ public class StackGresOperatorEnd2EndIt extends AbstractStackGresOperatorIt {
         "echo 'Running "
             + (E2E_TEST.map(s -> s + " e2e test").orElse("all e2e tests")) + " from it'\n"
             + "cd /resources/e2e\n"
+            + "rm -Rf /resources/e2e/target\n"
             + "export KIND_NAME=\"$(docker inspect -f '{{.Name}}' \"$(hostname)\"|cut -d '/' -f 2)\"\n"
             + "export IMAGE_TAG=" + ItHelper.IMAGE_TAG + "\n"
             + "export REUSE_K8S=true\n"
@@ -58,7 +61,7 @@ public class StackGresOperatorEnd2EndIt extends AbstractStackGresOperatorIt {
             + "export USE_EXTERNAL_OPERATOR=true\n"
             + "export CLUSTER_CHART_PATH=/resources/stackgres-cluster\n"
             + "export OPERATOR_CHART_PATH=/resources/stackgres-operator\n"
-            + (E2E_TIMEOUT.isPresent() ? "export TIMEOUT=" + E2E_TIMEOUT.get() + "\n" : "")
+            + (E2E_TIMEOUT.isPresent() ? "export E2E_TIMEOUT=" + E2E_TIMEOUT.get() + "\n" : "")
             + (E2E_PARALLELISM.isPresent() ? "export E2E_PARALLELISM=" + E2E_PARALLELISM.get() + "\n" : "")
             + (E2E_TEST.isPresent()
             ? "if ! sh " + (E2E_DEBUG.orElse(false) ? "-x" : "")

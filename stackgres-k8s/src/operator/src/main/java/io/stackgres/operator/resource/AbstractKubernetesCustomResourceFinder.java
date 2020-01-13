@@ -7,19 +7,32 @@ package io.stackgres.operator.resource;
 
 import java.util.Optional;
 
-import io.fabric8.kubernetes.api.model.Doneable;
-import io.fabric8.kubernetes.api.model.KubernetesResourceList;
 import io.fabric8.kubernetes.client.CustomResource;
+import io.fabric8.kubernetes.client.CustomResourceDoneable;
+import io.fabric8.kubernetes.client.CustomResourceList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.operator.app.KubernetesClientFactory;
-
-import org.jooq.lambda.tuple.Tuple5;
 
 public abstract class AbstractKubernetesCustomResourceFinder<T extends CustomResource>
     implements KubernetesCustomResourceFinder<T> {
 
-  protected abstract Tuple5<KubernetesClientFactory, String, Class<T>,
-      Class<? extends KubernetesResourceList<T>>, Class<? extends Doneable<T>>> arguments();
+  private final KubernetesClientFactory clientFactory;
+  private final String customResourceName;
+  private final Class<T> customResourceClass;
+  private final Class<? extends CustomResourceList<T>> customResourceListClass;
+  private final Class<? extends CustomResourceDoneable<T>> customResourceDoneClass;
+
+  protected AbstractKubernetesCustomResourceFinder(KubernetesClientFactory clientFactory,
+      String customResourceName, Class<T> customResourceClass,
+      Class<? extends CustomResourceList<T>> customResourceListClass,
+      Class<? extends CustomResourceDoneable<T>> customResourceDoneClass) {
+    super();
+    this.clientFactory = clientFactory;
+    this.customResourceName = customResourceName;
+    this.customResourceClass = customResourceClass;
+    this.customResourceListClass = customResourceListClass;
+    this.customResourceDoneClass = customResourceDoneClass;
+  }
 
   /**
    * Will look for a customer resource by it's name in the given namespace.
@@ -28,16 +41,17 @@ public abstract class AbstractKubernetesCustomResourceFinder<T extends CustomRes
    * @return the result of the search
    */
   public Optional<T> findByNameAndNamespace(String name, String namespace) {
-    try (KubernetesClient client = arguments().v1.create()) {
-      return ResourceUtil.getCustomResource(client, arguments().v2)
-          .map(cr -> client
-              .customResources(cr,
-                  arguments().v3,
-                  arguments().v4,
-                  arguments().v5)
+    try (KubernetesClient client = clientFactory.create()) {
+      return ResourceUtil.getCustomResource(client, customResourceName)
+          .map(crd -> Optional.ofNullable(client.customResources(crd,
+              customResourceClass,
+              customResourceListClass,
+              customResourceDoneClass)
               .inNamespace(namespace)
               .withName(name)
-              .get());
+              .get()))
+          .orElseThrow(() -> new IllegalStateException("StackGres is not correctly installed:"
+              + " CRD " + customResourceName + " not found."));
     }
   }
 

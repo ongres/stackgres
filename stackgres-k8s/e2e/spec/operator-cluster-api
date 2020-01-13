@@ -1,6 +1,6 @@
 #!/bin/sh
 
-test_install() {
+e2e_test_install() {
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1
 
   deploy_curl_pod "$CLUSTER_NAMESPACE"
@@ -12,7 +12,7 @@ test_install() {
     > "$LOG_PATH/stackgres-cluster.json"
 }
 
-test() {
+e2e_test() {
   run_test "Check that a created cluster can be accessed directly through the API" check_cluster_directly
 
   run_test "Check that a created cluster is included in the response" check_cluster_in_list

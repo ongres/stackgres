@@ -1,6 +1,6 @@
 #!/bin/sh
 
-test_install() {
+e2e_test_install() {
   PGCONFIG=postgresconf
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 --set cluster.create=false --set cluster.pgconfig=$PGCONFIG
@@ -14,11 +14,11 @@ test_install() {
   kubectl delete sgpgconfigs.stackgres.io -n $CLUSTER_NAMESPACE $PGCONFIG
 }
 
-test_after_all() {
+e2e_test_after_all() {
   unset PGCONFIG
 }
 
-test() {
+e2e_test() {
   run_test "Chat that a created pgconfig can be accessed directly through the API" check_pgconfig_directly
 
   run_test "Check that a created pgconfig is included in the response" check_pgconfig_in_list

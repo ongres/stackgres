@@ -16,8 +16,8 @@ import com.google.common.collect.ImmutableList;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
-import io.stackgres.operator.common.QuarkusProfile;
-import io.stackgres.operator.common.StackGresClusterConfig;
+import io.stackgres.operator.cluster.ClusterStatefulSet;
+import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.customresource.sgbackupconfig.AwsS3Storage;
 import io.stackgres.operator.customresource.sgbackupconfig.AzureBlobStorage;
 import io.stackgres.operator.customresource.sgbackupconfig.BackupStorage;
@@ -28,20 +28,26 @@ import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfig
 import io.stackgres.operator.resource.ResourceUtil;
 import io.stackgres.operator.sidecars.envoy.Envoy;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class PatroniConfigMap {
 
-  static final String POSTGRES_PORT_NAME = "pgport";
-  static final String POSTGRES_REPLICATION_PORT_NAME = "pgreplication";
+  public static final String POSTGRES_PORT_NAME = "pgport";
+  public static final String POSTGRES_REPLICATION_PORT_NAME = "pgreplication";
+
+  private static final Logger PATRONI_LOGGER = LoggerFactory.getLogger("patroni");
+  private static final Logger WAL_G_LOGGER = LoggerFactory.getLogger("wal-g");
 
   /**
    * Create the ConfigMap associated with the cluster.
    */
-  public static ConfigMap create(StackGresClusterConfig config, ObjectMapper objectMapper) {
-    final String name = config.getCluster().getMetadata().getName();
-    final String namespace = config.getCluster().getMetadata().getNamespace();
-    final String pgVersion = config.getCluster().getSpec().getPostgresVersion();
+  public static ConfigMap create(StackGresClusterContext context, ObjectMapper objectMapper) {
+    final String name = context.getCluster().getMetadata().getName();
+    final String namespace = context.getCluster().getMetadata().getNamespace();
+    final String pgVersion = context.getCluster().getSpec().getPostgresVersion();
 
-    Map<String, String> labels = ResourceUtil.patroniClusterLabels(name);
+    Map<String, String> labels = ResourceUtil.patroniClusterLabels(context.getCluster());
 
     final String patroniLabels;
     try {
@@ -51,51 +57,52 @@ public class PatroniConfigMap {
     }
 
     Map<String, String> data = new HashMap<>();
-    data.put("PATRONI_SCOPE", name);
-    data.put("PATRONI_SUPERUSER_USERNAME", "postgres");
-    data.put("PATRONI_KUBERNETES_USE_ENDPOINTS", "true");
-    data.put("PATRONI_REPLICATION_USERNAME", "replicator");
+    data.put("PATRONI_SCOPE", ResourceUtil.clusterScope(context.getCluster()));
+    data.put("PATRONI_KUBERNETES_SCOPE_LABEL", ResourceUtil.clusterScopeKey());
     data.put("PATRONI_KUBERNETES_LABELS", patroniLabels);
+    data.put("PATRONI_KUBERNETES_USE_ENDPOINTS", "true");
+    data.put("PATRONI_SUPERUSER_USERNAME", "postgres");
+    data.put("PATRONI_REPLICATION_USERNAME", "replicator");
     data.put("PATRONI_POSTGRESQL_LISTEN", "127.0.0.1:" + Envoy.PG_RAW_PORT);
     data.put("PATRONI_POSTGRESQL_CONNECT_ADDRESS",
         "${PATRONI_KUBERNETES_POD_IP}:" + Envoy.PG_RAW_ENTRY_PORT);
 
     data.put("PATRONI_RESTAPI_LISTEN", "0.0.0.0:8008");
-    data.put("PATRONI_POSTGRESQL_DATA_DIR", StackGresStatefulSet.DATA_VOLUME_PATH);
+    data.put("PATRONI_POSTGRESQL_DATA_DIR", ClusterStatefulSet.DATA_VOLUME_PATH);
     data.put("PATRONI_POSTGRESQL_BIN_DIR", "/usr/lib/postgresql/" + pgVersion + "/bin");
     data.put("PATRONI_POSTGRES_UNIX_SOCKET_DIRECTORY", "/run/postgresql");
 
-    if (QuarkusProfile.getActiveProfile().isDev()) {
+    if (PATRONI_LOGGER.isTraceEnabled()) {
       data.put("PATRONI_LOG_LEVEL", "DEBUG");
     }
 
-    data.put("PGDATA", StackGresStatefulSet.DATA_VOLUME_PATH);
+    data.put("PGDATA", ClusterStatefulSet.DATA_VOLUME_PATH);
     data.put("PGPORT", String.valueOf(Envoy.PG_RAW_PORT));
     data.put("PGUSER", "postgres");
     data.put("PGDATABASE", "postgres");
     data.put("PGHOST", "/run/postgresql");
     data.put("WALG_COMPRESSION_METHOD", getFromConfig(
-        config, StackGresBackupConfigSpec::getCompressionMethod));
-    if (hasFromConfig(config, StackGresBackupConfigSpec::getNetworkRateLimit)) {
+        context, StackGresBackupConfigSpec::getCompressionMethod));
+    if (hasFromConfig(context, StackGresBackupConfigSpec::getNetworkRateLimit)) {
       data.put("WALG_NETWORK_RATE_LIMIT", getFromConfig(
-          config, StackGresBackupConfigSpec::getNetworkRateLimit));
+          context, StackGresBackupConfigSpec::getNetworkRateLimit));
     }
-    if (hasFromConfig(config, StackGresBackupConfigSpec::getDiskRateLimit)) {
+    if (hasFromConfig(context, StackGresBackupConfigSpec::getDiskRateLimit)) {
       data.put("WALG_DISK_RATE_LIMIT", getFromConfig(
-          config, StackGresBackupConfigSpec::getDiskRateLimit));
+          context, StackGresBackupConfigSpec::getDiskRateLimit));
     }
     data.put("WALG_UPLOAD_DISK_CONCURRENCY", getFromConfig(
-        config, StackGresBackupConfigSpec::getUploadDiskConcurrency));
+        context, StackGresBackupConfigSpec::getUploadDiskConcurrency));
     data.put("WALG_TAR_SIZE_THRESHOLD", getFromConfig(
-        config, StackGresBackupConfigSpec::getTarSizeThreshold));
+        context, StackGresBackupConfigSpec::getTarSizeThreshold));
 
-    Optional<BackupVolume> storageForVolume = getStorageFor(config, BackupStorage::getVolume);
+    Optional<BackupVolume> storageForVolume = getStorageFor(context, BackupStorage::getVolume);
     if (storageForVolume.isPresent()) {
-      data.put("WALG_FILE_PREFIX", StackGresStatefulSet.BACKUP_VOLUME_PATH
+      data.put("WALG_FILE_PREFIX", ClusterStatefulSet.BACKUP_VOLUME_PATH
           + "/" + namespace + "/" + name);
     }
 
-    Optional<AwsS3Storage> storageForS3 = getStorageFor(config, BackupStorage::getS3);
+    Optional<AwsS3Storage> storageForS3 = getStorageFor(context, BackupStorage::getS3);
     if (storageForS3.isPresent()) {
       data.put("WALG_S3_PREFIX", getFromS3(storageForS3, AwsS3Storage::getPrefix)
           + "/" + namespace + "/" + name);
@@ -109,14 +116,14 @@ public class PatroniConfigMap {
       data.put("WALG_CSE_KMS_REGION", getFromS3(storageForS3, AwsS3Storage::getCseKmsRegion));
     }
 
-    Optional<GoogleCloudStorage> storageForGcs = getStorageFor(config, BackupStorage::getGcs);
+    Optional<GoogleCloudStorage> storageForGcs = getStorageFor(context, BackupStorage::getGcs);
     if (storageForGcs.isPresent()) {
       data.put("WALG_GCS_PREFIX", getFromGcs(storageForGcs, GoogleCloudStorage::getPrefix)
           + "/" + namespace + "/" + name);
     }
 
     Optional<AzureBlobStorage> storageForAzureBlob = getStorageFor(
-        config, BackupStorage::getAzureblob);
+        context, BackupStorage::getAzureblob);
     if (storageForS3.isPresent()) {
       data.put("WALG_AZ_PREFIX", getFromAzureBlob(
           storageForAzureBlob, AzureBlobStorage::getPrefix)
@@ -127,7 +134,7 @@ public class PatroniConfigMap {
           storageForAzureBlob, AzureBlobStorage::getMaxBuffers));
     }
 
-    if (QuarkusProfile.getActiveProfile().isDev()) {
+    if (WAL_G_LOGGER.isTraceEnabled()) {
       data.put("WALG_LOG_LEVEL", "DEVEL");
     }
 
@@ -136,33 +143,34 @@ public class PatroniConfigMap {
         .withNamespace(namespace)
         .withName(name)
         .withLabels(labels)
-        .withOwnerReferences(ImmutableList.of(ResourceUtil.getOwnerReference(config.getCluster())))
+        .withOwnerReferences(ImmutableList.of(
+            ResourceUtil.getOwnerReference(context.getCluster())))
         .endMetadata()
         .withData(data)
         .build();
   }
 
-  private static <T> boolean hasFromConfig(StackGresClusterConfig config,
+  private static <T> boolean hasFromConfig(StackGresClusterContext context,
       Function<StackGresBackupConfigSpec, T> getter) {
-    return config.getBackupConfig()
+    return context.getBackupConfig()
         .map(StackGresBackupConfig::getSpec)
         .map(getter)
         .map(PatroniConfigMap::convertEnvValue)
         .isPresent();
   }
 
-  private static <T> String getFromConfig(StackGresClusterConfig config,
+  private static <T> String getFromConfig(StackGresClusterContext context,
       Function<StackGresBackupConfigSpec, T> getter) {
-    return config.getBackupConfig()
+    return context.getBackupConfig()
         .map(StackGresBackupConfig::getSpec)
         .map(getter)
         .map(PatroniConfigMap::convertEnvValue)
         .orElse("");
   }
 
-  private static <T> Optional<T> getStorageFor(StackGresClusterConfig config,
+  private static <T> Optional<T> getStorageFor(StackGresClusterContext context,
       Function<BackupStorage, T> getter) {
-    return config.getBackupConfig()
+    return context.getBackupConfig()
         .map(StackGresBackupConfig::getSpec)
         .map(StackGresBackupConfigSpec::getStorage)
         .map(getter);

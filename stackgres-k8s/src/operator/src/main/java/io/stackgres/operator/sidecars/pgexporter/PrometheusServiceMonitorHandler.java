@@ -5,8 +5,6 @@
 
 package io.stackgres.operator.sidecars.pgexporter;
 
-import java.util.AbstractMap.SimpleEntry;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -20,10 +18,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.kubernetes.internal.KubernetesDeserializer;
-import io.stackgres.operator.common.Kind;
-import io.stackgres.operator.common.StackGresClusterConfig;
-import io.stackgres.operator.controller.ResourceHandlerContext;
-import io.stackgres.operator.resource.ResourceHandler;
+import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.resource.ResourceUtil;
 import io.stackgres.operator.sidecars.pgexporter.customresources.Endpoint;
 import io.stackgres.operator.sidecars.pgexporter.customresources.NamespaceSelector;
@@ -32,22 +27,28 @@ import io.stackgres.operator.sidecars.pgexporter.customresources.ServiceMonitorD
 import io.stackgres.operator.sidecars.pgexporter.customresources.ServiceMonitorDoneable;
 import io.stackgres.operator.sidecars.pgexporter.customresources.ServiceMonitorList;
 import io.stackgres.operator.sidecars.pgexporter.customresources.ServiceMonitorSpec;
+import io.stackgres.operatorframework.resource.Kind;
 import io.stackgres.operatorframework.resource.PairVisitor;
+import io.stackgres.operatorframework.resource.ResourceHandler;
+import io.stackgres.operatorframework.resource.ResourceHandlerContext;
 import io.stackgres.operatorframework.resource.ResourcePairVisitor;
+
+import org.jooq.lambda.tuple.Tuple;
+import org.jooq.lambda.tuple.Tuple2;
 
 @Kind(ServiceMonitor.class)
 @ApplicationScoped
-public class PrometheusServiceMonitorHandler implements ResourceHandler {
+public class PrometheusServiceMonitorHandler implements ResourceHandler<StackGresClusterContext> {
 
   @Override
-  public boolean equals(ResourceHandlerContext resourceHandlerContext,
+  public boolean equals(ResourceHandlerContext<StackGresClusterContext> resourceHandlerContext,
       HasMetadata existingResource, HasMetadata requiredResource) {
     return ResourcePairVisitor.equals(new ServiceMonitorVisitor<>(),
         existingResource, requiredResource);
   }
 
   @Override
-  public HasMetadata update(ResourceHandlerContext resourceHandlerContext,
+  public HasMetadata update(ResourceHandlerContext<StackGresClusterContext> resourceHandlerContext,
       HasMetadata existingResource, HasMetadata requiredResource) {
     return ResourcePairVisitor.update(new ServiceMonitorVisitor<>(),
         existingResource, requiredResource);
@@ -61,10 +62,11 @@ public class PrometheusServiceMonitorHandler implements ResourceHandler {
 
   @Override
   public Stream<HasMetadata> getOrphanResources(KubernetesClient client,
-      ImmutableList<StackGresClusterConfig> existingConfigs) {
-    ImmutableList<Map.Entry<String, String>> existingConfigsLabels = existingConfigs.stream()
-        .map(config -> new SimpleEntry<>(config.getCluster().getMetadata().getName(),
-            config.getCluster().getMetadata().getNamespace()))
+      ImmutableList<StackGresClusterContext> existingContexts) {
+    ImmutableList<Tuple2<String, String>> existingConfigsLabels = existingContexts.stream()
+        .map(context -> Tuple.tuple(
+            context.getCluster().getMetadata().getNamespace(),
+            ResourceUtil.clusterUid(context.getCluster())))
         .collect(ImmutableList.toImmutableList());
     return getServiceMonitorClient(client)
         .map(crClient -> crClient
@@ -74,21 +76,24 @@ public class PrometheusServiceMonitorHandler implements ResourceHandler {
             .getItems()
             .stream()
             .filter(serviceMonitor -> !existingConfigsLabels.stream()
-                .allMatch(e -> Objects.equals(e.getValue(),
-                    serviceMonitor.getMetadata().getLabels().get(e.getKey()))))
+                .anyMatch(e -> Objects.equals(e.v1,
+                    serviceMonitor.getMetadata().getLabels().get(
+                        ResourceUtil.CLUSTER_NAMESPACE_KEY))
+                    && Objects.equals(e.v2,
+                        serviceMonitor.getMetadata().getLabels().get(
+                            ResourceUtil.CLUSTER_UID_KEY))))
             .map(cr -> (HasMetadata) cr))
         .orElse(Stream.empty());
   }
 
   @Override
   public Stream<HasMetadata> getResources(KubernetesClient client,
-      StackGresClusterConfig config) {
+      StackGresClusterContext context) {
     return getServiceMonitorClient(client)
         .map(crClient -> crClient
             .inAnyNamespace()
-            .withLabels(ResourceUtil.defaultLabels(
-                config.getCluster().getMetadata().getNamespace(),
-                config.getCluster().getMetadata().getName()))
+            .withLabels(ResourceUtil.clusterCrossNamespaceLabels(
+                context.getCluster()))
             .list()
             .getItems()
             .stream()
@@ -195,6 +200,16 @@ public class PrometheusServiceMonitorHandler implements ResourceHandler {
           .visitList(NamespaceSelector::getMatchNames, NamespaceSelector::setMatchNames);
     }
 
+  }
+
+  @Override
+  public String getContextNamespaceOf(HasMetadata resource) {
+    return resource.getMetadata().getLabels().get(ResourceUtil.CLUSTER_NAMESPACE_KEY);
+  }
+
+  @Override
+  public String getContextNameOf(HasMetadata resource) {
+    return resource.getMetadata().getLabels().get(ResourceUtil.CLUSTER_NAME_KEY);
   }
 
 }

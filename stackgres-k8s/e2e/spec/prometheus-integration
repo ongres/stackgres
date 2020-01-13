@@ -1,66 +1,31 @@
 #!/bin/sh
 
-test_install() {  
+e2e_test_install() {  
 
   PROMETHEUS_NAMESPACE="$CLUSTER_NAMESPACE-monitor"
   GRAFANA_CREDENTIALS=admin:prom-operator
-  
-  helm del --purge prometheus || true
-  kubectl delete namespace "$PROMETHEUS_NAMESPACE" || true
-  kubectl delete customresourcedefinitions.apiextensions.k8s.io alertmanagers.monitoring.coreos.com || true 
-  kubectl delete customresourcedefinitions.apiextensions.k8s.io podmonitors.monitoring.coreos.com || true
-  kubectl delete customresourcedefinitions.apiextensions.k8s.io prometheuses.monitoring.coreos.com || true
-  kubectl delete customresourcedefinitions.apiextensions.k8s.io prometheusrules.monitoring.coreos.com || true
-  kubectl delete customresourcedefinitions.apiextensions.k8s.io servicemonitors.monitoring.coreos.com || true
 
-  helm template --namespace $PROMETHEUS_NAMESPACE --name prometheus stable/prometheus-operator | kubectl delete -n $PROMETHEUS_NAMESPACE --ignore-not-found -f -
+  helm template --namespace $PROMETHEUS_NAMESPACE --name prometheus stable/prometheus-operator \
+    | kubectl delete -n $PROMETHEUS_NAMESPACE --ignore-not-found -f -
 
   helm install --namespace $PROMETHEUS_NAMESPACE --name prometheus stable/prometheus-operator || true
-
+  
   wait_pods_running "$PROMETHEUS_NAMESPACE" 8
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1
 
   deploy_curl_pod "$CLUSTER_NAMESPACE"
 
-  wait_pods_running "$CLUSTER_NAMESPACE" 1
+  wait_pods_running "$CLUSTER_NAMESPACE" 2
 
 }
 
-curl_create_grafana_dashboard() {
-  DASHBOARD_ID=9628
-  cat << EOF > $LOG_PATH/dashboard.json
-{
-  "dashboard": $(run_curl -s "prometheus-grafana" -N $PROMETHEUS_NAMESPACE -r "api/gnet/dashboards/$DASHBOARD_ID" -e '-u $GRAFANA_CREDENTIALS' | run_jq .json),
-  "overwrite": true,
-  "inputs": [{
-    "name": "DS_PROMETHEUS",
-    "type": "datasource",
-    "pluginId": "prometheus",
-    "value": "Prometheus"
-  }]
-}
-EOF
-
-  run_curl -s "prometheus-grafana" -N $PROMETHEUS_NAMESPACE -r "/api/dashboards/import"\
-    -e "-H 'Accept: application/json' -H 'Content-Type: application/json' -u "$GRAFANA_CREDENTIALS"" \
-    -d "$LOG_PATH/dashboard.json"
-}
-
-test_after_all(){
-  helm del --purge prometheus || true
-  kubectl delete namespace "$PROMETHEUS_NAMESPACE" || true
-  kubectl delete customresourcedefinitions.apiextensions.k8s.io alertmanagers.monitoring.coreos.com || true 
-  kubectl delete customresourcedefinitions.apiextensions.k8s.io podmonitors.monitoring.coreos.com || true
-  kubectl delete customresourcedefinitions.apiextensions.k8s.io prometheuses.monitoring.coreos.com || true
-  kubectl delete customresourcedefinitions.apiextensions.k8s.io prometheusrules.monitoring.coreos.com || true
-  kubectl delete customresourcedefinitions.apiextensions.k8s.io servicemonitors.monitoring.coreos.com || true
-
+e2e_test_after_all(){
   unset PROMETHEUS_NAMESPACE
   unset GRAFANA_CREDENTIALS
 }
 
-test(){
+e2e_test(){
   run_test "Check that exporter service is created" check_exporter_service
   run_test "Check that service monitor was created" check_service_monitor
   run_test "Check that grafana is embedded" check_service_monitor
@@ -72,7 +37,7 @@ check_exporter_service(){
 
   EXPORTER_SERVICE="$CLUSTER_NAME-prometheus-postgres-exporter"
 
-  if kubectl get services -n "$CLUSTER_NAMESPACE" $EXPORTER_SERVICE
+  if wait_until kubectl get services -n "$CLUSTER_NAMESPACE" $EXPORTER_SERVICE
   then
     echo "Exporter service was created"
   else
@@ -83,9 +48,9 @@ check_exporter_service(){
 
 check_service_monitor(){
 
-  local SERVICE_MONITOR="$CLUSTER_NAME-stackgres-prometheus-postgres-exporter"
+  local SERVICE_MONITOR="$CLUSTER_NAMESPACE-$CLUSTER_NAME-stackgres-prometheus-postgres-exporter"
 
-  if kubectl get servicemonitors.monitoring.coreos.com -n "$PROMETHEUS_NAMESPACE" $SERVICE_MONITOR
+  if wait_until kubectl get servicemonitors.monitoring.coreos.com -n "$PROMETHEUS_NAMESPACE" $SERVICE_MONITOR
   then
     echo "Service monitor was created"
   else
@@ -99,13 +64,6 @@ get_cluster_pod_configs(){
   local HTTP_STATUS
   HTTP_STATUS="$(run_curl -r "stackgres/cluster/pods/$CLUSTER_NAMESPACE/$CLUSTER_NAME" -e "-LI -o /dev/null -w %{http_code}")"
   echo $HTTP_STATUS
-}
-
-get_grafana_embedded(){
-
-  local GRAFANA_EMBEDDED="$(run_curl -r "stackgres/cluster/pods/$CLUSTER_NAMESPACE/$CLUSTER_NAME" -e "-LI -o /dev/null" | run_jq '.grafanaEmbedded' -r)"
-  echo $GRAFANA_EMBEDDED
-
 }
 
 check_grafana_embedded(){
@@ -140,4 +98,31 @@ check_grafana_embedded(){
     echo "Fail. Grafana is not embedded"
     return 1
   fi
+}
+
+get_grafana_embedded(){
+
+  local GRAFANA_EMBEDDED="$(run_curl -r "stackgres/cluster/pods/$CLUSTER_NAMESPACE/$CLUSTER_NAME" -e "-LI -o /dev/null" | run_jq '.grafanaEmbedded' -r)"
+  echo $GRAFANA_EMBEDDED
+
+}
+
+curl_create_grafana_dashboard() {
+  DASHBOARD_ID=9628
+  cat << EOF > $LOG_PATH/dashboard.json
+{
+  "dashboard": $(run_curl -s "prometheus-grafana" -N $PROMETHEUS_NAMESPACE -r "api/gnet/dashboards/$DASHBOARD_ID" -e '-u $GRAFANA_CREDENTIALS' | run_jq .json),
+  "overwrite": true,
+  "inputs": [{
+    "name": "DS_PROMETHEUS",
+    "type": "datasource",
+    "pluginId": "prometheus",
+    "value": "Prometheus"
+  }]
+}
+EOF
+
+  run_curl -s "prometheus-grafana" -N $PROMETHEUS_NAMESPACE -r "/api/dashboards/import"\
+    -e "-H 'Accept: application/json' -H 'Content-Type: application/json' -u "$GRAFANA_CREDENTIALS"" \
+    -d "$LOG_PATH/dashboard.json"
 }

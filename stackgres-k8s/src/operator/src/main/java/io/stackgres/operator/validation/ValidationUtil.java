@@ -13,6 +13,7 @@ public class ValidationUtil {
   public static final String CONNPOOLCONFIG_VALIDATION_PATH =
       VALIDATION_PATH + "/sgconnectionpoolingconfig";
   public static final String BACKUPCONFIG_VALIDATION_PATH = VALIDATION_PATH + "/sgbackupconfig";
+  public static final String BACKUP_VALIDATION_PATH = VALIDATION_PATH + "/sgbackup";
   public static final String PROFILE_VALIDATION_PATH = VALIDATION_PATH + "/sgprofile";
 
   private ValidationUtil() {

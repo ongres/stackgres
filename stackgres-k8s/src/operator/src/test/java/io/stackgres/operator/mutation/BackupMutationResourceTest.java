@@ -5,8 +5,9 @@
 
 package io.stackgres.operator.mutation;
 
+import io.stackgres.operator.common.BackupConfigReview;
 import io.stackgres.operator.utils.JsonUtil;
-import io.stackgres.operator.validation.BackupConfigReview;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

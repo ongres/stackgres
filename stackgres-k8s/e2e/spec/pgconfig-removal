@@ -1,6 +1,6 @@
 #!/bin/sh
 
-test() {
+e2e_test() {
   run_test "Trying to delete pgconfig with cluster running" delete_with_cluster
 
   run_test "Trying to delete pgconfig without cluster running" delete_whitout_cluster

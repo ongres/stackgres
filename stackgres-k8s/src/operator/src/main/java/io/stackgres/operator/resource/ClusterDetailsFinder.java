@@ -24,16 +24,15 @@ import org.jooq.lambda.tuple.Tuple;
 @ApplicationScoped
 public class ClusterDetailsFinder implements KubernetesCustomResourceFinder<ClusterPodConfig> {
 
-  private KubernetesCustomResourceFinder<StackGresCluster> clusterFinder;
-
-  private KubernetesClientFactory kubClientFactory;
+  private final KubernetesCustomResourceFinder<StackGresCluster> clusterFinder;
+  private final KubernetesClientFactory kubClientFactory;
 
   private ConfigContext context;
 
   @Inject
   public ClusterDetailsFinder(KubernetesCustomResourceFinder<StackGresCluster> clusterFinder,
-                              KubernetesClientFactory kubClientFactory,
-                              ConfigContext context) {
+      KubernetesClientFactory kubClientFactory,
+      ConfigContext context) {
     this.clusterFinder = clusterFinder;
     this.kubClientFactory = kubClientFactory;
     this.context = context;
@@ -78,7 +77,7 @@ public class ClusterDetailsFinder implements KubernetesCustomResourceFinder<Clus
   private List<ClusterPodStatus> getClusterPods(StackGresCluster cluster, KubernetesClient client) {
     return client.pods()
         .inNamespace(cluster.getMetadata().getNamespace())
-        .withLabels(ResourceUtil.defaultLabels(cluster.getMetadata().getName()))
+        .withLabels(ResourceUtil.clusterLabels(cluster))
         .list()
         .getItems()
         .stream()

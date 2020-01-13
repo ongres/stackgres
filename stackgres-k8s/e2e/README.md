@@ -42,10 +42,11 @@ mvn clean verify -P native,build-image-native,integration -Dit.test=StackGresOpe
 
 Some environment variables allow to control how e2e test behave:
 
-* `ENV`: This set the environment to script to use in order to setup the kubernetes cluster.
+* `E2E_ENV`: This set the environment to script to use in order to setup the kubernetes cluster.
+* `E2E_TIMEOUT`: Some operation wait on pods to be running or terminated. This environment variable controls the timeout in seconds of those operations (default: 3 minutes).
+* `E2E_PARALLELISM`: The number of test to run in parallel with `run-all-tests.sh` (default: 8).
 * `KUBERNETES_VERSION`: This set the kubernetes cluster version to setup (default: 1.12).
 * `IMAGE_TAG`: The tag of the operator image to use in the e2e test (default: development-jvm).
-* `TIMEOUT`: Some operation wait on pods to be running or terminated. This environment variable controls the timeout in seconds of those operations (default: 3 minutes).
 * `DEBUG_OPERATOR`: Enable operator debug (you must rebuild the operator image for this to work).
 * `DEBUG_OPERATOR_SUSPEND`: Suspend operator JVM Enable operator debug (you must rebuild the operator image for this to work).
 * `REUSE_K8S`: Kubernetes cluster setup can be very expensive in terms of time. Set this environment variable to true to reuse a kubernetes cluster if already exists.
@@ -58,8 +59,8 @@ Some environment variables allow to control how e2e test behave:
 Those environment variable affect the e2e test only if kind environment is used.
 
 * `KIND_NAME`: The name of the kind cluster.
-* `KIND_NAME`: The name of the kind cluster.
-* `USE_KIND_INTERNAL`: Set to true to use docker internal IPs for kubernetes configuration to access the kind cluster (some systems like mac and windows will not work with this).
+* `USE_KIND_INTERNAL`: Set to true to use docker internal IPs for kubernetes configuration to access the kind cluster
+ (some systems like macos or windows will not work with this but it is useful to run e2e in docker).
 
 ## Write a test
 
@@ -68,19 +69,19 @@ Each test start a stackgres cluster in the namespace with the same name of the s
 To write a test create a spec script file in `spec` folder and implement following functions (they must be posix 
  compatible shell scripts):
 
-* `test`: The main test function. Inside this function you should call the `run_test` function followed by a method
+* `e2e_test`: The main test function. Inside this function you should call the `run_test` function followed by a method
  name declared in the same spec script file and run your commands there. If any command fail in a test the test must
  fail. The only exception to this rule is when a check on a command is required by the test, in such case return a 1
  in case the test failure is due to this check.
 
-* `test_before_all` (optional): This function run before all tests. Used to setup test dependent resources.
+* `e2e_test_before_all` (optional): This function run before all tests. Used to setup test dependent resources.
 
-* `test_after_all` (optional): This function run after all tests. Used to tear down test dependent resources.
+* `e2e_test_after_all` (optional): This function run after all tests. Used to tear down test dependent resources.
 
-* `test_install_pods` (optional): This function print the number of pod to expect running before starting the test
+* `e2e_test_install_pods` (optional): This function print the number of pod to expect running before starting the test
  (is used by `test_install`).
 
-* `test_install` (optional): This function allow to overwrite the cluster creation.
+* `e2e_test_install` (optional): This function allow to overwrite the cluster creation.
 
 A YAML with installation values to use to install the cluster can be created using the name `<spec script file name>.values.yaml`.
 
@@ -99,9 +100,10 @@ Kubernetes cluster support can be achieved by creating a new environment script 
  cluster using `kubectl` and implement the following function (they must be posix 
  compatible shell scripts):
 
-* `reset_k8s`: Create the kubernetes cluster and setup system in order to access
+* `reset_k8s`: Create the kubernetes cluster if not exists and setup system in order to access
  the kubernetes cluster using `kubectl`.
 * `reuse_k8s`: Setup the system in order to access the kubernetes cluster using
  `kubectl`.
+* `delete_k8s`: Delete the kubernetes cluster.
 * `load_operator_k8s`: Load an image from a local docker registry (currently the
  project build the image and store it there) to the kubernetes cluster.

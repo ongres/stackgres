@@ -8,12 +8,13 @@ package io.stackgres.operator.validation.pgbouncer;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import io.stackgres.operator.common.ArcUtil;
 import io.stackgres.operator.common.PgBouncerReview;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
-import io.stackgres.operator.customresource.sgcluster.StackGresClusterList;
-import io.stackgres.operator.resource.KubernetesResourceScanner;
+import io.stackgres.operator.resource.KubernetesCustomResourceScanner;
 import io.stackgres.operator.validation.DependenciesValidator;
 import io.stackgres.operatorframework.ValidationFailed;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,8 +27,13 @@ public class PgBouncerDependenciesValidator extends DependenciesValidator<PgBoun
 
   @Inject
   public PgBouncerDependenciesValidator(
-      KubernetesResourceScanner<StackGresClusterList> clusterScanner) {
+      KubernetesCustomResourceScanner<StackGresCluster> clusterScanner) {
     super(clusterScanner);
+  }
+
+  public PgBouncerDependenciesValidator() {
+    super(null);
+    ArcUtil.checkPublicNoArgsConstructorIsCalledFromArc();
   }
 
   @Override

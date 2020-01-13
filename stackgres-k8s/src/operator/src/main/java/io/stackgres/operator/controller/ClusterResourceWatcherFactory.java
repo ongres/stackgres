@@ -5,12 +5,15 @@
 
 package io.stackgres.operator.controller;
 
+import java.util.function.Consumer;
+
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.Watcher;
+import io.fabric8.kubernetes.client.Watcher.Action;
 import io.quarkus.runtime.Application;
 
 import org.slf4j.Logger;
@@ -22,7 +25,6 @@ public class ClusterResourceWatcherFactory {
   private static final Logger LOGGER =
       LoggerFactory.getLogger(ClusterResourceWatcherFactory.class);
 
-  private final ClusterReconciliationCycle clusterReconciliationCycle;
   private final EventController eventController;
 
   /**
@@ -30,33 +32,30 @@ public class ClusterResourceWatcherFactory {
    */
   @Inject
   public ClusterResourceWatcherFactory(
-      ClusterReconciliationCycle clusterReconciliationCycle,
       EventController eventController) {
     super();
-    this.clusterReconciliationCycle = clusterReconciliationCycle;
     this.eventController = eventController;
   }
 
-  public <T extends HasMetadata> Watcher<T> createWatcher() {
-    return new WatcherInstance<>();
+  public <T extends HasMetadata> Watcher<T> createWatcher(Consumer<Action> actionConsumer) {
+    return new WatcherInstance<>(actionConsumer);
   }
 
   private class WatcherInstance<T extends HasMetadata> implements Watcher<T> {
+
+    private final Consumer<Action> actionConsumer;
+
+    public WatcherInstance(Consumer<Action> actionConsumer) {
+      super();
+      this.actionConsumer = actionConsumer;
+    }
 
     @Override
     public void eventReceived(Action action, T resource) {
       LOGGER.debug("Action <{}> on resource: [{}] {}.{}", action, resource.getKind(),
           resource.getMetadata().getNamespace(), resource.getMetadata().getName());
       try {
-        switch (action) {
-          case ADDED:
-          case DELETED:
-          case MODIFIED:
-            clusterReconciliationCycle.reconcile();
-            break;
-          default:
-            throw new UnsupportedOperationException("Action not supported: " + action);
-        }
+        actionConsumer.accept(action);
       } catch (Exception ex) {
         LOGGER.error("Error while performing action: <{}>", action, ex);
       }

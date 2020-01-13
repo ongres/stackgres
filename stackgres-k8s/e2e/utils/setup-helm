@@ -1,0 +1,38 @@
+#!/bin/sh
+
+setup_helm() {
+  if ! kubectl get pods -n kube-system -o name | grep -q '^pod/tiller-deploy-'; then
+    helm init
+  else 
+    helm init --client-only
+  fi 
+
+  kubectl get serviceaccount --namespace kube-system tiller > /dev/null \
+    || kubectl create serviceaccount --namespace kube-system tiller
+  kubectl get clusterrolebinding tiller-cluster-rule > /dev/null \
+    || kubectl create clusterrolebinding tiller-cluster-rule --clusterrole=cluster-admin --serviceaccount=kube-system:tiller
+  kubectl patch deploy --namespace kube-system tiller-deploy -p '{"spec":{"template":{"spec":{"serviceAccount":"tiller"}}}}'
+
+  wait_tiller_is_loaded
+
+  helm repo update
+}
+
+is_tiller_loaded(){
+  kubectl get pods -n kube-system \
+    | grep '^tiller-deploy-' \
+    | sed 's/ \+/ /g' \
+    | cut -d ' ' -f 2 \
+    | grep -q '1/1'
+}
+
+wait_tiller_is_loaded() {
+  until kubectl get pods -n kube-system \
+    | grep '^tiller-deploy-' \
+    | sed 's/ \+/ /g' \
+    | cut -d ' ' -f 2 \
+    | grep -q '1/1'
+  do
+    sleep 2
+  done
+}

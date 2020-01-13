@@ -9,10 +9,10 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Any;
 import javax.inject.Inject;
 
+import io.stackgres.operator.common.ArcUtil;
+import io.stackgres.operator.common.BackupConfigReview;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
-import io.stackgres.operator.customresource.sgcluster.StackGresClusterList;
-import io.stackgres.operator.resource.KubernetesResourceScanner;
-import io.stackgres.operator.validation.BackupConfigReview;
+import io.stackgres.operator.resource.KubernetesCustomResourceScanner;
 import io.stackgres.operator.validation.DependenciesValidator;
 import io.stackgres.operatorframework.ValidationFailed;
 
@@ -22,8 +22,13 @@ public class BackupConfigDependenciesValidator extends DependenciesValidator<Bac
 
   @Inject
   public BackupConfigDependenciesValidator(
-      @Any KubernetesResourceScanner<StackGresClusterList> clusterScanner) {
+      @Any KubernetesCustomResourceScanner<StackGresCluster> clusterScanner) {
     super(clusterScanner);
+  }
+
+  public BackupConfigDependenciesValidator() {
+    super(null);
+    ArcUtil.checkPublicNoArgsConstructorIsCalledFromArc();
   }
 
   @Override

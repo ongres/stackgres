@@ -13,6 +13,8 @@ import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.ExceptionMapper;
 
+import com.google.common.base.Throwables;
+
 import io.stackgres.operator.mutation.MutationUtil;
 import io.stackgres.operator.validation.ValidationUtil;
 import io.stackgres.operatorframework.AdmissionResponse;
@@ -32,11 +34,14 @@ public class AbstractGenericExceptionMapper<T extends Throwable> implements Exce
 
   @Override
   public Response toResponse(T throwable) {
-    LOGGER.error("An error occurred in the REST API", throwable);
-
     int status = Status.INTERNAL_SERVER_ERROR.getStatusCode();
-    if (throwable instanceof WebApplicationException) {
-      status = WebApplicationException.class.cast(throwable).getResponse().getStatus();
+    Throwable cause = Throwables.getRootCause(throwable);
+    if (cause instanceof WebApplicationException) {
+      status = WebApplicationException.class.cast(cause).getResponse().getStatus();
+    }
+
+    if (status == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
+      LOGGER.error("An error occurred in the REST API", throwable);
     }
 
     if (uriInfo != null && (uriInfo.getPath().startsWith(ValidationUtil.VALIDATION_PATH + "/")

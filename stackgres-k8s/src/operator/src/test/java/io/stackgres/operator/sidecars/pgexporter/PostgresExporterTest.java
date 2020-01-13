@@ -21,7 +21,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.operator.common.ConfigContext;
 import io.stackgres.operator.common.ConfigProperty;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
-import io.stackgres.operator.resource.KubernetesResourceScanner;
+import io.stackgres.operator.resource.KubernetesCustomResourceScanner;
 import io.stackgres.operator.sidecars.pgexporter.customresources.StackGresPostgresExporterConfig;
 import io.stackgres.operator.sidecars.prometheus.customresources.PrometheusConfig;
 import io.stackgres.operator.sidecars.prometheus.customresources.PrometheusConfigList;
@@ -45,7 +45,7 @@ class PostgresExporterTest {
   private KubernetesClient client;
 
   @Mock
-  private KubernetesResourceScanner<PrometheusConfigList> prometheusScanner;
+  private KubernetesCustomResourceScanner<PrometheusConfig> prometheusScanner;
 
   @Mock
   private ConfigContext configContext;
@@ -126,7 +126,7 @@ class PostgresExporterTest {
   @Test
   void givenPrometheusInTheClusterAndAutobindSettled_itShouldReturnThePrometheusInstallations() {
 
-    when(prometheusScanner.findResources()).thenReturn(Optional.of(prometheusConfigList));
+    when(prometheusScanner.findResources()).thenReturn(Optional.of(prometheusConfigList.getItems()));
 
     when(configContext.getProperty(ConfigProperty.PROMETHEUS_AUTOBIND))
         .thenReturn(Optional.of(Boolean.TRUE.toString()));
@@ -151,7 +151,7 @@ class PostgresExporterTest {
     when(configContext.getProperty(ConfigProperty.PROMETHEUS_AUTOBIND))
         .thenReturn(Optional.of(Boolean.TRUE.toString()));
 
-    when(prometheusScanner.findResources()).thenReturn(Optional.of(prometheusConfigList));
+    when(prometheusScanner.findResources()).thenReturn(Optional.of(prometheusConfigList.getItems()));
 
     prometheusConfigList.getItems().get(0).getSpec().getServiceMonitorSelector()
         .setMatchLabels(new HashMap<>());
