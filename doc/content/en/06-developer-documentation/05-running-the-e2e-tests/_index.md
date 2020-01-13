@@ -5,7 +5,8 @@ weight: 5
 
 Given the operator nature we rely heavily on our integration and e2e tests. 
 
-E2E tests are mainly composed of POSIX complaint scripts, and we intend to keep them that way. 
+E2E tests are mainly composed of POSIX complaint scripts (only exception is the use of local variables in functions),
+ and we intend to keep them that way. 
 
 The easiest way to run the e2e scripts is by executing the `stackgres-k8s/e2e/run-all-tests.sh` file.
  This script will configure a kuberentes cluster (by default kind), then it will generate jvm version
