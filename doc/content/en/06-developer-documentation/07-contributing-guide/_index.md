@@ -4,7 +4,7 @@ weight: 6
 ---
 
 StackGres is open source, and as such we welcome any external contribution, in the form of feedback, testing, resources,
- documentation and, of course, code. Pull requests are always welcome.
+ documentation and, of course, code. Merge requests are always welcome.
 
 Please observe the following rules when contributing to StackGres:
 
@@ -12,7 +12,7 @@ Please observe the following rules when contributing to StackGres:
  code, to keep the discussion organized.
 
 * Contact us at stackgres at ongres dot com before sending a pull request, to have a contributor agreement signed with us.
- This is a requirement for your pull request to be merged upstream.
+ This is a requirement for your merge request to be merged upstream.
 
-* Changes and pull requests should be performed from the development branch, instead of master. Please adhere as much
+* Changes and merge requests should be performed from the development branch, instead of master. Please adhere as much
  as possible to the apparent style of the code you are editing.
