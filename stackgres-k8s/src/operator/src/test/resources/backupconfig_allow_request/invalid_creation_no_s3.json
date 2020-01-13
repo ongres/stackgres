@@ -46,7 +46,7 @@
         "fullWindow": 1,
         "retention": 5,
         "storage": {
-          "type": "volume"
+          "type": "s3"
         },
         "tarSizeThreshold": 1073741823,
         "uploadDiskConcurrency": 1

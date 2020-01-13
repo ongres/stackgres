@@ -73,20 +73,8 @@ spec:
               properties:
                 type:
                   type: string
-                  enum: [ "volume", "s3", "gcs", "azureblob" ]
-                  description: "Type of storage:\n- volume: A kubernetes volume source of type nfs, cefhfs or glusterfs\n- s3: Amazon Web Services S3\n- gcs: Google Clooud Storage\n- azureblob: Azure Blob Storage"
-                volume:
-                  type: object
-                  description: "A kubernetes volume source of type nfs, cefhfs or glusterfs"
-                  properties:
-                    size:
-                      type: string
-                      pattern: '^[0-9]+(\.[0-9]+)?(Mi|Gi|Ti)$'
-                      description: "The size of the persistent volume claim for backups."
-                    writeManyStorageClass:
-                      type: string
-                      description: "The storage class of the persistent volume claim for backups. It must allow ReadWriteMany access mode."
-                  required: [ "size" ]
+                  enum: [ "s3", "gcs", "azureblob" ]
+                  description: "Type of storage:\n- s3: Amazon Web Services S3\n- gcs: Google Clooud Storage\n- azureblob: Azure Blob Storage"
                 s3:
                   type: object
                   description: "Amazon Web Services S3 configuration"

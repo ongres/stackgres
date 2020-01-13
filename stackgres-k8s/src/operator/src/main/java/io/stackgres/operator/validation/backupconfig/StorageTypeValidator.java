@@ -24,13 +24,6 @@ public class StorageTypeValidator implements BackupConfigValidator {
 
       String storageType = review.getRequest().getObject().getSpec().getStorage().getType();
 
-      if (storageType.equals("volume")
-          && review.getRequest().getObject().getSpec()
-          .getStorage().getVolume() == null) {
-        throw new ValidationFailed("Invalid backup configuration,"
-            + " source volume must be set when source type is volume");
-      }
-
       if (storageType.equals("s3")
           && review.getRequest().getObject().getSpec()
           .getStorage().getS3() == null) {
@@ -94,28 +87,21 @@ public class StorageTypeValidator implements BackupConfigValidator {
             + " source azureblob credentials must be set when source type is azureblob");
       }
 
-      if (ImmutableList.of("s3", "gcs", "azureblob").contains(storageType)
-          && review.getRequest().getObject().getSpec()
-          .getStorage().getVolume() != null) {
-        throw new ValidationFailed("Invalid backup configuration,"
-            + " source volume must not be set when source type is " + storageType);
-      }
-
-      if (ImmutableList.of("volume", "gcs", "azureblob").contains(storageType)
+      if (ImmutableList.of("gcs", "azureblob").contains(storageType)
           && review.getRequest().getObject().getSpec()
           .getStorage().getS3() != null) {
         throw new ValidationFailed("Invalid backup configuration,"
             + " source s3 must not be set when source type is " + storageType);
       }
 
-      if (ImmutableList.of("volume", "s3", "azureblob").contains(storageType)
+      if (ImmutableList.of("s3", "azureblob").contains(storageType)
           && review.getRequest().getObject().getSpec()
           .getStorage().getGcs() != null) {
         throw new ValidationFailed("Invalid backup configuration,"
             + " source gcs must not be set when source type is " + storageType);
       }
 
-      if (ImmutableList.of("volume", "s3", "gcs").contains(storageType)
+      if (ImmutableList.of("s3", "gcs").contains(storageType)
           && review.getRequest().getObject().getSpec()
           .getStorage().getAzureblob() != null) {
         throw new ValidationFailed("Invalid backup configuration,"

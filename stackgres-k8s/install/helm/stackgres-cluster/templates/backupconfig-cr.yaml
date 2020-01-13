@@ -1,13 +1,13 @@
 {{- /*
 Throw an error if create minio without default backup options
 */ -}}
-{{- if and .Values.config.backup.minio.create (not (and .Values.config.create .Values.config.backup.create (not (or .Values.config.backup.volumeWriteManyStorageClass .Values.config.backup.s3 .Values.config.backup.gcs .Values.config.backup.azureblob)))) -}}
+{{- if and .Values.config.backup.minio.create (not (and .Values.config.create .Values.config.backup.create (not (or .Values.config.backup.s3 .Values.config.backup.gcs .Values.config.backup.azureblob)))) -}}
 {{- fail "Disable minio creation (--set config.backup.minio.create=false) if not using default backup values or not creating backup configuration" -}}
 {{- end -}}
 {{- /*
 Throw an error if not create minio with default backup options
 */ -}}
-{{- if and (not .Values.config.backup.minio.create) (and .Values.config.create .Values.config.backup.create (not (or .Values.config.backup.volumeWriteManyStorageClass .Values.config.backup.s3 .Values.config.backup.gcs .Values.config.backup.azureblob))) -}}
+{{- if and (not .Values.config.backup.minio.create) (and .Values.config.create .Values.config.backup.create (not (or .Values.config.backup.s3 .Values.config.backup.gcs .Values.config.backup.azureblob))) -}}
 {{- fail "Enable minio creation (--set config.backup.minio.create=true) if using default backup values and creating backup configuration" -}}
 {{- end -}}
 {{ if and .Values.config.create .Values.config.backup.create }}
@@ -44,7 +44,7 @@ spec:
   {{- end }}
   tarSizeThreshold: {{ .Values.config.backup.tarSizeThreshold }}
   storage:
-    {{- if not (or .Values.config.backup.volumeWriteManyStorageClass .Values.config.backup.s3 .Values.config.backup.gcs .Values.config.backup.azureblob) }}
+    {{- if not (or .Values.config.backup.s3 .Values.config.backup.gcs .Values.config.backup.azureblob) }}
     type: s3
     s3:
       prefix: s3://stackgres
@@ -58,18 +58,6 @@ spec:
         secretKey:
           name: {{ .Release.Name }}-minio
           key: secretkey
-    {{- end }}
-    {{- if .Values.config.backup.volumeWriteManyStorageClass }}
-    type: volume
-    volume:
-      size: "{{ .Values.config.backup.volumeSize }}"
-      {{- if .Values.config.backup.volumeWriteManyStorageClass }}
-      {{- if eq "-" .Values.config.backup.volumeWriteManyStorageClass }}
-      writeManyStorageClass: ""
-      {{- else }}
-      writeManyStorageClass: {{ .Values.config.backup.volumeWriteManyStorageClass }}
-      {{- end }}
-      {{- end }}
     {{- end }}
     {{- if .Values.config.backup.s3 }}
     type: s3

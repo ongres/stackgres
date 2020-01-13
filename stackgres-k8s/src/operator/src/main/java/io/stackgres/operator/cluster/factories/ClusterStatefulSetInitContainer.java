@@ -6,14 +6,15 @@
 package io.stackgres.operator.cluster.factories;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.Resources;
+
 import io.fabric8.kubernetes.api.model.ConfigMapEnvSourceBuilder;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
@@ -25,6 +26,7 @@ import io.stackgres.operator.cluster.ClusterStatefulSet;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operatorframework.factories.EnvironmentVariablesFactory;
 import io.stackgres.operatorframework.factories.InitContainerFactory;
+
 import org.jooq.lambda.Unchecked;
 
 @ApplicationScoped
@@ -133,29 +135,13 @@ public class ClusterStatefulSetInitContainer
         Stream.of(new VolumeMountBuilder()
             .withName(name + ClusterStatefulSet.DATA_SUFFIX)
             .withMountPath(ClusterStatefulSet.PG_VOLUME_PATH)
-            .build()),
-        Stream.of(config.getBackupConfig()
-            .map(backupConfig -> backupConfig.getSpec().getStorage().getVolume()))
-            .filter(Optional::isPresent)
-            .map(volumeStorage -> new VolumeMountBuilder()
-                .withName(name + ClusterStatefulSet.BACKUP_SUFFIX)
-                .withMountPath(ClusterStatefulSet.BACKUP_VOLUME_PATH)
-                .build()))
+            .build()))
         .flatMap(s -> s)
         .toArray(VolumeMount[]::new);
   }
 
   private String getPermissionCommand(StackGresClusterContext config) {
-
-    final String name = config.getCluster().getMetadata().getName();
-    final String namespace = config.getCluster().getMetadata().getNamespace();
-
     return Stream.of(
-        Stream.of(config.getBackupConfig()
-            .map(backupConfig -> backupConfig.getSpec().getStorage().getVolume()))
-            .filter(Optional::isPresent)
-            .map(volumeStorage -> "mkdir -p " + ClusterStatefulSet.BACKUP_VOLUME_PATH
-                + "/" + namespace + "/" + name),
         Stream.of(
             "chmod -R 700 " + ClusterStatefulSet.PG_VOLUME_PATH,
             "chown -R 999:999 " + ClusterStatefulSet.PG_VOLUME_PATH))

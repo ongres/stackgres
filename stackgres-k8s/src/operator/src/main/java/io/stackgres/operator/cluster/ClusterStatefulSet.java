@@ -143,25 +143,6 @@ public class ClusterStatefulSet implements StatefulsetResourceBuilder {
     final Map<String, String> podLabels = ResourceUtil.statefulSetPodLabels(
         clusterContext.getCluster());
 
-    final Optional<PersistentVolumeClaim> backupVolumeClaim = clusterContext.getBackupConfig()
-        .map(backupConfig -> backupConfig.getSpec().getStorage().getVolume())
-        .map(volume -> {
-          StorageConfig backupStorageConfig = ImmutableStorageConfig.builder()
-              .size(volume.getSize())
-              .build();
-          return new PersistentVolumeClaimBuilder()
-              .withNewMetadata()
-              .withName(backupName(clusterContext))
-              .withNamespace(namespace)
-              .endMetadata()
-              .withNewSpec()
-              .withAccessModes("ReadWriteMany")
-              .withStorageClassName(volume.getWriteManyStorageClass())
-              .withResources(backupStorageConfig.getResourceRequirements())
-              .endSpec()
-              .build();
-        });
-
     StatefulSet clusterStatefulSet = new StatefulSetBuilder()
         .withNewMetadata()
         .withNamespace(namespace)
@@ -286,10 +267,6 @@ public class ClusterStatefulSet implements StatefulsetResourceBuilder {
     return ImmutableList.<HasMetadata>builder()
         .addAll(clusterContext.getSidecars().stream()
             .flatMap(sidecarEntry -> sidecarEntry.getSidecar().getResources(context).stream())
-            .iterator())
-        .addAll(Stream.of(backupVolumeClaim)
-            .filter(Optional::isPresent)
-            .map(Optional::get)
             .iterator())
         .addAll(Seq.seq(context.getExistingResources())
             .filter(existingResource -> existingResource instanceof Pod)

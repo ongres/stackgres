@@ -76,8 +76,6 @@ You can specify following parameters values:
 * `cluster.backup.pgpConfiguration.name`: The name of the secret with the private key of the OpenPGP configuration for encryption and decryption backups.
 * `cluster.backup.pgpConfiguration.key`: The key in the secret with the private key of the OpenPGP configuration for encryption and decryption backups.
 * `cluster.backup.nfs.create`: If true create a storage class backed by an NFS server that will be used to store backups.
-* `cluster.backup.volumeSize`: Define the size of the volume used for backups.
-* `cluster.backup.volumeMultiWriteStorageClass`: Define the multi-write storage class name that will be used to store backups.
 
 #### Amazon Web Services S3
 
