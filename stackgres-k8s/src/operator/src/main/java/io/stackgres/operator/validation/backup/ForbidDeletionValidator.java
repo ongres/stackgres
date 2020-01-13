@@ -37,7 +37,7 @@ public class ForbidDeletionValidator implements BackupValidator {
             .flatMap(backups -> backups.stream()
                 .filter(b -> b.getMetadata().getName().equals(review.getRequest().getName()))
                 .findFirst());
-        if (backup.map(b -> b.getStatus())
+        if (backup.map(StackGresBackup::getStatus)
             .map(status -> !status.getPhase().equals(BackupPhase.FAILED.label()))
             .orElse(true)
             && backup
