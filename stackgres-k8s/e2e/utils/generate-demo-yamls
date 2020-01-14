@@ -1,0 +1,58 @@
+#!/bin/sh
+
+generate_demo_yamls() {
+  mkdir -p "$TARGET_PATH/demo"
+
+  echo "Setting up k8s cluster"
+  (
+  if [ "$REUSE_K8S" != true ]
+  then
+    reset_k8s
+  else
+    reuse_k8s
+  fi
+
+  setup_helm
+
+  helm_cleanup
+
+  k8s_cleanup
+  )  > /dev/null
+
+  echo "Generating operator.yml"
+  (NAMESPACE=stackgres operator_to_yaml --name stackgres-operator \
+    > "$TARGET_PATH/demo/operator.yml")
+
+  echo "Installing operator.yml"
+  (
+  kubectl create -f "$TARGET_PATH/demo/operator.yml"
+
+  wait_pods_running stackgres 1
+  ) > /dev/null
+
+  echo "Generating simple-config.yml"
+  cluster_to_yaml --name simple \
+    --set cluster.create=false \
+    > "$TARGET_PATH/demo/simple-config.yml"
+  echo "Generating simple-cluster.yml"
+  cluster_to_yaml --name simple \
+    --set config.create=false \
+    --set profiles=null \
+    --set cluster.instances=2 \
+    --set config.backup.minio.create=false \
+    > "$TARGET_PATH/demo/simple-cluster.yml"
+
+  echo "Generating prometheus-config.yml"
+  helm_to_yaml stable/prometheus-operator --name prometheus-operator \
+    > "$TARGET_PATH/demo/prometheus-config.yml"
+  cluster_to_yaml --name prometheus \
+    --set cluster.create=false \
+    >> "$TARGET_PATH/demo/prometheus-config.yml"
+  echo "Generating prometheus-cluster.yml"
+  cluster_to_yaml --name prometheus \
+    --set config.create=false \
+    --set profiles=null \
+    --set cluster.instances=2 \
+    --set config.backup.minio.create=false \
+    > "$TARGET_PATH/demo/prometheus-cluster.yml"
+}
