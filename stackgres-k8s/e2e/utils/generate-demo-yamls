@@ -41,18 +41,4 @@ generate_demo_yamls() {
     --set cluster.instances=2 \
     --set config.backup.minio.create=false \
     > "$TARGET_PATH/demo/simple-cluster.yml"
-
-  echo "Generating prometheus-config.yml"
-  helm_to_yaml stable/prometheus-operator --name prometheus-operator \
-    > "$TARGET_PATH/demo/prometheus-config.yml"
-  cluster_to_yaml --name prometheus \
-    --set cluster.create=false \
-    >> "$TARGET_PATH/demo/prometheus-config.yml"
-  echo "Generating prometheus-cluster.yml"
-  cluster_to_yaml --name prometheus \
-    --set config.create=false \
-    --set profiles=null \
-    --set cluster.instances=2 \
-    --set config.backup.minio.create=false \
-    > "$TARGET_PATH/demo/prometheus-cluster.yml"
 }
