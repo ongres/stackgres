@@ -44,16 +44,10 @@ helm install --namespace stackgres --name stackgres-operator stackgres-k8s/insta
 
 Once the operator is up and running in your Kubernetes cluster you can deploy new clusters.
 
-Since default backup storage uses MinIO stable helm chart you have to download the dependency once:
-
-```
-helm dependency update stackgres-k8s/install/helm/stackgres-cluster
-```
-
 Then to deploy a new cluster just run:
 
 ```
-helm install --namespace my-namespace --name my-cluster stackgres-k8s/install/helm/stackgres-cluster
+helm install --dep-up --namespace my-namespace --name my-cluster stackgres-k8s/install/helm/stackgres-cluster
 ```
 
 You can edit the `stackgres-k8s/install/helm/stackgres-cluster/values.yaml` or use the `--set` or `--set-string`

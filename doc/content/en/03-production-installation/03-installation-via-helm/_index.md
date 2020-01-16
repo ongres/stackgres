@@ -36,7 +36,7 @@ You can specify following parameters values:
 ## Create a Cluster
 
 ```shell
-helm install ongres/stackgres-cluster
+helm install --dep-up ongres/stackgres-cluster
 ```
 
 ### Parameters
