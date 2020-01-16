@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.customresource.sgbackupconfig;
+package io.stackgres.operator.customresource.storages;
 
 import javax.validation.constraints.NotNull;
 
@@ -18,15 +18,23 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class AwsCredentials {
+public class AzureBlobStorageCredentials {
+
+  @JsonProperty("account")
+  @NotNull(message = "The account is required")
+  private SecretKeySelector account;
 
   @JsonProperty("accessKey")
   @NotNull(message = "The accessKey is required")
   private SecretKeySelector accessKey;
 
-  @JsonProperty("secretKey")
-  @NotNull(message = "The secretKey is required")
-  private SecretKeySelector secretKey;
+  public SecretKeySelector getAccount() {
+    return account;
+  }
+
+  public void setAccount(SecretKeySelector account) {
+    this.account = account;
+  }
 
   public SecretKeySelector getAccessKey() {
     return accessKey;
@@ -36,20 +44,12 @@ public class AwsCredentials {
     this.accessKey = accessKey;
   }
 
-  public SecretKeySelector getSecretKey() {
-    return secretKey;
-  }
-
-  public void setSecretKey(SecretKeySelector secretKey) {
-    this.secretKey = secretKey;
-  }
-
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .omitNullValues()
+        .add("account", account)
         .add("accessKey", accessKey)
-        .add("secretKey", secretKey)
         .toString();
   }
 

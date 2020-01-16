@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.customresource.sgbackupconfig;
+package io.stackgres.operator.customresource.storages;
 
 import javax.validation.constraints.NotNull;
 
@@ -18,25 +18,25 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class GoogleCloudCredentials {
+public class PgpConfiguration {
 
-  @JsonProperty("serviceAccountJsonKey")
-  @NotNull(message = "The serviceAccountJsonKey is required")
-  private SecretKeySelector serviceAccountJsonKey;
+  @JsonProperty("key")
+  @NotNull(message = "The key is required")
+  private SecretKeySelector key;
 
-  public SecretKeySelector getServiceAccountJsonKey() {
-    return serviceAccountJsonKey;
+  public SecretKeySelector getKey() {
+    return key;
   }
 
-  public void setServiceAccountJsonKey(SecretKeySelector serviceAccountJsonKey) {
-    this.serviceAccountJsonKey = serviceAccountJsonKey;
+  public void setKey(SecretKeySelector key) {
+    this.key = key;
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .omitNullValues()
-        .add("serviceAccountJsonKey", serviceAccountJsonKey)
+        .add("key", key)
         .toString();
   }
 

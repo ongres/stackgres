@@ -7,8 +7,7 @@ e2e_test() {
 }
 
 delete_with_cluster() {
-  if kubectl get -n "$CLUSTER_NAMESPACE" sgpgconfigs.stackgres.io postgresconf -o yaml \
-    | kubectl delete -f - > "${LOG_PATH}/test1.log" 2>&1
+  if ERROR_MESSAGE=$(kubectl delete -n "$CLUSTER_NAMESPACE" sgpgconfigs.stackgres.io postgresconf 2>&1)
   then
     echo "FAIL: It should not be able to delete sgspconfig"
     return 1
@@ -16,6 +15,7 @@ delete_with_cluster() {
     echo "SUCCESS: Good it has failed"
   fi
 
+  echo "$ERROR_MESSAGE" > "$LOG_PATH/test1.log"
   if grep -q "Can't delete sgpgconfigs.stackgres.io postgresconf" "$LOG_PATH/test1.log"
   then
     echo "SUCCESS: Error message was the expected"
@@ -32,13 +32,11 @@ delete_whitout_cluster() {
 
   wait_pods_terminated "$CLUSTER_NAMESPACE"
 
-  if kubectl get -n "$CLUSTER_NAMESPACE" sgpgconfigs.stackgres.io postgresconf -o yaml \
-    | kubectl delete -f - > "${LOG_PATH}/test2.log" 2>&1
+  if ERROR=$(kubectl delete -n "$CLUSTER_NAMESPACE" sgpgconfigs.stackgres.io postgresconf 2>&1)
   then
     echo "SUCCESS: Good. It has deleted the configuration"
     return 0
   else
-    ERROR="$(cat "$LOG_PATH/test2.log")"
     echo "FAIL: It should be able to delete the posgresconf. ERROR ${ERROR}"
     return 1
   fi

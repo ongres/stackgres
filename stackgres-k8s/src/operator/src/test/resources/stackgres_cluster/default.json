@@ -13,6 +13,7 @@
     "pgVersion": "11.5",
     "pgConfig": "postgresconf",
     "resourceProfile": "size-xs",
+    "restoreConfig": "restoreconf",
     "backupConfig": "backupconf",
     "connectionPoolingConfig": "pgbouncerconf",
     "volumeSize": "5Gi",

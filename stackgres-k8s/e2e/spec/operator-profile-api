@@ -7,9 +7,10 @@ e2e_test_install() {
 
   deploy_curl_pod "$CLUSTER_NAMESPACE"
 
-  kubectl get sgprofiles.stackgres.io -n $CLUSTER_NAMESPACE $PROFILE  -o json \
-   | run_jq 'del(.metadata.creationTimestamp) | del(.metadata.generation) | del(.metadata.resourceVersion) | del(.metadata.selfLink) | del(.metadata.uid)'\
-    > "$LOG_PATH/default-profile.json"
+  PG_PROFILE=$(kubectl get sgprofiles.stackgres.io -n $CLUSTER_NAMESPACE $PROFILE  -o json \
+   | run_jq 'del(.metadata.creationTimestamp) | del(.metadata.generation) | del(.metadata.resourceVersion) | del(.metadata.selfLink) | del(.metadata.uid)')
+
+  echo "$PG_PROFILE" > "$LOG_PATH/default-profile.json"
 
   kubectl delete sgprofiles.stackgres.io -n $CLUSTER_NAMESPACE $PROFILE
 }
@@ -41,7 +42,7 @@ e2e_test() {
 }
 
 create_profile() {
-  cat "$LOG_PATH/default-profile.json" | kubectl apply -f -
+  kubectl apply -f "$LOG_PATH/default-profile.json"
 
   while ! kubectl get sgprofiles.stackgres.io -n $CLUSTER_NAMESPACE $PROFILE
   do
@@ -193,7 +194,9 @@ update_profile_memory_with_api() {
 
   TMP_JSON=$(mktemp)
 
-  cat "$LOG_PATH/default-profile.json" | run_jq ".spec.memory = $1"  > "$TMP_JSON" && mv "$TMP_JSON" "$LOG_PATH/stackgres-profile.json"
+  PROFILE_CONFIG_FILE=$(cat "$LOG_PATH/default-profile.json" | run_jq ".spec.memory = $1")
+
+  echo "$PROFILE_CONFIG_FILE" > "$LOG_PATH/stackgres-profile.json"
 
   HTTP_STATUS=$(run_curl -r "stackgres/profile" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/stackgres-profile.json" -e '-X PUT -w %{http_code} -o /dev/null')
 

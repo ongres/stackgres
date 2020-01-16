@@ -1,0 +1,166 @@
+#!/bin/sh
+
+e2e_test_install() {
+
+      cat << EOF > "$LOG_PATH/minio-values.yaml"
+persistence:
+  enabled: true
+  size: 128Mi
+buckets:
+  - name: $CLUSTER_NAME-backup
+    policy: none
+    purge: true
+EOF
+
+  helm install stable/minio --name "$CLUSTER_NAME-backup-minio" --namespace "$CLUSTER_NAMESPACE-backup" \
+  -f "$LOG_PATH/minio-values.yaml"
+
+  SPEC_VALUES_FILE="$SPEC_FILE.backup.values.yaml"
+
+  create_or_replace_cluster "$CLUSTER_NAME-backup" "$CLUSTER_NAMESPACE-backup" 1
+
+  wait_pods_running "$CLUSTER_NAMESPACE-backup" 2
+
+  create_mock_data
+
+  # Avoid backups before waiting for pods (since backup pods could biase the wait)
+  kubectl patch sgbackupconfig -n "$CLUSTER_NAMESPACE-backup" backupconf --type json \
+    --patch '[{"op":"replace","path":"/spec/fullSchedule","value":"*/1 * * * *"}]'
+
+  wait_until eval '[ "$(kubectl exec -t -n "$CLUSTER_NAMESPACE"-backup "$CLUSTER_NAME"-backup-0 -c patroni -- \
+      wal-g backup-list | wc -l)" -gt 0 ]'
+
+  kubectl patch sgbackupconfig -n "$CLUSTER_NAMESPACE-backup" backupconf --type json \
+    --patch '[{"op":"replace","path":"/spec/fullSchedule","value":"0 5 31 2 *"}]'
+
+  BACKUP_UID=$(kubectl get sgbackups.stackgres.io -n "$CLUSTER_NAMESPACE-backup"  -o=jsonpath='{.items[0].metadata.uid}')
+
+  SPEC_VALUES_FILE="$SPEC_FILE.values.yaml"
+
+  kubectl create namespace "$CLUSTER_NAMESPACE" || true
+
+  #kubectl get secrets -n "$CLUSTER_NAMESPACE-backup" "$CLUSTER_NAMESPACE-backup-minio" --export -o yaml | kubectl apply -n "$CLUSTER_NAMESPACE" -f -
+
+  cat << EOF | kubectl apply -f -
+  apiVersion: stackgres.io/v1alpha1
+  kind: StackgresRestoreConfig
+  metadata:
+    name: restoreconf
+    namespace: $CLUSTER_NAMESPACE
+  spec:
+    source:
+      autoCopySecrets: true
+      fromBackup: $BACKUP_UID
+EOF
+  
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2
+
+  wait_pods_running "$CLUSTER_NAMESPACE" 2
+
+}
+
+e2e_test(){
+  run_test "Check that data was restored on primary node" check_init_data
+  run_test "Check that data was restored on replica node" check_replica_data
+  run_test "Check that replication is still working" check_replication
+  run_test "Check that cannot delete restore configuration while the cluster is running" check_restore_conf_removal
+  run_test "Check that is possible to delete a restore when there is no cluster depending on it" delete_whitout_cluster
+}
+
+
+create_mock_data(){
+  run_query -p 5432 -h "$CLUSTER_NAME-backup-primary" -n "$CLUSTER_NAMESPACE-backup" -c "$CLUSTER_NAME-backup" -q "'CREATE DATABASE test;'"
+  run_query -p 5432 -h "$CLUSTER_NAME-backup-primary" -n "$CLUSTER_NAMESPACE-backup" -c "$CLUSTER_NAME-backup" -q "'CREATE TABLE fibonacci(num integer);'" -d "test"
+  run_query -p 5432 -h "$CLUSTER_NAME-backup-primary" -n "$CLUSTER_NAMESPACE-backup" -c "$CLUSTER_NAME-backup" -q "'INSERT INTO fibonacci(num) VALUES (1);'" -d "test"
+  run_query -p 5432 -h "$CLUSTER_NAME-backup-primary" -n "$CLUSTER_NAMESPACE-backup" -c "$CLUSTER_NAME-backup" -q "'INSERT INTO fibonacci(num) VALUES (2);'" -d "test"
+  run_query -p 5432 -h "$CLUSTER_NAME-backup-primary" -n "$CLUSTER_NAMESPACE-backup" -c "$CLUSTER_NAME-backup" -q "'INSERT INTO fibonacci(num) VALUES (3);'" -d "test"
+}
+
+check_init_data(){
+  PRIMARY_RESPONSE=$(run_query -p 5432 -h "$CLUSTER_NAME-primary" -c "$CLUSTER_NAME" -n $CLUSTER_NAMESPACE -i 0 -q "'SELECT num FROM fibonacci;'" -d "test")
+  if [ "$(echo "$PRIMARY_RESPONSE" | tr -d '\n')" = "123" ]
+  then
+    echo "SUCCESS: restore primary db restored successfully"
+  else
+    echo "FAIL: primary db not restored"
+    return 1
+  fi
+
+}
+
+check_replica_data(){
+
+
+  REPLICA_RESPONSE=$(run_query -p 5432 -h "$CLUSTER_NAME-replica" -c "$CLUSTER_NAME" -n $CLUSTER_NAMESPACE -i 1 -q "'SELECT num FROM fibonacci;'" -d "test")
+  if [ "$(echo "$REPLICA_RESPONSE" | tr -d '\n')" = "123" ]
+  then
+    echo "SUCCESS: restore replica db restored successfully"
+  else
+    echo "FAIL: replica db not restored"
+    return 1
+  fi
+
+}
+
+check_replication(){
+  
+  run_query -p 5432 -h "$CLUSTER_NAME-primary" -c "$CLUSTER_NAME" -n $CLUSTER_NAMESPACE -i 0 -q "'INSERT INTO fibonacci(num) VALUES (5);'" -d test
+  run_query -p 5432 -h "$CLUSTER_NAME-primary" -c "$CLUSTER_NAME" -n $CLUSTER_NAMESPACE -i 0 -q "'INSERT INTO fibonacci(num) VALUES (8);'" -d test
+  run_query -p 5432 -h "$CLUSTER_NAME-primary" -c "$CLUSTER_NAME" -n $CLUSTER_NAMESPACE -i 0 -q "'INSERT INTO fibonacci(num) VALUES (13);'" -d test
+
+  PRIMARY_RESPONSE=$(run_query -p 5432 -h "$CLUSTER_NAME-primary" -c "$CLUSTER_NAME" -n $CLUSTER_NAMESPACE -i 0 -q "'SELECT num FROM fibonacci;'" -d "test")
+  REPLICA_RESPONSE=$(run_query -p 5432 -h "$CLUSTER_NAME-replica" -c "$CLUSTER_NAME" -n $CLUSTER_NAMESPACE -i 1 -q "'SELECT num FROM fibonacci;'" -d "test")
+
+  if [ "$(echo "$PRIMARY_RESPONSE" | tr -d '\n')" = "1235813" ]
+  then
+    if [ "$(echo "$PRIMARY_RESPONSE" | tr -d '\n')" = "$(echo "$REPLICA_RESPONSE" | tr -d '\n')" ]
+    then
+      echo "SUCCESS: replication is working"
+      return 0
+    else
+      echo "FAIL: replication is not working. The records don't match between primary and replica for the fibonacci table"
+      return 1
+    fi
+  else
+    echo "FAIL: inserts on the primary where not sucessful."
+    return 1
+  fi
+
+}
+
+check_restore_conf_removal(){
+
+  if ERROR=$(kubectl delete -n "$CLUSTER_NAMESPACE" sgrestoreconfigs.stackgres.io restoreconf 2>&1)
+  then
+    echo "INFO: It should not be able to delete restoreconf"
+    return 1
+  else
+    echo "SUCCESS: Good it has failed"
+  fi
+
+  if echo "$ERROR" | grep -q "Can't delete sgrestoreconfigs.stackgres.io restoreconf"
+  then
+    echo "SUCCESS: Error message was the expected"
+    return 0
+  else
+    echo "FAIL: Error is not what it should be. ERROR ${ERROR}"
+    return 1
+  fi
+
+}
+
+delete_whitout_cluster(){
+
+  kubectl delete -n "$CLUSTER_NAMESPACE" sgclusters.stackgres.io "$CLUSTER_NAME"
+
+  if ERROR=$(kubectl delete -n "$CLUSTER_NAMESPACE" sgrestoreconfigs.stackgres.io restoreconf 2>&1)
+  then
+    echo "SUCCESS: Good. It has deleted the configuration"
+    return 0
+  else
+    echo "FAIL: It should be able to delete the restoreconf. ERROR ${ERROR}"
+    return 1
+  fi
+
+}
+

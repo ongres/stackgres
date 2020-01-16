@@ -50,6 +50,8 @@ public class StackGresOperatorIt extends AbstractStackGresOperatorIt {
     ItHelper.deleteStackGresCluster(kind, namespace, CLUSTER_NAME);
     checkStackGresEvent(kind, EventReason.CLUSTER_DELETED, Service.class);
     checkStackGresClusterDeletion(kind);
+
+
   }
 
   private void checkStackGresEvent(Container kind, EventReason eventReason,

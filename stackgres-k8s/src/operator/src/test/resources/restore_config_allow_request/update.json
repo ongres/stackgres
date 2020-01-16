@@ -1,0 +1,127 @@
+{
+  "kind": "AdmissionReview",
+  "request": {
+    "uid": "af230752-360a-11ea-9277-0242ac110003",
+    "kind": {
+      "kind": "StackgresRestoreConfig",
+      "group": "stackgres.io",
+      "version": "v1alpha1"
+    },
+    "resource": {
+      "group": "stackgres.io",
+      "resource": "sgrestoreconfigs",
+      "version": "v1alpha1"
+    },
+    "subResource": null,
+    "requestKind": null,
+    "requestResource": null,
+    "requestSubResource": null,
+    "name": "restoreconf",
+    "namespace": "restore-with-default-storage",
+    "operation": "UPDATE",
+    "userInfo": {
+      "groups": [
+        "system:masters",
+        "system:authenticated"
+      ],
+      "username": "kubernetes-admin"
+    },
+    "object": {
+      "kind": "StackgresRestoreConfig",
+      "apiVersion": "stackgres.io/v1alpha1",
+      "metadata": {
+        "annotations": {
+          "helm.sh/hook": "pre-install"
+        },
+        "creationTimestamp": "2020-01-13T13:37:29Z",
+        "generation": 1,
+        "labels": {
+          "app": "restore-with-default-storage",
+          "chart": "stackgres-cluster-0.8-SNAPSHOT",
+          "heritage": "Tiller",
+          "release": "restore-with-default-storage"
+        },
+        "name": "restoreconf",
+        "namespace": "restore-with-default-storage",
+        "resourceVersion": "1461",
+        "uid": "d7d13ce4-3609-11ea-9277-0242ac110003"
+      },
+      "spec": {
+        "source": {
+          "fromBackup": "LATEST",
+          "fromStorage": {
+            "type": "s3",
+            "s3": {
+              "prefix": "s3://stackgres",
+              "credentials": {
+                "accessKey": {
+                  "key": "accesskey",
+                  "name": "minio"
+                },
+                "secretKey": {
+                  "key": "secretkey",
+                  "name": "minio"
+                }
+              },
+              "region": "k8s",
+              "endpoint": "http://minio.stackgres.svc:9000",
+              "forcePathStyle": true
+            }
+          }
+        },
+        "compressionMethod": "lz4",
+        "downloadDiskConcurrency": 1
+      }
+    },
+    "oldObject": {
+      "kind": "StackgresRestoreConfig",
+      "apiVersion": "stackgres.io/v1alpha1",
+      "metadata": {
+        "annotations": {
+          "helm.sh/hook": "pre-install"
+        },
+        "creationTimestamp": "2020-01-13T13:37:29Z",
+        "generation": 1,
+        "labels": {
+          "app": "restore-with-default-storage",
+          "chart": "stackgres-cluster-0.8-SNAPSHOT",
+          "heritage": "Tiller",
+          "release": "restore-with-default-storage"
+        },
+        "name": "restoreconf",
+        "namespace": "restore-with-default-storage",
+        "resourceVersion": "1461",
+        "uid": "d7d13ce4-3609-11ea-9277-0242ac110003"
+      },
+      "spec": {
+        "source": {
+          "fromBackup": "LATEST",
+          "fromStorage": {
+            "type": "s3",
+            "s3": {
+              "prefix": "s3://restore-with-default-storage",
+              "credentials": {
+                "accessKey": {
+                  "key": "accesskey",
+                  "name": "restore-with-default-storage-minio"
+                },
+                "secretKey": {
+                  "key": "secretkey",
+                  "name": "restore-with-default-storage-minio"
+                }
+              },
+              "region": "k8s",
+              "endpoint": "http://restore-with-default-storage-minio.restore-with-default-storage.svc.cluster.local:9000",
+              "forcePathStyle": true
+            }
+          }
+        },
+        "compressionMethod": "lz4",
+        "downloadDiskConcurrency": 1
+      }
+    },
+    "options": null,
+    "dryRun": false
+  },
+  "apiVersion": "admission.k8s.io/v1beta1"
+}

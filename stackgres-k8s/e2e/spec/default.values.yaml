@@ -6,6 +6,8 @@ config:
     create: false
     minio:
       create: false
+  restore:
+    create: false
 cluster:
   volumeSize: 128Mi
   backupconfig: null

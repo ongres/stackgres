@@ -1,0 +1,114 @@
+{{- /*
+Throw an error if create minio without default backup options
+*/ -}}
+{{ if and .Values.config.create .Values.config.restore.create }}
+apiVersion: stackgres.io/{{ .Values.crd.version }}
+kind: StackgresRestoreConfig
+metadata:
+  name: {{ .Values.cluster.restoreconfig }}
+  labels:
+    app: {{ template "stackgres-cluster.name" . }}
+    chart: {{ template "stackgres-cluster.chart" . }}
+    heritage: {{ .Release.Service }}
+    release: {{ .Release.Name }}
+  {{- if .Values.cluster.create }}
+  annotations:
+    "helm.sh/hook": "pre-install"
+  {{- end }}
+spec:
+  compressionMethod: "{{ .Values.config.restore.compressionMethod }}"
+  downloadDiskConcurrency: {{ .Values.config.restore.downloadDiskConcurrency }}
+  {{- if .Values.config.restore.pgpSecret }}
+  pgpConfiguation:
+    key:
+      name: "{{ .Values.config.restore.pgpConfiguration.name }}"
+      key: "{{ .Values.config.restore.pgpConfiguration.key }}"
+  {{- end }}
+  source:
+    {{- if .Values.config.restore.from.backupUUID }}
+    fromBackup: "{{ .Values.config.restore.from.backupUUID }}"
+    {{- end }}
+    autoCopySecrets: {{ .Values.config.restore.from.autoCopySecrets }}
+    {{- if .Values.config.restore.from.storage.backupName }}
+    backupName: " {{ .Values.config.restore.from.storage.backupName }}"
+    {{- end }}
+    fromStorage:
+      {{- if not (or .Values.config.restore.from.storage.s3 .Values.config.restore.from.storage.gcs .Values.config.restore.from.storage.azureblob) }}
+      type: s3
+      s3:
+        prefix: s3://stackgres
+        endpoint: http://{{ .Release.Name }}-minio.{{ .Release.Namespace }}.svc:9000
+        forcePathStyle: true
+        region: k8s
+        credentials:
+          accessKey:
+            name: {{ .Release.Name }}-minio
+            key: accesskey
+          secretKey:
+            name: {{ .Release.Name }}-minio
+            key: secretkey
+      {{- end }}
+      {{- if .Values.config.restore.from.storage.s3 }}
+      type: s3
+      s3:
+        prefix: "{{ .Values.config.restore.from.storage.s3.prefix }}"
+        credentials:
+          accessKey:
+            name: "{{ .Values.config.restore.from.storage.s3.accessKey.name }}"
+            key: "{{ .Values.config.restore.from.storage.s3.accessKey.key }}"
+          secretKey:
+            name: "{{ .Values.config.restore.from.storage.s3.secretKey.name }}"
+            key: "{{ .Values.config.restore.from.storage.s3.secretKey.key }}"
+        {{- if .Values.config.restore.from.storage.s3.region }}
+        region: "{{ .Values.config.restore.from.storage.s3.region }}"
+        {{- end }}
+        {{- if .Values.config.restore.from.storage.s3.endpoint }}
+        endpoint: "{{ .Values.config.restore.from.storage.s3.endpoint }}"
+        {{- end }}
+        {{- if .Values.config.restore.from.storage.s3.forcePathStyle }}
+        forcePathStyle: {{ .Values.config.restore.from.storage.s3.forcePathStyle }}
+        {{- end }}
+        {{- if .Values.config.restore.from.storage.s3.storageClass }}
+        storageClass: "{{ .Values.config.restore.from.storage.s3.storageClass }}"
+        {{- end }}
+        {{- if .Values.config.restore.from.storage.s3.sse }}
+        sse: "{{ .Values.config.restore.from.storage.s3.sse }}"
+        {{- end }}
+        {{- if .Values.config.restore.from.storage.s3.sseKmsId }}
+        sseKmsId: "{{ .Values.config.restore.from.storage.s3.sseKmsId }}"
+        {{- end }}
+        {{- if .Values.config.restore.from.storage.s3.cseKmsId }}
+        cseKmsId: "{{ .Values.config.restore.from.storage.s3.cseKmsId }}"
+        {{- end }}
+        {{- if .Values.config.restore.from.storage.s3.cseKmsRegion }}
+        cseKmsRegion: "{{ .Values.config.restore.from.storage.s3.cseKmsRegion }}"
+        {{- end }}
+      {{- end }}
+      {{- if .Values.config.restore.from.storage.gcs }}
+      type: gcs
+      gcs:
+        prefix: "{{ .Values.config.restore.from.storage.gcs.prefix }}"
+        credentials:
+          serviceAccountJsonKey:
+            name: "{{ .Values.config.restore.from.storage.gcs.serviceAccountJsonKey.name }}"
+            key: "{{ .Values.config.restore.from.storage.gcs.serviceAccountJsonKey.key }}"
+      {{- end }}
+      {{- if .Values.config.restore.from.storage.azureblob }}
+      type: azureblob
+      azureblob:
+        prefix: "{{ .Values.config.restore.from.storage.azureblob.prefix }}"
+        credentials:
+          account:
+            name: "{{ .Values.config.restore.from.storage.azureblobk.account.name }}"
+            key: "{{ .Values.config.restore.from.storage.azureblob.account.key }}"
+          accessKey:
+            name: "{{ .Values.config.restore.from.storage.azureblob.accessKey.name }}"
+            key: "{{ .Values.config.restore.from.storage.azureblob.accessKey.key }}"
+        {{- if .Values.config.restore.from.storage.azureblob.bufferSize }}
+        bufferSize: {{ .Values.config.restore.from.storage.azureblob.bufferSize }}
+        {{- end }}
+        {{- if .Values.config.restore.from.storage.azureblob.maxBuffers }}
+        maxBuffers: {{ .Values.config.restore.from.storage.azureblob.maxBuffers }}
+        {{- end }}
+      {{- end }}
+{{ end }}

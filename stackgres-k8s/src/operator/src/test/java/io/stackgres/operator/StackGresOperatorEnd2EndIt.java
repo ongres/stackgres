@@ -61,21 +61,19 @@ public class StackGresOperatorEnd2EndIt extends AbstractStackGresOperatorIt {
             + "export USE_EXTERNAL_OPERATOR=true\n"
             + "export CLUSTER_CHART_PATH=/resources/stackgres-cluster\n"
             + "export OPERATOR_CHART_PATH=/resources/stackgres-operator\n"
-            + (E2E_TIMEOUT.isPresent() ? "export E2E_TIMEOUT=" + E2E_TIMEOUT.get() + "\n" : "")
-            + (E2E_PARALLELISM.isPresent() ? "export E2E_PARALLELISM=" + E2E_PARALLELISM.get() + "\n" : "")
-            + (E2E_TEST.isPresent()
-            ? "if ! sh " + (E2E_DEBUG.orElse(false) ? "-x" : "")
-                + " run-test.sh " + E2E_TEST.get() + "\n"
+            + (E2E_TIMEOUT.map(timeout -> "export TIMEOUT=" + timeout + "\n").orElse(""))
+            + (E2E_PARALLELISM.map(parallelism -> "export E2E_PARALLELISM=" + parallelism + "\n").orElse(""))
+            + (E2E_TEST.map(e2eTests -> "if ! sh " + (E2E_DEBUG.orElse(false) ? "-x" : "")
+            + " run-test.sh " + e2eTests + "\n"
             + "then\n"
             + "  sh e2e show_failed_logs\n"
             + "  exit 1\n"
-            + "fi\n"
-            : "if ! sh " + (E2E_DEBUG.orElse(false) ? "-x" : "")
-                + " run-all-tests.sh\n"
+            + "fi\n").orElseGet(() -> "if ! sh " + (E2E_DEBUG.orElse(false) ? "-x" : "")
+            + " run-all-tests.sh\n"
             + "then\n"
             + "  sh e2e show_failed_logs\n"
             + "  exit 1\n"
-            + "fi\n"))
+            + "fi\n")))
         .filter(ItHelper.EXCLUDE_TTY_WARNING)
         .forEach(LOGGER::info);
   }

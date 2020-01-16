@@ -5,15 +5,15 @@
 
 package io.stackgres.operator.sidecars.pgutils;
 
+import java.util.ArrayList;
 import java.util.List;
-
 import javax.inject.Singleton;
 
 import com.google.common.collect.ImmutableList;
-
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.operator.cluster.ClusterStatefulSet;
@@ -31,10 +31,18 @@ public class PostgresUtil
   private static final String NAME = "postgres-util";
   private static final String IMAGE_NAME = "docker.io/ongres/postgres-util:v%s-build-%s";
 
-  public PostgresUtil() {}
+  public PostgresUtil() {
+  }
 
   @Override
   public Container getContainer(ResourceGeneratorContext<StackGresClusterContext> context) {
+
+    List<VolumeMount> volumeMounts = new ArrayList<>();
+    volumeMounts.add(new VolumeMountBuilder()
+        .withName(ClusterStatefulSet.SOCKET_VOLUME_NAME)
+        .withMountPath("/run/postgresql")
+        .build());
+
     ContainerBuilder container = new ContainerBuilder();
     container.withName(NAME)
         .withImage(String.format(IMAGE_NAME,
@@ -45,10 +53,7 @@ public class PostgresUtil
         .withTty(Boolean.TRUE)
         .withCommand("/bin/sh")
         .withArgs("-c", "while true; do sleep 10; done")
-        .withVolumeMounts(new VolumeMountBuilder()
-            .withName(ClusterStatefulSet.SOCKET_VOLUME_NAME)
-            .withMountPath("/run/postgresql")
-            .build());
+        .withVolumeMounts(volumeMounts);
 
     return container.build();
   }

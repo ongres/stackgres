@@ -15,6 +15,8 @@ import com.google.common.base.MoreObjects;
 
 import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.operator.customresource.storages.BackupStorage;
+import io.stackgres.operator.customresource.storages.PgpConfiguration;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)

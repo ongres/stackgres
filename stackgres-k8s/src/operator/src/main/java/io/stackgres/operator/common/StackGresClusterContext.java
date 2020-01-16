@@ -8,19 +8,20 @@ package io.stackgres.operator.common;
 import java.util.Optional;
 
 import com.google.common.collect.ImmutableList;
-
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.operator.customresource.sgbackup.StackGresBackup;
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfile;
+import io.stackgres.operator.customresource.sgrestoreconfig.StackgresRestoreConfig;
 
 public class StackGresClusterContext {
 
   private final StackGresCluster cluster;
   private final Optional<StackGresPostgresConfig> postgresConfig;
   private final Optional<StackGresBackupConfig> backupConfig;
+  private final Optional<StackgresRestoreConfig> restoreConfig;
   private final Optional<StackGresProfile> profile;
   private final ImmutableList<SidecarEntry<?, StackGresClusterContext>> sidecars;
   private final ImmutableList<StackGresBackup> backups;
@@ -29,6 +30,7 @@ public class StackGresClusterContext {
     this.cluster = builder.cluster;
     this.postgresConfig = builder.postgresConfig;
     this.backupConfig = builder.backupConfig;
+    this.restoreConfig = builder.restoreConfig;
     this.profile = builder.profile;
     this.sidecars = builder.sidecars;
     this.backups = builder.backups;
@@ -44,6 +46,10 @@ public class StackGresClusterContext {
 
   public Optional<StackGresBackupConfig> getBackupConfig() {
     return backupConfig;
+  }
+
+  public Optional<StackgresRestoreConfig> getRestoreConfig() {
+    return restoreConfig;
   }
 
   public Optional<StackGresProfile> getProfile() {
@@ -63,18 +69,19 @@ public class StackGresClusterContext {
    */
   @SuppressWarnings("unchecked")
   public <T extends CustomResource, C, S extends StackGresSidecarTransformer<T, C>>
-      Optional<T> getSidecarConfig(S sidecar) {
+        Optional<T> getSidecarConfig(S sidecar) {
     for (SidecarEntry<?, ?> entry : sidecars) {
       if (entry.getSidecar() == sidecar) {
         return entry.getConfig().map(config -> (T) config);
       }
     }
     throw new IllegalStateException("Sidecar " + sidecar.getClass()
-      + " not found in cluster configuration");
+        + " not found in cluster configuration");
   }
 
   /**
    * Creates builder to build {@link StackGresClusterContext}.
+   *
    * @return created builder
    */
   public static Builder builder() {
@@ -91,6 +98,7 @@ public class StackGresClusterContext {
     private Optional<StackGresProfile> profile;
     private ImmutableList<SidecarEntry<?, StackGresClusterContext>> sidecars;
     private ImmutableList<StackGresBackup> backups;
+    private Optional<StackgresRestoreConfig> restoreConfig;
 
     private Builder() {
     }
@@ -107,6 +115,11 @@ public class StackGresClusterContext {
 
     public Builder withBackupConfig(Optional<StackGresBackupConfig> backupConfig) {
       this.backupConfig = backupConfig;
+      return this;
+    }
+
+    public Builder withRestoreConfig(Optional<StackgresRestoreConfig> restoreConfig) {
+      this.restoreConfig = restoreConfig;
       return this;
     }
 

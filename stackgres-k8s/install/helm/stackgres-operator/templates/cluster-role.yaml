@@ -81,6 +81,7 @@ rules:
   - sgconnectionpoolingconfigs
   - sgbackupconfigs
   - sgbackups
+  - sgrestoreconfigs
   verbs:
   - create
   - watch

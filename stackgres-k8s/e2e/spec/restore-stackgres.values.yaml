@@ -1,0 +1,17 @@
+config:
+  postgresql:
+    postgresql.conf:
+      shared_buffers: '32MB'
+  backup:
+    create: false
+    minio:
+      create: false
+  restore:
+    create: false
+cluster:
+  volumeSize: 128Mi
+  backupconfig: null
+  restoreconfig: restoreconf
+sidecar:
+  prometheus:
+    allowAutobind: false

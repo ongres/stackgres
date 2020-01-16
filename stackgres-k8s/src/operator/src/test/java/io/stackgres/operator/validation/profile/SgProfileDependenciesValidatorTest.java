@@ -43,7 +43,6 @@ class SgProfileDependenciesValidatorTest
                 SgProfileReview.class);
 
         givenAReviewUpdate_itShouldDoNothing(review);
-        ;
 
     }
 

@@ -1,7 +1,6 @@
 #!/bin/sh
 
 . "$(dirname "$0")/e2e"
-
 echo "Preparing environment"
 setup_k8s
 
