@@ -61,7 +61,7 @@ To open a psql console and manage the PostgreSQL cluster you may connect to the 
  container of primary instance (with label `role: master`):
 
 ```
-kubectl exec -ti "$(kubectl get pod --selector app=StackGres,cluster=true,role=master -o name | cut -d / -f 2)" -c postgres-util -- psql -U postgres -p 5435
+kubectl exec -ti "$(kubectl get pod --selector app=StackGres,cluster=true,role=master -o name)" -c postgres-util -- psql -U postgres -p 5435
 ```
 
 ```
@@ -74,12 +74,12 @@ postgres=# CREATE DATABASE app WITH OWNER app;
 CREATE DATABASE
 ```
 
-# Consol the status of the PostgreSQL cluster
+# Manage the status of the PostgreSQL cluster
 
 You can also open a shell in any instance to use patronictl and control the status of the cluster:
 
 ```
-kubectl exec -ti "$(kubectl get pod --selector app=StackGres,cluster=true -o name | cut -d / -f 2 | hean -n 1)" -c patroni -- psql -U postgres -p 5435
+kubectl exec -ti "$(kubectl get pod --selector app=StackGres,cluster=true -o name | hean -n 1)" -c patroni -- psql -U postgres -p 5435
 ```
 
 ```
