@@ -32,7 +32,7 @@ reuse_k8s() {
 
   echo "Reusing kind environment $KIND_NAME"
 
-  # update_k8s_config
+  update_k8s_config
 }
 
 reset_k8s() {
