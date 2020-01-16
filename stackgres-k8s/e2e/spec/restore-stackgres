@@ -77,7 +77,7 @@ create_mock_data(){
 }
 
 check_init_data(){
-  PRIMARY_RESPONSE=$(run_query -p 5432 -h "$CLUSTER_NAME-primary" -c "$CLUSTER_NAME" -n $CLUSTER_NAMESPACE -i 0 -q "'SELECT num FROM fibonacci;'" -d "test")
+  PRIMARY_RESPONSE=$(run_query -p 5432 -h "$CLUSTER_NAME-primary" -c "$CLUSTER_NAME" -n $CLUSTER_NAMESPACE -i 0 -q "' SELECT num FROM fibonacci ORDER BY num;'" -d "test")
   if [ "$(echo "$PRIMARY_RESPONSE" | tr -d '\n')" = "123" ]
   then
     echo "SUCCESS: restore primary db restored successfully"
@@ -91,7 +91,7 @@ check_init_data(){
 check_replica_data(){
 
 
-  REPLICA_RESPONSE=$(run_query -p 5432 -h "$CLUSTER_NAME-replica" -c "$CLUSTER_NAME" -n $CLUSTER_NAMESPACE -i 1 -q "'SELECT num FROM fibonacci;'" -d "test")
+  REPLICA_RESPONSE=$(run_query -p 5432 -h "$CLUSTER_NAME-replica" -c "$CLUSTER_NAME" -n $CLUSTER_NAMESPACE -i 1 -q "' SELECT num FROM fibonacci ORDER BY num;'" -d "test")
   if [ "$(echo "$REPLICA_RESPONSE" | tr -d '\n')" = "123" ]
   then
     echo "SUCCESS: restore replica db restored successfully"
@@ -108,8 +108,8 @@ check_replication(){
   run_query -p 5432 -h "$CLUSTER_NAME-primary" -c "$CLUSTER_NAME" -n $CLUSTER_NAMESPACE -i 0 -q "'INSERT INTO fibonacci(num) VALUES (8);'" -d test
   run_query -p 5432 -h "$CLUSTER_NAME-primary" -c "$CLUSTER_NAME" -n $CLUSTER_NAMESPACE -i 0 -q "'INSERT INTO fibonacci(num) VALUES (13);'" -d test
 
-  PRIMARY_RESPONSE=$(run_query -p 5432 -h "$CLUSTER_NAME-primary" -c "$CLUSTER_NAME" -n $CLUSTER_NAMESPACE -i 0 -q "'SELECT num FROM fibonacci;'" -d "test")
-  REPLICA_RESPONSE=$(run_query -p 5432 -h "$CLUSTER_NAME-replica" -c "$CLUSTER_NAME" -n $CLUSTER_NAMESPACE -i 1 -q "'SELECT num FROM fibonacci;'" -d "test")
+  PRIMARY_RESPONSE=$(run_query -p 5432 -h "$CLUSTER_NAME-primary" -c "$CLUSTER_NAME" -n $CLUSTER_NAMESPACE -i 0 -q "' SELECT num FROM fibonacci ORDER BY num;'" -d "test")
+  REPLICA_RESPONSE=$(run_query -p 5432 -h "$CLUSTER_NAME-replica" -c "$CLUSTER_NAME" -n $CLUSTER_NAMESPACE -i 1 -q "' SELECT num FROM fibonacci ORDER BY num;'" -d "test")
 
   if [ "$(echo "$PRIMARY_RESPONSE" | tr -d '\n')" = "1235813" ]
   then
