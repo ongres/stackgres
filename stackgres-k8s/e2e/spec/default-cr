@@ -6,6 +6,7 @@ e2e_test_install() {
   DEFAULT_PGCBOUNCER="defaultpgbouncer"
   DEFAULT_PROFILE="defaultprofile"
   DEFAULT_BACKUP="defaultbackupconfig"
+  DEFAULT_RESTORE="defaultrestoreconfig"
 }
 
 e2e_test_after_all(){
@@ -14,6 +15,7 @@ e2e_test_after_all(){
   unset DEFAULT_PGCBOUNCER
   unset DEFAULT_PROFILE
   unset DEFAULT_BACKUP
+  unset DEFAULT_RESTORE
 }
 
 
@@ -41,6 +43,12 @@ e2e_test() {
   run_test "Backup default config update" default_backup_update
 
   run_test "Backup default config deletion" default_backup_delete
+
+  run_test "Restore default config creation" default_restore
+
+  run_test "Restore default config update" default_restore_update
+
+  run_test "Restore default config deletion" default_restore_delete
 }
 
 check_existence(){
@@ -147,5 +155,21 @@ default_backup_update(){
 default_backup_delete(){
 
   check_delete sgbackupconfigs $DEFAULT_BACKUP
+
+}
+
+default_restore(){
+  check_existence sgrestoreconfigs $DEFAULT_RESTORE
+}
+
+default_restore_update(){
+
+  check_update sgrestoreconfigs $DEFAULT_RESTORE '[{"op":"replace", "path": "/spec/compressionMethod", "value":"brotli"}]'
+
+}
+
+default_restore_delete(){
+
+  check_delete sgrestoreconfigs $DEFAULT_RESTORE
 
 }

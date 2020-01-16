@@ -41,8 +41,8 @@ public abstract class DependenciesValidator<T extends AdmissionReview<?>> implem
   protected abstract void validate(T review, StackGresCluster i) throws ValidationFailed;
 
   protected void fail(T review, StackGresCluster i) throws ValidationFailed {
-    throw new ValidationFailed("Can't delete "
-        + review.getRequest().getResource().getResource()
+    throw new ValidationFailed("Can't " + review.getRequest().getOperation().name().toLowerCase()
+        + " " + review.getRequest().getResource().getResource()
         + "." + review.getRequest().getKind().getGroup()
         + " " + review.getRequest().getName() + " because the "
         + StackGresClusterDefinition.NAME + " " + i.getMetadata().getName() + " depends on it");

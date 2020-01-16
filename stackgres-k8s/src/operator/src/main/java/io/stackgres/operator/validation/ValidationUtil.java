@@ -15,6 +15,7 @@ public class ValidationUtil {
   public static final String BACKUPCONFIG_VALIDATION_PATH = VALIDATION_PATH + "/sgbackupconfig";
   public static final String BACKUP_VALIDATION_PATH = VALIDATION_PATH + "/sgbackup";
   public static final String PROFILE_VALIDATION_PATH = VALIDATION_PATH + "/sgprofile";
+  public static final String RESTORECONFIG_VALIDATION_PATH =  VALIDATION_PATH + "/sgrestoreconfig";
 
   private ValidationUtil() {
   }

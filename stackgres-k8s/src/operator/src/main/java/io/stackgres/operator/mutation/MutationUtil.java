@@ -14,6 +14,7 @@ public class MutationUtil {
       MUTATION_PATH + "/sgconnectionpoolingconfig";
   public static final String BACKUPCONFIG_MUTATION_PATH = MUTATION_PATH + "/sgbackupconfig";
   public static final String PROFILE_MUTATION_PATH = MUTATION_PATH + "/sgprofile";
+  public static final String RESTORECONFIG_MUTATION_PATH = MUTATION_PATH + "/sgrestoreconfig";
 
   private MutationUtil() {
   }

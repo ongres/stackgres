@@ -1,0 +1,30 @@
+config:
+  postgresql:
+    postgresql.conf:
+      shared_buffers: '32MB'
+  backup:
+    create: true
+    # Avoid backups before waiting for pods (since backup pods could biase the wait)
+    fullSchedule: '0 5 31 2 *'
+    fullWindow: 1
+    diskRateLimit: 16777216
+    minio:
+      create: false
+    s3:
+      prefix: s3://restore-stackgres-backup
+      accessKey:
+        name: restore-stackgres-backup-minio
+        key: accesskey
+      secretKey:
+        name: restore-stackgres-backup-minio
+        key: secretkey
+      region: k8s
+      forcePathStyle: true
+      endpoint: http://restore-stackgres-backup-minio.restore-stackgres-backup.svc.cluster.local:9000
+  restore:
+    create: false
+cluster:
+  volumeSize: 128Mi
+sidecar:
+  prometheus:
+    allowAutobind: false

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.customresource.sgbackupconfig;
+package io.stackgres.operator.customresource.storages;
 
 import javax.validation.constraints.NotNull;
 
@@ -17,7 +17,7 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class GoogleCloudStorage {
+public class AzureBlobStorage {
 
   @JsonProperty("prefix")
   @NotNull(message = "The prefix is required")
@@ -25,7 +25,13 @@ public class GoogleCloudStorage {
 
   @JsonProperty("credentials")
   @NotNull(message = "The credentials is required")
-  private GoogleCloudCredentials credentials;
+  private AzureBlobStorageCredentials credentials;
+
+  @JsonProperty("bufferSize")
+  private long bufferSize;
+
+  @JsonProperty("maxBuffers")
+  private int maxBuffers;
 
   public String getPrefix() {
     return prefix;
@@ -35,12 +41,28 @@ public class GoogleCloudStorage {
     this.prefix = prefix;
   }
 
-  public GoogleCloudCredentials getCredentials() {
+  public AzureBlobStorageCredentials getCredentials() {
     return credentials;
   }
 
-  public void setCredentials(GoogleCloudCredentials credentials) {
+  public void setCredentials(AzureBlobStorageCredentials credentials) {
     this.credentials = credentials;
+  }
+
+  public long getBufferSize() {
+    return bufferSize;
+  }
+
+  public void setBufferSize(long bufferSize) {
+    this.bufferSize = bufferSize;
+  }
+
+  public int getMaxBuffers() {
+    return maxBuffers;
+  }
+
+  public void setMaxBuffers(int maxBuffers) {
+    this.maxBuffers = maxBuffers;
   }
 
   @Override
@@ -49,6 +71,8 @@ public class GoogleCloudStorage {
         .omitNullValues()
         .add("prefix", prefix)
         .add("credentials", credentials)
+        .add("bufferSize", bufferSize)
+        .add("maxBuffers", maxBuffers)
         .toString();
   }
 

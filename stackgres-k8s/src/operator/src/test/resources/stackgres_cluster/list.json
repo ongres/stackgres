@@ -20,6 +20,7 @@
         "pgVersion": "11.5",
         "prometheusAutobind": true,
         "resourceProfile": "size-xs",
+        "restoreConfig": "restoreconf",
         "backupConfig": "backupconf",
         "sidecars": [
           "connection-pooling",

@@ -65,6 +65,46 @@ config:
     #    key: accesskey
     #  bufferSize:
     #  maxBuffers:
+  restore:
+    create: false
+    downloadDiskConcurrency: 1
+    compressionMethod: lz4
+    from:
+    #  backupUUID: 32507696-de23-4416-89d0-ff83d7baca26
+      autoCopySecrets: false
+      storage: 
+        backupName: LATEST
+        s3: {}
+        #  prefix: s3://stackgres
+        #  accessKey:
+        #    name: minio
+        #    key: accesskey
+        #  secretKey:
+        #    name: minio
+        #    key: secretkey
+        #  region: k8s
+        #  endpoint: minio.stackgres.svc
+        #  forcePathStyle: true
+        #  storageClass:
+        #  sse:
+        #  sseKmsId:
+        #  cseKmsId:
+        #  cseKmsRegion:
+        gcs: {}
+        #  prefix: gcs://stackgres
+        #  serviceAccountJsonKey:
+        #    name: gcs
+        #    key: key
+        azureblob: {}
+        #  prefix: azure://stackgres
+        #  account:
+        #    name: azureblob
+        #    key: account
+        #  accessKey:
+        #    name: azureblob
+        #    key: accesskey
+        #  bufferSize:
+        #  maxBuffers:
 
 cluster:
   create: true

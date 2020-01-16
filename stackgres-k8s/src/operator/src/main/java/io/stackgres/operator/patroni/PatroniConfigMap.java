@@ -9,28 +9,32 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
-
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.stackgres.operator.cluster.ClusterStatefulSet;
+import io.stackgres.operator.common.QuarkusProfile;
 import io.stackgres.operator.common.StackGresClusterContext;
-import io.stackgres.operator.customresource.sgbackupconfig.AwsS3Storage;
-import io.stackgres.operator.customresource.sgbackupconfig.AzureBlobStorage;
-import io.stackgres.operator.customresource.sgbackupconfig.BackupStorage;
-import io.stackgres.operator.customresource.sgbackupconfig.BackupVolume;
-import io.stackgres.operator.customresource.sgbackupconfig.GoogleCloudStorage;
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfigSpec;
+import io.stackgres.operator.customresource.sgrestoreconfig.StackgresRestoreConfigSource;
+import io.stackgres.operator.customresource.sgrestoreconfig.StackgresRestoreConfigSpec;
+import io.stackgres.operator.customresource.storages.AwsS3Storage;
+import io.stackgres.operator.customresource.storages.AzureBlobStorage;
+import io.stackgres.operator.customresource.storages.BackupStorage;
+import io.stackgres.operator.customresource.storages.BackupVolume;
+import io.stackgres.operator.customresource.storages.GoogleCloudStorage;
 import io.stackgres.operator.resource.ResourceUtil;
 import io.stackgres.operator.sidecars.envoy.Envoy;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@ApplicationScoped
 public class PatroniConfigMap {
 
   public static final String POSTGRES_PORT_NAME = "pgport";
@@ -39,10 +43,17 @@ public class PatroniConfigMap {
   private static final Logger PATRONI_LOGGER = LoggerFactory.getLogger("patroni");
   private static final Logger WAL_G_LOGGER = LoggerFactory.getLogger("wal-g");
 
+  private PatroniRestoreSource patroniRestoreSource;
+
+  @Inject
+  public PatroniConfigMap(PatroniRestoreSource patroniRestoreSource) {
+    this.patroniRestoreSource = patroniRestoreSource;
+  }
+
   /**
    * Create the ConfigMap associated with the cluster.
    */
-  public static ConfigMap create(StackGresClusterContext context, ObjectMapper objectMapper) {
+  public ConfigMap create(StackGresClusterContext context, ObjectMapper objectMapper) {
     final String name = context.getCluster().getMetadata().getName();
     final String namespace = context.getCluster().getMetadata().getNamespace();
     final String pgVersion = context.getCluster().getSpec().getPostgresVersion();
@@ -81,6 +92,82 @@ public class PatroniConfigMap {
     data.put("PGUSER", "postgres");
     data.put("PGDATABASE", "postgres");
     data.put("PGHOST", "/run/postgresql");
+
+    putBackupConfigs(context, data);
+    putRestoreConfigs(context, data);
+
+    return new ConfigMapBuilder()
+        .withNewMetadata()
+        .withNamespace(namespace)
+        .withName(name)
+        .withLabels(labels)
+        .withOwnerReferences(ImmutableList.of(ResourceUtil.getOwnerReference(context.getCluster())))
+        .endMetadata()
+        .withData(data)
+        .build();
+  }
+
+  private void putRestoreConfigs(StackGresClusterContext config,
+                                 Map<String, String> data) {
+
+    config.getRestoreConfig().ifPresent(restoreConfig -> {
+
+      StackgresRestoreConfigSpec spec = restoreConfig.getSpec();
+
+      putIfPresent("RESTORE_WALG_COMPRESSION_METHOD", spec.getCompressionMethod(), data);
+      putIfPresent("RESTORE_WALG_DOWNLOAD_CONCURRENCY",
+          spec.getDownloadDiskConcurrency(), data);
+      StackgresRestoreConfigSource source = patroniRestoreSource.getStorageConfig(restoreConfig);
+
+      putIfPresent("RESTORE_BACKUP_ID", source.getBackupName(), data);
+
+      BackupStorage storage = source.getStorage();
+
+      Optional.ofNullable(storage.getS3()).ifPresent(s3config -> {
+
+        data.put("RESTORE_WALG_S3_PREFIX", s3config.getPrefix());
+        putIfPresent("RESTORE_AWS_REGION", s3config.getRegion(), data);
+        putIfPresent("RESTORE_AWS_ENDPOINT", s3config.getEndpoint(), data);
+        putIfPresent("RESTORE_AWS_S3_FORCE_PATH_STYLE", s3config.isForcePathStyle(), data);
+        putIfPresent("RESTORE_WALG_S3_STORAGE_CLASS", s3config.getStorageClass(), data);
+        putIfPresent("RESTORE_WALG_S3_SSE", s3config.getSse(), data);
+        putIfPresent("RESTORE_WALG_S3_SSE_KMS_ID", s3config.getSseKmsId(), data);
+        putIfPresent("RESTORE_WALG_CSE_KMS_ID", s3config.getCseKmsId(), data);
+        putIfPresent("RESTORE_WALG_CSE_KMS_REGION", s3config.getCseKmsRegion(), data);
+
+      });
+
+      Optional.ofNullable(storage.getGcs()).ifPresent(gcsConfig -> {
+        Optional.ofNullable(storage.getGcs())
+            .ifPresent(volume ->
+                data.put("RESTORE_WALG_GCS_PREFIX", gcsConfig.getPrefix()));
+      });
+
+      Optional.ofNullable(storage.getAzureblob()).ifPresent(azureConfig -> {
+
+        Optional.ofNullable(storage.getAzureblob())
+            .ifPresent(volume ->
+                data.put("RESTORE_WALG_AZ_PREFIX", azureConfig.getPrefix()));
+
+        putIfPresent("RESTORE_WALG_AZURE_BUFFER_SIZE", azureConfig.getBufferSize(), data);
+        putIfPresent("RESTORE_WALG_AZURE_MAX_BUFFERS", azureConfig.getMaxBuffers(), data);
+
+      });
+
+      if (WAL_G_LOGGER.isTraceEnabled() || QuarkusProfile.getActiveProfile().isDev()) {
+        data.put("RESTORE_WALG_LOG_LEVEL", "DEVEL");
+      }
+
+    });
+
+  }
+
+  private static void putBackupConfigs(StackGresClusterContext context,
+                                       Map<String, String> data) {
+
+    final String name = context.getCluster().getMetadata().getName();
+    final String namespace = context.getCluster().getMetadata().getNamespace();
+
     data.put("WALG_COMPRESSION_METHOD", getFromConfig(
         context, StackGresBackupConfigSpec::getCompressionMethod));
     if (hasFromConfig(context, StackGresBackupConfigSpec::getNetworkRateLimit)) {
@@ -124,7 +211,7 @@ public class PatroniConfigMap {
 
     Optional<AzureBlobStorage> storageForAzureBlob = getStorageFor(
         context, BackupStorage::getAzureblob);
-    if (storageForS3.isPresent()) {
+    if (storageForAzureBlob.isPresent()) {
       data.put("WALG_AZ_PREFIX", getFromAzureBlob(
           storageForAzureBlob, AzureBlobStorage::getPrefix)
           + "/" + namespace + "/" + name);
@@ -138,20 +225,14 @@ public class PatroniConfigMap {
       data.put("WALG_LOG_LEVEL", "DEVEL");
     }
 
-    return new ConfigMapBuilder()
-        .withNewMetadata()
-        .withNamespace(namespace)
-        .withName(name)
-        .withLabels(labels)
-        .withOwnerReferences(ImmutableList.of(
-            ResourceUtil.getOwnerReference(context.getCluster())))
-        .endMetadata()
-        .withData(data)
-        .build();
+  }
+
+  private static <T> void putIfPresent(String env, T p, Map<String, String> data) {
+    Optional.ofNullable(p).ifPresent(value -> data.put(env, value.toString()));
   }
 
   private static <T> boolean hasFromConfig(StackGresClusterContext context,
-      Function<StackGresBackupConfigSpec, T> getter) {
+                                           Function<StackGresBackupConfigSpec, T> getter) {
     return context.getBackupConfig()
         .map(StackGresBackupConfig::getSpec)
         .map(getter)
@@ -160,7 +241,7 @@ public class PatroniConfigMap {
   }
 
   private static <T> String getFromConfig(StackGresClusterContext context,
-      Function<StackGresBackupConfigSpec, T> getter) {
+                                          Function<StackGresBackupConfigSpec, T> getter) {
     return context.getBackupConfig()
         .map(StackGresBackupConfig::getSpec)
         .map(getter)
@@ -169,7 +250,7 @@ public class PatroniConfigMap {
   }
 
   private static <T> Optional<T> getStorageFor(StackGresClusterContext context,
-      Function<BackupStorage, T> getter) {
+                                               Function<BackupStorage, T> getter) {
     return context.getBackupConfig()
         .map(StackGresBackupConfig::getSpec)
         .map(StackGresBackupConfigSpec::getStorage)
@@ -177,7 +258,7 @@ public class PatroniConfigMap {
   }
 
   private static <T> String getFromS3(Optional<AwsS3Storage> storageFor,
-      Function<AwsS3Storage, T> getter) {
+                                      Function<AwsS3Storage, T> getter) {
     return storageFor
         .map(getter)
         .map(PatroniConfigMap::convertEnvValue)
@@ -185,7 +266,7 @@ public class PatroniConfigMap {
   }
 
   private static <T> String getFromGcs(Optional<GoogleCloudStorage> storageFor,
-      Function<GoogleCloudStorage, T> getter) {
+                                       Function<GoogleCloudStorage, T> getter) {
     return storageFor
         .map(getter)
         .map(PatroniConfigMap::convertEnvValue)
@@ -193,7 +274,7 @@ public class PatroniConfigMap {
   }
 
   private static <T> String getFromAzureBlob(Optional<AzureBlobStorage> storageFor,
-      Function<AzureBlobStorage, T> getter) {
+                                             Function<AzureBlobStorage, T> getter) {
     return storageFor
         .map(getter)
         .map(PatroniConfigMap::convertEnvValue)

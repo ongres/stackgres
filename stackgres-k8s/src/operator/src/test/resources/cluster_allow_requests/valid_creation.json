@@ -52,6 +52,7 @@
         "pgConfig": "postgresconf",
         "resourceProfile": "size-xs",
         "backupConfig": "backupconf",
+        "restoreConfig": "restoreconf",
         "connectionPoolingConfig": "pgbouncerconf",
         "volumeSize": "5Gi",
         "storageClass": "standard",
