@@ -5,7 +5,7 @@ e2e_test_install() {
       cat << EOF > "$LOG_PATH/minio-values.yaml"
 persistence:
   enabled: true
-  size: 128Mi
+  size: 2Gi
 buckets:
   - name: $CLUSTER_NAME-backup
     policy: none
