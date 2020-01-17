@@ -80,8 +80,8 @@ helm_cleanup_chart() {
 k8s_finalize_namespace_script() {
   cat << EOF
 kubectl api-resources --namespaced -o name \
-  | xargs -r -n 1 -I + kubectl get "+" -n "@" -o name \
-  | xargs -r -n 1 -I % kubectl delete -n "@" "%" --grace-period=0 --force >/dev/null 2>&1 \
+  | xargs -r -n 1 -I + -P 0 sh -ec 'kubectl get "+" -n "@" -o name \
+    | xargs -r -n 1 -I % kubectl delete -n "@" "%" --grace-period=0 --force' >/dev/null 2>&1 \
   || true
 kubectl get namespace "@" -o json \
   | tr -d "\n" | sed "s/\"finalizers\": \[[^]]\+\]/\"finalizers\": []/" \
