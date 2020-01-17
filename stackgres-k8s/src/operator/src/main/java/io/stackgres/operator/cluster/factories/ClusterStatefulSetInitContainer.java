@@ -51,7 +51,7 @@ public class ClusterStatefulSetInitContainer
     Container container = new ContainerBuilder()
         .withName("data-permissions")
         .withImage("busybox")
-        .withCommand("/bin/sh", "-ecx", getPermissionCommand(config))
+        .withCommand("/bin/sh", "-ecx", getPermissionCommand())
         .withVolumeMounts(getPermissionVolumeMounts(config))
         .build();
 
@@ -140,7 +140,7 @@ public class ClusterStatefulSetInitContainer
         .toArray(VolumeMount[]::new);
   }
 
-  private String getPermissionCommand(StackGresClusterContext config) {
+  private String getPermissionCommand() {
     return Stream.of(
         Stream.of(
             "chmod -R 700 " + ClusterStatefulSet.PG_VOLUME_PATH,
