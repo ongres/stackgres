@@ -79,7 +79,8 @@ helm_cleanup_chart() {
 
 k8s_finalize_namespace_script() {
   cat << EOF
-kubectl get pod -n "@" -o name \
+kubectl api-resources --namespaced -o name \
+  | xargs -r -n 1 -I + kubectl get "+" -n "@" -o name \
   | xargs -r -n 1 -I % kubectl delete -n "@" "%" --grace-period=0 --force \
   || ! kubectl get namespace "@" -o name >/dev/null 2>&1
 kubectl get namespace "@" -o json \
