@@ -1,0 +1,56 @@
+#!/bin/sh
+
+operator_to_yaml() {
+  helm_to_yaml "$OPERATOR_CHART_PATH" "$@"
+}
+
+cluster_to_yaml() {
+  helm_to_yaml "$CLUSTER_CHART_PATH" "$@"
+}
+
+helm_to_yaml() {
+  local CREATE_NAMESPACE="$([ -z "$NAMESPACE" ] && echo false || echo true)"
+  local NAMESPACE="${NAMESPACE:-default}"
+  local CHART="$1"
+  shift
+
+  if [ -z "$CHART" ]
+  then
+    >&2 echo "Chart $CHART is not defined"
+    exit 1
+  fi
+
+  (
+  if "$CREATE_NAMESPACE"
+  then
+    cat << EOF
+---
+# namespace
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: $NAMESPACE
+EOF
+  fi
+  helm install --dry-run --debug --namespace "$NAMESPACE" "$CHART" "$@" \
+    | ("$CREATE_NAMESPACE" && cat || grep -v "^  namespace: \"$NAMESPACE\"$") \
+    | (
+      PRINT=false
+      while IFS="$(echo ' ' | tr ' ' '\n')" read -r line
+      do
+        if echo "$line" | grep -q '\(^HOOKS:\|^MANIFEST:\)'
+        then
+          PRINT=true
+        elif echo "$line" | grep -q '^WARNING:'
+        then
+          PRINT=false
+        elif "$PRINT"
+        then
+          cat << EOF
+$line
+EOF
+        fi
+      done
+    )
+  )
+}
