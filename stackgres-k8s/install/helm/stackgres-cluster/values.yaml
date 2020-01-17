@@ -27,13 +27,6 @@ config:
     #pgpConfiguration:
     #  name: pgpConfiguration
     #  key: key
-    volumeSize: 5Gi # Only affects volume sources
-    ## If defined, storageClassName: <volumeWriteManyStorageClass>
-    ## If set to "-", storageClassName: "", which disables dynamic provisioning
-    ## If undefined (the default) or set to null, no storageClassName spec is
-    ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
-    ##   GKE, AWS & OpenStack)
-    #volumeWriteManyStorageClass: "-"
     s3: {}
     #  prefix: s3://stackgres
     #  accessKey:

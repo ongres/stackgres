@@ -6,12 +6,13 @@
 package io.stackgres.operator.cluster.factories;
 
 import java.util.Optional;
+
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import com.google.common.collect.ImmutableList;
+
 import io.fabric8.kubernetes.api.model.KeyToPathBuilder;
-import io.fabric8.kubernetes.api.model.PersistentVolumeClaimVolumeSource;
 import io.fabric8.kubernetes.api.model.SecretVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
@@ -33,9 +34,6 @@ public class ClusterStatefulSetVolumeFactory implements VolumesFactory<StackGres
 
   @Override
   public ImmutableList<Volume> getVolumes(StackGresClusterContext config) {
-
-    final String name = config.getCluster().getMetadata().getName();
-
     ImmutableList.Builder<Volume> volumeListBuilder = ImmutableList.<Volume>builder().add(
         new VolumeBuilder()
             .withName(ClusterStatefulSet.SOCKET_VOLUME_NAME)
@@ -58,14 +56,6 @@ public class ClusterStatefulSetVolumeFactory implements VolumesFactory<StackGres
     );
 
     config.getBackupConfig().ifPresent(backupConfig -> {
-
-      Optional.ofNullable(backupConfig.getSpec().getStorage().getVolume())
-          .ifPresent(volumeStorage -> volumeListBuilder.add(new VolumeBuilder()
-              .withName(name + ClusterStatefulSet.BACKUP_SUFFIX)
-              .withPersistentVolumeClaim(new PersistentVolumeClaimVolumeSource(
-                  name + ClusterStatefulSet.BACKUP_SUFFIX, false))
-              .build()));
-
       Optional.ofNullable(backupConfig.getSpec().getStorage().getGcs())
           .ifPresent(gcsStorage -> volumeListBuilder.add(new VolumeBuilder()
               .withName(ClusterStatefulSet.GCS_CREDENTIALS_VOLUME_NAME)
@@ -110,4 +100,5 @@ public class ClusterStatefulSetVolumeFactory implements VolumesFactory<StackGres
 
     return volumeListBuilder.build();
   }
+
 }

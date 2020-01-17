@@ -23,9 +23,6 @@ public class BackupStorage {
   @NotNull(message = "The storage type is required")
   private String type;
 
-  @JsonProperty("volume")
-  private BackupVolume volume;
-
   @JsonProperty("s3")
   private AwsS3Storage s3;
 
@@ -41,14 +38,6 @@ public class BackupStorage {
 
   public void setType(String type) {
     this.type = type;
-  }
-
-  public BackupVolume getVolume() {
-    return volume;
-  }
-
-  public void setVolume(BackupVolume volume) {
-    this.volume = volume;
   }
 
   public AwsS3Storage getS3() {
@@ -80,7 +69,6 @@ public class BackupStorage {
     return MoreObjects.toStringHelper(this)
         .omitNullValues()
         .add("type", type)
-        .add("volume", volume)
         .add("s3", s3)
         .add("gcs", gcs)
         .add("azureblob", azureblob)

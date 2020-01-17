@@ -9,12 +9,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
+
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
+
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.stackgres.operator.cluster.ClusterStatefulSet;
@@ -27,10 +29,10 @@ import io.stackgres.operator.customresource.sgrestoreconfig.StackgresRestoreConf
 import io.stackgres.operator.customresource.storages.AwsS3Storage;
 import io.stackgres.operator.customresource.storages.AzureBlobStorage;
 import io.stackgres.operator.customresource.storages.BackupStorage;
-import io.stackgres.operator.customresource.storages.BackupVolume;
 import io.stackgres.operator.customresource.storages.GoogleCloudStorage;
 import io.stackgres.operator.resource.ResourceUtil;
 import io.stackgres.operator.sidecars.envoy.Envoy;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -182,12 +184,6 @@ public class PatroniConfigMap {
         context, StackGresBackupConfigSpec::getUploadDiskConcurrency));
     data.put("WALG_TAR_SIZE_THRESHOLD", getFromConfig(
         context, StackGresBackupConfigSpec::getTarSizeThreshold));
-
-    Optional<BackupVolume> storageForVolume = getStorageFor(context, BackupStorage::getVolume);
-    if (storageForVolume.isPresent()) {
-      data.put("WALG_FILE_PREFIX", ClusterStatefulSet.BACKUP_VOLUME_PATH
-          + "/" + namespace + "/" + name);
-    }
 
     Optional<AwsS3Storage> storageForS3 = getStorageFor(context, BackupStorage::getS3);
     if (storageForS3.isPresent()) {
