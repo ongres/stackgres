@@ -12,7 +12,8 @@ GKE_ZONE="${GKE_ZONE:-us-west1-a}"
 GKE_NODE_LOCATIONS="${GKE_NODE_LOCATIONS:-us-west1-a,us-west1-b,us-west1-c}"
 GKE_MACHINE_TYPE="${GKE_MACHINE_TYPE:-n1-standard-1}"
 GKE_PROJECT="${GKE_PROJECT:-default}"
-export GKE_NAME KUBERNETES_VERSION GKE_VERSION GKE_ZONE GKE_NODE_LOCATIONS GKE_MACHINE_TYPE GKE_PROJECT
+GKE_OPTS="$GKE_OPTS"
+export GKE_NAME KUBERNETES_VERSION GKE_VERSION GKE_ZONE GKE_NODE_LOCATIONS GKE_MACHINE_TYPE GKE_PROJECT GKE_OPTS
 
 reuse_k8s() {
   if ! gcloud -q beta container --project "$GKE_PROJECT" clusters describe "$GKE_NAME" --zone "$GKE_ZONE" 2>&1 \
@@ -39,7 +40,8 @@ reset_k8s() {
     --disk-size "20" \
     --num-nodes 3 \
     --cluster-version "$KUBERNETES_VERSION-$GKE_VERSION" \
-    --no-enable-autoupgrade
+    --no-enable-autoupgrade \
+    $GKE_OPTS
 
   echo "...done"
 }
