@@ -1,6 +1,6 @@
 ---
 title: Contributing guide
-weight: 6
+weight: 7
 ---
 
 StackGres is open source, and as such we welcome any external contribution, in the form of feedback, testing, resources,
