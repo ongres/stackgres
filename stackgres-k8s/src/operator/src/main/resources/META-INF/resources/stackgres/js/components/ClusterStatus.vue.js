@@ -7,7 +7,7 @@ var ClusterStatus = Vue.component("cluster-status", {
 			</header>
 
 			<div class="content">
-				<div class="table" v-if="dataReady">
+				<div class="table" v-if="allDataReady">
 					<div class="head row">
 						<div class="col text">
 							<h4>Pod Name</h4>
@@ -25,7 +25,7 @@ var ClusterStatus = Vue.component("cluster-status", {
 							<h4>Containers</h4>
 						</div>
 					</div>
-					<div v-for="pod in cluster.data.pods" class="row">
+					<div v-for="pod in pods.data.pods" class="row">
 						<div class="col text">
 							{{ pod.name }}
 						</div>
@@ -59,7 +59,8 @@ var ClusterStatus = Vue.component("cluster-status", {
 		</div>`,
 	data: function() {
 		return {
-	      dataReady: true,
+	      dataReady: [ false, false ],
+	      allDataReady: false,
 	      polling: null
 	    }
 	},
@@ -68,12 +69,12 @@ var ClusterStatus = Vue.component("cluster-status", {
 		fetchAPI: function() {
 			vc = this;
 
-			/*store.commit('setCurrentCluster', vm.$route.params.name);
-			console.log("Current cluster: "+store.state.currentCluster)*/
+			/*store.commit('setCurrentPods', vm.$route.params.name);
+			console.log("Current pods: "+store.state.currentPods)*/
 
 			/* Clusters Data */
 		    axios
-		    .get(apiURL+'cluster/pods/'+vm.$route.params.namespace+'/'+vm.$route.params.name,
+		    .get(apiURL+'cluster/status/'+vm.$route.params.namespace+'/'+vm.$route.params.name,
 		    	{ headers: {
 		            'content-type': 'application/json'
 		          }
@@ -86,8 +87,27 @@ var ClusterStatus = Vue.component("cluster-status", {
 	              	data: response.data
               	});
 
-	        	vc.dataReady = true;
+	        	vc.dataReady[0] = true;
+	        	vc.allDataReady = vc.dataReady[0] && vc.dataReady[1];
+	      	});
 
+			/* Pods Data */
+		    axios
+		    .get(apiURL+'cluster/pods/'+vm.$route.params.namespace+'/'+vm.$route.params.name,
+		    	{ headers: {
+		            'content-type': 'application/json'
+		          }
+		        }
+	      	)
+	      	.then( function(response){
+
+	        	store.commit('setCurrentPods', { 
+	              	name: vm.$route.params.name,
+	              	data: response.data
+              	});
+
+	        	vc.dataReady[1] = true;
+	        	vc.allDataReady = vc.dataReady[0] && vc.dataReady[1];
 	      	});
 		}
 
@@ -96,7 +116,7 @@ var ClusterStatus = Vue.component("cluster-status", {
 
 		var count = 0;
 
-		if (store.state.currentCluster.length === 0) {
+		if (store.state.currentPods.length === 0) {
 			this.fetchAPI();
 			this.dataReady = false;
 		}
@@ -117,6 +137,10 @@ var ClusterStatus = Vue.component("cluster-status", {
 		cluster () {
 			//console.log(store.state.currentCluster);
 			return store.state.currentCluster
+		},
+		pods () {
+			//console.log(store.state.currentPods);
+			return store.state.currentPods
 		}
 	},
 	beforeDestroy () {

@@ -25,7 +25,7 @@ var ClusterInfo = Vue.component("cluster-info", {
 							<h4>Health</h4>
 						</div>
 					</div>
-					<div class="row" v-if="dataReady">
+					<div class="row" v-if="allDataReady">
 						<div class="col">
 							{{ cluster.data.cpuRequested }} (avg. load {{ cluster.data.averageLoad1m }} )
 						</div>
@@ -36,7 +36,7 @@ var ClusterInfo = Vue.component("cluster-info", {
 							{{ cluster.data.diskUsed }} / {{ cluster.data.diskFound }}
 						</div>
 						<div class="col">
-							{{ cluster.data.podsReady }} / {{ cluster.data.podsCount }}
+							{{ pods.data.podsReady }} / {{ pods.data.pods.length }}
 						</div>
 					</div>
 				</div>
@@ -44,7 +44,8 @@ var ClusterInfo = Vue.component("cluster-info", {
 		</div>`,
 	data: function() {
 		return {
-	      dataReady: false,
+	      dataReady: [ false, false ],
+	      allDataReady: false,
 	      polling: null
 	    }
 	},
@@ -71,13 +72,13 @@ var ClusterInfo = Vue.component("cluster-info", {
 	              	data: response.data
               	});
 
-	        	vc.dataReady = true;
-	        			        
+	        	vc.dataReady[0] = true;
+	        	vc.allDataReady = vc.dataReady[0] && vc.dataReady[1];
 	      	});
 
 			/* Pods Data */
 		    axios
-		    .get(apiURL+'cluster/status/'+vm.$route.params.namespace+'/'+vm.$route.params.name,
+		    .get(apiURL+'cluster/pods/'+vm.$route.params.namespace+'/'+vm.$route.params.name,
 		    	{ headers: {
 		            'content-type': 'application/json'
 		          }
@@ -85,13 +86,13 @@ var ClusterInfo = Vue.component("cluster-info", {
 	      	)
 	      	.then( function(response){
 
-	        	store.commit('setCurrentCluster', { 
+	        	store.commit('setCurrentPods', { 
 	              	name: vm.$route.params.name,
 	              	data: response.data
               	});
 
-	        	vc.dataReady = true;
-	        			        
+	        	vc.dataReady[1] = true;
+	        	vc.allDataReady = vc.dataReady[0] && vc.dataReady[1];
 	      	});
 		}
 
@@ -122,6 +123,10 @@ var ClusterInfo = Vue.component("cluster-info", {
 		cluster () {
 			//console.log(store.state.currentCluster);
 			return store.state.currentCluster
+		},
+		pods () {
+			//console.log(store.state.currentPods);
+			return store.state.currentPods
 		}
 	},
 	beforeDestroy () {
