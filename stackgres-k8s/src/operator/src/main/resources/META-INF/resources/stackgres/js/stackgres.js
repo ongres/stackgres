@@ -187,7 +187,17 @@ const store = new Vuex.Store({
 
     setCurrentCluster (state, cluster) {
       state.currentCluster = cluster;
+      if (cluster.data.grafanaEmbedded) {
+        $("#grafana-button").css("display", "block");
+      } else {
+        $("#grafana-button").css("display", "none");
+      }
       //Object.assign(state.currentCluster, cluster);
+    },
+
+    setCurrentPods (state, pods) {
+      state.currentPods = pods;
+      //Object.assign(state.currentPods, pods);
     },
 
     updateClusters ( state, cluster ) {
@@ -281,6 +291,7 @@ var vm = new Vue({
       active: true,
       ip: '',
       currentCluster: '',
+      currentPods: '',
       clustersData: {}
       //clusters: []
     },
@@ -604,6 +615,7 @@ $(document).ready(function(){
 
   $(document).on("click", ".clu a", function(){
     $(".clu .router-link-active:not(.router-link-exact-active)").removeClass("router-link-active");
+    $("#grafana-button").css("display", "none");
     //store.commit('setCurrentClusterName', $(this).text());
 
 

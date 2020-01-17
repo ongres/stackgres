@@ -19,7 +19,7 @@ var Nav = Vue.component("sg-nav", {
 					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="20" viewBox="0 0 24 20"><path data-name="Trazado 2238" d="M18.905 12c-2.029 2.4-4.862 5-7.905 8C5.107 14.2 0 9.866 0 5.629 0-.525 8.114-1.958 11 2.953c2.865-4.875 11-3.5 11 2.676A6.323 6.323 0 0 1 21.5 8h-6.275a.7.7 0 0 0-.61.358l-.813 1.45-2.27-4.437a.7.7 0 0 0-1.2-.081L8.454 8H7.227a2 2 0 1 0 0 2h1.956a.7.7 0 0 0 .573-.3l.989-1.406L13 12.856a.7.7 0 0 0 1.227.052L15.987 10H24v2z" fill-rule="evenodd"/></svg>
 				</router-link>
 
-				<router-link :to="( typeof currentCluster.name === 'undefined' ) ? '/grafana' : '/grafana/'+currentCluster.name" title="Grafana" class="grafana nav-item">
+				<router-link id="grafana-button" style="display: none;" :to="( typeof currentCluster.name === 'undefined' ) ? '/grafana' : '/grafana/'+currentCluster.name" title="Grafana" class="grafana nav-item">
 					<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><g transform="translate(-215 -1005)"><g transform="translate(50)"><circle cx="10" cy="10" r="10" transform="translate(165 1005)"/></g><path d="M5.591,18.366,6.957,9.445l1.394,6.422a.63.63,0,0,0,1.223.1L10.838,12.5l.726,1.583a.836.836,0,0,0,.631.427h1.747V13.153H12.611L11.4,10.419a.626.626,0,0,0-1.186.022L9.142,13.376,7.491,5.537A.632.632,0,0,0,6.87,5a.641.641,0,0,0-.636.578l-1.37,9.057-1.4-5.577a.63.63,0,0,0-1.232-.043L1.19,13.153H0V14.49H1.695a.621.621,0,0,0,.549-.439l.591-2.046,1.5,6.418A.633.633,0,0,0,5.591,18.366Z" transform="translate(218.029 1003.029)" fill="#fff"/></g></svg>
 				</router-link>
 

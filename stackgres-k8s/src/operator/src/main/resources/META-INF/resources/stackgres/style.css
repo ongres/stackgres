@@ -323,7 +323,7 @@ ul.zg-ul-select.active li.active:hover {
     border-radius: 3px;
     padding: 0.5em;
     width: 80%;
-    height: 30px;
+    height: auto;
     margin: 10px auto -10px;
     display: block;
     text-align: center;
