@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.mutation.backup;
+package io.stackgres.operator.mutation.backupconfig;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,11 +14,12 @@ import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
 import com.github.fge.jsonpatch.JsonPatchOperation;
-import io.stackgres.operator.common.BackupReview;
+
+import io.stackgres.operator.common.BackupConfigReview;
 import io.stackgres.operatorframework.JsonPatchMutationPipeline;
 
 @ApplicationScoped
-public class BackupPipeline implements JsonPatchMutationPipeline<BackupReview> {
+public class BackupPipeline implements JsonPatchMutationPipeline<BackupConfigReview> {
 
   private Instance<BackupMutator> mutators;
 
@@ -28,7 +29,7 @@ public class BackupPipeline implements JsonPatchMutationPipeline<BackupReview> {
   }
 
   @Override
-  public Optional<String> mutate(BackupReview review) {
+  public Optional<String> mutate(BackupConfigReview review) {
     List<JsonPatchOperation> operations = new ArrayList<>();
 
     mutators.forEach(mutator -> operations.addAll(mutator.mutate(review)));

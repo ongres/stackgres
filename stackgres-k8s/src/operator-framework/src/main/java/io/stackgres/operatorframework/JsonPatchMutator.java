@@ -24,7 +24,6 @@ public interface JsonPatchMutator<T> {
   }
 
   default JsonPatchOperation buildAddOperation(JsonPointer path, String value) {
-
     return new AddOperation(path, FACTORY.textNode(value));
   }
 

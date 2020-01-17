@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.mutation.backup;
+package io.stackgres.operator.mutation.backupconfig;
 
 import java.util.List;
 import javax.enterprise.context.ApplicationScoped;
