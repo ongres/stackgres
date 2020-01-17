@@ -81,11 +81,11 @@ k8s_finalize_namespace_script() {
   cat << EOF
 kubectl api-resources --namespaced -o name \
   | xargs -r -n 1 -I + kubectl get "+" -n "@" -o name \
-  | xargs -r -n 1 -I % kubectl delete -n "@" "%" --grace-period=0 --force \
-  || ! kubectl get namespace "@" -o name >/dev/null 2>&1
+  | xargs -r -n 1 -I % kubectl delete -n "@" "%" --grace-period=0 --force >/dev/null 2>&1 \
+  || true
 kubectl get namespace "@" -o json \
   | tr -d "\n" | sed "s/\"finalizers\": \[[^]]\+\]/\"finalizers\": []/" \
-  | kubectl replace --raw /api/v1/namespaces/@/finalize -f - \
+  | kubectl replace --raw /api/v1/namespaces/@/finalize -f - >/dev/null 2>&1 \
   || ! kubectl get namespace "@" -o name >/dev/null 2>&1
 END="\$((\$(date +%s)+$E2E_TIMEOUT))"
 while kubectl get namespace "@" -o name >/dev/null 2>&1
