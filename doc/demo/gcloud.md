@@ -28,9 +28,38 @@ cd stackgres
 > You can work this configuration in any k8s cluster, we going to use a GCloud cluster.
 
 ## 2.- Create the k8s cluster on gcloud:
+#### 2.1.- Export the variables for cluster
+```
+export project        = Name you project in GCP
+export namecluster    = Name of my cluster
+export zone           = Zone of deployment
+export nodelocations  = Locations in the zone
+export nodetype       = Node Size
+export machinetype    = Total of nodes
+export disksize       = Minimal nodes
+export numnode        = Maxima nodes
+export clusterversion = version you will used for kubernetes
+```
+> For more information about [Node Size ](https://cloud.google.com/compute/docs/machine-types)
+> For more information about [Zones](https://cloud.google.com/compute/docs/regions-zones/)
+
+For example :
+```
+export project=stackgres-demo-256115
+export namecluster=stackgres-demo-gke-cluster
+export zone=us-west1-a
+export nodelocations=us-west1-a,us-west1-b,us-west1-c
+export machinetype=n1-standard-2
+export disksize=20
+export numnodes=1
+export clusterversion=1.12.10-gke.17
+```
+> Currently the only version supported is  1.12.0 - 1.16.0 for [kubernetes](https://docs.aws.amazon.com/eks/latest/userguide/kubernetes-versions.html)
+
+#### 2.2.- create cluster
 
 `
-gcloud  container --project stackgres-demo-256115 clusters create stackgres-demo-gke-cluster --zone us-west1-a --node-locations us-west1-a,us-west1-b,us-west1-c  --machine-type n1-standard-2 --disk-size "20" --num-nodes 1 --enable-stackdriver-kubernetes --no-enable-ip-alias --no-enable-autoupgrade --metadata disable-legacy-endpoints=true verbosity=none
+gcloud  container --project $project  clusters create $namecluster --zone $zone --node-locations $nodelocations  --machine-type $machinetype --disk-size $disksize --num-nodes $numnodes --cluster-version $clusterversion --enable-stackdriver-kubernetes --no-enable-ip-alias --no-enable-autoupgrade --metadata disable-legacy-endpoints=true verbosity=none
 `
 
 > Check each of this values to make sure is going to work with your GCP project.
@@ -57,171 +86,24 @@ or
 `helm install --name prometheus-operator stable/prometheus-operator
 `
 ## 6.- Install StackGres Operator
-### 6.1.- Integration with grafana
-#### 6.1.1.- Run grafana to get metrics
-```
-GRAFANA_POD_ID=$(kubectl get pods --all-namespaces | grep grafana | awk '{print $2}')
-GRAFANA_NAME_SPACE=$(kubectl get pods --all-namespaces | grep grafana | cut -d ' ' -f 1)
-kubectl port-forward $GRAFANA_POD_ID -n $GRAFANA_NAME_SPACE 3000
-```
-`
-sh integrate-grafana.sh
-`
-> This script integrate-grafana.sh are in the folder stackgres
+`helm install --name stackgres-operator stackgres-k8s/install/helm/stackgres-operador/`
 
-#### 8.1.2.- Add previous metrics in the following command and install operator
+## 7.- Now, we are going to create the StackGres cluster
 
-`helm install --name stackgres-operator operator/install/kubernetes/chart/stackgres-operator --set-string grafana.url='<dashboard url>' --set-string grafana.token='<grafana token>' --set-string grafana.httpHost='prometheus-operator-grafana.default.svc' `
+### 7.1.- Create cluster
+`helm install --name stackgres-cluster stackgres-k8s/install/helm/stackgres-cluster/`
 
+> If you do not want to use the Cluster by default, you can generate the CRDs one by one, [in this way](cr.md)
 
-## 7.- Now, we are going to create the StackGres cluster, generating the CRs one by one
-  * Create the next yaml files and these must be executed in the same order as shown below:
+#### 7.1.1.- Add  other cluster
+`helm upgrade  stackgres-cluster --version 3 stackgres-k8s/install/helm/stackgres-cluster/ --set-string cluster.instances=3`
 
- 1. profiles-crs.yaml
- 1. pgconfig-cr.yaml
- 1. pgbouncerconfig-cr.yaml
- 1. cluster-cr.yaml
+> Is necessary you have the resources for deployment
 
-## 7.1.- Create each file with the content below:
+### 7.2.- Verify the cluster
 
-`profiles-crs.yaml` Custom resources for instances size(memory and cpu):
-```
-apiVersion: stackgres.io/v1alpha1
-kind: StackGresProfile
-metadata:
-  name: size-xs
-  annotations:
-    "helm.sh/hook": "pre-install"
-spec:
-  cpu: "500m"
-  memory: "512Mi"
----
-apiVersion: stackgres.io/v1alpha1
-kind: StackGresProfile
-metadata:
-  name: size-s
-  annotations:
-    "helm.sh/hook": "pre-install"
-spec:
-  cpu: "1"
-  memory: "2Gi"
----
-apiVersion: stackgres.io/v1alpha1
-kind: StackGresProfile
-metadata:
-  name: size-m
-  annotations:
-    "helm.sh/hook": "pre-install"
-spec:
-  cpu: "2"
-  memory: "4Gi"
----
-apiVersion: stackgres.io/v1alpha1
-kind: StackGresProfile
-metadata:
-  name: size-l
-  annotations:
-    "helm.sh/hook": "pre-install"
-spec:
-  cpu: "4"
-  memory: "8Gi"
----
-apiVersion: stackgres.io/v1alpha1
-kind: StackGresProfile
-metadata:
-  name: size-xl
-  annotations:
-    "helm.sh/hook": "pre-install"
-spec:
-  cpu: "6"
-  memory: "16Gi"
----
-apiVersion: stackgres.io/v1alpha1
-kind: StackGresProfile
-metadata:
-  name: size-xxl
-  annotations:
-    "helm.sh/hook": "pre-install"
-spec:
-  cpu: "8"
-  memory: "32Gi"
-
-```
-`pgconfig-cr.yaml`  Custom resource for PosgreSQL configuration:
-```
-apiVersion: stackgres.io/v1alpha1
-kind: StackGresPostgresConfig
-metadata:
-  name: postgresconf
-#  annotations:
-#    "helm.sh/hook": "pre-install"
-spec:
-  pgVersion: "12"
-  postgresql.conf:
-      shared_buffers: '256MB'
-      random_page_cost: '1.5'
-      password_encryption: 'scram-sha-256'
-      wal_compression: 'on'
-
-```
-
-`pgbouncerconfig-cr.yaml` Custom resource for pgbouncer configuration:
-
-```
-apiVersion: stackgres.io/v1alpha1
-kind: StackGresConnectionPoolingConfig
-metadata:
-  name: pgbouncerconf
-  annotations:
-    "helm.sh/hook": "pre-install"
-spec:
-  pgbouncer_version: "1.11.0"
-  pgbouncer.ini:
-      pool_mode: transaction
-      max_client_conn: '200'
-      default_pool_size: '200'
-
-```
-`cluster-cr.yaml` Custom resource for StackGres cluster
-```
-apiVersion: stackgres.io/v1alpha1
-kind: StackGresCluster
-metadata:
-  name: stackgres
-spec:
-  instances: 3
-  pgVersion: '12.0'
-  pgConfig: 'postgresconf'
-  connectionPoolingConfig: 'pgbouncerconf'
-  resourceProfile: 'size-xs'
-  volumeSize: '5Gi'
-  storageClass: 'standard'
-  postgresExporterVersion: '0.5.1'
-  prometheusAutobind: true
-  sidecars:
-  - connection-pooling
-  - postgres-util
-  - prometheus-postgres-exporter
-
-```
-
-### 7.2.- Once you have the files created, apply it to the k8s cluster:
-
-```
-kubectel apply -f _your_directory/profiles-crs.yaml
-kubectel apply -f _your_directory/pgconfig-cr.yaml
-kubectel apply -f _your_directory/pgbouncerconfig-cr.yaml
-kubectel apply -f _your_directory/cluster-cr.yaml
-
-```
-
-> Note: This last file will create all the StackGres cluster resources
-
-
-### 7.3.- Verify the cluster
-
-`kubectl get pods  | grep stackgres`
-### 7.4.- Verify Postgres cluster status
+`kubectl get pods --all-namespaces -o json | jq '.items' | jq -c '.[] | select (.metadata.labels.app == "StackGres") | select (.metadata.labels.cluster == "true")' | jq '.metadata.name' -r`
+### 7.4.- Verify Patroni cluster status
 
 `kubectl exec -it stackgres-0 -c patroni -- patronictl list`
 
@@ -233,8 +115,7 @@ kubectel apply -f _your_directory/cluster-cr.yaml
 
 ## 8.-  Create a port-forward to access the web UI
 
-`
-kubectl port-forward -n stackgres "$(kubectl get pod -n stackgres | grep Running | cut -d ' ' -f 1)" 8443:443
+`kubectl port-forward  "$(kubectl get pods --all-namespaces -o json | jq '.items' | jq -c '.[] | select (.metadata.name | contains("stackgres-orator"))' | jq '.metadata.name' -r)" 8883:443
 `
 
 ### 8.1.- Access the Web UI
@@ -242,8 +123,8 @@ kubectl port-forward -n stackgres "$(kubectl get pod -n stackgres | grep Running
 
 ## 9.- To delete this cluster
 ```
+gcloud container clusters delete  $namecluster  --zone $zone
 helm tiller stop
-gcloud container clusters delete  <your project name>  --zone us-west1-a
 ```
 
 ## 10- END

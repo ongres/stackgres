@@ -2,3 +2,180 @@
 title: Pre-requisites
 weight: 1
 ---
+
+# Backups
+
+## General configuration
+
+By default backups are scheduled (`config.backup.fullSchedule`) at 05:00 UTC in a window
+ (`config.backup.fullSchedule`) of 1 hour of duration and with a retention policy
+ (`config.backup.retention`) of 5 for non-persistent full backups. You will have to find out the
+ correct time window and retention policy that fit your needs.
+
+There are more general fine tuning parameters that could affect backups in more aspects:
+
+* Compression algorithm (`config.backup.compressionMethod`): affect backup size and computational
+ resources used when creating and reading them.
+* Upload disk concurrency (`config.backup.uploadDiskConcurrency`): When reading from disk incresing
+ the parallelism could speed up the operation but this depend really on the storage capacity to
+ support parallel reads.
+* Maximum size of generated files (`config.backup.tarSizeThreshold`): could be relevant on some
+ storage. Database backups can be huge so splitting is a good practice to take into account.
+* Network rate limit (`config.backup.networkRateLimit`): could be important to limit costs and/or
+ resource usage.
+* Disk rate limit (`config.backup.diskRateLimit`): could be important to limit costs and/or
+ resource usage.
+* Encryption (`config.backup.pgpConfiguration.name` and `config.backup.pgpConfiguration.key`):
+ this depends on security requirements and/or restriction imposed by laws.
+
+We reccomend to configure all those aspects by creating a YAML values file for backup
+ configuration to include in the helm installation (`-f` or `--values` parameters) of the
+ StackGres operator similar to the following:
+
+```
+config:
+  backup:
+    retention: 5
+    fullSchedule: "0 5 * * *"
+    fullWindow: 60
+    compressionMethod: lz4
+    uploadDiskConcurrency: 1
+    tarSizeThreshold: 1073741823
+    # networkRateLimit:
+    # diskRateLimit:
+    # pgpConfiguration:
+    #   name: pgp-configuration
+    #   key: key
+```
+
+## Storage
+
+Backups support the following storage options:
+ 
+* AWS S3
+* Google CLoud Storage
+* Azure Blob Storage
+
+By default backups are stored in a [MinIO](https://min.io/) service as a separate component as a
+ [StackGres cluster helm chart dependency](https://github.com/helm/charts/tree/master/stable/minio).
+ MinIO is compatible with S3 service and is configured to stores the backups in a persistent volume
+ with the default storage class of the kubernetes cluster. We reccomend to disable the dependency
+ and use a cloud provider. To disable MinIO dependency create a YAML values file for backup storage
+ configuration  to include in the helm installation (`-f` or `--values` parameters) of the
+ StackGres operator similar to the following:
+
+```
+config:
+  backup:
+    minio:
+      create: false
+    # fill the preferred storage method with
+    # specific credentials and configurations
+    s3: {}
+    gcs: {}
+    azureblob: {}
+```
+
+# Monitoring
+
+Currently StackGres integrates only with prometheus by providing prometheus exporter sidecar and
+ offer an auto binding mechanism if prometheus is installed using the [prometeus operator](https://github.com/coreos/prometheus-operator).
+
+The recommended way to install prometheus operator in kubernetes is by using the [helm chart for prometheus operator](https://github.com/helm/charts/tree/master/stable/prometheus-operator):
+
+```
+helm install --namespace prometheus --name prometheus-operator stable/prometheus-operator
+```
+
+## Grafana integration
+
+By default helm chart of prometheus operator comes with grafana and StackGres offer an integration
+ to allow monitoring a StackGres cluster pod directly from the StackGres UI. Some manual steps are
+ required in order to achieve such integration.
+
+1. Create grafana dashboard for postgres exporter and copy/paste share URL:
+
+Using the UI: Grafana > Create > Import > Grafana.com Dashboard 9628
+
+Or by executing following script:
+
+```
+grafana_host=http://localhost:3000
+grafana_credentials=admin:prom-operator
+grafana_prometheus_datasource_name=Prometheus
+curl_grafana_api() {
+  curl -sk -H "Accept: application/json" -H "Content-Type: application/json" -u "$grafana_credentials" "$@"
+}
+dashboard_id=9628
+dashboard_json="$(cat << EOF
+{
+  "dashboard": $(curl_grafana_api "$grafana_host/api/gnet/dashboards/$dashboard_id" | jq .json),
+  "overwrite": true,
+  "inputs": [{
+    "name": "DS_PROMETHEUS",
+    "type": "datasource",
+    "pluginId": "prometheus",
+    "value": "$grafana_prometheus_datasource_name"
+  }]
+}
+EOF
+)"
+grafana_dashboard_url="$(curl_grafana_api -X POST -d "$dashboard_json" "$grafana_host/api/dashboards/import" | jq -r .importedUrl)"
+echo "$grafana_dashboard_url"
+```
+
+2. Copy/paste grafana dashboard URL for postgres exporter:
+
+
+Using the UI: Grafana > Dashboard > Manage > Select postgres exporter dashboard > Copy URL
+
+Or using the value returned by the previous script.
+
+3. Create and copy/paste grafana API token:
+
+Using the UI: Grafana > Configuration > API Keys > Add API key (for viewer) > Copy key value
+
+Or by executing following script:
+
+```
+grafana_host=http://localhost:3000
+grafana_credentials=admin:prom-operator
+grafana_prometheus_datasource_name=Prometheus
+curl_grafana_api() {
+  curl -sk -H "Accept: application/json" -H "Content-Type: application/json" -u "$grafana_credentials" "$@"
+}
+curl_grafana_api -X DELETE "$grafana_host/api/auth/keys/$grafana_api_key_id" > /dev/null
+grafana_api_key_token="$(curl_grafana_api -X POST -d '{"name":"stackgres", "role": "Viewer"}' "$grafana_host/api/auth/keys" | jq -r .key)"
+echo "$grafana_api_key_token"
+```
+
+4. Copy and paste grafana service hostname.
+
+This can be obtained with the command:
+
+```
+kubectl get service -n prometheus prometheus-operator-grafana --template $'{{ .metadata.name }}.{{ .metadata.namespace }}.svc\n'
+```
+
+5. Set the HTTP scheme used by grafana. By default this is http.
+
+This will allow to create a YAML values file for grafana integration to include in the helm
+ installation (`-f` or `--values` parameters) of the StackGres operator similar to the following:
+
+```
+grafana:
+  url: "http://localhost:3000/d/000000039/postgresql-database?orgId=1&refresh=10s"
+  token: "eyJrIjoidXc4NXJPa1VOdmNHVkFYMGJuME9zcnJucnBYRU1FQTMiLCJuIjoic3RhY2tncmVzIiwiaWQiOjF9"
+  httpHost: "prometheus-operator-grafana.prometheus.svc"
+  schema: "http"
+```
+
+# Non production options
+
+We reccomend to disable all non production options in a production environment. To do so create a
+ YAML values file to include in the helm installation (`-f` or `--values` parameters) of the
+ StackGres operator similar to the following:
+
+```
+nonProduction: {}
+```

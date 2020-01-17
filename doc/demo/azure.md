@@ -4,9 +4,6 @@ Make sure you have the following prerequisites:
 - [Kubectl ](https://kubernetes.io/es/docs/tasks/tools/install-kubectl/)
 
 - [Helm ](https://helm.sh/docs/using_helm/#installing-helm)
->  Currently the only version supported is `helm menor a 3`  for StackGres
-
-
 - [helm tiller service](https://helm.sh/docs/using_helm/#initialize-helm-and-install-tiller)
   > helm init --client-only
 
@@ -16,19 +13,15 @@ Make sure you have the following prerequisites:
 - A Kubernetes cluster (Localy using [Minikube](https://kubernetes.io/es/docs/tasks/tools/install-minikube/), [kind](https://github.com/kubernetes-sigs/kind) ,etc. or in the cloud)
 
 
-For the demo installation will use AWS,  therefore,  you need to install  eksctl for Linux
+For the demo installation will use `AZURE`,  therefore,  you need to install  `az` for Linux
 
 
-- [eksctl](https://github.com/weaveworks/eksctl/blob/master/README.md)
+- [az](https://docs.microsoft.com/es-es/cli/azure/install-azure-cli-apt?view=azure-cli-latest)
+- az login
 
-> it is necessary to have aws installed with a version> 1.6
 
 
-- [aws](https://docs.aws.amazon.com/es_es/cli/latest/userguide/install-linux.html)
-
-    *  Create role in console AWS for eks
-
-# Installation and configuration of StackGres
+# Installation and configuration of StackGres 0.8 version
 ## 1.- Clone StackGres repository
 
 `
@@ -36,51 +29,37 @@ git clone https://gitlab.com/ongresinc/stackgres.git
 cd stackgres
 `
 
-> You can work this configuration in any k8s cluster, we going to use a GCloud cluster.
+> You can work this configuration in any k8s cluster, we going to use a `AZ` cluster
+
 
 ## 2.- Create the k8s cluster on aws:
 #### 2.1.- Export the variables for cluster
 ```
 export namecluster = name of my cluster
-export version     =  version you will used for kubernetes
-export region      =  region of deployment
-export nodetype    = Node Size
+export location    =  location of deployment
 export nodes       = Total of nodes
-export minnode     = Minimal nodes
-export maxnode     = Maxima nodes
+export namegroup   = Name group for AZ
 ```
-> For more information about [Node Size ](https://aws.amazon.com/es/ec2/instance-types/)
+> for more information abount )
 
 For example :
 ```
 export namecluster=prod
-export region=us-west-2
-export version=1.14
-export nodetype=t3.medium
+export location=eastus
 export nodes=3
-export minnode=1
-export maxnode=4
+export namegroup=testgroup
 ```
-> Currently the only version supported is  1.12.0 - 1.16.0 for [kubernetes](https://docs.aws.amazon.com/eks/latest/userguide/kubernetes-versions.html)
+> Currently the only version supported is 1.14 for [kubernetes]()
 
-#### 2.2.- create cluster
+#### 2.2.- Create group
+`az group create --name $namegroup --location $location`
+#### 2.3.- create cluster
+`az aks create --name $namecluster --resource-group $namegroup --location $location --node-count $nodes`
+#### 2.4.- Coneccion cluster
 ```
-eksctl create cluster \
---name $namecluster \
---version $version \
---region $region \
---nodegroup-name standard-workers \
---node-type $nodetype \
---nodes $nodes \
---nodes-min $minnode \
---nodes-max $maxnode \
---node-ami  auto
+az aks install-cli
+az aks get-credentials --resource-group $namegroup --name $namecluster
 ```
-
-#### 2.3.-   Create your kubeconfig file with the AWS CLI
-
-`aws eks --region $region update-kubeconfig --name $namecluster`
-
 
 ## 3.-  Now, verify cluster information
 `kubectl cluster-info`
@@ -105,15 +84,12 @@ or
 `
 ## 6.- Install StackGres Operator
 `helm install --name stackgres-operator stackgres-k8s/install/helm/stackgres-operador/`
-
-## 7.- Now, we are going to create the StackGres cluster
-
 ### 7.1.- Create cluster
-`helm  install --name stackgres-cluster stackgres-k8s/install/helm/stackgres-cluster/`
+`helm  --name stackgres-cluter stackgres-k8s/install/helm/stackgres-cluster/`
 
 > If you do not want to use the Cluster by default, you can generate the CRDs one by one, [in this way](cr.md)
 
-#### 7.1.1.- Adding another cluster
+#### 7.1.1.- Add  other cluster
 `helm upgrade  stackgres-cluster --version 3 stackgres-k8s/install/helm/stackgres-cluster/ --set-string cluster.instances=3`
 
 > Is necessary you have the resources for deployment
@@ -132,8 +108,8 @@ or
 
 ## 8.-  Create a port-forward to access the web UI
 
-`kubectl port-forward  "$(kubectl get pods --all-namespaces -o json | jq '.items' | jq -c '.[] | select (.metadata.name | contains("stackgres-orator"))' | jq '.metadata.name' -r)" 8883:443
-`
+`kubectl port-forward  "$(kubectl get pods --all-namespaces -o json | jq '.items' | jq -c '.[] | select (.metadata.name | contains("stackgres-orator"))' | jq '.metadata.name' -r)" 8883:443`
+
 
 ### 8.1.- Access the Web UI
 [Go to UI](https://127.0.0.1:8443 )
@@ -141,8 +117,7 @@ or
 ## 9.- To delete this cluster
 ```
 helm tiller stop
-eksctl delete cluster --name $namecluster --region $region
-
+az aks delete --name $namecluster --resource-group $namegroup
 ```
 
 ## 10- END
