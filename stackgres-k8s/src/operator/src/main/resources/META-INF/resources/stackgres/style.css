@@ -823,6 +823,10 @@ ul.params .params li {
     padding-bottom: 20px;
 }
 
+.backups .box {
+    padding-bottom: 20px;
+}
+
 /* Grafana */
 .grafana iframe {
     width: 100%;
