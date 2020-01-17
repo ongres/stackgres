@@ -25,7 +25,6 @@ variables:
                    -DinstallAtEnd=true
                    -DdeployAtEnd=true
   E2E_PARALLELISM: 32
-  E2E_TIMEOUT: 600
   DISABLE_IT: "true"
 
 # Cache downloaded dependencies and plugins between builds.
