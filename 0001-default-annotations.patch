@@ -1,0 +1,536 @@
+From 681f5f638728913de85d9f7b4580fbbe49f40aef Mon Sep 17 00:00:00 2001
+From: Xavier Sierra <xaviersb@ongres.com>
+Date: Fri, 17 Jan 2020 16:31:02 +0100
+Subject: [PATCH 1/2] default annotations
+
+---
+ .../mutation/AbstractAnnotationMutator.java   |  4 ++
+ .../BackupConfigMutationResource.java         | 48 +++++++++++++++++++
+ .../mutation/BackupMutationResource.java      | 46 +-----------------
+ .../mutation/DefaultAnnotationMutator.java    |  4 ++
+ .../backup/BackupAnnotationMutator.java       |  9 ++++
+ .../mutation/backup/BackupMutator.java        | 14 +-----
+ .../mutation/backup/BackupPipeline.java       | 36 +-------------
+ .../backupconfig/BackupAnnotationMutator.java | 18 +++++++
+ .../BackupConfigDefaultValuesMutator.java     |  0
+ .../mutation/backupconfig/BackupMutator.java  | 16 +++++++
+ .../mutation/backupconfig/BackupPipeline.java | 43 +++++++++++++++++
+ .../cluster/ClusterAnnotationMutator.java     |  9 ++++
+ .../pgbouncer/PgBouncerAnnotationMutator.java |  9 ++++
+ .../pgconfig/PgConfigAnnotationMutator.java   |  9 ++++
+ .../profile/ProfileAnnotationMutator.java     |  9 ++++
+ .../restore/RestoreAnnotationsMutator.java    |  4 ++
+ .../BackupConfigMutationResourceTest.java     | 39 +++++++++++++++
+ .../mutation/BackupMutationResourceTest.java  | 31 +-----------
+ .../BackupConfigDefaultValuesMutatorTest.java |  0
+ .../RestoreAnnotationsMutatorTest.java        |  5 ++
+ .../backup_allow_request/create.json          |  0
+ 21 files changed, 231 insertions(+), 122 deletions(-)
+ create mode 100644 stackgres-k8s/src/operator/src/main/java/io/stackgres/operator/mutation/AbstractAnnotationMutator.java
+ create mode 100644 stackgres-k8s/src/operator/src/main/java/io/stackgres/operator/mutation/BackupConfigMutationResource.java
+ create mode 100644 stackgres-k8s/src/operator/src/main/java/io/stackgres/operator/mutation/DefaultAnnotationMutator.java
+ create mode 100644 stackgres-k8s/src/operator/src/main/java/io/stackgres/operator/mutation/backup/BackupAnnotationMutator.java
+ create mode 100644 stackgres-k8s/src/operator/src/main/java/io/stackgres/operator/mutation/backupconfig/BackupAnnotationMutator.java
+ rename stackgres-k8s/src/operator/src/main/java/io/stackgres/operator/mutation/{backup => backupconfig}/BackupConfigDefaultValuesMutator.java (100%)
+ create mode 100644 stackgres-k8s/src/operator/src/main/java/io/stackgres/operator/mutation/backupconfig/BackupMutator.java
+ create mode 100644 stackgres-k8s/src/operator/src/main/java/io/stackgres/operator/mutation/backupconfig/BackupPipeline.java
+ create mode 100644 stackgres-k8s/src/operator/src/main/java/io/stackgres/operator/mutation/cluster/ClusterAnnotationMutator.java
+ create mode 100644 stackgres-k8s/src/operator/src/main/java/io/stackgres/operator/mutation/pgbouncer/PgBouncerAnnotationMutator.java
+ create mode 100644 stackgres-k8s/src/operator/src/main/java/io/stackgres/operator/mutation/pgconfig/PgConfigAnnotationMutator.java
+ create mode 100644 stackgres-k8s/src/operator/src/main/java/io/stackgres/operator/mutation/profile/ProfileAnnotationMutator.java
+ create mode 100644 stackgres-k8s/src/operator/src/main/java/io/stackgres/operator/mutation/restore/RestoreAnnotationsMutator.java
+ create mode 100644 stackgres-k8s/src/operator/src/test/java/io/stackgres/operator/mutation/BackupConfigMutationResourceTest.java
+ rename stackgres-k8s/src/operator/src/test/java/io/stackgres/operator/mutation/{backup => backupconfig}/BackupConfigDefaultValuesMutatorTest.java (100%)
+ create mode 100644 stackgres-k8s/src/operator/src/test/java/io/stackgres/operator/mutation/restore/RestoreAnnotationsMutatorTest.java
+ create mode 100644 stackgres-k8s/src/operator/src/test/resources/backup_allow_request/create.json
+
+diff --git a/stackgres-k8s/src/operator/src/main/java/io/stackgres/operator/mutation/AbstractAnnotationMutator.java b/stackgres-k8s/src/operator/src/main/java/io/stackgres/operator/mutation/AbstractAnnotationMutator.java
+new file mode 100644
+index 0000000..a03f8d1
+--- /dev/null
++++ b/stackgres-k8s/src/operator/src/main/java/io/stackgres/operator/mutation/AbstractAnnotationMutator.java
+@@ -0,0 +1,4 @@
++package io.stackgres.operator.mutation;
++
++public class AbstractAnnotationMutator {
++}
+diff --git a/stackgres-k8s/src/operator/src/main/java/io/stackgres/operator/mutation/BackupConfigMutationResource.java b/stackgres-k8s/src/operator/src/main/java/io/stackgres/operator/mutation/BackupConfigMutationResource.java
+new file mode 100644
+index 0000000..dcf6238
+--- /dev/null
++++ b/stackgres-k8s/src/operator/src/main/java/io/stackgres/operator/mutation/BackupConfigMutationResource.java
+@@ -0,0 +1,48 @@
++/*
++ * Copyright (C) 2019 OnGres, Inc.
++ * SPDX-License-Identifier: AGPL-3.0-or-later
++ */
++
++package io.stackgres.operator.mutation;
++
++import javax.enterprise.event.Observes;
++import javax.inject.Inject;
++import javax.ws.rs.Consumes;
++import javax.ws.rs.POST;
++import javax.ws.rs.Path;
++import javax.ws.rs.Produces;
++import javax.ws.rs.core.MediaType;
++
++import io.quarkus.runtime.StartupEvent;
++import io.stackgres.operator.common.BackupConfigReview;
++import io.stackgres.operatorframework.AdmissionReviewResponse;
++import io.stackgres.operatorframework.JsonPatchMutationPipeline;
++import io.stackgres.operatorframework.MutationResource;
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
++
++@Path(MutationUtil.BACKUPCONFIG_MUTATION_PATH)
++@Produces(MediaType.APPLICATION_JSON)
++@Consumes(MediaType.APPLICATION_JSON)
++public class BackupMutationResource implements MutationResource<BackupConfigReview> {
++
++  private static final Logger LOGGER = LoggerFactory
++      .getLogger(BackupMutationResource.class);
++
++  private JsonPatchMutationPipeline<BackupConfigReview> pipeline;
++
++  @Inject
++  public BackupMutationResource(JsonPatchMutationPipeline<BackupConfigReview> pipeline) {
++    this.pipeline = pipeline;
++  }
++
++  void onStart(@Observes StartupEvent ev) {
++    LOGGER.info("Backup configuration mutation resource started");
++  }
++
++  @POST
++  @Override
++  public AdmissionReviewResponse mutate(BackupConfigReview admissionReview) {
++    return mutate(admissionReview, pipeline);
++  }
++}
+diff --git a/stackgres-k8s/src/operator/src/main/java/io/stackgres/operator/mutation/BackupMutationResource.java b/stackgres-k8s/src/operator/src/main/java/io/stackgres/operator/mutation/BackupMutationResource.java
+index dcf6238..69ea257 100644
+--- a/stackgres-k8s/src/operator/src/main/java/io/stackgres/operator/mutation/BackupMutationResource.java
++++ b/stackgres-k8s/src/operator/src/main/java/io/stackgres/operator/mutation/BackupMutationResource.java
+@@ -1,48 +1,4 @@
+-/*
+- * Copyright (C) 2019 OnGres, Inc.
+- * SPDX-License-Identifier: AGPL-3.0-or-later
+- */
+-
+ package io.stackgres.operator.mutation;
+ 
+-import javax.enterprise.event.Observes;
+-import javax.inject.Inject;
+-import javax.ws.rs.Consumes;
+-import javax.ws.rs.POST;
+-import javax.ws.rs.Path;
+-import javax.ws.rs.Produces;
+-import javax.ws.rs.core.MediaType;
+-
+-import io.quarkus.runtime.StartupEvent;
+-import io.stackgres.operator.common.BackupConfigReview;
+-import io.stackgres.operatorframework.AdmissionReviewResponse;
+-import io.stackgres.operatorframework.JsonPatchMutationPipeline;
+-import io.stackgres.operatorframework.MutationResource;
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
+-
+-@Path(MutationUtil.BACKUPCONFIG_MUTATION_PATH)
+-@Produces(MediaType.APPLICATION_JSON)
+-@Consumes(MediaType.APPLICATION_JSON)
+-public class BackupMutationResource implements MutationResource<BackupConfigReview> {
+-
+-  private static final Logger LOGGER = LoggerFactory
+-      .getLogger(BackupMutationResource.class);
+-
+-  private JsonPatchMutationPipeline<BackupConfigReview> pipeline;
+-
+-  @Inject
+-  public BackupMutationResource(JsonPatchMutationPipeline<BackupConfigReview> pipeline) {
+-    this.pipeline = pipeline;
+-  }
+-
+-  void onStart(@Observes StartupEvent ev) {
+-    LOGGER.info("Backup configuration mutation resource started");
+-  }
+-
+-  @POST
+-  @Override
+-  public AdmissionReviewResponse mutate(BackupConfigReview admissionReview) {
+-    return mutate(admissionReview, pipeline);
+-  }
++public class BackupMutationResource {
+ }
+diff --git a/stackgres-k8s/src/operator/src/main/java/io/stackgres/operator/mutation/DefaultAnnotationMutator.java b/stackgres-k8s/src/operator/src/main/java/io/stackgres/operator/mutation/DefaultAnnotationMutator.java
+new file mode 100644
+index 0000000..ab59c3d
+--- /dev/null
++++ b/stackgres-k8s/src/operator/src/main/java/io/stackgres/operator/mutation/DefaultAnnotationMutator.java
+@@ -0,0 +1,4 @@
++package io.stackgres.operator.mutation;
++
++public interface DefaultAnnotationMutator {
++}
+diff --git a/stackgres-k8s/src/operator/src/main/java/io/stackgres/operator/mutation/backup/BackupAnnotationMutator.java b/stackgres-k8s/src/operator/src/main/java/io/stackgres/operator/mutation/backup/BackupAnnotationMutator.java
+new file mode 100644
+index 0000000..5db56b5
+--- /dev/null
++++ b/stackgres-k8s/src/operator/src/main/java/io/stackgres/operator/mutation/backup/BackupAnnotationMutator.java
+@@ -0,0 +1,9 @@
++/*
++ * Copyright (C) 2019 OnGres, Inc.
++ * SPDX-License-Identifier: AGPL-3.0-or-later
++ */
++
++package io.stackgres.operator.mutation.backup;
++
++public class BackupAnnotationMutator {
++}
+diff --git a/stackgres-k8s/src/operator/src/main/java/io/stackgres/operator/mutation/backup/BackupMutator.java b/stackgres-k8s/src/operator/src/main/java/io/stackgres/operator/mutation/backup/BackupMutator.java
+index 63dcc5a..d5ffcff 100644
+--- a/stackgres-k8s/src/operator/src/main/java/io/stackgres/operator/mutation/backup/BackupMutator.java
++++ b/stackgres-k8s/src/operator/src/main/java/io/stackgres/operator/mutation/backup/BackupMutator.java
+@@ -1,16 +1,4 @@
+-/*
+- * Copyright (C) 2019 OnGres, Inc.
+- * SPDX-License-Identifier: AGPL-3.0-or-later
+- */
+-
+ package io.stackgres.operator.mutation.backup;
+ 
+-import com.github.fge.jackson.jsonpointer.JsonPointer;
+-
+-import io.stackgres.operator.common.BackupConfigReview;
+-import io.stackgres.operatorframework.JsonPatchMutator;
+-
+-public interface BackupMutator extends JsonPatchMutator<BackupConfigReview> {
+-
+-  JsonPointer SG_BACKUP_CONFIG_POINTER = JsonPointer.of("spec");
++public class BackupMutator {
+ }
+diff --git a/stackgres-k8s/src/operator/src/main/java/io/stackgres/operator/mutation/backup/BackupPipeline.java b/stackgres-k8s/src/operator/src/main/java/io/stackgres/operator/mutation/backup/BackupPipeline.java
+index 47aad71..3c4b34c 100644
+--- a/stackgres-k8s/src/operator/src/main/java/io/stackgres/operator/mutation/backup/BackupPipeline.java
++++ b/stackgres-k8s/src/operator/src/main/java/io/stackgres/operator/mutation/backup/BackupPipeline.java
+@@ -5,39 +5,5 @@
+ 
+ package io.stackgres.operator.mutation.backup;
+ 
+-import java.util.ArrayList;
+-import java.util.List;
+-import java.util.Optional;
+-
+-import javax.enterprise.context.ApplicationScoped;
+-import javax.enterprise.inject.Instance;
+-import javax.inject.Inject;
+-
+-import com.github.fge.jsonpatch.JsonPatchOperation;
+-
+-import io.stackgres.operator.common.BackupConfigReview;
+-import io.stackgres.operatorframework.JsonPatchMutationPipeline;
+-
+-@ApplicationScoped
+-public class BackupPipeline implements JsonPatchMutationPipeline<BackupConfigReview> {
+-
+-  private Instance<BackupMutator> mutators;
+-
+-  @Inject
+-  public BackupPipeline(Instance<BackupMutator> mutators) {
+-    this.mutators = mutators;
+-  }
+-
+-  @Override
+-  public Optional<String> mutate(BackupConfigReview review) {
+-    List<JsonPatchOperation> operations = new ArrayList<>();
+-
+-    mutators.forEach(mutator -> operations.addAll(mutator.mutate(review)));
+-
+-    if (operations.isEmpty()) {
+-      return Optional.empty();
+-    } else {
+-      return Optional.of(join(operations));
+-    }
+-  }
++public class BackupPipeline {
+ }
+diff --git a/stackgres-k8s/src/operator/src/main/java/io/stackgres/operator/mutation/backupconfig/BackupAnnotationMutator.java b/stackgres-k8s/src/operator/src/main/java/io/stackgres/operator/mutation/backupconfig/BackupAnnotationMutator.java
+new file mode 100644
+index 0000000..14acd62
+--- /dev/null
++++ b/stackgres-k8s/src/operator/src/main/java/io/stackgres/operator/mutation/backupconfig/BackupAnnotationMutator.java
+@@ -0,0 +1,18 @@
++/*
++ * Copyright (C) 2019 OnGres, Inc.
++ * SPDX-License-Identifier: AGPL-3.0-or-later
++ */
++
++package io.stackgres.operator.mutation.backup;
++
++import javax.enterprise.context.ApplicationScoped;
++
++import io.stackgres.operator.common.BackupConfigReview;
++import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfig;
++import io.stackgres.operator.mutation.AbstractAnnotationMutator;
++
++@ApplicationScoped
++public class BackupAnnotationMutator
++    extends AbstractAnnotationMutator<StackGresBackupConfig, BackupConfigReview>
++    implements BackupMutator {
++}
+diff --git a/stackgres-k8s/src/operator/src/main/java/io/stackgres/operator/mutation/backup/BackupConfigDefaultValuesMutator.java b/stackgres-k8s/src/operator/src/main/java/io/stackgres/operator/mutation/backupconfig/BackupConfigDefaultValuesMutator.java
+similarity index 100%
+rename from stackgres-k8s/src/operator/src/main/java/io/stackgres/operator/mutation/backup/BackupConfigDefaultValuesMutator.java
+rename to stackgres-k8s/src/operator/src/main/java/io/stackgres/operator/mutation/backupconfig/BackupConfigDefaultValuesMutator.java
+diff --git a/stackgres-k8s/src/operator/src/main/java/io/stackgres/operator/mutation/backupconfig/BackupMutator.java b/stackgres-k8s/src/operator/src/main/java/io/stackgres/operator/mutation/backupconfig/BackupMutator.java
+new file mode 100644
+index 0000000..63dcc5a
+--- /dev/null
++++ b/stackgres-k8s/src/operator/src/main/java/io/stackgres/operator/mutation/backupconfig/BackupMutator.java
+@@ -0,0 +1,16 @@
++/*
++ * Copyright (C) 2019 OnGres, Inc.
++ * SPDX-License-Identifier: AGPL-3.0-or-later
++ */
++
++package io.stackgres.operator.mutation.backup;
++
++import com.github.fge.jackson.jsonpointer.JsonPointer;
++
++import io.stackgres.operator.common.BackupConfigReview;
++import io.stackgres.operatorframework.JsonPatchMutator;
++
++public interface BackupMutator extends JsonPatchMutator<BackupConfigReview> {
++
++  JsonPointer SG_BACKUP_CONFIG_POINTER = JsonPointer.of("spec");
++}
+diff --git a/stackgres-k8s/src/operator/src/main/java/io/stackgres/operator/mutation/backupconfig/BackupPipeline.java b/stackgres-k8s/src/operator/src/main/java/io/stackgres/operator/mutation/backupconfig/BackupPipeline.java
+new file mode 100644
+index 0000000..47aad71
+--- /dev/null
++++ b/stackgres-k8s/src/operator/src/main/java/io/stackgres/operator/mutation/backupconfig/BackupPipeline.java
+@@ -0,0 +1,43 @@
++/*
++ * Copyright (C) 2019 OnGres, Inc.
++ * SPDX-License-Identifier: AGPL-3.0-or-later
++ */
++
++package io.stackgres.operator.mutation.backup;
++
++import java.util.ArrayList;
++import java.util.List;
++import java.util.Optional;
++
++import javax.enterprise.context.ApplicationScoped;
++import javax.enterprise.inject.Instance;
++import javax.inject.Inject;
++
++import com.github.fge.jsonpatch.JsonPatchOperation;
++
++import io.stackgres.operator.common.BackupConfigReview;
++import io.stackgres.operatorframework.JsonPatchMutationPipeline;
++
++@ApplicationScoped
++public class BackupPipeline implements JsonPatchMutationPipeline<BackupConfigReview> {
++
++  private Instance<BackupMutator> mutators;
++
++  @Inject
++  public BackupPipeline(Instance<BackupMutator> mutators) {
++    this.mutators = mutators;
++  }
++
++  @Override
++  public Optional<String> mutate(BackupConfigReview review) {
++    List<JsonPatchOperation> operations = new ArrayList<>();
++
++    mutators.forEach(mutator -> operations.addAll(mutator.mutate(review)));
++
++    if (operations.isEmpty()) {
++      return Optional.empty();
++    } else {
++      return Optional.of(join(operations));
++    }
++  }
++}
+diff --git a/stackgres-k8s/src/operator/src/main/java/io/stackgres/operator/mutation/cluster/ClusterAnnotationMutator.java b/stackgres-k8s/src/operator/src/main/java/io/stackgres/operator/mutation/cluster/ClusterAnnotationMutator.java
+new file mode 100644
+index 0000000..7343f4a
+--- /dev/null
++++ b/stackgres-k8s/src/operator/src/main/java/io/stackgres/operator/mutation/cluster/ClusterAnnotationMutator.java
+@@ -0,0 +1,9 @@
++/*
++ * Copyright (C) 2019 OnGres, Inc.
++ * SPDX-License-Identifier: AGPL-3.0-or-later
++ */
++
++package io.stackgres.operator.mutation.cluster;
++
++public class ClusterAnnotationMutator {
++}
+diff --git a/stackgres-k8s/src/operator/src/main/java/io/stackgres/operator/mutation/pgbouncer/PgBouncerAnnotationMutator.java b/stackgres-k8s/src/operator/src/main/java/io/stackgres/operator/mutation/pgbouncer/PgBouncerAnnotationMutator.java
+new file mode 100644
+index 0000000..03d017d
+--- /dev/null
++++ b/stackgres-k8s/src/operator/src/main/java/io/stackgres/operator/mutation/pgbouncer/PgBouncerAnnotationMutator.java
+@@ -0,0 +1,9 @@
++/*
++ * Copyright (C) 2019 OnGres, Inc.
++ * SPDX-License-Identifier: AGPL-3.0-or-later
++ */
++
++package io.stackgres.operator.mutation.pgbouncer;
++
++public class PgBouncerAnnotationMutator {
++}
+diff --git a/stackgres-k8s/src/operator/src/main/java/io/stackgres/operator/mutation/pgconfig/PgConfigAnnotationMutator.java b/stackgres-k8s/src/operator/src/main/java/io/stackgres/operator/mutation/pgconfig/PgConfigAnnotationMutator.java
+new file mode 100644
+index 0000000..1e03745
+--- /dev/null
++++ b/stackgres-k8s/src/operator/src/main/java/io/stackgres/operator/mutation/pgconfig/PgConfigAnnotationMutator.java
+@@ -0,0 +1,9 @@
++/*
++ * Copyright (C) 2019 OnGres, Inc.
++ * SPDX-License-Identifier: AGPL-3.0-or-later
++ */
++
++package io.stackgres.operator.mutation.pgconfig;
++
++public class PgConfigAnnotationMutator {
++}
+diff --git a/stackgres-k8s/src/operator/src/main/java/io/stackgres/operator/mutation/profile/ProfileAnnotationMutator.java b/stackgres-k8s/src/operator/src/main/java/io/stackgres/operator/mutation/profile/ProfileAnnotationMutator.java
+new file mode 100644
+index 0000000..c565601
+--- /dev/null
++++ b/stackgres-k8s/src/operator/src/main/java/io/stackgres/operator/mutation/profile/ProfileAnnotationMutator.java
+@@ -0,0 +1,9 @@
++/*
++ * Copyright (C) 2019 OnGres, Inc.
++ * SPDX-License-Identifier: AGPL-3.0-or-later
++ */
++
++package io.stackgres.operator.mutation.profile;
++
++public class ProfileAnnotationMutator {
++}
+diff --git a/stackgres-k8s/src/operator/src/main/java/io/stackgres/operator/mutation/restore/RestoreAnnotationsMutator.java b/stackgres-k8s/src/operator/src/main/java/io/stackgres/operator/mutation/restore/RestoreAnnotationsMutator.java
+new file mode 100644
+index 0000000..fa34f3c
+--- /dev/null
++++ b/stackgres-k8s/src/operator/src/main/java/io/stackgres/operator/mutation/restore/RestoreAnnotationsMutator.java
+@@ -0,0 +1,4 @@
++package io.stackgres.operator.mutation.restore;
++
++public class RestoreAnnotationsMutator {
++}
+diff --git a/stackgres-k8s/src/operator/src/test/java/io/stackgres/operator/mutation/BackupConfigMutationResourceTest.java b/stackgres-k8s/src/operator/src/test/java/io/stackgres/operator/mutation/BackupConfigMutationResourceTest.java
+new file mode 100644
+index 0000000..bf5a645
+--- /dev/null
++++ b/stackgres-k8s/src/operator/src/test/java/io/stackgres/operator/mutation/BackupConfigMutationResourceTest.java
+@@ -0,0 +1,39 @@
++/*
++ * Copyright (C) 2019 OnGres, Inc.
++ * SPDX-License-Identifier: AGPL-3.0-or-later
++ */
++
++package io.stackgres.operator.mutation;
++
++import io.stackgres.operator.common.BackupConfigReview;
++import io.stackgres.operator.utils.JsonUtil;
++
++import org.junit.jupiter.api.BeforeEach;
++import org.junit.jupiter.api.Test;
++import org.junit.jupiter.api.extension.ExtendWith;
++import org.mockito.junit.jupiter.MockitoExtension;
++
++@ExtendWith(MockitoExtension.class)
++class BackupMutationResourceTest extends MutationResourceTest<BackupConfigReview> {
++
++  @BeforeEach
++  void setUp() {
++    resource = new BackupMutationResource(pipeline);
++
++    review = JsonUtil
++        .readFromJson("backupconfig_allow_request/create.json", BackupConfigReview.class);
++  }
++
++  @Override
++  @Test
++  void givenAnValidAdmissionReview_itShouldReturnAnyPath() {
++    super.givenAnValidAdmissionReview_itShouldReturnAnyPath();
++  }
++
++  @Override
++  @Test
++  void givenAnInvalidAdmissionReview_itShouldReturnABase64EncodedPath() {
++    super.givenAnInvalidAdmissionReview_itShouldReturnABase64EncodedPath();
++  }
++
++}
+\ No newline at end of file
+diff --git a/stackgres-k8s/src/operator/src/test/java/io/stackgres/operator/mutation/BackupMutationResourceTest.java b/stackgres-k8s/src/operator/src/test/java/io/stackgres/operator/mutation/BackupMutationResourceTest.java
+index bf5a645..dab9b88 100644
+--- a/stackgres-k8s/src/operator/src/test/java/io/stackgres/operator/mutation/BackupMutationResourceTest.java
++++ b/stackgres-k8s/src/operator/src/test/java/io/stackgres/operator/mutation/BackupMutationResourceTest.java
+@@ -5,35 +5,8 @@
+ 
+ package io.stackgres.operator.mutation;
+ 
+-import io.stackgres.operator.common.BackupConfigReview;
+-import io.stackgres.operator.utils.JsonUtil;
++import static org.junit.jupiter.api.Assertions.*;
+ 
+-import org.junit.jupiter.api.BeforeEach;
+-import org.junit.jupiter.api.Test;
+-import org.junit.jupiter.api.extension.ExtendWith;
+-import org.mockito.junit.jupiter.MockitoExtension;
+-
+-@ExtendWith(MockitoExtension.class)
+-class BackupMutationResourceTest extends MutationResourceTest<BackupConfigReview> {
+-
+-  @BeforeEach
+-  void setUp() {
+-    resource = new BackupMutationResource(pipeline);
+-
+-    review = JsonUtil
+-        .readFromJson("backupconfig_allow_request/create.json", BackupConfigReview.class);
+-  }
+-
+-  @Override
+-  @Test
+-  void givenAnValidAdmissionReview_itShouldReturnAnyPath() {
+-    super.givenAnValidAdmissionReview_itShouldReturnAnyPath();
+-  }
+-
+-  @Override
+-  @Test
+-  void givenAnInvalidAdmissionReview_itShouldReturnABase64EncodedPath() {
+-    super.givenAnInvalidAdmissionReview_itShouldReturnABase64EncodedPath();
+-  }
++class BackupMutationResourceTest {
+ 
+ }
+\ No newline at end of file
+diff --git a/stackgres-k8s/src/operator/src/test/java/io/stackgres/operator/mutation/backup/BackupConfigDefaultValuesMutatorTest.java b/stackgres-k8s/src/operator/src/test/java/io/stackgres/operator/mutation/backupconfig/BackupConfigDefaultValuesMutatorTest.java
+similarity index 100%
+rename from stackgres-k8s/src/operator/src/test/java/io/stackgres/operator/mutation/backup/BackupConfigDefaultValuesMutatorTest.java
+rename to stackgres-k8s/src/operator/src/test/java/io/stackgres/operator/mutation/backupconfig/BackupConfigDefaultValuesMutatorTest.java
+diff --git a/stackgres-k8s/src/operator/src/test/java/io/stackgres/operator/mutation/restore/RestoreAnnotationsMutatorTest.java b/stackgres-k8s/src/operator/src/test/java/io/stackgres/operator/mutation/restore/RestoreAnnotationsMutatorTest.java
+new file mode 100644
+index 0000000..eb2ab1e
+--- /dev/null
++++ b/stackgres-k8s/src/operator/src/test/java/io/stackgres/operator/mutation/restore/RestoreAnnotationsMutatorTest.java
+@@ -0,0 +1,5 @@
++import static org.junit.jupiter.api.Assertions.*;
++
++class RestoreAnnotationsMutatorTest {
++
++}
+\ No newline at end of file
+diff --git a/stackgres-k8s/src/operator/src/test/resources/backup_allow_request/create.json b/stackgres-k8s/src/operator/src/test/resources/backup_allow_request/create.json
+new file mode 100644
+index 0000000..e69de29
+-- 
+2.17.1
+

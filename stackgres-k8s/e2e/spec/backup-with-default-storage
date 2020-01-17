@@ -21,7 +21,9 @@ EOF
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
     -f "$LOG_PATH/minio-affinity.yaml"
 
-  wait_pods_running "$CLUSTER_NAMESPACE" 3
+  deploy_curl_pod "$CLUSTER_NAMESPACE"
+
+  wait_pods_running "$CLUSTER_NAMESPACE" 4
 
   # Avoid backups before waiting for pods (since backup pods could biase the wait)
   kubectl patch sgbackupconfig -n "$CLUSTER_NAMESPACE" backupconf --type json \
@@ -117,18 +119,30 @@ EOF
     return 1
   fi
 
-  BACKUP_NAME="$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
+  ACTUAL_BACKUP_NAME="$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
     -o custom-columns=BACKUP_NAME:.status.name,PHASE:.status.phase,HOSTNAME:.status.hostname \
     | tail -n +2 | grep " Completed   ${CLUSTER_NAME}-${NODE}$" | tail -n 1 | cut -d ' ' -f 1)"
   
   if [ "$(kubectl exec -t -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-${NODE}" -c patroni -- \
-      wal-g backup-list | grep "^$BACKUP_NAME " | wc -l)" -gt 0 ]
+      wal-g backup-list | grep "^$ACTUAL_BACKUP_NAME " | wc -l)" -gt 0 ]
   then
     echo "SUCCESS. The full backup of created CR is available"
   else
     echo "FAIL. The full backup of created CR is not available"
     return 1
   fi
+
+  local DEFAULT_ANNOTATION=$(kubectl get sgbackup -n $CLUSTER_NAMESPACE $BACKUP_NAME -o json | run_jq '.metadata.annotations["stackgres.io/operatorVersion"]')
+
+  if [ -z $DEFAULT_ANNOTATION ] || [ "$DEFAULT_ANNOTATION" = "null" ]
+  then
+    echo "Fail. Default annotations not created"
+    return 1
+  else
+    echo "Success. Defaults annotations created"    
+  fi
+
+
 }
 
 check_switchover() {
@@ -165,3 +179,4 @@ check_switchover() {
     return 1
   fi
 }
+

@@ -14,35 +14,35 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import io.quarkus.runtime.StartupEvent;
-import io.stackgres.operator.common.BackupReview;
+import io.stackgres.operator.common.BackupConfigReview;
 import io.stackgres.operatorframework.AdmissionReviewResponse;
 import io.stackgres.operatorframework.JsonPatchMutationPipeline;
 import io.stackgres.operatorframework.MutationResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Path(MutationUtil.BACKUP_MUTATION_PATH)
+@Path(MutationUtil.BACKUPCONFIG_MUTATION_PATH)
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-public class BackupMutationResource implements MutationResource<BackupReview> {
+public class BackupConfigMutationResource implements MutationResource<BackupConfigReview> {
 
   private static final Logger LOGGER = LoggerFactory
-      .getLogger(BackupMutationResource.class);
+      .getLogger(BackupConfigMutationResource.class);
 
-  private JsonPatchMutationPipeline<BackupReview> pipeline;
+  private JsonPatchMutationPipeline<BackupConfigReview> pipeline;
 
   @Inject
-  public BackupMutationResource(JsonPatchMutationPipeline<BackupReview> pipeline) {
+  public BackupConfigMutationResource(JsonPatchMutationPipeline<BackupConfigReview> pipeline) {
     this.pipeline = pipeline;
   }
 
   void onStart(@Observes StartupEvent ev) {
-    LOGGER.info("Backup mutation resource started");
+    LOGGER.info("Backup configuration mutation resource started");
   }
 
   @POST
   @Override
-  public AdmissionReviewResponse mutate(BackupReview admissionReview) {
+  public AdmissionReviewResponse mutate(BackupConfigReview admissionReview) {
     return mutate(admissionReview, pipeline);
   }
 }

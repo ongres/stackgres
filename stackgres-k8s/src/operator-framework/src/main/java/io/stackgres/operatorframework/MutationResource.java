@@ -48,7 +48,7 @@ public interface MutationResource<T extends AdmissionReview<?>> {
     } catch (Exception ex) {
       Result result = new Result(500, Optional.ofNullable(ex.getMessage()).orElse("null"));
       logger.error("cannot proceed with request "
-          + requestUid.toString() + " cause: " + result.getMessage());
+          + requestUid.toString() + " cause: " + result.getMessage(), ex);
       response.setAllowed(false);
       response.setStatus(result);
     }

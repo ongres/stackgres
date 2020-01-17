@@ -1,0 +1,61 @@
+{
+  "kind": "AdmissionReview",
+  "request": {
+    "uid": "c2f4a2a1-3939-11ea-be74-0242ac110002",
+    "kind": {
+      "kind": "StackGresBackup",
+      "group": "stackgres.io",
+      "version": "v1alpha1"
+    },
+    "resource": {
+      "group": "stackgres.io",
+      "resource": "sgbackups",
+      "version": "v1alpha1"
+    },
+    "subResource": null,
+    "requestKind": null,
+    "requestResource": null,
+    "requestSubResource": null,
+    "name": null,
+    "namespace": "backup-with-default-storage",
+    "operation": "CREATE",
+    "userInfo": {
+      "groups": [
+        "system:serviceaccounts",
+        "system:serviceaccounts:backup-with-default-storage",
+        "system:authenticated"
+      ],
+      "uid": "7683f3c9-3939-11ea-be74-0242ac110002",
+      "username": "system:serviceaccount:backup-with-default-storage:backup-with-default-storage-patroni"
+    },
+    "object": {
+      "kind": "StackGresBackup",
+      "apiVersion": "stackgres.io/v1alpha1",
+      "metadata": {
+        "name": "backup-with-default-storage-bded7e9a-3939-11ea-be74-0242ac110002",
+        "namespace": "backup-with-default-storage",
+        "ownerReferences": [
+          {
+            "apiVersion": "batch/v1beta1",
+            "kind": "CronJob",
+            "name": "backup-with-default-storage-backup",
+            "uid": "769faf87-3939-11ea-be74-0242ac110002"
+          }
+        ]
+      },
+      "spec": {
+        "cluster": "backup-with-default-storage",
+        "isPermanent": false
+      },
+      "status": {
+        "backupConfig": "backupconf",
+        "phase": "Pending",
+        "pod": "backup-with-default-storage-backup-1579273020-svf9b"
+      }
+    },
+    "oldObject": null,
+    "options": null,
+    "dryRun": false
+  },
+  "apiVersion": "admission.k8s.io/v1beta1"
+}

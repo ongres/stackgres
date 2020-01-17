@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
 public class RestoreConfigMutator implements MutationResource<RestoreConfigReview> {
 
   private static final Logger LOGGER = LoggerFactory
-      .getLogger(BackupMutationResource.class);
+      .getLogger(BackupConfigMutationResource.class);
 
   private JsonPatchMutationPipeline<RestoreConfigReview> pipeline;
 
