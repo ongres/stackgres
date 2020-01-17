@@ -1,3 +1,18 @@
+# Release 0.8-alpha2
+
+## NOTES
+
+* Addded backup CR
+* Annotate StackGres CRs with operator version
+* Support for backup restoration
+* Validation of CR structure
+
+## FIXES
+
+* Prevent reconciliation cycle to fail when not able to send an event
+* Fixed search of prometheus service monitor orphans
+* Correct response POJO when returning error for admission webhooks
+
 # Release 0.8-alpha1
 
 ## NOTES
