@@ -4,6 +4,7 @@ var navItems = document.getElementsByClassName("nav-item");
 
 var clustersList = [],
     //clustersData = [],
+    backups = [],
     pgConf = [],
     poolConf = [],
     profiles = [],
@@ -52,6 +53,20 @@ const router = new VueRouter({
           conditionalRoute: false
         },
       },
+      {  
+          path: '/backups/:namespace/', 
+          component: Backups,
+          meta: {
+            conditionalRoute: false
+          },
+        },
+        { 
+          path: '/backups/:namespace/:name', 
+          component: Backups,
+          meta: {
+            conditionalRoute: false
+          },
+        },
       { 
         path: '/configurations/postgresql/:namespace', 
         component: PgConfig,
@@ -162,6 +177,7 @@ const store = new Vuex.Store({
     currentPods: [],
     namespaces: [],
     clusters: [],
+    backups: [],
     pgConfig: [],
     poolConfig: [],
     backupConfig: [],
@@ -213,6 +229,19 @@ const store = new Vuex.Store({
       }
 
     },
+    updateBackups ( state, backup ) {
+
+        let index = state.backups.find(p => (backup.data.metadata.name == p.name) && (backup.data.metadata.namespace == p.data.metadata.namespace) ); 
+
+        if ( typeof index !== "undefined" ) {
+          index.data = backup.data;
+          console.log(backup.name+" ya existe");
+        } else {
+          state.backups.push( backup );    
+          console.log('Se agregó '+backup.name);
+        }
+
+      },
     updatePGConfig ( state, config ) {
 
       let index = state.pgConfig.find(c => (config.data.metadata.name == c.name) && (config.data.metadata.namespace == c.data.metadata.namespace) ); 
@@ -254,20 +283,24 @@ const store = new Vuex.Store({
     },
     updateProfiles ( state, profile ) {
 
-      let index = state.profiles.find(p => (profile.data.metadata.name == p.name) && (profile.data.metadata.namespace == p.data.metadata.namespace) ); 
+        let index = state.profiles.find(p => (profile.data.metadata.name == p.name) && (profile.data.metadata.namespace == p.data.metadata.namespace) ); 
 
-      if ( typeof index !== "undefined" ) {
-        index.data = profile.data;
-        console.log(profile.name+" ya existe");
-      } else {
-        state.profiles.push( profile );    
-        console.log('Se agregó '+profile.name);
-      }
+        if ( typeof index !== "undefined" ) {
+          index.data = profile.data;
+          console.log(profile.name+" ya existe");
+        } else {
+          state.profiles.push( profile );    
+          console.log('Se agregó '+profile.name);
+        }
 
-    },
+      },
 
     flushClusters (state ) {
       state.clusters.length = 0;
+    },
+
+    flushBackups (state ) {
+    	state.backups.length = 0;
     },
 
     flushPoolConfig (state ) {
@@ -280,6 +313,10 @@ const store = new Vuex.Store({
 
     flushBackupConfig (state ) {
       state.backupConfig.length = 0;
+    },
+
+    flushProfiles (state ) {
+      state.profiles.length = 0;
     },
   }
 });
@@ -349,6 +386,44 @@ var vm = new Vue({
 
         }
         
+      });
+
+      /* Backups */
+      axios
+      .get(apiURL+'backup',
+        { headers: {
+          'content-type': 'application/json'
+        }
+      })
+      .then( function(response) {
+
+        if( checkData(response.data, apiData['backup']) ) {
+
+          if(typeof apiData['backup'] !== 'undefined' && response.data.length != apiData['backup'].length)
+            store.commit('flushBackup');
+
+          apiData['backup'] = response.data;
+
+          apiData['backup'].forEach( function(item, index) {
+            
+            if(store.state.namespaces.indexOf(item.metadata.namespace) === -1) {
+            
+              store.commit('updateNamespaces', item.metadata.namespace);
+
+            } else {
+              //console.log("Namespace ya existe");
+            }     
+              
+            store.commit('updateBackups', { 
+              name: item.metadata.name,
+              data: item
+            });
+
+          });
+
+          console.log("Backups Data updated");
+
+        }
       });
 
       /* PostgreSQL Config */
