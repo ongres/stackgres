@@ -5,7 +5,8 @@ weight: 6
 
 # StackGres 0.8
 
-|| Component || Versions ||
+| Component | Versions |
+| ------ | ----------- |
 | PostgreSQL | 11.6 and 12.1 |
 | Patroni | 1.6.3 |
 | WAL-G | 0.2.14 |
