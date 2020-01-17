@@ -36,7 +36,7 @@ var ClusterInfo = Vue.component("cluster-info", {
 							{{ cluster.data.diskUsed }} / {{ cluster.data.diskFound }}
 						</div>
 						<div class="col">
-							{{ cluster.data.podsReady }} / {{ cluster.data.pods.length }}
+							{{ cluster.data.podsReady }} / {{ cluster.data.podsCount }}
 						</div>
 					</div>
 				</div>
@@ -57,6 +57,25 @@ var ClusterInfo = Vue.component("cluster-info", {
 			console.log("Current cluster: "+store.state.currentCluster)*/
 
 			/* Clusters Data */
+		    axios
+		    .get(apiURL+'cluster/status/'+vm.$route.params.namespace+'/'+vm.$route.params.name,
+		    	{ headers: {
+		            'content-type': 'application/json'
+		          }
+		        }
+	      	)
+	      	.then( function(response){
+
+	        	store.commit('setCurrentCluster', { 
+	              	name: vm.$route.params.name,
+	              	data: response.data
+              	});
+
+	        	vc.dataReady = true;
+	        			        
+	      	});
+
+			/* Pods Data */
 		    axios
 		    .get(apiURL+'cluster/status/'+vm.$route.params.namespace+'/'+vm.$route.params.name,
 		    	{ headers: {
