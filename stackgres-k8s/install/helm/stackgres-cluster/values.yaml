@@ -154,5 +154,5 @@ minio:
       purge: true
 
 #You should only set following options for non production environment
-nonProductionOptions:
+nonProduction:
   disableClusterPodAntiAffinity: true
