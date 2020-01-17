@@ -20,8 +20,6 @@ ___
 |-----------|------|-------------|
 | cluster | string  | The name of the cluster where the backup will or has been taken  |
 | isPermanent | boolean  | Indicate if this backup is permanent and should not be removed by retention process  |
-|   |   |   |
-
 
 ### **Backup Status information**
 

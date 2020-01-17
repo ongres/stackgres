@@ -24,8 +24,7 @@ ___
 | compressionMethod  | string  | To configure compression method used for backups. Possible options are: lz4, lzma, brotli. Default method is lz4. LZ4 is the fastest method, but compression ratio is bad. LZMA is way much slower, however it compresses backups about 6 times better than LZ4. Brotli is a good trade-off between speed and compression ratio which is about 3 times better than LZ4  |
 | networkRateLimit  | integer  | To configure disk read rate limit during uploads in bytes per second  |
 | uploadDiskConcurrency  | integer  | To configure how many concurrency streams are reading disk during uploads. By default 1 stream  |
-| pgpConfiguration  | string  | The OpenPGP configuration for encryption and decryption backups with the following properties: - key: PGP private key  |
-| [key](_pgp_key.md)  | object  | PGP private key  |
+| [pgpConfiguration]({{< ref "_pgp_key.md" >}}) | string  | The OpenPGP configuration for encryption and decryption backups with the following properties: - key: PGP private key  |
 | tarSizeThreshold  | integer  | To configure the size of one backup bundle (in bytes). Smaller size causes granularity and more optimal, faster recovering. It also increases the number of storage requests, so it can costs you much money. Default size is 1 GB (1 << 30 - 1 bytes)  |
 | [storage](_storage_configuration.md)  | object  | Backup storage configuration  |
 
