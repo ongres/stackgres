@@ -345,7 +345,7 @@ ul.zg-ul-select:not(.active) li.active:after, #selected--zg-ul-select.active:aft
     border-top: 0;
     border-left: 0;
     position: absolute;
-    right: 13px;
+    right: 8px;
     top: 9px;
 }
 
