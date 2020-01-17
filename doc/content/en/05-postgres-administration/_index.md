@@ -1,11 +1,11 @@
 ---
 title: Postgres Administration
 weight: 5
-pre: "<b>5. </b>"
+pre: "<b>4. </b>"
 chapter: true
 ---
 
-### Chapter 5
+### Chapter 4
 
 # Postgres Administration
 

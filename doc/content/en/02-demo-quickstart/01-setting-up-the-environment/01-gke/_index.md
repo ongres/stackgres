@@ -13,7 +13,7 @@ To create a Google Kubernetes Engine you have to do so in a [Google Cloud Projec
  * Zone: us-west1-a
  * Node locations: us-west1-a,us-west1-b,us-west1-c
  * Machine type: n1-standard-1
- * # of nodes: 3
+ * Number of nodes: 3
  * Disk size 20GB
  * Node auto upgrade disabled
 

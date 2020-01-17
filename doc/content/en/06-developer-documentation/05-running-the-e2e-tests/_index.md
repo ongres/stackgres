@@ -26,7 +26,5 @@ Environment can be specified using the `ENV` environment variable. Currently we 
 
 * kind
 * minikube
-* eks
 * gke
-* aks
 
