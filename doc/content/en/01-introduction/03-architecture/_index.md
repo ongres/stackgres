@@ -3,9 +3,7 @@ title: "Architecture"
 weight: 3
 ---
 
-# Architecture
-
-## The Operator
+# The Operator
 
 An Operator is a method of packaging, deploying and managing a Kubernetes
 application. Some applications, such as databases, required more hand-holding, and a cloud-native
@@ -13,7 +11,7 @@ Postgres requires an operator to provide additional knowledge of how to maintain
 all the components. The StackGres operator allow to deploy a StackGres cluster using a few custom
 resources created by the user.
 
-### Operator availability concerns
+## Operator availability concerns
 
 Operator availability only affect operational plane, data plane is not affected
  at all since the database will work as expected when the operator is offline.
@@ -34,13 +32,14 @@ Operator unavailablility does not affect following functional aspects:
 * Incremental backups
 * Stats collection
 
-## The Cluster
+# The Cluster
 
-A StackGres cluster is basically a StatefulSet where each Pod is a database instance. The StatefulSet guarantee
-that each Pod is always binded to its own persistent volume so that the database instance data can be mapped to
-the state of a patroni instance inside kubernetes.
+A StackGres cluster is basically a StatefulSet where each Pod is a database instance. The
+ StatefulSet guarantee that each Pod is always binded to its own persistent volume so that the
+ database instance data can be mapped to the state of a patroni instance inside kubernetes.
 
 ![Pod Architecture](pod-architecture.png "Pod Architecture")
 
-We use a pattern called sidecar where a main application run in a container and other container are providing a side functionality
-like connection pooling, export of stats, edge proxying, logging dispatcher or database utilities.
+We use a pattern called sidecar where a main application run in a container and other container
+ are providing a side functionality like connection pooling, export of stats, edge proxying,
+ logging dispatcher or database utilities.
