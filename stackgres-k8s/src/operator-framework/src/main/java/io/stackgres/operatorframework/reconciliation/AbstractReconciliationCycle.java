@@ -135,7 +135,12 @@ public abstract class AbstractReconciliationCycle<T> {
         } catch (Exception ex) {
           LOGGER.error(cycleName + " failed reconciling " + name.toLowerCase(Locale.US)
               + " " + contextId, ex);
-          onConfigError(context, contextResource, ex);
+          try {
+            onConfigError(context, contextResource, ex);
+          } catch (Exception rex) {
+            LOGGER.error(cycleName + " failed sending event while reconciling "
+                + name.toLowerCase(Locale.US) + " " + contextId, rex);
+          }
         }
       }
       LOGGER.trace(cycleName + " ended successfully");

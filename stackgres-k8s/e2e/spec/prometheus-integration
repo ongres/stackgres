@@ -1,12 +1,8 @@
 #!/bin/sh
 
-e2e_test_install() {  
-
+e2e_test_install() {
   PROMETHEUS_NAMESPACE="$CLUSTER_NAMESPACE-monitor"
   GRAFANA_CREDENTIALS=admin:prom-operator
-
-  helm template --namespace $PROMETHEUS_NAMESPACE --name prometheus stable/prometheus-operator \
-    | kubectl delete -n $PROMETHEUS_NAMESPACE --ignore-not-found -f -
 
   helm install --namespace $PROMETHEUS_NAMESPACE --name prometheus stable/prometheus-operator || true
   
@@ -17,7 +13,14 @@ e2e_test_install() {
   deploy_curl_pod "$CLUSTER_NAMESPACE"
 
   wait_pods_running "$CLUSTER_NAMESPACE" 2
+}
 
+e2e_test_uninstall() {
+  helm_cleanup_chart "$CLUSTER_NAME"
+  helm_cleanup_chart prometheus
+
+  k8s_cleanup_namespace "$CLUSTER_NAMESPACE"
+  k8s_cleanup_namespace "$PROMETHEUS_NAMESPACE"
 }
 
 e2e_test_after_all(){
