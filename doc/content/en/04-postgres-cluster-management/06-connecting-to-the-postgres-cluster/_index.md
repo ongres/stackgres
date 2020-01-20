@@ -58,7 +58,7 @@ For all the following examples we're going to assume that we have a stackgres   
 
 With a pod with psql running in the same kubernetes cluster than the stackgres cluster, we can connect to the primary node with the following command: 
 
-```
+``` sh
 PGPASSWORD=1775-d517-4136-958 psql -h stackgres-primary.demo.svc -U postgres
 ```
 
