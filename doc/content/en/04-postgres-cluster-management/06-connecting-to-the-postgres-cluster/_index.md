@@ -14,7 +14,7 @@ This services will follow a convention that is based in the cluster name and the
  - `<cluster-name>-primary`
  - `<cluster-name>-replica`
 
-Both services will accept connections from ports 5432 and 5433. 
+Both services will accept connections from ports `5432` and `5433`. 
 
 Therefore, given a cluster with name "stackgres" in the namespace "demo", the master node will accessible through 
  the URL: `stackgres-primary.demo.svc:5432`.  Meanwhile, the replica node is accessible through the URL: `stackgres-replica.demo.svc:5432`
@@ -36,15 +36,15 @@ The passwords for this users are randomly generated and stored in the stackgres 
 Assuming that we have a stackgres cluster named "stackgres" in the namespace "demo", we can get the users passwords with following commands:
 
  - superuser: 
-   ```
+   ``` sh
    kubectl get secrets -n demo stackgres -o jsonpath='{.data.superuser-password}' | base64 -d
    ```
  - replication: 
-   ```
+   ``` sh
    kubectl get secrets -n demo stackgres -o jsonpath='{.data.replication-password}' | base64 -d
    ```
  - authenticator: 
-   ```
+   ``` sh
    kubectl get secrets -n demo stackgres -o jsonpath='{.data.authenticator-password}' | base64 -d
    ```
 
