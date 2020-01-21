@@ -3,31 +3,55 @@ title: Connection pooling configuration
 weight: 3
 ---
 
-# Session mode
+The connection pooling CR represent the configuration of PgBouncer.
 
-By default PgBouncer is configured in session mode with 1000 maximum client connections limit.
- This is not necessarily a bad configuration but tuning this aspect really depends on the needs of
- your application. In case the application already implement a pool of connection you could rely on
- that pool but if you later scale up the application it will necessarily need to update the
- configuration to avoid saturation of connection by decreasing the pool size proportionally to the
- number of application instances. This limits the application to grow not more than the PostgreSQL
- maximum connections limit (by default this is 100) and increasing this value should be avoided in
- order to not saturate database with parallel connections. So the session mode pool allow to scale
- beyond the limit of PostgreSQL maximum connections.
+___
 
-Main drawback of session mode is that you must configure application to actually close the connection
- in order to allow other connection that where waiting in the queue to start sending command to
- PostgreSQL.
+**Kind:** StackGresConnectionPoolingConfig
 
-# Transaction mode
+**listKind:** StackGresConnectionPoolingConfigList
 
-PgBouncer can be configured in transaction mode that allow to scale and parallelize connections
- beyond the limit of PostgreSQL maximum connections and without the hassle of configuring
- application to actually close the connection. This mode make it possible by managing a waiting
- queue of transactions, so that multiple connection's transactions will be sent to a single
- PostgreSQL connection. This mode enable optimal usage of PostgreSQL connection by multiplexing
- transactions among a multiple connections.
+**plural:** sgconnectionpoolingconfigs
 
-The drawback of transaction mode is that application will not be able to use session object
- between transactions since two subsequent transactions could be sent to different PostgreSQL
- connections that has different session objects states.
+**singular:** sgconnectionpoolingconfig
+___
+
+**Properties**
+
+| Property | Required | Type | Description | Default |
+|-----------|------|------|-------------|------|
+| pgbouncer.ini |   | object  | Section [pgbouncer] of pgbouncer.ini configuration | see below |
+
+Default section [pgbouncer] of pgbouncer.ini:
+
+```shell
+listen_addr=127.0.0.1
+unix_socket_dir=/var/run/postgresql
+auth_type=md5
+auth_user=authenticator
+auth_query=SELECT usename, passwd FROM pg_shadow WHERE usename=$1
+admin_users=postgres
+stats_users=postgres
+user=postgres
+pool_mode=session
+max_client_conn=1000
+max_db_connections=100
+max_user_connections=100
+default_pool_size=100
+ignore_startup_parameters=extra_float_digits
+application_name_add_host=1
+```
+
+Example:
+
+```yaml
+apiVersion: stackgres.io/v1alpha1
+kind: StackGresConnectionPoolingConfig
+metadata:
+  name: pgbouncerconf
+spec:
+  pgbouncer.ini:
+    default_pool_size: '200'
+    max_client_conn: '200'
+    pool_mode: 'transaction'
+```
