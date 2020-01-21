@@ -7,10 +7,8 @@ package io.stackgres.operator.mutation.cluster;
 
 import javax.enterprise.context.ApplicationScoped;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.github.fge.jackson.jsonpointer.JsonPointer;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
-import io.stackgres.operator.customresource.sgcluster.StackGresClusterSpec;
 import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfig;
 
 @ApplicationScoped
