@@ -1,6 +1,6 @@
 ---
 title: Backup settings
-weight: 5
+weight: 4
 ---
 
 The backup configuration CR represent the backups configuration of the cluster.

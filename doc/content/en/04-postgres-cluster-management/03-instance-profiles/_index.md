@@ -1,6 +1,6 @@
 ---
 title: Instance profiles
-weight: 4
+weight: 3
 ---
 
 The Resource profile CR represent the CPU and memory resources assigned to each Pod of the cluster.

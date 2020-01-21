@@ -1,6 +1,6 @@
 ---
 title: Connecting to the Postgres cluster
-weight: 6
+weight: 5
 ---
 
 ## DNS resolution
