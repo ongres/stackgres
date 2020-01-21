@@ -59,6 +59,9 @@ spec:
                 items:
                   type: string
                 description: "List of sidecars to include in the cluster"
+              prometheusAutobind:
+                type: boolean
+                description: "If enabled a ServiceMonitor will be created for each Prometheus instance found in order to collect metrics"
             required: [
               "instances",
               "pgVersion",
