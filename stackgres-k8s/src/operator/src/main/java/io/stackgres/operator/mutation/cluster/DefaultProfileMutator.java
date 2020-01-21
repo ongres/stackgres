@@ -24,11 +24,6 @@ public class DefaultProfileMutator extends AbstractDefaultResourceMutator<StackG
 
   @Override
   protected JsonPointer getTargetPointer() throws NoSuchFieldException {
-    String jsonField = StackGresClusterSpec.class
-        .getDeclaredField("resourceProfile")
-        .getAnnotation(JsonProperty.class)
-        .value();
-    return CLUSTER_CONFIG_POINTER.append(jsonField);
-
+    return getTargetPointer("resourceProfile");
   }
 }

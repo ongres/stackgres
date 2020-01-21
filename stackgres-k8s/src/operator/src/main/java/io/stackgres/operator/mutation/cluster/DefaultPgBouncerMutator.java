@@ -25,16 +25,13 @@ public class DefaultPgBouncerMutator
 
   @Override
   protected boolean applyDefault(StackGresCluster targetCluster) {
-    return targetCluster.getSpec().getSidecars().contains("connection-pooling")
+    return targetCluster.getSpec().getSidecars() != null
+        && targetCluster.getSpec().getSidecars().contains("connection-pooling")
         && super.applyDefault(targetCluster);
   }
 
   @Override
   protected JsonPointer getTargetPointer() throws NoSuchFieldException {
-    String jsonField = StackGresClusterSpec.class
-        .getDeclaredField("connectionPoolingConfig")
-        .getAnnotation(JsonProperty.class)
-        .value();
-    return CLUSTER_CONFIG_POINTER.append(jsonField);
+    return getTargetPointer("connectionPoolingConfig");
   }
 }

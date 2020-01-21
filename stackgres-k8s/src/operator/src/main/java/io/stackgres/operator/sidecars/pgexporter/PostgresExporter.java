@@ -208,7 +208,10 @@ public class PostgresExporter
         .parseBoolean(configContext.getProperty(ConfigProperty.PROMETHEUS_AUTOBIND)
         .orElse("false"));
 
-    if (isAutobindAllowed && cluster.getSpec().getPrometheusAutobind()) {
+    boolean isPrometheusAutobindEnabled = Optional.ofNullable(cluster.getSpec()
+        .getPrometheusAutobind()).orElse(false);
+
+    if (isAutobindAllowed && isPrometheusAutobindEnabled) {
       LOGGER.trace("Prometheus auto bind enabled, looking for prometheus installations");
 
       List<PrometheusInstallation> prometheusInstallations = prometheusScanner.findResources()

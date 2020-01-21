@@ -25,11 +25,7 @@ public class DefaultPostgresMutator
 
   @Override
   protected JsonPointer getTargetPointer() throws NoSuchFieldException {
-    String targetField = StackGresClusterSpec
-        .class.getDeclaredField("postgresConfig")
-        .getAnnotation(JsonProperty.class).value();
-    return CLUSTER_CONFIG_POINTER.append(targetField);
-
+    return getTargetPointer("postgresConfig");
   }
 
 }

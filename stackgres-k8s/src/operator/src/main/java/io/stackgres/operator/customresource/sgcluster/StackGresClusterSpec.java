@@ -38,11 +38,10 @@ public class StackGresClusterSpec implements KubernetesResource {
   private String postgresConfig;
 
   @JsonProperty("resourceProfile")
-  @NotNull
+  @NotNull(message = "resource profile must not be null")
   private String resourceProfile;
 
   @JsonProperty("connectionPoolingConfig")
-  @NotNull
   private String connectionPoolingConfig;
 
   @JsonProperty("backupConfig")
