@@ -8,11 +8,15 @@ StackGres operator creates default configurations in the same namespace where th
  itself. User can create modified version of those default configurations by creating one in the
  same namespace where the cluster will be created.
  
-When configuration resource is created the operator will look for a default configuration of the
- same kind in the same namespace as the cluster, if not found, will use the one that exists in the
+When configuration resource is created the operator will look for a default configuration in the
  same namespace as the operator. With the default configuration found it will merge fields in the
  spec section that are not present in the created configuration filling them with values from the
  default configuration.
+
+If a StackGres cluster is created without specifying PostgreSQL configuration or resource profile
+ configuration the operator will look for default configuration of those kinds in the same
+ namespace as the cluster or will create one using the global default configuration in the same
+ namespace where the operator is installed.
 
 Here is a list of default configuration name with his kind:
 
