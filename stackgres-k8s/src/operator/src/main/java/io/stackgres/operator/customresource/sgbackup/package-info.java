@@ -4,7 +4,7 @@
  */
 
 /**
- * Custom Resource for the StackGres Cluster backup configuration.
+ * Custom Resource for the StackGres Cluster backup.
  */
 
 package io.stackgres.operator.customresource.sgbackup;

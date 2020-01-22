@@ -7,9 +7,7 @@ package io.stackgres.operator.common;
 
 import java.util.Optional;
 
-import io.fabric8.kubernetes.client.CustomResource;
-
-public class SidecarEntry<T extends CustomResource, C> {
+public class SidecarEntry<T, C> {
 
   private final StackGresSidecarTransformer<T, C> sidecar;
   private final Optional<T> config;

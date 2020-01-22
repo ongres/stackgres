@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.sidecars.pgexporter;
+package io.stackgres.operator.resource;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -19,14 +19,13 @@ import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.kubernetes.internal.KubernetesDeserializer;
 import io.stackgres.operator.common.StackGresClusterContext;
-import io.stackgres.operator.resource.ResourceUtil;
-import io.stackgres.operator.sidecars.pgexporter.customresources.Endpoint;
-import io.stackgres.operator.sidecars.pgexporter.customresources.NamespaceSelector;
-import io.stackgres.operator.sidecars.pgexporter.customresources.ServiceMonitor;
-import io.stackgres.operator.sidecars.pgexporter.customresources.ServiceMonitorDefinition;
-import io.stackgres.operator.sidecars.pgexporter.customresources.ServiceMonitorDoneable;
-import io.stackgres.operator.sidecars.pgexporter.customresources.ServiceMonitorList;
-import io.stackgres.operator.sidecars.pgexporter.customresources.ServiceMonitorSpec;
+import io.stackgres.operator.customresource.prometheus.Endpoint;
+import io.stackgres.operator.customresource.prometheus.NamespaceSelector;
+import io.stackgres.operator.customresource.prometheus.ServiceMonitor;
+import io.stackgres.operator.customresource.prometheus.ServiceMonitorDefinition;
+import io.stackgres.operator.customresource.prometheus.ServiceMonitorDoneable;
+import io.stackgres.operator.customresource.prometheus.ServiceMonitorList;
+import io.stackgres.operator.customresource.prometheus.ServiceMonitorSpec;
 import io.stackgres.operatorframework.resource.Kind;
 import io.stackgres.operatorframework.resource.PairVisitor;
 import io.stackgres.operatorframework.resource.ResourceHandler;
@@ -36,9 +35,9 @@ import io.stackgres.operatorframework.resource.ResourcePairVisitor;
 import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple2;
 
-@Kind(ServiceMonitor.class)
 @ApplicationScoped
-public class PrometheusServiceMonitorHandler implements ResourceHandler<StackGresClusterContext> {
+@Kind(ServiceMonitor.class)
+public class ServiceMonitorHandler implements ResourceHandler<StackGresClusterContext> {
 
   @Override
   public boolean equals(ResourceHandlerContext<StackGresClusterContext> resourceHandlerContext,

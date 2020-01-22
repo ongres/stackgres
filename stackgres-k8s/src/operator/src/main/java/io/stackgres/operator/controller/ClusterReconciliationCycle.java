@@ -5,16 +5,21 @@
 
 package io.stackgres.operator.controller;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
-import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
@@ -22,9 +27,14 @@ import io.stackgres.operator.app.KubernetesClientFactory;
 import io.stackgres.operator.app.ObjectMapperProvider;
 import io.stackgres.operator.cluster.Cluster;
 import io.stackgres.operator.common.ArcUtil;
+import io.stackgres.operator.common.ConfigContext;
+import io.stackgres.operator.common.ConfigProperty;
+import io.stackgres.operator.common.Prometheus;
 import io.stackgres.operator.common.SidecarEntry;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresSidecarTransformer;
+import io.stackgres.operator.customresource.prometheus.PrometheusConfig;
+import io.stackgres.operator.customresource.prometheus.PrometheusInstallation;
 import io.stackgres.operator.customresource.sgbackup.StackGresBackup;
 import io.stackgres.operator.customresource.sgbackup.StackGresBackupDefinition;
 import io.stackgres.operator.customresource.sgbackup.StackGresBackupDoneable;
@@ -50,11 +60,13 @@ import io.stackgres.operator.customresource.sgrestoreconfig.StackgresRestoreConf
 import io.stackgres.operator.customresource.sgrestoreconfig.StackgresRestoreConfigDoneable;
 import io.stackgres.operator.customresource.sgrestoreconfig.StackgresRestoreConfigList;
 import io.stackgres.operator.resource.ClusterSidecarFinder;
+import io.stackgres.operator.resource.KubernetesCustomResourceScanner;
 import io.stackgres.operator.resource.ResourceUtil;
 import io.stackgres.operator.sidecars.envoy.Envoy;
 import io.stackgres.operatorframework.reconciliation.AbstractReconciliationCycle;
 import io.stackgres.operatorframework.reconciliation.AbstractReconciliator;
 import io.stackgres.operatorframework.resource.ResourceHandlerSelector;
+
 import org.jooq.lambda.Unchecked;
 import org.jooq.lambda.tuple.Tuple2;
 
@@ -66,6 +78,8 @@ public class ClusterReconciliationCycle
   private final Cluster cluster;
   private final ClusterStatusManager statusManager;
   private final EventController eventController;
+  private final KubernetesCustomResourceScanner<PrometheusConfig> prometheusScanner;
+  private final ConfigContext configContext;
 
   /**
    * Create a {@code ClusterReconciliationCycle} instance.
@@ -75,13 +89,17 @@ public class ClusterReconciliationCycle
       ClusterSidecarFinder sidecarFinder, Cluster cluster,
       ResourceHandlerSelector<StackGresClusterContext> handlerSelector,
       ClusterStatusManager statusManager, EventController eventController,
-      ObjectMapperProvider objectMapperProvider) {
+      ObjectMapperProvider objectMapperProvider,
+      KubernetesCustomResourceScanner<PrometheusConfig> prometheusScanner,
+      ConfigContext configContext) {
     super("Cluster", kubClientFactory::create, StackGresClusterContext::getCluster,
         handlerSelector, objectMapperProvider.objectMapper());
     this.sidecarFinder = sidecarFinder;
     this.cluster = cluster;
     this.statusManager = statusManager;
     this.eventController = eventController;
+    this.prometheusScanner = prometheusScanner;
+    this.configContext = configContext;
   }
 
   public ClusterReconciliationCycle() {
@@ -91,6 +109,8 @@ public class ClusterReconciliationCycle
     this.cluster = null;
     this.statusManager = null;
     this.eventController = null;
+    this.prometheusScanner = null;
+    this.configContext = null;
   }
 
   void onStart(@Observes StartupEvent ev) {
@@ -186,10 +206,11 @@ public class ClusterReconciliationCycle
             .map(Unchecked.function(sidecar -> getSidecarEntry(cluster, client, sidecar)))
             .collect(ImmutableList.toImmutableList()))
         .withBackups(getBackups(cluster, client))
+        .withPrometheus(getPrometheus(cluster, client))
         .build();
   }
 
-  private <T extends CustomResource> SidecarEntry<T, StackGresClusterContext> getSidecarEntry(
+  private <T> SidecarEntry<T, StackGresClusterContext> getSidecarEntry(
       StackGresCluster cluster, KubernetesClient client,
       StackGresSidecarTransformer<T, StackGresClusterContext> sidecar) throws Exception {
     Optional<T> sidecarConfig = sidecar.getConfig(cluster, client);
@@ -239,7 +260,7 @@ public class ClusterReconciliationCycle
   }
 
   private Optional<StackgresRestoreConfig> getRestoreConfig(StackGresCluster cluster,
-                                                            KubernetesClient client) {
+      KubernetesClient client) {
     final String namespace = cluster.getMetadata().getNamespace();
     final String restoreConfig = cluster.getSpec().getRestoreConfig();
     if (restoreConfig != null && !restoreConfig.isEmpty()) {
@@ -298,6 +319,47 @@ public class ClusterReconciliationCycle
             .filter(backup -> backup.getSpec().getCluster().equals(name))
             .collect(ImmutableList.toImmutableList()))
         .orElse(ImmutableList.of());
+  }
+
+  public Optional<Prometheus> getPrometheus(StackGresCluster cluster,
+      KubernetesClient client) {
+    boolean isAutobindAllowed = Boolean
+        .parseBoolean(configContext.getProperty(ConfigProperty.PROMETHEUS_AUTOBIND)
+        .orElse("false"));
+
+    boolean isPrometheusAutobindEnabled = Optional.ofNullable(cluster.getSpec()
+        .getPrometheusAutobind()).orElse(false);
+
+    if (isAutobindAllowed && isPrometheusAutobindEnabled) {
+      LOGGER.trace("Prometheus auto bind enabled, looking for prometheus installations");
+
+      List<PrometheusInstallation> prometheusInstallations = prometheusScanner.findResources()
+          .map(pcs -> pcs.stream()
+              .filter(pc -> pc.getSpec().getServiceMonitorSelector().getMatchLabels() != null)
+              .filter(pc -> !pc.getSpec().getServiceMonitorSelector().getMatchLabels().isEmpty())
+              .map(pc -> {
+
+                PrometheusInstallation pi = new PrometheusInstallation();
+                pi.setNamespace(pc.getMetadata().getNamespace());
+
+                ImmutableMap<String, String> matchLabels = ImmutableMap
+                    .copyOf(pc.getSpec().getServiceMonitorSelector().getMatchLabels());
+
+                pi.setMatchLabels(matchLabels);
+                return pi;
+
+              })
+              .collect(Collectors.toList()))
+          .orElse(new ArrayList<>());
+
+      if (!prometheusInstallations.isEmpty()) {
+        return Optional.of(new Prometheus(true, prometheusInstallations));
+      } else {
+        return Optional.of(new Prometheus(false, null));
+      }
+    } else {
+      return Optional.of(new Prometheus(false, null));
+    }
   }
 
 }

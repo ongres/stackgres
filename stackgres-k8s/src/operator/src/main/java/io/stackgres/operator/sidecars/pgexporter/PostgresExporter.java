@@ -5,14 +5,11 @@
 
 package io.stackgres.operator.sidecars.pgexporter;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
-import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import com.google.common.collect.ImmutableList;
@@ -31,57 +28,32 @@ import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.ServicePortBuilder;
 import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
-import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.operator.cluster.ClusterStatefulSet;
-import io.stackgres.operator.common.ConfigContext;
-import io.stackgres.operator.common.ConfigProperty;
+import io.stackgres.operator.common.Prometheus;
 import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresSidecarTransformer;
 import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operator.controller.ResourceGeneratorContext;
-import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
-import io.stackgres.operator.resource.KubernetesCustomResourceScanner;
+import io.stackgres.operator.customresource.prometheus.Endpoint;
+import io.stackgres.operator.customresource.prometheus.NamespaceSelector;
+import io.stackgres.operator.customresource.prometheus.ServiceMonitor;
+import io.stackgres.operator.customresource.prometheus.ServiceMonitorDefinition;
+import io.stackgres.operator.customresource.prometheus.ServiceMonitorSpec;
 import io.stackgres.operator.resource.ResourceUtil;
-import io.stackgres.operator.sidecars.pgexporter.customresources.Endpoint;
-import io.stackgres.operator.sidecars.pgexporter.customresources.NamespaceSelector;
-import io.stackgres.operator.sidecars.pgexporter.customresources.PrometheusInstallation;
-import io.stackgres.operator.sidecars.pgexporter.customresources.ServiceMonitor;
-import io.stackgres.operator.sidecars.pgexporter.customresources.ServiceMonitorDefinition;
-import io.stackgres.operator.sidecars.pgexporter.customresources.ServiceMonitorSpec;
-import io.stackgres.operator.sidecars.pgexporter.customresources.StackGresPostgresExporterConfig;
-import io.stackgres.operator.sidecars.pgexporter.customresources.StackGresPostgresExporterConfigSpec;
-import io.stackgres.operator.sidecars.prometheus.customresources.PrometheusConfig;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Singleton
 @Sidecar("prometheus-postgres-exporter")
 public class PostgresExporter
-    implements StackGresSidecarTransformer<StackGresPostgresExporterConfig,
-        StackGresClusterContext> {
+    implements StackGresSidecarTransformer<Void, StackGresClusterContext> {
 
   public static final String EXPORTER_SERVICE_MONITOR = "-stackgres-prometheus-postgres-exporter";
   public static final String EXPORTER_SERVICE = "-prometheus-postgres-exporter";
   public static final String NAME = "prometheus-postgres-exporter";
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(PostgresExporter.class);
-
   private static final String IMAGE_NAME =
       "docker.io/ongres/prometheus-postgres-exporter:v%s-build-%s";
   private static final String DEFAULT_VERSION = "0.8.0";
-
-  private final KubernetesCustomResourceScanner<PrometheusConfig> prometheusScanner;
-  private final ConfigContext configContext;
-
-  @Inject
-  public PostgresExporter(
-      KubernetesCustomResourceScanner<PrometheusConfig> prometheusScanner,
-      ConfigContext configContext) {
-    this.prometheusScanner = prometheusScanner;
-    this.configContext = configContext;
-  }
 
   public static String serviceName(StackGresClusterContext clusterContext) {
     String name = clusterContext.getCluster().getMetadata().getName();
@@ -137,8 +109,7 @@ public class PostgresExporter
             context.getContext().getCluster()))
         .build();
 
-    Optional<StackGresPostgresExporterConfig> postgresExporterConfig =
-        context.getContext().getSidecarConfig(this);
+    Optional<Prometheus> prometheus = context.getContext().getPrometheus();
     ImmutableList.Builder<HasMetadata> resourcesBuilder = ImmutableList.builder();
     resourcesBuilder.add(
         new ServiceBuilder()
@@ -161,9 +132,9 @@ public class PostgresExporter
                 .build())
             .build());
 
-    postgresExporterConfig.ifPresent(c -> {
-      if (Optional.ofNullable(c.getSpec().getCreateServiceMonitor()).orElse(false)) {
-        c.getSpec().getPrometheusInstallations().forEach(pi -> {
+    prometheus.ifPresent(c -> {
+      if (Optional.ofNullable(c.getCreateServiceMonitor()).orElse(false)) {
+        c.getPrometheusInstallations().forEach(pi -> {
           ServiceMonitor serviceMonitor = new ServiceMonitor();
           serviceMonitor.setKind(ServiceMonitorDefinition.KIND);
           serviceMonitor.setApiVersion(ServiceMonitorDefinition.APIVERSION);
@@ -197,51 +168,4 @@ public class PostgresExporter
     return resourcesBuilder.build();
   }
 
-  @Override
-  public Optional<StackGresPostgresExporterConfig> getConfig(StackGresCluster cluster,
-      KubernetesClient client) {
-    StackGresPostgresExporterConfig sgpec = new StackGresPostgresExporterConfig();
-    StackGresPostgresExporterConfigSpec spec = new StackGresPostgresExporterConfigSpec();
-    sgpec.setSpec(spec);
-
-    boolean isAutobindAllowed = Boolean
-        .parseBoolean(configContext.getProperty(ConfigProperty.PROMETHEUS_AUTOBIND)
-        .orElse("false"));
-
-    boolean isPrometheusAutobindEnabled = Optional.ofNullable(cluster.getSpec()
-        .getPrometheusAutobind()).orElse(false);
-
-    if (isAutobindAllowed && isPrometheusAutobindEnabled) {
-      LOGGER.trace("Prometheus auto bind enabled, looking for prometheus installations");
-
-      List<PrometheusInstallation> prometheusInstallations = prometheusScanner.findResources()
-          .map(pcs -> pcs.stream()
-              .filter(pc -> pc.getSpec().getServiceMonitorSelector().getMatchLabels() != null)
-              .filter(pc -> !pc.getSpec().getServiceMonitorSelector().getMatchLabels().isEmpty())
-              .map(pc -> {
-
-                PrometheusInstallation pi = new PrometheusInstallation();
-                pi.setNamespace(pc.getMetadata().getNamespace());
-
-                ImmutableMap<String, String> matchLabels = ImmutableMap
-                    .copyOf(pc.getSpec().getServiceMonitorSelector().getMatchLabels());
-
-                pi.setMatchLabels(matchLabels);
-                return pi;
-
-              }).collect(Collectors.toList())).orElse(new ArrayList<>());
-
-      if (!prometheusInstallations.isEmpty()) {
-        spec.setCreateServiceMonitor(true);
-        spec.setPrometheusInstallations(prometheusInstallations);
-      } else {
-        spec.setCreateServiceMonitor(false);
-      }
-
-    } else {
-      spec.setCreateServiceMonitor(false);
-    }
-
-    return Optional.of(sgpec);
-  }
 }

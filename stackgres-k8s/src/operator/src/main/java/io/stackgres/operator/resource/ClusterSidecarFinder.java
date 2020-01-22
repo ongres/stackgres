@@ -30,13 +30,13 @@ public class ClusterSidecarFinder implements SidecarFinder<StackGresClusterConte
       @Any Instance<StackGresSidecarTransformer<?, StackGresClusterContext>> transformers) {
     this.transformers = transformers;
     allSidecars = transformers.stream()
-        .filter((t) -> {
-          Class<? extends StackGresSidecarTransformer> transformerClass = t.getClass();
+        .filter(transformer -> {
           String envoySidecarName = Envoy.class.getAnnotation(Sidecar.class).value();
-          return transformerClass.isAnnotationPresent(Sidecar.class)
-              && !transformerClass.getAnnotation(Sidecar.class).value().equals(envoySidecarName);
+          return transformer.getClass().isAnnotationPresent(Sidecar.class)
+              && !transformer.getClass().getAnnotation(Sidecar.class).value()
+              .equals(envoySidecarName);
         })
-        .map(t -> t.getClass().getAnnotation(Sidecar.class).value())
+        .map(transformer -> transformer.getClass().getAnnotation(Sidecar.class).value())
         .collect(ImmutableList.toImmutableList());
   }
 

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.sidecars.pgexporter;
+package io.stackgres.operator.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -18,13 +18,16 @@ import java.util.HashMap;
 import java.util.Optional;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.stackgres.operator.app.KubernetesClientFactory;
+import io.stackgres.operator.app.ObjectMapperProvider;
 import io.stackgres.operator.common.ConfigContext;
 import io.stackgres.operator.common.ConfigProperty;
+import io.stackgres.operator.common.Prometheus;
+import io.stackgres.operator.controller.ClusterReconciliationCycle;
+import io.stackgres.operator.customresource.prometheus.PrometheusConfig;
+import io.stackgres.operator.customresource.prometheus.PrometheusConfigList;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.resource.KubernetesCustomResourceScanner;
-import io.stackgres.operator.sidecars.pgexporter.customresources.StackGresPostgresExporterConfig;
-import io.stackgres.operator.sidecars.prometheus.customresources.PrometheusConfig;
-import io.stackgres.operator.sidecars.prometheus.customresources.PrometheusConfigList;
 import io.stackgres.operator.utils.JsonUtil;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -37,9 +40,15 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 @RunWith(MockitoJUnitRunner.class)
-class PostgresExporterTest {
+class PrometheusTest {
 
   private StackGresCluster cluster;
+
+  @Mock
+  private KubernetesClientFactory clientFactory;
+
+  @Mock
+  private ObjectMapperProvider objectMapperProvider;
 
   @Mock
   private KubernetesClient client;
@@ -53,7 +62,7 @@ class PostgresExporterTest {
 
   private PrometheusConfigList prometheusConfigList;
 
-  private PostgresExporter exporter;
+  private ClusterReconciliationCycle reconciliationCycle;
 
   @BeforeEach
   void setUp() {
@@ -64,9 +73,9 @@ class PostgresExporterTest {
     prometheusConfigList = JsonUtil.readFromJson("prometheus/prometheus_list.json",
         PrometheusConfigList.class);
 
-
-    exporter = new PostgresExporter(prometheusScanner, configContext);
-
+    reconciliationCycle = new ClusterReconciliationCycle(
+        clientFactory, null, null, null, null, null, objectMapperProvider,
+        prometheusScanner, configContext);
   }
 
   @Test
@@ -76,21 +85,15 @@ class PostgresExporterTest {
 
   }
 
-
-  private StackGresPostgresExporterConfig invokeGetConfig() {
-
-
-    Optional<StackGresPostgresExporterConfig> config = exporter.getConfig(cluster, client);
-
-    if(config.isPresent()){
-      return config.get();
+  private Prometheus invokeGetConfig() {
+    Optional<Prometheus> prometheus = reconciliationCycle.getPrometheus(cluster, client);
+    if(prometheus.isPresent()){
+      return prometheus.get();
     } else {
-      fail("the exporter should no " +
-          "return an empty config in any case");
+      fail("should no return an empty prometheus in any case");
       return null;
     }
   }
-
 
   @Test
   void givenNoPrometheusInTheClusterAndAutobindSettled_itShouldNotFlagTheCreationOfServiceMonitor() {
@@ -99,11 +102,11 @@ class PostgresExporterTest {
     when(configContext.getProperty(ConfigProperty.PROMETHEUS_AUTOBIND))
         .thenReturn(Optional.of(Boolean.TRUE.toString()));
 
-    StackGresPostgresExporterConfig exporterConfig = invokeGetConfig();
+    Prometheus prometheus = invokeGetConfig();
 
-    assertFalse(exporterConfig.getSpec().getCreateServiceMonitor());
+    assertFalse(prometheus.getCreateServiceMonitor());
 
-    assertNull(exporterConfig.getSpec().getPrometheusInstallations());
+    assertNull(prometheus.getPrometheusInstallations());
 
     verify(prometheusScanner).findResources();
 
@@ -117,9 +120,9 @@ class PostgresExporterTest {
 
     cluster.getSpec().setPrometheusAutobind(false);
 
-    StackGresPostgresExporterConfig exporterConfig = invokeGetConfig();
+    Prometheus prometheus = invokeGetConfig();
 
-    assertFalse(exporterConfig.getSpec().getCreateServiceMonitor());
+    assertFalse(prometheus.getCreateServiceMonitor());
     verify(prometheusScanner, never()).findResources();
   }
 
@@ -131,15 +134,15 @@ class PostgresExporterTest {
     when(configContext.getProperty(ConfigProperty.PROMETHEUS_AUTOBIND))
         .thenReturn(Optional.of(Boolean.TRUE.toString()));
 
-    StackGresPostgresExporterConfig exporterConfig = invokeGetConfig();
+    Prometheus prometheus = invokeGetConfig();
 
-    assertTrue(exporterConfig.getSpec().getCreateServiceMonitor());
+    assertTrue(prometheus.getCreateServiceMonitor());
 
-    assertEquals(1, exporterConfig.getSpec().getPrometheusInstallations().size());
+    assertEquals(1, prometheus.getPrometheusInstallations().size());
 
     PrometheusConfig promethueusConfig = prometheusConfigList.getItems().get(0);
 
-    assertEquals(exporterConfig.getSpec().getPrometheusInstallations().get(0).getNamespace(), promethueusConfig.getMetadata().getNamespace());
+    assertEquals(prometheus.getPrometheusInstallations().get(0).getNamespace(), promethueusConfig.getMetadata().getNamespace());
 
     verify(prometheusScanner).findResources();
 
@@ -156,11 +159,11 @@ class PostgresExporterTest {
     prometheusConfigList.getItems().get(0).getSpec().getServiceMonitorSelector()
         .setMatchLabels(new HashMap<>());
 
-    StackGresPostgresExporterConfig exporterConfig = invokeGetConfig();
+    Prometheus prometheus = invokeGetConfig();
 
-    assertFalse(exporterConfig.getSpec().getCreateServiceMonitor());
+    assertFalse(prometheus.getCreateServiceMonitor());
 
-    assertNull(exporterConfig.getSpec().getPrometheusInstallations());
+    assertNull(prometheus.getPrometheusInstallations());
 
     verify(prometheusScanner).findResources();
 
@@ -172,11 +175,11 @@ class PostgresExporterTest {
     when(configContext.getProperty(ConfigProperty.PROMETHEUS_AUTOBIND))
         .thenReturn(Optional.of(Boolean.FALSE.toString()));
 
-    StackGresPostgresExporterConfig exporterConfig = invokeGetConfig();
+    Prometheus prometheus = invokeGetConfig();
 
-    assertFalse(exporterConfig.getSpec().getCreateServiceMonitor());
+    assertFalse(prometheus.getCreateServiceMonitor());
 
-    assertNull(exporterConfig.getSpec().getPrometheusInstallations());
+    assertNull(prometheus.getPrometheusInstallations());
 
     verify(prometheusScanner, never()).findResources();
   }
