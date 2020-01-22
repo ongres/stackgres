@@ -73,4 +73,9 @@ public enum StackGresComponents {
       properties.store(fileOutputStream, null);
     }
   }
+
+  public static String getMajorVersion(String pgVersion) {
+    int versionSplit = pgVersion.lastIndexOf('.');
+    return pgVersion.substring(0, versionSplit);
+  }
 }

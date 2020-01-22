@@ -5,19 +5,20 @@
 
 package io.stackgres.operator.validation.cluster;
 
-import java.util.LinkedHashSet;
-import java.util.List;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
+
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import io.stackgres.operator.common.StackGresComponents;
 import io.stackgres.operator.common.StackgresClusterReview;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.operator.resource.KubernetesCustomResourceFinder;
 import io.stackgres.operatorframework.ValidationFailed;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 @ApplicationScoped
 public class PostgresConfigValidator implements ClusterValidator {
@@ -28,28 +29,16 @@ public class PostgresConfigValidator implements ClusterValidator {
 
   @Inject
   public PostgresConfigValidator(
-      KubernetesCustomResourceFinder<StackGresPostgresConfig> configFinder,
-      @ConfigProperty(name = "stackgres.supported.major.versions") List<String> majorVersions,
-      @ConfigProperty(name = "stackgres.latest.minor.versions") List<Integer> minorVersions) {
-    this.configFinder = configFinder;
-    this.supportedPostgresVersions = getSupportedPostgresVersions(majorVersions, minorVersions);
+      KubernetesCustomResourceFinder<StackGresPostgresConfig> configFinder) {
+    this(configFinder, StackGresComponents.getAsArray("postgresql"));
   }
 
-  private Set<String> getSupportedPostgresVersions(List<String> majorVersions,
-                                                   List<Integer> minorVersions) {
-    Set<String> supportedPostgresVersions = new LinkedHashSet<>();
-    for (int i = 0; i < majorVersions.size(); i++) {
-
-      String majorVersion = majorVersions.get(i);
-      Integer latestMinorVersion = minorVersions.get(i);
-
-      for (int j = 0; j <= latestMinorVersion; j++) {
-        supportedPostgresVersions.add(majorVersion + "." + j);
-      }
-
-    }
-
-    return supportedPostgresVersions;
+  public PostgresConfigValidator(
+      KubernetesCustomResourceFinder<StackGresPostgresConfig> configFinder,
+      String[] supportedPostgresVersions) {
+    this.configFinder = configFinder;
+    this.supportedPostgresVersions = new HashSet<String>(
+        Arrays.asList(supportedPostgresVersions));
   }
 
   @Override
@@ -73,7 +62,7 @@ public class PostgresConfigValidator implements ClusterValidator {
           + String.join(", ", supportedPostgresVersions));
     }
 
-    String givenMajorVersion = getMajorVersion(givenPgVersion);
+    String givenMajorVersion = StackGresComponents.getMajorVersion(givenPgVersion);
     String namespace = cluster.getMetadata().getNamespace();
 
     switch (review.getRequest().getOperation()) {
@@ -121,11 +110,6 @@ public class PostgresConfigValidator implements ClusterValidator {
     } else {
       throw new ValidationFailed("Invalid pgConfig value " + pgConfig);
     }
-  }
-
-  private static String getMajorVersion(String pgVersion) {
-    int versionSplit = pgVersion.lastIndexOf('.');
-    return pgVersion.substring(0, versionSplit);
   }
 
   private boolean isPostgresVersionSupported(String version) {

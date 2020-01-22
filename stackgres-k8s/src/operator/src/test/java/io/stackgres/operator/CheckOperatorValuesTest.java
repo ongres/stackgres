@@ -53,7 +53,7 @@ public class CheckOperatorValuesTest {
   public void checkComponentVersions() throws Exception {
     ObjectMapper objectMapper = new YAMLMapper();
     JsonNode versions = objectMapper.readTree(
-        new URL("https://stackgres.io/downloads/stackgres/components/"
+        new URL("https://stackgres.io/downloads/stackgres-k8s/stackgres/components/"
             + StackGresUtil.CONTAINER_BUILD + "/versions.yaml"));
     Properties properties = new Properties();
     properties.load(StackGresOperatorApp.class.getResourceAsStream("/versions.properties"));

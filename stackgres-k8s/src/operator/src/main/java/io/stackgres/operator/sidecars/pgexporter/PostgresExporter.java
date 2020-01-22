@@ -37,6 +37,7 @@ import io.stackgres.operator.common.ConfigContext;
 import io.stackgres.operator.common.ConfigProperty;
 import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.common.StackGresClusterContext;
+import io.stackgres.operator.common.StackGresComponents;
 import io.stackgres.operator.common.StackGresSidecarTransformer;
 import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operator.controller.ResourceGeneratorContext;
@@ -70,7 +71,7 @@ public class PostgresExporter
 
   private static final String IMAGE_NAME =
       "docker.io/ongres/prometheus-postgres-exporter:v%s-build-%s";
-  private static final String DEFAULT_VERSION = "0.8.0";
+  private static final String DEFAULT_VERSION = StackGresComponents.get("postgres_exporter");
 
   private final KubernetesCustomResourceScanner<PrometheusConfig> prometheusScanner;
   private final ConfigContext configContext;

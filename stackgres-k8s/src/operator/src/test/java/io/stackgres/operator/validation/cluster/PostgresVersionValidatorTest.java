@@ -8,20 +8,28 @@
 
 package io.stackgres.operator.validation.cluster;
 
-import java.util.Arrays;
-import java.util.List;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import java.util.Optional;
 import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import io.stackgres.operator.common.StackgresClusterReview;
 import io.stackgres.operator.customresource.sgcluster.StackGresClusterSpec;
 import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.operator.resource.AbstractKubernetesCustomResourceFinder;
 import io.stackgres.operator.utils.JsonUtil;
-import io.stackgres.operator.common.StackgresClusterReview;
 import io.stackgres.operatorframework.Operation;
 import io.stackgres.operatorframework.ValidationFailed;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -30,23 +38,16 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-
 @ExtendWith(MockitoExtension.class)
 @RunWith(MockitoJUnitRunner.class)
 class PostgresVersionValidatorTest {
 
-  private static final int[] supportedPostgresMajorVersions = {11, 12};
-  private static final int[] latestPostgresMinorVersions = {5, 0};
+  private static final String[] supportedPostgresVersions = { "11.5", "12.0" };
 
   private static String getRandomPostgresVersion() {
     Random r = new Random();
     int versionIndex = r.nextInt(2);
-    int majorVersion = supportedPostgresMajorVersions[versionIndex];
-    int minorVersion = latestPostgresMinorVersions[versionIndex];
-    minorVersion = r.nextInt(minorVersion + 1);
-    return majorVersion + "." + minorVersion;
+    return supportedPostgresVersions[versionIndex];
   }
 
   private static String getMajorPostgresVersion(String pgVersion) {
@@ -55,14 +56,9 @@ class PostgresVersionValidatorTest {
   }
 
   private static boolean isPostgresVersionValid(String version){
-    int[] versionNumbers = Arrays.stream(version.split("\\.")).mapToInt(Integer::parseInt)
-        .toArray();
-
-    for (int i = 0; i < supportedPostgresMajorVersions.length; i++){
-      if (versionNumbers[0] == supportedPostgresMajorVersions[i]){
-        if(versionNumbers[1] <= latestPostgresMinorVersions[i]){
-          return true;
-        }
+    for (int i = 0; i < supportedPostgresVersions.length; i++){
+      if (supportedPostgresVersions[i].equals(version)){
+        return true;
       }
     }
     return false;
@@ -95,15 +91,7 @@ class PostgresVersionValidatorTest {
 
   @BeforeEach
   void setUp() {
-
-    List<String> majorVersions = Arrays.stream(supportedPostgresMajorVersions).boxed()
-        .map(Object::toString)
-        .collect(Collectors.toList());
-
-    List<Integer> minorVersions = Arrays.stream(latestPostgresMinorVersions).boxed()
-        .collect(Collectors.toList());
-
-    validator = new PostgresConfigValidator(configFinder, majorVersions, minorVersions);
+    validator = new PostgresConfigValidator(configFinder, supportedPostgresVersions);
 
     postgresConfig = JsonUtil.readFromJson("postgres_config/default_postgres.json",
         StackGresPostgresConfig.class);
@@ -124,9 +112,9 @@ class PostgresVersionValidatorTest {
     when(configFinder.findByNameAndNamespace(eq(postgresProfile), eq(namespace)))
         .thenReturn(Optional.of(postgresConfig));
 
-    final String randomMajorVersion = getRandomPostgresVersion();
-    spec.setPostgresVersion(randomMajorVersion);
-    postgresConfig.getSpec().setPgVersion(getMajorPostgresVersion(randomMajorVersion));
+    final String randomVersion = getRandomPostgresVersion();
+    spec.setPostgresVersion(randomVersion);
+    postgresConfig.getSpec().setPgVersion(getMajorPostgresVersion(randomVersion));
 
     validator.validate(review);
 
@@ -248,7 +236,7 @@ class PostgresVersionValidatorTest {
 
     String resultMessage = exception.getResult().getMessage();
 
-    assertEquals("pgVersion cannot be updated", resultMessage);
+    assertEquals("Unsupported pgVersion 11.4.  Supported postgres versions are: 11.5, 12.0", resultMessage);
 
   }
 
@@ -326,6 +314,7 @@ class PostgresVersionValidatorTest {
     StackGresClusterSpec spec = review.getRequest().getObject().getSpec();
     String postgresProfile = spec.getPostgresConfig();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
+    review.getRequest().getObject().getSpec().setPostgresVersion(getRandomPostgresVersion());
 
     when(configFinder.findByNameAndNamespace(eq(postgresProfile), eq(namespace)))
         .thenReturn(Optional.empty());

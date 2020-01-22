@@ -5,15 +5,20 @@
 
 package io.stackgres.operator.initialization;
 
+import java.util.Comparator;
 import java.util.List;
+
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import io.stackgres.operator.common.StackGresComponents;
 import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfigDefinition;
 import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfigSpec;
 import io.stackgres.operator.patroni.parameters.Blacklist;
+
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.jooq.lambda.Seq;
 
 @ApplicationScoped
 public class DefaultPostgresFactory extends AbstractCustomResourceFactory<StackGresPostgresConfig> {
@@ -27,9 +32,12 @@ public class DefaultPostgresFactory extends AbstractCustomResourceFactory<StackG
   public DefaultPostgresFactory(
       @ConfigProperty(name = "stackgres.supported.major.versions") List<String> majorVersions) {
 
-    defaultPostgresVersion = majorVersions.stream()
-        .sorted()
-        .reduce((first, second) -> second)
+    defaultPostgresVersion = Seq.of(StackGresComponents.getAsArray("postgresql"))
+        .map(StackGresComponents::getMajorVersion)
+        .map(Integer::parseInt)
+        .sorted(Comparator.reverseOrder())
+        .map(Object::toString)
+        .findFirst()
         .orElseThrow(() -> new IllegalStateException("major supported version must configured"));
   }
 
