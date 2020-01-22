@@ -182,7 +182,7 @@ public class ClusterReconciliationCycle
             .filter(envoy -> !cluster.getSpec().getSidecars().contains(envoy)),
             cluster.getSpec().getSidecars().stream())
             .flatMap(s -> s)
-            .map(sidecar -> sidecarFinder.getSidecarTransformer(sidecar))
+            .map(sidecarFinder::getSidecarTransformer)
             .map(Unchecked.function(sidecar -> getSidecarEntry(cluster, client, sidecar)))
             .collect(ImmutableList.toImmutableList()))
         .withBackups(getBackups(cluster, client))

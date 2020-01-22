@@ -6,20 +6,33 @@
 package io.stackgres.operator.mutation.cluster;
 
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 import com.github.fge.jackson.jsonpointer.JsonPointer;
 import com.github.fge.jsonpatch.AddOperation;
 import com.github.fge.jsonpatch.JsonPatchOperation;
 import com.google.common.collect.ImmutableList;
+import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackgresClusterReview;
+import io.stackgres.operator.resource.SidecarFinder;
 import io.stackgres.operatorframework.Operation;
 
 @ApplicationScoped
 public class DefaultSidecarMutator implements ClusterMutator {
 
   private JsonPointer sidecarsPointer;
+
+  private final SidecarFinder<StackGresClusterContext> sidecarFinder;
+
+  @Inject
+  public DefaultSidecarMutator(SidecarFinder<StackGresClusterContext> sidecarFinder) {
+    this.sidecarFinder = sidecarFinder;
+  }
 
   @PostConstruct
   public void init() throws NoSuchFieldException {
@@ -30,7 +43,16 @@ public class DefaultSidecarMutator implements ClusterMutator {
   public List<JsonPatchOperation> mutate(StackgresClusterReview review) {
     if (review.getRequest().getOperation() == Operation.CREATE
         && review.getRequest().getObject().getSpec().getSidecars() == null) {
-      return ImmutableList.of(new AddOperation(sidecarsPointer, FACTORY.arrayNode()));
+
+      List<TextNode> sidecarsNames = sidecarFinder.getAllOptionalSidecarNames()
+          .stream().map(FACTORY::textNode)
+          .collect(Collectors.toList());
+
+      ArrayNode sidecars = FACTORY
+          .arrayNode(sidecarsNames.size())
+          .addAll(sidecarsNames);
+
+      return ImmutableList.of(new AddOperation(sidecarsPointer, sidecars));
     }
     return ImmutableList.of();
   }

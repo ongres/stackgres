@@ -23,6 +23,7 @@ e2e_test(){
   run_test "creating an empty pgconfig should be filled with default configurations" create_empty_pg_config 
   run_test "creating an empty pgbouncer should be filled with default configurations" create_empty_pg_bouncer
   run_test "if default configuration are already created it should create the cluster" create_empty_cluster_with_default_pgbouncer
+  run_test "if the sidecars are specifically set to be empty the operator should not add any sidecar" create_empty_cluster_with_no_sidecars
   run_test "creating an empty cluster should trigger the creation of all default configurations" create_empty_cluster
 }
 
@@ -159,7 +160,7 @@ EOF
     return 1;
   fi
 
-    cat <<EOF | kubectl apply -f -
+  cat <<EOF | kubectl apply -f -
   apiVersion: stackgres.io/v1alpha1
   kind: StackGresCluster
   metadata:
@@ -171,14 +172,47 @@ EOF
     volumeSize: '512Mi'
     sidecars:
     - connection-pooling 
-
 EOF
 
   if kubectl get sgclusters -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-reused"
   then
-    echo "Cluster with defaul configuration already created. Suceed"
+    echo "Cluster with defaul configuration already created. Succeed"
   else
     echo "Cluster with defaul configuration already created was not created"
+    return 1
+  fi
+
+}
+
+create_empty_cluster_with_no_sidecars(){
+  cat <<EOF | kubectl apply -f -
+  apiVersion: stackgres.io/v1alpha1
+  kind: StackGresCluster
+  metadata:
+    name: $CLUSTER_NAME-nosidecars
+    namespace: $CLUSTER_NAMESPACE
+  spec:
+    instances: 1
+    pgVersion: '12.1'
+    volumeSize: '512Mi'
+    sidecars: []
+EOF
+
+  if kubectl get sgclusters -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-nosidecars"
+  then
+    echo "Cluster with no sidecars. Succeed"
+  else
+    echo "Cluster with no sidecars was not created."
+    return 1
+  fi
+
+  local CLUSTER_SIDECARS=$(kubectl get sgclusters.stackgres.io -n $CLUSTER_NAMESPACE $CLUSTER_NAME-nosidecars -o json | run_jq '.spec.sidecars | length')
+  
+  if [ "$CLUSTER_SIDECARS" = "0" ]
+  then
+    echo "Success. Specified sidecars were not modified"    
+  else
+    echo "Fail. Specified sidecars were modified"
     return 1
   fi
 
@@ -248,6 +282,16 @@ EOF
     return 1
   else
     echo "Success. Defaults annotations created"    
+  fi
+
+  local DEFAULT_SIDECARS=$(kubectl get sgclusters.stackgres.io -n $CLUSTER_NAMESPACE $CLUSTER_NAME -o json | run_jq '.spec.sidecars | length')
+
+  if [ "$DEFAULT_SIDECARS" = "3" ]
+  then
+    echo "Success. Default sidecars were settled"    
+  else
+    echo "Fail. Default sidecars were not settled"
+    return 1
   fi
 
 }

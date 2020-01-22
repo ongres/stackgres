@@ -38,7 +38,7 @@ import io.stackgres.operator.resource.ResourceUtil;
 import org.jooq.lambda.Seq;
 
 @Singleton
-@Sidecar("envoy")
+@Sidecar(Envoy.NAME)
 public class Envoy implements StackGresSidecarTransformer<CustomResource, StackGresClusterContext> {
 
   public static final int PG_ENTRY_PORT = 5432;

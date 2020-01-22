@@ -5,10 +5,14 @@
 
 package io.stackgres.operator.resource;
 
+import java.util.List;
+
 import io.stackgres.operator.common.StackGresSidecarTransformer;
 
 public interface SidecarFinder<C> {
 
   StackGresSidecarTransformer<?, C> getSidecarTransformer(String name);
+
+  List<String> getAllOptionalSidecarNames();
 
 }

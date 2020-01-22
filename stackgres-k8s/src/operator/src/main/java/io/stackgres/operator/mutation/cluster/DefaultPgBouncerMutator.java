@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.mutation.cluster;
 
+import java.util.List;
 import javax.enterprise.context.ApplicationScoped;
 
 import com.github.fge.jackson.jsonpointer.JsonPointer;
@@ -23,8 +24,8 @@ public class DefaultPgBouncerMutator
 
   @Override
   protected boolean applyDefault(StackGresCluster targetCluster) {
-    return targetCluster.getSpec().getSidecars() != null
-        && targetCluster.getSpec().getSidecars().contains("connection-pooling")
+    List<String> clusterSidecars = targetCluster.getSpec().getSidecars();
+    return (clusterSidecars == null || clusterSidecars.contains("connection-pooling"))
         && super.applyDefault(targetCluster);
   }
 
