@@ -1,8 +1,93 @@
 ---
-title: Backup settings
+title: Backups
 weight: 4
 ---
 
+# Creating a backup
+
+The backup CR represent a backup of the cluster. Backups are created automatically by the CronJob
+ generated using the settings in [backup configuration](#configuration) or manually by creating a
+ backup CR.
+
+___
+
+**Kind:** StackGresBackup
+
+**listKind:** StackGresBackupList
+
+**plural:** sgbackups
+
+**singular:** sgbackup
+___
+
+**Spec**
+
+| Property | Required | Type | Description | Default |
+|-----------|------|------|-------------|------|
+| cluster | ✓ | string  | The name of the cluster where the backup will or has been taken. |   |
+| isPermanent |   | booolean  | Indicate if this backup is permanent and should not be removed by retention process. | false |
+
+**Status**
+
+| Property | Type | Description |
+|-----------|------|-------------|------|
+| phase | string  | The phase of the backup (Pending, Created, Failed). |
+| pod | string  | The name of pod assigned to this backup. |
+| failureReason | string  | If the phase is failed this field will contain a message with the failure reason. |
+| backupConfig | string  | The name of the backup configuration used to perform this backup. |
+| name | string  | The name of the backup. |
+| time | string  | The date of the backup. |
+| walFileName | string  | The WAL file name when backup was started. |
+| startTime | string  | The start time of backup. |
+| finishTime | string  | The finish time of backup. |
+| hostname | string  | The hostname of instance where the backup is taken. |
+| dataDir | string  | The data directory where the backup is taken. |
+| pgVersion | string  | The PostgreSQL version of the server where backup is taken. |
+| startLsn | string  | The LSN of when backup started. |
+| finishLsn | string  | The LSN of when backup finished. |
+| isPermanent | boolean  | Indicate internally if this backup is permanent and should not be removed by retention process. |
+| systemIdentifier | string  | The internal system identifier of this backup. |
+| uncompressedSize | integer  | The size in bytes of the uncompressed backup. |
+| compressedSize | integer  | The size in bytes of the compressed backup. |
+| controlData | object  | An object containing data from the output of pg_controldata on the backup. |
+| tested | boolean  | true if the backup has been tested. |
+
+Example:
+
+```yaml
+apiVersion: stackgres.io/v1alpha1
+kind: StackGresBackup
+metadata:
+  name: backup
+spec:
+  cluster: stackgres
+  isPermanent: true
+status:
+  backupConfig: backupconf
+  compressedSize: 6691164
+  dataDir: /var/lib/postgresql/data
+  failureReason: ""
+  finishLsn: "234881272"
+  finishTime: "2020-01-22T10:17:27.165204Z"
+  hostname: stackgres-1
+  isPermanent: true
+  name: base_00000002000000000000000E
+  pgVersion: "110006"
+  phase: Completed
+  pod: backup-backup-q79zq
+  startLsn: "234881064"
+  startTime: "2020-01-22T10:17:24.983902Z"
+  systemIdentifier: "6784708504968245298"
+  time: "2020-01-22T10:17:27.183Z"
+  uncompressedSize: 24037844
+  walFileName: 00000002000000000000000E
+```
+
+# Configuration
+
+Backup configuration allow to specify when and how backups are performed. By default this is done
+ at 5am UTC in a window of 1 hour, you may change this value in order to perform backups for
+ another time zone and period of time.
 The backup configuration CR represent the backups configuration of the cluster.
 
 ___
@@ -16,7 +101,7 @@ ___
 **singular:** sgbackupconfig
 ___
 
-**Properties**
+**Spec**
 
 
 | Property | Required | Type | Description | Default |
