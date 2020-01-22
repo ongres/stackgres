@@ -8,6 +8,7 @@ package io.stackgres.operator.common;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.net.URL;
+import java.util.Comparator;
 import java.util.Properties;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -17,11 +18,14 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import com.google.common.collect.ImmutableMap;
 
 import org.jooq.lambda.Seq;
+import org.jooq.lambda.tuple.Tuple;
+import org.jooq.lambda.tuple.Tuple3;
 
 public enum StackGresComponents {
 
   INSTANCE;
 
+  public static final String LATEST = "latest";
   public static final ImmutableMap<String, String> COMPONENT_VERSIONS =
       INSTANCE.componentVersions;
 
@@ -49,10 +53,53 @@ public enum StackGresComponents {
     return get(component).split(",");
   }
 
+  public static String getPostgresMajorVersion(String pgVersion) {
+    int versionSplit = pgVersion.lastIndexOf('.');
+    return pgVersion.substring(0, versionSplit);
+  }
+
+  public static String getPostgresMinorVersion(String pgVersion) {
+    int versionSplit = pgVersion.lastIndexOf('.');
+    return pgVersion.substring(versionSplit + 1, pgVersion.length());
+  }
+
+  public static String calculatePostgresVersion(String pgVersion) {
+    if (pgVersion == null || LATEST.equals(pgVersion)) {
+      return getOrderedPostgresVersions()
+          .findFirst()
+          .orElseThrow(() -> new IllegalStateException("postgresql versions not configured"));
+    }
+
+    if (!pgVersion.contains(".")) {
+      return getOrderedPostgresVersions()
+          .filter(version -> version.startsWith(pgVersion))
+          .findFirst()
+          .orElseThrow(() -> new IllegalStateException("postgresql versions not configured"));
+    }
+
+    return pgVersion;
+  }
+
+  public static Seq<String> getOrderedPostgresVersions() {
+    return Seq.of(StackGresComponents.getAsArray("postgresql"))
+        .map(version -> Tuple.tuple(
+            Integer.parseInt(StackGresComponents.getPostgresMajorVersion(version)),
+            Integer.parseInt(StackGresComponents.getPostgresMinorVersion(version)),
+            version))
+        .sorted(Comparator.reverseOrder())
+        .map(Tuple3::v3);
+  }
+
+  public static Seq<String> getAllOrderedPostgresVersions() {
+    return Seq.of(LATEST)
+        .append(getOrderedPostgresVersions()
+            .flatMap(version -> Seq.of(getPostgresMajorVersion(version), version)));
+  }
+
   public static void main(String[] args) throws Exception {
     ObjectMapper objectMapper = new YAMLMapper();
     JsonNode versions = objectMapper.readTree(
-        new URL("https://stackgres.io/downloads/stackgres/components/"
+        new URL("https://stackgres.io/downloads/stackgres-k8s/stackgres/components/"
             + StackGresUtil.CONTAINER_BUILD + "/versions.yaml"));
     Properties properties = new Properties();
     properties.put("postgresql",
@@ -72,10 +119,5 @@ public enum StackGresComponents {
     try (FileOutputStream fileOutputStream = new FileOutputStream(file)) {
       properties.store(fileOutputStream, null);
     }
-  }
-
-  public static String getMajorVersion(String pgVersion) {
-    int versionSplit = pgVersion.lastIndexOf('.');
-    return pgVersion.substring(0, versionSplit);
   }
 }

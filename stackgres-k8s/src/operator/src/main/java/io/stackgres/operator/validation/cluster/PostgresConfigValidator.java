@@ -5,8 +5,8 @@
 
 package io.stackgres.operator.validation.cluster;
 
-import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -30,15 +30,15 @@ public class PostgresConfigValidator implements ClusterValidator {
   @Inject
   public PostgresConfigValidator(
       KubernetesCustomResourceFinder<StackGresPostgresConfig> configFinder) {
-    this(configFinder, StackGresComponents.getAsArray("postgresql"));
+    this(configFinder, StackGresComponents.getAllOrderedPostgresVersions().toList());
   }
 
   public PostgresConfigValidator(
       KubernetesCustomResourceFinder<StackGresPostgresConfig> configFinder,
-      String[] supportedPostgresVersions) {
+      List<String> supportedPostgresVersions) {
     this.configFinder = configFinder;
     this.supportedPostgresVersions = new HashSet<String>(
-        Arrays.asList(supportedPostgresVersions));
+        supportedPostgresVersions);
   }
 
   @Override
@@ -53,16 +53,16 @@ public class PostgresConfigValidator implements ClusterValidator {
     String givenPgVersion = cluster.getSpec().getPostgresVersion();
     String pgConfig = cluster.getSpec().getPostgresConfig();
 
-    checkIfProvided(givenPgVersion, "pgVersion");
     checkIfProvided(pgConfig, "pgConfig");
 
-    if (!isPostgresVersionSupported(givenPgVersion)) {
+    if (givenPgVersion != null && !isPostgresVersionSupported(givenPgVersion)) {
       throw new ValidationFailed("Unsupported pgVersion " + givenPgVersion
           + ".  Supported postgres versions are: "
-          + String.join(", ", supportedPostgresVersions));
+          + StackGresComponents.getAllOrderedPostgresVersions().toString(", "));
     }
 
-    String givenMajorVersion = StackGresComponents.getMajorVersion(givenPgVersion);
+    String calculatedPgVersion = StackGresComponents.calculatePostgresVersion(givenPgVersion);
+    String givenMajorVersion = StackGresComponents.getPostgresMajorVersion(calculatedPgVersion);
     String namespace = cluster.getMetadata().getNamespace();
 
     switch (review.getRequest().getOperation()) {
@@ -80,7 +80,8 @@ public class PostgresConfigValidator implements ClusterValidator {
 
         String oldPgVersion = oldCluster.getSpec().getPostgresVersion();
 
-        if (!givenPgVersion.equals(oldPgVersion)) {
+        String oldCalculatedPgVersion = StackGresComponents.calculatePostgresVersion(oldPgVersion);
+        if (!calculatedPgVersion.equals(oldCalculatedPgVersion)) {
           throw new ValidationFailed("pgVersion cannot be updated");
         }
 
@@ -91,9 +92,7 @@ public class PostgresConfigValidator implements ClusterValidator {
   }
 
   private void validateAgainstConfiguration(String givenMajorVersion,
-                                            String pgConfig,
-                                            String namespace)
-      throws ValidationFailed {
+      String pgConfig, String namespace) throws ValidationFailed {
     Optional<StackGresPostgresConfig> postgresConfigOpt = configFinder
         .findByNameAndNamespace(pgConfig, namespace);
 

@@ -120,7 +120,8 @@ public class ClusterStatefulSet implements StatefulsetResourceBuilder {
 
     final String name = clusterContext.getCluster().getMetadata().getName();
     final String namespace = clusterContext.getCluster().getMetadata().getNamespace();
-    final String pgVersion = clusterContext.getCluster().getSpec().getPostgresVersion();
+    final String pgVersion = StackGresComponents.calculatePostgresVersion(
+        clusterContext.getCluster().getSpec().getPostgresVersion());
 
     ResourceRequirements podResources = resourceRequirementsFactory
         .getPodRequirements(clusterContext);
