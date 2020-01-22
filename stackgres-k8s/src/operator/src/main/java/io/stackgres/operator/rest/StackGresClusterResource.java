@@ -65,7 +65,7 @@ public class StackGresClusterResource
   @GET
   public ClusterPodConfig details(@PathParam("namespace") String namespace,
       @PathParam("name") String name) {
-    return detailsFinder.findByNameAndNamespace(namespace, name)
+    return detailsFinder.findByNameAndNamespace(name, namespace)
         .orElseThrow(NotFoundException::new);
   }
 
