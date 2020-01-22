@@ -64,7 +64,7 @@ config:
     downloadDiskConcurrency: 1
     compressionMethod: lz4
     from:
-    #  backupUUID: 32507696-de23-4416-89d0-ff83d7baca26
+    #  backupUID: 32507696-de23-4416-89d0-ff83d7baca26
       autoCopySecrets: false
       storage: 
         backupName: LATEST

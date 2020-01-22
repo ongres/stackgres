@@ -32,7 +32,7 @@ We reccomend to configure all those aspects by creating a YAML values file for b
  configuration to include in the helm installation (`-f` or `--values` parameters) of the
  StackGres operator similar to the following:
 
-```
+``` yaml
 config:
   backup:
     retention: 5
@@ -64,7 +64,7 @@ By default backups are stored in a [MinIO](https://min.io/) service as a separat
  configuration  to include in the helm installation (`-f` or `--values` parameters) of the
  StackGres operator similar to the following:
 
-```
+``` yaml
 config:
   backup:
     minio:
@@ -74,6 +74,39 @@ config:
     s3: {}
     gcs: {}
     azureblob: {}
+```
+
+## Restore
+
+Stackgres can perfrom a database restoration from a stackgres backup by just setting the UID of 
+ the backup CR that represents the backup that we want to restore. Like this:
+
+``` yaml
+config:
+  restore:
+    from:
+      backupUID: #the backup UID to restore
+```
+
+It could also perform a restoration from a backup that has been made with WAL-G, and is stored 
+ in one of the following storages:
+
+* AWS S3
+* Google CLoud Storage
+* Azure Blob Storage
+* MinIO
+
+To restore an external just specify the storage configuration like this: 
+
+``` yaml
+config:
+  restore:
+    from:
+      storage: 
+        backupName: LATEST
+        s3: {}
+        gcs: {}
+        azureblob: {}
 ```
 
 # Monitoring
@@ -99,7 +132,7 @@ Using the UI: Grafana > Create > Import > Grafana.com Dashboard 9628
 
 Or by executing following script:
 
-```
+``` sh
 grafana_host=http://localhost:3000
 grafana_credentials=admin:prom-operator
 grafana_prometheus_datasource_name=Prometheus
@@ -137,7 +170,7 @@ Using the UI: Grafana > Configuration > API Keys > Add API key (for viewer) > Co
 
 Or by executing following script:
 
-```
+``` sh
 grafana_host=http://localhost:3000
 grafana_credentials=admin:prom-operator
 grafana_prometheus_datasource_name=Prometheus
@@ -153,7 +186,7 @@ echo "$grafana_api_key_token"
 
 This can be obtained with the command:
 
-```
+``` sh
 kubectl get service -n prometheus prometheus-operator-grafana --template $'{{ .metadata.name }}.{{ .metadata.namespace }}.svc\n'
 ```
 
@@ -162,7 +195,7 @@ kubectl get service -n prometheus prometheus-operator-grafana --template $'{{ .m
 This will allow to create a YAML values file for grafana integration to include in the helm
  installation (`-f` or `--values` parameters) of the StackGres operator similar to the following:
 
-```
+``` yaml
 grafana:
   url: "http://localhost:3000/d/000000039/postgresql-database?orgId=1&refresh=10s"
   token: "eyJrIjoidXc4NXJPa1VOdmNHVkFYMGJuME9zcnJucnBYRU1FQTMiLCJuIjoic3RhY2tncmVzIiwiaWQiOjF9"
@@ -176,6 +209,6 @@ We reccomend to disable all non production options in a production environment. 
  YAML values file to include in the helm installation (`-f` or `--values` parameters) of the
  StackGres operator similar to the following:
 
-```
+``` yaml
 nonProduction: {}
 ```
