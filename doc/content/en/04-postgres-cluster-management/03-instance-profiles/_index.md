@@ -15,7 +15,7 @@ ___
 **singular:** sgprofile
 ___
 
-**Properties**
+**Spec**
 
 | Property | Required | Type | Description | Default |
 |-----------|------|------|-------------|------|

@@ -16,7 +16,7 @@ ___
 **singular:** sgconnectionpoolingconfig
 ___
 
-**Properties**
+**Spec**
 
 | Property | Required | Type | Description | Default |
 |-----------|------|------|-------------|------|
