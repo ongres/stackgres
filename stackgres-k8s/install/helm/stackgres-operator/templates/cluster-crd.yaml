@@ -62,11 +62,7 @@ spec:
             required: [
               "instances",
               "pgVersion",
-              "pgConfig",
-              "connectionPoolingConfig",
-              "resourceProfile",
-              "volumeSize",
-              "sidecars"
+              "volumeSize"
             ]
 
 

@@ -61,11 +61,12 @@ public abstract class AbstractDefaultResourceMutator<R extends CustomResource>
       String defaultResourceName = defaultResource.getMetadata().getName();
 
       if (applyDefault(targetCluster)
-          && !installedNamespace.equals(targetNamespace)
-          && !finder.findByNameAndNamespace(targetNamespace, defaultResourceName).isPresent()) {
+          && !installedNamespace.equals(targetNamespace)) {
 
-        defaultResource.getMetadata().setNamespace(targetNamespace);
-        scheduler.create(defaultResource);
+        if (!finder.findByNameAndNamespace(defaultResourceName, targetNamespace).isPresent()) {
+          defaultResource.getMetadata().setNamespace(targetNamespace);
+          scheduler.create(defaultResource);
+        }
 
         return Collections.singletonList(
             buildAddOperation(targetPointer, defaultResourceName));

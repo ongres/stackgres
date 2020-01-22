@@ -22,6 +22,7 @@ e2e_test_uninstall() {
 e2e_test(){
   run_test "creating an empty pgconfig should be filled with default configurations" create_empty_pg_config 
   run_test "creating an empty pgbouncer should be filled with default configurations" create_empty_pg_bouncer
+  run_test "if default configuration are already created it should create the cluster" create_empty_cluster_with_default_pgbouncer
   run_test "creating an empty cluster should trigger the creation of all default configurations" create_empty_cluster
 }
 
@@ -131,27 +132,70 @@ EOF
   fi
 }
 
-create_empty_cluster(){
+create_empty_cluster_with_default_pgbouncer(){
 
   cat <<EOF | kubectl apply -f -
   apiVersion: stackgres.io/v1alpha1
   kind: StackGresCluster
   metadata:
-    name: $CLUSTER_NAME
+    name: $CLUSTER_NAME-pgbouncer
     namespace: $CLUSTER_NAMESPACE
   spec:
     instances: 1
     pgVersion: '12.1'
-    pgConfig: ''
-    connectionPoolingConfig: ''
-    resourceProfile: ''
     volumeSize: '512Mi'
-    storageClass: ""
-    prometheusAutobind: false
     sidecars:
-    - connection-pooling
-    - postgres-util   
+    - connection-pooling 
 
+EOF
+  
+  local CREATED_PGBOUNCER=$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-reused" -o=jsonpath={.spec.connectionPoolingConfig})
+
+  if kubectl get sgconnectionpoolingconfigs.stackgres.io -n $OPERATOR_NAMESPACE $CREATED_PGBOUNCER
+  then
+    echo "Success. Default pgbouncer was created in the cluster namespace"
+  else
+    echo "Fail. Default pgbouncer was not created in the cluster namespace"
+    return 1;
+  fi
+
+    cat <<EOF | kubectl apply -f -
+  apiVersion: stackgres.io/v1alpha1
+  kind: StackGresCluster
+  metadata:
+    name: $CLUSTER_NAME-reused
+    namespace: $CLUSTER_NAMESPACE
+  spec:
+    instances: 1
+    pgVersion: '12.1'
+    volumeSize: '512Mi'
+    sidecars:
+    - connection-pooling 
+
+EOF
+
+  if kubectl get sgclusters -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-reused"
+  then
+    echo "Cluster with defaul configuration already created. Suceed"
+  else
+    echo "Cluster with defaul configuration already created was not created"
+    return 1
+  fi
+
+}
+
+create_empty_cluster(){
+
+  cat <<EOF | kubectl apply -f -
+apiVersion: stackgres.io/v1alpha1
+kind: StackGresCluster
+metadata:
+  name: $CLUSTER_NAME
+  namespace: $CLUSTER_NAMESPACE
+spec:
+  instances: 1
+  pgVersion: '12.1'
+  volumeSize: '512Mi'
 EOF
 
   local CREATED_PGCONFIG=$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o=jsonpath={.spec.pgConfig})
@@ -172,27 +216,6 @@ EOF
     echo "Success. Defaults pgconfig fields were created"
   else
     echo "Fail. Default pgconfig fields not created"
-    return 1
-  fi
-
-  local CREATED_PGBOUNCER=$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o=jsonpath={.spec.connectionPoolingConfig})
-
-  if kubectl get sgconnectionpoolingconfigs.stackgres.io -n $OPERATOR_NAMESPACE $CREATED_PGBOUNCER
-  then
-    echo "Success. Default pgbouncer was created in the cluster namespace"
-  else
-    echo "Fail. Default pgbouncer was not created in the cluster namespace"
-    return 1;
-  fi
-
-  local CREATED_PGBOUNCER_FIELDS=$(kubectl get sgconnectionpoolingconfigs.stackgres.io -n $CLUSTER_NAMESPACE $CREATED_PGBOUNCER -o json | run_jq '.spec["pgbouncer.ini"] | length')
-  local DEFAULT_PGBOUNCER_FIELDS=$(kubectl get sgconnectionpoolingconfigs.stackgres.io -n $OPERATOR_NAMESPACE $DEFAULT_PGCBOUNCER -o json | run_jq '.spec["pgbouncer.ini"] | length')
-
-  if [ "$CREATED_PGBOUNCER_FIELDS" = "$DEFAULT_PGBOUNCER_FIELDS" ]
-  then
-    echo "Success. Defaults pgbouncer fields were created"
-  else
-    echo "Fail. Default pgbouncer not created"
     return 1
   fi
 

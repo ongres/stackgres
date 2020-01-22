@@ -7,10 +7,8 @@ package io.stackgres.operator.mutation.cluster;
 
 import javax.enterprise.context.ApplicationScoped;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.github.fge.jackson.jsonpointer.JsonPointer;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
-import io.stackgres.operator.customresource.sgcluster.StackGresClusterSpec;
 import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfig;
 
 @ApplicationScoped
@@ -25,16 +23,13 @@ public class DefaultPgBouncerMutator
 
   @Override
   protected boolean applyDefault(StackGresCluster targetCluster) {
-    return targetCluster.getSpec().getSidecars().contains("connection-pooling")
+    return targetCluster.getSpec().getSidecars() != null
+        && targetCluster.getSpec().getSidecars().contains("connection-pooling")
         && super.applyDefault(targetCluster);
   }
 
   @Override
   protected JsonPointer getTargetPointer() throws NoSuchFieldException {
-    String jsonField = StackGresClusterSpec.class
-        .getDeclaredField("connectionPoolingConfig")
-        .getAnnotation(JsonProperty.class)
-        .value();
-    return CLUSTER_CONFIG_POINTER.append(jsonField);
+    return getTargetPointer("connectionPoolingConfig");
   }
 }

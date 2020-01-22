@@ -53,11 +53,15 @@ public class PoolingConfigValidator implements ClusterValidator {
     String poolingConfig = cluster.getSpec().getConnectionPoolingConfig();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
-    Optional<StackGresPgbouncerConfig> poolingConfigOpt = configFinder
-        .findByNameAndNamespace(poolingConfig, namespace);
+    if (cluster.getSpec().getSidecars() != null
+        && cluster.getSpec().getSidecars().contains("connection-pooling")) {
+      checkIfProvided(poolingConfig, "connectionPoolingConfig");
+      Optional<StackGresPgbouncerConfig> poolingConfigOpt = configFinder
+          .findByNameAndNamespace(poolingConfig, namespace);
 
-    if (!poolingConfigOpt.isPresent()) {
-      throw new ValidationFailed(onError);
+      if (!poolingConfigOpt.isPresent()) {
+        throw new ValidationFailed(onError);
+      }
     }
   }
 
