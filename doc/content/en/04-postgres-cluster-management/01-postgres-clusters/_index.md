@@ -16,7 +16,7 @@ ___
 **singular:** sgcluster
 ___
 
-**Properties**
+**Spec**
 
 | Property | Required | Type | Description | Default |
 |-----------|------|------|-------------|------|

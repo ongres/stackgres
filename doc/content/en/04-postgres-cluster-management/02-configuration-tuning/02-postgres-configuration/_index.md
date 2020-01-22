@@ -17,7 +17,7 @@ ___
 **singular:** sgpgconfig
 ___
 
-**Properties**
+**Spec**
 
 | Property | Required | Type | Description | Default |
 |-----------|------|------|-------------|------|
