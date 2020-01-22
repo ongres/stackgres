@@ -18,7 +18,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 @ExtendWith(CheckOperatorValuesExtension.class)
-public class CheckOperatorValues {
+public class CheckOperatorValuesTest {
 
   @Test
   public void checkOperatorValues() throws Exception {
