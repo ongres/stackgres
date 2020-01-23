@@ -22,8 +22,8 @@ ___
 |-----------|------|------|-------------|------|
 | source | ✓ | object  | restoration source configuration. For detail see the restoration source [section](#restore-source).  | |
 | compressionMethod |  | string  | Compression method that was used during the backup, could be:  lz4, lzma or brotli  | lz4 |
-| downloadDiskConcurrency |  | integer | How many concurrent downloads will attempts during the restoration   | 1
-| pgpConfiguration | | object | The OpenPGP configuration for encryption and decryption backups with the following properties: - key: PGP private key |
+| downloadDiskConcurrency |  | integer | How many concurrent downloads will attempts during the restoration   | 1 |
+| pgpConfiguration | | object | The OpenPGP configuration for encryption and decryption backups with the following properties: - key: PGP private key | |
 
 Example: 
 
@@ -54,8 +54,8 @@ kubectl get sgrestoreconfigs.stackgres.io -n stackgres defaultrestoreconfig
 |-----------|------|------|-------------|------|
 | fromBackup | | string  | The UID of the backup CR to restore. If configured, it will ignore the fromStorage and backupName options. | |
 | autoCopySecrets |  | boolean  | If the backup is in another namespace, the secrets that holds the storage might be needed to copy in the new cluster namespaces. If is set to true, it will copy the required secrets  | false |
-| fromStorage |  | object | Storage configuration in where is located the backup. If set, the backupName is required. For datails see the restore storage [section](#restore-storate)   | 
-| backupName | | string | Name of the backup to restore. If 'LATEST' is used, it will restore the most recent backup found in the storage | LATEST
+| fromStorage |  | object | Storage configuration in where is located the backup. If set, the backupName is required. For datails see the restore storage [section](#restore-storate)   | |
+| backupName | | string | Name of the backup to restore. If 'LATEST' is used, it will restore the most recent backup found in the storage | LATEST |
 
 # Restore storage
 
