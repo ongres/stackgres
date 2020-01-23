@@ -6,7 +6,7 @@ weight: 3
 # Installation with kubectl
 
 We ship some kubernetes resources files in order to allow installation of the StackGres cluster
- for demostration purpose. Assuming you have already installed the the
+ including backup configuration for demostration purpose. Assuming you have already installed the
  [kubectl CLI](https://kubernetes.io/docs/tasks/tools/install-kubectl/) you can proceed by
  installing a StackGres cluster using the following command:
 
@@ -50,9 +50,9 @@ watch kubectl get pod -o wide
 
 ```
 NAMESPACE   NAME                            READY   STATUS            RESTARTS   AGE     IP           NODE                 NOMINATED NODE
-simple      simple-0                        5/5     Running           0          97s     10.244.2.5   kind-worker2         <none>
-simple      simple-1                        0/5     PodInitializing   0          41s     10.244.1.7   kind-worker          <none>
-simple      simple-minio-7dfd746f88-7ndmq   1/1     Running           0          99s     10.244.1.5   kind-worker          <none>
+default     simple-0                        5/5     Running           0          97s     10.244.2.5   kind-worker2         <none>
+default     simple-1                        0/5     PodInitializing   0          41s     10.244.1.7   kind-worker          <none>
+default     simple-minio-7dfd746f88-7ndmq   1/1     Running           0          99s     10.244.1.5   kind-worker          <none>
 ```
 
 # Open a psql console
@@ -87,8 +87,8 @@ sh-4.4$ patronictl list
 +---------+----------+-----------------+--------+---------+----+-----------+
 | Cluster |  Member  |       Host      |  Role  |  State  | TL | Lag in MB |
 +---------+----------+-----------------+--------+---------+----+-----------+
-| simple  | simple-0 | 10.244.2.5:5433 |        | running |  2 |       0.0 |
-| simple  | simple-1 | 10.244.1.7:5433 | Leader | running |  2 |           |
+| default | simple-0 | 10.244.2.5:5433 |        | running |  2 |       0.0 |
+| default | simple-1 | 10.244.1.7:5433 | Leader | running |  2 |           |
 +---------+----------+-----------------+--------+---------+----+-----------+
 ```
 
