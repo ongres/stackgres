@@ -22,6 +22,7 @@ import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.stackgres.operator.cluster.ClusterStatefulSet;
 import io.stackgres.operator.common.QuarkusProfile;
 import io.stackgres.operator.common.StackGresClusterContext;
+import io.stackgres.operator.common.StackGresComponents;
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfigSpec;
 import io.stackgres.operator.customresource.sgrestoreconfig.StackgresRestoreConfigSource;
@@ -58,7 +59,8 @@ public class PatroniConfigMap {
   public ConfigMap create(StackGresClusterContext context, ObjectMapper objectMapper) {
     final String name = context.getCluster().getMetadata().getName();
     final String namespace = context.getCluster().getMetadata().getNamespace();
-    final String pgVersion = context.getCluster().getSpec().getPostgresVersion();
+    final String pgVersion = StackGresComponents.calculatePostgresVersion(
+        context.getCluster().getSpec().getPostgresVersion());
 
     Map<String, String> labels = ResourceUtil.patroniClusterLabels(context.getCluster());
 

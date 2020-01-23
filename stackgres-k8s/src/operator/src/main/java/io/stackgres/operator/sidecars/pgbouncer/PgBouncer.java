@@ -30,6 +30,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.operator.cluster.ClusterStatefulSet;
 import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.common.StackGresClusterContext;
+import io.stackgres.operator.common.StackGresComponents;
 import io.stackgres.operator.common.StackGresSidecarTransformer;
 import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operator.controller.ResourceGeneratorContext;
@@ -50,7 +51,7 @@ public class PgBouncer
 
   private static final String NAME = "pgbouncer";
   private static final String IMAGE_PREFIX = "docker.io/ongres/pgbouncer:v%s-build-%s";
-  private static final String DEFAULT_VERSION = "1.12.0";
+  private static final String DEFAULT_VERSION = StackGresComponents.get("pgbouncer");
   private static final String CONFIG_SUFFIX = "-connection-pooling-config";
 
   public static String configName(StackGresClusterContext clusterContext) {

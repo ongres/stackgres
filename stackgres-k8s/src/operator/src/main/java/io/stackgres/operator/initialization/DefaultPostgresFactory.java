@@ -6,14 +6,14 @@
 package io.stackgres.operator.initialization;
 
 import java.util.List;
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
 
+import javax.enterprise.context.ApplicationScoped;
+
+import io.stackgres.operator.common.StackGresComponents;
 import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfigDefinition;
 import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfigSpec;
 import io.stackgres.operator.patroni.parameters.Blacklist;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 @ApplicationScoped
 public class DefaultPostgresFactory extends AbstractCustomResourceFactory<StackGresPostgresConfig> {
@@ -21,25 +21,9 @@ public class DefaultPostgresFactory extends AbstractCustomResourceFactory<StackG
   public static final String NAME = "defaultpgconfig";
   public static final String POSTGRES_DEFAULT_VALUES = "postgresql-default-values.properties";
 
-  private final String defaultPostgresVersion;
-
-  @Inject
-  public DefaultPostgresFactory(
-      @ConfigProperty(name = "stackgres.supported.major.versions") List<String> majorVersions) {
-
-    defaultPostgresVersion = majorVersions.stream()
-        .sorted()
-        .reduce((first, second) -> second)
-        .orElseThrow(() -> new IllegalStateException("major supported version must configured"));
-  }
-
   @Override
   String getDefaultPropertiesFile() {
     return POSTGRES_DEFAULT_VALUES;
-  }
-
-  public String getDefaultPostgresVersion() {
-    return defaultPostgresVersion;
   }
 
   @Override
@@ -51,7 +35,8 @@ public class DefaultPostgresFactory extends AbstractCustomResourceFactory<StackG
   StackGresPostgresConfig buildResource(String namespace) {
 
     StackGresPostgresConfigSpec spec = new StackGresPostgresConfigSpec();
-    spec.setPgVersion(defaultPostgresVersion);
+    spec.setPgVersion(StackGresComponents.getPostgresMajorVersion(
+        StackGresComponents.calculatePostgresVersion(StackGresComponents.LATEST)));
     spec.setPostgresqlConf(getDefaultValues());
 
     StackGresPostgresConfig profile = new StackGresPostgresConfig();

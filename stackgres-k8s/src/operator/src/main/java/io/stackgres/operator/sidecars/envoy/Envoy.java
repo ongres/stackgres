@@ -31,6 +31,7 @@ import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.operator.app.YamlMapperProvider;
 import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.common.StackGresClusterContext;
+import io.stackgres.operator.common.StackGresComponents;
 import io.stackgres.operator.common.StackGresSidecarTransformer;
 import io.stackgres.operator.controller.ResourceGeneratorContext;
 import io.stackgres.operator.resource.ResourceUtil;
@@ -48,7 +49,7 @@ public class Envoy implements StackGresSidecarTransformer<CustomResource, StackG
   public static final String NAME = "envoy";
 
   private static final String IMAGE_NAME = "docker.io/envoyproxy/envoy:v%s";
-  private static final String DEFAULT_VERSION = "1.12.1";
+  private static final String DEFAULT_VERSION = StackGresComponents.get("envoy");
   private static final String CONFIG_SUFFIX = "-envoy-config";
   private static final ImmutableMap<String, Integer> LISTEN_SOCKET_ADDRESS_PORT_MAPPING =
       ImmutableMap.of(

@@ -19,6 +19,7 @@ import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.operator.cluster.ClusterStatefulSet;
 import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.common.StackGresClusterContext;
+import io.stackgres.operator.common.StackGresComponents;
 import io.stackgres.operator.common.StackGresSidecarTransformer;
 import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operator.controller.ResourceGeneratorContext;
@@ -36,6 +37,8 @@ public class PostgresUtil
 
   @Override
   public Container getContainer(ResourceGeneratorContext<StackGresClusterContext> context) {
+    String pgVersion = StackGresComponents.calculatePostgresVersion(
+        context.getContext().getCluster().getSpec().getPostgresVersion());
 
     List<VolumeMount> volumeMounts = new ArrayList<>();
     volumeMounts.add(new VolumeMountBuilder()
@@ -45,9 +48,7 @@ public class PostgresUtil
 
     ContainerBuilder container = new ContainerBuilder();
     container.withName(NAME)
-        .withImage(String.format(IMAGE_NAME,
-            context.getContext().getCluster().getSpec().getPostgresVersion(),
-            StackGresUtil.CONTAINER_BUILD))
+        .withImage(String.format(IMAGE_NAME, pgVersion, StackGresUtil.CONTAINER_BUILD))
         .withImagePullPolicy("Always")
         .withStdin(Boolean.TRUE)
         .withTty(Boolean.TRUE)

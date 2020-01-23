@@ -27,9 +27,6 @@ spec:
           properties:
             pgVersion:
               type: string
-              enum:
-              - "11"
-              - "12"
               description: "PostgreSQL configuration version"
             postgresql.conf:
               type: object

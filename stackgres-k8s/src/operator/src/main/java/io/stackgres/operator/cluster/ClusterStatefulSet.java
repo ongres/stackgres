@@ -43,6 +43,7 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetUpdateStrategyBuilder;
 import io.stackgres.operator.common.StackGresClusterContext;
+import io.stackgres.operator.common.StackGresComponents;
 import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operator.configuration.ImmutableStorageConfig;
 import io.stackgres.operator.configuration.StorageConfig;
@@ -83,7 +84,7 @@ public class ClusterStatefulSet implements StatefulsetResourceBuilder {
   public static final String RESTORE_ENTRYPOINT_VOLUME_PATH = "/etc/patroni/restore";
 
   private static final String IMAGE_PREFIX = "docker.io/ongres/patroni:v%s-pg%s-build-%s";
-  private static final String PATRONI_VERSION = "1.6.3";
+  private static final String PATRONI_VERSION = StackGresComponents.get("patroni");
 
   @Inject
   ResourceRequirementsFactory<StackGresClusterContext> resourceRequirementsFactory;
@@ -119,7 +120,8 @@ public class ClusterStatefulSet implements StatefulsetResourceBuilder {
 
     final String name = clusterContext.getCluster().getMetadata().getName();
     final String namespace = clusterContext.getCluster().getMetadata().getNamespace();
-    final String pgVersion = clusterContext.getCluster().getSpec().getPostgresVersion();
+    final String pgVersion = StackGresComponents.calculatePostgresVersion(
+        clusterContext.getCluster().getSpec().getPostgresVersion());
 
     ResourceRequirements podResources = resourceRequirementsFactory
         .getPodRequirements(clusterContext);
