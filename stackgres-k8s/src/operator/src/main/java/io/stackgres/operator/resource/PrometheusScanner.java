@@ -3,18 +3,17 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.sidecars.pgexporter;
+package io.stackgres.operator.resource;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import io.stackgres.operator.app.KubernetesClientFactory;
 import io.stackgres.operator.common.ArcUtil;
-import io.stackgres.operator.resource.AbstractKubernetesCustomResourceScanner;
-import io.stackgres.operator.sidecars.prometheus.customresources.PrometheusConfig;
-import io.stackgres.operator.sidecars.prometheus.customresources.PrometheusConfigDefinition;
-import io.stackgres.operator.sidecars.prometheus.customresources.PrometheusConfigDoneable;
-import io.stackgres.operator.sidecars.prometheus.customresources.PrometheusConfigList;
+import io.stackgres.operator.customresource.prometheus.PrometheusConfig;
+import io.stackgres.operator.customresource.prometheus.PrometheusConfigDefinition;
+import io.stackgres.operator.customresource.prometheus.PrometheusConfigDoneable;
+import io.stackgres.operator.customresource.prometheus.PrometheusConfigList;
 
 @ApplicationScoped
 public class PrometheusScanner

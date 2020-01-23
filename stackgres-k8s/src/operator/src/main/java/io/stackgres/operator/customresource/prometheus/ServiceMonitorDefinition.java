@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.sidecars.pgexporter.customresources;
+package io.stackgres.operator.customresource.prometheus;
 
 public enum ServiceMonitorDefinition {
 

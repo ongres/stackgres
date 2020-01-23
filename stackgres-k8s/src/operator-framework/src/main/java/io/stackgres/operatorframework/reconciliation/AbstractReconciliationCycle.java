@@ -32,7 +32,7 @@ import org.slf4j.LoggerFactory;
 
 public abstract class AbstractReconciliationCycle<T> {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(AbstractReconciliationCycle.class);
+  protected static final Logger LOGGER = LoggerFactory.getLogger(AbstractReconciliationCycle.class);
 
   protected final String name;
   protected final Supplier<KubernetesClient> clientSupplier;

@@ -8,7 +8,6 @@ package io.stackgres.operator.common;
 import java.util.Optional;
 
 import com.google.common.collect.ImmutableList;
-import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.operator.customresource.sgbackup.StackGresBackup;
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
@@ -25,6 +24,7 @@ public class StackGresClusterContext {
   private final Optional<StackGresProfile> profile;
   private final ImmutableList<SidecarEntry<?, StackGresClusterContext>> sidecars;
   private final ImmutableList<StackGresBackup> backups;
+  private final Optional<Prometheus> prometheus;
 
   private StackGresClusterContext(Builder builder) {
     this.cluster = builder.cluster;
@@ -34,6 +34,7 @@ public class StackGresClusterContext {
     this.profile = builder.profile;
     this.sidecars = builder.sidecars;
     this.backups = builder.backups;
+    this.prometheus = builder.prometheus;
   }
 
   public StackGresCluster getCluster() {
@@ -64,11 +65,15 @@ public class StackGresClusterContext {
     return backups;
   }
 
+  public Optional<Prometheus> getPrometheus() {
+    return prometheus;
+  }
+
   /**
    * Return a sidecar config if present.
    */
   @SuppressWarnings("unchecked")
-  public <T extends CustomResource, C, S extends StackGresSidecarTransformer<T, C>>
+  public <T, C, S extends StackGresSidecarTransformer<T, C>>
         Optional<T> getSidecarConfig(S sidecar) {
     for (SidecarEntry<?, ?> entry : sidecars) {
       if (entry.getSidecar() == sidecar) {
@@ -95,10 +100,11 @@ public class StackGresClusterContext {
     private StackGresCluster cluster;
     private Optional<StackGresPostgresConfig> postgresConfig;
     private Optional<StackGresBackupConfig> backupConfig;
+    private Optional<StackgresRestoreConfig> restoreConfig;
     private Optional<StackGresProfile> profile;
     private ImmutableList<SidecarEntry<?, StackGresClusterContext>> sidecars;
     private ImmutableList<StackGresBackup> backups;
-    private Optional<StackgresRestoreConfig> restoreConfig;
+    private Optional<Prometheus> prometheus;
 
     private Builder() {
     }
@@ -135,6 +141,11 @@ public class StackGresClusterContext {
 
     public Builder withBackups(ImmutableList<StackGresBackup> backups) {
       this.backups = backups;
+      return this;
+    }
+
+    public Builder withPrometheus(Optional<Prometheus> prometheus) {
+      this.prometheus = prometheus;
       return this;
     }
 
