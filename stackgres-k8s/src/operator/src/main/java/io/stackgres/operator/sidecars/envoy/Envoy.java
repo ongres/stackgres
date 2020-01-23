@@ -54,8 +54,8 @@ import org.jooq.lambda.Seq;
 public class Envoy
     implements StackGresSidecarTransformer<Void, StackGresClusterContext> {
 
-  public static final String EXPORTER_SERVICE_MONITOR = "-stackgres-prometheus-envoy";
-  public static final String EXPORTER_SERVICE = "-prometheus-envoy";
+  public static final String SERVICE_MONITOR = "-stackgres-envoy";
+  public static final String SERVICE = "-prometheus-envoy";
 
   public static final int PG_ENTRY_PORT = 5432;
   public static final int PG_RAW_ENTRY_PORT = 5433;
@@ -89,13 +89,13 @@ public class Envoy
 
   public static String serviceName(StackGresClusterContext clusterContext) {
     String name = clusterContext.getCluster().getMetadata().getName();
-    return ResourceUtil.resourceName(name + EXPORTER_SERVICE);
+    return ResourceUtil.resourceName(name + SERVICE);
   }
 
   public static String serviceMonitorName(StackGresClusterContext clusterContext) {
     String namespace = clusterContext.getCluster().getMetadata().getNamespace();
     String name = clusterContext.getCluster().getMetadata().getName();
-    return ResourceUtil.resourceName(namespace + "-" + name + EXPORTER_SERVICE_MONITOR);
+    return ResourceUtil.resourceName(namespace + "-" + name + SERVICE_MONITOR);
   }
 
   @Override
@@ -231,6 +231,8 @@ public class Envoy
           serviceMonitor.setMetadata(new ObjectMetaBuilder()
               .withNamespace(pi.getNamespace())
               .withName(serviceMonitorName(context.getContext()))
+              .withOwnerReferences(ImmutableList.of(ResourceUtil.getOwnerReference(
+                  context.getContext().getCluster())))
               .withLabels(ImmutableMap.<String, String>builder()
                   .putAll(pi.getMatchLabels())
                   .putAll(labels)
@@ -246,9 +248,10 @@ public class Envoy
           spec.setNamespaceSelector(namespaceSelector);
 
           selector.setMatchLabels(labels);
-          Endpoint port = new Endpoint();
-          port.setPort(NAME);
-          spec.setEndpoints(Collections.singletonList(port));
+          Endpoint endpoint = new Endpoint();
+          endpoint.setPort(NAME);
+          endpoint.setPath("/stats/prometheus");
+          spec.setEndpoints(Collections.singletonList(endpoint));
 
           resourcesBuilder.add(serviceMonitor);
 

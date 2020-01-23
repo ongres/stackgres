@@ -41,14 +41,15 @@ import io.stackgres.operator.customresource.prometheus.ServiceMonitor;
 import io.stackgres.operator.customresource.prometheus.ServiceMonitorDefinition;
 import io.stackgres.operator.customresource.prometheus.ServiceMonitorSpec;
 import io.stackgres.operator.resource.ResourceUtil;
+import io.stackgres.operator.sidecars.envoy.Envoy;
 
 @Singleton
 @Sidecar("prometheus-postgres-exporter")
 public class PostgresExporter
     implements StackGresSidecarTransformer<Void, StackGresClusterContext> {
 
-  public static final String EXPORTER_SERVICE_MONITOR = "-stackgres-prometheus-postgres-exporter";
-  public static final String EXPORTER_SERVICE = "-prometheus-postgres-exporter";
+  public static final String SERVICE_MONITOR = "-stackgres-postgres-exporter";
+  public static final String SERVICE = "-prometheus-postgres-exporter";
   public static final String NAME = "prometheus-postgres-exporter";
 
   private static final String IMAGE_NAME =
@@ -57,13 +58,13 @@ public class PostgresExporter
 
   public static String serviceName(StackGresClusterContext clusterContext) {
     String name = clusterContext.getCluster().getMetadata().getName();
-    return ResourceUtil.resourceName(name + EXPORTER_SERVICE);
+    return ResourceUtil.resourceName(name + SERVICE);
   }
 
   public static String serviceMonitorName(StackGresClusterContext clusterContext) {
     String namespace = clusterContext.getCluster().getMetadata().getNamespace();
     String name = clusterContext.getCluster().getMetadata().getName();
-    return ResourceUtil.resourceName(namespace + "-" + name + EXPORTER_SERVICE_MONITOR);
+    return ResourceUtil.resourceName(namespace + "-" + name + SERVICE_MONITOR);
   }
 
   @Override
@@ -74,7 +75,7 @@ public class PostgresExporter
         .withImagePullPolicy("Always")
         .withEnv(new EnvVarBuilder()
                 .withName("DATA_SOURCE_NAME")
-                .withValue("host=/var/run/postgresql user=postgres")
+                .withValue("host=/var/run/postgresql user=postgres port=" + Envoy.PG_RAW_PORT)
                 .build(),
             new EnvVarBuilder()
                 .withName("POSTGRES_EXPORTER_USERNAME")
@@ -141,6 +142,8 @@ public class PostgresExporter
           serviceMonitor.setMetadata(new ObjectMetaBuilder()
               .withNamespace(pi.getNamespace())
               .withName(serviceMonitorName(context.getContext()))
+              .withOwnerReferences(ImmutableList.of(ResourceUtil.getOwnerReference(
+                  context.getContext().getCluster())))
               .withLabels(ImmutableMap.<String, String>builder()
                   .putAll(pi.getMatchLabels())
                   .putAll(labels)
@@ -156,9 +159,9 @@ public class PostgresExporter
           spec.setNamespaceSelector(namespaceSelector);
 
           selector.setMatchLabels(labels);
-          Endpoint port = new Endpoint();
-          port.setPort(NAME);
-          spec.setEndpoints(Collections.singletonList(port));
+          Endpoint endpoint = new Endpoint();
+          endpoint.setPort(NAME);
+          spec.setEndpoints(Collections.singletonList(endpoint));
 
           resourcesBuilder.add(serviceMonitor);
 
