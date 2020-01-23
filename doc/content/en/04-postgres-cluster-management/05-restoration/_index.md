@@ -21,7 +21,7 @@ ___
 | Property | Required | Type | Description | Default |
 |-----------|------|------|-------------|------|
 | source | ✓ | object  | restoration source configuration. For detail see the restoration source [section](#restore-source).  | |
-| compressionMethod |  | string  | Restoration compression method, could be:  lz4, lzma or brotli  | lz4 |
+| compressionMethod |  | string  | Compression method that was used during the backup, could be:  lz4, lzma or brotli  | lz4 |
 | downloadDiskConcurrency |  | integer | How many concurrent downloads will attempts during the restoration   | 1
 | pgpConfiguration | | object | The OpenPGP configuration for encryption and decryption backups with the following properties: - key: PGP private key |
 
