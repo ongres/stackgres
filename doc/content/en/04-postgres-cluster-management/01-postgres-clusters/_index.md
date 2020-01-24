@@ -24,12 +24,12 @@ ___
 | pgVersion | ✓ | string  | PostgreSQL version for the new cluster (for example 11.6) |   |
 | volumeSize | ✓ | string  | Storage volume size (for example 5Gi) |   |
 | storageClass | ✓ | string  | Storage class name to be used for the cluster (if not specified means default storage class wiil be used) |   |
-| [pgConfig](#postgresql-configuration) | ✓ | string  | PostgreSQL configuration to apply |   |
-| [connectionPoolingConfig](#connection-pooling-configuration) | ✓ | string  | Pooling configuration to apply |   |
-| [resourceProfile](#resource-profile-configuration) | ✓ | string  | Resource profile size to apply |   |
+| [pgConfig]({{% relref "/04-postgres-cluster-management/02-configuration-tuning/02-postgres-configuration" %}}) | ✓ | string  | PostgreSQL configuration to apply |   |
+| [connectionPoolingConfig]({{% relref "/04-postgres-cluster-management/02-configuration-tuning/03-connection-pooling-configuration" %}}) | ✓ | string  | Pooling configuration to apply |   |
+| [resourceProfile]({{% relref "/04-postgres-cluster-management/03-resource-profiles" %}}) | ✓ | string  | Resource profile size to apply |   |
 | [sidecars](#sidecar-containers) | ✓ | array  | List of sidecars to include in the cluster |   |
 | prometheusAutobind |   | boolean | If enabled a ServiceMonitor will be created for each Prometheus instance found in order to collect metrics | false |
-| [backupConfig](#backup-configuration) |   | string | Backup config to apply |   |
+| [backupConfig]({{% relref "/04-postgres-cluster-management/04-backups/_index.md#configuration" %}}) |   | string | Backup config to apply |   |
 | [nonProduction](#non-production-options) |   | array  | Additional parameters for non production environments |   |
 
 Example:
