@@ -30,6 +30,7 @@ ___
 | [sidecars](#sidecar-containers) | ✓ | array  | List of sidecars to include in the cluster |   |
 | prometheusAutobind |   | boolean | If enabled a ServiceMonitor will be created for each Prometheus instance found in order to collect metrics | false |
 | [backupConfig]({{% relref "/04-postgres-cluster-management/04-backups/_index.md#configuration" %}}) |   | string | Backup config to apply |   |
+| [restoreConfig]({{% relref "/04-postgres-cluster-management/05-restoration" %}}) |   | string | Restore config to apply |   |
 | [nonProduction](#non-production-options) |   | array  | Additional parameters for non production environments |   |
 
 Example:
