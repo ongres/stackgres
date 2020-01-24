@@ -1,9 +1,9 @@
 ---
-title: Instance profiles
+title: Resource profiles
 weight: 3
 ---
 
-The Resource profile CR represent the CPU and memory resources assigned to each Pod of the cluster.
+The resource profile CR represent the CPU and memory resources assigned to each Pod of the cluster.
 
 ___
 **Kind:** StackGresProfile
