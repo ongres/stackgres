@@ -1,3 +1,18 @@
+# Release 0.8-alpha3
+
+* First documentation complete draft
+* Create ServiceMonitor to export envoy metrics to prometheus
+* Allow to set latest or just major version for postgresql
+* If no sidecars are specified all will be enabled
+
+## FIXES
+
+* Fixed backup and restore config in cluster CRD open API v3 schema
+* Postgres exporter can not connect to postgresql
+* Removed version check in CRD since already part of validation
+* Endpoint /stackgres/pods/{namespace}/{name} returns 404 on existing clusters
+* Added prometheusAutobind to cluster CR
+
 # Release 0.8-alpha2
 
 ## NOTES
