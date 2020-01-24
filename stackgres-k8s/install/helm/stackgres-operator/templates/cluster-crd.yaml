@@ -48,10 +48,10 @@ spec:
               storageClass:
                 type: string
                 description: "Storage class name to be used for the cluster"
-              backupconfig:
+              backupConfig:
                 type: string
                 description: "Backup config to apply"
-              restoreconfig:
+              restoreConfig:
                 type: string
                 description: "Restore config to apply"
               sidecars:
