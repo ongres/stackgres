@@ -192,7 +192,7 @@ deploy jvm image:
     - 'export IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
     - 'export IMAGE_UPLOAD_NAME="stackgres/operator:$IMAGE_UPLOAD_TAG"'
     - 'buildah pull docker-daemon:"$IMAGE_NAME"'
-    - 'buildah push --format=docker --authfile $REGISTRY_AUTH_FILE $IMAGE_UPLOAD_NAME "docker://docker.io/$IMAGE_NAME"'
+    - 'buildah push --format=docker --authfile $REGISTRY_AUTH_FILE $IMAGE_NAME "docker://docker.io/$IMAGE_UPLOAD_NAME"'
   only:
     variables:
       - $CI_COMMIT_REF_NAME == "development"
@@ -210,7 +210,7 @@ deploy native image:
     - 'export IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
     - 'export IMAGE_UPLOAD_NAME="stackgres/operator:$IMAGE_UPLOAD_TAG"'
     - 'buildah pull docker-daemon:"$IMAGE_NAME"'
-    - 'buildah push --format=docker --authfile $REGISTRY_AUTH_FILE $IMAGE_UPLOAD_NAME "docker://docker.io/$IMAGE_NAME"'
+    - 'buildah push --format=docker --authfile $REGISTRY_AUTH_FILE $IMAGE_NAME "docker://docker.io/$IMAGE_UPLOAD_NAME"'
   only:
     variables:
       - $CI_COMMIT_REF_NAME == "development"
