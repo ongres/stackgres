@@ -84,7 +84,7 @@ delete_k8s() {
 
 load_operator_k8s() {
   echo "Loading operator image $IMAGE_NAME in kind environemnt $KIND_NAME..."
-
+  
   kind load docker-image --name "$KIND_NAME" "$IMAGE_NAME"
 
   echo "...done"
