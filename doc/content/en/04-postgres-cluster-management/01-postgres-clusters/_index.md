@@ -30,7 +30,7 @@ ___
 | [sidecars](#sidecar-containers) | ✓ | array  | List of sidecars to include in the cluster |   |
 | prometheusAutobind |   | boolean | If enabled a ServiceMonitor will be created for each Prometheus instance found in order to collect metrics | false |
 | [backupConfig]({{% relref "/04-postgres-cluster-management/04-backups/_index.md#configuration" %}}) |   | string | Backup config to apply |   |
-| [restoreConfig]({{% relref "/04-postgres-cluster-management/05-restoration" %}}) |   | string | Restore config to apply |   |
+| [restore](#restore-configuration) |   | object | Cluter restoration options |   |
 | [nonProduction](#non-production-options) |   | array  | Additional parameters for non production environments |   |
 
 Example:
@@ -71,6 +71,35 @@ Following sinnept enables all sidecars but `postgres-util`:
     - envoy
     - pgbouncer
     - prometheus-postgres-exporter
+```
+
+## Restore configuration
+
+
+By default, stackgres it's creates as an empty database. To create a cluster with data 
+ from an existent backup, we have the restore options. It works, by simply indicating the 
+ backup CR UUI that we want to restore. 
+
+| Property | Required | Type | Description | Default |
+|-----------|------|------|-------------|------|
+| fromBackup | ✓ | string  | The backup CR UID to restore the cluster data |   |
+| autoCopySecrets | ✓ | boolean | PostgreSQL version for the new cluster (for example 11.6) | false |
+| downloadDiskConcurrency | ✓ | integer | How many concurrent stream will be created while downloading the backup | 1 |
+
+Example:
+
+```yaml
+apiVersion: stackgres.io/v1alpha1
+kind: StackGresCluster
+metadata:
+  name: stackgres
+spec:
+  ...
+  restore:
+    fromBackup: d7e660a9-377c-11ea-b04b-0242ac110004
+    autoCopySecrets: true
+    downloadDiskConcurrency: 1
+  ...
 ```
 
 ## Non Production options
