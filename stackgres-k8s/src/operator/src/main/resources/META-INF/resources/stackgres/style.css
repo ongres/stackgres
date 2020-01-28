@@ -807,7 +807,7 @@ li.status {
     position: initial;
 }
 
-.box .table .head + .row {
+.box .table .head + .row, .box.show > .row {
     border-bottom: 0;
 }
 

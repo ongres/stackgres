@@ -22,7 +22,7 @@ var clustersList = [],
     ];
 
 //Local Json "API"
-//var apiURL = './js/data/';
+//var apiURL = 'js/data/';
 
 //Test API
 //var apiURL = 'http://192.168.1.10:7978/';
@@ -630,6 +630,13 @@ Vue.filter('prettyCRON', function (value) {
   //console.log(value);
   return prettyCron.toString(value)
   
+});
+
+Vue.filter('formatBytes',function(a){
+
+    // Bytes Formatter via https://stackoverflow.com/questions/15900485/correct-way-to-convert-size-in-bytes-to-kb-mb-gb-in-javascript
+    if(0==a)return"0 Bytes";var c=1024,d=2,e=["Bytes","KB","MB","GB","TB","PB","EB","ZB","YB"],f=Math.floor(Math.log(a)/Math.log(c));return parseFloat((a/Math.pow(c,f)).toFixed(d))+" "+e[f];
+
 });
 
 function arraysMatch (arr1, arr2) {

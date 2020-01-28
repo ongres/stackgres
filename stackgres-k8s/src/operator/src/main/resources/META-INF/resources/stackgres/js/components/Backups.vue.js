@@ -54,7 +54,7 @@ var Backups = Vue.component("sg-backup", {
 										{{ back.data.status.time }}
 									</div>
 									<div class="col">
-										{{ back.data.status.uncompressedSize }}
+										{{ back.data.status.uncompressedSize | formatBytes }}
 									</div>
 									<div class="col">
 										{{ back.data.status.pgVersion }}
@@ -75,27 +75,67 @@ var Backups = Vue.component("sg-backup", {
 						<hr>
 						<h4>Backup Details</h4>
 
-						<hr>
-						<span>UID</span>
-						{{ back.data.metadata.uid }}
+						<div class="row">
 
-						<hr>
-						<span>Cluster</span>
-						{{ back.data.spec.cluster }}
+							<div class="col">
+								<hr>
+								<span>UID</span>
+								{{ back.data.metadata.uid }}
 
-						<template v-if="back.data.status.phase === 'Failed'">
-							<hr>
-							<span>Phase</span>
-							Failed
-							<hr>
-							<span>Reason</span>
-							{{ back.data.status.failureReason }}
-						</template>
-						<template v-else-if="back.data.status.phase === 'Completed'">
-							<hr>
-							<span>Compressed size</span>
-							{{ back.data.status.compressedSize }}
-						</template>
+								<template v-if="back.data.status.phase === 'Completed'">
+
+									<hr>
+									<span>Pod</span>
+									{{ back.data.status.pod }}
+
+									<hr>
+									<span>Name</span>
+									{{ back.data.status.name }}
+
+									<hr>
+									<span>WAL File Name</span>
+									{{ back.data.status.walFileName }}
+
+									</div>
+									<div class="col">
+
+									<hr>
+									<span>Start Time</span>
+									{{ back.data.status.startTime }}
+
+									<hr>
+									<span>Finish Time</span>
+									{{ back.data.status.finishTime }}
+									
+									<hr>
+									<span>Hostname</span>
+									{{ back.data.status.hostname }}
+
+									<hr>
+									<span>Data Directory</span>
+									{{ back.data.status.dataDir }}
+
+									</div>
+									<div class="col">
+									
+									<hr>
+									<span>Start Lsn</span>
+									{{ back.data.status.startLsn }}
+
+									<hr>
+									<span>Finish Lsn</span>
+									{{ back.data.status.finishLsn }}
+
+									<hr>
+									<span>System Identifier</span>
+									{{ back.data.status.systemIdentifier }}
+
+									<hr>
+									<span>Compressed size</span>
+									{{ back.data.status.compressedSize | formatBytes }}
+								</template>
+							</div>
+						</div>
 					</div>
 				</div>
 			</div>
