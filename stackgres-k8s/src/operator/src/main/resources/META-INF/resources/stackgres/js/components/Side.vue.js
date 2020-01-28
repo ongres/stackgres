@@ -28,14 +28,14 @@ var Side = Vue.component("sg-side", {
 						</template>
 					</template>
 				</div>
-				<div class="set back">
+				<!--<div class="set back">
 					<h3>Backups</h3>
 					<a href="#" class="addnew">+</a>
 
 					<template v-for="backup in backups">
 						<router-link :to="'/backups/'+backup.data.metadata.namespace+'/'+backup.name" class="item" :class="backup.name" v-if="backup.data.metadata.namespace == currentNamespace">{{ backup.name }}</router-link>
 					</template>
-				</div>
+				</div>-->
 				<div class="set conf">
 					<h3>Configurations</h3>
 

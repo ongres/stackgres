@@ -54,19 +54,19 @@ const router = new VueRouter({
         },
       },
       {  
-          path: '/backups/:namespace/', 
-          component: Backups,
-          meta: {
-            conditionalRoute: false
-          },
+        path: '/backups/:namespace/', 
+        component: Backups,
+        meta: {
+          conditionalRoute: false
         },
-        { 
-          path: '/backups/:namespace/:name', 
-          component: Backups,
-          meta: {
-            conditionalRoute: false
-          },
+      },
+      { 
+        path: '/backups/:namespace/:name', 
+        component: Backups,
+        meta: {
+          conditionalRoute: false
         },
+      },
       { 
         path: '/configurations/postgresql/:namespace', 
         component: PgConfig,
@@ -203,11 +203,23 @@ const store = new Vuex.Store({
 
     setCurrentCluster (state, cluster) {
       state.currentCluster = cluster;
+      
+      // Enable/Disable Graffana button
       if (cluster.data.grafanaEmbedded) {
-        $("#grafana-button").css("display", "block");
+        $("#grafana-btn").css("display","block");
       } else {
-        $("#grafana-button").css("display", "none");
+        $("#grafana-btn").css("display","none");
       }
+
+      let index = state.backups.find(p => (cluster.name == p.data.spec.cluster) );
+
+      // Enable/Disable Backups button
+      if ( typeof index !== "undefined" ) {
+        $("#backup-btn").css("display","block");
+      } else {
+        $("#backup-btn").css("display","none");
+      }
+
       //Object.assign(state.currentCluster, cluster);
     },
 
@@ -686,6 +698,7 @@ $(document).ready(function(){
 
   $(document).on("click", "a.namespace", function(){
     store.commit('setCurrentNamespace',$(this).text());
+    $("#backup-btn, #graffana-btn").css("display","none");
   });
 
   $(document).on("click", ".clu a", function(){
@@ -704,8 +717,18 @@ $(document).ready(function(){
     $("#nav").addClass("disabled");
   });
 
-  $(document).on("click", ".box h4", function(){
-    $(this).parent().toggleClass("show");
+  $(document).on("click", ".box h4, .details .btn", function(){
+  
+    $(this).parents(".box").toggleClass("show");
+  });
+
+  $(document).on("click", ".details .btn", function(){
+
+    if($(this).text() == 'Details')
+      $(this).text(' Close ');
+    else
+      $(this).text('Details');
+  
   });
 
   $(document).on("click", "#main, #side", function() {
