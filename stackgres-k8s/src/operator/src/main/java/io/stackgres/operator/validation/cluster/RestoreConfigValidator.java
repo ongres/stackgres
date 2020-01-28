@@ -5,60 +5,89 @@
 
 package io.stackgres.operator.validation.cluster;
 
+import java.util.List;
 import java.util.Optional;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import io.stackgres.operator.common.StackgresClusterReview;
+import io.stackgres.operator.customresource.sgbackup.StackGresBackup;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
-import io.stackgres.operator.customresource.sgrestoreconfig.StackgresRestoreConfig;
-import io.stackgres.operator.resource.KubernetesCustomResourceFinder;
+import io.stackgres.operator.customresource.sgcluster.StackGresClusterRestore;
+import io.stackgres.operator.resource.KubernetesCustomResourceScanner;
+import io.stackgres.operatorframework.Operation;
 import io.stackgres.operatorframework.ValidationFailed;
 
 @ApplicationScoped
 public class RestoreConfigValidator implements ClusterValidator {
 
-  private KubernetesCustomResourceFinder<StackgresRestoreConfig> restoreConfigFinder;
+  private KubernetesCustomResourceScanner<StackGresBackup> backupScanner;
 
   @Inject
-  public RestoreConfigValidator(
-      KubernetesCustomResourceFinder<StackgresRestoreConfig> restoreConfigFinder) {
-    this.restoreConfigFinder = restoreConfigFinder;
+  public RestoreConfigValidator(KubernetesCustomResourceScanner<StackGresBackup> backupScanner) {
+    this.backupScanner = backupScanner;
   }
 
   @Override
   public void validate(StackgresClusterReview review) throws ValidationFailed {
 
     StackGresCluster cluster = review.getRequest().getObject();
-    String restoreConfig = cluster.getSpec().getRestoreConfig();
+    StackGresClusterRestore restoreConfig = cluster.getSpec().getRestore();
+
+    checkRestoreConfig(review, restoreConfig);
+
+    if (restoreConfig != null) {
+      checkBackup(review, restoreConfig);
+    }
+
+  }
+
+  private void checkBackup(StackgresClusterReview review,
+                           StackGresClusterRestore restoreConfig) throws ValidationFailed {
+    String stackgresBackup = restoreConfig.getStackgresBackup();
 
     switch (review.getRequest().getOperation()) {
       case CREATE:
 
-        if (restoreConfig != null) {
+        Optional<StackGresBackup> config = findBackup(stackgresBackup);
 
-          String namespace = cluster.getMetadata().getNamespace();
-          Optional<StackgresRestoreConfig> config = restoreConfigFinder
-              .findByNameAndNamespace(restoreConfig, namespace);
-
-          if (!config.isPresent()) {
-            throw new ValidationFailed("Restore config " + restoreConfig + " not found");
-          }
-
+        if (!config.isPresent()) {
+          throw new ValidationFailed("Backup uid " + stackgresBackup + " not found");
         }
+
         break;
       case UPDATE:
-        String oldRestoreConfig = review.getRequest().getOldObject().getSpec().getRestoreConfig();
-        if (restoreConfig == null && oldRestoreConfig != null
-            || restoreConfig != null && oldRestoreConfig == null) {
-          throw new ValidationFailed("Cannot update cluster's restore config");
+        StackGresClusterRestore oldRestoreConfig = review.getRequest()
+            .getOldObject().getSpec().getRestore();
+        String oldStackgresBackup = oldRestoreConfig.getStackgresBackup();
+
+        if (stackgresBackup == null && oldStackgresBackup != null
+            || stackgresBackup != null && oldStackgresBackup == null) {
+          throw new ValidationFailed("Cannot update cluster's restore configuration");
         }
-        if (restoreConfig != null && !restoreConfig.equals(oldRestoreConfig)) {
-          throw new ValidationFailed("Cannot update cluster's restore config");
+        if (stackgresBackup != null && !stackgresBackup.equals(oldStackgresBackup)) {
+          throw new ValidationFailed("Cannot update cluster's restore configuration");
         }
         break;
       default:
     }
+  }
 
+  private void checkRestoreConfig(StackgresClusterReview review,
+                                  StackGresClusterRestore restoreConfig) throws ValidationFailed {
+    if (review.getRequest().getOperation() == Operation.UPDATE) {
+      StackGresClusterRestore oldRestoreConfig = review.getRequest()
+          .getOldObject().getSpec().getRestore();
+      if (restoreConfig == null && oldRestoreConfig != null) {
+        throw new ValidationFailed("Cannot update cluster's restore configuration");
+      }
+    }
+  }
+
+  private Optional<StackGresBackup> findBackup(String stackgresBackup) {
+    Optional<List<StackGresBackup>> resources = backupScanner.findResources();
+    return resources.flatMap(backups -> backups.stream()
+        .filter(b -> b.getMetadata().getUid().equals(stackgresBackup))
+        .findFirst());
   }
 }

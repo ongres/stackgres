@@ -9,14 +9,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
-
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
-
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.stackgres.operator.cluster.ClusterStatefulSet;
@@ -25,15 +23,13 @@ import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresComponents;
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfigSpec;
-import io.stackgres.operator.customresource.sgrestoreconfig.StackgresRestoreConfigSource;
-import io.stackgres.operator.customresource.sgrestoreconfig.StackgresRestoreConfigSpec;
+import io.stackgres.operator.customresource.sgcluster.StackGresRestoreConfigSource;
 import io.stackgres.operator.customresource.storages.AwsS3Storage;
 import io.stackgres.operator.customresource.storages.AzureBlobStorage;
 import io.stackgres.operator.customresource.storages.BackupStorage;
 import io.stackgres.operator.customresource.storages.GoogleCloudStorage;
 import io.stackgres.operator.resource.ResourceUtil;
 import io.stackgres.operator.sidecars.envoy.Envoy;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -116,12 +112,12 @@ public class PatroniConfigMap {
 
     config.getRestoreConfig().ifPresent(restoreConfig -> {
 
-      StackgresRestoreConfigSpec spec = restoreConfig.getSpec();
-
-      putIfPresent("RESTORE_WALG_COMPRESSION_METHOD", spec.getCompressionMethod(), data);
       putIfPresent("RESTORE_WALG_DOWNLOAD_CONCURRENCY",
-          spec.getDownloadDiskConcurrency(), data);
-      StackgresRestoreConfigSource source = patroniRestoreSource.getStorageConfig(restoreConfig);
+          restoreConfig.getDownloadDiskConcurrency(), data);
+
+      StackGresRestoreConfigSource source = patroniRestoreSource.getStorageConfig(restoreConfig);
+
+      putIfPresent("RESTORE_WALG_COMPRESSION_METHOD", source.getCompressionMethod(), data);
 
       putIfPresent("RESTORE_BACKUP_ID", source.getBackupName(), data);
 

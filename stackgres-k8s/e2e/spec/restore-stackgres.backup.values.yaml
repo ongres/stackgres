@@ -20,9 +20,7 @@ config:
         key: secretkey
       region: k8s
       forcePathStyle: true
-      endpoint: http://restore-stackgres-backup-minio.restore-stackgres-backup.svc.cluster.local:9000
-  restore:
-    create: false
+      endpoint: http://restore-stackgres-backup-minio.restore-stackgres-backup.svc.cluster.local:9000  
 cluster:
   volumeSize: 128Mi
 sidecar:

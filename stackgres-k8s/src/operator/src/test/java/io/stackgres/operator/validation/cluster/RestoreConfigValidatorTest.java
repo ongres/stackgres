@@ -8,9 +8,11 @@ package io.stackgres.operator.validation.cluster;
 import java.util.Optional;
 
 import io.stackgres.operator.common.StackgresClusterReview;
+import io.stackgres.operator.customresource.sgbackup.StackGresBackup;
+import io.stackgres.operator.customresource.sgbackup.StackGresBackupList;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
-import io.stackgres.operator.customresource.sgrestoreconfig.StackgresRestoreConfig;
-import io.stackgres.operator.resource.KubernetesCustomResourceFinder;
+import io.stackgres.operator.customresource.sgcluster.StackGresClusterRestore;
+import io.stackgres.operator.resource.KubernetesCustomResourceScanner;
 import io.stackgres.operator.utils.JsonUtil;
 import io.stackgres.operator.utils.ValidationUtils;
 import io.stackgres.operatorframework.ValidationFailed;
@@ -21,25 +23,23 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.mockito.ArgumentMatchers.anyString;
-
-
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class RestoreConfigValidatorTest {
 
   @Mock
-  private KubernetesCustomResourceFinder<StackgresRestoreConfig> finder;
+  private KubernetesCustomResourceScanner<StackGresBackup> scanner;
 
   private RestoreConfigValidator validator;
 
-  private static final StackgresRestoreConfig restoreConfig = JsonUtil
-      .readFromJson("restore_config/default.json", StackgresRestoreConfig.class);
+  private static final StackGresBackupList backupList = JsonUtil
+      .readFromJson("backup/list.json", StackGresBackupList.class);
 
 
   @BeforeEach
   void setUp() {
-    validator = new RestoreConfigValidator(finder);
+    validator = new RestoreConfigValidator(scanner);
   }
 
   @Test
@@ -47,33 +47,30 @@ class RestoreConfigValidatorTest {
 
     final StackgresClusterReview review = getCreationReview();
 
-    StackGresCluster cluster = review.getRequest().getObject();
-    String namespace = cluster.getMetadata().getNamespace();
-    String restoreConfig = cluster.getSpec().getRestoreConfig();
-
-    when(finder.findByNameAndNamespace(restoreConfig, namespace))
-        .thenReturn(Optional.of(RestoreConfigValidatorTest.restoreConfig));
+    when(scanner.findResources())
+        .thenReturn(Optional.of(RestoreConfigValidatorTest.backupList.getItems()));
 
     validator.validate(review);
 
-    verify(finder).findByNameAndNamespace(restoreConfig, namespace);
+    verify(scanner).findResources();
 
   }
 
   @Test
-  void givenAInvalidCreation_shouldFail(){
+  void givenAInvalidCreation_shouldFail() {
 
     final StackgresClusterReview review = getCreationReview();
 
     StackGresCluster cluster = review.getRequest().getObject();
-    String namespace = review.getRequest().getNamespace();
-    String restoreConfig = cluster.getSpec().getRestoreConfig();
-    when(finder.findByNameAndNamespace(restoreConfig, namespace)).thenReturn(Optional.empty());
+    StackGresClusterRestore restoreConfig = cluster.getSpec().getRestore();
+    String stackgresBackup = restoreConfig.getStackgresBackup();
+
+    when(scanner.findResources()).thenReturn(Optional.empty());
 
     ValidationUtils.assertValidationFailed(() -> validator.validate(review),
-        "Restore config " + restoreConfig + " not found");
+        "Backup uid " + stackgresBackup + " not found");
 
-    verify(finder).findByNameAndNamespace(restoreConfig, namespace);
+    verify(scanner).findResources();
 
   }
 
@@ -81,11 +78,11 @@ class RestoreConfigValidatorTest {
   void givenACreationWithNoRestoreConfig_shouldDoNothing() throws ValidationFailed {
 
     final StackgresClusterReview review = getCreationReview();
-    review.getRequest().getObject().getSpec().setRestoreConfig(null);
+    review.getRequest().getObject().getSpec().setRestore(null);
 
     validator.validate(review);
 
-    verify(finder, never()).findByNameAndNamespace(anyString(), anyString());
+    verify(scanner, never()).findResources(anyString());
 
   }
 
@@ -95,9 +92,9 @@ class RestoreConfigValidatorTest {
     final StackgresClusterReview review = getUpdateReview();
 
     ValidationUtils.assertValidationFailed(() -> validator.validate(review),
-        "Cannot update cluster's restore config");
+        "Cannot update cluster's restore configuration");
 
-    verify(finder, never()).findByNameAndNamespace(anyString(), anyString());
+    verify(scanner, never()).findResources();
 
   }
 
@@ -106,6 +103,7 @@ class RestoreConfigValidatorTest {
         .readFromJson("cluster_allow_requests/valid_creation.json",
             StackgresClusterReview.class);
   }
+
   private StackgresClusterReview getUpdateReview() {
     return JsonUtil
         .readFromJson("cluster_allow_requests/restore_config_update.json",

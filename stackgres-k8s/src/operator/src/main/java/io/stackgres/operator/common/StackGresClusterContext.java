@@ -11,16 +11,15 @@ import com.google.common.collect.ImmutableList;
 import io.stackgres.operator.customresource.sgbackup.StackGresBackup;
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
+import io.stackgres.operator.customresource.sgcluster.StackGresClusterRestore;
 import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfile;
-import io.stackgres.operator.customresource.sgrestoreconfig.StackgresRestoreConfig;
 
 public class StackGresClusterContext {
 
   private final StackGresCluster cluster;
   private final Optional<StackGresPostgresConfig> postgresConfig;
   private final Optional<StackGresBackupConfig> backupConfig;
-  private final Optional<StackgresRestoreConfig> restoreConfig;
   private final Optional<StackGresProfile> profile;
   private final ImmutableList<SidecarEntry<?, StackGresClusterContext>> sidecars;
   private final ImmutableList<StackGresBackup> backups;
@@ -30,7 +29,6 @@ public class StackGresClusterContext {
     this.cluster = builder.cluster;
     this.postgresConfig = builder.postgresConfig;
     this.backupConfig = builder.backupConfig;
-    this.restoreConfig = builder.restoreConfig;
     this.profile = builder.profile;
     this.sidecars = builder.sidecars;
     this.backups = builder.backups;
@@ -49,8 +47,8 @@ public class StackGresClusterContext {
     return backupConfig;
   }
 
-  public Optional<StackgresRestoreConfig> getRestoreConfig() {
-    return restoreConfig;
+  public Optional<StackGresClusterRestore> getRestoreConfig() {
+    return Optional.ofNullable(cluster.getSpec().getRestore());
   }
 
   public Optional<StackGresProfile> getProfile() {
@@ -100,7 +98,6 @@ public class StackGresClusterContext {
     private StackGresCluster cluster;
     private Optional<StackGresPostgresConfig> postgresConfig;
     private Optional<StackGresBackupConfig> backupConfig;
-    private Optional<StackgresRestoreConfig> restoreConfig;
     private Optional<StackGresProfile> profile;
     private ImmutableList<SidecarEntry<?, StackGresClusterContext>> sidecars;
     private ImmutableList<StackGresBackup> backups;
@@ -121,11 +118,6 @@ public class StackGresClusterContext {
 
     public Builder withBackupConfig(Optional<StackGresBackupConfig> backupConfig) {
       this.backupConfig = backupConfig;
-      return this;
-    }
-
-    public Builder withRestoreConfig(Optional<StackgresRestoreConfig> restoreConfig) {
-      this.restoreConfig = restoreConfig;
       return this;
     }
 

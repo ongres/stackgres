@@ -47,8 +47,8 @@ public class StackGresClusterSpec implements KubernetesResource {
   @JsonProperty("backupConfig")
   private String backupConfig;
 
-  @JsonProperty("restoreConfig")
-  private String restoreConfig;
+  @JsonProperty("restore")
+  private StackGresClusterRestore restore;
 
   @JsonProperty("volumeSize")
   @NotNull
@@ -114,12 +114,12 @@ public class StackGresClusterSpec implements KubernetesResource {
     this.backupConfig = backupConfig;
   }
 
-  public String getRestoreConfig() {
-    return restoreConfig;
+  public StackGresClusterRestore getRestore() {
+    return restore;
   }
 
-  public void setRestoreConfig(String restoreConfig) {
-    this.restoreConfig = restoreConfig;
+  public void setRestore(StackGresClusterRestore restore) {
+    this.restore = restore;
   }
 
   public String getVolumeSize() {
@@ -172,7 +172,7 @@ public class StackGresClusterSpec implements KubernetesResource {
         .add("resourceProfile", resourceProfile)
         .add("connectionPoolingConfig", connectionPoolingConfig)
         .add("backupConfig", backupConfig)
-        .add("restoreConfig", restoreConfig)
+        .add("restore", restore)
         .add("volumeSize", volumeSize)
         .add("storageClass", storageClass)
         .add("sidecars", sidecars)

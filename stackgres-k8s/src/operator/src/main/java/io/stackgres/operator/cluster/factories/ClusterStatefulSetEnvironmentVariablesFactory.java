@@ -20,8 +20,8 @@ import io.fabric8.kubernetes.api.model.SecretKeySelectorBuilder;
 import io.stackgres.operator.cluster.ClusterStatefulSet;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfig;
-import io.stackgres.operator.customresource.sgrestoreconfig.StackgresRestoreConfig;
-import io.stackgres.operator.customresource.sgrestoreconfig.StackgresRestoreConfigSource;
+import io.stackgres.operator.customresource.sgcluster.StackGresClusterRestore;
+import io.stackgres.operator.customresource.sgcluster.StackGresRestoreConfigSource;
 import io.stackgres.operator.customresource.storages.AwsS3Storage;
 import io.stackgres.operator.customresource.storages.AzureBlobStorage;
 import io.stackgres.operator.customresource.storages.BackupStorage;
@@ -194,12 +194,14 @@ public class ClusterStatefulSetEnvironmentVariablesFactory
 
   }
 
-  private List<EnvVar> buildRecoverEnvironmentVariables(StackgresRestoreConfig restoreConfig) {
+  private List<EnvVar> buildRecoverEnvironmentVariables(StackGresClusterRestore restoreConfig) {
 
     List<EnvVar> envVars = new ArrayList<>();
 
+    StackGresRestoreConfigSource source = patroniRestoreSource.getStorageConfig(restoreConfig);
+
     Optional<PgpConfiguration> pgpConfiguration = Optional.ofNullable(
-        restoreConfig.getSpec().getPgpConfiguration()
+        source.getPgpConfiguration()
     );
 
     pgpConfiguration.ifPresent(pgpConf -> envVars.add(new EnvVarBuilder()
@@ -209,7 +211,6 @@ public class ClusterStatefulSetEnvironmentVariablesFactory
             .build())
         .build()));
 
-    StackgresRestoreConfigSource source = patroniRestoreSource.getStorageConfig(restoreConfig);
     BackupStorage storage = source.getStorage();
 
     Optional<AwsS3Storage> awsS3Storage = Optional.ofNullable(

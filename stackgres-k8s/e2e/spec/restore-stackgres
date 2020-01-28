@@ -39,21 +39,7 @@ EOF
 
   kubectl create namespace "$CLUSTER_NAMESPACE" || true
 
-  #kubectl get secrets -n "$CLUSTER_NAMESPACE-backup" "$CLUSTER_NAMESPACE-backup-minio" --export -o yaml | kubectl apply -n "$CLUSTER_NAMESPACE" -f -
-
-  cat << EOF | kubectl apply -f -
-  apiVersion: stackgres.io/v1alpha1
-  kind: StackgresRestoreConfig
-  metadata:
-    name: restoreconf
-    namespace: $CLUSTER_NAMESPACE
-  spec:
-    source:
-      autoCopySecrets: true
-      fromBackup: $BACKUP_UID
-EOF
-  
-  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 --set cluster.restore.fromBackup=$BACKUP_UID
 
   wait_pods_running "$CLUSTER_NAMESPACE" 2
 
@@ -62,9 +48,7 @@ EOF
 e2e_test(){
   run_test "Check that data was restored on primary node" check_init_data
   run_test "Check that data was restored on replica node" check_replica_data
-  run_test "Check that replication is still working" check_replication
-  run_test "Check that cannot delete restore configuration while the cluster is running" check_restore_conf_removal
-  run_test "Check that is possible to delete a restore when there is no cluster depending on it" delete_whitout_cluster
+  run_test "Check that replication is still working" check_replication  
 }
 
 
@@ -123,42 +107,6 @@ check_replication(){
     fi
   else
     echo "FAIL: inserts on the primary where not sucessful."
-    return 1
-  fi
-
-}
-
-check_restore_conf_removal(){
-
-  if ERROR=$(kubectl delete -n "$CLUSTER_NAMESPACE" sgrestoreconfigs.stackgres.io restoreconf 2>&1)
-  then
-    echo "INFO: It should not be able to delete restoreconf"
-    return 1
-  else
-    echo "SUCCESS: Good it has failed"
-  fi
-
-  if echo "$ERROR" | grep -q "Can't delete sgrestoreconfigs.stackgres.io restoreconf"
-  then
-    echo "SUCCESS: Error message was the expected"
-    return 0
-  else
-    echo "FAIL: Error is not what it should be. ERROR ${ERROR}"
-    return 1
-  fi
-
-}
-
-delete_whitout_cluster(){
-
-  kubectl delete -n "$CLUSTER_NAMESPACE" sgclusters.stackgres.io "$CLUSTER_NAME"
-
-  if ERROR=$(kubectl delete -n "$CLUSTER_NAMESPACE" sgrestoreconfigs.stackgres.io restoreconf 2>&1)
-  then
-    echo "SUCCESS: Good. It has deleted the configuration"
-    return 0
-  else
-    echo "FAIL: It should be able to delete the restoreconf. ERROR ${ERROR}"
     return 1
   fi
 

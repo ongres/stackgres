@@ -79,7 +79,7 @@ public class ClusterStatefulSetInitContainer
                   .build())
           .build();
 
-      Container restoreEntripoint = new ContainerBuilder()
+      Container restoreEntryPoint = new ContainerBuilder()
           .withName("restore-entripoint")
           .withImage("busybox")
           .withCommand("/bin/sh", "-ecx", Unchecked.supplier(() -> Resources
@@ -100,7 +100,7 @@ public class ClusterStatefulSetInitContainer
           .build();
 
       containerBuilder.add(restoreWrapperContainer);
-      containerBuilder.add(restoreEntripoint);
+      containerBuilder.add(restoreEntryPoint);
     });
 
     config.getBackupConfig().ifPresent(backupConfig -> {

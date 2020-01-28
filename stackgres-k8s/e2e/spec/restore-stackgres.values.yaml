@@ -11,7 +11,9 @@ config:
 cluster:
   volumeSize: 128Mi
   backupconfig: null
-  restoreconfig: restoreconf
+  restore:
+    autoCopySecrets: true
+    downloadDiskConcurrency: 1
 sidecar:
   prometheus:
     allowAutobind: false
