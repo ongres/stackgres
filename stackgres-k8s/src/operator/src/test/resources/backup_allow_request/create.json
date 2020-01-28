@@ -48,7 +48,28 @@
         "isPermanent": false
       },
       "status": {
-        "backupConfig": "backupconf",
+        "backupConfig": {
+          "compressionMethod": "lz4",
+          "storage": {
+            "s3": {
+              "credentials": {
+                "accessKey": {
+                  "key": "accesskey",
+                  "name": "minio"
+                },
+                "secretKey": {
+                  "key": "secretkey",
+                  "name": "minio"
+                }
+              },
+              "endpoint": "http://minio.stackgres.svc:9000",
+              "forcePathStyle": true,
+              "prefix": "s3://stackgres",
+              "region": "k8s"
+            },
+            "type": "s3"
+          }
+        },
         "phase": "Pending",
         "pod": "backup-with-default-storage-backup-1579273020-svf9b"
       }

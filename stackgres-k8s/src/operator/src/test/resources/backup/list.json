@@ -18,7 +18,28 @@
         "isPermanent": true
       },
       "status": {
-        "backupConfig": "backupconf",
+        "backupConfig": {
+          "compressionMethod": "lz4",
+          "storage": {
+            "s3": {
+              "credentials": {
+                "accessKey": {
+                  "key": "accesskey",
+                  "name": "minio"
+                },
+                "secretKey": {
+                  "key": "secretkey",
+                  "name": "minio"
+                }
+              },
+              "endpoint": "http://minio.stackgres.svc:9000",
+              "forcePathStyle": true,
+              "prefix": "s3://stackgres",
+              "region": "k8s"
+            },
+            "type": "s3"
+          }
+        },
         "compressedSize": 6686094,
         "dataDir": "/var/lib/postgresql/data",
         "failureReason": "",
@@ -55,7 +76,28 @@
         "isPermanent": true
       },
       "status": {
-        "backupConfig": "backupconf",
+        "backupConfig": {
+          "compressionMethod": "lz4",
+          "storage": {
+            "s3": {
+              "credentials": {
+                "accessKey": {
+                  "key": "accesskey",
+                  "name": "minio"
+                },
+                "secretKey": {
+                  "key": "secretkey",
+                  "name": "minio"
+                }
+              },
+              "endpoint": "http://minio.stackgres.svc:9000",
+              "forcePathStyle": true,
+              "prefix": "s3://stackgres",
+              "region": "k8s"
+            },
+            "type": "s3"
+          }
+        },
         "compressedSize": 6686916,
         "dataDir": "/var/lib/postgresql/data",
         "failureReason": "",
@@ -92,7 +134,28 @@
         "isPermanent": true
       },
       "status": {
-        "backupConfig": "backupconf",
+        "backupConfig": {
+          "compressionMethod": "lz4",
+          "storage": {
+            "s3": {
+              "credentials": {
+                "accessKey": {
+                  "key": "accesskey",
+                  "name": "minio"
+                },
+                "secretKey": {
+                  "key": "secretkey",
+                  "name": "minio"
+                }
+              },
+              "endpoint": "http://minio.stackgres.svc:9000",
+              "forcePathStyle": true,
+              "prefix": "s3://stackgres",
+              "region": "k8s"
+            },
+            "type": "s3"
+          }
+        },
         "compressedSize": 6686916,
         "dataDir": "/var/lib/postgresql/data",
         "failureReason": "",
@@ -137,7 +200,28 @@
         "isPermanent": false
       },
       "status": {
-        "backupConfig": "backupconf",
+        "backupConfig": {
+          "compressionMethod": "lz4",
+          "storage": {
+            "s3": {
+              "credentials": {
+                "accessKey": {
+                  "key": "accesskey",
+                  "name": "minio"
+                },
+                "secretKey": {
+                  "key": "secretkey",
+                  "name": "minio"
+                }
+              },
+              "endpoint": "http://minio.stackgres.svc:9000",
+              "forcePathStyle": true,
+              "prefix": "s3://stackgres",
+              "region": "k8s"
+            },
+            "type": "s3"
+          }
+        },
         "compressedSize": 6686916,
         "dataDir": "/var/lib/postgresql/data",
         "failureReason": "",
@@ -182,7 +266,28 @@
         "isPermanent": false
       },
       "status": {
-        "backupConfig": "backupconf",
+        "backupConfig": {
+          "compressionMethod": "lz4",
+          "storage": {
+            "s3": {
+              "credentials": {
+                "accessKey": {
+                  "key": "accesskey",
+                  "name": "minio"
+                },
+                "secretKey": {
+                  "key": "secretkey",
+                  "name": "minio"
+                }
+              },
+              "endpoint": "http://minio.stackgres.svc:9000",
+              "forcePathStyle": true,
+              "prefix": "s3://stackgres",
+              "region": "k8s"
+            },
+            "type": "s3"
+          }
+        },
         "compressedSize": 6686916,
         "dataDir": "/var/lib/postgresql/data",
         "failureReason": "",

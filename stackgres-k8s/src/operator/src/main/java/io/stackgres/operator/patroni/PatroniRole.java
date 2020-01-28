@@ -19,6 +19,7 @@ import io.fabric8.kubernetes.api.model.rbac.SubjectBuilder;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operator.customresource.sgbackup.StackGresBackupDefinition;
+import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfigDefinition;
 import io.stackgres.operator.resource.ResourceUtil;
 
 public class PatroniRole {
@@ -94,6 +95,11 @@ public class PatroniRole {
             .withApiGroups(StackGresUtil.CRD_GROUP)
             .withResources(StackGresBackupDefinition.PLURAL)
             .withVerbs("list", "get", "create", "patch", "delete")
+            .build())
+        .addToRules(new PolicyRuleBuilder()
+            .withApiGroups(StackGresUtil.CRD_GROUP)
+            .withResources(StackGresBackupConfigDefinition.PLURAL)
+            .withVerbs("get")
             .build())
         .build();
   }

@@ -13,6 +13,7 @@ import com.google.common.base.MoreObjects;
 
 import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfigSpec;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -21,7 +22,7 @@ public class StackGresBackupStatus implements KubernetesResource {
 
   private static final long serialVersionUID = 4124027524757318245L;
 
-  private String backupConfig;
+  private StackGresBackupConfigSpec backupConfig;
   private String phase;
   private String pod;
   private String failureReason;
@@ -42,11 +43,11 @@ public class StackGresBackupStatus implements KubernetesResource {
   private Map<String, String> controlData;
   private Boolean tested;
 
-  public String getBackupConfig() {
+  public StackGresBackupConfigSpec getBackupConfig() {
     return backupConfig;
   }
 
-  public void setBackupConfig(String backupConfig) {
+  public void setBackupConfig(StackGresBackupConfigSpec backupConfig) {
     this.backupConfig = backupConfig;
   }
 

@@ -44,8 +44,167 @@ spec:
               type: string
               description: "If the phase is failed this field will contain a message with the failure reason."
             backupConfig:
-              type: string
+              type: object
               description: "The name of the backup configuration used to perform this backup."
+              properties:
+                compressionMethod:
+                  type: string
+                  description: "To configure compression method used for backups. Possible options are: lz4, lzma, brotli. Default method is lz4. LZ4 is the fastest method, but compression ratio is bad. LZMA is way much slower, however it compresses backups about 6 times better than LZ4. Brotli is a good trade-off between speed and compression ratio which is about 3 times better than LZ4."
+                  enum: [ "lz4", "lzma", "brotli" ]
+                pgpConfiguration:
+                  type: string
+                  type: object
+                  description: "The OpenPGP configuration for encryption and decryption backups with the following properties: - key: PGP private key"
+                  properties:
+                    key:
+                      type: object
+                      description: "PGP private key"
+                      properties:
+                        key:
+                          type: string
+                          description: "The key of the secret to select from. Must be a valid secret key."
+                        name:
+                          type: string
+                          description: "Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names"
+                      required: [ "key", "name" ]
+                  required: [ "key" ]
+                storage:
+                  type: object
+                  description: "Backup storage configuration"
+                  properties:
+                    type:
+                      type: string
+                      enum: [ "s3", "gcs", "azureblob" ]
+                      description: "Type of storage:\n- s3: Amazon Web Services S3\n- gcs: Google Clooud Storage\n- azureblob: Azure Blob Storage"
+                    s3:
+                      type: object
+                      description: "Amazon Web Services S3 configuration"
+                      properties:
+                        prefix:
+                          type: string
+                          pattern: '(s3|https?)://[^/]+(/[^/]*)*$'
+                          description: "The AWS S3 bucket and prefix (eg. s3://bucket/path/to/folder)."
+                        credentials:
+                          type: object
+                          description: "The credentials to access AWS S3 for writing and reading."
+                          properties:
+                            accessKey:
+                              type: object
+                              description: "AWS Access Key ID secret"
+                              properties:
+                                key:
+                                  type: string
+                                  description: "The key of the secret to select from. Must be a valid secret key."
+                                name:
+                                  type: string
+                                  description: "Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names"
+                              required: [ "key", "name" ]
+                            secretKey:
+                              type: object
+                              description: "AWS Secret Access Key"
+                              properties:
+                                key:
+                                  type: string
+                                  description: "The key of the secret to select from. Must be a valid secret key."
+                                name:
+                                  type: string
+                                  description: "Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names"
+                              required: [ "key", "name" ]
+                          required: [ "accessKey", "secretKey" ]
+                        region:
+                          type: string
+                          description: "The AWS S3 region. Region can be detected using s3:GetBucketLocation, but if you wish to avoid this API call or forbid it from the applicable IAM policy, specify this property."
+                        endpoint:
+                          type: string
+                          description: "Overrides the default hostname to connect to an S3-compatible service. i.e, http://s3-like-service:9000."
+                        forcePathStyle:
+                          type: boolean
+                          description: "To enable path-style addressing(i.e., http://s3.amazonaws.com/BUCKET/KEY) when connecting to an S3-compatible service that lack of support for sub-domain style bucket URLs (i.e., http://BUCKET.s3.amazonaws.com/KEY). Defaults to false."
+                        storageClass:
+                          type: string
+                          description: "By default, the \"STANDARD\" storage class is used. Other supported values include \"STANDARD_IA\" for Infrequent Access and \"REDUCED_REDUNDANCY\" for Reduced Redundancy."
+                        sse:
+                          type: string
+                          description: "To enable S3 server-side encryption, set to the algorithm to use when storing the objects in S3 (i.e., AES256, aws:kms)."
+                        sseKmsId:
+                          type: string
+                          description: "If using S3 server-side encryption with aws:kms, the KMS Key ID to use for object encryption."
+                        cseKmsId:
+                          type: string
+                          description: "To configure AWS KMS key for client side encryption and decryption. By default, no encryption is used. (region or cseKmsRegion required to be set when using AWS KMS key client side encryption)."
+                        cseKmsRegion:
+                          type: string
+                          description: "To configure AWS KMS key region for client side encryption and decryption (i.e., eu-west-1)."
+                      required: [ "prefix", "credentials" ]
+                    gcs:
+                      type: object
+                      description: "Google Cloud Storage configuration"
+                      properties:
+                        prefix:
+                          type: string
+                          description: "Specify where to store backups (eg. gs://x4m-test-bucket/walg-folder)."
+                          pattern: "^gs://[^/]+(/[^/]*)*$"
+                        credentials:
+                          type: object
+                          description: "The credentials to access GCS for writing and reading."
+                          properties:
+                            serviceAccountJsonKey:
+                              type: object
+                              description: "A service account json key from GCP."
+                              properties:
+                                key:
+                                  type: string
+                                  description: "The key of the secret to select from. Must be a valid secret key."
+                                name:
+                                  type: string
+                                  description: "Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names"
+                              required: [ "key", "name" ]
+                          required: [ "serviceAccountJsonKey" ]
+                      required: [ "prefix", "credentials" ]
+                    azureblob:
+                      type: object
+                      description: "Azure Blob Storage configuration"
+                      properties:
+                        prefix:
+                          type: string
+                          description: "Specify where to store backups in Azure storage (eg. azure://test-container/walg-folder)."
+                          pattern: "^azure://[^/]+(/[^/]*)*$"
+                        credentials:
+                          type: object
+                          description: "The credentials to access Azure Blob Storage for writing and reading."
+                          properties:
+                            account:
+                              type: object
+                              description: "The name of the storage account."
+                              properties:
+                                key:
+                                  type: string
+                                  description: "The key of the secret to select from. Must be a valid secret key."
+                                name:
+                                  type: string
+                                  description: "Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names"
+                              required: [ "key", "name" ]
+                            accessKey:
+                              type: object
+                              description: "The primary or secondary access key for the storage account."
+                              properties:
+                                key:
+                                  type: string
+                                  description: "The key of the secret to select from. Must be a valid secret key."
+                                name:
+                                  type: string
+                                  description: "Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names"
+                              required: [ "key", "name" ]
+                          required: [ "account", "accessKey" ]
+                        bufferSize:
+                          type: integer
+                          description: "Overrides the default upload buffer size of 67108864 bytes (64 MB). Note that the size of the buffer must be specified in bytes. Therefore, to use 32 MB sized buffers, this variable should be set to 33554432 bytes."
+                        maxBuffers:
+                          type: integer
+                          description: "Overrides the default maximum number of upload buffers. By default, at most 3 buffers are used concurrently."
+                      required: [ "prefix", "credentials" ]
+                  required: ["type"]
+              required: ["storage"]
             name:
               type: string
               description: "The name of the backup."
