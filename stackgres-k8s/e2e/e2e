@@ -17,6 +17,7 @@ WAIT_OPERATOR="${WAIT_OPERATOR:-true}"
 E2E_TIMEOUT="${E2E_TIMEOUT:-180}"
 TRAP_ENABLED="${TRAP_ENABLED:-false}"
 SKIP_K8S_SETUP="${SKIP_K8S_SETUP:-false}"
+OPERATOR_PULL_POLICY="${OPERATOR_PULL_POLICY:-Never}"
 
 if [ -z "$STACKGRES_PATH" ]
 then
@@ -39,7 +40,7 @@ do
 done
 
 operator_pull_policy() {
-  echo Never
+  echo $OPERATOR_PULL_POLICY
 }
 
 . "$(dirname "$0")/envs/$E2E_ENV"
@@ -101,7 +102,7 @@ setup_k8s() {
       || [ "$REUSE_OPERATOR" != true ]
     )
   then
-    mvn -f "$STACKGRES_PATH/src/pom.xml" -q clean package -P build-image-jvm
+    mvn -f "$STACKGRES_PATH/src/pom.xml" -q clean package -P build-image-jvm    
   fi
 
   if ! helm list | grep -q "^stackgres-operator\s" \
@@ -112,8 +113,11 @@ setup_k8s() {
       && [ "$USE_EXTERNAL_OPERATOR" != true ])\
     || [ "$REUSE_OPERATOR" != true ]
   then
-    load_operator_k8s
-
+   
+    if docker image inspect $IMAGE_NAME > /dev/null
+    then
+      load_operator_k8s
+    fi
     helm_cleanup
     k8s_cleanup
 

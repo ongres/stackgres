@@ -77,7 +77,7 @@ public class ClusterDetailsFinder implements KubernetesCustomResourceFinder<Clus
   private List<ClusterPodStatus> getClusterPods(StackGresCluster cluster, KubernetesClient client) {
     return client.pods()
         .inNamespace(cluster.getMetadata().getNamespace())
-        .withLabels(ResourceUtil.clusterLabels(cluster))
+        .withLabels(ResourceUtil.patroniClusterLabels(cluster))
         .list()
         .getItems()
         .stream()

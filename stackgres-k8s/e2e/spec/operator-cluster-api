@@ -1,16 +1,42 @@
 #!/bin/sh
 
 e2e_test_install() {
-  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1
+
+  if [ "$E2E_ENV" = "kind" ]
+  then
+    cat << EOF > "$LOG_PATH/minio-affinity.yaml"
+minio:
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+            - key: "kubernetes.io/hostname"
+              operator: "In"
+              values: [ "${KIND_NAME}-worker" ]
+EOF
+  else
+    > "$LOG_PATH/minio-affinity.yaml"
+  fi
+
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
+    -f "$LOG_PATH/minio-affinity.yaml"
 
   deploy_curl_pod "$CLUSTER_NAMESPACE"
 
-  wait_pods_running "$CLUSTER_NAMESPACE" 2
+  wait_pods_running "$CLUSTER_NAMESPACE" 4
 
   DEFAULT_CONFIG_FILE=$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
    | run_jq 'del(.metadata.creationTimestamp) | del(.metadata.generation) | del(.metadata.resourceVersion) | del(.metadata.selfLink) | del(.metadata.uid)')
 
-  echo "$DEFAULT_CONFIG_FILE" > "$LOG_PATH/stackgres-cluster.json"
+   echo "$DEFAULT_CONFIG_FILE" > "$LOG_PATH/stackgres-cluster.json"
+
+  kubectl patch sgbackupconfig -n "$CLUSTER_NAMESPACE" backupconf --type json \
+    --patch '[{"op":"replace","path":"/spec/fullSchedule","value":"*/1 * * * *"}]'
+
+  wait_until eval '[ "$(kubectl exec -t -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-0 -c patroni -- \
+    wal-g backup-list | wc -l)" -gt 0 ]'
+  
 }
 
 e2e_test() {
@@ -21,6 +47,8 @@ e2e_test() {
   run_test "Check that the status endpoint are returning the master stats" test_cluster_stats_are_loaded
 
   run_test "Check that the pod config endpoint are returning the pod details" test_cluster_pod_config_are_loaded
+
+  run_test "Check that the number of pods match with the master and replicas" test_cluster_pod_count
 
   run_test "Check that a cluster was removed after its deletion in the API" check_cluster_removed
 
@@ -59,10 +87,16 @@ get_cluster_stats(){
   echo $HTTP_STATUS
 }
 
-get_cluster_pod_configs(){
+get_cluster_pod_configs_health(){
   local HTTP_STATUS
   HTTP_STATUS="$(run_curl -r "stackgres/cluster/pods/$CLUSTER_NAMESPACE/$CLUSTER_NAME" -e "-LI -o /dev/null -w %{http_code}")"
   echo $HTTP_STATUS
+}
+
+get_cluster_pod_count(){
+  local POD_COUNT
+  POD_COUNT="$(run_curl -r "stackgres/cluster/pods/$CLUSTER_NAMESPACE/$CLUSTER_NAME" | run_jq '.pods | length')"
+  echo $POD_COUNT
 }
 
 check_cluster_directly() {
@@ -95,7 +129,7 @@ test_cluster_stats_are_loaded() {
 
 test_cluster_pod_config_are_loaded(){
   local HTTP_STATUS
-  HTTP_STATUS="$(get_cluster_pod_configs)"
+  HTTP_STATUS="$(get_cluster_pod_configs_health)"
 
   if [ "$HTTP_STATUS" -eq 200 ]
   then
@@ -105,6 +139,60 @@ test_cluster_pod_config_are_loaded(){
     echo "Cluster $CLUSTER_NAME pod configs was not found by the api"
     return 1
   fi
+}
+
+test_cluster_pod_count(){
+  local RETURNED_PODS="$(get_cluster_pod_count)"
+  echo "Founded returned pods: ${RETURNED_PODS}"
+
+  local STOP_AT=60
+
+  local CHECK_START="$(date +%s)"
+  local CURRENT_TIME="$(date +%s)"
+
+  while [ $CURRENT_TIME -lt $((CHECK_START+STOP_AT)) ]
+  do
+    if [ "$RETURNED_PODS" -eq 2 ]
+    then
+      RETURNED_PODS="$(get_cluster_pod_count)"
+      CURRENT_TIME="$(date +%s)"      
+      sleep 1
+    else
+      echo "Pods in cluster should be 2 but found $RETURNED_PODS. Cron backups could have being shown as cluster pods"
+      return 1
+    fi
+  done
+  echo "Good. Cron backups didn't appear as cluster pods"
+
+  BACKUP_NAME="${CLUSTER_NAME}-${NODE}-$(shuf -i 0-65535 -n 1)"
+
+    cat << EOF | kubectl create -f -
+  apiVersion: stackgres.io/v1alpha1
+  kind: StackGresBackup
+  metadata:
+    namespace: "$CLUSTER_NAMESPACE"
+    name: "$BACKUP_NAME"
+  spec:
+    cluster: "$CLUSTER_NAME"
+    isPermanent: true
+EOF
+  
+  CHECK_START="$(date +%s)"
+  CURRENT_TIME="$(date +%s)"
+  while [ $CURRENT_TIME -lt $((CHECK_START+STOP_AT)) ]
+  do
+    if [ "$RETURNED_PODS" -eq 2 ]
+    then
+      RETURNED_PODS="$(get_cluster_pod_count)"
+      CURRENT_TIME="$(date +%s)"
+      sleep 1
+    else
+      echo "Pods in cluster should be 2 but found $RETURNED_PODS. User initiated backups could have being shown as cluster pods"
+      return 1
+    fi
+  done
+  echo "Good. User initiated backups didn't appear as cluster pods"
+  
 }
 
 remove_cluster_cr_if_exists(){
