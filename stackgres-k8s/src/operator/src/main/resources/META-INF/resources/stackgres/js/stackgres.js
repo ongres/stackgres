@@ -30,6 +30,13 @@ var clustersList = [],
 //Prod API
 var apiURL = '/stackgres/';
 
+var urlParams = new URLSearchParams(window.location.search);
+
+if( urlParams.has('localAPI') ) {
+  console.log('Using Local API');
+  apiURL = 'js/data/';
+}
+
 const router = new VueRouter({
   routes: [
       { 
@@ -724,9 +731,21 @@ $(document).ready(function(){
     $("#nav").addClass("disabled");
   });
 
-  $(document).on("click", ".box h4, .details .btn", function(){
-  
+  $(document).on("click", ".box h4, .details .btn", function() {
+    
     $(this).parents(".box").toggleClass("show");
+
+    // Look for toggle button
+    let btn = $(this).parents(".table").find(".details .btn");
+    
+    if(btn.length) {
+      if(btn.text() == 'Details')
+        btn.text(' Close ');
+      else
+        btn.text('Details');  
+    }
+
+
   });
 
   $(document).on("click", ".details .btn", function(){
