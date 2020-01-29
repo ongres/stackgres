@@ -138,7 +138,14 @@ public class ItHelper {
   public static void deleteNamespaceIfExists(Container kind, String namespace) throws Exception {
     LOGGER.info("Deleting namespace if exists '" + namespace + "'");
     kind.execute("sh", "-l", "-c",
-        "kubectl delete namespace --ignore-not-found " + namespace + " || true")
+        "kubectl delete namespace --ignore-not-found " + namespace + " --timeout=19s"
+            + " || (kubectl api-resources --namespaced -o name"
+            + " | xargs -r -n 1 -I + -P 0 sh -ec 'kubectl get \"+\" -n \"" + namespace + "\" -o name"
+            + " | xargs -r -n 1 -I % kubectl delete -n \"" + namespace + "\" \"%\" --grace-period=0 --force' >/dev/null 2>&1 || true;"
+            + " kubectl get namespace \"" + namespace + "\" -o json | tr -d \"\\n\""
+            + " | sed \"s/\\\"finalizers\\\": \\[[^]]\\+\\]/\\\"finalizers\\\": []/\""
+            + " | kubectl replace --raw /api/v1/namespaces/" + namespace + "/finalize -f - >/dev/null 2>&1"
+            + " || ! kubectl get namespace \"" + namespace + "\" -o name >/dev/null 2>&1)")
         .filter(EXCLUDE_TTY_WARNING)
         .forEach(line -> LOGGER.info(line));
   }
