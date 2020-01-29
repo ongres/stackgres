@@ -5,21 +5,90 @@ weight: 3
 
 # Installation with kubectl
 
-We ship some kubernetes resources files in order to allow installation of the StackGres cluster
- including backup configuration for demostration purpose. Assuming you have already installed the
+To create your first StackGres cluster you have to create a simple custom resource that reflect
+ the cluster configuration. Assuming you have already installed the
  [kubectl CLI](https://kubernetes.io/docs/tasks/tools/install-kubectl/) you can proceed by
  installing a StackGres cluster using the following command:
 
-```
-kubectl apply -f https://stackgres.io/downloads/stackgres-k8s/stackgres/latest/demo-simple-config.yml
-kubectl apply -f https://stackgres.io/downloads/stackgres-k8s/stackgres/latest/demo-simple-cluster.yml
+```shell
+cat << 'EOF' | kubectl create -f -
+apiVersion: stackgres.io/v1alpha1
+kind: StackGresCluster
+metadata:
+  name: simple
+spec:
+  instances: 2
+  pgVersion: 'latest'
+  volumeSize: '5Gi'
+EOF
 ```
 
-To clean up the resources created by the demo just run:
+## Enable backups
+
+This will create a cluster using latest available PostgreSQL version with 2 nodes each with a disk
+ of 5Gi using the default storage class and a set of default configurations for PostgreSQL,
+ connection pooling and resource profile.
+
+By default backup are not enabled. To enable them you have to provide a storage configuration (AWS S3,
+ Google Cloud Storage or Azure Blob Storage). We ship a kubernetes resources file in order to allow
+ easy installation of minio service that is compatible with AWS S3.
+
+Clean up the previously created cluster:
+
+```shell
+kubectl delete sgcluster simple
+```
+
+Create the minio service and the backup configuration with default parameters:
+
+```shell
+kubectl create -f https://stackgres.io/downloads/stackgres-k8s/stackgres/latest/demo-minio.yml
+
+cat << 'EOF' | kubectl create -f -
+apiVersion: stackgres.io/v1alpha1
+kind: StackGresBackupConfig
+metadata:
+  name: simple
+spec:
+  storage:
+    type: s3
+    s3:
+      credentials:
+        accessKey:
+          key: accesskey
+          name: minio
+        secretKey:
+          key: secretkey
+          name: minio
+      endpoint: http://minio:9000
+      forcePathStyle: true
+      prefix: s3://stackgres
+      region: k8s
+EOF
+```
+
+Then create the StackGres cluster indicating the previously created backup configuration:
+
+```shell
+cat << 'EOF' | kubectl create -f -
+apiVersion: stackgres.io/v1alpha1
+kind: StackGresCluster
+metadata:
+  name: simple
+spec:
+  instances: 2
+  pgVersion: 'latest'
+  volumeSize: '5Gi'
+  backupConfig: simple
+EOF
+```
+
+To clean up the resources created by this demo just run:
 
 ```
-kubectl delete --ignore-not-found -f https://stackgres.io/downloads/stackgres-k8s/stackgres/latest/demo-simple-cluster.yml
-kubectl delete --ignore-not-found -f https://stackgres.io/downloads/stackgres-k8s/stackgres/latest/demo-simple-config.yml
+kubectl delete sgcluster simple
+kubectl delete sgbackupconfig simple
+kubectl delete -f https://stackgres.io/downloads/stackgres-k8s/stackgres/latest/demo-minio.yml
 ```
 
 # Installation with helm
