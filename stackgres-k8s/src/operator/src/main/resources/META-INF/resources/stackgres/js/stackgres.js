@@ -731,12 +731,12 @@ $(document).ready(function(){
     $("#nav").addClass("disabled");
   });
 
-  $(document).on("click", ".box h4, .details .btn", function() {
+  $(document).on("click", ".box h4", function() {
     
     $(this).parents(".box").toggleClass("show");
 
     // Look for toggle button
-    let btn = $(this).parents(".table").find(".details .btn");
+    var btn = $(this).parents(".table").find(".details .btn");
     
     if(btn.length) {
       if(btn.text() == 'Details')
@@ -744,11 +744,12 @@ $(document).ready(function(){
       else
         btn.text('Details');  
     }
-
-
+  
   });
 
   $(document).on("click", ".details .btn", function(){
+
+    $(this).parents(".box").toggleClass("show");
 
     if($(this).text() == 'Details')
       $(this).text(' Close ');
