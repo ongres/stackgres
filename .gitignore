@@ -128,3 +128,5 @@ pom.xml.tag
 
 doc/public
 doc/data/crds
+# Compatibility matrix files
+cross-k8s/
