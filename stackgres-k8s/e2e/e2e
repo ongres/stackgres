@@ -102,7 +102,10 @@ setup_k8s() {
       || [ "$REUSE_OPERATOR" != true ]
     )
   then
-    mvn -f "$STACKGRES_PATH/src/pom.xml" -q clean package -P build-image-jvm    
+    (
+    cd "$STACKGRES_PATH/src"
+    ./mvnw -q clean package -P build-image-jvm
+    )
   fi
 
   if ! helm list | grep -q "^stackgres-operator\s" \

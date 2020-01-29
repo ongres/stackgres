@@ -1,0 +1,33 @@
+{
+  "cpuRequested": "500m",
+  "cpuFound": "16",
+  "memoryRequested": "512Mi",
+  "memoryFound": "63Gi",
+  "memoryUsed": "19Gi",
+  "diskFound": "34Gi",
+  "diskUsed": "72Mi",
+  "averageLoad1m": "2.27",
+  "averageLoad5m": "2.42",
+  "averageLoad10m": "2.76",
+  "pods": [
+    {
+      "namespace": "backup-with-default-storage",
+      "name": "bk-0",
+      "role": "master",
+      "ip": "10.244.2.8",
+      "status": "Running",
+      "containers": "5",
+      "containersReady": "5"
+    },
+    {
+      "namespace": "backup-with-default-storage",
+      "name": "bk-1",
+      "role": "replica",
+      "ip": "10.244.1.10",
+      "status": "Running",
+      "containers": "5",
+      "containersReady": "5"
+    }
+  ],
+  "podsReady": "2"
+}

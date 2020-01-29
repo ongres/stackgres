@@ -97,6 +97,11 @@ strong {
     font-weight: 600;
 }
 
+/* Extra Classes */
+.upper {
+    text-transform: uppercase;
+}
+
 /* Loader */
 #loader {
     position: fixed;
@@ -690,6 +695,10 @@ footer .tooltip span {
     flex-basis: 0;
 }
 
+.table .col.double, .boxes .col.double {
+    flex: 100px;
+}
+
 .table .col {
     text-align: center;
 }
@@ -780,6 +789,28 @@ li.status {
     margin-right: 8px;
 }
 
+h4.basic:before {
+    display: none;
+}
+
+h4.basic {
+    left: 0;
+    margin-bottom: -15px;
+}
+
+.box .table {
+    margin-bottom: 25px;
+}
+
+.box .table h4 {
+    padding: 10px 0 0px;
+    position: initial;
+}
+
+.box .table .head + .row, .box.show > .row {
+    border-bottom: 0;
+}
+
 .box span {
     display: block;
     text-transform: uppercase;
@@ -823,10 +854,6 @@ ul.params .params li {
     padding-bottom: 20px;
 }
 
-.backups .box {
-    padding-bottom: 20px;
-}
-
 /* Grafana */
 .grafana iframe {
     width: 100%;
@@ -850,4 +877,70 @@ ul.selector li {
 .selector .router-link-exact-active {
     font-weight: bold;
     border-bottom: 1px solid var(--blue);
+}
+
+/* Backups */
+#nav #backup-btn, #nav #grafana-btn {
+    display: none;
+}
+
+#nav #backup-btn.show, #nav #grafana-btn.show {
+    display: block;
+}
+
+.backups .box {
+    padding-bottom: 20px;
+    height: 90px;
+}
+
+.table .col.name {
+    flex: 90px;
+}
+
+.details a.btn {
+    position: relative;
+    top: 16px;
+    float: right;
+    width: 85px;
+    display: block;
+}
+
+.col.details {
+    width: 85px;
+    flex: initial;
+}
+
+.boxes .table .row {
+    padding-bottom: 0;
+}
+
+.backups .box h4:before {
+    display: none;
+}
+
+.row:not(.head) .name {
+    text-overflow: ellipsis;
+    overflow: hidden;
+    height: 18px;
+    white-space: nowrap;
+}
+
+.col.name:after {
+    content: attr(data-name);
+    display: none;
+    position: absolute;
+    background: #fff;
+    padding: 5px 10px;
+    border-radius: 5px;
+    box-shadow: 0 3px 16px rgba(0,0,0,.2);
+    margin-top: -22px;
+    margin-left: -10px;
+}
+
+.col.name:hover:after {
+    display: block;
+}
+
+.head .col.name:after {
+    display: none;
 }

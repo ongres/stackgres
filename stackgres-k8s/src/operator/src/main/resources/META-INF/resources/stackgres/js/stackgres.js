@@ -22,13 +22,20 @@ var clustersList = [],
     ];
 
 //Local Json "API"
-//var apiURL = './js/data/';
+//var apiURL = 'js/data/';
 
 //Test API
 //var apiURL = 'http://192.168.1.10:7978/';
 
 //Prod API
 var apiURL = '/stackgres/';
+
+var urlParams = new URLSearchParams(window.location.search);
+
+if( urlParams.has('localAPI') ) {
+  console.log('Using Local API');
+  apiURL = 'js/data/';
+}
 
 const router = new VueRouter({
   routes: [
@@ -54,19 +61,19 @@ const router = new VueRouter({
         },
       },
       {  
-          path: '/backups/:namespace/', 
-          component: Backups,
-          meta: {
-            conditionalRoute: false
-          },
+        path: '/backups/:namespace/', 
+        component: Backups,
+        meta: {
+          conditionalRoute: false
         },
-        { 
-          path: '/backups/:namespace/:name', 
-          component: Backups,
-          meta: {
-            conditionalRoute: false
-          },
+      },
+      { 
+        path: '/backups/:namespace/:name', 
+        component: Backups,
+        meta: {
+          conditionalRoute: false
         },
+      },
       { 
         path: '/configurations/postgresql/:namespace', 
         component: PgConfig,
@@ -203,11 +210,23 @@ const store = new Vuex.Store({
 
     setCurrentCluster (state, cluster) {
       state.currentCluster = cluster;
+      
+      // Enable/Disable Graffana button
       if (cluster.data.grafanaEmbedded) {
-        $("#grafana-button").css("display", "block");
+        $("#grafana-btn").css("display","block");
       } else {
-        $("#grafana-button").css("display", "none");
+        $("#grafana-btn").css("display","none");
       }
+
+      let index = state.backups.find(p => (cluster.name == p.data.spec.cluster) );
+
+      // Enable/Disable Backups button
+      if ( typeof index !== "undefined" ) {
+        $("#backup-btn").css("display","block");
+      } else {
+        $("#backup-btn").css("display","none");
+      }
+
       //Object.assign(state.currentCluster, cluster);
     },
 
@@ -620,6 +639,13 @@ Vue.filter('prettyCRON', function (value) {
   
 });
 
+Vue.filter('formatBytes',function(a){
+
+    // Bytes Formatter via https://stackoverflow.com/questions/15900485/correct-way-to-convert-size-in-bytes-to-kb-mb-gb-in-javascript
+    if(0==a)return"0 Bytes";var c=1024,d=2,e=["Bytes","Ki","Mi","Gi","Ti","Pi","Ei","Zi","Yi"],f=Math.floor(Math.log(a)/Math.log(c));return parseFloat((a/Math.pow(c,f)).toFixed(d))+" "+e[f];
+
+});
+
 function arraysMatch (arr1, arr2) {
 
   // Check if the arrays are the same length
@@ -686,6 +712,7 @@ $(document).ready(function(){
 
   $(document).on("click", "a.namespace", function(){
     store.commit('setCurrentNamespace',$(this).text());
+    $("#backup-btn, #graffana-btn").css("display","none");
   });
 
   $(document).on("click", ".clu a", function(){
@@ -704,8 +731,31 @@ $(document).ready(function(){
     $("#nav").addClass("disabled");
   });
 
-  $(document).on("click", ".box h4", function(){
-    $(this).parent().toggleClass("show");
+  $(document).on("click", ".box h4", function() {
+    
+    $(this).parents(".box").toggleClass("show");
+
+    // Look for toggle button
+    var btn = $(this).parents(".table").find(".details .btn");
+    
+    if(btn.length) {
+      if(btn.text() == 'Details')
+        btn.text(' Close ');
+      else
+        btn.text('Details');  
+    }
+  
+  });
+
+  $(document).on("click", ".details .btn", function(){
+
+    $(this).parents(".box").toggleClass("show");
+
+    if($(this).text() == 'Details')
+      $(this).text(' Close ');
+    else
+      $(this).text('Details');
+  
   });
 
   $(document).on("click", "#main, #side", function() {
