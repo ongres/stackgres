@@ -37,7 +37,7 @@ spec:
   {{- end }}
   uploadDiskConcurrency: {{ .Values.config.backup.uploadDiskConcurrency }}
   {{- if .Values.config.backup.pgpSecret }}
-  pgpConfiguation:
+  pgpConfiguration:
     key:
       name: "{{ .Values.config.backup.pgpConfiguration.name }}"
       key: "{{ .Values.config.backup.pgpConfiguration.key }}"
