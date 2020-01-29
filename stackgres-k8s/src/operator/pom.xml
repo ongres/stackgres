@@ -147,32 +147,9 @@
           <name>native</name>
         </property>
       </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-maven-plugin</artifactId>
-            <version>${quarkus.version}</version>
-            <executions>
-              <execution>
-                <goals>
-                  <goal>native-image</goal>
-                </goals>
-                <configuration>
-                  <enableHttpUrlHandler>true</enableHttpUrlHandler>
-                  <additionalBuildArgs>
-                    <additionalBuildArg>-H:IncludeResources=.*/banner.txt</additionalBuildArg>
-                    <additionalBuildArg>-H:IncludeResources=.*/*.yaml</additionalBuildArg>
-                    <additionalBuildArg>-H:IncludeResources=.*/*.sh</additionalBuildArg>
-                    <additionalBuildArg>-H:IncludeResources=.*/*.properties</additionalBuildArg>
-                  </additionalBuildArgs>
-                  <enableReports>false</enableReports>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
+      <properties>
+        <quarkus.package.type>native</quarkus.package.type>
+      </properties>
     </profile>
     <profile>
       <id>integration</id>
