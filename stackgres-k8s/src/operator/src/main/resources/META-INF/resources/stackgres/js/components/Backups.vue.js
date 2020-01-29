@@ -73,7 +73,7 @@ var Backups = Vue.component("sg-backup", {
 						</div>
 
 						<hr>
-						<h4>Backup Details</h4>
+						<h4 class="basic">Backup Details</h4>
 
 						<div class="row">
 
@@ -83,7 +83,6 @@ var Backups = Vue.component("sg-backup", {
 								{{ back.data.metadata.uid }}
 
 								<template v-if="back.data.status.phase === 'Completed'">
-
 									<hr>
 									<span>Pod</span>
 									{{ back.data.status.pod }}
@@ -136,6 +135,53 @@ var Backups = Vue.component("sg-backup", {
 								</template>
 							</div>
 						</div>
+
+						<hr>
+						<h4 class="basic">Backup Configuration</h4>
+
+						<div class="row">
+							<div class="col">
+								<hr>
+								<span>Type</span>
+								{{ back.data.status.backupConfig.storage.type }}
+							</div>
+							<div class="col">	
+								<hr>
+								<span>Compression Method</span>
+								{{ back.data.status.backupConfig.compressionMethod }}
+							</div>
+						</div>
+
+						<hr/>
+
+						<ul class="params">
+							<li v-for="(item, index) in back.data.status.backupConfig.storage[back.data.status.backupConfig.storage.type]">
+								<template v-if="index == 'credentials'">
+									<strong>{{ index }}:</strong><br/>
+										<ul class="params">
+											<li>
+												<strong>accessKey:</strong>
+												<ul class="params">
+													<li><strong>name:</strong> {{ item.accessKey.name }} </li>
+													<li><strong>key:</strong> {{ item.accessKey.key }} </li>
+												</ul>
+											</li>
+										</ul>
+										<ul class="params">
+											<li>
+												<strong>secretKey:</strong>
+												<ul class="params">
+													<li><strong>name:</strong> {{ item.secretKey.name }} </li>
+													<li><strong>key:</strong> {{ item.secretKey.key }} </li>
+												</ul>
+											</li>
+										</ul>
+								</template>
+								<template v-else>
+									<strong>{{ index }}:</strong> {{ item }}<br/>
+								</template>
+							</li>
+						</ul>
 					</div>
 				</div>
 			</div>

@@ -789,11 +789,11 @@ li.status {
     margin-right: 8px;
 }
 
-.box .table h4:before, .box .table + h4:before {
+h4.basic:before {
     display: none;
 }
 
-.backups .table + hr + h4 {
+h4.basic {
     left: 0;
     margin-bottom: -15px;
 }

@@ -18,7 +18,28 @@
             "isPermanent": true
         },
         "status": {
-            "backupConfig": "backupconf",
+            "backupConfig": {
+                "compressionMethod": "lz4",
+                "storage": {
+                    "s3": {
+                        "credentials": {
+                            "accessKey": {
+                                "key": "accesskey",
+                                "name": "backup-with-default-storage-minio"
+                            },
+                            "secretKey": {
+                                "key": "secretkey",
+                                "name": "backup-with-default-storage-minio"
+                            }
+                        },
+                        "endpoint": "http://backup-with-default-storage-minio:9000",
+                        "forcePathStyle": true,
+                        "prefix": "s3://stackgres",
+                        "region": "k8s"
+                    },
+                    "type": "s3"
+                }
+            },
             "phase": "Completed",
             "pod": "backup-with-default-storage-0-20958-backup-tbgzs",
             "failureReason": "",
@@ -58,7 +79,28 @@
             "isPermanent": true
         },
         "status": {
-            "backupConfig": "backupconf",
+            "backupConfig": {
+                "compressionMethod": "lz4",
+                "storage": {
+                    "s3": {
+                        "credentials": {
+                            "accessKey": {
+                                "key": "accesskey",
+                                "name": "backup-with-default-storage-minio"
+                            },
+                            "secretKey": {
+                                "key": "secretkey",
+                                "name": "backup-with-default-storage-minio"
+                            }
+                        },
+                        "endpoint": "http://backup-with-default-storage-minio:9000",
+                        "forcePathStyle": true,
+                        "prefix": "s3://stackgres",
+                        "region": "k8s"
+                    },
+                    "type": "s3"
+                }
+            },
             "phase": "Completed",
             "pod": "backup-with-default-storage-1-10495-backup-n29ss",
             "failureReason": "",
@@ -98,7 +140,28 @@
             "isPermanent": true
         },
         "status": {
-            "backupConfig": "backupconf",
+            "backupConfig": {
+                "compressionMethod": "lz4",
+                "storage": {
+                    "s3": {
+                        "credentials": {
+                            "accessKey": {
+                                "key": "accesskey",
+                                "name": "backup-with-default-storage-minio"
+                            },
+                            "secretKey": {
+                                "key": "secretkey",
+                                "name": "backup-with-default-storage-minio"
+                            }
+                        },
+                        "endpoint": "http://backup-with-default-storage-minio:9000",
+                        "forcePathStyle": true,
+                        "prefix": "s3://stackgres",
+                        "region": "k8s"
+                    },
+                    "type": "s3"
+                }
+            },
             "phase": "Completed",
             "pod": "backup-with-default-storage-1-36328-backup-6dhpj",
             "failureReason": "",
@@ -144,7 +207,28 @@
             "isPermanent": false
         },
         "status": {
-            "backupConfig": "backupconf",
+            "backupConfig": {
+                "compressionMethod": "lz4",
+                "storage": {
+                    "s3": {
+                        "credentials": {
+                            "accessKey": {
+                                "key": "accesskey",
+                                "name": "backup-with-default-storage-minio"
+                            },
+                            "secretKey": {
+                                "key": "secretkey",
+                                "name": "backup-with-default-storage-minio"
+                            }
+                        },
+                        "endpoint": "http://backup-with-default-storage-minio:9000",
+                        "forcePathStyle": true,
+                        "prefix": "s3://stackgres",
+                        "region": "k8s"
+                    },
+                    "type": "s3"
+                }
+            },
             "phase": "Completed",
             "pod": "backup-with-default-storage-backup-1580138760-xhwph",
             "failureReason": "",
@@ -190,7 +274,28 @@
             "isPermanent": false
         },
         "status": {
-            "backupConfig": "backupconf",
+            "backupConfig": {
+                "compressionMethod": "lz4",
+                "storage": {
+                    "s3": {
+                        "credentials": {
+                            "accessKey": {
+                                "key": "accesskey",
+                                "name": "backup-with-default-storage-minio"
+                            },
+                            "secretKey": {
+                                "key": "secretkey",
+                                "name": "backup-with-default-storage-minio"
+                            }
+                        },
+                        "endpoint": "http://backup-with-default-storage-minio:9000",
+                        "forcePathStyle": true,
+                        "prefix": "s3://stackgres",
+                        "region": "k8s"
+                    },
+                    "type": "s3"
+                }
+            },
             "phase": "Completed",
             "pod": "backup-with-default-storage-backup-1580138820-flbbv",
             "failureReason": "",
@@ -236,7 +341,28 @@
             "isPermanent": false
         },
         "status": {
-            "backupConfig": "backupconf",
+            "backupConfig": {
+                "compressionMethod": "lz4",
+                "storage": {
+                    "s3": {
+                        "credentials": {
+                            "accessKey": {
+                                "key": "accesskey",
+                                "name": "backup-with-default-storage-minio"
+                            },
+                            "secretKey": {
+                                "key": "secretkey",
+                                "name": "backup-with-default-storage-minio"
+                            }
+                        },
+                        "endpoint": "http://backup-with-default-storage-minio:9000",
+                        "forcePathStyle": true,
+                        "prefix": "s3://stackgres",
+                        "region": "k8s"
+                    },
+                    "type": "s3"
+                }
+            },
             "phase": "Completed",
             "pod": "backup-with-default-storage-backup-1580138880-sll4c",
             "failureReason": "",
@@ -282,7 +408,28 @@
             "isPermanent": false
         },
         "status": {
-            "backupConfig": "backupconf",
+            "backupConfig": {
+                "compressionMethod": "lz4",
+                "storage": {
+                    "s3": {
+                        "credentials": {
+                            "accessKey": {
+                                "key": "accesskey",
+                                "name": "backup-with-default-storage-minio"
+                            },
+                            "secretKey": {
+                                "key": "secretkey",
+                                "name": "backup-with-default-storage-minio"
+                            }
+                        },
+                        "endpoint": "http://backup-with-default-storage-minio:9000",
+                        "forcePathStyle": true,
+                        "prefix": "s3://stackgres",
+                        "region": "k8s"
+                    },
+                    "type": "s3"
+                }
+            },
             "phase": "Completed",
             "pod": "backup-with-default-storage-backup-1580138940-vt9rg",
             "failureReason": "",
@@ -328,7 +475,28 @@
             "isPermanent": false
         },
         "status": {
-            "backupConfig": "backupconf",
+            "backupConfig": {
+                "compressionMethod": "lz4",
+                "storage": {
+                    "s3": {
+                        "credentials": {
+                            "accessKey": {
+                                "key": "accesskey",
+                                "name": "backup-with-default-storage-minio"
+                            },
+                            "secretKey": {
+                                "key": "secretkey",
+                                "name": "backup-with-default-storage-minio"
+                            }
+                        },
+                        "endpoint": "http://backup-with-default-storage-minio:9000",
+                        "forcePathStyle": true,
+                        "prefix": "s3://stackgres",
+                        "region": "k8s"
+                    },
+                    "type": "s3"
+                }
+            },
             "phase": "Completed",
             "pod": "backup-with-default-storage-backup-1580139000-5v2b7",
             "failureReason": "",
