@@ -82,31 +82,9 @@ Stackgres can perfrom a database restoration from a stackgres backup by just set
  the backup CR that represents the backup that we want to restore. Like this:
 
 ``` yaml
-config:
+cluster:
   restore:
-    from:
-      backupUID: #the backup UID to restore
-```
-
-It could also perform a restoration from a backup that has been made with WAL-G, and is stored 
- in one of the following storages:
-
-* AWS S3
-* Google CLoud Storage
-* Azure Blob Storage
-* MinIO
-
-To restore an external just specify the storage configuration like this: 
-
-``` yaml
-config:
-  restore:
-    from:
-      storage: 
-        backupName: LATEST
-        s3: {}
-        gcs: {}
-        azureblob: {}
+    fromBackup: #the backup UID to restore
 ```
 
 # Monitoring

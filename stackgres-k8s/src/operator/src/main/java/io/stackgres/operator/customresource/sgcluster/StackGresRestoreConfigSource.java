@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.customresource.sgrestoreconfig;
+package io.stackgres.operator.customresource.sgcluster;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -11,11 +11,12 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.MoreObjects;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.operator.customresource.storages.BackupStorage;
+import io.stackgres.operator.customresource.storages.PgpConfiguration;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class StackgresRestoreConfigSource {
+public class StackGresRestoreConfigSource {
 
   @JsonProperty("fromBackup")
   private String stackgresBackup;
@@ -28,6 +29,12 @@ public class StackgresRestoreConfigSource {
 
   @JsonProperty("backupName")
   private String backupName;
+
+  @JsonProperty("compressionMethod")
+  private String compressionMethod;
+
+  @JsonProperty("pgpConfiguration")
+  private PgpConfiguration pgpConfiguration;
 
   public String getStackgresBackup() {
     return stackgresBackup;
@@ -61,6 +68,22 @@ public class StackgresRestoreConfigSource {
     this.backupName = backupName;
   }
 
+  public String getCompressionMethod() {
+    return compressionMethod;
+  }
+
+  public void setCompressionMethod(String compressionMethod) {
+    this.compressionMethod = compressionMethod;
+  }
+
+  public PgpConfiguration getPgpConfiguration() {
+    return pgpConfiguration;
+  }
+
+  public void setPgpConfiguration(PgpConfiguration pgpConfiguration) {
+    this.pgpConfiguration = pgpConfiguration;
+  }
+
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
@@ -69,6 +92,8 @@ public class StackgresRestoreConfigSource {
         .add("autoCopySecrets", autoCopySecretsEnabled)
         .add("storage", storage)
         .add("backupName", backupName)
+        .add("compressionMethod", compressionMethod)
+        .add("pgpConfiguration", pgpConfiguration)
         .toString();
   }
 }

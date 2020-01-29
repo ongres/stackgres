@@ -57,7 +57,7 @@ You can specify following parameters values:
 * `cluster.pgconfig`: The PostgreSQL configuration CR name.
 * `cluster.poolingconfig`: The PgBouncer configuration CR name.
 * `cluster.profile`: The profile name used to create cluster's Pods.
-* `cluster.restoreconfig`: The restore configuration CR name. Is not enabled by default, so if you want to create a cluster from a existent backup, please see [the restore configuration options](####restore)
+* `cluster.restore`: The cluster restore options . Is not enabled by default, so if you want to create a cluster from a existent backup, please see [the restore configuration options](####restore-configuration)
 * `cluster.backupconfig`: The backup configuration CR name.
 * `cluster.volumeSize`: The size set in the persistent volume claim of PostgreSQL data.
 * `cluster.storageclass`: The storage class used for the persisitent volume claim of PostgreSQL data.
@@ -151,73 +151,12 @@ If you want to use OpenPGP to encrypy your backups, you need to specify pgp conf
 
 #### Restore configuration
 
-By default, stackgres are creates as an empty database. To create a cluster with data from an existent backup, we have the restore configuration. 
+By default, stackgres it's creates as an empty database. To create a cluster with data from an existent backup, we have the restore options. It works, by simply indicating the backup CR Uid that we want to restore. 
 
-* `config.restore.create`: Be default false.  If is set to true it will create a restore configuration CR, and the new cluster will try restore itselfs from an existing backup.
-* `config.restore.downloadDiskConcurrency`: By default 1. How many concurrent downloads will attempts during the restoration
-* `config.restore.compressionMethod`: By default lz4. Compression method that was used during the backup, could be:  lz4, lzma or brotli.
+* `cluster.restore.fromBackup`: The backup CR UID to restore the cluster data
+* `config.restore.autoCopySecrets`: Default false. If you are creating a cluster in a different namespace than where backup CR is, you might need to copy the secrets where the credentials to access the backup storage to the namespace where you are installing the cluster. If is set to true stackgres will do it automatically. 
+* `config.restore.downloadDiskConcurrency`: By default 1. How many concurrent stream will create while downloading the backup.
 
-##### PGP Configuration
-If you are using OpenPGP to decrypt your backups, you need to specify pgp configuration to restore them. 
-
-* `config.restore.pgpSecret`: By default false. If is set to true, it will enable the use of OpenPGP to the decrypt the backup
-* `config.restore.pgpConfiguration.key`: The key of the secret to select from. Must be a valid secret key.
-* `config.restore.pgpConfiguration.name`: Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
-
-
-##### Restore from a stackgres backup
-
-The easiest way to create a cluster with existent data, is restoring from another stackgres backup. 
- Since every stackgres backup have a CR that represents it, we can use that CR to find out where is stored and the name of the backup to restore. 
-
-* `config.restore.from.backupUID`: The backup CR UID to restore the cluster data
-* `config.restore.from.autoCopySecrets`: Default false. If you are creating a cluster in a different namespace than where backup CR is, you might need to copy the secrets where the credentials to access the backup storage to the namespace where you are installing the cluster. If is set to true stackgres will do it automatically. 
-
-
-##### Restore from an existing database
-
-If it happen that you need to migrating from a existing postgres database to stackgres. Yo can do it with the
- following steps: Fist, use [WAL-G](https://github.com/wal-g/wal-g) to generate a backup from running database and store it in AWS S3, Azureblob or Google Cloud Storage; Second, create secrets to store the credential to access the storage service; Then, specify the storage configuration so stackgres can pull the backup from there. That's it. 
-
-* `config.restore.from.storage.backupName`: Name of the backup to restore. You can use "LATEST" to restore the most recent one. This is only is an storage is specified
-
-###### Restore from Amazon Web Services S3
-
-* `config.restore.from.storage.s3.prefix`: The AWS S3 bucket and prefix (eg. s3://bucket/path/to/folder).
-* `config.restore.from.storage.s3.accessKey.name`: The name of secret with the access key credentials to access AWS S3 for writing and reading.
-* `config.restore.from.storage.s3.accessKey.key`: The key in the secret with the access key credentials to access AWS S3 for writing and reading.
-* `config.restore.from.storage.s3.secretKey.name`: The name of secret with the secret key credentials to access AWS S3 for writing and reading.
-* `config.restore.from.storage.s3.secretKey.key`: The key in the secret with the secret key credentials to access AWS S3 for writing and reading.
-* `config.restore.from.storage.s3.region`: The AWS S3 region. Region can be detected using s3:GetBucketLocation, but if you wish to avoid this API call
- or forbid it from the applicable IAM policy, specify this property.
-* `config.restore.from.storage.s3.endpoint`: Overrides the default hostname to connect to an S3-compatible service. i.e, http://s3-like-service:9000.
-* `config.restore.from.storage.s3.forcePathStyle`: To enable path-style addressing(i.e., http://s3.amazonaws.com/BUCKET/KEY) when connecting to an S3-compatible
- service that lack of support for sub-domain style bucket URLs (i.e., http://BUCKET.s3.amazonaws.com/KEY). Defaults to false.
-* `config.restore.from.storage.s3.storageClass`: By default, the "STANDARD" storage class is used. Other supported values include "STANDARD_IA"
- for Infrequent Access and "REDUCED_REDUNDANCY" for Reduced Redundancy.
-* `config.restore.from.storage.s3.sse`: To enable S3 server-side encryption, set to the algorithm to use when storing the objects in S3 (i.e., AES256, aws:kms).
-* `config.restore.from.storage.s3.sseKmsId`: If using S3 server-side encryption with aws:kms, the KMS Key ID to use for object encryption.
-* `config.restore.from.storage.s3.cseKmsId`: To configure AWS KMS key for client side encryption and decryption. By default, no encryption is used.
- (region or cseKmsRegion required to be set when using AWS KMS key client side encryption).
-* `config.restore.from.storage.s3.cseKmsRegion`: To configure AWS KMS key region for client side encryption and decryption (i.e., eu-west-1).
-
-###### Google Cloud Storage
-
-* `config.restore.from.storage.gcs.prefix`: Specify where to rescover the backup (eg. gs://x4m-test-bucket/walg-folder).
-* `config.restore.from.storage.gcs.serviceAccountJsonKey.name`: The name of secret with service account json key to access GCS for writing and reading.
-* `config.restore.from.storage.gcs.serviceAccountJsonKey.key`: The key in the secret with service account json key to access GCS for writing and reading.
-
-###### Azure Blob Storage
-
-* `config.backup.azureblob.prefix`: Specify where to recover the backup in Azure storage (eg. azure://test-container/
- walg-folder).
-* `config.backup.azureblob.account.name`: The name of secret with storage account name to access Azure Blob Storage
- for writing and reading.
-* `config.backup.azureblob.account.key`: The key in the secret with storage account name to access Azure Blob Storage
- for writing and reading.
-* `config.backup.azureblob.accessKey.name`: The name of secret with the primary or secondary access key for the
- storage account to access Azure Blob Storage for writing and reading.
-* `config.backup.azureblob.accessKey.key`: The key in the secret with the primary or secondary access key for the storage account
 
 #### Sidecars
 

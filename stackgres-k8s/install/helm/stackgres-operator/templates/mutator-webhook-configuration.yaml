@@ -107,27 +107,6 @@ webhooks:
 apiVersion: admissionregistration.k8s.io/v1beta1
 kind: MutatingWebhookConfiguration
 metadata:
-  name: {{ .Release.Name }}-sgrestoreconfig
-  namespace: {{ .Release.Namespace }}
-webhooks:
-  - name: sgrestoreconfig.{{ .Release.Name }}.{{ .Release.Namespace }}
-    sideEffects: None
-    rules:
-      - operations: ["CREATE"]
-        apiGroups: ["stackgres.io"]
-        apiVersions: ["*"]
-        resources: ["sgrestoreconfigs"]
-    failurePolicy: Fail
-    clientConfig:
-      service:
-        namespace: {{ .Release.Namespace }}
-        name: {{ .Release.Name }}
-        path: '/stackgres/mutation/sgrestoreconfig'
-      caBundle: {{ .Values.cert.crt }}
----
-apiVersion: admissionregistration.k8s.io/v1beta1
-kind: MutatingWebhookConfiguration
-metadata:
   name: {{ .Release.Name }}-sgbackup
   namespace: {{ .Release.Namespace }}
 webhooks:

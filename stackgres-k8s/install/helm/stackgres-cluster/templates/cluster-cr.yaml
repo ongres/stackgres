@@ -17,8 +17,15 @@ spec:
   {{- if .Values.cluster.backupconfig }}
   backupConfig: '{{ .Values.cluster.backupconfig }}'
   {{- end }}
-  {{- if .Values.cluster.restoreconfig }}
-  restoreConfig: '{{ .Values.cluster.restoreconfig }}'
+  {{- if .Values.cluster.restore }}
+  restore:
+    fromBackup: {{ .Values.cluster.restore.fromBackup }}
+    {{- if .Values.cluster.restore.autoCopySecrets }}
+    autoCopySecrets: {{ .Values.cluster.restore.autoCopySecrets }}
+    {{- end }}
+    {{- if .Values.cluster.restore.downloadDiskConcurrency }}
+    downloadDiskConcurrency: {{ .Values.cluster.restore.downloadDiskConcurrency }}
+    {{- end }}    
   {{- end }}
   volumeSize: '{{ .Values.cluster.volumeSize }}'
   {{- if .Values.cluster.storageClass }}

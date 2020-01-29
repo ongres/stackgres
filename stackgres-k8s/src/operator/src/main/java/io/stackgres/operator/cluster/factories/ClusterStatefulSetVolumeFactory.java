@@ -18,7 +18,7 @@ import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.stackgres.operator.cluster.ClusterStatefulSet;
 import io.stackgres.operator.common.StackGresClusterContext;
-import io.stackgres.operator.customresource.sgrestoreconfig.StackgresRestoreConfigSource;
+import io.stackgres.operator.customresource.sgcluster.StackGresRestoreConfigSource;
 import io.stackgres.operator.patroni.PatroniRestoreSource;
 import io.stackgres.operatorframework.factories.VolumesFactory;
 
@@ -80,7 +80,7 @@ public class ClusterStatefulSetVolumeFactory implements VolumesFactory<StackGres
               .endEmptyDir()
               .build());
 
-      StackgresRestoreConfigSource source = restoreSource.getStorageConfig(restoreConfig);
+      StackGresRestoreConfigSource source = restoreSource.getStorageConfig(restoreConfig);
 
       Optional.ofNullable(source.getStorage().getGcs())
           .ifPresent(gcsStorage -> volumeListBuilder.add(new VolumeBuilder()

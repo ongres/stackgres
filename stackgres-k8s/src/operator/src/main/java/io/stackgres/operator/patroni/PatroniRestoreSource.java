@@ -18,13 +18,14 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.operator.app.KubernetesClientFactory;
 import io.stackgres.operator.customresource.sgbackup.StackGresBackup;
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfig;
-import io.stackgres.operator.customresource.sgrestoreconfig.StackgresRestoreConfig;
-import io.stackgres.operator.customresource.sgrestoreconfig.StackgresRestoreConfigSource;
+import io.stackgres.operator.customresource.sgcluster.StackGresClusterRestore;
+import io.stackgres.operator.customresource.sgcluster.StackGresRestoreConfigSource;
 import io.stackgres.operator.customresource.storages.AwsCredentials;
 import io.stackgres.operator.customresource.storages.AwsS3Storage;
 import io.stackgres.operator.customresource.storages.AzureBlobStorage;
 import io.stackgres.operator.customresource.storages.BackupStorage;
 import io.stackgres.operator.customresource.storages.GoogleCloudStorage;
+import io.stackgres.operator.customresource.storages.PgpConfiguration;
 import io.stackgres.operator.resource.KubernetesCustomResourceFinder;
 import io.stackgres.operator.resource.KubernetesCustomResourceScanner;
 
@@ -47,42 +48,40 @@ public class PatroniRestoreSource {
     this.clientFactory = clientFactory;
   }
 
-  public StackgresRestoreConfigSource getStorageConfig(StackgresRestoreConfig config) {
+  public StackGresRestoreConfigSource getStorageConfig(StackGresClusterRestore config) {
 
-    StackgresRestoreConfigSource source = config.getSpec().getSource();
-    if (source.getStackgresBackup() != null) {
+    String stackgresBackup = config.getStackgresBackup();
 
-      StackGresBackup backup = findBackup(source);
-      StackGresBackupConfig backupConfig = findStackGresBackupConfig(backup);
+    StackGresBackup backup = findBackup(stackgresBackup);
+    StackGresBackupConfig backupConfig = findStackGresBackupConfig(backup);
 
-      BackupStorage storage = backupConfig.getSpec().getStorage();
-      setBackupPrefix(storage, backupConfig, backup);
-      source.setStorage(storage);
-      source.setBackupName(backup.getStatus().getName());
+    BackupStorage storage = backupConfig.getSpec().getStorage();
+    setBackupPrefix(storage, backupConfig, backup);
 
-    }
+    StackGresRestoreConfigSource source = new StackGresRestoreConfigSource();
+    source.setAutoCopySecretsEnabled(config.isAutoCopySecretsEnabled());
+    source.setPgpConfiguration(backupConfig.getSpec().getPgpConfiguration());
+    source.setStorage(storage);
+    source.setBackupName(backup.getStatus().getName());
+
     return source;
 
   }
 
-  public List<SourceSecret> getSourceCredentials(StackgresRestoreConfig config) {
+  public List<SourceSecret> getSourceCredentials(StackGresClusterRestore config,
+                                                 String targetNamespace) {
 
     ImmutableList.Builder<SourceSecret> sourceSecretList = ImmutableList.builder();
-    StackgresRestoreConfigSource source = config.getSpec().getSource();
 
-    if (source.getStackgresBackup() != null) {
+    StackGresBackup sourceBackup = findBackup(config.getStackgresBackup());
+    StackGresBackupConfig sourceBackupConfig = findStackGresBackupConfig(sourceBackup);
 
-      StackGresBackup sourceBackup = findBackup(source);
-      StackGresBackupConfig sourceBackupConfig = findStackGresBackupConfig(sourceBackup);
-
-      String sourceNamespace = sourceBackupConfig.getMetadata().getNamespace();
-      if (sourceNamespace.equals(config.getMetadata().getNamespace())) {
-        return sourceSecretList.build();
-      }
-
-      addSourceSecrets(sourceSecretList, sourceBackupConfig);
-
+    String sourceNamespace = sourceBackupConfig.getMetadata().getNamespace();
+    if (sourceNamespace.equals(targetNamespace)) {
+      return sourceSecretList.build();
     }
+
+    addSourceSecrets(sourceSecretList, sourceBackupConfig);
 
     return sourceSecretList.build();
 
@@ -93,6 +92,13 @@ public class PatroniRestoreSource {
     String sourceNamespace = sourceBackupConfig.getMetadata().getNamespace();
 
     try (KubernetesClient client = clientFactory.create()) {
+
+      PgpConfiguration pgpConfiguration = sourceBackupConfig.getSpec().getPgpConfiguration();
+      if (pgpConfiguration != null) {
+        String secretKeyName = pgpConfiguration
+            .getKey().getName();
+        sourceSecretList.add(getSourceSecret(sourceNamespace, client, secretKeyName));
+      }
 
       BackupStorage sourceStorage = sourceBackupConfig.getSpec().getStorage();
       AwsS3Storage sourceStorageS3 = sourceStorage.getS3();
@@ -186,7 +192,7 @@ public class PatroniRestoreSource {
   private SourceSecret getSourceSecret(String sourceNamespace,
                                        KubernetesClient client,
                                        String secretName) {
-    Secret gcsSourceSecret = client
+    Secret originSecret = client
         .secrets()
         .inNamespace(sourceNamespace)
         .withName(secretName)
@@ -194,7 +200,7 @@ public class PatroniRestoreSource {
 
     SourceSecret sourceSecret = new SourceSecret();
     sourceSecret.setSecretName(secretName);
-    sourceSecret.setData(gcsSourceSecret.getData());
+    sourceSecret.setData(originSecret.getData());
     return sourceSecret;
   }
 
@@ -240,15 +246,15 @@ public class PatroniRestoreSource {
         );
   }
 
-  private StackGresBackup findBackup(StackgresRestoreConfigSource source) {
+  private StackGresBackup findBackup(String stackgresBackup) {
     Optional<StackGresBackup> backup = backupScanner.findResources()
         .flatMap(backups -> backups.stream()
-            .filter(b -> b.getMetadata().getUid().equals(source.getStackgresBackup()))
+            .filter(b -> b.getMetadata().getUid().equals(stackgresBackup))
             .findFirst()
         );
 
     return backup.orElseThrow(
-        () -> new IllegalArgumentException("Backup " + source.getStackgresBackup() + "not found"));
+        () -> new IllegalArgumentException("Backup " + stackgresBackup + "not found"));
   }
 
   public class SourceSecret {

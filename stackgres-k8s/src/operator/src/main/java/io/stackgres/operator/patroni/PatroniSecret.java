@@ -18,7 +18,7 @@ import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.stackgres.operator.common.StackGresClusterContext;
-import io.stackgres.operator.customresource.sgrestoreconfig.StackgresRestoreConfigSource;
+import io.stackgres.operator.customresource.sgcluster.StackGresRestoreConfigSource;
 import io.stackgres.operator.resource.ResourceUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,10 +62,10 @@ public class PatroniSecret {
         .build());
 
     context.getRestoreConfig().ifPresent(restoreConfig -> {
-      StackgresRestoreConfigSource source = restoreSource.getStorageConfig(restoreConfig);
+      StackGresRestoreConfigSource source = restoreSource.getStorageConfig(restoreConfig);
       if (source.isAutoCopySecretsEnabled()) {
         LOGGER.info("restore auto copy secrets enabled.  Copying secrets...");
-        restoreSource.getSourceCredentials(restoreConfig).forEach(sourceSecret -> secrets
+        restoreSource.getSourceCredentials(restoreConfig, namespace).forEach(sourceSecret -> secrets
             .add(new SecretBuilder()
                 .withNewMetadata()
                 .withNamespace(namespace)

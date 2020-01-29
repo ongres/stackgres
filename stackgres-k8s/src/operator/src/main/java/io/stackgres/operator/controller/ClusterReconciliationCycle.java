@@ -10,14 +10,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -55,10 +53,6 @@ import io.stackgres.operator.customresource.sgprofile.StackGresProfile;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfileDefinition;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfileDoneable;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfileList;
-import io.stackgres.operator.customresource.sgrestoreconfig.StackgresRestoreConfig;
-import io.stackgres.operator.customresource.sgrestoreconfig.StackgresRestoreConfigDefinition;
-import io.stackgres.operator.customresource.sgrestoreconfig.StackgresRestoreConfigDoneable;
-import io.stackgres.operator.customresource.sgrestoreconfig.StackgresRestoreConfigList;
 import io.stackgres.operator.resource.ClusterSidecarFinder;
 import io.stackgres.operator.resource.KubernetesCustomResourceScanner;
 import io.stackgres.operator.resource.ResourceUtil;
@@ -66,7 +60,6 @@ import io.stackgres.operator.sidecars.envoy.Envoy;
 import io.stackgres.operatorframework.reconciliation.AbstractReconciliationCycle;
 import io.stackgres.operatorframework.reconciliation.AbstractReconciliator;
 import io.stackgres.operatorframework.resource.ResourceHandlerSelector;
-
 import org.jooq.lambda.Unchecked;
 import org.jooq.lambda.tuple.Tuple2;
 
@@ -196,7 +189,6 @@ public class ClusterReconciliationCycle
         .withProfile(getProfile(cluster, client))
         .withPostgresConfig(getPostgresConfig(cluster, client))
         .withBackupConfig(getBackupConfig(cluster, client))
-        .withRestoreConfig(getRestoreConfig(cluster, client))
         .withSidecars(Stream.of(
             Stream.of(Envoy.NAME)
             .filter(envoy -> !cluster.getSpec().getSidecars().contains(envoy)),
@@ -257,28 +249,6 @@ public class ClusterReconciliationCycle
       }
     }
     return Optional.empty();
-  }
-
-  private Optional<StackgresRestoreConfig> getRestoreConfig(StackGresCluster cluster,
-      KubernetesClient client) {
-    final String namespace = cluster.getMetadata().getNamespace();
-    final String restoreConfig = cluster.getSpec().getRestoreConfig();
-    if (restoreConfig != null && !restoreConfig.isEmpty()) {
-      Optional<CustomResourceDefinition> crd =
-          ResourceUtil.getCustomResource(client, StackgresRestoreConfigDefinition.NAME);
-      if (crd.isPresent()) {
-        return Optional.ofNullable(client
-            .customResources(crd.get(),
-                StackgresRestoreConfig.class,
-                StackgresRestoreConfigList.class,
-                StackgresRestoreConfigDoneable.class)
-            .inNamespace(namespace)
-            .withName(restoreConfig)
-            .get());
-      }
-    }
-    return Optional.empty();
-
   }
 
   private Optional<StackGresProfile> getProfile(StackGresCluster cluster,
