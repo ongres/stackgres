@@ -50,6 +50,8 @@ then
   BACKUP_NAME="${CLUSTER_NAME}-${POD_UID}"
 fi
 
+BACKUP_CONFIG_RESOURCE_VERSION="$(kubectl get sgbackupconfig -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" --template '{{ .metadata.resourceVersion }}')"
+
 if ! kubectl get "$BACKUP_CRD_NAME" "$BACKUP_NAME" -o name >/dev/null 2>&1
 then
   echo "Creating backup CR"
@@ -72,7 +74,58 @@ spec:
 status:
   phase: "$BACKUP_PHASE_PENDING"
   pod: "$POD_NAME"
-  backupConfig: "$BACKUP_CONFIG"
+  backupConfig:
+$(kubectl get sgbackupconfig -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" \
+  --template '    compressionMethod: "{{ .spec.compressionMethod }}"
+    {{- with .spec.pgpConfiguration }}
+    pgpConfiguration:
+      key:
+        key: "{{ .spec.pgpConfiguration.key.key }}"
+        name: "{{ .spec.pgpConfiguration.key.name }}"
+    {{- end }}
+    storage:
+      type: "{{ .spec.storage.type }}"
+      {{- with .spec.storage.s3 }}
+      s3:
+        prefix: "{{ .prefix }}"
+        credentials:
+          accessKey:
+            key: "{{ .credentials.accessKey.key }}"
+            name: "{{ .credentials.accessKey.name }}"
+          secretKey:
+            key: "{{ .credentials.secretKey.key }}"
+            name: "{{ .credentials.secretKey.name }}"
+        {{ with .region }}region: "{{ . }}"{{ end }}
+        {{ with .endpoint }}endpoint: "{{ . }}"{{ end }}
+        {{ with .forcePathStyle }}forcePathStyle: {{ . }}{{ end }}
+        {{ with .storageClass }}storageClass: "{{ . }}"{{ end }}
+        {{ with .sse }}sse: "{{ . }}"{{ end }}
+        {{ with .sseKmsId }}sseKmsId: "{{ . }}"{{ end }}
+        {{ with .cseKmsId }}cseKmsId: "{{ . }}"{{ end }}
+        {{ with .cseKmsRegion }}cseKmsRegion: "{{ . }}"{{ end }}
+      {{- end }}
+      {{- with .spec.storage.gcs }}
+      gcs:
+        prefix: "{{ .prefix }}"
+        credentials:
+          serviceAccountJsonKey:
+            key: "{{ .credentials.serviceAccountJsonKey.key }}"
+            name: "{{ .credentials.serviceAccountJsonKey.name }}"
+      {{- end }}
+      {{- with .spec.storage.azureblob }}
+      azureblob:
+        prefix: "{{ .prefix }}"
+        credentials:
+          account:
+            key: "{{ .credentials.account.key }}"
+            name: "{{ .credentials.account.name }}"
+          accessKey:
+            key: "{{ .credentials.accessKey.key }}"
+            name: "{{ .credentials.accessKey.name }}"
+        {{ with .bufferSize }}bufferSize: {{ . }}{{ end }}
+        {{ with .maxBuffers }}maxBuffers: {{ . }}{{ end }}
+      {{- end }}
+')
 EOF
 else
   if ! kubectl get "$BACKUP_CRD_NAME" "$BACKUP_NAME" --template "{{ .status.phase }}" \
@@ -83,7 +136,70 @@ else
       {"op":"replace","path":"/status","value":{
         "phase":"'"$BACKUP_PHASE_PENDING"'",
         "pod":"'"$POD_NAME"'",
-        "backupConfig":"'"$BACKUP_CONFIG"'"}}
+        "backupConfig":{'"$(kubectl get sgbackupconfig -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" \
+  --template '    "compressionMethod": "{{ .spec.compressionMethod }}",
+    {{- with .spec.pgpConfiguration }}
+    "pgpConfiguration": {
+      "key": {
+        "key": "{{ .spec.pgpConfiguration.key.key }}",
+        "name": "{{ .spec.pgpConfiguration.key.name }}"
+      }
+    },
+    {{- end }}
+    "storage": {
+      "type": "{{ .spec.storage.type }}",
+      {{- with .spec.storage.s3 }}
+      "s3": {
+        "prefix": "{{ .prefix }}",
+        "credentials": {
+          "accessKey": {
+            "key": "{{ .credentials.accessKey.key }}",
+            "name": "{{ .credentials.accessKey.name }}"
+          },
+          "secretKey": {
+            "key": "{{ .credentials.secretKey.key }}",
+            "name": "{{ .credentials.secretKey.name }}"
+          }
+        }
+        {{ with .region }},"region": "{{ . }}"{{ end }}
+        {{ with .endpoint }},"endpoint": "{{ . }}"{{ end }}
+        {{ with .forcePathStyle }},"forcePathStyle": {{ . }}{{ end }}
+        {{ with .storageClass }},"storageClass": "{{ . }}"{{ end }}
+        {{ with .sse }},"sse": "{{ . }}"{{ end }}
+        {{ with .sseKmsId }},"sseKmsId": "{{ . }}"{{ end }}
+        {{ with .cseKmsId }},"cseKmsId": "{{ . }}"{{ end }}
+        {{ with .cseKmsRegion }},"cseKmsRegion": "{{ . }}"{{ end }}
+      }
+      {{- end }}
+      {{- with .spec.storage.gcs }}
+      "gcs": {
+        "prefix": "{{ .prefix }}",
+        "credentials": {
+          "serviceAccountJsonKey": {
+            "key": "{{ .credentials.serviceAccountJsonKey.key }}",
+            "name": "{{ .credentials.serviceAccountJsonKey.name }}"
+          }
+        }
+      {{- end }}
+      {{- with .spec.storage.azureblob }}
+      "azureblob": {
+        "prefix": "{{ .prefix }}",
+        "credentials": {
+          "account": {
+            "key": "{{ .credentials.account.key }}",
+            "name": "{{ .credentials.account.name }}"
+          },
+          "accessKey": {
+            "key": "{{ .credentials.accessKey.key }}",
+            "name": "{{ .credentials.accessKey.name }}"
+          }
+        }
+        {{ with .bufferSize }},"bufferSize": {{ . }}{{ end }}
+        {{ with .maxBuffers }},"maxBuffers": {{ . }}{{ end }}
+      }
+      {{- end }}
+    }
+')"'}}}
       ]'
   else
     echo "Already completed backup. Nothing to do!"
@@ -238,6 +354,16 @@ EOF
       ]'
     cat /tmp/backup-list
     echo "Backup '$WAL_G_BACKUP_NAME' was not found after creation"
+    exit 1
+  elif [ "$BACKUP_CONFIG_RESOURCE_VERSION" != "$(kubectl get sgbackupconfig -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" --template '{{ .metadata.resourceVersion }}')" ]
+  then
+    kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
+      {"op":"replace","path":"/status/phase","value":"'"$BACKUP_PHASE_FAILED"'"},
+      {"op":"replace","path":"/status/name","value":"'"$WAL_G_BACKUP_NAME"'"},
+      {"op":"replace","path":"/status/failureReason","value":"Backup configuration '"$BACKUP_CONFIG"' changed during backup"}
+      ]'
+    cat /tmp/backup-list
+    echo "Backup configuration '"$BACKUP_CONFIG"' changed during backup"
     exit 1
   else
     kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
