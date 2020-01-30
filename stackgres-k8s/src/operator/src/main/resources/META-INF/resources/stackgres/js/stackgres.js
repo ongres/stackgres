@@ -39,121 +39,128 @@ if( urlParams.has('localAPI') ) {
 
 const router = new VueRouter({
   routes: [
-      { 
-        path: '/overview/:namespace', 
-        component: ClusterOverview,
-        meta: {
-          conditionalRoute: false
-        },
+    { 
+      path: '/create/:name/:namespace', 
+      component: Create,
+      meta: {
+        conditionalRoute: false
       },
-      { 
-        path: '/information/:namespace/:name', 
-        component: ClusterInfo,
-        meta: {
-          conditionalRoute: false
-        },
+    },
+    { 
+      path: '/overview/:namespace', 
+      component: ClusterOverview,
+      meta: {
+        conditionalRoute: false
       },
-      { 
-        path: '/status/:namespace/:name', 
-        component: ClusterStatus,
-        meta: {
-          conditionalRoute: false
-        },
+    },
+    { 
+      path: '/information/:namespace/:name', 
+      component: ClusterInfo,
+      meta: {
+        conditionalRoute: false
       },
-      {  
-        path: '/backups/:namespace/', 
-        component: Backups,
-        meta: {
-          conditionalRoute: false
-        },
+    },
+    { 
+      path: '/status/:namespace/:name', 
+      component: ClusterStatus,
+      meta: {
+        conditionalRoute: false
       },
-      { 
-        path: '/backups/:namespace/:name', 
-        component: Backups,
-        meta: {
-          conditionalRoute: false
-        },
+    },
+    {  
+      path: '/backups/:namespace/', 
+      component: Backups,
+      meta: {
+        conditionalRoute: false
       },
-      { 
-        path: '/configurations/postgresql/:namespace', 
-        component: PgConfig,
-        meta: {
-          conditionalRoute: false
-        },
+    },
+    { 
+      path: '/backups/:namespace/:name', 
+      component: Backups,
+      meta: {
+        conditionalRoute: false
       },
-      { 
-        path: '/configurations/postgresql/:namespace/:name', 
-        component: PgConfig,
-        meta: {
-          conditionalRoute: false
-        },
+    },
+    { 
+      path: '/configurations/postgresql/:namespace', 
+      component: PgConfig,
+      meta: {
+        conditionalRoute: false
       },
-      { 
-        path: '/configurations/connectionpooling/:namespace', 
-        component: PoolConfig,
-        meta: {
-          conditionalRoute: false
-        },
+    },
+    { 
+      path: '/configurations/postgresql/:namespace/:name', 
+      component: PgConfig,
+      meta: {
+        conditionalRoute: false
       },
-      { 
-        path: '/configurations/connectionpooling/:namespace/:name', 
-        component: PoolConfig,
-        meta: {
-          conditionalRoute: false
-        },
+    },
+    { 
+      path: '/configurations/connectionpooling/:namespace', 
+      component: PoolConfig,
+      meta: {
+        conditionalRoute: false
       },
-      { 
-        path: '/configurations/backup/:namespace', 
-        component: BackupConfig,
-        meta: {
-          conditionalRoute: false
-        },
+    },
+    { 
+      path: '/configurations/connectionpooling/:namespace/:name', 
+      component: PoolConfig,
+      meta: {
+        conditionalRoute: false
       },
-      { 
-        path: '/configurations/backup/:namespace/:name', 
-        component: BackupConfig,
-        meta: {
-          conditionalRoute: false
-        },
+    },
+    { 
+      path: '/configurations/backup/:namespace', 
+      component: BackupConfig,
+      meta: {
+        conditionalRoute: false
       },
-      {  
-        path: '/profiles/:namespace/', 
-        component: SGProfiles,
-        meta: {
-          conditionalRoute: false
-        },
+    },
+    { 
+      path: '/configurations/backup/:namespace/:name', 
+      component: BackupConfig,
+      meta: {
+        conditionalRoute: false
       },
-      { 
-        path: '/profiles/:namespace/:name', 
-        component: SGProfiles,
-        meta: {
-          conditionalRoute: false
-        },
+    },
+    {  
+      path: '/profiles/:namespace/', 
+      component: SGProfiles,
+      meta: {
+        conditionalRoute: false
       },
-      { 
-        path: '/grafana/', 
-        component: Grafana,
-        meta: {
-          conditionalRoute: false
-        },
+    },
+    { 
+      path: '/profiles/:namespace/:name', 
+      component: SGProfiles,
+      meta: {
+        conditionalRoute: false
       },
-      { 
-        path: '/grafana/:name', 
-        component: Grafana,
-        meta: {
-          conditionalRoute: false
-        },
+    },
+    { 
+      path: '/grafana/', 
+      component: Grafana,
+      meta: {
+        conditionalRoute: false
       },
-      ,
-      { 
-        path: '/grafana/:name/:pod', 
-        component: Grafana,
-        meta: {
-          conditionalRoute: false
-        },
+    },
+    { 
+      path: '/grafana/:name', 
+      component: Grafana,
+      meta: {
+        conditionalRoute: false
       },
+    },
+    ,
+    { 
+      path: '/grafana/:name/:pod', 
+      component: Grafana,
+      meta: {
+        conditionalRoute: false
+      },
+    },
 
-    ],
+  ],
 });
 
 router.replace({ path: '', redirect: '/'});
@@ -341,16 +348,16 @@ const store = new Vuex.Store({
 });
 
 var vm = new Vue({
-    el: '#app',
-    router,
-    data: {
-      active: true,
-      ip: '',
-      currentCluster: '',
-      currentPods: '',
-      clustersData: {}
-      //clusters: []
-    },
+  el: '#app',
+  router,
+  data: {
+    active: true,
+    ip: '',
+    currentCluster: '',
+    currentPods: '',
+    clustersData: {}
+    //clusters: []
+  },
   methods: {
     
     /* API Request */
@@ -688,18 +695,17 @@ function checkData (newData, currentData) {
     return true;
 }*/
 
-function notify (message) {
+function notify (message, kind = 'message') {
   //$("#notifications").addClass("active");
-  $("#notifications .tooltip").append('<p>'+message+'</p>');
+  $("#notifications .tooltip").append('<div class="message"><h3>'+kind+'</h3><p>'+message+'</p><span class="close">×</span><div>');
   $("#notifications .count").text(parseInt($("#notifications .count").text(),10)+1);
 
   if(parseInt($("#notifications .count").text(),10) > 0) {
     $("#notifications").addClass("active");
     $("#notifications .count").removeClass("zero");
-    $("#notifications .tooltip .zero").remove();
+    $("#notifications .tooltip .zero").hide();
   } else {
-    if (!$("#notifications .tooltip .zero").length)
-      $("#notifications .tooltip").append('<p class="zero">There are no new notifications.</p>');
+    $("#notifications .tooltip .zero").show();
   }
 }
 
@@ -841,13 +847,11 @@ $(document).ready(function(){
   $.fn.ulSelect = function(){
     var ul = $(this);
 
-    if (!ul.hasClass('zg-ul-select')) {
+    if (!ul.hasClass('zg-ul-select'))
       ul.addClass('zg-ul-select');
-    }
     
     $('li:first-of-type', this).addClass('active');
 
-    //ul.before('<div id="selected--zg-ul-select">');
     var selected = $('#selected--zg-ul-select');
       
     
@@ -855,12 +859,6 @@ $(document).ready(function(){
 
       $(this).toggleClass('open');
       ul.toggleClass('active');
-      
-      // Remove active class from any <li> that has it...
-      //ul.children().removeClass('active');
-      
-      // And add the class to the <li> that gets clicked
-      //$(this).toggleClass('active');
 
       var selectedText = $(this).text();
       if (ul.hasClass('active')) {
@@ -877,22 +875,21 @@ $(document).ready(function(){
       ul.removeClass('active');
     });
 
-    // Close the faux select menu when clicking outside it 
-    $(document).on('click', function(event){
-      /*if($('ul.zg-ul-select').length) {
-        if(!$('ul.zg-ul-select').has(event.target).length == 0) {
-          return;
-        }
-        else {
-          $('ul.zg-ul-select').removeClass('active');
-          //$('#selected--zg-ul-select').removeClass('active').text('');
-          $('ul.zg-ul-select li.active');
-        } 
-      }*/
-    });
   }
 
   // Run
   $('#be-select').ulSelect();
+
+  // Uncheck checkboxes by default
+  //$('.switch input[type="checkbox"]').removeAttr('checked');
+
+  $(document).on('click', '.message .close', function(){
+    $(this).parent().detach();
+   
+    $("#notifications .count").text(parseInt($("#notifications .count").text(),10)-1);
+    
+    if(parseInt($("#notifications .count").text(),10) == 0)
+      $("#notifications .tooltip .zero").show();
+  });
 
 });
