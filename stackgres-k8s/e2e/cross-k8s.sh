@@ -1,9 +1,17 @@
 #!/bin/sh
-export BUILD_OPERATOR="${BUILD_OPERATOR:-false}"
 
-STACKGRES_VERSION="${STACKGRES_VERSION:-development}"
-MATRIX_FORMAT="| %-16s | %10s | %6s |\n"
+. "$(dirname "$0")/e2e"
 
+E2E_BUILD_OPERATOR="${E2E_BUILD_OPERATOR:-false}"
+E2E_INCLUDE_NATIVE="${E2E_INCLUDE_NATIVE:-true}"
+GRAALVM_HOME="${GRAALVM_HOME:-/usr/lib/jvm/graalvm}"
+MATRIX_FORMAT="| %-16s | %10s | %8s |\n"
+STACKGRES_VERSION=${STACKGRES_VERSION:-development}
+SPEC="all"
+if [ ! -z $1 ]
+then
+  SPEC="$1"
+fi
 print_matrix_line(){
 
   if [ -z $OUTPUT_FILE ]
@@ -27,64 +35,111 @@ where:
 Environment variables
     STACKGRES_VERSION
       Indicates which stackgres version to use. Default: development
-
-    BUILD_OPERATOR
-      If is set to true, it will compile the stackgres and deploy it to the testing cluster, 
-      if not it will download stackgres from dockerhub
-
-      
+ 
     "
     echo "$HELP"
 }
 
+execute_test(){
+  if [ "$SPEC" = "all" ]
+  then
+    sh run-all-tests.sh
+  else
+    sh run-test.sh "$SPEC"
+  fi
+}
 run_tests(){
 
-  LOG_FOLDER="cross-k8s/$IMAGE_TAG-$K8S_VERSION"
-  mkdir "$LOG_FOLDER" 
-  export REUSE_K8S=false
+  export K8S_REUSE=true
+  export E2E_BUILD_OPERATOR=false
 
-  export TARGET_PATH="$LOG_FOLDER/target"
-  export OPERATOR_PULL_POLICY="Always"
+  get_stackgres_images | while read sv
+  do
+    export IMAGE_TAG="$sv"
+    if [ -z $TARGET_PATH ]
+    then
+      export TARGET_PATH="$(dirname "$0")/target/$IMAGE_TAG-$K8S_VERSION"
+    else
+      export TARGET_PATH="$TARGET_PATH/$IMAGE_TAG-$K8S_VERSION"
+    fi
+    mkdir -p "$TARGET_PATH"
+    export K8S_REUSE=true
+    export E2E_BUILD_OPERATOR=false
 
-  if [ BUILD_OPERATOR = true ]
-  then
-    OPERATOR_PULL_POLICY = "Never"
-  fi
-
-  sh run-all-tests.sh > "$LOG_FOLDER/$IMAGE_TAG-$K8S_VERSION.log" 2>&1  
- 
-  if [ $? -eq 0 ]
-  then
-    print_matrix_line "$IMAGE_TAG" "$K8S_VERSION" "Pass"    
-  else
-    print_matrix_line "$IMAGE_TAG" "$K8S_VERSION" "Fail"    
-  fi
+    if ! sh e2e reset_k8s >> "$TARGET_PATH/$IMAGE_TAG-$K8S_VERSION.log" 2>&1
+    then
+      print_matrix_line "$IMAGE_TAG" "$K8S_VERSION" "Skipped"
+      return 0
+    fi
     
+    if execute_test >> "$TARGET_PATH/$IMAGE_TAG-$K8S_VERSION.log" 2>&1
+    then
+      print_matrix_line "$IMAGE_TAG" "$K8S_VERSION" "Pass"    
+    else
+      print_matrix_line "$IMAGE_TAG" "$K8S_VERSION" "Fail"    
+    fi
+  done
+    
+}
+
+get_stackgres_images(){
+  IMAGES=""
+  if [ $E2E_INCLUDE_NATIVE = true ]
+  then
+    IMAGES=$(get_stackgres_images_with_native)
+  else
+    IMAGES=$(get_stackgres_images_without_native)
+  fi
+  echo "$IMAGES"
+}
+
+get_stackgres_images_with_native(){
+  cat << EOF 
+$STACKGRES_VERSION-jvm
+$STACKGRES_VERSION
+EOF
+}
+
+get_stackgres_images_without_native(){
+  cat << EOF 
+$STACKGRES_VERSION-jvm
+EOF
+}
+
+build_images(){
+  (
+    cd "$STACKGRES_PATH/src"
+    ./mvnw -q -DskipTests clean package -P build-image-jvm > "$LOG_PATH/build-image-jvm.log"
+  )
+  if [ $E2E_INCLUDE_NATIVE = true ]
+  then
+  (
+    cd "$STACKGRES_PATH/src"
+    mvn -DskipTests clean package -P native > "$LOG_PATH/build-native.log"
+    cp "$GRAALVM_HOME/jre/lib/amd64/libsunec.so" operator/target/
+    cp "$GRAALVM_HOME/jre/lib/security/cacerts" operator/target/
+
+    mvn -DskipTests package -P build-image-native > "$LOG_PATH/build-image-native.log"
+  )
+  fi
 }
 
 generate_matrix(){
   print_matrix_line "Stackgres" "Kubernetes" "Result"
-  print_matrix_line "----------------" "----------" "------"
+  print_matrix_line "----------------" "----------" "--------"
 
-  #Cleaing log folder
-  rm -rf cross-k8s || true
-  mkdir "cross-k8s" 
-
-  while read K8S_VERSION
+  if [ $E2E_BUILD_OPERATOR = true ]
+  then
+    build_images
+  fi 
+  
+  get_k8s_versions | while read v
   do
-    export KUBERNETES_VERSION=$K8S_VERSION
+    export K8S_VERSION="$v"
 
-    export IMAGE_TAG="$STACKGRES_VERSION-jvm"
-    run_tests
-
-    if [ $BUILD_OPERATOR = false ]
-    then
-      export IMAGE_TAG=$STACKGRES_VERSION
-      run_tests
-    fi
-
-  done < k8s-versions.txt
-
+    run_tests "$v"
+    
+  done
 }
 
 while getopts o:h-: OPT; do
