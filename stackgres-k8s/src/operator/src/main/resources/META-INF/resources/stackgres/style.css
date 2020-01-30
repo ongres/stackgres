@@ -639,6 +639,10 @@ footer .tooltip p {
     bottom: 20px;
 }
 
+#notifications.active .tooltip {
+    display: block !important;
+}
+
 #notifications hr {
     width: 100%;
     margin-bottom: 0;
