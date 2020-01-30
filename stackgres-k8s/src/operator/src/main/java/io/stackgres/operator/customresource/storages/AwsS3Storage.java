@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.customresource.storages;
 
+import java.util.Objects;
+
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -129,6 +131,33 @@ public class AwsS3Storage {
 
   public void setCseKmsRegion(String cseKmsRegion) {
     this.cseKmsRegion = cseKmsRegion;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(credentials, cseKmsId, cseKmsRegion, endpoint, forcePathStyle, prefix,
+        region, sse, sseKmsId, storageClass);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (obj == null) {
+      return false;
+    }
+    if (!(obj instanceof AwsS3Storage)) {
+      return false;
+    }
+    AwsS3Storage other = (AwsS3Storage) obj;
+    return Objects.equals(credentials, other.credentials)
+        && Objects.equals(cseKmsId, other.cseKmsId)
+        && Objects.equals(cseKmsRegion, other.cseKmsRegion)
+        && Objects.equals(endpoint, other.endpoint) && forcePathStyle == other.forcePathStyle
+        && Objects.equals(prefix, other.prefix) && Objects.equals(region, other.region)
+        && Objects.equals(sse, other.sse) && Objects.equals(sseKmsId, other.sseKmsId)
+        && Objects.equals(storageClass, other.storageClass);
   }
 
   @Override

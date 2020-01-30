@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.customresource.storages;
 
+import java.util.Objects;
+
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -30,6 +32,26 @@ public class GoogleCloudCredentials {
 
   public void setServiceAccountJsonKey(SecretKeySelector serviceAccountJsonKey) {
     this.serviceAccountJsonKey = serviceAccountJsonKey;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(serviceAccountJsonKey);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (obj == null) {
+      return false;
+    }
+    if (!(obj instanceof GoogleCloudCredentials)) {
+      return false;
+    }
+    GoogleCloudCredentials other = (GoogleCloudCredentials) obj;
+    return Objects.equals(serviceAccountJsonKey, other.serviceAccountJsonKey);
   }
 
   @Override

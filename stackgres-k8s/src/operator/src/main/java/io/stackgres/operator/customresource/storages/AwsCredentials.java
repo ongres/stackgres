@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.customresource.storages;
 
+import java.util.Objects;
+
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -42,6 +44,26 @@ public class AwsCredentials {
 
   public void setSecretKey(SecretKeySelector secretKey) {
     this.secretKey = secretKey;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(accessKey, secretKey);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (obj == null) {
+      return false;
+    }
+    if (!(obj instanceof AwsCredentials)) {
+      return false;
+    }
+    AwsCredentials other = (AwsCredentials) obj;
+    return Objects.equals(accessKey, other.accessKey) && Objects.equals(secretKey, other.secretKey);
   }
 
   @Override
