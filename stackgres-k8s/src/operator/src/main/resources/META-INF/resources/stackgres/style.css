@@ -979,8 +979,9 @@ ul.selector li {
 
 /* Forms */
 .form {
-    width: 50%;
-    min-width: 500px;
+    width: 700px;
+    min-width: 480px;
+    max-width: 90%;
     display: inline-block;
 }
 
@@ -1018,6 +1019,7 @@ label.switch {
     position: relative;
     border-radius: 5px;
     cursor: pointer;
+    margin-bottom: 20px;
 }
 
 .switch input {
