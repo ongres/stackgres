@@ -1,12 +1,15 @@
 package io.stackgres.operator;
 
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.stream.Stream;
+
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.HEAD;
@@ -19,22 +22,22 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 
 import com.google.common.reflect.ClassPath;
+
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.operator.rest.GenericExceptionMapper;
+
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-
 class ResourcesSerializationTest {
 
-  private static final ClassLoader loader = Thread.currentThread().getContextClassLoader();
+  private static final ClassLoader LOADER = Thread.currentThread().getContextClassLoader();
 
-  private static ClassPath classpathScanner;
+  private static ClassPath CLASSPATH_SCANNER;
 
   @BeforeAll
   static void setUp() throws IOException {
-    classpathScanner = ClassPath.from(loader);
+    CLASSPATH_SCANNER = ClassPath.from(LOADER);
   }
 
   @Test
@@ -44,7 +47,7 @@ class ResourcesSerializationTest {
         .filter(method -> !method.getReturnType().equals(Void.TYPE))
         .forEach(method -> {
           Class<?> returnType = method.getReturnType();
-          if (returnType.getPackage().getName().startsWith("io.stackgres")) {
+          if (returnType.getPackage().getName().startsWith("io.stackgres.")) {
             assertNotNull(returnType.getAnnotation(RegisterForReflection.class), "class "
                 + returnType.getName() + " must be annotated with register for reflection");
           }
@@ -62,7 +65,7 @@ class ResourcesSerializationTest {
 
           if (Collection.class.isAssignableFrom(returnType)) {
             Arrays.stream(((ParameterizedType) method.getGenericReturnType()).getActualTypeArguments()).forEach(gt -> {
-              if (gt instanceof java.lang.Class){
+              if (gt instanceof java.lang.Class && ((Class<?>) gt).getName().startsWith("io.stackgres.")) {
                 Class<?> gType = (Class<?>) gt;
                 assertNotNull(gType.getAnnotation(RegisterForReflection.class), "class "
                     + gType.getName() + " must be annotated with register for reflection");
@@ -79,7 +82,7 @@ class ResourcesSerializationTest {
     getRestMethods()
         .forEach(method -> {
           Arrays.stream(method.getParameterTypes())
-              .filter(p -> p.getName().startsWith("io.stackgres"))
+              .filter(p -> p.getName().startsWith("io.stackgres."))
               .forEach(p -> {
                 assertNotNull(p.getAnnotation(RegisterForReflection.class), "class "
                     + p.getName() + " must be annotated with register for reflection");
@@ -122,8 +125,8 @@ class ResourcesSerializationTest {
   }
 
   private static Stream<ClassPath.ClassInfo> getClassesInStackGres() {
-    return classpathScanner.getTopLevelClasses().stream()
-        .filter(classInfo -> classInfo.getPackageName().startsWith("io.stackgres"));
+    return CLASSPATH_SCANNER.getTopLevelClasses().stream()
+        .filter(classInfo -> classInfo.getPackageName().startsWith("io.stackgres."));
   }
 
 }
