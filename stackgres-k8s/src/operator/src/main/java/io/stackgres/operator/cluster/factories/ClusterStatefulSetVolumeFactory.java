@@ -65,7 +65,8 @@ public class ClusterStatefulSetVolumeFactory implements VolumesFactory<StackGres
                   .withItems(new KeyToPathBuilder()
                       .withKey(gcsStorage.getCredentials()
                           .getServiceAccountJsonKey().getKey())
-                      .withPath(ClusterStatefulSet.GCS_CREDENTIALS_FILE_NAME)
+                      .withPath(ClusterStatefulSet.GCS_RESTORE_CONFIG_PATH
+                          + "/" + ClusterStatefulSet.GCS_CREDENTIALS_FILE_NAME)
                       .build())
                   .build())
               .build()));
@@ -91,7 +92,8 @@ public class ClusterStatefulSetVolumeFactory implements VolumesFactory<StackGres
                   .withItems(new KeyToPathBuilder()
                       .withKey(gcsStorage.getCredentials()
                           .getServiceAccountJsonKey().getKey())
-                      .withPath(ClusterStatefulSet.GCS_RESTORE_CREDENTIALS_FILE_NAME)
+                      .withPath(ClusterStatefulSet.GCS_RESTORE_CONFIG_PATH
+                          + "/" + ClusterStatefulSet.GCS_RESTORE_CREDENTIALS_FILE_NAME)
                       .build())
                   .build())
               .build()));
