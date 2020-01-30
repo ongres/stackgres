@@ -136,14 +136,14 @@ var CreateCluster = Vue.component("create-cluster", {
                     // ]
                 }
             }
-            
+
             axios
             .post(
                 apiURL+'cluster/', 
                 cluster 
             )
             .then((response) => {
-                notify(response.data)
+                notify(response.data,'message')
             })
             .catch((error)=>{
                 notify(error,'error')
