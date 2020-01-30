@@ -53,8 +53,7 @@ var Nav = Vue.component("sg-nav", {
 					</a>
 
 					<div class="tooltip">
-						<span>NOTIFICATIONS</span>
-						<hr/>
+						<h2>NOTIFICATIONS</h2>
 						<p class="zero">There are no new notifications.</p>
 					</div>
 				</div>
