@@ -145,6 +145,9 @@ integration test:
     - compile
   script:
     - 'flock -w 3600 /tmp/stackgres-integration-test mvn $MAVEN_CLI_OPTS verify -P integration'
+  only:
+    variables:
+      - $DO_EXTERNAL
 
 integration test jvm image:
   stage: test
