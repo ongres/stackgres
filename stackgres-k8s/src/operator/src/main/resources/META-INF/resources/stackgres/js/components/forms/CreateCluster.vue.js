@@ -76,6 +76,14 @@ var CreateCluster = Vue.component("create-cluster", {
             <label>Enable Connection Pooling</label>  
             <label for="connPooling" class="switch">Connection Pooling <input type="checkbox" id="connPooling" v-model="connPooling" data-switch="OFF"></label>
 
+            <template v-if="connPooling">
+                <label for="connectionPoolingConfig">Connection Pooling Configuration</label>  
+                <select v-model="connectionPoolingConfig">
+                    <option disabled value="">Select Configuration</option>
+                    <option v-for="conf in connPoolConfig">{{ conf.name }}</option>
+                </select>
+            </template>
+
             <button v-on:click="createCluster">Create Cluster</button> <button v-on:click="cancel" class="border">Cancel</button>
             
 		</div>`,
@@ -90,7 +98,8 @@ var CreateCluster = Vue.component("create-cluster", {
             storageClass: '',
             volumeSize: '',
             volumeUnit: '',
-            connPooling: false
+            connPooling: false,
+            connectionPoolingConfig: ''
 		}
 	},
 	computed: {
@@ -103,6 +112,9 @@ var CreateCluster = Vue.component("create-cluster", {
         },
         pgConf () {
             return store.state.pgConfig
+        },
+        connPoolConfig () {
+            return store.state.poolConfig
         }
 
     },
@@ -125,7 +137,7 @@ var CreateCluster = Vue.component("create-cluster", {
                     //     "fromBackup": "d7e660a9-377c-11ea-b04b-0242ac110004"
                     // },
                     // "backupConfig": "backupconf",
-                    // "connectionPoolingConfig": "pgbouncerconf",
+                    "connectionPoolingConfig": this.connectionPoolingConfig,
                     "volumeSize": this.volumeSize+this.volumeUnit,
                     "storageClass": this.storageClass,
                     //"prometheusAutobind": "true",
