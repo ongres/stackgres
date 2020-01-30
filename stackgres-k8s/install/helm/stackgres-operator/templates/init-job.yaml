@@ -33,6 +33,13 @@ spec:
             kubectl delete validatingwebhookconfiguration --ignore-not-found {{ .Release.Name }}-sgconnectionpoolingconfig
             kubectl delete validatingwebhookconfiguration --ignore-not-found {{ .Release.Name }}-sgprofile
             kubectl delete validatingwebhookconfiguration --ignore-not-found {{ .Release.Name }}-sgbackupconfig
+            kubectl delete validatingwebhookconfiguration --ignore-not-found {{ .Release.Name }}-sgbackup
+            kubectl delete mutatingwebhookconfiguration --ignore-not-found {{ .Release.Name }}-sgcluster
+            kubectl delete mutatingwebhookconfiguration --ignore-not-found {{ .Release.Name }}-sgpgconfig
+            kubectl delete mutatingwebhookconfiguration --ignore-not-found {{ .Release.Name }}-sgconnectionpoolingconfig
+            kubectl delete mutatingwebhookconfiguration --ignore-not-found {{ .Release.Name }}-sgprofile
+            kubectl delete mutatingwebhookconfiguration --ignore-not-found {{ .Release.Name }}-sgbackupconfig
+            kubectl delete mutatingwebhookconfiguration --ignore-not-found {{ .Release.Name }}-sgbackup
             kubectl get pod -n {{ .Release.Namespace }} -o name \
               | grep '^pod/{{ .Release.Name }}-' \
               | grep -v '^pod/{{ .Release.Name }}-init-' \
