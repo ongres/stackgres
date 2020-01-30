@@ -54,7 +54,7 @@ public class Cluster implements StackGresClusterConfigTransformer<StackGresClust
         .addAll(patroniSecret.create(context.getContext()))
         .addAll(PatroniServices.createServices(context.getContext()))
         .add(PatroniConfigEndpoints.create(context.getContext(), objectMapper))
-        .add(patroniConfigMap.create(context.getContext(), objectMapper))
+        .addAll(patroniConfigMap.create(context.getContext(), objectMapper))
         .addAll(BackupCronJob.create(context))
         .addAll(clusterResourcesBuilder.create(context))
         .addAll(Backup.create(context))
