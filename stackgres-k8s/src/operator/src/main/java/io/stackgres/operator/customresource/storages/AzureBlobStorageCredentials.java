@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.customresource.storages;
 
+import java.util.Objects;
+
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -42,6 +44,26 @@ public class AzureBlobStorageCredentials {
 
   public void setAccessKey(SecretKeySelector accessKey) {
     this.accessKey = accessKey;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(accessKey, account);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (obj == null) {
+      return false;
+    }
+    if (!(obj instanceof AzureBlobStorageCredentials)) {
+      return false;
+    }
+    AzureBlobStorageCredentials other = (AzureBlobStorageCredentials) obj;
+    return Objects.equals(accessKey, other.accessKey) && Objects.equals(account, other.account);
   }
 
   @Override

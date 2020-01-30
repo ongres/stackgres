@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.customresource.storages;
 
+import java.util.Objects;
+
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -63,6 +65,27 @@ public class AzureBlobStorage {
 
   public void setMaxBuffers(int maxBuffers) {
     this.maxBuffers = maxBuffers;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(bufferSize, credentials, maxBuffers, prefix);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (obj == null) {
+      return false;
+    }
+    if (!(obj instanceof AzureBlobStorage)) {
+      return false;
+    }
+    AzureBlobStorage other = (AzureBlobStorage) obj;
+    return bufferSize == other.bufferSize && Objects.equals(credentials, other.credentials)
+        && maxBuffers == other.maxBuffers && Objects.equals(prefix, other.prefix);
   }
 
   @Override

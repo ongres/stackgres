@@ -41,10 +41,10 @@
         "uid": "93bc7621-0236-11ea-a1d5-0242ac110003"
       },
       "spec": {
-        "compressionMethod": "brotli",
-        "fullSchedule": "*/5 * * * *",
-        "fullWindow": 5,
-        "retention": 3,
+        "compressionMethod": "lz4",
+        "fullSchedule": "*/1 * * * *",
+        "fullWindow": 1,
+        "retention": 5,
         "storage": {
           "s3": {
             "credentials": {
@@ -64,8 +64,8 @@
           },
           "type": "s3"
         },
-        "tarSizeThreshold": 1072741823,
-        "uploadDiskConcurrency": 2
+        "tarSizeThreshold": 1073741823,
+        "uploadDiskConcurrency": 1
       }
     },
     "oldObject": {
@@ -90,17 +90,14 @@
             "credentials": {
               "accessKey": {
                 "key": "accesskey",
-                "name": "minio"
+                "name": "aws"
               },
               "secretKey": {
                 "key": "secretkey",
-                "name": "minio"
+                "name": "aws"
               }
             },
-            "endpoint": "http://minio.stackgres.svc:9000",
-            "forcePathStyle": true,
-            "prefix": "s3://stackgres",
-            "region": "k8s"
+            "prefix": "s3://stackgres"
           },
           "type": "s3"
         },

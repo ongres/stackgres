@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.customresource.storages;
 
+import java.util.Objects;
+
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -30,6 +32,26 @@ public class PgpConfiguration {
 
   public void setKey(SecretKeySelector key) {
     this.key = key;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(key);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (obj == null) {
+      return false;
+    }
+    if (!(obj instanceof PgpConfiguration)) {
+      return false;
+    }
+    PgpConfiguration other = (PgpConfiguration) obj;
+    return Objects.equals(key, other.key);
   }
 
   @Override
