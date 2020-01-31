@@ -4,10 +4,10 @@ GKE_NAME="${GKE_NAME:-stackgres-e2e}"
 KUBERNETES_VERSION="${KUBERNETES_VERSION:-1.13.12}"
 if [ "$KUBERNETES_VERSION" = 1.12.10 ]
 then
-  >&2 echo "Warning: using kubernetes version 1.13.12 since e2e default 1.12.10 is no longer available for gke"
-  KUBERNETES_VERSION=1.13.12
+  >&2 echo "Warning: using kubernetes version 1.13.11 since e2e default 1.12.10 is no longer available for gke"
+  KUBERNETES_VERSION=1.13.11
 fi
-GKE_VERSION="${GKE_VERSION:-gke.17}"
+GKE_VERSION="${GKE_VERSION:-gke.23}"
 GKE_ZONE="${GKE_ZONE:-us-west1-a}"
 GKE_NODE_LOCATIONS="${GKE_NODE_LOCATIONS:-us-west1-a,us-west1-b,us-west1-c}"
 GKE_MACHINE_TYPE="${GKE_MACHINE_TYPE:-n1-standard-1}"
