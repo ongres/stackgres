@@ -100,7 +100,8 @@ public class ClusterStatefulSetHandler extends AbstractClusterResourceHandler {
 
     private Integer trasformRequiredReplicas(Integer existingReplicas, Integer requiredReplicas) {
       if (existingReplicas > requiredReplicas
-          && isNonDisruptiblePrimaryNotExisting()) {
+          && isNonDisruptiblePrimaryNotExisting()
+          && existsPrimaryPodWithIndexGreaterThanRequiredReplicas(requiredReplicas)) {
         LOGGER.debug("Not downscaling cluster {}.{} since there is no primary Pod "
             + " or is not marked as non disruptible",
             getContext().getConfig().getCluster().getMetadata().getNamespace(),
