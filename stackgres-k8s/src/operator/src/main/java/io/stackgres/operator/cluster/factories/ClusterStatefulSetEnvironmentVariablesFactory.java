@@ -161,9 +161,6 @@ public class ClusterStatefulSetEnvironmentVariablesFactory
         .withName("GOOGLE_APPLICATION_CREDENTIALS")
         .withValue(ClusterStatefulSet.GCS_CONFIG_PATH
             + "/" + ClusterStatefulSet.GCS_CREDENTIALS_FILE_NAME)
-        .withValueFrom(new EnvVarSourceBuilder()
-            .withSecretKeyRef(gcsConfig.getCredentials().getServiceAccountJsonKey())
-            .build())
         .build()
     ));
 
@@ -240,9 +237,6 @@ public class ClusterStatefulSetEnvironmentVariablesFactory
         .withName("RESTORE_GOOGLE_APPLICATION_CREDENTIALS")
         .withValue(ClusterStatefulSet.GCS_RESTORE_CONFIG_PATH
             + "/" + ClusterStatefulSet.GCS_RESTORE_CREDENTIALS_FILE_NAME)
-        .withValueFrom(new EnvVarSourceBuilder()
-            .withSecretKeyRef(gcsConfig.getCredentials().getServiceAccountJsonKey())
-            .build())
         .build()
     ));
 
