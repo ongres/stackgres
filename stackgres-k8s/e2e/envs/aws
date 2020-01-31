@@ -1,0 +1,65 @@
+#!/bin/sh
+
+AWS_NAME="${AWS_NAME:-stackgres-e2e}"
+KUBERNETES_VERSION="${KUBERNETES_VERSION:-1.13.12}"
+if [ "$KUBERNETES_VERSION" = 1.12.10 ]
+then
+  >&2 echo "Warning: using kubernetes version 1.13.11 since e2e default 1.12.10 is no longer available for gke"
+  KUBERNETES_VERSION=1.13.11
+fi
+AWS_REGION="${AWS_REGION:-us-west-2}"
+AWS_NODE_TYPE="${AWS_NODE_TYPE:-m5.large}"
+AWS_DISK_SIZE="${AWS_DISK_SIZE:-20}"
+AWS_OPTS="$AWS_OPTS"
+export AWS_NAME KUBERNETES_VERSION AWS_REGION AWS_NODE_LOCATIONS AWS_NODE_TYPE AWS_OPTS
+
+reuse_k8s() {
+  if ! eksctl get cluster --name "$AWS_NAME" --region "$AWS_REGION" 2>&1 \
+    | grep "^$AWS_NAME" | grep -q "ACTIVE"
+  then
+    echo "Can not reuse eks environment $AWS_NAME"
+    exit 1
+    reset_k8s
+    return
+  fi
+
+  echo "Reusing eks environment $AWS_NAME"
+
+  aws eks update-kubeconfig --name "$AWS_NAME" --region "$AWS_REGION"
+}
+
+reset_k8s() {
+  echo "Setting up eks environment $AWS_NAME..."
+
+  eksctl delete cluster --wait --name "$AWS_NAME" --region "$AWS_REGION" || true
+  eksctl create cluster --name "$AWS_NAME" \
+    --region "$AWS_REGION" \
+    --node-type "$AWS_NODE_TYPE" \
+    --node-volume-size "$AWS_DISK_SIZE" \
+    --nodes 3 \
+    --version "$(echo "$KUBERNETES_VERSION" | cut -d . -f 1-2)" \
+    $AWS_OPTS
+
+  echo "...done"
+}
+
+delete_k8s() {
+  echo "Deleting eks environment $AWS_NAME..."
+
+  eksctl delete cluster --wait --name "$AWS_NAME" --region "$AWS_REGION" || true
+
+  echo "...done"
+}
+
+load_operator_k8s() {
+  echo "Loading operator image $IMAGE_NAME in eks environemnt $AWS_NAME..."
+
+  docker tag "$IMAGE_NAME" "$(aws sts get-caller-identity | jq -r .Account).dkr.ecr.region.amazonaws.com/$IMAGE_NAME"
+
+  echo "...done"
+}
+
+operator_pull_policy() {
+  echo IfNotPresent
+}
+
