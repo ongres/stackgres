@@ -1,0 +1,76 @@
+#!/bin/sh
+
+K3D_NAME="${K3D_NAME:-k3s-default}"
+K3S_VERSION="${K3S_VERSION:-k3s.1}"
+KUBERNETES_VERSION="${KUBERNETES_VERSION:-1.13.12}"
+if [ "$KUBERNETES_VERSION" = 1.12.10 ]
+then
+  >&2 echo "Warning: using kubernetes version 1.17.0 since e2e default 1.12.10 is no available for k3s"
+  KUBERNETES_VERSION=1.17.0
+fi
+
+export K3D_NAME KUBERNETES_VERSION K3S_VERSION
+
+update_k8s_config() {
+  mkdir -p "$HOME/.kube"
+
+  (
+  k3d get-kubeconfig -o --name "$K3D_NAME"
+  K3D_CONFIG="$(k3d get-kubeconfig --name "$K3D_NAME")"
+  if [ -s "$HOME/.kube/config" ]
+  then
+    KUBECONFIG="$K3D_CONFIG":"$HOME/.kube/config" \
+      kubectl config view --raw > "$HOME/.kube/config-merged"
+    mv "$HOME/.kube/config-merged" "$HOME/.kube/config"
+  else
+    cp "$K3D_CONFIG" "$HOME/.kube/config"
+  fi
+  )
+}
+
+reuse_k8s() {
+  if ! k3d list 2>/dev/null | grep -q "^| $K3D_NAME |" \
+      || ! docker inspect "k3d-$K3D_NAME-server" -f '{{ .State.Status }}' | grep -q 'running'
+  then
+    echo "Can not reuse k3d environment $K3D_NAME"
+    reset_k8s
+    return
+  fi
+
+  echo "Reusing k3d environment $K3D_NAME"
+
+  update_k8s_config
+}
+
+reset_k8s() {
+  echo "Setting up k3d environment $K3D_NAME..."
+
+  k3d delete --name "$K3D_NAME" || true
+
+  k3d create --name "$K3D_NAME" \
+    --workers 2 \
+    --image "docker.io/rancher/k3s:v${KUBERNETES_VERSION}-${K3S_VERSION}" \
+    --wait "$E2E_TIMEOUT"
+
+  update_k8s_config
+
+  echo "...done"
+}
+
+delete_k8s() {
+  echo "Deleting k3s environment $K3D_NAME..."
+
+  rm -f "$(k3d get-kubeconfig --name "$K3D_NAME")"
+
+  k3d delete --name "$K3D_NAME" || true
+
+  echo "...done"
+}
+
+load_operator_k8s() {
+  echo "Loading operator image $IMAGE_NAME in k3d environemnt $K3D_NAME..."
+  
+  k3d import-images --name "$K3D_NAME" "$IMAGE_NAME"
+
+  echo "...done"
+}
