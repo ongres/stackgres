@@ -312,7 +312,7 @@ spec:
   volumeSize: '512Mi'
 EOF
 
-  if kubectl get sgclusters.stackgres.io -n $CLUSTER_NAMESPACE $CLUSTER_NAME
+  if kubectl get sgclusters.stackgres.io -n $OPERATOR_NAMESPACE $CLUSTER_NAME
   then
     echo "Good. cluster was created on the operator namespace "
     return 0
