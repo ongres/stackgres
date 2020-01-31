@@ -25,6 +25,7 @@ e2e_test(){
   run_test "if default configuration are already created it should create the cluster" create_empty_cluster_with_default_pgbouncer
   run_test "if the sidecars are specifically set to be empty the operator should not add any sidecar" create_empty_cluster_with_no_sidecars
   run_test "creating an empty cluster should trigger the creation of all default configurations" create_empty_cluster
+  run_test "creating en empty cluster in the operator should no fail" create_empty_cluster_on_operator_namespace
 }
 
 create_empty_pg_config(){
@@ -291,6 +292,32 @@ EOF
     echo "Success. Default sidecars were settled"    
   else
     echo "Fail. Default sidecars were not settled"
+    return 1
+  fi
+
+}
+
+create_empty_cluster_on_operator_namespace(){
+
+
+  cat <<EOF | kubectl apply -f -
+apiVersion: stackgres.io/v1alpha1
+kind: StackGresCluster
+metadata:
+  name: $CLUSTER_NAME
+  namespace: $OPERATOR_NAMESPACE
+spec:
+  instances: 1
+  pgVersion: '12.1'
+  volumeSize: '512Mi'
+EOF
+
+  if kubectl get sgclusters.stackgres.io -n $CLUSTER_NAMESPACE $CLUSTER_NAME
+  then
+    echo "Good. cluster was created on the operator namespace "
+    return 0
+  else 
+    echo "Good. cluster was created on the operator namespace "
     return 1
   fi
 
