@@ -60,7 +60,6 @@ EOF
       docker exec -t $node sh -c 'DEBIAN_FRONTEND=noninteractive apt-get update -y -qq < /dev/null > /dev/null'
       docker exec -t $node sh -c 'DEBIAN_FRONTEND=noninteractive apt-get install -y -qq nfs-common < /dev/null > /dev/null'
       "
-    done
   fi
 
   if [ "$USE_KIND_INTERNAL" = true ]
