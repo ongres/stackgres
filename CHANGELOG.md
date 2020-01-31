@@ -1,3 +1,31 @@
+# Release 0.8
+
+## NOTES
+
+* Avoid modify backup configuration that could make backups unusable
+* Improved UI for backups
+* Allow install in kubernetes up to version 1.17 in helm chart
+* Added backup configuration in backup CR
+* Removed restore configuration CRD
+
+## FIXES
+
+* Added missing cleanups to init job in operator helm chart
+* Default pgVersion of helm, now match the latest one
+* Allow non breaking changes in prometheus CRDs
+* Allow to create a cluster in the operator namespace
+* Not scaling down when primary is not the last pod
+* Cluster pods endpoint returns only pods belonging to cluster
+
+## KNOWN ISSUES
+
+* Backup /status/isPermanent is not updated when /spec/isPermanent is changed
+* Restore does not validate backup version so a cluster could hang when restoring a backup of
+ another version of PostgreSQL
+* Backup configuration stored in backups could be different from used one
+* Restoration fails if the new cluster is on a different namespace that the backup storage
+* Google Cloud Storage can not be used as backup storage due to a bug
+
 # Release 0.8-alpha3
 
 * First documentation complete draft
