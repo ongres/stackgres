@@ -7,14 +7,14 @@ package io.stackgres.operator.mutation.cluster;
 
 import java.util.Collections;
 import java.util.List;
+
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 
 import com.github.fge.jackson.jsonpointer.JsonPointer;
 import com.github.fge.jsonpatch.JsonPatchOperation;
+
 import io.fabric8.kubernetes.client.CustomResource;
-import io.stackgres.operator.common.ConfigContext;
-import io.stackgres.operator.common.ConfigProperty;
 import io.stackgres.operator.common.StackgresClusterReview;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
@@ -31,19 +31,10 @@ public abstract class AbstractDefaultResourceMutator<R extends CustomResource>
 
   private CustomResourceScheduler<R> scheduler;
 
-  private ConfigContext configContext;
-
-  private transient String installedNamespace;
-
   private transient JsonPointer targetPointer;
 
   @PostConstruct
   public void init() throws NoSuchFieldException {
-
-    installedNamespace = configContext
-        .getProperty(ConfigProperty.OPERATOR_NAMESPACE)
-        .orElseThrow(() -> new IllegalStateException("Operator not configured properly"));
-
     targetPointer = getTargetPointer();
 
   }
@@ -60,8 +51,7 @@ public abstract class AbstractDefaultResourceMutator<R extends CustomResource>
 
       String defaultResourceName = defaultResource.getMetadata().getName();
 
-      if (applyDefault(targetCluster)
-          && !installedNamespace.equals(targetNamespace)) {
+      if (applyDefault(targetCluster)) {
 
         if (!finder.findByNameAndNamespace(defaultResourceName, targetNamespace).isPresent()) {
           defaultResource.getMetadata().setNamespace(targetNamespace);
@@ -90,11 +80,6 @@ public abstract class AbstractDefaultResourceMutator<R extends CustomResource>
   @Inject
   public void setScheduler(CustomResourceScheduler<R> scheduler) {
     this.scheduler = scheduler;
-  }
-
-  @Inject
-  public void setConfigContext(ConfigContext configContext) {
-    this.configContext = configContext;
   }
 
   protected boolean applyDefault(StackGresCluster targetCluster) {
