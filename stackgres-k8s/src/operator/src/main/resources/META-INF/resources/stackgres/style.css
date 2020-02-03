@@ -1013,6 +1013,10 @@ ul.selector li {
     position: relative;
 }
 
+.form input:focus, .form select:focus {
+    border-color: var(--blue);
+}
+
 label.switch {
     border: 1px solid var(--gray2);
     padding: 10px;
@@ -1109,7 +1113,7 @@ label.switch {
     padding: 10px 15px;
     border-radius: 20px;
     text-align: center;
-    width: 170px;
+    width: 200px;
     cursor: pointer;
 }
 
@@ -1125,4 +1129,20 @@ label.switch {
 .form button.border {
     color: var(--blue);
     background: transparent;
+}
+
+.list-create {
+    display: inline-block;
+    width: 100%;
+}
+
+.list-create > button {
+    float: left;
+    margin-top: 0;
+    margin-left: 20px;
+}
+
+.list-create > select {
+    max-width: calc(100% - 220px);
+    float: left;
 }

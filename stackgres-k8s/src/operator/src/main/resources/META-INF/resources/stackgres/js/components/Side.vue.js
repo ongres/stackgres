@@ -130,8 +130,17 @@ var Side = Vue.component("sg-side", {
 				return false
 		},
 
+		hasPGConfig () {
+			let index = store.state.pgConfig.find(c => (store.state.currentNamespace == c.data.metadata.namespace) );
+
+			if(typeof index !== "undefined")
+				return true
+			else
+				return false
+		},
+
 		hasPoolConfig () {
-			let index = store.state.poolConfig.find(p => (store.state.currentNamespace == p.data.metadata.namespace) );
+			let index = store.state.poolConfig.find(c => (store.state.currentNamespace == c.data.metadata.namespace) );
 
 			if(typeof index !== "undefined")
 				return true
@@ -149,7 +158,7 @@ var Side = Vue.component("sg-side", {
 		},
 
 		hasProfiles () {
-			let index = store.state.profiles.find(p => (store.state.currentNamespace == p.data.metadata.namespace) );
+			let index = store.state.profiles.find(c => (store.state.currentNamespace == c.data.metadata.namespace) );
 
 			if(typeof index !== "undefined")
 				return true
