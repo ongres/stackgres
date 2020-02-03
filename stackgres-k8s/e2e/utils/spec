@@ -53,6 +53,8 @@ spec() {
 
   . "$SPEC_FILE"
 
+  rm -f "$TARGET_PATH/$SPEC_NAME.failed"
+
   echo
   echo "================================================================"
   echo "Running $SPEC_NAME tests"
