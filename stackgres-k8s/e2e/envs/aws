@@ -31,7 +31,7 @@ reuse_k8s() {
 reset_k8s() {
   echo "Setting up eks environment $AWS_NAME..."
 
-  eksctl delete cluster --wait --name "$AWS_NAME" --region "$AWS_REGION" || true
+  delete_k8s
   eksctl create cluster --name "$AWS_NAME" \
     --region "$AWS_REGION" \
     --node-type "$AWS_NODE_TYPE" \
@@ -46,7 +46,13 @@ reset_k8s() {
 delete_k8s() {
   echo "Deleting eks environment $AWS_NAME..."
 
-  eksctl delete cluster --wait --name "$AWS_NAME" --region "$AWS_REGION" || true
+  if ! eksctl get cluster --name "$AWS_NAME" --region "$AWS_REGION" 2>&1 \
+    | grep "^$AWS_NAME" | grep -q "ACTIVE"
+  then
+    eksctl delete cluster --wait --name "$AWS_NAME" --region "$AWS_REGION" || true
+  fi
+  aws ec2 describe-volumes --region "$AWS_REGION" --filters "Name=tag-key,Values=kubernetes.io/cluster/$AWS_NAME" \
+    | jq -r '.Volumes[].VolumeId' | xargs -r -n 1 -I % aws ec2 delete-volume --region "$AWS_REGION" --volume-id %
 
   echo "...done"
 }
