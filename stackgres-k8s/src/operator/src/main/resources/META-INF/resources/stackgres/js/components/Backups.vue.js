@@ -83,6 +83,7 @@ var Backups = Vue.component("sg-backup", {
 								{{ back.data.metadata.uid }}
 
 								<template v-if="back.data.status.phase === 'Completed'">
+
 									<hr>
 									<span>Pod</span>
 									{{ back.data.status.pod }}

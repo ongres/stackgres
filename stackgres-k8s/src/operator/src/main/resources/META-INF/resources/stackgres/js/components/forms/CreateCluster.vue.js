@@ -6,7 +6,10 @@ var CreateCluster = Vue.component("create-cluster", {
             <input v-model="name">
 
             <label for="namespace">K8S Namespace</label>
-            <input v-model="namespace">
+            <select v-model="namespace">
+                <option disabled value="">Choose a Namespace</option>
+                <option v-for="namespace in namespaces">{{ namespace }}</option>
+            </select>
 
             <label for="pgVersion">PostgreSQL Version</label>
             <select v-model="pgVersion">
@@ -31,10 +34,13 @@ var CreateCluster = Vue.component("create-cluster", {
             </select>
 
             <label for="resourceProfile">Instance Profile</label>  
-            <select v-model="resourceProfile">
-                <option disabled value="">Select Instance Profile</option>
-                <option v-for="prof in profiles">{{ prof.name }}</option>
-            </select>
+            <div class="list-create">
+                <select v-model="resourceProfile">
+                    <option disabled value="">Select Instance Profile</option>
+                    <option v-for="prof in profiles" v-if="prof.data.metadata.namespace == namespace">{{ prof.name }}</option>
+                </select>
+                <button v-on:click="CreateProfile">New Instance Profile</button>
+            </div>
 
             <label for="storageClass">Storage Class</label>
             <input v-model="storageClass">
@@ -56,7 +62,6 @@ var CreateCluster = Vue.component("create-cluster", {
                 </select>
                 <select v-model="volumeUnit" class="unit">
                     <option disabled value="">Select Unit</option>
-                    <option>Ki</option>
                     <option>Mi</option>
                     <option>Gi</option>
                     <option>Ti</option>
@@ -70,7 +75,7 @@ var CreateCluster = Vue.component("create-cluster", {
             <label for="pgConfig">PostgreSQL Configuration</label>  
             <select v-model="pgConfig">
                 <option disabled value="">Select PostgreSQL Configuration</option>
-                <option v-for="conf in pgConf">{{ conf.name }}</option>
+                <option v-for="conf in pgConf" v-if="conf.data.metadata.namespace == namespace">{{ conf.name }}</option>
             </select>
 
             <label>Enable Connection Pooling</label>  
@@ -80,7 +85,7 @@ var CreateCluster = Vue.component("create-cluster", {
                 <label for="connectionPoolingConfig">Connection Pooling Configuration</label>  
                 <select v-model="connectionPoolingConfig">
                     <option disabled value="">Select Configuration</option>
-                    <option v-for="conf in connPoolConfig">{{ conf.name }}</option>
+                    <option v-for="conf in connPoolConfig" v-if="conf.data.metadata.namespace == namespace">{{ conf.name }}</option>
                 </select>
             </template>
 
@@ -106,7 +111,10 @@ var CreateCluster = Vue.component("create-cluster", {
 
 		currentNamespace () {
 			return store.state.currentNamespace
-        },        
+        },
+        namespaces () {
+            return store.state.namespaces
+        },
         profiles () {
             return store.state.profiles
         },
@@ -149,17 +157,49 @@ var CreateCluster = Vue.component("create-cluster", {
                 }
             }
 
-            axios
-            .post(
-                apiURL+'cluster/', 
-                cluster 
-            )
-            .then((response) => {
-                notify(response.data,'message')
-            })
-            .catch((error)=>{
-                notify(error,'error')
-            });
+
+            //async function create() {
+                const res = axios
+                .post(
+                    apiURL+'cluster/', 
+                    cluster 
+                )
+                .then(function (response) {
+                    console.log("GOOD");
+                    notify('Cluster <strong>'+cluster.metadata.name+'</strong> created successfully', 'message');
+                })
+                .catch(function (error) {
+                    //console.log("ERROR");
+                    //console.log('Error: ', error.response.data);
+                    console.log(error.response);
+                    console.log("– – –");
+                    let e = error.response.data.message.substring(
+                        error.response.data.message.lastIndexOf("Message: ") + 1, 
+                        error.response.data.message.lastIndexOf(". Received")
+                    );
+                    notify(e,'error');
+                });
+
+                //return res;
+
+                //console.log(res);
+            // }
+
+            // const res = create();
+            // console.log(res);
+
+            // create().then(
+            //     res => console.log(res)
+            // );
+            
+            
+            //console.log('Status code: '+res.status);
+            // console.log(`Status text: ${res.statusText}`);
+            // console.log(`Request method: ${res.request.method}`);
+            // console.log(`Path: ${res.request.path}`);
+
+            // console.log(`Date: ${res.headers.date}`);
+            // console.log(`Data: ${res.data}`);
             
             //console.log(cluster);
 
