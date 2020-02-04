@@ -51,3 +51,11 @@ gcloud -q beta container \
   clusters delete stackgres \
   --zone us-west1-a \
 ```
+
+You may also want to cleanup compute disks used by persistence volumes that may have been created:
+
+```shell
+gcloud -q compute disks list --project my-project --filter "zone:us-west1-a" | tail -n+2 | cut -d ' ' -f 1 \
+    | grep '^gke-stackgres-[0-9a-f]\{4\}-pvc-[0-9a-f]\{8\}-[0-9a-f]\{4\}-[0-9a-f]\{4\}-[0-9a-f]\{4\}-[0-9a-f]\{12\}$' \
+    | xargs -r -n 1 -I % gcloud -q compute disks delete --project my-project --zone us-west1-a %
+```
