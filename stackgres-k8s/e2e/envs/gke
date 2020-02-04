@@ -8,16 +8,16 @@ then
   KUBERNETES_VERSION=1.13.11
 fi
 GKE_VERSION="${GKE_VERSION:-gke.23}"
-GKE_ZONE="${GKE_ZONE:-us-west1-a}"
+GKE_REGION="${GKE_REGION:-us-west1}"
 GKE_NODE_LOCATIONS="${GKE_NODE_LOCATIONS:-us-west1-a,us-west1-b,us-west1-c}"
 GKE_MACHINE_TYPE="${GKE_MACHINE_TYPE:-n1-standard-1}"
 GKE_DISK_SIZE="${GKE_DISK_SIZE:-20}"
 GKE_PROJECT="${GKE_PROJECT:-default}"
 GKE_OPTS="$GKE_OPTS"
-export GKE_NAME KUBERNETES_VERSION GKE_VERSION GKE_ZONE GKE_NODE_LOCATIONS GKE_MACHINE_TYPE GKE_DISK_SIZE GKE_PROJECT GKE_OPTS
+export GKE_NAME KUBERNETES_VERSION GKE_VERSION GKE_REGION GKE_NODE_LOCATIONS GKE_MACHINE_TYPE GKE_DISK_SIZE GKE_PROJECT GKE_OPTS
 
 reuse_k8s() {
-  if ! gcloud -q beta container --project "$GKE_PROJECT" clusters describe "$GKE_NAME" --zone "$GKE_ZONE" 2>&1 \
+  if ! gcloud -q beta container --project "$GKE_PROJECT" clusters describe "$GKE_NAME" --region "$GKE_REGION" 2>&1 \
     | grep -q "status: RUNNING"
   then
     echo "Can not reuse gke environment $GKE_NAME"
@@ -27,7 +27,7 @@ reuse_k8s() {
 
   echo "Reusing gke environment $GKE_NAME"
 
-  gcloud -q beta container --project "$GKE_PROJECT" clusters get-credentials "$GKE_NAME" --zone "$GKE_ZONE"
+  gcloud -q beta container --project "$GKE_PROJECT" clusters get-credentials "$GKE_NAME" --region "$GKE_REGION"
 }
 
 reset_k8s() {
@@ -35,7 +35,7 @@ reset_k8s() {
 
   delete_k8s
   gcloud -q beta container --project "$GKE_PROJECT" clusters create "$GKE_NAME" \
-    --zone "$GKE_ZONE" \
+    --region "$GKE_REGION" \
     --node-locations "$GKE_NODE_LOCATIONS" \
     --machine-type "$GKE_MACHINE_TYPE" \
     --disk-size "$GKE_DISK_SIZE" \
@@ -50,14 +50,15 @@ reset_k8s() {
 delete_k8s() {
   echo "Deleting gke environment $GKE_NAME..."
 
-  if gcloud -q beta container --project "$GKE_PROJECT" clusters describe "$GKE_NAME" --zone "$GKE_ZONE" 2>&1 \
+  if gcloud -q beta container --project "$GKE_PROJECT" clusters describe "$GKE_NAME" --region "$GKE_REGION" 2>&1 \
     | grep -q "status: RUNNING"
   then
-    gcloud -q beta container --project "$GKE_PROJECT" clusters delete "$GKE_NAME" --zone "$GKE_ZONE" || true
+    gcloud -q beta container --project "$GKE_PROJECT" clusters delete "$GKE_NAME" --region "$GKE_REGION" || true
   fi
-  gcloud -q compute disks list --project "$GKE_PROJECT" --filter "zone:($GKE_ZONE)" | tail -n+2 | cut -d ' ' -f 1 \
-    | grep '^gke-'"$GKE_NAME"'-[0-9a-f]\{4\}-pvc-[0-9a-f]\{8\}-[0-9a-f]\{4\}-[0-9a-f]\{4\}-[0-9a-f]\{4\}-[0-9a-f]\{12\}$' \
-    | xargs -r -n 1 -I % gcloud -q compute disks delete --project "$GKE_PROJECT" --zone "$GKE_ZONE" %
+  gcloud -q compute disks list --project "$GKE_PROJECT" --filter "zone:($GKE_REGION)" \
+    | tail -n+2 | sed 's/ \+/|/g' | cut -d '|' -f 1-2 \
+    | grep '^gke-'"$GKE_NAME"'-[0-9a-f]\{4\}-pvc-[0-9a-f]\{8\}-[0-9a-f]\{4\}-[0-9a-f]\{4\}-[0-9a-f]\{4\}-[0-9a-f]\{12\}|' \
+    | xargs -r -n 1 -I % sh $(! echo $- | grep -q x || echo "-x") -ec "gcloud -q compute disks delete --project '$GKE_PROJECT' --zone \"\$(echo '%' | cut -d '|' -f 2)\" \"\$(echo '%' | cut -d '|' -f 1)\""
 
   echo "...done"
 }
