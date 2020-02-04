@@ -6,6 +6,7 @@
 package io.stackgres.operator;
 
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import com.ongres.junit.docker.Container;
 import com.ongres.junit.docker.ContainerParam;
@@ -35,14 +36,6 @@ public class StackGresOperatorEnd2EndIt extends AbstractStackGresOperatorIt {
       .orElse(System.getProperty("e2e.debug")))
       .map(Boolean::valueOf);
 
-  private static final Optional<String> E2E_TIMEOUT = Optional.ofNullable(
-      Optional.ofNullable(System.getenv("E2E_TIMEOUT"))
-      .orElse(System.getProperty("e2e.timeout")));
-
-  private static final Optional<String> E2E_PARALLELISM = Optional.ofNullable(
-      Optional.ofNullable(System.getenv("E2E_PARALLELISM"))
-      .orElse(System.getProperty("e2e.parallelism")));
-
   @Test
   public void end2EndTest(@ContainerParam("kind") Container kind) throws Exception {
     kind.execute("sh", "-ec",
@@ -61,8 +54,9 @@ public class StackGresOperatorEnd2EndIt extends AbstractStackGresOperatorIt {
             + "export USE_EXTERNAL_OPERATOR=true\n"
             + "export CLUSTER_CHART_PATH=/resources/stackgres-cluster\n"
             + "export OPERATOR_CHART_PATH=/resources/stackgres-operator\n"
-            + (E2E_TIMEOUT.map(timeout -> "export TIMEOUT=" + timeout + "\n").orElse(""))
-            + (E2E_PARALLELISM.map(parallelism -> "export E2E_PARALLELISM=" + parallelism + "\n").orElse(""))
+            + System.getenv().entrySet().stream()
+            .map(e -> "export " + e.getKey() + "=\"" + e.getValue() + "\"")
+            .collect(Collectors.joining("\n"))
             + (E2E_TEST.map(e2eTests -> "if ! sh " + (E2E_DEBUG.orElse(false) ? "-x" : "")
             + " run-test.sh " + e2eTests + "\n"
             + "then\n"
