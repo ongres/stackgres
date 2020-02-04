@@ -11,6 +11,7 @@ IMAGE_TAG="${IMAGE_TAG:-development-jvm}"
 IMAGE_NAME="stackgres/operator:$IMAGE_TAG"
 KUBERNETES_VERSION="${KUBERNETES_VERSION:-1.12.10}"
 E2E_ENV="${E2E_ENV:-kind}"
+SPEC_PATH="$(dirname "$0")/spec"
 TARGET_PATH="$(dirname "$0")/target"
 BUILD_OPERATOR="${BUILD_OPERATOR:-true}"
 WAIT_OPERATOR="${WAIT_OPERATOR:-true}"
@@ -116,11 +117,12 @@ setup_k8s() {
       && [ "$USE_EXTERNAL_OPERATOR" != true ])\
     || [ "$REUSE_OPERATOR" != true ]
   then
-   
-    if docker image inspect $IMAGE_NAME > /dev/null
+    if [ "$FORCE_IMAGE_PULL" = "true" ] \
+      || docker image inspect $IMAGE_NAME >/dev/null 2>&1
     then
-      load_operator_k8s
+      docker pull $IMAGE_NAME
     fi
+    load_operator_k8s
     helm_cleanup
     k8s_cleanup
 
