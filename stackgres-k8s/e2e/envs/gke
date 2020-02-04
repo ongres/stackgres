@@ -2,9 +2,9 @@
 
 GKE_NAME="${GKE_NAME:-stackgres-e2e}"
 KUBERNETES_VERSION="${KUBERNETES_VERSION:-1.13.12}"
-if [ "$KUBERNETES_VERSION" = 1.12.10 ]
+if [ "$KUBERNETES_VERSION" = "$DEFAULT_KUBERNETES_VERSION" ]
 then
-  >&2 echo "Warning: using kubernetes version 1.13.11 since e2e default 1.12.10 is no longer available for gke"
+  >&2 echo "Warning: using kubernetes version 1.13.11 since e2e default $DEFAULT_KUBERNETES_VERSION is not available for gke"
   KUBERNETES_VERSION=1.13.11
 fi
 GKE_VERSION="${GKE_VERSION:-gke.23}"

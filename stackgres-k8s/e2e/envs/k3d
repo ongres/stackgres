@@ -1,12 +1,12 @@
 #!/bin/sh
 
 K3D_NAME="${K3D_NAME:-k3s-default}"
-K3S_VERSION="${K3S_VERSION:-k3s.1}"
+K3S_VERSION="${K3S_VERSION:-k3s1}"
 KUBERNETES_VERSION="${KUBERNETES_VERSION:-1.13.12}"
-if [ "$KUBERNETES_VERSION" = 1.12.10 ]
+if [ "$KUBERNETES_VERSION" = "$DEFAULT_KUBERNETES_VERSION" ]
 then
-  >&2 echo "Warning: using kubernetes version 1.17.0 since e2e default 1.12.10 is no available for k3s"
-  KUBERNETES_VERSION=1.17.0
+  >&2 echo "Warning: using kubernetes version 1.17.2 since e2e default $DEFAULT_KUBERNETES_VERSION is not available for k3s"
+  KUBERNETES_VERSION=1.17.2
 fi
 
 export K3D_NAME KUBERNETES_VERSION K3S_VERSION
