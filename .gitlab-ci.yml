@@ -22,8 +22,12 @@ variables:
                    --show-version
                    -DinstallAtEnd=true
                    -DdeployAtEnd=true
-  E2E_PARALLELISM: 12
   DISABLE_IT: "true"
+  E2E_PARALLELISM: 12
+  E2E_ENV: k3d
+  E2E_KUBERNETES_VERSION: 1.17.2
+  E2E_PARALLELISM: 32
+  RESET_KIND: "true"
 
 # Cache downloaded dependencies and plugins between builds.
 # To keep cache across branches add 'key: "$CI_JOB_NAME"'
