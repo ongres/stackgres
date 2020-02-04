@@ -33,7 +33,7 @@ reuse_k8s() {
 reset_k8s() {
   echo "Setting up gke environment $GKE_NAME..."
 
-  gcloud -q beta container --project "$GKE_PROJECT" clusters delete "$GKE_NAME" --zone "$GKE_ZONE" || true
+  delete_k8s
   gcloud -q beta container --project "$GKE_PROJECT" clusters create "$GKE_NAME" \
     --zone "$GKE_ZONE" \
     --node-locations "$GKE_NODE_LOCATIONS" \
@@ -50,7 +50,14 @@ reset_k8s() {
 delete_k8s() {
   echo "Deleting gke environment $GKE_NAME..."
 
-  gcloud -q beta container --project "$GKE_PROJECT" clusters delete "$GKE_NAME" --zone "$GKE_ZONE" || true
+  if gcloud -q beta container --project "$GKE_PROJECT" clusters describe "$GKE_NAME" --zone "$GKE_ZONE" 2>&1 \
+    | grep -q "status: RUNNING"
+  then
+    gcloud -q beta container --project "$GKE_PROJECT" clusters delete "$GKE_NAME" --zone "$GKE_ZONE" || true
+  fi
+  gcloud -q compute disks list --project "$GKE_PROJECT" --filter "zone:($GKE_ZONE)" | tail -n+2 | cut -d ' ' -f 1 \
+    | grep '^gke-'"$GKE_NAME"'-[0-9a-f]\{4\}-pvc-[0-9a-f]\{8\}-[0-9a-f]\{4\}-[0-9a-f]\{4\}-[0-9a-f]\{4\}-[0-9a-f]\{12\}$' \
+    | xargs -r -n 1 -I % gcloud -q compute disks delete --project "$GKE_PROJECT" --zone "$GKE_ZONE" %
 
   echo "...done"
 }
