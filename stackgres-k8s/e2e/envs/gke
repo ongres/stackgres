@@ -9,12 +9,15 @@ then
 fi
 GKE_VERSION="${GKE_VERSION:-gke.23}"
 GKE_REGION="${GKE_REGION:-us-west1}"
+GKE_ZONE="${GKE_ZONE:-us-west1-a}"
 GKE_NODE_LOCATIONS="${GKE_NODE_LOCATIONS:-us-west1-a,us-west1-b,us-west1-c}"
 GKE_MACHINE_TYPE="${GKE_MACHINE_TYPE:-n1-standard-1}"
 GKE_DISK_SIZE="${GKE_DISK_SIZE:-20}"
 GKE_PROJECT="${GKE_PROJECT:-default}"
 GKE_OPTS="$GKE_OPTS"
-export GKE_NAME KUBERNETES_VERSION GKE_VERSION GKE_REGION GKE_NODE_LOCATIONS GKE_MACHINE_TYPE GKE_DISK_SIZE GKE_PROJECT GKE_OPTS
+GKE_E2E_IAM_ACCOUNT="${GKE_E2E_IAM_ACCOUNT:-stackgres-e2e@gitlab-testing-223316.iam.gserviceaccount.com}"
+
+export GKE_NAME KUBERNETES_VERSION GKE_VERSION GKE_REGION GKE_ZONE GKE_NODE_LOCATIONS GKE_MACHINE_TYPE GKE_PROJECT GKE_OPTS
 
 reuse_k8s() {
   if ! gcloud -q beta container --project "$GKE_PROJECT" clusters describe "$GKE_NAME" --region "$GKE_REGION" 2>&1 \
@@ -43,6 +46,12 @@ reset_k8s() {
     --cluster-version "$KUBERNETES_VERSION-$GKE_VERSION" \
     --no-enable-autoupgrade \
     $GKE_OPTS
+
+  if [ ! -f "$TARGET_PATH/gke-service-account.json" ]
+  then
+    gcloud iam service-accounts keys create "$TARGET_PATH/gke-service-account.json" \
+      --iam-account $GKE_E2E_IAM_ACCOUNT    
+  fi
 
   echo "...done"
 }
