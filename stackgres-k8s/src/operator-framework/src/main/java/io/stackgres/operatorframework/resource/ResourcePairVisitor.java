@@ -478,7 +478,7 @@ public class ResourcePairVisitor<T, C> {
         .visit(PersistentVolumeClaimSpec::getStorageClassName,
             PersistentVolumeClaimSpec::setStorageClassName)
         .visit(PersistentVolumeClaimSpec::getVolumeMode,
-            PersistentVolumeClaimSpec::setVolumeMode)
+            PersistentVolumeClaimSpec::setVolumeMode, "Filesystem")
         .visitList(PersistentVolumeClaimSpec::getAccessModes,
             PersistentVolumeClaimSpec::setAccessModes)
         .visitMap(PersistentVolumeClaimSpec::getAdditionalProperties)
