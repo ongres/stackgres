@@ -63,9 +63,9 @@ EOF
     local pids
   
     kind get nodes --name "$KIND_NAME" \
-      | xargs -r -n 1 -P 0 sh -ec "
-      docker exec -t $node sh -c 'DEBIAN_FRONTEND=noninteractive apt-get update -y -qq < /dev/null > /dev/null'
-      docker exec -t $node sh -c 'DEBIAN_FRONTEND=noninteractive apt-get install -y -qq nfs-common < /dev/null > /dev/null'
+      | xargs -r -n 1 -I % -P 0 sh -ec "
+      docker exec -t '%' sh -c 'DEBIAN_FRONTEND=noninteractive apt-get update -y -qq < /dev/null > /dev/null'
+      docker exec -t '%' sh -c 'DEBIAN_FRONTEND=noninteractive apt-get install -y -qq nfs-common < /dev/null > /dev/null'
       "
   fi
 
@@ -93,8 +93,20 @@ delete_k8s() {
 
 load_operator_k8s() {
   echo "Loading operator image $IMAGE_NAME in kind environemnt $KIND_NAME..."
-  
+
   kind load docker-image --name "$KIND_NAME" "$IMAGE_NAME"
+
+  echo "...done"
+}
+
+load_certificate_k8s() {
+  echo "Loading certificate $1 in kind environemnt $KIND_NAME..."
+
+  echo "$KIND_NAME-control-plane" "$KIND_NAME-worker" "$KIND_NAME-worker2" \
+    | tr ' ' '\n' | xargs -r -n 1 -I % -P 0 sh -ec "
+      docker cp '$1' '%':/usr/local/share/ca-certificates/validator.crt
+      docker exec -t '%' sh -c "update-ca-certificates"
+      "
 
   echo "...done"
 }

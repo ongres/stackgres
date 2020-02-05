@@ -98,3 +98,14 @@ load_operator_k8s() {
 
   echo "...done"
 }
+
+load_certificate_k8s() {
+  echo "Loading certificate $1 in kind environemnt $KIND_NAME..."
+
+  echo "k3d-$K3D_NAME-server" "k3d-$K3D_NAME-worker-0" "k3d-$K3D_NAME-worker-1" \
+    | tr ' ' '\n' | xargs -r -n 1 -I % -P 0 sh -ec "
+      cat '$1' | docker exec -i '%' sh -c "cat >> /etc/ssl/certs/ca-certificates.crt"
+      "
+
+  echo "...done"
+}

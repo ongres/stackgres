@@ -108,6 +108,7 @@ public class ItHelper {
     k8s.copyIn(k8sPath.resolve("install/helm/stackgres-cluster"),
         "/resources/stackgres-cluster");
     k8s.copyIn(k8sPath.resolve("e2e"), "/resources/e2e");
+    k8s.copyIn(Paths.get("src/test/resources/certs"), "/resources/certs");
   }
 
   /**
@@ -128,7 +129,8 @@ public class ItHelper {
               + "sh e2e reuse_k8s\n"
               + "sh e2e setup_helm\n"
               + "sh e2e setup_default_limits 0.1 0.1 16Mi 16Mi\n"
-              + (OPERATOR_IN_KUBERNETES ? "sh e2e load_operator_k8s\n" : ""))
+              + (OPERATOR_IN_KUBERNETES ? "sh e2e load_operator_k8s\n" : "")
+              + (OPERATOR_IN_KUBERNETES ? "" : "sh e2e load_certificate_k8s /resources/certs/server.crt\n"))
               .getBytes(StandardCharsets.UTF_8)), "/reuse-k8s.sh");
       k8s.execute("sh", "-e", "/reuse-k8s.sh")
           .filter(ItHelper.EXCLUDE_TTY_WARNING)
@@ -148,7 +150,8 @@ public class ItHelper {
         + "sh e2e reset_k8s\n"
         + "sh e2e setup_helm\n"
         + "sh e2e setup_default_limits 0.1 0.1 16Mi 16Mi\n"
-        + (OPERATOR_IN_KUBERNETES ? "sh e2e load_operator_k8s\n" : ""))
+        + (OPERATOR_IN_KUBERNETES ? "sh e2e load_operator_k8s\n" : "")
+        + (OPERATOR_IN_KUBERNETES ? "" : "sh e2e load_certificate_k8s /resources/certs/server.crt\n"))
         .getBytes(StandardCharsets.UTF_8)), "/restart-k8s.sh");
     k8s.execute("sh", "-e", "/restart-k8s.sh")
         .filter(ItHelper.EXCLUDE_TTY_WARNING)
