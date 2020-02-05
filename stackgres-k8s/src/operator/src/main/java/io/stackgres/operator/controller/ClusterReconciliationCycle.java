@@ -10,13 +10,17 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.SecretKeySelector;
 import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.quarkus.runtime.ShutdownEvent;
@@ -30,9 +34,11 @@ import io.stackgres.operator.common.ConfigProperty;
 import io.stackgres.operator.common.Prometheus;
 import io.stackgres.operator.common.SidecarEntry;
 import io.stackgres.operator.common.StackGresClusterContext;
+import io.stackgres.operator.common.StackGresRestoreConfigSource;
 import io.stackgres.operator.common.StackGresSidecarTransformer;
 import io.stackgres.operator.customresource.prometheus.PrometheusConfig;
 import io.stackgres.operator.customresource.prometheus.PrometheusInstallation;
+import io.stackgres.operator.customresource.sgbackup.BackupPhase;
 import io.stackgres.operator.customresource.sgbackup.StackGresBackup;
 import io.stackgres.operator.customresource.sgbackup.StackGresBackupDefinition;
 import io.stackgres.operator.customresource.sgbackup.StackGresBackupDoneable;
@@ -45,6 +51,7 @@ import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.customresource.sgcluster.StackGresClusterDefinition;
 import io.stackgres.operator.customresource.sgcluster.StackGresClusterDoneable;
 import io.stackgres.operator.customresource.sgcluster.StackGresClusterList;
+import io.stackgres.operator.customresource.sgcluster.StackGresClusterRestore;
 import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfigDefinition;
 import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfigDoneable;
@@ -53,6 +60,13 @@ import io.stackgres.operator.customresource.sgprofile.StackGresProfile;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfileDefinition;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfileDoneable;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfileList;
+import io.stackgres.operator.customresource.storages.AwsCredentials;
+import io.stackgres.operator.customresource.storages.AwsS3Storage;
+import io.stackgres.operator.customresource.storages.AzureBlobStorage;
+import io.stackgres.operator.customresource.storages.AzureBlobStorageCredentials;
+import io.stackgres.operator.customresource.storages.GoogleCloudCredentials;
+import io.stackgres.operator.customresource.storages.GoogleCloudStorage;
+import io.stackgres.operator.customresource.storages.PgpConfiguration;
 import io.stackgres.operator.resource.ClusterSidecarFinder;
 import io.stackgres.operator.resource.KubernetesCustomResourceScanner;
 import io.stackgres.operator.resource.ResourceUtil;
@@ -60,7 +74,10 @@ import io.stackgres.operator.sidecars.envoy.Envoy;
 import io.stackgres.operatorframework.reconciliation.AbstractReconciliationCycle;
 import io.stackgres.operatorframework.reconciliation.AbstractReconciliator;
 import io.stackgres.operatorframework.resource.ResourceHandlerSelector;
+
+import org.jooq.lambda.Seq;
 import org.jooq.lambda.Unchecked;
+import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple2;
 
 @ApplicationScoped
@@ -199,6 +216,7 @@ public class ClusterReconciliationCycle
             .collect(ImmutableList.toImmutableList()))
         .withBackups(getBackups(cluster, client))
         .withPrometheus(getPrometheus(cluster, client))
+        .withRestoreConfigSource(getRestoreConfig(cluster, client))
         .build();
   }
 
@@ -330,6 +348,69 @@ public class ClusterReconciliationCycle
     } else {
       return Optional.of(new Prometheus(false, null));
     }
+  }
+
+  private Optional<StackGresRestoreConfigSource> getRestoreConfig(StackGresCluster cluster,
+      KubernetesClient client) {
+    final String namespace = cluster.getMetadata().getNamespace();
+    final StackGresClusterRestore restore = cluster.getSpec().getRestore();
+    if (restore != null) {
+      return ResourceUtil.getCustomResource(client, StackGresBackupDefinition.NAME)
+        .map(crd -> client
+            .customResources(crd,
+                StackGresBackup.class,
+                StackGresBackupList.class,
+                StackGresBackupDoneable.class)
+            .inNamespace(namespace)
+            .withName(restore.getStackgresBackup())
+            .get())
+        .map(backup -> {
+          Preconditions.checkNotNull(backup.getStatus(), "Backup is still Pending");
+          Preconditions.checkArgument(backup.getStatus().getPhase()
+              .equals(BackupPhase.COMPLETED.label()),
+              "Backup is " + backup.getStatus().getPhase());
+          return backup;
+        })
+        .map(backup -> StackGresRestoreConfigSource.builder()
+            .withRestore(restore)
+            .withBackup(backup)
+            .withSecrets(Seq.<Optional<SecretKeySelector>>of(
+                Optional.ofNullable(backup.getStatus().getBackupConfig().getPgpConfiguration())
+                .map(PgpConfiguration::getKey),
+                Optional.ofNullable(backup.getStatus().getBackupConfig().getStorage().getS3())
+                .map(AwsS3Storage::getCredentials)
+                .map(AwsCredentials::getAccessKey),
+                Optional.ofNullable(backup.getStatus().getBackupConfig().getStorage().getS3())
+                .map(AwsS3Storage::getCredentials)
+                .map(AwsCredentials::getSecretKey),
+                Optional.ofNullable(backup.getStatus().getBackupConfig().getStorage().getGcs())
+                .map(GoogleCloudStorage::getCredentials)
+                .map(GoogleCloudCredentials::getServiceAccountJsonKey),
+                Optional.ofNullable(backup.getStatus().getBackupConfig().getStorage()
+                    .getAzureblob())
+                .map(AzureBlobStorage::getCredentials)
+                .map(AzureBlobStorageCredentials::getAccount),
+                Optional.ofNullable(backup.getStatus().getBackupConfig().getStorage()
+                    .getAzureblob())
+                .map(AzureBlobStorage::getCredentials)
+                .map(AzureBlobStorageCredentials::getAccessKey))
+            .filter(Optional::isPresent)
+            .map(Optional::get)
+            .map(secretKeySelector -> Optional.ofNullable(client.secrets()
+                .inNamespace(backup.getMetadata().getNamespace())
+                .withName(secretKeySelector.getName())
+                .get())
+                .map(secret -> Tuple.tuple(secretKeySelector.getName(),
+                    secretKeySelector.getKey(),
+                    secret.getData().get(secretKeySelector.getKey()))))
+            .filter(Optional::isPresent)
+            .map(Optional::get)
+            .grouped(t -> t.v1)
+            .collect(ImmutableMap.toImmutableMap(t -> t.v1, t -> t.v2
+                .collect(ImmutableMap.toImmutableMap(tt -> tt.v2, tt -> tt.v3)))))
+            .build());
+    }
+    return Optional.empty();
   }
 
 }

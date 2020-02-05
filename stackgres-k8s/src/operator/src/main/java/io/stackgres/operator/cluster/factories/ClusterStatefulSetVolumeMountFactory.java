@@ -11,22 +11,21 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.operator.cluster.ClusterStatefulSet;
 import io.stackgres.operator.common.StackGresClusterContext;
-import io.stackgres.operatorframework.factories.VolumeMountsFactory;
-import io.stackgres.operatorframework.factories.VolumesFactory;
 
 @ApplicationScoped
-public class ClusterStatefulSetVolumeMountFactory
-    implements VolumeMountsFactory<StackGresClusterContext> {
+public class ClusterStatefulSetVolumeMountFactory {
 
   private static final ImmutableMap<String, Supplier<VolumeMount>> VOLUME_MOUNTS =
       ImmutableMap.<String, Supplier<VolumeMount>>builder()
@@ -54,15 +53,14 @@ public class ClusterStatefulSetVolumeMountFactory
               .build())
           .build();
 
-  private VolumesFactory<StackGresClusterContext> volumeFactory;
+  private final ClusterStatefulSetVolumeFactory volumeFactory;
 
   @Inject
   public ClusterStatefulSetVolumeMountFactory(
-      VolumesFactory<StackGresClusterContext> volumeFactory) {
+      ClusterStatefulSetVolumeFactory volumeFactory) {
     this.volumeFactory = volumeFactory;
   }
 
-  @Override
   public ImmutableList<VolumeMount> getVolumeMounts(StackGresClusterContext config) {
 
     final String name = config.getCluster().getMetadata().getName();

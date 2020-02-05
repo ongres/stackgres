@@ -8,10 +8,10 @@ package io.stackgres.operator.common;
 import java.util.Optional;
 
 import com.google.common.collect.ImmutableList;
+
 import io.stackgres.operator.customresource.sgbackup.StackGresBackup;
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
-import io.stackgres.operator.customresource.sgcluster.StackGresClusterRestore;
 import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfile;
 
@@ -24,6 +24,7 @@ public class StackGresClusterContext {
   private final ImmutableList<SidecarEntry<?, StackGresClusterContext>> sidecars;
   private final ImmutableList<StackGresBackup> backups;
   private final Optional<Prometheus> prometheus;
+  private final Optional<StackGresRestoreConfigSource> restoreConfigSource;
 
   private StackGresClusterContext(Builder builder) {
     this.cluster = builder.cluster;
@@ -33,6 +34,7 @@ public class StackGresClusterContext {
     this.sidecars = builder.sidecars;
     this.backups = builder.backups;
     this.prometheus = builder.prometheus;
+    this.restoreConfigSource = builder.restoreConfigSource;
   }
 
   public StackGresCluster getCluster() {
@@ -47,8 +49,8 @@ public class StackGresClusterContext {
     return backupConfig;
   }
 
-  public Optional<StackGresClusterRestore> getRestoreConfig() {
-    return Optional.ofNullable(cluster.getSpec().getRestore());
+  public Optional<StackGresRestoreConfigSource> getRestoreConfigSource() {
+    return restoreConfigSource;
   }
 
   public Optional<StackGresProfile> getProfile() {
@@ -102,6 +104,7 @@ public class StackGresClusterContext {
     private ImmutableList<SidecarEntry<?, StackGresClusterContext>> sidecars;
     private ImmutableList<StackGresBackup> backups;
     private Optional<Prometheus> prometheus;
+    private Optional<StackGresRestoreConfigSource> restoreConfigSource;
 
     private Builder() {
     }
@@ -138,6 +141,12 @@ public class StackGresClusterContext {
 
     public Builder withPrometheus(Optional<Prometheus> prometheus) {
       this.prometheus = prometheus;
+      return this;
+    }
+
+    public Builder withRestoreConfigSource(
+        Optional<StackGresRestoreConfigSource> restoreConfigSource) {
+      this.restoreConfigSource = restoreConfigSource;
       return this;
     }
 

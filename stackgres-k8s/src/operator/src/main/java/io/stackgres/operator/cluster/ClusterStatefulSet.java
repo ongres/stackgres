@@ -11,11 +11,12 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
+
 import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.Resources;
+
 import io.fabric8.kubernetes.api.model.AffinityBuilder;
 import io.fabric8.kubernetes.api.model.ConfigMapEnvSourceBuilder;
 import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
@@ -42,6 +43,11 @@ import io.fabric8.kubernetes.api.model.TCPSocketActionBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetUpdateStrategyBuilder;
+import io.stackgres.operator.cluster.factories.ClusterStatefulSetEnvironmentVariablesFactory;
+import io.stackgres.operator.cluster.factories.ClusterStatefulSetInitContainer;
+import io.stackgres.operator.cluster.factories.ClusterStatefulSetPodRequirements;
+import io.stackgres.operator.cluster.factories.ClusterStatefulSetVolumeFactory;
+import io.stackgres.operator.cluster.factories.ClusterStatefulSetVolumeMountFactory;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresComponents;
 import io.stackgres.operator.common.StackGresUtil;
@@ -53,11 +59,7 @@ import io.stackgres.operator.patroni.PatroniRole;
 import io.stackgres.operator.patroni.StatefulsetResourceBuilder;
 import io.stackgres.operator.resource.ResourceUtil;
 import io.stackgres.operator.sidecars.envoy.Envoy;
-import io.stackgres.operatorframework.factories.EnvironmentVariablesFactory;
-import io.stackgres.operatorframework.factories.InitContainerFactory;
-import io.stackgres.operatorframework.factories.ResourceRequirementsFactory;
-import io.stackgres.operatorframework.factories.VolumeMountsFactory;
-import io.stackgres.operatorframework.factories.VolumesFactory;
+
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.Unchecked;
 
@@ -86,20 +88,24 @@ public class ClusterStatefulSet implements StatefulsetResourceBuilder {
   private static final String IMAGE_PREFIX = "docker.io/ongres/patroni:v%s-pg%s-build-%s";
   private static final String PATRONI_VERSION = StackGresComponents.get("patroni");
 
-  @Inject
-  ResourceRequirementsFactory<StackGresClusterContext> resourceRequirementsFactory;
+  private final ClusterStatefulSetPodRequirements resourceRequirementsFactory;
+  private final ClusterStatefulSetEnvironmentVariablesFactory environmentVariablesFactory;
+  private final ClusterStatefulSetInitContainer initContainerFactory;
+  private final ClusterStatefulSetVolumeFactory volumesFactory;
+  private final ClusterStatefulSetVolumeMountFactory volumeMountsFactory;
 
-  @Inject
-  EnvironmentVariablesFactory<StackGresClusterContext> environmentVariablesFactory;
-
-  @Inject
-  InitContainerFactory<StackGresClusterContext> initContainerFactory;
-
-  @Inject
-  VolumesFactory<StackGresClusterContext> volumesFactory;
-
-  @Inject
-  VolumeMountsFactory<StackGresClusterContext> volumeMountsFactory;
+  public ClusterStatefulSet(ClusterStatefulSetPodRequirements resourceRequirementsFactory,
+      ClusterStatefulSetEnvironmentVariablesFactory environmentVariablesFactory,
+      ClusterStatefulSetInitContainer initContainerFactory,
+      ClusterStatefulSetVolumeFactory volumesFactory,
+      ClusterStatefulSetVolumeMountFactory volumeMountsFactory) {
+    super();
+    this.resourceRequirementsFactory = resourceRequirementsFactory;
+    this.environmentVariablesFactory = environmentVariablesFactory;
+    this.initContainerFactory = initContainerFactory;
+    this.volumesFactory = volumesFactory;
+    this.volumeMountsFactory = volumeMountsFactory;
+  }
 
   public static String dataName(StackGresClusterContext clusterContext) {
     String name = clusterContext.getCluster().getMetadata().getName();
@@ -126,8 +132,10 @@ public class ClusterStatefulSet implements StatefulsetResourceBuilder {
     ResourceRequirements podResources = resourceRequirementsFactory
         .getPodRequirements(clusterContext);
 
-    ImmutableList<EnvVar> statefulSetEnvVariables = environmentVariablesFactory
-        .getEnvironmentVariables(clusterContext);
+    ImmutableList<EnvVar> patroniSetEnvVariables = environmentVariablesFactory
+        .getPatroniEnvironmentVariables(clusterContext);
+    ImmutableList<EnvVar> backupSetEnvVariables = environmentVariablesFactory
+        .getBackupEnvironmentVariables(clusterContext);
 
     StorageConfig dataStorageConfig = ImmutableStorageConfig.builder()
         .size(clusterContext.getCluster().getSpec().getVolumeSize())
@@ -229,7 +237,10 @@ public class ClusterStatefulSet implements StatefulsetResourceBuilder {
                 .withConfigMapRef(new ConfigMapEnvSourceBuilder()
                     .withName(PatroniConfigMap.restoreName(clusterContext)).build())
                 .build())
-            .withEnv(statefulSetEnvVariables)
+            .withEnv(ImmutableList.<EnvVar>builder()
+                .addAll(patroniSetEnvVariables)
+                .addAll(backupSetEnvVariables)
+                .build())
             .withLivenessProbe(new ProbeBuilder()
                 .withTcpSocket(new TCPSocketActionBuilder()
                     .withPort(new IntOrString(5432))

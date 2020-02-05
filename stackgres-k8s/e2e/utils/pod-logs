@@ -3,6 +3,8 @@
 pod_logs() {
   local pods
   local pod
+  local filtered_pod
+  local filtered_container
   local container
   local template
   local namespace
@@ -21,6 +23,16 @@ pod_logs() {
       -n)
         shift
         namespace="$1"
+        shift
+        ;;
+      -p)
+        shift
+        filtered_pod="$1"
+        shift
+        ;;
+      -c)
+        shift
+        filtered_container="$1"
         shift
         ;;
       -o)
@@ -56,10 +68,19 @@ pod_logs() {
       sleep 1
       continue
     fi
+    if [ ! -z "$filtered_pod" -a "$filtered_pod" != "$(echo "$pod" | cut -d / -f 2)" ]
+    then
+      pods="$pods\|$pod"
+      continue
+    fi
     for container in $(kubectl get pod -n "$(echo "$pod" | cut -d / -f 1)" "$(echo "$pod" | cut -d / -f 2)" \
       --template "$pod_template" \
       | tr -d '{}' | tr , '\n' | grep '"name"' | tr -d '"' | cut -d : -f 2)
     do
+      if [ ! -z "$filtered_container" -a "$filtered_container" != "$container" ]
+      then
+        continue
+      fi
       (set +ex
         "$SHELL" +x -c 'echo $$; exec kubectl logs -n "'"$(echo "$pod" | cut -d / -f 1)"'" "'"$(echo "$pod" | cut -d / -f 2)"'" -c "'"$container"'" -f' \
           | (
@@ -67,7 +88,7 @@ pod_logs() {
           trap_kill "$pid"
           while read line
           do
-            echo "[$pod] $line"
+            echo "[$pod-$container] $line"
           done
           )
       ) &

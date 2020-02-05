@@ -8,7 +8,6 @@ package io.stackgres.operator.cluster.factories;
 import java.util.Optional;
 
 import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
 
 import com.google.common.collect.ImmutableList;
 
@@ -18,21 +17,10 @@ import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.stackgres.operator.cluster.ClusterStatefulSet;
 import io.stackgres.operator.common.StackGresClusterContext;
-import io.stackgres.operator.customresource.sgcluster.StackGresRestoreConfigSource;
-import io.stackgres.operator.patroni.PatroniRestoreSource;
-import io.stackgres.operatorframework.factories.VolumesFactory;
 
 @ApplicationScoped
-public class ClusterStatefulSetVolumeFactory implements VolumesFactory<StackGresClusterContext> {
+public class ClusterStatefulSetVolumeFactory {
 
-  private PatroniRestoreSource restoreSource;
-
-  @Inject
-  public ClusterStatefulSetVolumeFactory(PatroniRestoreSource restoreSource) {
-    this.restoreSource = restoreSource;
-  }
-
-  @Override
   public ImmutableList<Volume> getVolumes(StackGresClusterContext config) {
     ImmutableList.Builder<Volume> volumeListBuilder = ImmutableList.<Volume>builder().add(
         new VolumeBuilder()
@@ -72,7 +60,7 @@ public class ClusterStatefulSetVolumeFactory implements VolumesFactory<StackGres
               .build()));
     });
 
-    config.getRestoreConfig().ifPresent(restoreConfig -> {
+    config.getRestoreConfigSource().ifPresent(restoreConfigSource -> {
       volumeListBuilder.add(
           new VolumeBuilder()
               .withName(ClusterStatefulSet.RESTORE_ENTRYPOINT_VOLUME)
@@ -81,9 +69,8 @@ public class ClusterStatefulSetVolumeFactory implements VolumesFactory<StackGres
               .endEmptyDir()
               .build());
 
-      StackGresRestoreConfigSource source = restoreSource.getStorageConfig(restoreConfig);
-
-      Optional.ofNullable(source.getStorage().getGcs())
+      Optional.ofNullable(restoreConfigSource.getBackup().getStatus()
+          .getBackupConfig().getStorage().getGcs())
           .ifPresent(gcsStorage -> volumeListBuilder.add(new VolumeBuilder()
               .withName(ClusterStatefulSet.GCS_RESTORE_CREDENTIALS_VOLUME_NAME)
               .withSecret(new SecretVolumeSourceBuilder()

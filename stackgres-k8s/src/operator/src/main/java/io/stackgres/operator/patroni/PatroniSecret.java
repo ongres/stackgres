@@ -11,15 +11,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+
 import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
 
 import com.google.common.collect.ImmutableList;
+
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.stackgres.operator.common.StackGresClusterContext;
-import io.stackgres.operator.customresource.sgcluster.StackGresRestoreConfigSource;
 import io.stackgres.operator.resource.ResourceUtil;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,11 +30,8 @@ public class PatroniSecret {
   private static final Logger LOGGER = LoggerFactory
       .getLogger(PatroniSecret.class);
 
-  private PatroniRestoreSource restoreSource;
-
-  @Inject
-  public PatroniSecret(PatroniRestoreSource restoreSource) {
-    this.restoreSource = restoreSource;
+  public static String restoreCopiedSecretName(StackGresClusterContext context, String name) {
+    return context.getCluster().getMetadata().getName() + "-restore-" + name;
   }
 
   /**
@@ -61,21 +59,22 @@ public class PatroniSecret {
         .withData(data)
         .build());
 
-    context.getRestoreConfig().ifPresent(restoreConfig -> {
-      StackGresRestoreConfigSource source = restoreSource.getStorageConfig(restoreConfig);
-      if (source.isAutoCopySecretsEnabled()) {
+    context.getRestoreConfigSource().ifPresent(restoreConfigSource -> {
+      if (restoreConfigSource.getRestore().isAutoCopySecretsEnabled()) {
         LOGGER.info("restore auto copy secrets enabled.  Copying secrets...");
-        restoreSource.getSourceCredentials(restoreConfig, namespace).forEach(sourceSecret -> secrets
+        restoreConfigSource.getSecrets().entrySet()
+            .stream()
+            .forEach(secret -> secrets
             .add(new SecretBuilder()
                 .withNewMetadata()
                 .withNamespace(namespace)
-                .withName(sourceSecret.getSecretName())
+                .withName(restoreCopiedSecretName(context, secret.getKey()))
                 .withLabels(labels)
                 .withOwnerReferences(ImmutableList.of(
                     ResourceUtil.getOwnerReference(context.getCluster())))
                 .endMetadata()
                 .withType("Opaque")
-                .withData(sourceSecret.getData())
+                .withData(secret.getValue())
                 .build()
             ));
       }

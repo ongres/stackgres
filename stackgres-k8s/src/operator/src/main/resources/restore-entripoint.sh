@@ -45,7 +45,7 @@ cat <<'EOF' >/restore/bootstrap
 #!/bin/sh
 SCOPE=$PATRONI_SCOPE
 DATADIR=/var/lib/postgresql/data
-BACKUP=$RESTORE_BACKUP_ID
+BACKUP="$RESTORE_BACKUP_ID"
 while getopts d:s-: OPT; do
   if [ "$OPT" = "-" ]; then   # long option: reformulate OPT and OPTARG
     OPT="${OPTARG%%=*}"       # extract long option name
@@ -57,7 +57,7 @@ while getopts d:s-: OPT; do
     s | scope )   SCOPE="$OPTARG" ;;
   esac
 done
-/wal-g-restore-wrapper/wal-g backup-fetch $DATADIR $BACKUP
+/wal-g-restore-wrapper/wal-g backup-fetch "$DATADIR" "$BACKUP"
 EOF
 cat <<EOF >/restore/entrypoint
 export LC_ALL=C.UTF-8

@@ -24,41 +24,40 @@ import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.operator.cluster.ClusterStatefulSet;
 import io.stackgres.operator.common.StackGresClusterContext;
-import io.stackgres.operatorframework.factories.EnvironmentVariablesFactory;
-import io.stackgres.operatorframework.factories.InitContainerFactory;
+import io.stackgres.operator.patroni.PatroniConfigMap;
 
 import org.jooq.lambda.Unchecked;
 
 @ApplicationScoped
-public class ClusterStatefulSetInitContainer
-    implements InitContainerFactory<StackGresClusterContext> {
+public class ClusterStatefulSetInitContainer {
 
-  private EnvironmentVariablesFactory<StackGresClusterContext> environmentVariablesFactory;
+  private final ClusterStatefulSetEnvironmentVariablesFactory environmentVariablesFactory;
 
   @Inject
   public ClusterStatefulSetInitContainer(
-      EnvironmentVariablesFactory<StackGresClusterContext> environmentVariablesFactory) {
+      ClusterStatefulSetEnvironmentVariablesFactory environmentVariablesFactory) {
     this.environmentVariablesFactory = environmentVariablesFactory;
   }
 
-  @Override
   public ImmutableList<Container> getInitContainers(StackGresClusterContext config) {
-    final String name = config.getCluster().getMetadata().getName();
-
-    ImmutableList<EnvVar> statefulSetEnvVariables = environmentVariablesFactory
-        .getEnvironmentVariables(config);
+    ImmutableList<EnvVar> patroniSetEnvVariables = environmentVariablesFactory
+        .getPatroniEnvironmentVariables(config);
+    ImmutableList<EnvVar> backupSetEnvVariables = environmentVariablesFactory
+        .getBackupEnvironmentVariables(config);
+    ImmutableList<EnvVar> restoreSetEnvVariables = environmentVariablesFactory
+        .getRestoreEnvironmentVariables(config);
 
     Container container = new ContainerBuilder()
-        .withName("data-permissions")
+        .withName("set-data-permissions")
         .withImage("busybox")
-        .withCommand("/bin/sh", "-ecx", getPermissionCommand())
-        .withVolumeMounts(getPermissionVolumeMounts(config))
+        .withCommand("/bin/sh", "-ecx", getSetDataPermissionCommand())
+        .withVolumeMounts(getSetDataPermissionVolumeMounts(config))
         .build();
 
     ImmutableList.Builder<Container> containerBuilder = ImmutableList.<Container>builder()
         .add(container);
 
-    config.getRestoreConfig().ifPresent(restoreConfig -> {
+    config.getRestoreConfigSource().ifPresent(restoreConfigSource -> {
       Container restoreWrapperContainer = new ContainerBuilder()
           .withName("wal-g-restore-wrapper")
           .withImage("busybox")
@@ -69,9 +68,12 @@ public class ClusterStatefulSetInitContainer
               .read()).get())
           .withEnvFrom(new EnvFromSourceBuilder()
               .withConfigMapRef(new ConfigMapEnvSourceBuilder()
-                  .withName(name).build())
+                  .withName(PatroniConfigMap.restoreName(config)).build())
               .build())
-          .withEnv(statefulSetEnvVariables)
+          .withEnv(ImmutableList.<EnvVar>builder()
+              .addAll(patroniSetEnvVariables)
+              .addAll(restoreSetEnvVariables)
+              .build())
           .withVolumeMounts(
               new VolumeMountBuilder()
                   .withName(ClusterStatefulSet.WAL_G_RESTORE_WRAPPER_VOLUME_NAME)
@@ -89,9 +91,16 @@ public class ClusterStatefulSetInitContainer
               .read()).get())
           .withEnvFrom(new EnvFromSourceBuilder()
               .withConfigMapRef(new ConfigMapEnvSourceBuilder()
-                  .withName(name).build())
+                  .withName(PatroniConfigMap.patroniName(config)).build())
+              .build(),
+              new EnvFromSourceBuilder()
+              .withConfigMapRef(new ConfigMapEnvSourceBuilder()
+                  .withName(PatroniConfigMap.restoreName(config)).build())
               .build())
-          .withEnv(statefulSetEnvVariables)
+          .withEnv(ImmutableList.<EnvVar>builder()
+              .addAll(patroniSetEnvVariables)
+              .addAll(restoreSetEnvVariables)
+              .build())
           .withVolumeMounts(
               new VolumeMountBuilder()
                   .withName(ClusterStatefulSet.RESTORE_ENTRYPOINT_VOLUME)
@@ -114,9 +123,12 @@ public class ClusterStatefulSetInitContainer
               .read()).get())
           .withEnvFrom(new EnvFromSourceBuilder()
               .withConfigMapRef(new ConfigMapEnvSourceBuilder()
-                  .withName(name).build())
+                  .withName(PatroniConfigMap.backupName(config)).build())
               .build())
-          .withEnv(statefulSetEnvVariables)
+          .withEnv(ImmutableList.<EnvVar>builder()
+              .addAll(patroniSetEnvVariables)
+              .addAll(backupSetEnvVariables)
+              .build())
           .withVolumeMounts(
               new VolumeMountBuilder()
                   .withName(ClusterStatefulSet.WAL_G_WRAPPER_VOLUME_NAME)
@@ -129,7 +141,7 @@ public class ClusterStatefulSetInitContainer
     return containerBuilder.build();
   }
 
-  private VolumeMount[] getPermissionVolumeMounts(StackGresClusterContext config) {
+  private VolumeMount[] getSetDataPermissionVolumeMounts(StackGresClusterContext config) {
     final String name = config.getCluster().getMetadata().getName();
     return Stream.of(
         Stream.of(new VolumeMountBuilder()
@@ -140,7 +152,7 @@ public class ClusterStatefulSetInitContainer
         .toArray(VolumeMount[]::new);
   }
 
-  private String getPermissionCommand() {
+  private String getSetDataPermissionCommand() {
     return Stream.of(
         Stream.of(
             "chmod -R 700 " + ClusterStatefulSet.PG_VOLUME_PATH,

@@ -12,7 +12,6 @@ import java.util.Optional;
 import java.util.function.Function;
 
 import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -26,7 +25,6 @@ import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresComponents;
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfigSpec;
-import io.stackgres.operator.customresource.sgcluster.StackGresRestoreConfigSource;
 import io.stackgres.operator.customresource.storages.AwsS3Storage;
 import io.stackgres.operator.customresource.storages.AzureBlobStorage;
 import io.stackgres.operator.customresource.storages.BackupStorage;
@@ -45,16 +43,10 @@ public class PatroniConfigMap {
 
   private static final Logger PATRONI_LOGGER = LoggerFactory.getLogger("patroni");
   private static final Logger WAL_G_LOGGER = LoggerFactory.getLogger("wal-g");
+
   private static final String PATRONI_SUFFIX = "-patroni";
   private static final String BACKUP_SUFFIX = "-backup";
   private static final String RESTORE_SUFFIX = "-restore";
-
-  private final PatroniRestoreSource patroniRestoreSource;
-
-  @Inject
-  public PatroniConfigMap(PatroniRestoreSource patroniRestoreSource) {
-    this.patroniRestoreSource = patroniRestoreSource;
-  }
 
   public static String patroniName(StackGresClusterContext clusterContext) {
     return ResourceUtil.resourceName(clusterContext.getCluster().getMetadata().getName()
@@ -82,16 +74,13 @@ public class PatroniConfigMap {
   }
 
   public ConfigMap createPatroniConfig(StackGresClusterContext context, ObjectMapper objectMapper) {
-    final String name = patroniName(context);
-    final String namespace = context.getCluster().getMetadata().getNamespace();
-    Map<String, String> labels = ResourceUtil.patroniClusterLabels(context.getCluster());
-
     final String pgVersion = StackGresComponents.calculatePostgresVersion(
         context.getCluster().getSpec().getPostgresVersion());
 
     final String patroniLabels;
     try {
-      patroniLabels = objectMapper.writeValueAsString(labels);
+      patroniLabels = objectMapper.writeValueAsString(
+          ResourceUtil.patroniClusterLabels(context.getCluster()));
     } catch (JsonProcessingException ex) {
       throw new RuntimeException(ex);
     }
@@ -124,20 +113,18 @@ public class PatroniConfigMap {
 
     return new ConfigMapBuilder()
         .withNewMetadata()
-        .withNamespace(namespace)
-        .withName(name)
-        .withLabels(labels)
-        .withOwnerReferences(ImmutableList.of(ResourceUtil.getOwnerReference(context.getCluster())))
+        .withNamespace(context.getCluster().getMetadata().getNamespace())
+        .withName(patroniName(context))
+        .withLabels(ResourceUtil.patroniClusterLabels(context.getCluster()))
+        .withOwnerReferences(ImmutableList.of(
+            ResourceUtil.getOwnerReference(context.getCluster())))
         .endMetadata()
         .withData(data)
         .build();
   }
 
   private static ConfigMap createBackupConfig(StackGresClusterContext context) {
-    final String name = backupName(context);
-    final String namespace = context.getCluster().getMetadata().getNamespace();
-    final Map<String, String> labels = ResourceUtil.patroniClusterLabels(context.getCluster());
-    Map<String, String> data = new HashMap<>();
+    final Map<String, String> data = new HashMap<>();
 
     context.getBackupConfig().ifPresent(backupConfig -> {
       data.put("BACKUP_CONFIG_RESOURCE_VERSION", backupConfig.getMetadata().getResourceVersion());
@@ -159,7 +146,8 @@ public class PatroniConfigMap {
       Optional<AwsS3Storage> storageForS3 = getStorageFor(backupConfig, BackupStorage::getS3);
       if (storageForS3.isPresent()) {
         data.put("WALG_S3_PREFIX", getFromS3(storageForS3, AwsS3Storage::getPrefix)
-            + "/" + namespace + "/" + name);
+            + "/" + context.getCluster().getMetadata().getNamespace()
+            + "/" + context.getCluster().getMetadata().getName());
         data.put("AWS_REGION", getFromS3(storageForS3, AwsS3Storage::getRegion));
         data.put("AWS_ENDPOINT", getFromS3(storageForS3, AwsS3Storage::getEndpoint));
         data.put("AWS_S3_FORCE_PATH_STYLE", getFromS3(storageForS3,
@@ -175,7 +163,8 @@ public class PatroniConfigMap {
           backupConfig, BackupStorage::getGcs);
       if (storageForGcs.isPresent()) {
         data.put("WALG_GCS_PREFIX", getFromGcs(storageForGcs, GoogleCloudStorage::getPrefix)
-            + "/" + namespace + "/" + name);
+            + "/" + context.getCluster().getMetadata().getNamespace()
+            + "/" + context.getCluster().getMetadata().getName());
       }
 
       Optional<AzureBlobStorage> storageForAzureBlob = getStorageFor(
@@ -183,7 +172,8 @@ public class PatroniConfigMap {
       if (storageForAzureBlob.isPresent()) {
         data.put("WALG_AZ_PREFIX", getFromAzureBlob(
             storageForAzureBlob, AzureBlobStorage::getPrefix)
-            + "/" + namespace + "/" + name);
+            + "/" + context.getCluster().getMetadata().getNamespace()
+            + "/" + context.getCluster().getMetadata().getName());
         data.put("WALG_AZURE_BUFFER_SIZE", getFromAzureBlob(
             storageForAzureBlob, AzureBlobStorage::getBufferSize));
         data.put("WALG_AZURE_MAX_BUFFERS", getFromAzureBlob(
@@ -197,9 +187,9 @@ public class PatroniConfigMap {
 
     return new ConfigMapBuilder()
         .withNewMetadata()
-        .withNamespace(namespace)
-        .withName(name)
-        .withLabels(labels)
+        .withNamespace(context.getCluster().getMetadata().getNamespace())
+        .withName(backupName(context))
+        .withLabels(ResourceUtil.patroniClusterLabels(context.getCluster()))
         .withOwnerReferences(ImmutableList.of(
             ResourceUtil.getOwnerReference(context.getCluster())))
         .endMetadata()
@@ -208,22 +198,20 @@ public class PatroniConfigMap {
   }
 
   private ConfigMap craeteRestoreConfig(StackGresClusterContext context) {
-    final String name = restoreName(context);
-    final String namespace = context.getCluster().getMetadata().getNamespace();
-    final Map<String, String> labels = ResourceUtil.patroniClusterLabels(context.getCluster());
-    Map<String, String> data = new HashMap<>();
+    final Map<String, String> data = new HashMap<>();
 
-    context.getRestoreConfig().ifPresent(restoreConfig -> {
+    context.getRestoreConfigSource().ifPresent(restoreConfigSource -> {
       putIfPresent("WALG_DOWNLOAD_CONCURRENCY",
-          restoreConfig.getDownloadDiskConcurrency(), data);
+          restoreConfigSource.getRestore().getDownloadDiskConcurrency(), data);
 
-      StackGresRestoreConfigSource source = patroniRestoreSource.getStorageConfig(restoreConfig);
+      putIfPresent("WALG_COMPRESSION_METHOD", restoreConfigSource.getBackup().getStatus()
+          .getBackupConfig().getCompressionMethod(), data);
 
-      putIfPresent("WALG_COMPRESSION_METHOD", source.getCompressionMethod(), data);
+      putIfPresent("RESTORE_BACKUP_ID", restoreConfigSource.getBackup()
+          .getMetadata().getName(), data);
 
-      putIfPresent("BACKUP_ID", source.getBackupName(), data);
-
-      BackupStorage storage = source.getStorage();
+      BackupStorage storage = restoreConfigSource.getBackup().getStatus()
+          .getBackupConfig().getStorage();
 
       Optional.ofNullable(storage.getS3()).ifPresent(s3config -> {
         data.put("WALG_S3_PREFIX", s3config.getPrefix());
@@ -259,9 +247,9 @@ public class PatroniConfigMap {
 
     return new ConfigMapBuilder()
         .withNewMetadata()
-        .withNamespace(namespace)
-        .withName(name)
-        .withLabels(labels)
+        .withNamespace(context.getCluster().getMetadata().getNamespace())
+        .withName(restoreName(context))
+        .withLabels(ResourceUtil.patroniClusterLabels(context.getCluster()))
         .withOwnerReferences(ImmutableList.of(
             ResourceUtil.getOwnerReference(context.getCluster())))
         .endMetadata()
