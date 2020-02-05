@@ -190,6 +190,7 @@ const store = new Vuex.Store({
     currentCluster: {},
     currentPods: [],
     namespaces: [],
+    allNamespaces: [],
     clusters: [],
     backups: [],
     pgConfig: [],
@@ -213,6 +214,10 @@ const store = new Vuex.Store({
         $('#selected--zg-ul-select').text(store.state.currentNamespace).addClass('active');
       }
       
+    },
+
+    addNamespaces (state, namespacesList) {
+      state.allNamespaces = [...namespacesList];
     },
 
     setCurrentCluster (state, cluster) {
@@ -248,10 +253,10 @@ const store = new Vuex.Store({
 
       if ( typeof index !== "undefined" ) {
         index.data = cluster.data;
-        console.log(cluster.name+" ya existe");
+        //console.log(cluster.name+" ya existe");
       } else {
         state.clusters.push( cluster );    
-        console.log('Se agregó '+cluster.name);
+        //console.log('Se agregó '+cluster.name);
       }
 
     },
@@ -261,10 +266,10 @@ const store = new Vuex.Store({
 
         if ( typeof index !== "undefined" ) {
           index.data = backup.data;
-          console.log(backup.name+" ya existe");
+          //console.log(backup.name+" ya existe");
         } else {
           state.backups.push( backup );    
-          console.log('Se agregó '+backup.name);
+          // console.log('Se agregó '+backup.name);
         }
 
       },
@@ -274,10 +279,10 @@ const store = new Vuex.Store({
 
       if ( typeof index !== "undefined" ) {
         index.data = config.data;
-        console.log(config.name+" ya existe");
+        // console.log(config.name+" ya existe");
       } else {
         state.pgConfig.push( config );    
-        console.log('Se agregó '+config.name);
+        // console.log('Se agregó '+config.name);
       }
 
     },
@@ -287,10 +292,10 @@ const store = new Vuex.Store({
 
       if ( typeof index !== "undefined" ) {
         index.data = config.data;
-        console.log(config.name+" ya existe");
+        // console.log(config.name+" ya existe");
       } else {
         state.poolConfig.push( config );    
-        console.log('Se agregó '+config.name);
+        // console.log('Se agregó '+config.name);
       }
 
     },
@@ -300,26 +305,30 @@ const store = new Vuex.Store({
 
       if ( typeof index !== "undefined" ) {
         index.data = config.data;
-        console.log(config.name+" ya existe");
+        // console.log(config.name+" ya existe");
       } else {
         state.backupConfig.push( config );    
-        console.log('Se agregó '+config.name);
+        // console.log('Se agregó '+config.name);
       }
 
     },
     updateProfiles ( state, profile ) {
 
-        let index = state.profiles.find(p => (profile.data.metadata.name == p.name) && (profile.data.metadata.namespace == p.data.metadata.namespace) ); 
+      let index = state.profiles.find(p => (profile.data.metadata.name == p.name) && (profile.data.metadata.namespace == p.data.metadata.namespace) ); 
 
-        if ( typeof index !== "undefined" ) {
-          index.data = profile.data;
-          console.log(profile.name+" ya existe");
-        } else {
-          state.profiles.push( profile );    
-          console.log('Se agregó '+profile.name);
-        }
+      if ( typeof index !== "undefined" ) {
+        index.data = profile.data;
+        // console.log(profile.name+" ya existe");
+      } else {
+        state.profiles.push( profile );    
+        // console.log('Se agregó '+profile.name);
+      }
 
-      },
+    },
+
+    flushAllNamespaces (state) {
+      state.allNamespaces.length = 0;
+    },
 
     flushClusters (state ) {
       state.clusters.length = 0;
@@ -368,6 +377,28 @@ var vm = new Vue({
       /*if(!doneInit)
         namespaces.length = 0;*/
 
+      /* Namespaces Data */
+      axios
+      .get(apiURL+'namespaces',
+        { headers: {
+            //'content-type': 'application/json'
+          }
+        }
+      )
+      .then( function(response){
+
+        // Check if there are any changes on API Data
+        if ( checkData(response.data, store.state.allNamespaces) ) {
+
+          if(typeof store.state.allNamespaces !== 'undefined' && response.data.length != store.state.allNamespaces.length)
+            store.commit('flushAllNamespaces');
+
+          store.commit('addNamespaces', response.data);
+
+        }
+        
+      });
+
       /* Clusters Data */
       axios
       .get(apiURL+'cluster',
@@ -403,7 +434,7 @@ var vm = new Vue({
 
           });
           
-          console.log('Clusters Data updated');
+          // console.log('Clusters Data updated');
           
           /*if(doneInit)
             notify('Clusters Data updated');
@@ -426,7 +457,7 @@ var vm = new Vue({
         if( checkData(response.data, apiData['backup']) ) {
 
           if(typeof apiData['backup'] !== 'undefined' && response.data.length != apiData['backup'].length)
-            store.commit('flushBackup');
+            store.commit('flushBackups');
 
           apiData['backup'] = response.data;
 
@@ -447,7 +478,7 @@ var vm = new Vue({
 
           });
 
-          console.log("Backups Data updated");
+          //console.log("Backups Data updated");
 
         }
       });
@@ -485,7 +516,7 @@ var vm = new Vue({
 
           });
 
-          console.log("PGconf Data updated");
+          // console.log("PGconf Data updated");
 
         }
       });
@@ -523,7 +554,7 @@ var vm = new Vue({
 
           });
 
-          console.log("PoolConf Data updated");
+          // console.log("PoolConf Data updated");
 
         }
       });
@@ -561,7 +592,7 @@ var vm = new Vue({
 
           });
 
-          console.log("BackupConfig Data updated");
+          // console.log("BackupConfig Data updated");
 
         }
       });
@@ -600,7 +631,7 @@ var vm = new Vue({
 
           });
 
-          console.log("Profiles Data updated");
+          // console.log("Profiles Data updated");
 
         }
       });
@@ -648,9 +679,13 @@ Vue.filter('prettyCRON', function (value) {
 
 Vue.filter('formatBytes',function(a){
 
-    // Bytes Formatter via https://stackoverflow.com/questions/15900485/correct-way-to-convert-size-in-bytes-to-kb-mb-gb-in-javascript
-    if(0==a)return"0 Bytes";var c=1024,d=2,e=["Bytes","Ki","Mi","Gi","Ti","Pi","Ei","Zi","Yi"],f=Math.floor(Math.log(a)/Math.log(c));return parseFloat((a/Math.pow(c,f)).toFixed(d))+" "+e[f];
+  // Bytes Formatter via https://stackoverflow.com/questions/15900485/correct-way-to-convert-size-in-bytes-to-kb-mb-gb-in-javascript
+  if(0==a)return"0 Bytes";var c=1024,d=2,e=["Bytes","Ki","Mi","Gi","Ti","Pi","Ei","Zi","Yi"],f=Math.floor(Math.log(a)/Math.log(c));return parseFloat((a/Math.pow(c,f)).toFixed(d))+" "+e[f];
 
+});
+
+Vue.filter('prefix',function(s, l = 2){
+  return s.substring(0, l);
 });
 
 function arraysMatch (arr1, arr2) {

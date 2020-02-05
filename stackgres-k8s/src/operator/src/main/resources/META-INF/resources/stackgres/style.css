@@ -88,6 +88,11 @@ h1, h2, h3, h4, h5, h6 {
     display: inline-block;
 }
 
+.form button:hover, .form button:focus, .btn:hover, .btn:focus {
+    background: var(--lblue);
+    border-color: var(--lblue);
+}
+
 a {
     color: var(--blue);
     text-decoration: none;
@@ -573,6 +578,11 @@ footer {
     display: block;
 }
 
+#notifications .tooltip span {
+    display: block;
+    margin: 10px;
+}
+
 .tooltip {
     position: fixed;
     background: #fff;
@@ -582,6 +592,7 @@ footer {
     box-shadow: 0 10px 30px rgba(0,0,0,.1);
     margin-left: 70px;
     display: none;
+    line-height: 1;
 }
 
 .tooltip.show {
@@ -1087,18 +1098,15 @@ label.switch {
     background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB2ZXJzaW9uPSIxLjEiIGlkPSJMYXllcl8xIiB4PSIwcHgiIHk9IjBweCIgdmlld0JveD0iMCAwIDQ5MS45OTYgNDkxLjk5NiIgc3R5bGU9ImVuYWJsZS1iYWNrZ3JvdW5kOm5ldyAwIDAgNDkxLjk5NiA0OTEuOTk2OyIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSIgd2lkdGg9IjUxMiIgaGVpZ2h0PSI1MTIiIGNsYXNzPSIiPjxnPjxnPgoJPGc+CgkJPHBhdGggZD0iTTQ4NC4xMzIsMTI0Ljk4NmwtMTYuMTE2LTE2LjIyOGMtNS4wNzItNS4wNjgtMTEuODItNy44Ni0xOS4wMzItNy44NmMtNy4yMDgsMC0xMy45NjQsMi43OTItMTkuMDM2LDcuODZsLTE4My44NCwxODMuODQ4ICAgIEw2Mi4wNTYsMTA4LjU1NGMtNS4wNjQtNS4wNjgtMTEuODItNy44NTYtMTkuMDI4LTcuODU2cy0xMy45NjgsMi43ODgtMTkuMDM2LDcuODU2bC0xNi4xMiwxNi4xMjggICAgYy0xMC40OTYsMTAuNDg4LTEwLjQ5NiwyNy41NzIsMCwzOC4wNmwyMTkuMTM2LDIxOS45MjRjNS4wNjQsNS4wNjQsMTEuODEyLDguNjMyLDE5LjA4NCw4LjYzMmgwLjA4NCAgICBjNy4yMTIsMCwxMy45Ni0zLjU3MiwxOS4wMjQtOC42MzJsMjE4LjkzMi0yMTkuMzI4YzUuMDcyLTUuMDY0LDcuODU2LTEyLjAxNiw3Ljg2NC0xOS4yMjQgICAgQzQ5MS45OTYsMTM2LjkwMiw0ODkuMjA0LDEzMC4wNDYsNDg0LjEzMiwxMjQuOTg2eiIgZGF0YS1vcmlnaW5hbD0iIzAwMDAwMCIgY2xhc3M9ImFjdGl2ZS1wYXRoIiBzdHlsZT0iZmlsbDojQjNCM0IzIiBkYXRhLW9sZF9jb2xvcj0iIzAwMDAwMCI+PC9wYXRoPgoJPC9nPgo8L2c+PC9nPiA8L3N2Zz4=);
 }
 
-.unit-select select {
+.unit-select .size {
+    max-width: calc(100% - 220px);
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
     float: left;
 }
 
-.unit-select .size {
-    width: 70%;
-    border-top-right-radius: 0;
-    border-bottom-right-radius: 0;
-}
-
 .unit-select .unit {
-    width: 30%;
+    width: 220px;
     border-top-left-radius: 0;
     border-bottom-left-radius: 0;
     border-left: 0;
@@ -1115,11 +1123,6 @@ label.switch {
     text-align: center;
     width: 200px;
     cursor: pointer;
-}
-
-.form button:hover {
-    background: var(--lblue);
-    border-color: var(--lblue);
 }
 
 .form button + button {
@@ -1146,3 +1149,7 @@ label.switch {
     max-width: calc(100% - 220px);
     float: left;
 }
+
+.form .hide {
+    display: none;
+} 
