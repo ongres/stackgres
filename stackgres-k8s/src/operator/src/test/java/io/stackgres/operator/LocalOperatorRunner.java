@@ -145,7 +145,6 @@ public class LocalOperatorRunner implements OperatorRunner {
     System.setProperty(Config.KUBERNETES_CA_CERTIFICATE_DATA_SYSTEM_PROPERTY, operatorSecret.stream()
         .filter(line -> line.startsWith("  ca.crt: "))
         .map(line -> line.substring("  ca.crt: ".length()))
-        .map(secret -> new String(Base64.getDecoder().decode(secret), StandardCharsets.UTF_8))
         .findAny().get());
     System.setProperty(Config.KUBERNETES_OAUTH_TOKEN_SYSTEM_PROPERTY, operatorSecret.stream()
         .filter(line -> line.startsWith("  token: "))
