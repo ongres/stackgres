@@ -7,19 +7,22 @@ if [ "$(basename "$SHELL")" = busybox ]
 then
   SHELL=sh
 fi
+
 IMAGE_TAG="${IMAGE_TAG:-development-jvm}"
 IMAGE_NAME="stackgres/operator:$IMAGE_TAG"
-DEFAULT_KUBERNETES_VERSION="1.12.10"
-KUBERNETES_VERSION="${KUBERNETES_VERSION:-$DEFAULT_KUBERNETES_VERSION}"
-E2E_ENV="${E2E_ENV:-kind}"
+DEFAULT_E2E_KUBERNETES_VERSION="1.12.10"
+KUBECONFIG="${KUBECONFIG:-$HOME/.kube/config}"
 SPEC_PATH="$(dirname "$0")/spec"
 TARGET_PATH="$(dirname "$0")/target"
-BUILD_OPERATOR="${BUILD_OPERATOR:-true}"
-WAIT_OPERATOR="${WAIT_OPERATOR:-true}"
-E2E_TIMEOUT="${E2E_TIMEOUT:-180}"
 TRAP_ENABLED="${TRAP_ENABLED:-false}"
-SKIP_K8S_SETUP="${SKIP_K8S_SETUP:-false}"
-OPERATOR_PULL_POLICY="${OPERATOR_PULL_POLICY:-Never}"
+
+E2E_ENV="${E2E_ENV:-kind}"
+E2E_KUBERNETES_VERSION="${E2E_KUBERNETES_VERSION:-$DEFAULT_E2E_KUBERNETES_VERSION}"
+E2E_TIMEOUT="${E2E_TIMEOUT:-180}"
+E2E_SKIP_SETUP="${E2E_SKIP_SETUP:-false}"
+E2E_OPERATOR_PULL_POLICY="${E2E_OPERATOR_PULL_POLICY:-Never}"
+E2E_BUILD_OPERATOR="${E2E_BUILD_OPERATOR:-true}"
+E2E_WAIT_OPERATOR="${E2E_WAIT_OPERATOR:-true}"
 
 if [ -z "$STACKGRES_PATH" ]
 then
@@ -28,7 +31,8 @@ fi
 OPERATOR_CHART_PATH="${OPERATOR_CHART_PATH:-"$STACKGRES_PATH/install/helm/stackgres-operator/"}"
 CLUSTER_CHART_PATH="${CLUSTER_CHART_PATH:-"$STACKGRES_PATH/install/helm/stackgres-cluster/"}"
 
-export SHELL IMAGE_TAG IMAGE_NAME KUBERNETES_VERSION CLUSTER_CHART_PATH E2E_ENV TARGET_PATH E2E_TIMEOUT
+export SHELL IMAGE_TAG IMAGE_NAME DEFAULT_E2E_KUBERNETES_VERSION KUBECONFIG SPEC_PATH TARGET_PATH TRAP_ENABLED OPERATOR_CHART_PATH CLUSTER_CHART_PATH
+export E2E_ENV E2E_KUBERNETES_VERSION E2E_TIMEOUT E2E_SKIP_SETUP E2E_OPERATOR_PULL_POLICY E2E_BUILD_OPERATOR E2E_WAIT_OPERATOR
 
 if ! command -v local > /dev/null 2>&1
 then
@@ -42,7 +46,7 @@ do
 done
 
 operator_pull_policy() {
-  echo $OPERATOR_PULL_POLICY
+  echo $E2E_OPERATOR_PULL_POLICY
 }
 
 . "$(dirname "$0")/envs/$E2E_ENV"
@@ -79,12 +83,12 @@ trap_kill_all() {
 setup_k8s() {
   mkdir -p "$TARGET_PATH/logs"
 
-  if [ "$SKIP_K8S_SETUP" = true ]
+  if [ "$E2E_SKIP_SETUP" = true ]
   then
     return
   fi
 
-  if [ "$REUSE_K8S" != true ]
+  if [ "$K8S_REUSE" != true ]
   then
     reset_k8s
   else
@@ -98,7 +102,7 @@ setup_k8s() {
   helm dependency update "$OPERATOR_CHART_PATH"
   helm dependency update "$CLUSTER_CHART_PATH"
 
-  if [ "$BUILD_OPERATOR" = true ] \
+  if [ "$E2E_BUILD_OPERATOR" = true ] \
     && (
       ! helm list | grep -q "^stackgres-operator\s" \
       || [ "$REUSE_OPERATOR" != true ]
@@ -141,7 +145,7 @@ setup_k8s() {
     k8s_cleanup_but_operator
   fi
 
-  if [ "$WAIT_OPERATOR" = true ]
+  if [ "$E2E_WAIT_OPERATOR" = true ]
   then
     wait_pods_running stackgres
   fi

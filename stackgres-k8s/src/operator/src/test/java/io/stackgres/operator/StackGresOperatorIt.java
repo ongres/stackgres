@@ -27,7 +27,7 @@ import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 
 @DockerExtension({
   @DockerContainer(
-      alias = "kind",
+      alias = "k8s",
       extendedBy = KindConfiguration.class,
       whenReuse = WhenReuse.ALWAYS,
       stopIfChanged = true)
@@ -38,25 +38,25 @@ public class StackGresOperatorIt extends AbstractStackGresOperatorIt {
   private final String CLUSTER_NAME = "stackgres";
 
   @Test
-  public void createClusterTest(@ContainerParam("kind") Container kind) throws Exception {
-    ItHelper.installStackGresConfigs(kind, namespace);
-    ItHelper.installStackGresCluster(kind, namespace, CLUSTER_NAME, 1);
-    checkStackGresEvent(kind, EventReason.CLUSTER_CREATED, StackGresCluster.class);
-    checkStackGresCluster(kind, 1);
-    ItHelper.upgradeStackGresCluster(kind, namespace, CLUSTER_NAME, 2);
-    checkStackGresEvent(kind, EventReason.CLUSTER_UPDATED, StackGresCluster.class);
-    checkStackGresCluster(kind, 2);
-    checkStackGresBackups(kind);
-    ItHelper.deleteStackGresCluster(kind, namespace, CLUSTER_NAME);
-    checkStackGresEvent(kind, EventReason.CLUSTER_DELETED, Service.class);
-    checkStackGresClusterDeletion(kind);
+  public void createClusterTest(@ContainerParam("k8s") Container k8s) throws Exception {
+    ItHelper.installStackGresConfigs(k8s, namespace);
+    ItHelper.installStackGresCluster(k8s, namespace, CLUSTER_NAME, 1);
+    checkStackGresEvent(k8s, EventReason.CLUSTER_CREATED, StackGresCluster.class);
+    checkStackGresCluster(k8s, 1);
+    ItHelper.upgradeStackGresCluster(k8s, namespace, CLUSTER_NAME, 2);
+    checkStackGresEvent(k8s, EventReason.CLUSTER_UPDATED, StackGresCluster.class);
+    checkStackGresCluster(k8s, 2);
+    checkStackGresBackups(k8s);
+    ItHelper.deleteStackGresCluster(k8s, namespace, CLUSTER_NAME);
+    checkStackGresEvent(k8s, EventReason.CLUSTER_DELETED, Service.class);
+    checkStackGresClusterDeletion(k8s);
 
 
   }
 
-  private void checkStackGresEvent(Container kind, EventReason eventReason,
+  private void checkStackGresEvent(Container k8s, EventReason eventReason,
       Class<? extends HasMetadata> resourceClass) throws Exception {
-    ItHelper.waitUntil(Unchecked.supplier(() -> kind.execute("sh", "-l", "-c",
+    ItHelper.waitUntil(Unchecked.supplier(() -> k8s.execute("sh", "-l", "-c",
         "kubectl get events -n " + namespace + " -o wide"
             + " | sed 's/\\s\\+/ /g' | grep "
             + "'" + eventReason.reason() + " " + resourceClass.getSimpleName() + "'"
@@ -68,10 +68,10 @@ public class StackGresOperatorIt extends AbstractStackGresOperatorIt {
                 + s.collect(Collectors.joining("\n"))));
   }
 
-  private void checkStackGresCluster(Container kind, int instances) throws Exception {
+  private void checkStackGresCluster(Container k8s, int instances) throws Exception {
     for (int instanceIndex = 0; instanceIndex < instances; instanceIndex++) {
       String instance = String.valueOf(instanceIndex);
-      ItHelper.waitUntil(Unchecked.supplier(() -> kind.execute("sh", "-l", "-c",
+      ItHelper.waitUntil(Unchecked.supplier(() -> k8s.execute("sh", "-l", "-c",
           "kubectl get pod -n  " + namespace + " " + CLUSTER_NAME + "-" + instance
               + " && echo 1")),
           s -> s.anyMatch(line -> line.equals("1")), 60, ChronoUnit.SECONDS,
@@ -80,7 +80,7 @@ public class StackGresOperatorIt extends AbstractStackGresOperatorIt {
                   + " pod '" + CLUSTER_NAME + "-" + instance
                   + "' in namespace '" + namespace + "':\n"
                   + s.collect(Collectors.joining("\n"))));
-      ItHelper.waitUntil(Unchecked.supplier(() -> kind.execute("sh", "-l", "-c",
+      ItHelper.waitUntil(Unchecked.supplier(() -> k8s.execute("sh", "-l", "-c",
           "kubectl describe pod -n  " + namespace + " " + CLUSTER_NAME + "-" + instance)),
           s -> s.anyMatch(line -> line.matches("  Ready\\s+True\\s*")), 180, ChronoUnit.SECONDS,
           s -> Assertions.fail(
@@ -88,7 +88,7 @@ public class StackGresOperatorIt extends AbstractStackGresOperatorIt {
                   + " pod '" + CLUSTER_NAME + "-" + instance
                   + "' in namespace '" + namespace + "':\n"
                   + s.collect(Collectors.joining("\n"))));
-      ItHelper.waitUntil(Unchecked.supplier(() -> kind.execute("sh", "-l", "-c",
+      ItHelper.waitUntil(Unchecked.supplier(() -> k8s.execute("sh", "-l", "-c",
           "kubectl exec -t -n " + namespace + " "
               + CLUSTER_NAME + "-" + instance + " -c postgres-util --"
               + " sh -c \"psql -t -A -U postgres -d postgres -p " + Envoy.PG_RAW_PORT
@@ -99,7 +99,7 @@ public class StackGresOperatorIt extends AbstractStackGresOperatorIt {
                   + " pod '" + CLUSTER_NAME + "-" + instance
                   + "' in namespace '" + namespace + "':\n"
                   + s.collect(Collectors.joining("\n"))));
-      ItHelper.waitUntil(Unchecked.supplier(() -> kind.execute("sh", "-l", "-c",
+      ItHelper.waitUntil(Unchecked.supplier(() -> k8s.execute("sh", "-l", "-c",
           "kubectl exec -t -n " + namespace + " "
               + CLUSTER_NAME + "-" + instance + " -c postgres-util --"
               + " sh -c \"PGPASSWORD=$(kubectl get secret " + CLUSTER_NAME + " -n " + namespace
@@ -112,7 +112,7 @@ public class StackGresOperatorIt extends AbstractStackGresOperatorIt {
                   + " pod '" + CLUSTER_NAME + "-" + instance
                   + "' in namespace '" + namespace + "':\n"
                   + s.collect(Collectors.joining("\n"))));
-      ItHelper.waitUntil(Unchecked.supplier(() -> kind.execute("sh", "-l", "-c",
+      ItHelper.waitUntil(Unchecked.supplier(() -> k8s.execute("sh", "-l", "-c",
           "kubectl exec -t -n " + namespace + " "
               + CLUSTER_NAME + "-" + instance + " -c postgres-util --"
               + " sh -c \"PGPASSWORD=$(kubectl get secret " + CLUSTER_NAME + " -n " + namespace
@@ -127,16 +127,16 @@ public class StackGresOperatorIt extends AbstractStackGresOperatorIt {
     }
   }
 
-  private void checkStackGresBackups(Container kind)
+  private void checkStackGresBackups(Container k8s)
       throws InterruptedException, Exception {
-    String currentWalFileName = kind.execute("sh", "-l", "-c",
+    String currentWalFileName = k8s.execute("sh", "-l", "-c",
         "kubectl exec -t -n " + namespace + " "+ CLUSTER_NAME + "-" + 0
         + " -c postgres-util -- sh -c \"psql -t -A -U postgres -p " + Envoy.PG_RAW_PORT
         + " -c 'SELECT r.file_name from pg_walfile_name_offset(pg_current_wal_lsn()) as r'\"")
         .filter(ItHelper.EXCLUDE_TTY_WARNING)
         .findFirst()
         .get();
-    ItHelper.waitUntil(Unchecked.supplier(() -> kind.execute("sh", "-l", "-c",
+    ItHelper.waitUntil(Unchecked.supplier(() -> k8s.execute("sh", "-l", "-c",
         "kubectl exec -t -n " + namespace + " "+ CLUSTER_NAME + "-" + 0
         + " -c postgres-util -- sh -c \"psql -t -A -U postgres -p " + Envoy.PG_RAW_PORT
         + " -c 'SELECT r.file_name from pg_walfile_name_offset(pg_switch_wal()) as r'\"")),
@@ -144,7 +144,7 @@ public class StackGresOperatorIt extends AbstractStackGresOperatorIt {
         s -> Assertions.fail(
             "Timeout while waiting switch of wal file " + currentWalFileName + ":\n"
                 + s.collect(Collectors.joining("\n"))));
-    ItHelper.waitUntil(Unchecked.supplier(() -> kind.execute("sh", "-l", "-c",
+    ItHelper.waitUntil(Unchecked.supplier(() -> k8s.execute("sh", "-l", "-c",
         "kubectl exec -t -n " + namespace + " "
             + CLUSTER_NAME + "-" + 0 + " -c patroni --"
             + " sh -c \"wal-g wal-fetch " + currentWalFileName
@@ -153,7 +153,7 @@ public class StackGresOperatorIt extends AbstractStackGresOperatorIt {
         s -> Assertions.fail(
             "Timeout while checking archive_command is working properly:\n"
                 + s.collect(Collectors.joining("\n"))));
-    ItHelper.waitUntil(Unchecked.supplier(() -> kind.execute("sh", "-l", "-c",
+    ItHelper.waitUntil(Unchecked.supplier(() -> k8s.execute("sh", "-l", "-c",
         "kubectl exec -t -n " + namespace + " "
             + CLUSTER_NAME + "-" + 0 + " -c patroni --"
             + " sh -c \"wal-g backup-list | grep -n . | cut -d : -f 1\"")),
@@ -163,8 +163,8 @@ public class StackGresOperatorIt extends AbstractStackGresOperatorIt {
                 + s.collect(Collectors.joining("\n"))));
   }
 
-  private void checkStackGresClusterDeletion(Container kind) throws Exception {
-    ItHelper.waitUntil(Unchecked.supplier(() -> kind.execute("sh", "-l", "-c",
+  private void checkStackGresClusterDeletion(Container k8s) throws Exception {
+    ItHelper.waitUntil(Unchecked.supplier(() -> k8s.execute("sh", "-l", "-c",
         "kubectl describe statefulset -n  " + namespace + " " + CLUSTER_NAME + " || echo 1")),
         s -> s.anyMatch(line -> line.equals("1")), 60, ChronoUnit.SECONDS,
         s -> Assertions.fail(

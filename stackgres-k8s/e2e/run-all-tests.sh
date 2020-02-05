@@ -13,8 +13,8 @@ echo "Functional tests results" > "$TARGET_PATH/logs/results.log"
 
 SPECS="$(find "$SPEC_PATH" -type f | grep '^.*/[^\.]\+$')"
 
-export REUSE_K8S=true
-export BUILD_OPERATOR=false
+export K8S_REUSE=true
+export E2E_BUILD_OPERATOR=false
 export REUSE_OPERATOR=true
 
 START="$(date +%s)"

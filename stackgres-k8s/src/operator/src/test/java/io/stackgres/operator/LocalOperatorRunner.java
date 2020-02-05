@@ -85,7 +85,7 @@ public class LocalOperatorRunner implements OperatorRunner {
    */
   private static final String CREATED_FILES = "CREATED_FILES.txt";
 
-  private final Container kind;
+  private final Container k8s;
   private final Class<?> testClass;
   private final int port;
   private final int sslPort;
@@ -95,9 +95,9 @@ public class LocalOperatorRunner implements OperatorRunner {
   private RuntimeRunner runtimeRunner;
   private CompletableFuture<Void> running = new CompletableFuture<>();
 
-  public LocalOperatorRunner(Container kind, Class<?> testClass, int port, int sslPort) {
+  public LocalOperatorRunner(Container k8s, Class<?> testClass, int port, int sslPort) {
     super();
-    this.kind = kind;
+    this.k8s = k8s;
     this.testClass = testClass;
     this.port = port;
     this.sslPort = sslPort;
@@ -125,9 +125,9 @@ public class LocalOperatorRunner implements OperatorRunner {
   }
 
   private void setup() throws Exception {
-    List<String> kubeconfig = kind.execute("sh", "-l", "-c", "cat \"${KUBECONFIG:-$HOME/.kube/config}\"")
+    List<String> kubeconfig = k8s.execute("sh", "-l", "-c", "cat \"${KUBECONFIG:-$HOME/.kube/config}\"")
         .collect(Collectors.toList());
-    List<String> operatorSecret = kind.execute("sh", "-l", "-c",
+    List<String> operatorSecret = k8s.execute("sh", "-l", "-c",
         "kubectl get secret -n stackgres -o yaml"
             + " \"$(kubectl get secret -n stackgres"
             + " | grep stackgres-operator-token-"

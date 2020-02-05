@@ -6,17 +6,24 @@ export KIND_NAME
 
 update_k8s_config() {
   mkdir -p "$HOME/.kube"
-  kind get kubeconfig --name "$KIND_NAME" --internal \
-    > "$HOME/.kube/config-$KIND_NAME"
+  if [ "$K8S_FROM_DIND" = true ]
+  then
+    kind get kubeconfig --name "$KIND_NAME" --internal \
+      > "$HOME/.kube/config-$KIND_NAME"
+  else
+    kind get kubeconfig --name "$KIND_NAME" \
+      > "$HOME/.kube/config-$KIND_NAME"
+  fi
 
   (
-  if [ -s "$HOME/.kube/config" ]
+  export KUBECONFIG="${KUBECONFIG:-$HOME/.kube/config}"
+  if [ -s "$KUBECONFIG" ]
   then
-    KUBECONFIG="$HOME/.kube/config-$KIND_NAME":"$HOME/.kube/config" \
+    KUBECONFIG="$HOME/.kube/config-$KIND_NAME":"$KUBECONFIG" \
       kubectl config view --raw > "$HOME/.kube/config-merged"
-    mv "$HOME/.kube/config-merged" "$HOME/.kube/config"
+    mv "$HOME/.kube/config-merged" "$KUBECONFIG"
   else
-    mv "$HOME/.kube/config-$KIND_NAME" "$HOME/.kube/config"
+    mv "$HOME/.kube/config-$KIND_NAME" "$KUBECONFIG"
   fi
   )
 }
@@ -49,7 +56,7 @@ reset_k8s() {
 EOF
 
   kind create cluster --name "$KIND_NAME" --config "$TARGET_PATH/kind-config.yaml" \
-    --image "kindest/node:v${KUBERNETES_VERSION}"
+    --image "kindest/node:v${E2E_KUBERNETES_VERSION}"
 
   if [ "$KIND_INSTALL_NFS" = "true" ]
   then
@@ -62,12 +69,9 @@ EOF
       "
   fi
 
-  if [ "$USE_KIND_INTERNAL" = true ]
-  then
-    update_k8s_config
-  fi
+  update_k8s_config
 
-  if echo "$KUBERNETES_VERSION" | grep -q '^1\.12\.'
+  if echo "$E2E_KUBERNETES_VERSION" | grep -q '^1\.12\.'
   then
     # Patch coredns to version 1.3.1 (see https://github.com/coredns/coredns/issues/2391)
     kubectl patch deployment -n kube-system coredns --type json \
