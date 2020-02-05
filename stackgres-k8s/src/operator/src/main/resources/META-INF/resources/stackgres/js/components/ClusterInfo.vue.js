@@ -40,13 +40,19 @@ var ClusterInfo = Vue.component("cluster-info", {
 						</div>
 					</div>
 				</div>
+
+				<div class="form">
+					<button v-on:click="deleteCluster" class="border">Delete Cluster</button>
+				</div>
 			</div>
 		</div>`,
 	data: function() {
 		return {
 	      dataReady: [ false, false ],
 	      allDataReady: false,
-	      polling: null
+		  polling: null,
+		  name: '',
+		  namespace: ''
 	    }
 	},
 	methods: {
@@ -94,7 +100,40 @@ var ClusterInfo = Vue.component("cluster-info", {
 	        	vc.dataReady[1] = true;
 	        	vc.allDataReady = vc.dataReady[0] && vc.dataReady[1];
 	      	});
-		}
+		},
+
+		deleteCluster: function(e) {
+			e.preventDefault();
+
+			const cl = {
+				name: this.name,
+				namespace: this.namespace
+			}
+
+			const res = axios
+			.delete(
+				apiURL+'cluster/', 
+				{
+					data: {
+						"metadata": {
+							"name": cl.name,
+							"namespace": cl.namespace
+						}
+					}
+				}
+			)
+			.then(function (response) {
+				console.log("DELETED");
+				//console.log(response);
+				notify('Cluster <strong>'+vm.$route.params.name+'</strong> deleted successfully', 'message');
+				router.push('/overview/'+store.state.currentNamespace);
+			})
+			.catch(function (error) {
+				console.log(error.response);
+                notify(error.response.data.message,'error');
+			});
+
+		}	
 
 	},
 	created: function() {
@@ -102,6 +141,10 @@ var ClusterInfo = Vue.component("cluster-info", {
 		if ( (store.state.currentCluster.length > 0) && (store.state.currentCluster.name == vm.$route.params.name) ) {
 			this.dataReady = true;
 		}
+
+		this.name = vm.$route.params.name;
+		this.namespace = vm.$route.params.namespace;
+		
 	},
 	mounted: function() {
 
