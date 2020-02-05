@@ -11,7 +11,13 @@ setup_k8s
 
 echo "Functional tests results" > "$TARGET_PATH/logs/results.log"
 
-SPECS="$(find "$SPEC_PATH" -type f | grep '^.*/[^\.]\+$')"
+SPECS="$(find "$SPEC_PATH" -maxdepth 1 -type f | grep '^.*/[^\.]\+$')"
+
+if [ -d "$SPEC_PATH/$E2E_ENV" ]
+then
+  ENV_SPECS="$(find "$SPEC_PATH/$E2E_ENV" -maxdepth 1 -type f | grep '^.*/[^\.]\+$')"
+  SPECS=$(echo "$SPECS\n$ENV_SPECS")
+fi
 
 export REUSE_K8S=true
 export BUILD_OPERATOR=false

@@ -140,7 +140,7 @@ public class PatroniConfigMap {
       Optional.ofNullable(storage.getGcs()).ifPresent(gcsConfig -> {
         Optional.ofNullable(storage.getGcs())
             .ifPresent(volume ->
-                data.put("RESTORE_WALG_GCS_PREFIX", gcsConfig.getPrefix()));
+                data.put("RESTORE_WALG_GS_PREFIX", gcsConfig.getPrefix()));
       });
 
       Optional.ofNullable(storage.getAzureblob()).ifPresent(azureConfig -> {
@@ -199,7 +199,7 @@ public class PatroniConfigMap {
 
     Optional<GoogleCloudStorage> storageForGcs = getStorageFor(context, BackupStorage::getGcs);
     if (storageForGcs.isPresent()) {
-      data.put("WALG_GCS_PREFIX", getFromGcs(storageForGcs, GoogleCloudStorage::getPrefix)
+      data.put("WALG_GS_PREFIX", getFromGcs(storageForGcs, GoogleCloudStorage::getPrefix)
           + "/" + namespace + "/" + name);
     }
 

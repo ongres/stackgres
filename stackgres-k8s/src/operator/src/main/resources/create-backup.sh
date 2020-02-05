@@ -180,6 +180,7 @@ else
             "name": "{{ .credentials.serviceAccountJsonKey.name }}"
           }
         }
+      }
       {{- end }}
       {{- with .spec.storage.azureblob }}
       "azureblob": {
