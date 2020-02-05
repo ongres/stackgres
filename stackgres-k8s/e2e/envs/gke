@@ -14,7 +14,7 @@ GKE_MACHINE_TYPE="${GKE_MACHINE_TYPE:-n1-standard-1}"
 GKE_DISK_SIZE="${GKE_DISK_SIZE:-20}"
 GKE_PROJECT="${GKE_PROJECT:-default}"
 GKE_OPTS="$GKE_OPTS"
-GKE_E2E_IAM_ACCOUNT="${GKE_E2E_IAM_ACCOUNT:-stackgres-e2e@gitlab-testing-223316.iam.gserviceaccount.com}"
+GKE_SERVICEACCOUNT="${GKE_SERVICEACCOUNT:-stackgres-e2e}"
 
 export GKE_NAME KUBERNETES_VERSION GKE_VERSION GKE_REGION GKE_NODE_LOCATIONS GKE_MACHINE_TYPE GKE_PROJECT GKE_OPTS
 
@@ -48,8 +48,15 @@ reset_k8s() {
 
   if [ ! -f "$TARGET_PATH/gke-service-account.json" ]
   then
-    gcloud iam service-accounts keys create "$TARGET_PATH/gke-service-account.json" \
-      --iam-account $GKE_E2E_IAM_ACCOUNT    
+    gcloud --project "$GKE_PROJECT" iam service-accounts create "$GKE_SERVICEACCOUNT" || true
+
+    ACCOUNT_EMAIL=$GKE_SERVICEACCOUNT@$GKE_PROJECT.iam.gserviceaccount.com
+    ACCOUNT_MEMBER="serviceAccount:$ACCOUNT_EMAIL"
+
+    gcloud projects add-iam-policy-binding "$GKE_PROJECT" --member="$ACCOUNT_MEMBER" --role=roles/storage.admin || true
+
+    gcloud iam service-accounts keys create "$TARGET_PATH/gke-service-account.json" --iam-account "$ACCOUNT_EMAIL"
+    
   fi
 
   echo "...done"
