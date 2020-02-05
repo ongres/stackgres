@@ -220,12 +220,12 @@ public class ClusterStatefulSet implements StatefulsetResourceBuilder {
             .withEnvFrom(new EnvFromSourceBuilder()
                 .withConfigMapRef(new ConfigMapEnvSourceBuilder()
                     .withName(PatroniConfigMap.patroniName(clusterContext)).build())
-                .build())
-            .withEnvFrom(new EnvFromSourceBuilder()
+                .build(),
+                new EnvFromSourceBuilder()
                 .withConfigMapRef(new ConfigMapEnvSourceBuilder()
                     .withName(PatroniConfigMap.backupName(clusterContext)).build())
-                .build())
-            .withEnvFrom(new EnvFromSourceBuilder()
+                .build(),
+                new EnvFromSourceBuilder()
                 .withConfigMapRef(new ConfigMapEnvSourceBuilder()
                     .withName(PatroniConfigMap.restoreName(clusterContext)).build())
                 .build())

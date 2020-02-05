@@ -57,17 +57,17 @@ public class PatroniConfigMap {
   }
 
   public static String patroniName(StackGresClusterContext clusterContext) {
-    return ResourceUtil.resourceName(clusterContext.getCluster().getMetadata().getClusterName()
+    return ResourceUtil.resourceName(clusterContext.getCluster().getMetadata().getName()
         + PATRONI_SUFFIX);
   }
 
   public static String backupName(StackGresClusterContext clusterContext) {
-    return ResourceUtil.resourceName(clusterContext.getCluster().getMetadata().getClusterName()
+    return ResourceUtil.resourceName(clusterContext.getCluster().getMetadata().getName()
         + BACKUP_SUFFIX);
   }
 
   public static String restoreName(StackGresClusterContext clusterContext) {
-    return ResourceUtil.resourceName(clusterContext.getCluster().getMetadata().getClusterName()
+    return ResourceUtil.resourceName(clusterContext.getCluster().getMetadata().getName()
         + RESTORE_SUFFIX);
   }
 
