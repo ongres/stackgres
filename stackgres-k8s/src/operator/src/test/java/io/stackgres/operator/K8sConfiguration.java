@@ -15,19 +15,18 @@ import com.ongres.junit.docker.WaitFor;
     image = "stackgres/it:latest",
     arguments = { "/bin/sh", "-c",
         "set -e;"
-            + "echo 'Kind started k8s cluster';"
-            + "seq -s ' ' 10000000 10000910;"
+            + "echo 'K8s cluster started';"
             + "while true; do sleep 1; done" },
-    waitFor = @WaitFor(value = "Kind started k8s cluster", timeout = 1_200_000),
+    waitFor = @WaitFor(value = "K8s cluster started", timeout = 1_200_000),
     environments = { @Environment(key = "DOCKER_HOST", value = "${DOCKER_HOST}") },
     mounts = {
-        @Mount(reference = KindConfiguration.class,
+        @Mount(reference = K8sConfiguration.class,
             path = "/certs", value = "/certs/server.crt"),
-        @Mount(reference = KindConfiguration.class,
+        @Mount(reference = K8sConfiguration.class,
             path = "/var/run/docker.sock", value = "/var/run/docker.sock", system = true),
     },
     ports = {
         @Port(internal = 8001)
     })
-public interface KindConfiguration {
+public interface K8sConfiguration {
 }
