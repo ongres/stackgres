@@ -24,7 +24,7 @@ public class StackGresClusterContext {
   private final ImmutableList<SidecarEntry<?, StackGresClusterContext>> sidecars;
   private final ImmutableList<StackGresBackup> backups;
   private final Optional<Prometheus> prometheus;
-  private final Optional<StackGresRestoreConfigSource> restoreConfigSource;
+  private final Optional<StackGresRestoreContext> restoreContext;
 
   private StackGresClusterContext(Builder builder) {
     this.cluster = builder.cluster;
@@ -34,7 +34,7 @@ public class StackGresClusterContext {
     this.sidecars = builder.sidecars;
     this.backups = builder.backups;
     this.prometheus = builder.prometheus;
-    this.restoreConfigSource = builder.restoreConfigSource;
+    this.restoreContext = builder.restoreContext;
   }
 
   public StackGresCluster getCluster() {
@@ -49,8 +49,8 @@ public class StackGresClusterContext {
     return backupConfig;
   }
 
-  public Optional<StackGresRestoreConfigSource> getRestoreConfigSource() {
-    return restoreConfigSource;
+  public Optional<StackGresRestoreContext> getRestoreContext() {
+    return restoreContext;
   }
 
   public Optional<StackGresProfile> getProfile() {
@@ -104,7 +104,7 @@ public class StackGresClusterContext {
     private ImmutableList<SidecarEntry<?, StackGresClusterContext>> sidecars;
     private ImmutableList<StackGresBackup> backups;
     private Optional<Prometheus> prometheus;
-    private Optional<StackGresRestoreConfigSource> restoreConfigSource;
+    private Optional<StackGresRestoreContext> restoreContext;
 
     private Builder() {
     }
@@ -144,9 +144,9 @@ public class StackGresClusterContext {
       return this;
     }
 
-    public Builder withRestoreConfigSource(
-        Optional<StackGresRestoreConfigSource> restoreConfigSource) {
-      this.restoreConfigSource = restoreConfigSource;
+    public Builder withRestoreContext(
+        Optional<StackGresRestoreContext> restoreContext) {
+      this.restoreContext = restoreContext;
       return this;
     }
 

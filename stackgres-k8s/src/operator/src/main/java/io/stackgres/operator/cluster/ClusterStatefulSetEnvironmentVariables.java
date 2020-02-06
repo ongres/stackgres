@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.cluster.factories;
+package io.stackgres.operator.cluster;
 
 import java.util.Optional;
 
@@ -17,9 +17,8 @@ import io.fabric8.kubernetes.api.model.EnvVarSourceBuilder;
 import io.fabric8.kubernetes.api.model.ObjectFieldSelectorBuilder;
 import io.fabric8.kubernetes.api.model.SecretKeySelector;
 import io.fabric8.kubernetes.api.model.SecretKeySelectorBuilder;
-import io.stackgres.operator.cluster.ClusterStatefulSet;
 import io.stackgres.operator.common.StackGresClusterContext;
-import io.stackgres.operator.common.StackGresRestoreConfigSource;
+import io.stackgres.operator.common.StackGresRestoreContext;
 import io.stackgres.operator.customresource.sgbackup.StackGresBackup;
 import io.stackgres.operator.customresource.sgbackup.StackGresBackupStatus;
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfig;
@@ -30,7 +29,7 @@ import io.stackgres.operator.patroni.PatroniSecret;
 import org.jooq.lambda.Seq;
 
 @ApplicationScoped
-public class ClusterStatefulSetEnvironmentVariablesFactory {
+public class ClusterStatefulSetEnvironmentVariables {
 
   public ImmutableList<EnvVar> getPatroniEnvironmentVariables(StackGresClusterContext context) {
     return ImmutableList.of(
@@ -150,8 +149,8 @@ public class ClusterStatefulSetEnvironmentVariablesFactory {
 
   public ImmutableList<EnvVar> getRestoreEnvironmentVariables(StackGresClusterContext context) {
     return Seq.of(
-        context.getRestoreConfigSource()
-        .map(StackGresRestoreConfigSource::getBackup)
+        context.getRestoreContext()
+        .map(StackGresRestoreContext::getBackup)
         .map(StackGresBackup::getStatus)
         .map(StackGresBackupStatus::getBackupConfig)
         .map(StackGresBackupConfigSpec::getPgpConfiguration)
@@ -162,8 +161,8 @@ public class ClusterStatefulSetEnvironmentVariablesFactory {
                     pgpConf.getKey()))
                 .build())
             .build())),
-        context.getRestoreConfigSource()
-        .map(StackGresRestoreConfigSource::getBackup)
+        context.getRestoreContext()
+        .map(StackGresRestoreContext::getBackup)
         .map(StackGresBackup::getStatus)
         .map(StackGresBackupStatus::getBackupConfig)
         .map(StackGresBackupConfigSpec::getStorage)
@@ -182,8 +181,8 @@ public class ClusterStatefulSetEnvironmentVariablesFactory {
                     awsConf.getCredentials().getSecretKey()))
                 .build())
             .build())),
-        context.getRestoreConfigSource()
-        .map(StackGresRestoreConfigSource::getBackup)
+        context.getRestoreContext()
+        .map(StackGresRestoreContext::getBackup)
         .map(StackGresBackup::getStatus)
         .map(StackGresBackupStatus::getBackupConfig)
         .map(StackGresBackupConfigSpec::getStorage)
@@ -193,8 +192,8 @@ public class ClusterStatefulSetEnvironmentVariablesFactory {
             .withValue(ClusterStatefulSet.GCS_CONFIG_PATH
                 + "/" + ClusterStatefulSet.GCS_CREDENTIALS_FILE_NAME)
             .build())),
-        context.getRestoreConfigSource()
-        .map(StackGresRestoreConfigSource::getBackup)
+        context.getRestoreContext()
+        .map(StackGresRestoreContext::getBackup)
         .map(StackGresBackup::getStatus)
         .map(StackGresBackupStatus::getBackupConfig)
         .map(StackGresBackupConfigSpec::getStorage)
@@ -222,8 +221,8 @@ public class ClusterStatefulSetEnvironmentVariablesFactory {
   private SecretKeySelector restoreSecretKeySelector(
       StackGresClusterContext context,
       SecretKeySelector selector) {
-    if (context.getRestoreConfigSource().get().getRestore().isAutoCopySecretsEnabled()
-        && !context.getRestoreConfigSource().get().getBackup().getMetadata().getNamespace()
+    if (context.getRestoreContext().get().getRestore().isAutoCopySecretsEnabled()
+        && !context.getRestoreContext().get().getBackup().getMetadata().getNamespace()
         .equals(context.getCluster().getMetadata().getNamespace())) {
       return new SecretKeySelectorBuilder(selector)
           .withName(PatroniSecret.restoreCopiedSecretName(context, selector.getName()))

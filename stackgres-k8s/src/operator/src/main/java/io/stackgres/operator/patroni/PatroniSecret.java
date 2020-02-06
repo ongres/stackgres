@@ -59,10 +59,10 @@ public class PatroniSecret {
         .withData(data)
         .build());
 
-    context.getRestoreConfigSource().ifPresent(restoreConfigSource -> {
-      if (restoreConfigSource.getRestore().isAutoCopySecretsEnabled()) {
+    context.getRestoreContext().ifPresent(restoreContext -> {
+      if (restoreContext.getRestore().isAutoCopySecretsEnabled()) {
         LOGGER.info("restore auto copy secrets enabled.  Copying secrets...");
-        restoreConfigSource.getSecrets().entrySet()
+        restoreContext.getSecrets().entrySet()
             .stream()
             .forEach(secret -> secrets
             .add(new SecretBuilder()

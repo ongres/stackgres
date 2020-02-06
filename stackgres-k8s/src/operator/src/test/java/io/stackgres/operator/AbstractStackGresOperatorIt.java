@@ -23,9 +23,9 @@ import org.junit.jupiter.api.BeforeEach;
 
 public abstract class AbstractStackGresOperatorIt extends AbstractIt {
 
-  private static final Optional<Boolean> RESET_KIND = Optional.ofNullable(
-      Optional.ofNullable(System.getenv("RESET_KIND"))
-      .orElse(System.getProperty("it.resetKind")))
+  private static final Optional<Boolean> RESET_K8S = Optional.ofNullable(
+      Optional.ofNullable(System.getenv("RESET_K8S"))
+      .orElse(System.getProperty("it.resetK8s")))
       .map(Boolean::valueOf);
   private static final int OPERATOR_PORT = getFreePort();
   private static final int OPERATOR_SSL_PORT = getFreePort();
@@ -48,7 +48,7 @@ public abstract class AbstractStackGresOperatorIt extends AbstractIt {
   public void setupOperator(@ContainerParam("k8s") Container k8s) throws Exception {
     ItHelper.killUnwantedProcesses(k8s);
     ItHelper.copyResources(k8s);
-    ItHelper.resetKind(k8s, k8sSize, !RESET_KIND.orElse(false));
+    ItHelper.resetKind(k8s, k8sSize, !RESET_K8S.orElse(false));
     ItHelper.deleteStackGresOperatorHelmChartIfExists(k8s, namespace);
     ItHelper.deleteNamespaceIfExists(k8s, namespace);
     ItHelper.installStackGresOperatorHelmChart(k8s, namespace, OPERATOR_SSL_PORT, executor);

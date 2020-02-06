@@ -10,6 +10,7 @@ import javax.inject.Inject;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
+
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.operator.backup.Backup;
 import io.stackgres.operator.common.StackGresClusterConfigTransformer;
@@ -20,27 +21,25 @@ import io.stackgres.operator.patroni.PatroniConfigMap;
 import io.stackgres.operator.patroni.PatroniRole;
 import io.stackgres.operator.patroni.PatroniSecret;
 import io.stackgres.operator.patroni.PatroniServices;
-import io.stackgres.operator.patroni.StatefulsetResourceBuilder;
 
 @ApplicationScoped
 public class Cluster implements StackGresClusterConfigTransformer<StackGresClusterContext> {
 
   private final ObjectMapper objectMapper;
-
-  private final StatefulsetResourceBuilder clusterResourcesBuilder;
-
+  private final ClusterStatefulSet clusterStatefulSet;
   private final PatroniConfigMap patroniConfigMap;
-
+  private final BackupConfigMap backupConfigMap;
   private final PatroniSecret patroniSecret;
 
   @Inject
-  public Cluster(ObjectMapper objectMapper,
-                 StatefulsetResourceBuilder clusterResourcesBuilder,
-                 PatroniConfigMap patroniConfigMap,
-                 PatroniSecret patroniSecret) {
+  public Cluster(ObjectMapper objectMapper, ClusterStatefulSet clusterStatefulSet,
+      PatroniConfigMap patroniConfigMap, BackupConfigMap backupConfigMap,
+      PatroniSecret patroniSecret) {
+    super();
     this.objectMapper = objectMapper;
-    this.clusterResourcesBuilder = clusterResourcesBuilder;
+    this.clusterStatefulSet = clusterStatefulSet;
     this.patroniConfigMap = patroniConfigMap;
+    this.backupConfigMap = backupConfigMap;
     this.patroniSecret = patroniSecret;
   }
 
@@ -54,9 +53,11 @@ public class Cluster implements StackGresClusterConfigTransformer<StackGresClust
         .addAll(patroniSecret.create(context.getContext()))
         .addAll(PatroniServices.createServices(context.getContext()))
         .add(PatroniConfigEndpoints.create(context.getContext(), objectMapper))
-        .addAll(patroniConfigMap.create(context.getContext(), objectMapper))
+        .add(patroniConfigMap.createPatroniConfig(context.getContext(), objectMapper))
+        .add(backupConfigMap.createBackupConfig(context.getContext()))
+        .add(backupConfigMap.createRestoreConfig(context.getContext()))
         .addAll(BackupCronJob.create(context))
-        .addAll(clusterResourcesBuilder.create(context))
+        .addAll(clusterStatefulSet.create(context))
         .addAll(Backup.create(context))
         .build();
   }

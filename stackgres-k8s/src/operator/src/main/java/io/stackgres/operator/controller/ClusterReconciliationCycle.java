@@ -34,7 +34,7 @@ import io.stackgres.operator.common.ConfigProperty;
 import io.stackgres.operator.common.Prometheus;
 import io.stackgres.operator.common.SidecarEntry;
 import io.stackgres.operator.common.StackGresClusterContext;
-import io.stackgres.operator.common.StackGresRestoreConfigSource;
+import io.stackgres.operator.common.StackGresRestoreContext;
 import io.stackgres.operator.common.StackGresSidecarTransformer;
 import io.stackgres.operator.customresource.prometheus.PrometheusConfig;
 import io.stackgres.operator.customresource.prometheus.PrometheusInstallation;
@@ -216,7 +216,7 @@ public class ClusterReconciliationCycle
             .collect(ImmutableList.toImmutableList()))
         .withBackups(getBackups(cluster, client))
         .withPrometheus(getPrometheus(cluster, client))
-        .withRestoreConfigSource(getRestoreConfig(cluster, client))
+        .withRestoreContext(getRestoreConfig(cluster, client))
         .build();
   }
 
@@ -350,28 +350,31 @@ public class ClusterReconciliationCycle
     }
   }
 
-  private Optional<StackGresRestoreConfigSource> getRestoreConfig(StackGresCluster cluster,
+  private Optional<StackGresRestoreContext> getRestoreConfig(StackGresCluster cluster,
       KubernetesClient client) {
-    final String namespace = cluster.getMetadata().getNamespace();
     final StackGresClusterRestore restore = cluster.getSpec().getRestore();
     if (restore != null) {
       return ResourceUtil.getCustomResource(client, StackGresBackupDefinition.NAME)
-        .map(crd -> client
+        .flatMap(crd -> client
             .customResources(crd,
                 StackGresBackup.class,
                 StackGresBackupList.class,
                 StackGresBackupDoneable.class)
-            .inNamespace(namespace)
-            .withName(restore.getStackgresBackup())
-            .get())
+            .inAnyNamespace()
+            .list()
+            .getItems()
+            .stream()
+            .filter(backup -> backup.getMetadata().getUid().equals(restore.getStackgresBackup()))
+            .findAny())
         .map(backup -> {
-          Preconditions.checkNotNull(backup.getStatus(), "Backup is still Pending");
+          Preconditions.checkNotNull(backup.getStatus(),
+              "Backup is " + BackupPhase.PENDING.label());
           Preconditions.checkArgument(backup.getStatus().getPhase()
               .equals(BackupPhase.COMPLETED.label()),
               "Backup is " + backup.getStatus().getPhase());
           return backup;
         })
-        .map(backup -> StackGresRestoreConfigSource.builder()
+        .map(backup -> StackGresRestoreContext.builder()
             .withRestore(restore)
             .withBackup(backup)
             .withSecrets(Seq.<Optional<SecretKeySelector>>of(

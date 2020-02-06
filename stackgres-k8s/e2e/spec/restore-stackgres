@@ -27,19 +27,18 @@ EOF
   kubectl patch sgbackupconfig -n "$CLUSTER_NAMESPACE-backup" backupconf --type json \
     --patch '[{"op":"replace","path":"/spec/fullSchedule","value":"*/1 * * * *"}]'
 
-  wait_until eval '[ "$(kubectl exec -t -n "$CLUSTER_NAMESPACE"-backup "$CLUSTER_NAME"-backup-0 -c patroni -- \
-      wal-g backup-list | wc -l)" -gt 0 ]'
+  wait_until eval '[ "$(kubectl get sgbackups.stackgres.io -n "$CLUSTER_NAMESPACE-backup" --sort-by "{.status.time}" -o=jsonpath="{.items[-1:].status.phase}")" = "Completed" ]'
+
+  BACKUP_UID="$(kubectl get sgbackups.stackgres.io -n "$CLUSTER_NAMESPACE-backup" --sort-by "{.status.time}" -o=jsonpath="{.items[-1:].metadata.uid}")"
 
   kubectl patch sgbackupconfig -n "$CLUSTER_NAMESPACE-backup" backupconf --type json \
     --patch '[{"op":"replace","path":"/spec/fullSchedule","value":"0 5 31 2 *"}]'
-
-  BACKUP_UID=$(kubectl get sgbackups.stackgres.io -n "$CLUSTER_NAMESPACE-backup"  -o=jsonpath='{.items[0].metadata.uid}')
 
   SPEC_VALUES_FILE="$SPEC_FILE.values.yaml"
 
   kubectl create namespace "$CLUSTER_NAMESPACE" || true
 
-  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 --set cluster.restore.fromBackup=$BACKUP_UID
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 --set cluster.restore.fromBackup="$BACKUP_UID"
 
   wait_pods_running "$CLUSTER_NAMESPACE" 2
 

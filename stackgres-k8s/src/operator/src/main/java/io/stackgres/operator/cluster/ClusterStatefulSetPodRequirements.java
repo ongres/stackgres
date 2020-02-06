@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.cluster.factories;
+package io.stackgres.operator.cluster;
 
 import java.util.Optional;
 

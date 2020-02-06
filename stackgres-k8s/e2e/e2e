@@ -95,12 +95,15 @@ setup_k8s() {
     reuse_k8s
   fi
 
-  setup_helm
+  if [ "$E2E_SKIP_HELM_SETUP" != true ]
+  then
+    setup_helm
 
-  setup_default_limits 0.1 0.1 16Mi 16Mi
+    setup_default_limits 0.1 0.1 16Mi 16Mi
+  fi
 
-  helm dependency update "$OPERATOR_CHART_PATH"
-  helm dependency update "$CLUSTER_CHART_PATH"
+  helm dependency update --skip-refresh "$OPERATOR_CHART_PATH"
+  helm dependency update --skip-refresh "$CLUSTER_CHART_PATH"
 
   if [ "$E2E_BUILD_OPERATOR" = true ] \
     && (

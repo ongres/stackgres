@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.cluster.factories;
+package io.stackgres.operator.cluster;
 
 import java.util.Optional;
 
@@ -15,11 +15,10 @@ import io.fabric8.kubernetes.api.model.KeyToPathBuilder;
 import io.fabric8.kubernetes.api.model.SecretVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
-import io.stackgres.operator.cluster.ClusterStatefulSet;
 import io.stackgres.operator.common.StackGresClusterContext;
 
 @ApplicationScoped
-public class ClusterStatefulSetVolumeFactory {
+public class ClusterStatefulSetVolumes {
 
   public ImmutableList<Volume> getVolumes(StackGresClusterContext config) {
     ImmutableList.Builder<Volume> volumeListBuilder = ImmutableList.<Volume>builder().add(
@@ -60,7 +59,7 @@ public class ClusterStatefulSetVolumeFactory {
               .build()));
     });
 
-    config.getRestoreConfigSource().ifPresent(restoreConfigSource -> {
+    config.getRestoreContext().ifPresent(restoreContext -> {
       volumeListBuilder.add(
           new VolumeBuilder()
               .withName(ClusterStatefulSet.RESTORE_ENTRYPOINT_VOLUME)
@@ -69,7 +68,7 @@ public class ClusterStatefulSetVolumeFactory {
               .endEmptyDir()
               .build());
 
-      Optional.ofNullable(restoreConfigSource.getBackup().getStatus()
+      Optional.ofNullable(restoreContext.getBackup().getStatus()
           .getBackupConfig().getStorage().getGcs())
           .ifPresent(gcsStorage -> volumeListBuilder.add(new VolumeBuilder()
               .withName(ClusterStatefulSet.GCS_RESTORE_CREDENTIALS_VOLUME_NAME)

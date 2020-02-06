@@ -10,13 +10,13 @@ import java.util.Map;
 import io.stackgres.operator.customresource.sgbackup.StackGresBackup;
 import io.stackgres.operator.customresource.sgcluster.StackGresClusterRestore;
 
-public class StackGresRestoreConfigSource {
+public class StackGresRestoreContext {
 
   private final StackGresClusterRestore restore;
   private final StackGresBackup backup;
   private final Map<String, Map<String, String>> secrets;
 
-  private StackGresRestoreConfigSource(Builder builder) {
+  private StackGresRestoreContext(Builder builder) {
     this.restore = builder.restore;
     this.backup = builder.backup;
     this.secrets = builder.secrets;
@@ -35,7 +35,7 @@ public class StackGresRestoreConfigSource {
   }
 
   /**
-   * Creates builder to build {@link StackGresRestoreConfigSource}.
+   * Creates builder to build {@link StackGresRestoreContext}.
    * @return created builder
    */
   public static Builder builder() {
@@ -43,7 +43,7 @@ public class StackGresRestoreConfigSource {
   }
 
   /**
-   * Builder to build {@link StackGresRestoreConfigSource}.
+   * Builder to build {@link StackGresRestoreContext}.
    */
   public static final class Builder {
     private StackGresClusterRestore restore;
@@ -67,8 +67,8 @@ public class StackGresRestoreConfigSource {
       return this;
     }
 
-    public StackGresRestoreConfigSource build() {
-      return new StackGresRestoreConfigSource(this);
+    public StackGresRestoreContext build() {
+      return new StackGresRestoreContext(this);
     }
   }
 

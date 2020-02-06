@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.cluster.factories;
+package io.stackgres.operator.cluster;
 
 import java.nio.charset.StandardCharsets;
 import java.util.stream.Collectors;
@@ -22,7 +22,6 @@ import io.fabric8.kubernetes.api.model.EnvFromSourceBuilder;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
-import io.stackgres.operator.cluster.ClusterStatefulSet;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.patroni.PatroniConfigMap;
 
@@ -31,11 +30,11 @@ import org.jooq.lambda.Unchecked;
 @ApplicationScoped
 public class ClusterStatefulSetInitContainer {
 
-  private final ClusterStatefulSetEnvironmentVariablesFactory environmentVariablesFactory;
+  private final ClusterStatefulSetEnvironmentVariables environmentVariablesFactory;
 
   @Inject
   public ClusterStatefulSetInitContainer(
-      ClusterStatefulSetEnvironmentVariablesFactory environmentVariablesFactory) {
+      ClusterStatefulSetEnvironmentVariables environmentVariablesFactory) {
     this.environmentVariablesFactory = environmentVariablesFactory;
   }
 
@@ -57,7 +56,7 @@ public class ClusterStatefulSetInitContainer {
     ImmutableList.Builder<Container> containerBuilder = ImmutableList.<Container>builder()
         .add(container);
 
-    config.getRestoreConfigSource().ifPresent(restoreConfigSource -> {
+    config.getRestoreContext().ifPresent(restoreContext -> {
       Container restoreWrapperContainer = new ContainerBuilder()
           .withName("wal-g-restore-wrapper")
           .withImage("busybox")
@@ -68,7 +67,7 @@ public class ClusterStatefulSetInitContainer {
               .read()).get())
           .withEnvFrom(new EnvFromSourceBuilder()
               .withConfigMapRef(new ConfigMapEnvSourceBuilder()
-                  .withName(PatroniConfigMap.restoreName(config)).build())
+                  .withName(BackupConfigMap.restoreName(config)).build())
               .build())
           .withEnv(ImmutableList.<EnvVar>builder()
               .addAll(patroniSetEnvVariables)
@@ -82,11 +81,11 @@ public class ClusterStatefulSetInitContainer {
           .build();
 
       Container restoreEntryPoint = new ContainerBuilder()
-          .withName("restore-entripoint")
+          .withName("restore-entrypoint")
           .withImage("busybox")
           .withCommand("/bin/sh", "-ecx", Unchecked.supplier(() -> Resources
               .asCharSource(
-                  ClusterStatefulSet.class.getResource("/restore-entripoint.sh"),
+                  ClusterStatefulSet.class.getResource("/restore-entrypoint.sh"),
                   StandardCharsets.UTF_8)
               .read()).get())
           .withEnvFrom(new EnvFromSourceBuilder()
@@ -95,7 +94,7 @@ public class ClusterStatefulSetInitContainer {
               .build(),
               new EnvFromSourceBuilder()
               .withConfigMapRef(new ConfigMapEnvSourceBuilder()
-                  .withName(PatroniConfigMap.restoreName(config)).build())
+                  .withName(BackupConfigMap.restoreName(config)).build())
               .build())
           .withEnv(ImmutableList.<EnvVar>builder()
               .addAll(patroniSetEnvVariables)
@@ -123,7 +122,7 @@ public class ClusterStatefulSetInitContainer {
               .read()).get())
           .withEnvFrom(new EnvFromSourceBuilder()
               .withConfigMapRef(new ConfigMapEnvSourceBuilder()
-                  .withName(PatroniConfigMap.backupName(config)).build())
+                  .withName(BackupConfigMap.backupName(config)).build())
               .build())
           .withEnv(ImmutableList.<EnvVar>builder()
               .addAll(patroniSetEnvVariables)

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.cluster.factories;
+package io.stackgres.operator.cluster;
 
 import java.util.List;
 import java.util.Map;
@@ -21,11 +21,10 @@ import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
-import io.stackgres.operator.cluster.ClusterStatefulSet;
 import io.stackgres.operator.common.StackGresClusterContext;
 
 @ApplicationScoped
-public class ClusterStatefulSetVolumeMountFactory {
+public class ClusterStatefulSetVolumeMounts {
 
   private static final ImmutableMap<String, Supplier<VolumeMount>> VOLUME_MOUNTS =
       ImmutableMap.<String, Supplier<VolumeMount>>builder()
@@ -53,11 +52,11 @@ public class ClusterStatefulSetVolumeMountFactory {
               .build())
           .build();
 
-  private final ClusterStatefulSetVolumeFactory volumeFactory;
+  private final ClusterStatefulSetVolumes volumeFactory;
 
   @Inject
-  public ClusterStatefulSetVolumeMountFactory(
-      ClusterStatefulSetVolumeFactory volumeFactory) {
+  public ClusterStatefulSetVolumeMounts(
+      ClusterStatefulSetVolumes volumeFactory) {
     this.volumeFactory = volumeFactory;
   }
 
