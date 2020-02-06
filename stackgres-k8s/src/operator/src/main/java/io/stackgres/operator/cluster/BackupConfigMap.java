@@ -17,6 +17,7 @@ import com.google.common.collect.ImmutableMap;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
+import io.stackgres.operator.common.StackGresBackupContext;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfigSpec;
 import io.stackgres.operator.customresource.storages.AwsS3Storage;
@@ -49,14 +50,16 @@ public class BackupConfigMap {
   public ConfigMap createBackupConfig(StackGresClusterContext context) {
     final Map<String, String> data = new HashMap<>();
 
-    context.getBackupConfig().ifPresent(backupConfig -> {
-      data.put("BACKUP_CONFIG_RESOURCE_VERSION",
-          backupConfig.getMetadata().getResourceVersion());
-      data.putAll(getBackupEnvVars(
-          context.getCluster().getMetadata().getNamespace(),
-          context.getCluster().getMetadata().getName(),
-          backupConfig.getSpec()));
-    });
+    context.getBackupContext()
+        .map(StackGresBackupContext::getBackupConfig)
+        .ifPresent(backupConfig -> {
+          data.put("BACKUP_CONFIG_RESOURCE_VERSION",
+              backupConfig.getMetadata().getResourceVersion());
+          data.putAll(getBackupEnvVars(
+              context.getCluster().getMetadata().getNamespace(),
+              context.getCluster().getMetadata().getName(),
+              backupConfig.getSpec()));
+        });
 
     return new ConfigMapBuilder()
         .withNewMetadata()

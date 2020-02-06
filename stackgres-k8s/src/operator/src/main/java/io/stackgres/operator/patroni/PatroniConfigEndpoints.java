@@ -36,7 +36,7 @@ public class PatroniConfigEndpoints {
     Optional<StackGresPostgresConfig> pgconfig = context.getPostgresConfig();
     Map<String, String> params = new HashMap<>(DefaultValues.getDefaultValues());
 
-    if (context.getBackupConfig().isPresent()) {
+    if (context.getBackupContext().isPresent()) {
       params.put("archive_command", "/bin/sh /wal-g-wrapper/wal-g wal-push %p");
     } else {
       params.put("archive_command", "/bin/true");

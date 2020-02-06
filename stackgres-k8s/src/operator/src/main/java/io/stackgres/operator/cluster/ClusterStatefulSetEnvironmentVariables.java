@@ -17,6 +17,7 @@ import io.fabric8.kubernetes.api.model.EnvVarSourceBuilder;
 import io.fabric8.kubernetes.api.model.ObjectFieldSelectorBuilder;
 import io.fabric8.kubernetes.api.model.SecretKeySelector;
 import io.fabric8.kubernetes.api.model.SecretKeySelectorBuilder;
+import io.stackgres.operator.common.StackGresBackupContext;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresRestoreContext;
 import io.stackgres.operator.customresource.sgbackup.StackGresBackup;
@@ -91,7 +92,8 @@ public class ClusterStatefulSetEnvironmentVariables {
 
   public ImmutableList<EnvVar> getBackupEnvironmentVariables(StackGresClusterContext context) {
     return Seq.of(
-        context.getBackupConfig()
+        context.getBackupContext()
+        .map(StackGresBackupContext::getBackupConfig)
         .map(StackGresBackupConfig::getSpec)
         .map(StackGresBackupConfigSpec::getPgpConfiguration)
         .map(pgpConf -> Seq.of(new EnvVarBuilder()
@@ -100,7 +102,8 @@ public class ClusterStatefulSetEnvironmentVariables {
                 .withSecretKeyRef(pgpConf.getKey())
                 .build())
             .build())),
-        context.getBackupConfig()
+        context.getBackupContext()
+        .map(StackGresBackupContext::getBackupConfig)
         .map(StackGresBackupConfig::getSpec)
         .map(StackGresBackupConfigSpec::getStorage)
         .map(BackupStorage::getS3)
@@ -116,7 +119,8 @@ public class ClusterStatefulSetEnvironmentVariables {
                 .withSecretKeyRef(awsConf.getCredentials().getSecretKey())
                 .build())
             .build())),
-        context.getBackupConfig()
+        context.getBackupContext()
+        .map(StackGresBackupContext::getBackupConfig)
         .map(StackGresBackupConfig::getSpec)
         .map(StackGresBackupConfigSpec::getStorage)
         .map(BackupStorage::getGcs)
@@ -125,7 +129,8 @@ public class ClusterStatefulSetEnvironmentVariables {
             .withValue(ClusterStatefulSet.GCS_CONFIG_PATH
                 + "/" + ClusterStatefulSet.GCS_CREDENTIALS_FILE_NAME)
             .build())),
-        context.getBackupConfig()
+        context.getBackupContext()
+        .map(StackGresBackupContext::getBackupConfig)
         .map(StackGresBackupConfig::getSpec)
         .map(StackGresBackupConfigSpec::getStorage)
         .map(BackupStorage::getAzureblob)

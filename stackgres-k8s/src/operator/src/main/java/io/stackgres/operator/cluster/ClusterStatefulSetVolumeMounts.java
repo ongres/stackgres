@@ -28,14 +28,18 @@ public class ClusterStatefulSetVolumeMounts {
 
   private static final ImmutableMap<String, Supplier<VolumeMount>> VOLUME_MOUNTS =
       ImmutableMap.<String, Supplier<VolumeMount>>builder()
-          .put(ClusterStatefulSet.WAL_G_WRAPPER_VOLUME_NAME, () -> new VolumeMountBuilder()
-              .withName(ClusterStatefulSet.WAL_G_WRAPPER_VOLUME_NAME)
-              .withMountPath("/wal-g-wrapper")
+          .put(ClusterStatefulSet.PATRONI_CONFIG_VOLUME_NAME, () -> new VolumeMountBuilder()
+              .withName(ClusterStatefulSet.PATRONI_CONFIG_VOLUME_NAME)
+              .withMountPath("/etc/env/patroni")
               .build())
-          .put(ClusterStatefulSet.WAL_G_RESTORE_WRAPPER_VOLUME_NAME,
+          .put(ClusterStatefulSet.BACKUP_CONFIG_VOLUME_NAME, () -> new VolumeMountBuilder()
+              .withName(ClusterStatefulSet.BACKUP_CONFIG_VOLUME_NAME)
+              .withMountPath("/etc/env/backup")
+              .build())
+          .put(ClusterStatefulSet.RESTORE_CONFIG_VOLUME_NAME,
               () -> new VolumeMountBuilder()
-                  .withName(ClusterStatefulSet.WAL_G_RESTORE_WRAPPER_VOLUME_NAME)
-                  .withMountPath("/wal-g-restore-wrapper")
+                  .withName(ClusterStatefulSet.RESTORE_CONFIG_VOLUME_NAME)
+                  .withMountPath("/etc/env/restore")
                   .build())
           .put(ClusterStatefulSet.GCS_CREDENTIALS_VOLUME_NAME, () -> new VolumeMountBuilder()
               .withName(ClusterStatefulSet.GCS_CREDENTIALS_VOLUME_NAME)

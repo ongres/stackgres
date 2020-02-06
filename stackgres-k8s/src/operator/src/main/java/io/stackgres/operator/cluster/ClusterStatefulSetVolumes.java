@@ -15,7 +15,9 @@ import io.fabric8.kubernetes.api.model.KeyToPathBuilder;
 import io.fabric8.kubernetes.api.model.SecretVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
+import io.stackgres.operator.common.StackGresBackupContext;
 import io.stackgres.operator.common.StackGresClusterContext;
+import io.stackgres.operator.patroni.PatroniConfigMap;
 
 @ApplicationScoped
 public class ClusterStatefulSetVolumes {
@@ -29,35 +31,46 @@ public class ClusterStatefulSetVolumes {
             .endEmptyDir()
             .build(),
         new VolumeBuilder()
-            .withName(ClusterStatefulSet.WAL_G_WRAPPER_VOLUME_NAME)
-            .withNewEmptyDir()
-            .withMedium("Memory")
-            .endEmptyDir()
+            .withName(ClusterStatefulSet.PATRONI_CONFIG_VOLUME_NAME)
+            .withNewConfigMap()
+            .withName(PatroniConfigMap.patroniName(config))
+            .withDefaultMode(400)
+            .endConfigMap()
             .build(),
         new VolumeBuilder()
-            .withName(ClusterStatefulSet.WAL_G_RESTORE_WRAPPER_VOLUME_NAME)
-            .withNewEmptyDir()
-            .withMedium("Memory")
-            .endEmptyDir()
+            .withName(ClusterStatefulSet.BACKUP_CONFIG_VOLUME_NAME)
+            .withNewConfigMap()
+            .withName(BackupConfigMap.backupName(config))
+            .withDefaultMode(400)
+            .endConfigMap()
+            .build(),
+        new VolumeBuilder()
+            .withName(ClusterStatefulSet.RESTORE_CONFIG_VOLUME_NAME)
+            .withNewConfigMap()
+            .withName(BackupConfigMap.restoreName(config))
+            .withDefaultMode(400)
+            .endConfigMap()
             .build()
     );
 
-    config.getBackupConfig().ifPresent(backupConfig -> {
-      Optional.ofNullable(backupConfig.getSpec().getStorage().getGcs())
-          .ifPresent(gcsStorage -> volumeListBuilder.add(new VolumeBuilder()
-              .withName(ClusterStatefulSet.GCS_CREDENTIALS_VOLUME_NAME)
-              .withSecret(new SecretVolumeSourceBuilder()
-                  .withSecretName(gcsStorage.getCredentials()
-                      .getServiceAccountJsonKey().getName())
-                  .withItems(new KeyToPathBuilder()
-                      .withKey(gcsStorage.getCredentials()
-                          .getServiceAccountJsonKey().getKey())
-                      .withPath(ClusterStatefulSet.GCS_RESTORE_CONFIG_PATH
-                          + "/" + ClusterStatefulSet.GCS_CREDENTIALS_FILE_NAME)
+    config.getBackupContext()
+        .map(StackGresBackupContext::getBackupConfig)
+        .ifPresent(backupConfig -> {
+          Optional.ofNullable(backupConfig.getSpec().getStorage().getGcs())
+              .ifPresent(gcsStorage -> volumeListBuilder.add(new VolumeBuilder()
+                  .withName(ClusterStatefulSet.GCS_CREDENTIALS_VOLUME_NAME)
+                  .withSecret(new SecretVolumeSourceBuilder()
+                      .withSecretName(gcsStorage.getCredentials()
+                          .getServiceAccountJsonKey().getName())
+                      .withItems(new KeyToPathBuilder()
+                          .withKey(gcsStorage.getCredentials()
+                              .getServiceAccountJsonKey().getKey())
+                          .withPath(ClusterStatefulSet.GCS_RESTORE_CONFIG_PATH
+                              + "/" + ClusterStatefulSet.GCS_CREDENTIALS_FILE_NAME)
+                          .build())
                       .build())
-                  .build())
-              .build()));
-    });
+                  .build()));
+        });
 
     config.getRestoreContext().ifPresent(restoreContext -> {
       volumeListBuilder.add(

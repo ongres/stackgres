@@ -21,7 +21,7 @@ import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 @DockerExtension({
   @DockerContainer(
       alias = "k8s",
-      extendedBy = KindConfiguration.class,
+      extendedBy = K8sConfiguration.class,
       whenReuse = WhenReuse.ALWAYS,
       stopIfChanged = true)
 })

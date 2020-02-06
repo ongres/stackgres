@@ -74,8 +74,9 @@ public class ClusterStatefulSet {
   public static final String GCS_RESTORE_CREDENTIALS_FILE_NAME =
       "restore-google-service-account-key.json";
   public static final String GCS_RESTORE_CONFIG_PATH = "/restore/.gcs";
-  public static final String WAL_G_WRAPPER_VOLUME_NAME = "wal-g-wrapper";
-  public static final String WAL_G_RESTORE_WRAPPER_VOLUME_NAME = "wal-g-restore-wrapper";
+  public static final String PATRONI_CONFIG_VOLUME_NAME = "patroni-config";
+  public static final String BACKUP_CONFIG_VOLUME_NAME = "backup-config";
+  public static final String RESTORE_CONFIG_VOLUME_NAME = "restore-config";
   public static final String RESTORE_ENTRYPOINT_VOLUME = "restore-entrypoint";
   public static final String RESTORE_ENTRYPOINT_VOLUME_PATH = "/etc/patroni/restore";
 
@@ -84,13 +85,13 @@ public class ClusterStatefulSet {
 
   private final ClusterStatefulSetPodRequirements resourceRequirementsFactory;
   private final ClusterStatefulSetEnvironmentVariables environmentVariablesFactory;
-  private final ClusterStatefulSetInitContainer initContainerFactory;
+  private final ClusterStatefulSetInitContainers initContainerFactory;
   private final ClusterStatefulSetVolumes volumesFactory;
   private final ClusterStatefulSetVolumeMounts volumeMountsFactory;
 
   public ClusterStatefulSet(ClusterStatefulSetPodRequirements resourceRequirementsFactory,
       ClusterStatefulSetEnvironmentVariables environmentVariablesFactory,
-      ClusterStatefulSetInitContainer initContainerFactory,
+      ClusterStatefulSetInitContainers initContainerFactory,
       ClusterStatefulSetVolumes volumesFactory,
       ClusterStatefulSetVolumeMounts volumeMountsFactory) {
     super();

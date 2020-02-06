@@ -27,12 +27,14 @@ import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
 import io.stackgres.operator.app.KubernetesClientFactory;
 import io.stackgres.operator.app.ObjectMapperProvider;
+import io.stackgres.operator.cluster.BackupSecret;
 import io.stackgres.operator.cluster.Cluster;
 import io.stackgres.operator.common.ArcUtil;
 import io.stackgres.operator.common.ConfigContext;
 import io.stackgres.operator.common.ConfigProperty;
 import io.stackgres.operator.common.Prometheus;
 import io.stackgres.operator.common.SidecarEntry;
+import io.stackgres.operator.common.StackGresBackupContext;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresRestoreContext;
 import io.stackgres.operator.common.StackGresSidecarTransformer;
@@ -205,7 +207,7 @@ public class ClusterReconciliationCycle
         .withCluster(cluster)
         .withProfile(getProfile(cluster, client))
         .withPostgresConfig(getPostgresConfig(cluster, client))
-        .withBackupConfig(getBackupConfig(cluster, client))
+        .withBackupContext(getBackupContext(cluster, client))
         .withSidecars(Stream.of(
             Stream.of(Envoy.NAME)
             .filter(envoy -> !cluster.getSpec().getSidecars().contains(envoy)),
@@ -216,7 +218,7 @@ public class ClusterReconciliationCycle
             .collect(ImmutableList.toImmutableList()))
         .withBackups(getBackups(cluster, client))
         .withPrometheus(getPrometheus(cluster, client))
-        .withRestoreContext(getRestoreConfig(cluster, client))
+        .withRestoreContext(getRestoreContext(cluster, client))
         .build();
   }
 
@@ -248,23 +250,41 @@ public class ClusterReconciliationCycle
     return Optional.empty();
   }
 
-  private Optional<StackGresBackupConfig> getBackupConfig(StackGresCluster cluster,
+  private Optional<StackGresBackupContext> getBackupContext(StackGresCluster cluster,
       KubernetesClient client) {
     final String namespace = cluster.getMetadata().getNamespace();
     final String backupConfig = cluster.getSpec().getBackupConfig();
     if (backupConfig != null) {
-      Optional<CustomResourceDefinition> crd =
-          ResourceUtil.getCustomResource(client, StackGresBackupConfigDefinition.NAME);
-      if (crd.isPresent()) {
-        return Optional.ofNullable(client
-            .customResources(crd.get(),
-                StackGresBackupConfig.class,
-                StackGresBackupConfigList.class,
-                StackGresBackupConfigDoneable.class)
-            .inNamespace(namespace)
-            .withName(backupConfig)
-            .get());
-      }
+      return ResourceUtil.getCustomResource(client, StackGresBackupConfigDefinition.NAME)
+          .map(crd -> client
+              .customResources(crd,
+                  StackGresBackupConfig.class,
+                  StackGresBackupConfigList.class,
+                  StackGresBackupConfigDoneable.class)
+              .inNamespace(namespace)
+              .withName(backupConfig)
+              .get())
+          .map(backupConf -> StackGresBackupContext.builder()
+              .withBackupConfig(backupConf)
+              .withSecrets(Seq.of(
+                  Optional.ofNullable(backupConf.getSpec().getPgpConfiguration())
+                  .map(PgpConfiguration::getKey)
+                  .map(secretKeySelector -> Tuple.tuple(
+                      secretKeySelector,
+                      client.secrets()
+                      .inNamespace(namespace)
+                      .withName(secretKeySelector.getKey())
+                      .get()
+                      .getData()
+                      .get(secretKeySelector.getKey()))))
+                  .filter(Optional::isPresent)
+                  .map(Optional::get)
+                  .grouped(t -> t.v1)
+                  .collect(ImmutableMap.toImmutableMap(
+                      t -> t.v1.getName(), t -> t.v2
+                      .collect(ImmutableMap.toImmutableMap(
+                          tt -> tt.v1.getKey(), tt -> tt.v2)))))
+              .build());
     }
     return Optional.empty();
   }
@@ -350,7 +370,7 @@ public class ClusterReconciliationCycle
     }
   }
 
-  private Optional<StackGresRestoreContext> getRestoreConfig(StackGresCluster cluster,
+  private Optional<StackGresRestoreContext> getRestoreContext(StackGresCluster cluster,
       KubernetesClient client) {
     final StackGresClusterRestore restore = cluster.getSpec().getRestore();
     if (restore != null) {

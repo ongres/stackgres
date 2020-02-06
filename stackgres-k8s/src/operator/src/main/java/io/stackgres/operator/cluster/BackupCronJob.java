@@ -22,6 +22,7 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectFieldSelectorBuilder;
 import io.fabric8.kubernetes.api.model.batch.CronJobBuilder;
 import io.fabric8.kubernetes.api.model.batch.JobTemplateSpecBuilder;
+import io.stackgres.operator.common.StackGresBackupContext;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.controller.ResourceGeneratorContext;
 import io.stackgres.operator.customresource.sgbackup.BackupPhase;
@@ -49,9 +50,10 @@ public class BackupCronJob {
     String name = clusterContext.getCluster().getMetadata().getName();
     ImmutableMap<String, String> labels = ResourceUtil.clusterLabels(clusterContext.getCluster());
     return ImmutableList.<HasMetadata>builder()
-        .addAll(Stream.of(clusterContext.getBackupConfig())
+        .addAll(Stream.of(clusterContext.getBackupContext())
             .filter(Optional::isPresent)
             .map(Optional::get)
+            .map(StackGresBackupContext::getBackupConfig)
             .map(Unchecked.function(backupConfig -> new CronJobBuilder()
                 .withNewMetadata()
                 .withNamespace(namespace)
@@ -63,11 +65,11 @@ public class BackupCronJob {
                 .withNewSpec()
                 .withConcurrencyPolicy("Replace")
                 .withFailedJobsHistoryLimit(10)
-                .withStartingDeadlineSeconds(clusterContext.getBackupConfig()
+                .withStartingDeadlineSeconds(Optional.of(backupConfig)
                     .map(StackGresBackupConfig::getSpec)
                     .map(StackGresBackupConfigSpec::getFullWindow)
                     .orElse(5) * 60L)
-                .withSchedule(clusterContext.getBackupConfig()
+                .withSchedule(Optional.of(backupConfig)
                     .map(StackGresBackupConfig::getSpec)
                     .map(StackGresBackupConfigSpec::getFullSchedule)
                     .orElse("0 5 * * *"))
@@ -173,7 +175,7 @@ public class BackupCronJob {
                             .build(),
                             new EnvVarBuilder()
                             .withName("RETAIN")
-                            .withValue(clusterContext.getBackupConfig()
+                            .withValue(Optional.of(backupConfig)
                                 .map(StackGresBackupConfig::getSpec)
                                 .map(StackGresBackupConfigSpec::getRetention)
                                 .map(String::valueOf)
@@ -181,7 +183,7 @@ public class BackupCronJob {
                             .build(),
                             new EnvVarBuilder()
                             .withName("WINDOW")
-                            .withValue(clusterContext.getBackupConfig()
+                            .withValue(Optional.of(backupConfig)
                                 .map(StackGresBackupConfig::getSpec)
                                 .map(StackGresBackupConfigSpec::getFullWindow)
                                 .map(window -> window * 60)
