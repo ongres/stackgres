@@ -23,9 +23,8 @@ variables:
                    -DinstallAtEnd=true
                    -DdeployAtEnd=true
   DISABLE_IT: "true"
-  E2E_PARALLELISM: 12
-  E2E_ENV: k3d
-  K8S_FROM_DIND: 1.17.2
+  E2E_ENV: kind
+  K8S_FROM_DIND: 1.17.0
   E2E_PARALLELISM: 32
   RESET_KIND: "true"
 
