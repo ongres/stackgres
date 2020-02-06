@@ -117,12 +117,16 @@ setup_k8s() {
       && [ "$USE_EXTERNAL_OPERATOR" != true ])\
     || [ "$REUSE_OPERATOR" != true ]
   then
-    if [ "$FORCE_IMAGE_PULL" = "true" ] \
-      || docker image inspect $IMAGE_NAME >/dev/null 2>&1
+    if [ "$FORCE_IMAGE_PULL" = "true" ]
     then
       docker pull $IMAGE_NAME
     fi
-    load_operator_k8s
+
+    if docker image inspect $IMAGE_NAME >/dev/null
+    then 
+      load_operator_k8s
+    fi
+
     helm_cleanup
     k8s_cleanup
 

@@ -1,5 +1,5 @@
 cat << EOF > /wal-g-wrapper/wal-g
-#/bin/sh
+#!/bin/sh
 $(env | grep -v "^_" | sed 's/^/export /')
 exec wal-g "\$@"
 EOF
