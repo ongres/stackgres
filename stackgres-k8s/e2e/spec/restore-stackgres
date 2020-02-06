@@ -44,6 +44,14 @@ EOF
 
 }
 
+e2e_test_uninstall() {
+  helm_cleanup_chart "$CLUSTER_NAME"
+  helm_cleanup_chart "$CLUSTER_NAME-backup"
+
+  k8s_cleanup_namespace "$CLUSTER_NAMESPACE"
+  k8s_cleanup_namespace "$CLUSTER_NAMESPACE-backup"
+}
+
 e2e_test(){
   run_test "Check that data was restored on primary node" check_init_data
   run_test "Check that data was restored on replica node" check_replica_data
