@@ -135,7 +135,7 @@ public class ClusterReconciliationCycle
   protected void onError(Exception ex) {
     eventController.sendEvent(EventReason.CLUSTER_CONFIG_ERROR,
         "StackGres Cluster reconciliation cycle failed: "
-            + ex.getMessage(), null);
+            + ex.getMessage());
   }
 
   @Override
