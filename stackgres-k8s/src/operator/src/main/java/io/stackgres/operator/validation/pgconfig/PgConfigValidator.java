@@ -5,8 +5,8 @@
 
 package io.stackgres.operator.validation.pgconfig;
 
+import io.stackgres.operator.cluster.patroni.parameters.Blacklist;
 import io.stackgres.operator.common.PgConfigReview;
-import io.stackgres.operator.patroni.parameters.Blacklist;
 import io.stackgres.operatorframework.admissionwebhook.validating.Validator;
 
 public interface PgConfigValidator extends Validator<PgConfigReview> {

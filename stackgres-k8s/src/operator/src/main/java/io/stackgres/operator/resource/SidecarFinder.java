@@ -7,11 +7,11 @@ package io.stackgres.operator.resource;
 
 import java.util.List;
 
-import io.stackgres.operator.common.StackGresSidecarTransformer;
+import io.stackgres.operator.common.StackGresClusterSidecarResourceFactory;
 
-public interface SidecarFinder<C> {
+public interface SidecarFinder {
 
-  StackGresSidecarTransformer<?, C> getSidecarTransformer(String name);
+  StackGresClusterSidecarResourceFactory<?> getSidecarTransformer(String name);
 
   List<String> getAllOptionalSidecarNames();
 

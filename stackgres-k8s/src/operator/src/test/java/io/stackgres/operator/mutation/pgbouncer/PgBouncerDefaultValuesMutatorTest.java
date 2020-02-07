@@ -8,10 +8,11 @@ package io.stackgres.operator.mutation.pgbouncer;
 import java.util.HashMap;
 
 import com.fasterxml.jackson.databind.JsonNode;
+
+import io.stackgres.operator.cluster.sidecars.pgbouncer.customresources.StackGresPgbouncerConfig;
 import io.stackgres.operator.common.PgBouncerReview;
 import io.stackgres.operator.mutation.DefaultValuesMutator;
 import io.stackgres.operator.mutation.DefaultValuesMutatorTest;
-import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfig;
 import io.stackgres.operator.utils.JsonUtil;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;

@@ -6,6 +6,7 @@
 package io.stackgres.operator.cluster;
 
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import javax.enterprise.context.ApplicationScoped;
 
@@ -15,14 +16,17 @@ import io.fabric8.kubernetes.api.model.KeyToPathBuilder;
 import io.fabric8.kubernetes.api.model.SecretVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
+import io.stackgres.operator.cluster.patroni.PatroniConfigMap;
 import io.stackgres.operator.common.StackGresBackupContext;
 import io.stackgres.operator.common.StackGresClusterContext;
-import io.stackgres.operator.patroni.PatroniConfigMap;
+import io.stackgres.operatorframework.resource.factory.ResourceStreamFactory;
 
 @ApplicationScoped
-public class ClusterStatefulSetVolumes {
+public class ClusterStatefulSetVolumes
+    implements ResourceStreamFactory<Volume, StackGresClusterContext> {
 
-  public ImmutableList<Volume> getVolumes(StackGresClusterContext config) {
+  @Override
+  public Stream<Volume> create(StackGresClusterContext config) {
     ImmutableList.Builder<Volume> volumeListBuilder = ImmutableList.<Volume>builder().add(
         new VolumeBuilder()
             .withName(ClusterStatefulSet.SOCKET_VOLUME_NAME)
@@ -45,11 +49,25 @@ public class ClusterStatefulSetVolumes {
             .endConfigMap()
             .build(),
         new VolumeBuilder()
+            .withName(ClusterStatefulSet.BACKUP_SECRET_VOLUME_NAME)
+            .withNewSecret()
+            .withSecretName(BackupSecret.backupName(config))
+            .withDefaultMode(400)
+            .endSecret()
+            .build(),
+        new VolumeBuilder()
             .withName(ClusterStatefulSet.RESTORE_CONFIG_VOLUME_NAME)
             .withNewConfigMap()
-            .withName(BackupConfigMap.restoreName(config))
+            .withName(RestoreConfigMap.restoreName(config))
             .withDefaultMode(400)
             .endConfigMap()
+            .build(),
+        new VolumeBuilder()
+            .withName(ClusterStatefulSet.RESTORE_SECRET_VOLUME_NAME)
+            .withNewSecret()
+            .withSecretName(RestoreSecret.restoreName(config))
+            .withDefaultMode(400)
+            .endSecret()
             .build()
     );
 
@@ -99,7 +117,7 @@ public class ClusterStatefulSetVolumes {
 
     });
 
-    return volumeListBuilder.build();
+    return volumeListBuilder.build().stream();
   }
 
 }

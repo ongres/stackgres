@@ -7,9 +7,9 @@ package io.stackgres.operator.initialization;
 
 import javax.enterprise.context.ApplicationScoped;
 
-import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfig;
-import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfigDefinition;
-import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfigSpec;
+import io.stackgres.operator.cluster.sidecars.pgbouncer.customresources.StackGresPgbouncerConfig;
+import io.stackgres.operator.cluster.sidecars.pgbouncer.customresources.StackGresPgbouncerConfigDefinition;
+import io.stackgres.operator.cluster.sidecars.pgbouncer.customresources.StackGresPgbouncerConfigSpec;
 
 @ApplicationScoped
 public class DefaultPgBouncerFactory

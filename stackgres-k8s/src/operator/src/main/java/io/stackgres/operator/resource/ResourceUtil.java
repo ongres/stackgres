@@ -5,12 +5,17 @@
 
 package io.stackgres.operator.resource;
 
+import java.security.MessageDigest;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
+import javax.xml.bind.DatatypeConverter;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.base.Preconditions;
@@ -27,6 +32,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.internal.SerializationUtils;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 
+import org.jooq.lambda.Unchecked;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -247,4 +253,16 @@ public class ResourceUtil {
         .build();
   }
 
+  public static Map<String, String> addMd5Sum(Map<String, String> data) {
+    MessageDigest messageDigest = Unchecked
+        .supplier(() -> MessageDigest.getInstance("MD5")).get();
+    messageDigest.update(data.entrySet().stream()
+        .sorted((left, right) -> left.getKey().compareTo(right.getKey()))
+        .map(e -> e.getValue())
+        .collect(Collectors.joining())
+        .getBytes());
+    data.put("MD5SUM", DatatypeConverter.printHexBinary(
+        messageDigest.digest()).toUpperCase(Locale.US));
+    return data;
+  }
 }

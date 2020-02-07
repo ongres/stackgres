@@ -6,6 +6,7 @@
 package io.stackgres.operator.cluster;
 
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -21,39 +22,39 @@ import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.EnvFromSourceBuilder;
 import io.fabric8.kubernetes.api.model.EnvVar;
+import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
+import io.stackgres.operator.cluster.patroni.PatroniConfigMap;
+import io.stackgres.operator.cluster.patroni.PatroniEnvironmentVariables;
 import io.stackgres.operator.common.StackGresClusterContext;
-import io.stackgres.operator.patroni.PatroniConfigMap;
+import io.stackgres.operator.common.StackGresRestoreContext;
+import io.stackgres.operatorframework.resource.factory.ResourceStreamFactory;
 
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.Unchecked;
 
 @ApplicationScoped
-public class ClusterStatefulSetInitContainers {
+public class ClusterStatefulSetInitContainers
+    implements ResourceStreamFactory<Container, StackGresClusterContext> {
 
-  private final ClusterStatefulSetEnvironmentVariables environmentVariablesFactory;
+  private final PatroniEnvironmentVariables patroniEnvironmentVariables;
 
   @Inject
-  public ClusterStatefulSetInitContainers(
-      ClusterStatefulSetEnvironmentVariables environmentVariablesFactory) {
-    this.environmentVariablesFactory = environmentVariablesFactory;
+  public ClusterStatefulSetInitContainers(PatroniEnvironmentVariables patroniEnvironmentVariables) {
+    super();
+    this.patroniEnvironmentVariables = patroniEnvironmentVariables;
   }
 
-  public ImmutableList<Container> getInitContainers(StackGresClusterContext config) {
-    ImmutableList<EnvVar> patroniSetEnvVariables = environmentVariablesFactory
-        .getPatroniEnvironmentVariables(config);
-    ImmutableList<EnvVar> restoreSetEnvVariables = environmentVariablesFactory
-        .getRestoreEnvironmentVariables(config);
-
+  @Override
+  public Stream<Container> create(StackGresClusterContext config) {
     return Seq.of(Optional.of(createSetDataPermissionContainer(config)),
         Optional.of(createExecWithEnvContainer()),
         config.getRestoreContext()
         .map(restoreContext -> createRestoreEntrypointContainer(
-            config, patroniSetEnvVariables, restoreSetEnvVariables)))
+            config, restoreContext, patroniEnvironmentVariables.list(config))))
         .filter(Optional::isPresent)
-        .map(Optional::get)
-        .collect(ImmutableList.toImmutableList());
+        .map(Optional::get);
   }
 
   private Container createSetDataPermissionContainer(StackGresClusterContext config) {
@@ -98,7 +99,7 @@ public class ClusterStatefulSetInitContainers {
   }
 
   private Container createRestoreEntrypointContainer(StackGresClusterContext config,
-      ImmutableList<EnvVar> patroniSetEnvVariables, ImmutableList<EnvVar> restoreSetEnvVariables) {
+      StackGresRestoreContext restoreContext, List<EnvVar> patroniSetEnvVariables) {
     return new ContainerBuilder()
         .withName("restore-entrypoint")
         .withImage("busybox")
@@ -113,11 +114,14 @@ public class ClusterStatefulSetInitContainers {
             .build(),
             new EnvFromSourceBuilder()
             .withConfigMapRef(new ConfigMapEnvSourceBuilder()
-                .withName(BackupConfigMap.restoreName(config)).build())
+                .withName(RestoreConfigMap.restoreName(config)).build())
             .build())
         .withEnv(ImmutableList.<EnvVar>builder()
             .addAll(patroniSetEnvVariables)
-            .addAll(restoreSetEnvVariables)
+            .add(new EnvVarBuilder()
+                .withName("RESTORE_BACKUP_ID")
+                .withValue(restoreContext.getBackup().getStatus().getName())
+                .build())
             .build())
         .withVolumeMounts(
             new VolumeMountBuilder()

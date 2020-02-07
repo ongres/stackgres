@@ -26,6 +26,10 @@ import io.fabric8.kubernetes.client.Watch;
 import io.fabric8.kubernetes.internal.KubernetesDeserializer;
 import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
+import io.stackgres.operator.cluster.sidecars.pgbouncer.customresources.StackGresPgbouncerConfig;
+import io.stackgres.operator.cluster.sidecars.pgbouncer.customresources.StackGresPgbouncerConfigDefinition;
+import io.stackgres.operator.cluster.sidecars.pgbouncer.customresources.StackGresPgbouncerConfigDoneable;
+import io.stackgres.operator.cluster.sidecars.pgbouncer.customresources.StackGresPgbouncerConfigList;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.controller.ClusterReconciliationCycle;
 import io.stackgres.operator.controller.ClusterResourceWatcherFactory;
@@ -50,10 +54,6 @@ import io.stackgres.operator.customresource.sgprofile.StackGresProfileDefinition
 import io.stackgres.operator.customresource.sgprofile.StackGresProfileDoneable;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfileList;
 import io.stackgres.operator.resource.ResourceUtil;
-import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfig;
-import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfigDefinition;
-import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfigDoneable;
-import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfigList;
 import io.stackgres.operatorframework.resource.ResourceHandlerSelector;
 
 import org.jooq.lambda.Unchecked;

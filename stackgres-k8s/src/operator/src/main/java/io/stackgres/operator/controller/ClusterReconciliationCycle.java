@@ -27,17 +27,18 @@ import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
 import io.stackgres.operator.app.KubernetesClientFactory;
 import io.stackgres.operator.app.ObjectMapperProvider;
-import io.stackgres.operator.cluster.BackupSecret;
 import io.stackgres.operator.cluster.Cluster;
+import io.stackgres.operator.cluster.sidecars.envoy.Envoy;
 import io.stackgres.operator.common.ArcUtil;
 import io.stackgres.operator.common.ConfigContext;
 import io.stackgres.operator.common.ConfigProperty;
+import io.stackgres.operator.common.ImmutableStackGresGeneratorContext;
 import io.stackgres.operator.common.Prometheus;
 import io.stackgres.operator.common.SidecarEntry;
 import io.stackgres.operator.common.StackGresBackupContext;
 import io.stackgres.operator.common.StackGresClusterContext;
+import io.stackgres.operator.common.StackGresClusterSidecarResourceFactory;
 import io.stackgres.operator.common.StackGresRestoreContext;
-import io.stackgres.operator.common.StackGresSidecarTransformer;
 import io.stackgres.operator.customresource.prometheus.PrometheusConfig;
 import io.stackgres.operator.customresource.prometheus.PrometheusInstallation;
 import io.stackgres.operator.customresource.sgbackup.BackupPhase;
@@ -72,7 +73,6 @@ import io.stackgres.operator.customresource.storages.PgpConfiguration;
 import io.stackgres.operator.resource.ClusterSidecarFinder;
 import io.stackgres.operator.resource.KubernetesCustomResourceScanner;
 import io.stackgres.operator.resource.ResourceUtil;
-import io.stackgres.operator.sidecars.envoy.Envoy;
 import io.stackgres.operatorframework.reconciliation.AbstractReconciliationCycle;
 import io.stackgres.operatorframework.reconciliation.AbstractReconciliator;
 import io.stackgres.operatorframework.resource.ResourceHandlerSelector;
@@ -169,11 +169,12 @@ public class ClusterReconciliationCycle
   @Override
   protected ImmutableList<HasMetadata> getRequiredResources(StackGresClusterContext context,
       ImmutableList<HasMetadata> existingResourcesOnly) {
-    return cluster.getResources(
-        ImmutableResourceGeneratorContext.<StackGresClusterContext>builder()
-        .context(context)
+    return cluster.create(
+        ImmutableStackGresGeneratorContext.builder()
+        .clusterContext(context)
         .addAllExistingResources(existingResourcesOnly)
-        .build());
+        .build())
+        .collect(ImmutableList.toImmutableList());
   }
 
   @Override
@@ -222,11 +223,11 @@ public class ClusterReconciliationCycle
         .build();
   }
 
-  private <T> SidecarEntry<T, StackGresClusterContext> getSidecarEntry(
+  private <T> SidecarEntry<T> getSidecarEntry(
       StackGresCluster cluster, KubernetesClient client,
-      StackGresSidecarTransformer<T, StackGresClusterContext> sidecar) throws Exception {
+      StackGresClusterSidecarResourceFactory<T> sidecar) throws Exception {
     Optional<T> sidecarConfig = sidecar.getConfig(cluster, client);
-    return new SidecarEntry<T, StackGresClusterContext>(sidecar, sidecarConfig);
+    return new SidecarEntry<T>(sidecar, sidecarConfig);
   }
 
   private Optional<StackGresPostgresConfig> getPostgresConfig(StackGresCluster cluster,

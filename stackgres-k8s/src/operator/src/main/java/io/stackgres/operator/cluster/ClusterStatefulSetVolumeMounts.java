@@ -13,7 +13,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -22,49 +21,48 @@ import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.operator.common.StackGresClusterContext;
+import io.stackgres.operatorframework.resource.factory.ResourceStreamFactory;
 
 @ApplicationScoped
-public class ClusterStatefulSetVolumeMounts {
+public class ClusterStatefulSetVolumeMounts
+    implements ResourceStreamFactory<VolumeMount, StackGresClusterContext> {
+
+  public static final String PATRONI_ENV = "/etc/env/patroni";
+  public static final String BACKUP_ENV = "/etc/env/backup";
+  public static final String BACKUP_SECRET = "/etc/secret/backup";
+  public static final String RESTORE_ENV = "/etc/env/restore";
+  public static final String RESTORE_SECRET = "/etc/secret/restore";
 
   private static final ImmutableMap<String, Supplier<VolumeMount>> VOLUME_MOUNTS =
       ImmutableMap.<String, Supplier<VolumeMount>>builder()
           .put(ClusterStatefulSet.PATRONI_CONFIG_VOLUME_NAME, () -> new VolumeMountBuilder()
               .withName(ClusterStatefulSet.PATRONI_CONFIG_VOLUME_NAME)
-              .withMountPath("/etc/env/patroni")
+              .withMountPath(PATRONI_ENV)
               .build())
           .put(ClusterStatefulSet.BACKUP_CONFIG_VOLUME_NAME, () -> new VolumeMountBuilder()
               .withName(ClusterStatefulSet.BACKUP_CONFIG_VOLUME_NAME)
-              .withMountPath("/etc/env/backup")
+              .withMountPath(BACKUP_ENV)
               .build())
-          .put(ClusterStatefulSet.RESTORE_CONFIG_VOLUME_NAME,
-              () -> new VolumeMountBuilder()
-                  .withName(ClusterStatefulSet.RESTORE_CONFIG_VOLUME_NAME)
-                  .withMountPath("/etc/env/restore")
-                  .build())
-          .put(ClusterStatefulSet.GCS_CREDENTIALS_VOLUME_NAME, () -> new VolumeMountBuilder()
-              .withName(ClusterStatefulSet.GCS_CREDENTIALS_VOLUME_NAME)
-              .withMountPath(ClusterStatefulSet.GCS_CONFIG_PATH)
+          .put(ClusterStatefulSet.BACKUP_SECRET_VOLUME_NAME, () -> new VolumeMountBuilder()
+              .withName(ClusterStatefulSet.BACKUP_SECRET_VOLUME_NAME)
+              .withMountPath(BACKUP_SECRET)
               .build())
-          .put(ClusterStatefulSet.GCS_RESTORE_CREDENTIALS_VOLUME_NAME,
-              () -> new VolumeMountBuilder()
-                  .withName(ClusterStatefulSet.GCS_RESTORE_CREDENTIALS_VOLUME_NAME)
-                  .withMountPath(ClusterStatefulSet.GCS_RESTORE_CONFIG_PATH)
-                  .build())
+          .put(ClusterStatefulSet.RESTORE_CONFIG_VOLUME_NAME, () -> new VolumeMountBuilder()
+              .withName(ClusterStatefulSet.RESTORE_CONFIG_VOLUME_NAME)
+              .withMountPath(RESTORE_ENV)
+              .build())
+          .put(ClusterStatefulSet.RESTORE_SECRET_VOLUME_NAME, () -> new VolumeMountBuilder()
+              .withName(ClusterStatefulSet.RESTORE_SECRET_VOLUME_NAME)
+              .withMountPath(RESTORE_SECRET)
+              .build())
           .put(ClusterStatefulSet.RESTORE_ENTRYPOINT_VOLUME, () -> new VolumeMountBuilder()
               .withName(ClusterStatefulSet.RESTORE_ENTRYPOINT_VOLUME)
               .withMountPath(ClusterStatefulSet.RESTORE_ENTRYPOINT_VOLUME_PATH)
               .build())
           .build();
 
-  private final ClusterStatefulSetVolumes volumeFactory;
-
-  @Inject
-  public ClusterStatefulSetVolumeMounts(
-      ClusterStatefulSetVolumes volumeFactory) {
-    this.volumeFactory = volumeFactory;
-  }
-
-  public ImmutableList<VolumeMount> getVolumeMounts(StackGresClusterContext config) {
+  @Override
+  public Stream<VolumeMount> create(StackGresClusterContext config) {
 
     final String name = config.getCluster().getMetadata().getName();
 
@@ -92,7 +90,7 @@ public class ClusterStatefulSetVolumeMounts {
 
     });
 
-    return volumeMountListBuilder.build();
+    return volumeMountListBuilder.build().stream();
   }
 
   private ImmutableMap<String, Supplier<VolumeMount>> getConfigurableVolumeMounts(String name) {
@@ -106,8 +104,8 @@ public class ClusterStatefulSetVolumeMounts {
   }
 
   private void withVolumeNames(StackGresClusterContext config, Consumer<Stream<String>> f) {
-    ImmutableList<Volume> volumeMounts = volumeFactory.getVolumes(config);
-    Stream<String> volumeStream = volumeMounts.stream().map(Volume::getName);
-    f.accept(volumeStream);
+    f.accept(new ClusterStatefulSetVolumes()
+        .create(config)
+        .map(Volume::getName));
   }
 }

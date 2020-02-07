@@ -6,28 +6,29 @@
 package io.stackgres.operator.resource;
 
 import java.util.List;
+
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
 import com.google.common.collect.ImmutableList;
+
+import io.stackgres.operator.cluster.sidecars.envoy.Envoy;
 import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.common.SidecarLiteral;
-import io.stackgres.operator.common.StackGresClusterContext;
-import io.stackgres.operator.common.StackGresSidecarTransformer;
-import io.stackgres.operator.sidecars.envoy.Envoy;
+import io.stackgres.operator.common.StackGresClusterSidecarResourceFactory;
 
 @ApplicationScoped
-public class ClusterSidecarFinder implements SidecarFinder<StackGresClusterContext> {
+public class ClusterSidecarFinder implements SidecarFinder {
 
-  private final Instance<StackGresSidecarTransformer<?, StackGresClusterContext>> transformers;
+  private final Instance<StackGresClusterSidecarResourceFactory<?>> transformers;
 
   private final List<String> allSidecars;
 
   @Inject
   public ClusterSidecarFinder(
-      @Any Instance<StackGresSidecarTransformer<?, StackGresClusterContext>> transformers) {
+      @Any Instance<StackGresClusterSidecarResourceFactory<?>> transformers) {
     this.transformers = transformers;
     allSidecars = transformers.stream()
         .filter(transformer -> {
@@ -41,9 +42,9 @@ public class ClusterSidecarFinder implements SidecarFinder<StackGresClusterConte
   }
 
   @Override
-  public StackGresSidecarTransformer<?, StackGresClusterContext> getSidecarTransformer(
+  public StackGresClusterSidecarResourceFactory<?> getSidecarTransformer(
       String name) {
-    Instance<StackGresSidecarTransformer<?, StackGresClusterContext>> transformer = transformers
+    Instance<StackGresClusterSidecarResourceFactory<?>> transformer = transformers
         .select(new SidecarLiteral(name));
     if (transformer.isResolvable()) {
       return transformer.get();

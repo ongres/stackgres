@@ -13,6 +13,7 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.Resources;
@@ -43,22 +44,24 @@ import io.fabric8.kubernetes.api.model.TCPSocketActionBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetUpdateStrategyBuilder;
+import io.stackgres.operator.cluster.patroni.PatroniConfigMap;
+import io.stackgres.operator.cluster.patroni.PatroniEnvironmentVariables;
+import io.stackgres.operator.cluster.patroni.PatroniRole;
+import io.stackgres.operator.cluster.sidecars.envoy.Envoy;
 import io.stackgres.operator.common.StackGresClusterContext;
+import io.stackgres.operator.common.StackGresClusterResourceStreamFactory;
 import io.stackgres.operator.common.StackGresComponents;
+import io.stackgres.operator.common.StackGresGeneratorContext;
 import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operator.configuration.ImmutableStorageConfig;
 import io.stackgres.operator.configuration.StorageConfig;
-import io.stackgres.operator.controller.ResourceGeneratorContext;
-import io.stackgres.operator.patroni.PatroniConfigMap;
-import io.stackgres.operator.patroni.PatroniRole;
 import io.stackgres.operator.resource.ResourceUtil;
-import io.stackgres.operator.sidecars.envoy.Envoy;
 
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.Unchecked;
 
 @ApplicationScoped
-public class ClusterStatefulSet {
+public class ClusterStatefulSet implements StackGresClusterResourceStreamFactory {
 
   public static final String PATRONI_CONTAINER_NAME = "patroni";
   public static final String DATA_SUFFIX = "-data";
@@ -69,14 +72,17 @@ public class ClusterStatefulSet {
   public static final String BACKUP_VOLUME_PATH = PG_VOLUME_PATH + "/backups";
   public static final String GCS_CREDENTIALS_VOLUME_NAME = "gcs-credentials";
   public static final String GCS_CREDENTIALS_FILE_NAME = "google-service-account-key.json";
-  public static final String GCS_CONFIG_PATH = "/.gcs";
+  public static final String GCS_CONFIG_PATH = "/etc/secret/backup";
   public static final String GCS_RESTORE_CREDENTIALS_VOLUME_NAME = "gcs-restore-credentials";
   public static final String GCS_RESTORE_CREDENTIALS_FILE_NAME =
       "restore-google-service-account-key.json";
-  public static final String GCS_RESTORE_CONFIG_PATH = "/restore/.gcs";
+  public static final String GCS_RESTORE_CONFIG_PATH =
+      "/etc/secret/restore";
   public static final String PATRONI_CONFIG_VOLUME_NAME = "patroni-config";
   public static final String BACKUP_CONFIG_VOLUME_NAME = "backup-config";
+  public static final String BACKUP_SECRET_VOLUME_NAME = "backup-secret";
   public static final String RESTORE_CONFIG_VOLUME_NAME = "restore-config";
+  public static final String RESTORE_SECRET_VOLUME_NAME = "restore-secret";
   public static final String RESTORE_ENTRYPOINT_VOLUME = "restore-entrypoint";
   public static final String RESTORE_ENTRYPOINT_VOLUME_PATH = "/etc/patroni/restore";
 
@@ -84,19 +90,20 @@ public class ClusterStatefulSet {
   private static final String PATRONI_VERSION = StackGresComponents.get("patroni");
 
   private final ClusterStatefulSetPodRequirements resourceRequirementsFactory;
-  private final ClusterStatefulSetEnvironmentVariables environmentVariablesFactory;
+  private final PatroniEnvironmentVariables patroniEnvironmentVariables;
   private final ClusterStatefulSetInitContainers initContainerFactory;
   private final ClusterStatefulSetVolumes volumesFactory;
   private final ClusterStatefulSetVolumeMounts volumeMountsFactory;
 
+  @Inject
   public ClusterStatefulSet(ClusterStatefulSetPodRequirements resourceRequirementsFactory,
-      ClusterStatefulSetEnvironmentVariables environmentVariablesFactory,
+      PatroniEnvironmentVariables patroniEnvironmentVariables,
       ClusterStatefulSetInitContainers initContainerFactory,
       ClusterStatefulSetVolumes volumesFactory,
       ClusterStatefulSetVolumeMounts volumeMountsFactory) {
     super();
     this.resourceRequirementsFactory = resourceRequirementsFactory;
-    this.environmentVariablesFactory = environmentVariablesFactory;
+    this.patroniEnvironmentVariables = patroniEnvironmentVariables;
     this.initContainerFactory = initContainerFactory;
     this.volumesFactory = volumesFactory;
     this.volumeMountsFactory = volumeMountsFactory;
@@ -115,9 +122,9 @@ public class ClusterStatefulSet {
   /**
    * Create a new StatefulSet based on the StackGresCluster definition.
    */
-  public List<HasMetadata> create(
-      ResourceGeneratorContext<StackGresClusterContext> context) {
-    StackGresClusterContext clusterContext = context.getContext();
+  @Override
+  public Stream<HasMetadata> create(StackGresGeneratorContext context) {
+    StackGresClusterContext clusterContext = context.getClusterContext();
 
     final String name = clusterContext.getCluster().getMetadata().getName();
     final String namespace = clusterContext.getCluster().getMetadata().getNamespace();
@@ -125,12 +132,9 @@ public class ClusterStatefulSet {
         clusterContext.getCluster().getSpec().getPostgresVersion());
 
     ResourceRequirements podResources = resourceRequirementsFactory
-        .getPodRequirements(clusterContext);
+        .create(clusterContext);
 
-    ImmutableList<EnvVar> patroniSetEnvVariables = environmentVariablesFactory
-        .getPatroniEnvironmentVariables(clusterContext);
-    ImmutableList<EnvVar> backupSetEnvVariables = environmentVariablesFactory
-        .getBackupEnvironmentVariables(clusterContext);
+    List<EnvVar> patroniSetEnvVariables = patroniEnvironmentVariables.list(clusterContext);
 
     StorageConfig dataStorageConfig = ImmutableStorageConfig.builder()
         .size(clusterContext.getCluster().getSpec().getVolumeSize())
@@ -219,7 +223,7 @@ public class ClusterStatefulSet {
                     .withName(PatroniConfigMap.POSTGRES_REPLICATION_PORT_NAME)
                     .withContainerPort(Envoy.PG_RAW_ENTRY_PORT).build(),
                 new ContainerPortBuilder().withContainerPort(8008).build())
-            .withVolumeMounts(volumeMountsFactory.getVolumeMounts(clusterContext))
+            .withVolumeMounts(volumeMountsFactory.list(clusterContext))
             .withEnvFrom(new EnvFromSourceBuilder()
                 .withConfigMapRef(new ConfigMapEnvSourceBuilder()
                     .withName(PatroniConfigMap.patroniName(clusterContext)).build())
@@ -230,11 +234,10 @@ public class ClusterStatefulSet {
                 .build(),
                 new EnvFromSourceBuilder()
                 .withConfigMapRef(new ConfigMapEnvSourceBuilder()
-                    .withName(BackupConfigMap.restoreName(clusterContext)).build())
+                    .withName(RestoreConfigMap.restoreName(clusterContext)).build())
                 .build())
             .withEnv(ImmutableList.<EnvVar>builder()
                 .addAll(patroniSetEnvVariables)
-                .addAll(backupSetEnvVariables)
                 .build())
             .withLivenessProbe(new ProbeBuilder()
                 .withTcpSocket(new TCPSocketActionBuilder()
@@ -255,9 +258,9 @@ public class ClusterStatefulSet {
                 .build())
             .withResources(podResources)
             .endContainer()
-            .withVolumes(volumesFactory.getVolumes(clusterContext))
+            .withVolumes(volumesFactory.list(clusterContext))
             .withTerminationGracePeriodSeconds(60L)
-            .withInitContainers(initContainerFactory.getInitContainers(clusterContext))
+            .withInitContainers(initContainerFactory.list(clusterContext))
             .addAllToContainers(clusterContext.getSidecars().stream()
                 .map(sidecarEntry -> sidecarEntry.getSidecar().getContainer(context))
                 .collect(ImmutableList.toImmutableList()))
@@ -280,11 +283,10 @@ public class ClusterStatefulSet {
         .endSpec()
         .build();
 
-    return ImmutableList.<HasMetadata>builder()
-        .addAll(clusterContext.getSidecars().stream()
-            .flatMap(sidecarEntry -> sidecarEntry.getSidecar().getResources(context).stream())
-            .iterator())
-        .addAll(Seq.seq(context.getExistingResources())
+    return Seq.<HasMetadata>empty()
+        .append(clusterContext.getSidecars().stream()
+            .flatMap(sidecarEntry -> sidecarEntry.getSidecar().create(context)))
+        .append(Seq.seq(context.getExistingResources())
             .filter(existingResource -> existingResource instanceof Pod)
             .map(HasMetadata::getMetadata)
             .filter(existingPodMetadata -> Objects.equals(
@@ -297,8 +299,7 @@ public class ClusterStatefulSet {
                 .withLabels(podLabels)
                 .endMetadata()
                 .build()))
-        .add(clusterStatefulSet)
-        .build();
+        .append(clusterStatefulSet);
   }
 
 }

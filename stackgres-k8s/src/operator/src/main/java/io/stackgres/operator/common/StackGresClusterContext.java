@@ -20,7 +20,7 @@ public class StackGresClusterContext {
   private final Optional<StackGresPostgresConfig> postgresConfig;
   private final Optional<StackGresBackupContext> backupContext;
   private final Optional<StackGresProfile> profile;
-  private final ImmutableList<SidecarEntry<?, StackGresClusterContext>> sidecars;
+  private final ImmutableList<SidecarEntry<?>> sidecars;
   private final ImmutableList<StackGresBackup> backups;
   private final Optional<Prometheus> prometheus;
   private final Optional<StackGresRestoreContext> restoreContext;
@@ -56,7 +56,7 @@ public class StackGresClusterContext {
     return profile;
   }
 
-  public ImmutableList<SidecarEntry<?, StackGresClusterContext>> getSidecars() {
+  public ImmutableList<SidecarEntry<?>> getSidecars() {
     return sidecars;
   }
 
@@ -72,9 +72,9 @@ public class StackGresClusterContext {
    * Return a sidecar config if present.
    */
   @SuppressWarnings("unchecked")
-  public <T, C, S extends StackGresSidecarTransformer<T, C>>
+  public <T, S extends StackGresClusterSidecarResourceFactory<T>>
         Optional<T> getSidecarConfig(S sidecar) {
-    for (SidecarEntry<?, ?> entry : sidecars) {
+    for (SidecarEntry<?> entry : sidecars) {
       if (entry.getSidecar() == sidecar) {
         return entry.getConfig().map(config -> (T) config);
       }
@@ -100,7 +100,7 @@ public class StackGresClusterContext {
     private Optional<StackGresPostgresConfig> postgresConfig;
     private Optional<StackGresBackupContext> backupContext;
     private Optional<StackGresProfile> profile;
-    private ImmutableList<SidecarEntry<?, StackGresClusterContext>> sidecars;
+    private ImmutableList<SidecarEntry<?>> sidecars;
     private ImmutableList<StackGresBackup> backups;
     private Optional<Prometheus> prometheus;
     private Optional<StackGresRestoreContext> restoreContext;
@@ -128,7 +128,7 @@ public class StackGresClusterContext {
       return this;
     }
 
-    public Builder withSidecars(ImmutableList<SidecarEntry<?, StackGresClusterContext>> sidecars) {
+    public Builder withSidecars(ImmutableList<SidecarEntry<?>> sidecars) {
       this.sidecars = sidecars;
       return this;
     }

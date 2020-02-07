@@ -15,7 +15,9 @@ do
     ;;
   *)
     [ -d "\$1" ] || die "\$1 is not a directory"
-    for envvar in \$(ls "\$1")
+    [ "\$(ls -lv1a "\$1" | grep -v "^MD5SUM\$" | xargs -r -n 1 cat | md5sum)" == "\$(cat "\$1/MD5SUM")" ] \
+      || die "Environment variable in transient state"
+    for envvar in \$(ls -lv1a "\$1")
     do
       eval "export \$envvar='\$(cat "\$1/\$envvar")'"
     done
