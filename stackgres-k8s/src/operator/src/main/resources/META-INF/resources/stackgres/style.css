@@ -107,6 +107,14 @@ strong {
     text-transform: uppercase;
 }
 
+.no-border {
+    border: 0 !important;
+}
+
+.no-margin {
+    margin: 0 !important;
+}
+
 /* Loader */
 #loader {
     position: fixed;
@@ -174,6 +182,7 @@ aside {
     height: 100vh;
     overflow: hidden;
     position: fixed;
+    z-index: 2;
 }
 
 #side {
@@ -574,7 +583,7 @@ footer {
     display: none;
 }
 
-#notifications.active .count {
+#notifications.active .count:not(.zero) {
     display: block;
 }
 
@@ -669,15 +678,16 @@ footer .tooltip p {
     text-transform: uppercase;
 }
 
-.message, #notifications .zero {
+.message, .tooltip .zero {
     border-top: 1px solid var(--gray2);
     position: relative;
+    max-width: 420px;
 }
 
 .message .close {
     position: absolute;
-    top: 5px;
-    right: 5px;
+    top: 0;
+    right: 0;
     width: 15px;
     height: 15px;
     line-height: 1;
@@ -712,6 +722,7 @@ footer .tooltip p {
     color: var(--blue);
     padding-top: 12px;
     font-size: 1.1rem;
+    text-transform: uppercase;
 }
 
 .subtitle {
@@ -814,6 +825,12 @@ li.status {
 .content .box.show {
     height: auto;
     transition: height .3s ease-out;
+}
+
+.content h3 {
+    color: var(--blue);
+    text-transform: uppercase;
+    margin-bottom: 15px;
 }
 
 .box h4 {
@@ -988,6 +1005,12 @@ ul.selector li {
     display: none;
 }
 
+.backups .detail {
+    display: block;
+    width: 33.33%;
+    float: left;
+}
+
 /* Forms */
 .form {
     width: 700px;
@@ -1011,7 +1034,7 @@ ul.selector li {
     margin-bottom: 2px;
 }
 
-.form input, .form select {
+.form input, .form select, .form textarea {
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
@@ -1022,9 +1045,17 @@ ul.selector li {
     font-size: 12px;
     color: var(--gray5);
     position: relative;
+    z-index: 1;
 }
 
-.form input:focus, .form select:focus {
+.form textarea {
+    width: 100%;
+    height: 220px;
+    max-height: 220px;
+    max-width: 100%;
+}
+
+.form input:focus, .form select:focus, .form textarea:focus {
     border-color: var(--blue);
 }
 
@@ -1153,3 +1184,24 @@ label.switch {
 .form .hide {
     display: none;
 } 
+
+.form .new {
+    margin-top: 15px;
+}
+
+.fieldset {
+    border: 1px solid var(--gray2);
+    padding: 20px;
+    border-radius: 5px;
+    margin-bottom: 45px;
+}
+
+.config .form {    
+    margin-bottom: 25px;
+    margin-top: -10px;
+}
+
+.deleted {
+    opacity: 0.3;
+    transition: opacity .5s ease-in;
+}

@@ -260,6 +260,22 @@ const store = new Vuex.Store({
       }
 
     },
+
+    /*removeCluster ( state, name, namespace ) {
+
+      let index = state.clusters.find(c => (cluster.data.metadata.name == c.name) && (cluster.data.metadata.namespace == c.data.metadata.namespace) ); 
+
+      if ( typeof index !== "undefined" ) {
+        index.data = cluster.data;
+        //console.log(cluster.name+" ya existe");
+      } else {
+        state.clusters.splice( cluster );    
+        //console.log('Se agregó '+cluster.name);
+      }
+
+    },*/
+
+
     updateBackups ( state, backup ) {
 
         let index = state.backups.find(p => (backup.data.metadata.name == p.name) && (backup.data.metadata.namespace == p.data.metadata.namespace) ); 
@@ -610,7 +626,7 @@ var vm = new Vue({
         if( checkData(response.data, apiData['profile']) ) {
 
           if(typeof apiData['profile'] !== 'undefined' && response.data.length != apiData['profile'].length)
-            store.commit('flushProfile');
+            store.commit('flushProfiles');
 
           apiData['profile'] = response.data;
 
@@ -744,6 +760,34 @@ function notify (message, kind = 'message') {
   }
 }
 
+function trimString(string) {
+  return string.trim();
+}
+
+function getJSON( value ) {
+  //e.preventDefault();
+  var text = value.split("\n").map(trimString);
+  var json = {};
+
+  text.forEach(function(e, i, a){
+    var param = e.split("=").map(trimString);
+    json['"'+param[0].toString()+'"'] = param[1];
+  });
+
+  // alert(json);
+  // console.log(json);
+  
+  return(json);
+}
+
+function showFields( fields ) {
+  $(fields).slideDown();
+}
+
+function hideFields( fields ) {
+  $(fields).slideUp();
+}
+
 
 /* jQuery */
 
@@ -801,6 +845,7 @@ $(document).ready(function(){
 
   $(document).on("click", "#main, #side", function() {
     $(".tooltip.show").removeClass("show").hide();
+    $("#notifications").removeClass("active");
   });
 
 
