@@ -20,7 +20,7 @@ import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
 import io.stackgres.operator.resource.CustomResourceScheduler;
 import io.stackgres.operator.resource.KubernetesCustomResourceFinder;
-import io.stackgres.operatorframework.Operation;
+import io.stackgres.operatorframework.admissionwebhook.Operation;
 
 public abstract class AbstractDefaultResourceMutator<R extends CustomResource>
     implements ClusterMutator {

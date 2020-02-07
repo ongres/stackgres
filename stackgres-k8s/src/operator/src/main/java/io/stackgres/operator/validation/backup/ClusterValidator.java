@@ -14,7 +14,7 @@ import io.stackgres.operator.common.BackupReview;
 import io.stackgres.operator.customresource.sgbackup.StackGresBackup;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.resource.KubernetesCustomResourceFinder;
-import io.stackgres.operatorframework.ValidationFailed;
+import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 
 @ApplicationScoped
 public class ClusterValidator implements BackupValidator {

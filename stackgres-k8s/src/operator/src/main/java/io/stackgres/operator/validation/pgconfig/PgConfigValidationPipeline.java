@@ -15,8 +15,8 @@ import javax.validation.Validator;
 
 import io.stackgres.operator.common.PgConfigReview;
 import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfig;
-import io.stackgres.operatorframework.ValidationFailed;
-import io.stackgres.operatorframework.ValidationPipeline;
+import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
+import io.stackgres.operatorframework.admissionwebhook.validating.ValidationPipeline;
 
 @ApplicationScoped
 public class PgConfigValidationPipeline implements ValidationPipeline<PgConfigReview> {

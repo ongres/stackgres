@@ -10,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import io.stackgres.operator.common.BackupConfigReview;
 import io.stackgres.operator.utils.JsonUtil;
-import io.stackgres.operatorframework.ValidationFailed;
+import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 
 import org.junit.jupiter.api.Test;
 

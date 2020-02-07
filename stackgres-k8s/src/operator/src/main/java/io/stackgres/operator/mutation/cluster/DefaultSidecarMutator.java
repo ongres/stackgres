@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableList;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackgresClusterReview;
 import io.stackgres.operator.resource.SidecarFinder;
-import io.stackgres.operatorframework.Operation;
+import io.stackgres.operatorframework.admissionwebhook.Operation;
 
 @ApplicationScoped
 public class DefaultSidecarMutator implements ClusterMutator {

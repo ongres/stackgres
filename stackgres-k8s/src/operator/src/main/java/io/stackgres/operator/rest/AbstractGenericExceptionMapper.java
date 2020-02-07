@@ -17,9 +17,9 @@ import com.google.common.base.Throwables;
 
 import io.stackgres.operator.mutation.MutationUtil;
 import io.stackgres.operator.validation.ValidationUtil;
-import io.stackgres.operatorframework.AdmissionResponse;
-import io.stackgres.operatorframework.AdmissionReviewResponse;
-import io.stackgres.operatorframework.Result;
+import io.stackgres.operatorframework.admissionwebhook.AdmissionResponse;
+import io.stackgres.operatorframework.admissionwebhook.AdmissionReviewResponse;
+import io.stackgres.operatorframework.admissionwebhook.Result;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -5,11 +5,12 @@
 
 package io.stackgres.operator.validation;
 
-import io.stackgres.operatorframework.AdmissionReview;
-import io.stackgres.operatorframework.AdmissionReviewResponse;
-import io.stackgres.operatorframework.ValidationFailed;
-import io.stackgres.operatorframework.ValidationPipeline;
-import io.stackgres.operatorframework.ValidationResource;
+import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
+import io.stackgres.operatorframework.admissionwebhook.AdmissionReviewResponse;
+import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
+import io.stackgres.operatorframework.admissionwebhook.validating.ValidationPipeline;
+import io.stackgres.operatorframework.admissionwebhook.validating.ValidationResource;
+
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 

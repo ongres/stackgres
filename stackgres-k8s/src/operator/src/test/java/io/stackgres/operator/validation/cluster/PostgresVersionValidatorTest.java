@@ -30,8 +30,8 @@ import io.stackgres.operator.customresource.sgcluster.StackGresClusterSpec;
 import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.operator.resource.AbstractKubernetesCustomResourceFinder;
 import io.stackgres.operator.utils.JsonUtil;
-import io.stackgres.operatorframework.Operation;
-import io.stackgres.operatorframework.ValidationFailed;
+import io.stackgres.operatorframework.admissionwebhook.Operation;
+import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 
 import org.jooq.lambda.Seq;
 import org.junit.jupiter.api.BeforeEach;

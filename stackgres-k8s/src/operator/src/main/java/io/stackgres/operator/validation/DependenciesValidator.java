@@ -11,10 +11,10 @@ import java.util.Optional;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.customresource.sgcluster.StackGresClusterDefinition;
 import io.stackgres.operator.resource.KubernetesCustomResourceScanner;
-import io.stackgres.operatorframework.AdmissionReview;
-import io.stackgres.operatorframework.Operation;
-import io.stackgres.operatorframework.ValidationFailed;
-import io.stackgres.operatorframework.Validator;
+import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
+import io.stackgres.operatorframework.admissionwebhook.Operation;
+import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
+import io.stackgres.operatorframework.admissionwebhook.validating.Validator;
 
 public abstract class DependenciesValidator<T extends AdmissionReview<?>> implements Validator<T> {
 

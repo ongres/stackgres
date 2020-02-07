@@ -18,7 +18,7 @@ import io.stackgres.operator.common.StackgresClusterReview;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.operator.resource.KubernetesCustomResourceFinder;
-import io.stackgres.operatorframework.ValidationFailed;
+import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 
 @ApplicationScoped
 public class PostgresConfigValidator implements ClusterValidator {

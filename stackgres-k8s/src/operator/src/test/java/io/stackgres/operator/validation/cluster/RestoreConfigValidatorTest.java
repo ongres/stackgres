@@ -15,7 +15,8 @@ import io.stackgres.operator.customresource.sgcluster.StackGresClusterRestore;
 import io.stackgres.operator.resource.KubernetesCustomResourceScanner;
 import io.stackgres.operator.utils.JsonUtil;
 import io.stackgres.operator.utils.ValidationUtils;
-import io.stackgres.operatorframework.ValidationFailed;
+import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

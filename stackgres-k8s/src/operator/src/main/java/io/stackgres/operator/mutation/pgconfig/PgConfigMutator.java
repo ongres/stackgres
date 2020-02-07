@@ -7,7 +7,7 @@ package io.stackgres.operator.mutation.pgconfig;
 
 import com.github.fge.jackson.jsonpointer.JsonPointer;
 import io.stackgres.operator.common.PgConfigReview;
-import io.stackgres.operatorframework.JsonPatchMutator;
+import io.stackgres.operatorframework.admissionwebhook.mutating.JsonPatchMutator;
 
 public interface PgConfigMutator extends JsonPatchMutator<PgConfigReview> {
 

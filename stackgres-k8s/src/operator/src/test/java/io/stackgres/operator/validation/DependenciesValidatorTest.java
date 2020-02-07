@@ -19,8 +19,8 @@ import io.stackgres.operator.customresource.sgcluster.StackGresClusterDefinition
 import io.stackgres.operator.customresource.sgcluster.StackGresClusterList;
 import io.stackgres.operator.resource.KubernetesCustomResourceScanner;
 import io.stackgres.operator.utils.JsonUtil;
-import io.stackgres.operatorframework.AdmissionReview;
-import io.stackgres.operatorframework.ValidationFailed;
+import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
+import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;

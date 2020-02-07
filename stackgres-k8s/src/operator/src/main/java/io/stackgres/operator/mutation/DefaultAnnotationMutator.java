@@ -19,8 +19,8 @@ import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.operator.common.ConfigContext;
 import io.stackgres.operator.common.ConfigProperty;
-import io.stackgres.operatorframework.AdmissionReview;
-import io.stackgres.operatorframework.JsonPatchMutator;
+import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
+import io.stackgres.operatorframework.admissionwebhook.mutating.JsonPatchMutator;
 
 public interface DefaultAnnotationMutator<R extends CustomResource, T extends AdmissionReview<R>>
     extends JsonPatchMutator<T> {

@@ -12,9 +12,9 @@ import com.github.fge.jsonpatch.JsonPatchOperation;
 import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.operator.common.ConfigContext;
-import io.stackgres.operatorframework.AdmissionRequest;
-import io.stackgres.operatorframework.AdmissionReview;
-import io.stackgres.operatorframework.Operation;
+import io.stackgres.operatorframework.admissionwebhook.AdmissionRequest;
+import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
+import io.stackgres.operatorframework.admissionwebhook.Operation;
 
 public abstract class AbstractAnnotationMutator
     <R extends CustomResource, T extends AdmissionReview<R>>

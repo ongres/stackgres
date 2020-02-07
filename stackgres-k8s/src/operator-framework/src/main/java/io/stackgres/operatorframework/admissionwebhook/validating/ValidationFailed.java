@@ -3,12 +3,14 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operatorframework;
+package io.stackgres.operatorframework.admissionwebhook.validating;
 
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.validation.ConstraintViolation;
+
+import io.stackgres.operatorframework.admissionwebhook.Result;
 
 public class ValidationFailed extends Exception {
 

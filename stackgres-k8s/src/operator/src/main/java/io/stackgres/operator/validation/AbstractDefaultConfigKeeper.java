@@ -11,9 +11,9 @@ import javax.inject.Inject;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
-import io.stackgres.operatorframework.AdmissionReview;
-import io.stackgres.operatorframework.ValidationFailed;
-import io.stackgres.operatorframework.Validator;
+import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
+import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
+import io.stackgres.operatorframework.admissionwebhook.validating.Validator;
 
 public abstract class AbstractDefaultConfigKeeper
     <R extends CustomResource, T extends AdmissionReview<R>>

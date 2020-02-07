@@ -3,9 +3,15 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operatorframework;
+package io.stackgres.operatorframework.admissionwebhook.validating;
 
 import java.util.UUID;
+
+import io.stackgres.operatorframework.admissionwebhook.AdmissionRequest;
+import io.stackgres.operatorframework.admissionwebhook.AdmissionResponse;
+import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
+import io.stackgres.operatorframework.admissionwebhook.AdmissionReviewResponse;
+import io.stackgres.operatorframework.admissionwebhook.Result;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
