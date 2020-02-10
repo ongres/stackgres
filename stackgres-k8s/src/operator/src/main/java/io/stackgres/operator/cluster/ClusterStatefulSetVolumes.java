@@ -16,9 +16,9 @@ import io.fabric8.kubernetes.api.model.KeyToPathBuilder;
 import io.fabric8.kubernetes.api.model.SecretVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
-import io.stackgres.operator.cluster.patroni.PatroniConfigMap;
 import io.stackgres.operator.common.StackGresBackupContext;
 import io.stackgres.operator.common.StackGresClusterContext;
+import io.stackgres.operator.patroni.PatroniConfigMap;
 import io.stackgres.operatorframework.resource.factory.ResourceStreamFactory;
 
 @ApplicationScoped

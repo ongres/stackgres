@@ -8,8 +8,8 @@ package io.stackgres.operator.validation.cluster;
 import java.util.Optional;
 
 import io.stackgres.operator.resource.AbstractKubernetesCustomResourceFinder;
+import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfig;
 import io.stackgres.operator.utils.JsonUtil;
-import io.stackgres.operator.cluster.sidecars.pgbouncer.customresources.StackGresPgbouncerConfig;
 import io.stackgres.operator.common.StackgresClusterReview;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;

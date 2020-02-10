@@ -11,9 +11,9 @@ import javax.enterprise.context.ApplicationScoped;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.fge.jsonpatch.JsonPatchOperation;
 
-import io.stackgres.operator.cluster.sidecars.pgbouncer.customresources.StackGresPgbouncerConfig;
 import io.stackgres.operator.common.PgBouncerReview;
 import io.stackgres.operator.mutation.DefaultValuesMutator;
+import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfig;
 
 @ApplicationScoped
 public class PgBouncerDefaultValuesMutator

@@ -23,7 +23,6 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectFieldSelectorBuilder;
 import io.fabric8.kubernetes.api.model.batch.CronJobBuilder;
 import io.fabric8.kubernetes.api.model.batch.JobTemplateSpecBuilder;
-import io.stackgres.operator.cluster.patroni.PatroniRole;
 import io.stackgres.operator.common.StackGresBackupContext;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresClusterResourceStreamFactory;
@@ -32,6 +31,7 @@ import io.stackgres.operator.customresource.sgbackup.BackupPhase;
 import io.stackgres.operator.customresource.sgbackup.StackGresBackupDefinition;
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfigSpec;
+import io.stackgres.operator.patroni.PatroniRole;
 import io.stackgres.operator.resource.ResourceUtil;
 
 import org.jooq.lambda.Seq;

@@ -25,10 +25,10 @@ import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
-import io.stackgres.operator.cluster.patroni.PatroniConfigMap;
-import io.stackgres.operator.cluster.patroni.PatroniEnvironmentVariables;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresRestoreContext;
+import io.stackgres.operator.patroni.PatroniConfigMap;
+import io.stackgres.operator.patroni.PatroniEnvironmentVariables;
 import io.stackgres.operatorframework.resource.factory.ResourceStreamFactory;
 
 import org.jooq.lambda.Seq;

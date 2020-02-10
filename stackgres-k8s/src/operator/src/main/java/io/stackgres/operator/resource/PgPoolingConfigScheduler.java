@@ -11,10 +11,10 @@ import javax.inject.Inject;
 import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.operator.app.KubernetesClientFactory;
-import io.stackgres.operator.cluster.sidecars.pgbouncer.customresources.StackGresPgbouncerConfig;
-import io.stackgres.operator.cluster.sidecars.pgbouncer.customresources.StackGresPgbouncerConfigDefinition;
-import io.stackgres.operator.cluster.sidecars.pgbouncer.customresources.StackGresPgbouncerConfigDoneable;
-import io.stackgres.operator.cluster.sidecars.pgbouncer.customresources.StackGresPgbouncerConfigList;
+import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfig;
+import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfigDefinition;
+import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfigDoneable;
+import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfigList;
 
 @ApplicationScoped
 public class PgPoolingConfigScheduler implements CustomResourceScheduler<StackGresPgbouncerConfig> {

@@ -10,10 +10,10 @@ import java.util.Optional;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import io.stackgres.operator.cluster.patroni.PatroniRole;
 import io.stackgres.operator.common.BackupReview;
 import io.stackgres.operator.customresource.sgbackup.BackupPhase;
 import io.stackgres.operator.customresource.sgbackup.StackGresBackup;
+import io.stackgres.operator.patroni.PatroniRole;
 import io.stackgres.operator.resource.BackupScanner;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 

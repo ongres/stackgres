@@ -16,9 +16,9 @@ import com.ongres.junit.docker.WhenReuse;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Service;
-import io.stackgres.operator.cluster.sidecars.envoy.Envoy;
 import io.stackgres.operator.controller.EventReason;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
+import io.stackgres.operator.sidecars.envoy.Envoy;
 
 import org.jooq.lambda.Unchecked;
 import org.junit.jupiter.api.Assertions;

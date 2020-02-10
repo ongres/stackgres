@@ -11,13 +11,13 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.stackgres.operator.cluster.backup.Backup;
-import io.stackgres.operator.cluster.patroni.PatroniConfigEndpoints;
-import io.stackgres.operator.cluster.patroni.PatroniConfigMap;
-import io.stackgres.operator.cluster.patroni.PatroniRole;
-import io.stackgres.operator.cluster.patroni.PatroniSecret;
-import io.stackgres.operator.cluster.patroni.PatroniServices;
+import io.stackgres.operator.backup.Backup;
 import io.stackgres.operator.common.StackGresGeneratorContext;
+import io.stackgres.operator.patroni.PatroniConfigEndpoints;
+import io.stackgres.operator.patroni.PatroniConfigMap;
+import io.stackgres.operator.patroni.PatroniRole;
+import io.stackgres.operator.patroni.PatroniSecret;
+import io.stackgres.operator.patroni.PatroniServices;
 import io.stackgres.operatorframework.resource.factory.ResourceStreamFactory;
 
 import org.jooq.lambda.Seq;

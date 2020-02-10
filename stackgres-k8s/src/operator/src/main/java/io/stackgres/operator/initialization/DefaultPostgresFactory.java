@@ -9,11 +9,11 @@ import java.util.List;
 
 import javax.enterprise.context.ApplicationScoped;
 
-import io.stackgres.operator.cluster.patroni.parameters.Blacklist;
 import io.stackgres.operator.common.StackGresComponents;
 import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfigDefinition;
 import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfigSpec;
+import io.stackgres.operator.patroni.parameters.Blacklist;
 
 @ApplicationScoped
 public class DefaultPostgresFactory extends AbstractCustomResourceFactory<StackGresPostgresConfig> {

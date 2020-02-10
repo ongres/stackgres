@@ -11,11 +11,11 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
-import io.stackgres.operator.cluster.sidecars.pgbouncer.customresources.StackGresPgbouncerConfig;
 import io.stackgres.operator.common.ArcUtil;
 import io.stackgres.operator.resource.CustomResourceScheduler;
 import io.stackgres.operator.resource.KubernetesCustomResourceFinder;
 import io.stackgres.operator.resource.KubernetesCustomResourceScanner;
+import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfig;
 
 @Path("/stackgres/connpoolconfig")
 @Produces(MediaType.APPLICATION_JSON)
