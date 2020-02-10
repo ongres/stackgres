@@ -33,13 +33,15 @@ class RestoreConfigValidatorTest {
 
   private RestoreConfigValidator validator;
 
-  private static final StackGresBackupList backupList = JsonUtil
-      .readFromJson("backup/list.json", StackGresBackupList.class);
+  private StackGresBackupList backupList;
 
 
   @BeforeEach
   void setUp() {
+
     validator = new RestoreConfigValidator(scanner);
+    backupList = JsonUtil
+        .readFromJson("backup/list.json", StackGresBackupList.class);
   }
 
   @Test
@@ -48,7 +50,7 @@ class RestoreConfigValidatorTest {
     final StackgresClusterReview review = getCreationReview();
 
     when(scanner.findResources())
-        .thenReturn(Optional.of(RestoreConfigValidatorTest.backupList.getItems()));
+        .thenReturn(Optional.of(backupList.getItems()));
 
     validator.validate(review);
 
@@ -69,6 +71,31 @@ class RestoreConfigValidatorTest {
 
     ValidationUtils.assertValidationFailed(() -> validator.validate(review),
         "Backup uid " + stackgresBackup + " not found");
+
+    verify(scanner).findResources();
+
+  }
+
+  @Test
+  void givenACreationWithBackupFromDifferentPgVersion_shouldFail() throws ValidationFailed {
+
+    final StackgresClusterReview review = getCreationReview();
+    String stackgresBackup = review.getRequest()
+        .getObject().getSpec().getRestore().getStackgresBackup();
+
+    StackGresBackup backup = backupList.getItems().stream()
+        .filter(b -> b.getMetadata().getUid().equals(stackgresBackup))
+        .findFirst().orElseThrow(AssertionError::new);
+
+    backup.getStatus().setPgVersion("120001");
+
+    when(scanner.findResources())
+        .thenReturn(Optional.of(backupList.getItems()));
+
+    ValidationUtils.assertValidationFailed(() -> validator.validate(review),
+        "Cannot restore from backup " + stackgresBackup
+            + " because it comes from an incompatible postgres version");
+
 
     verify(scanner).findResources();
 
