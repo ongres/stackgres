@@ -40,14 +40,12 @@ create_empty_pg_config() {
     namespace: $CLUSTER_NAMESPACE
   spec:
     pgVersion: "11"
-    postgresql.conf:
-      unsignificant: true
 EOF
 
   local CREATED_FIELDS=$(kubectl get sgpgconfigs.stackgres.io -n $CLUSTER_NAMESPACE $PGCONFIG -o json | run_jq '.spec["postgresql.conf"] | length')
   local DEFAULT_FIELDS=$(kubectl get sgpgconfigs.stackgres.io -n $OPERATOR_NAMESPACE $DEFAULT_PGCONFIG -o json | run_jq '.spec["postgresql.conf"] | length')
 
-  if [ $CREATED_FIELDS = $((DEFAULT_FIELDS + 1)) ]
+  if [ $CREATED_FIELDS = $DEFAULT_FIELDS ]
   then
     echo "Success. Defaults fields created"
   else
