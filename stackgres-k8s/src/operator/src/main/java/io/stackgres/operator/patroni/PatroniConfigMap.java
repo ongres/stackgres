@@ -5,6 +5,10 @@
 
 package io.stackgres.operator.patroni;
 
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -127,7 +131,19 @@ public class PatroniConfigMap {
 
         data.put("RESTORE_WALG_S3_PREFIX", s3config.getPrefix());
         putIfPresent("RESTORE_AWS_REGION", s3config.getRegion(), data);
-        putIfPresent("RESTORE_AWS_ENDPOINT", s3config.getEndpoint(), data);
+        Optional.ofNullable(s3config.getEndpoint()).ifPresent(endpoint -> {
+          data.put("RESTORE_AWS_ENDPOINT", endpoint);
+
+          try {
+            String host = getHostFromUrl(endpoint);
+            int port = getPortFromUrl(endpoint);
+            data.put("RESTORE_ENDPOINT_HOSTNAME", host);
+            data.put("RESTORE_ENDPOINT_PORT", Integer.toString(port));
+          } catch (URISyntaxException | MalformedURLException e) {
+            throw new IllegalArgumentException("Malformed S3 endpoint", e);
+          }
+        });
+
         putIfPresent("RESTORE_AWS_S3_FORCE_PATH_STYLE", s3config.isForcePathStyle(), data);
         putIfPresent("RESTORE_WALG_S3_STORAGE_CLASS", s3config.getStorageClass(), data);
         putIfPresent("RESTORE_WALG_S3_SSE", s3config.getSse(), data);
@@ -219,6 +235,26 @@ public class PatroniConfigMap {
       data.put("WALG_LOG_LEVEL", "DEVEL");
     }
 
+  }
+
+  protected static String getHostFromUrl(String url) throws URISyntaxException {
+    URI uri = new URI(url);
+    String domain = uri.getHost();
+    return domain.startsWith("www.") ? domain.substring(4) : domain;
+  }
+
+  protected static int getPortFromUrl(String url) throws MalformedURLException {
+    URL parsedUrl = new URL(url);
+    int port = parsedUrl.getPort();
+    if (port == -1) {
+      if (parsedUrl.getProtocol().equals("https")) {
+        return 443;
+      } else {
+        return 80;
+      }
+    } else {
+      return port;
+    }
   }
 
   private static <T> void putIfPresent(String env, T p, Map<String, String> data) {
