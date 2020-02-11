@@ -28,11 +28,11 @@ import io.stackgres.operator.customresource.prometheus.ServiceMonitorDoneable;
 import io.stackgres.operator.customresource.prometheus.ServiceMonitorList;
 import io.stackgres.operator.customresource.prometheus.ServiceMonitorSpec;
 import io.stackgres.operatorframework.resource.Kind;
-import io.stackgres.operatorframework.resource.PairVisitor;
 import io.stackgres.operatorframework.resource.ResourceHandler;
 import io.stackgres.operatorframework.resource.ResourceHandlerContext;
-import io.stackgres.operatorframework.resource.ResourcePairVisitor;
 import io.stackgres.operatorframework.resource.ResourceUtil;
+import io.stackgres.operatorframework.resource.visitor.PairVisitor;
+import io.stackgres.operatorframework.resource.visitor.ResourcePairVisitor;
 
 import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple2;

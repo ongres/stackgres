@@ -11,9 +11,9 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.resource.AbstractClusterResourceHandler;
-import io.stackgres.operatorframework.resource.PairVisitor;
 import io.stackgres.operatorframework.resource.ResourceHandlerContext;
-import io.stackgres.operatorframework.resource.ResourcePairVisitor;
+import io.stackgres.operatorframework.resource.visitor.PairVisitor;
+import io.stackgres.operatorframework.resource.visitor.ResourcePairVisitor;
 
 @ApplicationScoped
 public class PatroniSecretHandler extends AbstractClusterResourceHandler {

@@ -24,9 +24,9 @@ import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.stackgres.operator.app.ObjectMapperProvider;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.resource.AbstractClusterResourceHandler;
-import io.stackgres.operatorframework.resource.PairVisitor;
 import io.stackgres.operatorframework.resource.ResourceHandlerContext;
-import io.stackgres.operatorframework.resource.ResourcePairVisitor;
+import io.stackgres.operatorframework.resource.visitor.PairVisitor;
+import io.stackgres.operatorframework.resource.visitor.ResourcePairVisitor;
 
 import org.jooq.lambda.Seq;
 import org.slf4j.Logger;

@@ -20,10 +20,10 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operator.resource.AbstractClusterResourceHandler;
-import io.stackgres.operatorframework.resource.PairVisitor;
 import io.stackgres.operatorframework.resource.ResourceHandlerContext;
-import io.stackgres.operatorframework.resource.ResourcePairVisitor;
 import io.stackgres.operatorframework.resource.ResourceUtil;
+import io.stackgres.operatorframework.resource.visitor.PairVisitor;
+import io.stackgres.operatorframework.resource.visitor.ResourcePairVisitor;
 
 import org.jooq.lambda.Seq;
 import org.slf4j.Logger;

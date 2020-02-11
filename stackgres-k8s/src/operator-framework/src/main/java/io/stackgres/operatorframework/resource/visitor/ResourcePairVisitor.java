@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operatorframework.resource;
+package io.stackgres.operatorframework.resource.visitor;
 
 import java.util.stream.Collectors;
 
@@ -59,6 +59,7 @@ import io.fabric8.kubernetes.api.model.batch.JobSpec;
 import io.fabric8.kubernetes.api.model.batch.JobTemplateSpec;
 import io.fabric8.kubernetes.api.model.rbac.Role;
 import io.fabric8.kubernetes.api.model.rbac.RoleBinding;
+import io.stackgres.operatorframework.resource.ResourceUtil;
 
 public class ResourcePairVisitor<T, C> {
 

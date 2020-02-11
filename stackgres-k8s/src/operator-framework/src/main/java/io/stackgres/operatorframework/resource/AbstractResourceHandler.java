@@ -28,6 +28,7 @@ import io.fabric8.kubernetes.api.model.rbac.RoleBinding;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
+import io.stackgres.operatorframework.resource.visitor.ResourcePairVisitor;
 
 public abstract class AbstractResourceHandler<T> implements ResourceHandler<T> {
 
