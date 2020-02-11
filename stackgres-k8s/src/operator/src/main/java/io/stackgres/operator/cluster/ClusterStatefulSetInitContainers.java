@@ -89,11 +89,11 @@ public class ClusterStatefulSetInitContainers
                 StandardCharsets.UTF_8)
             .read()).get())
         .withEnv(clusterStatefulSetEnvironmentVariables.list(config))
-        .withVolumeMounts(getExecWithEnvVolumeMounts(config))
+        .withVolumeMounts(getExecWithEnvVolumeMounts())
         .build();
   }
 
-  private VolumeMount[] getExecWithEnvVolumeMounts(StackGresClusterContext config) {
+  private VolumeMount[] getExecWithEnvVolumeMounts() {
     return Stream.of(
         Stream.of(new VolumeMountBuilder()
             .withName(ClusterStatefulSet.LOCAL_BIN_VOLUME_NAME)
