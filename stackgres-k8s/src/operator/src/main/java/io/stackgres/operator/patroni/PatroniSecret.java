@@ -17,7 +17,6 @@ import javax.enterprise.context.ApplicationScoped;
 import com.google.common.collect.ImmutableList;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresClusterResourceStreamFactory;
@@ -34,8 +33,8 @@ public class PatroniSecret implements StackGresClusterResourceStreamFactory {
   private static final Logger LOGGER = LoggerFactory
       .getLogger(PatroniSecret.class);
 
-  public static String restoreCopiedSecretName(StackGresClusterContext context, String name) {
-    return context.getCluster().getMetadata().getName() + "-restore-" + name;
+  public static String name(StackGresClusterContext clusterContext) {
+    return ResourceUtil.resourceName(clusterContext.getCluster().getMetadata().getName());
   }
 
   /**
@@ -52,7 +51,7 @@ public class PatroniSecret implements StackGresClusterResourceStreamFactory {
     data.put("replication-password", generatePassword());
     data.put("authenticator-password", generatePassword());
 
-    ImmutableList.Builder<Secret> secrets = ImmutableList.<Secret>builder().add(new SecretBuilder()
+    return Seq.of(new SecretBuilder()
         .withNewMetadata()
         .withNamespace(namespace)
         .withName(name)
@@ -63,29 +62,6 @@ public class PatroniSecret implements StackGresClusterResourceStreamFactory {
         .withType("Opaque")
         .withData(data)
         .build());
-
-    context.getClusterContext().getRestoreContext().ifPresent(restoreContext -> {
-      if (restoreContext.getRestore().isAutoCopySecretsEnabled()) {
-        LOGGER.info("restore auto copy secrets enabled.  Copying secrets...");
-        restoreContext.getSecrets().entrySet()
-            .stream()
-            .forEach(secret -> secrets
-            .add(new SecretBuilder()
-                .withNewMetadata()
-                .withNamespace(namespace)
-                .withName(restoreCopiedSecretName(context.getClusterContext(), secret.getKey()))
-                .withLabels(labels)
-                .withOwnerReferences(ImmutableList.of(
-                    ResourceUtil.getOwnerReference(context.getClusterContext().getCluster())))
-                .endMetadata()
-                .withType("Opaque")
-                .withData(secret.getValue())
-                .build()
-            ));
-      }
-    });
-
-    return Seq.seq(secrets.build());
 
   }
 

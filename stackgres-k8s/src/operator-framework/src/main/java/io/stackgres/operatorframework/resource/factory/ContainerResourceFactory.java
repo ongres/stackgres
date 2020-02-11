@@ -18,7 +18,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import org.jooq.lambda.Seq;
 
 public interface ContainerResourceFactory<T, C, E>
-    extends ResourceStreamFactory<HasMetadata, C> {
+    extends SubResourceStreamFactory<HasMetadata, C> {
 
   Container getContainer(C context);
 

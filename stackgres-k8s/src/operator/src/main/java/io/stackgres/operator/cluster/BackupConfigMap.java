@@ -29,7 +29,7 @@ public class BackupConfigMap extends AbstractBackupConfigMap
 
   private static final String BACKUP_SUFFIX = "-backup";
 
-  public static String backupName(StackGresClusterContext clusterContext) {
+  public static String name(StackGresClusterContext clusterContext) {
     return ResourceUtil.resourceName(clusterContext.getCluster().getMetadata().getName()
         + BACKUP_SUFFIX);
   }
@@ -52,7 +52,7 @@ public class BackupConfigMap extends AbstractBackupConfigMap
     return Seq.of(new ConfigMapBuilder()
         .withNewMetadata()
         .withNamespace(context.getClusterContext().getCluster().getMetadata().getNamespace())
-        .withName(backupName(context.getClusterContext()))
+        .withName(name(context.getClusterContext()))
         .withLabels(ResourceUtil.patroniClusterLabels(context.getClusterContext().getCluster()))
         .withOwnerReferences(ImmutableList.of(
             ResourceUtil.getOwnerReference(context.getClusterContext().getCluster())))

@@ -39,8 +39,6 @@ public class PatroniConfigMap implements StackGresClusterResourceStreamFactory {
 
   private static final Logger PATRONI_LOGGER = LoggerFactory.getLogger("patroni");
 
-  private static final String PATRONI_SUFFIX = "-patroni";
-
   private final ObjectMapper objectMapper;
 
   @Inject
@@ -48,9 +46,8 @@ public class PatroniConfigMap implements StackGresClusterResourceStreamFactory {
     this.objectMapper = objectMapperProvider.objectMapper();
   }
 
-  public static String patroniName(StackGresClusterContext clusterContext) {
-    return ResourceUtil.resourceName(clusterContext.getCluster().getMetadata().getName()
-        + PATRONI_SUFFIX);
+  public static String name(StackGresClusterContext clusterContext) {
+    return ResourceUtil.resourceName(clusterContext.getCluster().getMetadata().getName());
   }
 
   @Override
@@ -95,7 +92,7 @@ public class PatroniConfigMap implements StackGresClusterResourceStreamFactory {
     return Seq.of(new ConfigMapBuilder()
         .withNewMetadata()
         .withNamespace(context.getClusterContext().getCluster().getMetadata().getNamespace())
-        .withName(patroniName(context.getClusterContext()))
+        .withName(name(context.getClusterContext()))
         .withLabels(ResourceUtil.patroniClusterLabels(context.getClusterContext().getCluster()))
         .withOwnerReferences(ImmutableList.of(
             ResourceUtil.getOwnerReference(context.getClusterContext().getCluster())))

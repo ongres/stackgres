@@ -29,14 +29,14 @@ import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresRestoreContext;
 import io.stackgres.operator.patroni.PatroniConfigMap;
 import io.stackgres.operator.patroni.PatroniEnvironmentVariables;
-import io.stackgres.operatorframework.resource.factory.ResourceStreamFactory;
+import io.stackgres.operatorframework.resource.factory.SubResourceStreamFactory;
 
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.Unchecked;
 
 @ApplicationScoped
 public class ClusterStatefulSetInitContainers
-    implements ResourceStreamFactory<Container, StackGresClusterContext> {
+    implements SubResourceStreamFactory<Container, StackGresClusterContext> {
 
   private final PatroniEnvironmentVariables patroniEnvironmentVariables;
 
@@ -110,11 +110,11 @@ public class ClusterStatefulSetInitContainers
             .read()).get())
         .withEnvFrom(new EnvFromSourceBuilder()
             .withConfigMapRef(new ConfigMapEnvSourceBuilder()
-                .withName(PatroniConfigMap.patroniName(config)).build())
+                .withName(PatroniConfigMap.name(config)).build())
             .build(),
             new EnvFromSourceBuilder()
             .withConfigMapRef(new ConfigMapEnvSourceBuilder()
-                .withName(RestoreConfigMap.restoreName(config)).build())
+                .withName(RestoreConfigMap.name(config)).build())
             .build())
         .withEnv(ImmutableList.<EnvVar>builder()
             .addAll(patroniSetEnvVariables)

@@ -19,11 +19,11 @@ import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.stackgres.operator.common.StackGresBackupContext;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.patroni.PatroniConfigMap;
-import io.stackgres.operatorframework.resource.factory.ResourceStreamFactory;
+import io.stackgres.operatorframework.resource.factory.SubResourceStreamFactory;
 
 @ApplicationScoped
 public class ClusterStatefulSetVolumes
-    implements ResourceStreamFactory<Volume, StackGresClusterContext> {
+    implements SubResourceStreamFactory<Volume, StackGresClusterContext> {
 
   @Override
   public Stream<Volume> create(StackGresClusterContext config) {
@@ -37,35 +37,35 @@ public class ClusterStatefulSetVolumes
         new VolumeBuilder()
             .withName(ClusterStatefulSet.PATRONI_CONFIG_VOLUME_NAME)
             .withNewConfigMap()
-            .withName(PatroniConfigMap.patroniName(config))
+            .withName(PatroniConfigMap.name(config))
             .withDefaultMode(400)
             .endConfigMap()
             .build(),
         new VolumeBuilder()
             .withName(ClusterStatefulSet.BACKUP_CONFIG_VOLUME_NAME)
             .withNewConfigMap()
-            .withName(BackupConfigMap.backupName(config))
+            .withName(BackupConfigMap.name(config))
             .withDefaultMode(400)
             .endConfigMap()
             .build(),
         new VolumeBuilder()
             .withName(ClusterStatefulSet.BACKUP_SECRET_VOLUME_NAME)
             .withNewSecret()
-            .withSecretName(BackupSecret.backupName(config))
+            .withSecretName(BackupSecret.name(config))
             .withDefaultMode(400)
             .endSecret()
             .build(),
         new VolumeBuilder()
             .withName(ClusterStatefulSet.RESTORE_CONFIG_VOLUME_NAME)
             .withNewConfigMap()
-            .withName(RestoreConfigMap.restoreName(config))
+            .withName(RestoreConfigMap.name(config))
             .withDefaultMode(400)
             .endConfigMap()
             .build(),
         new VolumeBuilder()
             .withName(ClusterStatefulSet.RESTORE_SECRET_VOLUME_NAME)
             .withNewSecret()
-            .withSecretName(RestoreSecret.restoreName(config))
+            .withSecretName(RestoreSecret.name(config))
             .withDefaultMode(400)
             .endSecret()
             .build()

@@ -27,7 +27,7 @@ public class RestoreSecret extends AbstractBackupSecret
 
   private static final String RESTORE_SECRET_SUFFIX = "-restore";
 
-  public static String restoreName(StackGresClusterContext context) {
+  public static String name(StackGresClusterContext context) {
     return ResourceUtil.resourceName(
         context.getCluster().getMetadata().getName() + RESTORE_SECRET_SUFFIX);
   }
@@ -38,7 +38,7 @@ public class RestoreSecret extends AbstractBackupSecret
         .map(restoreContext -> new SecretBuilder()
             .withNewMetadata()
             .withNamespace(context.getClusterContext().getCluster().getMetadata().getNamespace())
-            .withName(restoreName(context.getClusterContext()))
+            .withName(name(context.getClusterContext()))
             .withLabels(ResourceUtil.clusterLabels(context.getClusterContext().getCluster()))
             .withOwnerReferences(ImmutableList.of(
                 ResourceUtil.getOwnerReference(context.getClusterContext().getCluster())))

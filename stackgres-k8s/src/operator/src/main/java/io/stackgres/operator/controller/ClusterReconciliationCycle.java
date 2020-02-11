@@ -7,6 +7,7 @@ package io.stackgres.operator.controller;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -20,7 +21,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.kubernetes.api.model.SecretKeySelector;
 import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.quarkus.runtime.ShutdownEvent;
@@ -37,6 +37,7 @@ import io.stackgres.operator.common.SidecarEntry;
 import io.stackgres.operator.common.StackGresBackupContext;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresClusterSidecarResourceFactory;
+import io.stackgres.operator.common.StackGresGeneratorContext;
 import io.stackgres.operator.common.StackGresRestoreContext;
 import io.stackgres.operator.customresource.prometheus.PrometheusConfig;
 import io.stackgres.operator.customresource.prometheus.PrometheusInstallation;
@@ -49,6 +50,7 @@ import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfig
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfigDefinition;
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfigDoneable;
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfigList;
+import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfigSpec;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.customresource.sgcluster.StackGresClusterDefinition;
 import io.stackgres.operator.customresource.sgcluster.StackGresClusterDoneable;
@@ -75,6 +77,7 @@ import io.stackgres.operator.resource.ResourceUtil;
 import io.stackgres.operator.sidecars.envoy.Envoy;
 import io.stackgres.operatorframework.reconciliation.AbstractReconciliationCycle;
 import io.stackgres.operatorframework.reconciliation.AbstractReconciliator;
+import io.stackgres.operatorframework.resource.ResourceGenerator;
 import io.stackgres.operatorframework.resource.ResourceHandlerSelector;
 
 import org.jooq.lambda.Seq;
@@ -169,11 +172,14 @@ public class ClusterReconciliationCycle
   @Override
   protected ImmutableList<HasMetadata> getRequiredResources(StackGresClusterContext context,
       ImmutableList<HasMetadata> existingResourcesOnly) {
-    return cluster.create(
+    return ResourceGenerator.<StackGresGeneratorContext>with(
         ImmutableStackGresGeneratorContext.builder()
         .clusterContext(context)
         .addAllExistingResources(existingResourcesOnly)
         .build())
+        .of(HasMetadata.class)
+        .add(cluster)
+        .stream()
         .collect(ImmutableList.toImmutableList());
   }
 
@@ -267,24 +273,7 @@ public class ClusterReconciliationCycle
               .get())
           .map(backupConf -> StackGresBackupContext.builder()
               .withBackupConfig(backupConf)
-              .withSecrets(Seq.of(
-                  Optional.ofNullable(backupConf.getSpec().getPgpConfiguration())
-                  .map(PgpConfiguration::getKey)
-                  .map(secretKeySelector -> Tuple.tuple(
-                      secretKeySelector,
-                      client.secrets()
-                      .inNamespace(namespace)
-                      .withName(secretKeySelector.getKey())
-                      .get()
-                      .getData()
-                      .get(secretKeySelector.getKey()))))
-                  .filter(Optional::isPresent)
-                  .map(Optional::get)
-                  .grouped(t -> t.v1)
-                  .collect(ImmutableMap.toImmutableMap(
-                      t -> t.v1.getName(), t -> t.v2
-                      .collect(ImmutableMap.toImmutableMap(
-                          tt -> tt.v1.getKey(), tt -> tt.v2)))))
+              .withSecrets(getBackupSecrets(client, namespace, backupConf.getSpec()))
               .build());
     }
     return Optional.empty();
@@ -398,43 +387,54 @@ public class ClusterReconciliationCycle
         .map(backup -> StackGresRestoreContext.builder()
             .withRestore(restore)
             .withBackup(backup)
-            .withSecrets(Seq.<Optional<SecretKeySelector>>of(
-                Optional.ofNullable(backup.getStatus().getBackupConfig().getPgpConfiguration())
-                .map(PgpConfiguration::getKey),
-                Optional.ofNullable(backup.getStatus().getBackupConfig().getStorage().getS3())
-                .map(AwsS3Storage::getCredentials)
-                .map(AwsCredentials::getAccessKey),
-                Optional.ofNullable(backup.getStatus().getBackupConfig().getStorage().getS3())
-                .map(AwsS3Storage::getCredentials)
-                .map(AwsCredentials::getSecretKey),
-                Optional.ofNullable(backup.getStatus().getBackupConfig().getStorage().getGcs())
-                .map(GoogleCloudStorage::getCredentials)
-                .map(GoogleCloudCredentials::getServiceAccountJsonKey),
-                Optional.ofNullable(backup.getStatus().getBackupConfig().getStorage()
-                    .getAzureblob())
-                .map(AzureBlobStorage::getCredentials)
-                .map(AzureBlobStorageCredentials::getAccount),
-                Optional.ofNullable(backup.getStatus().getBackupConfig().getStorage()
-                    .getAzureblob())
-                .map(AzureBlobStorage::getCredentials)
-                .map(AzureBlobStorageCredentials::getAccessKey))
-            .filter(Optional::isPresent)
-            .map(Optional::get)
-            .map(secretKeySelector -> Optional.ofNullable(client.secrets()
-                .inNamespace(backup.getMetadata().getNamespace())
-                .withName(secretKeySelector.getName())
-                .get())
-                .map(secret -> Tuple.tuple(secretKeySelector.getName(),
-                    secretKeySelector.getKey(),
-                    secret.getData().get(secretKeySelector.getKey()))))
-            .filter(Optional::isPresent)
-            .map(Optional::get)
-            .grouped(t -> t.v1)
-            .collect(ImmutableMap.toImmutableMap(t -> t.v1, t -> t.v2
-                .collect(ImmutableMap.toImmutableMap(tt -> tt.v2, tt -> tt.v3)))))
-            .build());
+              .withSecrets(getBackupSecrets(client, backup.getMetadata().getNamespace(),
+                  backup.getStatus().getBackupConfig()))
+              .build());
     }
     return Optional.empty();
+  }
+
+  private ImmutableMap<String, Map<String, String>> getBackupSecrets(KubernetesClient client,
+      final String namespace, StackGresBackupConfigSpec backupConfSpec) {
+    return Seq.of(
+        Optional.ofNullable(backupConfSpec.getPgpConfiguration())
+        .map(PgpConfiguration::getKey),
+        Optional.ofNullable(backupConfSpec.getStorage().getS3())
+        .map(AwsS3Storage::getCredentials)
+        .map(AwsCredentials::getAccessKey),
+        Optional.ofNullable(backupConfSpec.getStorage().getS3())
+        .map(AwsS3Storage::getCredentials)
+        .map(AwsCredentials::getSecretKey),
+        Optional.ofNullable(backupConfSpec.getStorage().getGcs())
+        .map(GoogleCloudStorage::getCredentials)
+        .map(GoogleCloudCredentials::getServiceAccountJsonKey),
+        Optional.ofNullable(backupConfSpec.getStorage().getAzureblob())
+        .map(AzureBlobStorage::getCredentials)
+        .map(AzureBlobStorageCredentials::getAccount),
+        Optional.ofNullable(backupConfSpec.getStorage().getAzureblob())
+        .map(AzureBlobStorage::getCredentials)
+        .map(AzureBlobStorageCredentials::getAccessKey))
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .map(secretKeySelector -> Tuple.tuple(secretKeySelector,
+            Optional.of(Optional.ofNullable(client.secrets()
+                .inNamespace(namespace)
+                .withName(secretKeySelector.getName())
+                .get())
+            .orElseThrow(() -> new IllegalStateException(
+                "Secret " + namespace + "." + secretKeySelector.getName()
+                + " not found")))
+            .map(secret -> secret
+                .getData()
+                .get(secretKeySelector.getKey()))
+            .orElseThrow(() -> new IllegalStateException(
+                "Key " + secretKeySelector.getKey()
+                + " not found in secret " + namespace + "." + secretKeySelector.getName()))))
+        .grouped(t -> t.v1.getName())
+        .collect(ImmutableMap.toImmutableMap(
+            t -> t.v1, t -> t.v2
+            .collect(ImmutableMap.toImmutableMap(
+                tt -> tt.v1.getKey(), tt -> tt.v2))));
   }
 
 }

@@ -28,7 +28,7 @@ public class RestoreConfigMap extends AbstractBackupConfigMap
 
   private static final String RESTORE_SUFFIX = "-restore";
 
-  public static String restoreName(StackGresClusterContext clusterContext) {
+  public static String name(StackGresClusterContext clusterContext) {
     return ResourceUtil.resourceName(clusterContext.getCluster().getMetadata().getName()
         + RESTORE_SUFFIX);
   }
@@ -55,7 +55,7 @@ public class RestoreConfigMap extends AbstractBackupConfigMap
     return Seq.of(new ConfigMapBuilder()
         .withNewMetadata()
         .withNamespace(context.getClusterContext().getCluster().getMetadata().getNamespace())
-        .withName(restoreName(context.getClusterContext()))
+        .withName(name(context.getClusterContext()))
         .withLabels(ResourceUtil.patroniClusterLabels(context.getClusterContext().getCluster()))
         .withOwnerReferences(ImmutableList.of(
             ResourceUtil.getOwnerReference(context.getClusterContext().getCluster())))

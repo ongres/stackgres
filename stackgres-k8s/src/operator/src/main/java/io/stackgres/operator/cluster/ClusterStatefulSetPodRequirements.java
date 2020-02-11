@@ -15,11 +15,11 @@ import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfile;
-import io.stackgres.operatorframework.resource.factory.ResourceFactory;
+import io.stackgres.operatorframework.resource.factory.SubResourceFactory;
 
 @ApplicationScoped
 public class ClusterStatefulSetPodRequirements
-    implements ResourceFactory<ResourceRequirements, StackGresClusterContext> {
+    implements SubResourceFactory<ResourceRequirements, StackGresClusterContext> {
 
   @Override
   public ResourceRequirements create(StackGresClusterContext config) {

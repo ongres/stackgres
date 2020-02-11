@@ -5,24 +5,10 @@
 
 package io.stackgres.operatorframework.resource.factory;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Stream;
-
-import com.google.common.collect.ImmutableList;
-
-import io.fabric8.kubernetes.api.model.KubernetesResource;
+import io.fabric8.kubernetes.api.model.HasMetadata;
 
 @FunctionalInterface
-public interface OptionalResourceStreamFactory<T extends KubernetesResource, C> {
-
-  Stream<Optional<T>> create(C context);
-
-  default List<T> list(C context) {
-    return create(context)
-        .filter(Optional::isPresent)
-        .map(Optional::get)
-        .collect(ImmutableList.toImmutableList());
-  }
+public interface OptionalResourceStreamFactory<T extends HasMetadata, C>
+    extends OptionalSubResourceStreamFactory<T, C> {
 
 }

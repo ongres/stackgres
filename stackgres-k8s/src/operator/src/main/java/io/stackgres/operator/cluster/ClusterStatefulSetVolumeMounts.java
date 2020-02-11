@@ -21,11 +21,11 @@ import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.operator.common.StackGresClusterContext;
-import io.stackgres.operatorframework.resource.factory.ResourceStreamFactory;
+import io.stackgres.operatorframework.resource.factory.SubResourceStreamFactory;
 
 @ApplicationScoped
 public class ClusterStatefulSetVolumeMounts
-    implements ResourceStreamFactory<VolumeMount, StackGresClusterContext> {
+    implements SubResourceStreamFactory<VolumeMount, StackGresClusterContext> {
 
   public static final String PATRONI_ENV = "/etc/env/patroni";
   public static final String BACKUP_ENV = "/etc/env/backup";

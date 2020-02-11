@@ -261,8 +261,10 @@ public class ResourceUtil {
         .map(e -> e.getValue())
         .collect(Collectors.joining())
         .getBytes());
-    data.put("MD5SUM", DatatypeConverter.printHexBinary(
-        messageDigest.digest()).toUpperCase(Locale.US));
-    return data;
+    return ImmutableMap.<String, String>builder()
+        .putAll(data)
+        .put("MD5SUM", DatatypeConverter.printHexBinary(
+            messageDigest.digest()).toUpperCase(Locale.US))
+        .build();
   }
 }

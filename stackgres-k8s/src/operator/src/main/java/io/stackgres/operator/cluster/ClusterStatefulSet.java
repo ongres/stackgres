@@ -226,15 +226,7 @@ public class ClusterStatefulSet implements StackGresClusterResourceStreamFactory
             .withVolumeMounts(volumeMountsFactory.list(clusterContext))
             .withEnvFrom(new EnvFromSourceBuilder()
                 .withConfigMapRef(new ConfigMapEnvSourceBuilder()
-                    .withName(PatroniConfigMap.patroniName(clusterContext)).build())
-                .build(),
-                new EnvFromSourceBuilder()
-                .withConfigMapRef(new ConfigMapEnvSourceBuilder()
-                    .withName(BackupConfigMap.backupName(clusterContext)).build())
-                .build(),
-                new EnvFromSourceBuilder()
-                .withConfigMapRef(new ConfigMapEnvSourceBuilder()
-                    .withName(RestoreConfigMap.restoreName(clusterContext)).build())
+                    .withName(PatroniConfigMap.name(clusterContext)).build())
                 .build())
             .withEnv(ImmutableList.<EnvVar>builder()
                 .addAll(patroniSetEnvVariables)

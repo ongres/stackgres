@@ -34,7 +34,7 @@ public class BackupSecret extends AbstractBackupSecret
 
   private static final String BACKUP_SECRET_SUFFIX = "-backup";
 
-  public static String backupName(StackGresClusterContext context) {
+  public static String name(StackGresClusterContext context) {
     return ResourceUtil.resourceName(
         context.getCluster().getMetadata().getName() + BACKUP_SECRET_SUFFIX);
   }
@@ -45,7 +45,7 @@ public class BackupSecret extends AbstractBackupSecret
         .map(backupContext -> new SecretBuilder()
             .withNewMetadata()
             .withNamespace(context.getClusterContext().getCluster().getMetadata().getNamespace())
-            .withName(backupName(context.getClusterContext()))
+            .withName(name(context.getClusterContext()))
             .withLabels(ResourceUtil.clusterLabels(context.getClusterContext().getCluster()))
             .withOwnerReferences(ImmutableList.of(
                 ResourceUtil.getOwnerReference(context.getClusterContext().getCluster())))

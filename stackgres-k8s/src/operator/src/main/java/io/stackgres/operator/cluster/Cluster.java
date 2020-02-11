@@ -18,13 +18,12 @@ import io.stackgres.operator.patroni.PatroniConfigMap;
 import io.stackgres.operator.patroni.PatroniRole;
 import io.stackgres.operator.patroni.PatroniSecret;
 import io.stackgres.operator.patroni.PatroniServices;
-import io.stackgres.operatorframework.resource.factory.ResourceStreamFactory;
-
-import org.jooq.lambda.Seq;
+import io.stackgres.operatorframework.resource.ResourceGenerator;
+import io.stackgres.operatorframework.resource.factory.SubResourceStreamFactory;
 
 @ApplicationScoped
 public class Cluster
-    implements ResourceStreamFactory<HasMetadata,
+    implements SubResourceStreamFactory<HasMetadata,
         StackGresGeneratorContext> {
 
   private final ClusterStatefulSet clusterStatefulSet;
@@ -63,19 +62,22 @@ public class Cluster
 
   @Override
   public Stream<HasMetadata> create(StackGresGeneratorContext context) {
-    return Seq.<HasMetadata>of()
-        .append(patroniRole.create(context))
-        .append(patroniSecret.create(context))
-        .append(patroniServices.create(context))
-        .append(patroniConfigEndpoints.create(context))
-        .append(patroniConfigMap.create(context))
-        .append(backupConfigMap.create(context))
-        .append(backupSecret.create(context))
-        .append(restoreConfigMap.create(context))
-        .append(restoreSecret.create(context))
-        .append(backupCronJob.create(context))
-        .append(clusterStatefulSet.create(context))
-        .append(backup.create(context));
+    return ResourceGenerator
+        .with(context)
+        .of(HasMetadata.class)
+        .add(patroniRole)
+        .add(patroniSecret)
+        .add(patroniServices)
+        .add(patroniConfigEndpoints)
+        .add(patroniConfigMap)
+        .add(backupConfigMap)
+        .add(backupSecret)
+        .add(restoreConfigMap)
+        .add(restoreSecret)
+        .add(backupCronJob)
+        .add(clusterStatefulSet)
+        .add(backup)
+        .stream();
   }
 
 }

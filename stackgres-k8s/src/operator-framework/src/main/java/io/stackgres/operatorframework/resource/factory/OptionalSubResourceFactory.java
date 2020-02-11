@@ -13,7 +13,7 @@ import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.KubernetesResource;
 
 @FunctionalInterface
-public interface OptionalResourceFactory<T extends KubernetesResource, C> {
+public interface OptionalSubResourceFactory<T extends KubernetesResource, C> {
 
   Optional<T> create(C context);
 

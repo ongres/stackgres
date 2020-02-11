@@ -5,9 +5,11 @@
 
 package io.stackgres.operatorframework.resource.factory;
 
-import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.KubernetesResource;
 
 @FunctionalInterface
-public interface ResourceFactory<T extends HasMetadata, C> extends SubResourceFactory<T, C> {
+public interface SubResourceFactory<T extends KubernetesResource, C> {
+
+  T create(C context);
 
 }
