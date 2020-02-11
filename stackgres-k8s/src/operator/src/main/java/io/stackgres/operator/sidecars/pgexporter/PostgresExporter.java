@@ -41,8 +41,8 @@ import io.stackgres.operator.customresource.prometheus.NamespaceSelector;
 import io.stackgres.operator.customresource.prometheus.ServiceMonitor;
 import io.stackgres.operator.customresource.prometheus.ServiceMonitorDefinition;
 import io.stackgres.operator.customresource.prometheus.ServiceMonitorSpec;
-import io.stackgres.operator.resource.ResourceUtil;
 import io.stackgres.operator.sidecars.envoy.Envoy;
+import io.stackgres.operatorframework.resource.ResourceUtil;
 
 import org.jooq.lambda.Seq;
 
@@ -97,7 +97,7 @@ public class PostgresExporter implements StackGresClusterSidecarResourceFactory<
             .build())
         .withVolumeMounts(new VolumeMountBuilder()
             .withName(ClusterStatefulSet.SOCKET_VOLUME_NAME)
-            .withMountPath("/run/postgresql")
+            .withMountPath(ClusterStatefulSet.PG_RUN_PATH)
             .build());
 
     return container.build();
@@ -105,10 +105,10 @@ public class PostgresExporter implements StackGresClusterSidecarResourceFactory<
 
   @Override
   public Stream<HasMetadata> create(StackGresGeneratorContext context) {
-    final Map<String, String> defaultLabels = ResourceUtil.clusterLabels(
+    final Map<String, String> defaultLabels = StackGresUtil.clusterLabels(
         context.getClusterContext().getCluster());
     Map<String, String> labels = new ImmutableMap.Builder<String, String>()
-        .putAll(ResourceUtil.clusterCrossNamespaceLabels(
+        .putAll(StackGresUtil.clusterCrossNamespaceLabels(
             context.getClusterContext().getCluster()))
         .build();
 

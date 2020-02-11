@@ -1,4 +1,4 @@
-cat <<EOF >/restore/postgres.yml
+cat << EOF > "$RESTORE_ENTRYPOINT_PATH/postgres.yml"
 scope: ${PATRONI_SCOPE}
 name: ${PATRONI_NAME}
 
@@ -9,10 +9,10 @@ bootstrap:
       use_pg_rewind: true
   method: wal_g
   wal_g:
-    command: '/etc/patroni/restore/bootstrap'
+    command: '${RESTORE_ENTRYPOINT_PATH}/bootstrap'
     keep_existing_recovery_conf: False
     recovery_conf:
-      restore_command: '/bin/sh /wal-g-restore-wrapper/wal-g wal-fetch %f %p'
+      restore_command: 'exec-with-env "${RESTORE_SECRET_PATH}" "${RESTORE_ENV_PATH}" -- wal-g wal-fetch %f %p'
       recovery_target_timeline: 'latest'
       recovery_target_action: 'promote'
   initdb:
@@ -41,31 +41,20 @@ postgresql:
 watchdog:
   mode: off
 EOF
-cat <<'EOF' >/restore/bootstrap
+
+cat << EOF > "$RESTORE_ENTRYPOINT_PATH/bootstrap"
 #!/bin/sh
-SCOPE="$PATRONI_SCOPE"
-DATADIR=/var/lib/postgresql/data
-BACKUP="$RESTORE_BACKUP_ID"
-while getopts d:s-: OPT; do
-  if [ "$OPT" = "-" ]; then   # long option: reformulate OPT and OPTARG
-    OPT="${OPTARG%%=*}"       # extract long option name
-    OPTARG="${OPTARG#$OPT}"   # extract long option argument (may be empty)
-    OPTARG="${OPTARG#=}"      # if long option argument, remove assigning `=`
-  fi
-  case "$OPT" in
-    d | datadir ) DATADIR="$OPTARG" ;;
-    s | scope )   SCOPE="$OPTARG" ;;
-  esac
-done
-exec-with-env /etc/env/restore /etc/secret/restore \\
-  -- wal-g backup-fetch "$DATADIR" "$BACKUP"
+exec-with-env "$RESTORE_SECRET_PATH" "$RESTORE_ENV_PATH" \\
+  -- wal-g backup-fetch "$PG_DATA_PATH" "$RESTORE_BACKUP_ID"
 EOF
-cat <<EOF >/restore/entrypoint
+
+cat << EOF > "$RESTORE_ENTRYPOINT_PATH/entrypoint"
 export LC_ALL=C.UTF-8
 
 unset PATRONI_SUPERUSER_PASSWORD PATRONI_REPLICATION_PASSWORD
 
-/usr/bin/patroni /etc/patroni/restore/postgres.yml
+/usr/bin/patroni "${RESTORE_ENTRYPOINT_PATH}/postgres.yml"
 EOF
-chmod a+x /restore/entrypoint
-chmod a+x /restore/bootstrap
+
+chmod a+x "$RESTORE_ENTRYPOINT_PATH/entrypoint"
+chmod a+x "$RESTORE_ENTRYPOINT_PATH/bootstrap"

@@ -5,7 +5,8 @@
 
 package io.stackgres.operator.cluster;
 
-import java.util.Optional;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.Stream;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -17,7 +18,8 @@ import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresClusterResourceStreamFactory;
 import io.stackgres.operator.common.StackGresGeneratorContext;
-import io.stackgres.operator.resource.ResourceUtil;
+import io.stackgres.operator.common.StackGresUtil;
+import io.stackgres.operatorframework.resource.ResourceUtil;
 
 import org.jooq.lambda.Seq;
 
@@ -34,27 +36,27 @@ public class RestoreSecret extends AbstractBackupSecret
 
   @Override
   public Stream<HasMetadata> create(StackGresGeneratorContext context) {
-    return Seq.of(context.getClusterContext().getRestoreContext()
-        .map(restoreContext -> new SecretBuilder()
-            .withNewMetadata()
-            .withNamespace(context.getClusterContext().getCluster().getMetadata().getNamespace())
-            .withName(name(context.getClusterContext()))
-            .withLabels(ResourceUtil.clusterLabels(context.getClusterContext().getCluster()))
-            .withOwnerReferences(ImmutableList.of(
-                ResourceUtil.getOwnerReference(context.getClusterContext().getCluster())))
-            .endMetadata()
-            .withType("Opaque")
-            .withData(ResourceUtil.addMd5Sum(
-                getBackupSecrets(restoreContext.getBackup().getStatus().getBackupConfig(),
-                    restoreContext.getSecrets())))
-            .build()))
-        .filter(Optional::isPresent)
-        .map(Optional::get);
-  }
+    Map<String, String> data = new HashMap<String, String>();
 
-  @Override
-  protected String getGcsCredentialsFileName() {
-    return ClusterStatefulSet.GCS_RESTORE_CREDENTIALS_FILE_NAME;
+    context.getClusterContext().getRestoreContext().ifPresent(restoreContext -> {
+      data.put("BACKUP_RESOURCE_VERSION",
+          restoreContext.getBackup().getMetadata().getResourceVersion());
+
+      data.putAll(getBackupSecrets(restoreContext.getBackup().getStatus().getBackupConfig(),
+          restoreContext.getSecrets()));
+    });
+
+    return Seq.of(new SecretBuilder()
+        .withNewMetadata()
+        .withNamespace(context.getClusterContext().getCluster().getMetadata().getNamespace())
+        .withName(name(context.getClusterContext()))
+        .withLabels(StackGresUtil.clusterLabels(context.getClusterContext().getCluster()))
+        .withOwnerReferences(ImmutableList.of(
+            ResourceUtil.getOwnerReference(context.getClusterContext().getCluster())))
+        .endMetadata()
+        .withType("Opaque")
+        .withStringData(StackGresUtil.addMd5Sum(data))
+        .build());
   }
 
 }

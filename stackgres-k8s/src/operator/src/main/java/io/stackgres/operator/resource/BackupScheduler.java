@@ -15,6 +15,7 @@ import io.stackgres.operator.customresource.sgbackup.StackGresBackup;
 import io.stackgres.operator.customresource.sgbackup.StackGresBackupDefinition;
 import io.stackgres.operator.customresource.sgbackup.StackGresBackupDoneable;
 import io.stackgres.operator.customresource.sgbackup.StackGresBackupList;
+import io.stackgres.operatorframework.resource.ResourceUtil;
 
 @ApplicationScoped
 public class BackupScheduler implements CustomResourceScheduler<StackGresBackup> {

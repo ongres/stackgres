@@ -6,6 +6,7 @@
 package io.stackgres.operator.resource;
 
 import java.util.Optional;
+
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
@@ -15,6 +16,7 @@ import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.customresource.sgcluster.StackGresClusterDefinition;
 import io.stackgres.operator.customresource.sgcluster.StackGresClusterDoneable;
 import io.stackgres.operator.customresource.sgcluster.StackGresClusterList;
+import io.stackgres.operatorframework.resource.ResourceUtil;
 
 @ApplicationScoped
 public class ClusterFinder implements KubernetesCustomResourceFinder<StackGresCluster> {
@@ -32,14 +34,13 @@ public class ClusterFinder implements KubernetesCustomResourceFinder<StackGresCl
     try (KubernetesClient client = kubernetesClientFactory.create()) {
 
       return ResourceUtil.getCustomResource(client, StackGresClusterDefinition.NAME)
-          .map(
-              crd -> client.customResources(crd,
-                  StackGresCluster.class,
-                  StackGresClusterList.class,
-                  StackGresClusterDoneable.class)
-                  .inNamespace(namespace)
-                  .withName(name)
-                  .get());
+          .map(crd -> client.customResources(crd,
+              StackGresCluster.class,
+              StackGresClusterList.class,
+              StackGresClusterDoneable.class)
+              .inNamespace(namespace)
+              .withName(name)
+              .get());
 
     }
   }

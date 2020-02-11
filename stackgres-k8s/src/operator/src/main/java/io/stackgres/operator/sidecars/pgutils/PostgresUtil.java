@@ -39,7 +39,7 @@ public class PostgresUtil implements StackGresClusterSidecarResourceFactory<Void
     List<VolumeMount> volumeMounts = new ArrayList<>();
     volumeMounts.add(new VolumeMountBuilder()
         .withName(ClusterStatefulSet.SOCKET_VOLUME_NAME)
-        .withMountPath("/run/postgresql")
+        .withMountPath(ClusterStatefulSet.PG_RUN_PATH)
         .build());
 
     ContainerBuilder container = new ContainerBuilder();

@@ -24,8 +24,9 @@ import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresClusterResourceStreamFactory;
 import io.stackgres.operator.common.StackGresComponents;
 import io.stackgres.operator.common.StackGresGeneratorContext;
-import io.stackgres.operator.resource.ResourceUtil;
+import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operator.sidecars.envoy.Envoy;
+import io.stackgres.operatorframework.resource.ResourceUtil;
 
 import org.jooq.lambda.Seq;
 import org.slf4j.Logger;
@@ -58,14 +59,14 @@ public class PatroniConfigMap implements StackGresClusterResourceStreamFactory {
     final String patroniLabels;
     try {
       patroniLabels = objectMapper.writeValueAsString(
-          ResourceUtil.patroniClusterLabels(context.getClusterContext().getCluster()));
+          StackGresUtil.patroniClusterLabels(context.getClusterContext().getCluster()));
     } catch (JsonProcessingException ex) {
       throw new RuntimeException(ex);
     }
 
     Map<String, String> data = new HashMap<>();
-    data.put("PATRONI_SCOPE", ResourceUtil.clusterScope(context.getClusterContext().getCluster()));
-    data.put("PATRONI_KUBERNETES_SCOPE_LABEL", ResourceUtil.clusterScopeKey());
+    data.put("PATRONI_SCOPE", StackGresUtil.clusterScope(context.getClusterContext().getCluster()));
+    data.put("PATRONI_KUBERNETES_SCOPE_LABEL", StackGresUtil.clusterScopeKey());
     data.put("PATRONI_KUBERNETES_LABELS", patroniLabels);
     data.put("PATRONI_KUBERNETES_USE_ENDPOINTS", "true");
     data.put("PATRONI_SUPERUSER_USERNAME", "postgres");
@@ -75,29 +76,23 @@ public class PatroniConfigMap implements StackGresClusterResourceStreamFactory {
         "${PATRONI_KUBERNETES_POD_IP}:" + Envoy.PG_RAW_ENTRY_PORT);
 
     data.put("PATRONI_RESTAPI_LISTEN", "0.0.0.0:8008");
-    data.put("PATRONI_POSTGRESQL_DATA_DIR", ClusterStatefulSet.DATA_VOLUME_PATH);
+    data.put("PATRONI_POSTGRESQL_DATA_DIR", ClusterStatefulSet.PG_DATA_PATH);
     data.put("PATRONI_POSTGRESQL_BIN_DIR", "/usr/lib/postgresql/" + pgVersion + "/bin");
-    data.put("PATRONI_POSTGRES_UNIX_SOCKET_DIRECTORY", "/run/postgresql");
+    data.put("PATRONI_POSTGRES_UNIX_SOCKET_DIRECTORY", ClusterStatefulSet.PG_RUN_PATH);
 
     if (PATRONI_LOGGER.isTraceEnabled()) {
       data.put("PATRONI_LOG_LEVEL", "DEBUG");
     }
 
-    data.put("PGDATA", ClusterStatefulSet.DATA_VOLUME_PATH);
-    data.put("PGPORT", String.valueOf(Envoy.PG_RAW_PORT));
-    data.put("PGUSER", "postgres");
-    data.put("PGDATABASE", "postgres");
-    data.put("PGHOST", "/run/postgresql");
-
     return Seq.of(new ConfigMapBuilder()
         .withNewMetadata()
         .withNamespace(context.getClusterContext().getCluster().getMetadata().getNamespace())
         .withName(name(context.getClusterContext()))
-        .withLabels(ResourceUtil.patroniClusterLabels(context.getClusterContext().getCluster()))
+        .withLabels(StackGresUtil.patroniClusterLabels(context.getClusterContext().getCluster()))
         .withOwnerReferences(ImmutableList.of(
             ResourceUtil.getOwnerReference(context.getClusterContext().getCluster())))
         .endMetadata()
-        .withData(ResourceUtil.addMd5Sum(data))
+        .withData(StackGresUtil.addMd5Sum(data))
         .build());
   }
 

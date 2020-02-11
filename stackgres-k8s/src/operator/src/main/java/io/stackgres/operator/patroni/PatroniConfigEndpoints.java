@@ -21,14 +21,15 @@ import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.EndpointsBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.operator.app.ObjectMapperProvider;
-import io.stackgres.operator.cluster.ClusterStatefulSetVolumeMounts;
+import io.stackgres.operator.cluster.ClusterStatefulSet;
 import io.stackgres.operator.common.StackGresClusterResourceStreamFactory;
 import io.stackgres.operator.common.StackGresGeneratorContext;
+import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operator.configuration.PatroniConfig;
 import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.operator.patroni.parameters.Blacklist;
 import io.stackgres.operator.patroni.parameters.DefaultValues;
-import io.stackgres.operator.resource.ResourceUtil;
+import io.stackgres.operatorframework.resource.ResourceUtil;
 
 import org.jooq.lambda.Seq;
 
@@ -50,17 +51,14 @@ public class PatroniConfigEndpoints implements StackGresClusterResourceStreamFac
    */
   public Stream<HasMetadata> create(StackGresGeneratorContext context) {
     final String namespace = context.getClusterContext().getCluster().getMetadata().getNamespace();
-    final Map<String, String> labels = ResourceUtil.patroniClusterLabels(
+    final Map<String, String> labels = StackGresUtil.patroniClusterLabels(
         context.getClusterContext().getCluster());
     Optional<StackGresPostgresConfig> pgconfig = context.getClusterContext().getPostgresConfig();
     Map<String, String> params = new HashMap<>(DefaultValues.getDefaultValues());
 
     if (context.getClusterContext().getBackupContext().isPresent()) {
-      params.put("archive_command",
-          "exec-with-env "
-              + ClusterStatefulSetVolumeMounts.BACKUP_ENV + " "
-              + ClusterStatefulSetVolumeMounts.RESTORE_ENV + " "
-              + " -- wal-g wal-push %p");
+      params.put("archive_command", "exec-with-env '" + ClusterStatefulSet.BACKUP_SECRET_PATH
+          + "' '" + ClusterStatefulSet.BACKUP_ENV_PATH + "' -- wal-g wal-push %p");
     } else {
       params.put("archive_command", "/bin/true");
     }

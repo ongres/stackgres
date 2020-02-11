@@ -18,7 +18,8 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresClusterResourceStreamFactory;
 import io.stackgres.operator.common.StackGresGeneratorContext;
-import io.stackgres.operator.resource.ResourceUtil;
+import io.stackgres.operator.common.StackGresUtil;
+import io.stackgres.operatorframework.resource.ResourceUtil;
 
 import org.jooq.lambda.Seq;
 
@@ -38,36 +39,34 @@ public class RestoreConfigMap extends AbstractBackupConfigMap
     final Map<String, String> data = new HashMap<>();
 
     context.getClusterContext().getRestoreContext().ifPresent(restoreContext -> {
+      data.put("BACKUP_RESOURCE_VERSION",
+          restoreContext.getBackup().getMetadata().getResourceVersion());
+
       data.putAll(getBackupEnvVars(
           restoreContext.getBackup().getMetadata().getNamespace(),
           restoreContext.getBackup().getSpec().getCluster(),
           restoreContext.getBackup().getStatus().getBackupConfig()));
+
       putOrRemoveIfNull(data, "WALG_DOWNLOAD_CONCURRENCY",
           String.valueOf(restoreContext.getRestore().getDownloadDiskConcurrency()));
-
-      putOrRemoveIfNull(data, "WALG_COMPRESSION_METHOD", restoreContext.getBackup().getStatus()
-          .getBackupConfig().getCompressionMethod());
-
-      putOrRemoveIfNull(data, "RESTORE_BACKUP_ID", restoreContext.getBackup()
-          .getStatus().getName());
     });
 
     return Seq.of(new ConfigMapBuilder()
         .withNewMetadata()
         .withNamespace(context.getClusterContext().getCluster().getMetadata().getNamespace())
         .withName(name(context.getClusterContext()))
-        .withLabels(ResourceUtil.patroniClusterLabels(context.getClusterContext().getCluster()))
+        .withLabels(StackGresUtil.patroniClusterLabels(context.getClusterContext().getCluster()))
         .withOwnerReferences(ImmutableList.of(
             ResourceUtil.getOwnerReference(context.getClusterContext().getCluster())))
         .endMetadata()
-        .withData(ResourceUtil.addMd5Sum(data))
+        .withData(StackGresUtil.addMd5Sum(data))
         .build());
   }
 
   @Override
   protected String getGcsCredentialsFilePath() {
-    return ClusterStatefulSet.GCS_RESTORE_CONFIG_PATH
-        + "/" + ClusterStatefulSet.GCS_RESTORE_CREDENTIALS_FILE_NAME;
+    return ClusterStatefulSet.RESTORE_SECRET_PATH
+        + "/" + ClusterStatefulSet.GCS_CREDENTIALS_FILE_NAME;
   }
 
   private void putOrRemoveIfNull(Map<String, String> data, String key, String value) {

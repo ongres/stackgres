@@ -15,6 +15,7 @@ import io.stackgres.operator.customresource.storages.AwsS3Storage;
 import io.stackgres.operator.customresource.storages.AzureBlobStorage;
 import io.stackgres.operator.customresource.storages.BackupStorage;
 import io.stackgres.operator.customresource.storages.GoogleCloudStorage;
+import io.stackgres.operator.sidecars.envoy.Envoy;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,6 +27,13 @@ public abstract class AbstractBackupConfigMap {
   protected ImmutableMap<String, String> getBackupEnvVars(String namespace, String name,
       StackGresBackupConfigSpec backupConfigSpec) {
     ImmutableMap.Builder<String, String> backupEnvVars = ImmutableMap.builder();
+
+    backupEnvVars.put("PGDATA", ClusterStatefulSet.PG_DATA_PATH);
+    backupEnvVars.put("PGPORT", String.valueOf(Envoy.PG_RAW_PORT));
+    backupEnvVars.put("PGUSER", "postgres");
+    backupEnvVars.put("PGDATABASE", "postgres");
+    backupEnvVars.put("PGHOST", ClusterStatefulSet.PG_RUN_PATH);
+
     backupEnvVars.put("WALG_COMPRESSION_METHOD", getFromConfigSpec(
         backupConfigSpec, StackGresBackupConfigSpec::getCompressionMethod));
     if (hasFromConfigSpec(backupConfigSpec, StackGresBackupConfigSpec::getNetworkRateLimit)) {
@@ -86,7 +94,7 @@ public abstract class AbstractBackupConfigMap {
   }
 
   protected String getGcsCredentialsFilePath() {
-    return ClusterStatefulSet.GCS_CONFIG_PATH
+    return ClusterStatefulSet.BACKUP_SECRET_PATH
         + "/" + ClusterStatefulSet.GCS_CREDENTIALS_FILE_NAME;
   }
 

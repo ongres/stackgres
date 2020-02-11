@@ -12,8 +12,8 @@ import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetSpec;
 import io.stackgres.operator.common.StackGresClusterContext;
+import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operator.resource.AbstractClusterResourceHandler;
-import io.stackgres.operator.resource.ResourceUtil;
 import io.stackgres.operatorframework.resource.PairVisitor;
 import io.stackgres.operatorframework.resource.ResourceHandlerContext;
 import io.stackgres.operatorframework.resource.ResourcePairVisitor;
@@ -133,20 +133,20 @@ public class ClusterStatefulSetHandler extends AbstractClusterResourceHandler {
       return getContext().getExistingResources().stream()
           .map(t -> t.v1)
           .filter(this::isPrimary)
-          .anyMatch(existingResource -> ResourceUtil.extractPodIndex(
+          .anyMatch(existingResource -> StackGresUtil.extractPodIndex(
               getContext().getConfig().getCluster(),
               existingResource.getMetadata()) >= requiredReplicas);
     }
 
     public boolean isPrimary(HasMetadata existingResource) {
       return existingResource instanceof Pod
-          && ResourceUtil.isPrimary(
+          && StackGresUtil.isPrimary(
               existingResource.getMetadata().getLabels());
     }
 
     public boolean isNonDisruptiblePrimary(HasMetadata existingResource) {
       return existingResource instanceof Pod
-          && ResourceUtil.isNonDisruptiblePrimary(
+          && StackGresUtil.isNonDisruptiblePrimary(
               existingResource.getMetadata().getLabels());
     }
   }

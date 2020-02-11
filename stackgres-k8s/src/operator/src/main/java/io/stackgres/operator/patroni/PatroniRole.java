@@ -27,7 +27,7 @@ import io.stackgres.operator.common.StackGresGeneratorContext;
 import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operator.customresource.sgbackup.StackGresBackupDefinition;
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfigDefinition;
-import io.stackgres.operator.resource.ResourceUtil;
+import io.stackgres.operatorframework.resource.ResourceUtil;
 
 import org.jooq.lambda.Seq;
 
@@ -60,7 +60,7 @@ public class PatroniRole implements StackGresClusterResourceStreamFactory {
           .withNewMetadata()
           .withName(roleName(context.getClusterContext()))
           .withNamespace(context.getClusterContext().getCluster().getMetadata().getNamespace())
-          .withLabels(ResourceUtil.clusterLabels(context.getClusterContext().getCluster()))
+          .withLabels(StackGresUtil.clusterLabels(context.getClusterContext().getCluster()))
           .withOwnerReferences(ImmutableList.of(
               ResourceUtil.getOwnerReference(context.getClusterContext().getCluster())))
           .endMetadata()
@@ -75,7 +75,7 @@ public class PatroniRole implements StackGresClusterResourceStreamFactory {
         .withNewMetadata()
         .withName(roleName(context.getClusterContext()))
         .withNamespace(context.getClusterContext().getCluster().getMetadata().getNamespace())
-        .withLabels(ResourceUtil.clusterLabels(context.getClusterContext().getCluster()))
+        .withLabels(StackGresUtil.clusterLabels(context.getClusterContext().getCluster()))
         .withOwnerReferences(ImmutableList.of(
             ResourceUtil.getOwnerReference(context.getClusterContext().getCluster())))
         .endMetadata()
@@ -130,7 +130,7 @@ public class PatroniRole implements StackGresClusterResourceStreamFactory {
         .withNewMetadata()
         .withName(roleName(context.getClusterContext()))
         .withNamespace(context.getClusterContext().getCluster().getMetadata().getNamespace())
-        .withLabels(ResourceUtil.clusterLabels(context.getClusterContext().getCluster()))
+        .withLabels(StackGresUtil.clusterLabels(context.getClusterContext().getCluster()))
         .withOwnerReferences(ImmutableList.of(
             ResourceUtil.getOwnerReference(context.getClusterContext().getCluster())))
         .endMetadata()

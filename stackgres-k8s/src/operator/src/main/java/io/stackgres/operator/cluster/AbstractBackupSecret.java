@@ -33,14 +33,14 @@ public abstract class AbstractBackupSecret {
         .map(awsConf -> Seq.of(
             getSecretEntry("AWS_ACCESS_KEY_ID",
                 awsConf.getCredentials().getAccessKey(), secrets),
-            getSecretEntry("AWS_SECRET_KEY_ID",
+            getSecretEntry("AWS_SECRET_ACCESS_KEY",
                 awsConf.getCredentials().getSecretKey(), secrets))),
         Optional.of(backupConfigSpec)
         .map(StackGresBackupConfigSpec::getStorage)
         .map(BackupStorage::getGcs)
         .map(gcsConfig -> Seq.of(
             getSecretEntry(
-                getGcsCredentialsFileName(),
+                ClusterStatefulSet.GCS_CREDENTIALS_FILE_NAME,
                 gcsConfig.getCredentials().getServiceAccountJsonKey(),
                 secrets))),
         Optional.of(backupConfigSpec)
@@ -55,10 +55,6 @@ public abstract class AbstractBackupSecret {
         .map(Optional::get)
         .flatMap(s -> s)
         .collect(ImmutableMap.toImmutableMap(t -> t.v1, t -> t.v2));
-  }
-
-  protected String getGcsCredentialsFileName() {
-    return ClusterStatefulSet.GCS_CREDENTIALS_FILE_NAME;
   }
 
   private Tuple2<String, String> getSecretEntry(String envvar,

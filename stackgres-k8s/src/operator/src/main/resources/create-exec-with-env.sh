@@ -1,32 +1,40 @@
-cat << EOF > /usr/local/bin/exec-with-env
+cat << 'EOF' > /usr/local/bin/exec-with-env
 #!/bin/sh
 
+set -e
+
 die() {
-  >&2 echo "\$@"
+  >&2 echo "$@"
   exit 1
 }
 
-while true
+while [ "$#" -gt 0 ]
 do
-  case "\$1":
+  case "$1" in
   --)
     shift
     break
     ;;
   *)
-    [ -d "\$1" ] || die "\$1 is not a directory"
-    [ "\$(ls -lv1a "\$1" | grep -v "^MD5SUM\$" | xargs -r -n 1 cat | md5sum)" == "\$(cat "\$1/MD5SUM")" ] \
+    envdir="$1"
+    shift
+    [ -d "$envdir" ] || die "$envdir is not a directory"
+    [ "$(ls -1a "$envdir" | grep -v "^MD5SUM$" \
+      | while read envvar; do [ ! -f "$envdir/$envvar" ] || cat "$envdir/$envvar"; done \
+      | md5sum | cut -d ' ' -f 1 | tr 'a-z' 'A-Z')" == "$(cat "$envdir/MD5SUM")" ] \
       || die "Environment variable in transient state"
-    for envvar in \$(ls -lv1a "\$1")
+    for envvar in $(ls -1a "$envdir")
     do
-      eval "export \$envvar='\$(cat "\$1/\$envvar")'"
+      [ -n "$(eval "echo \"\$$envvar\"")" -o ! -f "$envdir/$envvar" ] \
+        || eval "export $envvar='$(cat "$envdir/$envvar")'"
     done
-    ;;
+  esac
 done
 
-if [ ! -z "\$1"]
+if [ -n "$1" ]
 then
-  exec "\$@"
+  exec "$@"
 fi
 EOF
+
 chmod a+x /usr/local/bin/exec-with-env

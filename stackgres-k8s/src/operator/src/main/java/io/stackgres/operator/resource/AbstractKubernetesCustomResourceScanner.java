@@ -13,6 +13,7 @@ import io.fabric8.kubernetes.client.CustomResourceDoneable;
 import io.fabric8.kubernetes.client.CustomResourceList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.operator.app.KubernetesClientFactory;
+import io.stackgres.operatorframework.resource.ResourceUtil;
 
 public abstract class AbstractKubernetesCustomResourceScanner<T extends CustomResource,
     L extends CustomResourceList<T>, D extends CustomResourceDoneable<T>>

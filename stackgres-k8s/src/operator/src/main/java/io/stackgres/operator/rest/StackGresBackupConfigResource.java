@@ -27,7 +27,7 @@ import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfig
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfigDefinition;
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfigDoneable;
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfigList;
-import io.stackgres.operator.resource.ResourceUtil;
+import io.stackgres.operatorframework.resource.ResourceUtil;
 
 @Path("/stackgres/backupconfig")
 @Produces(MediaType.APPLICATION_JSON)

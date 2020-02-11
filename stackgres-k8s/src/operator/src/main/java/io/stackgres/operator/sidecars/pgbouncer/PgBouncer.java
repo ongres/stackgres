@@ -35,7 +35,6 @@ import io.stackgres.operator.common.StackGresComponents;
 import io.stackgres.operator.common.StackGresGeneratorContext;
 import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
-import io.stackgres.operator.resource.ResourceUtil;
 import io.stackgres.operator.sidecars.envoy.Envoy;
 import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfig;
 import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfigDefinition;
@@ -43,6 +42,7 @@ import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbounc
 import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfigList;
 import io.stackgres.operator.sidecars.pgbouncer.parameters.Blacklist;
 import io.stackgres.operator.sidecars.pgbouncer.parameters.DefaultValues;
+import io.stackgres.operatorframework.resource.ResourceUtil;
 
 import org.jooq.lambda.Seq;
 
@@ -94,7 +94,7 @@ public class PgBouncer
         .withNewMetadata()
         .withNamespace(namespace)
         .withName(configMapName)
-        .withLabels(ResourceUtil.clusterLabels(context.getClusterContext().getCluster()))
+        .withLabels(StackGresUtil.clusterLabels(context.getClusterContext().getCluster()))
         .withOwnerReferences(ImmutableList.of(ResourceUtil.getOwnerReference(
             context.getClusterContext().getCluster())))
         .endMetadata()
@@ -114,7 +114,7 @@ public class PgBouncer
         .withVolumeMounts(
             new VolumeMountBuilder()
             .withName(ClusterStatefulSet.SOCKET_VOLUME_NAME)
-            .withMountPath("/run/postgresql")
+            .withMountPath(ClusterStatefulSet.PG_RUN_PATH)
             .build(),
             new VolumeMountBuilder()
             .withName(NAME)

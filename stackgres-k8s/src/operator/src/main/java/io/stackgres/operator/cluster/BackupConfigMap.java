@@ -15,11 +15,11 @@ import com.google.common.collect.ImmutableList;
 
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.stackgres.operator.common.StackGresBackupContext;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresClusterResourceStreamFactory;
 import io.stackgres.operator.common.StackGresGeneratorContext;
-import io.stackgres.operator.resource.ResourceUtil;
+import io.stackgres.operator.common.StackGresUtil;
+import io.stackgres.operatorframework.resource.ResourceUtil;
 
 import org.jooq.lambda.Seq;
 
@@ -39,25 +39,24 @@ public class BackupConfigMap extends AbstractBackupConfigMap
     final Map<String, String> data = new HashMap<>();
 
     context.getClusterContext().getBackupContext()
-        .map(StackGresBackupContext::getBackupConfig)
-        .ifPresent(backupConfig -> {
+        .ifPresent(backupContext -> {
           data.put("BACKUP_CONFIG_RESOURCE_VERSION",
-              backupConfig.getMetadata().getResourceVersion());
+              backupContext.getBackupConfig().getMetadata().getResourceVersion());
           data.putAll(getBackupEnvVars(
               context.getClusterContext().getCluster().getMetadata().getNamespace(),
               context.getClusterContext().getCluster().getMetadata().getName(),
-              backupConfig.getSpec()));
+              backupContext.getBackupConfig().getSpec()));
         });
 
     return Seq.of(new ConfigMapBuilder()
         .withNewMetadata()
         .withNamespace(context.getClusterContext().getCluster().getMetadata().getNamespace())
         .withName(name(context.getClusterContext()))
-        .withLabels(ResourceUtil.patroniClusterLabels(context.getClusterContext().getCluster()))
+        .withLabels(StackGresUtil.patroniClusterLabels(context.getClusterContext().getCluster()))
         .withOwnerReferences(ImmutableList.of(
             ResourceUtil.getOwnerReference(context.getClusterContext().getCluster())))
         .endMetadata()
-        .withData(ResourceUtil.addMd5Sum(data))
+        .withData(StackGresUtil.addMd5Sum(data))
         .build());
   }
 

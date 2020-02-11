@@ -41,12 +41,13 @@ import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresClusterSidecarResourceFactory;
 import io.stackgres.operator.common.StackGresComponents;
 import io.stackgres.operator.common.StackGresGeneratorContext;
+import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operator.customresource.prometheus.Endpoint;
 import io.stackgres.operator.customresource.prometheus.NamespaceSelector;
 import io.stackgres.operator.customresource.prometheus.ServiceMonitor;
 import io.stackgres.operator.customresource.prometheus.ServiceMonitorDefinition;
 import io.stackgres.operator.customresource.prometheus.ServiceMonitorSpec;
-import io.stackgres.operator.resource.ResourceUtil;
+import io.stackgres.operatorframework.resource.ResourceUtil;
 
 import org.jooq.lambda.Seq;
 
@@ -185,7 +186,7 @@ public class Envoy implements StackGresClusterSidecarResourceFactory<Void> {
         .withNewMetadata()
         .withNamespace(namespace)
         .withName(configMapName)
-        .withLabels(ResourceUtil.clusterLabels(context.getClusterContext().getCluster()))
+        .withLabels(StackGresUtil.clusterLabels(context.getClusterContext().getCluster()))
         .withOwnerReferences(ImmutableList.of(ResourceUtil.getOwnerReference(
             context.getClusterContext().getCluster())))
         .endMetadata()
@@ -193,10 +194,10 @@ public class Envoy implements StackGresClusterSidecarResourceFactory<Void> {
         .build();
     resourcesBuilder.add(cm);
 
-    final Map<String, String> defaultLabels = ResourceUtil.clusterLabels(
+    final Map<String, String> defaultLabels = StackGresUtil.clusterLabels(
         context.getClusterContext().getCluster());
     Map<String, String> labels = new ImmutableMap.Builder<String, String>()
-        .putAll(ResourceUtil.clusterCrossNamespaceLabels(
+        .putAll(StackGresUtil.clusterCrossNamespaceLabels(
             context.getClusterContext().getCluster()))
         .build();
 

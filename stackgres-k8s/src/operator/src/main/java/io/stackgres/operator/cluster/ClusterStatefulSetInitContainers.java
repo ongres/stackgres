@@ -6,13 +6,11 @@
 package io.stackgres.operator.cluster;
 
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.Resources;
@@ -38,21 +36,23 @@ import org.jooq.lambda.Unchecked;
 public class ClusterStatefulSetInitContainers
     implements SubResourceStreamFactory<Container, StackGresClusterContext> {
 
+  private final ClusterStatefulSetEnvironmentVariables clusterStatefulSetEnvironmentVariables;
   private final PatroniEnvironmentVariables patroniEnvironmentVariables;
 
-  @Inject
-  public ClusterStatefulSetInitContainers(PatroniEnvironmentVariables patroniEnvironmentVariables) {
+  public ClusterStatefulSetInitContainers(
+      ClusterStatefulSetEnvironmentVariables clusterStatefulSetEnvironmentVariables,
+      PatroniEnvironmentVariables patroniEnvironmentVariables) {
     super();
+    this.clusterStatefulSetEnvironmentVariables = clusterStatefulSetEnvironmentVariables;
     this.patroniEnvironmentVariables = patroniEnvironmentVariables;
   }
 
   @Override
   public Stream<Container> create(StackGresClusterContext config) {
     return Seq.of(Optional.of(createSetDataPermissionContainer(config)),
-        Optional.of(createExecWithEnvContainer()),
+        Optional.of(createExecWithEnvContainer(config)),
         config.getRestoreContext()
-        .map(restoreContext -> createRestoreEntrypointContainer(
-            config, restoreContext, patroniEnvironmentVariables.list(config))))
+        .map(restoreContext -> createRestoreEntrypointContainer(config, restoreContext)))
         .filter(Optional::isPresent)
         .map(Optional::get);
   }
@@ -61,7 +61,10 @@ public class ClusterStatefulSetInitContainers
     return new ContainerBuilder()
         .withName("set-data-permissions")
         .withImage("busybox")
-        .withCommand("/bin/sh", "-ecx", getSetDataPermissionCommand())
+        .withCommand("/bin/sh", "-ecx", Stream.of(
+            "chmod -R 700 " + ClusterStatefulSet.PG_BASE_PATH,
+            "chown -R 999:999 " + ClusterStatefulSet.PG_BASE_PATH)
+            .collect(Collectors.joining(" && ")))
         .withVolumeMounts(getSetDataPermissionVolumeMounts(config))
         .build();
   }
@@ -69,24 +72,14 @@ public class ClusterStatefulSetInitContainers
   private VolumeMount[] getSetDataPermissionVolumeMounts(StackGresClusterContext config) {
     return Stream.of(
         Stream.of(new VolumeMountBuilder()
-            .withName(config.getCluster().getMetadata().getName()
-                + ClusterStatefulSet.DATA_SUFFIX)
-            .withMountPath(ClusterStatefulSet.PG_VOLUME_PATH)
+            .withName(ClusterStatefulSet.dataName(config))
+            .withMountPath(ClusterStatefulSet.PG_BASE_PATH)
             .build()))
         .flatMap(s -> s)
         .toArray(VolumeMount[]::new);
   }
 
-  private String getSetDataPermissionCommand() {
-    return Stream.of(
-        Stream.of(
-            "chmod -R 700 " + ClusterStatefulSet.PG_VOLUME_PATH,
-            "chown -R 999:999 " + ClusterStatefulSet.PG_VOLUME_PATH))
-        .flatMap(s -> s)
-        .collect(Collectors.joining(" && "));
-  }
-
-  private Container createExecWithEnvContainer() {
+  private Container createExecWithEnvContainer(StackGresClusterContext config) {
     return new ContainerBuilder()
         .withName("exec-with-env")
         .withImage("busybox")
@@ -95,11 +88,23 @@ public class ClusterStatefulSetInitContainers
                 ClusterStatefulSet.class.getResource("/create-exec-with-env.sh"),
                 StandardCharsets.UTF_8)
             .read()).get())
+        .withEnv(clusterStatefulSetEnvironmentVariables.list(config))
+        .withVolumeMounts(getExecWithEnvVolumeMounts(config))
         .build();
   }
 
+  private VolumeMount[] getExecWithEnvVolumeMounts(StackGresClusterContext config) {
+    return Stream.of(
+        Stream.of(new VolumeMountBuilder()
+            .withName(ClusterStatefulSet.LOCAL_BIN_VOLUME_NAME)
+            .withMountPath(ClusterStatefulSet.LOCAL_BIN_PATH)
+            .build()))
+        .flatMap(s -> s)
+        .toArray(VolumeMount[]::new);
+  }
+
   private Container createRestoreEntrypointContainer(StackGresClusterContext config,
-      StackGresRestoreContext restoreContext, List<EnvVar> patroniSetEnvVariables) {
+      StackGresRestoreContext restoreContext) {
     return new ContainerBuilder()
         .withName("restore-entrypoint")
         .withImage("busybox")
@@ -117,7 +122,8 @@ public class ClusterStatefulSetInitContainers
                 .withName(RestoreConfigMap.name(config)).build())
             .build())
         .withEnv(ImmutableList.<EnvVar>builder()
-            .addAll(patroniSetEnvVariables)
+            .addAll(clusterStatefulSetEnvironmentVariables.list(config))
+            .addAll(patroniEnvironmentVariables.list(config))
             .add(new EnvVarBuilder()
                 .withName("RESTORE_BACKUP_ID")
                 .withValue(restoreContext.getBackup().getStatus().getName())
@@ -125,8 +131,8 @@ public class ClusterStatefulSetInitContainers
             .build())
         .withVolumeMounts(
             new VolumeMountBuilder()
-                .withName(ClusterStatefulSet.RESTORE_ENTRYPOINT_VOLUME)
-                .withMountPath("/restore")
+                .withName(ClusterStatefulSet.RESTORE_ENTRYPOINT_VOLUME_NAME)
+                .withMountPath(ClusterStatefulSet.RESTORE_ENTRYPOINT_PATH)
                 .build())
         .build();
   }

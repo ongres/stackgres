@@ -5,6 +5,8 @@
 
 package io.stackgres.operatorframework.resource;
 
+import java.util.stream.Collectors;
+
 import io.fabric8.kubernetes.api.model.Affinity;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapKeySelector;
@@ -40,6 +42,7 @@ import io.fabric8.kubernetes.api.model.Probe;
 import io.fabric8.kubernetes.api.model.ResourceFieldSelector;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import io.fabric8.kubernetes.api.model.Secret;
+import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.api.model.SecretKeySelector;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceAccount;
@@ -413,9 +416,17 @@ public class ResourcePairVisitor<T, C> {
    */
   public PairVisitor<Secret, T> visitSecret(PairVisitor<Secret, T> pairVisitor) {
     return pairVisitor.visit()
+        .transformRight(secret -> secret.getData() == null && secret.getStringData() != null
+          ? new SecretBuilder(secret)
+              .withData(secret.getStringData().entrySet().stream()
+                  .collect(Collectors.toMap(
+                      e -> e.getKey(),
+                      e -> ResourceUtil.encodeSecret(e.getValue()))))
+              .withStringData(null)
+              .build()
+              : secret)
         .visit(Secret::getType, Secret::setType)
-        .visitMap(Secret::getData, Secret::setData)
-        .visitMap(Secret::getStringData, Secret::setStringData);
+        .visitMap(Secret::getData, Secret::setData);
   }
 
   /**

@@ -18,11 +18,12 @@ import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.stackgres.operator.common.StackGresClusterContext;
+import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operator.resource.AbstractClusterResourceHandler;
-import io.stackgres.operator.resource.ResourceUtil;
 import io.stackgres.operatorframework.resource.PairVisitor;
 import io.stackgres.operatorframework.resource.ResourceHandlerContext;
 import io.stackgres.operatorframework.resource.ResourcePairVisitor;
+import io.stackgres.operatorframework.resource.ResourceUtil;
 
 import org.jooq.lambda.Seq;
 import org.slf4j.Logger;
@@ -38,7 +39,7 @@ public class ClusterStatefulSetPodHandler extends AbstractClusterResourceHandler
   public boolean isHandlerForResource(StackGresClusterContext context, HasMetadata resource) {
     return context != null
         && resource instanceof Pod
-        && Objects.equals(resource.getMetadata().getLabels().get(ResourceUtil.CLUSTER_KEY),
+        && Objects.equals(resource.getMetadata().getLabels().get(StackGresUtil.CLUSTER_KEY),
             Boolean.TRUE.toString())
         && resource.getMetadata().getNamespace().equals(
             context.getCluster().getMetadata().getNamespace())
@@ -110,11 +111,11 @@ public class ClusterStatefulSetPodHandler extends AbstractClusterResourceHandler
         Map<String, String> leftLabels, Map<String, String> rightMap, ObjectMeta podMetadata) {
       final String disruptibleValue;
       if (Objects.equals(
-              leftLabels.get(ResourceUtil.ROLE_KEY),
-              ResourceUtil.PRIMARY_ROLE)
+              leftLabels.get(StackGresUtil.ROLE_KEY),
+              StackGresUtil.PRIMARY_ROLE)
           && (isPodIndexGreaterThanRequiredReplicas(podMetadata)
           || isPodIndexGreaterThanExistingReplicas(podMetadata))) {
-        if (!Objects.equals(leftLabels.get(ResourceUtil.DISRUPTIBLE_KEY),
+        if (!Objects.equals(leftLabels.get(StackGresUtil.DISRUPTIBLE_KEY),
             Boolean.FALSE.toString())) {
           LOGGER.debug("Settind Pod {}.{} for cluster {}.{} as non disruptible since it is primary"
               + " and his index is above the maximum index for the StatefulSet",
@@ -128,12 +129,12 @@ public class ClusterStatefulSetPodHandler extends AbstractClusterResourceHandler
       }
       return Seq.concat(
           Seq.seq(rightMap.entrySet())
-          .filter(e -> !e.getKey().equals(ResourceUtil.DISRUPTIBLE_KEY)),
+          .filter(e -> !e.getKey().equals(StackGresUtil.DISRUPTIBLE_KEY)),
           Seq.seq(leftLabels.entrySet())
-          .filter(e -> !e.getKey().equals(ResourceUtil.DISRUPTIBLE_KEY))
+          .filter(e -> !e.getKey().equals(StackGresUtil.DISRUPTIBLE_KEY))
           .filter(e -> !rightMap.containsKey(e.getKey())),
           Seq.seq(ImmutableMap.<String, String>of(
-              ResourceUtil.DISRUPTIBLE_KEY, disruptibleValue)
+              StackGresUtil.DISRUPTIBLE_KEY, disruptibleValue)
               .entrySet())
           )
           .collect(ImmutableMap.toImmutableMap(e -> e.getKey(), e -> e.getValue()));
@@ -156,7 +157,7 @@ public class ClusterStatefulSetPodHandler extends AbstractClusterResourceHandler
       return resources
       .filter(resource -> resource instanceof StatefulSet)
       .map(resource -> (StatefulSet) resource)
-      .anyMatch(statefulSet -> ResourceUtil.extractPodIndex(
+      .anyMatch(statefulSet -> StackGresUtil.extractPodIndex(
               getContext().getConfig().getCluster(),
               podMetadata) >= statefulSet.getSpec().getReplicas());
     }

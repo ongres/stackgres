@@ -11,12 +11,14 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Resources;
 
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
+import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.EnvVarSourceBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
@@ -27,12 +29,14 @@ import io.stackgres.operator.common.StackGresBackupContext;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresClusterResourceStreamFactory;
 import io.stackgres.operator.common.StackGresGeneratorContext;
+import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operator.customresource.sgbackup.BackupPhase;
 import io.stackgres.operator.customresource.sgbackup.StackGresBackupDefinition;
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfig;
+import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfigDefinition;
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfigSpec;
 import io.stackgres.operator.patroni.PatroniRole;
-import io.stackgres.operator.resource.ResourceUtil;
+import io.stackgres.operatorframework.resource.ResourceUtil;
 
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.Unchecked;
@@ -44,6 +48,15 @@ public class BackupCronJob implements StackGresClusterResourceStreamFactory {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(BackupCronJob.class);
 
+  private final ClusterStatefulSetEnvironmentVariables clusterStatefulSetEnvironmentVariables;
+
+  @Inject
+  public BackupCronJob(
+      ClusterStatefulSetEnvironmentVariables clusterStatefulSetEnvironmentVariables) {
+    super();
+    this.clusterStatefulSetEnvironmentVariables = clusterStatefulSetEnvironmentVariables;
+  }
+
   /**
    * Create a new CronJob based on the StackGresCluster definition.
    */
@@ -52,7 +65,7 @@ public class BackupCronJob implements StackGresClusterResourceStreamFactory {
     StackGresClusterContext clusterContext = context.getClusterContext();
     String namespace = clusterContext.getCluster().getMetadata().getNamespace();
     String name = clusterContext.getCluster().getMetadata().getName();
-    ImmutableMap<String, String> labels = ResourceUtil.clusterLabels(clusterContext.getCluster());
+    ImmutableMap<String, String> labels = StackGresUtil.clusterLabels(clusterContext.getCluster());
     return Seq.of(clusterContext.getBackupContext())
         .filter(Optional::isPresent)
         .map(Optional::get)
@@ -93,105 +106,111 @@ public class BackupCronJob implements StackGresClusterResourceStreamFactory {
                 .withContainers(new ContainerBuilder()
                     .withName("create-backup")
                     .withImage("bitnami/kubectl:latest")
-                    .withEnv(
-                        new EnvVarBuilder()
-                        .withName("CLUSTER_NAMESPACE")
-                        .withValue(namespace)
-                        .build(),
-                        new EnvVarBuilder()
-                        .withName("CLUSTER_NAME")
-                        .withValue(name)
-                        .build(),
-                        new EnvVarBuilder()
-                        .withName("CRONJOB_NAME")
-                        .withValue(ClusterStatefulSet.backupName(clusterContext))
-                        .build(),
-                        new EnvVarBuilder()
-                        .withName("BACKUP_CONFIG")
-                        .withValue(backupConfig.getMetadata().getName())
-                        .build(),
-                        new EnvVarBuilder()
-                        .withName("BACKUP_CRD_KIND")
-                        .withValue(StackGresBackupDefinition.KIND)
-                        .build(),
-                        new EnvVarBuilder()
-                        .withName("BACKUP_CRD_NAME")
-                        .withValue(StackGresBackupDefinition.NAME)
-                        .build(),
-                        new EnvVarBuilder()
-                        .withName("BACKUP_CRD_APIVERSION")
-                        .withValue(StackGresBackupDefinition.APIVERSION)
-                        .build(),
-                        new EnvVarBuilder()
-                        .withName("BACKUP_PHASE_PENDING")
-                        .withValue(BackupPhase.PENDING.label())
-                        .build(),
-                        new EnvVarBuilder()
-                        .withName("BACKUP_PHASE_COMPLETED")
-                        .withValue(BackupPhase.COMPLETED.label())
-                        .build(),
-                        new EnvVarBuilder()
-                        .withName("BACKUP_PHASE_FAILED")
-                        .withValue(BackupPhase.FAILED.label())
-                        .build(),
-                        new EnvVarBuilder()
-                        .withName("PATRONI_ROLE_KEY")
-                        .withValue(ResourceUtil.ROLE_KEY)
-                        .build(),
-                        new EnvVarBuilder()
-                        .withName("PATRONI_PRIMARY_ROLE")
-                        .withValue(ResourceUtil.PRIMARY_ROLE)
-                        .build(),
-                        new EnvVarBuilder()
-                        .withName("PATRONI_REPLICA_ROLE")
-                        .withValue(ResourceUtil.REPLICA_ROLE)
-                        .build(),
-                        new EnvVarBuilder()
-                        .withName("IS_CRONJOB")
-                        .withValue("true")
-                        .build(),
-                        new EnvVarBuilder()
-                        .withName("CLUSTER_LABELS")
-                        .withValue(labels
-                            .entrySet()
-                            .stream()
-                            .map(e -> e.getKey() + "=" + e.getValue())
-                            .collect(Collectors.joining(",")))
-                        .build(),
-                        new EnvVarBuilder().withName("POD_NAME")
-                        .withValueFrom(
-                            new EnvVarSourceBuilder()
-                            .withFieldRef(
-                                new ObjectFieldSelectorBuilder()
-                                .withFieldPath("metadata.name")
-                                .build())
-                            .build())
-                        .build(),
-                        new EnvVarBuilder().withName("POD_UID")
-                        .withValueFrom(
-                            new EnvVarSourceBuilder()
-                            .withFieldRef(
-                                new ObjectFieldSelectorBuilder()
-                                .withFieldPath("metadata.uid")
-                                .build())
-                            .build())
-                        .build(),
-                        new EnvVarBuilder()
-                        .withName("RETAIN")
-                        .withValue(Optional.of(backupConfig)
-                            .map(StackGresBackupConfig::getSpec)
-                            .map(StackGresBackupConfigSpec::getRetention)
-                            .map(String::valueOf)
-                            .orElse("5"))
-                        .build(),
-                        new EnvVarBuilder()
-                        .withName("WINDOW")
-                        .withValue(Optional.of(backupConfig)
-                            .map(StackGresBackupConfig::getSpec)
-                            .map(StackGresBackupConfigSpec::getFullWindow)
-                            .map(window -> window * 60)
-                            .map(String::valueOf)
-                            .orElse("3600"))
+                    .withEnv(ImmutableList.<EnvVar>builder()
+                        .addAll(clusterStatefulSetEnvironmentVariables.list(clusterContext))
+                        .add(new EnvVarBuilder()
+                            .withName("CLUSTER_NAMESPACE")
+                            .withValue(namespace)
+                          .build(),
+                          new EnvVarBuilder()
+                          .withName("CLUSTER_NAME")
+                          .withValue(name)
+                          .build(),
+                          new EnvVarBuilder()
+                          .withName("CRONJOB_NAME")
+                          .withValue(ClusterStatefulSet.backupName(clusterContext))
+                          .build(),
+                          new EnvVarBuilder()
+                          .withName("BACKUP_CONFIG_CRD_NAME")
+                          .withValue(StackGresBackupConfigDefinition.NAME)
+                          .build(),
+                          new EnvVarBuilder()
+                          .withName("BACKUP_CONFIG")
+                          .withValue(backupConfig.getMetadata().getName())
+                          .build(),
+                          new EnvVarBuilder()
+                          .withName("BACKUP_CRD_KIND")
+                          .withValue(StackGresBackupDefinition.KIND)
+                          .build(),
+                          new EnvVarBuilder()
+                          .withName("BACKUP_CRD_NAME")
+                          .withValue(StackGresBackupDefinition.NAME)
+                          .build(),
+                          new EnvVarBuilder()
+                          .withName("BACKUP_CRD_APIVERSION")
+                          .withValue(StackGresBackupDefinition.APIVERSION)
+                          .build(),
+                          new EnvVarBuilder()
+                          .withName("BACKUP_PHASE_PENDING")
+                          .withValue(BackupPhase.PENDING.label())
+                          .build(),
+                          new EnvVarBuilder()
+                          .withName("BACKUP_PHASE_COMPLETED")
+                          .withValue(BackupPhase.COMPLETED.label())
+                          .build(),
+                          new EnvVarBuilder()
+                          .withName("BACKUP_PHASE_FAILED")
+                          .withValue(BackupPhase.FAILED.label())
+                          .build(),
+                          new EnvVarBuilder()
+                          .withName("PATRONI_ROLE_KEY")
+                          .withValue(StackGresUtil.ROLE_KEY)
+                          .build(),
+                          new EnvVarBuilder()
+                          .withName("PATRONI_PRIMARY_ROLE")
+                          .withValue(StackGresUtil.PRIMARY_ROLE)
+                          .build(),
+                          new EnvVarBuilder()
+                          .withName("PATRONI_REPLICA_ROLE")
+                          .withValue(StackGresUtil.REPLICA_ROLE)
+                          .build(),
+                          new EnvVarBuilder()
+                          .withName("IS_CRONJOB")
+                          .withValue("true")
+                          .build(),
+                          new EnvVarBuilder()
+                          .withName("CLUSTER_LABELS")
+                          .withValue(labels
+                              .entrySet()
+                              .stream()
+                              .map(e -> e.getKey() + "=" + e.getValue())
+                              .collect(Collectors.joining(",")))
+                          .build(),
+                          new EnvVarBuilder().withName("POD_NAME")
+                          .withValueFrom(
+                              new EnvVarSourceBuilder()
+                              .withFieldRef(
+                                  new ObjectFieldSelectorBuilder()
+                                  .withFieldPath("metadata.name")
+                                  .build())
+                              .build())
+                          .build(),
+                          new EnvVarBuilder().withName("POD_UID")
+                          .withValueFrom(
+                              new EnvVarSourceBuilder()
+                              .withFieldRef(
+                                  new ObjectFieldSelectorBuilder()
+                                  .withFieldPath("metadata.uid")
+                                  .build())
+                              .build())
+                          .build(),
+                          new EnvVarBuilder()
+                          .withName("RETAIN")
+                          .withValue(Optional.of(backupConfig)
+                              .map(StackGresBackupConfig::getSpec)
+                              .map(StackGresBackupConfigSpec::getRetention)
+                              .map(String::valueOf)
+                              .orElse("5"))
+                          .build(),
+                          new EnvVarBuilder()
+                          .withName("WINDOW")
+                          .withValue(Optional.of(backupConfig)
+                              .map(StackGresBackupConfig::getSpec)
+                              .map(StackGresBackupConfigSpec::getFullWindow)
+                              .map(window -> window * 60)
+                              .map(String::valueOf)
+                              .orElse("3600"))
+                          .build())
                         .build())
                     .withCommand("/bin/bash", "-c" + (LOGGER.isTraceEnabled() ? "x" : ""),
                         Resources.asCharSource(

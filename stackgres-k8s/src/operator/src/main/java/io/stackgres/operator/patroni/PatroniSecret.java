@@ -5,8 +5,6 @@
 
 package io.stackgres.operator.patroni;
 
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -21,17 +19,13 @@ import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresClusterResourceStreamFactory;
 import io.stackgres.operator.common.StackGresGeneratorContext;
-import io.stackgres.operator.resource.ResourceUtil;
+import io.stackgres.operator.common.StackGresUtil;
+import io.stackgres.operatorframework.resource.ResourceUtil;
 
 import org.jooq.lambda.Seq;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
 public class PatroniSecret implements StackGresClusterResourceStreamFactory {
-
-  private static final Logger LOGGER = LoggerFactory
-      .getLogger(PatroniSecret.class);
 
   public static String name(StackGresClusterContext clusterContext) {
     return ResourceUtil.resourceName(clusterContext.getCluster().getMetadata().getName());
@@ -43,7 +37,7 @@ public class PatroniSecret implements StackGresClusterResourceStreamFactory {
   public Stream<HasMetadata> create(StackGresGeneratorContext context) {
     final String name = context.getClusterContext().getCluster().getMetadata().getName();
     final String namespace = context.getClusterContext().getCluster().getMetadata().getNamespace();
-    final Map<String, String> labels = ResourceUtil.clusterLabels(
+    final Map<String, String> labels = StackGresUtil.clusterLabels(
         context.getClusterContext().getCluster());
 
     Map<String, String> data = new HashMap<>();
@@ -66,11 +60,7 @@ public class PatroniSecret implements StackGresClusterResourceStreamFactory {
   }
 
   private static String generatePassword() {
-    return base64(UUID.randomUUID().toString().substring(4, 22).getBytes(StandardCharsets.UTF_8));
-  }
-
-  private static String base64(byte[] bytes) {
-    return Base64.getEncoder().encodeToString(bytes);
+    return ResourceUtil.encodeSecret(UUID.randomUUID().toString().substring(4, 22));
   }
 
 }
