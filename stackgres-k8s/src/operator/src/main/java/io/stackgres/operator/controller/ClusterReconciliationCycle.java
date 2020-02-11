@@ -427,6 +427,7 @@ public class ClusterReconciliationCycle
             .map(secret -> secret
                 .getData()
                 .get(secretKeySelector.getKey()))
+            .map(ResourceUtil::dencodeSecret)
             .orElseThrow(() -> new IllegalStateException(
                 "Key " + secretKeySelector.getKey()
                 + " not found in secret " + namespace + "." + secretKeySelector.getName()))))
