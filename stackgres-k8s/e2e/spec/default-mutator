@@ -295,6 +295,24 @@ EOF
     return 1
   fi
 
+  local INSTALLED_CONTAINERS="$(kubectl get pod -n $CLUSTER_NAMESPACE $CLUSTER_NAME-0 -o=jsonpath='{.spec.containers[*].name}')"
+
+  if echo "$INSTALLED_CONTAINERS" | grep "prometheus-postgres-exporter" > /dev/null
+  then
+    echo "Success. Promethus postgres exporter was installed"
+  else
+    echo "Fail. Promethus postgres exporter was not installed"
+    return 1
+  fi
+
+  if echo "$INSTALLED_CONTAINERS" | grep "envoy" > /dev/null
+  then
+    echo "Success. Envoy was installed"
+  else
+    echo "Fail. Envoy was not installed"
+    return 1
+  fi
+
 }
 
 create_empty_cluster_on_operator_namespace() {
@@ -315,7 +333,7 @@ EOF
     echo "Good. cluster was created on the operator namespace "
     return 0
   else 
-    echo "Good. cluster was created on the operator namespace "
+    echo "Fail. cluster was not created on the operator namespace "
     return 1
   fi
 }

@@ -35,7 +35,7 @@ spec:
   storageClass: {{ .Values.cluster.storageClass }}
   {{- end }}
   {{- end }}
-  {{- if .Values.sidecar.prometheus.create }}
+  {{- if .Values.sidecar.prometheus.allowAutobind }}
   prometheusAutobind: {{ .Values.sidecar.prometheus.allowAutobind }}
   {{- else }}
   prometheusAutobind: false
@@ -46,9 +46,6 @@ spec:
   {{- end }}
   {{- if .Values.sidecar.util }}
   - postgres-util
-  {{- end }}
-  {{- if .Values.sidecar.prometheus.create }}
-  - prometheus-postgres-exporter
   {{- end }}
   {{- if .Values.nonProduction }}
   nonProduction:
