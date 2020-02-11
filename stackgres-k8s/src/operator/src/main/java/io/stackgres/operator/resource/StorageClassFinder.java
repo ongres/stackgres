@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.resource;
 
+import java.util.List;
 import java.util.Optional;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -14,7 +15,9 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.operator.app.KubernetesClientFactory;
 
 @ApplicationScoped
-public class StorageClassFinder implements KubernetesResourceFinder<StorageClass> {
+public class StorageClassFinder implements
+    KubernetesResourceFinder<StorageClass>,
+    KubernetesResourceScanner<StorageClass> {
 
   private KubernetesClientFactory kubClientFactory;
 
@@ -28,6 +31,13 @@ public class StorageClassFinder implements KubernetesResourceFinder<StorageClass
 
     try (KubernetesClient client = kubClientFactory.create()) {
       return Optional.ofNullable(client.storage().storageClasses().withName(name).get());
+    }
+  }
+
+  @Override
+  public List<StorageClass> findResources() {
+    try (KubernetesClient client = kubClientFactory.create()) {
+      return client.storage().storageClasses().list().getItems();
     }
   }
 }
