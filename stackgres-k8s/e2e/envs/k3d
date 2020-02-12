@@ -1,76 +1,76 @@
 #!/bin/sh
 
-K3D_NAME="${K3D_NAME:-k3s-default}"
-K3S_VERSION="${K3S_VERSION:-k3s1}"
-E2E_KUBERNETES_VERSION="${E2E_KUBERNETES_VERSION:-1.13.12}"
-if [ "$E2E_KUBERNETES_VERSION" = "$DEFAULT_E2E_KUBERNETES_VERSION" ]
+K8S_K3D_NAME="${K8S_K3D_NAME:-k3s-default}"
+K8S_K3S_VERSION="${K8S_K3S_VERSION:-k3s1}"
+K8S_VERSION="${K8S_VERSION:-1.13.12}"
+if [ "$K8S_VERSION" = "$DEFAULT_K8S_VERSION" ]
 then
-  >&2 echo "Warning: using kubernetes version 1.17.2 since e2e default $DEFAULT_E2E_KUBERNETES_VERSION is not available for k3s"
-  E2E_KUBERNETES_VERSION=1.17.2
+  >&2 echo "Warning: using kubernetes version 1.17.2 since e2e default $DEFAULT_K8S_VERSION is not available for k3s"
+  K8S_VERSION=1.17.2
 fi
 
-export K3D_NAME E2E_KUBERNETES_VERSION K3S_VERSION
+export K8S_K3D_NAME K8S_VERSION K8S_K3S_VERSION
 
 update_k8s_config() {
   mkdir -p "$HOME/.kube"
-  mkdir -p "$HOME/.config/k3d/$K3D_NAME"
+  mkdir -p "$HOME/.config/k3d/$K8S_K3D_NAME"
 
   (
-  k3d get-kubeconfig -o --name "$K3D_NAME"
-  K3D_CONFIG="$(k3d get-kubeconfig --name "$K3D_NAME")"
+  k3d get-kubeconfig -o --name "$K8S_K3D_NAME"
+  K8S_K3D_CONFIG="$(k3d get-kubeconfig --name "$K8S_K3D_NAME")"
   if [ "$K8S_FROM_DIND" = true ]
   then
     DOCKER_NAME="$(docker inspect -f '{{.Name}}' "$(hostname)"|cut -d '/' -f 2)"
-    docker network disconnect "k3d-$K3D_NAME" "$DOCKER_NAME" >/dev/null 2>&1 || true
-    docker network connect "k3d-$K3D_NAME" "$DOCKER_NAME"
-    K3D_CONTROL_PLANE_IP="$(docker inspect \
-      -f '{{(index .NetworkSettings.Networks "k3d-'"$K3D_NAME"'").IPAddress}}' \
-      "k3d-$K3D_NAME-server")"
-    sed -i "s/localhost/$K3D_CONTROL_PLANE_IP/" "$K3D_CONFIG"
+    docker network disconnect "k3d-$K8S_K3D_NAME" "$DOCKER_NAME" >/dev/null 2>&1 || true
+    docker network connect "k3d-$K8S_K3D_NAME" "$DOCKER_NAME"
+    K8S_K3D_CONTROL_PLANE_IP="$(docker inspect \
+      -f '{{(index .NetworkSettings.Networks "k3d-'"$K8S_K3D_NAME"'").IPAddress}}' \
+      "k3d-$K8S_K3D_NAME-server")"
+    sed -i "s/localhost/$K8S_K3D_CONTROL_PLANE_IP/" "$K8S_K3D_CONFIG"
   fi
   if [ -s "$KUBECONFIG" ]
   then
-    KUBECONFIG="$K3D_CONFIG":"$KUBECONFIG" \
+    KUBECONFIG="$K8S_K3D_CONFIG":"$KUBECONFIG" \
       kubectl config view --raw > "$HOME/.kube/config-merged"
     mv "$HOME/.kube/config-merged" "$KUBECONFIG"
   else
-    cp "$K3D_CONFIG" "$KUBECONFIG"
+    cp "$K8S_K3D_CONFIG" "$KUBECONFIG"
   fi
   )
 }
 
 reuse_k8s() {
-  if ! k3d list 2>/dev/null | grep -q "^|[ ]\+$K3D_NAME[ ]\+|" \
-      || ! docker inspect "k3d-$K3D_NAME-server" -f '{{ .State.Status }}' | grep -q 'running'
+  if ! k3d list 2>/dev/null | grep -q "^|[ ]\+$K8S_K3D_NAME[ ]\+|" \
+      || ! docker inspect "k3d-$K8S_K3D_NAME-server" -f '{{ .State.Status }}' | grep -q 'running'
   then
-    echo "Can not reuse k3d environment $K3D_NAME"
+    echo "Can not reuse k3d environment $K8S_K3D_NAME"
     reset_k8s
     return
   fi
 
-  echo "Reusing k3d environment $K3D_NAME"
+  echo "Reusing k3d environment $K8S_K3D_NAME"
 
   update_k8s_config
 }
 
 reset_k8s() {
-  echo "Setting up k3d environment $K3D_NAME..."
+  echo "Setting up k3d environment $K8S_K3D_NAME..."
 
   delete_k8s
 
   if [ "$K8S_FROM_DIND" = true ]
   then
-    K3D_API_PORT="$(cat /proc/sys/net/ipv4/ip_local_port_range | xargs seq 2>/dev/null | shuf \
+    K8S_K3D_API_PORT="$(cat /proc/sys/net/ipv4/ip_local_port_range | xargs seq 2>/dev/null | shuf \
       | while read port; do
         docker run --rm -t -p "$port:$port" hello-world >/dev/null 2>&1 && echo "$port" && break
       done)"
   else
-    K3D_API_PORT="${K3D_API_PORT:-6443}"
+    K8S_K3D_API_PORT="${K8S_K3D_API_PORT:-6443}"
   fi
-  k3d create --name "$K3D_NAME" \
-    --api-port "$K3D_API_PORT" \
+  k3d create --name "$K8S_K3D_NAME" \
+    --api-port "$K8S_K3D_API_PORT" \
     --workers 2 \
-    --image "docker.io/rancher/k3s:v${E2E_KUBERNETES_VERSION}-${K3S_VERSION}" \
+    --image "docker.io/rancher/k3s:v${K8S_VERSION}-${K8S_K3S_VERSION}" \
     --wait "$E2E_TIMEOUT"
 
   update_k8s_config
@@ -79,22 +79,22 @@ reset_k8s() {
 }
 
 delete_k8s() {
-  echo "Deleting k3s environment $K3D_NAME..."
+  echo "Deleting k3s environment $K8S_K3D_NAME..."
 
-  rm -f "$(k3d get-kubeconfig --name "$K3D_NAME")"
+  rm -f "$(k3d get-kubeconfig --name "$K8S_K3D_NAME")"
 
-  if k3d list 2>/dev/null | grep -q "^|[ ]\+$K3D_NAME[ ]\+|"
+  if k3d list 2>/dev/null | grep -q "^|[ ]\+$K8S_K3D_NAME[ ]\+|"
   then
-    k3d delete --name "$K3D_NAME"
+    k3d delete --name "$K8S_K3D_NAME"
   fi
 
   echo "...done"
 }
 
 load_operator_k8s() {
-  echo "Loading operator image $IMAGE_NAME in k3d environemnt $K3D_NAME..."
+  echo "Loading operator image $IMAGE_NAME in k3d environemnt $K8S_K3D_NAME..."
   
-  k3d import-images --name "$K3D_NAME" "$IMAGE_NAME"
+  k3d import-images --name "$K8S_K3D_NAME" "$IMAGE_NAME"
 
   echo "...done"
 }
@@ -102,7 +102,7 @@ load_operator_k8s() {
 load_certificate_k8s() {
   echo "Loading certificate $1 in kind environemnt $KIND_NAME..."
 
-  echo "k3d-$K3D_NAME-server" "k3d-$K3D_NAME-worker-0" "k3d-$K3D_NAME-worker-1" \
+  echo "k3d-$K8S_K3D_NAME-server" "k3d-$K8S_K3D_NAME-worker-0" "k3d-$K8S_K3D_NAME-worker-1" \
     | tr ' ' '\n' | xargs -r -n 1 -I % -P 0 sh -ec "
       cat '$1' | docker exec -i '%' sh -c "cat >> /etc/ssl/certs/ca-certificates.crt"
       "

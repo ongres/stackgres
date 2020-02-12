@@ -45,7 +45,7 @@ Some environment variables allow to control how e2e test behave:
 * `E2E_ENV`: This set the environment to script to use in order to setup the kubernetes cluster.
 * `E2E_TIMEOUT`: Some operation wait on pods to be running or terminated. This environment variable controls the timeout in seconds of those operations (default: 3 minutes).
 * `E2E_PARALLELISM`: The number of test to run in parallel with `run-all-tests.sh` (default: 8).
-* `E2E_KUBERNETES_VERSION`: This set the kubernetes cluster version to setup (default: 1.12).
+* `K8S_VERSION`: This set the kubernetes cluster version to setup (default: 1.12).
 * `IMAGE_TAG`: The tag of the operator image to use in the e2e test (default: development-jvm).
 * `E2E_DEBUG_OPERATOR`: Enable operator debug (you must rebuild the operator image for this to work).
 * `E2E_DEBUG_OPERATOR_SUSPEND`: Suspend operator JVM Enable operator debug (you must rebuild the operator image for this to work).
@@ -93,9 +93,15 @@ A YAML with installation values to use to install the cluster can be created usi
 
 ### Kind
 
-Currently the only supported kubernetes cluster is [kind](https://kind.sigs.k8s.io/).
+Currently the supported kubernetes cluster are:
 
-Docker is required in order to use the kind environment.
+* [kind](https://kind.sigs.k8s.io/)
+* [k3d](https://github.com/rancher/k3d)
+* [minikube](https://github.com/kubernetes/minikube)
+* [gke](https://cloud.google.com/kubernetes-engine)
+* [eks](https://aws.amazon.com/eks/)
+
+Docker is required in order to use the kind and k3d environments.
 
 ### Support for other k8s clusters
 

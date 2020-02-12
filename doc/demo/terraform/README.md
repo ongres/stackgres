@@ -13,9 +13,9 @@ Depending on the cloud in which you want to deploy your infrastructure, choose t
 
 1.- Export variables of AWS
 ```bash
-export AWS_ACCESS_KEY_ID=<your information>
-export AWS_SECRET_ACCESS_KEY=<your information>
-export AWS_DEFAULT_REGION=<your information>
+export K8S_EKS_ACCESS_KEY_ID=<your information>
+export K8S_EKS_SECRET_ACCESS_KEY=<your information>
+export K8S_EKS_DEFAULT_REGION=<your information>
 ```
 2.- Export variables of   GCP
 

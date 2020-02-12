@@ -1,73 +1,73 @@
 #!/bin/sh
 
-GKE_NAME="${GKE_NAME:-stackgres-e2e}"
-E2E_KUBERNETES_VERSION="${E2E_KUBERNETES_VERSION:-1.13.12}"
-if [ "$E2E_KUBERNETES_VERSION" = "$DEFAULT_E2E_KUBERNETES_VERSION" ]
+K8S_GKE_NAME="${K8S_GKE_NAME:-stackgres-e2e}"
+K8S_VERSION="${K8S_VERSION:-1.13.12}"
+if [ "$K8S_VERSION" = "$DEFAULT_K8S_VERSION" ]
 then
-  >&2 echo "Warning: using kubernetes version 1.13.11 since e2e default $DEFAULT_E2E_KUBERNETES_VERSION is not available for gke"
-  E2E_KUBERNETES_VERSION=1.13.11
+  >&2 echo "Warning: using kubernetes version 1.13.11 since e2e default $DEFAULT_K8S_VERSION is not available for gke"
+  K8S_VERSION=1.13.11
 fi
-GKE_VERSION="${GKE_VERSION:-gke.23}"
-GKE_REGION="${GKE_REGION:-us-west1}"
-GKE_NODE_LOCATIONS="${GKE_NODE_LOCATIONS:-us-west1-a,us-west1-b,us-west1-c}"
-GKE_MACHINE_TYPE="${GKE_MACHINE_TYPE:-n1-standard-1}"
-GKE_DISK_SIZE="${GKE_DISK_SIZE:-20}"
-GKE_PROJECT="${GKE_PROJECT:-default}"
-GKE_OPTS="$GKE_OPTS"
-export GKE_NAME E2E_KUBERNETES_VERSION GKE_VERSION GKE_REGION GKE_NODE_LOCATIONS GKE_MACHINE_TYPE GKE_DISK_SIZE GKE_PROJECT GKE_OPTS
+K8S_GKE_VERSION="${K8S_GKE_VERSION:-gke.23}"
+K8S_GKE_REGION="${K8S_GKE_REGION:-us-west1}"
+K8S_GKE_NODE_LOCATIONS="${K8S_GKE_NODE_LOCATIONS:-us-west1-a,us-west1-b,us-west1-c}"
+K8S_GKE_MACHINE_TYPE="${K8S_GKE_MACHINE_TYPE:-n1-standard-1}"
+K8S_GKE_DISK_SIZE="${K8S_GKE_DISK_SIZE:-20}"
+K8S_GKE_PROJECT="${K8S_GKE_PROJECT:-default}"
+K8S_GKE_OPTS="$K8S_GKE_OPTS"
+export K8S_GKE_NAME K8S_VERSION K8S_GKE_VERSION K8S_GKE_REGION K8S_GKE_NODE_LOCATIONS K8S_GKE_MACHINE_TYPE K8S_GKE_DISK_SIZE K8S_GKE_PROJECT K8S_GKE_OPTS
 
 reuse_k8s() {
-  if ! gcloud -q beta container --project "$GKE_PROJECT" clusters describe "$GKE_NAME" --region "$GKE_REGION" 2>&1 \
+  if ! gcloud -q beta container --project "$K8S_GKE_PROJECT" clusters describe "$K8S_GKE_NAME" --region "$K8S_GKE_REGION" 2>&1 \
     | grep -q "status: RUNNING"
   then
-    echo "Can not reuse gke environment $GKE_NAME"
+    echo "Can not reuse gke environment $K8S_GKE_NAME"
     reset_k8s
     return
   fi
 
-  echo "Reusing gke environment $GKE_NAME"
+  echo "Reusing gke environment $K8S_GKE_NAME"
 
-  gcloud -q beta container --project "$GKE_PROJECT" clusters get-credentials "$GKE_NAME" --region "$GKE_REGION"
+  gcloud -q beta container --project "$K8S_GKE_PROJECT" clusters get-credentials "$K8S_GKE_NAME" --region "$K8S_GKE_REGION"
 }
 
 reset_k8s() {
-  echo "Setting up gke environment $GKE_NAME..."
+  echo "Setting up gke environment $K8S_GKE_NAME..."
 
   delete_k8s
-  gcloud -q beta container --project "$GKE_PROJECT" clusters create "$GKE_NAME" \
-    --region "$GKE_REGION" \
-    --node-locations "$GKE_NODE_LOCATIONS" \
-    --machine-type "$GKE_MACHINE_TYPE" \
-    --disk-size "$GKE_DISK_SIZE" \
+  gcloud -q beta container --project "$K8S_GKE_PROJECT" clusters create "$K8S_GKE_NAME" \
+    --region "$K8S_GKE_REGION" \
+    --node-locations "$K8S_GKE_NODE_LOCATIONS" \
+    --machine-type "$K8S_GKE_MACHINE_TYPE" \
+    --disk-size "$K8S_GKE_DISK_SIZE" \
     --num-nodes 3 \
-    --cluster-version "$E2E_KUBERNETES_VERSION-$GKE_VERSION" \
+    --cluster-version "$K8S_VERSION-$K8S_GKE_VERSION" \
     --no-enable-autoupgrade \
-    $GKE_OPTS
+    $K8S_GKE_OPTS
 
   echo "...done"
 }
 
 delete_k8s() {
-  echo "Deleting gke environment $GKE_NAME..."
+  echo "Deleting gke environment $K8S_GKE_NAME..."
 
-  if gcloud -q beta container --project "$GKE_PROJECT" clusters describe "$GKE_NAME" --region "$GKE_REGION" 2>&1 \
+  if gcloud -q beta container --project "$K8S_GKE_PROJECT" clusters describe "$K8S_GKE_NAME" --region "$K8S_GKE_REGION" 2>&1 \
     | grep -q "status: RUNNING"
   then
-    gcloud -q beta container --project "$GKE_PROJECT" clusters delete "$GKE_NAME" --region "$GKE_REGION" || true
+    gcloud -q beta container --project "$K8S_GKE_PROJECT" clusters delete "$K8S_GKE_NAME" --region "$K8S_GKE_REGION" || true
   fi
-  gcloud -q compute disks list --project "$GKE_PROJECT" --filter "zone:($GKE_REGION)" \
+  gcloud -q compute disks list --project "$K8S_GKE_PROJECT" --filter "zone:($K8S_GKE_REGION)" \
     | tail -n+2 | sed 's/ \+/|/g' | cut -d '|' -f 1-2 \
-    | grep '^gke-'"$GKE_NAME"'-[0-9a-f]\{4\}-pvc-[0-9a-f]\{8\}-[0-9a-f]\{4\}-[0-9a-f]\{4\}-[0-9a-f]\{4\}-[0-9a-f]\{12\}|' \
-    | xargs -r -n 1 -I % sh $(! echo $- | grep -q x || echo "-x") -ec "gcloud -q compute disks delete --project '$GKE_PROJECT' --zone \"\$(echo '%' | cut -d '|' -f 2)\" \"\$(echo '%' | cut -d '|' -f 1)\""
+    | grep '^gke-'"$K8S_GKE_NAME"'-[0-9a-f]\{4\}-pvc-[0-9a-f]\{8\}-[0-9a-f]\{4\}-[0-9a-f]\{4\}-[0-9a-f]\{4\}-[0-9a-f]\{12\}|' \
+    | xargs -r -n 1 -I % sh $(! echo $- | grep -q x || echo "-x") -ec "gcloud -q compute disks delete --project '$K8S_GKE_PROJECT' --zone \"\$(echo '%' | cut -d '|' -f 2)\" \"\$(echo '%' | cut -d '|' -f 1)\""
 
   echo "...done"
 }
 
 load_operator_k8s() {
-  echo "Loading operator image $IMAGE_NAME in gke environemnt $GKE_NAME..."
+  echo "Loading operator image $IMAGE_NAME in gke environemnt $K8S_GKE_NAME..."
 
-  docker tag "$IMAGE_NAME" "gcr.io/$GKE_PROJECT/$IMAGE_NAME"
-  gcloud -q docker -- push "gcr.io/$GKE_PROJECT/$IMAGE_NAME"
+  docker tag "$IMAGE_NAME" "gcr.io/$K8S_GKE_PROJECT/$IMAGE_NAME"
+  gcloud -q docker -- push "gcr.io/$K8S_GKE_PROJECT/$IMAGE_NAME"
 
   echo "...done"
 }

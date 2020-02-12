@@ -21,7 +21,7 @@ reset_k8s() {
 
   local MEMORY=$(printf "%sGB" "$MINUKUBE_PARALLELISM")
 
-  minikube start --kubernetes-version $E2E_KUBERNETES_VERSION --memory "$MEMORY" --cpus $MINUKUBE_PARALLELISM
+  minikube start --kubernetes-version $K8S_VERSION --memory "$MEMORY" --cpus $MINUKUBE_PARALLELISM
 
   echo "...done"
 }

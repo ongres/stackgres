@@ -24,8 +24,8 @@ variables:
                    -DdeployAtEnd=true
   DISABLE_IT: "true"
   E2E_ENV: kind
-  E2E_KUBERNETES_VERSION: 1.17.0
   E2E_PARALLELISM: 32
+  K8S_VERSION: 1.17.0
   K8S_FROM_DIND: "true"
   K8S_REUSE: "true"
 

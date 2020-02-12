@@ -125,7 +125,7 @@ public class LocalOperatorRunner implements OperatorRunner {
   }
 
   private void setup() throws Exception {
-    List<String> kubeconfig = k8s.execute("sh", "-l", "-c", "cat \"${KUBECONFIG:-$HOME/.kube/config}\"")
+    List<String> kubeconfig = k8s.execute("sh", "-l", "-c", "kubectl config view --minify --raw")
         .collect(Collectors.toList());
     List<String> operatorSecret = k8s.execute("sh", "-l", "-c",
         "kubectl get secret -n stackgres -o yaml"
@@ -151,7 +151,7 @@ public class LocalOperatorRunner implements OperatorRunner {
         .map(line -> line.substring("  token: ".length()))
         .map(secret -> new String(Base64.getDecoder().decode(secret), StandardCharsets.UTF_8))
         .findAny().get());
-    LOGGER.info("Setup fabric8 to connect to {}", System.getProperty("kubernetes.master"));
+    LOGGER.info("Setup fabric8 to connect to {}", System.getProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY));
     System.setProperty("quarkus.http.test-port", String.valueOf(port));
     System.setProperty("quarkus.http.test-ssl-port", String.valueOf(sslPort));
 

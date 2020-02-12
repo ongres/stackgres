@@ -59,10 +59,7 @@ public class ItHelper {
       .orElse("kind");
 
   public static final String E2E_ENVVARS = System.getenv().entrySet().stream()
-      .filter(e -> e.getKey().startsWith("E2E_")
-          || e.getKey().startsWith("GKE_")
-          || e.getKey().startsWith("EKS_")
-          || e.getKey().startsWith("K8S_")
+      .filter(e -> e.getKey().startsWith("E2E_") || e.getKey().startsWith("K8S_")
           || ImmutableList.of("IMAGE_TAG", "IMAGE_NAME").contains(e.getKey()))
       .map(e -> "export " + e.getKey() + "=\"" + e.getValue() + "\"")
       .collect(Collectors.joining("\n"));
