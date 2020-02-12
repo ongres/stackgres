@@ -47,10 +47,10 @@ Some environment variables allow to control how e2e test behave:
 * `E2E_PARALLELISM`: The number of test to run in parallel with `run-all-tests.sh` (default: 8).
 * `E2E_KUBERNETES_VERSION`: This set the kubernetes cluster version to setup (default: 1.12).
 * `IMAGE_TAG`: The tag of the operator image to use in the e2e test (default: development-jvm).
-* `DEBUG_OPERATOR`: Enable operator debug (you must rebuild the operator image for this to work).
-* `DEBUG_OPERATOR_SUSPEND`: Suspend operator JVM Enable operator debug (you must rebuild the operator image for this to work).
+* `E2E_DEBUG_OPERATOR`: Enable operator debug (you must rebuild the operator image for this to work).
+* `E2E_DEBUG_OPERATOR_SUSPEND`: Suspend operator JVM Enable operator debug (you must rebuild the operator image for this to work).
 * `K8S_REUSE`: Kubernetes cluster setup can be very expensive in terms of time. Set this environment variable to true to reuse a kubernetes cluster if already exists.
-* `REUSE_OPERATOR`: To avoid recreating the operator set this environment variable to true to reuse an installed operator if already exists.
+* `E2E_REUSE_OPERATOR`: To avoid recreating the operator set this environment variable to true to reuse an installed operator if already exists.
 * `E2E_BUILD_OPERATOR`: To avoid rebuilding the operator set this environment variable to false.
 * `K8S_FROM_DIND`: Set to true to use docker internal IPs for kubernetes configuration to access the kind cluster
  (some systems like macos or windows will not work with this but it is useful to run e2e in docker).

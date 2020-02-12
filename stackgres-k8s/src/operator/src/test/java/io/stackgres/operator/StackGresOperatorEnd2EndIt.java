@@ -52,9 +52,9 @@ public class StackGresOperatorEnd2EndIt extends AbstractStackGresOperatorIt {
             + "export K8S_REUSE=true\n"
             + "export K8S_FROM_DIND=true\n"
             + "export E2E_BUILD_OPERATOR=false\n"
-            + "export REUSE_OPERATOR=true\n"
+            + "export E2E_REUSE_OPERATOR=true\n"
             + "export E2E_WAIT_OPERATOR=false\n"
-            + "export USE_EXTERNAL_OPERATOR=true\n"
+            + "export E2E_USE_EXTERNAL_OPERATOR=true\n"
             + "export CLUSTER_CHART_PATH=/resources/stackgres-cluster\n"
             + "export OPERATOR_CHART_PATH=/resources/stackgres-operator\n"
             + (E2E_TEST.map(e2eTests -> "if ! sh " + (E2E_DEBUG.orElse(false) ? "-x" : "")

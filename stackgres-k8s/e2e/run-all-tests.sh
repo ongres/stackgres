@@ -15,7 +15,7 @@ SPECS="$(find "$SPEC_PATH" -type f | grep '^.*/[^\.]\+$')"
 
 export K8S_REUSE=true
 export E2E_BUILD_OPERATOR=false
-export REUSE_OPERATOR=true
+export E2E_REUSE_OPERATOR=true
 
 START="$(date +%s)"
 COUNT=0

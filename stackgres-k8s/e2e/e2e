@@ -102,13 +102,10 @@ setup_k8s() {
     setup_default_limits 0.1 0.1 16Mi 16Mi
   fi
 
-  helm dependency update --skip-refresh "$OPERATOR_CHART_PATH"
-  helm dependency update --skip-refresh "$CLUSTER_CHART_PATH"
-
   if [ "$E2E_BUILD_OPERATOR" = true ] \
     && (
-      ! helm list | grep -q "^stackgres-operator\s" \
-      || [ "$REUSE_OPERATOR" != true ]
+      [ "$E2E_REUSE_OPERATOR" != true ] \
+      || ! helm list | grep -q "^stackgres-operator\s"
     )
   then
     (
@@ -122,10 +119,10 @@ setup_k8s() {
       | grep -q "^namespace/stackgres$" \
     || (! kubectl get deployments.apps -n stackgres -o name \
       | grep -q "^deployment.apps/stackgres-operator$" \
-      && [ "$USE_EXTERNAL_OPERATOR" != true ])\
-    || [ "$REUSE_OPERATOR" != true ]
+      && [ "$E2E_USE_EXTERNAL_OPERATOR" != true ])\
+    || [ "$E2E_REUSE_OPERATOR" != true ]
   then
-    if [ "$FORCE_IMAGE_PULL" = "true" ] \
+    if [ "$E2E_FORCE_IMAGE_PULL" = "true" ] \
       || docker image inspect $IMAGE_NAME >/dev/null 2>&1
     then
       docker pull $IMAGE_NAME
@@ -136,11 +133,11 @@ setup_k8s() {
 
     helm install --name stackgres-operator --namespace stackgres "$OPERATOR_CHART_PATH" \
       --set-string image.tag="$IMAGE_TAG" --set-string "image.pullPolicy=$(operator_pull_policy)"
-    if [ "$DEBUG_OPERATOR" = true ]
+    if [ "$E2E_DEBUG_OPERATOR" = true ]
     then
       wait_pods_running stackgres
       kubectl set env -n stackgres deployment/stackgres-operator \
-        DEBUG_OPERATOR="$DEBUG_OPERATOR" DEBUG_OPERATOR_SUSPEND="$DEBUG_OPERATOR_SUSPEND"
+        DEBUG_OPERATOR="$E2E_DEBUG_OPERATOR" DEBUG_OPERATOR_SUSPEND="$E2E_DEBUG_OPERATOR_SUSPEND"
       kubectl delete pod -n stackgres "$(kubectl get pod -n stackgres -o name|cut -d / -f 2|tail -n 1)"
     fi
   else
