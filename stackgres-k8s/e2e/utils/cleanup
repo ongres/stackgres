@@ -65,10 +65,11 @@ k8s_cleanup_but_operator() {
 }
 
 k8s_cleanup_namespace() {
-    kubectl delete namespace "$1" --timeout="$((1 + E2E_TIMEOUT / 10))s" \
-    || kubectl get namespace "$1" -o name | cut -d / -f 2 \
-      | xargs -r -n 1 -I @ -P 0 "$SHELL" $(! echo $- | grep -q x || echo "-x") \
-        -ec "$(k8s_finalize_namespace_script)"
+  local TIMEOUT="$( (echo 6; echo "$((E2E_TIMEOUT / 40))") | sort -n -r | head -n 1)"
+  kubectl delete namespace "$1" --timeout="${TIMEOUT}s" \
+  || kubectl get namespace "$1" -o name | cut -d / -f 2 \
+    | xargs -r -n 1 -I @ -P 0 "$SHELL" $(! echo $- | grep -q x || echo "-x") \
+      -ec "$(k8s_finalize_namespace_script)"
 }
 
 helm_cleanup_chart() {
