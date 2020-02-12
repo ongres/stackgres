@@ -12,7 +12,7 @@ To install the operator use the following command:
 ```shell
 helm install --namespace stackgres --name stackgres-operator \
   --values my-operator-values.yml \
-  https://stackgres.io/downloads/stackgres-k8s/latest/helm-operator.tgz
+  https://stackgres.io/downloads/stackgres-k8s/stackgres/latest/helm-operator.tgz
 ```
 
 ### Parameters
@@ -40,9 +40,9 @@ You can specify following parameters values:
 To install the operator use the following command:
 
 ```shell
-helm install --dep-up --namespace my-namespace --name my-cluster \
+helm install --namespace my-namespace --name my-cluster \
   --values my-cluster-values.yml \
-  https://stackgres.io/downloads/stackgres-k8s/latest/helm-cluster.tgz
+  https://stackgres.io/downloads/stackgres-k8s/stackgres/latest/helm-cluster.tgz
 ```
 
 ### Parameters
@@ -67,10 +67,9 @@ You can specify following parameters values:
  
 #### Backups
 
-By default the chart create a storage class backed by an MinIO server and associate it to the
- `config.backup.volumeWriteManyStorageClass` parameter. To avoid the creation of the MinIO server
- set `config.backup.minio.create` to `false` and specify the `config.backup.volumeWriteManyStorageClass`
- or fill any of the `config.backup.s3`, `config.backup.gcs` or `config.backup.azureblob` sections.
+By default the chart create a storage class backed by an MinIO server. To avoid the creation of the
+ MinIO server set `config.backup.minio.create` to `false` and fill any of the `config.backup.s3`,
+  `config.backup.gcs` or `config.backup.azureblob` sections.
  
 * `config.backup.create`: If true create and set the backup configuration for the cluster.
 * `config.backup.retention`: Retains specified number of full backups. Default is 5.
@@ -92,7 +91,7 @@ By default the chart create a storage class backed by an MinIO server and associ
 * `config.backup.diskRateLimit`: To configure disk read rate limit during uploads in bytes per second.
 * `config.backup.pgpConfiguration.name`: The name of the secret with the private key of the OpenPGP configuration for encryption and decryption backups.
 * `config.backup.pgpConfiguration.key`: The key in the secret with the private key of the OpenPGP configuration for encryption and decryption backups.
-* `config.backup.nfs.create`: If true create a storage class backed by an NFS server that will be used to store backups.
+* `config.backup.minio.create`: If true create a MinIO server that will be used to store backups.
 
 ##### PGP Configuration
 If you want to use OpenPGP to encrypy your backups, you need to specify pgp configuration to encrypt them. 
@@ -100,15 +99,6 @@ If you want to use OpenPGP to encrypy your backups, you need to specify pgp conf
 * `config.backup.pgpSecret`: By default false. If is set to true, it will enable the use of OpenPGP encrypt your backups
 * `config.backup.pgpConfiguration.key`: The key of the secret to select from. Must be a valid secret key.
 * `config.backup.pgpConfiguration.name`: Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
-
-
-##### Volume Source
-
-* `config.backup.volumeSize`: Define the size of the volume used for backups.
-* `config.backup.volumeWriteManyStorageClass`: Define the storage class name that will be used to store backups. Must support ReadWriteMany mode access mode.
- If defined, storageClassName: <volumeWriteManyStorageClass>. If set to "-", storageClassName: "", which disables dynamic provisioning.
- If undefined (the default) or set to null, no storageClassName spec is set, choosing the default provisioner.
- (gp2 on AWS, standard on GKE, AWS & OpenStack).
 
 ##### Amazon Web Services S3
 
@@ -156,7 +146,6 @@ By default, stackgres it's creates as an empty database. To create a cluster wit
 * `cluster.restore.fromBackup`: The backup CR UID to restore the cluster data
 * `config.restore.autoCopySecrets`: Default false. If you are creating a cluster in a different namespace than where backup CR is, you might need to copy the secrets where the credentials to access the backup storage to the namespace where you are installing the cluster. If is set to true stackgres will do it automatically. 
 * `config.restore.downloadDiskConcurrency`: By default 1. How many concurrent stream will create while downloading the backup.
-
 
 #### Sidecars
 
