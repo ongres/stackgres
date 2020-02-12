@@ -25,8 +25,9 @@ variables:
   DISABLE_IT: "true"
   E2E_ENV: kind
   E2E_KUBERNETES_VERSION: 1.17.0
-  K8S_FROM_DIND: "true"
   E2E_PARALLELISM: 32
+  K8S_FROM_DIND: "true"
+  K8S_REUSE: "true"
 
 # Cache downloaded dependencies and plugins between builds.
 # To keep cache across branches add 'key: "$CI_JOB_NAME"'
