@@ -28,6 +28,24 @@ public class ClusterStatefulSetEnvironmentVariables
         new EnvVarBuilder().withName("PG_RUN_PATH")
             .withValue(ClusterStatefulSet.PG_RUN_PATH)
             .build(),
+        new EnvVarBuilder().withName("RESTORE_ENTRYPOINT_PATH")
+            .withValue(ClusterStatefulSet.RESTORE_ENTRYPOINT_PATH)
+            .build(),
+        new EnvVarBuilder().withName("PATRONI_ENV")
+            .withValue(ClusterStatefulSet.PATRONI_ENV)
+            .build(),
+        new EnvVarBuilder().withName("BACKUP_ENV")
+            .withValue(ClusterStatefulSet.BACKUP_ENV)
+            .build(),
+        new EnvVarBuilder().withName("RESTORE_ENV")
+            .withValue(ClusterStatefulSet.RESTORE_ENV)
+            .build(),
+        new EnvVarBuilder().withName("BASE_ENV_PATH")
+            .withValue(ClusterStatefulSet.BASE_ENV_PATH)
+            .build(),
+        new EnvVarBuilder().withName("BASE_SECRET_PATH")
+            .withValue(ClusterStatefulSet.BASE_SECRET_PATH)
+            .build(),
         new EnvVarBuilder().withName("BACKUP_ENV_PATH")
             .withValue(ClusterStatefulSet.BACKUP_ENV_PATH)
             .build(),
@@ -39,9 +57,6 @@ public class ClusterStatefulSetEnvironmentVariables
             .build(),
         new EnvVarBuilder().withName("RESTORE_SECRET_PATH")
             .withValue(ClusterStatefulSet.RESTORE_SECRET_PATH)
-            .build(),
-        new EnvVarBuilder().withName("RESTORE_ENTRYPOINT_PATH")
-            .withValue(ClusterStatefulSet.RESTORE_ENTRYPOINT_PATH)
             .build()
         );
   }

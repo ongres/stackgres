@@ -12,7 +12,7 @@ bootstrap:
     command: '${RESTORE_ENTRYPOINT_PATH}/bootstrap'
     keep_existing_recovery_conf: False
     recovery_conf:
-      restore_command: 'exec-with-env "${RESTORE_SECRET_PATH}" "${RESTORE_ENV_PATH}" -- wal-g wal-fetch %f %p'
+      restore_command: 'exec-with-env "${BACKUP_ENV}" -- wal-g wal-fetch %f %p'
       recovery_target_timeline: 'latest'
       recovery_target_action: 'promote'
   initdb:
@@ -44,7 +44,7 @@ EOF
 
 cat << EOF > "$RESTORE_ENTRYPOINT_PATH/bootstrap"
 #!/bin/sh
-exec-with-env "$RESTORE_SECRET_PATH" "$RESTORE_ENV_PATH" \\
+exec-with-env "$RESTORE_ENV" \\
   -- wal-g backup-fetch "$PG_DATA_PATH" "$RESTORE_BACKUP_ID"
 EOF
 

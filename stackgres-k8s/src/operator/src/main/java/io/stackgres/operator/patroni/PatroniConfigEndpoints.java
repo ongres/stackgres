@@ -57,8 +57,8 @@ public class PatroniConfigEndpoints implements StackGresClusterResourceStreamFac
     Map<String, String> params = new HashMap<>(DefaultValues.getDefaultValues());
 
     if (context.getClusterContext().getBackupContext().isPresent()) {
-      params.put("archive_command", "exec-with-env '" + ClusterStatefulSet.BACKUP_SECRET_PATH
-          + "' '" + ClusterStatefulSet.BACKUP_ENV_PATH + "' -- wal-g wal-push %p");
+      params.put("archive_command", "exec-with-env '" + ClusterStatefulSet.BACKUP_ENV + "'"
+          + " -- wal-g wal-push %p");
     } else {
       params.put("archive_command", "/bin/true");
     }

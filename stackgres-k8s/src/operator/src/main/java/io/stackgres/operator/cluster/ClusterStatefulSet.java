@@ -76,19 +76,23 @@ public class ClusterStatefulSet implements StackGresClusterResourceStreamFactory
   public static final String RESTORE_ENTRYPOINT_VOLUME_NAME = "restore-entrypoint";
   public static final String LOCAL_BIN_VOLUME_NAME = "local-bin";
 
+  public static final String PATRONI_ENV = "patroni";
+  public static final String BACKUP_ENV = "backup";
+  public static final String RESTORE_ENV = "restore";
+
   public static final String LOCAL_BIN_PATH = "/usr/local/bin";
   public static final String PG_BASE_PATH = "/var/lib/postgresql";
   public static final String PG_RUN_PATH = "/var/run/postgresql";
   public static final String PG_DATA_PATH = PG_BASE_PATH + "/data";
   public static final String BASE_ENV_PATH = "/etc/env";
   public static final String BASE_SECRET_PATH = BASE_ENV_PATH + "/.secret";
-  public static final String PATRONI_ENV_PATH = BASE_ENV_PATH + "/patroni";
+  public static final String PATRONI_ENV_PATH = BASE_ENV_PATH + "/" + PATRONI_ENV;
   public static final String BACKUP_PATH = PG_BASE_PATH + "/backups";
-  public static final String BACKUP_ENV_PATH = BASE_ENV_PATH + "/backup";
-  public static final String BACKUP_SECRET_PATH = BASE_SECRET_PATH + "/backup";
+  public static final String BACKUP_ENV_PATH = BASE_ENV_PATH + "/" + BACKUP_ENV;
+  public static final String BACKUP_SECRET_PATH = BASE_SECRET_PATH + "/" + BACKUP_ENV;
   public static final String RESTORE_ENTRYPOINT_PATH = "/etc/patroni/restore";
-  public static final String RESTORE_ENV_PATH = BASE_ENV_PATH + "/restore";
-  public static final String RESTORE_SECRET_PATH = BASE_SECRET_PATH + "/restore";
+  public static final String RESTORE_ENV_PATH = BASE_ENV_PATH + "/" + RESTORE_ENV;
+  public static final String RESTORE_SECRET_PATH = BASE_SECRET_PATH + "/" + RESTORE_ENV;
 
   public static final String GCS_CREDENTIALS_FILE_NAME = "gcs-credentials.json";
 

@@ -16,6 +16,7 @@ import com.ongres.junit.docker.WhenReuse;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Service;
+import io.stackgres.operator.cluster.ClusterStatefulSet;
 import io.stackgres.operator.controller.EventReason;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.sidecars.envoy.Envoy;
@@ -147,7 +148,8 @@ public class StackGresOperatorIt extends AbstractStackGresOperatorIt {
     ItHelper.waitUntil(Unchecked.supplier(() -> k8s.execute("sh", "-l", "-c",
         "kubectl exec -t -n " + namespace + " "
             + CLUSTER_NAME + "-" + 0 + " -c patroni --"
-            + " sh -c \"wal-g wal-fetch " + currentWalFileName
+            + " sh -c \"exec-with-env '" + ClusterStatefulSet.BACKUP_ENV + "'"
+            + " wal-g wal-fetch " + currentWalFileName
             + " /tmp/" + currentWalFileName + " && echo 1\"")),
         s -> s.anyMatch(line -> line.equals("1")), 60, ChronoUnit.SECONDS,
         s -> Assertions.fail(
@@ -156,7 +158,8 @@ public class StackGresOperatorIt extends AbstractStackGresOperatorIt {
     ItHelper.waitUntil(Unchecked.supplier(() -> k8s.execute("sh", "-l", "-c",
         "kubectl exec -t -n " + namespace + " "
             + CLUSTER_NAME + "-" + 0 + " -c patroni --"
-            + " sh -c \"wal-g backup-list | grep -n . | cut -d : -f 1\"")),
+            + " sh -c \"exec-with-env '" + ClusterStatefulSet.BACKUP_ENV + "'"
+            + " wal-g backup-list | grep -n . | cut -d : -f 1\"")),
         s -> s.anyMatch(line -> line.equals("2")), 60, ChronoUnit.SECONDS,
         s -> Assertions.fail(
             "Timeout while checking full backup are working properly:\n"

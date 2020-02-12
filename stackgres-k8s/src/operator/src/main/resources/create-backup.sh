@@ -224,7 +224,7 @@ then
 fi
 cat << EOF | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-primary)" -c patroni \
   -- sh -l -e $(! echo $- | grep -q x || echo " -x") > /tmp/backup-push 2>&1
-exec-with-env "$BACKUP_SECRET_PATH" "$BACKUP_ENV_PATH" \\
+exec-with-env "$BACKUP_ENV" \\
   -- wal-g backup-push "$PG_DATA_PATH" -f $([ "$BACKUP_IS_PERMANENT" = true ] && echo '-p' || true)
 EOF
 echo "Backup completed"
@@ -238,14 +238,14 @@ echo '$(cat /tmp/backups)' \\
   | grep -v '^$' \\
   | while read backup
     do
-      if exec-with-env "$BACKUP_SECRET_PATH" "$BACKUP_ENV_PATH" \\
+      if exec-with-env "$BACKUP_ENV" \\
         -- wal-g backup-list --detail --json \\
         | tr -d '[]' | sed 's/},{/}|{/g' | tr '|' '\n' \\
         | grep '"backup_name"' \\
         | grep "\"backup_name\":\"\$backup\"" \\
         | grep -q "\"is_permanent\":false"
       then
-        exec-with-env "$BACKUP_SECRET_PATH" "$BACKUP_ENV_PATH" \\
+        exec-with-env "$BACKUP_ENV" \\
           -- wal-g backup-mark "\$backup"
       fi
     done
@@ -255,18 +255,18 @@ echo '$(cat /tmp/backups)' \\
   | grep -v '^$' \\
   | while read backup
     do
-      if exec-with-env "$BACKUP_SECRET_PATH" "$BACKUP_ENV_PATH" \\
+      if exec-with-env "$BACKUP_ENV" \\
         -- wal-g backup-list --detail --json \\
         | tr -d '[]' | sed 's/},{/}|{/g' | tr '|' '\n' \\
         | grep '"backup_name"' \\
         | grep "\"backup_name\":\"\$backup\"" \\
         | grep -q "\"is_permanent\":true"
       then
-        exec-with-env "$BACKUP_SECRET_PATH" "$BACKUP_ENV_PATH" \\
+        exec-with-env "$BACKUP_ENV" \\
           -- wal-g backup-mark -i "\$backup"
       fi
     done
-exec-with-env "$BACKUP_SECRET_PATH" "$BACKUP_ENV_PATH" \\
+exec-with-env "$BACKUP_ENV" \\
   -- wal-g backup-list --detail --json \\
   | tr -d '[]' | sed 's/},{/}|{/g' | tr '|' '\n' \\
   | grep '"backup_name"' \\
@@ -278,17 +278,17 @@ exec-with-env "$BACKUP_SECRET_PATH" "$BACKUP_ENV_PATH" \\
         | cut -d : -f 4 \\
         | grep -q '^\$backup$'
       then
-        exec-with-env "$BACKUP_SECRET_PATH" "$BACKUP_ENV_PATH" \\
+        exec-with-env "$BACKUP_ENV" \\
           -- wal-g backup-mark -i "\$backup"
       fi
     done
-PERMANENT="\$(exec-with-env "$BACKUP_SECRET_PATH" "$BACKUP_ENV_PATH" \\
+PERMANENT="\$(exec-with-env "$BACKUP_ENV" \\
   -- wal-g backup-list --detail --json \\
   | tr -d '[]' | sed 's/},{/}|{/g' | tr '|' '\n' \\
   | grep '"backup_name"' \\
   | grep "\"is_permanent\":true" \\
   | wc -l)"
-exec-with-env "$BACKUP_SECRET_PATH" "$BACKUP_ENV_PATH" \\
+exec-with-env "$BACKUP_ENV" \\
   -- wal-g delete retain FULL "\$((RETAIN+PERMANENT))" --confirm
 EOF
 if [ "$?" = 0 ]
@@ -337,7 +337,7 @@ then
   set +x
   cat << EOF | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-replica-or-primary)" -c patroni \
     -- sh -l -e > /tmp/backup-list 2>&1
-WALG_LOG_LEVEL= exec-with-env "$BACKUP_SECRET_PATH" "$BACKUP_ENV_PATH" \\
+WALG_LOG_LEVEL= exec-with-env "$BACKUP_ENV" \\
   -- wal-g backup-list --detail --json
 EOF
   RESULT=$?
