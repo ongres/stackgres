@@ -32,11 +32,6 @@ public class StackGresOperatorEnd2EndIt extends AbstractStackGresOperatorIt {
       Optional.ofNullable(System.getenv("E2E_TEST"))
       .orElse(System.getProperty("e2e.test")));
 
-  public static final Optional<Boolean> E2E_DEBUG = Optional.ofNullable(
-      Optional.ofNullable(System.getenv("E2E_DEBUG"))
-      .orElse(System.getProperty("e2e.debug")))
-      .map(Boolean::valueOf);
-
   @Test
   public void end2EndTest(@ContainerParam("k8s") Container k8s) throws Exception {
     k8s.copyIn(new ByteArrayInputStream(
@@ -57,12 +52,12 @@ public class StackGresOperatorEnd2EndIt extends AbstractStackGresOperatorIt {
             + "export E2E_USE_EXTERNAL_OPERATOR=true\n"
             + "export CLUSTER_CHART_PATH=/resources/stackgres-cluster\n"
             + "export OPERATOR_CHART_PATH=/resources/stackgres-operator\n"
-            + (E2E_TEST.map(e2eTests -> "if ! sh " + (E2E_DEBUG.orElse(false) ? "-x" : "")
+            + (E2E_TEST.map(e2eTests -> "if ! sh " + (ItHelper.E2E_DEBUG.orElse(false) ? "-x" : "")
             + " run-test.sh " + e2eTests + "\n"
             + "then\n"
             + "  sh e2e show_failed_logs\n"
             + "  exit 1\n"
-            + "fi\n").orElseGet(() -> "if ! sh " + (E2E_DEBUG.orElse(false) ? "-x" : "")
+            + "fi\n").orElseGet(() -> "if ! sh " + (ItHelper.E2E_DEBUG.orElse(false) ? "-x" : "")
             + " run-all-tests.sh\n"
             + "then\n"
             + "  sh e2e show_failed_logs\n"

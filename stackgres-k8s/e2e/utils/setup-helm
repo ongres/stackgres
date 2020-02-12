@@ -7,9 +7,9 @@ setup_helm() {
     helm init --client-only
   fi 
 
-  kubectl get serviceaccount --namespace kube-system tiller > /dev/null \
+  kubectl get serviceaccount --namespace kube-system tiller > /dev/null 2>&1 \
     || kubectl create serviceaccount --namespace kube-system tiller
-  kubectl get clusterrolebinding tiller-cluster-rule > /dev/null \
+  kubectl get clusterrolebinding tiller-cluster-rule > /dev/null 2>&1 \
     || kubectl create clusterrolebinding tiller-cluster-rule --clusterrole=cluster-admin --serviceaccount=kube-system:tiller
   kubectl patch deploy --namespace kube-system tiller-deploy -p '{"spec":{"template":{"spec":{"serviceAccount":"tiller"}}}}'
 
@@ -23,7 +23,7 @@ setup_helm() {
 
   for CHART_PATH in "$OPERATOR_CHART_PATH" "$CLUSTER_CHART_PATH"
   do
-    if [ "$(helm dep list "$CHART_PATH" | tail -n +2 | head -n -1 | grep -q -v 'ok\s*$')" -gt 0 ]
+    if [ "$(helm dep list "$CHART_PATH" | tail -n +2 | head -n -1 | grep -v 'ok\s*$' | wc -l)" -gt 0 ]
     then
       helm dependency update --skip-refresh "$CHART_PATH"
     fi

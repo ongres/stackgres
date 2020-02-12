@@ -67,6 +67,11 @@ public class ItHelper {
       .map(e -> "export " + e.getKey() + "=\"" + e.getValue() + "\"")
       .collect(Collectors.joining("\n"));
 
+  public static final Optional<Boolean> E2E_DEBUG = Optional.ofNullable(
+      Optional.ofNullable(System.getenv("E2E_DEBUG"))
+      .orElse(System.getProperty("e2e.debug")))
+      .map(Boolean::valueOf);
+
   /**
    * IT helper method.
    */
@@ -128,11 +133,14 @@ public class ItHelper {
               + "export IMAGE_TAG=" + ItHelper.IMAGE_TAG + "\n"
               + "export CLUSTER_CHART_PATH=/resources/stackgres-cluster\n"
               + "export OPERATOR_CHART_PATH=/resources/stackgres-operator\n"
-              + "sh e2e reuse_k8s\n"
-              + "sh e2e setup_helm\n"
-              + "sh e2e setup_default_limits 0.1 0.1 16Mi 16Mi\n"
-              + (OPERATOR_IN_KUBERNETES ? "sh e2e load_operator_k8s\n" : "")
-              + (OPERATOR_IN_KUBERNETES ? "" : "sh e2e load_certificate_k8s /resources/certs/server.crt\n"))
+              + "sh " + (ItHelper.E2E_DEBUG.orElse(false) ? "-x" : "") + " e2e reuse_k8s\n"
+              + "sh " + (ItHelper.E2E_DEBUG.orElse(false) ? "-x" : "") + " e2e setup_helm\n"
+              + "sh " + (ItHelper.E2E_DEBUG.orElse(false) ? "-x" : "") + " e2e setup_default_limits 0.1 0.1 16Mi 16Mi\n"
+              + (OPERATOR_IN_KUBERNETES
+                  ? "sh " + (ItHelper.E2E_DEBUG.orElse(false) ? "-x" : "") + " e2e load_operator_k8s\n" : "")
+              + (OPERATOR_IN_KUBERNETES ? ""
+                  : "sh " + (ItHelper.E2E_DEBUG.orElse(false) ? "-x" : "")
+                  + " e2e load_certificate_k8s /resources/certs/server.crt\n"))
               .getBytes(StandardCharsets.UTF_8)), "/reuse-k8s.sh");
       k8s.execute("sh", "-e", "/reuse-k8s.sh")
           .filter(ItHelper.EXCLUDE_TTY_WARNING)
@@ -151,11 +159,14 @@ public class ItHelper {
         + "export IMAGE_TAG=" + ItHelper.IMAGE_TAG + "\n"
         + "export CLUSTER_CHART_PATH=/resources/stackgres-cluster\n"
         + "export OPERATOR_CHART_PATH=/resources/stackgres-operator\n"
-        + "sh e2e reset_k8s\n"
-        + "sh e2e setup_helm\n"
-        + "sh e2e setup_default_limits 0.1 0.1 16Mi 16Mi\n"
-        + (OPERATOR_IN_KUBERNETES ? "sh e2e load_operator_k8s\n" : "")
-        + (OPERATOR_IN_KUBERNETES ? "" : "sh e2e load_certificate_k8s /resources/certs/server.crt\n"))
+        + "sh " + (ItHelper.E2E_DEBUG.orElse(false) ? "-x" : "") + " e2e reset_k8s\n"
+        + "sh " + (ItHelper.E2E_DEBUG.orElse(false) ? "-x" : "") + " e2e setup_helm\n"
+        + "sh " + (ItHelper.E2E_DEBUG.orElse(false) ? "-x" : "") + " e2e setup_default_limits 0.1 0.1 16Mi 16Mi\n"
+        + (OPERATOR_IN_KUBERNETES
+            ? "sh " + (ItHelper.E2E_DEBUG.orElse(false) ? "-x" : "") + " e2e load_operator_k8s\n" : "")
+        + (OPERATOR_IN_KUBERNETES ? ""
+            : "sh " + (ItHelper.E2E_DEBUG.orElse(false) ? "-x" : "")
+            + " e2e load_certificate_k8s /resources/certs/server.crt\n"))
         .getBytes(StandardCharsets.UTF_8)), "/restart-k8s.sh");
     k8s.execute("sh", "-e", "/restart-k8s.sh")
         .filter(ItHelper.EXCLUDE_TTY_WARNING)
