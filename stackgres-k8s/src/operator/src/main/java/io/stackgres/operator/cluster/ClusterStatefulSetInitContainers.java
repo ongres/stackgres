@@ -110,7 +110,7 @@ public class ClusterStatefulSetInitContainers
         .withImage("busybox")
         .withCommand("/bin/sh", "-ecx", Unchecked.supplier(() -> Resources
             .asCharSource(
-                ClusterStatefulSet.class.getResource("/restore-entrypoint.sh"),
+                ClusterStatefulSet.class.getResource("/create-restore-entrypoint.sh"),
                 StandardCharsets.UTF_8)
             .read()).get())
         .withEnvFrom(new EnvFromSourceBuilder()
