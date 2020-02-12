@@ -24,9 +24,9 @@ variables:
                    -DdeployAtEnd=true
   DISABLE_IT: "true"
   E2E_ENV: kind
-  K8S_FROM_DIND: 1.17.0
+  E2E_KUBERNETES_VERSION: 1.17.0
+  K8S_FROM_DIND: "true"
   E2E_PARALLELISM: 32
-  RESET_KIND: "true"
 
 # Cache downloaded dependencies and plugins between builds.
 # To keep cache across branches add 'key: "$CI_JOB_NAME"'
@@ -145,7 +145,9 @@ integration test:
   dependencies:
     - compile
   script:
-    - 'flock -w 3600 /tmp/stackgres-integration-test mvn $MAVEN_CLI_OPTS verify -P integration'
+    - |
+      flock -w 3600 /tmp/stackgres-integration-test mvn $MAVEN_CLI_OPTS verify -P integration \
+        -Dit.skipBuildContainer=true
   only:
     variables:
       - $DO_EXTERNAL
@@ -158,11 +160,14 @@ integration test jvm image:
     - compile
   variables:
     OPERATOR_IN_KUBERNETES: "true"
-    KIND_SUFFIX: jvm-image
+    K8S_SUFFIX: jvm-image
   script:
     - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}"-jvm'
     - 'export IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
-    - 'flock -w 3600 /tmp/stackgres-integration-test-jvm-image mvn $MAVEN_CLI_OPTS verify -P integration -DargLine=-Dcom.ongres.junit.docker.runnerId="$KIND_SUFFIX"'
+    - |
+      flock -w 3600 /tmp/stackgres-integration-test-jvm-image mvn $MAVEN_CLI_OPTS verify -P integration \
+        -DargLine=-Dcom.ongres.junit.docker.runnerId="$K8S_SUFFIX" \
+        -Dit.skipBuildContainer=true
 
 integration test native image:
   stage: test
@@ -172,11 +177,14 @@ integration test native image:
     - compile
   variables:
     OPERATOR_IN_KUBERNETES: "true"
-    KIND_SUFFIX: native-image
+    K8S_SUFFIX: native-image
   script:
     - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}"'
     - 'export IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
-    - 'flock -w 3600 /tmp/stackgres-integration-test-native-image mvn $MAVEN_CLI_OPTS verify -P integration -DargLine=-Dcom.ongres.junit.docker.runnerId="$KIND_SUFFIX"'
+    - |
+      flock -w 3600 /tmp/stackgres-integration-test-native-image mvn $MAVEN_CLI_OPTS verify -P integration \
+        -DargLine=-Dcom.ongres.junit.docker.runnerId="$K8S_SUFFIX" \
+        -Dit.skipBuildContainer=true
   only:
     variables:
       - $CI_COMMIT_REF_NAME == "development"
