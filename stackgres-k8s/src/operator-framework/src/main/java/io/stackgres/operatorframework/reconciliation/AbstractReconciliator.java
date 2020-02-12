@@ -178,7 +178,10 @@ public abstract class AbstractReconciliator<T> implements ResourceHandlerContext
             requiredResource.v1.getMetadata().getNamespace(),
             requiredResource.v1.getMetadata().getName(),
             requiredResource.v1.getKind());
-        handlerSelector.create(client, context, requiredResource.v1);
+        HasMetadata updatedRequiredResource = Unchecked.supplier(() -> objectMapper.treeToValue(
+            objectMapper.valueToTree(requiredResource.v1), requiredResource.v1.getClass())).get();
+        handlerSelector.update(this, updatedRequiredResource, requiredResource.v1);
+        handlerSelector.create(client, context, updatedRequiredResource);
         created = true;
       }
     }
