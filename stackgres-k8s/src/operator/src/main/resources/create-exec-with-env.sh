@@ -36,7 +36,7 @@ do
       # MD5SUM) does not match variable MD5SUM we fail since in transition state
       [ "$(ls -1a "$envdir" | grep -v "^MD5SUM$" \
         | while read envvar; do [ ! -f "$envdir/$envvar" ] || cat "$envdir/$envvar"; done \
-        | md5sum | cut -d ' ' -f 1 | tr 'a-z' 'A-Z')" == "$(cat "$envdir/MD5SUM")" ] \
+        | md5sum | cut -d ' ' -f 1 | tr 'a-z' 'A-Z')" = "$(cat "$envdir/MD5SUM")" ] \
         || die "Environment variable in transient state"
       for envvar in $(ls -1a "$envdir")
       do
@@ -55,7 +55,7 @@ then
 fi
 EOF
 
-sed -i "s/\${BASE_ENV_PATH}/${BASE_ENV_PATH}/g" /usr/local/bin/exec-with-env
-sed -i "s/\${BASE_SECRET_PATH}/${BASE_SECRET_PATH}/g" /usr/local/bin/exec-with-env
+sed -i "s#\${BASE_ENV_PATH}#${BASE_ENV_PATH}#g" /usr/local/bin/exec-with-env
+sed -i "s#\${BASE_SECRET_PATH}#${BASE_SECRET_PATH}#g" /usr/local/bin/exec-with-env
 
 chmod a+x /usr/local/bin/exec-with-env
