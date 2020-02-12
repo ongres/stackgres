@@ -109,3 +109,8 @@ load_certificate_k8s() {
 
   echo "...done"
 }
+
+excluded_customresourcedefinitions() {
+  echo "helmcharts.helm.cattle.io"
+  echo "addons.k3s.cattle.io"
+}
