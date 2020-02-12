@@ -119,8 +119,8 @@ public class ItHelper {
   /**
    * It helper method.
    */
-  public static void resetKind(Container k8s, int size, boolean reuse) throws Exception {
-    if (reuse) {
+  public static void resetKind(Container k8s, int size) throws Exception {
+    if (Boolean.parseBoolean(System.getenv("K8S_REUSE"))) {
       LOGGER.info("Reusing " + E2E_ENV);
       k8s.copyIn(new ByteArrayInputStream(
               ("cd /resources/e2e\n"
@@ -128,7 +128,6 @@ public class ItHelper {
               + "export DOCKER_NAME=\"$(docker inspect -f '{{.Name}}' \"$(hostname)\"|cut -d '/' -f 2)\"\n"
               + "export " + E2E_ENV_VAR_NAME + "="
                   + "\"" + E2E_ENV + "$(echo \"$DOCKER_NAME\" | sed 's/^k8s//')\"\n"
-              + "export K8S_REUSE=true\n"
               + "export K8S_FROM_DIND=true\n"
               + "export IMAGE_TAG=" + ItHelper.IMAGE_TAG + "\n"
               + "export CLUSTER_CHART_PATH=/resources/stackgres-cluster\n"
@@ -136,6 +135,8 @@ public class ItHelper {
               + "sh " + (ItHelper.E2E_DEBUG.orElse(false) ? "-x" : "") + " e2e reuse_k8s\n"
               + "sh " + (ItHelper.E2E_DEBUG.orElse(false) ? "-x" : "") + " e2e setup_helm\n"
               + "sh " + (ItHelper.E2E_DEBUG.orElse(false) ? "-x" : "") + " e2e setup_default_limits 0.1 0.1 16Mi 16Mi\n"
+              + "sh " + (ItHelper.E2E_DEBUG.orElse(false) ? "-x" : "") + " e2e helm_cleanup\n"
+              + "sh " + (ItHelper.E2E_DEBUG.orElse(false) ? "-x" : "") + " e2e k8s_cleanup\n"
               + (OPERATOR_IN_KUBERNETES
                   ? "sh " + (ItHelper.E2E_DEBUG.orElse(false) ? "-x" : "") + " e2e load_operator_k8s\n" : "")
               + (OPERATOR_IN_KUBERNETES ? ""
@@ -154,7 +155,6 @@ public class ItHelper {
         + "export DOCKER_NAME=\"$(docker inspect -f '{{.Name}}' \"$(hostname)\"|cut -d '/' -f 2)\"\n"
         + "export " + E2E_ENV_VAR_NAME + "="
             + "\"" + E2E_ENV + "$(echo \"$DOCKER_NAME\" | sed 's/^k8s//')\"\n"
-        + "export K8S_REUSE=true\n"
         + "export K8S_FROM_DIND=true\n"
         + "export IMAGE_TAG=" + ItHelper.IMAGE_TAG + "\n"
         + "export CLUSTER_CHART_PATH=/resources/stackgres-cluster\n"
@@ -180,43 +180,6 @@ public class ItHelper {
     LOGGER.info("Create namespace '" + namespace + "'");
     k8s.execute("sh", "-l", "-c",
         "kubectl create namespace " + namespace)
-        .filter(EXCLUDE_TTY_WARNING)
-        .forEach(line -> LOGGER.info(line));
-  }
-
-  /**
-   * It helper method.
-   */
-  public static void deleteNamespaceIfExists(Container k8s, String namespace) throws Exception {
-    LOGGER.info("Deleting namespace if exists '" + namespace + "'");
-    k8s.execute("sh", "-l", "-c",
-        "kubectl delete namespace --ignore-not-found " + namespace + " --timeout=19s"
-            + " || (kubectl api-resources --namespaced -o name"
-            + " | xargs -r -n 1 -I + -P 0 sh -ec 'kubectl get \"+\" -n \"" + namespace + "\" -o name"
-            + " | xargs -r -n 1 -I % kubectl delete -n \"" + namespace + "\" \"%\" --grace-period=0 --force' >/dev/null 2>&1 || true;"
-            + " kubectl get namespace \"" + namespace + "\" -o json | tr -d \"\\n\""
-            + " | sed \"s/\\\"finalizers\\\": \\[[^]]\\+\\]/\\\"finalizers\\\": []/\""
-            + " | kubectl replace --raw /api/v1/namespaces/" + namespace + "/finalize -f - >/dev/null 2>&1"
-            + " || ! kubectl get namespace \"" + namespace + "\" -o name >/dev/null 2>&1)")
-        .filter(EXCLUDE_TTY_WARNING)
-        .forEach(line -> LOGGER.info(line));
-  }
-
-  /**
-   * It helper method.
-   */
-  public static void deleteStackGresOperatorHelmChartIfExists(Container k8s, String namespace)
-      throws Exception {
-    LOGGER.info("Deleting if exists stackgres-operator helm chart");
-    k8s.execute("sh", "-l", "-c", "helm template /resources/stackgres-operator"
-        + " --namespace " + namespace
-        + " --name stackgres-operator"
-        + " --set-string cert.crt=undefined"
-        + " --set-string cert.key=undefined"
-        + " | kubectl delete --ignore-not-found -f -")
-        .filter(EXCLUDE_TTY_WARNING)
-        .forEach(line -> LOGGER.info(line));
-    k8s.execute("sh", "-l", "-c", "helm delete stackgres-operator --purge || true")
         .filter(EXCLUDE_TTY_WARNING)
         .forEach(line -> LOGGER.info(line));
   }

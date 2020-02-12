@@ -8,7 +8,6 @@ package io.stackgres.operator;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.ServerSocket;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -23,10 +22,6 @@ import org.junit.jupiter.api.BeforeEach;
 
 public abstract class AbstractStackGresOperatorIt extends AbstractIt {
 
-  private static final Optional<Boolean> RESET_K8S = Optional.ofNullable(
-      Optional.ofNullable(System.getenv("RESET_K8S"))
-      .orElse(System.getProperty("it.resetK8s")))
-      .map(Boolean::valueOf);
   private static final int OPERATOR_PORT = getFreePort();
   private static final int OPERATOR_SSL_PORT = getFreePort();
 
@@ -48,9 +43,7 @@ public abstract class AbstractStackGresOperatorIt extends AbstractIt {
   public void setupOperator(@ContainerParam("k8s") Container k8s) throws Exception {
     ItHelper.killUnwantedProcesses(k8s);
     ItHelper.copyResources(k8s);
-    ItHelper.resetKind(k8s, k8sSize, !RESET_K8S.orElse(false));
-    ItHelper.deleteStackGresOperatorHelmChartIfExists(k8s, namespace);
-    ItHelper.deleteNamespaceIfExists(k8s, namespace);
+    ItHelper.resetKind(k8s, k8sSize);
     ItHelper.installStackGresOperatorHelmChart(k8s, namespace, OPERATOR_SSL_PORT, executor);
     OperatorRunner operatorRunner = ItHelper.createOperator(
         k8s, OPERATOR_PORT, OPERATOR_SSL_PORT, executor);
