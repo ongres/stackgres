@@ -3,10 +3,11 @@
 #
 # Build the image with:
 #
-# docker build -f src/test/docker/Dockerfile.it -t stackgres/it:latest .
+# docker build -f src/test/docker/Dockerfile.it -t stackgres/it:1.0 .
 #
 ###
-FROM docker
+FROM docker:19.03
+
 RUN wget -q -O /bin/kubectl https://storage.googleapis.com/kubernetes-release/release/v1.17.0/bin/linux/amd64/kubectl
 RUN chmod a+x /bin/kubectl
 RUN wget -q -O /bin/kind  https://github.com/kubernetes-sigs/kind/releases/download/v0.6.0/kind-$(uname)-amd64
