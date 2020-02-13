@@ -65,7 +65,8 @@ public class BackupCronJob implements StackGresClusterResourceStreamFactory {
     StackGresClusterContext clusterContext = context.getClusterContext();
     String namespace = clusterContext.getCluster().getMetadata().getNamespace();
     String name = clusterContext.getCluster().getMetadata().getName();
-    ImmutableMap<String, String> labels = StackGresUtil.clusterLabels(clusterContext.getCluster());
+    ImmutableMap<String, String> labels = StackGresUtil.backupPodLabels(
+        clusterContext.getCluster());
     return Seq.of(clusterContext.getBackupContext())
         .filter(Optional::isPresent)
         .map(Optional::get)
@@ -170,8 +171,8 @@ public class BackupCronJob implements StackGresClusterResourceStreamFactory {
                           .withValue("true")
                           .build(),
                           new EnvVarBuilder()
-                          .withName("CLUSTER_LABELS")
-                          .withValue(labels
+                          .withName("STATEFULSET_POD_LABELS")
+                          .withValue(StackGresUtil.statefulSetPodLabels(clusterContext.getCluster())
                               .entrySet()
                               .stream()
                               .map(e -> e.getKey() + "=" + e.getValue())
