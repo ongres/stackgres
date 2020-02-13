@@ -32,6 +32,10 @@ public class ClusterStatefulSetVolumeMounts
             .withMountPath(ClusterStatefulSetPath.BACKUP_PATH.path())
             .build())
         .append(Seq.of(ClusterStatefulSetVolumeConfig.values())
+            .filter(volumeConfig -> config.getRestoreContext().isPresent()
+                || (volumeConfig != ClusterStatefulSetVolumeConfig.RESTORE_CONFIG
+                && volumeConfig != ClusterStatefulSetVolumeConfig.RESTORE_SECRET
+                && volumeConfig != ClusterStatefulSetVolumeConfig.RESTORE_ENTRYPOINT))
             .map(ClusterStatefulSetVolumeConfig::volumeMount));
   }
 

@@ -26,9 +26,11 @@ public class ClusterStatefulSetVolumes
         .of(Volume.class)
         .append(context -> (Stream<Volume>) Arrays.asList(ClusterStatefulSetVolumeConfig.values())
             .stream()
-            .filter(config2 -> context.getRestoreContext().isPresent()
-                || config2 != ClusterStatefulSetVolumeConfig.RESTORE_ENTRYPOINT)
-            .map(config2 -> config2.volumeFactory().apply(context)))
+            .filter(volumeConfig -> config.getRestoreContext().isPresent()
+                || (volumeConfig != ClusterStatefulSetVolumeConfig.RESTORE_CONFIG
+                && volumeConfig != ClusterStatefulSetVolumeConfig.RESTORE_SECRET
+                && volumeConfig != ClusterStatefulSetVolumeConfig.RESTORE_ENTRYPOINT))
+            .map(volumeConfig -> volumeConfig.volumeFactory().apply(context)))
         .stream();
   }
 
