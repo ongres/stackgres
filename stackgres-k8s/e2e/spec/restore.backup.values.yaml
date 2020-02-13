@@ -11,16 +11,16 @@ config:
     minio:
       create: false
     s3:
-      prefix: s3://restore-stackgres-backup
+      prefix: s3://restore-backup
       accessKey:
-        name: restore-stackgres-backup-minio
+        name: restore-backup-minio
         key: accesskey
       secretKey:
-        name: restore-stackgres-backup-minio
+        name: restore-backup-minio
         key: secretkey
       region: k8s
       forcePathStyle: true
-      endpoint: http://restore-stackgres-backup-minio.restore-stackgres-backup.svc.cluster.local:9000  
+      endpoint: http://restore-backup-minio.restore-backup.svc.cluster.local:9000  
 cluster:
   volumeSize: 128Mi
 sidecar:
