@@ -39,7 +39,8 @@ public class PostgresUtil implements StackGresClusterSidecarResourceFactory<Void
         .withTty(Boolean.TRUE)
         .withCommand("/bin/sh")
         .withArgs("-c", "while true; do sleep 10; done")
-        .withVolumeMounts(ClusterStatefulSetVolumeConfig.SOCKET.volumeMount())
+        .withVolumeMounts(ClusterStatefulSetVolumeConfig.SOCKET
+            .volumeMountFactory().apply(context.getClusterContext()))
         .build();
   }
 

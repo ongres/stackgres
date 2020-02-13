@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.cluster;
 
+import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
@@ -17,6 +18,10 @@ import io.stackgres.operator.patroni.PatroniConfigMap;
 
 public enum ClusterStatefulSetVolumeConfig {
 
+  DATA("data", ClusterStatefulSetPath.PG_DATA_PATH,
+      ClusterStatefulSet::dataName),
+  BACKUPS("backups", ClusterStatefulSetPath.BACKUPS_PATH,
+      ClusterStatefulSet::backupName),
   SOCKET("socket", ClusterStatefulSetPath.PG_RUN_PATH,
       ClusterStatefulSetVolumeConfig::createEmptyDirVolume),
   PATRONI_CONFIG("patroni-config", ClusterStatefulSetPath.PATRONI_ENV_PATH,
@@ -41,24 +46,41 @@ public enum ClusterStatefulSetVolumeConfig {
 
   private final String name;
   private final ClusterStatefulSetPath path;
-  private final VolumeMount volumeMount;
-  private final Function<StackGresClusterContext, Volume> volumeFactory;
+  private final Function<StackGresClusterContext, VolumeMount> volumeMountFactory;
+  private final Function<StackGresClusterContext, Optional<Volume>> volumeFactory;
   private final Function<StackGresClusterContext, String> getResourceName;
 
   private ClusterStatefulSetVolumeConfig(String name, ClusterStatefulSetPath path,
-      BiFunction<StackGresClusterContext, ClusterStatefulSetVolumeConfig, Volume> volumeFactory) {
-    this(name, path, volumeFactory, context -> {
+      BiFunction<StackGresClusterContext, ClusterStatefulSetVolumeConfig,
+          Optional<Volume>> volumeFactory) {
+    this(name, path, volumeFactory, context -> name, context -> {
       throw new UnsupportedOperationException();
     });
   }
 
   private ClusterStatefulSetVolumeConfig(String name, ClusterStatefulSetPath path,
-      BiFunction<StackGresClusterContext, ClusterStatefulSetVolumeConfig, Volume> volumeFactory,
+      Function<StackGresClusterContext, String> getName) {
+    this(name, path, ClusterStatefulSetVolumeConfig::noVolume, getName, context -> {
+      throw new UnsupportedOperationException();
+    });
+  }
+
+  private ClusterStatefulSetVolumeConfig(String name, ClusterStatefulSetPath path,
+      BiFunction<StackGresClusterContext, ClusterStatefulSetVolumeConfig,
+          Optional<Volume>> volumeFactory,
+      Function<StackGresClusterContext, String> getResourceName) {
+    this(name, path, volumeFactory, context -> name, getResourceName);
+  }
+
+  private ClusterStatefulSetVolumeConfig(String name, ClusterStatefulSetPath path,
+      BiFunction<StackGresClusterContext, ClusterStatefulSetVolumeConfig,
+          Optional<Volume>> volumeFactory,
+      Function<StackGresClusterContext, String> getName,
       Function<StackGresClusterContext, String> getResourceName) {
     this.name = name;
     this.path = path;
-    this.volumeMount = new VolumeMountBuilder()
-        .withName(name)
+    this.volumeMountFactory = context -> new VolumeMountBuilder()
+        .withName(getName.apply(context))
         .withMountPath(path.path())
         .build();
     this.volumeFactory = context -> volumeFactory.apply(context, this);
@@ -73,43 +95,48 @@ public enum ClusterStatefulSetVolumeConfig {
     return path.path();
   }
 
-  public VolumeMount volumeMount() {
-    return volumeMount;
+  public Function<StackGresClusterContext, VolumeMount> volumeMountFactory() {
+    return volumeMountFactory;
   }
 
-  public Function<StackGresClusterContext, Volume> volumeFactory() {
+  public Function<StackGresClusterContext, Optional<Volume>> volumeFactory() {
     return volumeFactory;
   }
 
-  private static Volume createEmptyDirVolume(StackGresClusterContext context,
+  private static Optional<Volume> createEmptyDirVolume(StackGresClusterContext context,
       ClusterStatefulSetVolumeConfig config) {
-    return new VolumeBuilder()
+    return Optional.of(new VolumeBuilder()
         .withName(config.volumeName())
         .withNewEmptyDir()
         .withMedium("Memory")
         .endEmptyDir()
-        .build();
+        .build());
   }
 
-  private static Volume createConfigMapVolume(StackGresClusterContext context,
+  private static Optional<Volume> createConfigMapVolume(StackGresClusterContext context,
       ClusterStatefulSetVolumeConfig config) {
-    return new VolumeBuilder()
+    return Optional.of(new VolumeBuilder()
         .withName(config.volumeName())
         .withNewConfigMap()
         .withName(config.getResourceName.apply(context))
         .withDefaultMode(444)
         .endConfigMap()
-        .build();
+        .build());
   }
 
-  private static Volume createSecretVolume(StackGresClusterContext context,
+  private static Optional<Volume> createSecretVolume(StackGresClusterContext context,
       ClusterStatefulSetVolumeConfig config) {
-    return new VolumeBuilder()
+    return Optional.of(new VolumeBuilder()
         .withName(config.volumeName())
         .withNewSecret()
         .withSecretName(config.getResourceName.apply(context))
         .withDefaultMode(444)
         .endSecret()
-        .build();
+        .build());
+  }
+
+  private static Optional<Volume> noVolume(StackGresClusterContext context,
+      ClusterStatefulSetVolumeConfig config) {
+    return Optional.empty();
   }
 }

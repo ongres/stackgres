@@ -6,32 +6,29 @@
 package io.stackgres.operator.cluster;
 
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import javax.enterprise.context.ApplicationScoped;
 
 import io.fabric8.kubernetes.api.model.Volume;
 import io.stackgres.operator.common.StackGresClusterContext;
-import io.stackgres.operatorframework.resource.ResourceGenerator;
-import io.stackgres.operatorframework.resource.factory.SubResourceStreamFactory;
+import io.stackgres.operatorframework.resource.factory.OptionalSubResourceStreamFactory;
 
 @ApplicationScoped
 public class ClusterStatefulSetVolumes
-    implements SubResourceStreamFactory<Volume, StackGresClusterContext> {
+    implements OptionalSubResourceStreamFactory<Volume, StackGresClusterContext> {
 
   @Override
-  public Stream<Volume> streamResources(StackGresClusterContext config) {
-    return ResourceGenerator
-        .with(config)
-        .of(Volume.class)
-        .append(context -> (Stream<Volume>) Arrays.asList(ClusterStatefulSetVolumeConfig.values())
-            .stream()
-            .filter(volumeConfig -> config.getRestoreContext().isPresent()
-                || (volumeConfig != ClusterStatefulSetVolumeConfig.RESTORE_CONFIG
-                && volumeConfig != ClusterStatefulSetVolumeConfig.RESTORE_SECRET
-                && volumeConfig != ClusterStatefulSetVolumeConfig.RESTORE_ENTRYPOINT))
-            .map(volumeConfig -> volumeConfig.volumeFactory().apply(context)))
-        .stream();
+  public Stream<Optional<Volume>> streamOptionalResources(StackGresClusterContext config) {
+    return Arrays.asList(ClusterStatefulSetVolumeConfig.values())
+        .stream()
+        .filter(volumeConfig -> config.getRestoreContext().isPresent()
+            || (volumeConfig != ClusterStatefulSetVolumeConfig.RESTORE_CONFIG
+            && volumeConfig != ClusterStatefulSetVolumeConfig.RESTORE_SECRET
+            && volumeConfig != ClusterStatefulSetVolumeConfig.RESTORE_ENTRYPOINT))
+        .map(ClusterStatefulSetVolumeConfig::volumeFactory)
+        .map(volumeConfigFactory -> volumeConfigFactory.apply(config));
   }
 
 }

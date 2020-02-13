@@ -89,7 +89,8 @@ public class ClusterStatefulSetInitContainers
                 StandardCharsets.UTF_8)
             .read()).get())
         .withEnv(clusterStatefulSetEnvironmentVariables.listResources(config))
-        .withVolumeMounts(ClusterStatefulSetVolumeConfig.LOCAL_BIN.volumeMount())
+        .withVolumeMounts(ClusterStatefulSetVolumeConfig.LOCAL_BIN
+            .volumeMountFactory().apply(config))
         .build();
   }
 
@@ -119,7 +120,8 @@ public class ClusterStatefulSetInitContainers
                 .withValue(restoreContext.getBackup().getStatus().getName())
                 .build())
             .build())
-        .withVolumeMounts(ClusterStatefulSetVolumeConfig.RESTORE_ENTRYPOINT.volumeMount())
+        .withVolumeMounts(ClusterStatefulSetVolumeConfig.RESTORE_ENTRYPOINT
+            .volumeMountFactory().apply(config))
         .build();
   }
 
