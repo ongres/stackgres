@@ -91,15 +91,14 @@ A YAML with installation values to use to install the cluster can be created usi
 
 ## Environments
 
-### Kind
-
-Currently the supported kubernetes cluster are:
+The default kubernetes cluster is kind but there are some more available:
 
 * [kind](https://kind.sigs.k8s.io/)
 * [k3d](https://github.com/rancher/k3d)
 * [minikube](https://github.com/kubernetes/minikube)
 * [gke](https://cloud.google.com/kubernetes-engine)
 * [eks](https://aws.amazon.com/eks/)
+* [aks](https://docs.microsoft.com/en-us/azure/aks/)
 
 Docker is required in order to use the kind and k3d environments.
 
