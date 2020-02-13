@@ -37,6 +37,7 @@ import com.ongres.junit.docker.Container;
 
 import org.apache.commons.io.IOUtils;
 import org.jooq.lambda.Unchecked;
+import org.jooq.lambda.tuple.Tuple;
 import org.junit.jupiter.api.Assertions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,7 +62,13 @@ public class ItHelper {
   public static final String E2E_ENVVARS = System.getenv().entrySet().stream()
       .filter(e -> e.getKey().startsWith("E2E_") || e.getKey().startsWith("K8S_")
           || ImmutableList.of("IMAGE_TAG", "IMAGE_NAME").contains(e.getKey()))
-      .map(e -> "export " + e.getKey() + "=\"" + e.getValue() + "\"")
+      .map(e -> {
+        if ("K8S_REUSE".equals(e.getKey()) && e.getValue() == null) {
+          return Tuple.tuple(e.getKey(), "true");
+        }
+        return Tuple.tuple(e.getKey(), e.getValue());
+      })
+      .map(t -> "export " + t.v1 + "=\"" + t.v2 + "\"")
       .collect(Collectors.joining("\n"));
 
   public static final Optional<Boolean> E2E_DEBUG = Optional.ofNullable(
@@ -323,7 +330,7 @@ public class ItHelper {
    */
   public static void deleteStackGresCluster(Container k8s, String namespace, String name) throws Exception {
     LOGGER.info("Delete stackgres-cluster helm chart for cluster with name " + name);
-    k8s.execute("sh", "-l", "-c", "helm delete " + name)
+    k8s.execute("sh", "-l", "-c", "helm delete " + name + " --purge")
       .filter(EXCLUDE_TTY_WARNING)
       .forEach(line -> LOGGER.info(line));
   }
@@ -411,4 +418,5 @@ public class ItHelper {
 
   private ItHelper() {
   }
+
 }
