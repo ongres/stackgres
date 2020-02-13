@@ -13,7 +13,6 @@ import javax.inject.Inject;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.operator.backup.Backup;
 import io.stackgres.operator.common.StackGresGeneratorContext;
-import io.stackgres.operator.patroni.PatroniConfigMap;
 import io.stackgres.operatorframework.resource.ResourceGenerator;
 import io.stackgres.operatorframework.resource.factory.SubResourceStreamFactory;
 
@@ -23,25 +22,25 @@ public class Cluster
         StackGresGeneratorContext> {
 
   private final ClusterStatefulSet clusterStatefulSet;
-  private final BackupConfigMap backupConfigMap;
-  private final RestoreConfigMap restoreConfigMap;
-  private final BackupSecret backupSecret;
-  private final RestoreSecret restoreSecret;
   private final BackupCronJob backupCronJob;
+  private final BackupConfigMap backupConfigMap;
+  private final BackupSecret backupSecret;
+  private final RestoreConfigMap restoreConfigMap;
+  private final RestoreSecret restoreSecret;
   private final Backup backup;
 
   @Inject
-  public Cluster(ClusterStatefulSet clusterStatefulSet, PatroniConfigMap patroniConfigMap,
+  public Cluster(ClusterStatefulSet clusterStatefulSet,
       BackupConfigMap backupConfigMap, RestoreConfigMap restoreConfigMap,
       BackupSecret backupSecret, RestoreSecret restoreSecret,
       BackupCronJob backupCronJob, Backup backup) {
     super();
     this.clusterStatefulSet = clusterStatefulSet;
-    this.backupConfigMap = backupConfigMap;
-    this.restoreConfigMap = restoreConfigMap;
-    this.backupSecret = backupSecret;
-    this.restoreSecret = restoreSecret;
     this.backupCronJob = backupCronJob;
+    this.backupConfigMap = backupConfigMap;
+    this.backupSecret = backupSecret;
+    this.restoreConfigMap = restoreConfigMap;
+    this.restoreSecret = restoreSecret;
     this.backup = backup;
   }
 
@@ -51,12 +50,12 @@ public class Cluster
         .with(context)
         .of(HasMetadata.class)
         .append(clusterStatefulSet)
+        .append(backupCronJob)
         .append(backupConfigMap)
         .append(backupSecret)
-        .append(backupCronJob)
-        .append(backup)
         .append(restoreConfigMap)
         .append(restoreSecret)
+        .append(backup)
         .stream();
   }
 

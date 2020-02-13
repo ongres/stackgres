@@ -28,7 +28,7 @@ public enum ClusterStatefulSetPath {
   private final String path;
   private final EnvVar envVar;
 
-  private ClusterStatefulSetPath(String path) {
+  ClusterStatefulSetPath(String path) {
     this.path = path;
     this.envVar = new EnvVarBuilder()
         .withName(name())
@@ -36,7 +36,7 @@ public enum ClusterStatefulSetPath {
         .build();
   }
 
-  private ClusterStatefulSetPath(ClusterStatefulSetPath parent, String...paths) {
+  ClusterStatefulSetPath(ClusterStatefulSetPath parent, String...paths) {
     this(parent.path + Arrays.asList(paths).stream().collect(Collectors.joining("/")));
   }
 

@@ -48,7 +48,7 @@ public enum ClusterStatefulSetVolumeConfig {
   private final Function<StackGresClusterContext, Optional<Volume>> volumeFactory;
   private final Function<StackGresClusterContext, String> getResourceName;
 
-  private ClusterStatefulSetVolumeConfig(String name, ClusterStatefulSetPath path,
+  ClusterStatefulSetVolumeConfig(String name, ClusterStatefulSetPath path,
       BiFunction<StackGresClusterContext, ClusterStatefulSetVolumeConfig,
           Optional<Volume>> volumeFactory) {
     this(name, path, volumeFactory, context -> name, context -> {
@@ -56,21 +56,21 @@ public enum ClusterStatefulSetVolumeConfig {
     });
   }
 
-  private ClusterStatefulSetVolumeConfig(String name, ClusterStatefulSetPath path,
+  ClusterStatefulSetVolumeConfig(String name, ClusterStatefulSetPath path,
       Function<StackGresClusterContext, String> getName) {
     this(name, path, ClusterStatefulSetVolumeConfig::noVolume, getName, context -> {
       throw new UnsupportedOperationException();
     });
   }
 
-  private ClusterStatefulSetVolumeConfig(String name, ClusterStatefulSetPath path,
+  ClusterStatefulSetVolumeConfig(String name, ClusterStatefulSetPath path,
       BiFunction<StackGresClusterContext, ClusterStatefulSetVolumeConfig,
           Optional<Volume>> volumeFactory,
       Function<StackGresClusterContext, String> getResourceName) {
     this(name, path, volumeFactory, context -> name, getResourceName);
   }
 
-  private ClusterStatefulSetVolumeConfig(String name, ClusterStatefulSetPath path,
+  ClusterStatefulSetVolumeConfig(String name, ClusterStatefulSetPath path,
       BiFunction<StackGresClusterContext, ClusterStatefulSetVolumeConfig,
           Optional<Volume>> volumeFactory,
       Function<StackGresClusterContext, String> getName,

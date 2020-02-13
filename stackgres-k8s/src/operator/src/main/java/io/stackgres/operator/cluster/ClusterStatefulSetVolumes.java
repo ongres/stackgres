@@ -24,7 +24,7 @@ public class ClusterStatefulSetVolumes
     return Arrays.asList(ClusterStatefulSetVolumeConfig.values())
         .stream()
         .filter(volumeConfig -> config.getRestoreContext().isPresent()
-            || (volumeConfig != ClusterStatefulSetVolumeConfig.RESTORE_CONFIG
+            || (volumeConfig != ClusterStatefulSetVolumeConfig.RESTORE_CONFIG // NOPMD
             && volumeConfig != ClusterStatefulSetVolumeConfig.RESTORE_SECRET
             && volumeConfig != ClusterStatefulSetVolumeConfig.RESTORE_ENTRYPOINT))
         .map(ClusterStatefulSetVolumeConfig::volumeFactory)
