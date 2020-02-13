@@ -23,7 +23,6 @@ import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
-import io.stackgres.operator.cluster.ClusterStatefulSet.ClusterStatefulSetPaths;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresRestoreContext;
 import io.stackgres.operator.patroni.PatroniConfigMap;
@@ -63,8 +62,8 @@ public class ClusterStatefulSetInitContainers
         .withName("set-data-permissions")
         .withImage("busybox")
         .withCommand("/bin/sh", "-ecx", Stream.of(
-            "chmod -R 700 " + ClusterStatefulSetPaths.PG_BASE_PATH.path(),
-            "chown -R 999:999 " + ClusterStatefulSetPaths.PG_BASE_PATH.path())
+            "chmod -R 700 " + ClusterStatefulSetPath.PG_BASE_PATH.path(),
+            "chown -R 999:999 " + ClusterStatefulSetPath.PG_BASE_PATH.path())
             .collect(Collectors.joining(" && ")))
         .withVolumeMounts(getSetDataPermissionVolumeMounts(config))
         .build();
@@ -74,7 +73,7 @@ public class ClusterStatefulSetInitContainers
     return Stream.of(
         Stream.of(new VolumeMountBuilder()
             .withName(ClusterStatefulSet.dataName(config))
-            .withMountPath(ClusterStatefulSetPaths.PG_BASE_PATH.path())
+            .withMountPath(ClusterStatefulSetPath.PG_BASE_PATH.path())
             .build()))
         .flatMap(s -> s)
         .toArray(VolumeMount[]::new);
@@ -90,18 +89,8 @@ public class ClusterStatefulSetInitContainers
                 StandardCharsets.UTF_8)
             .read()).get())
         .withEnv(clusterStatefulSetEnvironmentVariables.listResources(config))
-        .withVolumeMounts(getExecWithEnvVolumeMounts())
+        .withVolumeMounts(ClusterStatefulSetVolumeConfig.LOCAL_BIN.volumeMount())
         .build();
-  }
-
-  private VolumeMount[] getExecWithEnvVolumeMounts() {
-    return Stream.of(
-        Stream.of(new VolumeMountBuilder()
-            .withName(ClusterStatefulSet.LOCAL_BIN_VOLUME_NAME)
-            .withMountPath(ClusterStatefulSetPaths.LOCAL_BIN_PATH.path())
-            .build()))
-        .flatMap(s -> s)
-        .toArray(VolumeMount[]::new);
   }
 
   private Container createRestoreEntrypointContainer(StackGresClusterContext config,
@@ -130,11 +119,7 @@ public class ClusterStatefulSetInitContainers
                 .withValue(restoreContext.getBackup().getStatus().getName())
                 .build())
             .build())
-        .withVolumeMounts(
-            new VolumeMountBuilder()
-                .withName(ClusterStatefulSet.RESTORE_ENTRYPOINT_VOLUME_NAME)
-                .withMountPath(ClusterStatefulSetPaths.RESTORE_ENTRYPOINT_PATH.path())
-                .build())
+        .withVolumeMounts(ClusterStatefulSetVolumeConfig.RESTORE_ENTRYPOINT.volumeMount())
         .build();
   }
 

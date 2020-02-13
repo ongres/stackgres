@@ -5,11 +5,9 @@
 
 package io.stackgres.operator.cluster;
 
-import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -51,50 +49,9 @@ public class ClusterStatefulSet implements StackGresClusterResourceStreamFactory
   public static final String DATA_SUFFIX = "-data";
   public static final String BACKUP_SUFFIX = "-backup";
 
-  public static final String SOCKET_VOLUME_NAME = "socket";
-  public static final String GCS_CREDENTIALS_VOLUME_NAME = "gcs-credentials";
-  public static final String GCS_RESTORE_CREDENTIALS_VOLUME_NAME = "gcs-restore-credentials";
-  public static final String PATRONI_CONFIG_VOLUME_NAME = "patroni-config";
-  public static final String BACKUP_CONFIG_VOLUME_NAME = "backup-config";
-  public static final String BACKUP_SECRET_VOLUME_NAME = "backup-secret";
-  public static final String RESTORE_CONFIG_VOLUME_NAME = "restore-config";
-  public static final String RESTORE_SECRET_VOLUME_NAME = "restore-secret";
-  public static final String RESTORE_ENTRYPOINT_VOLUME_NAME = "restore-entrypoint";
-  public static final String LOCAL_BIN_VOLUME_NAME = "local-bin";
-
   public static final String PATRONI_ENV = "patroni";
   public static final String BACKUP_ENV = "backup";
   public static final String RESTORE_ENV = "restore";
-
-  public enum ClusterStatefulSetPaths {
-    LOCAL_BIN_PATH("/usr/local/bin"),
-    PG_BASE_PATH("/var/lib/postgresql"),
-    PG_RUN_PATH("/var/run/postgresql"),
-    PG_DATA_PATH(PG_BASE_PATH, "data"),
-    BASE_ENV_PATH("/etc/env"),
-    BASE_SECRET_PATH(BASE_ENV_PATH, ".secret"),
-    PATRONI_ENV_PATH(BASE_ENV_PATH, PATRONI_ENV),
-    BACKUP_PATH(PG_BASE_PATH, "backups"),
-    BACKUP_ENV_PATH(BASE_ENV_PATH, BACKUP_ENV),
-    BACKUP_SECRET_PATH(BASE_SECRET_PATH, BACKUP_ENV),
-    RESTORE_ENTRYPOINT_PATH("/etc/patroni/restore"),
-    RESTORE_ENV_PATH(BASE_ENV_PATH, RESTORE_ENV),
-    RESTORE_SECRET_PATH(BASE_SECRET_PATH, RESTORE_ENV);
-
-    private final String path;
-
-    private ClusterStatefulSetPaths(String path) {
-      this.path = path;
-    }
-
-    private ClusterStatefulSetPaths(ClusterStatefulSetPaths parent, String...paths) {
-      this.path = parent.path + Arrays.asList(paths).stream().collect(Collectors.joining("/"));
-    }
-
-    public String path() {
-      return path;
-    }
-  }
 
   public static final String GCS_CREDENTIALS_FILE_NAME = "gcs-credentials.json";
 

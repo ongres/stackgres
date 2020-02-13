@@ -19,7 +19,7 @@ import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.operator.app.ObjectMapperProvider;
-import io.stackgres.operator.cluster.ClusterStatefulSet.ClusterStatefulSetPaths;
+import io.stackgres.operator.cluster.ClusterStatefulSetPath;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresClusterResourceStreamFactory;
 import io.stackgres.operator.common.StackGresComponents;
@@ -76,9 +76,9 @@ public class PatroniConfigMap implements StackGresClusterResourceStreamFactory {
         "${PATRONI_KUBERNETES_POD_IP}:" + Envoy.PG_RAW_ENTRY_PORT);
 
     data.put("PATRONI_RESTAPI_LISTEN", "0.0.0.0:8008");
-    data.put("PATRONI_POSTGRESQL_DATA_DIR", ClusterStatefulSetPaths.PG_DATA_PATH.path());
+    data.put("PATRONI_POSTGRESQL_DATA_DIR", ClusterStatefulSetPath.PG_DATA_PATH.path());
     data.put("PATRONI_POSTGRESQL_BIN_DIR", "/usr/lib/postgresql/" + pgVersion + "/bin");
-    data.put("PATRONI_POSTGRES_UNIX_SOCKET_DIRECTORY", ClusterStatefulSetPaths.PG_RUN_PATH.path());
+    data.put("PATRONI_POSTGRES_UNIX_SOCKET_DIRECTORY", ClusterStatefulSetPath.PG_RUN_PATH.path());
 
     if (PATRONI_LOGGER.isTraceEnabled()) {
       data.put("PATRONI_LOG_LEVEL", "DEBUG");

@@ -27,9 +27,7 @@ import io.fabric8.kubernetes.api.model.SecretKeySelectorBuilder;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.ServicePortBuilder;
 import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
-import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
-import io.stackgres.operator.cluster.ClusterStatefulSet;
-import io.stackgres.operator.cluster.ClusterStatefulSet.ClusterStatefulSetPaths;
+import io.stackgres.operator.cluster.ClusterStatefulSetVolumeConfig;
 import io.stackgres.operator.common.Prometheus;
 import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.common.StackGresClusterContext;
@@ -96,10 +94,7 @@ public class PostgresExporter implements StackGresClusterSidecarResourceFactory<
         .withPorts(new ContainerPortBuilder()
             .withContainerPort(9187)
             .build())
-        .withVolumeMounts(new VolumeMountBuilder()
-            .withName(ClusterStatefulSet.SOCKET_VOLUME_NAME)
-            .withMountPath(ClusterStatefulSetPaths.PG_RUN_PATH.path())
-            .build());
+        .withVolumeMounts(ClusterStatefulSetVolumeConfig.SOCKET.volumeMount());
 
     return container.build();
   }

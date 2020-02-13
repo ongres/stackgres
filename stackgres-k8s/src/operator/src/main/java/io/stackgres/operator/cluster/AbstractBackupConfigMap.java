@@ -10,7 +10,6 @@ import java.util.function.Function;
 
 import com.google.common.collect.ImmutableMap;
 
-import io.stackgres.operator.cluster.ClusterStatefulSet.ClusterStatefulSetPaths;
 import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfigSpec;
 import io.stackgres.operator.customresource.storages.AwsS3Storage;
@@ -32,11 +31,11 @@ public abstract class AbstractBackupConfigMap {
       StackGresBackupConfigSpec backupConfigSpec) {
     ImmutableMap.Builder<String, String> backupEnvVars = ImmutableMap.builder();
 
-    backupEnvVars.put("PGDATA", ClusterStatefulSetPaths.PG_DATA_PATH.path());
+    backupEnvVars.put("PGDATA", ClusterStatefulSetPath.PG_DATA_PATH.path());
     backupEnvVars.put("PGPORT", String.valueOf(Envoy.PG_RAW_PORT));
     backupEnvVars.put("PGUSER", "postgres");
     backupEnvVars.put("PGDATABASE", "postgres");
-    backupEnvVars.put("PGHOST", ClusterStatefulSetPaths.PG_RUN_PATH.path());
+    backupEnvVars.put("PGHOST", ClusterStatefulSetPath.PG_RUN_PATH.path());
 
     backupEnvVars.put("WALG_COMPRESSION_METHOD", getFromConfigSpec(
         backupConfigSpec, StackGresBackupConfigSpec::getCompressionMethod));
@@ -119,7 +118,7 @@ public abstract class AbstractBackupConfigMap {
   }
 
   protected String getGcsCredentialsFilePath() {
-    return ClusterStatefulSetPaths.BACKUP_SECRET_PATH.path()
+    return ClusterStatefulSetPath.BACKUP_SECRET_PATH.path()
         + "/" + ClusterStatefulSet.GCS_CREDENTIALS_FILE_NAME;
   }
 

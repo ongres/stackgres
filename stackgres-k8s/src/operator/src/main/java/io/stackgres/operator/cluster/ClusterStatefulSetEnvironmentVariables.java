@@ -10,8 +10,6 @@ import java.util.stream.Stream;
 import javax.enterprise.context.ApplicationScoped;
 
 import io.fabric8.kubernetes.api.model.EnvVar;
-import io.fabric8.kubernetes.api.model.EnvVarBuilder;
-import io.stackgres.operator.cluster.ClusterStatefulSet.ClusterStatefulSetPaths;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operatorframework.resource.factory.SubResourceStreamFactory;
 
@@ -22,10 +20,8 @@ public class ClusterStatefulSetEnvironmentVariables
     implements SubResourceStreamFactory<EnvVar, StackGresClusterContext> {
 
   public Stream<EnvVar> streamResources(StackGresClusterContext context) {
-    return Seq.of(ClusterStatefulSetPaths.values())
-        .map(path -> new EnvVarBuilder().withName(path.name())
-            .withValue(path.path())
-            .build());
+    return Seq.of(ClusterStatefulSetPath.values())
+        .map(ClusterStatefulSetPath::envVar);
   }
 
 }

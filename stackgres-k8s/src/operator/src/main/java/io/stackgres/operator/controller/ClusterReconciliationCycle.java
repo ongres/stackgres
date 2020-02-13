@@ -179,7 +179,7 @@ public class ClusterReconciliationCycle
         .addAllExistingResources(existingResourcesOnly)
         .build())
         .of(HasMetadata.class)
-        .add(cluster)
+        .append(cluster)
         .stream()
         .collect(ImmutableList.toImmutableList());
   }

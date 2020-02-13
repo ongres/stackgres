@@ -5,17 +5,11 @@
 
 package io.stackgres.operator.sidecars.pgutils;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import javax.inject.Singleton;
 
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
-import io.fabric8.kubernetes.api.model.VolumeMount;
-import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
-import io.stackgres.operator.cluster.ClusterStatefulSet;
-import io.stackgres.operator.cluster.ClusterStatefulSet.ClusterStatefulSetPaths;
+import io.stackgres.operator.cluster.ClusterStatefulSetVolumeConfig;
 import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.common.StackGresClusterSidecarResourceFactory;
 import io.stackgres.operator.common.StackGresComponents;
@@ -37,23 +31,16 @@ public class PostgresUtil implements StackGresClusterSidecarResourceFactory<Void
     String pgVersion = StackGresComponents.calculatePostgresVersion(
         context.getClusterContext().getCluster().getSpec().getPostgresVersion());
 
-    List<VolumeMount> volumeMounts = new ArrayList<>();
-    volumeMounts.add(new VolumeMountBuilder()
-        .withName(ClusterStatefulSet.SOCKET_VOLUME_NAME)
-        .withMountPath(ClusterStatefulSetPaths.PG_RUN_PATH.path())
-        .build());
-
-    ContainerBuilder container = new ContainerBuilder();
-    container.withName(NAME)
+    return new ContainerBuilder()
+        .withName(NAME)
         .withImage(String.format(IMAGE_NAME, pgVersion, StackGresUtil.CONTAINER_BUILD))
         .withImagePullPolicy("Always")
         .withStdin(Boolean.TRUE)
         .withTty(Boolean.TRUE)
         .withCommand("/bin/sh")
         .withArgs("-c", "while true; do sleep 10; done")
-        .withVolumeMounts(volumeMounts);
-
-    return container.build();
+        .withVolumeMounts(ClusterStatefulSetVolumeConfig.SOCKET.volumeMount())
+        .build();
   }
 
 }

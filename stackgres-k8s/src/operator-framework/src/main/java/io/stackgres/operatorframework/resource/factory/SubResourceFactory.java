@@ -5,11 +5,21 @@
 
 package io.stackgres.operatorframework.resource.factory;
 
+import java.util.stream.Stream;
+
 import io.fabric8.kubernetes.api.model.KubernetesResource;
 
+import org.jooq.lambda.Seq;
+
 @FunctionalInterface
-public interface SubResourceFactory<T extends KubernetesResource, C> {
+public interface SubResourceFactory<T extends KubernetesResource, C>
+    extends SubResourceStreamFactory<T, C> {
 
   T createResource(C context);
+
+  @Override
+  default Stream<T> streamResources(C context) {
+    return Seq.of(createResource(context));
+  }
 
 }
