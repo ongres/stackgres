@@ -1,0 +1,49 @@
+#!/bin/sh
+
+e2e_test_install() {
+
+  kubectl create namespace "$CLUSTER_NAMESPACE"
+  deploy_curl_pod "$CLUSTER_NAMESPACE"
+
+  wait_pods_running "$CLUSTER_NAMESPACE" 1
+
+}
+
+e2e_test() {
+  run_test "Sidecar endpoint should be available" check_storage_classes_status
+  run_test "Sidecar endpoint should return all kubernetes storage classes" check_storage_classes
+}
+
+check_storage_classes(){
+  STORAGE_CLASSES_IN_RESPONSE=$(run_curl -r "stackgres/storageclass" -n $CLUSTER_NAMESPACE | run_jq 'length')
+
+  STORAGE_CLASSES_IN_K8S=$(kubectl get storageclasses -o json | run_jq '.items | length')
+
+  if [ "$STORAGE_CLASSES_IN_RESPONSE" = "$STORAGE_CLASSES_IN_K8S" ]
+  then
+    echo "Success. endpoint returned all storage clases"
+  else
+    echo "Fail. Endpoint did retorn all storage clases. Expected $STORAGE_CLASSES_IN_K8S, actual $STORAGE_CLASSES_IN_K8S"
+  fi  
+}
+
+
+get_storage_classes_status() {
+  local HTTP_STATUS
+  HTTP_STATUS=$(run_curl -r "stackgres/storageclass" -n $CLUSTER_NAMESPACE -e "-LI -o /dev/null -w %{http_code}")
+  echo $HTTP_STATUS
+}
+
+check_storage_classes_status() {
+  local HTTP_STATUS=$(get_storage_classes_status)
+
+  if [ "$HTTP_STATUS" = "200" ] || [ "$HTTP_STATUS" = "202" ] || [ "$HTTP_STATUS" = "204" ]
+  then
+    echo "Success. Storage classes endpoint is available"
+  else
+    echo "Fail. Storage classes endpoint is not available"
+    return 1
+  fi
+}
+
+

@@ -10,6 +10,7 @@ import java.util.Optional;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import io.stackgres.operator.common.StackGresComponents;
 import io.stackgres.operator.common.StackgresClusterReview;
 import io.stackgres.operator.customresource.sgbackup.StackGresBackup;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
@@ -55,6 +56,24 @@ public class RestoreConfigValidator implements ClusterValidator {
           throw new ValidationFailed("Backup uid " + stackgresBackup + " not found");
         }
 
+        StackGresBackup backup = config.get();
+
+        if (backup.getStatus() == null || !backup.getStatus().getPhase().equals("Completed")) {
+          throw new ValidationFailed("Cannot restore from backup " + stackgresBackup
+              + " because it's not ready");
+        }
+
+        String backupMajorVersion = RestoreConfigValidator.getMajorVersion(backup);
+
+        String givenPgVersion = review.getRequest().getObject().getSpec().getPostgresVersion();
+        String calculatedPgVersion = StackGresComponents.calculatePostgresVersion(givenPgVersion);
+        String givenMajorVersion = StackGresComponents.getPostgresMajorVersion(calculatedPgVersion);
+
+        if (!backupMajorVersion.equals(givenMajorVersion)) {
+          throw new ValidationFailed("Cannot restore from backup " + stackgresBackup
+              + " because it comes from an incompatible postgres version");
+        }
+
         break;
       case UPDATE:
         StackGresClusterRestore oldRestoreConfig = review.getRequest()
@@ -71,6 +90,10 @@ public class RestoreConfigValidator implements ClusterValidator {
         break;
       default:
     }
+  }
+
+  private static String getMajorVersion(StackGresBackup backup) {
+    return backup.getStatus().getPgVersion().substring(0, 2);
   }
 
   private void checkRestoreConfig(StackgresClusterReview review,

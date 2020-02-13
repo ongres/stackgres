@@ -5,6 +5,10 @@
 
 package io.stackgres.operator.common;
 
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.security.MessageDigest;
 import java.util.Locale;
 import java.util.Map;
@@ -211,6 +215,26 @@ public enum StackGresUtil {
         .put("MD5SUM", DatatypeConverter.printHexBinary(
             messageDigest.digest()).toUpperCase(Locale.US))
         .build();
+  }
+
+  public static String getHostFromUrl(String url) throws URISyntaxException {
+    URI uri = new URI(url);
+    String domain = uri.getHost();
+    return domain.startsWith("www.") ? domain.substring(4) : domain;
+  }
+
+  public static int getPortFromUrl(String url) throws MalformedURLException {
+    URL parsedUrl = new URL(url);
+    int port = parsedUrl.getPort();
+    if (port == -1) {
+      if (parsedUrl.getProtocol().equals("https")) {
+        return 443;
+      } else {
+        return 80;
+      }
+    } else {
+      return port;
+    }
   }
 
 }

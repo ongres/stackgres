@@ -14,6 +14,7 @@ K8S_GKE_MACHINE_TYPE="${K8S_GKE_MACHINE_TYPE:-n1-standard-1}"
 K8S_GKE_DISK_SIZE="${K8S_GKE_DISK_SIZE:-20}"
 K8S_GKE_PROJECT="${K8S_GKE_PROJECT:-default}"
 K8S_GKE_OPTS="$K8S_GKE_OPTS"
+K8S_GKE_SERVICEACCOUNT="${K8S_GKE_SERVICEACCOUNT:-stackgres-e2e}"
 export K8S_GKE_NAME K8S_VERSION K8S_GKE_VERSION K8S_GKE_REGION K8S_GKE_NODE_LOCATIONS K8S_GKE_MACHINE_TYPE K8S_GKE_DISK_SIZE K8S_GKE_PROJECT K8S_GKE_OPTS
 
 reuse_k8s() {
@@ -43,6 +44,19 @@ reset_k8s() {
     --cluster-version "$K8S_VERSION-$K8S_GKE_VERSION" \
     --no-enable-autoupgrade \
     $K8S_GKE_OPTS
+
+  if [ ! -f "$TARGET_PATH/gke-service-account.json" ]
+  then
+    gcloud --project "$GKE_PROJECT" iam service-accounts create "$GKE_SERVICEACCOUNT" || true
+
+    ACCOUNT_EMAIL=$GKE_SERVICEACCOUNT@$GKE_PROJECT.iam.gserviceaccount.com
+    ACCOUNT_MEMBER="serviceAccount:$ACCOUNT_EMAIL"
+
+    gcloud projects add-iam-policy-binding "$GKE_PROJECT" --member="$ACCOUNT_MEMBER" --role=roles/storage.admin || true
+
+    gcloud iam service-accounts keys create "$TARGET_PATH/gke-service-account.json" --iam-account "$ACCOUNT_EMAIL"
+    
+  fi
 
   echo "...done"
 }

@@ -44,6 +44,20 @@ EOF
 
 cat << EOF > "$RESTORE_ENTRYPOINT_PATH/bootstrap"
 #!/bin/sh
+
+set -e
+
+if [ -n "$RESTORE_ENDPOINT_HOSTNAME" ] && [ -n "$RESTORE_ENDPOINT_PORT" ]
+then
+  if nc -z "$RESTORE_ENDPOINT_HOSTNAME" "$RESTORE_ENDPOINT_PORT"
+  then
+    echo "Host $RESTORE_ENDPOINT_HOSTNAME:$RESTORE_ENDPOINT_PORT reachable"
+  else
+    echo "ERROR: Host $RESTORE_ENDPOINT_HOSTNAME:$RESTORE_ENDPOINT_PORT not reachable"
+    exit 1
+  fi
+fi
+
 exec-with-env "$RESTORE_ENV" \\
   -- wal-g backup-fetch "$PG_DATA_PATH" "$RESTORE_BACKUP_ID"
 EOF

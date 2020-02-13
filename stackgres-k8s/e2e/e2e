@@ -122,12 +122,16 @@ setup_k8s() {
       && [ "$E2E_USE_EXTERNAL_OPERATOR" != true ])\
     || [ "$E2E_REUSE_OPERATOR" != true ]
   then
-    if [ "$E2E_FORCE_IMAGE_PULL" = "true" ] \
-      || docker image inspect $IMAGE_NAME >/dev/null 2>&1
+    if [ "$E2E_FORCE_IMAGE_PULL" = "true" ]
     then
       docker pull $IMAGE_NAME
     fi
-    load_operator_k8s
+
+    if docker image inspect "$IMAGE_NAME" >/dev/null 2>&1
+    then 
+      load_operator_k8s
+    fi
+
     helm_cleanup
     k8s_cleanup
 

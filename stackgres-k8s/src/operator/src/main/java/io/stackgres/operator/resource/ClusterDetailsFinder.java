@@ -57,8 +57,7 @@ public class ClusterDetailsFinder implements KubernetesCustomResourceFinder<Clus
             .filter(pod -> pod.getContainers().equals(pod.getContainersReady()))
             .count()));
 
-        boolean isGrafanaEmbedded = isGrafanaEmbeddedEnabled()
-            && isPostgresExporterEnabled(cluster);
+        boolean isGrafanaEmbedded = isGrafanaEmbeddedEnabled();
         details.setGrafanaEmbedded(isGrafanaEmbedded);
         return details;
       }
@@ -71,10 +70,6 @@ public class ClusterDetailsFinder implements KubernetesCustomResourceFinder<Clus
     return context.getProperty(ConfigProperty.GRAFANA_EMBEDDED)
         .map(Boolean::parseBoolean)
         .orElse(false);
-  }
-
-  private boolean isPostgresExporterEnabled(StackGresCluster cluster) {
-    return cluster.getSpec().getSidecars().contains("prometheus-postgres-exporter");
   }
 
   private List<ClusterPodStatus> getClusterPods(StackGresCluster cluster, KubernetesClient client) {

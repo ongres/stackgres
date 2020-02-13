@@ -2,7 +2,7 @@
 
 e2e_test_install() {
 
-      cat << EOF > "$LOG_PATH/minio-values.yaml"
+  cat << EOF > "$LOG_PATH/minio-values.yaml"
 persistence:
   enabled: true
   size: 2Gi
@@ -13,7 +13,7 @@ buckets:
 EOF
 
   helm install stable/minio --name "$CLUSTER_NAME-backup-minio" --namespace "$CLUSTER_NAMESPACE-backup" \
-  -f "$LOG_PATH/minio-values.yaml"
+    -f "$LOG_PATH/minio-values.yaml"
 
   SPEC_VALUES_FILE="$SPEC_FILE.backup.values.yaml"
 
@@ -23,16 +23,22 @@ EOF
 
   create_mock_data
 
-  # Avoid backups before waiting for pods (since backup pods could biase the wait)
-  kubectl patch sgbackupconfig -n "$CLUSTER_NAMESPACE-backup" backupconf --type json \
-    --patch '[{"op":"replace","path":"/spec/fullSchedule","value":"*/1 * * * *"}]'
+  BACKUP_NAME="$CLUSTER_NAME-backup-0-$(shuf -i 0-65535 -n 1)"
 
-  wait_until eval '[ "$(kubectl get sgbackups.stackgres.io -n "$CLUSTER_NAMESPACE-backup" --sort-by "{.status.time}" -o=jsonpath="{.items[-1:].status.phase}")" = "Completed" ]'
+  cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/v1alpha1
+kind: StackGresBackup
+metadata:
+  namespace: "$CLUSTER_NAMESPACE-backup"
+  name: "$BACKUP_NAME"
+spec:
+  cluster: "$CLUSTER_NAME-backup"
+  isPermanent: true
+EOF
+  
+  wait_until is_backup_phase "Completed"
 
-  BACKUP_UID="$(kubectl get sgbackups.stackgres.io -n "$CLUSTER_NAMESPACE-backup" --sort-by "{.status.time}" -o=jsonpath="{.items[-1:].metadata.uid}")"
-
-  kubectl patch sgbackupconfig -n "$CLUSTER_NAMESPACE-backup" backupconf --type json \
-    --patch '[{"op":"replace","path":"/spec/fullSchedule","value":"0 5 31 2 *"}]'
+  BACKUP_UID=$(kubectl get sgbackups.stackgres.io -n "$CLUSTER_NAMESPACE-backup" $BACKUP_NAME -o=jsonpath='{.metadata.uid}')  
 
   SPEC_VALUES_FILE="$SPEC_FILE.values.yaml"
 
@@ -44,6 +50,10 @@ EOF
 
 }
 
+is_backup_phase() {
+  [ "$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE-backup" "$BACKUP_NAME" -o=jsonpath='{.status.phase}')" = "$1" ]
+}
+
 e2e_test_uninstall() {
   helm_cleanup_chart "$CLUSTER_NAME"
   helm_cleanup_chart "$CLUSTER_NAME-backup"
@@ -52,14 +62,15 @@ e2e_test_uninstall() {
   k8s_cleanup_namespace "$CLUSTER_NAMESPACE-backup"
 }
 
-e2e_test(){
+e2e_test() {
   run_test "Check that data was restored on primary node" check_init_data
   run_test "Check that data was restored on replica node" check_replica_data
   run_test "Check that replication is still working" check_replication  
+  run_test "Check that backup is compatible with cluster" check_backup_pg_version
 }
 
 
-create_mock_data(){
+create_mock_data() {
   run_query -p 5432 -h "$CLUSTER_NAME-backup-primary" -n "$CLUSTER_NAMESPACE-backup" -c "$CLUSTER_NAME-backup" -q "'CREATE DATABASE test;'"
   run_query -p 5432 -h "$CLUSTER_NAME-backup-primary" -n "$CLUSTER_NAMESPACE-backup" -c "$CLUSTER_NAME-backup" -q "'CREATE TABLE fibonacci(num integer);'" -d "test"
   run_query -p 5432 -h "$CLUSTER_NAME-backup-primary" -n "$CLUSTER_NAMESPACE-backup" -c "$CLUSTER_NAME-backup" -q "'INSERT INTO fibonacci(num) VALUES (1);'" -d "test"
@@ -67,7 +78,7 @@ create_mock_data(){
   run_query -p 5432 -h "$CLUSTER_NAME-backup-primary" -n "$CLUSTER_NAMESPACE-backup" -c "$CLUSTER_NAME-backup" -q "'INSERT INTO fibonacci(num) VALUES (3);'" -d "test"
 }
 
-check_init_data(){
+check_init_data() {
   PRIMARY_RESPONSE=$(run_query -p 5432 -h "$CLUSTER_NAME-primary" -c "$CLUSTER_NAME" -n $CLUSTER_NAMESPACE -i 0 -q "' SELECT num FROM fibonacci ORDER BY num;'" -d "test")
   if [ "$(echo "$PRIMARY_RESPONSE" | tr -d '\n')" = "123" ]
   then
@@ -79,7 +90,7 @@ check_init_data(){
 
 }
 
-check_replica_data(){
+check_replica_data() {
 
 
   REPLICA_RESPONSE=$(run_query -p 5432 -h "$CLUSTER_NAME-replica" -c "$CLUSTER_NAME" -n $CLUSTER_NAMESPACE -i 1 -q "' SELECT num FROM fibonacci ORDER BY num;'" -d "test")
@@ -93,7 +104,7 @@ check_replica_data(){
 
 }
 
-check_replication(){
+check_replication() {
   
   run_query -p 5432 -h "$CLUSTER_NAME-primary" -c "$CLUSTER_NAME" -n $CLUSTER_NAMESPACE -i 0 -q "'INSERT INTO fibonacci(num) VALUES (5);'" -d test
   run_query -p 5432 -h "$CLUSTER_NAME-primary" -c "$CLUSTER_NAME" -n $CLUSTER_NAMESPACE -i 0 -q "'INSERT INTO fibonacci(num) VALUES (8);'" -d test
@@ -117,5 +128,57 @@ check_replication(){
     return 1
   fi
 
+}
+
+
+check_backup_pg_version() {
+  ALTERNATIVE_MAYOR_PG_VERSION="11"
+  ALTERNATIVE_PG_VERSION="$ALTERNATIVE_MAYOR_PG_VERSION.6"
+
+  cat << EOF | kubectl apply -f -
+apiVersion: stackgres.io/v1alpha1
+kind: StackGresPostgresConfig
+metadata:
+  name: pgconfig-alter
+  namespace: $CLUSTER_NAMESPACE
+spec:
+  pgVersion: '$ALTERNATIVE_MAYOR_PG_VERSION'
+  postgresql.conf:
+    wal_compression: "on"    
+EOF
+
+  cat << EOF > "$LOG_PATH/alter-restore-cluster.yaml"
+apiVersion: stackgres.io/v1alpha1
+kind: StackGresCluster
+metadata:
+  name: $CLUSTER_NAME-alter
+  namespace: $CLUSTER_NAMESPACE
+spec:
+  instances: 1
+  pgVersion: '$ALTERNATIVE_PG_VERSION'
+  volumeSize: '512Mi'
+  pgConfig: pgconfig-alter
+  restore:
+    downloadDiskConcurrency: 1
+    autoCopySecrets: true
+    fromBackup: $BACKUP_UID
+EOF
+  
+  if ERROR_MESSAGE=$(kubectl apply -f $LOG_PATH/alter-restore-cluster.yaml 2>&1)
+  then
+    echo "ERROR: It should not be able to install a cluster with postgres version that is different than the backup pg version"
+    return 1
+  else
+    echo "SUCCESS: Cluster was not created"
+  fi
+
+
+  if echo "$ERROR_MESSAGE" | grep -q "Cannot restore from backup $BACKUP_UID"
+  then
+    echo "SUCCESS: Error message was the expected"
+  else 
+    echo "FAIL: Unexpected error message $ERROR_MESSAGE"
+    return 1
+  fi
 }
 

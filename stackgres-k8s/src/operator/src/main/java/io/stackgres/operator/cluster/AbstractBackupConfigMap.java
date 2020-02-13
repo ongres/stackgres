@@ -10,6 +10,7 @@ import java.util.function.Function;
 
 import com.google.common.collect.ImmutableMap;
 
+import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfigSpec;
 import io.stackgres.operator.customresource.storages.AwsS3Storage;
 import io.stackgres.operator.customresource.storages.AzureBlobStorage;
@@ -17,6 +18,8 @@ import io.stackgres.operator.customresource.storages.BackupStorage;
 import io.stackgres.operator.customresource.storages.GoogleCloudStorage;
 import io.stackgres.operator.sidecars.envoy.Envoy;
 
+import org.jooq.lambda.Unchecked;
+import org.jooq.lambda.fi.util.function.CheckedFunction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,6 +58,10 @@ public abstract class AbstractBackupConfigMap {
           + "/" + namespace + "/" + name);
       backupEnvVars.put("AWS_REGION", getFromS3(storageForS3, AwsS3Storage::getRegion));
       backupEnvVars.put("AWS_ENDPOINT", getFromS3(storageForS3, AwsS3Storage::getEndpoint));
+      backupEnvVars.put("ENDPOINT_HOSTNAME", getFromS3(
+          storageForS3, AwsS3Storage::getEndpoint, StackGresUtil::getHostFromUrl));
+      backupEnvVars.put("ENDPOINT_PORT", getFromS3(
+          storageForS3, AwsS3Storage::getEndpoint, StackGresUtil::getPortFromUrl));
       backupEnvVars.put("AWS_S3_FORCE_PATH_STYLE", getFromS3(storageForS3,
           AwsS3Storage::isForcePathStyle));
       backupEnvVars.put("WALG_S3_STORAGE_CLASS", getFromS3(storageForS3,
@@ -125,6 +132,15 @@ public abstract class AbstractBackupConfigMap {
       Function<AwsS3Storage, T> getter) {
     return storageFor
         .map(getter)
+        .map(this::convertEnvValue)
+        .orElse("");
+  }
+
+  private <T, R> String getFromS3(Optional<AwsS3Storage> storageFor,
+      Function<AwsS3Storage, T> getter, CheckedFunction<T, R> transformer) {
+    return storageFor
+        .map(getter)
+        .map(Unchecked.function(transformer))
         .map(this::convertEnvValue)
         .orElse("");
   }

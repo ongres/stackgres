@@ -74,6 +74,7 @@ import io.stackgres.operator.customresource.storages.PgpConfiguration;
 import io.stackgres.operator.resource.ClusterSidecarFinder;
 import io.stackgres.operator.resource.KubernetesCustomResourceScanner;
 import io.stackgres.operator.sidecars.envoy.Envoy;
+import io.stackgres.operator.sidecars.pgexporter.PostgresExporter;
 import io.stackgres.operatorframework.reconciliation.AbstractReconciliationCycle;
 import io.stackgres.operatorframework.reconciliation.AbstractReconciliator;
 import io.stackgres.operatorframework.resource.ResourceGenerator;
@@ -216,7 +217,7 @@ public class ClusterReconciliationCycle
         .withPostgresConfig(getPostgresConfig(cluster, client))
         .withBackupContext(getBackupContext(cluster, client))
         .withSidecars(Stream.of(
-            Stream.of(Envoy.NAME)
+            Stream.of(Envoy.NAME, PostgresExporter.NAME)
             .filter(envoy -> !cluster.getSpec().getSidecars().contains(envoy)),
             cluster.getSpec().getSidecars().stream())
             .flatMap(s -> s)
