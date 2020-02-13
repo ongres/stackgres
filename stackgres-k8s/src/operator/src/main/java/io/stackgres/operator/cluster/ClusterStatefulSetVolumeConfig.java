@@ -20,8 +20,6 @@ public enum ClusterStatefulSetVolumeConfig {
 
   DATA("data", ClusterStatefulSetPath.PG_DATA_PATH,
       ClusterStatefulSet::dataName),
-  BACKUPS("backups", ClusterStatefulSetPath.BACKUPS_PATH,
-      ClusterStatefulSet::backupName),
   SOCKET("socket", ClusterStatefulSetPath.PG_RUN_PATH,
       ClusterStatefulSetVolumeConfig::createEmptyDirVolume),
   PATRONI_CONFIG("patroni-config", ClusterStatefulSetPath.PATRONI_ENV_PATH,

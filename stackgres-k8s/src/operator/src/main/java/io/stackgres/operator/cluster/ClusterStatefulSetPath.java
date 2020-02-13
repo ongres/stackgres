@@ -19,7 +19,6 @@ public enum ClusterStatefulSetPath {
   BASE_ENV_PATH("/etc/env"),
   BASE_SECRET_PATH(BASE_ENV_PATH, ".secret"),
   PATRONI_ENV_PATH(BASE_ENV_PATH, ClusterStatefulSet.PATRONI_ENV),
-  BACKUPS_PATH(PG_BASE_PATH, "backups"),
   BACKUP_ENV_PATH(BASE_ENV_PATH, ClusterStatefulSet.BACKUP_ENV),
   BACKUP_SECRET_PATH(BASE_SECRET_PATH, ClusterStatefulSet.BACKUP_ENV),
   RESTORE_ENTRYPOINT_PATH("/etc/patroni/restore"),
