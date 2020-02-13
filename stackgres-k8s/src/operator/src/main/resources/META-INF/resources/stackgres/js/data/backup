@@ -3,7 +3,7 @@
         "apiVersion": "stackgres.io/v1alpha1",
         "metadata": {
             "annotations": {
-                "stackgres.io/operatorVersion": "0.8-SNAPSHOT"
+                "stackgres.io/operatorVersion": "0.9-SNAPSHOT"
             },
             "creationTimestamp": "2020-01-27T15:15:14Z",
             "generation": 1,
@@ -64,7 +64,7 @@
         "apiVersion": "stackgres.io/v1alpha1",
         "metadata": {
             "annotations": {
-                "stackgres.io/operatorVersion": "0.8-SNAPSHOT"
+                "stackgres.io/operatorVersion": "0.9-SNAPSHOT"
             },
             "creationTimestamp": "2020-01-27T15:17:10Z",
             "generation": 1,
@@ -125,7 +125,7 @@
         "apiVersion": "stackgres.io/v1alpha1",
         "metadata": {
             "annotations": {
-                "stackgres.io/operatorVersion": "0.8-SNAPSHOT"
+                "stackgres.io/operatorVersion": "0.9-SNAPSHOT"
             },
             "creationTimestamp": "2020-01-27T15:16:16Z",
             "generation": 1,
@@ -186,7 +186,7 @@
         "apiVersion": "stackgres.io/v1alpha1",
         "metadata": {
             "annotations": {
-                "stackgres.io/operatorVersion": "0.8-SNAPSHOT"
+                "stackgres.io/operatorVersion": "0.9-SNAPSHOT"
             },
             "creationTimestamp": "2020-01-27T15:26:11Z",
             "generation": 1,
@@ -253,7 +253,7 @@
         "apiVersion": "stackgres.io/v1alpha1",
         "metadata": {
             "annotations": {
-                "stackgres.io/operatorVersion": "0.8-SNAPSHOT"
+                "stackgres.io/operatorVersion": "0.9-SNAPSHOT"
             },
             "creationTimestamp": "2020-01-27T15:27:11Z",
             "generation": 1,
@@ -320,7 +320,7 @@
         "apiVersion": "stackgres.io/v1alpha1",
         "metadata": {
             "annotations": {
-                "stackgres.io/operatorVersion": "0.8-SNAPSHOT"
+                "stackgres.io/operatorVersion": "0.9-SNAPSHOT"
             },
             "creationTimestamp": "2020-01-27T15:28:11Z",
             "generation": 1,
@@ -387,7 +387,7 @@
         "apiVersion": "stackgres.io/v1alpha1",
         "metadata": {
             "annotations": {
-                "stackgres.io/operatorVersion": "0.8-SNAPSHOT"
+                "stackgres.io/operatorVersion": "0.9-SNAPSHOT"
             },
             "creationTimestamp": "2020-01-27T15:29:12Z",
             "generation": 1,
@@ -454,7 +454,7 @@
         "apiVersion": "stackgres.io/v1alpha1",
         "metadata": {
             "annotations": {
-                "stackgres.io/operatorVersion": "0.8-SNAPSHOT"
+                "stackgres.io/operatorVersion": "0.9-SNAPSHOT"
             },
             "creationTimestamp": "2020-01-27T15:30:02Z",
             "generation": 1,
