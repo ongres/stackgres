@@ -210,13 +210,13 @@ fi
 
 echo "Performing backup"
 (
-kubectl get pod -n "$CLUSTER_NAMESPACE" -l "${CLUSTER_LABELS},${PATRONI_ROLE_KEY}=${PATRONI_PRIMARY_ROLE}" -o name > /tmp/current-primary
-kubectl get pod -n "$CLUSTER_NAMESPACE" -l "${CLUSTER_LABELS},${PATRONI_ROLE_KEY}=${PATRONI_REPLICA_ROLE}" -o name | head -n 1 > /tmp/current-replica-or-primary
+kubectl get pod -n "$CLUSTER_NAMESPACE" -l "${STATEFULSET_POD_LABELS},${PATRONI_ROLE_KEY}=${PATRONI_PRIMARY_ROLE}" -o name > /tmp/current-primary
+kubectl get pod -n "$CLUSTER_NAMESPACE" -l "${STATEFULSET_POD_LABELS},${PATRONI_ROLE_KEY}=${PATRONI_REPLICA_ROLE}" -o name | head -n 1 > /tmp/current-replica-or-primary
 if [ ! -s /tmp/current-primary ]
 then
-  kubectl get pod -n "$CLUSTER_NAMESPACE" -l "${CLUSTER_LABELS}" >&2
-  echo >&2
-  echo "Unable to find primary, backup aborted" >&2
+  kubectl get pod -n "$CLUSTER_NAMESPACE" -l "${STATEFULSET_POD_LABELS}" >&2
+  echo > /tmp/backup-push
+  echo "Unable to find primary, backup aborted" >> /tmp/backup-push
   exit 1
 fi
 if [ ! -s /tmp/current-replica-or-primary ]
