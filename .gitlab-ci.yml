@@ -62,7 +62,7 @@ native image:
     - compile
   script:
     - MAVEN_CLI_OPTS="$MAVEN_CLI_OPTS -DskipTests"
-    - 'mvn $MAVEN_CLI_OPTS package -P native'
+    - 'flock -w 3600 /tmp/stackgres-build-native mvn $MAVEN_CLI_OPTS package -P native'
     - 'cp $GRAALVM_HOME/jre/lib/amd64/libsunec.so stackgres-k8s/src/operator/target/'
     - 'cp $GRAALVM_HOME/jre/lib/security/cacerts stackgres-k8s/src/operator/target/'
   artifacts:
@@ -147,7 +147,8 @@ integration test:
     - compile
   script:
     - |
-      flock -w 3600 /tmp/stackgres-integration-test mvn $MAVEN_CLI_OPTS verify -P integration \
+      flock -s -w 3600 /tmp/stackgres-build-native \
+        flock -w 3600 /tmp/stackgres-integration-test mvn $MAVEN_CLI_OPTS verify -P integration \
         -Dit.skipBuildContainer=true
   only:
     variables:
@@ -166,7 +167,8 @@ integration test jvm image:
     - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}"-jvm'
     - 'export IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
     - |
-      flock -w 3600 /tmp/stackgres-integration-test-jvm-image mvn $MAVEN_CLI_OPTS verify -P integration \
+      flock -s -w 3600 /tmp/stackgres-build-native \
+        flock -w 3600 /tmp/stackgres-integration-test-jvm-image mvn $MAVEN_CLI_OPTS verify -P integration \
         -DargLine=-Dcom.ongres.junit.docker.runnerId="$K8S_SUFFIX" \
         -Dit.skipBuildContainer=true
 
@@ -183,7 +185,8 @@ integration test native image:
     - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}"'
     - 'export IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
     - |
-      flock -w 3600 /tmp/stackgres-integration-test-native-image mvn $MAVEN_CLI_OPTS verify -P integration \
+      flock -s -w 3600 /tmp/stackgres-build-native \
+        flock -w 3600 /tmp/stackgres-integration-test-native-image mvn $MAVEN_CLI_OPTS verify -P integration \
         -DargLine=-Dcom.ongres.junit.docker.runnerId="$K8S_SUFFIX" \
         -Dit.skipBuildContainer=true
   only:
