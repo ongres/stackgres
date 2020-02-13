@@ -12,21 +12,10 @@ buckets:
     purge: true
 EOF
 
-  helm install stable/minio --name "$CLUSTER_NAME-backup-minio" --namespace "$CLUSTER_NAMESPACE-backup" \
-    -f "$LOG_PATH/minio-values.yaml"
-
-  cat << EOF > "$LOG_PATH/minio-values.yaml"
-persistence:
-  enabled: true
-  size: 2Gi
-buckets:
-  - name: $CLUSTER_NAME-backup
-    policy: none
-    purge: true
-EOF
-
-  helm install stable/minio --name "$CLUSTER_NAME-backup-minio2" --namespace "$CLUSTER_NAMESPACE-backup" \
-    -f "$LOG_PATH/minio-values.yaml"
+  kubectl create namespace "$CLUSTER_NAME-backup"
+  (echo "$CLUSTER_NAME-backup-minio"; echo "$CLUSTER_NAME-backup-minio2") \
+    | xargs -r -n 1 -I % -P 0 helm install stable/minio --name "%" \
+      --namespace "$CLUSTER_NAMESPACE-backup" -f "$LOG_PATH/minio-values.yaml"
 
   SPEC_VALUES_FILE="$SPEC_FILE.backup.values.yaml"
 
@@ -36,21 +25,28 @@ EOF
 
   create_mock_data
 
-  kubectl patch sgbackupconfig -n "$CLUSTER_NAMESPACE-backup" backupconf --type json \
-    --patch '[{"op":"replace","path":"/spec/storage/s3","value":{
+  kubectl patch --dry-run -o yaml sgbackupconfig -n "$CLUSTER_NAMESPACE-backup" backupconf --type json \
+    --patch '[{"op":"replace","path":"/metadata/name","value": "backupconf2"},
+      {"op":"replace","path":"/spec/storage/s3","value": {
       "prefix": "s3://restore-backup",
-      "accessKey": {
-        "name": "restore-backup-minio2",
-        "key": "accesskey"
-      },
-      "secretKey": {
-        "name": "restore-backup-minio2",
-        "key": "secretkey"
+      "credentials": {
+        "accessKey": {
+          "name": "restore-backup-minio2",
+          "key": "accesskey"
+        },
+        "secretKey": {
+          "name": "restore-backup-minio2",
+          "key": "secretkey"
+        }
       },
       "region": "k8s",
       "forcePathStyle": true,
       "endpoint": "http://restore-backup-minio2.restore-backup.svc.cluster.local:9000"
-    }]'
+    }}]' \
+    | kubectl create -n "$CLUSTER_NAMESPACE-backup" -f -
+
+  kubectl patch sgcluster -n "$CLUSTER_NAMESPACE-backup" "$CLUSTER_NAME-backup" --type json \
+    --patch '[{"op":"replace","path":"/spec/backupConfig","value": "backupconf2"}]'
 
   BACKUP_NAME="$CLUSTER_NAME-backup-0-$(shuf -i 0-65535 -n 1)"
 
