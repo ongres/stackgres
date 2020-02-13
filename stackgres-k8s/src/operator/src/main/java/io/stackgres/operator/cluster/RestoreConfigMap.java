@@ -15,6 +15,7 @@ import com.google.common.collect.ImmutableList;
 
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.stackgres.operator.cluster.ClusterStatefulSet.ClusterStatefulSetPaths;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresClusterResourceStreamFactory;
 import io.stackgres.operator.common.StackGresGeneratorContext;
@@ -65,7 +66,7 @@ public class RestoreConfigMap extends AbstractBackupConfigMap
 
   @Override
   protected String getGcsCredentialsFilePath() {
-    return ClusterStatefulSet.RESTORE_SECRET_PATH
+    return ClusterStatefulSetPaths.RESTORE_SECRET_PATH.path()
         + "/" + ClusterStatefulSet.GCS_CREDENTIALS_FILE_NAME;
   }
 

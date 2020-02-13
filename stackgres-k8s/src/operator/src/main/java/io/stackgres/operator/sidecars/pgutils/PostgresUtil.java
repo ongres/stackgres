@@ -15,6 +15,7 @@ import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.operator.cluster.ClusterStatefulSet;
+import io.stackgres.operator.cluster.ClusterStatefulSet.ClusterStatefulSetPaths;
 import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.common.StackGresClusterSidecarResourceFactory;
 import io.stackgres.operator.common.StackGresComponents;
@@ -39,7 +40,7 @@ public class PostgresUtil implements StackGresClusterSidecarResourceFactory<Void
     List<VolumeMount> volumeMounts = new ArrayList<>();
     volumeMounts.add(new VolumeMountBuilder()
         .withName(ClusterStatefulSet.SOCKET_VOLUME_NAME)
-        .withMountPath(ClusterStatefulSet.PG_RUN_PATH)
+        .withMountPath(ClusterStatefulSetPaths.PG_RUN_PATH.path())
         .build());
 
     ContainerBuilder container = new ContainerBuilder();

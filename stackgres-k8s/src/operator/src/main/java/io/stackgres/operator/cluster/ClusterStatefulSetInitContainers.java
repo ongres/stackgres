@@ -23,6 +23,7 @@ import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
+import io.stackgres.operator.cluster.ClusterStatefulSet.ClusterStatefulSetPaths;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresRestoreContext;
 import io.stackgres.operator.patroni.PatroniConfigMap;
@@ -62,8 +63,8 @@ public class ClusterStatefulSetInitContainers
         .withName("set-data-permissions")
         .withImage("busybox")
         .withCommand("/bin/sh", "-ecx", Stream.of(
-            "chmod -R 700 " + ClusterStatefulSet.PG_BASE_PATH,
-            "chown -R 999:999 " + ClusterStatefulSet.PG_BASE_PATH)
+            "chmod -R 700 " + ClusterStatefulSetPaths.PG_BASE_PATH.path(),
+            "chown -R 999:999 " + ClusterStatefulSetPaths.PG_BASE_PATH.path())
             .collect(Collectors.joining(" && ")))
         .withVolumeMounts(getSetDataPermissionVolumeMounts(config))
         .build();
@@ -73,7 +74,7 @@ public class ClusterStatefulSetInitContainers
     return Stream.of(
         Stream.of(new VolumeMountBuilder()
             .withName(ClusterStatefulSet.dataName(config))
-            .withMountPath(ClusterStatefulSet.PG_BASE_PATH)
+            .withMountPath(ClusterStatefulSetPaths.PG_BASE_PATH.path())
             .build()))
         .flatMap(s -> s)
         .toArray(VolumeMount[]::new);
@@ -97,7 +98,7 @@ public class ClusterStatefulSetInitContainers
     return Stream.of(
         Stream.of(new VolumeMountBuilder()
             .withName(ClusterStatefulSet.LOCAL_BIN_VOLUME_NAME)
-            .withMountPath(ClusterStatefulSet.LOCAL_BIN_PATH)
+            .withMountPath(ClusterStatefulSetPaths.LOCAL_BIN_PATH.path())
             .build()))
         .flatMap(s -> s)
         .toArray(VolumeMount[]::new);
@@ -132,7 +133,7 @@ public class ClusterStatefulSetInitContainers
         .withVolumeMounts(
             new VolumeMountBuilder()
                 .withName(ClusterStatefulSet.RESTORE_ENTRYPOINT_VOLUME_NAME)
-                .withMountPath(ClusterStatefulSet.RESTORE_ENTRYPOINT_PATH)
+                .withMountPath(ClusterStatefulSetPaths.RESTORE_ENTRYPOINT_PATH.path())
                 .build())
         .build();
   }

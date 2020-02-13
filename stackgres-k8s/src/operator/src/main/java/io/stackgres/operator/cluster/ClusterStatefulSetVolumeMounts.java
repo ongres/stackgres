@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
+import io.stackgres.operator.cluster.ClusterStatefulSet.ClusterStatefulSetPaths;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operatorframework.resource.factory.SubResourceStreamFactory;
 
@@ -31,31 +32,31 @@ public class ClusterStatefulSetVolumeMounts
       ImmutableMap.<String, Supplier<VolumeMount>>builder()
           .put(ClusterStatefulSet.PATRONI_CONFIG_VOLUME_NAME, () -> new VolumeMountBuilder()
               .withName(ClusterStatefulSet.PATRONI_CONFIG_VOLUME_NAME)
-              .withMountPath(ClusterStatefulSet.PATRONI_ENV_PATH)
+              .withMountPath(ClusterStatefulSetPaths.PATRONI_ENV_PATH.path())
               .build())
           .put(ClusterStatefulSet.BACKUP_CONFIG_VOLUME_NAME, () -> new VolumeMountBuilder()
               .withName(ClusterStatefulSet.BACKUP_CONFIG_VOLUME_NAME)
-              .withMountPath(ClusterStatefulSet.BACKUP_ENV_PATH)
+              .withMountPath(ClusterStatefulSetPaths.BACKUP_ENV_PATH.path())
               .build())
           .put(ClusterStatefulSet.BACKUP_SECRET_VOLUME_NAME, () -> new VolumeMountBuilder()
               .withName(ClusterStatefulSet.BACKUP_SECRET_VOLUME_NAME)
-              .withMountPath(ClusterStatefulSet.BACKUP_SECRET_PATH)
+              .withMountPath(ClusterStatefulSetPaths.BACKUP_SECRET_PATH.path())
               .build())
           .put(ClusterStatefulSet.RESTORE_CONFIG_VOLUME_NAME, () -> new VolumeMountBuilder()
               .withName(ClusterStatefulSet.RESTORE_CONFIG_VOLUME_NAME)
-              .withMountPath(ClusterStatefulSet.RESTORE_ENV_PATH)
+              .withMountPath(ClusterStatefulSetPaths.RESTORE_ENV_PATH.path())
               .build())
           .put(ClusterStatefulSet.RESTORE_SECRET_VOLUME_NAME, () -> new VolumeMountBuilder()
               .withName(ClusterStatefulSet.RESTORE_SECRET_VOLUME_NAME)
-              .withMountPath(ClusterStatefulSet.RESTORE_SECRET_PATH)
+              .withMountPath(ClusterStatefulSetPaths.RESTORE_SECRET_PATH.path())
               .build())
           .put(ClusterStatefulSet.RESTORE_ENTRYPOINT_VOLUME_NAME, () -> new VolumeMountBuilder()
               .withName(ClusterStatefulSet.RESTORE_ENTRYPOINT_VOLUME_NAME)
-              .withMountPath(ClusterStatefulSet.RESTORE_ENTRYPOINT_PATH)
+              .withMountPath(ClusterStatefulSetPaths.RESTORE_ENTRYPOINT_PATH.path())
               .build())
           .put(ClusterStatefulSet.LOCAL_BIN_VOLUME_NAME, () -> new VolumeMountBuilder()
               .withName(ClusterStatefulSet.LOCAL_BIN_VOLUME_NAME)
-              .withMountPath(ClusterStatefulSet.LOCAL_BIN_PATH)
+              .withMountPath(ClusterStatefulSetPaths.LOCAL_BIN_PATH.path())
               .build())
           .build();
 
@@ -65,11 +66,11 @@ public class ClusterStatefulSetVolumeMounts
         ImmutableList.<VolumeMount>builder().add(
             new VolumeMountBuilder()
                 .withName(ClusterStatefulSet.SOCKET_VOLUME_NAME)
-                .withMountPath(ClusterStatefulSet.PG_RUN_PATH)
+                .withMountPath(ClusterStatefulSetPaths.PG_RUN_PATH.path())
                 .build(),
             new VolumeMountBuilder()
                 .withName(ClusterStatefulSet.dataName(config))
-                .withMountPath(ClusterStatefulSet.PG_BASE_PATH)
+                .withMountPath(ClusterStatefulSetPaths.PG_BASE_PATH.path())
                 .build()
         );
 
@@ -94,7 +95,7 @@ public class ClusterStatefulSetVolumeMounts
         .putAll(VOLUME_MOUNTS)
         .put(ClusterStatefulSet.backupName(config), () -> new VolumeMountBuilder()
             .withName(ClusterStatefulSet.backupName(config))
-            .withMountPath(ClusterStatefulSet.BACKUP_PATH)
+            .withMountPath(ClusterStatefulSetPaths.BACKUP_PATH.path())
             .build())
         .build();
   }
