@@ -73,7 +73,7 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
         clusterContext.getCluster().getSpec().getPostgresVersion());
 
     ResourceRequirements podResources = resourceRequirementsFactory
-        .create(clusterContext);
+        .createResource(clusterContext);
 
     return new ContainerBuilder()
       .withName(NAME)
@@ -96,14 +96,14 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
               .withName(PatroniConfigMap.POSTGRES_REPLICATION_PORT_NAME)
               .withContainerPort(Envoy.PG_RAW_ENTRY_PORT).build(),
           new ContainerPortBuilder().withContainerPort(8008).build())
-      .withVolumeMounts(volumeMountsFactory.list(clusterContext))
+      .withVolumeMounts(volumeMountsFactory.listResources(clusterContext))
       .withEnvFrom(new EnvFromSourceBuilder()
           .withConfigMapRef(new ConfigMapEnvSourceBuilder()
               .withName(PatroniConfigMap.name(clusterContext)).build())
           .build())
       .withEnv(ImmutableList.<EnvVar>builder()
-          .addAll(clusterStatefulSetEnvironmentVariables.list(clusterContext))
-          .addAll(patroniEnvironmentVariables.list(clusterContext))
+          .addAll(clusterStatefulSetEnvironmentVariables.listResources(clusterContext))
+          .addAll(patroniEnvironmentVariables.listResources(clusterContext))
           .build())
       .withLivenessProbe(new ProbeBuilder()
           .withTcpSocket(new TCPSocketActionBuilder()
@@ -133,7 +133,7 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
   }
 
   @Override
-  public Stream<HasMetadata> create(StackGresGeneratorContext context) {
+  public Stream<HasMetadata> streamResources(StackGresGeneratorContext context) {
     return Seq.empty();
   }
 

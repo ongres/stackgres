@@ -41,19 +41,19 @@ public class ResourceGenerator<T extends KubernetesResource, C> {
   public <H extends T, F extends SubResourceFactory<H, C>> ResourceGenerator<H, C> add(
       F resourceFactory) {
     return new ResourceGenerator<>(
-        context, seq.append(resourceFactory.create(context)));
+        context, seq.append(resourceFactory.createResource(context)));
   }
 
   public <H extends T, F extends SubResourceStreamFactory<H, C>> ResourceGenerator<H, C> add(
       F resourceSeqFactory) {
     return new ResourceGenerator<>(
-        context, seq.append(resourceSeqFactory.create(context)));
+        context, seq.append(resourceSeqFactory.streamResources(context)));
   }
 
   public <H extends T, F extends OptionalSubResourceFactory<H, C>> ResourceGenerator<H, C> add(
       F optionalResourceFactory) {
     return new ResourceGenerator<>(
-        context, seq.append(Seq.of(optionalResourceFactory.create(context))
+        context, seq.append(Seq.of(optionalResourceFactory.createResource(context))
             .filter(Optional::isPresent)
             .map(Optional::get)));
   }
@@ -61,7 +61,7 @@ public class ResourceGenerator<T extends KubernetesResource, C> {
   public <H extends T, F extends OptionalSubResourceStreamFactory<H, C>>
       ResourceGenerator<H, C> add(F optionalResourceSeqFactory) {
     return new ResourceGenerator<>(
-        context, seq.append(Seq.seq(optionalResourceSeqFactory.create(context))
+        context, seq.append(Seq.seq(optionalResourceSeqFactory.streamResources(context))
             .filter(Optional::isPresent)
             .map(Optional::get)));
   }

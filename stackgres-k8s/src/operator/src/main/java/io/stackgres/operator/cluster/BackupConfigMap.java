@@ -35,7 +35,7 @@ public class BackupConfigMap extends AbstractBackupConfigMap
   }
 
   @Override
-  public Stream<HasMetadata> create(StackGresGeneratorContext context) {
+  public Stream<HasMetadata> streamResources(StackGresGeneratorContext context) {
     final Map<String, String> data = new HashMap<>();
 
     context.getClusterContext().getBackupContext()

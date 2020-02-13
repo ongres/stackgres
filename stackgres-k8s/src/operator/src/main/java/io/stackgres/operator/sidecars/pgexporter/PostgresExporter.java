@@ -104,7 +104,7 @@ public class PostgresExporter implements StackGresClusterSidecarResourceFactory<
   }
 
   @Override
-  public Stream<HasMetadata> create(StackGresGeneratorContext context) {
+  public Stream<HasMetadata> streamResources(StackGresGeneratorContext context) {
     final Map<String, String> defaultLabels = StackGresUtil.clusterLabels(
         context.getClusterContext().getCluster());
     Map<String, String> labels = new ImmutableMap.Builder<String, String>()

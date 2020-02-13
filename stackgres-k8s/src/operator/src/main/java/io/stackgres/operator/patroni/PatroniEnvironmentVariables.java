@@ -23,7 +23,7 @@ import org.jooq.lambda.Seq;
 public class PatroniEnvironmentVariables
     implements SubResourceStreamFactory<EnvVar, StackGresClusterContext> {
 
-  public Stream<EnvVar> create(StackGresClusterContext context) {
+  public Stream<EnvVar> streamResources(StackGresClusterContext context) {
     return Seq.of(
         new EnvVarBuilder().withName("PATRONI_NAME")
             .withValueFrom(new EnvVarSourceBuilder()

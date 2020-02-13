@@ -22,7 +22,7 @@ public class ClusterStatefulSetVolumes
     implements SubResourceStreamFactory<Volume, StackGresClusterContext> {
 
   @Override
-  public Stream<Volume> create(StackGresClusterContext config) {
+  public Stream<Volume> streamResources(StackGresClusterContext config) {
     ImmutableList.Builder<Volume> volumeListBuilder = ImmutableList.<Volume>builder().add(
         new VolumeBuilder()
             .withName(ClusterStatefulSet.SOCKET_VOLUME_NAME)

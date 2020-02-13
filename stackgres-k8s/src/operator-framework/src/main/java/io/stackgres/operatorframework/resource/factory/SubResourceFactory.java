@@ -10,6 +10,6 @@ import io.fabric8.kubernetes.api.model.KubernetesResource;
 @FunctionalInterface
 public interface SubResourceFactory<T extends KubernetesResource, C> {
 
-  T create(C context);
+  T createResource(C context);
 
 }

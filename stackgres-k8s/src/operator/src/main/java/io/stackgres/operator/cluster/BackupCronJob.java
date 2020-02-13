@@ -61,7 +61,7 @@ public class BackupCronJob implements StackGresClusterResourceStreamFactory {
    * Create a new CronJob based on the StackGresCluster definition.
    */
   @Override
-  public Stream<HasMetadata> create(StackGresGeneratorContext context) {
+  public Stream<HasMetadata> streamResources(StackGresGeneratorContext context) {
     StackGresClusterContext clusterContext = context.getClusterContext();
     String namespace = clusterContext.getCluster().getMetadata().getNamespace();
     String name = clusterContext.getCluster().getMetadata().getName();
@@ -107,7 +107,8 @@ public class BackupCronJob implements StackGresClusterResourceStreamFactory {
                     .withName("create-backup")
                     .withImage("bitnami/kubectl:latest")
                     .withEnv(ImmutableList.<EnvVar>builder()
-                        .addAll(clusterStatefulSetEnvironmentVariables.list(clusterContext))
+                        .addAll(clusterStatefulSetEnvironmentVariables.listResources(
+                            clusterContext))
                         .add(new EnvVarBuilder()
                             .withName("CLUSTER_NAMESPACE")
                             .withValue(namespace)

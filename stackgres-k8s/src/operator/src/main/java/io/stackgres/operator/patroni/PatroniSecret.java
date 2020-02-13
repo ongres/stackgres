@@ -34,7 +34,7 @@ public class PatroniSecret implements StackGresClusterResourceStreamFactory {
   /**
    * Create the Secret for patroni associated to the cluster.
    */
-  public Stream<HasMetadata> create(StackGresGeneratorContext context) {
+  public Stream<HasMetadata> streamResources(StackGresGeneratorContext context) {
     final String name = context.getClusterContext().getCluster().getMetadata().getName();
     final String namespace = context.getClusterContext().getCluster().getMetadata().getNamespace();
     final Map<String, String> labels = StackGresUtil.clusterLabels(

@@ -49,7 +49,7 @@ public class PatroniConfigEndpoints implements StackGresClusterResourceStreamFac
   /**
    * Create the EndPoint associated with the cluster.
    */
-  public Stream<HasMetadata> create(StackGresGeneratorContext context) {
+  public Stream<HasMetadata> streamResources(StackGresGeneratorContext context) {
     final String namespace = context.getClusterContext().getCluster().getMetadata().getNamespace();
     final Map<String, String> labels = StackGresUtil.patroniClusterLabels(
         context.getClusterContext().getCluster());

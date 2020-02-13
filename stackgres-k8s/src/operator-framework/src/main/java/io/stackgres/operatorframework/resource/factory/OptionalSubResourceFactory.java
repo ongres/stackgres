@@ -15,10 +15,10 @@ import io.fabric8.kubernetes.api.model.KubernetesResource;
 @FunctionalInterface
 public interface OptionalSubResourceFactory<T extends KubernetesResource, C> {
 
-  Optional<T> create(C context);
+  Optional<T> createResource(C context);
 
-  default List<T> list(C context) {
-    return create(context)
+  default List<T> listResource(C context) {
+    return createResource(context)
         .map(ImmutableList::of)
         .orElse(ImmutableList.of());
   }

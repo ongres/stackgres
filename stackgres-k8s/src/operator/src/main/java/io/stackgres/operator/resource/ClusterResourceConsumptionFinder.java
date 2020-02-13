@@ -16,13 +16,13 @@ import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.operator.app.KubernetesClientFactory;
-import io.stackgres.operator.cluster.ClusterStatefulSet;
 import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfile;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfileDefinition;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfileDoneable;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfileList;
+import io.stackgres.operator.patroni.Patroni;
 import io.stackgres.operator.resource.dto.ClusterResourceConsumtion;
 import io.stackgres.operator.rest.PatroniStatsScripts;
 import io.stackgres.operatorframework.resource.ResourceUtil;
@@ -161,7 +161,7 @@ public class ClusterResourceConsumptionFinder
 
   private List<String> exec(KubernetesClient client, Pod pod, String... args)
       throws Exception {
-    return PodExec.exec(client, pod, ClusterStatefulSet.PATRONI_CONTAINER, args);
+    return PodExec.exec(client, pod, Patroni.NAME, args);
   }
 
 }

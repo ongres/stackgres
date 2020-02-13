@@ -52,7 +52,7 @@ public class PatroniConfigMap implements StackGresClusterResourceStreamFactory {
   }
 
   @Override
-  public Stream<HasMetadata> create(StackGresGeneratorContext context) {
+  public Stream<HasMetadata> streamResources(StackGresGeneratorContext context) {
     final String pgVersion = StackGresComponents.calculatePostgresVersion(
         context.getClusterContext().getCluster().getSpec().getPostgresVersion());
 

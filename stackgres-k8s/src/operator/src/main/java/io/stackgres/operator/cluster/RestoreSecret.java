@@ -35,7 +35,7 @@ public class RestoreSecret extends AbstractBackupSecret
   }
 
   @Override
-  public Stream<HasMetadata> create(StackGresGeneratorContext context) {
+  public Stream<HasMetadata> streamResources(StackGresGeneratorContext context) {
     Map<String, String> data = new HashMap<String, String>();
 
     context.getClusterContext().getRestoreContext().ifPresent(restoreContext -> {

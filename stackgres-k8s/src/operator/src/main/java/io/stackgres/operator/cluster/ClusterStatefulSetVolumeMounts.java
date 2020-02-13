@@ -60,7 +60,7 @@ public class ClusterStatefulSetVolumeMounts
           .build();
 
   @Override
-  public Stream<VolumeMount> create(StackGresClusterContext config) {
+  public Stream<VolumeMount> streamResources(StackGresClusterContext config) {
     ImmutableList.Builder<VolumeMount> volumeMountListBuilder =
         ImmutableList.<VolumeMount>builder().add(
             new VolumeMountBuilder()
@@ -101,7 +101,7 @@ public class ClusterStatefulSetVolumeMounts
 
   private void withVolumeNames(StackGresClusterContext config, Consumer<Stream<String>> f) {
     f.accept(new ClusterStatefulSetVolumes()
-        .create(config)
+        .streamResources(config)
         .map(Volume::getName));
   }
 

@@ -16,10 +16,10 @@ import io.fabric8.kubernetes.api.model.KubernetesResource;
 @FunctionalInterface
 public interface OptionalSubResourceStreamFactory<T extends KubernetesResource, C> {
 
-  Stream<Optional<T>> create(C context);
+  Stream<Optional<T>> streamResources(C context);
 
-  default List<T> list(C context) {
-    return create(context)
+  default List<T> listResources(C context) {
+    return streamResources(context)
         .filter(Optional::isPresent)
         .map(Optional::get)
         .collect(ImmutableList.toImmutableList());

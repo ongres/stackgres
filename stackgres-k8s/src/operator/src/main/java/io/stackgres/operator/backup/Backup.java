@@ -66,7 +66,7 @@ public class Backup implements StackGresClusterResourceStreamFactory {
         name + ClusterStatefulSet.BACKUP_SUFFIX);
   }
 
-  public Stream<HasMetadata> create(
+  public Stream<HasMetadata> streamResources(
       StackGresGeneratorContext context) {
     StackGresClusterContext clusterContext = context.getClusterContext();
 
@@ -123,7 +123,7 @@ public class Backup implements StackGresClusterResourceStreamFactory {
                 .withName("create-backup")
                 .withImage("bitnami/kubectl:latest")
                 .withEnv(ImmutableList.<EnvVar>builder()
-                    .addAll(clusterStatefulSetEnvironmentVariables.list(clusterContext))
+                    .addAll(clusterStatefulSetEnvironmentVariables.listResources(clusterContext))
                     .add(new EnvVarBuilder()
                         .withName("CLUSTER_NAMESPACE")
                         .withValue(namespace)

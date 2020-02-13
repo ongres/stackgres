@@ -45,7 +45,7 @@ public class PatroniRole implements StackGresClusterResourceStreamFactory {
   }
 
   @Override
-  public Stream<HasMetadata> create(StackGresGeneratorContext context) {
+  public Stream<HasMetadata> streamResources(StackGresGeneratorContext context) {
     return Seq.of(
         createServiceAccount(context),
         createRole(context),

@@ -62,7 +62,7 @@ public class PgBouncer
   }
 
   @Override
-  public Stream<HasMetadata> create(StackGresGeneratorContext context) {
+  public Stream<HasMetadata> streamResources(StackGresGeneratorContext context) {
     String namespace = context.getClusterContext().getCluster().getMetadata().getNamespace();
     String configMapName = configName(context.getClusterContext());
     Optional<StackGresPgbouncerConfig> pgbouncerConfig =

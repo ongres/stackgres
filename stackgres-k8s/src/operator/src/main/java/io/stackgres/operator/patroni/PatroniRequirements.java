@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.cluster;
+package io.stackgres.operator.patroni;
 
 import java.util.Optional;
 
@@ -18,11 +18,11 @@ import io.stackgres.operator.customresource.sgprofile.StackGresProfile;
 import io.stackgres.operatorframework.resource.factory.SubResourceFactory;
 
 @ApplicationScoped
-public class ClusterStatefulSetPodRequirements
+public class PatroniRequirements
     implements SubResourceFactory<ResourceRequirements, StackGresClusterContext> {
 
   @Override
-  public ResourceRequirements create(StackGresClusterContext config) {
+  public ResourceRequirements createResource(StackGresClusterContext config) {
     final Optional<StackGresProfile> profile = config.getProfile();
 
     ResourceRequirements podResources = new ResourceRequirements();

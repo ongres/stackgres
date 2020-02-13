@@ -59,7 +59,7 @@ public class PatroniServices implements StackGresClusterResourceStreamFactory {
   /**
    * Create the Services associated with the cluster.
    */
-  public Stream<HasMetadata> create(StackGresGeneratorContext context) {
+  public Stream<HasMetadata> streamResources(StackGresGeneratorContext context) {
     final StackGresCluster cluster = context.getClusterContext().getCluster();
     final String namespace = cluster.getMetadata().getNamespace();
     final Map<String, String> labels = StackGresUtil.clusterLabels(

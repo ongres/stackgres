@@ -5,7 +5,6 @@
 
 package io.stackgres.operator.cluster;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -15,16 +14,9 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.io.Resources;
 
 import io.fabric8.kubernetes.api.model.AffinityBuilder;
-import io.fabric8.kubernetes.api.model.ConfigMapEnvSourceBuilder;
-import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
-import io.fabric8.kubernetes.api.model.EnvFromSourceBuilder;
-import io.fabric8.kubernetes.api.model.EnvVar;
-import io.fabric8.kubernetes.api.model.HTTPGetActionBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.LabelSelectorBuilder;
 import io.fabric8.kubernetes.api.model.LabelSelectorRequirementBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
@@ -36,28 +28,20 @@ import io.fabric8.kubernetes.api.model.PodAffinityTermBuilder;
 import io.fabric8.kubernetes.api.model.PodAntiAffinityBuilder;
 import io.fabric8.kubernetes.api.model.PodBuilder;
 import io.fabric8.kubernetes.api.model.PodTemplateSpecBuilder;
-import io.fabric8.kubernetes.api.model.ProbeBuilder;
-import io.fabric8.kubernetes.api.model.ResourceRequirements;
-import io.fabric8.kubernetes.api.model.SecurityContextBuilder;
-import io.fabric8.kubernetes.api.model.TCPSocketActionBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetUpdateStrategyBuilder;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresClusterResourceStreamFactory;
-import io.stackgres.operator.common.StackGresComponents;
 import io.stackgres.operator.common.StackGresGeneratorContext;
 import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operator.configuration.ImmutableStorageConfig;
 import io.stackgres.operator.configuration.StorageConfig;
-import io.stackgres.operator.patroni.PatroniConfigMap;
-import io.stackgres.operator.patroni.PatroniEnvironmentVariables;
+import io.stackgres.operator.patroni.Patroni;
 import io.stackgres.operator.patroni.PatroniRole;
-import io.stackgres.operator.sidecars.envoy.Envoy;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 
 import org.jooq.lambda.Seq;
-import org.jooq.lambda.Unchecked;
 
 @ApplicationScoped
 public class ClusterStatefulSet implements StackGresClusterResourceStreamFactory {
@@ -96,32 +80,17 @@ public class ClusterStatefulSet implements StackGresClusterResourceStreamFactory
 
   public static final String GCS_CREDENTIALS_FILE_NAME = "gcs-credentials.json";
 
-  public static final String PATRONI_CONTAINER = "patroni";
-
-  private static final String IMAGE_PREFIX = "docker.io/ongres/patroni:v%s-pg%s-build-%s";
-  private static final String PATRONI_VERSION = StackGresComponents.get("patroni");
-
-  private final ClusterStatefulSetPodRequirements resourceRequirementsFactory;
-  private final ClusterStatefulSetEnvironmentVariables clusterStatefulSetEnvironmentVariables;
-  private final PatroniEnvironmentVariables patroniEnvironmentVariables;
+  private final Patroni patroni;
   private final ClusterStatefulSetInitContainers initContainerFactory;
   private final ClusterStatefulSetVolumes volumesFactory;
-  private final ClusterStatefulSetVolumeMounts volumeMountsFactory;
 
   @Inject
-  public ClusterStatefulSet(ClusterStatefulSetPodRequirements resourceRequirementsFactory,
-      ClusterStatefulSetEnvironmentVariables clusterStatefulSetEnvironmentVariables,
-      PatroniEnvironmentVariables patroniEnvironmentVariables,
-      ClusterStatefulSetInitContainers initContainerFactory,
-      ClusterStatefulSetVolumes volumesFactory,
-      ClusterStatefulSetVolumeMounts volumeMountsFactory) {
+  public ClusterStatefulSet(Patroni patroni, ClusterStatefulSetInitContainers initContainerFactory,
+      ClusterStatefulSetVolumes volumesFactory) {
     super();
-    this.resourceRequirementsFactory = resourceRequirementsFactory;
-    this.clusterStatefulSetEnvironmentVariables = clusterStatefulSetEnvironmentVariables;
-    this.patroniEnvironmentVariables = patroniEnvironmentVariables;
+    this.patroni = patroni;
     this.initContainerFactory = initContainerFactory;
     this.volumesFactory = volumesFactory;
-    this.volumeMountsFactory = volumeMountsFactory;
   }
 
   public static String dataName(StackGresClusterContext clusterContext) {
@@ -138,16 +107,11 @@ public class ClusterStatefulSet implements StackGresClusterResourceStreamFactory
    * Create a new StatefulSet based on the StackGresCluster definition.
    */
   @Override
-  public Stream<HasMetadata> create(StackGresGeneratorContext context) {
+  public Stream<HasMetadata> streamResources(StackGresGeneratorContext context) {
     StackGresClusterContext clusterContext = context.getClusterContext();
 
     final String name = clusterContext.getCluster().getMetadata().getName();
     final String namespace = clusterContext.getCluster().getMetadata().getNamespace();
-    final String pgVersion = StackGresComponents.calculatePostgresVersion(
-        clusterContext.getCluster().getSpec().getPostgresVersion());
-
-    ResourceRequirements podResources = resourceRequirementsFactory
-        .create(clusterContext);
 
     StorageConfig dataStorageConfig = ImmutableStorageConfig.builder()
         .size(clusterContext.getCluster().getSpec().getVolumeSize())
@@ -215,58 +179,11 @@ public class ClusterStatefulSet implements StackGresClusterResourceStreamFactory
                 .orElse(null))
             .withShareProcessNamespace(Boolean.TRUE)
             .withServiceAccountName(PatroniRole.roleName(clusterContext))
-            .addNewContainer()
-            .withName(PATRONI_CONTAINER)
-            .withImage(String.format(IMAGE_PREFIX,
-                PATRONI_VERSION, pgVersion, StackGresUtil.CONTAINER_BUILD))
-            .withCommand("/bin/sh", "-exc", Unchecked.supplier(() -> Resources
-                .asCharSource(ClusterStatefulSet.class.getResource("/start-patroni.sh"),
-                    StandardCharsets.UTF_8)
-                .read()).get())
-            .withImagePullPolicy("Always")
-            .withSecurityContext(new SecurityContextBuilder()
-                .withRunAsUser(999L)
-                .withAllowPrivilegeEscalation(Boolean.FALSE)
-                .build())
-            .withPorts(
-                new ContainerPortBuilder()
-                    .withName(PatroniConfigMap.POSTGRES_PORT_NAME)
-                    .withContainerPort(Envoy.PG_ENTRY_PORT).build(),
-                new ContainerPortBuilder()
-                    .withName(PatroniConfigMap.POSTGRES_REPLICATION_PORT_NAME)
-                    .withContainerPort(Envoy.PG_RAW_ENTRY_PORT).build(),
-                new ContainerPortBuilder().withContainerPort(8008).build())
-            .withVolumeMounts(volumeMountsFactory.list(clusterContext))
-            .withEnvFrom(new EnvFromSourceBuilder()
-                .withConfigMapRef(new ConfigMapEnvSourceBuilder()
-                    .withName(PatroniConfigMap.name(clusterContext)).build())
-                .build())
-            .withEnv(ImmutableList.<EnvVar>builder()
-                .addAll(clusterStatefulSetEnvironmentVariables.list(clusterContext))
-                .addAll(patroniEnvironmentVariables.list(clusterContext))
-                .build())
-            .withLivenessProbe(new ProbeBuilder()
-                .withTcpSocket(new TCPSocketActionBuilder()
-                    .withPort(new IntOrString(5432))
-                    .build())
-                .withInitialDelaySeconds(15)
-                .withPeriodSeconds(20)
-                .withFailureThreshold(6)
-                .build())
-            .withReadinessProbe(new ProbeBuilder()
-                .withHttpGet(new HTTPGetActionBuilder()
-                    .withPath("/health")
-                    .withPort(new IntOrString(8008))
-                    .withScheme("HTTP")
-                    .build())
-                .withInitialDelaySeconds(5)
-                .withPeriodSeconds(10)
-                .build())
-            .withResources(podResources)
-            .endContainer()
-            .withVolumes(volumesFactory.list(clusterContext))
+            .withVolumes(volumesFactory.listResources(clusterContext))
             .withTerminationGracePeriodSeconds(60L)
-            .withInitContainers(initContainerFactory.list(clusterContext))
+            .addToContainers(patroni.getContainer(context))
+            .addAllToVolumes(patroni.getVolumes(context))
+            .withInitContainers(initContainerFactory.listResources(clusterContext))
             .addAllToContainers(clusterContext.getSidecars().stream()
                 .map(sidecarEntry -> sidecarEntry.getSidecar().getContainer(context))
                 .collect(ImmutableList.toImmutableList()))
@@ -290,8 +207,9 @@ public class ClusterStatefulSet implements StackGresClusterResourceStreamFactory
         .build();
 
     return Seq.<HasMetadata>empty()
+        .append(patroni.streamResources(context))
         .append(clusterContext.getSidecars().stream()
-            .flatMap(sidecarEntry -> sidecarEntry.getSidecar().create(context)))
+            .flatMap(sidecarEntry -> sidecarEntry.getSidecar().streamResources(context)))
         .append(Seq.seq(context.getExistingResources())
             .filter(existingResource -> existingResource instanceof Pod)
             .map(HasMetadata::getMetadata)

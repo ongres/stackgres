@@ -20,7 +20,7 @@ import org.jooq.lambda.Seq;
 public class ClusterStatefulSetEnvironmentVariables
     implements SubResourceStreamFactory<EnvVar, StackGresClusterContext> {
 
-  public Stream<EnvVar> create(StackGresClusterContext context) {
+  public Stream<EnvVar> streamResources(StackGresClusterContext context) {
     return Seq.of(
         new EnvVarBuilder().withName("PG_DATA_PATH")
             .withValue(ClusterStatefulSet.PG_DATA_PATH)

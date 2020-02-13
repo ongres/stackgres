@@ -15,10 +15,10 @@ import io.fabric8.kubernetes.api.model.KubernetesResource;
 @FunctionalInterface
 public interface SubResourceStreamFactory<T extends KubernetesResource, C> {
 
-  Stream<T> create(C context);
+  Stream<T> streamResources(C context);
 
-  default List<T> list(C context) {
-    return create(context)
+  default List<T> listResources(C context) {
+    return streamResources(context)
         .collect(ImmutableList.toImmutableList());
   }
 

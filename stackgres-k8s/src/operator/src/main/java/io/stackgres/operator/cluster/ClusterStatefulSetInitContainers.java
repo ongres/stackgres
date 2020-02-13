@@ -48,7 +48,7 @@ public class ClusterStatefulSetInitContainers
   }
 
   @Override
-  public Stream<Container> create(StackGresClusterContext config) {
+  public Stream<Container> streamResources(StackGresClusterContext config) {
     return Seq.of(Optional.of(createSetDataPermissionContainer(config)),
         Optional.of(createExecWithEnvContainer(config)),
         config.getRestoreContext()
@@ -88,7 +88,7 @@ public class ClusterStatefulSetInitContainers
                 ClusterStatefulSet.class.getResource("/create-exec-with-env.sh"),
                 StandardCharsets.UTF_8)
             .read()).get())
-        .withEnv(clusterStatefulSetEnvironmentVariables.list(config))
+        .withEnv(clusterStatefulSetEnvironmentVariables.listResources(config))
         .withVolumeMounts(getExecWithEnvVolumeMounts())
         .build();
   }
@@ -122,8 +122,8 @@ public class ClusterStatefulSetInitContainers
                 .withName(RestoreConfigMap.name(config)).build())
             .build())
         .withEnv(ImmutableList.<EnvVar>builder()
-            .addAll(clusterStatefulSetEnvironmentVariables.list(config))
-            .addAll(patroniEnvironmentVariables.list(config))
+            .addAll(clusterStatefulSetEnvironmentVariables.listResources(config))
+            .addAll(patroniEnvironmentVariables.listResources(config))
             .add(new EnvVarBuilder()
                 .withName("RESTORE_BACKUP_ID")
                 .withValue(restoreContext.getBackup().getStatus().getName())

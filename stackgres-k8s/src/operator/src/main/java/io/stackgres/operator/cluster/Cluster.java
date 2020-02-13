@@ -61,7 +61,7 @@ public class Cluster
   }
 
   @Override
-  public Stream<HasMetadata> create(StackGresGeneratorContext context) {
+  public Stream<HasMetadata> streamResources(StackGresGeneratorContext context) {
     return ResourceGenerator
         .with(context)
         .of(HasMetadata.class)

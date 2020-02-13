@@ -26,7 +26,7 @@ public interface ContainerResourceFactory<T, C, E>
     return ImmutableList.of();
   }
 
-  default Stream<HasMetadata> create(C context) {
+  default Stream<HasMetadata> streamResources(C context) {
     return Seq.empty();
   }
 
