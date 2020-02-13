@@ -37,8 +37,8 @@ import io.stackgres.operator.common.StackGresComponents;
 import io.stackgres.operator.common.StackGresGeneratorContext;
 import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operator.sidecars.envoy.Envoy;
+import io.stackgres.operatorframework.resource.ResourceGenerator;
 
-import org.jooq.lambda.Seq;
 import org.jooq.lambda.Unchecked;
 
 @Singleton
@@ -53,13 +53,26 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
   private final ClusterStatefulSetEnvironmentVariables clusterStatefulSetEnvironmentVariables;
   private final PatroniEnvironmentVariables patroniEnvironmentVariables;
   private final ClusterStatefulSetVolumeMounts volumeMountsFactory;
+  private final PatroniConfigMap patroniConfigMap;
+  private final PatroniSecret patroniSecret;
+  private final PatroniRole patroniRole;
+  private final PatroniServices patroniServices;
+  private final PatroniConfigEndpoints patroniConfigEndpoints;
 
   @Inject
-  public Patroni(PatroniRequirements resourceRequirementsFactory,
+  public Patroni(PatroniConfigMap patroniConfigMap, PatroniSecret patroniSecret,
+      PatroniRole patroniRole, PatroniServices patroniServices,
+      PatroniConfigEndpoints patroniConfigEndpoints,
+      PatroniRequirements resourceRequirementsFactory,
       ClusterStatefulSetEnvironmentVariables clusterStatefulSetEnvironmentVariables,
       PatroniEnvironmentVariables patroniEnvironmentVariables,
       ClusterStatefulSetVolumeMounts volumeMountsFactory) {
     super();
+    this.patroniConfigMap = patroniConfigMap;
+    this.patroniSecret = patroniSecret;
+    this.patroniRole = patroniRole;
+    this.patroniServices = patroniServices;
+    this.patroniConfigEndpoints = patroniConfigEndpoints;
     this.resourceRequirementsFactory = resourceRequirementsFactory;
     this.clusterStatefulSetEnvironmentVariables = clusterStatefulSetEnvironmentVariables;
     this.patroniEnvironmentVariables = patroniEnvironmentVariables;
@@ -134,7 +147,14 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
 
   @Override
   public Stream<HasMetadata> streamResources(StackGresGeneratorContext context) {
-    return Seq.empty();
+    return ResourceGenerator.with(context)
+        .of(HasMetadata.class)
+        .append(patroniConfigMap)
+        .append(patroniSecret)
+        .append(patroniRole)
+        .append(patroniServices)
+        .append(patroniConfigEndpoints)
+        .stream();
   }
 
 }

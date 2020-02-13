@@ -13,11 +13,7 @@ import javax.inject.Inject;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.operator.backup.Backup;
 import io.stackgres.operator.common.StackGresGeneratorContext;
-import io.stackgres.operator.patroni.PatroniConfigEndpoints;
 import io.stackgres.operator.patroni.PatroniConfigMap;
-import io.stackgres.operator.patroni.PatroniRole;
-import io.stackgres.operator.patroni.PatroniSecret;
-import io.stackgres.operator.patroni.PatroniServices;
 import io.stackgres.operatorframework.resource.ResourceGenerator;
 import io.stackgres.operatorframework.resource.factory.SubResourceStreamFactory;
 
@@ -27,37 +23,26 @@ public class Cluster
         StackGresGeneratorContext> {
 
   private final ClusterStatefulSet clusterStatefulSet;
-  private final PatroniConfigMap patroniConfigMap;
   private final BackupConfigMap backupConfigMap;
   private final RestoreConfigMap restoreConfigMap;
-  private final PatroniSecret patroniSecret;
   private final BackupSecret backupSecret;
   private final RestoreSecret restoreSecret;
   private final BackupCronJob backupCronJob;
   private final Backup backup;
-  private final PatroniRole patroniRole;
-  private final PatroniServices patroniServices;
-  private final PatroniConfigEndpoints patroniConfigEndpoints;
 
   @Inject
   public Cluster(ClusterStatefulSet clusterStatefulSet, PatroniConfigMap patroniConfigMap,
       BackupConfigMap backupConfigMap, RestoreConfigMap restoreConfigMap,
-      PatroniSecret patroniSecret, BackupSecret backupSecret, RestoreSecret restoreSecret,
-      BackupCronJob backupCronJob, Backup backup, PatroniRole patroniRole,
-      PatroniServices patroniServices, PatroniConfigEndpoints patroniConfigEndpoints) {
+      BackupSecret backupSecret, RestoreSecret restoreSecret,
+      BackupCronJob backupCronJob, Backup backup) {
     super();
     this.clusterStatefulSet = clusterStatefulSet;
-    this.patroniConfigMap = patroniConfigMap;
     this.backupConfigMap = backupConfigMap;
     this.restoreConfigMap = restoreConfigMap;
-    this.patroniSecret = patroniSecret;
     this.backupSecret = backupSecret;
     this.restoreSecret = restoreSecret;
     this.backupCronJob = backupCronJob;
     this.backup = backup;
-    this.patroniRole = patroniRole;
-    this.patroniServices = patroniServices;
-    this.patroniConfigEndpoints = patroniConfigEndpoints;
   }
 
   @Override
@@ -65,18 +50,13 @@ public class Cluster
     return ResourceGenerator
         .with(context)
         .of(HasMetadata.class)
-        .append(patroniRole)
-        .append(patroniSecret)
-        .append(patroniServices)
-        .append(patroniConfigEndpoints)
-        .append(patroniConfigMap)
+        .append(clusterStatefulSet)
         .append(backupConfigMap)
         .append(backupSecret)
+        .append(backupCronJob)
+        .append(backup)
         .append(restoreConfigMap)
         .append(restoreSecret)
-        .append(backupCronJob)
-        .append(clusterStatefulSet)
-        .append(backup)
         .stream();
   }
 
