@@ -54,43 +54,19 @@ public abstract class AbstractBackupConfigMap {
 
     Optional<AwsS3Storage> storageForS3 = getStorageFor(backupConfigSpec, BackupStorage::getS3);
     if (storageForS3.isPresent()) {
-      backupEnvVars.put("WALG_S3_PREFIX", getFromS3(storageForS3, AwsS3Storage::getPrefix)
-          + "/" + namespace + "/" + name);
-      backupEnvVars.put("AWS_REGION", getFromS3(storageForS3, AwsS3Storage::getRegion));
-      backupEnvVars.put("AWS_ENDPOINT", getFromS3(storageForS3, AwsS3Storage::getEndpoint));
-      backupEnvVars.put("ENDPOINT_HOSTNAME", getFromS3(
-          storageForS3, AwsS3Storage::getEndpoint, StackGresUtil::getHostFromUrl));
-      backupEnvVars.put("ENDPOINT_PORT", getFromS3(
-          storageForS3, AwsS3Storage::getEndpoint, StackGresUtil::getPortFromUrl));
-      backupEnvVars.put("AWS_S3_FORCE_PATH_STYLE", getFromS3(storageForS3,
-          AwsS3Storage::isForcePathStyle));
-      backupEnvVars.put("WALG_S3_STORAGE_CLASS", getFromS3(storageForS3,
-          AwsS3Storage::getStorageClass));
-      backupEnvVars.put("WALG_S3_SSE", getFromS3(storageForS3, AwsS3Storage::getSse));
-      backupEnvVars.put("WALG_S3_SSE_KMS_ID", getFromS3(storageForS3, AwsS3Storage::getSseKmsId));
-      backupEnvVars.put("WALG_CSE_KMS_ID", getFromS3(storageForS3, AwsS3Storage::getCseKmsId));
-      backupEnvVars.put("WALG_CSE_KMS_REGION", getFromS3(storageForS3,
-          AwsS3Storage::getCseKmsRegion));
+      setS3StorageEnvVars(namespace, name, backupEnvVars, storageForS3);
     }
 
     Optional<GoogleCloudStorage> storageForGcs = getStorageFor(
         backupConfigSpec, BackupStorage::getGcs);
     if (storageForGcs.isPresent()) {
-      backupEnvVars.put("WALG_GCS_PREFIX", getFromGcs(storageForGcs, GoogleCloudStorage::getPrefix)
-          + "/" + namespace + "/" + name);
-      backupEnvVars.put("GOOGLE_APPLICATION_CREDENTIALS", getGcsCredentialsFilePath());
+      setGcsStorageEnvVars(namespace, name, backupEnvVars, storageForGcs);
     }
 
     Optional<AzureBlobStorage> storageForAzureBlob = getStorageFor(
         backupConfigSpec, BackupStorage::getAzureblob);
     if (storageForAzureBlob.isPresent()) {
-      backupEnvVars.put("WALG_AZ_PREFIX", getFromAzureBlob(
-          storageForAzureBlob, AzureBlobStorage::getPrefix)
-          + "/" + namespace + "/" + name);
-      backupEnvVars.put("WALG_AZURE_BUFFER_SIZE", getFromAzureBlob(
-          storageForAzureBlob, AzureBlobStorage::getBufferSize));
-      backupEnvVars.put("WALG_AZURE_MAX_BUFFERS", getFromAzureBlob(
-          storageForAzureBlob, AzureBlobStorage::getMaxBuffers));
+      setAzureBlobStorageEnvVars(namespace, name, backupEnvVars, storageForAzureBlob);
     }
 
     if (WAL_G_LOGGER.isTraceEnabled()) {
@@ -98,6 +74,47 @@ public abstract class AbstractBackupConfigMap {
     }
 
     return backupEnvVars.build();
+  }
+
+  private void setS3StorageEnvVars(String namespace, String name,
+      ImmutableMap.Builder<String, String> backupEnvVars, Optional<AwsS3Storage> storageForS3) {
+    backupEnvVars.put("WALG_S3_PREFIX", getFromS3(storageForS3, AwsS3Storage::getPrefix)
+        + "/" + namespace + "/" + name);
+    backupEnvVars.put("AWS_REGION", getFromS3(storageForS3, AwsS3Storage::getRegion));
+    backupEnvVars.put("AWS_ENDPOINT", getFromS3(storageForS3, AwsS3Storage::getEndpoint));
+    backupEnvVars.put("ENDPOINT_HOSTNAME", getFromS3(
+        storageForS3, AwsS3Storage::getEndpoint, StackGresUtil::getHostFromUrl));
+    backupEnvVars.put("ENDPOINT_PORT", getFromS3(
+        storageForS3, AwsS3Storage::getEndpoint, StackGresUtil::getPortFromUrl));
+    backupEnvVars.put("AWS_S3_FORCE_PATH_STYLE", getFromS3(storageForS3,
+        AwsS3Storage::isForcePathStyle));
+    backupEnvVars.put("WALG_S3_STORAGE_CLASS", getFromS3(storageForS3,
+        AwsS3Storage::getStorageClass));
+    backupEnvVars.put("WALG_S3_SSE", getFromS3(storageForS3, AwsS3Storage::getSse));
+    backupEnvVars.put("WALG_S3_SSE_KMS_ID", getFromS3(storageForS3, AwsS3Storage::getSseKmsId));
+    backupEnvVars.put("WALG_CSE_KMS_ID", getFromS3(storageForS3, AwsS3Storage::getCseKmsId));
+    backupEnvVars.put("WALG_CSE_KMS_REGION", getFromS3(storageForS3,
+        AwsS3Storage::getCseKmsRegion));
+  }
+
+  private void setGcsStorageEnvVars(String namespace, String name,
+      ImmutableMap.Builder<String, String> backupEnvVars,
+      Optional<GoogleCloudStorage> storageForGcs) {
+    backupEnvVars.put("WALG_GCS_PREFIX", getFromGcs(storageForGcs, GoogleCloudStorage::getPrefix)
+        + "/" + namespace + "/" + name);
+    backupEnvVars.put("GOOGLE_APPLICATION_CREDENTIALS", getGcsCredentialsFilePath());
+  }
+
+  private void setAzureBlobStorageEnvVars(String namespace, String name,
+      ImmutableMap.Builder<String, String> backupEnvVars,
+      Optional<AzureBlobStorage> storageForAzureBlob) {
+    backupEnvVars.put("WALG_AZ_PREFIX", getFromAzureBlob(
+        storageForAzureBlob, AzureBlobStorage::getPrefix)
+        + "/" + namespace + "/" + name);
+    backupEnvVars.put("WALG_AZURE_BUFFER_SIZE", getFromAzureBlob(
+        storageForAzureBlob, AzureBlobStorage::getBufferSize));
+    backupEnvVars.put("WALG_AZURE_MAX_BUFFERS", getFromAzureBlob(
+        storageForAzureBlob, AzureBlobStorage::getMaxBuffers));
   }
 
   protected String getGcsCredentialsFilePath() {
