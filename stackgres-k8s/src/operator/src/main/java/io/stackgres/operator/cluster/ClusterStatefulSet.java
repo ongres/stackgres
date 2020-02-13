@@ -49,10 +49,6 @@ public class ClusterStatefulSet implements StackGresClusterResourceStreamFactory
   public static final String DATA_SUFFIX = "-data";
   public static final String BACKUP_SUFFIX = "-backup";
 
-  public static final String PATRONI_ENV = "patroni";
-  public static final String BACKUP_ENV = "backup";
-  public static final String RESTORE_ENV = "restore";
-
   public static final String GCS_CREDENTIALS_FILE_NAME = "gcs-credentials.json";
 
   private final Patroni patroni;

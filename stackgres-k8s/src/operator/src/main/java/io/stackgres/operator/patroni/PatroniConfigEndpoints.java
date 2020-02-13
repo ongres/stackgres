@@ -21,7 +21,7 @@ import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.EndpointsBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.operator.app.ObjectMapperProvider;
-import io.stackgres.operator.cluster.ClusterStatefulSet;
+import io.stackgres.operator.cluster.ClusterStatefulSetEnvVars;
 import io.stackgres.operator.common.StackGresClusterResourceStreamFactory;
 import io.stackgres.operator.common.StackGresGeneratorContext;
 import io.stackgres.operator.common.StackGresUtil;
@@ -57,8 +57,9 @@ public class PatroniConfigEndpoints implements StackGresClusterResourceStreamFac
     Map<String, String> params = new HashMap<>(DefaultValues.getDefaultValues());
 
     if (context.getClusterContext().getBackupContext().isPresent()) {
-      params.put("archive_command", "exec-with-env '" + ClusterStatefulSet.BACKUP_ENV + "'"
-          + " -- wal-g wal-push %p");
+      params.put("archive_command",
+          "exec-with-env '" + ClusterStatefulSetEnvVars.BACKUP_ENV.value() + "'"
+              + " -- wal-g wal-push %p");
     } else {
       params.put("archive_command", "/bin/true");
     }

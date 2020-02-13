@@ -17,12 +17,12 @@ public enum ClusterStatefulSetPath {
   PG_DATA_PATH(PG_BASE_PATH, "data"),
   BASE_ENV_PATH("/etc/env"),
   BASE_SECRET_PATH(BASE_ENV_PATH, ".secret"),
-  PATRONI_ENV_PATH(BASE_ENV_PATH, ClusterStatefulSet.PATRONI_ENV),
-  BACKUP_ENV_PATH(BASE_ENV_PATH, ClusterStatefulSet.BACKUP_ENV),
-  BACKUP_SECRET_PATH(BASE_SECRET_PATH, ClusterStatefulSet.BACKUP_ENV),
+  PATRONI_ENV_PATH(BASE_ENV_PATH, ClusterStatefulSetEnvVars.PATRONI_ENV.value()),
+  BACKUP_ENV_PATH(BASE_ENV_PATH, ClusterStatefulSetEnvVars.BACKUP_ENV.value()),
+  BACKUP_SECRET_PATH(BASE_SECRET_PATH, ClusterStatefulSetEnvVars.BACKUP_ENV.value()),
   RESTORE_ENTRYPOINT_PATH("/etc/patroni/restore"),
-  RESTORE_ENV_PATH(BASE_ENV_PATH, ClusterStatefulSet.RESTORE_ENV),
-  RESTORE_SECRET_PATH(BASE_SECRET_PATH, ClusterStatefulSet.RESTORE_ENV);
+  RESTORE_ENV_PATH(BASE_ENV_PATH, ClusterStatefulSetEnvVars.RESTORE_ENV.value()),
+  RESTORE_SECRET_PATH(BASE_SECRET_PATH, ClusterStatefulSetEnvVars.RESTORE_ENV.value());
 
   private final String path;
   private final EnvVar envVar;
