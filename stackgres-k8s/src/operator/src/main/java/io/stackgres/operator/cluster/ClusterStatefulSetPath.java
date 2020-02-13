@@ -5,11 +5,10 @@
 
 package io.stackgres.operator.cluster;
 
-import java.util.Arrays;
-import java.util.stream.Collectors;
-
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
+
+import org.jooq.lambda.Seq;
 
 public enum ClusterStatefulSetPath {
   LOCAL_BIN_PATH("/usr/local/bin"),
@@ -37,7 +36,7 @@ public enum ClusterStatefulSetPath {
   }
 
   ClusterStatefulSetPath(ClusterStatefulSetPath parent, String...paths) {
-    this(parent.path + Arrays.asList(paths).stream().collect(Collectors.joining("/")));
+    this(Seq.of(parent.path).append(paths).toString("/"));
   }
 
   public String path() {

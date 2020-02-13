@@ -22,6 +22,8 @@ public enum ClusterStatefulSetVolumeConfig {
       ClusterStatefulSet::dataName),
   SOCKET("socket", ClusterStatefulSetPath.PG_RUN_PATH,
       ClusterStatefulSetVolumeConfig::createEmptyDirVolume),
+  LOCAL_BIN("local-bin", ClusterStatefulSetPath.LOCAL_BIN_PATH,
+      ClusterStatefulSetVolumeConfig::createEmptyDirVolume),
   PATRONI_CONFIG("patroni-config", ClusterStatefulSetPath.PATRONI_ENV_PATH,
       ClusterStatefulSetVolumeConfig::createConfigMapVolume,
       PatroniConfigMap::name),
@@ -38,8 +40,6 @@ public enum ClusterStatefulSetVolumeConfig {
       ClusterStatefulSetVolumeConfig::createSecretVolume,
       RestoreSecret::name),
   RESTORE_ENTRYPOINT("restore-entrypoint", ClusterStatefulSetPath.RESTORE_ENTRYPOINT_PATH,
-      ClusterStatefulSetVolumeConfig::createEmptyDirVolume),
-  LOCAL_BIN("local-bin", ClusterStatefulSetPath.LOCAL_BIN_PATH,
       ClusterStatefulSetVolumeConfig::createEmptyDirVolume);
 
   private final String name;
