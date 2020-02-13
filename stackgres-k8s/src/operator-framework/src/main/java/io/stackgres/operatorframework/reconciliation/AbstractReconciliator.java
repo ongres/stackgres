@@ -115,7 +115,7 @@ public abstract class AbstractReconciliator<T> implements ResourceHandlerContext
           continue;
         }
         LOGGER.debug("Deleteing resource {}.{} of type {}"
-            + " since belong to an older version of an existing " + name,
+            + " since do not belong any existing " + name,
             existingResource.v1.getMetadata().getNamespace(),
             existingResource.v1.getMetadata().getName(),
             existingResource.v1.getKind());

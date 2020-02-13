@@ -39,10 +39,10 @@ public class ClusterStatefulSetPodHandler extends AbstractClusterResourceHandler
   public boolean isHandlerForResource(StackGresClusterContext context, HasMetadata resource) {
     return context != null
         && resource instanceof Pod
-        && Objects.equals(resource.getMetadata().getLabels().get(StackGresUtil.CLUSTER_KEY),
-            Boolean.TRUE.toString())
         && resource.getMetadata().getNamespace().equals(
             context.getCluster().getMetadata().getNamespace())
+        && Objects.equals(resource.getMetadata().getLabels().get(StackGresUtil.CLUSTER_KEY),
+            Boolean.TRUE.toString())
         && resource.getMetadata().getName().matches(ResourceUtil.getNameWithIndexPattern(
             context.getCluster().getMetadata().getName()));
   }

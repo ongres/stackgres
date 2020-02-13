@@ -94,7 +94,8 @@ public class Backup implements StackGresClusterResourceStreamFactory {
     String namespace = backup.getMetadata().getNamespace();
     String name = backup.getMetadata().getName();
     String cluster = backup.getSpec().getCluster();
-    ImmutableMap<String, String> labels = StackGresUtil.clusterLabels(clusterContext.getCluster());
+    ImmutableMap<String, String> labels = StackGresUtil.backupPodLabels(
+        clusterContext.getCluster());
     return clusterContext.getBackupContext()
         .map(StackGresBackupContext::getBackupConfig)
         .map(backupConfig -> new JobBuilder()

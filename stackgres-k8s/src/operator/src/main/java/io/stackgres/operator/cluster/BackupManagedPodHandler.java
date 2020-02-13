@@ -5,11 +5,14 @@
 
 package io.stackgres.operator.cluster;
 
+import java.util.Objects;
+
 import javax.enterprise.context.ApplicationScoped;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.stackgres.operator.common.StackGresClusterContext;
+import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operator.resource.AbstractClusterResourceHandler;
 
 @ApplicationScoped
@@ -21,8 +24,8 @@ public class BackupManagedPodHandler extends AbstractClusterResourceHandler {
         && resource instanceof Pod
         && resource.getMetadata().getNamespace().equals(
             context.getCluster().getMetadata().getNamespace())
-        && resource.getMetadata().getName().startsWith(
-            ClusterStatefulSet.backupName(context) + "-");
+        && Objects.equals(resource.getMetadata().getLabels().get(StackGresUtil.BACKUP_KEY),
+            Boolean.TRUE.toString());
   }
 
   @Override
