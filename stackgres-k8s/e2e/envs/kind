@@ -6,17 +6,24 @@ export KIND_NAME
 
 update_k8s_config() {
   mkdir -p "$HOME/.kube"
-  kind get kubeconfig --name "$KIND_NAME" --internal \
-    > "$HOME/.kube/config-$KIND_NAME"
+  if [ "$K8S_FROM_DIND" = true ]
+  then
+    kind get kubeconfig --name "$KIND_NAME" --internal \
+      > "$HOME/.kube/config-$KIND_NAME"
+  else
+    kind get kubeconfig --name "$KIND_NAME" \
+      > "$HOME/.kube/config-$KIND_NAME"
+  fi
 
   (
-  if [ -s "$HOME/.kube/config" ]
+  export KUBECONFIG="${KUBECONFIG:-$HOME/.kube/config}"
+  if [ -s "$KUBECONFIG" ]
   then
-    KUBECONFIG="$HOME/.kube/config-$KIND_NAME":"$HOME/.kube/config" \
+    KUBECONFIG="$HOME/.kube/config-$KIND_NAME":"$KUBECONFIG" \
       kubectl config view --raw > "$HOME/.kube/config-merged"
-    mv "$HOME/.kube/config-merged" "$HOME/.kube/config"
+    mv "$HOME/.kube/config-merged" "$KUBECONFIG"
   else
-    mv "$HOME/.kube/config-$KIND_NAME" "$HOME/.kube/config"
+    mv "$HOME/.kube/config-$KIND_NAME" "$KUBECONFIG"
   fi
   )
 }
@@ -49,25 +56,22 @@ reset_k8s() {
 EOF
 
   kind create cluster --name "$KIND_NAME" --config "$TARGET_PATH/kind-config.yaml" \
-    --image "kindest/node:v${KUBERNETES_VERSION}"
+    --image "kindest/node:v${K8S_VERSION}"
 
   if [ "$KIND_INSTALL_NFS" = "true" ]
   then
     local pids
   
     kind get nodes --name "$KIND_NAME" \
-      | xargs -r -n 1 -P 0 sh -ec "
-      docker exec -t $node sh -c 'DEBIAN_FRONTEND=noninteractive apt-get update -y -qq < /dev/null > /dev/null'
-      docker exec -t $node sh -c 'DEBIAN_FRONTEND=noninteractive apt-get install -y -qq nfs-common < /dev/null > /dev/null'
+      | xargs -r -n 1 -I % -P 0 sh -ec "
+      docker exec -t '%' sh -c 'DEBIAN_FRONTEND=noninteractive apt-get update -y -qq < /dev/null > /dev/null'
+      docker exec -t '%' sh -c 'DEBIAN_FRONTEND=noninteractive apt-get install -y -qq nfs-common < /dev/null > /dev/null'
       "
   fi
 
-  if [ "$USE_KIND_INTERNAL" = true ]
-  then
-    update_k8s_config
-  fi
+  update_k8s_config
 
-  if echo "$KUBERNETES_VERSION" | grep -q '^1\.12\.'
+  if echo "$K8S_VERSION" | grep -q '^1\.12\.'
   then
     # Patch coredns to version 1.3.1 (see https://github.com/coredns/coredns/issues/2391)
     kubectl patch deployment -n kube-system coredns --type json \
@@ -89,8 +93,20 @@ delete_k8s() {
 
 load_operator_k8s() {
   echo "Loading operator image $IMAGE_NAME in kind environemnt $KIND_NAME..."
-  
+
   kind load docker-image --name "$KIND_NAME" "$IMAGE_NAME"
+
+  echo "...done"
+}
+
+load_certificate_k8s() {
+  echo "Loading certificate $1 in kind environemnt $KIND_NAME..."
+
+  echo "$KIND_NAME-control-plane" "$KIND_NAME-worker" "$KIND_NAME-worker2" \
+    | tr ' ' '\n' | xargs -r -n 1 -I % -P 0 sh -ec "
+      docker cp '$1' '%':/usr/local/share/ca-certificates/validator.crt
+      docker exec -t '%' sh -c "update-ca-certificates"
+      "
 
   echo "...done"
 }

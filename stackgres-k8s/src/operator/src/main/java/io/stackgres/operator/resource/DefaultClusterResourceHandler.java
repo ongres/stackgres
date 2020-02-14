@@ -14,6 +14,7 @@ import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.operator.common.StackGresClusterContext;
+import io.stackgres.operator.common.StackGresUtil;
 
 @ApplicationScoped
 public class DefaultClusterResourceHandler
@@ -26,9 +27,9 @@ public class DefaultClusterResourceHandler
         .stream()
         .flatMap(resourceOperationGetter -> resourceOperationGetter.apply(client)
             .inAnyNamespace()
-            .withLabels(ResourceUtil.defaultLabels())
-            .withLabelNotIn(ResourceUtil.CLUSTER_UID_KEY, existingContexts.stream()
-                .map(context -> ResourceUtil.clusterUid(context.getCluster()))
+            .withLabels(StackGresUtil.defaultLabels())
+            .withLabelNotIn(StackGresUtil.CLUSTER_UID_KEY, existingContexts.stream()
+                .map(context -> StackGresUtil.clusterUid(context.getCluster()))
                 .toArray(String[]::new))
             .list()
             .getItems()
@@ -42,7 +43,7 @@ public class DefaultClusterResourceHandler
         .stream()
         .flatMap(resourceOperationGetter -> resourceOperationGetter.apply(client)
             .inNamespace(context.getCluster().getMetadata().getNamespace())
-            .withLabels(ResourceUtil.clusterLabels(context.getCluster()))
+            .withLabels(StackGresUtil.clusterLabels(context.getCluster()))
             .list()
             .getItems()
             .stream());

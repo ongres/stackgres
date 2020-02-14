@@ -7,7 +7,7 @@ package io.stackgres.operator.mutation.profile;
 
 import com.github.fge.jackson.jsonpointer.JsonPointer;
 import io.stackgres.operator.common.SgProfileReview;
-import io.stackgres.operatorframework.JsonPatchMutator;
+import io.stackgres.operatorframework.admissionwebhook.mutating.JsonPatchMutator;
 
 public interface ProfileMutator extends JsonPatchMutator<SgProfileReview> {
 

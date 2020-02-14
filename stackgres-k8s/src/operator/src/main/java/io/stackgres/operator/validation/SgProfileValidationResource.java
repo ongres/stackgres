@@ -16,9 +16,10 @@ import javax.ws.rs.core.MediaType;
 
 import io.quarkus.runtime.StartupEvent;
 import io.stackgres.operator.common.SgProfileReview;
-import io.stackgres.operatorframework.AdmissionReviewResponse;
-import io.stackgres.operatorframework.ValidationPipeline;
-import io.stackgres.operatorframework.ValidationResource;
+import io.stackgres.operatorframework.admissionwebhook.AdmissionReviewResponse;
+import io.stackgres.operatorframework.admissionwebhook.validating.ValidationPipeline;
+import io.stackgres.operatorframework.admissionwebhook.validating.ValidationResource;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

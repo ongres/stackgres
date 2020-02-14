@@ -16,6 +16,7 @@ import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfig
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfigDoneable;
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfigList;
 import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfigDefinition;
+import io.stackgres.operatorframework.resource.ResourceUtil;
 
 @ApplicationScoped
 public class PostgresBackupScheduler implements CustomResourceScheduler<StackGresBackupConfig> {

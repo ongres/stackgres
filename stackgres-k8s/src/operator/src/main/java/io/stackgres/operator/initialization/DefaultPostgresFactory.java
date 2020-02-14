@@ -13,7 +13,7 @@ import io.stackgres.operator.common.StackGresComponents;
 import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfigDefinition;
 import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfigSpec;
-import io.stackgres.operator.patroni.parameters.Blacklist;
+import io.stackgres.operator.patroni.factory.parameters.Blacklist;
 
 @ApplicationScoped
 public class DefaultPostgresFactory extends AbstractCustomResourceFactory<StackGresPostgresConfig> {

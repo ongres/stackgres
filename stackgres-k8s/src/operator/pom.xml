@@ -6,7 +6,7 @@
   <parent>
     <groupId>io.stackgres</groupId>
     <artifactId>stackgres-parent</artifactId>
-    <version>0.8-SNAPSHOT</version>
+    <version>0.9-SNAPSHOT</version>
   </parent>
 
   <artifactId>stackgres-operator</artifactId>
@@ -32,6 +32,8 @@
     <checkstyle.suppressions.location>${project.basedir}/../checks/checkstyle/suppressions.xml</checkstyle.suppressions.location>
     <checkstyle.header.file>${project.basedir}/../checks/checkstyle/header.txt</checkstyle.header.file>
     <spotbugs.excludeFilterFile>${project.basedir}/../checks/spotbugs/exclude.xml</spotbugs.excludeFilterFile>
+
+    <it.image>stackgres/it:1.0</it.image>
   </properties>
 
   <dependencies>
@@ -153,6 +155,9 @@
     </profile>
     <profile>
       <id>integration</id>
+      <properties>
+        <it.skipBuildContainer>false</it.skipBuildContainer>
+      </properties>
       <build>
         <plugins>
           <plugin>
@@ -206,10 +211,10 @@
                     <goal>build</goal>
                 </goals>
                 <configuration>
-                  <containerNamePattern>%a</containerNamePattern>
+                  <skip>${it.skipBuildContainer}</skip>
                   <images>
                     <image>
-                      <name>stackgres/it</name>
+                      <name>${it.image}</name>
                       <build>
                         <cleanup>remove</cleanup>
                         <optimise>true</optimise>
@@ -408,7 +413,7 @@
                   <images>
                     <image>
                       <alias>kind-load</alias>
-                      <name>stackgres/it</name>
+                      <name>${it.image}</name>
                       <run>
                         <entrypoint>
                           <arg>/bin/sh</arg>
@@ -469,7 +474,7 @@
                   <images>
                     <image>
                       <alias>kind-load</alias>
-                      <name>stackgres/it</name>
+                      <name>${it.image}</name>
                       <run>
                         <entrypoint>
                           <arg>/bin/sh</arg>

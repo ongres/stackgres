@@ -5,14 +5,46 @@
 
 package io.stackgres.operator.common;
 
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.security.MessageDigest;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
+import javax.xml.bind.DatatypeConverter;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableMap;
+
+import io.fabric8.kubernetes.api.model.ObjectMeta;
+import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
+import io.stackgres.operatorframework.resource.ResourceUtil;
+
+import org.jooq.lambda.Unchecked;
 
 public enum StackGresUtil {
 
   INSTANCE;
+
+  public static final String APP_KEY = "app";
+  public static final String APP_NAME = "StackGres";
+  public static final String CLUSTER_NAME_KEY = "cluster-name";
+  public static final String CLUSTER_UID_KEY = "cluster-uid";
+  public static final String CLUSTER_NAMESPACE_KEY = "cluster-namespace";
+  public static final String CLUSTER_KEY = "cluster";
+  public static final String BACKUP_KEY = "backup";
+  public static final String DISRUPTIBLE_KEY = "disruptible";
+  public static final String ROLE_KEY = "role";
+  public static final String PRIMARY_ROLE = "master";
+  public static final String REPLICA_ROLE = "replica";
 
   public static final String OPERATOR_NAME = INSTANCE.operatorName;
   public static final String OPERATOR_NAMESPACE = INSTANCE.operatorNamespace;
@@ -68,6 +100,141 @@ public enum StackGresUtil {
   private static String getProperty(Properties properties, ConfigProperty configProperty) {
     return Optional.ofNullable(System.getenv(configProperty.property()))
         .orElseGet(() -> properties.getProperty(configProperty.systemProperty()));
+  }
+
+  public static String clusterUid(StackGresCluster cluster) {
+    return cluster.getMetadata().getUid();
+  }
+
+  public static String clusterName(StackGresCluster cluster) {
+    return cluster.getMetadata().getName();
+  }
+
+  public static String clusterScopeKey() {
+    return ResourceUtil.labelKey(CLUSTER_NAME_KEY);
+  }
+
+  public static String clusterScope(StackGresCluster cluster) {
+    return ResourceUtil.labelValue(clusterName(cluster));
+  }
+
+  /**
+   * ImmutableMap of cluster labels used as selectors in K8s resources.
+   */
+  public static ImmutableMap<String, String> defaultLabels() {
+    return ImmutableMap.of(APP_KEY, APP_NAME);
+  }
+
+  /**
+   * ImmutableMap of cluster labels used as selectors in K8s resources.
+   */
+  public static ImmutableMap<String, String> clusterLabels(StackGresCluster cluster) {
+    return ImmutableMap.of(APP_KEY, APP_NAME,
+        CLUSTER_UID_KEY, ResourceUtil.labelValue(clusterUid(cluster)),
+        CLUSTER_NAME_KEY, ResourceUtil.labelValue(clusterName(cluster)));
+  }
+
+  /**
+   * ImmutableMap of cluster labels used as selectors in K8s resources
+   * outside of the namespace of the cluster.
+   */
+  public static ImmutableMap<String, String> clusterCrossNamespaceLabels(
+      StackGresCluster cluster) {
+    return ImmutableMap.of(APP_KEY, APP_NAME,
+        CLUSTER_NAMESPACE_KEY, ResourceUtil.labelValue(cluster.getMetadata().getNamespace()),
+        CLUSTER_UID_KEY, ResourceUtil.labelValue(clusterUid(cluster)),
+        CLUSTER_NAME_KEY, ResourceUtil.labelValue(clusterName(cluster)));
+  }
+
+  /**
+   * ImmutableMap of default labels used as selectors in K8s pods
+   * that are part of the cluster.
+   */
+  public static ImmutableMap<String, String> statefulSetPodLabels(StackGresCluster cluster) {
+    return ImmutableMap.of(APP_KEY, APP_NAME,
+        CLUSTER_UID_KEY, ResourceUtil.labelValue(clusterUid(cluster)),
+        CLUSTER_NAME_KEY, ResourceUtil.labelValue(clusterName(cluster)),
+        CLUSTER_KEY, Boolean.TRUE.toString(), DISRUPTIBLE_KEY, Boolean.TRUE.toString());
+  }
+
+  /**
+   * ImmutableMap of default labels used as selectors in K8s pods
+   * that are part of the cluster.
+   */
+  public static ImmutableMap<String, String> patroniClusterLabels(StackGresCluster cluster) {
+    return ImmutableMap.of(APP_KEY, APP_NAME,
+        CLUSTER_UID_KEY, ResourceUtil.labelValue(clusterUid(cluster)),
+        CLUSTER_NAME_KEY, ResourceUtil.labelValue(clusterName(cluster)),
+        CLUSTER_KEY, Boolean.TRUE.toString());
+  }
+
+  /**
+   * ImmutableMap of default labels used as selectors in K8s pods
+   * that work on backups.
+   */
+  public static ImmutableMap<String, String> backupPodLabels(StackGresCluster cluster) {
+    return ImmutableMap.of(APP_KEY, APP_NAME,
+        CLUSTER_UID_KEY, ResourceUtil.labelValue(clusterUid(cluster)),
+        CLUSTER_NAME_KEY, ResourceUtil.labelValue(clusterName(cluster)),
+        BACKUP_KEY, Boolean.TRUE.toString());
+  }
+
+  public static boolean isPrimary(Map<String, String> labels) {
+    return Objects.equals(labels.get(StackGresUtil.ROLE_KEY), StackGresUtil.PRIMARY_ROLE);
+  }
+
+  public static boolean isNonDisruptiblePrimary(Map<String, String> labels) {
+    return isPrimary(labels)
+        && Objects.equals(labels.get(StackGresUtil.DISRUPTIBLE_KEY), Boolean.FALSE.toString());
+  }
+
+  /**
+   * Extract the index of a StatefulSet's pod.
+   */
+  public static Integer extractPodIndex(StackGresCluster cluster, ObjectMeta podMetadata) {
+    Matcher matcher = Pattern.compile(ResourceUtil.getNameWithIndexPattern(
+        cluster.getMetadata().getName())).matcher(podMetadata.getName());
+    if (matcher.find()) {
+      return Integer.parseInt(matcher.group(1));
+    }
+    throw new IllegalStateException("Can not extract index from pod "
+        + podMetadata.getNamespace() + "." + podMetadata.getName() + " for cluster "
+        + cluster.getMetadata().getNamespace() + "." + cluster.getMetadata().getName());
+  }
+
+  public static Map<String, String> addMd5Sum(Map<String, String> data) {
+    MessageDigest messageDigest = Unchecked
+        .supplier(() -> MessageDigest.getInstance("MD5")).get();
+    messageDigest.update(data.entrySet().stream()
+        .sorted((left, right) -> left.getKey().compareTo(right.getKey()))
+        .map(e -> e.getValue())
+        .collect(Collectors.joining())
+        .getBytes());
+    return ImmutableMap.<String, String>builder()
+        .putAll(data)
+        .put("MD5SUM", DatatypeConverter.printHexBinary(
+            messageDigest.digest()).toUpperCase(Locale.US))
+        .build();
+  }
+
+  public static String getHostFromUrl(String url) throws URISyntaxException {
+    URI uri = new URI(url);
+    String domain = uri.getHost();
+    return domain.startsWith("www.") ? domain.substring(4) : domain;
+  }
+
+  public static int getPortFromUrl(String url) throws MalformedURLException {
+    URL parsedUrl = new URL(url);
+    int port = parsedUrl.getPort();
+    if (port == -1) {
+      if (parsedUrl.getProtocol().equals("https")) {
+        return 443;
+      } else {
+        return 80;
+      }
+    } else {
+      return port;
+    }
   }
 
 }

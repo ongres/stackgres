@@ -27,6 +27,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.stackgres.operator.common.StackGresClusterContext;
+import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operatorframework.resource.AbstractResourceHandler;
 
 public abstract class AbstractClusterResourceHandler
@@ -69,7 +70,7 @@ public abstract class AbstractClusterResourceHandler
 
   @Override
   public String getContextNameOf(HasMetadata resource) {
-    return resource.getMetadata().getLabels().get(ResourceUtil.CLUSTER_NAME_KEY);
+    return resource.getMetadata().getLabels().get(StackGresUtil.CLUSTER_NAME_KEY);
   }
 
 }

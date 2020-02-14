@@ -17,7 +17,7 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.operator.app.KubernetesClientFactory;
 import io.stackgres.operator.common.StackGresUtil;
-import io.stackgres.operator.resource.ResourceUtil;
+import io.stackgres.operatorframework.resource.ResourceUtil;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +28,7 @@ public class EventController {
   private static final Logger LOGGER = LoggerFactory.getLogger(EventController.class);
 
   private final KubernetesClientFactory kubClientFactory;
+  private final Random random = new Random();
 
   @Inject
   public EventController(KubernetesClientFactory kubClientFactory) {
@@ -63,10 +64,10 @@ public class EventController {
       return;
     }
     Instant now = Instant.now();
-    final Long id = new Random().nextLong();
+    String id = nextId();
     client.resource(new EventBuilder()
         .withNewMetadata()
-        .withName(involvedObject.getMetadata().getName() + "." + Long.toHexString(id))
+        .withName(involvedObject.getMetadata().getName() + "." + id)
         .withNamespace(involvedObject.getMetadata().getNamespace())
         .withLabels(involvedObject.getMetadata().getLabels())
         .endMetadata()
@@ -82,4 +83,7 @@ public class EventController {
         .createOrReplace();
   }
 
+  private synchronized String nextId() {
+    return Long.toHexString(random.nextLong());
+  }
 }

@@ -6,9 +6,9 @@
 package io.stackgres.operator.sidecars.pgexporter;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import javax.inject.Singleton;
 
@@ -27,27 +27,27 @@ import io.fabric8.kubernetes.api.model.SecretKeySelectorBuilder;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.ServicePortBuilder;
 import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
-import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
-import io.stackgres.operator.cluster.ClusterStatefulSet;
+import io.stackgres.operator.cluster.factory.ClusterStatefulSetVolumeConfig;
 import io.stackgres.operator.common.Prometheus;
 import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.common.StackGresClusterContext;
+import io.stackgres.operator.common.StackGresClusterSidecarResourceFactory;
 import io.stackgres.operator.common.StackGresComponents;
-import io.stackgres.operator.common.StackGresSidecarTransformer;
+import io.stackgres.operator.common.StackGresGeneratorContext;
 import io.stackgres.operator.common.StackGresUtil;
-import io.stackgres.operator.controller.ResourceGeneratorContext;
 import io.stackgres.operator.customresource.prometheus.Endpoint;
 import io.stackgres.operator.customresource.prometheus.NamespaceSelector;
 import io.stackgres.operator.customresource.prometheus.ServiceMonitor;
 import io.stackgres.operator.customresource.prometheus.ServiceMonitorDefinition;
 import io.stackgres.operator.customresource.prometheus.ServiceMonitorSpec;
-import io.stackgres.operator.resource.ResourceUtil;
 import io.stackgres.operator.sidecars.envoy.Envoy;
+import io.stackgres.operatorframework.resource.ResourceUtil;
+
+import org.jooq.lambda.Seq;
 
 @Singleton
 @Sidecar("prometheus-postgres-exporter")
-public class PostgresExporter
-    implements StackGresSidecarTransformer<Void, StackGresClusterContext> {
+public class PostgresExporter implements StackGresClusterSidecarResourceFactory<Void> {
 
   public static final String SERVICE_MONITOR = "-stackgres-postgres-exporter";
   public static final String SERVICE = "-prometheus-postgres-exporter";
@@ -69,7 +69,7 @@ public class PostgresExporter
   }
 
   @Override
-  public Container getContainer(ResourceGeneratorContext<StackGresClusterContext> context) {
+  public Container getContainer(StackGresGeneratorContext context) {
     ContainerBuilder container = new ContainerBuilder();
     container.withName(NAME)
         .withImage(String.format(IMAGE_NAME, DEFAULT_VERSION, StackGresUtil.CONTAINER_BUILD))
@@ -86,7 +86,7 @@ public class PostgresExporter
                 .withName("POSTGRES_EXPORTER_PASSWORD")
                 .withValueFrom(new EnvVarSourceBuilder().withSecretKeyRef(
                     new SecretKeySelectorBuilder()
-                        .withName(context.getContext().getCluster().getMetadata().getName())
+                        .withName(context.getClusterContext().getCluster().getMetadata().getName())
                         .withKey("superuser-password")
                         .build())
                     .build())
@@ -94,36 +94,34 @@ public class PostgresExporter
         .withPorts(new ContainerPortBuilder()
             .withContainerPort(9187)
             .build())
-        .withVolumeMounts(new VolumeMountBuilder()
-            .withName(ClusterStatefulSet.SOCKET_VOLUME_NAME)
-            .withMountPath("/run/postgresql")
-            .build());
+        .withVolumeMounts(ClusterStatefulSetVolumeConfig.SOCKET
+            .volumeMount(context.getClusterContext()));
 
     return container.build();
   }
 
   @Override
-  public List<HasMetadata> getResources(ResourceGeneratorContext<StackGresClusterContext> context) {
-    final Map<String, String> defaultLabels = ResourceUtil.clusterLabels(
-        context.getContext().getCluster());
+  public Stream<HasMetadata> streamResources(StackGresGeneratorContext context) {
+    final Map<String, String> defaultLabels = StackGresUtil.clusterLabels(
+        context.getClusterContext().getCluster());
     Map<String, String> labels = new ImmutableMap.Builder<String, String>()
-        .putAll(ResourceUtil.clusterCrossNamespaceLabels(
-            context.getContext().getCluster()))
+        .putAll(StackGresUtil.clusterCrossNamespaceLabels(
+            context.getClusterContext().getCluster()))
         .build();
 
-    Optional<Prometheus> prometheus = context.getContext().getPrometheus();
+    Optional<Prometheus> prometheus = context.getClusterContext().getPrometheus();
     ImmutableList.Builder<HasMetadata> resourcesBuilder = ImmutableList.builder();
     resourcesBuilder.add(
         new ServiceBuilder()
             .withNewMetadata()
-            .withNamespace(context.getContext().getCluster().getMetadata().getNamespace())
-            .withName(serviceName(context.getContext()))
+            .withNamespace(context.getClusterContext().getCluster().getMetadata().getNamespace())
+            .withName(serviceName(context.getClusterContext()))
             .withLabels(ImmutableMap.<String, String>builder()
                 .putAll(labels)
                 .put("container", NAME)
                 .build())
             .withOwnerReferences(ImmutableList.of(ResourceUtil.getOwnerReference(
-                context.getContext().getCluster())))
+                context.getClusterContext().getCluster())))
             .endMetadata()
             .withSpec(new ServiceSpecBuilder()
                 .withSelector(defaultLabels)
@@ -142,9 +140,9 @@ public class PostgresExporter
           serviceMonitor.setApiVersion(ServiceMonitorDefinition.APIVERSION);
           serviceMonitor.setMetadata(new ObjectMetaBuilder()
               .withNamespace(pi.getNamespace())
-              .withName(serviceMonitorName(context.getContext()))
+              .withName(serviceMonitorName(context.getClusterContext()))
               .withOwnerReferences(ImmutableList.of(ResourceUtil.getOwnerReference(
-                  context.getContext().getCluster())))
+                  context.getClusterContext().getCluster())))
               .withLabels(ImmutableMap.<String, String>builder()
                   .putAll(pi.getMatchLabels())
                   .putAll(labels)
@@ -169,7 +167,7 @@ public class PostgresExporter
         });
       }
     });
-    return resourcesBuilder.build();
+    return Seq.seq(resourcesBuilder.build());
   }
 
 }

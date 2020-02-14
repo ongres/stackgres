@@ -18,6 +18,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
+
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -29,7 +30,8 @@ import io.quarkus.runtime.Application;
 import io.stackgres.operator.app.KubernetesClientFactory;
 import io.stackgres.operator.common.ConfigContext;
 import io.stackgres.operator.common.ConfigProperty;
-import io.stackgres.operator.resource.ResourceUtil;
+import io.stackgres.operator.common.StackGresUtil;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -151,7 +153,7 @@ public class InitializationQueueImpl implements InitializationQueue {
     try (KubernetesClient client = factory.create()) {
       Optional<Pod> pod = Optional.ofNullable(client.pods()
           .inNamespace(operatorNamespace)
-          .withLabel(ResourceUtil.APP_KEY, operatorName)
+          .withLabel(StackGresUtil.APP_KEY, operatorName)
           .list())
           .flatMap(podList -> {
             if (podList.getItems().isEmpty()) {

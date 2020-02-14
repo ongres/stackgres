@@ -21,13 +21,14 @@ import io.fabric8.kubernetes.api.model.PodList;
 import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.operator.app.KubernetesClientFactory;
+import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.customresource.sgcluster.StackGresClusterCondition;
 import io.stackgres.operator.customresource.sgcluster.StackGresClusterDefinition;
 import io.stackgres.operator.customresource.sgcluster.StackGresClusterDoneable;
 import io.stackgres.operator.customresource.sgcluster.StackGresClusterList;
 import io.stackgres.operator.customresource.sgcluster.StackGresClusterStatus;
-import io.stackgres.operator.resource.ResourceUtil;
+import io.stackgres.operatorframework.resource.ResourceUtil;
 
 @ApplicationScoped
 public class ClusterStatusManager {
@@ -112,7 +113,7 @@ public class ClusterStatusManager {
 
   private boolean isPendingRestart(StackGresCluster cluster, KubernetesClient client) {
     final String namespace = cluster.getMetadata().getNamespace();
-    final Map<String, String> labels = ResourceUtil.clusterLabels(cluster);
+    final Map<String, String> labels = StackGresUtil.clusterLabels(cluster);
 
     PodList pods = client.pods().inNamespace(namespace).withLabels(labels).list();
 

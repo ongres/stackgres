@@ -8,6 +8,7 @@ package io.stackgres.operator.resource;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
@@ -16,9 +17,11 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.operator.app.KubernetesClientFactory;
 import io.stackgres.operator.common.ConfigContext;
 import io.stackgres.operator.common.ConfigProperty;
+import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.resource.dto.ClusterPodConfig;
 import io.stackgres.operator.resource.dto.ClusterPodStatus;
+
 import org.jooq.lambda.tuple.Tuple;
 
 @ApplicationScoped
@@ -72,7 +75,7 @@ public class ClusterDetailsFinder implements KubernetesCustomResourceFinder<Clus
   private List<ClusterPodStatus> getClusterPods(StackGresCluster cluster, KubernetesClient client) {
     return client.pods()
         .inNamespace(cluster.getMetadata().getNamespace())
-        .withLabels(ResourceUtil.patroniClusterLabels(cluster))
+        .withLabels(StackGresUtil.patroniClusterLabels(cluster))
         .list()
         .getItems()
         .stream()

@@ -15,8 +15,8 @@ import javax.validation.Validator;
 
 import io.stackgres.operator.common.BackupConfigReview;
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfig;
-import io.stackgres.operatorframework.ValidationFailed;
-import io.stackgres.operatorframework.ValidationPipeline;
+import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
+import io.stackgres.operatorframework.admissionwebhook.validating.ValidationPipeline;
 
 @ApplicationScoped
 public class BackupConfigValidationPipeline implements ValidationPipeline<BackupConfigReview> {

@@ -9,6 +9,7 @@ import java.util.List;
 import javax.enterprise.context.ApplicationScoped;
 
 import com.github.fge.jackson.jsonpointer.JsonPointer;
+
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfig;
 

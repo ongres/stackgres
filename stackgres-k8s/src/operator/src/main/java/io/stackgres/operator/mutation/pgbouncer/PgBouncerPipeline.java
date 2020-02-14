@@ -14,7 +14,7 @@ import javax.inject.Inject;
 
 import com.github.fge.jsonpatch.JsonPatchOperation;
 import io.stackgres.operator.common.PgBouncerReview;
-import io.stackgres.operatorframework.JsonPatchMutationPipeline;
+import io.stackgres.operatorframework.admissionwebhook.mutating.JsonPatchMutationPipeline;
 
 @ApplicationScoped
 public class PgBouncerPipeline implements JsonPatchMutationPipeline<PgBouncerReview> {

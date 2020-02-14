@@ -8,7 +8,6 @@ package io.stackgres.operator;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.ServerSocket;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -23,15 +22,11 @@ import org.junit.jupiter.api.BeforeEach;
 
 public abstract class AbstractStackGresOperatorIt extends AbstractIt {
 
-  private static final Optional<Boolean> RESET_KIND = Optional.ofNullable(
-      Optional.ofNullable(System.getenv("RESET_KIND"))
-      .orElse(System.getProperty("it.resetKind")))
-      .map(Boolean::valueOf);
   private static final int OPERATOR_PORT = getFreePort();
   private static final int OPERATOR_SSL_PORT = getFreePort();
 
   protected final String namespace = getNamespace();
-  protected final int kindSize = getKindSize();
+  protected final int k8sSize = getKindSize();
 
   private Closeable operatorClose;
   private WebTarget operatorClient;
@@ -45,22 +40,20 @@ public abstract class AbstractStackGresOperatorIt extends AbstractIt {
   }
 
   @BeforeEach
-  public void setupOperator(@ContainerParam("kind") Container kind) throws Exception {
-    ItHelper.killUnwantedProcesses(kind);
-    ItHelper.copyResources(kind);
-    ItHelper.resetKind(kind, kindSize, !RESET_KIND.orElse(false));
-    ItHelper.deleteStackGresOperatorHelmChartIfExists(kind, namespace);
-    ItHelper.deleteNamespaceIfExists(kind, namespace);
-    ItHelper.installStackGresOperatorHelmChart(kind, namespace, OPERATOR_SSL_PORT, executor);
+  public void setupOperator(@ContainerParam("k8s") Container k8s) throws Exception {
+    ItHelper.killUnwantedProcesses(k8s);
+    ItHelper.copyResources(k8s);
+    ItHelper.resetKind(k8s, k8sSize);
+    ItHelper.installStackGresOperatorHelmChart(k8s, namespace, OPERATOR_SSL_PORT, executor);
     OperatorRunner operatorRunner = ItHelper.createOperator(
-        kind, OPERATOR_PORT, OPERATOR_SSL_PORT, executor);
+        k8s, OPERATOR_PORT, OPERATOR_SSL_PORT, executor);
     CompletableFuture<Void> operator = runAsync(() -> operatorRunner.run());
     this.operatorClose = () -> {
       operatorRunner.close();
       operator.join();
     };
     operatorClient = ClientBuilder.newClient().target("http://localhost:" + OPERATOR_PORT);
-    ItHelper.waitUntilOperatorIsReady(operator, operatorClient, kind);
+    ItHelper.waitUntilOperatorIsReady(operator, operatorClient, k8s);
   }
 
   private static int getFreePort() {

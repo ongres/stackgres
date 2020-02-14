@@ -21,7 +21,7 @@ import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfile;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
 import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfig;
-import io.stackgres.operatorframework.Operation;
+import io.stackgres.operatorframework.admissionwebhook.Operation;
 
 public class ClusterDefaultResourcesMutator implements ClusterMutator {
 

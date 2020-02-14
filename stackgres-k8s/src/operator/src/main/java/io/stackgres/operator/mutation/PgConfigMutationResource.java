@@ -15,9 +15,10 @@ import javax.ws.rs.core.MediaType;
 
 import io.quarkus.runtime.StartupEvent;
 import io.stackgres.operator.common.PgConfigReview;
-import io.stackgres.operatorframework.AdmissionReviewResponse;
-import io.stackgres.operatorframework.JsonPatchMutationPipeline;
-import io.stackgres.operatorframework.MutationResource;
+import io.stackgres.operatorframework.admissionwebhook.AdmissionReviewResponse;
+import io.stackgres.operatorframework.admissionwebhook.mutating.JsonPatchMutationPipeline;
+import io.stackgres.operatorframework.admissionwebhook.mutating.MutationResource;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

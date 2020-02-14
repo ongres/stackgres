@@ -7,21 +7,21 @@ package io.stackgres.operator.common;
 
 import java.util.Optional;
 
-public class SidecarEntry<T, C> {
+public class SidecarEntry<T> {
 
-  private final StackGresSidecarTransformer<T, C> sidecar;
+  private final StackGresClusterSidecarResourceFactory<T> sidecar;
   private final Optional<T> config;
 
   /**
    * Create a sidecar entry that include sidecar transformer and config.
    */
-  public SidecarEntry(StackGresSidecarTransformer<T, C> sidecar, Optional<T> config) {
+  public SidecarEntry(StackGresClusterSidecarResourceFactory<T> sidecar, Optional<T> config) {
     super();
     this.sidecar = sidecar;
     this.config = config;
   }
 
-  public StackGresSidecarTransformer<T, C> getSidecar() {
+  public StackGresClusterSidecarResourceFactory<T> getSidecar() {
     return sidecar;
   }
 

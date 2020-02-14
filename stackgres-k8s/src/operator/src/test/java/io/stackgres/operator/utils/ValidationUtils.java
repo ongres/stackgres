@@ -8,7 +8,8 @@ package io.stackgres.operator.utils;
 import java.nio.charset.StandardCharsets;
 import java.util.Random;
 
-import io.stackgres.operatorframework.ValidationFailed;
+import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
+
 import org.junit.jupiter.api.function.Executable;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

@@ -10,8 +10,8 @@ import java.util.Objects;
 import javax.enterprise.context.ApplicationScoped;
 
 import io.stackgres.operator.common.BackupConfigReview;
-import io.stackgres.operatorframework.Operation;
-import io.stackgres.operatorframework.ValidationFailed;
+import io.stackgres.operatorframework.admissionwebhook.Operation;
+import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 
 @ApplicationScoped
 public class ModificationValidator implements BackupConfigValidator {

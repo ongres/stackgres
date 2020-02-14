@@ -7,7 +7,7 @@ package io.stackgres.operator.common;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.operator.customresource.sgbackup.StackGresBackup;
-import io.stackgres.operatorframework.AdmissionReview;
+import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
 
 @RegisterForReflection
 public class BackupReview extends AdmissionReview<StackGresBackup> {

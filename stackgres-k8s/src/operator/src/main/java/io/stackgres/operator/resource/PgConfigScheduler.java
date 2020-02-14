@@ -15,6 +15,7 @@ import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfigDefinition;
 import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfigDoneable;
 import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfigList;
+import io.stackgres.operatorframework.resource.ResourceUtil;
 
 @ApplicationScoped
 public class PgConfigScheduler implements CustomResourceScheduler<StackGresPostgresConfig> {

@@ -6,7 +6,7 @@
 package io.stackgres.operator.mutation.backup;
 
 import io.stackgres.operator.common.BackupReview;
-import io.stackgres.operatorframework.JsonPatchMutator;
+import io.stackgres.operatorframework.admissionwebhook.mutating.JsonPatchMutator;
 
 public interface BackupMutator  extends JsonPatchMutator<BackupReview> {
 }

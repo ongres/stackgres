@@ -45,22 +45,24 @@ Some environment variables allow to control how e2e test behave:
 * `E2E_ENV`: This set the environment to script to use in order to setup the kubernetes cluster.
 * `E2E_TIMEOUT`: Some operation wait on pods to be running or terminated. This environment variable controls the timeout in seconds of those operations (default: 3 minutes).
 * `E2E_PARALLELISM`: The number of test to run in parallel with `run-all-tests.sh` (default: 8).
-* `KUBERNETES_VERSION`: This set the kubernetes cluster version to setup (default: 1.12).
+* `K8S_VERSION`: This set the kubernetes cluster version to setup (default: 1.12).
 * `IMAGE_TAG`: The tag of the operator image to use in the e2e test (default: development-jvm).
-* `DEBUG_OPERATOR`: Enable operator debug (you must rebuild the operator image for this to work).
-* `DEBUG_OPERATOR_SUSPEND`: Suspend operator JVM Enable operator debug (you must rebuild the operator image for this to work).
-* `REUSE_K8S`: Kubernetes cluster setup can be very expensive in terms of time. Set this environment variable to true to reuse a kubernetes cluster if already exists.
-* `REUSE_OPERATOR`: To avoid recreating the operator set this environment variable to true to reuse an installed operator if already exists.
-* `BUILD_OPERATOR`: To avoid rebuilding the operator set this environment variable to false.
-* `RESET_NAMESPACES`: Set this to false to disable namespaces reset.
+* `E2E_DEBUG_OPERATOR`: Enable operator debug (you must rebuild the operator image for this to work).
+* `E2E_DEBUG_OPERATOR_SUSPEND`: Suspend operator JVM Enable operator debug (you must rebuild the operator image for this to work).
+* `K8S_REUSE`: Kubernetes cluster setup can be very expensive in terms of time. Set this environment variable to true to reuse a kubernetes cluster if already exists.
+* `E2E_REUSE_OPERATOR`: To avoid recreating the operator set this environment variable to true to reuse an installed operator if already exists.
+* `E2E_BUILD_OPERATOR`: To avoid rebuilding the operator set this environment variable to false.
+* `K8S_FROM_DIND`: Set to true to use docker internal IPs for kubernetes configuration to access the kind cluster
+ (some systems like macos or windows will not work with this but it is useful to run e2e in docker).
+* `SKIP_SPEC_INSTALL`: Set this to true to skip call of function `e2e_test_install`.
+* `SKIP_SPEC_UNINSTALL`: Set this to true to skip call of function `e2e_test_uninstall`.
+
 
 ### Kind
 
 Those environment variable affect the e2e test only if kind environment is used.
 
 * `KIND_NAME`: The name of the kind cluster.
-* `USE_KIND_INTERNAL`: Set to true to use docker internal IPs for kubernetes configuration to access the kind cluster
- (some systems like macos or windows will not work with this but it is useful to run e2e in docker).
 
 ## Write a test
 
@@ -83,15 +85,22 @@ To write a test create a spec script file in `spec` folder and implement followi
 
 * `e2e_test_install` (optional): This function allow to overwrite the cluster creation.
 
+* `e2e_test_uninstall` (optional): This function allow to overwrite the cluster cleanup.
+
 A YAML with installation values to use to install the cluster can be created using the name `<spec script file name>.values.yaml`.
 
 ## Environments
 
-### Kind
+The default kubernetes cluster is kind but there are some more available:
 
-Currently the only supported kubernetes cluster is [kind](https://kind.sigs.k8s.io/).
+* [kind](https://kind.sigs.k8s.io/)
+* [k3d](https://github.com/rancher/k3d)
+* [minikube](https://github.com/kubernetes/minikube)
+* [gke](https://cloud.google.com/kubernetes-engine)
+* [eks](https://aws.amazon.com/eks/)
+* [aks](https://docs.microsoft.com/en-us/azure/aks/)
 
-Docker is required in order to use the kind environment.
+Docker is required in order to use the kind and k3d environments.
 
 ### Support for other k8s clusters
 

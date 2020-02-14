@@ -5,6 +5,7 @@
 
 package io.stackgres.operator;
 
+import java.io.ByteArrayInputStream;
 import java.net.ConnectException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
@@ -15,6 +16,7 @@ import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalUnit;
 import java.util.Base64;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
@@ -30,10 +32,12 @@ import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 
+import com.google.common.collect.ImmutableList;
 import com.ongres.junit.docker.Container;
 
 import org.apache.commons.io.IOUtils;
 import org.jooq.lambda.Unchecked;
+import org.jooq.lambda.tuple.Tuple;
 import org.junit.jupiter.api.Assertions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,11 +51,36 @@ public class ItHelper {
       .orElse("development-jvm");
   public final static Predicate<String> EXCLUDE_TTY_WARNING = line -> !line.equals("stdin: is not a tty");
 
+  public static final String E2E_ENV_VAR_NAME = Optional.ofNullable(System.getenv("E2E_ENV"))
+      .map(env -> env.toUpperCase(Locale.US))
+      .map(env -> env + "_NAME")
+      .orElse("KIND_NAME");
+
+  public static final String E2E_ENV = Optional.ofNullable(System.getenv("E2E_ENV"))
+      .orElse("kind");
+
+  public static final String E2E_ENVVARS = System.getenv().entrySet().stream()
+      .filter(e -> e.getKey().startsWith("E2E_") || e.getKey().startsWith("K8S_")
+          || ImmutableList.of("IMAGE_TAG", "IMAGE_NAME").contains(e.getKey()))
+      .map(e -> {
+        if ("K8S_REUSE".equals(e.getKey()) && e.getValue() == null) {
+          return Tuple.tuple(e.getKey(), "true");
+        }
+        return Tuple.tuple(e.getKey(), e.getValue());
+      })
+      .map(t -> "export " + t.v1 + "=\"" + t.v2 + "\"")
+      .collect(Collectors.joining("\n"));
+
+  public static final Optional<Boolean> E2E_DEBUG = Optional.ofNullable(
+      Optional.ofNullable(System.getenv("E2E_DEBUG"))
+      .orElse(System.getProperty("e2e.debug")))
+      .map(Boolean::valueOf);
+
   /**
    * IT helper method.
    */
-  public static void killUnwantedProcesses(Container kind) throws Exception {
-    kind.execute("sh", "-c",
+  public static void killUnwantedProcesses(Container k8s) throws Exception {
+    k8s.execute("sh", "-c",
         "#!/bin/sh\n"
             + "TIMEOUT=20\n"
             + "START=\"$(date +%s)\"\n"
@@ -80,53 +109,80 @@ public class ItHelper {
   /**
    * IT helper method.
    */
-  public static void copyResources(Container kind) throws Exception {
-    kind.execute("rm", "-Rf", "/resources").forEach(line -> LOGGER.info(line));
+  public static void copyResources(Container k8s) throws Exception {
+    k8s.execute("rm", "-Rf", "/resources").forEach(line -> LOGGER.info(line));
     Path k8sPath = Paths.get("../..");
-    kind.copyIn(k8sPath.resolve("install/helm/stackgres-operator"),
+    k8s.copyIn(k8sPath.resolve("install/helm/stackgres-operator"),
         "/resources/stackgres-operator");
-    kind.copyIn(k8sPath.resolve("install/helm/stackgres-cluster"),
+    k8s.copyIn(k8sPath.resolve("install/helm/stackgres-cluster"),
         "/resources/stackgres-cluster");
-    kind.copyIn(k8sPath.resolve("e2e"), "/resources/e2e");
+    k8s.copyIn(k8sPath.resolve("e2e"), "/resources/e2e");
+    k8s.copyIn(Paths.get("src/test/resources/certs"), "/resources/certs");
   }
 
   /**
    * It helper method.
    */
-  public static void resetKind(Container kind, int size, boolean reuse) throws Exception {
-    if (reuse) {
-      LOGGER.info("Reusing kind");
-      kind.execute("sh", "-ec",
-              "cd /resources/e2e\n"
-              + "export KIND_NAME=\"$(docker inspect -f '{{.Name}}' \"$(hostname)\"|cut -d '/' -f 2)\"\n"
-              + "export REUSE_K8S=true\n"
-              + "export USE_KIND_INTERNAL=true\n"
-              + "sh e2e reuse_k8s\n"
-              + "sh e2e setup_helm\n"
-              + "sh e2e setup_default_limits 0.1 0.1 16Mi 16Mi\n")
+  public static void resetKind(Container k8s, int size) throws Exception {
+    if (Boolean.parseBoolean(System.getenv("K8S_REUSE"))) {
+      LOGGER.info("Reusing " + E2E_ENV);
+      k8s.copyIn(new ByteArrayInputStream(
+              ("cd /resources/e2e\n"
+              + E2E_ENVVARS + "\n"
+              + "export DOCKER_NAME=\"$(docker inspect -f '{{.Name}}' \"$(hostname)\"|cut -d '/' -f 2)\"\n"
+              + "export " + E2E_ENV_VAR_NAME + "="
+                  + "\"" + E2E_ENV + "$(echo \"$DOCKER_NAME\" | sed 's/^k8s//')\"\n"
+              + "export K8S_FROM_DIND=true\n"
+              + "export IMAGE_TAG=" + ItHelper.IMAGE_TAG + "\n"
+              + "export CLUSTER_CHART_PATH=/resources/stackgres-cluster\n"
+              + "export OPERATOR_CHART_PATH=/resources/stackgres-operator\n"
+              + "sh " + (ItHelper.E2E_DEBUG.orElse(false) ? "-x" : "") + " e2e reuse_k8s\n"
+              + "sh " + (ItHelper.E2E_DEBUG.orElse(false) ? "-x" : "") + " e2e setup_helm\n"
+              + "sh " + (ItHelper.E2E_DEBUG.orElse(false) ? "-x" : "") + " e2e setup_default_limits 0.1 0.1 16Mi 16Mi\n"
+              + "sh " + (ItHelper.E2E_DEBUG.orElse(false) ? "-x" : "") + " e2e helm_cleanup\n"
+              + "sh " + (ItHelper.E2E_DEBUG.orElse(false) ? "-x" : "") + " e2e k8s_cleanup\n"
+              + (OPERATOR_IN_KUBERNETES
+                  ? "sh " + (ItHelper.E2E_DEBUG.orElse(false) ? "-x" : "") + " e2e load_operator_k8s\n" : "")
+              + (OPERATOR_IN_KUBERNETES ? ""
+                  : "sh " + (ItHelper.E2E_DEBUG.orElse(false) ? "-x" : "")
+                  + " e2e load_certificate_k8s /resources/certs/server.crt\n"))
+              .getBytes(StandardCharsets.UTF_8)), "/reuse-k8s.sh");
+      k8s.execute("sh", "-e", "/reuse-k8s.sh")
           .filter(ItHelper.EXCLUDE_TTY_WARNING)
           .forEach(LOGGER::info);
       return;
     }
-    LOGGER.info("Restarting kind");
-    kind.execute("sh", "-ec",
-        "cd /resources/e2e\n"
-        + "export KIND_NAME=\"$(docker inspect -f '{{.Name}}' \"$(hostname)\"|cut -d '/' -f 2)\"\n"
-        + "export REUSE_K8S=true\n"
-        + "export USE_KIND_INTERNAL=true\n"
-        + "sh e2e reset_k8s\n"
-        + "sh e2e setup_helm\n"
-        + "sh e2e setup_default_limits 0.1 0.1 16Mi 16Mi\n")
-    .filter(ItHelper.EXCLUDE_TTY_WARNING)
-    .forEach(LOGGER::info);
+    LOGGER.info("Restarting " + E2E_ENV);
+    k8s.copyIn(new ByteArrayInputStream(
+        ("cd /resources/e2e\n"
+        + E2E_ENVVARS + "\n"
+        + "export DOCKER_NAME=\"$(docker inspect -f '{{.Name}}' \"$(hostname)\"|cut -d '/' -f 2)\"\n"
+        + "export " + E2E_ENV_VAR_NAME + "="
+            + "\"" + E2E_ENV + "$(echo \"$DOCKER_NAME\" | sed 's/^k8s//')\"\n"
+        + "export K8S_FROM_DIND=true\n"
+        + "export IMAGE_TAG=" + ItHelper.IMAGE_TAG + "\n"
+        + "export CLUSTER_CHART_PATH=/resources/stackgres-cluster\n"
+        + "export OPERATOR_CHART_PATH=/resources/stackgres-operator\n"
+        + "sh " + (ItHelper.E2E_DEBUG.orElse(false) ? "-x" : "") + " e2e reset_k8s\n"
+        + "sh " + (ItHelper.E2E_DEBUG.orElse(false) ? "-x" : "") + " e2e setup_helm\n"
+        + "sh " + (ItHelper.E2E_DEBUG.orElse(false) ? "-x" : "") + " e2e setup_default_limits 0.1 0.1 16Mi 16Mi\n"
+        + (OPERATOR_IN_KUBERNETES
+            ? "sh " + (ItHelper.E2E_DEBUG.orElse(false) ? "-x" : "") + " e2e load_operator_k8s\n" : "")
+        + (OPERATOR_IN_KUBERNETES ? ""
+            : "sh " + (ItHelper.E2E_DEBUG.orElse(false) ? "-x" : "")
+            + " e2e load_certificate_k8s /resources/certs/server.crt\n"))
+        .getBytes(StandardCharsets.UTF_8)), "/restart-k8s.sh");
+    k8s.execute("sh", "-e", "/restart-k8s.sh")
+        .filter(ItHelper.EXCLUDE_TTY_WARNING)
+        .forEach(LOGGER::info);
   }
 
   /**
    * It helper method.
    */
-  public static void createNamespace(Container kind, String namespace) throws Exception {
+  public static void createNamespace(Container k8s, String namespace) throws Exception {
     LOGGER.info("Create namespace '" + namespace + "'");
-    kind.execute("sh", "-l", "-c",
+    k8s.execute("sh", "-l", "-c",
         "kubectl create namespace " + namespace)
         .filter(EXCLUDE_TTY_WARNING)
         .forEach(line -> LOGGER.info(line));
@@ -135,55 +191,11 @@ public class ItHelper {
   /**
    * It helper method.
    */
-  public static void deleteNamespaceIfExists(Container kind, String namespace) throws Exception {
-    LOGGER.info("Deleting namespace if exists '" + namespace + "'");
-    kind.execute("sh", "-l", "-c",
-        "kubectl delete namespace --ignore-not-found " + namespace + " --timeout=19s"
-            + " || (kubectl api-resources --namespaced -o name"
-            + " | xargs -r -n 1 -I + -P 0 sh -ec 'kubectl get \"+\" -n \"" + namespace + "\" -o name"
-            + " | xargs -r -n 1 -I % kubectl delete -n \"" + namespace + "\" \"%\" --grace-period=0 --force' >/dev/null 2>&1 || true;"
-            + " kubectl get namespace \"" + namespace + "\" -o json | tr -d \"\\n\""
-            + " | sed \"s/\\\"finalizers\\\": \\[[^]]\\+\\]/\\\"finalizers\\\": []/\""
-            + " | kubectl replace --raw /api/v1/namespaces/" + namespace + "/finalize -f - >/dev/null 2>&1"
-            + " || ! kubectl get namespace \"" + namespace + "\" -o name >/dev/null 2>&1)")
-        .filter(EXCLUDE_TTY_WARNING)
-        .forEach(line -> LOGGER.info(line));
-  }
-
-  /**
-   * It helper method.
-   */
-  public static void deleteStackGresOperatorHelmChartIfExists(Container kind, String namespace)
-      throws Exception {
-    LOGGER.info("Deleting if exists stackgres-operator helm chart");
-    kind.execute("sh", "-l", "-c", "helm template /resources/stackgres-operator"
-        + " --namespace " + namespace
-        + " --name stackgres-operator"
-        + " --set-string cert.crt=undefined"
-        + " --set-string cert.key=undefined"
-        + " | kubectl delete --ignore-not-found -f -")
-        .filter(EXCLUDE_TTY_WARNING)
-        .forEach(line -> LOGGER.info(line));
-    kind.execute("sh", "-l", "-c", "helm delete stackgres-operator --purge || true")
-        .filter(EXCLUDE_TTY_WARNING)
-        .forEach(line -> LOGGER.info(line));
-  }
-
-  /**
-   * It helper method.
-   */
-  public static void installStackGresOperatorHelmChart(Container kind, String namespace,
+  public static void installStackGresOperatorHelmChart(Container k8s, String namespace,
       int sslPort, Executor executor) throws Exception {
     if (OPERATOR_IN_KUBERNETES) {
-      LOGGER.info("Loading stackgres operator image stackgres/operator:" + IMAGE_TAG);
-      kind.execute("sh", "-l", "-c",
-        "KIND_NAME=\"$(docker inspect -f '{{.Name}}' \"$(hostname)\"|cut -d '/' -f 2)\";"
-        + "kind load docker-image --name \"$KIND_NAME\""
-          + " stackgres/operator:" + IMAGE_TAG)
-        .filter(EXCLUDE_TTY_WARNING)
-        .forEach(line -> LOGGER.info(line));
       LOGGER.info("Installing stackgres-operator helm chart");
-      kind.execute("sh", "-l", "-c", "helm install /resources/stackgres-operator"
+      k8s.execute("sh", "-l", "-c", "helm install /resources/stackgres-operator"
           + " --namespace " + namespace
           + " --name stackgres-operator"
           + " --set-string image.tag=" + IMAGE_TAG
@@ -194,7 +206,7 @@ public class ItHelper {
     }
 
     LOGGER.info("Installing stackgres-operator helm chart");
-    kind.execute("sh", "-l", "-c", "helm install /resources/stackgres-operator"
+    k8s.execute("sh", "-l", "-c", "helm install /resources/stackgres-operator"
         + " --namespace stackgres"
         + " --name stackgres-operator"
         + " --set deploy.create=false"
@@ -218,7 +230,7 @@ public class ItHelper {
       throw new RuntimeException("Can not retrieve docker interface IP:\n"
           + dockerInterfaceIpError.join().stream().collect(Collectors.joining("\n")));
     }
-    kind.execute("sh", "-l", "-c", "cat << 'EOF' | kubectl create -f -\n"
+    k8s.execute("sh", "-l", "-c", "cat << 'EOF' | kubectl create -f -\n"
         + "kind: Service\n"
         + "apiVersion: v1\n"
         + "metadata:\n"
@@ -247,14 +259,14 @@ public class ItHelper {
   /**
    * It helper method.
    */
-  public static void installStackGresConfigs(Container kind, String namespace)
+  public static void installStackGresConfigs(Container k8s, String namespace)
       throws Exception {
     LOGGER.info("Deleting if exists stackgres-cluster helm chart for configs");
-    kind.execute("sh", "-l", "-c", "helm delete stackgres-cluster-configs --purge || true")
+    k8s.execute("sh", "-l", "-c", "helm delete stackgres-cluster-configs --purge || true")
         .filter(EXCLUDE_TTY_WARNING)
         .forEach(line -> LOGGER.info(line));
     LOGGER.info("Installing stackgres-cluster helm chart for configs");
-    kind.execute("sh", "-l", "-c", "helm install /resources/stackgres-cluster"
+    k8s.execute("sh", "-l", "-c", "helm install /resources/stackgres-cluster"
         + " --namespace " + namespace
         + " --name stackgres-cluster-configs"
         + " --set-string config.postgresql.postgresql\\.conf.shared_buffers=32MB"
@@ -270,19 +282,19 @@ public class ItHelper {
   /**
    * It helper method.
    */
-  public static void installStackGresCluster(Container kind, String namespace, String name,
+  public static void installStackGresCluster(Container k8s, String namespace, String name,
       int instances) throws Exception {
     LOGGER.info("Deleting if exists stackgres-cluster helm chart for cluster with name " + name);
-    kind.execute("sh", "-l", "-c", "helm delete " + name + " --purge || true")
+    k8s.execute("sh", "-l", "-c", "helm delete " + name + " --purge || true")
         .filter(EXCLUDE_TTY_WARNING)
         .forEach(line -> LOGGER.info(line));
     LOGGER.info("Deleting if exists stackgres-cluster resources for cluster with name " + name);
-    kind.execute("sh", "-l", "-c", "kubectl delete statefulset"
+    k8s.execute("sh", "-l", "-c", "kubectl delete statefulset"
         + " -n " + namespace + " " + name + " --ignore-not-found")
         .filter(EXCLUDE_TTY_WARNING)
         .forEach(line -> LOGGER.info(line));
     LOGGER.info("Installing stackgres-cluster helm chart for cluster with name " + name);
-    kind.execute("sh", "-l", "-c", "helm install /resources/stackgres-cluster"
+    k8s.execute("sh", "-l", "-c", "helm install /resources/stackgres-cluster"
         + " --namespace " + namespace
         + " --name " + name
         + " --set config.create=false"
@@ -298,10 +310,10 @@ public class ItHelper {
   /**
    * It helper method.
    */
-  public static void upgradeStackGresCluster(Container kind, String namespace, String name,
+  public static void upgradeStackGresCluster(Container k8s, String namespace, String name,
       int instances) throws Exception {
     LOGGER.info("Upgrade stackgres-cluster helm chart for cluster with name " + name);
-    kind.execute("sh", "-l", "-c", "helm upgrade " + name
+    k8s.execute("sh", "-l", "-c", "helm upgrade " + name
         + " /resources/stackgres-cluster --reuse-values"
         + " --set config.create=false"
         + " --set profiles=null"
@@ -316,9 +328,9 @@ public class ItHelper {
   /**
    * It helper method.
    */
-  public static void deleteStackGresCluster(Container kind, String namespace, String name) throws Exception {
+  public static void deleteStackGresCluster(Container k8s, String namespace, String name) throws Exception {
     LOGGER.info("Delete stackgres-cluster helm chart for cluster with name " + name);
-    kind.execute("sh", "-l", "-c", "helm delete " + name)
+    k8s.execute("sh", "-l", "-c", "helm delete " + name + " --purge")
       .filter(EXCLUDE_TTY_WARNING)
       .forEach(line -> LOGGER.info(line));
   }
@@ -327,9 +339,9 @@ public class ItHelper {
    * It helper method.
    */
   public static void waitUntilOperatorIsReady(CompletableFuture<Void> operator,
-      WebTarget operatorClient, Container kind) throws Exception {
+      WebTarget operatorClient, Container k8s) throws Exception {
     if (OPERATOR_IN_KUBERNETES) {
-      waitUntil(Unchecked.supplier(() -> kind.execute("sh", "-l", "-c",
+      waitUntil(Unchecked.supplier(() -> k8s.execute("sh", "-l", "-c",
           "kubectl get pod -n stackgres -o name"
               + " | grep '^pod/stackgres-operator-'"
               + " | grep -v '^pod/stackgres-operator-init'"
@@ -370,13 +382,13 @@ public class ItHelper {
    * Code has been copied and adapted from {@code QuarkusTestExtension} to allow start/stop
    * quarkus application inside a test.
    */
-  public static OperatorRunner createOperator(Container kind, int port,
+  public static OperatorRunner createOperator(Container k8s, int port,
       int sslPort, Executor executor) throws Exception {
     if (OPERATOR_IN_KUBERNETES) {
-      return new KubernetesOperatorRunner(kind, executor);
+      return new KubernetesOperatorRunner(k8s, executor);
     }
 
-    return new LocalOperatorRunner(kind, ItHelper.class, port, sslPort);
+    return new LocalOperatorRunner(k8s, ItHelper.class, port, sslPort);
   }
 
   public static <T> void waitUntil(Supplier<T> supplier, Predicate<T> condition, int timeout,
@@ -406,4 +418,5 @@ public class ItHelper {
 
   private ItHelper() {
   }
+
 }

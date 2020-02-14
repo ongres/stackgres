@@ -13,7 +13,7 @@ import javax.enterprise.context.ApplicationScoped;
 import io.stackgres.operator.common.BackupReview;
 import io.stackgres.operator.customresource.sgbackup.StackGresBackup;
 import io.stackgres.operator.customresource.sgbackup.StackGresBackupStatus;
-import io.stackgres.operatorframework.ValidationFailed;
+import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 
 @ApplicationScoped
 public class BackupNameValidator implements BackupValidator {

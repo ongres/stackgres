@@ -19,9 +19,9 @@ then
   SPECS=$(echo "$SPECS\n$ENV_SPECS")
 fi
 
-export REUSE_K8S=true
-export BUILD_OPERATOR=false
-export REUSE_OPERATOR=true
+export K8S_REUSE=true
+export E2E_BUILD_OPERATOR=false
+export E2E_REUSE_OPERATOR=true
 
 START="$(date +%s)"
 COUNT=0

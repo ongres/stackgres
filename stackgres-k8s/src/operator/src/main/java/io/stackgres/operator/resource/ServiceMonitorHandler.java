@@ -19,6 +19,7 @@ import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.kubernetes.internal.KubernetesDeserializer;
 import io.stackgres.operator.common.StackGresClusterContext;
+import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operator.customresource.prometheus.Endpoint;
 import io.stackgres.operator.customresource.prometheus.NamespaceSelector;
 import io.stackgres.operator.customresource.prometheus.ServiceMonitor;
@@ -27,10 +28,11 @@ import io.stackgres.operator.customresource.prometheus.ServiceMonitorDoneable;
 import io.stackgres.operator.customresource.prometheus.ServiceMonitorList;
 import io.stackgres.operator.customresource.prometheus.ServiceMonitorSpec;
 import io.stackgres.operatorframework.resource.Kind;
-import io.stackgres.operatorframework.resource.PairVisitor;
 import io.stackgres.operatorframework.resource.ResourceHandler;
 import io.stackgres.operatorframework.resource.ResourceHandlerContext;
-import io.stackgres.operatorframework.resource.ResourcePairVisitor;
+import io.stackgres.operatorframework.resource.ResourceUtil;
+import io.stackgres.operatorframework.resource.visitor.PairVisitor;
+import io.stackgres.operatorframework.resource.visitor.ResourcePairVisitor;
 
 import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple2;
@@ -65,22 +67,22 @@ public class ServiceMonitorHandler implements ResourceHandler<StackGresClusterCo
     ImmutableList<Tuple2<String, String>> existingConfigsLabels = existingContexts.stream()
         .map(context -> Tuple.tuple(
             context.getCluster().getMetadata().getNamespace(),
-            ResourceUtil.clusterUid(context.getCluster())))
+            StackGresUtil.clusterUid(context.getCluster())))
         .collect(ImmutableList.toImmutableList());
     return getServiceMonitorClient(client)
         .map(crClient -> crClient
             .inAnyNamespace()
-            .withLabels(ResourceUtil.defaultLabels())
+            .withLabels(StackGresUtil.defaultLabels())
             .list()
             .getItems()
             .stream()
             .filter(serviceMonitor -> !existingConfigsLabels.stream()
                 .anyMatch(e -> Objects.equals(e.v1,
                     serviceMonitor.getMetadata().getLabels().get(
-                        ResourceUtil.CLUSTER_NAMESPACE_KEY))
+                        StackGresUtil.CLUSTER_NAMESPACE_KEY))
                     && Objects.equals(e.v2,
                         serviceMonitor.getMetadata().getLabels().get(
-                            ResourceUtil.CLUSTER_UID_KEY))))
+                            StackGresUtil.CLUSTER_UID_KEY))))
             .map(cr -> (HasMetadata) cr))
         .orElse(Stream.empty());
   }
@@ -91,7 +93,7 @@ public class ServiceMonitorHandler implements ResourceHandler<StackGresClusterCo
     return getServiceMonitorClient(client)
         .map(crClient -> crClient
             .inAnyNamespace()
-            .withLabels(ResourceUtil.clusterCrossNamespaceLabels(
+            .withLabels(StackGresUtil.clusterCrossNamespaceLabels(
                 context.getCluster()))
             .list()
             .getItems()
@@ -203,12 +205,12 @@ public class ServiceMonitorHandler implements ResourceHandler<StackGresClusterCo
 
   @Override
   public String getContextNamespaceOf(HasMetadata resource) {
-    return resource.getMetadata().getLabels().get(ResourceUtil.CLUSTER_NAMESPACE_KEY);
+    return resource.getMetadata().getLabels().get(StackGresUtil.CLUSTER_NAMESPACE_KEY);
   }
 
   @Override
   public String getContextNameOf(HasMetadata resource) {
-    return resource.getMetadata().getLabels().get(ResourceUtil.CLUSTER_NAME_KEY);
+    return resource.getMetadata().getLabels().get(StackGresUtil.CLUSTER_NAME_KEY);
   }
 
 }
