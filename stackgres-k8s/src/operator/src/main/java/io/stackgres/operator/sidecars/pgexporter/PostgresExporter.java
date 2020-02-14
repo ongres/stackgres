@@ -95,7 +95,7 @@ public class PostgresExporter implements StackGresClusterSidecarResourceFactory<
             .withContainerPort(9187)
             .build())
         .withVolumeMounts(ClusterStatefulSetVolumeConfig.SOCKET
-            .volumeMountFactory().apply(context.getClusterContext()));
+            .volumeMount(context.getClusterContext()));
 
     return container.build();
   }

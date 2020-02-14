@@ -112,7 +112,7 @@ public class PgBouncer
             DEFAULT_VERSION, StackGresUtil.CONTAINER_BUILD))
         .withImagePullPolicy("Always")
         .withVolumeMounts(ClusterStatefulSetVolumeConfig.SOCKET
-            .volumeMountFactory().apply(context.getClusterContext()),
+            .volumeMount(context.getClusterContext()),
             new VolumeMountBuilder()
             .withName(NAME)
             .withMountPath("/etc/pgbouncer")

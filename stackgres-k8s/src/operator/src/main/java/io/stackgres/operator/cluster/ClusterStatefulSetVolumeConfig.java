@@ -6,135 +6,83 @@
 package io.stackgres.operator.cluster;
 
 import java.util.Optional;
-import java.util.function.BiFunction;
-import java.util.function.Function;
+import java.util.stream.Stream;
 
 import io.fabric8.kubernetes.api.model.Volume;
-import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
-import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.operator.common.StackGresClusterContext;
+import io.stackgres.operator.common.VolumeConfig;
 import io.stackgres.operator.patroni.PatroniConfigMap;
+
+import org.jooq.lambda.Seq;
 
 public enum ClusterStatefulSetVolumeConfig {
 
-  DATA("data", ClusterStatefulSetPath.PG_DATA_PATH,
-      ClusterStatefulSet::dataName),
-  SOCKET("socket", ClusterStatefulSetPath.PG_RUN_PATH,
-      ClusterStatefulSetVolumeConfig::createEmptyDirVolume),
-  LOCAL_BIN("local-bin", ClusterStatefulSetPath.LOCAL_BIN_PATH,
-      ClusterStatefulSetVolumeConfig::createEmptyDirVolume),
-  PATRONI_CONFIG("patroni-config", ClusterStatefulSetPath.PATRONI_ENV_PATH,
-      ClusterStatefulSetVolumeConfig::createConfigMapVolume,
-      PatroniConfigMap::name),
-  BACKUP_CONFIG("backup-config", ClusterStatefulSetPath.BACKUP_ENV_PATH,
-      ClusterStatefulSetVolumeConfig::createConfigMapVolume,
-      BackupConfigMap::name),
-  BACKUP_SECRET("backup-secret", ClusterStatefulSetPath.BACKUP_SECRET_PATH,
-      ClusterStatefulSetVolumeConfig::createSecretVolume,
-      BackupSecret::name),
-  RESTORE_CONFIG("restore-config", ClusterStatefulSetPath.RESTORE_ENV_PATH,
-      ClusterStatefulSetVolumeConfig::createConfigMapVolume,
-      RestoreConfigMap::name),
-  RESTORE_SECRET("restore-secret", ClusterStatefulSetPath.RESTORE_SECRET_PATH,
-      ClusterStatefulSetVolumeConfig::createSecretVolume,
-      RestoreSecret::name),
-  RESTORE_ENTRYPOINT("restore-entrypoint", ClusterStatefulSetPath.RESTORE_ENTRYPOINT_PATH,
-      ClusterStatefulSetVolumeConfig::createEmptyDirVolume);
+  DATA(VolumeConfig.persistentVolumeClaim(
+      "data", ClusterStatefulSetPath.PG_DATA_PATH,
+      ClusterStatefulSet::dataName)),
+  SOCKET(VolumeConfig.emptyDir(
+      "socket", ClusterStatefulSetPath.PG_RUN_PATH)),
+  LOCAL_BIN(VolumeConfig.emptyDir(
+      "local-bin", ClusterStatefulSetPath.LOCAL_BIN_PATH)),
+  PATRONI_CONFIG(VolumeConfig.configMap(
+      "patroni-config", ClusterStatefulSetPath.PATRONI_ENV_PATH,
+      PatroniConfigMap::name)),
+  BACKUP_CONFIG(VolumeConfig.configMap(
+      "backup-config", ClusterStatefulSetPath.BACKUP_ENV_PATH,
+      BackupConfigMap::name)),
+  BACKUP_SECRET(VolumeConfig.secret(
+      "backup-secret", ClusterStatefulSetPath.BACKUP_SECRET_PATH,
+      BackupSecret::name)),
+  RESTORE_CONFIG(VolumeConfig.configMap(
+      "restore-config", ClusterStatefulSetPath.RESTORE_ENV_PATH,
+      RestoreConfigMap::name,
+      context ->  context.getRestoreContext().isPresent())),
+  RESTORE_SECRET(VolumeConfig.secret(
+      "restore-secret", ClusterStatefulSetPath.RESTORE_SECRET_PATH,
+      RestoreSecret::name,
+      context ->  context.getRestoreContext().isPresent())),
+  RESTORE_ENTRYPOINT(VolumeConfig.emptyDir(
+      "restore-entrypoint", ClusterStatefulSetPath.RESTORE_ENTRYPOINT_PATH,
+      context ->  context.getRestoreContext().isPresent()));
 
-  private final String name;
-  private final ClusterStatefulSetPath path;
-  private final Function<StackGresClusterContext, VolumeMount> volumeMountFactory;
-  private final Function<StackGresClusterContext, Optional<Volume>> volumeFactory;
-  private final Function<StackGresClusterContext, String> getResourceName;
+  private final VolumeConfig volumeConfig;
 
-  ClusterStatefulSetVolumeConfig(String name, ClusterStatefulSetPath path,
-      BiFunction<StackGresClusterContext, ClusterStatefulSetVolumeConfig,
-          Optional<Volume>> volumeFactory) {
-    this(name, path, volumeFactory, context -> name, context -> {
-      throw new UnsupportedOperationException();
-    });
+  ClusterStatefulSetVolumeConfig(VolumeConfig volumeConfig) {
+    this.volumeConfig = volumeConfig;
   }
 
-  ClusterStatefulSetVolumeConfig(String name, ClusterStatefulSetPath path,
-      Function<StackGresClusterContext, String> getName) {
-    this(name, path, ClusterStatefulSetVolumeConfig::noVolume, getName, context -> {
-      throw new UnsupportedOperationException();
-    });
+  public VolumeConfig config() {
+    return volumeConfig;
   }
 
-  ClusterStatefulSetVolumeConfig(String name, ClusterStatefulSetPath path,
-      BiFunction<StackGresClusterContext, ClusterStatefulSetVolumeConfig,
-          Optional<Volume>> volumeFactory,
-      Function<StackGresClusterContext, String> getResourceName) {
-    this(name, path, volumeFactory, context -> name, getResourceName);
+  public VolumeMount volumeMount(StackGresClusterContext context) {
+    return volumeConfig.volumeMount(context)
+        .orElseThrow(() -> new IllegalStateException(
+            "Volume mount " + volumeConfig.name() + " is not available for this context"));
   }
 
-  ClusterStatefulSetVolumeConfig(String name, ClusterStatefulSetPath path,
-      BiFunction<StackGresClusterContext, ClusterStatefulSetVolumeConfig,
-          Optional<Volume>> volumeFactory,
-      Function<StackGresClusterContext, String> getName,
-      Function<StackGresClusterContext, String> getResourceName) {
-    this.name = name;
-    this.path = path;
-    this.volumeMountFactory = context -> new VolumeMountBuilder()
-        .withName(getName.apply(context))
-        .withMountPath(path.path())
-        .build();
-    this.volumeFactory = context -> volumeFactory.apply(context, this);
-    this.getResourceName = getResourceName;
+  public Volume volume(StackGresClusterContext context) {
+    return volumeConfig.volume(context)
+        .orElseThrow(() -> new IllegalStateException(
+            "Volume " + volumeConfig.name()
+            + " is not configured or not available for this context"));
   }
 
-  public String volumeName() {
-    return name;
+  public static Stream<VolumeMount> volumeMounts(StackGresClusterContext context) {
+    return Seq.of(values())
+        .map(ClusterStatefulSetVolumeConfig::config)
+        .map(volumeConfig -> volumeConfig.volumeMount(context))
+        .filter(Optional::isPresent)
+        .map(Optional::get);
   }
 
-  public String path() {
-    return path.path();
+  public static Stream<Volume> volumes(StackGresClusterContext context) {
+    return Seq.of(values())
+        .map(ClusterStatefulSetVolumeConfig::config)
+        .map(volumeConfig -> volumeConfig.volume(context))
+        .filter(Optional::isPresent)
+        .map(Optional::get);
   }
 
-  public Function<StackGresClusterContext, VolumeMount> volumeMountFactory() {
-    return volumeMountFactory;
-  }
-
-  public Function<StackGresClusterContext, Optional<Volume>> volumeFactory() {
-    return volumeFactory;
-  }
-
-  private static Optional<Volume> createEmptyDirVolume(StackGresClusterContext context,
-      ClusterStatefulSetVolumeConfig config) {
-    return Optional.of(new VolumeBuilder()
-        .withName(config.volumeName())
-        .withNewEmptyDir()
-        .withMedium("Memory")
-        .endEmptyDir()
-        .build());
-  }
-
-  private static Optional<Volume> createConfigMapVolume(StackGresClusterContext context,
-      ClusterStatefulSetVolumeConfig config) {
-    return Optional.of(new VolumeBuilder()
-        .withName(config.volumeName())
-        .withNewConfigMap()
-        .withName(config.getResourceName.apply(context))
-        .withDefaultMode(444)
-        .endConfigMap()
-        .build());
-  }
-
-  private static Optional<Volume> createSecretVolume(StackGresClusterContext context,
-      ClusterStatefulSetVolumeConfig config) {
-    return Optional.of(new VolumeBuilder()
-        .withName(config.volumeName())
-        .withNewSecret()
-        .withSecretName(config.getResourceName.apply(context))
-        .withDefaultMode(444)
-        .endSecret()
-        .build());
-  }
-
-  private static Optional<Volume> noVolume(StackGresClusterContext context,
-      ClusterStatefulSetVolumeConfig config) {
-    return Optional.empty();
-  }
 }

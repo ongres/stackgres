@@ -7,10 +7,12 @@ package io.stackgres.operator.cluster;
 
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
+import io.stackgres.operator.common.VolumePath;
 
 import org.jooq.lambda.Seq;
 
-public enum ClusterStatefulSetPath {
+public enum ClusterStatefulSetPath implements VolumePath {
+
   LOCAL_BIN_PATH("/usr/local/bin"),
   PG_BASE_PATH("/var/lib/postgresql"),
   PG_RUN_PATH("/var/run/postgresql"),
@@ -39,6 +41,7 @@ public enum ClusterStatefulSetPath {
     this(Seq.of(parent.path).append(paths).toString("/"));
   }
 
+  @Override
   public String path() {
     return path;
   }

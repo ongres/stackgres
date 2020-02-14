@@ -13,22 +13,13 @@ import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operatorframework.resource.factory.SubResourceStreamFactory;
 
-import org.jooq.lambda.Seq;
-
 @ApplicationScoped
 public class ClusterStatefulSetVolumeMounts
     implements SubResourceStreamFactory<VolumeMount, StackGresClusterContext> {
 
   @Override
   public Stream<VolumeMount> streamResources(StackGresClusterContext config) {
-    return Seq.<VolumeMount>empty()
-        .append(Seq.of(ClusterStatefulSetVolumeConfig.values())
-            .filter(volumeConfig -> config.getRestoreContext().isPresent()
-                || (volumeConfig != ClusterStatefulSetVolumeConfig.RESTORE_CONFIG  // NOPMD
-                && volumeConfig != ClusterStatefulSetVolumeConfig.RESTORE_SECRET
-                && volumeConfig != ClusterStatefulSetVolumeConfig.RESTORE_ENTRYPOINT))
-            .map(ClusterStatefulSetVolumeConfig::volumeMountFactory)
-            .map(volumeMountFactory -> volumeMountFactory.apply(config)));
+    return ClusterStatefulSetVolumeConfig.volumeMounts(config);
   }
 
 }
