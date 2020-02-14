@@ -22,7 +22,7 @@ import io.stackgres.operator.customresource.sgprofile.StackGresProfile;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfileDefinition;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfileDoneable;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfileList;
-import io.stackgres.operator.patroni.Patroni;
+import io.stackgres.operator.patroni.factory.Patroni;
 import io.stackgres.operator.resource.dto.ClusterResourceConsumtion;
 import io.stackgres.operator.rest.PatroniStatsScripts;
 import io.stackgres.operatorframework.resource.ResourceUtil;

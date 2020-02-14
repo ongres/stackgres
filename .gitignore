@@ -12,6 +12,10 @@ factoryConfiguration.json
 ### VS code ###
 .vscode/
 
+### IntelliJ ###
+
+*.iml
+
 ### Eclipse ###
 .metadata
 bin/

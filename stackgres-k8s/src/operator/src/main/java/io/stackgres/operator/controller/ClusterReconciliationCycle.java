@@ -27,7 +27,7 @@ import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
 import io.stackgres.operator.app.KubernetesClientFactory;
 import io.stackgres.operator.app.ObjectMapperProvider;
-import io.stackgres.operator.cluster.Cluster;
+import io.stackgres.operator.cluster.factory.Cluster;
 import io.stackgres.operator.common.ArcUtil;
 import io.stackgres.operator.common.ConfigContext;
 import io.stackgres.operator.common.ConfigProperty;
