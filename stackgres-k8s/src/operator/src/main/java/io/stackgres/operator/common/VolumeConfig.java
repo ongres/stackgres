@@ -6,7 +6,7 @@
 package io.stackgres.operator.common;
 
 import java.util.Optional;
-import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -17,8 +17,8 @@ import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 
 public class VolumeConfig {
 
-  private static final BiConsumer<StackGresClusterContext, VolumeBuilder> UNCHANGED_VOLUME_BUILDER =
-      (context, volumeBuilder) -> { };
+  private static final BiFunction<StackGresClusterContext, VolumeBuilder, VolumeBuilder>
+      UNCHANGED_VOLUME_BUILDER = (context, volumeBuilder) -> volumeBuilder;
 
   private final String name;
   private final VolumePath path;
@@ -28,7 +28,7 @@ public class VolumeConfig {
   private VolumeConfig(String name, VolumePath path,
       Function<VolumeConfig, Optional<VolumeBuilder>> volumeFactory,
       Function<StackGresClusterContext, String> getName,
-      BiConsumer<StackGresClusterContext, VolumeBuilder> volumeBuilderConsumer,
+      BiFunction<StackGresClusterContext, VolumeBuilder, VolumeBuilder> volumeBuilderConsumer,
       Predicate<StackGresClusterContext> filter) {
     this.name = name;
     this.path = path;
@@ -41,10 +41,7 @@ public class VolumeConfig {
     this.volumeFactory = context -> Optional.of(context)
         .filter(filter)
         .flatMap(c -> volumeFactory.apply(this))
-        .map(volumeBuilder -> {
-          volumeBuilderConsumer.accept(context, volumeBuilder);
-          return volumeBuilder;
-        })
+        .map(volumeBuilder -> volumeBuilderConsumer.apply(context, volumeBuilder))
         .map(VolumeBuilder::build);
   }
 
@@ -75,31 +72,35 @@ public class VolumeConfig {
   public static VolumeConfig configMap(String name, VolumePath path,
       Function<StackGresClusterContext, String> getConfigMapName) {
     return new VolumeConfig(name, path, VolumeConfig::createConfigMapVolume, context -> name,
-        (context, volumeBuilder) -> volumeBuilder.buildConfigMap()
-        .setName(getConfigMapName.apply(context)), context -> true);
+        (context, volumeBuilder) -> volumeBuilder.editConfigMap()
+        .withName(getConfigMapName.apply(context)).endConfigMap(),
+        context -> true);
   }
 
   public static VolumeConfig configMap(String name, VolumePath path,
       Function<StackGresClusterContext, String> getConfigMapName,
       Predicate<StackGresClusterContext> filter) {
     return new VolumeConfig(name, path, VolumeConfig::createConfigMapVolume, context -> name,
-        (context, volumeBuilder) -> volumeBuilder.buildConfigMap()
-        .setName(getConfigMapName.apply(context)), filter);
+        (context, volumeBuilder) -> volumeBuilder.editConfigMap()
+        .withName(getConfigMapName.apply(context)).endConfigMap(),
+        filter);
   }
 
   public static VolumeConfig secret(String name, VolumePath path,
       Function<StackGresClusterContext, String> getSecretName) {
     return new VolumeConfig(name, path, VolumeConfig::createSecretVolume, context -> name,
-        (context, volumeBuilder) -> volumeBuilder.buildSecret()
-        .setSecretName(getSecretName.apply(context)), context -> true);
+        (context, volumeBuilder) -> volumeBuilder.editSecret()
+        .withSecretName(getSecretName.apply(context)).endSecret(),
+        context -> true);
   }
 
   public static VolumeConfig secret(String name, VolumePath path,
       Function<StackGresClusterContext, String> getSecretName,
       Predicate<StackGresClusterContext> filter) {
     return new VolumeConfig(name, path, VolumeConfig::createSecretVolume, context -> name,
-        (context, volumeBuilder) -> volumeBuilder.buildSecret()
-        .setSecretName(getSecretName.apply(context)), filter);
+        (context, volumeBuilder) -> volumeBuilder.editSecret()
+        .withSecretName(getSecretName.apply(context)).endSecret(),
+        filter);
   }
 
   private static Optional<VolumeBuilder> createEmptyDirVolume(VolumeConfig config) {
