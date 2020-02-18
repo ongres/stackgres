@@ -12,8 +12,8 @@ import java.util.Set;
 import javax.enterprise.context.ApplicationScoped;
 
 import io.stackgres.operator.common.PgConfigReview;
-import io.stackgres.operatorframework.Operation;
-import io.stackgres.operatorframework.ValidationFailed;
+import io.stackgres.operatorframework.admissionwebhook.Operation;
+import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 
 @ApplicationScoped
 public class BlacklistValidator implements PgConfigValidator {

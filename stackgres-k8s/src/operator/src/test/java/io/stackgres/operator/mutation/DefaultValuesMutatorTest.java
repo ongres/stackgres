@@ -15,7 +15,8 @@ import com.github.fge.jsonpatch.JsonPatchOperation;
 import com.google.common.collect.Streams;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
-import io.stackgres.operatorframework.AdmissionReview;
+import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;

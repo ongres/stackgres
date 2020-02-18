@@ -15,6 +15,7 @@ import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbounc
 import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfigDefinition;
 import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfigDoneable;
 import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfigList;
+import io.stackgres.operatorframework.resource.ResourceUtil;
 
 @ApplicationScoped
 public class PgPoolingConfigScheduler implements CustomResourceScheduler<StackGresPgbouncerConfig> {

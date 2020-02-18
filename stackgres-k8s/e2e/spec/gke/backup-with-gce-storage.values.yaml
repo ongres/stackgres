@@ -1,0 +1,22 @@
+config:
+  postgresql:
+    postgresql.conf:
+      shared_buffers: '32MB'
+  backup:
+    create: true
+    # Avoid backups before waiting for pods (since backup pods could biase the wait)
+    fullSchedule: '0 5 31 2 *'
+    fullWindow: 1
+    diskRateLimit: 16777216
+    minio:
+      create: false
+    gcs:
+      prefix: gs://stackgres-e2e-backup-with-gce-storage
+      serviceAccountJsonKey:
+          name: gke-service-account
+          key: gke-service-account.json
+cluster:
+  volumeSize: 128Mi
+sidecar:
+  prometheus:
+    allowAutobind: false

@@ -80,7 +80,6 @@ sidecar:
   pooling: true
   util: true
   prometheus:
-    create: true
     allowAutobind: true
 
 crd:

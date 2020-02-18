@@ -115,7 +115,7 @@ public abstract class AbstractReconciliator<T> implements ResourceHandlerContext
           continue;
         }
         LOGGER.debug("Deleteing resource {}.{} of type {}"
-            + " since belong to an older version of an existing " + name,
+            + " since do not belong any existing " + name,
             existingResource.v1.getMetadata().getNamespace(),
             existingResource.v1.getMetadata().getName(),
             existingResource.v1.getKind());
@@ -178,7 +178,10 @@ public abstract class AbstractReconciliator<T> implements ResourceHandlerContext
             requiredResource.v1.getMetadata().getNamespace(),
             requiredResource.v1.getMetadata().getName(),
             requiredResource.v1.getKind());
-        handlerSelector.create(client, context, requiredResource.v1);
+        HasMetadata updatedRequiredResource = Unchecked.supplier(() -> objectMapper.treeToValue(
+            objectMapper.valueToTree(requiredResource.v1), requiredResource.v1.getClass())).get();
+        handlerSelector.update(this, updatedRequiredResource, requiredResource.v1);
+        handlerSelector.create(client, context, updatedRequiredResource);
         created = true;
       }
     }

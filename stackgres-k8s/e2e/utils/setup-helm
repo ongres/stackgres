@@ -7,32 +7,33 @@ setup_helm() {
     helm init --client-only
   fi 
 
-  kubectl get serviceaccount --namespace kube-system tiller > /dev/null \
+  kubectl get serviceaccount --namespace kube-system tiller > /dev/null 2>&1 \
     || kubectl create serviceaccount --namespace kube-system tiller
-  kubectl get clusterrolebinding tiller-cluster-rule > /dev/null \
+  kubectl get clusterrolebinding tiller-cluster-rule > /dev/null 2>&1 \
     || kubectl create clusterrolebinding tiller-cluster-rule --clusterrole=cluster-admin --serviceaccount=kube-system:tiller
   kubectl patch deploy --namespace kube-system tiller-deploy -p '{"spec":{"template":{"spec":{"serviceAccount":"tiller"}}}}'
 
-  wait_tiller_is_loaded
+  wait_until is_tiller_loaded
 
-  helm repo update
-}
+  if [ "$(date -u --date="$(grep '^generated:' "$HOME/.helm/repository/cache/stable-index.yaml" \
+    | cut -d ' ' -f 2 | tr 'T' ' ' | cut -d . -f 1 || echo 0)" +%s)" -lt "$(($(date +%s) - (60 * 60 * 24)))" ]
+  then
+    helm repo update
+  fi
 
-is_tiller_loaded(){
-  kubectl get pods -n kube-system \
-    | grep '^tiller-deploy-' \
-    | sed 's/ \+/ /g' \
-    | cut -d ' ' -f 2 \
-    | grep -q '1/1'
-}
-
-wait_tiller_is_loaded() {
-  until kubectl get pods -n kube-system \
-    | grep '^tiller-deploy-' \
-    | sed 's/ \+/ /g' \
-    | cut -d ' ' -f 2 \
-    | grep -q '1/1'
+  for CHART_PATH in "$OPERATOR_CHART_PATH" "$CLUSTER_CHART_PATH"
   do
-    sleep 2
+    if [ "$(helm dep list "$CHART_PATH" | tail -n +2 | head -n -1 | grep -v 'ok\s*$' | wc -l)" -gt 0 ]
+    then
+      helm dependency update --skip-refresh "$CHART_PATH"
+    fi
   done
+}
+
+is_tiller_loaded() {
+  kubectl get pods -n kube-system 2>/dev/null \
+    | grep '^tiller-deploy-' \
+    | sed 's/ \+/ /g' \
+    | cut -d ' ' -f 2 \
+    | grep -q '1/1'
 }

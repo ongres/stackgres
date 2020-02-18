@@ -7,7 +7,7 @@ package io.stackgres.operator.mutation.pgbouncer;
 
 import com.github.fge.jackson.jsonpointer.JsonPointer;
 import io.stackgres.operator.common.PgBouncerReview;
-import io.stackgres.operatorframework.JsonPatchMutator;
+import io.stackgres.operatorframework.admissionwebhook.mutating.JsonPatchMutator;
 
 public interface PgBouncerMutator extends JsonPatchMutator<PgBouncerReview> {
 

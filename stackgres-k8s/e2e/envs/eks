@@ -1,0 +1,71 @@
+#!/bin/sh
+
+K8S_EKS_NAME="${K8S_EKS_NAME:-stackgres-e2e}"
+K8S_VERSION="${K8S_VERSION:-1.13.11}"
+if [ "$K8S_VERSION" = "$DEFAULT_K8S_VERSION" ]
+then
+  >&2 echo "Warning: using kubernetes version 1.13.11 since e2e default $DEFAULT_K8S_VERSION is not available for eks"
+  K8S_VERSION=1.13.11
+fi
+K8S_EKS_REGION="${K8S_EKS_REGION:-us-west-2}"
+K8S_EKS_NODE_TYPE="${K8S_EKS_NODE_TYPE:-m5.large}"
+K8S_EKS_DISK_SIZE="${K8S_EKS_DISK_SIZE:-20}"
+K8S_EKS_OPTS="$K8S_EKS_OPTS"
+export K8S_EKS_NAME K8S_VERSION K8S_EKS_REGION K8S_EKS_NODE_LOCATIONS K8S_EKS_NODE_TYPE K8S_EKS_OPTS
+
+reuse_k8s() {
+  if ! eksctl get cluster --name "$K8S_EKS_NAME" --region "$K8S_EKS_REGION" 2>&1 \
+    | grep "^$K8S_EKS_NAME" | grep -q "ACTIVE"
+  then
+    echo "Can not reuse eks environment $K8S_EKS_NAME"
+    exit 1
+    reset_k8s
+    return
+  fi
+
+  echo "Reusing eks environment $K8S_EKS_NAME"
+
+  aws eks update-kubeconfig --name "$K8S_EKS_NAME" --region "$K8S_EKS_REGION"
+}
+
+reset_k8s() {
+  echo "Setting up eks environment $K8S_EKS_NAME..."
+
+  delete_k8s
+  eksctl create cluster --name "$K8S_EKS_NAME" \
+    --region "$K8S_EKS_REGION" \
+    --node-type "$K8S_EKS_NODE_TYPE" \
+    --node-volume-size "$K8S_EKS_DISK_SIZE" \
+    --nodes 3 \
+    --version "$(echo "$K8S_VERSION" | cut -d . -f 1-2)" \
+    $K8S_EKS_OPTS
+
+  echo "...done"
+}
+
+delete_k8s() {
+  echo "Deleting eks environment $K8S_EKS_NAME..."
+
+  if eksctl get cluster --name "$K8S_EKS_NAME" --region "$K8S_EKS_REGION" 2>&1 \
+    | grep "^$K8S_EKS_NAME" | grep -q "ACTIVE"
+  then
+    eksctl delete cluster --wait --name "$K8S_EKS_NAME" --region "$K8S_EKS_REGION" || true
+  fi
+  aws ec2 describe-volumes --region "$K8S_EKS_REGION" --filters "Name=tag-key,Values=kubernetes.io/cluster/$K8S_EKS_NAME" \
+    | jq -r '.Volumes[].VolumeId' | xargs -r -n 1 -I % aws ec2 delete-volume --region "$K8S_EKS_REGION" --volume-id %
+
+  echo "...done"
+}
+
+load_operator_k8s() {
+  echo "Loading operator image $IMAGE_NAME in eks environemnt $K8S_EKS_NAME..."
+
+  docker tag "$IMAGE_NAME" "$(aws sts get-caller-identity | jq -r .Account).dkr.ecr.region.amazonaws.com/$IMAGE_NAME"
+
+  echo "...done"
+}
+
+operator_pull_policy() {
+  echo IfNotPresent
+}
+

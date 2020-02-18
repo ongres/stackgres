@@ -6,7 +6,7 @@
 package io.stackgres.operator.validation.cluster;
 
 import io.stackgres.operator.common.StackgresClusterReview;
-import io.stackgres.operatorframework.Validator;
+import io.stackgres.operatorframework.admissionwebhook.validating.Validator;
 
 public interface ClusterValidator extends Validator<StackgresClusterReview> {
 }

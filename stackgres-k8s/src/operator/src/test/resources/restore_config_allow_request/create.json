@@ -39,7 +39,7 @@
         "generation": 1,
         "labels": {
           "app": "restore-with-default-storage",
-          "chart": "stackgres-cluster-0.8-SNAPSHOT",
+          "chart": "stackgres-cluster-0.9-SNAPSHOT",
           "heritage": "Tiller",
           "release": "restore-with-default-storage"
         },

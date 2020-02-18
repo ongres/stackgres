@@ -6,7 +6,7 @@
   <parent>
     <groupId>io.stackgres</groupId>
     <artifactId>stackgres-parent</artifactId>
-    <version>0.8</version>
+    <version>0.9-SNAPSHOT</version>
   </parent>
 
   <artifactId>stackgres-operator</artifactId>
@@ -32,6 +32,8 @@
     <checkstyle.suppressions.location>${project.basedir}/../checks/checkstyle/suppressions.xml</checkstyle.suppressions.location>
     <checkstyle.header.file>${project.basedir}/../checks/checkstyle/header.txt</checkstyle.header.file>
     <spotbugs.excludeFilterFile>${project.basedir}/../checks/spotbugs/exclude.xml</spotbugs.excludeFilterFile>
+
+    <it.image>stackgres/it:1.0</it.image>
   </properties>
 
   <dependencies>
@@ -71,6 +73,21 @@
     <dependency>
       <groupId>com.ongres</groupId>
       <artifactId>docker-junit-extension</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.github.docker-java</groupId>
+      <artifactId>docker-java</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.glassfish.jersey.inject</groupId>
+      <artifactId>jersey-hk2</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.glassfish.jersey.connectors</groupId>
+      <artifactId>jersey-apache-connector</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -147,35 +164,15 @@
           <name>native</name>
         </property>
       </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-maven-plugin</artifactId>
-            <version>${quarkus.version}</version>
-            <executions>
-              <execution>
-                <goals>
-                  <goal>native-image</goal>
-                </goals>
-                <configuration>
-                  <enableHttpUrlHandler>true</enableHttpUrlHandler>
-                  <additionalBuildArgs>
-                    <additionalBuildArg>-H:IncludeResources=.*/banner.txt</additionalBuildArg>
-                    <additionalBuildArg>-H:IncludeResources=.*/*.yaml</additionalBuildArg>
-                    <additionalBuildArg>-H:IncludeResources=.*/*.sh</additionalBuildArg>
-                    <additionalBuildArg>-H:IncludeResources=.*/*.properties</additionalBuildArg>
-                  </additionalBuildArgs>
-                  <enableReports>false</enableReports>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
+      <properties>
+        <quarkus.package.type>native</quarkus.package.type>
+      </properties>
     </profile>
     <profile>
       <id>integration</id>
+      <properties>
+        <it.skipBuildContainer>false</it.skipBuildContainer>
+      </properties>
       <build>
         <plugins>
           <plugin>
@@ -229,10 +226,10 @@
                     <goal>build</goal>
                 </goals>
                 <configuration>
-                  <containerNamePattern>%a</containerNamePattern>
+                  <skip>${it.skipBuildContainer}</skip>
                   <images>
                     <image>
-                      <name>stackgres/it</name>
+                      <name>${it.image}</name>
                       <build>
                         <cleanup>remove</cleanup>
                         <optimise>true</optimise>
@@ -431,7 +428,7 @@
                   <images>
                     <image>
                       <alias>kind-load</alias>
-                      <name>stackgres/it</name>
+                      <name>${it.image}</name>
                       <run>
                         <entrypoint>
                           <arg>/bin/sh</arg>
@@ -492,7 +489,7 @@
                   <images>
                     <image>
                       <alias>kind-load</alias>
-                      <name>stackgres/it</name>
+                      <name>${it.image}</name>
                       <run>
                         <entrypoint>
                           <arg>/bin/sh</arg>

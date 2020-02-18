@@ -7,10 +7,11 @@ package io.stackgres.operator.mutation;
 
 import java.util.Optional;
 
-import io.stackgres.operatorframework.AdmissionReview;
-import io.stackgres.operatorframework.AdmissionReviewResponse;
-import io.stackgres.operatorframework.JsonPatchMutationPipeline;
-import io.stackgres.operatorframework.MutationResource;
+import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
+import io.stackgres.operatorframework.admissionwebhook.AdmissionReviewResponse;
+import io.stackgres.operatorframework.admissionwebhook.mutating.JsonPatchMutationPipeline;
+import io.stackgres.operatorframework.admissionwebhook.mutating.MutationResource;
+
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 

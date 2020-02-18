@@ -7,6 +7,7 @@ package io.stackgres.operator.mutation.cluster;
 
 import java.util.List;
 import java.util.stream.Collectors;
+
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -17,20 +18,20 @@ import com.github.fge.jackson.jsonpointer.JsonPointer;
 import com.github.fge.jsonpatch.AddOperation;
 import com.github.fge.jsonpatch.JsonPatchOperation;
 import com.google.common.collect.ImmutableList;
-import io.stackgres.operator.common.StackGresClusterContext;
+
 import io.stackgres.operator.common.StackgresClusterReview;
 import io.stackgres.operator.resource.SidecarFinder;
-import io.stackgres.operatorframework.Operation;
+import io.stackgres.operatorframework.admissionwebhook.Operation;
 
 @ApplicationScoped
 public class DefaultSidecarMutator implements ClusterMutator {
 
   private JsonPointer sidecarsPointer;
 
-  private final SidecarFinder<StackGresClusterContext> sidecarFinder;
+  private final SidecarFinder sidecarFinder;
 
   @Inject
-  public DefaultSidecarMutator(SidecarFinder<StackGresClusterContext> sidecarFinder) {
+  public DefaultSidecarMutator(SidecarFinder sidecarFinder) {
     this.sidecarFinder = sidecarFinder;
   }
 

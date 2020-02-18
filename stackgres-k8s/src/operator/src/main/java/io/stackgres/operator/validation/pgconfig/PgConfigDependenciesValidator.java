@@ -13,7 +13,7 @@ import io.stackgres.operator.common.PgConfigReview;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.resource.KubernetesCustomResourceScanner;
 import io.stackgres.operator.validation.DependenciesValidator;
-import io.stackgres.operatorframework.ValidationFailed;
+import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 
 @ApplicationScoped
 public class PgConfigDependenciesValidator extends DependenciesValidator<PgConfigReview>

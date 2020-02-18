@@ -10,8 +10,8 @@ import javax.enterprise.context.ApplicationScoped;
 import com.google.common.collect.ImmutableList;
 
 import io.stackgres.operator.common.BackupConfigReview;
-import io.stackgres.operatorframework.Operation;
-import io.stackgres.operatorframework.ValidationFailed;
+import io.stackgres.operatorframework.admissionwebhook.Operation;
+import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 
 @ApplicationScoped
 public class StorageTypeValidator implements BackupConfigValidator {

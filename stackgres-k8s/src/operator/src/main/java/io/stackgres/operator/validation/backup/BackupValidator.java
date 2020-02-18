@@ -6,7 +6,7 @@
 package io.stackgres.operator.validation.backup;
 
 import io.stackgres.operator.common.BackupReview;
-import io.stackgres.operatorframework.Validator;
+import io.stackgres.operatorframework.admissionwebhook.validating.Validator;
 
 public interface BackupValidator extends Validator<BackupReview> {
 }

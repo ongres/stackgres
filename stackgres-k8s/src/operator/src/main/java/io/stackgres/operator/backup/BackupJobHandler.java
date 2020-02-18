@@ -13,9 +13,9 @@ import io.fabric8.kubernetes.api.model.batch.Job;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.customresource.sgbackup.StackGresBackupDefinition;
 import io.stackgres.operator.resource.AbstractClusterResourceHandler;
-import io.stackgres.operatorframework.resource.PairVisitor;
 import io.stackgres.operatorframework.resource.ResourceHandlerContext;
-import io.stackgres.operatorframework.resource.ResourcePairVisitor;
+import io.stackgres.operatorframework.resource.visitor.PairVisitor;
+import io.stackgres.operatorframework.resource.visitor.ResourcePairVisitor;
 
 @ApplicationScoped
 public class BackupJobHandler extends AbstractClusterResourceHandler {

@@ -7,17 +7,22 @@ if [ "$(basename "$SHELL")" = busybox ]
 then
   SHELL=sh
 fi
+
 IMAGE_TAG="${IMAGE_TAG:-development-jvm}"
 IMAGE_NAME="stackgres/operator:$IMAGE_TAG"
-KUBERNETES_VERSION="${KUBERNETES_VERSION:-1.12.10}"
-E2E_ENV="${E2E_ENV:-kind}"
+DEFAULT_K8S_VERSION="1.12.10"
+KUBECONFIG="${KUBECONFIG:-$HOME/.kube/config}"
+SPEC_PATH="$(dirname "$0")/spec"
 TARGET_PATH="$(dirname "$0")/target"
-BUILD_OPERATOR="${BUILD_OPERATOR:-true}"
-WAIT_OPERATOR="${WAIT_OPERATOR:-true}"
-E2E_TIMEOUT="${E2E_TIMEOUT:-180}"
 TRAP_ENABLED="${TRAP_ENABLED:-false}"
-SKIP_K8S_SETUP="${SKIP_K8S_SETUP:-false}"
-OPERATOR_PULL_POLICY="${OPERATOR_PULL_POLICY:-Never}"
+
+E2E_ENV="${E2E_ENV:-kind}"
+K8S_VERSION="${K8S_VERSION:-$DEFAULT_K8S_VERSION}"
+E2E_TIMEOUT="${E2E_TIMEOUT:-180}"
+E2E_SKIP_SETUP="${E2E_SKIP_SETUP:-false}"
+E2E_OPERATOR_PULL_POLICY="${E2E_OPERATOR_PULL_POLICY:-Never}"
+E2E_BUILD_OPERATOR="${E2E_BUILD_OPERATOR:-true}"
+E2E_WAIT_OPERATOR="${E2E_WAIT_OPERATOR:-true}"
 
 if [ -z "$STACKGRES_PATH" ]
 then
@@ -26,7 +31,8 @@ fi
 OPERATOR_CHART_PATH="${OPERATOR_CHART_PATH:-"$STACKGRES_PATH/install/helm/stackgres-operator/"}"
 CLUSTER_CHART_PATH="${CLUSTER_CHART_PATH:-"$STACKGRES_PATH/install/helm/stackgres-cluster/"}"
 
-export SHELL IMAGE_TAG IMAGE_NAME KUBERNETES_VERSION CLUSTER_CHART_PATH E2E_ENV TARGET_PATH E2E_TIMEOUT
+export SHELL IMAGE_TAG IMAGE_NAME DEFAULT_K8S_VERSION KUBECONFIG SPEC_PATH TARGET_PATH TRAP_ENABLED OPERATOR_CHART_PATH CLUSTER_CHART_PATH
+export E2E_ENV K8S_VERSION E2E_TIMEOUT E2E_SKIP_SETUP E2E_OPERATOR_PULL_POLICY E2E_BUILD_OPERATOR E2E_WAIT_OPERATOR
 
 if ! command -v local > /dev/null 2>&1
 then
@@ -40,7 +46,7 @@ do
 done
 
 operator_pull_policy() {
-  echo $OPERATOR_PULL_POLICY
+  echo $E2E_OPERATOR_PULL_POLICY
 }
 
 . "$(dirname "$0")/envs/$E2E_ENV"
@@ -77,29 +83,29 @@ trap_kill_all() {
 setup_k8s() {
   mkdir -p "$TARGET_PATH/logs"
 
-  if [ "$SKIP_K8S_SETUP" = true ]
+  if [ "$E2E_SKIP_SETUP" = true ]
   then
     return
   fi
 
-  if [ "$REUSE_K8S" != true ]
+  if [ "$K8S_REUSE" != true ]
   then
     reset_k8s
   else
     reuse_k8s
   fi
 
-  setup_helm
+  if [ "$E2E_SKIP_HELM_SETUP" != true ]
+  then
+    setup_helm
 
-  setup_default_limits 0.1 0.1 16Mi 16Mi
+    setup_default_limits 0.1 0.1 16Mi 16Mi
+  fi
 
-  helm dependency update "$OPERATOR_CHART_PATH"
-  helm dependency update "$CLUSTER_CHART_PATH"
-
-  if [ "$BUILD_OPERATOR" = true ] \
+  if [ "$E2E_BUILD_OPERATOR" = true ] \
     && (
-      ! helm list | grep -q "^stackgres-operator\s" \
-      || [ "$REUSE_OPERATOR" != true ]
+      [ "$E2E_REUSE_OPERATOR" != true ] \
+      || ! helm list | grep -q "^stackgres-operator\s"
     )
   then
     (
@@ -113,24 +119,29 @@ setup_k8s() {
       | grep -q "^namespace/stackgres$" \
     || (! kubectl get deployments.apps -n stackgres -o name \
       | grep -q "^deployment.apps/stackgres-operator$" \
-      && [ "$USE_EXTERNAL_OPERATOR" != true ])\
-    || [ "$REUSE_OPERATOR" != true ]
+      && [ "$E2E_USE_EXTERNAL_OPERATOR" != true ])\
+    || [ "$E2E_REUSE_OPERATOR" != true ]
   then
-   
-    if docker image inspect $IMAGE_NAME > /dev/null
+    if [ "$E2E_FORCE_IMAGE_PULL" = "true" ]
     then
+      docker pull $IMAGE_NAME
+    fi
+
+    if docker image inspect "$IMAGE_NAME" >/dev/null 2>&1
+    then 
       load_operator_k8s
     fi
+
     helm_cleanup
     k8s_cleanup
 
     helm install --name stackgres-operator --namespace stackgres "$OPERATOR_CHART_PATH" \
       --set-string image.tag="$IMAGE_TAG" --set-string "image.pullPolicy=$(operator_pull_policy)"
-    if [ "$DEBUG_OPERATOR" = true ]
+    if [ "$E2E_DEBUG_OPERATOR" = true ]
     then
       wait_pods_running stackgres
       kubectl set env -n stackgres deployment/stackgres-operator \
-        DEBUG_OPERATOR="$DEBUG_OPERATOR" DEBUG_OPERATOR_SUSPEND="$DEBUG_OPERATOR_SUSPEND"
+        DEBUG_OPERATOR="$E2E_DEBUG_OPERATOR" DEBUG_OPERATOR_SUSPEND="$E2E_DEBUG_OPERATOR_SUSPEND"
       kubectl delete pod -n stackgres "$(kubectl get pod -n stackgres -o name|cut -d / -f 2|tail -n 1)"
     fi
   else
@@ -138,7 +149,7 @@ setup_k8s() {
     k8s_cleanup_but_operator
   fi
 
-  if [ "$WAIT_OPERATOR" = true ]
+  if [ "$E2E_WAIT_OPERATOR" = true ]
   then
     wait_pods_running stackgres
   fi

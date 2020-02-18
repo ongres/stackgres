@@ -7,7 +7,7 @@ package io.stackgres.operator.common;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfig;
-import io.stackgres.operatorframework.AdmissionReview;
+import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
 
 @RegisterForReflection
 public class PgBouncerReview extends AdmissionReview<StackGresPgbouncerConfig> {

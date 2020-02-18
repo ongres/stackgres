@@ -15,6 +15,7 @@ import io.stackgres.operator.customresource.sgprofile.StackGresProfile;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfileDefinition;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfileDoneable;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfileList;
+import io.stackgres.operatorframework.resource.ResourceUtil;
 
 @ApplicationScoped
 public class ProfileScheduler implements CustomResourceScheduler<StackGresProfile> {

@@ -9,8 +9,8 @@ To create a Google Kubernetes Engine you have to do so in a [Google Cloud Projec
 
  * Project: my-project
  * Cluster name: stackgres
- * GKE version: 1.13.12-gke.17
- * Zone: us-west1-a
+ * GKE version: 1.13.11-gke.23
+ * Zone: us-west1
  * Node locations: us-west1-a,us-west1-b,us-west1-c
  * Machine type: n1-standard-1
  * Number of nodes: 3
@@ -21,8 +21,8 @@ To create a Google Kubernetes Engine you have to do so in a [Google Cloud Projec
 gcloud -q beta container \
   --project my-project \
   clusters create stackgres \
-  --cluster-version 1.13.12-gke.17 \
-  --zone us-west1-a \
+  --cluster-version 1.13.11-gke.23 \
+  --region us-west1 \
   --node-locations us-west1-a,us-west1-b,us-west1-c \
   --machine-type n1-standard-1 \
   --disk-size "20" \
@@ -35,12 +35,12 @@ WARNING: Currently VPC-native is not the default mode during cluster creation. I
 WARNING: Starting in 1.12, default node pools in new clusters will have their legacy Compute Engine instance metadata endpoints disabled by default. To create a cluster with legacy instance metadata endpoints disabled in the default node pool, run `clusters create` with the flag `--metadata disable-legacy-endpoints=true`.
 WARNING: Your Pod address range (`--cluster-ipv4-cidr`) can accommodate at most 1008 node(s). 
 This will enable the autorepair feature for nodes. Please see https://cloud.google.com/kubernetes-engine/docs/node-auto-repair for more information on node autorepairs.
-Creating cluster stackgres in us-west1-a... Cluster is being health-checked (master is healthy)...done.
-Created [https://container.googleapis.com/v1beta1/projects/my-project/zones/us-west1-a/clusters/stackgres].
-To inspect the contents of your cluster, go to: https://console.cloud.google.com/kubernetes/workload_/gcloud/us-west1-a/stackgres?project=my-project
+Creating cluster stackgres in us-west1... Cluster is being health-checked...done.                                                                                                                                                                                             
+Created [https://container.googleapis.com/v1beta1/projects/my-project/zones/us-west1/clusters/stackgres].
+To inspect the contents of your cluster, go to: https://console.cloud.google.com/kubernetes/workload_/gcloud/us-west1/stackgres?project=my-project
 kubeconfig entry generated for stackgres.
-NAME       LOCATION    MASTER_VERSION  MASTER_IP       MACHINE_TYPE   NODE_VERSION    NUM_NODES  STATUS
-stackgres  us-west1-a  1.13.12-gke.17  35.233.185.142  n1-standard-1  1.13.12-gke.17  9          RUNNING
+NAME           LOCATION  MASTER_VERSION  MASTER_IP       MACHINE_TYPE   NODE_VERSION    NUM_NODES  STATUS
+stackgres      us-west1  1.13.11-gke.23  35.233.239.208  n1-standard-1  1.13.11-gke.23  9          RUNNING
 ```
 
 To cleanup the kubernetes cluster you may issue following command:
@@ -49,5 +49,13 @@ To cleanup the kubernetes cluster you may issue following command:
 gcloud -q beta container \
   --project my-project \
   clusters delete stackgres \
-  --zone us-west1-a \
+  --region us-west1 \
+```
+
+You may also want to cleanup compute disks used by persistence volumes that may have been created:
+
+```shell
+gcloud -q compute disks list --project my-project --filter "zone:us-west1" | tail -n+2 | sed 's/ \+/|/g' | cut -d '|' -f 1-2 \
+  | grep '^gke-stackgres-[0-9a-f]\{4\}-pvc-[0-9a-f]\{8\}-[0-9a-f]\{4\}-[0-9a-f]\{4\}-[0-9a-f]\{4\}-[0-9a-f]\{12\}|' \
+  | xargs -r -n 1 -I % sh -ec "gcloud -q compute disks delete --project my-project --zone \"\$(echo '%' | cut -d '|' -f 2)\" \"\$(echo '%' | cut -d '|' -f 1)\""
 ```

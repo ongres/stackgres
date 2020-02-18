@@ -17,12 +17,12 @@ public class KubernetesOperatorRunner implements OperatorRunner {
 
   private final CompletableFuture<Void> future = new CompletableFuture<Void>();
 
-  private final Container kind;
+  private final Container k8s;
   private final Executor executor;
 
-  public KubernetesOperatorRunner(Container kind, Executor executor) {
+  public KubernetesOperatorRunner(Container k8s, Executor executor) {
     super();
-    this.kind = kind;
+    this.k8s = k8s;
     this.executor = executor;
   }
 
@@ -33,10 +33,10 @@ public class KubernetesOperatorRunner implements OperatorRunner {
 
   @Override
   public void run() throws Throwable {
-    ItHelper.waitUntilOperatorIsReady(future, null, kind);
+    ItHelper.waitUntilOperatorIsReady(future, null, k8s);
     CompletableFuture<Void> runnerLogFuture = CompletableFuture.runAsync(() -> {
       try {
-        kind.execute("sh", "-l", "-c",
+        k8s.execute("sh", "-l", "-c",
             " kubectl get pod -n stackgres"
                 + " | grep 'stackgres-operator'"
                 + " | grep -v 'stackgres-operator-init'"
@@ -52,7 +52,7 @@ public class KubernetesOperatorRunner implements OperatorRunner {
     CompletableFuture<Void> runnerLogKillerStopper = new CompletableFuture<>();
     CompletableFuture<Void> runnerLogKiller = CompletableFuture.runAsync(Unchecked.runnable(() -> {
       while (!runnerLogKillerStopper.isDone()) {
-        kind.execute("sh", "-l", "-c",
+        k8s.execute("sh", "-l", "-c",
             "ps | grep ' kubectl logs ' | grep -v ' grep '"
                 + " | grep -v ' xargs kubectl logs '"
                 + " | sed 's/\\s\\+/ /g' | sed 's/^ //'"

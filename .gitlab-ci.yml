@@ -1,5 +1,5 @@
 # GraalVM Quarkus image
-image: docker.io/ongres/ubi-graalvm-maven:19.2.1
+image: docker.io/ongres/ubi-graalvm-maven:19.3.1-java8
 
 variables:
   # This will suppress any download for dependencies and plugins or upload messages which would clutter the console log.
@@ -9,8 +9,6 @@ variables:
                -Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository
                -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=WARN
                -Dorg.slf4j.simpleLogger.showDateTime=true
-               -XX:+TieredCompilation
-               -XX:TieredStopAtLevel=1
                -Djava.awt.headless=true
                -XX:+UseParallelOldGC
   # As of Maven 3.3.0 instead of this you may define these options in `.mvn/maven.config` so the same config is used
@@ -24,8 +22,12 @@ variables:
                    --show-version
                    -DinstallAtEnd=true
                    -DdeployAtEnd=true
-  E2E_PARALLELISM: 12
   DISABLE_IT: "true"
+  E2E_ENV: kind
+  E2E_PARALLELISM: 32
+  K8S_VERSION: 1.17.2
+  K8S_FROM_DIND: "true"
+  K8S_REUSE: "true"
 
 # Cache downloaded dependencies and plugins between builds.
 # To keep cache across branches add 'key: "$CI_JOB_NAME"'
@@ -60,7 +62,7 @@ native image:
     - compile
   script:
     - MAVEN_CLI_OPTS="$MAVEN_CLI_OPTS -DskipTests"
-    - 'mvn $MAVEN_CLI_OPTS package -P native'
+    - 'flock -w 3600 /tmp/stackgres-build-native mvn $MAVEN_CLI_OPTS package -P native'
     - 'cp $GRAALVM_HOME/jre/lib/amd64/libsunec.so stackgres-k8s/src/operator/target/'
     - 'cp $GRAALVM_HOME/jre/lib/security/cacerts stackgres-k8s/src/operator/target/'
   artifacts:
@@ -144,7 +146,10 @@ integration test:
   dependencies:
     - compile
   script:
-    - 'flock -w 3600 /tmp/stackgres-integration-test mvn $MAVEN_CLI_OPTS verify -P integration'
+    - |
+      flock -s -w 3600 /tmp/stackgres-build-native \
+        flock -w 3600 /tmp/stackgres-integration-test mvn $MAVEN_CLI_OPTS verify -P integration \
+        -Dit.skipBuildContainer=true
   only:
     variables:
       - $DO_EXTERNAL
@@ -157,11 +162,15 @@ integration test jvm image:
     - compile
   variables:
     OPERATOR_IN_KUBERNETES: "true"
-    KIND_SUFFIX: jvm-image
+    K8S_SUFFIX: jvm-image
   script:
     - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}"-jvm'
     - 'export IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
-    - 'flock -w 3600 /tmp/stackgres-integration-test-jvm-image mvn $MAVEN_CLI_OPTS verify -P integration -DargLine=-Dcom.ongres.junit.docker.runnerId="$KIND_SUFFIX"'
+    - |
+      flock -s -w 3600 /tmp/stackgres-build-native \
+        flock -w 3600 /tmp/stackgres-integration-test-jvm-image mvn $MAVEN_CLI_OPTS verify -P integration \
+        -DargLine=-Dcom.ongres.junit.docker.runnerId="$K8S_SUFFIX" \
+        -Dit.skipBuildContainer=true
 
 integration test native image:
   stage: test
@@ -171,11 +180,15 @@ integration test native image:
     - compile
   variables:
     OPERATOR_IN_KUBERNETES: "true"
-    KIND_SUFFIX: native-image
+    K8S_SUFFIX: native-image
   script:
     - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}"'
     - 'export IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
-    - 'flock -w 3600 /tmp/stackgres-integration-test-native-image mvn $MAVEN_CLI_OPTS verify -P integration -DargLine=-Dcom.ongres.junit.docker.runnerId="$KIND_SUFFIX"'
+    - |
+      flock -s -w 3600 /tmp/stackgres-build-native \
+        flock -w 3600 /tmp/stackgres-integration-test-native-image mvn $MAVEN_CLI_OPTS verify -P integration \
+        -DargLine=-Dcom.ongres.junit.docker.runnerId="$K8S_SUFFIX" \
+        -Dit.skipBuildContainer=true
   only:
     variables:
       - $CI_COMMIT_REF_NAME == "development"

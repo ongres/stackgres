@@ -1,0 +1,124 @@
+#!/bin/sh
+
+e2e_test_install() {
+
+  gsutil -m rm -r "gs://stackgres-e2e-$CLUSTER_NAME/" || true
+
+  if [ "$GKE_PROJECT" = "default" ]
+  then  
+    echo "Creating bucket in default project"
+    gsutil mb -l "$GKE_REGION" \
+      -c "standard" \
+      "gs://stackgres-e2e-$CLUSTER_NAME/"
+  else
+    echo "Creating bucket in project $GKE_PROJECT"
+    gsutil mb -l "$GKE_REGION" \
+      -p "$GKE_PROJECT" \
+      -c "standard" \
+      "gs://stackgres-e2e-$CLUSTER_NAME/"
+  fi
+
+  kubectl create namespace "$CLUSTER_NAMESPACE"
+    
+  kubectl create secret generic gke-service-account \
+    --from-file="$TARGET_PATH/gke-service-account.json" \
+    -n "$CLUSTER_NAMESPACE"
+
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1
+
+  wait_pods_running "$CLUSTER_NAMESPACE" 1
+
+  create_mock_data
+
+  BACKUP_NAME="${CLUSTER_NAME}-0-$(shuf -i 0-65535 -n 1)"
+
+}
+
+e2e_test_uninstall(){
+
+  gsutil rm -r -m "gs://stackgres-e2e-$CLUSTER_NAME/" || true
+
+}
+
+e2e_test() {
+  run_test "Check that backup is executed successfully" execute_backup
+
+  run_test "Check that restoration is executed successfully" restore_from_backup
+
+  run_test "Check restored data integrity" check_restored_data
+
+}
+
+create_mock_data(){
+  run_query -p 5432 -h "$CLUSTER_NAME-primary" -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -q "'CREATE DATABASE test;'"
+  run_query -p 5432 -h "$CLUSTER_NAME-primary" -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -q "'CREATE TABLE fibonacci(num integer);'" -d "test"
+  run_query -p 5432 -h "$CLUSTER_NAME-primary" -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -q "'INSERT INTO fibonacci(num) VALUES (1);'" -d "test"
+  run_query -p 5432 -h "$CLUSTER_NAME-primary" -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -q "'INSERT INTO fibonacci(num) VALUES (2);'" -d "test"
+  run_query -p 5432 -h "$CLUSTER_NAME-primary" -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -q "'INSERT INTO fibonacci(num) VALUES (3);'" -d "test"
+}
+
+get_backup_phase(){
+  BACKUP_PHASE=$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" -o=jsonpath='{.status.phase}')
+  echo "$BACKUP_PHASE"
+}
+
+execute_backup(){
+
+  cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/v1alpha1
+kind: StackGresBackup
+metadata:
+  namespace: "$CLUSTER_NAMESPACE"
+  name: "$BACKUP_NAME"
+spec:
+  cluster: "$CLUSTER_NAME"
+  isPermanent: true
+EOF
+  
+  wait_until eval '[ "$(get_backup_phase)" = "Completed" ]'  
+
+  echo "Success. Backup completed"
+
+}
+
+restore_from_backup(){
+
+  kubectl delete sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"
+
+  BACKUP_UID=$(kubectl get sgbackups.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" -o=jsonpath='{.metadata.uid}')
+
+  cat <<EOF | kubectl apply -f -
+apiVersion: stackgres.io/v1alpha1
+kind: StackGresCluster
+metadata:
+  name: restored-from-gce
+  namespace: $CLUSTER_NAMESPACE
+spec:
+  instances: 2
+  pgVersion: '12.1'
+  volumeSize: '512Mi'
+  restore:
+    downloadDiskConcurrency: 10
+    fromBackup: "$BACKUP_UID"
+EOF
+
+  wait_pods_running "$CLUSTER_NAMESPACE" 2
+
+  echo "Success. Cluster restored from backup $BACKUP_NAME"
+
+}
+
+check_restored_data() {
+
+  REPLICA_RESPONSE=$(run_query -p 5432 -h "restored-from-gce-replica" -c "restored-from-gce" -n $CLUSTER_NAMESPACE -i 1 -q "' SELECT num FROM fibonacci ORDER BY num;'" -d "test")
+  if [ "$(echo "$REPLICA_RESPONSE" | tr -d '\n')" = "123" ]
+  then
+    echo "SUCCESS: restore replica db restored successfully"
+  else
+    echo "FAIL: replica db not restored"
+    return 1
+  fi
+
+}
+
+

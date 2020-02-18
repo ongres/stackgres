@@ -6,9 +6,9 @@
 package io.stackgres.operator.sidecars.envoy;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -38,22 +38,22 @@ import io.stackgres.operator.app.YamlMapperProvider;
 import io.stackgres.operator.common.Prometheus;
 import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.common.StackGresClusterContext;
+import io.stackgres.operator.common.StackGresClusterSidecarResourceFactory;
 import io.stackgres.operator.common.StackGresComponents;
-import io.stackgres.operator.common.StackGresSidecarTransformer;
-import io.stackgres.operator.controller.ResourceGeneratorContext;
+import io.stackgres.operator.common.StackGresGeneratorContext;
+import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operator.customresource.prometheus.Endpoint;
 import io.stackgres.operator.customresource.prometheus.NamespaceSelector;
 import io.stackgres.operator.customresource.prometheus.ServiceMonitor;
 import io.stackgres.operator.customresource.prometheus.ServiceMonitorDefinition;
 import io.stackgres.operator.customresource.prometheus.ServiceMonitorSpec;
-import io.stackgres.operator.resource.ResourceUtil;
+import io.stackgres.operatorframework.resource.ResourceUtil;
 
 import org.jooq.lambda.Seq;
 
 @Singleton
 @Sidecar(Envoy.NAME)
-public class Envoy
-    implements StackGresSidecarTransformer<Void, StackGresClusterContext> {
+public class Envoy implements StackGresClusterSidecarResourceFactory<Void> {
 
   public static final String SERVICE_MONITOR = "-stackgres-envoy";
   public static final String SERVICE = "-prometheus-envoy";
@@ -100,7 +100,7 @@ public class Envoy
   }
 
   @Override
-  public Container getContainer(ResourceGeneratorContext<StackGresClusterContext> context) {
+  public Container getContainer(StackGresGeneratorContext context) {
     ContainerBuilder container = new ContainerBuilder();
     container.withName(NAME)
         .withImage(String.format(IMAGE_NAME, DEFAULT_VERSION))
@@ -121,20 +121,20 @@ public class Envoy
 
   @Override
   public ImmutableList<Volume> getVolumes(
-      ResourceGeneratorContext<StackGresClusterContext> context) {
+      StackGresGeneratorContext context) {
     return ImmutableList.of(new VolumeBuilder()
         .withName(NAME)
         .withConfigMap(new ConfigMapVolumeSourceBuilder()
-            .withName(configName(context.getContext()))
+            .withName(configName(context.getClusterContext()))
             .build())
         .build());
   }
 
   @Override
-  public List<HasMetadata> getResources(ResourceGeneratorContext<StackGresClusterContext> context) {
+  public Stream<HasMetadata> streamResources(StackGresGeneratorContext context) {
 
     final String envoyConfPath;
-    if (context.getContext().getCluster().getSpec()
+    if (context.getClusterContext().getCluster().getSpec()
         .getSidecars().contains("connection-pooling")) {
       envoyConfPath = "/envoy/default_envoy.yaml";
     } else {
@@ -178,41 +178,41 @@ public class Envoy
       throw new IllegalStateException("couldn't parse envoy config file", ex);
     }
 
-    String namespace = context.getContext().getCluster().getMetadata().getNamespace();
-    String configMapName = configName(context.getContext());
+    String namespace = context.getClusterContext().getCluster().getMetadata().getNamespace();
+    String configMapName = configName(context.getClusterContext());
     ImmutableList.Builder<HasMetadata> resourcesBuilder = ImmutableList.builder();
 
     ConfigMap cm = new ConfigMapBuilder()
         .withNewMetadata()
         .withNamespace(namespace)
         .withName(configMapName)
-        .withLabels(ResourceUtil.clusterLabels(context.getContext().getCluster()))
+        .withLabels(StackGresUtil.clusterLabels(context.getClusterContext().getCluster()))
         .withOwnerReferences(ImmutableList.of(ResourceUtil.getOwnerReference(
-            context.getContext().getCluster())))
+            context.getClusterContext().getCluster())))
         .endMetadata()
         .withData(data)
         .build();
     resourcesBuilder.add(cm);
 
-    final Map<String, String> defaultLabels = ResourceUtil.clusterLabels(
-        context.getContext().getCluster());
+    final Map<String, String> defaultLabels = StackGresUtil.clusterLabels(
+        context.getClusterContext().getCluster());
     Map<String, String> labels = new ImmutableMap.Builder<String, String>()
-        .putAll(ResourceUtil.clusterCrossNamespaceLabels(
-            context.getContext().getCluster()))
+        .putAll(StackGresUtil.clusterCrossNamespaceLabels(
+            context.getClusterContext().getCluster()))
         .build();
 
-    Optional<Prometheus> prometheus = context.getContext().getPrometheus();
+    Optional<Prometheus> prometheus = context.getClusterContext().getPrometheus();
     resourcesBuilder.add(
         new ServiceBuilder()
             .withNewMetadata()
-            .withNamespace(context.getContext().getCluster().getMetadata().getNamespace())
-            .withName(serviceName(context.getContext()))
+            .withNamespace(context.getClusterContext().getCluster().getMetadata().getNamespace())
+            .withName(serviceName(context.getClusterContext()))
             .withLabels(ImmutableMap.<String, String>builder()
                 .putAll(labels)
                 .put("container", NAME)
                 .build())
             .withOwnerReferences(ImmutableList.of(ResourceUtil.getOwnerReference(
-                context.getContext().getCluster())))
+                context.getClusterContext().getCluster())))
             .endMetadata()
             .withSpec(new ServiceSpecBuilder()
                 .withSelector(defaultLabels)
@@ -231,9 +231,9 @@ public class Envoy
           serviceMonitor.setApiVersion(ServiceMonitorDefinition.APIVERSION);
           serviceMonitor.setMetadata(new ObjectMetaBuilder()
               .withNamespace(pi.getNamespace())
-              .withName(serviceMonitorName(context.getContext()))
+              .withName(serviceMonitorName(context.getClusterContext()))
               .withOwnerReferences(ImmutableList.of(ResourceUtil.getOwnerReference(
-                  context.getContext().getCluster())))
+                  context.getClusterContext().getCluster())))
               .withLabels(ImmutableMap.<String, String>builder()
                   .putAll(pi.getMatchLabels())
                   .putAll(labels)
@@ -260,7 +260,7 @@ public class Envoy
       }
     });
 
-    return resourcesBuilder.build();
+    return Seq.seq(resourcesBuilder.build());
   }
 
 }

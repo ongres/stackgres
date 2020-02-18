@@ -35,7 +35,7 @@ EOF
     --patch '[{"op":"replace","path":"/spec/fullSchedule","value":"*/1 * * * *"}]'
 
   wait_until eval '[ "$(kubectl exec -t -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-0 -c patroni -- \
-    wal-g backup-list | wc -l)" -gt 0 ]'
+    exec-with-env backup -- wal-g backup-list | wc -l)" -gt 0 ]'
   
 }
 

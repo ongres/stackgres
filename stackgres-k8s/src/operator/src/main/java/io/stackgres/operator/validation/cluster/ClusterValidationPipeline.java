@@ -14,8 +14,8 @@ import javax.validation.Validator;
 
 import io.stackgres.operator.common.StackgresClusterReview;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
-import io.stackgres.operatorframework.ValidationFailed;
-import io.stackgres.operatorframework.ValidationPipeline;
+import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
+import io.stackgres.operatorframework.admissionwebhook.validating.ValidationPipeline;
 
 @ApplicationScoped
 public class ClusterValidationPipeline implements ValidationPipeline<StackgresClusterReview> {
