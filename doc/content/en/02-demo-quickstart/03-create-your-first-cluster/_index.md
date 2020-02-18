@@ -97,7 +97,7 @@ You can also install a StackGres cluster using [helm vesion 2.x](https://github.
  with the following command:
 
 ```
-helm install --dep-up --name simple \
+helm install --name simple \
   https://stackgres.io/downloads/stackgres-k8s/stackgres/latest/helm-cluster.tgz
 ```
 

@@ -36,26 +36,8 @@ with GraalVM allowing amazingly fast boot time and incredibly low RSS memory.
 
 ### Getting Started
 
-You can deploy the StackGres operator by using [helm](https://helm.sh/):
-
-```
-helm install --namespace stackgres --name stackgres-operator stackgres-k8s/install/helm/stackgres-operator
-```
-
-Once the operator is up and running in your Kubernetes cluster you can deploy new clusters.
-
-Then to deploy a new cluster just run:
-
-```
-helm install --dep-up --namespace my-namespace --name my-cluster stackgres-k8s/install/helm/stackgres-cluster
-```
-
-You can edit the `stackgres-k8s/install/helm/stackgres-cluster/values.yaml` or use the `--set` or `--set-string`
-parameters to change the number of instances or any of the available options. To apply any change you can run:
-
-```
-helm upgrade my-cluster --reuse-values stackgres-k8s/install/helm/stackgres-cluster
-```
+Please, have a look at the [demo / quickstart](https://stackgres.io/doc/latest/02-demo-quickstart/)
+ section of our documentation to know how to start using StackGres.
 
 ---
 

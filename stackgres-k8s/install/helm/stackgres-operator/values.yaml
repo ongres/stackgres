@@ -1,4 +1,4 @@
-containerBuild: "2-dev"
+containerBuild: "2"
 group: "stackgres.io"
 
 image:

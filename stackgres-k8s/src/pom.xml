@@ -55,8 +55,7 @@
     <spotbugs.version>4.0.0-RC1</spotbugs.version>
     <pmd.version>6.19.0</pmd.version>
     <errorprone.version>2.3.3</errorprone.version>
-    <docker-junit-extension.version>1.2.10</docker-junit-extension.version>
-    <docker-java.version>3.2.0-rc4</docker-java.version>
+    <docker-junit-extension.version>1.2.11</docker-junit-extension.version>
     <jersey.version>2.29</jersey.version>
     <mockito.version>3.0.0</mockito.version>
     <log4j.version>2.11.2</log4j.version>
@@ -102,18 +101,6 @@
         <artifactId>docker-junit-extension</artifactId>
         <scope>test</scope>
         <version>${docker-junit-extension.version}</version>
-        <exclusions>
-          <exclusion>
-            <groupId>com.github.docker-java</groupId>
-            <artifactId>docker-java</artifactId>
-          </exclusion>
-        </exclusions>
-      </dependency>
-      <dependency>
-        <groupId>com.github.docker-java</groupId>
-        <artifactId>docker-java</artifactId>
-        <version>${docker-java.version}</version>
-        <scope>test</scope>
         <exclusions>
           <exclusion>
             <groupId>org.glassfish.jersey.connectors</groupId>

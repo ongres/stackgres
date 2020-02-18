@@ -18,7 +18,7 @@
     <stackgres.operatorNamespace>stackgres</stackgres.operatorNamespace>
     <stackgres.operatorIP>localhost</stackgres.operatorIP>
     <stackgres.operatorVersion>${project.version}</stackgres.operatorVersion>
-    <stackgres.containerBuild>2-dev</stackgres.containerBuild>
+    <stackgres.containerBuild>2</stackgres.containerBuild>
     <stackgres.group>stackgres.io</stackgres.group>
     <stackgres.crd.version>v1alpha1</stackgres.crd.version>
     <stackgres.prometheus.allowAutobind>true</stackgres.prometheus.allowAutobind>
@@ -73,11 +73,6 @@
     <dependency>
       <groupId>com.ongres</groupId>
       <artifactId>docker-junit-extension</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.github.docker-java</groupId>
-      <artifactId>docker-java</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
