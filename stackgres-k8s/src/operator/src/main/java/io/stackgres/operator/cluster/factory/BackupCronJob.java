@@ -171,8 +171,8 @@ public class BackupCronJob implements StackGresClusterResourceStreamFactory {
                           .withValue("true")
                           .build(),
                           new EnvVarBuilder()
-                          .withName("STATEFULSET_POD_LABELS")
-                          .withValue(StackGresUtil.statefulSetPodLabels(clusterContext.getCluster())
+                          .withName("PATRONI_CLUSTER_LABELS")
+                          .withValue(StackGresUtil.patroniClusterLabels(clusterContext.getCluster())
                               .entrySet()
                               .stream()
                               .map(e -> e.getKey() + "=" + e.getValue())
