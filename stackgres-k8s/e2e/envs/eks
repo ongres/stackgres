@@ -40,6 +40,16 @@ reset_k8s() {
     --version "$(echo "$K8S_VERSION" | cut -d . -f 1-2)" \
     $K8S_EKS_OPTS
 
+  if [ "$(aws ecr describe-repositories --region "$K8S_EKS_REGION" \
+    --repository-names "stackgres-e2e/${IMAGE_NAME%:*}" \
+    | jq '.repositories | length')" -le 0 ]
+  then
+    aws ecr create-repository --region "$K8S_EKS_REGION" \
+      --repository-name "stackgres-e2e/${IMAGE_NAME%:*}"
+  fi
+
+  aws s3 mb "s3://stackgres-e2e/"
+
   echo "...done"
 }
 
@@ -54,13 +64,31 @@ delete_k8s() {
   aws ec2 describe-volumes --region "$K8S_EKS_REGION" --filters "Name=tag-key,Values=kubernetes.io/cluster/$K8S_EKS_NAME" \
     | jq -r '.Volumes[].VolumeId' | xargs -r -n 1 -I % aws ec2 delete-volume --region "$K8S_EKS_REGION" --volume-id %
 
+
+  if [ "$(aws ecr describe-repositories --region "$K8S_EKS_REGION" \
+    --repository-names "stackgres-e2e/${IMAGE_NAME%:*}" \
+    | jq '.repositories | length')" -ge 1 ]
+  then
+    aws ecr delete-repository --region "$K8S_EKS_REGION" \
+      --repository-name "stackgres-e2e/${IMAGE_NAME%:*}"
+  fi
+
+  if aws s3 ls | cut -d ' ' -f 3 | grep -q stackgres-e2e
+  then
+    aws s3 rb "s3://stackgres-e2e/" --force
+  fi
+
   echo "...done"
 }
 
 load_operator_k8s() {
   echo "Loading operator image $IMAGE_NAME in eks environemnt $K8S_EKS_NAME..."
 
-  docker tag "$IMAGE_NAME" "$(aws sts get-caller-identity | jq -r .Account).dkr.ecr.region.amazonaws.com/$IMAGE_NAME"
+  EKR_IMAGE_NAME="$(aws sts get-caller-identity | jq -r .Account).dkr.ecr.$K8S_EKS_REGION.amazonaws.com/stackgres-e2e/$IMAGE_NAME"
+  $(aws ecr get-login --no-include-email --region "$K8S_EKS_REGION")
+  docker tag "$IMAGE_NAME" "$EKR_IMAGE_NAME"
+  docker push "$EKR_IMAGE_NAME"
+  IMAGE_NAME="$EKR_IMAGE_NAME"
 
   echo "...done"
 }

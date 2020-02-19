@@ -19,7 +19,7 @@ import org.jooq.lambda.Seq;
 public enum ClusterStatefulSetVolumeConfig {
 
   DATA(VolumeConfig.persistentVolumeClaim(
-      "data", ClusterStatefulSetPath.PG_DATA_PATH,
+      "data", ClusterStatefulSetPath.PG_BASE_PATH,
       ClusterStatefulSet::dataName)),
   SOCKET(VolumeConfig.emptyDir(
       "socket", ClusterStatefulSetPath.PG_RUN_PATH)),

@@ -14,6 +14,7 @@ DEFAULT_K8S_VERSION="1.12.10"
 KUBECONFIG="${KUBECONFIG:-$HOME/.kube/config}"
 SPEC_PATH="$(dirname "$0")/spec"
 TARGET_PATH="$(dirname "$0")/target"
+LOG_PATH="$TARGET_PATH"
 TRAP_ENABLED="${TRAP_ENABLED:-false}"
 
 E2E_ENV="${E2E_ENV:-kind}"
@@ -136,7 +137,8 @@ setup_k8s() {
     k8s_cleanup
 
     helm install --name stackgres-operator --namespace stackgres "$OPERATOR_CHART_PATH" \
-      --set-string image.tag="$IMAGE_TAG" --set-string "image.pullPolicy=$(operator_pull_policy)"
+      --set-string image.name="${IMAGE_NAME%:*}" --set-string image.tag="${IMAGE_NAME#*:}" \
+      --set-string "image.pullPolicy=$(operator_pull_policy)"
     if [ "$E2E_DEBUG_OPERATOR" = true ]
     then
       wait_pods_running stackgres

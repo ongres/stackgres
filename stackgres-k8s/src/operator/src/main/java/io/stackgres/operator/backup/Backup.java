@@ -192,8 +192,8 @@ public class Backup implements StackGresClusterResourceStreamFactory {
                         .withValue(StackGresUtil.REPLICA_ROLE)
                         .build(),
                         new EnvVarBuilder()
-                        .withName("STATEFULSET_POD_LABELS")
-                        .withValue(StackGresUtil.statefulSetPodLabels(
+                        .withName("PATRONI_CLUSTER_LABELS")
+                        .withValue(StackGresUtil.patroniClusterLabels(
                             clusterContext.getCluster())
                             .entrySet()
                             .stream()

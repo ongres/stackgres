@@ -1,26 +1,50 @@
 #!/bin/sh
 
 e2e_test_install() {
-  gsutil -m rm -r "gs://stackgres-e2e-$CLUSTER_NAME/" || true
+  local AWS_ACCOUNT="$(aws sts get-caller-identity | jq -r '.Account')"
+  e2e_test_uninstall || true
 
-  if [ "$GKE_PROJECT" = "default" ]
-  then  
-    echo "Creating bucket in default project"
-    gsutil mb -l "$GKE_REGION" \
-      -c "standard" \
-      "gs://stackgres-e2e-$CLUSTER_NAME/"
-  else
-    echo "Creating bucket in project $GKE_PROJECT"
-    gsutil mb -l "$GKE_REGION" \
-      -p "$GKE_PROJECT" \
-      -c "standard" \
-      "gs://stackgres-e2e-$CLUSTER_NAME/"
-  fi
+  cat << EOF > "$LOG_PATH/policy.json"
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "s3:PutObject",
+        "s3:GetObject"
+      ],
+      "Resource": [
+        "arn:aws:s3:::stackgres-e2e/*"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "s3:ListBucket",
+        "s3:GetBucketLocation"
+      ],
+      "Resource": [
+        "arn:aws:s3:::stackgres-e2e"
+      ]
+    }
+  ]
+}
+EOF
+
+  aws iam create-policy --region "$K8S_EKS_REGION" --policy-name "stackgres-e2e-$CLUSTER_NAME" \
+    --policy-document "file://$(pwd)/$LOG_PATH/policy.json"
+  aws iam create-user --region "$K8S_EKS_REGION" --user-name "stackgres-e2e-$CLUSTER_NAME"
+  aws iam attach-user-policy --region "$K8S_EKS_REGION" --user-name "stackgres-e2e-$CLUSTER_NAME" \
+    --policy-arn "arn:aws:iam::$AWS_ACCOUNT:policy/stackgres-e2e-$CLUSTER_NAME"
+  aws iam create-access-key --region "$K8S_EKS_REGION" --user-name "stackgres-e2e-$CLUSTER_NAME" \
+    > "$LOG_PATH/credentials.json"
 
   kubectl create namespace "$CLUSTER_NAMESPACE"
     
-  kubectl create secret generic gke-service-account \
-    --from-file="$TARGET_PATH/gke-service-account.json" \
+  kubectl create secret generic s3-credentials \
+    --from-literal="accessKeyId=$(jq -r '.AccessKey.AccessKeyId' "$LOG_PATH/credentials.json")" \
+    --from-literal="secretAccessKey=$(jq -r '.AccessKey.SecretAccessKey' "$LOG_PATH/credentials.json")" \
     -n "$CLUSTER_NAMESPACE"
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1
@@ -32,12 +56,22 @@ e2e_test_install() {
   BACKUP_NAME="${CLUSTER_NAME}-0-$(shuf -i 0-65535 -n 1)"
 }
 
-e2e_test_uninstall(){
+e2e_test_uninstall() {
   helm_cleanup_chart "$CLUSTER_NAME"
 
   k8s_cleanup_namespace "$CLUSTER_NAMESPACE"
 
-  gsutil rm -r -m "gs://stackgres-e2e-$CLUSTER_NAME/" || true
+  local AWS_ACCOUNT="$(aws sts get-caller-identity | jq -r '.Account')"
+  aws iam list-access-keys --region "$K8S_EKS_REGION" --user-name "stackgres-e2e-$CLUSTER_NAME" \
+    | jq -r '.AccessKeyMetadata[].AccessKeyId' \
+    | xargs -r -n 1 -I % aws iam delete-access-key --region "$K8S_EKS_REGION" \
+      --user-name "stackgres-e2e-$CLUSTER_NAME" --access-key-id %
+  aws iam detach-user-policy --region "$K8S_EKS_REGION" --user-name "stackgres-e2e-$CLUSTER_NAME" \
+    --policy-arn "arn:aws:iam::$AWS_ACCOUNT:policy/stackgres-e2e-$CLUSTER_NAME"
+  aws iam delete-user --region "$K8S_EKS_REGION" --user-name "stackgres-e2e-$CLUSTER_NAME"
+  aws iam delete-policy --region "$K8S_EKS_REGION" \
+    --policy-arn "arn:aws:iam::$AWS_ACCOUNT:policy/stackgres-e2e-$CLUSTER_NAME"
+  aws s3 rm --recursive "s3://stackgres-e2e/$CLUSTER_NAMESPACE/$CLUSTER_NAME"
 }
 
 e2e_test() {
@@ -46,7 +80,6 @@ e2e_test() {
   run_test "Check that restoration is executed successfully" restore_from_backup
 
   run_test "Check restored data integrity" check_restored_data
-
 }
 
 create_mock_data() {
@@ -58,8 +91,7 @@ create_mock_data() {
 }
 
 get_backup_phase() {
-  BACKUP_PHASE=$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" -o=jsonpath='{.status.phase}')
-  echo "$BACKUP_PHASE"
+  kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" -o=jsonpath='{.status.phase}'
 }
 
 execute_backup() {
@@ -88,7 +120,7 @@ restore_from_backup() {
 apiVersion: stackgres.io/v1alpha1
 kind: StackGresCluster
 metadata:
-  name: restored-from-gce
+  name: restored-from-s3
   namespace: $CLUSTER_NAMESPACE
 spec:
   instances: 2
@@ -105,7 +137,7 @@ EOF
 }
 
 check_restored_data() {
-  REPLICA_RESPONSE=$(run_query -p 5432 -h "restored-from-gce-replica" -c "restored-from-gce" -n $CLUSTER_NAMESPACE -i 1 -q "' SELECT num FROM fibonacci ORDER BY num;'" -d "test")
+  REPLICA_RESPONSE=$(run_query -p 5432 -h "restored-from-s3-replica" -c "restored-from-s3" -n $CLUSTER_NAMESPACE -i 1 -q "' SELECT num FROM fibonacci ORDER BY num;'" -d "test")
   if [ "$(echo "$REPLICA_RESPONSE" | tr -d '\n')" = "123" ]
   then
     echo "SUCCESS: restore replica db restored successfully"

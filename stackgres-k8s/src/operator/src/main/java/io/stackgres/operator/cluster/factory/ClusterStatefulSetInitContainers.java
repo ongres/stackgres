@@ -62,6 +62,7 @@ public class ClusterStatefulSetInitContainers
         .withName("set-data-permissions")
         .withImage("busybox")
         .withCommand("/bin/sh", "-ecx", Stream.of(
+            "mkdir -p " + ClusterStatefulSetPath.PG_DATA_PATH.path(),
             "chmod -R 700 " + ClusterStatefulSetPath.PG_BASE_PATH.path(),
             "chown -R 999:999 " + ClusterStatefulSetPath.PG_BASE_PATH.path())
             .collect(Collectors.joining(" && ")))
