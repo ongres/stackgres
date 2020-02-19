@@ -15,7 +15,7 @@ e2e_test_install() {
         "s3:GetObject"
       ],
       "Resource": [
-        "arn:aws:s3:::stackgres-e2e-$CLUSTER_NAME/*"
+        "arn:aws:s3:::stackgres-e2e/*"
       ]
     },
     {
@@ -24,18 +24,20 @@ e2e_test_install() {
         "s3:ListBucket"
       ],
       "Resource": [
-        "arn:aws:s3:::stackgres-e2e-$CLUSTER_NAME"
+        "arn:aws:s3:::stackgres-e2e"
       ]
     }
   ]
 }
 EOF
 
-  aws s3 mb "s3://stackgres-e2e-$CLUSTER_NAME/"
-  aws iam create-policy --policy-name "stackgres-e2e-$CLUSTER_NAME" --policy-document "file://$(pwd)/$LOG_PATH/policy.json"
-  aws iam create-user --user-name "stackgres-e2e-$CLUSTER_NAME"
-  aws iam attach-user-policy --user-name "stackgres-e2e-$CLUSTER_NAME" --policy-arn "arn:aws:iam::$AWS_ACCOUNT:policy/stackgres-e2e-$CLUSTER_NAME"
-  aws iam create-access-key --user-name "stackgres-e2e-$CLUSTER_NAME" > "$LOG_PATH/credentials.json"
+  aws iam create-policy --region "$K8S_EKS_REGION" --policy-name "stackgres-e2e-$CLUSTER_NAME" \
+    --policy-document "file://$(pwd)/$LOG_PATH/policy.json"
+  aws iam create-user --region "$K8S_EKS_REGION" --user-name "stackgres-e2e-$CLUSTER_NAME"
+  aws iam attach-user-policy --region "$K8S_EKS_REGION" --user-name "stackgres-e2e-$CLUSTER_NAME" \
+    --policy-arn "arn:aws:iam::$AWS_ACCOUNT:policy/stackgres-e2e-$CLUSTER_NAME"
+  aws iam create-access-key --region "$K8S_EKS_REGION" --user-name "stackgres-e2e-$CLUSTER_NAME" \
+    > "$LOG_PATH/credentials.json"
 
   kubectl create namespace "$CLUSTER_NAMESPACE"
     
@@ -59,13 +61,15 @@ e2e_test_uninstall() {
   k8s_cleanup_namespace "$CLUSTER_NAMESPACE"
 
   local AWS_ACCOUNT="$(aws sts get-caller-identity | jq -r '.Account')"
-  aws iam list-access-keys --user-name "stackgres-e2e-$CLUSTER_NAME" \
+  aws iam list-access-keys --region "$K8S_EKS_REGION" --user-name "stackgres-e2e-$CLUSTER_NAME" \
     | jq -r '.AccessKeyMetadata[].AccessKeyId' \
-    | xargs -r -n 1 -I % aws iam delete-access-key --user-name "stackgres-e2e-$CLUSTER_NAME" --access-key-id %
-  aws iam detach-user-policy --user-name "stackgres-e2e-$CLUSTER_NAME" --policy-arn "arn:aws:iam::$AWS_ACCOUNT:policy/stackgres-e2e-$CLUSTER_NAME"
-  aws iam delete-user --user-name "stackgres-e2e-$CLUSTER_NAME"
-  aws iam delete-policy --policy-arn "arn:aws:iam::$AWS_ACCOUNT:policy/stackgres-e2e-$CLUSTER_NAME"
-  aws s3 rb "s3://stackgres-e2e-$CLUSTER_NAME/" --force
+    | xargs -r -n 1 -I % aws iam delete-access-key --region "$K8S_EKS_REGION" \
+      --user-name "stackgres-e2e-$CLUSTER_NAME" --access-key-id %
+  aws iam detach-user-policy --region "$K8S_EKS_REGION" --user-name "stackgres-e2e-$CLUSTER_NAME" \
+    --policy-arn "arn:aws:iam::$AWS_ACCOUNT:policy/stackgres-e2e-$CLUSTER_NAME"
+  aws iam delete-user --region "$K8S_EKS_REGION" --user-name "stackgres-e2e-$CLUSTER_NAME"
+  aws iam delete-policy --region "$K8S_EKS_REGION" \
+    --policy-arn "arn:aws:iam::$AWS_ACCOUNT:policy/stackgres-e2e-$CLUSTER_NAME"
 }
 
 e2e_test() {

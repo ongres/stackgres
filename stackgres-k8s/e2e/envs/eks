@@ -48,6 +48,8 @@ reset_k8s() {
       --repository-name "stackgres-e2e/${IMAGE_NAME%:*}"
   fi
 
+  aws s3 mb "s3://stackgres-e2e/"
+
   echo "...done"
 }
 
@@ -69,6 +71,11 @@ delete_k8s() {
   then
     aws ecr delete-repository --region "$K8S_EKS_REGION" \
       --repository-name "stackgres-e2e/${IMAGE_NAME%:*}"
+  fi
+
+  if aws s3 ls | cut -d ' ' -f 3 | grep -q stackgres-e2e
+  then
+    aws s3 rb "s3://stackgres-e2e/" --force
   fi
 
   echo "...done"
