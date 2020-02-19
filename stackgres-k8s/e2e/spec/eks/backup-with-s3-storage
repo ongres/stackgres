@@ -1,8 +1,8 @@
 #!/bin/sh
 
 e2e_test_install() {
-  AWS_ACCOUNT="$( aws sts get-caller-identity | jq -r '.Account')"
-  e2e_test_uninstall 2>/dev/null || true
+  local AWS_ACCOUNT="$(aws sts get-caller-identity | jq -r '.Account')"
+  e2e_test_uninstall || true
 
   cat << EOF > "$LOG_PATH/policy.json"
 {
@@ -54,6 +54,15 @@ EOF
 }
 
 e2e_test_uninstall() {
+  helm_cleanup_chart "$CLUSTER_NAME"
+
+  k8s_cleanup_namespace "$CLUSTER_NAMESPACE"
+
+  local AWS_ACCOUNT="$(aws sts get-caller-identity | jq -r '.Account')"
+  aws iam list-access-keys --user-name "stackgres-e2e-$CLUSTER_NAME" \
+    | jq -r '.AccessKeyMetadata[].AccessKeyId' \
+    | xargs -r -n 1 -I % aws iam delete-access-key --user-name "stackgres-e2e-$CLUSTER_NAME" --access-key-id %
+  aws iam detach-user-policy --user-name "stackgres-e2e-$CLUSTER_NAME" --policy-arn "arn:aws:iam::$AWS_ACCOUNT:policy/stackgres-e2e-$CLUSTER_NAME"
   aws iam delete-user --user-name "stackgres-e2e-$CLUSTER_NAME"
   aws iam delete-policy --policy-arn "arn:aws:iam::$AWS_ACCOUNT:policy/stackgres-e2e-$CLUSTER_NAME"
   aws s3 rb "s3://stackgres-e2e-$CLUSTER_NAME/" --force

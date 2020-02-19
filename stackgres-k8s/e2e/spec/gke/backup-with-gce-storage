@@ -1,7 +1,6 @@
 #!/bin/sh
 
 e2e_test_install() {
-
   gsutil -m rm -r "gs://stackgres-e2e-$CLUSTER_NAME/" || true
 
   if [ "$GKE_PROJECT" = "default" ]
@@ -31,13 +30,14 @@ e2e_test_install() {
   create_mock_data
 
   BACKUP_NAME="${CLUSTER_NAME}-0-$(shuf -i 0-65535 -n 1)"
-
 }
 
 e2e_test_uninstall(){
+  helm_cleanup_chart "$CLUSTER_NAME"
+
+  k8s_cleanup_namespace "$CLUSTER_NAMESPACE"
 
   gsutil rm -r -m "gs://stackgres-e2e-$CLUSTER_NAME/" || true
-
 }
 
 e2e_test() {
@@ -49,7 +49,7 @@ e2e_test() {
 
 }
 
-create_mock_data(){
+create_mock_data() {
   run_query -p 5432 -h "$CLUSTER_NAME-primary" -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -q "'CREATE DATABASE test;'"
   run_query -p 5432 -h "$CLUSTER_NAME-primary" -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -q "'CREATE TABLE fibonacci(num integer);'" -d "test"
   run_query -p 5432 -h "$CLUSTER_NAME-primary" -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -q "'INSERT INTO fibonacci(num) VALUES (1);'" -d "test"
@@ -57,13 +57,12 @@ create_mock_data(){
   run_query -p 5432 -h "$CLUSTER_NAME-primary" -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -q "'INSERT INTO fibonacci(num) VALUES (3);'" -d "test"
 }
 
-get_backup_phase(){
+get_backup_phase() {
   BACKUP_PHASE=$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" -o=jsonpath='{.status.phase}')
   echo "$BACKUP_PHASE"
 }
 
-execute_backup(){
-
+execute_backup() {
   cat << EOF | kubectl create -f -
 apiVersion: stackgres.io/v1alpha1
 kind: StackGresBackup
@@ -78,11 +77,9 @@ EOF
   wait_until eval '[ "$(get_backup_phase)" = "Completed" ]'  
 
   echo "Success. Backup completed"
-
 }
 
-restore_from_backup(){
-
+restore_from_backup() {
   kubectl delete sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"
 
   BACKUP_UID=$(kubectl get sgbackups.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" -o=jsonpath='{.metadata.uid}')
@@ -105,11 +102,9 @@ EOF
   wait_pods_running "$CLUSTER_NAMESPACE" 2
 
   echo "Success. Cluster restored from backup $BACKUP_NAME"
-
 }
 
 check_restored_data() {
-
   REPLICA_RESPONSE=$(run_query -p 5432 -h "restored-from-gce-replica" -c "restored-from-gce" -n $CLUSTER_NAMESPACE -i 1 -q "' SELECT num FROM fibonacci ORDER BY num;'" -d "test")
   if [ "$(echo "$REPLICA_RESPONSE" | tr -d '\n')" = "123" ]
   then
@@ -118,7 +113,4 @@ check_restored_data() {
     echo "FAIL: replica db not restored"
     return 1
   fi
-
 }
-
-
