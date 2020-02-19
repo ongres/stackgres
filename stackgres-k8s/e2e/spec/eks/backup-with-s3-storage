@@ -21,7 +21,8 @@ e2e_test_install() {
     {
       "Effect": "Allow",
       "Action": [
-        "s3:ListBucket"
+        "s3:ListBucket",
+        "s3:GetBucketLocation"
       ],
       "Resource": [
         "arn:aws:s3:::stackgres-e2e"
@@ -42,8 +43,8 @@ EOF
   kubectl create namespace "$CLUSTER_NAMESPACE"
     
   kubectl create secret generic s3-credentials \
-    --from-literal="accessKeyId=$(jq '.AccessKeyId' "$LOG_PATH/credentials.json")" \
-    --from-literal="secretAccessKey=$(jq '.SecretAccessKey' "$LOG_PATH/credentials.json")" \
+    --from-literal="accessKeyId=$(jq -r '.AccessKey.AccessKeyId' "$LOG_PATH/credentials.json")" \
+    --from-literal="secretAccessKey=$(jq -r '.AccessKey.SecretAccessKey' "$LOG_PATH/credentials.json")" \
     -n "$CLUSTER_NAMESPACE"
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1
@@ -70,6 +71,7 @@ e2e_test_uninstall() {
   aws iam delete-user --region "$K8S_EKS_REGION" --user-name "stackgres-e2e-$CLUSTER_NAME"
   aws iam delete-policy --region "$K8S_EKS_REGION" \
     --policy-arn "arn:aws:iam::$AWS_ACCOUNT:policy/stackgres-e2e-$CLUSTER_NAME"
+  aws s3 rm --recursive "s3://stackgres-e2e/$CLUSTER_NAMESPACE/$CLUSTER_NAME"
 }
 
 e2e_test() {
@@ -78,7 +80,6 @@ e2e_test() {
   run_test "Check that restoration is executed successfully" restore_from_backup
 
   run_test "Check restored data integrity" check_restored_data
-
 }
 
 create_mock_data() {

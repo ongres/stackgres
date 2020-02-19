@@ -12,7 +12,6 @@ config:
       create: false
     s3:
       prefix: s3://stackgres-e2e
-      region: eu-west-2
       accessKey:
           name: s3-credentials
           key: accessKeyId
