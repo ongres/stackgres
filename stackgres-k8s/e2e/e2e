@@ -137,7 +137,8 @@ setup_k8s() {
     k8s_cleanup
 
     helm install --name stackgres-operator --namespace stackgres "$OPERATOR_CHART_PATH" \
-      --set-string image.tag="$IMAGE_TAG" --set-string "image.pullPolicy=$(operator_pull_policy)"
+      --set-string image.name="${IMAGE_NAME%:*}" --set-string image.tag="${IMAGE_NAME#*:}" \
+      --set-string "image.pullPolicy=$(operator_pull_policy)"
     if [ "$E2E_DEBUG_OPERATOR" = true ]
     then
       wait_pods_running stackgres
