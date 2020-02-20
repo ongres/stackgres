@@ -12,6 +12,7 @@ K8S_EKS_NODE_TYPE="${K8S_EKS_NODE_TYPE:-m5.large}"
 K8S_EKS_DISK_SIZE="${K8S_EKS_DISK_SIZE:-20}"
 K8S_EKS_OPTS="$K8S_EKS_OPTS"
 export K8S_EKS_NAME K8S_VERSION K8S_EKS_REGION K8S_EKS_NODE_LOCATIONS K8S_EKS_NODE_TYPE K8S_EKS_OPTS
+USE_INTERMIDIATE_PRIVATE_REPO=true
 
 reuse_k8s() {
   if ! eksctl get cluster --name "$K8S_EKS_NAME" --region "$K8S_EKS_REGION" 2>&1 \
@@ -40,14 +41,6 @@ reset_k8s() {
     --version "$(echo "$K8S_VERSION" | cut -d . -f 1-2)" \
     $K8S_EKS_OPTS
 
-  if [ "$(aws ecr describe-repositories --region "$K8S_EKS_REGION" \
-    --repository-names "stackgres-e2e/${IMAGE_NAME%:*}" \
-    | jq '.repositories | length')" -le 0 ]
-  then
-    aws ecr create-repository --region "$K8S_EKS_REGION" \
-      --repository-name "stackgres-e2e/${IMAGE_NAME%:*}"
-  fi
-
   aws s3 mb "s3://stackgres-e2e/"
 
   echo "...done"
@@ -64,15 +57,6 @@ delete_k8s() {
   aws ec2 describe-volumes --region "$K8S_EKS_REGION" --filters "Name=tag-key,Values=kubernetes.io/cluster/$K8S_EKS_NAME" \
     | jq -r '.Volumes[].VolumeId' | xargs -r -n 1 -I % aws ec2 delete-volume --region "$K8S_EKS_REGION" --volume-id %
 
-
-  if [ "$(aws ecr describe-repositories --region "$K8S_EKS_REGION" \
-    --repository-names "stackgres-e2e/${IMAGE_NAME%:*}" \
-    | jq '.repositories | length')" -ge 1 ]
-  then
-    aws ecr delete-repository --region "$K8S_EKS_REGION" \
-      --repository-name "stackgres-e2e/${IMAGE_NAME%:*}"
-  fi
-
   if aws s3 ls | cut -d ' ' -f 3 | grep -q stackgres-e2e
   then
     aws s3 rb "s3://stackgres-e2e/" --force
@@ -82,15 +66,10 @@ delete_k8s() {
 }
 
 load_operator_k8s() {
-  echo "Loading operator image $IMAGE_NAME in eks environemnt $K8S_EKS_NAME..."
 
-  EKR_IMAGE_NAME="$(aws sts get-caller-identity | jq -r .Account).dkr.ecr.$K8S_EKS_REGION.amazonaws.com/stackgres-e2e/$IMAGE_NAME"
-  $(aws ecr get-login --no-include-email --region "$K8S_EKS_REGION")
-  docker tag "$IMAGE_NAME" "$EKR_IMAGE_NAME"
-  docker push "$EKR_IMAGE_NAME"
-  IMAGE_NAME="$EKR_IMAGE_NAME"
-
-  echo "...done"
+  echo "ERROR: Cannot load images directly to k8s in a eks environment"
+  exit 1
+  
 }
 
 operator_pull_policy() {
