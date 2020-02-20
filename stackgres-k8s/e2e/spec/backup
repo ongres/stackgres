@@ -122,7 +122,20 @@ EOF
   ACTUAL_BACKUP_NAME="$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
     -o custom-columns=BACKUP_NAME:.status.name,PHASE:.status.phase,HOSTNAME:.status.hostname \
     | tail -n +2 | grep " Completed   ${CLUSTER_NAME}-${NODE}$" | tail -n 1 | cut -d ' ' -f 1)"
-  
+
+  if [ -z "$ACTUAL_BACKUP_NAME" ]
+  then
+    echo "FAIL. Backup name not found"
+    return 1
+  fi
+
+  check_is_permanent_value true
+
+  kubectl patch sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json \
+    --patch '[{"op":"replace","path":"/spec/isPermanent","value":false}]'
+
+  wait_until check_is_permanent_value false
+
   if [ "$(kubectl exec -t -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-${NODE}" -c patroni -- \
       exec-with-env backup -- wal-g backup-list | grep "^$ACTUAL_BACKUP_NAME " | wc -l)" -gt 0 ]
   then
@@ -139,10 +152,22 @@ EOF
     echo "Fail. Default annotations not created"
     return 1
   else
-    echo "Success. Defaults annotations created"    
+    echo "Success. Defaults annotations created"
   fi
+}
 
+check_is_permanent_value() {
+  ACTUAL_IS_PERMANENT="$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
+    -o custom-columns=IS_PERMANENT:.status.isPermanent,PHASE:.status.phase,HOSTNAME:.status.hostname \
+    | tail -n +2 | grep " Completed   ${CLUSTER_NAME}-${NODE}$" | tail -n 1 | cut -d ' ' -f 1)"
 
+  if [ "$ACTUAL_IS_PERMANENT" != "$1" ]
+  then
+    echo "FAIL. Backup /status/isPermanent expected to be $1 but was $ACTUAL_IS_PERMANENT"
+    return 1
+  else
+    echo "SUCCESS. Backup /status/isPermanent was $1"
+  fi
 }
 
 check_switchover() {
