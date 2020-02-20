@@ -14,7 +14,7 @@ try_lock() {
   CURRENT_TIMESTAMP="$(date +%s)"
   if [ "$POD_NAME" != "$LOCK_POD" ] && [ "$((CURRENT_TIMESTAMP-LOCK_TIMESTAMP))" -lt 15 ]
   then
-    echo "Locked already by $LOCK_POD at $(date -d @"$LOCK_TIMESTAMP" --iso-8601 --utc)"
+    echo "Locked already by $LOCK_POD at $(date -d @"$LOCK_TIMESTAMP" --iso-8601=seconds --utc)"
     exit 1
   fi
   kubectl annotate cronjob.batch -n "$CLUSTER_NAMESPACE" "$CRONJOB_NAME" \
@@ -209,8 +209,8 @@ else
   fi
 fi
 
-echo "Performing backup"
 (
+echo "Retrieving primary and replica"
 kubectl get pod -n "$CLUSTER_NAMESPACE" -l "${PATRONI_CLUSTER_LABELS},${PATRONI_ROLE_KEY}=${PATRONI_PRIMARY_ROLE}" -o name > /tmp/current-primary
 kubectl get pod -n "$CLUSTER_NAMESPACE" -l "${PATRONI_CLUSTER_LABELS},${PATRONI_ROLE_KEY}=${PATRONI_REPLICA_ROLE}" -o name | head -n 1 > /tmp/current-replica-or-primary
 if [ ! -s /tmp/current-primary ]
@@ -223,75 +223,113 @@ fi
 if [ ! -s /tmp/current-replica-or-primary ]
 then
   cat /tmp/current-primary > /tmp/current-replica-or-primary
+  echo "Primary is $(cat /tmp/current-primary)"
+  echo "Replica not found, primary will be used for cleanups"
+else
+  echo "Primary is $(cat /tmp/current-primary)"
+  echo "Replica is $(cat /tmp/current-replica-or-primary)"
 fi
+echo "Performing backup"
 cat << EOF | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-primary)" -c patroni \
-  -- sh -l -e $(! echo $- | grep -q x || echo " -x") > /tmp/backup-push 2>&1
+  -- sh -e $(! echo $- | grep -q x || echo " -x") > /tmp/backup-push 2>&1
 exec-with-env "$BACKUP_ENV" \\
   -- wal-g backup-push "$PG_DATA_PATH" -f $([ "$BACKUP_IS_PERMANENT" = true ] && echo '-p' || true)
 EOF
+if grep -q " Wrote backup with name " /tmp/backup-push
+then
+  WAL_G_BACKUP_NAME="$(grep " Wrote backup with name " /tmp/backup-push | sed 's/.* \([^ ]\+\)$/\1/')"
+fi
 echo "Backup completed"
 set +e
 echo "Cleaning up old backups"
 cat << EOF | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-replica-or-primary)" -c patroni \
-  -- sh -l -e $(! echo $- | grep -q x || echo " -x")
-echo '$(cat /tmp/backups)' \\
-  | grep '^[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:true' \\
-  | cut -d : -f 4 \\
-  | grep -v '^$' \\
-  | while read backup
-    do
-      if exec-with-env "$BACKUP_ENV" \\
-        -- wal-g backup-list --detail --json \\
-        | tr -d '[]' | sed 's/},{/}|{/g' | tr '|' '\n' \\
-        | grep '"backup_name"' \\
-        | grep "\"backup_name\":\"\$backup\"" \\
-        | grep -q "\"is_permanent\":false"
-      then
-        exec-with-env "$BACKUP_ENV" \\
-          -- wal-g backup-mark "\$backup"
-      fi
-    done
-echo '$(cat /tmp/backups)' \\
-  | grep -v '^[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:true' \\
-  | cut -d : -f 4 \\
-  | grep -v '^$' \\
-  | while read backup
-    do
-      if exec-with-env "$BACKUP_ENV" \\
-        -- wal-g backup-list --detail --json \\
-        | tr -d '[]' | sed 's/},{/}|{/g' | tr '|' '\n' \\
-        | grep '"backup_name"' \\
-        | grep "\"backup_name\":\"\$backup\"" \\
-        | grep -q "\"is_permanent\":true"
-      then
-        exec-with-env "$BACKUP_ENV" \\
-          -- wal-g backup-mark -i "\$backup"
-      fi
-    done
+  -- sh -e $(! echo $- | grep -q x || echo " -x")
 exec-with-env "$BACKUP_ENV" \\
   -- wal-g backup-list --detail --json \\
-  | tr -d '[]' | sed 's/},{/}|{/g' | tr '|' '\n' \\
+  | tr -d '[]' | sed 's/},{/}|{/g' | tr '|' '\\n' \\
   | grep '"backup_name"' \\
-  | grep -q "\"is_permanent\":true" \\
-  | tr -d '{}"' | tr ',' '\n' | grep 'backup_name' | cut -d : -f 2- \\
-  | while read backup
+  | sort -r -t , -k 2 \\
+  | (RETAIN="$RETAIN"
+    while read backup
     do
-      if ! echo '$(cat /tmp/backups)' \\
+      backup_name="\$(echo "\$backup" | tr -d '{}\\42' | tr ',' '\\n' \\
+          | grep 'backup_name' | cut -d : -f 2-)"
+      if [ "\$backup_name" != "$WAL_G_BACKUP_NAME" ] \\
+        && ! echo '$(cat /tmp/backups)' \\
         | cut -d : -f 4 \\
-        | grep -q '^\$backup$'
+        | grep -v '^\$' \\
+        | grep -q "^\$backup_name\$"
+      then
+        if echo "\$backup" | grep -q "\\"is_permanent\\":true"
+        then
+          exec-with-env "$BACKUP_ENV" \\
+            -- wal-g backup-mark -i "\$backup_name"
+        fi
+      elif [ "\$RETAIN" -gt 0 ]
+      then
+        if [ "\$backup_name" = "$WAL_G_BACKUP_NAME" -a "$BACKUP_IS_PERMANENT" != true ] \\
+          || echo "\$backup" | grep -q "\\"is_permanent\\":false"
+        then
+          exec-with-env "$BACKUP_ENV" \\
+            -- wal-g backup-mark "\$backup_name"
+        fi
+        RETAIN="\$((RETAIN-1))"
+      elif [ "\$RETAIN" -le 0 ]
+      then
+        if echo '$(cat /tmp/backups)' \\
+          | grep -v '^[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:true' \\
+          | cut -d : -f 4 \\
+          | grep -v '^\$' \\
+          | grep -q "^\$backup_name\$" \\
+          && echo "\$backup" | grep -q "\\"is_permanent\\":true"
+        then
+          exec-with-env "$BACKUP_ENV" \\
+            -- wal-g backup-mark -i "\$backup_name"
+        elif echo '$(cat /tmp/backups)' \\
+          | grep '^[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:true' \\
+          | cut -d : -f 4 \\
+          | grep -v '^\$' \\
+          | grep -q "^\$backup_name\$" \\
+          && echo "\$backup" | grep -q "\\"is_permanent\\":false"
+        then
+          exec-with-env "$BACKUP_ENV" \\
+            -- wal-g backup-mark "\$backup_name"
+        fi
+      fi
+    done)
+
+exec-with-env "$BACKUP_ENV" \\
+  -- wal-g delete retain FULL "1" --confirm
+
+exec-with-env "$BACKUP_ENV" \\
+  -- wal-g backup-list --detail --json \\
+  | tr -d '[]' | sed 's/},{/}|{/g' | tr '|' '\\n' \\
+  | grep '"backup_name"' \\
+  | while read backup
+    do
+      backup_name="\$(echo "\$backup" | tr -d '{}\\42' | tr ',' '\\n' \\
+          | grep 'backup_name' | cut -d : -f 2-)"
+      if [ "\$backup_name" = "$WAL_G_BACKUP_NAME" -a "$BACKUP_IS_PERMANENT" != true ] \\
+        || (echo '$(cat /tmp/backups)' \\
+        | grep -v '^[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:true' \\
+        | cut -d : -f 4 \\
+        | grep -v '^\$' \\
+        | grep -q "^\$backup_name\$" \\
+        && echo "\$backup" | grep -q "\\"is_permanent\\":true")
       then
         exec-with-env "$BACKUP_ENV" \\
-          -- wal-g backup-mark -i "\$backup"
+          -- wal-g backup-mark -i "\$backup_name"
+      elif echo '$(cat /tmp/backups)' \\
+        | grep '^[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:true' \\
+        | cut -d : -f 4 \\
+        | grep -v '^\$' \\
+        | grep -q "^\$backup_name\$" \\
+        && echo "\$backup" | grep -q "\\"is_permanent\\":false"
+      then
+        exec-with-env "$BACKUP_ENV" \\
+          -- wal-g backup-mark "\$backup_name"
       fi
     done
-PERMANENT="\$(exec-with-env "$BACKUP_ENV" \\
-  -- wal-g backup-list --detail --json \\
-  | tr -d '[]' | sed 's/},{/}|{/g' | tr '|' '\n' \\
-  | grep '"backup_name"' \\
-  | grep "\"is_permanent\":true" \\
-  | wc -l)"
-exec-with-env "$BACKUP_ENV" \\
-  -- wal-g delete retain FULL "\$((RETAIN+PERMANENT))" --confirm
 EOF
 if [ "$?" = 0 ]
 then
@@ -338,7 +376,7 @@ if [ ! -z "$WAL_G_BACKUP_NAME" ]
 then
   set +x
   cat << EOF | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-replica-or-primary)" -c patroni \
-    -- sh -l -e > /tmp/backup-list 2>&1
+    -- sh -e > /tmp/backup-list 2>&1
 WALG_LOG_LEVEL= exec-with-env "$BACKUP_ENV" \\
   -- wal-g backup-list --detail --json
 EOF
@@ -411,27 +449,25 @@ EOF
     backup_name="$(echo "$backup" | cut -d : -f 4)"
     backup_pod="$(echo "$backup" | cut -d : -f 5)"
     backup_owner_kind="$(echo "$backup" | cut -d : -f 6)"
-    backup_spec_is_permanent="$(echo "$backup" | cut -d : -f 7)"
     backup_is_permanent="$(echo "$backup" | cut -d : -f 8)"
-    if [ ! -z "$backup_name" ] && [ "$backup_phase" = "$BACKUP_PHASE_COMPLETED" ] \
-      && [ "$backup_spec_is_permanent" != "$backup_is_permanent" ] \
-      && grep "\"backup_name\":\"$backup_name\"" /tmp/existing-backups \
-        | grep -q "\"is_permanent\":$backup_spec_is_permanent"
-    then
-      kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$backup_cr_name" --type json --patch '[
-      {"op":"replace","path":"/status/isPermanent","value":'"$backup_spec_is_permanent"'}
-      ]'
-    fi
     if [ ! -z "$backup_name" ] && [ "$backup_phase" = "$BACKUP_PHASE_COMPLETED" ] \
       && ! grep -q "\"backup_name\":\"$backup_name\"" /tmp/existing-backups
     then
       kubectl delete "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$backup_cr_name"
-    fi
-    if [ "$backup_owner_kind" = "CronJob" ] \
+    elif [ "$backup_owner_kind" = "CronJob" ] \
       && [ "$backup_phase" = "$BACKUP_PHASE_PENDING" ] \
       && ([ -z "$backup_pod" ] || ! grep -q "^$backup_pod$" /tmp/pods)
     then
       kubectl delete "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$backup_cr_name"
+    elif [ ! -z "$backup_name" ] && [ "$backup_phase" = "$BACKUP_PHASE_COMPLETED" ] \
+      && ! grep "\"backup_name\":\"$backup_name\"" /tmp/existing-backups \
+        | grep -q "\"is_permanent\":$backup_is_permanent"
+    then
+      existing_backup_is_permanent="$(grep "\"backup_name\":\"$backup_name\"" /tmp/existing-backups \
+        | tr -d '{}"' | tr ',' '\n' | grep "^is_permanent:" | cut -d : -f 2-)"
+      kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$backup_cr_name" --type json --patch '[
+      {"op":"replace","path":"/status/isPermanent","value":'"$existing_backup_is_permanent"'}
+      ]'
     fi
   done
 else
