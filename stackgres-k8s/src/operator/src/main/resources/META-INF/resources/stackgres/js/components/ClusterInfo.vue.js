@@ -42,7 +42,7 @@ var ClusterInfo = Vue.component("cluster-info", {
 				</div>
 
 				<div class="form">
-					<button v-on:click="deleteCluster" class="border">Delete Cluster</button>
+					<router-link :to="'/crd/edit/cluster/'+$route.params.namespace+'/'+$route.params.name" class="btn">Edit Cluster</router-link> <button v-on:click="deleteCluster" class="border">Delete Cluster</button>
 				</div>
 			</div>
 		</div>`,
@@ -65,7 +65,7 @@ var ClusterInfo = Vue.component("cluster-info", {
 
 			/* Clusters Data */
 		    axios
-		    .get(apiURL+'cluster/status/'+vm.$route.params.namespace+'/'+vm.$route.params.name,
+		    .get(apiURL+'clusters/status/'+vm.$route.params.namespace+'/'+vm.$route.params.name,
 		    	{ headers: {
 		            'content-type': 'application/json'
 		          }
@@ -73,9 +73,16 @@ var ClusterInfo = Vue.component("cluster-info", {
 	      	)
 	      	.then( function(response){
 
+				const c = store.state.clusters.find(function(e){
+					return e.name == vm.$route.params.name
+				});
+
 	        	store.commit('setCurrentCluster', { 
 	              	name: vm.$route.params.name,
-	              	data: response.data
+					data: response.data,
+					spec: c.data.spec,
+					metadata: c.data.metadata
+					
               	});
 
 	        	vc.dataReady[0] = true;
@@ -84,7 +91,7 @@ var ClusterInfo = Vue.component("cluster-info", {
 
 			/* Pods Data */
 		    axios
-		    .get(apiURL+'cluster/pods/'+vm.$route.params.namespace+'/'+vm.$route.params.name,
+		    .get(apiURL+'clusters/pods/'+vm.$route.params.namespace+'/'+vm.$route.params.name,
 		    	{ headers: {
 		            'content-type': 'application/json'
 		          }

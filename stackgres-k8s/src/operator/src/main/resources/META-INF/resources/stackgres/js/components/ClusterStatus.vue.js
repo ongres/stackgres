@@ -2,7 +2,7 @@ var ClusterStatus = Vue.component("cluster-status", {
 	template: `
 		<div id="cluster-status">
 			<header>
-				<h2 class="title">STATUS</h2>
+				<h2 class="title">Cluster Status</h2>
 				<h3 class="subtitle">{{ $route.params.name }}</h3>
 			</header>
 
@@ -56,6 +56,10 @@ var ClusterStatus = Vue.component("cluster-status", {
 					<span>F</span> Failed Pod
 				</li>
 			</ul>
+
+			<div class="form">
+				<button @click="deleteCluster" class="border">Delete Cluster</button>
+			</div>
 		</div>`,
 	data: function() {
 		return {
@@ -109,7 +113,46 @@ var ClusterStatus = Vue.component("cluster-status", {
 	        	vc.dataReady[1] = true;
 	        	vc.allDataReady = vc.dataReady[0] && vc.dataReady[1];
 	      	});
-		}
+		},
+
+		deleteCluster: function(e) {
+			e.preventDefault();
+
+			let confirmDelete = confirm("DELETE CLUSTER\nAre you sure you want to delete this item?")
+
+			if(confirmDelete) {
+
+				const cl = {
+					name: vm.$route.params.name,
+					namespace: vm.$route.params.namespace
+				}
+
+				const res = axios
+				.delete(
+					apiURL+'cluster/', 
+					{
+						data: {
+							"metadata": {
+								"name": cl.name,
+								"namespace": cl.namespace
+							}
+						}
+					}
+				)
+				.then(function (response) {
+					console.log("DELETED");
+					//console.log(response);
+					notify('Cluster <strong>"'+vm.$route.params.name+'"</strong> deleted successfully', 'message');
+					$('#'+cl.name+'-'+cl.namespace).addClass("deleted");
+					router.push('/overview/'+store.state.currentNamespace);
+				})
+				.catch(function (error) {
+					console.log(error.response);
+					notify(error.response.data.message,'error');
+				});
+			}
+
+		}	
 
 	},
 	mounted: function() {
