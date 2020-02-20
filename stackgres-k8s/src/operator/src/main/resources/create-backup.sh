@@ -40,6 +40,7 @@ backup_cr_template="${backup_cr_template}:{{ with .status.name }}{{ . }}{{ end }
 backup_cr_template="${backup_cr_template}:{{ with .status.pod }}{{ . }}{{ end }}"
 backup_cr_template="${backup_cr_template}:{{ with .metadata.ownerReferences }}{{ with index . 0 }}{{ .kind }}{{ end }}{{ end }}"
 backup_cr_template="${backup_cr_template}:{{ if .spec.isPermanent }}true{{ else }}false{{ end }}"
+backup_cr_template="${backup_cr_template}:{{ if .status.isPermanent }}true{{ else }}false{{ end }}"
 backup_cr_template="${backup_cr_template}{{ printf "'"\n"'" }}{{ end }}"
 kubectl get "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" \
   --template "$backup_cr_template" > /tmp/all-backups
@@ -396,7 +397,7 @@ EOF
       {"op":"replace","path":"/status/compressedSize","value":'"$(grep "^compressed_size:" /tmp/current-backup | cut -d : -f 2-)"'}
       ]'
   fi
-  echo "Cleaning up backup CRs"
+  echo "Reconcile backup CRs"
   cat /tmp/backup-list | tr -d '[]' | sed 's/},{/}|{/g' | tr '|' '\n' \
     | grep '"backup_name"' \
     > /tmp/existing-backups
@@ -410,6 +411,17 @@ EOF
     backup_name="$(echo "$backup" | cut -d : -f 4)"
     backup_pod="$(echo "$backup" | cut -d : -f 5)"
     backup_owner_kind="$(echo "$backup" | cut -d : -f 6)"
+    backup_spec_is_permanent="$(echo "$backup" | cut -d : -f 7)"
+    backup_is_permanent="$(echo "$backup" | cut -d : -f 8)"
+    if [ ! -z "$backup_name" ] && [ "$backup_phase" = "$BACKUP_PHASE_COMPLETED" ] \
+      && [ "$backup_spec_is_permanent" != "$backup_is_permanent" ] \
+      && grep "\"backup_name\":\"$backup_name\"" /tmp/existing-backups \
+        | grep -q "\"is_permanent\":$backup_spec_is_permanent"
+    then
+      kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$backup_cr_name" --type json --patch '[
+      {"op":"replace","path":"/status/isPermanent","value":'"$backup_spec_is_permanent"'}
+      ]'
+    fi
     if [ ! -z "$backup_name" ] && [ "$backup_phase" = "$BACKUP_PHASE_COMPLETED" ] \
       && ! grep -q "\"backup_name\":\"$backup_name\"" /tmp/existing-backups
     then
