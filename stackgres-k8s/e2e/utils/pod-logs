@@ -10,7 +10,7 @@ pod_logs() {
   local namespace
   local owner_kind
   template='{{ range .items }}{'
-  template="$template"'"name":"{{ .metadata.namespace }}/{{ .metadata.name }}",'
+  template="$template"'"name":"{{ .metadata.namespace }}/{{ .metadata.name }}/{{ .metadata.uid }}",'
   template="$template"'"owner":"{{ with .metadata.ownerReferences }}{{ with index . 0 }}{{ .kind }}{{ end }}{{ end }}"'
   template="$template"'}{{ printf "\n" }}{{ end }}'
   local pod_template
@@ -20,28 +20,28 @@ pod_logs() {
   while [ "$#" -gt 0 ]
   do
     case "$1" in
-      -n)
+      -n|--namespace)
         shift
         namespace="$1"
         shift
         ;;
-      -p)
+      -p|--pod)
         shift
         filtered_pod="$1"
         shift
         ;;
-      -c)
+      -c|--container)
         shift
         filtered_container="$1"
         shift
         ;;
-      -o)
+      -o|--owner-kind)
         shift
         owner_kind="$1"
         shift
         ;;
       *)
-        echo >&2 "Unknown parameter $1 (use: -n <namespace>; -o <owner kind>)"
+        echo >&2 "Unknown parameter $1 (use: --namespace <namespace>; --owner-kind <owner kind>; --container <container>; --pod <pod name>)"
         return 1
         ;;
     esac
@@ -88,7 +88,7 @@ pod_logs() {
           trap_kill "$pid"
           while read line
           do
-            echo "[$pod-$container] $line"
+            echo "[${pod%/*}-$container] $line"
           done
           )
       ) &

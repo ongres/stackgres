@@ -187,15 +187,6 @@ public class BackupCronJob implements StackGresClusterResourceStreamFactory {
                                   .build())
                               .build())
                           .build(),
-                          new EnvVarBuilder().withName("POD_UID")
-                          .withValueFrom(
-                              new EnvVarSourceBuilder()
-                              .withFieldRef(
-                                  new ObjectFieldSelectorBuilder()
-                                  .withFieldPath("metadata.uid")
-                                  .build())
-                              .build())
-                          .build(),
                           new EnvVarBuilder()
                           .withName("RETAIN")
                           .withValue(Optional.of(backupConfig)

@@ -106,7 +106,7 @@ metadata:
   name: "$BACKUP_NAME"
 spec:
   cluster: "$CLUSTER_NAME"
-  isPermanent: true
+  isPermanent: false
 EOF
 
   if wait_until eval '[ "$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
@@ -122,7 +122,13 @@ EOF
   ACTUAL_BACKUP_NAME="$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
     -o custom-columns=BACKUP_NAME:.status.name,PHASE:.status.phase,HOSTNAME:.status.hostname \
     | tail -n +2 | grep " Completed   ${CLUSTER_NAME}-${NODE}$" | tail -n 1 | cut -d ' ' -f 1)"
-  
+
+  if [ -z "$ACTUAL_BACKUP_NAME" ]
+  then
+    echo "FAIL. Backup name not found"
+    return 1
+  fi
+
   if [ "$(kubectl exec -t -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-${NODE}" -c patroni -- \
       exec-with-env backup -- wal-g backup-list | grep "^$ACTUAL_BACKUP_NAME " | wc -l)" -gt 0 ]
   then
@@ -132,6 +138,13 @@ EOF
     return 1
   fi
 
+  check_is_permanent_value false
+
+  kubectl patch sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json \
+    --patch '[{"op":"replace","path":"/spec/isPermanent","value":true}]'
+
+  wait_until check_is_permanent_value true
+
   local DEFAULT_ANNOTATION=$(kubectl get sgbackup -n $CLUSTER_NAMESPACE $BACKUP_NAME -o json | run_jq '.metadata.annotations["stackgres.io/operatorVersion"]')
 
   if [ -z $DEFAULT_ANNOTATION ] || [ "$DEFAULT_ANNOTATION" = "null" ]
@@ -139,10 +152,33 @@ EOF
     echo "Fail. Default annotations not created"
     return 1
   else
-    echo "Success. Defaults annotations created"    
+    echo "Success. Defaults annotations created"
   fi
 
+  kubectl delete sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME"
 
+  if wait_until eval '[ "$(kubectl exec -t -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-${NODE}" -c patroni -- \
+      exec-with-env backup -- wal-g backup-list | grep "^$ACTUAL_BACKUP_NAME " | wc -l)" -eq 0 ]'
+  then
+    echo "SUCCESS. The full backup of deleted CR has been removed"
+  else
+    echo "FAIL. The full backup of deleted CR has not been removed"
+    return 1
+  fi
+}
+
+check_is_permanent_value() {
+  ACTUAL_IS_PERMANENT="$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
+    -o custom-columns=IS_PERMANENT:.status.isPermanent,PHASE:.status.phase,HOSTNAME:.status.hostname \
+    | tail -n +2 | grep " Completed   ${CLUSTER_NAME}-${NODE}$" | tail -n 1 | cut -d ' ' -f 1)"
+
+  if [ "$ACTUAL_IS_PERMANENT" != "$1" ]
+  then
+    echo "FAIL. Backup /status/isPermanent expected to be $1 but was $ACTUAL_IS_PERMANENT"
+    return 1
+  else
+    echo "SUCCESS. Backup /status/isPermanent was $1"
+  fi
 }
 
 check_switchover() {
