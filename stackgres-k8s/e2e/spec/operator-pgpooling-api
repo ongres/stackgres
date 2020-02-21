@@ -30,7 +30,7 @@ e2e_test() {
 
   run_test "Pg bouncer config creation through the API" test_pgpooling_create_with_api
 
-  run_test "Check that a pgpooling created with the API is visible" api_created_cluster_visible
+  run_test "Check that a pgpooling created with the API is visible" api_created_pgpooling_visible
 
   run_test "Pg bouncer config update with the api" test_update_pgpooling_with_api
 
@@ -80,10 +80,10 @@ check_pgpooling_in_list() {
   echo "$PGPOOLING_IN_RESPONSE"
   if [ "$PGPOOLING_IN_RESPONSE" = "$PGPOOLING" ]
   then
-    echo "Cluster $PGPOOLING included in json response"
+    echo "Pooling config $PGPOOLING included in json response"
     return 0
   else
-    echo "Cluster $PGPOOLING not included in json response"
+    echo "Pooling config $PGPOOLING not included in json response"
     return 1
   fi
 }
@@ -101,10 +101,10 @@ check_pgpooling_directly() {
 
   if [ $HTTP_STATUS -eq 200 ]
   then
-    echo "Postgres config $PGPOOLING was found by the api"
+    echo "Pooling config $PGPOOLING was found by the api"
     return 0
   else
-    echo "Postgres config $PGPOOLING was not found by the api"
+    echo "Pooling config $PGPOOLING was not found by the api"
     return 1
   fi
 }
@@ -120,10 +120,10 @@ check_pgpooling_removed_from_list() {
 
   if [ "$PGPOOLING_IN_RESPONSE" = "$PGPOOLING" ]
   then
-    echo "Postgres config $PGPOOLING wasn't removed from cache";
+    echo "Pooling config $PGPOOLING wasn't removed from cache";
     return 1
   else 
-    echo "Postgres config $PGPOOLING was removed from cache";
+    echo "Pooling config $PGPOOLING was removed from cache";
     return 0
   fi
 }
@@ -136,10 +136,10 @@ check_pgpooling_deletion_directly() {
 
   if [ $HTTP_STATUS -eq 404 ]
   then
-    echo "Postgres config $PGPOOLING was not found by the api"
+    echo "Pooling config $PGPOOLING was not found by the api"
     return 0
   else
-    echo "Postgres config $PGPOOLING was found by the api"
+    echo "Pooling config $PGPOOLING was found by the api"
     return 1
   fi
 }
@@ -174,23 +174,23 @@ test_pgpooling_create_with_api() {
 
   if kubectl get sgconnectionpoolingconfigs.stackgres.io -n $CLUSTER_NAMESPACE $PGPOOLING
   then
-    echo "Postgres config created with the operator API"
+    echo "Pooling config created with the operator API"
   else
-    echo "Postgres config wasn't created with the API"
+    echo "Pooling config wasn't created with the API"
     return 1
   fi
 }
 
 
 
-api_created_cluster_visible() {
+api_created_pgpooling_visible() {
   create_pgpooling_with_api
 
   check_pgpooling_directly
 }
 
 
-update_pg_config_max_client_conn_with_api() {
+update_pgpooling_max_client_conn_with_api() {
   local TMP_JSON
   local HTTP_STATUS
 
@@ -218,7 +218,7 @@ test_update_pgpooling_with_api() {
 
   create_pgpooling
 
-  update_pg_config_max_client_conn_with_api '400'
+  update_pgpooling_max_client_conn_with_api '400'
 
   PGPOOLING_MAX_CONNECTIONS=$(kubectl get sgconnectionpoolingconfigs.stackgres.io -n $CLUSTER_NAMESPACE $PGPOOLING -o "jsonpath={.spec['pgbouncer\.ini'].max_client_conn}")
   if [ "$PGPOOLING_MAX_CONNECTIONS" = "400" ]
@@ -237,15 +237,15 @@ get_pgpooling_from_api() {
 test_api_updated_pgpooling_is_visible() {
   local PGPOOLING_MAX_CONNECTIONS
 
-  update_pg_config_max_client_conn_with_api '"512MB"'
+  update_pgpooling_max_client_conn_with_api '"512MB"'
 
   PGPOOLING_MAX_CONNECTIONS=$(get_pgpooling_from_api | run_jq '.spec["pgbouncer.ini"].max_client_conn' -r)
 
   if [ "$PGPOOLING_MAX_CONNECTIONS" = "512MB" ]
   then
-    echo "Cluster updates are being reflected in the api"
+    echo "Pooling config updates are being reflected in the api"
   else
-    echo "Cluster updates aren't being reflected in the api"
+    echo "Pooling config updates aren't being reflected in the api"
     return 1
   fi
 }
