@@ -145,17 +145,6 @@ EOF
 
   wait_until check_is_permanent_value true
 
-  kubectl delete sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME"
-
-  if wait_until eval '[ "$(kubectl exec -t -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-${NODE}" -c patroni -- \
-      exec-with-env backup -- wal-g backup-list | grep "^$ACTUAL_BACKUP_NAME " | wc -l)" -eq 0 ]'
-  then
-    echo "SUCCESS. The full backup of deleted CR has been removed"
-  else
-    echo "FAIL. The full backup of deleted CR is has not been removed"
-    return 1
-  fi
-
   local DEFAULT_ANNOTATION=$(kubectl get sgbackup -n $CLUSTER_NAMESPACE $BACKUP_NAME -o json | run_jq '.metadata.annotations["stackgres.io/operatorVersion"]')
 
   if [ -z $DEFAULT_ANNOTATION ] || [ "$DEFAULT_ANNOTATION" = "null" ]
@@ -164,6 +153,17 @@ EOF
     return 1
   else
     echo "Success. Defaults annotations created"
+  fi
+
+  kubectl delete sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME"
+
+  if wait_until eval '[ "$(kubectl exec -t -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-${NODE}" -c patroni -- \
+      exec-with-env backup -- wal-g backup-list | grep "^$ACTUAL_BACKUP_NAME " | wc -l)" -eq 0 ]'
+  then
+    echo "SUCCESS. The full backup of deleted CR has been removed"
+  else
+    echo "FAIL. The full backup of deleted CR has not been removed"
+    return 1
   fi
 }
 
