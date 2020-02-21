@@ -7,7 +7,7 @@ package io.stackgres.operator.validation.cluster;
 
 import java.util.Optional;
 
-import io.stackgres.operator.resource.AbstractKubernetesCustomResourceFinder;
+import io.stackgres.operator.resource.AbstractCustomResourceFinder;
 import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfig;
 import io.stackgres.operator.utils.JsonUtil;
 import io.stackgres.operator.common.StackgresClusterReview;
@@ -33,7 +33,7 @@ class PgBouncerValidatorTest {
   private PoolingConfigValidator validator;
 
   @Mock()
-  private AbstractKubernetesCustomResourceFinder<StackGresPgbouncerConfig> configFinder;
+  private AbstractCustomResourceFinder<StackGresPgbouncerConfig> configFinder;
 
   private StackGresPgbouncerConfig pgbouncerConfig;
 

@@ -17,7 +17,7 @@ import io.stackgres.operator.customresource.sgcluster.StackGresClusterList;
 
 @ApplicationScoped
 public class ClusterResourceScheduler extends
-    AbstractKubernetesCustomResourceScheduler<StackGresCluster,
+    AbstractCustomResourceScheduler<StackGresCluster,
       StackGresClusterList, StackGresClusterDoneable> {
 
   @Inject

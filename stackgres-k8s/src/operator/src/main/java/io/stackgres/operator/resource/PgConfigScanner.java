@@ -17,7 +17,7 @@ import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfigLi
 
 @ApplicationScoped
 public class PgConfigScanner extends
-    AbstractKubernetesCustomResourceScanner<StackGresPostgresConfig, StackGresPostgresConfigList,
+    AbstractCustomResourceScanner<StackGresPostgresConfig, StackGresPostgresConfigList,
     StackGresPostgresConfigDoneable> {
 
   @Inject

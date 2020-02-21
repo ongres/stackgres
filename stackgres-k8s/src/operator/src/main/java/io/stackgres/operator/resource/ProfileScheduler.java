@@ -17,7 +17,7 @@ import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbounc
 
 @ApplicationScoped
 public class ProfileScheduler
-    extends AbstractKubernetesCustomResourceScheduler<StackGresPgbouncerConfig,
+    extends AbstractCustomResourceScheduler<StackGresPgbouncerConfig,
       StackGresPgbouncerConfigList, StackGresPgbouncerConfigDoneable> {
 
   @Inject

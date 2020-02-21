@@ -17,7 +17,7 @@ import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfig
 
 @ApplicationScoped
 public class BackupConfigScanner
-    extends AbstractKubernetesCustomResourceScanner<StackGresBackupConfig,
+    extends AbstractCustomResourceScanner<StackGresBackupConfig,
     StackGresBackupConfigList, StackGresBackupConfigDoneable> {
 
   /**

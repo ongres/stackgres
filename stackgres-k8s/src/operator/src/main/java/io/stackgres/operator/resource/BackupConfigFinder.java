@@ -17,7 +17,7 @@ import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfig
 
 @ApplicationScoped
 public class BackupConfigFinder
-    extends AbstractKubernetesCustomResourceFinder<StackGresBackupConfig> {
+    extends AbstractCustomResourceFinder<StackGresBackupConfig> {
 
   /**
    * Create a {@code BackupConfigFinder} instance.

@@ -17,7 +17,7 @@ import io.stackgres.operator.customresource.sgprofile.StackGresProfileList;
 
 @ApplicationScoped
 public class ProfileScanner
-    extends AbstractKubernetesCustomResourceScanner<StackGresProfile, StackGresProfileList,
+    extends AbstractCustomResourceScanner<StackGresProfile, StackGresProfileList,
     StackGresProfileDoneable> {
 
   @Inject

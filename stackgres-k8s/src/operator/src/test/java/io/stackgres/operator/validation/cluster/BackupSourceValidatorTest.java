@@ -15,7 +15,7 @@ import static org.mockito.Mockito.when;
 import java.util.Optional;
 
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfig;
-import io.stackgres.operator.resource.AbstractKubernetesCustomResourceFinder;
+import io.stackgres.operator.resource.AbstractCustomResourceFinder;
 import io.stackgres.operator.utils.JsonUtil;
 import io.stackgres.operator.common.StackgresClusterReview;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
@@ -36,7 +36,7 @@ class BackupSourceValidatorTest {
   private BackupConfigValidator validator;
 
   @Mock()
-  private AbstractKubernetesCustomResourceFinder<StackGresBackupConfig> configFinder;
+  private AbstractCustomResourceFinder<StackGresBackupConfig> configFinder;
 
   private StackGresBackupConfig backupConfig;
 

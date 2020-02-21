@@ -17,7 +17,7 @@ import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbounc
 
 @ApplicationScoped
 public class PoolingConfigFinder
-    extends AbstractKubernetesCustomResourceFinder<StackGresPgbouncerConfig> {
+    extends AbstractCustomResourceFinder<StackGresPgbouncerConfig> {
 
   /**
    * Create a {@code PoolingConfigFinder} instance.

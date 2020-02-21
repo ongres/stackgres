@@ -15,7 +15,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.operator.app.KubernetesClientFactory;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 
-public abstract class AbstractKubernetesCustomResourceScanner<T extends CustomResource,
+public abstract class AbstractCustomResourceScanner<T extends CustomResource,
     L extends CustomResourceList<T>, D extends CustomResourceDoneable<T>>
     implements KubernetesCustomResourceScanner<T> {
 
@@ -25,7 +25,7 @@ public abstract class AbstractKubernetesCustomResourceScanner<T extends CustomRe
   private final Class<L> customResourceListClass;
   private final Class<D> customResourceDoneClass;
 
-  protected AbstractKubernetesCustomResourceScanner(KubernetesClientFactory clientFactory,
+  protected AbstractCustomResourceScanner(KubernetesClientFactory clientFactory,
       String customResourceName, Class<T> customResourceClass, Class<L> customResourceListClass,
       Class<D> customResourceDoneClass) {
     super();

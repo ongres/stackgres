@@ -17,7 +17,7 @@ import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfig
 
 @ApplicationScoped
 public class PostgresBackupScheduler
-    extends AbstractKubernetesCustomResourceScheduler<StackGresBackupConfig,
+    extends AbstractCustomResourceScheduler<StackGresBackupConfig,
       StackGresBackupConfigList, StackGresBackupConfigDoneable> {
 
   @Inject

@@ -13,7 +13,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.operator.app.KubernetesClientFactory;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 
-public abstract class AbstractKubernetesCustomResourceScheduler<T extends CustomResource,
+public abstract class AbstractCustomResourceScheduler<T extends CustomResource,
     L extends CustomResourceList<T>, D extends CustomResourceDoneable<T>>
     implements CustomResourceScheduler<T> {
 
@@ -23,7 +23,7 @@ public abstract class AbstractKubernetesCustomResourceScheduler<T extends Custom
   private final Class<L> customResourceListClass;
   private final Class<D> customResourceDoneClass;
 
-  protected AbstractKubernetesCustomResourceScheduler(KubernetesClientFactory clientFactory,
+  protected AbstractCustomResourceScheduler(KubernetesClientFactory clientFactory,
       String customResourceName, Class<T> customResourceClass, Class<L> customResourceListClass,
       Class<D> customResourceDoneClass) {
     super();

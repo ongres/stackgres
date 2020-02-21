@@ -17,7 +17,7 @@ import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfigLi
 
 @ApplicationScoped
 public class PgConfigScheduler
-    extends AbstractKubernetesCustomResourceScheduler<StackGresPostgresConfig,
+    extends AbstractCustomResourceScheduler<StackGresPostgresConfig,
       StackGresPostgresConfigList, StackGresPostgresConfigDoneable> {
 
   @Inject

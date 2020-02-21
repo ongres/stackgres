@@ -28,7 +28,7 @@ import io.stackgres.operator.common.StackGresComponents;
 import io.stackgres.operator.common.StackgresClusterReview;
 import io.stackgres.operator.customresource.sgcluster.StackGresClusterSpec;
 import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfig;
-import io.stackgres.operator.resource.AbstractKubernetesCustomResourceFinder;
+import io.stackgres.operator.resource.AbstractCustomResourceFinder;
 import io.stackgres.operator.utils.JsonUtil;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
@@ -95,7 +95,7 @@ class PostgresVersionValidatorTest {
   private PostgresConfigValidator validator;
 
   @Mock
-  private AbstractKubernetesCustomResourceFinder<StackGresPostgresConfig> configFinder;
+  private AbstractCustomResourceFinder<StackGresPostgresConfig> configFinder;
 
   private StackGresPostgresConfig postgresConfig;
 
