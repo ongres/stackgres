@@ -14,4 +14,5 @@ public interface CustomResourceScheduler<T extends CustomResource> {
   void update(T resource);
 
   void delete(T resource);
+
 }
