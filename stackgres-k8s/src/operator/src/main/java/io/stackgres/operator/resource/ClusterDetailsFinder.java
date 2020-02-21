@@ -19,8 +19,8 @@ import io.stackgres.operator.common.ConfigContext;
 import io.stackgres.operator.common.ConfigProperty;
 import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
-import io.stackgres.operator.resource.dto.ClusterPodConfig;
-import io.stackgres.operator.resource.dto.ClusterPodStatus;
+import io.stackgres.operator.rest.dto.ClusterPodConfig;
+import io.stackgres.operator.rest.dto.ClusterPodStatus;
 
 import org.jooq.lambda.tuple.Tuple;
 

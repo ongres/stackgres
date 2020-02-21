@@ -23,8 +23,8 @@ import io.stackgres.operator.customresource.sgprofile.StackGresProfileDefinition
 import io.stackgres.operator.customresource.sgprofile.StackGresProfileDoneable;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfileList;
 import io.stackgres.operator.patroni.factory.Patroni;
-import io.stackgres.operator.resource.dto.ClusterResourceConsumtion;
 import io.stackgres.operator.rest.PatroniStatsScripts;
+import io.stackgres.operator.rest.dto.ClusterResourceConsumtion;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 
 import org.jooq.lambda.Unchecked;

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.resource.dto;
+package io.stackgres.operator.rest.dto;
 
 import javax.validation.constraints.NotNull;
 

@@ -19,8 +19,8 @@ import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.resource.CustomResourceScheduler;
 import io.stackgres.operator.resource.KubernetesCustomResourceFinder;
 import io.stackgres.operator.resource.KubernetesCustomResourceScanner;
-import io.stackgres.operator.resource.dto.ClusterPodConfig;
-import io.stackgres.operator.resource.dto.ClusterResourceConsumtion;
+import io.stackgres.operator.rest.dto.ClusterPodConfig;
+import io.stackgres.operator.rest.dto.ClusterResourceConsumtion;
 
 @Path("/stackgres/cluster")
 @Produces(MediaType.APPLICATION_JSON)
