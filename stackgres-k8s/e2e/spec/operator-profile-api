@@ -30,7 +30,7 @@ e2e_test() {
 
   run_test "Profile creation through the API" test_profile_create_with_api
 
-  run_test "Check that a profile created with the API is visible" api_created_cluster_visible
+  run_test "Check that a profile created with the API is visible" api_created_profile_visible
 
   run_test "Profile update with the api" test_update_profile_with_api
 
@@ -79,10 +79,10 @@ check_profile_in_list() {
   echo "$PROFILE_IN_RESPONSE"
   if [ "$PROFILE_IN_RESPONSE" = "$PROFILE" ]
   then
-    echo "Cluster $PROFILE included in json response"
+    echo "Profile $PROFILE included in json response"
     return 0
   else
-    echo "Cluster $PROFILE not included in json response"
+    echo "Profile $PROFILE not included in json response"
     return 1
   fi
 }
@@ -180,7 +180,7 @@ test_profile_create_with_api() {
   fi
 }
 
-api_created_cluster_visible() {
+api_created_profile_visible() {
   create_profile_with_api
 
   check_profile_directly
@@ -242,9 +242,9 @@ test_api_updated_profile_is_visible() {
 
   if [ "$PROFILE_MEMORY" = "1Gi" ]
   then
-    echo "Cluster updates are being reflected in the api"
+    echo "Profile updates are being reflected in the api"
   else
-    echo "Cluster updates aren't being reflected in the api"
+    echo "Profile updates aren't being reflected in the api"
     return 1
   fi
 }

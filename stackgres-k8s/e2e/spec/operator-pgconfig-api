@@ -46,7 +46,7 @@ e2e_test() {
 
   run_test "Postgres config creation through the API" test_pgconfig_create_with_api
 
-  run_test "Check that a pgconfig created with the API is visible" api_created_cluster_visible
+  run_test "Check that a pgconfig created with the API is visible" api_created_pgconfig_visible
 
   run_test "Postgres config update with the api" test_update_pgconfig_with_api
 
@@ -94,10 +94,10 @@ check_pgconfig_in_list() {
   echo "$PGCONFIG_IN_RESPONSE"
   if [ "$PGCONFIG_IN_RESPONSE" = "$PGCONFIG" ]
   then
-    echo "Cluster $PGCONFIG included in json response"
+    echo "Postgres config $PGCONFIG included in json response"
     return 0
   else
-    echo "Cluster $PGCONFIG not included in json response"
+    echo "Postgres config $PGCONFIG not included in json response"
     return 1
   fi
 }
@@ -190,7 +190,7 @@ test_pgconfig_create_with_api() {
   fi
 }
 
-api_created_cluster_visible() {
+api_created_pgconfig_visible() {
   create_pgconfig_with_api
 
   check_pgconfig_directly
@@ -249,9 +249,9 @@ test_api_updated_pgconfig_is_visible() {
 
   if [ "$PGCONFIG_SHARED_BUFFERS" = "512MB" ]
   then
-    echo "Cluster updates are being reflected in the api"
+    echo "Postgres config updates are being reflected in the api"
   else
-    echo "Cluster updates aren't being reflected in the api"
+    echo "Postgres config updates aren't being reflected in the api"
     return 1
   fi
 }
