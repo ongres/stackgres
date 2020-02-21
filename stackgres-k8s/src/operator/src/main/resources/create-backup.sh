@@ -48,7 +48,7 @@ grep "^$CLUSTER_NAME:" /tmp/all-backups > /tmp/backups || true
 
 if [ "$IS_CRONJOB" = true ]
 then
-  BACKUP_NAME="${CLUSTER_NAME}-${POD_UID}"
+  BACKUP_NAME="${CLUSTER_NAME}-$(date +%Y-%m-%d-%H-%M-%S)"
 fi
 
 BACKUP_CONFIG_RESOURCE_VERSION="$(kubectl get "$BACKUP_CONFIG_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" --template '{{ .metadata.resourceVersion }}')"
@@ -299,7 +299,7 @@ exec-with-env "$BACKUP_ENV" \\
     done)
 
 exec-with-env "$BACKUP_ENV" \\
-  -- wal-g delete retain FULL "1" --confirm
+  -- wal-g delete retain FIND_FULL "0" --confirm
 
 exec-with-env "$BACKUP_ENV" \\
   -- wal-g backup-list --detail --json \\
