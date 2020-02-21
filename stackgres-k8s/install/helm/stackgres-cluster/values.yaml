@@ -1,7 +1,7 @@
 config:
   create: true
   postgresql:
-    version: "12.1"
+    version: "12.2"
     postgresql.conf:
       shared_buffers: '256MB'
       random_page_cost: '1.5'

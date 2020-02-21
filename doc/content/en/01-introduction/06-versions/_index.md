@@ -7,7 +7,7 @@ weight: 6
 
 | Component | Versions |
 | ------ | ----------- |
-| PostgreSQL | 11.6 and 12.1 |
+| PostgreSQL | 12.1 and 11.6 |
 | Patroni | 1.6.3 |
 | WAL-G | 0.2.14 |
 | PgBouncer | 1.12.0 |

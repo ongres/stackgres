@@ -217,7 +217,7 @@ class PostgresVersionValidatorTest {
 
     String resultMessage = exception.getResult().getMessage();
 
-    assertEquals("Invalid pgVersion, must be 12 to use pfConfig postgresconf",
+    assertEquals("Invalid pgVersion, must be 12 to use pgConfig postgresconf",
         resultMessage);
 
     verify(configFinder).findByNameAndNamespace(eq(postgresProfile), eq(namespace));
@@ -236,7 +236,8 @@ class PostgresVersionValidatorTest {
 
     String resultMessage = exception.getResult().getMessage();
 
-    assertEquals("Unsupported pgVersion .  Supported postgres versions are: latest, 12, 12.1, 11, 11.6",
+    assertEquals("Unsupported pgVersion .  Supported postgres versions are: "
+        + StackGresComponents.getAllOrderedPostgresVersions().toString(", "),
         resultMessage);
 
     verify(configFinder, never()).findByNameAndNamespace(anyString(), anyString());
@@ -293,7 +294,8 @@ class PostgresVersionValidatorTest {
 
     String resultMessage = exception.getResult().getMessage();
 
-    assertEquals("Unsupported pgVersion 11.4.  Supported postgres versions are: latest, 12, 12.1, 11, 11.6", resultMessage);
+    assertEquals("Unsupported pgVersion 11.4.  Supported postgres versions are: "
+        + StackGresComponents.getAllOrderedPostgresVersions().toString(", "), resultMessage);
 
   }
 
