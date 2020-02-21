@@ -18,7 +18,7 @@ metadata:
   namespace: $CLUSTER_NAMESPACE
 spec:
   instances: 1
-  pgVersion: '12.1'
+  pgVersion: 'latest'
   volumeSize: '512Mi'
 EOF
 
