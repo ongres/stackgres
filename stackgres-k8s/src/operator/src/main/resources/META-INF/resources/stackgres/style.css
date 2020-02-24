@@ -722,15 +722,15 @@ footer {
     display: block;
 }
 
-#notifications .tooltip span {
+.tooltip span {
     display: block;
-    margin: 10px;
+    margin: 10px 20px;
 }
 
 .tooltip {
     position: fixed;
     background: #fff;
-    padding: 12px 20px;
+    padding: 5px 0;
     border: 1px solid var(--gray1);
     border-radius: 10px;
     box-shadow: 0 10px 30px rgba(0,0,0,.1);
@@ -739,7 +739,7 @@ footer {
     line-height: 1;
 }
 
-.tooltip.show {
+.hasTooltip.active .tooltip {
     display: block;
 }
 
@@ -781,19 +781,19 @@ footer .tooltip p {
 }
 
 #help .tooltip {
-    margin-top: -90px;
+    right: 75px;
+    top: 60px;
 }
 
 #notifications .tooltip {
     top: 60px;
     right: 35px;
-    padding: 5px 0;
 }
 
-#notifications .tooltip:before {
+#nav .tooltip:before {
     top: -7px;
     bottom: auto;
-    right: 20px;
+    right: 17px;
     left: auto;
     transform: rotate(135deg);
 }
@@ -817,10 +817,11 @@ footer .tooltip p {
     text-transform: uppercase;
 }
 
-.message, .tooltip .zero {
+.message {
     border-top: 1px solid var(--gray2);
     position: relative;
     max-width: 420px;
+    padding: 10px 20px;
 }
 
 .message .close {
@@ -842,11 +843,6 @@ footer .tooltip p {
     margin: 10px;
     color: var(--blue);
     font-size: 1rem;
-}
-
-
-#notifications p {
-    padding: 10px;
 }
 
 #expanders {
@@ -1375,4 +1371,10 @@ label.switch {
 .deleted {
     opacity: 0.3;
     transition: opacity .5s ease-in;
+}
+
+.form input[disabled="disabled"], .form select[disabled="disabled"], .form textarea[disabled="disabled"], .form fieldset[disabled="disabled"] {
+    opacity: .5;
+    background: var(--gray1);
+    cursor: not-allowed;
 }
