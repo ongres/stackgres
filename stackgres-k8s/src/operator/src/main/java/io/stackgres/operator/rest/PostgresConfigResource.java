@@ -12,28 +12,29 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import io.stackgres.operator.common.ArcUtil;
-import io.stackgres.operator.customresource.sgbackup.StackGresBackup;
+import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.operator.resource.CustomResourceFinder;
 import io.stackgres.operator.resource.CustomResourceScanner;
 import io.stackgres.operator.resource.CustomResourceScheduler;
-import io.stackgres.operator.rest.dto.backup.BackupDto;
+import io.stackgres.operator.rest.dto.pgconfig.PostgresConfigDto;
 import io.stackgres.operator.rest.transformer.ResourceTransformer;
 
-@Path("/stackgres/backup")
+@Path("/stackgres/pgconfig")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-public class StackGresBackupResource
-    extends AbstractCustomResourceRestService<BackupDto, StackGresBackup> {
+public class PostgresConfigResource extends
+    AbstractRestService<PostgresConfigDto, StackGresPostgresConfig> {
 
   @Inject
-  public StackGresBackupResource(CustomResourceScanner<StackGresBackup> scanner,
-      CustomResourceFinder<StackGresBackup> finder,
-      CustomResourceScheduler<StackGresBackup> scheduler,
-      ResourceTransformer<BackupDto, StackGresBackup> transformer) {
+  public PostgresConfigResource(
+      CustomResourceScanner<StackGresPostgresConfig> scanner,
+      CustomResourceFinder<StackGresPostgresConfig> finder,
+      CustomResourceScheduler<StackGresPostgresConfig> scheduler,
+      ResourceTransformer<PostgresConfigDto, StackGresPostgresConfig> transformer) {
     super(scanner, finder, scheduler, transformer);
   }
 
-  public StackGresBackupResource() {
+  public PostgresConfigResource() {
     super(null, null, null, null);
     ArcUtil.checkPublicNoArgsConstructorIsCalledFromArc();
   }

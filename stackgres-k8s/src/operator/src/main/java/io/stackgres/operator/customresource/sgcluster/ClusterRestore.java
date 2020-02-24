@@ -15,7 +15,7 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class StackGresClusterRestore implements KubernetesResource {
+public class ClusterRestore implements KubernetesResource {
 
   private static final long serialVersionUID = 1L;
 

@@ -7,14 +7,15 @@ package io.stackgres.operator.validation.cluster;
 
 import java.util.List;
 import java.util.Optional;
+
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import io.stackgres.operator.common.StackGresComponents;
 import io.stackgres.operator.common.StackgresClusterReview;
 import io.stackgres.operator.customresource.sgbackup.StackGresBackup;
+import io.stackgres.operator.customresource.sgcluster.ClusterRestore;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
-import io.stackgres.operator.customresource.sgcluster.StackGresClusterRestore;
 import io.stackgres.operator.resource.CustomResourceScanner;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
@@ -33,7 +34,7 @@ public class RestoreConfigValidator implements ClusterValidator {
   public void validate(StackgresClusterReview review) throws ValidationFailed {
 
     StackGresCluster cluster = review.getRequest().getObject();
-    StackGresClusterRestore restoreConfig = cluster.getSpec().getRestore();
+    ClusterRestore restoreConfig = cluster.getSpec().getRestore();
 
     checkRestoreConfig(review, restoreConfig);
 
@@ -44,7 +45,7 @@ public class RestoreConfigValidator implements ClusterValidator {
   }
 
   private void checkBackup(StackgresClusterReview review,
-                           StackGresClusterRestore restoreConfig) throws ValidationFailed {
+                           ClusterRestore restoreConfig) throws ValidationFailed {
     String stackgresBackup = restoreConfig.getStackgresBackup();
 
     switch (review.getRequest().getOperation()) {
@@ -76,7 +77,7 @@ public class RestoreConfigValidator implements ClusterValidator {
 
         break;
       case UPDATE:
-        StackGresClusterRestore oldRestoreConfig = review.getRequest()
+        ClusterRestore oldRestoreConfig = review.getRequest()
             .getOldObject().getSpec().getRestore();
         String oldStackgresBackup = oldRestoreConfig.getStackgresBackup();
 
@@ -97,9 +98,9 @@ public class RestoreConfigValidator implements ClusterValidator {
   }
 
   private void checkRestoreConfig(StackgresClusterReview review,
-                                  StackGresClusterRestore restoreConfig) throws ValidationFailed {
+                                  ClusterRestore restoreConfig) throws ValidationFailed {
     if (review.getRequest().getOperation() == Operation.UPDATE) {
-      StackGresClusterRestore oldRestoreConfig = review.getRequest()
+      ClusterRestore oldRestoreConfig = review.getRequest()
           .getOldObject().getSpec().getRestore();
       if (restoreConfig == null && oldRestoreConfig != null) {
         throw new ValidationFailed("Cannot update cluster's restore configuration");

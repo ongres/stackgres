@@ -51,11 +51,11 @@ import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfig
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfigDoneable;
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfigList;
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfigSpec;
+import io.stackgres.operator.customresource.sgcluster.ClusterRestore;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.customresource.sgcluster.StackGresClusterDefinition;
 import io.stackgres.operator.customresource.sgcluster.StackGresClusterDoneable;
 import io.stackgres.operator.customresource.sgcluster.StackGresClusterList;
-import io.stackgres.operator.customresource.sgcluster.StackGresClusterRestore;
 import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfigDefinition;
 import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfigDoneable;
@@ -363,7 +363,7 @@ public class ClusterReconciliationCycle
 
   private Optional<StackGresRestoreContext> getRestoreContext(StackGresCluster cluster,
       KubernetesClient client) {
-    final StackGresClusterRestore restore = cluster.getSpec().getRestore();
+    final ClusterRestore restore = cluster.getSpec().getRestore();
     if (restore != null) {
       return ResourceUtil.getCustomResource(client, StackGresBackupDefinition.NAME)
         .flatMap(crd -> client

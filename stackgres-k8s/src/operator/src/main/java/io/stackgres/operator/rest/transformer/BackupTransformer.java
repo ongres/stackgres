@@ -49,6 +49,9 @@ public class BackupTransformer extends AbstractResourceTransformer<BackupDto, St
   }
 
   private StackGresBackupStatus getCustomResourceStatus(BackupStatus source) {
+    if (source == null) {
+      return null;
+    }
     StackGresBackupStatus transformation = new StackGresBackupStatus();
     transformation.setBackupConfig(
         backupConfigTransformer.getCustomResourceSpec(source.getBackupConfig()));
@@ -82,6 +85,9 @@ public class BackupTransformer extends AbstractResourceTransformer<BackupDto, St
   }
 
   private BackupStatus getResourceStatus(StackGresBackupStatus source) {
+    if (source == null) {
+      return null;
+    }
     BackupStatus transformation = new BackupStatus();
     transformation.setBackupConfig(
         backupConfigTransformer.getResourceSpec(source.getBackupConfig()));

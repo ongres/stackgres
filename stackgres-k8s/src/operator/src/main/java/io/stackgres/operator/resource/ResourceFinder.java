@@ -7,7 +7,7 @@ package io.stackgres.operator.resource;
 
 import java.util.Optional;
 
-public interface KubernetesResourceFinder<T> {
+public interface ResourceFinder<T> {
 
   /**
    * Will look for a resource by it's name in all namespaces.

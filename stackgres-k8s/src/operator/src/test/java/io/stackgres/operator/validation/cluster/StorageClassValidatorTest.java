@@ -8,7 +8,7 @@ package io.stackgres.operator.validation.cluster;
 import java.util.Optional;
 
 import io.fabric8.kubernetes.api.model.storage.StorageClass;
-import io.stackgres.operator.resource.KubernetesResourceFinder;
+import io.stackgres.operator.resource.ResourceFinder;
 import io.stackgres.operator.utils.JsonUtil;
 import io.stackgres.operator.common.StackgresClusterReview;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
@@ -32,7 +32,7 @@ class StorageClassValidatorTest {
   private StorageClassValidator validator;
 
   @Mock
-  private KubernetesResourceFinder<StorageClass> storageClassFinder;
+  private ResourceFinder<StorageClass> storageClassFinder;
 
   private final static StorageClass DEFAULT_STORAGE_CLASS = JsonUtil.readFromJson("storage_class/standard.json", StorageClass.class);
 

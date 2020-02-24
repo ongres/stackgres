@@ -24,14 +24,14 @@ import io.stackgres.operator.customresource.sgprofile.StackGresProfileDoneable;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfileList;
 import io.stackgres.operator.patroni.factory.Patroni;
 import io.stackgres.operator.rest.PatroniStatsScripts;
-import io.stackgres.operator.rest.dto.cluster.ClusterResourceConsumtion;
+import io.stackgres.operator.rest.dto.cluster.ClusterResourceConsumtionDto;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 
 import org.jooq.lambda.Unchecked;
 
 @ApplicationScoped
 public class ClusterResourceConsumptionFinder
-    implements CustomResourceFinder<ClusterResourceConsumtion> {
+    implements CustomResourceFinder<ClusterResourceConsumtionDto> {
 
   @Inject
   CustomResourceFinder<StackGresCluster> clusterFinder;
@@ -50,14 +50,12 @@ public class ClusterResourceConsumptionFinder
   }
 
   @Override
-  public Optional<ClusterResourceConsumtion> findByNameAndNamespace(String name, String namespace) {
-
+  public Optional<ClusterResourceConsumtionDto> findByNameAndNamespace(
+      String name, String namespace) {
     return clusterFinder.findByNameAndNamespace(name, namespace).map(cluster -> {
-
-      ClusterResourceConsumtion status = new ClusterResourceConsumtion();
+      ClusterResourceConsumtionDto status = new ClusterResourceConsumtionDto();
 
       try (KubernetesClient client = kubClientFactory.create()) {
-
         Optional<Pod> masterPod = client.pods()
             .inNamespace(cluster.getMetadata().getNamespace())
             .withLabels(ImmutableMap.<String, String>builder()

@@ -12,29 +12,28 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import io.stackgres.operator.common.ArcUtil;
+import io.stackgres.operator.customresource.sgprofile.StackGresProfile;
 import io.stackgres.operator.resource.CustomResourceFinder;
 import io.stackgres.operator.resource.CustomResourceScanner;
 import io.stackgres.operator.resource.CustomResourceScheduler;
-import io.stackgres.operator.rest.dto.pgbouncerconfig.PgbouncerConfigDto;
+import io.stackgres.operator.rest.dto.profile.ProfileDto;
 import io.stackgres.operator.rest.transformer.ResourceTransformer;
-import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfig;
 
-@Path("/stackgres/connpoolconfig")
+@Path("/stackgres/profile")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-public class StackGresConnectionPoolingConfigResource extends
-    AbstractCustomResourceRestService<PgbouncerConfigDto, StackGresPgbouncerConfig> {
+public class ProfileResource
+    extends AbstractRestService<ProfileDto, StackGresProfile> {
 
   @Inject
-  public StackGresConnectionPoolingConfigResource(
-      CustomResourceScanner<StackGresPgbouncerConfig> scanner,
-      CustomResourceFinder<StackGresPgbouncerConfig> finder,
-      CustomResourceScheduler<StackGresPgbouncerConfig> scheduler,
-      ResourceTransformer<PgbouncerConfigDto, StackGresPgbouncerConfig> transformer) {
+  public ProfileResource(CustomResourceScanner<StackGresProfile> scanner,
+      CustomResourceFinder<StackGresProfile> finder,
+      CustomResourceScheduler<StackGresProfile> scheduler,
+      ResourceTransformer<ProfileDto, StackGresProfile> transformer) {
     super(scanner, finder, scheduler, transformer);
   }
 
-  public StackGresConnectionPoolingConfigResource() {
+  public ProfileResource() {
     super(null, null, null, null);
     ArcUtil.checkPublicNoArgsConstructorIsCalledFromArc();
   }

@@ -7,7 +7,7 @@ package io.stackgres.operator.resource;
 
 import java.util.List;
 
-public interface KubernetesResourceScanner<T> {
+public interface ResourceScanner<T> {
 
   List<T> findResources();
 

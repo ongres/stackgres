@@ -8,7 +8,6 @@ package io.stackgres.operator.rest.transformer;
 import javax.enterprise.context.ApplicationScoped;
 
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
-import io.stackgres.operator.customresource.sgcluster.StackGresClusterRestore;
 import io.stackgres.operator.customresource.sgcluster.StackGresClusterSpec;
 import io.stackgres.operator.rest.dto.cluster.ClusterDto;
 import io.stackgres.operator.rest.dto.cluster.ClusterRestore;
@@ -56,14 +55,22 @@ public class ClusterTransformer
 
   private io.stackgres.operator.customresource.sgcluster.NonProduction
       getCustomResourceNonProduction(NonProduction source) {
+    if (source == null) {
+      return null;
+    }
     io.stackgres.operator.customresource.sgcluster.NonProduction transformation =
         new io.stackgres.operator.customresource.sgcluster.NonProduction();
     transformation.setDisableClusterPodAntiAffinity(source.getDisableClusterPodAntiAffinity());
     return transformation;
   }
 
-  private StackGresClusterRestore getCustomResourceRestore(ClusterRestore source) {
-    StackGresClusterRestore transformation = new StackGresClusterRestore();
+  private io.stackgres.operator.customresource.sgcluster.ClusterRestore getCustomResourceRestore(
+      ClusterRestore source) {
+    if (source == null) {
+      return null;
+    }
+    io.stackgres.operator.customresource.sgcluster.ClusterRestore transformation =
+        new io.stackgres.operator.customresource.sgcluster.ClusterRestore();
     transformation.setAutoCopySecretsEnabled(source.isAutoCopySecretsEnabled());
     transformation.setDownloadDiskConcurrency(source.getDownloadDiskConcurrency());
     transformation.setStackgresBackup(source.getStackgresBackup());
@@ -91,12 +98,19 @@ public class ClusterTransformer
 
   private NonProduction getResourceNonProduction(
       io.stackgres.operator.customresource.sgcluster.NonProduction source) {
+    if (source == null) {
+      return null;
+    }
     NonProduction transformation = new NonProduction();
     transformation.setDisableClusterPodAntiAffinity(source.getDisableClusterPodAntiAffinity());
     return transformation;
   }
 
-  private ClusterRestore getResourceRestore(StackGresClusterRestore source) {
+  private ClusterRestore getResourceRestore(
+      io.stackgres.operator.customresource.sgcluster.ClusterRestore source) {
+    if (source == null) {
+      return null;
+    }
     ClusterRestore transformation = new ClusterRestore();
     transformation.setAutoCopySecretsEnabled(source.isAutoCopySecretsEnabled());
     transformation.setDownloadDiskConcurrency(source.getDownloadDiskConcurrency());

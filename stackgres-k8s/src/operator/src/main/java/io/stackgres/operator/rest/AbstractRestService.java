@@ -24,7 +24,7 @@ import io.stackgres.operator.rest.transformer.ResourceTransformer;
 
 import org.jooq.lambda.Seq;
 
-public class AbstractCustomResourceRestService<T extends Resource, R extends CustomResource>
+public class AbstractRestService<T extends Resource, R extends CustomResource>
     implements ResourceRestService<T> {
 
   private final CustomResourceScanner<R> scanner;
@@ -32,7 +32,7 @@ public class AbstractCustomResourceRestService<T extends Resource, R extends Cus
   private final CustomResourceScheduler<R> scheduler;
   private final ResourceTransformer<T, R> transformer;
 
-  AbstractCustomResourceRestService(CustomResourceScanner<R> scanner,
+  AbstractRestService(CustomResourceScanner<R> scanner,
       CustomResourceFinder<R> finder, CustomResourceScheduler<R> scheduler,
       ResourceTransformer<T, R> transformer) {
     super();

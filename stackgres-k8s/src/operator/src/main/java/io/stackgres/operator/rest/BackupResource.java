@@ -12,28 +12,28 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import io.stackgres.operator.common.ArcUtil;
-import io.stackgres.operator.customresource.sgprofile.StackGresProfile;
+import io.stackgres.operator.customresource.sgbackup.StackGresBackup;
 import io.stackgres.operator.resource.CustomResourceFinder;
 import io.stackgres.operator.resource.CustomResourceScanner;
 import io.stackgres.operator.resource.CustomResourceScheduler;
-import io.stackgres.operator.rest.dto.profile.ProfileDto;
+import io.stackgres.operator.rest.dto.backup.BackupDto;
 import io.stackgres.operator.rest.transformer.ResourceTransformer;
 
-@Path("/stackgres/profile")
+@Path("/stackgres/backup")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-public class StackGresProfileResource
-    extends AbstractCustomResourceRestService<ProfileDto, StackGresProfile> {
+public class BackupResource
+    extends AbstractRestService<BackupDto, StackGresBackup> {
 
   @Inject
-  public StackGresProfileResource(CustomResourceScanner<StackGresProfile> scanner,
-      CustomResourceFinder<StackGresProfile> finder,
-      CustomResourceScheduler<StackGresProfile> scheduler,
-      ResourceTransformer<ProfileDto, StackGresProfile> transformer) {
+  public BackupResource(CustomResourceScanner<StackGresBackup> scanner,
+      CustomResourceFinder<StackGresBackup> finder,
+      CustomResourceScheduler<StackGresBackup> scheduler,
+      ResourceTransformer<BackupDto, StackGresBackup> transformer) {
     super(scanner, finder, scheduler, transformer);
   }
 
-  public StackGresProfileResource() {
+  public BackupResource() {
     super(null, null, null, null);
     ArcUtil.checkPublicNoArgsConstructorIsCalledFromArc();
   }

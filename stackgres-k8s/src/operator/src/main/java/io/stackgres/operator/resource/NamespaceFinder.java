@@ -7,36 +7,37 @@ package io.stackgres.operator.resource;
 
 import java.util.List;
 import java.util.Optional;
+
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import io.fabric8.kubernetes.api.model.storage.StorageClass;
+import io.fabric8.kubernetes.api.model.Namespace;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.operator.app.KubernetesClientFactory;
 
 @ApplicationScoped
-public class StorageClassFinder implements
-    ResourceFinder<StorageClass>,
-    ResourceScanner<StorageClass> {
+public class NamespaceFinder implements
+    ResourceFinder<Namespace>,
+    ResourceScanner<Namespace> {
 
   private final KubernetesClientFactory kubClientFactory;
 
   @Inject
-  public StorageClassFinder(KubernetesClientFactory kubClientFactory) {
+  public NamespaceFinder(KubernetesClientFactory kubClientFactory) {
     this.kubClientFactory = kubClientFactory;
   }
 
   @Override
-  public Optional<StorageClass> findByName(String name) {
+  public Optional<Namespace> findByName(String name) {
     try (KubernetesClient client = kubClientFactory.create()) {
-      return Optional.ofNullable(client.storage().storageClasses().withName(name).get());
+      return Optional.ofNullable(client.namespaces().withName(name).get());
     }
   }
 
   @Override
-  public List<StorageClass> findResources() {
+  public List<Namespace> findResources() {
     try (KubernetesClient client = kubClientFactory.create()) {
-      return client.storage().storageClasses().list().getItems();
+      return client.namespaces().list().getItems();
     }
   }
 

@@ -13,7 +13,7 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class ClusterResourceConsumtion {
+public class ClusterResourceConsumtionDto {
 
   @JsonProperty("cpuRequested")
   private String cpuRequested;

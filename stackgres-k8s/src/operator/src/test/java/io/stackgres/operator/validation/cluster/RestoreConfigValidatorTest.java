@@ -11,7 +11,7 @@ import io.stackgres.operator.common.StackgresClusterReview;
 import io.stackgres.operator.customresource.sgbackup.StackGresBackup;
 import io.stackgres.operator.customresource.sgbackup.StackGresBackupList;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
-import io.stackgres.operator.customresource.sgcluster.StackGresClusterRestore;
+import io.stackgres.operator.customresource.sgcluster.ClusterRestore;
 import io.stackgres.operator.resource.CustomResourceScanner;
 import io.stackgres.operator.utils.JsonUtil;
 import io.stackgres.operator.utils.ValidationUtils;
@@ -65,7 +65,7 @@ class RestoreConfigValidatorTest {
     final StackgresClusterReview review = getCreationReview();
 
     StackGresCluster cluster = review.getRequest().getObject();
-    StackGresClusterRestore restoreConfig = cluster.getSpec().getRestore();
+    ClusterRestore restoreConfig = cluster.getSpec().getRestore();
     String stackgresBackup = restoreConfig.getStackgresBackup();
 
     when(scanner.findResources()).thenReturn(Optional.empty());

@@ -23,7 +23,7 @@ public class ClusterDto extends Resource {
   private ClusterSpec spec;
 
   @JsonProperty("status")
-  private ClusterResourceConsumtion status;
+  private ClusterResourceConsumtionDto status;
 
   public ClusterSpec getSpec() {
     return spec;
@@ -33,11 +33,11 @@ public class ClusterDto extends Resource {
     this.spec = spec;
   }
 
-  public ClusterResourceConsumtion getStatus() {
+  public ClusterResourceConsumtionDto getStatus() {
     return status;
   }
 
-  public void setStatus(ClusterResourceConsumtion status) {
+  public void setStatus(ClusterResourceConsumtionDto status) {
     this.status = status;
   }
 

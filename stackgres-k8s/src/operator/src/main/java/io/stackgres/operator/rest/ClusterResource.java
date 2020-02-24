@@ -21,32 +21,32 @@ import io.stackgres.operator.resource.CustomResourceScanner;
 import io.stackgres.operator.resource.CustomResourceScheduler;
 import io.stackgres.operator.rest.dto.cluster.ClusterDto;
 import io.stackgres.operator.rest.dto.cluster.ClusterPodConfigDto;
-import io.stackgres.operator.rest.dto.cluster.ClusterResourceConsumtion;
+import io.stackgres.operator.rest.dto.cluster.ClusterResourceConsumtionDto;
 import io.stackgres.operator.rest.transformer.ResourceTransformer;
 
 @Path("/stackgres/cluster")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-public class StackGresClusterResource
-    extends AbstractCustomResourceRestService<ClusterDto, StackGresCluster> {
+public class ClusterResource
+    extends AbstractRestService<ClusterDto, StackGresCluster> {
 
-  final CustomResourceFinder<ClusterResourceConsumtion> statusFinder;
+  final CustomResourceFinder<ClusterResourceConsumtionDto> statusFinder;
   final CustomResourceFinder<ClusterPodConfigDto> detailsFinder;
 
   @Inject
-  public StackGresClusterResource(
+  public ClusterResource(
       CustomResourceScanner<StackGresCluster> scanner,
       CustomResourceFinder<StackGresCluster> finder,
       CustomResourceScheduler<StackGresCluster> scheduler,
       ResourceTransformer<ClusterDto, StackGresCluster> transformer,
-      CustomResourceFinder<ClusterResourceConsumtion> statusFinder,
+      CustomResourceFinder<ClusterResourceConsumtionDto> statusFinder,
       CustomResourceFinder<ClusterPodConfigDto> detailsFinder) {
     super(scanner, finder, scheduler, transformer);
     this.statusFinder = statusFinder;
     this.detailsFinder = detailsFinder;
   }
 
-  public StackGresClusterResource() {
+  public ClusterResource() {
     super(null, null, null, null);
     ArcUtil.checkPublicNoArgsConstructorIsCalledFromArc();
     this.statusFinder = null;
@@ -58,7 +58,7 @@ public class StackGresClusterResource
    */
   @Path("/status/{namespace}/{name}")
   @GET
-  public ClusterResourceConsumtion status(@PathParam("namespace") String namespace,
+  public ClusterResourceConsumtionDto status(@PathParam("namespace") String namespace,
       @PathParam("name") String name) {
     return statusFinder.findByNameAndNamespace(name, namespace)
         .orElseThrow(NotFoundException::new);

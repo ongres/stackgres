@@ -22,11 +22,11 @@ import io.stackgres.operator.rest.transformer.ResourceTransformer;
 @Path("/stackgres/backupconfig")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-public class StackGresBackupConfigResource extends
-    AbstractCustomResourceRestService<BackupConfigDto, StackGresBackupConfig> {
+public class BackupConfigResource extends
+    AbstractRestService<BackupConfigDto, StackGresBackupConfig> {
 
   @Inject
-  public StackGresBackupConfigResource(
+  public BackupConfigResource(
       CustomResourceScanner<StackGresBackupConfig> scanner,
       CustomResourceFinder<StackGresBackupConfig> finder,
       CustomResourceScheduler<StackGresBackupConfig> scheduler,
@@ -34,7 +34,7 @@ public class StackGresBackupConfigResource extends
     super(scanner, finder, scheduler, transformer);
   }
 
-  public StackGresBackupConfigResource() {
+  public BackupConfigResource() {
     super(null, null, null, null);
     ArcUtil.checkPublicNoArgsConstructorIsCalledFromArc();
   }

@@ -19,7 +19,7 @@ import io.stackgres.operator.app.KubernetesClientFactory;
 @Path("/stackgres/kubernetes-cluster-info")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-public class KubernetesClusterInfoResource {
+public class ClusterInfoResource {
 
   @Inject
   KubernetesClientFactory kubeClient;

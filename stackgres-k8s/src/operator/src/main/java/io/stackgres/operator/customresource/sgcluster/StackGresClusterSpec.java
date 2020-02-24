@@ -48,7 +48,7 @@ public class StackGresClusterSpec implements KubernetesResource {
   private String backupConfig;
 
   @JsonProperty("restore")
-  private StackGresClusterRestore restore;
+  private ClusterRestore restore;
 
   @JsonProperty("volumeSize")
   @NotNull
@@ -114,11 +114,11 @@ public class StackGresClusterSpec implements KubernetesResource {
     this.backupConfig = backupConfig;
   }
 
-  public StackGresClusterRestore getRestore() {
+  public ClusterRestore getRestore() {
     return restore;
   }
 
-  public void setRestore(StackGresClusterRestore restore) {
+  public void setRestore(ClusterRestore restore) {
     this.restore = restore;
   }
 

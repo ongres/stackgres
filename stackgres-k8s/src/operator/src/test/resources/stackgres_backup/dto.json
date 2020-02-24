@@ -1,14 +1,7 @@
 {
-  "apiVersion": "stackgres.io/v1alpha1",
-  "kind": "StackGresBackup",
   "metadata": {
-    "creationTimestamp": "2019-10-23T13:41:00Z",
-    "generation": 1,
     "name": "test",
-    "namespace": "postgresql",
-    "resourceVersion": "629",
-    "selfLink": "/apis/stackgres.io/v1alpha1/namespaces/postgresql/sgbackups/test",
-    "uid": "bfb53778-f59a-11e9-b1b5-0242ac110002"
+    "namespace": "postgresql"
   },
   "spec": {
     "cluster": "stackgres",
