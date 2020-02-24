@@ -43,7 +43,7 @@
 	<div id="app">
 		<sg-nav></sg-nav>
 		<sg-side></sg-side>
-		<router-view id="main"></router-view>
+		<router-view id="main" :key="$route.path"></router-view>
 	</div>
 
 	<!-- Extra Libraries -->
