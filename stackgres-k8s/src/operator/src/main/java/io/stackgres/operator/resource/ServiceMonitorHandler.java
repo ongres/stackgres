@@ -27,7 +27,6 @@ import io.stackgres.operator.customresource.prometheus.ServiceMonitorDefinition;
 import io.stackgres.operator.customresource.prometheus.ServiceMonitorDoneable;
 import io.stackgres.operator.customresource.prometheus.ServiceMonitorList;
 import io.stackgres.operator.customresource.prometheus.ServiceMonitorSpec;
-import io.stackgres.operatorframework.resource.Kind;
 import io.stackgres.operatorframework.resource.ResourceHandler;
 import io.stackgres.operatorframework.resource.ResourceHandlerContext;
 import io.stackgres.operatorframework.resource.ResourceUtil;
@@ -38,8 +37,12 @@ import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple2;
 
 @ApplicationScoped
-@Kind(ServiceMonitor.class)
 public class ServiceMonitorHandler implements ResourceHandler<StackGresClusterContext> {
+
+  @Override
+  public boolean isHandlerForResource(HasMetadata resource) {
+    return ServiceMonitorDefinition.KIND.equals(resource.getKind());
+  }
 
   @Override
   public boolean equals(ResourceHandlerContext<StackGresClusterContext> resourceHandlerContext,

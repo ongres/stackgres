@@ -33,6 +33,10 @@ public interface ResourceHandler<T> {
     return false;
   }
 
+  default boolean isHandlerForResource(HasMetadata resource) {
+    return false;
+  }
+
   default boolean isHandlerForResource(T context, HasMetadata resource) {
     return false;
   }
