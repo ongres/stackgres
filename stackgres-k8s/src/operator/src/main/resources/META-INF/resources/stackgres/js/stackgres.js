@@ -947,10 +947,12 @@ $(document).ready(function(){
 
   $(".expand").click(function(){
     $(".set").addClass("active");
+    $("#sets").addClass("expanded");
   });
 
   $(".collapse").click(function(){
     $(".set").removeClass("active");
+    $("#sets").removeClass("expanded");
   });
 
   $("#nav .view").click(function(){

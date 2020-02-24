@@ -434,6 +434,11 @@ ul.zg-ul-select.active li.active:hover {
     height: calc(100vh - 175px);
 }
 
+#sets.expanded {
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
 .set {
     border-bottom: 1px solid rgba(211, 211, 211, .3);
     height: auto;
