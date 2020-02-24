@@ -34,15 +34,15 @@
 		<script src="js/vuex.js"></script>
 
 		<!-- Vue Loader -->
-		<script src="https://unpkg.com/http-vue-loader@1.4.1/src/httpVueLoader.js"></script>
+		<!-- <script src="https://unpkg.com/http-vue-loader@1.4.1/src/httpVueLoader.js"></script> -->
 	</head>
 <body>
 
 	<div id="loader"></div>
 	
 	<div id="app">
-		<sg-side></sg-side>
 		<sg-nav></sg-nav>
+		<sg-side></sg-side>
 		<router-view id="main"></router-view>
 	</div>
 
@@ -66,6 +66,10 @@
 	<!-- Action Components -->
 	<script type="text/javascript" src="js/components/Create.vue.js"></script>
 	<script type="text/javascript" src="js/components/forms/CreateCluster.vue.js"></script>
+	<script type="text/javascript" src="js/components/forms/CreateProfile.vue.js"></script>
+	<script type="text/javascript" src="js/components/forms/CreatePGConfig.vue.js"></script>
+	<script type="text/javascript" src="js/components/forms/CreatePoolConfig.vue.js"></script>
+	<script type="text/javascript" src="js/components/forms/CreateBackupConfig.vue.js"></script>
 
 	<!-- Layout Components -->
 	<script type="text/javascript" src="js/components/Side.vue.js"></script>
