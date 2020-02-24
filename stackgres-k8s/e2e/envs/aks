@@ -49,6 +49,8 @@ reset_k8s() {
   fi    
 
   az aks get-credentials --name "$K8S_AZ_K8S_NAME" --resource-group "$K8S_AZ_RESOURCE_GROUP" --overwrite-existing
+
+  az storage account create --name "$K8S_AZ_K8S_NAME" -g "$K8S_AZ_RESOURCE_GROUP" --sku Standard_LRS
 }
 
 reuse_k8s() {

@@ -110,7 +110,7 @@ spec:
       prefix: "{{ .Values.config.backup.azureblob.prefix }}"
       credentials:
         account:
-          name: "{{ .Values.config.backup.azureblobk.account.name }}"
+          name: "{{ .Values.config.backup.azureblob.account.name }}"
           key: "{{ .Values.config.backup.azureblob.account.key }}"
         accessKey:
           name: "{{ .Values.config.backup.azureblob.accessKey.name }}"
