@@ -912,8 +912,7 @@ $(document).ready(function(){
 
   $(document).on("click", "#main, #side", function() {
     if($(this).prop("id") != "notifications") {
-      $(".tooltip.show").removeClass("show").hide();
-      $("#notifications").removeClass("active");
+      $(".hasTooltip.active").removeClass("active");
       $("#selected--zg-ul-select.open").removeClass("open");
       $("#be-select.active").removeClass("active");
     } 
@@ -954,12 +953,6 @@ $(document).ready(function(){
     $(".set").removeClass("active");
   });
 
-  $("#notifications").click(function(){
-    $(this).toggleClass("active");
-    $("#notifications .tooltip").toggleClass("show");
-  });
-
-
   $("#nav .view").click(function(){
     $("#nav .tooltip.show").prop("class","tooltip").hide();
     $("#nav .top a.nav-item").removeClass("router-link-active");
@@ -977,16 +970,18 @@ $(document).ready(function(){
   });
 
   $("#nav.disabled .top a.nav-item").click(function(){
-
       $("#nav .tooltip.show").prop("class","tooltip").hide();
       $(this).siblings(".tooltip").fadeIn().addClass("show");
       $("#nav .top .tooltip").addClass("pos"+($(this).index()+1));
   });
 
-  $(".help").click(function(){
-    $("#nav .tooltip.show").prop("class","tooltip").hide();
-    $(this).siblings(".tooltip").fadeIn().addClass("show");
-    $("#nav .top .tooltip").addClass("pos"+($(this).index()+2));
+  $(".hasTooltip > a").click(function(){
+    if($(this).parent().hasClass("active"))
+      $(this).parent().removeClass("active");
+    else{
+      $(".hasTooltip.active").removeClass("active");
+      $(this).parent().addClass("active");
+    }      
   });
 
   $("#sets h3").click(function(){

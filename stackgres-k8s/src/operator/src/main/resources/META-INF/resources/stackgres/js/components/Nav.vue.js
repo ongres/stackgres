@@ -47,21 +47,21 @@ var Nav = Vue.component("sg-nav", {
 			</div> -->
 
 			<div class="right">
-				<div id="help">
+				<!-- <div id="help" class="hasTooltip">
 					<a href="javascript:void(0)" title="Need some help?">
 					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path class="a" d="M9.9 12.89a1.175 1.175 0 00-.839.331 1.111 1.111 0 00-.345.817 1.093 1.093 0 00.362.871 1.208 1.208 0 00.8.3H9.9a1.153 1.153 0 00.8-.3 1.084 1.084 0 00.356-.852 1.13 1.13 0 00-.334-.828 1.2 1.2 0 00-.822-.339zm3.042-6.543a2.841 2.841 0 00-1.177-1 4.1 4.1 0 00-1.709-.36 3.972 3.972 0 00-1.836.43 3.2 3.2 0 00-1.209 1.1 2.509 2.509 0 00-.424 1.335v.012a.979.979 0 00.308.682 1.016 1.016 0 00.733.317h.022a1.038 1.038 0 001.023-.87 2.562 2.562 0 01.5-.942 1.161 1.161 0 01.891-.295 1.188 1.188 0 01.824.293.916.916 0 01.3.7.763.763 0 01-.1.378 1.593 1.593 0 01-.267.353c-.117.118-.31.294-.574.525a10.19 10.19 0 00-.754.718 2.495 2.495 0 00-.654 1.741 1.065 1.065 0 00.29.81 1 1 0 00.692.275h.061a.918.918 0 00.606-.228.883.883 0 00.306-.6c.042-.2.074-.34.1-.42a1.1 1.1 0 01.082-.2 1.172 1.172 0 01.166-.233 4.073 4.073 0 01.328-.329c.52-.46.887-.8 1.091-1a3.074 3.074 0 00.56-.754 2.181 2.181 0 00.244-1.043 2.48 2.48 0 00-.423-1.395z"/><path class="a" d="M10 0a10 10 0 1010 10A10 10 0 0010 0zm0 18.015A8.015 8.015 0 1118.015 10 8.023 8.023 0 0110 18.015z"/></svg>
 					</a>
 
 					<div class="tooltip">
 						<span>NEED SOME HELP?</span>
-						<p>
+						<p class="message">
 							Contact us at<br/>
 							<a href="mailto:mail@stackgres.io">mail@stackgres.io</a>
 						</p>
 					</div>
-				</div>
+				</div> -->
 
-				<div id="notifications">
+				<div id="notifications" class="hasTooltip">
 					<a href="javascript:void(0)" title="Notifications">
 						<span class="loader"></span>
 						<span class="count zero">0</span>
@@ -71,7 +71,7 @@ var Nav = Vue.component("sg-nav", {
 					<div class="tooltip">
 						<span>NOTIFICATIONS</span>
 						<!--<hr/>-->
-						<p class="zero">There are no new notifications.</p>
+						<p class="zero message">There are no new notifications.</p>
 					</div>
 				</div>
 
