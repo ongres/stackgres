@@ -64,7 +64,7 @@ var ClusterOverview = Vue.component("cluster-overview", {
 				</div>
 				<div class="cta">
 					<!-- <a href="#" class="btn">Create New Cluster</a> -->
-					<router-link :to="'/create/cluster/'+currentNamespace" class="btn">Create New Cluster</router-link>
+					<router-link to="/crd/create/cluster/" class="btn">Create New Cluster</router-link>
 				</div>
 			</div>
 		</div>`,
