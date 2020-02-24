@@ -2,34 +2,22 @@ var CreateProfile = Vue.component("create-profile", {
     template: `
         <div id="create-profile" class="form">
             <header>
-                <h2 class="title">Create New Instance Profile</h2>
+                <h2 class="title">{{ $route.params.action }} Instance Profile</h2>
             </header>
             
             <label for="profileNamespace">K8S Namespace</label>
-            <select v-model="profileNamespace">
+            <select v-model="profileNamespace" :disabled="(editMode)">
                 <option disabled value="">Choose a Namespace</option>
                 <option v-for="namespace in allNamespaces">{{ namespace }}</option>
             </select>
 
             <label for="profileName">Profile Name</label>
-            <input v-model="profileName">
+            <input v-model="profileName" :disabled="(editMode)">
 
             
             <div class="unit-select">
                 <label for="profileRAM">RAM</label>
-                <select v-model="profileRAM" class="size">    
-                    <option disabled value="">RAM</option>
-                    <option>1</option>
-                    <option>2</option>
-                    <option>3</option>
-                    <option>4</option>
-                    <option>5</option>
-                    <option>6</option>
-                    <option>7</option>
-                    <option>8</option>
-                    <option>9</option>
-                    <option>10</option>
-                </select>
+                <input v-model="profileRAM" class="size">
 
                 <select v-model="profileRAMUnit" class="unit">
                     <option disabled value="">Select Unit</option>

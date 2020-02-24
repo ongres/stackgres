@@ -2,20 +2,20 @@ var CreatePGConfig = Vue.component("create-pgconfig", {
     template: `
         <div id="create-pgconfig" class="form">
             <header>
-                <h2 class="title">Create New PostgreSQL Configuration</h2>
+                <h2 class="title">{{ $route.params.action }} PostgreSQL Configuration</h2>
             </header>
 
             <label for="pgConfigNamespace">Configuration Namespace</label>
-            <select v-model="pgConfigNamespace">
+            <select v-model="pgConfigNamespace" :disabled="(editMode)">
                 <option disabled value="">Choose a Namespace</option>
                 <option v-for="namespace in allNamespaces">{{ namespace }}</option>
             </select>
 
             <label for="pgConfigName">Configuration Name</label>
-            <input v-model="pgConfigName">
+            <input v-model="pgConfigName" :disabled="(editMode)">
 
             <label for="pgConfigVersion">PostgreSQL Version</label>
-            <select v-model="pgConfigVersion">
+            <select v-model="pgConfigVersion" :disabled="(editMode)">
                 <option disabled value="">Select PostgreSQL Version</option>
                 <option value="11">11.6</option>
                 <option value="12">12.1</option>

@@ -2,17 +2,17 @@ var CreatePoolConfig = Vue.component("create-poolconfig", {
     template: `
         <div id="create-poolConfig" class="form">
             <header>
-                <h2 class="title">Create New Connection Pooling Configuration</h2>
+                <h2 class="title">{{ $route.params.action }} Connection Pooling Configuration</h2>
             </header>
             
             <label for="poolConfigNamespace">Configuration Namespace</label>
-            <select v-model="poolConfigNamespace">
+            <select v-model="poolConfigNamespace" :disabled="(editMode)">
                 <option disabled value="">Choose a Namespace</option>
                 <option v-for="namespace in allNamespaces">{{ namespace }}</option>
             </select>
 
             <label for="poolConfigName">Configuration Name</label>
-            <input v-model="poolConfigName">
+            <input v-model="poolConfigName" :disabled="(editMode)">
 
             <label for="poolConfigParams">Parameters</label>
             <textarea v-model="poolConfigParams" placeholder="parameter = value"></textarea>
