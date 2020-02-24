@@ -17,8 +17,8 @@ var CreatePGConfig = Vue.component("create-pgconfig", {
             <label for="pgConfigVersion">PostgreSQL Version</label>
             <select v-model="pgConfigVersion" :disabled="(editMode)">
                 <option disabled value="">Select PostgreSQL Version</option>
-                <option value="11">11.6</option>
-                <option value="12">12.1</option>
+                <option value="11">11</option>
+                <option value="12">12</option>
             </select>
 
             <label for="pgConfigParams">Parameters</label>
