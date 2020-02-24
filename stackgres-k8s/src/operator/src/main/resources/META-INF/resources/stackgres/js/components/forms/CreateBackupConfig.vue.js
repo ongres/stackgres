@@ -15,7 +15,12 @@ var CreateBackupConfig = Vue.component("create-backup-config", {
             <input v-model="backupConfigName" :disabled="(editMode)">
 
             <label for="backupConfigCompressionMethod">Compression Method</label>
-            <input v-model="backupConfigCompressionMethod">
+            <select v-model="backupConfigCompressionMethod">
+                <option disabled value="">Select a method</option>
+                <option value="lz4">LZ4</option>
+                <option value="lzma">LZMA</option>
+                <option value="brotli">Brotli</option>
+            </select>
 
             <label for="backupConfigFullSchedule">Backup Schedule</label>
             <input v-model="backupConfigFullSchedule">
