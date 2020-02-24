@@ -2,12 +2,12 @@ var CreateCluster = Vue.component("create-cluster", {
     template: `
         <div id="create-cluster" class="form">
             <header>
-                <h2 class="title">Create New Cluster</h2>
+                <h2 class="title">{{ $route.params.action }} Cluster</h2>
             </header>
             
             <label for="namespace">K8S Namespace</label>
             <!-- <div class="list-create"> -->
-                <select v-model="namespace" @change="showFields('.form > .hide')">
+                <select v-model="namespace" @change="showFields('.form > .hide')" :disabled="(editMode)">
                     <option disabled value="">Choose a Namespace</option>
                     <option v-for="namespace in allNamespaces" :selected="(namespace === currentNamespace)">{{ namespace }}</option>
                 </select>
@@ -15,7 +15,7 @@ var CreateCluster = Vue.component("create-cluster", {
             <!-- </div> -->
             
             <label for="name">Cluster Name</label>
-            <input v-model="name">
+            <input v-model="name" :disabled="(editMode)">
 
             <div :class="(editMode) ? '' : 'hide'">
                 
@@ -34,7 +34,7 @@ var CreateCluster = Vue.component("create-cluster", {
                 </template>
 
                 <label for="pgVersion">PostgreSQL Version</label>
-                <select v-model="pgVersion">
+                <select v-model="pgVersion" :disabled="(editMode)">
                     <option disabled value="">Select PostgreSQL Version</option>
                     <option>11.6</option>
                     <option>12.1</option>

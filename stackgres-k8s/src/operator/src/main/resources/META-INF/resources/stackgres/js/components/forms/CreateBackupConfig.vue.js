@@ -2,17 +2,17 @@ var CreateBackupConfig = Vue.component("create-backup-config", {
     template: `
         <div id="create-backup-config" class="form">
             <header>
-                <h2 class="title">Create New Backup Configuration</h2>
+                <h2 class="title">{{ $route.params.action }} Backup Configuration</h2>
             </header>
             
             <label for="backupConfigNamespace">Configuration Namespace</label>
-            <select v-model="backupConfigNamespace">
+            <select v-model="backupConfigNamespace" :disabled="(editMode)">
                 <option disabled value="">Choose a Namespace</option>
                 <option v-for="namespace in allNamespaces">{{ namespace }}</option>
             </select>
 
             <label for="backupConfigName">Configuration Name</label>
-            <input v-model="backupConfigName">
+            <input v-model="backupConfigName" :disabled="(editMode)">
 
             <label for="backupConfigCompressionMethod">Compression Method</label>
             <input v-model="backupConfigCompressionMethod">
@@ -46,14 +46,14 @@ var CreateBackupConfig = Vue.component("create-backup-config", {
             <input v-model="backupConfigUploadDiskConcurrency" value="">
 
             <label for="backupConfigStorageType">Storage Type</label>
-            <select v-model="backupConfigStorageType">
+            <select v-model="backupConfigStorageType" :disabled="(editMode)">
                 <option disabled value="">Select Storage Type</option>
                 <option value="s3">Amazon S3</option>
                 <option value="gcs">Google Storage</option>
                 <option value="azureblob">Microsoft Azure</option>
             </select>
 
-            <div class="fieldset" v-if="backupConfigStorageType === 's3'">
+            <fieldset class="fieldset" v-if="backupConfigStorageType === 's3'" :disabled="(editMode)">
                 <h3>Amazon S3 Configuration</h3>
 
                 <label for="backupS3Prefix">Prefix</label>
@@ -93,9 +93,9 @@ var CreateBackupConfig = Vue.component("create-backup-config", {
 
                 <label for="backupS3cseKmsRegion">CSE-KMS Region</label>
                 <input v-model="backupS3cseKmsRegion">
-            </div>
+            </fieldset>
 
-            <div class="fieldset" v-if="backupConfigStorageType === 'gcs'">
+            <fieldset class="fieldset" v-if="backupConfigStorageType === 'gcs'" :disabled="(editMode)">
                 <h3>Google Cloud Storage Configuration</h3>
                 
                 <label for="backupGCSPrefix">Prefix</label>
@@ -106,9 +106,9 @@ var CreateBackupConfig = Vue.component("create-backup-config", {
 
                 <label for="backupGCSKey">Service Account Key</label>
                 <input v-model="backupGCSKey">
-            </div>
+            </fieldset>
 
-            <div class="fieldset" v-if="backupConfigStorageType === 'azureblob'">
+            <fieldset class="fieldset" v-if="backupConfigStorageType === 'azureblob'" :disabled="(editMode)">
                 <h3>Microsoft Azure Configuration</h3>
 
                 <label for="backupAzurePrefix">Prefix</label>
@@ -131,7 +131,7 @@ var CreateBackupConfig = Vue.component("create-backup-config", {
 
                 <label for="backupAzureMaxBuffers">Max Buffers</label>
                 <input v-model="backupAzureMaxBuffers">
-            </div>
+            </fieldset>
 
             <button @click="createBackupConfig">Create Configuration</button> <button @click="cancel" class="border">Cancel</button>
 		</div>`,
@@ -212,7 +212,7 @@ var CreateBackupConfig = Vue.component("create-backup-config", {
             // console.log(tresholdSize.match(/[a-zA-Z]+/g)[0]);
 
             return {
-                editMode: false,
+                editMode: true,
                 backupConfigName: vm.$route.params.name,
                 backupConfigNamespace: vm.$route.params.namespace,
                 backupConfigCompressionMethod: config.data.spec.compressionMethod,
