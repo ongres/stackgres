@@ -86,6 +86,8 @@ h1, h2, h3, h4, h5, h6 {
     text-transform: uppercase;
     font-size: .8rem;
     display: inline-block;
+    width: 200px;
+    text-align: center;
 }
 
 .form button:hover, .form button:focus, .btn:hover, .btn:focus {
@@ -113,6 +115,10 @@ strong {
 
 .no-margin {
     margin: 0 !important;
+}
+
+.blue {
+    color: var(--blue);
 }
 
 /* Loader */
@@ -179,28 +185,34 @@ strong {
 aside {
     display: block;
     float: left;
-    height: 100vh;
-    overflow: hidden;
     position: fixed;
     z-index: 2;
 }
 
 #side {
-    width: 250px;
-    background: #FBFBFC;
+    min-width: 350px;
+    height: calc(100vh - 50px);
+    top: 50px;
+    background-color: #fcfcfc;
+    border-right: 1px solid var(--gray1);
 }
 
 #nav {
-    left: 250px;
-    width: 60px;
-    border-right: 1px solid var(--gray1);
-    border-left: 1px solid var(--gray1);
+    left: 0;
+    top: 0;
+    height: 50px;
+    width: 100vw;
+    padding: 10px 40px 10px 15px;
+    border-bottom: 1px solid var(--gray1);
+    background: #f8f8f8;
+    overflow: visible;
+    z-index: 10;
 }
 
 #main {
-    margin-left: 310px;
+    margin-left: 350px;
     float: left;
-    width: calc(100% - 310px);
+    width: calc(100% - 350px);
     display: block;
     min-height: 100vh;
     padding: 60px 40px;
@@ -214,87 +226,117 @@ aside {
 
 /* Sidebar */
 #logo {
-    display: block;
-    height: 60px;
-    line-height: 60px;
-    text-align: center;
-    color: var(--blue);
+    display: flex;
+    float: left;
+    text-align: left;
+    line-height: 30px;
+    margin-right: 20px;
+    color: var(--gray5);
     font-size: 1.3rem;
 }
 
 #logo h1 {
     font-weight: 300;
+    display: inline-block;
+    font-size: 20px;
+}
+
+#nav #logo svg {
+    width: auto;
+    height: auto;
+    display: inline-block;
+    margin-right: 10px;
+}
+
+#current-namespace {
+    padding: 0 20px;
+    display: flex;
+    border-bottom: 1px solid var(--gray1);
+    font-size: 1.1rem;
+    line-height: 1.1;
+    height: 75px;
+    align-items: center;
 }
 
 #namespaces {
-    border-top: 1px solid var(--gray1);
-    border-bottom: 1px solid var(--gray1);
-    text-align: center;
-    height: auto;
-    min-height: 80px;
-    padding-top: 10px;
+    height: 50px;
+    max-height: 50px;
+    margin-top: -10px;
+    display: inline-block;
     text-transform: uppercase;
 }
 
-#namespaces strong {
-    font-size: .9rem;
-    display: block;
+#namespaces > strong {
+    line-height: 30px;
+    position: absolute;
+}
+
+#namespaces .list {
+    display: inline-block;
+    position: relative;
+    height: 50px;
+    margin-left: 10px;
+    overflow: visible;
+    top: 0;
 }
 
 #namespaces a {
     display: block;
     text-align: center;
     width: 100%;
-    padding: 0.5em;
+    padding: 15px;
 }
 
 ul.zg-ul-select {
-    display: none;
-  border-radius: 2px;
-  box-sizing: border-box;
-  cursor: pointer;
-  margin: 10px auto 20px;
+    border-radius: 2px;
+    border: 1px solid transparent;
+    box-sizing: border-box;
+    cursor: pointer;
+    margin: 0 auto;
     padding: 0;
-    width: 80%;
+    width: auto;
     height: 0;
-    position: relative;
+    overflow: hidden;
     z-index: 99;
 }
 
 ul.zg-ul-select.active {
     height: auto;
     display: block;
+    border: 1px solid var(--blue);
+    border-top-right-radius: 0;
+    border-top-left-radius: 0;
+    box-shadow: 0 10px 60px rgba(0,0,0,.1);
 }
 ul.zg-ul-select li {
   border-radius: 3px;
-  display: none;
+  display: block;
+  padding: 0;
 }
+
 ul.zg-ul-select li.active {
-  -webkit-box-align: center;
-      -ms-flex-align: center;
-          align-items: center;
-  border: 1px solid var(--blue);
-    border-radius: 3px;
+    -webkit-box-align: center;
+        -ms-flex-align: center;
+            align-items: center;
     color: var(--blue);
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: flex;
-  position: relative;
-  -webkit-box-pack: justify;
-      -ms-flex-pack: justify;
-          justify-content: space-between;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    position: relative;
+    -webkit-box-pack: justify;
+        -ms-flex-pack: justify;
+            justify-content: space-between;
 }
 
 ul.zg-ul-select.active li {
-      border: 1px solid var(--blue);
-    border-top: 0;
-  box-shadow: none;
-  display: block;
-  border-radius: 0;
-  background: #fff;
+    border-top: 1px solid var(--blue);
+    box-shadow: none;
+    display: block;
+    border-radius: 0;
+    background: #fff;
 }
 ul.zg-ul-select.active li:hover {
-  background: var(--lblue);
+  background: var(--blue);
 }
 
 ul.zg-ul-select.active li:hover a {
@@ -302,8 +344,12 @@ ul.zg-ul-select.active li:hover a {
 }
 
 ul.zg-ul-select.active li.active {
-  background: var(--blue);
-  border-radius: 0;
+  background: var(--lblue);
+  border: 0;
+}
+
+ul.zg-ul-select.active li.active + li {
+    border: 0;
 }
 
 ul.zg-ul-select.active li.active a {
@@ -315,63 +361,63 @@ ul.zg-ul-select.active li.active:hover {
 }
 
 #selected--zg-ul-select {
-  -webkit-box-align: center;
-      -ms-flex-align: center;
-          align-items: center;
-  box-sizing: border-box;
-  color: #111;
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-box-pack: justify;
-      -ms-flex-pack: justify;
-          justify-content: space-between;
-  width: auto;
-  -webkit-touch-callout: none; /* iOS Safari */
-    -webkit-user-select: none; /* Safari */
-     -khtml-user-select: none; /* Konqueror HTML */
-       -moz-user-select: none; /* Old versions of Firefox */
-        -ms-user-select: none; /* Internet Explorer/Edge */
-            user-select: none; /* Non-prefixed version, currently
+    position: relative;
+    cursor: pointer;
+    width: 100%;
+    -webkit-box-align: center;
+        -ms-flex-align: center;
+            align-items: center;
+    box-sizing: border-box;
+    color: #111;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-pack: justify;
+        -ms-flex-pack: justify;
+            justify-content: space-between;
+    -webkit-touch-callout: none; /* iOS Safari */
+        -webkit-user-select: none; /* Safari */
+        -khtml-user-select: none; /* Konqueror HTML */
+        -moz-user-select: none; /* Old versions of Firefox */
+            -ms-user-select: none; /* Internet Explorer/Edge */
+                user-select: none; /* Non-prefixed version, currently
                                   supported by Chrome, Opera and Firefox */
 }
 
 #selected--zg-ul-select.active {
-    border: 1px solid var(--blue);
-    color: var(--blue);
-    border-radius: 3px;
-    padding: 0.5em;
-    width: 80%;
-    height: auto;
-    margin: 10px auto -10px;
-    display: block;
+    border: 0;
+    background: var(--blue);
+    border-radius: 0;
+    padding: 0 0 0 10px;
+    height: 50px;
+    margin: 0 auto;
+    display: inline-block;
     text-align: center;
+    line-height: 50px;
+    color: #fff;
 }
 
-#selected--zg-ul-select.open {
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
+#selected--zg-ul-select > span {
+    position: relative;
+    right: -6px;
+    top: -1px;
+    display: inline-block;
 }
 
 
-ul.zg-ul-select:not(.active) li.active:after, #selected--zg-ul-select.active:after {
+/* ul.zg-ul-select:not(.active) li.active:after, #selected--zg-ul-select.active:after {
     display: block;
     content: " ";
     border: 1px solid var(--blue);
-    width: 6px;
-    height: 6px;
+    width: 5px;
+    height: 5px;
     transform: rotate(45deg);
     border-top: 0;
     border-left: 0;
     position: absolute;
-    right: 8px;
-    top: 9px;
-}
-
- #selected--zg-ul-select {
-    position: relative;
-    cursor: pointer;
- }
+    right: 10px;
+    top: 7px;
+} */
 
 #selected--zg-ul-select:after {
     transform: rotate(225deg);
@@ -380,40 +426,114 @@ ul.zg-ul-select:not(.active) li.active:after, #selected--zg-ul-select.active:aft
 
 #selected--zg-ul-select.open:after {
     transform: rotate(-135deg);
-    top: 12px;
+    top: 10px;
 }
 
-
-
-
-
 #sets {
-    overflow: auto;
-    height: calc(100vh - 180px);
+    overflow-x: visible;
+    height: calc(100vh - 175px);
 }
 
 .set {
-    border-bottom: 1px solid var(--gray1);
-    border-left: 4px solid transparent;
-    padding: 20px;
-    text-transform: uppercase;
+    border-bottom: 1px solid rgba(211, 211, 211, .3);
     height: auto;
+    font-size: 1.1rem;
+    line-height: 60px;
     max-height: 100vh;
     transition: max-height 1s ease-out;
+    position: relative;
 }
 
-.set.active {
+.set.active, .set.active a:hover, .set:hover, .set:hover a:hover {
+    background-color: rgba(211, 211, 211, .15);
+}
+
+/* #sets > .set {
+    border-left: 3px solid transparent;
+}
+
+#sets > .set.active {
     border-left-color: var(--blue);
+} */
+
+.set a {
+    color: inherit;
 }
 
-#sets a:not(.addnew) {
+.item.router-link-exact-active:before {
+    display: block;
+    content: " ";
+    position: absolute;
+    width: 7px;
+    height: 7px;
+    border-radius: 100%;
+    background: var(--blue);
+    top: 26px;
+    margin-left: -22px;
+}
+
+.set > .nav-item, .set a {
+    padding: 0 20px;
+}
+
+#sets > .set > .nav-item {
+    padding-left: 50px;
+}
+
+.nav-item {
+    color: inherit;
+    display: flex;
+    height: 60px;
+    line-height: 60px;
+    cursor: pointer;
+}
+
+.item:hover {
+    background-color: rgba(211, 211, 211, .15) !important;
+}
+
+.set > div {
+    padding-left: 30px;
+    /* margin-bottom: 25px; */
+}
+
+.set:not(.active) ul {
+    position: absolute;
+    width: 350px;
+    left: 100%;
+    list-style: none;
+    top: 0;
+    display: none;
+    background: #fff;
+    border-radius: 5px;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    box-shadow: 3px 3px 5px rgba(0,0,0,.1);
+}
+
+.set .set ul {
+    border-radius: 0;
+    list-style: none;
+}
+
+
+.set:not(.active):hover > ul {
+    display: block;
+}
+
+.set:hover li > a {
+    padding-left: 40px;
+}
+
+/* #sets a:not(.addnew) {
     display: inline-block;
     width: 90%;
-}
+} */
 
 #sets h3, #sets h4 {
     display: inline-block;
     margin-bottom: 20px;
+    text-transform: uppercase   ;
     position: relative;
     cursor: pointer;
     color: var(--gray5);
@@ -433,16 +553,22 @@ ul.zg-ul-select:not(.active) li.active:after, #selected--zg-ul-select.active:aft
                                   supported by Chrome, Opera and Firefox */
 } 
 
-#sets h3:before {
+/*#sets h3:before {
     content: "▾";
     font-size: .8rem;
     position: relative;
     top: -2px;
     margin-right: 8px;
+}*/
+
+#side svg {
+    fill: var(--blue);
+    width: 20px;
+    margin-right: 10px;
 }
 
 #sets > .hide {
-    max-height: 55px;
+    max-height: 60px;
     height: auto;
     overflow: hidden;
     transition: height 1s ease-out;
@@ -453,36 +579,36 @@ ul.zg-ul-select:not(.active) li.active:after, #selected--zg-ul-select.active:aft
 }
 
 #sets .item {
-    padding-left: 16px;
     display: block;
-    margin-bottom: 10px;
     cursor: pointer;
-    color: initial;
+    position: relative;
 }
 
-#sets .item a {
-    color: initial;
+#sets > .active > ul > li > .item, .set.active .set > .nav-item  {
+    padding-left: 80px;
+    /* background: #edecef !important; */
 }
 
-#sets a.router-link-active {
+#sets > .active .active > ul > li > a {
+    padding-left: 110px;
+}
+
+/* #sets .item a {
+    color: initial;
+} */
+
+/* #sets a.router-link-active {
     font-weight: bold;
     color: var(--blue);
-}
+} */
 
 .addnew {
-    float: right;
-    background: var(--blue);
+    color: var(--blue) !important;
     display: block;
-    width: 15px;
-    height: 15px;
-    border-radius: 100%;
-    color: #fff !important;
     font-weight: bold;
-    text-align: center;
-    line-height: 15px;
     text-decoration: none;
-    font-size: 1rem;
-    font-family: monospace;
+    padding-left: 16px;
+    text-transform: uppercase;
 }
 
 /* .addnew {
@@ -514,9 +640,9 @@ footer {
 
 #nav svg {
     fill: var(--gray3);
-    width: 20px;
-    height: 25px;
-    margin: 0 auto;
+    width: auto;
+    height: 17px;
+    margin: 2px auto;
     display: block;
 }
 
@@ -528,16 +654,26 @@ footer {
     fill: var(--gray3) !important;
 }
 
+#nav .right {
+    display: inline-block;
+    float: right;
+    max-height: 50px;
+}
+
+#nav .right > div {
+    display: inline-block;
+    margin: 3px 10px;
+}
+
 #nav .view svg {
     width: 25px;
 }
 
 #nav a.nav-item {
-    width: 60px;
-    height: 59px;
-    display: block;
-    padding: 17px 0;
-    border-bottom: 1px solid var(--gray1);
+    width: auto;
+    display: inline-block;
+    padding: 5px;
+    margin: 0 7px;
 }
 
 #nav #collapse {
@@ -555,7 +691,6 @@ footer {
 
 #nav #notifications {
     position: relative;
-    height: 60px;
 }
 
 #nav.disabled .top svg {
@@ -645,18 +780,22 @@ footer .tooltip p {
     line-height: 1.3;
 }
 
-.help .tooltip {
+#help .tooltip {
     margin-top: -90px;
 }
 
 #notifications .tooltip {
-    bottom: 10px;
+    top: 60px;
+    right: 35px;
     padding: 5px 0;
 }
 
 #notifications .tooltip:before {
-    top: auto;
-    bottom: 20px;
+    top: -7px;
+    bottom: auto;
+    right: 20px;
+    left: auto;
+    transform: rotate(135deg);
 }
 
 #notifications.active .tooltip {
@@ -708,6 +847,38 @@ footer .tooltip p {
 
 #notifications p {
     padding: 10px;
+}
+
+#expanders {
+    border-top: 1px solid var(--gray1);
+    display: inline-block;
+    width: 100%;
+    height: 50px;
+    position: relative;
+    background: #fff;
+}
+
+#expanders > div {
+    width: 50%;
+    display: block;
+    float: left;
+    height: 100%;
+    line-height: 50px;
+    text-transform: uppercase;
+    cursor: pointer;
+    text-align: center;
+}
+
+#expanders .expand {
+    border-left: 1px solid var(--gray1);
+}
+
+#expanders svg {
+    margin-right: 3px;
+    width: auto;
+    position: relative;
+    top: 2px;
+    fill: var(--gray4);
 }
 
 /* Main Container */
@@ -827,7 +998,7 @@ li.status {
     transition: height .3s ease-out;
 }
 
-.content h3 {
+.content h3, .form h3 {
     color: var(--blue);
     text-transform: uppercase;
     margin-bottom: 15px;
@@ -1012,7 +1183,7 @@ ul.selector li {
 }
 
 /* Forms */
-.form {
+.form, #main.form {
     width: 700px;
     min-width: 480px;
     max-width: 90%;
@@ -1156,7 +1327,7 @@ label.switch {
     cursor: pointer;
 }
 
-.form button + button {
+.form button + button, .form .btn + button {
     margin-left: 10px;
 }
 

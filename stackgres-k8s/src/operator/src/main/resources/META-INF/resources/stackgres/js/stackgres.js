@@ -40,8 +40,71 @@ if( urlParams.has('localAPI') ) {
 const router = new VueRouter({
   routes: [
     { 
-      path: '/create/:name/:namespace', 
-      component: Create,
+      path: '/crd/:action/cluster', 
+      component: CreateCluster,
+      meta: {
+        conditionalRoute: false
+      },
+    },
+    { 
+      path: '/crd/:action/cluster/:namespace/:name', 
+      component: CreateCluster,
+      meta: {
+        conditionalRoute: false
+      },
+    },
+    { 
+      path: '/crd/:action/profile', 
+      component: CreateProfile,
+      meta: {
+        conditionalRoute: false
+      },
+    },
+    { 
+      path: '/crd/:action/profile/:namespace/:name', 
+      component: CreateProfile,
+      meta: {
+        conditionalRoute: false
+      },
+    },
+    { 
+      path: '/crd/:action/pgconfig', 
+      component: CreatePGConfig,
+      meta: {
+        conditionalRoute: false
+      },
+    },
+    { 
+      path: '/crd/:action/pgconfig/:namespace/:name', 
+      component: CreatePGConfig,
+      meta: {
+        conditionalRoute: false
+      },
+    },
+    { 
+      path: '/crd/:action/poolconfig', 
+      component: CreatePoolConfig,
+      meta: {
+        conditionalRoute: false
+      },
+    },
+    { 
+      path: '/crd/:action/poolconfig/:namespace/:name', 
+      component: CreatePoolConfig,
+      meta: {
+        conditionalRoute: false
+      },
+    },
+    { 
+      path: '/crd/:action/backupconfig', 
+      component: CreateBackupConfig,
+      meta: {
+        conditionalRoute: false
+      },
+    },
+    { 
+      path: '/crd/:action/backupconfig/:namespace/:name', 
+      component: CreateBackupConfig,
       meta: {
         conditionalRoute: false
       },
@@ -211,7 +274,7 @@ const store = new Vuex.Store({
       if( store.state.currentNamespace == ' ') {
         store.commit('setCurrentNamespace', namespace);
         router.push('/overview/'+store.state.currentNamespace);
-        $('#selected--zg-ul-select').text(store.state.currentNamespace).addClass('active');
+        $('#selected--zg-ul-select').addClass('active');
       }
       
     },
@@ -224,11 +287,11 @@ const store = new Vuex.Store({
       state.currentCluster = cluster;
       
       // Enable/Disable Graffana button
-      if (cluster.data.grafanaEmbedded) {
+      /* if (cluster.data.grafanaEmbedded) {
         $("#grafana-btn").css("display","block");
       } else {
         $("#grafana-btn").css("display","none");
-      }
+      } */
 
       let index = state.backups.find(p => (cluster.name == p.data.spec.cluster) );
 
@@ -704,6 +767,10 @@ Vue.filter('prefix',function(s, l = 2){
   return s.substring(0, l);
 });
 
+function formatBytes (a) {
+  if(0==a)return"0 Bytes";var c=1024,d=2,e=["Bytes","Ki","Mi","Gi","Ti","Pi","Ei","Zi","Yi"],f=Math.floor(Math.log(a)/Math.log(c))+1;return parseFloat((a/Math.pow(c,f)).toFixed(d))+" "+e[f];
+}
+
 function arraysMatch (arr1, arr2) {
 
   // Check if the arrays are the same length
@@ -844,20 +911,47 @@ $(document).ready(function(){
   });
 
   $(document).on("click", "#main, #side", function() {
-    $(".tooltip.show").removeClass("show").hide();
-    $("#notifications").removeClass("active");
+    if($(this).prop("id") != "notifications") {
+      $(".tooltip.show").removeClass("show").hide();
+      $("#notifications").removeClass("active");
+      $("#selected--zg-ul-select.open").removeClass("open");
+      $("#be-select.active").removeClass("active");
+    } 
   });
 
 
-  $(document).on("click", ".set a", function(){
+  /* $(document).on("click", ".set a", function(){
     $("#sets .set.active").removeClass("active");
     $(this).parents(".set").addClass("active");
+  }); */
+
+  $(document).on("click", "#sets .nav-item", function(){
+    $(this).parent().toggleClass("active");
+    $(this).parent().find(".active").toggleClass("active");
+  });
+
+  $(document).on("click", ".set .set .nav-item", function(){
+    if(!$(this).hasClass("active"))
+      $(this).parents(".set").addClass("active")
+    //$(this).parent().find(".active").toggleClass("active");
+  });
+
+  $(document).on("click", ".set .item", function(){
+    //if(!$(this).parents(".set").hasClass("active"))
+      $(this).parents(".set").addClass("active")
+    //$(this).parent().find(".active").toggleClass("active");
   });
 
   $(document).on("click", "#nav:not(.disabled) .top a.nav-item", function(){
-
     $(".clu a[href$='"+store.state.currentCluster+"']").addClass("router-link-active");
+  });
 
+  $(".expand").click(function(){
+    $(".set").addClass("active");
+  });
+
+  $(".collapse").click(function(){
+    $(".set").removeClass("active");
   });
 
   $("#notifications").click(function(){
@@ -942,7 +1036,7 @@ $(document).ready(function(){
 
       var selectedText = $(this).text();
       if (ul.hasClass('active')) {
-        selected.text(selectedText).addClass('active');
+        selected.addClass('active');
       }
       else {
         //selected.text('').removeClass('active'); 
@@ -951,8 +1045,9 @@ $(document).ready(function(){
     });
 
     $(document).on('click', '#be-select li a', function(){
-      selected.text($(this).text()).removeClass('open');
+      selected.removeClass('open');
       ul.removeClass('active');
+      $(".set.backups.active").removeClass('active');
     });
 
   }
