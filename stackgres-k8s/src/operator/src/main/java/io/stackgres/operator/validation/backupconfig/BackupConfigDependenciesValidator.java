@@ -12,7 +12,7 @@ import javax.inject.Inject;
 import io.stackgres.operator.common.ArcUtil;
 import io.stackgres.operator.common.BackupConfigReview;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
-import io.stackgres.operator.resource.KubernetesCustomResourceScanner;
+import io.stackgres.operator.resource.CustomResourceScanner;
 import io.stackgres.operator.validation.DependenciesValidator;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 
@@ -22,7 +22,7 @@ public class BackupConfigDependenciesValidator extends DependenciesValidator<Bac
 
   @Inject
   public BackupConfigDependenciesValidator(
-      @Any KubernetesCustomResourceScanner<StackGresCluster> clusterScanner) {
+      @Any CustomResourceScanner<StackGresCluster> clusterScanner) {
     super(clusterScanner);
   }
 

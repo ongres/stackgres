@@ -16,23 +16,30 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 
 import io.fabric8.kubernetes.client.CustomResource;
+import io.stackgres.operator.resource.CustomResourceFinder;
+import io.stackgres.operator.resource.CustomResourceScanner;
 import io.stackgres.operator.resource.CustomResourceScheduler;
-import io.stackgres.operator.resource.KubernetesCustomResourceFinder;
-import io.stackgres.operator.resource.KubernetesCustomResourceScanner;
+import io.stackgres.operator.rest.dto.Resource;
+import io.stackgres.operator.rest.transformer.ResourceTransformer;
 
-public class AbstractCustomResourceRestService<R extends CustomResource>
-    implements CustomResourceRestService<R> {
+import org.jooq.lambda.Seq;
 
-  private final KubernetesCustomResourceScanner<R> scanner;
-  private final KubernetesCustomResourceFinder<R> finder;
+public class AbstractCustomResourceRestService<T extends Resource, R extends CustomResource>
+    implements ResourceRestService<T> {
+
+  private final CustomResourceScanner<R> scanner;
+  private final CustomResourceFinder<R> finder;
   private final CustomResourceScheduler<R> scheduler;
+  private final ResourceTransformer<T, R> transformer;
 
-  AbstractCustomResourceRestService(KubernetesCustomResourceScanner<R> scanner,
-      KubernetesCustomResourceFinder<R> finder, CustomResourceScheduler<R> scheduler) {
+  AbstractCustomResourceRestService(CustomResourceScanner<R> scanner,
+      CustomResourceFinder<R> finder, CustomResourceScheduler<R> scheduler,
+      ResourceTransformer<T, R> transformer) {
     super();
     this.scanner = scanner;
     this.finder = finder;
     this.scheduler = scheduler;
+    this.transformer = transformer;
   }
 
   /**
@@ -42,8 +49,10 @@ public class AbstractCustomResourceRestService<R extends CustomResource>
    */
   @Override
   @GET
-  public List<R> list() {
-    return scanner.getResources();
+  public List<T> list() {
+    return Seq.seq(scanner.getResources())
+        .map(transformer::toResource)
+        .toList();
   }
 
   /**
@@ -56,8 +65,9 @@ public class AbstractCustomResourceRestService<R extends CustomResource>
   @Override
   @Path("/{namespace}/{name}")
   @GET
-  public R get(@PathParam("namespace") String namespace, @PathParam("name") String name) {
+  public T get(@PathParam("namespace") String namespace, @PathParam("name") String name) {
     return finder.findByNameAndNamespace(name, namespace)
+        .map(transformer::toResource)
         .orElseThrow(NotFoundException::new);
   }
 
@@ -67,8 +77,8 @@ public class AbstractCustomResourceRestService<R extends CustomResource>
    */
   @Override
   @POST
-  public void create(R resource) {
-    scheduler.create(resource);
+  public void create(T resource) {
+    scheduler.create(transformer.toCustomResource(resource));
   }
 
   /**
@@ -77,8 +87,8 @@ public class AbstractCustomResourceRestService<R extends CustomResource>
    */
   @Override
   @DELETE
-  public void delete(R resource) {
-    scheduler.delete(resource);
+  public void delete(T resource) {
+    scheduler.delete(transformer.toCustomResource(resource));
   }
 
   /**
@@ -87,7 +97,7 @@ public class AbstractCustomResourceRestService<R extends CustomResource>
    */
   @Override
   @PUT
-  public void update(R resource) {
-    scheduler.update(resource);
+  public void update(T resource) {
+    scheduler.update(transformer.toCustomResource(resource));
   }
 }

@@ -13,26 +13,29 @@ import javax.ws.rs.core.MediaType;
 
 import io.stackgres.operator.common.ArcUtil;
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfig;
+import io.stackgres.operator.resource.CustomResourceFinder;
+import io.stackgres.operator.resource.CustomResourceScanner;
 import io.stackgres.operator.resource.CustomResourceScheduler;
-import io.stackgres.operator.resource.KubernetesCustomResourceFinder;
-import io.stackgres.operator.resource.KubernetesCustomResourceScanner;
+import io.stackgres.operator.rest.dto.backupconfig.BackupConfigDto;
+import io.stackgres.operator.rest.transformer.ResourceTransformer;
 
 @Path("/stackgres/backupconfig")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class StackGresBackupConfigResource extends
-    AbstractCustomResourceRestService<StackGresBackupConfig> {
+    AbstractCustomResourceRestService<BackupConfigDto, StackGresBackupConfig> {
 
   @Inject
   public StackGresBackupConfigResource(
-      KubernetesCustomResourceScanner<StackGresBackupConfig> scanner,
-      KubernetesCustomResourceFinder<StackGresBackupConfig> finder,
-      CustomResourceScheduler<StackGresBackupConfig> scheduler) {
-    super(scanner, finder, scheduler);
+      CustomResourceScanner<StackGresBackupConfig> scanner,
+      CustomResourceFinder<StackGresBackupConfig> finder,
+      CustomResourceScheduler<StackGresBackupConfig> scheduler,
+      ResourceTransformer<BackupConfigDto, StackGresBackupConfig> transformer) {
+    super(scanner, finder, scheduler, transformer);
   }
 
   public StackGresBackupConfigResource() {
-    super(null, null, null);
+    super(null, null, null, null);
     ArcUtil.checkPublicNoArgsConstructorIsCalledFromArc();
   }
 

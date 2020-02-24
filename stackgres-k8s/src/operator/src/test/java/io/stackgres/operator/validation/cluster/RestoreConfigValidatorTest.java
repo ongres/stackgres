@@ -12,7 +12,7 @@ import io.stackgres.operator.customresource.sgbackup.StackGresBackup;
 import io.stackgres.operator.customresource.sgbackup.StackGresBackupList;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.customresource.sgcluster.StackGresClusterRestore;
-import io.stackgres.operator.resource.KubernetesCustomResourceScanner;
+import io.stackgres.operator.resource.CustomResourceScanner;
 import io.stackgres.operator.utils.JsonUtil;
 import io.stackgres.operator.utils.ValidationUtils;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
@@ -30,7 +30,7 @@ import static org.mockito.Mockito.*;
 class RestoreConfigValidatorTest {
 
   @Mock
-  private KubernetesCustomResourceScanner<StackGresBackup> scanner;
+  private CustomResourceScanner<StackGresBackup> scanner;
 
   private RestoreConfigValidator validator;
 

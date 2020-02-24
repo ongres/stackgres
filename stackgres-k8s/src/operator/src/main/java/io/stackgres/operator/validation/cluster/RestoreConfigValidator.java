@@ -15,17 +15,17 @@ import io.stackgres.operator.common.StackgresClusterReview;
 import io.stackgres.operator.customresource.sgbackup.StackGresBackup;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.customresource.sgcluster.StackGresClusterRestore;
-import io.stackgres.operator.resource.KubernetesCustomResourceScanner;
+import io.stackgres.operator.resource.CustomResourceScanner;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 
 @ApplicationScoped
 public class RestoreConfigValidator implements ClusterValidator {
 
-  private KubernetesCustomResourceScanner<StackGresBackup> backupScanner;
+  private CustomResourceScanner<StackGresBackup> backupScanner;
 
   @Inject
-  public RestoreConfigValidator(KubernetesCustomResourceScanner<StackGresBackup> backupScanner) {
+  public RestoreConfigValidator(CustomResourceScanner<StackGresBackup> backupScanner) {
     this.backupScanner = backupScanner;
   }
 

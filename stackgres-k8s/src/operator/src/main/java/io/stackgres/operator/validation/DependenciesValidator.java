@@ -10,7 +10,7 @@ import java.util.Optional;
 
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.customresource.sgcluster.StackGresClusterDefinition;
-import io.stackgres.operator.resource.KubernetesCustomResourceScanner;
+import io.stackgres.operator.resource.CustomResourceScanner;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
@@ -18,9 +18,9 @@ import io.stackgres.operatorframework.admissionwebhook.validating.Validator;
 
 public abstract class DependenciesValidator<T extends AdmissionReview<?>> implements Validator<T> {
 
-  private final KubernetesCustomResourceScanner<StackGresCluster> clusterScanner;
+  private final CustomResourceScanner<StackGresCluster> clusterScanner;
 
-  public DependenciesValidator(KubernetesCustomResourceScanner<StackGresCluster> clusterScanner) {
+  public DependenciesValidator(CustomResourceScanner<StackGresCluster> clusterScanner) {
     this.clusterScanner = clusterScanner;
   }
 

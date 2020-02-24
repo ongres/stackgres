@@ -16,35 +16,38 @@ import javax.ws.rs.core.MediaType;
 
 import io.stackgres.operator.common.ArcUtil;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
+import io.stackgres.operator.resource.CustomResourceFinder;
+import io.stackgres.operator.resource.CustomResourceScanner;
 import io.stackgres.operator.resource.CustomResourceScheduler;
-import io.stackgres.operator.resource.KubernetesCustomResourceFinder;
-import io.stackgres.operator.resource.KubernetesCustomResourceScanner;
-import io.stackgres.operator.rest.dto.ClusterPodConfig;
-import io.stackgres.operator.rest.dto.ClusterResourceConsumtion;
+import io.stackgres.operator.rest.dto.cluster.ClusterDto;
+import io.stackgres.operator.rest.dto.cluster.ClusterPodConfigDto;
+import io.stackgres.operator.rest.dto.cluster.ClusterResourceConsumtion;
+import io.stackgres.operator.rest.transformer.ResourceTransformer;
 
 @Path("/stackgres/cluster")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class StackGresClusterResource
-    extends AbstractCustomResourceRestService<StackGresCluster> {
+    extends AbstractCustomResourceRestService<ClusterDto, StackGresCluster> {
 
-  final KubernetesCustomResourceFinder<ClusterResourceConsumtion> statusFinder;
-  final KubernetesCustomResourceFinder<ClusterPodConfig> detailsFinder;
+  final CustomResourceFinder<ClusterResourceConsumtion> statusFinder;
+  final CustomResourceFinder<ClusterPodConfigDto> detailsFinder;
 
   @Inject
   public StackGresClusterResource(
-      KubernetesCustomResourceScanner<StackGresCluster> scanner,
-      KubernetesCustomResourceFinder<StackGresCluster> finder,
+      CustomResourceScanner<StackGresCluster> scanner,
+      CustomResourceFinder<StackGresCluster> finder,
       CustomResourceScheduler<StackGresCluster> scheduler,
-      KubernetesCustomResourceFinder<ClusterResourceConsumtion> statusFinder,
-      KubernetesCustomResourceFinder<ClusterPodConfig> detailsFinder) {
-    super(scanner, finder, scheduler);
+      ResourceTransformer<ClusterDto, StackGresCluster> transformer,
+      CustomResourceFinder<ClusterResourceConsumtion> statusFinder,
+      CustomResourceFinder<ClusterPodConfigDto> detailsFinder) {
+    super(scanner, finder, scheduler, transformer);
     this.statusFinder = statusFinder;
     this.detailsFinder = detailsFinder;
   }
 
   public StackGresClusterResource() {
-    super(null, null, null);
+    super(null, null, null, null);
     ArcUtil.checkPublicNoArgsConstructorIsCalledFromArc();
     this.statusFinder = null;
     this.detailsFinder = null;
@@ -63,7 +66,7 @@ public class StackGresClusterResource
 
   @Path("/pods/{namespace}/{name}")
   @GET
-  public ClusterPodConfig details(@PathParam("namespace") String namespace,
+  public ClusterPodConfigDto details(@PathParam("namespace") String namespace,
       @PathParam("name") String name) {
     return detailsFinder.findByNameAndNamespace(name, namespace)
         .orElseThrow(NotFoundException::new);

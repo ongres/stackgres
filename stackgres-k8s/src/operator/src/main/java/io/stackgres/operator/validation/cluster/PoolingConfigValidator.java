@@ -11,18 +11,18 @@ import javax.inject.Inject;
 
 import io.stackgres.operator.common.StackgresClusterReview;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
-import io.stackgres.operator.resource.KubernetesCustomResourceFinder;
+import io.stackgres.operator.resource.CustomResourceFinder;
 import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfig;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 
 @ApplicationScoped
 public class PoolingConfigValidator implements ClusterValidator {
 
-  private KubernetesCustomResourceFinder<StackGresPgbouncerConfig> configFinder;
+  private CustomResourceFinder<StackGresPgbouncerConfig> configFinder;
 
   @Inject
   public PoolingConfigValidator(
-      KubernetesCustomResourceFinder<StackGresPgbouncerConfig> configFinder) {
+      CustomResourceFinder<StackGresPgbouncerConfig> configFinder) {
     this.configFinder = configFinder;
   }
 

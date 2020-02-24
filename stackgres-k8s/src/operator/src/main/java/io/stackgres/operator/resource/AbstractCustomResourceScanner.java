@@ -17,7 +17,7 @@ import io.stackgres.operatorframework.resource.ResourceUtil;
 
 public abstract class AbstractCustomResourceScanner<T extends CustomResource,
     L extends CustomResourceList<T>, D extends CustomResourceDoneable<T>>
-    implements KubernetesCustomResourceScanner<T> {
+    implements CustomResourceScanner<T> {
 
   private final KubernetesClientFactory clientFactory;
   private final String customResourceName;

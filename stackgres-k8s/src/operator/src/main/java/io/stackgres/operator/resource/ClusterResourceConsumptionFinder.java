@@ -24,24 +24,24 @@ import io.stackgres.operator.customresource.sgprofile.StackGresProfileDoneable;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfileList;
 import io.stackgres.operator.patroni.factory.Patroni;
 import io.stackgres.operator.rest.PatroniStatsScripts;
-import io.stackgres.operator.rest.dto.ClusterResourceConsumtion;
+import io.stackgres.operator.rest.dto.cluster.ClusterResourceConsumtion;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 
 import org.jooq.lambda.Unchecked;
 
 @ApplicationScoped
 public class ClusterResourceConsumptionFinder
-    implements KubernetesCustomResourceFinder<ClusterResourceConsumtion> {
+    implements CustomResourceFinder<ClusterResourceConsumtion> {
 
   @Inject
-  KubernetesCustomResourceFinder<StackGresCluster> clusterFinder;
+  CustomResourceFinder<StackGresCluster> clusterFinder;
 
   @Inject
   KubernetesClientFactory kubClientFactory;
 
   public ClusterResourceConsumptionFinder(
       KubernetesClientFactory kubClientFactory,
-      KubernetesCustomResourceFinder<StackGresCluster> clusterFinder) {
+      CustomResourceFinder<StackGresCluster> clusterFinder) {
     this.kubClientFactory = kubClientFactory;
     this.clusterFinder = clusterFinder;
   }

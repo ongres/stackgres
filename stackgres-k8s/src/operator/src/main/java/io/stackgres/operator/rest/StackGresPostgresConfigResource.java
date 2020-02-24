@@ -13,26 +13,29 @@ import javax.ws.rs.core.MediaType;
 
 import io.stackgres.operator.common.ArcUtil;
 import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfig;
+import io.stackgres.operator.resource.CustomResourceFinder;
+import io.stackgres.operator.resource.CustomResourceScanner;
 import io.stackgres.operator.resource.CustomResourceScheduler;
-import io.stackgres.operator.resource.KubernetesCustomResourceFinder;
-import io.stackgres.operator.resource.KubernetesCustomResourceScanner;
+import io.stackgres.operator.rest.dto.pgconfig.PostgresConfigDto;
+import io.stackgres.operator.rest.transformer.ResourceTransformer;
 
 @Path("/stackgres/pgconfig")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class StackGresPostgresConfigResource extends
-    AbstractCustomResourceRestService<StackGresPostgresConfig> {
+    AbstractCustomResourceRestService<PostgresConfigDto, StackGresPostgresConfig> {
 
   @Inject
   public StackGresPostgresConfigResource(
-      KubernetesCustomResourceScanner<StackGresPostgresConfig> scanner,
-      KubernetesCustomResourceFinder<StackGresPostgresConfig> finder,
-      CustomResourceScheduler<StackGresPostgresConfig> scheduler) {
-    super(scanner, finder, scheduler);
+      CustomResourceScanner<StackGresPostgresConfig> scanner,
+      CustomResourceFinder<StackGresPostgresConfig> finder,
+      CustomResourceScheduler<StackGresPostgresConfig> scheduler,
+      ResourceTransformer<PostgresConfigDto, StackGresPostgresConfig> transformer) {
+    super(scanner, finder, scheduler, transformer);
   }
 
   public StackGresPostgresConfigResource() {
-    super(null, null, null);
+    super(null, null, null, null);
     ArcUtil.checkPublicNoArgsConstructorIsCalledFromArc();
   }
 

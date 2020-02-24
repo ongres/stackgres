@@ -11,7 +11,7 @@ import java.util.Optional;
 /*
  * Look for resources T in the kubernetes cluster
  */
-public interface KubernetesCustomResourceScanner<T> {
+public interface CustomResourceScanner<T> {
 
   /**
    * scans the cluster for resource <code>T</code> in all namespaces.

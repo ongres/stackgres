@@ -6,11 +6,11 @@
 package io.stackgres.operator.validation.pgbouncer;
 
 import io.stackgres.operator.common.PgBouncerReview;
-import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
 import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfig;
 import io.stackgres.operator.utils.JsonUtil;
 import io.stackgres.operator.validation.AbstractDefaultConfigKeeper;
 import io.stackgres.operator.validation.DefaultKeeperTest;
+
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 

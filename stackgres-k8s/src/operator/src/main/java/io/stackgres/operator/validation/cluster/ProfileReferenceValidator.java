@@ -12,16 +12,16 @@ import javax.inject.Inject;
 import io.stackgres.operator.common.StackgresClusterReview;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfile;
-import io.stackgres.operator.resource.KubernetesCustomResourceFinder;
+import io.stackgres.operator.resource.CustomResourceFinder;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 
 @ApplicationScoped
 public class ProfileReferenceValidator implements ClusterValidator {
 
-  private KubernetesCustomResourceFinder<StackGresProfile> profileFinder;
+  private CustomResourceFinder<StackGresProfile> profileFinder;
 
   @Inject
-  public ProfileReferenceValidator(KubernetesCustomResourceFinder<StackGresProfile> profileFinder) {
+  public ProfileReferenceValidator(CustomResourceFinder<StackGresProfile> profileFinder) {
     this.profileFinder = profileFinder;
   }
 

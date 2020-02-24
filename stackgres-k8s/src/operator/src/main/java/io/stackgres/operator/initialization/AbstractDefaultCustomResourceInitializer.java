@@ -6,11 +6,13 @@
 package io.stackgres.operator.initialization;
 
 import java.util.Optional;
+
 import javax.inject.Inject;
 
 import io.fabric8.kubernetes.client.CustomResource;
+import io.stackgres.operator.resource.CustomResourceFinder;
 import io.stackgres.operator.resource.CustomResourceScheduler;
-import io.stackgres.operator.resource.KubernetesCustomResourceFinder;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,7 +22,7 @@ public abstract class AbstractDefaultCustomResourceInitializer<T extends CustomR
   private static final Logger LOGGER = LoggerFactory
       .getLogger(AbstractDefaultCustomResourceInitializer.class);
 
-  private KubernetesCustomResourceFinder<T> resourceFinder;
+  private CustomResourceFinder<T> resourceFinder;
 
   private CustomResourceScheduler<T> resourceScheduler;
 
@@ -55,7 +57,7 @@ public abstract class AbstractDefaultCustomResourceInitializer<T extends CustomR
   }
 
   @Inject
-  public void setResourceFinder(KubernetesCustomResourceFinder<T> resourceFinder) {
+  public void setResourceFinder(CustomResourceFinder<T> resourceFinder) {
     this.resourceFinder = resourceFinder;
   }
 

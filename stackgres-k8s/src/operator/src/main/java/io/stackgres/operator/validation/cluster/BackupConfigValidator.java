@@ -12,17 +12,17 @@ import javax.inject.Inject;
 import io.stackgres.operator.common.StackgresClusterReview;
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
-import io.stackgres.operator.resource.KubernetesCustomResourceFinder;
+import io.stackgres.operator.resource.CustomResourceFinder;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 
 @ApplicationScoped
 public class BackupConfigValidator implements ClusterValidator {
 
-  private KubernetesCustomResourceFinder<StackGresBackupConfig> configFinder;
+  private CustomResourceFinder<StackGresBackupConfig> configFinder;
 
   @Inject
   public BackupConfigValidator(
-      KubernetesCustomResourceFinder<StackGresBackupConfig> configFinder) {
+      CustomResourceFinder<StackGresBackupConfig> configFinder) {
     this.configFinder = configFinder;
   }
 

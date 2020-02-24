@@ -13,17 +13,17 @@ import javax.inject.Inject;
 import io.stackgres.operator.common.BackupReview;
 import io.stackgres.operator.customresource.sgbackup.StackGresBackup;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
-import io.stackgres.operator.resource.KubernetesCustomResourceFinder;
+import io.stackgres.operator.resource.CustomResourceFinder;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 
 @ApplicationScoped
 public class ClusterValidator implements BackupValidator {
 
-  private final KubernetesCustomResourceFinder<StackGresCluster> clusterFinder;
+  private final CustomResourceFinder<StackGresCluster> clusterFinder;
 
   @Inject
   public ClusterValidator(
-      KubernetesCustomResourceFinder<StackGresCluster> clusterFinder) {
+      CustomResourceFinder<StackGresCluster> clusterFinder) {
     this.clusterFinder = clusterFinder;
   }
 

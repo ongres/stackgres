@@ -19,7 +19,7 @@ import io.stackgres.operator.customresource.sgcluster.StackGresClusterList;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 
 @ApplicationScoped
-public class ClusterFinder implements KubernetesCustomResourceFinder<StackGresCluster> {
+public class ClusterFinder implements CustomResourceFinder<StackGresCluster> {
 
   private KubernetesClientFactory kubernetesClientFactory;
 

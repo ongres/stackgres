@@ -7,7 +7,7 @@ package io.stackgres.operator.resource;
 
 import java.util.Optional;
 
-public interface KubernetesCustomResourceFinder<T> {
+public interface CustomResourceFinder<T> {
 
   /**
    * Will look for a customer resource by it's name in the given namespace.

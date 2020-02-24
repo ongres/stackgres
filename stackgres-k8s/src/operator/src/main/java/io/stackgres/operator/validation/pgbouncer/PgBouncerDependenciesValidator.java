@@ -11,7 +11,7 @@ import javax.inject.Inject;
 import io.stackgres.operator.common.ArcUtil;
 import io.stackgres.operator.common.PgBouncerReview;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
-import io.stackgres.operator.resource.KubernetesCustomResourceScanner;
+import io.stackgres.operator.resource.CustomResourceScanner;
 import io.stackgres.operator.validation.DependenciesValidator;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 
@@ -27,7 +27,7 @@ public class PgBouncerDependenciesValidator extends DependenciesValidator<PgBoun
 
   @Inject
   public PgBouncerDependenciesValidator(
-      KubernetesCustomResourceScanner<StackGresCluster> clusterScanner) {
+      CustomResourceScanner<StackGresCluster> clusterScanner) {
     super(clusterScanner);
   }
 

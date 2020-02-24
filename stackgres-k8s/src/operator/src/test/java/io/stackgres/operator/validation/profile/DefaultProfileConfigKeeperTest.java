@@ -7,15 +7,12 @@ package io.stackgres.operator.validation.profile;
 
 import io.stackgres.operator.common.SgProfileReview;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfile;
-import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
 import io.stackgres.operator.utils.JsonUtil;
 import io.stackgres.operator.validation.AbstractDefaultConfigKeeper;
 import io.stackgres.operator.validation.DefaultKeeperTest;
 
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)
 class DefaultProfileConfigKeeperTest extends DefaultKeeperTest<StackGresProfile, SgProfileReview> {

@@ -18,8 +18,8 @@ import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.operator.common.StackgresClusterReview;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
+import io.stackgres.operator.resource.CustomResourceFinder;
 import io.stackgres.operator.resource.CustomResourceScheduler;
-import io.stackgres.operator.resource.KubernetesCustomResourceFinder;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 
 public abstract class AbstractDefaultResourceMutator<R extends CustomResource>
@@ -27,7 +27,7 @@ public abstract class AbstractDefaultResourceMutator<R extends CustomResource>
 
   private DefaultCustomResourceFactory<R> resourceFactory;
 
-  private KubernetesCustomResourceFinder<R> finder;
+  private CustomResourceFinder<R> finder;
 
   private CustomResourceScheduler<R> scheduler;
 
@@ -73,7 +73,7 @@ public abstract class AbstractDefaultResourceMutator<R extends CustomResource>
   }
 
   @Inject
-  public void setFinder(KubernetesCustomResourceFinder<R> finder) {
+  public void setFinder(CustomResourceFinder<R> finder) {
     this.finder = finder;
   }
 

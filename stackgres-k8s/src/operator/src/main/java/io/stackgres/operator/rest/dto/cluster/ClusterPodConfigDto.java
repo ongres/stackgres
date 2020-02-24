@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.rest.dto;
+package io.stackgres.operator.rest.dto.cluster;
 
 import java.util.List;
 
@@ -15,7 +15,7 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class ClusterPodConfig {
+public class ClusterPodConfigDto {
 
   @JsonProperty("pods")
   private List<ClusterPodStatus> pods;

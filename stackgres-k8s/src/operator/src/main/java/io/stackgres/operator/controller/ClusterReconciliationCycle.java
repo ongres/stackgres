@@ -72,7 +72,7 @@ import io.stackgres.operator.customresource.storages.GoogleCloudCredentials;
 import io.stackgres.operator.customresource.storages.GoogleCloudStorage;
 import io.stackgres.operator.customresource.storages.PgpConfiguration;
 import io.stackgres.operator.resource.ClusterSidecarFinder;
-import io.stackgres.operator.resource.KubernetesCustomResourceScanner;
+import io.stackgres.operator.resource.CustomResourceScanner;
 import io.stackgres.operator.sidecars.envoy.Envoy;
 import io.stackgres.operator.sidecars.pgexporter.PostgresExporter;
 import io.stackgres.operatorframework.reconciliation.AbstractReconciliationCycle;
@@ -94,7 +94,7 @@ public class ClusterReconciliationCycle
   private final Cluster cluster;
   private final ClusterStatusManager statusManager;
   private final EventController eventController;
-  private final KubernetesCustomResourceScanner<PrometheusConfig> prometheusScanner;
+  private final CustomResourceScanner<PrometheusConfig> prometheusScanner;
   private final ConfigContext configContext;
 
   /**
@@ -106,7 +106,7 @@ public class ClusterReconciliationCycle
       ResourceHandlerSelector<StackGresClusterContext> handlerSelector,
       ClusterStatusManager statusManager, EventController eventController,
       ObjectMapperProvider objectMapperProvider,
-      KubernetesCustomResourceScanner<PrometheusConfig> prometheusScanner,
+      CustomResourceScanner<PrometheusConfig> prometheusScanner,
       ConfigContext configContext) {
     super("Cluster", kubClientFactory::create, StackGresClusterContext::getCluster,
         handlerSelector, objectMapperProvider.objectMapper());
