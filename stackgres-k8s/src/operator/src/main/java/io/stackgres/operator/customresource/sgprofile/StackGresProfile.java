@@ -17,9 +17,13 @@ public class StackGresProfile extends CustomResource {
 
   private static final long serialVersionUID = -5276087851826599719L;
 
-  @NotNull(message = "The specification of StackGresProfile is required")
+  @NotNull(message = "The specification is required")
   @Valid
   private StackGresProfileSpec spec;
+
+  public StackGresProfile() {
+    super(StackGresProfileDefinition.KIND);
+  }
 
   public StackGresProfileSpec getSpec() {
     return spec;

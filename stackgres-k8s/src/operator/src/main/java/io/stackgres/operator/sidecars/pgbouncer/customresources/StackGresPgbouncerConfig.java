@@ -16,8 +16,12 @@ public class StackGresPgbouncerConfig extends CustomResource {
 
   private static final long serialVersionUID = 2719099984653736636L;
 
-  @NotNull(message = "The specification of StackGresPgbouncerConfig is required")
+  @NotNull(message = "The specification is required")
   private StackGresPgbouncerConfigSpec spec;
+
+  public StackGresPgbouncerConfig() {
+    super(StackGresPgbouncerConfigDefinition.KIND);
+  }
 
   public StackGresPgbouncerConfigSpec getSpec() {
     return spec;
