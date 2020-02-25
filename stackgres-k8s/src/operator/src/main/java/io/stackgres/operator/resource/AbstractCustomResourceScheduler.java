@@ -10,6 +10,9 @@ import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.CustomResourceDoneable;
 import io.fabric8.kubernetes.client.CustomResourceList;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.dsl.Namespaceable;
+import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
+import io.fabric8.kubernetes.client.dsl.Resource;
 import io.stackgres.operator.app.KubernetesClientFactory;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 
@@ -38,14 +41,7 @@ public abstract class AbstractCustomResourceScheduler<T extends CustomResource,
   @Override
   public void create(T resource) {
     try (KubernetesClient client = clientFactory.create()) {
-      CustomResourceDefinition crd = ResourceUtil.getCustomResource(
-          client, customResourceName)
-          .orElseThrow(() -> new RuntimeException("StackGres is not correctly installed:"
-              + " CRD " + customResourceName + " not found."));
-      client.customResources(crd,
-          customResourceClass,
-          customResourceListClass,
-          customResourceDoneClass)
+      getCustomResourceOperator(client)
           .inNamespace(resource.getMetadata().getNamespace())
           .create(resource);
     }
@@ -54,14 +50,7 @@ public abstract class AbstractCustomResourceScheduler<T extends CustomResource,
   @Override
   public void update(T resource) {
     try (KubernetesClient client = clientFactory.create()) {
-      CustomResourceDefinition crd = ResourceUtil.getCustomResource(
-          client, customResourceName)
-          .orElseThrow(() -> new RuntimeException("StackGres is not correctly installed:"
-              + " CRD " + customResourceName + " not found."));
-      client.customResources(crd,
-          customResourceClass,
-          customResourceListClass,
-          customResourceDoneClass)
+      getCustomResourceOperator(client)
           .inNamespace(resource.getMetadata().getNamespace())
           .withName(resource.getMetadata().getName())
           .patch(resource);
@@ -71,18 +60,23 @@ public abstract class AbstractCustomResourceScheduler<T extends CustomResource,
   @Override
   public void delete(T resource) {
     try (KubernetesClient client = clientFactory.create()) {
-      CustomResourceDefinition crd = ResourceUtil.getCustomResource(
-          client, customResourceName)
-          .orElseThrow(() -> new RuntimeException("StackGres is not correctly installed:"
-              + " CRD " + customResourceName + " not found."));
-      client.customResources(crd,
-          customResourceClass,
-          customResourceListClass,
-          customResourceDoneClass)
+      getCustomResourceOperator(client)
           .inNamespace(resource.getMetadata().getNamespace())
           .withName(resource.getMetadata().getName())
           .delete();
     }
+  }
+
+  private Namespaceable<NonNamespaceOperation<T, L, D, Resource<T, D>>> getCustomResourceOperator(
+      KubernetesClient client) {
+    CustomResourceDefinition crd = ResourceUtil.getCustomResource(
+        client, customResourceName)
+        .orElseThrow(() -> new RuntimeException("StackGres is not correctly installed:"
+            + " CRD " + customResourceName + " not found."));
+    return client.customResources(crd,
+        customResourceClass,
+        customResourceListClass,
+        customResourceDoneClass);
   }
 
 }

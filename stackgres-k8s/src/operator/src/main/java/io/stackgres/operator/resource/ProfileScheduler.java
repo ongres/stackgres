@@ -10,23 +10,23 @@ import javax.inject.Inject;
 
 import io.stackgres.operator.app.KubernetesClientFactory;
 import io.stackgres.operator.common.ArcUtil;
-import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfig;
-import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfigDefinition;
-import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfigDoneable;
-import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfigList;
+import io.stackgres.operator.customresource.sgprofile.StackGresProfile;
+import io.stackgres.operator.customresource.sgprofile.StackGresProfileDefinition;
+import io.stackgres.operator.customresource.sgprofile.StackGresProfileDoneable;
+import io.stackgres.operator.customresource.sgprofile.StackGresProfileList;
 
 @ApplicationScoped
 public class ProfileScheduler
-    extends AbstractCustomResourceScheduler<StackGresPgbouncerConfig,
-      StackGresPgbouncerConfigList, StackGresPgbouncerConfigDoneable> {
+    extends AbstractCustomResourceScheduler<StackGresProfile,
+      StackGresProfileList, StackGresProfileDoneable> {
 
   @Inject
   public ProfileScheduler(KubernetesClientFactory clientFactory) {
     super(clientFactory,
-        StackGresPgbouncerConfigDefinition.NAME,
-        StackGresPgbouncerConfig.class,
-        StackGresPgbouncerConfigList.class,
-        StackGresPgbouncerConfigDoneable.class);
+        StackGresProfileDefinition.NAME,
+        StackGresProfile.class,
+        StackGresProfileList.class,
+        StackGresProfileDoneable.class);
   }
 
   public ProfileScheduler() {

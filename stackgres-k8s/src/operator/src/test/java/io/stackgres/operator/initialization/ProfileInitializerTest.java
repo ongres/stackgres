@@ -6,6 +6,8 @@
 package io.stackgres.operator.initialization;
 
 import io.stackgres.operator.customresource.sgprofile.StackGresProfile;
+import io.stackgres.operator.resource.CustomResourceFinder;
+import io.stackgres.operator.resource.CustomResourceScheduler;
 import io.stackgres.operator.utils.JsonUtil;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -14,8 +16,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class ProfileInitializerTest extends AbstractInitializerTest<StackGresProfile> {
 
   @Override
-  AbstractDefaultCustomResourceInitializer<StackGresProfile> getInstance() {
-    return new ProfileInitializer();
+  AbstractDefaultCustomResourceInitializer<StackGresProfile> getInstance(
+      CustomResourceFinder<StackGresProfile> resourceFinder,
+      CustomResourceScheduler<StackGresProfile> resourceScheduler,
+      DefaultCustomResourceFactory<StackGresProfile> resourceFactory, InitializationQueue queue) {
+    return new ProfileInitializer(resourceFinder, resourceScheduler, resourceFactory, queue);
   }
 
   @Override
