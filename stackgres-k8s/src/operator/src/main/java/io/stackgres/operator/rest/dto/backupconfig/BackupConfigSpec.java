@@ -13,7 +13,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.MoreObjects;
 
-import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.operator.rest.dto.storages.BackupStorage;
 import io.stackgres.operator.rest.dto.storages.PgpConfiguration;
@@ -21,9 +20,7 @@ import io.stackgres.operator.rest.dto.storages.PgpConfiguration;
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class BackupConfigSpec implements KubernetesResource {
-
-  private static final long serialVersionUID = 4124027524757318245L;
+public class BackupConfigSpec {
 
   @JsonProperty("storage")
   @NotNull(message = "The storage is required")

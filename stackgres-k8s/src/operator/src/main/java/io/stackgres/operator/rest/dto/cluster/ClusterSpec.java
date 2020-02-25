@@ -15,15 +15,13 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.MoreObjects;
-import io.fabric8.kubernetes.api.model.KubernetesResource;
+
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class ClusterSpec implements KubernetesResource {
-
-  private static final long serialVersionUID = -5276087851826599719L;
+public class ClusterSpec {
 
   @JsonProperty("instances")
   @Min(value = 1, message = "You need at least 1 instance in the cluster")

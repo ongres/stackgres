@@ -9,15 +9,13 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.MoreObjects;
-import io.fabric8.kubernetes.api.model.KubernetesResource;
+
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class ClusterRestore implements KubernetesResource {
-
-  private static final long serialVersionUID = 1L;
+public class ClusterRestore {
 
   @JsonProperty("downloadDiskConcurrency")
   private int downloadDiskConcurrency;

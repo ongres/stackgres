@@ -11,15 +11,12 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
-import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class ProfileSpec implements KubernetesResource {
-
-  private static final long serialVersionUID = -1037668102382589521L;
+public class ProfileSpec {
 
   @JsonProperty("cpu")
   @NotBlank

@@ -5,16 +5,26 @@
 
 package io.stackgres.operator.rest.transformer;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import javax.enterprise.context.ApplicationScoped;
+
+import com.google.common.collect.ImmutableMap;
 
 import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfigSpec;
 import io.stackgres.operator.rest.dto.pgconfig.PostgresConfigDto;
 import io.stackgres.operator.rest.dto.pgconfig.PostgresConfigSpec;
 
+import org.jooq.lambda.Seq;
+
 @ApplicationScoped
 public class PostgresConfigTransformer
     extends AbstractResourceTransformer<PostgresConfigDto, StackGresPostgresConfig> {
+
+  private static final Pattern PARAMETER_PATTERN = Pattern.compile(
+      "^\\s*(\\w)+\\s*=\\s*(:?'([^']+)'|([^ ]+))\\s*$");
 
   @Override
   public StackGresPostgresConfig toCustomResource(PostgresConfigDto source) {
@@ -35,14 +45,23 @@ public class PostgresConfigTransformer
   private StackGresPostgresConfigSpec getCustomResourceSpec(PostgresConfigSpec source) {
     StackGresPostgresConfigSpec transformation = new StackGresPostgresConfigSpec();
     transformation.setPgVersion(source.getPgVersion());
-    transformation.setPostgresqlConf(source.getPostgresqlConf());
+    transformation.setPostgresqlConf(Seq.of(source.getPostgresqlConf().split("\n"))
+        .map(line -> line.replaceAll("#.*$", ""))
+        .map(line -> PARAMETER_PATTERN.matcher(line))
+        .filter(Matcher::matches)
+        .collect(ImmutableMap.toImmutableMap(
+            matcher -> matcher.group(1),
+            matcher -> matcher.group(2) != null ? matcher.group(2) : matcher.group(3))));
     return transformation;
   }
 
   private PostgresConfigSpec getResourceSpec(StackGresPostgresConfigSpec source) {
     PostgresConfigSpec transformation = new PostgresConfigSpec();
     transformation.setPgVersion(source.getPgVersion());
-    transformation.setPostgresqlConf(source.getPostgresqlConf());
+    transformation.setPostgresqlConf(
+        Seq.seq(source.getPostgresqlConf().entrySet())
+        .map(e -> e.getKey() + "=" + e.getValue())
+        .toString("\n"));
     return transformation;
   }
 

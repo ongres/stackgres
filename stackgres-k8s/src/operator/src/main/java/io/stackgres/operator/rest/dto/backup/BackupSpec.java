@@ -12,15 +12,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.MoreObjects;
 
-import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class BackupSpec implements KubernetesResource {
-
-  private static final long serialVersionUID = 4124027524757318245L;
+public class BackupSpec {
 
   @JsonProperty("cluster")
   @NotNull(message = "The cluster name is required")

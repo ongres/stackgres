@@ -5,34 +5,29 @@
 
 package io.stackgres.operator.rest.dto.pgbouncerconfig;
 
-import java.util.Map;
-
-import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.MoreObjects;
 
-import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class PgbouncerConfigSpec implements KubernetesResource {
-
-  private static final long serialVersionUID = 2000013861182789247L;
+public class PgbouncerConfigSpec {
 
   @JsonProperty("pgbouncer.ini")
-  @NotEmpty(message = "pgbouncer.ini should not be empty")
-  private Map<String, String> pgbouncerConf;
+  @NotNull(message = "pgbouncer.ini is required")
+  private String pgbouncerConf;
 
-  public Map<String, String> getPgbouncerConf() {
+  public String getPgbouncerConf() {
     return pgbouncerConf;
   }
 
-  public void setPgbouncerConf(Map<String, String> pgbouncerConf) {
+  public void setPgbouncerConf(String pgbouncerConf) {
     this.pgbouncerConf = pgbouncerConf;
   }
 

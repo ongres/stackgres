@@ -11,16 +11,13 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.MoreObjects;
 
-import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.operator.rest.dto.backupconfig.BackupConfigSpec;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class BackupStatus implements KubernetesResource {
-
-  private static final long serialVersionUID = 4124027524757318245L;
+public class BackupStatus {
 
   private BackupConfigSpec backupConfig;
   private String phase;

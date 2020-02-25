@@ -5,32 +5,28 @@
 
 package io.stackgres.operator.rest.dto.pgconfig;
 
-import java.util.Map;
-
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.MoreObjects;
-import io.fabric8.kubernetes.api.model.KubernetesResource;
+
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class PostgresConfigSpec implements KubernetesResource {
-
-  private static final long serialVersionUID = -5276087851826599719L;
+public class PostgresConfigSpec {
 
   @JsonProperty("pgVersion")
   @NotBlank(message = "The PostgreSQL version is required")
   private String pgVersion;
 
   @JsonProperty("postgresql.conf")
-  @NotEmpty(message = "postgresql.conf should not be empty")
-  private Map<String, String> postgresqlConf;
+  @NotNull(message = "postgresql.conf is required")
+  private String postgresqlConf;
 
   public String getPgVersion() {
     return pgVersion;
@@ -40,11 +36,11 @@ public class PostgresConfigSpec implements KubernetesResource {
     this.pgVersion = pgVersion;
   }
 
-  public Map<String, String> getPostgresqlConf() {
+  public String getPostgresqlConf() {
     return postgresqlConf;
   }
 
-  public void setPostgresqlConf(Map<String, String> postgresqlConf) {
+  public void setPostgresqlConf(String postgresqlConf) {
     this.postgresqlConf = postgresqlConf;
   }
 
