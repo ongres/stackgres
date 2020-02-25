@@ -7,11 +7,16 @@ package io.stackgres.operator.rest.dto;
 
 import javax.validation.constraints.NotNull;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.google.common.base.MoreObjects;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
 @RegisterForReflection
+@JsonIgnoreProperties(ignoreUnknown = true,
+    value = {"annotations", "clusterName", "creationTimestamp", "deletionGracePeriodSeconds",
+        "deletionTimestamp", "finalizers", "generateName", "generation", "labels", "managedFields",
+        "ownerReferences", "resourceVersion", "selfLink", "uid"})
 public class Metadata {
 
   @NotNull
