@@ -435,7 +435,7 @@ const store = new Vuex.Store({
   }
 });
 
-var vm = new Vue({
+const vm = new Vue({
   el: '#app',
   router,
   data: {
@@ -451,6 +451,7 @@ var vm = new Vue({
     /* API Request */
     fetchAPI: function() {
 
+      console.log("Fetching API");
       $("#loader").show();
       
       /*if(!doneInit)
@@ -838,7 +839,7 @@ function getJSON( value ) {
 
   text.forEach(function(e, i, a){
     var param = e.split("=").map(trimString);
-    json['"'+param[0].toString()+'"'] = param[1];
+    json[''+param[0].toString()+''] = param[1];
   });
 
   // alert(json);
@@ -1062,6 +1063,10 @@ $(document).ready(function(){
     
     if(parseInt($("#notifications .count").text(),10) == 0)
       $("#notifications .tooltip .zero").show();
+  });
+
+  $("form").submit(function(e){
+    e.preventDefault(); 
   });
 
 });

@@ -1,145 +1,166 @@
 var CreateBackupConfig = Vue.component("create-backup-config", {
     template: `
-        <div id="create-backup-config" class="form">
+        <form id="create-backup-config">
             <header>
-                <h2 class="title">{{ $route.params.action }} Backup Configuration</h2>
+                <ul class="breadcrumbs">
+                    <li class="namespace">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20.026" height="27"><g fill="#00adb5"><path d="M1.513.9l-1.5 13a.972.972 0 001 1.1h18a.972.972 0 001-1.1l-1.5-13a1.063 1.063 0 00-1-.9h-15a1.063 1.063 0 00-1 .9zm.6 11.5l.9-8c0-.2.3-.4.5-.4h12.9a.458.458 0 01.5.4l.9 8a.56.56 0 01-.5.6h-14.7a.56.56 0 01-.5-.6zM1.113 17.9a1.063 1.063 0 011-.9h15.8a1.063 1.063 0 011 .9.972.972 0 01-1 1.1h-15.8a1.028 1.028 0 01-1-1.1zM3.113 23h13.8a.972.972 0 001-1.1 1.063 1.063 0 00-1-.9h-13.8a1.063 1.063 0 00-1 .9 1.028 1.028 0 001 1.1zM3.113 25.9a1.063 1.063 0 011-.9h11.8a1.063 1.063 0 011 .9.972.972 0 01-1 1.1h-11.8a1.028 1.028 0 01-1-1.1z"/></g></svg>
+                        {{ currentNamespace }}
+                    </li>
+                    <li>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 27.1 20"><path d="M15.889 13.75a2.277 2.277 0 011.263.829 2.394 2.394 0 01.448 1.47 2.27 2.27 0 01-.86 1.885 3.721 3.721 0 01-2.375.685h-3.449a.837.837 0 01-.6-.213.8.8 0 01-.22-.6v-7.795a.8.8 0 01.22-.6.835.835 0 01.609-.214h3.306a3.679 3.679 0 012.306.648 2.165 2.165 0 01.836 1.815 2.159 2.159 0 01-.395 1.3 2.254 2.254 0 01-1.089.79zm-4.118-.585h2.179q1.779 0 1.778-1.323a1.143 1.143 0 00-.441-.989 2.267 2.267 0 00-1.337-.321h-2.179zm2.407 4.118a2.219 2.219 0 001.363-.335 1.242 1.242 0 00.428-1.042 1.271 1.271 0 00-.435-1.056 2.155 2.155 0 00-1.356-.348h-2.407v2.781zm8.929 1.457a3.991 3.991 0 01-2.941-1 3.968 3.968 0 01-1-2.927V9.984a.854.854 0 01.227-.622.925.925 0 011.23 0 .854.854 0 01.227.622V14.9a2.623 2.623 0 00.573 1.838 2.18 2.18 0 001.684.622 2.153 2.153 0 001.671-.628 2.624 2.624 0 00.573-1.832V9.984a.85.85 0 01.228-.622.924.924 0 011.229 0 .85.85 0 01.228.622v4.826a3.969 3.969 0 01-1 2.92 3.95 3.95 0 01-2.929 1.01zM.955 4.762h10.5a.953.953 0 100-1.9H.955a.953.953 0 100 1.9zM14.8 7.619a.954.954 0 00.955-.952V4.762h4.3a.953.953 0 100-1.9h-4.3V.952a.955.955 0 00-1.909 0v5.715a.953.953 0 00.954.952zM.955 10.952h4.3v1.9a.955.955 0 001.909 0V7.143a.955.955 0 00-1.909 0v1.9h-4.3a.953.953 0 100 1.9zm6.681 4.286H.955a.953.953 0 100 1.905h6.681a.953.953 0 100-1.905z"></path></svg>
+                        {{ $route.params.action }} backup configuration
+                    </li>
+                    <li v-if="editMode">
+                        {{ $route.params.name }}
+                    </li>
+                </ul>
             </header>
-            
-            <label for="backupConfigNamespace">Configuration Namespace</label>
-            <select v-model="backupConfigNamespace" :disabled="(editMode)">
-                <option disabled value="">Choose a Namespace</option>
-                <option v-for="namespace in allNamespaces">{{ namespace }}</option>
-            </select>
-
-            <label for="backupConfigName">Configuration Name</label>
-            <input v-model="backupConfigName" :disabled="(editMode)">
-
-            <label for="backupConfigCompressionMethod">Compression Method</label>
-            <select v-model="backupConfigCompressionMethod">
-                <option disabled value="">Select a method</option>
-                <option value="lz4">LZ4</option>
-                <option value="lzma">LZMA</option>
-                <option value="brotli">Brotli</option>
-            </select>
-
-            <label for="backupConfigFullSchedule">Backup Schedule</label>
-            <input v-model="backupConfigFullSchedule">
-
-            <label for="backupConfigFullWindow">Full Window</label>
-            <input v-model="backupConfigFullWindow" value="">
-
-            <label for="backupConfigRetention">Retention Limit</label>
-            <input v-model="backupConfigRetention" value="">
-
-            <div class="unit-select">
-                <label for="backupConfigTarSizeThreshold">Tar Size Threshold</label>  
-                <input v-model="backupConfigTarSizeThreshold" class="size" value="">
-                <select v-model="backupConfigTarSizeThresholdUnit" class="unit">
-                    <option disabled value="">Select Unit</option>
-                    <option value="1024">Ki</option>
-                    <option value="1048576">Mi</option>
-                    <option value="1073741824">Gi</option>
-                    <option value="1099511627776">Ti</option>
-                    <option value="1125899906842624">Pi</option>
-                    <option value="1152921504606846976">Ei</option>
-                    <option value="1180591620717411303424">Zi</option>
-                    <option value="1208925819614629174706176">Yi</option>        
+                    
+            <div class="form">
+                <label for="backupConfigNamespace">Configuration Namespace</label>
+                <select v-model="backupConfigNamespace" :disabled="(editMode)" required>
+                    <option disabled value="">Choose a Namespace</option>
+                    <option v-for="namespace in allNamespaces">{{ namespace }}</option>
                 </select>
-            </div>
-            
-            <label for="backupConfigUploadDiskConcurrency">Upload Disk Concurrency</label>
-            <input v-model="backupConfigUploadDiskConcurrency" value="">
 
-            <label for="backupConfigStorageType">Storage Type</label>
-            <select v-model="backupConfigStorageType" :disabled="(editMode)">
-                <option disabled value="">Select Storage Type</option>
-                <option value="s3">Amazon S3</option>
-                <option value="gcs">Google Storage</option>
-                <option value="azureblob">Microsoft Azure</option>
-            </select>
+                <label for="backupConfigName">Configuration Name</label>
+                <input v-model="backupConfigName" :disabled="(editMode)" required>
 
-            <fieldset class="fieldset" v-if="backupConfigStorageType === 's3'" :disabled="(editMode)">
-                <h3>Amazon S3 Configuration</h3>
+                <label for="backupConfigCompressionMethod">Compression Method</label>
+                <select v-model="backupConfigCompressionMethod">
+                    <option disabled value="">Select a method</option>
+                    <option value="lz4">LZ4</option>
+                    <option value="lzma">LZMA</option>
+                    <option value="brotli">Brotli</option>
+                </select>
 
-                <label for="backupS3Prefix">Prefix</label>
-                <input v-model="backupS3Prefix">
+                <label for="backupConfigFullSchedule">Backup Schedule</label>
+                <input v-model="backupConfigFullSchedule" required>
 
-                <label for="backupS3AccessKeyName">Access Key Name</label>
-                <input v-model="backupS3AccessKeyName">
+                <label for="backupConfigFullWindow">Full Window</label>
+                <input v-model="backupConfigFullWindow" value="" required>
 
-                <label for="backupS3AccessKey">Access Key</label>
-                <input v-model="backupS3AccessKey">
+                <label for="backupConfigRetention">Retention Limit</label>
+                <input v-model="backupConfigRetention" value="" required>
 
-                <label for="backupS3SecretKeyName">Secret Key Name</label>
-                <input v-model="backupS3SecretKeyName">
-
-                <label for="backupS3SecretKey">Secret Key</label>
-                <input v-model="backupS3SecretKey">
-
-                <label for="backupS3Region">Region</label>
-                <input v-model="backupS3Region">
-
-                <label for="backupS3Endpoint">Endpoint</label>
-                <input v-model="backupS3Endpoint">
-
-                <label for="backupS3ForcePathStyle" class="switch">Force Path Style <input type="checkbox" id="backupS3ForcePathStyle" v-model="backupS3ForcePathStyle" data-switch="OFF"></label>
-
-                <label for="backupS3StorageClass">Storage Class</label>
-                <input v-model="backupS3StorageClass">
-
-                <label for="backupS3sse">SSE</label>
-                <input v-model="backupS3sse">
-
-                <label for="backupS3sseKmsId">SSE-KMS ID</label>
-                <input v-model="backupS3sseKmsId">
-
-                <label for="backupS3cseKmsId">CSE-KMS ID</label>
-                <input v-model="backupS3cseKmsId">
-
-                <label for="backupS3cseKmsRegion">CSE-KMS Region</label>
-                <input v-model="backupS3cseKmsRegion">
-            </fieldset>
-
-            <fieldset class="fieldset" v-if="backupConfigStorageType === 'gcs'" :disabled="(editMode)">
-                <h3>Google Cloud Storage Configuration</h3>
+                <div class="unit-select">
+                    <label for="backupConfigTarSizeThreshold">Tar Size Threshold</label>  
+                    <input v-model="backupConfigTarSizeThreshold" class="size" value="">
+                    <select v-model="backupConfigTarSizeThresholdUnit" class="unit">
+                        <option disabled value="">Select Unit</option>
+                        <option value="1024">Ki</option>
+                        <option value="1048576">Mi</option>
+                        <option value="1073741824">Gi</option>
+                        <option value="1099511627776">Ti</option>
+                        <option value="1125899906842624">Pi</option>
+                        <option value="1152921504606846976">Ei</option>
+                        <option value="1180591620717411303424">Zi</option>
+                        <option value="1208925819614629174706176">Yi</option>        
+                    </select>
+                </div>
                 
-                <label for="backupGCSPrefix">Prefix</label>
-                <input v-model="backupGCSPrefix">
+                <label for="backupConfigUploadDiskConcurrency">Upload Disk Concurrency</label>
+                <input v-model="backupConfigUploadDiskConcurrency" value="">
 
-                <label for="backupGCSKeyName">Service Account Key Name</label>
-                <input v-model="backupGCSKeyName">
+                <label for="backupConfigStorageType">Storage Type</label>
+                <select v-model="backupConfigStorageType" :disabled="(editMode)">
+                    <option disabled value="">Select Storage Type</option>
+                    <option value="s3">Amazon S3</option>
+                    <option value="gcs">Google Storage</option>
+                    <option value="azureblob">Microsoft Azure</option>
+                </select>
 
-                <label for="backupGCSKey">Service Account Key</label>
-                <input v-model="backupGCSKey">
-            </fieldset>
+                <fieldset class="fieldset" v-if="backupConfigStorageType === 's3'" :disabled="(editMode)" required>
+                    <h3>Amazon S3 Configuration</h3>
 
-            <fieldset class="fieldset" v-if="backupConfigStorageType === 'azureblob'" :disabled="(editMode)">
-                <h3>Microsoft Azure Configuration</h3>
+                    <label for="backupS3Prefix">Prefix</label>
+                    <input v-model="backupS3Prefix">
 
-                <label for="backupAzurePrefix">Prefix</label>
-                <input v-model="backupAzurePrefix">
+                    <label for="backupS3AccessKeyName">Access Key Name</label>
+                    <input v-model="backupS3AccessKeyName">
 
-                <label for="backupAzureAccountName">Account Name</label>
-                <input v-model="backupAzureAccountName">
+                    <label for="backupS3AccessKey">Access Key</label>
+                    <input v-model="backupS3AccessKey">
 
-                <label for="backupAzureAccountKey">Account Key</label>
-                <input v-model="backupAzureAccountKey">
+                    <label for="backupS3SecretKeyName">Secret Key Name</label>
+                    <input v-model="backupS3SecretKeyName">
 
-                <label for="backupAzureAccessKeyName">Access Key Name</label>
-                <input v-model="backupAzureAccessKeyName">
+                    <label for="backupS3SecretKey">Secret Key</label>
+                    <input v-model="backupS3SecretKey">
 
-                <label for="backupAzureAccessKey">Access Key</label>
-                <input v-model="backupAzureAccessKey"
+                    <label for="backupS3Region">Region</label>
+                    <input v-model="backupS3Region">
 
-                <label for="backupAzureBufferSize">Buffer Size</label>
-                <input v-model="backupAzureBufferSize">
+                    <label for="backupS3Endpoint">Endpoint</label>
+                    <input v-model="backupS3Endpoint">
 
-                <label for="backupAzureMaxBuffers">Max Buffers</label>
-                <input v-model="backupAzureMaxBuffers">
-            </fieldset>
+                    <label for="backupS3ForcePathStyle" class="switch">Force Path Style <input type="checkbox" id="backupS3ForcePathStyle" v-model="backupS3ForcePathStyle" data-switch="OFF"></label>
 
-            <button @click="createBackupConfig">Create Configuration</button> <button @click="cancel" class="border">Cancel</button>
-		</div>`,
+                    <label for="backupS3StorageClass">Storage Class</label>
+                    <input v-model="backupS3StorageClass">
+
+                    <label for="backupS3sse">SSE</label>
+                    <input v-model="backupS3sse">
+
+                    <label for="backupS3sseKmsId">SSE-KMS ID</label>
+                    <input v-model="backupS3sseKmsId">
+
+                    <label for="backupS3cseKmsId">CSE-KMS ID</label>
+                    <input v-model="backupS3cseKmsId">
+
+                    <label for="backupS3cseKmsRegion">CSE-KMS Region</label>
+                    <input v-model="backupS3cseKmsRegion">
+                </fieldset>
+
+                <fieldset class="fieldset" v-if="backupConfigStorageType === 'gcs'" :disabled="(editMode)" required>
+                    <h3>Google Cloud Storage Configuration</h3>
+                    
+                    <label for="backupGCSPrefix">Prefix</label>
+                    <input v-model="backupGCSPrefix">
+
+                    <label for="backupGCSKeyName">Service Account Key Name</label>
+                    <input v-model="backupGCSKeyName">
+
+                    <label for="backupGCSKey">Service Account Key</label>
+                    <input v-model="backupGCSKey">
+                </fieldset>
+
+                <fieldset class="fieldset" v-if="backupConfigStorageType === 'azureblob'" :disabled="(editMode)" required>
+                    <h3>Microsoft Azure Configuration</h3>
+
+                    <label for="backupAzurePrefix">Prefix</label>
+                    <input v-model="backupAzurePrefix">
+
+                    <label for="backupAzureAccountName">Account Name</label>
+                    <input v-model="backupAzureAccountName">
+
+                    <label for="backupAzureAccountKey">Account Key</label>
+                    <input v-model="backupAzureAccountKey">
+
+                    <label for="backupAzureAccessKeyName">Access Key Name</label>
+                    <input v-model="backupAzureAccessKeyName">
+
+                    <label for="backupAzureAccessKey">Access Key</label>
+                    <input v-model="backupAzureAccessKey"
+
+                    <label for="backupAzureBufferSize">Buffer Size</label>
+                    <input v-model="backupAzureBufferSize">
+
+                    <label for="backupAzureMaxBuffers">Max Buffers</label>
+                    <input v-model="backupAzureMaxBuffers">
+                </fieldset>
+
+                <template v-if="editMode">
+                    <button @click="createBackupConfig">Update Configuration</button>
+                </template>
+                <template v-else>
+                    <button @click="createBackupConfig">Create Configuration</button>
+                </template>
+
+                <button @click="cancel" class="border">Cancel</button>
+            </div>
+        </form>`,
 	data: function() {
         
         if (vm.$route.params.action == 'create') {
@@ -257,221 +278,165 @@ var CreateBackupConfig = Vue.component("create-backup-config", {
 	computed: {
         allNamespaces () {
             return store.state.allNamespaces
+        },
+
+        currentNamespace() {
+            return store.state.currentNamespace
         }
     },
     methods: {
 
         
         createBackupConfig: function(e) {
-            e.preventDefault();
+            //e.preventDefault();
 
-            let storage = {};
-
-            switch(this.backupConfigStorageType) {
-                
-                case 's3':
-                    storage['s3'] = {
-                        "credentials": {
-                            "accessKey": {
-                                "key": this.backupS3AccessKey,
-                                "name": this.backupS3AccessKeyName
-                            },
-                            "secretKey": {
-                                "key": this.backupS3SecretKey,
-                                "name": this.backupS3SecretKeyName
-                            }
-                        },
-                        "endpoint": this.backupS3Endpoint,
-                        "forcePathStyle": this.backupS3ForcePathStyle,
-                        "prefix": this.backupS3Prefix,
-                        "region": this.backupS3Region,
-                        "storageClass": this.backupS3StorageClass,
-                        "sse": this.backupS3sse,
-                        "sseKmsId": this.backupS3sseKmsId,
-                        "cseKmsId": this.backupS3cseKmsId,
-                        "cseKmsRegion": this.backupS3cseKmsRegion
-                    };
-                    storage['type'] = 's3';
-                    break;
-
-                case 'gcs':
-                    storage['gcs'] = {
-                        "prefix": this.backupGCSPrefix,
-                        "credentials": {
-                            "serviceAccountJsonKey": {
-                                name: this.backupGCSKeyName,
-                                key: this.backupGCSKey
-                            }
-                        }
-                    }
-                    storage['type'] = 'gcs';
-
-                    break;
-
-                case 'azureblob':
-                    storage['azureblob'] = {
-                        "prefix": this.backupAzurePrefix,
-                        "credentials": {
-                            "account": {
-                                "name": this.backupAzureAccountName,
-                                "key": this.backupAzureAccountKey
-                            },
-                            "accessKey": {
-                                "key": this.backupAzureAccessKey,
-                                "name": this.backupAzureAccessKeyName
-                            }
-                        },
-                        "bufferSize": this.backupAzureBufferSize,
-                        "maxBuffers": this.backupAzureMaxBuffers,
-                    }
-                    storage['type'] = 'azureblob';
-
-                    break;
-
-            }
-
-            let config = { 
-                "metadata": {
-                    "name": this.backupConfigName,
-                    "namespace": this.backupConfigNamespace
-                },
-                "spec": {
-                    "compressionMethod": this.backupConfigCompressionMethod,
-                    "fullSchedule": this.backupConfigFullSchedule,
-                    "fullWindow": this.backupConfigFullWindow,
-                    "retention": this.backupConfigRetention,
-                    "tarSizeThreshold": this.backupConfigTarSizeThreshold * this.backupConfigTarSizeThresholdUnit,
-                    "storage": storage
+            let isValid = true;
+            
+            $('input:required, select:required').each(function() {
+                if ($(this).val() === '') {
+                    isValid = false;
+                    return false;
                 }
-            }
-
-            const res = axios
-            .post(
-                apiURL+'backupconfig/', 
-                config 
-            )
-            .then(function (response) {
-                console.log("GOOD");
-                notify('Backup configuration <strong>"'+config.metadata.name+'"</strong> created successfully', 'message');
-
-                store.commit('updateBackupConfig', { 
-                    name: config.metadata.name,
-                    data: config
-                });
-
-                setTimeout(function(){
-                    $(".backupConfig").val(config.metadata.name).change().focus();
-                    hideFields('.backup-config');
-                },1000);
-            })
-            .catch(function (error) {
-                console.log(error.response);
-                notify(error.response.data.message,'error');
+                    
             });
 
-        },
+            if(isValid) {
+                let storage = {};
 
-        updateBackupConfig: function(e) {
-            e.preventDefault();
-
-            let storage = {};
-
-            switch(this.backupConfigStorageType) {
-                
-                case 's3':
-                    storage['s3'] = {
-                        "credentials": {
-                            "accessKey": {
-                                "key": this.backupS3AccessKey,
-                                "name": this.backupS3AccessKeyName
+                switch(this.backupConfigStorageType) {
+                    
+                    case 's3':
+                        storage['s3'] = {
+                            "credentials": {
+                                "accessKey": {
+                                    "key": this.backupS3AccessKey,
+                                    "name": this.backupS3AccessKeyName
+                                },
+                                "secretKey": {
+                                    "key": this.backupS3SecretKey,
+                                    "name": this.backupS3SecretKeyName
+                                }
                             },
-                            "secretKey": {
-                                "key": this.backupS3SecretKey,
-                                "name": this.backupS3SecretKeyName
-                            }
-                        },
-                        "endpoint": this.backupS3Endpoint,
-                        "forcePathStyle": this.backupS3ForcePathStyle,
-                        "prefix": this.backupS3Prefix,
-                        "region": this.backupS3Region,
-                        "storageClass": this.backupS3StorageClass,
-                        "sse": this.backupS3sse,
-                        "sseKmsId": this.backupS3sseKmsId,
-                        "cseKmsId": this.backupS3cseKmsId,
-                        "cseKmsRegion": this.backupS3cseKmsRegion
-                    };
-                    storage['type'] = 's3';
-                    break;
+                            "endpoint": this.backupS3Endpoint,
+                            "forcePathStyle": this.backupS3ForcePathStyle,
+                            "prefix": this.backupS3Prefix,
+                            "region": this.backupS3Region,
+                            "storageClass": this.backupS3StorageClass,
+                            "sse": this.backupS3sse,
+                            "sseKmsId": this.backupS3sseKmsId,
+                            "cseKmsId": this.backupS3cseKmsId,
+                            "cseKmsRegion": this.backupS3cseKmsRegion
+                        };
+                        storage['type'] = 's3';
+                        break;
 
-                case 'gcs':
-                    storage['gcs'] = {
-                        "prefix": this.backupGCSPrefix,
-                        "credentials": {
-                            "serviceAccountJsonKey": {
-                                name: this.backupGCSKeyName,
-                                key: this.backupGCSKey
+                    case 'gcs':
+                        storage['gcs'] = {
+                            "prefix": this.backupGCSPrefix,
+                            "credentials": {
+                                "serviceAccountJsonKey": {
+                                    name: this.backupGCSKeyName,
+                                    key: this.backupGCSKey
+                                }
                             }
                         }
-                    }
-                    storage['type'] = 'gcs';
+                        storage['type'] = 'gcs';
 
-                    break;
+                        break;
 
-                case 'azureblob':
-                    storage['azureblob'] = {
-                        "prefix": this.backupAzurePrefix,
-                        "credentials": {
-                            "account": {
-                                "name": this.backupAzureAccountName,
-                                "key": this.backupAzureAccountKey
+                    case 'azureblob':
+                        storage['azureblob'] = {
+                            "prefix": this.backupAzurePrefix,
+                            "credentials": {
+                                "account": {
+                                    "name": this.backupAzureAccountName,
+                                    "key": this.backupAzureAccountKey
+                                },
+                                "accessKey": {
+                                    "key": this.backupAzureAccessKey,
+                                    "name": this.backupAzureAccessKeyName
+                                }
                             },
-                            "accessKey": {
-                                "key": this.backupAzureAccessKey,
-                                "name": this.backupAzureAccessKeyName
-                            }
-                        },
-                        "bufferSize": this.backupAzureBufferSize,
-                        "maxBuffers": this.backupAzureMaxBuffers,
-                    }
-                    storage['type'] = 'azureblob';
+                            "bufferSize": this.backupAzureBufferSize,
+                            "maxBuffers": this.backupAzureMaxBuffers,
+                        }
+                        storage['type'] = 'azureblob';
 
-                    break;
+                        break;
 
-            }
-
-            let config = { 
-                "metadata": {
-                    "name": this.backupConfigName,
-                    "namespace": this.backupConfigNamespace
-                },
-                "spec": {
-                    "compressionMethod": this.backupConfigCompressionMethod,
-                    "fullSchedule": this.backupConfigFullSchedule,
-                    "fullWindow": this.backupConfigFullWindow,
-                    "retention": this.backupConfigRetention,
-                    "tarSizeThreshold": this.backupConfigTarSizeThreshold * this.backupConfigTarSizeThresholdUnit,
-                    "storage": storage
                 }
-            }
 
-            const res = axios
-            .put(
-                apiURL+'backupconfig/', 
-                config 
-            )
-            .then(function (response) {
-                console.log("GOOD");
-                notify('Backup configuration <strong>"'+config.metadata.name+'"</strong> updated successfully', 'message');
-            })
-            .catch(function (error) {
-                console.log(error.response);
-                notify(error.response.data.message,'error');
-            });
+                let config = { 
+                    "metadata": {
+                        "name": this.backupConfigName,
+                        "namespace": this.backupConfigNamespace
+                    },
+                    "spec": {
+                        "compressionMethod": this.backupConfigCompressionMethod,
+                        "fullSchedule": this.backupConfigFullSchedule,
+                        "fullWindow": this.backupConfigFullWindow,
+                        "retention": this.backupConfigRetention,
+                        "tarSizeThreshold": this.backupConfigTarSizeThreshold * this.backupConfigTarSizeThresholdUnit,
+                        "storage": storage
+                    }
+                }
+
+                console.log(config);
+
+                if(this.editMode) {
+                    const res = axios
+                    .put(
+                        apiURL+'backupconfig/', 
+                        config 
+                    )
+                    .then(function (response) {
+                        console.log("GOOD");
+                        notify('Backup configuration <strong>"'+config.metadata.name+'"</strong> updated successfully', 'message');
+
+                        vm.fetchAPI();
+                        router.push('/configurations/backup/'+config.metadata.namespace+'/'+config.metadata.name);
+                    })
+                    .catch(function (error) {
+                        console.log(error.response);
+                        notify(error.response.data.message,'error');
+                    });
+
+                } else {
+                    const res = axios
+                    .post(
+                        apiURL+'backupconfig/', 
+                        config 
+                    )
+                    .then(function (response) {
+                        console.log("GOOD");
+                        notify('Backup configuration <strong>"'+config.metadata.name+'"</strong> created successfully', 'message');
+
+                        vm.fetchAPI();
+                        router.push('/configurations/backup/'+config.metadata.namespace+'/'+config.metadata.name);
+                        
+
+                        /* store.commit('updateBackupConfig', { 
+                            name: config.metadata.name,
+                            data: config
+                        }); */
+
+                        setTimeout(function(){
+                            $(".backupConfig").val(config.metadata.name).change().focus();
+                            hideFields('.backup-config');
+                        },1000);
+                    })
+                    .catch(function (error) {
+                        console.log(error.response);
+                        notify(error.response.data.message,'error');
+                    });
+                }
+
+            }
 
         },
 
         cancel: function() {
-            router.push('/overview/'+store.state.currentNamespace);
+            router.push('/configurations/backup/'+store.state.currentNamespace);
         },
 
         showFields: function( fields ) {
