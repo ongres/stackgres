@@ -86,7 +86,7 @@ h1, h2, h3, h4, h5, h6 {
     text-transform: uppercase;
     font-size: .8rem;
     display: inline-block;
-    width: 200px;
+    min-width: 200px;
     text-align: center;
 }
 
@@ -275,6 +275,7 @@ aside {
     display: inline-block;
     position: relative;
     height: 50px;
+    min-width: 150px;
     margin-left: 10px;
     overflow: visible;
     top: 0;
@@ -473,7 +474,7 @@ ul.zg-ul-select.active li.active:hover {
     height: 7px;
     border-radius: 100%;
     background: var(--blue);
-    top: 26px;
+    top: 22px;
     margin-left: -22px;
 }
 
@@ -488,8 +489,9 @@ ul.zg-ul-select.active li.active:hover {
 .nav-item {
     color: inherit;
     display: flex;
-    height: 60px;
-    line-height: 60px;
+    height: 50px;
+    line-height: 50px;
+    font-size: 14px;
     cursor: pointer;
 }
 
@@ -566,7 +568,7 @@ ul.zg-ul-select.active li.active:hover {
     margin-right: 8px;
 }*/
 
-#side svg {
+#side svg, .breadcrumbs svg {
     fill: var(--blue);
     width: 20px;
     margin-right: 10px;
@@ -587,6 +589,8 @@ ul.zg-ul-select.active li.active:hover {
     display: block;
     cursor: pointer;
     position: relative;
+    height: 50px;
+    line-height: 50px;
 }
 
 #sets > .active > ul > li > .item, .set.active .set > .nav-item  {
@@ -723,9 +727,9 @@ footer {
     display: none;
 }
 
-#notifications.active .count:not(.zero) {
+/* #notifications.active .count:not(.zero) {
     display: block;
-}
+} */
 
 .tooltip span {
     display: block;
@@ -817,8 +821,8 @@ footer .tooltip p {
     color: var(--gray3);
     display: block;
     line-height: 1;
-    padding: 15px 10px 0;
-    margin-bottom: -5px;
+    padding: 0;
+    margin-bottom: 5px;
     text-transform: uppercase;
 }
 
@@ -884,10 +888,85 @@ footer .tooltip p {
 
 /* Main Container */
 #main header {
-    text-transform: uppercase;
-    height: 60px;
+    /* text-transform: uppercase;
+    height: 60px; */
     margin-bottom: 15px;
     position: relative;
+    font-size: 1rem;
+}
+
+header a.btn {
+    position: absolute;
+    top: -3px;
+    right: 0;
+}
+
+ul.breadcrumbs {
+    list-style: none;
+    margin-top: 20px;
+    display: block;
+    width: 100%;
+    border-bottom: 1px solid var(--gray1);
+    padding-bottom: 20px;
+    height: 45px;
+}
+
+.breadcrumbs li {
+    display: flex;
+    float: left;
+    align-items: center;
+    height: 20px;
+}
+
+.breadcrumbs li:not(:first-child):before {
+    content: " ";
+    display: block;
+    width: 5px;
+    height: 5px;
+    border: 2px solid var(--gray2);
+    transform: rotate(45deg);
+    border-left: 0;
+    border-bottom: 0;
+    margin: -2px 10px 0;
+}
+
+.breadcrumbs .namespace svg {
+    transform: scale(.85);
+}
+
+.breadcrumbs li.namespace {
+    font-weight: bold;
+}
+
+ul.tabs {
+    list-style: none;
+    display: inline-block;
+    width: 100%;
+    color: var(--gray4);
+    border-bottom: 1px solid var(--gray2);
+}
+
+.tabs li {
+    display: block;
+    float: left;
+    margin-right: 25px;
+}
+
+.tabs a {
+    padding: 10px 2px;
+    display: block;
+    color: var(--gray4);
+    text-transform: none;
+    margin-top: 10px;
+    font-size: 1rem;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+}
+
+.tabs a.router-link-exact-active.router-link-active {
+    color: var(--blue);
+    border-bottom-color: var(--blue);
+    font-weight: bold;
 }
 
 .title {
@@ -1135,6 +1214,7 @@ ul.selector li {
     float: right;
     width: 85px;
     display: block;
+    min-width: fit-content;
 }
 
 .col.details {
@@ -1184,10 +1264,10 @@ ul.selector li {
 }
 
 /* Forms */
-.form, #main.form {
-    width: 700px;
+.form {
+    width: 600px;
     min-width: 480px;
-    max-width: 90%;
+    max-width: 50%;
     display: inline-block;
 }
 
@@ -1211,7 +1291,7 @@ ul.selector li {
     -moz-appearance: none;
     appearance: none;
     border: 1px solid var(--gray2);
-    border-radius: 5px;
+    border-radius: 25px;
     padding: 10px 12px;
     background: #fff;
     font-size: 12px;
@@ -1224,6 +1304,7 @@ ul.selector li {
     width: 100%;
     height: 220px;
     max-height: 220px;
+    border-radius: 0;
     max-width: 100%;
 }
 
@@ -1235,7 +1316,7 @@ label.switch {
     border: 1px solid var(--gray2);
     padding: 10px;
     position: relative;
-    border-radius: 5px;
+    border-radius: 25px;
     cursor: pointer;
     margin-bottom: 20px;
 }
@@ -1250,7 +1331,7 @@ label.switch {
     color: var(--gray3);
     border-radius: 20px;
     position: absolute;
-    right: 5px;
+    right: 4px;
     top: 4px;
     font-size: 11px;
     border-color: var(--gray3);
