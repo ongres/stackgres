@@ -17,9 +17,13 @@ public class StackGresPostgresConfig extends CustomResource {
 
   private static final long serialVersionUID = -5276087851826599719L;
 
-  @NotNull(message = "The specification of StackGresPostgresConfig is required")
+  @NotNull(message = "The specification is required")
   @Valid
   private StackGresPostgresConfigSpec spec;
+
+  public StackGresPostgresConfig() {
+    super(StackGresPostgresConfigDefinition.KIND);
+  }
 
   public StackGresPostgresConfigSpec getSpec() {
     return spec;

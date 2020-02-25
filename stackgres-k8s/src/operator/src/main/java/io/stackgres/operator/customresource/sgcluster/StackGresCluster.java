@@ -19,12 +19,16 @@ public class StackGresCluster extends CustomResource {
   private static final long serialVersionUID = -5276087851826599719L;
 
   @JsonProperty("spec")
-  @NotNull(message = "The specification of the cluster is required")
+  @NotNull(message = "The specification is required")
   @Valid
   private StackGresClusterSpec spec;
 
   @JsonProperty("status")
   private StackGresClusterStatus status;
+
+  public StackGresCluster() {
+    super(StackGresClusterDefinition.KIND);
+  }
 
   public StackGresClusterSpec getSpec() {
     return spec;

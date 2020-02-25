@@ -17,9 +17,13 @@ public class StackGresBackupConfig extends CustomResource {
 
   private static final long serialVersionUID = 8062109585634644327L;
 
-  @NotNull(message = "The specification of StackGresBackupConfig is required")
+  @NotNull(message = "The specification is required")
   @Valid
   private StackGresBackupConfigSpec spec;
+
+  public StackGresBackupConfig() {
+    super(StackGresBackupConfigDefinition.KIND);
+  }
 
   public StackGresBackupConfigSpec getSpec() {
     return spec;
