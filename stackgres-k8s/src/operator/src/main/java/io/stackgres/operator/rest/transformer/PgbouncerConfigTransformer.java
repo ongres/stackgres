@@ -24,7 +24,7 @@ public class PgbouncerConfigTransformer
     extends AbstractResourceTransformer<PgbouncerConfigDto, StackGresPgbouncerConfig> {
 
   private static final Pattern PARAMETER_PATTERN = Pattern.compile(
-      "^\\s*(\\w)+\\s*=\\s*(:?'([^']+)'|([^ ]+))\\s*$");
+      "^\\s*([^\\s=]+)\\s*=\\s*(:?'([^']+)'|([^ ]+))\\s*$");
 
   @Override
   public StackGresPgbouncerConfig toCustomResource(PgbouncerConfigDto source) {

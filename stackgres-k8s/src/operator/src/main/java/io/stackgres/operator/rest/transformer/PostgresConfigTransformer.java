@@ -24,7 +24,7 @@ public class PostgresConfigTransformer
     extends AbstractResourceTransformer<PostgresConfigDto, StackGresPostgresConfig> {
 
   private static final Pattern PARAMETER_PATTERN = Pattern.compile(
-      "^\\s*(\\w)+\\s*=\\s*(:?'([^']+)'|([^ ]+))\\s*$");
+      "^\\s*([^\\s=]+)\\s*=\\s*(:?'([^']+)'|([^ ]+))\\s*$");
 
   @Override
   public StackGresPostgresConfig toCustomResource(PostgresConfigDto source) {
