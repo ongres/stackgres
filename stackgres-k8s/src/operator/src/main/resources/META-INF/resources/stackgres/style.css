@@ -474,7 +474,7 @@ ul.zg-ul-select.active li.active:hover {
     height: 7px;
     border-radius: 100%;
     background: var(--blue);
-    top: 22px;
+    top: 26px;
     margin-left: -22px;
 }
 
@@ -1316,7 +1316,7 @@ label.switch {
     border: 1px solid var(--gray2);
     padding: 10px;
     position: relative;
-    border-radius: 25px;
+    border-radius: 5px;
     cursor: pointer;
     margin-bottom: 20px;
 }
@@ -1331,7 +1331,7 @@ label.switch {
     color: var(--gray3);
     border-radius: 20px;
     position: absolute;
-    right: 4px;
+    right: 5px;
     top: 4px;
     font-size: 11px;
     border-color: var(--gray3);

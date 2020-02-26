@@ -95,7 +95,7 @@ var SGProfiles = Vue.component("sg-profile", {
 					notify('Profile <strong>"'+profName+'"</strong> deleted successfully', 'message');
 					$('#'+profName+'-'+profNamespace).addClass("deleted");
 					
-					router.push('/profiles/'+profNamespace);
+					router.push('/profiles/'+store.state.currentNamespace);
 				})
 				.catch(function (error) {
 					console.log(error.response);
