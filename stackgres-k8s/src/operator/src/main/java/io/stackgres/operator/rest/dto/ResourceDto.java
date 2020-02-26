@@ -8,7 +8,7 @@ package io.stackgres.operator.rest.dto;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @JsonIgnoreProperties(ignoreUnknown = true, value = { "kind", "apiVersion" })
-public abstract class Resource {
+public abstract class ResourceDto {
 
   private Metadata metadata = new Metadata();
 

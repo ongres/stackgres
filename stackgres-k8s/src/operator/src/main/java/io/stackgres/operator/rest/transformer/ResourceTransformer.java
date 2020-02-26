@@ -6,9 +6,9 @@
 package io.stackgres.operator.rest.transformer;
 
 import io.fabric8.kubernetes.client.CustomResource;
-import io.stackgres.operator.rest.dto.Resource;
+import io.stackgres.operator.rest.dto.ResourceDto;
 
-public interface ResourceTransformer<T extends Resource, R extends CustomResource> {
+public interface ResourceTransformer<T extends ResourceDto, R extends CustomResource> {
 
   R toCustomResource(T resource);
 

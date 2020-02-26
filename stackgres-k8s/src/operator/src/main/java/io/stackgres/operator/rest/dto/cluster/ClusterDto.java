@@ -12,10 +12,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
-import io.stackgres.operator.rest.dto.Resource;
+import io.stackgres.operator.rest.dto.ResourceDto;
 
 @RegisterForReflection
-public class ClusterDto extends Resource {
+public class ClusterDto extends ResourceDto {
 
   @JsonProperty("spec")
   @NotNull(message = "The specification of the cluster is required")

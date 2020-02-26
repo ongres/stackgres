@@ -18,7 +18,7 @@ import io.fabric8.kubernetes.client.CustomResourceList;
 import io.stackgres.operator.resource.CustomResourceFinder;
 import io.stackgres.operator.resource.CustomResourceScanner;
 import io.stackgres.operator.resource.CustomResourceScheduler;
-import io.stackgres.operator.rest.dto.Resource;
+import io.stackgres.operator.rest.dto.ResourceDto;
 import io.stackgres.operator.rest.transformer.AbstractResourceTransformer;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -27,7 +27,7 @@ import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
-abstract class AbstractCustomResourceTest<T extends Resource, R extends CustomResource> {
+abstract class AbstractCustomResourceTest<T extends ResourceDto, R extends CustomResource> {
 
   @Mock
   private CustomResourceScanner<R> scanner;

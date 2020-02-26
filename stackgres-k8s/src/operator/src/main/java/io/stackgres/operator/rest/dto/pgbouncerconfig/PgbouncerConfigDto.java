@@ -10,10 +10,10 @@ import javax.validation.constraints.NotNull;
 import com.google.common.base.MoreObjects;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
-import io.stackgres.operator.rest.dto.Resource;
+import io.stackgres.operator.rest.dto.ResourceDto;
 
 @RegisterForReflection
-public class PgbouncerConfigDto extends Resource {
+public class PgbouncerConfigDto extends ResourceDto {
 
   @NotNull(message = "The specification of pgbouncer config is required")
   private PgbouncerConfigSpec spec;

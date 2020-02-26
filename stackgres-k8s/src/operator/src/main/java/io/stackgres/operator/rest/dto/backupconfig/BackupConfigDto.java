@@ -11,10 +11,10 @@ import javax.validation.constraints.NotNull;
 import com.google.common.base.MoreObjects;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
-import io.stackgres.operator.rest.dto.Resource;
+import io.stackgres.operator.rest.dto.ResourceDto;
 
 @RegisterForReflection
-public class BackupConfigDto extends Resource {
+public class BackupConfigDto extends ResourceDto {
 
   @NotNull(message = "The specification of backup config is required")
   @Valid

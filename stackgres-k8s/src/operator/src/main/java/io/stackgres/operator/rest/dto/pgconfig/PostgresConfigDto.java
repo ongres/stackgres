@@ -11,10 +11,10 @@ import javax.validation.constraints.NotNull;
 import com.google.common.base.MoreObjects;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
-import io.stackgres.operator.rest.dto.Resource;
+import io.stackgres.operator.rest.dto.ResourceDto;
 
 @RegisterForReflection
-public class PostgresConfigDto extends Resource {
+public class PostgresConfigDto extends ResourceDto {
 
   @NotNull(message = "The specification of postgres config is required")
   @Valid

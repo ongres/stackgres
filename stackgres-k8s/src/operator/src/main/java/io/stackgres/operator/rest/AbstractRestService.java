@@ -19,12 +19,12 @@ import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.operator.resource.CustomResourceFinder;
 import io.stackgres.operator.resource.CustomResourceScanner;
 import io.stackgres.operator.resource.CustomResourceScheduler;
-import io.stackgres.operator.rest.dto.Resource;
+import io.stackgres.operator.rest.dto.ResourceDto;
 import io.stackgres.operator.rest.transformer.ResourceTransformer;
 
 import org.jooq.lambda.Seq;
 
-public class AbstractRestService<T extends Resource, R extends CustomResource>
+public class AbstractRestService<T extends ResourceDto, R extends CustomResource>
     implements ResourceRestService<T> {
 
   private final CustomResourceScanner<R> scanner;
