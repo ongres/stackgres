@@ -20,6 +20,7 @@ import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
+import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.quarkus.runtime.Application;
 import io.quarkus.runtime.StartupEvent;
 
@@ -60,7 +61,12 @@ public class InitializationQueue {
       try {
         initializer.run();
       } catch (Exception ex) {
-        LOGGER.error("initialization task failed", ex);
+        if (ex instanceof KubernetesClientException
+            && ex.getMessage().contains("connect: connection refused")) {
+          LOGGER.debug("Initialization task failed: {}", ex.getMessage());
+        } else {
+          LOGGER.warn("Initialization task failed", ex);
+        }
         initializers.add(initializer);
       }
     }
