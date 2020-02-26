@@ -7,97 +7,91 @@ package io.stackgres.operator.rest;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.when;
 
-import java.util.List;
-import java.util.Optional;
+import com.google.common.collect.ImmutableMap;
 
+import io.fabric8.kubernetes.client.CustomResourceList;
 import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfigList;
 import io.stackgres.operator.resource.CustomResourceFinder;
 import io.stackgres.operator.resource.CustomResourceScanner;
 import io.stackgres.operator.resource.CustomResourceScheduler;
 import io.stackgres.operator.rest.dto.pgconfig.PostgresConfigDto;
+import io.stackgres.operator.rest.transformer.AbstractResourceTransformer;
 import io.stackgres.operator.rest.transformer.PostgresConfigTransformer;
 import io.stackgres.operator.utils.JsonUtil;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.jooq.lambda.Seq;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class PostgresConfigResourceTest {
+class PostgresConfigResourceTest
+    extends AbstractCustomResourceTest<PostgresConfigDto, StackGresPostgresConfig> {
 
-  @Mock
-  private CustomResourceFinder<StackGresPostgresConfig> finder;
-
-  @Mock
-  private CustomResourceScanner<StackGresPostgresConfig> scanner;
-
-  @Mock
-  private CustomResourceScheduler<StackGresPostgresConfig> scheduler;
-
-  private StackGresPostgresConfigList postgresConfigs;
-
-  private PostgresConfigDto postgresConfigDto;
-
-  private PostgresConfigResource resource;
-
-  @BeforeEach
-  void setUp() {
-    postgresConfigs = JsonUtil
-        .readFromJson("postgres_config/list.json", StackGresPostgresConfigList.class);
-    postgresConfigDto = JsonUtil
-        .readFromJson("postgres_config/dto.json", PostgresConfigDto.class);
-
-    resource = new PostgresConfigResource(scanner, finder, scheduler,
-        new PostgresConfigTransformer());
+  @Override
+  protected CustomResourceList<StackGresPostgresConfig> getCustomResourceList() {
+    return JsonUtil.readFromJson("postgres_config/list.json", StackGresPostgresConfigList.class);
   }
 
-  @Test
-  void listShouldReturnAllPostgresConfigs() {
-    when(scanner.getResources()).thenReturn(postgresConfigs.getItems());
-
-    List<PostgresConfigDto> postgresConfigs = resource.list();
-
-    assertEquals(1, postgresConfigs.size());
-
-    assertNotNull(postgresConfigs.get(0).getMetadata());
-
-    assertEquals("default", postgresConfigs.get(0).getMetadata().getNamespace());
-
-    assertEquals("postgresconf", postgresConfigs.get(0).getMetadata().getName());
+  @Override
+  protected PostgresConfigDto getResourceDto() {
+    return JsonUtil.readFromJson("postgres_config/dto.json", PostgresConfigDto.class);
   }
 
-  @Test
-  void getOfAnExistingPostgresConfigShouldReturnTheExistingPostgresConfig() {
-    when(finder.findByNameAndNamespace("postgresconf", "default"))
-        .thenReturn(Optional.of(postgresConfigs.getItems().get(0)));
-
-    PostgresConfigDto postgresConfig = resource.get("default", "postgresconf");
-
-    assertNotNull(postgresConfig.getMetadata());
-
-    assertEquals("default", postgresConfig.getMetadata().getNamespace());
-
-    assertEquals("postgresconf", postgresConfig.getMetadata().getName());
+  @Override
+  protected AbstractResourceTransformer<PostgresConfigDto, StackGresPostgresConfig> getTransformer() {
+    return new PostgresConfigTransformer();
   }
 
-  @Test
-  void createShouldNotFail() {
-    resource.create(postgresConfigDto);
+  @Override
+  protected AbstractRestService<PostgresConfigDto, StackGresPostgresConfig> getService(
+      CustomResourceScanner<StackGresPostgresConfig> scanner,
+      CustomResourceFinder<StackGresPostgresConfig> finder,
+      CustomResourceScheduler<StackGresPostgresConfig> scheduler,
+      AbstractResourceTransformer<PostgresConfigDto, StackGresPostgresConfig> transformer) {
+    return new PostgresConfigResource(scanner, finder, scheduler, transformer);
   }
 
-  @Test
-  void updateShouldNotFail() {
-    resource.update(postgresConfigDto);
+  @Override
+  protected String getResourceNamespace() {
+    return "default";
   }
 
-  @Test
-  void deleteShouldNotFail() {
-    resource.delete(postgresConfigDto);
+  @Override
+  protected String getResourceName() {
+    return "postgresconf";
   }
+
+  @Override
+  protected void checkBackupConfig(PostgresConfigDto resource) {
+    assertNotNull(resource.getMetadata());
+    assertEquals("default", resource.getMetadata().getNamespace());
+    assertEquals("postgresconf", resource.getMetadata().getName());
+    assertNotNull(resource.getSpec());
+    assertEquals("12", resource.getSpec().getPgVersion());
+    assertEquals(Seq.of(
+        "password_encryption='scram-sha-256'",
+        "random_page_cost=1.5",
+        "shared_buffers=256MB",
+        "wal_compression=on")
+        .toString("\n"),
+        resource.getSpec().getPostgresqlConf());
+  }
+
+  @Override
+  protected void checkBackupConfig(StackGresPostgresConfig resource) {
+    assertNotNull(resource.getMetadata());
+    assertEquals("default", resource.getMetadata().getNamespace());
+    assertEquals("postgresconf", resource.getMetadata().getName());
+    assertNotNull(resource.getSpec());
+    assertEquals("12", resource.getSpec().getPgVersion());
+    assertEquals(ImmutableMap.of(
+        "password_encryption", "'scram-sha-256'",
+        "random_page_cost", "1.5",
+        "shared_buffers", "256MB",
+        "wal_compression", "on"),
+        resource.getSpec().getPostgresqlConf());
+ }
 
 }

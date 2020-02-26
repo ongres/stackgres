@@ -7,97 +7,76 @@ package io.stackgres.operator.rest;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.when;
 
-import java.util.List;
-import java.util.Optional;
-
+import io.fabric8.kubernetes.client.CustomResourceList;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfile;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfileList;
 import io.stackgres.operator.resource.CustomResourceFinder;
 import io.stackgres.operator.resource.CustomResourceScanner;
 import io.stackgres.operator.resource.CustomResourceScheduler;
 import io.stackgres.operator.rest.dto.profile.ProfileDto;
+import io.stackgres.operator.rest.transformer.AbstractResourceTransformer;
 import io.stackgres.operator.rest.transformer.ProfileTransformer;
 import io.stackgres.operator.utils.JsonUtil;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class ProfileResourceTest {
+class ProfileResourceTest extends AbstractCustomResourceTest<ProfileDto, StackGresProfile> {
 
-  @Mock
-  private CustomResourceFinder<StackGresProfile> finder;
-
-  @Mock
-  private CustomResourceScanner<StackGresProfile> scanner;
-
-  @Mock
-  private CustomResourceScheduler<StackGresProfile> scheduler;
-
-  private StackGresProfileList profiles;
-
-  private ProfileDto profileDto;
-
-  private ProfileResource resource;
-
-  @BeforeEach
-  void setUp() {
-    profiles = JsonUtil
-        .readFromJson("stackgres_profiles/list.json", StackGresProfileList.class);
-    profileDto = JsonUtil
-        .readFromJson("stackgres_profiles/dto.json", ProfileDto.class);
-
-    resource = new ProfileResource(scanner, finder, scheduler,
-        new ProfileTransformer());
+  @Override
+  protected CustomResourceList<StackGresProfile> getCustomResourceList() {
+    return JsonUtil.readFromJson("stackgres_profiles/list.json", StackGresProfileList.class);
   }
 
-  @Test
-  void listShouldReturnAllProfiles() {
-    when(scanner.getResources()).thenReturn(profiles.getItems());
-
-    List<ProfileDto> profiles = resource.list();
-
-    assertEquals(1, profiles.size());
-
-    assertNotNull(profiles.get(0).getMetadata());
-
-    assertEquals("default", profiles.get(0).getMetadata().getNamespace());
-
-    assertEquals("size-s", profiles.get(0).getMetadata().getName());
+  @Override
+  protected ProfileDto getResourceDto() {
+    return JsonUtil.readFromJson("stackgres_profiles/dto.json", ProfileDto.class);
   }
 
-  @Test
-  void getOfAnExistingProfileShouldReturnTheExistingProfile() {
-    when(finder.findByNameAndNamespace("size-s", "default"))
-        .thenReturn(Optional.of(profiles.getItems().get(0)));
-
-    ProfileDto profile = resource.get("default", "size-s");
-
-    assertNotNull(profile.getMetadata());
-
-    assertEquals("default", profile.getMetadata().getNamespace());
-
-    assertEquals("size-s", profile.getMetadata().getName());
+  @Override
+  protected AbstractResourceTransformer<ProfileDto, StackGresProfile> getTransformer() {
+    return new ProfileTransformer();
   }
 
-  @Test
-  void createShouldNotFail() {
-    resource.create(profileDto);
+  @Override
+  protected AbstractRestService<ProfileDto, StackGresProfile> getService(
+      CustomResourceScanner<StackGresProfile> scanner,
+      CustomResourceFinder<StackGresProfile> finder,
+      CustomResourceScheduler<StackGresProfile> scheduler,
+      AbstractResourceTransformer<ProfileDto, StackGresProfile> transformer) {
+    return new ProfileResource(scanner, finder, scheduler, transformer);
   }
 
-  @Test
-  void updateShouldNotFail() {
-    resource.update(profileDto);
+  @Override
+  protected String getResourceNamespace() {
+    return "default";
   }
 
-  @Test
-  void deleteShouldNotFail() {
-    resource.delete(profileDto);
+  @Override
+  protected String getResourceName() {
+    return "size-s";
+  }
+
+  @Override
+  protected void checkBackupConfig(ProfileDto resource) {
+    assertNotNull(resource.getMetadata());
+    assertEquals("default", resource.getMetadata().getNamespace());
+    assertEquals("size-s", resource.getMetadata().getName());
+    assertNotNull(resource.getSpec());
+    assertEquals("1", resource.getSpec().getCpu());
+    assertEquals("2Gi", resource.getSpec().getMemory());
+  }
+
+  @Override
+  protected void checkBackupConfig(StackGresProfile resource) {
+    assertNotNull(resource.getMetadata());
+    assertEquals("default", resource.getMetadata().getNamespace());
+    assertEquals("size-s", resource.getMetadata().getName());
+    assertNotNull(resource.getSpec());
+    assertEquals("1", resource.getSpec().getCpu());
+    assertEquals("2Gi", resource.getSpec().getMemory());
   }
 
 }

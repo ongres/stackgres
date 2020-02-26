@@ -1,7 +1,7 @@
 {
   "metadata": {
     "name": "stackgres",
-    "namespace": "default"
+    "namespace": "postgresql"
   },
   "spec": {
     "instances": 1,
@@ -15,7 +15,7 @@
     "connectionPoolingConfig": "pgbouncerconf",
     "volumeSize": "5Gi",
     "storageClass": "standard",
-    "prometheusAutobind": "true",
+    "prometheusAutobind": true,
     "sidecars": [
       "connection-pooling",
       "postgres-util",

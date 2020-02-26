@@ -4,10 +4,6 @@
     "namespace": "default"
   },
   "spec": {
-    "pgbouncer.ini": {
-      "default_pool_size": "200",
-      "max_client_conn": "200",
-      "pool_mode": "transaction"
-    }
+    "pgbouncer.ini": "default_pool_size=200\nmax_client_conn=200\npool_mode='transaction'"
   }
 }

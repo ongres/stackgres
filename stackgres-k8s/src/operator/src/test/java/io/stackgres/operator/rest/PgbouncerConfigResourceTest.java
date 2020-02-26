@@ -7,97 +7,87 @@ package io.stackgres.operator.rest;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.when;
 
-import java.util.List;
-import java.util.Optional;
+import com.google.common.collect.ImmutableMap;
 
+import io.fabric8.kubernetes.client.CustomResourceList;
 import io.stackgres.operator.resource.CustomResourceFinder;
 import io.stackgres.operator.resource.CustomResourceScanner;
 import io.stackgres.operator.resource.CustomResourceScheduler;
 import io.stackgres.operator.rest.dto.pgbouncerconfig.PgbouncerConfigDto;
+import io.stackgres.operator.rest.transformer.AbstractResourceTransformer;
 import io.stackgres.operator.rest.transformer.PgbouncerConfigTransformer;
 import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfig;
 import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfigList;
 import io.stackgres.operator.utils.JsonUtil;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.jooq.lambda.Seq;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class PgbouncerConfigResourceTest {
+class PgbouncerConfigResourceTest
+    extends AbstractCustomResourceTest<PgbouncerConfigDto, StackGresPgbouncerConfig> {
 
-  @Mock
-  private CustomResourceFinder<StackGresPgbouncerConfig> finder;
-
-  @Mock
-  private CustomResourceScanner<StackGresPgbouncerConfig> scanner;
-
-  @Mock
-  private CustomResourceScheduler<StackGresPgbouncerConfig> scheduler;
-
-  private StackGresPgbouncerConfigList pgbouncerConfigs;
-
-  private PgbouncerConfigDto pgbouncerConfigDto;
-
-  private ConnectionPoolingConfigResource resource;
-
-  @BeforeEach
-  void setUp() {
-    pgbouncerConfigs = JsonUtil
-        .readFromJson("pgbouncer_config/list.json", StackGresPgbouncerConfigList.class);
-    pgbouncerConfigDto = JsonUtil
-        .readFromJson("pgbouncer_config/dto.json", PgbouncerConfigDto.class);
-
-    resource = new ConnectionPoolingConfigResource(scanner, finder, scheduler,
-        new PgbouncerConfigTransformer());
+  @Override
+  protected CustomResourceList<StackGresPgbouncerConfig> getCustomResourceList() {
+    return JsonUtil.readFromJson("pgbouncer_config/list.json", StackGresPgbouncerConfigList.class);
   }
 
-  @Test
-  void listShouldReturnAllPgbouncerConfigs() {
-    when(scanner.getResources()).thenReturn(pgbouncerConfigs.getItems());
-
-    List<PgbouncerConfigDto> pgbouncerConfigs = resource.list();
-
-    assertEquals(1, pgbouncerConfigs.size());
-
-    assertNotNull(pgbouncerConfigs.get(0).getMetadata());
-
-    assertEquals("default", pgbouncerConfigs.get(0).getMetadata().getNamespace());
-
-    assertEquals("pgbouncerconf", pgbouncerConfigs.get(0).getMetadata().getName());
+  @Override
+  protected PgbouncerConfigDto getResourceDto() {
+    return JsonUtil.readFromJson("pgbouncer_config/dto.json", PgbouncerConfigDto.class);
   }
 
-  @Test
-  void getOfAnExistingPgbouncerConfigShouldReturnTheExistingPgbouncerConfig() {
-    when(finder.findByNameAndNamespace("pgbouncerconf", "default"))
-        .thenReturn(Optional.of(pgbouncerConfigs.getItems().get(0)));
-
-    PgbouncerConfigDto pgbouncerConfig = resource.get("default", "pgbouncerconf");
-
-    assertNotNull(pgbouncerConfig.getMetadata());
-
-    assertEquals("default", pgbouncerConfig.getMetadata().getNamespace());
-
-    assertEquals("pgbouncerconf", pgbouncerConfig.getMetadata().getName());
+  @Override
+  protected AbstractResourceTransformer<PgbouncerConfigDto, StackGresPgbouncerConfig> getTransformer() {
+    return new PgbouncerConfigTransformer();
   }
 
-  @Test
-  void createShouldNotFail() {
-    resource.create(pgbouncerConfigDto);
+  @Override
+  protected AbstractRestService<PgbouncerConfigDto, StackGresPgbouncerConfig> getService(
+      CustomResourceScanner<StackGresPgbouncerConfig> scanner,
+      CustomResourceFinder<StackGresPgbouncerConfig> finder,
+      CustomResourceScheduler<StackGresPgbouncerConfig> scheduler,
+      AbstractResourceTransformer<PgbouncerConfigDto, StackGresPgbouncerConfig> transformer) {
+    return new ConnectionPoolingConfigResource(scanner, finder, scheduler, transformer);
   }
 
-  @Test
-  void updateShouldNotFail() {
-    resource.update(pgbouncerConfigDto);
+  @Override
+  protected String getResourceNamespace() {
+    return "default";
   }
 
-  @Test
-  void deleteShouldNotFail() {
-    resource.delete(pgbouncerConfigDto);
+  @Override
+  protected String getResourceName() {
+    return "pgbouncerconf";
+  }
+
+  @Override
+  protected void checkBackupConfig(PgbouncerConfigDto resource) {
+    assertNotNull(resource.getMetadata());
+    assertEquals("default", resource.getMetadata().getNamespace());
+    assertEquals("pgbouncerconf", resource.getMetadata().getName());
+    assertNotNull(resource.getSpec());
+    assertEquals(Seq.of(
+        "default_pool_size=200", 
+        "max_client_conn=200",
+        "pool_mode='transaction'")
+        .toString("\n"),
+        resource.getSpec().getPgbouncerConf());
+  }
+
+  @Override
+  protected void checkBackupConfig(StackGresPgbouncerConfig resource) {
+    assertNotNull(resource.getMetadata());
+    assertEquals("default", resource.getMetadata().getNamespace());
+    assertEquals("pgbouncerconf", resource.getMetadata().getName());
+    assertNotNull(resource.getSpec());
+    assertEquals(ImmutableMap.of(
+        "default_pool_size", "200", 
+        "max_client_conn", "200",
+        "pool_mode", "'transaction'"),
+        resource.getSpec().getPgbouncerConf());
   }
 
 }

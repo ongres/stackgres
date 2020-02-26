@@ -7,11 +7,11 @@ package io.stackgres.operator.rest;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.assertIterableEquals;
 
-import java.util.List;
-import java.util.Optional;
+import com.google.common.collect.ImmutableList;
 
+import io.fabric8.kubernetes.client.CustomResourceList;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.customresource.sgcluster.StackGresClusterList;
 import io.stackgres.operator.resource.CustomResourceFinder;
@@ -20,26 +20,16 @@ import io.stackgres.operator.resource.CustomResourceScheduler;
 import io.stackgres.operator.rest.dto.cluster.ClusterDto;
 import io.stackgres.operator.rest.dto.cluster.ClusterPodConfigDto;
 import io.stackgres.operator.rest.dto.cluster.ClusterResourceConsumtionDto;
+import io.stackgres.operator.rest.transformer.AbstractResourceTransformer;
 import io.stackgres.operator.rest.transformer.ClusterTransformer;
 import io.stackgres.operator.utils.JsonUtil;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class ClusterResourceTest {
-
-  @Mock
-  private CustomResourceFinder<StackGresCluster> finder;
-
-  @Mock
-  private CustomResourceScanner<StackGresCluster> scanner;
-
-  @Mock
-  private CustomResourceScheduler<StackGresCluster> scheduler;
+class ClusterResourceTest extends AbstractCustomResourceTest<ClusterDto, StackGresCluster> {
 
   @Mock
   private CustomResourceFinder<ClusterResourceConsumtionDto> statusFinder;
@@ -47,65 +37,87 @@ class ClusterResourceTest {
   @Mock
   private CustomResourceFinder<ClusterPodConfigDto> detailsFinder;
 
-  private StackGresClusterList clusters;
+  @Override
+  protected CustomResourceList<StackGresCluster> getCustomResourceList() {
+    return JsonUtil.readFromJson("stackgres_cluster/list.json", StackGresClusterList.class);
+  }
 
-  private ClusterDto clusterDto;
+  @Override
+  protected ClusterDto getResourceDto() {
+    return JsonUtil.readFromJson("stackgres_cluster/dto.json", ClusterDto.class);
+  }
 
-  private ClusterResource resource;
+  @Override
+  protected AbstractResourceTransformer<ClusterDto, StackGresCluster> getTransformer() {
+    return new ClusterTransformer();
+  }
 
-  @BeforeEach
-  void setUp() {
-    clusters = JsonUtil
-        .readFromJson("stackgres_cluster/list.json", StackGresClusterList.class);
-    clusterDto = JsonUtil
-        .readFromJson("stackgres_cluster/dto.json", ClusterDto.class);
-
-    resource = new ClusterResource(scanner, finder, scheduler, new ClusterTransformer(),
+  @Override
+  protected AbstractRestService<ClusterDto, StackGresCluster> getService(
+      CustomResourceScanner<StackGresCluster> scanner,
+      CustomResourceFinder<StackGresCluster> finder,
+      CustomResourceScheduler<StackGresCluster> scheduler,
+      AbstractResourceTransformer<ClusterDto, StackGresCluster> transformer) {
+    return new ClusterResource(scanner, finder, scheduler, transformer,
         statusFinder, detailsFinder);
   }
 
-  @Test
-  void listShouldReturnAllClusters() {
-    when(scanner.getResources()).thenReturn(clusters.getItems());
-
-    List<ClusterDto> clusters = resource.list();
-
-    assertEquals(1, clusters.size());
-
-    assertNotNull(clusters.get(0).getMetadata());
-
-    assertEquals("postgresql", clusters.get(0).getMetadata().getNamespace());
-
-    assertEquals("stackgres", clusters.get(0).getMetadata().getName());
+  @Override
+  protected String getResourceNamespace() {
+    return "postgresql";
   }
 
-  @Test
-  void getOfAnExistingClusterShouldReturnTheExistingCluster() {
-    when(finder.findByNameAndNamespace("stackgres", "postgresql"))
-        .thenReturn(Optional.of(clusters.getItems().get(0)));
-
-    ClusterDto cluster = resource.get("postgresql", "stackgres");
-
-    assertNotNull(cluster.getMetadata());
-
-    assertEquals("postgresql", cluster.getMetadata().getNamespace());
-
-    assertEquals("stackgres", cluster.getMetadata().getName());
+  @Override
+  protected String getResourceName() {
+    return "stackgres";
   }
 
-  @Test
-  void createShouldNotFail() {
-    resource.create(clusterDto);
+  @Override
+  protected void checkBackupConfig(ClusterDto resource) {
+    assertNotNull(resource.getMetadata());
+    assertEquals("postgresql", resource.getMetadata().getNamespace());
+    assertEquals("stackgres", resource.getMetadata().getName());
+    assertNotNull(resource.getSpec());
+    assertEquals("backupconf", resource.getSpec().getBackupConfig());
+    assertEquals("pgbouncerconf", resource.getSpec().getConnectionPoolingConfig());
+    assertEquals("5Gi", resource.getSpec().getVolumeSize());
+    assertEquals("standard", resource.getSpec().getStorageClass());
+    assertEquals(true, resource.getSpec().getPrometheusAutobind());
+    assertEquals(1, resource.getSpec().getInstances());
+    assertEquals("11.5", resource.getSpec().getPostgresVersion());
+    assertEquals("postgresconf", resource.getSpec().getPostgresConfig());
+    assertEquals("size-xs", resource.getSpec().getResourceProfile());
+    assertNotNull(resource.getSpec().getRestore());
+    assertEquals("d7e660a9-377c-11ea-b04b-0242ac110004", resource.getSpec().getRestore().getStackgresBackup());
+    assertIterableEquals(ImmutableList.of(
+        "connection-pooling",
+        "postgres-util",
+        "prometheus-postgres-exporter"),
+        resource.getSpec().getSidecars());
   }
 
-  @Test
-  void updateShouldNotFail() {
-    resource.update(clusterDto);
-  }
-
-  @Test
-  void deleteShouldNotFail() {
-    resource.delete(clusterDto);
+  @Override
+  protected void checkBackupConfig(StackGresCluster resource) {
+    assertNotNull(resource.getMetadata());
+    assertEquals("postgresql", resource.getMetadata().getNamespace());
+    assertEquals("stackgres", resource.getMetadata().getName());
+    assertNotNull(resource.getSpec());
+    assertEquals("backupconf", resource.getSpec().getBackupConfig());
+    assertEquals("pgbouncerconf", resource.getSpec().getConnectionPoolingConfig());
+    assertEquals("5Gi", resource.getSpec().getVolumeSize());
+    assertEquals("standard", resource.getSpec().getStorageClass());
+    assertEquals(true, resource.getSpec().getPrometheusAutobind());
+    assertEquals(1, resource.getSpec().getInstances());
+    assertEquals("11.5", resource.getSpec().getPostgresVersion());
+    assertEquals("postgresconf", resource.getSpec().getPostgresConfig());
+    assertEquals("size-xs", resource.getSpec().getResourceProfile());
+    assertNotNull(resource.getSpec().getRestore());
+    assertEquals("d7e660a9-377c-11ea-b04b-0242ac110004", resource.getSpec().getRestore().getStackgresBackup());
+    assertIterableEquals(ImmutableList.of(
+        "connection-pooling",
+        "postgres-util",
+        "prometheus-postgres-exporter"),
+        resource.getSpec().getSidecars());
   }
 
 }
