@@ -131,9 +131,7 @@ var BackupConfig = Vue.component("backup-config", {
 					//console.log(response);
 					notify('Configuration <strong>"'+configName+'"</strong> deleted successfully', 'message');
 					$('#'+configName+'-'+configNamespace).addClass("deleted");
-					
-					vm.fetchAPI();
-					router.push('/configurations/backup/'+store.state.currentNamespace);    
+					//router.push('/overview/'+store.state.currentNamespace);
 				})
 				.catch(function (error) {
 					console.log(error.response);
