@@ -45,6 +45,7 @@ public class KubernetesOperatorRunner implements OperatorRunner {
             .filter(ItHelper.EXCLUDE_TTY_WARNING)
             .forEach(line -> LOGGER.info(line));
       } catch (Exception ex) {
+        LOGGER.trace(ex.getMessage());
         return;
       }
     }, executor);

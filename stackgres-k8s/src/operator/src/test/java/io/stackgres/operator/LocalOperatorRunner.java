@@ -34,6 +34,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -64,6 +65,7 @@ import io.quarkus.test.junit.QuarkusTest;
 import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operatorframework.admissionwebhook.validating.Validator;
 
+import org.jooq.lambda.Unchecked;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
@@ -203,7 +205,7 @@ public class LocalOperatorRunner implements OperatorRunner {
           @Override
           public void writeClass(boolean applicationClass, String className, byte[] data) throws IOException {
             Path location = testWiringClassesDir.resolve(className.replace('.', '/') + ".class");
-            Files.createDirectories(location.getParent());
+            Optional.ofNullable(location.getParent()).ifPresent(Unchecked.consumer(Files::createDirectories));
             writeToCreatedFile(testWiringClassesDir, createdFilesPath, location);
             Files.write(location, data);
           }
@@ -211,7 +213,7 @@ public class LocalOperatorRunner implements OperatorRunner {
           @Override
           public void writeResource(String name, byte[] data) throws IOException {
             Path location = testWiringClassesDir.resolve(name);
-            Files.createDirectories(location.getParent());
+            Optional.ofNullable(location.getParent()).ifPresent(Unchecked.consumer(Files::createDirectories));
             writeToCreatedFile(testWiringClassesDir, createdFilesPath, location);
             Files.write(location, data);
           }
@@ -279,7 +281,7 @@ public class LocalOperatorRunner implements OperatorRunner {
                 }
 
                 Path location = testWiringClassesDir.resolve(resourceName);
-                Files.createDirectories(location.getParent());
+                Optional.ofNullable(location.getParent()).ifPresent(Unchecked.consumer(Files::createDirectories));
                 writeToCreatedFile(testWiringClassesDir, createdFilesPath, location);
                 Files.write(location, cw.toByteArray());
               } catch (IOException ex) {
@@ -370,7 +372,10 @@ public class LocalOperatorRunner implements OperatorRunner {
       try (BufferedReader reader = Files.newBufferedReader(createdFilesPath)) {
         String line;
         while ((line = reader.readLine()) != null) {
-          Files.deleteIfExists(createdFilesPath.getParent().resolve(line));
+          final String currentLine = line;
+          Optional.ofNullable(createdFilesPath.getParent())
+              .map(parent -> parent.resolve(currentLine))
+              .ifPresent(Unchecked.consumer(Files::deleteIfExists));
         }
         Files.deleteIfExists(createdFilesPath);
       } catch (IOException ex) {
