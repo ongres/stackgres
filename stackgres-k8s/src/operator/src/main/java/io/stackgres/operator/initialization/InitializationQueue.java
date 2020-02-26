@@ -11,7 +11,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 import javax.enterprise.event.Observes;
@@ -37,7 +36,6 @@ public class InitializationQueue {
 
   private final List<Runnable> initializers;
   private final AtomicInteger retries = new AtomicInteger(0);
-  private final AtomicLong waitTime = new AtomicLong(500);
 
   @Inject
   public InitializationQueue(
@@ -50,7 +48,7 @@ public class InitializationQueue {
 
   void onStart(@Observes StartupEvent ev) {
     LOGGER.trace("Checking if operator is ready");
-    scheduler.schedule(this::initializationCycle, waitTime.get(), TimeUnit.MILLISECONDS);
+    scheduler.schedule(this::initializationCycle, 500, TimeUnit.MILLISECONDS);
   }
 
   protected void initializationCycle() {
@@ -74,15 +72,14 @@ public class InitializationQueue {
       scheduler.shutdown();
       return;
     }
-    if (attempts >= 5) {
-      LOGGER.error("Couldn't complete the initialization phase after 5 attemps.  "
+    if (attempts >= 30) {
+      LOGGER.error("Couldn't complete the initialization phase after 30 attemps.  "
           + "Shutting down...");
       new Thread(() -> Application.currentApplication().stop()).start();
       scheduler.shutdown();
       return;
     }
-    long waitTime = this.waitTime.updateAndGet(time -> time * 2);
-    scheduler.schedule(this::initializationCycle, waitTime, TimeUnit.MILLISECONDS);
+    scheduler.schedule(this::initializationCycle, 500, TimeUnit.MILLISECONDS);
   }
 
 }
