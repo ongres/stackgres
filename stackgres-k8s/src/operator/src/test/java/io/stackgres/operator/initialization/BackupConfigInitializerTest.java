@@ -20,9 +20,8 @@ class BackupConfigInitializerTest extends AbstractInitializerTest<StackGresBacku
   AbstractDefaultCustomResourceInitializer<StackGresBackupConfig> getInstance(
       CustomResourceFinder<StackGresBackupConfig> resourceFinder,
       CustomResourceScheduler<StackGresBackupConfig> resourceScheduler,
-      DefaultCustomResourceFactory<StackGresBackupConfig> resourceFactory,
-      InitializationQueue queue) {
-    return new BackupConfigInitializer(resourceFinder, resourceScheduler, resourceFactory, queue);
+      DefaultCustomResourceFactory<StackGresBackupConfig> resourceFactory) {
+    return new BackupConfigInitializer(resourceFinder, resourceScheduler, resourceFactory);
   }
 
   @Override

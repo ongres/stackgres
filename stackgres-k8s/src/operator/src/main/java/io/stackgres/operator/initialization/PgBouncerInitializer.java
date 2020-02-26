@@ -6,10 +6,8 @@
 package io.stackgres.operator.initialization;
 
 import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
-import io.quarkus.runtime.StartupEvent;
 import io.stackgres.operator.common.ArcUtil;
 import io.stackgres.operator.resource.CustomResourceFinder;
 import io.stackgres.operator.resource.CustomResourceScheduler;
@@ -20,20 +18,16 @@ public class PgBouncerInitializer extends
     AbstractDefaultCustomResourceInitializer<StackGresPgbouncerConfig> {
 
   @Inject
-  public PgBouncerInitializer(CustomResourceFinder<StackGresPgbouncerConfig> resourceFinder,
+  public PgBouncerInitializer(
+      CustomResourceFinder<StackGresPgbouncerConfig> resourceFinder,
       CustomResourceScheduler<StackGresPgbouncerConfig> resourceScheduler,
-      DefaultCustomResourceFactory<StackGresPgbouncerConfig> resourceFactory,
-      InitializationQueue queue) {
-    super(resourceFinder, resourceScheduler, resourceFactory, queue);
+      DefaultCustomResourceFactory<StackGresPgbouncerConfig> resourceFactory) {
+    super(resourceFinder, resourceScheduler, resourceFactory);
   }
 
   public PgBouncerInitializer() {
-    super(null, null, null, null);
+    super(null, null, null);
     ArcUtil.checkPublicNoArgsConstructorIsCalledFromArc();
-  }
-
-  void onStart(@Observes StartupEvent ev) {
-    super.initialize();
   }
 
 }

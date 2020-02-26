@@ -9,6 +9,7 @@ import io.stackgres.operator.resource.CustomResourceFinder;
 import io.stackgres.operator.resource.CustomResourceScheduler;
 import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfig;
 import io.stackgres.operator.utils.JsonUtil;
+
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -19,9 +20,8 @@ public class PgBouncerInitializerTest extends AbstractInitializerTest<StackGresP
   AbstractDefaultCustomResourceInitializer<StackGresPgbouncerConfig> getInstance(
       CustomResourceFinder<StackGresPgbouncerConfig> resourceFinder,
       CustomResourceScheduler<StackGresPgbouncerConfig> resourceScheduler,
-      DefaultCustomResourceFactory<StackGresPgbouncerConfig> resourceFactory,
-      InitializationQueue queue) {
-    return new PgBouncerInitializer(resourceFinder, resourceScheduler, resourceFactory, queue);
+      DefaultCustomResourceFactory<StackGresPgbouncerConfig> resourceFactory) {
+    return new PgBouncerInitializer(resourceFinder, resourceScheduler, resourceFactory);
   }
 
   @Override
