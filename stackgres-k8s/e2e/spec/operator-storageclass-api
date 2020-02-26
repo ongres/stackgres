@@ -1,12 +1,10 @@
 #!/bin/sh
 
 e2e_test_install() {
-
   kubectl create namespace "$CLUSTER_NAMESPACE"
   deploy_curl_pod "$CLUSTER_NAMESPACE"
 
   wait_pods_running "$CLUSTER_NAMESPACE" 1
-
 }
 
 e2e_test() {
@@ -14,7 +12,10 @@ e2e_test() {
   run_test "Sidecar endpoint should return all kubernetes storage classes" check_storage_classes
 }
 
-check_storage_classes(){
+check_storage_classes() {
+  local STORAGE_CLASSES_IN_RESPONSE
+  local STORAGE_CLASSES_IN_K8
+
   STORAGE_CLASSES_IN_RESPONSE=$(run_curl -r "stackgres/storageclass" -n $CLUSTER_NAMESPACE | run_jq 'length')
 
   STORAGE_CLASSES_IN_K8S=$(kubectl get storageclasses -o json | run_jq '.items | length')
@@ -29,13 +30,13 @@ check_storage_classes(){
 
 
 get_storage_classes_status() {
-  local HTTP_STATUS
-  HTTP_STATUS=$(run_curl -r "stackgres/storageclass" -n $CLUSTER_NAMESPACE -e "-LI -o /dev/null -w %{http_code}")
-  echo $HTTP_STATUS
+  run_curl -r "stackgres/storageclass" -n $CLUSTER_NAMESPACE -e "-LI -o /dev/null -w %{http_code}"
 }
 
 check_storage_classes_status() {
-  local HTTP_STATUS=$(get_storage_classes_status)
+  local HTTP_STATUS
+
+  HTTP_STATUS="$(get_storage_classes_status)"
 
   if [ "$HTTP_STATUS" = "200" ] || [ "$HTTP_STATUS" = "202" ] || [ "$HTTP_STATUS" = "204" ]
   then
