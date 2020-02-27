@@ -22,7 +22,7 @@ kubectl delete --ignore-not-found -f https://stackgres.io/downloads/stackgres-k8
 
 # Installation with helm
 
-You can also install the StackGres operator using [helm vesion 2.x](https://github.com/helm/helm/releases)
+You can also install the StackGres operator using [helm vesion 3.1.x](https://github.com/helm/helm/releases)
  with the following command:
 
 ```
