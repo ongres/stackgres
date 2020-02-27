@@ -78,15 +78,15 @@ get_cluster_http_status() {
   run_curl -r "stackgres/cluster/$CLUSTER_NAMESPACE/$CLUSTER_NAME" -e "-LI -o /dev/null -w %{http_code}"
 }
 
-get_cluster_stats(){
+get_cluster_stats() {
   run_curl -r "stackgres/cluster/status/$CLUSTER_NAMESPACE/$CLUSTER_NAME" -e "-LI -o /dev/null -w %{http_code}"
 }
 
-get_cluster_pod_configs_health(){
+get_cluster_pod_configs_health() {
   run_curl -r "stackgres/cluster/pods/$CLUSTER_NAMESPACE/$CLUSTER_NAME" -e "-LI -o /dev/null -w %{http_code}"
 }
 
-get_cluster_pod_count(){
+get_cluster_pod_count() {
   run_curl -r "stackgres/cluster/pods/$CLUSTER_NAMESPACE/$CLUSTER_NAME" | run_jq '.pods | length'
 }
 
@@ -120,7 +120,7 @@ test_cluster_stats_are_loaded() {
   fi
 }
 
-test_cluster_pod_config_are_loaded(){
+test_cluster_pod_config_are_loaded() {
   local HTTP_STATUS
 
   HTTP_STATUS="$(get_cluster_pod_configs_health)"
@@ -164,7 +164,7 @@ EOF
   E2E_TIMEOUT="$OLD_E2E_TIMEOUT"
 }
 
-remove_cluster_cr_if_exists(){
+remove_cluster_cr_if_exists() {
   if kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"
   then
     kubectl delete sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"

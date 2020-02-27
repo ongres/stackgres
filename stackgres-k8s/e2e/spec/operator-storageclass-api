@@ -25,7 +25,7 @@ check_storage_classes() {
     echo "Success. endpoint returned all storage clases"
   else
     echo "Fail. Endpoint did retorn all storage clases. Expected $STORAGE_CLASSES_IN_K8S, actual $STORAGE_CLASSES_IN_K8S"
-  fi  
+  fi
 }
 
 
