@@ -78,7 +78,7 @@ config:
 
 ## Restore
 
-Stackgres can perfrom a database restoration from a stackgres backup by just setting the UID of 
+StackGres can perfrom a database restoration from a stackgres backup by just setting the UID of 
  the backup CR that represents the backup that we want to restore. Like this:
 
 ``` yaml
