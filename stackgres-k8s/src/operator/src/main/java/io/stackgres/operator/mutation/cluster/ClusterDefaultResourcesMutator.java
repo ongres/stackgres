@@ -13,7 +13,7 @@ import javax.inject.Inject;
 import com.github.fge.jsonpatch.JsonPatchOperation;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.operator.app.KubernetesClientFactory;
-import io.stackgres.operator.common.StackgresClusterReview;
+import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.customresource.sgcluster.StackGresClusterSpec;
@@ -67,7 +67,7 @@ public class ClusterDefaultResourcesMutator implements ClusterMutator {
   }
 
   @Override
-  public List<JsonPatchOperation> mutate(StackgresClusterReview review) {
+  public List<JsonPatchOperation> mutate(StackGresClusterReview review) {
 
     if (review.getRequest().getOperation() == Operation.CREATE) {
 

@@ -10,7 +10,7 @@ import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
 
 @RegisterForReflection
-public class StackgresClusterReview extends AdmissionReview<StackGresCluster> {
+public class StackGresClusterReview extends AdmissionReview<StackGresCluster> {
 
   private static final long serialVersionUID = 1L;
 

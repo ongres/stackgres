@@ -6,7 +6,7 @@
 package io.stackgres.operator.mutation;
 
 import io.stackgres.operator.utils.JsonUtil;
-import io.stackgres.operator.common.StackgresClusterReview;
+import io.stackgres.operator.common.StackGresClusterReview;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,7 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 @RunWith(MockitoJUnitRunner.class)
-class ClusterMutationResourceTest extends MutationResourceTest<StackgresClusterReview> {
+class ClusterMutationResourceTest extends MutationResourceTest<StackGresClusterReview> {
 
   @BeforeEach
   void setUp() {
@@ -24,7 +24,7 @@ class ClusterMutationResourceTest extends MutationResourceTest<StackgresClusterR
 
     review = JsonUtil
         .readFromJson("cluster_allow_requests/valid_creation.json",
-            StackgresClusterReview.class);
+            StackGresClusterReview.class);
 
   }
 

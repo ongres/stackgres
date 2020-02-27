@@ -375,7 +375,7 @@ public class ClusterReconciliationCycle
             .list()
             .getItems()
             .stream()
-            .filter(backup -> backup.getMetadata().getUid().equals(restore.getStackgresBackup()))
+            .filter(backup -> backup.getMetadata().getUid().equals(restore.getBackupUid()))
             .findAny())
         .map(backup -> {
           Preconditions.checkNotNull(backup.getStatus(),

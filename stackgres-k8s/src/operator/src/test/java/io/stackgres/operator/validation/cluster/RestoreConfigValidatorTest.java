@@ -7,7 +7,7 @@ package io.stackgres.operator.validation.cluster;
 
 import java.util.Optional;
 
-import io.stackgres.operator.common.StackgresClusterReview;
+import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.customresource.sgbackup.StackGresBackup;
 import io.stackgres.operator.customresource.sgbackup.StackGresBackupList;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
@@ -48,7 +48,7 @@ class RestoreConfigValidatorTest {
   @Test
   void givenAValidCreation_shouldPass() throws ValidationFailed {
 
-    final StackgresClusterReview review = getCreationReview();
+    final StackGresClusterReview review = getCreationReview();
 
     when(scanner.findResources())
         .thenReturn(Optional.of(backupList.getItems()));
@@ -62,11 +62,11 @@ class RestoreConfigValidatorTest {
   @Test
   void givenAInvalidCreation_shouldFail() {
 
-    final StackgresClusterReview review = getCreationReview();
+    final StackGresClusterReview review = getCreationReview();
 
     StackGresCluster cluster = review.getRequest().getObject();
     ClusterRestore restoreConfig = cluster.getSpec().getRestore();
-    String stackgresBackup = restoreConfig.getStackgresBackup();
+    String stackgresBackup = restoreConfig.getBackupUid();
 
     when(scanner.findResources()).thenReturn(Optional.empty());
 
@@ -80,9 +80,9 @@ class RestoreConfigValidatorTest {
   @Test
   void givenACreationWithBackupFromDifferentPgVersion_shouldFail() throws ValidationFailed {
 
-    final StackgresClusterReview review = getCreationReview();
+    final StackGresClusterReview review = getCreationReview();
     String stackgresBackup = review.getRequest()
-        .getObject().getSpec().getRestore().getStackgresBackup();
+        .getObject().getSpec().getRestore().getBackupUid();
 
     StackGresBackup backup = backupList.getItems().stream()
         .filter(b -> b.getMetadata().getUid().equals(stackgresBackup))
@@ -105,7 +105,7 @@ class RestoreConfigValidatorTest {
   @Test
   void givenACreationWithNoRestoreConfig_shouldDoNothing() throws ValidationFailed {
 
-    final StackgresClusterReview review = getCreationReview();
+    final StackGresClusterReview review = getCreationReview();
     review.getRequest().getObject().getSpec().setRestore(null);
 
     validator.validate(review);
@@ -117,7 +117,7 @@ class RestoreConfigValidatorTest {
   @Test
   void givenAnUpdate_shouldFail() {
 
-    final StackgresClusterReview review = getUpdateReview();
+    final StackGresClusterReview review = getUpdateReview();
 
     ValidationUtils.assertValidationFailed(() -> validator.validate(review),
         "Cannot update cluster's restore configuration");
@@ -126,16 +126,16 @@ class RestoreConfigValidatorTest {
 
   }
 
-  private StackgresClusterReview getCreationReview() {
+  private StackGresClusterReview getCreationReview() {
     return JsonUtil
         .readFromJson("cluster_allow_requests/valid_creation.json",
-            StackgresClusterReview.class);
+            StackGresClusterReview.class);
   }
 
-  private StackgresClusterReview getUpdateReview() {
+  private StackGresClusterReview getUpdateReview() {
     return JsonUtil
         .readFromJson("cluster_allow_requests/restore_config_update.json",
-            StackgresClusterReview.class);
+            StackGresClusterReview.class);
   }
 
 }

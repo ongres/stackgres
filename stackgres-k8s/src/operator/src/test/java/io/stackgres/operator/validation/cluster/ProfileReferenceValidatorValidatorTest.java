@@ -11,7 +11,7 @@ import java.util.Optional;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfile;
 import io.stackgres.operator.resource.AbstractCustomResourceFinder;
 import io.stackgres.operator.utils.JsonUtil;
-import io.stackgres.operator.common.StackgresClusterReview;
+import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 
@@ -48,10 +48,10 @@ class ProfileReferenceValidatorValidatorTest {
   }
 
   @Test
-  void givenValidStackgresReferenceOnCreation_shouldNotFail() throws ValidationFailed {
+  void givenValidStackGresReferenceOnCreation_shouldNotFail() throws ValidationFailed {
 
-    final StackgresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/valid_creation.json", StackgresClusterReview.class);
+    final StackGresClusterReview review = JsonUtil
+        .readFromJson("cluster_allow_requests/valid_creation.json", StackGresClusterReview.class);
 
     String resourceProfile = review.getRequest().getObject().getSpec().getResourceProfile();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
@@ -66,10 +66,10 @@ class ProfileReferenceValidatorValidatorTest {
   }
 
   @Test
-  void giveInvalidStackgresReferenceOnCreation_shouldFail() {
+  void giveInvalidStackGresReferenceOnCreation_shouldFail() {
 
-    final StackgresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/valid_creation.json", StackgresClusterReview.class);
+    final StackGresClusterReview review = JsonUtil
+        .readFromJson("cluster_allow_requests/valid_creation.json", StackGresClusterReview.class);
 
     String resourceProfile = review.getRequest().getObject().getSpec().getResourceProfile();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
@@ -91,8 +91,8 @@ class ProfileReferenceValidatorValidatorTest {
   @Test
   void giveAnAttemptToUpdateToAnUnknownProfile_shouldFail() {
 
-    final StackgresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/profile_config_update.json", StackgresClusterReview.class);
+    final StackGresClusterReview review = JsonUtil
+        .readFromJson("cluster_allow_requests/profile_config_update.json", StackGresClusterReview.class);
 
     String resourceProfile = review.getRequest().getObject().getSpec().getResourceProfile();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
@@ -116,8 +116,8 @@ class ProfileReferenceValidatorValidatorTest {
   @Test
   void giveAnAttemptToUpdateToAnKnownProfile_shouldNotFail() throws ValidationFailed {
 
-    final StackgresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/profile_config_update.json", StackgresClusterReview.class);
+    final StackGresClusterReview review = JsonUtil
+        .readFromJson("cluster_allow_requests/profile_config_update.json", StackGresClusterReview.class);
 
     String resourceProfile = review.getRequest().getObject().getSpec().getResourceProfile();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
@@ -137,8 +137,8 @@ class ProfileReferenceValidatorValidatorTest {
   @Test
   void giveAnAttemptToDelete_shouldNotFail() throws ValidationFailed {
 
-    final StackgresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/profile_config_update.json", StackgresClusterReview.class);
+    final StackGresClusterReview review = JsonUtil
+        .readFromJson("cluster_allow_requests/profile_config_update.json", StackGresClusterReview.class);
     review.getRequest().setOperation(Operation.DELETE);
 
     validator.validate(review);

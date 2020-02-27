@@ -10,7 +10,7 @@ import java.util.Optional;
 import io.fabric8.kubernetes.api.model.storage.StorageClass;
 import io.stackgres.operator.resource.ResourceFinder;
 import io.stackgres.operator.utils.JsonUtil;
-import io.stackgres.operator.common.StackgresClusterReview;
+import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 
@@ -45,8 +45,8 @@ class StorageClassValidatorTest {
   @Test
   void givenValidStorageClassOnCreation_shouldNotFail() throws ValidationFailed {
 
-    final StackgresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/valid_creation.json", StackgresClusterReview.class);
+    final StackGresClusterReview review = JsonUtil
+        .readFromJson("cluster_allow_requests/valid_creation.json", StackGresClusterReview.class);
 
     String storageClass = review.getRequest().getObject().getSpec().getStorageClass();
     when(storageClassFinder.findByName(storageClass))
@@ -61,8 +61,8 @@ class StorageClassValidatorTest {
   @Test
   void giveInvalidStorageClassOnCreation_shouldFail() {
 
-    final StackgresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/valid_creation.json", StackgresClusterReview.class);
+    final StackGresClusterReview review = JsonUtil
+        .readFromJson("cluster_allow_requests/valid_creation.json", StackGresClusterReview.class);
 
     String storageClass = review.getRequest().getObject().getSpec().getStorageClass();
 
@@ -82,8 +82,8 @@ class StorageClassValidatorTest {
   @Test
   void giveAnAttemptToUpdateToAUnknownStorageClass_shouldFail() {
 
-    final StackgresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/storage_class_config_update.json", StackgresClusterReview.class);
+    final StackGresClusterReview review = JsonUtil
+        .readFromJson("cluster_allow_requests/storage_class_config_update.json", StackGresClusterReview.class);
 
     String storageClass = review.getRequest().getObject().getSpec().getStorageClass();
 
@@ -106,9 +106,9 @@ class StorageClassValidatorTest {
   @Test
   void giveAnAttemptToUpdateToAKnownStorageClass_shouldNotFail() throws ValidationFailed {
 
-    final StackgresClusterReview review = JsonUtil
+    final StackGresClusterReview review = JsonUtil
         .readFromJson("cluster_allow_requests/storage_class_config_update.json",
-            StackgresClusterReview.class);
+            StackGresClusterReview.class);
 
     String storageClass = review.getRequest().getObject().getSpec().getStorageClass();
 
@@ -124,9 +124,9 @@ class StorageClassValidatorTest {
   @Test
   void giveAnAttemptToDelete_shouldNotFail() throws ValidationFailed {
 
-    final StackgresClusterReview review = JsonUtil
+    final StackGresClusterReview review = JsonUtil
         .readFromJson("cluster_allow_requests/storage_class_config_update.json",
-            StackgresClusterReview.class);
+            StackGresClusterReview.class);
     review.getRequest().setOperation(Operation.DELETE);
 
     validator.validate(review);

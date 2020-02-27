@@ -19,7 +19,7 @@ import com.github.fge.jsonpatch.AddOperation;
 import com.github.fge.jsonpatch.JsonPatchOperation;
 import com.google.common.collect.ImmutableList;
 
-import io.stackgres.operator.common.StackgresClusterReview;
+import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.resource.SidecarFinder;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 
@@ -41,7 +41,7 @@ public class DefaultSidecarMutator implements ClusterMutator {
   }
 
   @Override
-  public List<JsonPatchOperation> mutate(StackgresClusterReview review) {
+  public List<JsonPatchOperation> mutate(StackGresClusterReview review) {
     if (review.getRequest().getOperation() == Operation.CREATE
         && review.getRequest().getObject().getSpec().getSidecars() == null) {
 

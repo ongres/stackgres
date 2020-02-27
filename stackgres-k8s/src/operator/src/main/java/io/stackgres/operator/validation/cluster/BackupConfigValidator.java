@@ -9,7 +9,7 @@ import java.util.Optional;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import io.stackgres.operator.common.StackgresClusterReview;
+import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.resource.CustomResourceFinder;
@@ -27,7 +27,7 @@ public class BackupConfigValidator implements ClusterValidator {
   }
 
   @Override
-  public void validate(StackgresClusterReview review) throws ValidationFailed {
+  public void validate(StackGresClusterReview review) throws ValidationFailed {
 
     StackGresCluster cluster = review.getRequest().getObject();
     String backupConfig = cluster.getSpec().getBackupConfig();
@@ -46,7 +46,7 @@ public class BackupConfigValidator implements ClusterValidator {
 
   }
 
-  private void checkIfBackupConfigExists(StackgresClusterReview review,
+  private void checkIfBackupConfigExists(StackGresClusterReview review,
                                           String onError) throws ValidationFailed {
 
     StackGresCluster cluster = review.getRequest().getObject();

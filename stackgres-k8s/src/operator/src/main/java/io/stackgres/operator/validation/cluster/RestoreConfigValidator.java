@@ -11,8 +11,8 @@ import java.util.Optional;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.common.StackGresComponents;
-import io.stackgres.operator.common.StackgresClusterReview;
 import io.stackgres.operator.customresource.sgbackup.StackGresBackup;
 import io.stackgres.operator.customresource.sgcluster.ClusterRestore;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
@@ -31,8 +31,7 @@ public class RestoreConfigValidator implements ClusterValidator {
   }
 
   @Override
-  public void validate(StackgresClusterReview review) throws ValidationFailed {
-
+  public void validate(StackGresClusterReview review) throws ValidationFailed {
     StackGresCluster cluster = review.getRequest().getObject();
     ClusterRestore restoreConfig = cluster.getSpec().getRestore();
 
@@ -41,26 +40,25 @@ public class RestoreConfigValidator implements ClusterValidator {
     if (restoreConfig != null) {
       checkBackup(review, restoreConfig);
     }
-
   }
 
-  private void checkBackup(StackgresClusterReview review,
-                           ClusterRestore restoreConfig) throws ValidationFailed {
-    String stackgresBackup = restoreConfig.getStackgresBackup();
+  private void checkBackup(StackGresClusterReview review,
+      ClusterRestore restoreConfig) throws ValidationFailed {
+    String backupUid = restoreConfig.getBackupUid();
 
     switch (review.getRequest().getOperation()) {
       case CREATE:
 
-        Optional<StackGresBackup> config = findBackup(stackgresBackup);
+        Optional<StackGresBackup> config = findBackup(backupUid);
 
         if (!config.isPresent()) {
-          throw new ValidationFailed("Backup uid " + stackgresBackup + " not found");
+          throw new ValidationFailed("Backup uid " + backupUid + " not found");
         }
 
         StackGresBackup backup = config.get();
 
         if (backup.getStatus() == null || !backup.getStatus().getPhase().equals("Completed")) {
-          throw new ValidationFailed("Cannot restore from backup " + stackgresBackup
+          throw new ValidationFailed("Cannot restore from backup " + backupUid
               + " because it's not ready");
         }
 
@@ -71,7 +69,7 @@ public class RestoreConfigValidator implements ClusterValidator {
         String givenMajorVersion = StackGresComponents.getPostgresMajorVersion(calculatedPgVersion);
 
         if (!backupMajorVersion.equals(givenMajorVersion)) {
-          throw new ValidationFailed("Cannot restore from backup " + stackgresBackup
+          throw new ValidationFailed("Cannot restore from backup " + backupUid
               + " because it comes from an incompatible postgres version");
         }
 
@@ -79,13 +77,13 @@ public class RestoreConfigValidator implements ClusterValidator {
       case UPDATE:
         ClusterRestore oldRestoreConfig = review.getRequest()
             .getOldObject().getSpec().getRestore();
-        String oldStackgresBackup = oldRestoreConfig.getStackgresBackup();
+        String oldBackupUid = oldRestoreConfig.getBackupUid();
 
-        if (stackgresBackup == null && oldStackgresBackup != null
-            || stackgresBackup != null && oldStackgresBackup == null) {
+        if (backupUid == null && oldBackupUid != null
+            || backupUid != null && oldBackupUid == null) {
           throw new ValidationFailed("Cannot update cluster's restore configuration");
         }
-        if (stackgresBackup != null && !stackgresBackup.equals(oldStackgresBackup)) {
+        if (backupUid != null && !backupUid.equals(oldBackupUid)) {
           throw new ValidationFailed("Cannot update cluster's restore configuration");
         }
         break;
@@ -97,7 +95,7 @@ public class RestoreConfigValidator implements ClusterValidator {
     return backup.getStatus().getPgVersion().substring(0, 2);
   }
 
-  private void checkRestoreConfig(StackgresClusterReview review,
+  private void checkRestoreConfig(StackGresClusterReview review,
                                   ClusterRestore restoreConfig) throws ValidationFailed {
     if (review.getRequest().getOperation() == Operation.UPDATE) {
       ClusterRestore oldRestoreConfig = review.getRequest()

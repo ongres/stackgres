@@ -73,7 +73,7 @@ public class ClusterTransformer
         new io.stackgres.operator.customresource.sgcluster.ClusterRestore();
     transformation.setAutoCopySecretsEnabled(source.isAutoCopySecretsEnabled());
     transformation.setDownloadDiskConcurrency(source.getDownloadDiskConcurrency());
-    transformation.setStackgresBackup(source.getStackgresBackup());
+    transformation.setBackupUid(source.getBackupUid());
     return transformation;
   }
 
@@ -114,7 +114,7 @@ public class ClusterTransformer
     ClusterRestore transformation = new ClusterRestore();
     transformation.setAutoCopySecretsEnabled(source.isAutoCopySecretsEnabled());
     transformation.setDownloadDiskConcurrency(source.getDownloadDiskConcurrency());
-    transformation.setStackgresBackup(source.getStackgresBackup());
+    transformation.setBackupUid(source.getBackupUid());
     return transformation;
   }
 

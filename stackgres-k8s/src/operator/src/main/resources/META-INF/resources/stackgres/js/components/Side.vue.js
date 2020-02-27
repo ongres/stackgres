@@ -19,7 +19,7 @@ var Side = Vue.component("sg-side", {
 
 			<div id="sets">
 				<div class="set clu">
-					<h3>Stackgres Clusters</h3>
+					<h3>StackGres Clusters</h3>
 					<a href="#" class="addnew">+</a>
 
 					<template v-for="cluster in clusters">

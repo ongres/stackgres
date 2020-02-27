@@ -21,7 +21,7 @@ public class ClusterRestore {
   private int downloadDiskConcurrency;
 
   @JsonProperty("fromBackup")
-  private String stackgresBackup;
+  private String backupUid;
 
   @JsonProperty("autoCopySecrets")
   private boolean autoCopySecretsEnabled;
@@ -34,12 +34,12 @@ public class ClusterRestore {
     this.downloadDiskConcurrency = downloadDiskConcurrency;
   }
 
-  public String getStackgresBackup() {
-    return stackgresBackup;
+  public String getBackupUid() {
+    return backupUid;
   }
 
-  public void setStackgresBackup(String stackgresBackup) {
-    this.stackgresBackup = stackgresBackup;
+  public void setBackupUid(String backupUid) {
+    this.backupUid = backupUid;
   }
 
   public boolean isAutoCopySecretsEnabled() {
@@ -54,7 +54,7 @@ public class ClusterRestore {
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .omitNullValues()
-        .add("stackgresBackup", stackgresBackup)
+        .add("backupUid", backupUid)
         .add("autoCopySecrets", autoCopySecretsEnabled)
         .add("downloadDiskConcurrency", downloadDiskConcurrency)
         .toString();

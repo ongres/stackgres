@@ -10,7 +10,7 @@ import java.util.Optional;
 import io.stackgres.operator.resource.AbstractCustomResourceFinder;
 import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfig;
 import io.stackgres.operator.utils.JsonUtil;
-import io.stackgres.operator.common.StackgresClusterReview;
+import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 
@@ -46,10 +46,10 @@ class PgBouncerValidatorTest {
   }
 
   @Test
-  void givenValidStackgresPoolingOnCreation_shouldNotFail() throws ValidationFailed {
+  void givenValidStackGresPoolingOnCreation_shouldNotFail() throws ValidationFailed {
 
-    final StackgresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/valid_creation.json", StackgresClusterReview.class);
+    final StackGresClusterReview review = JsonUtil
+        .readFromJson("cluster_allow_requests/valid_creation.json", StackGresClusterReview.class);
 
     String poolingConfig = review.getRequest().getObject().getSpec().getConnectionPoolingConfig();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
@@ -63,10 +63,10 @@ class PgBouncerValidatorTest {
   }
 
   @Test
-  void giveInvalidStackgresPoolingOnCreation_shouldFail() {
+  void giveInvalidStackGresPoolingOnCreation_shouldFail() {
 
-    final StackgresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/valid_creation.json", StackgresClusterReview.class);
+    final StackGresClusterReview review = JsonUtil
+        .readFromJson("cluster_allow_requests/valid_creation.json", StackGresClusterReview.class);
 
     String poolingConfig = review.getRequest().getObject().getSpec().getConnectionPoolingConfig();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
@@ -87,8 +87,8 @@ class PgBouncerValidatorTest {
   @Test
   void giveAnAttemptToUpdateToAnUnknownPoolingConfig_shouldFail() {
 
-    final StackgresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/connectionpooling_config_update.json", StackgresClusterReview.class);
+    final StackGresClusterReview review = JsonUtil
+        .readFromJson("cluster_allow_requests/connectionpooling_config_update.json", StackGresClusterReview.class);
 
     String poolingConfig = review.getRequest().getObject().getSpec().getConnectionPoolingConfig();
 
@@ -113,8 +113,8 @@ class PgBouncerValidatorTest {
   @Test
   void giveAnAttemptToUpdateToAnKnownPooling_shouldNotFail() throws ValidationFailed {
 
-    final StackgresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/connectionpooling_config_update.json", StackgresClusterReview.class);
+    final StackGresClusterReview review = JsonUtil
+        .readFromJson("cluster_allow_requests/connectionpooling_config_update.json", StackGresClusterReview.class);
 
     String poolingConfig = review.getRequest().getObject().getSpec().getConnectionPoolingConfig();
 
@@ -132,8 +132,8 @@ class PgBouncerValidatorTest {
   @Test
   void giveAnAttemptToDelete_shouldNotFail() throws ValidationFailed {
 
-    final StackgresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/connectionpooling_config_update.json", StackgresClusterReview.class);
+    final StackGresClusterReview review = JsonUtil
+        .readFromJson("cluster_allow_requests/connectionpooling_config_update.json", StackGresClusterReview.class);
     review.getRequest().setOperation(Operation.DELETE);
 
     String poolingConfig = review.getRequest().getObject().getSpec().getConnectionPoolingConfig();

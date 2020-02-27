@@ -7,7 +7,7 @@ package io.stackgres.operator.validation.cluster;
 
 import io.stackgres.operator.utils.JsonUtil;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
-import io.stackgres.operator.common.StackgresClusterReview;
+import io.stackgres.operator.common.StackGresClusterReview;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,13 +18,13 @@ class VolumeSizeValidatorTest {
 
   private VolumeSizeValidator validator = new VolumeSizeValidator();
 
-  private StackgresClusterReview defaultReview;
+  private StackGresClusterReview defaultReview;
 
   @BeforeEach
   public void setUp() {
 
     defaultReview = JsonUtil
-        .readFromJson("cluster_allow_requests/valid_creation.json", StackgresClusterReview.class);
+        .readFromJson("cluster_allow_requests/valid_creation.json", StackGresClusterReview.class);
 
   }
 

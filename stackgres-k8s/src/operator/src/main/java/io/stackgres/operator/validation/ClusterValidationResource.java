@@ -14,7 +14,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import io.quarkus.runtime.StartupEvent;
-import io.stackgres.operator.common.StackgresClusterReview;
+import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.validation.cluster.ClusterValidationPipeline;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReviewResponse;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationResource;
@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory;
 @Path(ValidationUtil.CLUSTER_VALIDATION_PATH)
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-public class ClusterValidationResource implements ValidationResource<StackgresClusterReview> {
+public class ClusterValidationResource implements ValidationResource<StackGresClusterReview> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ClusterValidationResource.class);
 
@@ -44,7 +44,7 @@ public class ClusterValidationResource implements ValidationResource<StackgresCl
    * Admission Web hook callback.
    */
   @POST
-  public AdmissionReviewResponse validate(StackgresClusterReview admissionReview) {
+  public AdmissionReviewResponse validate(StackGresClusterReview admissionReview) {
 
     return validate(admissionReview, pipeline);
 

@@ -14,7 +14,7 @@ import com.github.fge.jackson.jsonpointer.JsonPointer;
 import com.github.fge.jsonpatch.JsonPatchOperation;
 
 import io.fabric8.kubernetes.client.CustomResource;
-import io.stackgres.operator.common.StackgresClusterReview;
+import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
 import io.stackgres.operator.resource.CustomResourceFinder;
@@ -45,7 +45,7 @@ public abstract class AbstractDefaultResourceMutator<R extends CustomResource>
   }
 
   @Override
-  public List<JsonPatchOperation> mutate(StackgresClusterReview review) {
+  public List<JsonPatchOperation> mutate(StackGresClusterReview review) {
 
     if (review.getRequest().getOperation() == Operation.CREATE) {
 

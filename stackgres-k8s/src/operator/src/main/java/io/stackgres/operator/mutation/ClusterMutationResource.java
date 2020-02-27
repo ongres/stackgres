@@ -14,7 +14,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import io.quarkus.runtime.StartupEvent;
-import io.stackgres.operator.common.StackgresClusterReview;
+import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReviewResponse;
 import io.stackgres.operatorframework.admissionwebhook.mutating.JsonPatchMutationPipeline;
 import io.stackgres.operatorframework.admissionwebhook.mutating.MutationResource;
@@ -25,15 +25,15 @@ import org.slf4j.LoggerFactory;
 @Path(MutationUtil.CLUSTER_MUTATION_PATH)
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-public class ClusterMutationResource implements MutationResource<StackgresClusterReview> {
+public class ClusterMutationResource implements MutationResource<StackGresClusterReview> {
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(SgPgBouncerMutationResource.class);
 
-  private JsonPatchMutationPipeline<StackgresClusterReview> pipeline;
+  private JsonPatchMutationPipeline<StackGresClusterReview> pipeline;
 
   @Inject
-  public ClusterMutationResource(JsonPatchMutationPipeline<StackgresClusterReview> pipeline) {
+  public ClusterMutationResource(JsonPatchMutationPipeline<StackGresClusterReview> pipeline) {
     this.pipeline = pipeline;
   }
 
@@ -43,7 +43,7 @@ public class ClusterMutationResource implements MutationResource<StackgresCluste
 
   @POST
   @Override
-  public AdmissionReviewResponse mutate(StackgresClusterReview admissionReview) {
+  public AdmissionReviewResponse mutate(StackGresClusterReview admissionReview) {
     return mutate(admissionReview, pipeline);
   }
 }
