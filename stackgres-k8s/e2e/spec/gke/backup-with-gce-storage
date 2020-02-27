@@ -3,18 +3,20 @@
 e2e_test_install() {
   gsutil -m rm -r "gs://stackgres-e2e-$CLUSTER_NAME/" || true
 
-  if [ "$GKE_PROJECT" = "default" ]
+  if [ "$K8S_GKE_PROJECT" = "default" ]
   then  
     echo "Creating bucket in default project"
-    gsutil mb -l "$GKE_REGION" \
+    gsutil mb -l "$K8S_GKE_REGION" \
       -c "standard" \
       "gs://stackgres-e2e-$CLUSTER_NAME/"
   else
-    echo "Creating bucket in project $GKE_PROJECT"
-    gsutil mb -l "$GKE_REGION" \
-      -p "$GKE_PROJECT" \
+    echo "Creating bucket in project $K8S_GKE_PROJECT in region $K8S_GKE_REGION"
+    gsutil mb -l "$K8S_GKE_REGION" \
+      -p "$K8S_GKE_PROJECT" \
       -c "standard" \
       "gs://stackgres-e2e-$CLUSTER_NAME/"
+
+    echo "Bucket created"
   fi
 
   kubectl create namespace "$CLUSTER_NAMESPACE"
@@ -33,7 +35,7 @@ e2e_test_install() {
 }
 
 e2e_test_uninstall(){
-  helm_cleanup_chart "$CLUSTER_NAME"
+  helm_cleanup_chart "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 
   k8s_cleanup_namespace "$CLUSTER_NAMESPACE"
 

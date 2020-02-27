@@ -20,7 +20,7 @@
     <stackgres.operatorVersion>${project.version}</stackgres.operatorVersion>
     <stackgres.containerBuild>3-dev</stackgres.containerBuild>
     <stackgres.group>stackgres.io</stackgres.group>
-    <stackgres.crd.version>v1alpha1</stackgres.crd.version>
+    <stackgres.crd.version>v1beta1</stackgres.crd.version>
     <stackgres.prometheus.allowAutobind>true</stackgres.prometheus.allowAutobind>
     <stackgres.prometheus.grafanaEmbedded>false</stackgres.prometheus.grafanaEmbedded>
 
@@ -33,7 +33,7 @@
     <checkstyle.header.file>${project.basedir}/../checks/checkstyle/header.txt</checkstyle.header.file>
     <spotbugs.excludeFilterFile>${project.basedir}/../checks/spotbugs/exclude.xml</spotbugs.excludeFilterFile>
 
-    <it.image>stackgres/it:1.0</it.image>
+    <it.image>stackgres/it:2.0</it.image>
   </properties>
 
   <dependencies>

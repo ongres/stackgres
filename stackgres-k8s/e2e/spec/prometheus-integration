@@ -4,9 +4,11 @@ e2e_test_install() {
   PROMETHEUS_NAMESPACE="$CLUSTER_NAMESPACE-monitor"
   GRAFANA_CREDENTIALS=admin:prom-operator
 
-  helm install --namespace $PROMETHEUS_NAMESPACE --name prometheus stable/prometheus-operator || true
+  install_prometheus
   
   wait_pods_running "$PROMETHEUS_NAMESPACE" 8
+
+  kubectl create namespace "$CLUSTER_NAMESPACE"
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1
 
@@ -15,9 +17,33 @@ e2e_test_install() {
   wait_pods_running "$CLUSTER_NAMESPACE" 2
 }
 
+install_prometheus_crd(){
+  PROMETHUS_CRD_REPO="https://raw.githubusercontent.com/coreos/prometheus-operator/release-0.35/example/prometheus-operator-crd/monitoring.coreos.com_${1}.yaml"
+  kubectl apply -f "$PROMETHUS_CRD_REPO" --validate=false
+  wait_until kubectl get crd ${1}.monitoring.coreos.com  
+}
+
+install_prometheus(){
+  kubectl create namespace "$PROMETHEUS_NAMESPACE" || true
+
+  #kubectl apply -f "$SPEC_PATH/promethus-values.yaml"
+
+  install_prometheus_crd "alertmanagers"
+  install_prometheus_crd "podmonitors"
+  install_prometheus_crd "prometheuses"
+  install_prometheus_crd "prometheusrules"
+  install_prometheus_crd "servicemonitors"
+
+  helm template prometheus stable/prometheus-operator \
+    --namespace "$PROMETHEUS_NAMESPACE" \
+    --set prometheusOperator.createCustomResource=false \
+     | kubectl apply -f - --validate=false
+
+}
+
 e2e_test_uninstall() {
-  helm_cleanup_chart "$CLUSTER_NAME"
-  helm_cleanup_chart prometheus
+  helm_cleanup_chart "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+  helm_cleanup_chart prometheus "$CLUSTER_NAMESPACE"
 
   k8s_cleanup_namespace "$CLUSTER_NAMESPACE"
   k8s_cleanup_namespace "$PROMETHEUS_NAMESPACE"

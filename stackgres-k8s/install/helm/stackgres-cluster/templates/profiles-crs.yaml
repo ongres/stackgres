@@ -1,7 +1,7 @@
 {{ if .Values.profiles }}
 {{- range .Values.profiles }}
 ---
-apiVersion: stackgres.io/{{ $.Values.crd.version }}
+apiVersion: stackgres.io/v1beta1
 kind: StackGresProfile
 metadata:
   name: {{ .name }}

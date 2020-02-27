@@ -53,7 +53,10 @@ operator_pull_policy() {
 }
 
 install_operator() {
-  helm install --name stackgres-operator --namespace stackgres "$OPERATOR_CHART_PATH" \
+
+  kubectl create namespace stackgres || true
+
+  helm install stackgres-operator --namespace stackgres "$OPERATOR_CHART_PATH" \
     --set-string image.name="${IMAGE_NAME%:*}" --set-string image.tag="${IMAGE_NAME#*:}" \
     --set-string "image.pullPolicy=$(operator_pull_policy)"
 }
@@ -71,7 +74,7 @@ install_operator_from_private_repo() {
 
   
   PRIVATE_IMAGE_NAME="$PRIVATE_REPO_URI/stackgres/operator"
-  helm install --name stackgres-operator --namespace stackgres "$OPERATOR_CHART_PATH" \
+  helm install stackgres-operator --namespace stackgres "$OPERATOR_CHART_PATH" \
       --set-string image.name="$PRIVATE_IMAGE_NAME" --set-string image.tag="$IMAGE_TAG" \
       --set-string serviceAccount.repoCredentials="regcred" \
       --set-string "image.pullPolicy=$(operator_pull_policy)"

@@ -12,6 +12,17 @@ check_persistent_volume_claim_size() {
 
   cat <<EOF | kubectl apply -f -
 apiVersion: stackgres.io/v1alpha1
+kind: StackGresProfile
+metadata:
+  name: size-xs
+  namespace: $CLUSTER_NAMESPACE
+spec:
+  cpu: '500m'
+  memory: '512Mi'
+EOF
+
+  cat <<EOF | kubectl apply -f -
+apiVersion: stackgres.io/v1alpha1
 kind: StackGresCluster
 metadata:
   name: $CLUSTER_NAME
@@ -20,6 +31,9 @@ spec:
   instances: 1
   pgVersion: 'latest'
   volumeSize: '512Mi'
+  resourceProfile: 'size-xs'
+  nonProduction:
+    disableClusterPodAntiAffinity: true  
 EOF
 
   wait_pods_running "$CLUSTER_NAMESPACE" 1

@@ -39,13 +39,15 @@ reset_k8s() {
   then
     az aks create --name "$K8S_AZ_K8S_NAME" --resource-group "$K8S_AZ_RESOURCE_GROUP" \
       --kubernetes-version "$K8S_VERSION" --node-count "$K8S_AZ_NODE_COUNT" \
-      --node-vm-size "$K8S_AZ_NODE_SIZE"
+      --node-vm-size "$K8S_AZ_NODE_SIZE" \
+      --generate-ssh-keys
   else
     az aks create --name "$K8S_AZ_K8S_NAME" --resource-group "$K8S_AZ_RESOURCE_GROUP" \
       --kubernetes-version "$K8S_VERSION" --node-count "$K8S_AZ_NODE_COUNT" \
       --node-vm-size "$K8S_AZ_NODE_SIZE" \
       --service-principal "$SP_APP_ID" \
-      --client-secret "$SP_PASSWORD"
+      --client-secret "$SP_PASSWORD" \
+      --generate-ssh-keys
   fi    
 
   az aks get-credentials --name "$K8S_AZ_K8S_NAME" --resource-group "$K8S_AZ_RESOURCE_GROUP" --overwrite-existing

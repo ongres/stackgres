@@ -13,15 +13,13 @@ excluded_customresourcedefinitions() {
 }
 
 helm_cleanup() {
-  helm list -a \
-    | tail -n +2 \
-    | sed 's/\s\+/ /g' \
-    | cut -d ' ' -f 1 \
-    | xargs -r -n 1 -I % -P 0 helm delete --purge %
+   helm list --all-namespaces \
+    | awk 'FNR > 1 {printf ("helm delete %s --namespace %s\n", $1, $2)}' \
+    | xargs -r -n 1 -I % -P 0 sh -c "%"
 }
 
 k8s_cleanup() {
-  helm template --name stackgres-operator --namespace stackgres "$OPERATOR_CHART_PATH" \
+  helm template stackgres-operator --namespace stackgres "$OPERATOR_CHART_PATH" \
     | kubectl delete -f - --ignore-not-found
   kubectl get validatingwebhookconfigurations.admissionregistration.k8s.io -o name \
     | grep -v "^validatingwebhookconfiguration.admissionregistration.k8s.io/\($(excluded_validatingwebhookconfigurations | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
@@ -42,12 +40,10 @@ k8s_cleanup() {
 }
 
 helm_cleanup_but_operator() {
-  helm list -a \
-    | tail -n +2 \
-    | sed 's/\s\+/ /g' \
-    | cut -d ' ' -f 1 \
-    | grep -v "^\(stackgres-operator\)$" \
-    | xargs -r -n 1 -I % -P 0 helm delete --purge %
+  helm list --all-namespaces \
+    | grep -v "stackgres-operator" \
+    | awk 'FNR > 1 {printf ("helm delete %s --namespace %s\n", $1, $2)}' \
+    | xargs -r -n 1 -I % -P 0 sh -c "%"
 }
 
 k8s_cleanup_but_operator() {
@@ -73,7 +69,7 @@ k8s_cleanup_namespace() {
 }
 
 helm_cleanup_chart() {
-  helm delete --purge "$1" \
+  helm delete "$1" --namespace "$2" \
     || ! helm status "$1" 2> /dev/null
 }
 

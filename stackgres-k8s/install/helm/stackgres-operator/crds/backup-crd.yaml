@@ -1,13 +1,11 @@
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
 metadata:
-  name: sgbackups.{{ .Values.group }}
-  annotations:
-    "helm.sh/hook": crd-install
+  name: sgbackups.stackgres.io
 spec:
-  group: {{ .Values.group }}
+  group:  stackgres.io
   versions:
-    - name: {{ .Values.crd.version }}
+    - name: v1alpha1
       served: true
       storage: true
   scope: Namespaced
@@ -22,7 +20,7 @@ spec:
       description: "Status of backup"
       properties:
         spec:
-          type:
+          type: object
           properties:
             cluster:
               type: string
@@ -52,7 +50,6 @@ spec:
                   description: "To configure compression method used for backups. Possible options are: lz4, lzma, brotli. Default method is lz4. LZ4 is the fastest method, but compression ratio is bad. LZMA is way much slower, however it compresses backups about 6 times better than LZ4. Brotli is a good trade-off between speed and compression ratio which is about 3 times better than LZ4."
                   enum: [ "lz4", "lzma", "brotli" ]
                 pgpConfiguration:
-                  type: string
                   type: object
                   description: "The OpenPGP configuration for encryption and decryption backups with the following properties: - key: PGP private key"
                   properties:

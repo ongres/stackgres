@@ -14,7 +14,7 @@ EOF
 
   kubectl create namespace "$CLUSTER_NAME-backup"
   (echo "$CLUSTER_NAME-backup-minio"; echo "$CLUSTER_NAME-backup-minio2") \
-    | xargs -r -n 1 -I % -P 0 helm install stable/minio --name "%" \
+    | xargs -r -n 1 -I % -P 0 helm install "%" stable/minio \
       --namespace "$CLUSTER_NAMESPACE-backup" -f "$LOG_PATH/minio-values.yaml"
 
   SPEC_VALUES_FILE="$SPEC_FILE.backup.values.yaml"
@@ -80,13 +80,13 @@ is_backup_phase() {
 }
 
 e2e_test_uninstall() {
-  helm_cleanup_chart "$CLUSTER_NAME"
-  helm_cleanup_chart "$CLUSTER_NAME-backup"
-  helm_cleanup_chart "$CLUSTER_NAME-backup-minio"
-  helm_cleanup_chart "$CLUSTER_NAME-backup-minio2"
+  helm_cleanup_chart "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" || true
+  helm_cleanup_chart "$CLUSTER_NAME-backup" "$CLUSTER_NAMESPACE" || true
+  helm_cleanup_chart "$CLUSTER_NAME-backup-minio" "$CLUSTER_NAMESPACE" || true
+  helm_cleanup_chart "$CLUSTER_NAME-backup-minio2" "$CLUSTER_NAMESPACE" || true
 
-  k8s_cleanup_namespace "$CLUSTER_NAMESPACE"
-  k8s_cleanup_namespace "$CLUSTER_NAMESPACE-backup"
+  k8s_cleanup_namespace "$CLUSTER_NAMESPACE" || true
+  k8s_cleanup_namespace "$CLUSTER_NAMESPACE-backup" || true
 }
 
 e2e_test() {

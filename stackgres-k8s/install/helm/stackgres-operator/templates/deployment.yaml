@@ -5,7 +5,7 @@ metadata:
   labels:
     app: {{ .Release.Name }}
     version: "{{ .Chart.Version }}"
-    group: {{ .Values.group }}
+    group:  stackgres.io
   name: {{ .Release.Name }}
   namespace: {{ .Release.Namespace }}
 spec:
@@ -14,13 +14,13 @@ spec:
     matchLabels:
       app: {{ .Release.Name }}
       version: "{{ .Chart.Version }}"
-      group: {{ .Values.group }}
+      group:  stackgres.io
   template:
     metadata:
       labels:
         app: {{ .Release.Name }}
         version: "{{ .Chart.Version }}"
-        group: {{ .Values.group }}
+        group:  stackgres.io
     spec:
       serviceAccountName: {{ .Release.Name }}
       containers:
@@ -33,11 +33,7 @@ spec:
           - name: OPERATOR_NAMESPACE
             value: "{{ .Release.Namespace }}"
           - name: CRD_GROUP
-            value: "{{ .Values.group }}"
-          - name: CRD_VERSION
-            value: "{{ .Values.crd.version }}"
-          - name: CONTAINER_BUILD
-            value: "{{ .Values.containerBuild }}"
+            value: "stackgres.io"
           - name: PROMETHEUS_AUTOBIND
             value: "{{ .Values.prometheus.allowAutobind }}"
           {{- if .Values.developer.logLevel }}

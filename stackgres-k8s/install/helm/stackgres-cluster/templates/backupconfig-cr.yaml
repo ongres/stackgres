@@ -11,7 +11,7 @@ Throw an error if not create minio with default backup options
 {{- fail "Enable minio creation (--set config.backup.minio.create=true) if using default backup values and creating backup configuration" -}}
 {{- end -}}
 {{ if and .Values.config.create .Values.config.backup.create }}
-apiVersion: stackgres.io/{{ .Values.crd.version }}
+apiVersion: stackgres.io/v1alpha1
 kind: StackGresBackupConfig
 metadata:
   name: {{ .Values.cluster.backupconfig }}

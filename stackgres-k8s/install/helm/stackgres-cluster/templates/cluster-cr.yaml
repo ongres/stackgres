@@ -1,5 +1,5 @@
 {{ if .Values.cluster.create }}
-apiVersion: stackgres.io/{{ .Values.crd.version }}
+apiVersion: stackgres.io/v1alpha1
 kind: StackGresCluster
 metadata:
   name: {{ .Release.Name }}
