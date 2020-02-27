@@ -167,7 +167,7 @@ setup_k8s() {
   if [ "$E2E_BUILD_OPERATOR" = true ] \
     && (
       [ "$E2E_REUSE_OPERATOR" != true ] \
-      || ! helm list | grep -q "^stackgres-operator\s"
+      || ! helm list --all-namespaces | grep -q "^stackgres-operator\s"
     )
   then
     (
@@ -176,7 +176,7 @@ setup_k8s() {
     )
   fi
 
-  if ! helm list | grep -q "^stackgres-operator\s" \
+  if ! helm list --all-namespaces | grep -q "^stackgres-operator\s" \
     || ! kubectl get namespaces stackgres -o name \
       | grep -q "^namespace/stackgres$" \
     || (! kubectl get deployments.apps -n stackgres -o name \

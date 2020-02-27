@@ -271,7 +271,7 @@ public class ItHelper {
         .filter(EXCLUDE_TTY_WARNING)
         .forEach(LOGGER::info);
     LOGGER.info("Installing stackgres-cluster helm chart for configs");
-    k8s.execute("sh", "-l", "-c", "kubectl create namespace " + namespace + " || true");
+    k8s.execute("sh", "-l", "-c", "kubectl create namespace " + namespace);
     k8s.execute("sh", "-l", "-c", "helm install"
         + " stackgres-cluster-configs"
         + " --namespace " + namespace
@@ -301,7 +301,6 @@ public class ItHelper {
         .filter(EXCLUDE_TTY_WARNING)
         .forEach(line -> LOGGER.info(line));
     LOGGER.info("Installing stackgres-cluster helm chart for cluster with name " + name);
-    k8s.execute("sh", "-l", "-c", "kubectl create namespace " + namespace + " || true");
     k8s.execute("sh", "-l", "-c", "helm install "
         + name
         + " --namespace " + namespace
