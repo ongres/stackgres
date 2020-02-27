@@ -82,9 +82,6 @@ sidecar:
   prometheus:
     allowAutobind: true
 
-crd:
-  version: v1alpha1
-
 profiles:
   - name: size-xs
     cpu: "500m"

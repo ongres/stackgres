@@ -22,15 +22,14 @@ public class CrdMatchTest {
 
   private static final ConfigLoader configLoader = new ConfigLoader();
 
-  private static String crdVersion;
+  private static String crdPomVersion;
 
   private static File[] crdFiles;
 
   @BeforeAll
   static void beforeAll() {
 
-    crdVersion = "apiextensions.k8s.io/"
-        + configLoader.getProperty(ConfigProperty.CRD_VERSION)
+    crdPomVersion = configLoader.getProperty(ConfigProperty.CRD_VERSION)
         .orElseThrow(() -> new IllegalStateException("Crd version not configured"));
 
     String projectPath = new File(new File("src").getAbsolutePath())
@@ -50,7 +49,15 @@ public class CrdMatchTest {
     for (File crd: crdFiles){
       JsonNode crdTree = yamlMapper.readTree(crd);
 
-      assertEquals(crdVersion, crdTree.get("apiVersion").asText());
+      JsonNode crdInstallVersions = crdTree.get("spec").get("versions");
+
+      for (JsonNode crdInstallVersion: crdInstallVersions){
+        assertEquals(crdPomVersion, crdInstallVersion.get("name").asText());
+
+      }
+
+
+
 
     }
 
