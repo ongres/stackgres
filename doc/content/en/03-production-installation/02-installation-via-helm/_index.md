@@ -7,13 +7,13 @@ StackGres operator and clusters can be installed using [helm](https://helm.sh/) 
 
 ## Install Operator
 
-Create stackgres namespace if doens't exists already
+Create stackgres namespace if doesn't exists already
 
 ``` shell
 kubectl create namespace stackgres
 ```
 
-Tnstall the operator with the following command:
+Install the operator with the following command:
 
 ```shell
 helm install --namespace stackgres --name stackgres-operator \
