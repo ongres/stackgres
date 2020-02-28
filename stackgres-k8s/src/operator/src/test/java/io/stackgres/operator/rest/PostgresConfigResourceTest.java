@@ -68,6 +68,7 @@ class PostgresConfigResourceTest
     assertNotNull(resource.getMetadata());
     assertEquals("default", resource.getMetadata().getNamespace());
     assertEquals("postgresconf", resource.getMetadata().getName());
+    assertEquals("3658bd63-33cb-4948-8318-63183cbd2cf1", resource.getMetadata().getUid());
     assertNotNull(resource.getSpec());
     assertEquals("12", resource.getSpec().getPgVersion());
     assertEquals(Seq.of(
@@ -84,6 +85,7 @@ class PostgresConfigResourceTest
     assertNotNull(resource.getMetadata());
     assertEquals("default", resource.getMetadata().getNamespace());
     assertEquals("postgresconf", resource.getMetadata().getName());
+    assertEquals("3658bd63-33cb-4948-8318-63183cbd2cf1", resource.getMetadata().getUid());
     assertNotNull(resource.getSpec());
     assertEquals("12", resource.getSpec().getPgVersion());
     assertEquals(ImmutableMap.of(

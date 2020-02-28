@@ -68,6 +68,7 @@ class PgbouncerConfigResourceTest
     assertNotNull(resource.getMetadata());
     assertEquals("default", resource.getMetadata().getNamespace());
     assertEquals("pgbouncerconf", resource.getMetadata().getName());
+    assertEquals("ceaa793f-2d97-48b7-91e4-8086b22f1c4c", resource.getMetadata().getUid());
     assertNotNull(resource.getSpec());
     assertEquals(Seq.of(
         "default_pool_size=200", 
@@ -82,6 +83,7 @@ class PgbouncerConfigResourceTest
     assertNotNull(resource.getMetadata());
     assertEquals("default", resource.getMetadata().getNamespace());
     assertEquals("pgbouncerconf", resource.getMetadata().getName());
+    assertEquals("ceaa793f-2d97-48b7-91e4-8086b22f1c4c", resource.getMetadata().getUid());
     assertNotNull(resource.getSpec());
     assertEquals(ImmutableMap.of(
         "default_pool_size", "200", 

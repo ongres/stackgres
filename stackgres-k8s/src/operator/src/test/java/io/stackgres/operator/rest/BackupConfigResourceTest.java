@@ -69,6 +69,7 @@ class BackupConfigResourceTest
     assertNotNull(resource.getMetadata());
     assertEquals("stackgres", resource.getMetadata().getNamespace());
     assertEquals("backupconf", resource.getMetadata().getName());
+    assertEquals("93bc7621-0236-11ea-a1d5-0242ac110003", resource.getMetadata().getUid());
     assertNotNull(resource.getSpec());
     assertEquals("lz4", resource.getSpec().getCompressionMethod());
     assertEquals(0, resource.getSpec().getDiskRateLimit());
@@ -99,6 +100,7 @@ class BackupConfigResourceTest
     assertNotNull(resource.getMetadata());
     assertEquals("stackgres", resource.getMetadata().getNamespace());
     assertEquals("backupconf", resource.getMetadata().getName());
+    assertEquals("93bc7621-0236-11ea-a1d5-0242ac110003", resource.getMetadata().getUid());
     assertNotNull(resource.getSpec());
     assertEquals("lz4", resource.getSpec().getCompressionMethod());
     assertEquals(0, resource.getSpec().getDiskRateLimit());

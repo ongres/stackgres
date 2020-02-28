@@ -16,7 +16,7 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 @JsonIgnoreProperties(ignoreUnknown = true,
     value = {"annotations", "clusterName", "creationTimestamp", "deletionGracePeriodSeconds",
         "deletionTimestamp", "finalizers", "generateName", "generation", "labels", "managedFields",
-        "ownerReferences", "resourceVersion", "selfLink", "uid"})
+        "ownerReferences", "resourceVersion", "selfLink"})
 public class Metadata {
 
   @NotNull
@@ -24,6 +24,8 @@ public class Metadata {
 
   @NotNull
   private String name;
+
+  private String uid;
 
   public String getNamespace() {
     return namespace;
@@ -41,12 +43,21 @@ public class Metadata {
     this.name = name;
   }
 
+  public String getUid() {
+    return uid;
+  }
+
+  public void setUid(String uid) {
+    this.uid = uid;
+  }
+
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .omitNullValues()
         .add("namespace", namespace)
         .add("name", name)
+        .add("uid", uid)
         .toString();
   }
 

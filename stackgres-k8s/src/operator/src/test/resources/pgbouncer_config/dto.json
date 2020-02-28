@@ -1,7 +1,8 @@
 {
   "metadata": {
     "name": "pgbouncerconf",
-    "namespace": "default"
+    "namespace": "default",
+    "uid": "ceaa793f-2d97-48b7-91e4-8086b22f1c4c"
   },
   "spec": {
     "pgbouncer.ini": "default_pool_size=200\nmax_client_conn=200\npool_mode='transaction'"

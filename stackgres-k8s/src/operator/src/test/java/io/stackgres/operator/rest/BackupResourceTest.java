@@ -66,6 +66,7 @@ class BackupResourceTest extends AbstractCustomResourceTest<BackupDto, StackGres
     assertNotNull(resource.getMetadata());
     assertEquals("postgresql", resource.getMetadata().getNamespace());
     assertEquals("test", resource.getMetadata().getName());
+    assertEquals("bfb53778-f59a-11e9-b1b5-0242ac110002", resource.getMetadata().getUid());
     assertNotNull(resource.getSpec());
     assertEquals("stackgres", resource.getSpec().getCluster());
     assertEquals(false, resource.getSpec().getIsPermanent());
@@ -119,7 +120,8 @@ class BackupResourceTest extends AbstractCustomResourceTest<BackupDto, StackGres
     assertNotNull(resource.getMetadata());
     assertEquals("postgresql", resource.getMetadata().getNamespace());
     assertEquals("test", resource.getMetadata().getName());
-    assertNotNull(resource.getSpec());
+    assertEquals("bfb53778-f59a-11e9-b1b5-0242ac110002", resource.getMetadata().getUid());
+   assertNotNull(resource.getSpec());
     assertEquals("stackgres", resource.getSpec().getCluster());
     assertEquals(false, resource.getSpec().getIsPermanent());
     assertNotNull(resource.getStatus());

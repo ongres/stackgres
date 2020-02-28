@@ -17,6 +17,7 @@ public abstract class AbstractResourceTransformer<T extends ResourceDto, R exten
     ObjectMeta metadata = new ObjectMeta();
     metadata.setNamespace(source.getMetadata().getNamespace());
     metadata.setName(source.getMetadata().getName());
+    metadata.setUid(source.getMetadata().getUid());
     return metadata;
   }
 
@@ -24,6 +25,7 @@ public abstract class AbstractResourceTransformer<T extends ResourceDto, R exten
     Metadata metadata = new Metadata();
     metadata.setNamespace(source.getMetadata().getNamespace());
     metadata.setName(source.getMetadata().getName());
+    metadata.setUid(source.getMetadata().getUid());
     return metadata;
   }
 

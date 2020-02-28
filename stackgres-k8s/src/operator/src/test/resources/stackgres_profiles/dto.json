@@ -1,7 +1,8 @@
 {
   "metadata": {
     "name": "size-s",
-    "namespace": "default"
+    "namespace": "default",
+    "uid": "44f1f832-37a0-4346-9876-be4a9135dca5"
   },
   "spec": {
     "cpu": "1",

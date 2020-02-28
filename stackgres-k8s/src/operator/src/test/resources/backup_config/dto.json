@@ -1,7 +1,8 @@
 {
     "metadata": {
         "name": "backupconf",
-        "namespace": "stackgres"
+        "namespace": "stackgres",
+        "uid": "93bc7621-0236-11ea-a1d5-0242ac110003"
     },
     "spec": {
         "compressionMethod": "lz4",

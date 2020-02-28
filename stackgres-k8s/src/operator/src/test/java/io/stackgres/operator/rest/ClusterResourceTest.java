@@ -77,6 +77,7 @@ class ClusterResourceTest extends AbstractCustomResourceTest<ClusterDto, StackGr
     assertNotNull(resource.getMetadata());
     assertEquals("postgresql", resource.getMetadata().getNamespace());
     assertEquals("stackgres", resource.getMetadata().getName());
+    assertEquals("bfb53778-f59a-11e9-b1b5-0242ac110002", resource.getMetadata().getUid());
     assertNotNull(resource.getSpec());
     assertEquals("backupconf", resource.getSpec().getBackupConfig());
     assertEquals("pgbouncerconf", resource.getSpec().getConnectionPoolingConfig());
@@ -101,7 +102,8 @@ class ClusterResourceTest extends AbstractCustomResourceTest<ClusterDto, StackGr
     assertNotNull(resource.getMetadata());
     assertEquals("postgresql", resource.getMetadata().getNamespace());
     assertEquals("stackgres", resource.getMetadata().getName());
-    assertNotNull(resource.getSpec());
+    assertEquals("bfb53778-f59a-11e9-b1b5-0242ac110002", resource.getMetadata().getUid());
+   assertNotNull(resource.getSpec());
     assertEquals("backupconf", resource.getSpec().getBackupConfig());
     assertEquals("pgbouncerconf", resource.getSpec().getConnectionPoolingConfig());
     assertEquals("5Gi", resource.getSpec().getVolumeSize());

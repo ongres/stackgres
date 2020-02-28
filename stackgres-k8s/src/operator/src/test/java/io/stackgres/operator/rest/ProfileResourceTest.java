@@ -64,6 +64,7 @@ class ProfileResourceTest extends AbstractCustomResourceTest<ProfileDto, StackGr
     assertNotNull(resource.getMetadata());
     assertEquals("default", resource.getMetadata().getNamespace());
     assertEquals("size-s", resource.getMetadata().getName());
+    assertEquals("44f1f832-37a0-4346-9876-be4a9135dca5", resource.getMetadata().getUid());
     assertNotNull(resource.getSpec());
     assertEquals("1", resource.getSpec().getCpu());
     assertEquals("2Gi", resource.getSpec().getMemory());
@@ -74,6 +75,7 @@ class ProfileResourceTest extends AbstractCustomResourceTest<ProfileDto, StackGr
     assertNotNull(resource.getMetadata());
     assertEquals("default", resource.getMetadata().getNamespace());
     assertEquals("size-s", resource.getMetadata().getName());
+    assertEquals("44f1f832-37a0-4346-9876-be4a9135dca5", resource.getMetadata().getUid());
     assertNotNull(resource.getSpec());
     assertEquals("1", resource.getSpec().getCpu());
     assertEquals("2Gi", resource.getSpec().getMemory());

@@ -1,7 +1,8 @@
 {
   "metadata": {
     "name": "postgresconf",
-    "namespace": "default"
+    "namespace": "default",
+    "uid": "3658bd63-33cb-4948-8318-63183cbd2cf1"
   },
   "spec": {
     "pgVersion": "12",
