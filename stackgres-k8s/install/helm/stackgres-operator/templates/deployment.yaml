@@ -32,8 +32,6 @@ spec:
             value: "{{ .Release.Name }}"
           - name: OPERATOR_NAMESPACE
             value: "{{ .Release.Namespace }}"
-          - name: CRD_GROUP
-            value: "stackgres.io"
           - name: PROMETHEUS_AUTOBIND
             value: "{{ .Values.prometheus.allowAutobind }}"
           {{- if .Values.developer.logLevel }}
