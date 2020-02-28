@@ -110,7 +110,6 @@ public class Backup implements StackGresClusterResourceStreamFactory {
             .withBackoffLimit(3)
             .withCompletions(1)
             .withParallelism(1)
-            .withTtlSecondsAfterFinished(300)
             .withNewTemplate()
             .withNewMetadata()
             .withNamespace(namespace)
