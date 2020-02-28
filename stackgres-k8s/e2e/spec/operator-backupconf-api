@@ -71,8 +71,7 @@ check_backupconfig_in_list() {
   create_backupconfig
 
   if run_curl -r "stackgres/backupconfig" -n "$CLUSTER_NAMESPACE" \
-    | run_jq -c ".[] | select ( .metadata.namespace == \"$CLUSTER_NAMESPACE\") | select ( .metadata.name == \"$BACKUPCONF\")" \
-    | run_jq '.metadata.name' -r \
+    | run_jq -c ".[] | select ( .metadata.namespace == \"$CLUSTER_NAMESPACE\") | select ( .metadata.name == \"$BACKUPCONF\") | .metadata.name" -r \
     | grep -q "^$BACKUPCONF$"
   then
     echo "Backup config $BACKUPCONF included in json response"
@@ -108,8 +107,7 @@ check_backupconfig_removed_from_list() {
   delete_backupconfig_only
 
   if run_curl -r "stackgres/backupconfig"  -n "$CLUSTER_NAMESPACE" \
-    | run_jq -c ".[] | select ( .metadata.namespace = \"$CLUSTER_NAMESPACE\") | select ( .metadata.name = \"$BACKUPCONF\")" \
-    | run_jq '.metadata.name' -r \
+    | run_jq -c ".[] | select ( .metadata.namespace == \"$CLUSTER_NAMESPACE\") | select ( .metadata.name == \"$BACKUPCONF\") | .metadata.name" -r \
     | grep -q "^$BACKUPCONF$"
   then
     echo "Backup config $BACKUPCONF wasn't removed from cache"

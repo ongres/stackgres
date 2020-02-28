@@ -67,8 +67,7 @@ check_profile_in_list() {
   create_profile
 
   if run_curl -r "stackgres/profile" -n "$CLUSTER_NAMESPACE" \
-    | run_jq -c ".[] | select ( .metadata.namespace == \"$CLUSTER_NAMESPACE\") | select ( .metadata.name == \"$PROFILE\")" \
-    | run_jq '.metadata.name' -r \
+    | run_jq -r ".[] | select ( .metadata.namespace == \"$CLUSTER_NAMESPACE\") | select ( .metadata.name == \"$PROFILE\") | .metadata.name" \
     | grep -q "^$PROFILE$"
   then
     echo "Profile $PROFILE included in json response"
@@ -104,8 +103,7 @@ check_profile_removed_from_list() {
   delete_profile_only
 
   if run_curl -r "stackgres/profile"  -n "$CLUSTER_NAMESPACE" \
-    | run_jq -c ".[] | select ( .metadata.namespace = \"$CLUSTER_NAMESPACE\") | select ( .metadata.name = \"$PROFILE\")" \
-    | run_jq '.metadata.name' -r \
+    | run_jq -r ".[] | select ( .metadata.namespace == \"$CLUSTER_NAMESPACE\") | select ( .metadata.name == \"$PROFILE\") | .metadata.name" \
     | grep -q "^$PROFILE$"
   then
     echo "Profile $PROFILE wasn't removed from cache";

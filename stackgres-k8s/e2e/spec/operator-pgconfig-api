@@ -83,8 +83,7 @@ check_pgconfig_in_list() {
   create_pgconfig
 
   if run_curl -r "stackgres/pgconfig" -n "$CLUSTER_NAMESPACE" \
-    | run_jq -c ".[] | select ( .metadata.namespace == \"$CLUSTER_NAMESPACE\") | select ( .metadata.name == \"$PGCONFIG\")" \
-    | run_jq '.metadata.name' -r \
+    | run_jq -r ".[] | select ( .metadata.namespace == \"$CLUSTER_NAMESPACE\") | select ( .metadata.name == \"$PGCONFIG\") | .metadata.name" \
     | grep -q "^$PGCONFIG$"
   then
     echo "Postgres config $PGCONFIG included in json response"
@@ -120,8 +119,7 @@ check_pgconfig_removed_from_list() {
   delete_pgconfig_only
 
   if run_curl -r "stackgres/pgconfig" -n "$CLUSTER_NAMESPACE" \
-    | run_jq -c ".[] | select ( .metadata.namespace = \"$CLUSTER_NAMESPACE\") | select ( .metadata.name = \"$PGCONFIG\")" \
-    | run_jq '.metadata.name' -r \
+    | run_jq -r ".[] | select ( .metadata.namespace == \"$CLUSTER_NAMESPACE\") | select ( .metadata.name == \"$PGCONFIG\") | .metadata.name" \
     | grep -q "^$PGCONFIG$"
   then
     echo "Postgres config $PGCONFIG wasn't removed from cache"

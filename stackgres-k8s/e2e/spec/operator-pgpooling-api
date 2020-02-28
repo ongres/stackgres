@@ -68,8 +68,7 @@ check_pgpooling_in_list() {
   create_pgpooling
 
   if run_curl -r "stackgres/connpoolconfig" -n "$CLUSTER_NAMESPACE" \
-    | run_jq -c ".[] | select ( .metadata.namespace == \"$CLUSTER_NAMESPACE\") | select ( .metadata.name == \"$PGPOOLING\")" \
-    | run_jq '.metadata.name' -r \
+    | run_jq -r ".[] | select ( .metadata.namespace == \"$CLUSTER_NAMESPACE\") | select ( .metadata.name == \"$PGPOOLING\") | .metadata.name" \
     | grep -q "^$PGPOOLING$"
   then
     echo "Pooling config $PGPOOLING included in json response"
@@ -105,7 +104,7 @@ check_pgpooling_removed_from_list() {
   delete_pgpooling_only
 
   if run_curl -r "stackgres/connpoolconfig" -n "$CLUSTER_NAMESPACE" \
-    | run_jq -c ".[] | select ( .metadata.namespace = \"$CLUSTER_NAMESPACE\") | select ( .metadata.name = \"$PGPOOLING\")" | run_jq '.metadata.name' -r \
+    | run_jq -r ".[] | select ( .metadata.namespace == \"$CLUSTER_NAMESPACE\") | select ( .metadata.name == \"$PGPOOLING\") | .metadata.name" \
     | grep -q "^$PGPOOLING$"
   then
     echo "Pooling config $PGPOOLING wasn't removed from cache"

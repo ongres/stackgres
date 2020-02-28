@@ -62,8 +62,7 @@ e2e_test() {
 
 check_cluster_in_list() {
   if run_curl -r "stackgres/cluster" \
-    | run_jq -c ".[] | select ( .metadata.namespace == \"$CLUSTER_NAMESPACE\" and .metadata.name == \"$CLUSTER_NAME\")" \
-    | run_jq '.metadata.name' -r \
+    | run_jq -r ".[] | select ( .metadata.namespace == \"$CLUSTER_NAMESPACE\" and .metadata.name == \"$CLUSTER_NAME\") | .metadata.name" \
     | grep -q "^$CLUSTER_NAME$"
   then
     echo "Cluster $CLUSTER_NAME included in json response"
@@ -179,8 +178,7 @@ check_cluster_removed() {
   remove_cluster_cr_if_exists
 
   if run_curl -r "stackgres/cluster" \
-    | run_jq -c ".[] | select ( .metadata.namespace == \"$CLUSTER_NAMESPACE\" and .metadata.name == \"$CLUSTER_NAME\")" \
-    | run_jq '.metadata.name' -r \
+    | run_jq -r ".[] | select ( .metadata.namespace == \"$CLUSTER_NAMESPACE\" and .metadata.name == \"$CLUSTER_NAME\") | .metadata.name" \
     | grep -q "^$CLUSTER_NAME$"
   then
     echo "Cluster $CLUSTER_NAME wasn't removed from cache"
