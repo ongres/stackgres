@@ -6,7 +6,6 @@
 package io.stackgres.operator.initialization;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -17,11 +16,11 @@ import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 
 import com.fasterxml.jackson.dataformat.javaprop.JavaPropsMapper;
-import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.operator.common.ConfigContext;
 import io.stackgres.operator.common.ConfigProperty;
+import io.stackgres.operator.common.StackGresUtil;
 
-public abstract class AbstractCustomResourceFactory<T extends CustomResource>
+public abstract class AbstractCustomResourceFactory<T>
     implements DefaultCustomResourceFactory<T> {
 
   protected static final JavaPropsMapper MAPPER = new JavaPropsMapper();
@@ -38,17 +37,8 @@ public abstract class AbstractCustomResourceFactory<T extends CustomResource>
   }
 
   protected void loadDefaultProperties(String propertiesPath) throws IOException {
-    defaultValues = loadProperties(propertiesPath);
+    defaultValues = StackGresUtil.loadProperties(propertiesPath);
     getExclusionProperties().forEach(p -> defaultValues.remove(p));
-  }
-
-  protected Properties loadProperties(String propertiesPath) throws IOException {
-    try (InputStream is = ClassLoader
-        .getSystemResourceAsStream(propertiesPath)) {
-      Properties props = new Properties();
-      props.load(is);
-      return props;
-    }
   }
 
   protected <S> S buildSpec(Class<S> specClazz) {

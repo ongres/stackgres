@@ -5,7 +5,6 @@
 
 package io.stackgres.operator.mutation;
 
-import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
@@ -13,7 +12,6 @@ import javax.inject.Inject;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.fge.jackson.jsonpointer.JsonPointer;
-import com.github.fge.jsonpatch.AddOperation;
 import com.github.fge.jsonpatch.JsonPatchOperation;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
@@ -43,18 +41,10 @@ public abstract class DefaultValuesMutator<R extends CustomResource, T extends A
   protected List<JsonPatchOperation> mutate(JsonPointer basePointer,
                                             R incomingResource) {
 
-    List<JsonPatchOperation> operations = new ArrayList<>();
-
     JsonNode incomingNode = getTargetNode(incomingResource);
 
-    defaultNode.fieldNames().forEachRemaining(field -> {
-      if (!incomingNode.has(field)) {
-        JsonPointer propertyPointer = basePointer.append(field);
-        operations.add(new AddOperation(propertyPointer, defaultNode.get(field)));
-      }
-    });
+    return applyDefaults(basePointer, defaultNode, incomingNode);
 
-    return operations;
   }
 
   @Inject

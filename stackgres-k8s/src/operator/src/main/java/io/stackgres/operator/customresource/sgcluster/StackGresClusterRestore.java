@@ -20,19 +20,19 @@ public class StackGresClusterRestore implements KubernetesResource {
   private static final long serialVersionUID = 1L;
 
   @JsonProperty("downloadDiskConcurrency")
-  private int downloadDiskConcurrency;
+  private Integer downloadDiskConcurrency;
 
   @JsonProperty("fromBackup")
   private String stackgresBackup;
 
   @JsonProperty("autoCopySecrets")
-  private boolean autoCopySecretsEnabled;
+  private Boolean autoCopySecretsEnabled;
 
-  public int getDownloadDiskConcurrency() {
+  public Integer getDownloadDiskConcurrency() {
     return downloadDiskConcurrency;
   }
 
-  public void setDownloadDiskConcurrency(int downloadDiskConcurrency) {
+  public void setDownloadDiskConcurrency(Integer downloadDiskConcurrency) {
     this.downloadDiskConcurrency = downloadDiskConcurrency;
   }
 
@@ -44,11 +44,11 @@ public class StackGresClusterRestore implements KubernetesResource {
     this.stackgresBackup = stackgresBackup;
   }
 
-  public boolean isAutoCopySecretsEnabled() {
+  public Boolean isAutoCopySecretsEnabled() {
     return autoCopySecretsEnabled;
   }
 
-  public void setAutoCopySecretsEnabled(boolean autoCopySecretsEnabled) {
+  public void setAutoCopySecretsEnabled(Boolean autoCopySecretsEnabled) {
     this.autoCopySecretsEnabled = autoCopySecretsEnabled;
   }
 

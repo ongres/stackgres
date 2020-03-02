@@ -5,9 +5,7 @@
 
 package io.stackgres.operator.initialization;
 
-import io.fabric8.kubernetes.client.CustomResource;
-
-public interface DefaultCustomResourceFactory<T extends CustomResource> {
+public interface DefaultCustomResourceFactory<T> {
 
   T buildResource();
 }
