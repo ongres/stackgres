@@ -150,7 +150,7 @@ If you want to use OpenPGP to encrypy your backups, you need to specify pgp conf
 By default, stackgres it's creates as an empty database. To create a cluster with data from an existent backup, we have the restore options. It works, by simply indicating the backup CR Uid that we want to restore. 
 
 * `cluster.restore.fromBackup`: The backup CR UID to restore the cluster data
-* `config.restore.autoCopySecrets`: Default false. If you are creating a cluster in a different namespace than where backup CR is, you might need to copy the secrets where the credentials to access the backup storage to the namespace where you are installing the cluster. If is set to true stackgres will do it automatically. 
+* `config.restore.autoCopySecrets`: Default true. If you are creating a cluster in a different namespace than where backup CR is, you might need to copy the secrets where the credentials to access the backup storage to the namespace where you are installing the cluster. If is set to true stackgres will do it automatically. 
 * `config.restore.downloadDiskConcurrency`: By default 1. How many concurrent stream will create while downloading the backup.
 
 #### Sidecars

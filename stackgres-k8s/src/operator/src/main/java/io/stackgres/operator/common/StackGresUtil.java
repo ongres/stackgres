@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.common;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -237,4 +239,18 @@ public enum StackGresUtil {
     }
   }
 
+  /**
+   * Loads a properties file from the classpath.
+   * @param path the path of the properties file to load
+   * @return the loaded file
+   * @throws IOException if cannot load the properties file
+   */
+  public static Properties loadProperties(String path) throws IOException {
+    try (InputStream is = ClassLoader
+        .getSystemResourceAsStream(path)) {
+      Properties props = new Properties();
+      props.load(is);
+      return props;
+    }
+  }
 }

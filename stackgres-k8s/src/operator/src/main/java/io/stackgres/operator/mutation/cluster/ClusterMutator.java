@@ -16,11 +16,14 @@ public interface ClusterMutator extends JsonPatchMutator<StackgresClusterReview>
   JsonPointer CLUSTER_CONFIG_POINTER = JsonPointer.of("spec");
 
   default JsonPointer getTargetPointer(String field) throws NoSuchFieldException {
-    String jsonField = StackGresClusterSpec.class
-        .getDeclaredField(field)
+    String jsonField = getJsonMappingField(field, StackGresClusterSpec.class);
+    return CLUSTER_CONFIG_POINTER.append(jsonField);
+  }
+
+  default String getJsonMappingField(String field, Class<?> clazz) throws NoSuchFieldException {
+    return clazz.getDeclaredField(field)
         .getAnnotation(JsonProperty.class)
         .value();
-    return CLUSTER_CONFIG_POINTER.append(jsonField);
   }
 
 }

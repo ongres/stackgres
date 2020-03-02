@@ -18,7 +18,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-@RunWith(MockitoJUnitRunner.class)
 class SgProfileDefaultValuesMutatorTest extends DefaultValuesMutatorTest<StackGresProfile, SgProfileReview> {
 
   @Override

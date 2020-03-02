@@ -70,6 +70,7 @@ e2e_test() {
   run_test "Check that data was restored on replica node" check_replica_data
   run_test "Check that replication is still working" check_replication  
   run_test "Check that backup is compatible with cluster" check_backup_pg_version
+  run_test "Check that restoration default values" check_restore_default_values
 }
 
 
@@ -183,5 +184,48 @@ EOF
     echo "FAIL: Unexpected error message $ERROR_MESSAGE"
     return 1
   fi
+}
+
+check_restore_default_values(){
+
+  kubectl delete sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" 
+
+  cat << EOF | kubectl apply -f -
+apiVersion: stackgres.io/v1alpha1
+kind: StackGresCluster
+metadata:
+  name: $CLUSTER_NAME
+  namespace: $CLUSTER_NAMESPACE
+spec:
+  instances: 1
+  pgVersion: 'latest'
+  volumeSize: '128Mi'
+  restore:
+    fromBackup: $BACKUP_UID
+EOF
+
+  assert_default_value "downloadDiskConcurrency" "1"
+  assert_default_value "autoCopySecrets" "true"
+
+}
+
+assert_default_value(){
+  FIELD=$1
+  EXPECTED_VALUE=$2
+
+  if ACTUAL_VALUE=$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o=jsonpath="{.spec.restore.$FIELD}")
+  then
+    if [ "$ACTUAL_VALUE" = "$EXPECTED_VALUE" ]
+    then
+      echo "Success. Default value for field $FIELD is the expected"
+    else
+      echo "Fail. Default value is not the expected. Expected: $EXPECTED_VALUE. Actual: $ACTUAL_VALUE"
+      return 1
+    fi
+  else
+    echo "Fail. Default value for field $FIELD not found"
+    return 1
+  fi
+    
 }
 
