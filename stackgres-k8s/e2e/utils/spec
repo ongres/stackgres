@@ -20,7 +20,7 @@ e2e_test() {
 }
 
 e2e_test_uninstall() {
-  helm_cleanup_chart "$CLUSTER_NAME"
+  helm_cleanup_chart "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 
   k8s_cleanup_namespace "$CLUSTER_NAMESPACE"
 }
@@ -79,6 +79,7 @@ spec() {
   then
     echo "$SPEC_NAME. FAIL. See file $LOG_PATH/$SPEC_NAME.log for details" > "$TARGET_PATH/$SPEC_NAME.failed"
     echo "$SPEC_NAME. FAIL. See file $LOG_PATH/$SPEC_NAME.log for details" >> "$TARGET_PATH/logs/results.log"
+    cleanup_spec || true
     return "$EXIT_CODE"
   fi
   echo "$SPEC_NAME. SUCCESS. Test took $(($(date +%s)-START)) seconds" >> "$TARGET_PATH/logs"/results.log
@@ -97,10 +98,16 @@ run_spec() {
 
   e2e_test
 
+  cleanup_spec
+}
+
+cleanup_spec(){
+
   if [ "$SKIP_SPEC_UNINSTALL" != true ]
   then
     e2e_test_uninstall
   fi
 
   e2e_test_after_all
+
 }

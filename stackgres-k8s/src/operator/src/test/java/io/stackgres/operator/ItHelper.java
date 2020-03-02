@@ -195,9 +195,11 @@ public class ItHelper {
       int sslPort, Executor executor) throws Exception {
     if (OPERATOR_IN_KUBERNETES) {
       LOGGER.info("Installing stackgres-operator helm chart");
-      k8s.execute("sh", "-l", "-c", "helm install /resources/stackgres-operator"
-          + " --namespace " + namespace
-          + " --name stackgres-operator"
+      k8s.execute("sh", "-l", "-c", "kubectl create namespace " + namespace + " || true");
+      k8s.execute("sh", "-l", "-c", "helm install"
+          + " stackgres-operator"    
+          + " --namespace " + namespace          
+          + " /resources/stackgres-operator"
           + " --set-string image.tag=" + IMAGE_TAG
           + " --set-string image.pullPolicy=Never")
         .filter(EXCLUDE_TTY_WARNING)
@@ -206,9 +208,11 @@ public class ItHelper {
     }
 
     LOGGER.info("Installing stackgres-operator helm chart");
-    k8s.execute("sh", "-l", "-c", "helm install /resources/stackgres-operator"
+    k8s.execute("sh", "-l", "-c", "kubectl create namespace " + namespace + " || true");
+    k8s.execute("sh", "-l", "-c", "helm install"
+        + " stackgres-operator"
         + " --namespace stackgres"
-        + " --name stackgres-operator"
+        + " /resources/stackgres-operator"
         + " --set deploy.create=false"
         + " --set-string cert.crt=" + Base64.getEncoder().encodeToString(
             IOUtils.toByteArray(ItHelper.class.getResourceAsStream("/certs/server.crt")))
@@ -262,13 +266,16 @@ public class ItHelper {
   public static void installStackGresConfigs(Container k8s, String namespace)
       throws Exception {
     LOGGER.info("Deleting if exists stackgres-cluster helm chart for configs");
-    k8s.execute("sh", "-l", "-c", "helm delete stackgres-cluster-configs --purge || true")
+    k8s.execute("sh", "-l", "-c", "helm delete stackgres-cluster-configs --namespace "
+        + namespace + "|| true")
         .filter(EXCLUDE_TTY_WARNING)
-        .forEach(line -> LOGGER.info(line));
+        .forEach(LOGGER::info);
     LOGGER.info("Installing stackgres-cluster helm chart for configs");
-    k8s.execute("sh", "-l", "-c", "helm install /resources/stackgres-cluster"
+    k8s.execute("sh", "-l", "-c", "kubectl create namespace " + namespace);
+    k8s.execute("sh", "-l", "-c", "helm install"
+        + " stackgres-cluster-configs"
         + " --namespace " + namespace
-        + " --name stackgres-cluster-configs"
+        + " /resources/stackgres-cluster"
         + " --set-string config.postgresql.postgresql\\.conf.shared_buffers=32MB"
         + " --set cluster.create=false"
         + " --set config.backup.retention=5"
@@ -276,7 +283,7 @@ public class ItHelper {
         + " --set config.backup.fullWindow=1"
         + " --set-string minio.persistence.size=128Mi")
       .filter(EXCLUDE_TTY_WARNING)
-      .forEach(line -> LOGGER.info(line));
+      .forEach(LOGGER::info);
   }
 
   /**
@@ -285,7 +292,7 @@ public class ItHelper {
   public static void installStackGresCluster(Container k8s, String namespace, String name,
       int instances) throws Exception {
     LOGGER.info("Deleting if exists stackgres-cluster helm chart for cluster with name " + name);
-    k8s.execute("sh", "-l", "-c", "helm delete " + name + " --purge || true")
+    k8s.execute("sh", "-l", "-c", "helm delete " + name + " --namespace " + namespace + "|| true")
         .filter(EXCLUDE_TTY_WARNING)
         .forEach(line -> LOGGER.info(line));
     LOGGER.info("Deleting if exists stackgres-cluster resources for cluster with name " + name);
@@ -294,9 +301,10 @@ public class ItHelper {
         .filter(EXCLUDE_TTY_WARNING)
         .forEach(line -> LOGGER.info(line));
     LOGGER.info("Installing stackgres-cluster helm chart for cluster with name " + name);
-    k8s.execute("sh", "-l", "-c", "helm install /resources/stackgres-cluster"
+    k8s.execute("sh", "-l", "-c", "helm install "
+        + name
         + " --namespace " + namespace
-        + " --name " + name
+        + " /resources/stackgres-cluster"
         + " --set config.create=false"
         + " --set profiles=null"
         + " --set-string cluster.name=" + name
@@ -313,14 +321,17 @@ public class ItHelper {
   public static void upgradeStackGresCluster(Container k8s, String namespace, String name,
       int instances) throws Exception {
     LOGGER.info("Upgrade stackgres-cluster helm chart for cluster with name " + name);
-    k8s.execute("sh", "-l", "-c", "helm upgrade " + name
-        + " /resources/stackgres-cluster --reuse-values"
+    k8s.execute("sh", "-l", "-c", "helm upgrade "
+        + name
+        + " /resources/stackgres-cluster "
+        + " --namespace " + namespace
         + " --set config.create=false"
         + " --set profiles=null"
         + " --set-string cluster.name=" + name
         + " --set cluster.instances=" + instances
         + " --set-string cluster.volumeSize=128Mi"
-        + " --set config.backup.minio.create=false")
+        + " --set config.backup.minio.create=false "
+        + " --reuse-values")
       .filter(EXCLUDE_TTY_WARNING)
       .forEach(line -> LOGGER.info(line));
   }
@@ -330,7 +341,7 @@ public class ItHelper {
    */
   public static void deleteStackGresCluster(Container k8s, String namespace, String name) throws Exception {
     LOGGER.info("Delete stackgres-cluster helm chart for cluster with name " + name);
-    k8s.execute("sh", "-l", "-c", "helm delete " + name + " --purge")
+    k8s.execute("sh", "-l", "-c", "helm delete " + name + " --namespace " + namespace)
       .filter(EXCLUDE_TTY_WARNING)
       .forEach(line -> LOGGER.info(line));
   }

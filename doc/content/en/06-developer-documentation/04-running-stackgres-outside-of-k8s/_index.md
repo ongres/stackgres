@@ -6,9 +6,8 @@ weight: 4
 To run StackGres outside of kubernetes you will first need to install some required kubernetes resources:
 
 ```
-helm install stackgres-k8s/install/helm/stackgres-operator
+helm install stackgres-operator stackgres-k8s/install/helm/stackgres-operator
   --namespace stackgres
-  --name stackgres-operator
   --set deploy.create=false
   --set-string cert.crt="$(base64 stackgres-k8s/src/test/resources/certs/server.crt)"
   --set-string cert.key="$(base64 stackgres-k8s/src/test/resources/certs/server-key.pem)"

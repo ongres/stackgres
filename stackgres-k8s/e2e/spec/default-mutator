@@ -148,6 +148,8 @@ create_empty_cluster_with_default_pgbouncer() {
     volumeSize: '512Mi'
     sidecars:
     - connection-pooling 
+    nonProduction:
+      disableClusterPodAntiAffinity: true
 
 EOF
   
@@ -161,6 +163,8 @@ EOF
     return 1;
   fi
 
+  kubectl delete sgclusters -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-pgbouncer"
+
   cat <<EOF | kubectl apply -f -
   apiVersion: stackgres.io/v1alpha1
   kind: StackGresCluster
@@ -173,6 +177,8 @@ EOF
     volumeSize: '512Mi'
     sidecars:
     - connection-pooling 
+    nonProduction:
+      disableClusterPodAntiAffinity: true
 EOF
 
   if kubectl get sgclusters -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-reused"
@@ -182,6 +188,8 @@ EOF
     echo "Cluster with defaul configuration already created was not created"
     return 1
   fi
+
+  kubectl get sgclusters -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-reused"
 
 }
 
@@ -197,6 +205,8 @@ create_empty_cluster_with_no_sidecars() {
     pgVersion: 'latest'
     volumeSize: '512Mi'
     sidecars: []
+    nonProduction:
+      disableClusterPodAntiAffinity: true
 EOF
 
   if kubectl get sgclusters -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-nosidecars"
@@ -217,6 +227,8 @@ EOF
     return 1
   fi
 
+  kubectl delete sgclusters -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-nosidecars"
+
 }
 
 create_empty_cluster() {
@@ -231,6 +243,8 @@ spec:
   instances: 1
   pgVersion: 'latest'
   volumeSize: '512Mi'
+  nonProduction:
+    disableClusterPodAntiAffinity: true
 EOF
 
   local CREATED_PGCONFIG=$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o=jsonpath={.spec.pgConfig})
@@ -313,6 +327,8 @@ EOF
     return 1
   fi
 
+  kubectl delete sgclusters -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"
+
 }
 
 create_empty_cluster_on_operator_namespace() {
@@ -326,6 +342,8 @@ spec:
   instances: 1
   pgVersion: 'latest'
   volumeSize: '512Mi'
+  nonProduction:
+    disableClusterPodAntiAffinity: true
 EOF
 
   if kubectl get sgclusters.stackgres.io -n $OPERATOR_NAMESPACE $CLUSTER_NAME
@@ -336,4 +354,6 @@ EOF
     echo "Fail. cluster was not created on the operator namespace "
     return 1
   fi
+
+  kubectl delete sgclusters -n "$OPERATOR_NAMESPACE" "$CLUSTER_NAME"
 }

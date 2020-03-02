@@ -22,11 +22,11 @@ kubectl delete --ignore-not-found -f https://stackgres.io/downloads/stackgres-k8
 
 # Installation with helm
 
-You can also install the StackGres operator using [helm vesion 2.x](https://github.com/helm/helm/releases)
+You can also install the StackGres operator using [helm vesion 3.1.x](https://github.com/helm/helm/releases)
  with the following command:
 
 ```
-helm install --namespace stackgres --name stackgres-operator \
+helm install stackgres-operator \
   https://stackgres.io/downloads/stackgres-k8s/stackgres/latest/helm-operator.tgz
 ```
 
@@ -42,7 +42,7 @@ helm delete --purge simple
 You must wait for the operator to become ready in order to allow installation of a StackGres cluster:
 
 ```
-until kubectl describe pod --selector=app=stackgres-operator -n stackgres | grep '  Ready\s\+True'
+until kubectl describe pod --selector=app=stackgres-operator | grep '  Ready\s\+True'
 do
   sleep 1
 done
@@ -53,7 +53,7 @@ done
 To connect to the Web UI of the operator you may forward port 443 of the operator pod:
 
 ```
-kubectl port-forward -n stackgres "$(kubectl get pod --selector=app=stackgres-operator -n stackgres -o name)" 8443:443
+kubectl port-forward "$(kubectl get pod --selector=app=stackgres-operator -o name)" 8443:443
 ```
 
 Then open the browser at following address `https://localhost:8443/stackgres`

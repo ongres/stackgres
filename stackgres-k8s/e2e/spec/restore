@@ -13,40 +13,16 @@ buckets:
 EOF
 
   kubectl create namespace "$CLUSTER_NAME-backup"
-  (echo "$CLUSTER_NAME-backup-minio"; echo "$CLUSTER_NAME-backup-minio2") \
-    | xargs -r -n 1 -I % -P 0 helm install stable/minio --name "%" \
-      --namespace "$CLUSTER_NAMESPACE-backup" -f "$LOG_PATH/minio-values.yaml"
+  helm install "$CLUSTER_NAME-backup-minio" stable/minio \
+    --namespace "$CLUSTER_NAMESPACE-backup" -f "$LOG_PATH/minio-values.yaml"
 
   SPEC_VALUES_FILE="$SPEC_FILE.backup.values.yaml"
 
   create_or_replace_cluster "$CLUSTER_NAME-backup" "$CLUSTER_NAMESPACE-backup" 1
 
-  wait_pods_running "$CLUSTER_NAMESPACE-backup" 3
+  wait_pods_running "$CLUSTER_NAMESPACE-backup" 2
 
   create_mock_data
-
-  kubectl patch --dry-run -o yaml sgbackupconfig -n "$CLUSTER_NAMESPACE-backup" backupconf --type json \
-    --patch '[{"op":"replace","path":"/metadata/name","value": "backupconf2"},
-      {"op":"replace","path":"/spec/storage/s3","value": {
-      "prefix": "s3://restore-backup",
-      "credentials": {
-        "accessKey": {
-          "name": "restore-backup-minio2",
-          "key": "accesskey"
-        },
-        "secretKey": {
-          "name": "restore-backup-minio2",
-          "key": "secretkey"
-        }
-      },
-      "region": "k8s",
-      "forcePathStyle": true,
-      "endpoint": "http://restore-backup-minio2.restore-backup.svc.cluster.local:9000"
-    }}]' \
-    | kubectl create -n "$CLUSTER_NAMESPACE-backup" -f -
-
-  kubectl patch sgcluster -n "$CLUSTER_NAMESPACE-backup" "$CLUSTER_NAME-backup" --type json \
-    --patch '[{"op":"replace","path":"/spec/backupConfig","value": "backupconf2"}]'
 
   BACKUP_NAME="$CLUSTER_NAME-backup-0-$(shuf -i 0-65535 -n 1)"
 
@@ -80,13 +56,13 @@ is_backup_phase() {
 }
 
 e2e_test_uninstall() {
-  helm_cleanup_chart "$CLUSTER_NAME"
-  helm_cleanup_chart "$CLUSTER_NAME-backup"
-  helm_cleanup_chart "$CLUSTER_NAME-backup-minio"
-  helm_cleanup_chart "$CLUSTER_NAME-backup-minio2"
+  helm_cleanup_chart "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" || true
+  helm_cleanup_chart "$CLUSTER_NAME-backup" "$CLUSTER_NAMESPACE" || true
+  helm_cleanup_chart "$CLUSTER_NAME-backup-minio" "$CLUSTER_NAMESPACE" || true
+  helm_cleanup_chart "$CLUSTER_NAME-backup-minio2" "$CLUSTER_NAMESPACE" || true
 
-  k8s_cleanup_namespace "$CLUSTER_NAMESPACE"
-  k8s_cleanup_namespace "$CLUSTER_NAMESPACE-backup"
+  k8s_cleanup_namespace "$CLUSTER_NAMESPACE" || true
+  k8s_cleanup_namespace "$CLUSTER_NAMESPACE-backup" || true
 }
 
 e2e_test() {

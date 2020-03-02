@@ -1,14 +1,7 @@
-containerBuild: "3-dev"
-group: "stackgres.io"
-
 image:
   name: "stackgres/operator"
   tag: "development-jvm"
   pullPolicy: "IfNotPresent"
-
-crd:
-  create: true
-  version: "v1alpha1"
 
 serviceAccount:
   create: true

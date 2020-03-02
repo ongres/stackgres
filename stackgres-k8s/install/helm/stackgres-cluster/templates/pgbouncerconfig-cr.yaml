@@ -1,5 +1,5 @@
 {{ if .Values.config.create }}
-apiVersion: stackgres.io/{{ .Values.crd.version }}
+apiVersion: stackgres.io/v1alpha1
 kind: StackGresConnectionPoolingConfig
 metadata:
   name: {{ .Values.cluster.poolingconfig }}

@@ -39,12 +39,6 @@ public class CheckOperatorValuesTest {
     }
     Assert.assertEquals(imageTag,
         operatorConfig.get("image").get("tag").asText());
-    Assert.assertEquals(StackGresUtil.CRD_GROUP,
-        operatorConfig.get("group").asText());
-    Assert.assertEquals(StackGresUtil.CRD_VERSION,
-        operatorConfig.get("crd").get("version").asText());
-    Assert.assertEquals(StackGresUtil.CONTAINER_BUILD,
-        operatorConfig.get("containerBuild").asText());
     Assert.assertEquals(StackGresUtil.PROMETHEUS_AUTOBIND,
         operatorConfig.get("prometheus").get("allowAutobind").asText());
   }

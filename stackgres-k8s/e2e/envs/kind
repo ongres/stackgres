@@ -53,6 +53,7 @@ reset_k8s() {
   - role: control-plane
   - role: worker
   - role: worker
+  - role: worker
 EOF
 
   kind create cluster --name "$KIND_NAME" --config "$TARGET_PATH/kind-config.yaml" \

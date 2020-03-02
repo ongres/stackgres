@@ -33,7 +33,7 @@ e2e_test_install() {
 EOF
 
   aws iam create-policy --region "$K8S_EKS_REGION" --policy-name "stackgres-e2e-$CLUSTER_NAME" \
-    --policy-document "file://$(pwd)/$LOG_PATH/policy.json"
+    --policy-document "file://$LOG_PATH/policy.json"
   aws iam create-user --region "$K8S_EKS_REGION" --user-name "stackgres-e2e-$CLUSTER_NAME"
   aws iam attach-user-policy --region "$K8S_EKS_REGION" --user-name "stackgres-e2e-$CLUSTER_NAME" \
     --policy-arn "arn:aws:iam::$AWS_ACCOUNT:policy/stackgres-e2e-$CLUSTER_NAME"
@@ -57,7 +57,7 @@ EOF
 }
 
 e2e_test_uninstall() {
-  helm_cleanup_chart "$CLUSTER_NAME"
+  helm_cleanup_chart "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 
   k8s_cleanup_namespace "$CLUSTER_NAMESPACE"
 
@@ -124,7 +124,7 @@ metadata:
   namespace: $CLUSTER_NAMESPACE
 spec:
   instances: 2
-  pgVersion: '12.1'
+  pgVersion: '12.2'
   volumeSize: '512Mi'
   restore:
     downloadDiskConcurrency: 10
