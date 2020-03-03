@@ -53,15 +53,33 @@ reset_k8s() {
   echo "Setting up kind environment $KIND_NAME..."
 
   kind delete cluster --name "$KIND_NAME" || true
-  cat << EOF > "$TARGET_PATH/kind-config.yaml"
+  if [ -z "$K8S_EXTRA_PORT" ]
+  then
+    cat << EOF > "$TARGET_PATH/kind-config.yaml"
   kind: Cluster
   apiVersion: kind.sigs.k8s.io/v1alpha3
   nodes:
-  - role: control-plane
+  - role: control-plane 
+  - role: worker
+  - role: worker
+EOF
+  else
+    cat << EOF > "$TARGET_PATH/kind-config.yaml"
+  kind: Cluster
+  apiVersion: kind.sigs.k8s.io/v1alpha3
+  nodes:
+  - role: control-plane 
+    extraPortMappings:
+    - containerPort: $(echo "$K8S_EXTRA_PORT" | cut -d : -f 1)
+      hostPort: $(echo "$K8S_EXTRA_PORT" | cut -d : -f 2)
+      listenAddress: "$(echo "$K8S_EXTRA_PORT" | cut -d : -f 3)"
+      protocol: "$(echo "$K8S_EXTRA_PORT" | cut -d : -f 4)"
   - role: worker
   - role: worker
   - role: worker
 EOF
+  fi
+
 
   kind create cluster --name "$KIND_NAME" --config "$TARGET_PATH/kind-config.yaml" \
     --image "kindest/node:v${K8S_VERSION}"
