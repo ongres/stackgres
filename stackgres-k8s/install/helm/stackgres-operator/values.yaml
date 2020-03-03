@@ -3,6 +3,10 @@ image:
   tag: "development-jvm"
   pullPolicy: "IfNotPresent"
 
+service:
+  type: ClusterIP
+  #nodePort:
+
 serviceAccount:
   create: true
 
