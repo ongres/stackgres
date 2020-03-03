@@ -18,19 +18,19 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 public class ClusterRestore {
 
   @JsonProperty("downloadDiskConcurrency")
-  private int downloadDiskConcurrency;
+  private Integer downloadDiskConcurrency;
 
   @JsonProperty("fromBackup")
   private String backupUid;
 
   @JsonProperty("autoCopySecrets")
-  private boolean autoCopySecretsEnabled;
+  private Boolean autoCopySecretsEnabled;
 
-  public int getDownloadDiskConcurrency() {
+  public Integer getDownloadDiskConcurrency() {
     return downloadDiskConcurrency;
   }
 
-  public void setDownloadDiskConcurrency(int downloadDiskConcurrency) {
+  public void setDownloadDiskConcurrency(Integer downloadDiskConcurrency) {
     this.downloadDiskConcurrency = downloadDiskConcurrency;
   }
 
@@ -42,11 +42,11 @@ public class ClusterRestore {
     this.backupUid = backupUid;
   }
 
-  public boolean isAutoCopySecretsEnabled() {
+  public Boolean isAutoCopySecretsEnabled() {
     return autoCopySecretsEnabled;
   }
 
-  public void setAutoCopySecretsEnabled(boolean autoCopySecretsEnabled) {
+  public void setAutoCopySecretsEnabled(Boolean autoCopySecretsEnabled) {
     this.autoCopySecretsEnabled = autoCopySecretsEnabled;
   }
 
