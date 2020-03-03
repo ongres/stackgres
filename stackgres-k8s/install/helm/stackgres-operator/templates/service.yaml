@@ -6,11 +6,15 @@ metadata:
 spec:
   selector:
     app: {{ .Release.Name }}
+  type: '{{ .Values.service.type }}'
   ports:
     - name: https
       protocol: TCP
       port: 443
       targetPort: 443
+      {{- with .Values.service.nodePort }}
+      nodePort: {{ . }}
+      {{- end }}
 {{ if not (and .Values.developer.externalOperatorIp .Values.developer.externalOperatorPort) }}
 ---
 apiVersion: v1
