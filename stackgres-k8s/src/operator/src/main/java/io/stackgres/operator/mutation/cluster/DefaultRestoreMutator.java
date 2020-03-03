@@ -6,6 +6,7 @@
 package io.stackgres.operator.mutation.cluster;
 
 import java.util.List;
+
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -15,8 +16,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.fge.jackson.jsonpointer.JsonPointer;
 import com.github.fge.jsonpatch.JsonPatchOperation;
 import com.google.common.collect.ImmutableList;
-import io.stackgres.operator.common.StackgresClusterReview;
-import io.stackgres.operator.customresource.sgcluster.StackGresClusterRestore;
+
+import io.stackgres.operator.common.StackGresClusterReview;
+import io.stackgres.operator.customresource.sgcluster.ClusterRestore;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 
@@ -28,11 +30,11 @@ public class DefaultRestoreMutator implements ClusterMutator {
   private JsonPointer restorePointer;
   private JsonNode defaultNode;
 
-  private DefaultCustomResourceFactory<StackGresClusterRestore> defaultRestoreFactory;
+  private DefaultCustomResourceFactory<ClusterRestore> defaultRestoreFactory;
 
   @Inject
   public DefaultRestoreMutator(
-      DefaultCustomResourceFactory<StackGresClusterRestore> defaultRestoreFactory) {
+      DefaultCustomResourceFactory<ClusterRestore> defaultRestoreFactory) {
     this.defaultRestoreFactory = defaultRestoreFactory;
   }
 
@@ -41,15 +43,15 @@ public class DefaultRestoreMutator implements ClusterMutator {
 
     restorePointer = getTargetPointer("restore");
 
-    StackGresClusterRestore defaultRestore = defaultRestoreFactory.buildResource();
+    ClusterRestore defaultRestore = defaultRestoreFactory.buildResource();
     defaultNode = mapper.valueToTree(defaultRestore);
 
   }
 
   @Override
-  public List<JsonPatchOperation> mutate(StackgresClusterReview review) {
+  public List<JsonPatchOperation> mutate(StackGresClusterReview review) {
 
-    StackGresClusterRestore restore = review.getRequest().getObject().getSpec().getRestore();
+    ClusterRestore restore = review.getRequest().getObject().getSpec().getRestore();
     if (review.getRequest().getOperation() == Operation.CREATE
         && restore != null) {
 

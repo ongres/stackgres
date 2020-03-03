@@ -5,6 +5,10 @@
 
 package io.stackgres.operator.mutation.cluster;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.when;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
@@ -17,19 +21,17 @@ import com.fasterxml.jackson.dataformat.javaprop.JavaPropsMapper;
 import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.JsonPatchException;
 import com.github.fge.jsonpatch.JsonPatchOperation;
-import io.stackgres.operator.common.StackgresClusterReview;
-import io.stackgres.operator.customresource.sgcluster.StackGresClusterRestore;
+
+import io.stackgres.operator.common.StackGresClusterReview;
+import io.stackgres.operator.customresource.sgcluster.ClusterRestore;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
 import io.stackgres.operator.utils.JsonUtil;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class DefaultRestoreMutatorTest {
@@ -38,10 +40,10 @@ class DefaultRestoreMutatorTest {
 
   protected static final JavaPropsMapper PROPS_MAPPER = new JavaPropsMapper();
 
-  private StackgresClusterReview review;
+  private StackGresClusterReview review;
 
   @Mock
-  private DefaultCustomResourceFactory<StackGresClusterRestore> defaultRestoreFactory;
+  private DefaultCustomResourceFactory<ClusterRestore> defaultRestoreFactory;
 
   private DefaultRestoreMutator mutator;
 
@@ -51,7 +53,7 @@ class DefaultRestoreMutatorTest {
   void setUp() throws NoSuchFieldException, IOException {
 
     review = JsonUtil
-        .readFromJson("cluster_allow_requests/valid_creation.json", StackgresClusterReview.class);
+        .readFromJson("cluster_allow_requests/valid_creation.json", StackGresClusterReview.class);
 
     defaultRestoreValues = new Properties();
 
@@ -60,8 +62,8 @@ class DefaultRestoreMutatorTest {
       defaultRestoreValues.load(defaultPropertiesStream);
     }
 
-    StackGresClusterRestore restore = PROPS_MAPPER
-        .readPropertiesAs(defaultRestoreValues, StackGresClusterRestore.class);
+    ClusterRestore restore = PROPS_MAPPER
+        .readPropertiesAs(defaultRestoreValues, ClusterRestore.class);
     when(defaultRestoreFactory.buildResource()).thenReturn(restore);
 
     mutator = new DefaultRestoreMutator(defaultRestoreFactory);
@@ -82,10 +84,10 @@ class DefaultRestoreMutatorTest {
   @Test
   void clusterRestoreWithNoAutoCopySecrets_shouldSetDefaultValue() throws JsonPatchException {
 
-    StackGresClusterRestore restore = new StackGresClusterRestore();
+    ClusterRestore restore = new ClusterRestore();
     restore.setDownloadDiskConcurrency(1);
     restore.setAutoCopySecretsEnabled(null);
-    restore.setStackgresBackup(UUID.randomUUID().toString());
+    restore.setBackupUid(UUID.randomUUID().toString());
 
     review.getRequest().getObject().getSpec().setRestore(restore);
 
@@ -109,9 +111,9 @@ class DefaultRestoreMutatorTest {
   @Test
   void clusteRestorerWithNoDownloadDiskConcurrency_shouldSetDefaultValue() throws JsonPatchException {
 
-    StackGresClusterRestore restore = new StackGresClusterRestore();
+    ClusterRestore restore = new ClusterRestore();
     restore.setDownloadDiskConcurrency(null);
-    restore.setStackgresBackup(UUID.randomUUID().toString());
+    restore.setBackupUid(UUID.randomUUID().toString());
 
     review.getRequest().getObject().getSpec().setRestore(restore);
 
