@@ -14,11 +14,11 @@ import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
 import com.github.fge.jsonpatch.JsonPatchOperation;
-import io.stackgres.operator.common.StackgresClusterReview;
+import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operatorframework.admissionwebhook.mutating.JsonPatchMutationPipeline;
 
 @ApplicationScoped
-public class ClusterPipeline implements JsonPatchMutationPipeline<StackgresClusterReview> {
+public class ClusterPipeline implements JsonPatchMutationPipeline<StackGresClusterReview> {
 
   private Instance<ClusterMutator> mutators;
 
@@ -28,7 +28,7 @@ public class ClusterPipeline implements JsonPatchMutationPipeline<StackgresClust
   }
 
   @Override
-  public Optional<String> mutate(StackgresClusterReview review) {
+  public Optional<String> mutate(StackGresClusterReview review) {
 
     List<JsonPatchOperation> operations = mutators
         .stream()

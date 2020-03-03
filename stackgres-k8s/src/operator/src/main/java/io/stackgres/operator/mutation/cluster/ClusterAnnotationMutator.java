@@ -7,12 +7,12 @@ package io.stackgres.operator.mutation.cluster;
 
 import javax.enterprise.context.ApplicationScoped;
 
-import io.stackgres.operator.common.StackgresClusterReview;
+import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.mutation.AbstractAnnotationMutator;
 
 @ApplicationScoped
 public class ClusterAnnotationMutator
-    extends AbstractAnnotationMutator<StackGresCluster, StackgresClusterReview>
+    extends AbstractAnnotationMutator<StackGresCluster, StackGresClusterReview>
     implements ClusterMutator {
 }

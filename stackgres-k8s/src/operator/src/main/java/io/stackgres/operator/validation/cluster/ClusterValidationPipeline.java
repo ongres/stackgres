@@ -12,13 +12,13 @@ import javax.inject.Inject;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 
-import io.stackgres.operator.common.StackgresClusterReview;
+import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationPipeline;
 
 @ApplicationScoped
-public class ClusterValidationPipeline implements ValidationPipeline<StackgresClusterReview> {
+public class ClusterValidationPipeline implements ValidationPipeline<StackGresClusterReview> {
 
   private final Validator validator;
   private final Instance<ClusterValidator> validators;
@@ -33,7 +33,7 @@ public class ClusterValidationPipeline implements ValidationPipeline<StackgresCl
    * Validate all {@code Validator}s in sequence.
    */
   @Override
-  public void validate(StackgresClusterReview review) throws ValidationFailed {
+  public void validate(StackGresClusterReview review) throws ValidationFailed {
     StackGresCluster cluster = review.getRequest().getObject();
     if (cluster != null) {
       Set<ConstraintViolation<StackGresCluster>> violations = validator.validate(cluster);

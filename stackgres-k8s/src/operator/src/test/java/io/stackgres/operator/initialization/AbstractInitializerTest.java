@@ -5,24 +5,27 @@
 
 package io.stackgres.operator.initialization;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.Supplier;
 
 import io.fabric8.kubernetes.client.CustomResource;
+import io.stackgres.operator.resource.CustomResourceFinder;
 import io.stackgres.operator.resource.CustomResourceScheduler;
-import io.stackgres.operator.resource.KubernetesCustomResourceFinder;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
-import org.mockito.stubbing.Answer;
-
-import static org.mockito.Mockito.*;
 
 public abstract class AbstractInitializerTest<T extends CustomResource> {
 
   @Mock
-  private KubernetesCustomResourceFinder<T> resourceFinder;
+  private CustomResourceFinder<T> resourceFinder;
 
   @Mock
   private CustomResourceScheduler<T> resourceScheduler;
@@ -41,17 +44,15 @@ public abstract class AbstractInitializerTest<T extends CustomResource> {
 
   @BeforeEach
   void init() {
-    initializer = getInstance();
-    initializer.setResourceFinder(resourceFinder);
-    initializer.setResourceScheduler(resourceScheduler);
-    initializer.setResourceFactory(resourceFactory);
-    initializer.setQueue(queue);
+    initializer = getInstance(resourceFinder, resourceScheduler, resourceFactory, queue);
     defaultCustomResource = getDefaultCR();
     resourceName = defaultCustomResource.getMetadata().getName();
     resourceNamespace = defaultCustomResource.getMetadata().getNamespace();
   }
 
-  abstract AbstractDefaultCustomResourceInitializer<T> getInstance();
+  abstract AbstractDefaultCustomResourceInitializer<T> getInstance(
+      CustomResourceFinder<T> resourceFinder, CustomResourceScheduler<T> resourceScheduler,
+      DefaultCustomResourceFactory<T> resourceFactory, InitializationQueue queue);
 
   abstract T getDefaultCR();
 

@@ -1,7 +1,6 @@
 #!/bin/sh
 
 e2e_test_install() {
-
   cat << EOF > "$LOG_PATH/minio-values.yaml"
 persistence:
   enabled: true
@@ -48,7 +47,6 @@ EOF
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 --set cluster.restore.fromBackup="$BACKUP_UID"
 
   wait_pods_running "$CLUSTER_NAMESPACE" 2
-
 }
 
 is_backup_phase() {
@@ -83,8 +81,9 @@ create_mock_data() {
 }
 
 check_init_data() {
-  PRIMARY_RESPONSE=$(run_query -p 5432 -h "$CLUSTER_NAME-primary" -c "$CLUSTER_NAME" -n $CLUSTER_NAMESPACE -i 0 -q "' SELECT num FROM fibonacci ORDER BY num;'" -d "test")
-  if [ "$(echo "$PRIMARY_RESPONSE" | tr -d '\n')" = "123" ]
+  if run_query -p 5432 -h "$CLUSTER_NAME-primary" -c "$CLUSTER_NAME" -n $CLUSTER_NAMESPACE -i 0 -q "' SELECT num FROM fibonacci ORDER BY num;'" -d "test" \
+    | tr -d '\n' \
+    | grep -q "^123$"
   then
     echo "SUCCESS: restore primary db restored successfully"
   else
@@ -95,10 +94,9 @@ check_init_data() {
 }
 
 check_replica_data() {
-
-
-  REPLICA_RESPONSE=$(run_query -p 5432 -h "$CLUSTER_NAME-replica" -c "$CLUSTER_NAME" -n $CLUSTER_NAMESPACE -i 1 -q "' SELECT num FROM fibonacci ORDER BY num;'" -d "test")
-  if [ "$(echo "$REPLICA_RESPONSE" | tr -d '\n')" = "123" ]
+  if run_query -p 5432 -h "$CLUSTER_NAME-replica" -c "$CLUSTER_NAME" -n $CLUSTER_NAMESPACE -i 1 -q "' SELECT num FROM fibonacci ORDER BY num;'" -d "test" \
+    | tr -d '\n' \
+    | grep -q "^123$"
   then
     echo "SUCCESS: restore replica db restored successfully"
   else
@@ -109,17 +107,19 @@ check_replica_data() {
 }
 
 check_replication() {
-  
+  local PRIMARY_RESPONSE
+  local REPLICA_RESPONSE
+
   run_query -p 5432 -h "$CLUSTER_NAME-primary" -c "$CLUSTER_NAME" -n $CLUSTER_NAMESPACE -i 0 -q "'INSERT INTO fibonacci(num) VALUES (5);'" -d test
   run_query -p 5432 -h "$CLUSTER_NAME-primary" -c "$CLUSTER_NAME" -n $CLUSTER_NAMESPACE -i 0 -q "'INSERT INTO fibonacci(num) VALUES (8);'" -d test
   run_query -p 5432 -h "$CLUSTER_NAME-primary" -c "$CLUSTER_NAME" -n $CLUSTER_NAMESPACE -i 0 -q "'INSERT INTO fibonacci(num) VALUES (13);'" -d test
 
-  PRIMARY_RESPONSE=$(run_query -p 5432 -h "$CLUSTER_NAME-primary" -c "$CLUSTER_NAME" -n $CLUSTER_NAMESPACE -i 0 -q "' SELECT num FROM fibonacci ORDER BY num;'" -d "test")
-  REPLICA_RESPONSE=$(run_query -p 5432 -h "$CLUSTER_NAME-replica" -c "$CLUSTER_NAME" -n $CLUSTER_NAMESPACE -i 1 -q "' SELECT num FROM fibonacci ORDER BY num;'" -d "test")
+  PRIMARY_RESPONSE="$(run_query -p 5432 -h "$CLUSTER_NAME-primary" -c "$CLUSTER_NAME" -n $CLUSTER_NAMESPACE -i 0 -q "' SELECT num FROM fibonacci ORDER BY num;'" -d "test" | tr -d '\n')"
+  REPLICA_RESPONSE="$(run_query -p 5432 -h "$CLUSTER_NAME-replica" -c "$CLUSTER_NAME" -n $CLUSTER_NAMESPACE -i 1 -q "' SELECT num FROM fibonacci ORDER BY num;'" -d "test" | tr -d '\n')"
 
-  if [ "$(echo "$PRIMARY_RESPONSE" | tr -d '\n')" = "1235813" ]
+  if [ "$PRIMARY_RESPONSE" = "1235813" ]
   then
-    if [ "$(echo "$PRIMARY_RESPONSE" | tr -d '\n')" = "$(echo "$REPLICA_RESPONSE" | tr -d '\n')" ]
+    if [ "$PRIMARY_RESPONSE" = "$REPLICA_RESPONSE" ]
     then
       echo "SUCCESS: replication is working"
       return 0
@@ -134,7 +134,6 @@ check_replication() {
 
 }
 
-
 check_backup_pg_version() {
   ALTERNATIVE_MAYOR_PG_VERSION="11"
   ALTERNATIVE_PG_VERSION="$ALTERNATIVE_MAYOR_PG_VERSION.7"
@@ -148,7 +147,7 @@ metadata:
 spec:
   pgVersion: '$ALTERNATIVE_MAYOR_PG_VERSION'
   postgresql.conf:
-    wal_compression: "on"    
+    wal_compression: "on"
 EOF
 
   cat << EOF > "$LOG_PATH/alter-restore-cluster.yaml"
@@ -167,15 +166,14 @@ spec:
     autoCopySecrets: true
     fromBackup: $BACKUP_UID
 EOF
-  
-  if ERROR_MESSAGE=$(kubectl apply -f $LOG_PATH/alter-restore-cluster.yaml 2>&1)
+
+  if ERROR_MESSAGE="$(kubectl apply -f $LOG_PATH/alter-restore-cluster.yaml 2>&1)"
   then
     echo "ERROR: It should not be able to install a cluster with postgres version that is different than the backup pg version"
     return 1
   else
     echo "SUCCESS: Cluster was not created"
   fi
-
 
   if echo "$ERROR_MESSAGE" | grep -q "Cannot restore from backup $BACKUP_UID"
   then

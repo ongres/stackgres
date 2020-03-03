@@ -8,74 +8,30 @@ package io.stackgres.operator.resource;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
-import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.operator.app.KubernetesClientFactory;
+import io.stackgres.operator.common.ArcUtil;
 import io.stackgres.operator.customresource.sgbackup.StackGresBackup;
 import io.stackgres.operator.customresource.sgbackup.StackGresBackupDefinition;
 import io.stackgres.operator.customresource.sgbackup.StackGresBackupDoneable;
 import io.stackgres.operator.customresource.sgbackup.StackGresBackupList;
-import io.stackgres.operatorframework.resource.ResourceUtil;
 
 @ApplicationScoped
-public class BackupScheduler implements CustomResourceScheduler<StackGresBackup> {
-
-  private KubernetesClientFactory kubeClient;
+public class BackupScheduler
+    extends AbstractCustomResourceScheduler<StackGresBackup,
+        StackGresBackupList, StackGresBackupDoneable> {
 
   @Inject
-  public BackupScheduler(KubernetesClientFactory kubeClient) {
-    this.kubeClient = kubeClient;
+  public BackupScheduler(KubernetesClientFactory clientFactory) {
+    super(clientFactory,
+        StackGresBackupDefinition.NAME,
+        StackGresBackup.class,
+        StackGresBackupList.class,
+        StackGresBackupDoneable.class);
   }
 
-  @Override
-  public void create(StackGresBackup resource) {
-    try (KubernetesClient client = kubeClient.create()) {
-      CustomResourceDefinition crd = ResourceUtil.getCustomResource(
-          client, StackGresBackupDefinition.NAME)
-          .orElseThrow(() -> new RuntimeException("StackGres is not correctly installed:"
-              + " CRD " + StackGresBackupDefinition.NAME + " not found."));
-      client.customResources(crd,
-          StackGresBackup.class,
-          StackGresBackupList.class,
-          StackGresBackupDoneable.class)
-          .inNamespace(resource.getMetadata().getNamespace())
-          .create(resource);
-    }
+  public BackupScheduler() {
+    super(null, null, null, null, null);
+    ArcUtil.checkPublicNoArgsConstructorIsCalledFromArc();
   }
 
-  @Override
-  public void update(StackGresBackup resource) {
-
-    try (KubernetesClient client = kubeClient.create()) {
-      CustomResourceDefinition crd = ResourceUtil.getCustomResource(
-          client, StackGresBackupDefinition.NAME)
-          .orElseThrow(() -> new RuntimeException("StackGres is not correctly installed:"
-              + " CRD " + StackGresBackupDefinition.NAME + " not found."));
-      client.customResources(crd,
-          StackGresBackup.class,
-          StackGresBackupList.class,
-          StackGresBackupDoneable.class)
-          .inNamespace(resource.getMetadata().getNamespace())
-          .createOrReplace(resource);
-    }
-
-  }
-
-  @Override
-  public void delete(StackGresBackup resource) {
-
-    try (KubernetesClient client = kubeClient.create()) {
-      CustomResourceDefinition crd = ResourceUtil.getCustomResource(
-          client, StackGresBackupDefinition.NAME)
-          .orElseThrow(() -> new RuntimeException("StackGres is not correctly installed:"
-              + " CRD " + StackGresBackupDefinition.NAME + " not found."));
-      client.customResources(crd,
-          StackGresBackup.class,
-          StackGresBackupList.class,
-          StackGresBackupDoneable.class)
-          .inNamespace(resource.getMetadata().getNamespace())
-          .delete(resource);
-    }
-
-  }
 }

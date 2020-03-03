@@ -1,0 +1,27 @@
+    {
+      "apiVersion": "v1",
+      "items": [
+        {
+      "apiVersion": "stackgres.io/v1alpha1",
+      "kind": "StackGresProfile",
+      "metadata": {
+        "creationTimestamp": "2019-09-30T11:10:03Z",
+        "generation": 1,
+        "name": "size-s",
+        "namespace": "default",
+        "resourceVersion": "214289",
+        "selfLink": "/apis/stackgres.io/v1alpha1/namespaces/default/sgprofiles/size-s",
+        "uid": "44f1f832-37a0-4346-9876-be4a9135dca5"
+      },
+      "spec": {
+        "cpu": "1",
+        "memory": "2Gi"
+      }
+    }
+  ],
+  "kind": "List",
+  "metadata": {
+    "resourceVersion": "",
+    "selfLink": ""
+  }
+}

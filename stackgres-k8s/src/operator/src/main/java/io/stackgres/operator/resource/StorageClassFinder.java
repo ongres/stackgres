@@ -16,10 +16,10 @@ import io.stackgres.operator.app.KubernetesClientFactory;
 
 @ApplicationScoped
 public class StorageClassFinder implements
-    KubernetesResourceFinder<StorageClass>,
-    KubernetesResourceScanner<StorageClass> {
+    ResourceFinder<StorageClass>,
+    ResourceScanner<StorageClass> {
 
-  private KubernetesClientFactory kubClientFactory;
+  private final KubernetesClientFactory kubClientFactory;
 
   @Inject
   public StorageClassFinder(KubernetesClientFactory kubClientFactory) {
@@ -28,7 +28,6 @@ public class StorageClassFinder implements
 
   @Override
   public Optional<StorageClass> findByName(String name) {
-
     try (KubernetesClient client = kubClientFactory.create()) {
       return Optional.ofNullable(client.storage().storageClasses().withName(name).get());
     }
@@ -40,4 +39,5 @@ public class StorageClassFinder implements
       return client.storage().storageClasses().list().getItems();
     }
   }
+
 }

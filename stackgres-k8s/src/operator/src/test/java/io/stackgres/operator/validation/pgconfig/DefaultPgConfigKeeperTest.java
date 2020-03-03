@@ -7,10 +7,10 @@ package io.stackgres.operator.validation.pgconfig;
 
 import io.stackgres.operator.common.PgConfigReview;
 import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfig;
-import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
 import io.stackgres.operator.utils.JsonUtil;
 import io.stackgres.operator.validation.AbstractDefaultConfigKeeper;
 import io.stackgres.operator.validation.DefaultKeeperTest;
+
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 

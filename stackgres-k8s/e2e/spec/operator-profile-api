@@ -3,16 +3,18 @@
 e2e_test_install() {
   PROFILE="size-xs"
 
-  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 --set cluster.create=false --set cluster.profile=$PROFILE
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 --set cluster.create=false --set cluster.profile="$PROFILE"
 
   deploy_curl_pod "$CLUSTER_NAMESPACE"
 
-  PG_PROFILE=$(kubectl get sgprofiles.stackgres.io -n $CLUSTER_NAMESPACE $PROFILE  -o json \
-   | run_jq 'del(.metadata.creationTimestamp) | del(.metadata.generation) | del(.metadata.resourceVersion) | del(.metadata.selfLink) | del(.metadata.uid)')
+  kubectl get sgprofiles.stackgres.io -n "$CLUSTER_NAMESPACE" "$PROFILE" -o json \
+    | run_jq 'del(.metadata.creationTimestamp) | del(.metadata.generation) | del(.metadata.resourceVersion) | del(.metadata.selfLink) | del(.metadata.uid)' \
+    > "$LOG_PATH/default-profile-cr.json"
+  cat "$LOG_PATH/default-profile-cr.json" \
+    | run_jq 'del(.apiVersion) | del(.kind)' \
+    > "$LOG_PATH/default-profile.json"
 
-  echo "$PG_PROFILE" > "$LOG_PATH/default-profile.json"
-
-  kubectl delete sgprofiles.stackgres.io -n $CLUSTER_NAMESPACE $PROFILE
+  kubectl delete sgprofiles.stackgres.io -n "$CLUSTER_NAMESPACE" "$PROFILE"
 }
 
 e2e_test_after_all() {
@@ -42,28 +44,20 @@ e2e_test() {
 }
 
 create_profile() {
-  kubectl apply -f "$LOG_PATH/default-profile.json"
+  kubectl apply -f "$LOG_PATH/default-profile-cr.json"
 
-  while ! kubectl get sgprofiles.stackgres.io -n $CLUSTER_NAMESPACE $PROFILE
-  do
-    sleep 2
-  done
+  wait_until eval 'kubectl get sgprofiles.stackgres.io -n "$CLUSTER_NAMESPACE" "$PROFILE"'
 }
 
 delete_profile_only() {
   echo "Deleting profile if there is any"
-  if kubectl get sgprofiles.stackgres.io -n $CLUSTER_NAMESPACE $PROFILE
+  if kubectl get sgprofiles.stackgres.io -n "$CLUSTER_NAMESPACE" "$PROFILE"
   then
-
     echo "Profile $PROFILE found, deleting..."
 
-    kubectl delete sgprofiles.stackgres.io -n $CLUSTER_NAMESPACE $PROFILE
+    kubectl delete sgprofiles.stackgres.io -n "$CLUSTER_NAMESPACE" "$PROFILE"
 
-    while kubectl get sgprofiles.stackgres.io -n $CLUSTER_NAMESPACE $PROFILE
-    do
-      echo "Profile $PROFILE deleted..."
-      sleep 2
-    done
+    wait_until eval '! kubectl get sgprofiles.stackgres.io -n "$CLUSTER_NAMESPACE" "$PROFILE"'
   else
     echo "No profile found"
   fi
@@ -71,13 +65,10 @@ delete_profile_only() {
 
 check_profile_in_list() {
   create_profile
-  local PROFILE_IN_RESPONSE
-  PROFILE_IN_RESPONSE=$(run_curl -r "stackgres/profile" -n "$CLUSTER_NAMESPACE" \
-    | run_jq -c ".[] | select ( .metadata.namespace == \"$CLUSTER_NAMESPACE\") | select ( .metadata.name == \"$PROFILE\")" \
-    | run_jq '.metadata.name' -r)
 
-  echo "$PROFILE_IN_RESPONSE"
-  if [ "$PROFILE_IN_RESPONSE" = "$PROFILE" ]
+  if run_curl -r "stackgres/profile" -n "$CLUSTER_NAMESPACE" \
+    | run_jq -r ".[] | select ( .metadata.namespace == \"$CLUSTER_NAMESPACE\") | select ( .metadata.name == \"$PROFILE\") | .metadata.name" \
+    | grep -q "^$PROFILE$"
   then
     echo "Profile $PROFILE included in json response"
     return 0
@@ -88,17 +79,17 @@ check_profile_in_list() {
 }
 
 get_profile_status() {
-  local HTTP_STATUS
-  HTTP_STATUS=$(run_curl -r "stackgres/profile/$CLUSTER_NAMESPACE/$PROFILE"  -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")
-  echo $HTTP_STATUS
+  run_curl -r "stackgres/profile/$CLUSTER_NAMESPACE/$PROFILE"  -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}"
 }
 
 check_profile_directly() {
-  create_profile
   local HTTP_STATUS
-  HTTP_STATUS=$(get_profile_status)
 
-  if [ $HTTP_STATUS -eq 200 ]
+  create_profile
+
+  HTTP_STATUS="$(get_profile_status)"
+
+  if [ "$HTTP_STATUS" -eq "200" ]
   then
     echo "Profile $PROFILE was found by the api"
     return 0
@@ -110,13 +101,10 @@ check_profile_directly() {
 
 check_profile_removed_from_list() {
   delete_profile_only
-  local PROFILE_IN_RESPONSE
 
-  PROFILE_IN_RESPONSE=$(run_curl -r "stackgres/profile"  -n "$CLUSTER_NAMESPACE" \
-    | run_jq -c ".[] | select ( .metadata.namespace = \"$CLUSTER_NAMESPACE\") | select ( .metadata.name = \"$PROFILE\")" \
-    | run_jq '.metadata.name' -r)
-
-  if [ "$PROFILE_IN_RESPONSE" = "$PROFILE" ]
+  if run_curl -r "stackgres/profile"  -n "$CLUSTER_NAMESPACE" \
+    | run_jq -r ".[] | select ( .metadata.namespace == \"$CLUSTER_NAMESPACE\") | select ( .metadata.name == \"$PROFILE\") | .metadata.name" \
+    | grep -q "^$PROFILE$"
   then
     echo "Profile $PROFILE wasn't removed from cache";
     return 1
@@ -127,11 +115,13 @@ check_profile_removed_from_list() {
 }
 
 check_profile_deletion_directly() {
-  delete_profile_only
   local HTTP_STATUS
-  HTTP_STATUS=$(run_curl -r "stackgres/profile/$CLUSTER_NAMESPACE/$PROFILE" -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")
 
-  if [ $HTTP_STATUS -eq 404 ]
+  delete_profile_only
+
+  HTTP_STATUS="$(run_curl -r "stackgres/profile/$CLUSTER_NAMESPACE/$PROFILE" -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
+
+  if [ "$HTTP_STATUS" -eq "404" ]
   then
     echo "Profile $PROFILE was not found by the api"
     return 0
@@ -150,28 +140,23 @@ create_profile_with_api() {
 
   echo "Sending creation request"
 
-  if HTTP_STATUS=$(run_curl -r "stackgres/profile" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-profile.json" -e '-X POST -w %{http_code} -o /dev/null')
-  then 
-    if [ "$HTTP_STATUS" = "200" ] || [ "$HTTP_STATUS" = "202" ] || [ "$HTTP_STATUS" = "204" ]
-    then
-      echo "request acknowledged by the operator"
-    else
-      local ERROR_RESPONSE
-      ERROR_RESPONSE=$(run_curl -r "stackgres/profile" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-profile.json" -e '-X POST')
-      echo "Invalid response status $HTTP_STATUS. response: $ERROR_RESPONSE"
-      return 1
-    fi
+  HTTP_STATUS="$(run_curl -r "stackgres/profile" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-profile.json" -e '-X POST -w %{http_code} -o /dev/null')"
+
+  if [ "$HTTP_STATUS" = "200" ] || [ "$HTTP_STATUS" = "202" ] || [ "$HTTP_STATUS" = "204" ]
+  then
+    echo "Request acknowledged by the operator"
   else
-    echo "request failed"
+    local ERROR_RESPONSE
+    ERROR_RESPONSE="$(run_curl -r "stackgres/profile" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-profile.json" -e '-X POST')"
+    echo "Invalid response status $HTTP_STATUS. response: $ERROR_RESPONSE"
+    return 1
   fi
 }
 
 test_profile_create_with_api() {
   create_profile_with_api
 
-  sleep 2
-
-  if kubectl get sgprofiles.stackgres.io -n $CLUSTER_NAMESPACE $PROFILE
+  if wait_until eval 'kubectl get sgprofiles.stackgres.io -n "$CLUSTER_NAMESPACE" "$PROFILE"'
   then
     echo "Profile created with the operator API"
   else
@@ -188,24 +173,20 @@ api_created_profile_visible() {
 
 
 
-update_profile_memory_with_api() {
-  local TMP_JSON
+update_profile_parameter_with_api() {
   local HTTP_STATUS
 
-  TMP_JSON=$(mktemp)
+  cat "$LOG_PATH/default-profile.json" | run_jq ".spec[\"$1\"] = $2" \
+    > "$LOG_PATH/updated-profile.json"
 
-  PROFILE_CONFIG_FILE=$(cat "$LOG_PATH/default-profile.json" | run_jq ".spec.memory = $1")
-
-  echo "$PROFILE_CONFIG_FILE" > "$LOG_PATH/stackgres-profile.json"
-
-  HTTP_STATUS=$(run_curl -r "stackgres/profile" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/stackgres-profile.json" -e '-X PUT -w %{http_code} -o /dev/null')
+  HTTP_STATUS="$(run_curl -r "stackgres/profile" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/updated-profile.json" -e '-X PUT -w %{http_code} -o /dev/null')"
 
   if [ "$HTTP_STATUS" = "200" ] || [ "$HTTP_STATUS" = "202" ] || [ "$HTTP_STATUS" = "204" ]
   then
-    echo "request acknowledged by the operator"
+    echo "Request acknowledged by the operator"
   else
     local ERROR_RESPONSE
-    ERROR_RESPONSE=$(run_curl -r "stackgres/profile" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/stackgres-profile.json" -e '-X PUT')
+    ERROR_RESPONSE="$(run_curl -r "stackgres/profile" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/updated-profile.json" -e '-X PUT')"
 
     echo "Invalid response status $HTTP_STATUS. response: $ERROR_RESPONSE"
     return 1
@@ -213,14 +194,12 @@ update_profile_memory_with_api() {
 }
 
 test_update_profile_with_api() {
-  local PROFILE_MEMORY
-
   create_profile
 
-  update_profile_memory_with_api '"1Gi"'
+  update_profile_parameter_with_api 'memory' '"1Gi"'
 
-  PROFILE_MEMORY=$(kubectl get sgprofiles.stackgres.io -n $CLUSTER_NAMESPACE $PROFILE -o jsonpath='{.spec.memory}')
-  if [ "$PROFILE_MEMORY" = "1Gi" ]
+  if kubectl get sgprofiles.stackgres.io -n "$CLUSTER_NAMESPACE" "$PROFILE" -o jsonpath='{.spec.memory}' \
+    | grep -q '^1Gi$'
   then
     echo "Profile was updated"
   else
@@ -230,17 +209,14 @@ test_update_profile_with_api() {
 }
 
 get_profile_from_api() {
-  echo $(run_curl -r "stackgres/profile/$CLUSTER_NAMESPACE/$PROFILE" -n "$CLUSTER_NAMESPACE")
+  run_curl -r "stackgres/profile/$CLUSTER_NAMESPACE/$PROFILE" -n "$CLUSTER_NAMESPACE"
 }
 
 test_api_updated_profile_is_visible() {
-  local PROFILE_MEMORY
+  update_profile_parameter_with_api 'memory' '"1Gi"'
 
-  update_profile_memory_with_api '"1Gi"'
-
-  PROFILE_MEMORY=$(get_profile_from_api | run_jq '.spec.memory' -r)
-
-  if [ "$PROFILE_MEMORY" = "1Gi" ]
+  if get_profile_from_api | run_jq '.spec.memory' -r \
+    | grep -q '^1Gi$'
   then
     echo "Profile updates are being reflected in the api"
   else
@@ -256,10 +232,8 @@ delete_profile_with_api() {
 
   if [ "$HTTP_STATUS" = "200" ] || [ "$HTTP_STATUS" = "202" ] || [ "$HTTP_STATUS" = "204" ]
   then
-    echo "request acknowledged by the operator"
-    return 0
+    echo "Request acknowledged by the operator"
   else
-
     ERROR_RESPONSE=$(run_curl -r "stackgres/profile" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-profile.json" -e '-X PUT')
     echo "Invalid response status $HTTP_STATUS. response: $ERROR_RESPONSE"
     return 1
@@ -271,18 +245,16 @@ test_delete_profile_with_api() {
 
   delete_profile_with_api
 
-  if wait_until eval '! kubectl get sgprofiles.stackgres.io -n $CLUSTER_NAMESPACE $PROFILE'
+  if wait_until eval '! kubectl get sgprofiles.stackgres.io -n "$CLUSTER_NAMESPACE" "$PROFILE"'
   then
-    echo "profile was deleted"
+    echo "Profile was deleted"
   else
-    echo "profile was not deleted"
+    echo "Profile was not deleted"
     return 1
   fi
 }
 
 test_api_delete_profile_is_invible() {
-  local HTTP_STATUS
-
   create_profile
 
   delete_profile_with_api

@@ -13,28 +13,28 @@ import java.util.Set;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.common.StackGresComponents;
-import io.stackgres.operator.common.StackgresClusterReview;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfig;
-import io.stackgres.operator.resource.KubernetesCustomResourceFinder;
+import io.stackgres.operator.resource.CustomResourceFinder;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 
 @ApplicationScoped
 public class PostgresConfigValidator implements ClusterValidator {
 
-  private final KubernetesCustomResourceFinder<StackGresPostgresConfig> configFinder;
+  private final CustomResourceFinder<StackGresPostgresConfig> configFinder;
 
   private final Set<String> supportedPostgresVersions;
 
   @Inject
   public PostgresConfigValidator(
-      KubernetesCustomResourceFinder<StackGresPostgresConfig> configFinder) {
+      CustomResourceFinder<StackGresPostgresConfig> configFinder) {
     this(configFinder, StackGresComponents.getAllOrderedPostgresVersions().toList());
   }
 
   public PostgresConfigValidator(
-      KubernetesCustomResourceFinder<StackGresPostgresConfig> configFinder,
+      CustomResourceFinder<StackGresPostgresConfig> configFinder,
       List<String> supportedPostgresVersions) {
     this.configFinder = configFinder;
     this.supportedPostgresVersions = new HashSet<String>(
@@ -42,7 +42,7 @@ public class PostgresConfigValidator implements ClusterValidator {
   }
 
   @Override
-  public void validate(StackgresClusterReview review) throws ValidationFailed {
+  public void validate(StackGresClusterReview review) throws ValidationFailed {
 
     StackGresCluster cluster = review.getRequest().getObject();
 

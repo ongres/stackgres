@@ -17,7 +17,7 @@ import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfigLi
 
 @ApplicationScoped
 public class PostgresConfigFinder
-    extends AbstractKubernetesCustomResourceFinder<StackGresPostgresConfig> {
+    extends AbstractCustomResourceFinder<StackGresPostgresConfig> {
 
   /**
    * Create a {@code PostgresConfigFinder} instance.

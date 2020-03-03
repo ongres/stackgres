@@ -36,8 +36,8 @@ import com.google.common.collect.ImmutableList;
 import com.ongres.junit.docker.Container;
 
 import org.apache.commons.io.IOUtils;
+import org.jooq.lambda.Seq;
 import org.jooq.lambda.Unchecked;
-import org.jooq.lambda.tuple.Tuple;
 import org.junit.jupiter.api.Assertions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,16 +59,10 @@ public class ItHelper {
   public static final String E2E_ENV = Optional.ofNullable(System.getenv("E2E_ENV"))
       .orElse("kind");
 
-  public static final String E2E_ENVVARS = System.getenv().entrySet().stream()
+  public static final String E2E_ENVVARS = Seq.seq(System.getenv().entrySet())
       .filter(e -> e.getKey().startsWith("E2E_") || e.getKey().startsWith("K8S_")
           || ImmutableList.of("IMAGE_TAG", "IMAGE_NAME").contains(e.getKey()))
-      .map(e -> {
-        if ("K8S_REUSE".equals(e.getKey()) && e.getValue() == null) {
-          return Tuple.tuple(e.getKey(), "true");
-        }
-        return Tuple.tuple(e.getKey(), e.getValue());
-      })
-      .map(t -> "export " + t.v1 + "=\"" + t.v2 + "\"")
+      .map(e -> "export " + e.getKey() + "=\"" + e.getValue() + "\"")
       .collect(Collectors.joining("\n"));
 
   public static final Optional<Boolean> E2E_DEBUG = Optional.ofNullable(
@@ -124,7 +118,9 @@ public class ItHelper {
    * It helper method.
    */
   public static void resetKind(Container k8s, int size) throws Exception {
-    if (Boolean.parseBoolean(System.getenv("K8S_REUSE"))) {
+    if (Optional.ofNullable(System.getenv("K8S_REUSE"))
+        .map(Boolean::parseBoolean)
+        .orElse(true)) {
       LOGGER.info("Reusing " + E2E_ENV);
       k8s.copyIn(new ByteArrayInputStream(
               ("cd /resources/e2e\n"

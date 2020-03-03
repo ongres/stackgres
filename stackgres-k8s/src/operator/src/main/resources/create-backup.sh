@@ -35,7 +35,7 @@ try_lock_pid=$!
 backup_cr_template="{{ range .items }}"
 backup_cr_template="${backup_cr_template}{{ .spec.cluster }}"
 backup_cr_template="${backup_cr_template}:{{ .metadata.name }}"
-backup_cr_template="${backup_cr_template}:{{ .status.phase }}"
+backup_cr_template="${backup_cr_template}:{{ with .status.phase }}{{ . }}{{ end }}"
 backup_cr_template="${backup_cr_template}:{{ with .status.name }}{{ . }}{{ end }}"
 backup_cr_template="${backup_cr_template}:{{ with .status.pod }}{{ . }}{{ end }}"
 backup_cr_template="${backup_cr_template}:{{ with .metadata.ownerReferences }}{{ with index . 0 }}{{ .kind }}{{ end }}{{ end }}"
@@ -53,7 +53,7 @@ fi
 
 BACKUP_CONFIG_RESOURCE_VERSION="$(kubectl get "$BACKUP_CONFIG_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" --template '{{ .metadata.resourceVersion }}')"
 
-if ! kubectl get "$BACKUP_CRD_NAME" "$BACKUP_NAME" -o name >/dev/null 2>&1
+if ! kubectl get "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" -o name >/dev/null 2>&1
 then
   echo "Creating backup CR"
   cat << EOF | kubectl create -f -
@@ -129,7 +129,7 @@ $(kubectl get "$BACKUP_CONFIG_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG"
 ')
 EOF
 else
-  if ! kubectl get "$BACKUP_CRD_NAME" "$BACKUP_NAME" --template "{{ .status.phase }}" \
+  if ! kubectl get "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --template "{{ .status.phase }}" \
     | grep -q "^$BACKUP_PHASE_COMPLETED$"
   then
     echo "Updating backup CR"
@@ -209,6 +209,9 @@ else
   fi
 fi
 
+current_backup_config="$(kubectl get "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
+  --template "{{ .status.backupConfig.storage }}")"
+
 (
 echo "Retrieving primary and replica"
 kubectl get pod -n "$CLUSTER_NAMESPACE" -l "${PATRONI_CLUSTER_LABELS},${PATRONI_ROLE_KEY}=${PATRONI_PRIMARY_ROLE}" -o name > /tmp/current-primary
@@ -218,6 +221,7 @@ then
   kubectl get pod -n "$CLUSTER_NAMESPACE" -l "${PATRONI_CLUSTER_LABELS}" >&2
   echo > /tmp/backup-push
   echo "Unable to find primary, backup aborted" >> /tmp/backup-push
+  [ "$IS_CRONJOB" = true ] || sleep 15
   exit 1
 fi
 if [ ! -s /tmp/current-replica-or-primary ]
@@ -363,6 +367,7 @@ else
       ]'
     cat /tmp/backup-push
     echo "Backup failed"
+    [ "$IS_CRONJOB" = true ] || sleep 15
     exit 1
   fi
 fi
@@ -386,34 +391,34 @@ EOF
   then
     kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
       {"op":"replace","path":"/status/phase","value":"'"$BACKUP_PHASE_FAILED"'"},
-      {"op":"replace","path":"/status/name","value":"'"$WAL_G_BACKUP_NAME"'"},
       {"op":"replace","path":"/status/failureReason","value":"Backup can not be listed after creation '"$(cat /tmp/backup-list | to_json_string)"'"}
       ]'
     cat /tmp/backup-list
     echo "Backups can not be listed after creation"
+    [ "$IS_CRONJOB" = true ] || sleep 15
     exit 1
   fi
   cat /tmp/backup-list | tr -d '[]' | sed 's/},{/}|{/g' | tr '|' '\n' \
     | grep '"backup_name":"'"$WAL_G_BACKUP_NAME"'"' | tr -d '{}"' | tr ',' '\n' > /tmp/current-backup
-  if ! grep -q "^backup_name:${WAL_G_BACKUP_NAME}$" /tmp/current-backup
+  if [ "$BACKUP_CONFIG_RESOURCE_VERSION" != "$(kubectl get "$BACKUP_CONFIG_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" --template '{{ .metadata.resourceVersion }}')" ]
   then
     kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
       {"op":"replace","path":"/status/phase","value":"'"$BACKUP_PHASE_FAILED"'"},
-      {"op":"replace","path":"/status/name","value":"'"$WAL_G_BACKUP_NAME"'"},
-      {"op":"replace","path":"/status/failureReason","value":"Backup '"$WAL_G_BACKUP_NAME"' was not found after creation"}
-      ]'
-    cat /tmp/backup-list
-    echo "Backup '$WAL_G_BACKUP_NAME' was not found after creation"
-    exit 1
-  elif [ "$BACKUP_CONFIG_RESOURCE_VERSION" != "$(kubectl get "$BACKUP_CONFIG_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" --template '{{ .metadata.resourceVersion }}')" ]
-  then
-    kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
-      {"op":"replace","path":"/status/phase","value":"'"$BACKUP_PHASE_FAILED"'"},
-      {"op":"replace","path":"/status/name","value":"'"$WAL_G_BACKUP_NAME"'"},
       {"op":"replace","path":"/status/failureReason","value":"Backup configuration '"$BACKUP_CONFIG"' changed during backup"}
       ]'
     cat /tmp/backup-list
     echo "Backup configuration '"$BACKUP_CONFIG"' changed during backup"
+    [ "$IS_CRONJOB" = true ] || sleep 15
+    exit 1
+  elif ! grep -q "^backup_name:${WAL_G_BACKUP_NAME}$" /tmp/current-backup
+  then
+    kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
+      {"op":"replace","path":"/status/phase","value":"'"$BACKUP_PHASE_FAILED"'"},
+      {"op":"replace","path":"/status/failureReason","value":"Backup '"$WAL_G_BACKUP_NAME"' was not found after creation"}
+      ]'
+    cat /tmp/backup-list
+    echo "Backup '$WAL_G_BACKUP_NAME' was not found after creation"
+    [ "$IS_CRONJOB" = true ] || sleep 15
     exit 1
   else
     kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
@@ -450,7 +455,10 @@ EOF
     backup_pod="$(echo "$backup" | cut -d : -f 5)"
     backup_owner_kind="$(echo "$backup" | cut -d : -f 6)"
     backup_is_permanent="$(echo "$backup" | cut -d : -f 8)"
+    backup_config="$(kubectl get "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$backup_cr_name" \
+      --template "{{ .status.backupConfig.storage }}")"
     if [ ! -z "$backup_name" ] && [ "$backup_phase" = "$BACKUP_PHASE_COMPLETED" ] \
+      && [ "$backup_config" = "$current_backup_config" ] \
       && ! grep -q "\"backup_name\":\"$backup_name\"" /tmp/existing-backups
     then
       kubectl delete "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$backup_cr_name"
@@ -477,5 +485,6 @@ else
     ]'
   cat /tmp/backup-push
   echo "Backup name not found in backup-push log"
+  [ "$IS_CRONJOB" = true ] || sleep 15
   exit 1
 fi

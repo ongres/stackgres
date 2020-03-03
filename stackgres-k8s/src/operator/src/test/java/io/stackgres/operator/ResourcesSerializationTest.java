@@ -22,10 +22,13 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 
 import com.google.common.reflect.ClassPath;
+import com.google.common.reflect.TypeToken;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.operator.rest.GenericExceptionMapper;
 
+import org.jooq.lambda.tuple.Tuple;
+import org.jooq.lambda.tuple.Tuple2;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -44,9 +47,9 @@ class ResourcesSerializationTest {
   void returnTypesOfRestResponses_mustBeAnnotatedWithRegisterForReflection() {
 
     getRestMethods()
-        .filter(method -> !method.getReturnType().equals(Void.TYPE))
-        .forEach(method -> {
-          Class<?> returnType = method.getReturnType();
+        .filter(t -> !t.v2.getReturnType().equals(Void.TYPE))
+        .forEach(t -> {
+          Class<?> returnType = TypeToken.of(t.v1).resolveType(t.v2.getGenericReturnType()).getRawType();
           if (returnType.getPackage().getName().startsWith("io.stackgres.")) {
             assertNotNull(returnType.getAnnotation(RegisterForReflection.class), "class "
                 + returnType.getName() + " must be annotated with register for reflection");
@@ -59,18 +62,19 @@ class ResourcesSerializationTest {
   void parametersOfGenericReturnTypesOfRestResponses_mustBeAnnotatedWithRegisterForReflection() {
 
     getRestMethods()
-        .filter(method -> !method.getReturnType().equals(Void.TYPE))
-        .forEach(method -> {
-          Class<?> returnType = method.getReturnType();
+        .filter(t -> !t.v2.getReturnType().equals(Void.TYPE))
+        .forEach(t -> {
+          Class<?> returnType = t.v2.getReturnType();
 
           if (Collection.class.isAssignableFrom(returnType)) {
-            Arrays.stream(((ParameterizedType) method.getGenericReturnType()).getActualTypeArguments()).forEach(gt -> {
-              if (gt instanceof java.lang.Class && ((Class<?>) gt).getName().startsWith("io.stackgres.")) {
-                Class<?> gType = (Class<?>) gt;
-                assertNotNull(gType.getAnnotation(RegisterForReflection.class), "class "
-                    + gType.getName() + " must be annotated with register for reflection");
-              }
-
+            Arrays.stream(((ParameterizedType) t.v2.getGenericReturnType()).getActualTypeArguments())
+                .forEach(gt -> {
+                  if (gt instanceof Class
+                      && ((Class<?>) gt).getName().startsWith("io.stackgres.")) {
+                    Class<?> gType = (Class<?>) gt;
+                    assertNotNull(gType.getAnnotation(RegisterForReflection.class), "class "
+                        + gType.getName() + " must be annotated with register for reflection");
+                  }
             });
           }
 
@@ -80,8 +84,9 @@ class ResourcesSerializationTest {
   @Test
   void parametersOfRestRequests_mustBeAnnotatedWithRegisterForReflection() {
     getRestMethods()
-        .forEach(method -> {
-          Arrays.stream(method.getParameterTypes())
+        .forEach(t -> {
+          Arrays.stream(t.v2.getGenericParameterTypes())
+              .map(p -> TypeToken.of(t.v1).resolveType(p).getRawType())
               .filter(p -> p.getName().startsWith("io.stackgres."))
               .forEach(p -> {
                 assertNotNull(p.getAnnotation(RegisterForReflection.class), "class "
@@ -101,7 +106,7 @@ class ResourcesSerializationTest {
   }
 
 
-  static Stream<Method> getRestMethods() {
+  static Stream<Tuple2<Class<?>, Method>> getRestMethods() {
     return getClassesInStackGres()
         .filter(classInfo -> {
           final Class<?> clazz = classInfo.load();
@@ -114,13 +119,14 @@ class ResourcesSerializationTest {
         .flatMap(classInfo -> {
           final Class<?> clazz = classInfo.load();
           return Arrays.stream(clazz.getMethods())
-              .filter(method -> method.getAnnotation(POST.class) != null
-                  || method.getAnnotation(GET.class) != null
-                  || method.getAnnotation(PUT.class) != null
-                  || method.getAnnotation(DELETE.class) != null
-                  || method.getAnnotation(OPTIONS.class) != null
-                  || method.getAnnotation(PATCH.class) != null
-                  || method.getAnnotation(HEAD.class) != null);
+              .map(method -> Tuple.<Class<?>, Method>tuple(clazz, method))
+              .filter(t -> t.v2.getAnnotation(POST.class) != null
+                  || t.v2.getAnnotation(GET.class) != null
+                  || t.v2.getAnnotation(PUT.class) != null
+                  || t.v2.getAnnotation(DELETE.class) != null
+                  || t.v2.getAnnotation(OPTIONS.class) != null
+                  || t.v2.getAnnotation(PATCH.class) != null
+                  || t.v2.getAnnotation(HEAD.class) != null);
         });
   }
 

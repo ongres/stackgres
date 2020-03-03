@@ -6,9 +6,10 @@
 package io.stackgres.operator.initialization;
 
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfig;
+import io.stackgres.operator.resource.CustomResourceFinder;
 import io.stackgres.operator.resource.CustomResourceScheduler;
-import io.stackgres.operator.resource.KubernetesCustomResourceFinder;
 import io.stackgres.operator.utils.JsonUtil;
+
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -16,8 +17,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class BackupConfigInitializerTest extends AbstractInitializerTest<StackGresBackupConfig> {
 
   @Override
-  AbstractDefaultCustomResourceInitializer<StackGresBackupConfig> getInstance() {
-    return new BackupConfigInitializer();
+  AbstractDefaultCustomResourceInitializer<StackGresBackupConfig> getInstance(
+      CustomResourceFinder<StackGresBackupConfig> resourceFinder,
+      CustomResourceScheduler<StackGresBackupConfig> resourceScheduler,
+      DefaultCustomResourceFactory<StackGresBackupConfig> resourceFactory,
+      InitializationQueue queue) {
+    return new BackupConfigInitializer(resourceFinder, resourceScheduler, resourceFactory, queue);
   }
 
   @Override

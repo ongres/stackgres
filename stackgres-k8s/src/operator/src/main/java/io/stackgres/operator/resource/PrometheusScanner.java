@@ -17,7 +17,7 @@ import io.stackgres.operator.customresource.prometheus.PrometheusConfigList;
 
 @ApplicationScoped
 public class PrometheusScanner
-    extends AbstractKubernetesCustomResourceScanner<PrometheusConfig, PrometheusConfigList,
+    extends AbstractCustomResourceScanner<PrometheusConfig, PrometheusConfigList,
     PrometheusConfigDoneable> {
 
   /**

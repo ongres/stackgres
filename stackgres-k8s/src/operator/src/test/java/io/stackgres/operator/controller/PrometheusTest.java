@@ -27,7 +27,7 @@ import io.stackgres.operator.controller.ClusterReconciliationCycle;
 import io.stackgres.operator.customresource.prometheus.PrometheusConfig;
 import io.stackgres.operator.customresource.prometheus.PrometheusConfigList;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
-import io.stackgres.operator.resource.KubernetesCustomResourceScanner;
+import io.stackgres.operator.resource.CustomResourceScanner;
 import io.stackgres.operator.utils.JsonUtil;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -54,7 +54,7 @@ class PrometheusTest {
   private KubernetesClient client;
 
   @Mock
-  private KubernetesCustomResourceScanner<PrometheusConfig> prometheusScanner;
+  private CustomResourceScanner<PrometheusConfig> prometheusScanner;
 
   @Mock
   private ConfigContext configContext;

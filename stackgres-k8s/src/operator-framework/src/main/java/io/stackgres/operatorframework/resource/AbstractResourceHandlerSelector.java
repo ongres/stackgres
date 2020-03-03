@@ -108,18 +108,18 @@ public abstract class AbstractResourceHandlerSelector<T> implements ResourceHand
 
   }
 
-  protected abstract Optional<ResourceHandler<T>> selectResourceHandler(KindLiteral kindLiteral);
-
-  @Override
   public ResourceHandler<T> getResourceHandler(HasMetadata resource) {
-    Optional<ResourceHandler<T>> kindHandler =
-        selectResourceHandler(new KindLiteral(resource.getClass()));
+    Optional<ResourceHandler<T>> customHandler = getResourceHandlers()
+        .filter(handler -> handler.isHandlerForResource(resource)).findAny();
 
-    if (kindHandler.isPresent()) {
-      return kindHandler.get();
+    if (customHandler.isPresent()) {
+      return customHandler.get();
     }
 
-    return getDefaultResourceHandler().get();
+    return getDefaultResourceHandler()
+        .orElseThrow(() -> new IllegalStateException("Can not find handler for resource "
+            + resource.getMetadata().getNamespace() + "." + resource.getMetadata().getName()
+            + " of kind " + resource.getKind()));
   }
 
   protected abstract Stream<ResourceHandler<T>> getResourceHandlers();

@@ -15,9 +15,9 @@ import static org.mockito.Mockito.when;
 import java.util.Optional;
 
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfig;
-import io.stackgres.operator.resource.AbstractKubernetesCustomResourceFinder;
+import io.stackgres.operator.resource.AbstractCustomResourceFinder;
 import io.stackgres.operator.utils.JsonUtil;
-import io.stackgres.operator.common.StackgresClusterReview;
+import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 
@@ -36,7 +36,7 @@ class BackupConfigValidatorTest {
   private BackupConfigValidator validator;
 
   @Mock()
-  private AbstractKubernetesCustomResourceFinder<StackGresBackupConfig> configFinder;
+  private AbstractCustomResourceFinder<StackGresBackupConfig> configFinder;
 
   private StackGresBackupConfig backupConfig;
 
@@ -49,10 +49,10 @@ class BackupConfigValidatorTest {
   }
 
   @Test
-  void givenValidStackgresBackupOnCreation_shouldNotFail() throws ValidationFailed {
+  void givenValidStackGresBackupOnCreation_shouldNotFail() throws ValidationFailed {
 
-    final StackgresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/valid_creation.json", StackgresClusterReview.class);
+    final StackGresClusterReview review = JsonUtil
+        .readFromJson("cluster_allow_requests/valid_creation.json", StackGresClusterReview.class);
 
     String backupConfig = review.getRequest().getObject().getSpec().getBackupConfig();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
@@ -66,10 +66,10 @@ class BackupConfigValidatorTest {
   }
 
   @Test
-  void giveInvalidStackgresBackupOnCreation_shouldFail() {
+  void giveInvalidStackGresBackupOnCreation_shouldFail() {
 
-    final StackgresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/valid_creation.json", StackgresClusterReview.class);
+    final StackGresClusterReview review = JsonUtil
+        .readFromJson("cluster_allow_requests/valid_creation.json", StackGresClusterReview.class);
 
     String backupConfig = review.getRequest().getObject().getSpec().getBackupConfig();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
@@ -90,8 +90,8 @@ class BackupConfigValidatorTest {
   @Test
   void giveAnAttemptToUpdateToAnUnknownBackupConfig_shouldFail() {
 
-    final StackgresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/backup_config_update.json", StackgresClusterReview.class);
+    final StackGresClusterReview review = JsonUtil
+        .readFromJson("cluster_allow_requests/backup_config_update.json", StackGresClusterReview.class);
 
     String backupConfig = review.getRequest().getObject().getSpec().getBackupConfig();
 
@@ -116,8 +116,8 @@ class BackupConfigValidatorTest {
   @Test
   void giveAnAttemptToUpdateToAnKnownBackup_shouldNotFail() throws ValidationFailed {
 
-    final StackgresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/backup_config_update.json", StackgresClusterReview.class);
+    final StackGresClusterReview review = JsonUtil
+        .readFromJson("cluster_allow_requests/backup_config_update.json", StackGresClusterReview.class);
 
     String backupConfig = review.getRequest().getObject().getSpec().getBackupConfig();
 
@@ -135,8 +135,8 @@ class BackupConfigValidatorTest {
   @Test
   void giveAnAttemptToDelete_shouldNotFail() throws ValidationFailed {
 
-    final StackgresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/backup_config_update.json", StackgresClusterReview.class);
+    final StackGresClusterReview review = JsonUtil
+        .readFromJson("cluster_allow_requests/backup_config_update.json", StackGresClusterReview.class);
     review.getRequest().setOperation(Operation.DELETE);
 
     String backupConfig = review.getRequest().getObject().getSpec().getBackupConfig();

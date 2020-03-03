@@ -41,7 +41,11 @@ public class ErrorResponse {
   }
 
   public static ErrorResponse create(Throwable throwable) {
+    return create(throwable, null);
+  }
+
+  public static ErrorResponse create(Throwable throwable, String message) {
     return new ErrorResponse().setType(throwable.getClass().getName())
-        .setMessage(throwable.getMessage());
+        .setMessage(message != null ? message : throwable.getMessage());
   }
 }

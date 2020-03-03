@@ -1,0 +1,34 @@
+{
+    "metadata": {
+        "name": "backupconf",
+        "namespace": "stackgres",
+        "uid": "93bc7621-0236-11ea-a1d5-0242ac110003"
+    },
+    "spec": {
+        "compressionMethod": "lz4",
+        "fullSchedule": "*/1 * * * *",
+        "fullWindow": 1,
+        "retention": 5,
+        "storage": {
+            "s3": {
+                "credentials": {
+                    "accessKey": {
+                        "key": "accesskey",
+                        "name": "minio"
+                    },
+                    "secretKey": {
+                        "key": "secretkey",
+                        "name": "minio"
+                    }
+                },
+                "endpoint": "http://minio.stackgres.svc:9000",
+                "forcePathStyle": true,
+                "prefix": "s3://stackgres",
+                "region": "k8s"
+            },
+            "type": "s3"
+        },
+        "tarSizeThreshold": 1073741823,
+        "uploadDiskConcurrency": 1
+    }
+}

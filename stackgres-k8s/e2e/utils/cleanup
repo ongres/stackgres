@@ -37,6 +37,8 @@ k8s_cleanup() {
       | grep -v "^namespace/\(default\|kube-system\|kube-node-lease\|kube-public\)$" | cut -d / -f 2 \
       | xargs -r -n 1 -I @ -P 0 "$SHELL" $(! echo $- | grep -q x || echo "-x") \
         -ec "$(k8s_finalize_namespace_script)"
+  ! kubectl api-resources | grep -q '^podsecuritypolicies ' \
+    || kubectl get podsecuritypolicies -o name | xargs -r -n 1 -I % kubectl delete '%'
 }
 
 helm_cleanup_but_operator() {
@@ -58,6 +60,8 @@ k8s_cleanup_but_operator() {
       | grep -v "^namespace/\(default\|kube-system\|kube-node-lease\|kube-public\|stackgres\)$" | cut -d / -f 2 \
       | xargs -r -n 1 -I @ -P 0 "$SHELL" $(! echo $- | grep -q x || echo "-x") \
         -ec "$(k8s_finalize_namespace_script)"
+  ! kubectl api-resources | grep -q '^podsecuritypolicies ' \
+    || kubectl get podsecuritypolicies -o name | xargs -r -n 1 -I % kubectl delete '%'
 }
 
 k8s_cleanup_namespace() {

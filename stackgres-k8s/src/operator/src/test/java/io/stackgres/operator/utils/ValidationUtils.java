@@ -5,21 +5,21 @@
 
 package io.stackgres.operator.utils;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import java.nio.charset.StandardCharsets;
-import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 
 import org.junit.jupiter.api.function.Executable;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
 public class ValidationUtils {
 
   public static String getRandomString(int length){
     byte[] array = new byte[length];
-    new Random().nextBytes(array);
+    ThreadLocalRandom.current().nextBytes(array);
     return new String(array, StandardCharsets.UTF_8);
   }
 

@@ -19,21 +19,21 @@ import io.stackgres.operator.common.ConfigContext;
 import io.stackgres.operator.common.ConfigProperty;
 import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
-import io.stackgres.operator.resource.dto.ClusterPodConfig;
-import io.stackgres.operator.resource.dto.ClusterPodStatus;
+import io.stackgres.operator.rest.dto.cluster.ClusterPodConfigDto;
+import io.stackgres.operator.rest.dto.cluster.ClusterPodStatus;
 
 import org.jooq.lambda.tuple.Tuple;
 
 @ApplicationScoped
-public class ClusterDetailsFinder implements KubernetesCustomResourceFinder<ClusterPodConfig> {
+public class ClusterDetailsFinder implements CustomResourceFinder<ClusterPodConfigDto> {
 
-  private final KubernetesCustomResourceFinder<StackGresCluster> clusterFinder;
+  private final CustomResourceFinder<StackGresCluster> clusterFinder;
   private final KubernetesClientFactory kubClientFactory;
 
   private ConfigContext context;
 
   @Inject
-  public ClusterDetailsFinder(KubernetesCustomResourceFinder<StackGresCluster> clusterFinder,
+  public ClusterDetailsFinder(CustomResourceFinder<StackGresCluster> clusterFinder,
       KubernetesClientFactory kubClientFactory,
       ConfigContext context) {
     this.clusterFinder = clusterFinder;
@@ -42,12 +42,12 @@ public class ClusterDetailsFinder implements KubernetesCustomResourceFinder<Clus
   }
 
   @Override
-  public Optional<ClusterPodConfig> findByNameAndNamespace(String name, String namespace) {
+  public Optional<ClusterPodConfigDto> findByNameAndNamespace(String name, String namespace) {
 
     return clusterFinder.findByNameAndNamespace(name, namespace).map(cluster -> {
 
       try (KubernetesClient client = kubClientFactory.create()) {
-        ClusterPodConfig details = new ClusterPodConfig();
+        ClusterPodConfigDto details = new ClusterPodConfigDto();
 
         List<ClusterPodStatus> clusterPods = getClusterPods(cluster, client);
         details.setPods(clusterPods);

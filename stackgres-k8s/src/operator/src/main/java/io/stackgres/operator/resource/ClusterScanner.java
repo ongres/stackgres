@@ -17,7 +17,7 @@ import io.stackgres.operator.customresource.sgcluster.StackGresClusterList;
 
 @ApplicationScoped
 public class ClusterScanner
-    extends AbstractKubernetesCustomResourceScanner<StackGresCluster, StackGresClusterList,
+    extends AbstractCustomResourceScanner<StackGresCluster, StackGresClusterList,
     StackGresClusterDoneable> {
 
   /**

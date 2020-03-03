@@ -16,7 +16,7 @@ import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbounc
 import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfigList;
 
 @ApplicationScoped
-public class PgPoolingConfigScanner extends AbstractKubernetesCustomResourceScanner
+public class PgPoolingConfigScanner extends AbstractCustomResourceScanner
     <StackGresPgbouncerConfig, StackGresPgbouncerConfigList, StackGresPgbouncerConfigDoneable> {
 
   @Inject

@@ -51,11 +51,11 @@ import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfig
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfigDoneable;
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfigList;
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfigSpec;
+import io.stackgres.operator.customresource.sgcluster.ClusterRestore;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.customresource.sgcluster.StackGresClusterDefinition;
 import io.stackgres.operator.customresource.sgcluster.StackGresClusterDoneable;
 import io.stackgres.operator.customresource.sgcluster.StackGresClusterList;
-import io.stackgres.operator.customresource.sgcluster.StackGresClusterRestore;
 import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfigDefinition;
 import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfigDoneable;
@@ -72,7 +72,7 @@ import io.stackgres.operator.customresource.storages.GoogleCloudCredentials;
 import io.stackgres.operator.customresource.storages.GoogleCloudStorage;
 import io.stackgres.operator.customresource.storages.PgpConfiguration;
 import io.stackgres.operator.resource.ClusterSidecarFinder;
-import io.stackgres.operator.resource.KubernetesCustomResourceScanner;
+import io.stackgres.operator.resource.CustomResourceScanner;
 import io.stackgres.operator.sidecars.envoy.Envoy;
 import io.stackgres.operator.sidecars.pgexporter.PostgresExporter;
 import io.stackgres.operatorframework.reconciliation.AbstractReconciliationCycle;
@@ -94,7 +94,7 @@ public class ClusterReconciliationCycle
   private final Cluster cluster;
   private final ClusterStatusManager statusManager;
   private final EventController eventController;
-  private final KubernetesCustomResourceScanner<PrometheusConfig> prometheusScanner;
+  private final CustomResourceScanner<PrometheusConfig> prometheusScanner;
   private final ConfigContext configContext;
 
   /**
@@ -106,7 +106,7 @@ public class ClusterReconciliationCycle
       ResourceHandlerSelector<StackGresClusterContext> handlerSelector,
       ClusterStatusManager statusManager, EventController eventController,
       ObjectMapperProvider objectMapperProvider,
-      KubernetesCustomResourceScanner<PrometheusConfig> prometheusScanner,
+      CustomResourceScanner<PrometheusConfig> prometheusScanner,
       ConfigContext configContext) {
     super("Cluster", kubClientFactory::create, StackGresClusterContext::getCluster,
         handlerSelector, objectMapperProvider.objectMapper());
@@ -363,7 +363,7 @@ public class ClusterReconciliationCycle
 
   private Optional<StackGresRestoreContext> getRestoreContext(StackGresCluster cluster,
       KubernetesClient client) {
-    final StackGresClusterRestore restore = cluster.getSpec().getRestore();
+    final ClusterRestore restore = cluster.getSpec().getRestore();
     if (restore != null) {
       return ResourceUtil.getCustomResource(client, StackGresBackupDefinition.NAME)
         .flatMap(crd -> client
@@ -375,7 +375,7 @@ public class ClusterReconciliationCycle
             .list()
             .getItems()
             .stream()
-            .filter(backup -> backup.getMetadata().getUid().equals(restore.getStackgresBackup()))
+            .filter(backup -> backup.getMetadata().getUid().equals(restore.getBackupUid()))
             .findAny())
         .map(backup -> {
           Preconditions.checkNotNull(backup.getStatus(),

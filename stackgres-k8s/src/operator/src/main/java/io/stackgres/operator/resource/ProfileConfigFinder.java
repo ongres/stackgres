@@ -16,7 +16,7 @@ import io.stackgres.operator.customresource.sgprofile.StackGresProfileDoneable;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfileList;
 
 @ApplicationScoped
-public class ProfileConfigFinder extends AbstractKubernetesCustomResourceFinder<StackGresProfile> {
+public class ProfileConfigFinder extends AbstractCustomResourceFinder<StackGresProfile> {
 
   /**
    * Create a {@code ProfileConfigFinder} instance.
