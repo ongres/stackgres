@@ -28,6 +28,11 @@ EOF
 
   kubectl create namespace "$CLUSTER_NAMESPACE"
 
+  # To generate the private key:
+  # ```
+  # gpg --full-gen-key # all defaults (RSA and RSA, 3072 bits, key does not expire, name: test, email: test@example.com) and with empty passowrd
+  # gpg --export-secret-keys --armour test@example.com > spec/backup.key # private keys contains public key
+  # ```
   kubectl create secret -n "$CLUSTER_NAMESPACE" generic pgpconfiguration --from-file=key="$SPEC_FILE.key"
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
