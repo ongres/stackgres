@@ -18,8 +18,20 @@ EOF
     > "$LOG_PATH/minio-affinity.yaml"
   fi
 
+  cat << EOF > "$LOG_PATH/secret.yaml"
+config:
+  backup:
+    pgpConfiguration:
+      name: pgpconfiguration
+      key: key
+EOF
+
+  kubectl create namespace "$CLUSTER_NAMESPACE"
+
+  kubectl create secret -n "$CLUSTER_NAMESPACE" generic pgpconfiguration --from-file=key="$SPEC_FILE.key"
+
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
-    -f "$LOG_PATH/minio-affinity.yaml"
+    -f "$LOG_PATH/minio-affinity.yaml" -f "$LOG_PATH/secret.yaml"
 
   deploy_curl_pod "$CLUSTER_NAMESPACE"
 
