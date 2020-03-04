@@ -26,7 +26,7 @@ config:
     #networkRateLimit:
     #diskRateLimit:
     #pgpConfiguration:
-    #  name: pgpConfiguration
+    #  name: pgpconfiguration
     #  key: key
     s3: {}
     #  prefix: s3://stackgres
@@ -47,15 +47,15 @@ config:
     gcs: {}
     #  prefix: gcs://stackgres
     #  serviceAccountJsonKey:
-    #    name: gcs
+    #    name: gcscredentials
     #    key: key
     azureblob: {}
     #  prefix: azure://stackgres
     #  account:
-    #    name: azureblob
+    #    name: azureblobcredentials
     #    key: account
     #  accessKey:
-    #    name: azureblob
+    #    name: azureblobcredentials
     #    key: accesskey
     #  bufferSize:
     #  maxBuffers:
