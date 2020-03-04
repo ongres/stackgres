@@ -33,7 +33,7 @@
     <checkstyle.header.file>${project.basedir}/../checks/checkstyle/header.txt</checkstyle.header.file>
     <spotbugs.excludeFilterFile>${project.basedir}/../checks/spotbugs/exclude.xml</spotbugs.excludeFilterFile>
 
-    <it.image>stackgres/it:2.0</it.image>
+    <it.image>stackgres/it:3.0</it.image>
   </properties>
 
   <dependencies>
