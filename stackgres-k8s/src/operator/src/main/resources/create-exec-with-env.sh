@@ -8,9 +8,26 @@ die() {
   exit 1
 }
 
+REPLACES=""
+OVERWRITE=false
+
 while [ "$#" -gt 0 ]
 do
   case "$1" in
+  -r|--replace)
+    shift
+    if [ -z "$REPLACES" ]
+    then
+      REPLACES="$1"
+    else
+      REPLACES="$REPLACES,$1"
+    fi
+    shift
+    ;;
+  -o|--overwrite)
+    shift
+    OVERWRITE=true
+    ;;
   --)
     shift
     break
@@ -42,12 +59,21 @@ do
       do
         # Only export if "$envdir/$envvar" is a file
         # and environment variable with name $envvar is not set
-        [ ! -f "$envdir/$envvar" -o -n "$(eval "echo \"\$$envvar\"")" ] \
+        [ ! -f "$envdir/$envvar" ] || [ "$OVERWRITE" != "true" -a -n "$(eval "echo \"\$$envvar\"")" ] \
           || eval "export $envvar='$(cat "$envdir/$envvar")'"
       done
     done
+    ;;
   esac
 done
+
+if [ -n "$REPLACES" ]
+then
+  for REPLACE in $(echo "$REPLACES" | tr ',' '\n')
+  do
+    eval "export ${REPLACE%=*}=\"\$$${REPLACE#*=}\""
+  done
+fi
 
 if [ -n "$1" ]
 then
