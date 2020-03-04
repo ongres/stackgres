@@ -82,7 +82,7 @@ By default the chart create a storage class backed by an MinIO server. To avoid 
 * `config.backup.fullSchedule`: Specify when to perform full backups using cron syntax:
  <minute: 0 to 59, or *> <hour: 0 to 23, or * for any value. All times UTC> <day of the month: 1 to 31, or *>
  <month: 1 to 12, or *> <day of the week: 0 to 7 (0 and 7 both represent Sunday), or *>.
- If not specified full backups will be performed each day at 05:00 UTC.
+ If not specified full backups will be performed each 2 minutes.
 * `config.backup.fullWindow`: Specify the time window in minutes where a full backup will start happening after the point in
  time specified by fullSchedule. If for some reason the system is not capable to start the full backup it will be skipped.
  If not specified the window will be of 1 hour.

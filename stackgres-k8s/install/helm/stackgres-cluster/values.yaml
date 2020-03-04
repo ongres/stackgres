@@ -16,8 +16,8 @@ config:
   backup:
     create: true
     retention: 5
-    fullSchedule: "0 5 * * *"
-    fullWindow: 60
+    fullSchedule: "*/2 * * * *"
+    fullWindow: 2
     compressionMethod: lz4
     uploadDiskConcurrency: 1
     tarSizeThreshold: 1073741823
