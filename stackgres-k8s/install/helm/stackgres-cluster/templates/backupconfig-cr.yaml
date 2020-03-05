@@ -36,7 +36,7 @@ spec:
   diskRateLimit: {{ .Values.config.backup.diskRateLimit }}
   {{- end }}
   uploadDiskConcurrency: {{ .Values.config.backup.uploadDiskConcurrency }}
-  {{- if .Values.config.backup.pgpSecret }}
+  {{- if .Values.config.backup.pgpConfiguration }}
   pgpConfiguration:
     key:
       name: "{{ .Values.config.backup.pgpConfiguration.name }}"
