@@ -1286,7 +1286,7 @@ ul.selector li {
 }
 
 .form label {
-    text-transform: uppercase;
+    /* text-transform: uppercase; */
     color: var(--gray4);
     margin-bottom: 2px;
 }
