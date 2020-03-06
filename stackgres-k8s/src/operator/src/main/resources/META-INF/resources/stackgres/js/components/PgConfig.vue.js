@@ -16,7 +16,7 @@ var PgConfig = Vue.component("pg-config", {
 							postgresql configurations
 						</template>
 					</li>
-				</ul>
+				</ul>	
 				<router-link to="/crd/create/pgconfig/" class="btn">Create New Configuration</router-link>
 			</header>
 
@@ -31,11 +31,12 @@ var PgConfig = Vue.component("pg-config", {
 						{{ conf.data.spec.pgVersion }}
 						<hr>
 						<span>Params</span>
-						<ul class="params">
+						<pre>{{ conf.data.spec['postgresql.conf'] }}</pre>
+						<!--<ul class="params">
 							<li v-for="(item, index) in conf.data.spec['postgresql.conf']">
 								<strong>{{ index }}:</strong> {{ item }}<br/>
 							</li>
-						</ul>
+						</ul>-->
 						<div class="form">
 							<router-link :to="'/crd/edit/pgconfig/'+$route.params.namespace+'/'+conf.name" class="btn">Edit Configuration</router-link> 
 							<button @click="deleteConfig(conf.name, conf.data.metadata.namespace)" class="border">Delete Configuration</button>

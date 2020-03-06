@@ -28,11 +28,14 @@ var PoolConfig = Vue.component("pool-config", {
 						<strong>{{ conf.data.metadata.namespace }}</strong>
 						<hr>
 						<span>Params</span>
+						<pre>{{ conf.data.spec['pgbouncer.ini'] }}</pre>
+						<!--
 						<ul class="params">
 							<li v-for="(item, index) in conf.data.spec['pgbouncer.ini']">
 								<strong>{{ index }}:</strong> {{ item }}<br/>
 							</li>
 						</ul>
+						-->
 						<div class="form">
 							<router-link :to="'/crd/edit/poolconfig/'+$route.params.namespace+'/'+conf.name" class="btn">Edit Configuration</router-link> 
 							<button @click="deleteConfig(conf.name, conf.data.metadata.namespace)" class="border">Delete Configuration</button>
