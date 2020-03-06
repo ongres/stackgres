@@ -253,7 +253,7 @@ var CreateCluster = Vue.component("create-cluster", {
                         ...(this.backupConfig.length && ( {"backupConfig": this.backupConfig }) ),
                         ...(this.connPooling && ( {"connectionPoolingConfig": this.connectionPoolingConfig }) ),
                         "volumeSize": this.volumeSize+this.volumeUnit,
-                        ...( (this.storageClass !== undefined) && ( {"storageClass": this.storageClass }) ),
+                        ...( ( (this.storageClass !== undefined) && (this.storageClass.length ) ) && ( {"storageClass": this.storageClass }) ),
                         //"prometheusAutobind": "true",
                         "sidecars": sidecars
                     }
@@ -271,8 +271,9 @@ var CreateCluster = Vue.component("create-cluster", {
                         console.log("GOOD");
                         notify('Cluster <strong>"'+cluster.metadata.name+'"</strong> updated successfully', 'message');
 
-                        router.push('/information/'+cluster.metadata.namespace+'/'+cluster.metadata.name);
                         vm.fetchAPI();
+                        router.push('/information/'+cluster.metadata.namespace+'/'+cluster.metadata.name);
+                        
                     })
                     .catch(function (error) {
                         console.log(error.response);
@@ -288,8 +289,8 @@ var CreateCluster = Vue.component("create-cluster", {
                         console.log("GOOD");
                         notify('Cluster <strong>"'+cluster.metadata.name+'"</strong> created successfully', 'message');
 
-                        router.push('/information/'+cluster.metadata.namespace+'/'+cluster.metadata.name);
                         vm.fetchAPI();
+                        router.push('/information/'+cluster.metadata.namespace+'/'+cluster.metadata.name);
                         
                         /* store.commit('updateClusters', { 
                             name: cluster.metadata.name,
