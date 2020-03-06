@@ -27,6 +27,7 @@ import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.stackgres.operator.cluster.factory.ClusterStatefulSetPath;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSetVolumeConfig;
 import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.common.StackGresClusterContext;
@@ -84,6 +85,19 @@ public class PgBouncer
         + "\n"
         + "[pgbouncer]\n"
         + "listen_port = " + Envoy.PG_PORT + "\n"
+        + "listen_addr = 127.0.0.1\n"
+        + "unix_socket_dir = " + ClusterStatefulSetPath.PG_RUN_PATH.path() + "\n"
+        + "auth_type = md5\n"
+        + "auth_user = authenticator\n"
+        + "auth_query = SELECT usename, passwd FROM pg_shadow WHERE usename=$1\n"
+        + "admin_users = postgres\n"
+        + "stats_users = postgres\n"
+        + "user = postgres\n"
+        + "application_name_add_host = 1\n"
+        + "ignore_startup_parameters = extra_float_digits\n"
+        + "max_db_connections = 100\n"
+        + "max_user_connections = 100\n"
+        + "default_pool_size = 100\n"
         + params.entrySet().stream()
         .map(entry -> " " + entry.getKey() + " = " + entry.getValue())
         .collect(Collectors.joining("\n"))
