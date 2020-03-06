@@ -65,10 +65,10 @@ var CreatePGConfig = Vue.component("create-pgconfig", {
             store.state.pgConfig.forEach(function( conf ){
                 if( (conf.data.metadata.name === vm.$route.params.name) && (conf.data.metadata.namespace === vm.$route.params.namespace) ) {
                     configVersion = conf.data.spec.pgVersion;
-
-                    $.each( conf.data.spec["postgresql.conf"], function( index, value ){
+                    configParams = conf.data.spec["postgresql.conf"];
+                    /* $.each( conf.data.spec["postgresql.conf"], function( index, value ){
                         configParams += index+' = '+value+'\n';
-                    });
+                    }); */
                     return false;
                 }
             });
@@ -115,7 +115,7 @@ var CreatePGConfig = Vue.component("create-pgconfig", {
                     },
                     "spec": {
                         "pgVersion": this.pgConfigVersion,
-                        "postgresql.conf": getJSON(this.pgConfigParams)
+                        "postgresql.conf": this.pgConfigParams
                     }
                 }
 
