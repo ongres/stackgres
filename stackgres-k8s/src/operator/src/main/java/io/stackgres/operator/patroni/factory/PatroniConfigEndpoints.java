@@ -53,7 +53,6 @@ public class PatroniConfigEndpoints implements StackGresClusterResourceStreamFac
     final String namespace = context.getClusterContext().getCluster().getMetadata().getNamespace();
     final Map<String, String> labels = StackGresUtil.patroniClusterLabels(
         context.getClusterContext().getCluster());
-    Optional<StackGresPostgresConfig> pgconfig = context.getClusterContext().getPostgresConfig();
     Map<String, String> params = new HashMap<>(DefaultValues.getDefaultValues());
 
     if (context.getClusterContext().getBackupContext().isPresent()) {
@@ -64,6 +63,11 @@ public class PatroniConfigEndpoints implements StackGresClusterResourceStreamFac
       params.put("archive_command", "/bin/true");
     }
 
+    params.put("wal_level", "logical");
+    params.put("wal_log_hints", "on");
+    params.put("archive_mode", "on");
+
+    Optional<StackGresPostgresConfig> pgconfig = context.getClusterContext().getPostgresConfig();
     if (pgconfig.isPresent()) {
       Map<String, String> userParams = pgconfig.get().getSpec().getPostgresqlConf();
       // Blacklist removal
