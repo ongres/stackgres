@@ -58,9 +58,6 @@ spec:
                   fromBackup:
                     type: string
                     description: "UID of the Backup CR to restore"
-                  autoCopySecrets:
-                    type: boolean
-                    description: "Specify whether or not copy the required secrets to access the storage in which the backup is stored"
                   downloadDiskConcurrency:
                     type: integer
                     description: "Indicate how many download streams to have during restoration"

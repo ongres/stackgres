@@ -163,7 +163,6 @@ spec:
   pgConfig: pgconfig-alter
   restore:
     downloadDiskConcurrency: 1
-    autoCopySecrets: true
     fromBackup: $BACKUP_UID
 EOF
 
@@ -203,7 +202,6 @@ spec:
 EOF
 
   assert_default_value "downloadDiskConcurrency" "1"
-  assert_default_value "autoCopySecrets" "true"
 
 }
 

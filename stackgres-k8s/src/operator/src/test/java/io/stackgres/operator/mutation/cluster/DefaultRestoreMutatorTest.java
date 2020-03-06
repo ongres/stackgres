@@ -82,33 +82,6 @@ class DefaultRestoreMutatorTest {
   }
 
   @Test
-  void clusterRestoreWithNoAutoCopySecrets_shouldSetDefaultValue() throws JsonPatchException {
-
-    ClusterRestore restore = new ClusterRestore();
-    restore.setDownloadDiskConcurrency(1);
-    restore.setAutoCopySecretsEnabled(null);
-    restore.setBackupUid(UUID.randomUUID().toString());
-
-    review.getRequest().getObject().getSpec().setRestore(restore);
-
-    List<JsonPatchOperation> operations = mutator.mutate(review);
-
-    JsonNode crJson = JSON_MAPPER.valueToTree(review.getRequest().getObject());
-
-    JsonPatch jp = new JsonPatch(operations);
-    JsonNode newConfig = jp.apply(crJson);
-
-    Boolean defaultAutoCopySecrets = Boolean
-        .parseBoolean(defaultRestoreValues.getProperty("autoCopySecrets"));
-
-    boolean actualAutoCopySecrets = newConfig
-        .get("spec").get("restore").get("autoCopySecrets").asBoolean();
-
-    assertEquals(defaultAutoCopySecrets, actualAutoCopySecrets);
-
-  }
-
-  @Test
   void clusteRestorerWithNoDownloadDiskConcurrency_shouldSetDefaultValue() throws JsonPatchException {
 
     ClusterRestore restore = new ClusterRestore();
