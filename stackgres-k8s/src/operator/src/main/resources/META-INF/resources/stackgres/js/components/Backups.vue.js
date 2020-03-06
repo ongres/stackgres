@@ -17,7 +17,7 @@ var Backups = Vue.component("sg-backup", {
 						</template>
 					</li>
 				</ul>
-				<!--<router-link to="/crd/create/pgconfig/" class="btn">Create New Configuration</router-link>-->
+				<router-link :to="'/crd/create/backup/'+currentNamespace" class="btn">Create New Backup</router-link>
 			</header>
 
 			<div class="content">
