@@ -129,6 +129,7 @@ strong {
 /* Loader */
 #loader {
     position: fixed;
+    z-index: 999;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -136,8 +137,8 @@ strong {
     height: 40px;
     margin-top: 5px;
     margin-bottom: 5px;
-    right: 10px;
-    top: 5px;
+    right: 5px;
+    top: 0;
     border-radius: 100%;
     background: url("img/loader.gif") center center no-repeat;
     background-size: 80px;
