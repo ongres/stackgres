@@ -18,28 +18,16 @@ ___
 
 **Spec**
 
-| Property | Required | Type | Description | Default |
-|-----------|------|------|-------------|------|
-| pgbouncer.ini |   | object  | Section [pgbouncer] of pgbouncer.ini configuration | see below |
+| Property      | Required | Updatable | Type    | Default   | Description |
+|:--------------|----------|-----------|:--------|:----------|:------------|
+| pgbouncer.ini |          | ✓         | object  | see below | Section [pgbouncer] of pgbouncer.ini configuration |
 
-Default section [pgbouncer] of pgbouncer.ini:
 
-```shell
-listen_addr=127.0.0.1
-unix_socket_dir=/var/run/postgresql
-auth_type=md5
-auth_user=authenticator
-auth_query=SELECT usename, passwd FROM pg_shadow WHERE usename=$1
-admin_users=postgres
-stats_users=postgres
-user=postgres
-pool_mode=session
-max_client_conn=1000
-max_db_connections=100
-max_user_connections=100
-default_pool_size=100
-ignore_startup_parameters=extra_float_digits
-application_name_add_host=1
+Default value of `pgbouncer.ini` property:
+
+```yaml
+pool_mode: session
+max_client_conn: "1000"
 ```
 
 Example:
@@ -51,7 +39,100 @@ metadata:
   name: pgbouncerconf
 spec:
   pgbouncer.ini:
-    default_pool_size: '200'
-    max_client_conn: '200'
     pool_mode: 'transaction'
+    max_client_conn: '2000'
 ```
+
+To guarantee a functional pgbouncer configuration most of the parameters specified in
+ [pgbouncer configuration documentation](https://www.pgbouncer.org/config.html#generic-settings)
+ for section `[pgbouncer]` have been blacklisted and will be ignored. The only parameters that can
+ be changed are:
+
+| Whitelisted parameter |
+|:----------------------|
+| pool_mode             |
+| max_client_conn       |
+
+For reference this is the list of parameters that will be ignored:
+
+| Blacklisted parameter     |
+|:--------------------------|
+| logfile                   |
+| pidfile                   |
+| listen_addr               |
+| listen_port               |
+| unix_socket_dir           |
+| unix_socket_mode          |
+| unix_socket_group         |
+| user                      |
+| auth_file                 |
+| auth_hba_file             |
+| auth_type                 |
+| auth_query                |
+| auth_user                 |
+| default_pool_size         |
+| min_pool_size             |
+| reserve_pool_size         |
+| reserve_pool_timeout      |
+| max_db_connections        |
+| max_user_connections      |
+| server_round_robin        |
+| ignore_startup_parameters |
+| disable_pqexec            |
+| application_name_add_host |
+| conffile                  |
+| service_name              |
+| job_name                  |
+| stats_period              |
+| syslog                    |
+| syslog_ident              |
+| syslog_facility           |
+| log_connections           |
+| log_disconnections        |
+| log_pooler_errors         |
+| log_stats                 |
+| verbose                   |
+| admin_users               |
+| stats_users               |
+| server_check_delay        |
+| server_check_query        |
+| server_fast_close         |
+| server_lifetime           |
+| server_idle_timeout       |
+| server_connect_timeout    |
+| server_login_retry        |
+| client_login_timeout      |
+| autodb_idle_timeout       |
+| dns_max_ttl               |
+| dns_nxdomain_ttl          |
+| dns_zone_check_period     |
+| client_tls_sslmode        |
+| client_tls_key_file       |
+| client_tls_cert_file      |
+| client_tls_ca_file        |
+| client_tls_protocols      |
+| client_tls_ciphers        |
+| client_tls_ecdhcurve      |
+| client_tls_dheparams      |
+| server_tls_sslmode        |
+| server_tls_ca_file        |
+| server_tls_key_file       |
+| server_tls_cert_file      |
+| server_tls_protocols      |
+| server_tls_ciphers        |
+| query_timeout             |
+| query_wait_timeout        |
+| client_idle_timeout       |
+| idle_transaction_timeout  |
+| pkt_buf                   |
+| max_packet_size           |
+| listen_backlog            |
+| sbuf_loopcnt              |
+| suspend_timeout           |
+| tcp_defer_accept          |
+| tcp_socket_buffer         |
+| tcp_keepalive             |
+| tcp_keepcnt               |
+| tcp_keepidle              |
+| tcp_keepintvl             |
+
