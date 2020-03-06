@@ -445,7 +445,7 @@ ul.zg-ul-select.active li.active:hover {
     height: auto;
     font-size: 1.1rem;
     line-height: 60px;
-    max-height: 100vh;
+    /* max-height: 100vh; */
     transition: max-height 1s ease-out;
     position: relative;
 }
@@ -474,7 +474,7 @@ ul.zg-ul-select.active li.active:hover {
     height: 7px;
     border-radius: 100%;
     background: var(--blue);
-    top: 26px;
+    top: 22px;
     margin-left: -22px;
 }
 
@@ -1316,7 +1316,7 @@ label.switch {
     border: 1px solid var(--gray2);
     padding: 10px;
     position: relative;
-    border-radius: 5px;
+    border-radius: 25px;
     cursor: pointer;
     margin-bottom: 20px;
 }
@@ -1331,7 +1331,7 @@ label.switch {
     color: var(--gray3);
     border-radius: 20px;
     position: absolute;
-    right: 5px;
+    right: 4px;
     top: 4px;
     font-size: 11px;
     border-color: var(--gray3);
