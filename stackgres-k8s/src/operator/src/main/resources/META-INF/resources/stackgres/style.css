@@ -797,6 +797,7 @@ footer .tooltip p {
 #notifications .tooltip {
     top: 60px;
     right: 35px;
+    width: 350px;
 }
 
 #nav .tooltip:before {
