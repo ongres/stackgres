@@ -44,6 +44,9 @@ public class BackupConfigTransformer
   }
 
   public StackGresBackupConfigSpec getCustomResourceSpec(BackupConfigSpec source) {
+    if (source == null) {
+      return null;
+    }
     StackGresBackupConfigSpec transformation = new StackGresBackupConfigSpec();
     transformation.setCompressionMethod(source.getCompressionMethod());
     transformation.setDiskRateLimit(source.getDiskRateLimit());
@@ -185,6 +188,9 @@ public class BackupConfigTransformer
   }
 
   public BackupConfigSpec getResourceSpec(StackGresBackupConfigSpec source) {
+    if (source == null) {
+      return null;
+    }
     BackupConfigSpec transformation = new BackupConfigSpec();
     transformation.setCompressionMethod(source.getCompressionMethod());
     transformation.setDiskRateLimit(source.getDiskRateLimit());
