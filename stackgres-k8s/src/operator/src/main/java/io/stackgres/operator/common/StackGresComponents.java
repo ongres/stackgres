@@ -114,7 +114,7 @@ public enum StackGresComponents {
         versions.get("components").get("pgbouncer").get("versions").get(0).asText());
     properties.put("postgres_exporter",
         versions.get("components").get("postgres_exporter").get("versions").get(0).asText());
-    properties.put("envoy", "1.13.0");
+    properties.put("envoy", "1.13.1");
     File file = new File(args[0]);
     try (FileOutputStream fileOutputStream = new FileOutputStream(file)) {
       properties.store(fileOutputStream, null);
