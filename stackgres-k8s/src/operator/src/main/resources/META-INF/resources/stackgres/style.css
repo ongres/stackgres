@@ -33,20 +33,25 @@ article,aside,details,figcaption,figure,footer,header,hgroup,hr,menu,nav,section
     -webkit-box-shadow: none;
     background-color: #F5F5F5;
     border: 0;
+    cursor: pointer;
+    border-left: 1px solid var(--gray1);
 }
 
 ::-webkit-scrollbar
 {
-    width: 5px;
+    width: 8px;
     height: 5px;
     background-color: #F5F5F5;
+    cursor: pointer;
+    border-left: 1px solid var(--gray1);
 }
 
 ::-webkit-scrollbar-thumb
 {
     background-color: #00ADB5;
     border: 0;
-    border-radius: 3px;
+    border-radius: 4px;
+    cursor: pointer;
 }
 
 body, html {
@@ -797,7 +802,6 @@ footer .tooltip p {
 #notifications .tooltip {
     top: 60px;
     right: 35px;
-    width: 350px;
 }
 
 #nav .tooltip:before {
@@ -1395,6 +1399,7 @@ label.switch {
     border-top-left-radius: 0;
     border-bottom-left-radius: 0;
     border-left: 0;
+    background-position-x: 95.5%;
 }
 
 .form button {
