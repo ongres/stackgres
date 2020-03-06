@@ -17,10 +17,10 @@ ___
 
 **Spec**
 
-| Property | Required | Type | Description | Default |
-|-----------|------|------|-------------|------|
-| cpu | ✓ | string  | CPU amount to be used  | 1 |
-| memory | ✓ | string  | Memory size to be used  | 2Gi |
+| Property | Required | Updatable | Default | Type   | Description |
+|:---------|----------|-----------|:--------|:-------|:------------|
+| cpu      |          | ✓         | 1       | string | CPU amount to be used |
+| memory   |          | ✓         | 2Gi     | string | Memory size to be used |
 
 Example:
 

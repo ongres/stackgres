@@ -20,9 +20,9 @@ If a StackGres cluster is created without specifying PostgreSQL configuration
 
 Here is the list of default configuration name with his kind:
 
-| Name | Kind |
-|------|------|
-| defaultpgconfig | StackGresPostgresConfig |
-| defaultprofile | StackGresProfile |
-| defaultpgbouncer | StackGresConnectionPoolingConfig |
-| defaultbackupconfig | StackGresBackupConfig |
+| Name                | Kind                             |
+|:--------------------|:---------------------------------|
+| defaultpgconfig     | StackGresPostgresConfig          |
+| defaultprofile      | StackGresProfile                 |
+| defaultpgbouncer    | StackGresConnectionPoolingConfig |
+| defaultbackupconfig | StackGresBackupConfig            |
