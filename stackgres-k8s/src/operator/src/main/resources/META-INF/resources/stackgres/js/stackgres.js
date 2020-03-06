@@ -110,6 +110,20 @@ const router = new VueRouter({
       },
     },
     { 
+      path: '/crd/:action/backup/:namespace', 
+      component: CreateBackup,
+      meta: {
+        conditionalRoute: false
+      },
+    },
+    { 
+      path: '/crd/:action/backup/:namespace/:cluster/:name', 
+      component: CreateBackup,
+      meta: {
+        conditionalRoute: false
+      },
+    },
+    { 
       path: '/overview/:namespace', 
       component: ClusterOverview,
       meta: {
@@ -748,6 +762,14 @@ const vm = new Vue({
     }.bind(this), 10000);
 
   }
+});
+
+Vue.filter('params', function(params){
+  params = '<strong>'+params;
+  params.replace(new RegExp('\r?\n','g'), '<br /><strong>');
+  params.replace('=','</strong> = ');
+
+  return params;
 });
 
 Vue.filter('prettyCRON', function (value) {
