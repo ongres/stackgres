@@ -44,6 +44,9 @@ public class BackupTransformer extends AbstractResourceTransformer<BackupDto, St
   }
 
   private StackGresBackupSpec getCustomResourceSpec(BackupSpec source) {
+    if (source == null) {
+      return null;
+    }
     StackGresBackupSpec transformation = new StackGresBackupSpec();
     transformation.setCluster(source.getCluster());
     transformation.setIsPermanent(source.getIsPermanent());
@@ -80,6 +83,9 @@ public class BackupTransformer extends AbstractResourceTransformer<BackupDto, St
   }
 
   private BackupSpec getResourceSpec(StackGresBackupSpec source) {
+    if (source == null) {
+      return null;
+    }
     BackupSpec transformation = new BackupSpec();
     transformation.setCluster(source.getCluster());
     transformation.setIsPermanent(source.getIsPermanent());

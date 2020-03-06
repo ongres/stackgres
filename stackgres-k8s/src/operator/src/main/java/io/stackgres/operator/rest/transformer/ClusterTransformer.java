@@ -68,6 +68,9 @@ public class ClusterTransformer
   }
 
   public StackGresClusterSpec getCustomResourceSpec(ClusterSpec source) {
+    if (source == null) {
+      return null;
+    }
     StackGresClusterSpec transformation = new StackGresClusterSpec();
     transformation.setBackupConfig(source.getBackupConfig());
     transformation.setConnectionPoolingConfig(source.getConnectionPoolingConfig());
@@ -110,6 +113,9 @@ public class ClusterTransformer
   }
 
   public ClusterSpec getResourceSpec(StackGresClusterSpec source) {
+    if (source == null) {
+      return null;
+    }
     ClusterSpec transformation = new ClusterSpec();
     transformation.setBackupConfig(source.getBackupConfig());
     transformation.setConnectionPoolingConfig(source.getConnectionPoolingConfig());

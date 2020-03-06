@@ -43,6 +43,9 @@ public class PostgresConfigTransformer
   }
 
   private StackGresPostgresConfigSpec getCustomResourceSpec(PostgresConfigSpec source) {
+    if (source == null) {
+      return null;
+    }
     StackGresPostgresConfigSpec transformation = new StackGresPostgresConfigSpec();
     transformation.setPgVersion(source.getPgVersion());
     final String postgresqlConf = source.getPostgresqlConf();
@@ -59,6 +62,9 @@ public class PostgresConfigTransformer
   }
 
   private PostgresConfigSpec getResourceSpec(StackGresPostgresConfigSpec source) {
+    if (source == null) {
+      return null;
+    }
     PostgresConfigSpec transformation = new PostgresConfigSpec();
     transformation.setPgVersion(source.getPgVersion());
     transformation.setPostgresqlConf(

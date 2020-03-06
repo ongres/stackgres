@@ -46,6 +46,9 @@ public class PgbouncerConfigTransformer
   }
 
   private StackGresPgbouncerConfigSpec getCustomResourceSpec(PgbouncerConfigSpec source) {
+    if (source == null) {
+      return null;
+    }
     StackGresPgbouncerConfigSpec transformation = new StackGresPgbouncerConfigSpec();
     final String pgbouncerConf = source.getPgbouncerConf();
     if (pgbouncerConf != null) {
@@ -64,6 +67,9 @@ public class PgbouncerConfigTransformer
   }
 
   private PgbouncerConfigSpec getResourceSpec(StackGresPgbouncerConfigSpec source) {
+    if (source == null) {
+      return null;
+    }
     PgbouncerConfigSpec transformation = new PgbouncerConfigSpec();
     transformation.setPgbouncerConf(
         Seq.seq(source.getPgbouncerConf().entrySet())

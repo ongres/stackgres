@@ -33,6 +33,9 @@ public class ProfileTransformer
   }
 
   private StackGresProfileSpec getCustomResourceSpec(ProfileSpec source) {
+    if (source == null) {
+      return null;
+    }
     StackGresProfileSpec transformation = new StackGresProfileSpec();
     transformation.setCpu(source.getCpu());
     transformation.setMemory(source.getMemory());
@@ -40,6 +43,9 @@ public class ProfileTransformer
   }
 
   private ProfileSpec getResourceSpec(StackGresProfileSpec source) {
+    if (source == null) {
+      return null;
+    }
     ProfileSpec transformation = new ProfileSpec();
     transformation.setCpu(source.getCpu());
     transformation.setMemory(source.getMemory());
