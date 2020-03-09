@@ -197,6 +197,8 @@ var Backups = Vue.component("sg-backup", {
 								</template>
 							</li>
 						</ul>
+
+						<router-link :to="'/crd/edit/backup/'+$route.params.namespace+'/'+back.data.spec.cluster+'/'+back.name" class="btn">Edit backup</router-link> <button v-on:click="deleteBackup(back.name, back.data.metadata.namespace)" class="btn border">Delete Backup</button>
 					</div>
 				</div>
 			</div>
@@ -217,5 +219,44 @@ var Backups = Vue.component("sg-backup", {
 			return store.state.currentNamespace
 		},
 
+	},
+	methods: {
+		deleteBackup: function(backupName, backupNamespace) {
+			//e.preventDefault();
+
+			let confirmDelete = confirm("DELETE ITEM\nAre you sure you want to delete this item?")
+
+			if(confirmDelete) {
+				const backup = {
+					name: backupName,
+					namespace: backupNamespace
+				}
+	
+				const res = axios
+				.delete(
+					apiURL+'backup/', 
+					{
+						data: {
+							"metadata": {
+								"name": backup.name,
+								"namespace": backup.namespace
+							}
+						}
+					}
+				)
+				.then(function (response) {
+					console.log("DELETED");
+					//console.log(response);
+					notify('Backup <strong>'+vm.$route.params.name+'</strong> deleted successfully', 'message');
+					vm.fetchAPI();
+					router.push('/backups/'+store.state.currentNamespace);                        
+				})
+				.catch(function (error) {
+					console.log(error.response);
+					notify(error.response.data.message,'error');
+				});
+			}
+
+		}	
 	}
 })
