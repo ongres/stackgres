@@ -17,28 +17,13 @@ e2e_test_install() {
   wait_pods_running "$CLUSTER_NAMESPACE" 2
 }
 
-install_prometheus_crd(){
-  PROMETHUS_CRD_REPO="https://raw.githubusercontent.com/coreos/prometheus-operator/release-0.35/example/prometheus-operator-crd/monitoring.coreos.com_${1}.yaml"
-  kubectl apply -f "$PROMETHUS_CRD_REPO" --validate=false
-  wait_until kubectl get crd "${1}.monitoring.coreos.com"
-}
-
 install_prometheus(){
   kubectl create namespace "$PROMETHEUS_NAMESPACE" || true
 
-  #kubectl apply -f "$SPEC_PATH/promethus-values.yaml"
-
-  install_prometheus_crd "alertmanagers"
-  install_prometheus_crd "podmonitors"
-  install_prometheus_crd "prometheuses"
-  install_prometheus_crd "prometheusrules"
-  install_prometheus_crd "servicemonitors"
-
-  helm template prometheus stable/prometheus-operator \
+  helm install prometheus stable/prometheus-operator \
     --namespace "$PROMETHEUS_NAMESPACE" \
-    --set prometheusOperator.createCustomResource=false \
-     | kubectl apply -f - --validate=false
-
+    --disable-openapi-validation \
+    --set prometheusOperator.createCustomResource=false
 }
 
 e2e_test_uninstall() {
