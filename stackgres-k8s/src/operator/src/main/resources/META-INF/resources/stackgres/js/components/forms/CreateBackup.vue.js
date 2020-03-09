@@ -117,12 +117,12 @@ var CreateBackup = Vue.component("create-backup", {
                 if(this.editMode) {
                     const res = axios
                     .put(
-                        apiURL+'backupconfig/', 
+                        apiURL+'backup/', 
                         backup 
                     )
                     .then(function (response) {
                         console.log("GOOD");
-                        notify('Backup configuration <strong>"'+backup.metadata.name+'"</strong> updated successfully', 'message');
+                        notify('Backup <strong>"'+backup.metadata.name+'"</strong> updated successfully', 'message');
 
                         vm.fetchAPI();
                         router.push('/backups/'+backup.metadata.namespace);
