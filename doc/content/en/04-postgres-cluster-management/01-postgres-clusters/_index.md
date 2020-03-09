@@ -87,7 +87,6 @@ By default, stackgres it's creates as an empty database. To create a cluster wit
 | Property                | Required | Updatable | Type     | Default | Description |
 |:------------------------|----------|-----------|:---------|:--------|:------------|
 | fromBackup              | ✓        |           | string   |         | The backup CR UID to restore the cluster data |
-| autoCopySecrets         |          |           | boolean  | true    | If you are creating a cluster in a different namespace than where backup CR is, you might need to copy the secrets where the credentials to access the backup storage to the namespace where you are installing the cluster. If is set to true stackgres will do it automatically.  |
 | downloadDiskConcurrency |          |           | integer  | 1       | How many concurrent stream will be created while downloading the backup |
 
 Example:
@@ -100,7 +99,6 @@ metadata:
 spec:
   restore:
     fromBackup: d7e660a9-377c-11ea-b04b-0242ac110004
-    autoCopySecrets: true
     downloadDiskConcurrency: 1
 ```
 
