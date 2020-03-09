@@ -28,9 +28,11 @@ public class BackupConfigTransformer
     extends AbstractResourceTransformer<BackupConfigDto, StackGresBackupConfig> {
 
   @Override
-  public StackGresBackupConfig toCustomResource(BackupConfigDto source) {
-    StackGresBackupConfig transformation = new StackGresBackupConfig();
-    transformation.setMetadata(getCustomResourceMetadata(source));
+  public StackGresBackupConfig toCustomResource(BackupConfigDto source,
+      StackGresBackupConfig original) {
+    StackGresBackupConfig transformation =
+        original != null ? original : new StackGresBackupConfig();
+    transformation.setMetadata(getCustomResourceMetadata(source, original));
     transformation.setSpec(getCustomResourceSpec(source.getSpec()));
     return transformation;
   }

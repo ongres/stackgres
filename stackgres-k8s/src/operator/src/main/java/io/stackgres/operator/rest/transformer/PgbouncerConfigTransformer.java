@@ -27,9 +27,11 @@ public class PgbouncerConfigTransformer
       "^\\s*([^\\s=]+)\\s*=\\s*(:?'([^']+)'|([^ ]+))\\s*$");
 
   @Override
-  public StackGresPgbouncerConfig toCustomResource(PgbouncerConfigDto source) {
-    StackGresPgbouncerConfig transformation = new StackGresPgbouncerConfig();
-    transformation.setMetadata(getCustomResourceMetadata(source));
+  public StackGresPgbouncerConfig toCustomResource(PgbouncerConfigDto source,
+      StackGresPgbouncerConfig original) {
+    StackGresPgbouncerConfig transformation =
+        original != null ? original : new StackGresPgbouncerConfig();
+    transformation.setMetadata(getCustomResourceMetadata(source, original));
     final PgbouncerConfigSpec spec = source.getSpec();
     if (spec != null) {
       transformation.setSpec(getCustomResourceSpec(spec));

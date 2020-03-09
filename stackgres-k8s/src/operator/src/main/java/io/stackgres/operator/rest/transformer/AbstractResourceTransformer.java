@@ -13,8 +13,8 @@ import io.stackgres.operator.rest.dto.ResourceDto;
 public abstract class AbstractResourceTransformer<T extends ResourceDto, R extends CustomResource>
     implements ResourceTransformer<T, R> {
 
-  protected ObjectMeta getCustomResourceMetadata(T source) {
-    ObjectMeta metadata = new ObjectMeta();
+  protected ObjectMeta getCustomResourceMetadata(T source, R original) {
+    ObjectMeta metadata = original != null ? original.getMetadata() : new ObjectMeta();
     if (source.getMetadata() != null) {
       metadata.setNamespace(source.getMetadata().getNamespace());
       metadata.setName(source.getMetadata().getName());
