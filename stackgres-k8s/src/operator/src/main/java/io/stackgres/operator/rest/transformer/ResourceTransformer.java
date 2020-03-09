@@ -5,12 +5,14 @@
 
 package io.stackgres.operator.rest.transformer;
 
+import javax.annotation.Nullable;
+
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.operator.rest.dto.ResourceDto;
 
 public interface ResourceTransformer<T extends ResourceDto, R extends CustomResource> {
 
-  R toCustomResource(T resource);
+  R toCustomResource(T resource, @Nullable R originalResource);
 
   T toResource(R customResource);
 

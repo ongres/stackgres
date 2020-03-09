@@ -78,7 +78,7 @@ public class AbstractRestService<T extends ResourceDto, R extends CustomResource
   @Override
   @POST
   public void create(T resource) {
-    scheduler.create(transformer.toCustomResource(resource));
+    scheduler.create(transformer.toCustomResource(resource, null));
   }
 
   /**
@@ -88,7 +88,7 @@ public class AbstractRestService<T extends ResourceDto, R extends CustomResource
   @Override
   @DELETE
   public void delete(T resource) {
-    scheduler.delete(transformer.toCustomResource(resource));
+    scheduler.delete(transformer.toCustomResource(resource, null));
   }
 
   /**
@@ -98,6 +98,9 @@ public class AbstractRestService<T extends ResourceDto, R extends CustomResource
   @Override
   @PUT
   public void update(T resource) {
-    scheduler.update(transformer.toCustomResource(resource));
+    scheduler.update(transformer.toCustomResource(resource,
+        finder.findByNameAndNamespace(
+            resource.getMetadata().getName(), resource.getMetadata().getNamespace())
+        .orElseThrow(NotFoundException::new)));
   }
 }

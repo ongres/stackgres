@@ -27,9 +27,11 @@ public class PostgresConfigTransformer
       "^\\s*([^\\s=]+)\\s*=\\s*(:?'([^']+)'|([^ ]+))\\s*$");
 
   @Override
-  public StackGresPostgresConfig toCustomResource(PostgresConfigDto source) {
-    StackGresPostgresConfig transformation = new StackGresPostgresConfig();
-    transformation.setMetadata(getCustomResourceMetadata(source));
+  public StackGresPostgresConfig toCustomResource(PostgresConfigDto source,
+      StackGresPostgresConfig original) {
+    StackGresPostgresConfig transformation =
+        original != null ? original : new StackGresPostgresConfig();
+    transformation.setMetadata(getCustomResourceMetadata(source, original));
     transformation.setSpec(getCustomResourceSpec(source.getSpec()));
     return transformation;
   }

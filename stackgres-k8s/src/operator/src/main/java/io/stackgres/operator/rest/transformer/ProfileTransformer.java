@@ -17,9 +17,9 @@ public class ProfileTransformer
     extends AbstractResourceTransformer<ProfileDto, StackGresProfile> {
 
   @Override
-  public StackGresProfile toCustomResource(ProfileDto source) {
-    StackGresProfile transformation = new StackGresProfile();
-    transformation.setMetadata(getCustomResourceMetadata(source));
+  public StackGresProfile toCustomResource(ProfileDto source, StackGresProfile original) {
+    StackGresProfile transformation = original != null ? original : new StackGresProfile();
+    transformation.setMetadata(getCustomResourceMetadata(source, original));
     transformation.setSpec(getCustomResourceSpec(source.getSpec()));
     return transformation;
   }
