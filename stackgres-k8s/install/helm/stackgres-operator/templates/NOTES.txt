@@ -1,6 +1,13 @@
 Release Name: {{ .Release.Name }}
 StackGres Version: {{ .Chart.Version }}
-Image: {{ .Values.image.name }}:{{ .Values.image.tag }}
+
+   _____ _             _     _____
+  / ____| |           | |   / ____|
+ | (___ | |_ __ _  ___| | _| |  __ _ __ ___  ___
+  \___ \| __/ _` |/ __| |/ / | |_ | '__/ _ \/ __|
+  ____) | || (_| | (__|   <| |__| | | |  __/\__ \
+ |_____/ \__\__,_|\___|_|\_\\_____|_|  \___||___/
+                                  by OnGres, Inc.
 
 {{- if not .Values.cert.autoapprove }}
 To complete the process approve operator certificate signing request:
@@ -8,5 +15,5 @@ To complete the process approve operator certificate signing request:
 {{- end }}
 
 Check if the operator was successfuly deployed:
-- kubectl get deployment -n {{ .Release.Namespace }}
+- kubectl describe deployment -n {{ .Release.Namespace }}
 

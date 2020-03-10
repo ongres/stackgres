@@ -32,7 +32,7 @@ grafana: {}
   # token: "eyJrIjoidXc4NXJPa1VOdmNHVkFYMGJuME9zcnJucnBYRU1FQTMiLCJuIjoic3RhY2tncmVzIiwiaWQiOjF9"
   # Copy and paste grafana service hostname:
   # - kubectl get service prometheus-operator-grafana --template $'{{ .metadata.name }}.{{ .metadata.namespace }}.svc\n'
-  # httpHost: "prometheus-operator-grafana.default.svc"
+  # webHost: "prometheus-operator-grafana.default.svc"
   # Set the HTTP scheme used by grafana:
   # schema: "http"
 
@@ -43,3 +43,20 @@ developer: {}
   # enableJvmDebug: false # Only work with JVM version and allow connect 
   #                       # on port 8000 of operator Pod with jdb or similar
   # enableJvmDebugSuspend: false
+
+#Setting prometheus-operator.create to true will install prometheus-operator and embed grafana in the stackgres UI
+#It is also possible to embed an existing grafana by setting prometheus-operator.grafana.justEmbed to true
+prometheus-operator:
+  create: false
+  grafana:
+    justEmbed: false
+    protocol: http
+    adminPassword: prom-operator
+    #Use follwing fields to indicate a secret where the grafana admin credentials are stored
+    #secretName: 
+    #secretNamespace: 
+    #secretUserKey: 
+    #secretPassowrdKey: 
+    dashboardId: 9628
+  prometheusOperator:
+    createCustomResource: false
