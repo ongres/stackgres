@@ -878,6 +878,30 @@ function hideFields( fields ) {
   $(fields).slideUp();
 }
 
+// Sort tables by an specific parameter
+function sortTable( table, param, direction ) {
+  
+  table.sort((a,b) => {
+    let modifier = 1;
+    
+    if(direction === 'desc') modifier = -1;
+    
+    a = eval("a."+param);
+    b = eval("b."+param);
+
+    if(a < b)
+      return -1 * modifier;
+    
+    if(a > b)
+      return 1 * modifier;
+    
+    return 0;
+  });
+
+  return table;
+
+}
+
 
 /* jQuery */
 
@@ -1089,6 +1113,24 @@ $(document).ready(function(){
 
   $("form").submit(function(e){
     e.preventDefault(); 
+  });
+
+  $(document).on("click", ".sort th", function(){
+
+    /* if( $(this).hasClass("sorted") ){
+      if($(this).hasClass("asc"))
+        $(this).removeClass("asc").addClass("desc");
+      else
+        $(this).removeClass("desc").addClass("asc");
+    } else {
+      $(".sorted").removeClass("sorted asc desc");
+      $(this).addClass("sorted");
+    } */
+
+    $(".sorted").removeClass("sorted");
+    $(this).addClass("sorted");
+    $(".sort th").toggleClass("desc asc")
+    
   });
 
 });
