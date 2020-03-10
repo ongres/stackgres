@@ -131,7 +131,7 @@ const router = new VueRouter({
       },
     },
     { 
-      path: '/information/:namespace/:name', 
+      path: '/configuration/:namespace/:name', 
       component: ClusterInfo,
       meta: {
         conditionalRoute: false
@@ -250,7 +250,7 @@ router.beforeEach((to, from, next) => {
 
         //console.log(to);
 
-        if (store.state.currentCluster == {} && ( from.path.includes("profiles") || from.path.includes("configurations") ) && (to.path != ('/information/'+to.params.name)) ) { 
+        if (store.state.currentCluster == {} && ( from.path.includes("profiles") || from.path.includes("configurations") ) && (to.path != ('/configuration/'+to.params.name)) ) { 
             next({ path: '/'}) 
         } else { 
             next() 

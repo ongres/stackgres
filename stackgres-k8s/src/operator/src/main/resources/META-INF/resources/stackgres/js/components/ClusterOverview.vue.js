@@ -45,7 +45,7 @@ var ClusterOverview = Vue.component("cluster-overview", {
 					<template v-for="cluster in clusters">
 						<div class="row" v-if="cluster.data.metadata.namespace == currentNamespace">
 							<div class="col text">
-								{{ cluster.name }}
+								<router-link :to="'/status/'+currentNamespace+'/'+cluster.name" title="Cluster Status" class="no-color">{{ cluster.name }}</router-link>
 							</div>
 							<div class="col">
 								{{ cluster.data.spec.instances }}

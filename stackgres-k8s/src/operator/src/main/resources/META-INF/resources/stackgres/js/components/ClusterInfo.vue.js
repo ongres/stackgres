@@ -15,13 +15,11 @@ var ClusterInfo = Vue.component("cluster-info", {
 
 			<ul class="tabs">
 				<li>
-					<router-link :to="'/information/'+$route.params.namespace+'/'+$route.params.name" title="Information" class="info">Information</router-link>
-				</li>
-
-				<li>
 					<router-link :to="'/status/'+$route.params.namespace+'/'+$route.params.name" title="Status" class="status">Status</router-link>
 				</li>
-
+				<li>
+					<router-link :to="'/configuration/'+$route.params.namespace+'/'+$route.params.name" title="Configuration" class="info">Configuration</router-link>
+				</li>
 				<li>
 					<router-link id="grafana-btn" :to="'/grafana/'+$route.params.name" title="Grafana Dashboard" class="grafana" style="display:none;">Monitoring</router-link>
 				</li>

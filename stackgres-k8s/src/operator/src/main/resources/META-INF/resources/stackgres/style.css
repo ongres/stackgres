@@ -126,6 +126,10 @@ strong {
     color: var(--blue);
 }
 
+.no-color {
+    color: var(--gray5);
+}
+
 /* Loader */
 #loader {
     position: fixed;
@@ -936,6 +940,10 @@ ul.breadcrumbs {
     border-left: 0;
     border-bottom: 0;
     margin: -2px 10px 0;
+}
+
+.breadcrumbs .action {
+    text-transform: capitalize;
 }
 
 .breadcrumbs .namespace svg {

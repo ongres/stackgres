@@ -15,13 +15,11 @@ var ClusterStatus = Vue.component("cluster-status", {
 
 				<ul class="tabs">
 					<li>
-						<router-link :to="'/information/'+$route.params.namespace+'/'+$route.params.name" title="Information" class="info">Information</router-link>
-					</li>
-
-					<li>
 						<router-link :to="'/status/'+$route.params.namespace+'/'+$route.params.name" title="Status" class="status">Status</router-link>
 					</li>
-
+					<li>
+						<router-link :to="'/configuration/'+$route.params.namespace+'/'+$route.params.name" title="Configuration" class="info">Configuration</router-link>
+					</li>
 					<li>
 						<router-link id="grafana-btn" :to="'/grafana/'+$route.params.name" title="Grafana Dashboard" class="grafana" style="display:none;">Monitoring</router-link>
 					</li>
@@ -53,7 +51,11 @@ var ClusterStatus = Vue.component("cluster-status", {
 							{{ pod.name }}
 						</div>
 						<div :class="'col status '+pod.status.toLowerCase()">
-							<span v-if="pod.status == 'Running'">A</span> <span v-else>{{ pod.status.charAt(0) }}</span> {{ pod.role }}
+							<span v-if="pod.status == 'Running'">A</span>
+							<span v-else>{{ pod.status.charAt(0) }}</span> 
+							
+							<template v-if="pod.role == 'master'">Leader</template>
+							<template v-else>{{ pod.role }}</template>
 						</div>
 						<!--<div class="col link">
 							{{ pod.ip }}:{{ pod.port }}
