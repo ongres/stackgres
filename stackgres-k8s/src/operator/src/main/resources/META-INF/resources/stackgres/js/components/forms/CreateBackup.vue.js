@@ -140,7 +140,7 @@ var CreateBackup = Vue.component("create-backup", {
                     )
                     .then(function (response) {
                         console.log("GOOD");
-                        notify('Backup <strong>"'+backup.metadata.name+'"</strong> created successfully', 'message');
+                        notify('Backup <strong>"'+backup.metadata.name+'"</strong> started successfully.', 'message');
 
                         vm.fetchAPI();
                         router.push('/backups/'+backup.metadata.namespace);

@@ -752,6 +752,7 @@ footer {
     margin-left: 70px;
     display: none;
     line-height: 1;
+    width: 320px;
 }
 
 .hasTooltip.active .tooltip {
@@ -1407,7 +1408,11 @@ label.switch {
     background-position-x: 95.5%;
 }
 
-.form button {
+button {
+    cursor: pointer;
+}
+
+.form button, button {
     background: var(--blue);
     color: #fff;
     margin-top: 20px;
@@ -1417,14 +1422,13 @@ label.switch {
     border-radius: 20px;
     text-align: center;
     width: 200px;
-    cursor: pointer;
 }
 
 .form button + button, .form .btn + button, .btn + .btn, button + .btn {
     margin-left: 10px;
 }
 
-.form button.border {
+.form button.border, .btn.border {
     color: var(--blue);
     background: transparent;
 }
@@ -1474,4 +1478,73 @@ label.switch {
     opacity: .5;
     background: var(--gray1);
     cursor: not-allowed;
+}
+
+/* Table Layout */
+table {
+    width: 100%;
+    text-align: left;
+}
+
+tr:nth-child(odd) {
+    background: #fafafa;
+}
+
+th, td {
+    height: 40px;
+    vertical-align: middle;
+}
+
+th {
+    font-weight: normal;
+    text-transform: uppercase;
+    color: var(--gray3);
+}
+
+td.action {
+    text-align: right;
+    padding-right: 15px;
+    text-transform: uppercase;
+}
+
+.delete {
+    color: var(--gray4);
+    cursor: pointer;
+}
+
+.action a {
+    margin: 0 5px;
+}
+
+table .icon {
+    text-align: center;
+}
+
+tr:first-child {
+    border-top: 1px solid #F0F0F1;
+}
+
+tr:last-child {
+    border-bottom: 1px solid #F0F0F1;
+}
+
+table .sort {
+    cursor: pointer;
+}
+
+.sort th span:after {
+    content: "▾";
+    opacity: 0;
+    display: inline-block;
+    margin-left: 5px;
+    position: relative;
+    top: -1px;
+}
+
+th.sorted span:after, .sort th:hover span:after {
+    opacity: 1;
+}
+
+.sorted.asc span:after {
+    transform: rotate(180deg);
 }
