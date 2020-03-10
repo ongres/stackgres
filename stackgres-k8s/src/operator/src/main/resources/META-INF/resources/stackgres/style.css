@@ -950,6 +950,10 @@ ul.breadcrumbs {
     transform: scale(.85);
 }
 
+.breadcrumbs li:nth-child(2) svg {
+    transform: scale(.8);
+}
+
 .breadcrumbs li.namespace {
     font-weight: bold;
 }
