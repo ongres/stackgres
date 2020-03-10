@@ -141,6 +141,7 @@ strong {
     top: 0;
     border-radius: 100%;
     background: url("img/loader.gif") center center no-repeat;
+    mix-blend-mode: darken;
     background-size: 80px;
 }
 
