@@ -18,7 +18,7 @@ var Side = Vue.component("sg-side", {
 					<ul>
 						<template v-for="cluster in clusters">
 							<li v-if="cluster.data.metadata.namespace == currentNamespace">
-								<router-link :to="'/information/'+cluster.data.metadata.namespace+'/'+cluster.name" class="item" :class="cluster.name">{{ cluster.name }}</router-link>
+								<router-link :to="'/status/'+cluster.data.metadata.namespace+'/'+cluster.name" class="item" :class="cluster.name">{{ cluster.name }}</router-link>
 							</li>
 						</template>
 						<li><router-link to="/crd/create/cluster/" class="addnew item">Add New</router-link></li>
