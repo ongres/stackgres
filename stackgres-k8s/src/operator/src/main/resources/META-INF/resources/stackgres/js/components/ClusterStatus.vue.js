@@ -53,7 +53,7 @@ var ClusterStatus = Vue.component("cluster-status", {
 							{{ pod.name }}
 						</div>
 						<div :class="'col status '+pod.status.toLowerCase()">
-							<span>{{ pod.status.charAt(0) }}</span> {{ pod.role }}
+							<span v-if="pod.status == 'Running'">A</span> <span v-else>{{ pod.status.charAt(0) }}</span> {{ pod.role }}
 						</div>
 						<!--<div class="col link">
 							{{ pod.ip }}:{{ pod.port }}
@@ -68,7 +68,7 @@ var ClusterStatus = Vue.component("cluster-status", {
 				STATUS LEGEND:
 
 				<li class="status running">
-					<span>R</span> Running Pod
+					<span>A</span> Active Pod
 				</li>
 
 				<li class="status pending">
