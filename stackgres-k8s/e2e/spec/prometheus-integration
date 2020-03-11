@@ -122,7 +122,7 @@ check_envoy_service_monitor() {
 }
 
 check_grafana_embedded() {
-  if wait_until kubectl exec -i -n "$CLUSTER_NAMESPACE" curl -- curl "https://localhost:8443/grafana" -o /dev/null --fail
+  if wait_until kubectl exec -i -n "$CLUSTER_NAMESPACE" curl -- curl -s -k "https://stackgres-operator.stackgres/grafana" -o /dev/null --fail
   then
     echo "Success. Grafana URL can be retrieved"
   else
@@ -130,9 +130,9 @@ check_grafana_embedded() {
     return 1
   fi
 
-  GRAFANA_URL="$(kubectl exec -i -n "$CLUSTER_NAMESPACE" curl -- curl "https://localhost:8443/grafana" --fail)"
+  GRAFANA_URL="$(kubectl exec -i -n "$CLUSTER_NAMESPACE" curl -- curl -s -k "https://stackgres-operator.stackgres/grafana" --fail)"
 
-  if wait_until kubectl exec -i -n "$CLUSTER_NAMESPACE" curl -- curl "$GRAFANA_URL" -o /dev/null --fail
+  if wait_until kubectl exec -i -n "$CLUSTER_NAMESPACE" curl -- curl -s -k "$GRAFANA_URL" -o /dev/null --fail
   then
     echo "Success. Grafana URL $GRAFANA_URL is accessible"
   else
