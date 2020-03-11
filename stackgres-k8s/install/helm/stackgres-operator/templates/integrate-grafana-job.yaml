@@ -1,5 +1,4 @@
-{{- with $prometheus := (index .Values "prometheus-operator") }}
-{{- if or $prometheus.create $prometheus.grafana.justEmbed }}
+{{- if or (index .Values "prometheus-operator").create .Values.grafana.autoEmbed }}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -27,17 +26,21 @@ spec:
           - "/bin/bash"
           - "-ecx"
           - |
-            {{- if and $prometheus.grafana.secretNamespace $prometheus.grafana.secretName $prometheus.grafana.secretUserKey $prometheus.grafana.secretPassowrdKey }}
-            grafana_credentials="$(kubectl get secret -n ):{{ $prometheus.grafana.adminPassword }}"
+            {{- if and .Values.grafana.namespace .Values.grafana.secretName .Values.grafana.secretUserKey .Values.grafana.secretPasswordKey }}
+            grafana_credentials="$(kubectl get secret -n {{ .Values.grafana.namespace }} {{ .Values.grafana.secretName }} --template {{ "'{{ .data." }}{{ .Values.grafana.secretUserKey }}{{ " }}'" }}"):$(kubectl get secret -n {{ .Release.Namespace }} {{ .Values.grafana.secretName }} --template {{ "'{{ .data." }}{{ .Values.grafana.secretPasswordKey }}{{ " }}'" }}")"
             {{- else }}
-            grafana_credentials="admin:{{ $prometheus.grafana.adminPassword }}"
+            grafana_credentials="{{ .Values.grafana.user }}:{{ .Values.grafana.password }}"
             {{- end }}
-            grafana_host="{{ $prometheus.grafana.protocol }}://{{ .Release.Name }}-grafana"
-            grafana_prometheus_datasource_name=Prometheus
+            {{- if .Values.grafana.webHost }}
+            grafana_host="{{ .Values.grafana.schema }}://{{ .Values.grafana.webHost }}"
+            {{- else }}
+            grafana_host="{{ .Values.grafana.schema }}://{{ .Release.Name }}-grafana"
+            {{- end }}
+            grafana_prometheus_datasource_name="{{ .Values.grafana.datasourceName }}"
             curl_grafana_api() {
               curl -sk -H "Accept: application/json" -H "Content-Type: application/json" -u "$grafana_credentials" "$@"
             }
-            dashboard_id="{{ $prometheus.grafana.dashboardId }}"
+            dashboard_id="{{ .Values.grafana.dashboardId }}"
             dashboard_json="$(cat << EOF
             {
               "dashboard": $(curl_grafana_api "$grafana_host/api/gnet/dashboards/$dashboard_id" | jq .json),
@@ -57,10 +60,13 @@ spec:
             grafana_api_key_token="$(curl_grafana_api -X POST -d '{"name":"stackgres", "role": "Viewer"}' "$grafana_host/api/auth/keys" | jq -r .key)"
             kubectl set env -n {{ .Release.Namespace }} deployment/{{ .Release.Name }} \
               GRAFANA_EMBEDDED=true \
-              GRAFANA_URL="$grafana_dashboard_url" \
-              GRAFANA_SCHEME="{{ $prometheus.grafana.protocol }}" \
-              GRAFANA_HTTP_HOST="{{ .Release.Name }}-grafana" \
+              GRAFANA_URL_PATH="$grafana_dashboard_url" \
+              GRAFANA_SCHEMA="{{ .Values.grafana.schema }}" \
+              {{- if .Values.grafana.webHost }}
+              GRAFANA_WEB_HOST="{{ .Values.grafana.webHost }}" \
+              {{- else }}
+              GRAFANA_WEB_HOST="{{ .Release.Name }}-grafana" \
+              {{- end }}
               GRAFANA_TOKEN="$grafana_api_key_token"
       restartPolicy: OnFailure
-{{- end }}
 {{ end }}

@@ -48,7 +48,7 @@ data:
         index index.html index.htm;
         proxy_set_header Authorization "Bearer ${GRAFANA_TOKEN}";
         proxy_hide_header X-Frame-Options;
-        proxy_pass "${GRAFANA_SCHEME}://${GRAFANA_WEB_HOST}";
+        proxy_pass "${GRAFANA_SCHEMA}://${GRAFANA_WEB_HOST}";
       }
     }
 

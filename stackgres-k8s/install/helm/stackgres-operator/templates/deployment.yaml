@@ -94,7 +94,7 @@ spec:
             value: "true"
           - name: GRAFANA_URL_PATH
             value: "{{ regexReplaceAll "^https?://[^/]+(/.*)$" .Values.grafana.url "${1}" }}"
-          - name: GRAFANA_SCHEME
+          - name: GRAFANA_SCHEMA
             value: "{{ default "http" .Values.grafana.scheme }}"
           - name: GRAFANA_WEB_HOST
             value: "{{ regexReplaceAll "/" .Values.grafana.webHost "" }}"
@@ -103,7 +103,7 @@ spec:
           {{- else }}
           - name: GRAFANA_URL_PATH
             value: "/"
-          - name: GRAFANA_SCHEME
+          - name: GRAFANA_SCHEMA
             value: "http"
           - name: GRAFANA_WEB_HOST
             value: "localhost:8080"
@@ -118,7 +118,7 @@ spec:
             envsubst '
               $GRAFANA_EMBEDDED
               $GRAFANA_URL_PATH
-              $GRAFANA_SCHEME
+              $GRAFANA_SCHEMA
               $GRAFANA_WEB_HOST
               $GRAFANA_TOKEN' \
               < /etc/nginx/template.d/stackgres-operator.template \

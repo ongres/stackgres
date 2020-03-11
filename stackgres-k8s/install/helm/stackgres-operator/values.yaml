@@ -21,7 +21,18 @@ cert:
 prometheus:
   allowAutobind: true
 
-grafana: {}
+grafana:
+  #Embed an existing grafana by setting grafana.autoEmbed to true
+  autoEmbed: false
+  user: admin
+  password: prom-operator
+  #Use follwing fields to indicate a secret where the grafana admin credentials are stored
+  #secretNamespace: 
+  #secretName: 
+  #secretUserKey: 
+  #secretPasswordKey: 
+  datasourceName: Prometheus
+  dashboardId: 9628
   # Create grafana dashboard for postgres exporter and copy/paste share URL:
   # - Grafana > Create > Import > Grafana.com Dashboard 9628
   # Copy/paste grafana dashboard URL for postgres exporter:
@@ -45,18 +56,7 @@ developer: {}
   # enableJvmDebugSuspend: false
 
 #Setting prometheus-operator.create to true will install prometheus-operator and embed grafana in the stackgres UI
-#It is also possible to embed an existing grafana by setting prometheus-operator.grafana.justEmbed to true
 prometheus-operator:
   create: false
-  grafana:
-    justEmbed: false
-    protocol: http
-    adminPassword: prom-operator
-    #Use follwing fields to indicate a secret where the grafana admin credentials are stored
-    #secretName: 
-    #secretNamespace: 
-    #secretUserKey: 
-    #secretPassowrdKey: 
-    dashboardId: 9628
   prometheusOperator:
     createCustomResource: false
