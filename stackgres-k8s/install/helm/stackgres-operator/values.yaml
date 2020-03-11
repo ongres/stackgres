@@ -26,7 +26,12 @@ grafana:
   autoEmbed: false
   user: admin
   password: prom-operator
-  #Use follwing fields to indicate a secret where the grafana admin credentials are stored
+  # Set the HTTP scheme used by grafana:
+  schema: http
+  # Copy and paste grafana service hostname:
+  # - kubectl get service prometheus-operator-grafana --template $'{{ .metadata.name }}.{{ .metadata.namespace }}.svc\n'
+  # webHost: "prometheus-operator-grafana.default.svc"
+  #Use follwing fields to indicate a secret where the grafana admin credentials are stored (replace user/password)
   #secretNamespace: 
   #secretName: 
   #secretUserKey: 
@@ -41,11 +46,6 @@ grafana:
   # Create and copy/paste grafana API token:
   # - Grafana > Configuration > API Keys > Add API key (for viewer) > Copy key value
   # token: "eyJrIjoidXc4NXJPa1VOdmNHVkFYMGJuME9zcnJucnBYRU1FQTMiLCJuIjoic3RhY2tncmVzIiwiaWQiOjF9"
-  # Copy and paste grafana service hostname:
-  # - kubectl get service prometheus-operator-grafana --template $'{{ .metadata.name }}.{{ .metadata.namespace }}.svc\n'
-  # webHost: "prometheus-operator-grafana.default.svc"
-  # Set the HTTP scheme used by grafana:
-  # schema: "http"
 
 #Following options are for developers only, but can also be useful in some cases ;)
 developer: {}
