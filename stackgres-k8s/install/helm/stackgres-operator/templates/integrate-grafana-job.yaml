@@ -6,9 +6,10 @@ metadata:
   name: "{{ .Release.Name }}-integrate-grafana"
   labels:
     app: StackGres
-    scope: init
+    scope: integrate-grafana
   annotations:
     "helm.sh/hook": post-install
+    "helm.sh/hook": post-upgrade
     "helm.sh/hook-delete-policy": hook-succeeded
 spec:
   template:
@@ -56,7 +57,7 @@ spec:
             )"
             grafana_dashboard_url="$(curl_grafana_api -X POST -d "$dashboard_json" "$grafana_host/api/dashboards/import" | jq -r .importedUrl)"
             grafana_api_key_id="$(curl_grafana_api -X GET "$grafana_host/api/auth/keys" | jq -r 'map(select(.name = "stackgres")|.id)|first')"
-            curl_grafana_api -X DELETE "$grafana_host/api/auth/keys/$grafana_api_key_id" > /dev/null
+            [ -z "$grafana_api_key_id" ] || curl_grafana_api -X DELETE "$grafana_host/api/auth/keys/$grafana_api_key_id" > /dev/null
             grafana_api_key_token="$(curl_grafana_api -X POST -d '{"name":"stackgres", "role": "Viewer"}' "$grafana_host/api/auth/keys" | jq -r .key)"
             kubectl set env -n {{ .Release.Namespace }} deployment/{{ .Release.Name }} \
               GRAFANA_EMBEDDED=true \
