@@ -1,30 +1,22 @@
 # Helm Chart to create the StackGres Operator
 
 ## Requirements
-- The Kubernetes cluster to install the operator
-- [Helm](https://helm.sh/docs/using_helm/#installing-helm) version >= `2.14.3`
-- Tiller - cluster-side service
-  ```
-  helm init --history-max 20
-  ```
-  > If you´re using helm to deploy all your applications raise the value of `history-max` parameter
+
+* The Kubernetes cluster to install the operator
+* [Helm](https://helm.sh/docs/using_helm/#installing-helm) version >= `3.1.1`
 
 ## Create the StackGres Operator
 
-Run the next command (make sure you are in the root path of the [repository](https://gitlab.com/stackgres/stackgres)).
+Run the next command (make sure you are in the root path of the [repository](https://gitlab.com/ongresinc/stackgres)).
 
-`helm install --namespace stackgres --name stackgres-operator operator/install/kubernetes/chart/stackgres-operator/`
+`helm install --namespace stackgres stackgres-operator operator/install/kubernetes/chart/stackgres-operator/`
 
 ## Configurable parameters
 
-| Parameter | Default value |
-|-----------|---------------|
-| `operatorVersion` | master |
+See https://stackgres.io/doc/latest/03-production-installation/02-installation-via-helm/
 
-> Note: for testing purpose use the default value, for production purpose use a stable release. 
+## List the chart deployment
 
-
-## List the chart deployment 
 `helm list` or `helm ls --all`
 
 ## Delete the StackGres Operator
@@ -58,7 +50,7 @@ helm install ... --set-string grafana.token="eyJrIjoidXc4NXJPa1VOdmNHVkFYMGJuME9
 4. Copy and paste grafana service hostname:
 
 ```
-helm install ... --set-string grafana.httpHost="$(kubectl get service prometheus-operator-grafana --template $'{{ .metadata.name }}.{{ .metadata.namespace }}.svc\n')"
+helm install ... --set-string grafana.webHost="$(kubectl get service prometheus-operator-grafana --template $'{{ .metadata.name }}.{{ .metadata.namespace }}.svc\n')"
 ```
 
 5. Set the HTTP scheme used by grafana (optional):
