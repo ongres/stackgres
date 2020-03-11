@@ -25,7 +25,7 @@ E2E_SKIP_SETUP="${E2E_SKIP_SETUP:-false}"
 E2E_OPERATOR_PULL_POLICY="${E2E_OPERATOR_PULL_POLICY:-Never}"
 E2E_BUILD_OPERATOR="${E2E_BUILD_OPERATOR:-true}"
 E2E_WAIT_OPERATOR="${E2E_WAIT_OPERATOR:-true}"
-USE_INTERMIDIATE_PRIVATE_REPO=false
+E2E_USE_INTERMIDIATE_PRIVATE_REPO="${E2E_USE_INTERMIDIATE_PRIVATE_REPO:-false}"
 
 if [ -z "$STACKGRES_PATH" ]
 then
@@ -47,69 +47,6 @@ for util in $(find "$(dirname "$0")/utils" -type f)
 do
   . "$util"
 done
-
-operator_pull_policy() {
-  echo $E2E_OPERATOR_PULL_POLICY
-}
-
-install_operator() {
-
-  kubectl create namespace stackgres || true
-
-  helm install stackgres-operator --namespace stackgres "$OPERATOR_CHART_PATH" \
-    --set-string image.name="${IMAGE_NAME%:*}" --set-string image.tag="${IMAGE_NAME#*:}" \
-    --set-string "image.pullPolicy=$(operator_pull_policy)"
-}
-
-install_operator_from_private_repo() {
-
-  kubectl create namespace stackgres || true
-
-  PRIVATE_REPO_URI=$(get_private_repo_uri)
-  
-  kubectl create secret docker-registry regcred -n stackgres \
-    --docker-server="$PRIVATE_REPO_URI" \
-    --docker-username="AWS" \
-    --docker-password="$(get_private_repo_password)"
-
-  
-  PRIVATE_IMAGE_NAME="$PRIVATE_REPO_URI/stackgres/operator"
-  helm install stackgres-operator --namespace stackgres "$OPERATOR_CHART_PATH" \
-      --set-string image.name="$PRIVATE_IMAGE_NAME" --set-string image.tag="$IMAGE_TAG" \
-      --set-string serviceAccount.repoCredentials="regcred" \
-      --set-string "image.pullPolicy=$(operator_pull_policy)"
-}
-
-get_private_repo_uri() {
-  local AWS_ACCOUNT_ID=$(aws --output=text sts get-caller-identity | awk '{print $1}')
-  local AWS_REGION=$(aws configure get region)
-
-  echo "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com"
-}
-
-get_private_repo_password() {
-  echo "$(aws ecr get-login-password)"
-}
-
-set_up_private_repo(){
-
-  if ! aws ecr describe-repositories --repository-name "stackgres/operator" > /dev/null
-  then
-    aws ecr create-repository --repository-name "stackgres/operator" 
-  fi  
-  
-  export PRIVATE_REPO_URI=$(get_private_repo_uri)
-  export PRIVATE_IMAGE_NAME="$PRIVATE_REPO_URI/$IMAGE_NAME"
-
-  get_private_repo_password | docker login --username AWS --password-stdin "$PRIVATE_REPO_URI"
-  
-  docker tag "$IMAGE_NAME" "$PRIVATE_IMAGE_NAME"
-
-  echo "$PRIVATE_IMAGE_NAME"
-
-  docker push "$PRIVATE_IMAGE_NAME"  
-
-}
 
 . "$(dirname "$0")/envs/$E2E_ENV"
 
@@ -189,7 +126,8 @@ setup_k8s() {
       docker pull $IMAGE_NAME
     fi
 
-    if docker image inspect "$IMAGE_NAME" >/dev/null 2>&1 && [ "$USE_INTERMIDIATE_PRIVATE_REPO" != true ]
+    if [ "$E2E_USE_INTERMIDIATE_PRIVATE_REPO" != true ] \
+      && docker image inspect "$IMAGE_NAME" >/dev/null 2>&1
     then 
       load_operator_k8s
     fi
@@ -197,14 +135,8 @@ setup_k8s() {
     helm_cleanup
     k8s_cleanup
 
-    if [ "$USE_INTERMIDIATE_PRIVATE_REPO" = true ]
-    then
-      set_up_private_repo
-      install_operator_from_private_repo
-    else
-      install_operator
-    fi
-    
+    install_operator
+
     if [ "$E2E_DEBUG_OPERATOR" = true ]
     then
       wait_pods_running stackgres
