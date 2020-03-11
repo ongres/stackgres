@@ -142,7 +142,7 @@ setup_k8s() {
       wait_pods_running stackgres
       kubectl set env -n stackgres deployment/stackgres-operator \
         DEBUG_OPERATOR="$E2E_DEBUG_OPERATOR" DEBUG_OPERATOR_SUSPEND="$E2E_DEBUG_OPERATOR_SUSPEND"
-      kubectl delete pod -n stackgres "$(kubectl get pod -n stackgres -o name|cut -d / -f 2|tail -n 1)"
+      kubectl delete pod -n stackgres -l app=stackgres-operator
     fi
   else
     helm_cleanup_but_operator
