@@ -37,7 +37,7 @@ You can specify following parameters values:
  enable the integration of the StackGres UI with grafana)
 * `grafana.token`: the grafana API token to access the PostgreSQL dashboard created
  in grafana (required to enable the integration of the StackGres UI with grafana)
-* `grafana.httpHost`: the service host name to access grafana (required to enable
+* `grafana.webHost`: the service host name to access grafana (required to enable
  the integration of the StackGres UI with grafana)
 * `grafana.schema`: the schema to access grafana. By default http.
 
