@@ -1541,6 +1541,10 @@ table .icon {
     text-align: center;
 }
 
+td.icon {
+    padding-right: 10px;
+}
+
 tr:first-child {
     border-top: 1px solid #F0F0F1;
 }

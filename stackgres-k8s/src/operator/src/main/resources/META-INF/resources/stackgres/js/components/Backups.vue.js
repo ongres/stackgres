@@ -28,19 +28,19 @@ var Backups = Vue.component("sg-backup", {
 								<span>Timestamp</span>
 							</th>
 							<th @click="sort('data.spec.isPermanent')" class="icon desc">
-								Permanent	
+								<span>Permanent</span>
 							</th>
 							<th @click="sort('data.status.uncompressedSize')" class="desc">
-								Phase
+								<span>Phase</span>
 							</th>
 							<th @click="sort('data.status.uncompressedSize')" class="desc">
 								<span>Size</span>
 							</th>
 							<th @click="sort('data.status.pgVersion')" class="desc">
-								PG
+								<span>PG</span>
 							</th>
-							<th @click="sort('data.status.tested')" class="icon" class="desc">
-								Tested
+							<th @click="sort('data.status.tested')" class="icon desc">
+								<span>Tested</span>
 							</th>
 							<th @click="sort('data.metadata.name')" class="desc">
 								<span>Name</span>
