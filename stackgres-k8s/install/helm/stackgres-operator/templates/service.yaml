@@ -1,4 +1,3 @@
-{{ if .Values.deploy.create }}
 apiVersion: v1
 kind: Service
 metadata:
@@ -12,4 +11,19 @@ spec:
       protocol: TCP
       port: 443
       targetPort: 443
+{{ if .Values.deploy.create }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-api
+  namespace:  {{ .Release.Namespace }}
+spec:
+  selector:
+    app: {{ .Release.Name }}
+  ports:
+    - name: http
+      protocol: TCP
+      port: 8080
+      targetPort: 8080
 {{ end }}

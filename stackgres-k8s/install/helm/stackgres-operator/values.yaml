@@ -21,7 +21,23 @@ cert:
 prometheus:
   allowAutobind: true
 
-grafana: {}
+grafana:
+  #Embed an existing grafana by setting grafana.autoEmbed to true
+  autoEmbed: false
+  user: admin
+  password: prom-operator
+  # Set the HTTP scheme used by grafana:
+  schema: http
+  # Copy and paste grafana service hostname:
+  # - kubectl get service prometheus-operator-grafana --template $'{{ .metadata.name }}.{{ .metadata.namespace }}.svc\n'
+  # webHost: "prometheus-operator-grafana.default.svc"
+  #Use follwing fields to indicate a secret where the grafana admin credentials are stored (replace user/password)
+  #secretNamespace: 
+  #secretName: 
+  #secretUserKey: 
+  #secretPasswordKey: 
+  datasourceName: Prometheus
+  dashboardId: 9628
   # Create grafana dashboard for postgres exporter and copy/paste share URL:
   # - Grafana > Create > Import > Grafana.com Dashboard 9628
   # Copy/paste grafana dashboard URL for postgres exporter:
@@ -30,11 +46,6 @@ grafana: {}
   # Create and copy/paste grafana API token:
   # - Grafana > Configuration > API Keys > Add API key (for viewer) > Copy key value
   # token: "eyJrIjoidXc4NXJPa1VOdmNHVkFYMGJuME9zcnJucnBYRU1FQTMiLCJuIjoic3RhY2tncmVzIiwiaWQiOjF9"
-  # Copy and paste grafana service hostname:
-  # - kubectl get service prometheus-operator-grafana --template $'{{ .metadata.name }}.{{ .metadata.namespace }}.svc\n'
-  # httpHost: "prometheus-operator-grafana.default.svc"
-  # Set the HTTP scheme used by grafana:
-  # schema: "http"
 
 #Following options are for developers only, but can also be useful in some cases ;)
 developer: {}
@@ -43,3 +54,9 @@ developer: {}
   # enableJvmDebug: false # Only work with JVM version and allow connect 
   #                       # on port 8000 of operator Pod with jdb or similar
   # enableJvmDebugSuspend: false
+
+#Setting prometheus-operator.create to true will install prometheus-operator and embed grafana in the stackgres UI
+prometheus-operator:
+  create: false
+  prometheusOperator:
+    createCustomResource: false

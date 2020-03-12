@@ -23,20 +23,14 @@ public abstract class AbstractDefaultCustomResourceInitializer<T extends CustomR
   private final CustomResourceFinder<T> resourceFinder;
   private final CustomResourceScheduler<T> resourceScheduler;
   private final DefaultCustomResourceFactory<T> resourceFactory;
-  private final InitializationQueue queue;
 
   public AbstractDefaultCustomResourceInitializer(CustomResourceFinder<T> resourceFinder,
-      CustomResourceScheduler<T> resourceScheduler, DefaultCustomResourceFactory<T> resourceFactory,
-      InitializationQueue queue) {
+      CustomResourceScheduler<T> resourceScheduler,
+      DefaultCustomResourceFactory<T> resourceFactory) {
     super();
     this.resourceFinder = resourceFinder;
     this.resourceScheduler = resourceScheduler;
     this.resourceFactory = resourceFactory;
-    this.queue = queue;
-  }
-
-  private void ayncInitialize(T defaultResource) {
-    queue.defer(() -> resourceScheduler.create(defaultResource));
   }
 
   @Override
@@ -54,7 +48,7 @@ public abstract class AbstractDefaultCustomResourceInitializer<T extends CustomR
       LOGGER.info("Default custom resource " + resourceName + " already installed");
     } else {
       LOGGER.info("Installing default custom resource " + resourceName);
-      ayncInitialize(defaultResource);
+      resourceScheduler.create(defaultResource);
     }
   }
 

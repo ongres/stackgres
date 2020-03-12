@@ -1,4 +1,3 @@
-{{ if .Values.deploy.create }}
 apiVersion: "apps/v1"
 kind: "Deployment"
 metadata:
@@ -24,6 +23,7 @@ spec:
     spec:
       serviceAccountName: {{ .Release.Name }}
       containers:
+      {{- if .Values.deploy.create }}
       - name: {{ .Release.Name }}
         image: "{{ .Values.image.name }}:{{ .Values.image.tag }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
@@ -54,8 +54,8 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: status.podIP
-          {{- if and .Values.grafana.url .Values.grafana.token .Values.grafana.httpHost }}
-          - name: GRAFANA_EMBEDDED          
+          {{- if and .Values.grafana.url .Values.grafana.token .Values.grafana.webHost }}
+          - name: GRAFANA_EMBEDDED
             value: "true"
           {{ end }}
         ports:
@@ -85,10 +85,47 @@ spec:
           - name: operator-certs
             mountPath: /etc/operator/certs
             readOnly: true
+      {{- end }}
       - name: {{ .Release.Name }}-nginx
         image: "nginx:1.17.4-alpine"
         imagePullPolicy: IfNotPresent
-        args: [ '/bin/sh', '-exc', 'cat /etc/nginx/conf.d/stackgres-operator.conf; nginx -g "daemon off;";' ]
+        env:
+          {{- if and .Values.grafana.url .Values.grafana.token .Values.grafana.webHost }}
+          - name: GRAFANA_EMBEDDED
+            value: "true"
+          - name: GRAFANA_URL_PATH
+            value: "{{ regexReplaceAll "^https?://[^/]+(/.*)$" .Values.grafana.url "${1}" }}"
+          - name: GRAFANA_SCHEMA
+            value: "{{ default "http" .Values.grafana.scheme }}"
+          - name: GRAFANA_WEB_HOST
+            value: "{{ regexReplaceAll "/" .Values.grafana.webHost "" }}"
+          - name: GRAFANA_TOKEN
+            value: "{{ .Values.grafana.token }}"
+          {{- else }}
+          - name: GRAFANA_URL_PATH
+            value: "/"
+          - name: GRAFANA_SCHEMA
+            value: "http"
+          - name: GRAFANA_WEB_HOST
+            value: "localhost:8080"
+          - name: GRAFANA_TOKEN
+            value: "unknown"
+          {{- end }}
+        args:
+          - '/bin/sh'
+          - '-exc'
+          - |
+            
+            envsubst '
+              $GRAFANA_EMBEDDED
+              $GRAFANA_URL_PATH
+              $GRAFANA_SCHEMA
+              $GRAFANA_WEB_HOST
+              $GRAFANA_TOKEN' \
+              < /etc/nginx/template.d/stackgres-operator.template \
+              > /etc/nginx/conf.d/stackgres-operator.conf
+            cat /etc/nginx/conf.d/stackgres-operator.conf
+            exec nginx-debug -g 'daemon off;'
         ports:
         - containerPort: 443
           name: "https"
@@ -98,7 +135,7 @@ spec:
             mountPath: /etc/operator/certs
             readOnly: true
           - name: operator-nginx
-            mountPath: /etc/nginx/conf.d
+            mountPath: /etc/nginx/template.d
             readOnly: true
       volumes:
         - name: operator-certs
@@ -107,4 +144,3 @@ spec:
         - name: operator-nginx
           configMap:
             name: {{ .Release.Name }}-nginx
-{{ end }}

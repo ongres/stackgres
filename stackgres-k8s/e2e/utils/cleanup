@@ -14,7 +14,7 @@ excluded_customresourcedefinitions() {
 
 helm_cleanup() {
    helm list --all-namespaces \
-    | awk 'FNR > 1 {printf ("helm delete %s --namespace %s\n", $1, $2)}' \
+    | awk 'FNR > 1 { printf("helm delete %s --namespace %s\n", $1, $2) }' \
     | xargs -r -n 1 -I % -P 0 sh -c "%"
 }
 
@@ -44,7 +44,7 @@ k8s_cleanup() {
 helm_cleanup_but_operator() {
   helm list --all-namespaces \
     | grep -v "stackgres-operator" \
-    | awk 'FNR > 1 {printf ("helm delete %s --namespace %s\n", $1, $2)}' \
+    | awk 'FNR > 1 { printf("helm delete %s --namespace %s\n", $1, $2) }' \
     | xargs -r -n 1 -I % -P 0 sh -c "%"
 }
 
@@ -81,6 +81,7 @@ helm_cleanup_chart() {
 k8s_finalize_namespace_script() {
   cat << EOF
 kubectl api-resources --namespaced -o name \
+  | grep -v 'reviews\.\(authentication\|authorization\)\.k8s\.io$' \
   | xargs -r -n 1 -I + -P 0 sh -ec 'kubectl get "+" -n "@" -o name \
     | xargs -r -n 1 -I % kubectl delete -n "@" "%" --grace-period=0 --force' >/dev/null 2>&1 \
   || true

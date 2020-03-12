@@ -2,11 +2,16 @@
 
 e2e_test_install() {
   PROMETHEUS_NAMESPACE="$CLUSTER_NAMESPACE-monitor"
-  GRAFANA_CREDENTIALS=admin:prom-operator
 
   install_prometheus
 
   wait_pods_running "$PROMETHEUS_NAMESPACE" 8
+
+  upgrade_operator \
+    --set grafana.autoEmbed=true \
+    --set-string grafana.webHost="prometheus-grafana.$CLUSTER_NAMESPACE-monitor"
+
+  wait_pods_terminated "stackgres" 1
 
   kubectl create namespace "$CLUSTER_NAMESPACE"
 
@@ -17,33 +22,18 @@ e2e_test_install() {
   wait_pods_running "$CLUSTER_NAMESPACE" 2
 }
 
-install_prometheus_crd(){
-  PROMETHUS_CRD_REPO="https://raw.githubusercontent.com/coreos/prometheus-operator/release-0.35/example/prometheus-operator-crd/monitoring.coreos.com_${1}.yaml"
-  kubectl apply -f "$PROMETHUS_CRD_REPO" --validate=false
-  wait_until kubectl get crd "${1}.monitoring.coreos.com"
-}
-
 install_prometheus(){
   kubectl create namespace "$PROMETHEUS_NAMESPACE" || true
 
-  #kubectl apply -f "$SPEC_PATH/promethus-values.yaml"
-
-  install_prometheus_crd "alertmanagers"
-  install_prometheus_crd "podmonitors"
-  install_prometheus_crd "prometheuses"
-  install_prometheus_crd "prometheusrules"
-  install_prometheus_crd "servicemonitors"
-
-  helm template prometheus stable/prometheus-operator \
+  helm install prometheus stable/prometheus-operator \
     --namespace "$PROMETHEUS_NAMESPACE" \
-    --set prometheusOperator.createCustomResource=false \
-     | kubectl apply -f - --validate=false
-
+    --disable-openapi-validation \
+    --set prometheusOperator.createCustomResource=false
 }
 
 e2e_test_uninstall() {
   helm_cleanup_chart "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
-  helm_cleanup_chart prometheus "$CLUSTER_NAMESPACE"
+  helm_cleanup_chart prometheus "$PROMETHEUS_NAMESPACE"
 
   k8s_cleanup_namespace "$CLUSTER_NAMESPACE"
   k8s_cleanup_namespace "$PROMETHEUS_NAMESPACE"
@@ -51,7 +41,6 @@ e2e_test_uninstall() {
 
 e2e_test_after_all() {
   unset PROMETHEUS_NAMESPACE
-  unset GRAFANA_CREDENTIALS
 }
 
 e2e_test() {
@@ -122,7 +111,7 @@ check_envoy_service_monitor() {
     return 1
   fi
 
-  if wait_until kubectl exec -i -n "$CLUSTER_NAMESPACE" curl \
+  if wait_until kubectl exec -i -n "$CLUSTER_NAMESPACE" curl -- \
     curl "http://prometheus-prometheus-oper-prometheus.prometheus-integration-monitor:9090/api/v1/query?query=envoy_cluster_upstream_cx_rx_bytes_total"
   then
     echo "Envoy metrics was found on prometheus"
@@ -133,13 +122,31 @@ check_envoy_service_monitor() {
 }
 
 check_grafana_embedded() {
-  if ! kubectl get deployment  -n stackgres stackgres-operator > /dev/null 2>&1
+  if wait_until kubectl exec -i -n "$CLUSTER_NAMESPACE" curl -- curl -s -k "https://stackgres-operator.stackgres/grafana" -o /dev/null --fail
   then
-    echo "skipping check since operator environment variable can not be changed when operator is not deployed in kubernetes"
+    echo "Success. Grafana URL can be retrieved"
+  else
+    echo "Fail. Grafana URL can not be retrieved"
+    return 1
+  fi
+
+  GRAFANA_URL="$(kubectl exec -i -n "$CLUSTER_NAMESPACE" curl -- curl -s -k "https://stackgres-operator.stackgres/grafana" --fail)"
+
+  if wait_until kubectl exec -i -n "$CLUSTER_NAMESPACE" curl -- curl -s -k "$GRAFANA_URL" -o /dev/null --fail
+  then
+    echo "Success. Grafana URL $GRAFANA_URL is accessible"
+  else
+    echo "Fail. Grafana URL $GRAFANA_URL is not accessible"
+    return 1
+  fi
+
+  if [ "$(kubectl get deployment -n stackgres stackgres-operator --template '{{ len .spec.template.spec.containers }}')" -ne 2 ]
+  then
+    echo "Skipping check since operator environment variable can not be changed when operator is not deployed in kubernetes"
     return
   fi
 
-  echo "checking that if env variable GRAFANA_EMBEDDED is set to false any cluster shouldn't be marked with grafana embedded"
+  echo "Checking that if env variable GRAFANA_EMBEDDED is set to false any cluster shouldn't be marked with grafana embedded"
 
   kubectl set env -n stackgres deployment/stackgres-operator GRAFANA_EMBEDDED=false
 
@@ -151,7 +158,7 @@ check_grafana_embedded() {
     return 1
   fi
 
-  echo "checking that if env variable GRAFANA_EMBEDDED is set to true the cluster should be marked with grafana embedded"
+  echo "Checking that if env variable GRAFANA_EMBEDDED is set to true the cluster should be marked with grafana embedded"
 
   kubectl set env -n stackgres deployment/stackgres-operator GRAFANA_EMBEDDED=true
 

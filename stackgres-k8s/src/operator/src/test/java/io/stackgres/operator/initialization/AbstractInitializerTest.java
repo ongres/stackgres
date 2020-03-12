@@ -33,8 +33,6 @@ public abstract class AbstractInitializerTest<T extends CustomResource> {
   @Mock
   private DefaultCustomResourceFactory<T> resourceFactory;
 
-  private InitializationQueue queue = Runnable::run;
-
   private AbstractDefaultCustomResourceInitializer<T> initializer;
 
   private T defaultCustomResource;
@@ -44,15 +42,16 @@ public abstract class AbstractInitializerTest<T extends CustomResource> {
 
   @BeforeEach
   void init() {
-    initializer = getInstance(resourceFinder, resourceScheduler, resourceFactory, queue);
+    initializer = getInstance(resourceFinder, resourceScheduler, resourceFactory);
     defaultCustomResource = getDefaultCR();
     resourceName = defaultCustomResource.getMetadata().getName();
     resourceNamespace = defaultCustomResource.getMetadata().getNamespace();
   }
 
   abstract AbstractDefaultCustomResourceInitializer<T> getInstance(
-      CustomResourceFinder<T> resourceFinder, CustomResourceScheduler<T> resourceScheduler,
-      DefaultCustomResourceFactory<T> resourceFactory, InitializationQueue queue);
+      CustomResourceFinder<T> resourceFinder,
+      CustomResourceScheduler<T> resourceScheduler,
+      DefaultCustomResourceFactory<T> resourceFactory);
 
   abstract T getDefaultCR();
 

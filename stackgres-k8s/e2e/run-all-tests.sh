@@ -59,7 +59,7 @@ do
       fi
       for FAILED in $(find "$TARGET_PATH" -maxdepth 1 -type f -name '*.failed')
       do
-        if [ "$(stat -c %Y "$FAILED")" -lt "$START" ]
+        if [ "$(stat -c %Y "$FAILED" || echo 0)" -lt "$START" ]
         then
           continue
         fi

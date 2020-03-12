@@ -95,48 +95,50 @@ Currently StackGres integrates only with prometheus by providing prometheus expo
 The recommended way to install prometheus operator in kubernetes is by using the [helm chart for prometheus operator](https://github.com/helm/charts/tree/master/stable/prometheus-operator):
 
 ```
-helm install --namespace prometheus --name prometheus-operator stable/prometheus-operator
+helm install --namespace prometheus prometheus-operator stable/prometheus-operator
 ```
 
 ## Grafana integration
 
-By default helm chart of prometheus operator comes with grafana and StackGres offer an integration
- to allow monitoring a StackGres cluster pod directly from the StackGres UI. Some manual steps are
- required in order to achieve such integration.
+By default helm chart of [prometheus operator](https://github.com/coreos/prometheus-operator) comes
+ with grafana and StackGres offer an integration to allow monitoring a StackGres cluster pod
+ directly from the StackGres UI. There are various options to achieve it.
+
+
+### All in one
+
+You can install the prometheus operator together with StackGres operator by setting
+ `prometheus-operator.create` to true, this will install also a grafana instance and it will be
+ embed with the StackGres U autmatically:
+
+```
+helm install --namespace prometheus prometheus-operator stable/prometheus-operator \
+  --set prometheus-operator.create=true
+```
+
+### Automatic integration
+
+If you already have a grafana installation in your system you can embed it automatically in the
+ StackGres UI by setting the property `grafana.autoEmbed=true`:
+
+```
+helm install --namespace prometheus prometheus-operator stable/prometheus-operator \
+  --set grafana.autoEmbed=true
+```
+
+This method requires the installation process to be able to access grafana API as grafana
+ administrator by username and password (see [installation via helm]({{% relref "/03-production-installation/02-installation-via-helm" %}})
+ for more options related to automatic embedding of grafana).
+
+### Manual integration
+
+Some manual steps are required in order to achieve such integration.
 
 1. Create grafana dashboard for postgres exporter and copy/paste share URL:
 
 Using the UI: Grafana > Create > Import > Grafana.com Dashboard 9628
 
-Or by executing following script:
-
-``` sh
-grafana_host=http://localhost:3000
-grafana_credentials=admin:prom-operator
-grafana_prometheus_datasource_name=Prometheus
-curl_grafana_api() {
-  curl -sk -H "Accept: application/json" -H "Content-Type: application/json" -u "$grafana_credentials" "$@"
-}
-dashboard_id=9628
-dashboard_json="$(cat << EOF
-{
-  "dashboard": $(curl_grafana_api "$grafana_host/api/gnet/dashboards/$dashboard_id" | jq .json),
-  "overwrite": true,
-  "inputs": [{
-    "name": "DS_PROMETHEUS",
-    "type": "datasource",
-    "pluginId": "prometheus",
-    "value": "$grafana_prometheus_datasource_name"
-  }]
-}
-EOF
-)"
-grafana_dashboard_url="$(curl_grafana_api -X POST -d "$dashboard_json" "$grafana_host/api/dashboards/import" | jq -r .importedUrl)"
-echo "$grafana_dashboard_url"
-```
-
 2. Copy/paste grafana dashboard URL for postgres exporter:
-
 
 Using the UI: Grafana > Dashboard > Manage > Select postgres exporter dashboard > Copy URL
 
@@ -145,41 +147,6 @@ Or using the value returned by the previous script.
 3. Create and copy/paste grafana API token:
 
 Using the UI: Grafana > Configuration > API Keys > Add API key (for viewer) > Copy key value
-
-Or by executing following script:
-
-``` sh
-grafana_host=http://localhost:3000
-grafana_credentials=admin:prom-operator
-grafana_prometheus_datasource_name=Prometheus
-curl_grafana_api() {
-  curl -sk -H "Accept: application/json" -H "Content-Type: application/json" -u "$grafana_credentials" "$@"
-}
-curl_grafana_api -X DELETE "$grafana_host/api/auth/keys/$grafana_api_key_id" > /dev/null
-grafana_api_key_token="$(curl_grafana_api -X POST -d '{"name":"stackgres", "role": "Viewer"}' "$grafana_host/api/auth/keys" | jq -r .key)"
-echo "$grafana_api_key_token"
-```
-
-4. Copy and paste grafana service hostname.
-
-This can be obtained with the command:
-
-``` sh
-kubectl get service -n prometheus prometheus-operator-grafana --template $'{{ .metadata.name }}.{{ .metadata.namespace }}.svc\n'
-```
-
-5. Set the HTTP scheme used by grafana. By default this is http.
-
-This will allow to create a YAML values file for grafana integration to include in the helm
- installation (`-f` or `--values` parameters) of the StackGres operator similar to the following:
-
-``` yaml
-grafana:
-  url: "http://localhost:3000/d/000000039/postgresql-database?orgId=1&refresh=10s"
-  token: "eyJrIjoidXc4NXJPa1VOdmNHVkFYMGJuME9zcnJucnBYRU1FQTMiLCJuIjoic3RhY2tncmVzIiwiaWQiOjF9"
-  httpHost: "prometheus-operator-grafana.prometheus.svc"
-  schema: "http"
-```
 
 # Non production options
 

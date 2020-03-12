@@ -188,7 +188,7 @@ public class ItHelper {
    * It helper method.
    */
   public static void installStackGresOperatorHelmChart(Container k8s, String namespace,
-      int sslPort, Executor executor) throws Exception {
+      int port, Executor executor) throws Exception {
     if (OPERATOR_IN_KUBERNETES) {
       LOGGER.info("Installing stackgres-operator helm chart");
       k8s.execute("sh", "-l", "-c", "kubectl create namespace " + namespace + " || true");
@@ -203,7 +203,7 @@ public class ItHelper {
       return;
     }
 
-    LOGGER.info("Installing stackgres-operator helm chart");
+    LOGGER.info("Installing stackgres-operator helm chart without operator container");
     k8s.execute("sh", "-l", "-c", "kubectl create namespace " + namespace + " || true");
     k8s.execute("sh", "-l", "-c", "helm install"
         + " stackgres-operator"
@@ -235,22 +235,22 @@ public class ItHelper {
         + "apiVersion: v1\n"
         + "metadata:\n"
         + "  namespace: stackgres\n"
-        + "  name: stackgres-operator\n"
+        + "  name: stackgres-operator-api\n"
         + "spec:\n"
         + "  ports:\n"
-        + "   - port: 443\n"
-        + "     targetPort: " + sslPort + "\n"
+        + "   - port: 8080\n"
+        + "     targetPort: " + port + "\n"
         + "---\n"
         + "kind: Endpoints\n"
         + "apiVersion: v1\n"
         + "metadata:\n"
         + "  namespace: stackgres\n"
-        + "  name: stackgres-operator\n"
+        + "  name: stackgres-operator-api\n"
         + "subsets:\n"
         + " - addresses:\n"
         + "    - ip: " + dockerInterfaceIp.join() + "\n"
         + "   ports:\n"
-        + "    - port: " + sslPort + "\n"
+        + "    - port: " + port + "\n"
         + "EOF")
         .filter(EXCLUDE_TTY_WARNING)
         .forEach(line -> LOGGER.info(line));

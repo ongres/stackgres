@@ -44,7 +44,7 @@ public abstract class AbstractStackGresOperatorIt extends AbstractIt {
     ItHelper.killUnwantedProcesses(k8s);
     ItHelper.copyResources(k8s);
     ItHelper.resetKind(k8s, k8sSize);
-    ItHelper.installStackGresOperatorHelmChart(k8s, namespace, OPERATOR_SSL_PORT, executor);
+    ItHelper.installStackGresOperatorHelmChart(k8s, namespace, OPERATOR_PORT, executor);
     OperatorRunner operatorRunner = ItHelper.createOperator(
         k8s, OPERATOR_PORT, OPERATOR_SSL_PORT, executor);
     CompletableFuture<Void> operator = runAsync(() -> operatorRunner.run());
