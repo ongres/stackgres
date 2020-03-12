@@ -902,8 +902,25 @@ function sortTable( table, param, direction ) {
 
 }
 
+function discoverText(e) {
+  var search = $("#keyword").val();
+  console.log(search);
 
-/* jQuery */
+  if (/[a-zA-Z]/.test(search) || e.keyCode == "8" || e.keyCode == "46") {
+      
+      $("table tr").each(function () {
+
+          if ( ($(this).text().toLowerCase().indexOf(search.toLowerCase()) !== -1) )
+              $(this).fadeIn();
+          else
+              $(this).fadeOut();
+
+      });
+  }
+}
+
+
+/* jQuery Init */
 
 $(document).ready(function(){
 
@@ -1116,7 +1133,6 @@ $(document).ready(function(){
   });
 
   $(document).on("click", ".sort th", function(){
-
     /* if( $(this).hasClass("sorted") ){
       if($(this).hasClass("asc"))
         $(this).removeClass("asc").addClass("desc");
@@ -1129,8 +1145,17 @@ $(document).ready(function(){
 
     $(".sorted").removeClass("sorted");
     $(this).addClass("sorted");
-    $(".sort th").toggleClass("desc asc")
-    
+    $(".sort th").toggleClass("desc asc")   
+  });
+
+  $(document).on("click", "tr.base.Completed", function(){
+    $(this).next().toggle()
+  });
+
+  // Filter search text
+  $("#keyword").on("keydown keyup", function (e) {
+    console.log("Buscar: "+e)
+    discoverText(e);
   });
 
 });

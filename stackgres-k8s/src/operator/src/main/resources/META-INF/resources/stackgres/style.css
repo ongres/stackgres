@@ -1522,7 +1522,7 @@ th {
     color: var(--gray3);
 }
 
-td.action {
+td.actions {
     text-align: right;
     padding-right: 15px;
     text-transform: uppercase;
@@ -1533,7 +1533,7 @@ td.action {
     cursor: pointer;
 }
 
-.action a {
+td.actions a {
     margin: 0 5px;
 }
 
@@ -1545,11 +1545,8 @@ td.icon {
     padding-right: 10px;
 }
 
-tr:first-child {
+tbody {
     border-top: 1px solid #F0F0F1;
-}
-
-tr:last-child {
     border-bottom: 1px solid #F0F0F1;
 }
 
@@ -1572,4 +1569,24 @@ th.sorted span:after, .sort th:hover span:after {
 
 .sorted.asc span:after {
     transform: rotate(180deg);
+}
+
+table .base.Completed td:not(.actions) {
+    cursor: pointer;
+}
+
+table .base.Pending td {
+    cursor: not-allowed;
+}
+
+table .details {
+    display: none;
+}
+
+table .details.show {
+    display: block;
+}
+
+.not-found {
+    display: none !important;
 }
