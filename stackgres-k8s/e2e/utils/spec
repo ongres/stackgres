@@ -68,9 +68,11 @@ spec() {
       | (
       read pid
       trap_kill "$pid"
-      while read line
+      while IFS="\n" read -r line
       do
-        echo "$(date +"%Y-%m-%d %H:%M:%S") [$SPEC_NAME] $line"
+        cat << EOF
+$(date +"%Y-%m-%d %H:%M:%S") [$SPEC_NAME] $line
+EOF
       done
       )
   ) &
