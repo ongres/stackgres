@@ -72,18 +72,13 @@ upgrade_operator() {
   fi
 
   helm upgrade stackgres-operator --namespace stackgres "$OPERATOR_CHART_PATH" \
-    --reuse-values \
-    --set-string image.name="${IMAGE_NAME%:*}" --set-string image.tag="${IMAGE_NAME#*:}" \
-    --set-string "image.pullPolicy=$(operator_pull_policy)" \
     "$@"
 }
 
 upgrade_operator_from_private_repo() {
+  PRIVATE_REPO_URI=$(get_private_repo_uri)
   PRIVATE_IMAGE_NAME="$PRIVATE_REPO_URI/stackgres/operator"
   helm install stackgres-operator --namespace stackgres "$OPERATOR_CHART_PATH" \
-      --set-string image.name="$PRIVATE_IMAGE_NAME" --set-string image.tag="$IMAGE_TAG" \
-      --set-string serviceAccount.repoCredentials="regcred" \
-      --set-string "image.pullPolicy=$(operator_pull_policy)" \
-      "$@"
+    "$@"
 }
 
