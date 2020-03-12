@@ -116,8 +116,8 @@ setup_k8s() {
   if ! helm list --all-namespaces | grep -q "^stackgres-operator\s" \
     || ! kubectl get namespaces stackgres -o name \
       | grep -q "^namespace/stackgres$" \
-    || (! kubectl get deployments.apps -n stackgres -o name \
-      | grep -q "^deployment.apps/stackgres-operator$" \
+    || (([ "$(kubectl get deployments.apps -n stackgres -l app=stackgres-operator -o name | wc -l)" -ne 1 ] \
+      || [ "$(kubectl get deployments.apps -n stackgres -l app=stackgres-operator --template '{{ len (index .items 0).spec.template.spec.containers }}')" -ne 2 ]) \
       && [ "$E2E_USE_EXTERNAL_OPERATOR" != true ])\
     || [ "$E2E_REUSE_OPERATOR" != true ]
   then
