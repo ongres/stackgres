@@ -65,20 +65,8 @@ get_private_repo_password() {
 }
 
 upgrade_operator() {
-  if [ "$E2E_USE_INTERMIDIATE_PRIVATE_REPO" = true ]
-  then
-    upgrade_operator_from_private_repo "$@"
-    return
-  fi
-
-  helm upgrade stackgres-operator --namespace stackgres "$OPERATOR_CHART_PATH" \
-    "$@"
-}
-
-upgrade_operator_from_private_repo() {
-  PRIVATE_REPO_URI=$(get_private_repo_uri)
-  PRIVATE_IMAGE_NAME="$PRIVATE_REPO_URI/stackgres/operator"
-  helm install stackgres-operator --namespace stackgres "$OPERATOR_CHART_PATH" \
-    "$@"
+  helm upgrade stackgres-operator --namespace stackgres "$OPERATOR_CHART_PATH" --reuse-values "$@" \
+    || helm get values -n stackgres stackgres-operator -o yaml \
+      | helm upgrade stackgres-operator --namespace stackgres "$OPERATOR_CHART_PATH" -f - "$@"
 }
 
