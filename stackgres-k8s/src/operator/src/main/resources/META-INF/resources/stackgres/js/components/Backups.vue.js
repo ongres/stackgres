@@ -22,59 +22,152 @@ var Backups = Vue.component("sg-backup", {
 
 			<div class="content">
 				<div id="backups">
+					<div class="toolbar">
+						<input id="keyword" @keyup="filterText" class="search" placeholder="Search Backup...">
+
+						<div class="filter">
+							<span class="toggle">FILTER</span>
+
+							<div class="options">
+								<label for="permanent" data-filter="type">
+									Permanent
+										<input type="radio" name="type-true" value="true" />
+										<input type="radio" name="type-true" value="false" />
+								</label>
+							</div>
+						</div>
+					</div>
 					<table>
 						<thead class="sort">
-							<th @click="sort('data.status.time')" class="sorted desc">
+							<th @click="sort('data.status.time')" class="sorted desc" data-col="timestamp">
 								<span>Timestamp</span>
 							</th>
-							<th @click="sort('data.spec.isPermanent')" class="icon desc">
+							<th @click="sort('data.spec.isPermanent')" class="icon desc" data-col="permanent">
 								<span>Permanent</span>
 							</th>
-							<th @click="sort('data.status.uncompressedSize')" class="desc">
+							<th @click="sort('data.status.uncompressedSize')" class="desc" data-col="phase">
 								<span>Phase</span>
 							</th>
-							<th @click="sort('data.status.uncompressedSize')" class="desc">
+							<th @click="sort('data.status.uncompressedSize')" class="desc" data-col="size">
 								<span>Size</span>
 							</th>
-							<th @click="sort('data.status.pgVersion')" class="desc">
+							<th @click="sort('data.status.pgVersion')" class="desc" data-col="pgVersion">
 								<span>PG</span>
 							</th>
-							<th @click="sort('data.status.tested')" class="icon desc">
+							<th @click="sort('data.status.tested')" class="icon desc" data-col="tested">
 								<span>Tested</span>
 							</th>
-							<th @click="sort('data.metadata.name')" class="desc">
+							<th @click="sort('data.metadata.name')" class="desc" data-col="name">
 								<span>Name</span>
 							</th>
-							<th class="action">
+							<th @click="sort('data.spec.cluster')" class="desc" data-col="clusterName">
+								<span>Cluster Name</span>
 							</th>
+							<th class="actions"></th>
+							<!--<th class="details"></th>-->
 						</thead>
 						<tbody>
-							<tr v-for="back in backups"  v-if="back.data.metadata.namespace == currentNamespace">
-								<td>{{ back.data.status.time }}</td>
-								<td class="icon">
-									<template v-if="back.data.spec.isPermanent">
-										✔
-									</template>
-									<template v-else>
-										×
-									</template>
-								</td>
-								<td>{{ back.data.status.phase }}</td>
-								<td>{{ back.data.status.uncompressedSize | formatBytes }}</td>
-								<td>{{ back.data.status.pgVersion | prefix}}</td>
-								<td class="icon">
-									<template v-if="back.data.status.tested">
-										✔
-									</template>
-									<template v-else>
-										×
-									</template>
-								</td>
-								<td>{{ back.data.metadata.name }}</td>
-								<td class="action">
-									<router-link :to="'/crd/edit/backup/'+$route.params.namespace+'/'+back.data.spec.cluster+'/'+back.name">Edit</router-link> <a v-on:click="deleteBackup(back.name, back.data.metadata.namespace)" class="delete">Delete</a>
-								</td>
-							</tr>
+							<template v-for="back in backups"  v-if="back.data.metadata.namespace == currentNamespace">
+								<tr class="base" :class="back.data.status.phase">
+									<td data-col="timestamp">{{ back.data.status.time }}</td>
+									<td data-col="permanent" class="icon">
+										<template v-if="back.data.spec.isPermanent">
+											✔
+										</template>
+										<template v-else>
+											×
+										</template>
+									</td>
+									<td data-col="phase">{{ back.data.status.phase }}</td>
+									<td data-col="size">
+										<template v-if="back.data.status.phase === 'Completed'">
+											{{ back.data.status.uncompressedSize | formatBytes }}
+										</template>
+									</td>
+									<td data-col="pgversion">
+										<template v-if="back.data.status.phase === 'Completed'">
+											{{ back.data.status.pgVersion | prefix }}
+										</template>											
+									</td>
+									<td data-col="tested" class="icon">
+										<template v-if="back.data.status.tested">
+											✔
+										</template>
+										<template v-else>
+											×
+										</template>
+									</td>
+									<td data-col="name">{{ back.data.metadata.name }}</td>
+									<td data-col="clusterName">{{ back.data.spec.cluster }}</td>
+									<td class="actions">
+										<router-link :to="'/crd/edit/backup/'+$route.params.namespace+'/'+back.data.spec.cluster+'/'+back.name">Edit</router-link> <a v-on:click="deleteBackup(back.name, back.data.metadata.namespace)" class="delete">Delete</a>
+									</td>
+								</tr>
+								<tr class="details" v-if="back.data.status.phase === 'Completed'">
+									<td colspan="8">
+										<h4 class="basic">Backup Details</h4>
+
+										<hr>
+										<span>UID</span>
+										{{ back.data.metadata.uid }}
+
+										<hr>
+										<span>Pod</span>
+										{{ back.data.status.pod }}
+
+										<hr>
+										<span>Name</span>
+										{{ back.data.status.name }}
+
+										<hr>
+										<span>WAL File Name</span>
+										{{ back.data.status.walFileName }}
+
+										<hr>
+										<span>Start Time</span>
+										{{ back.data.status.startTime }}
+
+										<hr>
+										<span>Finish Time</span>
+										{{ back.data.status.finishTime }}
+										
+										<hr>
+										<span>Hostname</span>
+										{{ back.data.status.hostname }}
+
+										<hr>
+										<span>Data Directory</span>
+										{{ back.data.status.dataDir }}
+										
+										<hr>
+										<span>Start Lsn</span>
+										{{ back.data.status.startLsn }}
+
+										<hr>
+										<span>Finish Lsn</span>
+										{{ back.data.status.finishLsn }}
+
+										<hr>
+										<span>System Identifier</span>
+										{{ back.data.status.systemIdentifier }}
+
+										<hr>
+										<span>Compressed size</span>
+										{{ back.data.status.compressedSize | formatBytes }}
+
+										<hr>
+										<h4 class="basic">Backup Configuration</h4>
+
+										<hr>
+										<span>Type</span>
+										{{ back.data.status.backupConfig.storage.type }}
+
+										<hr>
+										<span>Compression Method</span>
+										{{ back.data.status.backupConfig.compressionMethod }}
+									</td>
+								</tr>
+							</template>
 						</tbody>
 					</table>
 				</div>
@@ -147,6 +240,22 @@ var Backups = Vue.component("sg-backup", {
 				});
 			}
 
-		}	
+		},
+
+		filterText: function() {
+			var search = $("#keyword").val();
+			console.log(search);
+
+			if(search.length) {
+				$("table tr").each(function () {
+
+					if ( ($(this).text().toLowerCase().indexOf(search.toLowerCase()) !== -1) )
+						$(this).removeClass("not-found");
+					else
+						$(this).addClass("not-found");
+
+				});
+			}
+		}
 	}
 })
