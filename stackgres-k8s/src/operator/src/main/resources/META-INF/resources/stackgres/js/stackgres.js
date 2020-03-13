@@ -215,14 +215,14 @@ const router = new VueRouter({
       },
     },
     { 
-      path: '/grafana/', 
+      path: '/monitor/', 
       component: Grafana,
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/grafana/:name', 
+      path: '/monitor/:namespace/:name', 
       component: Grafana,
       meta: {
         conditionalRoute: false
@@ -230,7 +230,7 @@ const router = new VueRouter({
     },
     ,
     { 
-      path: '/grafana/:name/:pod', 
+      path: '/grafana/:namespace/:name/:pod', 
       component: Grafana,
       meta: {
         conditionalRoute: false
@@ -1152,10 +1152,10 @@ $(document).ready(function(){
     $(this).next().toggle()
   });
 
-  // Filter search text
-  $("#keyword").on("keydown keyup", function (e) {
-    console.log("Buscar: "+e)
-    discoverText(e);
-  });
+  
+  $(document).on("click",".toggle",function(){
+    $(this).toggleClass("open");
+    $(this).next().toggleClass("open");
+  })
 
 });
