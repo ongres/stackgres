@@ -23,82 +23,97 @@ var Backups = Vue.component("sg-backup", {
 			<div class="content">
 				<div id="backups">
 					<div class="toolbar">
-						<input id="keyword" @keyup="filterText" class="search" placeholder="Search Backup...">
+						<input id="keyword" v-model="keyword" @keyup="filterTable" class="search" placeholder="Search Backup...">
 
 						<div class="filter">
 							<span class="toggle">FILTER</span>
 
-							<div class="options">
-								<label for="permanent" data-filter="type">
-									Permanent
-										<input type="radio" name="type-true" value="true" />
-										<input type="radio" name="type-true" value="false" />
-								</label>
-							</div>
+							<ul class="options">
+								<li>
+									<span>Permanent</span>
+									<label for="isPermanent"><input v-model="isPermanent" type="checkbox" id="isPermanent" name="isPermanent" value="true" @change="filterTable"/>YES</label>
+									<label for="notPermanent"><input v-model="isPermanent" type="checkbox" id="notPermanent" name="isPermanent" value="false"  @change="filterTable"/>NO</label>
+								</li>
+
+								<li>
+									<span>Phase</span>
+									<label for="isCompleted"><input v-model="phase" type="checkbox" id="isCompleted" name="phase" value="Completed" @change="filterTable"/>Completed</label>
+									<label for="notCompleted"><input v-model="phase" type="checkbox" id="notCompleted" name="phase" value="Pending" @change="filterTable"/>Pending</label>
+								</li>
+
+								<li>
+									<span>Postgres Version</span>
+									<label for="pg11"><input v-model="pgVersion" type="checkbox" id="pg11" name="pg11" value="pg11" @change="filterTable" />11</label>
+									<label for="pg12"><input v-model="pgVersion" type="checkbox" id="pg12" name="pg12" value="pg12" @change="filterTable" />12</label>
+								</li>
+								
+								<li>
+									<span>Tested</span>
+									<label for="isTested"><input v-model="tested" type="checkbox" id="isTested" name="tested" value="true" @change="filterTable" />YES</label>
+									<label for="notTested"><input v-model="tested" type="checkbox" id="notTested" name="tested" value="false" @change="filterTable" />NO</label>
+								</li>
+
+								<li>
+									<span>Cluster</span>
+									<select v-model="clusterName" @change="filterTable">
+										<option disabled value="">Select Cluster...</option>
+										<option value="">All Clusters</option>
+										<template v-for="cluster in allClusters">
+											<option v-if="cluster.data.metadata.namespace == currentNamespace">{{ cluster.data.metadata.name }}</option>
+										</template>
+									</select>
+								</li>
+							</ul>
 						</div>
 					</div>
 					<table>
 						<thead class="sort">
-							<th @click="sort('data.status.time')" class="sorted desc" data-col="timestamp">
+							<th @click="sort('data.status.time')" class="sorted desc timestamp">
 								<span>Timestamp</span>
 							</th>
-							<th @click="sort('data.spec.isPermanent')" class="icon desc" data-col="permanent">
+							<th @click="sort('data.spec.isPermanent')" class="icon desc isPermanent">
 								<span>Permanent</span>
 							</th>
-							<th @click="sort('data.status.uncompressedSize')" class="desc" data-col="phase">
+							<th @click="sort('data.status.uncompressedSize')" class="desc phase">
 								<span>Phase</span>
 							</th>
-							<th @click="sort('data.status.uncompressedSize')" class="desc" data-col="size">
+							<th @click="sort('data.status.uncompressedSize')" class="desc size">
 								<span>Size</span>
 							</th>
-							<th @click="sort('data.status.pgVersion')" class="desc" data-col="pgVersion">
+							<th @click="sort('data.status.pgVersion')" class="desc pgVersion">
 								<span>PG</span>
 							</th>
-							<th @click="sort('data.status.tested')" class="icon desc" data-col="tested">
+							<th @click="sort('data.status.tested')" class="icon desc tested">
 								<span>Tested</span>
 							</th>
-							<th @click="sort('data.metadata.name')" class="desc" data-col="name">
+							<th @click="sort('data.metadata.name')" class="desc name">
 								<span>Name</span>
 							</th>
-							<th @click="sort('data.spec.cluster')" class="desc" data-col="clusterName">
+							<th @click="sort('data.spec.cluster')" class="desc clusterName">
 								<span>Cluster Name</span>
 							</th>
 							<th class="actions"></th>
 							<!--<th class="details"></th>-->
 						</thead>
 						<tbody>
-							<template v-for="back in backups"  v-if="back.data.metadata.namespace == currentNamespace">
+							<template v-for="back in backups"  v-if="(back.data.metadata.namespace == currentNamespace)">
 								<tr class="base" :class="back.data.status.phase">
-									<td data-col="timestamp">{{ back.data.status.time }}</td>
-									<td data-col="permanent" class="icon">
-										<template v-if="back.data.spec.isPermanent">
-											✔
-										</template>
-										<template v-else>
-											×
-										</template>
-									</td>
-									<td data-col="phase">{{ back.data.status.phase }}</td>
-									<td data-col="size">
-										<template v-if="back.data.status.phase === 'Completed'">
-											{{ back.data.status.uncompressedSize | formatBytes }}
-										</template>
-									</td>
-									<td data-col="pgversion">
-										<template v-if="back.data.status.phase === 'Completed'">
-											{{ back.data.status.pgVersion | prefix }}
-										</template>											
-									</td>
-									<td data-col="tested" class="icon">
-										<template v-if="back.data.status.tested">
-											✔
-										</template>
-										<template v-else>
-											×
-										</template>
-									</td>
-									<td data-col="name">{{ back.data.metadata.name }}</td>
-									<td data-col="clusterName">{{ back.data.spec.cluster }}</td>
+										<td class="timestamp">{{ back.data.status.time }}</td>
+										<td class="isPermanent icon" :class="[(back.data.spec.isPermanent) ? 'true' : 'false']"></td>
+										<td class="phase" :class="back.data.status.phase">{{ back.data.status.phase }}</td>
+										<td class="size">
+											<template v-if="back.data.status.phase === 'Completed'">
+												{{ back.data.status.uncompressedSize | formatBytes }}
+											</template>
+										</td>
+										<td class="pgVersion" :class="[(back.data.status.phase === 'Completed') ? 'pg'+(back.data.status.pgVersion.substr(0,2)) : '']">
+											<template v-if="back.data.status.phase === 'Completed'">
+												{{ back.data.status.pgVersion | prefix }}
+											</template>											
+										</td>
+										<td class="tested icon" :class="[(back.data.status.tested) ? 'true' : 'false']"></td>
+										<td class="name">{{ back.data.metadata.name }}</td>
+										<td class="clusterName" :class="back.data.spec.cluster">{{ back.data.spec.cluster }}</td>
 									<td class="actions">
 										<router-link :to="'/crd/edit/backup/'+$route.params.namespace+'/'+back.data.spec.cluster+'/'+back.name">Edit</router-link> <a v-on:click="deleteBackup(back.name, back.data.metadata.namespace)" class="delete">Delete</a>
 									</td>
@@ -177,7 +192,13 @@ var Backups = Vue.component("sg-backup", {
 
 		return {
 			currentSort: 'data.status.time',
-  			currentSortDir: 'desc'
+			currentSortDir: 'desc',
+			clusterName: '',
+			keyword: '',
+			isPermanent: [],
+			phase: [],
+			pgVersion: [],
+			tested: [],
 		}
 	},
 	computed: {
@@ -190,6 +211,10 @@ var Backups = Vue.component("sg-backup", {
 		currentNamespace () {
 			return store.state.currentNamespace
 		},
+
+		allClusters () {
+			return store.state.clusters
+		}
 
 	},
 	methods: {
@@ -242,20 +267,74 @@ var Backups = Vue.component("sg-backup", {
 
 		},
 
-		filterText: function() {
-			var search = $("#keyword").val();
-			console.log(search);
+		filterTable: function() {
 
-			if(search.length) {
-				$("table tr").each(function () {
+			let bk = this;
 
-					if ( ($(this).text().toLowerCase().indexOf(search.toLowerCase()) !== -1) )
-						$(this).removeClass("not-found");
-					else
-						$(this).addClass("not-found");
+			$("table tr.base").each(function () {
 
-				});
-			}
+				let show = true;
+				let r = $(this);
+				let checkFilters = ['isPermanent', 'phase', 'pgVersion', 'tested'];
+
+				// Filter by Keyword
+				if(bk.keyword.length && (r.text().toLowerCase().indexOf(bk.keyword.toLowerCase()) === -1) )
+					show = false;
+
+				checkFilters.forEach(function(f){
+
+					if(bk[f].length){
+						let hasClass = 0;
+
+						bk[f].forEach(function(c){
+							if(r.children('.'+c).length)
+								hasClass++;
+						});
+
+						if(!hasClass)
+							show = false;
+					}
+					
+				})
+
+				/* //Filter by isPermanent
+				if(bk.isPermanent.length && (!r.children(".isPermanent."+bk.isPermanent).length))
+					show = false;
+
+				//Filter by phase
+				if(bk.phase.length && (!r.children(".phase."+bk.phase).length))
+					show = false;
+
+				//Filter by pgVersion
+				if(bk.pgVersion.length){
+
+					let hasClass = 0;
+					
+					bk.pgVersion.forEach(function(item){
+						if(r.children('.'+item).length)
+							hasClass++;
+					});
+
+					if(hasClass < 1)
+						show = false;
+
+				}
+
+				//Filter by tested
+				if(bk.tested.length && (!r.children(".tested."+bk.tested).length))
+					show = false; */
+
+				//Filter by clusterName
+				if(bk.clusterName.length && (!r.children(".clusterName."+bk.clusterName).length))
+					show = false;
+
+				if(!show)
+					r.addClass("not-found");
+				else
+					r.removeClass("not-found");
+
+			});
+			
 		}
 	}
 })
