@@ -82,9 +82,11 @@ public class ClusterDetailsFinder implements CustomResourceFinder<ClusterPodConf
         .map(pod -> Tuple.tuple(pod, new ClusterPodStatus()))
         .peek(t -> t.v2.setNamespace(t.v1.getMetadata().getNamespace()))
         .peek(t -> t.v2.setName(t.v1.getMetadata().getName()))
-        .peek(t -> t.v2.setRole(t.v1.getMetadata().getLabels().get("role")))
+        .peek(t -> t.v2.setRole(
+                convertRole(t.v1.getMetadata().getLabels().get("role"))))
         .peek(t -> t.v2.setIp(t.v1.getStatus().getPodIP()))
-        .peek(t -> t.v2.setStatus(t.v1.getStatus().getPhase()))
+        .peek(t -> t.v2.setStatus(
+                convertPhase(t.v1.getStatus().getPhase())))
         .peek(t -> t.v2.setContainers(String.valueOf(t.v1.getSpec()
             .getContainers().size())))
         .peek(t -> t.v2.setContainersReady(String.valueOf(t.v1.getStatus()
@@ -95,4 +97,21 @@ public class ClusterDetailsFinder implements CustomResourceFinder<ClusterPodConf
         .map(t -> t.v2)
         .collect(Collectors.toList());
   }
+
+  private String convertRole(String role) {
+    if (StackGresUtil.PRIMARY_ROLE.equals(role)) {
+      return "primary";
+    }
+
+    return role;
+  }
+
+  private String convertPhase(String phase) {
+    if ("Running".equals(phase)) {
+      return "Active";
+    }
+
+    return phase;
+  }
+
 }
