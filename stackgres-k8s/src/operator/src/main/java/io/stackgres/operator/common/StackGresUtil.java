@@ -172,6 +172,15 @@ public enum StackGresUtil {
 
   /**
    * ImmutableMap of default labels used as selectors in K8s pods
+   * that are part of any cluster.
+   */
+  public static ImmutableMap<String, String> patroniClusterLabels() {
+    return ImmutableMap.of(APP_KEY, APP_NAME,
+        CLUSTER_KEY, Boolean.TRUE.toString());
+  }
+
+  /**
+   * ImmutableMap of default labels used as selectors in K8s pods
    * that work on backups.
    */
   public static ImmutableMap<String, String> backupPodLabels(StackGresCluster cluster) {

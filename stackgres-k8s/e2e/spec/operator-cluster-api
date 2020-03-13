@@ -82,11 +82,11 @@ get_cluster_stats() {
 }
 
 get_cluster_pod_configs_health() {
-  run_curl -r "stackgres/cluster/pods/$CLUSTER_NAMESPACE/$CLUSTER_NAME" -e "-LI -o /dev/null -w %{http_code}"
+  run_curl -r "stackgres/cluster/$CLUSTER_NAMESPACE/$CLUSTER_NAME" -e "-LI -o /dev/null -w %{http_code}"
 }
 
 get_cluster_pod_count() {
-  run_curl -r "stackgres/cluster/pods/$CLUSTER_NAMESPACE/$CLUSTER_NAME" | run_jq '.pods | length'
+  run_curl -r "stackgres/cluster/$CLUSTER_NAMESPACE/$CLUSTER_NAME" | run_jq '.pods | length'
 }
 
 check_cluster_directly() {
