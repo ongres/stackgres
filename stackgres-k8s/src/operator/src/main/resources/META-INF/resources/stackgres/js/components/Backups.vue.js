@@ -56,7 +56,6 @@ var Backups = Vue.component("sg-backup", {
 								<li>
 									<span>Cluster</span>
 									<select v-model="clusterName" @change="filterTable">
-										<option disabled value="">Select Cluster...</option>
 										<option value="">All Clusters</option>
 										<template v-for="cluster in allClusters">
 											<option v-if="cluster.data.metadata.namespace == currentNamespace">{{ cluster.data.metadata.name }}</option>
