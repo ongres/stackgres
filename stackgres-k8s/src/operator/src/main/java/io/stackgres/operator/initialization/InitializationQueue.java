@@ -46,6 +46,7 @@ public class InitializationQueue {
 
   private static final String OPERATOR_HEALTH_URL_FORMAT = "http://%s:8080/health/ready";
   private static final String OPERATOR_SERVICE_FORMAT = "%s.%s.svc.cluster.local";
+  public static final String LOCALHOST = "localhost";
 
   private final ScheduledExecutorService scheduler =
       Executors.newScheduledThreadPool(1, r -> new Thread(r, "InitializerQueueScheduler"));
@@ -70,6 +71,10 @@ public class InitializationQueue {
     operatorIP = context.getProperty(ConfigProperty.OPERATOR_IP)
         .orElseThrow(() -> new IllegalStateException("Operator ip is not configured"));
     this.initializers = new ArrayList<>(Seq.seq(initializers).toList());
+    if (operatorIP.equals(LOCALHOST)) {
+      LOGGER.trace("Operator IP address is localhost");
+      stage = InitializationStage.CONTAINERS_READY;
+    }
   }
 
   void onStart(@Observes StartupEvent ev) {
