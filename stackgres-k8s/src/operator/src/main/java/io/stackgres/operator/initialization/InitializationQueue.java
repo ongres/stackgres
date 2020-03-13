@@ -46,7 +46,7 @@ public class InitializationQueue {
 
   private static final String OPERATOR_HEALTH_URL_FORMAT = "http://%s:8080/health/ready";
   private static final String OPERATOR_SERVICE_FORMAT = "%s.%s.svc.cluster.local";
-  public static final String LOCALHOST = "localhost";
+  private static final String LOCALHOST = "localhost";
 
   private final ScheduledExecutorService scheduler =
       Executors.newScheduledThreadPool(1, r -> new Thread(r, "InitializerQueueScheduler"));
