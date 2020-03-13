@@ -24,7 +24,7 @@ var ClusterStatus = Vue.component("cluster-status", {
 						<router-link :to="'/configuration/'+$route.params.namespace+'/'+$route.params.name" title="Configuration" class="info">Configuration</router-link>
 					</li>
 					<li>
-						<router-link id="grafana-btn" :to="'/grafana/'+$route.params.name" title="Grafana Dashboard" class="grafana" style="display:none;">Monitoring</router-link>
+						<router-link id="grafana-btn" :to="'/monitor/'+$route.params.namespace+'/'+$route.params.name" title="Grafana Dashboard" class="grafana" style="display:none;">Monitoring</router-link>
 					</li>
 				</ul>
 			</header>

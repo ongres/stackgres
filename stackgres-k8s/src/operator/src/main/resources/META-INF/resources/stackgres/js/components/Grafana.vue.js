@@ -8,7 +8,7 @@ var Grafana = Vue.component("grafana", {
 				<ul class="selector">
 					<li><strong>Select a node:</strong></li>
 					<li v-for="pod in pods">
-						<router-link :to="'/grafana/'+$route.params.name+'/'+pod.ip+':9187'" class="item">{{ pod.name }}</router-link>
+						<router-link :to="'/monitor/'+$route.params.name+'/'+pod.ip+':9187'" class="item">{{ pod.name }}</router-link>
 					</li>
 				</ul>
 			</header>
