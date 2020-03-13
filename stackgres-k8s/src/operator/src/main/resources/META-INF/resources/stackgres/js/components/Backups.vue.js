@@ -31,26 +31,50 @@ var Backups = Vue.component("sg-backup", {
 							<ul class="options">
 								<li>
 									<span>Permanent</span>
-									<label for="isPermanent"><input v-model="isPermanent" type="checkbox" id="isPermanent" name="isPermanent" value="true" @change="filterTable"/>YES</label>
-									<label for="notPermanent"><input v-model="isPermanent" type="checkbox" id="notPermanent" name="isPermanent" value="false"  @change="filterTable"/>NO</label>
+									<label for="isPermanent">
+										<input v-model="isPermanent" type="checkbox" id="isPermanent" name="isPermanent" value="true" @change="filterTable"/>
+										<span>YES</span>
+									</label>
+									<label for="notPermanent">
+										<input v-model="isPermanent" type="checkbox" id="notPermanent" name="isPermanent" value="false"  @change="filterTable"/>
+										<span>NO</span>
+									</label>
 								</li>
 
 								<li>
 									<span>Phase</span>
-									<label for="isCompleted"><input v-model="phase" type="checkbox" id="isCompleted" name="phase" value="Completed" @change="filterTable"/>Completed</label>
-									<label for="notCompleted"><input v-model="phase" type="checkbox" id="notCompleted" name="phase" value="Pending" @change="filterTable"/>Pending</label>
+									<label for="isCompleted">
+										<input v-model="phase" type="checkbox" id="isCompleted" name="phase" value="Completed" @change="filterTable"/>
+										<span>Completed</span>
+									</label>
+									<label for="notCompleted">
+										<input v-model="phase" type="checkbox" id="notCompleted" name="phase" value="Pending" @change="filterTable"/>
+										<span>Pending</span>
+									</label>
 								</li>
 
 								<li>
 									<span>Postgres Version</span>
-									<label for="pg11"><input v-model="pgVersion" type="checkbox" id="pg11" name="pg11" value="pg11" @change="filterTable" />11</label>
-									<label for="pg12"><input v-model="pgVersion" type="checkbox" id="pg12" name="pg12" value="pg12" @change="filterTable" />12</label>
+									<label for="pg11">
+										<input v-model="pgVersion" type="checkbox" id="pg11" name="pg11" value="pg11" @change="filterTable" />
+										<span>11</span>
+									</label>
+									<label for="pg12">
+										<input v-model="pgVersion" type="checkbox" id="pg12" name="pg12" value="pg12" @change="filterTable" />
+										<span>12</span>
+									</label>
 								</li>
 								
 								<li>
 									<span>Tested</span>
-									<label for="isTested"><input v-model="tested" type="checkbox" id="isTested" name="tested" value="true" @change="filterTable" />YES</label>
-									<label for="notTested"><input v-model="tested" type="checkbox" id="notTested" name="tested" value="false" @change="filterTable" />NO</label>
+									<label for="isTested">
+										<input v-model="tested" type="checkbox" id="isTested" name="tested" value="true" @change="filterTable" />
+										<span>YES</span>
+									</label>
+									<label for="notTested">
+										<input v-model="tested" type="checkbox" id="notTested" name="tested" value="false" @change="filterTable" />
+										<span>NO</span>
+									</label>
 								</li>
 
 								<li>
@@ -95,6 +119,11 @@ var Backups = Vue.component("sg-backup", {
 							<!--<th class="details"></th>-->
 						</thead>
 						<tbody>
+							<tr class="no-results">
+								<td colspan="9">
+									No records matched your search terms
+								</td>
+							</tr>
 							<template v-for="back in backups"  v-if="(back.data.metadata.namespace == currentNamespace)">
 								<tr class="base" :class="back.data.status.phase">
 										<td class="timestamp">{{ back.data.status.time }}</td>
@@ -331,6 +360,11 @@ var Backups = Vue.component("sg-backup", {
 					r.addClass("not-found");
 				else
 					r.removeClass("not-found");
+				
+				if(!$("tr.base:not(.not-found)").length)
+					$("tr.no-results").show();
+				else
+					$("tr.no-results").hide();
 
 			});
 			
