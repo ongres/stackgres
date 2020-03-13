@@ -18,21 +18,21 @@ var CreateCluster = Vue.component("create-cluster", {
             </header>
             
             <div class="form">
-                <label for="namespace">K8S Namespace</label>
-                <!-- <div class="list-create"> -->
-                    <select v-model="namespace" @change="showFields('.form > .hide')" :disabled="(editMode)" required>
-                        <option disabled value="">Choose a Namespace</option>
-                        <option v-for="namespace in allNamespaces" :selected="(namespace === currentNamespace)">{{ namespace }}</option>
-                    </select>
-                <!-- <button>New Namespace</button> -->
-                <!-- </div> -->
                 
+                <div class="header">
+                    <h2>Cluster Details</h2>
+                    <label for="advancedMode" :class="(advancedMode) ? 'active' : ''">
+                        <input v-model="advancedMode" type="checkbox" id="advancedMode" name="advancedMode" />
+                        <span>Advanced</span>
+                    </label>
+                </div>
+
                 <label for="name">Cluster Name</label>
                 <input v-model="name" :disabled="(editMode)" required>
 
-                <div :class="(editMode) ? '' : 'hide'">
+                <div>
                     
-                    <template v-if="!editMode">
+                    <template v-if="!editMode && advancedMode">
                         <label>Restore from Backup</label>  
                         <label for="restore" class="switch">Restore from Backup <input type="checkbox" id="restore" v-model="restore" data-switch="OFF"></label>
                     </template>
@@ -49,7 +49,7 @@ var CreateCluster = Vue.component("create-cluster", {
                     <label for="pgVersion">PostgreSQL Version</label>
                     <select v-model="pgVersion" :disabled="(editMode)" required>
                         <option disabled value="">Select PostgreSQL Version</option>
-                        <option value="latest">Latest</option>
+                        <option value="latest" selected>Latest</option>
                         <option value="12">12</option>
                         <option value="11">11</option>
                         <option value="12.2">12.2</option>
@@ -71,15 +71,17 @@ var CreateCluster = Vue.component("create-cluster", {
                         <option>10</option>
                     </select>
 
-                    <label for="resourceProfile">Instance Profile</label>  
-                    <select v-model="resourceProfile" class="resourceProfile">
-                        <option disabled value="">Select Instance Profile</option>
-                        <option v-for="prof in profiles" v-if="prof.data.metadata.namespace == namespace" :value="prof.name">{{ prof.name }}</option>
-                    </select>
-
-                    <template v-if="!editMode">
-                        <label for="storageClass">Storage Class</label>
-                        <input v-model="storageClass">
+                    <template v-if="advancedMode">
+                        <label for="resourceProfile">Instance Profile</label>  
+                        <select v-model="resourceProfile" class="resourceProfile">
+                            <option disabled value="">Select Instance Profile</option>
+                            <option v-for="prof in profiles" v-if="prof.data.metadata.namespace == namespace" :value="prof.name">{{ prof.name }}</option>
+                        </select>
+                    
+                        <template v-if="!editMode">
+                            <label for="storageClass">Storage Class</label>
+                            <input v-model="storageClass">
+                        </template>
                     </template>
 
                     <div class="unit-select">
@@ -97,31 +99,33 @@ var CreateCluster = Vue.component("create-cluster", {
                         </select>
                     </div>
 
-                    <label for="pgConfig">PostgreSQL Configuration</label>
-                    <select v-model="pgConfig" class="pgConfig">
-                        <option disabled value="">Select PostgreSQL Configuration</option>
-                        <option v-for="conf in pgConf" v-if="( (conf.data.metadata.namespace == namespace) && (conf.data.spec.pgVersion == shortPGVersion) )">{{ conf.name }}</option>
-                    </select>
+                    <template v-if="advancedMode">
+                        <label for="pgConfig">PostgreSQL Configuration</label>
+                        <select v-model="pgConfig" class="pgConfig">
+                            <option disabled value="">Select PostgreSQL Configuration</option>
+                            <option v-for="conf in pgConf" v-if="( (conf.data.metadata.namespace == namespace) && (conf.data.spec.pgVersion == shortPGVersion) )">{{ conf.name }}</option>
+                        </select>
 
-                    <label>Enable Connection Pooling</label>  
-                    <label for="connPooling" class="switch">Connection Pooling <input type="checkbox" id="connPooling" v-model="connPooling" data-switch="OFF"></label>
+                        <label>Enable Connection Pooling</label>  
+                        <label for="connPooling" class="switch">Connection Pooling <input type="checkbox" id="connPooling" v-model="connPooling" data-switch="OFF"></label>
 
-                    <template v-if="connPooling">
-                        <label for="connectionPoolingConfig">Connection Pooling Configuration</label>
-                        <select v-model="connectionPoolingConfig" class="connectionPoolingConfig">
-                            <option disabled value="">Select Configuration</option>
-                            <option v-for="conf in connPoolConf" v-if="conf.data.metadata.namespace == namespace">{{ conf.name }}</option>
+                        <template v-if="connPooling">
+                            <label for="connectionPoolingConfig">Connection Pooling Configuration</label>
+                            <select v-model="connectionPoolingConfig" class="connectionPoolingConfig">
+                                <option disabled value="">Select Configuration</option>
+                                <option v-for="conf in connPoolConf" v-if="conf.data.metadata.namespace == namespace">{{ conf.name }}</option>
+                            </select>
+                        </template>
+
+                        <!--<label>Enable Postgres Utils</label>  
+                        <label for="pgUtils" class="switch">Postgres Utils <input type="checkbox" id="pgUtils" v-model="pgUtils" data-switch="OFF"></label>-->
+
+                        <label for="backupConfig">Backup Configuration</label>
+                        <select v-model="backupConfig" class="backupConfig">
+                            <option disabled value="">Select Backup Configuration</option>
+                            <option v-for="conf in backupConf" v-if="conf.data.metadata.namespace == namespace">{{ conf.name }}</option>
                         </select>
                     </template>
-
-                    <!--<label>Enable Postgres Utils</label>  
-                    <label for="pgUtils" class="switch">Postgres Utils <input type="checkbox" id="pgUtils" v-model="pgUtils" data-switch="OFF"></label>-->
-
-                    <label for="backupConfig">Backup Configuration</label>
-                    <select v-model="backupConfig" class="backupConfig">
-                        <option disabled value="">Select Backup Configuration</option>
-                        <option v-for="conf in backupConf" v-if="conf.data.metadata.namespace == namespace">{{ conf.name }}</option>
-                    </select>
                     
                     <template v-if="editMode">
                         <button @click="createCluster" type="submit">Update Cluster</button>
@@ -138,10 +142,11 @@ var CreateCluster = Vue.component("create-cluster", {
 
         if (vm.$route.params.action == 'create') {
             return {
+                advancedMode: false,
                 cluster: {},
                 editMode: false,
                 name: '',
-                namespace: '',
+                namespace: store.state.currentNamespace,
                 pgVersion: '',
                 instances: '',
                 resourceProfile: '',
@@ -162,6 +167,7 @@ var CreateCluster = Vue.component("create-cluster", {
             let volumeUnit = store.state.currentCluster.spec.volumeSize.match(/[a-zA-Z]+/g);
 
             return {
+                advancedMode: false,
                 cluster: {},
                 editMode: true,
                 name: vm.$route.params.name,
