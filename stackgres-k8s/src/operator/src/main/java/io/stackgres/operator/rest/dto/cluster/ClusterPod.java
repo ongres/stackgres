@@ -17,7 +17,7 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class ClusterPodStatus {
+public class ClusterPod {
 
   @JsonProperty("namespace")
   @NotNull
@@ -38,10 +38,10 @@ public class ClusterPodStatus {
   private String status;
 
   @JsonProperty("containers")
-  private String containers;
+  private Integer containers;
 
   @JsonProperty("containersReady")
-  private String containersReady;
+  private Integer containersReady;
 
   public String getNamespace() {
     return namespace;
@@ -83,19 +83,19 @@ public class ClusterPodStatus {
     this.status = status;
   }
 
-  public String getContainers() {
+  public Integer getContainers() {
     return containers;
   }
 
-  public void setContainers(String containers) {
+  public void setContainers(Integer containers) {
     this.containers = containers;
   }
 
-  public String getContainersReady() {
+  public Integer getContainersReady() {
     return containersReady;
   }
 
-  public void setContainersReady(String containersReady) {
+  public void setContainersReady(Integer containersReady) {
     this.containersReady = containersReady;
   }
 

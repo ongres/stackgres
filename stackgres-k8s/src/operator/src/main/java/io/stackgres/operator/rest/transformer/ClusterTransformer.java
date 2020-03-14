@@ -5,8 +5,14 @@
 
 package io.stackgres.operator.rest.transformer;
 
-import javax.enterprise.context.ApplicationScoped;
+import java.util.List;
 
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+
+import io.fabric8.kubernetes.api.model.Pod;
+import io.stackgres.operator.common.ConfigContext;
+import io.stackgres.operator.common.ConfigProperty;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.customresource.sgcluster.StackGresClusterSpec;
 import io.stackgres.operator.rest.dto.cluster.ClusterDto;
@@ -14,9 +20,21 @@ import io.stackgres.operator.rest.dto.cluster.ClusterRestore;
 import io.stackgres.operator.rest.dto.cluster.ClusterSpec;
 import io.stackgres.operator.rest.dto.cluster.NonProduction;
 
+import org.jooq.lambda.Seq;
+
 @ApplicationScoped
 public class ClusterTransformer
     extends AbstractResourceTransformer<ClusterDto, StackGresCluster> {
+
+  private final ConfigContext context;
+  private final ClusterPodTransformer clusterPodTransformer;
+
+  @Inject
+  public ClusterTransformer(ConfigContext context,
+      ClusterPodTransformer clusterPodTransformer) {
+    this.context = context;
+    this.clusterPodTransformer = clusterPodTransformer;
+  }
 
   @Override
   public StackGresCluster toCustomResource(ClusterDto source) {
@@ -31,7 +49,29 @@ public class ClusterTransformer
     ClusterDto transformation = new ClusterDto();
     transformation.setMetadata(getResourceMetadata(source));
     transformation.setSpec(getResourceSpec(source.getSpec()));
+    transformation.setGrafanaEmbedded(isGrafanaEmbeddedEnabled());
     return transformation;
+  }
+
+  public ClusterDto toResourceWithPods(StackGresCluster source, List<Pod> pods) {
+    ClusterDto clusterDto = toResource(source);
+
+    clusterDto.setPods(Seq.seq(pods)
+        .map(clusterPodTransformer::toResource)
+        .toList());
+
+    clusterDto.setPodsReady((int) clusterDto.getPods()
+        .stream()
+        .filter(pod -> pod.getContainers().equals(pod.getContainersReady()))
+        .count());
+
+    return clusterDto;
+  }
+
+  private boolean isGrafanaEmbeddedEnabled() {
+    return context.getProperty(ConfigProperty.GRAFANA_EMBEDDED)
+        .map(Boolean::parseBoolean)
+        .orElse(false);
   }
 
   public StackGresClusterSpec getCustomResourceSpec(ClusterSpec source) {

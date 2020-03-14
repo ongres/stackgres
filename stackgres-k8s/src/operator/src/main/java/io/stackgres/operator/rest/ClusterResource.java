@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.rest;
 
+import java.util.List;
+
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -20,7 +22,6 @@ import io.stackgres.operator.resource.CustomResourceFinder;
 import io.stackgres.operator.resource.CustomResourceScanner;
 import io.stackgres.operator.resource.CustomResourceScheduler;
 import io.stackgres.operator.rest.dto.cluster.ClusterDto;
-import io.stackgres.operator.rest.dto.cluster.ClusterPodConfigDto;
 import io.stackgres.operator.rest.dto.cluster.ClusterResourceConsumtionDto;
 import io.stackgres.operator.rest.transformer.ResourceTransformer;
 
@@ -30,27 +31,40 @@ import io.stackgres.operator.rest.transformer.ResourceTransformer;
 public class ClusterResource
     extends AbstractRestService<ClusterDto, StackGresCluster> {
 
-  final CustomResourceFinder<ClusterResourceConsumtionDto> statusFinder;
-  final CustomResourceFinder<ClusterPodConfigDto> detailsFinder;
+  private final CustomResourceScanner<ClusterDto> scanner;
+  private final CustomResourceFinder<ClusterDto> finder;
+  private final CustomResourceFinder<ClusterResourceConsumtionDto> clusterResourceConsumptionFinder;
 
   @Inject
   public ClusterResource(
-      CustomResourceScanner<StackGresCluster> scanner,
-      CustomResourceFinder<StackGresCluster> finder,
+      CustomResourceScanner<ClusterDto> scanner,
+      CustomResourceFinder<ClusterDto> finder,
       CustomResourceScheduler<StackGresCluster> scheduler,
       ResourceTransformer<ClusterDto, StackGresCluster> transformer,
-      CustomResourceFinder<ClusterResourceConsumtionDto> statusFinder,
-      CustomResourceFinder<ClusterPodConfigDto> detailsFinder) {
-    super(scanner, finder, scheduler, transformer);
-    this.statusFinder = statusFinder;
-    this.detailsFinder = detailsFinder;
+      CustomResourceFinder<ClusterResourceConsumtionDto> clusterResourceConsumptionFinder) {
+    super(null, null, scheduler, transformer);
+    this.scanner = scanner;
+    this.finder = finder;
+    this.clusterResourceConsumptionFinder = clusterResourceConsumptionFinder;
   }
 
   public ClusterResource() {
     super(null, null, null, null);
     ArcUtil.checkPublicNoArgsConstructorIsCalledFromArc();
-    this.statusFinder = null;
-    this.detailsFinder = null;
+    this.scanner = null;
+    this.finder = null;
+    this.clusterResourceConsumptionFinder = null;
+  }
+
+  @Override
+  public List<ClusterDto> list() {
+    return scanner.getResources();
+  }
+
+  @Override
+  public ClusterDto get(String namespace, String name) {
+    return finder.findByNameAndNamespace(name, namespace)
+        .orElseThrow(NotFoundException::new);
   }
 
   /**
@@ -60,15 +74,7 @@ public class ClusterResource
   @GET
   public ClusterResourceConsumtionDto status(@PathParam("namespace") String namespace,
       @PathParam("name") String name) {
-    return statusFinder.findByNameAndNamespace(name, namespace)
-        .orElseThrow(NotFoundException::new);
-  }
-
-  @Path("/pods/{namespace}/{name}")
-  @GET
-  public ClusterPodConfigDto details(@PathParam("namespace") String namespace,
-      @PathParam("name") String name) {
-    return detailsFinder.findByNameAndNamespace(name, namespace)
+    return clusterResourceConsumptionFinder.findByNameAndNamespace(name, namespace)
         .orElseThrow(NotFoundException::new);
   }
 

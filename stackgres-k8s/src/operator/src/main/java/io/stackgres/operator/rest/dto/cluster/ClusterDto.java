@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.rest.dto.cluster;
 
+import java.util.List;
+
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
@@ -22,8 +24,14 @@ public class ClusterDto extends ResourceDto {
   @Valid
   private ClusterSpec spec;
 
-  @JsonProperty("status")
-  private ClusterResourceConsumtionDto status;
+  @JsonProperty("pods")
+  private List<ClusterPod> pods;
+
+  @JsonProperty("podsReady")
+  private Integer podsReady;
+
+  @JsonProperty("grafanaEmbedded")
+  private boolean grafanaEmbedded;
 
   public ClusterSpec getSpec() {
     return spec;
@@ -33,12 +41,28 @@ public class ClusterDto extends ResourceDto {
     this.spec = spec;
   }
 
-  public ClusterResourceConsumtionDto getStatus() {
-    return status;
+  public List<ClusterPod> getPods() {
+    return pods;
   }
 
-  public void setStatus(ClusterResourceConsumtionDto status) {
-    this.status = status;
+  public void setPods(List<ClusterPod> pods) {
+    this.pods = pods;
+  }
+
+  public Integer getPodsReady() {
+    return podsReady;
+  }
+
+  public void setPodsReady(Integer podsReady) {
+    this.podsReady = podsReady;
+  }
+
+  public boolean isGrafanaEmbedded() {
+    return grafanaEmbedded;
+  }
+
+  public void setGrafanaEmbedded(boolean grafanaEmbedded) {
+    this.grafanaEmbedded = grafanaEmbedded;
   }
 
   @Override
@@ -47,7 +71,9 @@ public class ClusterDto extends ResourceDto {
         .omitNullValues()
         .add("metadata", getMetadata())
         .add("spec", spec)
-        .add("status", status)
+        .add("pods", pods)
+        .add("podsReady", podsReady)
+        .add("grafanaEmbedded", grafanaEmbedded)
         .toString();
   }
 

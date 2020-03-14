@@ -33,6 +33,7 @@ public class NamespaceResource {
   public List<String> get() {
     return namespaceScanner.findResources().stream()
         .map(namespace -> namespace.getMetadata().getName())
+        .filter(namespace -> !namespace.startsWith("kube-"))
         .collect(ImmutableList.toImmutableList());
   }
 

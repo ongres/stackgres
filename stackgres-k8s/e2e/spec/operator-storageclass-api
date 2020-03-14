@@ -8,8 +8,8 @@ e2e_test_install() {
 }
 
 e2e_test() {
-  run_test "Sidecar endpoint should be available" check_storage_classes_status
-  run_test "Sidecar endpoint should return all kubernetes storage classes" check_storage_classes
+  run_test "Storage endpoint should be available" check_storage_classes_status
+  run_test "Storage endpoint should return all kubernetes storage classes" check_storage_classes
 }
 
 check_storage_classes() {
@@ -22,9 +22,9 @@ check_storage_classes() {
 
   if [ "$STORAGE_CLASSES_IN_RESPONSE" = "$STORAGE_CLASSES_IN_K8S" ]
   then
-    echo "Success. endpoint returned all storage clases"
+    echo "Success. Storage classes endpoint returned all storage classes"
   else
-    echo "Fail. Endpoint did retorn all storage clases. Expected $STORAGE_CLASSES_IN_K8S, actual $STORAGE_CLASSES_IN_K8S"
+    echo "Fail. Storage classes endpoint did not return all storage classes. Expected $STORAGE_CLASSES_IN_K8S, actual $STORAGE_CLASSES_IN_K8S"
   fi
 }
 
