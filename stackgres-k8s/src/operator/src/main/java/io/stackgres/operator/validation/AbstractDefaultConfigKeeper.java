@@ -10,7 +10,10 @@ import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.client.CustomResource;
+import io.stackgres.operator.common.ConfigContext;
+import io.stackgres.operator.common.ErrorType;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
+import io.stackgres.operatorframework.admissionwebhook.AdmissionRequest;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import io.stackgres.operatorframework.admissionwebhook.validating.Validator;
@@ -23,6 +26,9 @@ public abstract class AbstractDefaultConfigKeeper
   private volatile String defaultResourceName;
 
   private DefaultCustomResourceFactory<R> factory;
+  private ConfigContext configContext;
+
+  private String errorTypeUri;
 
   @PostConstruct
   public void init() {
@@ -30,24 +36,28 @@ public abstract class AbstractDefaultConfigKeeper
     ObjectMeta metadata = defaultResource.getMetadata();
     this.installedNamespace = metadata.getNamespace();
     this.defaultResourceName = metadata.getName();
+    this.errorTypeUri = configContext.getErrorTypeUri(ErrorType.DEFAULT_CONFIGURATION);
   }
 
   @Override
   public void validate(T review) throws ValidationFailed {
 
-    switch (review.getRequest().getOperation()) {
+    final AdmissionRequest<R> request = review.getRequest();
+    switch (request.getOperation()) {
       case UPDATE:
-        String updateNamespace = review.getRequest().getObject().getMetadata().getNamespace();
-        String updateName = review.getRequest().getObject().getMetadata().getName();
+        String updateNamespace = request.getObject().getMetadata().getNamespace();
+        String updateName = request.getObject().getMetadata().getName();
         if (installedNamespace.equals(updateNamespace) && defaultResourceName.equals(updateName)) {
-          throw new ValidationFailed("Cannot update default CR" + updateName);
+          final String message = "Cannot update CR " + updateName + " because is a default CR";
+          fail(request.getKind().getKind(), errorTypeUri, message);
         }
         break;
       case DELETE:
-        String deleteNamespace = review.getRequest().getNamespace();
-        String deleteName = review.getRequest().getName();
+        String deleteNamespace = request.getNamespace();
+        String deleteName = request.getName();
         if (installedNamespace.equals(deleteNamespace) && defaultResourceName.equals(deleteName)) {
-          throw new ValidationFailed("Cannot delete default CR " + deleteName);
+          final String message = "Cannot delete CR " + deleteName + " because is a default CR";
+          fail(request.getKind().getKind(), errorTypeUri, message);
         }
         break;
       default:
@@ -57,5 +67,10 @@ public abstract class AbstractDefaultConfigKeeper
   @Inject
   public void setFactory(DefaultCustomResourceFactory<R> factory) {
     this.factory = factory;
+  }
+
+  @Inject
+  public void setConfigContext(ConfigContext configContext) {
+    this.configContext = configContext;
   }
 }

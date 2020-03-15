@@ -17,11 +17,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class ProfileInitializerTest extends AbstractInitializerTest<StackGresProfile> {
 
   @Override
-  AbstractDefaultCustomResourceInitializer<StackGresProfile> getInstance(
-      CustomResourceFinder<StackGresProfile> resourceFinder,
-      CustomResourceScheduler<StackGresProfile> resourceScheduler,
-      DefaultCustomResourceFactory<StackGresProfile> resourceFactory) {
-    return new ProfileInitializer(resourceFinder, resourceScheduler, resourceFactory);
+  AbstractDefaultCustomResourceInitializer<StackGresProfile> getInstance() {
+    return new ProfileInitializer();
   }
 
   @Override

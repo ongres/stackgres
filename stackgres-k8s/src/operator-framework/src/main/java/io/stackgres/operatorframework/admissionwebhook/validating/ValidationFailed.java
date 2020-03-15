@@ -7,20 +7,28 @@ package io.stackgres.operatorframework.admissionwebhook.validating;
 
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import javax.validation.ConstraintViolation;
 
-import io.stackgres.operatorframework.admissionwebhook.Result;
+import io.fabric8.kubernetes.api.model.Status;
+import io.fabric8.kubernetes.api.model.StatusBuilder;
 
 public class ValidationFailed extends Exception {
 
   private static final long serialVersionUID = 6127484041987197268L;
 
-  private Result result;
+  private Status result;
 
   public ValidationFailed(String message) {
     super(message);
-    result = new Result(500, message);
+    result = new StatusBuilder()
+        .withCode(500)
+        .withMessage(message)
+        .build();
+  }
+
+  public ValidationFailed(Status status) {
+    super(status.getMessage());
+    this.result = status;
   }
 
   /**
@@ -28,12 +36,16 @@ public class ValidationFailed extends Exception {
    */
   public ValidationFailed(Set<? extends ConstraintViolation<?>> violations) {
     super(violations.stream()
-        .map(cv -> cv.getMessage())
+        .map(ConstraintViolation::getMessage)
         .collect(Collectors.joining(", ")));
-    result = new Result(500, this.getMessage());
+
+    result = new StatusBuilder()
+        .withCode(500)
+        .withMessage(this.getMessage())
+        .build();
   }
 
-  public Result getResult() {
+  public Status getResult() {
     return result;
   }
 

@@ -35,7 +35,8 @@ class StorageClassResourceTest {
     storageClasses = JsonUtil
         .readFromJson("storage_class/list.json", StorageClassList.class);
 
-    resource = new StorageClassResource(scanner);
+    resource = new StorageClassResource();
+    resource.setStorageClassScanner(scanner);
   }
 
   @Test

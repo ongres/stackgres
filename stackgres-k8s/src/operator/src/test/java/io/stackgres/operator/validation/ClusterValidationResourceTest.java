@@ -66,10 +66,10 @@ class ClusterValidationResourceTest extends JerseyTest {
 
       @Override
       protected void configure() {
-        ValidatorFactory factory =  Validation.buildDefaultValidatorFactory();
-        Validator validator = factory.getValidator();
 
-        ClusterValidationPipeline pipeline = new ClusterValidationPipeline(getValidators(), validator);
+        ClusterValidationPipeline pipeline = new ClusterValidationPipeline();
+        pipeline.setValidators(getValidators());
+        pipeline.init();
 
         bind(pipeline).to(ClusterValidationPipeline.class).in(Singleton.class);
 

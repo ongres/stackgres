@@ -25,18 +25,9 @@ import org.jooq.lambda.Seq;
 @ApplicationScoped
 public class ClusterDtoScanner implements CustomResourceScanner<ClusterDto> {
 
-  private final CustomResourceScanner<StackGresCluster> clusterScanner;
-  private final KubernetesClientFactory clientFactory;
-  private final ClusterTransformer clusterTransformer;
-
-  @Inject
-  public ClusterDtoScanner(CustomResourceScanner<StackGresCluster> clusterScanner,
-      KubernetesClientFactory clientFactory,
-      ClusterTransformer clusterTransformer) {
-    this.clusterScanner = clusterScanner;
-    this.clientFactory = clientFactory;
-    this.clusterTransformer = clusterTransformer;
-  }
+  private CustomResourceScanner<StackGresCluster> clusterScanner;
+  private KubernetesClientFactory clientFactory;
+  private ClusterTransformer clusterTransformer;
 
   @Override
   public List<ClusterDto> getResources() {
@@ -100,4 +91,18 @@ public class ClusterDtoScanner implements CustomResourceScanner<ClusterDto> {
         .getItems();
   }
 
+  @Inject
+  public void setClusterScanner(CustomResourceScanner<StackGresCluster> clusterScanner) {
+    this.clusterScanner = clusterScanner;
+  }
+
+  @Inject
+  public void setClientFactory(KubernetesClientFactory clientFactory) {
+    this.clientFactory = clientFactory;
+  }
+
+  @Inject
+  public void setClusterTransformer(ClusterTransformer clusterTransformer) {
+    this.clusterTransformer = clusterTransformer;
+  }
 }

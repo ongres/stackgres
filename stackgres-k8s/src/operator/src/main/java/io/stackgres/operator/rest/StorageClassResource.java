@@ -24,11 +24,6 @@ public class StorageClassResource {
 
   private ResourceScanner<StorageClass> storageClassScanner;
 
-  @Inject
-  public StorageClassResource(ResourceScanner<StorageClass> storageClassScanner) {
-    this.storageClassScanner = storageClassScanner;
-  }
-
   @GET
   public List<String> get() {
     return storageClassScanner.findResources().stream()
@@ -36,4 +31,8 @@ public class StorageClassResource {
         .collect(ImmutableList.toImmutableList());
   }
 
+  @Inject
+  public void setStorageClassScanner(ResourceScanner<StorageClass> storageClassScanner) {
+    this.storageClassScanner = storageClassScanner;
+  }
 }

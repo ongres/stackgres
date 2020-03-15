@@ -18,7 +18,9 @@ class BackupConfigMutationResourceTest extends MutationResourceTest<BackupConfig
 
   @BeforeEach
   void setUp() {
-    resource = new BackupConfigMutationResource(pipeline);
+    final BackupConfigMutationResource resource = new BackupConfigMutationResource();
+    resource.setPipeline(pipeline);
+    this.resource = resource;
 
     review = JsonUtil
         .readFromJson("backupconfig_allow_request/create.json", BackupConfigReview.class);

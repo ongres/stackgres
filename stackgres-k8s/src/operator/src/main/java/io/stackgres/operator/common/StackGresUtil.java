@@ -61,6 +61,10 @@ public enum StackGresUtil {
 
   public static final String OPERATOR_IP = INSTANCE.operatorIp;
 
+  public static final String DOCUMENTATION_URI = INSTANCE.documentationUri;
+
+  public static final String DOCUMENTATION_ERRORS_PATH = INSTANCE.documentationErrorsPath;
+
   private final String operatorName;
   private final String operatorNamespace;
   private final String operatorVersion;
@@ -72,6 +76,9 @@ public enum StackGresUtil {
   private final String containerBuild;
 
   private final String prometheusAutobind;
+
+  private final String documentationUri;
+  private final String documentationErrorsPath;
 
   StackGresUtil() {
     try {
@@ -85,6 +92,8 @@ public enum StackGresUtil {
       containerBuild = getProperty(properties, ConfigProperty.CONTAINER_BUILD);
       prometheusAutobind = getProperty(properties, ConfigProperty.PROMETHEUS_AUTOBIND);
       operatorIp = getProperty(properties, ConfigProperty.OPERATOR_IP);
+      documentationUri = getProperty(properties, ConfigProperty.DOCUMENTATION_URI);
+      documentationErrorsPath = getProperty(properties, ConfigProperty.DOCUMENTATION_ERRORS_PATH);
       Preconditions.checkNotNull(operatorName);
       Preconditions.checkNotNull(operatorNamespace);
       Preconditions.checkNotNull(operatorVersion);
@@ -92,6 +101,8 @@ public enum StackGresUtil {
       Preconditions.checkNotNull(version);
       Preconditions.checkNotNull(containerBuild);
       Preconditions.checkNotNull(prometheusAutobind);
+      Preconditions.checkNotNull(documentationUri);
+      Preconditions.checkNotNull(documentationErrorsPath);
     } catch (RuntimeException ex) {
       throw ex;
     } catch (Exception ex) {

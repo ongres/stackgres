@@ -20,7 +20,9 @@ class ClusterMutationResourceTest extends MutationResourceTest<StackGresClusterR
 
   @BeforeEach
   void setUp() {
-    resource = new ClusterMutationResource(pipeline);
+    final ClusterMutationResource resource = new ClusterMutationResource();
+    resource.setPipeline(pipeline);
+    this.resource = resource;
 
     review = JsonUtil
         .readFromJson("cluster_allow_requests/valid_creation.json",

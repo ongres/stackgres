@@ -49,10 +49,7 @@ public class CrdMatchTest {
     crdPomGroup = configLoader.getProperty(ConfigProperty.CRD_GROUP)
         .orElseThrow(() -> new IllegalStateException("Crd group not configured"));
 
-    String projectPath = new File(new File("src").getAbsolutePath())
-        .getParentFile().getParentFile().getParentFile().getAbsolutePath();
-
-    File crdFolder = new File(projectPath + "/install/helm/stackgres-operator/crds");
+    File crdFolder = getCrdsFolder();
 
     crdFiles = crdFolder.listFiles();
 
@@ -62,6 +59,13 @@ public class CrdMatchTest {
         .stream()
         .collect(Collectors.toMap(CustomResourceDefinition::getKind, Function.identity()));
 
+  }
+
+  public static File getCrdsFolder() {
+    String projectPath = new File(new File("src").getAbsolutePath())
+        .getParentFile().getParentFile().getParentFile().getAbsolutePath();
+
+    return new File(projectPath + "/install/helm/stackgres-operator/crds");
   }
 
   private static List<CustomResourceDefinition> getCustomResourceDefinitions() throws IOException {

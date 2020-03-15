@@ -6,10 +6,10 @@
 package io.stackgres.operator.customresource.sgcluster;
 
 import java.util.List;
-
-import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Positive;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -26,7 +26,7 @@ public class StackGresClusterSpec implements KubernetesResource {
   private static final long serialVersionUID = -5276087851826599719L;
 
   @JsonProperty("instances")
-  @Min(value = 1, message = "You need at least 1 instance in the cluster")
+  @Positive(message = "You need at least 1 instance in the cluster")
   private int instances;
 
   @JsonProperty("pgVersion")
@@ -51,7 +51,9 @@ public class StackGresClusterSpec implements KubernetesResource {
   private ClusterRestore restore;
 
   @JsonProperty("volumeSize")
-  @NotNull
+  @NotNull(message = "Volume size must be specified")
+  @Pattern(regexp = "^[0-9]+(\\.[0-9]+)?(Mi|Gi|Ti)$",
+      message = "Volume size must be specified in Mi, Gi or Ti")
   private String volumeSize;
 
   @JsonProperty("storageClass")

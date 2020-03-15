@@ -5,6 +5,13 @@ KIND_NAME="${KIND_NAME:-kind}"
 export KIND_NAME
 
 update_k8s_config() {
+  if cat /proc/1/cgroup | grep :memory | grep -E ":/$" > /dev/null
+  then 
+    echo "Running outside of a container"
+    return
+  else 
+    echo "Running inside of a container"
+  fi  
   mkdir -p "$HOME/.kube"
   if [ "$K8S_FROM_DIND" = true ]
   then

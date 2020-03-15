@@ -5,30 +5,19 @@
 
 package io.stackgres.operator.validation.pgconfig;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
+import javax.inject.Singleton;
 
-import io.stackgres.operator.common.ArcUtil;
+import io.stackgres.operator.common.ErrorType;
 import io.stackgres.operator.common.PgConfigReview;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
-import io.stackgres.operator.resource.CustomResourceScanner;
 import io.stackgres.operator.validation.DependenciesValidator;
+import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 
-@ApplicationScoped
+@Singleton
+@ValidationType(ErrorType.FORBIDDEN_CR_DELETION)
 public class PgConfigDependenciesValidator extends DependenciesValidator<PgConfigReview>
     implements PgConfigValidator {
-
-  @Inject
-  public PgConfigDependenciesValidator(
-      CustomResourceScanner<StackGresCluster> clusterScanner) {
-    super(clusterScanner);
-  }
-
-  public PgConfigDependenciesValidator() {
-    super(null);
-    ArcUtil.checkPublicNoArgsConstructorIsCalledFromArc();
-  }
 
   @Override
   public void validate(PgConfigReview review, StackGresCluster i) throws ValidationFailed {

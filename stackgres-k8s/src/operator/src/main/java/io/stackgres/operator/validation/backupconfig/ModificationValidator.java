@@ -6,15 +6,26 @@
 package io.stackgres.operator.validation.backupconfig;
 
 import java.util.Objects;
-
-import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+import javax.inject.Singleton;
 
 import io.stackgres.operator.common.BackupConfigReview;
+import io.stackgres.operator.common.ConfigContext;
+import io.stackgres.operator.common.ErrorType;
+import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 
-@ApplicationScoped
+@Singleton
+@ValidationType(ErrorType.FORBIDDEN_CR_UPDATE)
 public class ModificationValidator implements BackupConfigValidator {
+
+  private String errorTypeUri;
+
+  @Inject
+  public ModificationValidator(ConfigContext context) {
+    errorTypeUri = context.getErrorTypeUri(ErrorType.FORBIDDEN_CR_UPDATE);
+  }
 
   @Override
   public void validate(BackupConfigReview review) throws ValidationFailed {
@@ -22,7 +33,7 @@ public class ModificationValidator implements BackupConfigValidator {
     if (operation == Operation.UPDATE) {
       if (!Objects.equals(review.getRequest().getOldObject().getSpec().getPgpConfiguration(),
           review.getRequest().getObject().getSpec().getPgpConfiguration())) {
-        throw new ValidationFailed("Modification of pgp configuration is not allowed");
+        fail("Modification of pgp configuration is not allowed");
       }
 
       if (!review.getRequest().getOldObject().getSpec().getStorage().getType().equals(
@@ -33,8 +44,12 @@ public class ModificationValidator implements BackupConfigValidator {
           review.getRequest().getOldObject().getSpec().getStorage().getGcs())
           || !Objects.equals(review.getRequest().getObject().getSpec().getStorage().getAzureblob(),
           review.getRequest().getOldObject().getSpec().getStorage().getAzureblob())) {
-        throw new ValidationFailed("Modification of storage is not allowed");
+        fail("Modification of storage is not allowed");
       }
     }
+  }
+
+  public void fail(String message) throws ValidationFailed {
+    fail(errorTypeUri, message);
   }
 }

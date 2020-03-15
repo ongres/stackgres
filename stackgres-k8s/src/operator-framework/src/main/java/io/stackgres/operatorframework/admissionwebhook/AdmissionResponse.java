@@ -8,6 +8,7 @@ package io.stackgres.operatorframework.admissionwebhook;
 import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import io.fabric8.kubernetes.api.model.Status;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class AdmissionResponse {
@@ -16,7 +17,7 @@ public class AdmissionResponse {
 
   private boolean allowed;
 
-  private Result status;
+  private Status status;
 
   private String patchType;
 
@@ -38,11 +39,11 @@ public class AdmissionResponse {
     this.allowed = allowed;
   }
 
-  public Result getStatus() {
+  public Status getStatus() {
     return status;
   }
 
-  public void setStatus(Result status) {
+  public void setStatus(Status status) {
     this.status = status;
   }
 

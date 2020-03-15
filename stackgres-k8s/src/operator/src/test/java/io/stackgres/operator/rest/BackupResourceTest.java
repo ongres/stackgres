@@ -40,7 +40,9 @@ class BackupResourceTest extends AbstractCustomResourceTest<BackupDto, StackGres
 
   @Override
   protected AbstractResourceTransformer<BackupDto, StackGresBackup> getTransformer() {
-    return new BackupTransformer(new BackupConfigTransformer());
+    final BackupTransformer backupTransformer = new BackupTransformer();
+    backupTransformer.setBackupConfigTransformer(new BackupConfigTransformer());
+    return backupTransformer;
   }
 
   @Override

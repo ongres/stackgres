@@ -5,28 +5,32 @@
 
 package io.stackgres.operator.validation.cluster;
 
-import java.util.Set;
+import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
-import javax.validation.ConstraintViolation;
-import javax.validation.Validator;
 
 import io.stackgres.operator.common.StackGresClusterReview;
-import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
+import io.stackgres.operator.validation.SimpleValidationPipeline;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationPipeline;
 
 @ApplicationScoped
 public class ClusterValidationPipeline implements ValidationPipeline<StackGresClusterReview> {
 
-  private final Validator validator;
-  private final Instance<ClusterValidator> validators;
+  private SimpleValidationPipeline<StackGresClusterReview, ClusterValidator> genericPipeline;
+
+  private Instance<ClusterValidator> validators;
+
+  @PostConstruct
+  public void init() {
+    genericPipeline = new SimpleValidationPipeline<>(validators);
+  }
 
   @Inject
-  public ClusterValidationPipeline(Instance<ClusterValidator> validators, Validator validator) {
+  public void setValidators(@Any Instance<ClusterValidator> validators) {
     this.validators = validators;
-    this.validator = validator;
   }
 
   /**
@@ -34,18 +38,8 @@ public class ClusterValidationPipeline implements ValidationPipeline<StackGresCl
    */
   @Override
   public void validate(StackGresClusterReview review) throws ValidationFailed {
-    StackGresCluster cluster = review.getRequest().getObject();
-    if (cluster != null) {
-      Set<ConstraintViolation<StackGresCluster>> violations = validator.validate(cluster);
+    genericPipeline.validate(review);
 
-      if (!violations.isEmpty()) {
-        throw new ValidationFailed(violations);
-      }
-    }
-
-    for (ClusterValidator validator : validators) {
-      validator.validate(review);
-    }
   }
 
 }

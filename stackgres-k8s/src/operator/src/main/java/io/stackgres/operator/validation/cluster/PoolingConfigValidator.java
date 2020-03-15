@@ -6,24 +6,31 @@
 package io.stackgres.operator.validation.cluster;
 
 import java.util.Optional;
-import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import javax.inject.Singleton;
 
+import io.stackgres.operator.common.ConfigContext;
+import io.stackgres.operator.common.ErrorType;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.resource.CustomResourceFinder;
 import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfig;
+import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 
-@ApplicationScoped
+@Singleton
+@ValidationType(ErrorType.INVALID_CR_REFERENCE)
 public class PoolingConfigValidator implements ClusterValidator {
 
   private CustomResourceFinder<StackGresPgbouncerConfig> configFinder;
 
+  private ConfigContext context;
+
   @Inject
   public PoolingConfigValidator(
-      CustomResourceFinder<StackGresPgbouncerConfig> configFinder) {
+      CustomResourceFinder<StackGresPgbouncerConfig> configFinder, ConfigContext context) {
     this.configFinder = configFinder;
+    this.context = context;
   }
 
   @Override
@@ -60,7 +67,7 @@ public class PoolingConfigValidator implements ClusterValidator {
           .findByNameAndNamespace(poolingConfig, namespace);
 
       if (!poolingConfigOpt.isPresent()) {
-        throw new ValidationFailed(onError);
+        fail(context, onError);
       }
     }
   }

@@ -24,4 +24,5 @@ public class DefaultClusterRestoreFactory
   ClusterRestore buildResource(String namespace) {
     return buildSpec(ClusterRestore.class);
   }
+
 }

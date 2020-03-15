@@ -1,5 +1,4 @@
 #!/bin/sh
-
 e2e_test() {
   run_test "Trying to delete size-xs with cluster running" delete_with_cluster
 

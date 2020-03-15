@@ -33,7 +33,7 @@ public class BackupConfigMutationResource implements MutationResource<BackupConf
   private JsonPatchMutationPipeline<BackupConfigReview> pipeline;
 
   @Inject
-  public BackupConfigMutationResource(JsonPatchMutationPipeline<BackupConfigReview> pipeline) {
+  public void setPipeline(JsonPatchMutationPipeline<BackupConfigReview> pipeline) {
     this.pipeline = pipeline;
   }
 

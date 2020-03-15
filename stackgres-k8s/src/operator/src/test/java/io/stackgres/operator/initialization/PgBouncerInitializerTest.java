@@ -17,11 +17,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 public class PgBouncerInitializerTest extends AbstractInitializerTest<StackGresPgbouncerConfig> {
 
   @Override
-  AbstractDefaultCustomResourceInitializer<StackGresPgbouncerConfig> getInstance(
-      CustomResourceFinder<StackGresPgbouncerConfig> resourceFinder,
-      CustomResourceScheduler<StackGresPgbouncerConfig> resourceScheduler,
-      DefaultCustomResourceFactory<StackGresPgbouncerConfig> resourceFactory) {
-    return new PgBouncerInitializer(resourceFinder, resourceScheduler, resourceFactory);
+  AbstractDefaultCustomResourceInitializer<StackGresPgbouncerConfig> getInstance() {
+    return new PgBouncerInitializer();
   }
 
   @Override

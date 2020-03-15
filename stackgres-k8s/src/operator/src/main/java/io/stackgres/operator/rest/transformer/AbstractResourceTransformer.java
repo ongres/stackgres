@@ -15,17 +15,21 @@ public abstract class AbstractResourceTransformer<T extends ResourceDto, R exten
 
   protected ObjectMeta getCustomResourceMetadata(T source) {
     ObjectMeta metadata = new ObjectMeta();
-    metadata.setNamespace(source.getMetadata().getNamespace());
-    metadata.setName(source.getMetadata().getName());
-    metadata.setUid(source.getMetadata().getUid());
+    if (source.getMetadata() != null) {
+      metadata.setNamespace(source.getMetadata().getNamespace());
+      metadata.setName(source.getMetadata().getName());
+      metadata.setUid(source.getMetadata().getUid());
+    }
     return metadata;
   }
 
   protected Metadata getResourceMetadata(R source) {
     Metadata metadata = new Metadata();
-    metadata.setNamespace(source.getMetadata().getNamespace());
-    metadata.setName(source.getMetadata().getName());
-    metadata.setUid(source.getMetadata().getUid());
+    if (source.getMetadata() != null) {
+      metadata.setNamespace(source.getMetadata().getNamespace());
+      metadata.setName(source.getMetadata().getName());
+      metadata.setUid(source.getMetadata().getUid());
+    }
     return metadata;
   }
 

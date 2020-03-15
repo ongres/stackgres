@@ -6,24 +6,31 @@
 package io.stackgres.operator.validation.cluster;
 
 import java.util.Optional;
-import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import javax.inject.Singleton;
 
+import io.stackgres.operator.common.ConfigContext;
+import io.stackgres.operator.common.ErrorType;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.resource.CustomResourceFinder;
+import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 
-@ApplicationScoped
+@Singleton
+@ValidationType(ErrorType.INVALID_CR_REFERENCE)
 public class BackupConfigValidator implements ClusterValidator {
 
   private CustomResourceFinder<StackGresBackupConfig> configFinder;
 
+  private ConfigContext context;
+
   @Inject
   public BackupConfigValidator(
-      CustomResourceFinder<StackGresBackupConfig> configFinder) {
+      CustomResourceFinder<StackGresBackupConfig> configFinder, ConfigContext context) {
     this.configFinder = configFinder;
+    this.context = context;
   }
 
   @Override
@@ -47,7 +54,7 @@ public class BackupConfigValidator implements ClusterValidator {
   }
 
   private void checkIfBackupConfigExists(StackGresClusterReview review,
-                                          String onError) throws ValidationFailed {
+                                         String onError) throws ValidationFailed {
 
     StackGresCluster cluster = review.getRequest().getObject();
     String backupConfig = cluster.getSpec().getBackupConfig();
@@ -58,7 +65,7 @@ public class BackupConfigValidator implements ClusterValidator {
           .findByNameAndNamespace(backupConfig, namespace);
 
       if (!backupConfigOpt.isPresent()) {
-        throw new ValidationFailed(onError);
+        fail(context, onError);
       }
     }
   }

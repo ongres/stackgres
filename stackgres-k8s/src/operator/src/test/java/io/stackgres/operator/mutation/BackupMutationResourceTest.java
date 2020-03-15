@@ -16,7 +16,9 @@ class BackupMutationResourceTest extends MutationResourceTest<BackupReview> {
 
   @BeforeEach
   void setUp() {
-    resource = new BackupMutationResource(pipeline);
+    final BackupMutationResource resource = new BackupMutationResource();
+    resource.setPipeline(pipeline);
+    this.resource = resource;
 
     review = JsonUtil
         .readFromJson("backup_allow_request/create.json", BackupReview.class);

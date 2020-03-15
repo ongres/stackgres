@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.sidecars.pgbouncer.customresources;
 
+import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
 import com.google.common.base.MoreObjects;
@@ -17,6 +18,7 @@ public class StackGresPgbouncerConfig extends CustomResource {
   private static final long serialVersionUID = 2719099984653736636L;
 
   @NotNull(message = "The specification is required")
+  @Valid
   private StackGresPgbouncerConfigSpec spec;
 
   public StackGresPgbouncerConfig() {

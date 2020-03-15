@@ -45,13 +45,16 @@ public class PostgresConfigTransformer
   private StackGresPostgresConfigSpec getCustomResourceSpec(PostgresConfigSpec source) {
     StackGresPostgresConfigSpec transformation = new StackGresPostgresConfigSpec();
     transformation.setPgVersion(source.getPgVersion());
-    transformation.setPostgresqlConf(Seq.of(source.getPostgresqlConf().split("\n"))
-        .map(line -> line.replaceAll("#.*$", ""))
-        .map(line -> PARAMETER_PATTERN.matcher(line))
-        .filter(Matcher::matches)
-        .collect(ImmutableMap.toImmutableMap(
-            matcher -> matcher.group(1),
-            matcher -> matcher.group(2) != null ? matcher.group(2) : matcher.group(3))));
+    final String postgresqlConf = source.getPostgresqlConf();
+    if (postgresqlConf != null) {
+      transformation.setPostgresqlConf(Seq.of(postgresqlConf.split("\n"))
+          .map(line -> line.replaceAll("#.*$", ""))
+          .map(line -> PARAMETER_PATTERN.matcher(line))
+          .filter(Matcher::matches)
+          .collect(ImmutableMap.toImmutableMap(
+              matcher -> matcher.group(1),
+              matcher -> matcher.group(2) != null ? matcher.group(2) : matcher.group(3))));
+    }
     return transformation;
   }
 
@@ -60,8 +63,8 @@ public class PostgresConfigTransformer
     transformation.setPgVersion(source.getPgVersion());
     transformation.setPostgresqlConf(
         Seq.seq(source.getPostgresqlConf().entrySet())
-        .map(e -> e.getKey() + "=" + e.getValue())
-        .toString("\n"));
+            .map(e -> e.getKey() + "=" + e.getValue())
+            .toString("\n"));
     return transformation;
   }
 

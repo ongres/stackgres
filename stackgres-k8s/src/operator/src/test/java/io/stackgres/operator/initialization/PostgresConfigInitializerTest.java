@@ -17,11 +17,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class PostgresConfigInitializerTest extends AbstractInitializerTest<StackGresPostgresConfig> {
 
   @Override
-  AbstractDefaultCustomResourceInitializer<StackGresPostgresConfig> getInstance(
-      CustomResourceFinder<StackGresPostgresConfig> resourceFinder,
-      CustomResourceScheduler<StackGresPostgresConfig> resourceScheduler,
-      DefaultCustomResourceFactory<StackGresPostgresConfig> resourceFactory) {
-    return new PostgresConfigInitializer(resourceFinder, resourceScheduler, resourceFactory);
+  AbstractDefaultCustomResourceInitializer<StackGresPostgresConfig> getInstance() {
+    return new PostgresConfigInitializer();
   }
 
   @Override

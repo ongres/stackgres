@@ -15,6 +15,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.stackgres.operator.common.PgConfigReview;
 import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfig;
+import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfigSpec;
 import io.stackgres.operator.mutation.DefaultValuesMutator;
 
 @ApplicationScoped
@@ -33,7 +34,13 @@ public class PgConfigDefaultValuesMutator
     ImmutableList.Builder<JsonPatchOperation> operations = ImmutableList.builder();
 
     StackGresPostgresConfig pgConfig = review.getRequest().getObject();
-    if (pgConfig.getSpec().getPostgresqlConf() == null) {
+    StackGresPostgresConfigSpec spec = pgConfig.getSpec();
+    if (spec == null) {
+      spec = new StackGresPostgresConfigSpec();
+      pgConfig.setSpec(spec);
+      operations.add(new AddOperation(PG_CONFIG_POINTER.parent(), FACTORY.objectNode()));
+    }
+    if (spec.getPostgresqlConf() == null) {
       pgConfig.getSpec().setPostgresqlConf(ImmutableMap.of());
       operations.add(new AddOperation(PG_CONFIG_POINTER, FACTORY.objectNode()));
     }

@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import io.stackgres.operator.common.BackupConfigReview;
+import io.stackgres.operator.common.ConfigLoader;
 import io.stackgres.operator.utils.JsonUtil;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 
@@ -16,7 +17,7 @@ import org.junit.jupiter.api.Test;
 
 class ModificationValidatorTest {
 
-  private ModificationValidator validator = new ModificationValidator();
+  private ModificationValidator validator = new ModificationValidator(new ConfigLoader());
 
   @Test
   void givenModificationOfPgpConfiguration_shouldFail(){

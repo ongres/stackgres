@@ -39,4 +39,5 @@ public class DefaultProfileFactory extends AbstractCustomResourceFactory<StackGr
     return profile;
 
   }
+
 }

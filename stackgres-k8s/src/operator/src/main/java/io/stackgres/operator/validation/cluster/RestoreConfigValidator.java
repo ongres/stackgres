@@ -7,27 +7,36 @@ package io.stackgres.operator.validation.cluster;
 
 import java.util.List;
 import java.util.Optional;
-
-import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import javax.inject.Singleton;
 
+import io.stackgres.operator.common.ConfigContext;
+import io.stackgres.operator.common.ErrorType;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.common.StackGresComponents;
 import io.stackgres.operator.customresource.sgbackup.StackGresBackup;
 import io.stackgres.operator.customresource.sgcluster.ClusterRestore;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.resource.CustomResourceScanner;
+import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 
-@ApplicationScoped
+@Singleton
+@ValidationType(ErrorType.INVALID_CR_REFERENCE)
 public class RestoreConfigValidator implements ClusterValidator {
 
   private CustomResourceScanner<StackGresBackup> backupScanner;
 
+  private String errorCrReferencerUri;
+  private String errorPostgresMismatch;
+
   @Inject
-  public RestoreConfigValidator(CustomResourceScanner<StackGresBackup> backupScanner) {
+  public RestoreConfigValidator(CustomResourceScanner<StackGresBackup> backupScanner,
+                                ConfigContext context) {
     this.backupScanner = backupScanner;
+    errorCrReferencerUri = context.getErrorTypeUri(ErrorType.INVALID_CR_REFERENCE);
+    errorPostgresMismatch = context.getErrorTypeUri(ErrorType.PG_VERSION_MISMATCH);
   }
 
   @Override
@@ -43,7 +52,7 @@ public class RestoreConfigValidator implements ClusterValidator {
   }
 
   private void checkBackup(StackGresClusterReview review,
-      ClusterRestore restoreConfig) throws ValidationFailed {
+                           ClusterRestore restoreConfig) throws ValidationFailed {
     String backupUid = restoreConfig.getBackupUid();
 
     switch (review.getRequest().getOperation()) {
@@ -52,14 +61,17 @@ public class RestoreConfigValidator implements ClusterValidator {
         Optional<StackGresBackup> config = findBackup(backupUid);
 
         if (!config.isPresent()) {
-          throw new ValidationFailed("Backup uid " + backupUid + " not found");
+
+          final String message = "Backup uid " + backupUid + " not found";
+          fail(errorCrReferencerUri, message);
         }
 
         StackGresBackup backup = config.get();
 
         if (backup.getStatus() == null || !backup.getStatus().getPhase().equals("Completed")) {
-          throw new ValidationFailed("Cannot restore from backup " + backupUid
-              + " because it's not ready");
+          final String message = "Cannot restore from backup " + backupUid
+              + " because it's not ready";
+          fail(errorCrReferencerUri, message);
         }
 
         String backupMajorVersion = RestoreConfigValidator.getMajorVersion(backup);
@@ -69,8 +81,9 @@ public class RestoreConfigValidator implements ClusterValidator {
         String givenMajorVersion = StackGresComponents.getPostgresMajorVersion(calculatedPgVersion);
 
         if (!backupMajorVersion.equals(givenMajorVersion)) {
-          throw new ValidationFailed("Cannot restore from backup " + backupUid
-              + " because it comes from an incompatible postgres version");
+          final String message = "Cannot restore from backup " + backupUid
+              + " because it comes from an incompatible postgres version";
+          fail(errorPostgresMismatch, message);
         }
 
         break;
@@ -79,12 +92,14 @@ public class RestoreConfigValidator implements ClusterValidator {
             .getOldObject().getSpec().getRestore();
         String oldBackupUid = oldRestoreConfig.getBackupUid();
 
+        final String message = "Cannot update cluster's restore configuration";
+        fail(errorCrReferencerUri, message);
         if (backupUid == null && oldBackupUid != null
             || backupUid != null && oldBackupUid == null) {
-          throw new ValidationFailed("Cannot update cluster's restore configuration");
+          throw new ValidationFailed(message);
         }
         if (backupUid != null && !backupUid.equals(oldBackupUid)) {
-          throw new ValidationFailed("Cannot update cluster's restore configuration");
+          throw new ValidationFailed(message);
         }
         break;
       default:

@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import io.stackgres.operator.common.BackupConfigReview;
+import io.stackgres.operator.common.ConfigLoader;
 import io.stackgres.operator.utils.JsonUtil;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 
@@ -16,10 +17,10 @@ import org.junit.jupiter.api.Test;
 
 class StorageValidatorTest {
 
-  private StorageTypeValidator validator = new StorageTypeValidator();
+  private StorageTypeValidator validator = new StorageTypeValidator(new ConfigLoader());
 
   @Test
-  void givenCreationWithoutVolumeProperties_shouldFail(){
+  void givenCreationWithoutVolumeProperties_shouldFail() {
 
     BackupConfigReview review = JsonUtil.readFromJson("backupconfig_allow_request/invalid_creation_no_s3.json",
         BackupConfigReview.class);
@@ -34,7 +35,7 @@ class StorageValidatorTest {
   }
 
   @Test
-  void givenCreationWithGcsAndS3Properties_shouldFail(){
+  void givenCreationWithGcsAndS3Properties_shouldFail() {
 
     BackupConfigReview review = JsonUtil.readFromJson("backupconfig_allow_request/invalid_creation_gcs_and_s3.json",
         BackupConfigReview.class);

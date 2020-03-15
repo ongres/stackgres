@@ -17,13 +17,16 @@ build_default_config() {
   then
     echo "Saving Pgconfig $PGCONFIG"
 
-    kubectl get sgpgconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCONFIG"  -o json \
-      | run_jq 'del(.metadata.creationTimestamp) | del(.metadata.generation) | del(.metadata.resourceVersion) | del(.metadata.selfLink) | del(.metadata.uid)' \
-      > "$LOG_PATH/default-pgconfig-cr.json"
-    cat "$LOG_PATH/default-pgconfig-cr.json" \
+    DEFAULT_PGCONFIG_CR=$(kubectl get sgpgconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCONFIG"  -o json \
+      | run_jq 'del(.metadata.creationTimestamp) | del(.metadata.generation) | del(.metadata.resourceVersion) | del(.metadata.selfLink) | del(.metadata.uid)' )
+    
+    write_into -f "$LOG_PATH/default-pgconfig-cr.json" -c "$DEFAULT_PGCONFIG_CR"
+    
+    DEFAULT_PGCONFIG=$(cat "$LOG_PATH/default-pgconfig-cr.json" \
       | run_jq 'del(.apiVersion) | del(.kind)'  \
-      | run_jq '.spec."postgresql.conf" = (.spec."postgresql.conf"|to_entries|map(.key + "=" + .value)|join("\n"))' \
-      > "$LOG_PATH/default-pgconfig.json"
+      | run_jq '.spec."postgresql.conf" = (.spec."postgresql.conf"|to_entries|map(.key + "=" + .value)|join("\n"))')
+
+    write_into -f "$LOG_PATH/default-pgconfig.json" -c "$DEFAULT_PGCONFIG"
     
     kubectl delete sgpgconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCONFIG" || true
   else
@@ -57,6 +60,8 @@ e2e_test() {
   run_test "Check pgconfig deletion with api" test_delete_pgconfig_with_api
 
   run_test "Check that pgconfig deletions with the API are reflected in the API" test_api_delete_pgconfig_is_invible
+
+  run_test "Constraint violations should be detected" test_constraint_violation_api_error
 }
 
 create_pgconfig() {
@@ -189,11 +194,12 @@ api_created_pgconfig_visible() {
 update_pg_config_paramter_with_api() {
   local HTTP_STATUS
 
-  cat "$LOG_PATH/default-pgconfig-cr.json" \
+  UPDATED_PGCONFIG=$(cat "$LOG_PATH/default-pgconfig-cr.json" \
     | run_jq 'del(.apiVersion) | del(.kind)' \
     | run_jq ".spec[\"postgresql.conf\"][\"$1\"] = $2" \
-    | run_jq '.spec."postgresql.conf" = (.spec."postgresql.conf"|to_entries|map(.key + "=" + .value)|join("\n"))' \
-    > "$LOG_PATH/updated-pgconfig.json"
+    | run_jq '.spec."postgresql.conf" = (.spec."postgresql.conf"|to_entries|map(.key + "=" + .value)|join("\n"))' )
+    
+  write_into -f "$LOG_PATH/updated-pgconfig.json" -c "$UPDATED_PGCONFIG"
 
   HTTP_STATUS="$(run_curl -r "stackgres/pgconfig" -d "$LOG_PATH/updated-pgconfig.json" -e '-X PUT -w %{http_code} -o /dev/null')"
 
@@ -282,4 +288,32 @@ test_api_delete_pgconfig_is_invible() {
     echo "Postgres config removed from the API"
     return 1
   fi
+}
+
+test_constraint_violation_api_error() {
+
+  INVALID_PGCONFIG=$(cat "$LOG_PATH/default-pgconfig.json" | run_jq 'del (.spec.pgVersion)' )
+
+  echo "$INVALID_PGCONFIG" > "$LOG_PATH/invalid-pgconfig.json"
+  
+  local HTTP_STATUS
+
+  HTTP_STATUS="$(run_curl -r "stackgres/pgconfig" -n "$CLUSTER_NAMESPACE"  -d "$LOG_PATH/invalid-pgconfig.json" -e '-X POST -w %{http_code} -o /dev/null')"
+
+  assert_string_equal "422" "$HTTP_STATUS"
+
+  ERROR_RESPONSE="$(run_curl -r "stackgres/pgconfig" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/invalid-pgconfig.json" -e '-X POST')"
+
+  EXPECTED_ERROR_TYPE="constraint-violation"
+  EXPECTED_ERROR_TITLE="doesn't complain syntactic rules"
+  EXPECTED_ERROR_DETAIL="spec.pgVersion in body"
+  EXPECTED_ERROR_FIELD="pgVersion"
+
+  if ! assert_api_error "$ERROR_RESPONSE"
+  then
+    EXPECTED_ERROR_DETAIL="Required value"
+    assert_api_error "$ERROR_RESPONSE"
+  fi
+    
+
 }

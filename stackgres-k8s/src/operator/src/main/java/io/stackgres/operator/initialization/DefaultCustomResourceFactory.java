@@ -8,4 +8,5 @@ package io.stackgres.operator.initialization;
 public interface DefaultCustomResourceFactory<T> {
 
   T buildResource();
+
 }

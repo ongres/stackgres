@@ -20,7 +20,9 @@ class PgConfigMutationResourceTest extends MutationResourceTest<PgConfigReview>{
 
   @BeforeEach
   void setUp() {
-    resource = new PgConfigMutationResource(pipeline);
+    final PgConfigMutationResource resource = new PgConfigMutationResource();
+    resource.setPipeline(pipeline);
+    this.resource = resource;
 
     review = JsonUtil
         .readFromJson("pgconfig_allow_request/valid_pgconfig.json", PgConfigReview.class);

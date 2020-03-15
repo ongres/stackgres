@@ -7,9 +7,9 @@ package io.stackgres.operator.validation.backupconfig;
 
 import io.stackgres.operator.common.BackupConfigReview;
 import io.stackgres.operator.utils.JsonUtil;
+import io.stackgres.operator.validation.DependenciesValidator;
 import io.stackgres.operator.validation.DependenciesValidatorTest;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,54 +21,54 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 @RunWith(MockitoJUnitRunner.class)
 class BackupConfigDependenciesValidatorTest
-        extends DependenciesValidatorTest<BackupConfigReview, BackupConfigDependenciesValidator> {
+    extends DependenciesValidatorTest<BackupConfigReview, BackupConfigDependenciesValidator> {
 
-    @BeforeEach
-    void setUp() {
-        validator = new BackupConfigDependenciesValidator(clusterScanner);
-    }
+  @Override
+  protected DependenciesValidator<BackupConfigReview> setUpValidation() {
+    return new BackupConfigDependenciesValidator();
+  }
 
-    @Override
-    @Test
-    protected void givenAReviewCreation_itShouldDoNothing() throws ValidationFailed {
+  @Override
+  @Test
+  protected void givenAReviewCreation_itShouldDoNothing() throws ValidationFailed {
 
-      BackupConfigReview review = JsonUtil.readFromJson("backupconfig_allow_request/create.json",
-          BackupConfigReview.class);
+    BackupConfigReview review = JsonUtil.readFromJson("backupconfig_allow_request/create.json",
+        BackupConfigReview.class);
 
-        givenAReviewCreation_itShouldDoNothing(review);
+    givenAReviewCreation_itShouldDoNothing(review);
 
-    }
+  }
 
-    @Override
-    @Test
-    protected void givenAReviewUpdate_itShouldDoNothing() throws ValidationFailed {
+  @Override
+  @Test
+  protected void givenAReviewUpdate_itShouldDoNothing() throws ValidationFailed {
 
-      BackupConfigReview review = JsonUtil.readFromJson("backupconfig_allow_request/update.json",
-          BackupConfigReview.class);
+    BackupConfigReview review = JsonUtil.readFromJson("backupconfig_allow_request/update.json",
+        BackupConfigReview.class);
 
-        givenAReviewUpdate_itShouldDoNothing(review);
+    givenAReviewUpdate_itShouldDoNothing(review);
 
-    }
+  }
 
-    @Override
-    @Test
-    protected void givenAReviewDelete_itShouldFailIfIsAClusterDependsOnIt() {
+  @Override
+  @Test
+  protected void givenAReviewDelete_itShouldFailIfIsAClusterDependsOnIt() {
 
-      BackupConfigReview review = JsonUtil.readFromJson("backupconfig_allow_request/delete.json",
-          BackupConfigReview.class);
+    BackupConfigReview review = JsonUtil.readFromJson("backupconfig_allow_request/delete.json",
+        BackupConfigReview.class);
 
-        givenAReviewDelete_itShouldFailIfIsAClusterDependsOnIt(review);
+    givenAReviewDelete_itShouldFailIfIsAClusterDependsOnIt(review);
 
-    }
+  }
 
-    @Override
-    @Test
-    protected void givenAReviewDelete_itShouldNotFailIfNotClusterDependsOnIt() throws ValidationFailed {
+  @Override
+  @Test
+  protected void givenAReviewDelete_itShouldNotFailIfNotClusterDependsOnIt() throws ValidationFailed {
 
-      BackupConfigReview review = JsonUtil.readFromJson("backupconfig_allow_request/delete.json",
-          BackupConfigReview.class);
+    BackupConfigReview review = JsonUtil.readFromJson("backupconfig_allow_request/delete.json",
+        BackupConfigReview.class);
 
-        givenAReviewDelete_itShouldNotFailIfNotClusterDependsOnIt(review);
+    givenAReviewDelete_itShouldNotFailIfNotClusterDependsOnIt(review);
 
-    }
+  }
 }

@@ -7,12 +7,11 @@ package io.stackgres.operatorframework.admissionwebhook.validating;
 
 import java.util.UUID;
 
+import io.fabric8.kubernetes.api.model.Status;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionRequest;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionResponse;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReviewResponse;
-import io.stackgres.operatorframework.admissionwebhook.Result;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,7 +46,7 @@ public interface ValidationResource<T extends AdmissionReview<?>> {
       pipeline.validate(admissionReview);
       response.setAllowed(true);
     } catch (ValidationFailed validationFailed) {
-      Result result = validationFailed.getResult();
+      Status result = validationFailed.getResult();
       logger.error("cannot proceed with request "
           + requestUid.toString() + " cause: " + result.getMessage());
       response.setAllowed(false);

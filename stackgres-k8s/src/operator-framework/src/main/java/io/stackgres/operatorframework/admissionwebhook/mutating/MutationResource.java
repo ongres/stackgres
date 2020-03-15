@@ -10,12 +10,12 @@ import java.util.Base64;
 import java.util.Optional;
 import java.util.UUID;
 
+import io.fabric8.kubernetes.api.model.Status;
+import io.fabric8.kubernetes.api.model.StatusBuilder;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionRequest;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionResponse;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReviewResponse;
-import io.stackgres.operatorframework.admissionwebhook.Result;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,11 +52,14 @@ public interface MutationResource<T extends AdmissionReview<?>> {
       });
       response.setAllowed(true);
     } catch (Exception ex) {
-      Result result = new Result(500, Optional.ofNullable(ex.getMessage()).orElse("null"));
+      Status status = new StatusBuilder()
+          .withMessage(Optional.ofNullable(ex.getMessage()).orElse("null"))
+          .withCode(500)
+          .build();
       logger.error("cannot proceed with request "
-          + requestUid.toString() + " cause: " + result.getMessage(), ex);
+          + requestUid.toString() + " cause: " + status.getMessage(), ex);
       response.setAllowed(false);
-      response.setStatus(result);
+      response.setStatus(status);
     }
 
     return reviewResponse;

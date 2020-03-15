@@ -6,6 +6,7 @@
 package io.stackgres.operator.validation.pgbouncer;
 
 import io.stackgres.operator.utils.JsonUtil;
+import io.stackgres.operator.validation.DependenciesValidator;
 import io.stackgres.operator.validation.DependenciesValidatorTest;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import io.stackgres.operator.common.PgBouncerReview;
@@ -23,9 +24,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class PgBouncerDependenciesValidatorTest
         extends DependenciesValidatorTest<PgBouncerReview, PgBouncerDependenciesValidator> {
 
-    @BeforeEach
-    void setUp() {
-        validator = new PgBouncerDependenciesValidator(clusterScanner);
+
+    @Override
+    protected DependenciesValidator<PgBouncerReview> setUpValidation() {
+        return new PgBouncerDependenciesValidator();
     }
 
     @Override

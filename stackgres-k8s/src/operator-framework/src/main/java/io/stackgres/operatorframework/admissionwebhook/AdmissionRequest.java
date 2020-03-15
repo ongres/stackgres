@@ -9,11 +9,12 @@ import java.util.UUID;
 
 import io.fabric8.kubernetes.api.model.GroupVersionKind;
 import io.fabric8.kubernetes.api.model.GroupVersionResource;
+import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.authentication.UserInfo;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
 @RegisterForReflection
-public class AdmissionRequest<T> {
+public class AdmissionRequest<T extends HasMetadata> {
 
   private UUID uid;
 

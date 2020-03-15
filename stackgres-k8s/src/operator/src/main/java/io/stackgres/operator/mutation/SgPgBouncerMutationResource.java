@@ -33,7 +33,7 @@ public class SgPgBouncerMutationResource implements MutationResource<PgBouncerRe
   private JsonPatchMutationPipeline<PgBouncerReview> pipeline;
 
   @Inject
-  public SgPgBouncerMutationResource(JsonPatchMutationPipeline<PgBouncerReview> pipeline) {
+  public void setPipeline(JsonPatchMutationPipeline<PgBouncerReview> pipeline) {
     this.pipeline = pipeline;
   }
 
