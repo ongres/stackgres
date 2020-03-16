@@ -12,9 +12,6 @@ rbac:
 deploy:
   create: true
 
-validator:
-  create: true
-
 cert:
   autoapprove: true
 

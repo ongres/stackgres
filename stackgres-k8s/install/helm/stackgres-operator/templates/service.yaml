@@ -11,7 +11,22 @@ spec:
       protocol: TCP
       port: 443
       targetPort: 443
-{{ if and .Values.developer.externalOperatorIp .Values.developer.externalOperatorPort }}
+{{ if not (and .Values.developer.externalOperatorIp .Values.developer.externalOperatorPort) }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: {{ .Release.Name }}-api
+spec:
+  selector:
+    app: {{ .Release.Name }}
+  ports:
+    - name: http
+      protocol: TCP
+      port: 8080
+      targetPort: 8080
+{{ else }}
 ---
 kind: Service
 apiVersion: v1
@@ -33,19 +48,4 @@ subsets:
     - ip: "{{ .Values.developer.externalOperatorIp }}"
    ports:
     - port: {{ .Values.developer.externalOperatorPort }}
-{{ else }}
----
-apiVersion: v1
-kind: Service
-metadata:
-  namespace: {{ .Release.Namespace }}
-  name: {{ .Release.Name }}-api
-spec:
-  selector:
-    app: {{ .Release.Name }}
-  ports:
-    - name: http
-      protocol: TCP
-      port: 8080
-      targetPort: 8080
 {{ end }}

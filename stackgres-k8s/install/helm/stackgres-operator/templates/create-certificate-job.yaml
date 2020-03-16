@@ -1,0 +1,102 @@
+{{- if and (or (not .Values.cert.key) (not .Values.cert.crt)) .Values.deploy.create }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: "{{ .Release.Name }}-create-certificate"
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: StackGres
+    scope: init
+  annotations:
+    "helm.sh/hook": post-install
+    "helm.sh/hook-delete-policy": hook-succeeded
+spec:
+  template:
+    metadata:
+      labels:
+        app: StackGres
+        scope: init
+    spec:
+      serviceAccountName: {{ .Release.Name }}
+      containers:
+      - name: "{{ .Release.Name }}-create-certificate"
+        image: "bitnami/kubectl:latest"
+        imagePullPolicy: "Always"
+        command:
+          - "/bin/bash"
+          - "-ecx"
+          - |
+            kubectl delete csr --ignore-not-found '{{ .Release.Name }}'
+            cat << EOF > /tmp/csr.conf
+            [req]
+            req_extensions = v3_req
+            distinguished_name = req_distinguished_name
+            [req_distinguished_name]
+            [ v3_req ]
+            basicConstraints = CA:FALSE
+            keyUsage = nonRepudiation, digitalSignature, keyEncipherment
+            extendedKeyUsage = serverAuth
+            subjectAltName = @alt_names
+            [alt_names]
+            DNS.1 = {{ .Release.Name }}
+            DNS.2 = {{ .Release.Name }}.{{ .Release.Namespace }}
+            DNS.3 = {{ .Release.Name }}.{{ .Release.Namespace }}.svc
+            DNS.4 = {{ .Release.Name }}.{{ .Release.Namespace }}.svc.cluster.local
+            EOF
+            
+            openssl req -new -nodes -text -keyout /tmp/root.key \
+                -subj "/CN={{ .Release.Name }}.{{ .Release.Namespace }}.svc" \
+                -out /tmp/server.csr \
+                -config /tmp/csr.conf
+            
+            cat << EOF | kubectl create -f -
+            apiVersion: certificates.k8s.io/v1beta1
+            kind: CertificateSigningRequest
+            metadata:
+              name: {{ .Release.Name }}
+              namespace: {{ .Release.Namespace }}
+            spec:
+              request: "$(cat /tmp/server.csr | base64 | tr -d '\n')"
+              usages:
+              - digital signature
+              - key encipherment
+              - server auth
+            EOF
+            
+            if ! kubectl get csr '{{ .Release.Name }}' -o yaml|grep -q '^    type: Approved$'
+            then
+              {{- if .Values.cert.autoapprove }}
+              kubectl certificate approve '{{ .Release.Name }}'
+              {{- end }}
+              echo -n "Waiting for CSR approval..."
+              until kubectl get csr '{{ .Release.Name }}' -o yaml|grep -q '^    type: Approved$'
+              do
+                echo -n .
+                sleep 5
+              done
+              echo approved
+            fi
+            KEY="$(cat /tmp/root.key | base64 | tr -d '\n')"
+            CRT="$(kubectl get csr '{{ .Release.Name }}' -o jsonpath='{.status.certificate}')"
+            
+            kubectl patch validatingwebhookconfiguration \
+              -n '{{ .Release.Namespace }}' '{{ .Release.Name }}' --type json --patch '[
+                {"op":"replace","path":"/webhooks/0/clientConfig/caBundle","value":"'"$CRT"'"},
+                {"op":"replace","path":"/webhooks/1/clientConfig/caBundle","value":"'"$CRT"'"},
+                {"op":"replace","path":"/webhooks/2/clientConfig/caBundle","value":"'"$CRT"'"},
+                {"op":"replace","path":"/webhooks/3/clientConfig/caBundle","value":"'"$CRT"'"},
+                {"op":"replace","path":"/webhooks/4/clientConfig/caBundle","value":"'"$CRT"'"},
+                {"op":"replace","path":"/webhooks/5/clientConfig/caBundle","value":"'"$CRT"'"}]'
+            kubectl patch mutatingwebhookconfiguration \
+              -n '{{ .Release.Namespace }}' '{{ .Release.Name }}' --type json --patch '[
+                {"op":"replace","path":"/webhooks/0/clientConfig/caBundle","value":"'"$CRT"'"},
+                {"op":"replace","path":"/webhooks/1/clientConfig/caBundle","value":"'"$CRT"'"},
+                {"op":"replace","path":"/webhooks/2/clientConfig/caBundle","value":"'"$CRT"'"},
+                {"op":"replace","path":"/webhooks/3/clientConfig/caBundle","value":"'"$CRT"'"},
+                {"op":"replace","path":"/webhooks/4/clientConfig/caBundle","value":"'"$CRT"'"},
+                {"op":"replace","path":"/webhooks/5/clientConfig/caBundle","value":"'"$CRT"'"}]'
+            kubectl patch secret \
+              -n '{{ .Release.Namespace }}' '{{ .Release.Name }}' --type json --patch '[
+                {"op":"replace","path":"/data","value":{"root.key":"'"$KEY"'","server.crt":"'"$CRT"'"}}]'
+      restartPolicy: OnFailure
+{{ end }}
