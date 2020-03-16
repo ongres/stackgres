@@ -204,18 +204,6 @@ public class ItHelper {
     }
 
     LOGGER.info("Installing stackgres-operator helm chart without operator container");
-    k8s.execute("sh", "-l", "-c", "kubectl create namespace " + namespace + " || true");
-    k8s.execute("sh", "-l", "-c", "helm install"
-        + " stackgres-operator"
-        + " --namespace stackgres"
-        + " /resources/stackgres-operator"
-        + " --set deploy.create=false"
-        + " --set-string cert.crt=" + Base64.getEncoder().encodeToString(
-            IOUtils.toByteArray(ItHelper.class.getResourceAsStream("/certs/server.crt")))
-        + " --set-string cert.key=" + Base64.getEncoder().encodeToString(
-            IOUtils.toByteArray(ItHelper.class.getResourceAsStream("/certs/server-key.pem"))))
-      .filter(EXCLUDE_TTY_WARNING)
-      .forEach(line -> LOGGER.info(line));
     Process process = new ProcessBuilder("sh", "-ec",
         "cat /proc/net/fib_trie | tr -d ' |-' | grep -F '172.17.0' | grep -v -F '172.17.0.0'")
         .start();
@@ -230,30 +218,20 @@ public class ItHelper {
       throw new RuntimeException("Can not retrieve docker interface IP:\n"
           + dockerInterfaceIpError.join().stream().collect(Collectors.joining("\n")));
     }
-    k8s.execute("sh", "-l", "-c", "cat << 'EOF' | kubectl create -f -\n"
-        + "kind: Service\n"
-        + "apiVersion: v1\n"
-        + "metadata:\n"
-        + "  namespace: stackgres\n"
-        + "  name: stackgres-operator-api\n"
-        + "spec:\n"
-        + "  ports:\n"
-        + "   - port: 8080\n"
-        + "     targetPort: " + port + "\n"
-        + "---\n"
-        + "kind: Endpoints\n"
-        + "apiVersion: v1\n"
-        + "metadata:\n"
-        + "  namespace: stackgres\n"
-        + "  name: stackgres-operator-api\n"
-        + "subsets:\n"
-        + " - addresses:\n"
-        + "    - ip: " + dockerInterfaceIp.join() + "\n"
-        + "   ports:\n"
-        + "    - port: " + port + "\n"
-        + "EOF")
-        .filter(EXCLUDE_TTY_WARNING)
-        .forEach(line -> LOGGER.info(line));
+    k8s.execute("sh", "-l", "-c", "kubectl create namespace " + namespace + " || true");
+    k8s.execute("sh", "-l", "-c", "helm install"
+        + " stackgres-operator"
+        + " --namespace stackgres"
+        + " /resources/stackgres-operator"
+        + " --set deploy.create=false"
+        + " --set-string developer.externalOperatorIp=" + dockerInterfaceIp.join()
+        + " --set developer.externalOperatorPort=" + port
+        + " --set-string cert.crt=" + Base64.getEncoder().encodeToString(
+            IOUtils.toByteArray(ItHelper.class.getResourceAsStream("/certs/server.crt")))
+        + " --set-string cert.key=" + Base64.getEncoder().encodeToString(
+            IOUtils.toByteArray(ItHelper.class.getResourceAsStream("/certs/server-key.pem"))))
+      .filter(EXCLUDE_TTY_WARNING)
+      .forEach(line -> LOGGER.info(line));
   }
 
   /**

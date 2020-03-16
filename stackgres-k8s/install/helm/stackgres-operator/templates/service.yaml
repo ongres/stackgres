@@ -1,8 +1,8 @@
 apiVersion: v1
 kind: Service
 metadata:
+  namespace: {{ .Release.Namespace }}
   name: {{ .Release.Name }}
-  namespace:  {{ .Release.Namespace }}
 spec:
   selector:
     app: {{ .Release.Name }}
@@ -11,13 +11,35 @@ spec:
       protocol: TCP
       port: 443
       targetPort: 443
-{{ if .Values.deploy.create }}
+{{ if and .Values.developer.externalOperatorIp .Values.developer.externalOperatorPort }}
+---
+kind: Service
+apiVersion: v1
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: {{ .Release.Name }}-api
+spec:
+  ports:
+   - port: 8080
+     targetPort: {{ .Values.developer.externalOperatorPort }}
+---
+kind: Endpoints
+apiVersion: v1
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: {{ .Release.Name }}-api
+subsets:
+ - addresses:
+    - ip: "{{ .Values.developer.externalOperatorIp }}"
+   ports:
+    - port: {{ .Values.developer.externalOperatorPort }}
+{{ else }}
 ---
 apiVersion: v1
 kind: Service
 metadata:
+  namespace: {{ .Release.Namespace }}
   name: {{ .Release.Name }}-api
-  namespace:  {{ .Release.Namespace }}
 spec:
   selector:
     app: {{ .Release.Name }}

@@ -54,6 +54,8 @@ developer: {}
   # enableJvmDebug: false # Only work with JVM version and allow connect 
   #                       # on port 8000 of operator Pod with jdb or similar
   # enableJvmDebugSuspend: false
+  # externalOperatorIp: 172.17.0.1
+  # externalOperatorPort: 8080
 
 #Setting prometheus-operator.create to true will install prometheus-operator and embed grafana in the stackgres UI
 prometheus-operator:

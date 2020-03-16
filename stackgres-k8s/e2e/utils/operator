@@ -65,8 +65,6 @@ get_private_repo_password() {
 }
 
 upgrade_operator() {
-  helm upgrade stackgres-operator --namespace stackgres "$OPERATOR_CHART_PATH" --reuse-values "$@" \
-    || helm get values -n stackgres stackgres-operator -o yaml \
-      | helm upgrade stackgres-operator --namespace stackgres "$OPERATOR_CHART_PATH" -f - "$@"
+  helm upgrade stackgres-operator --namespace stackgres "$OPERATOR_CHART_PATH" --reuse-values "$@"
 }
 
