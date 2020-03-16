@@ -115,7 +115,6 @@ spec:
           - '/bin/sh'
           - '-exc'
           - |
-            
             envsubst '
               $GRAFANA_EMBEDDED
               $GRAFANA_URL_PATH
@@ -141,6 +140,16 @@ spec:
         - name: operator-certs
           secret:
             secretName: {{ .Release.Name }}
+            optional: false
+            items:
+              - key: root.key
+                path: root.key
+              - key: server.crt
+                path: server.crt
         - name: operator-nginx
           configMap:
             name: {{ .Release.Name }}-nginx
+            optional: false
+            items:
+              - key: stackgres-operator.template
+                path: stackgres-operator.template

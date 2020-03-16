@@ -1,6 +1,5 @@
-{{- if and .Values.cert.key .Values.cert.crt .Values.validator.create }}
 apiVersion: admissionregistration.k8s.io/v1beta1
-kind: ValidatingWebhookConfiguration
+kind: MutatingWebhookConfiguration
 metadata:
   name: {{ .Release.Name }}
   namespace: {{ .Release.Namespace }}
@@ -8,7 +7,7 @@ webhooks:
   - name: sgcluster.{{ .Release.Name }}.{{ .Release.Namespace }}
     sideEffects: None
     rules:
-      - operations: ["CREATE", "UPDATE"]
+      - operations: ["CREATE"]
         apiGroups: ["stackgres.io"]
         apiVersions: ["*"]
         resources: ["sgclusters"]
@@ -17,12 +16,14 @@ webhooks:
       service:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
-        path: '/stackgres/validation/sgcluster'
+        path: '/stackgres/mutation/sgcluster'
+      {{- if .Values.cert.crt }}
       caBundle: {{ .Values.cert.crt }}
+      {{- end }}
   - name: sgpgconfig.{{ .Release.Name }}.{{ .Release.Namespace }}
     sideEffects: None
     rules:
-      - operations: ["CREATE", "UPDATE", "DELETE"]
+      - operations: ["CREATE"]
         apiGroups: ["stackgres.io"]
         apiVersions: ["*"]
         resources: ["sgpgconfigs"]
@@ -31,12 +32,14 @@ webhooks:
       service:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
-        path: '/stackgres/validation/sgpgconfig'
+        path: '/stackgres/mutation/sgpgconfig'
+      {{- if .Values.cert.crt }}
       caBundle: {{ .Values.cert.crt }}
+      {{- end }}
   - name: sgconnectionpoolingconfig.{{ .Release.Name }}.{{ .Release.Namespace }}
     sideEffects: None
     rules:
-      - operations: ["CREATE", "UPDATE", "DELETE"]
+      - operations: ["CREATE"]
         apiGroups: ["stackgres.io"]
         apiVersions: ["*"]
         resources: ["sgconnectionpoolingconfigs"]
@@ -45,12 +48,14 @@ webhooks:
       service:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
-        path: '/stackgres/validation/sgconnectionpoolingconfig'
+        path: '/stackgres/mutation/sgconnectionpoolingconfig'
+      {{- if .Values.cert.crt }}
       caBundle: {{ .Values.cert.crt }}
+      {{- end }}
   - name: sgprofile.{{ .Release.Name }}.{{ .Release.Namespace }}
     sideEffects: None
     rules:
-      - operations: ["CREATE", "UPDATE", "DELETE"]
+      - operations: ["CREATE"]
         apiGroups: ["stackgres.io"]
         apiVersions: ["*"]
         resources: ["sgprofiles"]
@@ -59,12 +64,14 @@ webhooks:
       service:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
-        path: '/stackgres/validation/sgprofile'
+        path: '/stackgres/mutation/sgprofile'
+      {{- if .Values.cert.crt }}
       caBundle: {{ .Values.cert.crt }}
+      {{- end }}
   - name: sgbackupconfig.{{ .Release.Name }}.{{ .Release.Namespace }}
     sideEffects: None
     rules:
-      - operations: ["CREATE", "UPDATE", "DELETE"]
+      - operations: ["CREATE"]
         apiGroups: ["stackgres.io"]
         apiVersions: ["*"]
         resources: ["sgbackupconfigs"]
@@ -73,12 +80,14 @@ webhooks:
       service:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
-        path: '/stackgres/validation/sgbackupconfig'
+        path: '/stackgres/mutation/sgbackupconfig'
+      {{- if .Values.cert.crt }}
       caBundle: {{ .Values.cert.crt }}
+      {{- end }}
   - name: sgbackup.{{ .Release.Name }}.{{ .Release.Namespace }}
     sideEffects: None
     rules:
-      - operations: ["CREATE", "UPDATE", "DELETE"]
+      - operations: ["CREATE"]
         apiGroups: ["stackgres.io"]
         apiVersions: ["*"]
         resources: ["sgbackups"]
@@ -87,6 +96,8 @@ webhooks:
       service:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
-        path: '/stackgres/validation/sgbackup'
+        path: '/stackgres/mutation/sgbackup'
+      {{- if .Values.cert.crt }}
       caBundle: {{ .Values.cert.crt }}
-{{ end }}
+      {{- end }}
+
