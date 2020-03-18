@@ -7,7 +7,6 @@ package io.stackgres.operator.rest.dto.storages;
 
 import javax.validation.constraints.NotNull;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -28,7 +27,7 @@ public class BackupStorage {
   private AwsS3Storage s3;
 
   @JsonProperty("s3compatible")
-  private AwsS3CompatibleStorage s3compatible;
+  private AwsS3CompatibleStorage s3Compatible;
 
   @JsonProperty("gcs")
   private GoogleCloudStorage gcs;
@@ -52,16 +51,16 @@ public class BackupStorage {
     this.s3 = s3;
   }
 
+  public AwsS3CompatibleStorage getS3Compatible() {
+    return s3Compatible;
+  }
+
+  public void setS3Compatible(AwsS3CompatibleStorage s3Compatible) {
+    this.s3Compatible = s3Compatible;
+  }
+
   public GoogleCloudStorage getGcs() {
     return gcs;
-  }
-
-  public AwsS3CompatibleStorage getS3compatible() {
-    return s3compatible;
-  }
-
-  public void setS3compatible(AwsS3CompatibleStorage s3compatible) {
-    this.s3compatible = s3compatible;
   }
 
   public void setGcs(GoogleCloudStorage gcs) {
@@ -82,20 +81,10 @@ public class BackupStorage {
         .omitNullValues()
         .add("type", type)
         .add("s3", s3)
-        .add("s3compatible", s3compatible)
+        .add("s3compatible", s3Compatible)
         .add("gcs", gcs)
         .add("azureblob", azureblob)
         .toString();
-  }
-
-  @JsonIgnore
-  public String getCustomResourceType() {
-    return getS3compatible() == null ? getType() : "s3";
-  }
-
-  @JsonIgnore
-  public String getDtoType() {
-    return getS3compatible() == null ? getType() : "s3compatible";
   }
 
 }

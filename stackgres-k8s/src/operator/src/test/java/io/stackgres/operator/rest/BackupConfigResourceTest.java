@@ -84,14 +84,15 @@ class BackupConfigResourceTest
     assertNull(resource.getSpec().getStorage().getAzureblob());
     assertNull(resource.getSpec().getStorage().getGcs());
     assertNull(resource.getSpec().getStorage().getS3());
-    assertNotNull(resource.getSpec().getStorage().getS3compatible());
-    assertNotNull(resource.getSpec().getStorage().getS3compatible().getCredentials());
+    assertNotNull(resource.getSpec().getStorage().getS3Compatible());
+    assertNotNull(resource.getSpec().getStorage().getS3Compatible().getCredentials());
     assertEquals("http://minio.stackgres.svc:9000",
-        resource.getSpec().getStorage().getS3compatible().getEndpoint());
-    assertEquals("s3://stackgres", resource.getSpec().getStorage().getS3compatible().getPrefix());
-    assertEquals("k8s", resource.getSpec().getStorage().getS3compatible().getRegion());
-    assertNull(resource.getSpec().getStorage().getS3compatible().getStorageClass());
-    assertTrue(resource.getSpec().getStorage().getS3compatible().isForcePathStyle());
+        resource.getSpec().getStorage().getS3Compatible().getEndpoint());
+    assertEquals("stackgres", resource.getSpec().getStorage().getS3Compatible().getBucket());
+    assertNull(resource.getSpec().getStorage().getS3Compatible().getPath());
+    assertEquals("k8s", resource.getSpec().getStorage().getS3Compatible().getRegion());
+    assertNull(resource.getSpec().getStorage().getS3Compatible().getStorageClass());
+    assertTrue(resource.getSpec().getStorage().getS3Compatible().isForcePathStyle());
   }
 
   @Override
@@ -110,16 +111,19 @@ class BackupConfigResourceTest
     assertNotNull(resource.getSpec().getStorage());
     assertNull(resource.getSpec().getStorage().getAzureblob());
     assertNull(resource.getSpec().getStorage().getGcs());
-    assertEquals("s3", resource.getSpec().getStorage().getType());
+    assertEquals("s3compatible", resource.getSpec().getStorage().getType());
     assertNull(resource.getSpec().getStorage().getAzureblob());
     assertNull(resource.getSpec().getStorage().getGcs());
-    assertNotNull(resource.getSpec().getStorage().getS3());
-    assertNotNull(resource.getSpec().getStorage().getS3().getCredentials());
-    assertEquals("http://minio.stackgres.svc:9000", resource.getSpec().getStorage().getS3().getEndpoint());
-    assertEquals("s3://stackgres", resource.getSpec().getStorage().getS3().getPrefix());
-    assertEquals("k8s", resource.getSpec().getStorage().getS3().getRegion());
-    assertNull(resource.getSpec().getStorage().getS3().getStorageClass());
-    assertTrue(resource.getSpec().getStorage().getS3().isForcePathStyle());
+    assertNull(resource.getSpec().getStorage().getS3());
+    assertNotNull(resource.getSpec().getStorage().getS3Compatible());
+    assertNotNull(resource.getSpec().getStorage().getS3Compatible().getCredentials());
+    assertEquals("http://minio.stackgres.svc:9000", resource.getSpec().getStorage().getS3Compatible().getEndpoint());
+    assertEquals("stackgres", resource.getSpec().getStorage().getS3Compatible().getBucket());
+    assertNull(resource.getSpec().getStorage().getS3Compatible().getPath());
+    assertEquals("s3://stackgres", resource.getSpec().getStorage().getS3Compatible().getPrefix());
+    assertEquals("k8s", resource.getSpec().getStorage().getS3Compatible().getRegion());
+    assertNull(resource.getSpec().getStorage().getS3Compatible().getStorageClass());
+    assertTrue(resource.getSpec().getStorage().getS3Compatible().isForcePathStyle());
   }
 
 }

@@ -19,7 +19,7 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class AzureBlobStorage implements PrefixedStorage {
+public class AzureBlobStorage {
 
   @JsonProperty("bucket")
   @NotNull(message = "The bucket is required")
@@ -32,27 +32,18 @@ public class AzureBlobStorage implements PrefixedStorage {
   @NotNull(message = "The credentials is required")
   private AzureBlobStorageCredentials credentials;
 
-  @Override
-  public String getSchema() {
-    return "azure";
-  }
-
-  @Override
   public String getBucket() {
     return bucket;
   }
 
-  @Override
   public void setBucket(String bucket) {
     this.bucket = bucket;
   }
 
-  @Override
   public String getPath() {
     return path;
   }
 
-  @Override
   public void setPath(String path) {
     this.path = path;
   }

@@ -56,16 +56,66 @@ spec:
               properties:
                 type:
                   type: string
-                  enum: [ "s3", "gcs", "azureblob" ]
-                  description: "Type of storage:\n- s3: Amazon Web Services S3\n- gcs: Google Clooud Storage\n- azureblob: Azure Blob Storage"
+                  enum: [ "s3", "s3compatible", "gcs", "azureblob" ]
+                  description: "Type of storage:\n- s3: Amazon Web Services S3\n- s3compatible: Amazon Web Services S3 Compatible\n- gcs: Google Clooud Storage\n- azureblob: Azure Blob Storage"
                 s3:
                   type: object
                   description: "Amazon Web Services S3 configuration"
                   properties:
-                    prefix:
+                    bucket:
                       type: string
-                      pattern: '(s3|https?)://[^/]+(/[^/]*)*$'
-                      description: "The AWS S3 bucket and prefix (eg. s3://bucket/path/to/folder)."
+                      pattern: '((s3|https?)://)?[^/]+(/[^/]*)*$'
+                      description: "The AWS S3 bucket (eg. bucket)."
+                    path:
+                      type: string
+                      pattern: '(/[^/]*)*$'
+                      description: "The AWS S3 path (eg. /path/to/folder)."
+                    credentials:
+                      type: object
+                      description: "The credentials to access AWS S3 for writing and reading."
+                      properties:
+                        accessKey:
+                          type: object
+                          description: "AWS Access Key ID secret"
+                          properties:
+                            key:
+                              type: string
+                              description: "The key of the secret to select from. Must be a valid secret key."
+                            name:
+                              type: string
+                              description: "Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names"
+                          required: [ "key", "name" ]
+                        secretKey:
+                          type: object
+                          description: "AWS Secret Access Key"
+                          properties:
+                            key:
+                              type: string
+                              description: "The key of the secret to select from. Must be a valid secret key."
+                            name:
+                              type: string
+                              description: "Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names"
+                          required: [ "key", "name" ]
+                      required: [ "accessKey", "secretKey" ]
+                    region:
+                      type: string
+                      description: "The AWS S3 region. Region can be detected using s3:GetBucketLocation, but if you wish to avoid this API call or forbid it from the applicable IAM policy, specify this property."
+                    storageClass:
+                      type: string
+                      description: "By default, the \"STANDARD\" storage class is used. Other supported values include \"STANDARD_IA\" for Infrequent Access and \"REDUCED_REDUNDANCY\" for Reduced Redundancy."
+                  required: [ "bucket", "credentials" ]
+                s3compatible:
+                  type: object
+                  description: "Amazon Web Services S3 Compatible configuration"
+                  properties:
+                    bucket:
+                      type: string
+                      pattern: '((s3|https?)://)?[^/]+(/[^/]*)*$'
+                      description: "The AWS S3 bucket (eg. bucket)."
+                    path:
+                      type: string
+                      pattern: '(/[^/]*)*$'
+                      description: "The AWS S3 path (eg. /path/to/folder)."
                     credentials:
                       type: object
                       description: "The credentials to access AWS S3 for writing and reading."
@@ -105,15 +155,19 @@ spec:
                     storageClass:
                       type: string
                       description: "By default, the \"STANDARD\" storage class is used. Other supported values include \"STANDARD_IA\" for Infrequent Access and \"REDUCED_REDUNDANCY\" for Reduced Redundancy."
-                  required: [ "prefix", "credentials" ]
+                  required: [ "bucket", "credentials" ]
                 gcs:
                   type: object
                   description: "Google Cloud Storage configuration"
                   properties:
-                    prefix:
+                    bucket:
                       type: string
-                      description: "Specify where to store backups (eg. gs://x4m-test-bucket/walg-folder)."
-                      pattern: "^gs://[^/]+(/[^/]*)*$"
+                      description: "Specify bucket where to store backups (eg. x4m-test-bucket)."
+                      pattern: "^(gs://)?[^/]+(/[^/]*)*$"
+                    path:
+                      type: string
+                      description: "Specify path in the bucket where to store backups (eg. /walg-folder)."
+                      pattern: "^(/[^/]*)*$"
                     credentials:
                       type: object
                       description: "The credentials to access GCS for writing and reading."
@@ -130,15 +184,19 @@ spec:
                               description: "Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names"
                           required: [ "key", "name" ]
                       required: [ "serviceAccountJsonKey" ]
-                  required: [ "prefix", "credentials" ]
+                  required: [ "bucket", "credentials" ]
                 azureblob:
                   type: object
                   description: "Azure Blob Storage configuration"
                   properties:
-                    prefix:
+                    bucket:
                       type: string
-                      description: "Specify where to store backups in Azure storage (eg. azure://test-container/walg-folder)."
-                      pattern: "^azure://[^/]+(/[^/]*)*$"
+                      description: "Specify the bucket where to store backups in Azure storage (eg. test-container)."
+                      pattern: "^(azure://)?[^/]+(/[^/]*)*$"
+                    path:
+                      type: string
+                      description: "Specify path in the bucket where to store backups in Azure storage (eg. /walg-folder)."
+                      pattern: "^(/[^/]*)*$"
                     credentials:
                       type: object
                       description: "The credentials to access Azure Blob Storage for writing and reading."
@@ -166,6 +224,6 @@ spec:
                               description: "Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names"
                           required: [ "key", "name" ]
                       required: [ "account", "accessKey" ]
-                  required: [ "prefix", "credentials" ]
+                  required: [ "bucket", "credentials" ]
               required: ["type"]
           required: ["storage"]

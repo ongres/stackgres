@@ -31,10 +31,13 @@ public class ModificationValidator implements BackupConfigValidator {
   public void validate(BackupConfigReview review) throws ValidationFailed {
     Operation operation = review.getRequest().getOperation();
     if (operation == Operation.UPDATE) {
-      if (!review.getRequest().getOldObject().getSpec().getStorage().getType().equals(
+      if (!review.getRequest().getOldObject().getSpec().getStorage().getType().equals(// NOPMD
           review.getRequest().getObject().getSpec().getStorage().getType())
           || !Objects.equals(review.getRequest().getObject().getSpec().getStorage().getS3(),
           review.getRequest().getOldObject().getSpec().getStorage().getS3())
+          || !Objects.equals(
+              review.getRequest().getObject().getSpec().getStorage().getS3Compatible(),
+              review.getRequest().getOldObject().getSpec().getStorage().getS3Compatible())
           || !Objects.equals(review.getRequest().getObject().getSpec().getStorage().getGcs(),
           review.getRequest().getOldObject().getSpec().getStorage().getGcs())
           || !Objects.equals(review.getRequest().getObject().getSpec().getStorage().getAzureblob(),

@@ -19,11 +19,14 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class AwsS3Storage {
+public class AwsS3Storage implements PrefixedStorage {
 
-  @JsonProperty("prefix")
-  @NotNull(message = "The prefix is required")
-  private String prefix;
+  @JsonProperty("bucket")
+  @NotNull(message = "The bucket is required")
+  private String bucket;
+
+  @JsonProperty("path")
+  private String path;
 
   @JsonProperty("credentials")
   @NotNull(message = "The credentials is required")
@@ -32,21 +35,32 @@ public class AwsS3Storage {
   @JsonProperty("region")
   private String region;
 
-  @JsonProperty("endpoint")
-  private String endpoint;
-
-  @JsonProperty("forcePathStyle")
-  private Boolean forcePathStyle;
-
   @JsonProperty("storageClass")
   private String storageClass;
 
-  public String getPrefix() {
-    return prefix;
+  @Override
+  public String getSchema() {
+    return "s3";
   }
 
-  public void setPrefix(String prefix) {
-    this.prefix = prefix;
+  @Override
+  public String getBucket() {
+    return bucket;
+  }
+
+  @Override
+  public void setBucket(String bucket) {
+    this.bucket = bucket;
+  }
+
+  @Override
+  public String getPath() {
+    return path;
+  }
+
+  @Override
+  public void setPath(String path) {
+    this.path = path;
   }
 
   public AwsCredentials getCredentials() {
@@ -65,22 +79,6 @@ public class AwsS3Storage {
     this.region = region;
   }
 
-  public String getEndpoint() {
-    return endpoint;
-  }
-
-  public void setEndpoint(String endpoint) {
-    this.endpoint = endpoint;
-  }
-
-  public Boolean isForcePathStyle() {
-    return forcePathStyle;
-  }
-
-  public void setForcePathStyle(Boolean forcePathStyle) {
-    this.forcePathStyle = forcePathStyle;
-  }
-
   public String getStorageClass() {
     return storageClass;
   }
@@ -91,7 +89,7 @@ public class AwsS3Storage {
 
   @Override
   public int hashCode() {
-    return Objects.hash(credentials, endpoint, forcePathStyle, prefix,
+    return Objects.hash(credentials, bucket,
         region, storageClass);
   }
 
@@ -108,8 +106,8 @@ public class AwsS3Storage {
     }
     AwsS3Storage other = (AwsS3Storage) obj;
     return Objects.equals(credentials, other.credentials)
-        && Objects.equals(endpoint, other.endpoint) && forcePathStyle == other.forcePathStyle
-        && Objects.equals(prefix, other.prefix) && Objects.equals(region, other.region)
+        && Objects.equals(bucket, other.bucket) && Objects.equals(path, other.path)
+        && Objects.equals(region, other.region)
         && Objects.equals(storageClass, other.storageClass);
   }
 
@@ -117,11 +115,10 @@ public class AwsS3Storage {
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .omitNullValues()
-        .add("prefix", prefix)
+        .add("bucket", bucket)
+        .add("path", path)
         .add("credentials", credentials)
         .add("region", region)
-        .add("endpoint", endpoint)
-        .add("forcePathStyle", forcePathStyle)
         .add("storageClass", storageClass)
         .toString();
   }

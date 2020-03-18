@@ -5,9 +5,11 @@ e2e_test_install() {
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 --set cluster.create=false --set cluster.backupconfig="$BACKUPCONF" \
     --set config.backup.create=true --set config.backup.minio.create=false \
-    --set-string config.backup.s3.prefix=s3://test \
-    --set-string config.backup.s3.accessKey.name=test --set-string config.backup.s3.accessKey.key=test \
-    --set-string config.backup.s3.secretKey.name=test --set-string config.backup.s3.secretKey.key=test
+    --set-string config.backup.s3compatible.bucket=test \
+    --set-string config.backup.s3compatible.accessKey.name=test \
+    --set-string config.backup.s3compatible.accessKey.key=test \
+    --set-string config.backup.s3compatible.secretKey.name=test \
+    --set-string config.backup.s3compatible.secretKey.key=test
 
   deploy_curl_pod "$CLUSTER_NAMESPACE"
 

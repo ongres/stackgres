@@ -19,7 +19,7 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class AwsS3CompatibleStorage implements PrefixedStorage {
+public class AwsS3CompatibleStorage {
 
   @JsonProperty("bucket")
   @NotNull(message = "The bucket is required")
@@ -39,32 +39,23 @@ public class AwsS3CompatibleStorage implements PrefixedStorage {
   private String endpoint;
 
   @JsonProperty("forcePathStyle")
-  private boolean forcePathStyle;
+  private Boolean forcePathStyle;
 
   @JsonProperty("storageClass")
   private String storageClass;
 
-  @Override
-  public String getSchema() {
-    return "s3";
-  }
-
-  @Override
   public String getBucket() {
     return bucket;
   }
 
-  @Override
   public void setBucket(String bucket) {
     this.bucket = bucket;
   }
 
-  @Override
   public String getPath() {
     return path;
   }
 
-  @Override
   public void setPath(String path) {
     this.path = path;
   }
@@ -93,11 +84,11 @@ public class AwsS3CompatibleStorage implements PrefixedStorage {
     this.endpoint = endpoint;
   }
 
-  public boolean isForcePathStyle() {
+  public Boolean isForcePathStyle() {
     return forcePathStyle;
   }
 
-  public void setForcePathStyle(boolean forcePathStyle) {
+  public void setForcePathStyle(Boolean forcePathStyle) {
     this.forcePathStyle = forcePathStyle;
   }
 

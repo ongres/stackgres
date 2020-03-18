@@ -45,9 +45,9 @@ public class StorageTypeValidator implements BackupConfigValidator {
 
       if (storageType.equals("s3")
           && review.getRequest().getObject().getSpec()
-          .getStorage().getS3().getPrefix() == null) {
+          .getStorage().getS3().getBucket() == null) {
         final String message = "Invalid backup configuration,"
-            + " source s3 prefix must be set when source type is s3";
+            + " source s3 bucket must be set when source type is s3";
         fail(message);
       }
 
@@ -56,6 +56,30 @@ public class StorageTypeValidator implements BackupConfigValidator {
           .getStorage().getS3().getCredentials() == null) {
         final String message = "Invalid backup configuration,"
             + " source s3 credentials must be set when source type is s3";
+        fail(message);
+      }
+
+      if (storageType.equals("s3compatible")
+          && review.getRequest().getObject().getSpec()
+          .getStorage().getS3Compatible() == null) {
+        final String message = "Invalid backup configuration,"
+            + " source s3compatible must be set when source type is s3compatible";
+        fail(message);
+      }
+
+      if (storageType.equals("s3compatible")
+          && review.getRequest().getObject().getSpec()
+          .getStorage().getS3Compatible().getBucket() == null) {
+        final String message = "Invalid backup configuration,"
+            + " source s3compatible bucket must be set when source type is s3compatible";
+        fail(message);
+      }
+
+      if (storageType.equals("s3compatible")
+          && review.getRequest().getObject().getSpec()
+          .getStorage().getS3Compatible().getCredentials() == null) {
+        final String message = "Invalid backup configuration,"
+            + " source s3compatible credentials must be set when source type is s3compatible";
         fail(message);
       }
 
@@ -69,9 +93,9 @@ public class StorageTypeValidator implements BackupConfigValidator {
 
       if (storageType.equals("gcs")
           && review.getRequest().getObject().getSpec()
-          .getStorage().getGcs().getPrefix() == null) {
+          .getStorage().getGcs().getBucket() == null) {
         final String message = "Invalid backup configuration,"
-            + " source gcs prefix must be set when source type is gcs";
+            + " source gcs bucket must be set when source type is gcs";
         fail(message);
       }
 
@@ -93,9 +117,9 @@ public class StorageTypeValidator implements BackupConfigValidator {
 
       if (storageType.equals("azureblob")
           && review.getRequest().getObject().getSpec()
-          .getStorage().getAzureblob().getPrefix() == null) {
+          .getStorage().getAzureblob().getBucket() == null) {
         final String message = "Invalid backup configuration,"
-            + " source azureblob prefix must be set when source type is azureblob";
+            + " source azureblob bucket must be set when source type is azureblob";
         fail(message);
       }
 
@@ -107,7 +131,7 @@ public class StorageTypeValidator implements BackupConfigValidator {
         fail(message);
       }
 
-      if (ImmutableList.of("gcs", "azureblob").contains(storageType)
+      if (ImmutableList.of("s3compatible", "gcs", "azureblob").contains(storageType)
           && review.getRequest().getObject().getSpec()
           .getStorage().getS3() != null) {
         final String message = "Invalid backup configuration,"
@@ -115,7 +139,15 @@ public class StorageTypeValidator implements BackupConfigValidator {
         fail(message);
       }
 
-      if (ImmutableList.of("s3", "azureblob").contains(storageType)
+      if (ImmutableList.of("s3", "gcs", "azureblob").contains(storageType)
+          && review.getRequest().getObject().getSpec()
+          .getStorage().getS3Compatible() != null) {
+        final String message = "Invalid backup configuration,"
+            + " source s3compatible must not be set when source type is " + storageType;
+        fail(message);
+      }
+
+      if (ImmutableList.of("s3", "s3compatible", "azureblob").contains(storageType)
           && review.getRequest().getObject().getSpec()
           .getStorage().getGcs() != null) {
         final String message = "Invalid backup configuration,"
@@ -123,7 +155,7 @@ public class StorageTypeValidator implements BackupConfigValidator {
         fail(message);
       }
 
-      if (ImmutableList.of("s3", "gcs").contains(storageType)
+      if (ImmutableList.of("s3", "s3compatible", "gcs").contains(storageType)
           && review.getRequest().getObject().getSpec()
           .getStorage().getAzureblob() != null) {
         final String message = "Invalid backup configuration,"

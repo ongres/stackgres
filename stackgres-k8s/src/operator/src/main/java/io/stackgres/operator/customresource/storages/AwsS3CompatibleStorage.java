@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.rest.dto.storages;
+package io.stackgres.operator.customresource.storages;
 
 import java.util.Objects;
 
@@ -19,7 +19,7 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class AwsS3Storage {
+public class AwsS3CompatibleStorage implements PrefixedStorage {
 
   @JsonProperty("bucket")
   @NotNull(message = "The bucket is required")
@@ -35,21 +35,36 @@ public class AwsS3Storage {
   @JsonProperty("region")
   private String region;
 
+  @JsonProperty("endpoint")
+  private String endpoint;
+
+  @JsonProperty("forcePathStyle")
+  private Boolean forcePathStyle;
+
   @JsonProperty("storageClass")
   private String storageClass;
 
+  @Override
+  public String getSchema() {
+    return "s3";
+  }
+
+  @Override
   public String getBucket() {
     return bucket;
   }
 
+  @Override
   public void setBucket(String bucket) {
     this.bucket = bucket;
   }
 
+  @Override
   public String getPath() {
     return path;
   }
 
+  @Override
   public void setPath(String path) {
     this.path = path;
   }
@@ -70,6 +85,22 @@ public class AwsS3Storage {
     this.region = region;
   }
 
+  public String getEndpoint() {
+    return endpoint;
+  }
+
+  public void setEndpoint(String endpoint) {
+    this.endpoint = endpoint;
+  }
+
+  public Boolean isForcePathStyle() {
+    return forcePathStyle;
+  }
+
+  public void setForcePathStyle(Boolean forcePathStyle) {
+    this.forcePathStyle = forcePathStyle;
+  }
+
   public String getStorageClass() {
     return storageClass;
   }
@@ -80,8 +111,8 @@ public class AwsS3Storage {
 
   @Override
   public int hashCode() {
-    return Objects.hash(credentials, bucket,
-        region, storageClass, path);
+    return Objects.hash(credentials, endpoint, forcePathStyle, bucket,
+        region, storageClass);
   }
 
   @Override
@@ -92,13 +123,15 @@ public class AwsS3Storage {
     if (obj == null) {
       return false;
     }
-    if (!(obj instanceof AwsS3Storage)) {
+    if (!(obj instanceof AwsS3CompatibleStorage)) {
       return false;
     }
-    AwsS3Storage other = (AwsS3Storage) obj;
+    AwsS3CompatibleStorage other = (AwsS3CompatibleStorage) obj;
     return Objects.equals(credentials, other.credentials)
-        && Objects.equals(bucket, other.bucket) && Objects.equals(region, other.region)
-        && Objects.equals(storageClass, other.storageClass) && Objects.equals(path, other.path);
+        && Objects.equals(endpoint, other.endpoint) && forcePathStyle == other.forcePathStyle
+        && Objects.equals(bucket, other.bucket) && Objects.equals(path, other.path)
+        && Objects.equals(region, other.region)
+        && Objects.equals(storageClass, other.storageClass);
   }
 
   @Override
@@ -109,6 +142,8 @@ public class AwsS3Storage {
         .add("path", path)
         .add("credentials", credentials)
         .add("region", region)
+        .add("endpoint", endpoint)
+        .add("forcePathStyle", forcePathStyle)
         .add("storageClass", storageClass)
         .toString();
   }

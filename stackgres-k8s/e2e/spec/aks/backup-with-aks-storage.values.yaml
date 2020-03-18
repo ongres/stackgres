@@ -11,7 +11,8 @@ config:
     minio:
       create: false
     azureblob:
-      prefix: azure://backup-with-aks-storage/backups 
+      bucket: backup-with-aks-storage
+      path: /backups 
       account:
         name: storage-account
         key: account

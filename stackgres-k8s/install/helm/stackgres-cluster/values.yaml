@@ -28,6 +28,14 @@ config:
     s3: {}
     #  prefix: s3://stackgres
     #  accessKey:
+    #    name: awscredentials
+    #    key: accesskey
+    #  secretKey:
+    #    name: awscredentials
+    #    key: secretkey
+    s3compatible: {}
+    #  prefix: s3://stackgres
+    #  accessKey:
     #    name: minio
     #    key: accesskey
     #  secretKey:
