@@ -7,6 +7,7 @@ package io.stackgres.operator.validation.cluster;
 
 import java.util.Optional;
 
+import io.stackgres.operator.common.ConfigLoader;
 import io.stackgres.operator.resource.AbstractCustomResourceFinder;
 import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfig;
 import io.stackgres.operator.utils.JsonUtil;
@@ -39,7 +40,7 @@ class PgBouncerValidatorTest {
 
   @BeforeEach
   void setUp(){
-    validator = new PoolingConfigValidator(configFinder);
+    validator = new PoolingConfigValidator(configFinder, new ConfigLoader());
 
     pgbouncerConfig = JsonUtil.readFromJson("pgbouncer_config/default.json", StackGresPgbouncerConfig.class);
 

@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.customresource.sgbackupconfig;
 
+import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 
@@ -27,6 +28,7 @@ public class StackGresBackupConfigSpec implements KubernetesResource {
 
   @JsonProperty("storage")
   @NotNull(message = "The storage is required")
+  @Valid
   private BackupStorage storage;
 
   @JsonProperty("retention")

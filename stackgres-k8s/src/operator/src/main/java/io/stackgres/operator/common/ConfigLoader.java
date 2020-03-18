@@ -23,6 +23,8 @@ public class ConfigLoader implements ConfigContext {
       .put(ConfigProperty.OPERATOR_VERSION, StackGresUtil.OPERATOR_VERSION)
       .put(ConfigProperty.PROMETHEUS_AUTOBIND, StackGresUtil.PROMETHEUS_AUTOBIND)
       .put(ConfigProperty.OPERATOR_IP, StackGresUtil.OPERATOR_IP)
+      .put(ConfigProperty.DOCUMENTATION_URI, StackGresUtil.DOCUMENTATION_URI)
+      .put(ConfigProperty.DOCUMENTATION_ERRORS_PATH, StackGresUtil.DOCUMENTATION_ERRORS_PATH)
       .build();
 
   @Override
@@ -35,6 +37,12 @@ public class ConfigLoader implements ConfigContext {
       return Optional.ofNullable(DEFAULT_CONTEXT.get(configProperty));
     }
 
+  }
+
+  @Override
+  public String get(ConfigProperty configProperty) {
+    return Optional.ofNullable(System.getenv(configProperty.property()))
+        .orElseGet(() -> DEFAULT_CONTEXT.get(configProperty));
   }
 
 }

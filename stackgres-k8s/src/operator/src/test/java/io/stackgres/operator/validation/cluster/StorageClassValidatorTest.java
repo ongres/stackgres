@@ -8,6 +8,7 @@ package io.stackgres.operator.validation.cluster;
 import java.util.Optional;
 
 import io.fabric8.kubernetes.api.model.storage.StorageClass;
+import io.stackgres.operator.common.ConfigLoader;
 import io.stackgres.operator.resource.ResourceFinder;
 import io.stackgres.operator.utils.JsonUtil;
 import io.stackgres.operator.common.StackGresClusterReview;
@@ -34,11 +35,12 @@ class StorageClassValidatorTest {
   @Mock
   private ResourceFinder<StorageClass> storageClassFinder;
 
-  private final static StorageClass DEFAULT_STORAGE_CLASS = JsonUtil.readFromJson("storage_class/standard.json", StorageClass.class);
+  private final static StorageClass DEFAULT_STORAGE_CLASS = JsonUtil
+      .readFromJson("storage_class/standard.json", StorageClass.class);
 
   @BeforeEach
   void setUp() {
-    validator = new StorageClassValidator(storageClassFinder);
+    validator = new StorageClassValidator(storageClassFinder, new ConfigLoader());
 
   }
 

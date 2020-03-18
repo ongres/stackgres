@@ -6,10 +6,11 @@
 package io.stackgres.operatorframework.admissionwebhook;
 
 import io.fabric8.kubernetes.api.model.GroupVersionKind;
+import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
 @RegisterForReflection
-public abstract class AdmissionReview<T> extends GroupVersionKind {
+public abstract class AdmissionReview<T extends HasMetadata> extends GroupVersionKind {
 
   private static final long serialVersionUID = -7649295266069293729L;
 

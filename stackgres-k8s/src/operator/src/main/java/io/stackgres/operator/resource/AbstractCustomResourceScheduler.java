@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.resource;
 
+import javax.inject.Inject;
+
 import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.CustomResourceDoneable;
@@ -20,17 +22,18 @@ public abstract class AbstractCustomResourceScheduler<T extends CustomResource,
     L extends CustomResourceList<T>, D extends CustomResourceDoneable<T>>
     implements CustomResourceScheduler<T> {
 
-  private final KubernetesClientFactory clientFactory;
+  private KubernetesClientFactory clientFactory;
   private final String customResourceName;
   private final Class<T> customResourceClass;
   private final Class<L> customResourceListClass;
   private final Class<D> customResourceDoneClass;
 
-  protected AbstractCustomResourceScheduler(KubernetesClientFactory clientFactory,
-      String customResourceName, Class<T> customResourceClass, Class<L> customResourceListClass,
+  protected AbstractCustomResourceScheduler(
+      String customResourceName,
+      Class<T> customResourceClass,
+      Class<L> customResourceListClass,
       Class<D> customResourceDoneClass) {
     super();
-    this.clientFactory = clientFactory;
     this.customResourceName = customResourceName;
     this.customResourceClass = customResourceClass;
     this.customResourceListClass = customResourceListClass;
@@ -77,6 +80,11 @@ public abstract class AbstractCustomResourceScheduler<T extends CustomResource,
         customResourceClass,
         customResourceListClass,
         customResourceDoneClass);
+  }
+
+  @Inject
+  public void setClientFactory(KubernetesClientFactory clientFactory) {
+    this.clientFactory = clientFactory;
   }
 
 }

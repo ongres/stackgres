@@ -17,11 +17,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class BackupConfigInitializerTest extends AbstractInitializerTest<StackGresBackupConfig> {
 
   @Override
-  AbstractDefaultCustomResourceInitializer<StackGresBackupConfig> getInstance(
-      CustomResourceFinder<StackGresBackupConfig> resourceFinder,
-      CustomResourceScheduler<StackGresBackupConfig> resourceScheduler,
-      DefaultCustomResourceFactory<StackGresBackupConfig> resourceFactory) {
-    return new BackupConfigInitializer(resourceFinder, resourceScheduler, resourceFactory);
+  AbstractDefaultCustomResourceInitializer<StackGresBackupConfig> getInstance() {
+    return new BackupConfigInitializer();
   }
 
   @Override

@@ -8,7 +8,10 @@ package io.stackgres.operator.validation;
 import java.util.Random;
 
 import io.fabric8.kubernetes.client.CustomResource;
+import io.stackgres.operator.common.ConfigLoader;
+import io.stackgres.operator.common.ErrorType;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
+import io.stackgres.operator.utils.ValidationUtils;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 
@@ -29,6 +32,7 @@ public abstract class DefaultKeeperTest<R extends CustomResource, T extends Admi
   @BeforeEach
   void setUp() {
     validator = getValidatorInstance();
+    validator.setConfigContext(new ConfigLoader());
     validator.setFactory(factory);
   }
 
@@ -101,10 +105,9 @@ public abstract class DefaultKeeperTest<R extends CustomResource, T extends Admi
 
     when(factory.buildResource()).thenReturn(defaultResource);
     validator.init();
-    assertThrows(ValidationFailed.class, () -> {
-      validator.validate(sample);
-    });
 
+    ValidationUtils.assertErrorType(ErrorType.DEFAULT_CONFIGURATION,
+        () -> validator.validate(sample));
   }
 
   @Test
@@ -149,9 +152,8 @@ public abstract class DefaultKeeperTest<R extends CustomResource, T extends Admi
     when(factory.buildResource()).thenReturn(defaultResource);
     validator.init();
 
-    assertThrows(ValidationFailed.class, () -> {
-      validator.validate(sample);
-    });
+    ValidationUtils.assertErrorType(ErrorType.DEFAULT_CONFIGURATION,
+        () -> validator.validate(sample));
 
   }
 

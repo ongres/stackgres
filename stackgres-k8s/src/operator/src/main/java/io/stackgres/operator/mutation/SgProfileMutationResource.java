@@ -33,7 +33,7 @@ public class SgProfileMutationResource implements MutationResource<SgProfileRevi
   private JsonPatchMutationPipeline<SgProfileReview> pipeline;
 
   @Inject
-  public SgProfileMutationResource(JsonPatchMutationPipeline<SgProfileReview> pipeline) {
+  public void setPipeline(JsonPatchMutationPipeline<SgProfileReview> pipeline) {
     this.pipeline = pipeline;
   }
 

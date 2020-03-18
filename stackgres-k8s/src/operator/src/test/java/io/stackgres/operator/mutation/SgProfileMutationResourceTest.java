@@ -17,7 +17,9 @@ class SgProfileMutationResourceTest extends MutationResourceTest<SgProfileReview
 
   @BeforeEach
   void setUp() {
-    resource = new SgProfileMutationResource(pipeline);
+    final SgProfileMutationResource resource = new SgProfileMutationResource();
+    resource.setPipeline(pipeline);
+    this.resource = resource;
 
     review = JsonUtil
         .readFromJson("sgprofile_allow_request/create.json", SgProfileReview.class);

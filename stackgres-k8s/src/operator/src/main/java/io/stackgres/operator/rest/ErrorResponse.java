@@ -10,34 +10,57 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 @RegisterForReflection
 public class ErrorResponse {
   private String type;
-  private String message;
-  private String documentationLink;
+  private String title;
+  private String detail;
+  private Integer status;
+  private String[] fields;
+
+  public ErrorResponse(String type, String title, String detail, Integer status, String[] fields) {
+    this.type = type;
+    this.title = title;
+    this.detail = detail;
+    this.status = status;
+    this.fields = fields;
+  }
 
   public String getType() {
     return type;
   }
 
-  public ErrorResponse setType(String type) {
+  public void setType(String type) {
     this.type = type;
-    return this;
   }
 
-  public String getMessage() {
-    return message;
+  public String getTitle() {
+    return title;
   }
 
-  public ErrorResponse setMessage(String message) {
-    this.message = message;
-    return this;
+  public void setTitle(String title) {
+    this.title = title;
   }
 
-  public String getDocumentationLink() {
-    return documentationLink;
+  public String getDetail() {
+    return detail;
   }
 
-  public ErrorResponse setDocumentationLink(String documentationLink) {
-    this.documentationLink = documentationLink;
-    return this;
+  public void setDetail(String detail) {
+    this.detail = detail;
+  }
+
+  public Integer getStatus() {
+    return status;
+  }
+
+  public void setStatus(Integer status) {
+    this.status = status;
+  }
+
+  public String[] getFields() {
+    return fields;
+  }
+
+  public void setFields(String[] fields) {
+    this.fields = fields;
   }
 
   public static ErrorResponse create(Throwable throwable) {
@@ -45,7 +68,8 @@ public class ErrorResponse {
   }
 
   public static ErrorResponse create(Throwable throwable, String message) {
-    return new ErrorResponse().setType(throwable.getClass().getName())
-        .setMessage(message != null ? message : throwable.getMessage());
+    return new ErrorResponseBuilder(throwable.getClass().getName())
+        .setDetail(message != null ? message : throwable.getMessage())
+        .build();
   }
 }

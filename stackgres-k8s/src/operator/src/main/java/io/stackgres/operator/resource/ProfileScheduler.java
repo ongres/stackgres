@@ -8,8 +8,6 @@ package io.stackgres.operator.resource;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import io.stackgres.operator.app.KubernetesClientFactory;
-import io.stackgres.operator.common.ArcUtil;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfile;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfileDefinition;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfileDoneable;
@@ -21,17 +19,11 @@ public class ProfileScheduler
       StackGresProfileList, StackGresProfileDoneable> {
 
   @Inject
-  public ProfileScheduler(KubernetesClientFactory clientFactory) {
-    super(clientFactory,
-        StackGresProfileDefinition.NAME,
+  public ProfileScheduler() {
+    super(StackGresProfileDefinition.NAME,
         StackGresProfile.class,
         StackGresProfileList.class,
         StackGresProfileDoneable.class);
-  }
-
-  public ProfileScheduler() {
-    super(null, null, null, null, null);
-    ArcUtil.checkPublicNoArgsConstructorIsCalledFromArc();
   }
 
 }

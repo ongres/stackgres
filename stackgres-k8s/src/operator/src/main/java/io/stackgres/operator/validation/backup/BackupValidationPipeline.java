@@ -5,29 +5,24 @@
 
 package io.stackgres.operator.validation.backup;
 
-import java.util.Set;
-
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
-import javax.validation.ConstraintViolation;
-import javax.validation.Validator;
 
 import io.stackgres.operator.common.BackupReview;
-import io.stackgres.operator.customresource.sgbackup.StackGresBackup;
+import io.stackgres.operator.validation.SimpleValidationPipeline;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationPipeline;
 
 @ApplicationScoped
 public class BackupValidationPipeline implements ValidationPipeline<BackupReview> {
 
-  private final Validator validator;
-  private final Instance<BackupValidator> validators;
+  private SimpleValidationPipeline<BackupReview, BackupValidator> pipeline;
 
   @Inject
-  public BackupValidationPipeline(Instance<BackupValidator> validators, Validator validator) {
-    this.validators = validators;
-    this.validator = validator;
+  public BackupValidationPipeline(@Any Instance<BackupValidator> validators) {
+    this.pipeline = new SimpleValidationPipeline<>(validators);
   }
 
   /**
@@ -35,18 +30,7 @@ public class BackupValidationPipeline implements ValidationPipeline<BackupReview
    */
   @Override
   public void validate(BackupReview review) throws ValidationFailed {
-    StackGresBackup backup = review.getRequest().getObject();
-    if (backup != null) {
-      Set<ConstraintViolation<StackGresBackup>> violations = validator.validate(backup);
-
-      if (!violations.isEmpty()) {
-        throw new ValidationFailed(violations);
-      }
-    }
-
-    for (BackupValidator validator : validators) {
-      validator.validate(review);
-    }
+    pipeline.validate(review);
   }
 
 }

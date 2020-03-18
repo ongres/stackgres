@@ -22,11 +22,11 @@ public class StackGresProfileSpec implements KubernetesResource {
   private static final long serialVersionUID = -1037668102382589521L;
 
   @JsonProperty("cpu")
-  @NotBlank
+  @NotBlank(message = "cpu must be provided")
   private String cpu;
 
   @JsonProperty("memory")
-  @NotBlank
+  @NotBlank(message = "memory must be provided")
   private String memory;
 
   public String getCpu() {

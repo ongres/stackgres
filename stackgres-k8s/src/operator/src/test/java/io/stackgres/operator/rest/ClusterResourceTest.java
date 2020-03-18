@@ -124,8 +124,10 @@ class ClusterResourceTest extends AbstractCustomResourceTest<ClusterDto, StackGr
 
   @Override
   protected ClusterTransformer getTransformer() {
-    return new ClusterTransformer(configContext,
-        new ClusterPodTransformer());
+    final ClusterTransformer clusterTransformer = new ClusterTransformer();
+    clusterTransformer.setContext(configContext);
+    clusterTransformer.setClusterPodTransformer(new ClusterPodTransformer());
+    return clusterTransformer;
   }
 
   @Override
@@ -134,9 +136,17 @@ class ClusterResourceTest extends AbstractCustomResourceTest<ClusterDto, StackGr
       CustomResourceFinder<StackGresCluster> finder,
       CustomResourceScheduler<StackGresCluster> scheduler,
       AbstractResourceTransformer<ClusterDto, StackGresCluster> transformer) {
+    final ClusterDtoFinder dtoFinder = new ClusterDtoFinder();
+    dtoFinder.setClusterFinder(finder);
+    dtoFinder.setClientFactory(clientFactory);
+    dtoFinder.setClusterTransformer(getTransformer());
+    final ClusterDtoScanner dtoScanner = new ClusterDtoScanner();
+    dtoScanner.setClusterScanner(scanner);
+    dtoScanner.setClientFactory(clientFactory);
+    dtoScanner.setClusterTransformer(getTransformer());
     return new ClusterResource(
-        new ClusterDtoScanner(scanner, clientFactory, getTransformer()),
-        new ClusterDtoFinder(finder, clientFactory, getTransformer()),
+        dtoScanner,
+        dtoFinder,
         scheduler, transformer,
         statusFinder);
   }

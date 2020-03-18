@@ -1,0 +1,55 @@
+/*
+ * Copyright (C) 2019 OnGres, Inc.
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
+package io.stackgres.operator.validation;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+import javax.enterprise.inject.Instance;
+
+import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
+import io.stackgres.operatorframework.admissionwebhook.validating.Validator;
+
+public class SimpleValidationPipeline<T, V extends Validator<T>> implements
+    io.stackgres.operatorframework.admissionwebhook.validating.ValidationPipeline<T> {
+
+  private List<V> validators;
+
+  public SimpleValidationPipeline(Instance<V> validatorInstances) {
+    init(validatorInstances);
+  }
+
+  private void init(Instance<V> validatorInstances) {
+
+    List<V> validators = validatorInstances.stream().collect(Collectors.toList());
+
+    Collections.sort(validators, (v1, v2) -> {
+      ValidationType v1ValidationType = v1.getClass().getAnnotation(ValidationType.class);
+      ValidationType v2ValidationType = v2.getClass().getAnnotation(ValidationType.class);
+
+      if (v1ValidationType == null && v2ValidationType == null) {
+        return 0;
+      } else if (v1ValidationType == null) {
+        return -1;
+      } else if (v2ValidationType == null) {
+        return 1;
+      } else {
+        return v1ValidationType.value().compareTo(v2ValidationType.value());
+      }
+    });
+
+    this.validators = validators;
+
+  }
+
+  @Override
+  public void validate(T review) throws ValidationFailed {
+    for (V validator : validators) {
+      validator.validate(review);
+    }
+  }
+
+}

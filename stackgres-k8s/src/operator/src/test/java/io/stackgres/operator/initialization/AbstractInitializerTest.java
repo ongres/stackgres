@@ -42,16 +42,16 @@ public abstract class AbstractInitializerTest<T extends CustomResource> {
 
   @BeforeEach
   void init() {
-    initializer = getInstance(resourceFinder, resourceScheduler, resourceFactory);
+    initializer = getInstance();
+    initializer.setResourceFinder(resourceFinder);
+    initializer.setResourceScheduler(resourceScheduler);
+    initializer.setResourceFactory(resourceFactory);
     defaultCustomResource = getDefaultCR();
     resourceName = defaultCustomResource.getMetadata().getName();
     resourceNamespace = defaultCustomResource.getMetadata().getNamespace();
   }
 
-  abstract AbstractDefaultCustomResourceInitializer<T> getInstance(
-      CustomResourceFinder<T> resourceFinder,
-      CustomResourceScheduler<T> resourceScheduler,
-      DefaultCustomResourceFactory<T> resourceFactory);
+  abstract AbstractDefaultCustomResourceInitializer<T> getInstance();
 
   abstract T getDefaultCR();
 

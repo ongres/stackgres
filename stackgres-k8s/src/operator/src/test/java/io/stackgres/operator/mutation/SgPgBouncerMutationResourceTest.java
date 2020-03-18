@@ -18,7 +18,9 @@ class SgPgBouncerMutationResourceTest extends MutationResourceTest<PgBouncerRevi
 
   @BeforeEach
   void setUp() {
-    resource = new SgPgBouncerMutationResource(pipeline);
+    final SgPgBouncerMutationResource resource = new SgPgBouncerMutationResource();
+    resource.setPipeline(pipeline);
+    this.resource = resource;
 
     review = JsonUtil
         .readFromJson("pgbouncer_allow_request/create.json", PgBouncerReview.class);

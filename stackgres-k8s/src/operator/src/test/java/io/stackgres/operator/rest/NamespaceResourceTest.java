@@ -36,7 +36,8 @@ class NamespaceResourceTest {
     namespaces = JsonUtil
         .readFromJson("namespace/list.json", NamespaceList.class);
 
-    resource = new NamespaceResource(scanner);
+    resource = new NamespaceResource();
+    resource.setNamespaceScanner(scanner);
   }
 
   @Test

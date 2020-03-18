@@ -51,16 +51,22 @@ public class ClusterStatefulSet implements StackGresClusterResourceStreamFactory
 
   public static final String GCS_CREDENTIALS_FILE_NAME = "gcs-credentials.json";
 
-  private final Patroni patroni;
-  private final ClusterStatefulSetInitContainers initContainerFactory;
-  private final ClusterStatefulSetVolumes volumesFactory;
+  private Patroni patroni;
+  private ClusterStatefulSetInitContainers initContainerFactory;
+  private ClusterStatefulSetVolumes volumesFactory;
 
   @Inject
-  public ClusterStatefulSet(Patroni patroni, ClusterStatefulSetInitContainers initContainerFactory,
-      ClusterStatefulSetVolumes volumesFactory) {
-    super();
+  public void setPatroni(Patroni patroni) {
     this.patroni = patroni;
+  }
+
+  @Inject
+  public void setInitContainerFactory(ClusterStatefulSetInitContainers initContainerFactory) {
     this.initContainerFactory = initContainerFactory;
+  }
+
+  @Inject
+  public void setVolumesFactory(ClusterStatefulSetVolumes volumesFactory) {
     this.volumesFactory = volumesFactory;
   }
 

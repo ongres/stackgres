@@ -5,6 +5,9 @@
 
 package io.stackgres.operatorframework.admissionwebhook.validating;
 
+import io.fabric8.kubernetes.api.model.Status;
+import io.fabric8.kubernetes.api.model.StatusBuilder;
+
 public interface Validator<T> {
 
   void validate(T review) throws ValidationFailed;
@@ -16,5 +19,15 @@ public interface Validator<T> {
     if (value == null || value.isEmpty()) {
       throw new ValidationFailed(field + " must be provided");
     }
+  }
+
+  default void fail(String kind, String reason, String message) throws ValidationFailed {
+    Status status = new StatusBuilder()
+        .withMessage(message)
+        .withKind(kind)
+        .withCode(400)
+        .withReason(reason)
+        .build();
+    throw new ValidationFailed(status);
   }
 }

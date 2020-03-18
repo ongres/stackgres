@@ -33,7 +33,7 @@ public class ClusterMutationResource implements MutationResource<StackGresCluste
   private JsonPatchMutationPipeline<StackGresClusterReview> pipeline;
 
   @Inject
-  public ClusterMutationResource(JsonPatchMutationPipeline<StackGresClusterReview> pipeline) {
+  public void setPipeline(JsonPatchMutationPipeline<StackGresClusterReview> pipeline) {
     this.pipeline = pipeline;
   }
 

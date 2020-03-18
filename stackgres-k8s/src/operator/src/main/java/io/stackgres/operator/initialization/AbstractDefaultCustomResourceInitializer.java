@@ -7,6 +7,8 @@ package io.stackgres.operator.initialization;
 
 import java.util.Optional;
 
+import javax.inject.Inject;
+
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.operator.resource.CustomResourceFinder;
 import io.stackgres.operator.resource.CustomResourceScheduler;
@@ -20,18 +22,9 @@ public abstract class AbstractDefaultCustomResourceInitializer<T extends CustomR
   private static final Logger LOGGER = LoggerFactory
       .getLogger(AbstractDefaultCustomResourceInitializer.class);
 
-  private final CustomResourceFinder<T> resourceFinder;
-  private final CustomResourceScheduler<T> resourceScheduler;
-  private final DefaultCustomResourceFactory<T> resourceFactory;
-
-  public AbstractDefaultCustomResourceInitializer(CustomResourceFinder<T> resourceFinder,
-      CustomResourceScheduler<T> resourceScheduler,
-      DefaultCustomResourceFactory<T> resourceFactory) {
-    super();
-    this.resourceFinder = resourceFinder;
-    this.resourceScheduler = resourceScheduler;
-    this.resourceFactory = resourceFactory;
-  }
+  private CustomResourceFinder<T> resourceFinder;
+  private CustomResourceScheduler<T> resourceScheduler;
+  private DefaultCustomResourceFactory<T> resourceFactory;
 
   @Override
   public void initialize() {
@@ -50,6 +43,21 @@ public abstract class AbstractDefaultCustomResourceInitializer<T extends CustomR
       LOGGER.info("Installing default custom resource " + resourceName);
       resourceScheduler.create(defaultResource);
     }
+  }
+
+  @Inject
+  public void setResourceFinder(CustomResourceFinder<T> resourceFinder) {
+    this.resourceFinder = resourceFinder;
+  }
+
+  @Inject
+  public void setResourceScheduler(CustomResourceScheduler<T> resourceScheduler) {
+    this.resourceScheduler = resourceScheduler;
+  }
+
+  @Inject
+  public void setResourceFactory(DefaultCustomResourceFactory<T> resourceFactory) {
+    this.resourceFactory = resourceFactory;
   }
 
 }

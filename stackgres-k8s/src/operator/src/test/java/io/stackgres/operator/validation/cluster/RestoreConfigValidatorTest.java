@@ -7,6 +7,7 @@ package io.stackgres.operator.validation.cluster;
 
 import java.util.Optional;
 
+import io.stackgres.operator.common.ConfigLoader;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.customresource.sgbackup.StackGresBackup;
 import io.stackgres.operator.customresource.sgbackup.StackGresBackupList;
@@ -40,7 +41,7 @@ class RestoreConfigValidatorTest {
   @BeforeEach
   void setUp() {
 
-    validator = new RestoreConfigValidator(scanner);
+    validator = new RestoreConfigValidator(scanner, new ConfigLoader());
     backupList = JsonUtil
         .readFromJson("backup/list.json", StackGresBackupList.class);
   }

@@ -6,6 +6,7 @@
 package io.stackgres.operator.validation.pgconfig;
 
 import io.stackgres.operator.utils.JsonUtil;
+import io.stackgres.operator.validation.DependenciesValidator;
 import io.stackgres.operator.validation.DependenciesValidatorTest;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import io.stackgres.operator.common.PgConfigReview;
@@ -22,11 +23,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @RunWith(MockitoJUnitRunner.class)
 class PgConfigDependenciesValidatorTest extends DependenciesValidatorTest<PgConfigReview, PgConfigDependenciesValidator> {
 
-    @BeforeEach
-    void setUp() {
-
-        validator = new PgConfigDependenciesValidator(clusterScanner);
-
+    @Override
+    protected DependenciesValidator<PgConfigReview> setUpValidation() {
+        return new PgConfigDependenciesValidator();
     }
 
     @Override

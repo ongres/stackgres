@@ -66,7 +66,8 @@ class DefaultRestoreMutatorTest {
         .readPropertiesAs(defaultRestoreValues, ClusterRestore.class);
     when(defaultRestoreFactory.buildResource()).thenReturn(restore);
 
-    mutator = new DefaultRestoreMutator(defaultRestoreFactory);
+    mutator = new DefaultRestoreMutator();
+    mutator.setDefaultRestoreFactory(defaultRestoreFactory);
     mutator.init();
 
   }

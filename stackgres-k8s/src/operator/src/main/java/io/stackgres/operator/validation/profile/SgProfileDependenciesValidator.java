@@ -5,30 +5,19 @@
 
 package io.stackgres.operator.validation.profile;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
+import javax.inject.Singleton;
 
-import io.stackgres.operator.common.ArcUtil;
+import io.stackgres.operator.common.ErrorType;
 import io.stackgres.operator.common.SgProfileReview;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
-import io.stackgres.operator.resource.CustomResourceScanner;
 import io.stackgres.operator.validation.DependenciesValidator;
+import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 
-@ApplicationScoped
+@Singleton
+@ValidationType(ErrorType.FORBIDDEN_CR_DELETION)
 public class SgProfileDependenciesValidator extends DependenciesValidator<SgProfileReview>
     implements SgProfileValidator {
-
-  @Inject
-  public SgProfileDependenciesValidator(
-      CustomResourceScanner<StackGresCluster> clusterScanner) {
-    super(clusterScanner);
-  }
-
-  public SgProfileDependenciesValidator() {
-    super(null);
-    ArcUtil.checkPublicNoArgsConstructorIsCalledFromArc();
-  }
 
   @Override
   protected void validate(SgProfileReview review, StackGresCluster i) throws ValidationFailed {

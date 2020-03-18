@@ -22,18 +22,9 @@ import io.stackgres.operator.rest.transformer.ClusterTransformer;
 @ApplicationScoped
 public class ClusterDtoFinder implements CustomResourceFinder<ClusterDto> {
 
-  private final CustomResourceFinder<StackGresCluster> clusterFinder;
-  private final KubernetesClientFactory clientFactory;
-  private final ClusterTransformer clusterTransformer;
-
-  @Inject
-  public ClusterDtoFinder(CustomResourceFinder<StackGresCluster> clusterFinder,
-      KubernetesClientFactory clientFactory,
-      ClusterTransformer clusterTransformer) {
-    this.clusterFinder = clusterFinder;
-    this.clientFactory = clientFactory;
-    this.clusterTransformer = clusterTransformer;
-  }
+  private CustomResourceFinder<StackGresCluster> clusterFinder;
+  private KubernetesClientFactory clientFactory;
+  private ClusterTransformer clusterTransformer;
 
   @Override
   public Optional<ClusterDto> findByNameAndNamespace(String name, String namespace) {
@@ -51,6 +42,21 @@ public class ClusterDtoFinder implements CustomResourceFinder<ClusterDto> {
         .withLabels(StackGresUtil.patroniClusterLabels(cluster))
         .list()
         .getItems();
+  }
+
+  @Inject
+  public void setClusterFinder(CustomResourceFinder<StackGresCluster> clusterFinder) {
+    this.clusterFinder = clusterFinder;
+  }
+
+  @Inject
+  public void setClientFactory(KubernetesClientFactory clientFactory) {
+    this.clientFactory = clientFactory;
+  }
+
+  @Inject
+  public void setClusterTransformer(ClusterTransformer clusterTransformer) {
+    this.clusterTransformer = clusterTransformer;
   }
 
 }

@@ -30,7 +30,10 @@ public class PgbouncerConfigTransformer
   public StackGresPgbouncerConfig toCustomResource(PgbouncerConfigDto source) {
     StackGresPgbouncerConfig transformation = new StackGresPgbouncerConfig();
     transformation.setMetadata(getCustomResourceMetadata(source));
-    transformation.setSpec(getCustomResourceSpec(source.getSpec()));
+    final PgbouncerConfigSpec spec = source.getSpec();
+    if (spec != null) {
+      transformation.setSpec(getCustomResourceSpec(spec));
+    }
     return transformation;
   }
 
@@ -44,16 +47,19 @@ public class PgbouncerConfigTransformer
 
   private StackGresPgbouncerConfigSpec getCustomResourceSpec(PgbouncerConfigSpec source) {
     StackGresPgbouncerConfigSpec transformation = new StackGresPgbouncerConfigSpec();
-    transformation.setPgbouncerConf(Seq.of(source.getPgbouncerConf().split("\n"))
-        .map(line -> line.replaceAll("#.*$", ""))
-        .skipUntil(line -> !source.getPgbouncerConf().contains("[pgbouncer]")
-            || line.matches("^\\s*\\[pgbouncer\\]\\s*$"))
-        .limitUntil(line -> line.matches("^\\s*\\[.*$"))
-        .map(line -> PARAMETER_PATTERN.matcher(line))
-        .filter(Matcher::matches)
-        .collect(ImmutableMap.toImmutableMap(
-            matcher -> matcher.group(1),
-            matcher -> matcher.group(2) != null ? matcher.group(2) : matcher.group(3))));
+    final String pgbouncerConf = source.getPgbouncerConf();
+    if (pgbouncerConf != null) {
+      transformation.setPgbouncerConf(Seq.of(pgbouncerConf.split("\n"))
+          .map(line -> line.replaceAll("#.*$", ""))
+          .skipUntil(line -> !pgbouncerConf.contains("[pgbouncer]")
+              || line.matches("^\\s*\\[pgbouncer\\]\\s*$"))
+          .limitUntil(line -> line.matches("^\\s*\\[.*$"))
+          .map(line -> PARAMETER_PATTERN.matcher(line))
+          .filter(Matcher::matches)
+          .collect(ImmutableMap.toImmutableMap(
+              matcher -> matcher.group(1),
+              matcher -> matcher.group(2) != null ? matcher.group(2) : matcher.group(3))));
+    }
     return transformation;
   }
 
@@ -61,8 +67,8 @@ public class PgbouncerConfigTransformer
     PgbouncerConfigSpec transformation = new PgbouncerConfigSpec();
     transformation.setPgbouncerConf(
         Seq.seq(source.getPgbouncerConf().entrySet())
-        .map(e -> e.getKey() + "=" + e.getValue())
-        .toString("\n"));
+            .map(e -> e.getKey() + "=" + e.getValue())
+            .toString("\n"));
     return transformation;
   }
 

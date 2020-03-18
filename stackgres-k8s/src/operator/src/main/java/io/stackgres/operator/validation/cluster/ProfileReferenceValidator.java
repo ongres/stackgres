@@ -6,23 +6,31 @@
 package io.stackgres.operator.validation.cluster;
 
 import java.util.Optional;
-import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import javax.inject.Singleton;
 
+import io.stackgres.operator.common.ConfigContext;
+import io.stackgres.operator.common.ErrorType;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfile;
 import io.stackgres.operator.resource.CustomResourceFinder;
+import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 
-@ApplicationScoped
+@Singleton
+@ValidationType(ErrorType.INVALID_CR_REFERENCE)
 public class ProfileReferenceValidator implements ClusterValidator {
 
   private CustomResourceFinder<StackGresProfile> profileFinder;
 
+  private ConfigContext context;
+
   @Inject
-  public ProfileReferenceValidator(CustomResourceFinder<StackGresProfile> profileFinder) {
+  public ProfileReferenceValidator(CustomResourceFinder<StackGresProfile> profileFinder,
+                                   ConfigContext context) {
     this.profileFinder = profileFinder;
+    this.context = context;
   }
 
   @Override
@@ -54,7 +62,7 @@ public class ProfileReferenceValidator implements ClusterValidator {
         .findByNameAndNamespace(resourceProfile, namespace);
 
     if (!profileOpt.isPresent()) {
-      throw new ValidationFailed(onError);
+      fail(context, onError);
     }
 
   }

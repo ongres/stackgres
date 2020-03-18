@@ -6,6 +6,7 @@
 package io.stackgres.operator.rest.transformer;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 
 import io.stackgres.operator.customresource.sgbackup.StackGresBackup;
 import io.stackgres.operator.customresource.sgbackup.StackGresBackupSpec;
@@ -17,9 +18,10 @@ import io.stackgres.operator.rest.dto.backup.BackupStatus;
 @ApplicationScoped
 public class BackupTransformer extends AbstractResourceTransformer<BackupDto, StackGresBackup> {
 
-  private final BackupConfigTransformer backupConfigTransformer;
+  private BackupConfigTransformer backupConfigTransformer;
 
-  public BackupTransformer(BackupConfigTransformer backupConfigTransformer) {
+  @Inject
+  public void setBackupConfigTransformer(BackupConfigTransformer backupConfigTransformer) {
     this.backupConfigTransformer = backupConfigTransformer;
   }
 

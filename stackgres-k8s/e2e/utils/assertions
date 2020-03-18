@@ -1,0 +1,57 @@
+#!/bin/sh
+
+assert_string_contains() {
+  EXPECTED="$1"
+  ACTUAL="$2"
+
+  if echo "$ACTUAL" | grep "$EXPECTED" > /dev/null
+  then 
+    echo "Success. $ACTUAL contains $EXPECTED"
+  else
+    echo "Fail. $ACTUAL doesn't contain $EXPECTED"
+    return 1
+  fi
+}
+
+assert_string_equal(){
+
+  EXPECTED="$1"
+  ACTUAL="$2"
+
+  if [ "$ACTUAL" = "$EXPECTED" ]
+  then 
+    echo "Success. $ACTUAL is equal to $EXPECTED"
+  else
+    echo "Fail. $ACTUAL is not equal to $EXPECTED"
+    return 1
+  fi
+
+}
+
+
+assert_api_error(){
+  RESPONSE="$1"
+  EXPECTED_ERROR_TYPE=${EXPECTED_ERROR_TYPE:-"constraint-violation"}
+  EXPECTED_ERROR_TITLE=${EXPECTED_ERROR_TITLE:-"doesn't complain syntactic rules"}
+  EXPECTED_ERROR_DETAIL=${EXPECTED_ERROR_DETAIL:-"in body"}
+  EXPECTED_ERROR_FIELD=${EXPECTED_ERROR_FIELD:-""}
+  
+  ERROR_TYPE=$(echo $RESPONSE | run_jq '.type' )
+
+  assert_string_contains "$EXPECTED_ERROR_TYPE" "$ERROR_TYPE"
+
+  ERROR_TITLE=$(echo "$RESPONSE" | run_jq '.title' )
+
+  assert_string_contains "$EXPECTED_ERROR_TITLE" "$ERROR_TITLE"
+
+  ERROR_DETAIL="$(echo "$RESPONSE" | run_jq '.detail' )"
+
+  assert_string_contains "$EXPECTED_ERROR_DETAIL" "$ERROR_DETAIL"
+
+  if [ "$EXPECTED_ERROR_FIELD" != "" ]
+  then
+    ERROR_FIELD="$(echo "$RESPONSE" | run_jq '.fields[0]' )"
+    assert_string_contains "$EXPECTED_ERROR_FIELD" "$ERROR_FIELD"    
+  fi
+
+}

@@ -6,6 +6,7 @@
 package io.stackgres.operator.validation.profile;
 
 import io.stackgres.operator.utils.JsonUtil;
+import io.stackgres.operator.validation.DependenciesValidator;
 import io.stackgres.operator.validation.DependenciesValidatorTest;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import io.stackgres.operator.common.SgProfileReview;
@@ -22,9 +23,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class SgProfileDependenciesValidatorTest
         extends DependenciesValidatorTest<SgProfileReview, SgProfileDependenciesValidator> {
 
-    @BeforeEach
-    void setUp() {
-        validator = new SgProfileDependenciesValidator(clusterScanner);
+    @Override
+    protected DependenciesValidator<SgProfileReview> setUpValidation() {
+        return new SgProfileDependenciesValidator();
     }
 
     @Override

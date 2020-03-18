@@ -9,13 +9,16 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Singleton;
 
+import io.stackgres.operator.common.ErrorType;
 import io.stackgres.operator.common.PgConfigReview;
+import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 
-@ApplicationScoped
+@Singleton
+@ValidationType(ErrorType.PG_CONFIG_BLACKLIST)
 public class BlacklistValidator implements PgConfigValidator {
 
   private static final Set<String> BLACKLIST = new HashSet<>(Arrays.asList(BLACKLIST_PROPERTIES));

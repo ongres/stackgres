@@ -33,7 +33,7 @@ public class PgConfigMutationResource implements MutationResource<PgConfigReview
   private JsonPatchMutationPipeline<PgConfigReview> pipeline;
 
   @Inject
-  public PgConfigMutationResource(JsonPatchMutationPipeline<PgConfigReview> pipeline) {
+  public void setPipeline(JsonPatchMutationPipeline<PgConfigReview> pipeline) {
     this.pipeline = pipeline;
   }
 

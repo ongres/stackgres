@@ -6,25 +6,32 @@
 package io.stackgres.operator.validation.backup;
 
 import java.util.Optional;
-
-import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import javax.inject.Singleton;
 
 import io.stackgres.operator.common.BackupReview;
+import io.stackgres.operator.common.ConfigContext;
+import io.stackgres.operator.common.ErrorType;
 import io.stackgres.operator.customresource.sgbackup.StackGresBackup;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.resource.CustomResourceFinder;
+import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 
-@ApplicationScoped
+@Singleton
+@ValidationType(ErrorType.INVALID_CR_REFERENCE)
 public class ClusterValidator implements BackupValidator {
 
   private final CustomResourceFinder<StackGresCluster> clusterFinder;
 
+  private String errorTypeUri;
+
   @Inject
   public ClusterValidator(
-      CustomResourceFinder<StackGresCluster> clusterFinder) {
+      CustomResourceFinder<StackGresCluster> clusterFinder, ConfigContext context) {
     this.clusterFinder = clusterFinder;
+    errorTypeUri = context.getErrorTypeUri(ErrorType.INVALID_CR_REFERENCE);
+
   }
 
   @Override
@@ -41,7 +48,8 @@ public class ClusterValidator implements BackupValidator {
       case UPDATE:
         if (!review.getRequest().getOldObject().getSpec().getCluster()
             .equals(cluster)) {
-          throw new ValidationFailed("Backup cluster can not be updated.");
+          final String message = "Backup cluster can not be updated.";
+          fail(message);
         }
         break;
       default:
@@ -50,7 +58,7 @@ public class ClusterValidator implements BackupValidator {
   }
 
   private void checkIfClusterExists(BackupReview review,
-      String onError) throws ValidationFailed {
+                                    String onError) throws ValidationFailed {
 
     StackGresBackup backup = review.getRequest().getObject();
     String cluster = backup.getSpec().getCluster();
@@ -60,8 +68,12 @@ public class ClusterValidator implements BackupValidator {
         .findByNameAndNamespace(cluster, namespace);
 
     if (!clusterOpt.isPresent()) {
-      throw new ValidationFailed(onError);
+      fail(onError);
     }
+  }
+
+  public void fail(String message) throws ValidationFailed {
+    fail(errorTypeUri, message);
   }
 
 }

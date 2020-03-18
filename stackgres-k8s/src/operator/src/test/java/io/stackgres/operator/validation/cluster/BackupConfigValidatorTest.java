@@ -14,6 +14,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.Optional;
 
+import io.stackgres.operator.common.ConfigLoader;
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.operator.resource.AbstractCustomResourceFinder;
 import io.stackgres.operator.utils.JsonUtil;
@@ -42,7 +43,7 @@ class BackupConfigValidatorTest {
 
   @BeforeEach
   void setUp(){
-    validator = new BackupConfigValidator(configFinder);
+    validator = new BackupConfigValidator(configFinder, new ConfigLoader());
 
     backupConfig = JsonUtil.readFromJson("backup_config/default.json", StackGresBackupConfig.class);
 

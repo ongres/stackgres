@@ -32,12 +32,6 @@ public class DefaultRestoreMutator implements ClusterMutator {
 
   private DefaultCustomResourceFactory<ClusterRestore> defaultRestoreFactory;
 
-  @Inject
-  public DefaultRestoreMutator(
-      DefaultCustomResourceFactory<ClusterRestore> defaultRestoreFactory) {
-    this.defaultRestoreFactory = defaultRestoreFactory;
-  }
-
   @PostConstruct
   public void init() throws NoSuchFieldException {
 
@@ -67,4 +61,9 @@ public class DefaultRestoreMutator implements ClusterMutator {
     return ImmutableList.of();
   }
 
+  @Inject
+  public void setDefaultRestoreFactory(
+      DefaultCustomResourceFactory<ClusterRestore> defaultRestoreFactory) {
+    this.defaultRestoreFactory = defaultRestoreFactory;
+  }
 }

@@ -8,6 +8,7 @@ package io.stackgres.operator.validation.cluster;
 
 import java.util.Optional;
 
+import io.stackgres.operator.common.ConfigLoader;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfile;
 import io.stackgres.operator.resource.AbstractCustomResourceFinder;
 import io.stackgres.operator.utils.JsonUtil;
@@ -29,7 +30,7 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @RunWith(MockitoJUnitRunner.class)
-class ProfileReferenceValidatorValidatorTest {
+class ProfileReferenceValidatorTest {
 
   private ProfileReferenceValidator validator;
 
@@ -40,7 +41,7 @@ class ProfileReferenceValidatorValidatorTest {
 
   @BeforeEach
   void setUp() throws Exception {
-    validator = new ProfileReferenceValidator(profileFinder);
+    validator = new ProfileReferenceValidator(profileFinder, new ConfigLoader());
 
     xsProfile = JsonUtil.readFromJson("stackgres_profiles/size-xs.json",
         StackGresProfile.class);

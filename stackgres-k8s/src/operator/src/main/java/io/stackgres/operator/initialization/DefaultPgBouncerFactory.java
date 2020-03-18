@@ -38,4 +38,5 @@ public class DefaultPgBouncerFactory
   String getDefaultPropertiesFile() {
     return PGBOUNCER_DEFAULT_VALUES;
   }
+
 }

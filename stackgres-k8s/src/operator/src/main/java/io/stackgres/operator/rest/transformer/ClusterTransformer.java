@@ -26,15 +26,8 @@ import org.jooq.lambda.Seq;
 public class ClusterTransformer
     extends AbstractResourceTransformer<ClusterDto, StackGresCluster> {
 
-  private final ConfigContext context;
-  private final ClusterPodTransformer clusterPodTransformer;
-
-  @Inject
-  public ClusterTransformer(ConfigContext context,
-      ClusterPodTransformer clusterPodTransformer) {
-    this.context = context;
-    this.clusterPodTransformer = clusterPodTransformer;
-  }
+  private ConfigContext context;
+  private ClusterPodTransformer clusterPodTransformer;
 
   @Override
   public StackGresCluster toCustomResource(ClusterDto source) {
@@ -156,4 +149,13 @@ public class ClusterTransformer
     return transformation;
   }
 
+  @Inject
+  public void setContext(ConfigContext context) {
+    this.context = context;
+  }
+
+  @Inject
+  public void setClusterPodTransformer(ClusterPodTransformer clusterPodTransformer) {
+    this.clusterPodTransformer = clusterPodTransformer;
+  }
 }

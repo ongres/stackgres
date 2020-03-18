@@ -1,0 +1,21 @@
+{
+  "apiVersion": "v1",
+  "kind": "Status",
+  "metadata": {},
+  "code": 422,
+  "details": {
+    "kind": "StackGresProfile",
+    "causes": [
+      {
+        "field": "spec.memory",
+        "message": "Invalid value: \"\": spec.memory in body should match '^[0-9]+(\\.[0-9]+)?(Mi|Gi)$'",
+        "reason": "FieldValueInvalid"
+      }
+    ],
+    "group": "stackgres.io",
+    "name": "size-xs"
+  },
+  "message": "StackGresProfile.stackgres.io \"size-xs\" is invalid: spec.memory: Invalid value: \"\": spec.memory in body should match '^[0-9]+(\\.[0-9]+)?(Mi|Gi)$'",
+  "reason": "Invalid",
+  "status": "Failure"
+}

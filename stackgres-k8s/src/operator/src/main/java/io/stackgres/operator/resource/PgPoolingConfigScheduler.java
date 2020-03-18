@@ -6,10 +6,7 @@
 package io.stackgres.operator.resource;
 
 import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
 
-import io.stackgres.operator.app.KubernetesClientFactory;
-import io.stackgres.operator.common.ArcUtil;
 import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfig;
 import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfigDefinition;
 import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfigDoneable;
@@ -18,20 +15,14 @@ import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbounc
 @ApplicationScoped
 public class PgPoolingConfigScheduler
     extends AbstractCustomResourceScheduler<StackGresPgbouncerConfig,
-      StackGresPgbouncerConfigList, StackGresPgbouncerConfigDoneable> {
+    StackGresPgbouncerConfigList, StackGresPgbouncerConfigDoneable> {
 
-  @Inject
-  public PgPoolingConfigScheduler(KubernetesClientFactory clientFactory) {
-    super(clientFactory,
+  public PgPoolingConfigScheduler() {
+    super(
         StackGresPgbouncerConfigDefinition.NAME,
         StackGresPgbouncerConfig.class,
         StackGresPgbouncerConfigList.class,
         StackGresPgbouncerConfigDoneable.class);
-  }
-
-  public PgPoolingConfigScheduler() {
-    super(null, null, null, null, null);
-    ArcUtil.checkPublicNoArgsConstructorIsCalledFromArc();
   }
 
 }

@@ -8,17 +8,13 @@ package io.stackgres.operator.patroni.factory;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
-
 import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
-
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.stackgres.operator.app.ObjectMapperProvider;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSetPath;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresClusterResourceStreamFactory;
@@ -27,7 +23,6 @@ import io.stackgres.operator.common.StackGresGeneratorContext;
 import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operator.sidecars.envoy.Envoy;
 import io.stackgres.operatorframework.resource.ResourceUtil;
-
 import org.jooq.lambda.Seq;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,12 +35,7 @@ public class PatroniConfigMap implements StackGresClusterResourceStreamFactory {
 
   private static final Logger PATRONI_LOGGER = LoggerFactory.getLogger("patroni");
 
-  private final ObjectMapper objectMapper;
-
-  @Inject
-  public PatroniConfigMap(ObjectMapperProvider objectMapperProvider) {
-    this.objectMapper = objectMapperProvider.objectMapper();
-  }
+  private ObjectMapper objectMapper = new ObjectMapper();
 
   public static String name(StackGresClusterContext clusterContext) {
     return ResourceUtil.resourceName(clusterContext.getCluster().getMetadata().getName());

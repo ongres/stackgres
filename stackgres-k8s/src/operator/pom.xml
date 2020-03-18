@@ -23,6 +23,8 @@
     <stackgres.crd.version>v1alpha1</stackgres.crd.version>
     <stackgres.prometheus.allowAutobind>true</stackgres.prometheus.allowAutobind>
     <stackgres.prometheus.grafanaEmbedded>false</stackgres.prometheus.grafanaEmbedded>
+    <stackgres.documentation.uri>https://stackgres.io/doc/</stackgres.documentation.uri>
+    <stackgres.documentation.errorsPath>/07-developer-documentation/01-error-types#</stackgres.documentation.errorsPath>
 
     <quarkus.http.ssl.certificate.file>/etc/operator/certs/server.crt</quarkus.http.ssl.certificate.file>
     <quarkus.http.ssl.certificate.key-file>/etc/operator/certs/root.key</quarkus.http.ssl.certificate.key-file>
@@ -107,6 +109,12 @@
       <groupId>org.glassfish.jersey.media</groupId>
       <artifactId>jersey-media-json-jackson</artifactId>
       <version>${jersey.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.fabric8</groupId>
+      <artifactId>kubernetes-server-mock</artifactId>
+      <version>${kubernetes-client.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>

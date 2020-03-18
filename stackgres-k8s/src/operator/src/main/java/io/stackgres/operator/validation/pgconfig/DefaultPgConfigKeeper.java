@@ -5,13 +5,16 @@
 
 package io.stackgres.operator.validation.pgconfig;
 
-import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Singleton;
 
+import io.stackgres.operator.common.ErrorType;
 import io.stackgres.operator.common.PgConfigReview;
 import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.operator.validation.AbstractDefaultConfigKeeper;
+import io.stackgres.operator.validation.ValidationType;
 
-@ApplicationScoped
+@Singleton
+@ValidationType(ErrorType.DEFAULT_CONFIGURATION)
 public class DefaultPgConfigKeeper
     extends AbstractDefaultConfigKeeper<StackGresPostgresConfig, PgConfigReview>
     implements PgConfigValidator {
