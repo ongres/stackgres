@@ -29,8 +29,70 @@ var CreateBackupConfig = Vue.component("create-backup-config", {
                 <label for="backupConfigName">Configuration Name <span class="req">*</span></label>
                 <input v-model="backupConfigName" :disabled="(editMode)" required>
 
-                <label for="backupConfigFullSchedule">Backup Schedule <span class="req">*</span></label>
-                <input v-model="backupConfigFullSchedule" required>
+                <fieldset class="cron row-20">
+                    <div class="header">
+                        <h3>Base Backup Schedule <span class="req">*</span></h3>
+                    </div>                    
+                    
+                    <div class="col">
+                        <label for="backupConfigFullScheduleMin">Minute <span class="req">*</span></label>
+                        <select v-model="backupConfigFullScheduleMin" required>
+                            <option value="*" selected>Every Minute</option>
+                            <option value="*/2">Every Second Minute</option>
+                            <option v-for="index in 60" :key="index">{{ index-1 }}</option>
+                        </select>
+                    </div>
+
+                    <div class="col">
+                        <label for="backupConfigFullScheduleHour">Hour <span class="req">*</span></label>
+                        <select v-model="backupConfigFullScheduleHour" required>
+                            <option value="*" selected>Every Hour</option>
+                            <option v-for="index in 24" :key="index">{{ index-1 }}</option>
+                        </select>
+                    </div>
+
+                    <div class="col">
+                        <label for="backupConfigFullScheduleDOM">Day of Month <span class="req">*</span></label>
+                        <select v-model="backupConfigFullScheduleDOM" required>
+                            <option value="*" selected>Every Day</option>
+                            <option v-for="index in 31" :key="index">{{ index }}</option>
+                        </select>
+                    </div>
+
+                    <div class="col">
+                        <label for="backupConfigFullScheduleMonth">Month <span class="req">*</span></label>
+                        <select v-model="backupConfigFullScheduleMonth" required>
+                            <option value="*" selected>Every Month</option>
+                            <option value="1">January</option>
+                            <option value="2">February</option>
+                            <option value="3">March</option>
+                            <option value="4">April</option>
+                            <option value="5">May</option>
+                            <option value="6">June</option>
+                            <option value="7">July</option>
+                            <option value="8">August</option>
+                            <option value="9">September</option>
+                            <option value="10">October</option>
+                            <option value="11">November</option>
+                            <option value="12">December</option>
+                        </select>
+                    </div>
+
+                    <div class="col">
+                        <label for="backupConfigFullScheduleDOW">Day of Week <span class="req">*</span></label>
+                        <select v-model="backupConfigFullScheduleDOW" required>
+                            <option value="*" selected>Every Weekday</option>
+                            <option value="1">Monday</option>
+                            <option value="2">Tuesday</option>
+                            <option value="3">Wednesday</option>
+                            <option value="4">Thursday</option>
+                            <option value="5">Friday</option>
+                            <option value="6">Saturday</option>
+                            <option value="7">Sunday</option>
+                            
+                        </select>
+                    </div>
+                </fieldset>
 
                 <!-- <template v-if="advancedMode">
                     <label for="backupConfigFullWindow">Full Window</label>
@@ -183,7 +245,12 @@ var CreateBackupConfig = Vue.component("create-backup-config", {
                 backupConfigName: vm.$route.params.name,
                 backupConfigNamespace: store.state.currentNamespace,
                 backupConfigCompressionMethod: 'lz4',
-                backupConfigFullSchedule: '*/1 * * * *',
+                backupConfigFullSchedule: '*/2 * * * *',
+                backupConfigFullScheduleMin: '*/2',
+                backupConfigFullScheduleHour: '*',
+                backupConfigFullScheduleDOM: '*',
+                backupConfigFullScheduleMonth: '*',
+                backupConfigFullScheduleDOW: '*',
                 //backupConfigFullWindow: 1,
                 backupConfigRetention: 5,
                 backupConfigTarSizeThreshold: 1,
@@ -238,6 +305,9 @@ var CreateBackupConfig = Vue.component("create-backup-config", {
             // console.log(tresholdSize.match(/[a-zA-Z]+/g));
             // console.log(tresholdSize.match(/[a-zA-Z]+/g)[0]);
 
+            // Cron to Human
+            let cron = config.data.spec.fullSchedule.split(" ");
+
             return {
                 editMode: true,
                 advancedMode: false,
@@ -246,6 +316,11 @@ var CreateBackupConfig = Vue.component("create-backup-config", {
                 backupConfigNamespace: store.state.currentNamespace,
                 backupConfigCompressionMethod: config.data.spec.compressionMethod,
                 backupConfigFullSchedule: config.data.spec.fullSchedule,
+                backupConfigFullScheduleMin: cron[0],
+                backupConfigFullScheduleHour: cron[1],
+                backupConfigFullScheduleDOM: cron[2],
+                backupConfigFullScheduleMonth: cron[3],
+                backupConfigFullScheduleDOW: cron[4],
                 //backupConfigFullWindow: config.data.spec.fullWindow,
                 backupConfigRetention: config.data.spec.retention,
                 backupConfigTarSizeThreshold: tresholdSize.match(/\d+/g),
@@ -387,7 +462,7 @@ var CreateBackupConfig = Vue.component("create-backup-config", {
                     },
                     "spec": {
                         "compressionMethod": this.backupConfigCompressionMethod,
-                        "fullSchedule": this.backupConfigFullSchedule,
+                        "fullSchedule": this.backupConfigFullScheduleMin+' '+this.backupConfigFullScheduleHour+' '+this.backupConfigFullScheduleDOM+' '+this.backupConfigFullScheduleMonth+' '+this.backupConfigFullScheduleDOW,
                         //"fullWindow": this.backupConfigFullWindow,
                         "retention": this.backupConfigRetention,
                         "tarSizeThreshold": this.backupConfigTarSizeThreshold * this.backupConfigTarSizeThresholdUnit,
@@ -398,6 +473,7 @@ var CreateBackupConfig = Vue.component("create-backup-config", {
                 console.log(config);
 
                 if(this.editMode) {
+                    
                     const res = axios
                     .put(
                         apiURL+'backupconfig/', 
