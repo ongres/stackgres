@@ -21,12 +21,7 @@ helm_cleanup() {
 k8s_cleanup() {
   helm template stackgres-operator --namespace stackgres "$OPERATOR_CHART_PATH" \
     | kubectl delete -f - --ignore-not-found
-  kubectl get validatingwebhookconfigurations.admissionregistration.k8s.io -o name \
-    | grep -v "^validatingwebhookconfiguration.admissionregistration.k8s.io/\($(excluded_validatingwebhookconfigurations | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
-    | xargs -r -n 1 -I % -P 0 kubectl delete %
-  kubectl get mutatingwebhookconfigurations.admissionregistration.k8s.io -o name \
-    | grep -v "^mutatingwebhookconfiguration.admissionregistration.k8s.io/\($(excluded_mutatingwebhookconfigurations | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
-    | xargs -r -n 1 -I % -P 0 kubectl delete %
+  k8s_webhook_cleanup
   kubectl get crd -o name \
     | grep -v "^customresourcedefinition.apiextensions.k8s.io/\($(excluded_customresourcedefinitions | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
     | xargs -r -n 1 -I % -P 0 kubectl delete %
@@ -39,6 +34,15 @@ k8s_cleanup() {
         -ec "$(k8s_finalize_namespace_script)"
   ! kubectl api-resources | grep -q '^podsecuritypolicies ' \
     || kubectl get podsecuritypolicies -o name | xargs -r -n 1 -I % kubectl delete '%'
+}
+
+k8s_webhook_cleanup() {
+  kubectl get validatingwebhookconfigurations.admissionregistration.k8s.io -o name \
+    | grep -v "^validatingwebhookconfiguration.admissionregistration.k8s.io/\($(excluded_validatingwebhookconfigurations | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+    | xargs -r -n 1 -I % -P 0 kubectl delete %
+  kubectl get mutatingwebhookconfigurations.admissionregistration.k8s.io -o name \
+    | grep -v "^mutatingwebhookconfiguration.admissionregistration.k8s.io/\($(excluded_mutatingwebhookconfigurations | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+    | xargs -r -n 1 -I % -P 0 kubectl delete %
 }
 
 helm_cleanup_but_operator() {

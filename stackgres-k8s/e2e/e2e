@@ -132,6 +132,7 @@ setup_k8s() {
       load_operator_k8s
     fi
 
+    k8s_webhook_cleanup
     helm_cleanup
     k8s_cleanup
 
