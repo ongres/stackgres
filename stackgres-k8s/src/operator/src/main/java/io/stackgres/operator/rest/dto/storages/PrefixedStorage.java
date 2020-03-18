@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.rest.dto.storages;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 public interface PrefixedStorage {
 
   String getSchema();
@@ -17,6 +19,7 @@ public interface PrefixedStorage {
 
   void setPath(String path);
 
+  @JsonIgnore
   default String getPrefix() {
     String path = getPath();
     if (path != null) {
@@ -35,6 +38,7 @@ public interface PrefixedStorage {
     }
   }
 
+  @JsonIgnore
   default void setPrefix(String prefix) {
     int doubleSlashIndex = prefix.indexOf("://");
     final int firstSlashIndex;
