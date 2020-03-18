@@ -78,12 +78,6 @@ status:
   backupConfig:
 $(kubectl get "$BACKUP_CONFIG_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" \
   --template '    compressionMethod: "{{ .spec.compressionMethod }}"
-    {{- with .spec.pgpConfiguration }}
-    pgpConfiguration:
-      key:
-        key: "{{ .spec.pgpConfiguration.key.key }}"
-        name: "{{ .spec.pgpConfiguration.key.name }}"
-    {{- end }}
     storage:
       type: "{{ .spec.storage.type }}"
       {{- with .spec.storage.s3 }}
@@ -100,10 +94,6 @@ $(kubectl get "$BACKUP_CONFIG_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG"
         {{ with .endpoint }}endpoint: "{{ . }}"{{ end }}
         {{ with .forcePathStyle }}forcePathStyle: {{ . }}{{ end }}
         {{ with .storageClass }}storageClass: "{{ . }}"{{ end }}
-        {{ with .sse }}sse: "{{ . }}"{{ end }}
-        {{ with .sseKmsId }}sseKmsId: "{{ . }}"{{ end }}
-        {{ with .cseKmsId }}cseKmsId: "{{ . }}"{{ end }}
-        {{ with .cseKmsRegion }}cseKmsRegion: "{{ . }}"{{ end }}
       {{- end }}
       {{- with .spec.storage.gcs }}
       gcs:
@@ -123,8 +113,6 @@ $(kubectl get "$BACKUP_CONFIG_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG"
           accessKey:
             key: "{{ .credentials.accessKey.key }}"
             name: "{{ .credentials.accessKey.name }}"
-        {{ with .bufferSize }}bufferSize: {{ . }}{{ end }}
-        {{ with .maxBuffers }}maxBuffers: {{ . }}{{ end }}
       {{- end }}
 ')
 EOF
@@ -139,14 +127,6 @@ else
         "pod":"'"$POD_NAME"'",
         "backupConfig":{'"$(kubectl get "$BACKUP_CONFIG_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" \
   --template '    "compressionMethod": "{{ .spec.compressionMethod }}",
-    {{- with .spec.pgpConfiguration }}
-    "pgpConfiguration": {
-      "key": {
-        "key": "{{ .spec.pgpConfiguration.key.key }}",
-        "name": "{{ .spec.pgpConfiguration.key.name }}"
-      }
-    },
-    {{- end }}
     "storage": {
       "type": "{{ .spec.storage.type }}",
       {{- with .spec.storage.s3 }}
@@ -166,10 +146,6 @@ else
         {{ with .endpoint }},"endpoint": "{{ . }}"{{ end }}
         {{ with .forcePathStyle }},"forcePathStyle": {{ . }}{{ end }}
         {{ with .storageClass }},"storageClass": "{{ . }}"{{ end }}
-        {{ with .sse }},"sse": "{{ . }}"{{ end }}
-        {{ with .sseKmsId }},"sseKmsId": "{{ . }}"{{ end }}
-        {{ with .cseKmsId }},"cseKmsId": "{{ . }}"{{ end }}
-        {{ with .cseKmsRegion }},"cseKmsRegion": "{{ . }}"{{ end }}
       }
       {{- end }}
       {{- with .spec.storage.gcs }}
@@ -196,8 +172,6 @@ else
             "name": "{{ .credentials.accessKey.name }}"
           }
         }
-        {{ with .bufferSize }},"bufferSize": {{ . }}{{ end }}
-        {{ with .maxBuffers }},"maxBuffers": {{ . }}{{ end }}
       }
       {{- end }}
     }

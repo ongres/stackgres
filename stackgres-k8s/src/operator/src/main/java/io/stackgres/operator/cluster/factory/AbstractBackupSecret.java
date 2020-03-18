@@ -24,10 +24,6 @@ public abstract class AbstractBackupSecret {
       StackGresBackupConfigSpec backupConfigSpec, Map<String, Map<String, String>> secrets) {
     return Seq.of(
         Optional.of(backupConfigSpec)
-        .map(StackGresBackupConfigSpec::getPgpConfiguration)
-        .map(pgpConf -> Seq.of(
-            getSecretEntry("WALG_PGP_KEY", pgpConf.getKey(), secrets))),
-        Optional.of(backupConfigSpec)
         .map(StackGresBackupConfigSpec::getStorage)
         .map(BackupStorage::getS3)
         .map(awsConf -> Seq.of(

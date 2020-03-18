@@ -41,18 +41,6 @@ public class AwsS3Storage {
   @JsonProperty("storageClass")
   private String storageClass;
 
-  @JsonProperty("sse")
-  private String sse;
-
-  @JsonProperty("sseKmsId")
-  private String sseKmsId;
-
-  @JsonProperty("cseKmsId")
-  private String cseKmsId;
-
-  @JsonProperty("cseKmsRegion")
-  private String cseKmsRegion;
-
   public String getPrefix() {
     return prefix;
   }
@@ -101,42 +89,10 @@ public class AwsS3Storage {
     this.storageClass = storageClass;
   }
 
-  public String getSse() {
-    return sse;
-  }
-
-  public void setSse(String sse) {
-    this.sse = sse;
-  }
-
-  public String getSseKmsId() {
-    return sseKmsId;
-  }
-
-  public void setSseKmsId(String sseKmsId) {
-    this.sseKmsId = sseKmsId;
-  }
-
-  public String getCseKmsId() {
-    return cseKmsId;
-  }
-
-  public void setCseKmsId(String cseKmsId) {
-    this.cseKmsId = cseKmsId;
-  }
-
-  public String getCseKmsRegion() {
-    return cseKmsRegion;
-  }
-
-  public void setCseKmsRegion(String cseKmsRegion) {
-    this.cseKmsRegion = cseKmsRegion;
-  }
-
   @Override
   public int hashCode() {
-    return Objects.hash(credentials, cseKmsId, cseKmsRegion, endpoint, forcePathStyle, prefix,
-        region, sse, sseKmsId, storageClass);
+    return Objects.hash(credentials, endpoint, forcePathStyle, prefix,
+        region, storageClass);
   }
 
   @Override
@@ -152,11 +108,8 @@ public class AwsS3Storage {
     }
     AwsS3Storage other = (AwsS3Storage) obj;
     return Objects.equals(credentials, other.credentials)
-        && Objects.equals(cseKmsId, other.cseKmsId)
-        && Objects.equals(cseKmsRegion, other.cseKmsRegion)
         && Objects.equals(endpoint, other.endpoint) && forcePathStyle == other.forcePathStyle
         && Objects.equals(prefix, other.prefix) && Objects.equals(region, other.region)
-        && Objects.equals(sse, other.sse) && Objects.equals(sseKmsId, other.sseKmsId)
         && Objects.equals(storageClass, other.storageClass);
   }
 
@@ -170,10 +123,6 @@ public class AwsS3Storage {
         .add("endpoint", endpoint)
         .add("forcePathStyle", forcePathStyle)
         .add("storageClass", storageClass)
-        .add("sse", sse)
-        .add("sseKmsId", sseKmsId)
-        .add("cseKmsId", cseKmsId)
-        .add("cseKmsRegion", cseKmsRegion)
         .toString();
   }
 

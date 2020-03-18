@@ -31,11 +31,6 @@ public class ModificationValidator implements BackupConfigValidator {
   public void validate(BackupConfigReview review) throws ValidationFailed {
     Operation operation = review.getRequest().getOperation();
     if (operation == Operation.UPDATE) {
-      if (!Objects.equals(review.getRequest().getOldObject().getSpec().getPgpConfiguration(),
-          review.getRequest().getObject().getSpec().getPgpConfiguration())) {
-        fail("Modification of pgp configuration is not allowed");
-      }
-
       if (!review.getRequest().getOldObject().getSpec().getStorage().getType().equals(
           review.getRequest().getObject().getSpec().getStorage().getType())
           || !Objects.equals(review.getRequest().getObject().getSpec().getStorage().getS3(),

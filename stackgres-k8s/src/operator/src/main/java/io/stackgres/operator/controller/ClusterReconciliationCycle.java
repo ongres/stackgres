@@ -65,7 +65,6 @@ import io.stackgres.operator.customresource.storages.AzureBlobStorage;
 import io.stackgres.operator.customresource.storages.AzureBlobStorageCredentials;
 import io.stackgres.operator.customresource.storages.GoogleCloudCredentials;
 import io.stackgres.operator.customresource.storages.GoogleCloudStorage;
-import io.stackgres.operator.customresource.storages.PgpConfiguration;
 import io.stackgres.operator.resource.ClusterSidecarFinder;
 import io.stackgres.operator.resource.CustomResourceScanner;
 import io.stackgres.operator.sidecars.envoy.Envoy;
@@ -133,7 +132,7 @@ public class ClusterReconciliationCycle
 
   @Override
   protected void onConfigError(StackGresClusterContext context, HasMetadata configResource,
-                               Exception ex) {
+      Exception ex) {
     eventController.sendEvent(EventReason.CLUSTER_CONFIG_ERROR,
         "StackGres Cluster " + configResource.getMetadata().getNamespace() + "."
             + configResource.getMetadata().getName() + " reconciliation failed: "
@@ -198,7 +197,7 @@ public class ClusterReconciliationCycle
   }
 
   private StackGresClusterContext getClusterConfig(StackGresCluster cluster,
-                                                   KubernetesClient client) {
+      KubernetesClient client) {
     return StackGresClusterContext.builder()
         .withCluster(cluster)
         .withProfile(getProfile(cluster, client))
@@ -226,7 +225,7 @@ public class ClusterReconciliationCycle
   }
 
   private Optional<StackGresPostgresConfig> getPostgresConfig(StackGresCluster cluster,
-                                                              KubernetesClient client) {
+      KubernetesClient client) {
     final String namespace = cluster.getMetadata().getNamespace();
     final String pgConfig = cluster.getSpec().getPostgresConfig();
     if (pgConfig != null) {
@@ -247,7 +246,7 @@ public class ClusterReconciliationCycle
   }
 
   private Optional<StackGresBackupContext> getBackupContext(StackGresCluster cluster,
-                                                            KubernetesClient client) {
+      KubernetesClient client) {
     final String namespace = cluster.getMetadata().getNamespace();
     final String backupConfig = cluster.getSpec().getBackupConfig();
     if (backupConfig != null) {
@@ -269,7 +268,7 @@ public class ClusterReconciliationCycle
   }
 
   private Optional<StackGresProfile> getProfile(StackGresCluster cluster,
-                                                KubernetesClient client) {
+      KubernetesClient client) {
     final String namespace = cluster.getMetadata().getNamespace();
     final String profileName = cluster.getSpec().getResourceProfile();
     if (profileName != null) {
@@ -290,7 +289,7 @@ public class ClusterReconciliationCycle
   }
 
   private ImmutableList<StackGresBackup> getBackups(StackGresCluster cluster,
-                                                    KubernetesClient client) {
+      KubernetesClient client) {
     final String namespace = cluster.getMetadata().getNamespace();
     final String name = cluster.getMetadata().getName();
     return ResourceUtil.getCustomResource(client, StackGresBackupDefinition.NAME)
@@ -309,7 +308,7 @@ public class ClusterReconciliationCycle
   }
 
   public Optional<Prometheus> getPrometheus(StackGresCluster cluster,
-                                            KubernetesClient client) {
+      KubernetesClient client) {
     boolean isAutobindAllowed = Boolean
         .parseBoolean(configContext.getProperty(ConfigProperty.PROMETHEUS_AUTOBIND)
             .orElse("false"));
@@ -350,7 +349,7 @@ public class ClusterReconciliationCycle
   }
 
   private Optional<StackGresRestoreContext> getRestoreContext(StackGresCluster cluster,
-                                                              KubernetesClient client) {
+      KubernetesClient client) {
     final ClusterRestore restore = cluster.getSpec().getRestore();
     if (restore != null) {
       return ResourceUtil.getCustomResource(client, StackGresBackupDefinition.NAME)
@@ -388,8 +387,6 @@ public class ClusterReconciliationCycle
       final String namespace,
       StackGresBackupConfigSpec backupConfSpec) {
     return Seq.of(
-        Optional.ofNullable(backupConfSpec.getPgpConfiguration())
-            .map(PgpConfiguration::getKey),
         Optional.ofNullable(backupConfSpec.getStorage().getS3())
             .map(AwsS3Storage::getCredentials)
             .map(AwsCredentials::getAccessKey),
@@ -412,18 +409,16 @@ public class ClusterReconciliationCycle
                 .inNamespace(namespace)
                 .withName(secretKeySelector.getName())
                 .get())
-                .orElseThrow(() -> new IllegalStateException(
-                    "Secret " + namespace + "." + secretKeySelector.getName()
-                        + " not found")))
-                .map(secret -> secret
-                    .getData()
-                    .get(secretKeySelector.getKey()))
-                .map(ResourceUtil::dencodeSecret)
-                .orElseThrow(() -> new IllegalStateException("Key "
-                    + secretKeySelector.getKey()
-                    + " not found in secret "
-                    + namespace + "."
-                    + secretKeySelector.getName()))))
+            .orElseThrow(() -> new IllegalStateException(
+                "Secret " + namespace + "." + secretKeySelector.getName()
+                + " not found")))
+            .map(secret -> secret
+                .getData()
+                .get(secretKeySelector.getKey()))
+            .map(ResourceUtil::dencodeSecret)
+            .orElseThrow(() -> new IllegalStateException(
+                "Key " + secretKeySelector.getKey()
+                + " not found in secret " + namespace + "." + secretKeySelector.getName()))))
         .grouped(t -> t.v1.getName())
         .collect(ImmutableMap.toImmutableMap(
             t -> t.v1, t -> t.v2

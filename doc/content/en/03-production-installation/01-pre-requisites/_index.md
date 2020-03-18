@@ -25,8 +25,6 @@ There are more general fine tuning parameters that could affect backups in more 
  resource usage.
 * Disk rate limit (`config.backup.diskRateLimit`): could be important to limit costs and/or
  resource usage.
-* Encryption (`config.backup.pgpConfiguration.name` and `config.backup.pgpConfiguration.key`):
- this depends on security requirements and/or restriction imposed by laws.
 
 We reccomend to configure all those aspects by creating a YAML values file for backup
  configuration to include in the helm installation (`-f` or `--values` parameters) of the
@@ -43,9 +41,6 @@ config:
     tarSizeThreshold: 1073741823
     # networkRateLimit:
     # diskRateLimit:
-    # pgpConfiguration:
-    #   name: pgp-configuration
-    #   key: key
 ```
 
 ## Storage

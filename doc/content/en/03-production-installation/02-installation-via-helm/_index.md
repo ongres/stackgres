@@ -123,22 +123,7 @@ By default the chart create a storage class backed by an MinIO server. To avoid 
  bytes per second.
 * `config.backup.diskRateLimit`: To configure disk read rate limit during uploads in bytes per
  second.
-* `config.backup.pgpConfiguration.name`: The name of the secret with the private key of the
- OpenPGP configuration for encryption and decryption backups.
-* `config.backup.pgpConfiguration.key`: The key in the secret with the private key of the OpenPGP
- configuration for encryption and decryption backups.
 * `config.backup.minio.create`: If true create a MinIO server that will be used to store backups.
-
-##### PGP Configuration
-If you want to use OpenPGP to encrypy your backups, you need to specify pgp configuration to
- encrypt them.
-
-* `config.backup.pgpSecret`: By default false. If is set to true, it will enable the use of OpenPGP
- encrypt your backups
-* `config.backup.pgpConfiguration.key`: The key of the secret to select from. Must be a valid
- secret key.
-* `config.backup.pgpConfiguration.name`: Name of the referent. More info:
- https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
 
 ##### Amazon Web Services S3
 
@@ -163,15 +148,6 @@ If you want to use OpenPGP to encrypy your backups, you need to specify pgp conf
 * `config.backup.s3.storageClass`: By default, the "STANDARD" storage class is used. Other
  supported values include "STANDARD_IA" for Infrequent Access and "REDUCED_REDUNDANCY" for Reduced
  Redundancy.
-* `config.backup.s3.sse`: To enable S3 server-side encryption, set to the algorithm to use when
- storing the objects in S3 (i.e., AES256, aws:kms).
-* `config.backup.s3.sseKmsId`: If using S3 server-side encryption with aws:kms, the KMS Key ID to
- use for object encryption.
-* `config.backup.s3.cseKmsId`: To configure AWS KMS key for client side encryption and decryption.
- By default, no encryption is used. (region or cseKmsRegion required to be set when using AWS KMS
- key client side encryption).
-* `config.backup.s3.cseKmsRegion`: To configure AWS KMS key region for client side encryption and
- decryption (i.e., eu-west-1).
 
 ##### Google Cloud Storage
 
@@ -193,11 +169,6 @@ If you want to use OpenPGP to encrypy your backups, you need to specify pgp conf
  key for the storage account to access Azure Blob Storage for writing and reading.
 * `config.backup.azureblob.accessKey.key`: The key in the secret with the primary or secondary
  access key for the storage account to access Azure Blob Storage for writing and reading.
-* `config.backup.azureblob.bufferSize`: Overrides the default upload buffer size of 67108864 bytes
- (64 MB). Note that the size of the buffer must be specified in bytes. Therefore, to use 32 MB
- sized buffers, this variable should be set to 33554432 bytes.
-* `config.backup.azureblob.maxBuffers`: Overrides the default maximum number of upload buffers. By
- default, at most 3 buffers are used concurrently.
 
 #### Restore configuration
 

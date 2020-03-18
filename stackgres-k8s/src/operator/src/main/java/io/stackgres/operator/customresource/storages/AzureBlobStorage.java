@@ -29,12 +29,6 @@ public class AzureBlobStorage {
   @NotNull(message = "The credentials is required")
   private AzureBlobStorageCredentials credentials;
 
-  @JsonProperty("bufferSize")
-  private long bufferSize;
-
-  @JsonProperty("maxBuffers")
-  private int maxBuffers;
-
   public String getPrefix() {
     return prefix;
   }
@@ -51,25 +45,9 @@ public class AzureBlobStorage {
     this.credentials = credentials;
   }
 
-  public long getBufferSize() {
-    return bufferSize;
-  }
-
-  public void setBufferSize(long bufferSize) {
-    this.bufferSize = bufferSize;
-  }
-
-  public int getMaxBuffers() {
-    return maxBuffers;
-  }
-
-  public void setMaxBuffers(int maxBuffers) {
-    this.maxBuffers = maxBuffers;
-  }
-
   @Override
   public int hashCode() {
-    return Objects.hash(bufferSize, credentials, maxBuffers, prefix);
+    return Objects.hash(credentials, prefix);
   }
 
   @Override
@@ -84,8 +62,8 @@ public class AzureBlobStorage {
       return false;
     }
     AzureBlobStorage other = (AzureBlobStorage) obj;
-    return bufferSize == other.bufferSize && Objects.equals(credentials, other.credentials)
-        && maxBuffers == other.maxBuffers && Objects.equals(prefix, other.prefix);
+    return Objects.equals(credentials, other.credentials)
+        && Objects.equals(prefix, other.prefix);
   }
 
   @Override
@@ -94,8 +72,6 @@ public class AzureBlobStorage {
         .omitNullValues()
         .add("prefix", prefix)
         .add("credentials", credentials)
-        .add("bufferSize", bufferSize)
-        .add("maxBuffers", maxBuffers)
         .toString();
   }
 

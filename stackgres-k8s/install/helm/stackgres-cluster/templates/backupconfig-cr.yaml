@@ -36,12 +36,6 @@ spec:
   diskRateLimit: {{ .Values.config.backup.diskRateLimit }}
   {{- end }}
   uploadDiskConcurrency: {{ .Values.config.backup.uploadDiskConcurrency }}
-  {{- if .Values.config.backup.pgpConfiguration }}
-  pgpConfiguration:
-    key:
-      name: "{{ .Values.config.backup.pgpConfiguration.name }}"
-      key: "{{ .Values.config.backup.pgpConfiguration.key }}"
-  {{- end }}
   tarSizeThreshold: {{ .Values.config.backup.tarSizeThreshold }}
   storage:
     {{- if not (or .Values.config.backup.s3 .Values.config.backup.gcs .Values.config.backup.azureblob) }}
@@ -82,18 +76,6 @@ spec:
       {{- if .Values.config.backup.s3.storageClass }}
       storageClass: "{{ .Values.config.backup.s3.storageClass }}"
       {{- end }}
-      {{- if .Values.config.backup.s3.sse }}
-      sse: "{{ .Values.config.backup.s3.sse }}"
-      {{- end }}
-      {{- if .Values.config.backup.s3.sseKmsId }}
-      sseKmsId: "{{ .Values.config.backup.s3.sseKmsId }}"
-      {{- end }}
-      {{- if .Values.config.backup.s3.cseKmsId }}
-      cseKmsId: "{{ .Values.config.backup.s3.cseKmsId }}"
-      {{- end }}
-      {{- if .Values.config.backup.s3.cseKmsRegion }}
-      cseKmsRegion: "{{ .Values.config.backup.s3.cseKmsRegion }}"
-      {{- end }}
     {{- end }}
     {{- if .Values.config.backup.gcs }}
     type: gcs
@@ -115,11 +97,5 @@ spec:
         accessKey:
           name: "{{ .Values.config.backup.azureblob.accessKey.name }}"
           key: "{{ .Values.config.backup.azureblob.accessKey.key }}"
-      {{- if .Values.config.backup.azureblob.bufferSize }}
-      bufferSize: {{ .Values.config.backup.azureblob.bufferSize }}
-      {{- end }}
-      {{- if .Values.config.backup.azureblob.maxBuffers }}
-      maxBuffers: {{ .Values.config.backup.azureblob.maxBuffers }}
-      {{- end }}
     {{- end }}
 {{ end }}

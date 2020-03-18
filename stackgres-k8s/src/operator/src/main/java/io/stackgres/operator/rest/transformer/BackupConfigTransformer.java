@@ -20,7 +20,6 @@ import io.stackgres.operator.rest.dto.storages.AzureBlobStorageCredentials;
 import io.stackgres.operator.rest.dto.storages.BackupStorage;
 import io.stackgres.operator.rest.dto.storages.GoogleCloudCredentials;
 import io.stackgres.operator.rest.dto.storages.GoogleCloudStorage;
-import io.stackgres.operator.rest.dto.storages.PgpConfiguration;
 
 @ApplicationScoped
 public class BackupConfigTransformer
@@ -49,27 +48,11 @@ public class BackupConfigTransformer
     transformation.setFullSchedule(source.getFullSchedule());
     transformation.setFullWindow(source.getFullWindow());
     transformation.setNetworkRateLimit(source.getNetworkRateLimit());
-    transformation.setPgpConfiguration(
-        getCustomResourcePgpConfiguration(source.getPgpConfiguration()));
     transformation.setRetention(source.getRetention());
     transformation.setStorage(
         getCustomResourceStorage(source.getStorage()));
     transformation.setTarSizeThreshold(source.getTarSizeThreshold());
     transformation.setUploadDiskConcurrency(source.getUploadDiskConcurrency());
-    return transformation;
-  }
-
-  private io.stackgres.operator.customresource.storages.PgpConfiguration
-      getCustomResourcePgpConfiguration(PgpConfiguration source) {
-    if (source == null) {
-      return null;
-    }
-    io.stackgres.operator.customresource.storages.PgpConfiguration transformation =
-        new io.stackgres.operator.customresource.storages.PgpConfiguration();
-    transformation.setKey(new io.fabric8.kubernetes.api.model.SecretKeySelector(
-        source.getKey().getName(),
-        source.getKey().getKey(),
-        false));
     return transformation;
   }
 
@@ -97,10 +80,8 @@ public class BackupConfigTransformer
     }
     io.stackgres.operator.customresource.storages.AzureBlobStorage transformation =
         new io.stackgres.operator.customresource.storages.AzureBlobStorage();
-    transformation.setBufferSize(source.getBufferSize());
     transformation.setCredentials(
         getCustomResourceAzureblobStorageCredentials(source.getCredentials()));
-    transformation.setMaxBuffers(source.getMaxBuffers());
     transformation.setPrefix(source.getPrefix());
     return transformation;
   }
@@ -177,12 +158,8 @@ public class BackupConfigTransformer
         new io.stackgres.operator.customresource.storages.AwsS3Storage();
     transformation.setCredentials(
         getCustomResourceAwsCredentials(source.getCredentials()));
-    transformation.setCseKmsId(source.getCseKmsId());
-    transformation.setCseKmsRegion(source.getCseKmsRegion());
     transformation.setPrefix(source.getPrefix());
     transformation.setRegion(source.getRegion());
-    transformation.setSse(source.getSse());
-    transformation.setSseKmsId(source.getSseKmsId());
     transformation.setStorageClass(source.getStorageClass());
     return transformation;
   }
@@ -196,14 +173,10 @@ public class BackupConfigTransformer
         new io.stackgres.operator.customresource.storages.AwsS3Storage();
     transformation.setCredentials(
         getCustomResourceAwsCredentials(source.getCredentials()));
-    transformation.setCseKmsId(source.getCseKmsId());
-    transformation.setCseKmsRegion(source.getCseKmsRegion());
     transformation.setEndpoint(source.getEndpoint());
     transformation.setForcePathStyle(source.isForcePathStyle());
     transformation.setPrefix(source.getPrefix());
     transformation.setRegion(source.getRegion());
-    transformation.setSse(source.getSse());
-    transformation.setSseKmsId(source.getSseKmsId());
     transformation.setStorageClass(source.getStorageClass());
     return transformation;
   }
@@ -236,26 +209,11 @@ public class BackupConfigTransformer
     transformation.setFullSchedule(source.getFullSchedule());
     transformation.setFullWindow(source.getFullWindow());
     transformation.setNetworkRateLimit(source.getNetworkRateLimit());
-    transformation.setPgpConfiguration(
-        getResourcePgpConfiguration(source.getPgpConfiguration()));
     transformation.setRetention(source.getRetention());
     transformation.setStorage(
         getResourceStorage(source.getStorage()));
     transformation.setTarSizeThreshold(source.getTarSizeThreshold());
     transformation.setUploadDiskConcurrency(source.getUploadDiskConcurrency());
-    return transformation;
-  }
-
-  private PgpConfiguration getResourcePgpConfiguration(
-      io.stackgres.operator.customresource.storages.PgpConfiguration
-      source) {
-    if (source == null) {
-      return null;
-    }
-    PgpConfiguration transformation = new PgpConfiguration();
-    transformation.setKey(SecretKeySelector.create(
-        source.getKey().getName(),
-        source.getKey().getKey()));
     return transformation;
   }
 
@@ -283,10 +241,8 @@ public class BackupConfigTransformer
       return null;
     }
     AzureBlobStorage transformation = new AzureBlobStorage();
-    transformation.setBufferSize(source.getBufferSize());
     transformation.setCredentials(
         getResourceAzureblobStorageCredentials(source.getCredentials()));
-    transformation.setMaxBuffers(source.getMaxBuffers());
     transformation.setPrefix(source.getPrefix());
     return transformation;
   }
@@ -344,12 +300,8 @@ public class BackupConfigTransformer
     AwsS3Storage transformation = new AwsS3Storage();
     transformation.setCredentials(
         getResourceAwsCredentials(source.getCredentials()));
-    transformation.setCseKmsId(source.getCseKmsId());
-    transformation.setCseKmsRegion(source.getCseKmsRegion());
     transformation.setPrefix(source.getPrefix());
     transformation.setRegion(source.getRegion());
-    transformation.setSse(source.getSse());
-    transformation.setSseKmsId(source.getSseKmsId());
     transformation.setStorageClass(source.getStorageClass());
     return transformation;
   }
@@ -363,14 +315,10 @@ public class BackupConfigTransformer
     AwsS3CompatibleStorage transformation = new AwsS3CompatibleStorage();
     transformation.setCredentials(
         getResourceAwsCredentials(source.getCredentials()));
-    transformation.setCseKmsId(source.getCseKmsId());
-    transformation.setCseKmsRegion(source.getCseKmsRegion());
     transformation.setEndpoint(source.getEndpoint());
     transformation.setForcePathStyle(source.isForcePathStyle());
     transformation.setPrefix(source.getPrefix());
     transformation.setRegion(source.getRegion());
-    transformation.setSse(source.getSse());
-    transformation.setSseKmsId(source.getSseKmsId());
     transformation.setStorageClass(source.getStorageClass());
     return transformation;
   }

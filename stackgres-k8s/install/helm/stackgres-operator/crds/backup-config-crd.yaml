@@ -47,22 +47,6 @@ spec:
             uploadDiskConcurrency:
               type: integer
               description: "To configure how many concurrency streams are reading disk during uploads. By default 1 stream."
-            pgpConfiguration:
-              type: object
-              description: "The OpenPGP configuration for encryption and decryption backups with the following properties: - key: PGP private key"
-              properties:
-                key:
-                  type: object
-                  description: "PGP private key"
-                  properties:
-                    key:
-                      type: string
-                      description: "The key of the secret to select from. Must be a valid secret key."
-                    name:
-                      type: string
-                      description: "Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names"
-                  required: [ "key", "name" ]
-              required: [ "key" ]
             tarSizeThreshold:
               type: integer
               description: "To configure the size of one backup bundle (in bytes). Smaller size causes granularity and more optimal, faster recovering. It also increases the number of storage requests, so it can costs you much money. Default size is 1 GB (1 << 30 - 1 bytes)."
@@ -121,18 +105,6 @@ spec:
                     storageClass:
                       type: string
                       description: "By default, the \"STANDARD\" storage class is used. Other supported values include \"STANDARD_IA\" for Infrequent Access and \"REDUCED_REDUNDANCY\" for Reduced Redundancy."
-                    sse:
-                      type: string
-                      description: "To enable S3 server-side encryption, set to the algorithm to use when storing the objects in S3 (i.e., AES256, aws:kms)."
-                    sseKmsId:
-                      type: string
-                      description: "If using S3 server-side encryption with aws:kms, the KMS Key ID to use for object encryption."
-                    cseKmsId:
-                      type: string
-                      description: "To configure AWS KMS key for client side encryption and decryption. By default, no encryption is used. (region or cseKmsRegion required to be set when using AWS KMS key client side encryption)."
-                    cseKmsRegion:
-                      type: string
-                      description: "To configure AWS KMS key region for client side encryption and decryption (i.e., eu-west-1)."
                   required: [ "prefix", "credentials" ]
                 gcs:
                   type: object
@@ -194,12 +166,6 @@ spec:
                               description: "Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names"
                           required: [ "key", "name" ]
                       required: [ "account", "accessKey" ]
-                    bufferSize:
-                      type: integer
-                      description: "Overrides the default upload buffer size of 67108864 bytes (64 MB). Note that the size of the buffer must be specified in bytes. Therefore, to use 32 MB sized buffers, this variable should be set to 33554432 bytes."
-                    maxBuffers:
-                      type: integer
-                      description: "Overrides the default maximum number of upload buffers. By default, at most 3 buffers are used concurrently."
                   required: [ "prefix", "credentials" ]
               required: ["type"]
           required: ["storage"]

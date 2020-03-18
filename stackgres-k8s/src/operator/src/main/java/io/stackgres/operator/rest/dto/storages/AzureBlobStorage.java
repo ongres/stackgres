@@ -32,12 +32,6 @@ public class AzureBlobStorage implements PrefixedStorage {
   @NotNull(message = "The credentials is required")
   private AzureBlobStorageCredentials credentials;
 
-  @JsonProperty("bufferSize")
-  private long bufferSize;
-
-  @JsonProperty("maxBuffers")
-  private int maxBuffers;
-
   @Override
   public String getSchema() {
     return "azure";
@@ -71,25 +65,9 @@ public class AzureBlobStorage implements PrefixedStorage {
     this.credentials = credentials;
   }
 
-  public long getBufferSize() {
-    return bufferSize;
-  }
-
-  public void setBufferSize(long bufferSize) {
-    this.bufferSize = bufferSize;
-  }
-
-  public int getMaxBuffers() {
-    return maxBuffers;
-  }
-
-  public void setMaxBuffers(int maxBuffers) {
-    this.maxBuffers = maxBuffers;
-  }
-
   @Override
   public int hashCode() {
-    return Objects.hash(bufferSize, credentials, maxBuffers, bucket, path);
+    return Objects.hash(credentials, bucket, path);
   }
 
   @Override
@@ -104,8 +82,8 @@ public class AzureBlobStorage implements PrefixedStorage {
       return false;
     }
     AzureBlobStorage other = (AzureBlobStorage) obj;
-    return bufferSize == other.bufferSize && Objects.equals(credentials, other.credentials)
-        && maxBuffers == other.maxBuffers && Objects.equals(bucket, other.bucket)
+    return Objects.equals(credentials, other.credentials)
+        && Objects.equals(bucket, other.bucket)
         && Objects.equals(path, other.path);
   }
 
@@ -116,8 +94,6 @@ public class AzureBlobStorage implements PrefixedStorage {
         .add("bucket", bucket)
         .add("path", path)
         .add("credentials", credentials)
-        .add("bufferSize", bufferSize)
-        .add("maxBuffers", maxBuffers)
         .toString();
   }
 

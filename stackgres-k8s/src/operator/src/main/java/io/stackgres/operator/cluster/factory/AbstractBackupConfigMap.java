@@ -90,11 +90,6 @@ public abstract class AbstractBackupConfigMap {
         AwsS3Storage::isForcePathStyle));
     backupEnvVars.put("WALG_S3_STORAGE_CLASS", getFromS3(storageForS3,
         AwsS3Storage::getStorageClass));
-    backupEnvVars.put("WALG_S3_SSE", getFromS3(storageForS3, AwsS3Storage::getSse));
-    backupEnvVars.put("WALG_S3_SSE_KMS_ID", getFromS3(storageForS3, AwsS3Storage::getSseKmsId));
-    backupEnvVars.put("WALG_CSE_KMS_ID", getFromS3(storageForS3, AwsS3Storage::getCseKmsId));
-    backupEnvVars.put("WALG_CSE_KMS_REGION", getFromS3(storageForS3,
-        AwsS3Storage::getCseKmsRegion));
   }
 
   private void setGcsStorageEnvVars(String namespace, String name,
@@ -111,10 +106,6 @@ public abstract class AbstractBackupConfigMap {
     backupEnvVars.put("WALG_AZ_PREFIX", getFromAzureBlob(
         storageForAzureBlob, AzureBlobStorage::getPrefix)
         + "/" + namespace + "/" + name);
-    backupEnvVars.put("WALG_AZURE_BUFFER_SIZE", getFromAzureBlob(
-        storageForAzureBlob, AzureBlobStorage::getBufferSize));
-    backupEnvVars.put("WALG_AZURE_MAX_BUFFERS", getFromAzureBlob(
-        storageForAzureBlob, AzureBlobStorage::getMaxBuffers));
   }
 
   protected String getGcsCredentialsFilePath() {

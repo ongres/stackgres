@@ -20,20 +20,6 @@ class ModificationValidatorTest {
   private ModificationValidator validator = new ModificationValidator(new ConfigLoader());
 
   @Test
-  void givenModificationOfPgpConfiguration_shouldFail(){
-
-    BackupConfigReview review = JsonUtil.readFromJson("backupconfig_allow_request/invalid_modification_pgp_configuration.json",
-        BackupConfigReview.class);
-
-    ValidationFailed ex = assertThrows(ValidationFailed.class, () -> {
-      validator.validate(review);
-    });
-
-    String errorMessage = ex.getResult().getMessage();
-    assertEquals("Modification of pgp configuration is not allowed", errorMessage);
-  }
-
-  @Test
   void givenModificationOfStorage_shouldFail(){
 
     BackupConfigReview review = JsonUtil.readFromJson("backupconfig_allow_request/invalid_modification_storage.json",
