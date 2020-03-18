@@ -23,7 +23,7 @@
                 },
                 "endpoint": "http://minio.stackgres.svc:9000",
                 "forcePathStyle": true,
-                "prefix": "s3://stackgres",
+                "bucket": "stackgres",
                 "region": "k8s"
             },
             "type": "s3"
