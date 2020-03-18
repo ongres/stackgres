@@ -104,7 +104,6 @@ public class CrdMatchTest {
             crd.setSingular((String) resurceDefinition.getField("SINGULAR").get(null));
             crd.setPlural((String) resurceDefinition.getField("PLURAL").get(null));
             crd.setName((String) resurceDefinition.getField("NAME").get(null));
-            crd.setApiVersion((String) resurceDefinition.getField("APIVERSION").get(null));
             return crd;
           } catch (Exception e) {
             throw new AssertionFailedError("Class "
@@ -219,8 +218,6 @@ public class CrdMatchTest {
 
     private String name;
 
-    private String apiVersion;
-
     public String getKind() {
       return kind;
     }
@@ -253,13 +250,6 @@ public class CrdMatchTest {
       this.name = name;
     }
 
-    public String getApiVersion() {
-      return apiVersion;
-    }
-
-    public void setApiVersion(String apiVersion) {
-      this.apiVersion = apiVersion;
-    }
   }
 
 }
