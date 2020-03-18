@@ -18,137 +18,148 @@ var CreateBackupConfig = Vue.component("create-backup-config", {
             </header>
                     
             <div class="form">
-                <label for="backupConfigNamespace">Configuration Namespace</label>
-                <select v-model="backupConfigNamespace" :disabled="(editMode)" required>
-                    <option disabled value="">Choose a Namespace</option>
-                    <option v-for="namespace in allNamespaces">{{ namespace }}</option>
-                </select>
-
-                <label for="backupConfigName">Configuration Name</label>
-                <input v-model="backupConfigName" :disabled="(editMode)" required>
-
-                <label for="backupConfigCompressionMethod">Compression Method</label>
-                <select v-model="backupConfigCompressionMethod">
-                    <option disabled value="">Select a method</option>
-                    <option value="lz4">LZ4</option>
-                    <option value="lzma">LZMA</option>
-                    <option value="brotli">Brotli</option>
-                </select>
-
-                <label for="backupConfigFullSchedule">Backup Schedule</label>
-                <input v-model="backupConfigFullSchedule" required>
-
-                <label for="backupConfigFullWindow">Full Window</label>
-                <input v-model="backupConfigFullWindow" value="" required>
-
-                <label for="backupConfigRetention">Retention Limit</label>
-                <input v-model="backupConfigRetention" value="" required>
-
-                <div class="unit-select">
-                    <label for="backupConfigTarSizeThreshold">Tar Size Threshold</label>  
-                    <input v-model="backupConfigTarSizeThreshold" class="size" value="">
-                    <select v-model="backupConfigTarSizeThresholdUnit" class="unit">
-                        <option disabled value="">Select Unit</option>
-                        <option value="1024">Ki</option>
-                        <option value="1048576">Mi</option>
-                        <option value="1073741824">Gi</option>
-                        <option value="1099511627776">Ti</option>
-                        <option value="1125899906842624">Pi</option>
-                        <option value="1152921504606846976">Ei</option>
-                        <option value="1180591620717411303424">Zi</option>
-                        <option value="1208925819614629174706176">Yi</option>        
-                    </select>
+                <div class="header">
+                    <h2>Backup Configuration Details</h2>
+                    <label for="advancedMode" :class="(advancedMode) ? 'active' : ''">
+                        <input v-model="advancedMode" type="checkbox" id="advancedMode" name="advancedMode" />
+                        <span>Advanced</span>
+                    </label>
                 </div>
                 
-                <label for="backupConfigUploadDiskConcurrency">Upload Disk Concurrency</label>
-                <input v-model="backupConfigUploadDiskConcurrency" value="">
+                <label for="backupConfigName">Configuration Name <span class="req">*</span></label>
+                <input v-model="backupConfigName" :disabled="(editMode)" required>
 
-                <label for="backupConfigStorageType">Storage Type</label>
+                <label for="backupConfigFullSchedule">Backup Schedule <span class="req">*</span></label>
+                <input v-model="backupConfigFullSchedule" required>
+
+                <!-- <template v-if="advancedMode">
+                    <label for="backupConfigFullWindow">Full Window</label>
+                    <input v-model="backupConfigFullWindow" value="" required>
+                </template> -->
+
+                <label for="backupConfigRetention">Retention Window (max. number of base backups) <span class="req">*</span></label>
+                <input v-model="backupConfigRetention" value="" required>
+
+                <template v-if="advancedMode">
+                    <label for="backupConfigCompressionMethod">Compression Method</label>
+                    <select v-model="backupConfigCompressionMethod">
+                        <option disabled value="">Select a method</option>
+                        <option value="lz4">LZ4</option>
+                        <option value="lzma">LZMA</option>
+                        <option value="brotli">Brotli</option>
+                    </select>
+                </template>
+
+                <template v-if="advancedMode">
+                    <div class="unit-select">
+                        <label for="backupConfigTarSizeThreshold">Tar Size Threshold</label>  
+                        <input v-model="backupConfigTarSizeThreshold" class="size" value="">
+                        <select v-model="backupConfigTarSizeThresholdUnit" class="unit">
+                            <option disabled value="">Select Unit</option>
+                            <option value="1024">KiB</option>
+                            <option value="1048576">MiB</option>
+                            <option value="1073741824">GiB</option>
+                            <option value="1099511627776">TiB</option>
+                            <option value="1125899906842624">PiB</option>
+                            <option value="1152921504606846976">EiB</option>
+                            <option value="1180591620717411303424">ZiB</option>
+                            <option value="1208925819614629174706176">YiB</option>        
+                        </select>
+                    </div>
+                
+                    <label for="backupConfigUploadDiskConcurrency">Upload Disk Concurrency</label>
+                    <input v-model="backupConfigUploadDiskConcurrency" value="">
+                </template>
+
+                <label for="backupConfigStorageType">Storage Type <span class="req">*</span></label>
                 <select v-model="backupConfigStorageType" :disabled="(editMode)">
                     <option disabled value="">Select Storage Type</option>
                     <option value="s3">Amazon S3</option>
-                    <option value="gcs">Google Storage</option>
-                    <option value="azureblob">Microsoft Azure</option>
+                    <option value="s3c">Amazon S3 - API Compatible</option>
+                    <option value="gcs">Google Cloud Storage</option>
+                    <option value="azureblob">Azure Blob Storage</option>
                 </select>
 
-                <fieldset class="fieldset" v-if="backupConfigStorageType === 's3'" :disabled="(editMode)" required>
-                    <h3>Amazon S3 Configuration</h3>
+                <fieldset class="fieldset" :disabled="(editMode)" required v-if="backupConfigStorageType.length">
+                    <div class="header">
+                        <h3 v-if="backupConfigStorageType === 's3'">
+                            Amazon S3 Configuration
+                        </h3>
+                        <h3 v-else-if="backupConfigStorageType === 's3c'">
+                            AS3 Compatible Configuration
+                        </h3>
+                        <h3 v-else-if="backupConfigStorageType === 'gcs'">
+                            Google Cloud Storage Configuration
+                        </h3>
+                        <h3 v-else-if="backupConfigStorageType === 'azureblob'">
+                            Microsoft Azure Configuration
+                        </h3>
 
-                    <label for="backupS3Prefix">Prefix</label>
-                    <input v-model="backupS3Prefix">
+                        <label for="advancedModeStorage" :class="(advancedModeStorage) ? 'active' : ''">
+                            <input v-model="advancedModeStorage" type="checkbox" id="advancedModeStorage" name="advancedModeStorage" />
+                            <span>Advanced</span>
+                        </label>
+                    </div>       
 
-                    <label for="backupS3AccessKeyName">Access Key Name</label>
-                    <input v-model="backupS3AccessKeyName">
+                    <label for="backupBucket">Bucket <span class="req">*</span></label>
+                    <input v-model="backupBucket">
 
-                    <label for="backupS3AccessKey">Access Key</label>
-                    <input v-model="backupS3AccessKey">
+                    <template v-if="advancedModeStorage">
+                        <label for="backupPath">Path</label>
+                        <input v-model="backupPath">
+                    </template>
 
-                    <label for="backupS3SecretKeyName">Secret Key Name</label>
-                    <input v-model="backupS3SecretKeyName">
+                    <template v-if="backupConfigStorageType === 's3c'">
+                        <label for="backupS3CEndpoint">Endpoint <span class="req">*</span></label>
+                        <input v-model="backupS3CEndpoint">
+                    </template>
 
-                    <label for="backupS3SecretKey">Secret Key</label>
-                    <input v-model="backupS3SecretKey">
+                    <template v-if="( (backupConfigStorageType === 's3') || (backupConfigStorageType === 's3c') )">
+                        
+                        <template v-if="advancedModeStorage">
+                            <label for="backupS3Region">Region</label>
+                            <input v-model="backupS3Region">
+                        </template>
 
-                    <label for="backupS3Region">Region</label>
-                    <input v-model="backupS3Region">
+                        <label for="backupS3Key">API Key <span class="req">*</span></label>
+                        <input v-model="backupS3Key" required>
 
-                    <label for="backupS3Endpoint">Endpoint</label>
-                    <input v-model="backupS3Endpoint">
+                        <label for="backupS3SecretKey">API Secret <span class="req">*</span></label>
+                        <input v-model="backupS3SecretKey" required>
 
-                    <label for="backupS3ForcePathStyle" class="switch">Force Path Style <input type="checkbox" id="backupS3ForcePathStyle" v-model="backupS3ForcePathStyle" data-switch="OFF"></label>
+                        <template v-if="advancedModeStorage && (backupConfigStorageType === 's3c')">
+                            <label>Bucket URL Force Path Style</label>
+                            <label for="backupS3ForcePathStyle" class="switch">
+                                Force Path Style
+                                <input type="checkbox" id="backupS3ForcePathStyle" v-model="backupS3ForcePathStyle" data-switch="OFF">
+                            </label>
+                        </template>
 
-                    <label for="backupS3StorageClass">Storage Class</label>
-                    <input v-model="backupS3StorageClass">
+                        <template v-if="advancedModeStorage">
+                            <label for="backupS3StorageClass">Storage Class</label>
+                            <select v-model="backupS3StorageClass">
+                                <option disabled value="">Select Storage Class...</option>
+                                <option value="STANDARD">Standard</option>
+                                <option value="STANDARD_IA">Infrequent Access</option>
+                                <option value="REDUCED_REDUNDANCY">Reduced Redundancy</option>
+                            </select>
+                        </template>
 
-                    <label for="backupS3sse">SSE</label>
-                    <input v-model="backupS3sse">
+                    </template>
 
-                    <label for="backupS3sseKmsId">SSE-KMS ID</label>
-                    <input v-model="backupS3sseKmsId">
+                    <template v-if="backupConfigStorageType === 'gcs'">
+                        <label for="backupGCSServiceAccountJson">Service Account JSON <span class="req">*</span></label>
+                        <input type="file" @change="uploadJSON" required> 
+                    </template>
 
-                    <label for="backupS3cseKmsId">CSE-KMS ID</label>
-                    <input v-model="backupS3cseKmsId">
+                    <template v-if="backupConfigStorageType === 'azureblob'">
+                        <label for="backupAzureAccountName">Account Name <span class="req">*</span></label>
+                        <input v-model="backupAzureAccountName" required>
 
-                    <label for="backupS3cseKmsRegion">CSE-KMS Region</label>
-                    <input v-model="backupS3cseKmsRegion">
-                </fieldset>
+                        <label for="backupAzureAccountAccessKey">Account Access Key <span class="req">*</span></label>
+                        <input v-model="backupAzureAccountAccessKey" required>
+                    </template>
 
-                <fieldset class="fieldset" v-if="backupConfigStorageType === 'gcs'" :disabled="(editMode)" required>
-                    <h3>Google Cloud Storage Configuration</h3>
-                    
-                    <label for="backupGCSPrefix">Prefix</label>
-                    <input v-model="backupGCSPrefix">
-
-                    <label for="backupGCSKeyName">Service Account Key Name</label>
-                    <input v-model="backupGCSKeyName">
-
-                    <label for="backupGCSKey">Service Account Key</label>
-                    <input v-model="backupGCSKey">
-                </fieldset>
-
-                <fieldset class="fieldset" v-if="backupConfigStorageType === 'azureblob'" :disabled="(editMode)" required>
-                    <h3>Microsoft Azure Configuration</h3>
-
-                    <label for="backupAzurePrefix">Prefix</label>
-                    <input v-model="backupAzurePrefix">
-
-                    <label for="backupAzureAccountName">Account Name</label>
-                    <input v-model="backupAzureAccountName">
-
-                    <label for="backupAzureAccountKey">Account Key</label>
-                    <input v-model="backupAzureAccountKey">
-
-                    <label for="backupAzureAccessKeyName">Access Key Name</label>
-                    <input v-model="backupAzureAccessKeyName">
-
-                    <label for="backupAzureAccessKey">Access Key</label>
-                    <input v-model="backupAzureAccessKey"
-
-                    <label for="backupAzureBufferSize">Buffer Size</label>
-                    <input v-model="backupAzureBufferSize">
-
-                    <label for="backupAzureMaxBuffers">Max Buffers</label>
-                    <input v-model="backupAzureMaxBuffers">
                 </fieldset>
 
                 <template v-if="editMode">
@@ -167,39 +178,29 @@ var CreateBackupConfig = Vue.component("create-backup-config", {
             
             return {
                 editMode: false,
+                advancedMode: false,
+                advancedModeStorage: false,
                 backupConfigName: vm.$route.params.name,
-                backupConfigNamespace: vm.$route.params.namespace,
+                backupConfigNamespace: store.state.currentNamespace,
                 backupConfigCompressionMethod: 'lz4',
                 backupConfigFullSchedule: '*/1 * * * *',
-                backupConfigFullWindow: 1,
+                //backupConfigFullWindow: 1,
                 backupConfigRetention: 5,
                 backupConfigTarSizeThreshold: 1,
                 backupConfigTarSizeThresholdUnit: 1073741824,
                 backupConfigUploadDiskConcurrency: 1,
                 backupConfigStorageType: '',
-                backupS3Prefix: '',
-                backupS3AccessKeyName: '',
-                backupS3AccessKey: '',
-                backupS3SecretKeyName: '',
-                backupS3SecretKey: '',
+                backupBucket: '',
+                backupPath: '',
+                backupS3CEndpoint: '',
                 backupS3Region: '',
-                backupS3Endpoint: '',
-                backupS3ForcePathStyle: '',
+                backupS3Key: '',
+                backupS3SecretKey: '',
+                backupS3ForcePathStyle: false,
                 backupS3StorageClass: '',
-                backupS3sse: '',
-                backupS3sseKmsId: '',
-                backupS3cseKmsId: '',
-                backupS3cseKmsRegion: '',
-                backupGCSPrefix: '',
-                backupGCSKeyName: '',
-                backupGCSKey: '',
-                backupAzurePrefix: '',
+                backupGCSServiceAccountJson: {},
                 backupAzureAccountName: '',
-                backupAzureAccountKey: '',
-                backupAzureAccessKeyName: '',
-                backupAzureAccessKey: '',
-                backupAzureBufferSize: '',
-                backupAzureMaxBuffers: '',
+                backupAzureAccountAccessKey: '',
             }
         } else if (vm.$route.params.action == 'edit') {
             
@@ -239,17 +240,30 @@ var CreateBackupConfig = Vue.component("create-backup-config", {
 
             return {
                 editMode: true,
+                advancedMode: false,
+                advancedModeStorage: false,
                 backupConfigName: vm.$route.params.name,
-                backupConfigNamespace: vm.$route.params.namespace,
+                backupConfigNamespace: store.state.currentNamespace,
                 backupConfigCompressionMethod: config.data.spec.compressionMethod,
                 backupConfigFullSchedule: config.data.spec.fullSchedule,
-                backupConfigFullWindow: config.data.spec.fullWindow,
+                //backupConfigFullWindow: config.data.spec.fullWindow,
                 backupConfigRetention: config.data.spec.retention,
                 backupConfigTarSizeThreshold: tresholdSize.match(/\d+/g),
                 backupConfigTarSizeThresholdUnit: tresholdUnit,
                 backupConfigUploadDiskConcurrency: config.data.spec.uploadDiskConcurrency,
                 backupConfigStorageType: config.data.spec.storage.type,
-                backupS3Prefix: ( config.data.spec.storage.type === 's3' ) ? config.data.spec.storage.s3.prefix : '',
+                backupBucket: '',
+                backupPath: '',
+                backupS3CEndpoint: '',
+                backupS3Region: '',
+                backupS3Key: '',
+                backupS3SecretKey: '',
+                backupS3ForcePathStyle: false,
+                backupS3StorageClass: '',
+                backupGCSServiceAccountJson: {},
+                backupAzureAccountName: '',
+                backupAzureAccountAccessKey: '',
+                /* backupS3Prefix: ( config.data.spec.storage.type === 's3' ) ? config.data.spec.storage.s3.prefix : '',
                 backupS3AccessKeyName: ( config.data.spec.storage.type === 's3' ) ? config.data.spec.storage.s3.credentials.accessKey.name : '',
                 backupS3AccessKey: ( config.data.spec.storage.type === 's3' ) ? config.data.spec.storage.s3.credentials.accessKey.key : '',
                 backupS3SecretKeyName: ( config.data.spec.storage.type === 's3' ) ? config.data.spec.storage.s3.credentials.secretKey.name : '',
@@ -271,7 +285,7 @@ var CreateBackupConfig = Vue.component("create-backup-config", {
                 backupAzureAccessKeyName: ( config.data.spec.storage.type === 'azureblob' ) ? config.data.spec.storage.azureblob.credentials.accessKey.name : '',
                 backupAzureAccessKey: ( config.data.spec.storage.type === 'azureblob' ) ? config.data.spec.storage.azureblob.credentials.accessKey.key : '',
                 backupAzureBufferSize: ( config.data.spec.storage.type === 'azureblob' ) ? config.data.spec.storage.azureblob.bufferSize : '',
-                backupAzureMaxBuffers: ( config.data.spec.storage.type === 'azureblob' ) ? config.data.spec.storage.azureblob.maxBuffers : '',
+                backupAzureMaxBuffers: ( config.data.spec.storage.type === 'azureblob' ) ? config.data.spec.storage.azureblob.maxBuffers : '', */
             }
         }
 	},
@@ -374,7 +388,7 @@ var CreateBackupConfig = Vue.component("create-backup-config", {
                     "spec": {
                         "compressionMethod": this.backupConfigCompressionMethod,
                         "fullSchedule": this.backupConfigFullSchedule,
-                        "fullWindow": this.backupConfigFullWindow,
+                        //"fullWindow": this.backupConfigFullWindow,
                         "retention": this.backupConfigRetention,
                         "tarSizeThreshold": this.backupConfigTarSizeThreshold * this.backupConfigTarSizeThresholdUnit,
                         "storage": storage
@@ -445,6 +459,10 @@ var CreateBackupConfig = Vue.component("create-backup-config", {
 
         hideFields: function( fields ) {
             $(fields).slideUp();
+        },
+        
+        uploadJSON: function() {
+
         }
 
     }

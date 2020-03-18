@@ -18,17 +18,14 @@ var CreatePoolConfig = Vue.component("create-poolconfig", {
             </header>
             
             <div class="form">
+                <div class="header">
+                    <h2>Connection Pooling Configuration Details</h2>
+                </div>
                 
-                <label for="poolConfigNamespace">Configuration Namespace</label>
-                <select v-model="poolConfigNamespace" :disabled="(editMode)" required>
-                    <option disabled value="">Choose a Namespace</option>
-                    <option v-for="namespace in allNamespaces">{{ namespace }}</option>
-                </select>
-
-                <label for="poolConfigName">Configuration Name</label>
+                <label for="poolConfigName">Configuration Name <span class="req">*</span></label>
                 <input v-model="poolConfigName" :disabled="(editMode)" required>
 
-                <label for="poolConfigParams">Parameters</label>
+                <label for="poolConfigParams">PgBouncer Parameters</label>
                 <textarea v-model="poolConfigParams" placeholder="parameter = value"></textarea>
 
                 <template v-if="editMode">
@@ -47,7 +44,7 @@ var CreatePoolConfig = Vue.component("create-poolconfig", {
             return {
                 editMode: false,
                 poolConfigName: '',
-                poolConfigNamespace: '',
+                poolConfigNamespace: store.state.currentNamespace,
                 poolConfigParams: '',
             }
         } else if (vm.$route.params.action == 'edit') {
@@ -67,7 +64,7 @@ var CreatePoolConfig = Vue.component("create-poolconfig", {
             return {
                 editMode: true,
                 poolConfigName: vm.$route.params.name,
-                poolConfigNamespace: vm.$route.params.namespace,
+                poolConfigNamespace: store.state.currentNamespace,
                 poolConfigParams: configParams,
             }
         

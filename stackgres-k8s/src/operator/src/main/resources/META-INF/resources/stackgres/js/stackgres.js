@@ -273,7 +273,8 @@ const store = new Vuex.Store({
     pgConfig: [],
     poolConfig: [],
     backupConfig: [],
-    profiles: []
+    profiles: [],
+    storageClasses: []
   },
   mutations: {
     
@@ -295,6 +296,10 @@ const store = new Vuex.Store({
 
     addNamespaces (state, namespacesList) {
       state.allNamespaces = [...namespacesList];
+    },
+
+    addStorageClasses (state, storageClassesList) {
+      state.storageClasses = [...storageClassesList];
     },
 
     setCurrentCluster (state, cluster) {
@@ -445,6 +450,10 @@ const store = new Vuex.Store({
 
     flushProfiles (state ) {
       state.profiles.length = 0;
+    },
+
+    flushStorageClasses (state ) {
+      state.storageClasses.length = 0;
     },
   }
 });
@@ -729,6 +738,31 @@ const vm = new Vue({
 
         }
       });
+
+
+      /* Storage Classes Data */
+      axios
+      .get(apiURL+'storageclass',
+        { headers: {
+            //'content-type': 'application/json'
+          }
+        }
+      )
+      .then( function(response){
+
+        // Check if there are any changes on API Data
+        if ( checkData(response.data, store.state.storageClasses) ) {
+
+          if(typeof store.state.storageClasses !== 'undefined' && response.data.length != store.state.storageClasses.length)
+            store.commit('flushStorageClasses');
+
+          store.commit('addStorageClasses', response.data);
+
+        }
+        
+      });
+
+
 
       setTimeout(function(){
         $("#loader").fadeOut(500);
@@ -1157,5 +1191,21 @@ $(document).ready(function(){
     $(this).toggleClass("open");
     $(this).next().toggleClass("open");
   })
+
+  /* $(document).on("change","form input, form select, form textarea",function(){
+
+    if($(this).val().length) {
+      $(this).addClass("changed");
+      $(this).parents("fieldset, div").first().addClass("changed");
+    } else {
+      $(this).removeClass("changed");
+      $(this).parents("fieldset, div").first().removeClass("changed");
+    }
+    
+  }); */
+
+  $(document).on("change","#advancedMode",function(){
+    $(this).prop("disabled","disabled")
+  });
 
 });
