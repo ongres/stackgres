@@ -13,6 +13,7 @@ import io.stackgres.operator.rest.dto.SecretKeySelector;
 import io.stackgres.operator.rest.dto.backupconfig.BackupConfigDto;
 import io.stackgres.operator.rest.dto.backupconfig.BackupConfigSpec;
 import io.stackgres.operator.rest.dto.storages.AwsCredentials;
+import io.stackgres.operator.rest.dto.storages.AwsS3CompatibleStorage;
 import io.stackgres.operator.rest.dto.storages.AwsS3Storage;
 import io.stackgres.operator.rest.dto.storages.AzureBlobStorage;
 import io.stackgres.operator.rest.dto.storages.AzureBlobStorageCredentials;
@@ -84,8 +85,8 @@ public class BackupConfigTransformer
     transformation.setGcs(
         getCustomResourceGcsStorage(source.getGcs()));
     transformation.setS3(
-        getCustomResourceS3Storage(source.getS3()));
-    transformation.setType(source.getType());
+        getCustomResourceS3Storage(source.getS3(), source.getS3compatible()));
+    transformation.setType(source.getCustomResourceType());
     return transformation;
   }
 
@@ -157,7 +158,37 @@ public class BackupConfigTransformer
   }
 
   private io.stackgres.operator.customresource.storages.AwsS3Storage
+      getCustomResourceS3Storage(AwsS3Storage s3Source, AwsS3CompatibleStorage s3compatibleSource) {
+    if (s3Source == null && s3compatibleSource == null) {
+      return null;
+    }
+    if (s3Source != null) {
+      return getCustomResourceS3Storage(s3Source);
+    }
+    return getCustomResourceS3Storage(s3compatibleSource);
+  }
+
+  private io.stackgres.operator.customresource.storages.AwsS3Storage
       getCustomResourceS3Storage(AwsS3Storage source) {
+    if (source == null) {
+      return null;
+    }
+    io.stackgres.operator.customresource.storages.AwsS3Storage transformation =
+        new io.stackgres.operator.customresource.storages.AwsS3Storage();
+    transformation.setCredentials(
+        getCustomResourceAwsCredentials(source.getCredentials()));
+    transformation.setCseKmsId(source.getCseKmsId());
+    transformation.setCseKmsRegion(source.getCseKmsRegion());
+    transformation.setPrefix(source.getPrefix());
+    transformation.setRegion(source.getRegion());
+    transformation.setSse(source.getSse());
+    transformation.setSseKmsId(source.getSseKmsId());
+    transformation.setStorageClass(source.getStorageClass());
+    return transformation;
+  }
+
+  private io.stackgres.operator.customresource.storages.AwsS3Storage
+      getCustomResourceS3Storage(AwsS3CompatibleStorage source) {
     if (source == null) {
       return null;
     }
@@ -240,7 +271,9 @@ public class BackupConfigTransformer
         getResourceGcsStorage(source.getGcs()));
     transformation.setS3(
         getResourceS3Storage(source.getS3()));
-    transformation.setType(source.getType());
+    transformation.setS3compatible(
+        getResourceS3CompatibleStorage(source.getS3()));
+    transformation.setType(transformation.getDtoType());
     return transformation;
   }
 
@@ -304,10 +337,30 @@ public class BackupConfigTransformer
 
   private AwsS3Storage getResourceS3Storage(
       io.stackgres.operator.customresource.storages.AwsS3Storage source) {
-    if (source == null) {
+    if (source == null
+        || (source.isForcePathStyle() != null || source.getEndpoint() != null)) {
       return null;
     }
     AwsS3Storage transformation = new AwsS3Storage();
+    transformation.setCredentials(
+        getResourceAwsCredentials(source.getCredentials()));
+    transformation.setCseKmsId(source.getCseKmsId());
+    transformation.setCseKmsRegion(source.getCseKmsRegion());
+    transformation.setPrefix(source.getPrefix());
+    transformation.setRegion(source.getRegion());
+    transformation.setSse(source.getSse());
+    transformation.setSseKmsId(source.getSseKmsId());
+    transformation.setStorageClass(source.getStorageClass());
+    return transformation;
+  }
+
+  private AwsS3CompatibleStorage getResourceS3CompatibleStorage(
+      io.stackgres.operator.customresource.storages.AwsS3Storage source) {
+    if (source == null
+        || (source.isForcePathStyle() == null && source.getEndpoint() == null)) {
+      return null;
+    }
+    AwsS3CompatibleStorage transformation = new AwsS3CompatibleStorage();
     transformation.setCredentials(
         getResourceAwsCredentials(source.getCredentials()));
     transformation.setCseKmsId(source.getCseKmsId());

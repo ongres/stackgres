@@ -35,12 +35,6 @@ public class AwsS3Storage implements PrefixedStorage {
   @JsonProperty("region")
   private String region;
 
-  @JsonProperty("endpoint")
-  private String endpoint;
-
-  @JsonProperty("forcePathStyle")
-  private boolean forcePathStyle;
-
   @JsonProperty("storageClass")
   private String storageClass;
 
@@ -97,22 +91,6 @@ public class AwsS3Storage implements PrefixedStorage {
     this.region = region;
   }
 
-  public String getEndpoint() {
-    return endpoint;
-  }
-
-  public void setEndpoint(String endpoint) {
-    this.endpoint = endpoint;
-  }
-
-  public boolean isForcePathStyle() {
-    return forcePathStyle;
-  }
-
-  public void setForcePathStyle(boolean forcePathStyle) {
-    this.forcePathStyle = forcePathStyle;
-  }
-
   public String getStorageClass() {
     return storageClass;
   }
@@ -155,7 +133,7 @@ public class AwsS3Storage implements PrefixedStorage {
 
   @Override
   public int hashCode() {
-    return Objects.hash(credentials, cseKmsId, cseKmsRegion, endpoint, forcePathStyle, bucket,
+    return Objects.hash(credentials, cseKmsId, cseKmsRegion, bucket,
         region, sse, sseKmsId, storageClass, path);
   }
 
@@ -174,7 +152,6 @@ public class AwsS3Storage implements PrefixedStorage {
     return Objects.equals(credentials, other.credentials)
         && Objects.equals(cseKmsId, other.cseKmsId)
         && Objects.equals(cseKmsRegion, other.cseKmsRegion)
-        && Objects.equals(endpoint, other.endpoint) && forcePathStyle == other.forcePathStyle
         && Objects.equals(bucket, other.bucket) && Objects.equals(region, other.region)
         && Objects.equals(sse, other.sse) && Objects.equals(sseKmsId, other.sseKmsId)
         && Objects.equals(storageClass, other.storageClass) && Objects.equals(path, other.path);
@@ -188,8 +165,6 @@ public class AwsS3Storage implements PrefixedStorage {
         .add("path", path)
         .add("credentials", credentials)
         .add("region", region)
-        .add("endpoint", endpoint)
-        .add("forcePathStyle", forcePathStyle)
         .add("storageClass", storageClass)
         .add("sse", sse)
         .add("sseKmsId", sseKmsId)

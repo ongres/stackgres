@@ -12,7 +12,7 @@
     "backupConfig":  {
       "compressionMethod": "lz4",
       "storage": {
-        "s3": {
+        "s3compatible": {
           "credentials": {
             "accessKey": {
               "key": "accesskey",
@@ -28,7 +28,7 @@
           "bucket": "stackgres",
           "region": "k8s"
         },
-        "type": "s3"
+        "type": "s3compatible"
       }
     },
     "compressedSize": 6686407,
