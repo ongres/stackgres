@@ -88,7 +88,7 @@ h1, h2, h3, h4, h5, h6 {
     text-transform: uppercase;
     font-size: .8rem;
     display: inline-block;
-    min-width: 200px;
+    /* min-width: 200px; */
     text-align: center;
 }
 
@@ -162,6 +162,13 @@ pre {
 .row-50 .col:last-child {
     padding-left: 5px;
 }
+
+.row-20 .col {
+    width: 20%;
+    float: left;
+    padding-right: 10px;
+}
+
 
 /*#loader:before, #loader:after {
   content: "";
@@ -430,6 +437,32 @@ ul.zg-ul-select.active li.active:hover {
     display: inline-block;
 }
 
+#ns-select {
+    padding-left: 50px;
+    list-style: none;
+    line-height: 50px;
+    display: none;
+}
+
+#ns-select a {
+    padding-left: 0;
+}
+
+#current-namespace h2 span {
+    position: relative;
+    display: inline-block;
+    top: -2px;
+    transition: transform .3s ease-in-out;
+}
+
+#current-namespace h2 strong {
+    cursor: pointer;
+}
+
+#current-namespace.open h2 span {
+    transform: rotate(180deg);
+    transition: transform .3s ease-in-out;
+}
 
 /* ul.zg-ul-select:not(.active) li.active:after, #selected--zg-ul-select.active:after {
     display: block;
@@ -1031,8 +1064,7 @@ ul.tabs {
 .head h4 {
     color: var(--gray3);
     font-weight: 300;
-    text-transform: uppercase;
-    font-size: .8rem;
+    /* text-transform: uppercase; */
     letter-spacing: .3px;
 }
 
@@ -1055,13 +1087,13 @@ ul.tabs {
 }
 
 .table .col.text {
-    text-transform: uppercase;
+    /* text-transform: uppercase; */
     text-align: left;
 }
 
 .table .col.status {
     text-align: left;
-    text-transform: uppercase;
+    text-transform: capitalize;
 }
 
 .table .status > span, .status-legend .status > span {
@@ -1122,12 +1154,12 @@ li.status {
 
 .content h3 {
     color: var(--blue);
-    text-transform: uppercase;
+    /* text-transform: uppercase; */
     margin-bottom: 15px;
 }
 
 .box h4 {
-    text-transform: uppercase;
+    /* text-transform: uppercase; */
     padding: 15px 0;
     position: relative;
     left: -15px;
@@ -1307,7 +1339,7 @@ ul.selector li {
 
 /* Forms */
 .form {
-    width: 480px;
+    width: 550px;
     min-width: 450px;
     max-width: 50%;
     display: inline-block;
@@ -1645,6 +1677,12 @@ span.req {
     font-weight: bold;
 }
 
+.cron select {
+    background-position: 90% center;
+    white-space: normal;
+    padding-right: 25px;
+}
+
 
 /* Firefox Outline on focus hack */
 button:focus,
@@ -1674,7 +1712,7 @@ table {
     text-align: left;
 }
 
-tr:nth-child(odd) {
+tr:nth-child(4n+2) {
     background: #fafafa;
 }
 
@@ -1685,7 +1723,7 @@ th, td {
 
 th {
     font-weight: normal;
-    text-transform: uppercase;
+    /* text-transform: uppercase; */
     color: var(--gray3);
 }
 
@@ -1756,6 +1794,14 @@ table .details.show {
 
 .not-found {
     display: none !important;
+}
+
+td.true {
+    background:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIxOSIgdmlld0JveD0iMCAwIDIwIDE5Ij48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtMTUuMjc0KSI+PHJlY3Qgd2lkdGg9IjIwIiBoZWlnaHQ9IjE5IiByeD0iOS41IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgxNS4yNzQpIiBmaWxsPSIjMDBhZGI1IiBvcGFjaXR5PSIwLjI1Ii8+PHBhdGggZD0iTTEwMS41MjMsOTEuN2ExLjAwNywxLjAwNywwLDAsMC0xLjQ0NiwwbC01LjA2Miw1LjE3Mi0xLjQ0Ni0xLjQ3OGExLjAwOCwxLjAwOCwwLDAsMC0xLjQ0NywwaDBhMS4wNjIsMS4wNjIsMCwwLDAsMCwxLjQ3OGwyLjE3LDIuMjE2YTEuMDA3LDEuMDA3LDAsMCwwLDEuNDQ2LDBsNS43ODUtNS45MUExLjA2LDEuMDYsMCwwLDAsMTAxLjUyMyw5MS43WiIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTcxLjU0OCAtODUuODkxKSIgZmlsbD0iIzAwYWRiNSIvPjwvZz48L3N2Zz4=) calc(50% - 7px) center no-repeat;
+}
+
+td.false {
+    background:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIxOSIgdmlld0JveD0iMCAwIDIwIDE5Ij48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtMTguNzEzKSI+PHJlY3Qgd2lkdGg9IjIwIiBoZWlnaHQ9IjE5IiByeD0iOS41IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgxOC43MTMpIiBmaWxsPSIjYTZhN2FlIiBvcGFjaXR5PSIwLjI1Ii8+PHBhdGggZD0iTTEwNS43OTQsMTA0LjY0MWwyLjIzLTIuMjNhMS4wMzcsMS4wMzcsMCwxLDAtMS40NjYtMS40NjZsLTIuMjMsMi4yMy0yLjIzLTIuMjNhMS4wMzcsMS4wMzcsMCwxLDAtMS40NjYsMS40NjZsMi4yMywyLjIzLTIuMjMsMi4yM2ExLjAzNiwxLjAzNiwwLDEsMCwxLjQ2NiwxLjQ2NWwyLjIzLTIuMjMsMi4yMywyLjIzYTEuMDM2LDEuMDM2LDAsMCwwLDEuNDY2LTEuNDY1WiIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTc1LjYxNSAtOTUuMTQxKSIgZmlsbD0iI2E2YTdhZSIvPjwvZz48L3N2Zz4=) calc(50% - 7px) center no-repeat;
 }
 
 
@@ -1845,7 +1891,7 @@ table .details.show {
     display: inline-block;
     width: 100%;
     margin-bottom: 9px;
-    text-transform: uppercase;
+    /* text-transform: uppercase; */
 }
 
 .options li:last-child {
