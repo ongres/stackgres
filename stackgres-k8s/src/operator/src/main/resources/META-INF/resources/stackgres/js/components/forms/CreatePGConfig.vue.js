@@ -18,19 +18,16 @@ var CreatePGConfig = Vue.component("create-pgconfig", {
             </header>
 
             <div class="form">
+                <div class="header">
+                    <h2>PostgreSQL Configuration Details</h2>
+                </div>
 
-                <label for="pgConfigNamespace">Configuration Namespace</label>
-                <select v-model="pgConfigNamespace" :disabled="(editMode)" required>
-                    <option disabled value="">Choose a Namespace</option>
-                    <option v-for="namespace in allNamespaces">{{ namespace }}</option>
-                </select>
-
-                <label for="pgConfigName">Configuration Name</label>
+                <label for="pgConfigName">Configuration Name <span class="req">*</span></label>
                 <input v-model="pgConfigName" :disabled="(editMode)" required>
 
-                <label for="pgConfigVersion">PostgreSQL Version</label>
-                <select v-model="pgConfigVersion" required>
-                    <option disabled value="">Select PostgreSQL Version</option>
+                <label for="pgConfigVersion">PostgreSQL Version <span class="req">*</span></label>
+                <select v-model="pgConfigVersion" :disabled="(editMode)" required>
+                    <option disabled value="">Select Major PostgreSQL Version</option>
                     <option value="11">11</option>
                     <option value="12">12</option>
                 </select>
@@ -54,7 +51,7 @@ var CreatePGConfig = Vue.component("create-pgconfig", {
             return {
                 editMode: false,
                 pgConfigName: '',
-                pgConfigNamespace: '',
+                pgConfigNamespace: store.state.currentNamespace,
                 pgConfigParams: '',
                 pgConfigVersion: '',
             }
@@ -76,7 +73,7 @@ var CreatePGConfig = Vue.component("create-pgconfig", {
             return {
                 editMode: true,
                 pgConfigName: vm.$route.params.name,
-                pgConfigNamespace: vm.$route.params.namespace,
+                pgConfigNamespace: store.state.currentNamespace,
                 pgConfigParams: configParams,
                 pgConfigVersion: configVersion,
             }

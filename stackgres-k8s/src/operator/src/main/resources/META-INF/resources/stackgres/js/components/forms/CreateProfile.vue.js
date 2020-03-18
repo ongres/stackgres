@@ -18,28 +18,26 @@ var CreateProfile = Vue.component("create-profile", {
             </header>
 
             <div class="form">
-                <label for="profileNamespace">K8S Namespace</label>
-                <select v-model="profileNamespace" :disabled="(editMode)" required>
-                    <option disabled value="">Choose a Namespace</option>
-                    <option v-for="namespace in allNamespaces">{{ namespace }}</option>
-                </select>
+                <div class="header">
+                    <h2>Instance Profile Details</h2>
+                </div>
 
-                <label for="profileName">Profile Name</label>
+                <label for="profileName">Profile Name <span class="req">*</span></label>
                 <input v-model="profileName" :disabled="(editMode)" required>
 
                 
                 <div class="unit-select">
-                    <label for="profileRAM">RAM</label>
+                    <label for="profileRAM">RAM <span class="req">*</span></label>
                     <input v-model="profileRAM" class="size" required>
 
                     <select v-model="profileRAMUnit" class="unit" required>
                         <option disabled value="">Select Unit</option>
-                        <option>Mi</option>
-                        <option>Gi</option>
+                        <option value="Mi">MiB</option>
+                        <option value="Gi">GiB</option>
                     </select>
                 </div>
 
-                <label for="profileCPU">CPU</label>
+                <label for="profileCPU">CPU <span class="req">*</span></label>
                 <select v-model="profileCPU" required>    
                     <option disabled value="">CPU</option>
                     <option>1</option>
@@ -70,7 +68,7 @@ var CreateProfile = Vue.component("create-profile", {
             return {
                 editMode: false,
                 profileName: '',
-                profileNamespace: '',
+                profileNamespace: store.state.currentNamespace,
                 profileCPU: '',
                 profileRAM: '',
                 profileRAMUnit: '',
@@ -92,7 +90,7 @@ var CreateProfile = Vue.component("create-profile", {
             return {
                 editMode: true,
                 profileName: vm.$route.params.name,
-                profileNamespace: vm.$route.params.namespace,
+                profileNamespace: store.state.currentNamespace,
                 profileCPU: cpu,
                 profileRAM: ''+ram,
                 profileRAMUnit: ''+unit

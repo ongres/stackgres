@@ -18,13 +18,11 @@ var CreateBackup = Vue.component("create-backup", {
             </header>
                     
             <div class="form">
-                <label for="backupConfigNamespace">Backup Namespace</label>
-                <select v-model="backupNamespace" :disabled="(editMode)" required>
-                    <option disabled value="">Choose a Namespace</option>
-                    <option v-for="namespace in allNamespaces">{{ namespace }}</option>
-                </select>
-
-                <label for="backupCluster">Backup Cluster</label>
+                <div class="header">
+                    <h2>Backup Details</h2>
+                </div>
+                
+                <label for="backupCluster">Backup Cluster <span class="req">*</span></label>
                 <select v-model="backupCluster" :disabled="(editMode)" required>
                     <option disabled value="">Choose a Cluster</option>
                     <template v-for="cluster in allClusters">
@@ -32,12 +30,12 @@ var CreateBackup = Vue.component("create-backup", {
                     </template>
                 </select>
 
-                <label for="backupName">Backup Name</label>
+                <label for="backupName">Backup Name <span class="req">*</span></label>
                 <input v-model="backupName" :disabled="(editMode)" required>
 
                 <label>Is Permanent</label>  
                 <label for="permanent" class="switch">Permanent <input type="checkbox" id="permanent" v-model="isPermanent" data-switch="NO"></label>
-
+                
                 <template v-if="editMode">
                     <button @click="createBackup">Update Backup</button>
                 </template>
@@ -54,8 +52,9 @@ var CreateBackup = Vue.component("create-backup", {
             
             return {
                 editMode: false,
+                advancedMode: false,
                 backupName: '',
-                backupNamespace: vm.$route.params.namespace,
+                backupNamespace: store.state.currentNamespace,
                 backupCluster: '',
                 isPermanent: false
             }
@@ -64,8 +63,9 @@ var CreateBackup = Vue.component("create-backup", {
             
             return {
                 editMode: true,
+                advancedMode: false,
                 backupName: vm.$route.params.name,
-                backupNamespace: vm.$route.params.namespace,
+                backupNamespace: store.state.currentNamespace,
                 backupCluster: vm.$route.params.cluster,
                 isPermanent: false
             }

@@ -85,7 +85,7 @@ h1, h2, h3, h4, h5, h6 {
 .btn {
     background: var(--blue);
     color: #fff;
-    border-radius: 20px;
+    border-radius: 6px;
     padding: 10px 20px;
     text-decoration: none;
     text-transform: uppercase;
@@ -107,6 +107,10 @@ a {
 
 strong {
     font-weight: 600;
+}
+
+pre {
+    margin-bottom: 20px;
 }
 
 /* Extra Classes */
@@ -147,6 +151,19 @@ strong {
     background: url("img/loader.gif") center center no-repeat;
     mix-blend-mode: darken;
     background-size: 80px;
+}
+
+.row-50 .col {
+    width: 50%;
+    float: left;
+}
+
+.row-50 .col:first-child {
+    padding-right: 5px;
+}
+
+.row-50 .col:last-child {
+    padding-left: 5px;
 }
 
 /*#loader:before, #loader:after {
@@ -1106,7 +1123,7 @@ li.status {
     transition: height .3s ease-out;
 }
 
-.content h3, .form h3 {
+.content h3 {
     color: var(--blue);
     text-transform: uppercase;
     margin-bottom: 15px;
@@ -1258,7 +1275,7 @@ ul.selector li {
     display: none;
 }
 
-.row:not(.head) .name {
+.table .row:not(.head) .name {
     text-overflow: ellipsis;
     overflow: hidden;
     height: 18px;
@@ -1293,8 +1310,8 @@ ul.selector li {
 
 /* Forms */
 .form {
-    width: 600px;
-    min-width: 480px;
+    width: 480px;
+    min-width: 450px;
     max-width: 50%;
     display: inline-block;
     position: relative;
@@ -1320,13 +1337,14 @@ ul.selector li {
     -moz-appearance: none;
     appearance: none;
     border: 1px solid var(--gray2);
-    border-radius: 25px;
+    border-radius: 6px;
     padding: 10px 12px;
     background: #fff;
     font-size: 12px;
     color: var(--gray5);
     position: relative;
     z-index: 1;
+    height: 38px;
 }
 
 .form textarea {
@@ -1345,13 +1363,14 @@ label.switch {
     border: 1px solid var(--gray2);
     padding: 10px;
     position: relative;
-    border-radius: 25px;
+    border-radius: 6px;
     cursor: pointer;
     margin-bottom: 20px;
 }
 
 .switch input {
     width: 60px;
+    height: auto;
     display: inline-block;
     padding: 6px 10px;
     margin: 0;
@@ -1387,6 +1406,14 @@ label.switch {
     content: "ON";
 }
 
+.switch.yes-no input:after {
+    content: 'NO';
+}
+
+.switch.yes-no input:checked:after {
+    content: 'YES';
+}
+
 .switch input:before {
     display: block;
     width: 19px;
@@ -1416,14 +1443,14 @@ label.switch {
 }
 
 .unit-select .size {
-    max-width: calc(100% - 220px);
+    max-width: 50%;
     border-top-right-radius: 0;
     border-bottom-right-radius: 0;
     float: left;
 }
 
 .unit-select .unit {
-    width: 220px;
+    width: 50%;
     border-top-left-radius: 0;
     border-bottom-left-radius: 0;
     border-left: 0;
@@ -1437,13 +1464,13 @@ button {
 .form button, button {
     background: var(--blue);
     color: #fff;
-    margin-top: 20px;
+    margin-top: 10px;
     border: 1px solid var(--blue);
     text-transform: uppercase;
-    padding: 10px 15px;
-    border-radius: 20px;
+    padding: 10px 20px;
+    border-radius: 6px;
     text-align: center;
-    width: 200px;
+    width: auto;
 }
 
 .form button + button, .form .btn + button, .btn + .btn, button + .btn {
@@ -1471,19 +1498,27 @@ button {
     float: left;
 }
 
-.form .hide {
+.form .hide, .form .hidden {
     display: none;
 } 
+
+.form .show, .form .changed {
+    display: inline-block !important;
+}
 
 .form .new {
     margin-top: 15px;
 }
 
-.fieldset {
+fieldset {
     border: 1px solid var(--gray2);
-    padding: 20px;
+    padding: 20px 20px 0;
     border-radius: 5px;
-    margin-bottom: 45px;
+    margin-bottom: 25px;
+}
+
+.form fieldset h3 {
+    display: inline;
 }
 
 .config .form {    
@@ -1496,11 +1531,12 @@ button {
     transition: opacity .5s ease-in;
 }
 
-.form input[disabled="disabled"], .form select[disabled="disabled"], .form textarea[disabled="disabled"], .form fieldset[disabled="disabled"] {
+.form input[disabled="disabled"], .form select[disabled="disabled"], .form textarea[disabled="disabled"], .form fieldset[disabled="disabled"], label.switch[disabled="disabled"] {
     opacity: .5;
     background: var(--gray1);
     cursor: not-allowed;
 }
+
 /* 
 .form .advanced {
     margin-bottom: 20px;
@@ -1602,6 +1638,38 @@ button {
 .form .header input[type="checkbox"]:checked + span {
     color: var(--blue);
 }
+
+.form .header input[type="checkbox"]:checked, .form .header input[type="checkbox"]:checked + span {
+    cursor: not-allowed;
+}
+
+span.req {
+    color: var(--blue);
+    font-weight: bold;
+}
+
+
+/* Firefox Outline on focus hack */
+button:focus,
+a:focus, a:active,
+button::-moz-focus-inner,
+input[type="reset"]::-moz-focus-inner,
+input[type="button"]::-moz-focus-inner,
+input[type="submit"]::-moz-focus-inner,
+select::-moz-focus-inner,
+input[type="file"] > input[type="button"]::-moz-focus-inner {
+outline: none !important;
+}
+select:-moz-focusring {
+color: transparent;
+text-shadow: 0 0 0 #000;
+}
+select:focus::-ms-value {
+background-color: $input-bg;
+color: $input-color;
+}
+
+
 
 /* Table Layout */
 table {
@@ -1733,6 +1801,10 @@ table .details.show {
     user-select: none;
 }
 
+.filter label {
+    user-select: none;
+}
+
 .toolbar .toggle.open {
     background: var(--blue);
     color: #fff;
@@ -1756,6 +1828,7 @@ table .details.show {
 .options {
     display: none;
     position: absolute;
+    z-index: 10;
     right: 0;
     border: 1px solid var(--gray2);
     background: #fff;
@@ -1805,8 +1878,8 @@ table .details.show {
 
 .options input[type="checkbox"] {
     position: absolute;
-    top: 0;
-    left: 0;
+    top: -3px;
+    left: -2px;
     width: 100%;
     height: 100%;
     border: 0;
