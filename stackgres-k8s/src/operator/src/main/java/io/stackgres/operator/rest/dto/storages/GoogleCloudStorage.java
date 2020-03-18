@@ -57,36 +57,6 @@ public class GoogleCloudStorage implements PrefixedStorage {
     this.path = path;
   }
 
-  public String getPrefix() {
-    String path = getPath();
-    if (path != null) {
-      if (!path.startsWith("/")) {
-        path = "/" + path;
-      }
-    } else {
-      path = "";
-    }
-    return "gcs://" + getBucket() + path;
-  }
-
-  public void setPrefix(String prefix) {
-    int doubleSlashIndex = prefix.indexOf("://");
-    final int endBucketIndex;
-    if (doubleSlashIndex > 0) {
-      endBucketIndex = prefix.indexOf("/", doubleSlashIndex + 3) + 1;
-    } else {
-      endBucketIndex = prefix.length();
-    }
-    final int startBucketIndex;
-    if (prefix.startsWith("gcs://")) {
-      startBucketIndex = 6;
-    } else {
-      startBucketIndex = 0;
-    }
-    setBucket(prefix.substring(startBucketIndex, endBucketIndex));
-    setPath(prefix.substring(endBucketIndex));
-  }
-
   public GoogleCloudCredentials getCredentials() {
     return credentials;
   }
