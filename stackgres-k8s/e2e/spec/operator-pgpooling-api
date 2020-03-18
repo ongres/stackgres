@@ -296,8 +296,8 @@ test_dependency_api_error(){
 
   ERROR_RESPONSE=$(run_curl -r "stackgres/connpoolconfig" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-pgpooling.json" -e '-X DELETE')    
 
-  EXPECTED_ERROR_TYPE="forbidden-custom-resource-deletion"
-  EXPECTED_ERROR_TITLE="Forbidden custom resource deletion"
+  EXPECTED_ERROR_TYPE="forbidden-configuration-deletion"
+  EXPECTED_ERROR_TITLE="Forbidden configuration deletion"
   EXPECTED_ERROR_DETAIL="Can't delete sgconnectionpoolingconfigs.stackgres.io $PGPOOLING"
   EXPECTED_ERROR_FIELD=""
 
