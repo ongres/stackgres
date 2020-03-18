@@ -145,9 +145,10 @@ class ClusterResourceTest extends AbstractCustomResourceTest<ClusterDto, StackGr
     dtoScanner.setClientFactory(clientFactory);
     dtoScanner.setClusterTransformer(getTransformer());
     return new ClusterResource(
+        finder,
+        scheduler, transformer,
         dtoScanner,
         dtoFinder,
-        scheduler, transformer,
         statusFinder);
   }
 

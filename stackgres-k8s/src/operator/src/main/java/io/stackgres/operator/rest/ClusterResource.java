@@ -31,39 +31,40 @@ import io.stackgres.operator.rest.transformer.ResourceTransformer;
 public class ClusterResource
     extends AbstractRestService<ClusterDto, StackGresCluster> {
 
-  private final CustomResourceScanner<ClusterDto> scanner;
-  private final CustomResourceFinder<ClusterDto> finder;
+  private final CustomResourceScanner<ClusterDto> clusterScanner;
+  private final CustomResourceFinder<ClusterDto> clusterFinder;
   private final CustomResourceFinder<ClusterResourceConsumtionDto> clusterResourceConsumptionFinder;
 
   @Inject
   public ClusterResource(
-      CustomResourceScanner<ClusterDto> scanner,
-      CustomResourceFinder<ClusterDto> finder,
+      CustomResourceFinder<StackGresCluster> finder,
       CustomResourceScheduler<StackGresCluster> scheduler,
       ResourceTransformer<ClusterDto, StackGresCluster> transformer,
+      CustomResourceScanner<ClusterDto> clusterScanner,
+      CustomResourceFinder<ClusterDto> clusterFinder,
       CustomResourceFinder<ClusterResourceConsumtionDto> clusterResourceConsumptionFinder) {
-    super(null, null, scheduler, transformer);
-    this.scanner = scanner;
-    this.finder = finder;
+    super(null, finder, scheduler, transformer);
+    this.clusterScanner = clusterScanner;
+    this.clusterFinder = clusterFinder;
     this.clusterResourceConsumptionFinder = clusterResourceConsumptionFinder;
   }
 
   public ClusterResource() {
     super(null, null, null, null);
     ArcUtil.checkPublicNoArgsConstructorIsCalledFromArc();
-    this.scanner = null;
-    this.finder = null;
+    this.clusterScanner = null;
+    this.clusterFinder = null;
     this.clusterResourceConsumptionFinder = null;
   }
 
   @Override
   public List<ClusterDto> list() {
-    return scanner.getResources();
+    return clusterScanner.getResources();
   }
 
   @Override
   public ClusterDto get(String namespace, String name) {
-    return finder.findByNameAndNamespace(name, namespace)
+    return clusterFinder.findByNameAndNamespace(name, namespace)
         .orElseThrow(NotFoundException::new);
   }
 
