@@ -135,6 +135,7 @@ public class ItHelper {
               + "sh " + (ItHelper.E2E_DEBUG.orElse(false) ? "-x" : "") + " e2e reuse_k8s\n"
               + "sh " + (ItHelper.E2E_DEBUG.orElse(false) ? "-x" : "") + " e2e setup_helm\n"
               + "sh " + (ItHelper.E2E_DEBUG.orElse(false) ? "-x" : "") + " e2e setup_default_limits 0.1 0.1 16Mi 16Mi\n"
+              + "sh " + (ItHelper.E2E_DEBUG.orElse(false) ? "-x" : "") + " e2e k8s_webhook_cleanup\n"
               + "sh " + (ItHelper.E2E_DEBUG.orElse(false) ? "-x" : "") + " e2e helm_cleanup\n"
               + "sh " + (ItHelper.E2E_DEBUG.orElse(false) ? "-x" : "") + " e2e k8s_cleanup\n"
               + (OPERATOR_IN_KUBERNETES
