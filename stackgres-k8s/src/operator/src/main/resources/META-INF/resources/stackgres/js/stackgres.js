@@ -1208,4 +1208,9 @@ $(document).ready(function(){
     $(this).prop("disabled","disabled")
   });
 
+  $(document).on("click", "#current-namespace h2 > strong", function(){
+    $("#current-namespace").toggleClass("open");
+    $("#ns-select").slideToggle();    
+  });
+
 });
