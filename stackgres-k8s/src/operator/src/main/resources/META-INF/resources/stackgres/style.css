@@ -1168,10 +1168,17 @@ li.status {
 
 .box h4:before {
     content: "▾";
+    display: inline-block;
     font-size: .8rem;
     position: relative;
     top: -2px;
     margin-right: 8px;
+    transition: transform .3s ease-in-out;
+}
+
+.box.show h4:before {
+    transform: rotate(180deg);
+    transition: transform .3s ease-in-out;
 }
 
 h4.basic:before {
