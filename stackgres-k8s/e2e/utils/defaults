@@ -1,0 +1,58 @@
+#!/bin/sh
+get_default_cr(){
+
+  CRD="$1"
+  shift 1
+
+  CR_NAME=$(kubectl get "$CRD" -n "$OPERATOR_NAMESPACE" -o jsonpath='{.items[0].metadata.name}' )
+
+  kubectl get "$CRD" -n "$OPERATOR_NAMESPACE" "$CR_NAME" $@
+  
+}
+
+get_default_pgconfig(){
+  get_default_cr "sgpgconfigs.stackgres.io" $@
+}
+
+
+get_default_conn_pool(){
+  get_default_cr "sgconnectionpoolingconfigs.stackgres" $@
+}
+
+get_default_backupconf(){
+  get_default_cr "sgbackupconfigs.stackgres.io" $@
+}
+
+get_default_profile(){
+  get_default_cr "sgprofiles.stackgres.io" $@
+}
+
+get_generated_cr(){
+  local NAMESPACE="${CLUSTER_NAMESPACE:-$OPERATOR_NAMESPACE}"
+  CRD="$1"
+  shift 1
+
+  CR_NAME==$(kubectl get "$CRD" -n "$NAMESPACE" -o jsonpath='{.items[*].metadata.name}')
+  kubectl get "$CRD" -n "$OPERATOR_NAMESPACE" "$CR_NAME" $@
+
+}
+
+get_generated_pgconfig(){
+  get_generated_cr "sgpgconfigs.stackgres.io" $@
+}
+
+get_generated_conn_pool(){
+  get_generated_cr "sgconnectionpoolingconfigs.stackgres" $@
+}
+
+get_generated_backupconf(){
+  get_generated_cr "sgbackupconfigs.stackgres.io" $@
+}
+
+get_generated_pgconfig(){
+  get_generated_cr "sgpgconfigs.stackgres.io" $@
+}
+
+get_generated_profile(){
+  get_generated_cr "sgprofiles.stackgres.io" $@
+}

@@ -15,7 +15,6 @@ import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbounc
 public class DefaultPgBouncerFactory
     extends AbstractCustomResourceFactory<StackGresPgbouncerConfig> {
 
-  public static final String NAME = "defaultpgbouncer";
   public static final String PGBOUNCER_DEFAULT_VALUES = "pgbouncer-default-values.properties";
 
   @Override
@@ -24,7 +23,7 @@ public class DefaultPgBouncerFactory
     StackGresPgbouncerConfig config = new StackGresPgbouncerConfig();
     config.setApiVersion(StackGresPgbouncerConfigDefinition.APIVERSION);
     config.setKind(StackGresPgbouncerConfigDefinition.KIND);
-    config.getMetadata().setName(NAME);
+    config.getMetadata().setName(generateDefaultName());
     config.getMetadata().setNamespace(namespace);
 
     StackGresPgbouncerConfigSpec spec = new StackGresPgbouncerConfigSpec();

@@ -7,6 +7,13 @@ package io.stackgres.operator.initialization;
 
 public interface DefaultCustomResourceFactory<T> {
 
+  String DEFAULT_RESOURCE_NAME_PREFIX = "generated-from-default-";
+
   T buildResource();
+
+  default String generateDefaultName() {
+    long epoch = System.currentTimeMillis();
+    return DEFAULT_RESOURCE_NAME_PREFIX + epoch;
+  }
 
 }
