@@ -42,7 +42,7 @@ public class DefaultPostgresFactory extends AbstractCustomResourceFactory<StackG
     StackGresPostgresConfig profile = new StackGresPostgresConfig();
     profile.setApiVersion(StackGresPostgresConfigDefinition.APIVERSION);
     profile.setKind(StackGresPostgresConfigDefinition.KIND);
-    profile.getMetadata().setName(NAME);
+    profile.getMetadata().setName(generateDefaultName());
     profile.getMetadata().setNamespace(namespace);
     profile.setSpec(spec);
 

@@ -12,10 +12,14 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Optional;
 
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.operator.resource.CustomResourceFinder;
+import io.stackgres.operator.resource.CustomResourceScanner;
 import io.stackgres.operator.resource.CustomResourceScheduler;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -25,29 +29,27 @@ import org.mockito.Mock;
 public abstract class AbstractInitializerTest<T extends CustomResource> {
 
   @Mock
-  private CustomResourceFinder<T> resourceFinder;
-
-  @Mock
   private CustomResourceScheduler<T> resourceScheduler;
 
   @Mock
   private DefaultCustomResourceFactory<T> resourceFactory;
 
+  @Mock
+  private CustomResourceScanner<T> resourceScanner;
+
   private AbstractDefaultCustomResourceInitializer<T> initializer;
 
   private T defaultCustomResource;
 
-  private String resourceName;
   private String resourceNamespace;
 
   @BeforeEach
   void init() {
     initializer = getInstance();
-    initializer.setResourceFinder(resourceFinder);
     initializer.setResourceScheduler(resourceScheduler);
     initializer.setResourceFactory(resourceFactory);
-    defaultCustomResource = getDefaultCR();
-    resourceName = defaultCustomResource.getMetadata().getName();
+    initializer.setResourceScanner(resourceScanner);
+    defaultCustomResource = configureDefaultCR();
     resourceNamespace = defaultCustomResource.getMetadata().getNamespace();
   }
 
@@ -55,13 +57,21 @@ public abstract class AbstractInitializerTest<T extends CustomResource> {
 
   abstract T getDefaultCR();
 
+  private T configureDefaultCR(){
+    T defaultCustomResource = getDefaultCR();
+    String name = DefaultCustomResourceFactory.DEFAULT_RESOURCE_NAME_PREFIX
+        + System.currentTimeMillis();
+    defaultCustomResource.getMetadata().setName(name);
+    return defaultCustomResource;
+  }
+
   @Test
   void givenNoResourceCreated_itShouldCreateANewOne() {
 
-    T defaultCustomResource = getDefaultCR();
+    T defaultCustomResource = configureDefaultCR();
 
-    when(resourceFinder.findByNameAndNamespace(resourceName, resourceNamespace))
-        .thenReturn(Optional.empty());
+    when(resourceScanner.getResources(resourceNamespace))
+        .thenReturn(new ArrayList<>());
 
     when(resourceFactory.buildResource()).thenReturn(defaultCustomResource);
 
@@ -70,7 +80,7 @@ public abstract class AbstractInitializerTest<T extends CustomResource> {
 
     initializer.initialize();
 
-    verify(resourceFinder).findByNameAndNamespace(anyString(), anyString());
+    verify(resourceScanner).getResources(anyString());
     verify(resourceFactory).buildResource();
     verify(resourceScheduler).create(defaultCustomResource);
 
@@ -79,14 +89,14 @@ public abstract class AbstractInitializerTest<T extends CustomResource> {
   @Test
   void givenAResourceAlreadyCreated_itShouldDoNothing() {
 
-    when(resourceFinder.findByNameAndNamespace(resourceName, resourceNamespace))
-        .thenReturn(Optional.of(defaultCustomResource));
+    when(resourceScanner.getResources(resourceNamespace))
+        .thenReturn(Collections.singletonList(defaultCustomResource));
 
     when(resourceFactory.buildResource()).thenReturn(defaultCustomResource);
 
     initializer.initialize();
 
-    verify(resourceFinder).findByNameAndNamespace(anyString(), anyString());
+    verify(resourceScanner).getResources(anyString());
     verify(resourceFactory).buildResource();
     verify(resourceScheduler, never()).create(any());
   }

@@ -5,14 +5,13 @@
 
 package io.stackgres.operator.initialization;
 
+import java.util.List;
 import java.util.Optional;
-
 import javax.inject.Inject;
 
 import io.fabric8.kubernetes.client.CustomResource;
-import io.stackgres.operator.resource.CustomResourceFinder;
+import io.stackgres.operator.resource.CustomResourceScanner;
 import io.stackgres.operator.resource.CustomResourceScheduler;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,9 +21,9 @@ public abstract class AbstractDefaultCustomResourceInitializer<T extends CustomR
   private static final Logger LOGGER = LoggerFactory
       .getLogger(AbstractDefaultCustomResourceInitializer.class);
 
-  private CustomResourceFinder<T> resourceFinder;
   private CustomResourceScheduler<T> resourceScheduler;
   private DefaultCustomResourceFactory<T> resourceFactory;
+  private CustomResourceScanner<T> resourceScanner;
 
   @Override
   public void initialize() {
@@ -34,20 +33,20 @@ public abstract class AbstractDefaultCustomResourceInitializer<T extends CustomR
 
     LOGGER.info("Initializing " + resourceName);
 
-    Optional<T> installedResource = resourceFinder
-        .findByNameAndNamespace(resourceName, resourceNamespace);
+    List<T> installedResources = resourceScanner.getResources(resourceNamespace);
 
-    if (installedResource.isPresent()) {
+    Optional<T> installedDefaultResources = installedResources
+        .stream()
+        .filter(i -> i.getMetadata().getName()
+            .startsWith(DefaultCustomResourceFactory.DEFAULT_RESOURCE_NAME_PREFIX))
+        .findFirst();
+
+    if (installedDefaultResources.isPresent()) {
       LOGGER.info("Default custom resource " + resourceName + " already installed");
     } else {
       LOGGER.info("Installing default custom resource " + resourceName);
       resourceScheduler.create(defaultResource);
     }
-  }
-
-  @Inject
-  public void setResourceFinder(CustomResourceFinder<T> resourceFinder) {
-    this.resourceFinder = resourceFinder;
   }
 
   @Inject
@@ -60,4 +59,8 @@ public abstract class AbstractDefaultCustomResourceInitializer<T extends CustomR
     this.resourceFactory = resourceFactory;
   }
 
+  @Inject
+  public void setResourceScanner(CustomResourceScanner<T> resourceScanner) {
+    this.resourceScanner = resourceScanner;
+  }
 }

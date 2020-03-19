@@ -29,7 +29,7 @@ public class DefaultProfileFactory extends AbstractCustomResourceFactory<StackGr
     StackGresProfile profile = new StackGresProfile();
     profile.setApiVersion(StackGresProfileDefinition.APIVERSION);
     profile.setKind(StackGresProfileDefinition.KIND);
-    profile.getMetadata().setName(NAME);
+    profile.getMetadata().setName(generateDefaultName());
     profile.getMetadata().setNamespace(namespace);
 
     StackGresProfileSpec spec = buildSpec(StackGresProfileSpec.class);

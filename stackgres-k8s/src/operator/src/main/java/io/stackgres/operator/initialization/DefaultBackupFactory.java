@@ -24,7 +24,7 @@ public class DefaultBackupFactory extends AbstractCustomResourceFactory<StackGre
     config.setApiVersion(StackGresBackupConfigDefinition.APIVERSION);
     config.setKind(StackGresBackupConfigDefinition.KIND);
     config.getMetadata().setNamespace(namespace);
-    config.getMetadata().setName(NAME);
+    config.getMetadata().setName(generateDefaultName());
 
     StackGresBackupConfigSpec spec = buildSpec(StackGresBackupConfigSpec.class);
     config.setSpec(spec);
