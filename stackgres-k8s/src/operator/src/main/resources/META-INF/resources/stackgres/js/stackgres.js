@@ -965,7 +965,7 @@ $(document).ready(function(){
     $("#backup-btn, #graffana-btn").css("display","none");
   });
 
-  $(document).on("click", ".clu a", function(){
+  /* $(document).on("click", ".clu a", function(){
     $(".clu .router-link-active:not(.router-link-exact-active)").removeClass("router-link-active");
     $("#grafana-button").css("display", "none");
     //store.commit('setCurrentClusterName', $(this).text());
@@ -974,7 +974,7 @@ $(document).ready(function(){
     $("#nav").removeClass("disabled");
     //console.log(currentCluster);
     //console.log(router.history.current.params.name);
-  });
+  }); */
 
   $(document).on("click", ".conf a, .prof a", function(){
     store.commit('setCurrentCluster', ' ');
@@ -1017,26 +1017,19 @@ $(document).ready(function(){
   });
 
 
-  /* $(document).on("click", ".set a", function(){
-    $("#sets .set.active").removeClass("active");
-    $(this).parents(".set").addClass("active");
-  }); */
-
   $(document).on("click", "#sets .nav-item", function(){
-    $(this).parent().toggleClass("active");
-    $(this).parent().find(".active").toggleClass("active");
-  });
-
-  $(document).on("click", ".set .set .nav-item", function(){
-    if(!$(this).hasClass("active"))
-      $(this).parents(".set").addClass("active")
-    //$(this).parent().find(".active").toggleClass("active");
+    if(!($(this).parent().hasClass("active"))) {
+      $(".set.active:not(.conf)").removeClass("active");
+      $(this).parent("div:not(.conf)").addClass("active");
+    }
+    
   });
 
   $(document).on("click", ".set .item", function(){
-    //if(!$(this).parents(".set").hasClass("active"))
-      $(this).parents(".set").addClass("active")
-    //$(this).parent().find(".active").toggleClass("active");
+
+    $(".set.active:not(.conf)").removeClass("active");
+    $(this).parent().parent().parent().addClass("active")
+    
   });
 
   $(document).on("click", "#nav:not(.disabled) .top a.nav-item", function(){
@@ -1088,10 +1081,10 @@ $(document).ready(function(){
     $(this).parent().toggleClass("hide");
   });
 
-  $(".clu .item").click(function(){
+/*   $(".clu .item").click(function(){
     $("#nav").removeClass("disabled");
   });
-
+ */
   /* Disable Grafana KEY functions */
   $(".grafana iframe").contents().find("body").keyup( function(e) {
     switch (e.keyCode) {
