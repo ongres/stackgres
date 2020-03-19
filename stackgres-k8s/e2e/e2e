@@ -153,8 +153,8 @@ setup_k8s() {
   if [ "$E2E_WAIT_OPERATOR" = true ]
   then
     wait_pods_running stackgres
+    wait_services_available stackgres 2
   fi
-  wait_pods_running
 }
 
 if [ "$(basename "$0")" = "e2e" -a ! -z "$1" ]
