@@ -159,14 +159,14 @@ const router = new VueRouter({
       },
     },
     { 
-      path: '/configurations/postgresql/:namespace', 
+      path: '/configurations/postgres/:namespace', 
       component: PgConfig,
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/configurations/postgresql/:namespace/:name', 
+      path: '/configurations/postgres/:namespace/:name', 
       component: PgConfig,
       meta: {
         conditionalRoute: false

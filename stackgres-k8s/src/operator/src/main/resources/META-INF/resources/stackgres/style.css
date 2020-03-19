@@ -490,7 +490,7 @@ ul.zg-ul-select.active li.active:hover {
 
 #sets {
     overflow-x: visible;
-    height: calc(100vh - 175px);
+    height: calc(100vh - 125px);
 }
 
 #sets.expanded {
@@ -1061,6 +1061,14 @@ ul.tabs {
     border-bottom: 1px solid var(--gray1);
 }
 
+.table .head.row, .table .row:last-child, .boxes .row:last-child {
+    border-bottom-color: var(--gray2);
+}
+
+.table .row:nth-child(even) {
+    background: #fafafa;
+}
+
 .head h4 {
     color: var(--gray3);
     font-weight: 300;
@@ -1347,7 +1355,7 @@ ul.selector li {
 /* Forms */
 .form {
     width: 550px;
-    min-width: 450px;
+    min-width: 550px;
     max-width: 50%;
     display: inline-block;
     position: relative;
