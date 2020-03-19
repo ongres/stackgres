@@ -225,6 +225,7 @@ aside {
     min-width: 350px;
     height: calc(100vh - 50px);
     top: 50px;
+    z-index: 10;
     background-color: #fcfcfc;
     border-right: 1px solid var(--gray1);
 }
@@ -489,8 +490,9 @@ ul.zg-ul-select.active li.active:hover {
 }
 
 #sets {
-    overflow-x: visible;
+    /* overflow-x: visible; */
     height: calc(100vh - 125px);
+    overflow: auto;
 }
 
 #sets.expanded {
@@ -569,11 +571,11 @@ ul.zg-ul-select.active li.active:hover {
     list-style: none;
     top: 0;
     display: none;
-    background: #fff;
+    background: transparent;
+    padding-left: 10px;
     border-radius: 5px;
     border-top-left-radius: 0;
     border-bottom-left-radius: 0;
-    box-shadow: 3px 3px 5px rgba(0,0,0,.1);
 }
 
 .set .set ul {
@@ -582,8 +584,26 @@ ul.zg-ul-select.active li.active:hover {
 }
 
 
-.set:not(.active):hover > ul {
+.set:not(.active) > ul.show {
     display: block;
+    position: fixed;
+    left: 340px;
+    z-index: 2;
+}
+
+.set:not(.active) ul.show:before {
+    box-shadow: 2px 2px 5px rgba(0,0,0,.1);
+    content: " ";
+    position: absolute;
+    top: 0;
+    left: 10px;
+    bottom: 0;
+    right: 0;
+    z-index: 0;
+}
+
+.set:not(.active) > ul li {
+    background: #fff;
 }
 
 .set:hover li > a {
