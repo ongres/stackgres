@@ -78,17 +78,26 @@ status:
   backupConfig:
 $(kubectl get "$BACKUP_CONFIG_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" \
   --template '    compressionMethod: "{{ .spec.compressionMethod }}"
-    {{- with .spec.pgpConfiguration }}
-    pgpConfiguration:
-      key:
-        key: "{{ .spec.pgpConfiguration.key.key }}"
-        name: "{{ .spec.pgpConfiguration.key.name }}"
-    {{- end }}
     storage:
       type: "{{ .spec.storage.type }}"
       {{- with .spec.storage.s3 }}
       s3:
-        prefix: "{{ .prefix }}"
+        bucket: "{{ .bucket }}"
+        {{ with .path }}path: "{{ . }}"{{ end }}
+        credentials:
+          accessKey:
+            key: "{{ .credentials.accessKey.key }}"
+            name: "{{ .credentials.accessKey.name }}"
+          secretKey:
+            key: "{{ .credentials.secretKey.key }}"
+            name: "{{ .credentials.secretKey.name }}"
+        {{ with .region }}region: "{{ . }}"{{ end }}
+        {{ with .storageClass }}storageClass: "{{ . }}"{{ end }}
+      {{- end }}
+      {{- with .spec.storage.s3compatible }}
+      s3compatible:
+        bucket: "{{ .bucket }}"
+        {{ with .path }}path: "{{ . }}"{{ end }}
         credentials:
           accessKey:
             key: "{{ .credentials.accessKey.key }}"
@@ -100,14 +109,11 @@ $(kubectl get "$BACKUP_CONFIG_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG"
         {{ with .endpoint }}endpoint: "{{ . }}"{{ end }}
         {{ with .forcePathStyle }}forcePathStyle: {{ . }}{{ end }}
         {{ with .storageClass }}storageClass: "{{ . }}"{{ end }}
-        {{ with .sse }}sse: "{{ . }}"{{ end }}
-        {{ with .sseKmsId }}sseKmsId: "{{ . }}"{{ end }}
-        {{ with .cseKmsId }}cseKmsId: "{{ . }}"{{ end }}
-        {{ with .cseKmsRegion }}cseKmsRegion: "{{ . }}"{{ end }}
       {{- end }}
       {{- with .spec.storage.gcs }}
       gcs:
-        prefix: "{{ .prefix }}"
+        bucket: "{{ .bucket }}"
+        {{ with .path }}path: "{{ . }}"{{ end }}
         credentials:
           serviceAccountJsonKey:
             key: "{{ .credentials.serviceAccountJsonKey.key }}"
@@ -115,7 +121,8 @@ $(kubectl get "$BACKUP_CONFIG_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG"
       {{- end }}
       {{- with .spec.storage.azureblob }}
       azureblob:
-        prefix: "{{ .prefix }}"
+        bucket: "{{ .bucket }}"
+        {{ with .path }}path: "{{ . }}"{{ end }}
         credentials:
           account:
             key: "{{ .credentials.account.key }}"
@@ -123,8 +130,6 @@ $(kubectl get "$BACKUP_CONFIG_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG"
           accessKey:
             key: "{{ .credentials.accessKey.key }}"
             name: "{{ .credentials.accessKey.name }}"
-        {{ with .bufferSize }}bufferSize: {{ . }}{{ end }}
-        {{ with .maxBuffers }}maxBuffers: {{ . }}{{ end }}
       {{- end }}
 ')
 EOF
@@ -139,19 +144,30 @@ else
         "pod":"'"$POD_NAME"'",
         "backupConfig":{'"$(kubectl get "$BACKUP_CONFIG_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" \
   --template '    "compressionMethod": "{{ .spec.compressionMethod }}",
-    {{- with .spec.pgpConfiguration }}
-    "pgpConfiguration": {
-      "key": {
-        "key": "{{ .spec.pgpConfiguration.key.key }}",
-        "name": "{{ .spec.pgpConfiguration.key.name }}"
-      }
-    },
-    {{- end }}
     "storage": {
       "type": "{{ .spec.storage.type }}",
       {{- with .spec.storage.s3 }}
       "s3": {
-        "prefix": "{{ .prefix }}",
+        "bucket": "{{ .bucket }}",
+        {{ with .path }}"path": "{{ . }}",{{ end }}
+        "credentials": {
+          "accessKey": {
+            "key": "{{ .credentials.accessKey.key }}",
+            "name": "{{ .credentials.accessKey.name }}"
+          },
+          "secretKey": {
+            "key": "{{ .credentials.secretKey.key }}",
+            "name": "{{ .credentials.secretKey.name }}"
+          }
+        }
+        {{ with .region }},"region": "{{ . }}"{{ end }}
+        {{ with .storageClass }},"storageClass": "{{ . }}"{{ end }}
+      }
+      {{- end }}
+      {{- with .spec.storage.s3compatible }}
+      "s3compatible": {
+        "bucket": "{{ .bucket }}",
+        {{ with .path }}"path": "{{ . }}",{{ end }}
         "credentials": {
           "accessKey": {
             "key": "{{ .credentials.accessKey.key }}",
@@ -166,15 +182,12 @@ else
         {{ with .endpoint }},"endpoint": "{{ . }}"{{ end }}
         {{ with .forcePathStyle }},"forcePathStyle": {{ . }}{{ end }}
         {{ with .storageClass }},"storageClass": "{{ . }}"{{ end }}
-        {{ with .sse }},"sse": "{{ . }}"{{ end }}
-        {{ with .sseKmsId }},"sseKmsId": "{{ . }}"{{ end }}
-        {{ with .cseKmsId }},"cseKmsId": "{{ . }}"{{ end }}
-        {{ with .cseKmsRegion }},"cseKmsRegion": "{{ . }}"{{ end }}
       }
       {{- end }}
       {{- with .spec.storage.gcs }}
       "gcs": {
-        "prefix": "{{ .prefix }}",
+        "bucket": "{{ .bucket }}",
+        {{ with .path }}"path": "{{ . }}",{{ end }}
         "credentials": {
           "serviceAccountJsonKey": {
             "key": "{{ .credentials.serviceAccountJsonKey.key }}",
@@ -185,7 +198,8 @@ else
       {{- end }}
       {{- with .spec.storage.azureblob }}
       "azureblob": {
-        "prefix": "{{ .prefix }}",
+        "bucket": "{{ .bucket }}",
+        {{ with .path }}"path": "{{ . }}",{{ end }}
         "credentials": {
           "account": {
             "key": "{{ .credentials.account.key }}",
@@ -196,8 +210,6 @@ else
             "name": "{{ .credentials.accessKey.name }}"
           }
         }
-        {{ with .bufferSize }},"bufferSize": {{ . }}{{ end }}
-        {{ with .maxBuffers }},"maxBuffers": {{ . }}{{ end }}
       }
       {{- end }}
     }

@@ -26,6 +26,9 @@ public class BackupStorage {
   @JsonProperty("s3")
   private AwsS3Storage s3;
 
+  @JsonProperty("s3compatible")
+  private AwsS3CompatibleStorage s3Compatible;
+
   @JsonProperty("gcs")
   private GoogleCloudStorage gcs;
 
@@ -46,6 +49,14 @@ public class BackupStorage {
 
   public void setS3(AwsS3Storage s3) {
     this.s3 = s3;
+  }
+
+  public AwsS3CompatibleStorage getS3Compatible() {
+    return s3Compatible;
+  }
+
+  public void setS3Compatible(AwsS3CompatibleStorage s3Compatible) {
+    this.s3Compatible = s3Compatible;
   }
 
   public GoogleCloudStorage getGcs() {
@@ -70,6 +81,7 @@ public class BackupStorage {
         .omitNullValues()
         .add("type", type)
         .add("s3", s3)
+        .add("s3compatible", s3Compatible)
         .add("gcs", gcs)
         .add("azureblob", azureblob)
         .toString();

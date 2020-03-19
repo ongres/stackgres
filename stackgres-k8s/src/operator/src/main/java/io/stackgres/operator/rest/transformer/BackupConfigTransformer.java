@@ -13,13 +13,13 @@ import io.stackgres.operator.rest.dto.SecretKeySelector;
 import io.stackgres.operator.rest.dto.backupconfig.BackupConfigDto;
 import io.stackgres.operator.rest.dto.backupconfig.BackupConfigSpec;
 import io.stackgres.operator.rest.dto.storages.AwsCredentials;
+import io.stackgres.operator.rest.dto.storages.AwsS3CompatibleStorage;
 import io.stackgres.operator.rest.dto.storages.AwsS3Storage;
 import io.stackgres.operator.rest.dto.storages.AzureBlobStorage;
 import io.stackgres.operator.rest.dto.storages.AzureBlobStorageCredentials;
 import io.stackgres.operator.rest.dto.storages.BackupStorage;
 import io.stackgres.operator.rest.dto.storages.GoogleCloudCredentials;
 import io.stackgres.operator.rest.dto.storages.GoogleCloudStorage;
-import io.stackgres.operator.rest.dto.storages.PgpConfiguration;
 
 @ApplicationScoped
 public class BackupConfigTransformer
@@ -48,27 +48,11 @@ public class BackupConfigTransformer
     transformation.setFullSchedule(source.getFullSchedule());
     transformation.setFullWindow(source.getFullWindow());
     transformation.setNetworkRateLimit(source.getNetworkRateLimit());
-    transformation.setPgpConfiguration(
-        getCustomResourcePgpConfiguration(source.getPgpConfiguration()));
     transformation.setRetention(source.getRetention());
     transformation.setStorage(
         getCustomResourceStorage(source.getStorage()));
     transformation.setTarSizeThreshold(source.getTarSizeThreshold());
     transformation.setUploadDiskConcurrency(source.getUploadDiskConcurrency());
-    return transformation;
-  }
-
-  private io.stackgres.operator.customresource.storages.PgpConfiguration
-      getCustomResourcePgpConfiguration(PgpConfiguration source) {
-    if (source == null) {
-      return null;
-    }
-    io.stackgres.operator.customresource.storages.PgpConfiguration transformation =
-        new io.stackgres.operator.customresource.storages.PgpConfiguration();
-    transformation.setKey(new io.fabric8.kubernetes.api.model.SecretKeySelector(
-        source.getKey().getName(),
-        source.getKey().getKey(),
-        false));
     return transformation;
   }
 
@@ -85,6 +69,8 @@ public class BackupConfigTransformer
         getCustomResourceGcsStorage(source.getGcs()));
     transformation.setS3(
         getCustomResourceS3Storage(source.getS3()));
+    transformation.setS3Compatible(
+        getCustomResourceS3CompatibleStorage(source.getS3Compatible()));
     transformation.setType(source.getType());
     return transformation;
   }
@@ -96,11 +82,10 @@ public class BackupConfigTransformer
     }
     io.stackgres.operator.customresource.storages.AzureBlobStorage transformation =
         new io.stackgres.operator.customresource.storages.AzureBlobStorage();
-    transformation.setBufferSize(source.getBufferSize());
     transformation.setCredentials(
         getCustomResourceAzureblobStorageCredentials(source.getCredentials()));
-    transformation.setMaxBuffers(source.getMaxBuffers());
-    transformation.setPrefix(source.getPrefix());
+    transformation.setBucket(source.getBucket());
+    transformation.setPath(source.getPath());
     return transformation;
   }
 
@@ -136,7 +121,8 @@ public class BackupConfigTransformer
         new io.stackgres.operator.customresource.storages.GoogleCloudStorage();
     transformation.setCredentials(
         getCustomResourceGcsStorageCredentials(source.getCredentials()));
-    transformation.setPrefix(source.getPrefix());
+    transformation.setBucket(source.getBucket());
+    transformation.setPath(source.getPath());
     return transformation;
   }
 
@@ -165,14 +151,27 @@ public class BackupConfigTransformer
         new io.stackgres.operator.customresource.storages.AwsS3Storage();
     transformation.setCredentials(
         getCustomResourceAwsCredentials(source.getCredentials()));
-    transformation.setCseKmsId(source.getCseKmsId());
-    transformation.setCseKmsRegion(source.getCseKmsRegion());
+    transformation.setBucket(source.getBucket());
+    transformation.setPath(source.getPath());
+    transformation.setRegion(source.getRegion());
+    transformation.setStorageClass(source.getStorageClass());
+    return transformation;
+  }
+
+  private io.stackgres.operator.customresource.storages.AwsS3CompatibleStorage
+      getCustomResourceS3CompatibleStorage(AwsS3CompatibleStorage source) {
+    if (source == null) {
+      return null;
+    }
+    io.stackgres.operator.customresource.storages.AwsS3CompatibleStorage transformation =
+        new io.stackgres.operator.customresource.storages.AwsS3CompatibleStorage();
+    transformation.setCredentials(
+        getCustomResourceAwsCredentials(source.getCredentials()));
     transformation.setEndpoint(source.getEndpoint());
     transformation.setForcePathStyle(source.isForcePathStyle());
-    transformation.setPrefix(source.getPrefix());
+    transformation.setBucket(source.getBucket());
+    transformation.setPath(source.getPath());
     transformation.setRegion(source.getRegion());
-    transformation.setSse(source.getSse());
-    transformation.setSseKmsId(source.getSseKmsId());
     transformation.setStorageClass(source.getStorageClass());
     return transformation;
   }
@@ -205,26 +204,11 @@ public class BackupConfigTransformer
     transformation.setFullSchedule(source.getFullSchedule());
     transformation.setFullWindow(source.getFullWindow());
     transformation.setNetworkRateLimit(source.getNetworkRateLimit());
-    transformation.setPgpConfiguration(
-        getResourcePgpConfiguration(source.getPgpConfiguration()));
     transformation.setRetention(source.getRetention());
     transformation.setStorage(
         getResourceStorage(source.getStorage()));
     transformation.setTarSizeThreshold(source.getTarSizeThreshold());
     transformation.setUploadDiskConcurrency(source.getUploadDiskConcurrency());
-    return transformation;
-  }
-
-  private PgpConfiguration getResourcePgpConfiguration(
-      io.stackgres.operator.customresource.storages.PgpConfiguration
-      source) {
-    if (source == null) {
-      return null;
-    }
-    PgpConfiguration transformation = new PgpConfiguration();
-    transformation.setKey(SecretKeySelector.create(
-        source.getKey().getName(),
-        source.getKey().getKey()));
     return transformation;
   }
 
@@ -240,6 +224,8 @@ public class BackupConfigTransformer
         getResourceGcsStorage(source.getGcs()));
     transformation.setS3(
         getResourceS3Storage(source.getS3()));
+    transformation.setS3Compatible(
+        getResourceS3CompatibleStorage(source.getS3Compatible()));
     transformation.setType(source.getType());
     return transformation;
   }
@@ -250,11 +236,10 @@ public class BackupConfigTransformer
       return null;
     }
     AzureBlobStorage transformation = new AzureBlobStorage();
-    transformation.setBufferSize(source.getBufferSize());
     transformation.setCredentials(
         getResourceAzureblobStorageCredentials(source.getCredentials()));
-    transformation.setMaxBuffers(source.getMaxBuffers());
-    transformation.setPrefix(source.getPrefix());
+    transformation.setBucket(source.getBucket());
+    transformation.setPath(source.getPath());
     return transformation;
   }
 
@@ -284,7 +269,8 @@ public class BackupConfigTransformer
     GoogleCloudStorage transformation = new GoogleCloudStorage();
     transformation.setCredentials(
         getResourceGcsStorageCredentials(source.getCredentials()));
-    transformation.setPrefix(source.getPrefix());
+    transformation.setBucket(source.getBucket());
+    transformation.setPath(source.getPath());
     return transformation;
   }
 
@@ -310,14 +296,26 @@ public class BackupConfigTransformer
     AwsS3Storage transformation = new AwsS3Storage();
     transformation.setCredentials(
         getResourceAwsCredentials(source.getCredentials()));
-    transformation.setCseKmsId(source.getCseKmsId());
-    transformation.setCseKmsRegion(source.getCseKmsRegion());
+    transformation.setBucket(source.getBucket());
+    transformation.setPath(source.getPath());
+    transformation.setRegion(source.getRegion());
+    transformation.setStorageClass(source.getStorageClass());
+    return transformation;
+  }
+
+  private AwsS3CompatibleStorage getResourceS3CompatibleStorage(
+      io.stackgres.operator.customresource.storages.AwsS3CompatibleStorage source) {
+    if (source == null) {
+      return null;
+    }
+    AwsS3CompatibleStorage transformation = new AwsS3CompatibleStorage();
+    transformation.setCredentials(
+        getResourceAwsCredentials(source.getCredentials()));
     transformation.setEndpoint(source.getEndpoint());
     transformation.setForcePathStyle(source.isForcePathStyle());
-    transformation.setPrefix(source.getPrefix());
+    transformation.setBucket(source.getBucket());
+    transformation.setPath(source.getPath());
     transformation.setRegion(source.getRegion());
-    transformation.setSse(source.getSse());
-    transformation.setSseKmsId(source.getSseKmsId());
     transformation.setStorageClass(source.getStorageClass());
     return transformation;
   }

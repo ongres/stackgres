@@ -110,8 +110,8 @@ load_operator_k8s() {
 load_certificate_k8s() {
   echo "Loading certificate $1 in kind environemnt $KIND_NAME..."
 
-  echo "$KIND_NAME-control-plane" "$KIND_NAME-worker" "$KIND_NAME-worker2" \
-    | tr ' ' '\n' | xargs -r -n 1 -I % -P 0 sh -ec "
+    kind get nodes --name "$KIND_NAME" \
+      | xargs -r -n 1 -I % -P 0 sh -ec "
       docker cp '$1' '%':/usr/local/share/ca-certificates/validator.crt
       docker exec -t '%' sh -c "update-ca-certificates"
       "

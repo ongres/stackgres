@@ -1,0 +1,27 @@
+#!/bin/sh
+
+wait_services_available() {
+  local NAMESPACE_OPT="$([ -z "$1" ] && echo "--all-namespaces" || echo "--namespace=$1")"
+  local EXPECTED_AVAILABLE_SERVICES="${2:-1}"
+  if [ "$EXPECTED_AVAILABLE_SERVICES" -lt 1 ]
+  then
+    >&2 echo "Must specify a number of expected available services of 1 or more"
+    return 1
+  fi
+  local END="$(($(date +%s) + (E2E_TIMEOUT * EXPECTED_AVAILABLE_SERVICES)))"
+  while [ "$(date +%s)" -lt "$END" ]
+  do
+    AVAILABLE_SERVICES="$(kubectl get endpoints "$NAMESPACE_OPT" -o name | wc -l)"
+    if [ "$AVAILABLE_SERVICES" -ge "$EXPECTED_AVAILABLE_SERVICES" ]
+    then
+      echo "$([ -z "$1" ] && echo "All services available" || echo "All services available in namespace $1")"
+      return
+    fi
+    sleep 2
+  done
+  echo "$([ -z "$1" ] && echo "Timeout while waiting for all services to become available" \
+    || echo "Timeout while waiting for all services to become available in namespace $1")"
+  echo
+  kubectl describe services "$NAMESPACE_OPT"
+  return 1
+}

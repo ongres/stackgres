@@ -19,22 +19,39 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class GoogleCloudStorage {
+public class GoogleCloudStorage implements PrefixedStorage {
 
-  @JsonProperty("prefix")
-  @NotNull(message = "The prefix is required")
-  private String prefix;
+  @JsonProperty("bucket")
+  @NotNull(message = "The bucket is required")
+  private String bucket;
+
+  @JsonProperty("path")
+  private String path;
 
   @JsonProperty("credentials")
   @NotNull(message = "The credentials is required")
   private GoogleCloudCredentials credentials;
 
-  public String getPrefix() {
-    return prefix;
+  @Override
+  public String getSchema() {
+    return "gcs";
   }
 
-  public void setPrefix(String prefix) {
-    this.prefix = prefix;
+  @Override
+  public String getBucket() {
+    return bucket;
+  }
+
+  public void setBucket(String bucket) {
+    this.bucket = bucket;
+  }
+
+  public String getPath() {
+    return path;
+  }
+
+  public void setPath(String path) {
+    this.path = path;
   }
 
   public GoogleCloudCredentials getCredentials() {
@@ -47,7 +64,7 @@ public class GoogleCloudStorage {
 
   @Override
   public int hashCode() {
-    return Objects.hash(credentials, prefix);
+    return Objects.hash(credentials, bucket);
   }
 
   @Override
@@ -62,14 +79,17 @@ public class GoogleCloudStorage {
       return false;
     }
     GoogleCloudStorage other = (GoogleCloudStorage) obj;
-    return Objects.equals(credentials, other.credentials) && Objects.equals(prefix, other.prefix);
+    return Objects.equals(credentials, other.credentials)
+        && Objects.equals(bucket, other.bucket)
+        && Objects.equals(path, other.path);
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .omitNullValues()
-        .add("prefix", prefix)
+        .add("bucket", bucket)
+        .add("path", path)
         .add("credentials", credentials)
         .toString();
   }

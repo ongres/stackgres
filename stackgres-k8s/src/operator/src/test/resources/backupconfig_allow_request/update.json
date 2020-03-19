@@ -46,7 +46,7 @@
         "fullWindow": 5,
         "retention": 3,
         "storage": {
-          "s3": {
+          "s3compatible": {
             "credentials": {
               "accessKey": {
                 "key": "accesskey",
@@ -59,10 +59,10 @@
             },
             "endpoint": "http://minio.stackgres.svc:9000",
             "forcePathStyle": true,
-            "prefix": "s3://stackgres",
+            "bucket": "stackgres",
             "region": "k8s"
           },
-          "type": "s3"
+          "type": "s3compatible"
         },
         "tarSizeThreshold": 1072741823,
         "uploadDiskConcurrency": 2
@@ -97,9 +97,7 @@
                 "name": "minio"
               }
             },
-            "endpoint": "http://minio.stackgres.svc:9000",
-            "forcePathStyle": true,
-            "prefix": "s3://stackgres",
+            "bucket": "stackgres",
             "region": "k8s"
           },
           "type": "s3"

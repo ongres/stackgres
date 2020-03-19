@@ -12,7 +12,7 @@
     "backupConfig":  {
       "compressionMethod": "lz4",
       "storage": {
-        "s3": {
+        "s3compatible": {
           "credentials": {
             "accessKey": {
               "key": "accesskey",
@@ -25,10 +25,10 @@
           },
           "endpoint": "http://minio.stackgres.svc:9000",
           "forcePathStyle": true,
-          "prefix": "s3://stackgres",
+          "bucket": "stackgres",
           "region": "k8s"
         },
-        "type": "s3"
+        "type": "s3compatible"
       }
     },
     "compressedSize": 6686407,

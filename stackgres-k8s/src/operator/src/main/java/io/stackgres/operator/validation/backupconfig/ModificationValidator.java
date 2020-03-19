@@ -12,6 +12,7 @@ import javax.inject.Singleton;
 import io.stackgres.operator.common.BackupConfigReview;
 import io.stackgres.operator.common.ConfigContext;
 import io.stackgres.operator.common.ErrorType;
+import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
@@ -31,19 +32,19 @@ public class ModificationValidator implements BackupConfigValidator {
   public void validate(BackupConfigReview review) throws ValidationFailed {
     Operation operation = review.getRequest().getOperation();
     if (operation == Operation.UPDATE) {
-      if (!Objects.equals(review.getRequest().getOldObject().getSpec().getPgpConfiguration(),
-          review.getRequest().getObject().getSpec().getPgpConfiguration())) {
-        fail("Modification of pgp configuration is not allowed");
-      }
-
-      if (!review.getRequest().getOldObject().getSpec().getStorage().getType().equals(
-          review.getRequest().getObject().getSpec().getStorage().getType())
-          || !Objects.equals(review.getRequest().getObject().getSpec().getStorage().getS3(),
-          review.getRequest().getOldObject().getSpec().getStorage().getS3())
-          || !Objects.equals(review.getRequest().getObject().getSpec().getStorage().getGcs(),
-          review.getRequest().getOldObject().getSpec().getStorage().getGcs())
-          || !Objects.equals(review.getRequest().getObject().getSpec().getStorage().getAzureblob(),
-          review.getRequest().getOldObject().getSpec().getStorage().getAzureblob())) {
+      final StackGresBackupConfig oldObject = review.getRequest().getOldObject();
+      final StackGresBackupConfig object = review.getRequest().getObject();
+      if (!oldObject.getSpec().getStorage().getType().equals(// NOPMD
+          object.getSpec().getStorage().getType())
+          || !Objects.equals(object.getSpec().getStorage().getS3(),
+              oldObject.getSpec().getStorage().getS3())
+          || !Objects.equals(
+              object.getSpec().getStorage().getS3Compatible(),
+              oldObject.getSpec().getStorage().getS3Compatible())
+          || !Objects.equals(object.getSpec().getStorage().getGcs(),
+              oldObject.getSpec().getStorage().getGcs())
+          || !Objects.equals(object.getSpec().getStorage().getAzureblob(),
+              oldObject.getSpec().getStorage().getAzureblob())) {
         fail("Modification of storage is not allowed");
       }
     }

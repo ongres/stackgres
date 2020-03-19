@@ -11,7 +11,7 @@ config:
     minio:
       create: false
     gcs:
-      prefix: gs://stackgres-e2e-backup-with-gce-storage
+      bucket: stackgres-e2e-backup-with-gce-storage
       serviceAccountJsonKey:
           name: gke-service-account
           key: gke-service-account.json

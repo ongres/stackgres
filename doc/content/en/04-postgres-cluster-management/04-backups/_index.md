@@ -128,7 +128,6 @@ ___
 | diskRateLimit                          |          | ✓         | integer | unlimited | To configure disk read rate limit during uploads in bytes per second  |
 | networkRateLimit                       |          | ✓         | integer | unlimited | To configure network read rate limit during uploads in bytes per second  |
 | uploadDiskConcurrency                  |          | ✓         | integer | 1         | To configure how many concurrency streams are reading disk during uploads. By default 1 stream  |
-| [pgpConfiguration](#pgp-configuration) |          | ✓         | string  |           | The OpenPGP configuration for encryption and decryption backups with the following properties: - key: PGP private key  |
 | tarSizeThreshold                       |          | ✓         | integer | 1 GB      | To configure the size of one backup bundle (in bytes). Smaller size causes granularity and more optimal, faster recovering. It also increases the number of storage requests, so it can costs you much money. Default size is 1 GB (1 << 30 - 1 bytes)  |
 | [storage](#storage-configuration)      | ✓        |           | object  |           | Backup storage configuration  |
 
@@ -172,12 +171,6 @@ If a backup configuration is not specified in the cluster settings, a new one wi
 
 The default name of backup configuration CR is `defaultbackupconfig`
 
-# PGP configuration
-
-| Property                                                                                              | Required | Updatable | Type   | Default | Description |
-|:------------------------------------------------------------------------------------------------------|----------|-----------|:-------|:--------|:------------|
-| [key](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.12/#secretkeyselector-v1-core) | ✓        | ✓         | object |         | PGP private key  |
-
 # Storage Configuration
 
 | Property                                              | Required            | Updatable | Type   | Default | Description |
@@ -197,10 +190,6 @@ The default name of backup configuration CR is `defaultbackupconfig`
 | endpoint                       |          |           | string  |         |Overrides the default hostname to connect to an S3-compatible service. i.e, http://s3-like-service:9000  |
 | forcePathStyle                 |          |           | boolean |         | To enable path-style addressing(i.e., http://s3.amazonaws.com/BUCKET/KEY) when connecting to an S3-compatible service that lack of support for sub-domain style bucket URLs (i.e., http://BUCKET.s3.amazonaws.com/KEY). Defaults to false  |
 | storageClass                   |          |           | string  |         | By default, the "STANDARD" storage class is used. Other supported values include "STANDARD_IA" for Infrequent Access and "REDUCED_REDUNDANCY" for Reduced Redundancy  |
-| sse                            |          |           | string  |         | To enable S3 server-side encryption, set to the algorithm to use when storing the objects in S3 (i.e., AES256, aws:kms)  |
-| sseKmsId                       |          |           | string  |         | If using S3 server-side encryption with aws:kms, the KMS Key ID to use for object encryption  |
-| cseKmsId                       |          |           | string  |         | To configure AWS KMS key for client side encryption and decryption. By default, no encryption is used. (region or cseKmsRegion required to be set when using AWS KMS key client side encryption)  |
-| cseKmsRegion                   |          |           | string  |         | To configure AWS KMS key region for client side encryption and decryption (i.e., eu-west-1)  |
 
 ### S3 Credentials
 
@@ -229,8 +218,6 @@ The default name of backup configuration CR is `defaultbackupconfig`
 |:----------------------------------|----------|-----------|:--------|:--------|:-------------|
 | prefix                            | ✓        |           | string  |         | Specify where to store backups in Azure storage (eg. azure://test-container/walg-folder) |  
 | [credentials](#azure-credentials) | ✓        |           | object  |         | AWS Secret Access Key  |
-| bufferSize                        |          |           | integer | 64 MB   | Overrides the default upload buffer size of 67108864 bytes (64 MB). Note that the size of the buffer must be specified in bytes. Therefore, to use 32 MB sized buffers, this variable should be set to 33554432 bytes  |
-| maxBuffers                        |          |           | integer | 3       | Overrides the default maximum number of upload buffers. By default, at most 3 buffers are used concurrently  |
 
 ### Azure Credentials
 

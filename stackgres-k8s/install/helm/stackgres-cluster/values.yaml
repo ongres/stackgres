@@ -25,10 +25,15 @@ config:
       create: true
     #networkRateLimit:
     #diskRateLimit:
-    #pgpConfiguration:
-    #  name: pgpconfiguration
-    #  key: key
     s3: {}
+    #  prefix: s3://stackgres
+    #  accessKey:
+    #    name: awscredentials
+    #    key: accesskey
+    #  secretKey:
+    #    name: awscredentials
+    #    key: secretkey
+    s3compatible: {}
     #  prefix: s3://stackgres
     #  accessKey:
     #    name: minio
@@ -40,10 +45,6 @@ config:
     #  endpoint: minio.stackgres.svc
     #  forcePathStyle: true
     #  storageClass:
-    #  sse:
-    #  sseKmsId:
-    #  cseKmsId:
-    #  cseKmsRegion:
     gcs: {}
     #  prefix: gcs://stackgres
     #  serviceAccountJsonKey:
@@ -57,8 +58,6 @@ config:
     #  accessKey:
     #    name: azureblobcredentials
     #    key: accesskey
-    #  bufferSize:
-    #  maxBuffers:
   
 
 cluster:

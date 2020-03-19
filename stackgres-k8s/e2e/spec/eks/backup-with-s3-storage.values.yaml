@@ -11,7 +11,7 @@ config:
     minio:
       create: false
     s3:
-      prefix: s3://stackgres-e2e
+      bucket: stackgres-e2e
       accessKey:
           name: s3-credentials
           key: accessKeyId

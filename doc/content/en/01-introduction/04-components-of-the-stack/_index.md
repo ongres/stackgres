@@ -102,7 +102,7 @@ And finally, will our backup work when needed or will it fail?
 Wal-g, the successor of Wal-e, is the most complete and lightweight solution to provide both incremental (trought archive
 command) and full backup support. Also, it provides out of the box features that allow store backup in a persistent volume
 (using a storage class that supports `ReadWriteMany` access mode) or a cloud storage between AWS S3, Google Cloud Storage
-or Azure Blob Storage. It also allow configure aspects like bandwidth or disk usage rate or encryption (with pgp).
+or Azure Blob Storage. It also allow configure aspects like bandwidth or disk usage rate.
 
 # Log
 

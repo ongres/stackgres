@@ -12,6 +12,7 @@ import com.google.common.collect.ImmutableMap;
 
 import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfigSpec;
+import io.stackgres.operator.customresource.storages.AwsS3CompatibleStorage;
 import io.stackgres.operator.customresource.storages.AwsS3Storage;
 import io.stackgres.operator.customresource.storages.AzureBlobStorage;
 import io.stackgres.operator.customresource.storages.BackupStorage;
@@ -57,6 +58,12 @@ public abstract class AbstractBackupConfigMap {
       setS3StorageEnvVars(namespace, name, backupEnvVars, storageForS3);
     }
 
+    Optional<AwsS3CompatibleStorage> storageForS3Compatible = getStorageFor(backupConfigSpec,
+        BackupStorage::getS3Compatible);
+    if (storageForS3Compatible.isPresent()) {
+      setS3CompatibleStorageEnvVars(namespace, name, backupEnvVars, storageForS3Compatible);
+    }
+
     Optional<GoogleCloudStorage> storageForGcs = getStorageFor(
         backupConfigSpec, BackupStorage::getGcs);
     if (storageForGcs.isPresent()) {
@@ -81,20 +88,30 @@ public abstract class AbstractBackupConfigMap {
     backupEnvVars.put("WALG_S3_PREFIX", getFromS3(storageForS3, AwsS3Storage::getPrefix)
         + "/" + namespace + "/" + name);
     backupEnvVars.put("AWS_REGION", getFromS3(storageForS3, AwsS3Storage::getRegion));
-    backupEnvVars.put("AWS_ENDPOINT", getFromS3(storageForS3, AwsS3Storage::getEndpoint));
-    backupEnvVars.put("ENDPOINT_HOSTNAME", getFromS3(
-        storageForS3, AwsS3Storage::getEndpoint, StackGresUtil::getHostFromUrl));
-    backupEnvVars.put("ENDPOINT_PORT", getFromS3(
-        storageForS3, AwsS3Storage::getEndpoint, StackGresUtil::getPortFromUrl));
-    backupEnvVars.put("AWS_S3_FORCE_PATH_STYLE", getFromS3(storageForS3,
-        AwsS3Storage::isForcePathStyle));
     backupEnvVars.put("WALG_S3_STORAGE_CLASS", getFromS3(storageForS3,
         AwsS3Storage::getStorageClass));
-    backupEnvVars.put("WALG_S3_SSE", getFromS3(storageForS3, AwsS3Storage::getSse));
-    backupEnvVars.put("WALG_S3_SSE_KMS_ID", getFromS3(storageForS3, AwsS3Storage::getSseKmsId));
-    backupEnvVars.put("WALG_CSE_KMS_ID", getFromS3(storageForS3, AwsS3Storage::getCseKmsId));
-    backupEnvVars.put("WALG_CSE_KMS_REGION", getFromS3(storageForS3,
-        AwsS3Storage::getCseKmsRegion));
+  }
+
+  private void setS3CompatibleStorageEnvVars(String namespace, String name,
+      ImmutableMap.Builder<String, String> backupEnvVars,
+      Optional<AwsS3CompatibleStorage> storageForS3Compatible) {
+    backupEnvVars.put("WALG_S3_PREFIX", getFromS3Compatible(storageForS3Compatible,
+        AwsS3CompatibleStorage::getPrefix)
+        + "/" + namespace + "/" + name);
+    backupEnvVars.put("AWS_REGION", getFromS3Compatible(storageForS3Compatible,
+        AwsS3CompatibleStorage::getRegion));
+    backupEnvVars.put("AWS_ENDPOINT", getFromS3Compatible(storageForS3Compatible,
+        AwsS3CompatibleStorage::getEndpoint));
+    backupEnvVars.put("ENDPOINT_HOSTNAME", getFromS3Compatible(
+        storageForS3Compatible, AwsS3CompatibleStorage::getEndpoint,
+        StackGresUtil::getHostFromUrl));
+    backupEnvVars.put("ENDPOINT_PORT", getFromS3Compatible(
+        storageForS3Compatible, AwsS3CompatibleStorage::getEndpoint,
+        StackGresUtil::getPortFromUrl));
+    backupEnvVars.put("AWS_S3_FORCE_PATH_STYLE", getFromS3Compatible(storageForS3Compatible,
+        AwsS3CompatibleStorage::isForcePathStyle));
+    backupEnvVars.put("WALG_S3_STORAGE_CLASS", getFromS3Compatible(storageForS3Compatible,
+        AwsS3CompatibleStorage::getStorageClass));
   }
 
   private void setGcsStorageEnvVars(String namespace, String name,
@@ -111,10 +128,6 @@ public abstract class AbstractBackupConfigMap {
     backupEnvVars.put("WALG_AZ_PREFIX", getFromAzureBlob(
         storageForAzureBlob, AzureBlobStorage::getPrefix)
         + "/" + namespace + "/" + name);
-    backupEnvVars.put("WALG_AZURE_BUFFER_SIZE", getFromAzureBlob(
-        storageForAzureBlob, AzureBlobStorage::getBufferSize));
-    backupEnvVars.put("WALG_AZURE_MAX_BUFFERS", getFromAzureBlob(
-        storageForAzureBlob, AzureBlobStorage::getMaxBuffers));
   }
 
   protected String getGcsCredentialsFilePath() {
@@ -153,8 +166,16 @@ public abstract class AbstractBackupConfigMap {
         .orElse("");
   }
 
-  private <T, R> String getFromS3(Optional<AwsS3Storage> storageFor,
-      Function<AwsS3Storage, T> getter, CheckedFunction<T, R> transformer) {
+  private <T> String getFromS3Compatible(Optional<AwsS3CompatibleStorage> storageFor,
+      Function<AwsS3CompatibleStorage, T> getter) {
+    return storageFor
+        .map(getter)
+        .map(this::convertEnvValue)
+        .orElse("");
+  }
+
+  private <T, R> String getFromS3Compatible(Optional<AwsS3CompatibleStorage> storageFor,
+      Function<AwsS3CompatibleStorage, T> getter, CheckedFunction<T, R> transformer) {
     return storageFor
         .map(getter)
         .map(Unchecked.function(transformer))

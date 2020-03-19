@@ -57,13 +57,11 @@
                 "name": "minio"
               }
             },
-            "endpoint": "http://minio.stackgres.svc:9000",
-            "forcePathStyle": true,
-            "prefix": "s3://stackgres",
+            "bucket": "stackgres",
             "region": "k8s"
           },
           "gcs": {
-            "prefix": "s3://test",
+            "prefix": "test",
             "credentials": {
               "serviceAccountJsonKey": {
                 "name": "test",

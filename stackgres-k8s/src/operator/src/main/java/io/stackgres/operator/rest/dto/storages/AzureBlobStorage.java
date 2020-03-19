@@ -21,26 +21,31 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 @RegisterForReflection
 public class AzureBlobStorage {
 
-  @JsonProperty("prefix")
-  @NotNull(message = "The prefix is required")
-  private String prefix;
+  @JsonProperty("bucket")
+  @NotNull(message = "The bucket is required")
+  private String bucket;
+
+  @JsonProperty("path")
+  private String path;
 
   @JsonProperty("credentials")
   @NotNull(message = "The credentials is required")
   private AzureBlobStorageCredentials credentials;
 
-  @JsonProperty("bufferSize")
-  private long bufferSize;
-
-  @JsonProperty("maxBuffers")
-  private int maxBuffers;
-
-  public String getPrefix() {
-    return prefix;
+  public String getBucket() {
+    return bucket;
   }
 
-  public void setPrefix(String prefix) {
-    this.prefix = prefix;
+  public void setBucket(String bucket) {
+    this.bucket = bucket;
+  }
+
+  public String getPath() {
+    return path;
+  }
+
+  public void setPath(String path) {
+    this.path = path;
   }
 
   public AzureBlobStorageCredentials getCredentials() {
@@ -51,25 +56,9 @@ public class AzureBlobStorage {
     this.credentials = credentials;
   }
 
-  public long getBufferSize() {
-    return bufferSize;
-  }
-
-  public void setBufferSize(long bufferSize) {
-    this.bufferSize = bufferSize;
-  }
-
-  public int getMaxBuffers() {
-    return maxBuffers;
-  }
-
-  public void setMaxBuffers(int maxBuffers) {
-    this.maxBuffers = maxBuffers;
-  }
-
   @Override
   public int hashCode() {
-    return Objects.hash(bufferSize, credentials, maxBuffers, prefix);
+    return Objects.hash(credentials, bucket, path);
   }
 
   @Override
@@ -84,18 +73,18 @@ public class AzureBlobStorage {
       return false;
     }
     AzureBlobStorage other = (AzureBlobStorage) obj;
-    return bufferSize == other.bufferSize && Objects.equals(credentials, other.credentials)
-        && maxBuffers == other.maxBuffers && Objects.equals(prefix, other.prefix);
+    return Objects.equals(credentials, other.credentials)
+        && Objects.equals(bucket, other.bucket)
+        && Objects.equals(path, other.path);
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .omitNullValues()
-        .add("prefix", prefix)
+        .add("bucket", bucket)
+        .add("path", path)
         .add("credentials", credentials)
-        .add("bufferSize", bufferSize)
-        .add("maxBuffers", maxBuffers)
         .toString();
   }
 

@@ -15,7 +15,6 @@ import com.google.common.base.MoreObjects;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.operator.rest.dto.storages.BackupStorage;
-import io.stackgres.operator.rest.dto.storages.PgpConfiguration;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -47,9 +46,6 @@ public class BackupConfigSpec {
 
   @JsonProperty("uploadDiskConcurrency")
   private int uploadDiskConcurrency;
-
-  @JsonProperty("pgpConfiguration")
-  private PgpConfiguration pgpConfiguration;
 
   @JsonProperty("tarSizeThreshold")
   private long tarSizeThreshold;
@@ -118,14 +114,6 @@ public class BackupConfigSpec {
     this.uploadDiskConcurrency = uploadDiskConcurrency;
   }
 
-  public PgpConfiguration getPgpConfiguration() {
-    return pgpConfiguration;
-  }
-
-  public void setPgpConfiguration(PgpConfiguration pgpConfiguration) {
-    this.pgpConfiguration = pgpConfiguration;
-  }
-
   public long getTarSizeThreshold() {
     return tarSizeThreshold;
   }
@@ -145,7 +133,6 @@ public class BackupConfigSpec {
         .add("networkRateLimit", networkRateLimit)
         .add("diskRateLimit", diskRateLimit)
         .add("uploadDiskConcurrency", uploadDiskConcurrency)
-        .add("pgpConfiguration", pgpConfiguration)
         .add("tarSizeThreshold", tarSizeThreshold)
         .toString();
   }

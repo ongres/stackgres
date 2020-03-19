@@ -17,7 +17,6 @@ import com.google.common.base.MoreObjects;
 import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.operator.customresource.storages.BackupStorage;
-import io.stackgres.operator.customresource.storages.PgpConfiguration;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -52,9 +51,6 @@ public class StackGresBackupConfigSpec implements KubernetesResource {
 
   @JsonProperty("uploadDiskConcurrency")
   private int uploadDiskConcurrency;
-
-  @JsonProperty("pgpConfiguration")
-  private PgpConfiguration pgpConfiguration;
 
   @JsonProperty("tarSizeThreshold")
   private long tarSizeThreshold;
@@ -123,14 +119,6 @@ public class StackGresBackupConfigSpec implements KubernetesResource {
     this.uploadDiskConcurrency = uploadDiskConcurrency;
   }
 
-  public PgpConfiguration getPgpConfiguration() {
-    return pgpConfiguration;
-  }
-
-  public void setPgpConfiguration(PgpConfiguration pgpConfiguration) {
-    this.pgpConfiguration = pgpConfiguration;
-  }
-
   public long getTarSizeThreshold() {
     return tarSizeThreshold;
   }
@@ -150,7 +138,6 @@ public class StackGresBackupConfigSpec implements KubernetesResource {
         .add("networkRateLimit", networkRateLimit)
         .add("diskRateLimit", diskRateLimit)
         .add("uploadDiskConcurrency", uploadDiskConcurrency)
-        .add("pgpConfiguration", pgpConfiguration)
         .add("tarSizeThreshold", tarSizeThreshold)
         .toString();
   }

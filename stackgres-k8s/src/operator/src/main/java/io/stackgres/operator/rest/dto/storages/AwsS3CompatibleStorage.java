@@ -19,7 +19,7 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class AwsS3Storage {
+public class AwsS3CompatibleStorage {
 
   @JsonProperty("bucket")
   @NotNull(message = "The bucket is required")
@@ -34,6 +34,12 @@ public class AwsS3Storage {
 
   @JsonProperty("region")
   private String region;
+
+  @JsonProperty("endpoint")
+  private String endpoint;
+
+  @JsonProperty("forcePathStyle")
+  private Boolean forcePathStyle;
 
   @JsonProperty("storageClass")
   private String storageClass;
@@ -70,6 +76,22 @@ public class AwsS3Storage {
     this.region = region;
   }
 
+  public String getEndpoint() {
+    return endpoint;
+  }
+
+  public void setEndpoint(String endpoint) {
+    this.endpoint = endpoint;
+  }
+
+  public Boolean isForcePathStyle() {
+    return forcePathStyle;
+  }
+
+  public void setForcePathStyle(Boolean forcePathStyle) {
+    this.forcePathStyle = forcePathStyle;
+  }
+
   public String getStorageClass() {
     return storageClass;
   }
@@ -80,7 +102,7 @@ public class AwsS3Storage {
 
   @Override
   public int hashCode() {
-    return Objects.hash(credentials, bucket,
+    return Objects.hash(credentials, endpoint, forcePathStyle, bucket,
         region, storageClass, path);
   }
 
@@ -92,11 +114,12 @@ public class AwsS3Storage {
     if (obj == null) {
       return false;
     }
-    if (!(obj instanceof AwsS3Storage)) {
+    if (!(obj instanceof AwsS3CompatibleStorage)) {
       return false;
     }
-    AwsS3Storage other = (AwsS3Storage) obj;
+    AwsS3CompatibleStorage other = (AwsS3CompatibleStorage) obj;
     return Objects.equals(credentials, other.credentials)
+        && Objects.equals(endpoint, other.endpoint) && forcePathStyle == other.forcePathStyle
         && Objects.equals(bucket, other.bucket) && Objects.equals(region, other.region)
         && Objects.equals(storageClass, other.storageClass) && Objects.equals(path, other.path);
   }
@@ -109,6 +132,8 @@ public class AwsS3Storage {
         .add("path", path)
         .add("credentials", credentials)
         .add("region", region)
+        .add("endpoint", endpoint)
+        .add("forcePathStyle", forcePathStyle)
         .add("storageClass", storageClass)
         .toString();
   }
