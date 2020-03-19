@@ -66,7 +66,7 @@ var ClusterOverview = Vue.component("cluster-overview", {
 								{{ cluster.data.spec.volumeSize }}
 							</div>
 							<div class="col">
-								<!-- {{ cluster.data.status.pods_ready }} -->*** / {{ cluster.data.spec.instances }}
+								{{ cluster.data.pods_ready }} / {{ cluster.data.spec.instances }}
 							</div>
 						</div>
 					</template>
