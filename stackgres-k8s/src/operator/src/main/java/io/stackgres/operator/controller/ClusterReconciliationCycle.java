@@ -60,6 +60,7 @@ import io.stackgres.operator.customresource.sgprofile.StackGresProfileDefinition
 import io.stackgres.operator.customresource.sgprofile.StackGresProfileDoneable;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfileList;
 import io.stackgres.operator.customresource.storages.AwsCredentials;
+import io.stackgres.operator.customresource.storages.AwsS3CompatibleStorage;
 import io.stackgres.operator.customresource.storages.AwsS3Storage;
 import io.stackgres.operator.customresource.storages.AzureBlobStorage;
 import io.stackgres.operator.customresource.storages.AzureBlobStorageCredentials;
@@ -393,6 +394,12 @@ public class ClusterReconciliationCycle
         Optional.ofNullable(backupConfSpec.getStorage().getS3())
             .map(AwsS3Storage::getCredentials)
             .map(AwsCredentials::getSecretKey),
+        Optional.ofNullable(backupConfSpec.getStorage().getS3Compatible())
+        .map(AwsS3CompatibleStorage::getCredentials)
+        .map(AwsCredentials::getAccessKey),
+        Optional.ofNullable(backupConfSpec.getStorage().getS3Compatible())
+        .map(AwsS3CompatibleStorage::getCredentials)
+        .map(AwsCredentials::getSecretKey),
         Optional.ofNullable(backupConfSpec.getStorage().getGcs())
             .map(GoogleCloudStorage::getCredentials)
             .map(GoogleCloudCredentials::getServiceAccountJsonKey),

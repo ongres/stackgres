@@ -33,6 +33,14 @@ public abstract class AbstractBackupSecret {
                 awsConf.getCredentials().getSecretKey(), secrets))),
         Optional.of(backupConfigSpec)
         .map(StackGresBackupConfigSpec::getStorage)
+        .map(BackupStorage::getS3Compatible)
+        .map(awsConf -> Seq.of(
+            getSecretEntry("AWS_ACCESS_KEY_ID",
+                awsConf.getCredentials().getAccessKey(), secrets),
+            getSecretEntry("AWS_SECRET_ACCESS_KEY",
+                awsConf.getCredentials().getSecretKey(), secrets))),
+        Optional.of(backupConfigSpec)
+        .map(StackGresBackupConfigSpec::getStorage)
         .map(BackupStorage::getGcs)
         .map(gcsConfig -> Seq.of(
             getSecretEntry(
@@ -55,7 +63,12 @@ public abstract class AbstractBackupSecret {
 
   private Tuple2<String, String> getSecretEntry(String envvar,
       SecretKeySelector secretKeySelector, Map<String, Map<String, String>> secrets) {
-    return Tuple.tuple(envvar, secrets.get(secretKeySelector.getName())
-        .get(secretKeySelector.getKey()));
+    return Tuple.tuple(envvar, Optional.ofNullable(secrets.get(secretKeySelector.getName()))
+        .map(secret -> Optional.ofNullable(secret.get(secretKeySelector.getKey()))
+            .orElseThrow(() -> new IllegalStateException(
+                "Key " + secretKeySelector.getKey() + " in secret "
+                    + secretKeySelector.getName() + " not available")))
+        .orElseThrow(() -> new IllegalStateException(
+            "Secret " + secretKeySelector.getName() + " not available")));
   }
 }
