@@ -1022,14 +1022,36 @@ $(document).ready(function(){
       $(".set.active:not(.conf)").removeClass("active");
       $(this).parent("div:not(.conf)").addClass("active");
     }
+
+    $(".set:not(.active) > ul.show").removeClass("show");
     
   });
 
   $(document).on("click", ".set .item", function(){
-
     $(".set.active:not(.conf)").removeClass("active");
-    $(this).parent().parent().parent().addClass("active")
+    $(this).parent().parent().parent().addClass("active");
+
+    $(".set:not(.active) > ul.show").removeClass("show");
+  });
+
+  $(document).on("mouseover", ".set:not(.active)", function(){
+    let offset = $(this).offset();
+    let submenu = $(this).children("ul");
     
+    if(window.innerHeight > 700)
+      submenu.css("bottom","auto").css("top",offset.top)
+    else
+      submenu.css("top", "auto").css("bottom",window.innerHeight - $(this).height() - offset.top)
+      
+    submenu.addClass("show");
+  });
+
+  $(document).on("mouseleave", ".set:not(.active) ul.show", function(){
+    $(this).removeClass("show");
+  });
+
+  $(document).on("mouseleave", ".set:not(.active)", function(){
+    $(this).children("ul.show").removeClass("show");
   });
 
   $(document).on("click", "#nav:not(.disabled) .top a.nav-item", function(){
