@@ -535,14 +535,31 @@ const vm = new Vue({
               data: item
             });
 
+            // Set as current cluster if no other cluster has already been set
+            if(!store.state.currentCluster.length) {
+              // Read Cluster Data
+              axios
+              .get(apiURL+'cluster/status/'+item.metadata.namespace+'/'+item.metadata.name,
+                  { headers: {
+                      'content-type': 'application/json'
+                  }
+                  }
+              )
+              .then( function(response){
+
+                  cluster = { 
+                      name: item.metadata.name,
+                      data: response.data,
+                      spec: item.spec,
+                      metadata: item.metadata   
+                  };
+                  
+                  store.commit('setCurrentCluster', cluster);
+
+              });
+            }
+
           });
-          
-          // console.log('Clusters Data updated');
-          
-          /*if(doneInit)
-            notify('Clusters Data updated');
-          else
-            doneInit = true;*/
 
         }
         
@@ -975,11 +992,11 @@ $(document).ready(function(){
     //console.log(currentCluster);
     //console.log(router.history.current.params.name);
   }); */
-
+/* 
   $(document).on("click", ".conf a, .prof a", function(){
-    store.commit('setCurrentCluster', ' ');
+    store.commit('setCurrentCluster', {});
     $("#nav").addClass("disabled");
-  });
+  }); */
 
   $(document).on("click", ".box h4", function() {
     
@@ -1197,8 +1214,12 @@ $(document).ready(function(){
     $(".sort th").toggleClass("desc asc")   
   });
 
-  $(document).on("click", "tr.base.Completed", function(){
-    $(this).next().toggle()
+  $(document).on("click", "tr.base:not(.Pending) td:not(.actions)", function(){
+    $(this).parent().next().toggle()
+  });
+
+  $(document).on("click", "tr.base a.open", function(){
+    $(this).parent().parent().next().toggle()
   });
 
   
