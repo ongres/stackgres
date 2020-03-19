@@ -361,6 +361,15 @@ public class ItHelper {
         throw ex;
       }
     }
+    k8s.copyIn(new ByteArrayInputStream(
+        ("cd /resources/e2e\n"
+            + E2E_ENVVARS + "\n"
+            + "sh " + (ItHelper.E2E_DEBUG.orElse(false) ? "-x" : "")
+            + " e2e wait_services_available stackgres 2\n")
+        .getBytes(StandardCharsets.UTF_8)), "/wait-operator-services.sh");
+    k8s.execute("sh", "-e", "/wait-operator-services.sh")
+        .filter(ItHelper.EXCLUDE_TTY_WARNING)
+        .forEach(LOGGER::info);
   }
 
   /**
