@@ -36,61 +36,27 @@ var CreateBackupConfig = Vue.component("create-backup-config", {
                     
                     <div class="col">
                         <label for="backupConfigFullScheduleMin">Minute <span class="req">*</span></label>
-                        <select v-model="backupConfigFullScheduleMin" required>
-                            <option value="*" selected>Every Minute</option>
-                            <option value="*/2">Every Second Minute</option>
-                            <option v-for="index in 60" :key="index">{{ index-1 }}</option>
-                        </select>
+                        <input v-model="backupConfigFullScheduleMin" required>
                     </div>
 
                     <div class="col">
                         <label for="backupConfigFullScheduleHour">Hour <span class="req">*</span></label>
-                        <select v-model="backupConfigFullScheduleHour" required>
-                            <option value="*" selected>Every Hour</option>
-                            <option v-for="index in 24" :key="index">{{ index-1 }}</option>
-                        </select>
+                        <input v-model="backupConfigFullScheduleHour" required>
                     </div>
 
                     <div class="col">
                         <label for="backupConfigFullScheduleDOM">Day of Month <span class="req">*</span></label>
-                        <select v-model="backupConfigFullScheduleDOM" required>
-                            <option value="*" selected>Every Day</option>
-                            <option v-for="index in 31" :key="index">{{ index }}</option>
-                        </select>
+                        <input v-model="backupConfigFullScheduleDOM" required>
                     </div>
 
                     <div class="col">
                         <label for="backupConfigFullScheduleMonth">Month <span class="req">*</span></label>
-                        <select v-model="backupConfigFullScheduleMonth" required>
-                            <option value="*" selected>Every Month</option>
-                            <option value="1">January</option>
-                            <option value="2">February</option>
-                            <option value="3">March</option>
-                            <option value="4">April</option>
-                            <option value="5">May</option>
-                            <option value="6">June</option>
-                            <option value="7">July</option>
-                            <option value="8">August</option>
-                            <option value="9">September</option>
-                            <option value="10">October</option>
-                            <option value="11">November</option>
-                            <option value="12">December</option>
-                        </select>
+                        <input v-model="backupConfigFullScheduleMonth" required>
                     </div>
 
                     <div class="col">
                         <label for="backupConfigFullScheduleDOW">Day of Week <span class="req">*</span></label>
-                        <select v-model="backupConfigFullScheduleDOW" required>
-                            <option value="*" selected>Every Weekday</option>
-                            <option value="1">Monday</option>
-                            <option value="2">Tuesday</option>
-                            <option value="3">Wednesday</option>
-                            <option value="4">Thursday</option>
-                            <option value="5">Friday</option>
-                            <option value="6">Saturday</option>
-                            <option value="7">Sunday</option>
-                            
-                        </select>
+                        <input v-model="backupConfigFullScheduleDOW" required>
                     </div>
                 </fieldset>
 

@@ -50,15 +50,15 @@ var Side = Vue.component("sg-side", {
 
 					<ul>
 						<div class="pg set">
-							<router-link :to="'/configurations/postgresql/'+currentNamespace" class="nav-item">
+							<router-link :to="'/configurations/postgres/'+currentNamespace" class="nav-item">
 								<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 26.7 20"><path class="a" d="M10.946 18.7a.841.841 0 01-.622-.234.862.862 0 01-.234-.635v-7.817a.8.8 0 01.221-.6.834.834 0 01.608-.214h3.29a3.4 3.4 0 012.353.755 2.7 2.7 0 01.843 2.12 2.72 2.72 0 01-.843 2.126 3.379 3.379 0 01-2.353.764h-2.394v2.875a.8.8 0 01-.869.867zM14 13.637q1.778 0 1.778-1.551T14 10.535h-2.18v3.1zm11.968-.107a.683.683 0 01.494.181.625.625 0 01.191.477v2.875a1.717 1.717 0 01-.16.87 1.174 1.174 0 01-.655.414 6.882 6.882 0 01-1.242.294 9.023 9.023 0 01-1.364.107 5.252 5.252 0 01-2.527-.573 3.883 3.883 0 01-1.638-1.665 5.548 5.548 0 01-.569-2.6 5.5 5.5 0 01.569-2.575 3.964 3.964 0 011.611-1.671 4.965 4.965 0 012.455-.59 4.62 4.62 0 013.089 1.016 1.058 1.058 0 01.234.294.854.854 0 01-.087.843.479.479 0 01-.388.2.737.737 0 01-.267-.047 1.5 1.5 0 01-.281-.153 4.232 4.232 0 00-1.1-.582 3.648 3.648 0 00-1.146-.167 2.747 2.747 0 00-2.2.859 3.834 3.834 0 00-.742 2.561q0 3.477 3.049 3.477a6.752 6.752 0 001.815-.254v-2.36h-1.517a.737.737 0 01-.5-.161.664.664 0 010-.909.732.732 0 01.5-.161zM.955 4.762h10.5a.953.953 0 100-1.9H.955a.953.953 0 100 1.9zM14.8 7.619a.954.954 0 00.955-.952V4.762h4.3a.953.953 0 100-1.9h-4.3V.952a.955.955 0 00-1.909 0v5.715a.953.953 0 00.954.952zM.955 10.952h4.3v1.9a.955.955 0 001.909 0V7.143a.955.955 0 00-1.909 0v1.9h-4.3a.953.953 0 100 1.9zm6.681 4.286H.955a.953.953 0 100 1.905h6.681a.953.953 0 100-1.905z"/></svg>
-								<h4>PostgreSQL</h4>
+								<h4>Postgres</h4>
 							</router-link>
 
 							<ul>
 								<template v-for="config in pgConfig">
 									<li v-if="config.data.metadata.namespace == currentNamespace">
-										<router-link :to="'/configurations/postgresql/'+config.data.metadata.namespace+'/'+config.name" class="item" :class="( ($route.params.name === config.name) && ($route.params.action == 'edit')) ? 'router-link-exact-active '+config.name : config.name">{{ config.name }}</router-link>
+										<router-link :to="'/configurations/postgres/'+config.data.metadata.namespace+'/'+config.name" class="item" :class="( ($route.params.name === config.name) && ($route.params.action == 'edit')) ? 'router-link-exact-active '+config.name : config.name">{{ config.name }}</router-link>
 									</li>
 								</template>
 								<li><router-link to="/crd/create/pgconfig/" class="addnew item">Add New</router-link></li>
@@ -125,6 +125,7 @@ var Side = Vue.component("sg-side", {
 					</ul>
 				</div>
 			</div>
+			<!--
 			<div id="expanders">
 				<div class="collapse">
 					<svg xmlns="http://www.w3.org/2000/svg" width="11" height="13"><g><path d="M4.763 7.8a1 1 0 011.474 0l3.227 3.52A1 1 0 018.727 13H2.273a1 1 0 01-.737-1.676zM6.237 5.2a1 1 0 01-1.474 0L1.536 1.68A1 1 0 012.273 0h6.454a1 1 0 01.737 1.676z"/></g></svg>
@@ -135,6 +136,7 @@ var Side = Vue.component("sg-side", {
 					Expand All
 				</div>
 			</div>
+			-->
 
 			<!--<footer id="credits">
 				<span>STACK<strong>GRES</strong></span> coded with <span class="hearth">❤</span>︎ by Ongres

@@ -32,9 +32,9 @@ var CreateCluster = Vue.component("create-cluster", {
 
                 <div>
                     
-                    <label for="pgVersion">PostgreSQL Version <span class="req">*</span></label>
+                    <label for="pgVersion">Postgres Version <span class="req">*</span></label>
                     <select v-model="pgVersion" :disabled="(editMode)" required>
-                        <option disabled value="">Select PostgreSQL Version</option>
+                        <option disabled value="">Select Version</option>
                         <option value="latest" selected>Latest</option>
                         <option value="12">12</option>
                         <option value="11">11</option>
