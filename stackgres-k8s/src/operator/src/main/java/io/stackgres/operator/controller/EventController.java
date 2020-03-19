@@ -6,11 +6,14 @@
 package io.stackgres.operator.controller;
 
 import java.time.Instant;
+import java.time.format.DateTimeFormatter;
+import java.util.Objects;
 import java.util.Random;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import io.fabric8.kubernetes.api.model.Event;
 import io.fabric8.kubernetes.api.model.EventBuilder;
 import io.fabric8.kubernetes.api.model.EventSourceBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
@@ -60,30 +63,84 @@ public class EventController {
   private void sendEvent(EventReason reason, String message, HasMetadata involvedObject,
       KubernetesClient client) {
     if (involvedObject == null) {
-      LOGGER.warn("Can not send event, involved object was null");
+      LOGGER.warn("Can not send event {} ({}), involved object was null", reason, message);
       return;
     }
-    Instant now = Instant.now();
-    String id = nextId();
-    client.resource(new EventBuilder()
+    final Instant now = Instant.now();
+    final String namespace = involvedObject.getMetadata().getNamespace();
+    client.events()
+        .inNamespace(namespace)
+        .withLabels(involvedObject.getMetadata().getLabels())
+        .list()
+        .getItems()
+        .stream()
+        .filter(event -> isSameEvent(event, reason, message, involvedObject))
+        .findAny()
+        .map(event -> patchEvent(event, now, client))
+        .orElseGet(() -> createEvent(namespace, now,
+            reason, message, involvedObject, client));
+  }
+
+  private String nextId() {
+    return Long.toHexString(random.nextLong());
+  }
+
+  private boolean isSameEvent(Event event, EventReason reason, String message,
+      HasMetadata involvedObject) {
+    return Objects.equals(
+        event.getInvolvedObject().getKind(),
+        involvedObject.getKind())
+        && Objects.equals(
+            event.getInvolvedObject().getNamespace(),
+            involvedObject.getMetadata().getNamespace())
+        && Objects.equals(
+            event.getInvolvedObject().getName(),
+            involvedObject.getMetadata().getName())
+        && Objects.equals(
+            event.getInvolvedObject().getUid(),
+            involvedObject.getMetadata().getUid())
+        && Objects.equals(
+            event.getReason(),
+            reason.reason())
+        && Objects.equals(
+            event.getType(),
+            reason.type())
+        && Objects.equals(
+            event.getMessage(),
+            message);
+  }
+
+  private Event patchEvent(Event event, Instant now, KubernetesClient client) {
+    event.setCount(event.getCount() + 1);
+    event.setLastTimestamp(DateTimeFormatter.ISO_INSTANT.format(now));
+    return client.events()
+        .inNamespace(event.getMetadata().getNamespace())
+        .withName(event.getMetadata().getName())
+        .patch(event);
+  }
+
+  private Event createEvent(String namespace, Instant now,
+      EventReason reason, String message, HasMetadata involvedObject,
+      KubernetesClient client) {
+    final String id = nextId();
+    final String name = involvedObject.getMetadata().getName() + "." + id;
+    return client.events().create(new EventBuilder()
         .withNewMetadata()
-        .withName(involvedObject.getMetadata().getName() + "." + id)
-        .withNamespace(involvedObject.getMetadata().getNamespace())
+        .withNamespace(namespace)
+        .withName(name)
         .withLabels(involvedObject.getMetadata().getLabels())
         .endMetadata()
-        .withFirstTimestamp(now.toString())
-        .withLastTimestamp(now.toString())
-        .withMessage(message)
+        .withType(reason.type())
         .withReason(reason.reason())
+        .withMessage(message)
+        .withCount(1)
+        .withFirstTimestamp(DateTimeFormatter.ISO_INSTANT.format(now))
+        .withLastTimestamp(DateTimeFormatter.ISO_INSTANT.format(now))
         .withSource(new EventSourceBuilder()
             .withComponent(StackGresUtil.OPERATOR_NAME)
             .build())
         .withInvolvedObject(ResourceUtil.getObjectReference(involvedObject))
-        .build())
-        .createOrReplace();
+        .build());
   }
 
-  private synchronized String nextId() {
-    return Long.toHexString(random.nextLong());
-  }
 }
