@@ -82,7 +82,22 @@ $(kubectl get "$BACKUP_CONFIG_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG"
       type: "{{ .spec.storage.type }}"
       {{- with .spec.storage.s3 }}
       s3:
-        prefix: "{{ .prefix }}"
+        bucket: "{{ .bucket }}"
+        {{ with .path }}path: "{{ . }}"{{ end }}
+        credentials:
+          accessKey:
+            key: "{{ .credentials.accessKey.key }}"
+            name: "{{ .credentials.accessKey.name }}"
+          secretKey:
+            key: "{{ .credentials.secretKey.key }}"
+            name: "{{ .credentials.secretKey.name }}"
+        {{ with .region }}region: "{{ . }}"{{ end }}
+        {{ with .storageClass }}storageClass: "{{ . }}"{{ end }}
+      {{- end }}
+      {{- with .spec.storage.s3compatible }}
+      s3compatible:
+        bucket: "{{ .bucket }}"
+        {{ with .path }}path: "{{ . }}"{{ end }}
         credentials:
           accessKey:
             key: "{{ .credentials.accessKey.key }}"
@@ -97,7 +112,8 @@ $(kubectl get "$BACKUP_CONFIG_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG"
       {{- end }}
       {{- with .spec.storage.gcs }}
       gcs:
-        prefix: "{{ .prefix }}"
+        bucket: "{{ .bucket }}"
+        {{ with .path }}path: "{{ . }}"{{ end }}
         credentials:
           serviceAccountJsonKey:
             key: "{{ .credentials.serviceAccountJsonKey.key }}"
@@ -105,7 +121,8 @@ $(kubectl get "$BACKUP_CONFIG_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG"
       {{- end }}
       {{- with .spec.storage.azureblob }}
       azureblob:
-        prefix: "{{ .prefix }}"
+        bucket: "{{ .bucket }}"
+        {{ with .path }}path: "{{ . }}"{{ end }}
         credentials:
           account:
             key: "{{ .credentials.account.key }}"
@@ -131,7 +148,26 @@ else
       "type": "{{ .spec.storage.type }}",
       {{- with .spec.storage.s3 }}
       "s3": {
-        "prefix": "{{ .prefix }}",
+        "bucket": "{{ .bucket }}",
+        {{ with .path }}"path": "{{ . }}",{{ end }}
+        "credentials": {
+          "accessKey": {
+            "key": "{{ .credentials.accessKey.key }}",
+            "name": "{{ .credentials.accessKey.name }}"
+          },
+          "secretKey": {
+            "key": "{{ .credentials.secretKey.key }}",
+            "name": "{{ .credentials.secretKey.name }}"
+          }
+        }
+        {{ with .region }},"region": "{{ . }}"{{ end }}
+        {{ with .storageClass }},"storageClass": "{{ . }}"{{ end }}
+      }
+      {{- end }}
+      {{- with .spec.storage.s3compatible }}
+      "s3compatible": {
+        "bucket": "{{ .bucket }}",
+        {{ with .path }}"path": "{{ . }}",{{ end }}
         "credentials": {
           "accessKey": {
             "key": "{{ .credentials.accessKey.key }}",
@@ -150,7 +186,8 @@ else
       {{- end }}
       {{- with .spec.storage.gcs }}
       "gcs": {
-        "prefix": "{{ .prefix }}",
+        "bucket": "{{ .bucket }}",
+        {{ with .path }}"path": "{{ . }}",{{ end }}
         "credentials": {
           "serviceAccountJsonKey": {
             "key": "{{ .credentials.serviceAccountJsonKey.key }}",
@@ -161,7 +198,8 @@ else
       {{- end }}
       {{- with .spec.storage.azureblob }}
       "azureblob": {
-        "prefix": "{{ .prefix }}",
+        "bucket": "{{ .bucket }}",
+        {{ with .path }}"path": "{{ . }}",{{ end }}
         "credentials": {
           "account": {
             "key": "{{ .credentials.account.key }}",
