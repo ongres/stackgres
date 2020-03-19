@@ -974,10 +974,22 @@ footer .tooltip p {
     font-size: 1rem;
 }
 
-header a.btn {
+header .add {
     position: absolute;
-    top: -3px;
+    top: 0;
     right: 0;
+    background: none;
+    color: var(--blue);
+    font-size: 1rem;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+header .add:before {
+    content: "+";
+    font-size: 18px;
+    display: inline-block;
+    margin-right: 5px;
 }
 
 ul.breadcrumbs {
@@ -1762,8 +1774,13 @@ th {
     color: var(--gray3);
 }
 
+th:first-child, td:first-child {
+    padding-left: 15px;
+}
+
 td.actions {
     text-align: right;
+    width: 100px;
     padding-right: 15px;
     text-transform: uppercase;
 }
@@ -1775,6 +1792,15 @@ td.actions {
 
 td.actions a {
     margin: 0 5px;
+    cursor: pointer;
+}
+
+.actions svg path {
+    fill: #7a7b85;
+}
+
+.actions a:hover svg path {
+    fill: var(--blue);
 }
 
 table .icon {

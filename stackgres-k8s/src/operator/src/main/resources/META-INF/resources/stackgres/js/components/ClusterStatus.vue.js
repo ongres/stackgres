@@ -133,7 +133,7 @@ var ClusterStatus = Vue.component("cluster-status", {
 	      	});
 
 			/* Pods Data */
-		    axios
+		    /* axios
 		    .get(apiURL+'cluster/pods/'+vm.$route.params.namespace+'/'+vm.$route.params.name,
 		    	{ headers: {
 		            'content-type': 'application/json'
@@ -149,7 +149,7 @@ var ClusterStatus = Vue.component("cluster-status", {
 
 	        	vc.dataReady[1] = true;
 	        	vc.allDataReady = vc.dataReady[0] && vc.dataReady[1];
-	      	});
+	      	}); */
 		},
 
 		deleteCluster: function(e) {
