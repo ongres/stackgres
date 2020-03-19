@@ -193,12 +193,13 @@ var CreateCluster = Vue.component("create-cluster", {
                 restore: false,
                 restoreBackup: '',
                 backupConfig: (store.state.currentCluster.spec.backupConfig !== undefined) ? store.state.currentCluster.spec.backupConfig : '',
-                prometheusAutobind: false,
-                disableClusterPodAntiAffinity: false,
+                prometheusAutobind:  (store.state.currentCluster.spec.prometheusAutobind !== undefined) ? store.state.currentCluster.spec.prometheusAutobind : false,
+                disableClusterPodAntiAffinity: (store.state.currentCluster.spec.disableClusterPodAntiAffinity !== undefined) ? store.state.currentCluster.spec.disableClusterPodAntiAffinity : false,
                 pgUtils: true,
             }
         }
-	},
+    },
+    
 	computed: {
 
 		currentNamespace () {
@@ -252,6 +253,7 @@ var CreateCluster = Vue.component("create-cluster", {
             if(isValid) {
                 let sidecars = [];
                 let fromBackup = {};
+                let nonProduction = {}
 
                 if(this.connPooling)
                     sidecars.push('connection-pooling');
@@ -274,7 +276,8 @@ var CreateCluster = Vue.component("create-cluster", {
                         ...(this.connPooling && ( {"connectionPoolingConfig": this.connectionPoolingConfig }) ),
                         "volumeSize": this.volumeSize+this.volumeUnit,
                         ...( ( (this.storageClass !== undefined) && (this.storageClass.length ) ) && ( {"storageClass": this.storageClass }) ),
-                        //"prometheusAutobind": "true",
+                        ...(this.prometheusAutobind && ( {"prometheusAutobind": this.prometheusAutobind }) ),
+                        ...(this.disableClusterPodAntiAffinity && ( {"nonProduction": { "disableClusterPodAntiAffinity": this.disableClusterPodAntiAffinity } }) ),
                         "sidecars": sidecars
                     }
                 }  
@@ -344,5 +347,4 @@ var CreateCluster = Vue.component("create-cluster", {
         }
 
     }
-    
 })
