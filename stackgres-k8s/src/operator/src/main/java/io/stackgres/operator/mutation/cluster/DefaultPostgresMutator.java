@@ -15,7 +15,7 @@ import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
 import io.stackgres.operator.resource.CustomResourceFinder;
-import io.stackgres.operator.resource.CustomResourceScheduler;
+import io.stackgres.operator.resource.ResourceScheduler;
 
 @ApplicationScoped
 public class DefaultPostgresMutator
@@ -26,7 +26,7 @@ public class DefaultPostgresMutator
   public DefaultPostgresMutator(
       DefaultCustomResourceFactory<StackGresPostgresConfig> resourceFactory,
       CustomResourceFinder<StackGresPostgresConfig> finder,
-      CustomResourceScheduler<StackGresPostgresConfig> scheduler) {
+      ResourceScheduler<StackGresPostgresConfig> scheduler) {
     super(resourceFactory, finder, scheduler);
   }
 

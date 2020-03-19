@@ -35,10 +35,20 @@ public class NamespaceFinder implements
   }
 
   @Override
+  public Optional<Namespace> findByNameAndNamespace(String name, String namespace) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   public List<Namespace> findResources() {
     try (KubernetesClient client = kubClientFactory.create()) {
       return client.namespaces().list().getItems();
     }
+  }
+
+  @Override
+  public List<Namespace> findResourcesInNamespace(String namespace) {
+    throw new UnsupportedOperationException();
   }
 
 }

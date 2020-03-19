@@ -15,7 +15,7 @@ import io.stackgres.operator.common.ArcUtil;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
 import io.stackgres.operator.resource.CustomResourceFinder;
-import io.stackgres.operator.resource.CustomResourceScheduler;
+import io.stackgres.operator.resource.ResourceScheduler;
 import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfig;
 
 @ApplicationScoped
@@ -27,7 +27,7 @@ public class DefaultPgBouncerMutator
   public DefaultPgBouncerMutator(
       DefaultCustomResourceFactory<StackGresPgbouncerConfig> resourceFactory,
       CustomResourceFinder<StackGresPgbouncerConfig> finder,
-      CustomResourceScheduler<StackGresPgbouncerConfig> scheduler) {
+      ResourceScheduler<StackGresPgbouncerConfig> scheduler) {
     super(resourceFactory, finder, scheduler);
   }
 

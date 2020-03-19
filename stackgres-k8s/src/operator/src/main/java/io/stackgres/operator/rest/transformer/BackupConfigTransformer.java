@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.rest.transformer;
 
+import java.util.function.Consumer;
+
 import javax.enterprise.context.ApplicationScoped;
 
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfig;
@@ -98,16 +100,10 @@ public class BackupConfigTransformer
     io.stackgres.operator.customresource.storages.AzureBlobStorageCredentials
         transformation =
         new io.stackgres.operator.customresource.storages.AzureBlobStorageCredentials();
-    transformation.setAccessKey(
-        new io.fabric8.kubernetes.api.model.SecretKeySelector(
-            source.getAccessKey().getName(),
-            source.getAccessKey().getKey(),
-            false));
-    transformation.setAccount(
-        new io.fabric8.kubernetes.api.model.SecretKeySelector(
-            source.getAccount().getName(),
-            source.getAccount().getKey(),
-            false));
+    setSecretKeySelector(transformation::setAccessKey,
+        source.getAccessKeySelector());
+    setSecretKeySelector(transformation::setAccount,
+        source.getAccountSelector());
     return transformation;
   }
 
@@ -134,11 +130,8 @@ public class BackupConfigTransformer
     io.stackgres.operator.customresource.storages.GoogleCloudCredentials
         transformation =
         new io.stackgres.operator.customresource.storages.GoogleCloudCredentials();
-    transformation.setServiceAccountJsonKey(
-        new io.fabric8.kubernetes.api.model.SecretKeySelector(
-            source.getServiceAccountJsonKey().getName(),
-            source.getServiceAccountJsonKey().getKey(),
-            false));
+    setSecretKeySelector(transformation::setServiceAccountJsonKey,
+        source.getServiceAccountJsonKeySelector());
     return transformation;
   }
 
@@ -184,16 +177,10 @@ public class BackupConfigTransformer
     io.stackgres.operator.customresource.storages.AwsCredentials
         transformation =
         new io.stackgres.operator.customresource.storages.AwsCredentials();
-    transformation.setAccessKey(
-        new io.fabric8.kubernetes.api.model.SecretKeySelector(
-            source.getAccessKey().getName(),
-            source.getAccessKey().getKey(),
-            false));
-    transformation.setSecretKey(
-        new io.fabric8.kubernetes.api.model.SecretKeySelector(
-            source.getSecretKey().getName(),
-            source.getSecretKey().getKey(),
-            false));
+    setSecretKeySelector(transformation::setAccessKey,
+        source.getAccessKeySelector());
+    setSecretKeySelector(transformation::setSecretKey,
+        source.getSecretKeySelector());
     return transformation;
   }
 
@@ -250,11 +237,11 @@ public class BackupConfigTransformer
     }
     AzureBlobStorageCredentials transformation =
         new AzureBlobStorageCredentials();
-    transformation.setAccessKey(
+    transformation.setAccessKeySelector(
         SecretKeySelector.create(
             source.getAccessKey().getName(),
             source.getAccessKey().getKey()));
-    transformation.setAccount(
+    transformation.setAccountSelector(
         SecretKeySelector.create(
             source.getAccount().getName(),
             source.getAccount().getKey()));
@@ -281,7 +268,7 @@ public class BackupConfigTransformer
     }
     GoogleCloudCredentials transformation =
         new GoogleCloudCredentials();
-    transformation.setServiceAccountJsonKey(
+    transformation.setServiceAccountJsonKeySelector(
         SecretKeySelector.create(
             source.getServiceAccountJsonKey().getName(),
             source.getServiceAccountJsonKey().getKey()));
@@ -326,15 +313,26 @@ public class BackupConfigTransformer
       return null;
     }
     AwsCredentials transformation = new AwsCredentials();
-    transformation.setAccessKey(
+    transformation.setAccessKeySelector(
         SecretKeySelector.create(
             source.getAccessKey().getName(),
             source.getAccessKey().getKey()));
-    transformation.setSecretKey(
+    transformation.setSecretKeySelector(
         SecretKeySelector.create(
             source.getSecretKey().getName(),
             source.getSecretKey().getKey()));
     return transformation;
+  }
+
+  private void setSecretKeySelector(
+      Consumer<io.fabric8.kubernetes.api.model.SecretKeySelector> setter,
+      SecretKeySelector secretKeySelector) {
+    if (secretKeySelector != null) {
+      setter.accept(new io.fabric8.kubernetes.api.model.SecretKeySelector(
+          secretKeySelector.getKey(),
+          secretKeySelector.getName(),
+          false));
+    }
   }
 
 }

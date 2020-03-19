@@ -13,7 +13,7 @@ import io.stackgres.operator.customresource.sgprofile.StackGresProfile;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfileList;
 import io.stackgres.operator.resource.CustomResourceFinder;
 import io.stackgres.operator.resource.CustomResourceScanner;
-import io.stackgres.operator.resource.CustomResourceScheduler;
+import io.stackgres.operator.resource.ResourceScheduler;
 import io.stackgres.operator.rest.dto.profile.ProfileDto;
 import io.stackgres.operator.rest.transformer.AbstractResourceTransformer;
 import io.stackgres.operator.rest.transformer.ProfileTransformer;
@@ -44,7 +44,7 @@ class ProfileResourceTest extends AbstractCustomResourceTest<ProfileDto, StackGr
   protected AbstractRestService<ProfileDto, StackGresProfile> getService(
       CustomResourceScanner<StackGresProfile> scanner,
       CustomResourceFinder<StackGresProfile> finder,
-      CustomResourceScheduler<StackGresProfile> scheduler,
+      ResourceScheduler<StackGresProfile> scheduler,
       AbstractResourceTransformer<ProfileDto, StackGresProfile> transformer) {
     return new ProfileResource(scanner, finder, scheduler, transformer);
   }

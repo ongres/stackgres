@@ -20,7 +20,7 @@ import java.util.Optional;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.operator.resource.CustomResourceFinder;
 import io.stackgres.operator.resource.CustomResourceScanner;
-import io.stackgres.operator.resource.CustomResourceScheduler;
+import io.stackgres.operator.resource.ResourceScheduler;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -29,7 +29,7 @@ import org.mockito.Mock;
 public abstract class AbstractInitializerTest<T extends CustomResource> {
 
   @Mock
-  private CustomResourceScheduler<T> resourceScheduler;
+  private ResourceScheduler<T> resourceScheduler;
 
   @Mock
   private DefaultCustomResourceFactory<T> resourceFactory;

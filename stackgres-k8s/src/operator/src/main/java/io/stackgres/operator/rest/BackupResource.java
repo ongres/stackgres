@@ -15,7 +15,7 @@ import io.stackgres.operator.common.ArcUtil;
 import io.stackgres.operator.customresource.sgbackup.StackGresBackup;
 import io.stackgres.operator.resource.CustomResourceFinder;
 import io.stackgres.operator.resource.CustomResourceScanner;
-import io.stackgres.operator.resource.CustomResourceScheduler;
+import io.stackgres.operator.resource.ResourceScheduler;
 import io.stackgres.operator.rest.dto.backup.BackupDto;
 import io.stackgres.operator.rest.transformer.ResourceTransformer;
 
@@ -28,7 +28,7 @@ public class BackupResource
   @Inject
   public BackupResource(CustomResourceScanner<StackGresBackup> scanner,
       CustomResourceFinder<StackGresBackup> finder,
-      CustomResourceScheduler<StackGresBackup> scheduler,
+      ResourceScheduler<StackGresBackup> scheduler,
       ResourceTransformer<BackupDto, StackGresBackup> transformer) {
     super(scanner, finder, scheduler, transformer);
   }

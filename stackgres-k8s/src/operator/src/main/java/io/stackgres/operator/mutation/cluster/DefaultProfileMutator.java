@@ -15,7 +15,7 @@ import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfile;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
 import io.stackgres.operator.resource.CustomResourceFinder;
-import io.stackgres.operator.resource.CustomResourceScheduler;
+import io.stackgres.operator.resource.ResourceScheduler;
 
 @ApplicationScoped
 public class DefaultProfileMutator extends AbstractDefaultResourceMutator<StackGresProfile>
@@ -24,7 +24,7 @@ public class DefaultProfileMutator extends AbstractDefaultResourceMutator<StackG
   @Inject
   public DefaultProfileMutator(DefaultCustomResourceFactory<StackGresProfile> resourceFactory,
       CustomResourceFinder<StackGresProfile> finder,
-      CustomResourceScheduler<StackGresProfile> scheduler) {
+      ResourceScheduler<StackGresProfile> scheduler) {
     super(resourceFactory, finder, scheduler);
   }
 

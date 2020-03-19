@@ -17,7 +17,7 @@ import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.CustomResourceList;
 import io.stackgres.operator.resource.CustomResourceFinder;
 import io.stackgres.operator.resource.CustomResourceScanner;
-import io.stackgres.operator.resource.CustomResourceScheduler;
+import io.stackgres.operator.resource.ResourceScheduler;
 import io.stackgres.operator.rest.dto.ResourceDto;
 import io.stackgres.operator.rest.transformer.AbstractResourceTransformer;
 
@@ -30,18 +30,18 @@ import org.mockito.stubbing.Answer;
 abstract class AbstractCustomResourceTest<T extends ResourceDto, R extends CustomResource> {
 
   @Mock
-  private CustomResourceScanner<R> scanner;
+  protected CustomResourceScanner<R> scanner;
 
   @Mock
-  private CustomResourceFinder<R> finder;
+  protected CustomResourceFinder<R> finder;
 
   @Mock
-  private CustomResourceScheduler<R> scheduler;
+  protected ResourceScheduler<R> scheduler;
 
-  private CustomResourceList<R> customResources;
-  private T resourceDto;
-  private AbstractRestService<T, R> service;
-  private AbstractResourceTransformer<T, R> transformer;
+  protected CustomResourceList<R> customResources;
+  protected T resourceDto;
+  protected AbstractRestService<T, R> service;
+  protected AbstractResourceTransformer<T, R> transformer;
 
   @BeforeEach
   void setUp() {
@@ -129,7 +129,7 @@ abstract class AbstractCustomResourceTest<T extends ResourceDto, R extends Custo
   protected abstract AbstractRestService<T, R> getService(
       CustomResourceScanner<R> scanner,
       CustomResourceFinder<R> finder,
-      CustomResourceScheduler<R> scheduler,
+      ResourceScheduler<R> scheduler,
       AbstractResourceTransformer<T, R> transformer);
 
   protected abstract String getResourceNamespace();

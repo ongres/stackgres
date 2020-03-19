@@ -37,7 +37,7 @@ import io.stackgres.operator.resource.ClusterDtoFinder;
 import io.stackgres.operator.resource.ClusterDtoScanner;
 import io.stackgres.operator.resource.CustomResourceFinder;
 import io.stackgres.operator.resource.CustomResourceScanner;
-import io.stackgres.operator.resource.CustomResourceScheduler;
+import io.stackgres.operator.resource.ResourceScheduler;
 import io.stackgres.operator.rest.dto.cluster.ClusterDto;
 import io.stackgres.operator.rest.dto.cluster.ClusterResourceConsumtionDto;
 import io.stackgres.operator.rest.transformer.AbstractResourceTransformer;
@@ -134,7 +134,7 @@ class ClusterResourceTest extends AbstractCustomResourceTest<ClusterDto, StackGr
   protected AbstractRestService<ClusterDto, StackGresCluster> getService(
       CustomResourceScanner<StackGresCluster> scanner,
       CustomResourceFinder<StackGresCluster> finder,
-      CustomResourceScheduler<StackGresCluster> scheduler,
+      ResourceScheduler<StackGresCluster> scheduler,
       AbstractResourceTransformer<ClusterDto, StackGresCluster> transformer) {
     final ClusterDtoFinder dtoFinder = new ClusterDtoFinder();
     dtoFinder.setClusterFinder(finder);

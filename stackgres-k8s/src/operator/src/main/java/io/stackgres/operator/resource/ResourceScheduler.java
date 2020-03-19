@@ -5,9 +5,9 @@
 
 package io.stackgres.operator.resource;
 
-import io.fabric8.kubernetes.client.CustomResource;
+import io.fabric8.kubernetes.api.model.HasMetadata;
 
-public interface CustomResourceScheduler<T extends CustomResource> {
+public interface ResourceScheduler<T extends HasMetadata> {
 
   void create(T resource);
 

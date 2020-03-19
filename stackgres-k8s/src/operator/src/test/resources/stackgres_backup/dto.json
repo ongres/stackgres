@@ -14,14 +14,8 @@
       "storage": {
         "s3compatible": {
           "credentials": {
-            "accessKey": {
-              "key": "accesskey",
-              "name": "minio"
-            },
-            "secretKey": {
-              "key": "secretkey",
-              "name": "minio"
-            }
+            "accessKey": "test",
+            "secretKey": "test"
           },
           "endpoint": "http://minio.stackgres.svc:9000",
           "forcePathStyle": true,

@@ -1,0 +1,64 @@
+/*
+ * Copyright (C) 2019 OnGres, Inc.
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
+package io.stackgres.operator.resource;
+
+import javax.inject.Inject;
+
+import io.fabric8.kubernetes.api.model.Doneable;
+import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.KubernetesResourceList;
+import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.dsl.Namespaceable;
+import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
+import io.fabric8.kubernetes.client.dsl.Resource;
+import io.stackgres.operator.app.KubernetesClientFactory;
+
+public abstract class AbstractResourceScheduler<T extends HasMetadata,
+    L extends KubernetesResourceList<T>, D extends Doneable<T>>
+    implements ResourceScheduler<T> {
+
+  private KubernetesClientFactory clientFactory;
+
+  @SuppressWarnings("unchecked")
+  @Override
+  public void create(T resource) {
+    try (KubernetesClient client = clientFactory.create()) {
+      getResourceOperator(client)
+          .inNamespace(resource.getMetadata().getNamespace())
+          .create(resource);
+    }
+  }
+
+  @Override
+  public void update(T resource) {
+    try (KubernetesClient client = clientFactory.create()) {
+      getResourceOperator(client)
+          .inNamespace(resource.getMetadata().getNamespace())
+          .withName(resource.getMetadata().getName())
+          .patch(resource);
+    }
+  }
+
+  @Override
+  public void delete(T resource) {
+    try (KubernetesClient client = clientFactory.create()) {
+      getResourceOperator(client)
+          .inNamespace(resource.getMetadata().getNamespace())
+          .withName(resource.getMetadata().getName())
+          .delete();
+    }
+  }
+
+  protected abstract Namespaceable<
+        NonNamespaceOperation<T, L, D, Resource<T, D>>> getResourceOperator(
+      KubernetesClient client);
+
+  @Inject
+  public void setClientFactory(KubernetesClientFactory clientFactory) {
+    this.clientFactory = clientFactory;
+  }
+
+}

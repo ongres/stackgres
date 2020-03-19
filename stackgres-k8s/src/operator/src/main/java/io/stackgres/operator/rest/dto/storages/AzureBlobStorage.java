@@ -5,8 +5,6 @@
 
 package io.stackgres.operator.rest.dto.storages;
 
-import java.util.Objects;
-
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -54,28 +52,6 @@ public class AzureBlobStorage {
 
   public void setCredentials(AzureBlobStorageCredentials credentials) {
     this.credentials = credentials;
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(credentials, bucket, path);
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null) {
-      return false;
-    }
-    if (!(obj instanceof AzureBlobStorage)) {
-      return false;
-    }
-    AzureBlobStorage other = (AzureBlobStorage) obj;
-    return Objects.equals(credentials, other.credentials)
-        && Objects.equals(bucket, other.bucket)
-        && Objects.equals(path, other.path);
   }
 
   @Override

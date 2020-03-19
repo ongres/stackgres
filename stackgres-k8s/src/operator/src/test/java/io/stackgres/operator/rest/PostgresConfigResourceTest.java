@@ -15,7 +15,7 @@ import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfigList;
 import io.stackgres.operator.resource.CustomResourceFinder;
 import io.stackgres.operator.resource.CustomResourceScanner;
-import io.stackgres.operator.resource.CustomResourceScheduler;
+import io.stackgres.operator.resource.ResourceScheduler;
 import io.stackgres.operator.rest.dto.pgconfig.PostgresConfigDto;
 import io.stackgres.operator.rest.transformer.AbstractResourceTransformer;
 import io.stackgres.operator.rest.transformer.PostgresConfigTransformer;
@@ -48,7 +48,7 @@ class PostgresConfigResourceTest
   protected AbstractRestService<PostgresConfigDto, StackGresPostgresConfig> getService(
       CustomResourceScanner<StackGresPostgresConfig> scanner,
       CustomResourceFinder<StackGresPostgresConfig> finder,
-      CustomResourceScheduler<StackGresPostgresConfig> scheduler,
+      ResourceScheduler<StackGresPostgresConfig> scheduler,
       AbstractResourceTransformer<PostgresConfigDto, StackGresPostgresConfig> transformer) {
     return new PostgresConfigResource(scanner, finder, scheduler, transformer);
   }

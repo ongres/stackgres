@@ -15,7 +15,7 @@ import io.stackgres.operator.customresource.sgbackup.StackGresBackup;
 import io.stackgres.operator.customresource.sgbackup.StackGresBackupList;
 import io.stackgres.operator.resource.CustomResourceFinder;
 import io.stackgres.operator.resource.CustomResourceScanner;
-import io.stackgres.operator.resource.CustomResourceScheduler;
+import io.stackgres.operator.resource.ResourceScheduler;
 import io.stackgres.operator.rest.dto.backup.BackupDto;
 import io.stackgres.operator.rest.transformer.AbstractResourceTransformer;
 import io.stackgres.operator.rest.transformer.BackupConfigTransformer;
@@ -48,7 +48,7 @@ class BackupResourceTest extends AbstractCustomResourceTest<BackupDto, StackGres
   @Override
   protected AbstractRestService<BackupDto, StackGresBackup> getService(
       CustomResourceScanner<StackGresBackup> scanner, CustomResourceFinder<StackGresBackup> finder,
-      CustomResourceScheduler<StackGresBackup> scheduler,
+      ResourceScheduler<StackGresBackup> scheduler,
       AbstractResourceTransformer<BackupDto, StackGresBackup> transformer) {
     return new BackupResource(scanner, finder, scheduler, transformer);
   }
