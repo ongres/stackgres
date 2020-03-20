@@ -126,14 +126,14 @@ var CreatePGConfig = Vue.component("create-pgconfig", {
                     )
                     .then(function (response) {
                         console.log("GOOD");
-                        notify('Postgres configuration <strong>"'+config.metadata.name+'"</strong> updated successfully', 'message');
+                        notify('Postgres configuration <strong>"'+config.metadata.name+'"</strong> updated successfully', 'message', 'pgConfig');
 
                         vm.fetchAPI();
                         router.push('/configurations/postgres/'+config.metadata.namespace+'/'+config.metadata.name);
                     })
                     .catch(function (error) {
                         console.log(error.response);
-                        notify(error.response.data.message,'error');
+                        notify(error.response.data,'error', 'pgConfig');
                     });
                 } else {
                     const res = axios
@@ -143,7 +143,7 @@ var CreatePGConfig = Vue.component("create-pgconfig", {
                     )
                     .then(function (response) {
                         console.log("GOOD");
-                        notify('Postgres configuration <strong>"'+config.metadata.name+'"</strong> created successfully', 'message');
+                        notify('Postgres configuration <strong>"'+config.metadata.name+'"</strong> created successfully', 'message', 'pgConfig');
         
                         vm.fetchAPI();
                         router.push('/configurations/postgres/'+config.metadata.namespace+'/'+config.metadata.name);
@@ -156,7 +156,7 @@ var CreatePGConfig = Vue.component("create-pgconfig", {
                     })
                     .catch(function (error) {
                         console.log(error.response);
-                        notify(error.response.data.message,'error');
+                        notify(error.response.data,'error', 'pgConfig');
                     });
                 }
             }

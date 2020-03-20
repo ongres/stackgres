@@ -302,7 +302,7 @@ var CreateCluster = Vue.component("create-cluster", {
                     })
                     .catch(function (error) {
                         console.log(error.response);
-                        notify(error.response.data.message,'error');
+                        notify(error.response.data,'error', 'cluster');
                     });
                 } else {
                     const res = axios
@@ -320,8 +320,8 @@ var CreateCluster = Vue.component("create-cluster", {
                         /* store.commit('updateClusters', { 
                             name: cluster.metadata.name,
                             data: item
-                        });
- */
+                        });*/
+                        
                     })
                     .catch(function (error) {
                         console.log(error.response);

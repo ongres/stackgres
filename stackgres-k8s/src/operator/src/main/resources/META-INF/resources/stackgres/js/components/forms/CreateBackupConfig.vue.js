@@ -447,14 +447,14 @@ var CreateBackupConfig = Vue.component("create-backup-config", {
                     )
                     .then(function (response) {
                         console.log("GOOD");
-                        notify('Backup configuration <strong>"'+config.metadata.name+'"</strong> updated successfully', 'message');
+                        notify('Backup configuration <strong>"'+config.metadata.name+'"</strong> updated successfully', 'message','backupConfig');
 
                         vm.fetchAPI();
                         router.push('/configurations/backup/'+config.metadata.namespace+'/'+config.metadata.name);
                     })
                     .catch(function (error) {
                         console.log(error.response);
-                        notify(error.response.data.message,'error');
+                        notify(error.response.data,'error','backupConfig');
                     });
 
                 } else {
@@ -465,7 +465,7 @@ var CreateBackupConfig = Vue.component("create-backup-config", {
                     )
                     .then(function (response) {
                         console.log("GOOD");
-                        notify('Backup configuration <strong>"'+config.metadata.name+'"</strong> created successfully', 'message');
+                        notify('Backup configuration <strong>"'+config.metadata.name+'"</strong> created successfully', 'message','backupConfig');
 
                         vm.fetchAPI();
                         router.push('/configurations/backup/'+config.metadata.namespace+'/'+config.metadata.name);
@@ -483,7 +483,7 @@ var CreateBackupConfig = Vue.component("create-backup-config", {
                     })
                     .catch(function (error) {
                         console.log(error.response);
-                        notify(error.response.data.message,'error');
+                        notify(error.response.data,'error','backupConfig');
                     });
                 }
 
