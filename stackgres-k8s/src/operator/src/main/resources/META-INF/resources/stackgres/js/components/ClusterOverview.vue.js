@@ -138,7 +138,7 @@ var ClusterOverview = Vue.component("cluster-overview", {
 				})
 				.catch(function (error) {
 					console.log(error);
-					notify(error.response.data.message,'error','cluster');
+					notify(error.response.data,'error','cluster');
 				});
 			}
 

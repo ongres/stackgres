@@ -1088,7 +1088,7 @@ $(document).ready(function(){
   
   });
 
-  $(document).on("click", "#main, #side", function() {
+  $(document).on("click", "#main, #side, #nav", function() {
     if($(this).prop("id") != "notifications") {
       $(".hasTooltip.active").removeClass("active");
       $(".hasTooltip .message.show").removeClass("show");
