@@ -23,7 +23,7 @@ var CreateBackup = Vue.component("create-backup", {
                 </div>
                 
                 <label for="backupCluster">Backup Cluster <span class="req">*</span></label>
-                <select v-model="backupCluster" :disabled="(editMode)" required>
+                <select v-model="backupCluster" :disabled="(editMode)" required data-field="spec.cluster">
                     <option disabled value="">Choose a Cluster</option>
                     <template v-for="cluster in allClusters">
                         <option v-if="cluster.data.metadata.namespace == backupNamespace">{{ cluster.data.metadata.name }}</option>
@@ -31,10 +31,10 @@ var CreateBackup = Vue.component("create-backup", {
                 </select>
 
                 <label for="backupName">Backup Name <span class="req">*</span></label>
-                <input v-model="backupName" :disabled="(editMode)" required>
+                <input v-model="backupName" :disabled="(editMode)" required data-field="metadata.name">
 
                 <label>Is Permanent</label>  
-                <label for="permanent" class="switch">Permanent <input type="checkbox" id="permanent" v-model="isPermanent" data-switch="NO"></label>
+                <label for="permanent" class="switch" data-field="spec.isPermanent">Permanent <input type="checkbox" id="permanent" v-model="isPermanent" data-switch="NO"></label>
                 
                 <template v-if="editMode">
                     <button @click="createBackup">Update Backup</button>
@@ -122,14 +122,14 @@ var CreateBackup = Vue.component("create-backup", {
                     )
                     .then(function (response) {
                         console.log("GOOD");
-                        notify('Backup <strong>"'+backup.metadata.name+'"</strong> updated successfully', 'message');
+                        notify('Backup <strong>"'+backup.metadata.name+'"</strong> updated successfully', 'message', 'backup');
 
                         vm.fetchAPI();
                         router.push('/backups/'+backup.metadata.namespace);
                     })
                     .catch(function (error) {
                         console.log(error.response);
-                        notify(error.response.data.message,'error');
+                        notify(error.response.data,'error', 'backup');
                     });
 
                 } else {
@@ -140,7 +140,7 @@ var CreateBackup = Vue.component("create-backup", {
                     )
                     .then(function (response) {
                         console.log("GOOD");
-                        notify('Backup <strong>"'+backup.metadata.name+'"</strong> started successfully.', 'message');
+                        notify('Backup <strong>"'+backup.metadata.name+'"</strong> started successfully.', 'message', 'backup');
 
                         vm.fetchAPI();
                         router.push('/backups/'+backup.metadata.namespace);
@@ -153,7 +153,7 @@ var CreateBackup = Vue.component("create-backup", {
                     })
                     .catch(function (error) {
                         console.log(error.response);
-                        notify(error.response.data.message,'error');
+                        notify(error.response.data,'error', 'backup');
                     });
                 }
 

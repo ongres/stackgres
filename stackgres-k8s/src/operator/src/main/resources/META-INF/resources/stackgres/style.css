@@ -224,16 +224,19 @@ pre {
 }
 
 #darkmode.active svg path {
+    transition: fill .3s ease-in;
     fill: var(--blue);
 }
 
 .darkmode {
     color: var(--gray3);
     background: #191d25;
+    transition: all .5s ease-in;
 }
 
 .darkmode #side, .darkmode #nav {
     background: #0f141d;
+    transition: all .5s ease-in;
 }
 
 .darkmode #sets h3, .darkmode #sets h4, .darkmode .form input, .darkmode .form select, .darkmode .form textarea, .darkmode #logo h1, .darkmode .options label, .darkmode .options select {
@@ -244,7 +247,7 @@ pre {
     background: #444;
 }
 
-.darkmode #side, .darkmode #nav, .darkmode #current-namespace, .darkmode ul.breadcrumbs, .darkmode tbody, .darkmode .table .head.row, .darkmode .table .row:last-child, .darkmode .boxes .row:last-child, .darkmode .form input, .darkmode .form select, .darkmode .form textarea, .darkmode .set, .darkmode .form .header, .darkmode .content .box, .darkmode .box hr, .darkmode #keyword, .darkmode .toolbar .toggle, .darkmode .options, .darkmode .tooltip, .darkmode .message, .darkmode #nav .tooltip:before {
+.darkmode #side, .darkmode #nav, .darkmode #current-namespace, .darkmode ul.breadcrumbs, .darkmode tbody, .darkmode .table .head.row, .darkmode .table .row:last-child, .darkmode .boxes .row:last-child, .darkmode .form input, .darkmode .form select, .darkmode .form textarea, .darkmode .set, .darkmode .form .header, .darkmode .content .box, .darkmode .box hr, .darkmode #keyword, .darkmode .toolbar .toggle, .darkmode .options, .darkmode .tooltip, .darkmode .message, .darkmode #nav .tooltip:before, .darkmode fieldset, .darkmode label.switch {
     border-color: #333;
 }
 
@@ -859,6 +862,12 @@ footer {
 
 #reload.active svg path, #notifications.active a svg path {
     fill: var(--blue);
+    transition: fill .3s ease-in;
+}
+
+#reload.active svg {
+    transform: rotate(360deg);
+    transition: transform 1.5s ease-in-out;
 }
 
 #notifications .count {
@@ -889,8 +898,9 @@ footer {
 .tooltip > span {
     display: block;
     margin: 10px 0 15px;
-    font-weight: 400;
+    font-weight: 600;
     font-size: 1rem;
+    letter-spacing: .5px;
 }
 
 .tooltip {
@@ -1021,7 +1031,7 @@ footer .tooltip p {
 
 .message .title {
     margin-bottom: 10px;
-    font-size: .9rem;
+    font-size: 1rem;
     font-weight: 400;
     line-height: 1.2;
 }
@@ -1033,6 +1043,15 @@ footer .tooltip p {
 
 .message .doclink {
     font-weight: bold;
+    position: relative;
+}
+
+#nav .doclink svg {
+    display: inline-block;
+    width: 13px;
+    position: absolute;
+    top: -2px;
+    right: -17px;
 }
 
 .message .kind {
@@ -1069,6 +1088,10 @@ footer .tooltip p {
 
 .message .icon.message path {
     fill: var(--blue);
+}
+
+#nav .message .icon svg {
+    height: 15px;
 }
 
 #notifications h2 {
@@ -1870,6 +1893,10 @@ fieldset {
 
 .form .header input[type="checkbox"]:checked, .form .header input[type="checkbox"]:checked + span {
     cursor: not-allowed;
+}
+
+.form .alert, .darkmode .form .alert {
+    border-color: #ff8873;
 }
 
 span.req {

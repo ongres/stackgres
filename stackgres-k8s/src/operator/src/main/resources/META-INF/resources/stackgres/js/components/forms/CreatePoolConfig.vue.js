@@ -117,14 +117,14 @@ var CreatePoolConfig = Vue.component("create-poolconfig", {
                     )
                     .then(function (response) {
                         console.log("GOOD");
-                        notify('Connection pooling configuration <strong>"'+config.metadata.name+'"</strong> updated successfully', 'message');
+                        notify('Connection pooling configuration <strong>"'+config.metadata.name+'"</strong> updated successfully', 'message','poolConfig');
 
                         vm.fetchAPI();
                         router.push('/configurations/connectionpooling/'+config.metadata.namespace+'/'+config.metadata.name);
                     })
                     .catch(function (error) {
                         console.log(error.response);
-                        notify(error.response.data.message,'error');
+                        notify(error.response.data,'error','poolConfig');
                     });
 
                 } else {
@@ -135,14 +135,14 @@ var CreatePoolConfig = Vue.component("create-poolconfig", {
                     )
                     .then(function (response) {
                         console.log("GOOD");
-                        notify('Connection pooling configuration <strong>"'+config.metadata.name+'"</strong> created successfully', 'message');
+                        notify('Connection pooling configuration <strong>"'+config.metadata.name+'"</strong> created successfully', 'message','poolConfig');
 
                         vm.fetchAPI();
                         router.push('/configurations/connectionpooling/'+config.metadata.namespace+'/'+config.metadata.name);
                     })
                     .catch(function (error) {
                         console.log(error.response);
-                        notify(error.response.data.message,'error');
+                        notify(error.response.data,'error','poolConfig');
                     });
                 }
             }

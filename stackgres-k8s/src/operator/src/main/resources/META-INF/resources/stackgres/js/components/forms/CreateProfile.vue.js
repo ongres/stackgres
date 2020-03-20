@@ -23,14 +23,14 @@ var CreateProfile = Vue.component("create-profile", {
                 </div>
 
                 <label for="profileName">Profile Name <span class="req">*</span></label>
-                <input v-model="profileName" :disabled="(editMode)" required>
+                <input v-model="profileName" :disabled="(editMode)" required data-field="metadata.name">
 
                 
                 <div class="unit-select">
                     <label for="profileRAM">RAM <span class="req">*</span></label>
-                    <input v-model="profileRAM" class="size" required>
+                    <input v-model="profileRAM" class="size" required data-field="spec.memory">
 
-                    <select v-model="profileRAMUnit" class="unit" required>
+                    <select v-model="profileRAMUnit" class="unit" required data-field="spec.memory">
                         <option disabled value="">Select Unit</option>
                         <option value="Mi">MiB</option>
                         <option value="Gi">GiB</option>
@@ -38,9 +38,9 @@ var CreateProfile = Vue.component("create-profile", {
                 </div>
 
                 <label for="profileCPU">CPU <span class="req">*</span></label>
-                <select v-model="profileCPU" required>    
+                <select v-model="profileCPU" required data-field="spec.cpu">    
                     <option disabled value="">CPU</option>
-                    <option>1</option>
+                    <option>X</option>
                     <option>2</option>
                     <option>3</option>
                     <option>4</option>
@@ -142,7 +142,7 @@ var CreateProfile = Vue.component("create-profile", {
                     )
                     .then(function (response) {
                         console.log("GOOD");
-                        notify('Profile <strong>"'+profile.metadata.name+'"</strong> updated successfully', 'message');
+                        notify('Profile <strong>"'+profile.metadata.name+'"</strong> updated successfully', 'message','profile');
 
                         vm.fetchAPI();
                         router.push('/profiles/'+profile.metadata.namespace+'/'+profile.metadata.name);
@@ -150,7 +150,7 @@ var CreateProfile = Vue.component("create-profile", {
                     })
                     .catch(function (error) {
                         console.log(error.response);
-                        notify(error.response.data.message,'error');
+                        notify(error.response.data,'error','profile');
                     });
 
                 } else {
@@ -161,7 +161,7 @@ var CreateProfile = Vue.component("create-profile", {
                     )
                     .then(function (response) {
                         console.log("GOOD");
-                        notify('Profile <strong>"'+profile.metadata.name+'"</strong> created successfully', 'message');
+                        notify('Profile <strong>"'+profile.metadata.name+'"</strong> created successfully', 'message','profile');
         
                         /* store.commit('updateProfiles', { 
                             name: profile.metadata.name,
@@ -174,7 +174,7 @@ var CreateProfile = Vue.component("create-profile", {
                     })
                     .catch(function (error) {
                         console.log(error.response);
-                        notify(error.response.data.message,'error');
+                        notify(error.response.data,'error','profile');
                     });
 
                 }
