@@ -32,7 +32,7 @@ get_generated_cr(){
   CRD="$1"
   shift 1
 
-  CR_NAME==$(kubectl get "$CRD" -n "$NAMESPACE" -o jsonpath='{.items[*].metadata.name}')
+  CR_NAME=$(kubectl get "$CRD" -n "$NAMESPACE" -o jsonpath='{.items[*].metadata.name}')
   kubectl get "$CRD" -n "$OPERATOR_NAMESPACE" "$CR_NAME" $@
 
 }

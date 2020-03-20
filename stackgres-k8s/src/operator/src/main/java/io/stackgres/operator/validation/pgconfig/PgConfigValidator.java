@@ -13,5 +13,4 @@ public interface PgConfigValidator extends Validator<PgConfigReview> {
 
   String[] BLACKLIST_PROPERTIES = Blacklist.getBlacklistParameters().toArray(new String[0]);
 
-
 }
