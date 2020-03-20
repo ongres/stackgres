@@ -147,14 +147,11 @@ The postgresconf object becomes protected against deletion, and if you try to de
 
 ## Forbidden Configuration Update
 
-Whole or parts of some objects (like storage of a backup configuration) cannot be updated. This is because 
- changing it would require some particular handling that is not possible or not supported at this time.
+Whole or parts of some objects cannot be updated. This is because changing it would require some
+ particular handling that is not possible or not supported at this time.
 
 In future versions we expect to do these types of operation automatically, and planned. But, since we 
  are not there yet, must of out configuration object cannot be updated.
-
-An exception to this rule is the backup configurations, that most of it's properties can be updated. Check the 
- StackGres backup configuration to more details. 
 
 ## Forbidden Cluster Update
 

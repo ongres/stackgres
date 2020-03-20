@@ -129,7 +129,7 @@ ___
 | networkRateLimit                       |          | ✓         | integer | unlimited | To configure network read rate limit during uploads in bytes per second  |
 | uploadDiskConcurrency                  |          | ✓         | integer | 1         | To configure how many concurrency streams are reading disk during uploads. By default 1 stream  |
 | tarSizeThreshold                       |          | ✓         | integer | 1 GB      | To configure the size of one backup bundle (in bytes). Smaller size causes granularity and more optimal, faster recovering. It also increases the number of storage requests, so it can costs you much money. Default size is 1 GB (1 << 30 - 1 bytes)  |
-| [storage](#storage-configuration)      | ✓        |           | object  |           | Backup storage configuration  |
+| [storage](#storage-configuration)      |          | ✓         | object  |           | Backup storage configuration  |
 
 Example:
 
@@ -175,53 +175,53 @@ The default name of backup configuration CR is `defaultbackupconfig`
 
 | Property                                              | Required            | Updatable | Type   | Default | Description |
 |:------------------------------------------------------|---------------------|-----------|:-------|:--------|:------------|
-| type                                                  | ✓                   |           | string |         | Type of storage: <br>- s3: Amazon Web Services S3 <br>- gcs: Google Clooud Storage <br>- azureblob: Azure Blob Storage  |
-| [s3](#s3--amazon-web-services-s3-configuration)       | if type = s3        |           | object |         | Amazon Web Services S3 configuration |
-| [gcs](#gsc--google-cloud-storage-configuration)       | if type = gcs       |           | object |         | Google Cloud Storage configuration |
-| [azureblob](#azure--azure-blob-storage-configuration) | if type = azureblob |           | object |         | Google Cloud Storage configuration |
+| type                                                  | ✓                   | ✓         | string |         | Type of storage: <br>- s3: Amazon Web Services S3 <br>- gcs: Google Clooud Storage <br>- azureblob: Azure Blob Storage  |
+| [s3](#s3--amazon-web-services-s3-configuration)       | if type = s3        | ✓         | object |         | Amazon Web Services S3 configuration |
+| [gcs](#gsc--google-cloud-storage-configuration)       | if type = gcs       | ✓         | object |         | Google Cloud Storage configuration |
+| [azureblob](#azure--azure-blob-storage-configuration) | if type = azureblob | ✓         | object |         | Google Cloud Storage configuration |
 
 ## S3 - Amazon Web Services S3 configuration
 
 | Property                       | Required | Updatable | Type    | Default | Description |
 |:-------------------------------|----------|-----------|:--------|:--------|:------------|
-| prefix                         | ✓        |           | string  |         | The AWS S3 bucket and prefix (eg. s3://bucket/path/to/folder) |
-| [credentials](#s3-credentials) | ✓        |           | object  |         | The credentials to access AWS S3 for writing and reading  |
-| region                         |          |           | string  |         | The AWS S3 region. Region can be detected using s3:GetBucketLocation, but if you wish to avoid this API call or forbid it from the applicable IAM policy, specify this property  |
-| endpoint                       |          |           | string  |         |Overrides the default hostname to connect to an S3-compatible service. i.e, http://s3-like-service:9000  |
-| forcePathStyle                 |          |           | boolean |         | To enable path-style addressing(i.e., http://s3.amazonaws.com/BUCKET/KEY) when connecting to an S3-compatible service that lack of support for sub-domain style bucket URLs (i.e., http://BUCKET.s3.amazonaws.com/KEY). Defaults to false  |
-| storageClass                   |          |           | string  |         | By default, the "STANDARD" storage class is used. Other supported values include "STANDARD_IA" for Infrequent Access and "REDUCED_REDUNDANCY" for Reduced Redundancy  |
+| prefix                         | ✓        | ✓         | string  |         | The AWS S3 bucket and prefix (eg. s3://bucket/path/to/folder) |
+| [credentials](#s3-credentials) | ✓        | ✓         | object  |         | The credentials to access AWS S3 for writing and reading  |
+| region                         |          | ✓         | string  |         | The AWS S3 region. Region can be detected using s3:GetBucketLocation, but if you wish to avoid this API call or forbid it from the applicable IAM policy, specify this property  |
+| endpoint                       |          | ✓         | string  |         |Overrides the default hostname to connect to an S3-compatible service. i.e, http://s3-like-service:9000  |
+| forcePathStyle                 |          | ✓         | boolean |         | To enable path-style addressing(i.e., http://s3.amazonaws.com/BUCKET/KEY) when connecting to an S3-compatible service that lack of support for sub-domain style bucket URLs (i.e., http://BUCKET.s3.amazonaws.com/KEY). Defaults to false  |
+| storageClass                   |          | ✓         | string  |         | By default, the "STANDARD" storage class is used. Other supported values include "STANDARD_IA" for Infrequent Access and "REDUCED_REDUNDANCY" for Reduced Redundancy  |
 
 ### S3 Credentials
 
 | Property                                                                                                    | Required | Updatable | Type   | Default | Description |
 |:------------------------------------------------------------------------------------------------------------|----------|-----------|:-------|:--------|:------------|
-| [accessKey](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.12/#secretkeyselector-v1-core) | ✓        |           | object |         | The AWS S3 bucket and prefix (eg. s3://bucket/path/to/folder) |
-| [secretKey](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.12/#secretkeyselector-v1-core) | ✓        |           | object |         | AWS Secret Access Key  |
+| [accessKey](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.12/#secretkeyselector-v1-core) | ✓        | ✓         | object |         | The AWS S3 bucket and prefix (eg. s3://bucket/path/to/folder) |
+| [secretKey](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.12/#secretkeyselector-v1-core) | ✓        | ✓         | object |         | AWS Secret Access Key  |
 
 ## GSC - Google Cloud Storage configuration
 
 | Property                        | Required | Updatable | Type   | Default | Description |
 |:--------------------------------|----------|-----------|:-------|:--------|:------------|
-| prefix                          | ✓        |           | string |         | Specify where to store backups (eg. gs://x4m-test-bucket/walg-folder) |
-| [credentials](#gcp-credentials) | ✓        |           | object |         | The credentials to access GCS for writing and reading |
+| prefix                          | ✓        | ✓         | string |         | Specify where to store backups (eg. gs://x4m-test-bucket/walg-folder) |
+| [credentials](#gcp-credentials) | ✓        | ✓         | object |         | The credentials to access GCS for writing and reading |
 
 ### GCP Credentials
 
 | Property                                                                                                                | Required | Updatable | Type   | Default | Description |
 |:------------------------------------------------------------------------------------------------------------------------|----------|:----------|:-------|:--------|:------------|
-| [serviceAccountJsonKey](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.12/#secretkeyselector-v1-core) | ✓        |           | object |         | The key of the secret to select from. Must be a valid secret key |
+| [serviceAccountJsonKey](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.12/#secretkeyselector-v1-core) | ✓        | ✓         | object |         | The key of the secret to select from. Must be a valid secret key |
 
 
 ## AZURE - Azure Blob Storage configuration
 
 | Property                          | Required | Updatable | Type    | Default | Description |
 |:----------------------------------|----------|-----------|:--------|:--------|:-------------|
-| prefix                            | ✓        |           | string  |         | Specify where to store backups in Azure storage (eg. azure://test-container/walg-folder) |  
-| [credentials](#azure-credentials) | ✓        |           | object  |         | AWS Secret Access Key  |
+| prefix                            | ✓        | ✓         | string  |         | Specify where to store backups in Azure storage (eg. azure://test-container/walg-folder) |  
+| [credentials](#azure-credentials) | ✓        | ✓         | object  |         | AWS Secret Access Key  |
 
 ### Azure Credentials
 
 | Property                                                                                                    | Required | Updatable | Type   | Default | Description |
 |:------------------------------------------------------------------------------------------------------------|----------|-----------|:-------|:--------|:-------------|
-| [account](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.12/#secretkeyselector-v1-core)   | ✓        |           | object |         | The name of the storage account |
-| [accessKey](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.12/#secretkeyselector-v1-core) | ✓        |           | object |         | The primary or secondary access key for the storage account. |
+| [account](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.12/#secretkeyselector-v1-core)   | ✓        | ✓         | object |         | The name of the storage account |
+| [accessKey](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.12/#secretkeyselector-v1-core) | ✓        | ✓         | object |         | The primary or secondary access key for the storage account. |
