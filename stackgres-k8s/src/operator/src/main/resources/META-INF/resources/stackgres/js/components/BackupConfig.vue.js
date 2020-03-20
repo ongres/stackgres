@@ -19,7 +19,7 @@ var BackupConfig = Vue.component("backup-config", {
 						{{ $route.params.name }}
 					</li>
 				</ul>
-				<router-link to="/crd/create/backupconfig/" class="btn">Create New Configuration</router-link>
+				<router-link to="/crd/create/backupconfig/" class="add">Add New</router-link>
 			</header>
 
 

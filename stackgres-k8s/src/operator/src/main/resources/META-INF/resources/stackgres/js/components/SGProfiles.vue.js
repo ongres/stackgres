@@ -19,7 +19,7 @@ var SGProfiles = Vue.component("sg-profile", {
 						{{ $route.params.name }}
 					</li>
 				</ul>
-				<router-link to="/crd/create/profile/" class="btn">Create New Profile</router-link>
+				<router-link to="/crd/create/profile/" class="add">Add New</router-link>
 			</header>
 
 			<div class="content">
