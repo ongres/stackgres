@@ -19,7 +19,7 @@ var PoolConfig = Vue.component("pool-config", {
 						{{ $route.params.name }}
 					</li>
 				</ul>
-				<router-link to="/crd/create/poolconfig/" class="btn">Create New Configuration</router-link>
+				<router-link to="/crd/create/poolconfig/" class="add">Add New</router-link>
 			</header>
 
 			<div class="content">

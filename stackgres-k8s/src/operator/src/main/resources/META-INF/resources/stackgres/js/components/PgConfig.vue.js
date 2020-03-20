@@ -19,7 +19,7 @@ var PgConfig = Vue.component("pg-config", {
 						{{ $route.params.name }}
 					</li>
 				</ul>
-				<router-link to="/crd/create/pgconfig/" class="btn">Create New Configuration</router-link>
+				<router-link to="/crd/create/pgconfig/" class="add">Add New</router-link>
 			</header>
 
 			<div class="content">
