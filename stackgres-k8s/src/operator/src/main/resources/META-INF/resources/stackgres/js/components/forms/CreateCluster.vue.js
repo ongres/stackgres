@@ -294,7 +294,7 @@ var CreateCluster = Vue.component("create-cluster", {
                     )
                     .then(function (response) {
                         console.log("GOOD");
-                        notify('Cluster <strong>"'+cluster.metadata.name+'"</strong> updated successfully', 'message');
+                        notify('Cluster <strong>"'+cluster.metadata.name+'"</strong> updated successfully', 'message', 'cluster');
 
                         vm.fetchAPI();
                         router.push('/status/'+cluster.metadata.namespace+'/'+cluster.metadata.name);
@@ -312,7 +312,7 @@ var CreateCluster = Vue.component("create-cluster", {
                     )
                     .then(function (response) {
                         console.log("GOOD");
-                        notify('Cluster <strong>"'+cluster.metadata.name+'"</strong> created successfully', 'message');
+                        notify('Cluster <strong>"'+cluster.metadata.name+'"</strong> created successfully', 'message', 'cluster');
 
                         vm.fetchAPI();
                         router.push('/status/'+cluster.metadata.namespace+'/'+cluster.metadata.name);
@@ -325,7 +325,7 @@ var CreateCluster = Vue.component("create-cluster", {
                     })
                     .catch(function (error) {
                         console.log(error.response);
-                        notify(error.response.data.message,'error');
+                        notify(error.response.data,'error','cluster');
                     });
                 }
 

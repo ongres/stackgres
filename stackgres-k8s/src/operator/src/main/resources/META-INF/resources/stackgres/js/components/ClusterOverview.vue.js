@@ -51,7 +51,7 @@ var ClusterOverview = Vue.component("cluster-overview", {
 							</td>
 						</tr>
 						<template v-for="cluster in clusters">
-							<tr class="base" v-if="cluster.data.metadata.namespace == currentNamespace">
+							<tr v-if="cluster.data.metadata.namespace == currentNamespace">
 								<td class="clusterName">
 									{{ cluster.name }}
 								</td>
@@ -132,13 +132,13 @@ var ClusterOverview = Vue.component("cluster-overview", {
 				.then(function (response) {
 					console.log("DELETED");
 					//console.log(response);
-					notify('Cluster <strong>'+clusterName+'</strong> deleted successfully', 'message');
+					notify('Cluster <strong>'+clusterName+'</strong> deleted successfully', 'message', 'cluster');
 					vm.fetchAPI();
-					router.push('/overview/'+store.state.currentNamespace);                        
+					//router.push('/overview/'+store.state.currentNamespace);                        
 				})
 				.catch(function (error) {
 					console.log(error);
-					notify(error.response.data.message,'error');
+					notify(error.response.data.message,'error','cluster');
 				});
 			}
 
