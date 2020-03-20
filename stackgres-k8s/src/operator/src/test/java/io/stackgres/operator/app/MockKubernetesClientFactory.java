@@ -12,10 +12,12 @@ import javax.annotation.PreDestroy;
 import javax.enterprise.context.ApplicationScoped;
 
 import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
+import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
 import io.quarkus.test.Mock;
+import io.stackgres.operator.AbstractStackGresOperatorIt;
 import io.stackgres.operator.CrdMatchTest;
 
 
@@ -40,7 +42,9 @@ public class MockKubernetesClientFactory extends KubernetesClientFactory {
 
   @Override
   public KubernetesClient create() {
-
+    if (AbstractStackGresOperatorIt.isRunning()) {
+      return new DefaultKubernetesClient();
+    }
     return server.getClient();
   }
 
@@ -48,5 +52,4 @@ public class MockKubernetesClientFactory extends KubernetesClientFactory {
   public void cleanUp(){
     server.after();
   }
-
 }
