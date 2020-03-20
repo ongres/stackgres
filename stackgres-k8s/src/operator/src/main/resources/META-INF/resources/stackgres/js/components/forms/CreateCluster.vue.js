@@ -68,6 +68,14 @@ var CreateCluster = Vue.component("create-cluster", {
                         </div>
                     </div>
 
+                    <template v-if="advancedMode">
+                        <label for="storageClass">Storage Class</label>
+                        <select v-model="storageClass" :disabled="(editMode)">
+                            <option value="">Select Storage Class</option>
+                            <option v-for="sClass in storageClasses">{{ sClass }}</option>
+                        </select>
+                    </template>
+
                     <div class="unit-select">
                         <label for="volumeSize">Volume Size <span class="req">*</span></label>  
                         <input v-model="volumeSize" class="size" required  :disabled="(editMode)" >
@@ -90,13 +98,7 @@ var CreateCluster = Vue.component("create-cluster", {
                         </select>
                     </fieldset>
 
-                    <template v-if="advancedMode">
-                        <label for="storageClass">Storage Class</label>
-                        <select v-model="storageClass" :disabled="(editMode)">
-                            <option value="">Select Storage Class</option>
-                            <option v-for="sClass in storageClasses">{{ sClass }}</option>
-                        </select>
-                        
+                    <template v-if="advancedMode">                        
                         <label for="pgConfig">PostgreSQL Configuration</label>
                         <select v-model="pgConfig" class="pgConfig" :disabled="(editMode)" >
                             <option value="" selected>Default</option>
