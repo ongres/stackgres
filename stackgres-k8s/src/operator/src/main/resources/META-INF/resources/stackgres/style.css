@@ -213,6 +213,75 @@ pre {
   }
 }*/
 
+
+/* Dark Mode */
+#darkmode {
+    cursor: pointer;
+}
+
+#darkmode svg {
+    transform: scale(1.2);
+}
+
+#darkmode.active svg path {
+    fill: var(--blue);
+}
+
+.darkmode {
+    color: var(--gray3);
+    background: #191d25;
+}
+
+.darkmode #side, .darkmode #nav {
+    background: #0f141d;
+}
+
+.darkmode #sets h3, .darkmode #sets h4, .darkmode .form input, .darkmode .form select, .darkmode .form textarea, .darkmode #logo h1, .darkmode .options label, .darkmode .options select {
+    color: var(--gray3);
+}
+
+.darkmode .options label, .darkmode .options select {
+    background: #444;
+}
+
+.darkmode #side, .darkmode #nav, .darkmode #current-namespace, .darkmode ul.breadcrumbs, .darkmode tbody, .darkmode .table .head.row, .darkmode .table .row:last-child, .darkmode .boxes .row:last-child, .darkmode .form input, .darkmode .form select, .darkmode .form textarea, .darkmode .set, .darkmode .form .header, .darkmode .content .box, .darkmode .box hr, .darkmode #keyword, .darkmode .toolbar .toggle, .darkmode .options, .darkmode .tooltip, .darkmode .message, .darkmode #nav .tooltip:before {
+    border-color: #333;
+}
+
+.darkmode ul.tabs {
+    border-color: #555;
+}
+
+.darkmode tr:nth-child(4n+2), .darkmode .options, .darkmode .tooltip, .darkmode #nav .tooltip:before, .darkmode table tr:nth-child(even):not(.base) {
+    background: #242831;
+}
+
+.darkmode .actions svg path {
+    fill: #575e6b;
+}
+
+.darkmode .form input, .darkmode .form select, .darkmode .form textarea, .darkmode .set.active, .darkmode .set.active a:hover, .darkmode .set:hover, .darkmode .set:hover a:hover, .darkmode .set:not(.active) > ul li, .darkmode #keyword {
+    background-color: #1e252e;
+}
+
+.darkmode .form input[disabled="disabled"], .darkmode .form select[disabled="disabled"], .darkmode .form textarea[disabled="disabled"], .darkmode .form fieldset[disabled="disabled"], .darkmode label.switch[disabled="disabled"] {
+    background: #000;
+}
+
+.darkmode .item:hover {
+    background-color: #2a2e38 !important;
+}
+
+.darkmode #nav .tooltip:before {
+    top: -6px;
+}
+
+.darkmode #loader {
+    mix-blend-mode: screen;
+    filter: invert(1) grayscale(1);
+}
+
+
 /* Main Structure */
 aside {
     display: block;
@@ -784,6 +853,14 @@ footer {
     opacity: .3;
 }
 
+#reload {
+    cursor: pointer;
+}
+
+#reload.active svg path, #notifications.active a svg path {
+    fill: var(--blue);
+}
+
 #notifications .count {
     position: absolute;
     top: 15px;
@@ -809,9 +886,11 @@ footer {
     display: block;
 } */
 
-.tooltip span {
+.tooltip > span {
     display: block;
-    margin: 10px 20px;
+    margin: 10px 0 15px;
+    font-weight: 400;
+    font-size: 1rem;
 }
 
 .tooltip {
@@ -876,6 +955,7 @@ footer .tooltip p {
 #notifications .tooltip {
     top: 60px;
     right: 35px;
+    padding: 10px 20px;
 }
 
 #nav .tooltip:before {
@@ -908,14 +988,19 @@ footer .tooltip p {
 .message {
     border-top: 1px solid var(--gray2);
     position: relative;
-    max-width: 420px;
-    padding: 10px 20px;
+    max-width: 320px;
+    padding: 15px 0;
+    display: none;
 }
 
-.message .close {
+.message.show, .message.zero {
+    display: block;
+}
+
+.message .remove {
     position: absolute;
-    top: 0;
-    right: 0;
+    top: 23px;
+    right: 2px;
     width: 15px;
     height: 15px;
     line-height: 1;
@@ -923,6 +1008,67 @@ footer .tooltip p {
     text-align: center;
     color: var(--gray3);
     cursor: pointer;
+    margin: 0;
+}
+
+.message .remove svg {
+    transform: scale(.9);
+}
+
+.message .remove:hover path {
+    fill: #FF2600;
+}
+
+.message .title {
+    margin-bottom: 10px;
+    font-size: .9rem;
+    font-weight: 400;
+    line-height: 1.2;
+}
+
+.message .detail {
+    line-height: 1.2;
+    margin-bottom: 15px;
+}
+
+.message .doclink {
+    font-weight: bold;
+}
+
+.message .kind {
+    display: inline-block;
+    text-transform: uppercase;
+    margin: 0 6px 15px;
+    font-size: .8rem;
+    border: 0;
+    border-radius: 20px;
+    padding: 6px 10px;
+}
+
+.message .kind.error {
+    background: #ffc8bf;
+    color: #FF2600;
+}
+
+.message .kind.message {
+    background: #bfeaec;
+    color: var(--blue);
+}
+
+.message .icon {
+    display: inline-block;
+    position: relative;
+    top: 7px;
+    padding: 0;
+    border: 0;
+}
+
+.message .icon.error path {
+    fill: #FF2600;
+}
+
+.message .icon.message path {
+    fill: var(--blue);
 }
 
 #notifications h2 {
@@ -1076,12 +1222,12 @@ ul.tabs {
     font-weight: bold;
 }
 
-.title {
+/* .title {
     color: var(--blue);
     padding-top: 12px;
     font-size: 1.1rem;
     text-transform: uppercase;
-}
+} */
 
 .subtitle {
     font-weight: 300;
@@ -1523,13 +1669,20 @@ label.switch {
     border-top-right-radius: 0;
     border-bottom-right-radius: 0;
     float: left;
+    position: relative;
+}
+
+.unit-select .size:focus {
+    z-index: 2;
 }
 
 .unit-select .unit {
     width: 50%;
+    position: relative;
+    z-index: 1;
+    left: -1px;
     border-top-left-radius: 0;
     border-bottom-left-radius: 0;
-    border-left: 0;
     background-position-x: 95.5%;
 }
 
