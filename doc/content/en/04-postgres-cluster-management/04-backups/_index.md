@@ -66,7 +66,7 @@ status:
   backupConfig:
     compressionMethod: lz4
     storage:
-      s3:
+      s3compatible:
         credentials:
           accessKey:
             key: accesskey
@@ -76,9 +76,9 @@ status:
             name: minio
         endpoint: http://minio:9000
         forcePathStyle: true
-        prefix: s3://stackgres
+        bucket: stackgres
         region: k8s
-      type: s3
+      type: s3compatible
   compressedSize: 6691164
   dataDir: /var/lib/postgresql/data
   failureReason: ""
@@ -143,8 +143,8 @@ spec:
   fullSchedule: 0 5 * * *
   fullWindow: 60
   storage:
-    type: s3
-    s3:
+    type: s3compatible
+    s3compatible:
       credentials:
         accessKey:
           key: accesskey
@@ -154,7 +154,7 @@ spec:
           name: my-cluster-minio
       endpoint: http://my-cluster-minio:9000
       forcePathStyle: true
-      prefix: s3://stackgres
+      bucket: stackgres
       region: k8s
 ```
  
@@ -173,18 +173,30 @@ The default name of backup configuration CR is `defaultbackupconfig`
 
 # Storage Configuration
 
-| Property                                              | Required            | Updatable | Type   | Default | Description |
-|:------------------------------------------------------|---------------------|-----------|:-------|:--------|:------------|
-| type                                                  | ✓                   | ✓         | string |         | Type of storage: <br>- s3: Amazon Web Services S3 <br>- gcs: Google Clooud Storage <br>- azureblob: Azure Blob Storage  |
-| [s3](#s3--amazon-web-services-s3-configuration)       | if type = s3        | ✓         | object |         | Amazon Web Services S3 configuration |
-| [gcs](#gsc--google-cloud-storage-configuration)       | if type = gcs       | ✓         | object |         | Google Cloud Storage configuration |
-| [azureblob](#azure--azure-blob-storage-configuration) | if type = azureblob | ✓         | object |         | Google Cloud Storage configuration |
+| Property                                                             | Required               | Updatable | Type   | Default | Description |
+|:---------------------------------------------------------------------|------------------------|-----------|:-------|:--------|:------------|
+| type                                                                 | ✓                      | ✓         | string |         | Type of storage: <br>- s3: Amazon Web Services S3 <br>- s3compatible: Amazon Web Services S3 Compatible <br>- gcs: Google Clooud Storage <br>- azureblob: Azure Blob Storage  |
+| [s3](#s3--amazon-web-services-s3-configuration)                      | if type = s3           | ✓         | object |         | Amazon Web Services S3 configuration |
+| [s3compatible](#s3--amazon-web-services-s3-compatible-configuration) | if type = s3compatible | ✓         | object |         | Amazon Web Services S3 configuration |
+| [gcs](#gsc--google-cloud-storage-configuration)                      | if type = gcs          | ✓         | object |         | Google Cloud Storage configuration |
+| [azureblob](#azure--azure-blob-storage-configuration)                | if type = azureblob    | ✓         | object |         | Google Cloud Storage configuration |
 
 ## S3 - Amazon Web Services S3 configuration
 
 | Property                       | Required | Updatable | Type    | Default | Description |
 |:-------------------------------|----------|-----------|:--------|:--------|:------------|
-| prefix                         | ✓        | ✓         | string  |         | The AWS S3 bucket and prefix (eg. s3://bucket/path/to/folder) |
+| bucket                         | ✓        | ✓         | string  |         | The AWS S3 bucket (eg. bucket) |
+| path                           |          | ✓         | string  |         | The AWS S3 bucket path (eg. /path/to/folder) |
+| [credentials](#s3-credentials) | ✓        | ✓         | object  |         | The credentials to access AWS S3 for writing and reading  |
+| region                         |          | ✓         | string  |         | The AWS S3 region. Region can be detected using s3:GetBucketLocation, but if you wish to avoid this API call or forbid it from the applicable IAM policy, specify this property  |
+| storageClass                   |          | ✓         | string  |         | By default, the "STANDARD" storage class is used. Other supported values include "STANDARD_IA" for Infrequent Access and "REDUCED_REDUNDANCY" for Reduced Redundancy  |
+
+## S3 - Amazon Web Services S3 Compatible configuration
+
+| Property                       | Required | Updatable | Type    | Default | Description |
+|:-------------------------------|----------|-----------|:--------|:--------|:------------|
+| bucket                         | ✓        | ✓         | string  |         | The AWS S3 bucket (eg. bucket) |
+| path                           |          | ✓         | string  |         | The AWS S3 bucket path (eg. /path/to/folder) |
 | [credentials](#s3-credentials) | ✓        | ✓         | object  |         | The credentials to access AWS S3 for writing and reading  |
 | region                         |          | ✓         | string  |         | The AWS S3 region. Region can be detected using s3:GetBucketLocation, but if you wish to avoid this API call or forbid it from the applicable IAM policy, specify this property  |
 | endpoint                       |          | ✓         | string  |         |Overrides the default hostname to connect to an S3-compatible service. i.e, http://s3-like-service:9000  |
@@ -195,14 +207,15 @@ The default name of backup configuration CR is `defaultbackupconfig`
 
 | Property                                                                                                    | Required | Updatable | Type   | Default | Description |
 |:------------------------------------------------------------------------------------------------------------|----------|-----------|:-------|:--------|:------------|
-| [accessKey](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.12/#secretkeyselector-v1-core) | ✓        | ✓         | object |         | The AWS S3 bucket and prefix (eg. s3://bucket/path/to/folder) |
+| [accessKey](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.12/#secretkeyselector-v1-core) | ✓        | ✓         | object |         | AWS Access Key ID |
 | [secretKey](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.12/#secretkeyselector-v1-core) | ✓        | ✓         | object |         | AWS Secret Access Key  |
 
 ## GSC - Google Cloud Storage configuration
 
 | Property                        | Required | Updatable | Type   | Default | Description |
 |:--------------------------------|----------|-----------|:-------|:--------|:------------|
-| prefix                          | ✓        | ✓         | string |         | Specify where to store backups (eg. gs://x4m-test-bucket/walg-folder) |
+| bucket                          | ✓        | ✓         | string |         | Specify bucket where to store backups (eg. x4m-test-bucket) |
+| path                            |          | ✓         | string |         | Specify bueckt path where to store backups (eg. /walg-folder) |
 | [credentials](#gcp-credentials) | ✓        | ✓         | object |         | The credentials to access GCS for writing and reading |
 
 ### GCP Credentials
@@ -216,7 +229,8 @@ The default name of backup configuration CR is `defaultbackupconfig`
 
 | Property                          | Required | Updatable | Type    | Default | Description |
 |:----------------------------------|----------|-----------|:--------|:--------|:-------------|
-| prefix                            | ✓        | ✓         | string  |         | Specify where to store backups in Azure storage (eg. azure://test-container/walg-folder) |  
+| bucket                            | ✓        | ✓         | string  |         | Specify bucket where to store backups in Azure storage (eg. test-container) |  
+| path                              |          | ✓         | string  |         | Specify bucket path where to store backups in Azure storage (eg. /walg-folder) |  
 | [credentials](#azure-credentials) | ✓        | ✓         | object  |         | AWS Secret Access Key  |
 
 ### Azure Credentials
