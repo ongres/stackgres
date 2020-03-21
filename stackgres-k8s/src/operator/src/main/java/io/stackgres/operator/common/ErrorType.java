@@ -8,7 +8,7 @@ package io.stackgres.operator.common;
 public enum ErrorType {
 
   CONSTRAINT_VIOLATION("constraint-violation",
-      "Some fields doesn't complain syntactic rules"),
+      "Some fields do not comply with the syntactic rules"),
   PG_CONFIG_BLACKLIST("postgres-blacklist",
       "The postgres configuration contains blacklisted parameters"),
   PG_VERSION_MISMATCH("postgres-major-version-mismatch", "Postgres versions doesn't match"),

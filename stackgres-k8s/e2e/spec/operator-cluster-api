@@ -326,8 +326,8 @@ test_constraint_violation_api_error() {
   ERROR_RESPONSE="$(run_curl -r "stackgres/sgcluster" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/invalid-cluster.json" -e '-X POST')"
 
   EXPECTED_ERROR_TYPE="constraint-violation"
-  EXPECTED_ERROR_TITLE="doesn't complain syntactic rules"
-  EXPECTED_ERROR_DETAIL="You need at least 1 instance in the cluste"
+  EXPECTED_ERROR_TITLE="do not comply with the syntactic rules"
+  EXPECTED_ERROR_DETAIL="spec.instances in body should be greater than or equal to 1"
   EXPECTED_ERROR_FIELD="instances"
 
   assert_api_error "$ERROR_RESPONSE"
