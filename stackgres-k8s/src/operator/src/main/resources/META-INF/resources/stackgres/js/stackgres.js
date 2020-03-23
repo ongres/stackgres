@@ -589,11 +589,16 @@ const vm = new Vue({
 
             } else {
               //console.log("Namespace ya existe");
-            }     
+            }
+
+            let start = moment(item.status.startTime);
+            let finish = moment(item.status.finishTime);
+            let duration = moment.duration(finish.diff(start));
               
             store.commit('updateBackups', { 
               name: item.metadata.name,
-              data: item
+              data: item,
+              duration: new Date(duration).toISOString().slice(11, -1)
             });
 
           });
@@ -841,6 +846,19 @@ Vue.filter('formatBytes',function(a){
 Vue.filter('prefix',function(s, l = 2){
   return s.substring(0, l);
 });
+
+
+Vue.filter('formatTimestamp',function(t, part){
+
+    if(part == 'date')
+      return t.substr(0, t.indexOf('T'));
+    else if (part == 'time')
+      return t.substring( t.indexOf('T')+1, t.indexOf('.'));
+    else if (part == 'ms')
+      return t.substring( t.indexOf('.'), t.indexOf('.')+4);
+
+});
+
 
 function formatBytes (a) {
   if(0==a)return"0 Bytes";var c=1024,d=2,e=["Bytes","Ki","Mi","Gi","Ti","Pi","Ei","Zi","Yi"],f=Math.floor(Math.log(a)/Math.log(c))+1;return parseFloat((a/Math.pow(c,f)).toFixed(d))+" "+e[f];
@@ -1291,11 +1309,13 @@ $(document).ready(function(){
   });
 
   $(document).on("click", "tr.base:not(.Pending) td:not(.actions)", function(){
-    $(this).parent().next().toggle()
+    $(this).parent().next().toggle().addClass("open");
+    $(this).parent().toggleClass("open");
   });
 
   $(document).on("click", "tr.base a.open", function(){
-    $(this).parent().parent().next().toggle()
+    $(this).parent().parent().next().toggle().addClass("open");
+    $(this).parent().parent().toggleClass("open");
   });
 
   

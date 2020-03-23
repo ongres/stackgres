@@ -131,6 +131,10 @@ pre {
     color: var(--gray5);
 }
 
+.center {
+    text-align: center;
+}
+
 /* Loader */
 #loader {
     position: fixed;
@@ -282,6 +286,23 @@ pre {
 .darkmode #loader {
     mix-blend-mode: screen;
     filter: invert(1) grayscale(1);
+}
+
+.darkmode tr.details.open {
+    background: #323642;
+}
+
+.darkmode table table tbody {
+    border-top-color: #454a5a;
+    border-bottom: 0;
+}
+
+.darkmode tr.details {
+    border: 1px solid #333;
+}
+
+.darkmode table table + table {
+    border-top: 1px solid #454a5a;
 }
 
 
@@ -1939,7 +1960,7 @@ table {
     text-align: left;
 }
 
-tr:nth-child(4n+2) {
+tr:nth-child(4n+2), tr:nth-child(4n+2) + tr.details {
     background: #fafafa;
 }
 
@@ -2044,6 +2065,100 @@ td.true {
 td.false {
     background:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIxOSIgdmlld0JveD0iMCAwIDIwIDE5Ij48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtMTguNzEzKSI+PHJlY3Qgd2lkdGg9IjIwIiBoZWlnaHQ9IjE5IiByeD0iOS41IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgxOC43MTMpIiBmaWxsPSIjYTZhN2FlIiBvcGFjaXR5PSIwLjI1Ii8+PHBhdGggZD0iTTEwNS43OTQsMTA0LjY0MWwyLjIzLTIuMjNhMS4wMzcsMS4wMzcsMCwxLDAtMS40NjYtMS40NjZsLTIuMjMsMi4yMy0yLjIzLTIuMjNhMS4wMzcsMS4wMzcsMCwxLDAtMS40NjYsMS40NjZsMi4yMywyLjIzLTIuMjMsMi4yM2ExLjAzNiwxLjAzNiwwLDEsMCwxLjQ2NiwxLjQ2NWwyLjIzLTIuMjMsMi4yMywyLjIzYTEuMDM2LDEuMDM2LDAsMCwwLDEuNDY2LTEuNDY1WiIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTc1LjYxNSAtOTUuMTQxKSIgZmlsbD0iI2E2YTdhZSIvPjwvZz48L3N2Zz4=) calc(50% - 7px) center no-repeat;
 }
+
+td.phase {
+    padding: 0px 15px;
+}
+
+td.phase > span {
+    display: inline-block;
+    width: 78px;
+    padding: 3px 0;
+    font-size: 11px;
+    border-radius: 10px;
+    font-weight: bold;
+}
+
+td.phase.Completed > span {
+    color: #03CC03;
+    background: #bcfbbc;
+}
+
+td.phase.Completed > span {
+    color: #03CC03;
+    background: #bcfbbc;
+}
+
+td.phase.Pending > span {
+    color: #DE9826;
+    background: #fbedc4;
+}
+
+td.phase.Failed > span {
+    color: #FF2600;
+    background: #ffc8bf;
+}
+
+td.timestamp span.time {
+    color: var(--blue);
+    display: inline-block;
+    margin-right: -3px;
+}
+
+td.timestamp span.date {
+    color: var(--gray4);
+}
+
+/* tr.details th:first-child, tr.details td:first-child {
+    padding-left: 0;
+} */
+
+table table {
+    margin-left: -15px;
+    width: calc(100% + 15px);
+}
+
+body:not(.darkmode) tr.base.open {
+    border-left: 1px solid #f0f0f1;
+    border-right: 1px solid #f0f0f1;
+}
+
+table table tbody {
+    border-top-color: #f0f0f1;
+    border-bottom: 0;
+}
+
+body:not(.darkmode) tr.details.open {
+    border: 1px solid #f0f0f1;
+}
+
+table table + table {
+    border-top: 1px solid #f0f0f1;
+}
+
+tr.details {
+    border-top: 0;
+}
+
+tr.open .open path {
+    fill: var(--blue);
+}
+
+ul.yaml {
+    list-style: none;
+    margin: 10px 0;
+    line-height: 1.5;
+}
+
+.yaml .label {
+    color: #2A803A;
+}
+
+ul.yaml ul {
+    margin-left: 15px;
+    list-style: none;
+}
+
 
 
 /* Table Filters */
