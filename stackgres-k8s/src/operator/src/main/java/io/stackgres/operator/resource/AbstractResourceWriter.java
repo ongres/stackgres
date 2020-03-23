@@ -28,7 +28,7 @@ public abstract class AbstractResourceWriter<T extends HasMetadata,
   @Override
   public void create(T resource) {
     try (KubernetesClient client = clientFactory.create()) {
-      getResourceOperator(client)
+      getResourceEndpoints(client)
           .inNamespace(resource.getMetadata().getNamespace())
           .create(resource);
     }
@@ -37,7 +37,7 @@ public abstract class AbstractResourceWriter<T extends HasMetadata,
   @Override
   public void update(T resource) {
     try (KubernetesClient client = clientFactory.create()) {
-      getResourceOperator(client)
+      getResourceEndpoints(client)
           .inNamespace(resource.getMetadata().getNamespace())
           .withName(resource.getMetadata().getName())
           .patch(resource);
@@ -47,7 +47,7 @@ public abstract class AbstractResourceWriter<T extends HasMetadata,
   @Override
   public void delete(T resource) {
     try (KubernetesClient client = clientFactory.create()) {
-      getResourceOperator(client)
+      getResourceEndpoints(client)
           .inNamespace(resource.getMetadata().getNamespace())
           .withName(resource.getMetadata().getName())
           .delete();
@@ -55,7 +55,7 @@ public abstract class AbstractResourceWriter<T extends HasMetadata,
   }
 
   protected abstract Namespaceable<
-        NonNamespaceOperation<T, L, D, Resource<T, D>>> getResourceOperator(
+        NonNamespaceOperation<T, L, D, Resource<T, D>>> getResourceEndpoints(
       KubernetesClient client);
 
 }

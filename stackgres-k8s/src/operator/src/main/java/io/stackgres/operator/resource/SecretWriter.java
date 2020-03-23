@@ -33,7 +33,7 @@ public class SecretWriter extends AbstractResourceWriter<Secret, SecretList, Don
 
   @Override
   protected Namespaceable<NonNamespaceOperation<Secret, SecretList,
-        DoneableSecret, Resource<Secret, DoneableSecret>>> getResourceOperator(
+        DoneableSecret, Resource<Secret, DoneableSecret>>> getResourceEndpoints(
       KubernetesClient client) {
     return client.secrets();
   }
