@@ -5,10 +5,6 @@
 
 package io.stackgres.operator.rest.dto.storages;
 
-import java.util.Objects;
-
-import javax.validation.constraints.NotNull;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -23,35 +19,25 @@ import io.stackgres.operator.rest.dto.SecretKeySelector;
 public class GoogleCloudCredentials {
 
   @JsonProperty("serviceAccountJsonKey")
-  @NotNull(message = "The serviceAccountJsonKey is required")
-  private SecretKeySelector serviceAccountJsonKey;
+  private String serviceAccountJsonKey;
 
-  public SecretKeySelector getServiceAccountJsonKey() {
+  @JsonProperty("serviceAccountJsonKeySelector")
+  private SecretKeySelector serviceAccountJsonKeySelector;
+
+  public String getServiceAccountJsonKey() {
     return serviceAccountJsonKey;
   }
 
-  public void setServiceAccountJsonKey(SecretKeySelector serviceAccountJsonKey) {
+  public void setServiceAccountJsonKey(String serviceAccountJsonKey) {
     this.serviceAccountJsonKey = serviceAccountJsonKey;
   }
 
-  @Override
-  public int hashCode() {
-    return Objects.hash(serviceAccountJsonKey);
+  public SecretKeySelector getServiceAccountJsonKeySelector() {
+    return serviceAccountJsonKeySelector;
   }
 
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null) {
-      return false;
-    }
-    if (!(obj instanceof GoogleCloudCredentials)) {
-      return false;
-    }
-    GoogleCloudCredentials other = (GoogleCloudCredentials) obj;
-    return Objects.equals(serviceAccountJsonKey, other.serviceAccountJsonKey);
+  public void setServiceAccountJsonKeySelector(SecretKeySelector serviceAccountJsonKeySelector) {
+    this.serviceAccountJsonKeySelector = serviceAccountJsonKeySelector;
   }
 
   @Override
@@ -59,6 +45,7 @@ public class GoogleCloudCredentials {
     return MoreObjects.toStringHelper(this)
         .omitNullValues()
         .add("serviceAccountJsonKey", serviceAccountJsonKey)
+        .add("serviceAccountJsonKeySelector", serviceAccountJsonKeySelector)
         .toString();
   }
 

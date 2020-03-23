@@ -7,6 +7,7 @@ package io.stackgres.operator.resource;
 
 import java.util.List;
 import java.util.Optional;
+
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
@@ -34,10 +35,20 @@ public class StorageClassFinder implements
   }
 
   @Override
+  public Optional<StorageClass> findByNameAndNamespace(String name, String namespace) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   public List<StorageClass> findResources() {
     try (KubernetesClient client = kubClientFactory.create()) {
       return client.storage().storageClasses().list().getItems();
     }
+  }
+
+  @Override
+  public List<StorageClass> findResourcesInNamespace(String namespace) {
+    throw new UnsupportedOperationException();
   }
 
 }

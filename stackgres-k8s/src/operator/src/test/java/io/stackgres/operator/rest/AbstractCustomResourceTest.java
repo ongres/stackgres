@@ -30,18 +30,18 @@ import org.mockito.stubbing.Answer;
 abstract class AbstractCustomResourceTest<T extends ResourceDto, R extends CustomResource> {
 
   @Mock
-  private CustomResourceScanner<R> scanner;
+  protected CustomResourceScanner<R> scanner;
 
   @Mock
-  private CustomResourceFinder<R> finder;
+  protected CustomResourceFinder<R> finder;
 
   @Mock
-  private CustomResourceScheduler<R> scheduler;
+  protected CustomResourceScheduler<R> scheduler;
 
-  private CustomResourceList<R> customResources;
-  private T resourceDto;
-  private AbstractRestService<T, R> service;
-  private AbstractResourceTransformer<T, R> transformer;
+  protected CustomResourceList<R> customResources;
+  protected T resourceDto;
+  protected AbstractRestService<T, R> service;
+  protected AbstractResourceTransformer<T, R> transformer;
 
   @BeforeEach
   void setUp() {

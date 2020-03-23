@@ -51,8 +51,8 @@ metadata:
   name: simple
 spec:
   storage:
-    type: s3
-    s3:
+    type: s3compatible
+    s3compatible:
       credentials:
         accessKey:
           key: accesskey
@@ -62,7 +62,7 @@ spec:
           name: minio
       endpoint: http://minio:9000
       forcePathStyle: true
-      prefix: s3://stackgres
+      bucket: stackgres
       region: k8s
 EOF
 ```

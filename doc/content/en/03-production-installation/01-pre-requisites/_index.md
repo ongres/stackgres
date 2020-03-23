@@ -67,6 +67,7 @@ config:
     # fill the preferred storage method with
     # specific credentials and configurations
     s3: {}
+    s3compatible: {}
     gcs: {}
     azureblob: {}
 ```

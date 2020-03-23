@@ -5,10 +5,6 @@
 
 package io.stackgres.operator.rest.dto.storages;
 
-import java.util.Objects;
-
-import javax.validation.constraints.NotNull;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -23,47 +19,47 @@ import io.stackgres.operator.rest.dto.SecretKeySelector;
 public class AzureBlobStorageCredentials {
 
   @JsonProperty("account")
-  @NotNull(message = "The account is required")
-  private SecretKeySelector account;
+  private String account;
 
   @JsonProperty("accessKey")
-  @NotNull(message = "The accessKey is required")
-  private SecretKeySelector accessKey;
+  private String accessKey;
 
-  public SecretKeySelector getAccount() {
+  @JsonProperty("accountSelector")
+  private SecretKeySelector accountSelector;
+
+  @JsonProperty("accessKeySelector")
+  private SecretKeySelector accessKeySelector;
+
+  public String getAccount() {
     return account;
   }
 
-  public void setAccount(SecretKeySelector account) {
+  public void setAccount(String account) {
     this.account = account;
   }
 
-  public SecretKeySelector getAccessKey() {
+  public String getAccessKey() {
     return accessKey;
   }
 
-  public void setAccessKey(SecretKeySelector accessKey) {
+  public void setAccessKey(String accessKey) {
     this.accessKey = accessKey;
   }
 
-  @Override
-  public int hashCode() {
-    return Objects.hash(accessKey, account);
+  public SecretKeySelector getAccountSelector() {
+    return accountSelector;
   }
 
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null) {
-      return false;
-    }
-    if (!(obj instanceof AzureBlobStorageCredentials)) {
-      return false;
-    }
-    AzureBlobStorageCredentials other = (AzureBlobStorageCredentials) obj;
-    return Objects.equals(accessKey, other.accessKey) && Objects.equals(account, other.account);
+  public void setAccountSelector(SecretKeySelector accountSelector) {
+    this.accountSelector = accountSelector;
+  }
+
+  public SecretKeySelector getAccessKeySelector() {
+    return accessKeySelector;
+  }
+
+  public void setAccessKeySelector(SecretKeySelector accessKeySelector) {
+    this.accessKeySelector = accessKeySelector;
   }
 
   @Override
@@ -72,6 +68,8 @@ public class AzureBlobStorageCredentials {
         .omitNullValues()
         .add("account", account)
         .add("accessKey", accessKey)
+        .add("accountSelector", accountSelector)
+        .add("accessKeySelector", accessKeySelector)
         .toString();
   }
 

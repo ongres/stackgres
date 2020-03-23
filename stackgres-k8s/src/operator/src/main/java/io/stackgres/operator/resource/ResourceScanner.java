@@ -11,4 +11,6 @@ public interface ResourceScanner<T> {
 
   List<T> findResources();
 
+  List<T> findResourcesInNamespace(String namespace);
+
 }

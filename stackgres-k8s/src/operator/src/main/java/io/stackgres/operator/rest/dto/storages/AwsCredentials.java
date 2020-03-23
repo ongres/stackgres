@@ -5,10 +5,6 @@
 
 package io.stackgres.operator.rest.dto.storages;
 
-import java.util.Objects;
-
-import javax.validation.constraints.NotNull;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -23,47 +19,47 @@ import io.stackgres.operator.rest.dto.SecretKeySelector;
 public class AwsCredentials {
 
   @JsonProperty("accessKey")
-  @NotNull(message = "The accessKey is required")
-  private SecretKeySelector accessKey;
+  private String accessKey;
 
   @JsonProperty("secretKey")
-  @NotNull(message = "The secretKey is required")
-  private SecretKeySelector secretKey;
+  private String secretKey;
 
-  public SecretKeySelector getAccessKey() {
+  @JsonProperty("accessKeySelector")
+  private SecretKeySelector accessKeySelector;
+
+  @JsonProperty("secretKeySelector")
+  private SecretKeySelector secretKeySelector;
+
+  public String getAccessKey() {
     return accessKey;
   }
 
-  public void setAccessKey(SecretKeySelector accessKey) {
+  public void setAccessKey(String accessKey) {
     this.accessKey = accessKey;
   }
 
-  public SecretKeySelector getSecretKey() {
+  public String getSecretKey() {
     return secretKey;
   }
 
-  public void setSecretKey(SecretKeySelector secretKey) {
+  public void setSecretKey(String secretKey) {
     this.secretKey = secretKey;
   }
 
-  @Override
-  public int hashCode() {
-    return Objects.hash(accessKey, secretKey);
+  public SecretKeySelector getAccessKeySelector() {
+    return accessKeySelector;
   }
 
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null) {
-      return false;
-    }
-    if (!(obj instanceof AwsCredentials)) {
-      return false;
-    }
-    AwsCredentials other = (AwsCredentials) obj;
-    return Objects.equals(accessKey, other.accessKey) && Objects.equals(secretKey, other.secretKey);
+  public void setAccessKeySelector(SecretKeySelector accessKeySelector) {
+    this.accessKeySelector = accessKeySelector;
+  }
+
+  public SecretKeySelector getSecretKeySelector() {
+    return secretKeySelector;
+  }
+
+  public void setSecretKeySelector(SecretKeySelector secretKeySelector) {
+    this.secretKeySelector = secretKeySelector;
   }
 
   @Override
@@ -72,6 +68,8 @@ public class AwsCredentials {
         .omitNullValues()
         .add("accessKey", accessKey)
         .add("secretKey", secretKey)
+        .add("accessKeySelector", accessKeySelector)
+        .add("secretKeySelector", secretKeySelector)
         .toString();
   }
 

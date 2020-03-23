@@ -5,8 +5,6 @@
 
 package io.stackgres.operator.rest.dto.storages;
 
-import java.util.Objects;
-
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -76,29 +74,6 @@ public class AwsS3Storage {
 
   public void setStorageClass(String storageClass) {
     this.storageClass = storageClass;
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(credentials, bucket,
-        region, storageClass, path);
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null) {
-      return false;
-    }
-    if (!(obj instanceof AwsS3Storage)) {
-      return false;
-    }
-    AwsS3Storage other = (AwsS3Storage) obj;
-    return Objects.equals(credentials, other.credentials)
-        && Objects.equals(bucket, other.bucket) && Objects.equals(region, other.region)
-        && Objects.equals(storageClass, other.storageClass) && Objects.equals(path, other.path);
   }
 
   @Override

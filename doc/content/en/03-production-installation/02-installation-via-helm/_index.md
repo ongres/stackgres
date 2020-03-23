@@ -127,7 +127,8 @@ By default the chart create a storage class backed by an MinIO server. To avoid 
 
 ##### Amazon Web Services S3
 
-* `config.backup.s3.prefix`: The AWS S3 bucket and prefix (eg. s3://bucket/path/to/folder).
+* `config.backup.s3.bucket`: The AWS S3 bucket (eg. bucket).
+* `config.backup.s3.path`: The AWS S3 bucket path (eg. /path/to/folder).
 * `config.backup.s3.accessKey.name`: The name of secret with the access key credentials to access
  AWS S3 for writing and reading.
 * `config.backup.s3.accessKey.key`: The key in the secret with the access key credentials to access
@@ -139,19 +140,39 @@ By default the chart create a storage class backed by an MinIO server. To avoid 
 * `config.backup.s3.region`: The AWS S3 region. Region can be detected using s3:GetBucketLocation,
  but if you wish to avoid this API call or forbid it from the applicable IAM policy, specify this
  property.
-* `config.backup.s3.endpoint`: Overrides the default hostname to connect to an S3-compatible
+* `config.backup.s3.storageClass`: By default, the "STANDARD" storage class is used. Other
+ supported values include "STANDARD_IA" for Infrequent Access and "REDUCED_REDUNDANCY" for Reduced
+ Redundancy.
+
+##### Amazon Web Services S3 Compatible
+
+* `config.backup.s3compatible.bucket`: The AWS S3 bucket (eg. bucket).
+* `config.backup.s3compatible.path`: The AWS S3 bucket path (eg. /path/to/folder).
+* `config.backup.s3compatible.accessKey.name`: The name of secret with the access key credentials to access
+ AWS S3 for writing and reading.
+* `config.backup.s3compatible.accessKey.key`: The key in the secret with the access key credentials to access
+ AWS S3 for writing and reading.
+* `config.backup.s3compatible.secretKey.name`: The name of secret with the secret key credentials to access
+ AWS S3 for writing and reading.
+* `config.backup.s3compatible.secretKey.key`: The key in the secret with the secret key credentials to access
+ AWS S3 for writing and reading.
+* `config.backup.s3compatible.region`: The AWS S3 region. Region can be detected using s3:GetBucketLocation,
+ but if you wish to avoid this API call or forbid it from the applicable IAM policy, specify this
+ property.
+* `config.backup.s3compatible.endpoint`: Overrides the default hostname to connect to an S3-compatible
  service. i.e, http://s3-like-service:9000.
-* `config.backup.s3.forcePathStyle`: To enable path-style addressing(i.e.,
+* `config.backup.s3compatible.forcePathStyle`: To enable path-style addressing(i.e.,
  http://s3.amazonaws.com/BUCKET/KEY) when connecting to an S3-compatible service that lack of
  support for sub-domain style bucket URLs (i.e., http://BUCKET.s3.amazonaws.com/KEY). Defaults to
  false.
-* `config.backup.s3.storageClass`: By default, the "STANDARD" storage class is used. Other
+* `config.backup.s3compatible.storageClass`: By default, the "STANDARD" storage class is used. Other
  supported values include "STANDARD_IA" for Infrequent Access and "REDUCED_REDUNDANCY" for Reduced
  Redundancy.
 
 ##### Google Cloud Storage
 
-* `config.backup.gcs.prefix`: Specify where to store backups (eg. gs://x4m-test-bucket/walg-folder).
+* `config.backup.gcs.bucket`: Specify bucket where to store backups (eg. x4m-test-bucket).
+* `config.backup.gcs.path`: Specify bucket path where to store backups (eg. /walg-folder).
 * `config.backup.gcs.serviceAccountJsonKey.name`: The name of secret with service account json key
  to access GCS for writing and reading.
 * `config.backup.gcs.serviceAccountJsonKey.key`: The key in the secret with service account json key
@@ -159,8 +180,10 @@ By default the chart create a storage class backed by an MinIO server. To avoid 
 
 ##### Azure Blob Storage
 
-* `config.backup.azureblob.prefix`: Specify where to store backups in Azure storage (eg.
- azure://test-container/walg-folder).
+* `config.backup.azureblob.bucket`: Specify bucket where to store backups in Azure storage (eg.
+ test-container).
+* `config.backup.azureblob.path`: Specify bucket path where to store backups in Azure storage (eg.
+ /walg-folder).
 * `config.backup.azureblob.account.name`: The name of secret with storage account name to access
  Azure Blob Storage for writing and reading.
 * `config.backup.azureblob.account.key`: The key in the secret with storage account name to access

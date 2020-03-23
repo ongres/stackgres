@@ -8,10 +8,13 @@ package io.stackgres.operator.controller;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Random;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+
+import com.google.common.collect.ImmutableMap;
 
 import io.fabric8.kubernetes.api.model.Event;
 import io.fabric8.kubernetes.api.model.EventBuilder;
@@ -70,7 +73,8 @@ public class EventController {
     final String namespace = involvedObject.getMetadata().getNamespace();
     client.events()
         .inNamespace(namespace)
-        .withLabels(involvedObject.getMetadata().getLabels())
+        .withLabels(Optional.ofNullable(involvedObject.getMetadata().getLabels())
+            .orElse(ImmutableMap.of()))
         .list()
         .getItems()
         .stream()
@@ -124,23 +128,25 @@ public class EventController {
       KubernetesClient client) {
     final String id = nextId();
     final String name = involvedObject.getMetadata().getName() + "." + id;
-    return client.events().create(new EventBuilder()
-        .withNewMetadata()
-        .withNamespace(namespace)
-        .withName(name)
-        .withLabels(involvedObject.getMetadata().getLabels())
-        .endMetadata()
-        .withType(reason.type())
-        .withReason(reason.reason())
-        .withMessage(message)
-        .withCount(1)
-        .withFirstTimestamp(DateTimeFormatter.ISO_INSTANT.format(now))
-        .withLastTimestamp(DateTimeFormatter.ISO_INSTANT.format(now))
-        .withSource(new EventSourceBuilder()
-            .withComponent(StackGresUtil.OPERATOR_NAME)
-            .build())
-        .withInvolvedObject(ResourceUtil.getObjectReference(involvedObject))
-        .build());
+    return client.events()
+        .inNamespace(namespace)
+        .create(new EventBuilder()
+          .withNewMetadata()
+          .withNamespace(namespace)
+          .withName(name)
+          .withLabels(involvedObject.getMetadata().getLabels())
+          .endMetadata()
+          .withType(reason.type())
+          .withReason(reason.reason())
+          .withMessage(message)
+          .withCount(1)
+          .withFirstTimestamp(DateTimeFormatter.ISO_INSTANT.format(now))
+          .withLastTimestamp(DateTimeFormatter.ISO_INSTANT.format(now))
+          .withSource(new EventSourceBuilder()
+              .withComponent(StackGresUtil.OPERATOR_NAME)
+              .build())
+          .withInvolvedObject(ResourceUtil.getObjectReference(involvedObject))
+          .build());
   }
 
 }

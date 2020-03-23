@@ -5,8 +5,6 @@
 
 package io.stackgres.operator.resource;
 
-import javax.inject.Inject;
-
 import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.CustomResourceDoneable;
@@ -22,18 +20,20 @@ public abstract class AbstractCustomResourceScheduler<T extends CustomResource,
     L extends CustomResourceList<T>, D extends CustomResourceDoneable<T>>
     implements CustomResourceScheduler<T> {
 
-  private KubernetesClientFactory clientFactory;
+  private final KubernetesClientFactory clientFactory;
+
   private final String customResourceName;
   private final Class<T> customResourceClass;
   private final Class<L> customResourceListClass;
   private final Class<D> customResourceDoneClass;
 
   protected AbstractCustomResourceScheduler(
+      KubernetesClientFactory clientFactory,
       String customResourceName,
       Class<T> customResourceClass,
       Class<L> customResourceListClass,
       Class<D> customResourceDoneClass) {
-    super();
+    this.clientFactory = clientFactory;
     this.customResourceName = customResourceName;
     this.customResourceClass = customResourceClass;
     this.customResourceListClass = customResourceListClass;
@@ -44,7 +44,7 @@ public abstract class AbstractCustomResourceScheduler<T extends CustomResource,
   @Override
   public void create(T resource) {
     try (KubernetesClient client = clientFactory.create()) {
-      getCustomResourceOperator(client)
+      getCustomResourceEndpoints(client)
           .inNamespace(resource.getMetadata().getNamespace())
           .create(resource);
     }
@@ -53,7 +53,7 @@ public abstract class AbstractCustomResourceScheduler<T extends CustomResource,
   @Override
   public void update(T resource) {
     try (KubernetesClient client = clientFactory.create()) {
-      getCustomResourceOperator(client)
+      getCustomResourceEndpoints(client)
           .inNamespace(resource.getMetadata().getNamespace())
           .withName(resource.getMetadata().getName())
           .patch(resource);
@@ -63,14 +63,14 @@ public abstract class AbstractCustomResourceScheduler<T extends CustomResource,
   @Override
   public void delete(T resource) {
     try (KubernetesClient client = clientFactory.create()) {
-      getCustomResourceOperator(client)
+      getCustomResourceEndpoints(client)
           .inNamespace(resource.getMetadata().getNamespace())
           .withName(resource.getMetadata().getName())
           .delete();
     }
   }
 
-  private Namespaceable<NonNamespaceOperation<T, L, D, Resource<T, D>>> getCustomResourceOperator(
+  private Namespaceable<NonNamespaceOperation<T, L, D, Resource<T, D>>> getCustomResourceEndpoints(
       KubernetesClient client) {
     CustomResourceDefinition crd = ResourceUtil.getCustomResource(
         client, customResourceName)
@@ -80,11 +80,6 @@ public abstract class AbstractCustomResourceScheduler<T extends CustomResource,
         customResourceClass,
         customResourceListClass,
         customResourceDoneClass);
-  }
-
-  @Inject
-  public void setClientFactory(KubernetesClientFactory clientFactory) {
-    this.clientFactory = clientFactory;
   }
 
 }
