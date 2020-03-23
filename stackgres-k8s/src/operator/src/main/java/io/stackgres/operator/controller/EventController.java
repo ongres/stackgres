@@ -8,10 +8,13 @@ package io.stackgres.operator.controller;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Random;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+
+import com.google.common.collect.ImmutableMap;
 
 import io.fabric8.kubernetes.api.model.Event;
 import io.fabric8.kubernetes.api.model.EventBuilder;
@@ -70,7 +73,8 @@ public class EventController {
     final String namespace = involvedObject.getMetadata().getNamespace();
     client.events()
         .inNamespace(namespace)
-        .withLabels(involvedObject.getMetadata().getLabels())
+        .withLabels(Optional.ofNullable(involvedObject.getMetadata().getLabels())
+            .orElse(ImmutableMap.of()))
         .list()
         .getItems()
         .stream()
