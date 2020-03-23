@@ -26,8 +26,9 @@ import io.stackgres.operator.common.ArcUtil;
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.operator.resource.CustomResourceFinder;
 import io.stackgres.operator.resource.CustomResourceScanner;
+import io.stackgres.operator.resource.CustomResourceScheduler;
 import io.stackgres.operator.resource.ResourceFinder;
-import io.stackgres.operator.resource.ResourceScheduler;
+import io.stackgres.operator.resource.ResourceWriter;
 import io.stackgres.operator.rest.dto.SecretKeySelector;
 import io.stackgres.operator.rest.dto.backupconfig.BackupConfigDto;
 import io.stackgres.operator.rest.dto.backupconfig.BackupConfigSpec;
@@ -64,26 +65,26 @@ public class BackupConfigResource extends
   public static final String AZURE_ACCESS_KEY = "azure-accessKey";
 
   private final ResourceFinder<Secret> secretFinder;
-  private final ResourceScheduler<Secret> secretScheduler;
+  private final ResourceWriter<Secret> secretWriter;
 
   @Inject
   public BackupConfigResource(
       CustomResourceScanner<StackGresBackupConfig> scanner,
       CustomResourceFinder<StackGresBackupConfig> finder,
-      ResourceScheduler<StackGresBackupConfig> scheduler,
+      CustomResourceScheduler<StackGresBackupConfig> scheduler,
       ResourceTransformer<BackupConfigDto, StackGresBackupConfig> transformer,
       ResourceFinder<Secret> secretFinder,
-      ResourceScheduler<Secret> secretScheduler) {
+      ResourceWriter<Secret> secretWriter) {
     super(scanner, finder, scheduler, transformer);
     this.secretFinder = secretFinder;
-    this.secretScheduler = secretScheduler;
+    this.secretWriter = secretWriter;
   }
 
   public BackupConfigResource() {
     super(null, null, null, null);
     ArcUtil.checkPublicNoArgsConstructorIsCalledFromArc();
     this.secretFinder = null;
-    this.secretScheduler = null;
+    this.secretWriter = null;
   }
 
   @Override
@@ -155,11 +156,11 @@ public class BackupConfigResource extends
     secretFinder.findByNameAndNamespace(name, namespace)
         .map(secret -> {
           secret.setData(secrets);
-          secretScheduler.update(secret);
+          secretWriter.update(secret);
           return secret;
         })
         .orElseGet(() -> {
-          secretScheduler.create(new SecretBuilder()
+          secretWriter.create(new SecretBuilder()
               .withNewMetadata()
               .withNamespace(namespace)
               .withName(name)
@@ -174,7 +175,7 @@ public class BackupConfigResource extends
     final String namespace = resource.getMetadata().getNamespace();
     final String name = secretName(resource);
     secretFinder.findByNameAndNamespace(name, namespace)
-        .ifPresent(secretScheduler::delete);
+        .ifPresent(secretWriter::delete);
   }
 
   private String secretName(BackupConfigDto resource) {

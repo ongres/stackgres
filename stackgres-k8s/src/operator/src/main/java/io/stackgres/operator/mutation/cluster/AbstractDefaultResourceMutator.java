@@ -18,7 +18,7 @@ import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
 import io.stackgres.operator.resource.CustomResourceFinder;
-import io.stackgres.operator.resource.ResourceScheduler;
+import io.stackgres.operator.resource.CustomResourceScheduler;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 
 public abstract class AbstractDefaultResourceMutator<R extends CustomResource>
@@ -26,12 +26,12 @@ public abstract class AbstractDefaultResourceMutator<R extends CustomResource>
 
   private final DefaultCustomResourceFactory<R> resourceFactory;
   private final CustomResourceFinder<R> finder;
-  private final ResourceScheduler<R> scheduler;
+  private final CustomResourceScheduler<R> scheduler;
 
   private transient JsonPointer targetPointer;
 
   public AbstractDefaultResourceMutator(DefaultCustomResourceFactory<R> resourceFactory,
-      CustomResourceFinder<R> finder, ResourceScheduler<R> scheduler) {
+      CustomResourceFinder<R> finder, CustomResourceScheduler<R> scheduler) {
     super();
     this.resourceFactory = resourceFactory;
     this.finder = finder;

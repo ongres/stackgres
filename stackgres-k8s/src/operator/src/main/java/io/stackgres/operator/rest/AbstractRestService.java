@@ -18,7 +18,7 @@ import javax.ws.rs.PathParam;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.operator.resource.CustomResourceFinder;
 import io.stackgres.operator.resource.CustomResourceScanner;
-import io.stackgres.operator.resource.ResourceScheduler;
+import io.stackgres.operator.resource.CustomResourceScheduler;
 import io.stackgres.operator.rest.dto.ResourceDto;
 import io.stackgres.operator.rest.transformer.ResourceTransformer;
 
@@ -29,11 +29,11 @@ public class AbstractRestService<T extends ResourceDto, R extends CustomResource
 
   private final CustomResourceScanner<R> scanner;
   private final CustomResourceFinder<R> finder;
-  private final ResourceScheduler<R> scheduler;
+  private final CustomResourceScheduler<R> scheduler;
   private final ResourceTransformer<T, R> transformer;
 
   AbstractRestService(CustomResourceScanner<R> scanner,
-      CustomResourceFinder<R> finder, ResourceScheduler<R> scheduler,
+      CustomResourceFinder<R> finder, CustomResourceScheduler<R> scheduler,
       ResourceTransformer<T, R> transformer) {
     super();
     this.scanner = scanner;

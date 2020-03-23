@@ -6,6 +6,7 @@
 package io.stackgres.operator.resource;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.DoneableSecret;
 import io.fabric8.kubernetes.api.model.Secret;
@@ -14,9 +15,21 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.Namespaceable;
 import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
+import io.stackgres.operator.app.KubernetesClientFactory;
+import io.stackgres.operator.common.ArcUtil;
 
 @ApplicationScoped
-public class SecretScheduler extends AbstractResourceScheduler<Secret, SecretList, DoneableSecret> {
+public class SecretWriter extends AbstractResourceWriter<Secret, SecretList, DoneableSecret> {
+
+  @Inject
+  public SecretWriter(KubernetesClientFactory clientFactory) {
+    super(clientFactory);
+  }
+
+  public SecretWriter() {
+    super(null);
+    ArcUtil.checkPublicNoArgsConstructorIsCalledFromArc();
+  }
 
   @Override
   protected Namespaceable<NonNamespaceOperation<Secret, SecretList,

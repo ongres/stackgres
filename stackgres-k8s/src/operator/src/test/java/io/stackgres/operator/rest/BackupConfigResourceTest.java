@@ -23,8 +23,9 @@ import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfig
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfigList;
 import io.stackgres.operator.resource.CustomResourceFinder;
 import io.stackgres.operator.resource.CustomResourceScanner;
+import io.stackgres.operator.resource.CustomResourceScheduler;
 import io.stackgres.operator.resource.ResourceFinder;
-import io.stackgres.operator.resource.ResourceScheduler;
+import io.stackgres.operator.resource.ResourceWriter;
 import io.stackgres.operator.rest.dto.backupconfig.BackupConfigDto;
 import io.stackgres.operator.rest.transformer.AbstractResourceTransformer;
 import io.stackgres.operator.rest.transformer.BackupConfigTransformer;
@@ -45,7 +46,7 @@ class BackupConfigResourceTest
   private ResourceFinder<Secret> secretFinder;
 
   @Mock
-  private ResourceScheduler<Secret> secretScheduler;
+  private ResourceWriter<Secret> secretWriter;
 
   private Secret secret;
 
@@ -86,10 +87,10 @@ class BackupConfigResourceTest
   protected AbstractRestService<BackupConfigDto, StackGresBackupConfig> getService(
       CustomResourceScanner<StackGresBackupConfig> scanner,
       CustomResourceFinder<StackGresBackupConfig> finder,
-      ResourceScheduler<StackGresBackupConfig> scheduler,
+      CustomResourceScheduler<StackGresBackupConfig> scheduler,
       AbstractResourceTransformer<BackupConfigDto, StackGresBackupConfig> transformer) {
     return new BackupConfigResource(scanner, finder, scheduler, transformer,
-        secretFinder, secretScheduler);
+        secretFinder, secretWriter);
   }
 
   @Override

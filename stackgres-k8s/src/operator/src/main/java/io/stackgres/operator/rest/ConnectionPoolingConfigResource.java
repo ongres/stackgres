@@ -14,7 +14,7 @@ import javax.ws.rs.core.MediaType;
 import io.stackgres.operator.common.ArcUtil;
 import io.stackgres.operator.resource.CustomResourceFinder;
 import io.stackgres.operator.resource.CustomResourceScanner;
-import io.stackgres.operator.resource.ResourceScheduler;
+import io.stackgres.operator.resource.CustomResourceScheduler;
 import io.stackgres.operator.rest.dto.pgbouncerconfig.PgbouncerConfigDto;
 import io.stackgres.operator.rest.transformer.ResourceTransformer;
 import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfig;
@@ -29,7 +29,7 @@ public class ConnectionPoolingConfigResource extends
   public ConnectionPoolingConfigResource(
       CustomResourceScanner<StackGresPgbouncerConfig> scanner,
       CustomResourceFinder<StackGresPgbouncerConfig> finder,
-      ResourceScheduler<StackGresPgbouncerConfig> scheduler,
+      CustomResourceScheduler<StackGresPgbouncerConfig> scheduler,
       ResourceTransformer<PgbouncerConfigDto, StackGresPgbouncerConfig> transformer) {
     super(scanner, finder, scheduler, transformer);
   }

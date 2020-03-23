@@ -17,7 +17,7 @@ import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.CustomResourceList;
 import io.stackgres.operator.resource.CustomResourceFinder;
 import io.stackgres.operator.resource.CustomResourceScanner;
-import io.stackgres.operator.resource.ResourceScheduler;
+import io.stackgres.operator.resource.CustomResourceScheduler;
 import io.stackgres.operator.rest.dto.ResourceDto;
 import io.stackgres.operator.rest.transformer.AbstractResourceTransformer;
 
@@ -36,7 +36,7 @@ abstract class AbstractCustomResourceTest<T extends ResourceDto, R extends Custo
   protected CustomResourceFinder<R> finder;
 
   @Mock
-  protected ResourceScheduler<R> scheduler;
+  protected CustomResourceScheduler<R> scheduler;
 
   protected CustomResourceList<R> customResources;
   protected T resourceDto;
@@ -129,7 +129,7 @@ abstract class AbstractCustomResourceTest<T extends ResourceDto, R extends Custo
   protected abstract AbstractRestService<T, R> getService(
       CustomResourceScanner<R> scanner,
       CustomResourceFinder<R> finder,
-      ResourceScheduler<R> scheduler,
+      CustomResourceScheduler<R> scheduler,
       AbstractResourceTransformer<T, R> transformer);
 
   protected abstract String getResourceNamespace();

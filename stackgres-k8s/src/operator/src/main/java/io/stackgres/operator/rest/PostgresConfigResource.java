@@ -15,7 +15,7 @@ import io.stackgres.operator.common.ArcUtil;
 import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.operator.resource.CustomResourceFinder;
 import io.stackgres.operator.resource.CustomResourceScanner;
-import io.stackgres.operator.resource.ResourceScheduler;
+import io.stackgres.operator.resource.CustomResourceScheduler;
 import io.stackgres.operator.rest.dto.pgconfig.PostgresConfigDto;
 import io.stackgres.operator.rest.transformer.ResourceTransformer;
 
@@ -29,7 +29,7 @@ public class PostgresConfigResource extends
   public PostgresConfigResource(
       CustomResourceScanner<StackGresPostgresConfig> scanner,
       CustomResourceFinder<StackGresPostgresConfig> finder,
-      ResourceScheduler<StackGresPostgresConfig> scheduler,
+      CustomResourceScheduler<StackGresPostgresConfig> scheduler,
       ResourceTransformer<PostgresConfigDto, StackGresPostgresConfig> transformer) {
     super(scanner, finder, scheduler, transformer);
   }

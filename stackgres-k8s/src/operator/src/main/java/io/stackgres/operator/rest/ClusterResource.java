@@ -20,7 +20,7 @@ import io.stackgres.operator.common.ArcUtil;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.resource.CustomResourceFinder;
 import io.stackgres.operator.resource.CustomResourceScanner;
-import io.stackgres.operator.resource.ResourceScheduler;
+import io.stackgres.operator.resource.CustomResourceScheduler;
 import io.stackgres.operator.rest.dto.cluster.ClusterDto;
 import io.stackgres.operator.rest.dto.cluster.ClusterResourceConsumtionDto;
 import io.stackgres.operator.rest.transformer.ResourceTransformer;
@@ -39,7 +39,7 @@ public class ClusterResource
   public ClusterResource(
       CustomResourceScanner<ClusterDto> scanner,
       CustomResourceFinder<ClusterDto> finder,
-      ResourceScheduler<StackGresCluster> scheduler,
+      CustomResourceScheduler<StackGresCluster> scheduler,
       ResourceTransformer<ClusterDto, StackGresCluster> transformer,
       CustomResourceFinder<ClusterResourceConsumtionDto> clusterResourceConsumptionFinder) {
     super(null, null, scheduler, transformer);

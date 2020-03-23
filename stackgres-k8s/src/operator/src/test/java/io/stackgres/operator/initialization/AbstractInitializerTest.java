@@ -20,7 +20,7 @@ import java.util.Optional;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.operator.resource.CustomResourceFinder;
 import io.stackgres.operator.resource.CustomResourceScanner;
-import io.stackgres.operator.resource.ResourceScheduler;
+import io.stackgres.operator.resource.CustomResourceScheduler;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -29,7 +29,7 @@ import org.mockito.Mock;
 public abstract class AbstractInitializerTest<T extends CustomResource> {
 
   @Mock
-  private ResourceScheduler<T> resourceScheduler;
+  private CustomResourceScheduler<T> customResourceScheduler;
 
   @Mock
   private DefaultCustomResourceFactory<T> resourceFactory;
@@ -46,7 +46,7 @@ public abstract class AbstractInitializerTest<T extends CustomResource> {
   @BeforeEach
   void init() {
     initializer = getInstance();
-    initializer.setResourceScheduler(resourceScheduler);
+    initializer.setResourceScheduler(customResourceScheduler);
     initializer.setResourceFactory(resourceFactory);
     initializer.setResourceScanner(resourceScanner);
     defaultCustomResource = configureDefaultCR();
@@ -76,13 +76,13 @@ public abstract class AbstractInitializerTest<T extends CustomResource> {
     when(resourceFactory.buildResource()).thenReturn(defaultCustomResource);
 
 
-    doNothing().when(resourceScheduler).create(defaultCustomResource);
+    doNothing().when(customResourceScheduler).create(defaultCustomResource);
 
     initializer.initialize();
 
     verify(resourceScanner).getResources(anyString());
     verify(resourceFactory).buildResource();
-    verify(resourceScheduler).create(defaultCustomResource);
+    verify(customResourceScheduler).create(defaultCustomResource);
 
   }
 
@@ -98,6 +98,6 @@ public abstract class AbstractInitializerTest<T extends CustomResource> {
 
     verify(resourceScanner).getResources(anyString());
     verify(resourceFactory).buildResource();
-    verify(resourceScheduler, never()).create(any());
+    verify(customResourceScheduler, never()).create(any());
   }
 }

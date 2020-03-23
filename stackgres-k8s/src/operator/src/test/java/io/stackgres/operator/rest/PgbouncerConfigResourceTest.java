@@ -13,7 +13,7 @@ import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.client.CustomResourceList;
 import io.stackgres.operator.resource.CustomResourceFinder;
 import io.stackgres.operator.resource.CustomResourceScanner;
-import io.stackgres.operator.resource.ResourceScheduler;
+import io.stackgres.operator.resource.CustomResourceScheduler;
 import io.stackgres.operator.rest.dto.pgbouncerconfig.PgbouncerConfigDto;
 import io.stackgres.operator.rest.transformer.AbstractResourceTransformer;
 import io.stackgres.operator.rest.transformer.PgbouncerConfigTransformer;
@@ -48,7 +48,7 @@ class PgbouncerConfigResourceTest
   protected AbstractRestService<PgbouncerConfigDto, StackGresPgbouncerConfig> getService(
       CustomResourceScanner<StackGresPgbouncerConfig> scanner,
       CustomResourceFinder<StackGresPgbouncerConfig> finder,
-      ResourceScheduler<StackGresPgbouncerConfig> scheduler,
+      CustomResourceScheduler<StackGresPgbouncerConfig> scheduler,
       AbstractResourceTransformer<PgbouncerConfigDto, StackGresPgbouncerConfig> transformer) {
     return new ConnectionPoolingConfigResource(scanner, finder, scheduler, transformer);
   }

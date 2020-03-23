@@ -6,7 +6,7 @@
 package io.stackgres.operator.initialization;
 
 import io.stackgres.operator.resource.CustomResourceFinder;
-import io.stackgres.operator.resource.ResourceScheduler;
+import io.stackgres.operator.resource.CustomResourceScheduler;
 import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfig;
 import io.stackgres.operator.utils.JsonUtil;
 

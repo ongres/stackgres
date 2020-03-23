@@ -7,7 +7,7 @@ package io.stackgres.operator.resource;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 
-public interface ResourceScheduler<T extends HasMetadata> {
+public interface ResourceWriter<T extends HasMetadata> {
 
   void create(T resource);
 

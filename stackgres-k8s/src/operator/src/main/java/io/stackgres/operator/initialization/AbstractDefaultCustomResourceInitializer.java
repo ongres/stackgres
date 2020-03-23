@@ -11,7 +11,7 @@ import javax.inject.Inject;
 
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.operator.resource.CustomResourceScanner;
-import io.stackgres.operator.resource.ResourceScheduler;
+import io.stackgres.operator.resource.CustomResourceScheduler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,7 +21,7 @@ public abstract class AbstractDefaultCustomResourceInitializer<T extends CustomR
   private static final Logger LOGGER = LoggerFactory
       .getLogger(AbstractDefaultCustomResourceInitializer.class);
 
-  private ResourceScheduler<T> resourceScheduler;
+  private CustomResourceScheduler<T> customResourceScheduler;
   private DefaultCustomResourceFactory<T> resourceFactory;
   private CustomResourceScanner<T> resourceScanner;
 
@@ -45,13 +45,13 @@ public abstract class AbstractDefaultCustomResourceInitializer<T extends CustomR
       LOGGER.info("Default custom resource " + resourceName + " already installed");
     } else {
       LOGGER.info("Installing default custom resource " + resourceName);
-      resourceScheduler.create(defaultResource);
+      customResourceScheduler.create(defaultResource);
     }
   }
 
   @Inject
-  public void setResourceScheduler(ResourceScheduler<T> resourceScheduler) {
-    this.resourceScheduler = resourceScheduler;
+  public void setResourceScheduler(CustomResourceScheduler<T> resourceScheduler) {
+    this.customResourceScheduler = resourceScheduler;
   }
 
   @Inject

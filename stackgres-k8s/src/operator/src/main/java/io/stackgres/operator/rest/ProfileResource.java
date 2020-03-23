@@ -15,7 +15,7 @@ import io.stackgres.operator.common.ArcUtil;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfile;
 import io.stackgres.operator.resource.CustomResourceFinder;
 import io.stackgres.operator.resource.CustomResourceScanner;
-import io.stackgres.operator.resource.ResourceScheduler;
+import io.stackgres.operator.resource.CustomResourceScheduler;
 import io.stackgres.operator.rest.dto.profile.ProfileDto;
 import io.stackgres.operator.rest.transformer.ResourceTransformer;
 
@@ -28,7 +28,7 @@ public class ProfileResource
   @Inject
   public ProfileResource(CustomResourceScanner<StackGresProfile> scanner,
       CustomResourceFinder<StackGresProfile> finder,
-      ResourceScheduler<StackGresProfile> scheduler,
+      CustomResourceScheduler<StackGresProfile> scheduler,
       ResourceTransformer<ProfileDto, StackGresProfile> transformer) {
     super(scanner, finder, scheduler, transformer);
   }
