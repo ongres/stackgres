@@ -128,23 +128,25 @@ public class EventController {
       KubernetesClient client) {
     final String id = nextId();
     final String name = involvedObject.getMetadata().getName() + "." + id;
-    return client.events().create(new EventBuilder()
-        .withNewMetadata()
-        .withNamespace(namespace)
-        .withName(name)
-        .withLabels(involvedObject.getMetadata().getLabels())
-        .endMetadata()
-        .withType(reason.type())
-        .withReason(reason.reason())
-        .withMessage(message)
-        .withCount(1)
-        .withFirstTimestamp(DateTimeFormatter.ISO_INSTANT.format(now))
-        .withLastTimestamp(DateTimeFormatter.ISO_INSTANT.format(now))
-        .withSource(new EventSourceBuilder()
-            .withComponent(StackGresUtil.OPERATOR_NAME)
-            .build())
-        .withInvolvedObject(ResourceUtil.getObjectReference(involvedObject))
-        .build());
+    return client.events()
+        .inNamespace(namespace)
+        .create(new EventBuilder()
+          .withNewMetadata()
+          .withNamespace(namespace)
+          .withName(name)
+          .withLabels(involvedObject.getMetadata().getLabels())
+          .endMetadata()
+          .withType(reason.type())
+          .withReason(reason.reason())
+          .withMessage(message)
+          .withCount(1)
+          .withFirstTimestamp(DateTimeFormatter.ISO_INSTANT.format(now))
+          .withLastTimestamp(DateTimeFormatter.ISO_INSTANT.format(now))
+          .withSource(new EventSourceBuilder()
+              .withComponent(StackGresUtil.OPERATOR_NAME)
+              .build())
+          .withInvolvedObject(ResourceUtil.getObjectReference(involvedObject))
+          .build());
   }
 
 }
