@@ -97,7 +97,7 @@ var Backups = Vue.component("sg-backup", {
 							<th @click="sort('data.spec.isPermanent')" class="icon desc isPermanent">
 								<span>Permanent</span>
 							</th>
-							<th @click="sort('data.status.uncompressedSize')" class="desc phase">
+							<th @click="sort('data.status.uncompressedSize')" class="desc phase center">
 								<span>Phase</span>
 							</th>
 							<th @click="sort('data.status.uncompressedSize')" class="desc size">
@@ -126,9 +126,23 @@ var Backups = Vue.component("sg-backup", {
 							</tr>
 							<template v-for="back in backups"  v-if="(back.data.metadata.namespace == currentNamespace)">
 								<tr class="base" :class="back.data.status.phase">
-										<td class="timestamp">{{ back.data.status.time }}</td>
-										<td class="isPermanent icon" :class="[(back.data.spec.isPermanent) ? 'true' : 'false']"></td>
-										<td class="phase" :class="back.data.status.phase">{{ back.data.status.phase }}</td>
+										<td class="timestamp">
+											<template v-if="back.data.status.phase == 'Completed'">
+												<span class='date'>
+													{{ back.data.status.time | formatTimestamp('date') }}
+												</span>
+												<span class='time'>
+													{{ back.data.status.time | formatTimestamp('time') }}
+												</span>
+												<span class='ms'>
+													{{ back.data.status.time | formatTimestamp('ms') }} Z
+												</span>
+											</template>
+										</td>
+										<td class="isPermanent center icon" :class="[(back.data.spec.isPermanent) ? 'true' : 'false']"></td>
+										<td class="phase center" :class="back.data.status.phase">
+											<span>{{ back.data.status.phase }}</span>
+										</td>
 										<td class="size">
 											<template v-if="back.data.status.phase === 'Completed'">
 												{{ back.data.status.uncompressedSize | formatBytes }}
@@ -139,7 +153,7 @@ var Backups = Vue.component("sg-backup", {
 												{{ back.data.status.pgVersion | prefix }}
 											</template>											
 										</td>
-										<td class="tested icon" :class="[(back.data.status.tested) ? 'true' : 'false']"></td>
+										<td class="tested center icon" :class="[(back.data.status.tested) ? 'true' : 'false']"></td>
 										<td class="name">{{ back.data.metadata.name }}</td>
 										<td class="clusterName" :class="back.data.spec.cluster">{{ back.data.spec.cluster }}</td>
 									<td class="actions">
@@ -156,9 +170,114 @@ var Backups = Vue.component("sg-backup", {
 								</tr>
 								<tr class="details" v-if="back.data.status.phase === 'Completed'">
 									<td colspan="9">
-										<h4 class="basic">Backup Details</h4>
+										<!--<h4>Backup Details</h4>-->
 
-										<hr>
+										<table>
+											<thead>
+												<th>Start Time</th>
+												<th>Duration</th>
+												<th>LSN (Start - End)</th>
+												<th colspan="2">UID</th>
+												<th>Source Cluster</th>
+												<th>Compressed Size</th>
+												<th>Compression Method</th>
+												<th>Storage Type</th>
+											</thead>
+											<tbody>
+												<tr>
+													<td class="timestamp">
+														<span class='date'>
+															{{ back.data.status.startTime | formatTimestamp('date') }}
+														</span>
+														<span class='time'>
+															{{ back.data.status.startTime | formatTimestamp('time') }}
+														</span>
+														<span class='ms'>
+															{{ back.data.status.startTime | formatTimestamp('ms') }} Z
+														</span>
+													</td>
+													<td class="timestamp">
+														<span class='time'>
+															{{ back.duration | formatTimestamp('time') }}
+														</span>
+														<span class='ms'>
+															{{ back.duration | formatTimestamp('ms') }}
+														</span>
+													</td>
+													<td>
+														({{ back.data.status.startLsn }} - {{ back.data.status.finishLsn }})
+													</td>
+													<td colspan="2">
+														{{ back.data.metadata.uid }}
+													</td>
+													<td>
+														{{ back.data.status.hostname }}
+													</td>
+													<td>
+														{{ back.data.status.compressedSize | formatBytes }}
+													</td>
+													<td>
+														{{ back.data.status.backupConfig.compressionMethod }}
+													</td>
+													<td>
+														{{ back.data.status.backupConfig.storage.type }}
+													</td>
+												</tr>
+											</tbody>
+										</table>
+										<table>
+											<thead>
+												<th>Backup Configuration</th>
+											</thead>
+											<tbody>
+												<tr>
+													<td>
+														<ul class="yaml">
+															<template v-if="back.data.status.backupConfig.storage.type === 's3'">
+																<li>
+																	<strong class="label">credentials:</strong> 
+																	<ul>
+																		<li>
+																			<strong class="label">accessKey:</strong>																				
+																			<ul>
+																				<li><strong class="label">key:</strong> {{ back.data.status.backupConfig.storage.s3.credentials.accessKey.key }}</li>
+																				<li><strong class="label">name:</strong> {{ back.data.status.backupConfig.storage.s3.credentials.accessKey.name }}</li>
+																			</ul>
+																		</li>
+																		<li>
+																			<strong class="label">secretKey:</strong>																				
+																			<ul>
+																				<li><strong class="label">key:</strong> {{ back.data.status.backupConfig.storage.s3.credentials.secretKey.key }}</li>
+																				<li><strong class="label">name:</strong> {{ back.data.status.backupConfig.storage.s3.credentials.secretKey.name }}</li>
+																			</ul>
+																		</li>
+																	</ul>
+																</li>
+																<li>
+																	<strong class="label">endpoint:</strong> {{ back.data.status.backupConfig.storage.s3.endpoint }}
+																</li>
+																<li>
+																	<strong class="label">forcePathStyle:</strong> {{ back.data.status.backupConfig.storage.s3.forcePathStyle }}
+																</li>
+																<li>
+																	<strong class="label">prefix:</strong> {{ back.data.status.backupConfig.storage.s3.prefix }}
+																</li>
+																<li>
+																	<strong class="label">region:</strong> {{ back.data.status.backupConfig.storage.s3.region }}
+																</li>
+
+															</template>												
+															<li v-else v-for="(item, index) in back.data.status.backupConfig.storage[back.data.status.backupConfig.storage.type]">
+																<strong class="label">{{ index }}:</strong> {{ item }}
+															</li>
+														</ul>
+													</td>
+												</tr>
+											</tbody>
+										</table>
+										
+
+										<!--<hr>
 										<span>UID</span>
 										{{ back.data.metadata.uid }}
 
@@ -215,7 +334,7 @@ var Backups = Vue.component("sg-backup", {
 
 										<hr>
 										<span>Compression Method</span>
-										{{ back.data.status.backupConfig.compressionMethod }}
+										{{ back.data.status.backupConfig.compressionMethod }}-->
 									</td>
 								</tr>
 							</template>
