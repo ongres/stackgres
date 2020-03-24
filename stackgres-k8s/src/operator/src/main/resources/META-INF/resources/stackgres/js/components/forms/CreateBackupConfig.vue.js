@@ -27,9 +27,9 @@ var CreateBackupConfig = Vue.component("create-backup-config", {
                 </div>
                 
                 <label for="backupConfigName">Configuration Name <span class="req">*</span></label>
-                <input v-model="backupConfigName" :disabled="(editMode)" required>
+                <input v-model="backupConfigName" :disabled="(editMode)" required data-dield="metadata.name">
 
-                <fieldset class="cron row-20">
+                <fieldset class="cron row-20" data-field="spec.fullSchedule">
                     <div class="header">
                         <h3>Base Backup Schedule <span class="req">*</span></h3>
                     </div>                    
@@ -62,15 +62,15 @@ var CreateBackupConfig = Vue.component("create-backup-config", {
 
                 <!-- <template v-if="advancedMode">
                     <label for="backupConfigFullWindow">Full Window</label>
-                    <input v-model="backupConfigFullWindow" value="" required>
+                    <input v-model="backupConfigFullWindow" value="" required data-field="spec.fullWindow">
                 </template> -->
 
                 <label for="backupConfigRetention">Retention Window (max. number of base backups) <span class="req">*</span></label>
-                <input v-model="backupConfigRetention" value="" required>
+                <input v-model="backupConfigRetention" value="" required data-field="spec.retention">
 
                 <template v-if="advancedMode">
                     <label for="backupConfigCompressionMethod">Compression Method</label>
-                    <select v-model="backupConfigCompressionMethod">
+                    <select v-model="backupConfigCompressionMethod" data-field="spec.compressionMethod">
                         <option disabled value="">Select a method</option>
                         <option value="lz4">LZ4</option>
                         <option value="lzma">LZMA</option>
@@ -81,8 +81,8 @@ var CreateBackupConfig = Vue.component("create-backup-config", {
                 <template v-if="advancedMode">
                     <div class="unit-select">
                         <label for="backupConfigTarSizeThreshold">Tar Size Threshold</label>  
-                        <input v-model="backupConfigTarSizeThreshold" class="size" value="">
-                        <select v-model="backupConfigTarSizeThresholdUnit" class="unit">
+                        <input v-model="backupConfigTarSizeThreshold" class="size" value="" data-field="spec.tarSizeThreshold">
+                        <select v-model="backupConfigTarSizeThresholdUnit" class="unit" data-field="spec.tarSizeThreshold">
                             <option disabled value="">Select Unit</option>
                             <option value="1024">KiB</option>
                             <option value="1048576">MiB</option>
@@ -96,11 +96,11 @@ var CreateBackupConfig = Vue.component("create-backup-config", {
                     </div>
                 
                     <label for="backupConfigUploadDiskConcurrency">Upload Disk Concurrency</label>
-                    <input v-model="backupConfigUploadDiskConcurrency" value="">
+                    <input v-model="backupConfigUploadDiskConcurrency" value="" data-field="spec.uploadDiskConcurrency">
                 </template>
 
                 <label for="backupConfigStorageType">Storage Type <span class="req">*</span></label>
-                <select v-model="backupConfigStorageType" :disabled="(editMode)">
+                <select v-model="backupConfigStorageType" :disabled="(editMode)" data-field="spec.storage.type">
                     <option disabled value="">Select Storage Type</option>
                     <option value="s3">Amazon S3</option>
                     <option value="s3c">Amazon S3 - API Compatible</option>

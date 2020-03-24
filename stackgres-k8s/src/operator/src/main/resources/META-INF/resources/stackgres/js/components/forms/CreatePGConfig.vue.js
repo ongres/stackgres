@@ -23,17 +23,17 @@ var CreatePGConfig = Vue.component("create-pgconfig", {
                 </div>
 
                 <label for="pgConfigName">Configuration Name <span class="req">*</span></label>
-                <input v-model="pgConfigName" :disabled="(editMode)" required>
+                <input v-model="pgConfigName" :disabled="(editMode)" required data-field="metadata.name">
 
                 <label for="pgConfigVersion">Postgres Version <span class="req">*</span></label>
-                <select v-model="pgConfigVersion" :disabled="(editMode)" required>
+                <select v-model="pgConfigVersion" :disabled="(editMode)" required data-field="spec.pgVersion">
                     <option disabled value="">Select Major Postgres Version</option>
                     <option value="11">11</option>
                     <option value="12">12</option>
                 </select>
 
                 <label for="pgConfigParams">Parameters</label>
-                <textarea v-model="pgConfigParams" placeholder="parameter = value"></textarea>
+                <textarea v-model="pgConfigParams" placeholder="parameter = value" data-field="spec.postgresql.conf"></textarea>
 
                 <template v-if="editMode">
                     <button @click="createPGConfig">Update Configuration</button>

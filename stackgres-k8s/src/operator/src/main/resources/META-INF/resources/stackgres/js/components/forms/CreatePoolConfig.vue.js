@@ -23,10 +23,10 @@ var CreatePoolConfig = Vue.component("create-poolconfig", {
                 </div>
                 
                 <label for="poolConfigName">Configuration Name <span class="req">*</span></label>
-                <input v-model="poolConfigName" :disabled="(editMode)" required>
+                <input v-model="poolConfigName" :disabled="(editMode)" required data-field="metadata.name">
 
                 <label for="poolConfigParams">PgBouncer Parameters</label>
-                <textarea v-model="poolConfigParams" placeholder="parameter = value"></textarea>
+                <textarea v-model="poolConfigParams" placeholder="parameter = value" data-field="spec.pgbouncer.ini"></textarea>
 
                 <template v-if="editMode">
                     <button @click="createPoolConfig">Update Configuration</button>
