@@ -198,10 +198,10 @@ var Backups = Vue.component("sg-backup", {
 													</td>
 													<td class="timestamp">
 														<span class='time'>
-															{{ back.duration | formatTimestamp('time') }}
+															{{ back.duration.substring(0,8) }}
 														</span>
 														<span class='ms'>
-															{{ back.duration | formatTimestamp('ms') }}
+															{{ back.duration.substring(8,12) }}
 														</span>
 													</td>
 													<td>

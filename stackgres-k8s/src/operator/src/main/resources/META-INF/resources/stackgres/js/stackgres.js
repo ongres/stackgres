@@ -598,7 +598,7 @@ const vm = new Vue({
             store.commit('updateBackups', { 
               name: item.metadata.name,
               data: item,
-              duration: new Date(duration).toISOString().slice(11, -1)
+              duration: new Date(duration).toISOString()
             });
 
           });
@@ -854,8 +854,11 @@ Vue.filter('formatTimestamp',function(t, part){
       return t.substr(0, t.indexOf('T'));
     else if (part == 'time')
       return t.substring( t.indexOf('T')+1, t.indexOf('.'));
-    else if (part == 'ms')
-      return t.substring( t.indexOf('.'), t.indexOf('.')+4);
+    else if (part == 'ms') {
+      var ms = t.substring( t.indexOf('.'), t.indexOf('Z'));
+      return ms.substring(0,4);
+    }
+      
 
 });
 
