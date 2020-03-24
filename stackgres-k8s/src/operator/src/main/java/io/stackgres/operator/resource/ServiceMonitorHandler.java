@@ -5,13 +5,10 @@
 
 package io.stackgres.operator.resource;
 
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
 import javax.enterprise.context.ApplicationScoped;
-
-import com.google.common.collect.ImmutableList;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -19,6 +16,7 @@ import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.kubernetes.internal.KubernetesDeserializer;
 import io.stackgres.operator.common.StackGresClusterContext;
+import io.stackgres.operator.common.StackGresUserClusterContext;
 import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operator.customresource.prometheus.Endpoint;
 import io.stackgres.operator.customresource.prometheus.NamespaceSelector;
@@ -28,16 +26,13 @@ import io.stackgres.operator.customresource.prometheus.ServiceMonitorDoneable;
 import io.stackgres.operator.customresource.prometheus.ServiceMonitorList;
 import io.stackgres.operator.customresource.prometheus.ServiceMonitorSpec;
 import io.stackgres.operatorframework.resource.ResourceHandler;
-import io.stackgres.operatorframework.resource.ResourceHandlerContext;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import io.stackgres.operatorframework.resource.visitor.PairVisitor;
 import io.stackgres.operatorframework.resource.visitor.ResourcePairVisitor;
 
-import org.jooq.lambda.tuple.Tuple;
-import org.jooq.lambda.tuple.Tuple2;
-
 @ApplicationScoped
-public class ServiceMonitorHandler implements ResourceHandler<StackGresClusterContext> {
+public class ServiceMonitorHandler
+    implements ResourceHandler<StackGresClusterContext> {
 
   @Override
   public boolean isHandlerForResource(HasMetadata resource) {
@@ -45,14 +40,14 @@ public class ServiceMonitorHandler implements ResourceHandler<StackGresClusterCo
   }
 
   @Override
-  public boolean equals(ResourceHandlerContext<StackGresClusterContext> resourceHandlerContext,
+  public boolean equals(StackGresClusterContext context,
       HasMetadata existingResource, HasMetadata requiredResource) {
     return ResourcePairVisitor.equals(new ServiceMonitorVisitor<>(),
         existingResource, requiredResource);
   }
 
   @Override
-  public HasMetadata update(ResourceHandlerContext<StackGresClusterContext> resourceHandlerContext,
+  public HasMetadata update(StackGresClusterContext context,
       HasMetadata existingResource, HasMetadata requiredResource) {
     return ResourcePairVisitor.update(new ServiceMonitorVisitor<>(),
         existingResource, requiredResource);
@@ -65,39 +60,13 @@ public class ServiceMonitorHandler implements ResourceHandler<StackGresClusterCo
   }
 
   @Override
-  public Stream<HasMetadata> getOrphanResources(KubernetesClient client,
-      ImmutableList<StackGresClusterContext> existingContexts) {
-    ImmutableList<Tuple2<String, String>> existingConfigsLabels = existingContexts.stream()
-        .map(context -> Tuple.tuple(
-            context.getCluster().getMetadata().getNamespace(),
-            StackGresUtil.clusterUid(context.getCluster())))
-        .collect(ImmutableList.toImmutableList());
-    return getServiceMonitorClient(client)
-        .map(crClient -> crClient
-            .inAnyNamespace()
-            .withLabels(StackGresUtil.defaultLabels())
-            .list()
-            .getItems()
-            .stream()
-            .filter(serviceMonitor -> !existingConfigsLabels.stream()
-                .anyMatch(e -> Objects.equals(e.v1,
-                    serviceMonitor.getMetadata().getLabels().get(
-                        StackGresUtil.CLUSTER_NAMESPACE_KEY))
-                    && Objects.equals(e.v2,
-                        serviceMonitor.getMetadata().getLabels().get(
-                            StackGresUtil.CLUSTER_UID_KEY))))
-            .map(cr -> (HasMetadata) cr))
-        .orElse(Stream.empty());
-  }
-
-  @Override
   public Stream<HasMetadata> getResources(KubernetesClient client,
       StackGresClusterContext context) {
     return getServiceMonitorClient(client)
         .map(crClient -> crClient
             .inAnyNamespace()
-            .withLabels(StackGresUtil.clusterCrossNamespaceLabels(
-                context.getCluster()))
+            .withLabels(StackGresUserClusterContext.getClusterLabelMapper(context.getCluster())
+                .clusterCrossNamespaceLabels())
             .list()
             .getItems()
             .stream()

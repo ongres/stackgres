@@ -15,6 +15,7 @@ import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.app.KubernetesClientFactory;
+import io.stackgres.operator.common.StackGresUserClusterContext;
 import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operator.rest.dto.cluster.ClusterDto;
 import io.stackgres.operator.rest.transformer.ClusterTransformer;
@@ -84,7 +85,7 @@ public class ClusterDtoScanner implements CustomResourceScanner<ClusterDto> {
   private List<Pod> getAllClusterPods(KubernetesClient client) {
     return client.pods()
         .inAnyNamespace()
-        .withLabels(StackGresUtil.patroniClusterLabels())
+        .withLabels(StackGresUserClusterContext.getLabelMapper().patroniLabels())
         .list()
         .getItems();
   }

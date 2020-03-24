@@ -10,6 +10,7 @@ import java.util.stream.Stream;
 
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeMount;
+import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.VolumeConfig;
 import io.stackgres.operator.patroni.factory.PatroniConfigMap;
@@ -60,6 +61,20 @@ public enum ClusterStatefulSetVolumeConfig {
     return volumeConfig.volumeMount(context)
         .orElseThrow(() -> new IllegalStateException(
             "Volume mount " + volumeConfig.name() + " is not available for this context"));
+  }
+
+  public VolumeMount volumeMount(StackGresClusterContext context, String mountPath) {
+    return new VolumeMountBuilder(volumeMount(context))
+        .withMountPath(mountPath)
+        .build();
+  }
+
+  public VolumeMount volumeMount(StackGresClusterContext context,
+      String mountPath, String subPath) {
+    return new VolumeMountBuilder(volumeMount(context))
+        .withMountPath(mountPath)
+        .withSubPath(subPath)
+        .build();
   }
 
   public Volume volume(StackGresClusterContext context) {

@@ -14,11 +14,13 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.common.StackGresClusterContext;
+import io.stackgres.operator.resource.ClusterResourceHandlerSelector;
 import io.stackgres.operatorframework.reconciliation.AbstractReconciliator;
-import io.stackgres.operatorframework.resource.ResourceHandlerSelector;
 import org.jooq.lambda.tuple.Tuple2;
 
-public class ClusterReconciliator extends AbstractReconciliator<StackGresClusterContext> {
+public class ClusterReconciliator
+    extends AbstractReconciliator<StackGresClusterContext, StackGresCluster,
+      ClusterResourceHandlerSelector> {
 
   private final ClusterStatusManager statusManager;
   private final EventController eventController;
@@ -46,6 +48,7 @@ public class ClusterReconciliator extends AbstractReconciliator<StackGresCluster
     eventController.sendEvent(EventReason.CLUSTER_CREATED,
         "StackGres Cluster " + contextResource.getMetadata().getNamespace() + "."
         + contextResource.getMetadata().getName() + " created", contextResource);
+    statusManager.sendCondition(ClusterStatusCondition.FALSE_FAILED, context);
   }
 
   @Override
@@ -53,9 +56,8 @@ public class ClusterReconciliator extends AbstractReconciliator<StackGresCluster
     eventController.sendEvent(EventReason.CLUSTER_UPDATED,
         "StackGres Cluster " + contextResource.getMetadata().getNamespace() + "."
         + contextResource.getMetadata().getName() + " updated", contextResource);
-    statusManager.updatePendingRestart((StackGresCluster) contextResource);
-    statusManager.sendCondition(ClusterStatusCondition.FALSE_FAILED,
-        (StackGresCluster) contextResource);
+    statusManager.updatePendingRestart(context);
+    statusManager.sendCondition(ClusterStatusCondition.FALSE_FAILED, context);
   }
 
   /**
@@ -70,7 +72,7 @@ public class ClusterReconciliator extends AbstractReconciliator<StackGresCluster
    * Builder to build {@link ClusterReconciliator}.
    */
   public static final class Builder {
-    private ResourceHandlerSelector<StackGresClusterContext> handlerSelector;
+    private ClusterResourceHandlerSelector handlerSelector;
     private ClusterStatusManager statusManager;
     private EventController eventController;
     private KubernetesClient client;
@@ -82,7 +84,7 @@ public class ClusterReconciliator extends AbstractReconciliator<StackGresCluster
     private Builder() {}
 
     public Builder withHandlerSelector(
-        ResourceHandlerSelector<StackGresClusterContext> handlerSelector) {
+        ClusterResourceHandlerSelector handlerSelector) {
       this.handlerSelector = handlerSelector;
       return this;
     }

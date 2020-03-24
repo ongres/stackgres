@@ -6,13 +6,17 @@
 package io.stackgres.operator.patroni.factory;
 
 import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
+
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.Resources;
 import io.fabric8.kubernetes.api.model.ConfigMapEnvSourceBuilder;
+import io.fabric8.kubernetes.api.model.ConfigMapVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
@@ -21,12 +25,17 @@ import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.HTTPGetActionBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.IntOrString;
+import io.fabric8.kubernetes.api.model.KeyToPathBuilder;
 import io.fabric8.kubernetes.api.model.ProbeBuilder;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import io.fabric8.kubernetes.api.model.SecurityContextBuilder;
 import io.fabric8.kubernetes.api.model.TCPSocketActionBuilder;
 import io.fabric8.kubernetes.api.model.Volume;
+import io.fabric8.kubernetes.api.model.VolumeBuilder;
+import io.fabric8.kubernetes.api.model.VolumeMount;
+import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.StackGresContext;
+import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSet;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSetEnvironmentVariables;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSetVolumeMounts;
@@ -36,6 +45,7 @@ import io.stackgres.operator.common.StackGresComponents;
 import io.stackgres.operator.common.StackGresGeneratorContext;
 import io.stackgres.operator.sidecars.envoy.Envoy;
 import io.stackgres.operatorframework.resource.ResourceGenerator;
+import org.jooq.lambda.Seq;
 import org.jooq.lambda.Unchecked;
 
 @Singleton
@@ -43,7 +53,7 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
 
   public static final String NAME = "patroni";
 
-  private static final String IMAGE_PREFIX = "docker.io/ongres/patroni:v%s-pg%s-build-%s";
+  private static final String IMAGE_NAME = "docker.io/ongres/patroni:v%s-pg%s-build-%s";
   private static final String DEFAULT_VERSION = StackGresComponents.get("patroni");
 
   private final PatroniRequirements resourceRequirementsFactory;
@@ -51,13 +61,16 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
   private final PatroniEnvironmentVariables patroniEnvironmentVariables;
   private final ClusterStatefulSetVolumeMounts volumeMountsFactory;
   private final PatroniConfigMap patroniConfigMap;
+  private final PatroniScriptsConfigMap patroniScriptsConfigMap;
   private final PatroniSecret patroniSecret;
   private final PatroniRole patroniRole;
   private final PatroniServices patroniServices;
   private final PatroniConfigEndpoints patroniConfigEndpoints;
 
   @Inject
-  public Patroni(PatroniConfigMap patroniConfigMap, PatroniSecret patroniSecret,
+  public Patroni(PatroniConfigMap patroniConfigMap,
+      PatroniScriptsConfigMap patroniScriptsConfigMap,
+      PatroniSecret patroniSecret,
       PatroniRole patroniRole, PatroniServices patroniServices,
       PatroniConfigEndpoints patroniConfigEndpoints,
       PatroniRequirements resourceRequirementsFactory,
@@ -66,6 +79,7 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
       ClusterStatefulSetVolumeMounts volumeMountsFactory) {
     super();
     this.patroniConfigMap = patroniConfigMap;
+    this.patroniScriptsConfigMap = patroniScriptsConfigMap;
     this.patroniSecret = patroniSecret;
     this.patroniRole = patroniRole;
     this.patroniServices = patroniServices;
@@ -87,7 +101,7 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
 
     return new ContainerBuilder()
       .withName(NAME)
-      .withImage(String.format(IMAGE_PREFIX,
+      .withImage(String.format(IMAGE_NAME,
           DEFAULT_VERSION, pgVersion, StackGresContext.CONTAINER_BUILD))
       .withCommand("/bin/sh", "-exc", Unchecked.supplier(() -> Resources
           .asCharSource(ClusterStatefulSet.class.getResource("/start-patroni.sh"),
@@ -107,6 +121,19 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
               .withContainerPort(Envoy.PG_RAW_ENTRY_PORT).build(),
           new ContainerPortBuilder().withContainerPort(8008).build())
       .withVolumeMounts(volumeMountsFactory.listResources(clusterContext))
+      .addToVolumeMounts(
+          Seq.of(Optional.of(context.getClusterContext().getCluster().getSpec().getInitData())
+              .map(StackGresClusterInitData::getScripts))
+          .filter(Optional::isPresent)
+          .map(Optional::get)
+          .flatMap(List::stream)
+          .zipWithIndex()
+          .map(t -> new VolumeMountBuilder()
+              .withName(PatroniScriptsConfigMap.name(clusterContext, t.v2))
+              .withMountPath("/etc/patroni/init-script.d/")
+              .withReadOnly(true)
+              .build())
+          .toArray(VolumeMount[]::new))
       .withEnvFrom(new EnvFromSourceBuilder()
           .withConfigMapRef(new ConfigMapEnvSourceBuilder()
               .withName(PatroniConfigMap.name(clusterContext)).build())
@@ -137,9 +164,25 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
   }
 
   @Override
-  public ImmutableList<Volume> getVolumes(
-      StackGresGeneratorContext context) {
-    return ImmutableList.of();
+  public ImmutableList<Volume> getVolumes(StackGresGeneratorContext context) {
+    return Seq.of(Optional.of(context.getClusterContext().getCluster().getSpec().getInitData())
+        .map(StackGresClusterInitData::getScripts))
+    .filter(Optional::isPresent)
+    .map(Optional::get)
+    .flatMap(List::stream)
+    .zipWithIndex()
+    .map(t -> new VolumeBuilder()
+        .withName(PatroniScriptsConfigMap.name(context.getClusterContext(), t.v2))
+        .withConfigMap(new ConfigMapVolumeSourceBuilder()
+            .withName(PatroniScriptsConfigMap.name(context.getClusterContext(), t.v2))
+            .withItems(new KeyToPathBuilder()
+                .withKey(PatroniScriptsConfigMap.scriptName(t.v2))
+                .withPath(PatroniScriptsConfigMap.scriptName(t.v2))
+                .build())
+            .withOptional(false)
+            .build())
+        .build())
+    .collect(ImmutableList.toImmutableList());
   }
 
   @Override
@@ -147,6 +190,7 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
     return ResourceGenerator.with(context)
         .of(HasMetadata.class)
         .append(patroniConfigMap)
+        .append(patroniScriptsConfigMap)
         .append(patroniSecret)
         .append(patroniRole)
         .append(patroniServices)

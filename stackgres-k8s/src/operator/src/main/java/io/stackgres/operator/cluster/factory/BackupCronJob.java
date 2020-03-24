@@ -35,7 +35,6 @@ import io.stackgres.operator.common.StackGresClusterResourceStreamFactory;
 import io.stackgres.operator.common.StackGresGeneratorContext;
 import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operator.patroni.factory.PatroniRole;
-import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.Unchecked;
 import org.slf4j.Logger;
@@ -63,8 +62,7 @@ public class BackupCronJob implements StackGresClusterResourceStreamFactory {
     StackGresClusterContext clusterContext = context.getClusterContext();
     String namespace = clusterContext.getCluster().getMetadata().getNamespace();
     String name = clusterContext.getCluster().getMetadata().getName();
-    ImmutableMap<String, String> labels = StackGresUtil.backupPodLabels(
-        clusterContext.getCluster());
+    ImmutableMap<String, String> labels = clusterContext.backupPodLabels();
     return Seq.of(clusterContext.getBackupContext())
         .filter(Optional::isPresent)
         .map(Optional::get)
@@ -74,8 +72,7 @@ public class BackupCronJob implements StackGresClusterResourceStreamFactory {
             .withNamespace(namespace)
             .withName(ClusterStatefulSet.backupName(clusterContext))
             .withLabels(labels)
-            .withOwnerReferences(ImmutableList.of(
-                ResourceUtil.getOwnerReference(clusterContext.getCluster())))
+            .withOwnerReferences(context.getClusterContext().ownerReference())
             .endMetadata()
             .withNewSpec()
             .withConcurrencyPolicy("Replace")
@@ -168,7 +165,7 @@ public class BackupCronJob implements StackGresClusterResourceStreamFactory {
                           .build(),
                           new EnvVarBuilder()
                           .withName("PATRONI_CLUSTER_LABELS")
-                          .withValue(StackGresUtil.patroniClusterLabels(clusterContext.getCluster())
+                          .withValue(clusterContext.patroniClusterLabels()
                               .entrySet()
                               .stream()
                               .map(e -> e.getKey() + "=" + e.getValue())

@@ -115,6 +115,8 @@ public enum StackGresComponents {
     properties.put("postgres_exporter",
         versions.get("components").get("postgres_exporter").get("versions").get(0).asText());
     properties.put("envoy", "1.13.1");
+    properties.put("fluent-bit", "1.3.11");
+    properties.put("fluentd", "1.10-1");
     File file = new File(args[0]);
     try (FileOutputStream fileOutputStream = new FileOutputStream(file)) {
       properties.store(fileOutputStream, null);

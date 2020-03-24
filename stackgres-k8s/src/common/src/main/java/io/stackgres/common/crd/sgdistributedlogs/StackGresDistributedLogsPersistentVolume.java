@@ -3,9 +3,8 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.common.crd.sgcluster;
+package io.stackgres.common.crd.sgdistributedlogs;
 
-import java.util.Objects;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
@@ -18,7 +17,7 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class StackGresPodPersistenceVolume {
+public class StackGresDistributedLogsPersistentVolume {
 
   @JsonProperty("size")
   @NotNull(message = "Volume size must be specified")
@@ -51,23 +50,5 @@ public class StackGresPodPersistenceVolume {
         .add("volumeSize", volumeSize)
         .add("storageClass", storageClass)
         .toString();
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    StackGresPodPersistenceVolume that = (StackGresPodPersistenceVolume) o;
-    return Objects.equals(volumeSize, that.volumeSize)
-        && Objects.equals(storageClass, that.storageClass);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(volumeSize, storageClass);
   }
 }

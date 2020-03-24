@@ -1,0 +1,32 @@
+#!/bin/sh
+
+e2e_test_install() {
+  create_or_replace_distributed_logs "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "1Gi"
+
+  deploy_psql_pod "$CLUSTER_NAMESPACE"
+
+  wait_pods_running "$CLUSTER_NAMESPACE" "2"
+}
+
+e2e_test_uninstall() {
+  remove_distributed_logs "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+
+  k8s_cleanup_namespace "$CLUSTER_NAMESPACE"
+}
+
+e2e_test() {
+  run_test "Checking that is possible to connect using services is working" service_check
+}
+
+service_check() {
+  RESPONSE_PRIMARY="$(run_query -x psql -k postgres -h "$CLUSTER_NAME"-primary -i 0 -p 5432)"
+
+  if [ "$RESPONSE_PRIMARY" = "1" ]
+  then
+    echo "SUCCESS: Connections are possible using services"
+    return 0
+  else
+    echo "FAIL: Cannot connect to primary db using a kubernetes service"
+    return 1
+  fi
+}

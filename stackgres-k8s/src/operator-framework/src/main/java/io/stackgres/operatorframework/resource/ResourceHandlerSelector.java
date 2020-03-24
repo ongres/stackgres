@@ -8,17 +8,15 @@ package io.stackgres.operatorframework.resource;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import com.google.common.collect.ImmutableList;
-
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.KubernetesClient;
 
-public interface ResourceHandlerSelector<T> {
+public interface ResourceHandlerSelector<T extends ResourceHandlerContext> {
 
-  boolean equals(ResourceHandlerContext<T> resourceHandlerContext,
+  boolean equals(T resourceHandlerContext,
       HasMetadata existingResource, HasMetadata resource);
 
-  HasMetadata update(ResourceHandlerContext<T> resourceHandlerContext,
+  HasMetadata update(T resourceHandlerContext,
       HasMetadata toUpdate, HasMetadata withUpdates);
 
   boolean isManaged(T config, HasMetadata existingResource);
@@ -28,9 +26,6 @@ public interface ResourceHandlerSelector<T> {
   boolean skipDeletion(T config, HasMetadata requiredResource);
 
   void registerKinds();
-
-  Stream<HasMetadata> getOrphanResources(KubernetesClient client,
-      ImmutableList<T> existingConfigs);
 
   Stream<HasMetadata> getResources(KubernetesClient client, T config);
 

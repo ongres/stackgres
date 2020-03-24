@@ -5,8 +5,8 @@
 
 package io.stackgres.common.crd.sgcluster;
 
-import java.util.List;
 import java.util.Objects;
+
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
@@ -51,11 +51,11 @@ public class StackGresClusterSpec implements KubernetesResource {
   @NotNull(message = "pod description must be specified")
   private StackGresClusterPod pod;
 
+  @JsonProperty("distributedLogs")
+  private StackGresClusterDistributedLogs distributedLogs;
+
   @JsonProperty("prometheusAutobind")
   private Boolean prometheusAutobind;
-
-  @JsonProperty("sidecars")
-  private List<String> sidecars;
 
   @JsonProperty("nonProductionOptions")
   private NonProduction nonProduction;
@@ -124,17 +124,25 @@ public class StackGresClusterSpec implements KubernetesResource {
     this.initData = initData;
   }
 
+  public StackGresClusterDistributedLogs getDistributedLogs() {
+    return distributedLogs;
+  }
+
+  public void setDistributedLogs(StackGresClusterDistributedLogs distributedLogs) {
+    this.distributedLogs = distributedLogs;
+  }
+
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .omitNullValues()
+        .add("postgresVersion", postgresVersion)
         .add("instances", instances)
-        .add("pgVersion", postgresVersion)
+        .add("sgInstanceProfile", resourceProfile)
+        .add("pods", pod)
         .add("configurations", configuration)
-        .add("resourceProfile", resourceProfile)
-        .add("restore", initData)
-        .add("pod", pod)
-        .add("sidecars", sidecars)
+        .add("initData", initData)
+        .add("distributedLogs", distributedLogs)
         .add("nonProductionOptions", nonProduction)
         .toString();
   }
@@ -153,13 +161,13 @@ public class StackGresClusterSpec implements KubernetesResource {
         && Objects.equals(resourceProfile, that.resourceProfile)
         && Objects.equals(initData, that.initData) && Objects.equals(pod, that.pod)
         && Objects.equals(prometheusAutobind, that.prometheusAutobind)
-        && Objects.equals(sidecars, that.sidecars)
+        && Objects.equals(distributedLogs, that.distributedLogs)
         && Objects.equals(nonProduction, that.nonProduction);
   }
 
   @Override
   public int hashCode() {
     return Objects.hash(instances, postgresVersion, configuration, resourceProfile,
-        initData, pod, prometheusAutobind, sidecars, nonProduction);
+        initData, pod, prometheusAutobind, distributedLogs, nonProduction);
   }
 }

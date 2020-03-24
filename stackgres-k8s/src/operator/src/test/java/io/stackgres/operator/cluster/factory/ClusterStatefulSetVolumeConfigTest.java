@@ -6,16 +6,16 @@
 package io.stackgres.operator.cluster.factory;
 
 import java.util.Optional;
+import java.util.UUID;
 
 import com.google.common.collect.ImmutableList;
-
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
+import io.stackgres.operator.common.ImmutableStackGresUserClusterContext;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresRestoreContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.Unchecked;
 import org.junit.jupiter.api.Assertions;
@@ -175,28 +175,32 @@ public class ClusterStatefulSetVolumeConfigTest {
   }
 
   private StackGresClusterContext createStackGresClusterContext() {
-    return StackGresClusterContext.builder()
-        .withCluster(Unchecked.supplier(() -> {
+    return ImmutableStackGresUserClusterContext.builder()
+        .cluster(Unchecked.supplier(() -> {
           StackGresCluster cluster = new StackGresCluster();
           cluster.setMetadata(new ObjectMetaBuilder()
               .withName("test")
+              .withNamespace("test")
+              .withUid(new UUID(0, 0).toString())
               .build());
           return cluster;
         }).get())
-        .withRestoreContext(Optional.empty())
+        .restoreContext(Optional.empty())
         .build();
   }
 
   private StackGresClusterContext createStackGresClusterContextWithRestore() {
-    return StackGresClusterContext.builder()
-        .withCluster(Unchecked.supplier(() -> {
+    return ImmutableStackGresUserClusterContext.builder()
+        .cluster(Unchecked.supplier(() -> {
           StackGresCluster cluster = new StackGresCluster();
           cluster.setMetadata(new ObjectMetaBuilder()
               .withName("test")
+              .withNamespace("test")
+              .withUid(new UUID(0, 0).toString())
               .build());
           return cluster;
         }).get())
-        .withRestoreContext(Optional.of(StackGresRestoreContext.builder()
+        .restoreContext(Optional.of(StackGresRestoreContext.builder()
             .build()))
         .build();
   }

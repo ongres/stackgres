@@ -8,7 +8,6 @@ package io.stackgres.operator.resource;
 import java.util.function.Function;
 
 import com.google.common.collect.ImmutableMap;
-
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.HasMetadata;

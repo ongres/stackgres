@@ -28,7 +28,6 @@ import io.stackgres.operator.customresource.prometheus.PrometheusConfigList;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.resource.CustomResourceScanner;
 import io.stackgres.operator.utils.JsonUtil;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

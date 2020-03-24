@@ -12,8 +12,6 @@ import java.util.stream.Stream;
 
 import javax.enterprise.context.ApplicationScoped;
 
-import com.google.common.collect.ImmutableList;
-
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.stackgres.operator.common.StackGresClusterContext;
@@ -21,7 +19,6 @@ import io.stackgres.operator.common.StackGresClusterOptionalResourceStreamFactor
 import io.stackgres.operator.common.StackGresGeneratorContext;
 import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operatorframework.resource.ResourceUtil;
-
 import org.jooq.lambda.Seq;
 
 @ApplicationScoped
@@ -51,9 +48,8 @@ public class RestoreSecret extends AbstractBackupSecret
               .withNewMetadata()
               .withNamespace(context.getClusterContext().getCluster().getMetadata().getNamespace())
               .withName(name(context.getClusterContext()))
-              .withLabels(StackGresUtil.clusterLabels(context.getClusterContext().getCluster()))
-              .withOwnerReferences(ImmutableList.of(
-                  ResourceUtil.getOwnerReference(context.getClusterContext().getCluster())))
+              .withLabels(context.getClusterContext().clusterLabels())
+              .withOwnerReferences(context.getClusterContext().ownerReference())
               .endMetadata()
               .withType("Opaque")
               .withStringData(StackGresUtil.addMd5Sum(data))

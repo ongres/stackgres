@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
@@ -24,7 +25,7 @@ public abstract class AbstractStackGresOperatorIt extends AbstractIt {
 
   private static final int OPERATOR_PORT = getFreePort();
   private static final int OPERATOR_SSL_PORT = getFreePort();
-  private static boolean IS_ABSTRACT_STACKGRES_OPERATOR_IT = false;
+  private static AtomicBoolean IS_ABSTRACT_STACKGRES_OPERATOR_IT = new AtomicBoolean(false);
 
   protected final String namespace = getNamespace();
   protected final int k8sSize = getKindSize();
@@ -33,7 +34,7 @@ public abstract class AbstractStackGresOperatorIt extends AbstractIt {
   private WebTarget operatorClient;
 
   public static boolean isRunning() {
-    return IS_ABSTRACT_STACKGRES_OPERATOR_IT;
+    return IS_ABSTRACT_STACKGRES_OPERATOR_IT.get();
   }
 
   protected String getNamespace() {
@@ -46,7 +47,7 @@ public abstract class AbstractStackGresOperatorIt extends AbstractIt {
 
   @BeforeEach
   public void setupOperator(@ContainerParam("k8s") Container k8s) throws Exception {
-    IS_ABSTRACT_STACKGRES_OPERATOR_IT = true;
+    IS_ABSTRACT_STACKGRES_OPERATOR_IT.set(true);
     ItHelper.killUnwantedProcesses(k8s);
     ItHelper.copyResources(k8s);
     ItHelper.resetKind(k8s, k8sSize);
@@ -77,7 +78,7 @@ public abstract class AbstractStackGresOperatorIt extends AbstractIt {
     if (operatorClose != null) {
       runAsync(() -> operatorClose.close()).get(10, TimeUnit.SECONDS);
     }
-    IS_ABSTRACT_STACKGRES_OPERATOR_IT = false;
+    IS_ABSTRACT_STACKGRES_OPERATOR_IT.set(false);
   }
 
 }

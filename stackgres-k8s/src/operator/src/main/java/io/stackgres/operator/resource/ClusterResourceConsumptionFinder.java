@@ -19,7 +19,7 @@ import io.stackgres.common.crd.sgprofile.StackGresProfileDefinition;
 import io.stackgres.common.crd.sgprofile.StackGresProfileDoneable;
 import io.stackgres.common.crd.sgprofile.StackGresProfileList;
 import io.stackgres.operator.app.KubernetesClientFactory;
-import io.stackgres.operator.common.StackGresUtil;
+import io.stackgres.operator.common.StackGresUserClusterContext;
 import io.stackgres.operator.patroni.factory.Patroni;
 import io.stackgres.operator.rest.PatroniStatsScripts;
 import io.stackgres.operator.rest.dto.cluster.ClusterResourceConsumtionDto;
@@ -56,7 +56,7 @@ public class ClusterResourceConsumptionFinder
         Optional<Pod> masterPod = client.pods()
             .inNamespace(cluster.getMetadata().getNamespace())
             .withLabels(ImmutableMap.<String, String>builder()
-                .putAll(StackGresUtil.clusterLabels(cluster))
+                .putAll(StackGresUserClusterContext.getClusterLabelMapper(cluster).clusterLabels())
                 .put("role", "master")
                 .build())
             .list()

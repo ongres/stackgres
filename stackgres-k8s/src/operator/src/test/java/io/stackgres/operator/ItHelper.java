@@ -65,10 +65,16 @@ public class ItHelper {
       .map(e -> "export " + e.getKey() + "=\"" + e.getValue() + "\"")
       .collect(Collectors.joining("\n"));
 
-  public static final Optional<Boolean> E2E_DEBUG = Optional.ofNullable(
+  public static final boolean E2E_DEBUG = Optional.ofNullable(
       Optional.ofNullable(System.getenv("E2E_DEBUG"))
       .orElse(System.getProperty("e2e.debug")))
-      .map(Boolean::valueOf);
+      .map(Boolean::valueOf)
+      .orElse(false);
+  public static final boolean E2E_REUSE_OPERATOR = Optional.ofNullable(
+      Optional.ofNullable(System.getenv("E2E_REUSE_OPERATOR"))
+      .orElse(System.getProperty("e2e.reuseOperator")))
+      .map(Boolean::valueOf)
+      .orElse(false);
 
   /**
    * IT helper method.
@@ -132,16 +138,19 @@ public class ItHelper {
               + "export IMAGE_TAG=" + ItHelper.IMAGE_TAG + "\n"
               + "export CLUSTER_CHART_PATH=/resources/stackgres-cluster\n"
               + "export OPERATOR_CHART_PATH=/resources/stackgres-operator\n"
-              + "sh " + (ItHelper.E2E_DEBUG.orElse(false) ? "-x" : "") + " e2e reuse_k8s\n"
-              + "sh " + (ItHelper.E2E_DEBUG.orElse(false) ? "-x" : "") + " e2e setup_helm\n"
-              + "sh " + (ItHelper.E2E_DEBUG.orElse(false) ? "-x" : "") + " e2e setup_default_limits 0.1 0.1 16Mi 16Mi\n"
-              + "sh " + (ItHelper.E2E_DEBUG.orElse(false) ? "-x" : "") + " e2e k8s_webhook_cleanup\n"
-              + "sh " + (ItHelper.E2E_DEBUG.orElse(false) ? "-x" : "") + " e2e helm_cleanup\n"
-              + "sh " + (ItHelper.E2E_DEBUG.orElse(false) ? "-x" : "") + " e2e k8s_cleanup\n"
+              + "sh " + (E2E_DEBUG ? "-x" : "") + " e2e reuse_k8s\n"
+              + "sh " + (E2E_DEBUG ? "-x" : "") + " e2e setup_helm\n"
+              + "sh " + (E2E_DEBUG ? "-x" : "") + " e2e setup_default_limits 0.1 0.1 16Mi 16Mi\n"
+              + (E2E_REUSE_OPERATOR
+                  ? "sh " + (E2E_DEBUG ? "-x" : "") + " e2e helm_cleanup_but_operator\n"
+                  + "sh " + (E2E_DEBUG ? "-x" : "") + " e2e k8s_cleanup_but_operator\n"
+                  : "sh " + (E2E_DEBUG ? "-x" : "") + " e2e k8s_webhook_cleanup\n"
+                  + "sh " + (E2E_DEBUG ? "-x" : "") + " e2e helm_cleanup\n"
+                  + "sh " + (E2E_DEBUG ? "-x" : "") + " e2e k8s_cleanup\n")
               + (OPERATOR_IN_KUBERNETES
-                  ? "sh " + (ItHelper.E2E_DEBUG.orElse(false) ? "-x" : "") + " e2e load_operator_k8s\n" : "")
+                  ? "sh " + (E2E_DEBUG ? "-x" : "") + " e2e load_operator_k8s\n" : "")
               + (OPERATOR_IN_KUBERNETES ? ""
-                  : "sh " + (ItHelper.E2E_DEBUG.orElse(false) ? "-x" : "")
+                  : "sh " + (E2E_DEBUG ? "-x" : "")
                   + " e2e load_certificate_k8s /resources/certs/server.crt\n"))
               .getBytes(StandardCharsets.UTF_8)), "/reuse-k8s.sh");
       k8s.execute("sh", "-e", "/reuse-k8s.sh")
@@ -160,13 +169,13 @@ public class ItHelper {
         + "export IMAGE_TAG=" + ItHelper.IMAGE_TAG + "\n"
         + "export CLUSTER_CHART_PATH=/resources/stackgres-cluster\n"
         + "export OPERATOR_CHART_PATH=/resources/stackgres-operator\n"
-        + "sh " + (ItHelper.E2E_DEBUG.orElse(false) ? "-x" : "") + " e2e reset_k8s\n"
-        + "sh " + (ItHelper.E2E_DEBUG.orElse(false) ? "-x" : "") + " e2e setup_helm\n"
-        + "sh " + (ItHelper.E2E_DEBUG.orElse(false) ? "-x" : "") + " e2e setup_default_limits 0.1 0.1 16Mi 16Mi\n"
+        + "sh " + (E2E_DEBUG ? "-x" : "") + " e2e reset_k8s\n"
+        + "sh " + (E2E_DEBUG ? "-x" : "") + " e2e setup_helm\n"
+        + "sh " + (E2E_DEBUG ? "-x" : "") + " e2e setup_default_limits 0.1 0.1 16Mi 16Mi\n"
         + (OPERATOR_IN_KUBERNETES
-            ? "sh " + (ItHelper.E2E_DEBUG.orElse(false) ? "-x" : "") + " e2e load_operator_k8s\n" : "")
+            ? "sh " + (E2E_DEBUG ? "-x" : "") + " e2e load_operator_k8s\n" : "")
         + (OPERATOR_IN_KUBERNETES ? ""
-            : "sh " + (ItHelper.E2E_DEBUG.orElse(false) ? "-x" : "")
+            : "sh " + (E2E_DEBUG ? "-x" : "")
             + " e2e load_certificate_k8s /resources/certs/server.crt\n"))
         .getBytes(StandardCharsets.UTF_8)), "/restart-k8s.sh");
     k8s.execute("sh", "-e", "/restart-k8s.sh")
@@ -192,9 +201,11 @@ public class ItHelper {
       int port, Executor executor) throws Exception {
     if (OPERATOR_IN_KUBERNETES) {
       LOGGER.info("Installing stackgres-operator helm chart");
-      k8s.execute("sh", "-l", "-c", "kubectl create namespace " + namespace + " || true");
-      k8s.execute("sh", "-l", "-c", "helm install"
-          + " stackgres-operator"    
+      k8s.execute("sh", "-l", "-c", "kubectl create namespace " + namespace + " || true")
+        .filter(EXCLUDE_TTY_WARNING)
+        .forEach(LOGGER::info);
+      k8s.execute("sh", "-l", "-c", "helm upgrade --install"
+          + " stackgres-operator"
           + " --namespace " + namespace
           + " /resources/stackgres-operator"
           + " --set-string image.tag=" + IMAGE_TAG
@@ -221,8 +232,10 @@ public class ItHelper {
       throw new RuntimeException("Can not retrieve docker interface IP:\n"
           + dockerInterfaceIpError.join().stream().collect(Collectors.joining("\n")));
     }
-    k8s.execute("sh", "-l", "-c", "kubectl create namespace " + namespace + " || true");
-    k8s.execute("sh", "-l", "-c", "helm install"
+    k8s.execute("sh", "-l", "-c", "kubectl create namespace " + namespace + " || true")
+      .filter(EXCLUDE_TTY_WARNING)
+      .forEach(LOGGER::info);
+    k8s.execute("sh", "-l", "-c", "helm upgrade --install"
         + " stackgres-operator"
         + " --namespace stackgres"
         + " /resources/stackgres-operator"
@@ -239,6 +252,22 @@ public class ItHelper {
       .forEach(line -> LOGGER.info(line));
   }
 
+  public static Optional<Integer> getPreviousOperatorPort(Container k8s, String namespace) {
+    try {
+      return Optional.of(new Object())
+          .filter(o -> E2E_REUSE_OPERATOR)
+          .flatMap(o -> Unchecked.supplier(
+              () -> k8s.execute("sh", "-l", "-c", "kubectl get service --namespace " + namespace
+                  + " stackgres-operator-api --template '{{ (index .spec.ports 0).targetPort }}' || true"))
+              .get()
+              .filter(EXCLUDE_TTY_WARNING)
+              .findFirst())
+          .map(Integer::parseInt);
+    } catch (Exception ex) {
+      return Optional.empty();
+    }
+  }
+
   /**
    * It helper method.
    */
@@ -250,7 +279,9 @@ public class ItHelper {
         .filter(EXCLUDE_TTY_WARNING)
         .forEach(LOGGER::info);
     LOGGER.info("Installing stackgres-cluster helm chart for configs");
-    k8s.execute("sh", "-l", "-c", "kubectl create namespace " + namespace);
+    k8s.execute("sh", "-l", "-c", "kubectl create namespace " + namespace)
+      .filter(EXCLUDE_TTY_WARNING)
+      .forEach(LOGGER::info);
     k8s.execute("sh", "-l", "-c", "helm install"
         + " stackgres-cluster-configs"
         + " --namespace " + namespace
@@ -272,11 +303,6 @@ public class ItHelper {
       int instances) throws Exception {
     LOGGER.info("Deleting if exists stackgres-cluster helm chart for cluster with name " + name);
     k8s.execute("sh", "-l", "-c", "helm delete " + name + " --namespace " + namespace + "|| true")
-        .filter(EXCLUDE_TTY_WARNING)
-        .forEach(line -> LOGGER.info(line));
-    LOGGER.info("Deleting if exists stackgres-cluster resources for cluster with name " + name);
-    k8s.execute("sh", "-l", "-c", "kubectl delete statefulset"
-        + " -n " + namespace + " " + name + " --ignore-not-found")
         .filter(EXCLUDE_TTY_WARNING)
         .forEach(line -> LOGGER.info(line));
     LOGGER.info("Installing stackgres-cluster helm chart for cluster with name " + name);
@@ -331,18 +357,17 @@ public class ItHelper {
   public static void waitUntilOperatorIsReady(CompletableFuture<Void> operator,
       WebTarget operatorClient, Container k8s) throws Exception {
     if (OPERATOR_IN_KUBERNETES) {
-      waitUntil(Unchecked.supplier(() -> k8s.execute("sh", "-l", "-c",
-          "kubectl get pod -n stackgres -o name"
-              + " | grep '^pod/stackgres-operator-'"
-              + " | grep -v '^pod/stackgres-operator-init'"
-              + " | xargs kubectl describe -n  stackgres ")),
-          s -> s.anyMatch(line -> line.matches("^  Ready\\s+True\\s*")), 120, ChronoUnit.SECONDS,
-          s -> Assertions.fail(
-              "Timeout while checking availability of"
-                  + " stackgres-operator pod:\n"
-                  + s.collect(Collectors.joining("\n"))));
+      waitUntilKubernetesOperatorIsReady(k8s);
       return;
     }
+    waitUntilLocalOperatorIsReady(operator, operatorClient);
+  }
+
+  /**
+   * It helper method.
+   */
+  public static void waitUntilLocalOperatorIsReady(CompletableFuture<Void> operator,
+      WebTarget operatorClient) throws Exception {
     Instant timeout = Instant.now().plusSeconds(180);
     while (true) {
       if (Instant.now().isAfter(timeout)) {
@@ -365,15 +390,20 @@ public class ItHelper {
         throw ex;
       }
     }
-    k8s.copyIn(new ByteArrayInputStream(
-        ("cd /resources/e2e\n"
-            + E2E_ENVVARS + "\n"
-            + "sh " + (ItHelper.E2E_DEBUG.orElse(false) ? "-x" : "")
-            + " e2e wait_services_available stackgres 2\n")
-        .getBytes(StandardCharsets.UTF_8)), "/wait-operator-services.sh");
-    k8s.execute("sh", "-e", "/wait-operator-services.sh")
-        .filter(ItHelper.EXCLUDE_TTY_WARNING)
-        .forEach(LOGGER::info);
+  }
+
+  /**
+   * It helper method.
+   */
+  public static void waitUntilKubernetesOperatorIsReady(Container k8s) throws Exception {
+    waitUntil(Unchecked.supplier(() -> k8s.execute("sh", "-l", "-c",
+        "kubectl get pod -n stackgres -l app=stackgres-operator -o name"
+            + " | xargs -r kubectl describe -n  stackgres ")),
+        s -> s.anyMatch(line -> line.matches("^  Ready\\s+True\\s*")), 120, ChronoUnit.SECONDS,
+        s -> Assertions.fail(
+            "Timeout while checking availability of"
+                + " stackgres-operator pod:\n"
+                + s.collect(Collectors.joining("\n"))));
   }
 
   /**

@@ -14,7 +14,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 @ApplicationScoped
 public class YamlMapperProvider {
 
-  private static final YAMLMapper yamlMapper = createYamlMapper();
+  private static final YAMLMapper YAML_MAPPER = createYamlMapper();
 
   private static YAMLMapper createYamlMapper() {
     YAMLMapper yamlMapper = new YAMLMapper();
@@ -24,7 +24,7 @@ public class YamlMapperProvider {
   }
 
   public YAMLMapper yamlMapper() {
-    return yamlMapper;
+    return YAML_MAPPER;
   }
 
 }

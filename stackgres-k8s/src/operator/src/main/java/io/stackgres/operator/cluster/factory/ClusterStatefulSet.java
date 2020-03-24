@@ -102,17 +102,15 @@ public class ClusterStatefulSet implements StackGresClusterResourceStreamFactory
         .withResources(dataStorageConfig.getResourceRequirements())
         .withStorageClassName(dataStorageConfig.getStorageClass());
 
-    final Map<String, String> labels = StackGresUtil.clusterLabels(clusterContext.getCluster());
-    final Map<String, String> podLabels = StackGresUtil.statefulSetPodLabels(
-        clusterContext.getCluster());
+    final Map<String, String> labels = clusterContext.clusterLabels();
+    final Map<String, String> podLabels = clusterContext.statefulSetPodLabels();
 
     StatefulSet clusterStatefulSet = new StatefulSetBuilder()
         .withNewMetadata()
         .withNamespace(namespace)
         .withName(name)
         .withLabels(labels)
-        .withOwnerReferences(ImmutableList.of(ResourceUtil.getOwnerReference(
-            clusterContext.getCluster())))
+        .withOwnerReferences(context.getClusterContext().ownerReference())
         .endMetadata()
         .withNewSpec()
         .withReplicas(clusterContext.getCluster().getSpec().getInstances())
@@ -136,7 +134,7 @@ public class ClusterStatefulSet implements StackGresClusterResourceStreamFactory
                                 .withMatchExpressions(new LabelSelectorRequirementBuilder()
                                         .withKey(StackGresUtil.APP_KEY)
                                         .withOperator("In")
-                                        .withValues(StackGresUtil.APP_NAME)
+                                        .withValues(clusterContext.appName())
                                         .build(),
                                     new LabelSelectorRequirementBuilder()
                                         .withKey("cluster")

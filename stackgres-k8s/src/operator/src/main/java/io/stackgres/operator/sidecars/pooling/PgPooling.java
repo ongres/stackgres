@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
 import javax.inject.Singleton;
 
 import com.google.common.collect.ImmutableList;
@@ -40,7 +41,6 @@ import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresClusterSidecarResourceFactory;
 import io.stackgres.operator.common.StackGresComponents;
 import io.stackgres.operator.common.StackGresGeneratorContext;
-import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operator.sidecars.envoy.Envoy;
 import io.stackgres.operator.sidecars.pooling.parameters.Blacklist;
 import io.stackgres.operator.sidecars.pooling.parameters.DefaultValues;
@@ -110,9 +110,8 @@ public class PgPooling
         .withNewMetadata()
         .withNamespace(namespace)
         .withName(configMapName)
-        .withLabels(StackGresUtil.clusterLabels(context.getClusterContext().getCluster()))
-        .withOwnerReferences(ImmutableList.of(ResourceUtil.getOwnerReference(
-            context.getClusterContext().getCluster())))
+        .withLabels(context.getClusterContext().clusterLabels())
+        .withOwnerReferences(context.getClusterContext().ownerReference())
         .endMetadata()
         .withData(data)
         .build();

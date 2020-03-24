@@ -20,12 +20,16 @@ import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import javax.enterprise.inject.spi.CDI;
 import javax.xml.bind.DatatypeConverter;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.operator.app.YamlMapperProvider;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jooq.lambda.Unchecked;
 
@@ -34,7 +38,7 @@ public enum StackGresUtil {
   INSTANCE;
 
   public static final String APP_KEY = "app";
-  public static final String APP_NAME = "StackGres";
+  public static final String APP_NAME = "StackGresCluster";
   public static final String CLUSTER_NAME_KEY = "cluster-name";
   public static final String CLUSTER_UID_KEY = "cluster-uid";
   public static final String CLUSTER_NAMESPACE_KEY = "cluster-namespace";
@@ -46,6 +50,12 @@ public enum StackGresUtil {
   public static final String REPLICA_ROLE = "replica";
   public static final String REST_USER_KEY = "user";
   public static final String REST_PASSWORD_KEY = "password";
+  public static final String DISTRIBUTED_LOGS_APP_NAME = "StackGresDistributedLogs";
+  public static final String DISTRIBUTED_LOGS_CLUSTER_NAME_KEY = "distributed-logs-name";
+  public static final String DISTRIBUTED_LOGS_CLUSTER_NAMESPACE_KEY = "distributed-logs-namespace";
+  public static final String DISTRIBUTED_LOGS_CLUSTER_UID_KEY = "distributed-logs-uid";
+  public static final String DISTRIBUTED_LOGS_CLUSTER_KEY = "distributed-logs-cluster";
+  public static final String DISTRIBUTED_LOGS_BACKUP_KEY = "distributed-logs-backup";
 
   public static final String OPERATOR_NAME = INSTANCE.operatorName;
   public static final String OPERATOR_NAMESPACE = INSTANCE.operatorNamespace;
@@ -99,108 +109,32 @@ public enum StackGresUtil {
     }
   }
 
+  /**
+   * Return a property value by searching first in environment variables and if not present in
+   * system properties.
+   */
   private static String getProperty(Properties properties, ConfigProperty configProperty) {
     return Optional.ofNullable(System.getenv(configProperty.property()))
         .orElseGet(() -> properties.getProperty(configProperty.systemProperty()));
   }
 
-  public static String clusterUid(StackGresCluster cluster) {
-    return cluster.getMetadata().getUid();
-  }
-
-  public static String clusterName(StackGresCluster cluster) {
-    return cluster.getMetadata().getName();
-  }
-
-  public static String clusterScopeKey() {
-    return ResourceUtil.labelKey(CLUSTER_NAME_KEY);
-  }
-
-  public static String clusterScope(StackGresCluster cluster) {
-    return ResourceUtil.labelValue(clusterName(cluster));
-  }
-
   /**
-   * ImmutableMap of cluster labels used as selectors in K8s resources.
+   * Return true when labels match a patroni primary pod, false otherwise.
    */
-  public static ImmutableMap<String, String> defaultLabels() {
-    return ImmutableMap.of(APP_KEY, APP_NAME);
-  }
-
-  /**
-   * ImmutableMap of cluster labels used as selectors in K8s resources.
-   */
-  public static ImmutableMap<String, String> clusterLabels(StackGresCluster cluster) {
-    return ImmutableMap.of(APP_KEY, APP_NAME,
-        CLUSTER_UID_KEY, ResourceUtil.labelValue(clusterUid(cluster)),
-        CLUSTER_NAME_KEY, ResourceUtil.labelValue(clusterName(cluster)));
-  }
-
-  /**
-   * ImmutableMap of cluster labels used as selectors in K8s resources
-   * outside of the namespace of the cluster.
-   */
-  public static ImmutableMap<String, String> clusterCrossNamespaceLabels(
-      StackGresCluster cluster) {
-    return ImmutableMap.of(APP_KEY, APP_NAME,
-        CLUSTER_NAMESPACE_KEY, ResourceUtil.labelValue(cluster.getMetadata().getNamespace()),
-        CLUSTER_UID_KEY, ResourceUtil.labelValue(clusterUid(cluster)),
-        CLUSTER_NAME_KEY, ResourceUtil.labelValue(clusterName(cluster)));
-  }
-
-  /**
-   * ImmutableMap of default labels used as selectors in K8s pods
-   * that are part of the cluster.
-   */
-  public static ImmutableMap<String, String> statefulSetPodLabels(StackGresCluster cluster) {
-    return ImmutableMap.of(APP_KEY, APP_NAME,
-        CLUSTER_UID_KEY, ResourceUtil.labelValue(clusterUid(cluster)),
-        CLUSTER_NAME_KEY, ResourceUtil.labelValue(clusterName(cluster)),
-        CLUSTER_KEY, Boolean.TRUE.toString(), DISRUPTIBLE_KEY, Boolean.TRUE.toString());
-  }
-
-  /**
-   * ImmutableMap of default labels used as selectors in K8s pods
-   * that are part of the cluster.
-   */
-  public static ImmutableMap<String, String> patroniClusterLabels(StackGresCluster cluster) {
-    return ImmutableMap.of(APP_KEY, APP_NAME,
-        CLUSTER_UID_KEY, ResourceUtil.labelValue(clusterUid(cluster)),
-        CLUSTER_NAME_KEY, ResourceUtil.labelValue(clusterName(cluster)),
-        CLUSTER_KEY, Boolean.TRUE.toString());
-  }
-
-  /**
-   * ImmutableMap of default labels used as selectors in K8s pods
-   * that are part of any cluster.
-   */
-  public static ImmutableMap<String, String> patroniClusterLabels() {
-    return ImmutableMap.of(APP_KEY, APP_NAME,
-        CLUSTER_KEY, Boolean.TRUE.toString());
-  }
-
-  /**
-   * ImmutableMap of default labels used as selectors in K8s pods
-   * that work on backups.
-   */
-  public static ImmutableMap<String, String> backupPodLabels(StackGresCluster cluster) {
-    return ImmutableMap.of(APP_KEY, APP_NAME,
-        CLUSTER_UID_KEY, ResourceUtil.labelValue(clusterUid(cluster)),
-        CLUSTER_NAME_KEY, ResourceUtil.labelValue(clusterName(cluster)),
-        BACKUP_KEY, Boolean.TRUE.toString());
-  }
-
   public static boolean isPrimary(Map<String, String> labels) {
     return Objects.equals(labels.get(StackGresUtil.ROLE_KEY), StackGresUtil.PRIMARY_ROLE);
   }
 
+  /**
+   * Return true when labels match a patroni primary pod that is also disruptible, false otherwise.
+   */
   public static boolean isNonDisruptiblePrimary(Map<String, String> labels) {
     return isPrimary(labels)
         && Objects.equals(labels.get(StackGresUtil.DISRUPTIBLE_KEY), Boolean.FALSE.toString());
   }
 
   /**
-   * Extract the index of a StatefulSet's pod.
+   * Extract the index of a cluster stateful set pod.
    */
   public static Integer extractPodIndex(StackGresCluster cluster, ObjectMeta podMetadata) {
     Matcher matcher = Pattern.compile(ResourceUtil.getNameWithIndexPattern(
@@ -213,6 +147,9 @@ public enum StackGresUtil {
         + cluster.getMetadata().getNamespace() + "." + cluster.getMetadata().getName());
   }
 
+  /**
+   * Calculate MD5 hash of all exisitng values ordered by key.
+   */
   public static Map<String, String> addMd5Sum(Map<String, String> data) {
     MessageDigest messageDigest = Unchecked
         .supplier(() -> MessageDigest.getInstance("MD5")).get();
@@ -228,12 +165,18 @@ public enum StackGresUtil {
         .build();
   }
 
+  /**
+   * If a string URL host part starts with "www." removes it, then return the host part of the URL.
+   */
   public static String getHostFromUrl(String url) throws URISyntaxException {
     URI uri = new URI(url);
     String domain = uri.getHost();
     return domain.startsWith("www.") ? domain.substring(4) : domain;
   }
 
+  /**
+   * Return the port of an Web URL.
+   */
   public static int getPortFromUrl(String url) throws MalformedURLException {
     URL parsedUrl = new URL(url);
     int port = parsedUrl.getPort();
@@ -262,4 +205,62 @@ public enum StackGresUtil {
       return props;
     }
   }
+
+  /**
+   * This function return the namespace of the relativeId if present or the namespace.
+   * <br />
+   * A relative id points to a resource relative to another resource. If the resource is
+   * in the same namespace of the other resource then the relativeId is the resource name.
+   * If the resource is in another namespace then the relativeId will contain a '.' character
+   * that separate namespace and name (`&lt;namespace&gt;.&lt;name&gt;`).
+   */
+  public static String getNamespaceFromRelativeId(String relativeId, String namespace) {
+    final int slashIndex = relativeId.indexOf('.');
+    return slashIndex >= 0
+        ? relativeId.substring(0, slashIndex)
+        : namespace;
+  }
+
+  /**
+   * This function return the name of the relativeId.
+   * <br />
+   * A relative id points to a resource relative to another resource. If the resource is
+   * in the same namespace of the other resource then the relativeId is the resource name.
+   * If the resource is in another namespace then the relativeId will contain a '.' character
+   * that separate namespace and name (`&lt;namespace&gt;.&lt;name&gt;`).
+   */
+  public static String getNameFromRelativeId(String relativeId) {
+    final int slashIndex = relativeId.indexOf('.');
+    return slashIndex >= 0
+        ? relativeId.substring(slashIndex + 1)
+        : relativeId;
+  }
+
+  /**
+   * This function return the relative id of a name and a nanemspace
+   *  relative to the relativeNamespace.
+   * <br />
+   * A relative id points to a resource relative to another resource. If the resource is
+   * in the same namespace of the other resource then the relativeId is the resource name.
+   * If the resource is in another namespace then the relativeId will contain a '.' character
+   * that separate namespace and name (`&lt;namespace&gt;.&lt;name&gt;`).
+   */
+  public static String getRelativeId(
+      String name, String namespace, String relativeNamespace) {
+    if (namespace.equals(relativeNamespace)) {
+      return name;
+    }
+    return namespace + '.' + name;
+  }
+
+  public static String toPrettyYaml(Object pojoObject) {
+    try {
+      return CDI.current().select(YamlMapperProvider.class).get()
+          .yamlMapper().writeValueAsString(pojoObject);
+    } catch (JsonProcessingException ex) {
+      throw new RuntimeException("Failed deserializing instance of "
+          + pojoObject.getClass().getName(), ex);
+    }
+  }
+
 }

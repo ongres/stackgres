@@ -76,6 +76,10 @@ public class ResourceUtil {
     return "^" + Pattern.quote(name) + "-([0-9]+)$";
   }
 
+  public static String getNameWithHashPattern(String name) {
+    return "^" + Pattern.quote(name) + "-([a-z0-9]+){10}-([a-z0-9]+){5}$";
+  }
+
   /**
    * Get a custom resource definition from Kubernetes.
    *

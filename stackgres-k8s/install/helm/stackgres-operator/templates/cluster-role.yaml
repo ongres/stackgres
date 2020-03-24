@@ -66,22 +66,13 @@ rules:
 - apiGroups: ["stackgres.io"]
   resources:
   - sgclusters
-  verbs:
-  - watch
-  - list
-  - get
-  - update
-  - patch
-  - create
-  - delete
-- apiGroups: ["stackgres.io"]
-  resources:
   - sgpgconfigs
   - sginstanceprofiles
   - sgpoolconfigs
   - sgbackupconfigs
   - sgbackups
   - sgrestoreconfigs
+  - sgdistributedlogs
   verbs:
   - create
   - watch

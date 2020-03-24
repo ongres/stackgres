@@ -13,7 +13,6 @@ import io.fabric8.kubernetes.api.model.batch.Job;
 import io.stackgres.common.crd.sgbackup.StackGresBackupDefinition;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.resource.AbstractClusterResourceHandler;
-import io.stackgres.operatorframework.resource.ResourceHandlerContext;
 import io.stackgres.operatorframework.resource.visitor.PairVisitor;
 import io.stackgres.operatorframework.resource.visitor.ResourcePairVisitor;
 
@@ -33,24 +32,26 @@ public class BackupJobHandler extends AbstractClusterResourceHandler {
   }
 
   @Override
-  public boolean equals(ResourceHandlerContext<StackGresClusterContext> resourceHandlerContext,
+  public boolean equals(
+      StackGresClusterContext context,
       HasMetadata existingResource, HasMetadata requiredResource) {
-    return ResourcePairVisitor.equals(new JobVisitor<>(resourceHandlerContext),
+    return ResourcePairVisitor.equals(new JobVisitor<>(context),
         existingResource, requiredResource);
   }
 
   @Override
-  public HasMetadata update(ResourceHandlerContext<StackGresClusterContext> resourceHandlerContext,
+  public HasMetadata update(
+      StackGresClusterContext context,
       HasMetadata existingResource, HasMetadata requiredResource) {
-    return ResourcePairVisitor.update(new JobVisitor<>(resourceHandlerContext),
+    return ResourcePairVisitor.update(new JobVisitor<>(context),
         existingResource, requiredResource);
   }
 
   private class JobVisitor<T>
-      extends ResourcePairVisitor<T, ResourceHandlerContext<StackGresClusterContext>> {
+      extends ResourcePairVisitor<T, StackGresClusterContext> {
 
-    public JobVisitor(ResourceHandlerContext<StackGresClusterContext> resourceHandlerContext) {
-      super(resourceHandlerContext);
+    public JobVisitor(StackGresClusterContext context) {
+      super(context);
     }
 
     @Override

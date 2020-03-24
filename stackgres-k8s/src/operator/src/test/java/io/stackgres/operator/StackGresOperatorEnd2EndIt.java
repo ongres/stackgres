@@ -55,14 +55,15 @@ public class StackGresOperatorEnd2EndIt extends AbstractStackGresOperatorIt {
             + "export E2E_REUSE_OPERATOR=true\n"
             + "export E2E_WAIT_OPERATOR=false\n"
             + "export E2E_USE_EXTERNAL_OPERATOR=true\n"
+            + "export E2E_SKIP_SETUP=true\n"
             + "export CLUSTER_CHART_PATH=/resources/stackgres-cluster\n"
             + "export OPERATOR_CHART_PATH=/resources/stackgres-operator\n"
-            + (E2E_TEST.map(e2eTests -> "if ! sh " + (ItHelper.E2E_DEBUG.orElse(false) ? "-x" : "")
+            + (E2E_TEST.map(e2eTests -> "if ! sh " + (ItHelper.E2E_DEBUG ? "-x" : "")
             + " run-test.sh " + e2eTests + "\n"
             + "then\n"
             + "  sh e2e show_failed_logs\n"
             + "  exit 1\n"
-            + "fi\n").orElseGet(() -> "if ! sh " + (ItHelper.E2E_DEBUG.orElse(false) ? "-x" : "")
+            + "fi\n").orElseGet(() -> "if ! sh " + (ItHelper.E2E_DEBUG ? "-x" : "")
             + " run-all-tests.sh\n"
             + "then\n"
             + "  sh e2e show_failed_logs\n"

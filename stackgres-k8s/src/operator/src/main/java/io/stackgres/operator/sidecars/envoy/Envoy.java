@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
+
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
@@ -40,7 +41,6 @@ import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresClusterSidecarResourceFactory;
 import io.stackgres.operator.common.StackGresComponents;
 import io.stackgres.operator.common.StackGresGeneratorContext;
-import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operator.customresource.prometheus.Endpoint;
 import io.stackgres.operator.customresource.prometheus.NamespaceSelector;
 import io.stackgres.operator.customresource.prometheus.ServiceMonitor;
@@ -188,19 +188,16 @@ public class Envoy implements StackGresClusterSidecarResourceFactory<Void> {
         .withNewMetadata()
         .withNamespace(namespace)
         .withName(configMapName)
-        .withLabels(StackGresUtil.clusterLabels(context.getClusterContext().getCluster()))
-        .withOwnerReferences(ImmutableList.of(ResourceUtil.getOwnerReference(
-            context.getClusterContext().getCluster())))
+        .withLabels(context.getClusterContext().clusterLabels())
+        .withOwnerReferences(context.getClusterContext().ownerReference())
         .endMetadata()
         .withData(data)
         .build();
     resourcesBuilder.add(cm);
 
-    final Map<String, String> defaultLabels = StackGresUtil.clusterLabels(
-        context.getClusterContext().getCluster());
+    final Map<String, String> defaultLabels = context.getClusterContext().clusterLabels();
     Map<String, String> labels = new ImmutableMap.Builder<String, String>()
-        .putAll(StackGresUtil.clusterCrossNamespaceLabels(
-            context.getClusterContext().getCluster()))
+        .putAll(context.getClusterContext().clusterCrossNamespaceLabels())
         .build();
 
     Optional<Prometheus> prometheus = context.getClusterContext().getPrometheus();
@@ -234,8 +231,7 @@ public class Envoy implements StackGresClusterSidecarResourceFactory<Void> {
           serviceMonitor.setMetadata(new ObjectMetaBuilder()
               .withNamespace(pi.getNamespace())
               .withName(serviceMonitorName(context.getClusterContext()))
-              .withOwnerReferences(ImmutableList.of(ResourceUtil.getOwnerReference(
-                  context.getClusterContext().getCluster())))
+              .withOwnerReferences(context.getClusterContext().ownerReference())
               .withLabels(ImmutableMap.<String, String>builder()
                   .putAll(pi.getMatchLabels())
                   .putAll(labels)

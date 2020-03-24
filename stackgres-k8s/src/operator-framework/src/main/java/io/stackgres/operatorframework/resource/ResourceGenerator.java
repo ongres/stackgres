@@ -33,8 +33,8 @@ public class ResourceGenerator<T extends KubernetesResource, C> {
     return new ResourceGenerator<>(context);
   }
 
-  public <H extends T, F extends SubResourceStreamFactory<H, C>> ResourceGenerator<H, C> append(
-      F resourceSeqFactory) {
+  public <H extends T, F extends SubResourceStreamFactory<H, ? super C>>
+      ResourceGenerator<H, C> append(F resourceSeqFactory) {
     return new ResourceGenerator<>(
         context, seq.append(resourceSeqFactory.streamResources(context)));
   }

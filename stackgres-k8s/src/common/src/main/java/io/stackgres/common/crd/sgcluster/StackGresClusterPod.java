@@ -23,7 +23,7 @@ public class StackGresClusterPod {
   @JsonProperty("persistentVolume")
   @Valid
   @NotNull(message = "Pod's persistent volume must be specified")
-  private StackGresPodPersistenceVolume persistentVolume;
+  private StackGresPodPersistentVolume persistentVolume;
 
   @JsonProperty("disableConnectionPooling")
   private Boolean disableConnectionPooling;
@@ -34,11 +34,11 @@ public class StackGresClusterPod {
   @JsonProperty("disablePostgresUtil")
   private Boolean disablePostgresUtil;
 
-  public StackGresPodPersistenceVolume getPersistentVolume() {
+  public StackGresPodPersistentVolume getPersistentVolume() {
     return persistentVolume;
   }
 
-  public void setPersistentVolume(StackGresPodPersistenceVolume persistentVolume) {
+  public void setPersistentVolume(StackGresPodPersistentVolume persistentVolume) {
     this.persistentVolume = persistentVolume;
   }
 

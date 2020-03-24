@@ -36,12 +36,14 @@ public class ClusterResourceHandlerSelector
   }
 
   @Override
-  protected Stream<ResourceHandler<StackGresClusterContext>> getResourceHandlers() {
+  protected Stream<ResourceHandler<StackGresClusterContext>>
+      getResourceHandlers() {
     return handlers.stream();
   }
 
   @Override
-  protected Optional<ResourceHandler<StackGresClusterContext>> getDefaultResourceHandler() {
+  protected Optional<ResourceHandler<StackGresClusterContext>>
+      getDefaultResourceHandler() {
     Instance<DefaultClusterResourceHandler> instance = handlers.select(
         DefaultClusterResourceHandler.class);
     return instance.isResolvable() ? Optional.of(instance.get()) : Optional.empty();

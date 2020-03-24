@@ -15,7 +15,7 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
-import io.stackgres.common.crd.sgcluster.StackGresPodPersistenceVolume;
+import io.stackgres.common.crd.sgcluster.StackGresPodPersistentVolume;
 import io.stackgres.common.crd.sgcluster.StackgresClusterConfiguration;
 import io.stackgres.operator.common.ConfigContext;
 import io.stackgres.operator.common.ConfigProperty;
@@ -101,7 +101,7 @@ public class ClusterTransformer
               getCustomResourceRestore(source.getInitData().getRestore()));
         });
     transformation.setPod(new StackGresClusterPod());
-    transformation.getPod().setPersistentVolume(new StackGresPodPersistenceVolume());
+    transformation.getPod().setPersistentVolume(new StackGresPodPersistentVolume());
     transformation.getPod().getPersistentVolume().setStorageClass(
         source.getPods().getPersistentVolume().getStorageClass());
     transformation.getPod().getPersistentVolume().setVolumeSize(
