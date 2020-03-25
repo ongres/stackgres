@@ -255,7 +255,7 @@ pre {
     border-color: #333;
 }
 
-.darkmode ul.tabs {
+.darkmode ul.tabs, .darkmode .content h2 {
     border-color: #555;
 }
 
@@ -304,7 +304,9 @@ pre {
 .darkmode table table + table {
     border-top: 1px solid #454a5a;
 }
-
+.darkmode #ns-select a:hover {
+    background: transparent;
+}
 
 /* Main Structure */
 aside {
@@ -619,7 +621,7 @@ ul.zg-ul-select.active li.active:hover {
     color: inherit;
 }
 
-.item.router-link-exact-active:before {
+.item.router-link-exact-active:before, .item.current:before {
     display: block;
     content: " ";
     position: absolute;
@@ -1182,6 +1184,19 @@ header .add:before {
     margin-right: 5px;
 }
 
+header .actions {
+    position: absolute;
+    top: 0;
+    right: 0;
+    text-transform: uppercase;
+}
+
+header .actions a {
+    cursor: pointer;
+    font-weight: 600;
+    margin-left: 15px;
+}
+
 ul.breadcrumbs {
     list-style: none;
     margin-top: 20px;
@@ -1363,6 +1378,17 @@ li.status {
 
 .status-legend .status > span {
     margin-right: 3px;
+}
+
+.content h2 {
+    font-size: 1rem;
+    border-bottom: 1px solid var(--gray2);
+    padding-bottom: 5px;
+    margin-bottom: 10px;
+}
+
+.content table {
+    margin-bottom: 50px;
 }
 
 .content .box {
@@ -1625,6 +1651,24 @@ ul.selector li {
     border-color: var(--blue);
 }
 
+.warning {
+    background: rgba(0,173,181,.05);
+    border: 1px solid var(--blue);
+    padding: 20px;
+    border-radius: 6px;
+    margin-bottom: 30px;
+    margin-top: -10px;
+}
+
+.warning svg {
+    position: absolute;
+    margin-top: 10px;
+}
+
+.warning p {
+    padding-left: 40px;
+}
+
 label.switch {
     border: 1px solid var(--gray2);
     padding: 10px;
@@ -1860,6 +1904,10 @@ fieldset {
     width: 100%;
     padding-bottom: 5px;
     margin-bottom: 25px;
+}
+
+.form fieldset .header {
+    margin-bottom: 15px;
 }
 
 .form .header h2 {
@@ -2159,6 +2207,35 @@ ul.yaml ul {
     list-style: none;
 }
 
+.clusterInfo th, .podStatus th {
+    width: 25%;
+}
+
+td.label span {
+    text-transform: uppercase;
+    padding: 4px 9px;
+    font-size: 11px;
+    border-radius: 15px;
+    width: 70px;
+    display: inline-block;
+    text-align: center;
+    font-weight: 400;
+}
+
+.podStatus .primary span {
+    background: #cfd0d3;
+    color: var(--gray5);
+}
+
+.podStatus .replica span {
+    background: #e8e8ea;
+    color: var(--gray5);
+}
+
+.podStatus .Active span {
+    color: #03CC03;
+    background: #bffbbc;
+}
 
 
 /* Table Filters */
