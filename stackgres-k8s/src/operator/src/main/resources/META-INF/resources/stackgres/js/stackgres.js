@@ -276,7 +276,13 @@ const store = new Vuex.Store({
     poolConfig: [],
     backupConfig: [],
     profiles: [],
-    storageClasses: []
+    storageClasses: [],
+    deleteItem: {
+      kind: '',
+      namespace: '',
+      name: '',
+      redirect: ''
+    },
   },
   mutations: {
     
@@ -426,6 +432,10 @@ const store = new Vuex.Store({
 
     },
 
+    setCurrentNamespace (state, namespace) {
+      state.currentNamespace = namespace;
+    },
+
     flushAllNamespaces (state) {
       state.allNamespaces.length = 0;
     },
@@ -457,18 +467,98 @@ const store = new Vuex.Store({
     flushStorageClasses (state ) {
       state.storageClasses.length = 0;
     },
+
+    setDeleteItem (state, item) {
+      state.deleteItem = item;
+    },
+    
+  }
+});
+
+Vue.mixin({
+  data: function(){
+    return {
+    }
+  },
+  methods: {
+
+    cancelDelete: function(){
+			$("#delete").removeClass("active");
+    },
+    
+    deleteCRD: function( kind, namespace, name, redirect ) {
+
+      console.log("Open delete");
+      $("#delete").addClass("active");
+
+      store.commit("setDeleteItem", {
+        kind: kind,
+        namespace: namespace,
+        name: name,
+        redirect: redirect
+      });
+
+    },
+
+		confirmDelete: function( confirmName ) {
+
+      const item = store.state.deleteItem;
+
+			if(confirmName == item.name) { 
+				$("#error .warning").fadeOut();
+
+				const res = axios
+				.delete(
+				apiURL+item.kind, 
+				{
+					data: {
+						"metadata": {
+							"name": item.name,
+							"namespace": item.namespace
+						}
+					}
+				}
+				)
+				.then(function (response) {
+					console.log("DELETED");
+					notify('<span class="capitalize">'+item.kind+'</span> <strong>'+item.name+'</strong> deleted successfully', 'message', item.kind);
+          vm.fetchAPI();
+          
+          store.commit("setDeleteItem", {
+            kind: '',
+            namespace: '',
+            name: '',
+            redirect: ''
+          });
+			
+					/* if(item.redirect.length)
+						router.push(item.redirect); */
+
+					$("#delete").removeClass("active");
+				})
+				.catch(function (error) {
+				  console.log(error);
+				  notify(error.response.data,'error',item.kind);
+				});
+			} else {
+				$("#error .warning").fadeIn();
+			}
+			
+    }
+
   }
 });
 
 const vm = new Vue({
   el: '#app',
   router,
+  //mixins: [mixin],
   data: {
     active: true,
     ip: '',
     currentCluster: '',
     currentPods: '',
-    clustersData: {}
+    clustersData: {},
     //clusters: []
   },
   methods: {
@@ -785,27 +875,12 @@ const vm = new Vue({
         //$("#loader").hide();  
       }, 1500);
 
-    }
+    },
 
   },
   mounted: function() {
-
-   /*axios
-    .get(apiURL+'kubernetes-cluster-info',
-      { headers: {
-        'content-type': 'application/json'
-      }
-    })
-    .then( function(response) {
-      vm.ip = response.data;
-      //console.log(response.data.substring(8).replace("/",""));
-    });*/
     
     this.fetchAPI();
-
-    /*$("#loader").click(function(){
-      vm.fetchAPI();
-    });*/
 
     setInterval( function(){
       this.fetchAPI();
@@ -904,6 +979,8 @@ function checkData (newData, currentData) {
 
 function notify (message, kind = 'message', crd = 'general') {
   //$("#notifications").addClass("active");
+
+  $("#delete").removeClass("active");
 
   let details = '';
   let icon = '';
@@ -1113,8 +1190,8 @@ $(document).ready(function(){
 
   $(document).on("click", "#main, #side", function() {
     if($(this).prop("id") != "notifications") {
-      $(".hasTooltip.active").removeClass("active");
-      $(".hasTooltip .message.show").removeClass("show");
+      $("#notifications.hasTooltip.active").removeClass("active");
+      $("#notifications.hasTooltip .message.show").removeClass("show");
       $("#selected--zg-ul-select.open").removeClass("open");
       $("#be-select.active").removeClass("active");
     } 

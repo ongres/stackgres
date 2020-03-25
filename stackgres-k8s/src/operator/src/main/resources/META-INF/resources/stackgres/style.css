@@ -317,7 +317,7 @@ aside {
 }
 
 #side {
-    min-width: 350px;
+    width: 350px;
     height: calc(100vh - 50px);
     top: 50px;
     z-index: 10;
@@ -939,6 +939,12 @@ footer {
     width: 320px;
 }
 
+#delete .tooltip {
+    right: 30px;
+    padding: 20px;
+    top: 65px;
+}
+
 .hasTooltip.active .tooltip {
     display: block;
 }
@@ -962,6 +968,7 @@ footer {
     border-right: 0;
     border-top: 0;
 }
+
 
 .tooltip.pos1 {
     margin-top: -170px;
