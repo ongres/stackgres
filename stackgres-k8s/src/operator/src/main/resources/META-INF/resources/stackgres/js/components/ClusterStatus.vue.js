@@ -16,9 +16,13 @@ var ClusterStatus = Vue.component("cluster-status", {
 					</li>
 				</ul>
 
+				<div class="actions">
+					<router-link :to="'/crd/edit/cluster/'+$route.params.namespace+'/'+$route.params.name">Edit Cluster</router-link> <a v-on:click="deleteCluster">Delete Cluster</a>
+				</div>
+
 				<ul class="tabs">
 					<li>
-						<router-link :to="'/status/'+$route.params.namespace+'/'+$route.params.name" title="Status" class="status">Status</router-link>
+						<router-link :to="'/cluster/status/'+$route.params.namespace+'/'+$route.params.name" title="Status" class="status">Status</router-link>
 					</li>
 					<li>
 						<router-link :to="'/configuration/'+$route.params.namespace+'/'+$route.params.name" title="Configuration" class="info">Configuration</router-link>
@@ -29,71 +33,49 @@ var ClusterStatus = Vue.component("cluster-status", {
 				</ul>
 			</header>
 
-
 			<div class="content">
-				<div class="table" v-if="allDataReady">
-					<div class="head row">
-						<div class="col text">
-							<h4>Pod Name</h4>
-						</div>
+				<h2>General Information</h2>
+				<table class="clusterInfo">
+					<thead>
+						<th>CPU</th>
+						<th>Memory</th>
+						<th>Disk</th>
+						<th>Health</th>
+					</thead>
+					<tbody>
+						<tr>
+							<td>{{ cluster.status.cpuRequested }} (avg. load {{ cluster.status.averageLoad1m }})</td>
+							<td>{{ cluster.status.memoryRequested }}</td>
+							<td>{{ cluster.status.diskUsed }} / {{ cluster.status.diskFound }}</td>
+							<td>{{ cluster.data.podsReady }} / {{ cluster.data.pods.length }}</td>
+						</tr>
+					</tbody>
+				</table>
 
-						<div class="col status">
-							<h4>Status</h4>
-						</div>
-
-						<!--<div class="col text">
-							<h4>View Report</h4>
-						</div>-->
-
-						<div class="col">
-							<h4>Containers</h4>
-						</div>
-					</div>
-					<div v-for="pod in pods.data.pods" class="row">
-						<div class="col text">
-							{{ pod.name }}
-						</div>
-						<div :class="'col status '+pod.status.toLowerCase()">
-							<span v-if="pod.status == 'Running'">A</span>
-							<span v-else>{{ pod.status.charAt(0) }}</span> 
-							
-							<template v-if="pod.role == 'master'">Leader</template>
-							<template v-else>{{ pod.role }}</template>
-						</div>
-						<!--<div class="col link">
-							{{ pod.ip }}:{{ pod.port }}
-						</div>-->
-						<div class="col">
-							{{ pod.containersReady }} / {{ pod.containers }}
-						</div>
-					</div>
-				</div>
-			</div>
-			<ul class="status-legend">
-				STATUS LEGEND:
-
-				<li class="status running">
-					<span>A</span> Active Pod
-				</li>
-
-				<li class="status pending">
-					<span>P</span> Pending Pod
-				</li>
-
-				<li class="status failed">
-					<span>F</span> Failed Pod
-				</li>
-			</ul>
-
-			<div class="form">
-				<router-link :to="'/crd/edit/cluster/'+$route.params.namespace+'/'+$route.params.name" class="btn">Edit Cluster</router-link> <button v-on:click="deleteCluster" class="border">Delete Cluster</button>
+				<h2>Pods Status</h2>
+				<table class="podStatus">
+					<thead>
+						<th>Pod Name</th>
+						<th>Role</th>
+						<th>Status</th>
+						<th>Containers</th>
+					</thead>
+					<tbody>
+						<tr v-for="pod in cluster.data.pods">
+							<td>{{ pod.name }}</td>
+							<td class="label" :class="pod.role"><span>{{ pod.role }}</span></td>
+							<td class="label" :class="pod.status"><span>{{ pod.status }}</span></td>
+							<td>{{ pod.containersReady }} / {{ pod.containers }}</td>
+						</tr>
+					</tbody>
+				</table>
 			</div>
 		</div>`,
 	data: function() {
 		return {
-			dataReady: [ false, false ],
-			allDataReady: false,
-			polling: null,
+			//dataReady: [ false, false ],
+			//allDataReady: false,
+			//polling: null,
 			name: '',
 			namespace: ''
 	    }
@@ -107,7 +89,7 @@ var ClusterStatus = Vue.component("cluster-status", {
 			console.log("Current pods: "+store.state.currentPods)*/
 
 			/* Clusters Data */
-		    axios
+		    /* axios
 		    .get(apiURL+'cluster/status/'+vm.$route.params.namespace+'/'+vm.$route.params.name,
 		    	{ headers: {
 		            'content-type': 'application/json'
@@ -130,7 +112,7 @@ var ClusterStatus = Vue.component("cluster-status", {
 
 	        	vc.dataReady[0] = true;
 	        	vc.allDataReady = vc.dataReady[0] && vc.dataReady[1];
-	      	});
+	      	}); */
 
 			/* Pods Data */
 		    /* axios
@@ -204,7 +186,7 @@ var ClusterStatus = Vue.component("cluster-status", {
 	      	this.fetchAPI();
 	    }.bind(this), 5000);
 
-	    $(".set.clu").addClass("active");
+	    //$(".set.clu").addClass("active");
 	    
 	},
 	created: function() {
