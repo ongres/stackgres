@@ -33,14 +33,19 @@ var CreateCluster = Vue.component("create-cluster", {
                 <div>
                     
                     <label for="pgVersion">Postgres Version <span class="req">*</span></label>
-                    <select v-model="pgVersion" :disabled="(editMode)" required data-field="spec.pgVersion">
-                        <option disabled value="">Select Version</option>
-                        <option value="12.2" selected>Latest</option>
+                    <select v-model="pgVersion" :disabled="(editMode)" @change="checkPgConfigVersion" required data-field="spec.pgVersion">
+                        <option disabled>Select Version</option>
+                        <option value="12.2">Latest</option>
                         <option value="12">12</option>
                         <option value="11">11</option>
                         <option value="12.2">12.2</option>
                         <option value="11.7">11.7</option>
                     </select>
+
+                    <div class="warning" v-if="!pgConfigExists">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="18" viewBox="0 0 20 18"><g transform="translate(0 -183)"><path d="M18.994,201H1.006a1,1,0,0,1-.871-.516,1.052,1.052,0,0,1,0-1.031l8.993-15.974a1.033,1.033,0,0,1,1.744,0l8.993,15.974a1.052,1.052,0,0,1,0,1.031A1,1,0,0,1,18.994,201ZM2.75,198.937h14.5L10,186.059Z" fill="#00adb5"/><rect width="2" height="5.378" rx="0.947" transform="translate(9 189.059)" fill="#00adb5"/><rect width="2" height="2" rx="1" transform="translate(9 195.437)" fill="#00adb5"/></g></svg>
+                        <p>Please notice that <strong>there are no Postgres Configurations available</strong> for this Postgres Version in this Namespace. A <strong>default Postgres Configuration will be created and applied to the cluster</strong> if you continue.</p>
+                    </div>
 
                     <div class="row-50">
                         <div class="col">
@@ -68,14 +73,6 @@ var CreateCluster = Vue.component("create-cluster", {
                         </div>
                     </div>
 
-                    <template v-if="advancedMode">
-                        <label for="storageClass">Storage Class</label>
-                        <select v-model="storageClass" :disabled="(editMode)" data-field="spec.storageClass">
-                            <option value="">Select Storage Class</option>
-                            <option v-for="sClass in storageClasses">{{ sClass }}</option>
-                        </select>
-                    </template>
-
                     <div class="unit-select">
                         <label for="volumeSize">Volume Size <span class="req">*</span></label>  
                         <input v-model="volumeSize" class="size" required  :disabled="(editMode)" data-field="spec.volumeSize" >
@@ -87,50 +84,74 @@ var CreateCluster = Vue.component("create-cluster", {
                         </select>
                     </div>
 
-                    <fieldset v-if="(!editMode && advancedMode)" data-field="spec.restore.fromBackup">
-                        <label>Cluster Data Initialization</label>  
-                        <label for="restore" class="switch yes-no">Restore from an existing Backup <input type="checkbox" id="restore" v-model="restore" data-switch="OFF"></label>
-
+                    <fieldset v-if="(!editMode && advancedMode)">
+                        <div class="header">
+                            <h3>Cluster Data Initialization</h3>
+                        </div>
+                        
                         <label for="restoreBackup">Backup Selection</label>
-                        <select v-model="restoreBackup" :disabled="(!restore)">
-                            <option disabled value="">Select a Backup</option>
+                        <select v-model="restoreBackup" data-field="spec.restore.fromBackup">
+                            <option value="">Select a Backup</option>
                             <option v-for="backup in backups" v-if="( (backup.data.metadata.namespace == namespace) && (backup.data.status.phase === 'Completed') )" :value="backup.data.metadata.uid">{{ backup.name }} | {{ backup.data.status.time }}</option>
                         </select>
+
+                        <template v-if="restoreBackup.length">
+                            <label for="downloadDiskConcurrency">Download Disk Concurrency</label>
+                            <input v-model="downloadDiskConcurrency" data-field="spec.restore.downloadDiskConcurrency">
+                        </template>
+                        
                     </fieldset>
 
-                    <template v-if="advancedMode">                        
-                        <label for="pgConfig">PostgreSQL Configuration</label>
-                        <select v-model="pgConfig" class="pgConfig" :disabled="(editMode)" data-field="spec.pgConfig" >
-                            <option value="" selected>Default</option>
-                            <option v-for="conf in pgConf" v-if="( (conf.data.metadata.namespace == namespace) && (conf.data.spec.pgVersion == shortPGVersion) )">{{ conf.name }}</option>
-                        </select>
 
-                        <fieldset data-field="spec.connectionPoolingConfig">
-                            <label>Enable Connection Pooling</label>  
-                            <label for="connPooling" class="switch" :disabled="(editMode)">Connection Pooling <input type="checkbox" id="connPooling" v-model="connPooling" data-switch="OFF" :disabled="(editMode)" ></label>
-                            
-                            <label for="connectionPoolingConfig">Connection Pooling Configuration</label>
-                            <select v-model="connectionPoolingConfig" class="connectionPoolingConfig" :disabled="(editMode || !connPooling)" >
+                    <template v-if="advancedMode">
+                        <label for="storageClass">Storage Class</label>
+                        <select v-model="storageClass" :disabled="(editMode)" data-field="spec.storageClass">
+                            <option value="">Select Storage Class</option>
+                            <option v-for="sClass in storageClasses">{{ sClass }}</option>
+                        </select>
+                    </template>
+
+                    <template v-if="advancedMode">                        
+                        <fieldset>
+                            <div class="header">
+                                <h3>Configurations</h3>
+                            </div>
+
+                            <label for="pgConfig">Postgres Configuration</label>
+                            <select v-model="pgConfig" class="pgConfig" :disabled="(editMode)" data-field="spec.pgConfig" >
                                 <option value="" selected>Default</option>
-                                <option v-for="conf in connPoolConf" v-if="conf.data.metadata.namespace == namespace">{{ conf.name }}</option>
+                                <option v-for="conf in pgConf" v-if="( (conf.data.metadata.namespace == namespace) && (conf.data.spec.pgVersion == shortPGVersion) )">{{ conf.name }}</option>
+                            </select>
+
+                            <fieldset data-field="spec.connectionPoolingConfig">
+                                <label>Connection Pooling</label>  
+                                <label for="connPooling" class="switch" :disabled="(editMode)">Enable <input type="checkbox" id="connPooling" v-model="connPooling" data-switch="OFF" :disabled="(editMode)" ></label>
+                                
+                                <label for="connectionPoolingConfig">Connection Pooling Configuration</label>
+                                <select v-model="connectionPoolingConfig" class="connectionPoolingConfig" :disabled="(editMode || !connPooling)" >
+                                    <option value="" selected>Default</option>
+                                    <option v-for="conf in connPoolConf" v-if="conf.data.metadata.namespace == namespace">{{ conf.name }}</option>
+                                </select>
+                            </fieldset>
+
+                            <label for="backupConfig">Automatic Backups</label>
+                            <select v-model="backupConfig" class="backupConfig" data-field="spec.backupConfig">
+                                <option disabled value="">Select Backup Configuration</option>
+                                <option v-for="conf in backupConf" v-if="conf.data.metadata.namespace == namespace">{{ conf.name }}</option>
                             </select>
                         </fieldset>
 
                         <!--<label>Enable Postgres Utils</label>  
                         <label for="pgUtils" class="switch">Postgres Utils <input type="checkbox" id="pgUtils" v-model="pgUtils" data-switch="OFF"></label>-->
 
-                        <label for="backupConfig">Backup Configuration</label>
-                        <select v-model="backupConfig" class="backupConfig" data-field="spec.backupConfig">
-                            <option disabled value="">Select Backup Configuration</option>
-                            <option v-for="conf in backupConf" v-if="conf.data.metadata.namespace == namespace">{{ conf.name }}</option>
-                        </select>
+                        
 
                         <label>Prometheus Autobind</label>  
                         <label for="prometheusAutobind" class="switch" data-field="spec.prometheusAutobind">Prometheus Autobind <input type="checkbox" id="prometheusAutobind" v-model="prometheusAutobind" data-switch="OFF"></label>
 
                         <fieldset data-field="spec.nonProduction.disableClusterPodAntiAffinity">
                             <div class="header">
-                                <h3>Non Production</h3>  
+                                <h3>Non Production Settings</h3>  
                             </div>
                             <label for="disableClusterPodAntiAffinity" class="switch yes-no">disableClusterPodAntiAffinity <input type="checkbox" id="disableClusterPodAntiAffinity" v-model="disableClusterPodAntiAffinity" data-switch="NO"></label>
                         </fieldset>
@@ -156,26 +177,27 @@ var CreateCluster = Vue.component("create-cluster", {
                 editMode: false,
                 name: '',
                 namespace: store.state.currentNamespace,
-                pgVersion: '',
+                pgVersion: '12.2',
                 instances: '',
                 resourceProfile: '',
                 pgConfig: '',
                 storageClass: '',
                 volumeSize: '',
-                volumeUnit: '',
+                volumeUnit: 'Gi',
                 connPooling: true,
                 connectionPoolingConfig: '',
-                restore: false,
                 restoreBackup: '',
+                downloadDiskConcurrency: '',
                 backupConfig: '',
                 prometheusAutobind: false,
                 disableClusterPodAntiAffinity: false,
                 pgUtils: true,
+                pgConfigExists: true,
             }
         } else if (vm.$route.params.action == 'edit') {
 
-            let volumeSize = store.state.currentCluster.spec.volumeSize.match(/\d+/g);
-            let volumeUnit = store.state.currentCluster.spec.volumeSize.match(/[a-zA-Z]+/g);
+            let volumeSize = store.state.currentCluster.data.spec.volumeSize.match(/\d+/g);
+            let volumeUnit = store.state.currentCluster.data.spec.volumeSize.match(/[a-zA-Z]+/g);
 
             return {
                 advancedMode: false,
@@ -183,21 +205,22 @@ var CreateCluster = Vue.component("create-cluster", {
                 editMode: true,
                 name: vm.$route.params.name,
                 namespace: store.state.currentNamespace,
-                pgVersion: store.state.currentCluster.spec.pgVersion,
-                instances: store.state.currentCluster.spec.instances,
-                resourceProfile: store.state.currentCluster.spec.resourceProfile,
-                pgConfig: store.state.currentCluster.spec.pgConfig,
-                storageClass: store.state.currentCluster.spec.storageClass,
+                pgVersion: store.state.currentCluster.data.spec.pgVersion,
+                instances: store.state.currentCluster.data.spec.instances,
+                resourceProfile: store.state.currentCluster.data.spec.resourceProfile,
+                pgConfig: store.state.currentCluster.data.spec.pgConfig,
+                storageClass: store.state.currentCluster.data.spec.storageClass,
                 volumeSize: volumeSize,
                 volumeUnit: ''+volumeUnit,
-                connPooling: (store.state.currentCluster.spec.connectionPoolingConfig !== undefined),
-                connectionPoolingConfig: (store.state.currentCluster.spec.connectionPoolingConfig !== undefined) ? store.state.currentCluster.spec.connectionPoolingConfig : '',
-                restore: false,
+                connPooling: (store.state.currentCluster.data.spec.connectionPoolingConfig !== undefined),
+                connectionPoolingConfig: (store.state.currentCluster.data.spec.connectionPoolingConfig !== undefined) ? store.state.currentCluster.data.spec.connectionPoolingConfig : '',
                 restoreBackup: '',
-                backupConfig: (store.state.currentCluster.spec.backupConfig !== undefined) ? store.state.currentCluster.spec.backupConfig : '',
-                prometheusAutobind:  (store.state.currentCluster.spec.prometheusAutobind !== undefined) ? store.state.currentCluster.spec.prometheusAutobind : false,
-                disableClusterPodAntiAffinity: (store.state.currentCluster.spec.disableClusterPodAntiAffinity !== undefined) ? store.state.currentCluster.spec.disableClusterPodAntiAffinity : false,
+                downloadDiskConcurrency: '',
+                backupConfig: (store.state.currentCluster.data.spec.backupConfig !== undefined) ? store.state.currentCluster.data.spec.backupConfig : '',
+                prometheusAutobind:  (store.state.currentCluster.data.spec.prometheusAutobind !== undefined) ? store.state.currentCluster.data.spec.prometheusAutobind : false,
+                disableClusterPodAntiAffinity: (store.state.currentCluster.data.spec.disableClusterPodAntiAffinity !== undefined) ? store.state.currentCluster.data.spec.disableClusterPodAntiAffinity : false,
                 pgUtils: true,
+                pgConfigExists: true,
             }
         }
     },
@@ -273,7 +296,7 @@ var CreateCluster = Vue.component("create-cluster", {
                         "pgVersion": this.pgVersion,
                         ...(this.pgConfig.length && ( {"pgConfig": this.pgConfig }) ),
                         ...(this.resourceProfile.length && ( {"resourceProfile": this.resourceProfile }) ),
-                        ...(this.restore && ( {"restore": { "fromBackup": this.restoreBackup } }) ),
+                        ...(this.restoreBackup.length && ( {"restore": { "fromBackup": this.restoreBackup, "downloadDiskConcurrency": this.downloadDiskConcurrency } }) ),
                         ...(this.backupConfig.length && ( {"backupConfig": this.backupConfig }) ),
                         ...(this.connPooling && ( {"connectionPoolingConfig": this.connectionPoolingConfig }) ),
                         "volumeSize": this.volumeSize+this.volumeUnit,
@@ -297,7 +320,7 @@ var CreateCluster = Vue.component("create-cluster", {
                         notify('Cluster <strong>"'+cluster.metadata.name+'"</strong> updated successfully', 'message', 'cluster');
 
                         vm.fetchAPI();
-                        router.push('/status/'+cluster.metadata.namespace+'/'+cluster.metadata.name);
+                        router.push('/cluster/status/'+cluster.metadata.namespace+'/'+cluster.metadata.name);
                         
                     })
                     .catch(function (error) {
@@ -315,7 +338,7 @@ var CreateCluster = Vue.component("create-cluster", {
                         notify('Cluster <strong>"'+cluster.metadata.name+'"</strong> created successfully', 'message', 'cluster');
 
                         vm.fetchAPI();
-                        router.push('/status/'+cluster.metadata.namespace+'/'+cluster.metadata.name);
+                        router.push('/cluster/status/'+cluster.metadata.namespace+'/'+cluster.metadata.name);
                         
                         /* store.commit('updateClusters', { 
                             name: cluster.metadata.name,
@@ -335,7 +358,7 @@ var CreateCluster = Vue.component("create-cluster", {
 
         cancel: function() {
             if(this.editMode)
-                router.push('/status/'+store.state.currentNamespace+'/'+store.state.currentCluster.name);
+                router.push('/cluster/status/'+store.state.currentNamespace+'/'+store.state.currentCluster.name);
             else
                 router.push('/overview/'+store.state.currentNamespace);
         },
@@ -346,6 +369,18 @@ var CreateCluster = Vue.component("create-cluster", {
 
         hideFields: function( fields ) {
             $(fields).slideUp();
+        },
+
+        checkPgConfigVersion: function() {
+            let configs = store.state.pgConfig.length;
+            let vc = this;
+
+            store.state.pgConfig.forEach(function(item, index){
+                if(item.data.spec.pgVersion !== vc.pgVersion.substring(0,2))
+                    configs -= configs;
+            });
+
+            vc.pgConfigExists = (configs > 0);
         }
 
     }
