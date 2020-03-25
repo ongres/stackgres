@@ -131,14 +131,14 @@ const router = new VueRouter({
       },
     },
     { 
-      path: '/configuration/:namespace/:name', 
+      path: '/cluster/configuration/:namespace/:name', 
       component: ClusterInfo,
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/status/:namespace/:name', 
+      path: '/cluster/status/:namespace/:name', 
       component: ClusterStatus,
       meta: {
         conditionalRoute: false
@@ -259,6 +259,8 @@ router.beforeEach((to, from, next) => {
         next() // make sure to always call next()! 
     } 
 
+    // Enabling active pointers on every route
+    console.log(to);
 });
 
 const store = new Vuex.Store({
@@ -521,24 +523,18 @@ const vm = new Vue({
           apiData['cluster'] = response.data;
     
           apiData['cluster'].forEach( function(item, index) {
-            
-            if(store.state.namespaces.indexOf(item.metadata.namespace) === -1) {
-            
-              store.commit('updateNamespaces', item.metadata.namespace);
-            
-            } else {
-              //console.log("Namespace ya existe");
-            }     
-              
-            store.commit('updateClusters', { 
-              name: item.metadata.name,
-              data: item
-            });
 
-            // Set as current cluster if no other cluster has already been set
-            if(!store.state.currentCluster.length) {
-              // Read Cluster Data
-              axios
+            var cluster = {
+              name: item.metadata.name,
+              data: item,
+              status: {},
+            };
+            
+            
+            if(store.state.namespaces.indexOf(item.metadata.namespace) === -1)
+              store.commit('updateNamespaces', item.metadata.namespace);
+
+            axios
               .get(apiURL+'cluster/status/'+item.metadata.namespace+'/'+item.metadata.name,
                   { headers: {
                       'content-type': 'application/json'
@@ -546,18 +542,15 @@ const vm = new Vue({
                   }
               )
               .then( function(response){
-
-                  cluster = { 
-                      name: item.metadata.name,
-                      data: response.data,
-                      spec: item.spec,
-                      metadata: item.metadata   
-                  };
-                  
-                  store.commit('setCurrentCluster', cluster);
-
+                //console.log(response.data);
+                cluster.status = response.data;
               });
-            }
+              
+            store.commit('updateClusters', cluster);
+
+            // Set as current cluster if no other cluster has already been set
+            if(!store.state.currentCluster.length)              
+              store.commit('setCurrentCluster', cluster);
 
           });
 
