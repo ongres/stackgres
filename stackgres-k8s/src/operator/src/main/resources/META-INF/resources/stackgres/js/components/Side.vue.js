@@ -27,21 +27,13 @@ var Side = Vue.component("sg-side", {
 					<ul>
 						<template v-for="cluster in clusters">
 							<li v-if="cluster.data.metadata.namespace == currentNamespace">
-								<router-link :to="'/status/'+cluster.data.metadata.namespace+'/'+cluster.name" class="item" :class="( ($route.params.name === cluster.name) && ($route.params.action == 'edit')) ? 'router-link-exact-active '+cluster.name : cluster.name">{{ cluster.name }}</router-link>
+								<router-link :to="'/cluster/status/'+cluster.data.metadata.namespace+'/'+cluster.name" class="item cluster" :class="cluster.data.metadata.namespace+' '+cluster.name">{{ cluster.name }}</router-link>
 							</li>
 						</template>
 						<li><router-link to="/crd/create/cluster/" class="addnew item">Add New</router-link></li>
 					</ul>
 
 				</div>
-				<!--<div class="set back">
-					<h3>Backups</h3>
-					<a href="#" class="addnew">+</a>
-
-					<template v-for="backup in backups">
-						<router-link :to="'/backups/'+backup.data.metadata.namespace+'/'+backup.name" class="item"  :class="( ($route.params.name === backup.name) && ($route.params.action == 'edit')) ? 'router-link-exact-active '+backup.name : backup.name" v-if="backup.data.metadata.namespace == currentNamespace">{{ backup.name }}</router-link>
-					</template>
-				</div>-->
 				<div class="set conf active">
 					<div class="nav-item">
 						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 21 20"><path d="M.955 4.762h10.5a.953.953 0 100-1.9H.955a.953.953 0 100 1.9zM14.8 7.619a.954.954 0 00.955-.952V4.762h4.3a.953.953 0 100-1.9h-4.3V.952a.955.955 0 00-1.909 0v5.715a.953.953 0 00.954.952zM.955 10.952h4.3v1.9a.955.955 0 001.909 0V7.143a.955.955 0 00-1.909 0v1.9h-4.3a.953.953 0 100 1.9zm19.09-1.905h-10.5a.953.953 0 100 1.9h10.5a.953.953 0 100-1.9zm0 6.191h-8.59v-1.9a.955.955 0 00-1.91 0v5.715a.955.955 0 001.91 0v-1.9h8.59a.953.953 0 100-1.905zm-12.409 0H.955a.953.953 0 100 1.905h6.681a.953.953 0 100-1.905z"/></svg>
@@ -58,7 +50,7 @@ var Side = Vue.component("sg-side", {
 							<ul>
 								<template v-for="config in pgConfig">
 									<li v-if="config.data.metadata.namespace == currentNamespace">
-										<router-link :to="'/configurations/postgres/'+config.data.metadata.namespace+'/'+config.name" class="item" :class="( ($route.params.name === config.name) && ($route.params.action == 'edit')) ? 'router-link-exact-active '+config.name : config.name">{{ config.name }}</router-link>
+										<router-link :to="'/configurations/postgres/'+config.data.metadata.namespace+'/'+config.name" class="item pgconfig" :class="config.data.metadata.namespace+' '+config.name">{{ config.name }}</router-link>
 									</li>
 								</template>
 								<li><router-link to="/crd/create/pgconfig/" class="addnew item">Add New</router-link></li>
@@ -74,7 +66,7 @@ var Side = Vue.component("sg-side", {
 							<ul>
 								<template v-for="config in poolConfig">
 									<li v-if="config.data.metadata.namespace == currentNamespace">
-										<router-link :to="'/configurations/connectionpooling/'+config.data.metadata.namespace+'/'+config.name" class="item"  :class="( ($route.params.name === config.name) && ($route.params.action == 'edit')) ? 'router-link-exact-active '+config.name : config.name">{{ config.name }}</router-link>
+										<router-link :to="'/configurations/connectionpooling/'+config.data.metadata.namespace+'/'+config.name" class="item" :class="config.data.metadata.namespace+' '+config.name">{{ config.name }}</router-link>
 									</li>
 								</template>
 								<li><router-link to="/crd/create/poolconfig/" class="addnew item">Add New</router-link></li>
@@ -84,7 +76,7 @@ var Side = Vue.component("sg-side", {
 						<div class="backup set">
 							<router-link :to="'/configurations/backup/'+currentNamespace" class="nav-item">
 								<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 27.1 20"><path d="M15.889 13.75a2.277 2.277 0 011.263.829 2.394 2.394 0 01.448 1.47 2.27 2.27 0 01-.86 1.885 3.721 3.721 0 01-2.375.685h-3.449a.837.837 0 01-.6-.213.8.8 0 01-.22-.6v-7.795a.8.8 0 01.22-.6.835.835 0 01.609-.214h3.306a3.679 3.679 0 012.306.648 2.165 2.165 0 01.836 1.815 2.159 2.159 0 01-.395 1.3 2.254 2.254 0 01-1.089.79zm-4.118-.585h2.179q1.779 0 1.778-1.323a1.143 1.143 0 00-.441-.989 2.267 2.267 0 00-1.337-.321h-2.179zm2.407 4.118a2.219 2.219 0 001.363-.335 1.242 1.242 0 00.428-1.042 1.271 1.271 0 00-.435-1.056 2.155 2.155 0 00-1.356-.348h-2.407v2.781zm8.929 1.457a3.991 3.991 0 01-2.941-1 3.968 3.968 0 01-1-2.927V9.984a.854.854 0 01.227-.622.925.925 0 011.23 0 .854.854 0 01.227.622V14.9a2.623 2.623 0 00.573 1.838 2.18 2.18 0 001.684.622 2.153 2.153 0 001.671-.628 2.624 2.624 0 00.573-1.832V9.984a.85.85 0 01.228-.622.924.924 0 011.229 0 .85.85 0 01.228.622v4.826a3.969 3.969 0 01-1 2.92 3.95 3.95 0 01-2.929 1.01zM.955 4.762h10.5a.953.953 0 100-1.9H.955a.953.953 0 100 1.9zM14.8 7.619a.954.954 0 00.955-.952V4.762h4.3a.953.953 0 100-1.9h-4.3V.952a.955.955 0 00-1.909 0v5.715a.953.953 0 00.954.952zM.955 10.952h4.3v1.9a.955.955 0 001.909 0V7.143a.955.955 0 00-1.909 0v1.9h-4.3a.953.953 0 100 1.9zm6.681 4.286H.955a.953.953 0 100 1.905h6.681a.953.953 0 100-1.905z"/></svg>
-								<h4>Backup</h4>
+								<h4>Automatic Backups</h4>
 							</router-link>
 
 							<ul>
@@ -106,7 +98,7 @@ var Side = Vue.component("sg-side", {
 							<ul>
 								<template v-for="profile in profiles">
 									<li v-if="profile.data.metadata.namespace == currentNamespace">
-										<router-link :to="'/profiles/'+profile.data.metadata.namespace+'/'+profile.name" class="item" :class="( ($route.params.name === profile.name) && ($route.params.action == 'edit')) ? 'router-link-exact-active '+profile.name : profile.name">{{ profile.name }}</router-link>
+										<router-link :to="'/profiles/'+profile.data.metadata.namespace+'/'+profile.name" class="item"  :class="profile.data.metadata.namespace+' '+profile.name">{{ profile.name }}</router-link>
 									</li>
 								</template>
 								<li><router-link to="/crd/create/profile/" class="addnew item">Add New</router-link></li>
