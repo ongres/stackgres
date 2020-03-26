@@ -4,6 +4,20 @@ metadata:
   namespace: {{ .Release.Namespace }}
   name: {{ .Release.Name }}
 spec:
+  {{- if .Values.service.loadBalancer.enable }}
+  type: LoadBalancer
+  {{- with .Values.service.loadBalancer.loadBalancerIP }}
+  loadBalancerIP: "{{ . }}"
+  {{- end }}
+  {{- with .Values.service.loadBalancer.loadBalancerSourceRanges }}
+  loadBalancerSourceRanges:
+    {{- range . }}
+    - "{{ . }}"
+    {{- end }}
+  {{- end }}
+  {{- else }}
+  type: ClusterIP
+  {{- end }}
   selector:
     app: {{ .Release.Name }}
   ports:
