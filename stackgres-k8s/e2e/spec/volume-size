@@ -31,7 +31,7 @@ spec:
   instances: 1
   postgresVersion: 'latest'
   volumeSize: '512Mi'
-  resourceProfile: 'size-xs'
+  sgInstanceProfile: 'size-xs'
   nonProduction:
     disableClusterPodAntiAffinity: true  
 EOF

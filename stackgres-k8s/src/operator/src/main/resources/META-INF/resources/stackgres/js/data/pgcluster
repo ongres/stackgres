@@ -15,7 +15,7 @@
       "instances": 1,
       "pgConfig": "postgresconf",
       "postgresVersion": 11.5,
-      "resourceProfile": "size-xs",
+      "sgInstanceProfile": "size-xs",
       "sidecars": [
           "connection-pooling",
           "postgres-utils"

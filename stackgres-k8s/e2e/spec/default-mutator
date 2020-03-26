@@ -264,7 +264,7 @@ EOF
     return 1
   fi
 
-  local CREATED_PROFILE=$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o=jsonpath={.spec.resourceProfile})
+  local CREATED_PROFILE=$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o=jsonpath={.spec.sgInstanceProfile})
 
   if kubectl get sginstanceprofiles.stackgres.io -n $CLUSTER_NAMESPACE $CREATED_PROFILE
   then

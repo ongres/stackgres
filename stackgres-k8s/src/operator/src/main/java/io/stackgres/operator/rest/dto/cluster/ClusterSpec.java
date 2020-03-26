@@ -35,7 +35,7 @@ public class ClusterSpec {
   @NotBlank(message = "You need to associate a Postgres configuration to this cluster")
   private String postgresConfig;
 
-  @JsonProperty("resourceProfile")
+  @JsonProperty("sgInstanceProfile")
   @NotNull(message = "resource profile must not be null")
   private String resourceProfile;
 

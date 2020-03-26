@@ -50,7 +50,7 @@
         "instances": 1,
         "postgresVersion": "11.4",
         "pgConfig": "postgresconf",
-        "resourceProfile": "size-xs",
+        "sgInstanceProfile": "size-xs",
         "backupConfig": "newbackupconf",
         "restore": {
           "fromBackup": "23442867-377d-11ea-b04b-0242ac110004"
@@ -80,7 +80,7 @@
         "instances": 1,
         "postgresVersion": "11.3",
         "pgConfig": "postgresconf",
-        "resourceProfile": "size-xs",
+        "sgInstanceProfile": "size-xs",
         "backupConfig": "backupconf",
         "restore": {
           "fromBackup": "d7e660a9-377c-11ea-b04b-0242ac110004"

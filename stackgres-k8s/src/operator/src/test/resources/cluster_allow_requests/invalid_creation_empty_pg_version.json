@@ -50,7 +50,7 @@
         "instances": 1,
         "postgresVersion": "",
         "pgConfig": "postgresconf",
-        "resourceProfile": "size-xs",
+        "sgInstanceProfile": "size-xs",
         "connectionPoolingConfig": "pgbouncerconf",
         "volumeSize": "5Gi",
         "storageClass": "standard",

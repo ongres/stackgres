@@ -26,7 +26,7 @@ ___
 | storageClass                                                                                                                            |          |           | string   | default storage class               | Storage class name to be used for the cluster (if not specified means default storage class wiil be used) |
 | [pgConfig]({{% relref "/04-postgres-cluster-management/02-configuration-tuning/02-postgres-configuration" %}})                          |          |           | string   | defaultpgconfig                     | PostgreSQL configuration to apply |
 | [connectionPoolingConfig]({{% relref "/04-postgres-cluster-management/02-configuration-tuning/03-connection-pooling-configuration" %}}) |          |           | string   | defaultpgbouncer                    | Pooling configuration to apply |
-| [resourceProfile]({{% relref "/04-postgres-cluster-management/03-resource-profiles" %}})                                                |          |           | string   | defaultprofile                      | Resource profile size to apply |
+| [sgInstanceProfile]({{% relref "/04-postgres-cluster-management/03-resource-profiles" %}})                                                |          |           | string   | defaultprofile                      | Resource profile size to apply |
 | [sidecars](#sidecar-containers)                                                                                                         |          | ✓         | array    | all available sidecars are included | List of sidecars to include in the cluster |
 | prometheusAutobind                                                                                                                      |          | ✓         | boolean  | false                               | If enabled a ServiceMonitor will be created for each Prometheus instance found in order to collect metrics |
 | [backupConfig]({{% relref "/04-postgres-cluster-management/04-backups/_index.md#configuration" %}})                                     |          | ✓         | string   |                                     | Backup config to apply |
@@ -46,7 +46,7 @@ spec:
   volumeSize: '5Gi'
   pgConfig: 'postgresconf'
   connectionPoolingConfig: 'pgbouncerconf'
-  resourceProfile: 'size-xs'
+  sgInstanceProfile: 'size-xs'
   backupConfig: 'backupconf'
 ```
 

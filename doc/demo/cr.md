@@ -117,7 +117,7 @@ spec:
   postgresVersion: '11.6'
   pgConfig: 'postgresconf'
   connectionPoolingConfig: 'pgbouncerconf'
-  resourceProfile: 'size-xs'
+  sgInstanceProfile: 'size-xs'
   volumeSize: '5Gi'
   postgresExporterVersion: '0.7.0'
   prometheusAutobind: true

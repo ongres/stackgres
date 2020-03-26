@@ -49,7 +49,7 @@
       "spec": {
         "instances": 0,
         "pgConfig": "postgresconf",
-        "resourceProfile": "size-xs",
+        "sgInstanceProfile": "size-xs",
         "connectionPoolingConfig": "pgbouncerconf",
         "volumeSize": "5Gi",
         "storageClass": "standard",

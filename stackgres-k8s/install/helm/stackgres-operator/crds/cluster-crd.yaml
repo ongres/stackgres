@@ -55,7 +55,7 @@ spec:
               description: >
                 Number of StackGres instances to be created. Each instance will contain one Postgres server. Out of all
                 of the Postgres servers, one will be elected as the master, the rest will remain as read-only replicas.
-            resourceProfile:
+            sgInstanceProfile:
               type: string
               description: >
                 Name of the [SGInstanceProfile](https://stackgres.io/doc/latest/04-postgres-cluster-management/03-resource-profiles/)

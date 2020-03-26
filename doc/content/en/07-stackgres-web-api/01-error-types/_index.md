@@ -80,7 +80,7 @@ Supose that we are trying to create a StackGres cluster with the following json.
 In order to create the cluster successfully, a postgres configuration with the name "postgresconf" 
  must exists in the same namespace of the cluster that is being created.
 
-The same principle applies for the properties: connectionPoolingConfig, resourceProfile, backupConfig.
+The same principle applies for the properties: connectionPoolingConfig, sgInstanceProfile, backupConfig.
 
 ## Default configuration
 
@@ -163,7 +163,7 @@ These properties are:
 * volumeSize
 * pgConfig
 * connectionPoolingConfig
-* resourceProfile
+* sgInstanceProfile
 * storageClass
 * sidecars
 * restore
