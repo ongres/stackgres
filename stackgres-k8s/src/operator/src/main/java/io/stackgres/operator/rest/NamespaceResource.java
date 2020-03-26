@@ -7,6 +7,7 @@ package io.stackgres.operator.rest;
 
 import java.util.List;
 
+import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -27,6 +28,7 @@ public class NamespaceResource {
   private ResourceScanner<Namespace> namespaceScanner;
 
   @GET
+  @RolesAllowed("admin")
   public List<String> get() {
     return namespaceScanner.findResources().stream()
         .map(namespace -> namespace.getMetadata().getName())

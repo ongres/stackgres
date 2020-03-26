@@ -31,6 +31,10 @@ service:
     # More info: https://kubernetes.io/docs/tasks/access-application-cluster/configure-cloud-provider-firewall/
     # loadBalancerSourceRanges:
 
+authentication:
+  user: admin
+  password: st4ckgr3s
+
 prometheus:
   allowAutobind: true
 

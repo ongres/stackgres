@@ -7,6 +7,7 @@ package io.stackgres.operator.rest;
 
 import java.util.List;
 
+import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -56,11 +57,13 @@ public class ClusterResource
     this.clusterResourceConsumptionFinder = null;
   }
 
+  @RolesAllowed("admin")
   @Override
   public List<ClusterDto> list() {
     return scanner.getResources();
   }
 
+  @RolesAllowed("admin")
   @Override
   public ClusterDto get(String namespace, String name) {
     return finder.findByNameAndNamespace(name, namespace)
@@ -70,8 +73,9 @@ public class ClusterResource
   /**
    * Return a {@code ClusterStatus}.
    */
-  @Path("/status/{namespace}/{name}")
   @GET
+  @Path("/status/{namespace}/{name}")
+  @RolesAllowed("admin")
   public ClusterResourceConsumtionDto status(@PathParam("namespace") String namespace,
       @PathParam("name") String name) {
     return clusterResourceConsumptionFinder.findByNameAndNamespace(name, namespace)

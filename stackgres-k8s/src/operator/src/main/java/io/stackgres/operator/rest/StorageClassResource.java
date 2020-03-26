@@ -6,6 +6,8 @@
 package io.stackgres.operator.rest;
 
 import java.util.List;
+
+import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -14,6 +16,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import com.google.common.collect.ImmutableList;
+
 import io.fabric8.kubernetes.api.model.storage.StorageClass;
 import io.stackgres.operator.resource.ResourceScanner;
 
@@ -25,6 +28,7 @@ public class StorageClassResource {
   private ResourceScanner<StorageClass> storageClassScanner;
 
   @GET
+  @RolesAllowed("admin")
   public List<String> get() {
     return storageClassScanner.findResources().stream()
         .map(sc -> sc.getMetadata().getName())
