@@ -140,7 +140,7 @@ create_empty_cluster_with_default_pgbouncer() {
     namespace: $CLUSTER_NAMESPACE
   spec:
     instances: 1
-    pgVersion: 'latest'
+    postgresVersion: 'latest'
     volumeSize: '512Mi'
     sidecars:
     - connection-pooling 
@@ -169,7 +169,7 @@ EOF
     namespace: $CLUSTER_NAMESPACE
   spec:
     instances: 1
-    pgVersion: 'latest'
+    postgresVersion: 'latest'
     volumeSize: '512Mi'
     sidecars:
     - connection-pooling 
@@ -198,7 +198,7 @@ create_empty_cluster_with_no_sidecars() {
     namespace: $CLUSTER_NAMESPACE
   spec:
     instances: 1
-    pgVersion: 'latest'
+    postgresVersion: 'latest'
     volumeSize: '512Mi'
     sidecars: []
     nonProduction:
@@ -237,7 +237,7 @@ metadata:
   namespace: $CLUSTER_NAMESPACE
 spec:
   instances: 1
-  pgVersion: 'latest'
+  postgresVersion: 'latest'
   volumeSize: '512Mi'
   nonProduction:
     disableClusterPodAntiAffinity: true
@@ -336,7 +336,7 @@ metadata:
   namespace: $OPERATOR_NAMESPACE
 spec:
   instances: 1
-  pgVersion: 'latest'
+  postgresVersion: 'latest'
   volumeSize: '512Mi'
   nonProduction:
     disableClusterPodAntiAffinity: true

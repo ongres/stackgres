@@ -48,7 +48,7 @@
       },
       "spec": {
         "instances": 1,
-        "pgVersion": "11.4",
+        "postgresVersion": "11.4",
         "pgConfig": "postgresconf",
         "resourceProfile": "size-xs",
         "backupConfig": "newbackupconf",
@@ -78,7 +78,7 @@
       },
       "spec": {
         "instances": 1,
-        "pgVersion": "11.3",
+        "postgresVersion": "11.3",
         "pgConfig": "postgresconf",
         "resourceProfile": "size-xs",
         "backupConfig": "backupconf",

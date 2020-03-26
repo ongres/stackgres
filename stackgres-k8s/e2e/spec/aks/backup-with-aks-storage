@@ -108,7 +108,7 @@ metadata:
   namespace: $CLUSTER_NAMESPACE
 spec:
   instances: 2
-  pgVersion: '12.2'
+  postgresVersion: '12.2'
   volumeSize: '512Mi'
   restore:
     downloadDiskConcurrency: 10

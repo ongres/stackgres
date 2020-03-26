@@ -70,7 +70,7 @@ Supose that we are trying to create a StackGres cluster with the following json.
   },
   "spec": {
     "instances": 1,
-    "pgVersion": "11.6",
+    "postgresVersion": "11.6",
     "volumeSize": "5Gi",
     "pgConfig": "postgresconf"
   }
@@ -111,7 +111,7 @@ payload:
     "name": "postgresconf"
   },
   "spec": {
-    "pgVersion": "12", 
+    "postgresVersion": "12", 
     "postgresql.conf": "password_encryption: 'scram-sha-256'\nrandom_page_cost: '1.5'"
   }
 }
@@ -134,7 +134,7 @@ payload:
   }, 
   "spec": {
     "instances": 1,
-    "pgVersion": "12.1",
+    "postgresVersion": "12.1",
     "volumeSize": "5Gi",
     "pgConfig": "postgresconf"
   }
@@ -159,7 +159,7 @@ After a StackGres cluster is created some of it's properties cannot be updated.
 
 These properties are: 
 
-* pgVersion
+* postgresVersion
 * volumeSize
 * pgConfig
 * connectionPoolingConfig
@@ -207,13 +207,13 @@ payload:
     "name": "postgresconf"
   },
   "spec": {
-    "pgVersion": "12", 
+    "": "12", 
     "postgresql.conf": "password_encryption: 'scram-sha-256'\nrandom_page_cost: '1.5'"
   }
 }
 ```
 
-Notice that the pgVersion property says "12". This means that this configuration is
+Notice that the postgresVersion property says "12". This means that this configuration is
  targeted for postgresql versions 12.x. 
 
 In order to use that postgres configuration, your StackGres cluster should have postgres version 12,
@@ -226,17 +226,17 @@ In order to use that postgres configuration, your StackGres cluster should have 
   }, 
   "spec": {
     "instances": 1,
-    "pgVersion": "12.1",
+    "postgresVersion": "12.1",
     "volumeSize": "5Gi",
     "pgConfig": "postgresconf"
   }
 }
 ```
 
-Notice that the cluster pgVersion says 12.1. Therefore, you will be able to install a cluster like the above.
+Notice that the cluster postgresVersion says 12.1. Therefore, you will be able to install a cluster like the above.
 
 Also if instead of using the above payload, you try to create a cluster with the following request
- (notice the pgVersion change):
+ (notice the postgresVersion change):
 ```
 uri: /stackgres/cluster
 method: POST
@@ -249,7 +249,7 @@ payload:
   }, 
   "spec": {
     "instances": 1,
-    "pgVersion": "12.1",
+    "postgresVersion": "12.1",
     "volumeSize": "5Gi",
     "pgConfig": "postgresconf"
   }

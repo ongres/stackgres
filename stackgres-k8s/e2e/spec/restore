@@ -158,7 +158,7 @@ metadata:
   namespace: $CLUSTER_NAMESPACE
 spec:
   instances: 1
-  pgVersion: '$ALTERNATIVE_PG_VERSION'
+  postgresVersion: '$ALTERNATIVE_PG_VERSION'
   volumeSize: '512Mi'
   pgConfig: pgconfig-alter
   restore:
@@ -195,7 +195,7 @@ metadata:
   namespace: $CLUSTER_NAMESPACE
 spec:
   instances: 1
-  pgVersion: 'latest'
+  postgresVersion: 'latest'
   volumeSize: '128Mi'
   restore:
     fromBackup: $BACKUP_UID

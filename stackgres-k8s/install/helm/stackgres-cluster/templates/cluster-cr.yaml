@@ -10,7 +10,7 @@ metadata:
     release: {{ .Release.Name }}
 spec:
   instances: {{ .Values.cluster.instances }}
-  pgVersion: '{{ .Values.config.postgresql.version }}'
+  postgresVersion: '{{ .Values.config.postgresql.version }}'
   pgConfig: '{{ .Values.cluster.pgconfig }}'
   connectionPoolingConfig: '{{ .Values.cluster.poolingconfig }}'
   resourceProfile: '{{ .Values.cluster.profile }}'

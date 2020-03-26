@@ -29,7 +29,7 @@ metadata:
   namespace: $CLUSTER_NAMESPACE
 spec:
   instances: 1
-  pgVersion: 'latest'
+  postgresVersion: 'latest'
   volumeSize: '512Mi'
   resourceProfile: 'size-xs'
   nonProduction:

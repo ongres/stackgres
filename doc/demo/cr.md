@@ -81,7 +81,7 @@ metadata:
   annotations:
     "helm.sh/hook": "pre-install"
 spec:
-  pgVersion: "11"
+  postgresVersion: "11"
   postgresql.conf:
       shared_buffers: '256MB'
       random_page_cost: '1.5'
@@ -114,7 +114,7 @@ metadata:
   name: jaundiced-ladybug
 spec:
   instances: 1
-  pgVersion: '11.6'
+  postgresVersion: '11.6'
   pgConfig: 'postgresconf'
   connectionPoolingConfig: 'pgbouncerconf'
   resourceProfile: 'size-xs'

@@ -41,7 +41,7 @@ spec:
         spec:
           type: object
           properties:
-            pgVersion:
+            postgresVersion:
               type: string
               description: >
                 Postgres version to use for the new cluster. It can be either of:
@@ -142,4 +142,4 @@ spec:
                     The same best practice applies to databases on containers. By default, StackGres will not allow to
                     run more than one StackGres pod on a given K8s node. Set this property to true to allow more than
                     one StackGres pod per node.
-          required: [ "instances", "pgVersion", "volumeSize" ]
+          required: [ "instances", "postgresVersion", "volumeSize" ]

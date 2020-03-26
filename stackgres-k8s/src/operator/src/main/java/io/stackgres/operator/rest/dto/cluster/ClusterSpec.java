@@ -27,7 +27,7 @@ public class ClusterSpec {
   @Min(value = 1, message = "You need at least 1 instance in the cluster")
   private int instances;
 
-  @JsonProperty("pgVersion")
+  @JsonProperty("postgresVersion")
   @NotBlank(message = "PostgreSQL version is required")
   private String postgresVersion;
 

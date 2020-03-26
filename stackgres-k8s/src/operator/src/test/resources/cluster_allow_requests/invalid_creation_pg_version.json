@@ -48,7 +48,7 @@
       },
       "spec": {
         "instances": 1,
-        "pgVersion": "11.5",
+        "postgresVersion": "11.5",
         "pgConfig": "postgresconf",
         "resourceProfile": "size-xs",
         "connectionPoolingConfig": "pgbouncerconf",

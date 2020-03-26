@@ -13,7 +13,7 @@
     },
     "spec": {
       "instances": 2,
-      "pgVersion": "11.6",
+      "postgresVersion": "11.6",
       "pgConfig": "postgresconf",
       "postgresExporterVersion": "0.7.0",
       "resourceProfile": "size-m-Z",
@@ -43,7 +43,7 @@
     },
     "spec": {
       "instances": 2,
-      "pgVersion": "11.6",
+      "postgresVersion": "11.6",
       "pgConfig": "postgresconf",
       "postgresExporterVersion": "0.7.0",
       "resourceProfile": "size-xs",
@@ -73,7 +73,7 @@
     },
     "spec": {
       "instances": 2,
-      "pgVersion": "11.6",
+      "postgresVersion": "11.6",
       "pgConfig": "postgresconf",
       "postgresExporterVersion": "0.7.0",
       "resourceProfile": "size-s-Y",
@@ -103,7 +103,7 @@
     },
     "spec": {
       "instances": 2,
-      "pgVersion": "11.6",
+      "postgresVersion": "11.6",
       "pgConfig": "postgresconf",
       "postgresExporterVersion": "0.7.0",
       "resourceProfile": "size-m-Z",

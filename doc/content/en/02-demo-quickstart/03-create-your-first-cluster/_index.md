@@ -18,7 +18,7 @@ metadata:
   name: simple
 spec:
   instances: 2
-  pgVersion: 'latest'
+  postgresVersion: 'latest'
   volumeSize: '5Gi'
 EOF
 ```
@@ -77,7 +77,7 @@ metadata:
   name: simple
 spec:
   instances: 2
-  pgVersion: 'latest'
+  postgresVersion: 'latest'
   volumeSize: '5Gi'
   backupConfig: simple
 EOF

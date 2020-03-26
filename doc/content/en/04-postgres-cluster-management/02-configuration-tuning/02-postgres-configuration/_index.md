@@ -24,7 +24,7 @@ ___
 
 | Property        | Required | Updatable | Type   | Default   | Description |
 |:----------------|----------|-----------|:-------|:----------|:------------|
-| pgVersion       |          |           | string | 12        |PostgreSQL configuration version (for example 12) |
+| postgresVersion       |          |           | string | 12        |PostgreSQL configuration version (for example 12) |
 | postgresql.conf |          | ✓         | object | see below |List of PostgreSQL configuration parameters with their values |
 
 Default value of `postgresql.conf` property:
@@ -52,7 +52,7 @@ kind: SGPostgresConfig
 metadata:
   name: postgresconf
 spec:
-  pgVersion: "11"
+  postgresVersion: "11"
   postgresql.conf:
     password_encryption: 'scram-sha-256'
     random_page_cost: '1.5'

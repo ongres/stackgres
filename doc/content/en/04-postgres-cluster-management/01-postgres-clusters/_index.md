@@ -21,7 +21,7 @@ ___
 | Property                                                                                                                                | Required | Updatable | Type     | Default                             | Description |
 |:----------------------------------------------------------------------------------------------------------------------------------------|----------|-----------|:---------|:------------------------------------|:------------|
 | instances                                                                                                                               | ✓        | ✓         | integer  |                                     | Number of instances to be created (for example 1) |
-| pgVersion                                                                                                                               | ✓        | ✓         | string   |                                     | PostgreSQL version for the new cluster (for example 11.6) |
+|                                                                                                                                | ✓        | ✓         | string   |                                     | PostgreSQL version for the new cluster (for example 11.6) |
 | volumeSize                                                                                                                              | ✓        | ✓         | string   |                                     | Storage volume size (for example 5Gi) |
 | storageClass                                                                                                                            |          |           | string   | default storage class               | Storage class name to be used for the cluster (if not specified means default storage class wiil be used) |
 | [pgConfig]({{% relref "/04-postgres-cluster-management/02-configuration-tuning/02-postgres-configuration" %}})                          |          |           | string   | defaultpgconfig                     | PostgreSQL configuration to apply |
@@ -42,7 +42,7 @@ metadata:
   name: stackgres
 spec:
   instances: 1
-  pgVersion: 'latest'
+  postgresVersion: 'latest'
   volumeSize: '5Gi'
   pgConfig: 'postgresconf'
   connectionPoolingConfig: 'pgbouncerconf'

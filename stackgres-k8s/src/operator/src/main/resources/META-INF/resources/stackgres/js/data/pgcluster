@@ -14,7 +14,7 @@
       "connectionPoolingConfig": "pgbouncerconf",
       "instances": 1,
       "pgConfig": "postgresconf",
-      "pgVersion": 11.5,
+      "postgresVersion": 11.5,
       "resourceProfile": "size-xs",
       "sidecars": [
           "connection-pooling",

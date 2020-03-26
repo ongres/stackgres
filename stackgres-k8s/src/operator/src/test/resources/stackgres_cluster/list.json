@@ -17,7 +17,7 @@
         "connectionPoolingConfig": "pgbouncerconf",
         "instances": 1,
         "pgConfig": "postgresconf",
-        "pgVersion": "11.5",
+        "postgresVersion": "11.5",
         "prometheusAutobind": true,
         "resourceProfile": "size-xs",
         "restore": {
