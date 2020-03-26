@@ -7,7 +7,7 @@ metadata:
 spec:
   group: stackgres.io
   versions:
-    - name: v1alpha1
+    - name: v1beta1
       served: true
       storage: true
   scope: Namespaced

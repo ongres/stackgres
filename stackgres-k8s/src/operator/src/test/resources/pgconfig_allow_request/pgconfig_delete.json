@@ -5,12 +5,12 @@
     "kind": {
       "kind": "SGPostgresConfig",
       "group": "stackgres.io",
-      "version": "v1alpha1"
+      "version": "v1beta1"
     },
     "resource": {
       "group": "stackgres.io",
       "resource": "sgpgconfigs",
-      "version": "v1alpha1"
+      "version": "v1beta1"
     },
     "subResource": null,
     "requestKind": null,

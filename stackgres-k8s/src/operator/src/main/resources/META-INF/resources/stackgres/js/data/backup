@@ -1,6 +1,6 @@
 [{
         "kind": "SGBackup",
-        "apiVersion": "stackgres.io/v1alpha1",
+        "apiVersion": "stackgres.io/v1beta1",
         "metadata": {
             "annotations": {
                 "stackgres.io/operatorVersion": "0.9-SNAPSHOT"
@@ -10,7 +10,7 @@
             "name": "backup-with-default-storage-0-20958",
             "namespace": "backup-with-default-storage",
             "resourceVersion": "37067",
-            "selfLink": "/apis/stackgres.io/v1alpha1/namespaces/backup-with-default-storage/sgbackups/backup-with-default-storage-0-20958",
+            "selfLink": "/apis/stackgres.io/v1beta1/namespaces/backup-with-default-storage/sgbackups/backup-with-default-storage-0-20958",
             "uid": "d1bcfc04-4117-11ea-9627-0242ac11000d"
         },
         "spec": {
@@ -61,7 +61,7 @@
     },
     {
         "kind": "SGBackup",
-        "apiVersion": "stackgres.io/v1alpha1",
+        "apiVersion": "stackgres.io/v1beta1",
         "metadata": {
             "annotations": {
                 "stackgres.io/operatorVersion": "0.9-SNAPSHOT"
@@ -71,7 +71,7 @@
             "name": "backup-with-default-storage-1-10495",
             "namespace": "backup-with-default-storage",
             "resourceVersion": "37818",
-            "selfLink": "/apis/stackgres.io/v1alpha1/namespaces/backup-with-default-storage/sgbackups/backup-with-default-storage-1-10495",
+            "selfLink": "/apis/stackgres.io/v1beta1/namespaces/backup-with-default-storage/sgbackups/backup-with-default-storage-1-10495",
             "uid": "16751a88-4118-11ea-9627-0242ac11000d"
         },
         "spec": {
@@ -122,7 +122,7 @@
     },
     {
         "kind": "SGBackup",
-        "apiVersion": "stackgres.io/v1alpha1",
+        "apiVersion": "stackgres.io/v1beta1",
         "metadata": {
             "annotations": {
                 "stackgres.io/operatorVersion": "0.9-SNAPSHOT"
@@ -132,7 +132,7 @@
             "name": "backup-with-default-storage-1-36328",
             "namespace": "backup-with-default-storage",
             "resourceVersion": "37352",
-            "selfLink": "/apis/stackgres.io/v1alpha1/namespaces/backup-with-default-storage/sgbackups/backup-with-default-storage-1-36328",
+            "selfLink": "/apis/stackgres.io/v1beta1/namespaces/backup-with-default-storage/sgbackups/backup-with-default-storage-1-36328",
             "uid": "f6483a52-4117-11ea-9627-0242ac11000d"
         },
         "spec": {
@@ -183,7 +183,7 @@
     },
     {
         "kind": "SGBackup",
-        "apiVersion": "stackgres.io/v1alpha1",
+        "apiVersion": "stackgres.io/v1beta1",
         "metadata": {
             "annotations": {
                 "stackgres.io/operatorVersion": "0.9-SNAPSHOT"
@@ -199,7 +199,7 @@
                 "uid": "ac623ba7-4117-11ea-9627-0242ac11000d"
             }],
             "resourceVersion": "38923",
-            "selfLink": "/apis/stackgres.io/v1alpha1/namespaces/backup-with-default-storage/sgbackups/backup-with-default-storage-58185029-4119-11ea-9627-0242ac11000d",
+            "selfLink": "/apis/stackgres.io/v1beta1/namespaces/backup-with-default-storage/sgbackups/backup-with-default-storage-58185029-4119-11ea-9627-0242ac11000d",
             "uid": "59680633-4119-11ea-9627-0242ac11000d"
         },
         "spec": {
@@ -250,7 +250,7 @@
     },
     {
         "kind": "SGBackup",
-        "apiVersion": "stackgres.io/v1alpha1",
+        "apiVersion": "stackgres.io/v1beta1",
         "metadata": {
             "annotations": {
                 "stackgres.io/operatorVersion": "0.9-SNAPSHOT"
@@ -266,7 +266,7 @@
                 "uid": "ac623ba7-4117-11ea-9627-0242ac11000d"
             }],
             "resourceVersion": "39047",
-            "selfLink": "/apis/stackgres.io/v1alpha1/namespaces/backup-with-default-storage/sgbackups/backup-with-default-storage-7bec0a3c-4119-11ea-9627-0242ac11000d",
+            "selfLink": "/apis/stackgres.io/v1beta1/namespaces/backup-with-default-storage/sgbackups/backup-with-default-storage-7bec0a3c-4119-11ea-9627-0242ac11000d",
             "uid": "7d33cabc-4119-11ea-9627-0242ac11000d"
         },
         "spec": {
@@ -317,7 +317,7 @@
     },
     {
         "kind": "SGBackup",
-        "apiVersion": "stackgres.io/v1alpha1",
+        "apiVersion": "stackgres.io/v1beta1",
         "metadata": {
             "annotations": {
                 "stackgres.io/operatorVersion": "0.9-SNAPSHOT"
@@ -333,7 +333,7 @@
                 "uid": "ac623ba7-4117-11ea-9627-0242ac11000d"
             }],
             "resourceVersion": "39169",
-            "selfLink": "/apis/stackgres.io/v1alpha1/namespaces/backup-with-default-storage/sgbackups/backup-with-default-storage-9fbf7211-4119-11ea-9627-0242ac11000d",
+            "selfLink": "/apis/stackgres.io/v1beta1/namespaces/backup-with-default-storage/sgbackups/backup-with-default-storage-9fbf7211-4119-11ea-9627-0242ac11000d",
             "uid": "a101b1f7-4119-11ea-9627-0242ac11000d"
         },
         "spec": {
@@ -384,7 +384,7 @@
     },
     {
         "kind": "SGBackup",
-        "apiVersion": "stackgres.io/v1alpha1",
+        "apiVersion": "stackgres.io/v1beta1",
         "metadata": {
             "annotations": {
                 "stackgres.io/operatorVersion": "0.9-SNAPSHOT"
@@ -400,7 +400,7 @@
                 "uid": "ac623ba7-4117-11ea-9627-0242ac11000d"
             }],
             "resourceVersion": "39293",
-            "selfLink": "/apis/stackgres.io/v1alpha1/namespaces/backup-with-default-storage/sgbackups/backup-with-default-storage-c392e08d-4119-11ea-9627-0242ac11000d",
+            "selfLink": "/apis/stackgres.io/v1beta1/namespaces/backup-with-default-storage/sgbackups/backup-with-default-storage-c392e08d-4119-11ea-9627-0242ac11000d",
             "uid": "c4ce4e2e-4119-11ea-9627-0242ac11000d"
         },
         "spec": {
@@ -451,7 +451,7 @@
     },
     {
         "kind": "SGBackup",
-        "apiVersion": "stackgres.io/v1alpha1",
+        "apiVersion": "stackgres.io/v1beta1",
         "metadata": {
             "annotations": {
                 "stackgres.io/operatorVersion": "0.9-SNAPSHOT"
@@ -467,7 +467,7 @@
                 "uid": "ac623ba7-4117-11ea-9627-0242ac11000d"
             }],
             "resourceVersion": "39403",
-            "selfLink": "/apis/stackgres.io/v1alpha1/namespaces/backup-with-default-storage/sgbackups/backup-with-default-storage-e16e5c54-4119-11ea-9627-0242ac11000d",
+            "selfLink": "/apis/stackgres.io/v1beta1/namespaces/backup-with-default-storage/sgbackups/backup-with-default-storage-e16e5c54-4119-11ea-9627-0242ac11000d",
             "uid": "e2b20efb-4119-11ea-9627-0242ac11000d"
         },
         "spec": {

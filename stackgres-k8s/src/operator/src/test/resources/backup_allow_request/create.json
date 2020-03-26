@@ -5,12 +5,12 @@
     "kind": {
       "kind": "SGBackup",
       "group": "stackgres.io",
-      "version": "v1alpha1"
+      "version": "v1beta1"
     },
     "resource": {
       "group": "stackgres.io",
       "resource": "sgbackups",
-      "version": "v1alpha1"
+      "version": "v1beta1"
     },
     "subResource": null,
     "requestKind": null,
@@ -30,7 +30,7 @@
     },
     "object": {
       "kind": "SGBackup",
-      "apiVersion": "stackgres.io/v1alpha1",
+      "apiVersion": "stackgres.io/v1beta1",
       "metadata": {
         "name": "backup-with-default-storage-bded7e9a-3939-11ea-be74-0242ac110002",
         "namespace": "backup-with-default-storage",

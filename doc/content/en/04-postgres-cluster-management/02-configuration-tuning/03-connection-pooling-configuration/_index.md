@@ -33,7 +33,7 @@ max_client_conn: "1000"
 Example:
 
 ```yaml
-apiVersion: stackgres.io/v1alpha1
+apiVersion: stackgres.io/v1beta1
 kind: SGPoolingConfig
 metadata:
   name: pgbouncerconf

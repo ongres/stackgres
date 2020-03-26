@@ -55,7 +55,7 @@ ___
 Example:
 
 ```yaml
-apiVersion: stackgres.io/v1alpha1
+apiVersion: stackgres.io/v1beta1
 kind: SGBackup
 metadata:
   name: backup
@@ -134,7 +134,7 @@ ___
 Example:
 
 ```yaml
-apiVersion: stackgres.io/v1alpha1
+apiVersion: stackgres.io/v1beta1
 kind: SGBackupConfig
 metadata:
   name: backupconf

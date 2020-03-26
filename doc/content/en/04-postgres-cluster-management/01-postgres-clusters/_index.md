@@ -36,7 +36,7 @@ ___
 Example:
 
 ```yaml
-apiVersion: stackgres.io/v1alpha1
+apiVersion: stackgres.io/v1beta1
 kind: SGCluster
 metadata:
   name: stackgres
@@ -67,7 +67,7 @@ A sidecar container is a container that adds functionality to PostgreSQL or to t
 Following sinnept enables all sidecars but `postgres-util`:
 
 ```yaml
-apiVersion: stackgres.io/v1alpha1
+apiVersion: stackgres.io/v1beta1
 kind: SGCluster
 metadata:
   name: stackgres
@@ -92,7 +92,7 @@ By default, stackgres it's creates as an empty database. To create a cluster wit
 Example:
 
 ```yaml
-apiVersion: stackgres.io/v1alpha1
+apiVersion: stackgres.io/v1beta1
 kind: SGCluster
 metadata:
   name: stackgres

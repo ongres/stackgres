@@ -5,12 +5,12 @@
     "kind": {
       "kind": "SGPoolingConfig",
       "group": "stackgres.io",
-      "version": "v1alpha1"
+      "version": "v1beta1"
     },
     "resource": {
       "group": "stackgres.io",
       "resource": "sgpoolconfigs",
-      "version": "v1alpha1"
+      "version": "v1beta1"
     },
     "subResource": null,
     "requestKind": null,
@@ -30,7 +30,7 @@
     },
     "object": {
       "kind": "SGPoolingConfig",
-      "apiVersion": "stackgres.io/v1alpha1",
+      "apiVersion": "stackgres.io/v1beta1",
       "metadata": {
         "annotations": {
           "helm.sh/hook": "pre-install"

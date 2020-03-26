@@ -47,7 +47,7 @@ wal_compression: "on"
 Example:
 
 ```yaml
-apiVersion: stackgres.io/v1alpha1
+apiVersion: stackgres.io/v1beta1
 kind: SGPostgresConfig
 metadata:
   name: postgresconf

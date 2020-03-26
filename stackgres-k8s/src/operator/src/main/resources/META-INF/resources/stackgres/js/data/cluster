@@ -1,14 +1,14 @@
 [
   { 
     "kind": "SGCluster",
-    "apiVersion": "stackgres.io/v1alpha1",
+    "apiVersion": "stackgres.io/v1beta1",
     "metadata": {
       "creationTimestamp": "2019-12-02T11:21:59Z",
       "generation": 1,
       "name": "backup-with-default-storage",
       "namespace": "backup-with-default-storage",
       "resourceVersion": "502759",
-      "selfLink": "/apis/stackgres.io/v1alpha1/namespaces/stackgres/sgclusters/stackgres",
+      "selfLink": "/apis/stackgres.io/v1beta1/namespaces/stackgres/sgclusters/stackgres",
       "uid": "f4984400-14f5-11ea-bbf8-0242ac110011"
     },
     "spec": {
@@ -31,14 +31,14 @@
   },
   { 
     "kind": "SGCluster",
-    "apiVersion": "stackgres.io/v1alpha1",
+    "apiVersion": "stackgres.io/v1beta1",
     "metadata": {
       "creationTimestamp": "2019-12-02T11:21:59Z",
       "generation": 1,
       "name": "stackgres",
       "namespace": "stackgres",
       "resourceVersion": "502759",
-      "selfLink": "/apis/stackgres.io/v1alpha1/namespaces/stackgres/sgclusters/stackgres",
+      "selfLink": "/apis/stackgres.io/v1beta1/namespaces/stackgres/sgclusters/stackgres",
       "uid": "f4984400-14f5-11ea-bbf8-0242ac110011"
     },
     "spec": {
@@ -61,14 +61,14 @@
   },
   { 
     "kind": "SGCluster",
-    "apiVersion": "stackgres.io/v1alpha1",
+    "apiVersion": "stackgres.io/v1beta1",
     "metadata": {
       "creationTimestamp": "2019-12-02T11:21:59Z",
       "generation": 1,
       "name": "stackgres-YYY",
       "namespace": "stackgres-Y",
       "resourceVersion": "502759",
-      "selfLink": "/apis/stackgres.io/v1alpha1/namespaces/stackgres/sgclusters/stackgres",
+      "selfLink": "/apis/stackgres.io/v1beta1/namespaces/stackgres/sgclusters/stackgres",
       "uid": "f4984400-14f5-11ea-bbf8-0242ac110011"
     },
     "spec": {
@@ -91,14 +91,14 @@
   },
   { 
     "kind": "SGCluster",
-    "apiVersion": "stackgres.io/v1alpha1",
+    "apiVersion": "stackgres.io/v1beta1",
     "metadata": {
       "creationTimestamp": "2019-12-02T11:21:59Z",
       "generation": 1,
       "name": "stackgres-ZZZ",
       "namespace": "stackgres-Z",
       "resourceVersion": "502759",
-      "selfLink": "/apis/stackgres.io/v1alpha1/namespaces/stackgres/sgclusters/stackgres",
+      "selfLink": "/apis/stackgres.io/v1beta1/namespaces/stackgres/sgclusters/stackgres",
       "uid": "f4984400-14f5-11ea-bbf8-0242ac110011"
     },
     "spec": {

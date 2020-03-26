@@ -96,7 +96,7 @@ get_backup_phase() {
 
 execute_backup() {
   cat << EOF | kubectl create -f -
-apiVersion: stackgres.io/v1alpha1
+apiVersion: stackgres.io/v1beta1
 kind: SGBackup
 metadata:
   namespace: "$CLUSTER_NAMESPACE"
@@ -117,7 +117,7 @@ restore_from_backup() {
   BACKUP_UID=$(kubectl get sgbackups.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" -o=jsonpath='{.metadata.uid}')
 
   cat <<EOF | kubectl apply -f -
-apiVersion: stackgres.io/v1alpha1
+apiVersion: stackgres.io/v1beta1
 kind: SGCluster
 metadata:
   name: restored-from-s3

@@ -44,7 +44,7 @@ check_backup() {
   BACKUP_NAME="${CLUSTER_NAME}-${NODE}-$(shuf -i 0-65535 -n 1)"
 
   cat << EOF | kubectl create -f -
-apiVersion: stackgres.io/v1alpha1
+apiVersion: stackgres.io/v1beta1
 kind: SGBackup
 metadata:
   namespace: "$CLUSTER_NAMESPACE"

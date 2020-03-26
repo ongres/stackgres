@@ -11,7 +11,7 @@ e2e_test() {
 check_persistent_volume_claim_size() {
 
   cat <<EOF | kubectl apply -f -
-apiVersion: stackgres.io/v1alpha1
+apiVersion: stackgres.io/v1beta1
 kind: SGInstanceProfile
 metadata:
   name: size-xs
@@ -22,7 +22,7 @@ spec:
 EOF
 
   cat <<EOF | kubectl apply -f -
-apiVersion: stackgres.io/v1alpha1
+apiVersion: stackgres.io/v1beta1
 kind: SGCluster
 metadata:
   name: $CLUSTER_NAME
