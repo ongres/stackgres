@@ -144,7 +144,7 @@ var Side = Vue.component("sg-side", {
 
 	computed: {
 		namespaces () {
-			return store.state.namespaces
+			return store.state.allNamespaces
 		},
 
 		clusters () {
