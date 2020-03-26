@@ -17,7 +17,7 @@ var ClusterStatus = Vue.component("cluster-status", {
 				</ul>
 
 				<div class="actions">
-					<router-link :to="'/crd/edit/cluster/'+$route.params.namespace+'/'+$route.params.name">Edit Cluster</router-link> <a v-on:click="deleteCluster">Delete Cluster</a>
+					<router-link :to="'/crd/edit/cluster/'+$route.params.namespace+'/'+$route.params.name">Edit Cluster</router-link> <a v-on:click="deleteCRD('cluster', currentNamespace, $route.params.name, '/overview/'+currentNamespace)" :class="'/overview/'+currentNamespace">Delete Cluster</a>
 				</div>
 
 				<ul class="tabs">
@@ -25,10 +25,13 @@ var ClusterStatus = Vue.component("cluster-status", {
 						<router-link :to="'/cluster/status/'+$route.params.namespace+'/'+$route.params.name" title="Status" class="status">Status</router-link>
 					</li>
 					<li>
-						<router-link :to="'/configuration/'+$route.params.namespace+'/'+$route.params.name" title="Configuration" class="info">Configuration</router-link>
+						<router-link :to="'/cluster/configuration/'+$route.params.namespace+'/'+$route.params.name" title="Configuration" class="info">Configuration</router-link>
 					</li>
-					<li>
-						<router-link id="grafana-btn" :to="'/monitor/'+$route.params.namespace+'/'+$route.params.name" title="Grafana Dashboard" class="grafana" style="display:none;">Monitoring</router-link>
+					<li v-if="cluster.hasBackups">
+						<router-link :to="'/cluster/backups/'+$route.params.namespace+'/'+$route.params.name" title="Backups" class="backups">Backups</router-link>
+					</li>
+					<li v-if="cluster.data.graffanaEmbedded">
+						<router-link id="grafana-btn" :to="'/monitor/'+$route.params.namespace+'/'+$route.params.name" title="Grafana Dashboard" class="grafana">Monitoring</router-link>
 					</li>
 				</ul>
 			</header>
@@ -175,19 +178,7 @@ var ClusterStatus = Vue.component("cluster-status", {
 	},
 	mounted: function() {
 
-		var count = 0;
 
-		if (store.state.currentPods.length === 0) {
-			this.fetchAPI();
-			this.dataReady = false;
-		}
-
-	    this.polling = setInterval( function(){
-	      	this.fetchAPI();
-	    }.bind(this), 5000);
-
-	    //$(".set.clu").addClass("active");
-	    
 	},
 	created: function() {
 
