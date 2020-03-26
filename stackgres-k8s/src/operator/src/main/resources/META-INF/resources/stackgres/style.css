@@ -305,7 +305,7 @@ pre {
     border-top: 1px solid #454a5a;
 }
 .darkmode #ns-select a:hover {
-    background: transparent;
+    background: transparent !important;
 }
 
 /* Main Structure */
@@ -542,6 +542,10 @@ ul.zg-ul-select.active li.active:hover {
 
 #ns-select a {
     padding-left: 0;
+}
+
+#ns-select li {
+    position: relative;
 }
 
 #current-namespace h2 span {
