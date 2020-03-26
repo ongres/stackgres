@@ -13,7 +13,7 @@
 
 ```
 apiVersion: stackgres.io/v1alpha1
-kind: StackGresProfile
+kind: SGInstanceProfile
 metadata:
   name: size-xs
   annotations:
@@ -23,7 +23,7 @@ spec:
   memory: "512Mi"
 ---
 apiVersion: stackgres.io/v1alpha1
-kind: StackGresProfile
+kind: SGInstanceProfile
 metadata:
   name: size-s
   annotations:
@@ -33,7 +33,7 @@ spec:
   memory: "2Gi"
 ---
 apiVersion: stackgres.io/v1alpha1
-kind: StackGresProfile
+kind: SGInstanceProfile
 metadata:
   name: size-m
   annotations:
@@ -43,7 +43,7 @@ spec:
   memory: "4Gi"
 ---
 apiVersion: stackgres.io/v1alpha1
-kind: StackGresProfile
+kind: SGInstanceProfile
 metadata:
   name: size-l
   annotations:
@@ -53,7 +53,7 @@ spec:
   memory: "8Gi"
 ---
 apiVersion: stackgres.io/v1alpha1
-kind: StackGresProfile
+kind: SGInstanceProfile
 metadata:
   name: size-xl
   annotations:
@@ -63,7 +63,7 @@ spec:
   memory: "16Gi"
 ---
 apiVersion: stackgres.io/v1alpha1
-kind: StackGresProfile
+kind: SGInstanceProfile
 metadata:
   name: size-xxl
   annotations:
@@ -75,7 +75,7 @@ spec:
 `pgconfig-cr.yaml`  Custom resource for PosgreSQL configuration:
 ```
 apiVersion: stackgres.io/v1alpha1
-kind: StackGresPostgresConfig
+kind: SGPostgresConfig
 metadata:
   name: postgresconf
   annotations:
@@ -93,7 +93,7 @@ spec:
 
 ```
 apiVersion: stackgres.io/v1alpha1
-kind: StackGresConnectionPoolingConfig
+kind: SGPoolingConfig
 metadata:
   name: pgbouncerconf
   annotations:
@@ -109,7 +109,7 @@ spec:
 
 ```
 apiVersion: stackgres.io/v1alpha1
-kind: StackGresCluster
+kind: SGCluster
 metadata:
   name: jaundiced-ladybug
 spec:

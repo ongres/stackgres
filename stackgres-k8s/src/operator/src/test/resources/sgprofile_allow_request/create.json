@@ -3,13 +3,13 @@
   "request": {
     "uid": "c4bc4b70-f719-11e9-b325-0242ac110002",
     "kind": {
-      "kind": "StackGresProfile",
+      "kind": "SGInstanceProfile",
       "group": "stackgres.io",
       "version": "v1alpha1"
     },
     "resource": {
       "group": "stackgres.io",
-      "resource": "sgprofiles",
+      "resource": "sginstanceprofiles",
       "version": "v1alpha1"
     },
     "subResource": null,
@@ -29,7 +29,7 @@
       "username": "system:serviceaccount:kube-system:tiller"
     },
     "object": {
-      "kind": "StackGresProfile",
+      "kind": "SGInstanceProfile",
       "apiVersion": "stackgres.io/v1alpha1",
       "metadata": {
         "annotations": {

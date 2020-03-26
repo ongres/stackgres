@@ -3,7 +3,7 @@
   "request": {
     "uid": "afbc4e6f-f66f-11e9-8982-0242ac110002",
     "kind": {
-      "kind": "StackGresBackupConfig",
+      "kind": "SGBackupConfig",
       "group": "stackgres.io",
       "version": "v1alpha1"
     },

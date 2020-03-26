@@ -10,10 +10,12 @@ spec:
       storage: true
   scope: Namespaced
   names:
-    kind: StackGresPostgresConfig
-    listKind: StackGresPostgresConfigList
+    kind: SGPostgresConfig
+    listKind: SGPostgresConfigList
     plural: sgpgconfigs
     singular: sgpgconfig
+    shortNames:
+      - sgpgc
   validation:
     openAPIV3Schema:
       type: object

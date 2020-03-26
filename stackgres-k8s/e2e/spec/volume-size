@@ -12,7 +12,7 @@ check_persistent_volume_claim_size() {
 
   cat <<EOF | kubectl apply -f -
 apiVersion: stackgres.io/v1alpha1
-kind: StackGresProfile
+kind: SGInstanceProfile
 metadata:
   name: size-xs
   namespace: $CLUSTER_NAMESPACE
@@ -23,7 +23,7 @@ EOF
 
   cat <<EOF | kubectl apply -f -
 apiVersion: stackgres.io/v1alpha1
-kind: StackGresCluster
+kind: SGCluster
 metadata:
   name: $CLUSTER_NAME
   namespace: $CLUSTER_NAMESPACE

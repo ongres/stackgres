@@ -3,7 +3,7 @@
   "items": [
     {
       "apiVersion": "stackgres.io/v1alpha1",
-      "kind": "StackGresBackup",
+      "kind": "SGBackup",
       "metadata": {
         "creationTimestamp": "2020-01-15T09:53:12Z",
         "generation": 1,
@@ -61,7 +61,7 @@
     },
     {
       "apiVersion": "stackgres.io/v1alpha1",
-      "kind": "StackGresBackup",
+      "kind": "SGBackup",
       "metadata": {
         "creationTimestamp": "2020-01-15T09:55:19Z",
         "generation": 1,
@@ -117,7 +117,7 @@
     },
     {
       "apiVersion": "stackgres.io/v1alpha1",
-      "kind": "StackGresBackup",
+      "kind": "SGBackup",
       "metadata": {
         "creationTimestamp": "2020-01-15T09:54:11Z",
         "generation": 1,
@@ -173,7 +173,7 @@
     },
     {
       "apiVersion": "stackgres.io/v1alpha1",
-      "kind": "StackGresBackup",
+      "kind": "SGBackup",
       "metadata": {
         "creationTimestamp": "2020-01-15T09:55:08Z",
         "generation": 1,
@@ -237,7 +237,7 @@
     },
     {
       "apiVersion": "stackgres.io/v1alpha1",
-      "kind": "StackGresBackup",
+      "kind": "SGBackup",
       "metadata": {
         "creationTimestamp": "2020-01-15T09:56:08Z",
         "generation": 1,

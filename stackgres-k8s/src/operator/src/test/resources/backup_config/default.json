@@ -1,6 +1,6 @@
 {
     "apiVersion": "stackgres.io/v1alpha1",
-    "kind": "StackGresBackupConfig",
+    "kind": "SGBackupConfig",
     "metadata": {
         "creationTimestamp": "2019-11-08T14:46:41Z",
         "generation": 1,

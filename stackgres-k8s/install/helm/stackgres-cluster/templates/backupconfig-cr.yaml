@@ -12,7 +12,7 @@ Throw an error if not create minio with default backup options
 {{- end -}}
 {{ if and .Values.config.create .Values.config.backup.create }}
 apiVersion: stackgres.io/v1alpha1
-kind: StackGresBackupConfig
+kind: SGBackupConfig
 metadata:
   name: {{ .Values.cluster.backupconfig }}
   labels:

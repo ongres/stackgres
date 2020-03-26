@@ -1,6 +1,6 @@
 {
   "apiVersion": "stackgres.io/v1alpha1",
-  "kind": "StackGresCluster",
+  "kind": "SGCluster",
   "metadata": {
       "creationTimestamp": "2019-09-11T11:58:45Z",
       "generation": 1,

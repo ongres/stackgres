@@ -11,9 +11,9 @@ Have a look at [postgresqlco.nf](https://postgresqlco.nf) to help you tune and o
 
 ___
 
-**Kind:** StackGresPostgresConfig
+**Kind:** SGPostgresConfig
 
-**listKind:** StackGresPostgresConfigList
+**listKind:** SGPostgresConfigList
 
 **plural:** sgpgconfigs
 
@@ -48,7 +48,7 @@ Example:
 
 ```yaml
 apiVersion: stackgres.io/v1alpha1
-kind: StackGresPostgresConfig
+kind: SGPostgresConfig
 metadata:
   name: postgresconf
 spec:

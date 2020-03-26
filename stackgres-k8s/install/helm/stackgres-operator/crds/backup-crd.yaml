@@ -10,10 +10,12 @@ spec:
       storage: true
   scope: Namespaced
   names:
-    kind: StackGresBackup
-    listKind: StackGresBackupList
+    kind: SGBackup
+    listKind: SGBackupList
     plural: sgbackups
     singular: sgbackup
+    shortNames:
+      - sgbkp
   validation:
     openAPIV3Schema:
       type: object

@@ -95,41 +95,41 @@ default_pg_config_delete(){
 
 default_pg_bouncer(){
 
-  check_existence sgconnectionpoolingconfigs "Default connection pooling"
+  check_existence sgpoolconfigs "Default connection pooling"
   
 }
 
 default_pg_bouncer_update(){
 
   local DEFAULT_PGCBOUNCER="$(get_default_conn_pool -o jsonpath='{.items[0].metadata.name}' )"
-  check_update sgconnectionpoolingconfigs "$DEFAULT_PGCBOUNCER" '[{"op":"replace", "path": "/spec/pgbouncer.ini/max_client_conn", "value":"400"}]'
+  check_update sgpoolconfigs "$DEFAULT_PGCBOUNCER" '[{"op":"replace", "path": "/spec/pgbouncer.ini/max_client_conn", "value":"400"}]'
 
 }
 
 default_pg_bouncer_delete(){
 
   local DEFAULT_PGCBOUNCER="$(get_default_conn_pool -o jsonpath='{.items[0].metadata.name}' )"
-  check_delete sgconnectionpoolingconfigs "$DEFAULT_PGCBOUNCER"
+  check_delete sgpoolconfigs "$DEFAULT_PGCBOUNCER"
 
 }
 
 default_instance_profile(){
 
-  check_existence sgprofiles "Default resource profile"
+  check_existence sginstanceprofiles "Default resource profile"
   
 }
 
 default_instance_profile_update(){
 
   local DEFAULT_PROFILE="$(get_default_profile -o jsonpath='{.items[0].metadata.name}')"
-  check_update sgprofiles "$DEFAULT_PROFILE" '[{"op":"replace", "path": "/spec/cpu", "value":"2"}]'
+  check_update sginstanceprofiles "$DEFAULT_PROFILE" '[{"op":"replace", "path": "/spec/cpu", "value":"2"}]'
 
 }
 
 default_instance_profile_delete(){
 
   local DEFAULT_PROFILE="$(get_default_profile -o jsonpath='{.items[0].metadata.name}')"
-  check_delete sgprofiles "$DEFAULT_PROFILE"
+  check_delete sginstanceprofiles "$DEFAULT_PROFILE"
   
 }
 

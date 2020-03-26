@@ -1,6 +1,6 @@
 {
   "apiVersion": "stackgres.io/v1alpha1",
-  "kind": "StackGresPostgresConfig",
+  "kind": "SGPostgresConfig",
   "metadata": {
     "creationTimestamp": "2019-09-27T11:23:22Z",
     "generation": 1,

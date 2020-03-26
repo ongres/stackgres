@@ -1,6 +1,6 @@
 [
   {
-    "kind": "StackGresPostgresConfig",
+    "kind": "SGPostgresConfig",
     "apiVersion": "stackgres.io/v1alpha1",
     "metadata": {
       "annotations": {

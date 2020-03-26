@@ -1,5 +1,5 @@
 [{
-        "kind": "StackGresBackup",
+        "kind": "SGBackup",
         "apiVersion": "stackgres.io/v1alpha1",
         "metadata": {
             "annotations": {
@@ -60,7 +60,7 @@
         }
     },
     {
-        "kind": "StackGresBackup",
+        "kind": "SGBackup",
         "apiVersion": "stackgres.io/v1alpha1",
         "metadata": {
             "annotations": {
@@ -121,7 +121,7 @@
         }
     },
     {
-        "kind": "StackGresBackup",
+        "kind": "SGBackup",
         "apiVersion": "stackgres.io/v1alpha1",
         "metadata": {
             "annotations": {
@@ -182,7 +182,7 @@
         }
     },
     {
-        "kind": "StackGresBackup",
+        "kind": "SGBackup",
         "apiVersion": "stackgres.io/v1alpha1",
         "metadata": {
             "annotations": {
@@ -249,7 +249,7 @@
         }
     },
     {
-        "kind": "StackGresBackup",
+        "kind": "SGBackup",
         "apiVersion": "stackgres.io/v1alpha1",
         "metadata": {
             "annotations": {
@@ -316,7 +316,7 @@
         }
     },
     {
-        "kind": "StackGresBackup",
+        "kind": "SGBackup",
         "apiVersion": "stackgres.io/v1alpha1",
         "metadata": {
             "annotations": {
@@ -383,7 +383,7 @@
         }
     },
     {
-        "kind": "StackGresBackup",
+        "kind": "SGBackup",
         "apiVersion": "stackgres.io/v1alpha1",
         "metadata": {
             "annotations": {
@@ -450,7 +450,7 @@
         }
     },
     {
-        "kind": "StackGresBackup",
+        "kind": "SGBackup",
         "apiVersion": "stackgres.io/v1alpha1",
         "metadata": {
             "annotations": {

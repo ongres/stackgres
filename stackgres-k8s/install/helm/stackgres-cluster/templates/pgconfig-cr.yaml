@@ -1,6 +1,6 @@
 {{ if .Values.config.create }}
 apiVersion: stackgres.io/v1alpha1
-kind: StackGresPostgresConfig
+kind: SGPostgresConfig
 metadata:
   name: {{ .Values.cluster.pgconfig }}
   labels:

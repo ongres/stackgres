@@ -1,6 +1,6 @@
 {{ if .Values.cluster.create }}
 apiVersion: stackgres.io/v1alpha1
-kind: StackGresCluster
+kind: SGCluster
 metadata:
   name: {{ .Release.Name }}
   labels:

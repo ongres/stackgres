@@ -45,7 +45,7 @@ check_backup() {
 
   cat << EOF | kubectl create -f -
 apiVersion: stackgres.io/v1alpha1
-kind: StackGresBackup
+kind: SGBackup
 metadata:
   namespace: "$CLUSTER_NAMESPACE"
   name: "$BACKUP_NAME"

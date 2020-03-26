@@ -1,6 +1,6 @@
 [
   {
-    "kind": "StackGresBackupConfig",
+    "kind": "SGBackupConfig",
     "apiVersion": "stackgres.io/v1alpha1",
     "metadata": {
       "annotations": {

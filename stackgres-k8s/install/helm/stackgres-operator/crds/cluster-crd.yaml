@@ -12,10 +12,12 @@ spec:
       storage: true
   scope: Namespaced
   names:
-    kind: StackGresCluster
-    listKind: StackGresClusterList
+    kind: SGCluster
+    listKind: SGClusterList
     plural: sgclusters
     singular: sgcluster
+    shortNames:
+    - sgclu
   validation:
     openAPIV3Schema:
       type: object
@@ -56,8 +58,8 @@ spec:
             resourceProfile:
               type: string
               description: >
-                Name of the [StackGresProfile](https://stackgres.io/doc/latest/04-postgres-cluster-management/03-resource-profiles/)
-                to use. A StackGresProfile defines CPU and memory limits. Must exist before creating the cluster. If you
+                Name of the [SGInstanceProfile](https://stackgres.io/doc/latest/04-postgres-cluster-management/03-resource-profiles/)
+                to use. A SGInstanceProfile defines CPU and memory limits. Must exist before creating the cluster. If you
                 don't select a profile, a default (currently: 1 core, 2 GiB RAM) one will be used.
             volumeSize:
               type: string
@@ -81,7 +83,7 @@ spec:
               type: string
               description: >
                 Name of the
-                [StackGresConnectionPoolingConfig](https://stackgres.io/doc/latest/04-postgres-cluster-management/02-configuration-tuning/03-connection-pooling-configuration/)
+                [SGPoolingConfig](https://stackgres.io/doc/latest/04-postgres-cluster-management/02-configuration-tuning/03-connection-pooling-configuration/)
                 to use for this cluster. Each pod contains a sidecar with a connection pooler
                 (currently: [PgBouncer](https://www.pgbouncer.org/)). The connection pooler is implemented as a sidecar.
                 If not selected, a default configuration will be used. Note that you may disable connection pooling
@@ -90,7 +92,7 @@ spec:
               type: string
               description: >
                 Name of the
-                [StackGresBackupConfig](https://stackgres.io/doc/latest/04-postgres-cluster-management/04-backups/)
+                [SGBackupConfig](https://stackgres.io/doc/latest/04-postgres-cluster-management/04-backups/)
                 to use for this cluster. This will define the backups policy, storage and retention, among others, to
                 apply to this cluster. If not set, a default backup config will be used.
             prometheusAutobind:
@@ -106,7 +108,7 @@ spec:
                   description: >
                     Initialize the cluster data by restoring an existing backup. If not used, cluster will be
                     initialized empty. Set to the UID of an existing
-                    [StackGresBackup](https://stackgres.io/doc/latest/04-postgres-cluster-management/04-backups/)
+                    [SGBackup](https://stackgres.io/doc/latest/04-postgres-cluster-management/04-backups/)
                     from which to restore the data. The backup needs to be in the same namespace.
                 downloadDiskConcurrency:
                   type: integer

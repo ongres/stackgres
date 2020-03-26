@@ -1,6 +1,6 @@
 [
   {
-    "kind": "StackGresProfile",
+    "kind": "SGInstanceProfile",
     "apiVersion": "stackgres.io/v1alpha1",
     "metadata": {
       "annotations": {
@@ -11,7 +11,7 @@
       "name": "size-m",
       "namespace": "stackgres",
       "resourceVersion": "9941",
-      "selfLink": "/apis/stackgres.io/v1alpha1/namespaces/stackgres/sgprofiles/size-m",
+      "selfLink": "/apis/stackgres.io/v1alpha1/namespaces/stackgres/sginstanceprofiles/size-m",
       "uid": "44145ec0-017a-11ea-9ca4-0242ac110004"
     },
     "spec": {
@@ -20,7 +20,7 @@
     }
   },
   {
-    "kind": "StackGresProfile",
+    "kind": "SGInstanceProfile",
     "apiVersion": "stackgres.io/v1alpha1",
     "metadata": {
       "annotations": {
@@ -31,7 +31,7 @@
       "name": "size-s",
       "namespace": "stackgres",
       "resourceVersion": "9942",
-      "selfLink": "/apis/stackgres.io/v1alpha1/namespaces/stackgres/sgprofiles/size-s",
+      "selfLink": "/apis/stackgres.io/v1alpha1/namespaces/stackgres/sginstanceprofiles/size-s",
       "uid": "44174706-017a-11ea-9ca4-0242ac110004"
     },
     "spec": {
@@ -40,7 +40,7 @@
     }
   },
   {
-    "kind": "StackGresProfile",
+    "kind": "SGInstanceProfile",
     "apiVersion": "stackgres.io/v1alpha1",
     "metadata": {
       "annotations": {
@@ -51,7 +51,7 @@
       "name": "size-xl",
       "namespace": "stackgres",
       "resourceVersion": "9943",
-      "selfLink": "/apis/stackgres.io/v1alpha1/namespaces/stackgres/sgprofiles/size-xl",
+      "selfLink": "/apis/stackgres.io/v1alpha1/namespaces/stackgres/sginstanceprofiles/size-xl",
       "uid": "4419a7ae-017a-11ea-9ca4-0242ac110004"
     },
     "spec": {
@@ -60,7 +60,7 @@
     }
   },
   {
-    "kind": "StackGresProfile",
+    "kind": "SGInstanceProfile",
     "apiVersion": "stackgres.io/v1alpha1",
     "metadata": {
       "annotations": {
@@ -71,7 +71,7 @@
       "name": "size-xs",
       "namespace": "stackgres",
       "resourceVersion": "9944",
-      "selfLink": "/apis/stackgres.io/v1alpha1/namespaces/stackgres/sgprofiles/size-xs",
+      "selfLink": "/apis/stackgres.io/v1alpha1/namespaces/stackgres/sginstanceprofiles/size-xs",
       "uid": "441c6a55-017a-11ea-9ca4-0242ac110004"
     },
     "spec": {
@@ -80,7 +80,7 @@
     }
   },
   {
-    "kind": "StackGresProfile",
+    "kind": "SGInstanceProfile",
     "apiVersion": "stackgres.io/v1alpha1",
     "metadata": {
       "annotations": {
@@ -91,7 +91,7 @@
       "name": "size-xxl",
       "namespace": "stackgres",
       "resourceVersion": "9945",
-      "selfLink": "/apis/stackgres.io/v1alpha1/namespaces/stackgres/sgprofiles/size-xxl",
+      "selfLink": "/apis/stackgres.io/v1alpha1/namespaces/stackgres/sginstanceprofiles/size-xxl",
       "uid": "441fe67a-017a-11ea-9ca4-0242ac110004"
     },
     "spec": {
@@ -100,7 +100,7 @@
     }
   },
   {
-    "kind": "StackGresProfile",
+    "kind": "SGInstanceProfile",
     "apiVersion": "stackgres.io/v1alpha1",
     "metadata": {
       "annotations": {
@@ -111,7 +111,7 @@
       "name": "size-m-Z",
       "namespace": "stackgres-Z",
       "resourceVersion": "9941",
-      "selfLink": "/apis/stackgres.io/v1alpha1/namespaces/stackgres/sgprofiles/size-m",
+      "selfLink": "/apis/stackgres.io/v1alpha1/namespaces/stackgres/sginstanceprofiles/size-m",
       "uid": "44145ec0-017a-11ea-9ca4-0242ac110004"
     },
     "spec": {
@@ -120,7 +120,7 @@
     }
   },
   {
-    "kind": "StackGresProfile",
+    "kind": "SGInstanceProfile",
     "apiVersion": "stackgres.io/v1alpha1",
     "metadata": {
       "annotations": {
@@ -131,7 +131,7 @@
       "name": "size-s-Y",
       "namespace": "stackgres-Y",
       "resourceVersion": "9942",
-      "selfLink": "/apis/stackgres.io/v1alpha1/namespaces/stackgres/sgprofiles/size-s",
+      "selfLink": "/apis/stackgres.io/v1alpha1/namespaces/stackgres/sginstanceprofiles/size-s",
       "uid": "44174706-017a-11ea-9ca4-0242ac110004"
     },
     "spec": {

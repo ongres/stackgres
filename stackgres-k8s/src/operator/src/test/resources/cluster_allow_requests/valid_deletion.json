@@ -3,7 +3,7 @@
   "request": {
     "uid": "437f8f7e-f4e2-11e9-9885-0242ac110002",
     "kind": {
-      "kind": "StackGresCluster",
+      "kind": "SGCluster",
       "group": "stackgres.io",
       "version": "v1alpha1"
     },

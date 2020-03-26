@@ -3,7 +3,7 @@
   "items": [
     {
       "apiVersion": "stackgres.io/v1alpha1",
-      "kind": "StackGresBackup",
+      "kind": "SGBackup",
       "metadata": {
         "creationTimestamp": "2019-10-23T13:41:00Z",
         "generation": 1,

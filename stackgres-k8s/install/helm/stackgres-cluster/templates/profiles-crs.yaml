@@ -2,7 +2,7 @@
 {{- range .Values.profiles }}
 ---
 apiVersion: stackgres.io/v1alpha1
-kind: StackGresProfile
+kind: SGInstanceProfile
 metadata:
   name: {{ .name }}
   labels:

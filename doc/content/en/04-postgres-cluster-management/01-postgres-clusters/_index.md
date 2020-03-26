@@ -7,9 +7,9 @@ StackGres PostgreSQL cluster can be created using a cluster Custom Resource (CR)
 
 ___
 
-**Kind:** StackGresCluster
+**Kind:** SGCluster
 
-**listKind:** StackGresClusterList
+**listKind:** SGClusterList
 
 **plural:** sgclusters
 
@@ -37,7 +37,7 @@ Example:
 
 ```yaml
 apiVersion: stackgres.io/v1alpha1
-kind: StackGresCluster
+kind: SGCluster
 metadata:
   name: stackgres
 spec:
@@ -68,7 +68,7 @@ Following sinnept enables all sidecars but `postgres-util`:
 
 ```yaml
 apiVersion: stackgres.io/v1alpha1
-kind: StackGresCluster
+kind: SGCluster
 metadata:
   name: stackgres
 spec:
@@ -93,7 +93,7 @@ Example:
 
 ```yaml
 apiVersion: stackgres.io/v1alpha1
-kind: StackGresCluster
+kind: SGCluster
 metadata:
   name: stackgres
 spec:

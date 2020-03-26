@@ -11,9 +11,9 @@ The backup CR represent a backup of the cluster. Backups are created automatical
 
 ___
 
-**Kind:** StackGresBackup
+**Kind:** SGBackup
 
-**listKind:** StackGresBackupList
+**listKind:** SGBackupList
 
 **plural:** sgbackups
 
@@ -56,7 +56,7 @@ Example:
 
 ```yaml
 apiVersion: stackgres.io/v1alpha1
-kind: StackGresBackup
+kind: SGBackup
 metadata:
   name: backup
 spec:
@@ -107,9 +107,9 @@ The backup configuration CR represent the backups configuration of the cluster.
 
 ___
 
-**Kind:** StackGresBackupConfig
+**Kind:** SGBackupConfig
 
-**listKind:** StackGresBackupConfigList
+**listKind:** SGBackupConfigList
 
 **plural:** sgbackupconfigs
 
@@ -135,7 +135,7 @@ Example:
 
 ```yaml
 apiVersion: stackgres.io/v1alpha1
-kind: StackGresBackupConfig
+kind: SGBackupConfig
 metadata:
   name: backupconf
 spec:

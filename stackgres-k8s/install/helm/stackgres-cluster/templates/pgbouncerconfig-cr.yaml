@@ -1,6 +1,6 @@
 {{ if .Values.config.create }}
 apiVersion: stackgres.io/v1alpha1
-kind: StackGresConnectionPoolingConfig
+kind: SGPoolingConfig
 metadata:
   name: {{ .Values.cluster.poolingconfig }}
   labels:

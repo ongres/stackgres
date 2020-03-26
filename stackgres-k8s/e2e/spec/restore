@@ -27,7 +27,7 @@ EOF
 
   cat << EOF | kubectl create -f -
 apiVersion: stackgres.io/v1alpha1
-kind: StackGresBackup
+kind: SGBackup
 metadata:
   namespace: "$CLUSTER_NAMESPACE-backup"
   name: "$BACKUP_NAME"
@@ -140,7 +140,7 @@ check_backup_pg_version() {
 
   cat << EOF | kubectl apply -f -
 apiVersion: stackgres.io/v1alpha1
-kind: StackGresPostgresConfig
+kind: SGPostgresConfig
 metadata:
   name: pgconfig-alter
   namespace: $CLUSTER_NAMESPACE
@@ -152,7 +152,7 @@ EOF
 
   cat << EOF > "$LOG_PATH/alter-restore-cluster.yaml"
 apiVersion: stackgres.io/v1alpha1
-kind: StackGresCluster
+kind: SGCluster
 metadata:
   name: $CLUSTER_NAME-alter
   namespace: $CLUSTER_NAMESPACE
@@ -189,7 +189,7 @@ check_restore_default_values(){
 
   cat << EOF | kubectl apply -f -
 apiVersion: stackgres.io/v1alpha1
-kind: StackGresCluster
+kind: SGCluster
 metadata:
   name: $CLUSTER_NAME
   namespace: $CLUSTER_NAMESPACE

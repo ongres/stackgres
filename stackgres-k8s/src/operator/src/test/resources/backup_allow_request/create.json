@@ -3,7 +3,7 @@
   "request": {
     "uid": "c2f4a2a1-3939-11ea-be74-0242ac110002",
     "kind": {
-      "kind": "StackGresBackup",
+      "kind": "SGBackup",
       "group": "stackgres.io",
       "version": "v1alpha1"
     },
@@ -29,7 +29,7 @@
       "username": "system:serviceaccount:backup-with-default-storage:backup-with-default-storage-patroni"
     },
     "object": {
-      "kind": "StackGresBackup",
+      "kind": "SGBackup",
       "apiVersion": "stackgres.io/v1alpha1",
       "metadata": {
         "name": "backup-with-default-storage-bded7e9a-3939-11ea-be74-0242ac110002",
