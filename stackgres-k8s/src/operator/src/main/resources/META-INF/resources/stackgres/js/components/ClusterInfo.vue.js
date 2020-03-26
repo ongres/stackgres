@@ -16,186 +16,146 @@ var ClusterInfo = Vue.component("cluster-info", {
 					</li>
 				</ul>
 
+				<div class="actions">
+					<router-link :to="'/crd/edit/cluster/'+$route.params.namespace+'/'+$route.params.name">Edit Cluster</router-link> <a v-on:click="deleteCRD('cluster', currentNamespace, $route.params.name, '/overview/'+currentNamespace)" :class="'/overview/'+currentNamespace">Delete Cluster</a>
+				</div>
+
 				<ul class="tabs">
 					<li>
-						<router-link :to="'/status/'+$route.params.namespace+'/'+$route.params.name" title="Status" class="status">Status</router-link>
+						<router-link :to="'/cluster/status/'+$route.params.namespace+'/'+$route.params.name" title="Status" class="status">Status</router-link>
 					</li>
 					<li>
-						<router-link :to="'/configuration/'+$route.params.namespace+'/'+$route.params.name" title="Configuration" class="info">Configuration</router-link>
+						<router-link :to="'/cluster/configuration/'+$route.params.namespace+'/'+$route.params.name" title="Configuration" class="info">Configuration</router-link>
 					</li>
-					<li>
-						<router-link id="grafana-btn" :to="'/monitor/'+$route.params.namespace+'/'+$route.params.name" title="Grafana Dashboard" class="grafana" style="display:none;">Monitoring</router-link>
+					<li v-if="cluster.hasBackups">
+						<router-link :to="'/cluster/backups/'+$route.params.namespace+'/'+$route.params.name" title="Backups" class="backups">Backups</router-link>
+					</li>
+					<li v-if="cluster.data.graffanaEmbedded">
+						<router-link id="grafana-btn" :to="'/monitor/'+$route.params.namespace+'/'+$route.params.name" title="Grafana Dashboard" class="grafana">Monitoring</router-link>
 					</li>
 				</ul>
 			</header>
 
 			<div class="content">
-				<div class="table">
-					<div class="head row">
-						<div class="col">
-							<h4>CPU</h4>
-						</div>
+				<table class="clusterConfig">
+					<thead>
+						<th>Cluster Name</th>
+						<th>Postgres Version</th>
+						<th>Number of Instances</th>
+						<th>Instance Profile</th>
+						<th>Volume Size</th>
+					</thead>
+					<tbody>
+						<tr>
+							<td>{{ cluster.name }}</td>
+							<td>{{ cluster.data.spec.pgVersion }}</td>
+							<td>{{ cluster.data.spec.instances }}</td>
+							<td>{{ cluster.data.spec.resourceProfile }} (Cores: {{ profile.data.spec.cpu }}, RAM: {{ profile.data.spec.memory }})</td>
+							<td>{{ cluster.data.spec.volumeSize }}</td>
+						</tr>
+					</tbody>
+				</table>
 
-						<div class="col">
-							<h4>Memory</h4>
-						</div>
-
-						<div class="col">
-							<h4>Disk</h4>
-						</div>
-
-						<div class="col">
-							<h4>Health</h4>
-						</div>
-					</div>
-					<div class="row" v-if="allDataReady">
-						<div class="col">
-							{{ cluster.data.cpuRequested }} (avg. load {{ cluster.data.averageLoad1m }})
-						</div>
-						<div class="col">
-							{{ cluster.data.memoryRequested }}
-						</div>
-						<div class="col">
-							{{ cluster.data.diskUsed }} / {{ cluster.data.diskFound }}
-						</div>
-						<div class="col">
-							{{ pods.data.podsReady }} / {{ pods.data.pods.length }}
-						</div>
-					</div>
-				</div>
-
-				<div class="form">
-					<router-link :to="'/crd/edit/cluster/'+$route.params.namespace+'/'+$route.params.name" class="btn">Edit Cluster</router-link> <button v-on:click="deleteCluster" class="border">Delete Cluster</button>
-				</div>
+				<table class="clusterConfig">
+					<thead>
+						<th>Storage Class</th>
+						<th>Postgres Configuration</th>
+						<th>Connection Pooling</th>
+						<th>Conn. Pooling. Configuration</th>
+						<th>
+							<template v-if="(typeof cluster.data.spec.backupConfig !== 'undefined')">
+								Automatic Backups Configuration
+							</template>
+							<template v-else>
+								Automatic Backups
+							</template>
+						</th>
+					</thead>
+					<tbody>
+						<tr>
+							<td>
+								<template v-if="(typeof cluster.data.spec.storageClass !== 'undefined')">
+									{{ cluster.data.spec.storageClass }}
+								</template>
+								<template v-else>
+									–
+								</template>
+							</td>
+							<td>
+								{{ cluster.data.spec.pgConfig }}
+							</td>
+							<td>
+								<template v-if="(typeof cluster.data.spec.connectionPoolingConfig !== 'undefined')">
+									ON
+								</template>
+								<template v-else>
+									OFF
+								</template>
+							</td>
+							<td>
+								<template v-if="(typeof cluster.data.spec.connectionPoolingConfig !== 'undefined')">
+									{{ cluster.data.spec.connectionPoolingConfig }}
+								</template>
+							</td>
+							<td>
+								<template v-if="(typeof cluster.data.spec.backupConfig !== 'undefined')">
+									{{ cluster.data.spec.backupConfig }}
+								</template>
+								<template v-else>
+									OFF
+								</template>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+				<table class="clusterConfig">
+					<thead>
+						<th>Prometheus Autobind</th>
+						<th>Disable Cluster Pod Anti-Affinity</th>
+						<th></th>
+						<th></th>
+						<th></th>
+					</thead>
+					<tbody>
+						<tr>
+							<td>
+								<template v-if="(typeof cluster.data.spec.prometheusAutobind !== 'undefined')">
+									ON
+								</template>
+								<template v-else>
+									OFF
+								</template>
+							</td>
+							<td>
+								<template v-if="(typeof cluster.data.spec.nonProduction !== 'undefined' && typeof cluster.data.spec.nonProduction.disableClusterPodAntiAffinity !== 'undefined')">
+									ON
+								</template>
+								<template v-else>
+									OFF
+								</template>
+							</td>
+							<td></td>
+							<td></td>
+							<td></td>
+						</tr>
+					</tbody>
+				</table>
 			</div>
 		</div>`,
 	data: function() {
 		return {
-	      dataReady: [ false, false ],
-	      allDataReady: false,
-		  polling: null,
-		  name: '',
-		  namespace: ''
+	     
 	    }
 	},
 	methods: {
 		
-		fetchAPI: function() {
-			vc = this;
-
-			/*store.commit('setCurrentCluster', vm.$route.params.name);
-			console.log("Current cluster: "+store.state.currentCluster)*/
-
-			/* Clusters Data */
-		    axios
-		    .get(apiURL+'cluster/status/'+vm.$route.params.namespace+'/'+vm.$route.params.name,
-		    	{ headers: {
-		            'content-type': 'application/json'
-		          }
-		        }
-	      	)
-	      	.then( function(response){
-
-				const c = store.state.clusters.find(function(e){
-					return e.name == vm.$route.params.name
-				});
-
-	        	store.commit('setCurrentCluster', { 
-	              	name: vm.$route.params.name,
-					data: response.data,
-					spec: c.data.spec,
-					metadata: c.data.metadata
-					
-              	});
-
-	        	vc.dataReady[0] = true;
-	        	vc.allDataReady = vc.dataReady[0] && vc.dataReady[1];
-	      	});
-
-			/* Pods Data */
-		    axios
-		    .get(apiURL+'cluster/pods/'+vm.$route.params.namespace+'/'+vm.$route.params.name,
-		    	{ headers: {
-		            'content-type': 'application/json'
-		          }
-		        }
-	      	)
-	      	.then( function(response){
-
-	        	store.commit('setCurrentPods', { 
-	              	name: vm.$route.params.name,
-	              	data: response.data
-              	});
-
-	        	vc.dataReady[1] = true;
-	        	vc.allDataReady = vc.dataReady[0] && vc.dataReady[1];
-	      	});
-		},
-
-		deleteCluster: function(e) {
-			//e.preventDefault();
-
-			let confirmDelete = confirm("DELETE ITEM\nAre you sure you want to delete this item?")
-
-			if(confirmDelete) {
-				const cl = {
-					name: this.name,
-					namespace: this.namespace
-				}
-	
-				const res = axios
-				.delete(
-					apiURL+'cluster/', 
-					{
-						data: {
-							"metadata": {
-								"name": cl.name,
-								"namespace": cl.namespace
-							}
-						}
-					}
-				)
-				.then(function (response) {
-					console.log("DELETED");
-					//console.log(response);
-					notify('Cluster <strong>'+vm.$route.params.name+'</strong> deleted successfully', 'message');
-					vm.fetchAPI();
-					router.push('/overview/'+store.state.currentNamespace);                        
-				})
-				.catch(function (error) {
-					console.log(error.response);
-					notify(error.response.data.message,'error');
-				});
-			}
-
-		}	
 
 	},
 	created: function() {
-
-		if ( (store.state.currentCluster.length > 0) && (store.state.currentCluster.name == vm.$route.params.name) ) {
-			this.dataReady = true;
-		}
-
-		this.name = vm.$route.params.name;
-		this.namespace = vm.$route.params.namespace;
 		
 	},
 	mounted: function() {
 
-		var count = 0;
-
-		this.fetchAPI();
-	    
-	    this.polling = setInterval( function(){
-	    	//count++;
-	      	this.fetchAPI();
-
-	      	//console.log("Interval run #"+count);
-
-	    }.bind(this), 5000);
-		
-		$(".set.clu").addClass("active");
 	},
 	computed: {
 
@@ -203,16 +163,19 @@ var ClusterInfo = Vue.component("cluster-info", {
 			//console.log(store.state.currentCluster);
 			return store.state.currentCluster
 		},
-		pods () {
-			//console.log(store.state.currentPods);
-			return store.state.currentPods
-		},
+
 		currentNamespace () {
 			return store.state.currentNamespace
 		},
+
+		profile () {
+			
+			let profile = store.state.profiles.find(p => ( (store.state.currentNamespace == p.data.metadata.namespace) && (store.state.currentCluster.data.spec.resourceProfile == p.name) ) );
+			return profile
+		}
 	},
 	beforeDestroy () {
-		clearInterval(this.polling);
+		//clearInterval(this.polling);
 		//console.log('Interval cleared');
 	} 
 })
