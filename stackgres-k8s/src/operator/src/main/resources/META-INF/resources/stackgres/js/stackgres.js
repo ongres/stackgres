@@ -131,15 +131,22 @@ const router = new VueRouter({
       },
     },
     { 
-      path: '/cluster/configuration/:namespace/:name', 
+      path: '/:cluster/configuration/:namespace/:name', 
       component: ClusterInfo,
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/cluster/status/:namespace/:name', 
+      path: '/:cluster/status/:namespace/:name', 
       component: ClusterStatus,
+      meta: {
+        conditionalRoute: false
+      },
+    },
+    { 
+      path: '/:cluster/backups/:namespace/:name', 
+      component: Backups,
       meta: {
         conditionalRoute: false
       },
@@ -243,24 +250,41 @@ const router = new VueRouter({
 router.replace({ path: '', redirect: '/'});
 
 router.beforeEach((to, from, next) => { 
-    if (to.matched.some(record => record.meta.conditionalRoute)) { 
-        // this route requires condition to be accessed
-        // if not, redirect to home page.
-        //var nav = document.getElementById("nav"); 
 
-        //console.log(to);
+  // If entering a Cluster, setup as current
+  //console.log(to);
+  if ( to.params.cluster === "cluster" ) {
 
-        if (store.state.currentCluster == {} && ( from.path.includes("profiles") || from.path.includes("configurations") ) && (to.path != ('/configuration/'+to.params.name)) ) { 
-            next({ path: '/'}) 
-        } else { 
-            next() 
-        } 
-    } else { 
-        next() // make sure to always call next()! 
-    } 
+    let cluster = store.state.clusters.find(c => ( (to.params.name == c.name) && (to.params.namespace == c.data.metadata.namespace) ) );
+    
+    if ( typeof cluster !== "undefined" ) {
+      
+      let backups = store.state.backups.find(b => ( (to.params.name == b.data.spec.cluster) && (to.params.namespace == b.data.metadata.namespace) ) );
+      
+      if ( typeof backups !== "undefined" )
+        cluster.hasBackups = true; // Enable/Disable Backups button
 
-    // Enabling active pointers on every route
-    console.log(to);
+      store.commit('setCurrentCluster', cluster);
+    }  
+    
+  }
+
+  if (to.matched.some(record => record.meta.conditionalRoute)) { 
+      // this route requires condition to be accessed
+      // if not, redirect to home page.
+      //var nav = document.getElementById("nav"); 
+
+      //console.log(to);
+
+      if (store.state.currentCluster == {} && ( from.path.includes("profiles") || from.path.includes("configurations") ) && (to.path != ('/configuration/'+to.params.name)) ) { 
+          next({ path: '/'}) 
+      } else { 
+          next() 
+      } 
+  } else { 
+      next() // make sure to always call next()! 
+  } 
+    
 });
 
 const store = new Vuex.Store({
@@ -311,25 +335,9 @@ const store = new Vuex.Store({
     },
 
     setCurrentCluster (state, cluster) {
+
       state.currentCluster = cluster;
       
-      // Enable/Disable Graffana button
-      /* if (cluster.data.grafanaEmbedded) {
-        $("#grafana-btn").css("display","block");
-      } else {
-        $("#grafana-btn").css("display","none");
-      } */
-
-      let index = state.backups.find(p => (cluster.name == p.data.spec.cluster) );
-
-      // Enable/Disable Backups button
-      if ( typeof index !== "undefined" ) {
-        $("#backup-btn").css("display","block");
-      } else {
-        $("#backup-btn").css("display","none");
-      }
-
-      //Object.assign(state.currentCluster, cluster);
     },
 
     setCurrentPods (state, pods) {
@@ -617,6 +625,7 @@ const vm = new Vue({
             var cluster = {
               name: item.metadata.name,
               data: item,
+              hasBackups: false,
               status: {},
             };
             
@@ -867,6 +876,12 @@ const vm = new Vue({
         
       });
 
+
+      // Check if current cluster has backups
+      let currentClusterBackups = store.state.backups.find(b => ( (store.state.currentCluster.name == b.data.spec.cluster) && (store.state.currentCluster.data.metadata.namespace == b.data.metadata.namespace) ) );
+        
+      if ( typeof currentClusterBackups !== "undefined" )
+        store.state.currentCluster.hasBackups = true; // Enable/Disable Backups button
 
 
       setTimeout(function(){
@@ -1413,7 +1428,7 @@ $(document).ready(function(){
     $(this).prop("disabled","disabled")
   });
 
-  $(document).on("click", "#current-namespace h2 > strong", function(){
+  $(document).on("click", "#current-namespace h2 > strong, #ns-select a", function(){
     $("#current-namespace").toggleClass("open");
     $("#ns-select").slideToggle();    
   });
@@ -1426,6 +1441,10 @@ $(document).ready(function(){
   $("#reload").click(function(){
     vm.fetchAPI();
     $(this).addClass("active");
+  });
+
+  $(document).on("click","[data-active]", function(){
+    $($(this).data("active")).addClass("active");
   });
 
 });
