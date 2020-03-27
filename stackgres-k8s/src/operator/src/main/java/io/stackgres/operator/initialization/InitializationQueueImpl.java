@@ -105,7 +105,7 @@ public class InitializationQueueImpl implements InitializationQueue {
         scheduler.shutdown();
         return;
       }
-      if (attempts >= 5) {
+      if (attempts >= 5 && !operatorIP.equals(LOCALHOST)) {
         LOGGER.error("Couldn't complete the initialization phase after 5 attemps.  "
             + "Shutting down...");
         new Thread(() -> Application.currentApplication().stop()).start();
