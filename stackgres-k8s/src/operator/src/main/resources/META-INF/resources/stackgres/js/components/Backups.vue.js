@@ -30,7 +30,7 @@ var Backups = Vue.component("sg-backup", {
 					<li v-if="currentCluster.hasBackups">
 						<router-link :to="'/cluster/backups/'+$route.params.namespace+'/'+$route.params.name" title="Backups" class="backups">Backups</router-link>
 					</li>
-					<li v-if="currentCluster.data.graffanaEmbedded">
+					<li v-if="currentCluster.data.grafanaEmbedded">
 						<router-link id="grafana-btn" :to="'/monitor/'+$route.params.namespace+'/'+$route.params.name" title="Grafana Dashboard" class="grafana">Monitoring</router-link>
 					</li>
 				</ul>
@@ -449,16 +449,6 @@ var Backups = Vue.component("sg-backup", {
 
 	},
 	methods: {
-		
-		sort: function(s) {
-			
-			//if s == current sort, reverse
-			if(s === this.currentSort) {
-			  this.currentSortDir = this.currentSortDir==='asc'?'desc':'asc';
-			}
-			this.currentSort = s;
-
-		},
 
 		deleteBackup: function(backupName, backupNamespace) {
 			//e.preventDefault();
