@@ -115,7 +115,7 @@ class PostgresVersionValidatorTest {
         .readFromJson("cluster_allow_requests/valid_creation.json", StackGresClusterReview.class);
 
     StackGresClusterSpec spec = review.getRequest().getObject().getSpec();
-    String postgresProfile = spec.getPostgresConfig();
+    String postgresProfile = spec.getConfigurations().getPostgresConfig();
 
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
@@ -139,7 +139,7 @@ class PostgresVersionValidatorTest {
 
     StackGresClusterSpec spec = review.getRequest().getObject().getSpec();
     spec.setPostgresVersion(getMajorPostgresVersion(getRandomPostgresVersion()));
-    String postgresProfile = spec.getPostgresConfig();
+    String postgresProfile = spec.getConfigurations().getPostgresConfig();
 
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
@@ -163,7 +163,7 @@ class PostgresVersionValidatorTest {
 
     StackGresClusterSpec spec = review.getRequest().getObject().getSpec();
     spec.setPostgresVersion(StackGresComponents.LATEST);
-    String postgresProfile = spec.getPostgresConfig();
+    String postgresProfile = spec.getConfigurations().getPostgresConfig();
 
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
@@ -187,7 +187,7 @@ class PostgresVersionValidatorTest {
             StackGresClusterReview.class);
 
     StackGresClusterSpec spec = review.getRequest().getObject().getSpec();
-    String postgresProfile = spec.getPostgresConfig();
+    String postgresProfile = spec.getConfigurations().getPostgresConfig();
 
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
@@ -205,7 +205,7 @@ class PostgresVersionValidatorTest {
             StackGresClusterReview.class);
 
     StackGresClusterSpec spec = review.getRequest().getObject().getSpec();
-    String postgresProfile = spec.getPostgresConfig();
+    String postgresProfile = spec.getConfigurations().getPostgresConfig();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
     when(configFinder.findByNameAndNamespace(eq(postgresProfile), eq(namespace)))
@@ -306,7 +306,7 @@ class PostgresVersionValidatorTest {
         .readFromJson("cluster_allow_requests/valid_creation.json", StackGresClusterReview.class);
 
     StackGresClusterSpec spec = review.getRequest().getObject().getSpec();
-    String postgresProfile = spec.getPostgresConfig();
+    String postgresProfile = spec.getConfigurations().getPostgresConfig();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
     when(configFinder.findByNameAndNamespace(eq(postgresProfile), eq(namespace)))
@@ -330,7 +330,7 @@ class PostgresVersionValidatorTest {
         .readFromJson("cluster_allow_requests/valid_creation.json", StackGresClusterReview.class);
 
     StackGresClusterSpec spec = review.getRequest().getObject().getSpec();
-    spec.setPostgresConfig("");
+    spec.getConfigurations().setPostgresConfig("");
 
     ValidationFailed exception = assertThrows(ValidationFailed.class, () -> {
       validator.validate(review);
@@ -350,7 +350,7 @@ class PostgresVersionValidatorTest {
         .readFromJson("cluster_allow_requests/valid_creation.json", StackGresClusterReview.class);
 
     StackGresClusterSpec spec = review.getRequest().getObject().getSpec();
-    spec.setPostgresConfig(null);
+    spec.getConfigurations().setPostgresConfig(null);
 
     ValidationFailed exception = assertThrows(ValidationFailed.class, () -> {
       validator.validate(review);
@@ -371,7 +371,7 @@ class PostgresVersionValidatorTest {
             StackGresClusterReview.class);
 
     StackGresClusterSpec spec = review.getRequest().getObject().getSpec();
-    String postgresProfile = spec.getPostgresConfig();
+    String postgresProfile = spec.getConfigurations().getPostgresConfig();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
     review.getRequest().getObject().getSpec().setPostgresVersion(getRandomPostgresVersion());
 

@@ -11,10 +11,12 @@
       "uid": "02eb2f60-b428-4ec4-88f0-989df44f3407"
   },
   "spec": {
-      "sgPoolingConfig": "pgbouncerconf",
       "instances": 1,
-      "sgPostgresConfig": "postgresconf",
       "postgresVersion": 11.5,
+      "configurations": {
+        "sgPostgresConfig": "postgresconf",
+        "sgPoolingConfig": "pgbouncerconf"
+      },
       "sgInstanceProfile": "size-xs",
       "sidecars": [
           "connection-pooling",

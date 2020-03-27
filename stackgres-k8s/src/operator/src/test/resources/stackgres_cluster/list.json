@@ -14,16 +14,18 @@
         "uid": "bfb53778-f59a-11e9-b1b5-0242ac110002"
       },
       "spec": {
-        "sgPoolingConfig": "pgbouncerconf",
         "instances": 1,
-        "sgPostgresConfig": "postgresconf",
         "postgresVersion": "11.5",
+        "configurations": {
+          "sgPostgresConfig": "postgresconf",
+          "sgPoolingConfig": "pgbouncerconf",
+          "sgBackupConfig": "backupconf"
+        },
         "prometheusAutobind": true,
         "sgInstanceProfile": "size-xs",
         "restore": {
           "fromBackup": "d7e660a9-377c-11ea-b04b-0242ac110004"
         },
-        "sgBackupConfig": "backupconf",
         "sidecars": [
           "connection-pooling",
           "postgres-util",

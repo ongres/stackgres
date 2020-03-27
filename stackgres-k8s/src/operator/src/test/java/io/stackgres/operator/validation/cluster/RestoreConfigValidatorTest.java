@@ -79,7 +79,7 @@ class RestoreConfigValidatorTest {
   }
 
   @Test
-  void givenACreationWithBackupFromDifferentPgVersion_shouldFail() throws ValidationFailed {
+  void givenACreationWithBackupFromDifferentPgVersion_shouldFail() {
 
     final StackGresClusterReview review = getCreationReview();
     String stackgresBackup = review.getRequest()

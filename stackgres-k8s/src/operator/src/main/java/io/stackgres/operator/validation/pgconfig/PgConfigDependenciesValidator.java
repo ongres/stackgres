@@ -21,7 +21,7 @@ public class PgConfigDependenciesValidator extends DependenciesValidator<PgConfi
 
   @Override
   public void validate(PgConfigReview review, StackGresCluster i) throws ValidationFailed {
-    if (review.getRequest().getName().equals(i.getSpec().getPostgresConfig())) {
+    if (review.getRequest().getName().equals(i.getSpec().getConfigurations().getPostgresConfig())) {
       fail(review, i);
     }
   }

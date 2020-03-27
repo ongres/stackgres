@@ -38,7 +38,7 @@ public class DefaultPgBouncerMutator
 
   @Override
   protected String getTargetPropertyValue(StackGresCluster targetCluster) {
-    return targetCluster.getSpec().getConnectionPoolingConfig();
+    return targetCluster.getSpec().getConfigurations().getConnectionPoolingConfig();
   }
 
   @Override
@@ -51,5 +51,10 @@ public class DefaultPgBouncerMutator
   @Override
   protected JsonPointer getTargetPointer() throws NoSuchFieldException {
     return getTargetPointer("connectionPoolingConfig");
+  }
+
+  @Override
+  public JsonPointer getTargetPointer(String field) throws NoSuchFieldException {
+    return ClusterConfigurationMutator.getTargetPointer(field);
   }
 }

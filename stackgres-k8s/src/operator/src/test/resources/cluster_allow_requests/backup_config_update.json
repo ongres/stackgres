@@ -49,10 +49,12 @@
       "spec": {
         "instances": 1,
         "postgresVersion": "11.4",
-        "sgPostgresConfig": "postgresconf",
         "sgInstanceProfile": "size-xs",
-        "sgBackupConfig": "newbackupconf",
-        "sgPoolingConfig": "pgbouncerconf",
+        "configurations": {
+          "sgPostgresConfig": "postgresconf",
+          "sgPoolingConfig": "pgbouncerconf",
+          "sgBackupConfig": "newbackupconf"
+        },
         "volumeSize": "5Gi",
         "storageClass": "standard",
         "sidecars": [
@@ -76,10 +78,12 @@
       "spec": {
         "instances": 1,
         "postgresVersion": "11.3",
-        "sgPostgresConfig": "postgresconf",
         "sgInstanceProfile": "size-xs",
-        "sgBackupConfig": "backupconf",
-        "sgPoolingConfig": "pgbouncerconf",
+        "configurations": {
+          "sgPostgresConfig": "postgresconf",
+          "sgPoolingConfig": "pgbouncerconf",
+          "sgBackupConfig": "backupconf"
+        },
         "volumeSize": "5Gi",
         "storageClass": "standard",
         "sidecars": [

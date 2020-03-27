@@ -149,7 +149,7 @@ create_empty_cluster_with_default_pgbouncer() {
 
 EOF
   
-  local CREATED_PGBOUNCER=$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-reused" -o=jsonpath={.spec.sgPoolingConfig})
+  local CREATED_PGBOUNCER=$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-reused" -o=jsonpath={.spec.configurations.sgPoolingConfig})
 
   if kubectl get sgpoolconfigs.stackgres.io -n $OPERATOR_NAMESPACE $CREATED_PGBOUNCER
   then

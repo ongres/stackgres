@@ -10,12 +10,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import javax.inject.Singleton;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.ConfigMapVolumeSourceBuilder;
@@ -44,7 +42,6 @@ import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbounc
 import io.stackgres.operator.sidecars.pgbouncer.parameters.Blacklist;
 import io.stackgres.operator.sidecars.pgbouncer.parameters.DefaultValues;
 import io.stackgres.operatorframework.resource.ResourceUtil;
-
 import org.jooq.lambda.Seq;
 
 @Sidecar("connection-pooling")
@@ -126,12 +123,12 @@ public class PgBouncer
             DEFAULT_VERSION, StackGresUtil.CONTAINER_BUILD))
         .withImagePullPolicy("Always")
         .withVolumeMounts(ClusterStatefulSetVolumeConfig.SOCKET
-            .volumeMount(context.getClusterContext()),
+                .volumeMount(context.getClusterContext()),
             new VolumeMountBuilder()
-            .withName(NAME)
-            .withMountPath("/etc/pgbouncer")
-            .withReadOnly(Boolean.TRUE)
-            .build());
+                .withName(NAME)
+                .withMountPath("/etc/pgbouncer")
+                .withReadOnly(Boolean.TRUE)
+                .build());
 
     return container.build();
   }
@@ -149,9 +146,10 @@ public class PgBouncer
 
   @Override
   public Optional<StackGresPgbouncerConfig> getConfig(StackGresCluster cluster,
-      KubernetesClient client) throws Exception {
+                                                      KubernetesClient client) throws Exception {
     final String namespace = cluster.getMetadata().getNamespace();
-    final String pgbouncerConfig = cluster.getSpec().getConnectionPoolingConfig();
+    final String pgbouncerConfig = cluster.getSpec()
+        .getConfigurations().getConnectionPoolingConfig();
     if (pgbouncerConfig != null) {
       Optional<CustomResourceDefinition> crd =
           ResourceUtil.getCustomResource(client, StackGresPgbouncerConfigDefinition.NAME);

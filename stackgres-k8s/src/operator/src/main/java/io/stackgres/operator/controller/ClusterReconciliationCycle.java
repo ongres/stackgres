@@ -228,7 +228,7 @@ public class ClusterReconciliationCycle
   private Optional<StackGresPostgresConfig> getPostgresConfig(StackGresCluster cluster,
       KubernetesClient client) {
     final String namespace = cluster.getMetadata().getNamespace();
-    final String pgConfig = cluster.getSpec().getPostgresConfig();
+    final String pgConfig = cluster.getSpec().getConfigurations().getPostgresConfig();
     if (pgConfig != null) {
       Optional<CustomResourceDefinition> crd =
           ResourceUtil.getCustomResource(client, StackGresPostgresConfigDefinition.NAME);
@@ -249,7 +249,7 @@ public class ClusterReconciliationCycle
   private Optional<StackGresBackupContext> getBackupContext(StackGresCluster cluster,
       KubernetesClient client) {
     final String namespace = cluster.getMetadata().getNamespace();
-    final String backupConfig = cluster.getSpec().getBackupConfig();
+    final String backupConfig = cluster.getSpec().getConfigurations().getBackupConfig();
     if (backupConfig != null) {
       return ResourceUtil.getCustomResource(client, StackGresBackupConfigDefinition.NAME)
           .map(crd -> client

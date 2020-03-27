@@ -11,12 +11,13 @@ metadata:
 spec:
   instances: {{ .Values.cluster.instances }}
   postgresVersion: '{{ .Values.config.postgresql.version }}'
-  sgPostgresConfig: '{{ .Values.cluster.pgconfig }}'
-  sgPoolingConfig: '{{ .Values.cluster.poolingconfig }}'
+  configurations: 
+    sgPostgresConfig: '{{ .Values.cluster.pgconfig }}'
+    sgPoolingConfig: '{{ .Values.cluster.poolingconfig }}'
+    {{- if .Values.cluster.backupconfig }}
+    sgBackupConfig: '{{ .Values.cluster.backupconfig }}'
+    {{- end }}
   sgInstanceProfile: '{{ .Values.cluster.profile }}'
-  {{- if .Values.cluster.backupconfig }}
-  sgBackupConfig: '{{ .Values.cluster.backupconfig }}'
-  {{- end }}
   {{- if .Values.cluster.restore }}
   restore:
     fromBackup: {{ .Values.cluster.restore.fromBackup }}

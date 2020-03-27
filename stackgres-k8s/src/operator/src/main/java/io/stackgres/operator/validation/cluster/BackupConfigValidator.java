@@ -37,7 +37,7 @@ public class BackupConfigValidator implements ClusterValidator {
   public void validate(StackGresClusterReview review) throws ValidationFailed {
 
     StackGresCluster cluster = review.getRequest().getObject();
-    String backupConfig = cluster.getSpec().getBackupConfig();
+    String backupConfig = cluster.getSpec().getConfigurations().getBackupConfig();
 
     switch (review.getRequest().getOperation()) {
       case CREATE:
@@ -57,7 +57,7 @@ public class BackupConfigValidator implements ClusterValidator {
                                          String onError) throws ValidationFailed {
 
     StackGresCluster cluster = review.getRequest().getObject();
-    String backupConfig = cluster.getSpec().getBackupConfig();
+    String backupConfig = cluster.getSpec().getConfigurations().getBackupConfig();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
     if (backupConfig != null) {

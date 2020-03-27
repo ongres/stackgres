@@ -9,7 +9,6 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import com.github.fge.jackson.jsonpointer.JsonPointer;
-
 import io.stackgres.operator.common.ArcUtil;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfig;
@@ -37,7 +36,7 @@ public class DefaultPostgresMutator
 
   @Override
   protected String getTargetPropertyValue(StackGresCluster targetCluster) {
-    return targetCluster.getSpec().getPostgresConfig();
+    return targetCluster.getSpec().getConfigurations().getPostgresConfig();
   }
 
   @Override
@@ -45,4 +44,8 @@ public class DefaultPostgresMutator
     return getTargetPointer("postgresConfig");
   }
 
+  @Override
+  public JsonPointer getTargetPointer(String field) throws NoSuchFieldException {
+    return ClusterConfigurationMutator.getTargetPointer(field);
+  }
 }

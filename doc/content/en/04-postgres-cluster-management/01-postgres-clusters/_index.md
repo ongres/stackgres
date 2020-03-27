@@ -21,12 +21,10 @@ ___
 | Property                                                                                                                                | Required | Updatable | Type     | Default                             | Description |
 |:----------------------------------------------------------------------------------------------------------------------------------------|----------|-----------|:---------|:------------------------------------|:------------|
 | instances                                                                                                                               | ✓        | ✓         | integer  |                                     | Number of instances to be created (for example 1) |
-|                                                                                                                                | ✓        | ✓         | string   |                                     | PostgreSQL version for the new cluster (for example 11.6) |
+| postgresVersion                                                                                                                         | ✓        | ✓         | string   |                                     | PostgreSQL version for the new cluster (for example 11.6) |
 | volumeSize                                                                                                                              | ✓        | ✓         | string   |                                     | Storage volume size (for example 5Gi) |
 | storageClass                                                                                                                            |          |           | string   | default storage class               | Storage class name to be used for the cluster (if not specified means default storage class wiil be used) |
-| [sgPostgresConfig]({{% relref "/04-postgres-cluster-management/02-configuration-tuning/02-postgres-configuration" %}})                          |          |           | string   | defaultpgconfig                     | PostgreSQL configuration to apply |
-| [sgPoolingConfig]({{% relref "/04-postgres-cluster-management/02-configuration-tuning/03-connection-pooling-configuration" %}}) |          |           | string   | defaultpgbouncer                    | Pooling configuration to apply |
-| [sgInstanceProfile]({{% relref "/04-postgres-cluster-management/03-resource-profiles" %}})                                                |          |           | string   | defaultprofile                      | Resource profile size to apply |
+| [configurations](#configurations)                                                                                                       |          |           | object   |                                     | Custom configurations to be applied to the cluster |
 | [sidecars](#sidecar-containers)                                                                                                         |          | ✓         | array    | all available sidecars are included | List of sidecars to include in the cluster |
 | prometheusAutobind                                                                                                                      |          | ✓         | boolean  | false                               | If enabled a ServiceMonitor will be created for each Prometheus instance found in order to collect metrics |
 | [sgBackupConfig]({{% relref "/04-postgres-cluster-management/04-backups/_index.md#configuration" %}})                                     |          | ✓         | string   |                                     | Backup config to apply |
@@ -50,6 +48,31 @@ spec:
   sgBackupConfig: 'backupconf'
 ```
 
+## Configurations
+
+Custom configurations to be applied to the cluster.
+
+| Property                                                                                                                                | Required | Updatable | Type     | Default                             | Description |
+|:----------------------------------------------------------------------------------------------------------------------------------------|----------|-----------|:---------|:------------------------------------|:------------|
+| [sgPostgresConfig]({{% relref "/04-postgres-cluster-management/02-configuration-tuning/02-postgres-configuration" %}})                  |          |           | string   | defaultpgconfig                     | PostgreSQL configuration to apply |
+| [sgPoolingConfig]({{% relref "/04-postgres-cluster-management/02-configuration-tuning/03-connection-pooling-configuration" %}})         |          |           | string   | defaultpgbouncer                    | Pooling configuration to apply |
+| [sgInstanceProfile]({{% relref "/04-postgres-cluster-management/03-resource-profiles" %}})                                              |          |           | string   | defaultprofile                      | Resource profile size to apply |
+
+Example: 
+
+``` yaml
+
+apiVersion: stackgres.io/v1beta1
+kind: SGCluster
+metadata:
+  name: stackgres
+spec:
+  configurations:
+    sgPostgresConfig: 'postgresconf'
+    sgPoolingConfig: 'pgbouncerconf'
+    sgBackupConfig: 'backupconf'
+
+```
 ## Sidecar containers
 
 A sidecar container is a container that adds functionality to PostgreSQL or to the cluster

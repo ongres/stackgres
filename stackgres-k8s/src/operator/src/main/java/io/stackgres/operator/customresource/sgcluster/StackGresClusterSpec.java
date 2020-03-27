@@ -6,6 +6,7 @@
 package io.stackgres.operator.customresource.sgcluster;
 
 import java.util.List;
+import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
@@ -33,19 +34,14 @@ public class StackGresClusterSpec implements KubernetesResource {
   @NotBlank(message = "PostgreSQL version is required")
   private String postgresVersion;
 
-  @JsonProperty("sgPostgresConfig")
-  @NotBlank(message = "You need to associate a Postgres configuration to this cluster")
-  private String postgresConfig;
+  @JsonProperty("configurations")
+  @Valid
+  @NotNull(message = "cluster configuration cannot be null")
+  private StackgresClusterConfiguration configurations;
 
   @JsonProperty("sgInstanceProfile")
   @NotNull(message = "resource profile must not be null")
   private String resourceProfile;
-
-  @JsonProperty("sgPoolingConfig")
-  private String connectionPoolingConfig;
-
-  @JsonProperty("sgBackupConfig")
-  private String backupConfig;
 
   @JsonProperty("restore")
   private ClusterRestore restore;
@@ -84,12 +80,12 @@ public class StackGresClusterSpec implements KubernetesResource {
     this.postgresVersion = postgresVersion;
   }
 
-  public String getPostgresConfig() {
-    return postgresConfig;
+  public StackgresClusterConfiguration getConfigurations() {
+    return configurations;
   }
 
-  public void setPostgresConfig(String postgresConfig) {
-    this.postgresConfig = postgresConfig;
+  public void setConfigurations(StackgresClusterConfiguration configurations) {
+    this.configurations = configurations;
   }
 
   public String getResourceProfile() {
@@ -98,22 +94,6 @@ public class StackGresClusterSpec implements KubernetesResource {
 
   public void setResourceProfile(String resourceProfile) {
     this.resourceProfile = resourceProfile;
-  }
-
-  public String getConnectionPoolingConfig() {
-    return connectionPoolingConfig;
-  }
-
-  public void setConnectionPoolingConfig(String connectionPoolingConfig) {
-    this.connectionPoolingConfig = connectionPoolingConfig;
-  }
-
-  public String getBackupConfig() {
-    return backupConfig;
-  }
-
-  public void setBackupConfig(String backupConfig) {
-    this.backupConfig = backupConfig;
   }
 
   public ClusterRestore getRestore() {
@@ -170,10 +150,8 @@ public class StackGresClusterSpec implements KubernetesResource {
         .omitNullValues()
         .add("instances", instances)
         .add("pgVersion", postgresVersion)
-        .add("pgConfig", postgresConfig)
+        .add("configurations", getConfigurations())
         .add("resourceProfile", resourceProfile)
-        .add("connectionPoolingConfig", connectionPoolingConfig)
-        .add("backupConfig", backupConfig)
         .add("restore", restore)
         .add("volumeSize", volumeSize)
         .add("storageClass", storageClass)

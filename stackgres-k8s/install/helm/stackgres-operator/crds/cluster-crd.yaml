@@ -72,29 +72,34 @@ spec:
               description: >
                 Name of an existing StorageClass in the K8s cluster, that will be used to create the PersistentVolumes
                 for the instances of this cluster.
-            sgPostgresConfig:
-              type: string
-              description: >
-                Name of the
-                [StackGresPostgresConfig](https://stackgres.io/doc/latest/04-postgres-cluster-management/02-configuration-tuning/02-postgres-configuration/)
-                to use for this cluster. It must exist. If not set, a default Postgres config, for the major version
-                selected, will be used.
-            sgPoolingConfig:
-              type: string
-              description: >
-                Name of the
-                [SGPoolingConfig](https://stackgres.io/doc/latest/04-postgres-cluster-management/02-configuration-tuning/03-connection-pooling-configuration/)
-                to use for this cluster. Each pod contains a sidecar with a connection pooler
-                (currently: [PgBouncer](https://www.pgbouncer.org/)). The connection pooler is implemented as a sidecar.
-                If not selected, a default configuration will be used. Note that you may disable connection pooling
-                altogether by not including the `pgbouncer` element in the `sidecars` property of the cluster.
-            sgBackupConfig:
-              type: string
-              description: >
-                Name of the
-                [SGBackupConfig](https://stackgres.io/doc/latest/04-postgres-cluster-management/04-backups/)
-                to use for this cluster. This will define the backups policy, storage and retention, among others, to
-                apply to this cluster. If not set, a default backup config will be used.
+            configurations:
+              type: object
+              description: > 
+                Custom configuration to be applied to the cluster.
+              properties:
+                sgPostgresConfig:
+                  type: string
+                  description: >
+                    Name of the
+                    [SGPostgresConfig](https://stackgres.io/doc/latest/04-postgres-cluster-management/02-configuration-tuning/02-postgres-configuration/)
+                    to use for this cluster. It must exist. If not set, a default Postgres config, for the major version
+                    selected, will be used.
+                sgPoolingConfig:
+                  type: string
+                  description: >
+                    Name of the
+                    [SGPoolingConfig](https://stackgres.io/doc/latest/04-postgres-cluster-management/02-configuration-tuning/03-connection-pooling-configuration/)
+                    to use for this cluster. Each pod contains a sidecar with a connection pooler
+                    (currently: [PgBouncer](https://www.pgbouncer.org/)). The connection pooler is implemented as a sidecar.
+                    If not selected, a default configuration will be used. Note that you may disable connection pooling
+                    altogether by not including the `pgbouncer` element in the `sidecars` property of the cluster.
+                sgBackupConfig:
+                  type: string
+                  description: >
+                    Name of the
+                    [SGBackupConfig](https://stackgres.io/doc/latest/04-postgres-cluster-management/04-backups/)
+                    to use for this cluster. This will define the backups policy, storage and retention, among others, to
+                    apply to this cluster. If not set, a default backup config will be used.
             prometheusAutobind:
               type: boolean
               description: >

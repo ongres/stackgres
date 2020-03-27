@@ -107,7 +107,7 @@ spec:
 ```
 `cluster-cr.yaml` Custom resource for StackGres cluster
 
-```
+``` yaml
 apiVersion: stackgres.io/v1beta1
 kind: SGCluster
 metadata:
@@ -115,9 +115,10 @@ metadata:
 spec:
   instances: 1
   postgresVersion: '11.6'
-  sgPostgresConfig: 'postgresconf'
-  sgPoolingConfig: 'pgbouncerconf'
   sgInstanceProfile: 'size-xs'
+  configurations:
+    sgPostgresConfig: 'postgresconf'
+    sgPoolingConfig: 'pgbouncerconf'    
   volumeSize: '5Gi'
   postgresExporterVersion: '0.7.0'
   prometheusAutobind: true

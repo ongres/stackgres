@@ -15,6 +15,8 @@ import io.stackgres.operator.common.ConfigContext;
 import io.stackgres.operator.common.ConfigProperty;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.customresource.sgcluster.StackGresClusterSpec;
+import io.stackgres.operator.customresource.sgcluster.StackgresClusterConfiguration;
+import io.stackgres.operator.rest.dto.cluster.ClusterConfiguration;
 import io.stackgres.operator.rest.dto.cluster.ClusterDto;
 import io.stackgres.operator.rest.dto.cluster.ClusterRestore;
 import io.stackgres.operator.rest.dto.cluster.ClusterSpec;
@@ -69,12 +71,16 @@ public class ClusterTransformer
 
   public StackGresClusterSpec getCustomResourceSpec(ClusterSpec source) {
     StackGresClusterSpec transformation = new StackGresClusterSpec();
-    transformation.setBackupConfig(source.getBackupConfig());
-    transformation.setConnectionPoolingConfig(source.getConnectionPoolingConfig());
+    transformation.setConfigurations(new StackgresClusterConfiguration());
+    transformation.getConfigurations().setBackupConfig(
+        source.getConfigurations().getBackupConfig());
+    transformation.getConfigurations()
+        .setConnectionPoolingConfig(source.getConfigurations().getConnectionPoolingConfig());
     transformation.setInstances(source.getInstances());
     transformation.setNonProduction(
         getCustomResourceNonProduction(source.getNonProduction()));
-    transformation.setPostgresConfig(source.getPostgresConfig());
+    transformation.getConfigurations().setPostgresConfig(
+        source.getConfigurations().getPostgresConfig());
     transformation.setPostgresVersion(source.getPostgresVersion());
     transformation.setPrometheusAutobind(source.getPrometheusAutobind());
     transformation.setResourceProfile(source.getResourceProfile());
@@ -111,12 +117,16 @@ public class ClusterTransformer
 
   public ClusterSpec getResourceSpec(StackGresClusterSpec source) {
     ClusterSpec transformation = new ClusterSpec();
-    transformation.setBackupConfig(source.getBackupConfig());
-    transformation.setConnectionPoolingConfig(source.getConnectionPoolingConfig());
+    transformation.setConfigurations(new ClusterConfiguration());
+    transformation.getConfigurations().setBackupConfig(
+        source.getConfigurations().getBackupConfig());
+    transformation.getConfigurations().setConnectionPoolingConfig(source
+        .getConfigurations().getConnectionPoolingConfig());
     transformation.setInstances(source.getInstances());
     transformation.setNonProduction(
         getResourceNonProduction(source.getNonProduction()));
-    transformation.setPostgresConfig(source.getPostgresConfig());
+    transformation.getConfigurations().setPostgresConfig(
+        source.getConfigurations().getPostgresConfig());
     transformation.setPostgresVersion(source.getPostgresVersion());
     transformation.setPrometheusAutobind(source.getPrometheusAutobind());
     transformation.setResourceProfile(source.getResourceProfile());

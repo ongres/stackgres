@@ -14,11 +14,13 @@
     "spec": {
       "instances": 2,
       "postgresVersion": "11.6",
-      "sgPostgresConfig": "postgresconf",
       "postgresExporterVersion": "0.7.0",
       "sgInstanceProfile": "size-m-Z",
-      "sgPoolingConfig": "pgbouncerconf",
-      "sgBackupConfig": "backupconf",
+      "configurations": {
+        "sgPostgresConfig": "postgresconf",
+        "sgPoolingConfig": "pgbouncerconf",
+        "sgBackupConfig": "backupconf"
+      },      
       "volumeSize": "5Gi",
       "prometheusAutobind": true,
       "sidecars": [
@@ -44,11 +46,13 @@
     "spec": {
       "instances": 2,
       "postgresVersion": "11.6",
-      "sgPostgresConfig": "postgresconf",
+      "configurations": {
+        "sgPostgresConfig": "postgresconf",
+        "sgPoolingConfig": "pgbouncerconf",
+        "sgBackupConfig": "backupconf"
+      },
       "postgresExporterVersion": "0.7.0",
       "sgInstanceProfile": "size-xs",
-      "sgPoolingConfig": "pgbouncerconf",
-      "sgBackupConfig": "backupconf",
       "volumeSize": "5Gi",
       "prometheusAutobind": true,
       "sidecars": [
@@ -74,11 +78,13 @@
     "spec": {
       "instances": 2,
       "postgresVersion": "11.6",
-      "sgPostgresConfig": "postgresconf",
       "postgresExporterVersion": "0.7.0",
       "sgInstanceProfile": "size-s-Y",
-      "sgPoolingConfig": "pgbouncerconf",
-      "sgBackupConfig": "backupconf",
+      "configurations": {
+        "sgPostgresConfig": "postgresconf",
+        "sgPoolingConfig": "pgbouncerconf",
+        "sgBackupConfig": "backupconf"
+      },
       "volumeSize": "5Gi",
       "prometheusAutobind": true,
       "sidecars": [
@@ -104,11 +110,13 @@
     "spec": {
       "instances": 2,
       "postgresVersion": "11.6",
-      "sgPostgresConfig": "postgresconf",
       "postgresExporterVersion": "0.7.0",
       "sgInstanceProfile": "size-m-Z",
-      "sgPoolingConfig": "pgbouncerconf",
-      "sgBackupConfig": "backupconf",
+      "configurations": {
+        "sgPostgresConfig": "postgresconf",
+        "sgPoolingConfig": "pgbouncerconf",
+        "sgBackupConfig": "backupconf"
+      },
       "volumeSize": "5Gi",
       "prometheusAutobind": true,
       "sidecars": [

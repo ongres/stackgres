@@ -72,7 +72,9 @@ Supose that we are trying to create a StackGres cluster with the following json.
     "instances": 1,
     "postgresVersion": "11.6",
     "volumeSize": "5Gi",
-    "sgPostgresConfig": "postgresconf"
+    "configurations": {
+      "sgPostgresConfig": "postgresconf"
+    }
   }
 }
 ```
@@ -161,9 +163,7 @@ These properties are:
 
 * postgresVersion
 * volumeSize
-* sgPostgresConfig
-* sgPoolingConfig
-* sgInstanceProfile
+* configurations
 * storageClass
 * sidecars
 * restore
