@@ -97,7 +97,7 @@ spec:
   postgresVersion: '12.1'
   pods:
     persistentVolume:
-      volumeSize: '512Mi'
+      size: '512Mi'
   restore:
     downloadDiskConcurrency: 10
     fromBackup: "$BACKUP_UID"

@@ -27,7 +27,7 @@ spec:
   {{- end }}
   pods:
     persistentVolume:
-      volumeSize: '{{ .Values.cluster.volumeSize }}'
+      size: '{{ .Values.cluster.volumeSize }}'
   {{- if .Values.cluster.storageClass }}
   {{- if eq "-" .Values.cluster.storageClass }}
   storageClass: ""

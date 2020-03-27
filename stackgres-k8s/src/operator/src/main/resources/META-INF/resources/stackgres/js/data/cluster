@@ -23,7 +23,7 @@
       },      
       "pods":{
         "persistentVolume": {
-          "volumeSize": "5Gi"
+          "size": "5Gi"
         }
       },
       "prometheusAutobind": true,
@@ -59,7 +59,7 @@
       "sgInstanceProfile": "size-xs",
       "pods":{
         "persistentVolume": {
-          "volumeSize": "5Gi"
+          "size": "5Gi"
         }
       },
       "prometheusAutobind": true,
@@ -95,7 +95,7 @@
       },
       "pods":{
         "persistentVolume": {
-          "volumeSize": "5Gi"
+          "size": "5Gi"
         }
       },
       "prometheusAutobind": true,
@@ -131,7 +131,7 @@
       },
       "pods":{
         "persistentVolume": {
-          "volumeSize": "5Gi"
+          "size": "5Gi"
         }
       },
       "prometheusAutobind": true,

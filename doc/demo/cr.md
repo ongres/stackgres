@@ -121,7 +121,7 @@ spec:
     sgPoolingConfig: 'pgbouncerconf' 
   pods:
     persistentVolume:
-      volumeSize: '5Gi'
+      size: '5Gi'
   postgresExporterVersion: '0.7.0'
   prometheusAutobind: true
   sidecars:

@@ -73,7 +73,7 @@ Supose that we are trying to create a StackGres cluster with the following json.
     "postgresVersion": "11.6",
     "pods": {
       "persistentVolume": {
-        "volumeSize": "5Gi",
+        "size": "5Gi",
     
       }
     },    
@@ -144,7 +144,7 @@ payload:
     "postgresVersion": "12.1",
     "pods": {
       "persistentVolume": {
-        "volumeSize": "5Gi",
+        "size": "5Gi",
     
       }
     }, 
@@ -172,7 +172,7 @@ After a StackGres cluster is created some of it's properties cannot be updated.
 These properties are: 
 
 * postgresVersion
-* volumeSize
+* size
 * configurations
 * storageClass
 * sidecars
@@ -239,7 +239,7 @@ In order to use that postgres configuration, your StackGres cluster should have 
     "postgresVersion": "12.1",
     "pods": {
       "persistentVolume": {
-        "volumeSize": "5Gi",
+        "size": "5Gi",
     
       }
     },
@@ -267,7 +267,7 @@ payload:
     "postgresVersion": "12.1",
     "pods": {
       "persistentVolume": {
-        "volumeSize": "5Gi",
+        "size": "5Gi",
     
       }
     },

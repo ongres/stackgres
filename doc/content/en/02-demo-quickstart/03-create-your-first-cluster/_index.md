@@ -21,7 +21,7 @@ spec:
   postgresVersion: 'latest'
   pods:
     persistentVolume: 
-      volumeSize: '5Gi'
+      size: '5Gi'
 EOF
 ```
 
@@ -82,7 +82,7 @@ spec:
   postgresVersion: 'latest'
   pods:
     persistentVolume:
-      volumeSize: '5Gi'
+      size: '5Gi'
   configurations:
     sgBackupConfig: simple
 EOF

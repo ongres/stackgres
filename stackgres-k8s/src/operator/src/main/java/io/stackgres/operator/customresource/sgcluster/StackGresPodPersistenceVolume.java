@@ -11,6 +11,7 @@ import javax.validation.constraints.Pattern;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.google.common.base.MoreObjects;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
 @JsonDeserialize
@@ -18,7 +19,7 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 @RegisterForReflection
 public class StackGresPodPersistenceVolume {
 
-  @JsonProperty("volumeSize")
+  @JsonProperty("size")
   @NotNull(message = "Volume size must be specified")
   @Pattern(regexp = "^[0-9]+(\\.[0-9]+)?(Mi|Gi|Ti)$",
       message = "Volume size must be specified in Mi, Gi or Ti")
@@ -41,5 +42,13 @@ public class StackGresPodPersistenceVolume {
 
   public void setStorageClass(String storageClass) {
     this.storageClass = storageClass;
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("volumeSize", volumeSize)
+        .add("storageClass", storageClass)
+        .toString();
   }
 }

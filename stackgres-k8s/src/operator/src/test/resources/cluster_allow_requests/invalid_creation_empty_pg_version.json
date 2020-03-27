@@ -56,7 +56,7 @@
         },
         "pods":{
           "persistentVolume": {
-            "volumeSize": "5Gi",
+            "size": "5Gi",
             "storageClass": "standard"
           }
         },

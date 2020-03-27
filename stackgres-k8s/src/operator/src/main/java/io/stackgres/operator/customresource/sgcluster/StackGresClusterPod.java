@@ -11,6 +11,7 @@ import javax.validation.constraints.NotNull;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.google.common.base.MoreObjects;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
 @JsonDeserialize
@@ -29,5 +30,12 @@ public class StackGresClusterPod {
 
   public void setPersistentVolume(StackGresPodPersistenceVolume persistentVolume) {
     this.persistentVolume = persistentVolume;
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("persistentVolume", persistentVolume)
+        .toString();
   }
 }

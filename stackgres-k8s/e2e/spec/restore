@@ -161,7 +161,7 @@ spec:
   postgresVersion: '$ALTERNATIVE_PG_VERSION'
   pods:
     persistentVolume:
-      volumeSize: '512Mi'
+      size: '512Mi'
   configurations:
     sgPostgresConfig: pgconfig-alter
   restore:
@@ -201,7 +201,7 @@ spec:
   postgresVersion: 'latest'
   pods:
     persistentVolume:
-      volumeSize: '128Mi'
+      size: '128Mi'
   restore:
     fromBackup: $BACKUP_UID
 EOF

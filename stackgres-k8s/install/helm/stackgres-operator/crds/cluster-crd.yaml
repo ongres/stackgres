@@ -69,7 +69,7 @@ spec:
                   type: object
                   description: Pod's persistent volume configuration
                   properties:
-                    volumeSize:
+                    size:
                       type: string
                       pattern: '^[0-9]+(\.[0-9]+)?(Mi|Gi|Ti)$'
                       description: >
@@ -80,7 +80,7 @@ spec:
                       description: >
                         Name of an existing StorageClass in the K8s cluster, that will be used to create the PersistentVolumes
                         for the instances of this cluster.
-                  required: ["volumeSize"]
+                  required: ["size"]
               required: ["persistentVolume"]
             configurations:
               type: object

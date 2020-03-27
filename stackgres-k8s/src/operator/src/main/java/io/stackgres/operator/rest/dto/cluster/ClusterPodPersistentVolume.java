@@ -18,7 +18,7 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 @RegisterForReflection
 public class ClusterPodPersistentVolume {
 
-  @JsonProperty("volumeSize")
+  @JsonProperty("size")
   @NotNull
   private String volumeSize;
 

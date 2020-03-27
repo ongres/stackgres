@@ -30,7 +30,9 @@ metadata:
 spec:
   instances: 1
   postgresVersion: 'latest'
-  volumeSize: '512Mi'
+  pods:
+    persistentVolume:
+      size: '512Mi'
   sgInstanceProfile: 'size-xs'
   nonProduction:
     disableClusterPodAntiAffinity: true  

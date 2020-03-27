@@ -103,7 +103,7 @@ You can specify following parameters values:
  create a cluster from a existent backup, please see
  [the restore configuration options](####restore-configuration)
 * `cluster.backupconfig`: The backup configuration CR name.
-* `cluster.volumeSize`: The size set in the persistent volume claim of PostgreSQL data.
+* `cluster.size`: The size set in the persistent volume claim of PostgreSQL data.
 * `cluster.storageclass`: The storage class used for the persisitent volume claim of PostgreSQL
  data. If defined, storageClassName: <storageClass>. If set to "-", storageClassName: "", which
  disables dynamic provisioning. If undefined (the default) or set to null, no storageClassName

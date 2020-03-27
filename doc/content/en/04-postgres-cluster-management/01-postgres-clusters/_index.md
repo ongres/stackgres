@@ -43,7 +43,7 @@ spec:
   postgresVersion: 'latest'
   pods:
     persistentVolume:
-      volumeSize: '5Gi'
+      size: '5Gi'
   sgInstanceProfile: 'size-xs'
 ```
 
@@ -61,7 +61,7 @@ Holds the configurations of the persistent volume that the cluster pods are goin
 
 | Property                                                                                                                                | Required | Updatable | Type     | Default                             | Description |
 |:----------------------------------------------------------------------------------------------------------------------------------------|----------|-----------|:---------|:------------------------------------|:------------|
-| volumeSize                                                                                                                              | ✓        | ✓         | string   |                                     | Storage volume size (for example 5Gi) |
+| size                                                                                                                              | ✓        | ✓         | string   |                                     | Storage volume size (for example 5Gi) |
 | storageClass                                                                                                                            |          |           | string   | default storage class               | Storage class name to be used for the cluster (if not specified means default storage class wiil be used) |
 
 ```yaml
@@ -72,7 +72,7 @@ metadata:
 spec:
   pods:
     persistentVolume:
-      volumeSize: '5Gi'
+      size: '5Gi'
       storageClass: default
 ```
 
