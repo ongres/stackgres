@@ -77,9 +77,6 @@ var ClusterInfo = Vue.component("cluster-info", {
 								<template v-if="(typeof cluster.data.spec.storageClass !== 'undefined')">
 									{{ cluster.data.spec.storageClass }}
 								</template>
-								<template v-else>
-									–
-								</template>
 							</td>
 							<td>
 								{{ cluster.data.spec.pgConfig }}
