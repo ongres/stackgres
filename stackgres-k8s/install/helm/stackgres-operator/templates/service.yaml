@@ -4,7 +4,7 @@ metadata:
   namespace: {{ .Release.Namespace }}
   name: {{ .Release.Name }}
 spec:
-  {{- if .Values.service.loadBalancer.enable }}
+  {{- if .Values.service.loadBalancer.enabled }}
   type: LoadBalancer
   {{- with .Values.service.loadBalancer.loadBalancerIP }}
   loadBalancerIP: "{{ . }}"

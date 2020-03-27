@@ -18,7 +18,7 @@ cert:
 service:
   loadBalancer:
     # Set to true to expose operator with a load balancer
-    enable: false
+    enabled: false
     # LoadBalancer will get created with the IP specified in this field. 
     # This feature depends on whether the underlying cloud-provider supports
     # specifying the loadBalancerIP when a load balancer is created. This field
