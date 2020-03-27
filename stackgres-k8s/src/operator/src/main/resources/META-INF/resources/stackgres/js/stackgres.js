@@ -490,6 +490,24 @@ Vue.mixin({
   },
   methods: {
 
+    parseParams: function(params) {
+      params = params.replace(/=/g, ':</strong> ');
+      params = '<li><strong class="label">'+params+'</li>';
+      params = params.replace(/(?:\r\n|\r|\n)/g, '</li><li><strong class="label">')
+      
+      return params;
+    },
+
+    sort: function(s) {
+			
+			//if s == current sort, reverse
+			if(s === this.currentSort) {
+			  this.currentSortDir = this.currentSortDir==='asc'?'desc':'asc';
+			}
+			this.currentSort = s;
+
+		},
+
     cancelDelete: function(){
 			$("#delete").removeClass("active");
     },
@@ -556,6 +574,8 @@ Vue.mixin({
 
   }
 });
+
+Vue.use(VueMarkdown);
 
 const vm = new Vue({
   el: '#app',
@@ -904,13 +924,6 @@ const vm = new Vue({
   }
 });
 
-Vue.filter('params', function(params){
-  params = '<strong>'+params;
-  params.replace(new RegExp('\r?\n','g'), '<br /><strong>');
-  params.replace('=','</strong> = ');
-
-  return params;
-});
 
 Vue.filter('prettyCRON', function (value) {
   
@@ -939,6 +952,12 @@ Vue.filter('formatTimestamp',function(t, part){
       return t.substring( t.indexOf('T')+1, t.indexOf('.'));
     else if (part == 'ms') {
       var ms = t.substring( t.indexOf('.'), t.indexOf('Z'));
+      
+      if(ms.length == 2)
+        ms += '00';
+      else if(ms.length == 3)
+        ms += '0';
+
       return ms.substring(0,4);
     }
       
