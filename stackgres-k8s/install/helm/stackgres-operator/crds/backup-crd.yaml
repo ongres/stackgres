@@ -43,7 +43,7 @@ spec:
             failureReason:
               type: string
               description: "If the phase is failed this field will contain a message with the failure reason."
-            backupConfig:
+            sgBackupConfig:
               type: object
               description: "The name of the backup configuration used to perform this backup."
               properties:

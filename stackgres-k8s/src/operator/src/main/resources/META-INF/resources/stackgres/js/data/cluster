@@ -14,11 +14,11 @@
     "spec": {
       "instances": 2,
       "postgresVersion": "11.6",
-      "pgConfig": "postgresconf",
+      "sgPostgresConfig": "postgresconf",
       "postgresExporterVersion": "0.7.0",
       "sgInstanceProfile": "size-m-Z",
-      "connectionPoolingConfig": "pgbouncerconf",
-      "backupConfig": "backupconf",
+      "sgPoolingConfig": "pgbouncerconf",
+      "sgBackupConfig": "backupconf",
       "volumeSize": "5Gi",
       "prometheusAutobind": true,
       "sidecars": [
@@ -44,11 +44,11 @@
     "spec": {
       "instances": 2,
       "postgresVersion": "11.6",
-      "pgConfig": "postgresconf",
+      "sgPostgresConfig": "postgresconf",
       "postgresExporterVersion": "0.7.0",
       "sgInstanceProfile": "size-xs",
-      "connectionPoolingConfig": "pgbouncerconf",
-      "backupConfig": "backupconf",
+      "sgPoolingConfig": "pgbouncerconf",
+      "sgBackupConfig": "backupconf",
       "volumeSize": "5Gi",
       "prometheusAutobind": true,
       "sidecars": [
@@ -74,11 +74,11 @@
     "spec": {
       "instances": 2,
       "postgresVersion": "11.6",
-      "pgConfig": "postgresconf",
+      "sgPostgresConfig": "postgresconf",
       "postgresExporterVersion": "0.7.0",
       "sgInstanceProfile": "size-s-Y",
-      "connectionPoolingConfig": "pgbouncerconf",
-      "backupConfig": "backupconf",
+      "sgPoolingConfig": "pgbouncerconf",
+      "sgBackupConfig": "backupconf",
       "volumeSize": "5Gi",
       "prometheusAutobind": true,
       "sidecars": [
@@ -104,11 +104,11 @@
     "spec": {
       "instances": 2,
       "postgresVersion": "11.6",
-      "pgConfig": "postgresconf",
+      "sgPostgresConfig": "postgresconf",
       "postgresExporterVersion": "0.7.0",
       "sgInstanceProfile": "size-m-Z",
-      "connectionPoolingConfig": "pgbouncerconf",
-      "backupConfig": "backupconf",
+      "sgPoolingConfig": "pgbouncerconf",
+      "sgBackupConfig": "backupconf",
       "volumeSize": "5Gi",
       "prometheusAutobind": true,
       "sidecars": [

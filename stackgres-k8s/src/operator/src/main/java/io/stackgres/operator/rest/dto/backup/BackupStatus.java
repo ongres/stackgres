@@ -8,6 +8,7 @@ package io.stackgres.operator.rest.dto.backup;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.MoreObjects;
 
@@ -19,6 +20,7 @@ import io.stackgres.operator.rest.dto.backupconfig.BackupConfigSpec;
 @RegisterForReflection
 public class BackupStatus {
 
+  @JsonProperty("sgBackupConfig")
   private BackupConfigSpec backupConfig;
   private String phase;
   private String pod;

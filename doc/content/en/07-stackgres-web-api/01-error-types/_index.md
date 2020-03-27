@@ -72,7 +72,7 @@ Supose that we are trying to create a StackGres cluster with the following json.
     "instances": 1,
     "postgresVersion": "11.6",
     "volumeSize": "5Gi",
-    "pgConfig": "postgresconf"
+    "sgPostgresConfig": "postgresconf"
   }
 }
 ```
@@ -80,7 +80,7 @@ Supose that we are trying to create a StackGres cluster with the following json.
 In order to create the cluster successfully, a postgres configuration with the name "postgresconf" 
  must exists in the same namespace of the cluster that is being created.
 
-The same principle applies for the properties: connectionPoolingConfig, sgInstanceProfile, backupConfig.
+The same principle applies for the properties: sgPoolingConfig, sgInstanceProfile, sgBackupConfig.
 
 ## Default configuration
 
@@ -136,7 +136,7 @@ payload:
     "instances": 1,
     "postgresVersion": "12.1",
     "volumeSize": "5Gi",
-    "pgConfig": "postgresconf"
+    "sgPostgresConfig": "postgresconf"
   }
 }
 ```
@@ -161,8 +161,8 @@ These properties are:
 
 * postgresVersion
 * volumeSize
-* pgConfig
-* connectionPoolingConfig
+* sgPostgresConfig
+* sgPoolingConfig
 * sgInstanceProfile
 * storageClass
 * sidecars
@@ -228,7 +228,7 @@ In order to use that postgres configuration, your StackGres cluster should have 
     "instances": 1,
     "postgresVersion": "12.1",
     "volumeSize": "5Gi",
-    "pgConfig": "postgresconf"
+    "sgPostgresConfig": "postgresconf"
   }
 }
 ```
@@ -251,7 +251,7 @@ payload:
     "instances": 1,
     "postgresVersion": "12.1",
     "volumeSize": "5Gi",
-    "pgConfig": "postgresconf"
+    "sgPostgresConfig": "postgresconf"
   }
 }
 ```

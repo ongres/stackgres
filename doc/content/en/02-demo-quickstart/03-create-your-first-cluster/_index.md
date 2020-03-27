@@ -79,7 +79,7 @@ spec:
   instances: 2
   postgresVersion: 'latest'
   volumeSize: '5Gi'
-  backupConfig: simple
+  sgBackupConfig: simple
 EOF
 ```
 

@@ -160,7 +160,7 @@ spec:
   instances: 1
   postgresVersion: '$ALTERNATIVE_PG_VERSION'
   volumeSize: '512Mi'
-  pgConfig: pgconfig-alter
+  sgPostgresConfig: pgconfig-alter
   restore:
     downloadDiskConcurrency: 1
     fromBackup: $BACKUP_UID

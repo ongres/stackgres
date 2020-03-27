@@ -11,13 +11,13 @@
   "spec": {
     "instances": 1,
     "postgresVersion": "11.5",
-    "pgConfig": "postgresconf",
+    "sgPostgresConfig": "postgresconf",
     "sgInstanceProfile": "size-xs",
     "restore": {
       "fromBackup": "d7e660a9-377c-11ea-b04b-0242ac110004"
     },
-    "backupConfig": "backupconf",
-    "connectionPoolingConfig": "pgbouncerconf",
+    "sgBackupConfig": "backupconf",
+    "sgPoolingConfig": "pgbouncerconf",
     "volumeSize": "5Gi",
     "storageClass": "standard",
     "prometheusAutobind": "true",

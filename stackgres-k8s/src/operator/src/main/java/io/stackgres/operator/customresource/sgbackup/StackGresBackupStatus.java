@@ -8,6 +8,7 @@ package io.stackgres.operator.customresource.sgbackup;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.MoreObjects;
 
@@ -22,6 +23,7 @@ public class StackGresBackupStatus implements KubernetesResource {
 
   private static final long serialVersionUID = 4124027524757318245L;
 
+  @JsonProperty("sgBackupConfig")
   private StackGresBackupConfigSpec backupConfig;
   private String phase;
   private String pod;

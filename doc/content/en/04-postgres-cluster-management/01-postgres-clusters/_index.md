@@ -24,12 +24,12 @@ ___
 |                                                                                                                                | ✓        | ✓         | string   |                                     | PostgreSQL version for the new cluster (for example 11.6) |
 | volumeSize                                                                                                                              | ✓        | ✓         | string   |                                     | Storage volume size (for example 5Gi) |
 | storageClass                                                                                                                            |          |           | string   | default storage class               | Storage class name to be used for the cluster (if not specified means default storage class wiil be used) |
-| [pgConfig]({{% relref "/04-postgres-cluster-management/02-configuration-tuning/02-postgres-configuration" %}})                          |          |           | string   | defaultpgconfig                     | PostgreSQL configuration to apply |
-| [connectionPoolingConfig]({{% relref "/04-postgres-cluster-management/02-configuration-tuning/03-connection-pooling-configuration" %}}) |          |           | string   | defaultpgbouncer                    | Pooling configuration to apply |
+| [sgPostgresConfig]({{% relref "/04-postgres-cluster-management/02-configuration-tuning/02-postgres-configuration" %}})                          |          |           | string   | defaultpgconfig                     | PostgreSQL configuration to apply |
+| [sgPoolingConfig]({{% relref "/04-postgres-cluster-management/02-configuration-tuning/03-connection-pooling-configuration" %}}) |          |           | string   | defaultpgbouncer                    | Pooling configuration to apply |
 | [sgInstanceProfile]({{% relref "/04-postgres-cluster-management/03-resource-profiles" %}})                                                |          |           | string   | defaultprofile                      | Resource profile size to apply |
 | [sidecars](#sidecar-containers)                                                                                                         |          | ✓         | array    | all available sidecars are included | List of sidecars to include in the cluster |
 | prometheusAutobind                                                                                                                      |          | ✓         | boolean  | false                               | If enabled a ServiceMonitor will be created for each Prometheus instance found in order to collect metrics |
-| [backupConfig]({{% relref "/04-postgres-cluster-management/04-backups/_index.md#configuration" %}})                                     |          | ✓         | string   |                                     | Backup config to apply |
+| [sgBackupConfig]({{% relref "/04-postgres-cluster-management/04-backups/_index.md#configuration" %}})                                     |          | ✓         | string   |                                     | Backup config to apply |
 | [restore](#restore-configuration)                                                                                                       |          |           | object   |                                     | Cluter restoration options |
 | [nonProduction](#non-production-options)                                                                                                |          | ✓         | array    |                                     | Additional parameters for non production environments |
 
@@ -44,10 +44,10 @@ spec:
   instances: 1
   postgresVersion: 'latest'
   volumeSize: '5Gi'
-  pgConfig: 'postgresconf'
-  connectionPoolingConfig: 'pgbouncerconf'
+  sgPostgresConfig: 'postgresconf'
+  sgPoolingConfig: 'pgbouncerconf'
   sgInstanceProfile: 'size-xs'
-  backupConfig: 'backupconf'
+  sgBackupConfig: 'backupconf'
 ```
 
 ## Sidecar containers

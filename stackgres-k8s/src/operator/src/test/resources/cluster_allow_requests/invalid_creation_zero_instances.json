@@ -48,9 +48,9 @@
       },
       "spec": {
         "instances": 0,
-        "pgConfig": "postgresconf",
+        "sgPostgresConfig": "postgresconf",
         "sgInstanceProfile": "size-xs",
-        "connectionPoolingConfig": "pgbouncerconf",
+        "sgPoolingConfig": "pgbouncerconf",
         "volumeSize": "5Gi",
         "storageClass": "standard",
         "sidecars": [

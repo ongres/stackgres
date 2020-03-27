@@ -115,8 +115,8 @@ metadata:
 spec:
   instances: 1
   postgresVersion: '11.6'
-  pgConfig: 'postgresconf'
-  connectionPoolingConfig: 'pgbouncerconf'
+  sgPostgresConfig: 'postgresconf'
+  sgPoolingConfig: 'pgbouncerconf'
   sgInstanceProfile: 'size-xs'
   volumeSize: '5Gi'
   postgresExporterVersion: '0.7.0'

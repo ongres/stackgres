@@ -34,7 +34,7 @@ ___
 | phase                          | string  | The phase of the backup (Pending, Created, Failed). |
 | pod                            | string  | The name of pod assigned to this backup. |
 | failureReason                  | string  | If the phase is failed this field will contain a message with the failure reason. |
-| [backupConfig](#configuration) | object  | The backup configuration to restore this backup. |
+| [sgBackupConfig](#configuration) | object  | The backup configuration to restore this backup. |
 | name                           | string  | The name of the backup. |
 | time                           | string  | The date of the backup. |
 | walFileName                    | string  | The WAL file name when backup was started. |
@@ -63,7 +63,7 @@ spec:
   cluster: stackgres
   isPermanent: true
 status:
-  backupConfig:
+  sgBackupConfig:
     compressionMethod: lz4
     storage:
       s3compatible:

@@ -18,7 +18,7 @@
             "isPermanent": true
         },
         "status": {
-            "backupConfig": {
+            "sgBackupConfig": {
                 "compressionMethod": "lz4",
                 "storage": {
                     "s3": {
@@ -79,7 +79,7 @@
             "isPermanent": true
         },
         "status": {
-            "backupConfig": {
+            "sgBackupConfig": {
                 "compressionMethod": "lz4",
                 "storage": {
                     "s3": {
@@ -140,7 +140,7 @@
             "isPermanent": true
         },
         "status": {
-            "backupConfig": {
+            "sgBackupConfig": {
                 "compressionMethod": "lz4",
                 "storage": {
                     "s3": {
@@ -207,7 +207,7 @@
             "isPermanent": false
         },
         "status": {
-            "backupConfig": {
+            "sgBackupConfig": {
                 "compressionMethod": "lz4",
                 "storage": {
                     "s3": {
@@ -274,7 +274,7 @@
             "isPermanent": false
         },
         "status": {
-            "backupConfig": {
+            "sgBackupConfig": {
                 "compressionMethod": "lz4",
                 "storage": {
                     "s3": {
@@ -341,7 +341,7 @@
             "isPermanent": false
         },
         "status": {
-            "backupConfig": {
+            "sgBackupConfig": {
                 "compressionMethod": "lz4",
                 "storage": {
                     "s3": {
@@ -408,7 +408,7 @@
             "isPermanent": false
         },
         "status": {
-            "backupConfig": {
+            "sgBackupConfig": {
                 "compressionMethod": "lz4",
                 "storage": {
                     "s3": {
@@ -475,7 +475,7 @@
             "isPermanent": false
         },
         "status": {
-            "backupConfig": {
+            "sgBackupConfig": {
                 "compressionMethod": "lz4",
                 "storage": {
                     "s3": {

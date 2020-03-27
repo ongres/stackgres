@@ -48,7 +48,7 @@
         "isPermanent": false
       },
       "status": {
-        "backupConfig": {
+        "sgBackupConfig": {
           "compressionMethod": "lz4",
           "storage": {
             "s3compatible": {

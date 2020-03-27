@@ -31,7 +31,7 @@ public class ClusterSpec {
   @NotBlank(message = "PostgreSQL version is required")
   private String postgresVersion;
 
-  @JsonProperty("pgConfig")
+  @JsonProperty("sgPostgresConfig")
   @NotBlank(message = "You need to associate a Postgres configuration to this cluster")
   private String postgresConfig;
 
@@ -39,10 +39,10 @@ public class ClusterSpec {
   @NotNull(message = "resource profile must not be null")
   private String resourceProfile;
 
-  @JsonProperty("connectionPoolingConfig")
+  @JsonProperty("sgPoolingConfig")
   private String connectionPoolingConfig;
 
-  @JsonProperty("backupConfig")
+  @JsonProperty("sgBackupConfig")
   private String backupConfig;
 
   @JsonProperty("restore")

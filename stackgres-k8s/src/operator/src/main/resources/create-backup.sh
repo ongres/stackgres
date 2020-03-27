@@ -75,7 +75,7 @@ spec:
 status:
   phase: "$BACKUP_PHASE_PENDING"
   pod: "$POD_NAME"
-  backupConfig:
+  sgBackupConfig:
 $(kubectl get "$BACKUP_CONFIG_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" \
   --template '    compressionMethod: "{{ .spec.compressionMethod }}"
     storage:
@@ -142,7 +142,7 @@ else
       {"op":"replace","path":"/status","value":{
         "phase":"'"$BACKUP_PHASE_PENDING"'",
         "pod":"'"$POD_NAME"'",
-        "backupConfig":{'"$(kubectl get "$BACKUP_CONFIG_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" \
+        "sgBackupConfig":{'"$(kubectl get "$BACKUP_CONFIG_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" \
   --template '    "compressionMethod": "{{ .spec.compressionMethod }}",
     "storage": {
       "type": "{{ .spec.storage.type }}",
@@ -222,7 +222,7 @@ else
 fi
 
 current_backup_config="$(kubectl get "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
-  --template "{{ .status.backupConfig.storage }}")"
+  --template "{{ .status.sgBackupConfig.storage }}")"
 
 (
 echo "Retrieving primary and replica"
@@ -468,7 +468,7 @@ EOF
     backup_owner_kind="$(echo "$backup" | cut -d : -f 6)"
     backup_is_permanent="$(echo "$backup" | cut -d : -f 8)"
     backup_config="$(kubectl get "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$backup_cr_name" \
-      --template "{{ .status.backupConfig.storage }}")"
+      --template "{{ .status.sgBackupConfig.storage }}")"
     if [ ! -z "$backup_name" ] && [ "$backup_phase" = "$BACKUP_PHASE_COMPLETED" ] \
       && [ "$backup_config" = "$current_backup_config" ] \
       && ! grep -q "\"backup_name\":\"$backup_name\"" /tmp/existing-backups
