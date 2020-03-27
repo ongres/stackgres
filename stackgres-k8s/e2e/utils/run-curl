@@ -10,7 +10,7 @@ run_curl() {
   local CONTENT_TYPE="application/json"
   local ACCEPT="application/json"
   local DATA_FILENAME=""
-  local AUTHORIZATION="admin:st4ckgr3s"
+  local AUTHORIZATION="e2e:test"
   while getopts ":p:n:s:N:r:c:e:d:a:" opt; do
     case $opt in
       p) POD="$OPTARG"

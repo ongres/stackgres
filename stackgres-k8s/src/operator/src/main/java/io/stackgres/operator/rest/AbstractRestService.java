@@ -20,6 +20,7 @@ import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.operator.resource.CustomResourceFinder;
 import io.stackgres.operator.resource.CustomResourceScanner;
 import io.stackgres.operator.resource.CustomResourceScheduler;
+import io.stackgres.operator.rest.authentication.Roles;
 import io.stackgres.operator.rest.dto.ResourceDto;
 import io.stackgres.operator.rest.transformer.ResourceTransformer;
 
@@ -49,7 +50,7 @@ public class AbstractRestService<T extends ResourceDto, R extends CustomResource
    * @throws RuntimeException if no custom resource of type <code>{R}</code> is defined
    */
   @GET
-  @RolesAllowed("admin")
+  @RolesAllowed(Roles.ADMIN)
   @Override
   public List<T> list() {
     return Seq.seq(scanner.getResources())
@@ -66,7 +67,7 @@ public class AbstractRestService<T extends ResourceDto, R extends CustomResource
    */
   @Path("/{namespace}/{name}")
   @GET
-  @RolesAllowed("admin")
+  @RolesAllowed(Roles.ADMIN)
   @Override
   public T get(@PathParam("namespace") String namespace, @PathParam("name") String name) {
     return finder.findByNameAndNamespace(name, namespace)
@@ -79,7 +80,7 @@ public class AbstractRestService<T extends ResourceDto, R extends CustomResource
    * @param resource the resource to create
    */
   @POST
-  @RolesAllowed("admin")
+  @RolesAllowed(Roles.ADMIN)
   @Override
   public void create(T resource) {
     scheduler.create(transformer.toCustomResource(resource));
@@ -90,7 +91,7 @@ public class AbstractRestService<T extends ResourceDto, R extends CustomResource
    * @param resource the resource to delete
    */
   @DELETE
-  @RolesAllowed("admin")
+  @RolesAllowed(Roles.ADMIN)
   @Override
   public void delete(T resource) {
     scheduler.delete(transformer.toCustomResource(resource));
@@ -101,7 +102,7 @@ public class AbstractRestService<T extends ResourceDto, R extends CustomResource
    * @param resource the resource to delete
    */
   @PUT
-  @RolesAllowed("admin")
+  @RolesAllowed(Roles.ADMIN)
   @Override
   public void update(T resource) {
     scheduler.update(transformer.toCustomResource(resource));

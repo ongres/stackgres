@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.rest;
 
+import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -15,6 +16,7 @@ import javax.ws.rs.core.Response;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.operator.app.KubernetesClientFactory;
+import io.stackgres.operator.rest.authentication.Roles;
 
 @Path("/stackgres/kubernetes-cluster-info")
 @Produces(MediaType.APPLICATION_JSON)
@@ -28,6 +30,7 @@ public class ClusterInfoResource {
    * Return kubernetes cluster info.
    */
   @GET
+  @RolesAllowed(Roles.ADMIN)
   public Response info() {
     try (KubernetesClient client = kubeClient.create()) {
       return Response.ok().entity(client.settings().getMasterUrl()).build();

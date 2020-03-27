@@ -16,7 +16,8 @@ public enum ConfigProperty {
   PROMETHEUS_AUTOBIND("stackgres.prometheus.allowAutobind"),
   GRAFANA_EMBEDDED("stackgres.prometheus.grafanaEmbedded"),
   DOCUMENTATION_URI("stackgres.documentation.uri"),
-  DOCUMENTATION_ERRORS_PATH("stackgres.documentation.errorsPath");
+  DOCUMENTATION_ERRORS_PATH("stackgres.documentation.errorsPath"),
+  AUTHENTICATION_SECRET_NAME("stackgres.authentication.secretName");
 
   private final String systemProperty;
 

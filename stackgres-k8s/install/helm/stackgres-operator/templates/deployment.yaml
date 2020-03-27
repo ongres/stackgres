@@ -58,6 +58,8 @@ spec:
           - name: GRAFANA_EMBEDDED
             value: "true"
           {{ end }}
+          - name: AUTHENTICATION_SECRET_NAME
+            value: "{{ .Release.Name }}"
         ports:
         - containerPort: 8080
           name: "http"
