@@ -30,7 +30,7 @@ var ClusterInfo = Vue.component("cluster-info", {
 					<li v-if="cluster.hasBackups">
 						<router-link :to="'/cluster/backups/'+$route.params.namespace+'/'+$route.params.name" title="Backups" class="backups">Backups</router-link>
 					</li>
-					<li v-if="cluster.data.graffanaEmbedded">
+					<li v-if="cluster.data.grafanaEmbedded">
 						<router-link id="grafana-btn" :to="'/monitor/'+$route.params.namespace+'/'+$route.params.name" title="Grafana Dashboard" class="grafana">Monitoring</router-link>
 					</li>
 				</ul>
