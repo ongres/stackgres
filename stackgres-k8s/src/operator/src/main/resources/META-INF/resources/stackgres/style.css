@@ -308,6 +308,16 @@ pre {
     background: transparent !important;
 }
 
+.darkmode #delete .tooltip  h3 {
+    border-bottom: 1px solid #333333;
+}
+
+.darkmode #delete .tooltip form input {
+    background: #1e252e;
+    border: 1px solid #333333;
+    color: var(--gray3);
+} 
+
 /* Main Structure */
 aside {
     display: block;
@@ -768,6 +778,9 @@ ul.zg-ul-select.active li.active:hover {
     position: relative;
     height: 50px;
     line-height: 50px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 #sets > .active > ul > li > .item, .set.active .set > .nav-item  {
@@ -947,6 +960,43 @@ footer {
     right: 30px;
     padding: 20px;
     top: 65px;
+}
+
+#delete .tooltip  h3 {
+    border-bottom: 1px solid var(--gray2);
+    padding-bottom: 5px;
+    margin-bottom: 25px;
+}
+
+#delete .tooltip p {
+    line-height: 1.2;
+    margin-bottom: 10px;
+} 
+
+#delete .tooltip form input {
+    background:#fff;
+    border: 1px solid var(--gray2);
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-size: 12px;
+    color: var(--gray5);
+    height: 38px;
+    width: 100%;
+    margin-bottom: 15px;
+}
+
+#delete .tooltip form input:focus {
+    border-color: var(--blue);
+}
+
+#delete .tooltip a{
+    cursor: pointer;
+    font-weight: 600;
+    margin-right: 15px;
+}
+
+#delete .tooltip:before {
+    display: none;
 }
 
 .hasTooltip.active .tooltip {
@@ -1991,6 +2041,16 @@ span.req {
 }
 
 
+/* Help Tooltips */
+
+a.help {
+    position: absolute;
+    margin-top: -48px;
+    z-index: 1;
+    left: 102%;
+    margin-bottom: 0;
+}
+
 /* Firefox Outline on focus hack */
 button:focus,
 a:focus, a:active,
@@ -2010,7 +2070,6 @@ select:focus::-ms-value {
 background-color: $input-bg;
 color: $input-color;
 }
-
 
 
 /* Table Layout */
@@ -2246,6 +2305,13 @@ td.label span {
 .podStatus .Active span {
     color: #03CC03;
     background: #bffbbc;
+}
+
+table.clusterConfig th {
+    width: 20%;
+}
+table.clusterConfig td {
+    background: rgba(240,240,240,.35);
 }
 
 
