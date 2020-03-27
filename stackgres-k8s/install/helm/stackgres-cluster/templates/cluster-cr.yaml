@@ -25,7 +25,9 @@ spec:
     downloadDiskConcurrency: {{ .Values.cluster.restore.downloadDiskConcurrency }}
     {{- end }}    
   {{- end }}
-  volumeSize: '{{ .Values.cluster.volumeSize }}'
+  pods:
+    persistentVolume:
+      volumeSize: '{{ .Values.cluster.volumeSize }}'
   {{- if .Values.cluster.storageClass }}
   {{- if eq "-" .Values.cluster.storageClass }}
   storageClass: ""

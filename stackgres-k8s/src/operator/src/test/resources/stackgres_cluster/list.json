@@ -31,8 +31,12 @@
           "postgres-util",
           "prometheus-postgres-exporter"
         ],
-        "storageClass": "standard",
-        "volumeSize": "5Gi"
+        "pods":{
+          "persistentVolume": {
+            "volumeSize": "5Gi",
+            "storageClass": "standard"
+          }
+        }
       }
     }
   ],

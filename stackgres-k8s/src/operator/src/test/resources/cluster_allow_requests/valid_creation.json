@@ -58,8 +58,12 @@
           "sgBackupConfig": "backupconf",
           "sgPoolingConfig": "pgbouncerconf"
         },
-        "volumeSize": "5Gi",
-        "storageClass": "standard",
+        "pods":{
+          "persistentVolume": {
+            "volumeSize": "5Gi",
+            "storageClass": "standard"
+          }
+        },
         "sidecars": [
           "connection-pooling",
           "postgres-util",

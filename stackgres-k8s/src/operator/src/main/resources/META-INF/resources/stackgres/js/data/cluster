@@ -21,7 +21,11 @@
         "sgPoolingConfig": "pgbouncerconf",
         "sgBackupConfig": "backupconf"
       },      
-      "volumeSize": "5Gi",
+      "pods":{
+        "persistentVolume": {
+          "volumeSize": "5Gi"
+        }
+      },
       "prometheusAutobind": true,
       "sidecars": [
         "connection-pooling",
@@ -53,7 +57,11 @@
       },
       "postgresExporterVersion": "0.7.0",
       "sgInstanceProfile": "size-xs",
-      "volumeSize": "5Gi",
+      "pods":{
+        "persistentVolume": {
+          "volumeSize": "5Gi"
+        }
+      },
       "prometheusAutobind": true,
       "sidecars": [
         "connection-pooling",
@@ -85,7 +93,11 @@
         "sgPoolingConfig": "pgbouncerconf",
         "sgBackupConfig": "backupconf"
       },
-      "volumeSize": "5Gi",
+      "pods":{
+        "persistentVolume": {
+          "volumeSize": "5Gi"
+        }
+      },
       "prometheusAutobind": true,
       "sidecars": [
         "connection-pooling",
@@ -117,7 +129,11 @@
         "sgPoolingConfig": "pgbouncerconf",
         "sgBackupConfig": "backupconf"
       },
-      "volumeSize": "5Gi",
+      "pods":{
+        "persistentVolume": {
+          "volumeSize": "5Gi"
+        }
+      },
       "prometheusAutobind": true,
       "sidecars": [
         "connection-pooling",

@@ -23,7 +23,11 @@
           "postgres-utils"
       ],
       "storageClass": "standard",
-      "volumeSize": "5Gi"
+      "pods":{
+        "persistentVolume": {
+          "volumeSize": "5Gi"
+        }
+      }
   },
   "status": {
     "disk_usage": "1.2Gi",

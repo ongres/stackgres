@@ -118,8 +118,10 @@ spec:
   sgInstanceProfile: 'size-xs'
   configurations:
     sgPostgresConfig: 'postgresconf'
-    sgPoolingConfig: 'pgbouncerconf'    
-  volumeSize: '5Gi'
+    sgPoolingConfig: 'pgbouncerconf' 
+  pods:
+    persistentVolume:
+      volumeSize: '5Gi'
   postgresExporterVersion: '0.7.0'
   prometheusAutobind: true
   sidecars:

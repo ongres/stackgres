@@ -5,7 +5,6 @@
 
 package io.stackgres.operator.rest.dto.cluster;
 
-import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -17,25 +16,36 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class ClusterPod {
+public class ClusterPodPersistentVolume {
 
-  @JsonProperty("persistentVolume")
-  @Valid
-  @NotNull(message = "Pod's persistent volume must be specified")
-  private ClusterPodPersistentVolume persistentVolume;
+  @JsonProperty("volumeSize")
+  @NotNull
+  private String volumeSize;
 
-  public ClusterPodPersistentVolume getPersistentVolume() {
-    return persistentVolume;
+  @JsonProperty("storageClass")
+  private String storageClass;
+
+  public void setStorageClass(String storageClass) {
+    this.storageClass = storageClass;
   }
 
-  public void setPersistentVolume(ClusterPodPersistentVolume persistentVolume) {
-    this.persistentVolume = persistentVolume;
+  public String getStorageClass() {
+    return storageClass;
+  }
+
+  public void setVolumeSize(String volumeSize) {
+    this.volumeSize = volumeSize;
+  }
+
+  public String getVolumeSize() {
+    return volumeSize;
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
-        .add("persistentVolume", persistentVolume)
+        .add("volumeSize", volumeSize)
+        .add("storageClass", storageClass)
         .toString();
   }
 }

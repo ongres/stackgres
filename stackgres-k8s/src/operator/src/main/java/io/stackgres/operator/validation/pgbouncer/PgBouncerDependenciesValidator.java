@@ -28,7 +28,7 @@ public class PgBouncerDependenciesValidator extends DependenciesValidator<PgBoun
   public void validate(PgBouncerReview review, StackGresCluster i) throws ValidationFailed {
     final String name = review.getRequest().getName();
     LOGGER.info("validating deletion of " + name);
-    if (name.equals(i.getSpec().getConfigurations().getConnectionPoolingConfig())) {
+    if (name.equals(i.getSpec().getConfiguration().getConnectionPoolingConfig())) {
       fail(review, i);
     }
   }

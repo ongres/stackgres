@@ -50,7 +50,7 @@ class StorageClassValidatorTest {
     final StackGresClusterReview review = JsonUtil
         .readFromJson("cluster_allow_requests/valid_creation.json", StackGresClusterReview.class);
 
-    String storageClass = review.getRequest().getObject().getSpec().getStorageClass();
+    String storageClass = review.getRequest().getObject().getSpec().getPod().getPersistentVolume().getStorageClass();
     when(storageClassFinder.findByName(storageClass))
         .thenReturn(Optional.of(DEFAULT_STORAGE_CLASS));
 
@@ -66,7 +66,7 @@ class StorageClassValidatorTest {
     final StackGresClusterReview review = JsonUtil
         .readFromJson("cluster_allow_requests/valid_creation.json", StackGresClusterReview.class);
 
-    String storageClass = review.getRequest().getObject().getSpec().getStorageClass();
+    String storageClass = review.getRequest().getObject().getSpec().getPod().getPersistentVolume().getStorageClass();
 
     when(storageClassFinder.findByName(storageClass))
         .thenReturn(Optional.empty());
@@ -87,7 +87,7 @@ class StorageClassValidatorTest {
     final StackGresClusterReview review = JsonUtil
         .readFromJson("cluster_allow_requests/storage_class_config_update.json", StackGresClusterReview.class);
 
-    String storageClass = review.getRequest().getObject().getSpec().getStorageClass();
+    String storageClass = review.getRequest().getObject().getSpec().getPod().getPersistentVolume().getStorageClass();
 
     when(storageClassFinder.findByName(storageClass))
         .thenReturn(Optional.empty());
@@ -112,7 +112,7 @@ class StorageClassValidatorTest {
         .readFromJson("cluster_allow_requests/storage_class_config_update.json",
             StackGresClusterReview.class);
 
-    String storageClass = review.getRequest().getObject().getSpec().getStorageClass();
+    String storageClass = review.getRequest().getObject().getSpec().getPod().getPersistentVolume().getStorageClass();
 
     when(storageClassFinder.findByName(storageClass))
         .thenReturn(Optional.of(DEFAULT_STORAGE_CLASS));

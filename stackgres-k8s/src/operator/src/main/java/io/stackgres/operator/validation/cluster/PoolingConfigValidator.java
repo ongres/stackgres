@@ -37,7 +37,7 @@ public class PoolingConfigValidator implements ClusterValidator {
   public void validate(StackGresClusterReview review) throws ValidationFailed {
 
     StackGresCluster cluster = review.getRequest().getObject();
-    String poolingConfig = cluster.getSpec().getConfigurations().getConnectionPoolingConfig();
+    String poolingConfig = cluster.getSpec().getConfiguration().getConnectionPoolingConfig();
 
     switch (review.getRequest().getOperation()) {
       case CREATE:
@@ -57,7 +57,7 @@ public class PoolingConfigValidator implements ClusterValidator {
                                           String onError) throws ValidationFailed {
 
     StackGresCluster cluster = review.getRequest().getObject();
-    String poolingConfig = cluster.getSpec().getConfigurations().getConnectionPoolingConfig();
+    String poolingConfig = cluster.getSpec().getConfiguration().getConnectionPoolingConfig();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
     if (cluster.getSpec().getSidecars() != null

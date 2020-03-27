@@ -9,7 +9,6 @@ import java.util.List;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Positive;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -37,7 +36,7 @@ public class StackGresClusterSpec implements KubernetesResource {
   @JsonProperty("configurations")
   @Valid
   @NotNull(message = "cluster configuration cannot be null")
-  private StackgresClusterConfiguration configurations;
+  private StackgresClusterConfiguration configuration;
 
   @JsonProperty("sgInstanceProfile")
   @NotNull(message = "resource profile must not be null")
@@ -46,14 +45,10 @@ public class StackGresClusterSpec implements KubernetesResource {
   @JsonProperty("restore")
   private ClusterRestore restore;
 
-  @JsonProperty("volumeSize")
-  @NotNull(message = "Volume size must be specified")
-  @Pattern(regexp = "^[0-9]+(\\.[0-9]+)?(Mi|Gi|Ti)$",
-      message = "Volume size must be specified in Mi, Gi or Ti")
-  private String volumeSize;
-
-  @JsonProperty("storageClass")
-  private String storageClass;
+  @JsonProperty("pods")
+  @Valid
+  @NotNull(message = "pod description must be specified")
+  private StackGresClusterPod pod;
 
   @JsonProperty("prometheusAutobind")
   private Boolean prometheusAutobind;
@@ -80,12 +75,20 @@ public class StackGresClusterSpec implements KubernetesResource {
     this.postgresVersion = postgresVersion;
   }
 
-  public StackgresClusterConfiguration getConfigurations() {
-    return configurations;
+  public StackgresClusterConfiguration getConfiguration() {
+    return configuration;
   }
 
-  public void setConfigurations(StackgresClusterConfiguration configurations) {
-    this.configurations = configurations;
+  public void setConfiguration(StackgresClusterConfiguration configuration) {
+    this.configuration = configuration;
+  }
+
+  public StackGresClusterPod getPod() {
+    return pod;
+  }
+
+  public void setPod(StackGresClusterPod pod) {
+    this.pod = pod;
   }
 
   public String getResourceProfile() {
@@ -102,22 +105,6 @@ public class StackGresClusterSpec implements KubernetesResource {
 
   public void setRestore(ClusterRestore restore) {
     this.restore = restore;
-  }
-
-  public String getVolumeSize() {
-    return volumeSize;
-  }
-
-  public void setVolumeSize(String volumeSize) {
-    this.volumeSize = volumeSize;
-  }
-
-  public String getStorageClass() {
-    return storageClass;
-  }
-
-  public void setStorageClass(String storageClass) {
-    this.storageClass = storageClass;
   }
 
   public Boolean getPrometheusAutobind() {
@@ -150,14 +137,12 @@ public class StackGresClusterSpec implements KubernetesResource {
         .omitNullValues()
         .add("instances", instances)
         .add("pgVersion", postgresVersion)
-        .add("configurations", getConfigurations())
+        .add("configurations", getConfiguration())
         .add("resourceProfile", resourceProfile)
         .add("restore", restore)
-        .add("volumeSize", volumeSize)
-        .add("storageClass", storageClass)
+        .add("pod", getPod())
         .add("sidecars", sidecars)
         .add("nonProduction", nonProduction)
         .toString();
   }
-
 }

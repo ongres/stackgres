@@ -58,8 +58,12 @@
           "sgPoolingConfig": "pgbouncerconf",
           "sgBackupConfig": "newbackupconf"
         },
-        "volumeSize": "5Gi",
-        "storageClass": "standard",
+        "pods":{
+          "persistentVolume": {
+            "volumeSize": "5Gi",
+            "storageClass": "standard"
+          }
+        },
         "sidecars": [
           "connection-pooling",
           "postgres-util",
@@ -90,8 +94,12 @@
         "restore": {
           "fromBackup": "d7e660a9-377c-11ea-b04b-0242ac110004"
         },
-        "volumeSize": "5Gi",
-        "storageClass": "standard",
+        "pods":{
+          "persistentVolume": {
+            "volumeSize": "5Gi",
+            "storageClass": "standard"
+          }
+        },
         "sidecars": [
           "connection-pooling",
           "postgres-util",

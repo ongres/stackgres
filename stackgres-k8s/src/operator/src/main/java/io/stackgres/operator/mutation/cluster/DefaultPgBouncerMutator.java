@@ -10,13 +10,16 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import com.github.fge.jackson.jsonpointer.JsonPointer;
-
+import com.github.fge.jsonpatch.JsonPatchOperation;
+import com.google.common.collect.ImmutableList;
 import io.stackgres.operator.common.ArcUtil;
+import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
 import io.stackgres.operator.resource.CustomResourceFinder;
 import io.stackgres.operator.resource.CustomResourceScheduler;
 import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfig;
+import io.stackgres.operatorframework.admissionwebhook.Operation;
 
 @ApplicationScoped
 public class DefaultPgBouncerMutator
@@ -37,8 +40,22 @@ public class DefaultPgBouncerMutator
   }
 
   @Override
+  public List<JsonPatchOperation> mutate(StackGresClusterReview review) {
+
+    if (review.getRequest().getOperation() == Operation.CREATE) {
+
+      ImmutableList.Builder<JsonPatchOperation> operations = ImmutableList.builder();
+      operations.addAll(ClusterConfigurationMutator.ensureConfigurationNode(review));
+      operations.addAll(super.mutate(review));
+      return operations.build();
+    }
+
+    return ImmutableList.of();
+  }
+
+  @Override
   protected String getTargetPropertyValue(StackGresCluster targetCluster) {
-    return targetCluster.getSpec().getConfigurations().getConnectionPoolingConfig();
+    return targetCluster.getSpec().getConfiguration().getConnectionPoolingConfig();
   }
 
   @Override

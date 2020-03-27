@@ -10,13 +10,13 @@ import javax.enterprise.context.ApplicationScoped;
 import io.fabric8.kubernetes.api.model.ContainerStatus;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.stackgres.operator.common.StackGresUtil;
-import io.stackgres.operator.rest.dto.cluster.ClusterPod;
+import io.stackgres.operator.rest.dto.cluster.KubernetesPod;
 
 @ApplicationScoped
 public class ClusterPodTransformer {
 
-  public ClusterPod toResource(Pod source) {
-    ClusterPod transformation = new ClusterPod();
+  public KubernetesPod toResource(Pod source) {
+    KubernetesPod transformation = new KubernetesPod();
     transformation.setNamespace(source.getMetadata().getNamespace());
     transformation.setName(source.getMetadata().getName());
     transformation.setRole(

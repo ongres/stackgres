@@ -20,8 +20,12 @@
       "sgPoolingConfig": "pgbouncerconf",
       "sgBackupConfig": "backupconf"
     },
-    "volumeSize": "5Gi",
-    "storageClass": "standard",
+    "pods":{
+      "persistentVolume": {
+        "volumeSize": "5Gi",
+        "storageClass": "standard"
+      }
+    },
     "prometheusAutobind": "true",
     "sidecars": [
       "connection-pooling",

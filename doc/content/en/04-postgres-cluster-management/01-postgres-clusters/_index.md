@@ -22,7 +22,7 @@ ___
 |:----------------------------------------------------------------------------------------------------------------------------------------|----------|-----------|:---------|:------------------------------------|:------------|
 | instances                                                                                                                               | ✓        | ✓         | integer  |                                     | Number of instances to be created (for example 1) |
 | postgresVersion                                                                                                                         | ✓        | ✓         | string   |                                     | PostgreSQL version for the new cluster (for example 11.6) |
-| volumeSize                                                                                                                              | ✓        | ✓         | string   |                                     | Storage volume size (for example 5Gi) |
+| pods                                                                                                                                    | ✓        | ✓         | object   |                                     | Cluster's pod configuration |
 | storageClass                                                                                                                            |          |           | string   | default storage class               | Storage class name to be used for the cluster (if not specified means default storage class wiil be used) |
 | [configurations](#configurations)                                                                                                       |          |           | object   |                                     | Custom configurations to be applied to the cluster |
 | [sidecars](#sidecar-containers)                                                                                                         |          | ✓         | array    | all available sidecars are included | List of sidecars to include in the cluster |
@@ -41,12 +41,41 @@ metadata:
 spec:
   instances: 1
   postgresVersion: 'latest'
-  volumeSize: '5Gi'
-  sgPostgresConfig: 'postgresconf'
-  sgPoolingConfig: 'pgbouncerconf'
+  pods:
+    persistentVolume:
+      volumeSize: '5Gi'
   sgInstanceProfile: 'size-xs'
-  sgBackupConfig: 'backupconf'
 ```
+
+## Pods
+Cluster's pod configuration
+
+| Property                                                                                                                                | Required | Updatable | Type     | Default                             | Description |
+|:----------------------------------------------------------------------------------------------------------------------------------------|----------|-----------|:---------|:------------------------------------|:------------|
+| persistentVolume                                                                                                                        | ✓        |           | object   |                                     | Cluster Pod's persistent volume configuration |
+
+
+## Persistent Volume
+
+Holds the configurations of the persistent volume that the cluster pods are going to use
+
+| Property                                                                                                                                | Required | Updatable | Type     | Default                             | Description |
+|:----------------------------------------------------------------------------------------------------------------------------------------|----------|-----------|:---------|:------------------------------------|:------------|
+| volumeSize                                                                                                                              | ✓        | ✓         | string   |                                     | Storage volume size (for example 5Gi) |
+| storageClass                                                                                                                            |          |           | string   | default storage class               | Storage class name to be used for the cluster (if not specified means default storage class wiil be used) |
+
+```yaml
+apiVersion: stackgres.io/v1beta1
+kind: SGCluster
+metadata:
+  name: stackgres
+spec:
+  pods:
+    persistentVolume:
+      volumeSize: '5Gi'
+      storageClass: default
+```
+
 
 ## Configurations
 

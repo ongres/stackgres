@@ -141,7 +141,9 @@ create_empty_cluster_with_default_pgbouncer() {
   spec:
     instances: 1
     postgresVersion: 'latest'
-    volumeSize: '512Mi'
+    pods:
+      persistentVolume:
+        volumeSize: '5Gi'
     sidecars:
     - connection-pooling 
     nonProduction:
@@ -170,7 +172,9 @@ EOF
   spec:
     instances: 1
     postgresVersion: 'latest'
-    volumeSize: '512Mi'
+    pods:
+      persistentVolume:
+        volumeSize: '5Gi'
     sidecars:
     - connection-pooling 
     nonProduction:
@@ -199,7 +203,9 @@ create_empty_cluster_with_no_sidecars() {
   spec:
     instances: 1
     postgresVersion: 'latest'
-    volumeSize: '512Mi'
+    pods:
+      persistentVolume:
+        volumeSize: '512Mi'
     sidecars: []
     nonProduction:
       disableClusterPodAntiAffinity: true
@@ -238,7 +244,9 @@ metadata:
 spec:
   instances: 1
   postgresVersion: 'latest'
-  volumeSize: '512Mi'
+  pods:
+      persistentVolume:
+        volumeSize: '512Mi'
   nonProduction:
     disableClusterPodAntiAffinity: true
 EOF
@@ -337,7 +345,9 @@ metadata:
 spec:
   instances: 1
   postgresVersion: 'latest'
-  volumeSize: '512Mi'
+  pods:
+      persistentVolume:
+        volumeSize: '512Mi'
   nonProduction:
     disableClusterPodAntiAffinity: true
 EOF

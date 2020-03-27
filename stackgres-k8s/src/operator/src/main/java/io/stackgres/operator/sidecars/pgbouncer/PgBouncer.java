@@ -149,7 +149,7 @@ public class PgBouncer
                                                       KubernetesClient client) throws Exception {
     final String namespace = cluster.getMetadata().getNamespace();
     final String pgbouncerConfig = cluster.getSpec()
-        .getConfigurations().getConnectionPoolingConfig();
+        .getConfiguration().getConnectionPoolingConfig();
     if (pgbouncerConfig != null) {
       Optional<CustomResourceDefinition> crd =
           ResourceUtil.getCustomResource(client, StackGresPgbouncerConfigDefinition.NAME);

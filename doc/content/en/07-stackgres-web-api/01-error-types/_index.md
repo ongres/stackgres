@@ -71,7 +71,12 @@ Supose that we are trying to create a StackGres cluster with the following json.
   "spec": {
     "instances": 1,
     "postgresVersion": "11.6",
-    "volumeSize": "5Gi",
+    "pods": {
+      "persistentVolume": {
+        "volumeSize": "5Gi",
+    
+      }
+    },    
     "configurations": {
       "sgPostgresConfig": "postgresconf"
     }
@@ -137,7 +142,12 @@ payload:
   "spec": {
     "instances": 1,
     "postgresVersion": "12.1",
-    "volumeSize": "5Gi",
+    "pods": {
+      "persistentVolume": {
+        "volumeSize": "5Gi",
+    
+      }
+    }, 
     "sgPostgresConfig": "postgresconf"
   }
 }
@@ -227,7 +237,12 @@ In order to use that postgres configuration, your StackGres cluster should have 
   "spec": {
     "instances": 1,
     "postgresVersion": "12.1",
-    "volumeSize": "5Gi",
+    "pods": {
+      "persistentVolume": {
+        "volumeSize": "5Gi",
+    
+      }
+    },
     "sgPostgresConfig": "postgresconf"
   }
 }
@@ -250,7 +265,12 @@ payload:
   "spec": {
     "instances": 1,
     "postgresVersion": "12.1",
-    "volumeSize": "5Gi",
+    "pods": {
+      "persistentVolume": {
+        "volumeSize": "5Gi",
+    
+      }
+    },
     "sgPostgresConfig": "postgresconf"
   }
 }

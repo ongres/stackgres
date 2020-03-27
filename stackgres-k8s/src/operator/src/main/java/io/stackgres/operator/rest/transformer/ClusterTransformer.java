@@ -14,10 +14,14 @@ import io.fabric8.kubernetes.api.model.Pod;
 import io.stackgres.operator.common.ConfigContext;
 import io.stackgres.operator.common.ConfigProperty;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
+import io.stackgres.operator.customresource.sgcluster.StackGresClusterPod;
 import io.stackgres.operator.customresource.sgcluster.StackGresClusterSpec;
+import io.stackgres.operator.customresource.sgcluster.StackGresPodPersistenceVolume;
 import io.stackgres.operator.customresource.sgcluster.StackgresClusterConfiguration;
 import io.stackgres.operator.rest.dto.cluster.ClusterConfiguration;
 import io.stackgres.operator.rest.dto.cluster.ClusterDto;
+import io.stackgres.operator.rest.dto.cluster.ClusterPod;
+import io.stackgres.operator.rest.dto.cluster.ClusterPodPersistentVolume;
 import io.stackgres.operator.rest.dto.cluster.ClusterRestore;
 import io.stackgres.operator.rest.dto.cluster.ClusterSpec;
 import io.stackgres.operator.rest.dto.cluster.NonProduction;
@@ -71,15 +75,15 @@ public class ClusterTransformer
 
   public StackGresClusterSpec getCustomResourceSpec(ClusterSpec source) {
     StackGresClusterSpec transformation = new StackGresClusterSpec();
-    transformation.setConfigurations(new StackgresClusterConfiguration());
-    transformation.getConfigurations().setBackupConfig(
+    transformation.setConfiguration(new StackgresClusterConfiguration());
+    transformation.getConfiguration().setBackupConfig(
         source.getConfigurations().getBackupConfig());
-    transformation.getConfigurations()
+    transformation.getConfiguration()
         .setConnectionPoolingConfig(source.getConfigurations().getConnectionPoolingConfig());
     transformation.setInstances(source.getInstances());
     transformation.setNonProduction(
         getCustomResourceNonProduction(source.getNonProduction()));
-    transformation.getConfigurations().setPostgresConfig(
+    transformation.getConfiguration().setPostgresConfig(
         source.getConfigurations().getPostgresConfig());
     transformation.setPostgresVersion(source.getPostgresVersion());
     transformation.setPrometheusAutobind(source.getPrometheusAutobind());
@@ -87,8 +91,12 @@ public class ClusterTransformer
     transformation.setRestore(
         getCustomResourceRestore(source.getRestore()));
     transformation.setSidecars(source.getSidecars());
-    transformation.setStorageClass(source.getStorageClass());
-    transformation.setVolumeSize(source.getVolumeSize());
+    transformation.setPod(new StackGresClusterPod());
+    transformation.getPod().setPersistentVolume(new StackGresPodPersistenceVolume());
+    transformation.getPod().getPersistentVolume().setStorageClass(
+        source.getPod().getPersistentVolume().getStorageClass());
+    transformation.getPod().getPersistentVolume().setVolumeSize(
+        source.getPod().getPersistentVolume().getVolumeSize());
     return transformation;
   }
 
@@ -119,22 +127,26 @@ public class ClusterTransformer
     ClusterSpec transformation = new ClusterSpec();
     transformation.setConfigurations(new ClusterConfiguration());
     transformation.getConfigurations().setBackupConfig(
-        source.getConfigurations().getBackupConfig());
+        source.getConfiguration().getBackupConfig());
     transformation.getConfigurations().setConnectionPoolingConfig(source
-        .getConfigurations().getConnectionPoolingConfig());
+        .getConfiguration().getConnectionPoolingConfig());
     transformation.setInstances(source.getInstances());
     transformation.setNonProduction(
         getResourceNonProduction(source.getNonProduction()));
     transformation.getConfigurations().setPostgresConfig(
-        source.getConfigurations().getPostgresConfig());
+        source.getConfiguration().getPostgresConfig());
     transformation.setPostgresVersion(source.getPostgresVersion());
     transformation.setPrometheusAutobind(source.getPrometheusAutobind());
     transformation.setResourceProfile(source.getResourceProfile());
     transformation.setRestore(
         getResourceRestore(source.getRestore()));
     transformation.setSidecars(source.getSidecars());
-    transformation.setStorageClass(source.getStorageClass());
-    transformation.setVolumeSize(source.getVolumeSize());
+    transformation.setPod(new ClusterPod());
+    transformation.getPod().setPersistentVolume(new ClusterPodPersistentVolume());
+    transformation.getPod().getPersistentVolume().setStorageClass(
+        source.getPod().getPersistentVolume().getStorageClass());
+    transformation.getPod().getPersistentVolume().setVolumeSize(
+        source.getPod().getPersistentVolume().getVolumeSize());
     return transformation;
   }
 

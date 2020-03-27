@@ -159,8 +159,11 @@ metadata:
 spec:
   instances: 1
   postgresVersion: '$ALTERNATIVE_PG_VERSION'
-  volumeSize: '512Mi'
-  sgPostgresConfig: pgconfig-alter
+  pods:
+    persistentVolume:
+      volumeSize: '512Mi'
+  configurations:
+    sgPostgresConfig: pgconfig-alter
   restore:
     downloadDiskConcurrency: 1
     fromBackup: $BACKUP_UID
@@ -196,7 +199,9 @@ metadata:
 spec:
   instances: 1
   postgresVersion: 'latest'
-  volumeSize: '128Mi'
+  pods:
+    persistentVolume:
+      volumeSize: '128Mi'
   restore:
     fromBackup: $BACKUP_UID
 EOF

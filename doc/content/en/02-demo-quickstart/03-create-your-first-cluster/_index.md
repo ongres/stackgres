@@ -19,7 +19,9 @@ metadata:
 spec:
   instances: 2
   postgresVersion: 'latest'
-  volumeSize: '5Gi'
+  pods:
+    persistentVolume: 
+      volumeSize: '5Gi'
 EOF
 ```
 
@@ -78,8 +80,11 @@ metadata:
 spec:
   instances: 2
   postgresVersion: 'latest'
-  volumeSize: '5Gi'
-  sgBackupConfig: simple
+  pods:
+    persistentVolume:
+      volumeSize: '5Gi'
+  configurations:
+    sgBackupConfig: simple
 EOF
 ```
 

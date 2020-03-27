@@ -55,7 +55,7 @@ class BackupSourceValidatorTest {
     final StackGresClusterReview review = JsonUtil
         .readFromJson("cluster_allow_requests/valid_creation.json", StackGresClusterReview.class);
 
-    String backupConfig = review.getRequest().getObject().getSpec().getConfigurations().getBackupConfig();
+    String backupConfig = review.getRequest().getObject().getSpec().getConfiguration().getBackupConfig();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
     when(configFinder.findByNameAndNamespace(backupConfig, namespace))
         .thenReturn(Optional.of(this.backupConfig));
@@ -72,7 +72,7 @@ class BackupSourceValidatorTest {
     final StackGresClusterReview review = JsonUtil
         .readFromJson("cluster_allow_requests/valid_creation.json", StackGresClusterReview.class);
 
-    String backupConfig = review.getRequest().getObject().getSpec().getConfigurations().getBackupConfig();
+    String backupConfig = review.getRequest().getObject().getSpec().getConfiguration().getBackupConfig();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
     when(configFinder.findByNameAndNamespace(backupConfig, namespace))
@@ -94,7 +94,7 @@ class BackupSourceValidatorTest {
     final StackGresClusterReview review = JsonUtil
         .readFromJson("cluster_allow_requests/backup_config_update.json", StackGresClusterReview.class);
 
-    String backupConfig = review.getRequest().getObject().getSpec().getConfigurations().getBackupConfig();
+    String backupConfig = review.getRequest().getObject().getSpec().getConfiguration().getBackupConfig();
 
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
@@ -120,7 +120,7 @@ class BackupSourceValidatorTest {
     final StackGresClusterReview review = JsonUtil
         .readFromJson("cluster_allow_requests/backup_config_update.json", StackGresClusterReview.class);
 
-    String backupConfig = review.getRequest().getObject().getSpec().getConfigurations().getBackupConfig();
+    String backupConfig = review.getRequest().getObject().getSpec().getConfiguration().getBackupConfig();
 
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
@@ -140,7 +140,7 @@ class BackupSourceValidatorTest {
         .readFromJson("cluster_allow_requests/backup_config_update.json", StackGresClusterReview.class);
     review.getRequest().setOperation(Operation.DELETE);
 
-    String backupConfig = review.getRequest().getObject().getSpec().getConfigurations().getBackupConfig();
+    String backupConfig = review.getRequest().getObject().getSpec().getConfiguration().getBackupConfig();
 
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 

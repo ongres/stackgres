@@ -44,12 +44,10 @@ public class ClusterSpec {
   @JsonProperty("restore")
   private ClusterRestore restore;
 
-  @JsonProperty("volumeSize")
-  @NotNull
-  private String volumeSize;
-
-  @JsonProperty("storageClass")
-  private String storageClass;
+  @JsonProperty("pods")
+  @Valid
+  @NotNull(message = "pod description must be specified")
+  private ClusterPod pod;
 
   @JsonProperty("prometheusAutobind")
   private Boolean prometheusAutobind;
@@ -100,22 +98,6 @@ public class ClusterSpec {
     this.restore = restore;
   }
 
-  public String getVolumeSize() {
-    return volumeSize;
-  }
-
-  public void setVolumeSize(String volumeSize) {
-    this.volumeSize = volumeSize;
-  }
-
-  public String getStorageClass() {
-    return storageClass;
-  }
-
-  public void setStorageClass(String storageClass) {
-    this.storageClass = storageClass;
-  }
-
   public Boolean getPrometheusAutobind() {
     return prometheusAutobind;
   }
@@ -149,11 +131,17 @@ public class ClusterSpec {
         .add("configuration", getConfigurations())
         .add("resourceProfile", resourceProfile)
         .add("restore", restore)
-        .add("volumeSize", volumeSize)
-        .add("storageClass", storageClass)
+        .add("pod", getPod())
         .add("sidecars", sidecars)
         .add("nonProduction", nonProduction)
         .toString();
   }
 
+  public ClusterPod getPod() {
+    return pod;
+  }
+
+  public void setPod(ClusterPod pod) {
+    this.pod = pod;
+  }
 }

@@ -77,17 +77,17 @@ public class ClusterDefaultResourcesMutator implements ClusterMutator {
       StackGresClusterSpec spec = targetCluster.getSpec();
 
       if (installedNamespace.equals(targetNamespace)) {
-        if (isEmpty(spec.getConfigurations().getBackupConfig())) {
-          spec.getConfigurations().setBackupConfig(defaultBackup.getMetadata().getName());
+        if (isEmpty(spec.getConfiguration().getBackupConfig())) {
+          spec.getConfiguration().setBackupConfig(defaultBackup.getMetadata().getName());
         }
-        if (isEmpty(spec.getConfigurations().getPostgresConfig())) {
-          spec.getConfigurations().setPostgresConfig(defaultPostgresConfig.getMetadata().getName());
+        if (isEmpty(spec.getConfiguration().getPostgresConfig())) {
+          spec.getConfiguration().setPostgresConfig(defaultPostgresConfig.getMetadata().getName());
         }
         if (isEmpty(spec.getResourceProfile())) {
           spec.setResourceProfile(defaultProfile.getMetadata().getName());
         }
-        if (isEmpty(spec.getConfigurations().getConnectionPoolingConfig())) {
-          spec.getConfigurations()
+        if (isEmpty(spec.getConfiguration().getConnectionPoolingConfig())) {
+          spec.getConfiguration()
               .setConnectionPoolingConfig(defaultPgBouncerConfig.getMetadata().getName());
         }
       }

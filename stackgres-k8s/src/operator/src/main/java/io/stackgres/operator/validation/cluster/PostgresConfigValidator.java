@@ -61,7 +61,7 @@ public class PostgresConfigValidator implements ClusterValidator {
     }
 
     String givenPgVersion = cluster.getSpec().getPostgresVersion();
-    String pgConfig = cluster.getSpec().getConfigurations().getPostgresConfig();
+    String pgConfig = cluster.getSpec().getConfiguration().getPostgresConfig();
 
     checkIfProvided(pgConfig, "pgConfig");
 
@@ -84,7 +84,7 @@ public class PostgresConfigValidator implements ClusterValidator {
 
         StackGresCluster oldCluster = review.getRequest().getOldObject();
 
-        String oldPgConfig = oldCluster.getSpec().getConfigurations().getPostgresConfig();
+        String oldPgConfig = oldCluster.getSpec().getConfiguration().getPostgresConfig();
         if (!oldPgConfig.equals(pgConfig)) {
           validateAgainstConfiguration(givenMajorVersion, pgConfig, namespace);
         }
