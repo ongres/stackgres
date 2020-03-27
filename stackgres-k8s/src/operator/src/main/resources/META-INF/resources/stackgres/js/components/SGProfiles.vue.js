@@ -23,43 +23,55 @@ var SGProfiles = Vue.component("sg-profile", {
 			</header>
 
 			<div class="content">
-				<div class="profiles boxes">
-					<div v-for="prof in profiles" v-bind:id="prof.name+'-'+prof.data.metadata.namespace" class="box" v-bind:class="[($route.params.name == prof.name) ? 'show' : '']" v-if="prof.data.metadata.namespace == currentNamespace">
-						<h4>{{ prof.name }}</h4>
-						<div class="table no-margin">
-							<div class="head row no-border">
-								<div class="col text">
-									<span>Namespace</span>
-									{{ prof.data.metadata.namespace }}
-								</div>
-								<div class="col">
-									<span>RAM</span>
-									{{ prof.data.spec.memory }}
-								</div>
-								<div class="col">
-									<span>CPU</span>
-									{{ prof.data.spec.cpu }}
-								</div>
-							</div>
-						</div>
-						<div class="form">
-							<router-link :to="'/crd/edit/profile/'+$route.params.namespace+'/'+prof.name" class="btn">Edit Profile</router-link> 
-							<button @click="deleteProfile(prof.name, prof.data.metadata.namespace)" class="border">Delete Profile</button>
-						</div>
-					</div>
-				</div>
+				<table class="profiles">
+					<thead class="sort">
+						<th @click="sort('data.metadata.name')" class="sorted desc name">
+							<span>Name</span>
+						</th>
+						<th @click="sort('data.spec.memory')" class="desc memory">
+							<span>RAM</span>
+						</th>
+						<th @click="sort('data.spec.cpu')" class="desc cpu">
+							<span>CPU</span>
+						</th>
+						<th class="actions"></th>
+					</thead>
+					<tbody>
+						<tr class="no-results">
+							<td :colspan="4">
+								No records matched your search terms
+							</td>
+						</tr>
+						<template v-for="conf in config" v-if="(conf.data.metadata.namespace == currentNamespace)">
+							<tr class="base">
+								<td>{{ conf.name }}</td>
+								<td>{{ conf.data.spec.memory }}</td>
+								<td>{{ conf.data.spec.cpu }}</td>
+								<td class="actions">
+									<router-link :to="'/crd/edit/profile/'+currentNamespace+'/'+conf.name" title="Edit Configuration">
+										<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14"><path d="M90,135.721v2.246a.345.345,0,0,0,.345.345h2.246a.691.691,0,0,0,.489-.2l8.042-8.041a.346.346,0,0,0,0-.489l-2.39-2.389a.345.345,0,0,0-.489,0L90.2,135.232A.691.691,0,0,0,90,135.721Zm13.772-8.265a.774.774,0,0,0,0-1.095h0l-1.82-1.82a.774.774,0,0,0-1.095,0h0l-1.175,1.176a.349.349,0,0,0,0,.495l2.421,2.421a.351.351,0,0,0,.5,0Z" transform="translate(-90 -124.313)"/></svg>
+									</router-link>
+									<a v-on:click="deleteCRD('profile',currentNamespace, conf.name)" class="delete" title="Delete Configuration">
+										<svg xmlns="http://www.w3.org/2000/svg" width="13.5" height="15" viewBox="0 0 13.5 15"><g transform="translate(-61 -90)"><path d="M73.765,92.7H71.513a.371.371,0,0,1-.355-.362v-.247A2.086,2.086,0,0,0,69.086,90H66.413a2.086,2.086,0,0,0-2.072,2.094V92.4a.367.367,0,0,1-.343.3H61.735a.743.743,0,0,0,0,1.486h.229a.375.375,0,0,1,.374.367v8.35A2.085,2.085,0,0,0,64.408,105h6.684a2.086,2.086,0,0,0,2.072-2.095V94.529a.372.372,0,0,1,.368-.34h.233a.743.743,0,0,0,0-1.486Zm-7.954-.608a.609.609,0,0,1,.608-.607h2.667a.6.6,0,0,1,.6.6v.243a.373.373,0,0,1-.357.371H66.168a.373.373,0,0,1-.357-.371Zm5.882,10.811a.61.61,0,0,1-.608.608h-6.67a.608.608,0,0,1-.608-.608V94.564a.375.375,0,0,1,.375-.375h7.136a.375.375,0,0,1,.375.375Z" transform="translate(0)"/><path d="M68.016,98.108a.985.985,0,0,0-.98.99V104.5a.98.98,0,1,0,1.96,0V99.1A.985.985,0,0,0,68.016,98.108Z" transform="translate(-1.693 -3.214)"/><path d="M71.984,98.108a.985.985,0,0,0-.98.99V104.5a.98.98,0,1,0,1.96,0V99.1A.985.985,0,0,0,71.984,98.108Z" transform="translate(-2.807 -3.214)"/></g></svg>
+									</a>
+								</td>
+							</tr>
+						</template>
+					</tbody>
+				</table>
 			</div>
 		</div>`,
 	data: function() {
 
 		return {
-			
+			currentSort: 'data.metadata.name',
+			currentSortDir: 'desc',
 		}
 	},
 	computed: {
 
-		profiles () {
-			return store.state.profiles
+		config () {
+			return sortTable( store.state.profiles, this.currentSort, this.currentSortDir )
 		},
 
 		currentNamespace () {
@@ -68,44 +80,6 @@ var SGProfiles = Vue.component("sg-profile", {
 
 	},
 	methods: {
-		deleteProfile: function(profName, profNamespace) {
-			//e.preventDefault();
-
-			let confirmDelete = confirm("DELETE ITEM\nAre you sure you want to delete this item?")
-
-			if(confirmDelete) {
-				const profile = {
-					name: profName,
-					namespace: profNamespace
-				}
-	
-				const res = axios
-				.delete(
-					apiURL+'profile/', 
-					{
-						data: {
-							"metadata": {
-								"name": profile.name,
-								"namespace": profile.namespace
-							}
-						}
-					}
-				)
-				.then(function (response) {
-					console.log("DELETED");
-					//console.log(response);
-					notify('Profile <strong>"'+profName+'"</strong> deleted successfully', 'message');
-					$('#'+profName+'-'+profNamespace).addClass("deleted");
-
-					vm.fetchAPI();					
-					router.push('/profiles/'+profNamespace);
-				})
-				.catch(function (error) {
-					console.log(error.response);
-					notify(error.response.data.message,'error');
-				});
-			}
-
-		}	
+		
 	}
 })

@@ -23,39 +23,55 @@ var PoolConfig = Vue.component("pool-config", {
 			</header>
 
 			<div class="content">
-				<div class="boxes">
-					<div v-for="conf in config" v-bind:id="conf.name+'-'+conf.data.metadata.namespace" class="box config" v-bind:class="{'show':($route.params.name == conf.name)}" v-if="conf.data.metadata.namespace == currentNamespace">
-						<h4>{{ conf.name }}</h4>
-						<span>Namespace</span>
-						<strong>{{ conf.data.metadata.namespace }}</strong>
-						<hr>
-						<span>Params</span>
-						<pre>{{ conf.data.spec['pgbouncer.ini'] }}</pre>
-						<!--
-						<ul class="params">
-							<li v-for="(item, index) in conf.data.spec['pgbouncer.ini']">
-								<strong>{{ index }}:</strong> {{ item }}<br/>
-							</li>
-						</ul>
-						-->
-						<div class="form">
-							<router-link :to="'/crd/edit/poolconfig/'+$route.params.namespace+'/'+conf.name" class="btn">Edit Configuration</router-link> 
-							<button @click="deleteConfig(conf.name, conf.data.metadata.namespace)" class="border">Delete Configuration</button>
-						</div>
-					</div>
-				</div>
+				<table class="pgconfig">
+					<thead class="sort">
+						<th @click="sort('data.metadata.name')" class="sorted desc name">
+							<span>Name</span>
+						</th>
+						<th class="config">
+							<span>Parameters</span>
+						</th>
+						<th class="actions"></th>
+					</thead>
+					<tbody>
+						<tr class="no-results">
+							<td :colspan="3">
+								No records matched your search terms
+							</td>
+						</tr>
+						<template v-for="conf in config" v-if="(conf.data.metadata.namespace == currentNamespace)">
+							<tr>
+								<td>{{ conf.name }}</td>
+								<td class="parameters">
+									<ul class="yaml" v-html="parseParams(conf.data.spec['pgbouncer.ini'])"></ul>
+								</td>
+								<td class="actions">
+									<a class="openConfig" title="Configuration Details">
+										<svg xmlns="http://www.w3.org/2000/svg" width="18.556" height="14.004" viewBox="0 0 18.556 14.004"><g transform="translate(0 -126.766)"><path d="M18.459,133.353c-.134-.269-3.359-6.587-9.18-6.587S.232,133.084.1,133.353a.93.93,0,0,0,0,.831c.135.269,3.36,6.586,9.18,6.586s9.046-6.317,9.18-6.586A.93.93,0,0,0,18.459,133.353Zm-9.18,5.558c-3.9,0-6.516-3.851-7.284-5.142.767-1.293,3.382-5.143,7.284-5.143s6.516,3.85,7.284,5.143C15.795,135.06,13.18,138.911,9.278,138.911Z" transform="translate(0 0)"/><path d="M9.751,130.857a3.206,3.206,0,1,0,3.207,3.207A3.21,3.21,0,0,0,9.751,130.857Z" transform="translate(-0.472 -0.295)"/></g></svg>
+									</a>
+									<router-link :to="'/crd/edit/connectionpooling/'+currentNamespace+'/'+conf.name" title="Edit Configuration">
+										<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14"><path d="M90,135.721v2.246a.345.345,0,0,0,.345.345h2.246a.691.691,0,0,0,.489-.2l8.042-8.041a.346.346,0,0,0,0-.489l-2.39-2.389a.345.345,0,0,0-.489,0L90.2,135.232A.691.691,0,0,0,90,135.721Zm13.772-8.265a.774.774,0,0,0,0-1.095h0l-1.82-1.82a.774.774,0,0,0-1.095,0h0l-1.175,1.176a.349.349,0,0,0,0,.495l2.421,2.421a.351.351,0,0,0,.5,0Z" transform="translate(-90 -124.313)"/></svg>
+									</router-link>
+									<a v-on:click="deleteCRD('connpoolconfig',currentNamespace, conf.name)" class="delete" title="Delete Configuration">
+										<svg xmlns="http://www.w3.org/2000/svg" width="13.5" height="15" viewBox="0 0 13.5 15"><g transform="translate(-61 -90)"><path d="M73.765,92.7H71.513a.371.371,0,0,1-.355-.362v-.247A2.086,2.086,0,0,0,69.086,90H66.413a2.086,2.086,0,0,0-2.072,2.094V92.4a.367.367,0,0,1-.343.3H61.735a.743.743,0,0,0,0,1.486h.229a.375.375,0,0,1,.374.367v8.35A2.085,2.085,0,0,0,64.408,105h6.684a2.086,2.086,0,0,0,2.072-2.095V94.529a.372.372,0,0,1,.368-.34h.233a.743.743,0,0,0,0-1.486Zm-7.954-.608a.609.609,0,0,1,.608-.607h2.667a.6.6,0,0,1,.6.6v.243a.373.373,0,0,1-.357.371H66.168a.373.373,0,0,1-.357-.371Zm5.882,10.811a.61.61,0,0,1-.608.608h-6.67a.608.608,0,0,1-.608-.608V94.564a.375.375,0,0,1,.375-.375h7.136a.375.375,0,0,1,.375.375Z" transform="translate(0)"/><path d="M68.016,98.108a.985.985,0,0,0-.98.99V104.5a.98.98,0,1,0,1.96,0V99.1A.985.985,0,0,0,68.016,98.108Z" transform="translate(-1.693 -3.214)"/><path d="M71.984,98.108a.985.985,0,0,0-.98.99V104.5a.98.98,0,1,0,1.96,0V99.1A.985.985,0,0,0,71.984,98.108Z" transform="translate(-2.807 -3.214)"/></g></svg>
+									</a>
+								</td>
+							</tr>
+						</template>
+					</tbody>
+				</table>
 			</div>
 		</div>`,
 	data: function() {
-
 		return {
-			
+			currentSort: 'data.metadata.name',
+			currentSortDir: 'desc',
 		}
 	},
 	computed: {
 
 		config () {
-			return store.state.poolConfig
+			return sortTable( store.state.poolConfig, this.currentSort, this.currentSortDir )
 		},
 
 		currentNamespace () {
@@ -64,45 +80,6 @@ var PoolConfig = Vue.component("pool-config", {
 
 	},
 	methods: {
-		deleteConfig: function(configName, configNamespace) {
-			//e.preventDefault();
-
-			let confirmDelete = confirm("DELETE ITEM\nAre you sure you want to delete this item?")
-
-			if(confirmDelete) {
-
-				const config = {
-					name: configName,
-					namespace: configNamespace
-				}
-
-				const res = axios
-				.delete(
-					apiURL+'connpoolconfig/', 
-					{
-						data: {
-							"metadata": {
-								"name": config.name,
-								"namespace": config.namespace
-							}
-						}
-					}
-				)
-				.then(function (response) {
-					console.log("DELETED");
-					
-					notify('Configuration <strong>"'+configName+'"</strong> deleted successfully', 'message');
-					$('#'+configName+'-'+configNamespace).addClass("deleted");
-					
-					vm.fetchAPI();
-					router.push('/configurations/connectionpooling/'+store.state.currentNamespace);
-				})
-				.catch(function (error) {
-					console.log(error.response);
-					notify(error.response.data.message,'error');
-				});
-			}
-
-		}	
+		
 	}
 })
