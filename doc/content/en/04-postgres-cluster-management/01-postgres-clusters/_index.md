@@ -27,8 +27,8 @@ ___
 | [configurations](#configurations)                                                                                                       |          |           | object   |                                     | Custom configurations to be applied to the cluster |
 | [sidecars](#sidecar-containers)                                                                                                         |          | ✓         | array    | all available sidecars are included | List of sidecars to include in the cluster |
 | prometheusAutobind                                                                                                                      |          | ✓         | boolean  | false                               | If enabled a ServiceMonitor will be created for each Prometheus instance found in order to collect metrics |
-| [sgBackupConfig]({{% relref "/04-postgres-cluster-management/04-backups/_index.md#configuration" %}})                                     |          | ✓         | string   |                                     | Backup config to apply |
-| [restore](#restore-configuration)                                                                                                       |          |           | object   |                                     | Cluter restoration options |
+| [sgBackupConfig]({{% relref "/04-postgres-cluster-management/04-backups/_index.md#configuration" %}})                                   |          | ✓         | string   |                                     | Backup config to apply |
+| [initialData](#initial-data-configuration)                                                                                              |          |           | object   |                                     | Cluster data initialization options |
 | [nonProduction](#non-production-options)                                                                                                |          | ✓         | array    |                                     | Additional parameters for non production environments |
 
 Example:
@@ -47,34 +47,6 @@ spec:
   sgInstanceProfile: 'size-xs'
 ```
 
-## Pods
-Cluster's pod configuration
-
-| Property                                                                                                                                | Required | Updatable | Type     | Default                             | Description |
-|:----------------------------------------------------------------------------------------------------------------------------------------|----------|-----------|:---------|:------------------------------------|:------------|
-| persistentVolume                                                                                                                        | ✓        |           | object   |                                     | Cluster Pod's persistent volume configuration |
-
-
-## Persistent Volume
-
-Holds the configurations of the persistent volume that the cluster pods are going to use
-
-| Property                                                                                                                                | Required | Updatable | Type     | Default                             | Description |
-|:----------------------------------------------------------------------------------------------------------------------------------------|----------|-----------|:---------|:------------------------------------|:------------|
-| size                                                                                                                              | ✓        | ✓         | string   |                                     | Storage volume size (for example 5Gi) |
-| storageClass                                                                                                                            |          |           | string   | default storage class               | Storage class name to be used for the cluster (if not specified means default storage class wiil be used) |
-
-```yaml
-apiVersion: stackgres.io/v1beta1
-kind: SGCluster
-metadata:
-  name: stackgres
-spec:
-  pods:
-    persistentVolume:
-      size: '5Gi'
-      storageClass: default
-```
 
 
 ## Configurations
@@ -102,6 +74,36 @@ spec:
     sgBackupConfig: 'backupconf'
 
 ```
+
+## Pods
+Cluster's pod configuration
+
+| Property                                                                                                                                | Required | Updatable | Type     | Default                             | Description |
+|:----------------------------------------------------------------------------------------------------------------------------------------|----------|-----------|:---------|:------------------------------------|:------------|
+| persistentVolume                                                                                                                        | ✓        |           | object   |                                     | Cluster Pod's persistent volume configuration |
+
+
+## Persistent Volume
+
+Holds the configurations of the persistent volume that the cluster pods are going to use
+
+| Property                                                                                                                                | Required | Updatable | Type     | Default                             | Description |
+|:----------------------------------------------------------------------------------------------------------------------------------------|----------|-----------|:---------|:------------------------------------|:------------|
+| size                                                                                                                                    | ✓        | ✓         | string   |                                     | Storage volume size (for example 5Gi) |
+| storageClass                                                                                                                            |          |           | string   | default storage class               | Storage class name to be used for the cluster (if not specified means default storage class wiil be used) |
+
+```yaml
+apiVersion: stackgres.io/v1beta1
+kind: SGCluster
+metadata:
+  name: stackgres
+spec:
+  pods:
+    persistentVolume:
+      size: '5Gi'
+      storageClass: default
+```
+
 ## Sidecar containers
 
 A sidecar container is a container that adds functionality to PostgreSQL or to the cluster
@@ -130,6 +132,14 @@ spec:
     - prometheus-postgres-exporter
 ```
 
+## Initial Data Configuration
+Specifies the cluster initialization data configurations
+
+| Property                                                                                                                                | Required | Updatable | Type     | Default                             | Description |
+|:----------------------------------------------------------------------------------------------------------------------------------------|----------|-----------|:---------|:------------------------------------|:------------|
+| [restore](#restore-configuration)                                                                                                       |          |           | object   |                                     | Cluter restoration options |
+
+
 ## Restore configuration
 
 By default, stackgres it's creates as an empty database. To create a cluster with data 
@@ -149,9 +159,10 @@ kind: SGCluster
 metadata:
   name: stackgres
 spec:
-  restore:
-    fromBackup: d7e660a9-377c-11ea-b04b-0242ac110004
-    downloadDiskConcurrency: 1
+  initialData: 
+    restore:
+      fromBackup: d7e660a9-377c-11ea-b04b-0242ac110004
+      downloadDiskConcurrency: 1
 ```
 
 ## Non Production options

@@ -6,6 +6,7 @@
 package io.stackgres.operator.rest.transformer;
 
 import java.util.List;
+import java.util.Optional;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -14,12 +15,14 @@ import io.fabric8.kubernetes.api.model.Pod;
 import io.stackgres.operator.common.ConfigContext;
 import io.stackgres.operator.common.ConfigProperty;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
+import io.stackgres.operator.customresource.sgcluster.StackGresClusterInitData;
 import io.stackgres.operator.customresource.sgcluster.StackGresClusterPod;
 import io.stackgres.operator.customresource.sgcluster.StackGresClusterSpec;
 import io.stackgres.operator.customresource.sgcluster.StackGresPodPersistenceVolume;
 import io.stackgres.operator.customresource.sgcluster.StackgresClusterConfiguration;
 import io.stackgres.operator.rest.dto.cluster.ClusterConfiguration;
 import io.stackgres.operator.rest.dto.cluster.ClusterDto;
+import io.stackgres.operator.rest.dto.cluster.ClusterInitData;
 import io.stackgres.operator.rest.dto.cluster.ClusterPod;
 import io.stackgres.operator.rest.dto.cluster.ClusterPodPersistentVolume;
 import io.stackgres.operator.rest.dto.cluster.ClusterRestore;
@@ -88,8 +91,13 @@ public class ClusterTransformer
     transformation.setPostgresVersion(source.getPostgresVersion());
     transformation.setPrometheusAutobind(source.getPrometheusAutobind());
     transformation.setResourceProfile(source.getResourceProfile());
-    transformation.setRestore(
-        getCustomResourceRestore(source.getRestore()));
+    Optional.ofNullable(source.getInitData())
+        .map(ClusterInitData::getRestore)
+        .ifPresent(clusterRestore -> {
+          transformation.setInitData(new StackGresClusterInitData());
+          transformation.getInitData().setRestore(
+              getCustomResourceRestore(source.getInitData().getRestore()));
+        });
     transformation.setSidecars(source.getSidecars());
     transformation.setPod(new StackGresClusterPod());
     transformation.getPod().setPersistentVolume(new StackGresPodPersistenceVolume());
@@ -138,8 +146,15 @@ public class ClusterTransformer
     transformation.setPostgresVersion(source.getPostgresVersion());
     transformation.setPrometheusAutobind(source.getPrometheusAutobind());
     transformation.setResourceProfile(source.getResourceProfile());
-    transformation.setRestore(
-        getResourceRestore(source.getRestore()));
+
+    Optional.ofNullable(source.getInitData())
+        .map(StackGresClusterInitData::getRestore)
+        .ifPresent(clusterRestore -> {
+          transformation.setInitData(new ClusterInitData());
+          transformation.getInitData().setRestore(
+              getResourceRestore(source.getInitData().getRestore()));
+        });
+
     transformation.setSidecars(source.getSidecars());
     transformation.setPod(new ClusterPod());
     transformation.getPod().setPersistentVolume(new ClusterPodPersistentVolume());

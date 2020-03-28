@@ -115,22 +115,26 @@ spec:
               description: >
                 If enabled, a ServiceMonitor will be created for each Prometheus instance found in order to collect
                 metrics.
-            restore:
+            initialData:
               type: object
+              description: Cluster initialization data options
               properties:
-                fromBackup:
-                  type: string
-                  description: >
-                    Initialize the cluster data by restoring an existing backup. If not used, cluster will be
-                    initialized empty. Set to the UID of an existing
-                    [SGBackup](https://stackgres.io/doc/latest/04-postgres-cluster-management/04-backups/)
-                    from which to restore the data. The backup needs to be in the same namespace.
-                downloadDiskConcurrency:
-                  type: integer
-                  minimum: 1
-                  description: >
-                    The backup fetch process may fetch several streams in parallel. Specify a value larger than one
-                    for parallel fetching.
+                restore:
+                  type: object
+                  properties:
+                    fromBackup:
+                      type: string
+                      description: >
+                        Initialize the cluster data by restoring an existing backup. If not used, cluster will be
+                        initialized empty. Set to the UID of an existing
+                        [SGBackup](https://stackgres.io/doc/latest/04-postgres-cluster-management/04-backups/)
+                        from which to restore the data. The backup needs to be in the same namespace.
+                    downloadDiskConcurrency:
+                      type: integer
+                      minimum: 1
+                      description: >
+                        The backup fetch process may fetch several streams in parallel. Specify a value larger than one
+                        for parallel fetching.
             sidecars:
               type: array
               items:

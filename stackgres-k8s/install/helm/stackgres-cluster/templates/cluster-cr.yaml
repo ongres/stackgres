@@ -19,10 +19,11 @@ spec:
     {{- end }}
   sgInstanceProfile: '{{ .Values.cluster.profile }}'
   {{- if .Values.cluster.restore }}
-  restore:
-    fromBackup: {{ .Values.cluster.restore.fromBackup }}
-    {{- if .Values.cluster.restore.downloadDiskConcurrency }}
-    downloadDiskConcurrency: {{ .Values.cluster.restore.downloadDiskConcurrency }}
+  initialData:
+    restore:
+      fromBackup: {{ .Values.cluster.restore.fromBackup }}
+      {{- if .Values.cluster.restore.downloadDiskConcurrency }}
+      downloadDiskConcurrency: {{ .Values.cluster.restore.downloadDiskConcurrency }}
     {{- end }}    
   {{- end }}
   pods:

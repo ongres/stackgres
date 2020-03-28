@@ -42,8 +42,8 @@ public class StackGresClusterSpec implements KubernetesResource {
   @NotNull(message = "resource profile must not be null")
   private String resourceProfile;
 
-  @JsonProperty("restore")
-  private ClusterRestore restore;
+  @JsonProperty("initialData")
+  private StackGresClusterInitData initData;
 
   @JsonProperty("pods")
   @Valid
@@ -99,14 +99,6 @@ public class StackGresClusterSpec implements KubernetesResource {
     this.resourceProfile = resourceProfile;
   }
 
-  public ClusterRestore getRestore() {
-    return restore;
-  }
-
-  public void setRestore(ClusterRestore restore) {
-    this.restore = restore;
-  }
-
   public Boolean getPrometheusAutobind() {
     return prometheusAutobind;
   }
@@ -131,16 +123,24 @@ public class StackGresClusterSpec implements KubernetesResource {
     this.nonProduction = nonProduction;
   }
 
+  public StackGresClusterInitData getInitData() {
+    return initData;
+  }
+
+  public void setInitData(StackGresClusterInitData initData) {
+    this.initData = initData;
+  }
+
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .omitNullValues()
         .add("instances", instances)
         .add("pgVersion", postgresVersion)
-        .add("configurations", getConfiguration())
+        .add("configurations", configuration)
         .add("resourceProfile", resourceProfile)
-        .add("restore", restore)
-        .add("pod", getPod())
+        .add("restore", initData)
+        .add("pod", pod)
         .add("sidecars", sidecars)
         .add("nonProduction", nonProduction)
         .toString();

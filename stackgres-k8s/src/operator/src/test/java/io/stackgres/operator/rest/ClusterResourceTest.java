@@ -177,8 +177,8 @@ class ClusterResourceTest extends AbstractCustomResourceTest<ClusterDto, StackGr
     assertEquals("11.5", resource.getSpec().getPostgresVersion());
     assertEquals("postgresconf", resource.getSpec().getConfigurations().getPostgresConfig());
     assertEquals("size-xs", resource.getSpec().getResourceProfile());
-    assertNotNull(resource.getSpec().getRestore());
-    assertEquals("d7e660a9-377c-11ea-b04b-0242ac110004", resource.getSpec().getRestore().getBackupUid());
+    assertNotNull(resource.getSpec().getInitData().getRestore());
+    assertEquals("d7e660a9-377c-11ea-b04b-0242ac110004", resource.getSpec().getInitData().getRestore().getBackupUid());
     assertIterableEquals(ImmutableList.of(
         "connection-pooling",
         "postgres-util",
@@ -219,8 +219,8 @@ class ClusterResourceTest extends AbstractCustomResourceTest<ClusterDto, StackGr
     assertEquals("11.5", resource.getSpec().getPostgresVersion());
     assertEquals("postgresconf", resource.getSpec().getConfiguration().getPostgresConfig());
     assertEquals("size-xs", resource.getSpec().getResourceProfile());
-    assertNotNull(resource.getSpec().getRestore());
-    assertEquals("d7e660a9-377c-11ea-b04b-0242ac110004", resource.getSpec().getRestore().getBackupUid());
+    assertNotNull(resource.getSpec().getInitData().getRestore());
+    assertEquals("d7e660a9-377c-11ea-b04b-0242ac110004", resource.getSpec().getInitData().getRestore().getBackupUid());
     assertIterableEquals(ImmutableList.of(
         "connection-pooling",
         "postgres-util",

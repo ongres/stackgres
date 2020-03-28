@@ -164,9 +164,10 @@ spec:
       size: '512Mi'
   configurations:
     sgPostgresConfig: pgconfig-alter
-  restore:
-    downloadDiskConcurrency: 1
-    fromBackup: $BACKUP_UID
+  initialData:
+    restore:
+      downloadDiskConcurrency: 1
+      fromBackup: $BACKUP_UID
 EOF
 
   if ERROR_MESSAGE="$(kubectl apply -f $LOG_PATH/alter-restore-cluster.yaml 2>&1)"
@@ -202,8 +203,9 @@ spec:
   pods:
     persistentVolume:
       size: '128Mi'
-  restore:
-    fromBackup: $BACKUP_UID
+  initialData:
+    restore:
+      fromBackup: $BACKUP_UID
 EOF
 
   assert_default_value "downloadDiskConcurrency" "1"
@@ -214,7 +216,7 @@ assert_default_value(){
   FIELD=$1
   EXPECTED_VALUE=$2
 
-  if ACTUAL_VALUE=$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o=jsonpath="{.spec.restore.$FIELD}")
+  if ACTUAL_VALUE=$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o=jsonpath="{.spec.initialData.restore.$FIELD}")
   then
     if [ "$ACTUAL_VALUE" = "$EXPECTED_VALUE" ]
     then

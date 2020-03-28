@@ -41,8 +41,8 @@ public class ClusterSpec {
   @NotNull(message = "resource profile must not be null")
   private String resourceProfile;
 
-  @JsonProperty("restore")
-  private ClusterRestore restore;
+  @JsonProperty("initialData")
+  private ClusterInitData initData;
 
   @JsonProperty("pods")
   @Valid
@@ -90,14 +90,6 @@ public class ClusterSpec {
     this.resourceProfile = resourceProfile;
   }
 
-  public ClusterRestore getRestore() {
-    return restore;
-  }
-
-  public void setRestore(ClusterRestore restore) {
-    this.restore = restore;
-  }
-
   public Boolean getPrometheusAutobind() {
     return prometheusAutobind;
   }
@@ -122,6 +114,22 @@ public class ClusterSpec {
     this.nonProduction = nonProduction;
   }
 
+  public ClusterPod getPod() {
+    return pod;
+  }
+
+  public void setPod(ClusterPod pod) {
+    this.pod = pod;
+  }
+
+  public ClusterInitData getInitData() {
+    return initData;
+  }
+
+  public void setInitData(ClusterInitData initData) {
+    this.initData = initData;
+  }
+
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
@@ -130,18 +138,10 @@ public class ClusterSpec {
         .add("pgVersion", postgresVersion)
         .add("configuration", getConfigurations())
         .add("resourceProfile", resourceProfile)
-        .add("restore", restore)
+        .add("initData", getInitData())
         .add("pod", getPod())
         .add("sidecars", sidecars)
         .add("nonProduction", nonProduction)
         .toString();
-  }
-
-  public ClusterPod getPod() {
-    return pod;
-  }
-
-  public void setPod(ClusterPod pod) {
-    this.pod = pod;
   }
 }

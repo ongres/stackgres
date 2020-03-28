@@ -112,9 +112,10 @@ spec:
   pods:
     persistentVolume:
       size: '512Mi'
-  restore:
-    downloadDiskConcurrency: 10
-    fromBackup: "$BACKUP_UID"
+  initialData:
+    restore:
+      downloadDiskConcurrency: 10
+      fromBackup: "$BACKUP_UID"
 EOF
 
   wait_pods_running "$CLUSTER_NAMESPACE" 2
