@@ -25,7 +25,6 @@ ___
 | pods                                                                                                                                    | ✓        | ✓         | object   |                                     | Cluster's pod configuration |
 | storageClass                                                                                                                            |          |           | string   | default storage class               | Storage class name to be used for the cluster (if not specified means default storage class wiil be used) |
 | [configurations](#configurations)                                                                                                       |          |           | object   |                                     | Custom configurations to be applied to the cluster |
-| [sidecars](#sidecar-containers)                                                                                                         |          | ✓         | array    | all available sidecars are included | List of sidecars to include in the cluster |
 | prometheusAutobind                                                                                                                      |          | ✓         | boolean  | false                               | If enabled a ServiceMonitor will be created for each Prometheus instance found in order to collect metrics |
 | [sgBackupConfig]({{% relref "/04-postgres-cluster-management/04-backups/_index.md#configuration" %}})                                   |          | ✓         | string   |                                     | Backup config to apply |
 | [initialData](#initial-data-configuration)                                                                                              |          |           | object   |                                     | Cluster data initialization options |
@@ -80,7 +79,39 @@ Cluster's pod configuration
 
 | Property                                                                                                                                | Required | Updatable | Type     | Default                             | Description |
 |:----------------------------------------------------------------------------------------------------------------------------------------|----------|-----------|:---------|:------------------------------------|:------------|
-| persistentVolume                                                                                                                        | ✓        |           | object   |                                     | Cluster Pod's persistent volume configuration |
+| persistentVolume                                                                                                                        | ✓        |           | object   |                                     | Cluster Pod's persistent volume configuratio   |
+| disableConnectionPooling                                                                                                                |          |           | boolean  | false                               | If is true, it disable the connection poolong  |
+| disableMetricsExporter                                                                                                                  |          |           | boolean  | false                               | If is true, it disable the metrics exportation |
+| disablePostgresUtil                                                                                                                     |          |           | boolean  | false                               | If is true, the postgres util container will not be installed |
+
+### Sidecar containers
+
+A sidecar container is a container that adds functionality to PostgreSQL or to the cluster
+ infrastructure. Currently StackGres implement following sidecar containers:
+
+* `envoy`: this container is always present, and is not possible to disable it. It serve as
+ a edge proxy from client to PostgreSQL instances or between PostgreSQL instances. It enables
+ network metrics collection to provide connection statistics.
+* `pgbouncer`: a container with pgbouncer as the connection pooling for the PostgreSQL instances.
+* `prometheus-postgres-exporter`: a container with postgres exporter at the metrics exporter for
+ the PostgreSQL instances.
+* `postgres-util`: a container with psql and all PostgreSQL common tools in order to connect to the
+ database directly as root to perform any administration tasks.
+
+The following example, disable all optional sidecars:
+
+```yaml
+apiVersion: stackgres.io/v1beta1
+kind: SGCluster
+metadata:
+  name: stackgres
+spec:
+  pods:
+    disableConnectionPooling: false
+    disableMetricsExporter: false
+    disablePostgresUtil: false
+```
+
 
 
 ## Persistent Volume
@@ -104,33 +135,7 @@ spec:
       storageClass: default
 ```
 
-## Sidecar containers
 
-A sidecar container is a container that adds functionality to PostgreSQL or to the cluster
- infrastructure. Currently StackGres implement following sidecar containers:
-
-* `envoy`: this container is always present even if not specified in the configuration. It serve as
- a edge proxy from client to PostgreSQL instances or between PostgreSQL instances. It enables
- network metrics collection to provide connection statistics.
-* `pgbouncer`: a container with pgbouncer as the connection pooling for the PostgreSQL instances.
-* `prometheus-postgres-exporter`: a container with postgres exporter at the metrics exporter for
- the PostgreSQL instances.
-* `postgres-util`: a container with psql and all PostgreSQL common tools in order to connect to the
- database directly as root to perform any administration tasks.
-
-Following sinnept enables all sidecars but `postgres-util`:
-
-```yaml
-apiVersion: stackgres.io/v1beta1
-kind: SGCluster
-metadata:
-  name: stackgres
-spec:
-  sidecars:
-    - envoy
-    - pgbouncer
-    - prometheus-postgres-exporter
-```
 
 ## Initial Data Configuration
 Specifies the cluster initialization data configurations

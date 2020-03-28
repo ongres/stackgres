@@ -5,8 +5,7 @@
 
 package io.stackgres.operator.rest;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertIterableEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -179,11 +178,9 @@ class ClusterResourceTest extends AbstractCustomResourceTest<ClusterDto, StackGr
     assertEquals("size-xs", resource.getSpec().getResourceProfile());
     assertNotNull(resource.getSpec().getInitData().getRestore());
     assertEquals("d7e660a9-377c-11ea-b04b-0242ac110004", resource.getSpec().getInitData().getRestore().getBackupUid());
-    assertIterableEquals(ImmutableList.of(
-        "connection-pooling",
-        "postgres-util",
-        "prometheus-postgres-exporter"),
-        resource.getSpec().getSidecars());
+    assertFalse(resource.getSpec().getPod().getDisableConnectionPooling());
+    assertFalse(resource.getSpec().getPod().getDisableMetricsExporter());
+    assertFalse(resource.getSpec().getPod().getDisableMetricsExporter());
     assertEquals(1, resource.getPodsReady());
     assertNotNull(resource.getPods());
     assertEquals(2, resource.getPods().size());
@@ -205,11 +202,12 @@ class ClusterResourceTest extends AbstractCustomResourceTest<ClusterDto, StackGr
 
   @Override
   protected void checkBackupConfig(StackGresCluster resource) {
+
     assertNotNull(resource.getMetadata());
     assertEquals("postgresql", resource.getMetadata().getNamespace());
     assertEquals("stackgres", resource.getMetadata().getName());
     assertEquals("bfb53778-f59a-11e9-b1b5-0242ac110002", resource.getMetadata().getUid());
-   assertNotNull(resource.getSpec());
+    assertNotNull(resource.getSpec());
     assertEquals("backupconf", resource.getSpec().getConfiguration().getBackupConfig());
     assertEquals("pgbouncerconf", resource.getSpec().getConfiguration().getConnectionPoolingConfig());
     assertEquals("5Gi", resource.getSpec().getPod().getPersistentVolume().getVolumeSize());
@@ -221,11 +219,10 @@ class ClusterResourceTest extends AbstractCustomResourceTest<ClusterDto, StackGr
     assertEquals("size-xs", resource.getSpec().getResourceProfile());
     assertNotNull(resource.getSpec().getInitData().getRestore());
     assertEquals("d7e660a9-377c-11ea-b04b-0242ac110004", resource.getSpec().getInitData().getRestore().getBackupUid());
-    assertIterableEquals(ImmutableList.of(
-        "connection-pooling",
-        "postgres-util",
-        "prometheus-postgres-exporter"),
-        resource.getSpec().getSidecars());
+    assertFalse(resource.getSpec().getPod().getDisableConnectionPooling());
+    assertFalse(resource.getSpec().getPod().getDisableMetricsExporter());
+    assertFalse(resource.getSpec().getPod().getDisableMetricsExporter());
+
   }
 
 }

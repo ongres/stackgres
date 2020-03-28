@@ -5,8 +5,6 @@
 
 package io.stackgres.operator.rest.dto.cluster;
 
-import java.util.List;
-
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
@@ -16,7 +14,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.MoreObjects;
-
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
 @JsonDeserialize
@@ -51,9 +48,6 @@ public class ClusterSpec {
 
   @JsonProperty("prometheusAutobind")
   private Boolean prometheusAutobind;
-
-  @JsonProperty("sidecars")
-  private List<String> sidecars;
 
   @JsonProperty("nonProduction")
   private NonProduction nonProduction;
@@ -98,14 +92,6 @@ public class ClusterSpec {
     this.prometheusAutobind = prometheusAutobind;
   }
 
-  public List<String> getSidecars() {
-    return sidecars;
-  }
-
-  public void setSidecars(List<String> sidecars) {
-    this.sidecars = sidecars;
-  }
-
   public NonProduction getNonProduction() {
     return nonProduction;
   }
@@ -140,7 +126,6 @@ public class ClusterSpec {
         .add("resourceProfile", resourceProfile)
         .add("initData", getInitData())
         .add("pod", getPod())
-        .add("sidecars", sidecars)
         .add("nonProduction", nonProduction)
         .toString();
   }

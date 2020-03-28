@@ -24,12 +24,45 @@ public class StackGresClusterPod {
   @NotNull(message = "Pod's persistent volume must be specified")
   private StackGresPodPersistenceVolume persistentVolume;
 
+  @JsonProperty("disableConnectionPooling")
+  private Boolean disableConnectionPooling;
+
+  @JsonProperty("disableMetricsExporter")
+  private Boolean disableMetricsExporter;
+
+  @JsonProperty("disablePostgresUtil")
+  private Boolean disablePostgresUtil;
+
   public StackGresPodPersistenceVolume getPersistentVolume() {
     return persistentVolume;
   }
 
   public void setPersistentVolume(StackGresPodPersistenceVolume persistentVolume) {
     this.persistentVolume = persistentVolume;
+  }
+
+  public Boolean getDisableConnectionPooling() {
+    return disableConnectionPooling;
+  }
+
+  public void setDisableConnectionPooling(Boolean disableConnectionPooling) {
+    this.disableConnectionPooling = disableConnectionPooling;
+  }
+
+  public Boolean getDisableMetricsExporter() {
+    return disableMetricsExporter;
+  }
+
+  public void setDisableMetricsExporter(Boolean disableMetricsExporter) {
+    this.disableMetricsExporter = disableMetricsExporter;
+  }
+
+  public Boolean getDisablePostgresUtil() {
+    return disablePostgresUtil;
+  }
+
+  public void setDisablePostgresUtil(Boolean disablePostgresUtil) {
+    this.disablePostgresUtil = disablePostgresUtil;
   }
 
   @Override

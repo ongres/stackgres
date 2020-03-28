@@ -79,6 +79,7 @@ sidecar:
   pooling: true
   util: true
   prometheus:
+    enabled: true
     allowAutobind: true
 
 profiles:

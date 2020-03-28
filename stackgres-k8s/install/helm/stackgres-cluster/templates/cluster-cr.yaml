@@ -29,6 +29,21 @@ spec:
   pods:
     persistentVolume:
       size: '{{ .Values.cluster.volumeSize }}'
+    {{- if .Values.sidecar.pooling }}
+    disableConnectionPooling: false
+    {{- else }}
+    disableConnectionPooling: true
+    {{- end }}  
+    {{- if .Values.sidecar.util }}
+    disablePostgresUtil: false
+    {{- else }}
+    disablePostgresUtil: true
+    {{- end }}
+    {{- if .Values.sidecar.prometheus.enabled }}
+    disableMetricsExporter: false
+    {{- else }}
+    disableMetricsExporter: true
+    {{- end }}
   {{- if .Values.cluster.storageClass }}
   {{- if eq "-" .Values.cluster.storageClass }}
   storageClass: ""
@@ -40,13 +55,6 @@ spec:
   prometheusAutobind: {{ .Values.sidecar.prometheus.allowAutobind }}
   {{- else }}
   prometheusAutobind: false
-  {{- end }}
-  sidecars:
-  {{- if .Values.sidecar.pooling }}
-  - connection-pooling
-  {{- end }}
-  {{- if .Values.sidecar.util }}
-  - postgres-util
   {{- end }}
   {{- if .Values.nonProduction }}
   nonProduction:

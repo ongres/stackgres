@@ -59,13 +59,11 @@
           "persistentVolume": {
             "size": "5Gi",
             "storageClass": "standard"
-          }
-        },
-        "sidecars": [
-          "connection-pooling",
-          "postgres-util",
-          "prometheus-postgres-exporter"
-        ]
+          },
+          "disableConnectionPooling": false,
+          "disableMetricsExporter": false,
+          "disablePostgresUtil": false 
+        }
       },
       "status": null
     },
@@ -92,13 +90,11 @@
           "persistentVolume": {
             "size": "5Gi",
             "storageClass": "standard"
-          }
-        },
-        "sidecars": [
-          "connection-pooling",
-          "postgres-util",
-          "prometheus-postgres-exporter"
-        ]
+          },
+          "disableConnectionPooling": false,
+          "disableMetricsExporter": false,
+          "disablePostgresUtil": false 
+        }
       },
       "status": null
     },

@@ -60,9 +60,8 @@ public class PoolingConfigValidator implements ClusterValidator {
     String poolingConfig = cluster.getSpec().getConfiguration().getConnectionPoolingConfig();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
-    if (cluster.getSpec().getSidecars() != null
-        && cluster.getSpec().getSidecars().contains("connection-pooling")) {
-      checkIfProvided(poolingConfig, "connectionPoolingConfig");
+    if (cluster.getSpec().getPod().getDisableConnectionPooling() == Boolean.FALSE) {
+      checkIfProvided(poolingConfig, "sgPoolingConfig");
       Optional<StackGresPgbouncerConfig> poolingConfigOpt = configFinder
           .findByNameAndNamespace(poolingConfig, namespace);
 

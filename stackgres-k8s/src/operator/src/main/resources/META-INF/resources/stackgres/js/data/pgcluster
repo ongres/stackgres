@@ -18,15 +18,14 @@
         "sgPoolingConfig": "pgbouncerconf"
       },
       "sgInstanceProfile": "size-xs",
-      "sidecars": [
-          "connection-pooling",
-          "postgres-utils"
-      ],
-      "storageClass": "standard",
       "pods":{
         "persistentVolume": {
-          "size": "5Gi"
-        }
+          "size": "5Gi",
+           "storageClass": "standard"
+        },
+        "disableConnectionPooling": false,
+        "disableMetricsExporter": false,
+        "disablePostgresUtil": false 
       }
   },
   "status": {

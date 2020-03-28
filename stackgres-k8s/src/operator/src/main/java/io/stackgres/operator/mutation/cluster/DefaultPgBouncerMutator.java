@@ -6,6 +6,7 @@
 package io.stackgres.operator.mutation.cluster;
 
 import java.util.List;
+import java.util.Optional;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
@@ -15,6 +16,8 @@ import com.google.common.collect.ImmutableList;
 import io.stackgres.operator.common.ArcUtil;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
+import io.stackgres.operator.customresource.sgcluster.StackGresClusterPod;
+import io.stackgres.operator.customresource.sgcluster.StackGresClusterSpec;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
 import io.stackgres.operator.resource.CustomResourceFinder;
 import io.stackgres.operator.resource.CustomResourceScheduler;
@@ -60,9 +63,12 @@ public class DefaultPgBouncerMutator
 
   @Override
   protected boolean applyDefault(StackGresCluster targetCluster) {
-    List<String> clusterSidecars = targetCluster.getSpec().getSidecars();
-    return (clusterSidecars == null || clusterSidecars.contains("connection-pooling"))
-        && super.applyDefault(targetCluster);
+
+    return Optional.ofNullable(targetCluster.getSpec())
+        .map(StackGresClusterSpec::getPod)
+        .map(StackGresClusterPod::getDisableConnectionPooling)
+        .map(d -> super.applyDefault(targetCluster))
+        .orElse(false);
   }
 
   @Override

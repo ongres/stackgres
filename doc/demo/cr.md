@@ -124,10 +124,7 @@ spec:
       size: '5Gi'
   postgresExporterVersion: '0.7.0'
   prometheusAutobind: true
-  sidecars:
-  - connection-pooling
-  - postgres-util
-  - prometheus-postgres-exporter
+
 ```
 ### 2.- Once you have the files created, apply it to the k8s cluster:
 

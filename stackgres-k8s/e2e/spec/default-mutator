@@ -144,8 +144,6 @@ create_empty_cluster_with_default_pgbouncer() {
     pods:
       persistentVolume:
         size: '5Gi'
-    sidecars:
-    - connection-pooling 
     nonProduction:
       disableClusterPodAntiAffinity: true
 
@@ -175,8 +173,9 @@ EOF
     pods:
       persistentVolume:
         size: '5Gi'
-    sidecars:
-    - connection-pooling 
+      disableConnectionPooling: false
+      disableMetricsExporter: true
+      disablePostgresUtil: true        
     nonProduction:
       disableClusterPodAntiAffinity: true
 EOF
@@ -206,7 +205,9 @@ create_empty_cluster_with_no_sidecars() {
     pods:
       persistentVolume:
         size: '512Mi'
-    sidecars: []
+      disableConnectionPooling: true
+      disableMetricsExporter: true
+      disablePostgresUtil: true
     nonProduction:
       disableClusterPodAntiAffinity: true
 EOF
@@ -219,15 +220,17 @@ EOF
     return 1
   fi
 
-  local CLUSTER_SIDECARS=$(kubectl get sgclusters.stackgres.io -n $CLUSTER_NAMESPACE $CLUSTER_NAME-nosidecars -o json | run_jq '.spec.sidecars | length')
-  
-  if [ "$CLUSTER_SIDECARS" = "0" ]
-  then
-    echo "Success. Specified sidecars were not modified"    
-  else
-    echo "Fail. Specified sidecars were modified"
-    return 1
-  fi
+  local DISABLED_CONN_POOL=$(kubectl get sgclusters.stackgres.io -n $CLUSTER_NAMESPACE $CLUSTER_NAME-nosidecars -o json | run_jq -r '.spec.pods.disableConnectionPooling')
+
+  assert_string_equal "true" "$DISABLED_CONN_POOL"
+
+  local DISABLED_METRIC_EXPORTER=$(kubectl get sgclusters.stackgres.io -n $CLUSTER_NAMESPACE $CLUSTER_NAME-nosidecars -o json | run_jq -r '.spec.pods.disableMetricsExporter')
+
+  assert_string_equal "true" "$DISABLED_METRIC_EXPORTER"
+
+  local DISABLED_POSTGRES_UTIL=$(kubectl get sgclusters.stackgres.io -n $CLUSTER_NAMESPACE $CLUSTER_NAME-nosidecars -o json | run_jq -r '.spec.pods.disablePostgresUtil')
+
+  assert_string_equal "true" "$DISABLED_POSTGRES_UTIL"
 
   kubectl delete sgclusters -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-nosidecars"
 
@@ -303,16 +306,6 @@ EOF
     echo "Success. Defaults annotations created"    
   fi
 
-  local DEFAULT_SIDECARS=$(kubectl get sgclusters.stackgres.io -n $CLUSTER_NAMESPACE $CLUSTER_NAME -o json | run_jq '.spec.sidecars | length')
-
-  if [ "$DEFAULT_SIDECARS" = "3" ]
-  then
-    echo "Success. Default sidecars were settled"    
-  else
-    echo "Fail. Default sidecars were not settled"
-    return 1
-  fi
-
   local INSTALLED_CONTAINERS="$(kubectl get pod -n $CLUSTER_NAMESPACE $CLUSTER_NAME-0 -o=jsonpath='{.spec.containers[*].name}')"
 
   if echo "$INSTALLED_CONTAINERS" | grep "prometheus-postgres-exporter" > /dev/null
@@ -331,6 +324,9 @@ EOF
     return 1
   fi
 
+  assert_string_contains "pgbouncer" "$INSTALLED_CONTAINERS"
+  assert_string_contains "postgres-util" "$INSTALLED_CONTAINERS"
+
   kubectl delete sgclusters -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"
 
 }
@@ -346,8 +342,11 @@ spec:
   instances: 1
   postgresVersion: 'latest'
   pods:
-      persistentVolume:
-        size: '512Mi'
+    persistentVolume:
+      size: '512Mi'
+    disableConnectionPooling: true
+    disableMetricsExporter: true
+    disablePostgresUtil: true
   nonProduction:
     disableClusterPodAntiAffinity: true
 EOF

@@ -81,6 +81,15 @@ spec:
                         Name of an existing StorageClass in the K8s cluster, that will be used to create the PersistentVolumes
                         for the instances of this cluster.
                   required: ["size"]
+                disableConnectionPooling:
+                  type: boolean
+                  description: If is true it disable pgbouncer
+                disableMetricsExporter:
+                  type: boolean
+                  description: If is true it disable the prometherus exporter container
+                disablePostgresUtil:
+                  type: boolean
+                  description: If is true it disable the postgres-util container
               required: ["persistentVolume"]
             configurations:
               type: object
@@ -102,7 +111,7 @@ spec:
                     to use for this cluster. Each pod contains a sidecar with a connection pooler
                     (currently: [PgBouncer](https://www.pgbouncer.org/)). The connection pooler is implemented as a sidecar.
                     If not selected, a default configuration will be used. Note that you may disable connection pooling
-                    altogether by not including the `pgbouncer` element in the `sidecars` property of the cluster.
+                    altogether by setting to false the disableConnectionPooling property of the pods object.
                 sgBackupConfig:
                   type: string
                   description: >
@@ -135,19 +144,6 @@ spec:
                       description: >
                         The backup fetch process may fetch several streams in parallel. Specify a value larger than one
                         for parallel fetching.
-            sidecars:
-              type: array
-              items:
-                type: string
-                enum:
-                  - envoy
-                  - connection-pooling
-                  - prometheus-postgres-exporter
-                  - postgres-util
-              description: >
-                StackGres cluster pods leverage the sidecar pattern, and next to the main Postgres containers, there
-                will be automatically created other pods with auxiliary functionality. If you set this property, only
-                those sidecar names explicitly included in this array will be created.
             nonProduction:
               type: object
               properties:

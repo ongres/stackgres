@@ -28,16 +28,14 @@
             "fromBackup": "d7e660a9-377c-11ea-b04b-0242ac110004"
           }
         },
-        "sidecars": [
-          "connection-pooling",
-          "postgres-util",
-          "prometheus-postgres-exporter"
-        ],
         "pods":{
           "persistentVolume": {
             "size": "5Gi",
             "storageClass": "standard"
-          }
+          },
+          "disableConnectionPooling": false,
+          "disableMetricsExporter": false,
+          "disablePostgresUtil": false
         }
       }
     }

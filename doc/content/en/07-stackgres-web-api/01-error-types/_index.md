@@ -175,7 +175,7 @@ These properties are:
 * size
 * configurations
 * storageClass
-* sidecars
+* pods
 * restore
 
 If you try to update any of these properties, you will receive a error of this type. 

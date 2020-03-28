@@ -22,14 +22,12 @@
       "persistentVolume": {
         "size": "5Gi",
         "storageClass": "standard"
-      }
+      },
+      "disableConnectionPooling": false,
+      "disableMetricsExporter": false,
+      "disablePostgresUtil": false
     },
-    "prometheusAutobind": true,
-    "sidecars": [
-      "connection-pooling",
-      "postgres-util",
-      "prometheus-postgres-exporter"
-    ]
+    "prometheusAutobind": true
   },
   "status": null
 }

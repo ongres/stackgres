@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
@@ -28,6 +27,7 @@ import io.stackgres.operator.common.ConfigContext;
 import io.stackgres.operator.common.ConfigProperty;
 import io.stackgres.operator.common.ImmutableStackGresGeneratorContext;
 import io.stackgres.operator.common.Prometheus;
+import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.common.SidecarEntry;
 import io.stackgres.operator.common.StackGresBackupContext;
 import io.stackgres.operator.common.StackGresClusterContext;
@@ -69,8 +69,9 @@ import io.stackgres.operator.customresource.storages.GoogleCloudCredentials;
 import io.stackgres.operator.customresource.storages.GoogleCloudStorage;
 import io.stackgres.operator.resource.ClusterSidecarFinder;
 import io.stackgres.operator.resource.CustomResourceScanner;
-import io.stackgres.operator.sidecars.envoy.Envoy;
+import io.stackgres.operator.sidecars.pgbouncer.PgBouncer;
 import io.stackgres.operator.sidecars.pgexporter.PostgresExporter;
+import io.stackgres.operator.sidecars.pgutils.PostgresUtil;
 import io.stackgres.operatorframework.reconciliation.AbstractReconciliationCycle;
 import io.stackgres.operatorframework.reconciliation.AbstractReconciliator;
 import io.stackgres.operatorframework.resource.ResourceGenerator;
@@ -205,11 +206,7 @@ public class ClusterReconciliationCycle
         .withProfile(getProfile(cluster, client))
         .withPostgresConfig(getPostgresConfig(cluster, client))
         .withBackupContext(getBackupContext(cluster, client))
-        .withSidecars(Stream.of(
-            Stream.of(Envoy.NAME, PostgresExporter.NAME)
-                .filter(envoy -> !cluster.getSpec().getSidecars().contains(envoy)),
-            cluster.getSpec().getSidecars().stream())
-            .flatMap(s -> s)
+        .withSidecars(getClusterSidecars(cluster).stream()
             .map(sidecarFinder::getSidecarTransformer)
             .map(Unchecked.function(sidecar -> getSidecarEntry(cluster, client, sidecar)))
             .collect(ImmutableList.toImmutableList()))
@@ -217,6 +214,36 @@ public class ClusterReconciliationCycle
         .withPrometheus(getPrometheus(cluster, client))
         .withRestoreContext(getRestoreContext(cluster, client))
         .build();
+  }
+
+  private List<String> getClusterSidecars(StackGresCluster cluster) {
+    List<String> allSidecars = sidecarFinder.getAllSidecars();
+
+    List<String> sidecarsToDisable = new ArrayList<>();
+
+    Optional.ofNullable(cluster.getSpec().getPod())
+        .ifPresent(p -> {
+
+          if (p.getDisableConnectionPooling() == Boolean.TRUE) {
+            sidecarsToDisable.add(PgBouncer.class.getAnnotation(Sidecar.class).value());
+          }
+
+          if (p.getDisableMetricsExporter() == Boolean.TRUE) {
+            sidecarsToDisable
+                .add(PostgresExporter.class.getAnnotation(Sidecar.class).value());
+          }
+
+          if (p.getDisablePostgresUtil() == Boolean.TRUE) {
+            sidecarsToDisable.add(PostgresUtil.class.getAnnotation(Sidecar.class).value());
+          }
+
+        });
+
+    return ImmutableList
+        .copyOf(allSidecars.stream()
+            .filter(s -> !sidecarsToDisable.contains(s))
+            .collect(Collectors.toList()));
+
   }
 
   private <T> SidecarEntry<T> getSidecarEntry(

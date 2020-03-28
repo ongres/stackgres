@@ -107,14 +107,6 @@ public class StackGresClusterSpec implements KubernetesResource {
     this.prometheusAutobind = prometheusAutobind;
   }
 
-  public List<String> getSidecars() {
-    return sidecars;
-  }
-
-  public void setSidecars(List<String> sidecars) {
-    this.sidecars = sidecars;
-  }
-
   public NonProduction getNonProduction() {
     return nonProduction;
   }

@@ -24,14 +24,12 @@
       "pods":{
         "persistentVolume": {
           "size": "5Gi"
-        }
+        },
+        "disableConnectionPooling": false,
+        "disableMetricsExporter": false,
+        "disablePostgresUtil": false
       },
       "prometheusAutobind": true,
-      "sidecars": [
-        "connection-pooling",
-        "postgres-util",
-        "prometheus-postgres-exporter"
-      ]
     },
     "status": null
   },
@@ -60,14 +58,12 @@
       "pods":{
         "persistentVolume": {
           "size": "5Gi"
-        }
+        },
+        "disableConnectionPooling": false,
+        "disableMetricsExporter": false,
+        "disablePostgresUtil": false
       },
       "prometheusAutobind": true,
-      "sidecars": [
-        "connection-pooling",
-        "postgres-util",
-        "prometheus-postgres-exporter"
-      ]
     },
     "status": null
   },
@@ -96,14 +92,12 @@
       "pods":{
         "persistentVolume": {
           "size": "5Gi"
-        }
+        },
+        "disableConnectionPooling": false,
+        "disableMetricsExporter": false,
+        "disablePostgresUtil": false        
       },
       "prometheusAutobind": true,
-      "sidecars": [
-        "connection-pooling",
-        "postgres-util",
-        "prometheus-postgres-exporter"
-      ]
     },
     "status": null
   },
@@ -132,14 +126,12 @@
       "pods":{
         "persistentVolume": {
           "size": "5Gi"
-        }
+        },
+        "disableConnectionPooling": false,
+        "disableMetricsExporter": false,
+        "disablePostgresUtil": false
       },
       "prometheusAutobind": true,
-      "sidecars": [
-        "connection-pooling",
-        "postgres-util",
-        "prometheus-postgres-exporter"
-      ]
     },
     "status": null
   }
