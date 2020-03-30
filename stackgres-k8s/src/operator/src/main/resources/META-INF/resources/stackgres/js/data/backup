@@ -1,519 +1,834 @@
-[{
-        "kind": "StackGresBackup",
-        "apiVersion": "stackgres.io/v1alpha1",
-        "metadata": {
-            "annotations": {
-                "stackgres.io/operatorVersion": "0.9-SNAPSHOT"
-            },
-            "creationTimestamp": "2020-01-27T15:15:14Z",
-            "generation": 1,
-            "name": "backup-with-default-storage-0-20958",
-            "namespace": "backup-with-default-storage",
-            "resourceVersion": "37067",
-            "selfLink": "/apis/stackgres.io/v1alpha1/namespaces/backup-with-default-storage/sgbackups/backup-with-default-storage-0-20958",
-            "uid": "d1bcfc04-4117-11ea-9627-0242ac11000d"
-        },
-        "spec": {
-            "cluster": "backup-with-default-storage",
-            "isPermanent": true
-        },
-        "status": {
-            "backupConfig": {
-                "compressionMethod": "lz4",
-                "storage": {
-                    "s3": {
-                        "credentials": {
-                            "accessKey": {
-                                "key": "accesskey",
-                                "name": "backup-with-default-storage-minio"
-                            },
-                            "secretKey": {
-                                "key": "secretkey",
-                                "name": "backup-with-default-storage-minio"
-                            }
-                        },
-                        "endpoint": "http://backup-with-default-storage-minio:9000",
-                        "forcePathStyle": true,
-                        "prefix": "s3://stackgres",
-                        "region": "k8s"
-                    },
-                    "type": "s3"
-                }
-            },
-            "phase": "Completed",
-            "pod": "backup-with-default-storage-0-20958-backup-tbgzs",
-            "failureReason": "",
-            "name": "base_000000010000000000000008",
-            "time": "2020-01-27T15:15:29.121Z",
-            "walFileName": "000000010000000000000008",
-            "startTime": "2020-01-27T15:15:26.975379Z",
-            "finishTime": "2020-01-27T15:15:29.114743Z",
-            "hostname": "backup-with-default-storage-0",
-            "dataDir": "/var/lib/postgresql/data",
-            "pgVersion": "110006",
-            "startLsn": "134217768",
-            "finishLsn": "134217976",
-            "isPermanent": true,
-            "systemIdentifier": "6786641310505361507",
-            "uncompressedSize": 24012704,
-            "compressedSize": 6687985
-        }
+[
+  {
+    "metadata": {
+      "namespace": "default",
+      "name": "test-2020-03-26-14-42-03",
+      "uid": "f486c740-8bce-4851-a9f2-b8a5ce5c5f97"
     },
-    {
-        "kind": "StackGresBackup",
-        "apiVersion": "stackgres.io/v1alpha1",
-        "metadata": {
-            "annotations": {
-                "stackgres.io/operatorVersion": "0.9-SNAPSHOT"
-            },
-            "creationTimestamp": "2020-01-27T15:17:10Z",
-            "generation": 1,
-            "name": "backup-with-default-storage-1-10495",
-            "namespace": "backup-with-default-storage",
-            "resourceVersion": "37818",
-            "selfLink": "/apis/stackgres.io/v1alpha1/namespaces/backup-with-default-storage/sgbackups/backup-with-default-storage-1-10495",
-            "uid": "16751a88-4118-11ea-9627-0242ac11000d"
-        },
-        "spec": {
-            "cluster": "backup-with-default-storage",
-            "isPermanent": true
-        },
-        "status": {
-            "backupConfig": {
-                "compressionMethod": "lz4",
-                "storage": {
-                    "s3": {
-                        "credentials": {
-                            "accessKey": {
-                                "key": "accesskey",
-                                "name": "backup-with-default-storage-minio"
-                            },
-                            "secretKey": {
-                                "key": "secretkey",
-                                "name": "backup-with-default-storage-minio"
-                            }
-                        },
-                        "endpoint": "http://backup-with-default-storage-minio:9000",
-                        "forcePathStyle": true,
-                        "prefix": "s3://stackgres",
-                        "region": "k8s"
-                    },
-                    "type": "s3"
-                }
-            },
-            "phase": "Completed",
-            "pod": "backup-with-default-storage-1-10495-backup-n29ss",
-            "failureReason": "",
-            "name": "base_000000020000000000000015",
-            "time": "2020-01-27T15:17:59.052Z",
-            "walFileName": "000000020000000000000015",
-            "startTime": "2020-01-27T15:17:57.081572Z",
-            "finishTime": "2020-01-27T15:17:59.043786Z",
-            "hostname": "backup-with-default-storage-1",
-            "dataDir": "/var/lib/postgresql/data",
-            "pgVersion": "110006",
-            "startLsn": "352321576",
-            "finishLsn": "352321784",
-            "isPermanent": true,
-            "systemIdentifier": "6786641310505361507",
-            "uncompressedSize": 24013270,
-            "compressedSize": 6688918
-        }
+    "spec": {
+      "cluster": "test",
+      "isPermanent": false
     },
-    {
-        "kind": "StackGresBackup",
-        "apiVersion": "stackgres.io/v1alpha1",
-        "metadata": {
-            "annotations": {
-                "stackgres.io/operatorVersion": "0.9-SNAPSHOT"
+    "status": {
+      "backupConfig": {
+        "storage": {
+          "type": "s3compatible",
+          "s3compatible": {
+            "bucket": "stackgres",
+            "credentials": {
+              "accessKeySelector": {
+                "name": "test-minio",
+                "key": "accesskey"
+              },
+              "secretKeySelector": {
+                "name": "test-minio",
+                "key": "secretkey"
+              }
             },
-            "creationTimestamp": "2020-01-27T15:16:16Z",
-            "generation": 1,
-            "name": "backup-with-default-storage-1-36328",
-            "namespace": "backup-with-default-storage",
-            "resourceVersion": "37352",
-            "selfLink": "/apis/stackgres.io/v1alpha1/namespaces/backup-with-default-storage/sgbackups/backup-with-default-storage-1-36328",
-            "uid": "f6483a52-4117-11ea-9627-0242ac11000d"
+            "region": "k8s",
+            "endpoint": "http://test-minio:9000",
+            "forcePathStyle": true
+          }
         },
-        "spec": {
-            "cluster": "backup-with-default-storage",
-            "isPermanent": true
-        },
-        "status": {
-            "backupConfig": {
-                "compressionMethod": "lz4",
-                "storage": {
-                    "s3": {
-                        "credentials": {
-                            "accessKey": {
-                                "key": "accesskey",
-                                "name": "backup-with-default-storage-minio"
-                            },
-                            "secretKey": {
-                                "key": "secretkey",
-                                "name": "backup-with-default-storage-minio"
-                            }
-                        },
-                        "endpoint": "http://backup-with-default-storage-minio:9000",
-                        "forcePathStyle": true,
-                        "prefix": "s3://stackgres",
-                        "region": "k8s"
-                    },
-                    "type": "s3"
-                }
-            },
-            "phase": "Completed",
-            "pod": "backup-with-default-storage-1-36328-backup-6dhpj",
-            "failureReason": "",
-            "name": "base_00000002000000000000000F",
-            "time": "2020-01-27T15:16:29.204Z",
-            "walFileName": "00000002000000000000000F",
-            "startTime": "2020-01-27T15:16:27.086118Z",
-            "finishTime": "2020-01-27T15:16:29.191546Z",
-            "hostname": "backup-with-default-storage-1",
-            "dataDir": "/var/lib/postgresql/data",
-            "pgVersion": "110006",
-            "startLsn": "251658280",
-            "finishLsn": "251658488",
-            "isPermanent": true,
-            "systemIdentifier": "6786641310505361507",
-            "uncompressedSize": 24013270,
-            "compressedSize": 6688918
-        }
-    },
-    {
-        "kind": "StackGresBackup",
-        "apiVersion": "stackgres.io/v1alpha1",
-        "metadata": {
-            "annotations": {
-                "stackgres.io/operatorVersion": "0.9-SNAPSHOT"
-            },
-            "creationTimestamp": "2020-01-27T15:26:11Z",
-            "generation": 1,
-            "name": "backup-with-default-storage-58185029-4119-11ea-9627-0242ac11000d",
-            "namespace": "backup-with-default-storage",
-            "ownerReferences": [{
-                "apiVersion": "batch/v1beta1",
-                "kind": "CronJob",
-                "name": "backup-with-default-storage-backup",
-                "uid": "ac623ba7-4117-11ea-9627-0242ac11000d"
-            }],
-            "resourceVersion": "38923",
-            "selfLink": "/apis/stackgres.io/v1alpha1/namespaces/backup-with-default-storage/sgbackups/backup-with-default-storage-58185029-4119-11ea-9627-0242ac11000d",
-            "uid": "59680633-4119-11ea-9627-0242ac11000d"
-        },
-        "spec": {
-            "cluster": "backup-with-default-storage",
-            "isPermanent": false
-        },
-        "status": {
-            "backupConfig": {
-                "compressionMethod": "lz4",
-                "storage": {
-                    "s3": {
-                        "credentials": {
-                            "accessKey": {
-                                "key": "accesskey",
-                                "name": "backup-with-default-storage-minio"
-                            },
-                            "secretKey": {
-                                "key": "secretkey",
-                                "name": "backup-with-default-storage-minio"
-                            }
-                        },
-                        "endpoint": "http://backup-with-default-storage-minio:9000",
-                        "forcePathStyle": true,
-                        "prefix": "s3://stackgres",
-                        "region": "k8s"
-                    },
-                    "type": "s3"
-                }
-            },
-            "phase": "Completed",
-            "pod": "backup-with-default-storage-backup-1580138760-xhwph",
-            "failureReason": "",
-            "name": "base_000000020000000000000027",
-            "time": "2020-01-27T15:26:14.36Z",
-            "walFileName": "000000020000000000000027",
-            "startTime": "2020-01-27T15:26:12.202503Z",
-            "finishTime": "2020-01-27T15:26:14.347882Z",
-            "hostname": "backup-with-default-storage-1",
-            "dataDir": "/var/lib/postgresql/data",
-            "pgVersion": "110006",
-            "startLsn": "654311632",
-            "finishLsn": "654311840",
-            "isPermanent": false,
-            "systemIdentifier": "6786641310505361507",
-            "uncompressedSize": 24013270,
-            "compressedSize": 6688918
-        }
-    },
-    {
-        "kind": "StackGresBackup",
-        "apiVersion": "stackgres.io/v1alpha1",
-        "metadata": {
-            "annotations": {
-                "stackgres.io/operatorVersion": "0.9-SNAPSHOT"
-            },
-            "creationTimestamp": "2020-01-27T15:27:11Z",
-            "generation": 1,
-            "name": "backup-with-default-storage-7bec0a3c-4119-11ea-9627-0242ac11000d",
-            "namespace": "backup-with-default-storage",
-            "ownerReferences": [{
-                "apiVersion": "batch/v1beta1",
-                "kind": "CronJob",
-                "name": "backup-with-default-storage-backup",
-                "uid": "ac623ba7-4117-11ea-9627-0242ac11000d"
-            }],
-            "resourceVersion": "39047",
-            "selfLink": "/apis/stackgres.io/v1alpha1/namespaces/backup-with-default-storage/sgbackups/backup-with-default-storage-7bec0a3c-4119-11ea-9627-0242ac11000d",
-            "uid": "7d33cabc-4119-11ea-9627-0242ac11000d"
-        },
-        "spec": {
-            "cluster": "backup-with-default-storage",
-            "isPermanent": false
-        },
-        "status": {
-            "backupConfig": {
-                "compressionMethod": "lz4",
-                "storage": {
-                    "s3": {
-                        "credentials": {
-                            "accessKey": {
-                                "key": "accesskey",
-                                "name": "backup-with-default-storage-minio"
-                            },
-                            "secretKey": {
-                                "key": "secretkey",
-                                "name": "backup-with-default-storage-minio"
-                            }
-                        },
-                        "endpoint": "http://backup-with-default-storage-minio:9000",
-                        "forcePathStyle": true,
-                        "prefix": "s3://stackgres",
-                        "region": "k8s"
-                    },
-                    "type": "s3"
-                }
-            },
-            "phase": "Completed",
-            "pod": "backup-with-default-storage-backup-1580138820-flbbv",
-            "failureReason": "",
-            "name": "base_000000020000000000000029",
-            "time": "2020-01-27T15:27:14.332Z",
-            "walFileName": "000000020000000000000029",
-            "startTime": "2020-01-27T15:27:12.262257Z",
-            "finishTime": "2020-01-27T15:27:14.324374Z",
-            "hostname": "backup-with-default-storage-1",
-            "dataDir": "/var/lib/postgresql/data",
-            "pgVersion": "110006",
-            "startLsn": "687865896",
-            "finishLsn": "687866104",
-            "isPermanent": false,
-            "systemIdentifier": "6786641310505361507",
-            "uncompressedSize": 24013270,
-            "compressedSize": 6688918
-        }
-    },
-    {
-        "kind": "StackGresBackup",
-        "apiVersion": "stackgres.io/v1alpha1",
-        "metadata": {
-            "annotations": {
-                "stackgres.io/operatorVersion": "0.9-SNAPSHOT"
-            },
-            "creationTimestamp": "2020-01-27T15:28:11Z",
-            "generation": 1,
-            "name": "backup-with-default-storage-9fbf7211-4119-11ea-9627-0242ac11000d",
-            "namespace": "backup-with-default-storage",
-            "ownerReferences": [{
-                "apiVersion": "batch/v1beta1",
-                "kind": "CronJob",
-                "name": "backup-with-default-storage-backup",
-                "uid": "ac623ba7-4117-11ea-9627-0242ac11000d"
-            }],
-            "resourceVersion": "39169",
-            "selfLink": "/apis/stackgres.io/v1alpha1/namespaces/backup-with-default-storage/sgbackups/backup-with-default-storage-9fbf7211-4119-11ea-9627-0242ac11000d",
-            "uid": "a101b1f7-4119-11ea-9627-0242ac11000d"
-        },
-        "spec": {
-            "cluster": "backup-with-default-storage",
-            "isPermanent": false
-        },
-        "status": {
-            "backupConfig": {
-                "compressionMethod": "lz4",
-                "storage": {
-                    "s3": {
-                        "credentials": {
-                            "accessKey": {
-                                "key": "accesskey",
-                                "name": "backup-with-default-storage-minio"
-                            },
-                            "secretKey": {
-                                "key": "secretkey",
-                                "name": "backup-with-default-storage-minio"
-                            }
-                        },
-                        "endpoint": "http://backup-with-default-storage-minio:9000",
-                        "forcePathStyle": true,
-                        "prefix": "s3://stackgres",
-                        "region": "k8s"
-                    },
-                    "type": "s3"
-                }
-            },
-            "phase": "Completed",
-            "pod": "backup-with-default-storage-backup-1580138880-sll4c",
-            "failureReason": "",
-            "name": "base_00000002000000000000002B",
-            "time": "2020-01-27T15:28:14.451Z",
-            "walFileName": "00000002000000000000002B",
-            "startTime": "2020-01-27T15:28:12.344827Z",
-            "finishTime": "2020-01-27T15:28:14.439161Z",
-            "hostname": "backup-with-default-storage-1",
-            "dataDir": "/var/lib/postgresql/data",
-            "pgVersion": "110006",
-            "startLsn": "721420328",
-            "finishLsn": "721420536",
-            "isPermanent": false,
-            "systemIdentifier": "6786641310505361507",
-            "uncompressedSize": 24013270,
-            "compressedSize": 6688916
-        }
-    },
-    {
-        "kind": "StackGresBackup",
-        "apiVersion": "stackgres.io/v1alpha1",
-        "metadata": {
-            "annotations": {
-                "stackgres.io/operatorVersion": "0.9-SNAPSHOT"
-            },
-            "creationTimestamp": "2020-01-27T15:29:12Z",
-            "generation": 1,
-            "name": "backup-with-default-storage-c392e08d-4119-11ea-9627-0242ac11000d",
-            "namespace": "backup-with-default-storage",
-            "ownerReferences": [{
-                "apiVersion": "batch/v1beta1",
-                "kind": "CronJob",
-                "name": "backup-with-default-storage-backup",
-                "uid": "ac623ba7-4117-11ea-9627-0242ac11000d"
-            }],
-            "resourceVersion": "39293",
-            "selfLink": "/apis/stackgres.io/v1alpha1/namespaces/backup-with-default-storage/sgbackups/backup-with-default-storage-c392e08d-4119-11ea-9627-0242ac11000d",
-            "uid": "c4ce4e2e-4119-11ea-9627-0242ac11000d"
-        },
-        "spec": {
-            "cluster": "backup-with-default-storage",
-            "isPermanent": false
-        },
-        "status": {
-            "backupConfig": {
-                "compressionMethod": "lz4",
-                "storage": {
-                    "s3": {
-                        "credentials": {
-                            "accessKey": {
-                                "key": "accesskey",
-                                "name": "backup-with-default-storage-minio"
-                            },
-                            "secretKey": {
-                                "key": "secretkey",
-                                "name": "backup-with-default-storage-minio"
-                            }
-                        },
-                        "endpoint": "http://backup-with-default-storage-minio:9000",
-                        "forcePathStyle": true,
-                        "prefix": "s3://stackgres",
-                        "region": "k8s"
-                    },
-                    "type": "s3"
-                }
-            },
-            "phase": "Completed",
-            "pod": "backup-with-default-storage-backup-1580138940-vt9rg",
-            "failureReason": "",
-            "name": "base_00000002000000000000002D",
-            "time": "2020-01-27T15:29:14.547Z",
-            "walFileName": "00000002000000000000002D",
-            "startTime": "2020-01-27T15:29:12.405332Z",
-            "finishTime": "2020-01-27T15:29:14.533614Z",
-            "hostname": "backup-with-default-storage-1",
-            "dataDir": "/var/lib/postgresql/data",
-            "pgVersion": "110006",
-            "startLsn": "754974928",
-            "finishLsn": "754975192",
-            "isPermanent": false,
-            "systemIdentifier": "6786641310505361507",
-            "uncompressedSize": 24013270,
-            "compressedSize": 6688918
-        }
-    },
-    {
-        "kind": "StackGresBackup",
-        "apiVersion": "stackgres.io/v1alpha1",
-        "metadata": {
-            "annotations": {
-                "stackgres.io/operatorVersion": "0.9-SNAPSHOT"
-            },
-            "creationTimestamp": "2020-01-27T15:30:02Z",
-            "generation": 1,
-            "name": "backup-with-default-storage-e16e5c54-4119-11ea-9627-0242ac11000d",
-            "namespace": "backup-with-default-storage",
-            "ownerReferences": [{
-                "apiVersion": "batch/v1beta1",
-                "kind": "CronJob",
-                "name": "backup-with-default-storage-backup",
-                "uid": "ac623ba7-4117-11ea-9627-0242ac11000d"
-            }],
-            "resourceVersion": "39403",
-            "selfLink": "/apis/stackgres.io/v1alpha1/namespaces/backup-with-default-storage/sgbackups/backup-with-default-storage-e16e5c54-4119-11ea-9627-0242ac11000d",
-            "uid": "e2b20efb-4119-11ea-9627-0242ac11000d"
-        },
-        "spec": {
-            "cluster": "backup-with-default-storage",
-            "isPermanent": false
-        },
-        "status": {
-            "backupConfig": {
-                "compressionMethod": "lz4",
-                "storage": {
-                    "s3": {
-                        "credentials": {
-                            "accessKey": {
-                                "key": "accesskey",
-                                "name": "backup-with-default-storage-minio"
-                            },
-                            "secretKey": {
-                                "key": "secretkey",
-                                "name": "backup-with-default-storage-minio"
-                            }
-                        },
-                        "endpoint": "http://backup-with-default-storage-minio:9000",
-                        "forcePathStyle": true,
-                        "prefix": "s3://stackgres",
-                        "region": "k8s"
-                    },
-                    "type": "s3"
-                }
-            },
-            "phase": "Completed",
-            "pod": "backup-with-default-storage-backup-1580139000-5v2b7",
-            "failureReason": "",
-            "name": "base_00000002000000000000002F",
-            "time": "2020-01-27T15:30:04.779Z",
-            "walFileName": "00000002000000000000002F",
-            "startTime": "2020-01-27T15:30:02.567621Z",
-            "finishTime": "2020-01-27T15:30:04.724104Z",
-            "hostname": "backup-with-default-storage-1",
-            "dataDir": "/var/lib/postgresql/data",
-            "pgVersion": "110006",
-            "startLsn": "788529192",
-            "finishLsn": "788529400",
-            "isPermanent": false,
-            "systemIdentifier": "6786641310505361507",
-            "uncompressedSize": 24013270,
-            "compressedSize": 6688918
-        }
+        "compressionMethod": "lz4"
+      },
+      "phase": "Completed",
+      "pod": "test-backup-1585233720-lf54d",
+      "failureReason": "",
+      "name": "base_000000010000000000000096",
+      "time": "2020-03-26T14:42:07.321Z",
+      "walFileName": "000000010000000000000096",
+      "startTime": "2020-03-26T14:42:05.100515Z",
+      "finishTime": "2020-03-26T14:42:07.304353Z",
+      "hostname": "test-0",
+      "dataDir": "/var/lib/postgresql/data",
+      "pgVersion": "120002",
+      "startLsn": "2516582440",
+      "finishLsn": "2516582656",
+      "isPermanent": false,
+      "systemIdentifier": "6808488387809837151",
+      "uncompressedSize": 24907148,
+      "compressedSize": 6959717
     }
+  },
+  {
+    "metadata": {
+      "namespace": "default",
+      "name": "test-2020-03-26-14-44-05",
+      "uid": "fcd0d76b-9350-417d-a70c-daa936ded0b8"
+    },
+    "spec": {
+      "cluster": "test",
+      "isPermanent": false
+    },
+    "status": {
+      "backupConfig": {
+        "storage": {
+          "type": "s3compatible",
+          "s3compatible": {
+            "bucket": "stackgres",
+            "credentials": {
+              "accessKeySelector": {
+                "name": "test-minio",
+                "key": "accesskey"
+              },
+              "secretKeySelector": {
+                "name": "test-minio",
+                "key": "secretkey"
+              }
+            },
+            "region": "k8s",
+            "endpoint": "http://test-minio:9000",
+            "forcePathStyle": true
+          }
+        },
+        "compressionMethod": "lz4"
+      },
+      "phase": "Completed",
+      "pod": "test-backup-1585233840-lt979",
+      "failureReason": "",
+      "name": "base_000000010000000000000098",
+      "time": "2020-03-26T14:44:08.649Z",
+      "walFileName": "000000010000000000000098",
+      "startTime": "2020-03-26T14:44:06.494888Z",
+      "finishTime": "2020-03-26T14:44:08.635967Z",
+      "hostname": "test-0",
+      "dataDir": "/var/lib/postgresql/data",
+      "pgVersion": "120002",
+      "startLsn": "2550136872",
+      "finishLsn": "2550137144",
+      "isPermanent": false,
+      "systemIdentifier": "6808488387809837151",
+      "uncompressedSize": 24907148,
+      "compressedSize": 6959717
+    }
+  },
+  {
+    "metadata": {
+      "namespace": "default",
+      "name": "test-2020-03-26-14-46-04",
+      "uid": "ed63af03-4452-4054-830c-048e46def48e"
+    },
+    "spec": {
+      "cluster": "test",
+      "isPermanent": false
+    },
+    "status": {
+      "backupConfig": {
+        "storage": {
+          "type": "s3compatible",
+          "s3compatible": {
+            "bucket": "stackgres",
+            "credentials": {
+              "accessKeySelector": {
+                "name": "test-minio",
+                "key": "accesskey"
+              },
+              "secretKeySelector": {
+                "name": "test-minio",
+                "key": "secretkey"
+              }
+            },
+            "region": "k8s",
+            "endpoint": "http://test-minio:9000",
+            "forcePathStyle": true
+          }
+        },
+        "compressionMethod": "lz4"
+      },
+      "phase": "Completed",
+      "pod": "test-backup-1585233960-d9q8z",
+      "failureReason": "",
+      "name": "base_00000001000000000000009A",
+      "time": "2020-03-26T14:46:07.897Z",
+      "walFileName": "00000001000000000000009A",
+      "startTime": "2020-03-26T14:46:05.782041Z",
+      "finishTime": "2020-03-26T14:46:07.890723Z",
+      "hostname": "test-0",
+      "dataDir": "/var/lib/postgresql/data",
+      "pgVersion": "120002",
+      "startLsn": "2583691304",
+      "finishLsn": "2583691520",
+      "isPermanent": false,
+      "systemIdentifier": "6808488387809837151",
+      "uncompressedSize": 24907148,
+      "compressedSize": 6959717
+    }
+  },
+  {
+    "metadata": {
+      "namespace": "default",
+      "name": "test-2020-03-26-14-48-04",
+      "uid": "026798b2-df7a-409a-8c0e-46f88b6293d1"
+    },
+    "spec": {
+      "cluster": "test",
+      "isPermanent": false
+    },
+    "status": {
+      "backupConfig": {
+        "storage": {
+          "type": "s3compatible",
+          "s3compatible": {
+            "bucket": "stackgres",
+            "credentials": {
+              "accessKeySelector": {
+                "name": "test-minio",
+                "key": "accesskey"
+              },
+              "secretKeySelector": {
+                "name": "test-minio",
+                "key": "secretkey"
+              }
+            },
+            "region": "k8s",
+            "endpoint": "http://test-minio:9000",
+            "forcePathStyle": true
+          }
+        },
+        "compressionMethod": "lz4"
+      },
+      "phase": "Completed",
+      "pod": "test-backup-1585234080-w6srl",
+      "failureReason": "",
+      "name": "base_00000001000000000000009C",
+      "time": "2020-03-26T14:48:08.2Z",
+      "walFileName": "00000001000000000000009C",
+      "startTime": "2020-03-26T14:48:06.107647Z",
+      "finishTime": "2020-03-26T14:48:08.195166Z",
+      "hostname": "test-0",
+      "dataDir": "/var/lib/postgresql/data",
+      "pgVersion": "120002",
+      "startLsn": "2617245736",
+      "finishLsn": "2617245952",
+      "isPermanent": false,
+      "systemIdentifier": "6808488387809837151",
+      "uncompressedSize": 24907148,
+      "compressedSize": 6959717
+    }
+  },
+  {
+    "metadata": {
+      "namespace": "default",
+      "name": "test-2020-03-26-14-50-05",
+      "uid": "3dbe3be3-69f2-46dc-b0ac-4f0f8095bf00"
+    },
+    "spec": {
+      "cluster": "test",
+      "isPermanent": false
+    },
+    "status": {
+      "backupConfig": {
+        "storage": {
+          "type": "s3compatible",
+          "s3compatible": {
+            "bucket": "stackgres",
+            "credentials": {
+              "accessKeySelector": {
+                "name": "test-minio",
+                "key": "accesskey"
+              },
+              "secretKeySelector": {
+                "name": "test-minio",
+                "key": "secretkey"
+              }
+            },
+            "region": "k8s",
+            "endpoint": "http://test-minio:9000",
+            "forcePathStyle": true
+          }
+        },
+        "compressionMethod": "lz4"
+      },
+      "phase": "Completed",
+      "pod": "test-backup-1585234200-6knzp",
+      "failureReason": "",
+      "name": "base_00000001000000000000009E",
+      "time": "2020-03-26T14:50:08.636Z",
+      "walFileName": "00000001000000000000009E",
+      "startTime": "2020-03-26T14:50:06.51046Z",
+      "finishTime": "2020-03-26T14:50:08.623352Z",
+      "hostname": "test-0",
+      "dataDir": "/var/lib/postgresql/data",
+      "pgVersion": "120002",
+      "startLsn": "2650800168",
+      "finishLsn": "2650800384",
+      "isPermanent": false,
+      "systemIdentifier": "6808488387809837151",
+      "uncompressedSize": 24907148,
+      "compressedSize": 6959717
+    }
+  },
+  {
+    "metadata": {
+      "namespace": "default",
+      "name": "test-luis",
+      "uid": "60acfbc8-e670-4bb7-b086-a8ff858725e3"
+    },
+    "spec": {
+      "cluster": "test4",
+      "isPermanent": true
+    },
+    "status": {
+      "backupConfig": {
+        "storage": {
+          "type": "s3compatible",
+          "s3compatible": {
+            "bucket": "stackgres",
+            "credentials": {
+              "accessKeySelector": {
+                "name": "test-minio",
+                "key": "accesskey"
+              },
+              "secretKeySelector": {
+                "name": "test-minio",
+                "key": "secretkey"
+              }
+            },
+            "region": "k8s",
+            "endpoint": "http://test-minio:9000",
+            "forcePathStyle": true
+          }
+        },
+        "compressionMethod": "lz4"
+      },
+      "phase": "Completed",
+      "pod": "test-luis-backup-pvmcp",
+      "failureReason": "",
+      "name": "base_00000001000000000000000E",
+      "time": "2020-03-26T12:41:46.707Z",
+      "walFileName": "00000001000000000000000E",
+      "startTime": "2020-03-26T12:41:44.39151Z",
+      "finishTime": "2020-03-26T12:41:46.692908Z",
+      "hostname": "test4-0",
+      "dataDir": "/var/lib/postgresql/data",
+      "pgVersion": "120002",
+      "startLsn": "234881064",
+      "finishLsn": "234881280",
+      "isPermanent": true,
+      "systemIdentifier": "6808492596095127648",
+      "uncompressedSize": 24907150,
+      "compressedSize": 6959696
+    }
+  },
+  {
+    "metadata": {
+      "namespace": "default",
+      "name": "test4-2020-03-26-14-42-04",
+      "uid": "c97de905-eefa-4b60-bb1e-c67009b21e1e"
+    },
+    "spec": {
+      "cluster": "test4",
+      "isPermanent": false
+    },
+    "status": {
+      "backupConfig": {
+        "storage": {
+          "type": "s3compatible",
+          "s3compatible": {
+            "bucket": "stackgres",
+            "credentials": {
+              "accessKeySelector": {
+                "name": "test-minio",
+                "key": "accesskey"
+              },
+              "secretKeySelector": {
+                "name": "test-minio",
+                "key": "secretkey"
+              }
+            },
+            "region": "k8s",
+            "endpoint": "http://test-minio:9000",
+            "forcePathStyle": true
+          }
+        },
+        "compressionMethod": "lz4"
+      },
+      "phase": "Completed",
+      "pod": "test4-backup-1585233720-n5lk6",
+      "failureReason": "",
+      "name": "base_000000010000000000000088",
+      "time": "2020-03-26T14:42:08.217Z",
+      "walFileName": "000000010000000000000088",
+      "startTime": "2020-03-26T14:42:06.078459Z",
+      "finishTime": "2020-03-26T14:42:08.203314Z",
+      "hostname": "test4-0",
+      "dataDir": "/var/lib/postgresql/data",
+      "pgVersion": "120002",
+      "startLsn": "2281701416",
+      "finishLsn": "2281701632",
+      "isPermanent": false,
+      "systemIdentifier": "6808492596095127648",
+      "uncompressedSize": 24907150,
+      "compressedSize": 6959696
+    }
+  },
+  {
+    "metadata": {
+      "namespace": "default",
+      "name": "test4-2020-03-26-14-44-04",
+      "uid": "55b6443b-4c05-434f-8794-a8371946466a"
+    },
+    "spec": {
+      "cluster": "test4",
+      "isPermanent": false
+    },
+    "status": {
+      "backupConfig": {
+        "storage": {
+          "type": "s3compatible",
+          "s3compatible": {
+            "bucket": "stackgres",
+            "credentials": {
+              "accessKeySelector": {
+                "name": "test-minio",
+                "key": "accesskey"
+              },
+              "secretKeySelector": {
+                "name": "test-minio",
+                "key": "secretkey"
+              }
+            },
+            "region": "k8s",
+            "endpoint": "http://test-minio:9000",
+            "forcePathStyle": true
+          }
+        },
+        "compressionMethod": "lz4"
+      },
+      "phase": "Completed",
+      "pod": "test4-backup-1585233840-swrg6",
+      "failureReason": "",
+      "name": "base_00000001000000000000008A",
+      "time": "2020-03-26T14:44:07.553Z",
+      "walFileName": "00000001000000000000008A",
+      "startTime": "2020-03-26T14:44:05.408805Z",
+      "finishTime": "2020-03-26T14:44:07.541835Z",
+      "hostname": "test4-0",
+      "dataDir": "/var/lib/postgresql/data",
+      "pgVersion": "120002",
+      "startLsn": "2315255848",
+      "finishLsn": "2315256064",
+      "isPermanent": false,
+      "systemIdentifier": "6808492596095127648",
+      "uncompressedSize": 24907150,
+      "compressedSize": 6959696
+    }
+  },
+  {
+    "metadata": {
+      "namespace": "default",
+      "name": "test4-2020-03-26-14-46-05",
+      "uid": "6639a8d2-5eac-49c9-bb35-c3a904599471"
+    },
+    "spec": {
+      "cluster": "test4",
+      "isPermanent": false
+    },
+    "status": {
+      "backupConfig": {
+        "storage": {
+          "type": "s3compatible",
+          "s3compatible": {
+            "bucket": "stackgres",
+            "credentials": {
+              "accessKeySelector": {
+                "name": "test-minio",
+                "key": "accesskey"
+              },
+              "secretKeySelector": {
+                "name": "test-minio",
+                "key": "secretkey"
+              }
+            },
+            "region": "k8s",
+            "endpoint": "http://test-minio:9000",
+            "forcePathStyle": true
+          }
+        },
+        "compressionMethod": "lz4"
+      },
+      "phase": "Completed",
+      "pod": "test4-backup-1585233960-6cnmd",
+      "failureReason": "",
+      "name": "base_00000001000000000000008C",
+      "time": "2020-03-26T14:46:09.269Z",
+      "walFileName": "00000001000000000000008C",
+      "startTime": "2020-03-26T14:46:06.911734Z",
+      "finishTime": "2020-03-26T14:46:09.253578Z",
+      "hostname": "test4-0",
+      "dataDir": "/var/lib/postgresql/data",
+      "pgVersion": "120002",
+      "startLsn": "2348810280",
+      "finishLsn": "2348810496",
+      "isPermanent": false,
+      "systemIdentifier": "6808492596095127648",
+      "uncompressedSize": 24907150,
+      "compressedSize": 6959696
+    }
+  },
+  {
+    "metadata": {
+      "namespace": "default",
+      "name": "test4-2020-03-26-14-48-04",
+      "uid": "390bfac6-20a7-4863-9f26-e126e83eea51"
+    },
+    "spec": {
+      "cluster": "test4",
+      "isPermanent": false
+    },
+    "status": {
+      "backupConfig": {
+        "storage": {
+          "type": "s3compatible",
+          "s3compatible": {
+            "bucket": "stackgres",
+            "credentials": {
+              "accessKeySelector": {
+                "name": "test-minio",
+                "key": "accesskey"
+              },
+              "secretKeySelector": {
+                "name": "test-minio",
+                "key": "secretkey"
+              }
+            },
+            "region": "k8s",
+            "endpoint": "http://test-minio:9000",
+            "forcePathStyle": true
+          }
+        },
+        "compressionMethod": "lz4"
+      },
+      "phase": "Completed",
+      "pod": "test4-backup-1585234080-zfrw6",
+      "failureReason": "",
+      "name": "base_00000001000000000000008E",
+      "time": "2020-03-26T14:48:08.4Z",
+      "walFileName": "00000001000000000000008E",
+      "startTime": "2020-03-26T14:48:06.22066Z",
+      "finishTime": "2020-03-26T14:48:08.389116Z",
+      "hostname": "test4-0",
+      "dataDir": "/var/lib/postgresql/data",
+      "pgVersion": "120002",
+      "startLsn": "2382364712",
+      "finishLsn": "2382364928",
+      "isPermanent": false,
+      "systemIdentifier": "6808492596095127648",
+      "uncompressedSize": 24907150,
+      "compressedSize": 6959696
+    }
+  },
+  {
+    "metadata": {
+      "namespace": "default",
+      "name": "test4-2020-03-26-14-50-05",
+      "uid": "39cb4532-5778-464c-a54a-9ce4230cbe0b"
+    },
+    "spec": {
+      "cluster": "test4",
+      "isPermanent": false
+    },
+    "status": {
+      "backupConfig": {
+        "storage": {
+          "type": "s3compatible",
+          "s3compatible": {
+            "bucket": "stackgres",
+            "credentials": {
+              "accessKeySelector": {
+                "name": "test-minio",
+                "key": "accesskey"
+              },
+              "secretKeySelector": {
+                "name": "test-minio",
+                "key": "secretkey"
+              }
+            },
+            "region": "k8s",
+            "endpoint": "http://test-minio:9000",
+            "forcePathStyle": true
+          }
+        },
+        "compressionMethod": "lz4"
+      },
+      "phase": "Completed",
+      "pod": "test4-backup-1585234200-vlvkz",
+      "failureReason": "",
+      "name": "base_000000010000000000000090",
+      "time": "2020-03-26T14:50:08.748Z",
+      "walFileName": "000000010000000000000090",
+      "startTime": "2020-03-26T14:50:06.622567Z",
+      "finishTime": "2020-03-26T14:50:08.738Z",
+      "hostname": "test4-0",
+      "dataDir": "/var/lib/postgresql/data",
+      "pgVersion": "120002",
+      "startLsn": "2415919144",
+      "finishLsn": "2415919360",
+      "isPermanent": false,
+      "systemIdentifier": "6808492596095127648",
+      "uncompressedSize": 24907150,
+      "compressedSize": 6959696
+    }
+  },
+  {
+    "metadata": {
+      "namespace": "stackgres",
+      "name": "stackgres-2020-03-26-14-42-03",
+      "uid": "d7d08266-cbb3-4987-a581-22aad07d8522"
+    },
+    "spec": {
+      "cluster": "stackgres",
+      "isPermanent": false
+    },
+    "status": {
+      "backupConfig": {
+        "storage": {
+          "type": "s3compatible",
+          "s3compatible": {
+            "bucket": "stackgres",
+            "credentials": {
+              "accessKeySelector": {
+                "name": "stackgres-minio",
+                "key": "accesskey"
+              },
+              "secretKeySelector": {
+                "name": "stackgres-minio",
+                "key": "secretkey"
+              }
+            },
+            "region": "k8s",
+            "endpoint": "http://stackgres-minio:9000",
+            "forcePathStyle": true
+          }
+        },
+        "compressionMethod": "lz4"
+      },
+      "phase": "Completed",
+      "pod": "stackgres-backup-1585233720-7jgrl",
+      "failureReason": "",
+      "name": "base_00000001000000050000003C",
+      "time": "2020-03-26T14:42:07.253Z",
+      "walFileName": "00000001000000050000003C",
+      "startTime": "2020-03-26T14:42:05.112882Z",
+      "finishTime": "2020-03-26T14:42:07.244341Z",
+      "hostname": "stackgres-0",
+      "dataDir": "/var/lib/postgresql/data",
+      "pgVersion": "120002",
+      "startLsn": "22481469480",
+      "finishLsn": "22481469696",
+      "isPermanent": false,
+      "systemIdentifier": "6808182421396516915",
+      "uncompressedSize": 24907158,
+      "compressedSize": 6959758
+    }
+  },
+  {
+    "metadata": {
+      "namespace": "stackgres",
+      "name": "stackgres-2020-03-26-14-44-04",
+      "uid": "1fed1b2b-17a6-4461-8b4c-75dfa876b45a"
+    },
+    "spec": {
+      "cluster": "stackgres",
+      "isPermanent": false
+    },
+    "status": {
+      "backupConfig": {
+        "storage": {
+          "type": "s3compatible",
+          "s3compatible": {
+            "bucket": "stackgres",
+            "credentials": {
+              "accessKeySelector": {
+                "name": "stackgres-minio",
+                "key": "accesskey"
+              },
+              "secretKeySelector": {
+                "name": "stackgres-minio",
+                "key": "secretkey"
+              }
+            },
+            "region": "k8s",
+            "endpoint": "http://stackgres-minio:9000",
+            "forcePathStyle": true
+          }
+        },
+        "compressionMethod": "lz4"
+      },
+      "phase": "Completed",
+      "pod": "stackgres-backup-1585233840-85l9v",
+      "failureReason": "",
+      "name": "base_00000001000000050000003E",
+      "time": "2020-03-26T14:44:07.505Z",
+      "walFileName": "00000001000000050000003E",
+      "startTime": "2020-03-26T14:44:05.396052Z",
+      "finishTime": "2020-03-26T14:44:07.498203Z",
+      "hostname": "stackgres-0",
+      "dataDir": "/var/lib/postgresql/data",
+      "pgVersion": "120002",
+      "startLsn": "22515023912",
+      "finishLsn": "22515024128",
+      "isPermanent": false,
+      "systemIdentifier": "6808182421396516915",
+      "uncompressedSize": 24907158,
+      "compressedSize": 6959758
+    }
+  },
+  {
+    "metadata": {
+      "namespace": "stackgres",
+      "name": "stackgres-2020-03-26-14-46-04",
+      "uid": "95849b70-abdb-4a5b-b672-271c0170057d"
+    },
+    "spec": {
+      "cluster": "stackgres",
+      "isPermanent": false
+    },
+    "status": {
+      "backupConfig": {
+        "storage": {
+          "type": "s3compatible",
+          "s3compatible": {
+            "bucket": "stackgres",
+            "credentials": {
+              "accessKeySelector": {
+                "name": "stackgres-minio",
+                "key": "accesskey"
+              },
+              "secretKeySelector": {
+                "name": "stackgres-minio",
+                "key": "secretkey"
+              }
+            },
+            "region": "k8s",
+            "endpoint": "http://stackgres-minio:9000",
+            "forcePathStyle": true
+          }
+        },
+        "compressionMethod": "lz4"
+      },
+      "phase": "Completed",
+      "pod": "stackgres-backup-1585233960-5zrk9",
+      "failureReason": "",
+      "name": "base_000000010000000500000040",
+      "time": "2020-03-26T14:46:08.117Z",
+      "walFileName": "000000010000000500000040",
+      "startTime": "2020-03-26T14:46:05.817741Z",
+      "finishTime": "2020-03-26T14:46:08.108454Z",
+      "hostname": "stackgres-0",
+      "dataDir": "/var/lib/postgresql/data",
+      "pgVersion": "120002",
+      "startLsn": "22548578344",
+      "finishLsn": "22548578616",
+      "isPermanent": false,
+      "systemIdentifier": "6808182421396516915",
+      "uncompressedSize": 24907158,
+      "compressedSize": 6959758
+    }
+  },
+  {
+    "metadata": {
+      "namespace": "stackgres",
+      "name": "stackgres-2020-03-26-14-48-05",
+      "uid": "99a044c1-fab2-45a5-8153-5e8c68a60abb"
+    },
+    "spec": {
+      "cluster": "stackgres",
+      "isPermanent": false
+    },
+    "status": {
+      "backupConfig": {
+        "storage": {
+          "type": "s3compatible",
+          "s3compatible": {
+            "bucket": "stackgres",
+            "credentials": {
+              "accessKeySelector": {
+                "name": "stackgres-minio",
+                "key": "accesskey"
+              },
+              "secretKeySelector": {
+                "name": "stackgres-minio",
+                "key": "secretkey"
+              }
+            },
+            "region": "k8s",
+            "endpoint": "http://stackgres-minio:9000",
+            "forcePathStyle": true
+          }
+        },
+        "compressionMethod": "lz4"
+      },
+      "phase": "Completed",
+      "pod": "stackgres-backup-1585234080-95t6h",
+      "failureReason": "",
+      "name": "base_000000010000000500000042",
+      "time": "2020-03-26T14:48:09.228Z",
+      "walFileName": "000000010000000500000042",
+      "startTime": "2020-03-26T14:48:07.09136Z",
+      "finishTime": "2020-03-26T14:48:09.225072Z",
+      "hostname": "stackgres-0",
+      "dataDir": "/var/lib/postgresql/data",
+      "pgVersion": "120002",
+      "startLsn": "22582132776",
+      "finishLsn": "22582132992",
+      "isPermanent": false,
+      "systemIdentifier": "6808182421396516915",
+      "uncompressedSize": 24907158,
+      "compressedSize": 6959753
+    }
+  },
+  {
+    "metadata": {
+      "namespace": "stackgres",
+      "name": "stackgres-2020-03-26-14-50-05",
+      "uid": "d9898ecd-9670-4980-b146-966b838d7e56"
+    },
+    "spec": {
+      "cluster": "stackgres",
+      "isPermanent": false
+    },
+    "status": {
+      "backupConfig": {
+        "storage": {
+          "type": "s3compatible",
+          "s3compatible": {
+            "bucket": "stackgres",
+            "credentials": {
+              "accessKeySelector": {
+                "name": "stackgres-minio",
+                "key": "accesskey"
+              },
+              "secretKeySelector": {
+                "name": "stackgres-minio",
+                "key": "secretkey"
+              }
+            },
+            "region": "k8s",
+            "endpoint": "http://stackgres-minio:9000",
+            "forcePathStyle": true
+          }
+        },
+        "compressionMethod": "lz4"
+      },
+      "phase": "Completed",
+      "pod": "stackgres-backup-1585234200-8btv9",
+      "failureReason": "",
+      "name": "base_000000010000000500000044",
+      "time": "2020-03-26T14:50:08.844Z",
+      "walFileName": "000000010000000500000044",
+      "startTime": "2020-03-26T14:50:06.704884Z",
+      "finishTime": "2020-03-26T14:50:08.831987Z",
+      "hostname": "stackgres-0",
+      "dataDir": "/var/lib/postgresql/data",
+      "pgVersion": "120002",
+      "startLsn": "22615687208",
+      "finishLsn": "22615687424",
+      "isPermanent": false,
+      "systemIdentifier": "6808182421396516915",
+      "uncompressedSize": 24907158,
+      "compressedSize": 6959758
+    }
+  }
 ]
