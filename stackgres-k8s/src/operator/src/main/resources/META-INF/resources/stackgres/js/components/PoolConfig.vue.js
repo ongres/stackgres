@@ -23,7 +23,7 @@ var PoolConfig = Vue.component("pool-config", {
 			</header>
 
 			<div class="content">
-				<table class="pgconfig">
+				<table class="poolConfig">
 					<thead class="sort">
 						<th @click="sort('data.metadata.name')" class="sorted desc name">
 							<span>Name</span>
