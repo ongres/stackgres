@@ -206,7 +206,7 @@ var Backups = Vue.component("sg-backup", {
 									<td :colspan="(isCluster) ? 7 : 9">
 										<!--<h4>Backup Details</h4>-->
 
-										<table>
+										<table class="backups">
 											<thead>
 												<th>Start Time</th>
 												<th>Duration</th>
