@@ -16,7 +16,7 @@ var ClusterOverview = Vue.component("cluster-overview", {
 			</header>
 
 			<div class="content">
-				<table id="clusterOverview">
+				<table class="clusterOverview">
 					<thead>
 						<th>
 							<span>StackGres Cluster</span>
