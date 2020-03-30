@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.rest.transformer;
 
+import java.util.Optional;
+
 import javax.enterprise.context.ApplicationScoped;
 
 import io.stackgres.operator.customresource.sgprofile.StackGresProfile;
@@ -18,7 +20,8 @@ public class ProfileTransformer
 
   @Override
   public StackGresProfile toCustomResource(ProfileDto source, StackGresProfile original) {
-    StackGresProfile transformation = original != null ? original : new StackGresProfile();
+    StackGresProfile transformation = Optional.ofNullable(original)
+        .orElseGet(StackGresProfile::new);
     transformation.setMetadata(getCustomResourceMetadata(source, original));
     transformation.setSpec(getCustomResourceSpec(source.getSpec()));
     return transformation;

@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.rest.transformer;
 
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -29,8 +30,8 @@ public class PgbouncerConfigTransformer
   @Override
   public StackGresPgbouncerConfig toCustomResource(PgbouncerConfigDto source,
       StackGresPgbouncerConfig original) {
-    StackGresPgbouncerConfig transformation =
-        original != null ? original : new StackGresPgbouncerConfig();
+    StackGresPgbouncerConfig transformation = Optional.ofNullable(original)
+        .orElseGet(StackGresPgbouncerConfig::new);
     transformation.setMetadata(getCustomResourceMetadata(source, original));
     final PgbouncerConfigSpec spec = source.getSpec();
     if (spec != null) {

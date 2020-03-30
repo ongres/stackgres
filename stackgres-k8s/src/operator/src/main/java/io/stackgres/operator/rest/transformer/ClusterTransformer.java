@@ -6,6 +6,7 @@
 package io.stackgres.operator.rest.transformer;
 
 import java.util.List;
+import java.util.Optional;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -31,7 +32,8 @@ public class ClusterTransformer
 
   @Override
   public StackGresCluster toCustomResource(ClusterDto source, StackGresCluster original) {
-    StackGresCluster transformation = original != null ? original : new StackGresCluster();
+    StackGresCluster transformation = Optional.ofNullable(original)
+        .orElseGet(StackGresCluster::new);
     transformation.setMetadata(getCustomResourceMetadata(source, original));
     transformation.setSpec(getCustomResourceSpec(source.getSpec()));
     return transformation;
