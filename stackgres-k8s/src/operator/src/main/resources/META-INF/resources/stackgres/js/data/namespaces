@@ -1,1 +1,5 @@
-["stackgres", "backup-with-default-storage", "stackgres-Y", "stackgres-Z"]
+[
+  "default",
+  "stackgres",
+  "void"
+]
