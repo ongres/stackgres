@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.rest.transformer;
 
+import java.util.Optional;
 import java.util.function.Consumer;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -30,8 +31,8 @@ public class BackupConfigTransformer
   @Override
   public StackGresBackupConfig toCustomResource(BackupConfigDto source,
       StackGresBackupConfig original) {
-    StackGresBackupConfig transformation =
-        original != null ? original : new StackGresBackupConfig();
+    StackGresBackupConfig transformation = Optional.ofNullable(original)
+        .orElseGet(StackGresBackupConfig::new);
     transformation.setMetadata(getCustomResourceMetadata(source, original));
     transformation.setSpec(getCustomResourceSpec(source.getSpec()));
     return transformation;

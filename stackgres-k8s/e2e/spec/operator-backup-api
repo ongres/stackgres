@@ -1,0 +1,280 @@
+#!/bin/sh
+
+e2e_test_install() {
+  if [ "$E2E_ENV" = "kind" ]
+  then
+    cat << EOF > "$LOG_PATH/minio-affinity.yaml"
+minio:
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+            - key: "kubernetes.io/hostname"
+              operator: "In"
+              values: [ "${KIND_NAME}-worker" ]
+EOF
+  else
+    > "$LOG_PATH/minio-affinity.yaml"
+  fi
+
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 \
+    -f "$LOG_PATH/minio-affinity.yaml"
+
+  deploy_curl_pod "$CLUSTER_NAMESPACE"
+
+  wait_pods_running "$CLUSTER_NAMESPACE" 3
+
+  BACKUP_NAME="${CLUSTER_NAME}-0-$(shuf -i 0-65535 -n 1)"
+
+    cat << EOF | kubectl create -f -
+  apiVersion: stackgres.io/v1alpha1
+  kind: StackGresBackup
+  metadata:
+    namespace: "$CLUSTER_NAMESPACE"
+    name: "$BACKUP_NAME"
+  spec:
+    cluster: "$CLUSTER_NAME"
+    isPermanent: true
+EOF
+
+  wait_until eval 'kubectl get sgbackups.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
+    --template "{{ with .status.phase }}{{ . }}{{ end }}" | grep -q Completed'
+
+  OPERATOR_BACKUP_CR=$(kubectl get sgbackups.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" -o json \
+    | run_jq 'del(.metadata.creationTimestamp) | del(.metadata.generation)
+      | del(.metadata.resourceVersion) | del(.metadata.selfLink) | del(.metadata.uid)' )
+  
+  write_into -f "$LOG_PATH/stackgres-backup-cr.json" -c "$OPERATOR_BACKUP_CR"
+
+  OPERATOR_BACKUP=$(cat "$LOG_PATH/stackgres-backup-cr.json" \
+    | run_jq 'del(.apiVersion) | del(.kind) | del(.status) | del(.metadata.annotations)' )
+
+  write_into -f "$LOG_PATH/stackgres-backup.json" -c "$OPERATOR_BACKUP" 
+}
+
+e2e_test() {
+  run_test "Check that a created backup can be accessed directly through the API" check_backup_directly
+
+  run_test "Check that a created backup is included in the response" check_backup_in_list
+
+  run_test "Check that a backup was removed after its deletion in the API" check_backup_removed
+
+  run_test "Check backup is created with the API and is visible in the API" test_api_created_backup_is_visible
+
+  run_test "Check backup is updated with the API are reflected in the API" test_api_updated_backup_is_visible
+
+  run_test "Check backup is deleted with the API are reflected in the API" test_api_delete_backup_is_visible
+
+  run_test "Constraint violations should be detected" test_constraint_violation_api_error
+
+}
+
+check_backup_in_list() {
+  if run_curl -r "stackgres/backup" \
+    | run_jq -r ".[] | select ( .metadata.namespace == \"$CLUSTER_NAMESPACE\"
+      and .metadata.name == \"$BACKUP_NAME\") | .metadata.name" \
+    | grep -q "^$BACKUP_NAME$"
+  then
+    echo "Backup $BACKUP_NAME included in json response"
+    return 0
+  else
+    echo "Backup $BACKUP_NAME not included in json response"
+    return 1
+  fi
+}
+
+get_backup_http_status() {
+  run_curl -r "stackgres/backup/$CLUSTER_NAMESPACE/$BACKUP_NAME" \
+    -e "-LI -o /dev/null -w %{http_code}"
+}
+
+check_backup_directly() {
+  local HTTP_STATUS
+
+  HTTP_STATUS="$(get_backup_http_status)"
+
+  if [ "$HTTP_STATUS" -eq "200" ]
+  then
+    echo "Backup $BACKUP_NAME was found by the api"
+    return 0
+  else
+    echo "Backup $BACKUP_NAME was not found by the api"
+    return 1
+  fi
+}
+
+remove_backup_cr_if_exists() {
+  if kubectl get sgbackups.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME"
+  then
+    kubectl delete sgbackups.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME"
+    
+    wait_until eval '! kubectl get sgbackups.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME"'
+  fi
+}
+
+check_backup_removed() {
+  local HTTP_STATUS
+
+  remove_backup_cr_if_exists
+
+  if run_curl -r "stackgres/backup" \
+    | run_jq -r ".[] | select ( .metadata.namespace == \"$CLUSTER_NAMESPACE\"
+      and .metadata.name == \"$BACKUP_NAME\") | .metadata.name" \
+    | grep -q "^$BACKUP_NAME$"
+  then
+    echo "Backup $BACKUP_NAME wasn't removed from cache"
+    return 1
+  else
+    echo "Backup $BACKUP_NAME was removed from cache"
+    return 0
+  fi
+
+  HTTP_STATUS="$(run_curl -r "stackgres/backup/$CLUSTER_NAMESPACE/$BACKUP_NAME" \
+    -e "-LI -o /dev/null -w %{http_code}")"
+
+  if [ "$HTTP_STATUS" -eq "404" ]
+  then
+    echo "Backup $BACKUP_NAME was not found by the api"
+    return 0
+  else
+    echo "Backup $BACKUP_NAME was found by the api"
+    return 1
+  fi
+}
+
+create_backup_with_api() {
+  local HTTP_STATUS
+
+  remove_backup_cr_if_exists
+
+  HTTP_STATUS="$(run_curl -r "stackgres/backup" \
+    -d "$LOG_PATH/stackgres-backup.json" -e '-X POST -w %{http_code} -o /dev/null')"
+
+  if [ "$HTTP_STATUS" = "200" ] || [ "$HTTP_STATUS" = "202" ] || [ "$HTTP_STATUS" = "204" ]
+  then
+    echo "Request acknowledged by the operator"
+    return 0
+  else
+    ERROR_RESPONSE="$(run_curl -r "stackgres/backup" \
+      -d "$LOG_PATH/stackgres-backup.json" -e '-X POST')"
+    echo "Invalid response status $HTTP_STATUS. response: $ERROR_RESPONSE"
+    return 1
+  fi
+}
+
+test_api_created_backup_is_visible() {
+  create_backup_with_api
+
+  if kubectl get sgbackups.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME"
+  then
+    echo "Backup created with the API"
+  else
+    echo "Backup CR was not created"
+    return 1
+  fi
+
+  check_backup_directly
+}
+
+update_backup_parameter_with_api() {
+  local HTTP_STATUS
+
+  UPDATED_STACKGRES_BACKUP=$(cat "$LOG_PATH/stackgres-backup.json" | run_jq ".spec[\"$1\"] = $2" )
+  
+  write_into -f "$LOG_PATH/updated-stackgres-backup.json" -c "$UPDATED_STACKGRES_BACKUP"
+
+  wait_until eval 'kubectl get sgbackups.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
+    --template "{{ with .status.phase }}{{ . }}{{ end }}" | grep -q Completed'
+
+  HTTP_STATUS="$(run_curl -r "stackgres/backup" \
+    -d "$LOG_PATH/updated-stackgres-backup.json" -e '-X PUT -w %{http_code} -o /dev/null')"
+
+  if [ "$HTTP_STATUS" = "200" ] || [ "$HTTP_STATUS" = "202" ] || [ "$HTTP_STATUS" = "204" ]
+  then
+    echo "Request acknowledged by the operator"
+    return 0
+  else
+    ERROR_RESPONSE="$(run_curl -r "stackgres/backup" \
+      -d "$LOG_PATH/updated-stackgres-backup.json" -e '-X PUT')"
+    echo "Invalid response status $HTTP_STATUS. response: $ERROR_RESPONSE"
+    return 1
+  fi
+}
+
+test_api_updated_backup_is_visible() {
+  update_backup_parameter_with_api 'isPermanent' 'false'
+
+  if kubectl get sgbackups.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
+    -o jsonpath='{.spec.isPermanent}' | grep -q "^false$"
+  then
+    echo "Backup isPermanent were false"
+  else
+    echo "Backup isPermanent weren't false"
+    return 1
+  fi
+
+  if run_curl -r "stackgres/backup/$CLUSTER_NAMESPACE/$BACKUP_NAME" | run_jq '.spec.isPermanent' -r \
+    | grep -q "^false$"
+  then
+    echo "Backup updates are being reflected in the api"
+  else
+    echo "Backup updates aren't being reflected in the api"
+    return 1
+  fi
+}
+
+delete_backup_with_api() {
+  local HTTP_STATUS
+
+  HTTP_STATUS="$(run_curl -r "stackgres/backup" \
+    -d "$LOG_PATH/stackgres-backup.json" -e '-X DELETE -w %{http_code} -o /dev/null')"
+
+  if [ "$HTTP_STATUS" = "200" ] || [ "$HTTP_STATUS" = "202" ] || [ "$HTTP_STATUS" = "204" ]
+  then
+    echo "Request acknowledged by the operator"
+    return 0
+  else
+    ERROR_RESPONSE="$(run_curl -r "stackgres/backup" \
+      -d "$LOG_PATH/stackgres-backup.json" -e '-X PUT')"
+    echo "Invalid response status $HTTP_STATUS. response: $ERROR_RESPONSE"
+    return 1
+  fi
+}
+
+test_api_delete_backup_is_visible() {
+  delete_backup_with_api
+
+  if wait_until eval '[ "$(get_backup_http_status)" = "404" ]'
+  then
+    echo "Backup removed from the API"
+  else
+    echo "Backup wasn't removed from the API"
+    return 1
+  fi
+}
+
+test_constraint_violation_api_error() {
+
+  INVALID_PGCONFIG=$(cat "$LOG_PATH/stackgres-backup.json" | run_jq '.spec.cluster = null' )
+
+  echo "$INVALID_PGCONFIG" > "$LOG_PATH/invalid-backup.json"
+  
+  local HTTP_STATUS
+
+  HTTP_STATUS="$(run_curl -r "stackgres/backup" -n "$CLUSTER_NAMESPACE" \
+    -d "$LOG_PATH/invalid-backup.json" -e '-X POST -w %{http_code} -o /dev/null')"
+
+  assert_string_equal "422" "$HTTP_STATUS"
+
+  ERROR_RESPONSE="$(run_curl -r "stackgres/backup" -n "$CLUSTER_NAMESPACE" \
+    -d "$LOG_PATH/invalid-backup.json" -e '-X POST')"
+
+  EXPECTED_ERROR_TYPE="constraint-violation"
+  EXPECTED_ERROR_TITLE="doesn't complain syntactic rules"
+  EXPECTED_ERROR_DETAIL="The cluster name is required"
+  EXPECTED_ERROR_FIELD="cluster"
+
+  assert_api_error "$ERROR_RESPONSE"
+
+}
