@@ -146,7 +146,7 @@ test_cluster_pod_count() {
 
   E2E_TIMEOUT=60
 
-  BACKUP_NAME="${CLUSTER_NAME}-${NODE}-$(shuf -i 0-65535 -n 1)"
+  BACKUP_NAME="${CLUSTER_NAME}-0-$(shuf -i 0-65535 -n 1)"
 
     cat << EOF | kubectl create -f -
   apiVersion: stackgres.io/v1alpha1
