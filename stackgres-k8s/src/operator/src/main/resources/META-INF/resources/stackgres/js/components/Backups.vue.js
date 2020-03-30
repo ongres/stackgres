@@ -123,7 +123,7 @@ var Backups = Vue.component("sg-backup", {
 							</ul>
 						</div>
 					</div>
-					<table>
+					<table class="backups">
 						<thead class="sort">
 							<th @click="sort('data.status.time')" class="sorted desc timestamp">
 								<span>Timestamp</span>
@@ -206,7 +206,7 @@ var Backups = Vue.component("sg-backup", {
 									<td :colspan="(isCluster) ? 7 : 9">
 										<!--<h4>Backup Details</h4>-->
 
-										<table class="backups">
+										<table>
 											<thead>
 												<th>Start Time</th>
 												<th>Duration</th>
