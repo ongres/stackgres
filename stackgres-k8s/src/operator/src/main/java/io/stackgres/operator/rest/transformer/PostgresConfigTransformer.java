@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.rest.transformer;
 
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -29,8 +30,8 @@ public class PostgresConfigTransformer
   @Override
   public StackGresPostgresConfig toCustomResource(PostgresConfigDto source,
       StackGresPostgresConfig original) {
-    StackGresPostgresConfig transformation =
-        original != null ? original : new StackGresPostgresConfig();
+    StackGresPostgresConfig transformation = Optional.ofNullable(original)
+        .orElseGet(StackGresPostgresConfig::new);
     transformation.setMetadata(getCustomResourceMetadata(source, original));
     transformation.setSpec(getCustomResourceSpec(source.getSpec()));
     return transformation;
