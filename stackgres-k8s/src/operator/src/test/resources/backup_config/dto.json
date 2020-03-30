@@ -1,28 +1,30 @@
 {
-    "metadata": {
-        "name": "backupconf",
-        "namespace": "stackgres",
-        "uid": "93bc7621-0236-11ea-a1d5-0242ac110003"
-    },
-    "spec": {
-        "compressionMethod": "lz4",
-        "fullSchedule": "*/1 * * * *",
-        "fullWindow": 1,
-        "retention": 5,
-        "storage": {
-            "s3compatible": {
-                "credentials": {
-                    "accessKey": "test",
-                    "secretKey": "test"
-                },
-                "endpoint": "http://minio.stackgres.svc:9000",
-                "forcePathStyle": true,
-                "bucket": "stackgres",
-                "region": "k8s"
-            },
-            "type": "s3compatible"
-        },
-        "tarSizeThreshold": 1073741823,
+  "metadata": {
+    "name": "backupconf",
+    "namespace": "stackgres",
+    "uid": "93bc7621-0236-11ea-a1d5-0242ac110003"
+  },
+  "spec": {
+    "baseBackups": {
+      "compression": "lz4",
+      "cronSchedule": "*/1 * * * *",
+      "retention": 5,
+      "performance": {
         "uploadDiskConcurrency": 1
+      }
+    },
+    "storage": {
+      "s3compatible": {
+        "endpoint": "http://minio.stackgres.svc:9000",
+        "forcePathStyle": true,
+        "bucket": "stackgres",
+        "region": "k8s",
+        "awsCredentials": {
+          "accessKeyId": "test",
+          "secretAccessKey": "test"
+        }
+      },
+      "type": "s3compatible"
     }
+  }
 }

@@ -53,7 +53,7 @@ public class StorageTypeValidator implements BackupConfigValidator {
 
       if (storageType.equals("s3")
           && review.getRequest().getObject().getSpec()
-          .getStorage().getS3().getCredentials() == null) {
+          .getStorage().getS3().getAwsCredentials() == null) {
         final String message = "Invalid backup configuration,"
             + " source s3 credentials must be set when source type is s3";
         fail(message);
@@ -77,7 +77,7 @@ public class StorageTypeValidator implements BackupConfigValidator {
 
       if (storageType.equals("s3compatible")
           && review.getRequest().getObject().getSpec()
-          .getStorage().getS3Compatible().getCredentials() == null) {
+          .getStorage().getS3Compatible().getAwsCredentials() == null) {
         final String message = "Invalid backup configuration,"
             + " source s3compatible credentials must be set when source type is s3compatible";
         fail(message);

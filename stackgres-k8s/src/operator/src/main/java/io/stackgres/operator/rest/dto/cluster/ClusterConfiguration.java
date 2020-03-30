@@ -19,35 +19,35 @@ public class ClusterConfiguration {
 
   @JsonProperty("sgPostgresConfig")
   @NotBlank(message = "You need to associate a Postgres configuration to this cluster")
-  private String postgresConfig;
+  private String sgPostgresConfig;
 
   @JsonProperty("sgPoolingConfig")
-  private String connectionPoolingConfig;
+  private String sgPoolingConfig;
 
   @JsonProperty("sgBackupConfig")
-  private String backupConfig;
+  private String sgBackupConfig;
 
-  public String getPostgresConfig() {
-    return postgresConfig;
+  public String getSgPostgresConfig() {
+    return sgPostgresConfig;
   }
 
-  public void setPostgresConfig(String postgresConfig) {
-    this.postgresConfig = postgresConfig;
+  public void setSgPostgresConfig(String sgPostgresConfig) {
+    this.sgPostgresConfig = sgPostgresConfig;
   }
 
-  public String getConnectionPoolingConfig() {
-    return connectionPoolingConfig;
+  public String getSgPoolingConfig() {
+    return sgPoolingConfig;
   }
 
-  public void setConnectionPoolingConfig(String connectionPoolingConfig) {
-    this.connectionPoolingConfig = connectionPoolingConfig;
+  public void setSgPoolingConfig(String sgPoolingConfig) {
+    this.sgPoolingConfig = sgPoolingConfig;
   }
 
-  public String getBackupConfig() {
-    return backupConfig;
+  public String getSgBackupConfig() {
+    return sgBackupConfig;
   }
 
-  public void setBackupConfig(String backupConfig) {
-    this.backupConfig = backupConfig;
+  public void setSgBackupConfig(String sgBackupConfig) {
+    this.sgBackupConfig = sgBackupConfig;
   }
 }

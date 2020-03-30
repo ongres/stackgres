@@ -36,7 +36,7 @@ public class ClusterSpec {
 
   @JsonProperty("sgInstanceProfile")
   @NotNull(message = "resource profile must not be null")
-  private String resourceProfile;
+  private String sgInstanceProfile;
 
   @JsonProperty("initialData")
   private ClusterInitData initData;
@@ -44,7 +44,7 @@ public class ClusterSpec {
   @JsonProperty("pods")
   @Valid
   @NotNull(message = "pod description must be specified")
-  private ClusterPod pod;
+  private ClusterPod pods;
 
   @JsonProperty("prometheusAutobind")
   private Boolean prometheusAutobind;
@@ -76,12 +76,12 @@ public class ClusterSpec {
     this.configurations = configurations;
   }
 
-  public String getResourceProfile() {
-    return resourceProfile;
+  public String getSgInstanceProfile() {
+    return sgInstanceProfile;
   }
 
-  public void setResourceProfile(String resourceProfile) {
-    this.resourceProfile = resourceProfile;
+  public void setSgInstanceProfile(String sgInstanceProfile) {
+    this.sgInstanceProfile = sgInstanceProfile;
   }
 
   public Boolean getPrometheusAutobind() {
@@ -100,12 +100,12 @@ public class ClusterSpec {
     this.nonProduction = nonProduction;
   }
 
-  public ClusterPod getPod() {
-    return pod;
+  public ClusterPod getPods() {
+    return pods;
   }
 
-  public void setPod(ClusterPod pod) {
-    this.pod = pod;
+  public void setPods(ClusterPod pods) {
+    this.pods = pods;
   }
 
   public ClusterInitData getInitData() {
@@ -123,9 +123,9 @@ public class ClusterSpec {
         .add("instances", instances)
         .add("pgVersion", postgresVersion)
         .add("configuration", getConfigurations())
-        .add("resourceProfile", resourceProfile)
+        .add("resourceProfile", sgInstanceProfile)
         .add("initData", getInitData())
-        .add("pod", getPod())
+        .add("pod", getPods())
         .add("nonProduction", nonProduction)
         .toString();
   }

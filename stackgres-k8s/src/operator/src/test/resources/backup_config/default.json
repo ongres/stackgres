@@ -11,20 +11,26 @@
         "uid": "93bc7621-0236-11ea-a1d5-0242ac110003"
     },
     "spec": {
-        "compressionMethod": "lz4",
-        "fullSchedule": "*/1 * * * *",
-        "fullWindow": 1,
-        "retention": 5,
+        "baseBackups": {
+            "compression": "lz4",
+            "cronSchedule": "*/1 * * * *",
+            "retention": 5,
+            "performance": {
+                "uploadDiskConcurrency": 1
+            }    
+        },
         "storage": {
             "s3compatible": {
-                "credentials": {
-                    "accessKey": {
-                        "key": "accesskey",
-                        "name": "minio"
-                    },
-                    "secretKey": {
-                        "key": "secretkey",
-                        "name": "minio"
+                "awsCredentials": {
+                    "secretKeySelectors": {
+                        "accessKeyId": {
+                            "key": "accesskey",
+                            "name": "minio"
+                        },
+                        "secretAccessKey": {
+                            "key": "secretkey",
+                            "name": "minio"
+                        }
                     }
                 },
                 "endpoint": "http://minio.stackgres.svc:9000",
@@ -33,8 +39,6 @@
                 "region": "k8s"
             },
             "type": "s3compatible"
-        },
-        "tarSizeThreshold": 1073741823,
-        "uploadDiskConcurrency": 1
+        }
     }
 }

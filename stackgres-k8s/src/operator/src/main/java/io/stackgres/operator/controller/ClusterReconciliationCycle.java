@@ -63,9 +63,12 @@ import io.stackgres.operator.customresource.sgprofile.StackGresProfileList;
 import io.stackgres.operator.customresource.storages.AwsCredentials;
 import io.stackgres.operator.customresource.storages.AwsS3CompatibleStorage;
 import io.stackgres.operator.customresource.storages.AwsS3Storage;
+import io.stackgres.operator.customresource.storages.AwsSecretKeySelector;
+import io.stackgres.operator.customresource.storages.AzureBlobSecretKeySelector;
 import io.stackgres.operator.customresource.storages.AzureBlobStorage;
 import io.stackgres.operator.customresource.storages.AzureBlobStorageCredentials;
 import io.stackgres.operator.customresource.storages.GoogleCloudCredentials;
+import io.stackgres.operator.customresource.storages.GoogleCloudSecretKeySelector;
 import io.stackgres.operator.customresource.storages.GoogleCloudStorage;
 import io.stackgres.operator.resource.ClusterSidecarFinder;
 import io.stackgres.operator.resource.CustomResourceScanner;
@@ -421,26 +424,33 @@ public class ClusterReconciliationCycle
       StackGresBackupConfigSpec backupConfSpec) {
     return Seq.of(
         Optional.ofNullable(backupConfSpec.getStorage().getS3())
-            .map(AwsS3Storage::getCredentials)
-            .map(AwsCredentials::getAccessKey),
+            .map(AwsS3Storage::getAwsCredentials)
+            .map(AwsCredentials::getSecretKeySelectors)
+            .map(AwsSecretKeySelector::getAccessKeyId),
         Optional.ofNullable(backupConfSpec.getStorage().getS3())
-            .map(AwsS3Storage::getCredentials)
-            .map(AwsCredentials::getSecretKey),
+            .map(AwsS3Storage::getAwsCredentials)
+            .map(AwsCredentials::getSecretKeySelectors)
+            .map(AwsSecretKeySelector::getSecretAccessKey),
         Optional.ofNullable(backupConfSpec.getStorage().getS3Compatible())
-            .map(AwsS3CompatibleStorage::getCredentials)
-            .map(AwsCredentials::getAccessKey),
+            .map(AwsS3CompatibleStorage::getAwsCredentials)
+            .map(AwsCredentials::getSecretKeySelectors)
+            .map(AwsSecretKeySelector::getAccessKeyId),
         Optional.ofNullable(backupConfSpec.getStorage().getS3Compatible())
-            .map(AwsS3CompatibleStorage::getCredentials)
-            .map(AwsCredentials::getSecretKey),
+            .map(AwsS3CompatibleStorage::getAwsCredentials)
+            .map(AwsCredentials::getSecretKeySelectors)
+            .map(AwsSecretKeySelector::getSecretAccessKey),
         Optional.ofNullable(backupConfSpec.getStorage().getGcs())
             .map(GoogleCloudStorage::getCredentials)
-            .map(GoogleCloudCredentials::getServiceAccountJsonKey),
+            .map(GoogleCloudCredentials::getSecretKeySelectors)
+            .map(GoogleCloudSecretKeySelector::getServiceAccountJsonKey),
         Optional.ofNullable(backupConfSpec.getStorage().getAzureblob())
             .map(AzureBlobStorage::getCredentials)
-            .map(AzureBlobStorageCredentials::getAccount),
+            .map(AzureBlobStorageCredentials::getSecretKeySelectors)
+            .map(AzureBlobSecretKeySelector::getAccount),
         Optional.ofNullable(backupConfSpec.getStorage().getAzureblob())
             .map(AzureBlobStorage::getCredentials)
-            .map(AzureBlobStorageCredentials::getAccessKey))
+            .map(AzureBlobStorageCredentials::getSecretKeySelectors)
+            .map(AzureBlobSecretKeySelector::getAccessKey))
         .filter(Optional::isPresent)
         .map(Optional::get)
         .map(secretKeySelector -> Tuple.tuple(secretKeySelector,

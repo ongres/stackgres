@@ -6,31 +6,30 @@
 package io.stackgres.operator.customresource.storages;
 
 import java.util.Objects;
-import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.MoreObjects;
+import io.fabric8.kubernetes.api.model.SecretKeySelector;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class AzureBlobStorageCredentials {
+public class GoogleCloudSecretKeySelector {
 
-  @JsonProperty("secretKeySelectors")
-  @NotNull(message = "The secret Key Selectors are required")
-  @Valid
-  private AzureBlobSecretKeySelector secretKeySelectors;
+  @JsonProperty("serviceAccountJSON")
+  @NotNull(message = "The serviceAccountJsonKey is required")
+  private SecretKeySelector serviceAccountJsonKey;
 
-  public AzureBlobSecretKeySelector getSecretKeySelectors() {
-    return secretKeySelectors;
+  public SecretKeySelector getServiceAccountJsonKey() {
+    return serviceAccountJsonKey;
   }
 
-  public void setSecretKeySelectors(AzureBlobSecretKeySelector secretKeySelectors) {
-    this.secretKeySelectors = secretKeySelectors;
+  public void setServiceAccountJsonKey(SecretKeySelector serviceAccountJsonKey) {
+    this.serviceAccountJsonKey = serviceAccountJsonKey;
   }
 
   @Override
@@ -41,20 +40,19 @@ public class AzureBlobStorageCredentials {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    AzureBlobStorageCredentials that = (AzureBlobStorageCredentials) o;
-    return Objects.equals(secretKeySelectors, that.secretKeySelectors);
+    GoogleCloudSecretKeySelector that = (GoogleCloudSecretKeySelector) o;
+    return Objects.equals(serviceAccountJsonKey, that.serviceAccountJsonKey);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(secretKeySelectors);
+    return Objects.hash(serviceAccountJsonKey);
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
-        .omitNullValues()
-        .add("secretKeySelectors", getSecretKeySelectors().getAccount())
+        .add("serviceAccountJsonKey", serviceAccountJsonKey)
         .toString();
   }
 }

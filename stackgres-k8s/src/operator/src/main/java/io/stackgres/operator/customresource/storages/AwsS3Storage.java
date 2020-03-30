@@ -28,9 +28,9 @@ public class AwsS3Storage implements PrefixedStorage {
   @JsonProperty("path")
   private String path;
 
-  @JsonProperty("credentials")
+  @JsonProperty("awsCredentials")
   @NotNull(message = "The credentials is required")
-  private AwsCredentials credentials;
+  private AwsCredentials awsCredentials;
 
   @JsonProperty("region")
   private String region;
@@ -63,12 +63,12 @@ public class AwsS3Storage implements PrefixedStorage {
     this.path = path;
   }
 
-  public AwsCredentials getCredentials() {
-    return credentials;
+  public AwsCredentials getAwsCredentials() {
+    return awsCredentials;
   }
 
-  public void setCredentials(AwsCredentials credentials) {
-    this.credentials = credentials;
+  public void setAwsCredentials(AwsCredentials awsCredentials) {
+    this.awsCredentials = awsCredentials;
   }
 
   public String getRegion() {
@@ -89,7 +89,7 @@ public class AwsS3Storage implements PrefixedStorage {
 
   @Override
   public int hashCode() {
-    return Objects.hash(credentials, bucket,
+    return Objects.hash(awsCredentials, bucket,
         region, storageClass);
   }
 
@@ -105,7 +105,7 @@ public class AwsS3Storage implements PrefixedStorage {
       return false;
     }
     AwsS3Storage other = (AwsS3Storage) obj;
-    return Objects.equals(credentials, other.credentials)
+    return Objects.equals(awsCredentials, other.awsCredentials)
         && Objects.equals(bucket, other.bucket) && Objects.equals(path, other.path)
         && Objects.equals(region, other.region)
         && Objects.equals(storageClass, other.storageClass);
@@ -117,7 +117,7 @@ public class AwsS3Storage implements PrefixedStorage {
         .omitNullValues()
         .add("bucket", bucket)
         .add("path", path)
-        .add("credentials", credentials)
+        .add("credentials", awsCredentials)
         .add("region", region)
         .add("storageClass", storageClass)
         .toString();

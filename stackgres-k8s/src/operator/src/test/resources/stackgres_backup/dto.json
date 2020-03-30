@@ -10,12 +10,17 @@
   },
   "status": {
     "sgBackupConfig":  {
-      "compressionMethod": "lz4",
+      "baseBackups": {
+        "compression": "lz4",
+        "performance": {
+          "uploadDiskConcurrency": 1
+        }
+      },
       "storage": {
         "s3compatible": {
-          "credentials": {
-            "accessKey": "test",
-            "secretKey": "test"
+          "awsCredentials": {
+            "accessKeyId": "test",
+            "secretAccessKey": "test"
           },
           "endpoint": "http://minio.stackgres.svc:9000",
           "forcePathStyle": true,

@@ -26,7 +26,7 @@ public class AzureBlobStorage {
   @JsonProperty("path")
   private String path;
 
-  @JsonProperty("credentials")
+  @JsonProperty("azureCredentials")
   @NotNull(message = "The credentials is required")
   private AzureBlobStorageCredentials credentials;
 

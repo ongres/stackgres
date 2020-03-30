@@ -25,18 +25,18 @@ metadata:
     "helm.sh/hook": "pre-install"
   {{- end }}
 spec:
-  retention: {{ .Values.config.backup.retention }}
-  fullSchedule: "{{ .Values.config.backup.fullSchedule }}"
-  fullWindow: {{ .Values.config.backup.fullWindow }}
-  compressionMethod: "{{ .Values.config.backup.compressionMethod }}"
-  {{- if .Values.config.backup.networkRateLimit }}
-  networkRateLimit: {{ .Values.config.backup.networkRateLimit }}
-  {{- end }}
-  {{- if .Values.config.backup.diskRateLimit }}
-  diskRateLimit: {{ .Values.config.backup.diskRateLimit }}
-  {{- end }}
-  uploadDiskConcurrency: {{ .Values.config.backup.uploadDiskConcurrency }}
-  tarSizeThreshold: {{ .Values.config.backup.tarSizeThreshold }}
+  baseBackups:
+    retention: {{ .Values.config.backup.retention }}
+    cronSchedule: "{{ .Values.config.backup.fullSchedule }}"    
+    compression: "{{ .Values.config.backup.compressionMethod }}"
+    performance:
+      {{- if .Values.config.backup.networkRateLimit }}
+      maxNetworkBandwitdh: {{ .Values.config.backup.networkRateLimit }}
+      {{- end }}
+      {{- if .Values.config.backup.diskRateLimit }}
+      maxDiskBandwitdh: {{ .Values.config.backup.diskRateLimit }}
+      {{- end }}
+      uploadDiskConcurrency: {{ .Values.config.backup.uploadDiskConcurrency }}
   storage:
     {{- if not (or .Values.config.backup.s3 .Values.config.backup.s3compatible .Values.config.backup.gcs .Values.config.backup.azureblob) }}
     type: s3compatible
@@ -45,13 +45,14 @@ spec:
       endpoint: http://{{ .Release.Name }}-minio:9000
       forcePathStyle: true
       region: k8s
-      credentials:
-        accessKey:
-          name: {{ .Release.Name }}-minio
-          key: accesskey
-        secretKey:
-          name: {{ .Release.Name }}-minio
-          key: secretkey
+      awsCredentials:
+        secretKeySelectors:
+          accessKeyId:
+            name: {{ .Release.Name }}-minio
+            key: accesskey
+          secretAccessKey:
+            name: {{ .Release.Name }}-minio
+            key: secretkey
     {{- end }}
     {{- if .Values.config.backup.s3 }}
     type: s3
@@ -60,13 +61,14 @@ spec:
       {{- if .Values.config.backup.s3.path }}
       path: "{{ .Values.config.backup.s3.path }}"
       {{- end }}
-      credentials:
-        accessKey:
-          name: "{{ .Values.config.backup.s3.accessKey.name }}"
-          key: "{{ .Values.config.backup.s3.accessKey.key }}"
-        secretKey:
-          name: "{{ .Values.config.backup.s3.secretKey.name }}"
-          key: "{{ .Values.config.backup.s3.secretKey.key }}"
+      awsCredentials:
+        secretKeySelectors:
+          accessKeyId:
+            name: "{{ .Values.config.backup.s3.accessKey.name }}"
+            key: "{{ .Values.config.backup.s3.accessKey.key }}"
+          secretAccessKey:
+            name: "{{ .Values.config.backup.s3.secretKey.name }}"
+            key: "{{ .Values.config.backup.s3.secretKey.key }}"
       {{- if .Values.config.backup.s3.region }}
       region: "{{ .Values.config.backup.s3.region }}"
       {{- end }}
@@ -81,13 +83,14 @@ spec:
       {{- if .Values.config.backup.s3compatible.path }}
       path: "{{ .Values.config.backup.s3compatible.path }}"
       {{- end }}
-      credentials:
-        accessKey:
-          name: "{{ .Values.config.backup.s3compatible.accessKey.name }}"
-          key: "{{ .Values.config.backup.s3compatible.accessKey.key }}"
-        secretKey:
-          name: "{{ .Values.config.backup.s3compatible.secretKey.name }}"
-          key: "{{ .Values.config.backup.s3compatible.secretKey.key }}"
+      awsCredentials:
+        secretKeySelectors:
+          accessKeyId:
+            name: "{{ .Values.config.backup.s3compatible.accessKey.name }}"
+            key: "{{ .Values.config.backup.s3compatible.accessKey.key }}"
+          secretAccessKey:
+            name: "{{ .Values.config.backup.s3compatible.secretKey.name }}"
+            key: "{{ .Values.config.backup.s3compatible.secretKey.key }}"
       {{- if .Values.config.backup.s3compatible.region }}
       region: "{{ .Values.config.backup.s3compatible.region }}"
       {{- end }}
@@ -108,24 +111,26 @@ spec:
       {{- if .Values.config.backup.gcs.path }}
       path: "{{ .Values.config.backup.gcs.path }}"
       {{- end }}
-      credentials:
-        serviceAccountJsonKey:
-          name: "{{ .Values.config.backup.gcs.serviceAccountJsonKey.name }}"
-          key: "{{ .Values.config.backup.gcs.serviceAccountJsonKey.key }}"
+      gcpCredentials:
+        secretKeySelectors:
+          serviceAccountJSON:
+            name: "{{ .Values.config.backup.gcs.serviceAccountJsonKey.name }}"
+            key: "{{ .Values.config.backup.gcs.serviceAccountJsonKey.key }}"
     {{- end }}
     {{- if .Values.config.backup.azureblob }}
     type: azureblob
-    azureblob:
+    azureBlob:
       bucket: "{{ .Values.config.backup.azureblob.bucket }}"
       {{- if .Values.config.backup.azureblob.path }}
       path: "{{ .Values.config.backup.azureblob.path }}"
       {{- end }}
-      credentials:
-        account:
-          name: "{{ .Values.config.backup.azureblob.account.name }}"
-          key: "{{ .Values.config.backup.azureblob.account.key }}"
-        accessKey:
-          name: "{{ .Values.config.backup.azureblob.accessKey.name }}"
-          key: "{{ .Values.config.backup.azureblob.accessKey.key }}"
+      azureCredentials:
+        secretKeySelectors:
+          storageAccount:
+            name: "{{ .Values.config.backup.azureblob.account.name }}"
+            key: "{{ .Values.config.backup.azureblob.account.key }}"
+          accessKey:
+            name: "{{ .Values.config.backup.azureblob.accessKey.name }}"
+            key: "{{ .Values.config.backup.azureblob.accessKey.key }}"
     {{- end }}
 {{ end }}

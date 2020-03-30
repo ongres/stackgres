@@ -19,14 +19,16 @@
         "type": "s3",
         "s3": {
           "prefix": "s3://stackgres",
-          "credentials": {
-            "accessKey": {
-              "key": "accesskey",
-              "name": "minio"
-            },
-            "secretKey": {
-              "key": "secretkey",
-              "name": "minio"
+          "awsCredentials": {
+            "secretKeySelectors":{
+              "accessKey": {
+                "key": "accesskey",
+                "name": "minio"
+              },
+              "secretKey": {
+                "key": "secretkey",
+                "name": "minio"
+              }
             }
           },
           "region": "k8s",
@@ -34,12 +36,14 @@
           "forcePathStyle": true
         }
       },
-      "retention": 5,
-      "fullSchedule": "0 5 * * *",
-      "fullWindow": 60,
-      "compressionMethod": "lz4",
-      "uploadDiskConcurrency": 1,
-      "tarSizeThreshold": 1073741823
+      "baseBackups": {
+        "retention": 5,
+        "cronSchedule": "0 5 * * *",
+        "compression": 60,
+        "performance": {
+          "uploadDiskConcurrency": 1
+        }
+      }
     }
   }
 ]

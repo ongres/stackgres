@@ -211,19 +211,13 @@ public class Backup implements StackGresClusterResourceStreamFactory {
                         new EnvVarBuilder()
                         .withName("RETAIN")
                         .withValue(Optional.ofNullable(backupConfig
-                            .getSpec()
-                            .getRetention())
+                            .getSpec().getBaseBackups().getRetention())
                             .map(String::valueOf)
                             .orElse("5"))
                         .build(),
                         new EnvVarBuilder()
                         .withName("WINDOW")
-                        .withValue(Optional.ofNullable(backupConfig
-                            .getSpec()
-                            .getFullWindow())
-                            .map(window -> window * 60)
-                            .map(String::valueOf)
-                            .orElse("3600"))
+                        .withValue("3600")
                         .build())
                     .build())
                 .withCommand("/bin/bash", "-c" + (LOGGER.isTraceEnabled() ? "x" : ""),

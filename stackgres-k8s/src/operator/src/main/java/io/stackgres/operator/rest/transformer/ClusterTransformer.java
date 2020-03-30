@@ -80,17 +80,17 @@ public class ClusterTransformer
     StackGresClusterSpec transformation = new StackGresClusterSpec();
     transformation.setConfiguration(new StackgresClusterConfiguration());
     transformation.getConfiguration().setBackupConfig(
-        source.getConfigurations().getBackupConfig());
+        source.getConfigurations().getSgBackupConfig());
     transformation.getConfiguration()
-        .setConnectionPoolingConfig(source.getConfigurations().getConnectionPoolingConfig());
+        .setConnectionPoolingConfig(source.getConfigurations().getSgPoolingConfig());
     transformation.setInstances(source.getInstances());
     transformation.setNonProduction(
         getCustomResourceNonProduction(source.getNonProduction()));
     transformation.getConfiguration().setPostgresConfig(
-        source.getConfigurations().getPostgresConfig());
+        source.getConfigurations().getSgPostgresConfig());
     transformation.setPostgresVersion(source.getPostgresVersion());
     transformation.setPrometheusAutobind(source.getPrometheusAutobind());
-    transformation.setResourceProfile(source.getResourceProfile());
+    transformation.setResourceProfile(source.getSgInstanceProfile());
     Optional.ofNullable(source.getInitData())
         .map(ClusterInitData::getRestore)
         .ifPresent(clusterRestore -> {
@@ -101,16 +101,16 @@ public class ClusterTransformer
     transformation.setPod(new StackGresClusterPod());
     transformation.getPod().setPersistentVolume(new StackGresPodPersistenceVolume());
     transformation.getPod().getPersistentVolume().setStorageClass(
-        source.getPod().getPersistentVolume().getStorageClass());
+        source.getPods().getPersistentVolume().getStorageClass());
     transformation.getPod().getPersistentVolume().setVolumeSize(
-        source.getPod().getPersistentVolume().getVolumeSize());
+        source.getPods().getPersistentVolume().getVolumeSize());
 
     transformation.getPod()
-        .setDisableConnectionPooling(source.getPod().getDisableConnectionPooling());
+        .setDisableConnectionPooling(source.getPods().getDisableConnectionPooling());
     transformation.getPod()
-        .setDisableMetricsExporter(source.getPod().getDisableMetricsExporter());
+        .setDisableMetricsExporter(source.getPods().getDisableMetricsExporter());
     transformation.getPod()
-        .setDisablePostgresUtil(source.getPod().getDisablePostgresUtil());
+        .setDisablePostgresUtil(source.getPods().getDisablePostgresUtil());
 
     return transformation;
   }
@@ -141,18 +141,18 @@ public class ClusterTransformer
   public ClusterSpec getResourceSpec(StackGresClusterSpec source) {
     ClusterSpec transformation = new ClusterSpec();
     transformation.setConfigurations(new ClusterConfiguration());
-    transformation.getConfigurations().setBackupConfig(
+    transformation.getConfigurations().setSgBackupConfig(
         source.getConfiguration().getBackupConfig());
-    transformation.getConfigurations().setConnectionPoolingConfig(source
+    transformation.getConfigurations().setSgPoolingConfig(source
         .getConfiguration().getConnectionPoolingConfig());
     transformation.setInstances(source.getInstances());
     transformation.setNonProduction(
         getResourceNonProduction(source.getNonProduction()));
-    transformation.getConfigurations().setPostgresConfig(
+    transformation.getConfigurations().setSgPostgresConfig(
         source.getConfiguration().getPostgresConfig());
     transformation.setPostgresVersion(source.getPostgresVersion());
     transformation.setPrometheusAutobind(source.getPrometheusAutobind());
-    transformation.setResourceProfile(source.getResourceProfile());
+    transformation.setSgInstanceProfile(source.getResourceProfile());
 
     Optional.ofNullable(source.getInitData())
         .map(StackGresClusterInitData::getRestore)
@@ -162,18 +162,18 @@ public class ClusterTransformer
               getResourceRestore(source.getInitData().getRestore()));
         });
 
-    transformation.setPod(new ClusterPod());
-    transformation.getPod().setPersistentVolume(new ClusterPodPersistentVolume());
-    transformation.getPod().getPersistentVolume().setStorageClass(
+    transformation.setPods(new ClusterPod());
+    transformation.getPods().setPersistentVolume(new ClusterPodPersistentVolume());
+    transformation.getPods().getPersistentVolume().setStorageClass(
         source.getPod().getPersistentVolume().getStorageClass());
-    transformation.getPod().getPersistentVolume().setVolumeSize(
+    transformation.getPods().getPersistentVolume().setVolumeSize(
         source.getPod().getPersistentVolume().getVolumeSize());
 
-    transformation.getPod()
+    transformation.getPods()
         .setDisableConnectionPooling(source.getPod().getDisableConnectionPooling());
-    transformation.getPod()
+    transformation.getPods()
         .setDisableMetricsExporter(source.getPod().getDisableMetricsExporter());
-    transformation.getPod()
+    transformation.getPods()
         .setDisablePostgresUtil(source.getPod().getDisablePostgresUtil());
 
     return transformation;

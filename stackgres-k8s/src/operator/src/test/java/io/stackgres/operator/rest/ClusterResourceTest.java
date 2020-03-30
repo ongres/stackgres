@@ -14,8 +14,6 @@ import static org.mockito.Mockito.when;
 
 import java.util.Optional;
 
-import com.google.common.collect.ImmutableList;
-
 import io.fabric8.kubernetes.api.model.DoneablePod;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodList;
@@ -167,20 +165,20 @@ class ClusterResourceTest extends AbstractCustomResourceTest<ClusterDto, StackGr
     assertEquals("stackgres", resource.getMetadata().getName());
     assertEquals("bfb53778-f59a-11e9-b1b5-0242ac110002", resource.getMetadata().getUid());
     assertNotNull(resource.getSpec());
-    assertEquals("backupconf", resource.getSpec().getConfigurations().getBackupConfig());
-    assertEquals("pgbouncerconf", resource.getSpec().getConfigurations().getConnectionPoolingConfig());
-    assertEquals("5Gi", resource.getSpec().getPod().getPersistentVolume().getVolumeSize());
-    assertEquals("standard", resource.getSpec().getPod().getPersistentVolume().getStorageClass());
+    assertEquals("backupconf", resource.getSpec().getConfigurations().getSgBackupConfig());
+    assertEquals("pgbouncerconf", resource.getSpec().getConfigurations().getSgPoolingConfig());
+    assertEquals("5Gi", resource.getSpec().getPods().getPersistentVolume().getVolumeSize());
+    assertEquals("standard", resource.getSpec().getPods().getPersistentVolume().getStorageClass());
     assertEquals(true, resource.getSpec().getPrometheusAutobind());
     assertEquals(1, resource.getSpec().getInstances());
     assertEquals("11.5", resource.getSpec().getPostgresVersion());
-    assertEquals("postgresconf", resource.getSpec().getConfigurations().getPostgresConfig());
-    assertEquals("size-xs", resource.getSpec().getResourceProfile());
+    assertEquals("postgresconf", resource.getSpec().getConfigurations().getSgPostgresConfig());
+    assertEquals("size-xs", resource.getSpec().getSgInstanceProfile());
     assertNotNull(resource.getSpec().getInitData().getRestore());
     assertEquals("d7e660a9-377c-11ea-b04b-0242ac110004", resource.getSpec().getInitData().getRestore().getBackupUid());
-    assertFalse(resource.getSpec().getPod().getDisableConnectionPooling());
-    assertFalse(resource.getSpec().getPod().getDisableMetricsExporter());
-    assertFalse(resource.getSpec().getPod().getDisableMetricsExporter());
+    assertFalse(resource.getSpec().getPods().getDisableConnectionPooling());
+    assertFalse(resource.getSpec().getPods().getDisableMetricsExporter());
+    assertFalse(resource.getSpec().getPods().getDisableMetricsExporter());
     assertEquals(1, resource.getPodsReady());
     assertNotNull(resource.getPods());
     assertEquals(2, resource.getPods().size());

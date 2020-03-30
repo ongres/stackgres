@@ -77,20 +77,22 @@ status:
   pod: "$POD_NAME"
   sgBackupConfig:
 $(kubectl get "$BACKUP_CONFIG_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" \
-  --template '    compressionMethod: "{{ .spec.compressionMethod }}"
+  --template '    baseBackups:
+      compression: "{{ .spec.baseBackups.compression }}"
     storage:
       type: "{{ .spec.storage.type }}"
       {{- with .spec.storage.s3 }}
       s3:
         bucket: "{{ .bucket }}"
         {{ with .path }}path: "{{ . }}"{{ end }}
-        credentials:
-          accessKey:
-            key: "{{ .credentials.accessKey.key }}"
-            name: "{{ .credentials.accessKey.name }}"
-          secretKey:
-            key: "{{ .credentials.secretKey.key }}"
-            name: "{{ .credentials.secretKey.name }}"
+        awsCredentials:
+          secretKeySelectors:
+            accessKeyId:
+              key: "{{ .awsCredentials.secretKeySelectors.accessKeyId.key }}"
+              name: "{{ .awsCredentials.secretKeySelectors.accessKeyId.name }}"
+            secretAccessKey:
+              key: "{{ .awsCredentials.secretKeySelectors.secretAccessKey.key }}"
+              name: "{{ .awsCredentials.secretKeySelectors.secretAccessKey.name }}"
         {{ with .region }}region: "{{ . }}"{{ end }}
         {{ with .storageClass }}storageClass: "{{ . }}"{{ end }}
       {{- end }}
@@ -98,13 +100,14 @@ $(kubectl get "$BACKUP_CONFIG_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG"
       s3compatible:
         bucket: "{{ .bucket }}"
         {{ with .path }}path: "{{ . }}"{{ end }}
-        credentials:
-          accessKey:
-            key: "{{ .credentials.accessKey.key }}"
-            name: "{{ .credentials.accessKey.name }}"
-          secretKey:
-            key: "{{ .credentials.secretKey.key }}"
-            name: "{{ .credentials.secretKey.name }}"
+        awsCredentials:
+          secretKeySelectors:
+            accessKeyId:
+              key: "{{ .awsCredentials.secretKeySelectors.accessKeyId.key }}"
+              name: "{{ .awsCredentials.secretKeySelectors.accessKeyId.name }}"
+            secretAccessKey:
+              key: "{{ .awsCredentials.secretKeySelectors.secretAccessKey.key }}"
+              name: "{{ .awsCredentials.secretKeySelectors.secretAccessKey.name }}"
         {{ with .region }}region: "{{ . }}"{{ end }}
         {{ with .endpoint }}endpoint: "{{ . }}"{{ end }}
         {{ with .forcePathStyle }}forcePathStyle: {{ . }}{{ end }}
@@ -114,22 +117,24 @@ $(kubectl get "$BACKUP_CONFIG_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG"
       gcs:
         bucket: "{{ .bucket }}"
         {{ with .path }}path: "{{ . }}"{{ end }}
-        credentials:
-          serviceAccountJsonKey:
-            key: "{{ .credentials.serviceAccountJsonKey.key }}"
-            name: "{{ .credentials.serviceAccountJsonKey.name }}"
+        gcpCredentials:
+          secretKeySelectors:
+            serviceAccountJsonKey:
+              key: "{{ .gcpCredentials.secretKeySelectors.serviceAccountJsonKey.key }}"
+              name: "{{ .gcpCredentials.secretKeySelectors.serviceAccountJsonKey.name }}"
       {{- end }}
-      {{- with .spec.storage.azureblob }}
-      azureblob:
+      {{- with .spec.storage.azureBlob }}
+      azureBlob:
         bucket: "{{ .bucket }}"
         {{ with .path }}path: "{{ . }}"{{ end }}
-        credentials:
-          account:
-            key: "{{ .credentials.account.key }}"
-            name: "{{ .credentials.account.name }}"
-          accessKey:
-            key: "{{ .credentials.accessKey.key }}"
-            name: "{{ .credentials.accessKey.name }}"
+        azureCredentials:
+          secretKeySelectors:
+            storageAccount:
+              key: "{{ .azureCredentials.secretKeySelectors.storageAccount.key }}"
+              name: "{{ .azureCredentials.secretKeySelectors.storageAccount.name }}"
+            accessKey:
+              key: "{{ .azureCredentials.secretKeySelectors.accessKey.key }}"
+              name: "{{ .azureCredentials.secretKeySelectors.accessKey.name }}"
       {{- end }}
 ')
 EOF
@@ -143,21 +148,25 @@ else
         "phase":"'"$BACKUP_PHASE_PENDING"'",
         "pod":"'"$POD_NAME"'",
         "sgBackupConfig":{'"$(kubectl get "$BACKUP_CONFIG_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" \
-  --template '    "compressionMethod": "{{ .spec.compressionMethod }}",
+  --template '    "baseBackups": {
+      "compression": "{{ .spec.baseBackups.compression }}"
+    },
     "storage": {
       "type": "{{ .spec.storage.type }}",
       {{- with .spec.storage.s3 }}
       "s3": {
         "bucket": "{{ .bucket }}",
         {{ with .path }}"path": "{{ . }}",{{ end }}
-        "credentials": {
-          "accessKey": {
-            "key": "{{ .credentials.accessKey.key }}",
-            "name": "{{ .credentials.accessKey.name }}"
-          },
-          "secretKey": {
-            "key": "{{ .credentials.secretKey.key }}",
-            "name": "{{ .credentials.secretKey.name }}"
+        "awsCredentials": {
+          "secretKeySelectors: {
+            "accessKeyId": {
+              "key": "{{ .awsCredentials.secretKeySelectors.accessKeyId.key }}",
+              "name": "{{ .awsCredentials.secretKeySelectors.accessKeyId.name }}"
+            },
+            "secretAccessKey": {
+              "key": "{{ .awsCredentials.secretKeySelectors.secretAccessKey.key }}",
+              "name": "{{ .awsCredentials.secretKeySelectors.secretAccessKey.name }}"
+            }
           }
         }
         {{ with .region }},"region": "{{ . }}"{{ end }}
@@ -168,14 +177,16 @@ else
       "s3compatible": {
         "bucket": "{{ .bucket }}",
         {{ with .path }}"path": "{{ . }}",{{ end }}
-        "credentials": {
-          "accessKey": {
-            "key": "{{ .credentials.accessKey.key }}",
-            "name": "{{ .credentials.accessKey.name }}"
-          },
-          "secretKey": {
-            "key": "{{ .credentials.secretKey.key }}",
-            "name": "{{ .credentials.secretKey.name }}"
+        "awsCredentials": {
+          "secretKeySelectors":{
+            "accessKeyId": {
+              "key": "{{ .awsCredentials.secretKeySelectors.accessKeyId.key }}",
+              "name": "{{ .awsCredentials.secretKeySelectors.accessKeyId.name }}"
+            },
+            "secretAccessKey": {
+              "key": "{{ .awsCredentials.secretKeySelectors.secretAccessKey.key }}",
+              "name": "{{ .awsCredentials.secretKeySelectors.secretAccessKey.name }}"
+            }
           }
         }
         {{ with .region }},"region": "{{ . }}"{{ end }}
@@ -188,10 +199,12 @@ else
       "gcs": {
         "bucket": "{{ .bucket }}",
         {{ with .path }}"path": "{{ . }}",{{ end }}
-        "credentials": {
-          "serviceAccountJsonKey": {
-            "key": "{{ .credentials.serviceAccountJsonKey.key }}",
-            "name": "{{ .credentials.serviceAccountJsonKey.name }}"
+        "gcpCredentials": {
+          "secretKeySelectors": {
+            "serviceAccountJsonKey": {
+              "key": "{{ .gcpCredentials.secretKeySelectors.serviceAccountJSON.key }}",
+              "name": "{{ .gcpCredentials.secretKeySelectors.serviceAccountJSON.name }}"
+            }
           }
         }
       }
@@ -200,14 +213,16 @@ else
       "azureblob": {
         "bucket": "{{ .bucket }}",
         {{ with .path }}"path": "{{ . }}",{{ end }}
-        "credentials": {
-          "account": {
-            "key": "{{ .credentials.account.key }}",
-            "name": "{{ .credentials.account.name }}"
-          },
-          "accessKey": {
-            "key": "{{ .credentials.accessKey.key }}",
-            "name": "{{ .credentials.accessKey.name }}"
+        "azureredentials": {
+          "secretKeySelectors": {
+            "storageAccount": {
+              "key": "{{ .storageAccount.secretKeySelectors.storageAccount.key }}",
+              "name": "{{ .storageAccount.secretKeySelectors.storageAccount.name }}"
+            },
+            "accessKey": {
+              "key": "{{ .storageAccount.secretKeySelectors.accessKey.key }}",
+              "name": "{{ .storageAccount.secretKeySelectors.accessKey.name }}"
+            }
           }
         }
       }

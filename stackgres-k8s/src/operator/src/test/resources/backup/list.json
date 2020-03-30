@@ -19,17 +19,24 @@
       },
       "status": {
         "sgBackupConfig": {
-          "compressionMethod": "lz4",
+          "baseBackups": {
+            "compression": "lz4",
+            "performance": {
+              "uploadDiskConcurrency": 1
+            }
+          },
           "storage": {
             "s3compatible": {
-              "credentials": {
-                "accessKey": {
-                  "key": "accesskey",
-                  "name": "minio"
-                },
-                "secretKey": {
-                  "key": "secretkey",
-                  "name": "minio"
+              "awsCredentials": {
+                "secretKeySelectors": {
+                  "accessKeyId": {
+                    "key": "accesskey",
+                    "name": "minio"
+                  },
+                  "secretAccessKey": {
+                    "key": "secretkey",
+                    "name": "minio"
+                  }
                 }
               },
               "endpoint": "http://minio.stackgres.svc:9000",
@@ -77,17 +84,24 @@
       },
       "status": {
         "sgBackupConfig": {
-          "compressionMethod": "lz4",
+          "baseBackups": {
+            "compression": "lz4",
+            "performance": {
+              "uploadDiskConcurrency": 1
+            }
+          },
           "storage": {
             "s3": {
-              "credentials": {
-                "accessKey": {
-                  "key": "accesskey",
-                  "name": "minio"
-                },
-                "secretKey": {
-                  "key": "secretkey",
-                  "name": "minio"
+              "awsCredentials": {
+                "secretKeySelectors": {
+                  "accessKeyId": {
+                    "key": "accesskey",
+                    "name": "minio"
+                  },
+                  "secretAccessKey": {
+                    "key": "secretkey",
+                    "name": "minio"
+                  }
                 }
               },
               "bucket": "stackgres",
@@ -133,17 +147,24 @@
       },
       "status": {
         "sgBackupConfig": {
-          "compressionMethod": "lz4",
+          "baseBackups": {
+            "compression": "lz4",
+            "performance": {
+              "uploadDiskConcurrency": 1
+            }
+          },
           "storage": {
             "s3": {
-              "credentials": {
-                "accessKey": {
-                  "key": "accesskey",
-                  "name": "minio"
-                },
-                "secretKey": {
-                  "key": "secretkey",
-                  "name": "minio"
+              "awsCredentials": {
+                "secretKeySelectors": {
+                  "accessKeyId": {
+                    "key": "accesskey",
+                    "name": "minio"
+                  },
+                  "secretAccessKey": {
+                    "key": "secretkey",
+                    "name": "minio"
+                  }
                 }
               },
               "bucket": "stackgres",
@@ -197,17 +218,24 @@
       },
       "status": {
         "sgBackupConfig": {
-          "compressionMethod": "lz4",
+          "baseBackups": {
+            "compression": "lz4",
+            "performance": {
+              "uploadDiskConcurrency": 1
+            }
+          },
           "storage": {
             "s3": {
-              "credentials": {
-                "accessKey": {
-                  "key": "accesskey",
-                  "name": "minio"
-                },
-                "secretKey": {
-                  "key": "secretkey",
-                  "name": "minio"
+              "awsCredentials": {
+                "secretKeySelectors": {
+                  "accessKeyId": {
+                    "key": "accesskey",
+                    "name": "minio"
+                  },
+                  "secretAccessKey": {
+                    "key": "secretkey",
+                    "name": "minio"
+                  }
                 }
               },
               "bucket": "stackgres",
@@ -261,17 +289,24 @@
       },
       "status": {
         "sgBackupConfig": {
-          "compressionMethod": "lz4",
+          "baseBackups": {
+            "compression": "lz4",
+            "performance": {
+              "uploadDiskConcurrency": 1
+            }
+          },
           "storage": {
             "s3": {
-              "credentials": {
-                "accessKey": {
-                  "key": "accesskey",
-                  "name": "minio"
-                },
-                "secretKey": {
-                  "key": "secretkey",
-                  "name": "minio"
+              "awsCredentials": {
+                "secretKeySelectors": {
+                  "accessKeyId": {
+                    "key": "accesskey",
+                    "name": "minio"
+                  },
+                  "secretAccessKey": {
+                    "key": "secretkey",
+                    "name": "minio"
+                  }
                 }
               },
               "bucket": "stackgres",
