@@ -23,7 +23,7 @@ var PgConfig = Vue.component("pg-config", {
 			</header>
 
 			<div class="content">
-				<table class="pgconfig">
+				<table class="pgConfig">
 					<thead class="sort">
 						<th @click="sort('data.metadata.name')" class="sorted desc name">
 							<span>Name</span>
