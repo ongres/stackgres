@@ -19,7 +19,6 @@ import com.google.common.collect.ImmutableList;
 
 import io.fabric8.kubernetes.api.model.storage.StorageClass;
 import io.stackgres.operator.resource.ResourceScanner;
-import io.stackgres.operator.rest.authentication.Roles;
 
 @Path("/stackgres/storageclass")
 @Produces(MediaType.APPLICATION_JSON)
@@ -29,7 +28,7 @@ public class StorageClassResource {
   private ResourceScanner<StorageClass> storageClassScanner;
 
   @GET
-  @RolesAllowed(Roles.ADMIN)
+  @RolesAllowed(RestAuthenticationRoles.ADMIN)
   public List<String> get() {
     return storageClassScanner.findResources().stream()
         .map(sc -> sc.getMetadata().getName())

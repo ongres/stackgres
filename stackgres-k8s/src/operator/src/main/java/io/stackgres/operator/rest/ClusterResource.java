@@ -22,7 +22,6 @@ import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.resource.CustomResourceFinder;
 import io.stackgres.operator.resource.CustomResourceScanner;
 import io.stackgres.operator.resource.CustomResourceScheduler;
-import io.stackgres.operator.rest.authentication.Roles;
 import io.stackgres.operator.rest.dto.cluster.ClusterDto;
 import io.stackgres.operator.rest.dto.cluster.ClusterResourceConsumtionDto;
 import io.stackgres.operator.rest.transformer.ResourceTransformer;
@@ -58,13 +57,13 @@ public class ClusterResource
     this.clusterResourceConsumptionFinder = null;
   }
 
-  @RolesAllowed(Roles.ADMIN)
+  @RolesAllowed(RestAuthenticationRoles.ADMIN)
   @Override
   public List<ClusterDto> list() {
     return scanner.getResources();
   }
 
-  @RolesAllowed(Roles.ADMIN)
+  @RolesAllowed(RestAuthenticationRoles.ADMIN)
   @Override
   public ClusterDto get(String namespace, String name) {
     return finder.findByNameAndNamespace(name, namespace)
@@ -76,7 +75,7 @@ public class ClusterResource
    */
   @GET
   @Path("/status/{namespace}/{name}")
-  @RolesAllowed(Roles.ADMIN)
+  @RolesAllowed(RestAuthenticationRoles.ADMIN)
   public ClusterResourceConsumtionDto status(@PathParam("namespace") String namespace,
       @PathParam("name") String name) {
     return clusterResourceConsumptionFinder.findByNameAndNamespace(name, namespace)

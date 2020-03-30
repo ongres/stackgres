@@ -16,6 +16,3 @@ sidecar:
     allowAutobind: false
 nonProduction:
   disableClusterPodAntiAffinity: true
-authentication:
-  user: e2e
-  password: test

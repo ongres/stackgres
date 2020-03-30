@@ -19,7 +19,6 @@ import com.google.common.collect.ImmutableList;
 
 import io.fabric8.kubernetes.api.model.Namespace;
 import io.stackgres.operator.resource.ResourceScanner;
-import io.stackgres.operator.rest.authentication.Roles;
 
 @Path("/stackgres/namespaces")
 @Produces(MediaType.APPLICATION_JSON)
@@ -29,7 +28,7 @@ public class NamespaceResource {
   private ResourceScanner<Namespace> namespaceScanner;
 
   @GET
-  @RolesAllowed(Roles.ADMIN)
+  @RolesAllowed(RestAuthenticationRoles.ADMIN)
   public List<String> get() {
     return namespaceScanner.findResources().stream()
         .map(namespace -> namespace.getMetadata().getName())

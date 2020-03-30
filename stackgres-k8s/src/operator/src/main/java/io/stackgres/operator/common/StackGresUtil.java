@@ -47,6 +47,8 @@ public enum StackGresUtil {
   public static final String ROLE_KEY = "role";
   public static final String PRIMARY_ROLE = "master";
   public static final String REPLICA_ROLE = "replica";
+  public static final String REST_USER_KEY = "user";
+  public static final String REST_PASSWORD_KEY = "password";
 
   public static final String OPERATOR_NAME = INSTANCE.operatorName;
   public static final String OPERATOR_NAMESPACE = INSTANCE.operatorNamespace;

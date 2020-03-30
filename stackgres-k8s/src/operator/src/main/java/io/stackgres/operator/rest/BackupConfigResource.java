@@ -30,7 +30,6 @@ import io.stackgres.operator.resource.CustomResourceScanner;
 import io.stackgres.operator.resource.CustomResourceScheduler;
 import io.stackgres.operator.resource.ResourceFinder;
 import io.stackgres.operator.resource.ResourceWriter;
-import io.stackgres.operator.rest.authentication.Roles;
 import io.stackgres.operator.rest.dto.SecretKeySelector;
 import io.stackgres.operator.rest.dto.backupconfig.BackupConfigDto;
 import io.stackgres.operator.rest.dto.backupconfig.BackupConfigSpec;
@@ -89,7 +88,7 @@ public class BackupConfigResource extends
     this.secretWriter = null;
   }
 
-  @RolesAllowed(Roles.ADMIN)
+  @RolesAllowed(RestAuthenticationRoles.ADMIN)
   @Override
   public List<BackupConfigDto> list() {
     return Seq.seq(super.list())
@@ -97,7 +96,7 @@ public class BackupConfigResource extends
         .toList();
   }
 
-  @RolesAllowed(Roles.ADMIN)
+  @RolesAllowed(RestAuthenticationRoles.ADMIN)
   @Override
   public BackupConfigDto get(String namespace, String name) {
     return Optional.of(super.get(namespace, name))
@@ -105,7 +104,7 @@ public class BackupConfigResource extends
         .get();
   }
 
-  @RolesAllowed(Roles.ADMIN)
+  @RolesAllowed(RestAuthenticationRoles.ADMIN)
   @Override
   public void create(BackupConfigDto resource) {
     setSecretKeySelectors(resource);
@@ -113,7 +112,7 @@ public class BackupConfigResource extends
     super.create(resource);
   }
 
-  @RolesAllowed(Roles.ADMIN)
+  @RolesAllowed(RestAuthenticationRoles.ADMIN)
   @Override
   public void delete(BackupConfigDto resource) {
     setSecretKeySelectors(resource);
@@ -121,7 +120,7 @@ public class BackupConfigResource extends
     deleteSecret(resource);
   }
 
-  @RolesAllowed(Roles.ADMIN)
+  @RolesAllowed(RestAuthenticationRoles.ADMIN)
   @Override
   public void update(BackupConfigDto resource) {
     setSecretKeySelectors(resource);
