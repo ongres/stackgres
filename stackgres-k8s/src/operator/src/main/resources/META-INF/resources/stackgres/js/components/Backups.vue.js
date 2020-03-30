@@ -269,75 +269,95 @@ var Backups = Vue.component("sg-backup", {
 														<ul class="yaml">
 															<template v-if="back.data.status.backupConfig.storage.type === 's3'">
 																<li>
+																	<strong class="label">bucket:</strong> {{ back.data.status.backupConfig.storage.s3.bucket }}
+																</li>
+																<li v-if="typeof back.data.status.backupConfig.storage.s3.path !== 'undefined'">
+																	<strong class="label">path:</strong> {{ back.data.status.backupConfig.storage.s3.path }}
+																</li>
+																<li>
 																	<strong class="label">credentials:</strong> 
 																	<ul>
 																		<li>
-																			<strong class="label">accessKey:</strong>																				
-																			<ul>
-																				<li><strong class="label">key:</strong> {{ back.data.status.backupConfig.storage.s3.credentials.accessKey.key }}</li>
-																				<li><strong class="label">name:</strong> {{ back.data.status.backupConfig.storage.s3.credentials.accessKey.name }}</li>
-																			</ul>
+																			<strong class="label">accessKey:</strong> {{ back.data.status.backupConfig.storage.s3.credentials.accessKey }}
 																		</li>
 																		<li>
-																			<strong class="label">secretKey:</strong>																				
-																			<ul>
-																				<li><strong class="label">key:</strong> {{ back.data.status.backupConfig.storage.s3.credentials.secretKey.key }}</li>
-																				<li><strong class="label">name:</strong> {{ back.data.status.backupConfig.storage.s3.credentials.secretKey.name }}</li>
-																			</ul>
+																			<strong class="label">secretKey:</strong> {{ back.data.status.backupConfig.storage.s3.credentials.secretKey }}
 																		</li>
 																	</ul>
 																</li>
 																<li>
-																	<strong class="label">endpoint:</strong> {{ back.data.status.backupConfig.storage.s3.endpoint }}
-																</li>
-																<li>
-																	<strong class="label">forcePathStyle:</strong> {{ back.data.status.backupConfig.storage.s3.forcePathStyle }}
-																</li>
-																<li>
-																	<strong class="label">prefix:</strong> {{ back.data.status.backupConfig.storage.s3.prefix }}
-																</li>
-																<li>
 																	<strong class="label">region:</strong> {{ back.data.status.backupConfig.storage.s3.region }}
 																</li>
-
+																<li v-if="typeof back.data.status.backupConfig.storage.s3.storageClass !== 'undefined'">
+																	<strong class="label">storageClass:</strong> {{ back.data.status.backupConfig.storage.s3.storageClass }}
+																</li>
 															</template>
 															<template v-else-if="back.data.status.backupConfig.storage.type === 's3compatible'">
 																<li>
+																	<strong class="label">bucket:</strong> {{ back.data.status.backupConfig.storage.s3compatible.bucket }}
+																</li>
+																<li v-if="typeof back.data.status.backupConfig.storage.s3compatible.path !== 'undefined'">
+																	<strong class="label">path:</strong> {{ back.data.status.backupConfig.storage.s3compatible.path }}
+																</li>
+																<li>
 																	<strong class="label">credentials:</strong> 
 																	<ul>
 																		<li>
-																			<strong class="label">accessKeySelector:</strong>																				
-																			<ul>
-																				<li><strong class="label">name:</strong> {{ back.data.status.backupConfig.storage.s3compatible.credentials.accessKeySelector.name }}</li>
-																				<li><strong class="label">key:</strong> {{ back.data.status.backupConfig.storage.s3compatible.credentials.accessKeySelector.key }}</li>
-																			</ul>
+																			<strong class="label">accessKey:</strong> {{ back.data.status.backupConfig.storage.s3compatible.credentials.accessKey }}
 																		</li>
 																		<li>
-																			<strong class="label">secretKeySelector:</strong>																				
-																			<ul>
-																				<li><strong class="label">name:</strong> {{ back.data.status.backupConfig.storage.s3compatible.credentials.secretKeySelector.name }}</li>
-																				<li><strong class="label">key:</strong> {{ back.data.status.backupConfig.storage.s3compatible.credentials.secretKeySelector.key }}</li>
-																			</ul>
+																			<strong class="label">secretKey:</strong> {{ back.data.status.backupConfig.storage.s3compatible.credentials.secretKey }}
 																		</li>
 																	</ul>
 																</li>
-																<!--<li>
-																	<strong class="label">endpoint:</strong> {{ back.data.status.backupConfig.storage.s3.endpoint }}
+																<li>
+																	<strong class="label">region:</strong> {{ back.data.status.backupConfig.storage.s3compatible.region }}
+																</li>
+																<li v-if="typeof back.data.status.backupConfig.storage.s3compatible.storageClass !== 'undefined'">
+																	<strong class="label">storageClass:</strong> {{ back.data.status.backupConfig.storage.s3compatible.storageClass }}
 																</li>
 																<li>
-																	<strong class="label">forcePathStyle:</strong> {{ back.data.status.backupConfig.storage.s3.forcePathStyle }}
+																	<strong class="label">endpoint:</strong> {{ back.data.status.backupConfig.storage.s3compatible.endpoint }}
 																</li>
 																<li>
-																	<strong class="label">prefix:</strong> {{ back.data.status.backupConfig.storage.s3.prefix }}
+																	<strong class="label">forcePathStyle:</strong> {{ back.data.status.backupConfig.storage.s3compatible.forcePathStyle }}
+																</li>
+															</template>
+															<template v-else-if="back.data.status.backupConfig.storage.type === 'gcs'">
+																<li>
+																	<strong class="label">bucket:</strong> {{ back.data.status.backupConfig.storage.gcs.bucket }}
 																</li>
 																<li>
-																	<strong class="label">region:</strong> {{ back.data.status.backupConfig.storage.s3.region }}
-																</li>-->
-
-															</template>													
-															<li v-else v-for="(item, index) in back.data.status.backupConfig.storage[back.data.status.backupConfig.storage.type]">
-																<strong class="label">{{ index }}:</strong> {{ item }}
-															</li>
+																	<strong class="label">path:</strong> {{ back.data.status.backupConfig.storage.gcs.path }}
+																</li>
+																<li>
+																	<strong class="label">credentials:</strong> 
+																	<ul>
+																		<li>
+																			<strong class="label">serviceAccountJsonKey:</strong> {{ back.data.status.backupConfig.storage.gcs.credentials.serviceAccountJsonKey }}
+																		</li>
+																	</ul>
+																</li>
+															</template>
+															<template v-else-if="back.data.status.backupConfig.storage.type === 'azureblob'">
+																<li>
+																	<strong class="label">bucket:</strong> {{ back.data.status.backupConfig.storage.azureblob.bucket }}
+																</li>
+																<li>
+																	<strong class="label">path:</strong> {{ back.data.status.backupConfig.storage.azureblob.path }}
+																</li>
+																<li>
+																	<strong class="label">credentials:</strong> 
+																	<ul>
+																		<li>
+																			<strong class="label">account:</strong> {{ back.data.status.backupConfig.storage.azureblob.credentials.account }}
+																		</li>
+																		<li>
+																			<strong class="label">accessKey:</strong> {{ back.data.status.backupConfig.storage.azureblob.credentials.accessKey }}
+																		</li>
+																	</ul>
+																</li>
+															</template>
 														</ul>
 													</td>
 												</tr>
@@ -449,44 +469,6 @@ var Backups = Vue.component("sg-backup", {
 
 	},
 	methods: {
-
-		deleteBackup: function(backupName, backupNamespace) {
-			//e.preventDefault();
-
-			let confirmDelete = confirm("DELETE ITEM\nAre you sure you want to delete this item?")
-
-			if(confirmDelete) {
-				const backup = {
-					name: backupName,
-					namespace: backupNamespace
-				}
-	
-				const res = axios
-				.delete(
-					apiURL+'backup/', 
-					{
-						data: {
-							"metadata": {
-								"name": backup.name,
-								"namespace": backup.namespace
-							}
-						}
-					}
-				)
-				.then(function (response) {
-					console.log("DELETED");
-					//console.log(response);
-					notify('Backup <strong>'+backupName+'</strong> deleted successfully', 'message');
-					vm.fetchAPI();
-					//router.push('/backups/'+store.state.currentNamespace);                        
-				})
-				.catch(function (error) {
-					console.log(error.response);
-					notify(error.response.data.message,'error');
-				});
-			}
-
-		},
 
 		filterTable: function() {
 
