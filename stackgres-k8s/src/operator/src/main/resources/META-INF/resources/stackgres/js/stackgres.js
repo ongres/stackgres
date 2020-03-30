@@ -289,6 +289,7 @@ router.beforeEach((to, from, next) => {
 
 const store = new Vuex.Store({
   state: {
+    theme: 'light',
     currentNamespace: ' ',
     currentCluster: {},
     currentPods: [],
@@ -309,6 +310,10 @@ const store = new Vuex.Store({
     },
   },
   mutations: {
+
+    setTheme (state, theme) {
+      state.theme = theme;
+    },
     
     setCurrentNamespace (state, namespace) {
       state.currentNamespace = namespace;
@@ -516,6 +521,7 @@ Vue.mixin({
 
       console.log("Open delete");
       $("#delete").addClass("active");
+      $(".filter > .open").removeClass("open");
 
       store.commit("setDeleteItem", {
         kind: kind,
@@ -531,7 +537,7 @@ Vue.mixin({
       const item = store.state.deleteItem;
 
 			if(confirmName == item.name) { 
-				$("#error .warning").fadeOut();
+				$("#delete .warning").fadeOut();
 
 				const res = axios
 				.delete(
@@ -567,7 +573,7 @@ Vue.mixin({
 				  notify(error.response.data,'error',item.kind);
 				});
 			} else {
-				$("#error .warning").fadeIn();
+				$("#delete .warning").fadeIn();
 			}
 			
     }
@@ -1455,6 +1461,21 @@ $(document).ready(function(){
   $("#darkmode").click(function(){
     $("body").toggleClass("darkmode");
     $(this).toggleClass("active");
+
+    if($("body").hasClass("darkmode")) {
+      store.commit('setTheme', 'dark');
+      
+      if($('#grafana').length)
+        $('#grafana').attr("src", $('#grafana').attr("src").replace('light','dark'));
+    }
+    else {
+      store.commit('setTheme', 'light');
+
+      if($('#grafana').length)
+        $('#grafana').attr("src", $('#grafana').attr("src").replace('dark','light'));
+    }
+
+    
   });
 
   $("#reload").click(function(){
