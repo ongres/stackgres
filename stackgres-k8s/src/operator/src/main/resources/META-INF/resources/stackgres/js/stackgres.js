@@ -514,12 +514,14 @@ Vue.mixin({
 		},
 
     cancelDelete: function(){
-			$("#delete").removeClass("active");
+      $("#delete").removeClass("active");
+      $("#delete.warning").hide();
     },
     
     deleteCRD: function( kind, namespace, name, redirect ) {
 
       console.log("Open delete");
+      $('#delete input').val('');
       $("#delete").addClass("active");
       $(".filter > .open").removeClass("open");
 
@@ -554,7 +556,12 @@ Vue.mixin({
 				.then(function (response) {
 					console.log("DELETED");
 					notify('<span class="capitalize">'+item.kind+'</span> <strong>'+item.name+'</strong> deleted successfully', 'message', item.kind);
-          vm.fetchAPI();
+          
+          $('.'+item.kind+'-'+item.namespace+'-'+item.name).hide();
+          vm.fetchAPI(item.kind);
+
+					if( (typeof item.redirect !== 'undefined') && item.redirect.length)
+            router.push(item.redirect);
           
           store.commit("setDeleteItem", {
             kind: '',
@@ -562,9 +569,6 @@ Vue.mixin({
             name: '',
             redirect: ''
           });
-			
-					/* if(item.redirect.length)
-						router.push(item.redirect); */
 
 					$("#delete").removeClass("active");
 				})
@@ -598,317 +602,335 @@ const vm = new Vue({
   methods: {
     
     /* API Request */
-    fetchAPI: function() {
+    fetchAPI: function(kind = '') {
 
       console.log("Fetching API");
       $("#loader").show();
       
-      /*if(!doneInit)
-        namespaces.length = 0;*/
-
-      /* Namespaces Data */
-      axios
-      .get(apiURL+'namespaces',
-        { headers: {
-            //'content-type': 'application/json'
+      
+      if ( !kind.length || (kind == 'namespaces') ) {
+        /* Namespaces Data */
+        axios
+        .get(apiURL+'namespaces',
+          { headers: {
+              //'content-type': 'application/json'
+            }
           }
-        }
-      )
-      .then( function(response){
+        )
+        .then( function(response){
 
-        // Check if there are any changes on API Data
-        if ( checkData(response.data, store.state.allNamespaces) ) {
+          // Check if there are any changes on API Data
+          if ( checkData(response.data, store.state.allNamespaces) ) {
 
-          if(typeof store.state.allNamespaces !== 'undefined' && response.data.length != store.state.allNamespaces.length)
-            store.commit('flushAllNamespaces');
+            if(typeof store.state.allNamespaces !== 'undefined' && response.data.length != store.state.allNamespaces.length)
+              store.commit('flushAllNamespaces');
 
-          store.commit('addNamespaces', response.data);
+            store.commit('addNamespaces', response.data);
 
-        }
+          }
+          
+        });
+      }
+
+      if ( !kind.length || (kind == 'cluster') ) {
+        /* Clusters Data */
+        axios
+        .get(apiURL+'cluster',
+          { headers: {
+              'content-type': 'application/json'
+            }
+          }
+        )
+        .then( function(response){
+
+          // Check if there are any changes on API Data
+          if ( checkData(response.data, apiData['cluster']) ) {
+
+            if(typeof apiData['cluster'] !== 'undefined' && response.data.length != apiData['cluster'].length)
+              store.commit('flushClusters');
+
+            apiData['cluster'] = response.data;
+      
+            apiData['cluster'].forEach( function(item, index) {
+
+              var cluster = {
+                name: item.metadata.name,
+                data: item,
+                hasBackups: false,
+                status: {},
+              };
+              
+              
+              if(store.state.namespaces.indexOf(item.metadata.namespace) === -1)
+                store.commit('updateNamespaces', item.metadata.namespace);
+
+              axios
+                .get(apiURL+'cluster/status/'+item.metadata.namespace+'/'+item.metadata.name,
+                    { headers: {
+                        'content-type': 'application/json'
+                    }
+                    }
+                )
+                .then( function(response){
+                  //console.log(response.data);
+                  cluster.status = response.data;
+                });
+                
+              store.commit('updateClusters', cluster);
+
+              // Set as current cluster if no other cluster has already been set
+              if(!store.state.currentCluster.length)              
+                store.commit('setCurrentCluster', cluster);
+
+            });
+
+          }
+          
+        });
+      }
+
+      if ( !kind.length || (kind == 'backup') ) {
         
-      });
-
-      /* Clusters Data */
-      axios
-      .get(apiURL+'cluster',
-        { headers: {
+        /* Backups */
+        axios
+        .get(apiURL+'backup',
+          { headers: {
             'content-type': 'application/json'
           }
-        }
-      )
-      .then( function(response){
+        })
+        .then( function(response) {
 
-        // Check if there are any changes on API Data
-        if ( checkData(response.data, apiData['cluster']) ) {
+          if( checkData(response.data, apiData['backup']) ) {
 
-          if(typeof apiData['cluster'] !== 'undefined' && response.data.length != apiData['cluster'].length)
-            store.commit('flushClusters');
+            if(typeof apiData['backup'] !== 'undefined' && response.data.length != apiData['backup'].length)
+              store.commit('flushBackups');
 
-          apiData['cluster'] = response.data;
-    
-          apiData['cluster'].forEach( function(item, index) {
+            apiData['backup'] = response.data;
 
-            var cluster = {
-              name: item.metadata.name,
-              data: item,
-              hasBackups: false,
-              status: {},
-            };
-            
-            
-            if(store.state.namespaces.indexOf(item.metadata.namespace) === -1)
-              store.commit('updateNamespaces', item.metadata.namespace);
+            apiData['backup'].forEach( function(item, index) {
+              
+              if(store.state.namespaces.indexOf(item.metadata.namespace) === -1) {
+              
+                store.commit('updateNamespaces', item.metadata.namespace);
 
-            axios
-              .get(apiURL+'cluster/status/'+item.metadata.namespace+'/'+item.metadata.name,
-                  { headers: {
-                      'content-type': 'application/json'
-                  }
-                  }
-              )
-              .then( function(response){
-                //console.log(response.data);
-                cluster.status = response.data;
+              } else {
+                //console.log("Namespace ya existe");
+              }
+
+              let start = moment(item.status.startTime);
+              let finish = moment(item.status.finishTime);
+              let duration = moment.duration(finish.diff(start));
+                
+              store.commit('updateBackups', { 
+                name: item.metadata.name,
+                data: item,
+                duration: new Date(duration).toISOString()
               });
-              
-            store.commit('updateClusters', cluster);
 
-            // Set as current cluster if no other cluster has already been set
-            if(!store.state.currentCluster.length)              
-              store.commit('setCurrentCluster', cluster);
-
-          });
-
-        }
-        
-      });
-
-      /* Backups */
-      axios
-      .get(apiURL+'backup',
-        { headers: {
-          'content-type': 'application/json'
-        }
-      })
-      .then( function(response) {
-
-        if( checkData(response.data, apiData['backup']) ) {
-
-          if(typeof apiData['backup'] !== 'undefined' && response.data.length != apiData['backup'].length)
-            store.commit('flushBackups');
-
-          apiData['backup'] = response.data;
-
-          apiData['backup'].forEach( function(item, index) {
-            
-            if(store.state.namespaces.indexOf(item.metadata.namespace) === -1) {
-            
-              store.commit('updateNamespaces', item.metadata.namespace);
-
-            } else {
-              //console.log("Namespace ya existe");
-            }
-
-            let start = moment(item.status.startTime);
-            let finish = moment(item.status.finishTime);
-            let duration = moment.duration(finish.diff(start));
-              
-            store.commit('updateBackups', { 
-              name: item.metadata.name,
-              data: item,
-              duration: new Date(duration).toISOString()
             });
 
-          });
+            //console.log("Backups Data updated");
 
-          //console.log("Backups Data updated");
-
-        }
-      });
-
-      /* PostgreSQL Config */
-      axios
-      .get(apiURL+'pgconfig',
-        { headers: {
-          'content-type': 'application/json'
-        }
-      })
-      .then( function(response) {
-
-        if( checkData(response.data, apiData['pgconfig']) ) {
-
-          if(typeof apiData['pgconfig'] !== 'undefined' && response.data.length != apiData['pgconfig'].length)
-            store.commit('flushPGConfig');
-
-          apiData['pgconfig'] = response.data;
-
-          apiData['pgconfig'].forEach( function(item, index) {
-            
-            if(store.state.namespaces.indexOf(item.metadata.namespace) === -1) {
-            
-              store.commit('updateNamespaces', item.metadata.namespace);
-
-            } else {
-              //console.log("Namespace ya existe");
-            }     
-              
-            store.commit('updatePGConfig', { 
-              name: item.metadata.name,
-              data: item
-            });
-
-          });
-
-          // console.log("PGconf Data updated");
-
-        }
-      });
-
-      /* Connection Pooling Config */
-      axios
-      .get(apiURL+'connpoolconfig',
-        { headers: {
-          'content-type': 'application/json'
-        }
-      })
-      .then( function(response) {
-
-        if( checkData(response.data, apiData['connpoolconfig']) ) {
-
-          if(typeof apiData['connpoolconfig'] !== 'undefined' && response.data.length != apiData['connpoolconfig'].length)
-            store.commit('flushPoolConfig');
-
-          apiData['connpoolconfig'] = response.data;
-
-          apiData['connpoolconfig'].forEach( function(item, index) {
-            
-            if(store.state.namespaces.indexOf(item.metadata.namespace) === -1) {
-            
-              store.commit('updateNamespaces', item.metadata.namespace);
-
-            } else {
-              //console.log("Namespace ya existe");
-            }     
-              
-            store.commit('updatePoolConfig', { 
-              name: item.metadata.name,
-              data: item
-            });
-
-          });
-
-          // console.log("PoolConf Data updated");
-
-        }
-      });
-
-      /* Backup Config */
-      axios
-      .get(apiURL+'backupconfig',
-        { headers: {
-          'content-type': 'application/json'
-        }
-      })
-      .then( function(response) {
-
-        if( checkData(response.data, apiData['backupconfig']) ) {
-
-          if(typeof apiData['backupconfig'] !== 'undefined' && response.data.length != apiData['backupconfig'].length)
-            store.commit('flushBackupConfig');
-
-          apiData['backupconfig'] = response.data;
-
-          apiData['backupconfig'].forEach( function(item, index) {
-            
-            if(store.state.namespaces.indexOf(item.metadata.namespace) === -1) {
-            
-              store.commit('updateNamespaces', item.metadata.namespace);
-
-            } else {
-              //console.log("Namespace ya existe");
-            }     
-              
-            store.commit('updateBackupConfig', { 
-              name: item.metadata.name,
-              data: item
-            });
-
-          });
-
-          // console.log("BackupConfig Data updated");
-
-        }
-      });
-
-
-      /* Profiles */
-      axios
-      .get(apiURL+'profile',
-        { headers: {
-          'content-type': 'application/json'
-        }
-      })
-      .then( function(response) {
-
-        if( checkData(response.data, apiData['profile']) ) {
-
-          if(typeof apiData['profile'] !== 'undefined' && response.data.length != apiData['profile'].length)
-            store.commit('flushProfiles');
-
-          apiData['profile'] = response.data;
-
-          apiData['profile'].forEach( function(item, index) {
-            
-            if(store.state.namespaces.indexOf(item.metadata.namespace) === -1) {
-            
-              store.commit('updateNamespaces', item.metadata.namespace);
-
-            } else {
-              //console.log("Namespace ya existe");
-            }     
-              
-            store.commit('updateProfiles', { 
-              name: item.metadata.name,
-              data: item
-            });
-
-          });
-
-          // console.log("Profiles Data updated");
-
-        }
-      });
-
-
-      /* Storage Classes Data */
-      axios
-      .get(apiURL+'storageclass',
-        { headers: {
-            //'content-type': 'application/json'
           }
-        }
-      )
-      .then( function(response){
+        });
+      }
 
-        // Check if there are any changes on API Data
-        if ( checkData(response.data, store.state.storageClasses) ) {
+      if ( !kind.length || (kind == 'pgconfig') ) {
 
-          if(typeof store.state.storageClasses !== 'undefined' && response.data.length != store.state.storageClasses.length)
-            store.commit('flushStorageClasses');
+        /* PostgreSQL Config */
+        axios
+        .get(apiURL+'pgconfig',
+          { headers: {
+            'content-type': 'application/json'
+          }
+        })
+        .then( function(response) {
 
-          store.commit('addStorageClasses', response.data);
+          if( checkData(response.data, apiData['pgconfig']) ) {
 
-        }
-        
-      });
+            if(typeof apiData['pgconfig'] !== 'undefined' && response.data.length != apiData['pgconfig'].length)
+              store.commit('flushPGConfig');
+
+            apiData['pgconfig'] = response.data;
+
+            apiData['pgconfig'].forEach( function(item, index) {
+              
+              if(store.state.namespaces.indexOf(item.metadata.namespace) === -1) {
+              
+                store.commit('updateNamespaces', item.metadata.namespace);
+
+              } else {
+                //console.log("Namespace ya existe");
+              }     
+                
+              store.commit('updatePGConfig', { 
+                name: item.metadata.name,
+                data: item
+              });
+
+            });
+
+            // console.log("PGconf Data updated");
+
+          }
+        });
+      }
+
+      if ( !kind.length || (kind == 'connpoolconfig') ) {
+
+        /* Connection Pooling Config */
+        axios
+        .get(apiURL+'connpoolconfig',
+          { headers: {
+            'content-type': 'application/json'
+          }
+        })
+        .then( function(response) {
+
+          if( checkData(response.data, apiData['connpoolconfig']) ) {
+
+            if(typeof apiData['connpoolconfig'] !== 'undefined' && response.data.length != apiData['connpoolconfig'].length)
+              store.commit('flushPoolConfig');
+
+            apiData['connpoolconfig'] = response.data;
+
+            apiData['connpoolconfig'].forEach( function(item, index) {
+              
+              if(store.state.namespaces.indexOf(item.metadata.namespace) === -1) {
+              
+                store.commit('updateNamespaces', item.metadata.namespace);
+
+              } else {
+                //console.log("Namespace ya existe");
+              }     
+                
+              store.commit('updatePoolConfig', { 
+                name: item.metadata.name,
+                data: item
+              });
+
+            });
+
+            // console.log("PoolConf Data updated");
+
+          }
+        });
+      }
+
+      if ( !kind.length || (kind == 'backupconfig') ) {
+
+        /* Backup Config */
+        axios
+        .get(apiURL+'backupconfig',
+          { headers: {
+            'content-type': 'application/json'
+          }
+        })
+        .then( function(response) {
+
+          if( checkData(response.data, apiData['backupconfig']) ) {
+
+            if(typeof apiData['backupconfig'] !== 'undefined' && response.data.length != apiData['backupconfig'].length)
+              store.commit('flushBackupConfig');
+
+            apiData['backupconfig'] = response.data;
+
+            apiData['backupconfig'].forEach( function(item, index) {
+              
+              if(store.state.namespaces.indexOf(item.metadata.namespace) === -1) {
+              
+                store.commit('updateNamespaces', item.metadata.namespace);
+
+              } else {
+                //console.log("Namespace ya existe");
+              }     
+                
+              store.commit('updateBackupConfig', { 
+                name: item.metadata.name,
+                data: item
+              });
+
+            });
+
+            // console.log("BackupConfig Data updated");
+
+          }
+        });
+      }
+
+      if ( !kind.length || (kind == 'profile') ) {
+
+        /* Profiles */
+        axios
+        .get(apiURL+'profile',
+          { headers: {
+            'content-type': 'application/json'
+          }
+        })
+        .then( function(response) {
+
+          if( checkData(response.data, apiData['profile']) ) {
+
+            if(typeof apiData['profile'] !== 'undefined' && response.data.length != apiData['profile'].length)
+              store.commit('flushProfiles');
+
+            apiData['profile'] = response.data;
+
+            apiData['profile'].forEach( function(item, index) {
+              
+              if(store.state.namespaces.indexOf(item.metadata.namespace) === -1) {
+              
+                store.commit('updateNamespaces', item.metadata.namespace);
+
+              } else {
+                //console.log("Namespace ya existe");
+              }     
+                
+              store.commit('updateProfiles', { 
+                name: item.metadata.name,
+                data: item
+              });
+
+            });
+
+            // console.log("Profiles Data updated");
+
+          }
+        });
+      }
+
+      if ( !kind.length || (kind == 'storageclass') ) {
+        /* Storage Classes Data */
+        axios
+        .get(apiURL+'storageclass',
+          { headers: {
+              //'content-type': 'application/json'
+            }
+          }
+        )
+        .then( function(response){
+
+          // Check if there are any changes on API Data
+          if ( checkData(response.data, store.state.storageClasses) ) {
+
+            if(typeof store.state.storageClasses !== 'undefined' && response.data.length != store.state.storageClasses.length)
+              store.commit('flushStorageClasses');
+
+            store.commit('addStorageClasses', response.data);
+
+          }
+          
+        });
+      }
 
 
-      // Check if current cluster has backups
-      let currentClusterBackups = store.state.backups.find(b => ( (store.state.currentCluster.name == b.data.spec.cluster) && (store.state.currentCluster.data.metadata.namespace == b.data.metadata.namespace) ) );
-        
-      if ( typeof currentClusterBackups !== "undefined" )
-        store.state.currentCluster.hasBackups = true; // Enable/Disable Backups button
-
+      if ( (kind === 'backup') || (kind === 'cluster') ) {
+        // Check if current cluster has backups
+        let currentClusterBackups = store.state.backups.find(b => ( (store.state.currentCluster.name == b.data.spec.cluster) && (store.state.currentCluster.data.metadata.namespace == b.data.metadata.namespace) ) );
+          
+        if ( typeof currentClusterBackups !== "undefined" )
+          store.state.currentCluster.hasBackups = true; // Enable/Disable Backups button
+      }
 
       setTimeout(function(){
         $("#loader").fadeOut(500);
