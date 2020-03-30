@@ -117,57 +117,64 @@ class BackupResourceTest extends AbstractCustomResourceTest<BackupDto, StackGres
   }
 
   @Override
-  protected void checkBackupConfig(StackGresBackup resource) {
+  protected void checkBackupConfig(StackGresBackup resource, Operation operation) {
     assertNotNull(resource.getMetadata());
     assertEquals("postgresql", resource.getMetadata().getNamespace());
     assertEquals("test", resource.getMetadata().getName());
     assertEquals("bfb53778-f59a-11e9-b1b5-0242ac110002", resource.getMetadata().getUid());
-   assertNotNull(resource.getSpec());
+    assertNotNull(resource.getSpec());
     assertEquals("stackgres", resource.getSpec().getCluster());
     assertEquals(false, resource.getSpec().getIsPermanent());
-    assertNotNull(resource.getStatus());
-    assertNotNull(resource.getStatus().getBackupConfig());
-    assertEquals("lz4", resource.getStatus().getBackupConfig().getCompressionMethod());
-    assertEquals(0, resource.getStatus().getBackupConfig().getDiskRateLimit());
-    assertNull(resource.getStatus().getBackupConfig().getFullSchedule());
-    assertEquals(0, resource.getStatus().getBackupConfig().getFullWindow());
-    assertEquals(0, resource.getStatus().getBackupConfig().getNetworkRateLimit());
-    assertEquals(0, resource.getStatus().getBackupConfig().getRetention());
-    assertNotNull(resource.getStatus().getBackupConfig().getStorage());
-    assertNull(resource.getStatus().getBackupConfig().getStorage().getAzureblob());
-    assertNull(resource.getStatus().getBackupConfig().getStorage().getGcs());
-    assertEquals("s3compatible", resource.getStatus().getBackupConfig().getStorage().getType());
-    assertNull(resource.getStatus().getBackupConfig().getStorage().getAzureblob());
-    assertNull(resource.getStatus().getBackupConfig().getStorage().getGcs());
-    assertNull(resource.getStatus().getBackupConfig().getStorage().getS3());
-    assertNotNull(resource.getStatus().getBackupConfig().getStorage().getS3Compatible());
-    assertNotNull(resource.getStatus().getBackupConfig().getStorage().getS3Compatible().getCredentials());
-    assertEquals("http://minio.stackgres.svc:9000", resource.getStatus().getBackupConfig().getStorage().getS3Compatible().getEndpoint());
-    assertEquals("stackgres", resource.getStatus().getBackupConfig().getStorage().getS3Compatible().getBucket());
-    assertNull(resource.getStatus().getBackupConfig().getStorage().getS3Compatible().getPath());
-    assertEquals("s3://stackgres", resource.getStatus().getBackupConfig().getStorage().getS3Compatible().getPrefix());
-    assertEquals("k8s", resource.getStatus().getBackupConfig().getStorage().getS3Compatible().getRegion());
-    assertNull(resource.getStatus().getBackupConfig().getStorage().getS3Compatible().getStorageClass());
-    assertTrue(resource.getStatus().getBackupConfig().getStorage().getS3Compatible().isForcePathStyle());
-    assertEquals(6686407, resource.getStatus().getCompressedSize());
-    assertNull(resource.getStatus().getControlData());
-    assertEquals("/var/lib/postgresql/data", resource.getStatus().getDataDir());
-    assertEquals("", resource.getStatus().getFailureReason());
-    assertEquals("218104056", resource.getStatus().getFinishLsn());
-    assertEquals("2020-01-10T08:56:09.098819Z", resource.getStatus().getFinishTime());
-    assertEquals("backup-with-default-storage-1", resource.getStatus().getHostname());
-    assertEquals(false, resource.getStatus().getIsPermanent());
-    assertEquals("base_00000002000000000000000D", resource.getStatus().getName());
-    assertEquals("110006", resource.getStatus().getPgVersion());
-    assertEquals("Completed", resource.getStatus().getPhase());
-    assertEquals("backup-with-default-storage-backup-1578646560-mr7pg", resource.getStatus().getPod());
-    assertEquals("218103848", resource.getStatus().getStartLsn());
-    assertEquals("2020-01-10T08:56:06.879707Z", resource.getStatus().getStartTime());
-    assertEquals("6780234708837765169", resource.getStatus().getSystemIdentifier());
-    assertNull(resource.getStatus().getTested());
-    assertEquals("2020-01-10T08:56:09.119Z", resource.getStatus().getTime());
-    assertEquals(24037855, resource.getStatus().getUncompressedSize());
-    assertEquals("00000002000000000000000D", resource.getStatus().getWalFileName());
+    switch (operation) {
+      case UPDATE:
+        assertNotNull(resource.getStatus());
+        assertNotNull(resource.getStatus().getBackupConfig());
+        assertEquals("lz4", resource.getStatus().getBackupConfig().getCompressionMethod());
+        assertEquals(0, resource.getStatus().getBackupConfig().getDiskRateLimit());
+        assertNull(resource.getStatus().getBackupConfig().getFullSchedule());
+        assertEquals(0, resource.getStatus().getBackupConfig().getFullWindow());
+        assertEquals(0, resource.getStatus().getBackupConfig().getNetworkRateLimit());
+        assertEquals(0, resource.getStatus().getBackupConfig().getRetention());
+        assertNotNull(resource.getStatus().getBackupConfig().getStorage());
+        assertNull(resource.getStatus().getBackupConfig().getStorage().getAzureblob());
+        assertNull(resource.getStatus().getBackupConfig().getStorage().getGcs());
+        assertEquals("s3compatible", resource.getStatus().getBackupConfig().getStorage().getType());
+        assertNull(resource.getStatus().getBackupConfig().getStorage().getAzureblob());
+        assertNull(resource.getStatus().getBackupConfig().getStorage().getGcs());
+        assertNull(resource.getStatus().getBackupConfig().getStorage().getS3());
+        assertNotNull(resource.getStatus().getBackupConfig().getStorage().getS3Compatible());
+        assertNotNull(resource.getStatus().getBackupConfig().getStorage().getS3Compatible().getCredentials());
+        assertEquals("http://minio.stackgres.svc:9000", resource.getStatus().getBackupConfig().getStorage().getS3Compatible().getEndpoint());
+        assertEquals("stackgres", resource.getStatus().getBackupConfig().getStorage().getS3Compatible().getBucket());
+        assertNull(resource.getStatus().getBackupConfig().getStorage().getS3Compatible().getPath());
+        assertEquals("s3://stackgres", resource.getStatus().getBackupConfig().getStorage().getS3Compatible().getPrefix());
+        assertEquals("k8s", resource.getStatus().getBackupConfig().getStorage().getS3Compatible().getRegion());
+        assertNull(resource.getStatus().getBackupConfig().getStorage().getS3Compatible().getStorageClass());
+        assertTrue(resource.getStatus().getBackupConfig().getStorage().getS3Compatible().isForcePathStyle());
+        assertEquals(6686407, resource.getStatus().getCompressedSize());
+        assertNull(resource.getStatus().getControlData());
+        assertEquals("/var/lib/postgresql/data", resource.getStatus().getDataDir());
+        assertEquals("", resource.getStatus().getFailureReason());
+        assertEquals("218104056", resource.getStatus().getFinishLsn());
+        assertEquals("2020-01-10T08:56:09.098819Z", resource.getStatus().getFinishTime());
+        assertEquals("backup-with-default-storage-1", resource.getStatus().getHostname());
+        assertEquals(false, resource.getStatus().getIsPermanent());
+        assertEquals("base_00000002000000000000000D", resource.getStatus().getName());
+        assertEquals("110006", resource.getStatus().getPgVersion());
+        assertEquals("Completed", resource.getStatus().getPhase());
+        assertEquals("backup-with-default-storage-backup-1578646560-mr7pg", resource.getStatus().getPod());
+        assertEquals("218103848", resource.getStatus().getStartLsn());
+        assertEquals("2020-01-10T08:56:06.879707Z", resource.getStatus().getStartTime());
+        assertEquals("6780234708837765169", resource.getStatus().getSystemIdentifier());
+        assertNull(resource.getStatus().getTested());
+        assertEquals("2020-01-10T08:56:09.119Z", resource.getStatus().getTime());
+        assertEquals(24037855, resource.getStatus().getUncompressedSize());
+        assertEquals("00000002000000000000000D", resource.getStatus().getWalFileName());
+        return;
+      default:
+        assertNull(resource.getStatus());
+        return;
+    }
   }
 
 }

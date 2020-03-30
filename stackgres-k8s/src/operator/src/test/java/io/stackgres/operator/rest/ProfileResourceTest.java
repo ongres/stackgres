@@ -71,7 +71,7 @@ class ProfileResourceTest extends AbstractCustomResourceTest<ProfileDto, StackGr
   }
 
   @Override
-  protected void checkBackupConfig(StackGresProfile resource) {
+  protected void checkBackupConfig(StackGresProfile resource, Operation operation) {
     assertNotNull(resource.getMetadata());
     assertEquals("default", resource.getMetadata().getNamespace());
     assertEquals("size-s", resource.getMetadata().getName());
