@@ -24,78 +24,165 @@ var BackupConfig = Vue.component("backup-config", {
 
 
 			<div class="content">
-				<div class="boxes">
-					<div v-for="conf in config" v-bind:id="conf.name+'-'+conf.data.metadata.namespace" class="box config" v-bind:class="{'show':($route.params.name == conf.name)}" v-if="conf.data.metadata.namespace == currentNamespace">
-						<h4>{{ conf.name }}</h4>
-
-						<div class="row">
-							<div class="col">
-								<span>General Configuration</span>
-								<ul class="params">
-									<li v-for="(item, index) in conf.data.spec" v-if="index !== 'storage'">
-										<template v-if="index == 'tarSizeThreshold'">
-											<strong>{{ index }}:</strong> {{ (conf.data.spec.tarSizeThreshold / 1e+9).toFixed(2) }}Gi<br/>
-										</template>
-										<template v-else-if="index == 'fullSchedule'">
-											<strong>{{ index }}:</strong> {{ item | prettyCRON }}<br/>
-										</template>
-										<template v-else>
-											<strong>{{ index }}:</strong> {{ item }}<br/>
-										</template>
-									</li>
+				<table class="backupConfig">
+					<thead class="sort">
+						<th @click="sort('data.metadata.name')" class="sorted desc name">
+							<span>Name</span>
+						</th>
+						<th @click="sort('data.spec.retention')" class="icon desc retention">
+							<span>Retention</span>
+						</th>
+						<th @click="sort('data.spec.fullSchedule')" class="desc fullSchedule center">
+							<span>Full Schedule</span>
+						</th>
+						<th @click="sort('data.spec.compressionMethod')" class="desc compressionMethod">
+							<span>Compression Method</span>
+						</th>
+						<th @click="sort('data.spec.uploadDiskConcurrency')" class="desc uploadDiskConcurrency">
+							<span>Upload Disk Concurrency</span>
+						</th>
+						<th @click="sort('data.spec.tarSizeThreshold')" class="desc tarSizeThreshold">
+							<span>Tar Size Threshold</span>
+						</th>
+						<th @click="sort('data.spec.storage.type')" class="desc storageType">
+							<span>Storage Type</span>
+						</th>
+						<th class="actions"></th>
+					</thead>
+					<template v-for="conf in config" v-if="conf.data.metadata.namespace == currentNamespace">
+						<tr v-bind:id="conf.name+'-'+conf.data.metadata.namespace" class="base">
+							<td>{{ conf.name }}</td>
+							<td>{{ conf.data.spec.retention }}</td>
+							<td>{{ conf.data.spec.fullSchedule | prettyCRON }}</td>
+							<td>{{ conf.data.spec.compressionMethod }}</td>
+							<td>{{ conf.data.spec.uploadDiskConcurrency }}</td>
+							<td>{{ conf.data.spec.tarSizeThreshold | formatBytes }}</td>
+							<td>{{ conf.data.spec.storage.type }}</td>
+							<td class="actions">
+								<a class="open" title="Configuration Details">
+									<svg xmlns="http://www.w3.org/2000/svg" width="18.556" height="14.004" viewBox="0 0 18.556 14.004"><g transform="translate(0 -126.766)"><path d="M18.459,133.353c-.134-.269-3.359-6.587-9.18-6.587S.232,133.084.1,133.353a.93.93,0,0,0,0,.831c.135.269,3.36,6.586,9.18,6.586s9.046-6.317,9.18-6.586A.93.93,0,0,0,18.459,133.353Zm-9.18,5.558c-3.9,0-6.516-3.851-7.284-5.142.767-1.293,3.382-5.143,7.284-5.143s6.516,3.85,7.284,5.143C15.795,135.06,13.18,138.911,9.278,138.911Z" transform="translate(0 0)"/><path d="M9.751,130.857a3.206,3.206,0,1,0,3.207,3.207A3.21,3.21,0,0,0,9.751,130.857Z" transform="translate(-0.472 -0.295)"/></g></svg>
+								</a>
+								<router-link :to="'/crd/edit/backupconfig/'+currentNamespace+'/'+conf.name" title="Edit Configuration">
+									<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14"><path d="M90,135.721v2.246a.345.345,0,0,0,.345.345h2.246a.691.691,0,0,0,.489-.2l8.042-8.041a.346.346,0,0,0,0-.489l-2.39-2.389a.345.345,0,0,0-.489,0L90.2,135.232A.691.691,0,0,0,90,135.721Zm13.772-8.265a.774.774,0,0,0,0-1.095h0l-1.82-1.82a.774.774,0,0,0-1.095,0h0l-1.175,1.176a.349.349,0,0,0,0,.495l2.421,2.421a.351.351,0,0,0,.5,0Z" transform="translate(-90 -124.313)"/></svg>
+								</router-link>
+								<a v-on:click="deleteCRD('backupconfig',currentNamespace, conf.name)" class="delete" title="Delete Configuration">
+									<svg xmlns="http://www.w3.org/2000/svg" width="13.5" height="15" viewBox="0 0 13.5 15"><g transform="translate(-61 -90)"><path d="M73.765,92.7H71.513a.371.371,0,0,1-.355-.362v-.247A2.086,2.086,0,0,0,69.086,90H66.413a2.086,2.086,0,0,0-2.072,2.094V92.4a.367.367,0,0,1-.343.3H61.735a.743.743,0,0,0,0,1.486h.229a.375.375,0,0,1,.374.367v8.35A2.085,2.085,0,0,0,64.408,105h6.684a2.086,2.086,0,0,0,2.072-2.095V94.529a.372.372,0,0,1,.368-.34h.233a.743.743,0,0,0,0-1.486Zm-7.954-.608a.609.609,0,0,1,.608-.607h2.667a.6.6,0,0,1,.6.6v.243a.373.373,0,0,1-.357.371H66.168a.373.373,0,0,1-.357-.371Zm5.882,10.811a.61.61,0,0,1-.608.608h-6.67a.608.608,0,0,1-.608-.608V94.564a.375.375,0,0,1,.375-.375h7.136a.375.375,0,0,1,.375.375Z" transform="translate(0)"/><path d="M68.016,98.108a.985.985,0,0,0-.98.99V104.5a.98.98,0,1,0,1.96,0V99.1A.985.985,0,0,0,68.016,98.108Z" transform="translate(-1.693 -3.214)"/><path d="M71.984,98.108a.985.985,0,0,0-.98.99V104.5a.98.98,0,1,0,1.96,0V99.1A.985.985,0,0,0,71.984,98.108Z" transform="translate(-2.807 -3.214)"/></g></svg>
+								</a>
+							</td>
+						</tr>
+						<tr class="details">
+							<td colspan="8">
+								<ul class="yaml">
+									<template v-if="conf.data.spec.storage.type === 's3'">
+										<li>
+											<strong class="label">bucket:</strong> {{ conf.data.spec.storage.s3.bucket }}
+										</li>
+										<li v-if="typeof conf.data.spec.storage.s3.path !== 'undefined'">
+											<strong class="label">path:</strong> {{ conf.data.spec.storage.s3.path }}
+										</li>
+										<li>
+											<strong class="label">credentials:</strong> 
+											<ul>
+												<li>
+													<strong class="label">accessKey:</strong> {{ conf.data.spec.storage.s3.credentials.accessKey }}
+												</li>
+												<li>
+													<strong class="label">secretKey:</strong> {{ conf.data.spec.storage.s3.credentials.secretKey }}
+												</li>
+											</ul>
+										</li>
+										<li>
+											<strong class="label">region:</strong> {{ conf.data.spec.storage.s3.region }}
+										</li>
+										<li v-if="typeof conf.data.spec.storage.s3.storageClass !== 'undefined'">
+											<strong class="label">storageClass:</strong> {{ conf.data.spec.storage.s3.storageClass }}
+										</li>
+									</template>
+									<template v-else-if="conf.data.spec.storage.type === 's3compatible'">
+										<li>
+											<strong class="label">bucket:</strong> {{ conf.data.spec.storage.s3compatible.bucket }}
+										</li>
+										<li v-if="typeof conf.data.spec.storage.s3compatible.path !== 'undefined'">
+											<strong class="label">path:</strong> {{ conf.data.spec.storage.s3compatible.path }}
+										</li>
+										<li>
+											<strong class="label">credentials:</strong> 
+											<ul>
+												<li>
+													<strong class="label">accessKey:</strong> {{ conf.data.spec.storage.s3compatible.credentials.accessKey }}
+												</li>
+												<li>
+													<strong class="label">secretKey:</strong> {{ conf.data.spec.storage.s3compatible.credentials.secretKey }}
+												</li>
+											</ul>
+										</li>
+										<li>
+											<strong class="label">region:</strong> {{ conf.data.spec.storage.s3compatible.region }}
+										</li>
+										<li v-if="typeof conf.data.spec.storage.s3compatible.storageClass !== 'undefined'">
+											<strong class="label">storageClass:</strong> {{ conf.data.spec.storage.s3compatible.storageClass }}
+										</li>
+										<li>
+											<strong class="label">endpoint:</strong> {{ conf.data.spec.storage.s3compatible.endpoint }}
+										</li>
+										<li>
+											<strong class="label">forcePathStyle:</strong> {{ conf.data.spec.storage.s3compatible.forcePathStyle }}
+										</li>
+									</template>
+									<template v-else-if="conf.data.spec.storage.type === 'gcs'">
+										<li>
+											<strong class="label">bucket:</strong> {{ conf.data.spec.storage.gcs.bucket }}
+										</li>
+										<li>
+											<strong class="label">path:</strong> {{ conf.data.spec.storage.gcs.path }}
+										</li>
+										<li>
+											<strong class="label">credentials:</strong> 
+											<ul>
+												<li>
+													<strong class="label">serviceAccountJsonKey:</strong> {{ conf.data.spec.storage.gcs.credentials.serviceAccountJsonKey }}
+												</li>
+											</ul>
+										</li>
+									</template>
+									<template v-else-if="conf.data.spec.storage.type === 'azureblob'">
+										<li>
+											<strong class="label">bucket:</strong> {{ conf.data.spec.storage.azureblob.bucket }}
+										</li>
+										<li>
+											<strong class="label">path:</strong> {{ conf.data.spec.storage.azureblob.path }}
+										</li>
+										<li>
+											<strong class="label">credentials:</strong> 
+											<ul>
+												<li>
+													<strong class="label">account:</strong> {{ conf.data.spec.storage.azureblob.credentials.account }}
+												</li>
+												<li>
+													<strong class="label">accessKey:</strong> {{ conf.data.spec.storage.azureblob.credentials.accessKey }}
+												</li>
+											</ul>
+										</li>
+									</template>
 								</ul>
-							</div>
-							<div class="col right">
-								<span>Storage</span>
-								<span>Type: {{ conf.data.spec.storage.type }}</span>
-								<ul class="params">
-									<li v-for="(item, index) in conf.data.spec.storage[conf.data.spec.storage.type]">
-										<!--<template v-if="index == 'credentials'">
-											<strong>{{ index }}:</strong><br/>
-												<ul class="params">
-													<li>
-														<strong>accessKey:</strong>
-														<ul class="params">
-															<li><strong>name:</strong> {{ item.accessKey.name }} </li>
-															<li><strong>key:</strong> {{ item.accessKey.key }} </li>
-														</ul>
-													</li>
-												</ul>
-												<ul class="params">
-													<li>
-														<strong>secretKey:</strong>
-														<ul class="params">
-															<li><strong>name:</strong> {{ item.secretKey.name }} </li>
-															<li><strong>key:</strong> {{ item.secretKey.key }} </li>
-														</ul>
-													</li>
-												</ul>
-										</template>
-										<template v-else>-->
-											<strong>{{ index }}:</strong> {{ item }}<br/>
-										<!--</template>-->
-									</li>
-								</ul>
-							</div>
-						</div>
-						<div class="form">
-							<router-link :to="'/crd/edit/backupconfig/'+$route.params.namespace+'/'+conf.name" class="btn">Edit Configuration</router-link> 
-							<button @click="deleteConfig(conf.name, conf.data.metadata.namespace)" class="border">Delete Configuration</button>
-						</div>
-					</div>
-				</div>
+							</td>
+						</tr>
+					</template>
+				</table>
 			</div>
 		</div>`,
 	data: function() {
 
 		return {
-			
+			currentSort: 'data.metadata.name',
+			currentSortDir: 'desc',
 		}
 	},
 	computed: {
 
 		config () {
-			return store.state.backupConfig
+			//return store.state.backupConfig
+			return sortTable( store.state.backupConfig, this.currentSort, this.currentSortDir )
 		},
 
 		currentNamespace () {
@@ -104,45 +191,6 @@ var BackupConfig = Vue.component("backup-config", {
 
 	},
 	methods: {
-		deleteConfig: function(configName, configNamespace) {
-			//e.preventDefault();
-
-			let confirmDelete = confirm("DELETE ITEM\nAre you sure you want to delete this item?")
-
-			if(confirmDelete) {
-
-				const config = {
-					name: configName,
-					namespace: configNamespace
-				}
-
-				const res = axios
-				.delete(
-					apiURL+'backupconfig/', 
-					{
-						data: {
-							"metadata": {
-								"name": config.name,
-								"namespace": config.namespace
-							}
-						}
-					}
-				)
-				.then(function (response) {
-					console.log("DELETED");
-					//console.log(response);
-					notify('Configuration <strong>"'+configName+'"</strong> deleted successfully', 'message');
-					$('#'+configName+'-'+configNamespace).addClass("deleted");
-					
-					vm.fetchAPI();
-					router.push('/configurations/backup/'+store.state.currentNamespace);    
-				})
-				.catch(function (error) {
-					console.log(error.response);
-					notify(error.response.data.message,'error');
-				});
-			}
-
-		}	
+		
 	}
 })
