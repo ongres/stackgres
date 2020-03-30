@@ -40,7 +40,7 @@ var CreateProfile = Vue.component("create-profile", {
                 <label for="profileCPU">CPU <span class="req">*</span></label>
                 <select v-model="profileCPU" required data-field="spec.cpu">    
                     <option disabled value="">CPU</option>
-                    <option>X</option>
+                    <option>1</option>
                     <option>2</option>
                     <option>3</option>
                     <option>4</option>
