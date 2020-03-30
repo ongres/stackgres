@@ -80,7 +80,7 @@ abstract class AbstractCustomResourceTest<T extends ResourceDto, R extends Custo
       public Void answer(InvocationOnMock invocation) throws Throwable {
         R customResource = invocation.getArgument(0);
 
-        checkBackupConfig(customResource);
+        checkBackupConfig(customResource, Operation.CREATE);
 
         return null;
       }
@@ -99,7 +99,7 @@ abstract class AbstractCustomResourceTest<T extends ResourceDto, R extends Custo
       public Void answer(InvocationOnMock invocation) throws Throwable {
         R customResource = invocation.getArgument(0);
 
-        checkBackupConfig(customResource);
+        checkBackupConfig(customResource, Operation.UPDATE);
 
         return null;
       }
@@ -115,7 +115,7 @@ abstract class AbstractCustomResourceTest<T extends ResourceDto, R extends Custo
       public Void answer(InvocationOnMock invocation) throws Throwable {
         R customResource = invocation.getArgument(0);
 
-        checkBackupConfig(customResource);
+        checkBackupConfig(customResource, Operation.DELETE);
 
         return null;
       }
@@ -142,6 +142,9 @@ abstract class AbstractCustomResourceTest<T extends ResourceDto, R extends Custo
 
   protected abstract void checkBackupConfig(T resource);
 
-  protected abstract void checkBackupConfig(R resource);
+  protected abstract void checkBackupConfig(R resource, Operation operation);
 
+  enum Operation {
+    CREATE, UPDATE, DELETE;
+  }
 }

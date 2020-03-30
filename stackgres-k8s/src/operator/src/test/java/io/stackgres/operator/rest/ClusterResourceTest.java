@@ -205,7 +205,7 @@ class ClusterResourceTest extends AbstractCustomResourceTest<ClusterDto, StackGr
   }
 
   @Override
-  protected void checkBackupConfig(StackGresCluster resource) {
+  protected void checkBackupConfig(StackGresCluster resource, Operation operation) {
     assertNotNull(resource.getMetadata());
     assertEquals("postgresql", resource.getMetadata().getNamespace());
     assertEquals("stackgres", resource.getMetadata().getName());
