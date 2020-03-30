@@ -8,10 +8,12 @@ package io.stackgres.operator.customresource.sgbackup;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.google.common.base.MoreObjects;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @RegisterForReflection
 public class StackGresBackup extends CustomResource {
 
