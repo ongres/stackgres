@@ -2408,7 +2408,7 @@ tr.details {
     border-top: 0;
 }
 
-tr.open .open path {
+tr.open .router-link-exact-active path {
     fill: var(--blue);
 }
 
@@ -2422,14 +2422,14 @@ ul.yaml {
     line-height: 1.5;
 }
 
-.parameters:not(.open) ul.yaml {
+tr:not(.open) .parameters ul.yaml {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
     width: 40vw;
 }
 
-.parameters:not(.open) ul.yaml li {
+tr:not(.open) .parameters ul.yaml li {
     position: relative;
     display: inline-block;
 }
