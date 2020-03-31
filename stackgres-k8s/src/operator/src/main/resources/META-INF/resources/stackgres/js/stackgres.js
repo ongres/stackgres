@@ -32,16 +32,6 @@ var apiURL = '/stackgres/';
 
 var urlParams = new URLSearchParams(window.location.search);
 
-if( urlParams.has('localAPI') ) {
-  console.log('Using Local API');
-  apiURL = 'js/data/';
-}
-
-if( urlParams.has('darkmode') ) {
-  console.log('Switching to darkmode');
-  $('body').addClass('darkmode');
-}
-
 const router = new VueRouter({
   routes: [
     { 
@@ -271,6 +261,9 @@ router.beforeEach((to, from, next) => {
 
       store.commit('setCurrentCluster', cluster);
     }  
+
+    $('.clu li.current').removeClass('current');
+		$('li.cluster-'+store.state.currentNamespace+'-'+store.state.currentCluster.name).addClass('current');
     
   }
 
@@ -591,6 +584,20 @@ Vue.mixin({
 });
 
 Vue.use(VueMarkdown);
+
+// Check URL Params
+
+if( urlParams.has('localAPI') ) {
+  console.log('Using Local API');
+  apiURL = 'js/data/';
+}
+
+if( urlParams.has('darkmode') ) {
+  console.log('Switching to darkmode');
+  store.commit('setTheme', 'dark');
+  $('body').addClass('darkmode');
+  $('#darkmode').addClass('active');
+}
 
 const vm = new Vue({
   el: '#app',
@@ -1350,9 +1357,9 @@ $(document).ready(function(){
     }      
   });
 
-  $("#sets h3").click(function(){
+  /* $("#sets h3").click(function(){
     $(this).parent().toggleClass("hide");
-  });
+  }); */
 
 /*   $(".clu .item").click(function(){
     $("#nav").removeClass("disabled");
@@ -1515,6 +1522,8 @@ $(document).ready(function(){
   });
 
   $(document).on("click",".openConfig", function(){
+    $(this).toggleClass('open');
+    $(this).parents('tr').toggleClass('open');
     $(this).parents('tr').find('.parameters').toggleClass('open');
   });
 
