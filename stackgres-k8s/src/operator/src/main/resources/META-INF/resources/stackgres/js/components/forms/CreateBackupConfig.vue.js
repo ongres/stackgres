@@ -103,7 +103,7 @@ var CreateBackupConfig = Vue.component("create-backup-config", {
                 <select v-model="backupConfigStorageType" :disabled="(editMode)" data-field="spec.storage.type">
                     <option disabled value="">Select Storage Type</option>
                     <option value="s3">Amazon S3</option>
-                    <option value="s3c">Amazon S3 - API Compatible</option>
+                    <option value="s3compatible">Amazon S3 - API Compatible</option>
                     <option value="gcs">Google Cloud Storage</option>
                     <option value="azureblob">Azure Blob Storage</option>
                 </select>
@@ -113,7 +113,7 @@ var CreateBackupConfig = Vue.component("create-backup-config", {
                         <h3 v-if="backupConfigStorageType === 's3'">
                             Amazon S3 Configuration
                         </h3>
-                        <h3 v-else-if="backupConfigStorageType === 's3c'">
+                        <h3 v-else-if="backupConfigStorageType === 's3compatible'">
                             AS3 Compatible Configuration
                         </h3>
                         <h3 v-else-if="backupConfigStorageType === 'gcs'">
@@ -137,29 +137,29 @@ var CreateBackupConfig = Vue.component("create-backup-config", {
                         <input v-model="backupPath">
                     </template>
 
-                    <template v-if="backupConfigStorageType === 's3c'">
+                    <template v-if="backupConfigStorageType === 's3compatible'">
                         <label for="backupS3CEndpoint">Endpoint <span class="req">*</span></label>
                         <input v-model="backupS3CEndpoint">
                     </template>
 
-                    <template v-if="( (backupConfigStorageType === 's3') || (backupConfigStorageType === 's3c') )">
+                    <template v-if="( (backupConfigStorageType === 's3') || (backupConfigStorageType === 's3compatible') )">
                         
                         <template v-if="advancedModeStorage">
                             <label for="backupS3Region">Region</label>
                             <input v-model="backupS3Region">
                         </template>
 
-                        <label for="backupS3Key">API Key <span class="req">*</span></label>
-                        <input v-model="backupS3Key" required>
+                        <label for="backupS3AccessKey">API Key <span class="req">*</span></label>
+                        <input v-model="backupS3AccessKey" required>
 
                         <label for="backupS3SecretKey">API Secret <span class="req">*</span></label>
                         <input v-model="backupS3SecretKey" required>
 
-                        <template v-if="advancedModeStorage && (backupConfigStorageType === 's3c')">
+                        <template v-if="advancedModeStorage && (backupConfigStorageType === 's3compatible')">
                             <label>Bucket URL Force Path Style</label>
-                            <label for="backupS3ForcePathStyle" class="switch">
+                            <label for="backupS3CForcePathStyle" class="switch">
                                 Force Path Style
-                                <input type="checkbox" id="backupS3ForcePathStyle" v-model="backupS3ForcePathStyle" data-switch="OFF">
+                                <input type="checkbox" id="backupS3CForcePathStyle" v-model="backupS3CForcePathStyle" data-switch="OFF">
                             </label>
                         </template>
 
@@ -176,16 +176,17 @@ var CreateBackupConfig = Vue.component("create-backup-config", {
                     </template>
 
                     <template v-if="backupConfigStorageType === 'gcs'">
-                        <label for="backupGCSServiceAccountJson">Service Account JSON <span class="req">*</span></label>
-                        <input type="file" @change="uploadJSON" required> 
+                        <label for="backupGCSServiceAccountJsonKey">Service Account JSON <span class="req">*</span></label>
+                        <input type="file" @change="uploadJSON" :required="!editMode" :class="editMode ? 'hide' : ''">
+                        <input type="textarea" v-model="backupGCSServiceAccountJsonKey" :class="!editMode ? 'hide' : ''"> 
                     </template>
 
                     <template v-if="backupConfigStorageType === 'azureblob'">
-                        <label for="backupAzureAccountName">Account Name <span class="req">*</span></label>
-                        <input v-model="backupAzureAccountName" required>
+                        <label for="backupAzureAccount">Account Name <span class="req">*</span></label>
+                        <input v-model="backupAzureAccount" required>
 
-                        <label for="backupAzureAccountAccessKey">Account Access Key <span class="req">*</span></label>
-                        <input v-model="backupAzureAccountAccessKey" required>
+                        <label for="backupAzureAccessKey">Account Access Key <span class="req">*</span></label>
+                        <input v-model="backupAzureAccessKey" required>
                     </template>
 
                 </fieldset>
@@ -227,13 +228,13 @@ var CreateBackupConfig = Vue.component("create-backup-config", {
                 backupPath: '',
                 backupS3CEndpoint: '',
                 backupS3Region: '',
-                backupS3Key: '',
+                backupS3AccessKey: '',
                 backupS3SecretKey: '',
-                backupS3ForcePathStyle: false,
+                backupS3CForcePathStyle: false,
                 backupS3StorageClass: '',
-                backupGCSServiceAccountJson: {},
-                backupAzureAccountName: '',
-                backupAzureAccountAccessKey: '',
+                backupGCSServiceAccountJsonKey: '',
+                backupAzureAccount: '',
+                backupAzureAccessKey: '',
             }
         } else if (vm.$route.params.action == 'edit') {
             
@@ -293,25 +294,26 @@ var CreateBackupConfig = Vue.component("create-backup-config", {
                 backupConfigTarSizeThresholdUnit: tresholdUnit,
                 backupConfigUploadDiskConcurrency: config.data.spec.uploadDiskConcurrency,
                 backupConfigStorageType: config.data.spec.storage.type,
-                backupBucket: '',
-                backupPath: '',
-                backupS3CEndpoint: '',
-                backupS3Region: '',
-                backupS3Key: '',
-                backupS3SecretKey: '',
-                backupS3ForcePathStyle: false,
-                backupS3StorageClass: '',
-                backupGCSServiceAccountJson: {},
-                backupAzureAccountName: '',
-                backupAzureAccountAccessKey: '',
-                /* backupS3Prefix: ( config.data.spec.storage.type === 's3' ) ? config.data.spec.storage.s3.prefix : '',
+                backupBucket: config.data.spec.storage[config.data.spec.storage.type].bucket,
+                backupPath: config.data.spec.storage[config.data.spec.storage.type].path,
+                backupS3CEndpoint: (config.data.spec.storage.type === 's3compatible') ? config.data.spec.storage.s3compatible.endpoint : '',
+                backupS3Region: ( (config.data.spec.storage.type.startsWith('s3')) && (typeof config.data.spec.storage[config.data.spec.storage.type].region !== 'undefined') ) ? config.data.spec.storage[config.data.spec.storage.type].region : '',
+                backupS3AccessKey: (config.data.spec.storage.type.startsWith('s3')) ? config.data.spec.storage[config.data.spec.storage.type].credentials.accessKey : '',
+                backupS3SecretKey: (config.data.spec.storage.type.startsWith('s3')) ? config.data.spec.storage[config.data.spec.storage.type].credentials.secretKey : '',
+                backupS3CForcePathStyle: ( (config.data.spec.storage.type === 's3compatible') && (typeof config.data.spec.storage.s3compatible.forcePathStyle !== 'undefined') ) ? config.data.spec.storage.s3compatible.forcePathStyle : '',
+                backupS3StorageClass: (config.data.spec.storage.type.startsWith('s3')) ? config.data.spec.storage[config.data.spec.storage.type].storageClass : '',
+                backupGCSServiceAccountJsonKey: (config.data.spec.storage.type === 'gcs') ? config.data.spec.storage.gcs.credentials.serviceAccountJsonKey : '',
+                backupAzureAccount: (config.data.spec.storage.type === 'azureblob') ? config.data.spec.storage.azureblob.credentials.account : '',
+                backupAzureAccessKey: (config.data.spec.storage.type === 'azureblob') ? config.data.spec.storage.azureblob.credentials.accessKey : '',
+                /*
+                backupS3Prefix: ( config.data.spec.storage.type === 's3' ) ? config.data.spec.storage.s3.prefix : '',
                 backupS3AccessKeyName: ( config.data.spec.storage.type === 's3' ) ? config.data.spec.storage.s3.credentials.accessKey.name : '',
                 backupS3AccessKey: ( config.data.spec.storage.type === 's3' ) ? config.data.spec.storage.s3.credentials.accessKey.key : '',
                 backupS3SecretKeyName: ( config.data.spec.storage.type === 's3' ) ? config.data.spec.storage.s3.credentials.secretKey.name : '',
                 backupS3SecretKey: ( config.data.spec.storage.type === 's3' ) ? config.data.spec.storage.s3.credentials.secretKey.key : '',
                 backupS3Region: ( config.data.spec.storage.type === 's3' ) ? config.data.spec.storage.s3.credentials.region : '',
                 backupS3Endpoint: ( config.data.spec.storage.type === 's3' ) ? config.data.spec.storage.s3.credentials.endpoint : '',
-                backupS3ForcePathStyle: ( config.data.spec.storage.type === 's3' ) ? config.data.spec.storage.s3.credentials.forcePathStyle : '',
+                backupS3CForcePathStyle: ( config.data.spec.storage.type === 's3' ) ? config.data.spec.storage.s3.credentials.forcePathStyle : '',
                 backupS3StorageClass: ( config.data.spec.storage.type === 's3' ) ? config.data.spec.storage.s3.storageClass : '',
                 backupS3sse: ( config.data.spec.storage.type === 's3' ) ? config.data.spec.storage.s3.sse : '',
                 backupS3sseKmsId: ( config.data.spec.storage.type === 's3' ) ? config.data.spec.storage.s3.sseKmsId : '',
@@ -362,61 +364,55 @@ var CreateBackupConfig = Vue.component("create-backup-config", {
                     
                     case 's3':
                         storage['s3'] = {
+                            "bucket": this.backupBucket,
                             "credentials": {
-                                "accessKey": {
-                                    "key": this.backupS3AccessKey,
-                                    "name": this.backupS3AccessKeyName
-                                },
-                                "secretKey": {
-                                    "key": this.backupS3SecretKey,
-                                    "name": this.backupS3SecretKeyName
-                                }
+                                "accessKey": this.backupS3AccessKey,
+                                "secretKey": this.backupS3SecretKey
                             },
-                            "endpoint": this.backupS3Endpoint,
-                            "forcePathStyle": this.backupS3ForcePathStyle,
-                            "prefix": this.backupS3Prefix,
-                            "region": this.backupS3Region,
-                            "storageClass": this.backupS3StorageClass,
-                            "sse": this.backupS3sse,
-                            "sseKmsId": this.backupS3sseKmsId,
-                            "cseKmsId": this.backupS3cseKmsId,
-                            "cseKmsRegion": this.backupS3cseKmsRegion
+                            ...( ((typeof this.backupPath !== 'undefined') && this.backupPath.length ) && ( {"path": this.backupPath }) ),
+                            ...( ((typeof this.backupS3Region !== 'undefined') && this.backupS3Region.length ) && ( {"region": this.backupS3Region }) ),
+                            ...( ((typeof this.backupS3StorageClass !== 'undefined') && this.backupS3StorageClass.length ) && ( {"storageClass": this.backupS3StorageClass }) ),
                         };
                         storage['type'] = 's3';
+                        break;
+                    
+                    case 's3compatible':
+                        storage['s3compatible'] = {
+                            "bucket": this.backupBucket,
+                            "endpoint": this.backupS3CEndpoint,
+                            "credentials": {
+                                "accessKey": this.backupS3AccessKey,
+                                "secretKey": this.backupS3SecretKey
+                            },
+                            ...( ((typeof this.backupPath !== 'undefined') && this.backupPath.length ) && ( {"path": this.backupPath }) ),
+                            ...( ((typeof this.backupS3Region !== 'undefined') && this.backupS3Region.length ) && ( {"region": this.backupS3Region }) ),
+                            ...( ((typeof this.backupS3StorageClass !== 'undefined') && this.backupS3StorageClass.length ) && ( {"storageClass": this.backupS3StorageClass }) ),
+                            "forcePathStyle": this.backupS3CForcePathStyle
+                        };
+                        storage['type'] = 's3compatible';
                         break;
 
                     case 'gcs':
                         storage['gcs'] = {
-                            "prefix": this.backupGCSPrefix,
+                            "bucket": this.backupBucket,
                             "credentials": {
-                                "serviceAccountJsonKey": {
-                                    name: this.backupGCSKeyName,
-                                    key: this.backupGCSKey
-                                }
-                            }
+                                "serviceAccountJsonKey": this.backupGCSServiceAccountJsonKey
+                            },
+                            ...( ((typeof this.backupPath !== 'undefined') && this.backupPath.length ) && ( {"path": this.backupPath }) ),
                         }
                         storage['type'] = 'gcs';
-
                         break;
 
                     case 'azureblob':
                         storage['azureblob'] = {
-                            "prefix": this.backupAzurePrefix,
+                            "bucket": this.backupBucket,
+                            ...( ((typeof this.backupPath !== 'undefined') && this.backupPath.length ) && ( {"path": this.backupPath }) ),
                             "credentials": {
-                                "account": {
-                                    "name": this.backupAzureAccountName,
-                                    "key": this.backupAzureAccountKey
-                                },
-                                "accessKey": {
-                                    "key": this.backupAzureAccessKey,
-                                    "name": this.backupAzureAccessKeyName
-                                }
-                            },
-                            "bufferSize": this.backupAzureBufferSize,
-                            "maxBuffers": this.backupAzureMaxBuffers,
+                                "account": this.backupAzureAccount,
+                                "accessKey": this.backupAzureAccessKey
+                            }
                         }
                         storage['type'] = 'azureblob';
-
                         break;
 
                 }

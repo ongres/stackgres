@@ -29,10 +29,10 @@ var BackupConfig = Vue.component("backup-config", {
 						<th @click="sort('data.metadata.name')" class="sorted desc name">
 							<span>Name</span>
 						</th>
-						<th @click="sort('data.spec.retention')" class="icon desc retention">
+						<th @click="sort('data.spec.retention')" class="desc retention">
 							<span>Retention</span>
 						</th>
-						<th @click="sort('data.spec.fullSchedule')" class="desc fullSchedule center">
+						<th @click="sort('data.spec.fullSchedule')" class="desc fullSchedule">
 							<span>Full Schedule</span>
 						</th>
 						<th @click="sort('data.spec.compressionMethod')" class="desc compressionMethod">
@@ -97,7 +97,7 @@ var BackupConfig = Vue.component("backup-config", {
 													</li>
 												</ul>
 											</li>
-											<li>
+											<li v-if="typeof conf.data.spec.storage.s3.region !== 'undefined'">
 												<strong class="label">region:</strong> {{ conf.data.spec.storage.s3.region }}
 											</li>
 											<li v-if="typeof conf.data.spec.storage.s3.storageClass !== 'undefined'">
@@ -122,7 +122,7 @@ var BackupConfig = Vue.component("backup-config", {
 													</li>
 												</ul>
 											</li>
-											<li>
+											<li v-if="typeof conf.data.spec.storage.s3compatible.region !== 'undefined'">
 												<strong class="label">region:</strong> {{ conf.data.spec.storage.s3compatible.region }}
 											</li>
 											<li v-if="typeof conf.data.spec.storage.s3compatible.storageClass !== 'undefined'">
