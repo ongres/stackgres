@@ -39,7 +39,7 @@ var SGProfiles = Vue.component("sg-profile", {
 					<tbody>
 						<tr class="no-results">
 							<td :colspan="4">
-								No records matched your search terms
+								No profiles have been found, would you like to <router-link to="/crd/create/profile/" title="Add New Instance Profile">create a new one?</router-link>
 							</td>
 						</tr>
 						<template v-for="conf in config" v-if="(conf.data.metadata.namespace == currentNamespace)">

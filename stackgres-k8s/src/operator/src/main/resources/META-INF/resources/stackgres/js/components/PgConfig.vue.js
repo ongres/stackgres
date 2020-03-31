@@ -39,7 +39,7 @@ var PgConfig = Vue.component("pg-config", {
 					<tbody>
 						<tr class="no-results">
 							<td :colspan="4">
-								No records matched your search terms
+								No configurations have been found, would you like to <router-link to="/crd/create/pgconfig/" title="Add New Postgres Configuration">create a new one?</router-link>
 							</td>
 						</tr>
 						<template v-for="conf in config" v-if="(conf.data.metadata.namespace == currentNamespace)">

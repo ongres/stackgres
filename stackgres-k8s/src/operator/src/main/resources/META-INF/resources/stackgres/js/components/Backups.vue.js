@@ -155,7 +155,7 @@ var Backups = Vue.component("sg-backup", {
 						<tbody>
 							<tr class="no-results">
 								<td :colspan="(isCluster) ? 7 : 9">
-									No records matched your search terms
+									No records matched your search terms, would  you like to <router-link to="/crd/create/backup/" title="Add New Backup">create a new one?</router-link>
 								</td>
 							</tr>
 							<template v-for="back in backups" v-if="( ( (back.data.metadata.namespace == currentNamespace) && !isCluster ) || (isCluster && (back.data.spec.cluster == currentCluster.name ) && (back.data.metadata.namespace == currentCluster.data.metadata.namespace ) ) )">
