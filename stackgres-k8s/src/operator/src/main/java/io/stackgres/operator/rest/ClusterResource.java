@@ -26,7 +26,7 @@ import io.stackgres.operator.rest.dto.cluster.ClusterDto;
 import io.stackgres.operator.rest.dto.cluster.ClusterResourceConsumtionDto;
 import io.stackgres.operator.rest.transformer.ResourceTransformer;
 
-@Path("/stackgres/cluster")
+@Path("/stackgres/sgcluster")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class ClusterResource

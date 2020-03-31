@@ -19,7 +19,7 @@ import io.stackgres.operator.resource.CustomResourceScheduler;
 import io.stackgres.operator.rest.dto.backup.BackupDto;
 import io.stackgres.operator.rest.transformer.ResourceTransformer;
 
-@Path("/stackgres/backup")
+@Path("/stackgres/sgbackup")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class BackupResource

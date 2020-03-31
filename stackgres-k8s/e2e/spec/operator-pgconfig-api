@@ -87,7 +87,7 @@ delete_pgconfig_only() {
 check_pgconfig_in_list() {
   create_pgconfig
 
-  if run_curl -r "stackgres/pgconfig" -n "$CLUSTER_NAMESPACE" \
+  if run_curl -r "stackgres/sgpgconfig" -n "$CLUSTER_NAMESPACE" \
     | run_jq -r ".[] | select ( .metadata.namespace == \"$CLUSTER_NAMESPACE\") | select ( .metadata.name == \"$PGCONFIG\") | .metadata.name" \
     | grep -q "^$PGCONFIG$"
   then
@@ -100,7 +100,7 @@ check_pgconfig_in_list() {
 }
 
 get_pgconfig_status() {
-  run_curl -r "stackgres/pgconfig/$CLUSTER_NAMESPACE/$PGCONFIG" -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}"
+  run_curl -r "stackgres/sgpgconfig/$CLUSTER_NAMESPACE/$PGCONFIG" -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}"
 }
 
 check_pgconfig_directly() {
@@ -123,7 +123,7 @@ check_pgconfig_directly() {
 check_pgconfig_removed_from_list() {
   delete_pgconfig_only
 
-  if run_curl -r "stackgres/pgconfig" -n "$CLUSTER_NAMESPACE" \
+  if run_curl -r "stackgres/sgpgconfig" -n "$CLUSTER_NAMESPACE" \
     | run_jq -r ".[] | select ( .metadata.namespace == \"$CLUSTER_NAMESPACE\") | select ( .metadata.name == \"$PGCONFIG\") | .metadata.name" \
     | grep -q "^$PGCONFIG$"
   then
@@ -140,7 +140,7 @@ check_pgconfig_deletion_directly() {
 
   delete_pgconfig_only
 
-  HTTP_STATUS="$(run_curl -r "stackgres/pgconfig/$CLUSTER_NAMESPACE/$PGCONFIG" -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
+  HTTP_STATUS="$(run_curl -r "stackgres/sgpgconfig/$CLUSTER_NAMESPACE/$PGCONFIG" -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
 
   if [ "$HTTP_STATUS" -eq "404" ]
   then
@@ -159,14 +159,14 @@ create_pgconfig_with_api() {
 
   local HTTP_STATUS
 
-  HTTP_STATUS="$(run_curl -r "stackgres/pgconfig" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-pgconfig.json" -e '-X POST -w %{http_code} -o /dev/null')"
+  HTTP_STATUS="$(run_curl -r "stackgres/sgpgconfig" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-pgconfig.json" -e '-X POST -w %{http_code} -o /dev/null')"
 
   if [ "$HTTP_STATUS" = "200" ] || [ "$HTTP_STATUS" = "202" ] || [ "$HTTP_STATUS" = "204" ]
   then
     echo "Request acknowledged by the operator"
   else
     local ERROR_RESPONSE
-    ERROR_RESPONSE="$(run_curl -r "stackgres/pgconfig" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-pgconfig.json" -e '-X POST')"
+    ERROR_RESPONSE="$(run_curl -r "stackgres/sgpgconfig" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-pgconfig.json" -e '-X POST')"
 
     echo "Invalid response status $HTTP_STATUS. response: $ERROR_RESPONSE"
     return 1
@@ -201,14 +201,14 @@ update_pg_config_paramter_with_api() {
     
   write_into -f "$LOG_PATH/updated-pgconfig.json" -c "$UPDATED_PGCONFIG"
 
-  HTTP_STATUS="$(run_curl -r "stackgres/pgconfig" -d "$LOG_PATH/updated-pgconfig.json" -e '-X PUT -w %{http_code} -o /dev/null')"
+  HTTP_STATUS="$(run_curl -r "stackgres/sgpgconfig" -d "$LOG_PATH/updated-pgconfig.json" -e '-X PUT -w %{http_code} -o /dev/null')"
 
   if [ "$HTTP_STATUS" = "200" ] || [ "$HTTP_STATUS" = "202" ] || [ "$HTTP_STATUS" = "204" ]
   then
     echo "Request acknowledged by the operator"
   else
     local ERROR_RESPONSE
-    ERROR_RESPONSE="$(run_curl -r "stackgres/pgconfig" -n "$CLUSTER_NAMESPACE" -d updated-pgconfig.json -e '-X PUT')"
+    ERROR_RESPONSE="$(run_curl -r "stackgres/sgpgconfig" -n "$CLUSTER_NAMESPACE" -d updated-pgconfig.json -e '-X PUT')"
     echo "Invalid response status $HTTP_STATUS. response: $ERROR_RESPONSE"
     return 1
   fi
@@ -230,7 +230,7 @@ test_update_pgconfig_with_api() {
 }
 
 get_pgconfig_from_api() {
-  run_curl -r "stackgres/pgconfig/$CLUSTER_NAMESPACE/$PGCONFIG" -n "$CLUSTER_NAMESPACE"
+  run_curl -r "stackgres/sgpgconfig/$CLUSTER_NAMESPACE/$PGCONFIG" -n "$CLUSTER_NAMESPACE"
 }
 
 test_api_updated_pgconfig_is_visible() {
@@ -249,14 +249,14 @@ test_api_updated_pgconfig_is_visible() {
 delete_pgconfig_with_api() {
   local HTTP_STATUS
 
-  HTTP_STATUS="$(run_curl -r "stackgres/pgconfig" -n "$CLUSTER_NAMESPACE"  -d "$LOG_PATH/default-pgconfig.json" -e '-X DELETE -w %{http_code} -o /dev/null')"
+  HTTP_STATUS="$(run_curl -r "stackgres/sgpgconfig" -n "$CLUSTER_NAMESPACE"  -d "$LOG_PATH/default-pgconfig.json" -e '-X DELETE -w %{http_code} -o /dev/null')"
 
   if [ "$HTTP_STATUS" = "200" ] || [ "$HTTP_STATUS" = "202" ] || [ "$HTTP_STATUS" = "204" ]
   then
     echo "Request acknowledged by the operator"
   else
     local ERROR_RESPONSE
-    ERROR_RESPONSE="$(run_curl -r "stackgres/pgconfig" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-pgconfig.json" -e '-X PUT')"
+    ERROR_RESPONSE="$(run_curl -r "stackgres/sgpgconfig" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-pgconfig.json" -e '-X PUT')"
     echo "Invalid response status $HTTP_STATUS. response: $ERROR_RESPONSE"
     return 1
   fi
@@ -298,11 +298,11 @@ test_constraint_violation_api_error() {
   
   local HTTP_STATUS
 
-  HTTP_STATUS="$(run_curl -r "stackgres/pgconfig" -n "$CLUSTER_NAMESPACE"  -d "$LOG_PATH/invalid-pgconfig.json" -e '-X POST -w %{http_code} -o /dev/null')"
+  HTTP_STATUS="$(run_curl -r "stackgres/sgpgconfig" -n "$CLUSTER_NAMESPACE"  -d "$LOG_PATH/invalid-pgconfig.json" -e '-X POST -w %{http_code} -o /dev/null')"
 
   assert_string_equal "422" "$HTTP_STATUS"
 
-  ERROR_RESPONSE="$(run_curl -r "stackgres/pgconfig" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/invalid-pgconfig.json" -e '-X POST')"
+  ERROR_RESPONSE="$(run_curl -r "stackgres/sgpgconfig" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/invalid-pgconfig.json" -e '-X POST')"
 
   EXPECTED_ERROR_TYPE="constraint-violation"
   EXPECTED_ERROR_TITLE="doesn't complain syntactic rules"

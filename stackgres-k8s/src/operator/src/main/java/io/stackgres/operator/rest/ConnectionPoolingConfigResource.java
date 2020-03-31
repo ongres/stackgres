@@ -19,7 +19,7 @@ import io.stackgres.operator.rest.dto.pgbouncerconfig.PgbouncerConfigDto;
 import io.stackgres.operator.rest.transformer.ResourceTransformer;
 import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfig;
 
-@Path("/stackgres/connpoolconfig")
+@Path("/stackgres/sgpoolconfig")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class ConnectionPoolingConfigResource extends
