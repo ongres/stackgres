@@ -48,6 +48,7 @@ e2e_test() {
 
   run_test "Deletion protected resources should not be deleted" test_dependency_api_error
 
+  run_test "User with wrong credentials should not be authenticated" test_authentication_api_error
 }
 
 create_pgpooling() {
@@ -303,4 +304,39 @@ test_dependency_api_error(){
 
   assert_api_error "$ERROR_RESPONSE"
 
+}
+
+test_authentication_api_error() {
+  local HTTP_STATUS
+
+  HTTP_STATUS="$(run_curl -a e2e:tets -r "stackgres/sgpoolconfig"  -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
+
+  check_authentication_error
+
+  HTTP_STATUS="$(run_curl -a e2e:tets -r "stackgres/sgpoolconfig/$CLUSTER_NAMESPACE/$BACKUPCONF"  -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
+
+  check_authentication_error
+
+  HTTP_STATUS="$(run_curl -a e2e:tets -r "stackgres/sgpoolconfig" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-pgpooling.json" -e '-X POST -w %{http_code} -o /dev/null')"
+
+  check_authentication_error
+
+  HTTP_STATUS="$(run_curl -a e2e:tets -r "stackgres/sgpoolconfig" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-pgpooling.json" -e '-X PUT -w %{http_code} -o /dev/null')"
+
+  check_authentication_error
+
+  HTTP_STATUS="$(run_curl -a e2e:tets -r "stackgres/sgpoolconfig" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-pgpooling.json" -e '-X DELETE -w %{http_code} -o /dev/null')"
+
+  check_authentication_error
+}
+
+check_authentication_error() {
+  if [ "$HTTP_STATUS" = "401" ]
+  then
+    echo "Request returned expected authentication error"
+    return 0
+  else
+    echo "Request returned unexpected response status $HTTP_STATUS instead of the expected authentication error."
+    return 1
+  fi
 }

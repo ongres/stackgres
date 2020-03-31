@@ -9,7 +9,10 @@ e2e_test_install() {
 
 e2e_test() {
   run_test "Namespace endpoint should be available" check_namespace_status
+
   run_test "Namespace endpoint should return all kubernetes storage classes" check_namespace
+
+  run_test "User with wrong credentials should not be authenticated" test_authentication_api_error
 }
 
 check_namespace() {
@@ -44,6 +47,25 @@ check_namespace_status() {
     echo "Success. Namespace endpoint is available"
   else
     echo "Fail. Namespace endpoint is not available"
+    return 1
+  fi
+}
+
+test_authentication_api_error() {
+  local HTTP_STATUS
+
+  HTTP_STATUS="$(run_curl -a e2e:tets -r "stackgres/namespace"  -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
+
+  check_authentication_error
+}
+
+check_authentication_error() {
+  if [ "$HTTP_STATUS" = "401" ]
+  then
+    echo "Request returned expected authentication error"
+    return 0
+  else
+    echo "Request returned unexpected response status $HTTP_STATUS instead of the expected authentication error."
     return 1
   fi
 }
