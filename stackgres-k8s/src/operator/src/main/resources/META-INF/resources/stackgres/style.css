@@ -702,7 +702,7 @@ ul.zg-ul-select.active li.active:hover {
     color: inherit;
 }
 
-.item.router-link-exact-active:before, .item.current:before {
+.item.router-link-exact-active:before, .current .item:before {
     display: block;
     content: " ";
     position: absolute;
