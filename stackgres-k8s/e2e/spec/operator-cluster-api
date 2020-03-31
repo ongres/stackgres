@@ -83,6 +83,10 @@ get_cluster_http_status() {
   run_curl -r "stackgres/sgcluster/$CLUSTER_NAMESPACE/$CLUSTER_NAME" -e "-LI -o /dev/null -w %{http_code}"
 }
 
+get_cluster_stats() {
+  run_curl -r "stackgres/sgcluster/status/$CLUSTER_NAMESPACE/$CLUSTER_NAME" -e "-LI -o /dev/null -w %{http_code}"
+}
+
 get_cluster_pod_configs_health() {
   run_curl -r "stackgres/sgcluster/$CLUSTER_NAMESPACE/$CLUSTER_NAME" -e "-LI -o /dev/null -w %{http_code}"
 }
