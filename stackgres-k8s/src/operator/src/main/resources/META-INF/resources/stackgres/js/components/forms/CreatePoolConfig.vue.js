@@ -112,7 +112,7 @@ var CreatePoolConfig = Vue.component("create-poolconfig", {
                 if(this.editMode) {
                     const res = axios
                     .put(
-                        apiURL+'connpoolconfig/', 
+                        apiURL+'sgpoolconfig/', 
                         config 
                     )
                     .then(function (response) {
@@ -130,7 +130,7 @@ var CreatePoolConfig = Vue.component("create-poolconfig", {
                 } else {
                     const res = axios
                     .post(
-                        apiURL+'connpoolconfig/', 
+                        apiURL+'sgpoolconfig/', 
                         config 
                     )
                     .then(function (response) {

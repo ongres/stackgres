@@ -131,7 +131,7 @@ var ClusterOverview = Vue.component("cluster-overview", {
 	
 				const res = axios
 				.delete(
-					apiURL+'cluster/', 
+					apiURL+'sgcluster/', 
 					{
 						data: {
 							"metadata": {

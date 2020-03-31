@@ -121,7 +121,7 @@ var CreatePGConfig = Vue.component("create-pgconfig", {
                 if(this.editMode) {
                     const res = axios
                     .put(
-                        apiURL+'pgconfig/', 
+                        apiURL+'sgpgconfig/', 
                         config 
                     )
                     .then(function (response) {
@@ -138,7 +138,7 @@ var CreatePGConfig = Vue.component("create-pgconfig", {
                 } else {
                     const res = axios
                     .post(
-                        apiURL+'pgconfig/', 
+                        apiURL+'sgpgconfig/', 
                         config 
                     )
                     .then(function (response) {

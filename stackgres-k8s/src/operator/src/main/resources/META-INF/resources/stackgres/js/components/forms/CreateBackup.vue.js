@@ -117,7 +117,7 @@ var CreateBackup = Vue.component("create-backup", {
                 if(this.editMode) {
                     const res = axios
                     .put(
-                        apiURL+'backup/', 
+                        apiURL+'sgbackup/', 
                         backup 
                     )
                     .then(function (response) {
@@ -135,7 +135,7 @@ var CreateBackup = Vue.component("create-backup", {
                 } else {
                     const res = axios
                     .post(
-                        apiURL+'backup/', 
+                        apiURL+'sgbackup/', 
                         backup 
                     )
                     .then(function (response) {

@@ -137,7 +137,7 @@ var CreateProfile = Vue.component("create-profile", {
                 if(this.editMode) {
                     const res = axios
                     .put(
-                        apiURL+'profile/', 
+                        apiURL+'sginstanceprofile/', 
                         profile 
                     )
                     .then(function (response) {
@@ -156,7 +156,7 @@ var CreateProfile = Vue.component("create-profile", {
                 } else {
                     const res = axios
                     .post(
-                        apiURL+'profile/', 
+                        apiURL+'sginstanceprofile/', 
                         profile 
                     )
                     .then(function (response) {

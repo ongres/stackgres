@@ -365,7 +365,7 @@ var CreateCluster = Vue.component("create-cluster", {
                 if(this.editMode) {
                     const res = axios
                     .put(
-                        apiURL+'cluster/', 
+                        apiURL+'sgcluster/', 
                         cluster 
                     )
                     .then(function (response) {
@@ -383,7 +383,7 @@ var CreateCluster = Vue.component("create-cluster", {
                 } else {
                     const res = axios
                     .post(
-                        apiURL+'cluster/', 
+                        apiURL+'sgcluster/', 
                         cluster 
                     )
                     .then(function (response) {

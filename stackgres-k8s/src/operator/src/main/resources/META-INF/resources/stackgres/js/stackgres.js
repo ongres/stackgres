@@ -618,17 +618,20 @@ const vm = new Vue({
 
       console.log("Fetching API");
       $("#loader").show();
+
+      const username = 'admin';
+      const password = 'st4ckgr3s';
+
+      //const token = btoa(username+':'+password);
+      let token = 'YWRtaW46c3Q0Y2tncjNz';
+
+      axios.defaults.headers.common['Authorization'] = 'Basic '+token;
       
       
       if ( !kind.length || (kind == 'namespaces') ) {
         /* Namespaces Data */
         axios
-        .get(apiURL+'namespaces',
-          { headers: {
-              //'content-type': 'application/json'
-            }
-          }
-        )
+        .get(apiURL+'namespace')
         .then( function(response){
 
           // Check if there are any changes on API Data
@@ -641,13 +644,15 @@ const vm = new Vue({
 
           }
           
-        });
+        }).catch(function(err) {
+          console.log(err);
+        });;
       }
 
       if ( !kind.length || (kind == 'cluster') ) {
         /* Clusters Data */
         axios
-        .get(apiURL+'cluster',
+        .get(apiURL+'sgcluster',
           { headers: {
               'content-type': 'application/json'
             }
@@ -677,7 +682,7 @@ const vm = new Vue({
                 store.commit('updateNamespaces', item.metadata.namespace);
 
               axios
-                .get(apiURL+'cluster/status/'+item.metadata.namespace+'/'+item.metadata.name,
+                .get(apiURL+'sgcluster/status/'+item.metadata.namespace+'/'+item.metadata.name,
                     { headers: {
                         'content-type': 'application/json'
                     }
@@ -705,7 +710,7 @@ const vm = new Vue({
         
         /* Backups */
         axios
-        .get(apiURL+'backup',
+        .get(apiURL+'sgbackup',
           { headers: {
             'content-type': 'application/json'
           }
@@ -751,7 +756,7 @@ const vm = new Vue({
 
         /* PostgreSQL Config */
         axios
-        .get(apiURL+'pgconfig',
+        .get(apiURL+'sgpgconfig',
           { headers: {
             'content-type': 'application/json'
           }
@@ -792,7 +797,7 @@ const vm = new Vue({
 
         /* Connection Pooling Config */
         axios
-        .get(apiURL+'connpoolconfig',
+        .get(apiURL+'sgpoolconfig',
           { headers: {
             'content-type': 'application/json'
           }
@@ -833,7 +838,7 @@ const vm = new Vue({
 
         /* Backup Config */
         axios
-        .get(apiURL+'backupconfig',
+        .get(apiURL+'sgbackupconfig',
           { headers: {
             'content-type': 'application/json'
           }
@@ -874,7 +879,7 @@ const vm = new Vue({
 
         /* Profiles */
         axios
-        .get(apiURL+'profile',
+        .get(apiURL+'sginstanceprofile',
           { headers: {
             'content-type': 'application/json'
           }

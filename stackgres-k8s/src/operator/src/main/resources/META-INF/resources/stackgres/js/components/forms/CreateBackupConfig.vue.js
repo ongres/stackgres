@@ -442,7 +442,7 @@ var CreateBackupConfig = Vue.component("create-backup-config", {
                     
                     const res = axios
                     .put(
-                        apiURL+'backupconfig/', 
+                        apiURL+'sgbackupconfig/', 
                         config 
                     )
                     .then(function (response) {
@@ -460,7 +460,7 @@ var CreateBackupConfig = Vue.component("create-backup-config", {
                 } else {
                     const res = axios
                     .post(
-                        apiURL+'backupconfig/', 
+                        apiURL+'sgbackupconfig/', 
                         config 
                     )
                     .then(function (response) {
