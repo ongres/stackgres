@@ -40,15 +40,15 @@ var PoolConfig = Vue.component("pool-config", {
 							</td>
 						</tr>
 						<template v-for="conf in config" v-if="(conf.data.metadata.namespace == currentNamespace)">
-							<tr :class="'connpoolconfig-'+conf.data.metadata.namespace+'-'+conf.name" >
+						<tr :class="[ $route.params.name == conf.name ? 'open' : '', 'connpoolconfig-'+conf.data.metadata.namespace+'-'+conf.name ]">
 								<td>{{ conf.name }}</td>
 								<td class="parameters">
 									<ul class="yaml" v-html="parseParams(conf.data.spec['pgbouncer.ini'])"></ul>
 								</td>
 								<td class="actions">
-									<a class="openConfig" title="Configuration Details">
+									<router-link :to="'/configurations/postgres/'+conf.data.metadata.namespace+'/'+conf.name" title="Configuration Details">
 										<svg xmlns="http://www.w3.org/2000/svg" width="18.556" height="14.004" viewBox="0 0 18.556 14.004"><g transform="translate(0 -126.766)"><path d="M18.459,133.353c-.134-.269-3.359-6.587-9.18-6.587S.232,133.084.1,133.353a.93.93,0,0,0,0,.831c.135.269,3.36,6.586,9.18,6.586s9.046-6.317,9.18-6.586A.93.93,0,0,0,18.459,133.353Zm-9.18,5.558c-3.9,0-6.516-3.851-7.284-5.142.767-1.293,3.382-5.143,7.284-5.143s6.516,3.85,7.284,5.143C15.795,135.06,13.18,138.911,9.278,138.911Z" transform="translate(0 0)"/><path d="M9.751,130.857a3.206,3.206,0,1,0,3.207,3.207A3.21,3.21,0,0,0,9.751,130.857Z" transform="translate(-0.472 -0.295)"/></g></svg>
-									</a>
+									</router-link>
 									<router-link :to="'/crd/edit/connectionpooling/'+currentNamespace+'/'+conf.name" title="Edit Configuration">
 										<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14"><path d="M90,135.721v2.246a.345.345,0,0,0,.345.345h2.246a.691.691,0,0,0,.489-.2l8.042-8.041a.346.346,0,0,0,0-.489l-2.39-2.389a.345.345,0,0,0-.489,0L90.2,135.232A.691.691,0,0,0,90,135.721Zm13.772-8.265a.774.774,0,0,0,0-1.095h0l-1.82-1.82a.774.774,0,0,0-1.095,0h0l-1.175,1.176a.349.349,0,0,0,0,.495l2.421,2.421a.351.351,0,0,0,.5,0Z" transform="translate(-90 -124.313)"/></svg>
 									</router-link>
