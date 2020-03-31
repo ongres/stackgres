@@ -47,11 +47,11 @@ var ClusterOverview = Vue.component("cluster-overview", {
 					<tbody>
 						<tr class="no-results">
 							<td colspan="7">
-								No clusters have been found, would you like to create a new one?
+								No clusters have been found, would you like to <router-link to="/crd/create/cluster/" title="Add New Cluster">create a new one?</router-link>
 							</td>
 						</tr>
 						<template v-for="cluster in clusters">
-							<tr v-if="cluster.data.metadata.namespace == currentNamespace">
+							<tr v-if="cluster.data.metadata.namespace == currentNamespace" :class="'cluster-'+cluster.data.metadata.namespace+'-'+cluster.name" >
 								<td class="clusterName">
 									<router-link :to="'/cluster/status/'+currentNamespace+'/'+cluster.name" title="Cluster Status" data-active=".set.clu" class="no-color">
 										{{ cluster.name }}

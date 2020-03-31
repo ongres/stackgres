@@ -43,7 +43,7 @@ var SGProfiles = Vue.component("sg-profile", {
 							</td>
 						</tr>
 						<template v-for="conf in config" v-if="(conf.data.metadata.namespace == currentNamespace)">
-							<tr>
+							<tr :class="'profile-'+conf.data.metadata.namespace+'-'+conf.name" >
 								<td>{{ conf.name }}</td>
 								<td>{{ conf.data.spec.memory }}</td>
 								<td>{{ conf.data.spec.cpu }}</td>

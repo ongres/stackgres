@@ -40,7 +40,7 @@ var PoolConfig = Vue.component("pool-config", {
 							</td>
 						</tr>
 						<template v-for="conf in config" v-if="(conf.data.metadata.namespace == currentNamespace)">
-							<tr>
+							<tr :class="'connpoolconfig-'+conf.data.metadata.namespace+'-'+conf.name" >
 								<td>{{ conf.name }}</td>
 								<td class="parameters">
 									<ul class="yaml" v-html="parseParams(conf.data.spec['pgbouncer.ini'])"></ul>

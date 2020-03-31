@@ -159,7 +159,7 @@ var Backups = Vue.component("sg-backup", {
 								</td>
 							</tr>
 							<template v-for="back in backups" v-if="( ( (back.data.metadata.namespace == currentNamespace) && !isCluster ) || (isCluster && (back.data.spec.cluster == currentCluster.name ) && (back.data.metadata.namespace == currentCluster.data.metadata.namespace ) ) )">
-								<tr class="base" :class="back.data.status.phase">
+								<tr class="base" :class="back.data.status.phase+' backup-'+back.data.metadata.namespace+'-'+back.data.metadata.name">
 										<td class="timestamp">
 											<template v-if="back.data.status.phase == 'Completed'">
 												<span class='date'>
@@ -202,7 +202,7 @@ var Backups = Vue.component("sg-backup", {
 										</a>
 									</td>
 								</tr>
-								<tr class="details" v-if="back.data.status.phase === 'Completed'">
+								<tr class="details" :class="'backup-'+back.data.metadata.namespace+'-'+back.data.metadata.name" v-if="back.data.status.phase === 'Completed'">
 									<td :colspan="(isCluster) ? 7 : 9">
 										<!--<h4>Backup Details</h4>-->
 
