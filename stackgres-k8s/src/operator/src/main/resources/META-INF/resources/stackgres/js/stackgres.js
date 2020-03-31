@@ -37,6 +37,11 @@ if( urlParams.has('localAPI') ) {
   apiURL = 'js/data/';
 }
 
+if( urlParams.has('darkmode') ) {
+  console.log('Switching to darkmode');
+  $('body').addClass('darkmode');
+}
+
 const router = new VueRouter({
   routes: [
     { 
@@ -557,7 +562,7 @@ Vue.mixin({
 					console.log("DELETED");
 					notify('<span class="capitalize">'+item.kind+'</span> <strong>'+item.name+'</strong> deleted successfully', 'message', item.kind);
           
-          $('.'+item.kind+'-'+item.namespace+'-'+item.name).hide();
+          $('.'+item.kind+'-'+item.namespace+'-'+item.name).addClass("hide");
           vm.fetchAPI(item.kind);
 
 					if( (typeof item.redirect !== 'undefined') && item.redirect.length)
@@ -1507,6 +1512,10 @@ $(document).ready(function(){
 
   $(document).on("click","[data-active]", function(){
     $($(this).data("active")).addClass("active");
+  });
+
+  $(document).on("click",".openConfig", function(){
+    $(this).parents('tr').find('.parameters').toggleClass('open');
   });
 
 });

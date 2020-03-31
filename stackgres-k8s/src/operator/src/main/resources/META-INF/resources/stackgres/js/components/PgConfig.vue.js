@@ -43,7 +43,7 @@ var PgConfig = Vue.component("pg-config", {
 							</td>
 						</tr>
 						<template v-for="conf in config" v-if="(conf.data.metadata.namespace == currentNamespace)">
-							<tr>
+							<tr :class="'pgconfig-'+conf.data.metadata.namespace+'-'+conf.name" >
 								<td>{{ conf.name }}</td>
 								<td>{{ conf.data.spec.pgVersion }}</td>
 								<td class="parameters">

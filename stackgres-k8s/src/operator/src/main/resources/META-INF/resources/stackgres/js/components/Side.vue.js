@@ -27,7 +27,7 @@ var Side = Vue.component("sg-side", {
 					<ul>
 						<template v-for="cluster in clusters">
 							<li v-if="cluster.data.metadata.namespace == currentNamespace">
-								<router-link :to="'/cluster/status/'+cluster.data.metadata.namespace+'/'+cluster.name" class="item cluster" :class="cluster.data.metadata.namespace+' '+cluster.name" :title="cluster.name">{{ cluster.name }}</router-link>
+								<router-link :to="'/cluster/status/'+cluster.data.metadata.namespace+'/'+cluster.name" class="item cluster" :class="'cluster-'+cluster.data.metadata.namespace+'-'+cluster.name" :title="cluster.name">{{ cluster.name }}</router-link>
 							</li>
 						</template>
 						<li><router-link to="/crd/create/cluster/" class="addnew item">Add New</router-link></li>
@@ -50,7 +50,7 @@ var Side = Vue.component("sg-side", {
 							<ul>
 								<template v-for="config in pgConfig">
 									<li v-if="config.data.metadata.namespace == currentNamespace">
-										<router-link :to="'/configurations/postgres/'+config.data.metadata.namespace+'/'+config.name" class="item pgconfig" :class="config.data.metadata.namespace+' '+config.name" :title="config.name">{{ config.name }}</router-link>
+										<router-link :to="'/configurations/postgres/'+config.data.metadata.namespace+'/'+config.name" class="item pgconfig" :class="'pgconfig-'+config.data.metadata.namespace+'-'+config.name" :title="config.name">{{ config.name }}</router-link>
 									</li>
 								</template>
 								<li><router-link to="/crd/create/pgconfig/" class="addnew item">Add New</router-link></li>
@@ -66,7 +66,7 @@ var Side = Vue.component("sg-side", {
 							<ul>
 								<template v-for="config in poolConfig">
 									<li v-if="config.data.metadata.namespace == currentNamespace">
-										<router-link :to="'/configurations/connectionpooling/'+config.data.metadata.namespace+'/'+config.name" class="item" :class="config.data.metadata.namespace+' '+config.name" :title="config.name">{{ config.name }}</router-link>
+										<router-link :to="'/configurations/connectionpooling/'+config.data.metadata.namespace+'/'+config.name" class="item" :class="'connpoolconfig-'+config.data.metadata.namespace+'-'+config.name" :title="config.name">{{ config.name }}</router-link>
 									</li>
 								</template>
 								<li><router-link to="/crd/create/poolconfig/" class="addnew item">Add New</router-link></li>
@@ -82,7 +82,7 @@ var Side = Vue.component("sg-side", {
 							<ul>
 								<template v-for="config in bkConfig">
 									<li v-if="config.data.metadata.namespace == currentNamespace">
-										<router-link :to="'/configurations/backup/'+config.data.metadata.namespace+'/'+config.name" class="item" :class="( ($route.params.name === config.name) && ($route.params.action == 'edit')) ? 'router-link-exact-active '+config.name : config.name" :title="config.name">{{ config.name }}</router-link>
+										<router-link :to="'/configurations/backup/'+config.data.metadata.namespace+'/'+config.name" class="item" :class="'backupconfig-'+config.data.metadata.namespace+'-'+config.name" :title="config.name">{{ config.name }}</router-link>
 									</li>
 								</template>
 								<li><router-link to="/crd/create/backupconfig/" class="addnew item">Add New</router-link></li>
@@ -98,7 +98,7 @@ var Side = Vue.component("sg-side", {
 							<ul>
 								<template v-for="profile in profiles">
 									<li v-if="profile.data.metadata.namespace == currentNamespace">
-										<router-link :to="'/profiles/'+profile.data.metadata.namespace+'/'+profile.name" class="item"  :class="profile.data.metadata.namespace+' '+profile.name" :title="profile.name">{{ profile.name }}</router-link>
+										<router-link :to="'/profiles/'+profile.data.metadata.namespace+'/'+profile.name" class="item" :class="'profile-'+profile.data.metadata.namespace+'-'+profile.name" :title="profile.name">{{ profile.name }}</router-link>
 									</li>
 								</template>
 								<li><router-link to="/crd/create/profile/" class="addnew item">Add New</router-link></li>

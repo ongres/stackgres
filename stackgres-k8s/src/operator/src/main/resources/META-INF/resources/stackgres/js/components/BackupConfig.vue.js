@@ -50,7 +50,7 @@ var BackupConfig = Vue.component("backup-config", {
 						<th class="actions"></th>
 					</thead>
 					<template v-for="conf in config" v-if="conf.data.metadata.namespace == currentNamespace">
-						<tr v-bind:id="conf.name+'-'+conf.data.metadata.namespace" class="base">
+						<tr :class="'backupconfig-'+conf.data.metadata.namespace+'-'+conf.data.metadata.name" class="base">
 							<td>{{ conf.name }}</td>
 							<td>{{ conf.data.spec.retention }}</td>
 							<td>{{ conf.data.spec.fullSchedule | prettyCRON }}</td>
@@ -70,7 +70,7 @@ var BackupConfig = Vue.component("backup-config", {
 								</a>
 							</td>
 						</tr>
-						<tr class="details">
+						<tr class="details" :class="'backupconfig-'+back.data.metadata.namespace+'-'+back.data.metadata.name">
 							<td colspan="8">
 								<ul class="yaml">
 									<template v-if="conf.data.spec.storage.type === 's3'">
