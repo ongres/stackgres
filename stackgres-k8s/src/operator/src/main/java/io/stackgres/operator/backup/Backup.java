@@ -36,7 +36,6 @@ import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operator.customresource.sgbackup.BackupPhase;
 import io.stackgres.operator.customresource.sgbackup.StackGresBackup;
 import io.stackgres.operator.customresource.sgbackup.StackGresBackupDefinition;
-import io.stackgres.operator.customresource.sgbackup.StackGresBackupStatus;
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfigDefinition;
 import io.stackgres.operator.patroni.factory.PatroniRole;
 import io.stackgres.operatorframework.resource.ResourceUtil;
@@ -76,7 +75,7 @@ public class Backup implements StackGresClusterResourceStreamFactory {
 
     return Seq.seq(clusterContext.getBackups())
         .filter(backup -> !(Optional.ofNullable(backup.getStatus())
-            .map(StackGresBackupStatus::getPhase)
+            .map(stackGresBackupStatus -> stackGresBackupStatus.getProcess().getStatus())
             .map(phase -> !phase.equals(BackupPhase.PENDING.label()))
             .orElse(false)
             || Optional.ofNullable(backup.getMetadata())
@@ -93,7 +92,7 @@ public class Backup implements StackGresClusterResourceStreamFactory {
       StackGresClusterContext clusterContext) {
     String namespace = backup.getMetadata().getNamespace();
     String name = backup.getMetadata().getName();
-    String cluster = backup.getSpec().getCluster();
+    String cluster = backup.getSpec().getSgCluster();
     ImmutableMap<String, String> labels = StackGresUtil.backupPodLabels(
         clusterContext.getCluster());
     return clusterContext.getBackupContext()
@@ -142,8 +141,9 @@ public class Backup implements StackGresClusterResourceStreamFactory {
                         .build(),
                         new EnvVarBuilder()
                         .withName("BACKUP_IS_PERMANENT")
-                        .withValue(Optional.ofNullable(backup.getSpec().getIsPermanent())
-                            .map(isPermanent -> String.valueOf(isPermanent))
+                        .withValue(Optional.ofNullable(backup.getSpec()
+                            .getSubjectToRetentionPolicy())
+                            .map(String::valueOf)
                             .orElse("false"))
                         .build(),
                         new EnvVarBuilder()

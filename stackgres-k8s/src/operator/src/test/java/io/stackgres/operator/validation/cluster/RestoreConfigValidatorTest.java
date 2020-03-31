@@ -89,7 +89,7 @@ class RestoreConfigValidatorTest {
         .filter(b -> b.getMetadata().getUid().equals(stackgresBackup))
         .findFirst().orElseThrow(AssertionError::new);
 
-    backup.getStatus().setPgVersion("120001");
+    backup.getStatus().getBackupInformation().setPostgresVersion("120001");
 
     when(scanner.findResources())
         .thenReturn(Optional.of(backupList.getItems()));

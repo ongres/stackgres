@@ -44,8 +44,8 @@
         ]
       },
       "spec": {
-        "cluster": "backup-with-default-storage",
-        "isPermanent": false
+        "sgCluster": "backup-with-default-storage",
+        "subjectToRetentionPolicy": false
       },
       "status": {
         "sgBackupConfig": {
@@ -74,8 +74,10 @@
             "type": "s3compatible"
           }
         },
-        "phase": "Pending",
-        "pod": "backup-with-default-storage-backup-1579273020-svf9b"
+        "process": {
+          "status": "Pending",
+          "jobPod": "backup-with-default-storage-backup-1579273020-svf9b"
+        }
       }
     },
     "oldObject": null,

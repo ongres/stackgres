@@ -117,7 +117,7 @@ public class ClusterStatefulSetInitContainers
             .addAll(patroniEnvironmentVariables.listResources(config))
             .add(new EnvVarBuilder()
                 .withName("RESTORE_BACKUP_ID")
-                .withValue(restoreContext.getBackup().getStatus().getName())
+                .withValue(restoreContext.getBackup().getStatus().getInternalName())
                 .build())
             .build())
         .withVolumeMounts(ClusterStatefulSetVolumeConfig.RESTORE_ENTRYPOINT.volumeMount(config))

@@ -3,7 +3,7 @@ kind: CustomResourceDefinition
 metadata:
   name: sgbackups.stackgres.io
 spec:
-  group:  stackgres.io
+  group: stackgres.io
   versions:
     - name: v1beta1
       served: true
@@ -24,25 +24,90 @@ spec:
         spec:
           type: object
           properties:
-            cluster:
+            sgCluster:
               type: string
               description: "The name of the cluster where the backup will or has been taken."
-            isPermanent:
+            subjectToRetentionPolicy:
               type: boolean
               description: "Indicate if this backup is permanent and should not be removed by retention process."
         status:
           type: object
           properties:
-            phase:
+            internalName:
               type: string
-              enum: [ "Pending", "Completed", "Failed" ]
-              description: "The phase of the backup."
-            pod:
-              type: string
-              description: "The name of pod assigned to this backup."
-            failureReason:
-              type: string
-              description: "If the phase is failed this field will contain a message with the failure reason."
+              description: "The name of the backup."
+            process:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: ["Pending", "Completed", "Failed"]
+                  description: "The phase of the backup."
+                failure:
+                  type: string
+                  description: "If the phase is failed this field will contain a message with the failure reason."
+                jobPod:
+                  type: string
+                  description: "The name of pod assigned to this backup."
+                subjectToRetentionPolicy:
+                  type: boolean
+                  description: "Indicate if this backup is permanent and should not be removed by retention process."
+                timing:
+                  type: object
+                  properties:
+                    start:
+                      type: string
+                      #format: date-time
+                      description: "The start time of backup."
+                    end:
+                      type: string
+                      #format: date-time
+                      description: "The finish time of backup."
+                    stored:
+                      type: string
+                      #format: date-time
+                      description: "The date of the backup."
+            backupInformation:
+              type: object
+              properties:
+                hostname:
+                  type: string
+                  description: "The hostname of instance where the backup is taken."
+                systemIdentifier:
+                  type: string
+                  description: "The internal system identifier of this backup."
+                postgresVersion:
+                  type: string
+                  description: "The PostgreSQL version of the server where backup is taken."
+                pgData:
+                  type: string
+                  description: "The data directory where the backup is taken."
+                size:
+                  type: object
+                  properties:
+                    uncompressed:
+                      type: integer
+                      format: int64
+                      description: "The size in bytes of the uncompressed backup."
+                    compressed:
+                      type: integer
+                      format: int64
+                      description: "The size in bytes of the compressed backup."
+                lsn:
+                  type: object
+                  properties:
+                    start:
+                      type: string
+                      description: "The LSN of when backup started."
+                    end:
+                      type: string
+                      description: "The LSN of when backup finished."
+                startWalFile:
+                  type: string
+                  description: "The WAL file name when backup was started."
+                controlData:
+                  type: object
+                  description: "An object containing data from the output of pg_controldata on the backup."
             sgBackupConfig:
               type: object
               description: "The name of the backup configuration used to perform this backup."
@@ -50,14 +115,14 @@ spec:
                 compressionMethod:
                   type: string
                   description: "To configure compression method used for backups. Possible options are: lz4, lzma, brotli. Default method is lz4. LZ4 is the fastest method, but compression ratio is bad. LZMA is way much slower, however it compresses backups about 6 times better than LZ4. Brotli is a good trade-off between speed and compression ratio which is about 3 times better than LZ4."
-                  enum: [ "lz4", "lzma", "brotli" ]
+                  enum: ["lz4", "lzma", "brotli"]
                 storage:
                   type: object
                   description: "Backup storage configuration"
                   properties:
                     type:
                       type: string
-                      enum: [ "s3", "s3compatible", "gcs", "azureblob" ]
+                      enum: ["s3", "s3compatible", "gcs", "azureblob"]
                       description: "Type of storage:\n- s3: Amazon Web Services S3\n- s3compatible: Amazon Web Services S3 Compatible\n- gcs: Google Clooud Storage\n- azureblob: Azure Blob Storage"
                     s3:
                       type: object
@@ -65,11 +130,11 @@ spec:
                       properties:
                         bucket:
                           type: string
-                          pattern: '((s3|https?)://)?[^/]+(/[^/]*)*$'
+                          pattern: "((s3|https?)://)?[^/]+(/[^/]*)*$"
                           description: "The AWS S3 bucket (eg. bucket)."
                         path:
                           type: string
-                          pattern: '(/[^/]*)*$'
+                          pattern: "(/[^/]*)*$"
                           description: "The AWS S3 path (eg. /path/to/folder)."
                         awsCredentials:
                           type: object
@@ -88,7 +153,7 @@ spec:
                                     name:
                                       type: string
                                       description: "Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names"
-                                  required: [ "key", "name" ]
+                                  required: ["key", "name"]
                                 secretAccessKey:
                                   type: object
                                   description: "AWS Secret Access Key"
@@ -99,27 +164,27 @@ spec:
                                     name:
                                       type: string
                                       description: "Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names"
-                                  required: [ "key", "name" ]
-                              required: [ "accessKeyId", "secretAccessKey" ]
-                          required: [ "secretKeySelectors" ]
+                                  required: ["key", "name"]
+                              required: ["accessKeyId", "secretAccessKey"]
+                          required: ["secretKeySelectors"]
                         region:
                           type: string
                           description: "The AWS S3 region. Region can be detected using s3:GetBucketLocation, but if you wish to avoid this API call or forbid it from the applicable IAM policy, specify this property."
                         storageClass:
                           type: string
-                          description: "By default, the \"STANDARD\" storage class is used. Other supported values include \"STANDARD_IA\" for Infrequent Access and \"REDUCED_REDUNDANCY\" for Reduced Redundancy."
-                      required: [ "bucket", "awsCredentials" ]
+                          description: 'By default, the "STANDARD" storage class is used. Other supported values include "STANDARD_IA" for Infrequent Access and "REDUCED_REDUNDANCY" for Reduced Redundancy.'
+                      required: ["bucket", "awsCredentials"]
                     s3compatible:
                       type: object
                       description: "Amazon Web Services S3 Compatible configuration"
                       properties:
                         bucket:
                           type: string
-                          pattern: '((s3|https?)://)?[^/]+(/[^/]*)*$'
+                          pattern: "((s3|https?)://)?[^/]+(/[^/]*)*$"
                           description: "The AWS S3 bucket (eg. bucket)."
                         path:
                           type: string
-                          pattern: '(/[^/]*)*$'
+                          pattern: "(/[^/]*)*$"
                           description: "The AWS S3 path (eg. /path/to/folder)."
                         awsCredentials:
                           type: object
@@ -138,7 +203,7 @@ spec:
                                     name:
                                       type: string
                                       description: "Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names"
-                                  required: [ "key", "name" ]
+                                  required: ["key", "name"]
                                 secretAccessKey:
                                   type: object
                                   description: "AWS Secret Access Key"
@@ -149,9 +214,9 @@ spec:
                                     name:
                                       type: string
                                       description: "Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names"
-                                  required: [ "key", "name" ]
-                              required: [ "accessKeyId", "secretAccessKey" ]
-                          required: [ "secretKeySelectors" ]
+                                  required: ["key", "name"]
+                              required: ["accessKeyId", "secretAccessKey"]
+                          required: ["secretKeySelectors"]
                         region:
                           type: string
                           description: "The AWS S3 region. Region can be detected using s3:GetBucketLocation, but if you wish to avoid this API call or forbid it from the applicable IAM policy, specify this property."
@@ -163,8 +228,8 @@ spec:
                           description: "To enable path-style addressing(i.e., http://s3.amazonaws.com/BUCKET/KEY) when connecting to an S3-compatible service that lack of support for sub-domain style bucket URLs (i.e., http://BUCKET.s3.amazonaws.com/KEY). Defaults to false."
                         storageClass:
                           type: string
-                          description: "By default, the \"STANDARD\" storage class is used. Other supported values include \"STANDARD_IA\" for Infrequent Access and \"REDUCED_REDUNDANCY\" for Reduced Redundancy."
-                      required: [ "bucket", "awsCredentials" ]
+                          description: 'By default, the "STANDARD" storage class is used. Other supported values include "STANDARD_IA" for Infrequent Access and "REDUCED_REDUNDANCY" for Reduced Redundancy.'
+                      required: ["bucket", "awsCredentials"]
                     gcs:
                       type: object
                       description: "Google Cloud Storage configuration"
@@ -194,10 +259,10 @@ spec:
                                     name:
                                       type: string
                                       description: "Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names"
-                                  required: [ "key", "name" ]
+                                  required: ["key", "name"]
                               required: ["serviceAccountJSON"]
-                          required: [ "secretKeySelectors" ]
-                      required: [ "bucket", "gcpCredentials" ]
+                          required: ["secretKeySelectors"]
+                      required: ["bucket", "gcpCredentials"]
                     azureblob:
                       type: object
                       description: "Azure Blob Storage configuration"
@@ -227,7 +292,7 @@ spec:
                                     name:
                                       type: string
                                       description: "Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names"
-                                  required: [ "key", "name" ]
+                                  required: ["key", "name"]
                                 accessKey:
                                   type: object
                                   description: "The primary or secondary access key for the storage account."
@@ -238,62 +303,9 @@ spec:
                                     name:
                                       type: string
                                       description: "Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names"
-                                  required: [ "key", "name" ]
-                              required: [ "storageAccount", "accessKey" ]
-                          required: [ "secretKeySelectors" ]
-                      required: [ "bucket", "azureCredentials" ]
+                                  required: ["key", "name"]
+                              required: ["storageAccount", "accessKey"]
+                          required: ["secretKeySelectors"]
+                      required: ["bucket", "azureCredentials"]
                   required: ["type"]
               required: ["storage"]
-            name:
-              type: string
-              description: "The name of the backup."
-            time:
-              type: string
-              format: date-time
-              description: "The date of the backup."
-            walFileName:
-              type: string
-              description: "The WAL file name when backup was started."
-            startTime:
-              type: string
-              format: date-time
-              description: "The start time of backup."
-            finishTime:
-              type: string
-              format: date-time
-              description: "The finish time of backup."
-            hostname:
-              type: string
-              description: "The hostname of instance where the backup is taken."
-            dataDir:
-              type: string
-              description: "The data directory where the backup is taken."
-            postgresVersion:
-              type: string
-              description: "The PostgreSQL version of the server where backup is taken."
-            startLsn:
-              type: string
-              description: "The LSN of when backup started."
-            finishLsn:
-              type: string
-              description: "The LSN of when backup finished."
-            isPermanent:
-              type: boolean
-              description: "Indicate internally if this backup is permanent and should not be removed by retention process."
-            systemIdentifier:
-              type: string
-              description: "The internal system identifier of this backup."
-            uncompressedSize:
-              type: integer
-              format: int64
-              description: "The size in bytes of the uncompressed backup."
-            compressedSize:
-              type: integer
-              format: int64
-              description: "The size in bytes of the compressed backup."
-            controlData:
-              type: object
-              description: "An object containing data from the output of pg_controldata on the backup."
-            tested:
-              type: boolean
-              description: "true if the backup has been tested."

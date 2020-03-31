@@ -22,35 +22,35 @@ public class StackGresBackupSpec implements KubernetesResource {
 
   private static final long serialVersionUID = 4124027524757318245L;
 
-  @JsonProperty("cluster")
+  @JsonProperty("sgCluster")
   @NotNull(message = "The cluster name is required")
-  private String cluster;
+  private String sgCluster;
 
-  @JsonProperty("isPermanent")
-  private Boolean isPermanent;
+  @JsonProperty("subjectToRetentionPolicy")
+  private Boolean subjectToRetentionPolicy;
 
-  public String getCluster() {
-    return cluster;
+  public String getSgCluster() {
+    return sgCluster;
   }
 
-  public void setCluster(String cluster) {
-    this.cluster = cluster;
+  public void setSgCluster(String sgCluster) {
+    this.sgCluster = sgCluster;
   }
 
-  public Boolean getIsPermanent() {
-    return isPermanent;
+  public Boolean getSubjectToRetentionPolicy() {
+    return subjectToRetentionPolicy;
   }
 
-  public void setIsPermanent(Boolean isPermanent) {
-    this.isPermanent = isPermanent;
+  public void setSubjectToRetentionPolicy(Boolean subjectToRetentionPolicy) {
+    this.subjectToRetentionPolicy = subjectToRetentionPolicy;
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .omitNullValues()
-        .add("cluster", cluster)
-        .add("isPermanent", isPermanent)
+        .add("cluster", sgCluster)
+        .add("isPermanent", subjectToRetentionPolicy)
         .toString();
   }
 

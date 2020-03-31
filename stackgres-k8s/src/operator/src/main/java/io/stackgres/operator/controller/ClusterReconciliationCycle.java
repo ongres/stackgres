@@ -334,7 +334,7 @@ public class ClusterReconciliationCycle
             .list()
             .getItems()
             .stream()
-            .filter(backup -> backup.getSpec().getCluster().equals(name))
+            .filter(backup -> backup.getSpec().getSgCluster().equals(name))
             .collect(ImmutableList.toImmutableList()))
         .orElse(ImmutableList.of());
   }
@@ -403,9 +403,9 @@ public class ClusterReconciliationCycle
           .map(backup -> {
             Preconditions.checkNotNull(backup.getStatus(),
                 "Backup is " + BackupPhase.PENDING.label());
-            Preconditions.checkArgument(backup.getStatus().getPhase()
+            Preconditions.checkArgument(backup.getStatus().getProcess().getStatus()
                     .equals(BackupPhase.COMPLETED.label()),
-                "Backup is " + backup.getStatus().getPhase());
+                "Backup is " + backup.getStatus().getProcess().getStatus());
             return backup;
           })
           .map(backup -> StackGresRestoreContext.builder()

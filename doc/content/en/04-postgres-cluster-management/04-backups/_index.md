@@ -22,35 +22,62 @@ ___
 
 **Spec**
 
-| Property    | Required | Updatable | Type     | Default | Description |
-|:------------|----------|-----------|:---------|:--------|:------------|
-| cluster     | ✓        |           | string   |         | The name of the cluster where the backup will or has been taken. |
-| isPermanent |          | ✓         | booolean | false   | Indicate if this backup is permanent and should not be removed by retention process. |
+| Property                 | Required | Updatable | Type     | Default | Description |
+|:-------------------------|----------|-----------|:---------|:--------|:------------|
+| sgCluster                | ✓        |           | string   |         | The name of the cluster where the backup will or has been taken. |
+| subjectToRetentionPolicy |          | ✓         | booolean | false   | Indicate if this backup is permanent and should not be removed by retention process. |
 
 **Status**
 
-| Property                       | Type    | Description |
-|:-------------------------------|:--------|:------------|
-| phase                          | string  | The phase of the backup (Pending, Created, Failed). |
-| pod                            | string  | The name of pod assigned to this backup. |
-| failureReason                  | string  | If the phase is failed this field will contain a message with the failure reason. |
-| [sgBackupConfig](#configuration) | object  | The backup configuration to restore this backup. |
-| name                           | string  | The name of the backup. |
-| time                           | string  | The date of the backup. |
-| walFileName                    | string  | The WAL file name when backup was started. |
-| startTime                      | string  | The start time of backup. |
-| finishTime                     | string  | The finish time of backup. |
-| hostname                       | string  | The hostname of instance where the backup is taken. |
-| dataDir                        | string  | The data directory where the backup is taken. |
-| pgVersion                      | string  | The PostgreSQL version of the server where backup is taken. |
-| startLsn                       | string  | The LSN of when backup started. |
-| finishLsn                      | string  | The LSN of when backup finished. |
-| isPermanent                    | boolean | Indicate internally if this backup is permanent and should not be removed by retention process. |
-| systemIdentifier               | string  | The internal system identifier of this backup. |
-| uncompressedSize               | integer | The size in bytes of the uncompressed backup. |
-| compressedSize                 | integer | The size in bytes of the compressed backup. |
-| controlData                    | object  | An object containing data from the output of pg_controldata on the backup. |
-| tested                         | boolean | true if the backup has been tested. |
+| Property                                   | Type    | Description |
+|:-------------------------------------------|:--------|:------------|
+| internalName                               | string  | The name of the backup |
+| [process](#backup-process)                 | object  | backup lifecycle information |
+| [backupInformation](#backup-information)   | object  | General backup information |
+| [sgBackupConfig](#configuration)           | object  | The backup configuration to restore this backup. |
+
+## Backup Process
+
+| Property                         | Type    | Description |
+|:---------------------------------|:--------|:------------|
+| status                           | string  | The phase of the backup (Pending, Created, Failed). |
+| jobPod                           | string  | The name of pod assigned to this backup. |
+| failure                          | string  | If the phase is failed this field will contain a message with the failure reason. |
+| subjectToRetentionPolicy         | boolean | Indicate if this backup is permanent and should not be removed by retention process. |
+| [timing](#backup-timing)         | object  | Backup timing information |
+
+### Backup Timing
+| Property                         | Type    | Description |
+|:---------------------------------|:--------|:------------|
+| start                            | string  | The start time of backup. |
+| end                              | string  | The finish time of backup. |
+| stored                           | string  | The date of the backup. | 
+
+## Backup Intormation
+| Property                         | Type    | Description |
+|:---------------------------------|:--------|:------------|
+| hostname                         | string  | The hostname of instance where the backup is taken. |
+| systemIdentifier                 | string  | The internal system identifier of this backup. |
+| postgresVersion                  | string  | The PostgreSQL version of the server where backup is taken. |
+| pgData                           | string  | The data directory where the backup is taken. |
+| [size](#backup-size)             | object  | backup size information |
+| [lsn](#backup-lsn)               | object  | The LSN backup information |
+| startWalFile                     | string  | WAL file name when backup was started. |
+| controlData                      | object  | An object containing data from the output of pg_controldata on the backup. |
+
+### Backup LSN
+| Property                      | Type    | Description |
+|:------------------------------|:--------|:------------|
+| start                         | string  | The LSN of when backup started. |
+| finish                        | string  | The LSN of when backup finished. |
+
+### Backup Size
+| Property                         | Type    | Description |
+|:---------------------------------|:--------|:------------|
+| compressed                       | integer | The start time of backup. |
+| uncompressed                     | integer | The finish time of backup. |
+
+
 
 Example:
 
@@ -60,42 +87,47 @@ kind: SGBackup
 metadata:
   name: backup
 spec:
-  cluster: stackgres
-  isPermanent: true
+  sgCluster: stackgres
+  subjectToRetentionPolicy: true
 status:
+  internalName: base_00000002000000000000000E 
   sgBackupConfig:
-    compressionMethod: lz4
+    compression: lz4
     storage:
       s3compatible:
-        credentials:
-          accessKey:
-            key: accesskey
-            name: minio
-          secretKey:
-            key: secretkey
-            name: minio
+        awsCredentials:
+          secretKeySelectors:
+            accessKeyId:
+              key: accesskey
+              name: minio
+            accessKeyId:
+              key: secretkey
+              name: minio
         endpoint: http://minio:9000
         forcePathStyle: true
         bucket: stackgres
         region: k8s
       type: s3compatible
-  compressedSize: 6691164
-  dataDir: /var/lib/postgresql/data
-  failureReason: ""
-  finishLsn: "234881272"
-  finishTime: "2020-01-22T10:17:27.165204Z"
-  hostname: stackgres-1
-  isPermanent: true
-  name: base_00000002000000000000000E
-  pgVersion: "110006"
-  phase: Completed
-  pod: backup-backup-q79zq
-  startLsn: "234881064"
-  startTime: "2020-01-22T10:17:24.983902Z"
-  systemIdentifier: "6784708504968245298"
-  time: "2020-01-22T10:17:27.183Z"
-  uncompressedSize: 24037844
-  walFileName: 00000002000000000000000E
+  process:
+    status: Completed
+    jobPod: backup-backup-q79zq
+    subjectToRetentionPolicy: true
+    timing:
+      start: "2020-01-22T10:17:24.983902Z"
+      stored: "2020-01-22T10:17:27.183Z"
+      end: "2020-01-22T10:17:27.165204Z"
+  backupInformation:
+    hostname: stackgres-1
+    systemIdentifier: "6784708504968245298"
+    postgresVersion: "110006"
+    pgData: /var/lib/postgresql/data
+    size:
+      compressed: 6691164     
+      uncompressed: 24037844
+    lsn:
+      start: "234881064"
+      finish: "234881272"
+    startWalFile: 00000002000000000000000E
 ```
 
 # Configuration

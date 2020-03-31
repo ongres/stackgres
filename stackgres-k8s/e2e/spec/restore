@@ -32,8 +32,8 @@ metadata:
   namespace: "$CLUSTER_NAMESPACE-backup"
   name: "$BACKUP_NAME"
 spec:
-  cluster: "$CLUSTER_NAME-backup"
-  isPermanent: true
+  sgCluster: "$CLUSTER_NAME-backup"
+  subjectToRetentionPolicy: true
 EOF
   
   wait_until is_backup_phase "Completed"
@@ -50,7 +50,7 @@ EOF
 }
 
 is_backup_phase() {
-  [ "$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE-backup" "$BACKUP_NAME" -o=jsonpath='{.status.phase}')" = "$1" ]
+  [ "$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE-backup" "$BACKUP_NAME" -o=jsonpath='{.status.process.status}')" = "$1" ]
 }
 
 e2e_test_uninstall() {

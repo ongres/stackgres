@@ -14,10 +14,37 @@
         "uid": "d7e660a9-377c-11ea-b04b-0242ac110004"
       },
       "spec": {
-        "cluster": "backup-with-default-storage",
-        "isPermanent": true
+        "sgCluster": "backup-with-default-storage",
+        "subjectToRetentionPolicy": true
       },
       "status": {
+        "internalName": "base_000000010000000000000007",
+        "process": {
+          "status": "Completed",
+          "failure": "",
+          "jobPod": "backup-with-default-storage-0-296-backup-2c45d",
+          "subjectToRetentionPolicy": true,
+          "timing": {
+            "start": "2020-01-15T09:53:24.400995Z",
+            "end": "2020-01-15T09:53:26.031937Z",
+            "stored": "2020-01-15T09:53:26.033Z"
+          }
+        },
+        "backupInformation": {
+          "hostname": "backup-with-default-storage-0",
+          "systemIdentifier": "6782105138602385458",
+          "postgresVersion": "110006",
+          "pgData": "/var/lib/postgresql/data",
+          "size": {
+            "compressed": 6686094,
+            "uncompressed": 24037289
+          },
+          "lsn": {
+            "start": "117440552",
+            "end": "117440552"
+          },
+          "startWalFile": "000000010000000000000007"
+        },
         "sgBackupConfig": {
           "baseBackups": {
             "compression": "lz4",
@@ -46,24 +73,7 @@
             },
             "type": "s3compatible"
           }
-        },
-        "compressedSize": 6686094,
-        "dataDir": "/var/lib/postgresql/data",
-        "failureReason": "",
-        "finishLsn": "117440760",
-        "finishTime": "2020-01-15T09:53:26.031937Z",
-        "hostname": "backup-with-default-storage-0",
-        "isPermanent": true,
-        "name": "base_000000010000000000000007",
-        "pgVersion": "110006",
-        "phase": "Completed",
-        "pod": "backup-with-default-storage-0-296-backup-2c45d",
-        "startLsn": "117440552",
-        "startTime": "2020-01-15T09:53:24.400995Z",
-        "systemIdentifier": "6782105138602385458",
-        "time": "2020-01-15T09:53:26.033Z",
-        "uncompressedSize": 24037289,
-        "walFileName": "000000010000000000000007"
+        }
       }
     },
     {
@@ -79,10 +89,37 @@
         "uid": "23442867-377d-11ea-b04b-0242ac110004"
       },
       "spec": {
-        "cluster": "backup-with-default-storage",
-        "isPermanent": true
+        "sgCluster": "backup-with-default-storage",
+        "subjectToRetentionPolicy": true
       },
       "status": {
+        "internalName": "base_000000020000000000000013",
+        "process": {
+          "status": "Completed",
+          "failure": "",
+          "jobPod": "backup-with-default-storage-1-49590-backup-b7f7d",
+          "subjectToRetentionPolicy": true,
+          "timing": {
+            "start": "2020-01-15T09:55:34.729604Z",
+            "end": "2020-01-15T09:55:36.398232Z",
+            "stored": "2020-01-15T09:55:36.403Z"
+          }
+        },
+        "backupInformation": {
+          "hostname": "backup-with-default-storage-1",
+          "systemIdentifier": "6782105138602385458",
+          "postgresVersion": "110006",
+          "pgData": "/var/lib/postgresql/data",
+          "size": {
+            "compressed": 6686916,
+            "uncompressed": 24037853
+          },
+          "lsn": {
+            "start": "318767144",
+            "end": "318767352"
+          },
+          "startWalFile": "000000020000000000000013"
+        },
         "sgBackupConfig": {
           "baseBackups": {
             "compression": "lz4",
@@ -109,24 +146,7 @@
             },
             "type": "s3"
           }
-        },
-        "compressedSize": 6686916,
-        "dataDir": "/var/lib/postgresql/data",
-        "failureReason": "",
-        "finishLsn": "318767352",
-        "finishTime": "2020-01-15T09:55:36.398232Z",
-        "hostname": "backup-with-default-storage-1",
-        "isPermanent": true,
-        "name": "base_000000020000000000000013",
-        "pgVersion": "110006",
-        "phase": "Completed",
-        "pod": "backup-with-default-storage-1-49590-backup-b7f7d",
-        "startLsn": "318767144",
-        "startTime": "2020-01-15T09:55:34.729604Z",
-        "systemIdentifier": "6782105138602385458",
-        "time": "2020-01-15T09:55:36.403Z",
-        "uncompressedSize": 24037853,
-        "walFileName": "000000020000000000000013"
+        }
       }
     },
     {
@@ -142,8 +162,8 @@
         "uid": "fad741f1-377c-11ea-b04b-0242ac110004"
       },
       "spec": {
-        "cluster": "backup-with-default-storage",
-        "isPermanent": true
+        "sgCluster": "backup-with-default-storage",
+        "subjectToRetentionPolicy": true
       },
       "status": {
         "sgBackupConfig": {
@@ -173,23 +193,33 @@
             "type": "s3"
           }
         },
-        "compressedSize": 6686916,
-        "dataDir": "/var/lib/postgresql/data",
-        "failureReason": "",
-        "finishLsn": "234881272",
-        "finishTime": "2020-01-15T09:54:43.667726Z",
-        "hostname": "backup-with-default-storage-1",
-        "isPermanent": true,
-        "name": "base_00000002000000000000000E",
-        "pgVersion": "110006",
-        "phase": "Completed",
-        "pod": "backup-with-default-storage-1-51323-backup-9r94c",
-        "startLsn": "234881064",
-        "startTime": "2020-01-15T09:54:42.01932Z",
-        "systemIdentifier": "6782105138602385458",
-        "time": "2020-01-15T09:54:43.672Z",
-        "uncompressedSize": 24037853,
-        "walFileName": "00000002000000000000000E"
+        "internalName": "base_00000002000000000000000E",
+        "process": {
+          "status": "Completed",
+          "failure": "",
+          "jobPod": "backup-with-default-storage-1-51323-backup-9r94c",
+          "subjectToRetentionPolicy": true,
+          "timing": {
+            "start": "2020-01-15T09:54:42.01932Z",
+            "end": "2020-01-15T09:54:43.667726Z",
+            "stored": "2020-01-15T09:54:43.672Z"
+          }
+        },
+        "backupInformation": {
+          "hostname": "backup-with-default-storage-1",
+          "systemIdentifier": "6782105138602385458",
+          "postgresVersion": "110006",
+          "pgData": "/var/lib/postgresql/data",
+          "size": {
+            "compressed": 6686916,
+            "uncompressed": 24037853
+          },
+          "lsn": {
+            "start": "234881064",
+            "end": "318767352"
+          },
+          "startWalFile": "00000002000000000000000E"
+        }
       }
     },
     {
@@ -213,8 +243,8 @@
         "uid": "1cd38e39-377d-11ea-b04b-0242ac110004"
       },
       "spec": {
-        "cluster": "backup-with-default-storage",
-        "isPermanent": false
+        "sgCluster": "backup-with-default-storage",
+        "subjectToRetentionPolicy": false
       },
       "status": {
         "sgBackupConfig": {
@@ -244,23 +274,33 @@
             "type": "s3"
           }
         },
-        "compressedSize": 6686916,
-        "dataDir": "/var/lib/postgresql/data",
-        "failureReason": "",
-        "finishLsn": "285212920",
-        "finishTime": "2020-01-15T09:55:18.255096Z",
-        "hostname": "backup-with-default-storage-1",
-        "isPermanent": false,
-        "name": "base_000000020000000000000011",
-        "pgVersion": "110006",
-        "phase": "Completed",
-        "pod": "backup-with-default-storage-backup-1579082100-ldkx6",
-        "startLsn": "285212712",
-        "startTime": "2020-01-15T09:55:08.584974Z",
-        "systemIdentifier": "6782105138602385458",
-        "time": "2020-01-15T09:55:18.264Z",
-        "uncompressedSize": 24037853,
-        "walFileName": "000000020000000000000011"
+        "internalName": "base_000000020000000000000011",
+        "process": {
+          "status": "Completed",
+          "failure": "",
+          "jobPod": "backup-with-default-storage-backup-1579082100-ldkx6",
+          "subjectToRetentionPolicy": false,
+          "timing": {
+            "start": "2020-01-15T09:55:08.584974Z",
+            "end": "2020-01-15T09:55:18.255096Z",
+            "stored": "2020-01-15T09:55:18.264Z"
+          }
+        },
+        "backupInformation": {
+          "hostname": "backup-with-default-storage-1",
+          "systemIdentifier": "6782105138602385458",
+          "postgresVersion": "110006",
+          "pgData": "/var/lib/postgresql/data",
+          "size": {
+            "compressed": 6686916,
+            "uncompressed": 24037853
+          },
+          "lsn": {
+            "start": "285212712",
+            "end": "285212920"
+          },
+          "startWalFile": "000000020000000000000011"
+        }
       }
     },
     {
@@ -284,8 +324,8 @@
         "uid": "408deebb-377d-11ea-b04b-0242ac110004"
       },
       "spec": {
-        "cluster": "backup-with-default-storage",
-        "isPermanent": false
+        "sgCluster": "backup-with-default-storage",
+        "subjectToRetentionPolicy": false
       },
       "status": {
         "sgBackupConfig": {
@@ -315,23 +355,33 @@
             "type": "s3"
           }
         },
-        "compressedSize": 6686916,
-        "dataDir": "/var/lib/postgresql/data",
-        "failureReason": "",
-        "finishLsn": "352321784",
-        "finishTime": "2020-01-15T09:56:10.131708Z",
-        "hostname": "backup-with-default-storage-1",
-        "isPermanent": false,
-        "name": "base_000000020000000000000015",
-        "pgVersion": "110006",
-        "phase": "Completed",
-        "pod": "backup-with-default-storage-backup-1579082160-krpbf",
-        "startLsn": "352321576",
-        "startTime": "2020-01-15T09:56:08.513404Z",
-        "systemIdentifier": "6782105138602385458",
-        "time": "2020-01-15T09:56:10.135Z",
-        "uncompressedSize": 24037853,
-        "walFileName": "000000020000000000000015"
+        "internalName": "base_000000020000000000000015",
+        "process": {
+          "status": "Completed",
+          "failure": "",
+          "jobPod": "backup-with-default-storage-backup-1579082160-krpbf",
+          "subjectToRetentionPolicy": false,
+          "timing": {
+            "start": "2020-01-15T09:56:08.513404Z",
+            "end": "2020-01-15T09:56:10.131708Z",
+            "stored": "2020-01-15T09:56:10.135Z"
+          }
+        },
+        "backupInformation": {
+          "hostname": "backup-with-default-storage-1",
+          "systemIdentifier": "6782105138602385458",
+          "postgresVersion": "110006",
+          "pgData": "/var/lib/postgresql/data",
+          "size": {
+            "compressed": 6686916,
+            "uncompressed": 24037853
+          },
+          "lsn": {
+            "start": "352321576",
+            "end": "2352321784"
+          },
+          "startWalFile": "000000020000000000000015"
+        }
       }
     }
   ],

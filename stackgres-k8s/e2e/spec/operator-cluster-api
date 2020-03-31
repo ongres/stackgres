@@ -155,8 +155,8 @@ test_cluster_pod_count() {
     namespace: "$CLUSTER_NAMESPACE"
     name: "$BACKUP_NAME"
   spec:
-    cluster: "$CLUSTER_NAME"
-    isPermanent: true
+    sgCluster: "$CLUSTER_NAME"
+    subjectToRetentionPolicy: true
 EOF
 
   if ! wait_until eval '[ "$(get_cluster_pod_count)" -ne 2 ]'
