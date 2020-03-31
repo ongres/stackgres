@@ -2641,6 +2641,7 @@ table.clusterConfig tr {
 tr.no-results {
     display: none;
     text-align: center;
+    height: 120px;
 }
 
 .options select {
@@ -2665,4 +2666,8 @@ tr.no-results {
 .options select:hover {
     color: var(--blue);
     background-color: rgba(0, 173, 181, .25);
+}
+
+tr.no-results:first-child:last-child {
+    display: table-row;
 }

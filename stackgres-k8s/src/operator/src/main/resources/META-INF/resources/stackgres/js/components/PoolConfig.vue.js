@@ -36,7 +36,7 @@ var PoolConfig = Vue.component("pool-config", {
 					<tbody>
 						<tr class="no-results">
 							<td :colspan="3">
-								No records matched your search terms
+								No configurations have been found, would you like to <router-link to="/crd/create/poolconfig/" title="Add New Connection Pooling Configuration">create a new one?</router-link>
 							</td>
 						</tr>
 						<template v-for="conf in config" v-if="(conf.data.metadata.namespace == currentNamespace)">
