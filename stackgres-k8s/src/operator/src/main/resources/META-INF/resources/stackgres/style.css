@@ -135,6 +135,10 @@ pre {
     color: var(--gray5);
 }
 
+table.clusterOverview a.no-color {
+    display: block;
+    color: inherit;
+}
 .center {
     text-align: center;
 }
@@ -159,16 +163,18 @@ pre {
 }
 
 .row-50 .col {
-    width: 50%;
+    /*width: 50%;*/
+    width: 45%;
     float: left;
 }
 
 .row-50 .col:first-child {
-    padding-right: 5px;
+    /*padding-right: 5px;*/
 }
 
 .row-50 .col:last-child {
-    padding-left: 5px;
+    /*padding-left: 5px;*/
+    margin-left: 10%;
 }
 
 .row-20 .col {
@@ -232,23 +238,41 @@ pre {
 }
 
 #darkmode.active svg {
-    transition: fill .3s ease-in;
+    /*transition: fill .3s ease-in;*/
     fill: var(--blue);
 }
 
 .darkmode {
-    color: var(--gray3);
-    background: #191d25;
-    transition: all .5s ease-in;
+    color: #e3e3e3;
+    background: #171717;
+    /*transition: all .5s ease-in;*/
+}
+
+.darkmode #nav {
+    background: #222222;
+    /*transition: all .5s ease-in;*/
+
 }
 
 .darkmode #side, .darkmode #nav {
-    background: #0f141d;
-    transition: all .5s ease-in;
+    background: #1e1e1e;
+    /*transition: all .5s ease-in;*/
 }
 
-.darkmode #sets h3, .darkmode #sets h4, .darkmode .form input, .darkmode .form select, .darkmode .form textarea, .darkmode #logo h1, .darkmode .options label, .darkmode .options select {
-    color: var(--gray3);
+.darkmode #nav svg {
+    fill: #7A7B85;
+}
+
+.darkmode a.help g path {
+    fill: #171717;
+}
+
+.darkmode .form input, .darkmode .form select, .darkmode .form textarea, .darkmode #logo h1, .darkmode .options label, .darkmode .options select {
+    color: #e3e3e3;
+}
+
+.darkmode #sets h4, .darkmode h4, .darkmode #sets h3, .darkmode h3, .darkmode h2, .darkmode thead, .darkmode .tabs a {
+    color: #a5a5a5;
 }
 
 .darkmode .options label, .darkmode .options select {
@@ -256,32 +280,39 @@ pre {
 }
 
 .darkmode #side, .darkmode #nav, .darkmode #current-namespace, .darkmode ul.breadcrumbs, .darkmode tbody, .darkmode .table .head.row, .darkmode .table .row:last-child, .darkmode .boxes .row:last-child, .darkmode .form input, .darkmode .form select, .darkmode .form textarea, .darkmode .set, .darkmode .form .header, .darkmode .content .box, .darkmode .box hr, .darkmode #keyword, .darkmode .toolbar .toggle, .darkmode .options, .darkmode .tooltip, .darkmode .message, .darkmode #nav .tooltip:before, .darkmode fieldset, .darkmode label.switch {
-    border-color: #333;
+    border-color: #333333;
 }
 
 .darkmode ul.tabs, .darkmode .content h2 {
-    border-color: #555;
+    border-color: #333333;
 }
 
 .darkmode tr:nth-child(4n+2), .darkmode .options, .darkmode .tooltip, .darkmode #nav .tooltip:before, .darkmode table tr:nth-child(even):not(.base) {
-    background: #242831;
+    background: #1e1e1e;
 }
 
 .darkmode .actions svg path {
-    fill: #575e6b;
+    fill: #7A7B85;
 }
 
 .darkmode .form input, .darkmode .form select, .darkmode .form textarea, .darkmode .set.active, .darkmode .set.active a:hover, .darkmode .set:hover, .darkmode .set:hover a:hover, .darkmode .set:not(.active) > ul li, .darkmode #keyword {
-    background-color: #1e252e;
+    /*background-color: rgba(211, 211, 211, .10);*/
+    background-color: #1b1b1b;
+}
+
+.darkmode .set.conf.active{
+    background-color: #1e1e1e;
 }
 
 .darkmode .form input[disabled="disabled"], .darkmode .form select[disabled="disabled"], .darkmode .form textarea[disabled="disabled"], .darkmode .form fieldset[disabled="disabled"], .darkmode label.switch[disabled="disabled"] {
-    background: #000;
+    background: rgba(51, 51, 51, .75);
 }
 
-.darkmode .item:hover {
+
+
+/*.darkmode .item:hover {
     background-color: #2a2e38 !important;
-}
+}*/
 
 .darkmode #nav .tooltip:before {
     top: -6px;
@@ -297,19 +328,36 @@ pre {
 }
 
 .darkmode table table tbody {
-    border-top-color: #454a5a;
+    border-top-color: #333333;
     border-bottom: 0;
 }
 
 .darkmode tr.details {
-    border: 1px solid #333;
+    border: 1px solid #333333;
+}
+
+.darkmode tr:nth-child(even), .darkmode tr:nth-child(even) + tr.details {
+    background: #1e1e1e;
+}
+
+.darkmode #backups tr:nth-child(4n+2), .darkmode tr:nth-child(4n+2) + tr.details {
+    background: #171717;
+}
+
+.darkmode #backups tr.base.Completed.open {
+    border: 1px solid #333333;
 }
 
 .darkmode table table + table {
-    border-top: 1px solid #454a5a;
+    border-top: 1px solid #333333;
 }
+
 .darkmode #ns-select a:hover {
     background: transparent !important;
+}
+
+.darkmode .clusterInfo tr, .darkmode .podStatus tr, .darkmode .clusterConfig tr {
+    background: #1e1e1e;
 }
 
 .darkmode #delete .tooltip  h3 {
@@ -317,10 +365,11 @@ pre {
 }
 
 .darkmode #delete .tooltip form input {
-    background: #1e252e;
+    background: #1b1b1b;
     border: 1px solid #333333;
     color: var(--gray3);
 } 
+
 
 /* Main Structure */
 aside {
@@ -563,7 +612,7 @@ ul.zg-ul-select.active li.active:hover {
 }
 
 #ns-select li:hover {
-    background: rgba(211, 211, 211, .15);
+    background: rgba(211, 211, 211, .10);
     margin-left: -50px;
     padding-left: 50px;
 }
@@ -634,7 +683,11 @@ ul.zg-ul-select.active li.active:hover {
 }
 
 .set.active, .set.active a:hover, .set:hover, .set:hover a:hover {
-    background-color: rgba(211, 211, 211, .15);
+    background-color: rgba(211, 211, 211, .10);
+}
+
+.set.conf.active {
+    background: #fcfcfc;
 }
 
 /* #sets > .set {
@@ -1610,7 +1663,7 @@ ul.params .params li {
 ul.selector {
     display: inline-block;
     right: 0;
-    top: 50%;
+    top: 70px;
     list-style: none;
     position: absolute;
 }
@@ -1801,7 +1854,7 @@ label.switch {
     border: 1px solid var(--blue);
 }
 
-.switch input:before:hover {
+.switch input:hover::before {
     background: var(--blue);
 }
 
@@ -1929,8 +1982,8 @@ button {
     float: left;
 }
 
-.form .hide, .form .hidden {
-    display: none;
+.form .hide, .form .hidden, .hide {
+    display: none !important;
 } 
 
 .form .show, .form .changed {
@@ -2078,6 +2131,10 @@ fieldset {
     cursor: not-allowed;
 }
 
+input#advancedMode:hover {
+    border: 1px solid var(--blue);
+}
+
 .form .alert, .darkmode .form .alert {
     border-color: #ff8873;
 }
@@ -2111,16 +2168,23 @@ span.req {
 a.help {
     position: absolute;
     margin-top: -48px;
-    z-index: 1;
-    left: 102%;
+    z-index: 9;
+    /*left: 102%;*/
+    right: -25px;
     margin-bottom: 0;
+}
+
+.col {
+    position: relative;
+}
+
+a.help:hover {
+    cursor: pointer;
 }
 
 a.help svg > path:hover {
     fill: var(--blue);
-    cursor: pointer;
 }
-
 
 
 /* Firefox Outline on focus hack */
@@ -2348,10 +2412,26 @@ tr.open .open path {
     fill: var(--blue);
 }
 
+td.parameters {
+    width: 50%;
+}
+
 ul.yaml {
     list-style: none;
     margin: 10px 0;
     line-height: 1.5;
+}
+
+.parameters:not(.open) ul.yaml {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    width: 40vw;
+}
+
+.parameters:not(.open) ul.yaml li {
+    position: relative;
+    display: inline-block;
 }
 
 .yaml .label {
@@ -2400,7 +2480,7 @@ td.label span {
 table.clusterConfig th {
     width: 20%;
 }
-table.clusterConfig td {
+table.clusterConfig tr {
     background: rgba(240,240,240,.35);
 }
 
