@@ -1108,7 +1108,7 @@ function notify (message, kind = 'message', crd = 'general') {
       </div>
     `;
 
-    if(message.fields.length) {
+    if(!!message.fields) {
       message.fields.forEach( function(item, index) {
         $(".form [data-field='"+item+"']").addClass("alert");
       });

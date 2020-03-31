@@ -267,6 +267,10 @@ table.clusterOverview a.no-color {
     fill: #171717;
 }
 
+.darkmode .form button, button {
+    color: #171717;
+}
+
 .darkmode .form input, .darkmode .form select, .darkmode .form textarea, .darkmode #logo h1, .darkmode .options label, .darkmode .options select {
     color: #e3e3e3;
 }
@@ -360,6 +364,28 @@ table.clusterOverview a.no-color {
     background: #1e1e1e;
 }
 
+.darkmode table.backupConfig tr.base:first-of-type {
+    border-top: 1px solid #333333;
+}
+
+.darkmode table.backupConfig  {
+    border-bottom: 1px solid #333333;
+}
+
+.darkmode table.backupConfig tr:nth-child(4n-2), .darkmode table.backupConfig tr:nth-child(4n-2) + tr.details, .darkmode table.podStatus tr:nth-child(4n-2) {
+    background: #171717;
+}
+
+.darkmode table.backupConfig tr.open {
+    border-top: 1px solid #171717;
+}
+
+.darkmode table.backupConfig tr.details.open, .darkmode table.backupConfig tr.base.open {
+    border: 1px solid #333333;
+}
+
+
+
 .darkmode #delete .tooltip  h3 {
     border-bottom: 1px solid #333333;
 }
@@ -369,6 +395,10 @@ table.clusterOverview a.no-color {
     border: 1px solid #333333;
     color: var(--gray3);
 } 
+
+.darkmode .grafana iframe {
+    border: none;
+}
 
 
 /* Main Structure */
@@ -1808,8 +1838,8 @@ ul.selector li {
     border: 1px solid var(--blue);
     padding: 20px;
     border-radius: 6px;
-    margin-bottom: 30px;
-    margin-top: -10px;
+    margin-bottom: 20px;
+    display: inline-block;
 }
 
 .warning svg {
@@ -2434,6 +2464,21 @@ tr:not(.open) .parameters ul.yaml li {
     display: inline-block;
 }
 
+.parameters:not(.open) ul.yaml li:not(:last-of-type):after {
+    display: inline;
+    content: ";";
+    padding-right: 5px;
+}
+
+tr.open td {
+    vertical-align: top;
+    padding-top: 15px;
+}
+
+tr.open ul.yaml {
+    margin-top: -4px;
+}
+
 .yaml .label {
     color: #2A803A;
 }
@@ -2483,6 +2528,23 @@ table.clusterConfig th {
 table.clusterConfig tr {
     background: rgba(240,240,240,.35);
 }
+
+table.backupConfig tr.base:first-of-type {
+    border-top: 1px solid #f0f0f1;
+}
+
+table.backupConfig  {
+    border-bottom: 1px solid #f0f0f1;
+}
+
+table.backupConfig tr:nth-child(4n-2), table.backupConfig tr:nth-child(4n-2) + tr.details, table.podStatus tr:nth-child(4n-2) {
+    background: #fff;
+}
+
+table.backupConfig tr.open {
+    border-top: 1px solid #f0f0f1;
+}
+
 
 
 /* Table Filters */
@@ -2644,6 +2706,10 @@ tr.no-results {
     height: 120px;
 }
 
+tr.no-results:first-child:last-child {
+    display: table-row;
+}
+
 .options select {
     position: relative;
     top: -5px;
@@ -2666,8 +2732,4 @@ tr.no-results {
 .options select:hover {
     color: var(--blue);
     background-color: rgba(0, 173, 181, .25);
-}
-
-tr.no-results:first-child:last-child {
-    display: table-row;
 }
