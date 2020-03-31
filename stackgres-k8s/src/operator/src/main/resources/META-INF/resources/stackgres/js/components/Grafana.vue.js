@@ -12,7 +12,7 @@ var Grafana = Vue.component("grafana", {
 						StackGres Clusters
 					</li>
 					<li>
-						{{ $route.params.pod }}
+						{{ $route.params.name }}
 					</li>
 				</ul>
 
