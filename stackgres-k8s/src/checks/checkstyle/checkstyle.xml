@@ -22,6 +22,11 @@
 
   <property name="fileExtensions" value="java, properties, xml" />
 
+  <module name="SuppressionFilter">
+    <property name="file" value="${config_loc}/suppressions.xml"/>
+    <property name="optional" value="false"/>
+  </module>
+
   <!-- Excludes all 'module-info.java' files              -->
   <!-- See https://checkstyle.org/config_filefilters.html -->
   <module name="BeforeExecutionExclusionFileFilter">
@@ -266,10 +271,8 @@
     <module name="JavadocMethod">
       <property name="scope" value="public" />
       <property name="allowMissingParamTags" value="true" />
-      <property name="allowMissingThrowsTags" value="true" />
       <property name="allowMissingReturnTag" value="true" />
       <property name="allowedAnnotations" value="Override, Test" />
-      <property name="allowThrowsTagsForSubclasses" value="true" />
     </module>
 <!--    <module name="MissingJavadocMethod">
       <property name="scope" value="public" />

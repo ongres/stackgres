@@ -31,9 +31,9 @@
     <quarkus.http.ssl.certificate.key-file>/etc/operator/certs/root.key</quarkus.http.ssl.certificate.key-file>
     <quarkus.skipAugmentation>false</quarkus.skipAugmentation>
 
-    <checkstyle.config.location>${project.basedir}/../checks/checkstyle/checkstyle.xml</checkstyle.config.location>
-    <checkstyle.suppressions.location>${project.basedir}/../checks/checkstyle/suppressions.xml</checkstyle.suppressions.location>
-    <checkstyle.header.file>${project.basedir}/../checks/checkstyle/header.txt</checkstyle.header.file>
+    <checkstyle.conifg.folder.location>${project.basedir}/../checks/checkstyle</checkstyle.conifg.folder.location>
+    <checkstyle.config.location>${checkstyle.conifg.folder.location}/checkstyle.xml</checkstyle.config.location>
+    <checkstyle.header.file>${checkstyle.conifg.folder.location}/header.txt</checkstyle.header.file>
     <spotbugs.excludeFilterFile>${project.basedir}/../checks/spotbugs/exclude.xml</spotbugs.excludeFilterFile>
 
     <it.image>stackgres/it:3.0</it.image>
