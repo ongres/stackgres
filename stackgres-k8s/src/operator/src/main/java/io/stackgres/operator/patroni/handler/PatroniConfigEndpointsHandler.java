@@ -145,7 +145,7 @@ public class PatroniConfigEndpointsHandler extends AbstractClusterResourceHandle
         try {
           final JsonNode modifiedPatroniConfig = existingPatroniConfig;
           ObjectNode.class.cast(modifiedPatroniConfig)
-            .set("postgresql", requiredPatroniConfig.get("postgresql"));
+              .set("postgresql", requiredPatroniConfig.get("postgresql"));
           String modifiedLeftEntryValue = objectMapper.writeValueAsString(modifiedPatroniConfig);
           return new SimpleEntry<>(rightEntry.getKey(), modifiedLeftEntryValue);
         } catch (JsonProcessingException ex) {
@@ -168,13 +168,13 @@ public class PatroniConfigEndpointsHandler extends AbstractClusterResourceHandle
       if (node instanceof ObjectNode) {
         ObjectNode objectNode = objectMapper.createObjectNode();
         Seq.seq(ObjectNode.class.cast(node).fieldNames())
-          .sorted()
-          .forEach(fieldName -> objectNode.set(fieldName, orderTree(node.get(fieldName))));
+            .sorted()
+            .forEach(fieldName -> objectNode.set(fieldName, orderTree(node.get(fieldName))));
         return objectNode;
       } else if (node instanceof ArrayNode) {
         ArrayNode arrayNode = objectMapper.createArrayNode();
         ArrayNode.class.cast(node)
-          .forEach(elementNode -> arrayNode.add(orderTree(elementNode)));
+            .forEach(elementNode -> arrayNode.add(orderTree(elementNode)));
         return arrayNode;
       }
 

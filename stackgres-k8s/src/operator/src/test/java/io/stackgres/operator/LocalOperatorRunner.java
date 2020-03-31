@@ -153,6 +153,7 @@ public class LocalOperatorRunner implements OperatorRunner {
         .map(line -> line.substring("  token: ".length()))
         .map(secret -> new String(Base64.getDecoder().decode(secret), StandardCharsets.UTF_8))
         .findAny().get());
+
     LOGGER.info("Setup fabric8 to connect to {}", System.getProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY));
     System.setProperty("quarkus.http.test-port", String.valueOf(port));
     System.setProperty("quarkus.http.test-ssl-port", String.valueOf(sslPort));

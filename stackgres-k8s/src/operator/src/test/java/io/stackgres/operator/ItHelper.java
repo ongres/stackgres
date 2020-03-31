@@ -195,10 +195,12 @@ public class ItHelper {
       k8s.execute("sh", "-l", "-c", "kubectl create namespace " + namespace + " || true");
       k8s.execute("sh", "-l", "-c", "helm install"
           + " stackgres-operator"    
-          + " --namespace " + namespace          
+          + " --namespace " + namespace
           + " /resources/stackgres-operator"
           + " --set-string image.tag=" + IMAGE_TAG
-          + " --set-string image.pullPolicy=Never")
+          + " --set-string image.pullPolicy=Never"
+          + " --set-string authentication.user=e2e"
+          + " --set-string authentication.password=test")
         .filter(EXCLUDE_TTY_WARNING)
         .forEach(line -> LOGGER.info(line));
       return;
@@ -230,7 +232,9 @@ public class ItHelper {
         + " --set-string cert.crt=" + Base64.getEncoder().encodeToString(
             IOUtils.toByteArray(ItHelper.class.getResourceAsStream("/certs/server.crt")))
         + " --set-string cert.key=" + Base64.getEncoder().encodeToString(
-            IOUtils.toByteArray(ItHelper.class.getResourceAsStream("/certs/server-key.pem"))))
+            IOUtils.toByteArray(ItHelper.class.getResourceAsStream("/certs/server-key.pem")))
+        + " --set-string authentication.user=e2e"
+        + " --set-string authentication.password=test")
       .filter(EXCLUDE_TTY_WARNING)
       .forEach(line -> LOGGER.info(line));
   }

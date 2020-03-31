@@ -25,14 +25,15 @@
     <stackgres.prometheus.grafanaEmbedded>false</stackgres.prometheus.grafanaEmbedded>
     <stackgres.documentation.uri>https://stackgres.io/doc/</stackgres.documentation.uri>
     <stackgres.documentation.errorsPath>/07-developer-documentation/01-error-types#</stackgres.documentation.errorsPath>
+    <stackgres.authentication.secretName>stackgres-operator</stackgres.authentication.secretName>
 
     <quarkus.http.ssl.certificate.file>/etc/operator/certs/server.crt</quarkus.http.ssl.certificate.file>
     <quarkus.http.ssl.certificate.key-file>/etc/operator/certs/root.key</quarkus.http.ssl.certificate.key-file>
     <quarkus.skipAugmentation>false</quarkus.skipAugmentation>
 
-    <checkstyle.config.location>${project.basedir}/../checks/checkstyle/checkstyle.xml</checkstyle.config.location>
-    <checkstyle.suppressions.location>${project.basedir}/../checks/checkstyle/suppressions.xml</checkstyle.suppressions.location>
-    <checkstyle.header.file>${project.basedir}/../checks/checkstyle/header.txt</checkstyle.header.file>
+    <checkstyle.conifg.folder.location>${project.basedir}/../checks/checkstyle</checkstyle.conifg.folder.location>
+    <checkstyle.config.location>${checkstyle.conifg.folder.location}/checkstyle.xml</checkstyle.config.location>
+    <checkstyle.header.file>${checkstyle.conifg.folder.location}/header.txt</checkstyle.header.file>
     <spotbugs.excludeFilterFile>${project.basedir}/../checks/spotbugs/exclude.xml</spotbugs.excludeFilterFile>
 
     <it.image>stackgres/it:3.0</it.image>
@@ -49,6 +50,10 @@
       <groupId>io.stackgres</groupId>
       <artifactId>stackgres-operator-framework</artifactId>
       <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-security</artifactId>
     </dependency>
 
     <dependency>
@@ -114,7 +119,6 @@
     <dependency>
       <groupId>io.fabric8</groupId>
       <artifactId>kubernetes-server-mock</artifactId>
-      <version>${kubernetes-client.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>

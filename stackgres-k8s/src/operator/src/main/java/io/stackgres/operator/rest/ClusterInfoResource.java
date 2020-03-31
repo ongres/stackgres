@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.rest;
 
+import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -28,6 +29,7 @@ public class ClusterInfoResource {
    * Return kubernetes cluster info.
    */
   @GET
+  @RolesAllowed(RestAuthenticationRoles.ADMIN)
   public Response info() {
     try (KubernetesClient client = kubeClient.create()) {
       return Response.ok().entity(client.settings().getMasterUrl()).build();

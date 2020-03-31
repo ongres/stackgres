@@ -47,6 +47,8 @@ public enum StackGresUtil {
   public static final String ROLE_KEY = "role";
   public static final String PRIMARY_ROLE = "master";
   public static final String REPLICA_ROLE = "replica";
+  public static final String REST_USER_KEY = "user";
+  public static final String REST_PASSWORD_KEY = "password";
 
   public static final String OPERATOR_NAME = INSTANCE.operatorName;
   public static final String OPERATOR_NAMESPACE = INSTANCE.operatorNamespace;
@@ -65,6 +67,8 @@ public enum StackGresUtil {
 
   public static final String DOCUMENTATION_ERRORS_PATH = INSTANCE.documentationErrorsPath;
 
+  public static final String AUTHENTICATION_SECRET_NAME = INSTANCE.authenticationSecretName;
+
   private final String operatorName;
   private final String operatorNamespace;
   private final String operatorVersion;
@@ -80,6 +84,8 @@ public enum StackGresUtil {
   private final String documentationUri;
   private final String documentationErrorsPath;
 
+  private final String authenticationSecretName;
+
   StackGresUtil() {
     try {
       Properties properties = new Properties();
@@ -94,6 +100,7 @@ public enum StackGresUtil {
       operatorIp = getProperty(properties, ConfigProperty.OPERATOR_IP);
       documentationUri = getProperty(properties, ConfigProperty.DOCUMENTATION_URI);
       documentationErrorsPath = getProperty(properties, ConfigProperty.DOCUMENTATION_ERRORS_PATH);
+      authenticationSecretName = getProperty(properties, ConfigProperty.AUTHENTICATION_SECRET_NAME);
       Preconditions.checkNotNull(operatorName);
       Preconditions.checkNotNull(operatorNamespace);
       Preconditions.checkNotNull(operatorVersion);
@@ -103,6 +110,7 @@ public enum StackGresUtil {
       Preconditions.checkNotNull(prometheusAutobind);
       Preconditions.checkNotNull(documentationUri);
       Preconditions.checkNotNull(documentationErrorsPath);
+      Preconditions.checkNotNull(authenticationSecretName);
     } catch (RuntimeException ex) {
       throw ex;
     } catch (Exception ex) {
