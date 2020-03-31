@@ -74,9 +74,9 @@
     <docker-maven-plugin.version>0.33.0</docker-maven-plugin.version>
     <jandex-maven-plugin.version>1.0.7</jandex-maven-plugin.version>
     <!-- Checkstyle, SpotBugs and PMD properties -->
-    <checkstyle.config.location>${project.basedir}/checks/checkstyle/checkstyle.xml</checkstyle.config.location>
-    <checkstyle.suppressions.location>${project.basedir}/checks/checkstyle/suppressions.xml</checkstyle.suppressions.location>
-    <checkstyle.header.file>${project.basedir}/checks/checkstyle/header.txt</checkstyle.header.file>
+    <checkstyle.conifg.folder.location>${project.basedir}/checks/checkstyle</checkstyle.conifg.folder.location>
+    <checkstyle.config.location>${checkstyle.conifg.folder.location}/checkstyle.xml</checkstyle.config.location>
+    <checkstyle.header.file>${checkstyle.conifg.folder.location}/header.txt</checkstyle.header.file>
     <spotbugs.excludeFilterFile>${project.basedir}/checks/spotbugs/exclude.xml</spotbugs.excludeFilterFile>
   </properties>
 
@@ -252,6 +252,7 @@
             <id>validate</id>
             <phase>validate</phase>
             <configuration>
+              <propertyExpansion>config_loc=${checkstyle.conifg.folder.location}</propertyExpansion>
               <violationSeverity>error</violationSeverity>
               <failOnViolation>true</failOnViolation>
               <failsOnError>true</failsOnError>

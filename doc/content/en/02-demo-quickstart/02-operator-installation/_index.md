@@ -57,3 +57,7 @@ kubectl port-forward "$(kubectl get pod --selector=app=stackgres-operator -o nam
 ```
 
 Then open the browser at following address `https://localhost:8443/stackgres`
+
+The UI will ask for a username and a password. By default those are `admin` and `st4ckgr3s`
+ respectively. See [installation via helm]({{% relref "/03-production-installation/02-installation-via-helm" %}})
+ section in order to change those.

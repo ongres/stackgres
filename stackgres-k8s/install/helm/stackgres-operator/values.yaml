@@ -15,6 +15,26 @@ deploy:
 cert:
   autoapprove: true
 
+service:
+  loadBalancer:
+    # Set to true to expose operator with a load balancer
+    enabled: false
+    # LoadBalancer will get created with the IP specified in this field. 
+    # This feature depends on whether the underlying cloud-provider supports
+    # specifying the loadBalancerIP when a load balancer is created. This field
+    # will be ignored if the cloud-provider does not support the feature.
+    # loadBalancerIP:
+    # If specified and supported by the platform, this will restrict traffic
+    # through the cloud-provider load-balancer will be restricted to the
+    # specified client IPs. This field will be ignored if the cloud-provider does
+    # not support the feature.
+    # More info: https://kubernetes.io/docs/tasks/access-application-cluster/configure-cloud-provider-firewall/
+    # loadBalancerSourceRanges:
+
+authentication:
+  user: admin
+  password: st4ckgr3s
+
 prometheus:
   allowAutobind: true
 

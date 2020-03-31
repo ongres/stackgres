@@ -7,6 +7,7 @@ package io.stackgres.operator.rest;
 
 import java.util.List;
 
+import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.NotFoundException;
@@ -47,8 +48,9 @@ public class AbstractRestService<T extends ResourceDto, R extends CustomResource
    * @return a list with the installed resources
    * @throws RuntimeException if no custom resource of type <code>{R}</code> is defined
    */
-  @Override
   @GET
+  @RolesAllowed(RestAuthenticationRoles.ADMIN)
+  @Override
   public List<T> list() {
     return Seq.seq(scanner.getResources())
         .map(transformer::toResource)
@@ -62,9 +64,10 @@ public class AbstractRestService<T extends ResourceDto, R extends CustomResource
    * @return the founded resource
    * @throws NotFoundException if no resource is found
    */
-  @Override
   @Path("/{namespace}/{name}")
   @GET
+  @RolesAllowed(RestAuthenticationRoles.ADMIN)
+  @Override
   public T get(@PathParam("namespace") String namespace, @PathParam("name") String name) {
     return finder.findByNameAndNamespace(name, namespace)
         .map(transformer::toResource)
@@ -75,8 +78,9 @@ public class AbstractRestService<T extends ResourceDto, R extends CustomResource
    * Creates a resource of type <code>{R}</code>.
    * @param resource the resource to create
    */
-  @Override
   @POST
+  @RolesAllowed(RestAuthenticationRoles.ADMIN)
+  @Override
   public void create(T resource) {
     scheduler.create(transformer.toCustomResource(resource));
   }
@@ -85,8 +89,9 @@ public class AbstractRestService<T extends ResourceDto, R extends CustomResource
    * Deletes a custom resource of type <code>{R}</code>.
    * @param resource the resource to delete
    */
-  @Override
   @DELETE
+  @RolesAllowed(RestAuthenticationRoles.ADMIN)
+  @Override
   public void delete(T resource) {
     scheduler.delete(transformer.toCustomResource(resource));
   }
@@ -95,8 +100,9 @@ public class AbstractRestService<T extends ResourceDto, R extends CustomResource
    * Updates a custom resource of type <code>{R}</code>.
    * @param resource the resource to delete
    */
-  @Override
   @PUT
+  @RolesAllowed(RestAuthenticationRoles.ADMIN)
+  @Override
   public void update(T resource) {
     scheduler.update(transformer.toCustomResource(resource));
   }

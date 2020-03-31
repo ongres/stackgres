@@ -35,6 +35,21 @@ You can specify following parameters values:
  manually by the kubernetes cluster administrator.
 * `prometheus-operator.create`: Create a prometheus operator and embed his grafana with StackGres
  by setting this to true. Default false.
+* `service.loadBalancer.enabled`: Create a load balancer (if supported by the kubernetes cluster)
+ to allow connect from Internet to the UI. Note that enabling this feature will probably incurr in
+ some fee that depend on the host of the kubernetes cluster (for example this is true for EKS, GKE
+ and AKS). Default false.
+* `service.loadBalancer.loadBalancerIP`: LoadBalancer will get created with the IP specified in
+ this field. This feature depends on whether the underlying cloud-provider supports specifying
+ the loadBalancerIP when a load balancer is created. This field will be ignored if the
+ cloud-provider does not support the feature.
+* `service.loadBalancer.loadBalancerSourceRanges`: If specified and supported by the platform,
+ this will restrict traffic through the cloud-provider load-balancer will be restricted to the
+ specified client IPs. This field will be ignored if the cloud-provider does not support the
+ feature.
+ More info: https://kubernetes.io/docs/tasks/access-application-cluster/configure-cloud-provider-firewall/
+* `authentication.user`: Username that will be required to access the UI. Default admin.
+* `authentication.password`: Password that will be required to access the UI. Default st4ckgr3s.
 * `grafana.autoEmbed`: Embed an existing grafana by setting grafana.autoEmbed to true
 * `grafana.schema`: the schema to access grafana. By default http. (used to embed manually and
  automatically grafana)

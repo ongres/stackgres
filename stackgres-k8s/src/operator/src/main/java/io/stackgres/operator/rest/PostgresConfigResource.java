@@ -19,7 +19,7 @@ import io.stackgres.operator.resource.CustomResourceScheduler;
 import io.stackgres.operator.rest.dto.pgconfig.PostgresConfigDto;
 import io.stackgres.operator.rest.transformer.ResourceTransformer;
 
-@Path("/stackgres/pgconfig")
+@Path("/stackgres/sgpgconfig")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class PostgresConfigResource extends

@@ -19,7 +19,7 @@ import io.stackgres.operator.resource.CustomResourceScheduler;
 import io.stackgres.operator.rest.dto.profile.ProfileDto;
 import io.stackgres.operator.rest.transformer.ResourceTransformer;
 
-@Path("/stackgres/profile")
+@Path("/stackgres/sginstanceprofile")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class ProfileResource

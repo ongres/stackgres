@@ -25,6 +25,7 @@ public class ConfigLoader implements ConfigContext {
       .put(ConfigProperty.OPERATOR_IP, StackGresUtil.OPERATOR_IP)
       .put(ConfigProperty.DOCUMENTATION_URI, StackGresUtil.DOCUMENTATION_URI)
       .put(ConfigProperty.DOCUMENTATION_ERRORS_PATH, StackGresUtil.DOCUMENTATION_ERRORS_PATH)
+      .put(ConfigProperty.AUTHENTICATION_SECRET_NAME, StackGresUtil.AUTHENTICATION_SECRET_NAME)
       .build();
 
   @Override

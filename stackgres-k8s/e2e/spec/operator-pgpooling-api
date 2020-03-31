@@ -48,6 +48,7 @@ e2e_test() {
 
   run_test "Deletion protected resources should not be deleted" test_dependency_api_error
 
+  run_test "User with wrong credentials should not be authenticated" test_authentication_api_error
 }
 
 create_pgpooling() {
@@ -73,7 +74,7 @@ delete_pgpooling_only() {
 check_pgpooling_in_list() {
   create_pgpooling
 
-  if run_curl -r "stackgres/connpoolconfig" -n "$CLUSTER_NAMESPACE" \
+  if run_curl -r "stackgres/sgpoolconfig" -n "$CLUSTER_NAMESPACE" \
     | run_jq -r ".[] | select ( .metadata.namespace == \"$CLUSTER_NAMESPACE\") | select ( .metadata.name == \"$PGPOOLING\") | .metadata.name" \
     | grep -q "^$PGPOOLING$"
   then
@@ -86,7 +87,7 @@ check_pgpooling_in_list() {
 }
 
 get_pgpooling_status() {
-  run_curl -r "stackgres/connpoolconfig/$CLUSTER_NAMESPACE/$PGPOOLING" -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}"
+  run_curl -r "stackgres/sgpoolconfig/$CLUSTER_NAMESPACE/$PGPOOLING" -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}"
 }
 
 check_pgpooling_directly() {
@@ -109,7 +110,7 @@ check_pgpooling_directly() {
 check_pgpooling_removed_from_list() {
   delete_pgpooling_only
 
-  if run_curl -r "stackgres/connpoolconfig" -n "$CLUSTER_NAMESPACE" \
+  if run_curl -r "stackgres/sgpoolconfig" -n "$CLUSTER_NAMESPACE" \
     | run_jq -r ".[] | select ( .metadata.namespace == \"$CLUSTER_NAMESPACE\") | select ( .metadata.name == \"$PGPOOLING\") | .metadata.name" \
     | grep -q "^$PGPOOLING$"
   then
@@ -126,7 +127,7 @@ check_pgpooling_deletion_directly() {
 
   delete_pgpooling_only
 
-  HTTP_STATUS="$(run_curl -r "stackgres/connpoolconfig/$CLUSTER_NAMESPACE/$PGPOOLING" -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
+  HTTP_STATUS="$(run_curl -r "stackgres/sgpoolconfig/$CLUSTER_NAMESPACE/$PGPOOLING" -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
 
   if [ "$HTTP_STATUS" -eq "404" ]
   then
@@ -145,14 +146,14 @@ create_pgpooling_with_api() {
 
   local HTTP_STATUS
 
-  HTTP_STATUS="$(run_curl -r "stackgres/connpoolconfig" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-pgpooling.json" -e '-X POST -w %{http_code} -o /dev/null')"
+  HTTP_STATUS="$(run_curl -r "stackgres/sgpoolconfig" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-pgpooling.json" -e '-X POST -w %{http_code} -o /dev/null')"
 
   if [ "$HTTP_STATUS" = "200" ] || [ "$HTTP_STATUS" = "202" ] || [ "$HTTP_STATUS" = "204" ]
   then
     echo "Request acknowledged by the operator"
   else
     local ERROR_RESPONSE
-    ERROR_RESPONSE="$(run_curl -r "stackgres/connpoolconfig" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-pgpooling.json" -e '-X POST')"
+    ERROR_RESPONSE="$(run_curl -r "stackgres/sgpoolconfig" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-pgpooling.json" -e '-X POST')"
 
     echo "Invalid response status $HTTP_STATUS. response: $ERROR_RESPONSE"
     return 1
@@ -187,14 +188,14 @@ update_pgpooling_parameter_with_api() {
 
   write_into -f "$LOG_PATH/updated-pgpooling.json" -c "$UPDATED_PGPOOLING"
 
-  HTTP_STATUS="$(run_curl -r "stackgres/connpoolconfig" -d "$LOG_PATH/updated-pgpooling.json" -e '-X PUT -w %{http_code} -o /dev/null')"
+  HTTP_STATUS="$(run_curl -r "stackgres/sgpoolconfig" -d "$LOG_PATH/updated-pgpooling.json" -e '-X PUT -w %{http_code} -o /dev/null')"
 
   if [ "$HTTP_STATUS" = "200" ] || [ "$HTTP_STATUS" = "202" ] || [ "$HTTP_STATUS" = "204" ]
   then
     echo "Request acknowledged by the operator"
   else
     local ERROR_RESPONSE
-    ERROR_RESPONSE="$(run_curl -r "stackgres/connpoolconfig" -n "$CLUSTER_NAMESPACE" -d updated-pgpooling.json -e '-X PUT')"
+    ERROR_RESPONSE="$(run_curl -r "stackgres/sgpoolconfig" -n "$CLUSTER_NAMESPACE" -d updated-pgpooling.json -e '-X PUT')"
     echo "Invalid response status $HTTP_STATUS. response: $ERROR_RESPONSE"
     return 1
   fi
@@ -220,7 +221,7 @@ test_update_pgpooling_with_api() {
 }
 
 get_pgpooling_from_api() {
-  run_curl -r "stackgres/connpoolconfig/$CLUSTER_NAMESPACE/$PGPOOLING" -n "$CLUSTER_NAMESPACE"
+  run_curl -r "stackgres/sgpoolconfig/$CLUSTER_NAMESPACE/$PGPOOLING" -n "$CLUSTER_NAMESPACE"
 }
 
 test_api_updated_pgpooling_is_visible() {
@@ -239,7 +240,7 @@ test_api_updated_pgpooling_is_visible() {
 delete_pgpooling_with_api() {
   local HTTP_STATUS
 
-  HTTP_STATUS="$(run_curl -r "stackgres/connpoolconfig" -n "$CLUSTER_NAMESPACE"  -d "$LOG_PATH/default-pgpooling.json" -e '-X DELETE -w %{http_code} -o /dev/null')"
+  HTTP_STATUS="$(run_curl -r "stackgres/sgpoolconfig" -n "$CLUSTER_NAMESPACE"  -d "$LOG_PATH/default-pgpooling.json" -e '-X DELETE -w %{http_code} -o /dev/null')"
 
   if [ "$HTTP_STATUS" = "200" ] || [ "$HTTP_STATUS" = "202" ] || [ "$HTTP_STATUS" = "204" ]
   then
@@ -247,7 +248,7 @@ delete_pgpooling_with_api() {
 
   else
     local ERROR_RESPONSE
-    ERROR_RESPONSE="$(run_curl -r "stackgres/connpoolconfig" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-pgpooling.json" -e '-X PUT')"
+    ERROR_RESPONSE="$(run_curl -r "stackgres/sgpoolconfig" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-pgpooling.json" -e '-X PUT')"
     echo "Invalid response status $HTTP_STATUS. response: $ERROR_RESPONSE"
     return 1
   fi
@@ -290,11 +291,11 @@ test_dependency_api_error(){
 
   local HTTP_STATUS
 
-  HTTP_STATUS=$(run_curl -r "stackgres/connpoolconfig" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-pgpooling.json" -e '-X DELETE -w %{http_code} -o /dev/null')
+  HTTP_STATUS=$(run_curl -r "stackgres/sgpoolconfig" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-pgpooling.json" -e '-X DELETE -w %{http_code} -o /dev/null')
 
   assert_string_equal "409" "$HTTP_STATUS" 
 
-  ERROR_RESPONSE=$(run_curl -r "stackgres/connpoolconfig" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-pgpooling.json" -e '-X DELETE')    
+  ERROR_RESPONSE=$(run_curl -r "stackgres/sgpoolconfig" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-pgpooling.json" -e '-X DELETE')    
 
   EXPECTED_ERROR_TYPE="forbidden-configuration-deletion"
   EXPECTED_ERROR_TITLE="Forbidden configuration deletion"
@@ -303,4 +304,39 @@ test_dependency_api_error(){
 
   assert_api_error "$ERROR_RESPONSE"
 
+}
+
+test_authentication_api_error() {
+  local HTTP_STATUS
+
+  HTTP_STATUS="$(run_curl -a e2e:tets -r "stackgres/sgpoolconfig"  -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
+
+  check_authentication_error
+
+  HTTP_STATUS="$(run_curl -a e2e:tets -r "stackgres/sgpoolconfig/$CLUSTER_NAMESPACE/$BACKUPCONF"  -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
+
+  check_authentication_error
+
+  HTTP_STATUS="$(run_curl -a e2e:tets -r "stackgres/sgpoolconfig" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-pgpooling.json" -e '-X POST -w %{http_code} -o /dev/null')"
+
+  check_authentication_error
+
+  HTTP_STATUS="$(run_curl -a e2e:tets -r "stackgres/sgpoolconfig" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-pgpooling.json" -e '-X PUT -w %{http_code} -o /dev/null')"
+
+  check_authentication_error
+
+  HTTP_STATUS="$(run_curl -a e2e:tets -r "stackgres/sgpoolconfig" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-pgpooling.json" -e '-X DELETE -w %{http_code} -o /dev/null')"
+
+  check_authentication_error
+}
+
+check_authentication_error() {
+  if [ "$HTTP_STATUS" = "401" ]
+  then
+    echo "Request returned expected authentication error"
+    return 0
+  else
+    echo "Request returned unexpected response status $HTTP_STATUS instead of the expected authentication error."
+    return 1
+  fi
 }

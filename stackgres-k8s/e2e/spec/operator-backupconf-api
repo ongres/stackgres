@@ -52,6 +52,8 @@ e2e_test() {
 
   run_test "Constraint violations should be detected" test_constraint_violation_api_error
 
+  run_test "User with wrong credentials should not be authenticated" test_authentication_api_error
+
 }
 
 create_backupconfig() {
@@ -77,7 +79,7 @@ delete_backupconfig_only() {
 check_backupconfig_in_list() {
   create_backupconfig
 
-  if run_curl -r "stackgres/backupconfig" -n "$CLUSTER_NAMESPACE" \
+  if run_curl -r "stackgres/sgbackupconfig" -n "$CLUSTER_NAMESPACE" \
     | run_jq -c ".[] | select ( .metadata.namespace == \"$CLUSTER_NAMESPACE\") | select ( .metadata.name == \"$BACKUPCONF\") | .metadata.name" -r \
     | grep -q "^$BACKUPCONF$"
   then
@@ -90,7 +92,7 @@ check_backupconfig_in_list() {
 }
 
 get_backupconfig_status() {
-  run_curl -r "stackgres/backupconfig/$CLUSTER_NAMESPACE/$BACKUPCONF"  -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}"
+  run_curl -r "stackgres/sgbackupconfig/$CLUSTER_NAMESPACE/$BACKUPCONF"  -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}"
 }
 
 check_backupconfig_directly() {
@@ -113,7 +115,7 @@ check_backupconfig_directly() {
 check_backupconfig_removed_from_list() {
   delete_backupconfig_only
 
-  if run_curl -r "stackgres/backupconfig"  -n "$CLUSTER_NAMESPACE" \
+  if run_curl -r "stackgres/sgbackupconfig"  -n "$CLUSTER_NAMESPACE" \
     | run_jq -c ".[] | select ( .metadata.namespace == \"$CLUSTER_NAMESPACE\") | select ( .metadata.name == \"$BACKUPCONF\") | .metadata.name" -r \
     | grep -q "^$BACKUPCONF$"
   then
@@ -130,7 +132,7 @@ check_backupconfig_deletion_directly() {
 
   delete_backupconfig_only
 
-  HTTP_STATUS="$(run_curl -r "stackgres/backupconfig/$CLUSTER_NAMESPACE/$BACKUPCONF" -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
+  HTTP_STATUS="$(run_curl -r "stackgres/sgbackupconfig/$CLUSTER_NAMESPACE/$BACKUPCONF" -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
 
   if [ "$HTTP_STATUS" -eq "404" ]
   then
@@ -151,14 +153,14 @@ create_backupconfig_with_api() {
 
   echo "Sending creation request"
 
-  HTTP_STATUS="$(run_curl -r "stackgres/backupconfig" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-backupconfig.json" -e '-X POST -w %{http_code} -o /dev/null')"
+  HTTP_STATUS="$(run_curl -r "stackgres/sgbackupconfig" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-backupconfig.json" -e '-X POST -w %{http_code} -o /dev/null')"
 
   if [ "$HTTP_STATUS" = "200" ] || [ "$HTTP_STATUS" = "202" ] || [ "$HTTP_STATUS" = "204" ]
   then
     echo "Request acknowledged by the operator"
   else
     local ERROR_RESPONSE
-    ERROR_RESPONSE="$(run_curl -r "stackgres/backupconfig" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-backupconfig.json" -e '-X POST')"
+    ERROR_RESPONSE="$(run_curl -r "stackgres/sgbackupconfig" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-backupconfig.json" -e '-X POST')"
     echo "Invalid response status $HTTP_STATUS. response: $ERROR_RESPONSE"
     return 1
   fi
@@ -188,14 +190,14 @@ update_backupconfig_parameter_with_api() {
   UPDATED_BACKUPCONFIG=$(cat "$LOG_PATH/default-backupconfig.json" | run_jq ".spec[\"$1\"] = $2" )
   echo "$UPDATED_BACKUPCONFIG" > "$LOG_PATH/updated-backupconfig.json"
 
-  HTTP_STATUS="$(run_curl -r "stackgres/backupconfig" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/updated-backupconfig.json" -e '-X PUT -w %{http_code} -o /dev/null')"
+  HTTP_STATUS="$(run_curl -r "stackgres/sgbackupconfig" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/updated-backupconfig.json" -e '-X PUT -w %{http_code} -o /dev/null')"
 
   if [ "$HTTP_STATUS" = "200" ] || [ "$HTTP_STATUS" = "202" ] || [ "$HTTP_STATUS" = "204" ]
   then
     echo "Request acknowledged by the operator"
   else
     local ERROR_RESPONSE
-    ERROR_RESPONSE="$(run_curl -r "stackgres/backupconfig" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/updated-backupconfig.json" -e '-X PUT')"
+    ERROR_RESPONSE="$(run_curl -r "stackgres/sgbackupconfig" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/updated-backupconfig.json" -e '-X PUT')"
 
     echo "Invalid response status $HTTP_STATUS. response: $ERROR_RESPONSE"
     return 1
@@ -218,7 +220,7 @@ test_update_backupconfig_with_api() {
 }
 
 get_backupconfig_from_api() {
-  run_curl -r "stackgres/backupconfig/$CLUSTER_NAMESPACE/$BACKUPCONF" -n "$CLUSTER_NAMESPACE"
+  run_curl -r "stackgres/sgbackupconfig/$CLUSTER_NAMESPACE/$BACKUPCONF" -n "$CLUSTER_NAMESPACE"
 }
 
 test_api_updated_backupconfig_is_visible() {
@@ -237,7 +239,7 @@ test_api_updated_backupconfig_is_visible() {
 delete_backupconfig_with_api() {
   local HTTP_STATUS
 
-  HTTP_STATUS="$(run_curl -r "stackgres/backupconfig" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-backupconfig.json" -e '-X DELETE -w %{http_code} -o /dev/null')"
+  HTTP_STATUS="$(run_curl -r "stackgres/sgbackupconfig" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-backupconfig.json" -e '-X DELETE -w %{http_code} -o /dev/null')"
 
   if [ "$HTTP_STATUS" = "200" ] || [ "$HTTP_STATUS" = "202" ] || [ "$HTTP_STATUS" = "204" ]
   then
@@ -245,7 +247,7 @@ delete_backupconfig_with_api() {
     return 0
   else
     local ERROR_RESPONSE
-    ERROR_RESPONSE="$(run_curl -r "stackgres/backupconfig" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-backupconfig.json" -e '-X PUT')"
+    ERROR_RESPONSE="$(run_curl -r "stackgres/sgbackupconfig" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-backupconfig.json" -e '-X PUT')"
     echo "Invalid response status $HTTP_STATUS. response: $ERROR_RESPONSE"
     return 1
   fi
@@ -287,11 +289,11 @@ test_constraint_violation_api_error() {
   
   local HTTP_STATUS
 
-  HTTP_STATUS="$(run_curl -r "stackgres/backupconfig" -n "$CLUSTER_NAMESPACE"  -d "$LOG_PATH/invalid-backupconfig.json" -e '-X POST -w %{http_code} -o /dev/null')"
+  HTTP_STATUS="$(run_curl -r "stackgres/sgbackupconfig" -n "$CLUSTER_NAMESPACE"  -d "$LOG_PATH/invalid-backupconfig.json" -e '-X POST -w %{http_code} -o /dev/null')"
 
   assert_string_equal "422" "$HTTP_STATUS"
 
-  ERROR_RESPONSE="$(run_curl -r "stackgres/backupconfig" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/invalid-backupconfig.json" -e '-X POST')"
+  ERROR_RESPONSE="$(run_curl -r "stackgres/sgbackupconfig" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/invalid-backupconfig.json" -e '-X POST')"
 
   EXPECTED_ERROR_TYPE="constraint-violation"
   EXPECTED_ERROR_TITLE="doesn't complain syntactic rules"
@@ -300,4 +302,39 @@ test_constraint_violation_api_error() {
 
   assert_api_error "$ERROR_RESPONSE"
 
+}
+
+test_authentication_api_error() {
+  local HTTP_STATUS
+
+  HTTP_STATUS="$(run_curl -a e2e:tets -r "stackgres/sgbackupconfig"  -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
+
+  check_authentication_error
+
+  HTTP_STATUS="$(run_curl -a e2e:tets -r "stackgres/sgbackupconfig/$CLUSTER_NAMESPACE/$BACKUPCONF"  -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
+
+  check_authentication_error
+
+  HTTP_STATUS="$(run_curl -a e2e:tets -r "stackgres/sgbackupconfig" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-backupconfig.json" -e '-X POST -w %{http_code} -o /dev/null')"
+
+  check_authentication_error
+
+  HTTP_STATUS="$(run_curl -a e2e:tets -r "stackgres/sgbackupconfig" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-backupconfig.json" -e '-X PUT -w %{http_code} -o /dev/null')"
+
+  check_authentication_error
+
+  HTTP_STATUS="$(run_curl -a e2e:tets -r "stackgres/sgbackupconfig" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-backupconfig.json" -e '-X DELETE -w %{http_code} -o /dev/null')"
+
+  check_authentication_error
+}
+
+check_authentication_error() {
+  if [ "$HTTP_STATUS" = "401" ]
+  then
+    echo "Request returned expected authentication error"
+    return 0
+  else
+    echo "Request returned unexpected response status $HTTP_STATUS instead of the expected authentication error."
+    return 1
+  fi
 }

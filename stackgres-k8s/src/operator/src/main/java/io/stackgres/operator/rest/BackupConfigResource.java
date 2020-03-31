@@ -12,6 +12,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.Path;
@@ -48,7 +49,7 @@ import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple2;
 import org.jooq.lambda.tuple.Tuple4;
 
-@Path("/stackgres/backupconfig")
+@Path("/stackgres/sgbackupconfig")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class BackupConfigResource extends
@@ -87,6 +88,7 @@ public class BackupConfigResource extends
     this.secretWriter = null;
   }
 
+  @RolesAllowed(RestAuthenticationRoles.ADMIN)
   @Override
   public List<BackupConfigDto> list() {
     return Seq.seq(super.list())
@@ -94,6 +96,7 @@ public class BackupConfigResource extends
         .toList();
   }
 
+  @RolesAllowed(RestAuthenticationRoles.ADMIN)
   @Override
   public BackupConfigDto get(String namespace, String name) {
     return Optional.of(super.get(namespace, name))
@@ -101,6 +104,7 @@ public class BackupConfigResource extends
         .get();
   }
 
+  @RolesAllowed(RestAuthenticationRoles.ADMIN)
   @Override
   public void create(BackupConfigDto resource) {
     setSecretKeySelectors(resource);
@@ -108,6 +112,7 @@ public class BackupConfigResource extends
     super.create(resource);
   }
 
+  @RolesAllowed(RestAuthenticationRoles.ADMIN)
   @Override
   public void delete(BackupConfigDto resource) {
     setSecretKeySelectors(resource);
@@ -115,6 +120,7 @@ public class BackupConfigResource extends
     deleteSecret(resource);
   }
 
+  @RolesAllowed(RestAuthenticationRoles.ADMIN)
   @Override
   public void update(BackupConfigDto resource) {
     setSecretKeySelectors(resource);
