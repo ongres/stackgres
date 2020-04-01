@@ -64,7 +64,7 @@ var ClusterOverview = Vue.component("cluster-overview", {
 								</td>
 								
 								<template v-for="profile in profiles">
-									<template v-if="(profile.data.metadata.namespace == currentNamespace) && (cluster.data.spec.resourceProfile == profile.name)">
+									<template v-if="(profile.data.metadata.namespace == currentNamespace) && (cluster.data.spec.sgInstanceProfile == profile.name)">
 										<td class="cpu">
 											<router-link :to="'/cluster/status/'+currentNamespace+'/'+cluster.name" title="Cluster Status" data-active=".set.clu" class="no-color">
 												{{ profile.data.spec.cpu }}
@@ -80,7 +80,7 @@ var ClusterOverview = Vue.component("cluster-overview", {
 
 								<td class="volumeSize">
 									<router-link :to="'/cluster/status/'+currentNamespace+'/'+cluster.name" title="Cluster Status" data-active=".set.clu" class="no-color">
-										{{ cluster.data.spec.volumeSize }}
+										{{ cluster.data.spec.pods.persistentVolume.size }}
 									</router-link>
 								</td>
 								<td class="health">
