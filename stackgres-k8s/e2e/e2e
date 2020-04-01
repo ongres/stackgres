@@ -14,7 +14,7 @@ DEFAULT_K8S_VERSION="1.13.12"
 KUBECONFIG="${KUBECONFIG:-$HOME/.kube/config}"
 SPEC_PATH="$(dirname "$0")/spec"
 TARGET_PATH="${TARGET_PATH:-$(dirname "$0")/target}"
-TARGET_PATH="$(realpath $TARGET_PATH)"
+TARGET_PATH="$(realpath "$TARGET_PATH")"
 LOG_PATH="$TARGET_PATH"
 
 E2E_ENV="${E2E_ENV:-kind}"
@@ -25,6 +25,7 @@ E2E_OPERATOR_PULL_POLICY="${E2E_OPERATOR_PULL_POLICY:-Never}"
 E2E_BUILD_OPERATOR="${E2E_BUILD_OPERATOR:-true}"
 E2E_WAIT_OPERATOR="${E2E_WAIT_OPERATOR:-true}"
 E2E_USE_INTERMIDIATE_PRIVATE_REPO="${E2E_USE_INTERMIDIATE_PRIVATE_REPO:-false}"
+E2E_SKIP_OPERATOR_LOAD="${E2E_SKIP_OPERATOR_LOAD:-false}"
 
 if [ -z "$STACKGRES_PATH" ]
 then
@@ -123,10 +124,11 @@ setup_k8s() {
   then
     if [ "$E2E_FORCE_IMAGE_PULL" = "true" ]
     then
-      docker pull $IMAGE_NAME
+      docker pull "$IMAGE_NAME"
     fi
 
-    if [ "$E2E_USE_INTERMIDIATE_PRIVATE_REPO" != true ] \
+    if [ "$E2E_USE_INTERMIDIATE_PRIVATE_REPO" != true \
+        -a "$E2E_SKIP_OPERATOR_LOAD" != true ] \
       && docker image inspect "$IMAGE_NAME" >/dev/null 2>&1
     then 
       load_operator_k8s
