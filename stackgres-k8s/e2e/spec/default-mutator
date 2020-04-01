@@ -35,7 +35,7 @@ create_empty_pg_config() {
     name: $PGCONFIG
     namespace: $CLUSTER_NAMESPACE
   spec:
-    pgVersion: "11"
+    postgresVersion: "11"
 EOF
 
   local CREATED_FIELDS=$(kubectl get sgpgconfigs.stackgres.io -n $CLUSTER_NAMESPACE $PGCONFIG -o json | run_jq '.spec["postgresql.conf"] | length')
@@ -70,12 +70,13 @@ create_empty_pg_bouncer() {
     name: $PGCBOUNCER
     namespace: $CLUSTER_NAMESPACE
   spec:
-    pgbouncer.ini:
-      unsignificant: true
+    pgBouncer:
+      pgbouncer.ini:
+        unsignificant: true
 EOF
 
-  local CREATED_FIELDS=$(kubectl get sgpoolconfigs.stackgres.io -n $CLUSTER_NAMESPACE $PGCBOUNCER -o json | run_jq '.spec["pgbouncer.ini"] | length')
-  local DEFAULT_FIELDS=$(get_default_conn_pool -o json | run_jq '.spec["pgbouncer.ini"] | length')
+  local CREATED_FIELDS=$(kubectl get sgpoolconfigs.stackgres.io -n $CLUSTER_NAMESPACE $PGCBOUNCER -o json | run_jq '.spec.pgBouncer["pgbouncer.ini"] | length')
+  local DEFAULT_FIELDS=$(get_default_conn_pool -o json | run_jq '.spec.pgBouncer["pgbouncer.ini"] | length')
 
   if [ $CREATED_FIELDS = $((DEFAULT_FIELDS + 1)) ]
   then

@@ -13,11 +13,11 @@ import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
 import com.github.fge.jsonpatch.JsonPatchOperation;
-import io.stackgres.operator.common.PgBouncerReview;
+import io.stackgres.operator.common.PoolingReview;
 import io.stackgres.operatorframework.admissionwebhook.mutating.JsonPatchMutationPipeline;
 
 @ApplicationScoped
-public class PgBouncerPipeline implements JsonPatchMutationPipeline<PgBouncerReview> {
+public class PgBouncerPipeline implements JsonPatchMutationPipeline<PoolingReview> {
 
   private Instance<PgBouncerMutator> mutators;
 
@@ -27,7 +27,7 @@ public class PgBouncerPipeline implements JsonPatchMutationPipeline<PgBouncerRev
   }
 
   @Override
-  public Optional<String> mutate(PgBouncerReview review) {
+  public Optional<String> mutate(PoolingReview review) {
     List<JsonPatchOperation> operations = new ArrayList<>();
 
     mutators.forEach(mutator -> operations.addAll(mutator.mutate(review)));

@@ -7,12 +7,12 @@ package io.stackgres.operator.mutation.pgbouncer;
 
 import javax.enterprise.context.ApplicationScoped;
 
-import io.stackgres.operator.common.PgBouncerReview;
+import io.stackgres.operator.common.PoolingReview;
 import io.stackgres.operator.mutation.AbstractAnnotationMutator;
-import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfig;
+import io.stackgres.operator.sidecars.pooling.customresources.StackGresPoolingConfig;
 
 @ApplicationScoped
 public class PgBouncerAnnotationMutator
-    extends AbstractAnnotationMutator<StackGresPgbouncerConfig, PgBouncerReview>
+    extends AbstractAnnotationMutator<StackGresPoolingConfig, PoolingReview>
     implements PgBouncerMutator {
 }

@@ -14,7 +14,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import io.quarkus.runtime.StartupEvent;
-import io.stackgres.operator.common.PgBouncerReview;
+import io.stackgres.operator.common.PoolingReview;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReviewResponse;
 import io.stackgres.operatorframework.admissionwebhook.mutating.JsonPatchMutationPipeline;
 import io.stackgres.operatorframework.admissionwebhook.mutating.MutationResource;
@@ -25,15 +25,15 @@ import org.slf4j.LoggerFactory;
 @Path(MutationUtil.CONNPOOLCONFIG_MUTATION_PATH)
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-public class SgPgBouncerMutationResource implements MutationResource<PgBouncerReview> {
+public class SgPgBouncerMutationResource implements MutationResource<PoolingReview> {
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(SgPgBouncerMutationResource.class);
 
-  private JsonPatchMutationPipeline<PgBouncerReview> pipeline;
+  private JsonPatchMutationPipeline<PoolingReview> pipeline;
 
   @Inject
-  public void setPipeline(JsonPatchMutationPipeline<PgBouncerReview> pipeline) {
+  public void setPipeline(JsonPatchMutationPipeline<PoolingReview> pipeline) {
     this.pipeline = pipeline;
   }
 
@@ -43,7 +43,7 @@ public class SgPgBouncerMutationResource implements MutationResource<PgBouncerRe
 
   @POST
   @Override
-  public AdmissionReviewResponse mutate(PgBouncerReview admissionReview) {
+  public AdmissionReviewResponse mutate(PoolingReview admissionReview) {
     return mutate(admissionReview, pipeline);
   }
 }

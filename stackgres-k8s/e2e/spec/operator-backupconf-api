@@ -5,11 +5,11 @@ e2e_test_install() {
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 --set cluster.create=false --set cluster.backupconfig="$BACKUPCONF" \
     --set config.backup.create=true --set config.backup.minio.create=false \
-    --set-string config.backup.s3compatible.bucket=test \
-    --set-string config.backup.s3compatible.accessKey.name=test \
-    --set-string config.backup.s3compatible.accessKey.key=test \
-    --set-string config.backup.s3compatible.secretKey.name=test \
-    --set-string config.backup.s3compatible.secretKey.key=test
+    --set-string config.backup.s3Compatible.bucket=test \
+    --set-string config.backup.s3Compatible.accessKey.name=test \
+    --set-string config.backup.s3Compatible.accessKey.key=test \
+    --set-string config.backup.s3Compatible.secretKey.name=test \
+    --set-string config.backup.s3Compatible.secretKey.key=test
 
   deploy_curl_pod "$CLUSTER_NAMESPACE"
 
@@ -20,8 +20,8 @@ e2e_test_install() {
   
   DEFAULT_BACKUPCONFIG=$(cat "$LOG_PATH/default-backupconfig-cr.json" \
     | run_jq 'del(.apiVersion) | del(.kind)' \
-    | run_jq '.spec.storage.s3compatible.awsCredentials.accessKeyId = "secret"
-      | .spec.storage.s3compatible.awsCredentials.secretAccessKey = "secret"')
+    | run_jq '.spec.storage.s3Compatible.awsCredentials.accessKeyId = "secret"
+      | .spec.storage.s3Compatible.awsCredentials.secretAccessKey = "secret"')
   echo "$DEFAULT_BACKUPCONFIG" > "$LOG_PATH/default-backupconfig.json"
 
   kubectl delete sgbackupconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUPCONF"
@@ -48,11 +48,11 @@ e2e_test() {
 
   run_test "Backup config update to s3 storage with the api" test_update_backupconfig_to_s3_with_api
 
-  run_test "Backup config update to s3compatible storage with the api" test_update_backupconfig_to_s3compatible_with_api
+  run_test "Backup config update to s3Compatible storage with the api" test_update_backupconfig_to_s3compatible_with_api
 
   run_test "Backup config update to gcs storage with the api" test_update_backupconfig_to_gcs_with_api
 
-  run_test "Backup config update to azureblob storage with the api" test_update_backupconfig_to_azureblob_with_api
+  run_test "Backup config update to azureBlob storage with the api" test_update_backupconfig_to_azureblob_with_api
 
   run_test "Check that backup config changes are reflected in the api" test_api_updated_backupconfig_is_visible
 
@@ -259,8 +259,8 @@ test_update_backupconfig_to_s3_with_api() {
 
 test_update_backupconfig_to_s3compatible_with_api() {
   update_backupconfig_parameter_with_api 'storage' '{
-    "type":"s3compatible",
-    "s3compatible": {
+    "type":"s3Compatible",
+    "s3Compatible": {
       "bucket": "test",
       "awsCredentials": {
         "accessKeyId": "secret",
@@ -270,11 +270,11 @@ test_update_backupconfig_to_s3compatible_with_api() {
   }'
 
   if kubectl get sgbackupconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUPCONF" -o jsonpath='{.spec.storage.type}' \
-    | grep -q "^s3compatible$"
+    | grep -q "^s3Compatible$"
   then
-    echo "Backup config s3compatible storage was updated"
+    echo "Backup config s3Compatible storage was updated"
   else
-    echo "Backup config s3compatible storage was not updated"
+    echo "Backup config s3Compatible storage was not updated"
     return 1
   fi
 }
@@ -302,8 +302,8 @@ test_update_backupconfig_to_gcs_with_api() {
 
 test_update_backupconfig_to_azureblob_with_api() {
   update_backupconfig_parameter_with_api 'storage' '{
-    "type":"azureblob",
-    "azureblob": {
+    "type":"azureBlob",
+    "azureBlob": {
       "bucket": "test",
       "azureCredentials": {
         "storageAccount": "secret",
@@ -313,11 +313,11 @@ test_update_backupconfig_to_azureblob_with_api() {
   }'
 
   if kubectl get sgbackupconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUPCONF" -o jsonpath='{.spec.storage.type}' \
-    | grep -q "^azureblob$"
+    | grep -q "^azureBlob$"
   then
-    echo "Backup config azureblob storage was updated"
+    echo "Backup config azureBlob storage was updated"
   else
-    echo "Backup config azureblob storage was not updated"
+    echo "Backup config azureBlob storage was not updated"
     return 1
   fi
 }

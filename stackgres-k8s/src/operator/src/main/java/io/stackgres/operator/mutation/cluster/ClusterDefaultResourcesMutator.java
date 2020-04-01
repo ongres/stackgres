@@ -20,7 +20,7 @@ import io.stackgres.operator.customresource.sgcluster.StackGresClusterSpec;
 import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfile;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
-import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfig;
+import io.stackgres.operator.sidecars.pooling.customresources.StackGresPoolingConfig;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 
 public class ClusterDefaultResourcesMutator implements ClusterMutator {
@@ -28,14 +28,14 @@ public class ClusterDefaultResourcesMutator implements ClusterMutator {
   private KubernetesClientFactory factory;
 
   private DefaultCustomResourceFactory<StackGresPostgresConfig> postgresFactory;
-  private DefaultCustomResourceFactory<StackGresPgbouncerConfig> pgbouncerFactory;
+  private DefaultCustomResourceFactory<StackGresPoolingConfig> pgbouncerFactory;
   private DefaultCustomResourceFactory<StackGresProfile> profileFactory;
   private DefaultCustomResourceFactory<StackGresBackupConfig> backupFactory;
 
   private transient String installedNamespace;
 
   private transient StackGresPostgresConfig defaultPostgresConfig;
-  private transient StackGresPgbouncerConfig defaultPgBouncerConfig;
+  private transient StackGresPoolingConfig defaultPgBouncerConfig;
   private transient StackGresProfile defaultProfile;
   private transient StackGresBackupConfig defaultBackup;
 
@@ -43,7 +43,7 @@ public class ClusterDefaultResourcesMutator implements ClusterMutator {
   public ClusterDefaultResourcesMutator(
       KubernetesClientFactory factory,
       DefaultCustomResourceFactory<StackGresPostgresConfig> postgresFactory,
-      DefaultCustomResourceFactory<StackGresPgbouncerConfig> pgbouncerFactory,
+      DefaultCustomResourceFactory<StackGresPoolingConfig> pgbouncerFactory,
       DefaultCustomResourceFactory<StackGresProfile> profileFactory,
       DefaultCustomResourceFactory<StackGresBackupConfig> backupFactory) {
 

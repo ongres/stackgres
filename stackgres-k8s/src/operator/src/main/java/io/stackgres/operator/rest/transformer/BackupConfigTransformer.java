@@ -88,8 +88,8 @@ public class BackupConfigTransformer
     }
     io.stackgres.operator.customresource.storages.BackupStorage transformation =
         new io.stackgres.operator.customresource.storages.BackupStorage();
-    transformation.setAzureblob(
-        getCustomResourceAzureblobStorage(source.getAzureblob()));
+    transformation.setAzureBlob(
+        getCustomResourceAzureblobStorage(source.getAzureBlob()));
     transformation.setGcs(
         getCustomResourceGcsStorage(source.getGcs()));
     transformation.setS3(
@@ -107,7 +107,7 @@ public class BackupConfigTransformer
     }
     io.stackgres.operator.customresource.storages.AzureBlobStorage transformation =
         new io.stackgres.operator.customresource.storages.AzureBlobStorage();
-    transformation.setCredentials(
+    transformation.setAzureCredentials(
         getCustomResourceAzureblobStorageCredentials(source.getCredentials()));
     transformation.setBucket(source.getBucket());
     transformation.setPath(source.getPath());
@@ -253,8 +253,8 @@ public class BackupConfigTransformer
       return null;
     }
     BackupStorage transformation = new BackupStorage();
-    transformation.setAzureblob(
-        getResourceAzureblobStorage(source.getAzureblob()));
+    transformation.setAzureBlob(
+        getResourceAzureblobStorage(source.getAzureBlob()));
     transformation.setGcs(
         getResourceGcsStorage(source.getGcs()));
     transformation.setS3(
@@ -272,7 +272,7 @@ public class BackupConfigTransformer
     }
     AzureBlobStorage transformation = new AzureBlobStorage();
     transformation.setCredentials(
-        getResourceAzureblobStorageCredentials(source.getCredentials()));
+        getResourceAzureblobStorageCredentials(source.getAzureCredentials()));
     transformation.setBucket(source.getBucket());
     transformation.setPath(source.getPath());
     return transformation;

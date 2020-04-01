@@ -50,7 +50,7 @@ public class PostgresConfigTransformer
       return null;
     }
     StackGresPostgresConfigSpec transformation = new StackGresPostgresConfigSpec();
-    transformation.setPgVersion(source.getPgVersion());
+    transformation.setPostgresVersion(source.getPostgresVersion());
     final String postgresqlConf = source.getPostgresqlConf();
     if (postgresqlConf != null) {
       transformation.setPostgresqlConf(Seq.of(postgresqlConf.split("\n"))
@@ -69,7 +69,7 @@ public class PostgresConfigTransformer
       return null;
     }
     PostgresConfigSpec transformation = new PostgresConfigSpec();
-    transformation.setPgVersion(source.getPgVersion());
+    transformation.setPostgresVersion(source.getPostgresVersion());
     transformation.setPostgresqlConf(
         Seq.seq(source.getPostgresqlConf().entrySet())
             .map(e -> e.getKey() + "=" + e.getValue())

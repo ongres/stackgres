@@ -5,7 +5,7 @@
 
 package io.stackgres.operator.validation;
 
-import io.stackgres.operator.common.PgBouncerReview;
+import io.stackgres.operator.common.PoolingReview;
 import io.stackgres.operator.utils.JsonUtil;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 
@@ -18,17 +18,17 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 @RunWith(MockitoJUnitRunner.class)
-class PgBouncerValidationResourceTest extends ValidationResourceTest<PgBouncerReview> {
+class PgBouncerValidationResourceTest extends ValidationResourceTest<PoolingReview> {
 
     @BeforeEach
     public void setUp() {
         resource = new PgBouncerValidationResource(pipeline);
 
         review = JsonUtil
-                .readFromJson("pgbouncer_allow_request/create.json", PgBouncerReview.class);
+                .readFromJson("pooling_allow_request/create.json", PoolingReview.class);
 
-        deleteReview = JsonUtil.readFromJson("pgbouncer_allow_request/delete.json",
-                PgBouncerReview.class);
+        deleteReview = JsonUtil.readFromJson("pooling_allow_request/delete.json",
+                PoolingReview.class);
     }
 
     @Test

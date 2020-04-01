@@ -294,7 +294,7 @@ test_api_delete_pgconfig_is_invible() {
 
 test_constraint_violation_api_error() {
 
-  INVALID_PGCONFIG=$(cat "$LOG_PATH/default-pgconfig.json" | run_jq 'del (.spec.pgVersion)' )
+  INVALID_PGCONFIG=$(cat "$LOG_PATH/default-pgconfig.json" | run_jq 'del (.spec.postgresVersion)' )
 
   echo "$INVALID_PGCONFIG" > "$LOG_PATH/invalid-pgconfig.json"
   
@@ -308,8 +308,8 @@ test_constraint_violation_api_error() {
 
   EXPECTED_ERROR_TYPE="constraint-violation"
   EXPECTED_ERROR_TITLE="do not comply with the syntactic rules"
-  EXPECTED_ERROR_DETAIL="spec.pgVersion in body"
-  EXPECTED_ERROR_FIELD="pgVersion"
+  EXPECTED_ERROR_DETAIL="spec.postgresVersion in body"
+  EXPECTED_ERROR_FIELD="postgresVersion"
 
   if ! assert_api_error "$ERROR_RESPONSE"
   then

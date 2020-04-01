@@ -17,8 +17,6 @@ import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFail
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 class PgConfigUpdateValidatorTest {
 
   private PgConfigReview review;
@@ -40,8 +38,8 @@ class PgConfigUpdateValidatorTest {
   void ifNoUpdatesOfPgVersion_shouldPass() throws ValidationFailed {
 
     final AdmissionRequest<StackGresPostgresConfig> request = review.getRequest();
-    request.getObject().getSpec().setPgVersion("12");
-    request.getOldObject().getSpec().setPgVersion("12");
+    request.getObject().getSpec().setPostgresVersion("12");
+    request.getOldObject().getSpec().setPostgresVersion("12");
 
     validator.validate(review);
   }
@@ -50,15 +48,15 @@ class PgConfigUpdateValidatorTest {
   void updatesOfPgVersion_shouldFail() {
 
     final AdmissionRequest<StackGresPostgresConfig> request = review.getRequest();
-    request.getObject().getSpec().setPgVersion("12");
-    request.getOldObject().getSpec().setPgVersion("11");
+    request.getObject().getSpec().setPostgresVersion("12");
+    request.getOldObject().getSpec().setPostgresVersion("11");
 
     ValidationFailed vf = ValidationUtils
         .assertErrorType(ErrorType.FORBIDDEN_CR_UPDATE, () -> validator.validate(review));
 
     ValidationUtils.checkErrorCause(vf.getResult(),
-        "spec.pgVersion",
-        "pgVersion is not updatable",
+        "spec.postgresVersion",
+        "postgresVersion is not updatable",
         "FieldNotUpdatable");
 
   }

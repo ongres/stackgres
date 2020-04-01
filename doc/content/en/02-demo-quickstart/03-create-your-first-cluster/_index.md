@@ -53,8 +53,8 @@ metadata:
   name: simple
 spec:
   storage:
-    type: s3compatible
-    s3compatible:
+    type: s3Compatible
+    s3Compatible:
       credentials:
         accessKey:
           key: accesskey
