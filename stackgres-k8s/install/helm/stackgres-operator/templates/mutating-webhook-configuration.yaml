@@ -5,7 +5,9 @@ metadata:
   namespace: {{ .Release.Namespace }}
 webhooks:
   - name: sgcluster.{{ .Release.Name }}.{{ .Release.Namespace }}
+    {{- if gt (atoi .Capabilities.KubeVersion.Major) 12 }}
     sideEffects: None
+    {{- end }}
     rules:
       - operations: ["CREATE"]
         apiGroups: ["stackgres.io"]
@@ -19,9 +21,13 @@ webhooks:
         path: '/stackgres/mutation/sgcluster'
       {{- if .Values.cert.crt }}
       caBundle: {{ .Values.cert.crt }}
+      {{- else }}
+      caBundle: ""
       {{- end }}
   - name: sgpgconfig.{{ .Release.Name }}.{{ .Release.Namespace }}
+    {{- if gt (atoi .Capabilities.KubeVersion.Major) 12 }}
     sideEffects: None
+    {{- end }}
     rules:
       - operations: ["CREATE"]
         apiGroups: ["stackgres.io"]
@@ -35,9 +41,13 @@ webhooks:
         path: '/stackgres/mutation/sgpgconfig'
       {{- if .Values.cert.crt }}
       caBundle: {{ .Values.cert.crt }}
+      {{- else }}
+      caBundle: ""
       {{- end }}
   - name: sgpoolconfig.{{ .Release.Name }}.{{ .Release.Namespace }}
+    {{- if gt (atoi .Capabilities.KubeVersion.Major) 12 }}
     sideEffects: None
+    {{- end }}
     rules:
       - operations: ["CREATE"]
         apiGroups: ["stackgres.io"]
@@ -51,9 +61,13 @@ webhooks:
         path: '/stackgres/mutation/sgpoolconfig'
       {{- if .Values.cert.crt }}
       caBundle: {{ .Values.cert.crt }}
+      {{- else }}
+      caBundle: ""
       {{- end }}
   - name: sginstanceprofile.{{ .Release.Name }}.{{ .Release.Namespace }}
+    {{- if gt (atoi .Capabilities.KubeVersion.Major) 12 }}
     sideEffects: None
+    {{- end }}
     rules:
       - operations: ["CREATE"]
         apiGroups: ["stackgres.io"]
@@ -67,9 +81,13 @@ webhooks:
         path: '/stackgres/mutation/sginstanceprofile'
       {{- if .Values.cert.crt }}
       caBundle: {{ .Values.cert.crt }}
+      {{- else }}
+      caBundle: ""
       {{- end }}
   - name: sgbackupconfig.{{ .Release.Name }}.{{ .Release.Namespace }}
+    {{- if gt (atoi .Capabilities.KubeVersion.Major) 12 }}
     sideEffects: None
+    {{- end }}
     rules:
       - operations: ["CREATE"]
         apiGroups: ["stackgres.io"]
@@ -83,9 +101,13 @@ webhooks:
         path: '/stackgres/mutation/sgbackupconfig'
       {{- if .Values.cert.crt }}
       caBundle: {{ .Values.cert.crt }}
+      {{- else }}
+      caBundle: ""
       {{- end }}
   - name: sgbackup.{{ .Release.Name }}.{{ .Release.Namespace }}
+    {{- if gt (atoi .Capabilities.KubeVersion.Major) 12 }}
     sideEffects: None
+    {{- end }}
     rules:
       - operations: ["CREATE"]
         apiGroups: ["stackgres.io"]
@@ -99,5 +121,7 @@ webhooks:
         path: '/stackgres/mutation/sgbackup'
       {{- if .Values.cert.crt }}
       caBundle: {{ .Values.cert.crt }}
+      {{- else }}
+      caBundle: ""
       {{- end }}
 

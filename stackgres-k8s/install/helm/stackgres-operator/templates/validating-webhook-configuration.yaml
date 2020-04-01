@@ -5,7 +5,9 @@ metadata:
   namespace: {{ .Release.Namespace }}
 webhooks:
   - name: sgcluster.{{ .Release.Name }}.{{ .Release.Namespace }}
+    {{- if gt (atoi .Capabilities.KubeVersion.Major) 12 }}
     sideEffects: None
+    {{- end }}
     rules:
       - operations: ["CREATE", "UPDATE"]
         apiGroups: ["stackgres.io"]
@@ -19,9 +21,13 @@ webhooks:
         path: '/stackgres/validation/sgcluster'
       {{- if .Values.cert.crt }}
       caBundle: {{ .Values.cert.crt }}
+      {{- else }}
+      caBundle: ""
       {{- end }}
   - name: sgpgconfig.{{ .Release.Name }}.{{ .Release.Namespace }}
+    {{- if gt (atoi .Capabilities.KubeVersion.Major) 12 }}
     sideEffects: None
+    {{- end }}
     rules:
       - operations: ["CREATE", "UPDATE", "DELETE"]
         apiGroups: ["stackgres.io"]
@@ -35,9 +41,13 @@ webhooks:
         path: '/stackgres/validation/sgpgconfig'
       {{- if .Values.cert.crt }}
       caBundle: {{ .Values.cert.crt }}
+      {{- else }}
+      caBundle: ""
       {{- end }}
   - name: sgpoolconfig.{{ .Release.Name }}.{{ .Release.Namespace }}
+    {{- if gt (atoi .Capabilities.KubeVersion.Major) 12 }}
     sideEffects: None
+    {{- end }}
     rules:
       - operations: ["CREATE", "UPDATE", "DELETE"]
         apiGroups: ["stackgres.io"]
@@ -51,9 +61,13 @@ webhooks:
         path: '/stackgres/validation/sgpoolconfig'
       {{- if .Values.cert.crt }}
       caBundle: {{ .Values.cert.crt }}
+      {{- else }}
+      caBundle: ""
       {{- end }}
   - name: sginstanceprofile.{{ .Release.Name }}.{{ .Release.Namespace }}
+    {{- if gt (atoi .Capabilities.KubeVersion.Major) 12 }}
     sideEffects: None
+    {{- end }}
     rules:
       - operations: ["CREATE", "UPDATE", "DELETE"]
         apiGroups: ["stackgres.io"]
@@ -67,9 +81,13 @@ webhooks:
         path: '/stackgres/validation/sginstanceprofile'
       {{- if .Values.cert.crt }}
       caBundle: {{ .Values.cert.crt }}
+      {{- else }}
+      caBundle: ""
       {{- end }}
   - name: sgbackupconfig.{{ .Release.Name }}.{{ .Release.Namespace }}
+    {{- if gt (atoi .Capabilities.KubeVersion.Major) 12 }}
     sideEffects: None
+    {{- end }}
     rules:
       - operations: ["CREATE", "UPDATE", "DELETE"]
         apiGroups: ["stackgres.io"]
@@ -83,9 +101,13 @@ webhooks:
         path: '/stackgres/validation/sgbackupconfig'
       {{- if .Values.cert.crt }}
       caBundle: {{ .Values.cert.crt }}
+      {{- else }}
+      caBundle: ""
       {{- end }}
   - name: sgbackup.{{ .Release.Name }}.{{ .Release.Namespace }}
+    {{- if gt (atoi .Capabilities.KubeVersion.Major) 12 }}
     sideEffects: None
+    {{- end }}
     rules:
       - operations: ["CREATE", "UPDATE", "DELETE"]
         apiGroups: ["stackgres.io"]
@@ -99,6 +121,8 @@ webhooks:
         path: '/stackgres/validation/sgbackup'
       {{- if .Values.cert.crt }}
       caBundle: {{ .Values.cert.crt }}
+      {{- else }}
+      caBundle: ""
       {{- end }}
   - name: sgdistributedlogs.{{ .Release.Name }}.{{ .Release.Namespace }}
     sideEffects: None
