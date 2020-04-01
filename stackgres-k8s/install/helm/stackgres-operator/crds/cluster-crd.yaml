@@ -72,7 +72,7 @@ spec:
                     size:
                       type: string
                       pattern: '^[0-9]+(\.[0-9]+)?(Mi|Gi|Ti)$'
-                      description: >
+                      description: >  
                         Size of the PersistentVolume to be created for each instance of the cluster. Size must be specified
                         either in Mebibytes, Gibibytes or Tebibytes (multiples of 2^20, 2^30 or 2^40, respectively).
                     storageClass:

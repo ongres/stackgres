@@ -217,7 +217,7 @@ payload:
     "name": "postgresconf"
   },
   "spec": {
-    "": "12", 
+    "pgVersion": "12", 
     "postgresql.conf": "password_encryption: 'scram-sha-256'\nrandom_page_cost: '1.5'"
   }
 }

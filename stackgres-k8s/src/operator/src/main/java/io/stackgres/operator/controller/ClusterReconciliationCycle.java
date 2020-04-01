@@ -52,6 +52,7 @@ import io.stackgres.operator.customresource.sgcluster.StackGresClusterDefinition
 import io.stackgres.operator.customresource.sgcluster.StackGresClusterDoneable;
 import io.stackgres.operator.customresource.sgcluster.StackGresClusterInitData;
 import io.stackgres.operator.customresource.sgcluster.StackGresClusterList;
+import io.stackgres.operator.customresource.sgcluster.StackGresClusterPod;
 import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfigDefinition;
 import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfigDoneable;
@@ -224,23 +225,19 @@ public class ClusterReconciliationCycle
 
     List<String> sidecarsToDisable = new ArrayList<>();
 
-    Optional.ofNullable(cluster.getSpec().getPod())
-        .ifPresent(p -> {
+    StackGresClusterPod pod = cluster.getSpec().getPod();
+    if (Boolean.TRUE.equals(pod.getDisableConnectionPooling())) {
+      sidecarsToDisable.add(PgBouncer.class.getAnnotation(Sidecar.class).value());
+    }
 
-          if (p.getDisableConnectionPooling() == Boolean.TRUE) {
-            sidecarsToDisable.add(PgBouncer.class.getAnnotation(Sidecar.class).value());
-          }
+    if (Boolean.TRUE.equals(pod.getDisableMetricsExporter())) {
+      sidecarsToDisable
+          .add(PostgresExporter.class.getAnnotation(Sidecar.class).value());
+    }
 
-          if (p.getDisableMetricsExporter() == Boolean.TRUE) {
-            sidecarsToDisable
-                .add(PostgresExporter.class.getAnnotation(Sidecar.class).value());
-          }
-
-          if (p.getDisablePostgresUtil() == Boolean.TRUE) {
-            sidecarsToDisable.add(PostgresUtil.class.getAnnotation(Sidecar.class).value());
-          }
-
-        });
+    if (Boolean.TRUE.equals(pod.getDisablePostgresUtil())) {
+      sidecarsToDisable.add(PostgresUtil.class.getAnnotation(Sidecar.class).value());
+    }
 
     return ImmutableList
         .copyOf(allSidecars.stream()
@@ -402,6 +399,8 @@ public class ClusterReconciliationCycle
               .findAny())
           .map(backup -> {
             Preconditions.checkNotNull(backup.getStatus(),
+                "Backup is " + BackupPhase.PENDING.label());
+            Preconditions.checkNotNull(backup.getStatus().getProcess(),
                 "Backup is " + BackupPhase.PENDING.label());
             Preconditions.checkArgument(backup.getStatus().getProcess().getStatus()
                     .equals(BackupPhase.COMPLETED.label()),

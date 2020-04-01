@@ -38,8 +38,6 @@ public class ClusterSidecarFinder implements SidecarFinder {
 
     String envoySidecarName = Envoy.class.getAnnotation(Sidecar.class).value();
 
-    System.out.println("ALL SIDE CARS " + String.join(",", allSidecars));
-
     optionalSidecars = allSidecars.stream().filter(s -> !s.equals(envoySidecarName))
         .collect(ImmutableList.toImmutableList());
 

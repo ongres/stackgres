@@ -36,6 +36,8 @@ import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operator.customresource.sgbackup.BackupPhase;
 import io.stackgres.operator.customresource.sgbackup.StackGresBackup;
 import io.stackgres.operator.customresource.sgbackup.StackGresBackupDefinition;
+import io.stackgres.operator.customresource.sgbackup.StackGresBackupProcess;
+import io.stackgres.operator.customresource.sgbackup.StackGresBackupStatus;
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfigDefinition;
 import io.stackgres.operator.patroni.factory.PatroniRole;
 import io.stackgres.operatorframework.resource.ResourceUtil;
@@ -75,7 +77,8 @@ public class Backup implements StackGresClusterResourceStreamFactory {
 
     return Seq.seq(clusterContext.getBackups())
         .filter(backup -> !(Optional.ofNullable(backup.getStatus())
-            .map(stackGresBackupStatus -> stackGresBackupStatus.getProcess().getStatus())
+            .map(StackGresBackupStatus::getProcess)
+            .map(StackGresBackupProcess::getStatus)
             .map(phase -> !phase.equals(BackupPhase.PENDING.label()))
             .orElse(false)
             || Optional.ofNullable(backup.getMetadata())
