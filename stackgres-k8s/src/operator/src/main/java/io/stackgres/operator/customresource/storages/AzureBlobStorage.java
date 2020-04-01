@@ -29,7 +29,7 @@ public class AzureBlobStorage implements PrefixedStorage {
   private String path;
 
   @JsonProperty("azureCredentials")
-  @NotNull(message = "The credentials is required")
+  @NotNull(message = "The azureCredentials is required")
   private AzureBlobStorageCredentials azureCredentials;
 
   @Override
