@@ -48,10 +48,10 @@ var ClusterInfo = Vue.component("cluster-info", {
 					<tbody>
 						<tr>
 							<td>{{ cluster.name }}</td>
-							<td>{{ cluster.data.spec.pgVersion }}</td>
+							<td>{{ cluster.data.spec.postgresVersion }}</td>
 							<td>{{ cluster.data.spec.instances }}</td>
 							<td>{{ cluster.data.spec.resourceProfile }} (Cores: {{ profile.data.spec.cpu }}, RAM: {{ profile.data.spec.memory }})</td>
-							<td>{{ cluster.data.spec.volumeSize }}</td>
+							<td>{{ cluster.data.spec.pods.persistentVolume.size }}</td>
 						</tr>
 					</tbody>
 				</table>
@@ -74,15 +74,15 @@ var ClusterInfo = Vue.component("cluster-info", {
 					<tbody>
 						<tr>
 							<td>
-								<template v-if="(typeof cluster.data.spec.storageClass !== 'undefined')">
-									{{ cluster.data.spec.storageClass }}
+								<template v-if="(typeof cluster.data.spec.pods.persistentVolume.storageClass !== 'undefined')">
+									{{ cluster.data.spec.pods.persistentVolume.storageClass }}
 								</template>
 							</td>
 							<td>
-								{{ cluster.data.spec.pgConfig }}
+								{{ cluster.data.spec.configurations.sgPostgresConfig }}
 							</td>
 							<td>
-								<template v-if="(typeof cluster.data.spec.connectionPoolingConfig !== 'undefined')">
+								<template v-if="(typeof cluster.data.spec.configurations.sgPoolingConfig !== 'undefined')">
 									ON
 								</template>
 								<template v-else>
@@ -90,13 +90,13 @@ var ClusterInfo = Vue.component("cluster-info", {
 								</template>
 							</td>
 							<td>
-								<template v-if="(typeof cluster.data.spec.connectionPoolingConfig !== 'undefined')">
-									{{ cluster.data.spec.connectionPoolingConfig }}
+								<template v-if="(typeof cluster.data.spec.configurations.sgPoolingConfig !== 'undefined')">
+									{{ cluster.data.spec.configurations.sgPoolingConfig }}
 								</template>
 							</td>
 							<td>
-								<template v-if="(typeof cluster.data.spec.backupConfig !== 'undefined')">
-									{{ cluster.data.spec.backupConfig }}
+								<template v-if="(typeof cluster.data.spec.configurations.sgBackupConfig !== 'undefined')">
+									{{ cluster.data.spec.configurations.sgBackupConfig }}
 								</template>
 								<template v-else>
 									OFF
@@ -167,7 +167,7 @@ var ClusterInfo = Vue.component("cluster-info", {
 
 		profile () {
 			
-			let profile = store.state.profiles.find(p => ( (store.state.currentNamespace == p.data.metadata.namespace) && (store.state.currentCluster.data.spec.resourceProfile == p.name) ) );
+			let profile = store.state.profiles.find(p => ( (store.state.currentNamespace == p.data.metadata.namespace) && (store.state.currentCluster.data.spec.sgInstanceProfile == p.name) ) );
 			return profile
 		}
 	},
