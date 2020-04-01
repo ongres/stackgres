@@ -230,10 +230,16 @@ const router = new VueRouter({
         conditionalRoute: false
       },
     },
-    ,
     { 
       path: '/grafana/:namespace/:name/:pod', 
       component: Grafana,
+      meta: {
+        conditionalRoute: false
+      },
+    },
+    { 
+      path: '/logs/', 
+      component: Logs,
       meta: {
         conditionalRoute: false
       },
