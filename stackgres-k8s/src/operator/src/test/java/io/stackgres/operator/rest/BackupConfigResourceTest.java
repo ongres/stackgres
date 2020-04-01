@@ -141,13 +141,13 @@ class BackupConfigResourceTest
     assertNotNull(resource.getSpec().getStorage().getS3Compatible());
     assertNotNull(resource.getSpec().getStorage().getS3Compatible().getCredentials());
     assertEquals("test", resource.getSpec().getStorage().getS3Compatible().getCredentials().getAccessKey());
-    assertNotNull(resource.getSpec().getStorage().getS3Compatible().getCredentials().getSecretKeySelectors().getAccessKeySelector());
-    assertEquals("minio", resource.getSpec().getStorage().getS3Compatible().getCredentials().getSecretKeySelectors().getAccessKeySelector().getName());
-    assertEquals("accesskey", resource.getSpec().getStorage().getS3Compatible().getCredentials().getSecretKeySelectors().getAccessKeySelector().getKey());
+    assertNotNull(resource.getSpec().getStorage().getS3Compatible().getCredentials().getSecretKeySelectors().getAccessKeyId());
+    assertEquals("minio", resource.getSpec().getStorage().getS3Compatible().getCredentials().getSecretKeySelectors().getAccessKeyId().getName());
+    assertEquals("accesskey", resource.getSpec().getStorage().getS3Compatible().getCredentials().getSecretKeySelectors().getAccessKeyId().getKey());
     assertEquals("test", resource.getSpec().getStorage().getS3Compatible().getCredentials().getSecretKey());
-    assertNotNull(resource.getSpec().getStorage().getS3Compatible().getCredentials().getSecretKeySelectors().getSecretKeySelector());
-    assertEquals("minio", resource.getSpec().getStorage().getS3Compatible().getCredentials().getSecretKeySelectors().getSecretKeySelector().getName());
-    assertEquals("secretkey", resource.getSpec().getStorage().getS3Compatible().getCredentials().getSecretKeySelectors().getSecretKeySelector().getKey());
+    assertNotNull(resource.getSpec().getStorage().getS3Compatible().getCredentials().getSecretKeySelectors().getSecretAccessKey());
+    assertEquals("minio", resource.getSpec().getStorage().getS3Compatible().getCredentials().getSecretKeySelectors().getSecretAccessKey().getName());
+    assertEquals("secretkey", resource.getSpec().getStorage().getS3Compatible().getCredentials().getSecretKeySelectors().getSecretAccessKey().getKey());
     assertEquals("http://minio.stackgres.svc:9000",
         resource.getSpec().getStorage().getS3Compatible().getEndpoint());
     assertEquals("stackgres", resource.getSpec().getStorage().getS3Compatible().getBucket());
@@ -180,11 +180,11 @@ class BackupConfigResourceTest
     assertNotNull(resource.getSpec().getStorage().getS3Compatible().getAwsCredentials());
     assertNotNull(resource.getSpec().getStorage().getS3Compatible().getAwsCredentials().getSecretKeySelectors().getAccessKeyId());
     assertEquals("backupconf-secrets", resource.getSpec().getStorage().getS3Compatible().getAwsCredentials().getSecretKeySelectors().getAccessKeyId().getName());
-    assertEquals(BackupConfigResource.S3COMPATIBLE_ACCESS_KEY,
+    assertEquals(BackupConfigResourceUtil.S3COMPATIBLE_ACCESS_KEY,
         resource.getSpec().getStorage().getS3Compatible().getAwsCredentials().getSecretKeySelectors().getAccessKeyId().getKey());
     assertNotNull(resource.getSpec().getStorage().getS3Compatible().getAwsCredentials().getSecretKeySelectors().getSecretAccessKey());
     assertEquals("backupconf-secrets", resource.getSpec().getStorage().getS3Compatible().getAwsCredentials().getSecretKeySelectors().getSecretAccessKey().getName());
-    assertEquals(BackupConfigResource.S3COMPATIBLE_SECRET_KEY,
+    assertEquals(BackupConfigResourceUtil.S3COMPATIBLE_SECRET_KEY,
         resource.getSpec().getStorage().getS3Compatible().getAwsCredentials().getSecretKeySelectors().getSecretAccessKey().getKey());
     assertEquals("http://minio.stackgres.svc:9000", resource.getSpec().getStorage().getS3Compatible().getEndpoint());
     assertEquals("stackgres", resource.getSpec().getStorage().getS3Compatible().getBucket());
