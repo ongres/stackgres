@@ -92,7 +92,7 @@ h1, h2, h3, h4, h5, h6 {
     text-align: center;
 }
 
-.form button:hover, .form button:focus, .btn:hover, .btn:focus {
+.form button:hover, .form button:focus, .btn:hover, .btn:focus, button:hover {
     background: var(--lblue);
     border-color: var(--lblue);
 }
@@ -142,6 +142,89 @@ table.clusterOverview a.no-color {
 .center {
     text-align: center;
 }
+
+
+/* Log in */
+
+#signup {
+    display: block;
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    background: #fff;
+    border: 1px solid var(--gray1);
+    border-radius: 10px;
+    box-shadow: 0 0px 20px rgba(0,0,0,.05);
+    padding: 100px;
+}
+
+#signup form {
+    width: auto;
+} 
+
+#signup .header {
+    width: 300px;
+} 
+
+#signup p {
+    margin-bottom: 25px;
+}
+
+#signup input {
+    display: block;
+    border: 1px solid var(--gray2);
+    border-radius: 6px;
+    padding: 10px 12px;
+    height: 38px;
+    width: 300px;
+    background: #fff;
+    font-size: 12px;
+    color: var(--gray5);
+}
+
+#signup input:first-of-type {
+    margin-bottom: 25px;
+}
+
+#signup input:last-of-type {
+    display: inline;
+}
+
+#signup input:focus {
+    border-color: var(--blue);
+}
+
+a#showPassword svg {
+    display: inline;
+}
+
+#showPassword {
+    position: relative;
+    display: block;
+    margin-left: 260px;
+    margin-top: -50px;
+    z-index: 9;
+}
+
+form#login hr {
+    display: none;
+}
+
+#signup button {
+    display: block;
+    margin-top: 30px;
+}
+
+form#login .warning {
+    width: 300px;
+    margin-bottom: -10px;
+    margin-top: 30px;
+    /*display: block;*/
+}
+
+
+
 
 /* Loader */
 #loader {
@@ -312,6 +395,9 @@ table.clusterOverview a.no-color {
     background: rgba(51, 51, 51, .75);
 }
 
+.darkmode .form label {
+    color: #A5A5A5;
+}
 
 
 /*.darkmode .item:hover {
@@ -384,8 +470,6 @@ table.clusterOverview a.no-color {
     border: 1px solid #333333;
 }
 
-
-
 .darkmode #delete .tooltip  h3 {
     border-bottom: 1px solid #333333;
 }
@@ -398,6 +482,20 @@ table.clusterOverview a.no-color {
 
 .darkmode .grafana iframe {
     border: none;
+}
+
+
+/* Dark mode - Log in */
+
+.darkmode #signup {
+    background: #1e1e1e;
+    border-color: #333333;
+
+}
+
+.darkmode #signup input {
+    background: #1b1b1b;
+    border-color: #333333;
 }
 
 
@@ -1154,7 +1252,7 @@ footer .tooltip p {
 
 #notifications .tooltip {
     top: 60px;
-    right: 35px;
+    right: 58px;
     padding: 10px 20px;
 }
 
@@ -1229,6 +1327,7 @@ footer .tooltip p {
 .message .detail {
     line-height: 1.2;
     margin-bottom: 15px;
+    word-break: break-word;
 }
 
 .message .doclink {
@@ -2212,7 +2311,7 @@ a.help:hover {
     cursor: pointer;
 }
 
-a.help svg > path:hover {
+a.help:hover svg > path {
     fill: var(--blue);
 }
 
@@ -2464,7 +2563,7 @@ tr:not(.open) .parameters ul.yaml li {
     display: inline-block;
 }
 
-.parameters:not(.open) ul.yaml li:not(:last-of-type):after {
+tr:not(.open) td.parameters ul.yaml li:not(:last-of-type):after {
     display: inline;
     content: ";";
     padding-right: 5px;
@@ -2733,3 +2832,5 @@ tr.no-results:first-child:last-child {
     color: var(--blue);
     background-color: rgba(0, 173, 181, .25);
 }
+
+

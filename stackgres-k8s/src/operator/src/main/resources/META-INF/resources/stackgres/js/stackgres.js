@@ -622,20 +622,19 @@ const vm = new Vue({
     /* API Request */
     fetchAPI: function(kind = '') {
 
-      if(!store.state.loginToken.length) {
+      let loginToken = getCookie('sgToken');
+
+      if(!loginToken.length) {
         $('#signup').addClass('login').fadeIn();
         return false;
-      } 
+      } else if (!store.state.loginToken.length) {
+        $('#signup').hide();
+        store.commit('setLoginToken', loginToken);
+      }
 
       console.log("Fetching API");
       $("#loader").show();
 
-      const username = 'admin';
-      const password = 'st4ckgr3s';
-
-      //const token = btoa(username+':'+password);
-      //let token = 'YWRtaW46c3Q0Y2tncjNz';      
-      
       if ( !kind.length || (kind == 'namespaces') ) {
         /* Namespaces Data */
         axios
@@ -742,8 +741,8 @@ const vm = new Vue({
                 //console.log("Namespace ya existe");
               }
 
-              let start = moment(item.status.startTime);
-              let finish = moment(item.status.finishTime);
+              let start = moment(item.status.process.timing.start);
+              let finish = moment(item.status.process.timing.end);
               let duration = moment.duration(finish.diff(start));
                 
               store.commit('updateBackups', { 
@@ -1017,6 +1016,20 @@ Vue.filter('formatTimestamp',function(t, part){
 
 });
 
+function getCookie(cname) {
+  var name = cname + "=";
+  var ca = document.cookie.split(';');
+  for(var i = 0; i < ca.length; i++) {
+    var c = ca[i];
+    while (c.charAt(0) == ' ') {
+      c = c.substring(1);
+    }
+    if (c.indexOf(name) == 0) {
+      return c.substring(name.length, c.length);
+    }
+  }
+  return "";
+}
 
 function formatBytes (a) {
   if(0==a)return"0 Bytes";var c=1024,d=2,e=["Bytes","Ki","Mi","Gi","Ti","Pi","Ei","Zi","Yi"],f=Math.floor(Math.log(a)/Math.log(c))+1;return parseFloat((a/Math.pow(c,f)).toFixed(d))+" "+e[f];
@@ -1468,7 +1481,7 @@ $(document).ready(function(){
     $(".sort th").toggleClass("desc asc")   
   });
 
-  $(document).on("click", "tr.base:not(.Pending) td:not(.actions)", function(){
+  $(document).on("click", "tr.base td:not(.actions)", function(){
     $(this).parent().next().toggle().addClass("open");
     $(this).parent().toggleClass("open");
   });
