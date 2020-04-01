@@ -5,7 +5,8 @@
 
 package io.stackgres.operator.rest.dto.storages;
 
-import javax.validation.Valid;
+import java.util.Objects;
+
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -13,55 +14,60 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.MoreObjects;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.operator.rest.dto.SecretKeySelector;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class AzureBlobStorageCredentials {
+public class AzureBlobSecretKeySelector {
 
   @JsonProperty("storageAccount")
-  private String account;
+  @NotNull(message = "The account is required")
+  private SecretKeySelector account;
 
   @JsonProperty("accessKey")
-  private String accessKey;
+  @NotNull(message = "The accessKey is required")
+  private SecretKeySelector accessKey;
 
-  @JsonProperty("secretKeySelectors")
-  @NotNull(message = "The secret Key Selectors are required")
-  @Valid
-  private AzureBlobSecretKeySelector secretKeySelectors;
-
-  public String getAccount() {
+  public SecretKeySelector getAccount() {
     return account;
   }
 
-  public void setAccount(String account) {
+  public void setAccount(SecretKeySelector account) {
     this.account = account;
   }
 
-  public String getAccessKey() {
+  public SecretKeySelector getAccessKey() {
     return accessKey;
   }
 
-  public void setAccessKey(String accessKey) {
+  public void setAccessKey(SecretKeySelector accessKey) {
     this.accessKey = accessKey;
   }
 
-  public AzureBlobSecretKeySelector getSecretKeySelectors() {
-    return secretKeySelectors;
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    AzureBlobSecretKeySelector that = (AzureBlobSecretKeySelector) o;
+    return Objects.equals(account, that.account)
+        && Objects.equals(accessKey, that.accessKey);
   }
 
-  public void setSecretKeySelectors(AzureBlobSecretKeySelector secretKeySelectors) {
-    this.secretKeySelectors = secretKeySelectors;
+  @Override
+  public int hashCode() {
+    return Objects.hash(account, accessKey);
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
-        .omitNullValues()
         .add("account", account)
         .add("accessKey", accessKey)
-        .add("secretKeySelectors", secretKeySelectors)
         .toString();
   }
-
 }

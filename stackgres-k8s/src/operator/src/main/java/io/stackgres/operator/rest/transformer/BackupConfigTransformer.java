@@ -7,6 +7,7 @@ package io.stackgres.operator.rest.transformer;
 
 import java.util.Optional;
 import java.util.function.Consumer;
+
 import javax.enterprise.context.ApplicationScoped;
 
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfig;
@@ -14,8 +15,6 @@ import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfig
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBaseBackupConfig;
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBaseBackupPerformance;
 import io.stackgres.operator.customresource.storages.AwsSecretKeySelector;
-import io.stackgres.operator.customresource.storages.AzureBlobSecretKeySelector;
-import io.stackgres.operator.customresource.storages.GoogleCloudSecretKeySelector;
 import io.stackgres.operator.rest.dto.SecretKeySelector;
 import io.stackgres.operator.rest.dto.backupconfig.BackupConfigDto;
 import io.stackgres.operator.rest.dto.backupconfig.BackupConfigSpec;
@@ -24,10 +23,12 @@ import io.stackgres.operator.rest.dto.backupconfig.BaseBackupPerformance;
 import io.stackgres.operator.rest.dto.storages.AwsCredentials;
 import io.stackgres.operator.rest.dto.storages.AwsS3CompatibleStorage;
 import io.stackgres.operator.rest.dto.storages.AwsS3Storage;
+import io.stackgres.operator.rest.dto.storages.AzureBlobSecretKeySelector;
 import io.stackgres.operator.rest.dto.storages.AzureBlobStorage;
 import io.stackgres.operator.rest.dto.storages.AzureBlobStorageCredentials;
 import io.stackgres.operator.rest.dto.storages.BackupStorage;
 import io.stackgres.operator.rest.dto.storages.GoogleCloudCredentials;
+import io.stackgres.operator.rest.dto.storages.GoogleCloudSecretKeySelector;
 import io.stackgres.operator.rest.dto.storages.GoogleCloudStorage;
 
 @ApplicationScoped
@@ -121,12 +122,14 @@ public class BackupConfigTransformer
     io.stackgres.operator.customresource.storages.AzureBlobStorageCredentials
         transformation =
         new io.stackgres.operator.customresource.storages.AzureBlobStorageCredentials();
-    final AzureBlobSecretKeySelector secretKeySelectors = new AzureBlobSecretKeySelector();
+    final io.stackgres.operator.customresource.storages.AzureBlobSecretKeySelector
+        secretKeySelectors =
+        new io.stackgres.operator.customresource.storages.AzureBlobSecretKeySelector();
     transformation.setSecretKeySelectors(secretKeySelectors);
     setSecretKeySelector(secretKeySelectors::setAccessKey,
-        source.getAccessKeySelector());
+        source.getSecretKeySelectors().getAccessKey());
     setSecretKeySelector(secretKeySelectors::setAccount,
-        source.getAccountSelector());
+        source.getSecretKeySelectors().getAccount());
     return transformation;
   }
 
@@ -153,11 +156,13 @@ public class BackupConfigTransformer
     io.stackgres.operator.customresource.storages.GoogleCloudCredentials
         transformation =
         new io.stackgres.operator.customresource.storages.GoogleCloudCredentials();
-    if (source.getServiceAccountJsonKeySelector() != null) {
-      final GoogleCloudSecretKeySelector secretKeySelectors = new GoogleCloudSecretKeySelector();
+    if (source.getSecretKeySelectors().getServiceAccountJsonKey() != null) {
+      final io.stackgres.operator.customresource.storages.GoogleCloudSecretKeySelector
+          secretKeySelectors =
+          new io.stackgres.operator.customresource.storages.GoogleCloudSecretKeySelector();
       transformation.setSecretKeySelectors(secretKeySelectors);
       setSecretKeySelector(secretKeySelectors::setServiceAccountJsonKey,
-          source.getServiceAccountJsonKeySelector());
+          source.getSecretKeySelectors().getServiceAccountJsonKey());
     }
     return transformation;
   }
@@ -207,9 +212,9 @@ public class BackupConfigTransformer
     final AwsSecretKeySelector secretKeySelectors = new AwsSecretKeySelector();
     transformation.setSecretKeySelectors(secretKeySelectors);
     setSecretKeySelector(secretKeySelectors::setAccessKeyId,
-        source.getSecretKeySelectors().getAccessKeySelector());
+        source.getSecretKeySelectors().getAccessKeyId());
     setSecretKeySelector(secretKeySelectors::setSecretAccessKey,
-        source.getSecretKeySelectors().getSecretKeySelector());
+        source.getSecretKeySelectors().getSecretAccessKey());
     return transformation;
   }
 
@@ -280,14 +285,18 @@ public class BackupConfigTransformer
     }
     AzureBlobStorageCredentials transformation =
         new AzureBlobStorageCredentials();
-    transformation.setAccessKeySelector(
-        SecretKeySelector.create(
-            source.getSecretKeySelectors().getAccessKey().getName(),
-            source.getSecretKeySelectors().getAccessKey().getKey()));
-    transformation.setAccountSelector(
-        SecretKeySelector.create(
-            source.getSecretKeySelectors().getAccount().getName(),
-            source.getSecretKeySelectors().getAccount().getKey()));
+    if (source.getSecretKeySelectors() != null) {
+      final AzureBlobSecretKeySelector secretKeySelectors = new AzureBlobSecretKeySelector();
+      transformation.setSecretKeySelectors(secretKeySelectors);
+      secretKeySelectors.setAccessKey(
+          SecretKeySelector.create(
+              source.getSecretKeySelectors().getAccessKey().getName(),
+              source.getSecretKeySelectors().getAccessKey().getKey()));
+      secretKeySelectors.setAccount(
+          SecretKeySelector.create(
+              source.getSecretKeySelectors().getAccount().getName(),
+              source.getSecretKeySelectors().getAccount().getKey()));
+    }
     return transformation;
   }
 
@@ -309,12 +318,15 @@ public class BackupConfigTransformer
     if (source == null) {
       return null;
     }
-    GoogleCloudCredentials transformation =
-        new GoogleCloudCredentials();
-    transformation.setServiceAccountJsonKeySelector(
-        SecretKeySelector.create(
-            source.getSecretKeySelectors().getServiceAccountJsonKey().getName(),
-            source.getSecretKeySelectors().getServiceAccountJsonKey().getKey()));
+    GoogleCloudCredentials transformation = new GoogleCloudCredentials();
+    if (source.getSecretKeySelectors() != null) {
+      final GoogleCloudSecretKeySelector secretKeySelectors = new GoogleCloudSecretKeySelector();
+      transformation.setSecretKeySelectors(secretKeySelectors);
+      secretKeySelectors.setServiceAccountJsonKey(
+          SecretKeySelector.create(
+              source.getSecretKeySelectors().getServiceAccountJsonKey().getName(),
+              source.getSecretKeySelectors().getServiceAccountJsonKey().getKey()));
+    }
     return transformation;
   }
 
@@ -358,11 +370,11 @@ public class BackupConfigTransformer
     AwsCredentials transformation = new AwsCredentials();
     if (source.getSecretKeySelectors() != null) {
       final AwsSecretKeySelector secretKeySelectors = source.getSecretKeySelectors();
-      transformation.getSecretKeySelectors().setAccessKeySelector(
+      transformation.getSecretKeySelectors().setAccessKeyId(
           SecretKeySelector.create(
               secretKeySelectors.getAccessKeyId().getName(),
               secretKeySelectors.getAccessKeyId().getKey()));
-      transformation.getSecretKeySelectors().setSecretKeySelector(
+      transformation.getSecretKeySelectors().setSecretAccessKey(
           SecretKeySelector.create(
               secretKeySelectors.getSecretAccessKey().getName(),
               secretKeySelectors.getSecretAccessKey().getKey()));
