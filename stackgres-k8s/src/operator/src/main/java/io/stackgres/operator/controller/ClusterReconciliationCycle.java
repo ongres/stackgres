@@ -443,11 +443,11 @@ public class ClusterReconciliationCycle
             .map(GoogleCloudCredentials::getSecretKeySelectors)
             .map(GoogleCloudSecretKeySelector::getServiceAccountJsonKey),
         Optional.ofNullable(backupConfSpec.getStorage().getAzureblob())
-            .map(AzureBlobStorage::getCredentials)
+            .map(AzureBlobStorage::getAzureCredentials)
             .map(AzureBlobStorageCredentials::getSecretKeySelectors)
             .map(AzureBlobSecretKeySelector::getAccount),
         Optional.ofNullable(backupConfSpec.getStorage().getAzureblob())
-            .map(AzureBlobStorage::getCredentials)
+            .map(AzureBlobStorage::getAzureCredentials)
             .map(AzureBlobStorageCredentials::getSecretKeySelectors)
             .map(AzureBlobSecretKeySelector::getAccessKey))
         .filter(Optional::isPresent)

@@ -59,8 +59,8 @@ spec:
               properties:
                 type:
                   type: string
-                  enum: [ "s3", "s3Compatible", "gcs", "azureblob" ]
-                  description: "Type of storage:\n- s3: Amazon Web Services S3\n- s3Compatible: Amazon Web Services S3 Compatible\n- gcs: Google Clooud Storage\n- azureblob: Azure Blob Storage"
+                  enum: [ "s3", "s3Compatible", "gcs", "azureBlob" ]
+                  description: "Type of storage:\n- s3: Amazon Web Services S3\n- s3Compatible: Amazon Web Services S3 Compatible\n- gcs: Google Clooud Storage\n- azureBlob: Azure Blob Storage"
                 s3:
                   type: object
                   description: "Amazon Web Services S3 configuration"

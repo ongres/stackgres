@@ -118,7 +118,7 @@ spec:
             key: "{{ .Values.config.backup.gcs.serviceAccountJsonKey.key }}"
     {{- end }}
     {{- if .Values.config.backup.azureblob }}
-    type: azureblob
+    type: azureBlob
     azureBlob:
       bucket: "{{ .Values.config.backup.azureblob.bucket }}"
       {{- if .Values.config.backup.azureblob.path }}

@@ -219,8 +219,8 @@ else
         }
       }
       {{- end }}
-      {{- with .spec.storage.azureblob }}
-      "azureblob": {
+      {{- with .spec.storage.azureBlob }}
+      "azureBlob": {
         "bucket": "{{ .bucket }}",
         {{ with .path }}"path": "{{ . }}",{{ end }}
         "azureredentials": {

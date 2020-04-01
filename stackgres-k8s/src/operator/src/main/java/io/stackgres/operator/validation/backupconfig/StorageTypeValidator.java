@@ -125,7 +125,7 @@ public class StorageTypeValidator implements BackupConfigValidator {
 
       if (storageType.equals("azureblob")
           && review.getRequest().getObject().getSpec()
-          .getStorage().getAzureblob().getCredentials() == null) {
+          .getStorage().getAzureblob().getAzureCredentials() == null) {
         final String message = "Invalid backup configuration,"
             + " source azureblob credentials must be set when source type is azureblob";
         fail(message);
