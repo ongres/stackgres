@@ -25,7 +25,10 @@ spec:
         spec:
           type: object
           properties:
-            pgbouncer.ini:
+            pgBouncer:
               type: object
-              description: "pgbouncer.ini configuration"
+              properties:    
+                pgbouncer.ini:
+                  type: object
+                  description: "pgbouncer.ini configuration"
           required: []

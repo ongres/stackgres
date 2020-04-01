@@ -14,7 +14,7 @@ import io.stackgres.operator.common.ErrorType;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.resource.CustomResourceFinder;
-import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfig;
+import io.stackgres.operator.sidecars.pooling.customresources.StackGresPoolingConfig;
 import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 
@@ -22,13 +22,13 @@ import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFail
 @ValidationType(ErrorType.INVALID_CR_REFERENCE)
 public class PoolingConfigValidator implements ClusterValidator {
 
-  private CustomResourceFinder<StackGresPgbouncerConfig> configFinder;
+  private CustomResourceFinder<StackGresPoolingConfig> configFinder;
 
   private ConfigContext context;
 
   @Inject
   public PoolingConfigValidator(
-      CustomResourceFinder<StackGresPgbouncerConfig> configFinder, ConfigContext context) {
+      CustomResourceFinder<StackGresPoolingConfig> configFinder, ConfigContext context) {
     this.configFinder = configFinder;
     this.context = context;
   }
@@ -62,7 +62,7 @@ public class PoolingConfigValidator implements ClusterValidator {
 
     if (cluster.getSpec().getPod().getDisableConnectionPooling() == Boolean.FALSE) {
       checkIfProvided(poolingConfig, "sgPoolingConfig");
-      Optional<StackGresPgbouncerConfig> poolingConfigOpt = configFinder
+      Optional<StackGresPoolingConfig> poolingConfigOpt = configFinder
           .findByNameAndNamespace(poolingConfig, namespace);
 
       if (!poolingConfigOpt.isPresent()) {

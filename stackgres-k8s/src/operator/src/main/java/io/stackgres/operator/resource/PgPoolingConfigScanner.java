@@ -10,20 +10,20 @@ import javax.inject.Inject;
 
 import io.stackgres.operator.app.KubernetesClientFactory;
 import io.stackgres.operator.common.ArcUtil;
-import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfig;
-import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfigDefinition;
-import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfigDoneable;
-import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfigList;
+import io.stackgres.operator.sidecars.pooling.customresources.StackGresPoolingConfig;
+import io.stackgres.operator.sidecars.pooling.customresources.StackGresPoolingConfigDefinition;
+import io.stackgres.operator.sidecars.pooling.customresources.StackGresPoolingConfigDoneable;
+import io.stackgres.operator.sidecars.pooling.customresources.StackGresPoolingConfigList;
 
 @ApplicationScoped
 public class PgPoolingConfigScanner extends AbstractCustomResourceScanner
-    <StackGresPgbouncerConfig, StackGresPgbouncerConfigList, StackGresPgbouncerConfigDoneable> {
+    <StackGresPoolingConfig, StackGresPoolingConfigList, StackGresPoolingConfigDoneable> {
 
   @Inject
   public PgPoolingConfigScanner(KubernetesClientFactory clientFactory) {
-    super(clientFactory, StackGresPgbouncerConfigDefinition.NAME,
-        StackGresPgbouncerConfig.class, StackGresPgbouncerConfigList.class,
-        StackGresPgbouncerConfigDoneable.class);
+    super(clientFactory, StackGresPoolingConfigDefinition.NAME,
+        StackGresPoolingConfig.class, StackGresPoolingConfigList.class,
+        StackGresPoolingConfigDoneable.class);
   }
 
   public PgPoolingConfigScanner() {

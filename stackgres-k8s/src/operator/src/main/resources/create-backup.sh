@@ -104,8 +104,8 @@ $(kubectl get "$BACKUP_CONFIG_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG"
         {{ with .region }}region: "{{ . }}"{{ end }}
         {{ with .storageClass }}storageClass: "{{ . }}"{{ end }}
       {{- end }}
-      {{- with .spec.storage.s3compatible }}
-      s3compatible:
+      {{- with .spec.storage.s3Compatible }}
+      s3Compatible:
         bucket: "{{ .bucket }}"
         {{ with .path }}path: "{{ . }}"{{ end }}
         awsCredentials:
@@ -183,8 +183,8 @@ else
         {{ with .storageClass }},"storageClass": "{{ . }}"{{ end }}
       }
       {{- end }}
-      {{- with .spec.storage.s3compatible }}
-      "s3compatible": {
+      {{- with .spec.storage.s3Compatible }}
+      "s3Compatible": {
         "bucket": "{{ .bucket }}",
         {{ with .path }}"path": "{{ . }}",{{ end }}
         "awsCredentials": {

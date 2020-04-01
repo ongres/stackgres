@@ -25,10 +25,10 @@ spec:
         spec:
           type: object
           properties:
-            pgVersion:
+            postgresVersion:
               type: string
               description: "PostgreSQL configuration version"
             postgresql.conf:
               type: object
               description: "List of PostgreSQL configuration parameters with their values"
-          required: ["pgVersion","postgresql.conf"]
+          required: ["postgresVersion","postgresql.conf"]

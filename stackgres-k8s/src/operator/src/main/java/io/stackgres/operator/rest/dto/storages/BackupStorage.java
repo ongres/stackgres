@@ -26,7 +26,7 @@ public class BackupStorage {
   @JsonProperty("s3")
   private AwsS3Storage s3;
 
-  @JsonProperty("s3compatible")
+  @JsonProperty("s3Compatible")
   private AwsS3CompatibleStorage s3Compatible;
 
   @JsonProperty("gcs")
@@ -81,7 +81,7 @@ public class BackupStorage {
         .omitNullValues()
         .add("type", type)
         .add("s3", s3)
-        .add("s3compatible", s3Compatible)
+        .add("s3Compatible", s3Compatible)
         .add("gcs", gcs)
         .add("azureblob", azureblob)
         .toString();

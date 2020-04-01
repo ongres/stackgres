@@ -7,16 +7,13 @@ package io.stackgres.operator.resource;
 
 import java.util.Optional;
 
-import javax.enterprise.context.ApplicationScoped;
-
-import io.quarkus.test.Mock;
-import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfig;
+import io.stackgres.operator.sidecars.pooling.customresources.StackGresPoolingConfig;
 import io.stackgres.operator.utils.JsonUtil;
 
-public class MockPgBouncerFinder implements CustomResourceFinder<StackGresPgbouncerConfig> {
+public class MockPgBouncerFinder implements CustomResourceFinder<StackGresPoolingConfig> {
   @Override
-  public Optional<StackGresPgbouncerConfig> findByNameAndNamespace(String name, String namespace) {
+  public Optional<StackGresPoolingConfig> findByNameAndNamespace(String name, String namespace) {
     return Optional.of(JsonUtil
-        .readFromJson("pgbouncer_config/default.json", StackGresPgbouncerConfig.class));
+        .readFromJson("pooling_config/default.json", StackGresPoolingConfig.class));
   }
 }

@@ -9,45 +9,45 @@ import java.util.HashMap;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-import io.stackgres.operator.common.PgBouncerReview;
+import io.stackgres.operator.common.PoolingReview;
 import io.stackgres.operator.mutation.DefaultValuesMutator;
 import io.stackgres.operator.mutation.DefaultValuesMutatorTest;
-import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfig;
+import io.stackgres.operator.sidecars.pooling.customresources.StackGresPoolingConfig;
 import io.stackgres.operator.utils.JsonUtil;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class PgBouncerDefaultValuesMutatorTest extends DefaultValuesMutatorTest<StackGresPgbouncerConfig, PgBouncerReview> {
+class PgBouncerDefaultValuesMutatorTest extends DefaultValuesMutatorTest<StackGresPoolingConfig, PoolingReview> {
 
   @Override
-  protected DefaultValuesMutator<StackGresPgbouncerConfig, PgBouncerReview> getMutatorInstance() {
+  protected DefaultValuesMutator<StackGresPoolingConfig, PoolingReview> getMutatorInstance() {
     return new PgBouncerDefaultValuesMutator();
   }
 
   @Override
-  protected PgBouncerReview getEmptyReview() {
-    PgBouncerReview review = JsonUtil
-        .readFromJson("pgbouncer_allow_request/create.json", PgBouncerReview.class);
-    review.getRequest().getObject().getSpec().setPgbouncerConf(new HashMap<>());
+  protected PoolingReview getEmptyReview() {
+    PoolingReview review = JsonUtil
+        .readFromJson("pooling_allow_request/create.json", PoolingReview.class);
+    review.getRequest().getObject().getSpec().getPgBouncer().setPgbouncerConf(new HashMap<>());
     return review;
   }
 
   @Override
-  protected PgBouncerReview getDefaultReview() {
+  protected PoolingReview getDefaultReview() {
     return JsonUtil
-        .readFromJson("pgbouncer_allow_request/create.json", PgBouncerReview.class);
+        .readFromJson("pooling_allow_request/create.json", PoolingReview.class);
   }
 
   @Override
-  protected StackGresPgbouncerConfig getDefaultResource() {
-    return JsonUtil.readFromJson("pgbouncer_config/default.json",
-        StackGresPgbouncerConfig.class);
+  protected StackGresPoolingConfig getDefaultResource() {
+    return JsonUtil.readFromJson("pooling_config/default.json",
+        StackGresPoolingConfig.class);
   }
 
   @Override
   protected JsonNode getConfJson(JsonNode crJson) {
-    return crJson.get("spec").get("pgbouncer.ini");
+    return crJson.get("spec").get("pgBouncer").get("pgbouncer.ini");
   }
 
 

@@ -14,7 +14,7 @@ var PgConfig = Vue.component("pg-config", {
 						{{ conf.data.metadata.namespace }}
 						<hr>
 						<span>PostgreSQL Version</span>
-						{{ conf.data.spec.pgVersion }}
+						{{ conf.data.spec.postgresVersion }}
 						<hr>
 						<span>Params</span>
 						<ul class="params">

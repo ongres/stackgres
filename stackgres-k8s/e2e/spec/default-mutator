@@ -35,7 +35,7 @@ create_empty_pg_config() {
     name: $PGCONFIG
     namespace: $CLUSTER_NAMESPACE
   spec:
-    pgVersion: "11"
+    postgresVersion: "11"
 EOF
 
   local CREATED_FIELDS=$(kubectl get sgpgconfigs.stackgres.io -n $CLUSTER_NAMESPACE $PGCONFIG -o json | run_jq '.spec["postgresql.conf"] | length')

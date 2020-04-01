@@ -82,7 +82,7 @@ class BackupResourceTest extends AbstractCustomResourceTest<BackupDto, StackGres
     assertNotNull(resource.getStatus().getBackupConfig().getStorage());
     assertNull(resource.getStatus().getBackupConfig().getStorage().getAzureblob());
     assertNull(resource.getStatus().getBackupConfig().getStorage().getGcs());
-    assertEquals("s3compatible", resource.getStatus().getBackupConfig().getStorage().getType());
+    assertEquals("s3Compatible", resource.getStatus().getBackupConfig().getStorage().getType());
     assertNull(resource.getStatus().getBackupConfig().getStorage().getAzureblob());
     assertNull(resource.getStatus().getBackupConfig().getStorage().getGcs());
     assertNull(resource.getStatus().getBackupConfig().getStorage().getS3());
@@ -134,7 +134,7 @@ class BackupResourceTest extends AbstractCustomResourceTest<BackupDto, StackGres
     assertNotNull(resource.getStatus().getBackupConfig().getStorage());
     assertNull(resource.getStatus().getBackupConfig().getStorage().getAzureblob());
     assertNull(resource.getStatus().getBackupConfig().getStorage().getGcs());
-    assertEquals("s3compatible", resource.getStatus().getBackupConfig().getStorage().getType());
+    assertEquals("s3Compatible", resource.getStatus().getBackupConfig().getStorage().getType());
     assertNull(resource.getStatus().getBackupConfig().getStorage().getAzureblob());
     assertNull(resource.getStatus().getBackupConfig().getStorage().getGcs());
     assertNull(resource.getStatus().getBackupConfig().getStorage().getS3());

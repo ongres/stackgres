@@ -73,9 +73,9 @@ import io.stackgres.operator.customresource.storages.GoogleCloudSecretKeySelecto
 import io.stackgres.operator.customresource.storages.GoogleCloudStorage;
 import io.stackgres.operator.resource.ClusterSidecarFinder;
 import io.stackgres.operator.resource.CustomResourceScanner;
-import io.stackgres.operator.sidecars.pgbouncer.PgBouncer;
 import io.stackgres.operator.sidecars.pgexporter.PostgresExporter;
 import io.stackgres.operator.sidecars.pgutils.PostgresUtil;
+import io.stackgres.operator.sidecars.pooling.PgPooling;
 import io.stackgres.operatorframework.reconciliation.AbstractReconciliationCycle;
 import io.stackgres.operatorframework.reconciliation.AbstractReconciliator;
 import io.stackgres.operatorframework.resource.ResourceGenerator;
@@ -226,7 +226,7 @@ public class ClusterReconciliationCycle
 
     StackGresClusterPod pod = cluster.getSpec().getPod();
     if (Boolean.TRUE.equals(pod.getDisableConnectionPooling())) {
-      sidecarsToDisable.add(PgBouncer.class.getAnnotation(Sidecar.class).value());
+      sidecarsToDisable.add(PgPooling.class.getAnnotation(Sidecar.class).value());
     }
 
     if (Boolean.TRUE.equals(pod.getDisableMetricsExporter())) {

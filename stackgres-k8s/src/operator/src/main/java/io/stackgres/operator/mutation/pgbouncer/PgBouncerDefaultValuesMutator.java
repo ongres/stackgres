@@ -13,34 +13,42 @@ import com.github.fge.jsonpatch.AddOperation;
 import com.github.fge.jsonpatch.JsonPatchOperation;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import io.stackgres.operator.common.PgBouncerReview;
+import io.stackgres.operator.common.PoolingReview;
 import io.stackgres.operator.mutation.DefaultValuesMutator;
-import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfig;
-import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfigSpec;
+import io.stackgres.operator.sidecars.pooling.customresources.StackGresPoolingConfig;
+import io.stackgres.operator.sidecars.pooling.customresources.StackGresPoolingConfigPgBouncer;
+import io.stackgres.operator.sidecars.pooling.customresources.StackGresPoolingConfigSpec;
 
 @ApplicationScoped
 public class PgBouncerDefaultValuesMutator
-    extends DefaultValuesMutator<StackGresPgbouncerConfig, PgBouncerReview>
+    extends DefaultValuesMutator<StackGresPoolingConfig, PoolingReview>
     implements PgBouncerMutator {
 
   @Override
-  public JsonNode getTargetNode(StackGresPgbouncerConfig resource) {
-    return super.getTargetNode(resource).get("pgbouncer.ini");
+  public JsonNode getTargetNode(StackGresPoolingConfig resource) {
+    return super.getTargetNode(resource).get("pgBouncer").get("pgbouncer.ini");
   }
 
   @Override
-  public List<JsonPatchOperation> mutate(PgBouncerReview review) {
+  public List<JsonPatchOperation> mutate(PoolingReview review) {
     ImmutableList.Builder<JsonPatchOperation> operations = ImmutableList.builder();
 
-    StackGresPgbouncerConfig pgBouncerConfig = review.getRequest().getObject();
-    StackGresPgbouncerConfigSpec spec = pgBouncerConfig.getSpec();
+    StackGresPoolingConfig pgBouncerConfig = review.getRequest().getObject();
+    StackGresPoolingConfigSpec spec = pgBouncerConfig.getSpec();
     if (spec == null) {
-      spec = new StackGresPgbouncerConfigSpec();
+      spec = new StackGresPoolingConfigSpec();
       pgBouncerConfig.setSpec(spec);
+      operations.add(new AddOperation(PG_BOUNCER_CONFIG_POINTER.parent().parent(),
+          FACTORY.objectNode()));
+    }
+    StackGresPoolingConfigPgBouncer pgBouncer = spec.getPgBouncer();
+    if (pgBouncer == null) {
+      pgBouncer = new StackGresPoolingConfigPgBouncer();
+      spec.setPgBouncer(pgBouncer);
       operations.add(new AddOperation(PG_BOUNCER_CONFIG_POINTER.parent(), FACTORY.objectNode()));
     }
-    if (spec.getPgbouncerConf() == null) {
-      spec.setPgbouncerConf(ImmutableMap.of());
+    if (pgBouncer.getPgbouncerConf() == null) {
+      pgBouncer.setPgbouncerConf(ImmutableMap.of());
       operations.add(new AddOperation(PG_BOUNCER_CONFIG_POINTER, FACTORY.objectNode()));
     }
 

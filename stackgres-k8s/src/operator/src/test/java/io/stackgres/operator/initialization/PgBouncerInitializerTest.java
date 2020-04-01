@@ -5,25 +5,23 @@
 
 package io.stackgres.operator.initialization;
 
-import io.stackgres.operator.resource.CustomResourceFinder;
-import io.stackgres.operator.resource.CustomResourceScheduler;
-import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfig;
+import io.stackgres.operator.sidecars.pooling.customresources.StackGresPoolingConfig;
 import io.stackgres.operator.utils.JsonUtil;
 
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-public class PgBouncerInitializerTest extends AbstractInitializerTest<StackGresPgbouncerConfig> {
+public class PgBouncerInitializerTest extends AbstractInitializerTest<StackGresPoolingConfig> {
 
   @Override
-  AbstractDefaultCustomResourceInitializer<StackGresPgbouncerConfig> getInstance() {
+  AbstractDefaultCustomResourceInitializer<StackGresPoolingConfig> getInstance() {
     return new PgBouncerInitializer();
   }
 
   @Override
-  StackGresPgbouncerConfig getDefaultCR() {
+  StackGresPoolingConfig getDefaultCR() {
     return JsonUtil
-        .readFromJson("pgbouncer_config/default.json", StackGresPgbouncerConfig.class);
+        .readFromJson("pooling_config/default.json", StackGresPoolingConfig.class);
   }
 }

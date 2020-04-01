@@ -15,22 +15,22 @@ import io.stackgres.operator.common.ArcUtil;
 import io.stackgres.operator.resource.CustomResourceFinder;
 import io.stackgres.operator.resource.CustomResourceScanner;
 import io.stackgres.operator.resource.CustomResourceScheduler;
-import io.stackgres.operator.rest.dto.pgbouncerconfig.PgbouncerConfigDto;
+import io.stackgres.operator.rest.dto.pooling.PoolingConfigDto;
 import io.stackgres.operator.rest.transformer.ResourceTransformer;
-import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfig;
+import io.stackgres.operator.sidecars.pooling.customresources.StackGresPoolingConfig;
 
 @Path("/stackgres/sgpoolconfig")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class ConnectionPoolingConfigResource extends
-    AbstractRestService<PgbouncerConfigDto, StackGresPgbouncerConfig> {
+    AbstractRestService<PoolingConfigDto, StackGresPoolingConfig> {
 
   @Inject
   public ConnectionPoolingConfigResource(
-      CustomResourceScanner<StackGresPgbouncerConfig> scanner,
-      CustomResourceFinder<StackGresPgbouncerConfig> finder,
-      CustomResourceScheduler<StackGresPgbouncerConfig> scheduler,
-      ResourceTransformer<PgbouncerConfigDto, StackGresPgbouncerConfig> transformer) {
+      CustomResourceScanner<StackGresPoolingConfig> scanner,
+      CustomResourceFinder<StackGresPoolingConfig> finder,
+      CustomResourceScheduler<StackGresPoolingConfig> scheduler,
+      ResourceTransformer<PoolingConfigDto, StackGresPoolingConfig> transformer) {
     super(scanner, finder, scheduler, transformer);
   }
 

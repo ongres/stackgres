@@ -20,7 +20,7 @@
             }    
         },
         "storage": {
-            "s3compatible": {
+            "s3Compatible": {
                 "awsCredentials": {
                     "secretKeySelectors": {
                         "accessKeyId": {
@@ -38,7 +38,7 @@
                 "bucket": "stackgres",
                 "region": "k8s"
             },
-            "type": "s3compatible"
+            "type": "s3Compatible"
         }
     }
 }

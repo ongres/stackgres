@@ -15,7 +15,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import io.quarkus.runtime.StartupEvent;
-import io.stackgres.operator.common.PgBouncerReview;
+import io.stackgres.operator.common.PoolingReview;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReviewResponse;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationPipeline;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationResource;
@@ -26,14 +26,14 @@ import org.slf4j.LoggerFactory;
 @Path(ValidationUtil.CONNPOOLCONFIG_VALIDATION_PATH)
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-public class PgBouncerValidationResource implements ValidationResource<PgBouncerReview> {
+public class PgBouncerValidationResource implements ValidationResource<PoolingReview> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(PgBouncerValidationResource.class);
 
-  private ValidationPipeline<PgBouncerReview> pipeline;
+  private ValidationPipeline<PoolingReview> pipeline;
 
   @Inject
-  public PgBouncerValidationResource(@Any ValidationPipeline<PgBouncerReview> validationPipeline) {
+  public PgBouncerValidationResource(@Any ValidationPipeline<PoolingReview> validationPipeline) {
     this.pipeline = validationPipeline;
   }
 
@@ -42,7 +42,7 @@ public class PgBouncerValidationResource implements ValidationResource<PgBouncer
   }
 
   @POST
-  public AdmissionReviewResponse validate(PgBouncerReview admissionReview) {
+  public AdmissionReviewResponse validate(PoolingReview admissionReview) {
     return validate(admissionReview, pipeline);
   }
 }
