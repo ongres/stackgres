@@ -7,8 +7,8 @@
     },
     "spec": {
       "storage": {
-        "type": "s3compatible",
-        "s3compatible": {
+        "type": "s3Compatible",
+        "s3Compatible": {
           "bucket": "stackgres",
           "credentials": {
             "accessKey": "AKIAIOSFODNN7EXAMPLE",
@@ -43,8 +43,8 @@
     },
     "spec": {
       "storage": {
-        "type": "s3compatible",
-        "s3compatible": {
+        "type": "s3Compatible",
+        "s3Compatible": {
           "bucket": "stackgres",
           "credentials": {
             "accessKey": "AKIAIOSFODNN7EXAMPLE",
@@ -79,8 +79,8 @@
     },
     "spec": {
       "storage": {
-        "type": "s3compatible",
-        "s3compatible": {
+        "type": "s3Compatible",
+        "s3Compatible": {
           "bucket": "stackgres",
           "credentials": {
             "accessKey": "AKIAIOSFODNN7EXAMPLE",
@@ -115,8 +115,8 @@
     },
     "spec": {
       "storage": {
-        "type": "s3compatible",
-        "s3compatible": {
+        "type": "s3Compatible",
+        "s3Compatible": {
           "bucket": "stackgres",
           "credentials": {
             "accessKey": "AKIAIOSFODNN7EXAMPLE",

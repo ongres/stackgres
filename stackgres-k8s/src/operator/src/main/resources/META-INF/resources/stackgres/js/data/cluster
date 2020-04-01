@@ -7,7 +7,7 @@
     },
     "spec": {
       "instances": 1,
-      "pgVersion": "12.2",
+      "postgresVersion": "12.2",
       "pgConfig": "generated-from-default-1585226523250",
       "resourceProfile": "generated-from-default-1585226523217",
       "connectionPoolingConfig": "generated-from-default-1585226523286",
@@ -39,7 +39,7 @@
     },
     "spec": {
       "instances": 1,
-      "pgVersion": "12.2",
+      "postgresVersion": "12.2",
       "pgConfig": "postgresconf",
       "resourceProfile": "size-xs",
       "connectionPoolingConfig": "pgbouncerconf",
@@ -76,7 +76,7 @@
     },
     "spec": {
       "instances": 1,
-      "pgVersion": "12.2",
+      "postgresVersion": "12.2",
       "pgConfig": "postgresconf",
       "resourceProfile": "size-xs",
       "connectionPoolingConfig": "pgbouncerconf",
@@ -110,7 +110,7 @@
     },
     "spec": {
       "instances": 2,
-      "pgVersion": "12.2",
+      "postgresVersion": "12.2",
       "pgConfig": "postgresconf",
       "resourceProfile": "size-xs",
       "connectionPoolingConfig": "pgbouncerconf",

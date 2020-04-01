@@ -12,8 +12,8 @@
     "status": {
       "backupConfig": {
         "storage": {
-          "type": "s3compatible",
-          "s3compatible": {
+          "type": "s3Compatible",
+          "s3Compatible": {
             "bucket": "stackgres",
             "credentials": {
               "accessKeySelector": {
@@ -42,7 +42,7 @@
       "finishTime": "2020-03-26T14:42:07.304353Z",
       "hostname": "test-0",
       "dataDir": "/var/lib/postgresql/data",
-      "pgVersion": "120002",
+      "postgresVersion": "120002",
       "startLsn": "2516582440",
       "finishLsn": "2516582656",
       "isPermanent": false,
@@ -64,8 +64,8 @@
     "status": {
       "backupConfig": {
         "storage": {
-          "type": "s3compatible",
-          "s3compatible": {
+          "type": "s3Compatible",
+          "s3Compatible": {
             "bucket": "stackgres",
             "credentials": {
               "accessKeySelector": {
@@ -94,7 +94,7 @@
       "finishTime": "2020-03-26T14:44:08.635967Z",
       "hostname": "test-0",
       "dataDir": "/var/lib/postgresql/data",
-      "pgVersion": "120002",
+      "postgresVersion": "120002",
       "startLsn": "2550136872",
       "finishLsn": "2550137144",
       "isPermanent": false,
@@ -116,8 +116,8 @@
     "status": {
       "backupConfig": {
         "storage": {
-          "type": "s3compatible",
-          "s3compatible": {
+          "type": "s3Compatible",
+          "s3Compatible": {
             "bucket": "stackgres",
             "credentials": {
               "accessKeySelector": {
@@ -146,7 +146,7 @@
       "finishTime": "2020-03-26T14:46:07.890723Z",
       "hostname": "test-0",
       "dataDir": "/var/lib/postgresql/data",
-      "pgVersion": "120002",
+      "postgresVersion": "120002",
       "startLsn": "2583691304",
       "finishLsn": "2583691520",
       "isPermanent": false,
@@ -168,8 +168,8 @@
     "status": {
       "backupConfig": {
         "storage": {
-          "type": "s3compatible",
-          "s3compatible": {
+          "type": "s3Compatible",
+          "s3Compatible": {
             "bucket": "stackgres",
             "credentials": {
               "accessKeySelector": {
@@ -198,7 +198,7 @@
       "finishTime": "2020-03-26T14:48:08.195166Z",
       "hostname": "test-0",
       "dataDir": "/var/lib/postgresql/data",
-      "pgVersion": "120002",
+      "postgresVersion": "120002",
       "startLsn": "2617245736",
       "finishLsn": "2617245952",
       "isPermanent": false,
@@ -220,8 +220,8 @@
     "status": {
       "backupConfig": {
         "storage": {
-          "type": "s3compatible",
-          "s3compatible": {
+          "type": "s3Compatible",
+          "s3Compatible": {
             "bucket": "stackgres",
             "credentials": {
               "accessKeySelector": {
@@ -250,7 +250,7 @@
       "finishTime": "2020-03-26T14:50:08.623352Z",
       "hostname": "test-0",
       "dataDir": "/var/lib/postgresql/data",
-      "pgVersion": "120002",
+      "postgresVersion": "120002",
       "startLsn": "2650800168",
       "finishLsn": "2650800384",
       "isPermanent": false,
@@ -272,8 +272,8 @@
     "status": {
       "backupConfig": {
         "storage": {
-          "type": "s3compatible",
-          "s3compatible": {
+          "type": "s3Compatible",
+          "s3Compatible": {
             "bucket": "stackgres",
             "credentials": {
               "accessKeySelector": {
@@ -302,7 +302,7 @@
       "finishTime": "2020-03-26T12:41:46.692908Z",
       "hostname": "test4-0",
       "dataDir": "/var/lib/postgresql/data",
-      "pgVersion": "120002",
+      "postgresVersion": "120002",
       "startLsn": "234881064",
       "finishLsn": "234881280",
       "isPermanent": true,
@@ -324,8 +324,8 @@
     "status": {
       "backupConfig": {
         "storage": {
-          "type": "s3compatible",
-          "s3compatible": {
+          "type": "s3Compatible",
+          "s3Compatible": {
             "bucket": "stackgres",
             "credentials": {
               "accessKeySelector": {
@@ -354,7 +354,7 @@
       "finishTime": "2020-03-26T14:42:08.203314Z",
       "hostname": "test4-0",
       "dataDir": "/var/lib/postgresql/data",
-      "pgVersion": "120002",
+      "postgresVersion": "120002",
       "startLsn": "2281701416",
       "finishLsn": "2281701632",
       "isPermanent": false,
@@ -376,8 +376,8 @@
     "status": {
       "backupConfig": {
         "storage": {
-          "type": "s3compatible",
-          "s3compatible": {
+          "type": "s3Compatible",
+          "s3Compatible": {
             "bucket": "stackgres",
             "credentials": {
               "accessKeySelector": {
@@ -406,7 +406,7 @@
       "finishTime": "2020-03-26T14:44:07.541835Z",
       "hostname": "test4-0",
       "dataDir": "/var/lib/postgresql/data",
-      "pgVersion": "120002",
+      "postgresVersion": "120002",
       "startLsn": "2315255848",
       "finishLsn": "2315256064",
       "isPermanent": false,
@@ -428,8 +428,8 @@
     "status": {
       "backupConfig": {
         "storage": {
-          "type": "s3compatible",
-          "s3compatible": {
+          "type": "s3Compatible",
+          "s3Compatible": {
             "bucket": "stackgres",
             "credentials": {
               "accessKeySelector": {
@@ -458,7 +458,7 @@
       "finishTime": "2020-03-26T14:46:09.253578Z",
       "hostname": "test4-0",
       "dataDir": "/var/lib/postgresql/data",
-      "pgVersion": "120002",
+      "postgresVersion": "120002",
       "startLsn": "2348810280",
       "finishLsn": "2348810496",
       "isPermanent": false,
@@ -480,8 +480,8 @@
     "status": {
       "backupConfig": {
         "storage": {
-          "type": "s3compatible",
-          "s3compatible": {
+          "type": "s3Compatible",
+          "s3Compatible": {
             "bucket": "stackgres",
             "credentials": {
               "accessKeySelector": {
@@ -510,7 +510,7 @@
       "finishTime": "2020-03-26T14:48:08.389116Z",
       "hostname": "test4-0",
       "dataDir": "/var/lib/postgresql/data",
-      "pgVersion": "120002",
+      "postgresVersion": "120002",
       "startLsn": "2382364712",
       "finishLsn": "2382364928",
       "isPermanent": false,
@@ -532,8 +532,8 @@
     "status": {
       "backupConfig": {
         "storage": {
-          "type": "s3compatible",
-          "s3compatible": {
+          "type": "s3Compatible",
+          "s3Compatible": {
             "bucket": "stackgres",
             "credentials": {
               "accessKeySelector": {
@@ -562,7 +562,7 @@
       "finishTime": "2020-03-26T14:50:08.738Z",
       "hostname": "test4-0",
       "dataDir": "/var/lib/postgresql/data",
-      "pgVersion": "120002",
+      "postgresVersion": "120002",
       "startLsn": "2415919144",
       "finishLsn": "2415919360",
       "isPermanent": false,
@@ -584,8 +584,8 @@
     "status": {
       "backupConfig": {
         "storage": {
-          "type": "s3compatible",
-          "s3compatible": {
+          "type": "s3Compatible",
+          "s3Compatible": {
             "bucket": "stackgres",
             "credentials": {
               "accessKeySelector": {
@@ -614,7 +614,7 @@
       "finishTime": "2020-03-26T14:42:07.244341Z",
       "hostname": "stackgres-0",
       "dataDir": "/var/lib/postgresql/data",
-      "pgVersion": "120002",
+      "postgresVersion": "120002",
       "startLsn": "22481469480",
       "finishLsn": "22481469696",
       "isPermanent": false,
@@ -636,8 +636,8 @@
     "status": {
       "backupConfig": {
         "storage": {
-          "type": "s3compatible",
-          "s3compatible": {
+          "type": "s3Compatible",
+          "s3Compatible": {
             "bucket": "stackgres",
             "credentials": {
               "accessKeySelector": {
@@ -666,7 +666,7 @@
       "finishTime": "2020-03-26T14:44:07.498203Z",
       "hostname": "stackgres-0",
       "dataDir": "/var/lib/postgresql/data",
-      "pgVersion": "120002",
+      "postgresVersion": "120002",
       "startLsn": "22515023912",
       "finishLsn": "22515024128",
       "isPermanent": false,
@@ -688,8 +688,8 @@
     "status": {
       "backupConfig": {
         "storage": {
-          "type": "s3compatible",
-          "s3compatible": {
+          "type": "s3Compatible",
+          "s3Compatible": {
             "bucket": "stackgres",
             "credentials": {
               "accessKeySelector": {
@@ -718,7 +718,7 @@
       "finishTime": "2020-03-26T14:46:08.108454Z",
       "hostname": "stackgres-0",
       "dataDir": "/var/lib/postgresql/data",
-      "pgVersion": "120002",
+      "postgresVersion": "120002",
       "startLsn": "22548578344",
       "finishLsn": "22548578616",
       "isPermanent": false,
@@ -740,8 +740,8 @@
     "status": {
       "backupConfig": {
         "storage": {
-          "type": "s3compatible",
-          "s3compatible": {
+          "type": "s3Compatible",
+          "s3Compatible": {
             "bucket": "stackgres",
             "credentials": {
               "accessKeySelector": {
@@ -770,7 +770,7 @@
       "finishTime": "2020-03-26T14:48:09.225072Z",
       "hostname": "stackgres-0",
       "dataDir": "/var/lib/postgresql/data",
-      "pgVersion": "120002",
+      "postgresVersion": "120002",
       "startLsn": "22582132776",
       "finishLsn": "22582132992",
       "isPermanent": false,
@@ -792,8 +792,8 @@
     "status": {
       "backupConfig": {
         "storage": {
-          "type": "s3compatible",
-          "s3compatible": {
+          "type": "s3Compatible",
+          "s3Compatible": {
             "bucket": "stackgres",
             "credentials": {
               "accessKeySelector": {
@@ -822,7 +822,7 @@
       "finishTime": "2020-03-26T14:50:08.831987Z",
       "hostname": "stackgres-0",
       "dataDir": "/var/lib/postgresql/data",
-      "pgVersion": "120002",
+      "postgresVersion": "120002",
       "startLsn": "22615687208",
       "finishLsn": "22615687424",
       "isPermanent": false,
