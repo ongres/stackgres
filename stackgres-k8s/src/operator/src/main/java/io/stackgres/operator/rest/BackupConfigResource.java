@@ -161,7 +161,7 @@ public class BackupConfigResource extends
     final String name = secretName(resource);
     secretFinder.findByNameAndNamespace(name, namespace)
         .map(secret -> {
-          secret.setData(secrets);
+          secret.setStringData(secrets);
           secretWriter.update(secret);
           return secret;
         })
