@@ -6,6 +6,7 @@
 package io.stackgres.operator.customresource.storages;
 
 import java.util.Objects;
+
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonInclude;

@@ -20,20 +20,20 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 @RegisterForReflection
 public class PostgresConfigSpec {
 
-  @JsonProperty("pgVersion")
+  @JsonProperty("postgresVersion")
   @NotBlank(message = "The PostgreSQL version is required")
-  private String pgVersion;
+  private String postgresVersion;
 
   @JsonProperty("postgresql.conf")
   @NotNull(message = "postgresql.conf is required")
   private String postgresqlConf;
 
-  public String getPgVersion() {
-    return pgVersion;
+  public String getPostgresVersion() {
+    return postgresVersion;
   }
 
-  public void setPgVersion(String pgVersion) {
-    this.pgVersion = pgVersion;
+  public void setPostgresVersion(String postgresVersion) {
+    this.postgresVersion = postgresVersion;
   }
 
   public String getPostgresqlConf() {
@@ -48,7 +48,7 @@ public class PostgresConfigSpec {
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .omitNullValues()
-        .add("pgVersion", pgVersion)
+        .add("pgVersion", postgresVersion)
         .add("postgresql.conf", postgresqlConf)
         .toString();
   }

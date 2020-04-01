@@ -124,7 +124,7 @@ class PostgresVersionValidatorTest {
 
     final String randomVersion = getRandomPostgresVersion();
     spec.setPostgresVersion(randomVersion);
-    postgresConfig.getSpec().setPgVersion(getMajorPostgresVersion(randomVersion));
+    postgresConfig.getSpec().setPostgresVersion(getMajorPostgresVersion(randomVersion));
 
     validator.validate(review);
 
@@ -148,7 +148,7 @@ class PostgresVersionValidatorTest {
 
     final String randomVersion = getRandomPostgresVersion();
     spec.setPostgresVersion(randomVersion);
-    postgresConfig.getSpec().setPgVersion(getMajorPostgresVersion(randomVersion));
+    postgresConfig.getSpec().setPostgresVersion(getMajorPostgresVersion(randomVersion));
 
     validator.validate(review);
 
@@ -172,7 +172,7 @@ class PostgresVersionValidatorTest {
 
     final String randomVersion = getRandomPostgresVersion();
     spec.setPostgresVersion(randomVersion);
-    postgresConfig.getSpec().setPgVersion(getMajorPostgresVersion(randomVersion));
+    postgresConfig.getSpec().setPostgresVersion(getMajorPostgresVersion(randomVersion));
 
     validator.validate(review);
 

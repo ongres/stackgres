@@ -70,7 +70,7 @@ class PostgresConfigResourceTest
     assertEquals("postgresconf", resource.getMetadata().getName());
     assertEquals("3658bd63-33cb-4948-8318-63183cbd2cf1", resource.getMetadata().getUid());
     assertNotNull(resource.getSpec());
-    assertEquals("12", resource.getSpec().getPgVersion());
+    assertEquals("12", resource.getSpec().getPostgresVersion());
     assertEquals(Seq.of(
         "password_encryption='scram-sha-256'",
         "random_page_cost=1.5",
@@ -87,7 +87,7 @@ class PostgresConfigResourceTest
     assertEquals("postgresconf", resource.getMetadata().getName());
     assertEquals("3658bd63-33cb-4948-8318-63183cbd2cf1", resource.getMetadata().getUid());
     assertNotNull(resource.getSpec());
-    assertEquals("12", resource.getSpec().getPgVersion());
+    assertEquals("12", resource.getSpec().getPostgresVersion());
     assertEquals(ImmutableMap.of(
         "password_encryption", "'scram-sha-256'",
         "random_page_cost", "1.5",

@@ -94,7 +94,7 @@ status:
   sgBackupConfig:
     compression: lz4
     storage:
-      s3compatible:
+      s3Compatible:
         awsCredentials:
           secretKeySelectors:
             accessKeyId:
@@ -107,7 +107,7 @@ status:
         forcePathStyle: true
         bucket: stackgres
         region: k8s
-      type: s3compatible
+      type: s3Compatible
   process:
     status: Completed
     jobPod: backup-backup-q79zq
@@ -173,8 +173,8 @@ spec:
       maxNetworkBandwitdh: 52428800 #50 MB per second
       uploadDiskConcurrency: 2
   storage:
-    type: s3compatible
-    s3compatible:
+    type: s3Compatible
+    s3Compatible:
       credentials:
         accessKey:
           key: accesskey
@@ -224,9 +224,9 @@ The default name of backup configuration CR is `defaultbackupconfig`
 
 | Property                                                             | Required               | Updatable | Type   | Default | Description |
 |:---------------------------------------------------------------------|------------------------|-----------|:-------|:--------|:------------|
-| type                                                                 | ✓                      | ✓         | string |         | Type of storage: <br>- s3: Amazon Web Services S3 <br>- s3compatible: Amazon Web Services S3 Compatible <br>- gcs: Google Clooud Storage <br>- azureblob: Azure Blob Storage  |
+| type                                                                 | ✓                      | ✓         | string |         | Type of storage: <br>- s3: Amazon Web Services S3 <br>- s3Compatible: Amazon Web Services S3 Compatible <br>- gcs: Google Clooud Storage <br>- azureblob: Azure Blob Storage  |
 | [s3](#s3--amazon-web-services-s3-configuration)                      | if type = s3           | ✓         | object |         | Amazon Web Services S3 configuration |
-| [s3compatible](#s3--amazon-web-services-s3-compatible-configuration) | if type = s3compatible | ✓         | object |         | Amazon Web Services S3 configuration |
+| [s3Compatible](#s3--amazon-web-services-s3-compatible-configuration) | if type = s3Compatible | ✓         | object |         | Amazon Web Services S3 configuration |
 | [gcs](#gsc--google-cloud-storage-configuration)                      | if type = gcs          | ✓         | object |         | Google Cloud Storage configuration |
 | [azureBlob](#azure--azure-blob-storage-configuration)                | if type = azureblob    | ✓         | object |         | Google Cloud Storage configuration |
 

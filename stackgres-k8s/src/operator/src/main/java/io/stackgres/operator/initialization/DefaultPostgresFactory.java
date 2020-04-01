@@ -35,7 +35,7 @@ public class DefaultPostgresFactory extends AbstractCustomResourceFactory<StackG
   StackGresPostgresConfig buildResource(String namespace) {
 
     StackGresPostgresConfigSpec spec = new StackGresPostgresConfigSpec();
-    spec.setPgVersion(StackGresComponents.getPostgresMajorVersion(
+    spec.setPostgresVersion(StackGresComponents.getPostgresMajorVersion(
         StackGresComponents.calculatePostgresVersion(StackGresComponents.LATEST)));
     spec.setPostgresqlConf(getDefaultValues());
 

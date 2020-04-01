@@ -145,7 +145,7 @@ metadata:
   name: pgconfig-alter
   namespace: $CLUSTER_NAMESPACE
 spec:
-  pgVersion: '$ALTERNATIVE_MAYOR_PG_VERSION'
+  postgresVersion: '$ALTERNATIVE_MAYOR_PG_VERSION'
   postgresql.conf:
     wal_compression: "on"
 EOF

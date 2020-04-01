@@ -17,24 +17,24 @@ import io.stackgres.operator.rest.dto.SecretKeySelector;
 public class AwsSecretKeySelector {
 
   @JsonProperty("accessKeyId")
-  private SecretKeySelector accessKeySelector;
+  private SecretKeySelector accessKeyId;
 
   @JsonProperty("secretAccessKey")
-  private SecretKeySelector secretKeySelector;
+  private SecretKeySelector secretAccessKey;
 
-  public SecretKeySelector getAccessKeySelector() {
-    return accessKeySelector;
+  public SecretKeySelector getAccessKeyId() {
+    return accessKeyId;
   }
 
-  public void setAccessKeySelector(SecretKeySelector accessKeySelector) {
-    this.accessKeySelector = accessKeySelector;
+  public void setAccessKeyId(SecretKeySelector accessKeyId) {
+    this.accessKeyId = accessKeyId;
   }
 
-  public SecretKeySelector getSecretKeySelector() {
-    return secretKeySelector;
+  public SecretKeySelector getSecretAccessKey() {
+    return secretAccessKey;
   }
 
-  public void setSecretKeySelector(SecretKeySelector secretKeySelector) {
-    this.secretKeySelector = secretKeySelector;
+  public void setSecretAccessKey(SecretKeySelector secretAccessKey) {
+    this.secretAccessKey = secretAccessKey;
   }
 }

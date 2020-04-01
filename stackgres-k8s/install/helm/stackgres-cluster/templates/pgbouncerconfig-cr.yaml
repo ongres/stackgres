@@ -13,10 +13,11 @@ metadata:
     "helm.sh/hook": "pre-install"
   {{- end }}
 spec:
-  {{- with (index .Values.config.pgbouncer "pgbouncer.ini") }}
-  pgbouncer.ini:
-  {{- range $key, $value := . }}
-    {{ $key }}: '{{ $value }}'
-  {{- end }}
-  {{- end }}
+  pgBouncer:
+    {{- with (index .Values.config.pgbouncer "pgbouncer.ini") }}
+    pgbouncer.ini:
+    {{- range $key, $value := . }}
+      {{ $key }}: '{{ $value }}'
+    {{- end }}
+    {{- end }}
 {{ end }}

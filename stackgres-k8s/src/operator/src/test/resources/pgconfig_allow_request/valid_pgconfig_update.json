@@ -40,7 +40,7 @@
       "metadata": {
         "annotations": {
           "helm.sh/hook-weight": "1",
-          "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"stackgres.io/v1beta1\",\"kind\":\"SGPostgresConfig\",\"metadata\":{\"annotations\":{\"helm.sh/hook-weight\":\"1\"},\"name\":\"postgresconf\",\"namespace\":\"default\"},\"spec\":{\"pgVersion\":\"11.5\",\"postgresql.conf\":{\"password_encryption\":\"scram-sha-256\",\"random_page_cost\":\"1.5\",\"shared_buffers\":\"512MB\",\"wal_compression\":\"on\",\"wal_level\":\"minimal\"}}}\n"
+          "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"stackgres.io/v1beta1\",\"kind\":\"SGPostgresConfig\",\"metadata\":{\"annotations\":{\"helm.sh/hook-weight\":\"1\"},\"name\":\"postgresconf\",\"namespace\":\"default\"},\"spec\":{\"postgresVersion\":\"11.5\",\"postgresql.conf\":{\"password_encryption\":\"scram-sha-256\",\"random_page_cost\":\"1.5\",\"shared_buffers\":\"512MB\",\"wal_compression\":\"on\",\"wal_level\":\"minimal\"}}}\n"
         },
         "creationTimestamp": "2019-10-04T08:48:36Z",
         "generation": 2,
@@ -50,7 +50,7 @@
         "uid": "c7104846-7eb4-41cb-a04a-784aa27f1a1e"
       },
       "spec": {
-        "pgVersion": "11.5",
+        "postgresVersion": "11.5",
         "postgresql.conf": {
           "password_encryption": "scram-sha-256",
           "random_page_cost": "1.5",
@@ -71,7 +71,7 @@
         "uid": "c7104846-7eb4-41cb-a04a-784aa27f1a1e"
       },
       "spec": {
-        "pgVersion": "11.5",
+        "postgresVersion": "11.5",
         "postgresql.conf": {
           "password_encryption": "scram-sha-256",
           "random_page_cost": "1.5",

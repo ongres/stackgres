@@ -28,9 +28,9 @@ public class AzureBlobStorage implements PrefixedStorage {
   @JsonProperty("path")
   private String path;
 
-  @JsonProperty("credentials")
-  @NotNull(message = "The credentials is required")
-  private AzureBlobStorageCredentials credentials;
+  @JsonProperty("azureCredentials")
+  @NotNull(message = "The azureCredentials is required")
+  private AzureBlobStorageCredentials azureCredentials;
 
   @Override
   public String getSchema() {
@@ -57,17 +57,17 @@ public class AzureBlobStorage implements PrefixedStorage {
     this.path = path;
   }
 
-  public AzureBlobStorageCredentials getCredentials() {
-    return credentials;
+  public AzureBlobStorageCredentials getAzureCredentials() {
+    return azureCredentials;
   }
 
-  public void setCredentials(AzureBlobStorageCredentials credentials) {
-    this.credentials = credentials;
+  public void setAzureCredentials(AzureBlobStorageCredentials azureCredentials) {
+    this.azureCredentials = azureCredentials;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(credentials, bucket);
+    return Objects.hash(azureCredentials, bucket);
   }
 
   @Override
@@ -82,7 +82,7 @@ public class AzureBlobStorage implements PrefixedStorage {
       return false;
     }
     AzureBlobStorage other = (AzureBlobStorage) obj;
-    return Objects.equals(credentials, other.credentials)
+    return Objects.equals(azureCredentials, other.azureCredentials)
         && Objects.equals(bucket, other.bucket)
         && Objects.equals(path, other.path);
   }
@@ -93,7 +93,7 @@ public class AzureBlobStorage implements PrefixedStorage {
         .omitNullValues()
         .add("bucket", bucket)
         .add("path", path)
-        .add("credentials", credentials)
+        .add("credentials", azureCredentials)
         .toString();
   }
 

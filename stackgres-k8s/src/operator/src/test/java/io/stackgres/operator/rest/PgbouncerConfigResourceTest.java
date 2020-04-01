@@ -14,11 +14,11 @@ import io.fabric8.kubernetes.client.CustomResourceList;
 import io.stackgres.operator.resource.CustomResourceFinder;
 import io.stackgres.operator.resource.CustomResourceScanner;
 import io.stackgres.operator.resource.CustomResourceScheduler;
-import io.stackgres.operator.rest.dto.pgbouncerconfig.PgbouncerConfigDto;
+import io.stackgres.operator.rest.dto.pooling.PoolingConfigDto;
 import io.stackgres.operator.rest.transformer.AbstractResourceTransformer;
-import io.stackgres.operator.rest.transformer.PgbouncerConfigTransformer;
-import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfig;
-import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfigList;
+import io.stackgres.operator.rest.transformer.PoolingConfigTransformer;
+import io.stackgres.operator.sidecars.pooling.customresources.StackGresPoolingConfig;
+import io.stackgres.operator.sidecars.pooling.customresources.StackGresPoolingConfigList;
 import io.stackgres.operator.utils.JsonUtil;
 
 import org.jooq.lambda.Seq;
@@ -27,29 +27,29 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class PgbouncerConfigResourceTest
-    extends AbstractCustomResourceTest<PgbouncerConfigDto, StackGresPgbouncerConfig> {
+    extends AbstractCustomResourceTest<PoolingConfigDto, StackGresPoolingConfig> {
 
   @Override
-  protected CustomResourceList<StackGresPgbouncerConfig> getCustomResourceList() {
-    return JsonUtil.readFromJson("pgbouncer_config/list.json", StackGresPgbouncerConfigList.class);
+  protected CustomResourceList<StackGresPoolingConfig> getCustomResourceList() {
+    return JsonUtil.readFromJson("pooling_config/list.json", StackGresPoolingConfigList.class);
   }
 
   @Override
-  protected PgbouncerConfigDto getResourceDto() {
-    return JsonUtil.readFromJson("pgbouncer_config/dto.json", PgbouncerConfigDto.class);
+  protected PoolingConfigDto getResourceDto() {
+    return JsonUtil.readFromJson("pooling_config/dto.json", PoolingConfigDto.class);
   }
 
   @Override
-  protected AbstractResourceTransformer<PgbouncerConfigDto, StackGresPgbouncerConfig> getTransformer() {
-    return new PgbouncerConfigTransformer();
+  protected AbstractResourceTransformer<PoolingConfigDto, StackGresPoolingConfig> getTransformer() {
+    return new PoolingConfigTransformer();
   }
 
   @Override
-  protected AbstractRestService<PgbouncerConfigDto, StackGresPgbouncerConfig> getService(
-      CustomResourceScanner<StackGresPgbouncerConfig> scanner,
-      CustomResourceFinder<StackGresPgbouncerConfig> finder,
-      CustomResourceScheduler<StackGresPgbouncerConfig> scheduler,
-      AbstractResourceTransformer<PgbouncerConfigDto, StackGresPgbouncerConfig> transformer) {
+  protected AbstractRestService<PoolingConfigDto, StackGresPoolingConfig> getService(
+      CustomResourceScanner<StackGresPoolingConfig> scanner,
+      CustomResourceFinder<StackGresPoolingConfig> finder,
+      CustomResourceScheduler<StackGresPoolingConfig> scheduler,
+      AbstractResourceTransformer<PoolingConfigDto, StackGresPoolingConfig> transformer) {
     return new ConnectionPoolingConfigResource(scanner, finder, scheduler, transformer);
   }
 
@@ -64,7 +64,7 @@ class PgbouncerConfigResourceTest
   }
 
   @Override
-  protected void checkBackupConfig(PgbouncerConfigDto resource) {
+  protected void checkBackupConfig(PoolingConfigDto resource) {
     assertNotNull(resource.getMetadata());
     assertEquals("default", resource.getMetadata().getNamespace());
     assertEquals("pgbouncerconf", resource.getMetadata().getName());
@@ -75,11 +75,11 @@ class PgbouncerConfigResourceTest
         "max_client_conn=200",
         "pool_mode='transaction'")
         .toString("\n"),
-        resource.getSpec().getPgbouncerConf());
+        resource.getSpec().getPgBouncer().getPgbouncerConf());
   }
 
   @Override
-  protected void checkBackupConfig(StackGresPgbouncerConfig resource) {
+  protected void checkBackupConfig(StackGresPoolingConfig resource) {
     assertNotNull(resource.getMetadata());
     assertEquals("default", resource.getMetadata().getNamespace());
     assertEquals("pgbouncerconf", resource.getMetadata().getName());
@@ -89,7 +89,7 @@ class PgbouncerConfigResourceTest
         "default_pool_size", "200", 
         "max_client_conn", "200",
         "pool_mode", "'transaction'"),
-        resource.getSpec().getPgbouncerConf());
+        resource.getSpec().getPgBouncer().getPgbouncerConf());
   }
 
 }

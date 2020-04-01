@@ -14,7 +14,7 @@ e2e_test_install() {
     
   DEFAULT_PGPOOLING=$(echo "$DEFAULT_PGPOOLING_CR" \
     | run_jq 'del(.apiVersion) | del(.kind)' \
-    | run_jq '.spec."pgbouncer.ini" = (.spec."pgbouncer.ini"|to_entries|map(.key + "=" + .value)|join("\n"))' )
+    | run_jq '.spec.pgBouncer."pgbouncer.ini" = (.spec.pgBouncer."pgbouncer.ini"|to_entries|map(.key + "=" + .value)|join("\n"))' )
   
   write_into -f "$LOG_PATH/default-pgpooling.json" -c "$DEFAULT_PGPOOLING"
   
@@ -183,8 +183,8 @@ update_pgpooling_parameter_with_api() {
 
   UPDATED_PGPOOLING=$(cat "$LOG_PATH/default-pgpooling-cr.json" \
     | run_jq 'del(.apiVersion) | del(.kind)' \
-    | run_jq ".spec[\"pgbouncer.ini\"][\"$1\"] = $2" \
-    | run_jq '.spec."pgbouncer.ini" = (.spec."pgbouncer.ini"|to_entries|map(.key + "=" + .value)|join("\n"))' )
+    | run_jq ".spec.pgBouncer[\"pgbouncer.ini\"][\"$1\"] = $2" \
+    | run_jq '.spec.pgBouncer."pgbouncer.ini" = (.spec.pgBouncer."pgbouncer.ini"|to_entries|map(.key + "=" + .value)|join("\n"))' )
 
   write_into -f "$LOG_PATH/updated-pgpooling.json" -c "$UPDATED_PGPOOLING"
 
@@ -202,7 +202,7 @@ update_pgpooling_parameter_with_api() {
 }
 
 get_max_clien_conn(){
-  MAX_CLIENT_CONN=$(kubectl get sgpoolconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGPOOLING" -o "jsonpath={.spec['pgbouncer\.ini'].max_client_conn}")
+  MAX_CLIENT_CONN=$(kubectl get sgpoolconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGPOOLING" -o "jsonpath={.spec.pgBouncer['pgbouncer\.ini'].max_client_conn}")
   echo "$MAX_CLIENT_CONN"
 }
 
@@ -227,7 +227,7 @@ get_pgpooling_from_api() {
 test_api_updated_pgpooling_is_visible() {
   update_pgpooling_parameter_with_api 'max_client_conn' '"400"'
 
-  if get_pgpooling_from_api | run_jq '.spec["pgbouncer.ini"]' -r \
+  if get_pgpooling_from_api | run_jq '.spec.pgBouncer["pgbouncer.ini"]' -r \
     | grep -q 'max_client_conn=400'
   then
     echo "Pooling config updates are being reflected in the api"

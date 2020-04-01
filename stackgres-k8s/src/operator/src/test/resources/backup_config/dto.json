@@ -14,7 +14,7 @@
       }
     },
     "storage": {
-      "s3compatible": {
+      "s3Compatible": {
         "endpoint": "http://minio.stackgres.svc:9000",
         "forcePathStyle": true,
         "bucket": "stackgres",
@@ -24,7 +24,7 @@
           "secretAccessKey": "test"
         }
       },
-      "type": "s3compatible"
+      "type": "s3Compatible"
     }
   }
 }

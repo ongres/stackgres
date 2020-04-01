@@ -18,7 +18,7 @@
     "sgBackupConfig":  {
       "compressionMethod": "lz4",
       "storage": {
-        "s3compatible": {
+        "s3Compatible": {
           "credentials": {
             "accessKey": {
               "key": "accesskey",
@@ -34,7 +34,7 @@
           "bucket": "stackgres",
           "region": "k8s"
         },
-        "type": "s3compatible"
+        "type": "s3Compatible"
       }
     },
     "internalName": "base_00000002000000000000000D",

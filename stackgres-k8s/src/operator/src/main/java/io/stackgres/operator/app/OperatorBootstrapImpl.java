@@ -27,8 +27,8 @@ import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfigDe
 import io.stackgres.operator.customresource.sgprofile.StackGresProfile;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfileDefinition;
 import io.stackgres.operator.initialization.InitializationQueue;
-import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfig;
-import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfigDefinition;
+import io.stackgres.operator.sidecars.pooling.customresources.StackGresPoolingConfig;
+import io.stackgres.operator.sidecars.pooling.customresources.StackGresPoolingConfigDefinition;
 import io.stackgres.operatorframework.resource.ResourceHandlerSelector;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.slf4j.Logger;
@@ -87,8 +87,8 @@ public class OperatorBootstrapImpl implements OperatorBootstrap {
     KubernetesDeserializer.registerCustomKind(StackGresPostgresConfigDefinition.APIVERSION,
         StackGresPostgresConfigDefinition.KIND, StackGresPostgresConfig.class);
 
-    KubernetesDeserializer.registerCustomKind(StackGresPgbouncerConfigDefinition.APIVERSION,
-        StackGresPgbouncerConfigDefinition.KIND, StackGresPgbouncerConfig.class);
+    KubernetesDeserializer.registerCustomKind(StackGresPoolingConfigDefinition.APIVERSION,
+        StackGresPoolingConfigDefinition.KIND, StackGresPoolingConfig.class);
 
     KubernetesDeserializer.registerCustomKind(StackGresProfileDefinition.APIVERSION,
         StackGresProfileDefinition.KIND, StackGresProfile.class);

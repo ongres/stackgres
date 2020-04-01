@@ -34,10 +34,10 @@ import io.stackgres.operator.customresource.sgprofile.StackGresProfile;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfileDefinition;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfileDoneable;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfileList;
-import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfig;
-import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfigDefinition;
-import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfigDoneable;
-import io.stackgres.operator.sidecars.pgbouncer.customresources.StackGresPgbouncerConfigList;
+import io.stackgres.operator.sidecars.pooling.customresources.StackGresPoolingConfig;
+import io.stackgres.operator.sidecars.pooling.customresources.StackGresPoolingConfigDefinition;
+import io.stackgres.operator.sidecars.pooling.customresources.StackGresPoolingConfigDoneable;
+import io.stackgres.operator.sidecars.pooling.customresources.StackGresPoolingConfigList;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jooq.lambda.Unchecked;
 
@@ -85,12 +85,12 @@ public class OperatorWatchersHandlerImpl implements OperatorWatcherHandler {
                   .watch(watcherFactory.createWatcher(action -> reconcile())))
               .orElseThrow(() -> new IllegalStateException("Some required CRDs does not exists")));
       watches.add(
-          ResourceUtil.getCustomResource(client, StackGresPgbouncerConfigDefinition.NAME)
+          ResourceUtil.getCustomResource(client, StackGresPoolingConfigDefinition.NAME)
               .map(crd -> kubeClient.create()
                   .customResources(crd,
-                      StackGresPgbouncerConfig.class,
-                      StackGresPgbouncerConfigList.class,
-                      StackGresPgbouncerConfigDoneable.class)
+                      StackGresPoolingConfig.class,
+                      StackGresPoolingConfigList.class,
+                      StackGresPoolingConfigDoneable.class)
                   .inAnyNamespace()
                   .watch(watcherFactory.createWatcher(action -> reconcile())))
               .orElseThrow(() -> new IllegalStateException("Some required CRDs does not exists")));
