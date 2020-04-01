@@ -46,15 +46,15 @@ e2e_test() {
 
   run_test "Backup config update with the api" test_update_backupconfig_with_api
 
+  run_test "Backup config update to s3 storage with the api" test_update_backupconfig_to_s3_with_api
+
+  run_test "Backup config update to s3compatible storage with the api" test_update_backupconfig_to_s3compatible_with_api
+
+  run_test "Backup config update to gcs storage with the api" test_update_backupconfig_to_gcs_with_api
+
+  run_test "Backup config update to azureblob storage with the api" test_update_backupconfig_to_azureblob_with_api
+
   run_test "Check that backup config changes are reflected in the api" test_api_updated_backupconfig_is_visible
-
-  run_test "Check that backup config changes to s3 storage are reflected in the api" test_api_updated_to_s3_backupconfig_is_visible
-
-  run_test "Check that backup config changes to s3compatible storage reflected in the api" test_api_updated_to_s3compatible_backupconfig_is_visible
-
-  run_test "Check that backup config changes to gcs storage are reflected in the api" test_api_updated_to_gcs_backupconfig_is_visible
-
-  run_test "Check that backup config changes to azureblob storage are reflected in the api" test_api_updated_to_azureblob_backupconfig_is_visible
 
   run_test "Check that backup config deletions with the API are reflected in the API" test_api_delete_backupconfig_is_invible
 
@@ -197,7 +197,13 @@ api_created_backupconfig_visible() {
 update_backupconfig_parameter_with_api() {
   local HTTP_STATUS
 
-  UPDATED_BACKUPCONFIG=$(cat "$LOG_PATH/default-backupconfig.json" | run_jq ".spec.baseBackups[\"$1\"] = $2" )
+  local FIELDS
+  local FIELD
+  for FIELD in $(echo "$1" | tr '.' '\n')
+  do
+    FIELDS="$FIELDS[\"$FIELD\"]"
+  done
+  UPDATED_BACKUPCONFIG=$(cat "$LOG_PATH/default-backupconfig.json" | run_jq ".spec$FIELDS = $2" )
   echo "$UPDATED_BACKUPCONFIG" > "$LOG_PATH/updated-backupconfig.json"
 
   HTTP_STATUS="$(run_curl -r "stackgres/sgbackupconfig" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/updated-backupconfig.json" -e '-X PUT -w %{http_code} -o /dev/null')"
@@ -217,7 +223,7 @@ update_backupconfig_parameter_with_api() {
 test_update_backupconfig_with_api() {
   create_backupconfig
 
-  update_backupconfig_parameter_with_api 'retention' '10'
+  update_backupconfig_parameter_with_api 'baseBackups.retention' '10'
 
   if kubectl get sgbackupconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUPCONF" -o jsonpath='{.spec.baseBackups.retention}' \
     | grep -q "^10$"
@@ -229,12 +235,99 @@ test_update_backupconfig_with_api() {
   fi
 }
 
+test_update_backupconfig_to_s3_with_api() {
+  update_backupconfig_parameter_with_api 'storage' '{
+    "type":"s3",
+    "s3": {
+      "bucket": "test",
+      "awsCredentials": {
+        "accessKeyId": "secret",
+        "secretAccessKey": "secret"
+      }
+    }
+  }'
+
+  if kubectl get sgbackupconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUPCONF" -o jsonpath='{.spec.storage.type}' \
+    | grep -q "^s3$"
+  then
+    echo "Backup config s3 storage was updated"
+  else
+    echo "Backup config s3 storage was not updated"
+    return 1
+  fi
+}
+
+test_update_backupconfig_to_s3compatible_with_api() {
+  update_backupconfig_parameter_with_api 'storage' '{
+    "type":"s3compatible",
+    "s3compatible": {
+      "bucket": "test",
+      "awsCredentials": {
+        "accessKeyId": "secret",
+        "secretAccessKey": "secret"
+      }
+    }
+  }'
+
+  if kubectl get sgbackupconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUPCONF" -o jsonpath='{.spec.storage.type}' \
+    | grep -q "^s3compatible$"
+  then
+    echo "Backup config s3compatible storage was updated"
+  else
+    echo "Backup config s3compatible storage was not updated"
+    return 1
+  fi
+}
+
+test_update_backupconfig_to_gcs_with_api() {
+  update_backupconfig_parameter_with_api 'storage' '{
+    "type":"gcs",
+    "gcs": {
+      "bucket": "test",
+      "gcpCredentials": {
+        "serviceAccountJSON": "secret"
+      }
+    }
+  }'
+
+  if kubectl get sgbackupconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUPCONF" -o jsonpath='{.spec.storage.type}' \
+    | grep -q "^gcs$"
+  then
+    echo "Backup config gcs storage was updated"
+  else
+    echo "Backup config gcs storage was not updated"
+    return 1
+  fi
+}
+
+test_update_backupconfig_to_azureblob_with_api() {
+  update_backupconfig_parameter_with_api 'storage' '{
+    "type":"azureblob",
+    "azureblob": {
+      "bucket": "test",
+      "azureCredentials": {
+        "storageAccount": "secret",
+        "accessKey": "secret"
+      }
+    }
+  }'
+
+  if kubectl get sgbackupconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUPCONF" -o jsonpath='{.spec.storage.type}' \
+    | grep -q "^azureblob$"
+  then
+    echo "Backup config azureblob storage was updated"
+  else
+    echo "Backup config azureblob storage was not updated"
+    return 1
+  fi
+}
+
 get_backupconfig_from_api() {
   run_curl -r "stackgres/sgbackupconfig/$CLUSTER_NAMESPACE/$BACKUPCONF" -n "$CLUSTER_NAMESPACE"
 }
 
 test_api_updated_backupconfig_is_visible() {
-  update_backupconfig_parameter_with_api 'retention' '10'
+  update_backupconfig_parameter_with_api 'baseBackups.retention' '10'
 
   if get_backupconfig_from_api | run_jq '.spec.baseBackups.retention' -r \
     | grep -q "^10$"
@@ -242,93 +335,6 @@ test_api_updated_backupconfig_is_visible() {
     echo "Backup config updates are being reflected in the api"
   else
     echo "Backup config updates aren't being reflected in the api"
-    return 1
-  fi
-}
-
-test_api_updated_s3_backupconfig_is_visible() {
-  update_backupconfig_parameter_with_api 'storage' '{
-    "type":"s3",
-    "s3": {
-      "bucket": "test",
-      "credentials": {
-        "accessKey": "secret",
-        "secretKey": "secret"
-      }
-    }
-  }'
-
-  if get_backupconfig_from_api | run_jq '.spec.storage.type' -r \
-    | grep -q "^s3$"
-  then
-    echo "Backup config updates to s3 storage are being reflected in the api"
-  else
-    echo "Backup config updates to s3 storage aren't being reflected in the api"
-    return 1
-  fi
-}
-
-test_api_updated_s3compatible_backupconfig_is_visible() {
-  update_backupconfig_parameter_with_api 'storage' '{
-    "type":"s3compatible",
-    "s3compatible": {
-      "bucket": "test",
-      "credentials": {
-        "accessKey": "secret",
-        "secretKey": "secret"
-      }
-    }
-  }'
-
-  if get_backupconfig_from_api | run_jq '.spec.storage.type' -r \
-    | grep -q "^s3compatible$"
-  then
-    echo "Backup config updates to s3compatible storage are being reflected in the api"
-  else
-    echo "Backup config updates to s3compatible storage aren't being reflected in the api"
-    return 1
-  fi
-}
-
-test_api_updated_gcs_backupconfig_is_visible() {
-  update_backupconfig_parameter_with_api 'storage' '{
-    "type":"gcs",
-    "gcs": {
-      "bucket": "test",
-      "credentials": {
-        "serviceAccountJsonKey": "secret"
-      }
-    }
-  }'
-
-  if get_backupconfig_from_api | run_jq '.spec.storage.type' -r \
-    | grep -q "^gcs$"
-  then
-    echo "Backup config updates to gcs storage are being reflected in the api"
-  else
-    echo "Backup config updates to gcs storage aren't being reflected in the api"
-    return 1
-  fi
-}
-
-test_api_updated_azureblob_backupconfig_is_visible() {
-  update_backupconfig_parameter_with_api 'storage' '{
-    "type":"azureblob",
-    "azureblob": {
-      "bucket": "test",
-      "credentials": {
-        "account": "secret",
-        "accessKey": "secret"
-      }
-    }
-  }'
-
-  if get_backupconfig_from_api | run_jq '.spec.storage.type' -r \
-    | grep -q "^azureblob$"
-  then
-    echo "Backup config updates to azureblob storage are being reflected in the api"
-  else
-    echo "Backup config updates to azureblob storage aren't being reflected in the api"
     return 1
   fi
 }
