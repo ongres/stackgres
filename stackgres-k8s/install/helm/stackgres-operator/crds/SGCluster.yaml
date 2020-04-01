@@ -28,7 +28,7 @@ spec:
           properties:
             name:
               type: string
-              description: >
+              description: |
                 The name of the StackGres cluster to be created. Following
                 [Kubernetes naming conventions](https://github.com/kubernetes/community/blob/master/contributors/design-proposals/architecture/identifiers.md),
                 it must be an rfc1035/rfc1123 subdomain, that is, up to 253 characters consisting of one or more
@@ -43,7 +43,7 @@ spec:
           properties:
             postgresVersion:
               type: string
-              description: >
+              description: |
                 Postgres version to use for the new cluster. It can be either of:
                 *  The string 'latest', which will automatically select the latest major.minor Postgres version.
                 *  A major version, like '12' or '11', which will select that major version and the latest minor version.
@@ -52,12 +52,12 @@ spec:
               type: integer
               minimum: 1
               maximum: 16
-              description: >
+              description: |
                 Number of StackGres instances to be created. Each instance will contain one Postgres server. Out of all
                 of the Postgres servers, one will be elected as the master, the rest will remain as read-only replicas.
             sgInstanceProfile:
               type: string
-              description: >
+              description: |
                 Name of the [SGInstanceProfile](https://stackgres.io/doc/latest/04-postgres-cluster-management/03-resource-profiles/)
                 to use. A SGInstanceProfile defines CPU and memory limits. Must exist before creating the cluster. If you
                 don't select a profile, a default (currently: 1 core, 2 GiB RAM) one will be used.
@@ -72,12 +72,12 @@ spec:
                     size:
                       type: string
                       pattern: '^[0-9]+(\.[0-9]+)?(Mi|Gi|Ti)$'
-                      description: >  
+                      description: |  
                         Size of the PersistentVolume to be created for each instance of the cluster. Size must be specified
                         either in Mebibytes, Gibibytes or Tebibytes (multiples of 2^20, 2^30 or 2^40, respectively).
                     storageClass:
                       type: string
-                      description: >
+                      description: |
                         Name of an existing StorageClass in the K8s cluster, that will be used to create the PersistentVolumes
                         for the instances of this cluster.
                   required: ["size"]
@@ -93,19 +93,19 @@ spec:
               required: ["persistentVolume"]
             configurations:
               type: object
-              description: > 
+              description: | 
                 Custom configuration to be applied to the cluster.
               properties:
                 sgPostgresConfig:
                   type: string
-                  description: >
+                  description: |
                     Name of the
                     [SGPostgresConfig](https://stackgres.io/doc/latest/04-postgres-cluster-management/02-configuration-tuning/02-postgres-configuration/)
                     to use for this cluster. It must exist. If not set, a default Postgres config, for the major version
                     selected, will be used.
                 sgPoolingConfig:
                   type: string
-                  description: >
+                  description: |
                     Name of the
                     [SGPoolingConfig](https://stackgres.io/doc/latest/04-postgres-cluster-management/02-configuration-tuning/03-connection-pooling-configuration/)
                     to use for this cluster. Each pod contains a sidecar with a connection pooler
@@ -114,14 +114,14 @@ spec:
                     altogether by setting to false the disableConnectionPooling property of the pods object.
                 sgBackupConfig:
                   type: string
-                  description: >
+                  description: |
                     Name of the
                     [SGBackupConfig](https://stackgres.io/doc/latest/04-postgres-cluster-management/04-backups/)
                     to use for this cluster. This will define the backups policy, storage and retention, among others, to
                     apply to this cluster. If not set, a default backup config will be used.
             prometheusAutobind:
               type: boolean
-              description: >
+              description: |
                 If enabled, a ServiceMonitor will be created for each Prometheus instance found in order to collect
                 metrics.
             initialData:
@@ -133,7 +133,7 @@ spec:
                   properties:
                     fromBackup:
                       type: string
-                      description: >
+                      description: |
                         Initialize the cluster data by restoring an existing backup. If not used, cluster will be
                         initialized empty. Set to the UID of an existing
                         [SGBackup](https://stackgres.io/doc/latest/04-postgres-cluster-management/04-backups/)
@@ -141,7 +141,7 @@ spec:
                     downloadDiskConcurrency:
                       type: integer
                       minimum: 1
-                      description: >
+                      description: |
                         The backup fetch process may fetch several streams in parallel. Specify a value larger than one
                         for parallel fetching.
             nonProduction:
@@ -149,7 +149,7 @@ spec:
               properties:
                 disableClusterPodAntiAffinity:
                   type: boolean
-                  description: >
+                  description: |
                     It is a best practice, on non-containerized environments, when running production workloads, to
                     run each database server on a different server (virtual or physical), i.e., not to co-locate more
                     than one database server per host.
