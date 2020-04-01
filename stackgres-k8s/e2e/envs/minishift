@@ -1,0 +1,98 @@
+#!/bin/sh
+
+export K8S_OPENSHIFT_VERSION="${K8S_OPENSHIFT_VERSION:-3.11.0}"
+export K8S_MINISHIFT_CPUS="${K8S_MINISHIFT_CPUS:-2}"
+export K8S_MINISHIFT_MEMORY="${K8S_MINISHIFT_MEMORY:-4GB}"
+export K8S_MINISHIFT_DISK="${K8S_MINISHIFT_DISK:-20GB}"
+
+update_k8s_config() {
+  eval "$(minishift oc-env)"
+  wait_until eval 'oc login -u system:admin'
+  oc adm policy add-scc-to-group anyuid system:authenticated
+
+  mkdir -p "$HOME/.kube"
+  if [ "$K8S_FROM_DIND" = true ]
+  then
+    echo "Can not use minishift environment from docker"
+    exit 1
+  else
+    oc config view --raw > "$HOME/.kube/config-oc"
+  fi
+
+  (
+  export KUBECONFIG="${KUBECONFIG:-$HOME/.kube/config}"
+  if [ -s "$KUBECONFIG" ]
+  then
+    KUBECONFIG="$HOME/.kube/config-oc":"$KUBECONFIG" \
+      kubectl config view --raw > "$HOME/.kube/config-merged"
+    mv "$HOME/.kube/config-merged" "$KUBECONFIG"
+  else
+    mv "$HOME/.kube/config-oc" "$KUBECONFIG"
+  fi
+  )
+}
+
+reuse_k8s() {
+  if ! minishift status | grep '^OpenShift:  Running ' \
+    || ! kubectl cluster-info > /dev/null 2>&1
+  then
+    echo "Can not reuse minishift environment"
+    exit 1
+    reset_k8s
+    return
+  fi
+
+  echo "Reusing minishift environment"
+  update_k8s_config
+}
+
+reset_k8s() {
+  echo "Setting up minishift environment..."
+
+  minishift delete -f || true
+
+  minishift start --openshift-version "v$K8S_OPENSHIFT_VERSION" \
+    --cpus "$K8S_MINISHIFT_CPUS" \
+    --memory "$K8S_MINISHIFT_MEMORY" \
+    --disk-size "$K8S_MINISHIFT_DISK"
+
+  # Workaround for https://github.com/minishift/minishift/issues/3290
+  minishift openshift config set --target=kube --patch '{
+      "kubernetesMasterConfig": {
+          "controllerArguments": {
+              "cluster-signing-cert-file": ["/etc/origin/master/ca.crt"],
+              "cluster-signing-key-file": ["/etc/origin/master/ca.key"]
+          }
+      }
+  }'
+
+  update_k8s_config
+
+  echo "...done"
+}
+
+delete_k8s() {
+  echo "Deleting minishift environment..."
+
+  minishift delete -f || true
+
+  echo "...done"
+}
+
+load_operator_k8s() {
+  echo "Loading operator image $IMAGE_NAME in minishift environemnt..."
+
+  minishift image import "$IMAGE_NAME"
+
+  echo "...done"
+}
+
+excluded_namespaces() {
+  echo 'kube.*'
+  echo 'openshift.*'
+}
+
+excluded_customresourcedefinitions() {
+  echo '.*.coreos.com'
+  echo '.*.openshift.io'
+}
