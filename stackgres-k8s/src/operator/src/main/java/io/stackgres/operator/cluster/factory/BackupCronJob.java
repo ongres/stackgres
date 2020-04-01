@@ -35,6 +35,7 @@ import io.stackgres.operator.customresource.sgbackup.StackGresBackupDefinition;
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfigDefinition;
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfigSpec;
+import io.stackgres.operator.customresource.sgbackupconfig.StackGresBaseBackupConfig;
 import io.stackgres.operator.patroni.factory.PatroniRole;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 
@@ -82,13 +83,11 @@ public class BackupCronJob implements StackGresClusterResourceStreamFactory {
             .withNewSpec()
             .withConcurrencyPolicy("Replace")
             .withFailedJobsHistoryLimit(10)
-            .withStartingDeadlineSeconds(Optional.of(backupConfig)
-                .map(StackGresBackupConfig::getSpec)
-                .map(StackGresBackupConfigSpec::getFullWindow)
-                .orElse(5) * 60L)
+            .withStartingDeadlineSeconds(5 * 60L)
             .withSchedule(Optional.of(backupConfig)
                 .map(StackGresBackupConfig::getSpec)
-                .map(StackGresBackupConfigSpec::getFullSchedule)
+                .map(StackGresBackupConfigSpec::getBaseBackups)
+                .map(StackGresBaseBackupConfig::getCronSchedule)
                 .orElse("0 5 * * *"))
             .withJobTemplate(new JobTemplateSpecBuilder()
                 .withNewMetadata()
@@ -191,18 +190,14 @@ public class BackupCronJob implements StackGresClusterResourceStreamFactory {
                           .withName("RETAIN")
                           .withValue(Optional.of(backupConfig)
                               .map(StackGresBackupConfig::getSpec)
-                              .map(StackGresBackupConfigSpec::getRetention)
+                              .map(StackGresBackupConfigSpec::getBaseBackups)
+                              .map(StackGresBaseBackupConfig::getRetention)
                               .map(String::valueOf)
                               .orElse("5"))
                           .build(),
                           new EnvVarBuilder()
                           .withName("WINDOW")
-                          .withValue(Optional.of(backupConfig)
-                              .map(StackGresBackupConfig::getSpec)
-                              .map(StackGresBackupConfigSpec::getFullWindow)
-                              .map(window -> window * 60)
-                              .map(String::valueOf)
-                              .orElse("3600"))
+                          .withValue("3600")
                           .build())
                         .build())
                     .withCommand("/bin/bash", "-c" + (LOGGER.isTraceEnabled() ? "x" : ""),

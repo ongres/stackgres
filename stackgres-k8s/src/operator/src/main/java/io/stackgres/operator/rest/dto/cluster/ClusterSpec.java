@@ -5,8 +5,7 @@
 
 package io.stackgres.operator.rest.dto.cluster;
 
-import java.util.List;
-
+import javax.validation.Valid;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
@@ -15,7 +14,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.MoreObjects;
-
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
 @JsonDeserialize
@@ -27,39 +25,29 @@ public class ClusterSpec {
   @Min(value = 1, message = "You need at least 1 instance in the cluster")
   private int instances;
 
-  @JsonProperty("pgVersion")
+  @JsonProperty("postgresVersion")
   @NotBlank(message = "PostgreSQL version is required")
   private String postgresVersion;
 
-  @JsonProperty("pgConfig")
-  @NotBlank(message = "You need to associate a Postgres configuration to this cluster")
-  private String postgresConfig;
+  @JsonProperty("configurations")
+  @NotNull(message = "cluster configuration cannot be null")
+  @Valid
+  private ClusterConfiguration configurations;
 
-  @JsonProperty("resourceProfile")
+  @JsonProperty("sgInstanceProfile")
   @NotNull(message = "resource profile must not be null")
-  private String resourceProfile;
+  private String sgInstanceProfile;
 
-  @JsonProperty("connectionPoolingConfig")
-  private String connectionPoolingConfig;
+  @JsonProperty("initialData")
+  private ClusterInitData initData;
 
-  @JsonProperty("backupConfig")
-  private String backupConfig;
-
-  @JsonProperty("restore")
-  private ClusterRestore restore;
-
-  @JsonProperty("volumeSize")
-  @NotNull
-  private String volumeSize;
-
-  @JsonProperty("storageClass")
-  private String storageClass;
+  @JsonProperty("pods")
+  @Valid
+  @NotNull(message = "pod description must be specified")
+  private ClusterPod pods;
 
   @JsonProperty("prometheusAutobind")
   private Boolean prometheusAutobind;
-
-  @JsonProperty("sidecars")
-  private List<String> sidecars;
 
   @JsonProperty("nonProduction")
   private NonProduction nonProduction;
@@ -80,60 +68,20 @@ public class ClusterSpec {
     this.postgresVersion = postgresVersion;
   }
 
-  public String getPostgresConfig() {
-    return postgresConfig;
+  public ClusterConfiguration getConfigurations() {
+    return configurations;
   }
 
-  public void setPostgresConfig(String postgresConfig) {
-    this.postgresConfig = postgresConfig;
+  public void setConfigurations(ClusterConfiguration configurations) {
+    this.configurations = configurations;
   }
 
-  public String getResourceProfile() {
-    return resourceProfile;
+  public String getSgInstanceProfile() {
+    return sgInstanceProfile;
   }
 
-  public void setResourceProfile(String resourceProfile) {
-    this.resourceProfile = resourceProfile;
-  }
-
-  public String getConnectionPoolingConfig() {
-    return connectionPoolingConfig;
-  }
-
-  public void setConnectionPoolingConfig(String connectionPoolingConfig) {
-    this.connectionPoolingConfig = connectionPoolingConfig;
-  }
-
-  public String getBackupConfig() {
-    return backupConfig;
-  }
-
-  public void setBackupConfig(String backupConfig) {
-    this.backupConfig = backupConfig;
-  }
-
-  public ClusterRestore getRestore() {
-    return restore;
-  }
-
-  public void setRestore(ClusterRestore restore) {
-    this.restore = restore;
-  }
-
-  public String getVolumeSize() {
-    return volumeSize;
-  }
-
-  public void setVolumeSize(String volumeSize) {
-    this.volumeSize = volumeSize;
-  }
-
-  public String getStorageClass() {
-    return storageClass;
-  }
-
-  public void setStorageClass(String storageClass) {
-    this.storageClass = storageClass;
+  public void setSgInstanceProfile(String sgInstanceProfile) {
+    this.sgInstanceProfile = sgInstanceProfile;
   }
 
   public Boolean getPrometheusAutobind() {
@@ -144,14 +92,6 @@ public class ClusterSpec {
     this.prometheusAutobind = prometheusAutobind;
   }
 
-  public List<String> getSidecars() {
-    return sidecars;
-  }
-
-  public void setSidecars(List<String> sidecars) {
-    this.sidecars = sidecars;
-  }
-
   public NonProduction getNonProduction() {
     return nonProduction;
   }
@@ -160,22 +100,33 @@ public class ClusterSpec {
     this.nonProduction = nonProduction;
   }
 
+  public ClusterPod getPods() {
+    return pods;
+  }
+
+  public void setPods(ClusterPod pods) {
+    this.pods = pods;
+  }
+
+  public ClusterInitData getInitData() {
+    return initData;
+  }
+
+  public void setInitData(ClusterInitData initData) {
+    this.initData = initData;
+  }
+
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .omitNullValues()
         .add("instances", instances)
         .add("pgVersion", postgresVersion)
-        .add("pgConfig", postgresConfig)
-        .add("resourceProfile", resourceProfile)
-        .add("connectionPoolingConfig", connectionPoolingConfig)
-        .add("backupConfig", backupConfig)
-        .add("restore", restore)
-        .add("volumeSize", volumeSize)
-        .add("storageClass", storageClass)
-        .add("sidecars", sidecars)
+        .add("configuration", getConfigurations())
+        .add("resourceProfile", sgInstanceProfile)
+        .add("initData", getInitData())
+        .add("pod", getPods())
         .add("nonProduction", nonProduction)
         .toString();
   }
-
 }

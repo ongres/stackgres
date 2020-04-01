@@ -12,8 +12,8 @@ import javax.validation.constraints.Positive;
 import io.stackgres.operator.common.BackupConfigReview;
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfigSpec;
+import io.stackgres.operator.customresource.sgbackupconfig.StackGresBaseBackupConfig;
 import io.stackgres.operator.customresource.storages.BackupStorage;
-import io.stackgres.operator.rest.dto.backupconfig.BackupConfigSpec;
 import io.stackgres.operator.utils.JsonUtil;
 import io.stackgres.operator.validation.ConstraintValidationTest;
 import io.stackgres.operator.validation.ConstraintValidator;
@@ -79,9 +79,9 @@ class BackupConfigConstraintValidationTest
     int negativeRetention = new Random().nextInt(10) * -1;
 
     BackupConfigReview review = getValidReview();
-    review.getRequest().getObject().getSpec().setRetention(negativeRetention);
+    review.getRequest().getObject().getSpec().getBaseBackups().setRetention(negativeRetention);
 
-    checkErrorCause(BackupConfigSpec.class, "spec.retention", review, Positive.class);
+    checkErrorCause(StackGresBaseBackupConfig.class, "spec.baseBackups.retention", review, Positive.class);
 
   }
 }

@@ -36,7 +36,7 @@ EOF
   write_into -f "$LOG_PATH/stackgres-cluster.json" -c "$OPERATOR_CLUSTER" 
   
   kubectl patch sgbackupconfig -n "$CLUSTER_NAMESPACE" backupconf --type json \
-    --patch '[{"op":"replace","path":"/spec/fullSchedule","value":"*/1 * * * *"}]'
+    --patch '[{"op":"replace","path":"/spec/baseBackups/cronSchedule","value":"*/1 * * * *"}]'
 
   wait_until eval '[ "$(kubectl exec -t -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-0 -c patroni -- \
     exec-with-env backup -- wal-g backup-list | wc -l)" -gt 0 ]'
@@ -149,14 +149,14 @@ test_cluster_pod_count() {
   BACKUP_NAME="${CLUSTER_NAME}-0-$(shuf -i 0-65535 -n 1)"
 
     cat << EOF | kubectl create -f -
-  apiVersion: stackgres.io/v1alpha1
-  kind: StackGresBackup
+  apiVersion: stackgres.io/v1beta1
+  kind: SGBackup
   metadata:
     namespace: "$CLUSTER_NAMESPACE"
     name: "$BACKUP_NAME"
   spec:
-    cluster: "$CLUSTER_NAME"
-    isPermanent: true
+    sgCluster: "$CLUSTER_NAME"
+    subjectToRetentionPolicy: true
 EOF
 
   if ! wait_until eval '[ "$(get_cluster_pod_count)" -ne 2 ]'
@@ -326,8 +326,8 @@ test_constraint_violation_api_error() {
   ERROR_RESPONSE="$(run_curl -r "stackgres/sgcluster" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/invalid-cluster.json" -e '-X POST')"
 
   EXPECTED_ERROR_TYPE="constraint-violation"
-  EXPECTED_ERROR_TITLE="doesn't complain syntactic rules"
-  EXPECTED_ERROR_DETAIL="You need at least 1 instance in the cluste"
+  EXPECTED_ERROR_TITLE="do not comply with the syntactic rules"
+  EXPECTED_ERROR_DETAIL="spec.instances in body should be greater than or equal to 1"
   EXPECTED_ERROR_FIELD="instances"
 
   assert_api_error "$ERROR_RESPONSE"

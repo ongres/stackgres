@@ -3,25 +3,25 @@
   "request": {
     "uid": "b45405d8-36dd-4302-9c13-f07d30ba57c5",
     "kind": {
-      "kind": "StackGresPostgresConfig",
+      "kind": "SGPostgresConfig",
       "group": "stackgres.io",
-      "version": "v1alpha1"
+      "version": "v1beta1"
     },
     "resource": {
       "group": "stackgres.io",
       "resource": "sgpgconfigs",
-      "version": "v1alpha1"
+      "version": "v1beta1"
     },
     "subResource": null,
     "requestKind": {
-      "kind": "StackGresPostgresConfig",
+      "kind": "SGPostgresConfig",
       "group": "stackgres.io",
-      "version": "v1alpha1"
+      "version": "v1beta1"
     },
     "requestResource": {
       "group": "stackgres.io",
       "resource": "sgpgconfigs",
-      "version": "v1alpha1"
+      "version": "v1beta1"
     },
     "requestSubResource": null,
     "name": "postgresconf",
@@ -35,12 +35,12 @@
       "username": "kubernetes-admin"
     },
     "object": {
-      "kind": "StackGresPostgresConfig",
-      "apiVersion": "stackgres.io/v1alpha1",
+      "kind": "SGPostgresConfig",
+      "apiVersion": "stackgres.io/v1beta1",
       "metadata": {
         "annotations": {
           "helm.sh/hook-weight": "1",
-          "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"stackgres.io/v1alpha1\",\"kind\":\"StackGresPostgresConfig\",\"metadata\":{\"annotations\":{\"helm.sh/hook-weight\":\"1\"},\"name\":\"postgresconf\",\"namespace\":\"default\"},\"spec\":{\"pgVersion\":\"11.5\",\"postgresql.conf\":{\"password_encryption\":\"scram-sha-256\",\"random_page_cost\":\"1.5\",\"shared_buffers\":\"512MB\",\"wal_compression\":\"on\",\"wal_level\":\"minimal\"}}}\n"
+          "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"stackgres.io/v1beta1\",\"kind\":\"SGPostgresConfig\",\"metadata\":{\"annotations\":{\"helm.sh/hook-weight\":\"1\"},\"name\":\"postgresconf\",\"namespace\":\"default\"},\"spec\":{\"pgVersion\":\"11.5\",\"postgresql.conf\":{\"password_encryption\":\"scram-sha-256\",\"random_page_cost\":\"1.5\",\"shared_buffers\":\"512MB\",\"wal_compression\":\"on\",\"wal_level\":\"minimal\"}}}\n"
         },
         "creationTimestamp": "2019-10-04T08:48:36Z",
         "generation": 2,
@@ -60,8 +60,8 @@
       }
     },
     "oldObject": {
-      "kind": "StackGresPostgresConfig",
-      "apiVersion": "stackgres.io/v1alpha1",
+      "kind": "SGPostgresConfig",
+      "apiVersion": "stackgres.io/v1beta1",
       "metadata": {
         "creationTimestamp": "2019-10-04T08:48:36Z",
         "generation": 1,

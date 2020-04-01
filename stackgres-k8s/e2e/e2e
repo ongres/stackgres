@@ -10,7 +10,7 @@ fi
 
 IMAGE_TAG="${IMAGE_TAG:-development-jvm}"
 IMAGE_NAME="stackgres/operator:$IMAGE_TAG"
-DEFAULT_K8S_VERSION="1.12.10"
+DEFAULT_K8S_VERSION="1.13.12"
 KUBECONFIG="${KUBECONFIG:-$HOME/.kube/config}"
 SPEC_PATH="$(dirname "$0")/spec"
 TARGET_PATH="${TARGET_PATH:-$(dirname "$0")/target}"

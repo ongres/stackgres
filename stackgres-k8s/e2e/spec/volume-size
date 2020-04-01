@@ -11,8 +11,8 @@ e2e_test() {
 check_persistent_volume_claim_size() {
 
   cat <<EOF | kubectl apply -f -
-apiVersion: stackgres.io/v1alpha1
-kind: StackGresProfile
+apiVersion: stackgres.io/v1beta1
+kind: SGInstanceProfile
 metadata:
   name: size-xs
   namespace: $CLUSTER_NAMESPACE
@@ -22,16 +22,18 @@ spec:
 EOF
 
   cat <<EOF | kubectl apply -f -
-apiVersion: stackgres.io/v1alpha1
-kind: StackGresCluster
+apiVersion: stackgres.io/v1beta1
+kind: SGCluster
 metadata:
   name: $CLUSTER_NAME
   namespace: $CLUSTER_NAMESPACE
 spec:
   instances: 1
-  pgVersion: 'latest'
-  volumeSize: '512Mi'
-  resourceProfile: 'size-xs'
+  postgresVersion: 'latest'
+  pods:
+    persistentVolume:
+      size: '512Mi'
+  sgInstanceProfile: 'size-xs'
   nonProduction:
     disableClusterPodAntiAffinity: true  
 EOF

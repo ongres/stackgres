@@ -11,9 +11,9 @@ public enum StackGresPgbouncerConfigDefinition {
 
   ;
 
-  public static final String KIND = "StackGresConnectionPoolingConfig";
-  public static final String SINGULAR = "sgconnectionpoolingconfig";
-  public static final String PLURAL = "sgconnectionpoolingconfigs";
+  public static final String KIND = "SGPoolingConfig";
+  public static final String SINGULAR = "sgpoolconfig";
+  public static final String PLURAL = "sgpoolconfigs";
   public static final String NAME = PLURAL + "." + StackGresUtil.CRD_GROUP;
   public static final String APIVERSION = StackGresUtil.CRD_GROUP + "/" + StackGresUtil.CRD_VERSION;
 

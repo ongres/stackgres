@@ -19,11 +19,11 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 @RegisterForReflection
 public class BackupSpec {
 
-  @JsonProperty("cluster")
+  @JsonProperty("sgCluster")
   @NotNull(message = "The cluster name is required")
   private String cluster;
 
-  @JsonProperty("isPermanent")
+  @JsonProperty("subjectToRetentionPolicy")
   private Boolean isPermanent;
 
   public String getCluster() {

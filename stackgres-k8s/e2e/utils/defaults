@@ -16,7 +16,7 @@ get_default_pgconfig(){
 
 
 get_default_conn_pool(){
-  get_default_cr "sgconnectionpoolingconfigs.stackgres" $@
+  get_default_cr "sgpoolconfigs.stackgres" $@
 }
 
 get_default_backupconf(){
@@ -24,7 +24,7 @@ get_default_backupconf(){
 }
 
 get_default_profile(){
-  get_default_cr "sgprofiles.stackgres.io" $@
+  get_default_cr "sginstanceprofiles.stackgres.io" $@
 }
 
 get_generated_cr(){
@@ -42,7 +42,7 @@ get_generated_pgconfig(){
 }
 
 get_generated_conn_pool(){
-  get_generated_cr "sgconnectionpoolingconfigs.stackgres" $@
+  get_generated_cr "sgpoolconfigs.stackgres" $@
 }
 
 get_generated_backupconf(){
@@ -54,5 +54,5 @@ get_generated_pgconfig(){
 }
 
 get_generated_profile(){
-  get_generated_cr "sgprofiles.stackgres.io" $@
+  get_generated_cr "sginstanceprofiles.stackgres.io" $@
 }

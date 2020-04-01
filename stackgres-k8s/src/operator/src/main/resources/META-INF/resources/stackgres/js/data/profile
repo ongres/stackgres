@@ -1,31 +1,18 @@
 [
   {
+    "kind": "SGInstanceProfile",
+    "apiVersion": "stackgres.io/v1beta1",
     "metadata": {
-      "namespace": "default",
-      "name": "generated-from-default-1585226523217",
-      "uid": "c493dc44-d268-4f7e-bead-9e678fb5539b"
-    },
-    "spec": {
-      "cpu": "1",
-      "memory": "2Gi"
-    }
-  },
-  {
-    "metadata": {
-      "namespace": "default",
-      "name": "size-l",
-      "uid": "d3f7a63d-9b39-4101-bd18-2811bd8c624c"
-    },
-    "spec": {
-      "cpu": "4",
-      "memory": "8Gi"
-    }
-  },
-  {
-    "metadata": {
-      "namespace": "default",
+      "annotations": {
+        "helm.sh/hook": "pre-install"
+      },
+      "creationTimestamp": "2019-11-07T16:18:42Z",
+      "generation": 1,
       "name": "size-m",
-      "uid": "7241f48f-2221-4cd8-b7ef-9e0c9b3abf8c"
+      "namespace": "stackgres",
+      "resourceVersion": "9941",
+      "selfLink": "/apis/stackgres.io/v1beta1/namespaces/stackgres/sginstanceprofiles/size-m",
+      "uid": "44145ec0-017a-11ea-9ca4-0242ac110004"
     },
     "spec": {
       "cpu": "2",
@@ -33,10 +20,19 @@
     }
   },
   {
+    "kind": "SGInstanceProfile",
+    "apiVersion": "stackgres.io/v1beta1",
     "metadata": {
-      "namespace": "default",
+      "annotations": {
+        "helm.sh/hook": "pre-install"
+      },
+      "creationTimestamp": "2019-11-07T16:18:42Z",
+      "generation": 1,
       "name": "size-s",
-      "uid": "1dcc1804-04d7-4552-8ec1-d652f30ff91e"
+      "namespace": "stackgres",
+      "resourceVersion": "9942",
+      "selfLink": "/apis/stackgres.io/v1beta1/namespaces/stackgres/sginstanceprofiles/size-s",
+      "uid": "44174706-017a-11ea-9ca4-0242ac110004"
     },
     "spec": {
       "cpu": "1",
@@ -44,10 +40,19 @@
     }
   },
   {
+    "kind": "SGInstanceProfile",
+    "apiVersion": "stackgres.io/v1beta1",
     "metadata": {
-      "namespace": "default",
+      "annotations": {
+        "helm.sh/hook": "pre-install"
+      },
+      "creationTimestamp": "2019-11-07T16:18:42Z",
+      "generation": 1,
       "name": "size-xl",
-      "uid": "071f3fed-52f3-44df-b18a-dc894cc62c7a"
+      "namespace": "stackgres",
+      "resourceVersion": "9943",
+      "selfLink": "/apis/stackgres.io/v1beta1/namespaces/stackgres/sginstanceprofiles/size-xl",
+      "uid": "4419a7ae-017a-11ea-9ca4-0242ac110004"
     },
     "spec": {
       "cpu": "6",
@@ -55,10 +60,19 @@
     }
   },
   {
+    "kind": "SGInstanceProfile",
+    "apiVersion": "stackgres.io/v1beta1",
     "metadata": {
-      "namespace": "default",
+      "annotations": {
+        "helm.sh/hook": "pre-install"
+      },
+      "creationTimestamp": "2019-11-07T16:18:42Z",
+      "generation": 1,
       "name": "size-xs",
-      "uid": "02339a78-046e-4ae7-98ce-b5077bce8c96"
+      "namespace": "stackgres",
+      "resourceVersion": "9944",
+      "selfLink": "/apis/stackgres.io/v1beta1/namespaces/stackgres/sginstanceprofiles/size-xs",
+      "uid": "441c6a55-017a-11ea-9ca4-0242ac110004"
     },
     "spec": {
       "cpu": "500m",
@@ -66,10 +80,19 @@
     }
   },
   {
+    "kind": "SGInstanceProfile",
+    "apiVersion": "stackgres.io/v1beta1",
     "metadata": {
-      "namespace": "default",
+      "annotations": {
+        "helm.sh/hook": "pre-install"
+      },
+      "creationTimestamp": "2019-11-07T16:18:42Z",
+      "generation": 1,
       "name": "size-xxl",
-      "uid": "f5f18fc3-5ac9-43a9-baf3-7f9f88214ed8"
+      "namespace": "stackgres",
+      "resourceVersion": "9945",
+      "selfLink": "/apis/stackgres.io/v1beta1/namespaces/stackgres/sginstanceprofiles/size-xxl",
+      "uid": "441fe67a-017a-11ea-9ca4-0242ac110004"
     },
     "spec": {
       "cpu": "8",
@@ -77,43 +100,19 @@
     }
   },
   {
+    "kind": "SGInstanceProfile",
+    "apiVersion": "stackgres.io/v1beta1",
     "metadata": {
-      "namespace": "default",
-      "name": "test",
-      "uid": "f1aec5ac-5930-4ded-9ee5-e95e4cbe01cc"
-    },
-    "spec": {
-      "cpu": "2",
-      "memory": "1Gi"
-    }
-  },
-  {
-    "metadata": {
-      "namespace": "stackgres",
-      "name": "generated-from-default-1585153459521",
-      "uid": "c394e9cd-e8f7-4bf5-9883-1125e953839d"
-    },
-    "spec": {
-      "cpu": "1",
-      "memory": "2Gi"
-    }
-  },
-  {
-    "metadata": {
-      "namespace": "stackgres",
-      "name": "size-l",
-      "uid": "08575035-38d3-4adf-a265-aade9d00949b"
-    },
-    "spec": {
-      "cpu": "4",
-      "memory": "8Gi"
-    }
-  },
-  {
-    "metadata": {
-      "namespace": "stackgres",
-      "name": "size-m",
-      "uid": "d2f4009f-9dd0-485b-8a4b-bf6a4181b91f"
+      "annotations": {
+        "helm.sh/hook": "pre-install"
+      },
+      "creationTimestamp": "2019-11-07T16:18:42Z",
+      "generation": 1,
+      "name": "size-m-Z",
+      "namespace": "stackgres-Z",
+      "resourceVersion": "9941",
+      "selfLink": "/apis/stackgres.io/v1beta1/namespaces/stackgres/sginstanceprofiles/size-m",
+      "uid": "44145ec0-017a-11ea-9ca4-0242ac110004"
     },
     "spec": {
       "cpu": "2",
@@ -121,47 +120,23 @@
     }
   },
   {
+    "kind": "SGInstanceProfile",
+    "apiVersion": "stackgres.io/v1beta1",
     "metadata": {
-      "namespace": "stackgres",
-      "name": "size-s",
-      "uid": "dfdd35b2-76b7-4f87-bd70-be061e92e4d8"
+      "annotations": {
+        "helm.sh/hook": "pre-install"
+      },
+      "creationTimestamp": "2019-11-07T16:18:42Z",
+      "generation": 1,
+      "name": "size-s-Y",
+      "namespace": "stackgres-Y",
+      "resourceVersion": "9942",
+      "selfLink": "/apis/stackgres.io/v1beta1/namespaces/stackgres/sginstanceprofiles/size-s",
+      "uid": "44174706-017a-11ea-9ca4-0242ac110004"
     },
     "spec": {
       "cpu": "1",
       "memory": "2Gi"
-    }
-  },
-  {
-    "metadata": {
-      "namespace": "stackgres",
-      "name": "size-xl",
-      "uid": "a1c7d0f6-71e4-4a02-8816-8ebc61bc222b"
-    },
-    "spec": {
-      "cpu": "6",
-      "memory": "16Gi"
-    }
-  },
-  {
-    "metadata": {
-      "namespace": "stackgres",
-      "name": "size-xs",
-      "uid": "3ede6b93-c11f-4383-8d0a-f3db45d4cf00"
-    },
-    "spec": {
-      "cpu": "500m",
-      "memory": "512Mi"
-    }
-  },
-  {
-    "metadata": {
-      "namespace": "stackgres",
-      "name": "size-xxl",
-      "uid": "9a60bb33-f97f-42be-9ead-6786745b38c3"
-    },
-    "spec": {
-      "cpu": "8",
-      "memory": "32Gi"
     }
   }
 ]

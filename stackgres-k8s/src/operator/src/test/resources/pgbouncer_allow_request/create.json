@@ -3,14 +3,14 @@
   "request": {
     "uid": "af38063c-f66f-11e9-8982-0242ac110002",
     "kind": {
-      "kind": "StackGresConnectionPoolingConfig",
+      "kind": "SGPoolingConfig",
       "group": "stackgres.io",
-      "version": "v1alpha1"
+      "version": "v1beta1"
     },
     "resource": {
       "group": "stackgres.io",
-      "resource": "sgconnectionpoolingconfigs",
-      "version": "v1alpha1"
+      "resource": "sgpoolconfigs",
+      "version": "v1beta1"
     },
     "subResource": null,
     "requestKind": null,
@@ -29,8 +29,8 @@
       "username": "system:serviceaccount:kube-system:tiller"
     },
     "object": {
-      "kind": "StackGresConnectionPoolingConfig",
-      "apiVersion": "stackgres.io/v1alpha1",
+      "kind": "SGPoolingConfig",
+      "apiVersion": "stackgres.io/v1beta1",
       "metadata": {
         "annotations": {
           "helm.sh/hook": "pre-install"

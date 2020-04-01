@@ -51,9 +51,9 @@ class BackupConstraintValidationTest extends ConstraintValidationTest<BackupRevi
 
     final BackupReview backupReview = getValidReview();
 
-    backupReview.getRequest().getObject().getSpec().setCluster(null);
+    backupReview.getRequest().getObject().getSpec().setSgCluster(null);
 
-    checkNotNullErrorCause(StackGresBackupSpec.class, "spec.cluster", backupReview);
+    checkNotNullErrorCause(StackGresBackupSpec.class, "spec.sgCluster", backupReview);
 
   }
 

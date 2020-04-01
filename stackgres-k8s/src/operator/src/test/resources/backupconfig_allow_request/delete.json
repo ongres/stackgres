@@ -3,14 +3,14 @@
   "request": {
     "uid": "afbc4e6f-f66f-11e9-8982-0242ac110002",
     "kind": {
-      "kind": "StackGresBackupConfig",
+      "kind": "SGBackupConfig",
       "group": "stackgres.io",
-      "version": "v1alpha1"
+      "version": "v1beta1"
     },
     "resource": {
       "group": "stackgres.io",
       "resource": "sgbackupconfigs",
-      "version": "v1alpha1"
+      "version": "v1beta1"
     },
     "subResource": null,
     "requestKind": null,

@@ -66,7 +66,7 @@ class RestoreConfigValidatorTest {
     final StackGresClusterReview review = getCreationReview();
 
     StackGresCluster cluster = review.getRequest().getObject();
-    ClusterRestore restoreConfig = cluster.getSpec().getRestore();
+    ClusterRestore restoreConfig = cluster.getSpec().getInitData().getRestore();
     String stackgresBackup = restoreConfig.getBackupUid();
 
     when(scanner.findResources()).thenReturn(Optional.empty());
@@ -79,17 +79,17 @@ class RestoreConfigValidatorTest {
   }
 
   @Test
-  void givenACreationWithBackupFromDifferentPgVersion_shouldFail() throws ValidationFailed {
+  void givenACreationWithBackupFromDifferentPgVersion_shouldFail() {
 
     final StackGresClusterReview review = getCreationReview();
     String stackgresBackup = review.getRequest()
-        .getObject().getSpec().getRestore().getBackupUid();
+        .getObject().getSpec().getInitData().getRestore().getBackupUid();
 
     StackGresBackup backup = backupList.getItems().stream()
         .filter(b -> b.getMetadata().getUid().equals(stackgresBackup))
         .findFirst().orElseThrow(AssertionError::new);
 
-    backup.getStatus().setPgVersion("120001");
+    backup.getStatus().getBackupInformation().setPostgresVersion("120001");
 
     when(scanner.findResources())
         .thenReturn(Optional.of(backupList.getItems()));
@@ -107,7 +107,7 @@ class RestoreConfigValidatorTest {
   void givenACreationWithNoRestoreConfig_shouldDoNothing() throws ValidationFailed {
 
     final StackGresClusterReview review = getCreationReview();
-    review.getRequest().getObject().getSpec().setRestore(null);
+    review.getRequest().getObject().getSpec().getInitData().setRestore(null);
 
     validator.validate(review);
 

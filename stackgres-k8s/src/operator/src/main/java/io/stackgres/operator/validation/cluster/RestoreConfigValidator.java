@@ -15,8 +15,11 @@ import io.stackgres.operator.common.ErrorType;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.common.StackGresComponents;
 import io.stackgres.operator.customresource.sgbackup.StackGresBackup;
+import io.stackgres.operator.customresource.sgbackup.StackGresBackupProcess;
 import io.stackgres.operator.customresource.sgcluster.ClusterRestore;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
+import io.stackgres.operator.customresource.sgcluster.StackGresClusterInitData;
+import io.stackgres.operator.customresource.sgcluster.StackGresClusterSpec;
 import io.stackgres.operator.resource.CustomResourceScanner;
 import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
@@ -42,11 +45,15 @@ public class RestoreConfigValidator implements ClusterValidator {
   @Override
   public void validate(StackGresClusterReview review) throws ValidationFailed {
     StackGresCluster cluster = review.getRequest().getObject();
-    ClusterRestore restoreConfig = cluster.getSpec().getRestore();
 
-    checkRestoreConfig(review, restoreConfig);
+    Optional<ClusterRestore> restoreOpt = Optional.of(cluster.getSpec())
+        .map(StackGresClusterSpec::getInitData)
+        .map(StackGresClusterInitData::getRestore);
 
-    if (restoreConfig != null) {
+    checkRestoreConfig(review, restoreOpt);
+
+    if (restoreOpt.isPresent()) {
+      ClusterRestore restoreConfig = restoreOpt.get();
       checkBackup(review, restoreConfig);
     }
   }
@@ -68,7 +75,8 @@ public class RestoreConfigValidator implements ClusterValidator {
 
         StackGresBackup backup = config.get();
 
-        if (backup.getStatus() == null || !backup.getStatus().getPhase().equals("Completed")) {
+        final StackGresBackupProcess process = backup.getStatus().getProcess();
+        if (backup.getStatus() == null || !process.getStatus().equals("Completed")) {
           final String message = "Cannot restore from backup " + backupUid
               + " because it's not ready";
           fail(errorCrReferencerUri, message);
@@ -89,7 +97,7 @@ public class RestoreConfigValidator implements ClusterValidator {
         break;
       case UPDATE:
         ClusterRestore oldRestoreConfig = review.getRequest()
-            .getOldObject().getSpec().getRestore();
+            .getOldObject().getSpec().getInitData().getRestore();
         String oldBackupUid = oldRestoreConfig.getBackupUid();
 
         final String message = "Cannot update cluster's restore configuration";
@@ -107,15 +115,20 @@ public class RestoreConfigValidator implements ClusterValidator {
   }
 
   private static String getMajorVersion(StackGresBackup backup) {
-    return backup.getStatus().getPgVersion().substring(0, 2);
+    return backup.getStatus().getBackupInformation().getPostgresVersion().substring(0, 2);
   }
 
   private void checkRestoreConfig(StackGresClusterReview review,
-                                  ClusterRestore restoreConfig) throws ValidationFailed {
+                                  Optional<ClusterRestore> initRestoreOpt)
+      throws ValidationFailed {
     if (review.getRequest().getOperation() == Operation.UPDATE) {
-      ClusterRestore oldRestoreConfig = review.getRequest()
-          .getOldObject().getSpec().getRestore();
-      if (restoreConfig == null && oldRestoreConfig != null) {
+
+      Optional<ClusterRestore> oldRestoreOpt = Optional
+          .ofNullable(review.getRequest().getOldObject().getSpec().getInitData())
+          .map(StackGresClusterInitData::getRestore);
+
+      if (!initRestoreOpt.isPresent() && oldRestoreOpt.isPresent()) {
+
         throw new ValidationFailed("Cannot update cluster's restore configuration");
       }
     }

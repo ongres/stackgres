@@ -7,14 +7,20 @@ package io.stackgres.operator.rest.transformer;
 
 import java.util.Optional;
 import java.util.function.Consumer;
-
 import javax.enterprise.context.ApplicationScoped;
 
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfigSpec;
+import io.stackgres.operator.customresource.sgbackupconfig.StackGresBaseBackupConfig;
+import io.stackgres.operator.customresource.sgbackupconfig.StackGresBaseBackupPerformance;
+import io.stackgres.operator.customresource.storages.AwsSecretKeySelector;
+import io.stackgres.operator.customresource.storages.AzureBlobSecretKeySelector;
+import io.stackgres.operator.customresource.storages.GoogleCloudSecretKeySelector;
 import io.stackgres.operator.rest.dto.SecretKeySelector;
 import io.stackgres.operator.rest.dto.backupconfig.BackupConfigDto;
 import io.stackgres.operator.rest.dto.backupconfig.BackupConfigSpec;
+import io.stackgres.operator.rest.dto.backupconfig.BaseBackupConfig;
+import io.stackgres.operator.rest.dto.backupconfig.BaseBackupPerformance;
 import io.stackgres.operator.rest.dto.storages.AwsCredentials;
 import io.stackgres.operator.rest.dto.storages.AwsS3CompatibleStorage;
 import io.stackgres.operator.rest.dto.storages.AwsS3Storage;
@@ -51,16 +57,26 @@ public class BackupConfigTransformer
       return null;
     }
     StackGresBackupConfigSpec transformation = new StackGresBackupConfigSpec();
-    transformation.setCompressionMethod(source.getCompressionMethod());
-    transformation.setDiskRateLimit(source.getDiskRateLimit());
-    transformation.setFullSchedule(source.getFullSchedule());
-    transformation.setFullWindow(source.getFullWindow());
-    transformation.setNetworkRateLimit(source.getNetworkRateLimit());
-    transformation.setRetention(source.getRetention());
-    transformation.setStorage(
-        getCustomResourceStorage(source.getStorage()));
-    transformation.setTarSizeThreshold(source.getTarSizeThreshold());
-    transformation.setUploadDiskConcurrency(source.getUploadDiskConcurrency());
+    Optional.ofNullable(source.getBaseBackup())
+        .ifPresent(sourceBaseBackup -> {
+          final StackGresBaseBackupConfig baseBackup = new StackGresBaseBackupConfig();
+          transformation.setBaseBackups(baseBackup);
+          baseBackup.setCompression(source.getBaseBackup().getCompressionMethod());
+          baseBackup.setCronSchedule(sourceBaseBackup.getFullSchedule());
+          baseBackup.setRetention(sourceBaseBackup.getRetention());
+        });
+
+    Optional.ofNullable(source.getBaseBackup())
+        .map(BaseBackupConfig::getPerformance)
+        .ifPresent(sourcePerformance -> {
+          final StackGresBaseBackupPerformance performance = new StackGresBaseBackupPerformance();
+          transformation.getBaseBackups().setPerformance(performance);
+          performance.setMaxDiskBandwitdh(sourcePerformance.getDiskRateLimit());
+          performance.setMaxNetworkBandwitdh(sourcePerformance.getNetworkRateLimit());
+          performance.setUploadDiskConcurrency(sourcePerformance.getUploadDiskConcurrency());
+        });
+
+    transformation.setStorage(getCustomResourceStorage(source.getStorage()));
     return transformation;
   }
 
@@ -98,17 +114,18 @@ public class BackupConfigTransformer
   }
 
   private io.stackgres.operator.customresource.storages.AzureBlobStorageCredentials
-      getCustomResourceAzureblobStorageCredentials(
-      AzureBlobStorageCredentials source) {
+      getCustomResourceAzureblobStorageCredentials(AzureBlobStorageCredentials source) {
     if (source == null) {
       return null;
     }
     io.stackgres.operator.customresource.storages.AzureBlobStorageCredentials
         transformation =
         new io.stackgres.operator.customresource.storages.AzureBlobStorageCredentials();
-    setSecretKeySelector(transformation::setAccessKey,
+    final AzureBlobSecretKeySelector secretKeySelectors = new AzureBlobSecretKeySelector();
+    transformation.setSecretKeySelectors(secretKeySelectors);
+    setSecretKeySelector(secretKeySelectors::setAccessKey,
         source.getAccessKeySelector());
-    setSecretKeySelector(transformation::setAccount,
+    setSecretKeySelector(secretKeySelectors::setAccount,
         source.getAccountSelector());
     return transformation;
   }
@@ -136,8 +153,12 @@ public class BackupConfigTransformer
     io.stackgres.operator.customresource.storages.GoogleCloudCredentials
         transformation =
         new io.stackgres.operator.customresource.storages.GoogleCloudCredentials();
-    setSecretKeySelector(transformation::setServiceAccountJsonKey,
-        source.getServiceAccountJsonKeySelector());
+    if (source.getServiceAccountJsonKeySelector() != null) {
+      final GoogleCloudSecretKeySelector secretKeySelectors = new GoogleCloudSecretKeySelector();
+      transformation.setSecretKeySelectors(secretKeySelectors);
+      setSecretKeySelector(secretKeySelectors::setServiceAccountJsonKey,
+          source.getServiceAccountJsonKeySelector());
+    }
     return transformation;
   }
 
@@ -148,7 +169,7 @@ public class BackupConfigTransformer
     }
     io.stackgres.operator.customresource.storages.AwsS3Storage transformation =
         new io.stackgres.operator.customresource.storages.AwsS3Storage();
-    transformation.setCredentials(
+    transformation.setAwsCredentials(
         getCustomResourceAwsCredentials(source.getCredentials()));
     transformation.setBucket(source.getBucket());
     transformation.setPath(source.getPath());
@@ -164,7 +185,7 @@ public class BackupConfigTransformer
     }
     io.stackgres.operator.customresource.storages.AwsS3CompatibleStorage transformation =
         new io.stackgres.operator.customresource.storages.AwsS3CompatibleStorage();
-    transformation.setCredentials(
+    transformation.setAwsCredentials(
         getCustomResourceAwsCredentials(source.getCredentials()));
     transformation.setEndpoint(source.getEndpoint());
     transformation.setForcePathStyle(source.isForcePathStyle());
@@ -183,10 +204,12 @@ public class BackupConfigTransformer
     io.stackgres.operator.customresource.storages.AwsCredentials
         transformation =
         new io.stackgres.operator.customresource.storages.AwsCredentials();
-    setSecretKeySelector(transformation::setAccessKey,
-        source.getAccessKeySelector());
-    setSecretKeySelector(transformation::setSecretKey,
-        source.getSecretKeySelector());
+    final AwsSecretKeySelector secretKeySelectors = new AwsSecretKeySelector();
+    transformation.setSecretKeySelectors(secretKeySelectors);
+    setSecretKeySelector(secretKeySelectors::setAccessKeyId,
+        source.getSecretKeySelectors().getAccessKeySelector());
+    setSecretKeySelector(secretKeySelectors::setSecretAccessKey,
+        source.getSecretKeySelectors().getSecretKeySelector());
     return transformation;
   }
 
@@ -195,16 +218,27 @@ public class BackupConfigTransformer
       return null;
     }
     BackupConfigSpec transformation = new BackupConfigSpec();
-    transformation.setCompressionMethod(source.getCompressionMethod());
-    transformation.setDiskRateLimit(source.getDiskRateLimit());
-    transformation.setFullSchedule(source.getFullSchedule());
-    transformation.setFullWindow(source.getFullWindow());
-    transformation.setNetworkRateLimit(source.getNetworkRateLimit());
-    transformation.setRetention(source.getRetention());
-    transformation.setStorage(
-        getResourceStorage(source.getStorage()));
-    transformation.setTarSizeThreshold(source.getTarSizeThreshold());
-    transformation.setUploadDiskConcurrency(source.getUploadDiskConcurrency());
+    Optional.ofNullable(source.getBaseBackups())
+        .ifPresent(sourceBaseBackup -> {
+          final BaseBackupConfig baseBackup = new BaseBackupConfig();
+          baseBackup.setCompressionMethod(sourceBaseBackup.getCompression());
+          baseBackup.setFullSchedule(sourceBaseBackup.getCronSchedule());
+          baseBackup.setRetention(sourceBaseBackup.getRetention());
+          transformation.setBaseBackup(baseBackup);
+        });
+
+    Optional.ofNullable(source.getBaseBackups())
+        .map(StackGresBaseBackupConfig::getPerformance)
+        .ifPresent(sourcePerformance -> {
+          final BaseBackupPerformance performance = new BaseBackupPerformance();
+          performance.setDiskRateLimit(sourcePerformance.getMaxDiskBandwitdh());
+          performance.setNetworkRateLimit(sourcePerformance.getMaxNetworkBandwitdh());
+          performance.setUploadDiskConcurrency(sourcePerformance.getUploadDiskConcurrency());
+
+          transformation.getBaseBackup().setPerformance(performance);
+        });
+
+    transformation.setStorage(getResourceStorage(source.getStorage()));
     return transformation;
   }
 
@@ -248,12 +282,12 @@ public class BackupConfigTransformer
         new AzureBlobStorageCredentials();
     transformation.setAccessKeySelector(
         SecretKeySelector.create(
-            source.getAccessKey().getName(),
-            source.getAccessKey().getKey()));
+            source.getSecretKeySelectors().getAccessKey().getName(),
+            source.getSecretKeySelectors().getAccessKey().getKey()));
     transformation.setAccountSelector(
         SecretKeySelector.create(
-            source.getAccount().getName(),
-            source.getAccount().getKey()));
+            source.getSecretKeySelectors().getAccount().getName(),
+            source.getSecretKeySelectors().getAccount().getKey()));
     return transformation;
   }
 
@@ -279,8 +313,8 @@ public class BackupConfigTransformer
         new GoogleCloudCredentials();
     transformation.setServiceAccountJsonKeySelector(
         SecretKeySelector.create(
-            source.getServiceAccountJsonKey().getName(),
-            source.getServiceAccountJsonKey().getKey()));
+            source.getSecretKeySelectors().getServiceAccountJsonKey().getName(),
+            source.getSecretKeySelectors().getServiceAccountJsonKey().getKey()));
     return transformation;
   }
 
@@ -291,7 +325,7 @@ public class BackupConfigTransformer
     }
     AwsS3Storage transformation = new AwsS3Storage();
     transformation.setCredentials(
-        getResourceAwsCredentials(source.getCredentials()));
+        getResourceAwsCredentials(source.getAwsCredentials()));
     transformation.setBucket(source.getBucket());
     transformation.setPath(source.getPath());
     transformation.setRegion(source.getRegion());
@@ -306,7 +340,7 @@ public class BackupConfigTransformer
     }
     AwsS3CompatibleStorage transformation = new AwsS3CompatibleStorage();
     transformation.setCredentials(
-        getResourceAwsCredentials(source.getCredentials()));
+        getResourceAwsCredentials(source.getAwsCredentials()));
     transformation.setEndpoint(source.getEndpoint());
     transformation.setForcePathStyle(source.isForcePathStyle());
     transformation.setBucket(source.getBucket());
@@ -322,14 +356,17 @@ public class BackupConfigTransformer
       return null;
     }
     AwsCredentials transformation = new AwsCredentials();
-    transformation.setAccessKeySelector(
-        SecretKeySelector.create(
-            source.getAccessKey().getName(),
-            source.getAccessKey().getKey()));
-    transformation.setSecretKeySelector(
-        SecretKeySelector.create(
-            source.getSecretKey().getName(),
-            source.getSecretKey().getKey()));
+    if (source.getSecretKeySelectors() != null) {
+      final AwsSecretKeySelector secretKeySelectors = source.getSecretKeySelectors();
+      transformation.getSecretKeySelectors().setAccessKeySelector(
+          SecretKeySelector.create(
+              secretKeySelectors.getAccessKeyId().getName(),
+              secretKeySelectors.getAccessKeyId().getKey()));
+      transformation.getSecretKeySelectors().setSecretKeySelector(
+          SecretKeySelector.create(
+              secretKeySelectors.getSecretAccessKey().getName(),
+              secretKeySelectors.getSecretAccessKey().getKey()));
+    }
     return transformation;
   }
 

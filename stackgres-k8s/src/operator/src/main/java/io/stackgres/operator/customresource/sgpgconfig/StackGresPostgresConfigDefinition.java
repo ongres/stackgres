@@ -11,7 +11,7 @@ public enum StackGresPostgresConfigDefinition {
 
   ;
 
-  public static final String KIND = "StackGresPostgresConfig";
+  public static final String KIND = "SGPostgresConfig";
   public static final String SINGULAR = "sgpgconfig";
   public static final String PLURAL = "sgpgconfigs";
   public static final String NAME = PLURAL + "." + StackGresUtil.CRD_GROUP;

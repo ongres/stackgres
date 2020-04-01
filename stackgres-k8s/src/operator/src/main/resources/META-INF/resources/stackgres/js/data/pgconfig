@@ -1,68 +1,27 @@
 [
   {
+    "kind": "SGPostgresConfig",
+    "apiVersion": "stackgres.io/v1beta1",
     "metadata": {
-      "namespace": "default",
-      "name": "generated-from-default-1585226523250",
-      "uid": "d293317c-851a-4426-ab6f-04b154bb0c89"
-    },
-    "spec": {
-      "pgVersion": "12",
-      "postgresql.conf": "checkpoint_completion_target=0.9\ncheckpoint_timeout=15min\ndefault_statistics_target=250\nextra_float_digits=1\nhuge_pages=off\nlc_messages=C\nrandom_page_cost=2.0\nshared_preload_libraries=pg_stat_statements\ntrack_activity_query_size=2048\ntrack_functions=pl\ntrack_io_timing=on\nwal_compression=on"
-    }
-  },
-  {
-    "metadata": {
-      "namespace": "default",
+      "annotations": {
+        "helm.sh/hook": "pre-install"
+      },
+      "creationTimestamp": "2019-11-07T16:18:42Z",
+      "generation": 1,
       "name": "postgresconf",
-      "uid": "f5d8834b-54cd-433c-b65b-94560bbd2a7c"
-    },
-    "spec": {
-      "pgVersion": "12",
-      "postgresql.conf": "checkpoint_completion_target=0.9\ncheckpoint_timeout=30\ndefault_statistics_target=250\nextra_float_digits=1\nhuge_pages=off\nlc_messages=C\npassword_encryption=scram-sha-256\nrandom_page_cost=1.5\nshared_buffers=256MB\nshared_preload_libraries=pg_stat_statements\ntrack_activity_query_size=2048\ntrack_functions=pl\ntrack_io_timing=on\nwal_compression=on"
-    }
-  },
-  {
-    "metadata": {
-      "namespace": "default",
-      "name": "test",
-      "uid": "0c080747-aa71-4984-8add-56593f84d132"
+      "namespace": "stackgres",
+      "resourceVersion": "9939",
+      "selfLink": "/apis/stackgres.io/v1beta1/namespaces/stackgres/sgpgconfigs/postgresconf",
+      "uid": "440c5c94-017a-11ea-9ca4-0242ac110004"
     },
     "spec": {
       "pgVersion": "11",
-      "postgresql.conf": "checkpoint_completion_target=0.9\ncheckpoint_timeout=15min\ndefault_statistics_target=250\nextra_float_digits=1\nhuge_pages=off\nlc_messages=C\nrandom_page_cost=2.0\nshared_preload_libraries=pg_stat_statements\ntrack_activity_query_size=2048\ntrack_functions=pl\ntrack_io_timing=on\nwal_compression=on"
-    }
-  },
-  {
-    "metadata": {
-      "namespace": "stackgres",
-      "name": "generated-from-default-1585153459714",
-      "uid": "39e843e8-42df-475a-9dca-6f24649db971"
-    },
-    "spec": {
-      "pgVersion": "12",
-      "postgresql.conf": "checkpoint_completion_target=0.9\ncheckpoint_timeout=15min\ndefault_statistics_target=250\nextra_float_digits=1\nhuge_pages=off\nlc_messages=C\nrandom_page_cost=2.0\nshared_preload_libraries=pg_stat_statements\ntrack_activity_query_size=2048\ntrack_functions=pl\ntrack_io_timing=on\nwal_compression=on"
-    }
-  },
-  {
-    "metadata": {
-      "namespace": "stackgres",
-      "name": "generated-from-default-1585153459717",
-      "uid": "5365f0e0-8156-47c2-9c2e-0e406f6d4538"
-    },
-    "spec": {
-      "pgVersion": "12",
-      "postgresql.conf": "checkpoint_completion_target=0.9\ncheckpoint_timeout=15min\ndefault_statistics_target=250\nextra_float_digits=1\nhuge_pages=off\nlc_messages=C\nrandom_page_cost=2.0\nshared_preload_libraries=pg_stat_statements\ntrack_activity_query_size=2048\ntrack_functions=pl\ntrack_io_timing=on\nwal_compression=on"
-    }
-  },
-  {
-    "metadata": {
-      "namespace": "stackgres",
-      "name": "postgresconf",
-      "uid": "9e13ff96-90e1-4bbe-9724-e58dbc7de128"
-    },
-    "spec": {
-      "pgVersion": "12",
-      "postgresql.conf": "checkpoint_completion_target=0.9\ncheckpoint_timeout=30\ndefault_statistics_target=250\nextra_float_digits=1\nhuge_pages=off\nlc_messages=C\npassword_encryption=scram-sha-256\nrandom_page_cost=1.5\nshared_buffers=256MB\nshared_preload_libraries=pg_stat_statements\ntrack_activity_query_size=2048\ntrack_functions=pl\ntrack_io_timing=on\nwal_compression=on"
+      "postgresql.conf": {
+        "password_encryption": "scram-sha-256",
+        "random_page_cost": "1.5",
+        "shared_buffers": "256MB",
+        "wal_compression": "on"
+      }
     }
   }
 ]

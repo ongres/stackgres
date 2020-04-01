@@ -10,10 +10,9 @@ public interface MutationUtil {
   String MUTATION_PATH = "/stackgres/mutation";
   String CLUSTER_MUTATION_PATH = MUTATION_PATH + "/sgcluster";
   String PGCONFIG_MUTATION_PATH = MUTATION_PATH + "/sgpgconfig";
-  String CONNPOOLCONFIG_MUTATION_PATH =  MUTATION_PATH + "/sgconnectionpoolingconfig";
+  String CONNPOOLCONFIG_MUTATION_PATH =  MUTATION_PATH + "/sgpoolconfig";
   String BACKUPCONFIG_MUTATION_PATH = MUTATION_PATH + "/sgbackupconfig";
   String BACKUP_MUTATION_PATH = MUTATION_PATH + "/sgbackup";
-  String PROFILE_MUTATION_PATH = MUTATION_PATH + "/sgprofile";
-  String RESTORECONFIG_MUTATION_PATH = MUTATION_PATH + "/sgrestoreconfig";
+  String PROFILE_MUTATION_PATH = MUTATION_PATH + "/sginstanceprofile";
 
 }

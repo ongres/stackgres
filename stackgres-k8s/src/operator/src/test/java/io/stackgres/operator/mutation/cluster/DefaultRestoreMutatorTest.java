@@ -75,7 +75,7 @@ class DefaultRestoreMutatorTest {
   @Test
   void clusterWithNoRestore_shouldNotDoAnything() {
 
-    review.getRequest().getObject().getSpec().setRestore(null);
+    review.getRequest().getObject().getSpec().getInitData().setRestore(null);
 
     List<JsonPatchOperation> operations = mutator.mutate(review);
 
@@ -89,7 +89,7 @@ class DefaultRestoreMutatorTest {
     restore.setDownloadDiskConcurrency(null);
     restore.setBackupUid(UUID.randomUUID().toString());
 
-    review.getRequest().getObject().getSpec().setRestore(restore);
+    review.getRequest().getObject().getSpec().getInitData().setRestore(restore);
 
     List<JsonPatchOperation> operations = mutator.mutate(review);
 
@@ -101,7 +101,7 @@ class DefaultRestoreMutatorTest {
     Integer defaultDownloadDisConcurrency = Integer
         .parseInt(defaultRestoreValues.getProperty("downloadDiskConcurrency"));
 
-    int actualDownloadDiskConcurrency = newConfig.get("spec").get("restore")
+    int actualDownloadDiskConcurrency = newConfig.get("spec").get("initialData").get("restore")
         .get("downloadDiskConcurrency").asInt();
     assertEquals(defaultDownloadDisConcurrency, actualDownloadDiskConcurrency);
 

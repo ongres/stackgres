@@ -15,4 +15,6 @@ public interface SidecarFinder {
 
   List<String> getAllOptionalSidecarNames();
 
+  List<String> getAllSidecars();
+
 }

@@ -46,7 +46,7 @@ public class RestoreConfigMap extends AbstractBackupConfigMap
 
           data.putAll(getBackupEnvVars(
               restoreContext.getBackup().getMetadata().getNamespace(),
-              restoreContext.getBackup().getSpec().getCluster(),
+              restoreContext.getBackup().getSpec().getSgCluster(),
               restoreContext.getBackup().getStatus().getBackupConfig()));
 
           putOrRemoveIfNull(data, "WALG_DOWNLOAD_CONCURRENCY",

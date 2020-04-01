@@ -6,13 +6,13 @@ weight: 3
 The resource profile CR represent the CPU and memory resources assigned to each Pod of the cluster.
 
 ___
-**Kind:** StackGresProfile
+**Kind:** SGInstanceProfile
 
-**listKind:** StackGresProfileList
+**listKind:** SGInstanceProfileList
 
-**plural:** sgprofiles
+**plural:** sginstanceprofiles
 
-**singular:** sgprofile
+**singular:** sginstanceprofile
 ___
 
 **Spec**
@@ -25,8 +25,8 @@ ___
 Example:
 
 ```yaml
-apiVersion: stackgres.io/v1alpha1
-  kind: StackGresProfile
+apiVersion: stackgres.io/v1beta1
+  kind: SGInstanceProfile
   metadata:
     name: size-l
   spec:

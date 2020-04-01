@@ -28,33 +28,35 @@ public abstract class AbstractBackupSecret {
         .map(BackupStorage::getS3)
         .map(awsConf -> Seq.of(
             getSecretEntry("AWS_ACCESS_KEY_ID",
-                awsConf.getCredentials().getAccessKey(), secrets),
+                awsConf.getAwsCredentials().getSecretKeySelectors().getAccessKeyId(), secrets),
             getSecretEntry("AWS_SECRET_ACCESS_KEY",
-                awsConf.getCredentials().getSecretKey(), secrets))),
+                awsConf.getAwsCredentials()
+                    .getSecretKeySelectors().getSecretAccessKey(), secrets))),
         Optional.of(backupConfigSpec)
         .map(StackGresBackupConfigSpec::getStorage)
         .map(BackupStorage::getS3Compatible)
         .map(awsConf -> Seq.of(
             getSecretEntry("AWS_ACCESS_KEY_ID",
-                awsConf.getCredentials().getAccessKey(), secrets),
+                awsConf.getAwsCredentials().getSecretKeySelectors().getAccessKeyId(), secrets),
             getSecretEntry("AWS_SECRET_ACCESS_KEY",
-                awsConf.getCredentials().getSecretKey(), secrets))),
+                awsConf.getAwsCredentials()
+                    .getSecretKeySelectors().getSecretAccessKey(), secrets))),
         Optional.of(backupConfigSpec)
         .map(StackGresBackupConfigSpec::getStorage)
         .map(BackupStorage::getGcs)
         .map(gcsConfig -> Seq.of(
             getSecretEntry(
                 ClusterStatefulSet.GCS_CREDENTIALS_FILE_NAME,
-                gcsConfig.getCredentials().getServiceAccountJsonKey(),
+                gcsConfig.getCredentials().getSecretKeySelectors().getServiceAccountJsonKey(),
                 secrets))),
         Optional.of(backupConfigSpec)
         .map(StackGresBackupConfigSpec::getStorage)
         .map(BackupStorage::getAzureblob)
         .map(azureConfig -> Seq.of(
             getSecretEntry("AZURE_STORAGE_ACCOUNT",
-                azureConfig.getCredentials().getAccount(), secrets),
+                azureConfig.getCredentials().getSecretKeySelectors().getAccount(), secrets),
             getSecretEntry("AZURE_STORAGE_ACCESS_KEY",
-                azureConfig.getCredentials().getAccessKey(), secrets))))
+                azureConfig.getCredentials().getSecretKeySelectors().getAccessKey(), secrets))))
         .filter(Optional::isPresent)
         .map(Optional::get)
         .flatMap(s -> s)

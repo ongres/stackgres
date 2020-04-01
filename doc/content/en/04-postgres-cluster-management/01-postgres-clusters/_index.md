@@ -7,9 +7,9 @@ StackGres PostgreSQL cluster can be created using a cluster Custom Resource (CR)
 
 ___
 
-**Kind:** StackGresCluster
+**Kind:** SGCluster
 
-**listKind:** StackGresClusterList
+**listKind:** SGClusterList
 
 **plural:** sgclusters
 
@@ -21,41 +21,75 @@ ___
 | Property                                                                                                                                | Required | Updatable | Type     | Default                             | Description |
 |:----------------------------------------------------------------------------------------------------------------------------------------|----------|-----------|:---------|:------------------------------------|:------------|
 | instances                                                                                                                               | ✓        | ✓         | integer  |                                     | Number of instances to be created (for example 1) |
-| pgVersion                                                                                                                               | ✓        | ✓         | string   |                                     | PostgreSQL version for the new cluster (for example 11.6) |
-| volumeSize                                                                                                                              | ✓        | ✓         | string   |                                     | Storage volume size (for example 5Gi) |
+| postgresVersion                                                                                                                         | ✓        | ✓         | string   |                                     | PostgreSQL version for the new cluster (for example 11.6) |
+| pods                                                                                                                                    | ✓        | ✓         | object   |                                     | Cluster's pod configuration |
 | storageClass                                                                                                                            |          |           | string   | default storage class               | Storage class name to be used for the cluster (if not specified means default storage class wiil be used) |
-| [pgConfig]({{% relref "/04-postgres-cluster-management/02-configuration-tuning/02-postgres-configuration" %}})                          |          |           | string   | defaultpgconfig                     | PostgreSQL configuration to apply |
-| [connectionPoolingConfig]({{% relref "/04-postgres-cluster-management/02-configuration-tuning/03-connection-pooling-configuration" %}}) |          |           | string   | defaultpgbouncer                    | Pooling configuration to apply |
-| [resourceProfile]({{% relref "/04-postgres-cluster-management/03-resource-profiles" %}})                                                |          |           | string   | defaultprofile                      | Resource profile size to apply |
-| [sidecars](#sidecar-containers)                                                                                                         |          | ✓         | array    | all available sidecars are included | List of sidecars to include in the cluster |
+| [configurations](#configurations)                                                                                                       |          |           | object   |                                     | Custom configurations to be applied to the cluster |
 | prometheusAutobind                                                                                                                      |          | ✓         | boolean  | false                               | If enabled a ServiceMonitor will be created for each Prometheus instance found in order to collect metrics |
-| [backupConfig]({{% relref "/04-postgres-cluster-management/04-backups/_index.md#configuration" %}})                                     |          | ✓         | string   |                                     | Backup config to apply |
-| [restore](#restore-configuration)                                                                                                       |          |           | object   |                                     | Cluter restoration options |
+| [sgBackupConfig]({{% relref "/04-postgres-cluster-management/04-backups/_index.md#configuration" %}})                                   |          | ✓         | string   |                                     | Backup config to apply |
+| [initialData](#initial-data-configuration)                                                                                              |          |           | object   |                                     | Cluster data initialization options |
 | [nonProduction](#non-production-options)                                                                                                |          | ✓         | array    |                                     | Additional parameters for non production environments |
 
 Example:
 
 ```yaml
-apiVersion: stackgres.io/v1alpha1
-kind: StackGresCluster
+apiVersion: stackgres.io/v1beta1
+kind: SGCluster
 metadata:
   name: stackgres
 spec:
   instances: 1
-  pgVersion: 'latest'
-  volumeSize: '5Gi'
-  pgConfig: 'postgresconf'
-  connectionPoolingConfig: 'pgbouncerconf'
-  resourceProfile: 'size-xs'
-  backupConfig: 'backupconf'
+  postgresVersion: 'latest'
+  pods:
+    persistentVolume:
+      size: '5Gi'
+  sgInstanceProfile: 'size-xs'
 ```
 
-## Sidecar containers
+
+
+## Configurations
+
+Custom configurations to be applied to the cluster.
+
+| Property                                                                                                                                | Required | Updatable | Type     | Default                             | Description |
+|:----------------------------------------------------------------------------------------------------------------------------------------|----------|-----------|:---------|:------------------------------------|:------------|
+| [sgPostgresConfig]({{% relref "/04-postgres-cluster-management/02-configuration-tuning/02-postgres-configuration" %}})                  |          |           | string   | defaultpgconfig                     | PostgreSQL configuration to apply |
+| [sgPoolingConfig]({{% relref "/04-postgres-cluster-management/02-configuration-tuning/03-connection-pooling-configuration" %}})         |          |           | string   | defaultpgbouncer                    | Pooling configuration to apply |
+| [sgInstanceProfile]({{% relref "/04-postgres-cluster-management/03-resource-profiles" %}})                                              |          |           | string   | defaultprofile                      | Resource profile size to apply |
+
+Example: 
+
+``` yaml
+
+apiVersion: stackgres.io/v1beta1
+kind: SGCluster
+metadata:
+  name: stackgres
+spec:
+  configurations:
+    sgPostgresConfig: 'postgresconf'
+    sgPoolingConfig: 'pgbouncerconf'
+    sgBackupConfig: 'backupconf'
+
+```
+
+## Pods
+Cluster's pod configuration
+
+| Property                                                                                                                                | Required | Updatable | Type     | Default                             | Description |
+|:----------------------------------------------------------------------------------------------------------------------------------------|----------|-----------|:---------|:------------------------------------|:------------|
+| persistentVolume                                                                                                                        | ✓        |           | object   |                                     | Cluster Pod's persistent volume configuratio   |
+| disableConnectionPooling                                                                                                                |          |           | boolean  | false                               | If is true, it disable the connection poolong  |
+| disableMetricsExporter                                                                                                                  |          |           | boolean  | false                               | If is true, it disable the metrics exportation |
+| disablePostgresUtil                                                                                                                     |          |           | boolean  | false                               | If is true, the postgres util container will not be installed |
+
+### Sidecar containers
 
 A sidecar container is a container that adds functionality to PostgreSQL or to the cluster
  infrastructure. Currently StackGres implement following sidecar containers:
 
-* `envoy`: this container is always present even if not specified in the configuration. It serve as
+* `envoy`: this container is always present, and is not possible to disable it. It serve as
  a edge proxy from client to PostgreSQL instances or between PostgreSQL instances. It enables
  network metrics collection to provide connection statistics.
 * `pgbouncer`: a container with pgbouncer as the connection pooling for the PostgreSQL instances.
@@ -64,19 +98,52 @@ A sidecar container is a container that adds functionality to PostgreSQL or to t
 * `postgres-util`: a container with psql and all PostgreSQL common tools in order to connect to the
  database directly as root to perform any administration tasks.
 
-Following sinnept enables all sidecars but `postgres-util`:
+The following example, disable all optional sidecars:
 
 ```yaml
-apiVersion: stackgres.io/v1alpha1
-kind: StackGresCluster
+apiVersion: stackgres.io/v1beta1
+kind: SGCluster
 metadata:
   name: stackgres
 spec:
-  sidecars:
-    - envoy
-    - pgbouncer
-    - prometheus-postgres-exporter
+  pods:
+    disableConnectionPooling: false
+    disableMetricsExporter: false
+    disablePostgresUtil: false
 ```
+
+
+
+## Persistent Volume
+
+Holds the configurations of the persistent volume that the cluster pods are going to use
+
+| Property                                                                                                                                | Required | Updatable | Type     | Default                             | Description |
+|:----------------------------------------------------------------------------------------------------------------------------------------|----------|-----------|:---------|:------------------------------------|:------------|
+| size                                                                                                                                    | ✓        | ✓         | string   |                                     | Storage volume size (for example 5Gi) |
+| storageClass                                                                                                                            |          |           | string   | default storage class               | Storage class name to be used for the cluster (if not specified means default storage class wiil be used) |
+
+```yaml
+apiVersion: stackgres.io/v1beta1
+kind: SGCluster
+metadata:
+  name: stackgres
+spec:
+  pods:
+    persistentVolume:
+      size: '5Gi'
+      storageClass: default
+```
+
+
+
+## Initial Data Configuration
+Specifies the cluster initialization data configurations
+
+| Property                                                                                                                                | Required | Updatable | Type     | Default                             | Description |
+|:----------------------------------------------------------------------------------------------------------------------------------------|----------|-----------|:---------|:------------------------------------|:------------|
+| [restore](#restore-configuration)                                                                                                       |          |           | object   |                                     | Cluter restoration options |
+
 
 ## Restore configuration
 
@@ -92,14 +159,15 @@ By default, stackgres it's creates as an empty database. To create a cluster wit
 Example:
 
 ```yaml
-apiVersion: stackgres.io/v1alpha1
-kind: StackGresCluster
+apiVersion: stackgres.io/v1beta1
+kind: SGCluster
 metadata:
   name: stackgres
 spec:
-  restore:
-    fromBackup: d7e660a9-377c-11ea-b04b-0242ac110004
-    downloadDiskConcurrency: 1
+  initialData: 
+    restore:
+      fromBackup: d7e660a9-377c-11ea-b04b-0242ac110004
+      downloadDiskConcurrency: 1
 ```
 
 ## Non Production options
