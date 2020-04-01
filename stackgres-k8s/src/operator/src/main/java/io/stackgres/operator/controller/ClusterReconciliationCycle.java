@@ -221,7 +221,6 @@ public class ClusterReconciliationCycle
   }
 
   private List<String> getClusterSidecars(StackGresCluster cluster) {
-    List<String> allSidecars = sidecarFinder.getAllSidecars();
 
     List<String> sidecarsToDisable = new ArrayList<>();
 
@@ -238,6 +237,7 @@ public class ClusterReconciliationCycle
     if (Boolean.TRUE.equals(pod.getDisablePostgresUtil())) {
       sidecarsToDisable.add(PostgresUtil.class.getAnnotation(Sidecar.class).value());
     }
+    List<String> allSidecars = sidecarFinder.getAllSidecars();
 
     return ImmutableList
         .copyOf(allSidecars.stream()
