@@ -26,7 +26,7 @@ public class AwsS3Storage {
   @JsonProperty("path")
   private String path;
 
-  @JsonProperty("credentials")
+  @JsonProperty("awsCredentials")
   @NotNull(message = "The credentials is required")
   private AwsCredentials credentials;
 

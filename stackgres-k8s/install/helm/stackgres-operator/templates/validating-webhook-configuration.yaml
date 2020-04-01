@@ -36,35 +36,35 @@ webhooks:
       {{- if .Values.cert.crt }}
       caBundle: {{ .Values.cert.crt }}
       {{- end }}
-  - name: sgconnectionpoolingconfig.{{ .Release.Name }}.{{ .Release.Namespace }}
+  - name: sgpoolconfig.{{ .Release.Name }}.{{ .Release.Namespace }}
     sideEffects: None
     rules:
       - operations: ["CREATE", "UPDATE", "DELETE"]
         apiGroups: ["stackgres.io"]
         apiVersions: ["*"]
-        resources: ["sgconnectionpoolingconfigs"]
+        resources: ["sgpoolconfigs"]
     failurePolicy: Fail
     clientConfig:
       service:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
-        path: '/stackgres/validation/sgconnectionpoolingconfig'
+        path: '/stackgres/validation/sgpoolconfig'
       {{- if .Values.cert.crt }}
       caBundle: {{ .Values.cert.crt }}
       {{- end }}
-  - name: sgprofile.{{ .Release.Name }}.{{ .Release.Namespace }}
+  - name: sginstanceprofile.{{ .Release.Name }}.{{ .Release.Namespace }}
     sideEffects: None
     rules:
       - operations: ["CREATE", "UPDATE", "DELETE"]
         apiGroups: ["stackgres.io"]
         apiVersions: ["*"]
-        resources: ["sgprofiles"]
+        resources: ["sginstanceprofiles"]
     failurePolicy: Fail
     clientConfig:
       service:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
-        path: '/stackgres/validation/sgprofile'
+        path: '/stackgres/validation/sginstanceprofile'
       {{- if .Values.cert.crt }}
       caBundle: {{ .Values.cert.crt }}
       {{- end }}

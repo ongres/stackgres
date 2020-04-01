@@ -25,7 +25,7 @@ public class ClusterDto extends ResourceDto {
   private ClusterSpec spec;
 
   @JsonProperty("pods")
-  private List<ClusterPod> pods;
+  private List<KubernetesPod> pods;
 
   @JsonProperty("podsReady")
   private Integer podsReady;
@@ -41,11 +41,11 @@ public class ClusterDto extends ResourceDto {
     this.spec = spec;
   }
 
-  public List<ClusterPod> getPods() {
+  public List<KubernetesPod> getPods() {
     return pods;
   }
 
-  public void setPods(List<ClusterPod> pods) {
+  public void setPods(List<KubernetesPod> pods) {
     this.pods = pods;
   }
 

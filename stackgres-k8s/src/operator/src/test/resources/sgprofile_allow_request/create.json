@@ -3,14 +3,14 @@
   "request": {
     "uid": "c4bc4b70-f719-11e9-b325-0242ac110002",
     "kind": {
-      "kind": "StackGresProfile",
+      "kind": "SGInstanceProfile",
       "group": "stackgres.io",
-      "version": "v1alpha1"
+      "version": "v1beta1"
     },
     "resource": {
       "group": "stackgres.io",
-      "resource": "sgprofiles",
-      "version": "v1alpha1"
+      "resource": "sginstanceprofiles",
+      "version": "v1beta1"
     },
     "subResource": null,
     "requestKind": null,
@@ -29,8 +29,8 @@
       "username": "system:serviceaccount:kube-system:tiller"
     },
     "object": {
-      "kind": "StackGresProfile",
-      "apiVersion": "stackgres.io/v1alpha1",
+      "kind": "SGInstanceProfile",
+      "apiVersion": "stackgres.io/v1beta1",
       "metadata": {
         "annotations": {
           "helm.sh/hook": "pre-install"

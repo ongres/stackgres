@@ -1,0 +1,81 @@
+{
+  "kind": "AdmissionReview",
+  "request": {
+    "uid": "af38063c-f66f-11e9-8982-0242ac110002",
+    "kind": {
+      "kind": "SGPoolingConfig",
+      "group": "stackgres.io",
+      "version": "v1beta1"
+    },
+    "resource": {
+      "group": "stackgres.io",
+      "resource": "sgpoolconfigs",
+      "version": "v1beta1"
+    },
+    "subResource": null,
+    "requestKind": null,
+    "requestResource": null,
+    "requestSubResource": null,
+    "name": null,
+    "namespace": "postgresql",
+    "operation": "UPDATE",
+    "userInfo": {
+      "groups": [
+        "system:serviceaccounts",
+        "system:serviceaccounts:kube-system",
+        "system:authenticated"
+      ],
+      "uid": "7b49efcb-f66f-11e9-8982-0242ac110002",
+      "username": "system:serviceaccount:kube-system:tiller"
+    },
+    "object": {
+      "kind": "SGPoolingConfig",
+      "apiVersion": "stackgres.io/v1beta1",
+      "metadata": {
+        "annotations": {
+          "helm.sh/hook": "pre-install"
+        },
+        "creationTimestamp": "2019-10-24T15:05:15Z",
+        "generation": 1,
+        "name": "pgbouncerconf",
+        "namespace": "postgresql",
+        "uid": "af37ff0f-f66f-11e9-8982-0242ac110002"
+      },
+      "spec": {
+        "pgBouncer": {
+          "pgbouncer.ini": {
+            "default_pool_size": "200",
+            "max_client_conn": "200",
+            "pool_mode": "transaction"
+          }
+        }
+      }
+    },
+    "oldObject": {
+      "kind": "SGPoolingConfig",
+      "apiVersion": "stackgres.io/v1beta1",
+      "metadata": {
+        "annotations": {
+          "helm.sh/hook": "pre-install"
+        },
+        "creationTimestamp": "2019-10-24T15:05:15Z",
+        "generation": 1,
+        "name": "pgbouncerconf",
+        "namespace": "postgresql",
+        "uid": "af37ff0f-f66f-11e9-8982-0242ac110002"
+      },
+      "spec": {
+        "pgBouncer": {
+          "pgbouncer.ini": {
+            "default_pool_size": "100",
+            "max_client_conn": "200",
+            "pool_mode": "transaction"
+          }
+        }
+      }
+    },
+    "options": null,
+    "dryRun": false
+  },
+  "apiVersion": "admission.k8s.io/v1beta1"
+}

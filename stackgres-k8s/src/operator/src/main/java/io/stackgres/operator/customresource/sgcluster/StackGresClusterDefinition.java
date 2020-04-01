@@ -11,7 +11,7 @@ public enum StackGresClusterDefinition {
 
   ;
 
-  public static final String KIND = "StackGresCluster";
+  public static final String KIND = "SGCluster";
   public static final String SINGULAR = "sgcluster";
   public static final String PLURAL = "sgclusters";
   public static final String NAME = PLURAL + "." + StackGresUtil.CRD_GROUP;

@@ -3,14 +3,14 @@
   "request": {
     "uid": "c51ba0ce-f719-11e9-b325-0242ac110002",
     "kind": {
-      "kind": "StackGresProfile",
+      "kind": "SGInstanceProfile",
       "group": "stackgres.io",
-      "version": "v1alpha1"
+      "version": "v1beta1"
     },
     "resource": {
       "group": "stackgres.io",
-      "resource": "sgprofiles",
-      "version": "v1alpha1"
+      "resource": "sginstanceprofiles",
+      "version": "v1beta1"
     },
     "subResource": null,
     "requestKind": null,

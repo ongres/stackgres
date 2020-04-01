@@ -12,8 +12,8 @@
 `profiles-cr.yaml` Custom resources for instances size(memory and cpu):
 
 ```
-apiVersion: stackgres.io/v1alpha1
-kind: StackGresProfile
+apiVersion: stackgres.io/v1beta1
+kind: SGInstanceProfile
 metadata:
   name: size-xs
   annotations:
@@ -22,8 +22,8 @@ spec:
   cpu: "500m"
   memory: "512Mi"
 ---
-apiVersion: stackgres.io/v1alpha1
-kind: StackGresProfile
+apiVersion: stackgres.io/v1beta1
+kind: SGInstanceProfile
 metadata:
   name: size-s
   annotations:
@@ -32,8 +32,8 @@ spec:
   cpu: "1"
   memory: "2Gi"
 ---
-apiVersion: stackgres.io/v1alpha1
-kind: StackGresProfile
+apiVersion: stackgres.io/v1beta1
+kind: SGInstanceProfile
 metadata:
   name: size-m
   annotations:
@@ -42,8 +42,8 @@ spec:
   cpu: "2"
   memory: "4Gi"
 ---
-apiVersion: stackgres.io/v1alpha1
-kind: StackGresProfile
+apiVersion: stackgres.io/v1beta1
+kind: SGInstanceProfile
 metadata:
   name: size-l
   annotations:
@@ -52,8 +52,8 @@ spec:
   cpu: "4"
   memory: "8Gi"
 ---
-apiVersion: stackgres.io/v1alpha1
-kind: StackGresProfile
+apiVersion: stackgres.io/v1beta1
+kind: SGInstanceProfile
 metadata:
   name: size-xl
   annotations:
@@ -62,8 +62,8 @@ spec:
   cpu: "6"
   memory: "16Gi"
 ---
-apiVersion: stackgres.io/v1alpha1
-kind: StackGresProfile
+apiVersion: stackgres.io/v1beta1
+kind: SGInstanceProfile
 metadata:
   name: size-xxl
   annotations:
@@ -74,14 +74,14 @@ spec:
 ```
 `pgconfig-cr.yaml`  Custom resource for PosgreSQL configuration:
 ```
-apiVersion: stackgres.io/v1alpha1
-kind: StackGresPostgresConfig
+apiVersion: stackgres.io/v1beta1
+kind: SGPostgresConfig
 metadata:
   name: postgresconf
   annotations:
     "helm.sh/hook": "pre-install"
 spec:
-  pgVersion: "11"
+  postgresVersion: "11"
   postgresql.conf:
       shared_buffers: '256MB'
       random_page_cost: '1.5'
@@ -92,8 +92,8 @@ spec:
 `pgbouncerconfig-cr.yaml` Custom resource for pgbouncer configuration:
 
 ```
-apiVersion: stackgres.io/v1alpha1
-kind: StackGresConnectionPoolingConfig
+apiVersion: stackgres.io/v1beta1
+kind: SGPoolingConfig
 metadata:
   name: pgbouncerconf
   annotations:
@@ -107,24 +107,24 @@ spec:
 ```
 `cluster-cr.yaml` Custom resource for StackGres cluster
 
-```
-apiVersion: stackgres.io/v1alpha1
-kind: StackGresCluster
+``` yaml
+apiVersion: stackgres.io/v1beta1
+kind: SGCluster
 metadata:
   name: jaundiced-ladybug
 spec:
   instances: 1
-  pgVersion: '11.6'
-  pgConfig: 'postgresconf'
-  connectionPoolingConfig: 'pgbouncerconf'
-  resourceProfile: 'size-xs'
-  volumeSize: '5Gi'
+  postgresVersion: '11.6'
+  sgInstanceProfile: 'size-xs'
+  configurations:
+    sgPostgresConfig: 'postgresconf'
+    sgPoolingConfig: 'pgbouncerconf' 
+  pods:
+    persistentVolume:
+      size: '5Gi'
   postgresExporterVersion: '0.7.0'
   prometheusAutobind: true
-  sidecars:
-  - connection-pooling
-  - postgres-util
-  - prometheus-postgres-exporter
+
 ```
 ### 2.- Once you have the files created, apply it to the k8s cluster:
 

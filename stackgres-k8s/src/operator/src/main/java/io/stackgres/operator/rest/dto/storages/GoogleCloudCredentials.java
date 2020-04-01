@@ -5,24 +5,28 @@
 
 package io.stackgres.operator.rest.dto.storages;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.MoreObjects;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
-import io.stackgres.operator.rest.dto.SecretKeySelector;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
 public class GoogleCloudCredentials {
 
-  @JsonProperty("serviceAccountJsonKey")
+  @JsonProperty("serviceAccountJSON")
   private String serviceAccountJsonKey;
 
-  @JsonProperty("serviceAccountJsonKeySelector")
-  private SecretKeySelector serviceAccountJsonKeySelector;
+  @JsonProperty("secretKeySelectors")
+  @NotNull(message = "The secretKeySelectors are required")
+  @Valid
+  private GoogleCloudSecretKeySelector secretKeySelectors;
 
   public String getServiceAccountJsonKey() {
     return serviceAccountJsonKey;
@@ -32,12 +36,12 @@ public class GoogleCloudCredentials {
     this.serviceAccountJsonKey = serviceAccountJsonKey;
   }
 
-  public SecretKeySelector getServiceAccountJsonKeySelector() {
-    return serviceAccountJsonKeySelector;
+  public GoogleCloudSecretKeySelector getSecretKeySelectors() {
+    return secretKeySelectors;
   }
 
-  public void setServiceAccountJsonKeySelector(SecretKeySelector serviceAccountJsonKeySelector) {
-    this.serviceAccountJsonKeySelector = serviceAccountJsonKeySelector;
+  public void setSecretKeySelectors(GoogleCloudSecretKeySelector secretKeySelectors) {
+    this.secretKeySelectors = secretKeySelectors;
   }
 
   @Override
@@ -45,7 +49,7 @@ public class GoogleCloudCredentials {
     return MoreObjects.toStringHelper(this)
         .omitNullValues()
         .add("serviceAccountJsonKey", serviceAccountJsonKey)
-        .add("serviceAccountJsonKeySelector", serviceAccountJsonKeySelector)
+        .add("secretKeySelectors", secretKeySelectors)
         .toString();
   }
 

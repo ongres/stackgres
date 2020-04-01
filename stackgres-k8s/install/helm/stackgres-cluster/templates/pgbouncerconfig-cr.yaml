@@ -1,6 +1,6 @@
 {{ if .Values.config.create }}
-apiVersion: stackgres.io/v1alpha1
-kind: StackGresConnectionPoolingConfig
+apiVersion: stackgres.io/v1beta1
+kind: SGPoolingConfig
 metadata:
   name: {{ .Values.cluster.poolingconfig }}
   labels:
@@ -13,10 +13,11 @@ metadata:
     "helm.sh/hook": "pre-install"
   {{- end }}
 spec:
-  {{- with (index .Values.config.pgbouncer "pgbouncer.ini") }}
-  pgbouncer.ini:
-  {{- range $key, $value := . }}
-    {{ $key }}: '{{ $value }}'
-  {{- end }}
-  {{- end }}
+  pgBouncer:
+    {{- with (index .Values.config.pgbouncer "pgbouncer.ini") }}
+    pgbouncer.ini:
+    {{- range $key, $value := . }}
+      {{ $key }}: '{{ $value }}'
+    {{- end }}
+    {{- end }}
 {{ end }}

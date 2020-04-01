@@ -35,11 +35,11 @@ public class BackupNameValidator implements BackupValidator {
     if (review.getRequest().getOperation() == Operation.UPDATE) {
       String name = Optional.ofNullable(review.getRequest().getObject())
           .map(StackGresBackup::getStatus)
-          .map(StackGresBackupStatus::getName)
+          .map(StackGresBackupStatus::getInternalName)
           .orElse(null);
       String oldName = Optional.ofNullable(review.getRequest().getOldObject())
           .map(StackGresBackup::getStatus)
-          .map(StackGresBackupStatus::getName)
+          .map(StackGresBackupStatus::getInternalName)
           .orElse(null);
       if (oldName != null && !Objects.equals(oldName, name)) {
         final String message = "Update of backups name is forbidden";

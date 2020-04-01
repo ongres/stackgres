@@ -5,7 +5,7 @@ e2e_test() {
   run_test "Trying to delete size-xs without cluster running" delete_whitout_cluster
 }
 delete_with_cluster(){
-  if ERROR=$(kubectl delete -n "$CLUSTER_NAMESPACE" sgprofiles.stackgres.io size-xs 2>&1)
+  if ERROR=$(kubectl delete -n "$CLUSTER_NAMESPACE" sginstanceprofiles.stackgres.io size-xs 2>&1)
   then
     echo "INFO: It should not be able to delete size-xs"
     return 1
@@ -13,7 +13,7 @@ delete_with_cluster(){
     echo "SUCCESS: Good it has failed"
   fi
 
-  if echo "$ERROR" | grep -q "Can't delete sgprofiles.stackgres.io size-xs"
+  if echo "$ERROR" | grep -q "Can't delete sginstanceprofiles.stackgres.io size-xs"
   then
     echo "SUCCESS: Error message was the expected"
     return 0
@@ -29,7 +29,7 @@ delete_whitout_cluster(){
 
   wait_pods_terminated "$CLUSTER_NAMESPACE"
 
-  if ERROR=$(kubectl get -n "$CLUSTER_NAMESPACE" sgprofiles.stackgres.io size-xs 2>&1)
+  if ERROR=$(kubectl get -n "$CLUSTER_NAMESPACE" sginstanceprofiles.stackgres.io size-xs 2>&1)
   then
     echo "SUCCESS: Good. It has deleted the configuration"
     return 0

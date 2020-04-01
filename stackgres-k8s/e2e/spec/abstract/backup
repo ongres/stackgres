@@ -19,7 +19,7 @@ check_backup() {
   fi
 
   if wait_until eval '[ "$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" \
-      -o custom-columns=BACKUP_NAME:.status.name,PHASE:.status.phase,HOSTNAME:.status.hostname \
+      -o custom-columns=BACKUP_NAME:.status.internalName,PHASE:.status.process.status,HOSTNAME:.status.backupInformation.hostname \
       | tail -n +2 | grep " Completed   ${CLUSTER_NAME}-${NODE}$" | wc -l)" -gt 0 ]'
   then
     echo "SUCCESS. The backup CR is available"
@@ -29,7 +29,7 @@ check_backup() {
   fi
 
   BACKUP_NAME="$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" \
-    -o custom-columns=BACKUP_NAME:.status.name,PHASE:.status.phase,HOSTNAME:.status.hostname \
+    -o custom-columns=BACKUP_NAME:.status.internalName,PHASE:.status.process.status,HOSTNAME:.status.backupInformation.hostname \
     | tail -n +2 | grep " Completed   ${CLUSTER_NAME}-${NODE}$" | tail -n 1 | cut -d ' ' -f 1)"
   
   if [ "$(kubectl exec -t -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-${NODE}" -c patroni -- \
@@ -44,18 +44,18 @@ check_backup() {
   BACKUP_NAME="${CLUSTER_NAME}-${NODE}-$(shuf -i 0-65535 -n 1)"
 
   cat << EOF | kubectl create -f -
-apiVersion: stackgres.io/v1alpha1
-kind: StackGresBackup
+apiVersion: stackgres.io/v1beta1
+kind: SGBackup
 metadata:
   namespace: "$CLUSTER_NAMESPACE"
   name: "$BACKUP_NAME"
 spec:
-  cluster: "$CLUSTER_NAME"
-  isPermanent: false
+  sgCluster: "$CLUSTER_NAME"
+  subjectToRetentionPolicy: false
 EOF
 
   if wait_until eval '[ "$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
-      -o custom-columns=BACKUP_NAME:.status.name,PHASE:.status.phase,HOSTNAME:.status.hostname \
+      -o custom-columns=BACKUP_NAME:.status.internalName,PHASE:.status.process.status,HOSTNAME:.status.backupInformation.hostname \
       | tail -n +2 | grep " Completed   ${CLUSTER_NAME}-${NODE}$" | wc -l)" -gt 0 ]'
   then
     echo "SUCCESS. The created backup CR did complete"
@@ -65,7 +65,7 @@ EOF
   fi
 
   ACTUAL_BACKUP_NAME="$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
-    -o custom-columns=BACKUP_NAME:.status.name,PHASE:.status.phase,HOSTNAME:.status.hostname \
+    -o custom-columns=BACKUP_NAME:.status.internalName,PHASE:.status.process.status,HOSTNAME:.status.backupInformation.hostname \
     | tail -n +2 | grep " Completed   ${CLUSTER_NAME}-${NODE}$" | tail -n 1 | cut -d ' ' -f 1)"
 
   if [ -z "$ACTUAL_BACKUP_NAME" ]
@@ -86,7 +86,7 @@ EOF
   check_is_permanent_value false
 
   kubectl patch sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json \
-    --patch '[{"op":"replace","path":"/spec/isPermanent","value":true}]'
+    --patch '[{"op":"replace","path":"/spec/subjectToRetentionPolicy","value":true}]'
 
   wait_until check_is_permanent_value true
 
@@ -114,15 +114,15 @@ EOF
 
 check_is_permanent_value() {
   ACTUAL_IS_PERMANENT="$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
-    -o custom-columns=IS_PERMANENT:.status.isPermanent,PHASE:.status.phase,HOSTNAME:.status.hostname \
+    -o custom-columns=IS_PERMANENT:.status.process.subjectToRetentionPolicy,PHASE:.status.process.status,HOSTNAME:.status.backupInformation.hostname \
     | tail -n +2 | grep " Completed   ${CLUSTER_NAME}-${NODE}$" | tail -n 1 | cut -d ' ' -f 1)"
 
   if [ "$ACTUAL_IS_PERMANENT" != "$1" ]
   then
-    echo "FAIL. Backup /status/isPermanent expected to be $1 but was $ACTUAL_IS_PERMANENT"
+    echo "FAIL. Backup /status/process/subjectToRetentionPolicy expected to be $1 but was $ACTUAL_IS_PERMANENT"
     return 1
   else
-    echo "SUCCESS. Backup /status/isPermanent was $1"
+    echo "SUCCESS. Backup /status/process/subjectToRetentionPolicy was $1"
   fi
 }
 

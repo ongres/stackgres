@@ -18,7 +18,7 @@ class BackupValidationPipelineIt extends ValidationPipelineTest<StackGresBackup,
   public BackupReview getConstraintViolatingReview() {
     final BackupReview backupReview = JsonUtil
         .readFromJson("backup_allow_request/create.json", BackupReview.class);
-    backupReview.getRequest().getObject().getSpec().setCluster(null);
+    backupReview.getRequest().getObject().getSpec().setSgCluster(null);
     return backupReview;
   }
 }

@@ -12,6 +12,7 @@ import com.google.common.collect.ImmutableMap;
 
 import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfigSpec;
+import io.stackgres.operator.customresource.sgbackupconfig.StackGresBaseBackupConfig;
 import io.stackgres.operator.customresource.storages.AwsS3CompatibleStorage;
 import io.stackgres.operator.customresource.storages.AwsS3Storage;
 import io.stackgres.operator.customresource.storages.AzureBlobStorage;
@@ -28,7 +29,8 @@ public abstract class AbstractBackupConfigMap {
 
   private static final Logger WAL_G_LOGGER = LoggerFactory.getLogger("wal-g");
 
-  protected ImmutableMap<String, String> getBackupEnvVars(String namespace, String name,
+  protected ImmutableMap<String, String> getBackupEnvVars(
+      String namespace, String name,
       StackGresBackupConfigSpec backupConfigSpec) {
     ImmutableMap.Builder<String, String> backupEnvVars = ImmutableMap.builder();
 
@@ -38,20 +40,23 @@ public abstract class AbstractBackupConfigMap {
     backupEnvVars.put("PGDATABASE", "postgres");
     backupEnvVars.put("PGHOST", ClusterStatefulSetPath.PG_RUN_PATH.path());
 
-    backupEnvVars.put("WALG_COMPRESSION_METHOD", getFromConfigSpec(
-        backupConfigSpec, StackGresBackupConfigSpec::getCompressionMethod));
-    if (hasFromConfigSpec(backupConfigSpec, StackGresBackupConfigSpec::getNetworkRateLimit)) {
-      backupEnvVars.put("WALG_NETWORK_RATE_LIMIT", getFromConfigSpec(
-          backupConfigSpec, StackGresBackupConfigSpec::getNetworkRateLimit));
-    }
-    if (hasFromConfigSpec(backupConfigSpec, StackGresBackupConfigSpec::getDiskRateLimit)) {
-      backupEnvVars.put("WALG_DISK_RATE_LIMIT", getFromConfigSpec(
-          backupConfigSpec, StackGresBackupConfigSpec::getDiskRateLimit));
-    }
-    backupEnvVars.put("WALG_UPLOAD_DISK_CONCURRENCY", getFromConfigSpec(
-        backupConfigSpec, StackGresBackupConfigSpec::getUploadDiskConcurrency));
-    backupEnvVars.put("WALG_TAR_SIZE_THRESHOLD", getFromConfigSpec(
-        backupConfigSpec, StackGresBackupConfigSpec::getTarSizeThreshold));
+    Optional.ofNullable(backupConfigSpec.getBaseBackups())
+        .map(StackGresBaseBackupConfig::getCompression)
+        .ifPresent(compression -> backupEnvVars.put("WALG_COMPRESSION_METHOD", compression));
+
+    Optional.ofNullable(backupConfigSpec.getBaseBackups())
+        .map(StackGresBaseBackupConfig::getPerformance)
+        .ifPresent(performance -> {
+          final long networkRateLimit = performance.getMaxNetworkBandwitdh();
+          backupEnvVars.put("WALG_NETWORK_RATE_LIMIT", convertEnvValue(networkRateLimit));
+
+          final long diskRateLimit = performance.getMaxDiskBandwitdh();
+          backupEnvVars.put("WALG_DISK_RATE_LIMIT", convertEnvValue(diskRateLimit));
+
+          final int uploadDiskConcurrency = performance.getUploadDiskConcurrency();
+          backupEnvVars.put("WALG_UPLOAD_DISK_CONCURRENCY",
+                convertEnvValue(uploadDiskConcurrency));
+        });
 
     Optional<AwsS3Storage> storageForS3 = getStorageFor(backupConfigSpec, BackupStorage::getS3);
     if (storageForS3.isPresent()) {
@@ -71,7 +76,7 @@ public abstract class AbstractBackupConfigMap {
     }
 
     Optional<AzureBlobStorage> storageForAzureBlob = getStorageFor(
-        backupConfigSpec, BackupStorage::getAzureblob);
+        backupConfigSpec, BackupStorage::getAzureBlob);
     if (storageForAzureBlob.isPresent()) {
       setAzureBlobStorageEnvVars(namespace, name, backupEnvVars, storageForAzureBlob);
     }
@@ -83,8 +88,10 @@ public abstract class AbstractBackupConfigMap {
     return backupEnvVars.build();
   }
 
-  private void setS3StorageEnvVars(String namespace, String name,
-      ImmutableMap.Builder<String, String> backupEnvVars, Optional<AwsS3Storage> storageForS3) {
+  private void setS3StorageEnvVars(String namespace,
+                                   String name,
+                                   ImmutableMap.Builder<String, String> backupEnvVars,
+                                   Optional<AwsS3Storage> storageForS3) {
     backupEnvVars.put("WALG_S3_PREFIX", getFromS3(storageForS3, AwsS3Storage::getPrefix)
         + "/" + namespace + "/" + name);
     backupEnvVars.put("AWS_REGION", getFromS3(storageForS3, AwsS3Storage::getRegion));
@@ -92,7 +99,9 @@ public abstract class AbstractBackupConfigMap {
         AwsS3Storage::getStorageClass));
   }
 
-  private void setS3CompatibleStorageEnvVars(String namespace, String name,
+  private void setS3CompatibleStorageEnvVars(
+      String namespace,
+      String name,
       ImmutableMap.Builder<String, String> backupEnvVars,
       Optional<AwsS3CompatibleStorage> storageForS3Compatible) {
     backupEnvVars.put("WALG_S3_PREFIX", getFromS3Compatible(storageForS3Compatible,
@@ -115,16 +124,16 @@ public abstract class AbstractBackupConfigMap {
   }
 
   private void setGcsStorageEnvVars(String namespace, String name,
-      ImmutableMap.Builder<String, String> backupEnvVars,
-      Optional<GoogleCloudStorage> storageForGcs) {
+                                    ImmutableMap.Builder<String, String> backupEnvVars,
+                                    Optional<GoogleCloudStorage> storageForGcs) {
     backupEnvVars.put("WALG_GCS_PREFIX", getFromGcs(storageForGcs, GoogleCloudStorage::getPrefix)
         + "/" + namespace + "/" + name);
     backupEnvVars.put("GOOGLE_APPLICATION_CREDENTIALS", getGcsCredentialsFilePath());
   }
 
   private void setAzureBlobStorageEnvVars(String namespace, String name,
-      ImmutableMap.Builder<String, String> backupEnvVars,
-      Optional<AzureBlobStorage> storageForAzureBlob) {
+                                          ImmutableMap.Builder<String, String> backupEnvVars,
+                                          Optional<AzureBlobStorage> storageForAzureBlob) {
     backupEnvVars.put("WALG_AZ_PREFIX", getFromAzureBlob(
         storageForAzureBlob, AzureBlobStorage::getPrefix)
         + "/" + namespace + "/" + name);
@@ -135,31 +144,15 @@ public abstract class AbstractBackupConfigMap {
         + "/" + ClusterStatefulSet.GCS_CREDENTIALS_FILE_NAME;
   }
 
-  private <T> boolean hasFromConfigSpec(StackGresBackupConfigSpec configSpec,
-      Function<StackGresBackupConfigSpec, T> getter) {
-    return Optional.of(configSpec)
-        .map(getter)
-        .map(this::convertEnvValue)
-        .isPresent();
-  }
-
-  private <T> String getFromConfigSpec(StackGresBackupConfigSpec configSpec,
-      Function<StackGresBackupConfigSpec, T> getter) {
-    return Optional.of(configSpec)
-        .map(getter)
-        .map(this::convertEnvValue)
-        .orElse("");
-  }
-
   private <T> Optional<T> getStorageFor(StackGresBackupConfigSpec configSpec,
-      Function<BackupStorage, T> getter) {
+                                        Function<BackupStorage, T> getter) {
     return Optional.of(configSpec)
         .map(StackGresBackupConfigSpec::getStorage)
         .map(getter);
   }
 
   private <T> String getFromS3(Optional<AwsS3Storage> storageFor,
-      Function<AwsS3Storage, T> getter) {
+                               Function<AwsS3Storage, T> getter) {
     return storageFor
         .map(getter)
         .map(this::convertEnvValue)
@@ -167,7 +160,7 @@ public abstract class AbstractBackupConfigMap {
   }
 
   private <T> String getFromS3Compatible(Optional<AwsS3CompatibleStorage> storageFor,
-      Function<AwsS3CompatibleStorage, T> getter) {
+                                         Function<AwsS3CompatibleStorage, T> getter) {
     return storageFor
         .map(getter)
         .map(this::convertEnvValue)
@@ -175,7 +168,8 @@ public abstract class AbstractBackupConfigMap {
   }
 
   private <T, R> String getFromS3Compatible(Optional<AwsS3CompatibleStorage> storageFor,
-      Function<AwsS3CompatibleStorage, T> getter, CheckedFunction<T, R> transformer) {
+                                            Function<AwsS3CompatibleStorage, T> getter,
+                                            CheckedFunction<T, R> transformer) {
     return storageFor
         .map(getter)
         .map(Unchecked.function(transformer))
@@ -184,7 +178,7 @@ public abstract class AbstractBackupConfigMap {
   }
 
   private <T> String getFromGcs(Optional<GoogleCloudStorage> storageFor,
-      Function<GoogleCloudStorage, T> getter) {
+                                Function<GoogleCloudStorage, T> getter) {
     return storageFor
         .map(getter)
         .map(this::convertEnvValue)
@@ -192,7 +186,7 @@ public abstract class AbstractBackupConfigMap {
   }
 
   private <T> String getFromAzureBlob(Optional<AzureBlobStorage> storageFor,
-      Function<AzureBlobStorage, T> getter) {
+                                      Function<AzureBlobStorage, T> getter) {
     return storageFor
         .map(getter)
         .map(this::convertEnvValue)

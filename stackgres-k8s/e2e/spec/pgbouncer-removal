@@ -1,13 +1,13 @@
 #!/bin/sh
 
 e2e_test() {
-  run_test "Trying to delete sgconnectionpoolingconfigs with cluster running" delete_with_cluster
+  run_test "Trying to delete sgpoolconfigs with cluster running" delete_with_cluster
 
-  run_test "Trying to delete sgconnectionpoolingconfigs without a cluster running" delete_whitout_cluster
+  run_test "Trying to delete sgpoolconfigs without a cluster running" delete_whitout_cluster
 }
 
 delete_with_cluster() {
-  if ERROR_MESSAGE=$( { kubectl delete -n "$CLUSTER_NAMESPACE" sgconnectionpoolingconfigs.stackgres.io pgbouncerconf; } 2>&1 )
+  if ERROR_MESSAGE=$( { kubectl delete -n "$CLUSTER_NAMESPACE" sgpoolconfigs.stackgres.io pgbouncerconf; } 2>&1 )
   then
     echo "ERROR: It should not be able to delete pgbouncerconf"
     return 1
@@ -17,7 +17,7 @@ delete_with_cluster() {
   
   echo "$ERROR_MESSAGE" > "${LOG_PATH}/test1.log"
 
-  if grep -q "Can't delete sgconnectionpoolingconfigs.stackgres.io pgbouncerconf" "$LOG_PATH/test1.log"
+  if grep -q "Can't delete sgpoolconfigs.stackgres.io pgbouncerconf" "$LOG_PATH/test1.log"
   then
     echo "SUCCESS: Error message was the expected"
     return 0
@@ -33,12 +33,12 @@ delete_whitout_cluster() {
 
   wait_pods_terminated "$CLUSTER_NAMESPACE"
 
-  if kubectl delete -n "$CLUSTER_NAMESPACE" sgconnectionpoolingconfigs.stackgres.io pgbouncerconf
+  if kubectl delete -n "$CLUSTER_NAMESPACE" sgpoolconfigs.stackgres.io pgbouncerconf
   then
     echo "SUCCESS: Good. It has deleted the configuration"
     return 0
   else
-    ERROR=$(kubectl delete -n "$CLUSTER_NAMESPACE" sgconnectionpoolingconfigs.stackgres.io pgbouncerconf)
+    ERROR=$(kubectl delete -n "$CLUSTER_NAMESPACE" sgpoolconfigs.stackgres.io pgbouncerconf)
     echo "FAIL: It should be able to delete the pgbouncerconf. ERROR $ERROR"
     return 1
   fi

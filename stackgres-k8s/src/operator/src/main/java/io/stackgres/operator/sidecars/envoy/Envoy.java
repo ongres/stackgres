@@ -9,16 +9,13 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
-
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.ConfigMapVolumeSourceBuilder;
@@ -47,8 +44,9 @@ import io.stackgres.operator.customresource.prometheus.NamespaceSelector;
 import io.stackgres.operator.customresource.prometheus.ServiceMonitor;
 import io.stackgres.operator.customresource.prometheus.ServiceMonitorDefinition;
 import io.stackgres.operator.customresource.prometheus.ServiceMonitorSpec;
+import io.stackgres.operator.customresource.sgcluster.StackGresClusterPod;
+import io.stackgres.operator.customresource.sgcluster.StackGresClusterSpec;
 import io.stackgres.operatorframework.resource.ResourceUtil;
-
 import org.jooq.lambda.Seq;
 
 @Singleton
@@ -133,12 +131,16 @@ public class Envoy implements StackGresClusterSidecarResourceFactory<Void> {
   @Override
   public Stream<HasMetadata> streamResources(StackGresGeneratorContext context) {
 
+    boolean disablePgBouncer = Optional
+        .ofNullable(context.getClusterContext().getCluster().getSpec())
+        .map(StackGresClusterSpec::getPod)
+        .map(StackGresClusterPod::getDisableConnectionPooling)
+        .orElse(false);
     final String envoyConfPath;
-    if (context.getClusterContext().getCluster().getSpec()
-        .getSidecars().contains("connection-pooling")) {
-      envoyConfPath = "/envoy/default_envoy.yaml";
-    } else {
+    if (disablePgBouncer) {
       envoyConfPath = "/envoy/envoy_nopgbouncer.yaml";
+    } else {
+      envoyConfPath = "/envoy/default_envoy.yaml";
     }
 
     YAMLMapper yamlMapper = yamlMapperProvider.yamlMapper();
@@ -150,7 +152,7 @@ public class Envoy implements StackGresClusterSidecarResourceFactory<Void> {
       throw new IllegalStateException("couldn't read envoy config file", ex);
     }
 
-    Seq.seq((ArrayNode) envoyConfig.get("static_resources").get("listeners"))
+    Seq.seq(envoyConfig.get("static_resources").get("listeners"))
         .map(listener -> listener
             .get("address")
             .get("socket_address"))
@@ -160,7 +162,7 @@ public class Envoy implements StackGresClusterSidecarResourceFactory<Void> {
                 .get("port_value")
                 .asText())));
 
-    Seq.seq((ArrayNode) envoyConfig.get("static_resources").get("clusters"))
+    Seq.seq(envoyConfig.get("static_resources").get("clusters"))
         .map(cluster -> cluster
             .get("hosts")
             .get("socket_address"))

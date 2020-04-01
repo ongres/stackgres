@@ -5,7 +5,7 @@
 
 package io.stackgres.operator.mutation;
 
-import io.stackgres.operator.common.PgBouncerReview;
+import io.stackgres.operator.common.PoolingReview;
 import io.stackgres.operator.utils.JsonUtil;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -14,7 +14,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class SgPgBouncerMutationResourceTest extends MutationResourceTest<PgBouncerReview> {
+class SgPgBouncerMutationResourceTest extends MutationResourceTest<PoolingReview> {
 
   @BeforeEach
   void setUp() {
@@ -23,7 +23,7 @@ class SgPgBouncerMutationResourceTest extends MutationResourceTest<PgBouncerRevi
     this.resource = resource;
 
     review = JsonUtil
-        .readFromJson("pgbouncer_allow_request/create.json", PgBouncerReview.class);
+        .readFromJson("pooling_allow_request/create.json", PoolingReview.class);
   }
 
   @Override

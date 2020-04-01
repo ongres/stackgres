@@ -20,7 +20,7 @@ public interface ClusterMutator extends JsonPatchMutator<StackGresClusterReview>
     return CLUSTER_CONFIG_POINTER.append(jsonField);
   }
 
-  default String getJsonMappingField(String field, Class<?> clazz) throws NoSuchFieldException {
+  static String getJsonMappingField(String field, Class<?> clazz) throws NoSuchFieldException {
     return clazz.getDeclaredField(field)
         .getAnnotation(JsonProperty.class)
         .value();

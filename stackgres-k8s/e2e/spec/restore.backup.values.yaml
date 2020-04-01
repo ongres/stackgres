@@ -10,7 +10,7 @@ config:
     diskRateLimit: 16777216
     minio:
       create: false
-    s3compatible:
+    s3Compatible:
       bucket: restore-backup
       accessKey:
         name: restore-backup-minio

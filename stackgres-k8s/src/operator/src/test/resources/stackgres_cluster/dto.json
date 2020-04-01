@@ -6,22 +6,28 @@
   },
   "spec": {
     "instances": 1,
-    "pgVersion": "11.5",
-    "pgConfig": "postgresconf",
-    "resourceProfile": "size-xs",
-    "restore": {
-      "fromBackup": "d7e660a9-377c-11ea-b04b-0242ac110004"
+    "postgresVersion": "11.5",
+    "sgInstanceProfile": "size-xs",
+    "initialData": {
+      "restore": {
+        "fromBackup": "d7e660a9-377c-11ea-b04b-0242ac110004"
+      }
     },
-    "backupConfig": "backupconf",
-    "connectionPoolingConfig": "pgbouncerconf",
-    "volumeSize": "5Gi",
-    "storageClass": "standard",
-    "prometheusAutobind": true,
-    "sidecars": [
-      "connection-pooling",
-      "postgres-util",
-      "prometheus-postgres-exporter"
-    ]
+    "configurations": {
+      "sgPostgresConfig": "postgresconf",
+      "sgPoolingConfig": "pgbouncerconf",
+      "sgBackupConfig": "backupconf"
+    },
+    "pods":{
+      "persistentVolume": {
+        "size": "5Gi",
+        "storageClass": "standard"
+      },
+      "disableConnectionPooling": false,
+      "disableMetricsExporter": false,
+      "disablePostgresUtil": false
+    },
+    "prometheusAutobind": true
   },
   "status": null
 }

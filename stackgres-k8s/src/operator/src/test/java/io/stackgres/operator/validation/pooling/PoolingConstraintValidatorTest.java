@@ -1,0 +1,74 @@
+/*
+ * Copyright (C) 2019 OnGres, Inc.
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
+package io.stackgres.operator.validation.pooling;
+
+import java.util.HashMap;
+
+import io.stackgres.operator.common.PoolingReview;
+import io.stackgres.operator.sidecars.pooling.customresources.StackGresPoolingConfig;
+import io.stackgres.operator.sidecars.pooling.customresources.StackGresPoolingConfigPgBouncer;
+import io.stackgres.operator.sidecars.pooling.customresources.StackGresPoolingConfigSpec;
+import io.stackgres.operator.utils.JsonUtil;
+import io.stackgres.operator.validation.ConstraintValidationTest;
+import io.stackgres.operator.validation.ConstraintValidator;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+@ExtendWith(MockitoExtension.class)
+class PoolingConstraintValidatorTest extends ConstraintValidationTest<PoolingReview> {
+
+  @Override
+  protected ConstraintValidator<PoolingReview> buildValidator() {
+    return new PoolingConstraintValidator();
+  }
+
+  @Override
+  protected PoolingReview getValidReview() {
+    return JsonUtil.readFromJson("pooling_allow_request/create.json",
+        PoolingReview.class);
+  }
+
+  @Override
+  protected PoolingReview getInvalidReview() {
+    final PoolingReview review = JsonUtil.readFromJson("pooling_allow_request/create.json",
+        PoolingReview.class);
+    review.getRequest().getObject().setSpec(null);
+    return review;
+  }
+
+  @Test
+  void nullSpec_shouldFail() {
+
+    PoolingReview review = getInvalidReview();
+
+    checkNotNullErrorCause(StackGresPoolingConfig.class, "spec", review);
+
+  }
+
+  @Test
+  void nullPgBouncerConf_shouldFail() {
+
+    PoolingReview review = getValidReview();
+    review.getRequest().getObject().getSpec().getPgBouncer().setPgbouncerConf(null);
+
+    checkNotEmptyErrorCause(StackGresPoolingConfigPgBouncer.class,
+        "spec.pgBouncer.pgbouncerConf", review);
+
+  }
+
+
+  @Test
+  void emptyPgBouncerConf_shouldFail() {
+
+    PoolingReview review = getValidReview();
+    review.getRequest().getObject().getSpec().getPgBouncer().setPgbouncerConf(new HashMap<>());
+
+    checkNotEmptyErrorCause(StackGresPoolingConfigPgBouncer.class,
+        "spec.pgBouncer.pgbouncerConf", review);
+
+  }
+}

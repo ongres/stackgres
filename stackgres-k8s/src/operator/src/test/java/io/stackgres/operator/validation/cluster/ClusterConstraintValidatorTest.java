@@ -10,6 +10,7 @@ import javax.validation.constraints.Pattern;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.customresource.sgcluster.StackGresClusterSpec;
+import io.stackgres.operator.customresource.sgcluster.StackGresPodPersistenceVolume;
 import io.stackgres.operator.utils.JsonUtil;
 import io.stackgres.operator.validation.ConstraintValidationTest;
 import io.stackgres.operator.validation.ConstraintValidator;
@@ -60,18 +61,19 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
   void nullVolumeSize_shouldFail() {
 
     StackGresClusterReview review = getValidReview();
-    review.getRequest().getObject().getSpec().setVolumeSize(null);
+    review.getRequest().getObject().getSpec().getPod().getPersistentVolume().setVolumeSize(null);
 
-    checkNotNullErrorCause(StackGresClusterSpec.class, "spec.volumeSize", review);
+    checkNotNullErrorCause(StackGresPodPersistenceVolume.class, "spec.pod.persistentVolume.volumeSize", review);
   }
 
   @Test
   void invalidVolumeSize_shouldFail() {
 
     StackGresClusterReview review = getValidReview();
-    review.getRequest().getObject().getSpec().setVolumeSize("512");
+    review.getRequest().getObject().getSpec().getPod().getPersistentVolume().setVolumeSize("512");
 
-    checkErrorCause(StackGresClusterSpec.class, "spec.volumeSize", review, Pattern.class);
+    checkErrorCause(StackGresPodPersistenceVolume.class, "spec.pod.persistentVolume.volumeSize",
+        review, Pattern.class);
 
   }
 }

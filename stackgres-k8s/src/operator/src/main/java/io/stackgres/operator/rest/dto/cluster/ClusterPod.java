@@ -5,13 +5,13 @@
 
 package io.stackgres.operator.rest.dto.cluster;
 
+import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.MoreObjects;
-
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
 @JsonDeserialize
@@ -19,98 +19,56 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 @RegisterForReflection
 public class ClusterPod {
 
-  @JsonProperty("namespace")
-  @NotNull
-  private String namespace;
+  @JsonProperty("persistentVolume")
+  @Valid
+  @NotNull(message = "Pod's persistent volume must be specified")
+  private ClusterPodPersistentVolume persistentVolume;
 
-  @JsonProperty("name")
-  @NotNull
-  private String name;
+  @JsonProperty("disableConnectionPooling")
+  private Boolean disableConnectionPooling;
 
-  @JsonProperty("role")
-  private String role;
+  @JsonProperty("disableMetricsExporter")
+  private Boolean disableMetricsExporter;
 
-  @JsonProperty("ip")
-  private String ip;
+  @JsonProperty("disablePostgresUtil")
+  private Boolean disablePostgresUtil;
 
-  @JsonProperty("status")
-  @NotNull
-  private String status;
-
-  @JsonProperty("containers")
-  private Integer containers;
-
-  @JsonProperty("containersReady")
-  private Integer containersReady;
-
-  public String getNamespace() {
-    return namespace;
+  public ClusterPodPersistentVolume getPersistentVolume() {
+    return persistentVolume;
   }
 
-  public void setNamespace(String namespace) {
-    this.namespace = namespace;
+  public void setPersistentVolume(ClusterPodPersistentVolume persistentVolume) {
+    this.persistentVolume = persistentVolume;
   }
 
-  public String getName() {
-    return name;
+  public Boolean getDisableConnectionPooling() {
+    return disableConnectionPooling;
   }
 
-  public void setName(String name) {
-    this.name = name;
+  public void setDisableConnectionPooling(Boolean disableConnectionPooling) {
+    this.disableConnectionPooling = disableConnectionPooling;
   }
 
-  public String getRole() {
-    return role;
+  public Boolean getDisableMetricsExporter() {
+    return disableMetricsExporter;
   }
 
-  public void setRole(String role) {
-    this.role = role;
+  public void setDisableMetricsExporter(Boolean disableMetricsExporter) {
+    this.disableMetricsExporter = disableMetricsExporter;
   }
 
-  public String getIp() {
-    return ip;
+  public Boolean getDisablePostgresUtil() {
+    return disablePostgresUtil;
   }
 
-  public void setIp(String ip) {
-    this.ip = ip;
-  }
-
-  public String getStatus() {
-    return status;
-  }
-
-  public void setStatus(String status) {
-    this.status = status;
-  }
-
-  public Integer getContainers() {
-    return containers;
-  }
-
-  public void setContainers(Integer containers) {
-    this.containers = containers;
-  }
-
-  public Integer getContainersReady() {
-    return containersReady;
-  }
-
-  public void setContainersReady(Integer containersReady) {
-    this.containersReady = containersReady;
+  public void setDisablePostgresUtil(Boolean disablePostgresUtil) {
+    this.disablePostgresUtil = disablePostgresUtil;
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
-        .omitNullValues()
-        .add("namespace", namespace)
-        .add("name", name)
-        .add("role", role)
-        .add("ip", ip)
-        .add("status", status)
-        .add("containers", containers)
-        .add("containersReady", containersReady)
+        .add("persistentVolume", persistentVolume)
         .toString();
   }
-
 }

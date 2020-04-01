@@ -1,0 +1,146 @@
+[
+  {
+    "metadata": {
+      "namespace": "default",
+      "name": "backupconf",
+      "uid": "d9b88898-d764-40a5-9bc3-f2afc7d65d46"
+    },
+    "spec": {
+      "storage": {
+        "type": "s3compatible",
+        "s3compatible": {
+          "bucket": "stackgres",
+          "credentials": {
+            "accessKey": "AKIAIOSFODNN7EXAMPLE",
+            "secretKey": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
+            "accessKeySelector": {
+              "name": "test-minio",
+              "key": "accesskey"
+            },
+            "secretKeySelector": {
+              "name": "test-minio",
+              "key": "secretkey"
+            }
+          },
+          "region": "k8s",
+          "endpoint": "http://test-minio:9000",
+          "forcePathStyle": true
+        }
+      },
+      "retention": 5,
+      "fullSchedule": "*/2 * * * *",
+      "fullWindow": 2,
+      "compressionMethod": "lz4",
+      "uploadDiskConcurrency": 1,
+      "tarSizeThreshold": 1073741823
+    }
+  },
+  {
+    "metadata": {
+      "namespace": "stackgres",
+      "name": "backupconf",
+      "uid": "bdf8e8ed-e4b0-4e91-92be-01d7df127315"
+    },
+    "spec": {
+      "storage": {
+        "type": "s3compatible",
+        "s3compatible": {
+          "bucket": "stackgres",
+          "credentials": {
+            "accessKey": "AKIAIOSFODNN7EXAMPLE",
+            "secretKey": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
+            "accessKeySelector": {
+              "name": "stackgres-minio",
+              "key": "accesskey"
+            },
+            "secretKeySelector": {
+              "name": "stackgres-minio",
+              "key": "secretkey"
+            }
+          },
+          "region": "k8s",
+          "endpoint": "http://stackgres-minio:9000",
+          "forcePathStyle": true
+        }
+      },
+      "retention": 5,
+      "fullSchedule": "*/2 * * * *",
+      "fullWindow": 2,
+      "compressionMethod": "lz4",
+      "uploadDiskConcurrency": 1,
+      "tarSizeThreshold": 1073741823
+    }
+  },
+  {
+    "metadata": {
+      "namespace": "stackgres",
+      "name": "generated-from-default-1585153459798",
+      "uid": "81073557-8ae7-4e4d-a68a-b151705bc9bc"
+    },
+    "spec": {
+      "storage": {
+        "type": "s3compatible",
+        "s3compatible": {
+          "bucket": "stackgres",
+          "credentials": {
+            "accessKey": "AKIAIOSFODNN7EXAMPLE",
+            "secretKey": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
+            "accessKeySelector": {
+              "name": "minio",
+              "key": "accesskey"
+            },
+            "secretKeySelector": {
+              "name": "minio",
+              "key": "secretkey"
+            }
+          },
+          "region": "k8s",
+          "endpoint": "http://minio:9000",
+          "forcePathStyle": true
+        }
+      },
+      "retention": 5,
+      "fullSchedule": "0 5 * * *",
+      "fullWindow": 1,
+      "compressionMethod": "lz4",
+      "uploadDiskConcurrency": 1,
+      "tarSizeThreshold": 1073741823
+    }
+  },
+  {
+    "metadata": {
+      "namespace": "stackgres",
+      "name": "generated-from-default-1585153459807",
+      "uid": "cba18134-155a-45e8-95c2-80cfc119339f"
+    },
+    "spec": {
+      "storage": {
+        "type": "s3compatible",
+        "s3compatible": {
+          "bucket": "stackgres",
+          "credentials": {
+            "accessKey": "AKIAIOSFODNN7EXAMPLE",
+            "secretKey": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
+            "accessKeySelector": {
+              "name": "minio",
+              "key": "accesskey"
+            },
+            "secretKeySelector": {
+              "name": "minio",
+              "key": "secretkey"
+            }
+          },
+          "region": "k8s",
+          "endpoint": "http://minio:9000",
+          "forcePathStyle": true
+        }
+      },
+      "retention": 5,
+      "fullSchedule": "0 5 * * *",
+      "fullWindow": 1,
+      "compressionMethod": "lz4",
+      "uploadDiskConcurrency": 1,
+      "tarSizeThreshold": 1073741823
+    }
+  }
+]

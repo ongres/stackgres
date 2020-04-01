@@ -39,7 +39,8 @@ public class PgConfigUpdateValidator implements PgConfigValidator {
   @PostConstruct
   public void init() throws NoSuchFieldException {
 
-    String pgVersionJsonField = StackGresPostgresConfigSpec.class.getDeclaredField("pgVersion")
+    String pgVersionJsonField = StackGresPostgresConfigSpec.class
+        .getDeclaredField("postgresVersion")
         .getAnnotation(JsonProperty.class).value();
 
     this.pgVersionPath = "spec." + pgVersionJsonField;
@@ -49,11 +50,11 @@ public class PgConfigUpdateValidator implements PgConfigValidator {
   public void validate(PgConfigReview review) throws ValidationFailed {
 
     if (review.getRequest().getOperation() == Operation.UPDATE) {
-      String oldPgVersion = review.getRequest().getOldObject().getSpec().getPgVersion();
-      String newPgVersion = review.getRequest().getObject().getSpec().getPgVersion();
+      String oldPgVersion = review.getRequest().getOldObject().getSpec().getPostgresVersion();
+      String newPgVersion = review.getRequest().getObject().getSpec().getPostgresVersion();
 
       if (!oldPgVersion.equals(newPgVersion)) {
-        String detail = "pgVersion is not updatable";
+        String detail = "postgresVersion is not updatable";
 
         Status failedStatus = new StatusBuilder()
             .withCode(400)

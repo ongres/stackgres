@@ -103,7 +103,7 @@ You can specify following parameters values:
  create a cluster from a existent backup, please see
  [the restore configuration options](####restore-configuration)
 * `cluster.backupconfig`: The backup configuration CR name.
-* `cluster.volumeSize`: The size set in the persistent volume claim of PostgreSQL data.
+* `cluster.size`: The size set in the persistent volume claim of PostgreSQL data.
 * `cluster.storageclass`: The storage class used for the persisitent volume claim of PostgreSQL
  data. If defined, storageClassName: <storageClass>. If set to "-", storageClassName: "", which
  disables dynamic provisioning. If undefined (the default) or set to null, no storageClassName
@@ -161,26 +161,26 @@ By default the chart create a storage class backed by an MinIO server. To avoid 
 
 ##### Amazon Web Services S3 Compatible
 
-* `config.backup.s3compatible.bucket`: The AWS S3 bucket (eg. bucket).
-* `config.backup.s3compatible.path`: The AWS S3 bucket path (eg. /path/to/folder).
-* `config.backup.s3compatible.accessKey.name`: The name of secret with the access key credentials to access
+* `config.backup.s3Compatible.bucket`: The AWS S3 bucket (eg. bucket).
+* `config.backup.s3Compatible.path`: The AWS S3 bucket path (eg. /path/to/folder).
+* `config.backup.s3Compatible.accessKey.name`: The name of secret with the access key credentials to access
  AWS S3 for writing and reading.
-* `config.backup.s3compatible.accessKey.key`: The key in the secret with the access key credentials to access
+* `config.backup.s3Compatible.accessKey.key`: The key in the secret with the access key credentials to access
  AWS S3 for writing and reading.
-* `config.backup.s3compatible.secretKey.name`: The name of secret with the secret key credentials to access
+* `config.backup.s3Compatible.secretKey.name`: The name of secret with the secret key credentials to access
  AWS S3 for writing and reading.
-* `config.backup.s3compatible.secretKey.key`: The key in the secret with the secret key credentials to access
+* `config.backup.s3Compatible.secretKey.key`: The key in the secret with the secret key credentials to access
  AWS S3 for writing and reading.
-* `config.backup.s3compatible.region`: The AWS S3 region. Region can be detected using s3:GetBucketLocation,
+* `config.backup.s3Compatible.region`: The AWS S3 region. Region can be detected using s3:GetBucketLocation,
  but if you wish to avoid this API call or forbid it from the applicable IAM policy, specify this
  property.
-* `config.backup.s3compatible.endpoint`: Overrides the default hostname to connect to an S3-compatible
+* `config.backup.s3Compatible.endpoint`: Overrides the default hostname to connect to an S3-compatible
  service. i.e, http://s3-like-service:9000.
-* `config.backup.s3compatible.forcePathStyle`: To enable path-style addressing(i.e.,
+* `config.backup.s3Compatible.forcePathStyle`: To enable path-style addressing(i.e.,
  http://s3.amazonaws.com/BUCKET/KEY) when connecting to an S3-compatible service that lack of
  support for sub-domain style bucket URLs (i.e., http://BUCKET.s3.amazonaws.com/KEY). Defaults to
  false.
-* `config.backup.s3compatible.storageClass`: By default, the "STANDARD" storage class is used. Other
+* `config.backup.s3Compatible.storageClass`: By default, the "STANDARD" storage class is used. Other
  supported values include "STANDARD_IA" for Infrequent Access and "REDUCED_REDUNDANCY" for Reduced
  Redundancy.
 

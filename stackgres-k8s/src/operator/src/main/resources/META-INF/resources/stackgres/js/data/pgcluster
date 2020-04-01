@@ -1,27 +1,32 @@
 {
-  "apiVersion": "stackgres.io/v1alpha1",
-  "kind": "StackGresCluster",
+  "apiVersion": "stackgres.io/v1beta1",
+  "kind": "SGCluster",
   "metadata": {
       "creationTimestamp": "2019-09-11T11:58:45Z",
       "generation": 1,
       "name": "stackgres",
       "namespace": "default",
       "resourceVersion": "705",
-      "selfLink": "/apis/stackgres.io/v1alpha1/namespaces/default/sgclusters/stackgres",
+      "selfLink": "/apis/stackgres.io/v1beta1/namespaces/default/sgclusters/stackgres",
       "uid": "02eb2f60-b428-4ec4-88f0-989df44f3407"
   },
   "spec": {
-      "connectionPoolingConfig": "pgbouncerconf",
       "instances": 1,
-      "pgConfig": "postgresconf",
-      "pgVersion": 11.5,
-      "resourceProfile": "size-xs",
-      "sidecars": [
-          "connection-pooling",
-          "postgres-utils"
-      ],
-      "storageClass": "standard",
-      "volumeSize": "5Gi"
+      "postgresVersion": 11.5,
+      "configurations": {
+        "sgPostgresConfig": "postgresconf",
+        "sgPoolingConfig": "pgbouncerconf"
+      },
+      "sgInstanceProfile": "size-xs",
+      "pods":{
+        "persistentVolume": {
+          "size": "5Gi",
+           "storageClass": "standard"
+        },
+        "disableConnectionPooling": false,
+        "disableMetricsExporter": false,
+        "disablePostgresUtil": false 
+      }
   },
   "status": {
     "disk_usage": "1.2Gi",

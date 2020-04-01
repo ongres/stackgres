@@ -33,14 +33,14 @@ done
 try_lock_pid=$!
 
 backup_cr_template="{{ range .items }}"
-backup_cr_template="${backup_cr_template}{{ .spec.cluster }}"
+backup_cr_template="${backup_cr_template}{{ .spec.sgCluster }}"
 backup_cr_template="${backup_cr_template}:{{ .metadata.name }}"
-backup_cr_template="${backup_cr_template}:{{ with .status.phase }}{{ . }}{{ end }}"
-backup_cr_template="${backup_cr_template}:{{ with .status.name }}{{ . }}{{ end }}"
-backup_cr_template="${backup_cr_template}:{{ with .status.pod }}{{ . }}{{ end }}"
+backup_cr_template="${backup_cr_template}:{{ with .status.process.status }}{{ . }}{{ end }}"
+backup_cr_template="${backup_cr_template}:{{ with .status.internalName }}{{ . }}{{ end }}"
+backup_cr_template="${backup_cr_template}:{{ with .status.process.jobPod }}{{ . }}{{ end }}"
 backup_cr_template="${backup_cr_template}:{{ with .metadata.ownerReferences }}{{ with index . 0 }}{{ .kind }}{{ end }}{{ end }}"
-backup_cr_template="${backup_cr_template}:{{ if .spec.isPermanent }}true{{ else }}false{{ end }}"
-backup_cr_template="${backup_cr_template}:{{ if .status.isPermanent }}true{{ else }}false{{ end }}"
+backup_cr_template="${backup_cr_template}:{{ if .spec.subjectToRetentionPolicy }}true{{ else }}false{{ end }}"
+backup_cr_template="${backup_cr_template}:{{ if .status.process.subjectToRetentionPolicy }}true{{ else }}false{{ end }}"
 backup_cr_template="${backup_cr_template}{{ printf "'"\n"'" }}{{ end }}"
 kubectl get "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" \
   --template "$backup_cr_template" > /tmp/all-backups
@@ -70,41 +70,52 @@ $(kubectl get cronjob -n "$CLUSTER_NAMESPACE" "$CRONJOB_NAME" \
     uid: {{ .metadata.uid }}
 ')
 spec:
-  cluster: "$CLUSTER_NAME"
-  isPermanent: false
+  sgCluster: "$CLUSTER_NAME"
+  subjectToRetentionPolicy: false
 status:
-  phase: "$BACKUP_PHASE_PENDING"
-  pod: "$POD_NAME"
-  backupConfig:
+  process:
+    status: "$BACKUP_PHASE_PENDING"
+    jobPod: "$POD_NAME"
+    timing:
+      stored: "N/A"
+  backupInformation:
+    size:
+      compressed: 0
+    lsn:
+      start: ""
+  sgBackupConfig:
 $(kubectl get "$BACKUP_CONFIG_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" \
-  --template '    compressionMethod: "{{ .spec.compressionMethod }}"
+  --template '    baseBackups:
+      compression: "{{ .spec.baseBackups.compression }}"
     storage:
       type: "{{ .spec.storage.type }}"
       {{- with .spec.storage.s3 }}
       s3:
         bucket: "{{ .bucket }}"
         {{ with .path }}path: "{{ . }}"{{ end }}
-        credentials:
-          accessKey:
-            key: "{{ .credentials.accessKey.key }}"
-            name: "{{ .credentials.accessKey.name }}"
-          secretKey:
-            key: "{{ .credentials.secretKey.key }}"
-            name: "{{ .credentials.secretKey.name }}"
+        awsCredentials:
+          secretKeySelectors:
+            accessKeyId:
+              key: "{{ .awsCredentials.secretKeySelectors.accessKeyId.key }}"
+              name: "{{ .awsCredentials.secretKeySelectors.accessKeyId.name }}"
+            secretAccessKey:
+              key: "{{ .awsCredentials.secretKeySelectors.secretAccessKey.key }}"
+              name: "{{ .awsCredentials.secretKeySelectors.secretAccessKey.name }}"
         {{ with .region }}region: "{{ . }}"{{ end }}
         {{ with .storageClass }}storageClass: "{{ . }}"{{ end }}
       {{- end }}
-      {{- with .spec.storage.s3compatible }}
-      s3compatible:
+      {{- with .spec.storage.s3Compatible }}
+      s3Compatible:
         bucket: "{{ .bucket }}"
         {{ with .path }}path: "{{ . }}"{{ end }}
-        credentials:
-          accessKey:
-            key: "{{ .credentials.accessKey.key }}"
-            name: "{{ .credentials.accessKey.name }}"
-          secretKey:
-            key: "{{ .credentials.secretKey.key }}"
-            name: "{{ .credentials.secretKey.name }}"
+        awsCredentials:
+          secretKeySelectors:
+            accessKeyId:
+              key: "{{ .awsCredentials.secretKeySelectors.accessKeyId.key }}"
+              name: "{{ .awsCredentials.secretKeySelectors.accessKeyId.name }}"
+            secretAccessKey:
+              key: "{{ .awsCredentials.secretKeySelectors.secretAccessKey.key }}"
+              name: "{{ .awsCredentials.secretKeySelectors.secretAccessKey.name }}"
         {{ with .region }}region: "{{ . }}"{{ end }}
         {{ with .endpoint }}endpoint: "{{ . }}"{{ end }}
         {{ with .forcePathStyle }}forcePathStyle: {{ . }}{{ end }}
@@ -114,68 +125,78 @@ $(kubectl get "$BACKUP_CONFIG_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG"
       gcs:
         bucket: "{{ .bucket }}"
         {{ with .path }}path: "{{ . }}"{{ end }}
-        credentials:
-          serviceAccountJsonKey:
-            key: "{{ .credentials.serviceAccountJsonKey.key }}"
-            name: "{{ .credentials.serviceAccountJsonKey.name }}"
+        gcpCredentials:
+          secretKeySelectors:
+            serviceAccountJsonKey:
+              key: "{{ .gcpCredentials.secretKeySelectors.serviceAccountJsonKey.key }}"
+              name: "{{ .gcpCredentials.secretKeySelectors.serviceAccountJsonKey.name }}"
       {{- end }}
-      {{- with .spec.storage.azureblob }}
-      azureblob:
+      {{- with .spec.storage.azureBlob }}
+      azureBlob:
         bucket: "{{ .bucket }}"
         {{ with .path }}path: "{{ . }}"{{ end }}
-        credentials:
-          account:
-            key: "{{ .credentials.account.key }}"
-            name: "{{ .credentials.account.name }}"
-          accessKey:
-            key: "{{ .credentials.accessKey.key }}"
-            name: "{{ .credentials.accessKey.name }}"
+        azureCredentials:
+          secretKeySelectors:
+            storageAccount:
+              key: "{{ .azureCredentials.secretKeySelectors.storageAccount.key }}"
+              name: "{{ .azureCredentials.secretKeySelectors.storageAccount.name }}"
+            accessKey:
+              key: "{{ .azureCredentials.secretKeySelectors.accessKey.key }}"
+              name: "{{ .azureCredentials.secretKeySelectors.accessKey.name }}"
       {{- end }}
 ')
 EOF
 else
-  if ! kubectl get "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --template "{{ .status.phase }}" \
+  if ! kubectl get "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --template "{{ .status.process.status }}" \
     | grep -q "^$BACKUP_PHASE_COMPLETED$"
   then
     echo "Updating backup CR"
     kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
       {"op":"replace","path":"/status","value":{
-        "phase":"'"$BACKUP_PHASE_PENDING"'",
-        "pod":"'"$POD_NAME"'",
-        "backupConfig":{'"$(kubectl get "$BACKUP_CONFIG_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" \
-  --template '    "compressionMethod": "{{ .spec.compressionMethod }}",
+        "process": {
+          "status": "'"$BACKUP_PHASE_PENDING"'",
+          "jobPod": "'"$POD_NAME"'" 
+        },
+        "sgBackupConfig":{'"$(kubectl get "$BACKUP_CONFIG_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" \
+  --template '    "baseBackups": {
+      "compression": "{{ .spec.baseBackups.compression }}"
+    },
     "storage": {
       "type": "{{ .spec.storage.type }}",
       {{- with .spec.storage.s3 }}
       "s3": {
         "bucket": "{{ .bucket }}",
         {{ with .path }}"path": "{{ . }}",{{ end }}
-        "credentials": {
-          "accessKey": {
-            "key": "{{ .credentials.accessKey.key }}",
-            "name": "{{ .credentials.accessKey.name }}"
-          },
-          "secretKey": {
-            "key": "{{ .credentials.secretKey.key }}",
-            "name": "{{ .credentials.secretKey.name }}"
+        "awsCredentials": {
+          "secretKeySelectors: {
+            "accessKeyId": {
+              "key": "{{ .awsCredentials.secretKeySelectors.accessKeyId.key }}",
+              "name": "{{ .awsCredentials.secretKeySelectors.accessKeyId.name }}"
+            },
+            "secretAccessKey": {
+              "key": "{{ .awsCredentials.secretKeySelectors.secretAccessKey.key }}",
+              "name": "{{ .awsCredentials.secretKeySelectors.secretAccessKey.name }}"
+            }
           }
         }
         {{ with .region }},"region": "{{ . }}"{{ end }}
         {{ with .storageClass }},"storageClass": "{{ . }}"{{ end }}
       }
       {{- end }}
-      {{- with .spec.storage.s3compatible }}
-      "s3compatible": {
+      {{- with .spec.storage.s3Compatible }}
+      "s3Compatible": {
         "bucket": "{{ .bucket }}",
         {{ with .path }}"path": "{{ . }}",{{ end }}
-        "credentials": {
-          "accessKey": {
-            "key": "{{ .credentials.accessKey.key }}",
-            "name": "{{ .credentials.accessKey.name }}"
-          },
-          "secretKey": {
-            "key": "{{ .credentials.secretKey.key }}",
-            "name": "{{ .credentials.secretKey.name }}"
+        "awsCredentials": {
+          "secretKeySelectors":{
+            "accessKeyId": {
+              "key": "{{ .awsCredentials.secretKeySelectors.accessKeyId.key }}",
+              "name": "{{ .awsCredentials.secretKeySelectors.accessKeyId.name }}"
+            },
+            "secretAccessKey": {
+              "key": "{{ .awsCredentials.secretKeySelectors.secretAccessKey.key }}",
+              "name": "{{ .awsCredentials.secretKeySelectors.secretAccessKey.name }}"
+            }
           }
         }
         {{ with .region }},"region": "{{ . }}"{{ end }}
@@ -188,26 +209,30 @@ else
       "gcs": {
         "bucket": "{{ .bucket }}",
         {{ with .path }}"path": "{{ . }}",{{ end }}
-        "credentials": {
-          "serviceAccountJsonKey": {
-            "key": "{{ .credentials.serviceAccountJsonKey.key }}",
-            "name": "{{ .credentials.serviceAccountJsonKey.name }}"
+        "gcpCredentials": {
+          "secretKeySelectors": {
+            "serviceAccountJsonKey": {
+              "key": "{{ .gcpCredentials.secretKeySelectors.serviceAccountJSON.key }}",
+              "name": "{{ .gcpCredentials.secretKeySelectors.serviceAccountJSON.name }}"
+            }
           }
         }
       }
       {{- end }}
-      {{- with .spec.storage.azureblob }}
-      "azureblob": {
+      {{- with .spec.storage.azureBlob }}
+      "azureBlob": {
         "bucket": "{{ .bucket }}",
         {{ with .path }}"path": "{{ . }}",{{ end }}
-        "credentials": {
-          "account": {
-            "key": "{{ .credentials.account.key }}",
-            "name": "{{ .credentials.account.name }}"
-          },
-          "accessKey": {
-            "key": "{{ .credentials.accessKey.key }}",
-            "name": "{{ .credentials.accessKey.name }}"
+        "azureredentials": {
+          "secretKeySelectors": {
+            "storageAccount": {
+              "key": "{{ .storageAccount.secretKeySelectors.storageAccount.key }}",
+              "name": "{{ .storageAccount.secretKeySelectors.storageAccount.name }}"
+            },
+            "accessKey": {
+              "key": "{{ .storageAccount.secretKeySelectors.accessKey.key }}",
+              "name": "{{ .storageAccount.secretKeySelectors.accessKey.name }}"
+            }
           }
         }
       }
@@ -222,7 +247,7 @@ else
 fi
 
 current_backup_config="$(kubectl get "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
-  --template "{{ .status.backupConfig.storage }}")"
+  --template "{{ .status.sgBackupConfig.storage }}")"
 
 (
 echo "Retrieving primary and replica"
@@ -363,8 +388,8 @@ if kill -0 "$pid" 2>/dev/null
 then
   kill "$pid"
   kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
-    {"op":"replace","path":"/status/phase","value":"'"$BACKUP_PHASE_FAILED"'"},
-    {"op":"replace","path":"/status/failureReason","value":"Lock lost:\n'"$(cat /tmp/try-lock | to_json_string)"'"}
+    {"op":"replace","path":"/status/process/status","value":"'"$BACKUP_PHASE_FAILED"'"},
+    {"op":"replace","path":"/status/process/failure","value":"Lock lost:\n'"$(cat /tmp/try-lock | to_json_string)"'"}
     ]'
   cat /tmp/try-lock
   echo "Lock lost"
@@ -374,8 +399,8 @@ else
   if [ "$RESULT" != 0 ]
   then
     kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
-      {"op":"replace","path":"/status/phase","value":"'"$BACKUP_PHASE_FAILED"'"},
-      {"op":"replace","path":"/status/failureReason","value":"Backup failed: '"$(cat /tmp/backup-push | to_json_string)"'"}
+      {"op":"replace","path":"/status/process/status","value":"'"$BACKUP_PHASE_FAILED"'"},
+      {"op":"replace","path":"/status/process/failure","value":"Backup failed: '"$(cat /tmp/backup-push | to_json_string)"'"}
       ]'
     cat /tmp/backup-push
     echo "Backup failed"
@@ -402,8 +427,8 @@ EOF
   if [ "$RESULT" != 0 ]
   then
     kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
-      {"op":"replace","path":"/status/phase","value":"'"$BACKUP_PHASE_FAILED"'"},
-      {"op":"replace","path":"/status/failureReason","value":"Backup can not be listed after creation '"$(cat /tmp/backup-list | to_json_string)"'"}
+      {"op":"replace","path":"/status/process/status","value":"'"$BACKUP_PHASE_FAILED"'"},
+      {"op":"replace","path":"/status/process/failure","value":"Backup can not be listed after creation '"$(cat /tmp/backup-list | to_json_string)"'"}
       ]'
     cat /tmp/backup-list
     echo "Backups can not be listed after creation"
@@ -415,8 +440,8 @@ EOF
   if [ "$BACKUP_CONFIG_RESOURCE_VERSION" != "$(kubectl get "$BACKUP_CONFIG_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" --template '{{ .metadata.resourceVersion }}')" ]
   then
     kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
-      {"op":"replace","path":"/status/phase","value":"'"$BACKUP_PHASE_FAILED"'"},
-      {"op":"replace","path":"/status/failureReason","value":"Backup configuration '"$BACKUP_CONFIG"' changed during backup"}
+      {"op":"replace","path":"/status/process/status","value":"'"$BACKUP_PHASE_FAILED"'"},
+      {"op":"replace","path":"/status/process/failure","value":"Backup configuration '"$BACKUP_CONFIG"' changed during backup"}
       ]'
     cat /tmp/backup-list
     echo "Backup configuration '"$BACKUP_CONFIG"' changed during backup"
@@ -425,8 +450,8 @@ EOF
   elif ! grep -q "^backup_name:${WAL_G_BACKUP_NAME}$" /tmp/current-backup
   then
     kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
-      {"op":"replace","path":"/status/phase","value":"'"$BACKUP_PHASE_FAILED"'"},
-      {"op":"replace","path":"/status/failureReason","value":"Backup '"$WAL_G_BACKUP_NAME"' was not found after creation"}
+      {"op":"replace","path":"/status/process/status","value":"'"$BACKUP_PHASE_FAILED"'"},
+      {"op":"replace","path":"/status/process/failure","value":"Backup '"$WAL_G_BACKUP_NAME"' was not found after creation"}
       ]'
     cat /tmp/backup-list
     echo "Backup '$WAL_G_BACKUP_NAME' was not found after creation"
@@ -434,23 +459,52 @@ EOF
     exit 1
   else
     kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
-      {"op":"replace","path":"/status/phase","value":"'"$BACKUP_PHASE_COMPLETED"'"},
-      {"op":"replace","path":"/status/name","value":"'"$WAL_G_BACKUP_NAME"'"},
-      {"op":"replace","path":"/status/failureReason","value":""},
-      {"op":"replace","path":"/status/time","value":"'"$(grep "^time:" /tmp/current-backup | cut -d : -f 2-)"'"},
-      {"op":"replace","path":"/status/walFileName","value":"'"$(grep "^wal_file_name:" /tmp/current-backup | cut -d : -f 2-)"'"},
-      {"op":"replace","path":"/status/startTime","value":"'"$(grep "^start_time:" /tmp/current-backup | cut -d : -f 2-)"'"},
-      {"op":"replace","path":"/status/finishTime","value":"'"$(grep "^finish_time:" /tmp/current-backup | cut -d : -f 2-)"'"},
-      {"op":"replace","path":"/status/hostname","value":"'"$(grep "^hostname:" /tmp/current-backup | cut -d : -f 2-)"'"},
-      {"op":"replace","path":"/status/dataDir","value":"'"$(grep "^data_dir:" /tmp/current-backup | cut -d : -f 2-)"'"},
-      {"op":"replace","path":"/status/pgVersion","value":"'"$(grep "^pg_version:" /tmp/current-backup | cut -d : -f 2-)"'"},
-      {"op":"replace","path":"/status/startLsn","value":"'"$(grep "^start_lsn:" /tmp/current-backup | cut -d : -f 2-)"'"},
-      {"op":"replace","path":"/status/finishLsn","value":"'"$(grep "^finish_lsn:" /tmp/current-backup | cut -d : -f 2-)"'"},
-      {"op":"replace","path":"/status/isPermanent","value":'"$(grep "^is_permanent:" /tmp/current-backup | cut -d : -f 2-)"'},
-      {"op":"replace","path":"/status/systemIdentifier","value":"'"$(grep "^system_identifier:" /tmp/current-backup | cut -d : -f 2-)"'"},
-      {"op":"replace","path":"/status/uncompressedSize","value":'"$(grep "^uncompressed_size:" /tmp/current-backup | cut -d : -f 2-)"'},
-      {"op":"replace","path":"/status/compressedSize","value":'"$(grep "^compressed_size:" /tmp/current-backup | cut -d : -f 2-)"'}
-      ]'
+      {"op":"replace","path":"/status/internalName","value":"'"$WAL_G_BACKUP_NAME"'"},
+      {"op":"replace","path":"/status/process/status","value":"'"$BACKUP_PHASE_COMPLETED"'"},
+      {"op":"replace","path":"/status/process/failure","value":""},
+      {"op":"replace","path":"/status/process/subjectToRetentionPolicy","value":'"$(grep "^is_permanent:" /tmp/current-backup | cut -d : -f 2-)"'}
+    ]'
+
+    kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
+      {"op":"add","path":"/status/process/timing","value":{}}  
+    ]'
+
+    kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
+      {"op":"replace","path":"/status/process/timing/stored","value":"'"$(grep "^time:" /tmp/current-backup | cut -d : -f 2-)"'"},
+      {"op":"replace","path":"/status/process/timing/start","value":"'"$(grep "^start_time:" /tmp/current-backup | cut -d : -f 2-)"'"},
+      {"op":"replace","path":"/status/process/timing/end","value":"'"$(grep "^finish_time:" /tmp/current-backup | cut -d : -f 2-)"'"}
+    ]'
+
+    kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
+      {"op":"add","path":"/status/backupInformation","value":{}}  
+    ]'
+    
+    kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
+      {"op":"replace","path":"/status/backupInformation/startWalFile","value":"'"$(grep "^wal_file_name:" /tmp/current-backup | cut -d : -f 2-)"'"},
+      {"op":"replace","path":"/status/backupInformation/hostname","value":"'"$(grep "^hostname:" /tmp/current-backup | cut -d : -f 2-)"'"},
+      {"op":"replace","path":"/status/backupInformation/pgData","value":"'"$(grep "^data_dir:" /tmp/current-backup | cut -d : -f 2-)"'"},
+      {"op":"replace","path":"/status/backupInformation/postgresVersion","value":"'"$(grep "^pg_version:" /tmp/current-backup | cut -d : -f 2-)"'"},
+      {"op":"replace","path":"/status/backupInformation/systemIdentifier","value":"'"$(grep "^system_identifier:" /tmp/current-backup | cut -d : -f 2-)"'"}
+    ]'
+
+    kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
+      {"op":"add","path":"/status/backupInformation/lsn","value":{}}  
+    ]'
+
+    kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
+      {"op":"replace","path":"/status/backupInformation/lsn/start","value":"'"$(grep "^start_lsn:" /tmp/current-backup | cut -d : -f 2-)"'"},
+      {"op":"replace","path":"/status/backupInformation/lsn/end","value":"'"$(grep "^finish_lsn:" /tmp/current-backup | cut -d : -f 2-)"'"}
+    ]'
+
+    kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
+      {"op":"add","path":"/status/backupInformation/size","value":{}}  
+    ]'
+
+    kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
+      {"op":"replace","path":"/status/backupInformation/size/uncompressed","value":'"$(grep "^uncompressed_size:" /tmp/current-backup | cut -d : -f 2-)"'},
+      {"op":"replace","path":"/status/backupInformation/size/compressed","value":'"$(grep "^compressed_size:" /tmp/current-backup | cut -d : -f 2-)"'}
+    ]'
+
   fi
   echo "Reconcile backup CRs"
   cat /tmp/backup-list | tr -d '[]' | sed 's/},{/}|{/g' | tr '|' '\n' \
@@ -468,7 +522,7 @@ EOF
     backup_owner_kind="$(echo "$backup" | cut -d : -f 6)"
     backup_is_permanent="$(echo "$backup" | cut -d : -f 8)"
     backup_config="$(kubectl get "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$backup_cr_name" \
-      --template "{{ .status.backupConfig.storage }}")"
+      --template "{{ .status.sgBackupConfig.storage }}")"
     if [ ! -z "$backup_name" ] && [ "$backup_phase" = "$BACKUP_PHASE_COMPLETED" ] \
       && [ "$backup_config" = "$current_backup_config" ] \
       && ! grep -q "\"backup_name\":\"$backup_name\"" /tmp/existing-backups
@@ -486,14 +540,14 @@ EOF
       existing_backup_is_permanent="$(grep "\"backup_name\":\"$backup_name\"" /tmp/existing-backups \
         | tr -d '{}"' | tr ',' '\n' | grep "^is_permanent:" | cut -d : -f 2-)"
       kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$backup_cr_name" --type json --patch '[
-      {"op":"replace","path":"/status/isPermanent","value":'"$existing_backup_is_permanent"'}
+      {"op":"replace","path":"/status/process/subjectToRetentionPolicy","value":'"$existing_backup_is_permanent"'}
       ]'
     fi
   done
 else
   kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
-    {"op":"replace","path":"/status/phase","value":"'"$BACKUP_PHASE_FAILED"'"},
-    {"op":"replace","path":"/status/failureReason","value":"Backup name not found in backup-push log:\n'"$(cat /tmp/backup-push | to_json_string)"'"}
+    {"op":"replace","path":"/status/process/status","value":"'"$BACKUP_PHASE_FAILED"'"},
+    {"op":"replace","path":"/status/process/failure","value":"Backup name not found in backup-push log:\n'"$(cat /tmp/backup-push | to_json_string)"'"}
     ]'
   cat /tmp/backup-push
   echo "Backup name not found in backup-push log"

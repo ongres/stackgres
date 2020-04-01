@@ -14,7 +14,7 @@ When configuration resource is created the operator will look for a default conf
  default configuration.
 
 If a StackGres cluster is created without specifying PostgreSQL configuration
- (`StackGresPostgresConfig`) or resource profile configuration (`resourceProfile`) the operator
+ (`SGPostgresConfig`) or resource profile configuration (`sgInstanceProfile`) the operator
  will look for default configuration of those kinds in the same namespace as the cluster or will
  create one using the default configuration in the same namespace where the operator is installed.
 
@@ -22,7 +22,7 @@ Here is the list of default configuration name with his kind:
 
 | Name                | Kind                             |
 |:--------------------|:---------------------------------|
-| defaultpgconfig     | StackGresPostgresConfig          |
-| defaultprofile      | StackGresProfile                 |
-| defaultpgbouncer    | StackGresConnectionPoolingConfig |
-| defaultbackupconfig | StackGresBackupConfig            |
+| defaultpgconfig     | SGPostgresConfig          |
+| defaultprofile      | SGInstanceProfile                 |
+| defaultpgbouncer    | SGPoolingConfig |
+| defaultbackupconfig | SGBackupConfig            |

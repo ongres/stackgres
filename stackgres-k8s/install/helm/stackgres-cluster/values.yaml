@@ -33,7 +33,7 @@ config:
     #  secretKey:
     #    name: awscredentials
     #    key: secretkey
-    s3compatible: {}
+    s3Compatible: {}
     #  prefix: s3://stackgres
     #  accessKey:
     #    name: minio
@@ -79,6 +79,7 @@ sidecar:
   pooling: true
   util: true
   prometheus:
+    enabled: true
     allowAutobind: true
 
 profiles:

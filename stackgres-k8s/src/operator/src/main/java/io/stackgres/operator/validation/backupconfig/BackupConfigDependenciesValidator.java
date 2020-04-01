@@ -21,7 +21,7 @@ public class BackupConfigDependenciesValidator extends DependenciesValidator<Bac
 
   @Override
   public void validate(BackupConfigReview review, StackGresCluster i) throws ValidationFailed {
-    if (review.getRequest().getName().equals(i.getSpec().getBackupConfig())) {
+    if (review.getRequest().getName().equals(i.getSpec().getConfiguration().getBackupConfig())) {
       fail(review, i);
     }
   }

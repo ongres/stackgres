@@ -3,14 +3,14 @@
   "request": {
     "uid": "c2f4a2a1-3939-11ea-be74-0242ac110002",
     "kind": {
-      "kind": "StackGresBackup",
+      "kind": "SGBackup",
       "group": "stackgres.io",
-      "version": "v1alpha1"
+      "version": "v1beta1"
     },
     "resource": {
       "group": "stackgres.io",
       "resource": "sgbackups",
-      "version": "v1alpha1"
+      "version": "v1beta1"
     },
     "subResource": null,
     "requestKind": null,
@@ -29,8 +29,8 @@
       "username": "system:serviceaccount:backup-with-default-storage:backup-with-default-storage-patroni"
     },
     "object": {
-      "kind": "StackGresBackup",
-      "apiVersion": "stackgres.io/v1alpha1",
+      "kind": "SGBackup",
+      "apiVersion": "stackgres.io/v1beta1",
       "metadata": {
         "name": "backup-with-default-storage-bded7e9a-3939-11ea-be74-0242ac110002",
         "namespace": "backup-with-default-storage",
@@ -44,22 +44,26 @@
         ]
       },
       "spec": {
-        "cluster": "backup-with-default-storage",
-        "isPermanent": false
+        "sgCluster": "backup-with-default-storage",
+        "subjectToRetentionPolicy": false
       },
       "status": {
-        "backupConfig": {
-          "compressionMethod": "lz4",
+        "sgBackupConfig": {
+          "baseBackups": {
+            "compression": "lz4"
+          },
           "storage": {
-            "s3compatible": {
-              "credentials": {
-                "accessKey": {
-                  "key": "accesskey",
-                  "name": "minio"
-                },
-                "secretKey": {
-                  "key": "secretkey",
-                  "name": "minio"
+            "s3Compatible": {
+              "awsCredentials": {
+                "secretKeySelectors": {
+                  "accessKeyId": {
+                    "key": "accesskey",
+                    "name": "minio"
+                  },
+                  "secretAccessKey": {
+                    "key": "secretkey",
+                    "name": "minio"
+                  }
                 }
               },
               "endpoint": "http://minio.stackgres.svc:9000",
@@ -67,11 +71,13 @@
               "bucket": "stackgres",
               "region": "k8s"
             },
-            "type": "s3compatible"
+            "type": "s3Compatible"
           }
         },
-        "phase": "Pending",
-        "pod": "backup-with-default-storage-backup-1579273020-svf9b"
+        "process": {
+          "status": "Pending",
+          "jobPod": "backup-with-default-storage-backup-1579273020-svf9b"
+        }
       }
     },
     "oldObject": null,

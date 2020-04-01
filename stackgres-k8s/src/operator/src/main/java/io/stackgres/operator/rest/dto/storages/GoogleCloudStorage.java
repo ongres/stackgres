@@ -26,7 +26,7 @@ public class GoogleCloudStorage {
   @JsonProperty("path")
   private String path;
 
-  @JsonProperty("credentials")
+  @JsonProperty("gcpCredentials")
   @NotNull(message = "The credentials is required")
   private GoogleCloudCredentials credentials;
 

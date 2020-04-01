@@ -6,10 +6,12 @@
 package io.stackgres.operator.mutation.pgbouncer;
 
 import com.github.fge.jackson.jsonpointer.JsonPointer;
-import io.stackgres.operator.common.PgBouncerReview;
+import io.stackgres.operator.common.PoolingReview;
 import io.stackgres.operatorframework.admissionwebhook.mutating.JsonPatchMutator;
 
-public interface PgBouncerMutator extends JsonPatchMutator<PgBouncerReview> {
+public interface PgBouncerMutator extends JsonPatchMutator<PoolingReview> {
 
-  JsonPointer PG_BOUNCER_CONFIG_POINTER = JsonPointer.of("spec", "pgbouncer.ini");
+  JsonPointer PG_BOUNCER_CONFIG_POINTER = JsonPointer.of("spec",
+      "pgBouncer",
+      "pgbouncer.ini");
 }

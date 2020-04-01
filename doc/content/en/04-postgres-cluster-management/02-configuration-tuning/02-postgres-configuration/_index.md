@@ -11,9 +11,9 @@ Have a look at [postgresqlco.nf](https://postgresqlco.nf) to help you tune and o
 
 ___
 
-**Kind:** StackGresPostgresConfig
+**Kind:** SGPostgresConfig
 
-**listKind:** StackGresPostgresConfigList
+**listKind:** SGPostgresConfigList
 
 **plural:** sgpgconfigs
 
@@ -24,7 +24,7 @@ ___
 
 | Property        | Required | Updatable | Type   | Default   | Description |
 |:----------------|----------|-----------|:-------|:----------|:------------|
-| pgVersion       |          |           | string | 12        |PostgreSQL configuration version (for example 12) |
+| postgresVersion       |          |           | string | 12        |PostgreSQL configuration version (for example 12) |
 | postgresql.conf |          | ✓         | object | see below |List of PostgreSQL configuration parameters with their values |
 
 Default value of `postgresql.conf` property:
@@ -47,12 +47,12 @@ wal_compression: "on"
 Example:
 
 ```yaml
-apiVersion: stackgres.io/v1alpha1
-kind: StackGresPostgresConfig
+apiVersion: stackgres.io/v1beta1
+kind: SGPostgresConfig
 metadata:
   name: postgresconf
 spec:
-  pgVersion: "11"
+  postgresVersion: "11"
   postgresql.conf:
     password_encryption: 'scram-sha-256'
     random_page_cost: '1.5'
