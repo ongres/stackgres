@@ -51,7 +51,7 @@ public abstract class AbstractBackupSecret {
                 secrets))),
         Optional.of(backupConfigSpec)
         .map(StackGresBackupConfigSpec::getStorage)
-        .map(BackupStorage::getAzureblob)
+        .map(BackupStorage::getAzureBlob)
         .map(azureConfig -> Seq.of(
             getSecretEntry("AZURE_STORAGE_ACCOUNT",
                 azureConfig.getAzureCredentials()

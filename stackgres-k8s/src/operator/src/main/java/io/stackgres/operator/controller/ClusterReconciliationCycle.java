@@ -442,11 +442,11 @@ public class ClusterReconciliationCycle
             .map(GoogleCloudStorage::getCredentials)
             .map(GoogleCloudCredentials::getSecretKeySelectors)
             .map(GoogleCloudSecretKeySelector::getServiceAccountJsonKey),
-        Optional.ofNullable(backupConfSpec.getStorage().getAzureblob())
+        Optional.ofNullable(backupConfSpec.getStorage().getAzureBlob())
             .map(AzureBlobStorage::getAzureCredentials)
             .map(AzureBlobStorageCredentials::getSecretKeySelectors)
             .map(AzureBlobSecretKeySelector::getAccount),
-        Optional.ofNullable(backupConfSpec.getStorage().getAzureblob())
+        Optional.ofNullable(backupConfSpec.getStorage().getAzureBlob())
             .map(AzureBlobStorage::getAzureCredentials)
             .map(AzureBlobStorageCredentials::getSecretKeySelectors)
             .map(AzureBlobSecretKeySelector::getAccessKey))

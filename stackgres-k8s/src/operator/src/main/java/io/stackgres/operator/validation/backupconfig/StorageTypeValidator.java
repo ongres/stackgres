@@ -107,31 +107,31 @@ public class StorageTypeValidator implements BackupConfigValidator {
         fail(message);
       }
 
-      if (storageType.equals("azureblob")
+      if (storageType.equals("azureBlob")
           && review.getRequest().getObject().getSpec()
-          .getStorage().getAzureblob() == null) {
+          .getStorage().getAzureBlob() == null) {
         final String message = "Invalid backup configuration,"
-            + " source azureblob must be set when source type is azureblob";
+            + " source azureBlob must be set when source type is azureBlob";
         fail(message);
       }
 
-      if (storageType.equals("azureblob")
+      if (storageType.equals("azureBlob")
           && review.getRequest().getObject().getSpec()
-          .getStorage().getAzureblob().getBucket() == null) {
+          .getStorage().getAzureBlob().getBucket() == null) {
         final String message = "Invalid backup configuration,"
-            + " source azureblob bucket must be set when source type is azureblob";
+            + " source azureBlob bucket must be set when source type is azureBlob";
         fail(message);
       }
 
-      if (storageType.equals("azureblob")
+      if (storageType.equals("azureBlob")
           && review.getRequest().getObject().getSpec()
-          .getStorage().getAzureblob().getAzureCredentials() == null) {
+          .getStorage().getAzureBlob().getAzureCredentials() == null) {
         final String message = "Invalid backup configuration,"
-            + " source azureblob credentials must be set when source type is azureblob";
+            + " source azureBlob credentials must be set when source type is azureBlob";
         fail(message);
       }
 
-      if (ImmutableList.of("s3Compatible", "gcs", "azureblob").contains(storageType)
+      if (ImmutableList.of("s3Compatible", "gcs", "azureBlob").contains(storageType)
           && review.getRequest().getObject().getSpec()
           .getStorage().getS3() != null) {
         final String message = "Invalid backup configuration,"
@@ -139,7 +139,7 @@ public class StorageTypeValidator implements BackupConfigValidator {
         fail(message);
       }
 
-      if (ImmutableList.of("s3", "gcs", "azureblob").contains(storageType)
+      if (ImmutableList.of("s3", "gcs", "azureBlob").contains(storageType)
           && review.getRequest().getObject().getSpec()
           .getStorage().getS3Compatible() != null) {
         final String message = "Invalid backup configuration,"
@@ -147,7 +147,7 @@ public class StorageTypeValidator implements BackupConfigValidator {
         fail(message);
       }
 
-      if (ImmutableList.of("s3", "s3Compatible", "azureblob").contains(storageType)
+      if (ImmutableList.of("s3", "s3Compatible", "azureBlob").contains(storageType)
           && review.getRequest().getObject().getSpec()
           .getStorage().getGcs() != null) {
         final String message = "Invalid backup configuration,"
@@ -157,9 +157,9 @@ public class StorageTypeValidator implements BackupConfigValidator {
 
       if (ImmutableList.of("s3", "s3Compatible", "gcs").contains(storageType)
           && review.getRequest().getObject().getSpec()
-          .getStorage().getAzureblob() != null) {
+          .getStorage().getAzureBlob() != null) {
         final String message = "Invalid backup configuration,"
-            + " source azureblob must not be set when source type is " + storageType;
+            + " source azureBlob must not be set when source type is " + storageType;
         fail(message);
       }
 

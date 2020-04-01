@@ -83,8 +83,8 @@ public class BackupConfigTransformer
     }
     io.stackgres.operator.customresource.storages.BackupStorage transformation =
         new io.stackgres.operator.customresource.storages.BackupStorage();
-    transformation.setAzureblob(
-        getCustomResourceAzureblobStorage(source.getAzureblob()));
+    transformation.setAzureBlob(
+        getCustomResourceAzureblobStorage(source.getAzureBlob()));
     transformation.setGcs(
         getCustomResourceGcsStorage(source.getGcs()));
     transformation.setS3(
@@ -245,8 +245,8 @@ public class BackupConfigTransformer
       return null;
     }
     BackupStorage transformation = new BackupStorage();
-    transformation.setAzureblob(
-        getResourceAzureblobStorage(source.getAzureblob()));
+    transformation.setAzureBlob(
+        getResourceAzureblobStorage(source.getAzureBlob()));
     transformation.setGcs(
         getResourceGcsStorage(source.getGcs()));
     transformation.setS3(

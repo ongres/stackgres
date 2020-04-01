@@ -32,8 +32,8 @@ public class BackupStorage {
   @JsonProperty("gcs")
   private GoogleCloudStorage gcs;
 
-  @JsonProperty("azureblob")
-  private AzureBlobStorage azureblob;
+  @JsonProperty("azureBlob")
+  private AzureBlobStorage azureBlob;
 
   public String getType() {
     return type;
@@ -67,12 +67,12 @@ public class BackupStorage {
     this.gcs = gcs;
   }
 
-  public AzureBlobStorage getAzureblob() {
-    return azureblob;
+  public AzureBlobStorage getAzureBlob() {
+    return azureBlob;
   }
 
-  public void setAzureblob(AzureBlobStorage azureblob) {
-    this.azureblob = azureblob;
+  public void setAzureBlob(AzureBlobStorage azureBlob) {
+    this.azureBlob = azureBlob;
   }
 
   @Override
@@ -83,7 +83,7 @@ public class BackupStorage {
         .add("s3", s3)
         .add("s3Compatible", s3Compatible)
         .add("gcs", gcs)
-        .add("azureblob", azureblob)
+        .add("azureblob", azureBlob)
         .toString();
   }
 

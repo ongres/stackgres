@@ -117,7 +117,7 @@ public class BackupConfigResourceUtil {
                     .orElseGet(GoogleCloudSecretKeySelector::new))
                   .peek(c::setSecretKeySelectors)
                   .forEach(ss -> ss.setServiceAccountJsonKey(s))))),
-        Tuple.tuple(AZURE_ACCOUNT, storage.map(BackupStorage::getAzureblob)
+        Tuple.tuple(AZURE_ACCOUNT, storage.map(BackupStorage::getAzureBlob)
             .map(AzureBlobStorage::getCredentials)
             .map(secretSelectorGetterAndSetter(
                 AzureBlobStorageCredentials::getAccount,
@@ -129,7 +129,7 @@ public class BackupConfigResourceUtil {
                     .orElseGet(AzureBlobSecretKeySelector::new))
                   .peek(c::setSecretKeySelectors)
                   .forEach(ss -> ss.setAccount(s))))),
-        Tuple.tuple(AZURE_ACCESS_KEY, storage.map(BackupStorage::getAzureblob)
+        Tuple.tuple(AZURE_ACCESS_KEY, storage.map(BackupStorage::getAzureBlob)
             .map(AzureBlobStorage::getCredentials)
             .map(secretSelectorGetterAndSetter(
                 AzureBlobStorageCredentials::getAccessKey,

@@ -76,7 +76,7 @@ public abstract class AbstractBackupConfigMap {
     }
 
     Optional<AzureBlobStorage> storageForAzureBlob = getStorageFor(
-        backupConfigSpec, BackupStorage::getAzureblob);
+        backupConfigSpec, BackupStorage::getAzureBlob);
     if (storageForAzureBlob.isPresent()) {
       setAzureBlobStorageEnvVars(namespace, name, backupEnvVars, storageForAzureBlob);
     }

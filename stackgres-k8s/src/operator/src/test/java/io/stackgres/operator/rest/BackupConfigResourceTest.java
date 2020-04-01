@@ -132,10 +132,10 @@ class BackupConfigResourceTest
     assertEquals(0, resource.getSpec().getBaseBackup().getPerformance().getNetworkRateLimit());
     assertEquals(5, resource.getSpec().getBaseBackup().getRetention());
     assertNotNull(resource.getSpec().getStorage());
-    assertNull(resource.getSpec().getStorage().getAzureblob());
+    assertNull(resource.getSpec().getStorage().getAzureBlob());
     assertNull(resource.getSpec().getStorage().getGcs());
     assertEquals("s3Compatible", resource.getSpec().getStorage().getType());
-    assertNull(resource.getSpec().getStorage().getAzureblob());
+    assertNull(resource.getSpec().getStorage().getAzureBlob());
     assertNull(resource.getSpec().getStorage().getGcs());
     assertNull(resource.getSpec().getStorage().getS3());
     assertNotNull(resource.getSpec().getStorage().getS3Compatible());
@@ -170,10 +170,10 @@ class BackupConfigResourceTest
     assertEquals(0, resource.getSpec().getBaseBackups().getPerformance().getMaxNetworkBandwitdh());
     assertEquals(5, resource.getSpec().getBaseBackups().getRetention());
     assertNotNull(resource.getSpec().getStorage());
-    assertNull(resource.getSpec().getStorage().getAzureblob());
+    assertNull(resource.getSpec().getStorage().getAzureBlob());
     assertNull(resource.getSpec().getStorage().getGcs());
     assertEquals("s3Compatible", resource.getSpec().getStorage().getType());
-    assertNull(resource.getSpec().getStorage().getAzureblob());
+    assertNull(resource.getSpec().getStorage().getAzureBlob());
     assertNull(resource.getSpec().getStorage().getGcs());
     assertNull(resource.getSpec().getStorage().getS3());
     assertNotNull(resource.getSpec().getStorage().getS3Compatible());
