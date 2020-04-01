@@ -48,7 +48,7 @@ var Nav = Vue.component("sg-nav", {
 					</div>
 				</div> -->
 
-				<div id="darkmode">
+				<div id="darkmode" :class="(theme == 'dark') ? 'active' : ''">
 					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g transform="translate(-90 -152)"><rect width="2" height="2" rx="1" transform="translate(103 152) rotate(90)"/><rect width="2" height="2" rx="1" transform="translate(103 174) rotate(90)"/><rect width="2" height="2" rx="1" transform="translate(114 165) rotate(180)"/><rect width="2" height="2" rx="1" transform="translate(92 165) rotate(180)"/><rect width="2" height="2" rx="1" transform="translate(111.778 155.636) rotate(135)"/><rect width="2" height="2" rx="1" transform="translate(95.05 172.364) rotate(135)"/><rect width="2" height="2" rx="1" transform="translate(93.636 154.222) rotate(45)"/><rect width="2" height="2" rx="1" transform="translate(110.364 170.95) rotate(45)"/><path d="M102,156a8,8,0,1,0,8,8A8,8,0,0,0,102,156Zm-5.336,8A5.343,5.343,0,0,1,102,158.664v10.672A5.343,5.343,0,0,1,96.664,164Z" transform="translate(0 0)"/></g></svg>
 				</div>
 
@@ -89,18 +89,33 @@ var Nav = Vue.component("sg-nav", {
 				</div>
 
 				<div id="signup">
-					<div id="login">
+					<form id="login" class="form noSubmit">
+						<div class="header">
+							<h2>Welcome to StackGres!</h2>
+						</div>
+						<p>To continue, please Log in.</p>
+						
+						<label for="loginUser">
+							Username <span class="req">*</span>
+						</label>
 						<input v-model="loginUser" placeholder="username">
+
+						<label for="loginPassword">
+							Password <span class="req">*</span>
+						</label>
 						<input v-model="loginPassword" placeholder="password" :type="loginPasswordType">
-						<a @click="showPassword" id="showPassword">
+
+						<a @click="showPassword()" id="showPassword">
 							<svg xmlns="http://www.w3.org/2000/svg" width="18.556" height="14.004" viewBox="0 0 18.556 14.004"><g transform="translate(0 -126.766)"><path d="M18.459,133.353c-.134-.269-3.359-6.587-9.18-6.587S.232,133.084.1,133.353a.93.93,0,0,0,0,.831c.135.269,3.36,6.586,9.18,6.586s9.046-6.317,9.18-6.586A.93.93,0,0,0,18.459,133.353Zm-9.18,5.558c-3.9,0-6.516-3.851-7.284-5.142.767-1.293,3.382-5.143,7.284-5.143s6.516,3.85,7.284,5.143C15.795,135.06,13.18,138.911,9.278,138.911Z" transform="translate(0 0)"/><path d="M9.751,130.857a3.206,3.206,0,1,0,3.207,3.207A3.21,3.21,0,0,0,9.751,130.857Z" transform="translate(-0.472 -0.295)"/></g></svg>
 						</a>
-						<button @click="login">Login</button>
 
 						<span class="warning" style="display:none">
 							Wrong username or password. Please try again!
 						</span>
-					</div>
+						
+						<hr/>
+						<button @click="login">Login</button>
+					</form>
 					<div id="logout">
 					</div>
 				</div>
@@ -142,6 +157,10 @@ var Nav = Vue.component("sg-nav", {
 
 		deleteItem () {
 			return store.state.deleteItem;
+		},
+
+		theme () {
+			return store.state.theme
 		}
 
 	},
@@ -160,7 +179,8 @@ var Nav = Vue.component("sg-nav", {
 			})
 			.then( function(response){
 				store.commit('setLoginToken', token);
-				$('#login').fadeOut();
+				$('#signup').fadeOut();
+				document.cookie = "sgToken="+token;
 				vm.fetchAPI();
 			}
 			).catch(function(err) {
@@ -175,7 +195,7 @@ var Nav = Vue.component("sg-nav", {
 				this.loginPasswordType = 'password';
 				$('#showPassword').removeClass('active');
 			} else {
-				this.loginPasswordType == 'text';
+				this.loginPasswordType = 'text';
 				$('#showPassword').addClass('active');
 			}
 		}
