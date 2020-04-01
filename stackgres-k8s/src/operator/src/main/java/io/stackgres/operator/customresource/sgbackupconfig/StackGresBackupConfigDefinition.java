@@ -11,7 +11,7 @@ public enum StackGresBackupConfigDefinition {
 
   ;
 
-  public static final String KIND = "StackGresBackupConfig";
+  public static final String KIND = "SGBackupConfig";
   public static final String SINGULAR = "sgbackupconfig";
   public static final String PLURAL = "sgbackupconfigs";
   public static final String NAME = PLURAL + "." + StackGresUtil.CRD_GROUP;

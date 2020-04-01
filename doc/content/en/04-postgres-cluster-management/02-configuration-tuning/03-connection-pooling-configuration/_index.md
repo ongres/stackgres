@@ -7,13 +7,13 @@ The connection pooling CR represent the configuration of PgBouncer.
 
 ___
 
-**Kind:** StackGresConnectionPoolingConfig
+**Kind:** SGPoolingConfig
 
-**listKind:** StackGresConnectionPoolingConfigList
+**listKind:** SGPoolingConfigList
 
-**plural:** sgconnectionpoolingconfigs
+**plural:** sgpoolconfigs
 
-**singular:** sgconnectionpoolingconfig
+**singular:** sgpoolconfig
 ___
 
 **Spec**
@@ -33,8 +33,8 @@ max_client_conn: "1000"
 Example:
 
 ```yaml
-apiVersion: stackgres.io/v1alpha1
-kind: StackGresConnectionPoolingConfig
+apiVersion: stackgres.io/v1beta1
+kind: SGPoolingConfig
 metadata:
   name: pgbouncerconf
 spec:

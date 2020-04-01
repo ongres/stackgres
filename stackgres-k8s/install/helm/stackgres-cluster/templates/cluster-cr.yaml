@@ -1,6 +1,6 @@
 {{ if .Values.cluster.create }}
-apiVersion: stackgres.io/v1alpha1
-kind: StackGresCluster
+apiVersion: stackgres.io/v1beta1
+kind: SGCluster
 metadata:
   name: {{ .Release.Name }}
   labels:
@@ -10,21 +10,40 @@ metadata:
     release: {{ .Release.Name }}
 spec:
   instances: {{ .Values.cluster.instances }}
-  pgVersion: '{{ .Values.config.postgresql.version }}'
-  pgConfig: '{{ .Values.cluster.pgconfig }}'
-  connectionPoolingConfig: '{{ .Values.cluster.poolingconfig }}'
-  resourceProfile: '{{ .Values.cluster.profile }}'
-  {{- if .Values.cluster.backupconfig }}
-  backupConfig: '{{ .Values.cluster.backupconfig }}'
-  {{- end }}
+  postgresVersion: '{{ .Values.config.postgresql.version }}'
+  configurations: 
+    sgPostgresConfig: '{{ .Values.cluster.pgconfig }}'
+    sgPoolingConfig: '{{ .Values.cluster.poolingconfig }}'
+    {{- if .Values.cluster.backupconfig }}
+    sgBackupConfig: '{{ .Values.cluster.backupconfig }}'
+    {{- end }}
+  sgInstanceProfile: '{{ .Values.cluster.profile }}'
   {{- if .Values.cluster.restore }}
-  restore:
-    fromBackup: {{ .Values.cluster.restore.fromBackup }}
-    {{- if .Values.cluster.restore.downloadDiskConcurrency }}
-    downloadDiskConcurrency: {{ .Values.cluster.restore.downloadDiskConcurrency }}
+  initialData:
+    restore:
+      fromBackup: {{ .Values.cluster.restore.fromBackup }}
+      {{- if .Values.cluster.restore.downloadDiskConcurrency }}
+      downloadDiskConcurrency: {{ .Values.cluster.restore.downloadDiskConcurrency }}
     {{- end }}    
   {{- end }}
-  volumeSize: '{{ .Values.cluster.volumeSize }}'
+  pods:
+    persistentVolume:
+      size: '{{ .Values.cluster.volumeSize }}'
+    {{- if .Values.sidecar.pooling }}
+    disableConnectionPooling: false
+    {{- else }}
+    disableConnectionPooling: true
+    {{- end }}  
+    {{- if .Values.sidecar.util }}
+    disablePostgresUtil: false
+    {{- else }}
+    disablePostgresUtil: true
+    {{- end }}
+    {{- if .Values.sidecar.prometheus.enabled }}
+    disableMetricsExporter: false
+    {{- else }}
+    disableMetricsExporter: true
+    {{- end }}
   {{- if .Values.cluster.storageClass }}
   {{- if eq "-" .Values.cluster.storageClass }}
   storageClass: ""
@@ -36,13 +55,6 @@ spec:
   prometheusAutobind: {{ .Values.sidecar.prometheus.allowAutobind }}
   {{- else }}
   prometheusAutobind: false
-  {{- end }}
-  sidecars:
-  {{- if .Values.sidecar.pooling }}
-  - connection-pooling
-  {{- end }}
-  {{- if .Values.sidecar.util }}
-  - postgres-util
   {{- end }}
   {{- if .Values.nonProduction }}
   nonProduction:

@@ -1,7 +1,7 @@
 [
   {
-    "kind": "StackGresBackupConfig",
-    "apiVersion": "stackgres.io/v1alpha1",
+    "kind": "SGBackupConfig",
+    "apiVersion": "stackgres.io/v1beta1",
     "metadata": {
       "annotations": {
         "helm.sh/hook": "pre-install"
@@ -11,7 +11,7 @@
       "name": "backupconf",
       "namespace": "stackgres",
       "resourceVersion": "502749",
-      "selfLink": "/apis/stackgres.io/v1alpha1/namespaces/stackgres/sgbackupconfigs/backupconf",
+      "selfLink": "/apis/stackgres.io/v1beta1/namespaces/stackgres/sgbackupconfigs/backupconf",
       "uid": "f481a840-14f5-11ea-bbf8-0242ac110011"
     },
     "spec": {
@@ -19,14 +19,16 @@
         "type": "s3",
         "s3": {
           "prefix": "s3://stackgres",
-          "credentials": {
-            "accessKey": {
-              "key": "accesskey",
-              "name": "minio"
-            },
-            "secretKey": {
-              "key": "secretkey",
-              "name": "minio"
+          "awsCredentials": {
+            "secretKeySelectors":{
+              "accessKey": {
+                "key": "accesskey",
+                "name": "minio"
+              },
+              "secretKey": {
+                "key": "secretkey",
+                "name": "minio"
+              }
             }
           },
           "region": "k8s",
@@ -34,12 +36,14 @@
           "forcePathStyle": true
         }
       },
-      "retention": 5,
-      "fullSchedule": "0 5 * * *",
-      "fullWindow": 60,
-      "compressionMethod": "lz4",
-      "uploadDiskConcurrency": 1,
-      "tarSizeThreshold": 1073741823
+      "baseBackups": {
+        "retention": 5,
+        "cronSchedule": "0 5 * * *",
+        "compression": 60,
+        "performance": {
+          "uploadDiskConcurrency": 1
+        }
+      }
     }
   }
 ]

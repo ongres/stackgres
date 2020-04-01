@@ -35,7 +35,7 @@ public class StorageClassValidator implements ClusterValidator {
   public void validate(StackGresClusterReview review) throws ValidationFailed {
 
     StackGresCluster cluster = review.getRequest().getObject();
-    String storageClass = cluster.getSpec().getStorageClass();
+    String storageClass = cluster.getSpec().getPod().getPersistentVolume().getStorageClass();
 
     switch (review.getRequest().getOperation()) {
       case CREATE:

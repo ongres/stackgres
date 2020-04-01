@@ -29,8 +29,8 @@ e2e_test() {
 create_empty_pg_config() {
 
   cat << EOF | kubectl apply -f -
-  apiVersion: stackgres.io/v1alpha1
-  kind: StackGresPostgresConfig
+  apiVersion: stackgres.io/v1beta1
+  kind: SGPostgresConfig
   metadata:
     name: $PGCONFIG
     namespace: $CLUSTER_NAMESPACE
@@ -64,8 +64,8 @@ EOF
 create_empty_pg_bouncer() {
 
   cat << EOF | kubectl apply -f -
-  apiVersion: stackgres.io/v1alpha1
-  kind: StackGresConnectionPoolingConfig
+  apiVersion: stackgres.io/v1beta1
+  kind: SGPoolingConfig
   metadata:
     name: $PGCBOUNCER
     namespace: $CLUSTER_NAMESPACE
@@ -74,7 +74,7 @@ create_empty_pg_bouncer() {
       unsignificant: true
 EOF
 
-  local CREATED_FIELDS=$(kubectl get sgconnectionpoolingconfigs.stackgres.io -n $CLUSTER_NAMESPACE $PGCBOUNCER -o json | run_jq '.spec["pgbouncer.ini"] | length')
+  local CREATED_FIELDS=$(kubectl get sgpoolconfigs.stackgres.io -n $CLUSTER_NAMESPACE $PGCBOUNCER -o json | run_jq '.spec["pgbouncer.ini"] | length')
   local DEFAULT_FIELDS=$(get_default_conn_pool -o json | run_jq '.spec["pgbouncer.ini"] | length')
 
   if [ $CREATED_FIELDS = $((DEFAULT_FIELDS + 1)) ]
@@ -85,7 +85,7 @@ EOF
     return 1
   fi
 
-  local DEFAULT_ANNOTATION=$(kubectl get sgconnectionpoolingconfigs.stackgres.io -n $CLUSTER_NAMESPACE $PGCBOUNCER -o json | run_jq '.metadata.annotations["stackgres.io/operatorVersion"]')
+  local DEFAULT_ANNOTATION=$(kubectl get sgpoolconfigs.stackgres.io -n $CLUSTER_NAMESPACE $PGCBOUNCER -o json | run_jq '.metadata.annotations["stackgres.io/operatorVersion"]')
 
   if [ -z "$DEFAULT_ANNOTATION" ] || [ "$DEFAULT_ANNOTATION" = "null" ]
   then
@@ -99,8 +99,8 @@ EOF
 create_empty_pg_backup_config() {
 
   cat << EOF | kubectl apply -f -
-  apiVersion: stackgres.io/v1alpha1
-  kind: StackGresBackupConfig
+  apiVersion: stackgres.io/v1beta1
+  kind: SGBackupConfig
   metadata:
     name: $BACKUP_CONFIG
     namespace: $CLUSTER_NAMESPACE
@@ -133,25 +133,25 @@ EOF
 create_empty_cluster_with_default_pgbouncer() {
 
   cat <<EOF | kubectl apply -f -
-  apiVersion: stackgres.io/v1alpha1
-  kind: StackGresCluster
+  apiVersion: stackgres.io/v1beta1
+  kind: SGCluster
   metadata:
     name: $CLUSTER_NAME-pgbouncer
     namespace: $CLUSTER_NAMESPACE
   spec:
     instances: 1
-    pgVersion: 'latest'
-    volumeSize: '512Mi'
-    sidecars:
-    - connection-pooling 
+    postgresVersion: 'latest'
+    pods:
+      persistentVolume:
+        size: '5Gi'
     nonProduction:
       disableClusterPodAntiAffinity: true
 
 EOF
   
-  local CREATED_PGBOUNCER=$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-reused" -o=jsonpath={.spec.connectionPoolingConfig})
+  local CREATED_PGBOUNCER=$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-reused" -o=jsonpath={.spec.configurations.sgPoolingConfig})
 
-  if kubectl get sgconnectionpoolingconfigs.stackgres.io -n $OPERATOR_NAMESPACE $CREATED_PGBOUNCER
+  if kubectl get sgpoolconfigs.stackgres.io -n $OPERATOR_NAMESPACE $CREATED_PGBOUNCER
   then
     echo "Success. Default pgbouncer was created in the cluster namespace"
   else
@@ -162,17 +162,20 @@ EOF
   kubectl delete sgclusters -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-pgbouncer"
 
   cat <<EOF | kubectl apply -f -
-  apiVersion: stackgres.io/v1alpha1
-  kind: StackGresCluster
+  apiVersion: stackgres.io/v1beta1
+  kind: SGCluster
   metadata:
     name: $CLUSTER_NAME-reused
     namespace: $CLUSTER_NAMESPACE
   spec:
     instances: 1
-    pgVersion: 'latest'
-    volumeSize: '512Mi'
-    sidecars:
-    - connection-pooling 
+    postgresVersion: 'latest'
+    pods:
+      persistentVolume:
+        size: '5Gi'
+      disableConnectionPooling: false
+      disableMetricsExporter: true
+      disablePostgresUtil: true        
     nonProduction:
       disableClusterPodAntiAffinity: true
 EOF
@@ -191,16 +194,20 @@ EOF
 
 create_empty_cluster_with_no_sidecars() {
   cat <<EOF | kubectl apply -f -
-  apiVersion: stackgres.io/v1alpha1
-  kind: StackGresCluster
+  apiVersion: stackgres.io/v1beta1
+  kind: SGCluster
   metadata:
     name: $CLUSTER_NAME-nosidecars
     namespace: $CLUSTER_NAMESPACE
   spec:
     instances: 1
-    pgVersion: 'latest'
-    volumeSize: '512Mi'
-    sidecars: []
+    postgresVersion: 'latest'
+    pods:
+      persistentVolume:
+        size: '512Mi'
+      disableConnectionPooling: true
+      disableMetricsExporter: true
+      disablePostgresUtil: true
     nonProduction:
       disableClusterPodAntiAffinity: true
 EOF
@@ -213,15 +220,17 @@ EOF
     return 1
   fi
 
-  local CLUSTER_SIDECARS=$(kubectl get sgclusters.stackgres.io -n $CLUSTER_NAMESPACE $CLUSTER_NAME-nosidecars -o json | run_jq '.spec.sidecars | length')
-  
-  if [ "$CLUSTER_SIDECARS" = "0" ]
-  then
-    echo "Success. Specified sidecars were not modified"    
-  else
-    echo "Fail. Specified sidecars were modified"
-    return 1
-  fi
+  local DISABLED_CONN_POOL=$(kubectl get sgclusters.stackgres.io -n $CLUSTER_NAMESPACE $CLUSTER_NAME-nosidecars -o json | run_jq -r '.spec.pods.disableConnectionPooling')
+
+  assert_string_equal "true" "$DISABLED_CONN_POOL"
+
+  local DISABLED_METRIC_EXPORTER=$(kubectl get sgclusters.stackgres.io -n $CLUSTER_NAMESPACE $CLUSTER_NAME-nosidecars -o json | run_jq -r '.spec.pods.disableMetricsExporter')
+
+  assert_string_equal "true" "$DISABLED_METRIC_EXPORTER"
+
+  local DISABLED_POSTGRES_UTIL=$(kubectl get sgclusters.stackgres.io -n $CLUSTER_NAMESPACE $CLUSTER_NAME-nosidecars -o json | run_jq -r '.spec.pods.disablePostgresUtil')
+
+  assert_string_equal "true" "$DISABLED_POSTGRES_UTIL"
 
   kubectl delete sgclusters -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-nosidecars"
 
@@ -230,20 +239,22 @@ EOF
 create_empty_cluster() {
 
   cat <<EOF | kubectl apply -f -
-apiVersion: stackgres.io/v1alpha1
-kind: StackGresCluster
+apiVersion: stackgres.io/v1beta1
+kind: SGCluster
 metadata:
   name: $CLUSTER_NAME
   namespace: $CLUSTER_NAMESPACE
 spec:
   instances: 1
-  pgVersion: 'latest'
-  volumeSize: '512Mi'
+  postgresVersion: 'latest'
+  pods:
+    persistentVolume:
+      size: '512Mi'
   nonProduction:
     disableClusterPodAntiAffinity: true
 EOF
 
-  local CREATED_PGCONFIG=$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o=jsonpath={.spec.pgConfig})
+  local CREATED_PGCONFIG=$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o=jsonpath={.spec.configurations.sgPostgresConfig})
 
   if kubectl get sgpgconfigs.stackgres.io -n $CLUSTER_NAMESPACE $CREATED_PGCONFIG
   then
@@ -264,9 +275,9 @@ EOF
     return 1
   fi
 
-  local CREATED_PROFILE=$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o=jsonpath={.spec.resourceProfile})
+  local CREATED_PROFILE=$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o=jsonpath={.spec.sgInstanceProfile})
 
-  if kubectl get sgprofiles.stackgres.io -n $CLUSTER_NAMESPACE $CREATED_PROFILE
+  if kubectl get sginstanceprofiles.stackgres.io -n $CLUSTER_NAMESPACE $CREATED_PROFILE
   then
     echo "Success. Default profile was created in the cluster namespace"
   else
@@ -274,7 +285,7 @@ EOF
     return 1;
   fi
 
-  local CREATED_PROFILE_FIELDS=$(kubectl get sgprofiles.stackgres.io -n $CLUSTER_NAMESPACE $CREATED_PROFILE -o json | run_jq '.spec | length')
+  local CREATED_PROFILE_FIELDS=$(kubectl get sginstanceprofiles.stackgres.io -n $CLUSTER_NAMESPACE $CREATED_PROFILE -o json | run_jq '.spec | length')
   local DEFAULT_PROFILE_FIELDS=$(get_default_profile -o json | run_jq '.spec | length')
 
   if [ "$CREATED_PROFILE_FIELDS" = "$DEFAULT_PROFILE_FIELDS" ]
@@ -295,16 +306,6 @@ EOF
     echo "Success. Defaults annotations created"    
   fi
 
-  local DEFAULT_SIDECARS=$(kubectl get sgclusters.stackgres.io -n $CLUSTER_NAMESPACE $CLUSTER_NAME -o json | run_jq '.spec.sidecars | length')
-
-  if [ "$DEFAULT_SIDECARS" = "3" ]
-  then
-    echo "Success. Default sidecars were settled"    
-  else
-    echo "Fail. Default sidecars were not settled"
-    return 1
-  fi
-
   local INSTALLED_CONTAINERS="$(kubectl get pod -n $CLUSTER_NAMESPACE $CLUSTER_NAME-0 -o=jsonpath='{.spec.containers[*].name}')"
 
   if echo "$INSTALLED_CONTAINERS" | grep "prometheus-postgres-exporter" > /dev/null
@@ -323,21 +324,29 @@ EOF
     return 1
   fi
 
+  assert_string_contains "pgbouncer" "$INSTALLED_CONTAINERS"
+  assert_string_contains "postgres-util" "$INSTALLED_CONTAINERS"
+
   kubectl delete sgclusters -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"
 
 }
 
 create_empty_cluster_on_operator_namespace() {
   cat <<EOF | kubectl apply -f -
-apiVersion: stackgres.io/v1alpha1
-kind: StackGresCluster
+apiVersion: stackgres.io/v1beta1
+kind: SGCluster
 metadata:
   name: $CLUSTER_NAME
   namespace: $OPERATOR_NAMESPACE
 spec:
   instances: 1
-  pgVersion: 'latest'
-  volumeSize: '512Mi'
+  postgresVersion: 'latest'
+  pods:
+    persistentVolume:
+      size: '512Mi'
+    disableConnectionPooling: true
+    disableMetricsExporter: true
+    disablePostgresUtil: true
   nonProduction:
     disableClusterPodAntiAffinity: true
 EOF

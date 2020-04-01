@@ -51,7 +51,7 @@ public class CrdMatchTest {
 
     File crdFolder = getCrdsFolder();
 
-    crdFiles = crdFolder.listFiles();
+    crdFiles = crdFolder.listFiles(file -> file.getName().endsWith(".yaml"));
 
     List<CustomResourceDefinition> customResourceDefinitions = getCustomResourceDefinitions();
 

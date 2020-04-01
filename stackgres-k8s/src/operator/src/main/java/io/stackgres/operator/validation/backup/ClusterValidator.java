@@ -38,7 +38,7 @@ public class ClusterValidator implements BackupValidator {
   public void validate(BackupReview review) throws ValidationFailed {
 
     StackGresBackup backup = review.getRequest().getObject();
-    String cluster = backup != null ? backup.getSpec().getCluster() : null;
+    String cluster = backup != null ? backup.getSpec().getSgCluster() : null;
 
     switch (review.getRequest().getOperation()) {
       case CREATE:
@@ -46,7 +46,7 @@ public class ClusterValidator implements BackupValidator {
             + " not found");
         break;
       case UPDATE:
-        if (!review.getRequest().getOldObject().getSpec().getCluster()
+        if (!review.getRequest().getOldObject().getSpec().getSgCluster()
             .equals(cluster)) {
           final String message = "Backup cluster can not be updated.";
           fail(message);
@@ -61,7 +61,7 @@ public class ClusterValidator implements BackupValidator {
                                     String onError) throws ValidationFailed {
 
     StackGresBackup backup = review.getRequest().getObject();
-    String cluster = backup.getSpec().getCluster();
+    String cluster = backup.getSpec().getSgCluster();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
     Optional<StackGresCluster> clusterOpt = clusterFinder

@@ -20,7 +20,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import com.google.common.collect.ImmutableMap;
-
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.stackgres.operator.common.ArcUtil;
@@ -43,7 +42,6 @@ import io.stackgres.operator.rest.dto.storages.GoogleCloudCredentials;
 import io.stackgres.operator.rest.dto.storages.GoogleCloudStorage;
 import io.stackgres.operator.rest.transformer.ResourceTransformer;
 import io.stackgres.operatorframework.resource.ResourceUtil;
-
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple2;
@@ -194,35 +192,36 @@ public class BackupConfigResource extends
     Optional<BackupStorage> storage = Optional.of(resource)
         .map(BackupConfigDto::getSpec)
         .map(BackupConfigSpec::getStorage);
+
     return Seq.of(
         Tuple.tuple(S3_ACCESS_KEY, storage.map(BackupStorage::getS3)
             .map(AwsS3Storage::getCredentials)
             .map(secretSelectorGetterAndSetter(
                 AwsCredentials::getAccessKey,
                 AwsCredentials::setAccessKey,
-                AwsCredentials::getAccessKeySelector,
-                AwsCredentials::setAccessKeySelector))),
+                (c) -> c.getSecretKeySelectors().getAccessKeySelector(),
+                (c, s) -> c.getSecretKeySelectors().setAccessKeySelector(s)))),
         Tuple.tuple(S3_SECRET_KEY, storage.map(BackupStorage::getS3)
             .map(AwsS3Storage::getCredentials)
             .map(secretSelectorGetterAndSetter(
                 AwsCredentials::getSecretKey,
                 AwsCredentials::setSecretKey,
-                AwsCredentials::getSecretKeySelector,
-                AwsCredentials::setSecretKeySelector))),
+                (c) -> c.getSecretKeySelectors().getSecretKeySelector(),
+                (c, s) -> c.getSecretKeySelectors().setSecretKeySelector(s)))),
         Tuple.tuple(S3COMPATIBLE_ACCESS_KEY, storage.map(BackupStorage::getS3Compatible)
             .map(AwsS3CompatibleStorage::getCredentials)
             .map(secretSelectorGetterAndSetter(
                 AwsCredentials::getAccessKey,
                 AwsCredentials::setAccessKey,
-                AwsCredentials::getAccessKeySelector,
-                AwsCredentials::setAccessKeySelector))),
+                (c) -> c.getSecretKeySelectors().getAccessKeySelector(),
+                (c, s) -> c.getSecretKeySelectors().setAccessKeySelector(s)))),
         Tuple.tuple(S3COMPATIBLE_SECRET_KEY, storage.map(BackupStorage::getS3Compatible)
             .map(AwsS3CompatibleStorage::getCredentials)
             .map(secretSelectorGetterAndSetter(
                 AwsCredentials::getSecretKey,
                 AwsCredentials::setSecretKey,
-                AwsCredentials::getSecretKeySelector,
-                AwsCredentials::setSecretKeySelector))),
+                (c) -> c.getSecretKeySelectors().getSecretKeySelector(),
+                (c, s) -> c.getSecretKeySelectors().setSecretKeySelector(s)))),
         Tuple.tuple(GCS_SERVICE_ACCOUNT_JSON_KEY,
             storage.map(BackupStorage::getGcs)
                 .map(GoogleCloudStorage::getCredentials)

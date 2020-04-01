@@ -19,7 +19,7 @@ e2e_test_install() {
   
   DEFAULT_BACKUPCONFIG=$(cat "$LOG_PATH/default-backupconfig-cr.json" \
     | run_jq 'del(.apiVersion) | del(.kind)' \
-    | run_jq '.spec.storage.s3compatible.credentials.accessKey = "test" | .spec.storage.s3compatible.credentials.secretKey = "test"')
+    | run_jq '.spec.storage.s3compatible.awsCredentials.accessKeyId = "test" | .spec.storage.s3compatible.awsCredentials.secretAccessKey = "test"')
   echo "$DEFAULT_BACKUPCONFIG" > "$LOG_PATH/default-backupconfig.json"
 
   kubectl delete sgbackupconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUPCONF"
@@ -187,7 +187,7 @@ api_created_backupconfig_visible() {
 update_backupconfig_parameter_with_api() {
   local HTTP_STATUS
 
-  UPDATED_BACKUPCONFIG=$(cat "$LOG_PATH/default-backupconfig.json" | run_jq ".spec[\"$1\"] = $2" )
+  UPDATED_BACKUPCONFIG=$(cat "$LOG_PATH/default-backupconfig.json" | run_jq ".spec.baseBackups[\"$1\"] = $2" )
   echo "$UPDATED_BACKUPCONFIG" > "$LOG_PATH/updated-backupconfig.json"
 
   HTTP_STATUS="$(run_curl -r "stackgres/sgbackupconfig" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/updated-backupconfig.json" -e '-X PUT -w %{http_code} -o /dev/null')"
@@ -209,7 +209,7 @@ test_update_backupconfig_with_api() {
 
   update_backupconfig_parameter_with_api 'retention' '10'
 
-  if kubectl get sgbackupconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUPCONF" -o jsonpath='{.spec.retention}' \
+  if kubectl get sgbackupconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUPCONF" -o jsonpath='{.spec.baseBackups.retention}' \
     | grep -q "^10$"
   then
     echo "Backup config was updated"
@@ -226,7 +226,7 @@ get_backupconfig_from_api() {
 test_api_updated_backupconfig_is_visible() {
   update_backupconfig_parameter_with_api 'retention' '10'
 
-  if get_backupconfig_from_api | run_jq '.spec.retention' -r \
+  if get_backupconfig_from_api | run_jq '.spec.baseBackups.retention' -r \
     | grep -q "^10$"
   then
     echo "Backup config updates are being reflected in the api"
@@ -283,7 +283,7 @@ test_api_delete_backupconfig_is_invible() {
 
 test_constraint_violation_api_error() {
 
-  INVALID_PGCONFIG=$(cat "$LOG_PATH/default-backupconfig.json" | run_jq '.spec.retention = -1' )
+  INVALID_PGCONFIG=$(cat "$LOG_PATH/default-backupconfig.json" | run_jq '.spec.baseBackups.retention = -1' )
 
   echo "$INVALID_PGCONFIG" > "$LOG_PATH/invalid-backupconfig.json"
   
@@ -296,7 +296,7 @@ test_constraint_violation_api_error() {
   ERROR_RESPONSE="$(run_curl -r "stackgres/sgbackupconfig" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/invalid-backupconfig.json" -e '-X POST')"
 
   EXPECTED_ERROR_TYPE="constraint-violation"
-  EXPECTED_ERROR_TITLE="doesn't complain syntactic rules"
+  EXPECTED_ERROR_TITLE="do not comply with the syntactic rules"
   EXPECTED_ERROR_DETAIL="greater than zero"
   EXPECTED_ERROR_FIELD="retention"
 

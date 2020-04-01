@@ -26,14 +26,14 @@ EOF
   BACKUP_NAME="$CLUSTER_NAME-backup-0-$(shuf -i 0-65535 -n 1)"
 
   cat << EOF | kubectl create -f -
-apiVersion: stackgres.io/v1alpha1
-kind: StackGresBackup
+apiVersion: stackgres.io/v1beta1
+kind: SGBackup
 metadata:
   namespace: "$CLUSTER_NAMESPACE-backup"
   name: "$BACKUP_NAME"
 spec:
-  cluster: "$CLUSTER_NAME-backup"
-  isPermanent: true
+  sgCluster: "$CLUSTER_NAME-backup"
+  subjectToRetentionPolicy: true
 EOF
   
   wait_until is_backup_phase "Completed"
@@ -50,7 +50,7 @@ EOF
 }
 
 is_backup_phase() {
-  [ "$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE-backup" "$BACKUP_NAME" -o=jsonpath='{.status.phase}')" = "$1" ]
+  [ "$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE-backup" "$BACKUP_NAME" -o=jsonpath='{.status.process.status}')" = "$1" ]
 }
 
 e2e_test_uninstall() {
@@ -139,8 +139,8 @@ check_backup_pg_version() {
   ALTERNATIVE_PG_VERSION="$ALTERNATIVE_MAYOR_PG_VERSION.7"
 
   cat << EOF | kubectl apply -f -
-apiVersion: stackgres.io/v1alpha1
-kind: StackGresPostgresConfig
+apiVersion: stackgres.io/v1beta1
+kind: SGPostgresConfig
 metadata:
   name: pgconfig-alter
   namespace: $CLUSTER_NAMESPACE
@@ -151,19 +151,23 @@ spec:
 EOF
 
   cat << EOF > "$LOG_PATH/alter-restore-cluster.yaml"
-apiVersion: stackgres.io/v1alpha1
-kind: StackGresCluster
+apiVersion: stackgres.io/v1beta1
+kind: SGCluster
 metadata:
   name: $CLUSTER_NAME-alter
   namespace: $CLUSTER_NAMESPACE
 spec:
   instances: 1
-  pgVersion: '$ALTERNATIVE_PG_VERSION'
-  volumeSize: '512Mi'
-  pgConfig: pgconfig-alter
-  restore:
-    downloadDiskConcurrency: 1
-    fromBackup: $BACKUP_UID
+  postgresVersion: '$ALTERNATIVE_PG_VERSION'
+  pods:
+    persistentVolume:
+      size: '512Mi'
+  configurations:
+    sgPostgresConfig: pgconfig-alter
+  initialData:
+    restore:
+      downloadDiskConcurrency: 1
+      fromBackup: $BACKUP_UID
 EOF
 
   if ERROR_MESSAGE="$(kubectl apply -f $LOG_PATH/alter-restore-cluster.yaml 2>&1)"
@@ -188,17 +192,20 @@ check_restore_default_values(){
   kubectl delete sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" 
 
   cat << EOF | kubectl apply -f -
-apiVersion: stackgres.io/v1alpha1
-kind: StackGresCluster
+apiVersion: stackgres.io/v1beta1
+kind: SGCluster
 metadata:
   name: $CLUSTER_NAME
   namespace: $CLUSTER_NAMESPACE
 spec:
   instances: 1
-  pgVersion: 'latest'
-  volumeSize: '128Mi'
-  restore:
-    fromBackup: $BACKUP_UID
+  postgresVersion: 'latest'
+  pods:
+    persistentVolume:
+      size: '128Mi'
+  initialData:
+    restore:
+      fromBackup: $BACKUP_UID
 EOF
 
   assert_default_value "downloadDiskConcurrency" "1"
@@ -209,7 +216,7 @@ assert_default_value(){
   FIELD=$1
   EXPECTED_VALUE=$2
 
-  if ACTUAL_VALUE=$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o=jsonpath="{.spec.restore.$FIELD}")
+  if ACTUAL_VALUE=$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o=jsonpath="{.spec.initialData.restore.$FIELD}")
   then
     if [ "$ACTUAL_VALUE" = "$EXPECTED_VALUE" ]
     then

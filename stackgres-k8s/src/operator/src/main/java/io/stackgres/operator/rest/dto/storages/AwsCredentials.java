@@ -11,24 +11,20 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.MoreObjects;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
-import io.stackgres.operator.rest.dto.SecretKeySelector;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
 public class AwsCredentials {
 
-  @JsonProperty("accessKey")
+  @JsonProperty("accessKeyId")
   private String accessKey;
 
-  @JsonProperty("secretKey")
+  @JsonProperty("secretAccessKey")
   private String secretKey;
 
-  @JsonProperty("accessKeySelector")
-  private SecretKeySelector accessKeySelector;
-
-  @JsonProperty("secretKeySelector")
-  private SecretKeySelector secretKeySelector;
+  @JsonProperty("secretKeySelectors")
+  private AwsSecretKeySelector secretKeySelectors = new AwsSecretKeySelector();
 
   public String getAccessKey() {
     return accessKey;
@@ -46,31 +42,20 @@ public class AwsCredentials {
     this.secretKey = secretKey;
   }
 
-  public SecretKeySelector getAccessKeySelector() {
-    return accessKeySelector;
+  public AwsSecretKeySelector getSecretKeySelectors() {
+    return secretKeySelectors;
   }
 
-  public void setAccessKeySelector(SecretKeySelector accessKeySelector) {
-    this.accessKeySelector = accessKeySelector;
-  }
-
-  public SecretKeySelector getSecretKeySelector() {
-    return secretKeySelector;
-  }
-
-  public void setSecretKeySelector(SecretKeySelector secretKeySelector) {
-    this.secretKeySelector = secretKeySelector;
+  public void setSecretKeySelectors(AwsSecretKeySelector secretKeySelectors) {
+    this.secretKeySelectors = secretKeySelectors;
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
-        .omitNullValues()
         .add("accessKey", accessKey)
         .add("secretKey", secretKey)
-        .add("accessKeySelector", accessKeySelector)
-        .add("secretKeySelector", secretKeySelector)
+        .add("secretKeySelectors", getSecretKeySelectors())
         .toString();
   }
-
 }

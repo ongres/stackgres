@@ -43,7 +43,7 @@ var ClusterOverview = Vue.component("cluster-overview", {
 							</div>
 							
 							<template v-for="profile in profiles">
-								<template v-if="(profile.data.metadata.namespace == currentNamespace) && (cluster.data.spec.resourceProfile == profile.name)">
+								<template v-if="(profile.data.metadata.namespace == currentNamespace) && (cluster.data.spec.sgInstanceProfile == profile.name)">
 									<div class="col">
 										{{ profile.data.spec.cpu }}
 									</div>

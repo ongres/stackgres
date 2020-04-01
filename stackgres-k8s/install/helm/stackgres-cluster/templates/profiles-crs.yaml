@@ -1,8 +1,8 @@
 {{ if .Values.profiles }}
 {{- range .Values.profiles }}
 ---
-apiVersion: stackgres.io/v1alpha1
-kind: StackGresProfile
+apiVersion: stackgres.io/v1beta1
+kind: SGInstanceProfile
 metadata:
   name: {{ .name }}
   labels:

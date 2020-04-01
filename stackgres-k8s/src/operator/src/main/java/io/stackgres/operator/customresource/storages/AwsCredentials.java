@@ -6,7 +6,7 @@
 package io.stackgres.operator.customresource.storages;
 
 import java.util.Objects;
-
+import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -14,7 +14,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.MoreObjects;
 
-import io.fabric8.kubernetes.api.model.SecretKeySelector;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
 @JsonDeserialize
@@ -22,57 +21,41 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 @RegisterForReflection
 public class AwsCredentials {
 
-  @JsonProperty("accessKey")
-  @NotNull(message = "The accessKey is required")
-  private SecretKeySelector accessKey;
+  @JsonProperty("secretKeySelectors")
+  @NotNull(message = "The secretKeySelectors are required")
+  @Valid
+  private AwsSecretKeySelector secretKeySelectors;
 
-  @JsonProperty("secretKey")
-  @NotNull(message = "The secretKey is required")
-  private SecretKeySelector secretKey;
-
-  public SecretKeySelector getAccessKey() {
-    return accessKey;
+  public AwsSecretKeySelector getSecretKeySelectors() {
+    return secretKeySelectors;
   }
 
-  public void setAccessKey(SecretKeySelector accessKey) {
-    this.accessKey = accessKey;
+  public void setSecretKeySelectors(AwsSecretKeySelector secretKeySelectors) {
+    this.secretKeySelectors = secretKeySelectors;
   }
 
-  public SecretKeySelector getSecretKey() {
-    return secretKey;
-  }
-
-  public void setSecretKey(SecretKeySelector secretKey) {
-    this.secretKey = secretKey;
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    AwsCredentials that = (AwsCredentials) o;
+    return Objects.equals(secretKeySelectors, that.secretKeySelectors);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(accessKey, secretKey);
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null) {
-      return false;
-    }
-    if (!(obj instanceof AwsCredentials)) {
-      return false;
-    }
-    AwsCredentials other = (AwsCredentials) obj;
-    return Objects.equals(accessKey, other.accessKey) && Objects.equals(secretKey, other.secretKey);
+    return Objects.hash(secretKeySelectors);
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .omitNullValues()
-        .add("accessKey", accessKey)
-        .add("secretKey", secretKey)
+        .add("secretKeySelectors", getSecretKeySelectors())
         .toString();
   }
-
 }

@@ -19,7 +19,7 @@ class BackupConfigValidationPipelineIt
   public BackupConfigReview getConstraintViolatingReview() {
     final BackupConfigReview review = JsonUtil.readFromJson("backupconfig_allow_request/create.json",
         BackupConfigReview.class);
-    review.getRequest().getObject().getSpec().setRetention(0);
+    review.getRequest().getObject().getSpec().getBaseBackups().setRetention(0);
     return review;
   }
 }

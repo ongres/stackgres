@@ -5,17 +5,25 @@
 
 package io.stackgres.operator.mutation.cluster;
 
+import java.util.List;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import com.github.fge.jackson.jsonpointer.JsonPointer;
+import com.github.fge.jsonpatch.AddOperation;
+import com.github.fge.jsonpatch.JsonPatchOperation;
+import com.google.common.collect.ImmutableList;
 
 import io.stackgres.operator.common.ArcUtil;
+import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
+import io.stackgres.operator.customresource.sgcluster.StackGresClusterPod;
+import io.stackgres.operator.customresource.sgcluster.StackGresClusterSpec;
 import io.stackgres.operator.customresource.sgprofile.StackGresProfile;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
 import io.stackgres.operator.resource.CustomResourceFinder;
 import io.stackgres.operator.resource.CustomResourceScheduler;
+import io.stackgres.operatorframework.admissionwebhook.Operation;
 
 @ApplicationScoped
 public class DefaultProfileMutator extends AbstractDefaultResourceMutator<StackGresProfile>
@@ -23,14 +31,37 @@ public class DefaultProfileMutator extends AbstractDefaultResourceMutator<StackG
 
   @Inject
   public DefaultProfileMutator(DefaultCustomResourceFactory<StackGresProfile> resourceFactory,
-      CustomResourceFinder<StackGresProfile> finder,
-      CustomResourceScheduler<StackGresProfile> scheduler) {
+                               CustomResourceFinder<StackGresProfile> finder,
+                               CustomResourceScheduler<StackGresProfile> scheduler) {
     super(resourceFactory, finder, scheduler);
   }
 
   public DefaultProfileMutator() {
     super(null, null, null);
     ArcUtil.checkPublicNoArgsConstructorIsCalledFromArc();
+  }
+
+  @Override
+  public List<JsonPatchOperation> mutate(StackGresClusterReview review) {
+    if (review.getRequest().getOperation() == Operation.CREATE) {
+      ImmutableList.Builder<JsonPatchOperation> operations = ImmutableList.builder();
+      final StackGresClusterSpec spec = review.getRequest().getObject().getSpec();
+      StackGresClusterPod pod = spec.getPod();
+      final JsonPointer clusterPodPointer = CLUSTER_CONFIG_POINTER
+          .append("pod");
+      if (pod == null) {
+        pod = new StackGresClusterPod();
+        spec.setPod(pod);
+        operations.add(new AddOperation(clusterPodPointer, FACTORY.objectNode()));
+      }
+      if (pod.getPersistentVolume() == null) {
+        operations.add(new AddOperation(clusterPodPointer
+            .append("persistentVolume"), FACTORY.objectNode()));
+      }
+      operations.addAll(super.mutate(review));
+      return operations.build();
+    }
+    return ImmutableList.of();
   }
 
   @Override

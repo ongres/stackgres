@@ -77,8 +77,8 @@ rules:
 - apiGroups: ["stackgres.io"]
   resources:
   - sgpgconfigs
-  - sgprofiles
-  - sgconnectionpoolingconfigs
+  - sginstanceprofiles
+  - sgpoolconfigs
   - sgbackupconfigs
   - sgbackups
   - sgrestoreconfigs

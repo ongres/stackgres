@@ -5,8 +5,8 @@
 
 package io.stackgres.operator.rest.dto.backupconfig;
 
+import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Positive;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -25,30 +25,10 @@ public class BackupConfigSpec {
   @NotNull(message = "The storage is required")
   private BackupStorage storage;
 
-  @JsonProperty("retention")
-  @Positive(message = "retention should be greater than zero")
-  private int retention;
-
-  @JsonProperty("fullSchedule")
-  private String fullSchedule;
-
-  @JsonProperty("fullWindow")
-  private int fullWindow;
-
-  @JsonProperty("compressionMethod")
-  private String compressionMethod;
-
-  @JsonProperty("networkRateLimit")
-  private long networkRateLimit;
-
-  @JsonProperty("diskRateLimit")
-  private long diskRateLimit;
-
-  @JsonProperty("uploadDiskConcurrency")
-  private int uploadDiskConcurrency;
-
-  @JsonProperty("tarSizeThreshold")
-  private long tarSizeThreshold;
+  @JsonProperty("baseBackups")
+  @NotNull(message = "Base backup configuration is required")
+  @Valid
+  private BaseBackupConfig baseBackup;
 
   public BackupStorage getStorage() {
     return storage;
@@ -58,68 +38,12 @@ public class BackupConfigSpec {
     this.storage = storage;
   }
 
-  public int getRetention() {
-    return retention;
+  public BaseBackupConfig getBaseBackup() {
+    return baseBackup;
   }
 
-  public void setRetention(int retention) {
-    this.retention = retention;
-  }
-
-  public String getFullSchedule() {
-    return fullSchedule;
-  }
-
-  public void setFullSchedule(String fullSchedule) {
-    this.fullSchedule = fullSchedule;
-  }
-
-  public int getFullWindow() {
-    return fullWindow;
-  }
-
-  public void setFullWindow(int fullWindow) {
-    this.fullWindow = fullWindow;
-  }
-
-  public String getCompressionMethod() {
-    return compressionMethod;
-  }
-
-  public void setCompressionMethod(String compressionMethod) {
-    this.compressionMethod = compressionMethod;
-  }
-
-  public long getNetworkRateLimit() {
-    return networkRateLimit;
-  }
-
-  public void setNetworkRateLimit(long networkRateLimit) {
-    this.networkRateLimit = networkRateLimit;
-  }
-
-  public long getDiskRateLimit() {
-    return diskRateLimit;
-  }
-
-  public void setDiskRateLimit(long diskRateLimit) {
-    this.diskRateLimit = diskRateLimit;
-  }
-
-  public int getUploadDiskConcurrency() {
-    return uploadDiskConcurrency;
-  }
-
-  public void setUploadDiskConcurrency(int uploadDiskConcurrency) {
-    this.uploadDiskConcurrency = uploadDiskConcurrency;
-  }
-
-  public long getTarSizeThreshold() {
-    return tarSizeThreshold;
-  }
-
-  public void setTarSizeThreshold(long tarSizeThreshold) {
-    this.tarSizeThreshold = tarSizeThreshold;
+  public void setBaseBackup(BaseBackupConfig baseBackup) {
+    this.baseBackup = baseBackup;
   }
 
   @Override
@@ -127,13 +51,7 @@ public class BackupConfigSpec {
     return MoreObjects.toStringHelper(this)
         .omitNullValues()
         .add("storage", storage)
-        .add("fullSchedule", fullSchedule)
-        .add("fullWindow", fullWindow)
-        .add("compressionMethod", compressionMethod)
-        .add("networkRateLimit", networkRateLimit)
-        .add("diskRateLimit", diskRateLimit)
-        .add("uploadDiskConcurrency", uploadDiskConcurrency)
-        .add("tarSizeThreshold", tarSizeThreshold)
+        .add("baseBackup", getBaseBackup())
         .toString();
   }
 
