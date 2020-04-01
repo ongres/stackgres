@@ -17,7 +17,7 @@ spec:
     plural: sgclusters
     singular: sgcluster
     shortNames:
-    - sgclu
+      - sgclu
   validation:
     openAPIV3Schema:
       type: object
@@ -32,8 +32,8 @@ spec:
                 The name of the StackGres cluster to be created. Following
                 [Kubernetes naming conventions](https://github.com/kubernetes/community/blob/master/contributors/design-proposals/architecture/identifiers.md),
                 it must be an rfc1035/rfc1123 subdomain, that is, up to 253 characters consisting of one or more
-                lowercase labels separated by '.'. Where each label is an alphanumeric (a-z, and 0-9) string, with a
-                maximum length of 63 characters, with the '-' character allowed anywhere except the first or last
+                lowercase labels separated by `.`. Where each label is an alphanumeric (a-z, and 0-9) string, with a
+                maximum length of 63 characters, with the `-` character allowed anywhere except the first or last
                 character.
 
                 This name needs to be unique across all StackGres clusters in the same namespace. The full cluster name
@@ -72,7 +72,7 @@ spec:
                     size:
                       type: string
                       pattern: '^[0-9]+(\.[0-9]+)?(Mi|Gi|Ti)$'
-                      description: |  
+                      description: |
                         Size of the PersistentVolume to be created for each instance of the cluster. Size must be specified
                         either in Mebibytes, Gibibytes or Tebibytes (multiples of 2^20, 2^30 or 2^40, respectively).
                     storageClass:
@@ -93,7 +93,7 @@ spec:
               required: ["persistentVolume"]
             configurations:
               type: object
-              description: | 
+              description: |
                 Custom configuration to be applied to the cluster.
               properties:
                 sgPostgresConfig:
@@ -157,4 +157,4 @@ spec:
                     The same best practice applies to databases on containers. By default, StackGres will not allow to
                     run more than one StackGres pod on a given K8s node. Set this property to true to allow more than
                     one StackGres pod per node.
-          required: [ "instances", "postgresVersion", "pods" ]
+          required: ["instances", "postgresVersion", "pods"]
