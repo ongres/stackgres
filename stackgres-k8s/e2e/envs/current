@@ -1,0 +1,36 @@
+#!/bin/sh
+
+reuse_k8s() {
+  kubectl version
+}
+
+reset_k8s() {
+  echo "Can not reset k8s cluster when using current configured k8s cluster"
+  exit 1
+}
+
+delete_k8s() {
+  echo "Can not delete k8s cluster when using current configured k8s cluster"
+  exit 1
+}
+
+load_operator_k8s() {
+  echo "Can not load operator to k8s cluster when using current configured k8s cluster"
+  exit 1
+}
+
+excluded_namespaces() {
+  echo "$K8S_EXCLUDED_NAMESPACES" | tr ' ' '\n'
+}
+
+  excluded_validatingwebhookconfigurations() {
+  echo "$K8S_EXCLUDED_VALIDATING_WEBHOOK" | tr ' ' '\n'
+}
+
+excluded_mutatingwebhookconfigurations() {
+  echo "$K8S_EXCLUDED_MUTATING_WEBHOOK" | tr ' ' '\n'
+}
+
+excluded_customresourcedefinitions() {
+  echo "$K8S_EXCLUDED_CRDS" | tr ' ' '\n'
+}
