@@ -29,21 +29,21 @@ var BackupConfig = Vue.component("backup-config", {
 						<th @click="sort('data.metadata.name')" class="sorted desc name">
 							<span>Name</span>
 						</th>
-						<th @click="sort('data.spec.retention')" class="desc retention">
+						<th @click="sort('data.spec.baseBackups.retention')" class="desc retention">
 							<span>Retention</span>
 						</th>
-						<th @click="sort('data.spec.fullSchedule')" class="desc fullSchedule">
+						<th @click="sort('data.spec.baseBackups.cronSchedule')" class="desc cronSchedule">
 							<span>Full Schedule</span>
 						</th>
-						<th @click="sort('data.spec.compressionMethod')" class="desc compressionMethod">
+						<th @click="sort('data.spec.baseBackups.compression')" class="desc compression">
 							<span>Compression Method</span>
 						</th>
-						<th @click="sort('data.spec.uploadDiskConcurrency')" class="desc uploadDiskConcurrency">
+						<th @click="sort('data.spec.baseBackups.performance.uploadDiskConcurrency')" class="desc uploadDiskConcurrency">
 							<span>Upload Disk Concurrency</span>
 						</th>
-						<th @click="sort('data.spec.tarSizeThreshold')" class="desc tarSizeThreshold">
+						<!--<th @click="sort('data.spec.tarSizeThreshold')" class="desc tarSizeThreshold">
 							<span>Tar Size Threshold</span>
-						</th>
+						</th>-->
 						<th @click="sort('data.spec.storage.type')" class="desc storageType">
 							<span>Storage Type</span>
 						</th>
@@ -58,11 +58,10 @@ var BackupConfig = Vue.component("backup-config", {
 						<template v-for="conf in config" v-if="conf.data.metadata.namespace == currentNamespace">
 							<tr :class="[ $route.params.name == conf.name ? 'open' : '', 'backupconfig-'+conf.data.metadata.namespace+'-'+conf.name ]" class="base">
 								<td>{{ conf.name }}</td>
-								<td>{{ conf.data.spec.retention }}</td>
-								<td>{{ conf.data.spec.fullSchedule | prettyCRON }}</td>
-								<td>{{ conf.data.spec.compressionMethod }}</td>
-								<td>{{ conf.data.spec.uploadDiskConcurrency }}</td>
-								<td>{{ conf.data.spec.tarSizeThreshold | formatBytes }}</td>
+								<td>{{ conf.data.spec.baseBackups.retention }}</td>
+								<td>{{ conf.data.spec.baseBackups.cronSchedule | prettyCRON }}</td>
+								<td>{{ conf.data.spec.baseBackups.compression }}</td>
+								<td>{{ conf.data.spec.baseBackups.performance.uploadDiskConcurrency }}</td>
 								<td>{{ conf.data.spec.storage.type }}</td>
 								<td class="actions">
 									<router-link :to="'/configurations/backup/'+conf.data.metadata.namespace+'/'+conf.name" title="Configuration Details">
@@ -90,10 +89,10 @@ var BackupConfig = Vue.component("backup-config", {
 												<strong class="label">credentials:</strong> 
 												<ul>
 													<li>
-														<strong class="label">accessKey:</strong> {{ conf.data.spec.storage.s3.credentials.accessKey }}
+														<strong class="label">accessKeyId:</strong> {{ conf.data.spec.storage.s3.awsCredentials.accessKeyId }}
 													</li>
 													<li>
-														<strong class="label">secretKey:</strong> {{ conf.data.spec.storage.s3.credentials.secretKey }}
+														<strong class="label">secretAccessKey:</strong> {{ conf.data.spec.storage.s3.awsCredentials.secretAccessKey }}
 													</li>
 												</ul>
 											</li>
@@ -104,35 +103,35 @@ var BackupConfig = Vue.component("backup-config", {
 												<strong class="label">storageClass:</strong> {{ conf.data.spec.storage.s3.storageClass }}
 											</li>
 										</template>
-										<template v-else-if="conf.data.spec.storage.type === 's3compatible'">
+										<template v-else-if="conf.data.spec.storage.type === 's3Compatible'">
 											<li>
-												<strong class="label">bucket:</strong> {{ conf.data.spec.storage.s3compatible.bucket }}
+												<strong class="label">bucket:</strong> {{ conf.data.spec.storage.s3Compatible.bucket }}
 											</li>
-											<li v-if="typeof conf.data.spec.storage.s3compatible.path !== 'undefined'">
-												<strong class="label">path:</strong> {{ conf.data.spec.storage.s3compatible.path }}
+											<li v-if="typeof conf.data.spec.storage.s3Compatible.path !== 'undefined'">
+												<strong class="label">path:</strong> {{ conf.data.spec.storage.s3Compatible.path }}
 											</li>
 											<li>
 												<strong class="label">credentials:</strong> 
 												<ul>
 													<li>
-														<strong class="label">accessKey:</strong> {{ conf.data.spec.storage.s3compatible.credentials.accessKey }}
+														<strong class="label">accessKeyId:</strong> {{ conf.data.spec.storage.s3Compatible.awsCredentials.accessKeyId }}
 													</li>
 													<li>
-														<strong class="label">secretKey:</strong> {{ conf.data.spec.storage.s3compatible.credentials.secretKey }}
+														<strong class="label">secretAccessKey:</strong> {{ conf.data.spec.storage.s3Compatible.awsCredentials.secretAccessKey }}
 													</li>
 												</ul>
 											</li>
-											<li v-if="typeof conf.data.spec.storage.s3compatible.region !== 'undefined'">
-												<strong class="label">region:</strong> {{ conf.data.spec.storage.s3compatible.region }}
+											<li v-if="typeof conf.data.spec.storage.s3Compatible.region !== 'undefined'">
+												<strong class="label">region:</strong> {{ conf.data.spec.storage.s3Compatible.region }}
 											</li>
-											<li v-if="typeof conf.data.spec.storage.s3compatible.storageClass !== 'undefined'">
-												<strong class="label">storageClass:</strong> {{ conf.data.spec.storage.s3compatible.storageClass }}
-											</li>
-											<li>
-												<strong class="label">endpoint:</strong> {{ conf.data.spec.storage.s3compatible.endpoint }}
+											<li v-if="typeof conf.data.spec.storage.s3Compatible.storageClass !== 'undefined'">
+												<strong class="label">storageClass:</strong> {{ conf.data.spec.storage.s3Compatible.storageClass }}
 											</li>
 											<li>
-												<strong class="label">forcePathStyle:</strong> {{ conf.data.spec.storage.s3compatible.forcePathStyle }}
+												<strong class="label">endpoint:</strong> {{ conf.data.spec.storage.s3Compatible.endpoint }}
+											</li>
+											<li>
+												<strong class="label">forcePathStyle:</strong> {{ conf.data.spec.storage.s3Compatible.forcePathStyle }}
 											</li>
 										</template>
 										<template v-else-if="conf.data.spec.storage.type === 'gcs'">
@@ -146,26 +145,26 @@ var BackupConfig = Vue.component("backup-config", {
 												<strong class="label">credentials:</strong> 
 												<ul>
 													<li>
-														<strong class="label">serviceAccountJsonKey:</strong> {{ conf.data.spec.storage.gcs.credentials.serviceAccountJsonKey }}
+														<strong class="label">serviceAccountJSON:</strong> {{ conf.data.spec.storage.gcs.credentials.serviceAccountJSON }}
 													</li>
 												</ul>
 											</li>
 										</template>
-										<template v-else-if="conf.data.spec.storage.type === 'azureblob'">
+										<template v-else-if="conf.data.spec.storage.type === 'azureBlob'">
 											<li>
-												<strong class="label">bucket:</strong> {{ conf.data.spec.storage.azureblob.bucket }}
+												<strong class="label">bucket:</strong> {{ conf.data.spec.storage.azureBlob.bucket }}
 											</li>
 											<li>
-												<strong class="label">path:</strong> {{ conf.data.spec.storage.azureblob.path }}
+												<strong class="label">path:</strong> {{ conf.data.spec.storage.azureBlob.path }}
 											</li>
 											<li>
 												<strong class="label">credentials:</strong> 
 												<ul>
 													<li>
-														<strong class="label">account:</strong> {{ conf.data.spec.storage.azureblob.credentials.account }}
+														<strong class="label">account:</strong> {{ conf.data.spec.storage.azureBlob.credentials.account }}
 													</li>
 													<li>
-														<strong class="label">accessKey:</strong> {{ conf.data.spec.storage.azureblob.credentials.accessKey }}
+														<strong class="label">accessKey:</strong> {{ conf.data.spec.storage.azureBlob.credentials.accessKey }}
 													</li>
 												</ul>
 											</li>

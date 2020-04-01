@@ -26,7 +26,7 @@ var CreatePGConfig = Vue.component("create-pgconfig", {
                 <input v-model="pgConfigName" :disabled="(editMode)" required data-field="metadata.name">
 
                 <label for="pgConfigVersion">Postgres Version <span class="req">*</span></label>
-                <select v-model="pgConfigVersion" :disabled="(editMode)" required data-field="spec.pgVersion">
+                <select v-model="pgConfigVersion" :disabled="(editMode)" required data-field="spec.postgresVersion">
                     <option disabled value="">Select Major Postgres Version</option>
                     <option value="11">11</option>
                     <option value="12">12</option>
@@ -61,7 +61,7 @@ var CreatePGConfig = Vue.component("create-pgconfig", {
             
             store.state.pgConfig.forEach(function( conf ){
                 if( (conf.data.metadata.name === vm.$route.params.name) && (conf.data.metadata.namespace === vm.$route.params.namespace) ) {
-                    configVersion = conf.data.spec.pgVersion;
+                    configVersion = conf.data.spec.postgresVersion;
                     configParams = conf.data.spec["postgresql.conf"];
                     /* $.each( conf.data.spec["postgresql.conf"], function( index, value ){
                         configParams += index+' = '+value+'\n';
@@ -111,7 +111,7 @@ var CreatePGConfig = Vue.component("create-pgconfig", {
                         "namespace": this.pgConfigNamespace
                     },
                     "spec": {
-                        "pgVersion": this.pgConfigVersion,
+                        "postgresVersion": this.pgConfigVersion,
                         "postgresql.conf": this.pgConfigParams
                     }
                 }

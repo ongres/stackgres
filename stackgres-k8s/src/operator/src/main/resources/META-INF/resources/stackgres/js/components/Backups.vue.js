@@ -90,16 +90,16 @@ var Backups = Vue.component("sg-backup", {
 								<li v-if="!isCluster">
 									<span>Postgres Version</span>
 									<label for="pg11">
-										<input v-model="pgVersion" type="checkbox" id="pg11" name="pg11" value="pg11" @change="filterTable" />
+										<input v-model="postgresVersion" type="checkbox" id="pg11" name="pg11" value="pg11" @change="filterTable" />
 										<span>11</span>
 									</label>
 									<label for="pg12">
-										<input v-model="pgVersion" type="checkbox" id="pg12" name="pg12" value="pg12" @change="filterTable" />
+										<input v-model="postgresVersion" type="checkbox" id="pg12" name="pg12" value="pg12" @change="filterTable" />
 										<span>12</span>
 									</label>
 								</li>
 								
-								<li>
+								<!--<li>
 									<span>Tested</span>
 									<label for="isTested">
 										<input v-model="tested" type="checkbox" id="isTested" name="tested" value="true" @change="filterTable" />
@@ -109,7 +109,7 @@ var Backups = Vue.component("sg-backup", {
 										<input v-model="tested" type="checkbox" id="notTested" name="tested" value="false" @change="filterTable" />
 										<span>NO</span>
 									</label>
-								</li>
+								</li>-->
 
 								<li v-if="!isCluster">
 									<span>Cluster</span>
@@ -125,28 +125,28 @@ var Backups = Vue.component("sg-backup", {
 					</div>
 					<table class="backups">
 						<thead class="sort">
-							<th @click="sort('data.status.time')" class="sorted desc timestamp">
+							<th @click="sort('data.status.process.timing.stored')" class="sorted desc timestamp">
 								<span>Timestamp</span>
 							</th>
-							<th @click="sort('data.spec.isPermanent')" class="icon desc isPermanent">
+							<th @click="sort('data.spec.subjectToRetentionPolicy')" class="icon desc isPermanent">
 								<span>Permanent</span>
 							</th>
-							<th @click="sort('data.status.phase')" class="desc phase center">
+							<th @click="sort('data.status.process.status')" class="desc phase center">
 								<span>Phase</span>
 							</th>
-							<th @click="sort('data.status.uncompressedSize')" class="desc size">
+							<th @click="sort('data.status.backupInformation.size.uncompressed')" class="desc size">
 								<span>Size</span>
 							</th>
-							<th @click="sort('data.status.pgVersion')" class="desc pgVersion" v-if="!isCluster">
+							<th @click="sort('data.status.backupInformation.postgresVersion')" class="desc postgresVersion" v-if="!isCluster">
 								<span>PG</span>
 							</th>
-							<th @click="sort('data.status.tested')" class="icon desc tested">
+							<!--<th @click="sort('data.status.tested')" class="icon desc tested">
 								<span>Tested</span>
-							</th>
+							</th>-->
 							<th @click="sort('data.metadata.name')" class="desc name">
 								<span>Name</span>
 							</th>
-							<th @click="sort('data.spec.cluster')" class="desc clusterName" v-if="!isCluster">
+							<th @click="sort('data.spec.sgCluster')" class="desc clusterName" v-if="!isCluster">
 								<span>Cluster Name</span>
 							</th>
 							<th class="actions"></th>
@@ -154,47 +154,47 @@ var Backups = Vue.component("sg-backup", {
 						</thead>
 						<tbody>
 							<tr class="no-results">
-								<td :colspan="(isCluster) ? 7 : 9">
+								<td :colspan="(isCluster) ? 6 : 8">
 									No records matched your search terms, would  you like to <router-link to="/crd/create/backup/" title="Add New Backup">create a new one?</router-link>
 								</td>
 							</tr>
-							<template v-for="back in backups" v-if="( ( (back.data.metadata.namespace == currentNamespace) && !isCluster ) || (isCluster && (back.data.spec.cluster == currentCluster.name ) && (back.data.metadata.namespace == currentCluster.data.metadata.namespace ) ) )">
-								<tr class="base" :class="back.data.status.phase+' backup-'+back.data.metadata.namespace+'-'+back.data.metadata.name">
+							<template v-for="back in backups" v-if="( ( (back.data.metadata.namespace == currentNamespace) && !isCluster ) || (isCluster && (back.data.spec.sgCluster == currentCluster.name ) && (back.data.metadata.namespace == currentCluster.data.metadata.namespace ) ) )">
+								<tr class="base" :class="back.data.status.process.status+' backup-'+back.data.metadata.namespace+'-'+back.data.metadata.name">
 										<td class="timestamp">
-											<template v-if="back.data.status.phase == 'Completed'">
+											<template v-if="back.data.status.process.status == 'Completed'">
 												<span class='date'>
-													{{ back.data.status.time | formatTimestamp('date') }}
+													{{ back.data.status.process.timing.stored | formatTimestamp('date') }}
 												</span>
 												<span class='time'>
-													{{ back.data.status.time | formatTimestamp('time') }}
+													{{ back.data.status.process.timing.stored | formatTimestamp('time') }}
 												</span>
 												<span class='ms'>
-													{{ back.data.status.time | formatTimestamp('ms') }} Z
+													{{ back.data.status.process.timing.stored | formatTimestamp('ms') }} Z
 												</span>
 											</template>
 										</td>
-										<td class="isPermanent center icon" :class="[(back.data.spec.isPermanent) ? 'true' : 'false']"></td>
-										<td class="phase center" :class="back.data.status.phase">
-											<span>{{ back.data.status.phase }}</span>
+										<td class="isPermanent center icon" :class="[(back.data.spec.subjectToRetentionPolicy) ? 'true' : 'false']"></td>
+										<td class="phase center" :class="back.data.status.process.status">
+											<span>{{ back.data.status.process.status }}</span>
 										</td>
 										<td class="size">
-											<template v-if="back.data.status.phase === 'Completed'">
-												{{ back.data.status.uncompressedSize | formatBytes }}
+											<template v-if="back.data.status.process.status === 'Completed'">
+												{{ back.data.status.backupInformation.size.uncompressed | formatBytes }}
 											</template>
 										</td>
-										<td class="pgVersion" :class="[(back.data.status.phase === 'Completed') ? 'pg'+(back.data.status.pgVersion.substr(0,2)) : '']"  v-if="!isCluster">
-											<template v-if="back.data.status.phase === 'Completed'">
-												{{ back.data.status.pgVersion | prefix }}
+										<td class="postgresVersion" :class="[(back.data.status.process.status === 'Completed') ? 'pg'+(back.data.status.backupInformation.postgresVersion.substr(0,2)) : '']"  v-if="!isCluster">
+											<template v-if="back.data.status.process.status === 'Completed'">
+												{{ back.data.status.backupInformation.postgresVersion | prefix }}
 											</template>											
 										</td>
-										<td class="tested center icon" :class="[(back.data.status.tested) ? 'true' : 'false']"></td>
+										<!--<td class="tested center icon" :class="[(back.data.status.tested) ? 'true' : 'false']"></td>-->
 										<td class="name">{{ back.data.metadata.name }}</td>
-										<td class="clusterName" :class="back.data.spec.cluster" v-if="!isCluster">{{ back.data.spec.cluster }}</td>
+										<td class="clusterName" :class="back.data.spec.sgCluster" v-if="!isCluster">{{ back.data.spec.sgCluster }}</td>
 									<td class="actions">
 										<a class="open" title="Backup Details">
 											<svg xmlns="http://www.w3.org/2000/svg" width="18.556" height="14.004" viewBox="0 0 18.556 14.004"><g transform="translate(0 -126.766)"><path d="M18.459,133.353c-.134-.269-3.359-6.587-9.18-6.587S.232,133.084.1,133.353a.93.93,0,0,0,0,.831c.135.269,3.36,6.586,9.18,6.586s9.046-6.317,9.18-6.586A.93.93,0,0,0,18.459,133.353Zm-9.18,5.558c-3.9,0-6.516-3.851-7.284-5.142.767-1.293,3.382-5.143,7.284-5.143s6.516,3.85,7.284,5.143C15.795,135.06,13.18,138.911,9.278,138.911Z" transform="translate(0 0)"/><path d="M9.751,130.857a3.206,3.206,0,1,0,3.207,3.207A3.21,3.21,0,0,0,9.751,130.857Z" transform="translate(-0.472 -0.295)"/></g></svg>
 										</a>
-										<router-link :to="'/crd/edit/backup/'+$route.params.namespace+'/'+back.data.spec.cluster+'/'+back.name" title="Edit Backup">
+										<router-link :to="'/crd/edit/backup/'+$route.params.namespace+'/'+back.data.spec.sgCluster+'/'+back.name" title="Edit Backup">
 											<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14"><path d="M90,135.721v2.246a.345.345,0,0,0,.345.345h2.246a.691.691,0,0,0,.489-.2l8.042-8.041a.346.346,0,0,0,0-.489l-2.39-2.389a.345.345,0,0,0-.489,0L90.2,135.232A.691.691,0,0,0,90,135.721Zm13.772-8.265a.774.774,0,0,0,0-1.095h0l-1.82-1.82a.774.774,0,0,0-1.095,0h0l-1.175,1.176a.349.349,0,0,0,0,.495l2.421,2.421a.351.351,0,0,0,.5,0Z" transform="translate(-90 -124.313)"/></svg>
 										</router-link>
 										<a v-on:click="deleteCRD('backup',currentNamespace, back.data.metadata.name)" class="delete" title="Delete Backup">
@@ -202,8 +202,8 @@ var Backups = Vue.component("sg-backup", {
 										</a>
 									</td>
 								</tr>
-								<tr class="details" :class="'backup-'+back.data.metadata.namespace+'-'+back.data.metadata.name" v-if="back.data.status.phase === 'Completed'">
-									<td :colspan="(isCluster) ? 7 : 9">
+								<tr class="details" :class="'backup-'+back.data.metadata.namespace+'-'+back.data.metadata.name" v-if="back.data.status.process.status === 'Completed'">
+									<td :colspan="(isCluster) ? 6 : 8">
 										<!--<h4>Backup Details</h4>-->
 
 										<table>
@@ -221,13 +221,13 @@ var Backups = Vue.component("sg-backup", {
 												<tr>
 													<td class="timestamp">
 														<span class='date'>
-															{{ back.data.status.startTime | formatTimestamp('date') }}
+															{{ back.data.status.process.timing.start | formatTimestamp('date') }}
 														</span>
 														<span class='time'>
-															{{ back.data.status.startTime | formatTimestamp('time') }}
+															{{ back.data.status.process.timing.start | formatTimestamp('time') }}
 														</span>
 														<span class='ms'>
-															{{ back.data.status.startTime | formatTimestamp('ms') }} Z
+															{{ back.data.status.process.timing.start | formatTimestamp('ms') }} Z
 														</span>
 													</td>
 													<td class="timestamp">
@@ -239,22 +239,22 @@ var Backups = Vue.component("sg-backup", {
 														</span>
 													</td>
 													<td>
-														({{ back.data.status.startLsn }} - {{ back.data.status.finishLsn }})
+														({{ back.data.status.backupInformation.lsn.start }} - {{ back.data.status.backupInformation.lsn.end }})
 													</td>
 													<td colspan="2">
 														{{ back.data.metadata.uid }}
 													</td>
 													<td>
-														{{ back.data.status.hostname }}
+														{{ back.data.status.backupInformation.hostname }}
 													</td>
 													<td>
-														{{ back.data.status.compressedSize | formatBytes }}
+														{{ back.data.status.backupInformation.size.compressed | formatBytes }}
 													</td>
 													<td>
-														{{ back.data.status.backupConfig.compressionMethod }}
+														{{ back.data.status.sgBackupConfig.baseBackups.compression }}
 													</td>
 													<td>
-														{{ back.data.status.backupConfig.storage.type }}
+														{{ back.data.status.sgBackupConfig.storage.type }}
 													</td>
 												</tr>
 											</tbody>
@@ -267,93 +267,93 @@ var Backups = Vue.component("sg-backup", {
 												<tr>
 													<td>
 														<ul class="yaml">
-															<template v-if="back.data.status.backupConfig.storage.type === 's3'">
+															<template v-if="back.data.status.sgBackupConfig.storage.type === 's3'">
 																<li>
-																	<strong class="label">bucket:</strong> {{ back.data.status.backupConfig.storage.s3.bucket }}
+																	<strong class="label">bucket:</strong> {{ back.data.status.sgBackupConfig.storage.s3.bucket }}
 																</li>
-																<li v-if="typeof back.data.status.backupConfig.storage.s3.path !== 'undefined'">
-																	<strong class="label">path:</strong> {{ back.data.status.backupConfig.storage.s3.path }}
+																<li v-if="typeof back.data.status.sgBackupConfig.storage.s3.path !== 'undefined'">
+																	<strong class="label">path:</strong> {{ back.data.status.sgBackupConfig.storage.s3.path }}
 																</li>
 																<li>
-																	<strong class="label">credentials:</strong> 
+																	<strong class="label">awsCredentials:</strong> 
 																	<ul>
 																		<li>
-																			<strong class="label">accessKey:</strong> {{ back.data.status.backupConfig.storage.s3.credentials.accessKey }}
+																			<strong class="label">accessKeyId:</strong> {{ back.data.status.sgBackupConfig.storage.s3.awsCredentials.accessKeyId }}
 																		</li>
 																		<li>
-																			<strong class="label">secretKey:</strong> {{ back.data.status.backupConfig.storage.s3.credentials.secretKey }}
+																			<strong class="label">secretAccessKey:</strong> {{ back.data.status.sgBackupConfig.storage.s3.awsCredentials.secretAccessKey }}
 																		</li>
 																	</ul>
 																</li>
 																<li>
-																	<strong class="label">region:</strong> {{ back.data.status.backupConfig.storage.s3.region }}
+																	<strong class="label">region:</strong> {{ back.data.status.sgBackupConfig.storage.s3.region }}
 																</li>
-																<li v-if="typeof back.data.status.backupConfig.storage.s3.storageClass !== 'undefined'">
-																	<strong class="label">storageClass:</strong> {{ back.data.status.backupConfig.storage.s3.storageClass }}
+																<li v-if="typeof back.data.status.sgBackupConfig.storage.s3.storageClass !== 'undefined'">
+																	<strong class="label">storageClass:</strong> {{ back.data.status.sgBackupConfig.storage.s3.storageClass }}
 																</li>
 															</template>
-															<template v-else-if="back.data.status.backupConfig.storage.type === 's3compatible'">
+															<template v-else-if="back.data.status.sgBackupConfig.storage.type === 's3Compatible'">
 																<li>
-																	<strong class="label">bucket:</strong> {{ back.data.status.backupConfig.storage.s3compatible.bucket }}
+																	<strong class="label">bucket:</strong> {{ back.data.status.sgBackupConfig.storage.s3Compatible.bucket }}
 																</li>
-																<li v-if="typeof back.data.status.backupConfig.storage.s3compatible.path !== 'undefined'">
-																	<strong class="label">path:</strong> {{ back.data.status.backupConfig.storage.s3compatible.path }}
+																<li v-if="typeof back.data.status.sgBackupConfig.storage.s3Compatible.path !== 'undefined'">
+																	<strong class="label">path:</strong> {{ back.data.status.sgBackupConfig.storage.s3Compatible.path }}
 																</li>
 																<li>
-																	<strong class="label">credentials:</strong> 
+																	<strong class="label">awsCredentials:</strong> 
 																	<ul>
 																		<li>
-																			<strong class="label">accessKey:</strong> {{ back.data.status.backupConfig.storage.s3compatible.credentials.accessKey }}
+																			<strong class="label">accessKeyId:</strong> {{ back.data.status.sgBackupConfig.storage.s3Compatible.awsCredentials.accessKeyId }}
 																		</li>
 																		<li>
-																			<strong class="label">secretKey:</strong> {{ back.data.status.backupConfig.storage.s3compatible.credentials.secretKey }}
+																			<strong class="label">secretAccessKey:</strong> {{ back.data.status.sgBackupConfig.storage.s3Compatible.awsCredentials.secretAccessKey }}
 																		</li>
 																	</ul>
 																</li>
 																<li>
-																	<strong class="label">region:</strong> {{ back.data.status.backupConfig.storage.s3compatible.region }}
+																	<strong class="label">region:</strong> {{ back.data.status.sgBackupConfig.storage.s3Compatible.region }}
 																</li>
-																<li v-if="typeof back.data.status.backupConfig.storage.s3compatible.storageClass !== 'undefined'">
-																	<strong class="label">storageClass:</strong> {{ back.data.status.backupConfig.storage.s3compatible.storageClass }}
-																</li>
-																<li>
-																	<strong class="label">endpoint:</strong> {{ back.data.status.backupConfig.storage.s3compatible.endpoint }}
+																<li v-if="typeof back.data.status.sgBackupConfig.storage.s3Compatible.storageClass !== 'undefined'">
+																	<strong class="label">storageClass:</strong> {{ back.data.status.sgBackupConfig.storage.s3Compatible.storageClass }}
 																</li>
 																<li>
-																	<strong class="label">forcePathStyle:</strong> {{ back.data.status.backupConfig.storage.s3compatible.forcePathStyle }}
+																	<strong class="label">endpoint:</strong> {{ back.data.status.sgBackupConfig.storage.s3Compatible.endpoint }}
+																</li>
+																<li>
+																	<strong class="label">forcePathStyle:</strong> {{ back.data.status.sgBackupConfig.storage.s3Compatible.forcePathStyle }}
 																</li>
 															</template>
-															<template v-else-if="back.data.status.backupConfig.storage.type === 'gcs'">
+															<template v-else-if="back.data.status.sgBackupConfig.storage.type === 'gcs'">
 																<li>
-																	<strong class="label">bucket:</strong> {{ back.data.status.backupConfig.storage.gcs.bucket }}
+																	<strong class="label">bucket:</strong> {{ back.data.status.sgBackupConfig.storage.gcs.bucket }}
 																</li>
 																<li>
-																	<strong class="label">path:</strong> {{ back.data.status.backupConfig.storage.gcs.path }}
+																	<strong class="label">path:</strong> {{ back.data.status.sgBackupConfig.storage.gcs.path }}
 																</li>
 																<li>
 																	<strong class="label">credentials:</strong> 
 																	<ul>
 																		<li>
-																			<strong class="label">serviceAccountJsonKey:</strong> {{ back.data.status.backupConfig.storage.gcs.credentials.serviceAccountJsonKey }}
+																			<strong class="label">serviceAccountJSON:</strong> {{ back.data.status.sgBackupConfig.storage.gcp.credentials.serviceAccountJSON }}
 																		</li>
 																	</ul>
 																</li>
 															</template>
-															<template v-else-if="back.data.status.backupConfig.storage.type === 'azureblob'">
+															<template v-else-if="back.data.status.sgBackupConfig.storage.type === 'azureBlob'">
 																<li>
-																	<strong class="label">bucket:</strong> {{ back.data.status.backupConfig.storage.azureblob.bucket }}
+																	<strong class="label">bucket:</strong> {{ back.data.status.sgBackupConfig.storage.azureBlob.bucket }}
 																</li>
 																<li>
-																	<strong class="label">path:</strong> {{ back.data.status.backupConfig.storage.azureblob.path }}
+																	<strong class="label">path:</strong> {{ back.data.status.sgBackupConfig.storage.azureBlob.path }}
 																</li>
 																<li>
 																	<strong class="label">credentials:</strong> 
 																	<ul>
 																		<li>
-																			<strong class="label">account:</strong> {{ back.data.status.backupConfig.storage.azureblob.credentials.account }}
+																			<strong class="label">account:</strong> {{ back.data.status.sgBackupConfig.storage.azureBlob.credentials.account }}
 																		</li>
 																		<li>
-																			<strong class="label">accessKey:</strong> {{ back.data.status.backupConfig.storage.azureblob.credentials.accessKey }}
+																			<strong class="label">accessKey:</strong> {{ back.data.status.sgBackupConfig.storage.azureBlob.credentials.accessKey }}
 																		</li>
 																	</ul>
 																</li>
@@ -363,66 +363,12 @@ var Backups = Vue.component("sg-backup", {
 												</tr>
 											</tbody>
 										</table>
-										
-
-										<!--<hr>
-										<span>UID</span>
-										{{ back.data.metadata.uid }}
-
-										<hr>
-										<span>Pod</span>
-										{{ back.data.status.pod }}
-
-										<hr>
-										<span>Name</span>
-										{{ back.data.status.name }}
-
-										<hr>
-										<span>WAL File Name</span>
-										{{ back.data.status.walFileName }}
-
-										<hr>
-										<span>Start Time</span>
-										{{ back.data.status.startTime }}
-
-										<hr>
-										<span>Finish Time</span>
-										{{ back.data.status.finishTime }}
-										
-										<hr>
-										<span>Hostname</span>
-										{{ back.data.status.hostname }}
-
-										<hr>
-										<span>Data Directory</span>
-										{{ back.data.status.dataDir }}
-										
-										<hr>
-										<span>Start Lsn</span>
-										{{ back.data.status.startLsn }}
-
-										<hr>
-										<span>Finish Lsn</span>
-										{{ back.data.status.finishLsn }}
-
-										<hr>
-										<span>System Identifier</span>
-										{{ back.data.status.systemIdentifier }}
-
-										<hr>
-										<span>Compressed size</span>
-										{{ back.data.status.compressedSize | formatBytes }}
-
-										<hr>
-										<h4 class="basic">Backup Configuration</h4>
-
-										<hr>
-										<span>Type</span>
-										{{ back.data.status.backupConfig.storage.type }}
-
-										<hr>
-										<span>Compression Method</span>
-										{{ back.data.status.backupConfig.compressionMethod }}-->
+									</td>
+								</tr>
+								<tr class="details Failed" :class="'backup-'+back.data.metadata.namespace+'-'+back.data.metadata.name" v-else-if="back.data.status.process.status === 'Failed'">
+									<td :colspan="(isCluster) ? 6 : 8" class="center">
+										<strong>Failure Cause</strong><br/>
+										<vue-markdown :source="back.data.status.process.failure"></vue-markdown>
 									</td>
 								</tr>
 							</template>
@@ -434,13 +380,13 @@ var Backups = Vue.component("sg-backup", {
 	data: function() {
 
 		return {
-			currentSort: 'data.status.time',
+			currentSort: 'data.status.process.timing.stored',
 			currentSortDir: 'desc',
 			clusterName: '',
 			keyword: '',
 			isPermanent: [],
 			phase: [],
-			pgVersion: [],
+			postgresVersion: [],
 			tested: [],
 		}
 	},
@@ -478,7 +424,7 @@ var Backups = Vue.component("sg-backup", {
 
 				let show = true;
 				let r = $(this);
-				let checkFilters = ['isPermanent', 'phase', 'pgVersion', 'tested'];
+				let checkFilters = ['isPermanent', 'phase', 'postgresVersion']; // 'tested' is out for now
 
 				// Filter by Keyword
 				if(bk.keyword.length && (r.text().toLowerCase().indexOf(bk.keyword.toLowerCase()) === -1) )
@@ -501,19 +447,19 @@ var Backups = Vue.component("sg-backup", {
 				})
 
 				/* //Filter by isPermanent
-				if(bk.isPermanent.length && (!r.children(".isPermanent."+bk.isPermanent).length))
+				if(bk.subjectToRetentionPolicy.length && (!r.children(".subjectToRetentionPolicy."+bk.subjectToRetentionPolicy).length))
 					show = false;
 
 				//Filter by phase
 				if(bk.phase.length && (!r.children(".phase."+bk.phase).length))
 					show = false;
 
-				//Filter by pgVersion
-				if(bk.pgVersion.length){
+				//Filter by postgresVersion
+				if(bk.postgresVersion.length){
 
 					let hasClass = 0;
 					
-					bk.pgVersion.forEach(function(item){
+					bk.postgresVersion.forEach(function(item){
 						if(r.children('.'+item).length)
 							hasClass++;
 					});

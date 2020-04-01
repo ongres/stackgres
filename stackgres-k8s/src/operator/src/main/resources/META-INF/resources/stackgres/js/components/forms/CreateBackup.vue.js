@@ -23,7 +23,7 @@ var CreateBackup = Vue.component("create-backup", {
                 </div>
                 
                 <label for="backupCluster">Backup Cluster <span class="req">*</span></label>
-                <select v-model="backupCluster" :disabled="(editMode)" required data-field="spec.cluster">
+                <select v-model="backupCluster" :disabled="(editMode)" required data-field="spec.sgCluster">
                     <option disabled value="">Choose a Cluster</option>
                     <template v-for="cluster in allClusters">
                         <option v-if="cluster.data.metadata.namespace == backupNamespace">{{ cluster.data.metadata.name }}</option>
@@ -34,7 +34,7 @@ var CreateBackup = Vue.component("create-backup", {
                 <input v-model="backupName" :disabled="(editMode)" required data-field="metadata.name">
 
                 <label>Is Permanent</label>  
-                <label for="permanent" class="switch" data-field="spec.isPermanent">Permanent <input type="checkbox" id="permanent" v-model="isPermanent" data-switch="NO"></label>
+                <label for="permanent" class="switch" data-field="spec.subjectToRetentionPolicy">Permanent <input type="checkbox" id="permanent" v-model="subjectToRetentionPolicy" data-switch="NO"></label>
                 
                 <template v-if="editMode">
                     <button @click="createBackup">Update Backup</button>
@@ -56,7 +56,7 @@ var CreateBackup = Vue.component("create-backup", {
                 backupName: '',
                 backupNamespace: store.state.currentNamespace,
                 backupCluster: '',
-                isPermanent: false
+                subjectToRetentionPolicy: false
             }
 
         } else if (vm.$route.params.action == 'edit') {
@@ -67,7 +67,7 @@ var CreateBackup = Vue.component("create-backup", {
                 backupName: vm.$route.params.name,
                 backupNamespace: store.state.currentNamespace,
                 backupCluster: vm.$route.params.cluster,
-                isPermanent: false
+                subjectToRetentionPolicy: false
             }
         }
 	},
@@ -108,8 +108,8 @@ var CreateBackup = Vue.component("create-backup", {
                         "namespace": this.backupNamespace
                     },
                     "spec": {
-                        "cluster": this.backupCluster,
-                        "isPermanent": this.isPermanent
+                        "sgCluster": this.backupCluster,
+                        "subjectToRetentionPolicy": this.subjectToRetentionPolicy
                     },
                     "status": {}
                 };

@@ -28,7 +28,7 @@ var PgConfig = Vue.component("pg-config", {
 						<th @click="sort('data.metadata.name')" class="sorted desc name">
 							<span>Name</span>
 						</th>
-						<th @click="sort('data.spec.pgVersion')" class="desc pgVersion">
+						<th @click="sort('data.spec.postgresVersion')" class="desc postgresVersion">
 							<span>PG</span>
 						</th>
 						<th class="config">
@@ -45,7 +45,7 @@ var PgConfig = Vue.component("pg-config", {
 						<template v-for="conf in config" v-if="(conf.data.metadata.namespace == currentNamespace)">
 							<tr :class="[ $route.params.name == conf.name ? 'open' : '', 'pgconfig-'+conf.data.metadata.namespace+'-'+conf.name ]">
 								<td>{{ conf.name }}</td>
-								<td>{{ conf.data.spec.pgVersion }}</td>
+								<td>{{ conf.data.spec.postgresVersion }}</td>
 								<td class="parameters">
 									<ul class="yaml" v-html="parseParams(conf.data.spec['postgresql.conf'])"></ul>
 								</td>
