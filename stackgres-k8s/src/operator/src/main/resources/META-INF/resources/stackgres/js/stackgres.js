@@ -288,6 +288,7 @@ router.beforeEach((to, from, next) => {
 const store = new Vuex.Store({
   state: {
     theme: 'light',
+    loginToken: '',
     currentNamespace: ' ',
     currentCluster: {},
     currentPods: [],
@@ -308,6 +309,11 @@ const store = new Vuex.Store({
     },
   },
   mutations: {
+
+    setLoginToken (state, token) {
+      state.loginToken = token;
+      axios.defaults.headers.common['Authorization'] = 'Basic '+store.state.loginToken;
+    },
 
     setTheme (state, theme) {
       state.theme = theme;
@@ -616,6 +622,11 @@ const vm = new Vue({
     /* API Request */
     fetchAPI: function(kind = '') {
 
+      if(!store.state.loginToken.length) {
+        $('#signup').addClass('login').fadeIn();
+        return false;
+      } 
+
       console.log("Fetching API");
       $("#loader").show();
 
@@ -623,10 +634,7 @@ const vm = new Vue({
       const password = 'st4ckgr3s';
 
       //const token = btoa(username+':'+password);
-      let token = 'YWRtaW46c3Q0Y2tncjNz';
-
-      axios.defaults.headers.common['Authorization'] = 'Basic '+token;
-      
+      //let token = 'YWRtaW46c3Q0Y2tncjNz';      
       
       if ( !kind.length || (kind == 'namespaces') ) {
         /* Namespaces Data */
@@ -646,7 +654,7 @@ const vm = new Vue({
           
         }).catch(function(err) {
           console.log(err);
-        });;
+        });
       }
 
       if ( !kind.length || (kind == 'cluster') ) {

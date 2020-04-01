@@ -223,7 +223,7 @@ var CreateCluster = Vue.component("create-cluster", {
 
         if (vm.$route.params.action == 'create') {
             return {
-                help: "The name of the StackGres cluster to be created. Following [Kubernetes naming conventions](https://github.com/kubernetes/community/blob/master/contributors/design-proposals/architecture/identifiers.md), it must be an rfc1035/rfc1123 subdomain, that is, up to 253 characters consisting of one or more lowercase labels separated by '.'. Where each label is an alphanumeric (a-z, and 0-9) string, with a maximum length of 63 characters, with the '-' character allowed anywhere except the first or last character.\nThis name needs to be unique across all StackGres clusters in the same namespace. The full cluster name will include the namespace in which the cluster will be created.\n",
+                help: "Postgres version to use for the new cluster. It can be either of: \n*  The string 'latest', which will automatically select the latest major.minor Postgres version. \n*  A major version, like '12' or '11', which will select that major version and the latest minor version. \n*  A specific major.minor version, like '12.2'.\n",
                 advancedMode: false,
                 cluster: {},
                 editMode: false,
@@ -252,7 +252,7 @@ var CreateCluster = Vue.component("create-cluster", {
             let volumeUnit = store.state.currentCluster.data.spec.volumeSize.match(/[a-zA-Z]+/g);
 
             return {
-                help: "The name of the StackGres cluster to be created. Following [Kubernetes naming conventions](https://github.com/kubernetes/community/blob/master/contributors/design-proposals/architecture/identifiers.md), it must be an rfc1035/rfc1123 subdomain, that is, up to 253 characters consisting of one or more lowercase labels separated by '.'. Where each label is an alphanumeric (a-z, and 0-9) string, with a maximum length of 63 characters, with the '-' character allowed anywhere except the first or last character.\nThis name needs to be unique across all StackGres clusters in the same namespace. The full cluster name will include the namespace in which the cluster will be created.\n",
+                help: "Postgres version to use for the new cluster. It can be either of: \n*  The string 'latest', which will automatically select the latest major.minor Postgres version. \n*  A major version, like '12' or '11', which will select that major version and the latest minor version. \n*  A specific major.minor version, like '12.2'.\n",
                 advancedMode: false,
                 cluster: {},
                 editMode: true,
