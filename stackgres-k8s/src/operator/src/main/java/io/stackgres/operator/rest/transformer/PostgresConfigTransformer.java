@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.rest.transformer;
 
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -27,9 +28,11 @@ public class PostgresConfigTransformer
       "^\\s*([^\\s=]+)\\s*=\\s*(:?'([^']+)'|([^ ]+))\\s*$");
 
   @Override
-  public StackGresPostgresConfig toCustomResource(PostgresConfigDto source) {
-    StackGresPostgresConfig transformation = new StackGresPostgresConfig();
-    transformation.setMetadata(getCustomResourceMetadata(source));
+  public StackGresPostgresConfig toCustomResource(PostgresConfigDto source,
+      StackGresPostgresConfig original) {
+    StackGresPostgresConfig transformation = Optional.ofNullable(original)
+        .orElseGet(StackGresPostgresConfig::new);
+    transformation.setMetadata(getCustomResourceMetadata(source, original));
     transformation.setSpec(getCustomResourceSpec(source.getSpec()));
     return transformation;
   }
@@ -43,6 +46,9 @@ public class PostgresConfigTransformer
   }
 
   private StackGresPostgresConfigSpec getCustomResourceSpec(PostgresConfigSpec source) {
+    if (source == null) {
+      return null;
+    }
     StackGresPostgresConfigSpec transformation = new StackGresPostgresConfigSpec();
     transformation.setPostgresVersion(source.getPostgresVersion());
     final String postgresqlConf = source.getPostgresqlConf();
@@ -59,6 +65,9 @@ public class PostgresConfigTransformer
   }
 
   private PostgresConfigSpec getResourceSpec(StackGresPostgresConfigSpec source) {
+    if (source == null) {
+      return null;
+    }
     PostgresConfigSpec transformation = new PostgresConfigSpec();
     transformation.setPostgresVersion(source.getPostgresVersion());
     transformation.setPostgresqlConf(

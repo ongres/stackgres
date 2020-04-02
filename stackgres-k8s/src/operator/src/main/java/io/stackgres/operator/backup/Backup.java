@@ -79,7 +79,7 @@ public class Backup implements StackGresClusterResourceStreamFactory {
         .filter(backup -> !(Optional.ofNullable(backup.getStatus())
             .map(StackGresBackupStatus::getProcess)
             .map(StackGresBackupProcess::getStatus)
-            .map(phase -> !phase.equals(BackupPhase.PENDING.label()))
+            .map(phase -> !phase.equals(BackupPhase.RUNNING.label()))
             .orElse(false)
             || Optional.ofNullable(backup.getMetadata())
             .map(ObjectMeta::getOwnerReferences)
@@ -170,8 +170,8 @@ public class Backup implements StackGresClusterResourceStreamFactory {
                         .withValue(StackGresBackupDefinition.APIVERSION)
                         .build(),
                         new EnvVarBuilder()
-                        .withName("BACKUP_PHASE_PENDING")
-                        .withValue(BackupPhase.PENDING.label())
+                        .withName("BACKUP_PHASE_RUNNING")
+                        .withValue(BackupPhase.RUNNING.label())
                         .build(),
                         new EnvVarBuilder()
                         .withName("BACKUP_PHASE_COMPLETED")

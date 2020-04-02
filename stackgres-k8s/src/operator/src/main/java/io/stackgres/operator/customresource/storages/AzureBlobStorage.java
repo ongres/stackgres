@@ -21,8 +21,8 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 @RegisterForReflection
 public class AzureBlobStorage implements PrefixedStorage {
 
-  @JsonProperty("backup")
-  @NotNull(message = "The backup is required")
+  @JsonProperty("bucket")
+  @NotNull(message = "The bucket is required")
   private String bucket;
 
   @JsonProperty("path")
@@ -93,7 +93,7 @@ public class AzureBlobStorage implements PrefixedStorage {
         .omitNullValues()
         .add("bucket", bucket)
         .add("path", path)
-        .add("credentials", azureCredentials)
+        .add("azureCredentials", azureCredentials)
         .toString();
   }
 

@@ -26,7 +26,8 @@ config:
     #networkRateLimit:
     #diskRateLimit:
     s3: {}
-    #  prefix: s3://stackgres
+    #  bucket: stackgres
+    #  path: /mypath
     #  accessKey:
     #    name: awscredentials
     #    key: accesskey
@@ -34,7 +35,8 @@ config:
     #    name: awscredentials
     #    key: secretkey
     s3Compatible: {}
-    #  prefix: s3://stackgres
+    #  bucket: stackgres
+    #  path: /mypath
     #  accessKey:
     #    name: minio
     #    key: accesskey
@@ -43,15 +45,17 @@ config:
     #    key: secretkey
     #  region: k8s
     #  endpoint: minio.stackgres.svc
-    #  forcePathStyle: true
+    #  enablePathStyleAddressing: true
     #  storageClass:
     gcs: {}
-    #  prefix: gcs://stackgres
+    #  bucket: stackgres
+    #  path: /mypath
     #  serviceAccountJsonKey:
     #    name: gcscredentials
     #    key: key
     azureblob: {}
-    #  prefix: azure://stackgres
+    #  bucket: stackgres
+    #  path: /mypath
     #  account:
     #    name: azureblobcredentials
     #    key: account
@@ -112,5 +116,5 @@ minio:
       purge: true
 
 #You should only set following options for non production environment
-nonProduction:
+nonProductionOptions:
   disableClusterPodAntiAffinity: true

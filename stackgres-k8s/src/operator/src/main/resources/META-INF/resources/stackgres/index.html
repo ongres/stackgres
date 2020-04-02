@@ -18,6 +18,9 @@
 
 		<link rel="stylesheet" type="text/css" href="style.css">
 
+		<!-- Vue.js Markdown / v2.2.4 -->
+		<script type="text/javascript" src="js/lib/vue-markdown-2.2.4.js"></script>
+
 		<!-- PROD vue / v2.6.0 -->
 		<!-- <script src="js/vue.min.js"></script> -->
 		
@@ -32,15 +35,21 @@
 
 		<!-- VueX v3.1.2 -->
 		<script src="js/vuex.js"></script>
+
+		<!-- Vue Loader -->
+		<!-- <script src="https://unpkg.com/http-vue-loader@1.4.1/src/httpVueLoader.js"></script> -->
+
+		<!-- Nunito Font -->
+		<link href="https://fonts.googleapis.com/css?family=Nunito:300,400,700&display=swap" rel="stylesheet">
 	</head>
 <body>
 
 	<div id="loader"></div>
 	
 	<div id="app">
-		<sg-side></sg-side>
 		<sg-nav></sg-nav>
-		<router-view id="main"></router-view>
+		<sg-side></sg-side>
+		<router-view id="main" :key="$route.path"></router-view>
 	</div>
 
 	<!-- Extra Libraries -->
@@ -49,18 +58,30 @@
 	<script type="text/javascript" src="js/lib/prettycron.js"></script>
 	<script type="text/javascript" src="js/lib/jquery-3.4.1.min.js"></script>
 
-	<!-- Components -->
+	<!-- Base Components -->
 	<script type="text/javascript" src="js/components/ClusterOverview.vue.js"></script>
 	<script type="text/javascript" src="js/components/ClusterInfo.vue.js"></script>
 	<script type="text/javascript" src="js/components/ClusterStatus.vue.js"></script>
-	<script type="text/javascript" src="js/components/Side.vue.js"></script>
-	<script type="text/javascript" src="js/components/Nav.vue.js"></script>
-  <script type="text/javascript" src="js/components/Backups.vue.js"></script>
+	<script type="text/javascript" src="js/components/Backups.vue.js"></script>
 	<script type="text/javascript" src="js/components/PgConfig.vue.js"></script>
 	<script type="text/javascript" src="js/components/PoolConfig.vue.js"></script>
 	<script type="text/javascript" src="js/components/BackupConfig.vue.js"></script>
 	<script type="text/javascript" src="js/components/SGProfiles.vue.js"></script>
 	<script type="text/javascript" src="js/components/Grafana.vue.js"></script>
+	<script type="text/javascript" src="js/components/Logs.vue.js"></script>
+
+	<!-- Action Components -->
+	<script type="text/javascript" src="js/components/Create.vue.js"></script>
+	<script type="text/javascript" src="js/components/forms/CreateCluster.vue.js"></script>
+	<script type="text/javascript" src="js/components/forms/CreateProfile.vue.js"></script>
+	<script type="text/javascript" src="js/components/forms/CreatePGConfig.vue.js"></script>
+	<script type="text/javascript" src="js/components/forms/CreatePoolConfig.vue.js"></script>
+	<script type="text/javascript" src="js/components/forms/CreateBackupConfig.vue.js"></script>
+	<script type="text/javascript" src="js/components/forms/CreateBackup.vue.js"></script>
+
+	<!-- Layout Components -->
+	<script type="text/javascript" src="js/components/Side.vue.js"></script>
+	<script type="text/javascript" src="js/components/Nav.vue.js"></script>
 
 	<!-- General Scripts -->
 	<script type="text/javascript" src="js/stackgres.js"></script>

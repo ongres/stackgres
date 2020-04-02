@@ -28,7 +28,7 @@ ___
 | prometheusAutobind                                                                                                                      |          | ✓         | boolean  | false                               | If enabled a ServiceMonitor will be created for each Prometheus instance found in order to collect metrics |
 | [sgBackupConfig]({{% relref "/04-postgres-cluster-management/04-backups/_index.md#configuration" %}})                                   |          | ✓         | string   |                                     | Backup config to apply |
 | [initialData](#initial-data-configuration)                                                                                              |          |           | object   |                                     | Cluster data initialization options |
-| [nonProduction](#non-production-options)                                                                                                |          | ✓         | array    |                                     | Additional parameters for non production environments |
+| [nonProductionOptions](#non-production-options)                                                                                                |          | ✓         | array    |                                     | Additional parameters for non production environments |
 
 Example:
 

@@ -40,7 +40,7 @@ ___
 
 | Property                         | Type    | Description |
 |:---------------------------------|:--------|:------------|
-| status                           | string  | The phase of the backup (Pending, Created, Failed). |
+| status                           | string  | The phase of the backup (Running, Created, Failed). |
 | jobPod                           | string  | The name of pod assigned to this backup. |
 | failure                          | string  | If the phase is failed this field will contain a message with the failure reason. |
 | subjectToRetentionPolicy         | boolean | Indicate if this backup is permanent and should not be removed by retention process. |
@@ -104,7 +104,7 @@ status:
               key: secretkey
               name: minio
         endpoint: http://minio:9000
-        forcePathStyle: true
+        enablePathStyleAddressing: true
         bucket: stackgres
         region: k8s
       type: s3Compatible
@@ -183,7 +183,7 @@ spec:
           key: secretkey
           name: my-cluster-minio
       endpoint: http://my-cluster-minio:9000
-      forcePathStyle: true
+      enablePathStyleAddressing: true
       bucket: stackgres
       region: k8s
 ```
@@ -249,7 +249,7 @@ The default name of backup configuration CR is `defaultbackupconfig`
 | [awsCredentials](#s3-credentials) | ✓        | ✓         | object  |         | The credentials to access AWS S3 for writing and reading  |
 | region                            |          | ✓         | string  |         | The AWS S3 region. Region can be detected using s3:GetBucketLocation, but if you wish to avoid this API call or forbid it from the applicable IAM policy, specify this property  |
 | endpoint                          |          | ✓         | string  |         | Overrides the default hostname to connect to an S3-compatible service. i.e, http://s3-like-service:9000  |
-| forcePathStyle                    |          | ✓         | boolean |         | To enable path-style addressing(i.e., http://s3.amazonaws.com/BUCKET/KEY) when connecting to an S3-compatible service that lack of support for sub-domain style bucket URLs (i.e., http://BUCKET.s3.amazonaws.com/KEY). Defaults to false  |
+| enablePathStyleAddressing                    |          | ✓         | boolean |         | To enable path-style addressing(i.e., http://s3.amazonaws.com/BUCKET/KEY) when connecting to an S3-compatible service that lack of support for sub-domain style bucket URLs (i.e., http://BUCKET.s3.amazonaws.com/KEY). Defaults to false  |
 | storageClass                      |          | ✓         | string  |         | By default, the "STANDARD" storage class is used. Other supported values include "STANDARD_IA" for Infrequent Access and "REDUCED_REDUNDANCY" for Reduced Redundancy  |
 
 ### S3 Credentials

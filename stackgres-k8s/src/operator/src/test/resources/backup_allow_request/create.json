@@ -67,7 +67,7 @@
                 }
               },
               "endpoint": "http://minio.stackgres.svc:9000",
-              "forcePathStyle": true,
+              "enablePathStyleAddressing": true,
               "bucket": "stackgres",
               "region": "k8s"
             },
@@ -75,7 +75,7 @@
           }
         },
         "process": {
-          "status": "Pending",
+          "status": "Running",
           "jobPod": "backup-with-default-storage-backup-1579273020-svf9b"
         }
       }

@@ -56,10 +56,10 @@ spec:
   {{- else }}
   prometheusAutobind: false
   {{- end }}
-  {{- if .Values.nonProduction }}
-  nonProduction:
-  {{- if .Values.nonProduction.disableClusterPodAntiAffinity }}
-    disableClusterPodAntiAffinity: {{ .Values.nonProduction.disableClusterPodAntiAffinity }}
+  {{- if .Values.nonProductionOptions }}
+  nonProductionOptions:
+  {{- if .Values.nonProductionOptions.disableClusterPodAntiAffinity }}
+    disableClusterPodAntiAffinity: {{ .Values.nonProductionOptions.disableClusterPodAntiAffinity }}
   {{- end }}
   {{- end }}
 {{ end }}

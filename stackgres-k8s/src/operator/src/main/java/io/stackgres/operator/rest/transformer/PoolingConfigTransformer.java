@@ -27,9 +27,11 @@ public class PoolingConfigTransformer
       "^\\s*([^\\s=]+)\\s*=\\s*(:?'([^']+)'|([^ ]+))\\s*$");
 
   @Override
-  public StackGresPoolingConfig toCustomResource(PoolingConfigDto source) {
-    StackGresPoolingConfig transformation = new StackGresPoolingConfig();
-    transformation.setMetadata(getCustomResourceMetadata(source));
+  public StackGresPoolingConfig toCustomResource(PoolingConfigDto source,
+      StackGresPoolingConfig original) {
+    StackGresPoolingConfig transformation = Optional.ofNullable(original)
+        .orElseGet(StackGresPoolingConfig::new);
+    transformation.setMetadata(getCustomResourceMetadata(source, original));
     final PoolingConfigSpec spec = source.getSpec();
     if (spec != null) {
       transformation.setSpec(getCustomResourceSpec(spec));

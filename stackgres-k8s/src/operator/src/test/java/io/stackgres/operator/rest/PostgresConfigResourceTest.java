@@ -81,7 +81,7 @@ class PostgresConfigResourceTest
   }
 
   @Override
-  protected void checkBackupConfig(StackGresPostgresConfig resource) {
+  protected void checkBackupConfig(StackGresPostgresConfig resource, Operation operation) {
     assertNotNull(resource.getMetadata());
     assertEquals("default", resource.getMetadata().getNamespace());
     assertEquals("postgresconf", resource.getMetadata().getName());

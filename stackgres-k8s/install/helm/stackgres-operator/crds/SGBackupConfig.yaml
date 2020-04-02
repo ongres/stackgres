@@ -67,11 +67,11 @@ spec:
                   properties:
                     bucket:
                       type: string
-                      pattern: '((s3|https?)://)?[^/]+(/[^/]*)*$'
+                      pattern: '^[^/]+(/[^/]*)*$'
                       description: "The AWS S3 bucket (eg. bucket)."
                     path:
                       type: string
-                      pattern: '(/[^/]*)*$'
+                      pattern: '^(/[^/]*)*$'
                       description: "The AWS S3 path (eg. /path/to/folder)."
                     awsCredentials:
                       type: object
@@ -117,11 +117,11 @@ spec:
                   properties:
                     bucket:
                       type: string
-                      pattern: '((s3|https?)://)?[^/]+(/[^/]*)*$'
+                      pattern: '^[^/]+(/[^/]*)*$'
                       description: "The AWS S3 bucket (eg. bucket)."
                     path:
                       type: string
-                      pattern: '(/[^/]*)*$'
+                      pattern: '^(/[^/]*)*$'
                       description: "The AWS S3 path (eg. /path/to/folder)."
                     awsCredentials:
                       type: object
@@ -160,7 +160,7 @@ spec:
                     endpoint:
                       type: string
                       description: "Overrides the default hostname to connect to an S3-compatible service. i.e, http://s3-like-service:9000."
-                    forcePathStyle:
+                    enablePathStyleAddressing:
                       type: boolean
                       description: "To enable path-style addressing(i.e., http://s3.amazonaws.com/BUCKET/KEY) when connecting to an S3-compatible service that lack of support for sub-domain style bucket URLs (i.e., http://BUCKET.s3.amazonaws.com/KEY). Defaults to false."
                     storageClass:
@@ -174,7 +174,7 @@ spec:
                     bucket:
                       type: string
                       description: "Specify bucket where to store backups (eg. x4m-test-bucket)."
-                      pattern: "^(gs://)?[^/]+(/[^/]*)*$"
+                      pattern: "^[^/]+(/[^/]*)*$"
                     path:
                       type: string
                       description: "Specify path in the bucket where to store backups (eg. /walg-folder)."
@@ -198,7 +198,7 @@ spec:
                                   description: "Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names"
                               required: [ "key", "name" ]
                           required: [ "serviceAccountJSON" ]
-                      required: [ "secretKeySelectors" ]    
+                      required: [ "secretKeySelectors" ]
                   required: [ "bucket", "gcpCredentials" ]
                 azureBlob:
                   type: object
@@ -207,7 +207,7 @@ spec:
                     bucket:
                       type: string
                       description: "Specify the bucket where to store backups in Azure storage (eg. test-container)."
-                      pattern: "^(azure://)?[^/]+(/[^/]*)*$"
+                      pattern: "^[^/]+(/[^/]*)*$"
                     path:
                       type: string
                       description: "Specify path in the bucket where to store backups in Azure storage (eg. /walg-folder)."

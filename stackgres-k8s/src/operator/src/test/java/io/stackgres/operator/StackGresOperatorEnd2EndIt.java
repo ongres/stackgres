@@ -32,6 +32,11 @@ public class StackGresOperatorEnd2EndIt extends AbstractStackGresOperatorIt {
       Optional.ofNullable(System.getenv("E2E_TEST"))
       .orElse(System.getProperty("e2e.test")));
 
+  private static final Optional<Boolean> E2E_HANG = Optional.ofNullable(
+      Optional.ofNullable(System.getenv("E2E_HANG"))
+      .orElse(System.getProperty("e2e.hang")))
+      .map(Boolean::valueOf);
+
   @Test
   public void end2EndTest(@ContainerParam("k8s") Container k8s) throws Exception {
     k8s.copyIn(new ByteArrayInputStream(
@@ -66,6 +71,11 @@ public class StackGresOperatorEnd2EndIt extends AbstractStackGresOperatorIt {
     k8s.execute("sh", "-e", "/run-e2e-from-it.sh")
         .filter(ItHelper.EXCLUDE_TTY_WARNING)
         .forEach(LOGGER::info);
+    if (E2E_HANG.orElse(false)) {
+      while(true) {
+        Thread.sleep(3600);
+      }
+    }
   }
 
 }

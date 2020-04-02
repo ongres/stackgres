@@ -7,7 +7,6 @@ package io.stackgres.operator.rest;
 
 import static org.junit.Assert.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertIterableEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
@@ -142,9 +141,10 @@ class ClusterResourceTest extends AbstractCustomResourceTest<ClusterDto, StackGr
     dtoScanner.setClientFactory(clientFactory);
     dtoScanner.setClusterTransformer(getTransformer());
     return new ClusterResource(
+        finder,
+        scheduler, transformer,
         dtoScanner,
         dtoFinder,
-        scheduler, transformer,
         statusFinder);
   }
 
@@ -199,8 +199,7 @@ class ClusterResourceTest extends AbstractCustomResourceTest<ClusterDto, StackGr
   }
 
   @Override
-  protected void checkBackupConfig(StackGresCluster resource) {
-
+  protected void checkBackupConfig(StackGresCluster resource, Operation operation) {
     assertNotNull(resource.getMetadata());
     assertEquals("postgresql", resource.getMetadata().getNamespace());
     assertEquals("stackgres", resource.getMetadata().getName());
@@ -220,7 +219,6 @@ class ClusterResourceTest extends AbstractCustomResourceTest<ClusterDto, StackGr
     assertFalse(resource.getSpec().getPod().getDisableConnectionPooling());
     assertFalse(resource.getSpec().getPod().getDisableMetricsExporter());
     assertFalse(resource.getSpec().getPod().getDisableMetricsExporter());
-
   }
 
 }

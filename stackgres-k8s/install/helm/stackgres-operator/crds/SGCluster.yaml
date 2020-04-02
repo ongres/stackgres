@@ -144,7 +144,7 @@ spec:
                       description: |
                         The backup fetch process may fetch several streams in parallel. Specify a value larger than one
                         for parallel fetching.
-            nonProduction:
+            nonProductionOptions:
               type: object
               properties:
                 disableClusterPodAntiAffinity:

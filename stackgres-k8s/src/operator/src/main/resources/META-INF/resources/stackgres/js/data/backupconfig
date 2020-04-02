@@ -33,7 +33,7 @@
           },
           "region": "k8s",
           "endpoint": "http://minio.stackgres.svc:9000",
-          "forcePathStyle": true
+          "enablePathStyleAddressing": true
         }
       },
       "baseBackups": {

@@ -39,9 +39,10 @@ public class ClusterTransformer
   private ClusterPodTransformer clusterPodTransformer;
 
   @Override
-  public StackGresCluster toCustomResource(ClusterDto source) {
-    StackGresCluster transformation = new StackGresCluster();
-    transformation.setMetadata(getCustomResourceMetadata(source));
+  public StackGresCluster toCustomResource(ClusterDto source, StackGresCluster original) {
+    StackGresCluster transformation = Optional.ofNullable(original)
+        .orElseGet(StackGresCluster::new);
+    transformation.setMetadata(getCustomResourceMetadata(source, original));
     transformation.setSpec(getCustomResourceSpec(source.getSpec()));
     return transformation;
   }
@@ -77,6 +78,9 @@ public class ClusterTransformer
   }
 
   public StackGresClusterSpec getCustomResourceSpec(ClusterSpec source) {
+    if (source == null) {
+      return null;
+    }
     StackGresClusterSpec transformation = new StackGresClusterSpec();
     transformation.setConfiguration(new StackgresClusterConfiguration());
     transformation.getConfiguration().setBackupConfig(
@@ -139,6 +143,9 @@ public class ClusterTransformer
   }
 
   public ClusterSpec getResourceSpec(StackGresClusterSpec source) {
+    if (source == null) {
+      return null;
+    }
     ClusterSpec transformation = new ClusterSpec();
     transformation.setConfigurations(new ClusterConfiguration());
     transformation.getConfigurations().setSgBackupConfig(

@@ -64,7 +64,7 @@
               }
             },
             "endpoint": "http://minio.stackgres.svc:9000",
-            "forcePathStyle": true,
+            "enablePathStyleAddressing": true,
             "bucket": "stackgres",
             "region": "k8s"
           },

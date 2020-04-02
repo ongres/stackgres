@@ -79,7 +79,7 @@ class PgbouncerConfigResourceTest
   }
 
   @Override
-  protected void checkBackupConfig(StackGresPoolingConfig resource) {
+  protected void checkBackupConfig(StackGresPoolingConfig resource, Operation operation) {
     assertNotNull(resource.getMetadata());
     assertEquals("default", resource.getMetadata().getNamespace());
     assertEquals("pgbouncerconf", resource.getMetadata().getName());

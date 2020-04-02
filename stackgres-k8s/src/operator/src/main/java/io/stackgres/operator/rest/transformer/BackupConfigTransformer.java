@@ -36,9 +36,11 @@ public class BackupConfigTransformer
     extends AbstractResourceTransformer<BackupConfigDto, StackGresBackupConfig> {
 
   @Override
-  public StackGresBackupConfig toCustomResource(BackupConfigDto source) {
-    StackGresBackupConfig transformation = new StackGresBackupConfig();
-    transformation.setMetadata(getCustomResourceMetadata(source));
+  public StackGresBackupConfig toCustomResource(BackupConfigDto source,
+      StackGresBackupConfig original) {
+    StackGresBackupConfig transformation = Optional.ofNullable(original)
+        .orElseGet(StackGresBackupConfig::new);
+    transformation.setMetadata(getCustomResourceMetadata(source, original));
     transformation.setSpec(getCustomResourceSpec(source.getSpec()));
     return transformation;
   }
@@ -52,6 +54,9 @@ public class BackupConfigTransformer
   }
 
   public StackGresBackupConfigSpec getCustomResourceSpec(BackupConfigSpec source) {
+    if (source == null) {
+      return null;
+    }
     StackGresBackupConfigSpec transformation = new StackGresBackupConfigSpec();
     Optional.ofNullable(source.getBaseBackup())
         .ifPresent(sourceBaseBackup -> {
@@ -214,6 +219,9 @@ public class BackupConfigTransformer
   }
 
   public BackupConfigSpec getResourceSpec(StackGresBackupConfigSpec source) {
+    if (source == null) {
+      return null;
+    }
     BackupConfigSpec transformation = new BackupConfigSpec();
     Optional.ofNullable(source.getBaseBackups())
         .ifPresent(sourceBaseBackup -> {

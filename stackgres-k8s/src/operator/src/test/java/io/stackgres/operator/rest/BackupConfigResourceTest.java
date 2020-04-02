@@ -158,7 +158,7 @@ class BackupConfigResourceTest
   }
 
   @Override
-  protected void checkBackupConfig(StackGresBackupConfig resource) {
+  protected void checkBackupConfig(StackGresBackupConfig resource, Operation operation) {
     assertNotNull(resource.getMetadata());
     assertEquals("stackgres", resource.getMetadata().getNamespace());
     assertEquals("backupconf", resource.getMetadata().getName());

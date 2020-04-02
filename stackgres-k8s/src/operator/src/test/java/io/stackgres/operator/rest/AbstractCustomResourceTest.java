@@ -7,6 +7,7 @@ package io.stackgres.operator.rest;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
 
@@ -79,7 +80,7 @@ abstract class AbstractCustomResourceTest<T extends ResourceDto, R extends Custo
       public Void answer(InvocationOnMock invocation) throws Throwable {
         R customResource = invocation.getArgument(0);
 
-        checkBackupConfig(customResource);
+        checkBackupConfig(customResource, Operation.CREATE);
 
         return null;
       }
@@ -90,12 +91,15 @@ abstract class AbstractCustomResourceTest<T extends ResourceDto, R extends Custo
 
   @Test
   void updateShouldNotFail() {
+    when(finder.findByNameAndNamespace(anyString(), anyString())).thenReturn(
+        customResources.getItems().stream().findFirst());
+
     doAnswer(new Answer<Void>() {
       @Override
       public Void answer(InvocationOnMock invocation) throws Throwable {
         R customResource = invocation.getArgument(0);
 
-        checkBackupConfig(customResource);
+        checkBackupConfig(customResource, Operation.UPDATE);
 
         return null;
       }
@@ -111,7 +115,7 @@ abstract class AbstractCustomResourceTest<T extends ResourceDto, R extends Custo
       public Void answer(InvocationOnMock invocation) throws Throwable {
         R customResource = invocation.getArgument(0);
 
-        checkBackupConfig(customResource);
+        checkBackupConfig(customResource, Operation.DELETE);
 
         return null;
       }
@@ -138,6 +142,9 @@ abstract class AbstractCustomResourceTest<T extends ResourceDto, R extends Custo
 
   protected abstract void checkBackupConfig(T resource);
 
-  protected abstract void checkBackupConfig(R resource);
+  protected abstract void checkBackupConfig(R resource, Operation operation);
 
+  enum Operation {
+    CREATE, UPDATE, DELETE;
+  }
 }

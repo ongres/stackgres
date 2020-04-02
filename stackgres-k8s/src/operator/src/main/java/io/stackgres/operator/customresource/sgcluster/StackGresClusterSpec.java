@@ -56,7 +56,7 @@ public class StackGresClusterSpec implements KubernetesResource {
   @JsonProperty("sidecars")
   private List<String> sidecars;
 
-  @JsonProperty("nonProduction")
+  @JsonProperty("nonProductionOptions")
   private NonProduction nonProduction;
 
   public int getInstances() {
@@ -134,7 +134,7 @@ public class StackGresClusterSpec implements KubernetesResource {
         .add("restore", initData)
         .add("pod", pod)
         .add("sidecars", sidecars)
-        .add("nonProduction", nonProduction)
+        .add("nonProductionOptions", nonProduction)
         .toString();
   }
 }
