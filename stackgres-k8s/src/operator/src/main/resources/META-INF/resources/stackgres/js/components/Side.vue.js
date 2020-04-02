@@ -26,7 +26,7 @@ var Side = Vue.component("sg-side", {
 
 					<ul>
 						<template v-for="cluster in clusters">
-							<li v-if="cluster.data.metadata.namespace == currentNamespace" :class="'cluster-'+cluster.data.metadata.namespace+'-'+cluster.name">
+							<li v-if="cluster.data.metadata.namespace == currentNamespace" :class="'sgcluster-'+cluster.data.metadata.namespace+'-'+cluster.name">
 								<router-link :to="'/cluster/status/'+cluster.data.metadata.namespace+'/'+cluster.name" class="item cluster" :title="cluster.name">{{ cluster.name }}</router-link>
 							</li>
 						</template>
@@ -49,7 +49,7 @@ var Side = Vue.component("sg-side", {
 
 							<ul>
 								<template v-for="config in pgConfig">
-									<li v-if="config.data.metadata.namespace == currentNamespace" :class="'pgconfig-'+config.data.metadata.namespace+'-'+config.name">
+									<li v-if="config.data.metadata.namespace == currentNamespace" :class="'sgpgconfig-'+config.data.metadata.namespace+'-'+config.name">
 										<router-link :to="'/configurations/postgres/'+config.data.metadata.namespace+'/'+config.name" class="item pgconfig" :title="config.name">{{ config.name }}</router-link>
 									</li>
 								</template>
@@ -65,11 +65,11 @@ var Side = Vue.component("sg-side", {
 
 							<ul>
 								<template v-for="config in poolConfig">
-									<li v-if="config.data.metadata.namespace == currentNamespace" :class="'connpoolconfig-'+config.data.metadata.namespace+'-'+config.name">
+									<li v-if="config.data.metadata.namespace == currentNamespace" :class="'sgpoolconfig-'+config.data.metadata.namespace+'-'+config.name">
 										<router-link :to="'/configurations/connectionpooling/'+config.data.metadata.namespace+'/'+config.name" class="item" :title="config.name">{{ config.name }}</router-link>
 									</li>
 								</template>
-								<li><router-link to="/crd/create/poolconfig/" class="addnew item">Add New</router-link></li>
+								<li><router-link to="/crd/create/connectionpooling/" class="addnew item">Add New</router-link></li>
 							</ul>
 						</div>
 
@@ -81,7 +81,7 @@ var Side = Vue.component("sg-side", {
 
 							<ul>
 								<template v-for="config in bkConfig">
-									<li v-if="config.data.metadata.namespace == currentNamespace" :class="'backupconfig-'+config.data.metadata.namespace+'-'+config.name">
+									<li v-if="config.data.metadata.namespace == currentNamespace" :class="'sgbackupconfig-'+config.data.metadata.namespace+'-'+config.name">
 										<router-link :to="'/configurations/backup/'+config.data.metadata.namespace+'/'+config.name" class="item" :title="config.name">{{ config.name }}</router-link>
 									</li>
 								</template>
@@ -116,9 +116,9 @@ var Side = Vue.component("sg-side", {
 						<li><router-link :to="'/crd/create/backup/'+currentNamespace" class="addnew item">Add New</router-link></li>
 					</ul>
 				</div>
-				<div class="set logs">
+				<div class="set logs" v-if="showLogs">
 					<router-link :to="'/logs/'" title="Centralized Logs" class="nav-item">
-						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path class="a" d="M10.55.55A9.454 9.454 0 001.125 9.5H.479a.458.458 0 00-.214.053.51.51 0 00-.214.671l1.621 3.382a.49.49 0 00.213.223.471.471 0 00.644-.223l1.62-3.382A.51.51 0 004.2 10a.49.49 0 00-.479-.5H3.1a7.47 7.47 0 117.449 7.974 7.392 7.392 0 01-3.332-.781.988.988 0 00-.883 1.767 9.356 9.356 0 004.215.99 9.45 9.45 0 000-18.9z"/><path class="a" d="M13.554 10a3 3 0 10-3 3 3 3 0 003-3z"/></svg>
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path class="a" d="M19,15H5c-0.6,0-1-0.4-1-1v0c0-0.6,0.4-1,1-1h14c0.6,0,1,0.4,1,1v0C20,14.6,19.6,15,19,15z"/><path class="a" d="M1,15L1,15c-0.6,0-1-0.4-1-1v0c0-0.6,0.4-1,1-1h0c0.6,0,1,0.4,1,1v0C2,14.6,1.6,15,1,15z"/><path class="a" d="M19,11H5c-0.6,0-1-0.4-1-1v0c0-0.6,0.4-1,1-1h14c0.6,0,1,0.4,1,1v0C20,10.6,19.6,11,19,11z"/><path class="a" d="M1,11L1,11c-0.6,0-1-0.4-1-1v0c0-0.6,0.4-1,1-1h0c0.6,0,1,0.4,1,1v0C2,10.6,1.6,11,1,11z"/><path class="a" d="M19,7H5C4.4,7,4,6.6,4,6v0c0-0.6,0.4-1,1-1h14c0.6,0,1,0.4,1,1v0C20,6.6,19.6,7,19,7z"/><path d="M1,7L1,7C0.4,7,0,6.6,0,6v0c0-0.6,0.4-1,1-1h0c0.6,0,1,0.4,1,1v0C2,6.6,1.6,7,1,7z"/></svg>
 						<h3>Centralized Logs</h3>
 					</router-link>
 				</div>
@@ -232,6 +232,10 @@ var Side = Vue.component("sg-side", {
 
 		loggedIn () {
 			return store.state.loginToken.length
+		},
+
+		showLogs () {
+			return store.state.showLogs
 		}
 	}
 })

@@ -295,6 +295,7 @@ const store = new Vuex.Store({
   state: {
     theme: 'light',
     loginToken: '',
+    showLogs: false,
     currentNamespace: ' ',
     currentCluster: {},
     currentPods: [],
@@ -516,6 +517,10 @@ const store = new Vuex.Store({
     setTooltipDescription (state, description) {
       state.tooltips.description = description;
     },
+
+    showLogs (state, show) {
+      state.showLogs = show;
+    },
     
   }
 });
@@ -623,6 +628,11 @@ Vue.use(VueMarkdown);
 if( urlParams.has('localAPI') ) {
   console.log('Using Local API');
   apiURL = 'js/data/';
+}
+
+if( urlParams.has('showLogs') ) {
+  console.log('Showing Centralized Log Mock');
+  store.commit('showLogs', true);
 }
 
 if( urlParams.has('darkmode') ) {
