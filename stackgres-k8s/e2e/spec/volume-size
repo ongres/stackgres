@@ -34,7 +34,7 @@ spec:
     persistentVolume:
       size: '512Mi'
   sgInstanceProfile: 'size-xs'
-  nonProduction:
+  nonProductionOptions:
     disableClusterPodAntiAffinity: true  
 EOF
 

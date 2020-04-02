@@ -151,5 +151,5 @@ We reccomend to disable all non production options in a production environment. 
  StackGres operator similar to the following:
 
 ``` yaml
-nonProduction: {}
+nonProductionOptions: {}
 ```

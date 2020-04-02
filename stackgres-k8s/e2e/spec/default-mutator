@@ -145,7 +145,7 @@ create_empty_cluster_with_default_pgbouncer() {
     pods:
       persistentVolume:
         size: '5Gi'
-    nonProduction:
+    nonProductionOptions:
       disableClusterPodAntiAffinity: true
 
 EOF
@@ -177,7 +177,7 @@ EOF
       disableConnectionPooling: false
       disableMetricsExporter: true
       disablePostgresUtil: true        
-    nonProduction:
+    nonProductionOptions:
       disableClusterPodAntiAffinity: true
 EOF
 
@@ -209,7 +209,7 @@ create_empty_cluster_with_no_sidecars() {
       disableConnectionPooling: true
       disableMetricsExporter: true
       disablePostgresUtil: true
-    nonProduction:
+    nonProductionOptions:
       disableClusterPodAntiAffinity: true
 EOF
 
@@ -251,7 +251,7 @@ spec:
   pods:
     persistentVolume:
       size: '512Mi'
-  nonProduction:
+  nonProductionOptions:
     disableClusterPodAntiAffinity: true
 EOF
 
@@ -348,7 +348,7 @@ spec:
     disableConnectionPooling: true
     disableMetricsExporter: true
     disablePostgresUtil: true
-  nonProduction:
+  nonProductionOptions:
     disableClusterPodAntiAffinity: true
 EOF
 

@@ -49,7 +49,7 @@ public class ClusterSpec {
   @JsonProperty("prometheusAutobind")
   private Boolean prometheusAutobind;
 
-  @JsonProperty("nonProduction")
+  @JsonProperty("nonProductionOptions")
   private NonProduction nonProduction;
 
   public int getInstances() {
@@ -126,7 +126,7 @@ public class ClusterSpec {
         .add("resourceProfile", sgInstanceProfile)
         .add("initData", getInitData())
         .add("pod", getPods())
-        .add("nonProduction", nonProduction)
+        .add("nonProductionOptions", nonProduction)
         .toString();
   }
 }
