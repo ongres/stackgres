@@ -206,7 +206,7 @@ spec:
                       description: |
                         Optional path within the S3 bucket. Note that StackGres generates in any case a folder per
                         StackGres cluster, using the `SGCluster.metadata.name`.
-                    forcePathStyle:
+                    enablePathStyleAddressing:
                       type: boolean
                       description: |
                         Enable path-style addressing (i.e. `http://s3.amazonaws.com/BUCKET/KEY`) when connecting to an
