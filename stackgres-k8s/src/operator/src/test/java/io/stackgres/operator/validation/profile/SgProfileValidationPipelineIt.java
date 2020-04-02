@@ -12,10 +12,11 @@ import io.stackgres.operator.common.ErrorType;
 import io.stackgres.operator.common.SgProfileReview;
 import io.stackgres.operator.utils.JsonUtil;
 import io.stackgres.operator.utils.ValidationUtils;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
+@Disabled
 public class SgProfileValidationPipelineIt {
 
   @Inject

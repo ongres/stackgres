@@ -10,8 +10,10 @@ import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.utils.JsonUtil;
 import io.stackgres.operator.validation.ValidationPipelineTest;
+import org.junit.jupiter.api.Disabled;
 
 @QuarkusTest
+@Disabled
 class ClusterValidationPipelineIt
     extends ValidationPipelineTest<StackGresCluster, StackGresClusterReview> {
 

@@ -10,8 +10,10 @@ import io.stackgres.operator.common.BackupConfigReview;
 import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.operator.utils.JsonUtil;
 import io.stackgres.operator.validation.ValidationPipelineTest;
+import org.junit.jupiter.api.Disabled;
 
 @QuarkusTest
+@Disabled
 class BackupConfigValidationPipelineIt
     extends ValidationPipelineTest<StackGresBackupConfig, BackupConfigReview> {
 

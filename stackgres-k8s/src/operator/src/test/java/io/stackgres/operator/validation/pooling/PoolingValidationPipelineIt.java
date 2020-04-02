@@ -12,8 +12,10 @@ import io.stackgres.operator.common.PoolingReview;
 import io.stackgres.operator.sidecars.pooling.customresources.StackGresPoolingConfig;
 import io.stackgres.operator.utils.JsonUtil;
 import io.stackgres.operator.validation.ValidationPipelineTest;
+import org.junit.jupiter.api.Disabled;
 
 @QuarkusTest
+@Disabled
 public class PoolingValidationPipelineIt
     extends ValidationPipelineTest<StackGresPoolingConfig, PoolingReview> {
 

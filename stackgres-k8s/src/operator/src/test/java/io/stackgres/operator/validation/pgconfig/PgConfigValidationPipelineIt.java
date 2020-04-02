@@ -12,8 +12,10 @@ import io.stackgres.operator.common.PgConfigReview;
 import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.operator.utils.JsonUtil;
 import io.stackgres.operator.validation.ValidationPipelineTest;
+import org.junit.jupiter.api.Disabled;
 
 @QuarkusTest
+@Disabled
 class PgConfigValidationPipelineIt
     extends ValidationPipelineTest<StackGresPostgresConfig, PgConfigReview> {
 
