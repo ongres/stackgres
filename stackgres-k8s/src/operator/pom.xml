@@ -6,7 +6,7 @@
   <parent>
     <groupId>io.stackgres</groupId>
     <artifactId>stackgres-parent</artifactId>
-    <version>0.9-alpha1</version>
+    <version>0.9-SNAPSHOT</version>
   </parent>
 
   <artifactId>stackgres-operator</artifactId>
@@ -18,7 +18,7 @@
     <stackgres.operatorNamespace>stackgres</stackgres.operatorNamespace>
     <stackgres.operatorIP>localhost</stackgres.operatorIP>
     <stackgres.operatorVersion>${project.version}</stackgres.operatorVersion>
-    <stackgres.containerBuild>3</stackgres.containerBuild>
+    <stackgres.containerBuild>4-dev</stackgres.containerBuild>
     <stackgres.group>stackgres.io</stackgres.group>
     <stackgres.crd.version>v1beta1</stackgres.crd.version>
     <stackgres.prometheus.allowAutobind>true</stackgres.prometheus.allowAutobind>
