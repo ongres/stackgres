@@ -26,6 +26,8 @@ You can also install the StackGres operator using [helm vesion 3.1.x](https://gi
  with the following command:
 
 ```
+kubectl create namespace stackgres
+
 helm install stackgres-operator \
   https://stackgres.io/downloads/stackgres-k8s/stackgres/latest/helm-operator.tgz
 ```
