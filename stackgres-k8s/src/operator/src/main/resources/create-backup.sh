@@ -462,47 +462,29 @@ EOF
       {"op":"replace","path":"/status/internalName","value":"'"$WAL_G_BACKUP_NAME"'"},
       {"op":"replace","path":"/status/process/status","value":"'"$BACKUP_PHASE_COMPLETED"'"},
       {"op":"replace","path":"/status/process/failure","value":""},
-      {"op":"replace","path":"/status/process/subjectToRetentionPolicy","value":'"$(grep "^is_permanent:" /tmp/current-backup | cut -d : -f 2-)"'}
-    ]'
-
-    kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
-      {"op":"add","path":"/status/process/timing","value":{}}  
-    ]'
-
-    kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
-      {"op":"replace","path":"/status/process/timing/stored","value":"'"$(grep "^time:" /tmp/current-backup | cut -d : -f 2-)"'"},
-      {"op":"replace","path":"/status/process/timing/start","value":"'"$(grep "^start_time:" /tmp/current-backup | cut -d : -f 2-)"'"},
-      {"op":"replace","path":"/status/process/timing/end","value":"'"$(grep "^finish_time:" /tmp/current-backup | cut -d : -f 2-)"'"}
-    ]'
-
-    kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
-      {"op":"add","path":"/status/backupInformation","value":{}}  
-    ]'
-    
-    kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
-      {"op":"replace","path":"/status/backupInformation/startWalFile","value":"'"$(grep "^wal_file_name:" /tmp/current-backup | cut -d : -f 2-)"'"},
-      {"op":"replace","path":"/status/backupInformation/hostname","value":"'"$(grep "^hostname:" /tmp/current-backup | cut -d : -f 2-)"'"},
-      {"op":"replace","path":"/status/backupInformation/pgData","value":"'"$(grep "^data_dir:" /tmp/current-backup | cut -d : -f 2-)"'"},
-      {"op":"replace","path":"/status/backupInformation/postgresVersion","value":"'"$(grep "^pg_version:" /tmp/current-backup | cut -d : -f 2-)"'"},
-      {"op":"replace","path":"/status/backupInformation/systemIdentifier","value":"'"$(grep "^system_identifier:" /tmp/current-backup | cut -d : -f 2-)"'"}
-    ]'
-
-    kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
-      {"op":"add","path":"/status/backupInformation/lsn","value":{}}  
-    ]'
-
-    kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
-      {"op":"replace","path":"/status/backupInformation/lsn/start","value":"'"$(grep "^start_lsn:" /tmp/current-backup | cut -d : -f 2-)"'"},
-      {"op":"replace","path":"/status/backupInformation/lsn/end","value":"'"$(grep "^finish_lsn:" /tmp/current-backup | cut -d : -f 2-)"'"}
-    ]'
-
-    kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
-      {"op":"add","path":"/status/backupInformation/size","value":{}}  
-    ]'
-
-    kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
-      {"op":"replace","path":"/status/backupInformation/size/uncompressed","value":'"$(grep "^uncompressed_size:" /tmp/current-backup | cut -d : -f 2-)"'},
-      {"op":"replace","path":"/status/backupInformation/size/compressed","value":'"$(grep "^compressed_size:" /tmp/current-backup | cut -d : -f 2-)"'}
+      {"op":"replace","path":"/status/process/subjectToRetentionPolicy","value":'"$(grep "^is_permanent:" /tmp/current-backup | cut -d : -f 2-)"'},
+      {"op":"replace","path":"/status/process/timing","value":{
+          "stored":"'"$(grep "^time:" /tmp/current-backup | cut -d : -f 2-)"'",
+          "start":"'"$(grep "^start_time:" /tmp/current-backup | cut -d : -f 2-)"'",
+          "end":"'"$(grep "^finish_time:" /tmp/current-backup | cut -d : -f 2-)"'"
+        }
+      },
+      {"op":"replace","path":"/status/backupInformation","value":{
+          "startWalFile":"'"$(grep "^wal_file_name:" /tmp/current-backup | cut -d : -f 2-)"'",
+          "hostname":"'"$(grep "^hostname:" /tmp/current-backup | cut -d : -f 2-)"'",
+          "pgData":"'"$(grep "^data_dir:" /tmp/current-backup | cut -d : -f 2-)"'",
+          "postgresVersion":"'"$(grep "^pg_version:" /tmp/current-backup | cut -d : -f 2-)"'",
+          "systemIdentifier":"'"$(grep "^system_identifier:" /tmp/current-backup | cut -d : -f 2-)"'",
+          "lsn":{
+            "start":"'"$(grep "^start_lsn:" /tmp/current-backup | cut -d : -f 2-)"'",
+            "end":"'"$(grep "^finish_lsn:" /tmp/current-backup | cut -d : -f 2-)"'"
+          },
+          "size":{
+            "uncompressed":'"$(grep "^uncompressed_size:" /tmp/current-backup | cut -d : -f 2-)"',
+            "compressed":'"$(grep "^compressed_size:" /tmp/current-backup | cut -d : -f 2-)"'
+          }
+        }
+      }
     ]'
 
   fi
