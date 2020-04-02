@@ -124,7 +124,7 @@ var ClusterInfo = Vue.component("cluster-info", {
 								</template>
 							</td>
 							<td>
-								<template v-if="(typeof cluster.data.spec.nonProduction !== 'undefined' && typeof cluster.data.spec.nonProduction.disableClusterPodAntiAffinity !== 'undefined')">
+								<template v-if="(typeof cluster.data.spec.nonProductionOptions !== 'undefined' && typeof cluster.data.spec.nonProductionOptions.disableClusterPodAntiAffinity !== 'undefined')">
 									ON
 								</template>
 								<template v-else>
