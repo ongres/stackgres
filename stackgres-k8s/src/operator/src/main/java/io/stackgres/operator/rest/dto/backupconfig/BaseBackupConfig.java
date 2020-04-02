@@ -67,7 +67,7 @@ public class BaseBackupConfig {
     return MoreObjects.toStringHelper(this)
         .add("retention", retention)
         .add("fullSchedule", fullSchedule)
-        .add("compressionMethod", compressionMethod)
+        .add("compression", compressionMethod)
         .add("performance", performance)
         .toString();
   }

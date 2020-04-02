@@ -25,7 +25,7 @@ def extract_properties:
     | map({
         key: .key,
         value: (
-            if .value.type == "object"
+            if .value.type == "object" and .value.properties != null
             then .value.properties | extract_properties
             else .value.description
             end

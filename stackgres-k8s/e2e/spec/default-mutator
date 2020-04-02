@@ -106,7 +106,7 @@ create_empty_pg_backup_config() {
     name: $BACKUP_CONFIG
     namespace: $CLUSTER_NAMESPACE
   spec:
-    compressionMethod=lz4
+    compression: lz4
 EOF
 
   local CREATED_FIELDS=$(kubectl get sgbackupconfigs.stackgres.io -n $CLUSTER_NAMESPACE $BACKUP_CONFIG -o json | run_jq '.spec | length')

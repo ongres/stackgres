@@ -100,7 +100,7 @@ status:
             accessKeyId:
               key: accesskey
               name: minio
-            accessKeyId:
+            secretAccessKey:
               key: secretkey
               name: minio
         endpoint: http://minio:9000
@@ -164,7 +164,7 @@ kind: SGBackupConfig
 metadata:
   name: backupconf
 spec:
-  baseBackups:      
+  baseBackups:
     retention: 5
     cronSchedule: 0 5 * * *
     compression: lz4
@@ -176,10 +176,10 @@ spec:
     type: s3Compatible
     s3Compatible:
       credentials:
-        accessKey:
+        accessKeyId:
           key: accesskey
           name: my-cluster-minio
-        secretKey:
+        secretAccessKey:
           key: secretkey
           name: my-cluster-minio
       endpoint: http://my-cluster-minio:9000
@@ -208,7 +208,7 @@ The default name of backup configuration CR is `defaultbackupconfig`
 |:-----------------------------------------|----------|-----------|:--------|:----------|:------------|
 | retention                                |          | ✓         | integer | 5         | Retains specified number of full backups. Default is 5 |
 | cronSchedule                             |          | ✓         | string  | 05:00 UTC | Specify when to perform full backups using cron syntax:<br><minute: 0 to 59, or *> <hour: 0 to 23, or * for any value. All times UTC> <day of the month: 1 to 31, or *> <month: 1 to 12, or *> <day of the week: 0 to 7 (0 and 7 both represent Sunday), or *>. <br>If not specified full backups will be performed each day at 05:00 UTC  |
-| compressionMethod                        |          | ✓         | string  | lz4       | To configure compression method used for backups. Possible options are: lz4, lzma, brotli. Default method is lz4. LZ4 is the fastest method, but compression ratio is bad. LZMA is way much slower, however it compresses backups about 6 times better than LZ4. Brotli is a good trade-off between speed and compression ratio which is about 3 times better than LZ4  |
+| compression                              |          | ✓         | string  | lz4       | To configure compression method used for backups. Possible options are: lz4, lzma, brotli. Default method is lz4. LZ4 is the fastest method, but compression ratio is bad. LZMA is way much slower, however it compresses backups about 6 times better than LZ4. Brotli is a good trade-off between speed and compression ratio which is about 3 times better than LZ4  |
 | [performance](#base-backup-performance)  |          | ✓         | object  |           | To set limits on the resource consumtion of the backup process |
 
 

@@ -18,7 +18,7 @@ config:
     retention: 5
     fullSchedule: "*/2 * * * *"
     fullWindow: 2
-    compressionMethod: lz4
+    compression: lz4
     uploadDiskConcurrency: 1
     tarSizeThreshold: 1073741823
     minio:
