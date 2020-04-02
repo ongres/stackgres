@@ -22,12 +22,15 @@ var CreateProfile = Vue.component("create-profile", {
                     <h2>Instance Profile Details</h2>
                 </div>
 
-                <label for="profileName">Profile Name <span class="req">*</span></label>
+                <label for="metadata.name">Profile Name <span class="req">*</span></label>
                 <input v-model="profileName" :disabled="(editMode)" required data-field="metadata.name">
+                <a class="help" data-field="metadata.name">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14.993" height="14.993" viewBox="0 0 14.993 14.993"><path d="M75.9-30a7.5,7.5,0,0,0-7.5,7.5,7.5,7.5,0,0,0,7.5,7.5,7.5,7.5,0,0,0,7.5-7.5A7.5,7.5,0,0,0,75.9-30Z" transform="translate(-68.4 30)" fill="#7a7b85"/><g transform="translate(4.938 3.739)"><path d="M78.008-17.11a.881.881,0,0,0-.629.248.833.833,0,0,0-.259.612.819.819,0,0,0,.271.653.906.906,0,0,0,.6.224H78a.864.864,0,0,0,.6-.226.813.813,0,0,0,.267-.639.847.847,0,0,0-.25-.621A.9.9,0,0,0,78.008-17.11Z" transform="translate(-75.521 23.034)" fill="#fff"/><path d="M79.751-23.993a2.13,2.13,0,0,0-.882-.749,3.07,3.07,0,0,0-1.281-.27,2.978,2.978,0,0,0-1.376.322,2.4,2.4,0,0,0-.906.822,1.881,1.881,0,0,0-.318,1v.009a.734.734,0,0,0,.231.511.762.762,0,0,0,.549.238h.017a.778.778,0,0,0,.767-.652,1.92,1.92,0,0,1,.375-.706.871.871,0,0,1,.668-.221.891.891,0,0,1,.618.22.687.687,0,0,1,.223.527.572.572,0,0,1-.073.283,1.194,1.194,0,0,1-.2.265c-.088.088-.232.22-.43.394a7.645,7.645,0,0,0-.565.538,1.905,1.905,0,0,0-.356.566,1.893,1.893,0,0,0-.134.739.8.8,0,0,0,.217.607.751.751,0,0,0,.519.206h.046a.689.689,0,0,0,.454-.171.662.662,0,0,0,.229-.452c.031-.149.055-.255.073-.315a.827.827,0,0,1,.061-.153.878.878,0,0,1,.124-.175,3.05,3.05,0,0,1,.246-.247c.39-.345.665-.6.818-.75a2.3,2.3,0,0,0,.42-.565,1.635,1.635,0,0,0,.183-.782A1.859,1.859,0,0,0,79.751-23.993Z" transform="translate(-74.987 25.012)" fill="#fff"/></g></svg>
+                </a>
 
                 
                 <div class="unit-select">
-                    <label for="profileRAM">RAM <span class="req">*</span></label>
+                    <label for="spec.memory">RAM <span class="req">*</span></label>
                     <input v-model="profileRAM" class="size" required data-field="spec.memory">
 
                     <select v-model="profileRAMUnit" class="unit" required data-field="spec.memory">
@@ -35,9 +38,12 @@ var CreateProfile = Vue.component("create-profile", {
                         <option value="Mi">MiB</option>
                         <option value="Gi">GiB</option>
                     </select>
+                    <a class="help" data-field="spec.memory">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14.993" height="14.993" viewBox="0 0 14.993 14.993"><path d="M75.9-30a7.5,7.5,0,0,0-7.5,7.5,7.5,7.5,0,0,0,7.5,7.5,7.5,7.5,0,0,0,7.5-7.5A7.5,7.5,0,0,0,75.9-30Z" transform="translate(-68.4 30)" fill="#7a7b85"/><g transform="translate(4.938 3.739)"><path d="M78.008-17.11a.881.881,0,0,0-.629.248.833.833,0,0,0-.259.612.819.819,0,0,0,.271.653.906.906,0,0,0,.6.224H78a.864.864,0,0,0,.6-.226.813.813,0,0,0,.267-.639.847.847,0,0,0-.25-.621A.9.9,0,0,0,78.008-17.11Z" transform="translate(-75.521 23.034)" fill="#fff"/><path d="M79.751-23.993a2.13,2.13,0,0,0-.882-.749,3.07,3.07,0,0,0-1.281-.27,2.978,2.978,0,0,0-1.376.322,2.4,2.4,0,0,0-.906.822,1.881,1.881,0,0,0-.318,1v.009a.734.734,0,0,0,.231.511.762.762,0,0,0,.549.238h.017a.778.778,0,0,0,.767-.652,1.92,1.92,0,0,1,.375-.706.871.871,0,0,1,.668-.221.891.891,0,0,1,.618.22.687.687,0,0,1,.223.527.572.572,0,0,1-.073.283,1.194,1.194,0,0,1-.2.265c-.088.088-.232.22-.43.394a7.645,7.645,0,0,0-.565.538,1.905,1.905,0,0,0-.356.566,1.893,1.893,0,0,0-.134.739.8.8,0,0,0,.217.607.751.751,0,0,0,.519.206h.046a.689.689,0,0,0,.454-.171.662.662,0,0,0,.229-.452c.031-.149.055-.255.073-.315a.827.827,0,0,1,.061-.153.878.878,0,0,1,.124-.175,3.05,3.05,0,0,1,.246-.247c.39-.345.665-.6.818-.75a2.3,2.3,0,0,0,.42-.565,1.635,1.635,0,0,0,.183-.782A1.859,1.859,0,0,0,79.751-23.993Z" transform="translate(-74.987 25.012)" fill="#fff"/></g></svg>
+                    </a>
                 </div>
 
-                <label for="profileCPU">CPU <span class="req">*</span></label>
+                <label for="spec.cpu">CPU <span class="req">*</span></label>
                 <select v-model="profileCPU" required data-field="spec.cpu">    
                     <option disabled value="">CPU</option>
                     <option>1</option>
@@ -51,6 +57,9 @@ var CreateProfile = Vue.component("create-profile", {
                     <option>9</option>
                     <option>10</option>
                 </select>
+                <a class="help" data-field="spec.cpu">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14.993" height="14.993" viewBox="0 0 14.993 14.993"><path d="M75.9-30a7.5,7.5,0,0,0-7.5,7.5,7.5,7.5,0,0,0,7.5,7.5,7.5,7.5,0,0,0,7.5-7.5A7.5,7.5,0,0,0,75.9-30Z" transform="translate(-68.4 30)" fill="#7a7b85"/><g transform="translate(4.938 3.739)"><path d="M78.008-17.11a.881.881,0,0,0-.629.248.833.833,0,0,0-.259.612.819.819,0,0,0,.271.653.906.906,0,0,0,.6.224H78a.864.864,0,0,0,.6-.226.813.813,0,0,0,.267-.639.847.847,0,0,0-.25-.621A.9.9,0,0,0,78.008-17.11Z" transform="translate(-75.521 23.034)" fill="#fff"/><path d="M79.751-23.993a2.13,2.13,0,0,0-.882-.749,3.07,3.07,0,0,0-1.281-.27,2.978,2.978,0,0,0-1.376.322,2.4,2.4,0,0,0-.906.822,1.881,1.881,0,0,0-.318,1v.009a.734.734,0,0,0,.231.511.762.762,0,0,0,.549.238h.017a.778.778,0,0,0,.767-.652,1.92,1.92,0,0,1,.375-.706.871.871,0,0,1,.668-.221.891.891,0,0,1,.618.22.687.687,0,0,1,.223.527.572.572,0,0,1-.073.283,1.194,1.194,0,0,1-.2.265c-.088.088-.232.22-.43.394a7.645,7.645,0,0,0-.565.538,1.905,1.905,0,0,0-.356.566,1.893,1.893,0,0,0-.134.739.8.8,0,0,0,.217.607.751.751,0,0,0,.519.206h.046a.689.689,0,0,0,.454-.171.662.662,0,0,0,.229-.452c.031-.149.055-.255.073-.315a.827.827,0,0,1,.061-.153.878.878,0,0,1,.124-.175,3.05,3.05,0,0,1,.246-.247c.39-.345.665-.6.818-.75a2.3,2.3,0,0,0,.42-.565,1.635,1.635,0,0,0,.183-.782A1.859,1.859,0,0,0,79.751-23.993Z" transform="translate(-74.987 25.012)" fill="#fff"/></g></svg>
+                </a>
 
                 <template v-if="editMode">
                     <button @click="createProfile">Update Profile</button>
@@ -60,6 +69,16 @@ var CreateProfile = Vue.component("create-profile", {
                 </template>
 
                 <button @click="cancel" class="border">Cancel</button>
+            </div>
+            <div id="help" class="form">
+                <div class="header">
+                    <h2>Help</h2>
+                </div>
+                
+                <div class="info">
+                    <h3 class="title"></h3>
+                    <vue-markdown :source=tooltips></vue-markdown>
+                </div>
             </div>
         </form>`,
 	data: function() {
@@ -104,6 +123,10 @@ var CreateProfile = Vue.component("create-profile", {
 
         currentNamespace () {
             return store.state.currentNamespace
+        },
+
+        tooltips() {
+            return store.state.tooltips.description
         }
     },
     methods: {
@@ -196,5 +219,42 @@ var CreateProfile = Vue.component("create-profile", {
             $(fields).slideUp();
         }
 
+    },
+    created: function() {
+        
+        console.log("Reading Instance Profiles tooltips");
+        /* Tooltips Data */
+        axios
+        .get('js/components/forms/help/crd-SGInstanceProfile-description-EN.json')
+        .then( function(response){
+            store.commit('setTooltips', { 
+            kind: 'SGInstanceProfile', 
+            description: response.data 
+        })
+        }).catch(function(err) {
+        console.log(err);
+        });
+
+    },
+
+    mounted: function() {
+        $(document).ready(function(){
+            
+            $(document).on("click",".help",function(){
+                $(".help.active").removeClass("active");
+                $(this).addClass("active");
+
+                let field = $(this).data("field");
+                let label = $("[for='"+field+"']");
+
+                $("#help .title").html(label.html());
+                store.commit("setTooltipDescription",store.state.tooltips.SGInstanceProfile[field]);
+            });
+            
+       })
+    },
+
+    beforeDestroy: function() {
+        store.commit('setTooltipDescription','Click on a question mark to get help and tips about that field.');
     }
 })

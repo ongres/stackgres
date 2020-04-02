@@ -73,7 +73,7 @@ var CreateCluster = Vue.component("create-cluster", {
                             </a>
                         </div>
                         <div class="col">
-                            <label for="pec.sgInstanceProfile">Instance Profile</label>  
+                            <label for="spec.sgInstanceProfile">Instance Profile</label>  
                             <select v-model="resourceProfile" class="resourceProfile" :disabled="(editMode)" data-field="spec.sgInstanceProfile">
                                 <option selected value="">Default (Cores: 1, RAM: 2GiB)</option>
                                 <option v-for="prof in profiles" v-if="prof.data.metadata.namespace == namespace" :value="prof.name">{{ prof.name }} (Cores: {{ prof.data.spec.cpu }}, RAM: {{ prof.data.spec.memory }}B)</option>
@@ -177,7 +177,7 @@ var CreateCluster = Vue.component("create-cluster", {
                         </fieldset>
 
                         <!--<label>Enable Postgres Utils</label>  
-                        <label for="pgUtils" class="switch">Postgres Utils <input type="checkbox" id="pgUtils" v-model="pgUtils" data-switch="OFF"></label>-->
+                        <label for="postgresUtil" class="switch">Postgres Utils <input type="checkbox" id="postgresUtil" v-model="postgresUtil" data-switch="OFF"></label>-->
 
                         
 
@@ -214,7 +214,8 @@ var CreateCluster = Vue.component("create-cluster", {
                 </div>
                 
                 <div class="info">
-                    <vue-markdown :source=help></vue-markdown>
+                    <h3 class="title"></h3>
+                    <vue-markdown :source=tooltips></vue-markdown>
                 </div>
             </div>
                         
@@ -223,6 +224,7 @@ var CreateCluster = Vue.component("create-cluster", {
 
         if (vm.$route.params.action == 'create') {
             return {
+                help: 'Click on a question mark to get help and tips about that field.',
                 advancedMode: false,
                 cluster: {},
                 editMode: false,
@@ -242,7 +244,8 @@ var CreateCluster = Vue.component("create-cluster", {
                 backupConfig: '',
                 prometheusAutobind: false,
                 disableClusterPodAntiAffinity: false,
-                pgUtils: true,
+                postgresUtil: true,
+                metricsExporter: true,
                 pgConfigExists: true,
             }
         } else if (vm.$route.params.action == 'edit') {
@@ -251,6 +254,7 @@ var CreateCluster = Vue.component("create-cluster", {
             let volumeUnit = store.state.currentCluster.data.spec.pods.persistentVolume.size.match(/[a-zA-Z]+/g);
 
             return {
+                help: 'Click on a question mark to get help and tips about that field.',
                 advancedMode: false,
                 cluster: {},
                 editMode: true,
@@ -258,19 +262,20 @@ var CreateCluster = Vue.component("create-cluster", {
                 namespace: store.state.currentNamespace,
                 postgresVersion: store.state.currentCluster.data.spec.postgresVersion,
                 instances: store.state.currentCluster.data.spec.instances,
-                resourceProfile: store.state.currentCluster.data.spec.resourceProfile,
-                pgConfig: store.state.currentCluster.data.spec.pgConfig,
-                storageClass: store.state.currentCluster.data.spec.storageClass,
+                resourceProfile: store.state.currentCluster.data.spec.sgInstanceProfile,
+                pgConfig: store.state.currentCluster.data.spec.configurations.sgPostgresConfig,
+                storageClass: store.state.currentCluster.data.spec.pods.persistentVolume.storageClass,
                 volumeSize: volumeSize,
                 volumeUnit: ''+volumeUnit,
-                connPooling: (store.state.currentCluster.data.spec.connectionPoolingConfig !== undefined),
-                connectionPoolingConfig: (store.state.currentCluster.data.spec.connectionPoolingConfig !== undefined) ? store.state.currentCluster.data.spec.connectionPoolingConfig : '',
+                connPooling: !store.state.currentCluster.data.spec.pods.disableConnectionPooling,
+                connectionPoolingConfig: (!store.state.currentCluster.data.spec.pods.disableConnectionPooling) ? store.state.currentCluster.data.spec.configurations.sgPoolingConfig : '',
                 restoreBackup: '',
                 downloadDiskConcurrency: '',
-                backupConfig: (store.state.currentCluster.data.spec.backupConfig !== undefined) ? store.state.currentCluster.data.spec.backupConfig : '',
+                backupConfig: (store.state.currentCluster.data.spec.backupConfig !== undefined) ? store.state.currentCluster.data.spec.configurations.sgBackupConfig : '',
                 prometheusAutobind:  (store.state.currentCluster.data.spec.prometheusAutobind !== undefined) ? store.state.currentCluster.data.spec.prometheusAutobind : false,
                 disableClusterPodAntiAffinity: (store.state.currentCluster.data.spec.disableClusterPodAntiAffinity !== undefined) ? store.state.currentCluster.data.spec.disableClusterPodAntiAffinity : false,
-                pgUtils: true,
+                metricsExporter: true,
+                postgresUtil: true,
                 pgConfigExists: true,
             }
         }
@@ -307,6 +312,9 @@ var CreateCluster = Vue.component("create-cluster", {
         },
         storageClasses() {
             return store.state.storageClasses
+        },
+        tooltips() {
+            return store.state.tooltips.description
         }
 
     },
@@ -327,34 +335,41 @@ var CreateCluster = Vue.component("create-cluster", {
             });
 
             if(isValid) {
-                let sidecars = [];
-                let fromBackup = {};
-                let nonProductionOptions = {}
-
-                if(this.connPooling)
-                    sidecars.push('connection-pooling');
-
-                if(this.pgUtils)
-                    sidecars.push('postgres-util');
-
+                
                 var cluster = { 
                     "metadata": {
                         "name": this.name,
                         "namespace": this.namespace
                     },
                     "spec": {
-                        "instances": this.instances,
                         "postgresVersion": this.postgresVersion,
-                        ...(this.pgConfig.length && ( {"pgConfig": this.pgConfig }) ),
-                        ...(this.resourceProfile.length && ( {"resourceProfile": this.resourceProfile }) ),
-                        ...(this.restoreBackup.length && ( {"restore": { "fromBackup": this.restoreBackup, "downloadDiskConcurrency": this.downloadDiskConcurrency } }) ),
-                        ...(this.backupConfig.length && ( {"backupConfig": this.backupConfig }) ),
-                        ...(this.connPooling && ( {"connectionPoolingConfig": this.connectionPoolingConfig }) ),
-                        "volumeSize": this.volumeSize+this.volumeUnit,
-                        ...( ( (this.storageClass !== undefined) && (this.storageClass.length ) ) && ( {"storageClass": this.storageClass }) ),
+                        "instances": this.instances,
+                        ...(this.resourceProfile.length && ( {"sgInstanceProfile": this.resourceProfile }) ),
+                        "pods": {
+                            "persistentVolume": {
+                                "size": this.volumeSize+this.volumeUnit,
+                                ...( ( (this.storageClass !== undefined) && (this.storageClass.length ) ) && ( {"storageClass": this.storageClass }) )
+                            },
+                            "disableConnectionPooling": !this.connPooling,
+                            "disableMetricsExporter": !this.metricsExporter,
+                            "disablePostgresUtil": !this.postgresUtil                        
+                        },
+                        "configurations": {
+                            ...(this.pgConfig.length && ( {"sgPostgresConfig": this.pgConfig }) ),
+                            ...(this.backupConfig.length && ( {"sgBackupConfig": this.backupConfig }) ),
+                            ...(this.connectionPoolingConfig.length && ( {"sgPoolingConfig": this.connectionPoolingConfig }) ),
+                        },
+                        ...(this.restoreBackup.length && ({
+                                "initialData": {
+                                    "restore": { 
+                                        "fromBackup": this.restoreBackup, 
+                                        "downloadDiskConcurrency": this.downloadDiskConcurrency 
+                                    }
+                                }
+                            }) 
+                        ),                      
                         ...(this.prometheusAutobind && ( {"prometheusAutobind": this.prometheusAutobind }) ),
                         ...(this.disableClusterPodAntiAffinity && ( {"nonProductionOptions": { "disableClusterPodAntiAffinity": this.disableClusterPodAntiAffinity } }) ),
-                        "sidecars": sidecars
                     }
                 }  
                 
@@ -368,15 +383,15 @@ var CreateCluster = Vue.component("create-cluster", {
                     )
                     .then(function (response) {
                         console.log("GOOD");
-                        notify('Cluster <strong>"'+cluster.metadata.name+'"</strong> updated successfully', 'message', 'cluster');
+                        notify('Cluster <strong>"'+cluster.metadata.name+'"</strong> updated successfully', 'message', 'sgcluster');
 
-                        vm.fetchAPI();
+                        vm.fetchAPI('sgcluster');
                         router.push('/cluster/status/'+cluster.metadata.namespace+'/'+cluster.metadata.name);
                         
                     })
                     .catch(function (error) {
                         console.log(error.response);
-                        notify(error.response.data,'error', 'cluster');
+                        notify(error.response.data,'error', 'sgcluster');
                     });
                 } else {
                     const res = axios
@@ -386,9 +401,9 @@ var CreateCluster = Vue.component("create-cluster", {
                     )
                     .then(function (response) {
                         console.log("GOOD");
-                        notify('Cluster <strong>"'+cluster.metadata.name+'"</strong> created successfully', 'message', 'cluster');
+                        notify('Cluster <strong>"'+cluster.metadata.name+'"</strong> created successfully', 'message', 'sgcluster');
 
-                        vm.fetchAPI();
+                        vm.fetchAPI('sgcluster');
                         router.push('/cluster/status/'+cluster.metadata.namespace+'/'+cluster.metadata.name);
                         
                         /* store.commit('updateClusters', { 
@@ -399,7 +414,7 @@ var CreateCluster = Vue.component("create-cluster", {
                     })
                     .catch(function (error) {
                         console.log(error.response);
-                        notify(error.response.data,'error','cluster');
+                        notify(error.response.data,'error','sgcluster');
                     });
                 }
 
@@ -434,5 +449,43 @@ var CreateCluster = Vue.component("create-cluster", {
             vc.pgConfigExists = (configs > 0);
         }
 
+    },
+
+    created: function() {
+        
+        console.log("Reading cluster tooltips");
+        /* Tooltips Data */
+        axios
+        .get('js/components/forms/help/crd-SGCluster-description-EN.json')
+        .then( function(response){
+            store.commit('setTooltips', { 
+            kind: 'SGCluster', 
+            description: response.data 
+        })
+        }).catch(function(err) {
+        console.log(err);
+        });
+
+    },
+
+    mounted: function() {
+        $(document).ready(function(){
+            
+            $(document).on("click",".help",function(){
+                $(".help.active").removeClass("active");
+                $(this).addClass("active");
+
+                let field = $(this).data("field");
+                let label = $("[for='"+field+"']");
+                
+                $("#help .title").html(label.html());
+                store.commit("setTooltipDescription",store.state.tooltips.SGCluster[field]);
+            });
+
+       })
+    },
+
+    beforeDestroy: function() {
+        store.commit('setTooltipDescription','Click on a question mark to get help and tips about that field.');
     }
 })
