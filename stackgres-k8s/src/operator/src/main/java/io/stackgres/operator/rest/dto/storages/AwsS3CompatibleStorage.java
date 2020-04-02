@@ -38,8 +38,8 @@ public class AwsS3CompatibleStorage {
   @JsonProperty("endpoint")
   private String endpoint;
 
-  @JsonProperty("forcePathStyle")
-  private Boolean forcePathStyle;
+  @JsonProperty("enablePathStyleAddressing")
+  private Boolean enablePathStyleAddressing;
 
   @JsonProperty("storageClass")
   private String storageClass;
@@ -85,11 +85,11 @@ public class AwsS3CompatibleStorage {
   }
 
   public Boolean isForcePathStyle() {
-    return forcePathStyle;
+    return enablePathStyleAddressing;
   }
 
-  public void setForcePathStyle(Boolean forcePathStyle) {
-    this.forcePathStyle = forcePathStyle;
+  public void setForcePathStyle(Boolean enablePathStyleAddressing) {
+    this.enablePathStyleAddressing = enablePathStyleAddressing;
   }
 
   public String getStorageClass() {
@@ -102,7 +102,7 @@ public class AwsS3CompatibleStorage {
 
   @Override
   public int hashCode() {
-    return Objects.hash(credentials, endpoint, forcePathStyle, bucket,
+    return Objects.hash(credentials, endpoint, enablePathStyleAddressing, bucket,
         region, storageClass, path);
   }
 
@@ -119,7 +119,7 @@ public class AwsS3CompatibleStorage {
     }
     AwsS3CompatibleStorage other = (AwsS3CompatibleStorage) obj;
     return Objects.equals(credentials, other.credentials)
-        && Objects.equals(endpoint, other.endpoint) && forcePathStyle == other.forcePathStyle
+        && Objects.equals(endpoint, other.endpoint) && enablePathStyleAddressing == other.enablePathStyleAddressing
         && Objects.equals(bucket, other.bucket) && Objects.equals(region, other.region)
         && Objects.equals(storageClass, other.storageClass) && Objects.equals(path, other.path);
   }
@@ -133,7 +133,7 @@ public class AwsS3CompatibleStorage {
         .add("credentials", credentials)
         .add("region", region)
         .add("endpoint", endpoint)
-        .add("forcePathStyle", forcePathStyle)
+        .add("enablePathStyleAddressing", enablePathStyleAddressing)
         .add("storageClass", storageClass)
         .toString();
   }

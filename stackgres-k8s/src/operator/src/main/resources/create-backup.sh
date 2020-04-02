@@ -118,7 +118,7 @@ $(kubectl get "$BACKUP_CONFIG_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG"
               name: "{{ .awsCredentials.secretKeySelectors.secretAccessKey.name }}"
         {{ with .region }}region: "{{ . }}"{{ end }}
         {{ with .endpoint }}endpoint: "{{ . }}"{{ end }}
-        {{ with .forcePathStyle }}forcePathStyle: {{ . }}{{ end }}
+        {{ with .enablePathStyleAddressing }}enablePathStyleAddressing: {{ . }}{{ end }}
         {{ with .storageClass }}storageClass: "{{ . }}"{{ end }}
       {{- end }}
       {{- with .spec.storage.gcs }}
@@ -201,7 +201,7 @@ else
         }
         {{ with .region }},"region": "{{ . }}"{{ end }}
         {{ with .endpoint }},"endpoint": "{{ . }}"{{ end }}
-        {{ with .forcePathStyle }},"forcePathStyle": {{ . }}{{ end }}
+        {{ with .enablePathStyleAddressing }},"enablePathStyleAddressing": {{ . }}{{ end }}
         {{ with .storageClass }},"storageClass": "{{ . }}"{{ end }}
       }
       {{- end }}

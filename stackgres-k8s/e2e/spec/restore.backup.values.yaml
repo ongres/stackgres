@@ -19,7 +19,7 @@ config:
         name: restore-backup-minio
         key: secretkey
       region: k8s
-      forcePathStyle: true
+      enablePathStyleAddressing: true
       endpoint: http://restore-backup-minio.restore-backup.svc.cluster.local:9000  
 cluster:
   volumeSize: 128Mi

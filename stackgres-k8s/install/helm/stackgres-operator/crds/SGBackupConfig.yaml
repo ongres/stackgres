@@ -160,7 +160,7 @@ spec:
                     endpoint:
                       type: string
                       description: "Overrides the default hostname to connect to an S3-compatible service. i.e, http://s3-like-service:9000."
-                    forcePathStyle:
+                    enablePathStyleAddressing:
                       type: boolean
                       description: "To enable path-style addressing(i.e., http://s3.amazonaws.com/BUCKET/KEY) when connecting to an S3-compatible service that lack of support for sub-domain style bucket URLs (i.e., http://BUCKET.s3.amazonaws.com/KEY). Defaults to false."
                     storageClass:

@@ -176,7 +176,7 @@ By default the chart create a storage class backed by an MinIO server. To avoid 
  property.
 * `config.backup.s3Compatible.endpoint`: Overrides the default hostname to connect to an S3-compatible
  service. i.e, http://s3-like-service:9000.
-* `config.backup.s3Compatible.forcePathStyle`: To enable path-style addressing(i.e.,
+* `config.backup.s3Compatible.enablePathStyleAddressing`: To enable path-style addressing(i.e.,
  http://s3.amazonaws.com/BUCKET/KEY) when connecting to an S3-compatible service that lack of
  support for sub-domain style bucket URLs (i.e., http://BUCKET.s3.amazonaws.com/KEY). Defaults to
  false.

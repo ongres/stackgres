@@ -43,7 +43,7 @@ config:
     #    key: secretkey
     #  region: k8s
     #  endpoint: minio.stackgres.svc
-    #  forcePathStyle: true
+    #  enablePathStyleAddressing: true
     #  storageClass:
     gcs: {}
     #  prefix: gcs://stackgres

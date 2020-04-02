@@ -38,8 +38,8 @@ public class AwsS3CompatibleStorage implements PrefixedStorage {
   @JsonProperty("endpoint")
   private String endpoint;
 
-  @JsonProperty("forcePathStyle")
-  private Boolean forcePathStyle;
+  @JsonProperty("enablePathStyleAddressing")
+  private Boolean enablePathStyleAddressing;
 
   @JsonProperty("storageClass")
   private String storageClass;
@@ -94,11 +94,11 @@ public class AwsS3CompatibleStorage implements PrefixedStorage {
   }
 
   public Boolean isForcePathStyle() {
-    return forcePathStyle;
+    return enablePathStyleAddressing;
   }
 
-  public void setForcePathStyle(Boolean forcePathStyle) {
-    this.forcePathStyle = forcePathStyle;
+  public void setForcePathStyle(Boolean enablePathStyleAddressing) {
+    this.enablePathStyleAddressing = enablePathStyleAddressing;
   }
 
   public String getStorageClass() {
@@ -111,7 +111,7 @@ public class AwsS3CompatibleStorage implements PrefixedStorage {
 
   @Override
   public int hashCode() {
-    return Objects.hash(awsCredentials, endpoint, forcePathStyle, bucket,
+    return Objects.hash(awsCredentials, endpoint, enablePathStyleAddressing, bucket,
         region, storageClass);
   }
 
@@ -128,7 +128,7 @@ public class AwsS3CompatibleStorage implements PrefixedStorage {
     }
     AwsS3CompatibleStorage other = (AwsS3CompatibleStorage) obj;
     return Objects.equals(awsCredentials, other.awsCredentials)
-        && Objects.equals(endpoint, other.endpoint) && forcePathStyle == other.forcePathStyle
+        && Objects.equals(endpoint, other.endpoint) && enablePathStyleAddressing == other.enablePathStyleAddressing
         && Objects.equals(bucket, other.bucket) && Objects.equals(path, other.path)
         && Objects.equals(region, other.region)
         && Objects.equals(storageClass, other.storageClass);
@@ -143,7 +143,7 @@ public class AwsS3CompatibleStorage implements PrefixedStorage {
         .add("awsCredentials", awsCredentials)
         .add("region", region)
         .add("endpoint", endpoint)
-        .add("forcePathStyle", forcePathStyle)
+        .add("enablePathStyleAddressing", enablePathStyleAddressing)
         .add("storageClass", storageClass)
         .toString();
   }

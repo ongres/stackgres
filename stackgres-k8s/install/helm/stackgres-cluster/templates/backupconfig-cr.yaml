@@ -43,7 +43,7 @@ spec:
     s3Compatible:
       bucket: stackgres
       endpoint: http://{{ .Release.Name }}-minio:9000
-      forcePathStyle: true
+      enablePathStyleAddressing: true
       region: k8s
       awsCredentials:
         secretKeySelectors:
@@ -97,8 +97,8 @@ spec:
       {{- if .Values.config.backup.s3Compatible.endpoint }}
       endpoint: "{{ .Values.config.backup.s3Compatible.endpoint }}"
       {{- end }}
-      {{- if .Values.config.backup.s3Compatible.forcePathStyle }}
-      forcePathStyle: {{ .Values.config.backup.s3Compatible.forcePathStyle }}
+      {{- if .Values.config.backup.s3Compatible.enablePathStyleAddressing }}
+      enablePathStyleAddressing: {{ .Values.config.backup.s3Compatible.enablePathStyleAddressing }}
       {{- end }}
       {{- if .Values.config.backup.s3Compatible.storageClass }}
       storageClass: "{{ .Values.config.backup.s3Compatible.storageClass }}"

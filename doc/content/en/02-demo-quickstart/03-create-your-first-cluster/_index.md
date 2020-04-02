@@ -63,7 +63,7 @@ spec:
           key: secretkey
           name: minio
       endpoint: http://minio:9000
-      forcePathStyle: true
+      enablePathStyleAddressing: true
       bucket: stackgres
       region: k8s
 EOF
