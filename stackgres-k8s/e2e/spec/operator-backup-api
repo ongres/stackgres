@@ -34,8 +34,8 @@ EOF
     namespace: "$CLUSTER_NAMESPACE"
     name: "$BACKUP_NAME"
   spec:
-    cluster: "$CLUSTER_NAME"
-    isPermanent: true
+    sgCluster: "$CLUSTER_NAME"
+    subjectToRetentionPolicy: true
 EOF
 
   wait_until eval 'kubectl get sgbackups.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
@@ -203,18 +203,18 @@ update_backup_parameter_with_api() {
 }
 
 test_api_updated_backup_is_visible() {
-  update_backup_parameter_with_api 'isPermanent' 'false'
+  update_backup_parameter_with_api 'subjectToRetentionPolicy' 'false'
 
   if kubectl get sgbackups.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
-    -o jsonpath='{.spec.isPermanent}' | grep -q "^false$"
+    -o jsonpath='{.spec.subjectToRetentionPolicy}' | grep -q "^false$"
   then
-    echo "Backup isPermanent were false"
+    echo "Backup subjectToRetentionPolicy were false"
   else
-    echo "Backup isPermanent weren't false"
+    echo "Backup subjectToRetentionPolicy weren't false"
     return 1
   fi
 
-  if run_curl -r "stackgres/backup/$CLUSTER_NAMESPACE/$BACKUP_NAME" | run_jq '.spec.isPermanent' -r \
+  if run_curl -r "stackgres/backup/$CLUSTER_NAMESPACE/$BACKUP_NAME" | run_jq '.spec.subjectToRetentionPolicy' -r \
     | grep -q "^false$"
   then
     echo "Backup updates are being reflected in the api"
@@ -256,7 +256,7 @@ test_api_delete_backup_is_visible() {
 
 test_constraint_violation_api_error() {
 
-  INVALID_PGCONFIG=$(cat "$LOG_PATH/stackgres-backup.json" | run_jq '.spec.cluster = null' )
+  INVALID_PGCONFIG=$(cat "$LOG_PATH/stackgres-backup.json" | run_jq '.spec.sgCluster = null' )
 
   echo "$INVALID_PGCONFIG" > "$LOG_PATH/invalid-backup.json"
   
@@ -272,8 +272,8 @@ test_constraint_violation_api_error() {
 
   EXPECTED_ERROR_TYPE="constraint-violation"
   EXPECTED_ERROR_TITLE="doesn't complain syntactic rules"
-  EXPECTED_ERROR_DETAIL="The cluster name is required"
-  EXPECTED_ERROR_FIELD="cluster"
+  EXPECTED_ERROR_DETAIL="The sgCluster name is required"
+  EXPECTED_ERROR_FIELD="sgCluster"
 
   assert_api_error "$ERROR_RESPONSE"
 
