@@ -61,7 +61,7 @@ spec:
               properties:
                 status:
                   type: string
-                  enum: ["Pending", "Completed", "Failed"]
+                  enum: ["Running", "Completed", "Failed"]
                   description: |
                     The status of the backup.
                 failure:
@@ -180,12 +180,12 @@ spec:
                       properties:
                         bucket:
                           type: string
-                          pattern: '((s3|https?)://)?[^/]+(/[^/]*)*$'
+                          pattern: "^[^/]+(/[^/]*)*$"
                           description: |
                             AWS S3 bucket name.
                         path:
                           type: string
-                          pattern: '(/[^/]*)*$'
+                          pattern: "^(/[^/]*)*$"
                           description: |
                             Optional path within the S3 bucket. Note that StackGres generates in any case a folder per
                             StackGres cluster, using the `SGCluster.metadata.name`.
@@ -254,16 +254,16 @@ spec:
                       properties:
                         bucket:
                           type: string
-                          pattern: '((s3|https?)://)?[^/]+(/[^/]*)*$'
+                          pattern: "^[^/]+(/[^/]*)*$"
                           description: |
                             Bucket name.
                         path:
                           type: string
-                          pattern: '(/[^/]*)*$'
+                          pattern: "^(/[^/]*)*$"
                           description: |
                             Optional path within the S3 bucket. Note that StackGres generates in any case a folder per
                             StackGres cluster, using the `SGCluster.metadata.name`.
-                        forcePathStyle:
+                        enablePathStyleAddressing:
                           type: boolean
                           description: |
                             Enable path-style addressing (i.e. `http://s3.amazonaws.com/BUCKET/KEY`) when connecting to an
@@ -340,7 +340,7 @@ spec:
                       properties:
                         bucket:
                           type: string
-                          pattern: "^(gs://)?[^/]+(/[^/]*)*$"
+                          pattern: "^[^/]+(/[^/]*)*$"
                           description: |
                             GCS bucket name.
                         path:
@@ -387,7 +387,7 @@ spec:
                       properties:
                         bucket:
                           type: string
-                          pattern: "^(azure://)?[^/]+(/[^/]*)*$"
+                          pattern: "^[^/]+(/[^/]*)*$"
                           description: |
                             Azure Blob Storage bucket name.
                         path:

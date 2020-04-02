@@ -27,8 +27,8 @@ metadata:
 spec:
   baseBackups:
     retention: {{ .Values.config.backup.retention }}
-    cronSchedule: "{{ .Values.config.backup.fullSchedule }}"    
-    compression: "{{ .Values.config.backup.compressionMethod }}"
+    cronSchedule: "{{ .Values.config.backup.fullSchedule }}"
+    compression: "{{ .Values.config.backup.compression }}"
     performance:
       {{- if .Values.config.backup.networkRateLimit }}
       maxNetworkBandwitdh: {{ .Values.config.backup.networkRateLimit }}

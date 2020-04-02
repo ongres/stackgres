@@ -16,7 +16,7 @@
   },
   "status": {
     "sgBackupConfig":  {
-      "compressionMethod": "lz4",
+      "compression": "lz4",
       "storage": {
         "s3Compatible": {
           "credentials": {

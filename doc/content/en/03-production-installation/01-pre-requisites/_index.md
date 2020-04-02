@@ -14,7 +14,7 @@ By default backups are scheduled (`config.backup.fullSchedule`) at 05:00 UTC in 
 
 There are more general fine tuning parameters that could affect backups in more aspects:
 
-* Compression algorithm (`config.backup.compressionMethod`): affect backup size and computational
+* Compression algorithm (`config.backup.compression`): affect backup size and computational
  resources used when creating and reading them.
 * Upload disk concurrency (`config.backup.uploadDiskConcurrency`): When reading from disk incresing
  the parallelism could speed up the operation but this depend really on the storage capacity to
@@ -36,7 +36,7 @@ config:
     retention: 5
     fullSchedule: "0 5 * * *"
     fullWindow: 60
-    compressionMethod: lz4
+    compression: lz4
     uploadDiskConcurrency: 1
     tarSizeThreshold: 1073741823
     # networkRateLimit:
