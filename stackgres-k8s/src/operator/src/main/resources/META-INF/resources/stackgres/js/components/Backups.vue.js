@@ -17,7 +17,7 @@ var Backups = Vue.component("sg-backup", {
 				</ul>
 
 				<div class="actions">
-					<router-link :to="'/crd/edit/cluster/'+$route.params.namespace+'/'+$route.params.name">Edit Cluster</router-link> <a v-on:click="deleteCRD('cluster', currentNamespace, currentCluster.name, '/overview/'+currentNamespace)" :class="'/overview/'+currentNamespace">Delete Cluster</a>
+					<router-link :to="'/crd/edit/cluster/'+$route.params.namespace+'/'+$route.params.name">Edit Cluster</router-link> <a v-on:click="deleteCRD('sgcluster', currentNamespace, currentCluster.name, '/overview/'+currentNamespace)" :class="'/overview/'+currentNamespace">Delete Cluster</a>
 				</div>
 
 				<ul class="tabs">
@@ -350,10 +350,10 @@ var Backups = Vue.component("sg-backup", {
 																	<strong class="label">credentials:</strong> 
 																	<ul>
 																		<li>
-																			<strong class="label">account:</strong> {{ back.data.status.sgBackupConfig.storage.azureBlob.credentials.account }}
+																			<strong class="label">account:</strong> {{ back.data.status.sgBackupConfig.storage.azureBlob.azureCredentials.account }}
 																		</li>
 																		<li>
-																			<strong class="label">accessKey:</strong> {{ back.data.status.sgBackupConfig.storage.azureBlob.credentials.accessKey }}
+																			<strong class="label">accessKey:</strong> {{ back.data.status.sgBackupConfig.storage.azureBlob.azureCredentials.accessKey }}
 																		</li>
 																	</ul>
 																</li>

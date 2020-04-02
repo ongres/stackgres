@@ -56,7 +56,7 @@ var BackupConfig = Vue.component("backup-config", {
 							</td>
 						</tr>
 						<template v-for="conf in config" v-if="conf.data.metadata.namespace == currentNamespace">
-							<tr :class="[ $route.params.name == conf.name ? 'open' : '', 'backupconfig-'+conf.data.metadata.namespace+'-'+conf.name ]" class="base">
+							<tr :class="[ $route.params.name == conf.name ? 'open' : '', 'sgbackupconfig-'+conf.data.metadata.namespace+'-'+conf.name ]" class="base">
 								<td>{{ conf.name }}</td>
 								<td>{{ conf.data.spec.baseBackups.retention }}</td>
 								<td>{{ conf.data.spec.baseBackups.cronSchedule | prettyCRON }}</td>
@@ -70,12 +70,12 @@ var BackupConfig = Vue.component("backup-config", {
 									<router-link :to="'/crd/edit/backupconfig/'+currentNamespace+'/'+conf.name" title="Edit Configuration">
 										<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14"><path d="M90,135.721v2.246a.345.345,0,0,0,.345.345h2.246a.691.691,0,0,0,.489-.2l8.042-8.041a.346.346,0,0,0,0-.489l-2.39-2.389a.345.345,0,0,0-.489,0L90.2,135.232A.691.691,0,0,0,90,135.721Zm13.772-8.265a.774.774,0,0,0,0-1.095h0l-1.82-1.82a.774.774,0,0,0-1.095,0h0l-1.175,1.176a.349.349,0,0,0,0,.495l2.421,2.421a.351.351,0,0,0,.5,0Z" transform="translate(-90 -124.313)"/></svg>
 									</router-link>
-									<a v-on:click="deleteCRD('backupconfig',currentNamespace, conf.name)" class="delete" title="Delete Configuration">
+									<a v-on:click="deleteCRD('sgbackupconfig',currentNamespace, conf.name)" class="delete" title="Delete Configuration">
 										<svg xmlns="http://www.w3.org/2000/svg" width="13.5" height="15" viewBox="0 0 13.5 15"><g transform="translate(-61 -90)"><path d="M73.765,92.7H71.513a.371.371,0,0,1-.355-.362v-.247A2.086,2.086,0,0,0,69.086,90H66.413a2.086,2.086,0,0,0-2.072,2.094V92.4a.367.367,0,0,1-.343.3H61.735a.743.743,0,0,0,0,1.486h.229a.375.375,0,0,1,.374.367v8.35A2.085,2.085,0,0,0,64.408,105h6.684a2.086,2.086,0,0,0,2.072-2.095V94.529a.372.372,0,0,1,.368-.34h.233a.743.743,0,0,0,0-1.486Zm-7.954-.608a.609.609,0,0,1,.608-.607h2.667a.6.6,0,0,1,.6.6v.243a.373.373,0,0,1-.357.371H66.168a.373.373,0,0,1-.357-.371Zm5.882,10.811a.61.61,0,0,1-.608.608h-6.67a.608.608,0,0,1-.608-.608V94.564a.375.375,0,0,1,.375-.375h7.136a.375.375,0,0,1,.375.375Z" transform="translate(0)"/><path d="M68.016,98.108a.985.985,0,0,0-.98.99V104.5a.98.98,0,1,0,1.96,0V99.1A.985.985,0,0,0,68.016,98.108Z" transform="translate(-1.693 -3.214)"/><path d="M71.984,98.108a.985.985,0,0,0-.98.99V104.5a.98.98,0,1,0,1.96,0V99.1A.985.985,0,0,0,71.984,98.108Z" transform="translate(-2.807 -3.214)"/></g></svg>
 									</a>
 								</td>
 							</tr>
-							<tr :class="[ $route.params.name == conf.name ? 'open' : '', 'backupconfig-'+conf.data.metadata.namespace+'-'+conf.name ]" class="details" :style="$route.params.name == conf.name ? 'display: table-row;' : ''">
+							<tr :class="[ $route.params.name == conf.name ? 'open' : '', 'sgbackupconfig-'+conf.data.metadata.namespace+'-'+conf.name ]" class="details" :style="$route.params.name == conf.name ? 'display: table-row;' : ''">
 								<td colspan="8">
 									<ul class="yaml">
 										<template v-if="conf.data.spec.storage.type === 's3'">
@@ -86,7 +86,7 @@ var BackupConfig = Vue.component("backup-config", {
 												<strong class="label">path:</strong> {{ conf.data.spec.storage.s3.path }}
 											</li>
 											<li>
-												<strong class="label">credentials:</strong> 
+												<strong class="label">awsCredentials:</strong> 
 												<ul>
 													<li>
 														<strong class="label">accessKeyId:</strong> {{ conf.data.spec.storage.s3.awsCredentials.accessKeyId }}
@@ -111,7 +111,7 @@ var BackupConfig = Vue.component("backup-config", {
 												<strong class="label">path:</strong> {{ conf.data.spec.storage.s3Compatible.path }}
 											</li>
 											<li>
-												<strong class="label">credentials:</strong> 
+												<strong class="label">awsCredentials:</strong> 
 												<ul>
 													<li>
 														<strong class="label">accessKeyId:</strong> {{ conf.data.spec.storage.s3Compatible.awsCredentials.accessKeyId }}
@@ -127,25 +127,25 @@ var BackupConfig = Vue.component("backup-config", {
 											<li v-if="typeof conf.data.spec.storage.s3Compatible.storageClass !== 'undefined'">
 												<strong class="label">storageClass:</strong> {{ conf.data.spec.storage.s3Compatible.storageClass }}
 											</li>
-											<li>
+											<li v-if="typeof conf.data.spec.storage.s3Compatible.endpoint !== 'undefined'">
 												<strong class="label">endpoint:</strong> {{ conf.data.spec.storage.s3Compatible.endpoint }}
 											</li>
-											<li>
-												<strong class="label">forcePathStyle:</strong> {{ conf.data.spec.storage.s3Compatible.forcePathStyle }}
+											<li v-if="typeof conf.data.spec.storage.s3Compatible.enablePathStyleAddressing !== 'undefined'">
+												<strong class="label">enablePathStyleAddressing:</strong> {{ conf.data.spec.storage.s3Compatible.enablePathStyleAddressing }}
 											</li>
 										</template>
 										<template v-else-if="conf.data.spec.storage.type === 'gcs'">
 											<li>
 												<strong class="label">bucket:</strong> {{ conf.data.spec.storage.gcs.bucket }}
 											</li>
-											<li>
+											<li v-if="typeof conf.data.spec.storage.gcs.path !== 'undefined'">
 												<strong class="label">path:</strong> {{ conf.data.spec.storage.gcs.path }}
 											</li>
 											<li>
-												<strong class="label">credentials:</strong> 
+												<strong class="label">gcpCredentials:</strong> 
 												<ul>
 													<li>
-														<strong class="label">serviceAccountJSON:</strong> {{ conf.data.spec.storage.gcs.credentials.serviceAccountJSON }}
+														<strong class="label">serviceAccountJSON:</strong> {{ conf.data.spec.storage.gcs.gcpCredentials.serviceAccountJSON }}
 													</li>
 												</ul>
 											</li>
@@ -154,17 +154,17 @@ var BackupConfig = Vue.component("backup-config", {
 											<li>
 												<strong class="label">bucket:</strong> {{ conf.data.spec.storage.azureBlob.bucket }}
 											</li>
-											<li>
+											<li v-if="typeof conf.data.spec.storage.azureBlob.path !== 'undefined'">
 												<strong class="label">path:</strong> {{ conf.data.spec.storage.azureBlob.path }}
 											</li>
 											<li>
-												<strong class="label">credentials:</strong> 
+												<strong class="label">azureCredentials:</strong> 
 												<ul>
 													<li>
-														<strong class="label">account:</strong> {{ conf.data.spec.storage.azureBlob.credentials.account }}
+														<strong class="label">storageAccount:</strong> {{ conf.data.spec.storage.azureBlob.azureCredentials.storageAccount }}
 													</li>
 													<li>
-														<strong class="label">accessKey:</strong> {{ conf.data.spec.storage.azureBlob.credentials.accessKey }}
+														<strong class="label">accessKey:</strong> {{ conf.data.spec.storage.azureBlob.azureCredentials.accessKey }}
 													</li>
 												</ul>
 											</li>

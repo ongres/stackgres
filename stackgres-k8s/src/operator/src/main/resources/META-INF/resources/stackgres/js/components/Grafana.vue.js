@@ -17,7 +17,7 @@ var Grafana = Vue.component("grafana", {
 				</ul>
 
 				<div class="actions">
-					<router-link :to="'/crd/edit/cluster/'+$route.params.namespace+'/'+currentCluster.name">Edit Cluster</router-link> <a v-on:click="deleteCRD('cluster', currentNamespace, currentCluster.name, '/overview/'+currentNamespace)" :class="'/overview/'+currentNamespace">Delete Cluster</a>
+					<router-link :to="'/crd/edit/cluster/'+$route.params.namespace+'/'+currentCluster.name">Edit Cluster</router-link> <a v-on:click="deleteCRD('sgcluster', currentNamespace, currentCluster.name, '/overview/'+currentNamespace)" :class="'/overview/'+currentNamespace">Delete Cluster</a>
 				</div>
 
 				<ul class="tabs">

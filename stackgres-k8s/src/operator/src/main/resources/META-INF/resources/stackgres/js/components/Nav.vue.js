@@ -79,7 +79,7 @@ var Nav = Vue.component("sg-nav", {
 						<p>
 							Please type the exact name of the {{ deleteItem.kind }} to confirm.
 						</p>
-						<form>
+						<form @submit="confirmDelete(confirmName)">
 							<input v-model="confirmName" :placeholder="deleteItem.kind+' name'">
 							<span class="warning" style="display:none">The {{ deleteItem.kind }} name does not match the name of the element requested to be deleted.</span>
 							<a @click="confirmDelete(confirmName)">DELETE ITEM</a> <a @click="cancelDelete()">CANCEL</a>
