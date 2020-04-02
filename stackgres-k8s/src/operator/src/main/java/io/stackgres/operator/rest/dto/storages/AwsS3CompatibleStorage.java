@@ -119,7 +119,8 @@ public class AwsS3CompatibleStorage {
     }
     AwsS3CompatibleStorage other = (AwsS3CompatibleStorage) obj;
     return Objects.equals(credentials, other.credentials)
-        && Objects.equals(endpoint, other.endpoint) && enablePathStyleAddressing == other.enablePathStyleAddressing
+        && Objects.equals(endpoint, other.endpoint)
+        && enablePathStyleAddressing == other.enablePathStyleAddressing
         && Objects.equals(bucket, other.bucket) && Objects.equals(region, other.region)
         && Objects.equals(storageClass, other.storageClass) && Objects.equals(path, other.path);
   }
