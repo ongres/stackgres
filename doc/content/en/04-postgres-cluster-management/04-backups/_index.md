@@ -40,7 +40,7 @@ ___
 
 | Property                         | Type    | Description |
 |:---------------------------------|:--------|:------------|
-| status                           | string  | The phase of the backup (Pending, Created, Failed). |
+| status                           | string  | The phase of the backup (Running, Created, Failed). |
 | jobPod                           | string  | The name of pod assigned to this backup. |
 | failure                          | string  | If the phase is failed this field will contain a message with the failure reason. |
 | subjectToRetentionPolicy         | boolean | Indicate if this backup is permanent and should not be removed by retention process. |

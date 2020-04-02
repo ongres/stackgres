@@ -41,7 +41,7 @@ spec:
               properties:
                 status:
                   type: string
-                  enum: ["Pending", "Completed", "Failed"]
+                  enum: ["Running", "Completed", "Failed"]
                   description: "The phase of the backup."
                 failure:
                   type: string

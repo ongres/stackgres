@@ -82,8 +82,8 @@ var Backups = Vue.component("sg-backup", {
 										<span>Completed</span>
 									</label>
 									<label for="notCompleted">
-										<input v-model="phase" type="checkbox" id="notCompleted" name="phase" value="Pending" @change="filterTable"/>
-										<span>Pending</span>
+										<input v-model="phase" type="checkbox" id="notCompleted" name="phase" value="Running" @change="filterTable"/>
+										<span>Running</span>
 									</label>
 								</li>
 

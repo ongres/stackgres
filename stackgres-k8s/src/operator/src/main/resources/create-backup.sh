@@ -74,7 +74,7 @@ spec:
   subjectToRetentionPolicy: false
 status:
   process:
-    status: "$BACKUP_PHASE_PENDING"
+    status: "$BACKUP_PHASE_RUNNING"
     jobPod: "$POD_NAME"
     timing:
       stored: "N/A"
@@ -154,7 +154,7 @@ else
     kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
       {"op":"replace","path":"/status","value":{
         "process": {
-          "status": "'"$BACKUP_PHASE_PENDING"'",
+          "status": "'"$BACKUP_PHASE_RUNNING"'",
           "jobPod": "'"$POD_NAME"'" 
         },
         "sgBackupConfig":{'"$(kubectl get "$BACKUP_CONFIG_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" \
@@ -529,7 +529,7 @@ EOF
     then
       kubectl delete "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$backup_cr_name"
     elif [ "$backup_owner_kind" = "CronJob" ] \
-      && [ "$backup_phase" = "$BACKUP_PHASE_PENDING" ] \
+      && [ "$backup_phase" = "$BACKUP_PHASE_RUNNING" ] \
       && ([ -z "$backup_pod" ] || ! grep -q "^$backup_pod$" /tmp/pods)
     then
       kubectl delete "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$backup_cr_name"

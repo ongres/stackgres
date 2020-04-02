@@ -142,8 +142,8 @@ public class BackupCronJob implements StackGresClusterResourceStreamFactory {
                           .withValue(StackGresBackupDefinition.APIVERSION)
                           .build(),
                           new EnvVarBuilder()
-                          .withName("BACKUP_PHASE_PENDING")
-                          .withValue(BackupPhase.PENDING.label())
+                          .withName("BACKUP_PHASE_RUNNING")
+                          .withValue(BackupPhase.RUNNING.label())
                           .build(),
                           new EnvVarBuilder()
                           .withName("BACKUP_PHASE_COMPLETED")

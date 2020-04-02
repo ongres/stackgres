@@ -399,9 +399,9 @@ public class ClusterReconciliationCycle
               .findAny())
           .map(backup -> {
             Preconditions.checkNotNull(backup.getStatus(),
-                "Backup is " + BackupPhase.PENDING.label());
+                "Backup is " + BackupPhase.RUNNING.label());
             Preconditions.checkNotNull(backup.getStatus().getProcess(),
-                "Backup is " + BackupPhase.PENDING.label());
+                "Backup is " + BackupPhase.RUNNING.label());
             Preconditions.checkArgument(backup.getStatus().getProcess().getStatus()
                     .equals(BackupPhase.COMPLETED.label()),
                 "Backup is " + backup.getStatus().getProcess().getStatus());
