@@ -278,10 +278,10 @@ var Backups = Vue.component("sg-backup", {
 																	<strong class="label">awsCredentials:</strong> 
 																	<ul>
 																		<li>
-																			<strong class="label">accessKeyId:</strong> {{ back.data.status.sgBackupConfig.storage.s3.awsCredentials.accessKeyId }}
+																			<strong class="label">accessKeyId:</strong> ****
 																		</li>
 																		<li>
-																			<strong class="label">secretAccessKey:</strong> {{ back.data.status.sgBackupConfig.storage.s3.awsCredentials.secretAccessKey }}
+																			<strong class="label">secretAccessKey:</strong> ****
 																		</li>
 																	</ul>
 																</li>
@@ -303,10 +303,10 @@ var Backups = Vue.component("sg-backup", {
 																	<strong class="label">awsCredentials:</strong> 
 																	<ul>
 																		<li>
-																			<strong class="label">accessKeyId:</strong> {{ back.data.status.sgBackupConfig.storage.s3Compatible.awsCredentials.accessKeyId }}
+																			<strong class="label">accessKeyId:</strong> ****
 																		</li>
 																		<li>
-																			<strong class="label">secretAccessKey:</strong> {{ back.data.status.sgBackupConfig.storage.s3Compatible.awsCredentials.secretAccessKey }}
+																			<strong class="label">secretAccessKey:</strong> ****
 																		</li>
 																	</ul>
 																</li>
@@ -334,7 +334,7 @@ var Backups = Vue.component("sg-backup", {
 																	<strong class="label">credentials:</strong> 
 																	<ul>
 																		<li>
-																			<strong class="label">serviceAccountJSON:</strong> {{ back.data.status.sgBackupConfig.storage.gcp.credentials.serviceAccountJSON }}
+																			<strong class="label">serviceAccountJSON:</strong> ****
 																		</li>
 																	</ul>
 																</li>
@@ -347,13 +347,13 @@ var Backups = Vue.component("sg-backup", {
 																	<strong class="label">path:</strong> {{ back.data.status.sgBackupConfig.storage.azureBlob.path }}
 																</li>
 																<li>
-																	<strong class="label">credentials:</strong> 
+																	<strong class="label">azureCredentials:</strong> 
 																	<ul>
 																		<li>
-																			<strong class="label">account:</strong> {{ back.data.status.sgBackupConfig.storage.azureBlob.azureCredentials.account }}
+																			<strong class="label">storageAccount:</strong> ****
 																		</li>
 																		<li>
-																			<strong class="label">accessKey:</strong> {{ back.data.status.sgBackupConfig.storage.azureBlob.azureCredentials.accessKey }}
+																			<strong class="label">accessKey:</strong> ****
 																		</li>
 																	</ul>
 																</li>

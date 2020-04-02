@@ -89,10 +89,10 @@ var BackupConfig = Vue.component("backup-config", {
 												<strong class="label">awsCredentials:</strong> 
 												<ul>
 													<li>
-														<strong class="label">accessKeyId:</strong> {{ conf.data.spec.storage.s3.awsCredentials.accessKeyId }}
+														<strong class="label">accessKeyId:</strong> ****
 													</li>
 													<li>
-														<strong class="label">secretAccessKey:</strong> {{ conf.data.spec.storage.s3.awsCredentials.secretAccessKey }}
+														<strong class="label">secretAccessKey:</strong> ****
 													</li>
 												</ul>
 											</li>
@@ -114,10 +114,10 @@ var BackupConfig = Vue.component("backup-config", {
 												<strong class="label">awsCredentials:</strong> 
 												<ul>
 													<li>
-														<strong class="label">accessKeyId:</strong> {{ conf.data.spec.storage.s3Compatible.awsCredentials.accessKeyId }}
+														<strong class="label">accessKeyId:</strong> ****
 													</li>
 													<li>
-														<strong class="label">secretAccessKey:</strong> {{ conf.data.spec.storage.s3Compatible.awsCredentials.secretAccessKey }}
+														<strong class="label">secretAccessKey:</strong> ****
 													</li>
 												</ul>
 											</li>
@@ -145,7 +145,7 @@ var BackupConfig = Vue.component("backup-config", {
 												<strong class="label">gcpCredentials:</strong> 
 												<ul>
 													<li>
-														<strong class="label">serviceAccountJSON:</strong> {{ conf.data.spec.storage.gcs.gcpCredentials.serviceAccountJSON }}
+														<strong class="label">serviceAccountJSON:</strong> ****
 													</li>
 												</ul>
 											</li>
@@ -161,10 +161,10 @@ var BackupConfig = Vue.component("backup-config", {
 												<strong class="label">azureCredentials:</strong> 
 												<ul>
 													<li>
-														<strong class="label">storageAccount:</strong> {{ conf.data.spec.storage.azureBlob.azureCredentials.storageAccount }}
+														<strong class="label">storageAccount:</strong> ****
 													</li>
 													<li>
-														<strong class="label">accessKey:</strong> {{ conf.data.spec.storage.azureBlob.azureCredentials.accessKey }}
+														<strong class="label">accessKey:</strong> ****
 													</li>
 												</ul>
 											</li>
