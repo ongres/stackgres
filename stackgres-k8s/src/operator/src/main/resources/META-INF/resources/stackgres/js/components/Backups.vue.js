@@ -320,7 +320,7 @@ var Backups = Vue.component("sg-backup", {
 																	<strong class="label">endpoint:</strong> {{ back.data.status.sgBackupConfig.storage.s3Compatible.endpoint }}
 																</li>
 																<li>
-																	<strong class="label">forcePathStyle:</strong> {{ back.data.status.sgBackupConfig.storage.s3Compatible.forcePathStyle }}
+																	<strong class="label">enablePathStyleAddressing:</strong> {{ back.data.status.sgBackupConfig.storage.s3Compatible.enablePathStyleAddressing }}
 																</li>
 															</template>
 															<template v-else-if="back.data.status.sgBackupConfig.storage.type === 'gcs'">

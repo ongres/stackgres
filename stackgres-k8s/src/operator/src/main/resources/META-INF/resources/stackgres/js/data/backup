@@ -92,7 +92,7 @@
             },
             "region": "k8s",
             "endpoint": "http://test-minio:9000",
-            "forcePathStyle": true
+            "enablePathStyleAddressing": true
           }
         },
         "compressionMethod": "lz4"
@@ -144,7 +144,7 @@
             },
             "region": "k8s",
             "endpoint": "http://test-minio:9000",
-            "forcePathStyle": true
+            "enablePathStyleAddressing": true
           }
         },
         "compressionMethod": "lz4"
@@ -214,7 +214,7 @@
                             }
                         },
                         "endpoint": "http://backup-with-default-storage-minio:9000",
-                        "forcePathStyle": true,
+                        "enablePathStyleAddressing": true,
                         "prefix": "s3://stackgres",
                         "region": "k8s"
                     },
@@ -306,7 +306,7 @@
             },
             "region": "k8s",
             "endpoint": "http://test-minio:9000",
-            "forcePathStyle": true
+            "enablePathStyleAddressing": true
           }
         },
         "compressionMethod": "lz4"
@@ -358,7 +358,7 @@
             },
             "region": "k8s",
             "endpoint": "http://test-minio:9000",
-            "forcePathStyle": true
+            "enablePathStyleAddressing": true
           }
         },
         "compressionMethod": "lz4"
@@ -428,7 +428,7 @@
                             }
                         },
                         "endpoint": "http://backup-with-default-storage-minio:9000",
-                        "forcePathStyle": true,
+                        "enablePathStyleAddressing": true,
                         "prefix": "s3://stackgres",
                         "region": "k8s"
                     },
@@ -520,7 +520,7 @@
             },
             "region": "k8s",
             "endpoint": "http://test-minio:9000",
-            "forcePathStyle": true
+            "enablePathStyleAddressing": true
           }
         },
         "compressionMethod": "lz4"
@@ -572,7 +572,7 @@
             },
             "region": "k8s",
             "endpoint": "http://test-minio:9000",
-            "forcePathStyle": true
+            "enablePathStyleAddressing": true
           }
         },
         "compressionMethod": "lz4"
@@ -642,7 +642,7 @@
                             }
                         },
                         "endpoint": "http://backup-with-default-storage-minio:9000",
-                        "forcePathStyle": true,
+                        "enablePathStyleAddressing": true,
                         "prefix": "s3://stackgres",
                         "region": "k8s"
                     },
@@ -740,7 +740,7 @@
             },
             "region": "k8s",
             "endpoint": "http://test-minio:9000",
-            "forcePathStyle": true
+            "enablePathStyleAddressing": true
           }
         },
         "compressionMethod": "lz4"
@@ -792,7 +792,7 @@
             },
             "region": "k8s",
             "endpoint": "http://stackgres-minio:9000",
-            "forcePathStyle": true
+            "enablePathStyleAddressing": true
           }
         },
         "compressionMethod": "lz4"
@@ -862,7 +862,7 @@
                             }
                         },
                         "endpoint": "http://backup-with-default-storage-minio:9000",
-                        "forcePathStyle": true,
+                        "enablePathStyleAddressing": true,
                         "prefix": "s3://stackgres",
                         "region": "k8s"
                     },
@@ -978,7 +978,7 @@
                             }
                         },
                         "endpoint": "http://backup-with-default-storage-minio:9000",
-                        "forcePathStyle": true,
+                        "enablePathStyleAddressing": true,
                         "prefix": "s3://stackgres",
                         "region": "k8s"
                     },
@@ -1094,7 +1094,7 @@
                             }
                         },
                         "endpoint": "http://backup-with-default-storage-minio:9000",
-                        "forcePathStyle": true,
+                        "enablePathStyleAddressing": true,
                         "prefix": "s3://stackgres",
                         "region": "k8s"
                     },
@@ -1210,7 +1210,7 @@
                             }
                         },
                         "endpoint": "http://backup-with-default-storage-minio:9000",
-                        "forcePathStyle": true,
+                        "enablePathStyleAddressing": true,
                         "prefix": "s3://stackgres",
                         "region": "k8s"
                     },
@@ -1299,7 +1299,7 @@
                             }
                         },
                         "endpoint": "http://backup-with-default-storage-minio:9000",
-                        "forcePathStyle": true,
+                        "enablePathStyleAddressing": true,
                         "prefix": "s3://stackgres",
                         "region": "k8s"
                     },
