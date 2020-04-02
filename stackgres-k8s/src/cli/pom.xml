@@ -6,7 +6,7 @@
   <parent>
     <groupId>io.stackgres</groupId>
     <artifactId>stackgres-parent</artifactId>
-    <version>0.9-SNAPSHOT</version>
+    <version>0.9-alpha1</version>
   </parent>
 
   <artifactId>cli</artifactId>

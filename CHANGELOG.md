@@ -1,3 +1,22 @@
+# Release 0.9-alpha1
+
+## NOTES
+
+* New Shiny UI
+* Improved REST API
+* Version 1beta1 of StackGres CRDs
+* Improved grafana integration
+* Updated PostgreSQL to 12.2 and 11.7, Patroni 1.6.4 and Envoy 1.13.0
+* Support for helm 3.x
+
+## FIXES
+
+* Upgrade of helm chart release give "resource already exists" error.
+* Error on POST /stackgres/connpoolconfig if kind and apiVersion are not specified
+* Error on create backup conf in namespace that is not the operator one
+* /status/isPermanent is not updated when /spec/isPermanent is changed
+* Backup job to store on S3 never adquire the lock
+
 # Release 0.8
 
 ## NOTES

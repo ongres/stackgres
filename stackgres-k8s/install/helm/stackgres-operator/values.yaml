@@ -1,6 +1,6 @@
 image:
   name: "stackgres/operator"
-  tag: "development-jvm"
+  tag: "0.9-alpha1-jvm"
   pullPolicy: "IfNotPresent"
 
 service:

@@ -28,7 +28,7 @@ The image is loaded in local docker registry. You will have to upload the genera
 by kubernetes. Then to deploy the operator run from the project roor folder:
 
 ```
-helm install --name stackgres-cluster --namespace stackgres stackgres-k8s/install/helm/stackgres-cluster
+helm install stackgres-cluster --namespace stackgres stackgres-k8s/install/helm/stackgres-cluster
 ```
 
 ### Building locally
@@ -55,7 +55,7 @@ The image is loaded in local docker registry. You will have to upload the genera
 by kubernetes. Then to deploy the operator run from the project roor folder:
 
 ```
-helm install --name stackgres-cluster --namespace stackgres stackgres-k8s/install/helm/stackgres-cluster
+helm install stackgres-cluster --namespace stackgres stackgres-k8s/install/helm/stackgres-cluster
 ```
 
 #### Update container components versions
