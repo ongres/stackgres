@@ -199,6 +199,10 @@ a#showPassword svg {
     display: inline;
 }
 
+#showPassword.active path {
+    fill: var(--blue);
+}
+
 #showPassword {
     position: relative;
     display: block;
@@ -2556,11 +2560,12 @@ tr:not(.open) .parameters ul.yaml {
     text-overflow: ellipsis;
     white-space: nowrap;
     width: 40vw;
+    padding-right: 25px;
 }
 
 tr:not(.open) .parameters ul.yaml li {
     position: relative;
-    display: inline-block;
+    display: inline;
 }
 
 tr:not(.open) td.parameters ul.yaml li:not(:last-of-type):after {
@@ -2834,3 +2839,146 @@ tr.no-results:first-child:last-child {
 }
 
 
+/* Centralized Log */
+
+table.logs {
+    margin-top: 30px;
+}
+
+table.logs td.timestamp {
+    width: 13vw;
+}
+
+th.number, th.fraction {
+    width: 5vw;
+}
+
+th.sysId, th.operation {
+    width: 8vw;
+}
+
+td.logMessage {
+    width: 30%;
+    position: absolute;
+}
+
+td.logMessage span {
+    overflow: hidden; 
+    text-overflow: ellipsis;
+    white-space: nowrap; 
+    width: 100%;
+    display: inline-block;
+}
+
+#logs .actions a:hover svg path {
+    fill: red;
+}
+
+td.operation> span {
+    display: inline-block;
+    width: 90px;
+    padding: 3px 0;
+    font-size: 11px;
+    border-radius: 10px;
+    font-weight: bold;
+    text-align: center;
+}
+
+td.operation.Authentication > span {
+    color: #Ac42Fa;
+    background-color: #Ac42Fa1A;
+}
+
+td.operation.Idle > span {
+    color: #ff2600;
+    background-color: #ff26001A;
+}
+
+td.operation.Select > span {
+    color: #de9826;
+    background-color: #fcc1201A;
+}
+
+td.operation.Set > span {
+    color: #03cc03;
+    background-color: #00f9001A;
+}
+
+td.operation.Do > span {
+    color: #0099f4;
+    background-color: #0099f41A;
+}
+
+
+td.operation.Reset > span {
+    color: #4d4f5c;
+    background-color: #4d4f5c1A;
+}
+
+.darkmode td.operation.Reset > span {
+        color: #a5a5a5;
+        background-color: #f5f5f51A;
+    }
+
+#log .filter, #log .calendar, #log .visibleColumns, #log .paginator {
+    float: right;
+    position: relative;
+    width: auto;
+    margin-left: 25px;
+}
+
+#log .calendar {
+    text-align: center;
+    display: inline-block;
+    padding: 0 5px;
+    margin-left: 25px;
+    border: 1px solid var(--gray2);
+    border-radius: 25px;
+    height: 30px;
+    line-height: 29px;
+    color: var(--gray4);
+}
+
+#log .calendar li {
+    display: inline;
+    text-align: center;
+}
+
+#log .calendar li span {
+    width: 50px;
+    display: inline-block;
+    border-right: 1px solid var(--gray2);
+    height: 29px;
+    overflow: hidden;
+}
+
+#log .calendar li:last-child span {
+    border: none;
+}
+
+.darkmode #log .calendar, .darkmode #log .calendar li span {
+    border-color: #333333;
+}
+
+/* Tooltip Styling Luis */
+#help {
+    position: fixed;
+}
+
+#help h3.title {
+    font-size: 1.1rem;
+    margin-bottom: 10px;
+}
+
+.darkmode #help h3.title {
+    color: #e8e8e8;
+}
+
+#help .info ul {
+    padding-left: 20px;
+    margin: 10px 0;
+}
+
+textarea + a.help {
+    margin-top: -220px;
+}
