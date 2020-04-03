@@ -18,9 +18,15 @@ ___
 
 **Spec**
 
+| Property                | Required | Updatable | Type    | Default   | Description |
+|:------------------------|----------|-----------|:--------|:----------|:------------|
+| [pgBouncer](#pgbouncer) |          | ✓         | object  | see below | {{< crd-field-description SGPoolingConfig.spec.pgBouncer >}} |
+
+# PgBouncer
+
 | Property      | Required | Updatable | Type    | Default   | Description |
 |:--------------|----------|-----------|:--------|:----------|:------------|
-| pgbouncer.ini |          | ✓         | object  | see below | Section [pgbouncer] of pgbouncer.ini configuration |
+| pgbouncer.ini |          | ✓         | object  | see below | {{< crd-field-description "SGPoolingConfig.spec.pgBouncer.pgbouncer\.ini" >}} |
 
 
 Default value of `pgbouncer.ini` property:

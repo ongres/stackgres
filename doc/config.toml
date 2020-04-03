@@ -30,3 +30,6 @@ home = [ "HTML", "RSS", "JSON"]
 		identifier = "ds"
 		url = "https://gitlab.com/ongresinc/stackgres"
 		weight = 10
+
+[markup.goldmark.renderer]
+  unsafe= true
