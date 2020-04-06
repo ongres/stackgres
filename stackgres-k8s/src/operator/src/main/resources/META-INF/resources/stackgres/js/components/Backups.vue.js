@@ -210,7 +210,7 @@ var Backups = Vue.component("sg-backup", {
 											<thead>
 												<th>Start Time</th>
 												<th>Duration</th>
-												<th>LSN (Start - End)</th>
+												<th>LSN (start ⇢ end)</th>
 												<th colspan="2">UID</th>
 												<th>Source Cluster</th>
 												<th>Compressed Size</th>
@@ -239,7 +239,7 @@ var Backups = Vue.component("sg-backup", {
 														</span>
 													</td>
 													<td>
-														({{ back.data.status.backupInformation.lsn.start }} - {{ back.data.status.backupInformation.lsn.end }})
+														{{ back.data.status.backupInformation.lsn.start }} ⇢ {{ back.data.status.backupInformation.lsn.end }}
 													</td>
 													<td colspan="2">
 														{{ back.data.metadata.uid }}
@@ -285,7 +285,7 @@ var Backups = Vue.component("sg-backup", {
 																		</li>
 																	</ul>
 																</li>
-																<li>
+																<li v-if="typeof back.data.status.sgBackupConfig.storage.s3.region !== 'undefined'">
 																	<strong class="label">region:</strong> {{ back.data.status.sgBackupConfig.storage.s3.region }}
 																</li>
 																<li v-if="typeof back.data.status.sgBackupConfig.storage.s3.storageClass !== 'undefined'">
@@ -310,7 +310,7 @@ var Backups = Vue.component("sg-backup", {
 																		</li>
 																	</ul>
 																</li>
-																<li>
+																<li v-if="typeof back.data.status.sgBackupConfig.storage.s3Compatible.region !== 'undefined'">
 																	<strong class="label">region:</strong> {{ back.data.status.sgBackupConfig.storage.s3Compatible.region }}
 																</li>
 																<li v-if="typeof back.data.status.sgBackupConfig.storage.s3Compatible.storageClass !== 'undefined'">
@@ -319,7 +319,7 @@ var Backups = Vue.component("sg-backup", {
 																<li>
 																	<strong class="label">endpoint:</strong> {{ back.data.status.sgBackupConfig.storage.s3Compatible.endpoint }}
 																</li>
-																<li>
+																<li v-if="typeof back.data.status.sgBackupConfig.storage.s3Compatible.enablePathStyleAddressing !== 'undefined'">
 																	<strong class="label">enablePathStyleAddressing:</strong> {{ back.data.status.sgBackupConfig.storage.s3Compatible.enablePathStyleAddressing }}
 																</li>
 															</template>
@@ -327,7 +327,7 @@ var Backups = Vue.component("sg-backup", {
 																<li>
 																	<strong class="label">bucket:</strong> {{ back.data.status.sgBackupConfig.storage.gcs.bucket }}
 																</li>
-																<li>
+																<li v-if="typeof back.data.status.sgBackupConfig.storage.gcs.path !== 'undefined'">
 																	<strong class="label">path:</strong> {{ back.data.status.sgBackupConfig.storage.gcs.path }}
 																</li>
 																<li>
@@ -343,7 +343,7 @@ var Backups = Vue.component("sg-backup", {
 																<li>
 																	<strong class="label">bucket:</strong> {{ back.data.status.sgBackupConfig.storage.azureBlob.bucket }}
 																</li>
-																<li>
+																<li v-if="typeof back.data.status.sgBackupConfig.storage.azureBlob.path !== 'undefined'">
 																	<strong class="label">path:</strong> {{ back.data.status.sgBackupConfig.storage.azureBlob.path }}
 																</li>
 																<li>
