@@ -175,17 +175,18 @@ spec:
   storage:
     type: s3Compatible
     s3Compatible:
-      credentials:
-        accessKeyId:
-          key: accesskey
-          name: my-cluster-minio
-        secretAccessKey:
-          key: secretkey
-          name: my-cluster-minio
-      endpoint: http://my-cluster-minio:9000
-      enablePathStyleAddressing: true
       bucket: stackgres
       region: k8s
+      enablePathStyleAddressing: true
+      endpoint: http://my-cluster-minio:9000
+      awsCredentials:
+        secretKeySelectors:
+          accessKeyId:
+            key: accesskey
+            name: my-cluster-minio
+          secretAccessKey:
+            key: secretkey
+            name: my-cluster-minio
 ```
  
 Default settings are stored in the same namespaces of the stackgres operator,

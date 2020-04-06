@@ -55,17 +55,18 @@ spec:
   storage:
     type: s3Compatible
     s3Compatible:
-      credentials:
-        accessKey:
-          key: accesskey
-          name: minio
-        secretKey:
-          key: secretkey
-          name: minio
-      endpoint: http://minio:9000
-      enablePathStyleAddressing: true
       bucket: stackgres
       region: k8s
+      enablePathStyleAddressing: true
+      endpoint: http://minio:9000
+      awsCredentials:
+        secretKkeySelectors:
+          accessKey:
+            key: accesskey
+            name: minio
+          secretKey:
+            key: secretkey
+            name: minio
 EOF
 ```
 
