@@ -1049,17 +1049,19 @@ Vue.filter('prefix',function(s, l = 2){
 Vue.filter('formatTimestamp',function(t, part){
 
     if(part == 'date')
-      return t.substr(0, t.indexOf('T'));
+      return t.substr(0, 10);
     else if (part == 'time')
-      return t.substring( t.indexOf('T')+1, t.indexOf('.'));
+      return t.substring( 11, 19);
     else if (part == 'ms') {
-      var ms = t.substring( t.indexOf('.'), t.indexOf('Z'));
+      var ms = '.'+t.substring( 20, t.length - 1);
       
-      if(ms.length == 2)
+      if (ms == '.Z')
+        ms = '.000';
+      else if (ms.length == 3)
         ms += '00';
-      else if(ms.length == 3)
+      else if (ms.length == 4)
         ms += '0';
-
+      
       return ms.substring(0,4);
     }
       
