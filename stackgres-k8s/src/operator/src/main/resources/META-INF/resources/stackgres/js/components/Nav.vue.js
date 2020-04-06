@@ -69,6 +69,10 @@ var Nav = Vue.component("sg-nav", {
 					</div>
 				</div>
 
+				<div id="logout" v-if="loggedIn">
+					<a @click="logout()">Logout <svg xmlns="http://www.w3.org/2000/svg" width="10.546" height="10.5" viewBox="0 0 10.546 10.5"><g transform="translate(-30 -181.75)"><path d="M33.92,192h-2.1a1.538,1.538,0,0,1-1.571-1.5v-7a1.538,1.538,0,0,1,1.571-1.5h2.1a.5.5,0,1,1,0,1h-2.1a.515.515,0,0,0-.527.5v7a.515.515,0,0,0,.527.5h2.1a.5.5,0,1,1,0,1Z" fill="#00adb5" stroke="#00adb5" stroke-width="0.5"/><path d="M42.157,192.074l1.965-1.965a.525.525,0,0,0,0-.741L42.157,187.4a.524.524,0,0,0-.741.74l1.072,1.071h-3.7a.524.524,0,1,0,0,1.048h3.7l-1.072,1.071a.524.524,0,0,0,.741.74Z" transform="translate(-4.026 -2.739)" fill="#00adb5" stroke="#00adb5" stroke-width="0.5"/></g></svg></a>
+				</div>
+
 				<div id="delete" class="hasTooltip">
 					<div class="tooltip">
 						<h3>This action is permanent</h3>
@@ -79,10 +83,10 @@ var Nav = Vue.component("sg-nav", {
 						<p>
 							Please type the exact name of the {{ deleteItem.kind }} to confirm.
 						</p>
-						<form @submit="confirmDelete(confirmName)">
-							<input v-model="confirmName" :placeholder="deleteItem.kind+' name'">
+						<form @submit="confirmDelete(confirmDeleteName)">
+							<input v-model="confirmDeleteName" :placeholder="deleteItem.kind+' name'">
 							<span class="warning" style="display:none">The {{ deleteItem.kind }} name does not match the name of the element requested to be deleted.</span>
-							<a @click="confirmDelete(confirmName)">DELETE ITEM</a> <a @click="cancelDelete()">CANCEL</a>
+							<a @click="confirmDelete(confirmDeleteName)">DELETE ITEM</a> <a @click="cancelDelete()">CANCEL</a>
 						</form>
 						
 					</div>
@@ -116,8 +120,6 @@ var Nav = Vue.component("sg-nav", {
 						<hr/>
 						<button @click="login">Login</button>
 					</form>
-					<div id="logout">
-					</div>
 				</div>
 
 				<!--<div id="settings">
@@ -130,7 +132,6 @@ var Nav = Vue.component("sg-nav", {
 
 	data: function() {
 		return {
-			confirmName: '',
 			loginUser: '',
 			loginPassword: '',
 			loginPasswordType: 'password',
@@ -161,6 +162,14 @@ var Nav = Vue.component("sg-nav", {
 
 		theme () {
 			return store.state.theme
+		},
+
+		loggedIn () {
+			return store.state.loginToken.length > 0
+		},
+
+		confirmDeleteName() {
+			return store.state.confirmDeleteName
 		}
 
 	},
@@ -187,6 +196,13 @@ var Nav = Vue.component("sg-nav", {
 				$('#login .warning').fadeIn();
 			});
 
+		},
+
+		logout: function() {
+			document.cookie = 'sgToken=';
+			store.commit('setLoginToken');
+			router.push('/');
+			$('#signup').addClass('login').fadeIn();
 		},
 
 		showPassword: function() {
