@@ -324,10 +324,11 @@ const store = new Vuex.Store({
       name: '',
       redirect: ''
     },
+    confirmDeleteName: ''
   },
   mutations: {
 
-    setLoginToken (state, token) {
+    setLoginToken (state, token = '') {
       state.loginToken = token;
       axios.defaults.headers.common['Authorization'] = 'Basic '+store.state.loginToken;
     },
@@ -506,6 +507,10 @@ const store = new Vuex.Store({
       state.deleteItem = item;
     },
 
+    setConfirmDeleteName (state, name) {
+      state.confirmDeleteName = name;
+    },
+
     setLogs (state, logs) {
       state.logs = logs;
     },
@@ -552,12 +557,13 @@ Vue.mixin({
 
     cancelDelete: function(){
       $("#delete").removeClass("active");
-      $("#delete.warning").hide();
+      $("#delete .warning").hide();
+      store.commit('setConfirmDeleteName', '');
     },
     
     deleteCRD: function( kind, namespace, name, redirect ) {
 
-      console.log("Open delete");
+      //console.log("Open delete");
       $('#delete input').val('');
       $("#delete").addClass("active");
       $(".filter > .open").removeClass("open");
@@ -595,6 +601,7 @@ Vue.mixin({
 					notify('<span class="capitalize">'+item.kind+'</span> <strong>'+item.name+'</strong> deleted successfully', 'message', item.kind);
           
           $('.'+item.kind+'-'+item.namespace+'-'+item.name).addClass("hide");
+          //$('.'+item.kind+'-'+item.namespace+'-'+item.name+'.hide').remove();
           vm.fetchAPI(item.kind);
 
 					if( (typeof item.redirect !== 'undefined') && item.redirect.length)
@@ -660,16 +667,19 @@ const vm = new Vue({
     fetchAPI: function(kind = '') {
 
       let loginToken = getCookie('sgToken');
+      //console.log("TOKEN: "+loginToken)
 
       if(!loginToken.length) {
-        $('#signup').addClass('login').fadeIn();
-        return false;
-      } else if (!store.state.loginToken.length) {
+        if(!store.state.loginToken.length) {
+          $('#signup').addClass('login').fadeIn();
+          return false;
+        }
+      } else if ( !store.state.loginToken.length && (loginToken.length > 0) ) {
         $('#signup').hide();
         store.commit('setLoginToken', loginToken);
       }
 
-      console.log("Fetching API");
+      //console.log("Fetching API");
       $("#loader").show();
 
       if ( !kind.length || (kind == 'namespaces') ) {
@@ -1007,9 +1017,11 @@ const vm = new Vue({
     
     this.fetchAPI();
 
-    setInterval( function(){
-      this.fetchAPI();
-    }.bind(this), 10000);
+    if(store.state.loginToken.length > 0) {
+      setInterval( function(){
+        this.fetchAPI();
+      }.bind(this), 10000);
+    }
 
   }
 });
