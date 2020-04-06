@@ -19,8 +19,8 @@ ___
 
 | Property | Required | Updatable | Default | Type   | Description |
 |:---------|----------|-----------|:--------|:-------|:------------|
-| cpu      |          | ✓         | 1       | string | CPU amount to be used |
-| memory   |          | ✓         | 2Gi     | string | Memory size to be used |
+| cpu      |          | ✓         | 1       | string | {{< crd-field-description SGInstanceProfile.spec.cpu >}} |
+| memory   |          | ✓         | 2Gi     | string | {{< crd-field-description SGInstanceProfile.spec.memory >}} |
 
 Example:
 

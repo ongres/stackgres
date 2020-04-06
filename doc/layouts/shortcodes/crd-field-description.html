@@ -1,0 +1,11 @@
+{{- $params := (.Get 0) -}}
+{{- $params := (replace $params "\\." "·") -}}
+{{- $params := (split $params ".") -}}
+{{- $scratch := newScratch -}}
+{{- $scratch.Set "CrdField" ((index $.Site.Data.crds (index $params 0)).spec.validation.openAPIV3Schema) -}}
+{{- range $index,$param := $params -}}
+  {{- if gt $index 0 -}}
+    {{- $scratch.Set "CrdField" (index ($scratch.Get "CrdField").properties (replace $param "·" ".")) -}}
+  {{- end -}}
+{{- end -}}
+<div>{{- ($scratch.Get "CrdField").description | markdownify -}}</div>
