@@ -14,12 +14,10 @@ import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
 import io.stackgres.operator.utils.ValidationUtils;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 public abstract class DefaultKeeperTest<R extends CustomResource, T extends AdmissionReview<R>> {
@@ -29,11 +27,18 @@ public abstract class DefaultKeeperTest<R extends CustomResource, T extends Admi
 
   private AbstractDefaultConfigKeeper<R, T> validator;
 
+  private static String getRandomString() {
+    int length = new Random().nextInt(128) + 1;
+    byte[] stringBuffer = new byte[length];
+    return new String(stringBuffer);
+  }
+
   @BeforeEach
   void setUp() {
     validator = getValidatorInstance();
     validator.setConfigContext(new ConfigLoader());
     validator.setFactory(factory);
+
   }
 
   protected abstract AbstractDefaultConfigKeeper<R, T> getValidatorInstance();
@@ -155,12 +160,6 @@ public abstract class DefaultKeeperTest<R extends CustomResource, T extends Admi
     ValidationUtils.assertErrorType(ErrorType.DEFAULT_CONFIGURATION,
         () -> validator.validate(sample));
 
-  }
-
-  private static String getRandomString(){
-    int length = new Random().nextInt(128) + 1;
-    byte[] stringBuffer = new byte[length];
-    return new String(stringBuffer);
   }
 
 }

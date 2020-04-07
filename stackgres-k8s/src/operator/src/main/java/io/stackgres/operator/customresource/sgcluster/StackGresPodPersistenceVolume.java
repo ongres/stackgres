@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.customresource.sgcluster;
 
+import java.util.Objects;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
@@ -50,5 +51,23 @@ public class StackGresPodPersistenceVolume {
         .add("volumeSize", volumeSize)
         .add("storageClass", storageClass)
         .toString();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    StackGresPodPersistenceVolume that = (StackGresPodPersistenceVolume) o;
+    return Objects.equals(volumeSize, that.volumeSize)
+        && Objects.equals(storageClass, that.storageClass);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(volumeSize, storageClass);
   }
 }

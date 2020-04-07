@@ -69,7 +69,6 @@ class ClusterValidationResourceTest extends JerseyTest {
 
         ClusterValidationPipeline pipeline = new ClusterValidationPipeline();
         pipeline.setValidators(getValidators());
-        pipeline.init();
 
         bind(pipeline).to(ClusterValidationPipeline.class).in(Singleton.class);
 

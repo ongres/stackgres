@@ -22,7 +22,9 @@ class SgProfileValidationResourceTest extends ValidationResourceTest<SgProfileRe
 
     @BeforeEach
     public void setUp() {
-        resource = new SgProfileValidationResource(pipeline);
+        final SgProfileValidationResource resource = new SgProfileValidationResource();
+        resource.setPipeline(pipeline);
+        this.resource = resource;
 
         review = JsonUtil
                 .readFromJson("sgprofile_allow_request/create.json", SgProfileReview.class);

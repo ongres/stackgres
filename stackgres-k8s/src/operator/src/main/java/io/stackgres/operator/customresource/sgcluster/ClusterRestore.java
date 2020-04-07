@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.customresource.sgcluster;
 
+import java.util.Objects;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -48,5 +50,23 @@ public class ClusterRestore implements KubernetesResource {
         .add("backupUid", backupUid)
         .add("downloadDiskConcurrency", downloadDiskConcurrency)
         .toString();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    ClusterRestore that = (ClusterRestore) o;
+    return Objects.equals(downloadDiskConcurrency, that.downloadDiskConcurrency)
+        && Objects.equals(backupUid, that.backupUid);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(downloadDiskConcurrency, backupUid);
   }
 }

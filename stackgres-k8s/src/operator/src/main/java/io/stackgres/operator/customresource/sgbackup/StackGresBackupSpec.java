@@ -5,13 +5,13 @@
 
 package io.stackgres.operator.customresource.sgbackup;
 
+import java.util.Objects;
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.MoreObjects;
-
 import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
@@ -54,4 +54,21 @@ public class StackGresBackupSpec implements KubernetesResource {
         .toString();
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    StackGresBackupSpec that = (StackGresBackupSpec) o;
+    return Objects.equals(sgCluster, that.sgCluster)
+        && Objects.equals(subjectToRetentionPolicy, that.subjectToRetentionPolicy);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(sgCluster, subjectToRetentionPolicy);
+  }
 }

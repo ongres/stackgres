@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.customresource.sgbackup;
 
+import java.util.Objects;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.MoreObjects;
@@ -50,5 +52,23 @@ public class StackgresBackupTiming {
         .add("finishTime", end)
         .add("stored", stored)
         .toString();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    StackgresBackupTiming that = (StackgresBackupTiming) o;
+    return Objects.equals(start, that.start) && Objects.equals(end, that.end)
+        && Objects.equals(stored, that.stored);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(start, end, stored);
   }
 }

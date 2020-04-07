@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.customresource.sgbackupconfig;
 
+import java.util.Objects;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -56,5 +58,24 @@ public class StackGresBaseBackupPerformance {
         .add("maxDiskBandwitdh", maxDiskBandwitdh)
         .add("uploadDiskConcurrency", uploadDiskConcurrency)
         .toString();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    StackGresBaseBackupPerformance that = (StackGresBaseBackupPerformance) o;
+    return maxNetworkBandwitdh == that.maxNetworkBandwitdh
+        && maxDiskBandwitdh == that.maxDiskBandwitdh
+        && uploadDiskConcurrency == that.uploadDiskConcurrency;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(maxNetworkBandwitdh, maxDiskBandwitdh, uploadDiskConcurrency);
   }
 }

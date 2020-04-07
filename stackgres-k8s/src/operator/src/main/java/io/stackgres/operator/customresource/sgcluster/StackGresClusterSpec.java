@@ -6,6 +6,7 @@
 package io.stackgres.operator.customresource.sgcluster;
 
 import java.util.List;
+import java.util.Objects;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
@@ -136,5 +137,29 @@ public class StackGresClusterSpec implements KubernetesResource {
         .add("sidecars", sidecars)
         .add("nonProductionOptions", nonProduction)
         .toString();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    StackGresClusterSpec that = (StackGresClusterSpec) o;
+    return instances == that.instances && Objects.equals(postgresVersion, that.postgresVersion)
+        && Objects.equals(configuration, that.configuration)
+        && Objects.equals(resourceProfile, that.resourceProfile)
+        && Objects.equals(initData, that.initData) && Objects.equals(pod, that.pod)
+        && Objects.equals(prometheusAutobind, that.prometheusAutobind)
+        && Objects.equals(sidecars, that.sidecars)
+        && Objects.equals(nonProduction, that.nonProduction);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(instances, postgresVersion, configuration, resourceProfile,
+        initData, pod, prometheusAutobind, sidecars, nonProduction);
   }
 }

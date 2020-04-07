@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.customresource.sgpgconfig;
 
+import java.util.Objects;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
@@ -44,4 +45,20 @@ public class StackGresPostgresConfig extends CustomResource {
         .toString();
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    StackGresPostgresConfig that = (StackGresPostgresConfig) o;
+    return spec.equals(that.spec);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(spec);
+  }
 }

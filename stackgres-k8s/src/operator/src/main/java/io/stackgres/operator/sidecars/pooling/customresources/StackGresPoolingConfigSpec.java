@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.sidecars.pooling.customresources;
 
+import java.util.Objects;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
@@ -39,5 +40,22 @@ public class StackGresPoolingConfigSpec implements KubernetesResource {
         .omitNullValues()
         .add("pgBouncer", getPgBouncer())
         .toString();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    StackGresPoolingConfigSpec that = (StackGresPoolingConfigSpec) o;
+    return Objects.equals(pgBouncer, that.pgBouncer);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(pgBouncer);
   }
 }

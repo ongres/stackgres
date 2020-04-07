@@ -32,11 +32,6 @@ public class SgProfileValidationResource implements ValidationResource<SgProfile
 
   private ValidationPipeline<SgProfileReview> pipeline;
 
-  @Inject
-  public SgProfileValidationResource(@Any ValidationPipeline<SgProfileReview> pipeline) {
-    this.pipeline = pipeline;
-  }
-
   void onStart(@Observes StartupEvent ev) {
     LOGGER.info("SgProfile validation resource started");
   }
@@ -47,4 +42,8 @@ public class SgProfileValidationResource implements ValidationResource<SgProfile
     return validate(admissionReview, pipeline);
   }
 
+  @Inject
+  public void setPipeline(@Any ValidationPipeline<SgProfileReview> pipeline) {
+    this.pipeline = pipeline;
+  }
 }

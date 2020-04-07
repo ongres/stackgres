@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.customresource.sgbackup;
 
+import java.util.Objects;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
@@ -57,4 +58,20 @@ public class StackGresBackup extends CustomResource {
         .toString();
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    StackGresBackup that = (StackGresBackup) o;
+    return Objects.equals(spec, that.spec) && Objects.equals(status, that.status);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(spec, status);
+  }
 }

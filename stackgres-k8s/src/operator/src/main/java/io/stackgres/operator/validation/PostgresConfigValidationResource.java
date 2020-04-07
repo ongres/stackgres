@@ -18,7 +18,6 @@ import io.stackgres.operator.common.PgConfigReview;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReviewResponse;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationPipeline;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationResource;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,11 +31,6 @@ public class PostgresConfigValidationResource implements ValidationResource<PgCo
 
   private ValidationPipeline<PgConfigReview> validationPipeline;
 
-  @Inject
-  public PostgresConfigValidationResource(ValidationPipeline<PgConfigReview> validationPipeline) {
-    this.validationPipeline = validationPipeline;
-  }
-
   void onStart(@Observes StartupEvent ev) {
     LOGGER.info("Postgres configuration validation resource started");
   }
@@ -48,6 +42,10 @@ public class PostgresConfigValidationResource implements ValidationResource<PgCo
   @Override
   public AdmissionReviewResponse validate(PgConfigReview admissionReview) {
     return validate(admissionReview, validationPipeline);
+  }
 
+  @Inject
+  public void setValidationPipeline(ValidationPipeline<PgConfigReview> validationPipeline) {
+    this.validationPipeline = validationPipeline;
   }
 }

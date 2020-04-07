@@ -6,6 +6,7 @@
 package io.stackgres.operator.customresource.sgbackup;
 
 import java.util.Map;
+import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -104,5 +105,28 @@ public class StackGresBackupInformation {
         .add("controlData", controlData)
         .add("startWalFile", startWalFile)
         .toString();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    StackGresBackupInformation that = (StackGresBackupInformation) o;
+    return Objects.equals(hostname, that.hostname)
+        && Objects.equals(pgData, that.pgData)
+        && Objects.equals(postgresVersion, that.postgresVersion)
+        && Objects.equals(systemIdentifier, that.systemIdentifier) && Objects.equals(lsn, that.lsn)
+        && Objects.equals(size, that.size) && Objects.equals(controlData, that.controlData)
+        && Objects.equals(startWalFile, that.startWalFile);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(hostname, pgData, postgresVersion, systemIdentifier,
+        lsn, size, controlData, startWalFile);
   }
 }

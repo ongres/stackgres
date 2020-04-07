@@ -6,14 +6,12 @@
 package io.stackgres.operator.customresource.storages;
 
 import java.util.Objects;
-
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.MoreObjects;
-
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
 @JsonDeserialize
@@ -130,7 +128,8 @@ public class AwsS3CompatibleStorage implements PrefixedStorage {
     return Objects.equals(awsCredentials, other.awsCredentials)
         && Objects.equals(endpoint, other.endpoint)
         && enablePathStyleAddressing == other.enablePathStyleAddressing
-        && Objects.equals(bucket, other.bucket) && Objects.equals(path, other.path)
+        && Objects.equals(bucket, other.bucket)
+        && Objects.equals(path, other.path)
         && Objects.equals(region, other.region)
         && Objects.equals(storageClass, other.storageClass);
   }

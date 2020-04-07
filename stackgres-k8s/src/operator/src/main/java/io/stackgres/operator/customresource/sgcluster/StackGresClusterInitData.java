@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.customresource.sgcluster;
 
+import java.util.Objects;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -32,5 +34,22 @@ public class StackGresClusterInitData {
 
   public void setRestore(ClusterRestore restore) {
     this.restore = restore;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    StackGresClusterInitData that = (StackGresClusterInitData) o;
+    return Objects.equals(restore, that.restore);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(restore);
   }
 }

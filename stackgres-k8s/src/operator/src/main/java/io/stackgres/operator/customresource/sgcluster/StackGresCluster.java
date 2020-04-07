@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.customresource.sgcluster;
 
+import java.util.Objects;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
@@ -58,4 +59,21 @@ public class StackGresCluster extends CustomResource {
         .toString();
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    StackGresCluster that = (StackGresCluster) o;
+    return Objects.equals(spec, that.spec)
+        && Objects.equals(status, that.status);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(spec, status);
+  }
 }

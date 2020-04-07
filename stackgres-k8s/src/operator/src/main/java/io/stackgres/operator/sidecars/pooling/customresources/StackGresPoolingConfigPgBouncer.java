@@ -6,6 +6,7 @@
 package io.stackgres.operator.sidecars.pooling.customresources;
 
 import java.util.Map;
+import java.util.Objects;
 import javax.validation.constraints.NotEmpty;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -28,5 +29,22 @@ public class StackGresPoolingConfigPgBouncer {
 
   public void setPgbouncerConf(Map<String, String> pgbouncerConf) {
     this.pgbouncerConf = pgbouncerConf;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    StackGresPoolingConfigPgBouncer that = (StackGresPoolingConfigPgBouncer) o;
+    return Objects.equals(pgbouncerConf, that.pgbouncerConf);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(pgbouncerConf);
   }
 }
