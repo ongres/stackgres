@@ -1,11 +1,16 @@
 #!/bin/sh
 
 setup_helm() {
+  helm repo list | grep -q '^stable\s' \
+    || helm repo add stable https://kubernetes-charts.storage.googleapis.com
 
-  helm repo add stable https://kubernetes-charts.storage.googleapis.com
-  
-  helm repo update
-  
+  if [ -f "$HOME/.cache/helm/repository/stable-index.yaml" ] \
+    && [ "$(date -u --date="$(grep '^generated:' "$HOME/.cache/helm/repository/stable-index.yaml" \
+    | cut -d ' ' -f 2 | tr 'T' ' ' | cut -d . -f 1 || echo 0)" +%s)" -lt "$(($(date +%s) - (60 * 60 * 24)))" ]
+  then
+    helm repo update
+  fi
+
   for CHART_PATH in "$OPERATOR_CHART_PATH" "$CLUSTER_CHART_PATH"
   do
     if [ "$(helm dep list "$CHART_PATH" | tail -n +2 | head -n -1 | grep -v 'ok\s*$' | wc -l)" -gt 0 ]
@@ -13,12 +18,4 @@ setup_helm() {
       helm dependency update --skip-refresh "$CHART_PATH"
     fi
   done
-}
-
-is_tiller_loaded() {
-  kubectl get pods -n kube-system 2>/dev/null \
-    | grep '^tiller-deploy-' \
-    | sed 's/ \+/ /g' \
-    | cut -d ' ' -f 2 \
-    | grep -q '1/1'
 }
