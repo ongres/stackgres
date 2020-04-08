@@ -47,19 +47,21 @@ public abstract class AbstractStackGresOperatorIt extends AbstractIt {
 
   @BeforeEach
   public void setupOperator(@ContainerParam("k8s") Container k8s) throws Exception {
+    final int operatorPort = ItHelper.getPreviousOperatorPort(k8s, namespace)
+        .orElse(OPERATOR_PORT);
     IS_ABSTRACT_STACKGRES_OPERATOR_IT.set(true);
     ItHelper.killUnwantedProcesses(k8s);
     ItHelper.copyResources(k8s);
     ItHelper.resetKind(k8s, k8sSize);
-    ItHelper.installStackGresOperatorHelmChart(k8s, namespace, OPERATOR_PORT, executor);
+    ItHelper.installStackGresOperatorHelmChart(k8s, namespace, operatorPort, executor);
     OperatorRunner operatorRunner = ItHelper.createOperator(
-        k8s, OPERATOR_PORT, OPERATOR_SSL_PORT, executor);
+        k8s, operatorPort, OPERATOR_SSL_PORT, executor);
     CompletableFuture<Void> operator = runAsync(() -> operatorRunner.run());
     this.operatorClose = () -> {
       operatorRunner.close();
       operator.join();
     };
-    operatorClient = ClientBuilder.newClient().target("http://localhost:" + OPERATOR_PORT);
+    operatorClient = ClientBuilder.newClient().target("http://localhost:" + operatorPort);
     ItHelper.waitUntilOperatorIsReady(operator, operatorClient, k8s);
   }
 
