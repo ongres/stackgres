@@ -101,13 +101,12 @@ public class RestoreConfigValidator implements ClusterValidator {
         String oldBackupUid = oldRestoreConfig.getBackupUid();
 
         final String message = "Cannot update cluster's restore configuration";
-        fail(errorCrReferencerUri, message);
         if (backupUid == null && oldBackupUid != null
             || backupUid != null && oldBackupUid == null) {
-          throw new ValidationFailed(message);
+          fail(errorCrReferencerUri, message);
         }
         if (backupUid != null && !backupUid.equals(oldBackupUid)) {
-          throw new ValidationFailed(message);
+          fail(errorCrReferencerUri, message);
         }
         break;
       default:
