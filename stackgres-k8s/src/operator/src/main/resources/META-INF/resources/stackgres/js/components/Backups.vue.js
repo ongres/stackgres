@@ -57,7 +57,11 @@ var Backups = Vue.component("sg-backup", {
 			<div class="content">
 				<div id="backups">
 					<div class="toolbar">
-						<input id="keyword" v-model="keyword" @keyup="filterTable" class="search" placeholder="Search Backup...">
+						<input id="keyword" v-model="keyword" @keyup="filterBackups" class="search" placeholder="Search Backup..." autocomplete="off">
+
+						<div class="filter">
+							<span class="toggle date">DATE RANGE <input v-model="datePicker" id="datePicker" autocomplete="off"></span>
+						</div>
 
 						<div class="filter">
 							<span class="toggle">FILTER</span>
@@ -66,23 +70,23 @@ var Backups = Vue.component("sg-backup", {
 								<li>
 									<span>Permanent</span>
 									<label for="isPermanent">
-										<input v-model="isPermanent" type="checkbox" id="isPermanent" name="isPermanent" value="true" @change="filterTable"/>
+										<input v-model="isPermanent" data-filter="isPermanent" type="checkbox" class="xCheckbox" id="isPermanent" name="isPermanent" value="true"/>
 										<span>YES</span>
 									</label>
 									<label for="notPermanent">
-										<input v-model="isPermanent" type="checkbox" id="notPermanent" name="isPermanent" value="false"  @change="filterTable"/>
+										<input v-model="isPermanent" data-filter="isPermanent" type="checkbox" class="xCheckbox" id="notPermanent" name="notPermanent" value="false"/>
 										<span>NO</span>
 									</label>
 								</li>
 
 								<li>
-									<span>Phase</span>
+									<span>Status</span>
 									<label for="isCompleted">
-										<input v-model="phase" type="checkbox" id="isCompleted" name="phase" value="Completed" @change="filterTable"/>
+										<input v-model="status" data-filter="status" type="checkbox" class="xCheckbox" id="isCompleted" name="isCompleted" value="Completed"/>
 										<span>Completed</span>
 									</label>
 									<label for="notCompleted">
-										<input v-model="phase" type="checkbox" id="notCompleted" name="phase" value="Running" @change="filterTable"/>
+										<input v-model="status" data-filter="status" type="checkbox" class="xCheckbox" id="notCompleted" name="notCompleted" value="Running"/>
 										<span>Running</span>
 									</label>
 								</li>
@@ -90,11 +94,11 @@ var Backups = Vue.component("sg-backup", {
 								<li v-if="!isCluster">
 									<span>Postgres Version</span>
 									<label for="pg11">
-										<input v-model="postgresVersion" type="checkbox" id="pg11" name="pg11" value="pg11" @change="filterTable" />
+										<input v-model="postgresVersion" data-filter="postgresVersion" type="checkbox" class="xCheckbox" id="pg11" name="pg11" value="11"/>
 										<span>11</span>
 									</label>
 									<label for="pg12">
-										<input v-model="postgresVersion" type="checkbox" id="pg12" name="pg12" value="pg12" @change="filterTable" />
+										<input v-model="postgresVersion" data-filter="postgresVersion" type="checkbox" class="xCheckbox" id="pg12" name="pg12" value="12"/>
 										<span>12</span>
 									</label>
 								</li>
@@ -102,18 +106,18 @@ var Backups = Vue.component("sg-backup", {
 								<!--<li>
 									<span>Tested</span>
 									<label for="isTested">
-										<input v-model="tested" type="checkbox" id="isTested" name="tested" value="true" @change="filterTable" />
+										<input v-model="tested" type="checkbox" class="xCheckbox" id="isTested" name="tested" value="true"/>
 										<span>YES</span>
 									</label>
 									<label for="notTested">
-										<input v-model="tested" type="checkbox" id="notTested" name="tested" value="false" @change="filterTable" />
+										<input v-model="tested" type="checkbox" class="xCheckbox" id="notTested" name="tested" value="false"/>
 										<span>NO</span>
 									</label>
 								</li>-->
 
 								<li v-if="!isCluster">
 									<span>Cluster</span>
-									<select v-model="clusterName" @change="filterTable">
+									<select v-model="clusterName">
 										<option value="">All Clusters</option>
 										<template v-for="cluster in allClusters">
 											<option v-if="cluster.data.metadata.namespace == currentNamespace">{{ cluster.data.metadata.name }}</option>
@@ -128,11 +132,11 @@ var Backups = Vue.component("sg-backup", {
 							<th @click="sort('data.status.process.timing.stored')" class="sorted desc timestamp">
 								<span>Timestamp</span>
 							</th>
-							<th @click="sort('data.spec.managedLifecycle')" class="icon desc isPermanent">
+							<th @click="sort('data.spec.subjectToRetentionPolicy')" class="icon desc isPermanent">
 								<span>Permanent</span>
 							</th>
 							<th @click="sort('data.status.process.status')" class="desc phase center">
-								<span>Phase</span>
+								<span>Status</span>
 							</th>
 							<th @click="sort('data.status.backupInformation.size.uncompressed')" class="desc size">
 								<span>Size</span>
@@ -158,9 +162,9 @@ var Backups = Vue.component("sg-backup", {
 									No records matched your search terms, would  you like to <router-link to="/crd/create/backup/" title="Add New Backup">create a new one?</router-link>
 								</td>
 							</tr>
-							<template v-for="back in backups" v-if="( ( (back.data.metadata.namespace == currentNamespace) && !isCluster ) || (isCluster && (back.data.spec.sgCluster == currentCluster.name ) && (back.data.metadata.namespace == currentCluster.data.metadata.namespace ) ) )">
+							<template v-for="back in backups" v-if="( ( (back.data.metadata.namespace == currentNamespace) && !isCluster && back.show ) || (isCluster && (back.data.spec.sgCluster == currentCluster.name ) && (back.data.metadata.namespace == currentCluster.data.metadata.namespace ) && back.show ) )">
 								<tr class="base" :class="back.data.status.process.status+' sgbackup-'+back.data.metadata.namespace+'-'+back.data.metadata.name">
-										<td class="timestamp">
+										<td class="timestamp" :data-val="back.data.status.process.timing.stored.substr(0,19).replace('T',' ')">
 											<template v-if="back.data.status.process.status == 'Completed'">
 												<span class='date'>
 													{{ back.data.status.process.timing.stored | formatTimestamp('date') }}
@@ -173,23 +177,27 @@ var Backups = Vue.component("sg-backup", {
 												</span>
 											</template>
 										</td>
-										<td class="isPermanent center icon" :class="[(back.data.spec.managedLifecycle) ? 'true' : 'false']"></td>
+										<td class="isPermanent center icon" :class="[(back.data.spec.subjectToRetentionPolicy) ? 'true' : 'false']" :data-val="back.data.spec.subjectToRetentionPolicy"></td>
 										<td class="phase center" :class="back.data.status.process.status">
 											<span>{{ back.data.status.process.status }}</span>
 										</td>
-										<td class="size">
+										<td class="size" :data-val="back.data.status.backupInformation.size.uncompressed">
 											<template v-if="back.data.status.process.status === 'Completed'">
 												{{ back.data.status.backupInformation.size.uncompressed | formatBytes }}
 											</template>
 										</td>
-										<td class="postgresVersion" :class="[(back.data.status.process.status === 'Completed') ? 'pg'+(back.data.status.backupInformation.postgresVersion.substr(0,2)) : '']"  v-if="!isCluster">
+										<td class="postgresVersion" :class="[(back.data.status.process.status === 'Completed') ? 'pg'+(back.data.status.backupInformation.postgresVersion.substr(0,2)) : '']"  v-if="!isCluster" :data-val="back.data.status.backupInformation.postgresVersion">
 											<template v-if="back.data.status.process.status === 'Completed'">
 												{{ back.data.status.backupInformation.postgresVersion | prefix }}
 											</template>											
 										</td>
 										<!--<td class="tested center icon" :class="[(back.data.status.tested) ? 'true' : 'false']"></td>-->
-										<td class="name">{{ back.data.metadata.name }}</td>
-										<td class="clusterName" :class="back.data.spec.sgCluster" v-if="!isCluster">{{ back.data.spec.sgCluster }}</td>
+										<td class="name" :data-val="back.data.metadata.name">
+											{{ back.data.metadata.name }}
+										</td>
+										<td class="clusterName" :class="back.data.spec.sgCluster" v-if="!isCluster" :data-val="back.data.spec.sgCluster">
+											{{ back.data.spec.sgCluster }}
+										</td>
 									<td class="actions">
 										<a class="open" title="Backup Details">
 											<svg xmlns="http://www.w3.org/2000/svg" width="18.556" height="14.004" viewBox="0 0 18.556 14.004"><g transform="translate(0 -126.766)"><path d="M18.459,133.353c-.134-.269-3.359-6.587-9.18-6.587S.232,133.084.1,133.353a.93.93,0,0,0,0,.831c.135.269,3.36,6.586,9.18,6.586s9.046-6.317,9.18-6.586A.93.93,0,0,0,18.459,133.353Zm-9.18,5.558c-3.9,0-6.516-3.851-7.284-5.142.767-1.293,3.382-5.143,7.284-5.143s6.516,3.85,7.284,5.143C15.795,135.06,13.18,138.911,9.278,138.911Z" transform="translate(0 0)"/><path d="M9.751,130.857a3.206,3.206,0,1,0,3.207,3.207A3.21,3.21,0,0,0,9.751,130.857Z" transform="translate(-0.472 -0.295)"/></g></svg>
@@ -385,16 +393,19 @@ var Backups = Vue.component("sg-backup", {
 			clusterName: '',
 			keyword: '',
 			isPermanent: [],
-			phase: [],
+			status: [],
 			postgresVersion: [],
 			tested: [],
+			datePicker: '',
+			dateStart: '',
+			dateEnd: ''
 		}
 	},
 	computed: {
 
 		backups () {
+			return sortTable( this.filterBackups(), this.currentSort, this.currentSortDir)
 			//return store.state.backups
-			return sortTable( store.state.backups, this.currentSort, this.currentSortDir )
 		},
 
 		currentNamespace () {
@@ -416,79 +427,159 @@ var Backups = Vue.component("sg-backup", {
 	},
 	methods: {
 
-		filterTable: function() {
+		filterBackups: function() {
 
-			let bk = this;
+			//console.log("filterBackups");
 
-			$("table tr.base").each(function () {
+			let vc = this;
+			var count = 0;
 
-				let show = true;
-				let r = $(this);
-				let checkFilters = ['isPermanent', 'phase', 'postgresVersion']; // 'tested' is out for now
+			//if( vc.keyword.length || vc.isPermanent || vc.datePicker.length || vc.status.length || vc.postgresVersion.length || vc.clusterName.length ) {
+				
+				store.state.backups.forEach( function(bk, index) {
 
-				// Filter by Keyword
-				if(bk.keyword.length && (r.text().toLowerCase().indexOf(bk.keyword.toLowerCase()) === -1) )
-					show = false;
+					let show = true;
 
-				checkFilters.forEach(function(f){
+					// Filter by Keyword
+					if(vc.keyword.length && show) {
+						
+						let text = JSON.stringify(bk)
+						
+						// console.log("KEYWORD");
+						// console.log(text)
+						// console.log(vc.keyword)
+						// console.log("EXISTS: "+text.indexOf(vc.keyword));
 
-					if(bk[f].length){
-						let hasClass = 0;
-
-						bk[f].forEach(function(c){
-							if(r.children('.'+c).length)
-								hasClass++;
-						});
-
-						if(!hasClass)
-							show = false;
+						show = !(text.indexOf(vc.keyword) === -1);
 					}
 					
-				})
-
-				/* //Filter by isPermanent
-				if(bk.managedLifecycle.length && (!r.children(".managedLifecycle."+bk.managedLifecycle).length))
-					show = false;
-
-				//Filter by phase
-				if(bk.phase.length && (!r.children(".phase."+bk.phase).length))
-					show = false;
-
-				//Filter by postgresVersion
-				if(bk.postgresVersion.length){
-
-					let hasClass = 0;
+					//Filter by isPermanent
+					if(vc.isPermanent.length && show){
+						let isPerm = bk.data.spec.subjectToRetentionPolicy;
+						show = (isPerm.toString() === vc.isPermanent[0]);
+					}
+	
+					// Filter by Date
+					if(vc.datePicker.length && show){
+						let timestamp = moment(bk.data.status.process.timing.stored, 'YYYY-MM-DD HH:mm:ss');
+						let start = moment(vc.dateStart, 'YYYY-MM-DD HH:mm:ss');
+						let end = moment(vc.dateEnd, 'YYYY-MM-DD HH:mm:ss');
+						
+						// console.log(timestamp);
+						// console.log(start);
+						// console.log(end);
+						// console.log(timestamp.isBetween( start, end, null, '[]' ));
+	
+						show = timestamp.isBetween( start, end, null, '[]' );
+					}
+	
+					//Filter by Status
+					if(vc.status.length && show)
+						show = (bk.data.status.process.status === vc.status[0]);
+	
+					//Filter by postgresVersion
+					if(vc.postgresVersion.length && show)
+						show = (bk.data.status.backupInformation.postgresVersion.substr(0,2)=== vc.postgresVersion[0]);
 					
-					bk.postgresVersion.forEach(function(item){
-						if(r.children('.'+item).length)
-							hasClass++;
+					//Filter by clusterName
+					if(vc.clusterName.length && show)
+						show = (vc.clusterName == bk.data.spec.sgCluster);
+	
+					if(bk.show != show) {
+						store.commit('showBackup',{
+							pos: index,
+							isVisible: show
+						});
+					}
+	
+				});
+	
+				//console.log(store.state.backups);
+		
+			/* } else {
+				console.log("SHOW ALL");
+
+				store.state.backups.forEach( function(item, index) {
+					store.commit('showBackup',{
+						pos: index,
+						isVisible: true
 					});
+				});
+			}*/
 
-					if(hasClass < 1)
-						show = false;
-
-				}
-
-				//Filter by tested
-				if(bk.tested.length && (!r.children(".tested."+bk.tested).length))
-					show = false; */
-
-				//Filter by clusterName
-				if(bk.clusterName.length && (!r.children(".clusterName."+bk.clusterName).length))
-					show = false;
-
-				if(!show)
-					r.addClass("not-found");
-				else
-					r.removeClass("not-found");
-				
-				if(!$("tr.base:not(.not-found)").length)
-					$("tr.no-results").show();
-				else
-					$("tr.no-results").hide();
-
-			});
+			//console.log("#"+count);
+			return store.state.backups;
 			
 		}
+	},
+
+	mounted: function() {
+
+		const vc = this;
+		
+		//vc.filterBackups();
+
+		$(document).ready(function(){
+			$('#datePicker').daterangepicker({
+				"autoApply": true,
+				"timePicker": true,
+				"timePicker24Hour": true,
+				"timePickerSeconds": true,
+				//"startDate": "04/02/2020",
+				//"endDate": "04/08/2020",
+				"opens": "left",
+				locale: {
+					cancelLabel: "Clear"
+				}
+			}, function(start, end, label) {
+				vc.dateStart = start.format('YYYY-MM-DD HH:mm:ss');
+				vc.dateEnd = end.format('YYYY-MM-DD HH:mm:ss');
+				vc.datePicker = vc.dateStart+' / '+vc.dateEnd;
+				vc.filterBackups();
+			});
+
+			$(document).on('click', '.toggle.date.open', function(){
+				//$('#datePicker').trigger('hide.daterangepicker');
+				if(vc.datePicker.length)
+					$('.applyBtn').click();
+				else
+					$('.cancelBtn').click();
+			});
+
+			$('#datePicker').on('hide.daterangepicker', function(ev, picker) {
+				//console.log('hide.daterangepicker')
+				//do something, like clearing an input
+				$('#datePicker').parent().removeClass('open');
+			});
+
+			$('#datePicker').on('cancel.daterangepicker', function(ev, picker) {
+				//do something, like clearing an input
+				vc.datePicker = '';
+			});
+
+			$('#datePicker').on('apply.daterangepicker', function(ev, picker) {
+				//do something, like clearing an input
+				
+			});
+
+			$(document).on('click', '.xCheckbox', function () {
+
+				if($(this).is(':checked')) {
+					$(this).parents('li').find(':checked:not(#'+$(this).prop('id')+')').removeClass('active').prop('checked', false);
+					$(this).addClass('active');
+
+					//console.log("L: "+vc[$(this).data('filter')].length);
+					if(vc[$(this).data('filter')].length)
+						vc[$(this).data('filter')] = [$(this).val()];
+					  
+				} else {
+						$(this).removeClass('active');
+						vc[$(this).data('filter')] = [];
+				}
+				
+			});			
+
+		});
+
 	}
 })
