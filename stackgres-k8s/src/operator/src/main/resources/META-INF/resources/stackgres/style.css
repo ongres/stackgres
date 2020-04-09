@@ -1909,7 +1909,7 @@ ul.selector li {
     margin-bottom: 2px;
 }
 
-.form input, .form select, .form textarea {
+.form input, .form select, .form textarea, ul.select {
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
@@ -1922,6 +1922,18 @@ ul.selector li {
     position: relative;
     z-index: 1;
     height: 38px;
+}
+
+ul.select {
+    padding: 0;
+}
+
+ul.select li {
+    display: none;
+}
+
+ul.select .selected, ul.select.active li {
+    display: block;
 }
 
 .form textarea {
@@ -2792,11 +2804,11 @@ table.backupConfig tr.open {
     border-radius: 10px;
 }
 
-.options input[type="checkbox"]:checked {
+.options input[type="checkbox"].xCheckbox.active {
     background: var(--blue);
 }
 
-.options input[type="checkbox"]:checked + span {
+.options input[type="checkbox"].xCheckbox.active + span {
     color: #fff;
 }
 
@@ -2959,6 +2971,20 @@ td.operation.Reset > span {
 .darkmode #log .calendar, .darkmode #log .calendar li span {
     border-color: #333333;
 }
+
+#datePicker {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+}
+
+.toggle.open > #datePicker {
+    display: none;
+}
+
 
 /* Tooltip Styling Luis */
 #help {

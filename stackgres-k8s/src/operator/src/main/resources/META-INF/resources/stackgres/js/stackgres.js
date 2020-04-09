@@ -413,7 +413,14 @@ const store = new Vuex.Store({
           // console.log('Se agregó '+backup.name);
         }
 
-      },
+    },
+    
+    showBackup ( state, show ) {
+
+      state.backups[show.pos].show = show.isVisible;
+
+    },
+
     updatePGConfig ( state, config ) {
 
       let index = state.pgConfig.find(c => (config.data.metadata.name == c.name) && (config.data.metadata.namespace == c.data.metadata.namespace) ); 
@@ -796,7 +803,8 @@ const vm = new Vue({
               store.commit('updateBackups', { 
                 name: item.metadata.name,
                 data: item,
-                duration: new Date(duration).toISOString()
+                duration: new Date(duration).toISOString(),
+                show: true
               });
 
             });
