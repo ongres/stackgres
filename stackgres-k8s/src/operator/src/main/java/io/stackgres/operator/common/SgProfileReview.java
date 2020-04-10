@@ -6,7 +6,7 @@
 package io.stackgres.operator.common;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
-import io.stackgres.operator.customresource.sgprofile.StackGresProfile;
+import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
 
 @RegisterForReflection

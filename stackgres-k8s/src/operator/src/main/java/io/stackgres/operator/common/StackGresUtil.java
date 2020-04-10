@@ -20,16 +20,13 @@ import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
 import javax.xml.bind.DatatypeConverter;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
-
 import io.fabric8.kubernetes.api.model.ObjectMeta;
-import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operatorframework.resource.ResourceUtil;
-
 import org.jooq.lambda.Unchecked;
 
 public enum StackGresUtil {
@@ -54,11 +51,6 @@ public enum StackGresUtil {
   public static final String OPERATOR_NAMESPACE = INSTANCE.operatorNamespace;
   public static final String OPERATOR_VERSION = INSTANCE.operatorVersion;
 
-  public static final String CRD_GROUP = INSTANCE.group;
-  public static final String CRD_VERSION = INSTANCE.version;
-
-  public static final String CONTAINER_BUILD = INSTANCE.containerBuild;
-
   public static final String PROMETHEUS_AUTOBIND = INSTANCE.prometheusAutobind;
 
   public static final String OPERATOR_IP = INSTANCE.operatorIp;
@@ -74,11 +66,6 @@ public enum StackGresUtil {
   private final String operatorVersion;
   private final String operatorIp;
 
-  private final String group;
-  private final String version;
-
-  private final String containerBuild;
-
   private final String prometheusAutobind;
 
   private final String documentationUri;
@@ -93,9 +80,6 @@ public enum StackGresUtil {
       operatorName = getProperty(properties, ConfigProperty.OPERATOR_NAME);
       operatorNamespace = getProperty(properties, ConfigProperty.OPERATOR_NAMESPACE);
       operatorVersion = getProperty(properties, ConfigProperty.OPERATOR_VERSION);
-      group = getProperty(properties, ConfigProperty.CRD_GROUP);
-      version = getProperty(properties, ConfigProperty.CRD_VERSION);
-      containerBuild = getProperty(properties, ConfigProperty.CONTAINER_BUILD);
       prometheusAutobind = getProperty(properties, ConfigProperty.PROMETHEUS_AUTOBIND);
       operatorIp = getProperty(properties, ConfigProperty.OPERATOR_IP);
       documentationUri = getProperty(properties, ConfigProperty.DOCUMENTATION_URI);
@@ -104,9 +88,6 @@ public enum StackGresUtil {
       Preconditions.checkNotNull(operatorName);
       Preconditions.checkNotNull(operatorNamespace);
       Preconditions.checkNotNull(operatorVersion);
-      Preconditions.checkNotNull(group);
-      Preconditions.checkNotNull(version);
-      Preconditions.checkNotNull(containerBuild);
       Preconditions.checkNotNull(prometheusAutobind);
       Preconditions.checkNotNull(documentationUri);
       Preconditions.checkNotNull(documentationErrorsPath);

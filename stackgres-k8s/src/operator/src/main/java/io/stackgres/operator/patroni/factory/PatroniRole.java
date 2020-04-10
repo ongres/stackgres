@@ -6,11 +6,9 @@
 package io.stackgres.operator.patroni.factory;
 
 import java.util.stream.Stream;
-
 import javax.enterprise.context.ApplicationScoped;
 
 import com.google.common.collect.ImmutableList;
-
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ServiceAccount;
 import io.fabric8.kubernetes.api.model.ServiceAccountBuilder;
@@ -21,14 +19,14 @@ import io.fabric8.kubernetes.api.model.rbac.RoleBindingBuilder;
 import io.fabric8.kubernetes.api.model.rbac.RoleBuilder;
 import io.fabric8.kubernetes.api.model.rbac.RoleRefBuilder;
 import io.fabric8.kubernetes.api.model.rbac.SubjectBuilder;
+import io.stackgres.common.StackGresContext;
+import io.stackgres.common.crd.sgbackup.StackGresBackupDefinition;
+import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigDefinition;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresClusterResourceStreamFactory;
 import io.stackgres.operator.common.StackGresGeneratorContext;
 import io.stackgres.operator.common.StackGresUtil;
-import io.stackgres.operator.customresource.sgbackup.StackGresBackupDefinition;
-import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfigDefinition;
 import io.stackgres.operatorframework.resource.ResourceUtil;
-
 import org.jooq.lambda.Seq;
 
 @ApplicationScoped
@@ -110,12 +108,12 @@ public class PatroniRole implements StackGresClusterResourceStreamFactory {
             .withVerbs("create")
             .build())
         .addToRules(new PolicyRuleBuilder()
-            .withApiGroups(StackGresUtil.CRD_GROUP)
+            .withApiGroups(StackGresContext.CRD_GROUP)
             .withResources(StackGresBackupDefinition.PLURAL)
             .withVerbs("list", "get", "create", "patch", "delete")
             .build())
         .addToRules(new PolicyRuleBuilder()
-            .withApiGroups(StackGresUtil.CRD_GROUP)
+            .withApiGroups(StackGresContext.CRD_GROUP)
             .withResources(StackGresBackupConfigDefinition.PLURAL)
             .withVerbs("get")
             .build())

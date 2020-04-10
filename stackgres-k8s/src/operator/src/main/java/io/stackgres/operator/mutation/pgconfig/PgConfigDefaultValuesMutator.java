@@ -13,9 +13,9 @@ import com.github.fge.jsonpatch.AddOperation;
 import com.github.fge.jsonpatch.JsonPatchOperation;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
+import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigSpec;
 import io.stackgres.operator.common.PgConfigReview;
-import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfig;
-import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfigSpec;
 import io.stackgres.operator.mutation.DefaultValuesMutator;
 
 @ApplicationScoped

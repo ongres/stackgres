@@ -6,16 +6,15 @@
 package io.stackgres.operator.resource;
 
 import java.util.Optional;
-
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterDefinition;
+import io.stackgres.common.crd.sgcluster.StackGresClusterDoneable;
+import io.stackgres.common.crd.sgcluster.StackGresClusterList;
 import io.stackgres.operator.app.KubernetesClientFactory;
-import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
-import io.stackgres.operator.customresource.sgcluster.StackGresClusterDefinition;
-import io.stackgres.operator.customresource.sgcluster.StackGresClusterDoneable;
-import io.stackgres.operator.customresource.sgcluster.StackGresClusterList;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 
 @ApplicationScoped

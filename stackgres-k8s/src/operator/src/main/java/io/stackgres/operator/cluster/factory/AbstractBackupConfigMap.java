@@ -9,17 +9,15 @@ import java.util.Optional;
 import java.util.function.Function;
 
 import com.google.common.collect.ImmutableMap;
-
+import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigSpec;
+import io.stackgres.common.crd.sgbackupconfig.StackGresBaseBackupConfig;
+import io.stackgres.common.crd.storages.AwsS3CompatibleStorage;
+import io.stackgres.common.crd.storages.AwsS3Storage;
+import io.stackgres.common.crd.storages.AzureBlobStorage;
+import io.stackgres.common.crd.storages.BackupStorage;
+import io.stackgres.common.crd.storages.GoogleCloudStorage;
 import io.stackgres.operator.common.StackGresUtil;
-import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfigSpec;
-import io.stackgres.operator.customresource.sgbackupconfig.StackGresBaseBackupConfig;
-import io.stackgres.operator.customresource.storages.AwsS3CompatibleStorage;
-import io.stackgres.operator.customresource.storages.AwsS3Storage;
-import io.stackgres.operator.customresource.storages.AzureBlobStorage;
-import io.stackgres.operator.customresource.storages.BackupStorage;
-import io.stackgres.operator.customresource.storages.GoogleCloudStorage;
 import io.stackgres.operator.sidecars.envoy.Envoy;
-
 import org.jooq.lambda.Unchecked;
 import org.jooq.lambda.fi.util.function.CheckedFunction;
 import org.slf4j.Logger;

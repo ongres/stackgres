@@ -11,12 +11,12 @@ import java.util.regex.Pattern;
 import javax.enterprise.context.ApplicationScoped;
 
 import com.google.common.collect.ImmutableMap;
+import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
+import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncer;
+import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigSpec;
 import io.stackgres.operator.rest.dto.pooling.PolingConfigPgBouncer;
 import io.stackgres.operator.rest.dto.pooling.PoolingConfigDto;
 import io.stackgres.operator.rest.dto.pooling.PoolingConfigSpec;
-import io.stackgres.operator.sidecars.pooling.customresources.StackGresPoolingConfig;
-import io.stackgres.operator.sidecars.pooling.customresources.StackGresPoolingConfigPgBouncer;
-import io.stackgres.operator.sidecars.pooling.customresources.StackGresPoolingConfigSpec;
 import org.jooq.lambda.Seq;
 
 @ApplicationScoped

@@ -9,10 +9,10 @@ import java.util.Optional;
 
 import io.stackgres.operator.common.ConfigLoader;
 import io.stackgres.operator.common.StackGresClusterReview;
-import io.stackgres.operator.customresource.sgbackup.StackGresBackup;
-import io.stackgres.operator.customresource.sgbackup.StackGresBackupList;
-import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
-import io.stackgres.operator.customresource.sgcluster.ClusterRestore;
+import io.stackgres.common.crd.sgbackup.StackGresBackup;
+import io.stackgres.common.crd.sgbackup.StackGresBackupList;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.ClusterRestore;
 import io.stackgres.operator.resource.CustomResourceScanner;
 import io.stackgres.operator.utils.JsonUtil;
 import io.stackgres.operator.utils.ValidationUtils;

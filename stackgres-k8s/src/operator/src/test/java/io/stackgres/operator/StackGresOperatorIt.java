@@ -18,7 +18,7 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Service;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSetEnvVars;
 import io.stackgres.operator.controller.EventReason;
-import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.sidecars.envoy.Envoy;
 
 import org.jooq.lambda.Unchecked;

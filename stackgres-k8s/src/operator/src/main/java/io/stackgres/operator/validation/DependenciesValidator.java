@@ -7,15 +7,14 @@ package io.stackgres.operator.validation;
 
 import java.util.List;
 import java.util.Optional;
-
 import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.Status;
 import io.fabric8.kubernetes.api.model.StatusBuilder;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterDefinition;
 import io.stackgres.operator.common.ConfigContext;
 import io.stackgres.operator.common.ErrorType;
-import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
-import io.stackgres.operator.customresource.sgcluster.StackGresClusterDefinition;
 import io.stackgres.operator.resource.CustomResourceScanner;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionRequest;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;

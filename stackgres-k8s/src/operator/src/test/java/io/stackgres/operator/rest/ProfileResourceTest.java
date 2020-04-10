@@ -9,8 +9,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import io.fabric8.kubernetes.client.CustomResourceList;
-import io.stackgres.operator.customresource.sgprofile.StackGresProfile;
-import io.stackgres.operator.customresource.sgprofile.StackGresProfileList;
+import io.stackgres.common.crd.sgprofile.StackGresProfile;
+import io.stackgres.common.crd.sgprofile.StackGresProfileList;
 import io.stackgres.operator.resource.CustomResourceFinder;
 import io.stackgres.operator.resource.CustomResourceScanner;
 import io.stackgres.operator.resource.CustomResourceScheduler;

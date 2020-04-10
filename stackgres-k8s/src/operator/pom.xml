@@ -40,12 +40,11 @@
   </properties>
 
   <dependencies>
-<!-- IT fails with a: org.eclipse.aether.transfer.ArtifactNotFoundException: Could not find artifact
     <dependency>
       <groupId>io.stackgres</groupId>
       <artifactId>stackgres-common</artifactId>
       <version>${project.version}</version>
-    </dependency>-->
+    </dependency>
     <dependency>
       <groupId>io.stackgres</groupId>
       <artifactId>stackgres-operator-framework</artifactId>
@@ -120,6 +119,12 @@
       <groupId>io.fabric8</groupId>
       <artifactId>kubernetes-server-mock</artifactId>
       <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.stackgres</groupId>
+      <artifactId>stackgres-common</artifactId>
+      <version>0.9-SNAPSHOT</version>
+      <scope>compile</scope>
     </dependency>
   </dependencies>
 

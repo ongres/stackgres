@@ -6,13 +6,12 @@
 package io.stackgres.operator.initialization;
 
 import java.util.List;
-
 import javax.enterprise.context.ApplicationScoped;
 
+import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
+import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigDefinition;
+import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigSpec;
 import io.stackgres.operator.common.StackGresComponents;
-import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfig;
-import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfigDefinition;
-import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfigSpec;
 import io.stackgres.operator.patroni.factory.parameters.Blacklist;
 
 @ApplicationScoped

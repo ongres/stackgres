@@ -31,6 +31,8 @@ import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.operator.app.YamlMapperProvider;
 import io.stackgres.operator.common.Prometheus;
 import io.stackgres.operator.common.Sidecar;
@@ -44,8 +46,6 @@ import io.stackgres.operator.customresource.prometheus.NamespaceSelector;
 import io.stackgres.operator.customresource.prometheus.ServiceMonitor;
 import io.stackgres.operator.customresource.prometheus.ServiceMonitorDefinition;
 import io.stackgres.operator.customresource.prometheus.ServiceMonitorSpec;
-import io.stackgres.operator.customresource.sgcluster.StackGresClusterPod;
-import io.stackgres.operator.customresource.sgcluster.StackGresClusterSpec;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jooq.lambda.Seq;
 

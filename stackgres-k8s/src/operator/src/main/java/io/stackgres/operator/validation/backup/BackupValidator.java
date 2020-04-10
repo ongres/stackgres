@@ -5,8 +5,8 @@
 
 package io.stackgres.operator.validation.backup;
 
+import io.stackgres.common.crd.sgbackup.StackGresBackupDefinition;
 import io.stackgres.operator.common.BackupReview;
-import io.stackgres.operator.customresource.sgbackup.StackGresBackupDefinition;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import io.stackgres.operatorframework.admissionwebhook.validating.Validator;
 

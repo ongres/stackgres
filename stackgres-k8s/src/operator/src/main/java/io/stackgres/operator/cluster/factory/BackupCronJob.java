@@ -9,14 +9,12 @@ import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Resources;
-
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
@@ -25,20 +23,19 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectFieldSelectorBuilder;
 import io.fabric8.kubernetes.api.model.batch.CronJobBuilder;
 import io.fabric8.kubernetes.api.model.batch.JobTemplateSpecBuilder;
+import io.stackgres.common.crd.sgbackup.BackupPhase;
+import io.stackgres.common.crd.sgbackup.StackGresBackupDefinition;
+import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
+import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigDefinition;
+import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigSpec;
+import io.stackgres.common.crd.sgbackupconfig.StackGresBaseBackupConfig;
 import io.stackgres.operator.common.StackGresBackupContext;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresClusterResourceStreamFactory;
 import io.stackgres.operator.common.StackGresGeneratorContext;
 import io.stackgres.operator.common.StackGresUtil;
-import io.stackgres.operator.customresource.sgbackup.BackupPhase;
-import io.stackgres.operator.customresource.sgbackup.StackGresBackupDefinition;
-import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfig;
-import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfigDefinition;
-import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfigSpec;
-import io.stackgres.operator.customresource.sgbackupconfig.StackGresBaseBackupConfig;
 import io.stackgres.operator.patroni.factory.PatroniRole;
 import io.stackgres.operatorframework.resource.ResourceUtil;
-
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.Unchecked;
 import org.slf4j.Logger;

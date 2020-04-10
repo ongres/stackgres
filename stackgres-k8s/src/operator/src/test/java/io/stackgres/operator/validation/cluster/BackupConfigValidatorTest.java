@@ -15,7 +15,7 @@ import static org.mockito.Mockito.when;
 import java.util.Optional;
 
 import io.stackgres.operator.common.ConfigLoader;
-import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfig;
+import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.operator.resource.AbstractCustomResourceFinder;
 import io.stackgres.operator.utils.JsonUtil;
 import io.stackgres.operator.common.StackGresClusterReview;

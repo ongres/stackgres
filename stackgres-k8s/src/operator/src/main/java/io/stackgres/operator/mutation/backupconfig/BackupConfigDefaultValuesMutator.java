@@ -9,9 +9,8 @@ import java.util.List;
 import javax.enterprise.context.ApplicationScoped;
 
 import com.github.fge.jsonpatch.JsonPatchOperation;
-
+import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.operator.common.BackupConfigReview;
-import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.operator.mutation.DefaultValuesMutator;
 
 @ApplicationScoped

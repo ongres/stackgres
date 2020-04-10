@@ -8,9 +8,8 @@ package io.stackgres.operator.controller;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
-import io.fabric8.kubernetes.client.Watch;
 import io.fabric8.kubernetes.client.Watcher;
-import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;

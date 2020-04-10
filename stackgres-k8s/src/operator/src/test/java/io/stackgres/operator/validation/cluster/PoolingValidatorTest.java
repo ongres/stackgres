@@ -9,7 +9,7 @@ import java.util.Optional;
 
 import io.stackgres.operator.common.ConfigLoader;
 import io.stackgres.operator.resource.AbstractCustomResourceFinder;
-import io.stackgres.operator.sidecars.pooling.customresources.StackGresPoolingConfig;
+import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.operator.utils.JsonUtil;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operatorframework.admissionwebhook.Operation;

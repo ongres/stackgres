@@ -7,13 +7,11 @@ package io.stackgres.operator.patroni.factory;
 
 import java.nio.charset.StandardCharsets;
 import java.util.stream.Stream;
-
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.Resources;
-
 import io.fabric8.kubernetes.api.model.ConfigMapEnvSourceBuilder;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
@@ -28,6 +26,7 @@ import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import io.fabric8.kubernetes.api.model.SecurityContextBuilder;
 import io.fabric8.kubernetes.api.model.TCPSocketActionBuilder;
 import io.fabric8.kubernetes.api.model.Volume;
+import io.stackgres.common.StackGresContext;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSet;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSetEnvironmentVariables;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSetVolumeMounts;
@@ -35,10 +34,8 @@ import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresClusterSidecarResourceFactory;
 import io.stackgres.operator.common.StackGresComponents;
 import io.stackgres.operator.common.StackGresGeneratorContext;
-import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operator.sidecars.envoy.Envoy;
 import io.stackgres.operatorframework.resource.ResourceGenerator;
-
 import org.jooq.lambda.Unchecked;
 
 @Singleton
@@ -91,7 +88,7 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
     return new ContainerBuilder()
       .withName(NAME)
       .withImage(String.format(IMAGE_PREFIX,
-          DEFAULT_VERSION, pgVersion, StackGresUtil.CONTAINER_BUILD))
+          DEFAULT_VERSION, pgVersion, StackGresContext.CONTAINER_BUILD))
       .withCommand("/bin/sh", "-exc", Unchecked.supplier(() -> Resources
           .asCharSource(ClusterStatefulSet.class.getResource("/start-patroni.sh"),
               StandardCharsets.UTF_8)

@@ -13,6 +13,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
+import io.stackgres.common.StackGresContext;
 
 import io.stackgres.operator.app.StackGresOperatorApp;
 import io.stackgres.operator.common.StackGresComponents;
@@ -48,7 +49,7 @@ public class CheckOperatorValuesTest {
     ObjectMapper objectMapper = new YAMLMapper();
     JsonNode versions = objectMapper.readTree(
         new URL("https://stackgres.io/downloads/stackgres-k8s/stackgres/components/"
-            + StackGresUtil.CONTAINER_BUILD + "/versions.yaml"));
+            + StackGresContext.CONTAINER_BUILD + "/versions.yaml"));
     Properties properties = new Properties();
     properties.load(StackGresOperatorApp.class.getResourceAsStream("/versions.properties"));
     Assert.assertArrayEquals(

@@ -8,9 +8,9 @@ package io.stackgres.operator.validation.cluster;
 import javax.validation.constraints.Pattern;
 
 import io.stackgres.operator.common.StackGresClusterReview;
-import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
-import io.stackgres.operator.customresource.sgcluster.StackGresClusterSpec;
-import io.stackgres.operator.customresource.sgcluster.StackGresPodPersistenceVolume;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
+import io.stackgres.common.crd.sgcluster.StackGresPodPersistenceVolume;
 import io.stackgres.operator.utils.JsonUtil;
 import io.stackgres.operator.validation.ConstraintValidationTest;
 import io.stackgres.operator.validation.ConstraintValidator;

@@ -8,12 +8,12 @@ package io.stackgres.operator.resource;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
+import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigDefinition;
+import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigDoneable;
+import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigList;
 import io.stackgres.operator.app.KubernetesClientFactory;
 import io.stackgres.operator.common.ArcUtil;
-import io.stackgres.operator.sidecars.pooling.customresources.StackGresPoolingConfig;
-import io.stackgres.operator.sidecars.pooling.customresources.StackGresPoolingConfigDefinition;
-import io.stackgres.operator.sidecars.pooling.customresources.StackGresPoolingConfigDoneable;
-import io.stackgres.operator.sidecars.pooling.customresources.StackGresPoolingConfigList;
 
 @ApplicationScoped
 public class PgPoolingConfigScheduler

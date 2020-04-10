@@ -11,9 +11,9 @@ import com.github.fge.jackson.jsonpointer.JsonPointer;
 import com.github.fge.jsonpatch.AddOperation;
 import com.github.fge.jsonpatch.JsonPatchOperation;
 import com.google.common.collect.ImmutableList;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
+import io.stackgres.common.crd.sgcluster.StackgresClusterConfiguration;
 import io.stackgres.operator.common.StackGresClusterReview;
-import io.stackgres.operator.customresource.sgcluster.StackGresClusterSpec;
-import io.stackgres.operator.customresource.sgcluster.StackgresClusterConfiguration;
 import io.stackgres.operatorframework.admissionwebhook.mutating.JsonPatchMutator;
 
 public interface ClusterConfigurationMutator {

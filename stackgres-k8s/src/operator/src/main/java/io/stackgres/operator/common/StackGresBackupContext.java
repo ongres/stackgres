@@ -7,7 +7,7 @@ package io.stackgres.operator.common;
 
 import java.util.Map;
 
-import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfig;
+import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 
 public class StackGresBackupContext {
 

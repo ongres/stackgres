@@ -7,9 +7,9 @@ package io.stackgres.operator.initialization;
 
 import javax.enterprise.context.ApplicationScoped;
 
-import io.stackgres.operator.customresource.sgprofile.StackGresProfile;
-import io.stackgres.operator.customresource.sgprofile.StackGresProfileDefinition;
-import io.stackgres.operator.customresource.sgprofile.StackGresProfileSpec;
+import io.stackgres.common.crd.sgprofile.StackGresProfile;
+import io.stackgres.common.crd.sgprofile.StackGresProfileDefinition;
+import io.stackgres.common.crd.sgprofile.StackGresProfileSpec;
 
 @ApplicationScoped
 public class DefaultProfileFactory extends AbstractCustomResourceFactory<StackGresProfile> {
