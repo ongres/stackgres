@@ -120,12 +120,6 @@
       <artifactId>kubernetes-server-mock</artifactId>
       <scope>test</scope>
     </dependency>
-    <dependency>
-      <groupId>io.stackgres</groupId>
-      <artifactId>stackgres-common</artifactId>
-      <version>0.9-SNAPSHOT</version>
-      <scope>compile</scope>
-    </dependency>
   </dependencies>
 
   <build>
