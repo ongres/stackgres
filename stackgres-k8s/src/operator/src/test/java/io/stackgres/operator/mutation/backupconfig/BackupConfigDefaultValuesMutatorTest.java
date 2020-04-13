@@ -8,8 +8,8 @@ package io.stackgres.operator.mutation.backupconfig;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import io.stackgres.operator.common.BackupConfigReview;
-import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfig;
-import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfigSpec;
+import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
+import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigSpec;
 import io.stackgres.operator.mutation.DefaultValuesMutator;
 import io.stackgres.operator.mutation.DefaultValuesMutatorTest;
 import io.stackgres.operator.utils.JsonUtil;

@@ -7,8 +7,8 @@ package io.stackgres.operator.mutation.backup;
 
 import javax.enterprise.context.ApplicationScoped;
 
+import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.operator.common.BackupReview;
-import io.stackgres.operator.customresource.sgbackup.StackGresBackup;
 import io.stackgres.operator.mutation.AbstractAnnotationMutator;
 
 @ApplicationScoped

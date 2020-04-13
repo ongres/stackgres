@@ -9,8 +9,8 @@ import java.util.List;
 import javax.enterprise.context.ApplicationScoped;
 
 import com.github.fge.jsonpatch.JsonPatchOperation;
+import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.operator.common.SgProfileReview;
-import io.stackgres.operator.customresource.sgprofile.StackGresProfile;
 import io.stackgres.operator.mutation.DefaultValuesMutator;
 
 @ApplicationScoped

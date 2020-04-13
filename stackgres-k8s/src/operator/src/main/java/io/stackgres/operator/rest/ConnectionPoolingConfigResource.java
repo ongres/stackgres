@@ -11,13 +11,13 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.operator.common.ArcUtil;
 import io.stackgres.operator.resource.CustomResourceFinder;
 import io.stackgres.operator.resource.CustomResourceScanner;
 import io.stackgres.operator.resource.CustomResourceScheduler;
 import io.stackgres.operator.rest.dto.pooling.PoolingConfigDto;
 import io.stackgres.operator.rest.transformer.ResourceTransformer;
-import io.stackgres.operator.sidecars.pooling.customresources.StackGresPoolingConfig;
 
 @Path("/stackgres/sgpoolconfig")
 @Produces(MediaType.APPLICATION_JSON)

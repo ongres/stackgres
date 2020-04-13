@@ -10,11 +10,11 @@ import java.util.function.Consumer;
 
 import javax.enterprise.context.ApplicationScoped;
 
-import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfig;
-import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfigSpec;
-import io.stackgres.operator.customresource.sgbackupconfig.StackGresBaseBackupConfig;
-import io.stackgres.operator.customresource.sgbackupconfig.StackGresBaseBackupPerformance;
-import io.stackgres.operator.customresource.storages.AwsSecretKeySelector;
+import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
+import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigSpec;
+import io.stackgres.common.crd.sgbackupconfig.StackGresBaseBackupConfig;
+import io.stackgres.common.crd.sgbackupconfig.StackGresBaseBackupPerformance;
+import io.stackgres.common.crd.storages.AwsSecretKeySelector;
 import io.stackgres.operator.rest.dto.SecretKeySelector;
 import io.stackgres.operator.rest.dto.backupconfig.BackupConfigDto;
 import io.stackgres.operator.rest.dto.backupconfig.BackupConfigSpec;
@@ -81,13 +81,13 @@ public class BackupConfigTransformer
     return transformation;
   }
 
-  private io.stackgres.operator.customresource.storages.BackupStorage
+  private io.stackgres.common.crd.storages.BackupStorage
       getCustomResourceStorage(BackupStorage source) {
     if (source == null) {
       return null;
     }
-    io.stackgres.operator.customresource.storages.BackupStorage transformation =
-        new io.stackgres.operator.customresource.storages.BackupStorage();
+    io.stackgres.common.crd.storages.BackupStorage transformation =
+        new io.stackgres.common.crd.storages.BackupStorage();
     transformation.setAzureBlob(
         getCustomResourceAzureblobStorage(source.getAzureBlob()));
     transformation.setGcs(
@@ -100,13 +100,13 @@ public class BackupConfigTransformer
     return transformation;
   }
 
-  private io.stackgres.operator.customresource.storages.AzureBlobStorage
+  private io.stackgres.common.crd.storages.AzureBlobStorage
       getCustomResourceAzureblobStorage(AzureBlobStorage source) {
     if (source == null) {
       return null;
     }
-    io.stackgres.operator.customresource.storages.AzureBlobStorage transformation =
-        new io.stackgres.operator.customresource.storages.AzureBlobStorage();
+    io.stackgres.common.crd.storages.AzureBlobStorage transformation =
+        new io.stackgres.common.crd.storages.AzureBlobStorage();
     transformation.setAzureCredentials(
         getCustomResourceAzureblobStorageCredentials(source.getCredentials()));
     transformation.setBucket(source.getBucket());
@@ -114,17 +114,17 @@ public class BackupConfigTransformer
     return transformation;
   }
 
-  private io.stackgres.operator.customresource.storages.AzureBlobStorageCredentials
+  private io.stackgres.common.crd.storages.AzureBlobStorageCredentials
       getCustomResourceAzureblobStorageCredentials(AzureBlobStorageCredentials source) {
     if (source == null) {
       return null;
     }
-    io.stackgres.operator.customresource.storages.AzureBlobStorageCredentials
+    io.stackgres.common.crd.storages.AzureBlobStorageCredentials
         transformation =
-        new io.stackgres.operator.customresource.storages.AzureBlobStorageCredentials();
-    final io.stackgres.operator.customresource.storages.AzureBlobSecretKeySelector
+        new io.stackgres.common.crd.storages.AzureBlobStorageCredentials();
+    final io.stackgres.common.crd.storages.AzureBlobSecretKeySelector
         secretKeySelectors =
-        new io.stackgres.operator.customresource.storages.AzureBlobSecretKeySelector();
+        new io.stackgres.common.crd.storages.AzureBlobSecretKeySelector();
     transformation.setSecretKeySelectors(secretKeySelectors);
     setSecretKeySelector(secretKeySelectors::setAccessKey,
         source.getSecretKeySelectors().getAccessKey());
@@ -133,14 +133,14 @@ public class BackupConfigTransformer
     return transformation;
   }
 
-  private io.stackgres.operator.customresource.storages.GoogleCloudStorage
+  private io.stackgres.common.crd.storages.GoogleCloudStorage
       getCustomResourceGcsStorage(GoogleCloudStorage source) {
     if (source == null) {
       return null;
     }
-    io.stackgres.operator.customresource.storages.GoogleCloudStorage
+    io.stackgres.common.crd.storages.GoogleCloudStorage
         transformation =
-        new io.stackgres.operator.customresource.storages.GoogleCloudStorage();
+        new io.stackgres.common.crd.storages.GoogleCloudStorage();
     transformation.setCredentials(
         getCustomResourceGcsStorageCredentials(source.getCredentials()));
     transformation.setBucket(source.getBucket());
@@ -148,18 +148,18 @@ public class BackupConfigTransformer
     return transformation;
   }
 
-  private io.stackgres.operator.customresource.storages.GoogleCloudCredentials
+  private io.stackgres.common.crd.storages.GoogleCloudCredentials
       getCustomResourceGcsStorageCredentials(GoogleCloudCredentials source) {
     if (source == null) {
       return null;
     }
-    io.stackgres.operator.customresource.storages.GoogleCloudCredentials
+    io.stackgres.common.crd.storages.GoogleCloudCredentials
         transformation =
-        new io.stackgres.operator.customresource.storages.GoogleCloudCredentials();
+        new io.stackgres.common.crd.storages.GoogleCloudCredentials();
     if (source.getSecretKeySelectors().getServiceAccountJsonKey() != null) {
-      final io.stackgres.operator.customresource.storages.GoogleCloudSecretKeySelector
+      final io.stackgres.common.crd.storages.GoogleCloudSecretKeySelector
           secretKeySelectors =
-          new io.stackgres.operator.customresource.storages.GoogleCloudSecretKeySelector();
+          new io.stackgres.common.crd.storages.GoogleCloudSecretKeySelector();
       transformation.setSecretKeySelectors(secretKeySelectors);
       setSecretKeySelector(secretKeySelectors::setServiceAccountJsonKey,
           source.getSecretKeySelectors().getServiceAccountJsonKey());
@@ -167,13 +167,13 @@ public class BackupConfigTransformer
     return transformation;
   }
 
-  private io.stackgres.operator.customresource.storages.AwsS3Storage
+  private io.stackgres.common.crd.storages.AwsS3Storage
       getCustomResourceS3Storage(AwsS3Storage source) {
     if (source == null) {
       return null;
     }
-    io.stackgres.operator.customresource.storages.AwsS3Storage transformation =
-        new io.stackgres.operator.customresource.storages.AwsS3Storage();
+    io.stackgres.common.crd.storages.AwsS3Storage transformation =
+        new io.stackgres.common.crd.storages.AwsS3Storage();
     transformation.setAwsCredentials(
         getCustomResourceAwsCredentials(source.getCredentials()));
     transformation.setBucket(source.getBucket());
@@ -183,13 +183,13 @@ public class BackupConfigTransformer
     return transformation;
   }
 
-  private io.stackgres.operator.customresource.storages.AwsS3CompatibleStorage
+  private io.stackgres.common.crd.storages.AwsS3CompatibleStorage
       getCustomResourceS3CompatibleStorage(AwsS3CompatibleStorage source) {
     if (source == null) {
       return null;
     }
-    io.stackgres.operator.customresource.storages.AwsS3CompatibleStorage transformation =
-        new io.stackgres.operator.customresource.storages.AwsS3CompatibleStorage();
+    io.stackgres.common.crd.storages.AwsS3CompatibleStorage transformation =
+        new io.stackgres.common.crd.storages.AwsS3CompatibleStorage();
     transformation.setAwsCredentials(
         getCustomResourceAwsCredentials(source.getCredentials()));
     transformation.setEndpoint(source.getEndpoint());
@@ -201,14 +201,14 @@ public class BackupConfigTransformer
     return transformation;
   }
 
-  private io.stackgres.operator.customresource.storages.AwsCredentials
+  private io.stackgres.common.crd.storages.AwsCredentials
       getCustomResourceAwsCredentials(AwsCredentials source) {
     if (source == null) {
       return null;
     }
-    io.stackgres.operator.customresource.storages.AwsCredentials
+    io.stackgres.common.crd.storages.AwsCredentials
         transformation =
-        new io.stackgres.operator.customresource.storages.AwsCredentials();
+        new io.stackgres.common.crd.storages.AwsCredentials();
     final AwsSecretKeySelector secretKeySelectors = new AwsSecretKeySelector();
     transformation.setSecretKeySelectors(secretKeySelectors);
     setSecretKeySelector(secretKeySelectors::setAccessKeyId,
@@ -248,7 +248,7 @@ public class BackupConfigTransformer
   }
 
   private BackupStorage getResourceStorage(
-      io.stackgres.operator.customresource.storages.BackupStorage source) {
+      io.stackgres.common.crd.storages.BackupStorage source) {
     if (source == null) {
       return null;
     }
@@ -266,7 +266,7 @@ public class BackupConfigTransformer
   }
 
   private AzureBlobStorage getResourceAzureblobStorage(
-      io.stackgres.operator.customresource.storages.AzureBlobStorage source) {
+      io.stackgres.common.crd.storages.AzureBlobStorage source) {
     if (source == null) {
       return null;
     }
@@ -279,7 +279,7 @@ public class BackupConfigTransformer
   }
 
   private AzureBlobStorageCredentials getResourceAzureblobStorageCredentials(
-      io.stackgres.operator.customresource.storages.AzureBlobStorageCredentials source) {
+      io.stackgres.common.crd.storages.AzureBlobStorageCredentials source) {
     if (source == null) {
       return null;
     }
@@ -301,7 +301,7 @@ public class BackupConfigTransformer
   }
 
   private GoogleCloudStorage getResourceGcsStorage(
-      io.stackgres.operator.customresource.storages.GoogleCloudStorage source) {
+      io.stackgres.common.crd.storages.GoogleCloudStorage source) {
     if (source == null) {
       return null;
     }
@@ -314,7 +314,7 @@ public class BackupConfigTransformer
   }
 
   private GoogleCloudCredentials getResourceGcsStorageCredentials(
-      io.stackgres.operator.customresource.storages.GoogleCloudCredentials source) {
+      io.stackgres.common.crd.storages.GoogleCloudCredentials source) {
     if (source == null) {
       return null;
     }
@@ -331,7 +331,7 @@ public class BackupConfigTransformer
   }
 
   private AwsS3Storage getResourceS3Storage(
-      io.stackgres.operator.customresource.storages.AwsS3Storage source) {
+      io.stackgres.common.crd.storages.AwsS3Storage source) {
     if (source == null) {
       return null;
     }
@@ -346,7 +346,7 @@ public class BackupConfigTransformer
   }
 
   private AwsS3CompatibleStorage getResourceS3CompatibleStorage(
-      io.stackgres.operator.customresource.storages.AwsS3CompatibleStorage source) {
+      io.stackgres.common.crd.storages.AwsS3CompatibleStorage source) {
     if (source == null) {
       return null;
     }
@@ -363,7 +363,7 @@ public class BackupConfigTransformer
   }
 
   private AwsCredentials getResourceAwsCredentials(
-      io.stackgres.operator.customresource.storages.AwsCredentials source) {
+      io.stackgres.common.crd.storages.AwsCredentials source) {
     if (source == null) {
       return null;
     }

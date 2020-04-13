@@ -7,9 +7,9 @@ package io.stackgres.operator.validation.backupconfig;
 
 import javax.inject.Singleton;
 
+import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.operator.common.BackupConfigReview;
 import io.stackgres.operator.common.ErrorType;
-import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.operator.validation.AbstractDefaultConfigKeeper;
 import io.stackgres.operator.validation.ValidationType;
 

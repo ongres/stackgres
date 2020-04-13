@@ -5,9 +5,7 @@
 
 package io.stackgres.operator.initialization;
 
-import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfig;
-import io.stackgres.operator.resource.CustomResourceFinder;
-import io.stackgres.operator.resource.CustomResourceScheduler;
+import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.operator.utils.JsonUtil;
 
 import org.junit.jupiter.api.extension.ExtendWith;

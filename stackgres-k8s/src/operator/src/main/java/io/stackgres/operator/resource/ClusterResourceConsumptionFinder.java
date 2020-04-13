@@ -7,26 +7,23 @@ package io.stackgres.operator.resource;
 
 import java.util.List;
 import java.util.Optional;
-
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import com.google.common.collect.ImmutableMap;
-
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgprofile.StackGresProfile;
+import io.stackgres.common.crd.sgprofile.StackGresProfileDefinition;
+import io.stackgres.common.crd.sgprofile.StackGresProfileDoneable;
+import io.stackgres.common.crd.sgprofile.StackGresProfileList;
 import io.stackgres.operator.app.KubernetesClientFactory;
 import io.stackgres.operator.common.StackGresUtil;
-import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
-import io.stackgres.operator.customresource.sgprofile.StackGresProfile;
-import io.stackgres.operator.customresource.sgprofile.StackGresProfileDefinition;
-import io.stackgres.operator.customresource.sgprofile.StackGresProfileDoneable;
-import io.stackgres.operator.customresource.sgprofile.StackGresProfileList;
 import io.stackgres.operator.patroni.factory.Patroni;
 import io.stackgres.operator.rest.PatroniStatsScripts;
 import io.stackgres.operator.rest.dto.cluster.ClusterResourceConsumtionDto;
 import io.stackgres.operatorframework.resource.ResourceUtil;
-
 import org.jooq.lambda.Unchecked;
 
 @ApplicationScoped

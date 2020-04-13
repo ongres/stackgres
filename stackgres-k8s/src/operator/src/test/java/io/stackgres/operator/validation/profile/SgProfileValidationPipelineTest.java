@@ -9,7 +9,7 @@ import javax.inject.Inject;
 
 import io.quarkus.test.junit.QuarkusTest;
 import io.stackgres.operator.common.SgProfileReview;
-import io.stackgres.operator.customresource.sgprofile.StackGresProfile;
+import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.operator.utils.JsonUtil;
 import io.stackgres.operator.validation.ValidationPipelineTest;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationPipeline;

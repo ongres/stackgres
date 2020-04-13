@@ -40,12 +40,11 @@
   </properties>
 
   <dependencies>
-<!-- IT fails with a: org.eclipse.aether.transfer.ArtifactNotFoundException: Could not find artifact
     <dependency>
       <groupId>io.stackgres</groupId>
       <artifactId>stackgres-common</artifactId>
       <version>${project.version}</version>
-    </dependency>-->
+    </dependency>
     <dependency>
       <groupId>io.stackgres</groupId>
       <artifactId>stackgres-operator-framework</artifactId>

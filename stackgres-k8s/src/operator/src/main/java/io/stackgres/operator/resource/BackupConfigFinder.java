@@ -8,12 +8,12 @@ package io.stackgres.operator.resource;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
+import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigDefinition;
+import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigDoneable;
+import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigList;
 import io.stackgres.operator.app.KubernetesClientFactory;
 import io.stackgres.operator.common.ArcUtil;
-import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfig;
-import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfigDefinition;
-import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfigDoneable;
-import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfigList;
 
 @ApplicationScoped
 public class BackupConfigFinder

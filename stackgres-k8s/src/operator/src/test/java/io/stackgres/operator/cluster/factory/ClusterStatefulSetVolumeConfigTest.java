@@ -14,7 +14,7 @@ import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresRestoreContext;
-import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
 
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.Unchecked;

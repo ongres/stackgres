@@ -9,8 +9,8 @@ import java.util.Optional;
 
 import javax.enterprise.context.ApplicationScoped;
 
-import io.stackgres.operator.customresource.sgprofile.StackGresProfile;
-import io.stackgres.operator.customresource.sgprofile.StackGresProfileSpec;
+import io.stackgres.common.crd.sgprofile.StackGresProfile;
+import io.stackgres.common.crd.sgprofile.StackGresProfileSpec;
 import io.stackgres.operator.rest.dto.profile.ProfileDto;
 import io.stackgres.operator.rest.dto.profile.ProfileSpec;
 

@@ -8,12 +8,12 @@ package io.stackgres.operator.resource;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
+import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigDefinition;
+import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigDoneable;
+import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigList;
 import io.stackgres.operator.app.KubernetesClientFactory;
 import io.stackgres.operator.common.ArcUtil;
-import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfig;
-import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfigDefinition;
-import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfigDoneable;
-import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfigList;
 
 @ApplicationScoped
 public class PostgresConfigFinder

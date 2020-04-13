@@ -7,8 +7,8 @@ package io.stackgres.operator.mutation.profile;
 
 import javax.enterprise.context.ApplicationScoped;
 
+import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.operator.common.SgProfileReview;
-import io.stackgres.operator.customresource.sgprofile.StackGresProfile;
 import io.stackgres.operator.mutation.AbstractAnnotationMutator;
 
 @ApplicationScoped
