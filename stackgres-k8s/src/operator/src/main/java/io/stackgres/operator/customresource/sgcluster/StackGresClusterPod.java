@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.customresource.sgcluster;
 
+import java.util.Objects;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
@@ -70,5 +71,26 @@ public class StackGresClusterPod {
     return MoreObjects.toStringHelper(this)
         .add("persistentVolume", persistentVolume)
         .toString();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    StackGresClusterPod that = (StackGresClusterPod) o;
+    return Objects.equals(persistentVolume, that.persistentVolume)
+        && Objects.equals(disableConnectionPooling, that.disableConnectionPooling)
+        && Objects.equals(disableMetricsExporter, that.disableMetricsExporter)
+        && Objects.equals(disablePostgresUtil, that.disablePostgresUtil);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(persistentVolume, disableConnectionPooling, disableMetricsExporter,
+        disablePostgresUtil);
   }
 }

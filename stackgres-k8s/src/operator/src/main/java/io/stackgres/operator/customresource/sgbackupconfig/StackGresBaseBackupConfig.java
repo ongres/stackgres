@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.customresource.sgbackupconfig;
 
+import java.util.Objects;
 import javax.validation.Valid;
 import javax.validation.constraints.Positive;
 
@@ -73,5 +74,25 @@ public class StackGresBaseBackupConfig {
         .add("compression", compression)
         .add("performance", performance)
         .toString();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    StackGresBaseBackupConfig that = (StackGresBaseBackupConfig) o;
+    return retention == that.retention
+           && Objects.equals(cronSchedule, that.cronSchedule)
+           && Objects.equals(compression, that.compression)
+           && Objects.equals(performance, that.performance);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(retention, cronSchedule, compression, performance);
   }
 }

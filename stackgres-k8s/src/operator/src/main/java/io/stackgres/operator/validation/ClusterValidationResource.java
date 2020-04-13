@@ -31,11 +31,6 @@ public class ClusterValidationResource implements ValidationResource<StackGresCl
 
   private ClusterValidationPipeline pipeline;
 
-  @Inject
-  public ClusterValidationResource(ClusterValidationPipeline pipeline) {
-    this.pipeline = pipeline;
-  }
-
   void onStart(@Observes StartupEvent ev) {
     LOGGER.info("Cluster validation resource started");
   }
@@ -50,4 +45,8 @@ public class ClusterValidationResource implements ValidationResource<StackGresCl
 
   }
 
+  @Inject
+  public void setPipeline(ClusterValidationPipeline pipeline) {
+    this.pipeline = pipeline;
+  }
 }

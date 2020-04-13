@@ -5,13 +5,13 @@
 
 package io.stackgres.operator.customresource.storages;
 
+import java.util.Objects;
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.MoreObjects;
-
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
 @JsonDeserialize
@@ -87,4 +87,24 @@ public class BackupStorage {
         .toString();
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    BackupStorage storage = (BackupStorage) o;
+    return Objects.equals(type, storage.type)
+        && Objects.equals(s3, storage.s3)
+        && Objects.equals(s3Compatible, storage.s3Compatible)
+        && Objects.equals(gcs, storage.gcs)
+        && Objects.equals(azureBlob, storage.azureBlob);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(type, s3, s3Compatible, gcs, azureBlob);
+  }
 }

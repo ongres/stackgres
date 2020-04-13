@@ -5,7 +5,6 @@
 
 package io.stackgres.operator.validation.pooling;
 
-import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
@@ -22,20 +21,13 @@ public class PoolingValidationPipeline
 
   private SimpleValidationPipeline<PoolingReview, PoolingValidator> genericPipeline;
 
-  private Instance<PoolingValidator> validatorInstances;
-
-  @PostConstruct
-  public void init() {
-    genericPipeline = new SimpleValidationPipeline<>(validatorInstances);
+  @Override
+  public void validate(PoolingReview review) throws ValidationFailed {
+    genericPipeline.validate(review);
   }
 
   @Inject
   public void setValidatorInstances(@Any Instance<PoolingValidator> validatorInstances) {
-    this.validatorInstances = validatorInstances;
-  }
-
-  @Override
-  public void validate(PoolingReview review) throws ValidationFailed {
-    genericPipeline.validate(review);
+    this.genericPipeline = new SimpleValidationPipeline<>(validatorInstances);
   }
 }

@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.customresource.sgbackup;
 
+import java.util.Objects;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.MoreObjects;
@@ -71,5 +73,26 @@ public class StackGresBackupProcess {
         .add("subjectToRetentionPolicy", subjectToRetentionPolicy)
         .add("timing", timing)
         .toString();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    StackGresBackupProcess that = (StackGresBackupProcess) o;
+    return Objects.equals(status, that.status)
+        && Objects.equals(jobPod, that.jobPod)
+        && Objects.equals(failure, that.failure)
+        && Objects.equals(subjectToRetentionPolicy, that.subjectToRetentionPolicy)
+        && Objects.equals(timing, that.timing);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(status, jobPod, failure, subjectToRetentionPolicy, timing);
   }
 }

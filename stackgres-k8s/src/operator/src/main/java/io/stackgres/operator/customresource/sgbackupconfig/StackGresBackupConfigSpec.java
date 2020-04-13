@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.customresource.sgbackupconfig;
 
+import java.util.Objects;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
@@ -12,7 +13,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.MoreObjects;
-
 import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.operator.customresource.storages.BackupStorage;
@@ -20,7 +20,7 @@ import io.stackgres.operator.customresource.storages.BackupStorage;
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class  StackGresBackupConfigSpec implements KubernetesResource {
+public class StackGresBackupConfigSpec implements KubernetesResource {
 
   private static final long serialVersionUID = 4124027524757318245L;
 
@@ -59,4 +59,21 @@ public class  StackGresBackupConfigSpec implements KubernetesResource {
         .toString();
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    StackGresBackupConfigSpec spec = (StackGresBackupConfigSpec) o;
+    return Objects.equals(storage, spec.storage)
+        && Objects.equals(baseBackups, spec.baseBackups);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(storage, baseBackups);
+  }
 }

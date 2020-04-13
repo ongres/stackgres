@@ -20,13 +20,13 @@ public class PgConfigValidationPipeline implements ValidationPipeline<PgConfigRe
 
   private SimpleValidationPipeline<PgConfigReview, PgConfigValidator> pipeline;
 
-  @Inject
-  public PgConfigValidationPipeline(@Any Instance<PgConfigValidator> validators) {
-    this.pipeline = new SimpleValidationPipeline<>(validators);
-  }
-
   @Override
   public void validate(PgConfigReview review) throws ValidationFailed {
     pipeline.validate(review);
+  }
+
+  @Inject
+  public void setValidators(@Any Instance<PgConfigValidator> validators) {
+    this.pipeline = new SimpleValidationPipeline<>(validators);
   }
 }

@@ -5,12 +5,12 @@
 
 package io.stackgres.operator.customresource.sgprofile;
 
+import java.util.Objects;
 import javax.validation.constraints.NotBlank;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-
 import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
@@ -45,4 +45,21 @@ public class StackGresProfileSpec implements KubernetesResource {
     this.memory = memory;
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    StackGresProfileSpec that = (StackGresProfileSpec) o;
+    return Objects.equals(cpu, that.cpu)
+        && Objects.equals(memory, that.memory);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(cpu, memory);
+  }
 }

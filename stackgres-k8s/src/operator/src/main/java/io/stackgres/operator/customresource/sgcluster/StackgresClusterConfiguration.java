@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.customresource.sgcluster;
 
+import java.util.Objects;
 import javax.validation.constraints.NotBlank;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -59,5 +60,24 @@ public class StackgresClusterConfiguration {
         .add("connectionPoolingConfig", connectionPoolingConfig)
         .add("backupConfig", backupConfig)
         .toString();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    StackgresClusterConfiguration that = (StackgresClusterConfiguration) o;
+    return Objects.equals(postgresConfig, that.postgresConfig)
+        && Objects.equals(connectionPoolingConfig, that.connectionPoolingConfig)
+        && Objects.equals(backupConfig, that.backupConfig);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(postgresConfig, connectionPoolingConfig, backupConfig);
   }
 }

@@ -6,7 +6,7 @@
 package io.stackgres.operator.customresource.sgpgconfig;
 
 import java.util.Map;
-
+import java.util.Objects;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 
@@ -57,4 +57,21 @@ public class StackGresPostgresConfigSpec implements KubernetesResource {
         .toString();
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    StackGresPostgresConfigSpec that = (StackGresPostgresConfigSpec) o;
+    return Objects.equals(postgresVersion, that.postgresVersion)
+        && Objects.equals(postgresqlConf, that.postgresqlConf);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(postgresVersion, postgresqlConf);
+  }
 }

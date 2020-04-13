@@ -45,8 +45,11 @@ public abstract class AbstractDefaultConfigKeeper
     final AdmissionRequest<R> request = review.getRequest();
     switch (request.getOperation()) {
       case UPDATE:
-        String updateNamespace = request.getObject().getMetadata().getNamespace();
-        String updateName = request.getObject().getMetadata().getName();
+
+        final R object = request.getObject();
+
+        String updateNamespace = object.getMetadata().getNamespace();
+        String updateName = object.getMetadata().getName();
         if (installedNamespace.equals(updateNamespace) && defaultResourceName.equals(updateName)) {
           final String message = "Cannot update CR " + updateName + " because is a default CR";
           fail(request.getKind().getKind(), errorTypeUri, message);
