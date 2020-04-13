@@ -13,9 +13,10 @@ import io.stackgres.operator.customresource.sgbackup.StackGresBackup;
 import io.stackgres.operator.utils.JsonUtil;
 import io.stackgres.operator.validation.ValidationPipelineTest;
 import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
 @QuarkusTest
-@DisabledIfEnvironmentVariable(named = "SKIP_QUARKUS_TEST", matches = "true")
+@EnabledIfEnvironmentVariable(named = "QUARKUS_PROFILE", matches = "test")
 public class BackupValidationPipelineTest extends ValidationPipelineTest<StackGresBackup, BackupReview> {
 
   @Inject

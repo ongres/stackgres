@@ -10,11 +10,13 @@ import java.util.function.Function;
 
 import io.fabric8.kubernetes.client.Watch;
 import io.fabric8.kubernetes.client.Watcher;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class WatcherMonitor<T> implements AutoCloseable {
 
   public static final int MAX_RETRIES = 5;
-
+  private static final Logger LOGGER = LoggerFactory.getLogger(WatcherMonitor.class);
   private final AtomicInteger retries = new AtomicInteger(0);
   private final MonitorListener listener = new MonitorListener();
 
@@ -36,18 +38,20 @@ public class WatcherMonitor<T> implements AutoCloseable {
     retries.set(0);
   }
 
-  private void onWatcherClosed() {
+  private void onWatcherClosed(Exception cause) {
     if (closeCalled) {
       return;
     }
     int currentRetries = retries.addAndGet(1);
     if (currentRetries >= MAX_RETRIES) {
+      LOGGER.error("Giving up on retrying watcher", cause);
       giveUp.run();
     } else {
       try {
         watcher = watcherCreator.apply(listener);
-      } catch (Exception ignored) {
-        onWatcherClosed();
+      } catch (Exception ex) {
+        ex.addSuppressed(cause);
+        onWatcherClosed(ex);
       }
     }
   }
@@ -67,7 +71,7 @@ public class WatcherMonitor<T> implements AutoCloseable {
 
     @Override
     public void watcherClosed(Exception ex) {
-      onWatcherClosed();
+      onWatcherClosed(ex);
     }
   }
 }
