@@ -37,25 +37,25 @@ var ClusterStatus = Vue.component("cluster-status", {
 			</header>
 
 			<div class="content">
-				<h2>General Information</h2>
+				<h2>Cluster</h2>
 				<table class="clusterInfo">
 					<thead>
-						<th>CPU</th>
-						<th>Memory</th>
-						<th>Disk</th>
-						<th>Health</th>
+						<th>Total CPU</th>
+						<th>Total Memory</th>
+						<th>Master Node Disk</th>
+						<th>Instances</th>
 					</thead>
 					<tbody>
 						<tr>
 							<td>{{ cluster.status.cpuRequested }} (avg. load {{ cluster.status.averageLoad1m }})</td>
 							<td>{{ cluster.status.memoryRequested }}</td>
-							<td>{{ cluster.status.diskUsed }} <template v-if="(typeof cluster.status.diskUsed !== 'undefined') && (typeof cluster.status.diskFound !== 'undefined')">/</template> {{ cluster.status.diskFound }}</td>
+							<td>{{ cluster.status.diskUsed }} / {{ cluster.data.spec.pods.persistentVolume.size }}</td>
 							<td>{{ cluster.data.podsReady }} / {{ cluster.data.pods.length }}</td>
 						</tr>
 					</tbody>
 				</table>
 
-				<h2>Pods Status</h2>
+				<h2>Pods</h2>
 				<table class="podStatus">
 					<thead>
 						<th>Pod Name</th>
