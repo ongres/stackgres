@@ -8,6 +8,7 @@ package io.stackgres.operator;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -17,7 +18,6 @@ import javax.ws.rs.client.WebTarget;
 
 import com.ongres.junit.docker.Container;
 import com.ongres.junit.docker.ContainerParam;
-
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
@@ -47,12 +47,20 @@ public abstract class AbstractStackGresOperatorIt extends AbstractIt {
 
   @BeforeEach
   public void setupOperator(@ContainerParam("k8s") Container k8s) throws Exception {
-    final int operatorPort = ItHelper.getPreviousOperatorPort(k8s, namespace)
-        .orElse(OPERATOR_PORT);
+    final int operatorPort;
+    final boolean reuseOperator;
+    Optional<Integer> previousOperatorPort = ItHelper.getPreviousOperatorPort(k8s, namespace);
+    if (previousOperatorPort.isPresent()) {
+      operatorPort = previousOperatorPort.get();
+      reuseOperator = true;
+    } else {
+      operatorPort = OPERATOR_PORT;
+      reuseOperator = false;
+    }
     IS_ABSTRACT_STACKGRES_OPERATOR_IT.set(true);
     ItHelper.killUnwantedProcesses(k8s);
     ItHelper.copyResources(k8s);
-    ItHelper.resetKind(k8s, k8sSize);
+    ItHelper.resetKind(k8s, k8sSize, reuseOperator);
     ItHelper.installStackGresOperatorHelmChart(k8s, namespace, operatorPort, executor);
     OperatorRunner operatorRunner = ItHelper.createOperator(
         k8s, operatorPort, OPERATOR_SSL_PORT, executor);

@@ -123,7 +123,7 @@ public class ItHelper {
   /**
    * It helper method.
    */
-  public static void resetKind(Container k8s, int size) throws Exception {
+  public static void resetKind(Container k8s, int size, boolean reuseOperator) throws Exception {
     if (Optional.ofNullable(System.getenv("K8S_REUSE"))
         .map(Boolean::parseBoolean)
         .orElse(true)) {
@@ -141,7 +141,7 @@ public class ItHelper {
               + "sh " + (E2E_DEBUG ? "-x" : "") + " e2e reuse_k8s\n"
               + "sh " + (E2E_DEBUG ? "-x" : "") + " e2e setup_helm\n"
               + "sh " + (E2E_DEBUG ? "-x" : "") + " e2e setup_default_limits 0.1 0.1 16Mi 16Mi\n"
-              + (E2E_REUSE_OPERATOR
+              + (reuseOperator
                   ? "sh " + (E2E_DEBUG ? "-x" : "") + " e2e helm_cleanup_but_operator\n"
                   + "sh " + (E2E_DEBUG ? "-x" : "") + " e2e k8s_cleanup_but_operator\n"
                   : "sh " + (E2E_DEBUG ? "-x" : "") + " e2e k8s_webhook_cleanup\n"
