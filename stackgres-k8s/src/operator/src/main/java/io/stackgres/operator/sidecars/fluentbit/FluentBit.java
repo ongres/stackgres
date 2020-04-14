@@ -22,6 +22,7 @@ import io.fabric8.kubernetes.api.model.SecurityContextBuilder;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
+import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSetPath;
 import io.stackgres.operator.common.Sidecar;
@@ -39,7 +40,8 @@ import org.jooq.lambda.Seq;
 public class FluentBit implements StackGresClusterSidecarResourceFactory<Void> {
 
   public static final String NAME = "fluent-bit";
-  public static final String IMAGE_NAME = "docker.io/bitnami/fluent-bit:%s";
+  public static final String IMAGE_NAME = "docker.io/ongres/fluentbit:v%s-build-%s";
+  private static final String DEFAULT_VERSION = StackGresComponents.get("fluentbit");
 
   private static final String CONFIG_SUFFIX = "-fluent-bit";
 
@@ -50,27 +52,63 @@ public class FluentBit implements StackGresClusterSidecarResourceFactory<Void> {
   public Container getContainer(StackGresGeneratorContext context) {
     return new ContainerBuilder()
         .withName(NAME)
-        .withImage(String.format(IMAGE_NAME, StackGresComponents.get(NAME)))
+        .withImage(String.format(IMAGE_NAME, DEFAULT_VERSION, StackGresContext.CONTAINER_BUILD))
         .withImagePullPolicy("Always")
         .withSecurityContext(new SecurityContextBuilder()
-            .withRunAsUser(0L)
+            .withRunAsUser(999L)
+            .withAllowPrivilegeEscalation(Boolean.FALSE)
             .build())
         .withStdin(Boolean.TRUE)
         .withTty(Boolean.TRUE)
         .withCommand("/bin/sh", "-exc")
-        .withArgs(
-            "groupadd postgres -g 999\n"
-            + "useradd postgres -u 999 -g 999\n"
-            + "cat << 'EOF' | su postgres -c sh\n"
-            + "export PATRONI_PID=\"$$(until ps -e -o pid,args \\\n"
-            + "  | grep \"[/]usr/bin/patroni\" \\\n"
-            + "  | sh -ec 'read PID ARGS; [ -n \"$PID\" ]; echo \"$PID\"'\n"
-            + "do sleep 1; done)\"\n"
-            + "/opt/bitnami/fluent-bit/bin/fluent-bit \\\n"
-            + "  -c /etc/fluent-bit/fluentbit-input-tail.conf \\\n"
-            + "  -o /etc/fluent-bit/fluentbit-output-forward.conf \\\n"
-            + "  -o /etc/fluent-bit/fluentbit-output-stdout.conf\n"
-            + "EOF")
+        .withArgs(""
+            + "CONFIG_PATH=/etc/fluent-bit\n"
+            + "update_config() {\n"
+            + "  rm -Rf /tmp/last_config\n"
+            + "  cp -Lr \"$CONFIG_PATH\" /tmp/last_config\n"
+            + "}\n"
+            + "\n"
+            + "has_config_changed() {\n"
+            + "  for file in $(ls -1 \"$CONFIG_PATH\")\n"
+            + "  do\n"
+            + "    [ \"$(cat \"$CONFIG_PATH/$file\" | md5sum)\" \\\n"
+            + "      != \"$(cat \"/tmp/last_config/$file\" | md5sum)\" ] \\\n"
+            + "      && return || true\n"
+            + "  done\n"
+            + "  return 1\n"
+            + "}\n"
+            + "\n"
+            + "run_fluentbit() {\n"
+            + "  set -x\n"
+            + "  export PATRONI_PID=\"$$(until sh -xc '\n"
+            + "  for PID in $(ls -1 /proc | grep \"^[0-9]\\+$\")\n"
+            + "  do\n"
+            + "    cat /proc/$PID/cmdline | tr \"\\0\" \" \" \\\n"
+            + "      | grep -v \"^$\" | grep -q \"[/]usr/bin/patroni\" \\\n"
+            + "      && echo \"$PID\" && exit\n"
+            + "  done\n"
+            + "  exit 1'\n"
+            + "  do sleep 1; done)\"\n"
+            + "  exec /usr/local/bin/fluent-bit \\\n"
+            + "    -v -c /etc/fluent-bit/fluentbit.conf\n"
+            + "}\n"
+            + "\n"
+            + "set +x\n"
+            + "while true\n"
+            + "do\n"
+            + "  if has_config_changed || [ ! -d \"/proc/$PID\" ]\n"
+            + "  then\n"
+            + "    update_config\n"
+            + "    if [ -n \"$PID\" ]\n"
+            + "    then\n"
+            + "      kill \"$PID\"\n"
+            + "      wait \"$PID\" || true\n"
+            + "    fi\n"
+            + "    run_fluentbit &\n"
+            + "    PID=\"$!\"\n"
+            + "  fi\n"
+            + "  sleep 5\n"
+            + "done\n")
         .withVolumeMounts(
             new VolumeMountBuilder()
             .withName(NAME)
@@ -93,8 +131,9 @@ public class FluentBit implements StackGresClusterSidecarResourceFactory<Void> {
 
   @Override
   public Stream<HasMetadata> streamResources(StackGresGeneratorContext context) {
-    final String namespace = context.getClusterContext().getCluster().getMetadata().getNamespace();
-    final String fluentdRelativeId = context.getClusterContext().getCluster().getSpec()
+    final StackGresCluster cluster = context.getClusterContext().getCluster();
+    final String namespace = cluster.getMetadata().getNamespace();
+    final String fluentdRelativeId = cluster.getSpec()
         .getDistributedLogs().getDistributedLogs();
     final String fluentdNamespace =
         StackGresUtil.getNamespaceFromRelativeId(fluentdRelativeId, namespace);
@@ -103,51 +142,84 @@ public class FluentBit implements StackGresClusterSidecarResourceFactory<Void> {
 
     String parsersConfigFile = ""
         + "[PARSER]\n"
-        + "    Name        pgcsvlog_first\n"
+        + "    Name        postgreslog\n"
         + "    Format      regex\n"
         + "    Regex       "
           + "^(?<log_time>\\d{4}-\\d{1,2}-\\d{1,2} \\d{2}:\\d{2}:\\d{2}.\\d*\\s\\S{3})"
           + ",(?<message>.*)\n"
         + "\n"
         + "[PARSER]\n"
-        + "    Name        pgcsvlog_1\n"
+        + "    Name        patronilog\n"
         + "    Format      regex\n"
         + "    Regex       "
-          + "^(?<log_time>\\d{4}-\\d{1,2}-\\d{1,2} \\d{2}:\\d{2}:\\d{2}.\\d*\\s\\S{3})"
-          + ",(?<message>\"([^\"]*(?:\"\"[^\"]*)*)\"|)\n"
+          + "^(?<log_time>\\d{4}-\\d{1,2}-\\d{1,2} \\d{2}:\\d{2}:\\d{2},\\d*{3})"
+          + " (?<error_severity>[^:]+): (?<message>.*)\n"
+        + "\n"
+        + "[PARSER]\n"
+        + "    Name        kubernetes_tag\n"
+        + "    Format      regex\n"
+        + "    Regex       ^[^.]+\\.[^.]+\\.[^.]+\\."
+          + "(?<namespace_name>[^.]+)\\.(?<pod_name>[^.]+)$\n"
         + "\n";
-    String inputTailConfigFile = ""
+    String fluentBitConfigFile = ""
         + "[SERVICE]\n"
         + "    Parsers_File      /etc/fluent-bit/parsers.conf\n"
         + "\n"
         + "[INPUT]\n"
         + "    Name              tail\n"
         + "    Path              "
-          + "/proc/${PATRONI_PID}/root/" + ClusterStatefulSetPath.PG_LOG_PATH.path() + "/*.csv\n"
+          + "/proc/${PATRONI_PID}/root/"
+          + ClusterStatefulSetPath.PG_LOG_PATH.path() + "/postgres*.csv\n"
+        + "    Tag               " + Fluentd.POSTGRES_LOG_TYPE + "\n"
         + "    DB                /tmp/pg-csv-logs.db\n"
-        + "    Multiline         On\n"
-        + "    Parser_Firstline  pgcsvlog_first\n"
-        + "    Parser_1          pgcsvlog_1\n"
-        + "    Tag               "
-          + tagName(context.getClusterContext().getCluster(), "postgres") + "\n"
-        + "\n";
-    String outputForwardConfigFile = ""
+        + "    Parser            postgreslog\n"
+        + "\n"
+        + "[INPUT]\n"
+        + "    Name              tail\n"
+        + "    Key               message\n"
+        + "    Path              "
+          + "/proc/${PATRONI_PID}/root/"
+          + ClusterStatefulSetPath.PG_LOG_PATH.path() + "/patroni*.log\n"
+        + "    Tag               " + Fluentd.PATRONI_LOG_TYPE + "\n"
+        + "    DB                /tmp/pa-logs.db\n"
+        + "    Parser            patronilog\n"
+        + "\n"
+        + "[FILTER]\n"
+        + "    Name         rewrite_tag\n"
+        + "    Match        " + Fluentd.POSTGRES_LOG_TYPE + "\n"
+        + "    Rule         $message ^.*$ "
+          + tagName(cluster, Fluentd.POSTGRES_LOG_TYPE)
+          + "." + context.getClusterContext().clusterNamespace() + ".${HOSTNAME} false\n"
+        + "    Emitter_Name postgres_re_emitted"
+        + "\n"
+        + "[FILTER]\n"
+        + "    Name         rewrite_tag\n"
+        + "    Match        " + Fluentd.PATRONI_LOG_TYPE + "\n"
+        + "    Rule         $message ^.*$ "
+          + tagName(cluster, Fluentd.PATRONI_LOG_TYPE)
+          + "." + context.getClusterContext().clusterNamespace() + ".${HOSTNAME} false\n"
+        + "    Emitter_Name patroni_re_emitted"
+        + "\n"
+        + "[FILTER]\n"
+        + "    Name             kubernetes\n"
+        + "    Match            " + tagName(cluster, "*") + "\n"
+        + "    Annotations      Off\n"
+        + "    Kube_Tag_Prefix  ''\n"
+        + "    Regex_Parser     kubernetes_tag\n"
+        + "\n"
         + "[OUTPUT]\n"
         + "    Name              forward\n"
+        + "    Match             " + tagName(cluster, "*") + "\n"
         + "    Host              " + fluentdServiceName + "." + fluentdNamespace + "\n"
         + "    Port              " + Fluentd.FORWARD_PORT + "\n"
-        + "    Match             *\n"
-        + "\n";
-    String outputStdoutConfigFile = ""
+        + "\n"
         + "[OUTPUT]\n"
         + "    Name              stdout\n"
-        + "    Match             *\n"
+        + "    Match             " + tagName(cluster, "*") + "\n"
         + "\n";
     Map<String, String> data = ImmutableMap.of(
         "parsers.conf", parsersConfigFile,
-        "fluentbit-input-tail.conf", inputTailConfigFile,
-        "fluentbit-output-forward.conf", outputForwardConfigFile,
-        "fluentbit-output-stdout.conf", outputStdoutConfigFile);
+        "fluentbit.conf", fluentBitConfigFile);
 
     ConfigMap configMap = new ConfigMapBuilder()
         .withNewMetadata()

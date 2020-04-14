@@ -83,10 +83,10 @@ public class PgPooling
     }
 
     String configFile = "[databases]\n"
-        + " * = port = " + Envoy.PG_RAW_PORT + "\n"
+        + " * = port = " + Envoy.PG_PORT + "\n"
         + "\n"
         + "[pgbouncer]\n"
-        + "listen_port = " + Envoy.PG_PORT + "\n"
+        + "listen_port = " + Envoy.PG_POOL_PORT + "\n"
         + "listen_addr = 127.0.0.1\n"
         + "unix_socket_dir = " + ClusterStatefulSetPath.PG_RUN_PATH.path() + "\n"
         + "auth_type = md5\n"

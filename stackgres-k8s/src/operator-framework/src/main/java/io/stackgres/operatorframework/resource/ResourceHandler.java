@@ -48,8 +48,4 @@ public interface ResourceHandler<T extends ResourceHandlerContext> {
   HasMetadata patch(KubernetesClient client, HasMetadata resource);
 
   boolean delete(KubernetesClient client, HasMetadata resource);
-
-  String getContextNamespaceOf(HasMetadata resource);
-
-  String getContextNameOf(HasMetadata resource);
 }

@@ -18,7 +18,7 @@ static_resources:
       address:
         socket_address:
           address: 0.0.0.0
-          port_value: postgres_raw_entry_port
+          port_value: postgres_repl_entry_port
       filter_chains:
         - filters:
             - name: envoy.tcp_proxy
@@ -33,14 +33,14 @@ static_resources:
       hosts:
         socket_address:
           address: 127.0.0.1
-          port_value: postgres_port
+          port_value: postgres_pool_port
     - name: postgres_raw_cluster
       connect_timeout: 1s
       per_connection_buffer_limit_bytes: 32768 # 32 KiB
       hosts:
         socket_address:
           address: 127.0.0.1
-          port_value: postgres_raw_port
+          port_value: postgres_port
 admin:
   access_log_path: "/dev/null"
   address:

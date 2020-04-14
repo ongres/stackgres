@@ -42,6 +42,8 @@ public enum StackGresUtil {
   public static final String CLUSTER_NAME_KEY = "cluster-name";
   public static final String CLUSTER_UID_KEY = "cluster-uid";
   public static final String CLUSTER_NAMESPACE_KEY = "cluster-namespace";
+  public static final String RIGHT_VALUE = Boolean.TRUE.toString();
+  public static final String WRONG_VALUE = Boolean.FALSE.toString();
   public static final String CLUSTER_KEY = "cluster";
   public static final String BACKUP_KEY = "backup";
   public static final String DISRUPTIBLE_KEY = "disruptible";
@@ -130,7 +132,7 @@ public enum StackGresUtil {
    */
   public static boolean isNonDisruptiblePrimary(Map<String, String> labels) {
     return isPrimary(labels)
-        && Objects.equals(labels.get(StackGresUtil.DISRUPTIBLE_KEY), Boolean.FALSE.toString());
+        && Objects.equals(labels.get(StackGresUtil.DISRUPTIBLE_KEY), StackGresUtil.WRONG_VALUE);
   }
 
   /**

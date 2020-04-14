@@ -24,7 +24,7 @@ public class StackGresClusterInitData {
   private ClusterRestore restore;
 
   @JsonIgnore
-  private List<String> scripts;
+  private List<StackGresClusterScript> scripts;
 
   public ClusterRestore getRestore() {
     return restore;
@@ -34,11 +34,11 @@ public class StackGresClusterInitData {
     this.restore = restore;
   }
 
-  public List<String> getScripts() {
+  public List<StackGresClusterScript> getScripts() {
     return scripts;
   }
 
-  public void setScripts(List<String> scripts) {
+  public void setScripts(List<StackGresClusterScript> scripts) {
     this.scripts = scripts;
   }
 

@@ -120,13 +120,23 @@ public abstract class StackGresClusterContext implements ResourceHandlerContext 
   }
 
   @Derived
+  public ImmutableMap<String, String> anyPatroniClusterLabels() {
+    return clusterLabelMapper().anyPatroniClusterLabels();
+  }
+
+  @Derived
   public ImmutableMap<String, String> patroniClusterLabels() {
     return clusterLabelMapper().patroniClusterLabels();
   }
 
   @Derived
-  public ImmutableMap<String, String> patroniLabels() {
-    return clusterLabelMapper().patroniLabels();
+  public ImmutableMap<String, String> patroniPrimaryLabels() {
+    return clusterLabelMapper().patroniPrimaryLabels();
+  }
+
+  @Derived
+  public ImmutableMap<String, String> patroniReplicaLabels() {
+    return clusterLabelMapper().patroniReplicaLabels();
   }
 
   @Derived
@@ -188,7 +198,7 @@ public abstract class StackGresClusterContext implements ResourceHandlerContext 
 
     public ImmutableMap<String, String> clusterLabels() {
       return ImmutableMap.of(appKey(), appName(),
-          clusterUid(), ResourceUtil.labelValue(clusterUid()),
+          clusterUidKey(), ResourceUtil.labelValue(clusterUid()),
           clusterNameKey(), ResourceUtil.labelValue(clusterName()));
     }
 
@@ -201,24 +211,40 @@ public abstract class StackGresClusterContext implements ResourceHandlerContext 
 
     public ImmutableMap<String, String> patroniClusterLabels() {
       return ImmutableMap.of(appKey(), appName(),
-          clusterUid(), ResourceUtil.labelValue(clusterUid()),
+          clusterUidKey(), ResourceUtil.labelValue(clusterUid()),
           clusterNameKey(), ResourceUtil.labelValue(clusterName()),
-          clusterKey(), Boolean.TRUE.toString());
+          clusterKey(), StackGresUtil.RIGHT_VALUE);
+    }
+
+    public ImmutableMap<String, String> patroniPrimaryLabels() {
+      return ImmutableMap.of(appKey(), appName(),
+          clusterUidKey(), ResourceUtil.labelValue(clusterUid()),
+          clusterNameKey(), ResourceUtil.labelValue(clusterName()),
+          clusterKey(), StackGresUtil.RIGHT_VALUE,
+          StackGresUtil.ROLE_KEY, StackGresUtil.PRIMARY_ROLE);
+    }
+
+    public ImmutableMap<String, String> patroniReplicaLabels() {
+      return ImmutableMap.of(appKey(), appName(),
+          clusterUidKey(), ResourceUtil.labelValue(clusterUid()),
+          clusterNameKey(), ResourceUtil.labelValue(clusterName()),
+          clusterKey(), StackGresUtil.RIGHT_VALUE,
+          StackGresUtil.ROLE_KEY, StackGresUtil.REPLICA_ROLE);
     }
 
     public ImmutableMap<String, String> statefulSetPodLabels() {
       return ImmutableMap.of(appKey(), appName(),
-          clusterUid(), ResourceUtil.labelValue(clusterUid()),
+          clusterUidKey(), ResourceUtil.labelValue(clusterUid()),
           clusterNameKey(), ResourceUtil.labelValue(clusterName()),
-          clusterKey(), Boolean.TRUE.toString(),
-          disruptibleKey(), Boolean.TRUE.toString());
+          clusterKey(), StackGresUtil.RIGHT_VALUE,
+          disruptibleKey(), StackGresUtil.RIGHT_VALUE);
     }
 
     public ImmutableMap<String, String> backupPodLabels() {
       return ImmutableMap.of(appKey(), appName(),
-          clusterUid(), ResourceUtil.labelValue(clusterUid()),
+          clusterUidKey(), ResourceUtil.labelValue(clusterUid()),
           clusterNameKey(), ResourceUtil.labelValue(clusterName()),
-          backupKey(), Boolean.TRUE.toString());
+          backupKey(), StackGresUtil.RIGHT_VALUE);
     }
 
     public ImmutableList<OwnerReference> ownerReference() {
@@ -229,7 +255,7 @@ public abstract class StackGresClusterContext implements ResourceHandlerContext 
       return resource instanceof Pod
           && resource.getMetadata().getNamespace().equals(clusterNamespace())
           && Objects.equals(resource.getMetadata().getLabels().get(clusterKey()),
-              Boolean.TRUE.toString())
+              StackGresUtil.RIGHT_VALUE)
           && resource.getMetadata().getName().matches(
               ResourceUtil.getNameWithIndexPattern(clusterName()));
     }
@@ -238,7 +264,7 @@ public abstract class StackGresClusterContext implements ResourceHandlerContext 
       return resource instanceof Pod
           && resource.getMetadata().getNamespace().equals(clusterNamespace())
           && Objects.equals(resource.getMetadata().getLabels().get(backupKey()),
-              Boolean.TRUE.toString());
+              StackGresUtil.RIGHT_VALUE);
     }
   }
 
@@ -275,9 +301,9 @@ public abstract class StackGresClusterContext implements ResourceHandlerContext 
       return ImmutableMap.of(appKey(), appName());
     }
 
-    public ImmutableMap<String, String> patroniLabels() {
+    public ImmutableMap<String, String> anyPatroniClusterLabels() {
       return ImmutableMap.of(appKey(), appName(),
-          clusterKey(), Boolean.TRUE.toString());
+          clusterKey(), StackGresUtil.RIGHT_VALUE);
     }
   }
 }

@@ -79,18 +79,6 @@ public abstract class AbstractResourceHandlerSelector<T extends ResourceHandlerC
     return selectResourceHandler(config, resource).delete(client, resource);
   }
 
-  @Override
-  public String getConfigNamespaceOf(HasMetadata resource) {
-    return getResourceHandler(resource)
-        .getContextNamespaceOf(resource);
-  }
-
-  @Override
-  public String getConfigNameOf(HasMetadata resource) {
-    return getResourceHandler(resource)
-        .getContextNameOf(resource);
-  }
-
   private ResourceHandler<T> selectResourceHandler(T config,
       HasMetadata resource) {
     Optional<ResourceHandler<T>> customHandler = getResourceHandlers()

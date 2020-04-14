@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.sidecars.pgexporter;
+package io.stackgres.operator.sidecars.envoy;
 
 import javax.enterprise.context.ApplicationScoped;
 
@@ -13,7 +13,7 @@ import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.resource.AbstractClusterResourceHandler;
 
 @ApplicationScoped
-public class PrometheusEndpointsHandler extends AbstractClusterResourceHandler {
+public class EnvoyHandler extends AbstractClusterResourceHandler {
 
   @Override
   public boolean isHandlerForResource(StackGresClusterContext context, HasMetadata resource) {
@@ -22,7 +22,7 @@ public class PrometheusEndpointsHandler extends AbstractClusterResourceHandler {
         && resource.getMetadata().getNamespace().equals(
             context.getCluster().getMetadata().getNamespace())
         && resource.getMetadata().getName().equals(
-            PostgresExporter.serviceName(context));
+            Envoy.serviceName(context));
   }
 
   @Override

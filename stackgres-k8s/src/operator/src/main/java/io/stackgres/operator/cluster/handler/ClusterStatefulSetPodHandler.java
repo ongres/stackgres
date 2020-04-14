@@ -106,16 +106,16 @@ public class ClusterStatefulSetPodHandler extends AbstractClusterResourceHandler
           && (isPodIndexGreaterThanRequiredReplicas(podMetadata)
           || isPodIndexGreaterThanExistingReplicas(podMetadata))) {
         if (!Objects.equals(leftLabels.get(StackGresUtil.DISRUPTIBLE_KEY),
-            Boolean.FALSE.toString())) {
+            StackGresUtil.WRONG_VALUE)) {
           LOGGER.debug("Settind Pod {}.{} for cluster {}.{} as non disruptible since it is primary"
               + " and his index is above the maximum index for the StatefulSet",
               podMetadata.getNamespace(), podMetadata.getName(),
               getContext().getCluster().getMetadata().getNamespace(),
               getContext().getCluster().getMetadata().getName());
         }
-        disruptibleValue = Boolean.FALSE.toString();
+        disruptibleValue = StackGresUtil.WRONG_VALUE;
       } else {
-        disruptibleValue = Boolean.TRUE.toString();
+        disruptibleValue = StackGresUtil.RIGHT_VALUE;
       }
       return Seq.concat(
           Seq.seq(rightMap.entrySet())

@@ -17,6 +17,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.stackgres.common.crd.sgcluster.StackGresClusterDistributedLogs;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSetPath;
 import io.stackgres.operator.common.StackGresClusterContext;
@@ -33,6 +34,7 @@ import org.slf4j.LoggerFactory;
 @ApplicationScoped
 public class PatroniConfigMap implements StackGresClusterResourceStreamFactory {
 
+  public static final int PATRONI_LOG_FILE_SIZE = 256 * 1024 * 1024;
   public static final String POSTGRES_PORT_NAME = "pgport";
   public static final String POSTGRES_REPLICATION_PORT_NAME = "pgreplication";
 
@@ -62,16 +64,11 @@ public class PatroniConfigMap implements StackGresClusterResourceStreamFactory {
         .map(entry -> "127.0.0.1") // NOPMD
         .findFirst()
         .orElse("0.0.0.0"); // NOPMD
-    final int pgPort = context.getClusterContext().getSidecars().stream()
-        .filter(entry -> entry.getSidecar() instanceof Envoy)
-        .map(entry -> Envoy.PG_RAW_PORT)
-        .findFirst()
-        .orElse(Envoy.PG_ENTRY_PORT);
     final int pgRawPort = context.getClusterContext().getSidecars().stream()
         .filter(entry -> entry.getSidecar() instanceof Envoy)
-        .map(entry -> Envoy.PG_RAW_ENTRY_PORT)
+        .map(entry -> Envoy.PG_REPL_ENTRY_PORT)
         .findFirst()
-        .orElse(Envoy.PG_ENTRY_PORT);
+        .orElse(Envoy.PG_PORT);
     Map<String, String> data = new HashMap<>();
     data.put("PATRONI_SCOPE", context.getClusterContext().clusterScope());
     data.put("PATRONI_KUBERNETES_SCOPE_LABEL", context.getClusterContext().clusterScopeKey());
@@ -79,7 +76,7 @@ public class PatroniConfigMap implements StackGresClusterResourceStreamFactory {
     data.put("PATRONI_KUBERNETES_USE_ENDPOINTS", "true");
     data.put("PATRONI_SUPERUSER_USERNAME", "postgres");
     data.put("PATRONI_REPLICATION_USERNAME", "replicator");
-    data.put("PATRONI_POSTGRESQL_LISTEN", pgHost + ":" + pgPort);
+    data.put("PATRONI_POSTGRESQL_LISTEN", pgHost + ":" + Envoy.PG_PORT);
     data.put("PATRONI_POSTGRESQL_CONNECT_ADDRESS",
         "${PATRONI_KUBERNETES_POD_IP}:" + pgRawPort);
 
@@ -88,12 +85,22 @@ public class PatroniConfigMap implements StackGresClusterResourceStreamFactory {
     data.put("PATRONI_POSTGRESQL_BIN_DIR", "/usr/lib/postgresql/" + pgVersion + "/bin");
     data.put("PATRONI_POSTGRES_UNIX_SOCKET_DIRECTORY", ClusterStatefulSetPath.PG_RUN_PATH.path());
 
+    if (Optional.ofNullable(context.getClusterContext().getCluster().getSpec().getDistributedLogs())
+        .map(StackGresClusterDistributedLogs::getDistributedLogs)
+        .map(distributedLogs -> true)
+        .orElse(false)) {
+      data.put("PATRONI_LOG_DIR", ClusterStatefulSetPath.PG_LOG_PATH.path());
+      data.put("PATRONI_LOG_FILE_NUM", "2");
+      data.put("PATRONI_LOG_FILE_SIZE", String.valueOf(PATRONI_LOG_FILE_SIZE));
+    }
+
     if (PATRONI_LOGGER.isTraceEnabled()) {
       data.put("PATRONI_LOG_LEVEL", "DEBUG");
     }
 
     data.put("PATRONI_SCRIPTS",
-        Optional.of(context.getClusterContext().getCluster().getSpec().getInitData())
+        Optional.ofNullable(
+            context.getClusterContext().getCluster().getSpec().getInitData())
         .map(StackGresClusterInitData::getScripts)
         .map(List::size)
         .map(String::valueOf)

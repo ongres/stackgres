@@ -22,6 +22,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterDoneable;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterList;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
+import io.stackgres.common.crd.sgcluster.StackGresClusterScript;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresPodPersistentVolume;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
@@ -187,6 +188,8 @@ public class DistributedLogsReconciliationCycle
         distributedLogs.getMetadata().getNamespace());
     distributedLogsCluster.getMetadata().setName(
         distributedLogs.getMetadata().getName());
+    distributedLogsCluster.getMetadata().setUid(
+        distributedLogs.getMetadata().getUid());
     final StackGresClusterSpec spec = new StackGresClusterSpec();
     spec.setPostgresVersion(StackGresComponents.LATEST);
     spec.setInstances(1);
@@ -199,10 +202,14 @@ public class DistributedLogsReconciliationCycle
     pod.setPersistentVolume(persistentVolume);
     spec.setPod(pod);
     final StackGresClusterInitData initData = new StackGresClusterInitData();
-    initData.setScripts(ImmutableList.of(Unchecked.supplier(() -> Resources
-          .asCharSource(ClusterStatefulSet.class.getResource("/distributed-logs-bootstrap.sql"),
+    final StackGresClusterScript script = new StackGresClusterScript();
+    script.setName("distributed-logs-template");
+    script.setDatabase("template1");
+    script.setValue(Unchecked.supplier(() -> Resources
+          .asCharSource(ClusterStatefulSet.class.getResource("/distributed-logs-template.sql"),
               StandardCharsets.UTF_8)
-          .read()).get()));
+          .read()).get());
+    initData.setScripts(ImmutableList.of(script));
     spec.setInitData(initData);
     distributedLogsCluster.setSpec(spec);
     return distributedLogsCluster;

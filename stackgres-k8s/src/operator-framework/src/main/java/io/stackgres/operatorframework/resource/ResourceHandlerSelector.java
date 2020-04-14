@@ -40,8 +40,4 @@ public interface ResourceHandlerSelector<T extends ResourceHandlerContext> {
 
   ResourceHandler<T> getResourceHandler(HasMetadata resource);
 
-  String getConfigNamespaceOf(HasMetadata resource);
-
-  String getConfigNameOf(HasMetadata resource);
-
 }

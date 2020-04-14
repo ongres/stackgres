@@ -57,9 +57,9 @@ public class Envoy implements StackGresClusterSidecarResourceFactory<Void> {
   public static final String SERVICE = "-prometheus-envoy";
 
   public static final int PG_ENTRY_PORT = 5432;
-  public static final int PG_RAW_ENTRY_PORT = 5433;
-  public static final int PG_PORT = 5434;
-  public static final int PG_RAW_PORT = 5435;
+  public static final int PG_REPL_ENTRY_PORT = 5433;
+  public static final int PG_POOL_PORT = 5434;
+  public static final int PG_PORT = 5435;
   public static final String NAME = "envoy";
 
   private static final String IMAGE_NAME = "docker.io/envoyproxy/envoy:v%s";
@@ -68,11 +68,11 @@ public class Envoy implements StackGresClusterSidecarResourceFactory<Void> {
   private static final ImmutableMap<String, Integer> LISTEN_SOCKET_ADDRESS_PORT_MAPPING =
       ImmutableMap.of(
           "postgres_entry_port", PG_ENTRY_PORT,
-          "postgres_raw_entry_port", PG_RAW_ENTRY_PORT);
+          "postgres_repl_entry_port", PG_REPL_ENTRY_PORT);
   private static final ImmutableMap<String, Integer> CLUSTER_SOCKET_ADDRESS_PORT_MAPPING =
       ImmutableMap.of(
-          "postgres_port", PG_PORT,
-          "postgres_raw_port", PG_RAW_PORT);
+          "postgres_pool_port", PG_POOL_PORT,
+          "postgres_port", PG_PORT);
 
   final YamlMapperProvider yamlMapperProvider;
 
@@ -110,7 +110,7 @@ public class Envoy implements StackGresClusterSidecarResourceFactory<Void> {
             .build())
         .withPorts(
             new ContainerPortBuilder().withContainerPort(PG_ENTRY_PORT).build(),
-            new ContainerPortBuilder().withContainerPort(PG_RAW_ENTRY_PORT).build())
+            new ContainerPortBuilder().withContainerPort(PG_REPL_ENTRY_PORT).build())
         .withCommand("/usr/local/bin/envoy")
         .withArgs("-c", "/etc/envoy/default_envoy.yaml", "-l", "debug");
 

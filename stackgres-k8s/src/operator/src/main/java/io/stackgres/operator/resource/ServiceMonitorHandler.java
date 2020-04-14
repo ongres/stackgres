@@ -17,7 +17,6 @@ import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.kubernetes.internal.KubernetesDeserializer;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresUserClusterContext;
-import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operator.customresource.prometheus.Endpoint;
 import io.stackgres.operator.customresource.prometheus.NamespaceSelector;
 import io.stackgres.operator.customresource.prometheus.ServiceMonitor;
@@ -173,16 +172,6 @@ public class ServiceMonitorHandler
           .visitList(NamespaceSelector::getMatchNames, NamespaceSelector::setMatchNames);
     }
 
-  }
-
-  @Override
-  public String getContextNamespaceOf(HasMetadata resource) {
-    return resource.getMetadata().getLabels().get(StackGresUtil.CLUSTER_NAMESPACE_KEY);
-  }
-
-  @Override
-  public String getContextNameOf(HasMetadata resource) {
-    return resource.getMetadata().getLabels().get(StackGresUtil.CLUSTER_NAME_KEY);
   }
 
 }

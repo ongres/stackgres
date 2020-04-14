@@ -7,6 +7,7 @@ package io.stackgres.operator.patroni.factory;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -26,19 +27,27 @@ import org.jooq.lambda.Seq;
 @ApplicationScoped
 public class PatroniScriptsConfigMap implements StackGresClusterResourceStreamFactory {
 
-  public static final String SCRIPT_NAME = "script-%05d";
+  public static final String SCRIPT_NAME = "%05d-%s";
 
-  public static String name(StackGresClusterContext clusterContext, Long index) {
+  public static final String SCRIPT_NAME_FOR_DATABASE = "%05d-%s.%s";
+
+  public static String name(StackGresClusterContext clusterContext,
+      Long index, String name, String database) {
     return ResourceUtil.resourceName(clusterContext.getCluster().getMetadata().getName()
-        + "-" + baseName(index));
+        + "-" + baseName(index, name, database)
+        .toLowerCase(Locale.US).replaceAll("[^a-z0-9-]", "-"));
   }
 
-  public static String scriptName(Long index) {
-    return baseName(index) + ".sql";
+  public static String scriptName(Long index, String name, String database) {
+    return baseName(index, name, database) + ".sql";
   }
 
-  private static String baseName(Long index) {
-    return String.format(SCRIPT_NAME, index);
+  private static String baseName(Long index, String name, String database) {
+    name = name.replace('.', '_');
+    if (database == null) {
+      return String.format(SCRIPT_NAME, index, name);
+    }
+    return String.format(SCRIPT_NAME_FOR_DATABASE, index, name, database);
   }
 
   @Override
@@ -46,7 +55,8 @@ public class PatroniScriptsConfigMap implements StackGresClusterResourceStreamFa
     Map<String, String> data = new HashMap<>();
     data.put("PATRONI_LOG_LEVEL", "DEBUG");
 
-    return Seq.of(Optional.of(context.getClusterContext().getCluster().getSpec().getInitData())
+    return Seq.of(Optional.ofNullable(
+        context.getClusterContext().getCluster().getSpec().getInitData())
         .map(StackGresClusterInitData::getScripts))
         .filter(Optional::isPresent)
         .map(Optional::get)
@@ -55,11 +65,12 @@ public class PatroniScriptsConfigMap implements StackGresClusterResourceStreamFa
         .map(t -> new ConfigMapBuilder()
             .withNewMetadata()
             .withNamespace(context.getClusterContext().getCluster().getMetadata().getNamespace())
-            .withName(name(context.getClusterContext(), t.v2))
+            .withName(name(context.getClusterContext(), t.v2, t.v1.getName(), t.v1.getDatabase()))
             .withLabels(context.getClusterContext().patroniClusterLabels())
             .withOwnerReferences(context.getClusterContext().ownerReference())
             .endMetadata()
-            .withData(ImmutableMap.of(scriptName(t.v2), t.v1))
+            .withData(ImmutableMap.of(
+                scriptName(t.v2, t.v1.getName(), t.v1.getDatabase()), t.v1.getValue()))
             .build());
   }
 

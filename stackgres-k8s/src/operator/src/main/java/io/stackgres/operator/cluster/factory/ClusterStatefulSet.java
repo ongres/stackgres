@@ -190,7 +190,7 @@ public class ClusterStatefulSet implements StackGresClusterResourceStreamFactory
             .map(HasMetadata::getMetadata)
             .filter(existingPodMetadata -> Objects.equals(
                 existingPodMetadata.getLabels().get(StackGresUtil.CLUSTER_KEY),
-                Boolean.TRUE.toString()))
+                StackGresUtil.RIGHT_VALUE))
             .map(existingPodMetadata -> new PodBuilder()
                 .withNewMetadata()
                 .withNamespace(existingPodMetadata.getNamespace())

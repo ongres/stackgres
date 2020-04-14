@@ -74,7 +74,7 @@ public class PostgresExporter implements StackGresClusterSidecarResourceFactory<
         .withImagePullPolicy("Always")
         .withEnv(new EnvVarBuilder()
                 .withName("DATA_SOURCE_NAME")
-                .withValue("host=/var/run/postgresql user=postgres port=" + Envoy.PG_RAW_PORT)
+                .withValue("host=/var/run/postgresql user=postgres port=" + Envoy.PG_PORT)
                 .build(),
             new EnvVarBuilder()
                 .withName("POSTGRES_EXPORTER_USERNAME")

@@ -51,6 +51,10 @@ spec:
   storageClass: {{ .Values.cluster.storageClass }}
   {{- end }}
   {{- end }}
+  {{- if .Values.cluster.distributedLogs.enabled }}
+  distributedLogs:
+    sgDistributedLogs: {{ .Values.cluster.distributedLogs.name }}
+  {{- end }}
   {{- if .Values.sidecar.prometheus.allowAutobind }}
   prometheusAutobind: {{ .Values.sidecar.prometheus.allowAutobind }}
   {{- else }}

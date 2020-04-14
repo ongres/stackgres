@@ -85,7 +85,7 @@ public class ClusterDtoScanner implements CustomResourceScanner<ClusterDto> {
   private List<Pod> getAllClusterPods(KubernetesClient client) {
     return client.pods()
         .inAnyNamespace()
-        .withLabels(StackGresUserClusterContext.getLabelMapper().patroniLabels())
+        .withLabels(StackGresUserClusterContext.getLabelMapper().anyPatroniClusterLabels())
         .list()
         .getItems();
   }

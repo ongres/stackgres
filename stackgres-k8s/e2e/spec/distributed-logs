@@ -1,17 +1,16 @@
 #!/bin/sh
 
 e2e_test_install() {
-  create_or_replace_distributed_logs "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "1Gi"
+  DISTRIBUTED_LOGS_NAME=distributedlogs
+
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "1" \
+    --set cluster.distributedLogs.enabled=true \
+    --set-string cluster.distributedLogs.name="$DISTRIBUTED_LOGS_NAME" \
+    --set-string cluster.distributedLogs.volumeSize=128Mi
 
   deploy_psql_pod "$CLUSTER_NAMESPACE"
 
-  wait_pods_running "$CLUSTER_NAMESPACE" "2"
-}
-
-e2e_test_uninstall() {
-  remove_distributed_logs "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
-
-  k8s_cleanup_namespace "$CLUSTER_NAMESPACE"
+  wait_pods_running "$CLUSTER_NAMESPACE" "3"
 }
 
 e2e_test() {
@@ -19,7 +18,8 @@ e2e_test() {
 }
 
 service_check() {
-  RESPONSE_PRIMARY="$(run_query -x psql -k postgres -h "$CLUSTER_NAME"-primary -i 0 -p 5432)"
+  RESPONSE_PRIMARY="$(run_query -c "$DISTRIBUTED_LOGS_NAME" -x psql -k postgres \
+    -h "$DISTRIBUTED_LOGS_NAME"-primary -i 0 -p 5432)"
 
   if [ "$RESPONSE_PRIMARY" = "1" ]
   then

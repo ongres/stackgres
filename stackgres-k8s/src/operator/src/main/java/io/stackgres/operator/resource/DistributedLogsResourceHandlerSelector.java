@@ -133,16 +133,6 @@ public class DistributedLogsResourceHandlerSelector
     }
 
     @Override
-    public String getContextNamespaceOf(HasMetadata resource) {
-      return handler.getContextNamespaceOf(resource);
-    }
-
-    @Override
-    public String getContextNameOf(HasMetadata resource) {
-      return handler.getContextNameOf(resource);
-    }
-
-    @Override
     public Stream<HasMetadata> getResources(KubernetesClient client,
         StackGresDistributedLogsContext context) {
       return handler.getResources(client, context);

@@ -92,7 +92,7 @@ public class StackGresOperatorIt extends AbstractStackGresOperatorIt {
       ItHelper.waitUntil(Unchecked.supplier(() -> k8s.execute("sh", "-l", "-c",
           "kubectl exec -t -n " + namespace + " "
               + CLUSTER_NAME + "-" + instance + " -c postgres-util --"
-              + " sh -c \"psql -t -A -U postgres -d postgres -p " + Envoy.PG_RAW_PORT
+              + " sh -c \"psql -t -A -U postgres -d postgres -p " + Envoy.PG_PORT
               + " -c 'SELECT 1'\"")),
           s -> s.anyMatch(line -> line.equals("1")), 60, ChronoUnit.SECONDS,
           s -> Assertions.fail(
@@ -132,14 +132,14 @@ public class StackGresOperatorIt extends AbstractStackGresOperatorIt {
       throws InterruptedException, Exception {
     String currentWalFileName = k8s.execute("sh", "-l", "-c",
         "kubectl exec -t -n " + namespace + " "+ CLUSTER_NAME + "-" + 0
-        + " -c postgres-util -- sh -c \"psql -t -A -U postgres -p " + Envoy.PG_RAW_PORT
+        + " -c postgres-util -- sh -c \"psql -t -A -U postgres -p " + Envoy.PG_PORT
         + " -c 'SELECT r.file_name from pg_walfile_name_offset(pg_current_wal_lsn()) as r'\"")
         .filter(ItHelper.EXCLUDE_TTY_WARNING)
         .findFirst()
         .get();
     ItHelper.waitUntil(Unchecked.supplier(() -> k8s.execute("sh", "-l", "-c",
         "kubectl exec -t -n " + namespace + " "+ CLUSTER_NAME + "-" + 0
-        + " -c postgres-util -- sh -c \"psql -t -A -U postgres -p " + Envoy.PG_RAW_PORT
+        + " -c postgres-util -- sh -c \"psql -t -A -U postgres -p " + Envoy.PG_PORT
         + " -c 'SELECT r.file_name from pg_walfile_name_offset(pg_switch_wal()) as r'\"")),
         s -> s.anyMatch(newWalFileName -> newWalFileName.equals(currentWalFileName)), 60, ChronoUnit.SECONDS,
         s -> Assertions.fail(

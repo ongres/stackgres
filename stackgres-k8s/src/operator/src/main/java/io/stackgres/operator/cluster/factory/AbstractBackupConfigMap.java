@@ -33,7 +33,7 @@ public abstract class AbstractBackupConfigMap {
     ImmutableMap.Builder<String, String> backupEnvVars = ImmutableMap.builder();
 
     backupEnvVars.put("PGDATA", ClusterStatefulSetPath.PG_DATA_PATH.path());
-    backupEnvVars.put("PGPORT", String.valueOf(Envoy.PG_RAW_PORT));
+    backupEnvVars.put("PGPORT", String.valueOf(Envoy.PG_PORT));
     backupEnvVars.put("PGUSER", "postgres");
     backupEnvVars.put("PGDATABASE", "postgres");
     backupEnvVars.put("PGHOST", ClusterStatefulSetPath.PG_RUN_PATH.path());

@@ -5,9 +5,9 @@
 
 package io.stackgres.operator.patroni.factory;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
+
 import javax.enterprise.context.ApplicationScoped;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
@@ -19,7 +19,6 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresClusterResourceStreamFactory;
 import io.stackgres.operator.common.StackGresGeneratorContext;
-import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operator.sidecars.envoy.Envoy;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jooq.lambda.Seq;
@@ -59,14 +58,13 @@ public class PatroniServices implements StackGresClusterResourceStreamFactory {
   public Stream<HasMetadata> streamResources(StackGresGeneratorContext context) {
     final StackGresCluster cluster = context.getClusterContext().getCluster();
     final String namespace = cluster.getMetadata().getNamespace();
-    final Map<String, String> labels = context.getClusterContext().clusterLabels();
 
     Service config = createConfigService(namespace, configName(
-        context.getClusterContext()), labels, context);
+        context.getClusterContext()), context.getClusterContext().clusterLabels(), context);
     Service primary = createService(namespace, readWriteName(context.getClusterContext()),
-        StackGresUtil.PRIMARY_ROLE, labels, context);
+        context.getClusterContext().patroniPrimaryLabels(), context);
     Service replicas = createService(namespace, readOnlyName(context.getClusterContext()),
-        StackGresUtil.REPLICA_ROLE, labels, context);
+        context.getClusterContext().patroniReplicaLabels(), context);
 
     return Seq.of(config, primary, replicas);
   }
@@ -86,20 +84,18 @@ public class PatroniServices implements StackGresClusterResourceStreamFactory {
         .build();
   }
 
-  private Service createService(String namespace, String serviceName, String role,
+  private Service createService(String namespace, String serviceName,
       Map<String, String> labels, StackGresGeneratorContext context) {
-    final Map<String, String> labelsRole = new HashMap<>(labels);
-    labelsRole.put(StackGresUtil.ROLE_KEY, role); // role is set by Patroni
 
     return new ServiceBuilder()
         .withNewMetadata()
         .withNamespace(namespace)
         .withName(serviceName)
-        .withLabels(labelsRole)
+        .withLabels(labels)
         .withOwnerReferences(context.getClusterContext().ownerReference())
         .endMetadata()
         .withNewSpec()
-        .withSelector(labelsRole)
+        .withSelector(labels)
         .withPorts(new ServicePortBuilder()
                 .withProtocol("TCP")
                 .withName(PatroniConfigMap.POSTGRES_PORT_NAME)
@@ -109,7 +105,7 @@ public class PatroniServices implements StackGresClusterResourceStreamFactory {
             new ServicePortBuilder()
                 .withProtocol("TCP")
                 .withName(PatroniConfigMap.POSTGRES_REPLICATION_PORT_NAME)
-                .withPort(Envoy.PG_RAW_ENTRY_PORT)
+                .withPort(Envoy.PG_REPL_ENTRY_PORT)
                 .withTargetPort(new IntOrString(PatroniConfigMap.POSTGRES_REPLICATION_PORT_NAME))
                 .build())
         .withType("ClusterIP")

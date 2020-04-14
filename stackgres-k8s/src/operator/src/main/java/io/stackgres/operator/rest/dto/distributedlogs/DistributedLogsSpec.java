@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.common.crd.sgdistributedlogs;
+package io.stackgres.operator.rest.dto.distributedlogs;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -18,21 +18,21 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class StackGresDistributedLogsSpec implements KubernetesResource {
+public class DistributedLogsSpec implements KubernetesResource {
 
   private static final long serialVersionUID = 1L;
 
   @JsonProperty("persistentVolume")
   @Valid
   @NotNull(message = "Persistent volume must be specified")
-  private StackGresDistributedLogsPersistentVolume persistentVolume;
+  private DistributedLogsPersistentVolume persistentVolume;
 
-  public StackGresDistributedLogsPersistentVolume getPersistentVolume() {
+  public DistributedLogsPersistentVolume getPersistentVolume() {
     return persistentVolume;
   }
 
   public void setPersistentVolume(
-      StackGresDistributedLogsPersistentVolume persistentVolume) {
+      DistributedLogsPersistentVolume persistentVolume) {
     this.persistentVolume = persistentVolume;
   }
 

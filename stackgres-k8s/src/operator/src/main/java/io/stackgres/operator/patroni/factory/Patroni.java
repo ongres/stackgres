@@ -14,7 +14,9 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Resources;
+import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.ConfigMapEnvSourceBuilder;
 import io.fabric8.kubernetes.api.model.ConfigMapVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.Container;
@@ -25,7 +27,6 @@ import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.HTTPGetActionBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.IntOrString;
-import io.fabric8.kubernetes.api.model.KeyToPathBuilder;
 import io.fabric8.kubernetes.api.model.ProbeBuilder;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import io.fabric8.kubernetes.api.model.SecurityContextBuilder;
@@ -34,7 +35,6 @@ import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
-import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSet;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSetEnvironmentVariables;
@@ -52,6 +52,7 @@ import org.jooq.lambda.Unchecked;
 public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
 
   public static final String NAME = "patroni";
+  public static final String POST_INIT_SUFFIX = "-post-init";
 
   private static final String IMAGE_NAME = "docker.io/ongres/patroni:v%s-pg%s-build-%s";
   private static final String DEFAULT_VERSION = StackGresComponents.get("patroni");
@@ -90,6 +91,10 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
     this.volumeMountsFactory = volumeMountsFactory;
   }
 
+  public static String postInitName(StackGresClusterContext clusterContext) {
+    return clusterContext.clusterName() + POST_INIT_SUFFIX;
+  }
+
   @Override
   public Container getContainer(StackGresGeneratorContext context) {
     StackGresClusterContext clusterContext = context.getClusterContext();
@@ -102,7 +107,7 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
     return new ContainerBuilder()
       .withName(NAME)
       .withImage(String.format(IMAGE_NAME,
-          DEFAULT_VERSION, pgVersion, StackGresContext.CONTAINER_BUILD))
+          DEFAULT_VERSION, pgVersion, "3")) // StackGresContext.CONTAINER_BUILD))
       .withCommand("/bin/sh", "-exc", Unchecked.supplier(() -> Resources
           .asCharSource(ClusterStatefulSet.class.getResource("/start-patroni.sh"),
               StandardCharsets.UTF_8)
@@ -115,25 +120,45 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
       .withPorts(
           new ContainerPortBuilder()
               .withName(PatroniConfigMap.POSTGRES_PORT_NAME)
-              .withContainerPort(Envoy.PG_ENTRY_PORT).build(),
+              .withContainerPort(context.getClusterContext().getSidecars().stream()
+                  .filter(entry -> entry.getSidecar() instanceof Envoy)
+                  .map(entry -> Envoy.PG_ENTRY_PORT)
+                  .findFirst()
+                  .orElse(Envoy.PG_PORT)).build(),
           new ContainerPortBuilder()
               .withName(PatroniConfigMap.POSTGRES_REPLICATION_PORT_NAME)
-              .withContainerPort(Envoy.PG_RAW_ENTRY_PORT).build(),
+              .withContainerPort(context.getClusterContext().getSidecars().stream()
+                  .filter(entry -> entry.getSidecar() instanceof Envoy)
+                  .map(entry -> Envoy.PG_REPL_ENTRY_PORT)
+                  .findFirst()
+                  .orElse(Envoy.PG_PORT)).build(),
           new ContainerPortBuilder().withContainerPort(8008).build())
       .withVolumeMounts(volumeMountsFactory.listResources(clusterContext))
       .addToVolumeMounts(
-          Seq.of(Optional.of(context.getClusterContext().getCluster().getSpec().getInitData())
+          Seq.of(Optional.ofNullable(
+              context.getClusterContext().getCluster().getSpec().getInitData())
               .map(StackGresClusterInitData::getScripts))
           .filter(Optional::isPresent)
           .map(Optional::get)
           .flatMap(List::stream)
           .zipWithIndex()
           .map(t -> new VolumeMountBuilder()
-              .withName(PatroniScriptsConfigMap.name(clusterContext, t.v2))
-              .withMountPath("/etc/patroni/init-script.d/")
+              .withName(PatroniScriptsConfigMap.name(
+                  clusterContext, t.v2, t.v1.getName(), t.v1.getDatabase()))
+              .withMountPath("/etc/patroni/init-script.d/"
+                  + PatroniScriptsConfigMap.scriptName(
+                      t.v2, t.v1.getName(), t.v1.getDatabase()))
+              .withSubPath(PatroniScriptsConfigMap.scriptName(
+                    t.v2, t.v1.getName(), t.v1.getDatabase()))
               .withReadOnly(true)
               .build())
           .toArray(VolumeMount[]::new))
+      .addToVolumeMounts(new VolumeMountBuilder()
+          .withName("post-init")
+          .withMountPath("/etc/patroni/post-init.sh")
+          .withSubPath("post-init.sh")
+          .withReadOnly(true)
+          .build())
       .withEnvFrom(new EnvFromSourceBuilder()
           .withConfigMapRef(new ConfigMapEnvSourceBuilder()
               .withName(PatroniConfigMap.name(clusterContext)).build())
@@ -144,7 +169,7 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
           .build())
       .withLivenessProbe(new ProbeBuilder()
           .withTcpSocket(new TCPSocketActionBuilder()
-              .withPort(new IntOrString(5432))
+              .withPort(new IntOrString(8008))
               .build())
           .withInitialDelaySeconds(15)
           .withPeriodSeconds(20)
@@ -165,21 +190,27 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
 
   @Override
   public ImmutableList<Volume> getVolumes(StackGresGeneratorContext context) {
-    return Seq.of(Optional.of(context.getClusterContext().getCluster().getSpec().getInitData())
+    return Seq.of(Optional.ofNullable(
+        context.getClusterContext().getCluster().getSpec().getInitData())
         .map(StackGresClusterInitData::getScripts))
     .filter(Optional::isPresent)
     .map(Optional::get)
     .flatMap(List::stream)
     .zipWithIndex()
     .map(t -> new VolumeBuilder()
-        .withName(PatroniScriptsConfigMap.name(context.getClusterContext(), t.v2))
+        .withName(PatroniScriptsConfigMap.name(context.getClusterContext(),
+            t.v2, t.v1.getName(), t.v1.getDatabase()))
         .withConfigMap(new ConfigMapVolumeSourceBuilder()
-            .withName(PatroniScriptsConfigMap.name(context.getClusterContext(), t.v2))
-            .withItems(new KeyToPathBuilder()
-                .withKey(PatroniScriptsConfigMap.scriptName(t.v2))
-                .withPath(PatroniScriptsConfigMap.scriptName(t.v2))
-                .build())
+            .withName(PatroniScriptsConfigMap.name(context.getClusterContext(),
+                t.v2, t.v1.getName(), t.v1.getDatabase()))
             .withOptional(false)
+            .build())
+        .build())
+    .append(new VolumeBuilder()
+        .withName("post-init")
+        .withConfigMap(new ConfigMapVolumeSourceBuilder()
+            .withName(postInitName(context.getClusterContext()))
+            .withDefaultMode(0555)
             .build())
         .build())
     .collect(ImmutableList.toImmutableList());
@@ -195,6 +226,18 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
         .append(patroniRole)
         .append(patroniServices)
         .append(patroniConfigEndpoints)
+        .append(c -> Seq.of(new ConfigMapBuilder()
+            .withNewMetadata()
+            .withNamespace(context.getClusterContext().clusterNamespace())
+            .withName(postInitName(context.getClusterContext()))
+            .endMetadata()
+            .withData(ImmutableMap.of("post-init.sh",
+                Unchecked.supplier(() -> Resources
+                    .asCharSource(ClusterStatefulSet.class.getResource("/post-init.sh"),
+                        StandardCharsets.UTF_8)
+                    .read()).get()
+                .replace("${POSTGRES_PORT}", String.valueOf(Envoy.PG_PORT))))
+            .build()))
         .stream();
   }
 

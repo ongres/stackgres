@@ -25,7 +25,6 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.stackgres.operator.common.StackGresDistributedLogsContext;
-import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operatorframework.resource.AbstractResourceHandler;
 
 public abstract class AbstractDistributedLogsResourceHandler
@@ -59,16 +58,6 @@ public abstract class AbstractDistributedLogsResourceHandler
       MixedOperation<? extends HasMetadata, ? extends KubernetesResourceList<? extends HasMetadata>,
           ?, ? extends Resource<? extends HasMetadata, ?>>> getResourceOperations(M resource) {
     return STACKGRES_DISTRIBUTED_LOGS_RESOURCE_OPERATIONS.get(resource.getClass());
-  }
-
-  @Override
-  public String getContextNamespaceOf(HasMetadata resource) {
-    return resource.getMetadata().getNamespace();
-  }
-
-  @Override
-  public String getContextNameOf(HasMetadata resource) {
-    return resource.getMetadata().getLabels().get(StackGresUtil.DISTRIBUTED_LOGS_CLUSTER_NAME_KEY);
   }
 
 }
