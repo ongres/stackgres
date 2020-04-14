@@ -687,7 +687,8 @@ const vm = new Vue({
       }
 
       //console.log("Fetching API");
-      $("#loader").show();
+      //$("#loader").show();
+      $('#reload').addClass('active');
 
       if ( !kind.length || (kind == 'namespaces') ) {
         /* Namespaces Data */
@@ -1019,10 +1020,10 @@ const vm = new Vue({
       }
 
       setTimeout(function(){
-        $("#loader").fadeOut(500);
+        //$("#loader").fadeOut(500);
         $("#reload").removeClass("active");
         //$("#loader").hide();  
-      }, 1500);
+      }, 2000);
 
     },
 

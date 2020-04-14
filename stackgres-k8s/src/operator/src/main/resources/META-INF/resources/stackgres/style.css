@@ -525,7 +525,7 @@ aside {
     top: 0;
     height: 50px;
     width: 100vw;
-    padding: 10px 40px 10px 15px;
+    padding: 10px 15px;
     border-bottom: 1px solid var(--gray1);
     background: #f8f8f8;
     overflow: visible;
@@ -1118,8 +1118,8 @@ footer {
 }
 
 #reload.active svg {
-    transform: rotate(360deg);
-    transition: transform 1.5s ease-in-out;
+    transform: rotate(720deg);
+    transition: transform 2s ease-in-out;
 }
 
 #notifications .count {
@@ -1166,6 +1166,10 @@ footer {
     display: none;
     line-height: 1;
     width: 320px;
+}
+
+#delete {
+    position: absolute;
 }
 
 #delete .tooltip {
@@ -2983,6 +2987,12 @@ td.operation.Reset > span {
 
 .toggle.open > #datePicker {
     display: none;
+}
+
+.daterangepicker {
+    top: 170px !important;
+    left: auto !important;
+    right: 40px !important;
 }
 
 
