@@ -133,13 +133,13 @@ var Backups = Vue.component("sg-backup", {
 								<span>Timestamp</span>
 							</th>
 							<th @click="sort('data.spec.subjectToRetentionPolicy')" class="icon desc isPermanent">
-								<span>Permanent</span>
+								<span>Managed Lifecycle</span>
 							</th>
 							<th @click="sort('data.status.process.status')" class="desc phase center">
 								<span>Status</span>
 							</th>
 							<th @click="sort('data.status.backupInformation.size.uncompressed')" class="desc size">
-								<span>Size</span>
+								<span>Size uncompressed (compressed)</span>
 							</th>
 							<th @click="sort('data.status.backupInformation.postgresVersion')" class="desc postgresVersion" v-if="!isCluster">
 								<span>PG</span>
@@ -151,7 +151,7 @@ var Backups = Vue.component("sg-backup", {
 								<span>Name</span>
 							</th>
 							<th @click="sort('data.spec.sgCluster')" class="desc clusterName" v-if="!isCluster">
-								<span>Cluster Name</span>
+								<span>Source Cluster</span>
 							</th>
 							<th class="actions"></th>
 							<!--<th class="details"></th>-->
@@ -183,7 +183,7 @@ var Backups = Vue.component("sg-backup", {
 										</td>
 										<td class="size" :data-val="back.data.status.backupInformation.size.uncompressed">
 											<template v-if="back.data.status.process.status === 'Completed'">
-												{{ back.data.status.backupInformation.size.uncompressed | formatBytes }}
+											{{ back.data.status.backupInformation.size.uncompressed | formatBytes }} ({{ back.data.status.backupInformation.size.compressed | formatBytes }})
 											</template>
 										</td>
 										<td class="postgresVersion" :class="[(back.data.status.process.status === 'Completed') ? 'pg'+(back.data.status.backupInformation.postgresVersion.substr(0,2)) : '']"  v-if="!isCluster" :data-val="back.data.status.backupInformation.postgresVersion">
@@ -217,12 +217,12 @@ var Backups = Vue.component("sg-backup", {
 										<table>
 											<thead>
 												<th>Start Time</th>
-												<th>Duration</th>
+												<th>Elapsed</th>
 												<th>LSN (start ⇢ end)</th>
 												<th colspan="2">UID</th>
-												<th>Source Cluster</th>
-												<th>Compressed Size</th>
-												<th>Compression Method</th>
+												<th>Source Pod</th>
+												<th>Timeline</th>
+												<th>System Identifier</th>
 												<th>Storage Type</th>
 											</thead>
 											<tbody>
@@ -256,10 +256,10 @@ var Backups = Vue.component("sg-backup", {
 														{{ back.data.status.backupInformation.hostname }}
 													</td>
 													<td>
-														{{ back.data.status.backupInformation.size.compressed | formatBytes }}
+														{{ parseInt(back.data.status.backupInformation.startWalFile.substr(8)) }}
 													</td>
 													<td>
-														{{ back.data.status.sgBackupConfig.baseBackups.compression }}
+														{{ back.data.status.backupInformation.systemIdentifier }}
 													</td>
 													<td>
 														{{ back.data.status.sgBackupConfig.storage.type }}
@@ -559,7 +559,7 @@ var Backups = Vue.component("sg-backup", {
 
 			$('#datePicker').on('apply.daterangepicker', function(ev, picker) {
 				//do something, like clearing an input
-				
+				$('#datePicker').parent().removeClass('open');
 			});
 
 			$(document).on('click', '.xCheckbox', function () {

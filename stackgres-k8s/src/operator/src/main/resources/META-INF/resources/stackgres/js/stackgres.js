@@ -780,6 +780,7 @@ const vm = new Vue({
         .then( function(response) {
 
           if( checkData(response.data, apiData['backup']) ) {
+            var start, finish, duration;
 
             if(typeof apiData['backup'] !== 'undefined' && response.data.length != apiData['backup'].length)
               store.commit('flushBackups');
@@ -796,14 +797,19 @@ const vm = new Vue({
                 //console.log("Namespace ya existe");
               }
 
-              let start = moment(item.status.process.timing.start);
-              let finish = moment(item.status.process.timing.end);
-              let duration = moment.duration(finish.diff(start));
+              if( (typeof item.status.process.timing.start !== 'undefined') && (typeof item.status.process.timing.stored !== 'undefined') ) {
+                start = moment(item.status.process.timing.start);
+                finish = moment(item.status.process.timing.stored);
+                duration = new Date(moment.duration(finish.diff(start))).toISOString();
+              } else {
+                duration = '';
+              }
+              
                 
               store.commit('updateBackups', { 
                 name: item.metadata.name,
                 data: item,
-                duration: new Date(duration).toISOString(),
+                duration: duration,
                 show: true
               });
 
@@ -1065,7 +1071,7 @@ Vue.filter('formatTimestamp',function(t, part){
       
       if (ms == '.Z')
         ms = '.000';
-      else if (ms.length == 3)
+      else if (ms.length == 2)
         ms += '00';
       else if (ms.length == 4)
         ms += '0';
