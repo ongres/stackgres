@@ -525,7 +525,7 @@ aside {
     top: 0;
     height: 50px;
     width: 100vw;
-    padding: 10px 15px;
+    padding: 10px 30px 10px 15px;
     border-bottom: 1px solid var(--gray1);
     background: #f8f8f8;
     overflow: visible;
@@ -1397,6 +1397,24 @@ footer .tooltip p {
     margin: 10px;
     color: var(--blue);
     font-size: 1rem;
+}
+
+#logout {
+    font-weight: bold;
+    text-transform: uppercase;
+    position: relative;
+    top: -9px;
+    cursor: pointer;
+}
+
+#logout a {
+    display: flex;
+    align-items: center;
+}
+
+#logout svg {
+    width: 11px;
+    margin: -3px 0 0 7px;
 }
 
 #expanders {
