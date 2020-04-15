@@ -164,7 +164,7 @@ var Backups = Vue.component("sg-backup", {
 							</tr>
 							<template v-for="back in backups" v-if="( ( (back.data.metadata.namespace == currentNamespace) && !isCluster && back.show ) || (isCluster && (back.data.spec.sgCluster == currentCluster.name ) && (back.data.metadata.namespace == currentCluster.data.metadata.namespace ) && back.show ) )">
 								<tr class="base" :class="back.data.status.process.status+' sgbackup-'+back.data.metadata.namespace+'-'+back.data.metadata.name">
-										<td class="timestamp" :data-val="back.data.status.process.timing.stored.substr(0,19).replace('T',' ')">
+										<td class="timestamp" :data-val="(back.data.status.process.status == 'Completed') ? back.data.status.process.timing.stored.substr(0,19).replace('T',' ') : ''">
 											<template v-if="back.data.status.process.status == 'Completed'">
 												<span class='date'>
 													{{ back.data.status.process.timing.stored | formatTimestamp('date') }}
@@ -177,16 +177,16 @@ var Backups = Vue.component("sg-backup", {
 												</span>
 											</template>
 										</td>
-										<td class="isPermanent center icon" :class="[(back.data.spec.subjectToRetentionPolicy) ? 'true' : 'false']" :data-val="back.data.spec.subjectToRetentionPolicy"></td>
+										<td class="isPermanent center icon" :class="[(back.data.spec.subjectToRetentionPolicy) ? 'true' : 'false']" :data-val="(back.data.status.process.status == 'Completed') ? back.data.spec.subjectToRetentionPolicy : ''"></td>
 										<td class="phase center" :class="back.data.status.process.status">
 											<span>{{ back.data.status.process.status }}</span>
 										</td>
-										<td class="size" :data-val="back.data.status.backupInformation.size.uncompressed">
+										<td class="size" :data-val="(back.data.status.process.status == 'Completed') ? back.data.status.backupInformation.size.uncompressed : ''">
 											<template v-if="back.data.status.process.status === 'Completed'">
 											{{ back.data.status.backupInformation.size.uncompressed | formatBytes }} ({{ back.data.status.backupInformation.size.compressed | formatBytes }})
 											</template>
 										</td>
-										<td class="postgresVersion" :class="[(back.data.status.process.status === 'Completed') ? 'pg'+(back.data.status.backupInformation.postgresVersion.substr(0,2)) : '']"  v-if="!isCluster" :data-val="back.data.status.backupInformation.postgresVersion">
+										<td class="postgresVersion" :class="[(back.data.status.process.status === 'Completed') ? 'pg'+(back.data.status.backupInformation.postgresVersion.substr(0,2)) : '']"  v-if="!isCluster" :data-val="(back.data.status.process.status == 'Completed') ? back.data.status.backupInformation.postgresVersion : ''">
 											<template v-if="back.data.status.process.status === 'Completed'">
 												{{ back.data.status.backupInformation.postgresVersion | prefix }}
 											</template>											

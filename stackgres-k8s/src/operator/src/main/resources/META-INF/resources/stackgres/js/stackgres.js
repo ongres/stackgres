@@ -684,6 +684,9 @@ const vm = new Vue({
       } else if ( !store.state.loginToken.length && (loginToken.length > 0) ) {
         $('#signup').hide();
         store.commit('setLoginToken', loginToken);
+      } else if ( urlParams.has('localAPI') ) {
+        $('#signup').hide();
+        store.commit('setLoginToken', 'localAPI');
       }
 
       //console.log("Fetching API");
@@ -798,7 +801,7 @@ const vm = new Vue({
                 //console.log("Namespace ya existe");
               }
 
-              if( (typeof item.status.process.timing.start !== 'undefined') && (typeof item.status.process.timing.stored !== 'undefined') ) {
+              if( item.status.process.status === 'Completed') {
                 start = moment(item.status.process.timing.start);
                 finish = moment(item.status.process.timing.stored);
                 duration = new Date(moment.duration(finish.diff(start))).toISOString();
@@ -1259,6 +1262,20 @@ function hideFields( fields ) {
   $(fields).slideUp();
 }
 
+function hasParams( obj, params) {
+  var valid = true;
+
+  for ( var i=0; i < params.length; i++){
+    if( !obj || !obj.hasOwnProperty(params[i]) ) {
+      return valid = false
+    }
+    else
+      obj = obj[params[i]]
+  }
+
+  return valid
+}
+
 // Sort tables by an specific parameter
 function sortTable( table, param, direction ) {
   
@@ -1266,14 +1283,21 @@ function sortTable( table, param, direction ) {
     let modifier = 1;
     
     if(direction === 'desc') modifier = -1;
-    
-    a = eval("a."+param);
-    b = eval("b."+param);
 
-    if(a < b)
+    if(hasParams( a, param.split(".")))
+      a = eval("a."+param);
+    else
+      a = '';
+
+    if(hasParams( b, param.split(".")))
+      b = eval("b."+param);
+    else
+      b = '';
+    
+    if( a < b )
       return -1 * modifier;
     
-    if(a > b)
+    if( a > b )
       return 1 * modifier;
     
     return 0;
