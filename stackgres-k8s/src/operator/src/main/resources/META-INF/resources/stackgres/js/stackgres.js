@@ -312,11 +312,11 @@ const store = new Vuex.Store({
     tooltips: {
       description: 'Click on a question mark to get help and tips about that field.', 
       SGCluster: {},
-      sgbackup: {},
-      sgpgconfig: {},
-      sgbackupconfig: {},
-      sgpoolconfig: {},
-      sginstanceprofile: {},
+      SGBackup: {},
+      SGPostgresConfig: {},
+      SGBackupConfig: {},
+      SGPoolingConfig: {},
+      SGInstanceProfile: {},
     },
     deleteItem: {
       kind: '',
@@ -632,6 +632,48 @@ Vue.mixin({
 			}
 			
     },
+
+    loadTooltips: function( kind, lang = 'EN' ) {
+
+      if( !store.state.tooltips[kind].hasOwnProperty('metadata.name') ) {
+        console.log("Reading "+kind+" tooltips");
+        
+        /* Tooltips Data */
+        axios
+        .get('js/components/forms/help/crd-'+kind+'-description-EN.json')
+        .then( function(response){
+
+          // Include missing tooltips for storage credentials
+          if(kind == 'SGBackupConfig') {
+            response.data["spec.storage.s3.awsCredentials.accessKeyId"] = "The AWS Access Key ID secret.";
+            response.data["spec.storage.s3.awsCredentials.secretAccessKey"] = "The AWS Secret Access Key secret.";
+            response.data["spec.storage.s3Compatible.awsCredentials.accessKeyId"] = "The AWS Access Key ID secret.";
+            response.data["spec.storage.s3Compatible.awsCredentials.secretAccessKey"] = "The AWS Secret Access Key secret.";
+            response.data["spec.storage.gcs.gcpCredentials.serviceAccountJSON"] = "A service account key from GCP. In JSON format, as downloaded from the GCP Console.";
+            response.data["spec.storage.azureBlob.azureCredentials.storageAccount"] = "The name of the storage account.";
+            response.data["spec.storage.azureBlob.azureCredentials.accessKey"] = "The primary or secondary access key for the storage account.";
+          }
+
+          store.commit('setTooltips', { 
+          kind: kind, 
+          description: response.data 
+        })
+        }).catch(function(err) {
+          console.log(err);
+        });
+      }
+
+    },
+
+    showTooltip: function( kind, field ) {
+
+      const label = $("[for='"+field+"']").html();
+      const crd = store.state.tooltips[kind];
+
+      $("#help .title").html(label);
+      store.commit("setTooltipDescription",crd[field]);
+
+    }
   }
 });
 
