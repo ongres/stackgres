@@ -5,34 +5,30 @@
 
 package io.stackgres.operator.initialization;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.Optional;
 
 import io.fabric8.kubernetes.client.CustomResource;
-import io.stackgres.operator.resource.CustomResourceFinder;
 import io.stackgres.operator.resource.CustomResourceScanner;
 import io.stackgres.operator.resource.CustomResourceScheduler;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
-public abstract class AbstractInitializerTest<T extends CustomResource> {
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.*;
+
+public abstract class InitializerTest<T extends CustomResource> {
 
   @Mock
   private CustomResourceScheduler<T> customResourceScheduler;
 
   @Mock
   private DefaultCustomResourceFactory<T> resourceFactory;
+
+  @Mock
+  private DefaultFactoryProvider<DefaultCustomResourceFactory<T>> factoryProvider;
 
   @Mock
   private CustomResourceScanner<T> resourceScanner;
@@ -47,7 +43,8 @@ public abstract class AbstractInitializerTest<T extends CustomResource> {
   void init() {
     initializer = getInstance();
     initializer.setResourceScheduler(customResourceScheduler);
-    initializer.setResourceFactory(resourceFactory);
+    when(factoryProvider.getFactories()).thenReturn(Collections.singletonList(resourceFactory));
+    initializer.setFactoryProvider(factoryProvider);
     initializer.setResourceScanner(resourceScanner);
     defaultCustomResource = configureDefaultCR();
     resourceNamespace = defaultCustomResource.getMetadata().getNamespace();
@@ -57,7 +54,7 @@ public abstract class AbstractInitializerTest<T extends CustomResource> {
 
   abstract T getDefaultCR();
 
-  private T configureDefaultCR(){
+  private T configureDefaultCR() {
     T defaultCustomResource = getDefaultCR();
     String name = DefaultCustomResourceFactory.DEFAULT_RESOURCE_NAME_PREFIX
         + System.currentTimeMillis();
@@ -89,6 +86,7 @@ public abstract class AbstractInitializerTest<T extends CustomResource> {
   @Test
   void givenAResourceAlreadyCreated_itShouldDoNothing() {
 
+    when(resourceFactory.getDefaultPrefix()).thenCallRealMethod();
     when(resourceScanner.getResources(resourceNamespace))
         .thenReturn(Collections.singletonList(defaultCustomResource));
 

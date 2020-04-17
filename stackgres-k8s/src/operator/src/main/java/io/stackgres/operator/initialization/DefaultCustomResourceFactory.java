@@ -16,4 +16,8 @@ public interface DefaultCustomResourceFactory<T> {
     return DEFAULT_RESOURCE_NAME_PREFIX + epoch;
   }
 
+  default String getDefaultPrefix() {
+    return DEFAULT_RESOURCE_NAME_PREFIX;
+  }
+
 }

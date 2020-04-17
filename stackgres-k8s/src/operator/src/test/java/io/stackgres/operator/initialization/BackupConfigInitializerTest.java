@@ -12,7 +12,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class BackupConfigInitializerTest extends AbstractInitializerTest<StackGresBackupConfig> {
+class BackupConfigInitializerTest extends InitializerTest<StackGresBackupConfig> {
 
   @Override
   AbstractDefaultCustomResourceInitializer<StackGresBackupConfig> getInstance() {

@@ -6,7 +6,6 @@
 package io.stackgres.operator.mutation.cluster;
 
 import java.util.List;
-import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import com.github.fge.jackson.jsonpointer.JsonPointer;
@@ -21,7 +20,6 @@ import io.stackgres.operator.resource.CustomResourceFinder;
 import io.stackgres.operator.resource.CustomResourceScheduler;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 
-@ApplicationScoped
 public class DefaultPostgresMutator
     extends AbstractDefaultResourceMutator<StackGresPostgresConfig>
     implements ClusterMutator {
