@@ -960,6 +960,12 @@ ul.zg-ul-select.active li.active:hover {
     margin-right: 10px;
 }
 
+#side .set svg {
+    height: 15px;
+    margin-top: 16px;
+    width: auto;
+}
+
 #sets > .hide {
     max-height: 60px;
     height: auto;

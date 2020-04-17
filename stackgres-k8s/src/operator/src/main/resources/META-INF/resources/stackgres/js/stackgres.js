@@ -1686,4 +1686,8 @@ $(document).ready(function(){
     $(this).parents('tr').find('.parameters').toggleClass('open');
   });
 
+  $(document).on('click', 'ul.select', function(){
+      $(this).toggleClass('active');
+  });
+
 });
