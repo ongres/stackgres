@@ -6,7 +6,6 @@
 package io.stackgres.operator.mutation.pgconfig;
 
 import java.util.List;
-import javax.enterprise.context.ApplicationScoped;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.fge.jsonpatch.AddOperation;
@@ -18,7 +17,6 @@ import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigSpec;
 import io.stackgres.operator.common.PgConfigReview;
 import io.stackgres.operator.mutation.DefaultValuesMutator;
 
-@ApplicationScoped
 public class PgConfigDefaultValuesMutator
     extends DefaultValuesMutator<StackGresPostgresConfig, PgConfigReview>
     implements PgConfigMutator {

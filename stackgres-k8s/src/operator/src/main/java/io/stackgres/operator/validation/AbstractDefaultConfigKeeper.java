@@ -5,7 +5,11 @@
 
 package io.stackgres.operator.validation;
 
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
+import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.ObjectMeta;
@@ -22,20 +26,22 @@ public abstract class AbstractDefaultConfigKeeper
     <R extends CustomResource, T extends AdmissionReview<R>>
     implements Validator<T> {
 
-  private volatile String installedNamespace;
-  private volatile String defaultResourceName;
+  private Map<String, Set<String>> installedResources;
 
-  private DefaultCustomResourceFactory<R> factory;
+  private Instance<DefaultCustomResourceFactory<R>> factories;
   private ConfigContext configContext;
 
   private String errorTypeUri;
 
   @PostConstruct
   public void init() {
-    R defaultResource = factory.buildResource();
-    ObjectMeta metadata = defaultResource.getMetadata();
-    this.installedNamespace = metadata.getNamespace();
-    this.defaultResourceName = metadata.getName();
+
+    this.installedResources = factories.stream()
+        .map(DefaultCustomResourceFactory::buildResource)
+        .map(CustomResource::getMetadata)
+        .collect(Collectors.groupingBy(ObjectMeta::getNamespace,
+            Collectors.mapping(ObjectMeta::getName, Collectors.toSet())));
+
     this.errorTypeUri = configContext.getErrorTypeUri(ErrorType.DEFAULT_CONFIGURATION);
   }
 
@@ -50,7 +56,8 @@ public abstract class AbstractDefaultConfigKeeper
 
         String updateNamespace = object.getMetadata().getNamespace();
         String updateName = object.getMetadata().getName();
-        if (installedNamespace.equals(updateNamespace) && defaultResourceName.equals(updateName)) {
+        if (installedResources.containsKey(updateNamespace)
+            && installedResources.get(updateNamespace).contains(updateName)) {
           final String message = "Cannot update CR " + updateName + " because is a default CR";
           fail(request.getKind().getKind(), errorTypeUri, message);
         }
@@ -58,7 +65,8 @@ public abstract class AbstractDefaultConfigKeeper
       case DELETE:
         String deleteNamespace = request.getNamespace();
         String deleteName = request.getName();
-        if (installedNamespace.equals(deleteNamespace) && defaultResourceName.equals(deleteName)) {
+        if (installedResources.containsKey(deleteNamespace)
+            && installedResources.get(deleteNamespace).contains(deleteName)) {
           final String message = "Cannot delete CR " + deleteName + " because is a default CR";
           fail(request.getKind().getKind(), errorTypeUri, message);
         }
@@ -68,8 +76,8 @@ public abstract class AbstractDefaultConfigKeeper
   }
 
   @Inject
-  public void setFactory(DefaultCustomResourceFactory<R> factory) {
-    this.factory = factory;
+  public void setFactories(Instance<DefaultCustomResourceFactory<R>> factories) {
+    this.factories = factories;
   }
 
   @Inject

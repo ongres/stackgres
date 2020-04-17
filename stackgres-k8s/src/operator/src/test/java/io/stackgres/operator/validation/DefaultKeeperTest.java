@@ -6,6 +6,9 @@
 package io.stackgres.operator.validation;
 
 import java.util.Random;
+import java.util.stream.Stream;
+
+import javax.enterprise.inject.Instance;
 
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.operator.common.ConfigLoader;
@@ -17,13 +20,19 @@ import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFail
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public abstract class DefaultKeeperTest<R extends CustomResource, T extends AdmissionReview<R>> {
 
   @Mock
   private DefaultCustomResourceFactory<R> factory;
+
+  @Mock
+  private Instance<DefaultCustomResourceFactory<R>> factories;
 
   private AbstractDefaultConfigKeeper<R, T> validator;
 
@@ -37,7 +46,10 @@ public abstract class DefaultKeeperTest<R extends CustomResource, T extends Admi
   void setUp() {
     validator = getValidatorInstance();
     validator.setConfigContext(new ConfigLoader());
-    validator.setFactory(factory);
+    when(factories.stream())
+        .thenAnswer((Answer<Stream<DefaultCustomResourceFactory<R>>>) invocationOnMock
+            -> Stream.of(factory));
+    validator.setFactories(factories);
 
   }
 

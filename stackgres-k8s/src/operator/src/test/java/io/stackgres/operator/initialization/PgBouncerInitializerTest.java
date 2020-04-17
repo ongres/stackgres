@@ -12,7 +12,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-public class PgBouncerInitializerTest extends AbstractInitializerTest<StackGresPoolingConfig> {
+public class PgBouncerInitializerTest extends InitializerTest<StackGresPoolingConfig> {
 
   @Override
   AbstractDefaultCustomResourceInitializer<StackGresPoolingConfig> getInstance() {

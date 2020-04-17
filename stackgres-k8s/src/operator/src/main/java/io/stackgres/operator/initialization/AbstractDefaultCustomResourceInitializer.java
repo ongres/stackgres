@@ -5,48 +5,28 @@
 
 package io.stackgres.operator.initialization;
 
-import java.util.List;
-import java.util.Optional;
 import javax.inject.Inject;
 
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.operator.resource.CustomResourceScanner;
 import io.stackgres.operator.resource.CustomResourceScheduler;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public abstract class AbstractDefaultCustomResourceInitializer<T extends CustomResource>
     implements DefaultCustomResourceInitializer<T> {
 
-  private static final Logger LOGGER = LoggerFactory
-      .getLogger(AbstractDefaultCustomResourceInitializer.class);
-
   private CustomResourceScheduler<T> customResourceScheduler;
-  private DefaultCustomResourceFactory<T> resourceFactory;
+  private DefaultFactoryProvider<DefaultCustomResourceFactory<T>> factoryProvider;
   private CustomResourceScanner<T> resourceScanner;
 
   @Override
   public void initialize() {
-    T defaultResource = resourceFactory.buildResource();
-    String resourceNamespace = defaultResource.getMetadata().getNamespace();
-    String resourceName = defaultResource.getMetadata().getName();
+    factoryProvider.getFactories().forEach(factory -> {
+      CustomResourceInitializer<T> customResourceInitializer =
+          new CustomResourceInitializer<>(customResourceScheduler, factory, resourceScanner);
 
-    LOGGER.info("Initializing " + resourceName);
+      customResourceInitializer.initialize();
 
-    List<T> installedResources = resourceScanner.getResources(resourceNamespace);
-
-    Optional<T> installedDefaultResources = installedResources
-        .stream()
-        .filter(i -> i.getMetadata().getName()
-            .startsWith(DefaultCustomResourceFactory.DEFAULT_RESOURCE_NAME_PREFIX))
-        .findFirst();
-
-    if (installedDefaultResources.isPresent()) {
-      LOGGER.info("Default custom resource " + resourceName + " already installed");
-    } else {
-      LOGGER.info("Installing default custom resource " + resourceName);
-      customResourceScheduler.create(defaultResource);
-    }
+    });
   }
 
   @Inject
@@ -55,8 +35,9 @@ public abstract class AbstractDefaultCustomResourceInitializer<T extends CustomR
   }
 
   @Inject
-  public void setResourceFactory(DefaultCustomResourceFactory<T> resourceFactory) {
-    this.resourceFactory = resourceFactory;
+  public void setFactoryProvider(
+      DefaultFactoryProvider<DefaultCustomResourceFactory<T>> factoryProvider) {
+    this.factoryProvider = factoryProvider;
   }
 
   @Inject
