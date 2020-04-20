@@ -5,6 +5,8 @@
 
 package io.stackgres.common.crd.sgdistributedlogs;
 
+import java.util.Objects;
+
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
@@ -42,6 +44,24 @@ public class StackGresDistributedLogsPersistentVolume {
 
   public void setStorageClass(String storageClass) {
     this.storageClass = storageClass;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(storageClass, volumeSize);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (!(obj instanceof StackGresDistributedLogsPersistentVolume)) {
+      return false;
+    }
+    StackGresDistributedLogsPersistentVolume other = (StackGresDistributedLogsPersistentVolume) obj;
+    return Objects.equals(storageClass, other.storageClass)
+        && Objects.equals(volumeSize, other.volumeSize);
   }
 
   @Override

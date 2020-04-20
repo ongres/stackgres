@@ -15,6 +15,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.io.Resources;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.stackgres.common.crd.sgcluster.NonProduction;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDefinition;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDistributedLogs;
@@ -211,6 +212,10 @@ public class DistributedLogsReconciliationCycle
           .read()).get());
     initData.setScripts(ImmutableList.of(script));
     spec.setInitData(initData);
+    final NonProduction nonProduction = new NonProduction();
+    nonProduction.setDisableClusterPodAntiAffinity(
+        distributedLogs.getSpec().getNonProduction().getDisableClusterPodAntiAffinity());
+    spec.setNonProduction(nonProduction);
     distributedLogsCluster.setSpec(spec);
     return distributedLogsCluster;
   }

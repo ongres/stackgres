@@ -40,10 +40,12 @@ import io.stackgres.operator.common.StackGresComponents;
 import io.stackgres.operator.common.StackGresDistributedLogsContext;
 import io.stackgres.operator.common.StackGresDistributedLogsGeneratorContext;
 import io.stackgres.operator.common.StackGresGeneratorContext;
+import io.stackgres.operator.rest.distributedlogs.DistributedLogsFetcher;
 import io.stackgres.operator.sidecars.envoy.Envoy;
 import io.stackgres.operator.sidecars.fluentbit.FluentBit;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import io.stackgres.operatorframework.resource.factory.ContainerResourceFactory;
+import org.jooq.Field;
 import org.jooq.lambda.Seq;
 
 @Singleton
@@ -53,26 +55,28 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
   public static final String NAME = "fluentd";
 
   public static final String POSTGRES_LOG_TYPE = "postgres";
-  // list of log_postgres table fields
-  public static final ImmutableList<String> POSTGRES_FIELDS = ImmutableList.of(
-      "log_time", "pod_name", "role", "error_severity", "message",
-      "user_name", "database_name", "process_id", "connection_from",
-      "session_id", "session_line_num", "command_tag", "session_start_time",
-      "virtual_transaction_id", "transaction_id", "sql_state_code",
-      "detail", "hint", "internal_query", "internal_query_pos", "context",
-      "query", "query_pos", "location", "application_name");
   public static final String PATRONI_LOG_TYPE = "patroni";
   // list of log_patroni table fields
-  public static final ImmutableList<String> PATRONI_FIELDS = ImmutableList.of(
-      "log_time", "pod_name", "role", "error_severity", "message");
 
   public static final int FORWARD_PORT = 12225;
   public static final String FORWARD_PORT_NAME = "fluentd-forward";
 
   public static final String IMAGE_NAME = "docker.io/ongres/fluentd:v%s-build-%s";
+
   private static final String DEFAULT_VERSION = StackGresComponents.get("fluentd");
 
   private static final String SUFFIX = "-fluentd";
+
+  private static final String POSTGRES_CSV_FIELDS = ImmutableList.of("user_name",
+      "database_name", "process_id", "connection_from", "session_id", "session_line_num",
+      "command_tag", "session_start_time", "virtual_transaction_id", "transaction_id",
+      "error_severity", "sql_state_code", "message", "detail", "hint", "internal_query",
+      "internal_query_pos", "context", "query", "query_pos", "location", "application_name")
+      .stream().collect(Collectors.joining(","));
+  private static final String PATRONI_TABLE_FIELDS = DistributedLogsFetcher.PATRONI_FIELDS
+      .stream().map(Field::getName).collect(Collectors.joining(","));
+  private static final String POSTGRES_TABLE_FIELDS = DistributedLogsFetcher.POSTGRES_FIELDS
+      .stream().map(Field::getName).collect(Collectors.joining(","));
 
   public static String configName(StackGresDistributedLogsContext context) {
     return ResourceUtil.resourceName(context.getDistributedLogs().getMetadata().getName() + SUFFIX);
@@ -87,8 +91,12 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
   }
 
   public static String databaseName(StackGresCluster cluster) {
-    return cluster.getMetadata().getNamespace()
-        + "_" + cluster.getMetadata().getName();
+    return databaseName(cluster.getMetadata().getNamespace(),
+        cluster.getMetadata().getName());
+  }
+
+  public static String databaseName(String clusterNamespace, String clusterName) {
+    return clusterNamespace + "_" + clusterName;
   }
 
   @Override
@@ -139,7 +147,7 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
             + "EOF\n"
             + "  done\n"
             + "  exec /usr/local/bin/fluentd \\\n"
-            + "    -v -c \"$CONFIG_PATH/fluentd.conf\"\n"
+            + "    -vv -c \"$CONFIG_PATH/fluentd.conf\"\n"
             + "}\n"
             + "\n"
             + "set +x\n"
@@ -232,45 +240,70 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
             + "  reserve_data true\n"
             + "  <parse>\n"
             + "    @type              csv\n"
-            + "    keys               'user_name,database_name,process_id,connection_from"
-              + ",session_id,session_line_num,command_tag,session_start_time,virtual_transaction_id"
-              + ",transaction_id,error_severity,sql_state_code,message,detail,hint,internal_query"
-              + ",internal_query_pos,context,query,query_pos,location,application_name'\n"
+            + "    keys               "
+              + "'" + POSTGRES_CSV_FIELDS + "'\n"
             + "    delimiter          ,\n"
             + "    null_value_pattern null\n"
             + "    parser_type        normal\n"
             + "  </parse>\n"
             + "</filter>\n"
+            + context.getDistributedLogsContext().getConnectedClusters()
+            .stream()
+            .map(cluster -> ""
+                + "<match " + FluentBit.tagName(cluster, "*") + ".*.*>\n"
+                + "  @type relabel\n"
+                + "  @label @" + databaseName(cluster) + "\n"
+                + "</match>\n"
+                + "\n")
+            .collect(Collectors.joining("\n"))
+            + "<match *.*.*.*.*>\n"
+            + "  @type relabel\n"
+            + "  @label @retry\n"
+            + "</match>\n"
+            + "<label @retry>\n"
+            + "  <match *.*.*.*.*>\n"
+            + "    @type forward\n"
+            + "    <server>\n"
+            + "      name localhost\n"
+            + "      host 127.0.0.1\n"
+            + "      port " + FORWARD_PORT + "\n"
+            + "    </server>\n"
+            + "  </match>\n"
+            + "</label>\n"
             + "\n"
             + context.getDistributedLogsContext().getConnectedClusters()
             .stream()
             .map(cluster -> ""
-                + "<match " + FluentBit.tagName(cluster, POSTGRES_LOG_TYPE) + ".*.*>\n"
-                + "  @type sql\n"
-                + "  host /var/run/postgresql\n"
-                + "  port " + Envoy.PG_PORT + "\n"
-                + "  database " + databaseName(cluster) + "\n"
-                + "  adapter postgresql\n"
-                + "  username postgres\n"
-                + "  <table>\n"
-                + "    table log_postgres\n"
-                + "    column_mapping '" + POSTGRES_FIELDS.stream()
-                  .collect(Collectors.joining(",")) + "'\n"
-                + "  </table>\n"
-                + "</match>\n"
-                + "<match " + FluentBit.tagName(cluster, PATRONI_LOG_TYPE) + ".*.*>\n"
-                + "  @type sql\n"
-                + "  host /var/run/postgresql\n"
-                + "  port " + Envoy.PG_PORT + "\n"
-                + "  database " + databaseName(cluster) + "\n"
-                + "  adapter postgresql\n"
-                + "  username postgres\n"
-                + "  <table>\n"
-                + "    table log_patroni\n"
-                + "    column_mapping '" + PATRONI_FIELDS.stream()
-                  .collect(Collectors.joining(",")) + "'\n"
-                + "  </table>\n"
-                + "</match>\n")
+                + "<label @" + databaseName(cluster) + ">\n"
+                + "  <match " + FluentBit.tagName(cluster, POSTGRES_LOG_TYPE) + ".*.*>\n"
+                + "    @type sql\n"
+                + "    host /var/run/postgresql\n"
+                + "    port " + Envoy.PG_PORT + "\n"
+                + "    database " + databaseName(cluster) + "\n"
+                + "    adapter postgresql\n"
+                + "    username postgres\n"
+                + "    <table>\n"
+                + "      table log_postgres\n"
+                + "      column_mapping "
+                  +   "'" + POSTGRES_TABLE_FIELDS + "'\n"
+                + "    </table>\n"
+                + "  </match>\n"
+                + "  \n"
+                + "  <match " + FluentBit.tagName(cluster, PATRONI_LOG_TYPE) + ".*.*>\n"
+                + "    @type sql\n"
+                + "    host /var/run/postgresql\n"
+                + "    port " + Envoy.PG_PORT + "\n"
+                + "    database " + databaseName(cluster) + "\n"
+                + "    adapter postgresql\n"
+                + "    username postgres\n"
+                + "    <table>\n"
+                + "      table log_patroni\n"
+                + "      column_mapping "
+                  +   "'" + PATRONI_TABLE_FIELDS + "'\n"
+                + "    </table>\n"
+                + "  </match>\n"
+                + "</label>\n"
+                + "\n")
             .collect(Collectors.joining("\n"));
     final String databaseList = context.getDistributedLogsContext().getConnectedClusters()
         .stream()

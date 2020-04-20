@@ -31,6 +31,7 @@ import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.app.YamlMapperProvider;
 import io.stackgres.operatorframework.resource.ResourceUtil;
+import org.jooq.lambda.Seq;
 import org.jooq.lambda.Unchecked;
 
 public enum StackGresUtil {
@@ -89,6 +90,8 @@ public enum StackGresUtil {
     try {
       Properties properties = new Properties();
       properties.load(StackGresUtil.class.getResourceAsStream("/application.properties"));
+      Seq.seq(properties).forEach(t -> System.setProperty(
+          String.class.cast(t.v1), String.class.cast(t.v2)));
       operatorName = getProperty(properties, ConfigProperty.OPERATOR_NAME);
       operatorNamespace = getProperty(properties, ConfigProperty.OPERATOR_NAMESPACE);
       operatorVersion = getProperty(properties, ConfigProperty.OPERATOR_VERSION);
@@ -257,8 +260,13 @@ public enum StackGresUtil {
 
   public static String toPrettyYaml(Object pojoObject) {
     try {
-      return CDI.current().select(YamlMapperProvider.class).get()
-          .yamlMapper().writeValueAsString(pojoObject);
+      try {
+        return CDI.current().select(YamlMapperProvider.class).get()
+            .yamlMapper().writeValueAsString(pojoObject);
+      } catch (IllegalStateException ex) {
+        return new YamlMapperProvider()
+            .yamlMapper().writeValueAsString(pojoObject);
+      }
     } catch (JsonProcessingException ex) {
       throw new RuntimeException("Failed deserializing instance of "
           + pojoObject.getClass().getName(), ex);

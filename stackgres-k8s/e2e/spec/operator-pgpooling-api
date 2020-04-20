@@ -295,7 +295,7 @@ test_dependency_api_error(){
 
   assert_string_equal "409" "$HTTP_STATUS" 
 
-  ERROR_RESPONSE=$(run_curl -r "stackgres/sgpoolconfig" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-pgpooling.json" -e '-X DELETE')    
+  ERROR_RESPONSE=$(run_curl -r "stackgres/sgpoolconfig" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-pgpooling.json" -e '-X DELETE')
 
   EXPECTED_ERROR_TYPE="forbidden-configuration-deletion"
   EXPECTED_ERROR_TITLE="Forbidden configuration deletion"
@@ -313,7 +313,7 @@ test_authentication_api_error() {
 
   check_authentication_error
 
-  HTTP_STATUS="$(run_curl -a e2e:tets -r "stackgres/sgpoolconfig/$CLUSTER_NAMESPACE/$BACKUPCONF"  -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
+  HTTP_STATUS="$(run_curl -a e2e:tets -r "stackgres/sgpoolconfig/$CLUSTER_NAMESPACE/$PGPOOLING" -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
 
   check_authentication_error
 

@@ -58,4 +58,17 @@ spec:
                     Name of an existing StorageClass in the K8s cluster, that will be used to create the PersistentVolumes
                     for the instances of this cluster.
               required: ["size"]
+            nonProductionOptions:
+              type: object
+              properties:
+                disableClusterPodAntiAffinity:
+                  type: boolean
+                  description: |
+                    It is a best practice, on non-containerized environments, when running production workloads, to
+                    run each database server on a different server (virtual or physical), i.e., not to co-locate more
+                    than one database server per host.
+
+                    The same best practice applies to databases on containers. By default, StackGres will not allow to
+                    run more than one StackGres pod on a given K8s node. Set this property to true to allow more than
+                    one StackGres pod per node.
           required: ["persistentVolume"]

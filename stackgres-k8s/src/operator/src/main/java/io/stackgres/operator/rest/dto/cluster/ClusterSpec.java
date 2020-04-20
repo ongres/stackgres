@@ -41,6 +41,9 @@ public class ClusterSpec {
   @JsonProperty("initialData")
   private ClusterInitData initData;
 
+  @JsonProperty("distributedLogs")
+  private ClusterDistributedLogs distributedLogs;
+
   @JsonProperty("pods")
   @Valid
   @NotNull(message = "pod description must be specified")
@@ -116,6 +119,14 @@ public class ClusterSpec {
     this.initData = initData;
   }
 
+  public ClusterDistributedLogs getDistributedLogs() {
+    return distributedLogs;
+  }
+
+  public void setDistributedLogs(ClusterDistributedLogs distributedLogs) {
+    this.distributedLogs = distributedLogs;
+  }
+
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
@@ -125,6 +136,7 @@ public class ClusterSpec {
         .add("configuration", getConfigurations())
         .add("resourceProfile", sgInstanceProfile)
         .add("initData", getInitData())
+        .add("distributedLogs", getDistributedLogs())
         .add("pod", getPods())
         .add("nonProductionOptions", nonProduction)
         .toString();

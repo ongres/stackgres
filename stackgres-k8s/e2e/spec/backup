@@ -14,7 +14,7 @@ minio:
           - matchExpressions:
             - key: "kubernetes.io/hostname"
               operator: "In"
-              values: [ "${KIND_NAME}-worker" ]
+              values: [ "${KIND_NAME}-worker", "${KIND_NAME}-control-plane" ]
 EOF
   else
     > "$LOG_PATH/minio-affinity.yaml"

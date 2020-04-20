@@ -7,6 +7,7 @@ package io.stackgres.common.crd.sgdistributedlogs;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -32,6 +33,23 @@ public class StackGresDistributedLogsStatus implements KubernetesResource {
 
   public void setConditions(List<StackGresDistributedLogsCondition> conditions) {
     this.conditions = conditions;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(conditions);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (!(obj instanceof StackGresDistributedLogsStatus)) {
+      return false;
+    }
+    StackGresDistributedLogsStatus other = (StackGresDistributedLogsStatus) obj;
+    return Objects.equals(conditions, other.conditions);
   }
 
   @Override

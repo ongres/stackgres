@@ -15,7 +15,6 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalUnit;
 import java.util.Base64;
-import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -32,9 +31,9 @@ import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 
+import com.github.dockerjava.api.exception.DockerException;
 import com.google.common.collect.ImmutableList;
 import com.ongres.junit.docker.Container;
-
 import org.apache.commons.io.IOUtils;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.Unchecked;
@@ -197,8 +196,59 @@ public class ItHelper {
   /**
    * It helper method.
    */
+  public static String createExposedHost(Container k8s, String host, int port)
+      throws Exception {
+    Optional<Integer> firstPointIndex = Optional.of(host.indexOf('.'))
+        .filter(index -> index >= 0);
+    Optional<Integer> secondPointIndex = firstPointIndex
+        .map(index -> host.indexOf('.', index + 1))
+        .filter(index -> index >= 0);
+    if (!firstPointIndex.isPresent()) {
+      return host;
+    }
+    String namespace = host.substring(firstPointIndex.get() + 1,
+        secondPointIndex.orElse(host.length()));
+    String serviceName = host.substring(0, firstPointIndex.get());
+    String exposedServiceName = serviceName + "-exposed";
+    LOGGER.info("Create service " + exposedServiceName
+        + " to expose service " + serviceName + " in namespace " + namespace);
+    k8s.execute("sh", "-l", "-xce",
+        "kubectl get service -n " + namespace + " " + exposedServiceName
+            + " | grep -q '^" + exposedServiceName + "\\s'"
+            + " || kubectl expose service -n " + namespace + " " + serviceName
+            + " --name " + exposedServiceName + " --type NodePort --labels app=StackGresMock;"
+            + "NAME=\"$(kubectl get service -n " + namespace + " " + serviceName
+            + " -o jsonpath='{ .spec.ports[?(@.port==" + port + ")].name }')\";"
+            + "PORT=\"$(kubectl get service -n " + namespace + " " + serviceName
+            + " -o jsonpath='{ .spec.ports[?(@.port==" + port + ")].port }')\";"
+            + "PROTOCOL=\"$(kubectl get service -n " + namespace + " " + serviceName
+            + " -o jsonpath='{ .spec.ports[?(@.port==" + port + ")].protocol }')\";"
+            + "TARGET_PORT=\"$(kubectl get service -n " + namespace + " " + serviceName
+            + " -o jsonpath='{ .spec.ports[?(@.port==" + port + ")].targetPort }')\";"
+            + "kubectl patch service -n " + namespace + " " + exposedServiceName
+            + " --type json --patch '[{\"op\":\"replace\",\"path\":\"/spec/ports\",\"value\":[{"
+            + "\"name\":\"'\"$NAME\"'\",\"port\":'\"$PORT\"',\"protocol\":\"'\"$PROTOCOL\"'\","
+            + "\"targetPort\":'\"$([ \"$TARGET_PORT\" -eq \"$TARGET_PORT\" ] 2> /dev/null"
+            + " && echo \"$TARGET_PORT\" || echo \"\\\"$TARGET_PORT\\\"\")\"'}]}]';"
+            + "END=\"$(($(date +%s)+10))\";"
+            + "until kubectl get service -n " + namespace + " " + exposedServiceName
+            + " -o jsonpath='{ .spec.ports[?(@.port==" + port + ")].nodePort }';"
+            + " do [ \"$(date +%s)\" -lt \"$END\" ]; sleep 1; done;"
+            )
+        .filter(EXCLUDE_TTY_WARNING)
+        .forEach(line -> LOGGER.info(line));
+    return getKubernetesMasterIp(k8s) + ":" + k8s.execute("sh", "-l", "-c",
+        "kubectl get service -n " + namespace + " " + exposedServiceName
+            + " -o jsonpath='{ .spec.ports[?(@.port==" + port + ")].nodePort }'")
+        .filter(EXCLUDE_TTY_WARNING)
+        .collect(Collectors.joining());
+  }
+
+  /**
+   * It helper method.
+   */
   public static void installStackGresOperatorHelmChart(Container k8s, String namespace,
-      int port, Executor executor) throws Exception {
+      int port) throws Exception {
     if (OPERATOR_IN_KUBERNETES) {
       LOGGER.info("Installing stackgres-operator helm chart");
       k8s.execute("sh", "-l", "-c", "kubectl create namespace " + namespace + " || true")
@@ -218,20 +268,7 @@ public class ItHelper {
     }
 
     LOGGER.info("Installing stackgres-operator helm chart without operator container");
-    Process process = new ProcessBuilder("sh", "-ec",
-        "cat /proc/net/fib_trie | tr -d ' |-' | grep -F '172.17.0' | grep -v -F '172.17.0.0'")
-        .start();
-    CompletableFuture<String> dockerInterfaceIp = CompletableFuture.supplyAsync(
-        Unchecked.supplier(() -> IOUtils.readLines(
-            process.getInputStream(), StandardCharsets.UTF_8)
-            .stream().findAny().get()), executor);
-    CompletableFuture<List<String>> dockerInterfaceIpError = CompletableFuture.supplyAsync(
-        Unchecked.supplier(() -> IOUtils.readLines(
-            process.getErrorStream(), StandardCharsets.UTF_8)), executor);
-    if (process.waitFor() != 0) {
-      throw new RuntimeException("Can not retrieve docker interface IP:\n"
-          + dockerInterfaceIpError.join().stream().collect(Collectors.joining("\n")));
-    }
+    String dockerInterfaceIp = getDockerInterfaceIp(k8s);
     k8s.execute("sh", "-l", "-c", "kubectl create namespace " + namespace + " || true")
       .filter(EXCLUDE_TTY_WARNING)
       .forEach(LOGGER::info);
@@ -240,7 +277,7 @@ public class ItHelper {
         + " --namespace stackgres"
         + " /resources/stackgres-operator"
         + " --set deploy.create=false"
-        + " --set-string developer.externalOperatorIp=" + dockerInterfaceIp.join()
+        + " --set-string developer.externalOperatorIp=" + dockerInterfaceIp
         + " --set developer.externalOperatorPort=" + port
         + " --set-string cert.crt=" + Base64.getEncoder().encodeToString(
             IOUtils.toByteArray(ItHelper.class.getResourceAsStream("/certs/server.crt")))
@@ -250,6 +287,22 @@ public class ItHelper {
         + " --set-string authentication.password=test")
       .filter(EXCLUDE_TTY_WARNING)
       .forEach(line -> LOGGER.info(line));
+  }
+
+  public static String getDockerInterfaceIp(Container k8s)
+      throws DockerException, InterruptedException {
+    return k8s.execute("sh", "-l", "-c",
+        "docker network inspect bridge -f '{{ (index .IPAM.Config 0).Gateway }}'")
+    .filter(EXCLUDE_TTY_WARNING)
+    .collect(Collectors.joining());
+  }
+
+  public static String getKubernetesMasterIp(Container k8s)
+      throws DockerException, InterruptedException {
+    return k8s.execute("sh", "-l", "-c",
+        "kubectl cluster-info|grep 'Kubernetes master' | cut -d / -f  3 | cut -d : -f 1")
+    .filter(EXCLUDE_TTY_WARNING)
+    .collect(Collectors.joining());
   }
 
   public static Optional<Integer> getPreviousOperatorPort(Container k8s, String namespace) {

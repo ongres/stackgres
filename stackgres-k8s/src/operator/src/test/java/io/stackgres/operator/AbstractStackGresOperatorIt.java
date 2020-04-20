@@ -12,6 +12,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
@@ -26,6 +27,7 @@ public abstract class AbstractStackGresOperatorIt extends AbstractIt {
   private static final int OPERATOR_PORT = getFreePort();
   private static final int OPERATOR_SSL_PORT = getFreePort();
   private static AtomicBoolean IS_ABSTRACT_STACKGRES_OPERATOR_IT = new AtomicBoolean(false);
+  private static AtomicReference<Container> IT_CONTAINER = new AtomicReference<>();
 
   protected final String namespace = getNamespace();
   protected final int k8sSize = getKindSize();
@@ -35,6 +37,10 @@ public abstract class AbstractStackGresOperatorIt extends AbstractIt {
 
   public static boolean isRunning() {
     return IS_ABSTRACT_STACKGRES_OPERATOR_IT.get();
+  }
+
+  public static Container getContainer() {
+    return IT_CONTAINER.get();
   }
 
   protected String getNamespace() {
@@ -58,10 +64,11 @@ public abstract class AbstractStackGresOperatorIt extends AbstractIt {
       reuseOperator = false;
     }
     IS_ABSTRACT_STACKGRES_OPERATOR_IT.set(true);
+    IT_CONTAINER.set(k8s);
     ItHelper.killUnwantedProcesses(k8s);
     ItHelper.copyResources(k8s);
     ItHelper.resetKind(k8s, k8sSize, reuseOperator);
-    ItHelper.installStackGresOperatorHelmChart(k8s, namespace, operatorPort, executor);
+    ItHelper.installStackGresOperatorHelmChart(k8s, namespace, operatorPort);
     OperatorRunner operatorRunner = ItHelper.createOperator(
         k8s, operatorPort, OPERATOR_SSL_PORT, executor);
     CompletableFuture<Void> operator = runAsync(() -> operatorRunner.run());

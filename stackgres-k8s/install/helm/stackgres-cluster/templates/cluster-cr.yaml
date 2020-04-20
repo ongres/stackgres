@@ -62,7 +62,9 @@ spec:
   {{- end }}
   {{- if .Values.nonProductionOptions }}
   nonProductionOptions:
-  {{- if .Values.nonProductionOptions.disableClusterPodAntiAffinity }}
+  {{- if not .Values.nonProductionOptions.disableClusterPodAntiAffinity }}
+    disableClusterPodAntiAffinity: false
+  {{- else }}
     disableClusterPodAntiAffinity: {{ .Values.nonProductionOptions.disableClusterPodAntiAffinity }}
   {{- end }}
   {{- end }}

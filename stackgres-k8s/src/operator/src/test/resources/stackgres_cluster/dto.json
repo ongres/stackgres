@@ -27,7 +27,10 @@
       "disableMetricsExporter": false,
       "disablePostgresUtil": false
     },
-    "prometheusAutobind": true
+    "prometheusAutobind": true,
+    "distributedLogs": {
+      "sgDistributedLogs": "distributedlogs"
+    }
   },
   "status": null
 }

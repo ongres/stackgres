@@ -326,7 +326,7 @@ test_authentication_api_error() {
 
   check_authentication_error
 
-  HTTP_STATUS="$(run_curl -a e2e:tets -r "stackgres/sgpgconfig/$CLUSTER_NAMESPACE/$BACKUPCONF"  -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
+  HTTP_STATUS="$(run_curl -a e2e:tets -r "stackgres/sgpgconfig/$CLUSTER_NAMESPACE/$PGCONFIG" -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
 
   check_authentication_error
 

@@ -203,7 +203,7 @@ update_backupconfig_parameter_with_api() {
   do
     FIELDS="$FIELDS[\"$FIELD\"]"
   done
-  UPDATED_BACKUPCONFIG=$(cat "$LOG_PATH/default-backupconfig.json" | run_jq ".spec$FIELDS = $2" )
+  UPDATED_BACKUPCONFIG="$(cat "$LOG_PATH/default-backupconfig.json" | run_jq ".spec$FIELDS = $2")"
   echo "$UPDATED_BACKUPCONFIG" > "$LOG_PATH/updated-backupconfig.json"
 
   HTTP_STATUS="$(run_curl -r "stackgres/sgbackupconfig" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/updated-backupconfig.json" -e '-X PUT -w %{http_code} -o /dev/null')"
@@ -414,7 +414,7 @@ test_authentication_api_error() {
 
   check_authentication_error
 
-  HTTP_STATUS="$(run_curl -a e2e:tets -r "stackgres/sgbackupconfig/$CLUSTER_NAMESPACE/$BACKUPCONF"  -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
+  HTTP_STATUS="$(run_curl -a e2e:tets -r "stackgres/sgbackupconfig/$CLUSTER_NAMESPACE/$BACKUPCONF" -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
 
   check_authentication_error
 

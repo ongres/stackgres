@@ -22,4 +22,12 @@ spec:
     storageClass: {{ .Values.cluster.distributedLogs.storageClass }}
     {{- end }}
     {{- end }}
+  {{- if .Values.nonProductionOptions }}
+  nonProductionOptions:
+  {{- if not .Values.nonProductionOptions.disableClusterPodAntiAffinity }}
+    disableClusterPodAntiAffinity: false
+  {{- else }}
+    disableClusterPodAntiAffinity: {{ .Values.nonProductionOptions.disableClusterPodAntiAffinity }}
+  {{- end }}
+  {{- end }}
 {{ end }}

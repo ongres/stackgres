@@ -5,6 +5,8 @@
 
 package io.stackgres.common.crd.sgdistributedlogs;
 
+import java.util.Objects;
+
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
@@ -27,6 +29,9 @@ public class StackGresDistributedLogsSpec implements KubernetesResource {
   @NotNull(message = "Persistent volume must be specified")
   private StackGresDistributedLogsPersistentVolume persistentVolume;
 
+  @JsonProperty("nonProductionOptions")
+  private NonProduction nonProduction;
+
   public StackGresDistributedLogsPersistentVolume getPersistentVolume() {
     return persistentVolume;
   }
@@ -36,11 +41,38 @@ public class StackGresDistributedLogsSpec implements KubernetesResource {
     this.persistentVolume = persistentVolume;
   }
 
+  public NonProduction getNonProduction() {
+    return nonProduction;
+  }
+
+  public void setNonProduction(NonProduction nonProduction) {
+    this.nonProduction = nonProduction;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(nonProduction, persistentVolume);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (!(obj instanceof StackGresDistributedLogsSpec)) {
+      return false;
+    }
+    StackGresDistributedLogsSpec other = (StackGresDistributedLogsSpec) obj;
+    return Objects.equals(nonProduction, other.nonProduction)
+        && Objects.equals(persistentVolume, other.persistentVolume);
+  }
+
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .omitNullValues()
         .add("persistentVolume", persistentVolume)
+        .add("nonProduction", nonProduction)
         .toString();
   }
 }

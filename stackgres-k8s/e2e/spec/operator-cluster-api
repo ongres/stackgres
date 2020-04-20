@@ -12,7 +12,7 @@ minio:
           - matchExpressions:
             - key: "kubernetes.io/hostname"
               operator: "In"
-              values: [ "${KIND_NAME}-worker" ]
+              values: [ "${KIND_NAME}-worker", "${KIND_NAME}-control-plane" ]
 EOF
   else
     > "$LOG_PATH/minio-affinity.yaml"
@@ -341,11 +341,15 @@ test_authentication_api_error() {
 
   check_authentication_error
 
-  HTTP_STATUS="$(run_curl -a e2e:tets -r "stackgres/sgcluster/$CLUSTER_NAMESPACE/$BACKUPCONF"  -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
+  HTTP_STATUS="$(run_curl -a e2e:tets -r "stackgres/sgcluster/$CLUSTER_NAMESPACE/$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
 
   check_authentication_error
 
-  HTTP_STATUS="$(run_curl -a e2e:tets -r "stackgres/sgcluster/status/$CLUSTER_NAMESPACE/$BACKUPCONF"  -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
+  HTTP_STATUS="$(run_curl -a e2e:tets -r "stackgres/sgcluster/status/$CLUSTER_NAMESPACE/$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
+
+  check_authentication_error
+
+  HTTP_STATUS="$(run_curl -a e2e:tets -r "stackgres/sgcluster/logs/$CLUSTER_NAMESPACE/$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
 
   check_authentication_error
 

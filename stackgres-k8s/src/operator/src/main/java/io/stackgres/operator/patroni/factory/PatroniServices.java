@@ -33,7 +33,11 @@ public class PatroniServices implements StackGresClusterResourceStreamFactory {
 
   public static String readWriteName(StackGresClusterContext clusterContext) {
     String name = clusterContext.getCluster().getMetadata().getName();
-    return ResourceUtil.resourceName(name + READ_WRITE_SERVICE);
+    return readWriteName(name);
+  }
+
+  public static String readWriteName(String clusterName) {
+    return ResourceUtil.resourceName(clusterName + READ_WRITE_SERVICE);
   }
 
   public static String readOnlyName(StackGresClusterContext clusterContext) {

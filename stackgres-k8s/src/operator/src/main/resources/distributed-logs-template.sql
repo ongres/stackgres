@@ -35,7 +35,7 @@ CREATE INDEX log_postgres_main_idx ON log_postgres(log_time);
 CREATE FUNCTION log_postgres_tsvector(log_postgres) RETURNS tsvector
 AS
 $$
-  SELECT to_tsvector('english',
+  SELECT to_tsvector('simple',
   coalesce($1.message, '')       || ' ' ||
   coalesce($1.query, '')         || ' ' ||
   coalesce($1.detail, '')        || ' ' ||
@@ -62,7 +62,7 @@ CREATE INDEX log_patroni_main_idx ON log_patroni(log_time);
 CREATE FUNCTION log_patroni_tsvector(log_patroni) RETURNS tsvector
 AS
 $$
-  SELECT to_tsvector('english', coalesce($1.message, ''));
+  SELECT to_tsvector('simple', coalesce($1.message, ''));
 $$
 LANGUAGE sql
 IMMUTABLE;

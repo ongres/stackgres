@@ -5,6 +5,8 @@
 
 package io.stackgres.common.crd.sgdistributedlogs;
 
+import java.util.Objects;
+
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
@@ -44,6 +46,23 @@ public class StackGresDistributedLogs extends CustomResource {
 
   public void setStatus(StackGresDistributedLogsStatus status) {
     this.status = status;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(spec, status);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (!(obj instanceof StackGresDistributedLogs)) {
+      return false;
+    }
+    StackGresDistributedLogs other = (StackGresDistributedLogs) obj;
+    return Objects.equals(spec, other.spec) && Objects.equals(status, other.status);
   }
 
   @Override

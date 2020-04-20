@@ -210,7 +210,7 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
         .withName("post-init")
         .withConfigMap(new ConfigMapVolumeSourceBuilder()
             .withName(postInitName(context.getClusterContext()))
-            .withDefaultMode(0555)
+            .withDefaultMode(0555) // NOPMD
             .build())
         .build())
     .collect(ImmutableList.toImmutableList());

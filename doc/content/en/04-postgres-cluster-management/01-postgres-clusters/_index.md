@@ -84,7 +84,7 @@ spec:
     disablePostgresUtil: false
 ```
 
-## Persistent Volume
+### Persistent Volume
 
 Holds the configurations of the persistent volume that the cluster pods are going to use
 

@@ -5,7 +5,9 @@
 
 package io.stackgres.operator.rest;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -16,6 +18,7 @@ import java.util.Optional;
 import io.fabric8.kubernetes.api.model.DoneablePod;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodList;
+import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.CustomResourceList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.Watch;
@@ -24,23 +27,25 @@ import io.fabric8.kubernetes.client.dsl.FilterWatchListMultiDeletable;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
 import io.fabric8.kubernetes.client.dsl.PodResource;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterList;
 import io.stackgres.operator.app.KubernetesClientFactory;
 import io.stackgres.operator.common.ConfigContext;
 import io.stackgres.operator.common.ConfigProperty;
-import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterList;
 import io.stackgres.operator.resource.ClusterDtoFinder;
 import io.stackgres.operator.resource.ClusterDtoScanner;
 import io.stackgres.operator.resource.CustomResourceFinder;
 import io.stackgres.operator.resource.CustomResourceScanner;
 import io.stackgres.operator.resource.CustomResourceScheduler;
+import io.stackgres.operator.resource.ResourceFinder;
+import io.stackgres.operator.rest.distributedlogs.DistributedLogsFetcher;
+import io.stackgres.operator.rest.distributedlogs.PostgresConnectionManager;
 import io.stackgres.operator.rest.dto.cluster.ClusterDto;
 import io.stackgres.operator.rest.dto.cluster.ClusterResourceConsumtionDto;
 import io.stackgres.operator.rest.transformer.AbstractResourceTransformer;
 import io.stackgres.operator.rest.transformer.ClusterPodTransformer;
 import io.stackgres.operator.rest.transformer.ClusterTransformer;
 import io.stackgres.operator.utils.JsonUtil;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -55,6 +60,12 @@ class ClusterResourceTest extends AbstractCustomResourceTest<ClusterDto, StackGr
 
   @Mock
   private CustomResourceFinder<ClusterResourceConsumtionDto> statusFinder;
+
+  @Mock
+  private ResourceFinder<Secret> secretFinder;
+
+  @Mock
+  private PostgresConnectionManager postgresConnectionManager;
 
   @Mock
   private ConfigContext configContext;
@@ -145,7 +156,8 @@ class ClusterResourceTest extends AbstractCustomResourceTest<ClusterDto, StackGr
         scheduler, transformer,
         dtoScanner,
         dtoFinder,
-        statusFinder);
+        statusFinder,
+        new DistributedLogsFetcher(secretFinder, postgresConnectionManager));
   }
 
   @Override
@@ -176,6 +188,8 @@ class ClusterResourceTest extends AbstractCustomResourceTest<ClusterDto, StackGr
     assertEquals("size-xs", resource.getSpec().getSgInstanceProfile());
     assertNotNull(resource.getSpec().getInitData().getRestore());
     assertEquals("d7e660a9-377c-11ea-b04b-0242ac110004", resource.getSpec().getInitData().getRestore().getBackupUid());
+    assertNotNull(resource.getSpec().getDistributedLogs());
+    assertEquals("distributedlogs", resource.getSpec().getDistributedLogs().getDistributedLogs());
     assertFalse(resource.getSpec().getPods().getDisableConnectionPooling());
     assertFalse(resource.getSpec().getPods().getDisableMetricsExporter());
     assertFalse(resource.getSpec().getPods().getDisableMetricsExporter());
@@ -216,6 +230,8 @@ class ClusterResourceTest extends AbstractCustomResourceTest<ClusterDto, StackGr
     assertEquals("size-xs", resource.getSpec().getResourceProfile());
     assertNotNull(resource.getSpec().getInitData().getRestore());
     assertEquals("d7e660a9-377c-11ea-b04b-0242ac110004", resource.getSpec().getInitData().getRestore().getBackupUid());
+    assertNotNull(resource.getSpec().getDistributedLogs());
+    assertEquals("distributedlogs", resource.getSpec().getDistributedLogs().getDistributedLogs());
     assertFalse(resource.getSpec().getPod().getDisableConnectionPooling());
     assertFalse(resource.getSpec().getPod().getDisableMetricsExporter());
     assertFalse(resource.getSpec().getPod().getDisableMetricsExporter());

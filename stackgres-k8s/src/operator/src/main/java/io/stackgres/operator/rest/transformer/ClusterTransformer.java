@@ -12,6 +12,7 @@ import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.Pod;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterDistributedLogs;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
@@ -20,6 +21,7 @@ import io.stackgres.common.crd.sgcluster.StackgresClusterConfiguration;
 import io.stackgres.operator.common.ConfigContext;
 import io.stackgres.operator.common.ConfigProperty;
 import io.stackgres.operator.rest.dto.cluster.ClusterConfiguration;
+import io.stackgres.operator.rest.dto.cluster.ClusterDistributedLogs;
 import io.stackgres.operator.rest.dto.cluster.ClusterDto;
 import io.stackgres.operator.rest.dto.cluster.ClusterInitData;
 import io.stackgres.operator.rest.dto.cluster.ClusterPod;
@@ -114,6 +116,9 @@ public class ClusterTransformer
     transformation.getPod()
         .setDisablePostgresUtil(source.getPods().getDisablePostgresUtil());
 
+    transformation.setDistributedLogs(
+        getCustomResourceDistributedLogs(source.getDistributedLogs()));
+
     return transformation;
   }
 
@@ -137,6 +142,17 @@ public class ClusterTransformer
         new io.stackgres.common.crd.sgcluster.ClusterRestore();
     transformation.setDownloadDiskConcurrency(source.getDownloadDiskConcurrency());
     transformation.setBackupUid(source.getBackupUid());
+    return transformation;
+  }
+
+  private StackGresClusterDistributedLogs getCustomResourceDistributedLogs(
+      ClusterDistributedLogs source) {
+    if (source == null) {
+      return null;
+    }
+    StackGresClusterDistributedLogs transformation =
+        new StackGresClusterDistributedLogs();
+    transformation.setDistributedLogs(source.getDistributedLogs());
     return transformation;
   }
 
@@ -181,6 +197,9 @@ public class ClusterTransformer
     transformation.getPods()
         .setDisablePostgresUtil(source.getPod().getDisablePostgresUtil());
 
+    transformation.setDistributedLogs(
+        getResourceDistributedLogs(source.getDistributedLogs()));
+
     return transformation;
   }
 
@@ -202,6 +221,16 @@ public class ClusterTransformer
     ClusterRestore transformation = new ClusterRestore();
     transformation.setDownloadDiskConcurrency(source.getDownloadDiskConcurrency());
     transformation.setBackupUid(source.getBackupUid());
+    return transformation;
+  }
+
+  private ClusterDistributedLogs getResourceDistributedLogs(
+      StackGresClusterDistributedLogs source) {
+    if (source == null) {
+      return null;
+    }
+    ClusterDistributedLogs transformation = new ClusterDistributedLogs();
+    transformation.setDistributedLogs(source.getDistributedLogs());
     return transformation;
   }
 
