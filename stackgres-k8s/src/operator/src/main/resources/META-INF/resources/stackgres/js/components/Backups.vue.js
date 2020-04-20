@@ -82,12 +82,16 @@ var Backups = Vue.component("sg-backup", {
 								<li>
 									<span>Status</span>
 									<label for="isCompleted">
-										<input v-model="status" data-filter="status" type="checkbox" class="xCheckbox" id="isCompleted" name="isCompleted" value="Completed"/>
+										<input v-model="status" data-filter="status" type="checkbox" id="isCompleted" name="isCompleted" value="Completed"/>
 										<span>Completed</span>
 									</label>
 									<label for="notCompleted">
-										<input v-model="status" data-filter="status" type="checkbox" class="xCheckbox" id="notCompleted" name="notCompleted" value="Running"/>
+										<input v-model="status" data-filter="status" type="checkbox" id="notCompleted" name="notCompleted" value="Running"/>
 										<span>Running</span>
+									</label>
+									<label for="backupFailed">
+										<input v-model="status" data-filter="status" type="checkbox" id="backupFailed" name="backupFailed" value="Failed"/>
+										<span>Failed</span>
 									</label>
 								</li>
 
@@ -437,7 +441,7 @@ var Backups = Vue.component("sg-backup", {
 			//if( vc.keyword.length || vc.isPermanent || vc.datePicker.length || vc.status.length || vc.postgresVersion.length || vc.clusterName.length ) {
 				
 				store.state.backups.forEach( function(bk, index) {
-
+					
 					let show = true;
 
 					// Filter by Keyword
@@ -460,7 +464,7 @@ var Backups = Vue.component("sg-backup", {
 					}
 	
 					// Filter by Date
-					if(vc.datePicker.length && show){
+					if( vc.datePicker.length && show && (bk.data.status.process.status !== 'Failed') ){
 						let timestamp = moment(bk.data.status.process.timing.stored, 'YYYY-MM-DD HH:mm:ss');
 						let start = moment(vc.dateStart, 'YYYY-MM-DD HH:mm:ss');
 						let end = moment(vc.dateEnd, 'YYYY-MM-DD HH:mm:ss');
@@ -471,15 +475,18 @@ var Backups = Vue.component("sg-backup", {
 						// console.log(timestamp.isBetween( start, end, null, '[]' ));
 	
 						show = timestamp.isBetween( start, end, null, '[]' );
-					}
+					} else if (vc.datePicker.length && (bk.data.status.process.status === 'Failed'))
+						show = false;
 	
 					//Filter by Status
 					if(vc.status.length && show)
-						show = (bk.data.status.process.status === vc.status[0]);
+						show = (vc.status.includes(bk.data.status.process.status));
 	
 					//Filter by postgresVersion
-					if(vc.postgresVersion.length && show)
+					if(vc.postgresVersion.length && show && (bk.data.status.process.status === 'Completed') )
 						show = (bk.data.status.backupInformation.postgresVersion.substr(0,2)=== vc.postgresVersion[0]);
+					else if(vc.postgresVersion.length && (bk.data.status.process.status !== 'Completed') )
+						show = false;
 					
 					//Filter by clusterName
 					if(vc.clusterName.length && show)
@@ -537,7 +544,7 @@ var Backups = Vue.component("sg-backup", {
 				vc.datePicker = vc.dateStart+' / '+vc.dateEnd;
 				vc.filterBackups();
 			});
-
+			
 			$(document).on('click', '.toggle.date.open', function(){
 				//$('#datePicker').trigger('hide.daterangepicker');
 				if(vc.datePicker.length)
@@ -555,6 +562,7 @@ var Backups = Vue.component("sg-backup", {
 			$('#datePicker').on('cancel.daterangepicker', function(ev, picker) {
 				//do something, like clearing an input
 				vc.datePicker = '';
+				$('#datePicker').parent().removeClass('open');
 			});
 
 			$('#datePicker').on('apply.daterangepicker', function(ev, picker) {
@@ -562,18 +570,22 @@ var Backups = Vue.component("sg-backup", {
 				$('#datePicker').parent().removeClass('open');
 			});
 
-			$(document).on('click', '.xCheckbox', function () {
+			$(document).on('click', 'input[type="checkbox"]', function () {
 
 				if($(this).is(':checked')) {
-					$(this).parents('li').find(':checked:not(#'+$(this).prop('id')+')').removeClass('active').prop('checked', false);
 					$(this).addClass('active');
 
 					//console.log("L: "+vc[$(this).data('filter')].length);
-					if(vc[$(this).data('filter')].length)
-						vc[$(this).data('filter')] = [$(this).val()];
-					  
+					if($(this).hasClass("xCheckbox")) {
+						$(this).parents('li').find(':checked:not(#'+$(this).prop('id')+')').removeClass('active').prop('checked', false);
+					
+						if(vc[$(this).data('filter')].length)
+							vc[$(this).data('filter')] = [$(this).val()];
+					}
 				} else {
-						$(this).removeClass('active');
+					$(this).removeClass('active');
+					
+					if($(this).hasClass("xCheckbox"))
 						vc[$(this).data('filter')] = [];
 				}
 				

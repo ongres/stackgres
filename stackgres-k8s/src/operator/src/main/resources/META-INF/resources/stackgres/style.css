@@ -2734,7 +2734,11 @@ table.backupConfig tr.open {
     user-select: none;
 }
 
-.toolbar .toggle:hover{
+.toolbar .toggle {
+    margin-left: 15px;
+}
+
+.toolbar .toggle:hover, .toolbar .toggle.active{
     color: var(--blue);
     background-color: rgba(0, 173, 181, .25);
     border: 1px solid var(--blue);
@@ -2830,13 +2834,14 @@ table.backupConfig tr.open {
     -webkit-appearance: none;
     appearance: none;
     border-radius: 10px;
+    cursor: pointer;
 }
 
-.options input[type="checkbox"].xCheckbox.active {
+.options input[type="checkbox"].active {
     background: var(--blue);
 }
 
-.options input[type="checkbox"].xCheckbox.active + span {
+.options input[type="checkbox"].active + span {
     color: #fff;
 }
 
@@ -3007,6 +3012,7 @@ td.operation.Reset > span {
     width: 100%;
     height: 100%;
     opacity: 0;
+    cursor: pointer;
 }
 
 .toggle.open > #datePicker {
@@ -3017,6 +3023,138 @@ td.operation.Reset > span {
     top: 170px !important;
     left: auto !important;
     right: 40px !important;
+    font-family: "Nunito", sans-serif !important;
+}
+
+.daterangepicker td.off, .daterangepicker td.off.in-range, .daterangepicker td.off.start-date, .daterangepicker td.off.end-date {
+    color: #ccc !important;
+}
+
+.daterangepicker .calendar-table th, .daterangepicker .calendar-table tbody td {
+    padding: 5px;
+    width: 35px;
+}
+
+.daterangepicker td.active, .daterangepicker td.active:hover {
+    background-color: #00adb5 !important;
+}
+
+.daterangepicker td.in-range {
+    background: #fef0f1;
+}
+
+.daterangepicker .calendar-table tr {
+    background: transparent;
+}
+
+.daterangepicker.show-calendar .drp-calendar {
+    margin-bottom: 10px;
+}
+
+.daterangepicker td.available:not(.in-range):hover, .daterangepicker th.available:hover, .daterangepicker td.start-date.end-date {
+    border-radius: 100% !important;
+}
+
+.daterangepicker select.hourselect, .daterangepicker select.minuteselect, .daterangepicker select.secondselect, .daterangepicker select.ampmselect {
+    width: 30px !important;
+    height: 30px;
+    -webkit-appearance: none;
+    text-align: center;
+    appearance: none;
+    border-radius: 100%;
+    padding-left: 7px !important;
+    font-size: 11px !important;
+    line-height: 22px;
+    background: #fafafa;
+    color: var(--gray4);
+    cursor: pointer;
+}
+
+.daterangepicker .drp-buttons .btn {
+    border-radius: 25px;
+    padding: 5px 15px 6px;
+    font-size: 11px;
+    font-weight: 300;
+}
+.daterangepicker .drp-buttons {
+    padding-top: 0 !important;
+}
+
+.daterangepicker:before, .daterangepicker:after {
+    display: none !important;
+}
+
+td.today.available {
+    font-weight: bold;
+    color: #00adb5;
+}
+
+.daterangepicker .calendar-table .next span, .daterangepicker .calendar-table .prev span {
+    border-color: #999;
+}
+
+.daterangepicker .calendar-table, .daterangepicker td.off, .daterangepicker td.off.in-range, .daterangepicker td.off.start-date, .daterangepicker td.off.end-date {
+    background: transparent !important;
+    border-color: transparent !important;
+}
+
+.daterangepicker td.off, .daterangepicker td.off.in-range, .daterangepicker td.off.start-date, .daterangepicker td.off.end-date {
+    color: #565656 !important;
+}
+
+
+.darkmode .daterangepicker {
+    background: #1e1e1e;
+    border: 1px solid #333333 !important;
+}
+
+.darkmode .daterangepicker .calendar-table th, .darkmode .daterangepicker .calendar-table td {
+    border-radius: 0;
+}
+
+.darkmode .daterangepicker td.in-range {
+    background-color: #333;
+    color: #fff;
+}
+
+.darkmode .daterangepicker td.available:not(.off):not(.in-range):not(.active) {
+    background: #252525 !important;
+    color: #afafaf;
+}
+
+.darkmode .daterangepicker select.hourselect, .darkmode .daterangepicker select.minuteselect, .darkmode .daterangepicker select.secondselect, .darkmode .daterangepicker select.ampmselect {
+    background: #252525;
+    border: 1px solid #333;
+    color: #ababab;
+}
+
+.darkmode .daterangepicker .calendar-table .next span, .darkmode .daterangepicker .calendar-table .prev span {
+    border-color: #adadad;
+}
+
+.darkmode .daterangepicker td.available:not(.in-range):hover, .darkmode .daterangepicker th.available:hover {
+    border-radius: 0 !important;
+}
+
+.darkmode .daterangepicker td.start-date:not(.end-date) {
+    border-radius: 4px 0 0 4px !important;
+}
+
+.darkmode .daterangepicker td.end-date:not(.start-date) {
+    border-radius: 0 4px 4px 0 !important;
+}
+
+
+.darkmode .daterangepicker .drp-buttons {
+    border-color: #333 !important;
+}
+
+.darkmode .daterangepicker th.available:hover {
+    background: transparent !important;
+}
+
+.darkmode .daterangepicker td.available:hover {
+    background: #252525 !important;
 }
 
 
