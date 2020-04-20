@@ -37,7 +37,7 @@ var CreateCluster = Vue.component("create-cluster", {
                     <label for="spec.postgresVersion">Postgres Version <span class="req">*</span></label>
                     <ul :class="(editMode) ? 'disabled select' : 'select'" id="postgresVersion" data-field="spec.postgresVersion">
                         <li class="selected">
-                            {{ (postgresVersion == 'latest') ? 'latest' : 'PostgreSQL '+postgresVersion }}
+                            {{ (postgresVersion == 'latest') ? 'Latest' : 'PostgreSQL '+postgresVersion }}
                         </li>
                         <li>
                             <a @click="setVersion('latest')" data-val="latest" class="active">Latest</a>
@@ -473,7 +473,7 @@ var CreateCluster = Vue.component("create-cluster", {
 
         setVersion: function( version = 'latest') {
             this.postgresVersion = version;
-            $('#postgresVersion .active').removeClass('active');
+            $('#postgresVersion .active, #postgresVersion').removeClass('active');
             $('#postgresVersion [data-val="'+version+'"]').addClass('active');
         }
 
