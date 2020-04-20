@@ -358,7 +358,7 @@ form#login .warning {
     color: #171717;
 }
 
-.darkmode .form input, .darkmode .form select, .darkmode .form textarea, .darkmode #logo h1, .darkmode .options label, .darkmode .options select {
+.darkmode .form input, .darkmode .form select, .darkmode .form textarea, .darkmode #logo h1, .darkmode .options label, .darkmode .options select, .darkmode ul.select li.selected {
     color: #e3e3e3;
 }
 
@@ -367,14 +367,14 @@ form#login .warning {
 }
 
 .darkmode .options label, .darkmode .options select {
-    background: #444;
+    background-color: #444;
 }
 
-.darkmode #side, .darkmode #nav, .darkmode #current-namespace, .darkmode ul.breadcrumbs, .darkmode tbody, .darkmode .table .head.row, .darkmode .table .row:last-child, .darkmode .boxes .row:last-child, .darkmode .form input, .darkmode .form select, .darkmode .form textarea, .darkmode .set, .darkmode .form .header, .darkmode .content .box, .darkmode .box hr, .darkmode #keyword, .darkmode .toolbar .toggle, .darkmode .options, .darkmode .tooltip, .darkmode .message, .darkmode #nav .tooltip:before, .darkmode fieldset, .darkmode label.switch {
+.darkmode #side, .darkmode #nav, .darkmode #current-namespace, .darkmode ul.breadcrumbs, .darkmode tbody, .darkmode .table .head.row, .darkmode .table .row:last-child, .darkmode .boxes .row:last-child, .darkmode .form input, .darkmode .form select, .darkmode .form textarea, .darkmode .set, .darkmode ,.form .header, .darkmode .content .box, .darkmode .box hr, .darkmode #keyword, .darkmode .toolbar .toggle, .darkmode .options, .darkmode .tooltip, .darkmode .message, .darkmode #nav .tooltip:before, .darkmode fieldset, .darkmode label.switch, .darkmode ul.select {
     border-color: #333333;
 }
 
-.darkmode ul.tabs, .darkmode .content h2 {
+.darkmode ul.tabs, .darkmode .content h2, .darkmode .form .header {
     border-color: #333333;
 }
 
@@ -386,7 +386,7 @@ form#login .warning {
     fill: #7A7B85;
 }
 
-.darkmode .form input, .darkmode .form select, .darkmode .form textarea, .darkmode .set.active, .darkmode .set.active a:hover, .darkmode .set:hover, .darkmode .set:hover a:hover, .darkmode .set:not(.active) > ul li, .darkmode #keyword {
+.darkmode .form input, .darkmode .form select, .darkmode .form textarea, .darkmode .set.active, .darkmode .set.active a:hover, .darkmode .set:hover, .darkmode .set:hover a:hover, .darkmode .set:not(.active) > ul li, .darkmode #keyword, .darkmode ul.select, .darkmode ul.select.active, .darkmode ul.select.active ul {
     /*background-color: rgba(211, 211, 211, .10);*/
     background-color: #1b1b1b;
 }
@@ -399,8 +399,13 @@ form#login .warning {
     background: rgba(51, 51, 51, .75);
 }
 
-.darkmode .form label {
+.darkmode .form label, .darkmode ul.select a {
     color: #A5A5A5;
+}
+
+.darkmode ul.select.active li.selected {
+    background: #181618;
+    color: #cdcdcd;
 }
 
 
@@ -1954,15 +1959,63 @@ ul.selector li {
 
 ul.select {
     padding: 0;
+    margin-bottom: 25px;
+    overflow: hidden;
+}
+
+ul.select ul {
+    padding-left: 15px;
+}
+
+ul.select.active, ul.select.active ul {
+    background: #fff;
+    height: auto;
 }
 
 ul.select li {
     display: none;
+    cursor: pointer;
+}
+
+ul.select li a, ul.select li.selected {
+    font-size: 12px;
+    padding: 0 10px;
+    height: 38px;
+    line-height: 38px;
+    display: block;
 }
 
 ul.select .selected, ul.select.active li {
     display: block;
+    height: auto;
 }
+
+ul.select.active li.selected {
+    border-bottom: 1px solid var(--blue);
+    background: #fbfbfb;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+}
+
+ul.select a {
+    color: inherit;
+}
+
+ul.select a:hover, ul.select a.active {
+    color: var(--blue);
+}
+
+ul.select a.active {
+    font-weight: bold;
+}
+
+/* ul.select a.active:before {
+    content: "–";
+    color: var(--blue);
+    font-weight: bold;
+    margin-right: 5px;
+    font-size: 20px;
+} */
 
 .form textarea {
     width: 100%;
@@ -1972,7 +2025,7 @@ ul.select .selected, ul.select.active li {
     max-width: 100%;
 }
 
-.form input:focus, .form select:focus, .form textarea:focus {
+.form input:focus, .form select:focus, .form textarea:focus, ul.select.active {
     border-color: var(--blue);
 }
 
@@ -2080,7 +2133,7 @@ label.switch {
     transition: all .3s ease-out;
 }
 
-.form select {
+.form select, ul.select {
     background-size: 9px;
     background-repeat: no-repeat;
     background-position: 98% center;
@@ -2479,11 +2532,11 @@ th.sorted span:after, .sort th:hover span:after {
     transform: rotate(180deg);
 }
 
-table .base.Completed td:not(.actions) {
+table .base td:not(.actions) {
     cursor: pointer;
 }
 
-table .base.Running td {
+table .Running td {
     cursor: not-allowed;
 }
 
@@ -2560,8 +2613,11 @@ table table {
 }
 
 body:not(.darkmode) tr.base.open {
-    border-left: 1px solid #f0f0f1;
-    border-right: 1px solid #f0f0f1;
+    border: 1px solid #f0f0f1;
+}
+
+.darkmode tr.base.open {
+    border: 1px solid #333333;
 }
 
 table table tbody {
@@ -2837,11 +2893,11 @@ table.backupConfig tr.open {
     cursor: pointer;
 }
 
-.options input[type="checkbox"].active {
-    background: var(--blue);
+.filter .options .active {
+    background-color: var(--blue);
 }
 
-.options input[type="checkbox"].active + span {
+.options input[type="checkbox"].active + span, .options select.active:hover {
     color: #fff;
 }
 
