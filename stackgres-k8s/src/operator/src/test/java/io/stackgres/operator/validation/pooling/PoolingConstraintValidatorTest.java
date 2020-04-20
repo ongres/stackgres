@@ -8,9 +8,8 @@ package io.stackgres.operator.validation.pooling;
 import java.util.HashMap;
 
 import io.stackgres.operator.common.PoolingReview;
-import io.stackgres.operator.sidecars.pooling.customresources.StackGresPoolingConfig;
-import io.stackgres.operator.sidecars.pooling.customresources.StackGresPoolingConfigPgBouncer;
-import io.stackgres.operator.sidecars.pooling.customresources.StackGresPoolingConfigSpec;
+import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
+import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncer;
 import io.stackgres.operator.utils.JsonUtil;
 import io.stackgres.operator.validation.ConstraintValidationTest;
 import io.stackgres.operator.validation.ConstraintValidator;

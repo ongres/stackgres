@@ -9,10 +9,10 @@ import java.util.Optional;
 
 import com.google.common.collect.ImmutableList;
 
-import io.stackgres.operator.customresource.sgbackup.StackGresBackup;
-import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
-import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfig;
-import io.stackgres.operator.customresource.sgprofile.StackGresProfile;
+import io.stackgres.common.crd.sgbackup.StackGresBackup;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
+import io.stackgres.common.crd.sgprofile.StackGresProfile;
 
 public class StackGresClusterContext {
 

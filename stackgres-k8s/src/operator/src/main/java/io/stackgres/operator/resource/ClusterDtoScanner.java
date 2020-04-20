@@ -8,18 +8,16 @@ package io.stackgres.operator.resource;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.app.KubernetesClientFactory;
 import io.stackgres.operator.common.StackGresUtil;
-import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.rest.dto.cluster.ClusterDto;
 import io.stackgres.operator.rest.transformer.ClusterTransformer;
-
 import org.jooq.lambda.Seq;
 
 @ApplicationScoped

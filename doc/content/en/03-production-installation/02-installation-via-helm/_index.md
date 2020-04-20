@@ -16,7 +16,7 @@ kubectl create namespace stackgres
 Install the operator with the following command:
 
 ```shell
-helm install --namespace stackgres --name stackgres-operator \
+helm install --namespace stackgres stackgres-operator \
   --values my-operator-values.yml \
   https://stackgres.io/downloads/stackgres-k8s/stackgres/latest/helm-operator.tgz
 ```
@@ -82,7 +82,7 @@ You can specify following parameters values:
 To install the operator use the following command:
 
 ```shell
-helm install --namespace my-namespace --name my-cluster \
+helm install --namespace my-namespace my-cluster \
   --values my-cluster-values.yml \
   https://stackgres.io/downloads/stackgres-k8s/stackgres/latest/helm-cluster.tgz
 ```

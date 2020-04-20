@@ -22,7 +22,9 @@ class PgBouncerValidationResourceTest extends ValidationResourceTest<PoolingRevi
 
     @BeforeEach
     public void setUp() {
-        resource = new PgBouncerValidationResource(pipeline);
+        final PgBouncerValidationResource resource = new PgBouncerValidationResource();
+        resource.setPipeline(pipeline);
+        this.resource = resource;
 
         review = JsonUtil
                 .readFromJson("pooling_allow_request/create.json", PoolingReview.class);

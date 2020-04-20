@@ -1,7 +1,7 @@
 #!/bin/sh
 
 K8S_EKS_NAME="${K8S_EKS_NAME:-stackgres-e2e}"
-K8S_VERSION="${K8S_VERSION:-1.13.11}"
+K8S_VERSION="${K8S_VERSION:-1.15.10}"
 if [ "$K8S_VERSION" = "$DEFAULT_K8S_VERSION" ]
 then
   >&2 echo "Warning: using kubernetes version 1.13.11 since e2e default $DEFAULT_K8S_VERSION is not available for eks"

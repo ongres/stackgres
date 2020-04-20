@@ -24,6 +24,7 @@ e2e_test() {
   run_test "if the sidecars are specifically set to be empty the operator should not add any sidecar" create_empty_cluster_with_no_sidecars
   run_test "creating an empty cluster should trigger the creation of all default configurations" create_empty_cluster
   run_test "creating en empty cluster in the operator should no fail" create_empty_cluster_on_operator_namespace
+  run_test "Creating an empty cluster with previous postgres version should not fail" create_cluster_with_previous_postgres_version
 }
 
 create_empty_pg_config() {
@@ -362,4 +363,37 @@ EOF
   fi
 
   kubectl delete sgclusters -n "$OPERATOR_NAMESPACE" "$CLUSTER_NAME"
+}
+
+create_cluster_with_previous_postgres_version(){
+  cat <<EOF | kubectl apply -f -
+apiVersion: stackgres.io/v1beta1
+kind: SGCluster
+metadata:
+  name: $CLUSTER_NAME
+  namespace: $CLUSTER_NAMESPACE
+spec:
+  instances: 1
+  postgresVersion: '11'
+  pods:
+    persistentVolume:
+      size: '128Mi'
+    disableConnectionPooling: true
+    disableMetricsExporter: true
+    disablePostgresUtil: true
+  nonProductionOptions:
+    disableClusterPodAntiAffinity: true
+EOF
+  
+  if kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"
+  then
+    echo "Good. cluster was created with previous postgres version"
+    return 0
+  else 
+    echo "Fail. cluster was not created with previous postgres version"
+    return 1
+  fi
+
+  kubectl delete sgclusters -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"
+
 }

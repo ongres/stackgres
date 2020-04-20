@@ -20,13 +20,13 @@ public class BackupConfigValidationPipeline implements ValidationPipeline<Backup
 
   private SimpleValidationPipeline<BackupConfigReview, BackupConfigValidator> pipeline;
 
-  @Inject
-  public BackupConfigValidationPipeline(@Any Instance<BackupConfigValidator> validators) {
-    this.pipeline = new SimpleValidationPipeline<>(validators);
-  }
-
   @Override
   public void validate(BackupConfigReview review) throws ValidationFailed {
     pipeline.validate(review);
+  }
+
+  @Inject
+  public void setValidators(@Any Instance<BackupConfigValidator> validators) {
+    this.pipeline = new SimpleValidationPipeline<>(validators);
   }
 }

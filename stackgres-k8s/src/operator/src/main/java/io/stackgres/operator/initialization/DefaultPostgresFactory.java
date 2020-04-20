@@ -6,20 +6,27 @@
 package io.stackgres.operator.initialization;
 
 import java.util.List;
+import javax.enterprise.context.Dependent;
 
-import javax.enterprise.context.ApplicationScoped;
-
+import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
+import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigDefinition;
+import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigSpec;
 import io.stackgres.operator.common.StackGresComponents;
-import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfig;
-import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfigDefinition;
-import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfigSpec;
 import io.stackgres.operator.patroni.factory.parameters.Blacklist;
 
-@ApplicationScoped
-public class DefaultPostgresFactory extends AbstractCustomResourceFactory<StackGresPostgresConfig> {
+@Dependent
+public class DefaultPostgresFactory extends AbstractCustomResourceFactory<StackGresPostgresConfig>
+    implements PostgresConfigurationFactory {
 
   public static final String NAME = "defaultpgconfig";
   public static final String POSTGRES_DEFAULT_VALUES = "postgresql-default-values.properties";
+
+  private String postgresVersion;
+
+  public DefaultPostgresFactory() {
+    this.postgresVersion = StackGresComponents.getPostgresMajorVersion(
+        StackGresComponents.calculatePostgresVersion(StackGresComponents.LATEST));
+  }
 
   @Override
   String getDefaultPropertiesFile() {
@@ -35,8 +42,7 @@ public class DefaultPostgresFactory extends AbstractCustomResourceFactory<StackG
   StackGresPostgresConfig buildResource(String namespace) {
 
     StackGresPostgresConfigSpec spec = new StackGresPostgresConfigSpec();
-    spec.setPostgresVersion(StackGresComponents.getPostgresMajorVersion(
-        StackGresComponents.calculatePostgresVersion(StackGresComponents.LATEST)));
+    spec.setPostgresVersion(postgresVersion);
     spec.setPostgresqlConf(getDefaultValues());
 
     StackGresPostgresConfig profile = new StackGresPostgresConfig();
@@ -49,4 +55,27 @@ public class DefaultPostgresFactory extends AbstractCustomResourceFactory<StackG
     return profile;
   }
 
+  @Override
+  public String generateDefaultName() {
+
+    return getDefaultPrefix()
+        + System.currentTimeMillis();
+  }
+
+  @Override
+  public String getDefaultPrefix() {
+    return "postgres-"
+        + postgresVersion
+        + "-"
+        + DEFAULT_RESOURCE_NAME_PREFIX;
+  }
+
+  @Override
+  public String getPostgresVersion() {
+    return postgresVersion;
+  }
+
+  public void setPostgresVersion(String postgresVersion) {
+    this.postgresVersion = postgresVersion;
+  }
 }

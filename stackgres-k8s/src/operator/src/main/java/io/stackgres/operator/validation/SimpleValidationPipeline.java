@@ -5,16 +5,18 @@
 
 package io.stackgres.operator.validation;
 
-import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.enterprise.inject.Instance;
 
+import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
+import io.stackgres.operatorframework.admissionwebhook.Operation;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import io.stackgres.operatorframework.admissionwebhook.validating.Validator;
 
-public class SimpleValidationPipeline<T, V extends Validator<T>> implements
-    io.stackgres.operatorframework.admissionwebhook.validating.ValidationPipeline<T> {
+public class SimpleValidationPipeline<T extends AdmissionReview<?>, V extends Validator<T>>
+    implements io.stackgres.operatorframework.admissionwebhook.validating.ValidationPipeline<T> {
 
   private List<V> validators;
 
@@ -24,9 +26,7 @@ public class SimpleValidationPipeline<T, V extends Validator<T>> implements
 
   private void init(Instance<V> validatorInstances) {
 
-    List<V> validators = validatorInstances.stream().collect(Collectors.toList());
-
-    Collections.sort(validators, (v1, v2) -> {
+    this.validators = validatorInstances.stream().sorted((v1, v2) -> {
       ValidationType v1ValidationType = v1.getClass().getAnnotation(ValidationType.class);
       ValidationType v2ValidationType = v2.getClass().getAnnotation(ValidationType.class);
 
@@ -39,14 +39,23 @@ public class SimpleValidationPipeline<T, V extends Validator<T>> implements
       } else {
         return v1ValidationType.value().compareTo(v2ValidationType.value());
       }
-    });
-
-    this.validators = validators;
+    }).collect(Collectors.toList());
 
   }
 
   @Override
   public void validate(T review) throws ValidationFailed {
+
+    if (review.getRequest().getOperation() == Operation.UPDATE) {
+
+      final Object object = review.getRequest().getObject();
+      final Object oldObject = review.getRequest().getOldObject();
+
+      if (Objects.equals(object, oldObject)) {
+        return;
+      }
+    }
+
     for (V validator : validators) {
       validator.validate(review);
     }

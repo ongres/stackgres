@@ -5,9 +5,9 @@
 
 package io.stackgres.operator.validation.cluster;
 
+import io.stackgres.common.crd.sgcluster.StackGresClusterDefinition;
 import io.stackgres.operator.common.ConfigContext;
 import io.stackgres.operator.common.StackGresClusterReview;
-import io.stackgres.operator.customresource.sgcluster.StackGresClusterDefinition;
 import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import io.stackgres.operatorframework.admissionwebhook.validating.Validator;

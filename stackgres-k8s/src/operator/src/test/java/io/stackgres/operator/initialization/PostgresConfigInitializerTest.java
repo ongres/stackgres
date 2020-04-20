@@ -5,16 +5,13 @@
 
 package io.stackgres.operator.initialization;
 
-import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfig;
-import io.stackgres.operator.resource.CustomResourceFinder;
-import io.stackgres.operator.resource.CustomResourceScheduler;
+import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.operator.utils.JsonUtil;
-
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class PostgresConfigInitializerTest extends AbstractInitializerTest<StackGresPostgresConfig> {
+class PostgresConfigInitializerTest extends InitializerTest<StackGresPostgresConfig> {
 
   @Override
   AbstractDefaultCustomResourceInitializer<StackGresPostgresConfig> getInstance() {

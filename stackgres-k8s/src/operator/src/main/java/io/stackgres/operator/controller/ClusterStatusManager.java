@@ -12,7 +12,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
@@ -20,14 +19,14 @@ import javax.validation.constraints.NotNull;
 import io.fabric8.kubernetes.api.model.PodList;
 import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterCondition;
+import io.stackgres.common.crd.sgcluster.StackGresClusterDefinition;
+import io.stackgres.common.crd.sgcluster.StackGresClusterDoneable;
+import io.stackgres.common.crd.sgcluster.StackGresClusterList;
+import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.operator.app.KubernetesClientFactory;
 import io.stackgres.operator.common.StackGresUtil;
-import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
-import io.stackgres.operator.customresource.sgcluster.StackGresClusterCondition;
-import io.stackgres.operator.customresource.sgcluster.StackGresClusterDefinition;
-import io.stackgres.operator.customresource.sgcluster.StackGresClusterDoneable;
-import io.stackgres.operator.customresource.sgcluster.StackGresClusterList;
-import io.stackgres.operator.customresource.sgcluster.StackGresClusterStatus;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 
 @ApplicationScoped

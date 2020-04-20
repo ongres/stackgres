@@ -11,8 +11,8 @@ import java.util.Optional;
 import com.google.common.collect.ImmutableMap;
 
 import io.fabric8.kubernetes.api.model.SecretKeySelector;
-import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfigSpec;
-import io.stackgres.operator.customresource.storages.BackupStorage;
+import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigSpec;
+import io.stackgres.common.crd.storages.BackupStorage;
 
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple;

@@ -45,6 +45,8 @@ stages:
 
 compile:
   stage: compile
+  variables:
+    QUARKUS_PROFILE: "test"
   tags:
     - stackgres-runner
   script:
@@ -181,6 +183,7 @@ integration test native image:
   variables:
     OPERATOR_IN_KUBERNETES: "true"
     K8S_SUFFIX: native-image
+    SKIP_QUARKUS_TEST: "true"
   script:
     - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}"'
     - 'export IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'

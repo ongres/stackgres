@@ -7,10 +7,7 @@ package io.stackgres.operator.resource;
 
 import java.util.Optional;
 
-import javax.enterprise.context.ApplicationScoped;
-
-import io.quarkus.test.Mock;
-import io.stackgres.operator.customresource.sgprofile.StackGresProfile;
+import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.operator.utils.JsonUtil;
 
 

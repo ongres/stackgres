@@ -13,12 +13,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.fabric8.kubernetes.api.model.Status;
 import io.fabric8.kubernetes.api.model.StatusBuilder;
 import io.fabric8.kubernetes.api.model.StatusDetailsBuilder;
+import io.stackgres.common.StackGresContext;
+import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigDefinition;
+import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigSpec;
 import io.stackgres.operator.common.ConfigContext;
-import io.stackgres.operator.common.ConfigProperty;
 import io.stackgres.operator.common.ErrorType;
 import io.stackgres.operator.common.PgConfigReview;
-import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfigDefinition;
-import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfigSpec;
 import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
@@ -63,7 +63,7 @@ public class PgConfigUpdateValidator implements PgConfigValidator {
             .withDetails(new StatusDetailsBuilder()
                 .addNewCause(pgVersionPath, detail, "FieldNotUpdatable")
                 .withKind(StackGresPostgresConfigDefinition.KIND)
-                .withGroup(context.get(ConfigProperty.CRD_GROUP))
+                .withGroup(StackGresContext.CRD_GROUP)
                 .withName(pgVersionPath)
                 .build())
             .build();

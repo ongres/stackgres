@@ -5,7 +5,7 @@
 
 package io.stackgres.operator.controller;
 
-import io.stackgres.operator.customresource.sgcluster.StackGresClusterCondition;
+import io.stackgres.common.crd.sgcluster.StackGresClusterCondition;
 
 public enum ClusterStatusCondition {
 

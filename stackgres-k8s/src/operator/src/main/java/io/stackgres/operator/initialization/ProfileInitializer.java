@@ -7,7 +7,7 @@ package io.stackgres.operator.initialization;
 
 import javax.enterprise.context.ApplicationScoped;
 
-import io.stackgres.operator.customresource.sgprofile.StackGresProfile;
+import io.stackgres.common.crd.sgprofile.StackGresProfile;
 
 @ApplicationScoped
 public class ProfileInitializer extends

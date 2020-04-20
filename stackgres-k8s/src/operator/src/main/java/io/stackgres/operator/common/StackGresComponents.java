@@ -16,7 +16,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import com.google.common.collect.ImmutableMap;
-
+import io.stackgres.common.StackGresContext;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple3;
@@ -100,7 +100,7 @@ public enum StackGresComponents {
     ObjectMapper objectMapper = new YAMLMapper();
     JsonNode versions = objectMapper.readTree(
         new URL("https://stackgres.io/downloads/stackgres-k8s/stackgres/components/"
-            + StackGresUtil.CONTAINER_BUILD + "/versions.yaml"));
+            + StackGresContext.CONTAINER_BUILD + "/versions.yaml"));
     Properties properties = new Properties();
     properties.put("postgresql",
         Seq.seq((ArrayNode) versions.get("components").get("postgresql").get("versions"))

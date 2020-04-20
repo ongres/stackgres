@@ -7,15 +7,13 @@ package io.stackgres.operator.mutation.cluster;
 
 import java.util.Collections;
 import java.util.List;
-
 import javax.annotation.PostConstruct;
 
 import com.github.fge.jackson.jsonpointer.JsonPointer;
 import com.github.fge.jsonpatch.JsonPatchOperation;
-
 import io.fabric8.kubernetes.client.CustomResource;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.common.StackGresClusterReview;
-import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
 import io.stackgres.operator.resource.CustomResourceFinder;
 import io.stackgres.operator.resource.CustomResourceScheduler;

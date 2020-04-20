@@ -25,6 +25,14 @@ import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.stackgres.common.StackGresContext;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
+import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigDefinition;
+import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigDoneable;
+import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigList;
+import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncer;
+import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigSpec;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSetPath;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSetVolumeConfig;
 import io.stackgres.operator.common.Sidecar;
@@ -33,14 +41,7 @@ import io.stackgres.operator.common.StackGresClusterSidecarResourceFactory;
 import io.stackgres.operator.common.StackGresComponents;
 import io.stackgres.operator.common.StackGresGeneratorContext;
 import io.stackgres.operator.common.StackGresUtil;
-import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.sidecars.envoy.Envoy;
-import io.stackgres.operator.sidecars.pooling.customresources.StackGresPoolingConfig;
-import io.stackgres.operator.sidecars.pooling.customresources.StackGresPoolingConfigDefinition;
-import io.stackgres.operator.sidecars.pooling.customresources.StackGresPoolingConfigDoneable;
-import io.stackgres.operator.sidecars.pooling.customresources.StackGresPoolingConfigList;
-import io.stackgres.operator.sidecars.pooling.customresources.StackGresPoolingConfigPgBouncer;
-import io.stackgres.operator.sidecars.pooling.customresources.StackGresPoolingConfigSpec;
 import io.stackgres.operator.sidecars.pooling.parameters.Blacklist;
 import io.stackgres.operator.sidecars.pooling.parameters.DefaultValues;
 import io.stackgres.operatorframework.resource.ResourceUtil;
@@ -124,7 +125,7 @@ public class PgPooling
     ContainerBuilder container = new ContainerBuilder();
     container.withName(NAME)
         .withImage(String.format(IMAGE_PREFIX,
-            DEFAULT_VERSION, StackGresUtil.CONTAINER_BUILD))
+            DEFAULT_VERSION, StackGresContext.CONTAINER_BUILD))
         .withImagePullPolicy("Always")
         .withVolumeMounts(ClusterStatefulSetVolumeConfig.SOCKET
                 .volumeMount(context.getClusterContext()),

@@ -6,7 +6,6 @@
 package io.stackgres.operator.rest;
 
 import java.util.List;
-
 import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
@@ -17,8 +16,8 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.common.ArcUtil;
-import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.resource.CustomResourceFinder;
 import io.stackgres.operator.resource.CustomResourceScanner;
 import io.stackgres.operator.resource.CustomResourceScheduler;
@@ -78,7 +77,7 @@ public class ClusterResource
   @Path("/status/{namespace}/{name}")
   @RolesAllowed(RestAuthenticationRoles.ADMIN)
   public ClusterResourceConsumtionDto status(@PathParam("namespace") String namespace,
-      @PathParam("name") String name) {
+                                             @PathParam("name") String name) {
     return clusterResourceConsumptionFinder.findByNameAndNamespace(name, namespace)
         .orElseThrow(NotFoundException::new);
   }

@@ -15,9 +15,6 @@ public class ConfigLoader implements ConfigContext {
 
   private static final ImmutableMap<ConfigProperty, String> DEFAULT_CONTEXT = ImmutableMap
       .<ConfigProperty, String>builder()
-      .put(ConfigProperty.CONTAINER_BUILD, StackGresUtil.CONTAINER_BUILD)
-      .put(ConfigProperty.CRD_GROUP, StackGresUtil.CRD_GROUP)
-      .put(ConfigProperty.CRD_VERSION, StackGresUtil.CRD_VERSION)
       .put(ConfigProperty.OPERATOR_NAMESPACE, StackGresUtil.OPERATOR_NAMESPACE)
       .put(ConfigProperty.OPERATOR_NAME, StackGresUtil.OPERATOR_NAME)
       .put(ConfigProperty.OPERATOR_VERSION, StackGresUtil.OPERATOR_VERSION)

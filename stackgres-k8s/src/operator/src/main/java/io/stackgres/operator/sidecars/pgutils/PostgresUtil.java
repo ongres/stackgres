@@ -9,12 +9,12 @@ import javax.inject.Singleton;
 
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
+import io.stackgres.common.StackGresContext;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSetVolumeConfig;
 import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.common.StackGresClusterSidecarResourceFactory;
 import io.stackgres.operator.common.StackGresComponents;
 import io.stackgres.operator.common.StackGresGeneratorContext;
-import io.stackgres.operator.common.StackGresUtil;
 
 @Sidecar("postgres-util")
 @Singleton
@@ -33,7 +33,7 @@ public class PostgresUtil implements StackGresClusterSidecarResourceFactory<Void
 
     return new ContainerBuilder()
         .withName(NAME)
-        .withImage(String.format(IMAGE_NAME, pgVersion, StackGresUtil.CONTAINER_BUILD))
+        .withImage(String.format(IMAGE_NAME, pgVersion, StackGresContext.CONTAINER_BUILD))
         .withImagePullPolicy("Always")
         .withStdin(Boolean.TRUE)
         .withTty(Boolean.TRUE)

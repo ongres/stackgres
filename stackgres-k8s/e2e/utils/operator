@@ -23,7 +23,9 @@ install_operator() {
 }
 
 install_operator_from_private_repo() {
-  PRIVATE_IMAGE_NAME="$PRIVATE_REPO_URI/stackgres/operator"
+  
+  export PRIVATE_REPO_URI=$(get_private_repo_uri)
+  export PRIVATE_IMAGE_NAME="$PRIVATE_REPO_URI/stackgres/operator"
   helm install stackgres-operator --namespace stackgres "$OPERATOR_CHART_PATH" \
       --set-string image.name="$PRIVATE_IMAGE_NAME" --set-string image.tag="$IMAGE_TAG" \
       --set-string serviceAccount.repoCredentials="regcred" \
@@ -47,12 +49,20 @@ set_up_private_repo(){
   echo "$PRIVATE_IMAGE_NAME"
 
   docker push "$PRIVATE_IMAGE_NAME"  
-
-  kubectl get secret -n stackgres regcred > /dev/null && kubectl delete secret -n stackgres regcred
-  kubectl create secret docker-registry -n stackgres regcred \
+  if kubectl get namespace stackgres > /dev/null
+  then  
+    kubectl get secret -n stackgres regcred > /dev/null && kubectl delete secret -n stackgres regcred
+    kubectl create secret docker-registry -n stackgres regcred \
+      --docker-server="$PRIVATE_REPO_URI" \
+      --docker-username="AWS" \
+      --docker-password="$(get_private_repo_password)"
+  else
+    kubectl create namespace stackgres
+    kubectl create secret docker-registry -n stackgres regcred \
     --docker-server="$PRIVATE_REPO_URI" \
     --docker-username="AWS" \
     --docker-password="$(get_private_repo_password)"
+  fi
 }
 
 get_private_repo_uri() {

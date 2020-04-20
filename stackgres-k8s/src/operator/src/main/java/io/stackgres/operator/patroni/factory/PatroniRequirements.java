@@ -6,15 +6,13 @@
 package io.stackgres.operator.patroni.factory;
 
 import java.util.Optional;
-
 import javax.enterprise.context.ApplicationScoped;
 
 import com.google.common.collect.ImmutableMap;
-
 import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
+import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.operator.common.StackGresClusterContext;
-import io.stackgres.operator.customresource.sgprofile.StackGresProfile;
 import io.stackgres.operatorframework.resource.factory.SubResourceFactory;
 
 @ApplicationScoped

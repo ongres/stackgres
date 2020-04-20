@@ -7,10 +7,7 @@ package io.stackgres.operator.resource;
 
 import java.util.Optional;
 
-import javax.enterprise.context.ApplicationScoped;
-
-import io.quarkus.test.Mock;
-import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfig;
+import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.operator.utils.JsonUtil;
 
 public class MockPostgresConfigFinder implements CustomResourceFinder<StackGresPostgresConfig> {

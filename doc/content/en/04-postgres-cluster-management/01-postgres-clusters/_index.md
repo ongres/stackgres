@@ -18,17 +18,16 @@ ___
 
 **Spec**
 
-| Property                                                                                                                                | Required | Updatable | Type     | Default                             | Description |
-|:----------------------------------------------------------------------------------------------------------------------------------------|----------|-----------|:---------|:------------------------------------|:------------|
-| instances                                                                                                                               | ✓        | ✓         | integer  |                                     | Number of instances to be created (for example 1) |
-| postgresVersion                                                                                                                         | ✓        | ✓         | string   |                                     | PostgreSQL version for the new cluster (for example 11.6) |
-| pods                                                                                                                                    | ✓        | ✓         | object   |                                     | Cluster's pod configuration |
-| storageClass                                                                                                                            |          |           | string   | default storage class               | Storage class name to be used for the cluster (if not specified means default storage class wiil be used) |
-| [configurations](#configurations)                                                                                                       |          |           | object   |                                     | Custom configurations to be applied to the cluster |
-| prometheusAutobind                                                                                                                      |          | ✓         | boolean  | false                               | If enabled a ServiceMonitor will be created for each Prometheus instance found in order to collect metrics |
-| [sgBackupConfig]({{% relref "/04-postgres-cluster-management/04-backups/_index.md#configuration" %}})                                   |          | ✓         | string   |                                     | Backup config to apply |
-| [initialData](#initial-data-configuration)                                                                                              |          |           | object   |                                     | Cluster data initialization options |
-| [nonProductionOptions](#non-production-options)                                                                                                |          | ✓         | array    |                                     | Additional parameters for non production environments |
+| Property                                                                                   | Required | Updatable | Type     | Default                             | Description |
+|:-------------------------------------------------------------------------------------------|----------|-----------|:---------|:------------------------------------|:------------|
+| postgresVersion                                                                            | ✓        | ✓         | string   |                                     | {{< crd-field-description SGCluster.spec.postgresVersion >}} |
+| instances                                                                                  | ✓        | ✓         | integer  |                                     | {{< crd-field-description SGCluster.spec.instances >}} |
+| [sgInstanceProfile]({{% relref "/04-postgres-cluster-management/03-resource-profiles" %}}) |          |           | string   | will be generated                   | {{< crd-field-description SGCluster.spec.sgInstanceProfile >}} |
+| [pods](#pods)                                                                              | ✓        | ✓         | object   |                                     | {{< crd-field-description SGCluster.spec.pods >}} |
+| [configurations](#configurations)                                                          |          |           | object   |                                     | {{< crd-field-description SGCluster.spec.configurations >}} |
+| prometheusAutobind                                                                         |          | ✓         | boolean  | false                               | {{< crd-field-description SGCluster.spec.prometheusAutobind >}} |
+| [initialData](#initial-data-configuration)                                                 |          |           | object   |                                     | {{< crd-field-description SGCluster.spec.initialData >}} |
+| [nonProductionOptions](#non-production-options)                                            |          | ✓         | array    |                                     | {{< crd-field-description SGCluster.spec.nonProductionOptions >}} |
 
 Example:
 
@@ -46,43 +45,16 @@ spec:
   sgInstanceProfile: 'size-xs'
 ```
 
-
-
-## Configurations
-
-Custom configurations to be applied to the cluster.
-
-| Property                                                                                                                                | Required | Updatable | Type     | Default                             | Description |
-|:----------------------------------------------------------------------------------------------------------------------------------------|----------|-----------|:---------|:------------------------------------|:------------|
-| [sgPostgresConfig]({{% relref "/04-postgres-cluster-management/02-configuration-tuning/02-postgres-configuration" %}})                  |          |           | string   | defaultpgconfig                     | PostgreSQL configuration to apply |
-| [sgPoolingConfig]({{% relref "/04-postgres-cluster-management/02-configuration-tuning/03-connection-pooling-configuration" %}})         |          |           | string   | defaultpgbouncer                    | Pooling configuration to apply |
-| [sgInstanceProfile]({{% relref "/04-postgres-cluster-management/03-resource-profiles" %}})                                              |          |           | string   | defaultprofile                      | Resource profile size to apply |
-
-Example: 
-
-``` yaml
-
-apiVersion: stackgres.io/v1beta1
-kind: SGCluster
-metadata:
-  name: stackgres
-spec:
-  configurations:
-    sgPostgresConfig: 'postgresconf'
-    sgPoolingConfig: 'pgbouncerconf'
-    sgBackupConfig: 'backupconf'
-
-```
-
 ## Pods
+
 Cluster's pod configuration
 
-| Property                                                                                                                                | Required | Updatable | Type     | Default                             | Description |
-|:----------------------------------------------------------------------------------------------------------------------------------------|----------|-----------|:---------|:------------------------------------|:------------|
-| persistentVolume                                                                                                                        | ✓        |           | object   |                                     | Cluster Pod's persistent volume configuratio   |
-| disableConnectionPooling                                                                                                                |          |           | boolean  | false                               | If is true, it disable the connection poolong  |
-| disableMetricsExporter                                                                                                                  |          |           | boolean  | false                               | If is true, it disable the metrics exportation |
-| disablePostgresUtil                                                                                                                     |          |           | boolean  | false                               | If is true, the postgres util container will not be installed |
+| Property                               | Required | Updatable | Type     | Default                             | Description |
+|:---------------------------------------|----------|-----------|:---------|:------------------------------------|:------------|
+| [persistentVolume](#persistent-volume) | ✓        |           | object   |                                     | {{< crd-field-description SGCluster.spec.pods.persistentVolume >}} |
+| disableConnectionPooling               |          |           | boolean  | false                               | {{< crd-field-description SGCluster.spec.pods.disableConnectionPooling >}} |
+| disableMetricsExporter                 |          |           | boolean  | false                               | {{< crd-field-description SGCluster.spec.pods.disableMetricsExporter >}} |
+| disablePostgresUtil                    |          |           | boolean  | false                               | {{< crd-field-description SGCluster.spec.pods.disablePostgresUtil >}} |
 
 ### Sidecar containers
 
@@ -112,16 +84,14 @@ spec:
     disablePostgresUtil: false
 ```
 
-
-
 ## Persistent Volume
 
 Holds the configurations of the persistent volume that the cluster pods are going to use
 
-| Property                                                                                                                                | Required | Updatable | Type     | Default                             | Description |
-|:----------------------------------------------------------------------------------------------------------------------------------------|----------|-----------|:---------|:------------------------------------|:------------|
-| size                                                                                                                                    | ✓        | ✓         | string   |                                     | Storage volume size (for example 5Gi) |
-| storageClass                                                                                                                            |          |           | string   | default storage class               | Storage class name to be used for the cluster (if not specified means default storage class wiil be used) |
+| Property     | Required | Updatable | Type     | Default                             | Description |
+|:-------------|----------|-----------|:---------|:------------------------------------|:------------|
+| size         | ✓        | ✓         | string   |                                     | {{< crd-field-description SGCluster.spec.pods.persistentVolume.size >}} |
+| storageClass |          |           | string   | default storage class               | {{< crd-field-description SGCluster.spec.pods.persistentVolume.storageClass >}} |
 
 ```yaml
 apiVersion: stackgres.io/v1beta1
@@ -135,14 +105,38 @@ spec:
       storageClass: default
 ```
 
+## Configurations
 
+Custom configurations to be applied to the cluster.
+
+| Property                                                                                                                        | Required | Updatable | Type     | Default           | Description |
+|:--------------------------------------------------------------------------------------------------------------------------------|----------|-----------|:---------|:------------------|:------------|
+| [sgPostgresConfig]({{% relref "/04-postgres-cluster-management/02-configuration-tuning/02-postgres-configuration" %}})          |          | ✓         | string   | will be generated | {{< crd-field-description SGCluster.spec.configurations.sgPostgresConfig >}} |
+| [sgPoolingConfig]({{% relref "/04-postgres-cluster-management/02-configuration-tuning/03-connection-pooling-configuration" %}}) |          | ✓         | string   | will be generated | {{< crd-field-description SGCluster.spec.configurations.sgPoolingConfig >}} |
+| [sgBackupConfig]({{% relref "/04-postgres-cluster-management/04-backups/_index.md#configuration" %}})                           |          | ✓         | string   |                   | {{< crd-field-description SGCluster.spec.configurations.sgBackupConfig >}} |
+
+Example: 
+
+``` yaml
+
+apiVersion: stackgres.io/v1beta1
+kind: SGCluster
+metadata:
+  name: stackgres
+spec:
+  configurations:
+    sgPostgresConfig: 'postgresconf'
+    sgPoolingConfig: 'pgbouncerconf'
+    sgBackupConfig: 'backupconf'
+
+```
 
 ## Initial Data Configuration
 Specifies the cluster initialization data configurations
 
-| Property                                                                                                                                | Required | Updatable | Type     | Default                             | Description |
-|:----------------------------------------------------------------------------------------------------------------------------------------|----------|-----------|:---------|:------------------------------------|:------------|
-| [restore](#restore-configuration)                                                                                                       |          |           | object   |                                     | Cluter restoration options |
+| Property                          | Required | Updatable | Type     | Default | Description |
+|:----------------------------------|----------|-----------|:---------|:--------|:------------|
+| [restore](#restore-configuration) |          |           | object   |         | {{< crd-field-description SGCluster.spec.initialData.restore >}} |
 
 
 ## Restore configuration
@@ -153,8 +147,8 @@ By default, stackgres it's creates as an empty database. To create a cluster wit
 
 | Property                | Required | Updatable | Type     | Default | Description |
 |:------------------------|----------|-----------|:---------|:--------|:------------|
-| fromBackup              | ✓        |           | string   |         | The backup CR UID to restore the cluster data |
-| downloadDiskConcurrency |          |           | integer  | 1       | How many concurrent stream will be created while downloading the backup |
+| fromBackup              | ✓        |           | string   |         | {{< crd-field-description SGCluster.spec.initialData.restore.fromBackup >}} |
+| downloadDiskConcurrency |          |           | integer  | 1       | {{< crd-field-description SGCluster.spec.initialData.restore.downloadDiskConcurrency >}} |
 
 Example:
 
@@ -176,4 +170,4 @@ Following options should be enabled only when NOT working in a production enviro
 
 | Property                      | Required | Updatable | Type     | Default | Description |
 |:------------------------------|----------|-----------|:---------|:--------|:------------|
-| disableClusterPodAntiAffinity |          | ✓         | boolean  | false   | Disable the pod Anti-Affinity rule |
+| disableClusterPodAntiAffinity |          | ✓         | boolean  | false   | {{< crd-field-description SGCluster.spec.nonProductionOptions.disableClusterPodAntiAffinity >}} |

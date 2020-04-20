@@ -7,8 +7,8 @@ package io.stackgres.operator.common;
 
 import java.util.Map;
 
-import io.stackgres.operator.customresource.sgbackup.StackGresBackup;
-import io.stackgres.operator.customresource.sgcluster.ClusterRestore;
+import io.stackgres.common.crd.sgbackup.StackGresBackup;
+import io.stackgres.common.crd.sgcluster.ClusterRestore;
 
 public class StackGresRestoreContext {
 

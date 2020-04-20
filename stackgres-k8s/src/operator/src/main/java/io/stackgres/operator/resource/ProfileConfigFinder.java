@@ -8,12 +8,12 @@ package io.stackgres.operator.resource;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import io.stackgres.common.crd.sgprofile.StackGresProfile;
+import io.stackgres.common.crd.sgprofile.StackGresProfileDefinition;
+import io.stackgres.common.crd.sgprofile.StackGresProfileDoneable;
+import io.stackgres.common.crd.sgprofile.StackGresProfileList;
 import io.stackgres.operator.app.KubernetesClientFactory;
 import io.stackgres.operator.common.ArcUtil;
-import io.stackgres.operator.customresource.sgprofile.StackGresProfile;
-import io.stackgres.operator.customresource.sgprofile.StackGresProfileDefinition;
-import io.stackgres.operator.customresource.sgprofile.StackGresProfileDoneable;
-import io.stackgres.operator.customresource.sgprofile.StackGresProfileList;
 
 @ApplicationScoped
 public class ProfileConfigFinder extends AbstractCustomResourceFinder<StackGresProfile> {

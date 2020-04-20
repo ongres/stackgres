@@ -7,19 +7,18 @@ package io.stackgres.operator.rest.transformer;
 
 import java.util.List;
 import java.util.Optional;
-
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.Pod;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
+import io.stackgres.common.crd.sgcluster.StackGresPodPersistenceVolume;
+import io.stackgres.common.crd.sgcluster.StackgresClusterConfiguration;
 import io.stackgres.operator.common.ConfigContext;
 import io.stackgres.operator.common.ConfigProperty;
-import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
-import io.stackgres.operator.customresource.sgcluster.StackGresClusterInitData;
-import io.stackgres.operator.customresource.sgcluster.StackGresClusterPod;
-import io.stackgres.operator.customresource.sgcluster.StackGresClusterSpec;
-import io.stackgres.operator.customresource.sgcluster.StackGresPodPersistenceVolume;
-import io.stackgres.operator.customresource.sgcluster.StackgresClusterConfiguration;
 import io.stackgres.operator.rest.dto.cluster.ClusterConfiguration;
 import io.stackgres.operator.rest.dto.cluster.ClusterDto;
 import io.stackgres.operator.rest.dto.cluster.ClusterInitData;
@@ -28,7 +27,6 @@ import io.stackgres.operator.rest.dto.cluster.ClusterPodPersistentVolume;
 import io.stackgres.operator.rest.dto.cluster.ClusterRestore;
 import io.stackgres.operator.rest.dto.cluster.ClusterSpec;
 import io.stackgres.operator.rest.dto.cluster.NonProduction;
-
 import org.jooq.lambda.Seq;
 
 @ApplicationScoped
@@ -119,24 +117,24 @@ public class ClusterTransformer
     return transformation;
   }
 
-  private io.stackgres.operator.customresource.sgcluster.NonProduction
+  private io.stackgres.common.crd.sgcluster.NonProduction
       getCustomResourceNonProduction(NonProduction source) {
     if (source == null) {
       return null;
     }
-    io.stackgres.operator.customresource.sgcluster.NonProduction transformation =
-        new io.stackgres.operator.customresource.sgcluster.NonProduction();
+    io.stackgres.common.crd.sgcluster.NonProduction transformation =
+        new io.stackgres.common.crd.sgcluster.NonProduction();
     transformation.setDisableClusterPodAntiAffinity(source.getDisableClusterPodAntiAffinity());
     return transformation;
   }
 
-  private io.stackgres.operator.customresource.sgcluster.ClusterRestore getCustomResourceRestore(
+  private io.stackgres.common.crd.sgcluster.ClusterRestore getCustomResourceRestore(
       ClusterRestore source) {
     if (source == null) {
       return null;
     }
-    io.stackgres.operator.customresource.sgcluster.ClusterRestore transformation =
-        new io.stackgres.operator.customresource.sgcluster.ClusterRestore();
+    io.stackgres.common.crd.sgcluster.ClusterRestore transformation =
+        new io.stackgres.common.crd.sgcluster.ClusterRestore();
     transformation.setDownloadDiskConcurrency(source.getDownloadDiskConcurrency());
     transformation.setBackupUid(source.getBackupUid());
     return transformation;
@@ -187,7 +185,7 @@ public class ClusterTransformer
   }
 
   private NonProduction getResourceNonProduction(
-      io.stackgres.operator.customresource.sgcluster.NonProduction source) {
+      io.stackgres.common.crd.sgcluster.NonProduction source) {
     if (source == null) {
       return null;
     }
@@ -197,7 +195,7 @@ public class ClusterTransformer
   }
 
   private ClusterRestore getResourceRestore(
-      io.stackgres.operator.customresource.sgcluster.ClusterRestore source) {
+      io.stackgres.common.crd.sgcluster.ClusterRestore source) {
     if (source == null) {
       return null;
     }

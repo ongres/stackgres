@@ -8,12 +8,12 @@ package io.stackgres.operator.resource;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterDefinition;
+import io.stackgres.common.crd.sgcluster.StackGresClusterDoneable;
+import io.stackgres.common.crd.sgcluster.StackGresClusterList;
 import io.stackgres.operator.app.KubernetesClientFactory;
 import io.stackgres.operator.common.ArcUtil;
-import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
-import io.stackgres.operator.customresource.sgcluster.StackGresClusterDefinition;
-import io.stackgres.operator.customresource.sgcluster.StackGresClusterDoneable;
-import io.stackgres.operator.customresource.sgcluster.StackGresClusterList;
 
 @ApplicationScoped
 public class ClusterScanner
