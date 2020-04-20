@@ -29,17 +29,7 @@ spec:
             name:
               type: string
               description: |
-                The name of this Backup Configuration. StackGres supports
-                [Continuous Archiving](https://www.postgresql.org/docs/current/continuous-archiving.html)-based backups,
-                which help achieve near-zero data loss in case of recovery from a backup. And they will be performed
-                automatically. An SGBackupConfig contains the necessary configuration for automatic backups, and this
-                field is the name of the given configuration, that may be referenced by zero or more
-                SGClusters, and if so it would be referenced by this name. Following
-                [Kubernetes naming conventions](https://github.com/kubernetes/community/blob/master/contributors/design-proposals/architecture/identifiers.md),
-                it must be an rfc1035/rfc1123 subdomain, that is, up to 253 characters consisting of one or more
-                lowercase labels separated by `.`. Where each label is an alphanumeric (a-z, and 0-9) string, with a
-                maximum length of 63 characters, with the `-` character allowed anywhere except the first or last
-                character.
+                The name of this Backup Configuration. StackGres supports [Continuous Archiving](https://www.postgresql.org/docs/current/continuous-archiving.html)-based backups, which help achieve near-zero data loss in case of recovery from a backup. And they will be performed automatically. An SGBackupConfig contains the necessary configuration for automatic backups, and this field is the name of the given configuration, that may be referenced by zero or more SGClusters, and if so it would be referenced by this name. Following [Kubernetes naming conventions](https://github.com/kubernetes/community/blob/master/contributors/design-proposals/architecture/identifiers.md), it must be an rfc1035/rfc1123 subdomain, that is, up to 253 characters consisting of one or more lowercase labels separated by `.`. Where each label is an alphanumeric (a-z, and 0-9) string, with a maximum length of 63 characters, with the `-` character allowed anywhere except the first or last character.
 
                 This name needs to be unique across all backup configurations in the same namespace.
         spec:
@@ -53,9 +43,7 @@ spec:
                 cronSchedule:
                   type: string
                   description: |
-                    Continuous Archiving backups are composed of periodic *base backups* and all the WAL segments
-                    produced in between those base backups. This parameter specifies at what time and with what
-                    frequency to start performing a new base backup.
+                    Continuous Archiving backups are composed of periodic *base backups* and all the WAL segments produced in between those base backups. This parameter specifies at what time and with what frequency to start performing a new base backup.
 
                     Use cron syntax (`m h dom mon dow`) for this parameter, i.e., 5 values separated by spaces:
                     *  `m`: minute, 0 to 59
@@ -64,26 +52,21 @@ spec:
                     *  `mon`: month, 1 to 12
                     *  `dow`: day of week, 0 to 7 (0 and 7 both represent Sunday)
 
-                    Also ranges of values (`start-end`), the symbol `*` (meaning `first-last`) or even `*/N`, where `N`
-                    is a number, meaning "every `N`, may be used. All times are UTC. It is recommended to avoid 00:00 as
-                    base backup time, to avoid overlapping with any other external operations happening at this time.
+                    Also ranges of values (`start-end`), the symbol `*` (meaning `first-last`) or even `*/N`, where `N` is a number, meaning "every `N`, may be used. All times are UTC. It is recommended to avoid 00:00 as base backup time, to avoid overlapping with any other external operations happening at this time.
+
                     If not provided, full backups will be performed each day at 05:00 UTC
                 retention:
                   type: integer
                   description: |
                     Based on this parameter, an automatic retention policy is defined to delete old base backups.
                     This parameter specifies the number of base backups to keep, in a sliding window.
-                    Consequently, the time range covered by backups is `periodicity*retention`, where `periodicity` is
-                    the separation between backups as specified by the `cronSchedule` property.
+                    Consequently, the time range covered by backups is `periodicity*retention`, where `periodicity` is the separation between backups as specified by the `cronSchedule` property.
 
                     Default is 5.
                 compression:
                   type: string
                   description: |
-                    Select the backup compression algorithm. Possible options are: lz4, lzma, brotli. The default method
-                    is `lz4`. LZ4 is the fastest method, but compression ratio is the worst. LZMA is way slower, but
-                    it compresses backups about 6 times better than LZ4. Brotli is a good trade-off between speed and
-                    compression ratio, being about 3 times better than LZ4.
+                    Select the backup compression algorithm. Possible options are: lz4, lzma, brotli. The default method is `lz4`. LZ4 is the fastest method, but compression ratio is the worst. LZMA is way slower, but it compresses backups about 6 times better than LZ4. Brotli is a good trade-off between speed and compression ratio, being about 3 times better than LZ4.
                   enum: ["lz4", "lzma", "brotli"]
                 performance:
                   type: object
@@ -99,8 +82,7 @@ spec:
                     uploadDiskConcurrency:
                       type: integer
                       description: |
-                        Backup storage may use several concurrent streams to store the data. This parameter configures
-                        the number of parallel streams to use. By default, it will use 1 (one stream).
+                        Backup storage may use several concurrent streams to store the data. This parameter configures the number of parallel streams to use. By default, it will use 1 (one stream).
             storage:
               type: object
               description: |
@@ -130,20 +112,15 @@ spec:
                       type: string
                       pattern: '(/[^/]*)*$'
                       description: |
-                        Optional path within the S3 bucket. Note that StackGres generates in any case a folder per
-                        StackGres cluster, using the `SGCluster.metadata.name`.
+                        Optional path within the S3 bucket. Note that StackGres generates in any case a folder per StackGres cluster, using the `SGCluster.metadata.name`.
                     region:
                       type: string
                       description: |
-                        The AWS S3 region. The Region may be detected using s3:GetBucketLocation, but if you wish to
-                        avoid giving permissions to this API call or forbid it from the applicable IAM policy, you must
-                        then specify this property.
+                        The AWS S3 region. The Region may be detected using s3:GetBucketLocation, but if you wish to avoid giving permissions to this API call or forbid it from the applicable IAM policy, you must then specify this property.
                     storageClass:
                       type: string
                       description: |
-                        The [Amazon S3 Storage Class](https://aws.amazon.com/s3/storage-classes/) to use for the backup
-                        object storage. By default, the `STANDARD` storage class is used. Other supported values
-                        include `STANDARD_IA` for Infrequent Access and `REDUCED_REDUNDANCY`.
+                        The [Amazon S3 Storage Class](https://aws.amazon.com/s3/storage-classes/) to use for the backup object storage. By default, the `STANDARD` storage class is used. Other supported values include `STANDARD_IA` for Infrequent Access and `REDUCED_REDUNDANCY`.
                     awsCredentials:
                       type: object
                       description: |
@@ -152,15 +129,12 @@ spec:
                         secretKeySelectors:
                           type: object
                           description: |
-                            Kubernetes
-                            [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core)s
-                            to reference the Secrets that contain the information about the `awsCredentials`.
+                            Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core)s to reference the Secrets that contain the information about the `awsCredentials`.
                           properties:
                             accessKeyId:
                               type: object
                               description: |
-                                [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core)
-                                containing the AWS Access Key ID secret.
+                                [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core) containing the AWS Access Key ID secret.
                               properties:
                                 key:
                                   type: string
@@ -169,14 +143,12 @@ spec:
                                 name:
                                   type: string
                                   description: |
-                                    Name of the referent.
-                                    [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
+                                    Name of the referent.  [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
                               required: ["key", "name"]
                             secretAccessKey:
                               type: object
                               description: |
-                                [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core)
-                                containing the AWS Secret Access Key secret.
+                                [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core) containing the AWS Secret Access Key secret.
                               properties:
                                 key:
                                   type: string
@@ -185,8 +157,7 @@ spec:
                                 name:
                                   type: string
                                   description: |
-                                    Name of the referent.
-                                    [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
+                                    Name of the referent.  [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
                               required: ["key", "name"]
                           required: ["accessKeyId", "secretAccessKey"]
                       required: ["secretKeySelectors"]
@@ -204,14 +175,13 @@ spec:
                       type: string
                       pattern: '(/[^/]*)*$'
                       description: |
-                        Optional path within the S3 bucket. Note that StackGres generates in any case a folder per
-                        StackGres cluster, using the `SGCluster.metadata.name`.
+                        Optional path within the S3 bucket. Note that StackGres generates in any case a folder per StackGres cluster, using the `SGCluster.metadata.name`.
                     enablePathStyleAddressing:
                       type: boolean
                       description: |
-                        Enable path-style addressing (i.e. `http://s3.amazonaws.com/BUCKET/KEY`) when connecting to an
-                        S3-compatible service that lacks support for sub-domain style bucket URLs
-                        (i.e. `http://BUCKET.s3.amazonaws.com/KEY`). Defaults to false.
+                        Enable path-style addressing (i.e. `http://s3.amazonaws.com/BUCKET/KEY`) when connecting to an S3-compatible service that lacks support for sub-domain style bucket URLs (i.e. `http://BUCKET.s3.amazonaws.com/KEY`).
+
+                        Defaults to false.
                     endpoint:
                       type: string
                       description: |
@@ -220,15 +190,11 @@ spec:
                     region:
                       type: string
                       description: |
-                        The AWS S3 region. The Region may be detected using s3:GetBucketLocation, but if you wish to
-                        avoid giving permissions to this API call or forbid it from the applicable IAM policy, you must
-                        then specify this property.
+                        The AWS S3 region. The Region may be detected using s3:GetBucketLocation, but if you wish to avoid giving permissions to this API call or forbid it from the applicable IAM policy, you must then specify this property.
                     storageClass:
                       type: string
                       description: |
-                        The [Amazon S3 Storage Class](https://aws.amazon.com/s3/storage-classes/) to use for the backup
-                        object storage. By default, the `STANDARD` storage class is used. Other supported values
-                        include `STANDARD_IA` for Infrequent Access and `REDUCED_REDUNDANCY`.
+                        The [Amazon S3 Storage Class](https://aws.amazon.com/s3/storage-classes/) to use for the backup object storage. By default, the `STANDARD` storage class is used. Other supported values include `STANDARD_IA` for Infrequent Access and `REDUCED_REDUNDANCY`.
                     awsCredentials:
                       type: object
                       description: |
@@ -237,15 +203,12 @@ spec:
                         secretKeySelectors:
                           type: object
                           description: |
-                            A Kubernetes
-                            [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core)
-                            to reference the Secrets that contain the information about the `awsCredentials`.
+                            A Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core) to reference the Secrets that contain the information about the `awsCredentials`.
                           properties:
                             accessKeyId:
                               type: object
                               description: |
-                                [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core)
-                                containing the AWS Access Key ID secret.
+                                [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core) containing the AWS Access Key ID secret.
                               properties:
                                 key:
                                   type: string
@@ -254,14 +217,12 @@ spec:
                                 name:
                                   type: string
                                   description: |
-                                    Name of the referent.
-                                    [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
+                                    Name of the referent.  [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
                               required: ["key", "name"]
                             secretAccessKey:
                               type: object
                               description: |
-                                [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core)
-                                containing the AWS Secret Access Key secret.
+                                [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core) containing the AWS Secret Access Key secret.
                               properties:
                                 key:
                                   type: string
@@ -270,8 +231,7 @@ spec:
                                 name:
                                   type: string
                                   description: |
-                                    Name of the referent.
-                                    [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
+                                    Name of the referent.  [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
                               required: ["key", "name"]
                           required: ["accessKeyId", "secretAccessKey"]
                       required: ["secretKeySelectors"]
@@ -290,8 +250,7 @@ spec:
                       type: string
                       pattern: "^(/[^/]*)*$"
                       description: |
-                        Optional path within the GCS bucket. Note that StackGres generates in any case a folder per
-                        StackGres cluster, using the `SGCluster.metadata.name`.
+                        Optional path within the GCS bucket. Note that StackGres generates in any case a folder per StackGres cluster, using the `SGCluster.metadata.name`.
                     gcpCredentials:
                       type: object
                       description: |
@@ -300,10 +259,7 @@ spec:
                         secretKeySelectors:
                           type: object
                           description: |
-                            A Kubernetes
-                            [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core)
-                            to reference the Secrets that contain the information about the Service Account to access
-                            GCS.
+                            A Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core) to reference the Secrets that contain the information about the Service Account to access GCS.
                           properties:
                             serviceAccountJSON:
                               type: object
@@ -317,8 +273,7 @@ spec:
                                 name:
                                   type: string
                                   description: |
-                                    Name of the referent.
-                                    [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
+                                    Name of the referent. [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
                               required: ["key", "name"]
                           required: ["serviceAccountJSON"]
                       required: ["secretKeySelectors"]
@@ -337,8 +292,7 @@ spec:
                       type: string
                       pattern: "^(/[^/]*)*$"
                       description: |
-                        Optional path within the Azure Blobk bucket. Note that StackGres generates in any case a folder
-                        per StackGres cluster, using the `SGCluster.metadata.name`.
+                        Optional path within the Azure Blobk bucket. Note that StackGres generates in any case a folder per StackGres cluster, using the `SGCluster.metadata.name`.
                     azureCredentials:
                       type: object
                       description: |
@@ -347,15 +301,12 @@ spec:
                         secretKeySelectors:
                           type: object
                           description: |
-                            Kubernetes
-                            [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core)s
-                            to reference the Secrets that contain the information about the `azureCredentials`.
+                            Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core)s to reference the Secrets that contain the information about the `azureCredentials`.
                           properties:
                             storageAccount:
                               type: object
                               description: |
-                                [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core)
-                                containing the name of the storage account.
+                                [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core) containing the name of the storage account.
                               properties:
                                 key:
                                   type: string
@@ -364,14 +315,12 @@ spec:
                                 name:
                                   type: string
                                   description: |
-                                    Name of the referent.
-                                    [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
+                                    Name of the referent.  [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
                               required: ["key", "name"]
                             accessKey:
                               type: object
                               description: |
-                                [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core)
-                                containing the primary or secondary access key for the storage account.
+                                [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core) containing the primary or secondary access key for the storage account.
                               properties:
                                 key:
                                   type: string
@@ -380,8 +329,7 @@ spec:
                                 name:
                                   type: string
                                   description: |
-                                    Name of the referent.
-                                    [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
+                                    Name of the referent.  [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
                               required: ["key", "name"]
                           required: ["storageAccount", "accessKey"]
                   required: ["bucket", "azureCredentials"]
