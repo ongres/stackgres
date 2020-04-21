@@ -100,10 +100,6 @@ spec:
                   type: string
                   description: |
                     Name of the [SGBackupConfig](https://stackgres.io/doc/latest/04-postgres-cluster-management/04-backups/) to use for this cluster. This will define the backups policy, storage and retention, among others, to apply to this cluster. If not set, a default backup config will be used.
-            prometheusAutobind:
-              type: boolean
-              description: |
-                If enabled, a ServiceMonitor will be created for each Prometheus instance found in order to collect metrics.
             initialData:
               type: object
               description: Cluster initialization data options
@@ -120,6 +116,10 @@ spec:
                       minimum: 1
                       description: |
                         The backup fetch process may fetch several streams in parallel. Specify a value larger than one for parallel fetching.
+            prometheusAutobind:
+              type: boolean
+              description: |
+                If enabled, a ServiceMonitor will be created for each Prometheus instance found in order to collect metrics.
             nonProductionOptions:
               type: object
               properties:

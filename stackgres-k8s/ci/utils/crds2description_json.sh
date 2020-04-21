@@ -11,9 +11,9 @@ usage() {
 	message_and_exit "Usage: $0 <path_to_crds_dir> <path_output_dir>" 1
 }
 
-# linter() {
-#     yamllint -c ${SCRIPTPATH}/yamllint-config.yaml ${1}
-# }
+linter() {
+    yamllint -c ${SCRIPTPATH}/yamllint-config.yaml ${1}
+}
 
 [ $# -eq 2 ] || usage
 
@@ -52,7 +52,7 @@ EOF
 
 for crd in $1/*.yaml
 do
-    #linter ${crd}
+    linter ${crd}
 	crd_name=`yq -r '.spec.names.kind' $crd`
 	output_filename="crd-${crd_name}-description-EN.json"
 	yq '.' $crd | jq -f $jq_script > $2/$output_filename
