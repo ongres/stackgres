@@ -88,22 +88,21 @@ var Side = Vue.component("sg-side", {
 								<li><router-link to="/crd/create/backupconfig/" class="addnew item">Add New</router-link></li>
 							</ul>
 						</div>
+					</ul>
+				</div>
+				<div class="prof set">
+					<router-link :to="'/profiles/'+currentNamespace" class="nav-item">
+					<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><g transform="translate(0 -242)"><path d="M19.649,256.971l-1.538-1.3a.992.992,0,1,0-1.282,1.514l.235.2-6.072,2.228v-4.373l.266.154a.974.974,0,0,0,.491.132.99.99,0,0,0,.862-.506,1.012,1.012,0,0,0-.369-1.372l-1.75-1.013a.983.983,0,0,0-.984,0l-1.75,1.013a1.012,1.012,0,0,0-.369,1.372.985.985,0,0,0,1.353.374l.266-.154v4.353l-6.07-2.21.233-.2a.992.992,0,1,0-1.282-1.514l-1.538,1.3a.992.992,0,0,0-.337.925l.342,1.987a.992.992,0,0,0,.977.824.981.981,0,0,0,.169-.015.992.992,0,0,0,.81-1.145l-.052-.3,7.4,2.694A1.011,1.011,0,0,0,10,262c.01,0,.02,0,.03-.005s.02.005.03.005a1,1,0,0,0,.342-.061l7.335-2.691-.051.3a.992.992,0,0,0,.811,1.145.953.953,0,0,0,.168.015.992.992,0,0,0,.977-.824l.341-1.987A.992.992,0,0,0,19.649,256.971Z" fill="#00adb5"/><path d="M20,246.25a.99.99,0,0,0-.655-.93l-9-3.26a1,1,0,0,0-.681,0l-9,3.26a.99.99,0,0,0-.655.93.9.9,0,0,0,.016.1c0,.031-.016.057-.016.089v5.886a1.052,1.052,0,0,0,.992,1.1,1.052,1.052,0,0,0,.992-1.1v-4.667l7.676,2.779a1.012,1.012,0,0,0,.681,0l7.675-2.779v4.667a1,1,0,1,0,1.984,0v-5.886c0-.032-.014-.058-.016-.089A.9.9,0,0,0,20,246.25Zm-10,2.207L3.9,246.25l6.1-2.206,6.095,2.206Z" fill="#00adb5"/></g></svg>
+						<h4>Instance Profiles</h4>
+					</router-link>
 
-						<div class="prof set">
-							<router-link :to="'/profiles/'+currentNamespace" class="nav-item">
-								<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 21.3 20"><path d="M10.962 9.14a.808.808 0 00-.862.86v7.878a.86.86 0 00.235.63.83.83 0 00.624.242.82.82 0 00.872-.872V10a.842.842 0 00-.235-.624.862.862 0 00-.634-.236zm9.407.825a3.419 3.419 0 00-2.362-.758h-3.3a.842.842 0 00-.611.215.8.8 0 00-.221.6v7.851a.859.859 0 00.233.637.842.842 0 00.624.235.806.806 0 00.868-.87v-2.882h2.406a3.393 3.393 0 002.362-.767 2.729 2.729 0 00.846-2.133 2.709 2.709 0 00-.845-2.128zm-2.576 3.7H15.6v-3.116h2.192q1.785 0 1.785 1.557t-1.784 1.557zM.955 4.762h10.5a.953.953 0 100-1.9H.955a.953.953 0 100 1.9zM14.8 7.619a.954.954 0 00.955-.952V4.762h4.3a.953.953 0 100-1.9h-4.3V.952a.955.955 0 00-1.909 0v5.715a.953.953 0 00.954.952zM.955 10.952h4.3v1.9a.955.955 0 001.909 0V7.143a.955.955 0 00-1.909 0v1.9h-4.3a.953.953 0 100 1.9zm6.681 4.286H.955a.953.953 0 100 1.905h6.681a.953.953 0 100-1.905z"/></svg>
-								<h4>Instance Profiles</h4>
-							</router-link>
-
-							<ul>
-								<template v-for="profile in profiles">
-									<li v-if="profile.data.metadata.namespace == currentNamespace" :class="'profile-'+profile.data.metadata.namespace+'-'+profile.name">
-										<router-link :to="'/profiles/'+profile.data.metadata.namespace+'/'+profile.name" class="item" :title="profile.name">{{ profile.name }}</router-link>
-									</li>
-								</template>
-								<li><router-link to="/crd/create/profile/" class="addnew item">Add New</router-link></li>
-							</ul>
-						</div>
+					<ul>
+						<template v-for="profile in profiles">
+							<li v-if="profile.data.metadata.namespace == currentNamespace" :class="'profile-'+profile.data.metadata.namespace+'-'+profile.name">
+								<router-link :to="'/profiles/'+profile.data.metadata.namespace+'/'+profile.name" class="item" :title="profile.name">{{ profile.name }}</router-link>
+							</li>
+						</template>
+						<li><router-link to="/crd/create/profile/" class="addnew item">Add New</router-link></li>
 					</ul>
 				</div>
 				<div class="set backups">

@@ -3198,7 +3198,7 @@ td.today.available {
 }
 
 .daterangepicker .calendar-table .next span, .daterangepicker .calendar-table .prev span {
-    border-color: #999;
+    border-color: #999 !important;
 }
 
 .daterangepicker .calendar-table, .daterangepicker td.off, .daterangepicker td.off.in-range, .daterangepicker td.off.start-date, .daterangepicker td.off.end-date {
