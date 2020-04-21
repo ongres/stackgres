@@ -143,6 +143,46 @@ table.clusterOverview a.no-color {
     text-align: center;
 }
 
+.flex-center {
+    display: flex;
+    align-items: center;
+}
+
+.donut {
+    width: 25px;
+    height: 25px;
+    display: inline-block;
+    position: relative;
+    margin-right: 5px;
+}
+
+.donut svg {
+    width: 25px;
+    height: 25px;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.donut .loader {
+    -webkit-transform: rotate(-90deg);
+    transform: rotate(-90deg);
+    stroke-dasharray: 0,63;
+    z-index: 2;
+}
+
+.donut .background {
+    z-index: 1;
+}
+
+svg.loader circle {
+    stroke: var(--blue);
+}
+
+svg.background circle {
+    stroke: #bae6e8;
+}
+
 
 /* Log in */
 
@@ -1646,7 +1686,7 @@ ul.tabs {
 .table .col.text {
     /* text-transform: uppercase; */
     text-align: left;
-}
+}   
 
 .table .col.status {
     text-align: left;
@@ -1963,8 +2003,12 @@ ul.select {
     overflow: hidden;
 }
 
-ul.select ul {
-    padding-left: 15px;
+ul.select ul li a {
+    padding-left: 25px;
+}
+
+ul.select a:hover {
+    background: #fbfbfb;
 }
 
 ul.select.active, ul.select.active ul {
@@ -1974,16 +2018,23 @@ ul.select.active, ul.select.active ul {
 
 ul.select li {
     display: none;
-    cursor: pointer;
 }
 
 ul.select li a, ul.select li.selected {
-    font-size: 12px;
+    cursor: pointer;
+    font-weight: normal;
+}
+
+ul.select li a, ul.select li.selected, ul.select li > strong {
     padding: 0 10px;
     height: 38px;
     line-height: 38px;
     display: block;
 }
+
+/* ul.select li a, ul.select li > strong {
+    font-size: 13px;
+} */
 
 ul.select .selected, ul.select.active li {
     display: block;
@@ -3069,6 +3120,7 @@ td.operation.Reset > span {
     height: 100%;
     opacity: 0;
     cursor: pointer;
+    z-index: 1;
 }
 
 .toggle.open > #datePicker {

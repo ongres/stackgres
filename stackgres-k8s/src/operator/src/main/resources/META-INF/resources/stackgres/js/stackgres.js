@@ -1147,6 +1147,15 @@ function formatBytes (a) {
   if(0==a)return"0 Bytes";var c=1024,d=2,e=["Bytes","Ki","Mi","Gi","Ti","Pi","Ei","Zi","Yi"],f=Math.floor(Math.log(a)/Math.log(c))+1;return parseFloat((a/Math.pow(c,f)).toFixed(d))+" "+e[f];
 }
 
+function getBytes (text) {
+  var powers = {'Ki': 1, 'Mi': 2, 'Gi': 3, 'Ti': 4, 'Pi': 5};
+  var regex = /(\d+(?:\.\d+)?)\s?(Ki|Mi|Gi|Ti|Pi)?b?/i;
+
+  var res = regex.exec(text);
+
+  return res[1] * Math.pow(1024, powers[res[2]]);
+}
+
 function arraysMatch (arr1, arr2) {
 
   // Check if the arrays are the same length
@@ -1625,7 +1634,7 @@ $(document).ready(function(){
   });
 
   
-  $(document).on("click",".toggle",function(){
+  $(document).on("click",".toggle:not(.date)",function(){
     $(this).toggleClass("open");
     $(this).next().toggleClass("open");
   })

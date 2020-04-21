@@ -42,14 +42,24 @@ var ClusterStatus = Vue.component("cluster-status", {
 					<thead>
 						<th>Total CPU</th>
 						<th>Total Memory</th>
-						<th>Master Node Disk</th>
+						<th>Primary Node Disk</th>
 						<th>Instances</th>
 					</thead>
 					<tbody>
 						<tr>
 							<td>{{ cluster.status.cpuRequested }} (avg. load {{ cluster.status.averageLoad1m }})</td>
 							<td>{{ cluster.status.memoryRequested }}</td>
-							<td>{{ cluster.status.diskUsed }} / {{ cluster.data.spec.pods.persistentVolume.size }}</td>
+							<td class="flex-center">
+								<div class="donut">
+									<svg class="loader" xmlns="http://www.w3.org/2000/svg" version="1.1">
+										<circle cx="12.5" cy="12.5" r="10" stroke-width="5" fill="none" :stroke-dasharray="diskUsed+',63'" />
+									</svg>
+									<svg class="background" xmlns="http://www.w3.org/2000/svg" version="1.1">
+										<circle cx="12.5" cy="12.5" r="10" stroke-width="5" fill="none" />
+									</svg>
+								</div>
+								{{ cluster.status.diskUsed }} / {{ cluster.data.spec.pods.persistentVolume.size }}
+							</td>
 							<td>{{ cluster.data.podsReady }} / {{ cluster.data.pods.length }}</td>
 						</tr>
 					</tbody>
@@ -203,6 +213,17 @@ var ClusterStatus = Vue.component("cluster-status", {
 		currentNamespace () {
 			return store.state.currentNamespace
 		},
+		diskUsed () {
+			let used = getBytes(store.state.currentCluster.status.diskUsed);
+			let available = getBytes(store.state.currentCluster.data.spec.pods.persistentVolume.size);
+			let percentage = Math.round((used*63)/available);
+
+			/*
+			console.log("Used: "+used+" / Available: "+available);
+			console.log("Percentage: "+percentage+"%");
+			*/
+			return percentage;
+		}
 	},
 	beforeDestroy () {
 		clearInterval(this.polling);
