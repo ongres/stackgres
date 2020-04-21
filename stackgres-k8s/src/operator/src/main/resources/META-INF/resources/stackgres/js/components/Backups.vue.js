@@ -167,7 +167,7 @@ var Backups = Vue.component("sg-backup", {
 								</td>
 							</tr>
 							<template v-for="back in backups" v-if="( ( (back.data.metadata.namespace == currentNamespace) && !isCluster && back.show ) || (isCluster && (back.data.spec.sgCluster == currentCluster.name ) && (back.data.metadata.namespace == currentCluster.data.metadata.namespace ) && back.show ) )">
-								<tr class="base" :class="back.data.status.process.status+' sgbackup-'+back.data.metadata.namespace+'-'+back.data.metadata.name">
+								<tr :class="[ back.data.status.process.status != 'Running' ? 'base' : '', back.data.status.process.status+' sgbackup-'+back.data.metadata.namespace+'-'+back.data.metadata.name]">
 										<td class="timestamp" :data-val="(back.data.status.process.status == 'Completed') ? back.data.status.process.timing.stored.substr(0,19).replace('T',' ') : ''">
 											<template v-if="back.data.status.process.status == 'Completed'">
 												<span class='date'>
@@ -547,27 +547,41 @@ var Backups = Vue.component("sg-backup", {
 			
 			$(document).on('click', '.toggle.date.open', function(){
 				//$('#datePicker').trigger('hide.daterangepicker');
+				//console.log('.toggle.date.open');
+				/*
 				if(vc.datePicker.length)
 					$('.applyBtn').click();
 				else
 					$('.cancelBtn').click();
+				*/
+			});
+
+			$('#datePicker').on('show.daterangepicker', function(ev, picker) {
+				//console.log('show.daterangepicker');
+				$('#datePicker').parent().addClass('open');
 			});
 
 			$('#datePicker').on('hide.daterangepicker', function(ev, picker) {
-				//console.log('hide.daterangepicker')
-				//do something, like clearing an input
+				//console.log('hide.daterangepicker');
 				$('#datePicker').parent().removeClass('open');
 			});
 
 			$('#datePicker').on('cancel.daterangepicker', function(ev, picker) {
-				//do something, like clearing an input
+				//console.log('cancel.daterangepicker');
 				vc.datePicker = '';
 				$('#datePicker').parent().removeClass('open');
 			});
 
 			$('#datePicker').on('apply.daterangepicker', function(ev, picker) {
-				//do something, like clearing an input
+				//console.log('apply.daterangepicker');
 				$('#datePicker').parent().removeClass('open');
+			});
+
+			$(document).on('change', '.filter select', function () {
+				if($(this).val().length)
+					$(this).addClass('active')
+				else
+					$(this).removeClass('active')
 			});
 
 			$(document).on('click', 'input[type="checkbox"]', function () {
