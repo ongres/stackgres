@@ -37,24 +37,30 @@ var CreateCluster = Vue.component("create-cluster", {
                     <label for="spec.postgresVersion">Postgres Version <span class="req">*</span></label>
                     <ul :class="(editMode) ? 'disabled select' : 'select'" id="postgresVersion" data-field="spec.postgresVersion">
                         <li class="selected">
-                            {{ (postgresVersion == 'latest') ? 'Latest' : 'PostgreSQL '+postgresVersion }}
+                            {{ (postgresVersion == 'latest') ? 'Latest' : 'Postgres '+postgresVersion }}
                         </li>
                         <li>
                             <a @click="setVersion('latest')" data-val="latest" class="active">Latest</a>
                         </li>
                         <li>
-                            <a @click="setVersion('12')" data-val="12">PostgreSQL 12</a>
+                            <strong>Postgres 12</strong>
                             <ul>
                                 <li>
-                                    <a @click="setVersion('12.2')" data-val="12.2">PostgreSQL 12.2</a>
+                                    <a @click="setVersion('12')" data-val="12">Postgres 12 (Latest)</a>
+                                </li>
+                                <li>
+                                    <a @click="setVersion('12.2')" data-val="12.2">Postgres 12.2</a>
                                 </li>
                             </ul>
                         </li>
                         <li>
-                            <a @click="setVersion('11')" data-val="11">PostgreSQL 11</a>
+                            <strong>Postgres 11</strong>
                             <ul>
                                 <li>
-                                    <a @click="setVersion('11.7')" data-val="11.7">PostgreSQL 11.7</a>
+                                    <a @click="setVersion('11')" data-val="11">Postgres 11 (Latest)</a>
+                                </li>
+                                <li>
+                                    <a @click="setVersion('11.7')" data-val="11.7">Postgres 11.7</a>
                                 </li>
                             </ul>
                         </li>
