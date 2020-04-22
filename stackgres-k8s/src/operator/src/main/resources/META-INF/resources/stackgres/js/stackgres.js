@@ -1696,7 +1696,16 @@ $(document).ready(function(){
   });
 
   $(document).on('click', 'ul.select .selected', function(){
-      $(this).parent().toggleClass('active');
+    $(this).parent().toggleClass('active');
+  });
+
+  $(document).on('click', '.set > .addnew', function(){
+    if(!$(this).parent().hasClass('active')) {
+      $('.set.active:not(.conf)').removeClass('active');
+      $('.set ul.show').removeClass('show');
+      $(this).parent().addClass('active');
+    }
+    
   });
 
 });

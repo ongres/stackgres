@@ -859,7 +859,7 @@ ul.zg-ul-select.active li.active:hover {
     position: relative;
 }
 
-.set.active, .set.active a:hover, .set:hover, .set:hover a:hover {
+.set.active, .set li a:hover, .set:hover {
     background-color: rgba(211, 211, 211, .10);
 }
 
@@ -879,16 +879,16 @@ ul.zg-ul-select.active li.active:hover {
     color: inherit;
 }
 
-.item.router-link-exact-active:before, .current .item:before {
+.set.active > ul > li > .item:before {
     display: block;
     content: " ";
     position: absolute;
-    width: 7px;
-    height: 7px;
-    border-radius: 100%;
+    width: 9px;
+    height: 2px;
+    border-radius: 2px;
     background: var(--blue);
-    top: 22px;
-    margin-left: -22px;
+    top: 23px;
+    margin-left: -27px;
 }
 
 .set > .nav-item, .set a {
@@ -1011,6 +1011,10 @@ ul.zg-ul-select.active li.active:hover {
     width: auto;
 }
 
+#side .set .addnew svg {
+    margin-right: 0;
+}
+
 #sets > .hide {
     max-height: 60px;
     height: auto;
@@ -1035,7 +1039,15 @@ ul.zg-ul-select.active li.active:hover {
 
 #sets > .active > ul > li > .item, .set.active .set > .nav-item  {
     padding-left: 80px;
-    /* background: #edecef !important; */
+}
+
+a.item.router-link-exact-active.router-link-active {
+    background: rgba(211,211,214,.15);
+}
+
+.set li {
+    height: 50px;
+    line-height: 50px;
 }
 
 #sets > .active .active > ul > li > a {
@@ -1051,7 +1063,7 @@ ul.zg-ul-select.active li.active:hover {
     color: var(--blue);
 } */
 
-.addnew {
+/* .addnew {
     color: var(--blue) !important;
     display: block;
     font-weight: bold;
@@ -1059,18 +1071,31 @@ ul.zg-ul-select.active li.active:hover {
     padding-left: 16px;
     text-transform: uppercase;
     font-size: 1rem;
+} */
+
+a.addnew {
+    position: absolute;
+    top: -3px;
+    right: 0;
+    background: transparent !important;
+    display: none;
 }
 
-.addnew:before {
+.set:hover > .addnew, .set.active > .addnew {
+    display: block;
+}
+
+/* .addnew:before {
     content: "+";
     font-size: 18px;
     display: inline-block;
     margin-right: 5px;
-}
+} */
 
 /* .addnew {
     display: none;
 }  */
+
 
 .conf > .item:not(:last-of-type) {
     padding-bottom: 15px;
