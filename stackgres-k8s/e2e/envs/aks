@@ -76,5 +76,5 @@ load_operator_k8s() {
 }
 
 operator_pull_policy() {
-  echo IfNotPresent
+  echo Always
 }

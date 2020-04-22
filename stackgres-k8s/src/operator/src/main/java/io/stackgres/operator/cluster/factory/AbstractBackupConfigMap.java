@@ -124,7 +124,7 @@ public abstract class AbstractBackupConfigMap {
   private void setGcsStorageEnvVars(String namespace, String name,
                                     ImmutableMap.Builder<String, String> backupEnvVars,
                                     Optional<GoogleCloudStorage> storageForGcs) {
-    backupEnvVars.put("WALG_GCS_PREFIX", getFromGcs(storageForGcs, GoogleCloudStorage::getPrefix)
+    backupEnvVars.put("WALG_GS_PREFIX", getFromGcs(storageForGcs, GoogleCloudStorage::getPrefix)
         + "/" + namespace + "/" + name);
     backupEnvVars.put("GOOGLE_APPLICATION_CREDENTIALS", getGcsCredentialsFilePath());
   }
