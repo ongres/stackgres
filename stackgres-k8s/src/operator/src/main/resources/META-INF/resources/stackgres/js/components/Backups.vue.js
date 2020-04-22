@@ -177,8 +177,9 @@ var Backups = Vue.component("sg-backup", {
 													{{ back.data.status.process.timing.stored | formatTimestamp('time') }}
 												</span>
 												<span class='ms'>
-													{{ back.data.status.process.timing.stored | formatTimestamp('ms') }} Z
+													{{ back.data.status.process.timing.stored | formatTimestamp('ms') }}
 												</span>
+												 Z
 											</template>
 										</td>
 										<td class="isPermanent center icon" :class="[(back.data.spec.subjectToRetentionPolicy) ? 'true' : 'false']" :data-val="(back.data.status.process.status == 'Completed') ? back.data.spec.subjectToRetentionPolicy : ''"></td>
