@@ -2675,8 +2675,12 @@ td.timestamp span.time {
     margin-right: -3px;
 }
 
-td.timestamp span.date {
-    color: var(--gray4);
+td.timestamp {
+    color: var(--gray3);
+}
+
+td.timestamp span.ms {
+    color: var(--gray5);
 }
 
 /* tr.details th:first-child, tr.details td:first-child {
@@ -2798,11 +2802,31 @@ td.label span {
     background: #bffbbc;
 }
 
-table.clusterConfig th {
-    width: 20%;
+table.clusterConfig {
+    max-width: 1000px;
 }
+
+table.clusterConfig th:first-child, table.clusterConfig td:first-child {
+    width: 150px;
+}
+
 table.clusterConfig tr {
-    background: rgba(240,240,240,.35);
+    background: transparent;
+}
+
+table.clusterConfig td {
+    padding: 10px;
+    vertical-align: top;
+    border: 1px solid #F0F0F1;
+}
+
+table.clusterConfig td.label {
+    font-weight: bold;
+    color: var(--blue);
+}
+
+table.clusterConfig td:not([colspan]) {
+    width: 200px;
 }
 
 table.backupConfig tr.base:first-of-type {
@@ -2820,7 +2844,6 @@ table.backupConfig tr:nth-child(4n-2), table.backupConfig tr:nth-child(4n-2) + t
 table.backupConfig tr.open {
     border-top: 1px solid #f0f0f1;
 }
-
 
 
 /* Table Filters */
