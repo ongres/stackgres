@@ -3,7 +3,7 @@
 set -e
 
 IMAGE_NAME="${IMAGE_NAME:-"stackgres/operator:development-jvm"}"
-CONTAINER_BASE=$(buildah from "azul/zulu-openjdk-alpine:8-jre")
+CONTAINER_BASE=$(buildah from "azul/zulu-openjdk-alpine:8u242-jre")
 
 # Include binaries
 buildah config --workingdir='/app/' "$CONTAINER_BASE"
