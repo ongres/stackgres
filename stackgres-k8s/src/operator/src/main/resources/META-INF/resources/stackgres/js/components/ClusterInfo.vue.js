@@ -39,49 +39,53 @@ var ClusterInfo = Vue.component("cluster-info", {
 			<div class="content">
 				<table class="clusterConfig">
 					<thead>
-						<th>Cluster Name</th>
-						<th>Postgres Version</th>
-						<th>Number of Instances</th>
-						<th>Instance Profile</th>
-						<th>Volume Size</th>
+						<th></th>
+						<th></th>
+						<th></th>
+						<th></th>
 					</thead>
 					<tbody>
 						<tr>
-							<td>{{ cluster.name }}</td>
-							<td>{{ cluster.data.spec.postgresVersion }}</td>
-							<td>{{ cluster.data.spec.instances }}</td>
-							<td>{{ cluster.data.spec.resourceProfile }} (Cores: {{ profile.data.spec.cpu }}, RAM: {{ profile.data.spec.memory }})</td>
+							<td class="label">
+								Postgres Version
+							</td>
+							<td colspan="3">{{ cluster.data.spec.postgresVersion }}</td>
+						</tr>
+						<tr>
+							<td class="label">
+								Instances
+							</td>
+							<td colspan="3">{{ cluster.data.spec.instances }}</td>
+						</tr>
+						<tr>
+							<td class="label">
+								Instance Profile
+							</td>
+							<td colspan="3">{{ cluster.data.spec.sgInstanceProfile }} (Cores: {{ profile.data.spec.cpu }}, RAM: {{ profile.data.spec.memory }})</td>
+						</tr>
+						<tr>
+							<td class="label" rowspan="3">
+								Pods
+							</td>
+							<td class="label" :rowspan="Object.keys(cluster.data.spec.pods.persistentVolume).length">
+								Persistent Volume
+							</td>
+							<td class="label">
+								Volume Size
+							</td>
 							<td>{{ cluster.data.spec.pods.persistentVolume.size }}</td>
 						</tr>
-					</tbody>
-				</table>
-
-				<table class="clusterConfig">
-					<thead>
-						<th>Storage Class</th>
-						<th>Postgres Configuration</th>
-						<th>Connection Pooling</th>
-						<th>Conn. Pooling. Configuration</th>
-						<th>
-							<template v-if="(typeof cluster.data.spec.backupConfig !== 'undefined')">
-								Automatic Backups Configuration
-							</template>
-							<template v-else>
-								Automatic Backups
-							</template>
-						</th>
-					</thead>
-					<tbody>
+						<tr v-if="(typeof cluster.data.spec.pods.persistentVolume.storageClass !== 'undefined')">
+							<td class="label">
+								Storage Class
+							</td>
+							<td>{{ cluster.data.spec.pods.persistentVolume.size }}</td>
+						</tr>
 						<tr>
-							<td>
-								<template v-if="(typeof cluster.data.spec.pods.persistentVolume.storageClass !== 'undefined')">
-									{{ cluster.data.spec.pods.persistentVolume.storageClass }}
-								</template>
+							<td class="label">
+								Connection Pooling
 							</td>
-							<td>
-								{{ cluster.data.spec.configurations.sgPostgresConfig }}
-							</td>
-							<td>
+							<td colspan="2">
 								<template v-if="(typeof cluster.data.spec.configurations.sgPoolingConfig !== 'undefined')">
 									ON
 								</template>
@@ -89,33 +93,50 @@ var ClusterInfo = Vue.component("cluster-info", {
 									OFF
 								</template>
 							</td>
-							<td>
-								<template v-if="(typeof cluster.data.spec.configurations.sgPoolingConfig !== 'undefined')">
-									{{ cluster.data.spec.configurations.sgPoolingConfig }}
-								</template>
+						</tr>
+						<tr>
+							<td class="label">
+								Metrics Exporter
 							</td>
-							<td>
-								<template v-if="(typeof cluster.data.spec.configurations.sgBackupConfig !== 'undefined')">
-									{{ cluster.data.spec.configurations.sgBackupConfig }}
+							<td colspan="2">
+								<template v-if="!cluster.data.spec.pods.disableMetricsExporter">
+									ON
 								</template>
 								<template v-else>
 									OFF
 								</template>
 							</td>
 						</tr>
-					</tbody>
-				</table>
-				<table class="clusterConfig">
-					<thead>
-						<th>Prometheus Autobind</th>
-						<th>Disable Cluster Pod Anti-Affinity</th>
-						<th></th>
-						<th></th>
-						<th></th>
-					</thead>
-					<tbody>
 						<tr>
-							<td>
+							<td class="label" :rowspan="Object.keys(cluster.data.spec.configurations).length">
+								Configurations
+							</td>
+							<td class="label">
+								Postgres
+							</td>
+							<td colspan="2">{{ cluster.data.spec.configurations.sgPostgresConfig }}</td>
+						</tr>
+						<tr v-if="(typeof cluster.data.spec.configurations.sgPoolingConfig !== 'undefined')">
+							<td class="label">
+								Connection Pooling
+							</td>
+							<td colspan="2">
+								{{ cluster.data.spec.configurations.sgPoolingConfig }}
+							</td>
+						</tr>
+						<tr v-if="(typeof cluster.data.spec.configurations.sgBackupConfig !== 'undefined')">
+							<td class="label">
+								Managed Backups
+							</td>
+							<td colspan="2">
+								{{ cluster.data.spec.configurations.sgBackupConfig }}
+							</td>
+						</tr>
+						<tr>
+							<td class="label">
+								Prometheus Autobind
+							</td>
+							<td colspan="3">
 								<template v-if="(typeof cluster.data.spec.prometheusAutobind !== 'undefined')">
 									ON
 								</template>
@@ -123,17 +144,22 @@ var ClusterInfo = Vue.component("cluster-info", {
 									OFF
 								</template>
 							</td>
-							<td>
-								<template v-if="(typeof cluster.data.spec.nonProductionOptions !== 'undefined' && typeof cluster.data.spec.nonProductionOptions.disableClusterPodAntiAffinity !== 'undefined')">
-									ON
-								</template>
-								<template v-else>
+						</tr>
+						<tr v-if="typeof cluster.data.spec.nonProductionOptions !== 'undefined'">
+							<td class="label">
+								Non-Production Settings
+							</td>
+							<td class="label">
+								Cluster Pod Anti Affinity
+							</td>
+							<td colspan="2">
+								<template v-if="typeof cluster.data.spec.nonProductionOptions.disableClusterPodAntiAffinity !== 'undefined'">
 									OFF
 								</template>
+								<template v-else>
+									ON
+								</template>
 							</td>
-							<td></td>
-							<td></td>
-							<td></td>
 						</tr>
 					</tbody>
 				</table>
