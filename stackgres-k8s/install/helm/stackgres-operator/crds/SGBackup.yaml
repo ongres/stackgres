@@ -29,13 +29,7 @@ spec:
             name:
               type: string
               description: |
-                The name of the backup created (automatic backups) or to be created (if requesting manual creation).
-                It must follow
-                [Kubernetes naming conventions](https://github.com/kubernetes/community/blob/master/contributors/design-proposals/architecture/identifiers.md),
-                it must be an rfc1035/rfc1123 subdomain, that is, up to 253 characters consisting of one or more
-                lowercase labels separated by `.`. Where each label is an alphanumeric (a-z, and 0-9) string, with a
-                maximum length of 63 characters, with the `-` character allowed anywhere except the first or last
-                character.
+                The name of the backup created (automatic backups) or to be created (if requesting manual creation). It must follow [Kubernetes naming conventions](https://github.com/kubernetes/community/blob/master/contributors/design-proposals/architecture/identifiers.md), it must be an rfc1035/rfc1123 subdomain, that is, up to 253 characters consisting of one or more lowercase labels separated by `.`. Where each label is an alphanumeric (a-z, and 0-9) string, with a maximum length of 63 characters, with the `-` character allowed anywhere except the first or last character.
 
                 This name needs to be unique across all StackGres backups in the same namespace.
         spec:
@@ -71,8 +65,7 @@ spec:
                 jobPod:
                   type: string
                   description: |
-                    The name of pod assigned to this backup. StackGres utilizes internally a locking mechanism based on
-                    the pod name of the job that creates the backup.
+                    The name of pod assigned to this backup. StackGres utilizes internally a locking mechanism based on the pod name of the job that creates the backup.
                 subjectToRetentionPolicy:
                   type: boolean
                   description: |
@@ -153,10 +146,7 @@ spec:
                 compression:
                   type: string
                   description: |
-                    Select the backup compression algorithm. Possible options are: lz4, lzma, brotli. The default method
-                    is `lz4`. LZ4 is the fastest method, but compression ratio is the worst. LZMA is way slower, but
-                    it compresses backups about 6 times better than LZ4. Brotli is a good trade-off between speed and
-                    compression ratio, being about 3 times better than LZ4.
+                    Select the backup compression algorithm. Possible options are: lz4, lzma, brotli. The default method is `lz4`. LZ4 is the fastest method, but compression ratio is the worst. LZMA is way slower, but it compresses backups about 6 times better than LZ4. Brotli is a good trade-off between speed and compression ratio, being about 3 times better than LZ4.
                   enum: ["lz4", "lzma", "brotli"]
                 storage:
                   type: object
@@ -192,15 +182,11 @@ spec:
                         region:
                           type: string
                           description: |
-                            The AWS S3 region. The Region may be detected using s3:GetBucketLocation, but if you wish to
-                            avoid giving permissions to this API call or forbid it from the applicable IAM policy, you must
-                            then specify this property.
+                            The AWS S3 region. The Region may be detected using s3:GetBucketLocation, but if you wish to avoid giving permissions to this API call or forbid it from the applicable IAM policy, you must then specify this property.
                         storageClass:
                           type: string
                           description: |
-                            The [Amazon S3 Storage Class](https://aws.amazon.com/s3/storage-classes/) to use for the backup
-                            object storage. By default, the `STANDARD` storage class is used. Other supported values
-                            include `STANDARD_IA` for Infrequent Access and `REDUCED_REDUNDANCY`.
+                            The [Amazon S3 Storage Class](https://aws.amazon.com/s3/storage-classes/) to use for the backup object storage. By default, the `STANDARD` storage class is used. Other supported values include `STANDARD_IA` for Infrequent Access and `REDUCED_REDUNDANCY`.
                         awsCredentials:
                           type: object
                           description: |
@@ -209,15 +195,12 @@ spec:
                             secretKeySelectors:
                               type: object
                               description: |
-                                Kubernetes
-                                [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core)s
-                                to reference the Secrets that contain the information about the `awsCredentials`.
+                                Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core)s to reference the Secrets that contain the information about the `awsCredentials`.
                               properties:
                                 accessKeyId:
                                   type: object
                                   description: |
-                                    [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core)
-                                    containing the AWS Access Key ID secret.
+                                    [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core) containing the AWS Access Key ID secret.
                                   properties:
                                     key:
                                       type: string
@@ -226,14 +209,12 @@ spec:
                                     name:
                                       type: string
                                       description: |
-                                        Name of the referent.
-                                        [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
+                                        Name of the referent.  [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
                                   required: ["key", "name"]
                                 secretAccessKey:
                                   type: object
                                   description: |
-                                    [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core)
-                                    containing the AWS Secret Access Key secret.
+                                    [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core) containing the AWS Secret Access Key secret.
                                   properties:
                                     key:
                                       type: string
@@ -242,8 +223,7 @@ spec:
                                     name:
                                       type: string
                                       description: |
-                                        Name of the referent.
-                                        [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
+                                        Name of the referent.  [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
                                   required: ["key", "name"]
                               required: ["accessKeyId", "secretAccessKey"]
                           required: ["secretKeySelectors"]
@@ -261,14 +241,11 @@ spec:
                           type: string
                           pattern: "^(/[^/]*)*$"
                           description: |
-                            Optional path within the S3 bucket. Note that StackGres generates in any case a folder per
-                            StackGres cluster, using the `SGCluster.metadata.name`.
+                            Optional path within the S3 bucket. Note that StackGres generates in any case a folder per StackGres cluster, using the `SGCluster.metadata.name`.
                         enablePathStyleAddressing:
                           type: boolean
                           description: |
-                            Enable path-style addressing (i.e. `http://s3.amazonaws.com/BUCKET/KEY`) when connecting to an
-                            S3-compatible service that lacks support for sub-domain style bucket URLs
-                            (i.e. `http://BUCKET.s3.amazonaws.com/KEY`). Defaults to false.
+                            Enable path-style addressing (i.e. `http://s3.amazonaws.com/BUCKET/KEY`) when connecting to an S3-compatible service that lacks support for sub-domain style bucket URLs (i.e. `http://BUCKET.s3.amazonaws.com/KEY`). Defaults to false.
                         endpoint:
                           type: string
                           description: |
@@ -277,15 +254,11 @@ spec:
                         region:
                           type: string
                           description: |
-                            The AWS S3 region. The Region may be detected using s3:GetBucketLocation, but if you wish to
-                            avoid giving permissions to this API call or forbid it from the applicable IAM policy, you must
-                            then specify this property.
+                            The AWS S3 region. The Region may be detected using s3:GetBucketLocation, but if you wish to avoid giving permissions to this API call or forbid it from the applicable IAM policy, you must then specify this property.
                         storageClass:
                           type: string
                           description: |
-                            The [Amazon S3 Storage Class](https://aws.amazon.com/s3/storage-classes/) to use for the backup
-                            object storage. By default, the `STANDARD` storage class is used. Other supported values
-                            include `STANDARD_IA` for Infrequent Access and `REDUCED_REDUNDANCY`.
+                            The [Amazon S3 Storage Class](https://aws.amazon.com/s3/storage-classes/) to use for the backup object storage. By default, the `STANDARD` storage class is used. Other supported values include `STANDARD_IA` for Infrequent Access and `REDUCED_REDUNDANCY`.
                         awsCredentials:
                           type: object
                           description: |
@@ -294,15 +267,12 @@ spec:
                             secretKeySelectors:
                               type: object
                               description: |
-                                A Kubernetes
-                                [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core)
-                                to reference the Secrets that contain the information about the `awsCredentials`.
+                                A Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core) to reference the Secrets that contain the information about the `awsCredentials`.
                               properties:
                                 accessKeyId:
                                   type: object
                                   description: |
-                                    [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core)
-                                    containing the AWS Access Key ID secret.
+                                    [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core) containing the AWS Access Key ID secret.
                                   properties:
                                     key:
                                       type: string
@@ -311,14 +281,12 @@ spec:
                                     name:
                                       type: string
                                       description: |
-                                        Name of the referent.
-                                        [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
+                                        Name of the referent.  [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
                                   required: ["key", "name"]
                                 secretAccessKey:
                                   type: object
                                   description: |
-                                    [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core)
-                                    containing the AWS Secret Access Key secret.
+                                    [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core) containing the AWS Secret Access Key secret.
                                   properties:
                                     key:
                                       type: string
@@ -327,8 +295,7 @@ spec:
                                     name:
                                       type: string
                                       description: |
-                                        Name of the referent.
-                                        [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
+                                        Name of the referent.  [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
                                   required: ["key", "name"]
                               required: ["accessKeyId", "secretAccessKey"]
                           required: ["secretKeySelectors"]
@@ -347,8 +314,7 @@ spec:
                           type: string
                           pattern: "^(/[^/]*)*$"
                           description: |
-                            Optional path within the GCS bucket. Note that StackGres generates in any case a folder per
-                            StackGres cluster, using the `SGCluster.metadata.name`.
+                            Optional path within the GCS bucket. Note that StackGres generates in any case a folder per StackGres cluster, using the `SGCluster.metadata.name`.
                         gcpCredentials:
                           type: object
                           description: |
@@ -357,10 +323,7 @@ spec:
                             secretKeySelectors:
                               type: object
                               description: |
-                                A Kubernetes
-                                [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core)
-                                to reference the Secrets that contain the information about the Service Account to access
-                                GCS.
+                                A Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core) to reference the Secrets that contain the information about the Service Account to access GCS.
                               properties:
                                 serviceAccountJSON:
                                   type: object
@@ -374,8 +337,7 @@ spec:
                                     name:
                                       type: string
                                       description: |
-                                        Name of the referent.
-                                        [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
+                                        Name of the referent.  [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
                                   required: ["key", "name"]
                               required: ["serviceAccountJSON"]
                           required: ["secretKeySelectors"]
@@ -394,8 +356,7 @@ spec:
                           type: string
                           pattern: "^(/[^/]*)*$"
                           description: |
-                            Optional path within the Azure Blobk bucket. Note that StackGres generates in any case a folder
-                            per StackGres cluster, using the `SGCluster.metadata.name`.
+                            Optional path within the Azure Blobk bucket. Note that StackGres generates in any case a folder per StackGres cluster, using the `SGCluster.metadata.name`.
                         azureCredentials:
                           type: object
                           description: |
@@ -404,15 +365,12 @@ spec:
                             secretKeySelectors:
                               type: object
                               description: |
-                                Kubernetes
-                                [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core)s
-                                to reference the Secrets that contain the information about the `azureCredentials`.
+                                Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core)s to reference the Secrets that contain the information about the `azureCredentials`.
                               properties:
                                 storageAccount:
                                   type: object
                                   description: |
-                                    [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core)
-                                    containing the name of the storage account.
+                                    [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core) containing the name of the storage account.
                                   properties:
                                     key:
                                       type: string
@@ -421,14 +379,12 @@ spec:
                                     name:
                                       type: string
                                       description: |
-                                        Name of the referent.
-                                        [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
+                                        Name of the referent.  [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
                                   required: ["key", "name"]
                                 accessKey:
                                   type: object
                                   description: |
-                                    [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core)
-                                    containing the primary or secondary access key for the storage account.
+                                    [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core) containing the primary or secondary access key for the storage account.
                                   properties:
                                     key:
                                       type: string
@@ -437,8 +393,7 @@ spec:
                                     name:
                                       type: string
                                       description: |
-                                        Name of the referent.
-                                        [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
+                                        Name of the referent.  [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
                                   required: ["key", "name"]
                               required: ["storageAccount", "accessKey"]
                       required: ["bucket", "azureCredentials"]

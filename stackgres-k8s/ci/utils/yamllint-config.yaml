@@ -1,6 +1,8 @@
 extends: default
 
 rules:
+  document-start:
+    present: false  
   line-length:
-    max: 120
+    max: 1000
     level: warning
