@@ -2612,7 +2612,7 @@ table .base td:not(.actions) {
     cursor: pointer;
 }
 
-table .Running td {
+table .Running td, table .Pending td {
     cursor: not-allowed;
 }
 
@@ -2827,6 +2827,22 @@ table.clusterConfig td.label {
 
 table.clusterConfig td:not([colspan]) {
     width: 200px;
+}
+
+table.clusterConfig a {
+    color: initial;
+    display: inline-flex;
+}
+
+table.clusterConfig a:hover svg {
+    fill: var(--blue);
+}
+
+table.clusterConfig svg {
+    fill: var(--gray4);
+    width: 14px;
+    display: inline-block;
+    margin-left: 5px;
 }
 
 table.backupConfig tr.base:first-of-type {
