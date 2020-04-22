@@ -260,7 +260,7 @@ router.beforeEach((to, from, next) => {
     
     if ( typeof cluster !== "undefined" ) {
       
-      let backups = store.state.backups.find(b => ( (to.params.name == b.data.spec.cluster) && (to.params.namespace == b.data.metadata.namespace) ) );
+      let backups = store.state.backups.find(b => ( (to.params.name == b.data.spec.sgCluster) && (to.params.namespace == b.data.metadata.namespace) ) );
       
       if ( typeof backups !== "undefined" )
         cluster.hasBackups = true; // Enable/Disable Backups button
@@ -843,7 +843,9 @@ const vm = new Vue({
                 //console.log("Namespace ya existe");
               }
 
-              if( item.status.process.status === 'Completed') {
+              //console.log(item);
+
+              if( item.hasOwnProperty('status.process.status') && (item.status.process.status === 'Completed') ) {
                 start = moment(item.status.process.timing.start);
                 finish = moment(item.status.process.timing.stored);
                 duration = new Date(moment.duration(finish.diff(start))).toISOString();

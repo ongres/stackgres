@@ -79,6 +79,15 @@ var CreateBackup = Vue.component("create-backup", {
             }
 
         } else if (vm.$route.params.action == 'edit') {
+
+            let bk = {};
+            
+            store.state.backups.forEach(function( b ){
+                if( (b.data.metadata.name === vm.$route.params.name) && (b.data.metadata.namespace === vm.$route.params.namespace) ) {
+                    bk = b;
+                    return false;
+                }
+            });
             
             return {
                 editMode: true,
@@ -86,7 +95,7 @@ var CreateBackup = Vue.component("create-backup", {
                 backupName: vm.$route.params.name,
                 backupNamespace: store.state.currentNamespace,
                 backupCluster: vm.$route.params.cluster,
-                subjectToRetentionPolicy: false
+                subjectToRetentionPolicy: bk.data.spec.subjectToRetentionPolicy
             }
         }
 	},
