@@ -135,6 +135,7 @@ var Nav = Vue.component("sg-nav", {
 			loginUser: '',
 			loginPassword: '',
 			loginPasswordType: 'password',
+			confirmDeleteName: ''
 		}
 	},
 	
@@ -168,10 +169,9 @@ var Nav = Vue.component("sg-nav", {
 			return store.state.loginToken.length > 0
 		},
 
-		confirmDeleteName() {
+		/* confirmDeleteName() {
 			return store.state.confirmDeleteName
-		}
-
+		}*/
 	},
 
 	methods: {
