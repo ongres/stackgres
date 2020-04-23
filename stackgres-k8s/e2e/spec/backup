@@ -40,6 +40,8 @@ e2e_test() {
   run_test "Checking that backup is working after switchover" check_backup_after_switchover
 
   run_test "Checking that backup is working after killing storage provider service" check_backup_after_kill_storage_provider_service
+
+  run_test "Checking that backups aren't being deleted after the cluster is deleted" check_backup_not_delect_after_cluster
 }
 
 check_backup_before_switchover() {
@@ -55,5 +57,16 @@ check_backup_after_kill_storage_provider_service() {
     | xargs -r -n 1 -I % kubectl delete -n "$CLUSTER_NAMESPACE" %
 
   check_backup 1
+}
+
+check_backup_not_delect_after_cluster() {
+  
+  kubectl delete sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"
+
+  wait_pods_terminated "$CLUSTER_NAMESPACE" 2
+
+  BACKUPS_COUNT=$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" -o json | run_jq '.items | length')
+
+  assert_greater_than 0 $BACKUPS_COUNT
 }
 
