@@ -5,15 +5,15 @@
 
 package io.stackgres.operator.controller;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import io.fabric8.kubernetes.client.Watcher;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class WatcherMonitorTest {
 
@@ -24,17 +24,17 @@ class WatcherMonitorTest {
 
     AtomicReference<WatcherListener<StackGresCluster>> watcherListener = new AtomicReference<>();
 
-    WatcherMonitor<StackGresCluster> monitor = new WatcherMonitor<>(wl -> {
+    try (WatcherMonitor<StackGresCluster> monitor = new WatcherMonitor<>(wl -> {
       watcherListener.set(wl);
       return () -> {
       };
-    }, () -> giveUpCalled.set(true));
+    }, () -> giveUpCalled.set(true))) {
+      for (int i = 0; i < WatcherMonitor.MAX_RETRIES; i++){
+        watcherListener.get().watcherClosed(new RuntimeException());
+      }
 
-    for (int i = 0; i < WatcherMonitor.MAX_RETRIES; i++){
-      watcherListener.get().watcherClosed(new RuntimeException());
+      assertTrue(giveUpCalled.get(), "not giving up");
     }
-
-    assertTrue(giveUpCalled.get(), "not giving up");
   }
 
   @Test
@@ -63,23 +63,22 @@ class WatcherMonitorTest {
 
     AtomicReference<WatcherListener<StackGresCluster>> watcherListener = new AtomicReference<>();
 
-    WatcherMonitor<StackGresCluster> monitor = new WatcherMonitor<>(wl -> {
+    try(WatcherMonitor<StackGresCluster> monitor = new WatcherMonitor<>(wl -> {
       watcherListener.set(wl);
       return () -> {
       };
-    }, () -> giveUpCalled.set(true));
+    }, () -> giveUpCalled.set(true))) {
+      for (int i = 0; i < WatcherMonitor.MAX_RETRIES - 1; i++) {
+        watcherListener.get().watcherClosed(new RuntimeException());
+      }
 
-    for (int i = 0; i < WatcherMonitor.MAX_RETRIES - 1; i++) {
-      watcherListener.get().watcherClosed(new RuntimeException());
+      watcherListener.get().eventReceived(Watcher.Action.ADDED, null);
+
+      for (int i = 0; i < WatcherMonitor.MAX_RETRIES - 1; i++) {
+        watcherListener.get().watcherClosed(new RuntimeException());
+      }
+
+      assertFalse(giveUpCalled.get(), "counter not being reset");
     }
-
-    watcherListener.get().eventReceived(Watcher.Action.ADDED, null);
-
-    for (int i = 0; i < WatcherMonitor.MAX_RETRIES - 1; i++) {
-      watcherListener.get().watcherClosed(new RuntimeException());
-    }
-
-    assertFalse(giveUpCalled.get(), "counter not being reset");
-
   }
 }

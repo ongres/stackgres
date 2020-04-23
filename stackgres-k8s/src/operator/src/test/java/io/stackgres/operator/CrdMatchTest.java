@@ -5,6 +5,8 @@
 
 package io.stackgres.operator;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -21,13 +23,9 @@ import com.google.common.reflect.ClassPath;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.operator.app.YamlMapperProvider;
-import io.stackgres.operator.common.ConfigLoader;
-import io.stackgres.operator.common.ConfigProperty;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.opentest4j.AssertionFailedError;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class CrdMatchTest {
 

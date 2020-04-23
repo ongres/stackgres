@@ -5,13 +5,11 @@
 
 package io.stackgres.operator.validation.profile;
 
+import io.stackgres.operator.common.SgProfileReview;
 import io.stackgres.operator.utils.JsonUtil;
 import io.stackgres.operator.validation.DependenciesValidator;
 import io.stackgres.operator.validation.DependenciesValidatorTest;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
-import io.stackgres.operator.common.SgProfileReview;
-
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.runner.RunWith;

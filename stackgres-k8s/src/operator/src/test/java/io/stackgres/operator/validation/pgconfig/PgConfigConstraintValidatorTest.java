@@ -7,9 +7,9 @@ package io.stackgres.operator.validation.pgconfig;
 
 import java.util.HashMap;
 
-import io.stackgres.operator.common.PgConfigReview;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigSpec;
+import io.stackgres.operator.common.PgConfigReview;
 import io.stackgres.operator.utils.JsonUtil;
 import io.stackgres.operator.validation.ConstraintValidationTest;
 import io.stackgres.operator.validation.ConstraintValidator;

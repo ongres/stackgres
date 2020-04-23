@@ -5,27 +5,28 @@
 
 package io.stackgres.operator.validation.cluster;
 
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import java.util.Optional;
 
-import io.stackgres.operator.common.ConfigLoader;
-import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackup.StackGresBackupList;
-import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.ClusterRestore;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.operator.common.ConfigLoader;
+import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.resource.CustomResourceScanner;
 import io.stackgres.operator.utils.JsonUtil;
 import io.stackgres.operator.utils.ValidationUtils;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class RestoreConfigValidatorTest {

@@ -12,7 +12,6 @@ import io.stackgres.operator.common.BackupConfigReview;
 import io.stackgres.operator.common.ConfigLoader;
 import io.stackgres.operator.utils.JsonUtil;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
-
 import org.junit.jupiter.api.Test;
 
 class StorageValidatorTest {

@@ -8,11 +8,10 @@ package io.stackgres.operator.validation.backup;
 import javax.inject.Inject;
 
 import io.quarkus.test.junit.QuarkusTest;
-import io.stackgres.operator.common.BackupReview;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
+import io.stackgres.operator.common.BackupReview;
 import io.stackgres.operator.utils.JsonUtil;
 import io.stackgres.operator.validation.ValidationPipelineTest;
-import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
 @QuarkusTest

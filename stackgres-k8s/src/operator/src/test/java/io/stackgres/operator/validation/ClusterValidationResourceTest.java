@@ -22,9 +22,6 @@ import java.util.UUID;
 
 import javax.enterprise.inject.Instance;
 import javax.inject.Singleton;
-import javax.validation.Validation;
-import javax.validation.Validator;
-import javax.validation.ValidatorFactory;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.MediaType;
@@ -36,7 +33,6 @@ import io.stackgres.operator.validation.cluster.AlwaysSuccess;
 import io.stackgres.operator.validation.cluster.ClusterValidationPipeline;
 import io.stackgres.operator.validation.cluster.ClusterValidator;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReviewResponse;
-
 import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.internal.inject.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
