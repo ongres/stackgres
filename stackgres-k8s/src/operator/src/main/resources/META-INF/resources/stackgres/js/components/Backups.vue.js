@@ -217,22 +217,16 @@ var Backups = Vue.component("sg-backup", {
 										</td>
 									</tr>
 									<tr class="details" :class="'sgbackup-'+back.data.metadata.namespace+'-'+back.data.metadata.name" v-if="back.data.status.process.status === 'Completed'">
-										<td :colspan="(isCluster) ? 6 : 8">
-											<!--<h4>Backup Details</h4>-->
-
+										<td :colspan="(isCluster) ? 3 : 4">
 											<table>
 												<thead>
-													<th>Start Time</th>
-													<th>Elapsed</th>
-													<th>LSN (start ⇢ end)</th>
-													<th colspan="2">UID</th>
-													<th>Source Pod</th>
-													<th>Timeline</th>
-													<th>System Identifier</th>
-													<th>Storage Type</th>
+													<th colspan="2">Backup Details</th>
 												</thead>
 												<tbody>
 													<tr>
+														<td class="label">
+															Start Time
+														</td>
 														<td class="timestamp">
 															<span class='date'>
 																{{ back.data.status.process.timing.start | formatTimestamp('date') }}
@@ -244,6 +238,11 @@ var Backups = Vue.component("sg-backup", {
 																{{ back.data.status.process.timing.start | formatTimestamp('ms') }} Z
 															</span>
 														</td>
+													</tr>
+													<tr>
+														<td class="label">
+															Elapsed
+														</td>
 														<td class="timestamp">
 															<span class='time'>
 																{{ back.duration | formatTimestamp('time') }}
@@ -252,20 +251,50 @@ var Backups = Vue.component("sg-backup", {
 																{{ back.duration | formatTimestamp('ms') }}
 															</span>
 														</td>
+													</tr>
+													<tr>
+														<td class="label">
+															LSN (start ⇢ end)
+														</td>
 														<td>
 															{{ back.data.status.backupInformation.lsn.start }} ⇢ {{ back.data.status.backupInformation.lsn.end }}
+														</td>
+													</tr>
+													<tr>
+														<td class="label">
+															UID
 														</td>
 														<td colspan="2">
 															{{ back.data.metadata.uid }}
 														</td>
+													</tr>
+													<tr>
+														<td class="label">
+															Source Pod
+														</td>
 														<td>
 															{{ back.data.status.backupInformation.hostname }}
+														</td>
+													</tr>
+													<tr>
+														<td class="label">
+															Timeline
 														</td>
 														<td>
 															{{ parseInt(back.data.status.backupInformation.startWalFile.substr(8)) }}
 														</td>
+													</tr>
+													<tr>
+														<td class="label">
+															System Identifier
+														</td>
 														<td>
 															{{ back.data.status.backupInformation.systemIdentifier }}
+														</td>
+													</tr>
+													<tr>
+														<td class="label">
+															Storage Type
 														</td>
 														<td>
 															{{ back.data.status.sgBackupConfig.storage.type }}
@@ -273,6 +302,8 @@ var Backups = Vue.component("sg-backup", {
 													</tr>
 												</tbody>
 											</table>
+										</td>
+										<td :colspan="(isCluster) ? 3 : 4">
 											<table>
 												<thead>
 													<th>Backup Configuration</th>
@@ -377,6 +408,11 @@ var Backups = Vue.component("sg-backup", {
 													</tr>
 												</tbody>
 											</table>
+										</td>
+									</tr>
+									<tr class="details Running" :class="'backup-'+back.data.metadata.namespace+'-'+back.data.metadata.name" v-else-if="back.data.status.process.status === 'Running'">
+										<td :colspan="(isCluster) ? 6 : 8" class="center">
+											<strong>Backup Runninge</strong><br/>
 										</td>
 									</tr>
 									<tr class="details Failed" :class="'backup-'+back.data.metadata.namespace+'-'+back.data.metadata.name" v-else-if="back.data.status.process.status === 'Failed'">

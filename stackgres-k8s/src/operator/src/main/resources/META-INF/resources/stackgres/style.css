@@ -2845,6 +2845,10 @@ table.clusterConfig svg {
     margin-left: 5px;
 }
 
+table.backups .details > td {
+    vertical-align: top;
+}
+
 table.backupConfig tr.base:first-of-type {
     border-top: 1px solid #f0f0f1;
 }
