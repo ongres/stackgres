@@ -13,4 +13,4 @@ sidecar:
   prometheus:
     allowAutobind: false
 nonProductionOptions:
-  disableClusterPodAntiAffinity: true
+  disableClusterPodAntiAffinity: false

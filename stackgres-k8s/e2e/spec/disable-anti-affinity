@@ -1,9 +1,0 @@
-#!/bin/sh
-
-e2e_test_install_pods() {
-  echo 3
-}
-
-e2e_test() {
-  echo "SUCCESS. All 3 cluster pod are running."
-}
