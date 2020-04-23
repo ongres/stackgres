@@ -586,6 +586,8 @@ Vue.mixin({
 
 		confirmDelete: function( confirmName ) {
 
+      //console.log("Name: "+confirmName);
+
       const item = store.state.deleteItem;
 
 			if(confirmName == item.name) { 
