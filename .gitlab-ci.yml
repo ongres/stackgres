@@ -22,6 +22,9 @@ variables:
                    --show-version
                    -DinstallAtEnd=true
                    -DdeployAtEnd=true
+                   -Dsurefire.useFile=false
+                   -Dsurefire.useFile=false
+                   -DtrimStackTrace=false
   DISABLE_IT: "true"
   E2E_ENV: kind
   E2E_PARALLELISM: 32
