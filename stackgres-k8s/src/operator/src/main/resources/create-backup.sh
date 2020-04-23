@@ -127,9 +127,9 @@ $(kubectl get "$BACKUP_CONFIG_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG"
         {{ with .path }}path: "{{ . }}"{{ end }}
         gcpCredentials:
           secretKeySelectors:
-            serviceAccountJsonKey:
-              key: "{{ .gcpCredentials.secretKeySelectors.serviceAccountJsonKey.key }}"
-              name: "{{ .gcpCredentials.secretKeySelectors.serviceAccountJsonKey.name }}"
+            serviceAccountJSON:
+              key: "{{ .gcpCredentials.secretKeySelectors.serviceAccountJSON.key }}"
+              name: "{{ .gcpCredentials.secretKeySelectors.serviceAccountJSON.name }}"
       {{- end }}
       {{- with .spec.storage.azureBlob }}
       azureBlob:
@@ -168,7 +168,7 @@ else
         "bucket": "{{ .bucket }}",
         {{ with .path }}"path": "{{ . }}",{{ end }}
         "awsCredentials": {
-          "secretKeySelectors: {
+          "secretKeySelectors": {
             "accessKeyId": {
               "key": "{{ .awsCredentials.secretKeySelectors.accessKeyId.key }}",
               "name": "{{ .awsCredentials.secretKeySelectors.accessKeyId.name }}"
@@ -211,7 +211,7 @@ else
         {{ with .path }}"path": "{{ . }}",{{ end }}
         "gcpCredentials": {
           "secretKeySelectors": {
-            "serviceAccountJsonKey": {
+            "serviceAccountJSON": {
               "key": "{{ .gcpCredentials.secretKeySelectors.serviceAccountJSON.key }}",
               "name": "{{ .gcpCredentials.secretKeySelectors.serviceAccountJSON.name }}"
             }
@@ -223,15 +223,15 @@ else
       "azureBlob": {
         "bucket": "{{ .bucket }}",
         {{ with .path }}"path": "{{ . }}",{{ end }}
-        "azureredentials": {
+        "azureCredentials": {
           "secretKeySelectors": {
             "storageAccount": {
-              "key": "{{ .storageAccount.secretKeySelectors.storageAccount.key }}",
-              "name": "{{ .storageAccount.secretKeySelectors.storageAccount.name }}"
+              "key": "{{ .azureCredentials.secretKeySelectors.storageAccount.key }}",
+              "name": "{{ .azureCredentials.secretKeySelectors.storageAccount.name }}"
             },
             "accessKey": {
-              "key": "{{ .storageAccount.secretKeySelectors.accessKey.key }}",
-              "name": "{{ .storageAccount.secretKeySelectors.accessKey.name }}"
+              "key": "{{ .azureCredentials.secretKeySelectors.accessKey.key }}",
+              "name": "{{ .azureCredentials.secretKeySelectors.accessKey.name }}"
             }
           }
         }

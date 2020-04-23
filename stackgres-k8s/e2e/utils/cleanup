@@ -33,7 +33,7 @@ k8s_cleanup() {
       | xargs -r -n 1 -I @ -P 0 "$SHELL" $(! echo $- | grep -q x || echo "-x") \
         -ec "$(k8s_finalize_namespace_script)"
   ! kubectl api-resources | grep -q '^podsecuritypolicies ' \
-    || kubectl get podsecuritypolicies -o name | xargs -r -n 1 -I % kubectl delete '%'
+    || kubectl get podsecuritypolicies -o name | grep -v 'podsecuritypolicy.extensions/eks.privileged' | xargs -r -n 1 -I % kubectl delete '%'
 }
 
 k8s_webhook_cleanup() {
@@ -65,7 +65,7 @@ k8s_cleanup_but_operator() {
       | xargs -r -n 1 -I @ -P 0 "$SHELL" $(! echo $- | grep -q x || echo "-x") \
         -ec "$(k8s_finalize_namespace_script)"
   ! kubectl api-resources | grep -q '^podsecuritypolicies ' \
-    || kubectl get podsecuritypolicies -o name | xargs -r -n 1 -I % kubectl delete '%'
+    || kubectl get podsecuritypolicies -o name | grep -v 'podsecuritypolicy.extensions/eks.privileged' | xargs -r -n 1 -I % kubectl delete '%'
 }
 
 k8s_cleanup_namespace() {

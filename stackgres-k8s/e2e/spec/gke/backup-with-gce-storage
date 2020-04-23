@@ -39,7 +39,7 @@ e2e_test_uninstall(){
 
   k8s_cleanup_namespace "$CLUSTER_NAMESPACE"
 
-  gsutil rm -r -m "gs://stackgres-e2e-$CLUSTER_NAME/" || true
+  gsutil -m rm -r "gs://stackgres-e2e-$CLUSTER_NAME/" || true
 }
 
 e2e_test() {
@@ -59,9 +59,8 @@ create_mock_data() {
   run_query -p 5432 -h "$CLUSTER_NAME-primary" -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -q "'INSERT INTO fibonacci(num) VALUES (3);'" -d "test"
 }
 
-get_backup_phase() {
-  BACKUP_PHASE=$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" -o=jsonpath='{.status.phase}')
-  echo "$BACKUP_PHASE"
+is_backup_phase() {
+  [ "$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" -o=jsonpath='{.status.process.status}')" = "$1" ]
 }
 
 execute_backup() {
@@ -72,11 +71,11 @@ metadata:
   namespace: "$CLUSTER_NAMESPACE"
   name: "$BACKUP_NAME"
 spec:
-  cluster: "$CLUSTER_NAME"
-  isPermanent: true
+  sgCluster: "$CLUSTER_NAME"
+  subjectToRetentionPolicy: true
 EOF
   
-  wait_until eval '[ "$(get_backup_phase)" = "Completed" ]'  
+  wait_until is_backup_phase "Completed"
 
   echo "Success. Backup completed"
 }
@@ -94,7 +93,8 @@ metadata:
   namespace: $CLUSTER_NAMESPACE
 spec:
   instances: 2
-  postgresVersion: '12.1'
+  postgresVersion: '12.2'
+  sgInstanceProfile: size-xs
   pods:
     persistentVolume:
       size: '512Mi'
