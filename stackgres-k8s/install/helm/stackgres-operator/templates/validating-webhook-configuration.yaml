@@ -100,3 +100,19 @@ webhooks:
       {{- if .Values.cert.crt }}
       caBundle: {{ .Values.cert.crt }}
       {{- end }}
+  - name: sgdistributedlogs.{{ .Release.Name }}.{{ .Release.Namespace }}
+    sideEffects: None
+    rules:
+      - operations: ["CREATE", "UPDATE", "DELETE"]
+        apiGroups: ["stackgres.io"]
+        apiVersions: ["*"]
+        resources: ["sgdistributedlogs"]
+    failurePolicy: Fail
+    clientConfig:
+      service:
+        namespace: {{ .Release.Namespace }}
+        name: {{ .Release.Name }}
+        path: '/stackgres/validation/sgdistributedlogs'
+      {{- if .Values.cert.crt }}
+      caBundle: {{ .Values.cert.crt }}
+      {{- end }}

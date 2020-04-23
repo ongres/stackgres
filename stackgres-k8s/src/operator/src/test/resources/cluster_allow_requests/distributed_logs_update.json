@@ -70,12 +70,50 @@
           "disablePostgresUtil": false
         },
         "distributedLogs":{
+          "sgDistributedLogs": "newdistributedlogs"
+        }
+      },
+      "status": null
+    },
+    "oldObject": {
+      "kind": "SGCluster",
+      "apiVersion": "stackgres.io/v1beta1",
+      "metadata": {
+        "creationTimestamp": "2019-09-27T09:09:34Z",
+        "generation": 1,
+        "name": "stackgres",
+        "namespace": "default",
+        "uid": "6fe0edf5-8a6d-43b7-99bd-131e2efeab66"
+      },
+      "spec": {
+        "instances": 1,
+        "postgresVersion": "11.5",
+        "sgInstanceProfile": "size-xs",
+        "initialData": {
+          "restore": {
+            "fromBackup": "d7e660a9-377c-11ea-b04b-0242ac110004"
+          }
+        },
+        "configurations": {
+          "sgPostgresConfig": "postgresconf",
+          "sgBackupConfig": "backupconf",
+          "sgPoolingConfig": "pgbouncerconf"
+        },
+        "pods":{
+          "persistentVolume": {
+            "size": "5Gi",
+            "storageClass": "standard"
+          },
+          "disableConnectionPooling": false,
+          "disableMetricsExporter": false,
+          "disablePostgresUtil": false
+        },
+        "distributedLogs":{
           "sgDistributedLogs": "distributedlogs"
         }
       },
       "status": null
     },
-    "oldObject": null,
     "options": {
       "kind": "CreateOptions",
       "apiVersion": "meta.k8s.io/v1",
