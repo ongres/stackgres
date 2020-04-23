@@ -162,6 +162,12 @@ public class DistributedLogsFetcher {
     this.postgresConnectionManager = postgresConnectionManager;
   }
 
+  public DistributedLogsFetcher() {
+    io.stackgres.operator.common.ArcUtil.checkPublicNoArgsConstructorIsCalledFromArc();
+    this.secretFinder = null;
+    this.postgresConnectionManager = null;
+  }
+
   public List<ClusterLogEntryDto> logs(
       ClusterDto cluster,
       int records,
