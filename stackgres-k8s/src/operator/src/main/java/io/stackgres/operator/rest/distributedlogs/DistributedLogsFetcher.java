@@ -33,6 +33,7 @@ import io.stackgres.operator.rest.dto.cluster.ClusterDto;
 import io.stackgres.operator.rest.dto.cluster.ClusterLogEntryDto;
 import io.stackgres.operator.rest.dto.cluster.ClusterSpec;
 import io.stackgres.operatorframework.resource.ResourceUtil;
+import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Name;
@@ -345,16 +346,20 @@ public class DistributedLogsFetcher {
         .filter(field -> filter.v1.equals(field.getName()))
         .findAny()
         .map(field -> currentSelectFrom
-          .and(DSL.field(field.getName()).eq(castFilteredField(filter, field))))
+          .and(filterCondition(filter, field)))
         .orElse(selectFrom);
     return selectFrom;
   }
 
-  protected Field<?> castFilteredField(Tuple2<String, String> filter, Field<?> field) {
-    if (field == MAPPED_ROLE_FIELD) {
-      return DSL.cast(REVERSE_ROLE_MAP.getOrDefault(filter.v2, filter.v2), field);
+  protected Condition filterCondition(Tuple2<String, String> filter, Field<?> field) {
+    if (filter.v2 == null) {
+      return DSL.field(field.getName()).isNull();
     }
-    return DSL.cast(filter.v2, field);
+    if (field == MAPPED_ROLE_FIELD) {
+      return DSL.field(field.getName())
+          .eq(DSL.cast(REVERSE_ROLE_MAP.getOrDefault(filter.v2, filter.v2), field));
+    }
+    return DSL.field(field.getName()).eq(DSL.cast(filter.v2, field));
   }
 
   private Connection getConnection(ClusterDto cluster) throws SQLException {
