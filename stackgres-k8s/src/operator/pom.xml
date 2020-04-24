@@ -36,7 +36,7 @@
     <checkstyle.header.file>${checkstyle.conifg.folder.location}/header.txt</checkstyle.header.file>
     <spotbugs.excludeFilterFile>${project.basedir}/../checks/spotbugs/exclude.xml</spotbugs.excludeFilterFile>
 
-    <it.image>stackgres/it:3.0</it.image>
+    <it.image>stackgres/it:4.0</it.image>
   </properties>
 
   <dependencies>
