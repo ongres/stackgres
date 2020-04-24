@@ -30,6 +30,7 @@ import io.fabric8.kubernetes.client.dsl.PodResource;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterList;
 import io.stackgres.operator.app.KubernetesClientFactory;
+import io.stackgres.operator.app.ObjectMapperProvider;
 import io.stackgres.operator.common.ConfigContext;
 import io.stackgres.operator.common.ConfigProperty;
 import io.stackgres.operator.resource.ClusterDtoFinder;
@@ -66,6 +67,9 @@ class ClusterResourceTest extends AbstractCustomResourceTest<ClusterDto, StackGr
 
   @Mock
   private PostgresConnectionManager postgresConnectionManager;
+
+  @Mock
+  private ObjectMapperProvider objectMapperProvider;
 
   @Mock
   private ConfigContext configContext;
@@ -157,7 +161,8 @@ class ClusterResourceTest extends AbstractCustomResourceTest<ClusterDto, StackGr
         dtoScanner,
         dtoFinder,
         statusFinder,
-        new DistributedLogsFetcher(secretFinder, postgresConnectionManager));
+        new DistributedLogsFetcher(secretFinder, postgresConnectionManager),
+        objectMapperProvider);
   }
 
   @Override

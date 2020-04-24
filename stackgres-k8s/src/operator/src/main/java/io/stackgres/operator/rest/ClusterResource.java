@@ -9,7 +9,6 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
@@ -23,10 +22,10 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
-import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.operator.app.ObjectMapperProvider;
 import io.stackgres.operator.common.ArcUtil;
 import io.stackgres.operator.resource.CustomResourceFinder;
 import io.stackgres.operator.resource.CustomResourceScanner;
@@ -37,6 +36,7 @@ import io.stackgres.operator.rest.dto.cluster.ClusterLogEntryDto;
 import io.stackgres.operator.rest.dto.cluster.ClusterResourceConsumtionDto;
 import io.stackgres.operator.rest.transformer.ResourceTransformer;
 import org.jooq.lambda.Seq;
+import org.jooq.lambda.Unchecked;
 import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple2;
 
@@ -50,6 +50,7 @@ public class ClusterResource
   private final CustomResourceFinder<ClusterDto> clusterFinder;
   private final CustomResourceFinder<ClusterResourceConsumtionDto> clusterResourceConsumptionFinder;
   private final DistributedLogsFetcher distributedLogsFetcher;
+  private final ObjectMapper objectMapper;
 
   @Inject
   public ClusterResource(
@@ -59,12 +60,14 @@ public class ClusterResource
       CustomResourceScanner<ClusterDto> clusterScanner,
       CustomResourceFinder<ClusterDto> clusterFinder,
       CustomResourceFinder<ClusterResourceConsumtionDto> clusterResourceConsumptionFinder,
-      DistributedLogsFetcher distributedLogsFetcher) {
+      DistributedLogsFetcher distributedLogsFetcher,
+      ObjectMapperProvider objectMapperProvider) {
     super(null, finder, scheduler, transformer);
     this.clusterScanner = clusterScanner;
     this.clusterFinder = clusterFinder;
     this.clusterResourceConsumptionFinder = clusterResourceConsumptionFinder;
     this.distributedLogsFetcher = distributedLogsFetcher;
+    this.objectMapper = objectMapperProvider.objectMapper();
   }
 
   public ClusterResource() {
@@ -74,6 +77,7 @@ public class ClusterResource
     this.clusterFinder = null;
     this.clusterResourceConsumptionFinder = null;
     this.distributedLogsFetcher = null;
+    this.objectMapper = null;
   }
 
   @RolesAllowed(RestAuthenticationRoles.ADMIN)
@@ -122,15 +126,10 @@ public class ClusterResource
     final Tuple2<Instant, Integer> toTuple;
     try {
       filterList = Optional.ofNullable(filters)
-          .map(f -> Seq.of(f.split(","))
-              .map(fieldValue -> Seq.of(fieldValue.split(":")).toList())
-              .peek(list -> Preconditions.checkArgument(
-                  list.size() >= 2, "You have to specify"
-                      + " a field-value pair separating field name and value with character ':'"
-                      + " and separate field-value pair with character ','"))
-              .map(list -> ImmutableList.of(
-                  list.remove(0), list.stream().collect(Collectors.joining(":"))))
-              .collect(ImmutableMap.toImmutableMap(list -> list.get(0), list -> list.get(1))))
+          .map(Unchecked.function(objectMapper::readTree))
+          .map(node -> Seq.seq(node.fields())
+              .collect(ImmutableMap.toImmutableMap(
+                  e -> e.getKey(), e -> e.getValue().asText())))
           .orElse(ImmutableMap.of());
       fromTuple = Optional.ofNullable(from)
           .map(s -> s.split(","))
