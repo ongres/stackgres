@@ -118,7 +118,7 @@ setup_k8s() {
       | grep -q "^namespace/stackgres$" \
     || (([ "$(kubectl get deployments.apps -n stackgres -l app=stackgres-operator -o name | wc -l)" -ne 1 ] \
       || [ "$(kubectl get deployments.apps -n stackgres -l app=stackgres-operator --template '{{ len (index .items 0).spec.template.spec.containers }}')" -ne 2 ]) \
-      && [ "$E2E_USE_EXTERNAL_OPERATOR" != true ])\
+      && [ "$E2E_USE_EXTERNAL_OPERATOR" != true ]) \
     || [ "$E2E_REUSE_OPERATOR" != true ]
   then
     if [ "$E2E_FORCE_IMAGE_PULL" = "true" ]

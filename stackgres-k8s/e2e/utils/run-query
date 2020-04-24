@@ -2,13 +2,12 @@
 
 run_query() {
   local NAME="${CLUSTER_NAME:-stackgres}"
-  local INSTANCE=0
   local NAMESPACE="${CLUSTER_NAMESPACE:-stackgres}"
   local QUERY="'SELECT 1'"
   local PORT=5432
   local HOST=127.0.0.1
   local DATABASE=postgres
-  local POD="$NAME-$INSTANCE"
+  local POD="$NAME-0"
   local CONTAINER="postgres-util"
 
   while getopts ":c:n:i:q:p:h:d:x:k:" opt; do
@@ -17,7 +16,7 @@ run_query() {
       ;;
       n) NAMESPACE="$OPTARG"
       ;;
-      i) INSTANCE="$OPTARG"
+      i) POD="$NAME-$OPTARG"
       ;;
       q) QUERY="$OPTARG"
       ;;
