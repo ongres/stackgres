@@ -805,7 +805,7 @@ const vm = new Vue({
               store.commit('updateClusters', cluster);
 
               // Set as current cluster if no other cluster has already been set
-              if(!store.state.currentCluster.length)              
+              if(!store.state.currentCluster)              
                 store.commit('setCurrentCluster', cluster);
 
             });
@@ -1332,11 +1332,25 @@ function hasParams( obj, params) {
 
 // Sort tables by an specific parameter
 function sortTable( table, param, direction ) {
+
+  var backupFixedParams = ['data.spec.subjectToRetentionPolicy','data.metadata.name','data.spec.sgCluster','data.status.process.status'];
   
   table.sort((a,b) => {
     let modifier = 1;
     
     if(direction === 'desc') modifier = -1;
+
+    // If sorting backups first validate its state
+    if(a.data.hasOwnProperty('status')) {
+      // If record is not sortable by the provided param
+      if((a.data.status.process.status == 'Failed') && !backupFixedParams.includes(param)){
+        console.log('failed');
+        return 1
+      } else if ((a.data.status.process.status == 'Running') && !backupFixedParams.includes(param)){
+        return -1
+      }
+      
+    }  
 
     if(hasParams( a, param.split(".")))
       a = eval("a."+param);
@@ -1448,6 +1462,8 @@ $(document).ready(function(){
       $(".set.active:not(.conf)").removeClass("active");
       $(this).parent("div:not(.conf)").addClass("active");
     }
+    $("#current-namespace").removeClass('open');
+    $('#ns-select').slideUp();
 
     $(".set:not(.active) > ul.show").removeClass("show");
     
@@ -1456,7 +1472,7 @@ $(document).ready(function(){
   $(document).on("click", ".set .item", function(){
     $(".set.active:not(.conf)").removeClass("active");
     $(this).parent().parent().parent().addClass("active");
-
+    
     $(".set:not(.active) > ul.show").removeClass("show");
   });
 
@@ -1658,9 +1674,10 @@ $(document).ready(function(){
     $(this).prop("disabled","disabled")
   });
 
-  $(document).on("click", "#current-namespace h2 > strong, #ns-select a", function(){
+  $(document).on("click", "#current-namespace , #ns-select a", function(){
     $("#current-namespace").toggleClass("open");
-    $("#ns-select").slideToggle();    
+    $("#ns-select").slideToggle();
+    $(".set.active:not(.conf)").removeClass('active');
   });
 
   $("#darkmode").click(function(){
