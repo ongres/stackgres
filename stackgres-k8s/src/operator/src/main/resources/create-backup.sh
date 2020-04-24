@@ -62,13 +62,6 @@ kind: $BACKUP_CRD_KIND
 metadata:
   namespace: "$CLUSTER_NAMESPACE"
   name: "$BACKUP_NAME"
-  ownerReferences:
-$(kubectl get cronjob -n "$CLUSTER_NAMESPACE" "$CRONJOB_NAME" \
-  --template '  - apiVersion: {{ .apiVersion }}
-    kind: {{ .kind }}
-    name: {{ .metadata.name }}
-    uid: {{ .metadata.uid }}
-')
 spec:
   sgCluster: "$CLUSTER_NAME"
   subjectToRetentionPolicy: false
