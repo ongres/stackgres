@@ -69,11 +69,6 @@ public class ItHelper {
       .orElse(System.getProperty("e2e.debug")))
       .map(Boolean::valueOf)
       .orElse(false);
-  public static final boolean E2E_REUSE_OPERATOR = Optional.ofNullable(
-      Optional.ofNullable(System.getenv("E2E_REUSE_OPERATOR"))
-      .orElse(System.getProperty("e2e.reuseOperator")))
-      .map(Boolean::valueOf)
-      .orElse(false);
 
   /**
    * IT helper method.
@@ -122,7 +117,7 @@ public class ItHelper {
   /**
    * It helper method.
    */
-  public static void resetKind(Container k8s, int size, boolean reuseOperator) throws Exception {
+  public static void resetKind(Container k8s, int size) throws Exception {
     if (Optional.ofNullable(System.getenv("K8S_REUSE"))
         .map(Boolean::parseBoolean)
         .orElse(true)) {
@@ -140,12 +135,9 @@ public class ItHelper {
               + "sh " + (E2E_DEBUG ? "-x" : "") + " e2e reuse_k8s\n"
               + "sh " + (E2E_DEBUG ? "-x" : "") + " e2e setup_helm\n"
               + "sh " + (E2E_DEBUG ? "-x" : "") + " e2e setup_default_limits 0.1 0.1 16Mi 16Mi\n"
-              + (reuseOperator
-                  ? "sh " + (E2E_DEBUG ? "-x" : "") + " e2e helm_cleanup_but_operator\n"
-                  + "sh " + (E2E_DEBUG ? "-x" : "") + " e2e k8s_cleanup_but_operator\n"
-                  : "sh " + (E2E_DEBUG ? "-x" : "") + " e2e k8s_webhook_cleanup\n"
-                  + "sh " + (E2E_DEBUG ? "-x" : "") + " e2e helm_cleanup\n"
-                  + "sh " + (E2E_DEBUG ? "-x" : "") + " e2e k8s_cleanup\n")
+              + "sh " + (E2E_DEBUG ? "-x" : "") + " e2e k8s_webhook_cleanup\n"
+              + "sh " + (E2E_DEBUG ? "-x" : "") + " e2e helm_cleanup\n"
+              + "sh " + (E2E_DEBUG ? "-x" : "") + " e2e k8s_cleanup\n"
               + (OPERATOR_IN_KUBERNETES
                   ? "sh " + (E2E_DEBUG ? "-x" : "") + " e2e load_operator_k8s\n" : "")
               + (OPERATOR_IN_KUBERNETES ? ""
@@ -212,7 +204,7 @@ public class ItHelper {
     String exposedServiceName = serviceName + "-exposed";
     LOGGER.info("Create service " + exposedServiceName
         + " to expose service " + serviceName + " in namespace " + namespace);
-    k8s.execute("sh", "-l", "-xce",
+    k8s.execute("sh", "-l", "-ce",
         "kubectl get service -n " + namespace + " " + exposedServiceName
             + " | grep -q '^" + exposedServiceName + "\\s'"
             + " || kubectl expose service -n " + namespace + " " + serviceName
@@ -303,22 +295,6 @@ public class ItHelper {
         "kubectl cluster-info|grep 'Kubernetes master' | cut -d / -f  3 | cut -d : -f 1")
     .filter(EXCLUDE_TTY_WARNING)
     .collect(Collectors.joining());
-  }
-
-  public static Optional<Integer> getPreviousOperatorPort(Container k8s, String namespace) {
-    try {
-      return Optional.of(new Object())
-          .filter(o -> E2E_REUSE_OPERATOR)
-          .flatMap(o -> Unchecked.supplier(
-              () -> k8s.execute("sh", "-l", "-c", "kubectl get service --namespace " + namespace
-                  + " stackgres-operator-api --template '{{ (index .spec.ports 0).targetPort }}' || true"))
-              .get()
-              .filter(EXCLUDE_TTY_WARNING)
-              .findFirst())
-          .map(Integer::parseInt);
-    } catch (Exception ex) {
-      return Optional.empty();
-    }
   }
 
   /**

@@ -8,7 +8,6 @@ package io.stackgres.operator;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.ServerSocket;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -53,30 +52,20 @@ public abstract class AbstractStackGresOperatorIt extends AbstractIt {
 
   @BeforeEach
   public void setupOperator(@ContainerParam("k8s") Container k8s) throws Exception {
-    final int operatorPort;
-    final boolean reuseOperator;
-    Optional<Integer> previousOperatorPort = ItHelper.getPreviousOperatorPort(k8s, namespace);
-    if (previousOperatorPort.isPresent()) {
-      operatorPort = previousOperatorPort.get();
-      reuseOperator = true;
-    } else {
-      operatorPort = OPERATOR_PORT;
-      reuseOperator = false;
-    }
     IS_ABSTRACT_STACKGRES_OPERATOR_IT.set(true);
     IT_CONTAINER.set(k8s);
     ItHelper.killUnwantedProcesses(k8s);
     ItHelper.copyResources(k8s);
-    ItHelper.resetKind(k8s, k8sSize, reuseOperator);
-    ItHelper.installStackGresOperatorHelmChart(k8s, namespace, operatorPort);
+    ItHelper.resetKind(k8s, k8sSize);
+    ItHelper.installStackGresOperatorHelmChart(k8s, namespace, OPERATOR_PORT);
     OperatorRunner operatorRunner = ItHelper.createOperator(
-        k8s, operatorPort, OPERATOR_SSL_PORT, executor);
+        k8s, OPERATOR_PORT, OPERATOR_SSL_PORT, executor);
     CompletableFuture<Void> operator = runAsync(() -> operatorRunner.run());
     this.operatorClose = () -> {
       operatorRunner.close();
       operator.join();
     };
-    operatorClient = ClientBuilder.newClient().target("http://localhost:" + operatorPort);
+    operatorClient = ClientBuilder.newClient().target("http://localhost:" + OPERATOR_PORT);
     ItHelper.waitUntilOperatorIsReady(operator, operatorClient, k8s);
   }
 
