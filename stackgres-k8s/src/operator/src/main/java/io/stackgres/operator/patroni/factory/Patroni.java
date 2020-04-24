@@ -35,6 +35,7 @@ import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
+import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSet;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSetEnvironmentVariables;
@@ -107,7 +108,7 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
     return new ContainerBuilder()
       .withName(NAME)
       .withImage(String.format(IMAGE_NAME,
-          DEFAULT_VERSION, pgVersion, "3")) // StackGresContext.CONTAINER_BUILD))
+          DEFAULT_VERSION, pgVersion, StackGresContext.CONTAINER_BUILD))
       .withCommand("/bin/sh", "-exc", Unchecked.supplier(() -> Resources
           .asCharSource(ClusterStatefulSet.class.getResource("/start-patroni.sh"),
               StandardCharsets.UTF_8)

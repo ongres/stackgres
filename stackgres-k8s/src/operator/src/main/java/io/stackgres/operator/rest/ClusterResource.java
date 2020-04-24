@@ -9,9 +9,11 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
+import javax.ws.rs.BadRequestException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.NotFoundException;
@@ -22,6 +24,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.common.ArcUtil;
@@ -34,6 +37,8 @@ import io.stackgres.operator.rest.dto.cluster.ClusterLogEntryDto;
 import io.stackgres.operator.rest.dto.cluster.ClusterResourceConsumtionDto;
 import io.stackgres.operator.rest.transformer.ResourceTransformer;
 import org.jooq.lambda.Seq;
+import org.jooq.lambda.tuple.Tuple;
+import org.jooq.lambda.tuple.Tuple2;
 
 @Path("/stackgres/sgcluster")
 @Produces(MediaType.APPLICATION_JSON)
@@ -112,23 +117,52 @@ public class ClusterResource
       @QueryParam("sort") String sort,
       @QueryParam("text") String text) {
     final ClusterDto cluster = super.get(namespace, name);
-    final ImmutableMap<String, String> filterList = Optional.ofNullable(filters)
-        .map(f -> Seq.of(f.split(","))
-            .map(fieldValue -> Seq.of(fieldValue.split(":")).toList())
-            .peek(list -> Preconditions.checkArgument(
-                list.size() == 2, "You have to specify"
-                    + " a field-value pair separating field name and value with character ':'"
-                    + " and separate field-value pair with character ','"))
-            .collect(ImmutableMap.toImmutableMap(list -> list.get(0), list -> list.get(1))))
-        .orElse(ImmutableMap.of());
-    return distributedLogsFetcher.logs(
-        cluster,
-        Optional.ofNullable(records).orElse(50),
-        Optional.ofNullable(from).map(Instant::parse).orElse(null),
-        Optional.ofNullable(to).map(Instant::parse).orElse(null),
-        filterList,
-        Objects.equals("asc", sort),
-        text);
-  }
+    final ImmutableMap<String, String> filterList;
+    final Tuple2<Instant, Integer> fromTuple;
+    final Tuple2<Instant, Integer> toTuple;
+    try {
+      filterList = Optional.ofNullable(filters)
+          .map(f -> Seq.of(f.split(","))
+              .map(fieldValue -> Seq.of(fieldValue.split(":")).toList())
+              .peek(list -> Preconditions.checkArgument(
+                  list.size() >= 2, "You have to specify"
+                      + " a field-value pair separating field name and value with character ':'"
+                      + " and separate field-value pair with character ','"))
+              .map(list -> ImmutableList.of(
+                  list.remove(0), list.stream().collect(Collectors.joining(":"))))
+              .collect(ImmutableMap.toImmutableMap(list -> list.get(0), list -> list.get(1))))
+          .orElse(ImmutableMap.of());
+      fromTuple = Optional.ofNullable(from)
+          .map(s -> s.split(","))
+          .map(ss -> Tuple.tuple(ss[0], ss.length > 1 ? ss[1] : "1"))
+          .map(t -> t.map1(Instant::parse))
+          .map(t -> t.map2(Integer::valueOf))
+          .orElse(null);
+      toTuple = Optional.ofNullable(to)
+          .map(s -> s.split(","))
+          .map(ss -> Tuple.tuple(ss[0], ss.length > 1 ? ss[1] : String.valueOf(Integer.MAX_VALUE)))
+          .map(t -> t.map1(Instant::parse))
+          .map(t -> t.map2(Integer::valueOf))
+          .orElse(null);
+    } catch (Exception ex) {
+      throw new BadRequestException(ex);
+    }
 
+    if (sort != null && sort.equals("asc") && sort.equals("desc")) {
+      throw new BadRequestException("sort only accept asc or desc values");
+    }
+
+    try {
+      return distributedLogsFetcher.logs(
+          cluster,
+          Optional.ofNullable(records).orElse(50),
+          fromTuple,
+          toTuple,
+          filterList,
+          Objects.equals("asc", sort),
+          text);
+    } catch (IllegalArgumentException ex) {
+      throw new BadRequestException(ex);
+    }
+  }
 }

@@ -16,6 +16,8 @@ public class ClusterLogEntryDto {
 
   private String logTime;
 
+  private Integer logTimeIndex;
+
   private String logType;
 
   private String podName;
@@ -72,6 +74,14 @@ public class ClusterLogEntryDto {
 
   public void setLogTime(String logTime) {
     this.logTime = logTime;
+  }
+
+  public Integer getLogTimeIndex() {
+    return logTimeIndex;
+  }
+
+  public void setLogTimeIndex(Integer logTimeIndex) {
+    this.logTimeIndex = logTimeIndex;
   }
 
   public String getLogType() {

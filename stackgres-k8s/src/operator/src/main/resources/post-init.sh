@@ -27,7 +27,7 @@ then
         || echo postgres)"
       database="${database%.}"
       echo "Executing SQL script $file for database $database with user postgres on port ${POSTGRES_PORT}"
-      cat "$file" | python -c '
+      cat "$file" | python3 -c '
 import psycopg2,sys
 c=psycopg2.connect("user=postgres dbname='"'$database'"' port='"${POSTGRES_PORT}"'")
 s=c.cursor()

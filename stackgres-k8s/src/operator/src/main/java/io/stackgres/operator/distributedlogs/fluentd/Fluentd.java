@@ -67,16 +67,14 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
 
   private static final String SUFFIX = "-fluentd";
 
-  private static final String POSTGRES_CSV_FIELDS = ImmutableList.of("user_name",
-      "database_name", "process_id", "connection_from", "session_id", "session_line_num",
-      "command_tag", "session_start_time", "virtual_transaction_id", "transaction_id",
-      "error_severity", "sql_state_code", "message", "detail", "hint", "internal_query",
-      "internal_query_pos", "context", "query", "query_pos", "location", "application_name")
-      .stream().collect(Collectors.joining(","));
   private static final String PATRONI_TABLE_FIELDS = DistributedLogsFetcher.PATRONI_FIELDS
-      .stream().map(Field::getName).collect(Collectors.joining(","));
+      .stream()
+      .map(Field::getName)
+      .collect(Collectors.joining(","));
   private static final String POSTGRES_TABLE_FIELDS = DistributedLogsFetcher.POSTGRES_FIELDS
-      .stream().map(Field::getName).collect(Collectors.joining(","));
+      .stream()
+      .map(Field::getName)
+      .collect(Collectors.joining(","));
 
   public static String configName(StackGresDistributedLogsContext context) {
     return ResourceUtil.resourceName(context.getDistributedLogs().getMetadata().getName() + SUFFIX);
@@ -234,19 +232,6 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
             + "  </record>\n"
             + "</filter>"
             + "\n"
-            + "<filter *.*." + POSTGRES_LOG_TYPE + ".*.*>\n"
-            + "  @type parser\n"
-            + "  key_name message\n"
-            + "  reserve_data true\n"
-            + "  <parse>\n"
-            + "    @type              csv\n"
-            + "    keys               "
-              + "'" + POSTGRES_CSV_FIELDS + "'\n"
-            + "    delimiter          ,\n"
-            + "    null_value_pattern null\n"
-            + "    parser_type        normal\n"
-            + "  </parse>\n"
-            + "</filter>\n"
             + context.getDistributedLogsContext().getConnectedClusters()
             .stream()
             .map(cluster -> ""

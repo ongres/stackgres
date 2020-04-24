@@ -5,7 +5,6 @@
 
 package io.stackgres.operator.rest.distributedlogs;
 
-import java.beans.ConstructorProperties;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -24,6 +23,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.Secret;
+import io.stackgres.operator.common.ArcUtil;
 import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operator.distributedlogs.fluentd.Fluentd;
 import io.stackgres.operator.patroni.factory.PatroniServices;
@@ -53,36 +53,47 @@ import org.slf4j.LoggerFactory;
 @ApplicationScoped
 public class DistributedLogsFetcher {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(DistributedLogsFetcher.class);
+  public static final String LOG_POSTGRES_TABLE = "log_postgres";
+  public static final String LOG_PATRONI_TABLE = "log_patroni";
+  public static final String LOG_POSTGRES_WINDOW = "log_postgres_window";
+  public static final String LOG_PATRONI_WINDOW = "log_patroni_window";
+  public static final String LOG_PATRONI_TSVECTOR_FUNCTION = "log_patroni_tsvector";
+  public static final String LOG_POSTGRES_TSVECTOR_FUNCTION = "log_postgres_tsvector";
 
-  private static final String LOG_POSTGRES_TABLE = "log_postgres";
-  private static final String LOG_PATRONI_TABLE = "log_patroni";
-  private static final Field<OffsetDateTime> LOG_TIME_FIELD = DSL.field(
+  public static final Param<String> PATRONI_LOG_TYPE_VALUE = DSL.value("pa");
+  public static final Param<String> POSTGRES_LOG_TYPE_VALUE = DSL.value("pg");
+  public static final Param<String> PRIMARY_ROLE_VALUE = DSL.value("pr");
+  public static final Param<String> REPLICA_ROLE_VALUE = DSL.value("re");
+
+  public static final Field<OffsetDateTime> LOG_TIME_FIELD = DSL.field(
       "log_time", SQLDataType.TIMESTAMPWITHTIMEZONE);
-  private static final Field<String> LOG_TYPE_FIELD = DSL.field(
+  public static final Field<Integer> LOG_TIME_INDEX_FIELD = DSL.field(
+      "log_time_index", SQLDataType.INTEGER);
+  public static final Field<String> LOG_TYPE_FIELD = DSL.field(
       "log_type", SQLDataType.VARCHAR);
-  private static final Field<String> ROLE_FIELD = DSL.field("role", SQLDataType.VARCHAR);
-  private static final Param<String> PATRONI_LOG_TYPE_VALUE = DSL.value("pa");
-  private static final Field<String> PATRONI_LOG_TYPE_FIELD = PATRONI_LOG_TYPE_VALUE
+  public static final Field<String> MESSAGE_FIELD = DSL.field(
+      "message", SQLDataType.VARCHAR);
+  public static final Field<String> POD_NAME_FIELD = DSL.field("pod_name", SQLDataType.VARCHAR);
+  public static final Field<String> ROLE_FIELD = DSL.field("role", SQLDataType.VARCHAR);
+  public static final Field<String> PATRONI_LOG_TYPE_FIELD = PATRONI_LOG_TYPE_VALUE
       .as(LOG_TYPE_FIELD);
-  private static final Param<String> POSTGRES_LOG_TYPE_VALUE = DSL.value("pg");
-  private static final Field<String> POSTGRES_LOG_TYPE_FIELD = POSTGRES_LOG_TYPE_VALUE
+  public static final Field<String> POSTGRES_LOG_TYPE_FIELD = POSTGRES_LOG_TYPE_VALUE
       .as(LOG_TYPE_FIELD);
-  private static final Param<String> PRIMARY_ROLE_VALUE = DSL.value("pr");
-  private static final Param<String> REPLICA_ROLE_VALUE = DSL.value("re");
-  private static final Field<String> MAPPED_ROLE_FIELD = DSL.case_(ROLE_FIELD)
+  public static final Field<String> MAPPED_ROLE_FIELD = DSL.case_(ROLE_FIELD)
       .when(StackGresUtil.PRIMARY_ROLE, PRIMARY_ROLE_VALUE)
       .when(StackGresUtil.REPLICA_ROLE, REPLICA_ROLE_VALUE)
       .else_(DSL.castNull(ROLE_FIELD))
       .as(ROLE_FIELD);
-  private static final String LOG_POSTGRES_WINDOW = "log_postgres_window";
-  private static final String LOG_PATRONI_WINDOW = "log_patroni_window";
-  private static final String LOG_PATRONI_TSVECTOR_FUNCTION = "log_patroni_tsvector";
-  private static final String LOG_POSTGRES_TSVECTOR_FUNCTION = "log_postgres_tsvector";
 
-  private static final ImmutableMap<String, String> FILTER_CONVERSION_MAP =
+  public static final ImmutableMap<String, String> REVERSE_ROLE_MAP =
+      ImmutableMap.of(
+          PRIMARY_ROLE_VALUE.getValue(), StackGresUtil.PRIMARY_ROLE,
+          REPLICA_ROLE_VALUE.getValue(), StackGresUtil.REPLICA_ROLE);
+
+  public static final ImmutableMap<String, String> FILTER_CONVERSION_MAP =
       ImmutableMap.<String, String>builder()
       .put("logTime", "log_time")
+      .put("logTimeIndex", "log_time_index")
       .put("logType", "log_type")
       .put("podName", "pod_name")
       .put("role", "role")
@@ -112,10 +123,11 @@ public class DistributedLogsFetcher {
 
   public static final ImmutableList<Field<?>> POSTGRES_FIELDS = ImmutableList.of(
       LOG_TIME_FIELD,
-      DSL.field("pod_name", SQLDataType.VARCHAR),
+      LOG_TIME_INDEX_FIELD,
+      POD_NAME_FIELD,
       MAPPED_ROLE_FIELD,
       DSL.field("error_severity", SQLDataType.VARCHAR),
-      DSL.field("message", SQLDataType.VARCHAR),
+      MESSAGE_FIELD,
       DSL.field("user_name", SQLDataType.VARCHAR),
       DSL.field("database_name", SQLDataType.VARCHAR),
       DSL.field("process_id", SQLDataType.INTEGER),
@@ -140,16 +152,20 @@ public class DistributedLogsFetcher {
 
   public static final ImmutableList<Field<?>> PATRONI_FIELDS = ImmutableList.of(
       LOG_TIME_FIELD,
-      DSL.field("pod_name", SQLDataType.VARCHAR),
+      LOG_TIME_INDEX_FIELD,
+      POD_NAME_FIELD,
       MAPPED_ROLE_FIELD,
       DSL.field("error_severity", SQLDataType.VARCHAR),
-      DSL.field("message", SQLDataType.VARCHAR)
+      MESSAGE_FIELD
       );
 
-  public static final ImmutableList<Field<?>> LOG_FIELDS = Seq.<Field<?>>of(LOG_TYPE_FIELD)
+  public static final ImmutableList<Field<?>> LOG_FIELDS = Seq.<Field<?>>of()
+      .append(LOG_TYPE_FIELD)
       .append(POSTGRES_FIELDS)
       .map(field -> field == MAPPED_ROLE_FIELD ? ROLE_FIELD : field)
       .collect(ImmutableList.toImmutableList());
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(DistributedLogsFetcher.class);
 
   private final ResourceFinder<Secret> secretFinder;
   private final PostgresConnectionManager postgresConnectionManager;
@@ -163,7 +179,7 @@ public class DistributedLogsFetcher {
   }
 
   public DistributedLogsFetcher() {
-    io.stackgres.operator.common.ArcUtil.checkPublicNoArgsConstructorIsCalledFromArc();
+    ArcUtil.checkPublicNoArgsConstructorIsCalledFromArc();
     this.secretFinder = null;
     this.postgresConnectionManager = null;
   }
@@ -171,23 +187,23 @@ public class DistributedLogsFetcher {
   public List<ClusterLogEntryDto> logs(
       ClusterDto cluster,
       int records,
-      Instant from,
-      Instant to,
+      Tuple2<Instant, Integer> from,
+      Tuple2<Instant, Integer> to,
       ImmutableMap<String, String> filters,
       boolean sortAsc,
       String text) {
     final List<Field<?>> selectedFields = LOG_FIELDS;
     final Name[] selectedFieldsArray = Seq.seq(selectedFields)
         .map(Field::getQualifiedName).toArray(Name[]::new);
-    final OrderField<?> orderField;
+    final ImmutableList<OrderField<?>> orderFields;
     if (sortAsc) {
-      orderField = LOG_TIME_FIELD.asc();
+      orderFields = ImmutableList.of(LOG_TIME_FIELD.asc(), LOG_TIME_INDEX_FIELD.asc());
     } else {
-      orderField = LOG_TIME_FIELD.desc();
+      orderFields = ImmutableList.of(LOG_TIME_FIELD.desc(), LOG_TIME_INDEX_FIELD.desc());
     }
     Seq.seq(filters)
         .forEach(filter -> Preconditions.checkArgument(
-            !FILTER_CONVERSION_MAP.containsKey(filter.v1),
+            FILTER_CONVERSION_MAP.containsKey(filter.v1),
             "Key " + filter.v1 + " is not a valid filter key"));
     try (Connection connection = getConnection(cluster);
         DSLContext context = DSL.using(connection)) {
@@ -227,16 +243,38 @@ public class DistributedLogsFetcher {
               .findAny()
               .orElse(DSL.trueCondition()));
       if (from != null) {
-        selectFromLogPatroni = selectFromLogPatroni
-            .and(LOG_TIME_FIELD.greaterOrEqual(OffsetDateTime.ofInstant(from, ZoneOffset.UTC)));
-        selectFromLogPostgres = selectFromLogPostgres
-            .and(LOG_TIME_FIELD.greaterOrEqual(OffsetDateTime.ofInstant(from, ZoneOffset.UTC)));
+        if (sortAsc) {
+          selectFromLogPatroni = selectFromLogPatroni
+              .and(DSL.row(LOG_TIME_FIELD, LOG_TIME_INDEX_FIELD).greaterThan(
+                  DSL.row(OffsetDateTime.ofInstant(from.v1, ZoneOffset.UTC), from.v2)));
+          selectFromLogPostgres = selectFromLogPostgres
+              .and(DSL.row(LOG_TIME_FIELD, LOG_TIME_INDEX_FIELD).greaterThan(
+                  DSL.row(OffsetDateTime.ofInstant(from.v1, ZoneOffset.UTC), from.v2)));
+        } else {
+          selectFromLogPatroni = selectFromLogPatroni
+              .and(DSL.row(LOG_TIME_FIELD, LOG_TIME_INDEX_FIELD).lessThan(
+                  DSL.row(OffsetDateTime.ofInstant(from.v1, ZoneOffset.UTC), from.v2)));
+          selectFromLogPostgres = selectFromLogPostgres
+              .and(DSL.row(LOG_TIME_FIELD, LOG_TIME_INDEX_FIELD).lessThan(
+                  DSL.row(OffsetDateTime.ofInstant(from.v1, ZoneOffset.UTC), from.v2)));
+        }
       }
       if (to != null) {
-        selectFromLogPatroni = selectFromLogPatroni
-            .and(LOG_TIME_FIELD.lessOrEqual(OffsetDateTime.ofInstant(to, ZoneOffset.UTC)));
-        selectFromLogPostgres = selectFromLogPostgres
-            .and(LOG_TIME_FIELD.lessOrEqual(OffsetDateTime.ofInstant(to, ZoneOffset.UTC)));
+        if (sortAsc) {
+          selectFromLogPatroni = selectFromLogPatroni
+              .and(DSL.row(LOG_TIME_FIELD, LOG_TIME_INDEX_FIELD).lessOrEqual(
+                  DSL.row(OffsetDateTime.ofInstant(to.v1, ZoneOffset.UTC), to.v2)));
+          selectFromLogPostgres = selectFromLogPostgres
+              .and(DSL.row(LOG_TIME_FIELD, LOG_TIME_INDEX_FIELD).lessOrEqual(
+                  DSL.row(OffsetDateTime.ofInstant(to.v1, ZoneOffset.UTC), to.v2)));
+        } else {
+          selectFromLogPatroni = selectFromLogPatroni
+              .and(DSL.row(LOG_TIME_FIELD, LOG_TIME_INDEX_FIELD).greaterOrEqual(
+                  DSL.row(OffsetDateTime.ofInstant(to.v1, ZoneOffset.UTC), to.v2)));
+          selectFromLogPostgres = selectFromLogPostgres
+              .and(DSL.row(LOG_TIME_FIELD, LOG_TIME_INDEX_FIELD).greaterOrEqual(
+                  DSL.row(OffsetDateTime.ofInstant(to.v1, ZoneOffset.UTC), to.v2)));
+        }
       }
       for (Tuple2<String, String> filter : Seq.seq(filters)
           .map(filter -> Tuple.tuple(FILTER_CONVERSION_MAP.get(filter.v1), filter.v2))) {
@@ -260,15 +298,15 @@ public class DistributedLogsFetcher {
       Select<Record> query = context
           .with(DSL.name(LOG_PATRONI_WINDOW)
               .fields(selectedFieldsArray)
-              .as(selectFromLogPatroni.orderBy(orderField).limit(records)))
+              .as(selectFromLogPatroni.orderBy(orderFields).limit(records)))
           .with(DSL.name(LOG_POSTGRES_WINDOW)
               .fields(selectedFieldsArray)
-              .as(selectFromLogPostgres.orderBy(orderField).limit(records)))
+              .as(selectFromLogPostgres.orderBy(orderFields).limit(records)))
           .select(Seq.seq(selectedFields).map(DSL::field).toList())
           .from(LOG_PATRONI_WINDOW)
           .union(DSL.select(Seq.seq(selectedFields).map(DSL::field).toList())
               .from(LOG_POSTGRES_WINDOW))
-          .orderBy(orderField)
+          .orderBy(orderFields)
           .limit(records);
       if (LOGGER.isTraceEnabled()) {
         LOGGER.trace("Query for cluster logs {}.{} with params"
@@ -292,6 +330,9 @@ public class DistributedLogsFetcher {
           "FATAL: database \"" + databaseName + "\" does not exist")) {
         return ImmutableList.of();
       }
+      if (ex.getMessage().startsWith("ERROR: syntax error in tsquery:")) {
+        throw new IllegalArgumentException("Wrong format for text parameter");
+      }
       throw new RuntimeException(ex);
     }
   }
@@ -301,13 +342,19 @@ public class DistributedLogsFetcher {
       ImmutableList<Field<?>> fields) {
     final SelectConditionStep<Record> currentSelectFrom = selectFrom;
     selectFrom = fields.stream()
-        .map(Field::getName)
-        .filter(filter.v1::equals)
+        .filter(field -> filter.v1.equals(field.getName()))
         .findAny()
         .map(field -> currentSelectFrom
-          .and(DSL.field(field).eq(filter.v2)))
+          .and(DSL.field(field.getName()).eq(castFilteredField(filter, field))))
         .orElse(selectFrom);
     return selectFrom;
+  }
+
+  protected Field<?> castFilteredField(Tuple2<String, String> filter, Field<?> field) {
+    if (field == MAPPED_ROLE_FIELD) {
+      return DSL.cast(REVERSE_ROLE_MAP.getOrDefault(filter.v2, filter.v2), field);
+    }
+    return DSL.cast(filter.v2, field);
   }
 
   private Connection getConnection(ClusterDto cluster) throws SQLException {
@@ -330,71 +377,5 @@ public class DistributedLogsFetcher {
         Fluentd.databaseName(
             cluster.getMetadata().getNamespace(),
             cluster.getMetadata().getName()));
-  }
-
-  public static class MappedClusterLogEntryDto extends ClusterLogEntryDto {
-
-    @ConstructorProperties({
-        "log_time",
-        "log_type",
-        "pod_name",
-        "role",
-        "error_severity",
-        "message",
-        "user_name",
-        "database_name",
-        "process_id",
-        "connection_from",
-        "session_id",
-        "session_line_num",
-        "command_tag",
-        "session_start_time",
-        "virtual_transaction_id",
-        "transaction_id",
-        "sql_state_code",
-        "detail",
-        "hint",
-        "internal_query",
-        "internal_query_pos",
-        "context",
-        "query",
-        "query_pos",
-        "location",
-        "application_name"
-    })
-    public MappedClusterLogEntryDto(String logTime, String logType, String podName, String role,
-        String errorSeverity, String message, String userName, String databaseName,
-        Integer processId, String connectionFrom, String sessionId, Integer sessionLineNum,
-        String commandTag, String sessionStartTime, String virtualTransactionId,
-        Integer transactionId, String sqlStateCode, String detail, String hint,
-        String internalQuery, Integer internalQueryPos, String context, String query,
-        Integer queryPos, String location, String applicationName) {
-      setLogTime(logTime);
-      setLogType(logType);
-      setPodName(podName);
-      setRole(role);
-      setErrorSeverity(errorSeverity);
-      setMessage(message);
-      setUserName(userName);
-      setDatabaseName(databaseName);
-      setProcessId(processId);
-      setConnectionFrom(connectionFrom);
-      setSessionId(sessionId);
-      setSessionLineNum(sessionLineNum);
-      setCommandTag(commandTag);
-      setSessionStartTime(sessionStartTime);
-      setVirtualTransactionId(virtualTransactionId);
-      setTransactionId(transactionId);
-      setSqlStateCode(sqlStateCode);
-      setDetail(detail);
-      setHint(hint);
-      setInternalQuery(internalQuery);
-      setInternalQueryPos(internalQueryPos);
-      setContext(context);
-      setQuery(query);
-      setQueryPos(queryPos);
-      setLocation(location);
-      setApplicationName(applicationName);
-    }
   }
 }

@@ -34,8 +34,13 @@ public class StorageClassValidator implements DistributedLogsValidator {
   @Override
   public void validate(StackGresDistributedLogsReview review) throws ValidationFailed {
 
-    StackGresDistributedLogs cluster = review.getRequest().getObject();
-    String storageClass = cluster.getSpec().getPersistentVolume().getStorageClass();
+    StackGresDistributedLogs distributedLogs = review.getRequest().getObject();
+
+    if (distributedLogs == null) {
+      return;
+    }
+
+    String storageClass = distributedLogs.getSpec().getPersistentVolume().getStorageClass();
 
     switch (review.getRequest().getOperation()) {
       case CREATE:
