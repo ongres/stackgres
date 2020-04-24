@@ -29,7 +29,7 @@ e2e_test() {
 
 service_check() {
   RESPONSE_PRIMARY="$(run_query -c "$DISTRIBUTED_LOGS_NAME" -x psql -k postgres \
-    -h "$DISTRIBUTED_LOGS_NAME"-primary -i 0 -p 5432)"
+    -h "$DISTRIBUTED_LOGS_NAME"-primary -p 5432)"
 
   if [ "$RESPONSE_PRIMARY" = "1" ]
   then
@@ -55,7 +55,7 @@ check_distributed_logs_attach_to_cluster() {
   for TEXT in distributed-logs-worked distributed-logs-works distributed-logs-still-works
   do
     RESPONSE="$(run_query -c "$CLUSTER_NAME" -x psql -k postgres \
-      -h "$CLUSTER_NAME"-primary -i 0 -p 5432 -q "\"SELECT '$TEXT'\"")"
+      -h "$CLUSTER_NAME"-primary -p 5432 -q "\"SELECT '$TEXT'\"")"
 
     if [ "$RESPONSE" = "$TEXT" ]
     then
