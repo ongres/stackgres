@@ -17,12 +17,12 @@ e2e_test_install() {
   wait_pods_running "$CLUSTER_NAMESPACE" 2
 
   OPERATOR_DISTRIBUTED_LOGS_CR=$(kubectl get sgdistributedlogs.stackgres.io -n "$CLUSTER_NAMESPACE" "$DISTRIBUTED_LOGS_NAME" -o json \
-    | run_jq 'del(.metadata.creationTimestamp) | del(.metadata.generation) | del(.metadata.resourceVersion) | del(.metadata.selfLink) | del(.metadata.uid)' )
+    | jq 'del(.metadata.creationTimestamp) | del(.metadata.generation) | del(.metadata.resourceVersion) | del(.metadata.selfLink) | del(.metadata.uid)' )
   
   write_into -f "$LOG_PATH/distributed-logs-cr.json" -c "$OPERATOR_DISTRIBUTED_LOGS_CR"
 
   OPERATOR_DISTRIBUTED_LOGS=$(cat "$LOG_PATH/distributed-logs-cr.json" \
-    | run_jq 'del(.apiVersion) | del(.kind)' )
+    | jq 'del(.apiVersion) | del(.kind)' )
 
   write_into -f "$LOG_PATH/distributed-logs.json" -c "$OPERATOR_DISTRIBUTED_LOGS" 
 }
@@ -47,7 +47,7 @@ e2e_test() {
 
 check_distributed_logs_in_list() {
   if run_curl -r "stackgres/sgdistributedlogs" \
-    | run_jq -r ".[] | select ( .metadata.namespace == \"$CLUSTER_NAMESPACE\" and .metadata.name == \"$DISTRIBUTED_LOGS_NAME\") | .metadata.name" \
+    | jq -r ".[] | select ( .metadata.namespace == \"$CLUSTER_NAMESPACE\" and .metadata.name == \"$DISTRIBUTED_LOGS_NAME\") | .metadata.name" \
     | grep -q "^$DISTRIBUTED_LOGS_NAME$"
   then
     echo "Distributred logs $DISTRIBUTED_LOGS_NAME included in json response"
@@ -63,7 +63,7 @@ get_distributed_logs_http_status() {
 }
 
 get_distributed_logs_pod_count() {
-  run_curl -r "stackgres/sgdistributedlogs/$CLUSTER_NAMESPACE/$DISTRIBUTED_LOGS_NAME" | run_jq '.pods | length'
+  run_curl -r "stackgres/sgdistributedlogs/$CLUSTER_NAMESPACE/$DISTRIBUTED_LOGS_NAME" | jq '.pods | length'
 }
 
 check_distributed_logs_directly() {
@@ -96,7 +96,7 @@ check_distributed_logs_removed() {
   remove_distributed_logs_cr_if_exists
 
   if run_curl -r "stackgres/sgdistributedlogs" \
-    | run_jq -r ".[] | select ( .metadata.namespace == \"$CLUSTER_NAMESPACE\" and .metadata.name == \"$DISTRIBUTED_LOGS_NAME\") | .metadata.name" \
+    | jq -r ".[] | select ( .metadata.namespace == \"$CLUSTER_NAMESPACE\" and .metadata.name == \"$DISTRIBUTED_LOGS_NAME\") | .metadata.name" \
     | grep -q "^$DISTRIBUTED_LOGS_NAME$"
   then
     echo "Distributred logs $DISTRIBUTED_LOGS_NAME wasn't removed from cache"
@@ -159,7 +159,7 @@ update_distributed_logs_parameter_with_api() {
   do
     FIELDS="$FIELDS[\"$FIELD\"]"
   done
-  UPDATED_DISTRIBUTED_LOGS="$(cat "$LOG_PATH/distributed-logs.json" | run_jq ".spec$FIELDS = $2")"
+  UPDATED_DISTRIBUTED_LOGS="$(cat "$LOG_PATH/distributed-logs.json" | jq ".spec$FIELDS = $2")"
   write_into -f "$LOG_PATH/updated-distributed-logs.json" -c "$UPDATED_DISTRIBUTED_LOGS"
 
   HTTP_STATUS="$(run_curl -r "stackgres/sgdistributedlogs" -d "$LOG_PATH/updated-distributed-logs.json" -e '-X PUT -w %{http_code} -o /dev/null')"
@@ -187,7 +187,7 @@ test_api_updated_distributed_logs_is_visible() {
     return 1
   fi
 
-  if run_curl -r "stackgres/sgdistributedlogs/$CLUSTER_NAMESPACE/$DISTRIBUTED_LOGS_NAME" | run_jq '.spec.persistentVolume.size' -r \
+  if run_curl -r "stackgres/sgdistributedlogs/$CLUSTER_NAMESPACE/$DISTRIBUTED_LOGS_NAME" | jq '.spec.persistentVolume.size' -r \
     | grep -q "^256Mi$"
   then
     echo "Distributred logs updates are being reflected in the api"
@@ -228,7 +228,7 @@ test_api_delete_distributed_logs_is_visible() {
 test_constraint_violation_api_error() {
   local HTTP_STATUS
 
-  INVALID_DISTRIBUTED_LOGS="$(cat "$LOG_PATH/distributed-logs.json" | run_jq '.spec.persistentVolume.size = null' )"
+  INVALID_DISTRIBUTED_LOGS="$(cat "$LOG_PATH/distributed-logs.json" | jq '.spec.persistentVolume.size = null' )"
   write_into -f "$LOG_PATH/invalid-distributed-logs.json" -c "$INVALID_DISTRIBUTED_LOGS"
 
   HTTP_STATUS="$(run_curl -r "stackgres/sgdistributedlogs" -n "$CLUSTER_NAMESPACE"  -d "$LOG_PATH/invalid-distributed-logs.json" -e '-X POST -w %{http_code} -o /dev/null')"

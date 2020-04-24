@@ -42,13 +42,13 @@ EOF
     --template "{{ with .status.process.status }}{{ . }}{{ end }}" | grep -q Completed'
 
   OPERATOR_BACKUP_CR=$(kubectl get sgbackups.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" -o json \
-    | run_jq 'del(.metadata.creationTimestamp) | del(.metadata.generation)
+    | jq 'del(.metadata.creationTimestamp) | del(.metadata.generation)
       | del(.metadata.resourceVersion) | del(.metadata.selfLink) | del(.metadata.uid)' )
   
   write_into -f "$LOG_PATH/stackgres-backup-cr.json" -c "$OPERATOR_BACKUP_CR"
 
   OPERATOR_BACKUP=$(cat "$LOG_PATH/stackgres-backup-cr.json" \
-    | run_jq 'del(.apiVersion) | del(.kind) | del(.status) | del(.metadata.annotations)' )
+    | jq 'del(.apiVersion) | del(.kind) | del(.status) | del(.metadata.annotations)' )
 
   write_into -f "$LOG_PATH/stackgres-backup.json" -c "$OPERATOR_BACKUP" 
 }
@@ -74,7 +74,7 @@ e2e_test() {
 
 check_backup_in_list() {
   if run_curl -r "stackgres/sgbackup" \
-    | run_jq -r ".[] | select ( .metadata.namespace == \"$CLUSTER_NAMESPACE\"
+    | jq -r ".[] | select ( .metadata.namespace == \"$CLUSTER_NAMESPACE\"
       and .metadata.name == \"$BACKUP_NAME\") | .metadata.name" \
     | grep -q "^$BACKUP_NAME$"
   then
@@ -121,7 +121,7 @@ check_backup_removed() {
   remove_backup_cr_if_exists
 
   if run_curl -r "stackgres/sgbackup" \
-    | run_jq -r ".[] | select ( .metadata.namespace == \"$CLUSTER_NAMESPACE\"
+    | jq -r ".[] | select ( .metadata.namespace == \"$CLUSTER_NAMESPACE\"
       and .metadata.name == \"$BACKUP_NAME\") | .metadata.name" \
     | grep -q "^$BACKUP_NAME$"
   then
@@ -182,7 +182,7 @@ test_api_created_backup_is_visible() {
 update_backup_parameter_with_api() {
   local HTTP_STATUS
 
-  UPDATED_STACKGRES_BACKUP=$(cat "$LOG_PATH/stackgres-backup.json" | run_jq ".spec[\"$1\"] = $2" )
+  UPDATED_STACKGRES_BACKUP=$(cat "$LOG_PATH/stackgres-backup.json" | jq ".spec[\"$1\"] = $2" )
   
   write_into -f "$LOG_PATH/updated-stackgres-backup.json" -c "$UPDATED_STACKGRES_BACKUP"
 
@@ -216,7 +216,7 @@ test_api_updated_backup_is_visible() {
     return 1
   fi
 
-  if run_curl -r "stackgres/sgbackup/$CLUSTER_NAMESPACE/$BACKUP_NAME" | run_jq '.spec.subjectToRetentionPolicy' -r \
+  if run_curl -r "stackgres/sgbackup/$CLUSTER_NAMESPACE/$BACKUP_NAME" | jq '.spec.subjectToRetentionPolicy' -r \
     | grep -q "^false$"
   then
     echo "Backup updates are being reflected in the api"
@@ -258,7 +258,7 @@ test_api_delete_backup_is_visible() {
 
 test_constraint_violation_api_error() {
 
-  INVALID_PGCONFIG=$(cat "$LOG_PATH/stackgres-backup.json" | run_jq '.spec.sgCluster = null' )
+  INVALID_PGCONFIG=$(cat "$LOG_PATH/stackgres-backup.json" | jq '.spec.sgCluster = null' )
 
   echo "$INVALID_PGCONFIG" > "$LOG_PATH/invalid-backup.json"
   

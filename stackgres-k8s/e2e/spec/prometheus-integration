@@ -172,5 +172,5 @@ check_grafana_embedded() {
 }
 
 get_grafana_embedded() {
-  run_curl -r "stackgres/sgcluster/$CLUSTER_NAMESPACE/$CLUSTER_NAME" -e "-L" | run_jq '.grafanaEmbedded' -r
+  run_curl -r "stackgres/sgcluster/$CLUSTER_NAMESPACE/$CLUSTER_NAME" -e "-L" | jq '.grafanaEmbedded' -r
 }
