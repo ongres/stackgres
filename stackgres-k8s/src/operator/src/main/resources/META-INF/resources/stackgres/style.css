@@ -624,6 +624,7 @@ aside {
     line-height: 1.1;
     height: 75px;
     align-items: center;
+    cursor: pointer;
 }
 
 #namespaces {
@@ -866,8 +867,12 @@ ul.zg-ul-select.active li.active:hover {
 #ns-select, .set.active:not(.conf):not(.backups) {
     border-bottom: 1px solid #f1f1f1;
     border-top: 1px solid #f1f1f1;
-    max-height: calc(100vh - 525px);
+    max-height: calc(100vh - 475px);
     overflow: auto;
+}
+
+.set.clu.active {
+    border-top: 0 !important;
 }
 
 .set.conf.active {
