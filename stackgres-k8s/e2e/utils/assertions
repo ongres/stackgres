@@ -28,6 +28,20 @@ assert_string_equal(){
 
 }
 
+assert_greater_than(){
+
+  EXPECTED="$1"
+  ACTUAL="$2"
+
+  if [ $ACTUAL -gt $EXPECTED ]
+  then 
+    echo "Success. $ACTUAL is greater than $EXPECTED"
+  else
+    echo "Fail. $ACTUAL is not is greater than $EXPECTED"
+    return 1
+  fi
+
+}
 
 assert_api_error(){
   RESPONSE="$1"
