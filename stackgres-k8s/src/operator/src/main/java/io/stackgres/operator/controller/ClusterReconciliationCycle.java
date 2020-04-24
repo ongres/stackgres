@@ -72,6 +72,7 @@ import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresClusterSidecarResourceFactory;
 import io.stackgres.operator.common.StackGresGeneratorContext;
 import io.stackgres.operator.common.StackGresRestoreContext;
+import io.stackgres.operator.common.StackGresUserClusterContext;
 import io.stackgres.operator.customresource.prometheus.PrometheusConfig;
 import io.stackgres.operator.customresource.prometheus.PrometheusInstallation;
 import io.stackgres.operator.resource.ClusterResourceHandlerSelector;
@@ -153,31 +154,10 @@ public class ClusterReconciliationCycle
   }
 
   @Override
-  protected AbstractReconciliator<StackGresClusterContext, StackGresCluster,
-        ClusterResourceHandlerSelector> createReconciliator(
-      KubernetesClient client, StackGresClusterContext context,
-      ImmutableList<Tuple2<HasMetadata, Optional<HasMetadata>>> requiredResources,
-      ImmutableList<Tuple2<HasMetadata, Optional<HasMetadata>>> existingResources) {
-    return ClusterReconciliator.builder()
-        .withEventController(eventController)
-        .withHandlerSelector(handlerSelector)
-        .withStatusManager(statusManager)
-        .withClient(client)
-        .withObjectMapper(objectMapper)
-        .withClusterContext(context)
-        .withRequiredResources(requiredResources)
-        .withExistingResources(existingResources)
-        .build();
-  }
-
-  @Override
-  protected ImmutableList<HasMetadata> getRequiredResources(
-      StackGresClusterContext context,
-      ImmutableList<HasMetadata> existingResourcesOnly) {
+  protected ImmutableList<HasMetadata> getRequiredResources(StackGresClusterContext context) {
     return ResourceGenerator.<StackGresGeneratorContext>with(
         ImmutableStackGresUserGeneratorContext.builder()
             .clusterContext(context)
-            .addAllExistingResources(existingResourcesOnly)
             .build())
         .of(HasMetadata.class)
         .append(cluster)
@@ -186,10 +166,35 @@ public class ClusterReconciliationCycle
   }
 
   @Override
-  protected void onOrphanConfigDeletion(String namespace, String name) {
-    eventController.sendEvent(EventReason.CLUSTER_DELETED,
-        "StackGres Cluster " + namespace + "."
-            + name + " deleted");
+  protected AbstractReconciliator<StackGresClusterContext, StackGresCluster,
+        ClusterResourceHandlerSelector> createReconciliator(
+      KubernetesClient client, StackGresClusterContext context) {
+    return ClusterReconciliator.builder()
+        .withEventController(eventController)
+        .withHandlerSelector(handlerSelector)
+        .withStatusManager(statusManager)
+        .withClient(client)
+        .withObjectMapper(objectMapper)
+        .withClusterContext(context)
+        .build();
+  }
+
+  @Override
+  protected StackGresClusterContext getContextWithExistingResourcesOnly(
+      StackGresClusterContext context,
+      ImmutableList<Tuple2<HasMetadata, Optional<HasMetadata>>> existingResourcesOnly) {
+    return ImmutableStackGresUserClusterContext.copyOf((StackGresUserClusterContext) context)
+        .withExistingResources(existingResourcesOnly);
+  }
+
+  @Override
+  protected StackGresClusterContext getContextWithExistingAndRequiredResources(
+      StackGresClusterContext context,
+      ImmutableList<Tuple2<HasMetadata, Optional<HasMetadata>>> requiredResources,
+      ImmutableList<Tuple2<HasMetadata, Optional<HasMetadata>>> existingResources) {
+    return ImmutableStackGresUserClusterContext.copyOf((StackGresUserClusterContext) context)
+        .withRequiredResources(requiredResources)
+        .withExistingResources(existingResources);
   }
 
   @Override

@@ -110,8 +110,13 @@ public abstract class AbstractReconciliationCycle<T extends ResourceHandlerConte
           LOGGER.trace(cycleName + " working on " + contextId);
           ImmutableList<HasMetadata> existingResourcesOnly = getExistingResources(
               client, context);
+          T contextWithExistingResourcesOnly = getContextWithExistingResourcesOnly(context,
+              existingResourcesOnly
+              .stream()
+              .map(existingResource -> Tuple.tuple(existingResource, Optional.<HasMetadata>empty()))
+              .collect(ImmutableList.toImmutableList()));
           ImmutableList<HasMetadata> requiredResourcesOnly = getRequiredResources(
-              context, existingResourcesOnly);
+              contextWithExistingResourcesOnly);
           ImmutableList<Tuple2<HasMetadata, Optional<HasMetadata>>> existingResources =
               existingResourcesOnly
               .stream()
@@ -126,7 +131,9 @@ public abstract class AbstractReconciliationCycle<T extends ResourceHandlerConte
                   .filter(Optional::isPresent)
                   .orElseGet(() -> handlerSelector.find(client, context, requiredResource))))
               .collect(ImmutableList.toImmutableList());
-          createReconciliator(client, context, requiredResources, existingResources).reconcile();
+          T contextWithExistingAndRequiredResources = getContextWithExistingAndRequiredResources(
+              context, requiredResources, existingResources);
+          createReconciliator(client, contextWithExistingAndRequiredResources).reconcile();
         } catch (Exception ex) {
           LOGGER.error(cycleName + " failed reconciling " + contextId, ex);
           try {
@@ -147,12 +154,17 @@ public abstract class AbstractReconciliationCycle<T extends ResourceHandlerConte
 
   protected abstract void onConfigError(T context, HasMetadata contextResource, Exception ex);
 
-  protected abstract AbstractReconciliator<T, H, S> createReconciliator(KubernetesClient client,
-      T context, ImmutableList<Tuple2<HasMetadata, Optional<HasMetadata>>> requiredResources,
+  protected abstract T getContextWithExistingResourcesOnly(T context,
+      ImmutableList<Tuple2<HasMetadata, Optional<HasMetadata>>> existingResourcesOnly);
+
+  protected abstract ImmutableList<HasMetadata> getRequiredResources(T context);
+
+  protected abstract T getContextWithExistingAndRequiredResources(T context,
+      ImmutableList<Tuple2<HasMetadata, Optional<HasMetadata>>> requiredResources,
       ImmutableList<Tuple2<HasMetadata, Optional<HasMetadata>>> existingResources);
 
-  protected abstract ImmutableList<HasMetadata> getRequiredResources(T context,
-      ImmutableList<HasMetadata> existingResourcesOnly);
+  protected abstract AbstractReconciliator<T, H, S> createReconciliator(
+      KubernetesClient client, T context);
 
   private Optional<HasMetadata> findResourceIn(HasMetadata resource,
       ImmutableList<HasMetadata> resources) {
@@ -166,8 +178,6 @@ public abstract class AbstractReconciliationCycle<T extends ResourceHandlerConte
             .equals(otherResource.getMetadata().getName()))
         .findAny();
   }
-
-  protected abstract void onOrphanConfigDeletion(String namespace, String name);
 
   protected abstract ImmutableList<T> getExistingConfigs(KubernetesClient client);
 

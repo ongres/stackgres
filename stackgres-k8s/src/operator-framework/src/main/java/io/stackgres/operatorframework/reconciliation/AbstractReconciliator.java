@@ -8,14 +8,11 @@ package io.stackgres.operatorframework.reconciliation;
 import java.util.Optional;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableList;
-
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.operatorframework.resource.ResourceHandlerContext;
 import io.stackgres.operatorframework.resource.ResourceHandlerSelector;
-
 import org.jooq.lambda.Unchecked;
 import org.jooq.lambda.tuple.Tuple2;
 import org.slf4j.Logger;
@@ -32,13 +29,9 @@ public abstract class AbstractReconciliator<T extends ResourceHandlerContext,
   protected final ObjectMapper objectMapper;
   protected final T context;
   protected final H contextResource;
-  protected final ImmutableList<Tuple2<HasMetadata, Optional<HasMetadata>>> requiredResources;
-  protected final ImmutableList<Tuple2<HasMetadata, Optional<HasMetadata>>> existingResources;
 
   protected AbstractReconciliator(String name, S handlerSelector,
-      KubernetesClient client, ObjectMapper objectMapper, T context, H contextResource,
-      ImmutableList<Tuple2<HasMetadata, Optional<HasMetadata>>> requiredResources,
-      ImmutableList<Tuple2<HasMetadata, Optional<HasMetadata>>> existingResources) {
+      KubernetesClient client, ObjectMapper objectMapper, T context, H contextResource) {
     super();
     this.name = name;
     this.handlerSelector = handlerSelector;
@@ -46,8 +39,6 @@ public abstract class AbstractReconciliator<T extends ResourceHandlerContext,
     this.objectMapper = objectMapper;
     this.context = context;
     this.contextResource = contextResource;
-    this.requiredResources = requiredResources;
-    this.existingResources = existingResources;
   }
 
   private enum Operation {
@@ -80,7 +71,8 @@ public abstract class AbstractReconciliator<T extends ResourceHandlerContext,
   }
 
   private void deleteUnwantedResources() {
-    for (Tuple2<HasMetadata, Optional<HasMetadata>> existingResource : existingResources) {
+    for (Tuple2<HasMetadata, Optional<HasMetadata>> existingResource :
+        context.getExistingResources()) {
       if (existingResource.v1.getMetadata().getOwnerReferences().stream()
           .map(ownerReference -> ownerReference.getApiVersion()
               .equals(contextResource.getApiVersion())
@@ -129,7 +121,8 @@ public abstract class AbstractReconciliator<T extends ResourceHandlerContext,
   private Operation createOrUpdateRequiredResources() {
     boolean created = false;
     boolean updated = false;
-    for (Tuple2<HasMetadata, Optional<HasMetadata>> requiredResource : requiredResources) {
+    for (Tuple2<HasMetadata, Optional<HasMetadata>> requiredResource :
+        context.getRequiredResources()) {
       Optional<HasMetadata> matchingResource = requiredResource.v2;
       if (matchingResource
           .map(existingResource -> handlerSelector.equals(

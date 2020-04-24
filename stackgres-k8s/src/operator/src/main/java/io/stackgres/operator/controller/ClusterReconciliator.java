@@ -6,17 +6,13 @@
 package io.stackgres.operator.controller;
 
 import java.util.Objects;
-import java.util.Optional;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableList;
-import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.resource.ClusterResourceHandlerSelector;
 import io.stackgres.operatorframework.reconciliation.AbstractReconciliator;
-import org.jooq.lambda.tuple.Tuple2;
 
 public class ClusterReconciliator
     extends AbstractReconciliator<StackGresClusterContext, StackGresCluster,
@@ -28,17 +24,13 @@ public class ClusterReconciliator
   private ClusterReconciliator(Builder builder) {
     super("Cluster", builder.handlerSelector,
         builder.client, builder.objectMapper,
-        builder.clusterContext, builder.clusterContext.getCluster(),
-        builder.requiredResources,
-        builder.existingResources);
+        builder.clusterContext, builder.clusterContext.getCluster());
     Objects.requireNonNull(builder.handlerSelector);
     Objects.requireNonNull(builder.statusManager);
     Objects.requireNonNull(builder.eventController);
     Objects.requireNonNull(builder.client);
     Objects.requireNonNull(builder.objectMapper);
     Objects.requireNonNull(builder.clusterContext);
-    Objects.requireNonNull(builder.existingResources);
-    Objects.requireNonNull(builder.requiredResources);
     this.statusManager = builder.statusManager;
     this.eventController = builder.eventController;
   }
@@ -78,8 +70,6 @@ public class ClusterReconciliator
     private KubernetesClient client;
     private ObjectMapper objectMapper;
     private StackGresClusterContext clusterContext;
-    private ImmutableList<Tuple2<HasMetadata, Optional<HasMetadata>>> existingResources;
-    private ImmutableList<Tuple2<HasMetadata, Optional<HasMetadata>>> requiredResources;
 
     private Builder() {}
 
@@ -111,18 +101,6 @@ public class ClusterReconciliator
 
     public Builder withClusterContext(StackGresClusterContext clusterContext) {
       this.clusterContext = clusterContext;
-      return this;
-    }
-
-    public Builder withExistingResources(
-        ImmutableList<Tuple2<HasMetadata, Optional<HasMetadata>>> existingResources) {
-      this.existingResources = existingResources;
-      return this;
-    }
-
-    public Builder withRequiredResources(
-        ImmutableList<Tuple2<HasMetadata, Optional<HasMetadata>>> requiredResources) {
-      this.requiredResources = requiredResources;
       return this;
     }
 

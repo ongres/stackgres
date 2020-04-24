@@ -14,7 +14,6 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import com.google.common.collect.ImmutableList;
-
 import io.fabric8.kubernetes.api.model.AffinityBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.LabelSelectorBuilder;
@@ -40,8 +39,8 @@ import io.stackgres.operator.configuration.StorageConfig;
 import io.stackgres.operator.patroni.factory.Patroni;
 import io.stackgres.operator.patroni.factory.PatroniRole;
 import io.stackgres.operatorframework.resource.ResourceUtil;
-
 import org.jooq.lambda.Seq;
+import org.jooq.lambda.tuple.Tuple2;
 
 @ApplicationScoped
 public class ClusterStatefulSet implements StackGresClusterResourceStreamFactory {
@@ -185,7 +184,8 @@ public class ClusterStatefulSet implements StackGresClusterResourceStreamFactory
         .append(patroni.streamResources(context))
         .append(clusterContext.getSidecars().stream()
             .flatMap(sidecarEntry -> sidecarEntry.getSidecar().streamResources(context)))
-        .append(Seq.seq(context.getExistingResources())
+        .append(Seq.seq(context.getClusterContext().getExistingResources())
+            .map(Tuple2::v1)
             .filter(existingResource -> existingResource instanceof Pod)
             .map(HasMetadata::getMetadata)
             .filter(existingPodMetadata -> Objects.equals(

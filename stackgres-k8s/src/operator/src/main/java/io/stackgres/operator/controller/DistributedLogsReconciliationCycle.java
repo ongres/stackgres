@@ -106,31 +106,11 @@ public class DistributedLogsReconciliationCycle
   }
 
   @Override
-  protected AbstractReconciliator<StackGresDistributedLogsContext, StackGresDistributedLogs,
-      DistributedLogsResourceHandlerSelector> createReconciliator(
-          KubernetesClient client, StackGresDistributedLogsContext context,
-          ImmutableList<Tuple2<HasMetadata, Optional<HasMetadata>>> requiredResources,
-          ImmutableList<Tuple2<HasMetadata, Optional<HasMetadata>>> existingResources) {
-    return DistributedLogsReconciliator.builder()
-        .withEventController(eventController)
-        .withHandlerSelector(handlerSelector)
-        .withStatusManager(statusManager)
-        .withClient(client)
-        .withObjectMapper(objectMapper)
-        .withDistributedLogsContext(context)
-        .withRequiredResources(requiredResources)
-        .withExistingResources(existingResources)
-        .build();
-  }
-
-  @Override
   protected ImmutableList<HasMetadata> getRequiredResources(
-      StackGresDistributedLogsContext context,
-      ImmutableList<HasMetadata> existingResourcesOnly) {
+      StackGresDistributedLogsContext context) {
     return ResourceGenerator.<StackGresDistributedLogsGeneratorContext>with(
         ImmutableStackGresDistributedLogsGeneratorContext.builder()
             .distributedLogsContext(context)
-            .addAllExistingResources(existingResourcesOnly)
             .build())
         .of(HasMetadata.class)
         .append(distributeLogs)
@@ -139,10 +119,35 @@ public class DistributedLogsReconciliationCycle
   }
 
   @Override
-  protected void onOrphanConfigDeletion(String namespace, String name) {
-    eventController.sendEvent(EventReason.CLUSTER_DELETED,
-        "StackGres Cluster " + namespace + "."
-            + name + " deleted");
+  protected AbstractReconciliator<StackGresDistributedLogsContext, StackGresDistributedLogs,
+      DistributedLogsResourceHandlerSelector> createReconciliator(
+          KubernetesClient client, StackGresDistributedLogsContext context) {
+    return DistributedLogsReconciliator.builder()
+        .withEventController(eventController)
+        .withHandlerSelector(handlerSelector)
+        .withStatusManager(statusManager)
+        .withClient(client)
+        .withObjectMapper(objectMapper)
+        .withDistributedLogsContext(context)
+        .build();
+  }
+
+  @Override
+  protected StackGresDistributedLogsContext getContextWithExistingResourcesOnly(
+      StackGresDistributedLogsContext context,
+      ImmutableList<Tuple2<HasMetadata, Optional<HasMetadata>>> existingResourcesOnly) {
+    return ImmutableStackGresDistributedLogsContext.copyOf(context)
+        .withExistingResources(existingResourcesOnly);
+  }
+
+  @Override
+  protected StackGresDistributedLogsContext getContextWithExistingAndRequiredResources(
+      StackGresDistributedLogsContext context,
+      ImmutableList<Tuple2<HasMetadata, Optional<HasMetadata>>> requiredResources,
+      ImmutableList<Tuple2<HasMetadata, Optional<HasMetadata>>> existingResources) {
+    return ImmutableStackGresDistributedLogsContext.copyOf(context)
+        .withRequiredResources(requiredResources)
+        .withExistingResources(existingResources);
   }
 
   @Override
