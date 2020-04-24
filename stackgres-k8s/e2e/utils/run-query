@@ -7,7 +7,7 @@ run_query() {
   local PORT=5432
   local HOST=127.0.0.1
   local DATABASE=postgres
-  local POD="$NAME-0"
+  local INSTANCE=0
   local CONTAINER="postgres-util"
 
   while getopts ":c:n:i:q:p:h:d:x:k:" opt; do
@@ -16,7 +16,7 @@ run_query() {
       ;;
       n) NAMESPACE="$OPTARG"
       ;;
-      i) POD="$NAME-$OPTARG"
+      i) INSTANCE="$OPTARG"
       ;;
       q) QUERY="$OPTARG"
       ;;
@@ -36,7 +36,7 @@ run_query() {
     esac
   done
 
-  kubectl exec -t -n "$NAMESPACE" "$POD" -c "$CONTAINER" -- sh -c "
+  kubectl exec -t -n "$NAMESPACE" "${POD:-$NAME-$INSTANCE}" -c "$CONTAINER" -- sh -c "
     PGPASSWORD='$(kubectl -n "$NAMESPACE" get secrets "$NAME" \
       -o jsonpath='{.data.superuser-password}' | base64 -d)' \
     PGCONNECT_TIMEOUT=5 \
