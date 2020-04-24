@@ -146,6 +146,13 @@ const router = new VueRouter({
         conditionalRoute: false
       },
     },
+    { 
+      path: '/:cluster/logs/:namespace/:name', 
+      component: Logs,
+      meta: {
+        conditionalRoute: false
+      },
+    },
     {  
       path: '/backups/:namespace/', 
       component: Backups,
@@ -233,13 +240,6 @@ const router = new VueRouter({
     { 
       path: '/grafana/:namespace/:name/:pod', 
       component: Grafana,
-      meta: {
-        conditionalRoute: false
-      },
-    },
-    { 
-      path: '/logs/', 
-      component: Logs,
       meta: {
         conditionalRoute: false
       },
@@ -715,7 +715,7 @@ const vm = new Vue({
   methods: {
     
     /* API Request */
-    fetchAPI: function(kind = '') {
+    fetchAPI: function(kind = '', params = '') {
 
       let loginToken = getCookie('sgToken');
       //console.log("TOKEN: "+loginToken)
@@ -1058,7 +1058,6 @@ const vm = new Vue({
           
         });
       }
-
 
       if ( (kind === 'backup') || (kind === 'cluster') ) {
         // Check if current cluster has backups

@@ -863,6 +863,13 @@ ul.zg-ul-select.active li.active:hover {
     background-color: rgba(211, 211, 211, .10);
 }
 
+#ns-select, .set.active:not(.conf):not(.backups) {
+    border-bottom: 1px solid #f1f1f1;
+    border-top: 1px solid #f1f1f1;
+    max-height: calc(100vh - 525px);
+    overflow: auto;
+}
+
 .set.conf.active {
     background: #fcfcfc;
 }

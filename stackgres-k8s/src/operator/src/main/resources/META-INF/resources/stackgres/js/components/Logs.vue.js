@@ -8,17 +8,35 @@ var Logs = Vue.component("sg-logs", {
 						<router-link :to="'/overview/'+currentNamespace" title="Namespace Overview">{{ currentNamespace }}</router-link>
 					</li>
 					<li>
-						<!-- <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M10.55.55A9.454 9.454 0 001.125 9.5H.479a.458.458 0 00-.214.053.51.51 0 00-.214.671l1.621 3.382a.49.49 0 00.213.223.471.471 0 00.644-.223l1.62-3.382A.51.51 0 004.2 10a.49.49 0 00-.479-.5H3.1a7.47 7.47 0 117.449 7.974 7.392 7.392 0 01-3.332-.781.988.988 0 00-.883 1.767 9.356 9.356 0 004.215.99 9.45 9.45 0 000-18.9z" class="a"></path><path d="M13.554 10a3 3 0 10-3 3 3 3 0 003-3z" class="a"></path></svg> -->
-						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path class="a" d="M19,15H5c-0.6,0-1-0.4-1-1v0c0-0.6,0.4-1,1-1h14c0.6,0,1,0.4,1,1v0C20,14.6,19.6,15,19,15z"/><path class="a" d="M1,15L1,15c-0.6,0-1-0.4-1-1v0c0-0.6,0.4-1,1-1h0c0.6,0,1,0.4,1,1v0C2,14.6,1.6,15,1,15z"/><path class="a" d="M19,11H5c-0.6,0-1-0.4-1-1v0c0-0.6,0.4-1,1-1h14c0.6,0,1,0.4,1,1v0C20,10.6,19.6,11,19,11z"/><path class="a" d="M1,11L1,11c-0.6,0-1-0.4-1-1v0c0-0.6,0.4-1,1-1h0c0.6,0,1,0.4,1,1v0C2,10.6,1.6,11,1,11z"/><path class="a" d="M19,7H5C4.4,7,4,6.6,4,6v0c0-0.6,0.4-1,1-1h14c0.6,0,1,0.4,1,1v0C20,6.6,19.6,7,19,7z"/><path d="M1,7L1,7C0.4,7,0,6.6,0,6v0c0-0.6,0.4-1,1-1h0c0.6,0,1,0.4,1,1v0C2,6.6,1.6,7,1,7z"/></svg>
-						<template v-if="typeof $route.params.name !== 'undefined'">
-							{{ $route.params.name }}
-						</template>
-						<template v-else>
-							Centralized Logs
-						</template>
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path class="a" d="M19,15H5c-0.6,0-1-0.4-1-1v0c0-0.6,0.4-1,1-1h14c0.6,0,1,0.4,1,1v0C20,14.6,19.6,15,19,15z"/><path class="a" d="M1,15L1,15c-0.6,0-1-0.4-1-1v0c0-0.6,0.4-1,1-1h0c0.6,0,1,0.4,1,1v0C2,14.6,1.6,15,1,15z"/><path class="a" d="M19,11H5c-0.6,0-1-0.4-1-1v0c0-0.6,0.4-1,1-1h14c0.6,0,1,0.4,1,1v0C20,10.6,19.6,11,19,11z"/><path class="a" d="M1,11L1,11c-0.6,0-1-0.4-1-1v0c0-0.6,0.4-1,1-1h0c0.6,0,1,0.4,1,1v0C2,10.6,1.6,11,1,11z"/><path class="a" d="M19,7H5C4.4,7,4,6.6,4,6v0c0-0.6,0.4-1,1-1h14c0.6,0,1,0.4,1,1v0C20,6.6,19.6,7,19,7z"/><path d="M1,7L1,7C0.4,7,0,6.6,0,6v0c0-0.6,0.4-1,1-1h0c0.6,0,1,0.4,1,1v0C2,6.6,1.6,7,1,7z"/></svg>
+						Distributed Logs
+					</li>
+					<li>
+						{{ $route.params.name }}
 					</li>
 				</ul>
-				<!-- <router-link :to="'/crd/create/backup/'+currentNamespace" class="add">Add New</router-link> -->
+
+				<div class="actions">
+					<router-link :to="'/crd/edit/cluster/'+$route.params.namespace+'/'+$route.params.name">Edit Cluster</router-link> <a v-on:click="deleteCRD('sgcluster', currentNamespace, currentCluster.name, '/overview/'+currentNamespace)" :class="'/overview/'+currentNamespace">Delete Cluster</a>
+				</div>
+
+				<ul class="tabs">
+					<li>
+						<router-link :to="'/cluster/status/'+$route.params.namespace+'/'+$route.params.name" title="Status" class="status">Status</router-link>
+					</li>
+					<li>
+						<router-link :to="'/cluster/configuration/'+$route.params.namespace+'/'+$route.params.name" title="Configuration" class="info">Configuration</router-link>
+					</li>
+					<li v-if="currentCluster.hasBackups">
+						<router-link :to="'/cluster/backups/'+$route.params.namespace+'/'+$route.params.name" title="Backups" class="backups">Backups</router-link>
+					</li>
+					<li>
+						<router-link :to="'/cluster/logs/'+$route.params.namespace+'/'+$route.params.name" title="Distributed Logs" class="logs">Logs</router-link>
+					</li>
+					<li v-if="currentCluster.data.grafanaEmbedded">
+						<router-link id="grafana-btn" :to="'/monitor/'+$route.params.namespace+'/'+$route.params.name" title="Grafana Dashboard" class="grafana">Monitoring</router-link>
+					</li>
+				</ul>
 			</header>
 
 			<div class="content">
@@ -42,55 +60,84 @@ var Logs = Vue.component("sg-logs", {
 						<div class=visibleColumns>
 							<span class="toggle">VISIBLE COLUMNS</span>
 						</div>
-				
-						<div class=paginator>
-							<span class="toggle">Page 1</span>
-						</div>
 					</div>
 
 					<table class="logs">
 						<thead>
-							<th class="timestamp">Log Time</th>
-							<th class="number">Number</th>
-							<th class="sysId">Sys ID</th>
-							<th class="operation">Operation</th>
-							<th class="fraction">Fraction</th>
-							<th class="logMessage">Log</th>
+							<th class="timestamp logTime">Log Time</th>
+							<th class="logType center">Type</th>
+							<th class="podName">Pod</th>
+							<th class="role center">Role</th>
+							<th class="userName">User</th>
+							<th class="databaseName">Database</th>
+							<th class="processId">Process ID</th>
+							<th class="connectionFrom">Connection From</th>
+							<th class="errorSeverity center">Error Severity</th>
+							<th class="applicationName">Application</th>
+							<th class="messsage">Message</th>
 							<th class="actions"></th>
 						</thead>
 						<tbody>
-							<tr v-for="log in logs">
-								<td class="timestamp">
-									<span class='date'>
-										{{ log.logTime | formatTimestamp('date') }}
-									</span>
-									<span class='time'>
-										{{ log.logTime | formatTimestamp('time') }}
-									</span>
-									<span class='ms'>
-										{{ log.logTime | formatTimestamp('ms') }} Z
-									</span>
-								</td>
-								<td class="number">
-									{{  log.number1 }}
-								</td>
-								<td class="sysId">
-									{{	log.sysId }}
-								</td>
-								<td class="operation" :class="log.operation">
-									<span>{{	log.operation }}</span>
-								</td>
-								<td class="fraction">
-									{{	log.fraction }}
-								</td>
-								<td class="logMessage">
-									<span> {{	log.message }} </span>
-								</td>
-								<td class="actions">
-									<a><svg xmlns="http://www.w3.org/2000/svg" width="18.556" height="14.004" viewBox="0 0 18.556 14.004"><g transform="translate(0 -126.766)"><path d="M18.459,133.353c-.134-.269-3.359-6.587-9.18-6.587S.232,133.084.1,133.353a.93.93,0,0,0,0,.831c.135.269,3.36,6.586,9.18,6.586s9.046-6.317,9.18-6.586A.93.93,0,0,0,18.459,133.353Zm-9.18,5.558c-3.9,0-6.516-3.851-7.284-5.142.767-1.293,3.382-5.143,7.284-5.143s6.516,3.85,7.284,5.143C15.795,135.06,13.18,138.911,9.278,138.911Z" transform="translate(0 0)"/><path d="M9.751,130.857a3.206,3.206,0,1,0,3.207,3.207A3.21,3.21,0,0,0,9.751,130.857Z" transform="translate(-0.472 -0.295)"/></g></svg></a>
-								</td>
-
-							</tr>
+							<template v-for="log in logs">
+								<tr v-if="log.logType === 'pg'" :class="($route.params.name == log.name) ? 'open' : ''">
+									<td class="timestamp logTime">
+										<span class='date'>
+											{{ log.logTime | formatTimestamp('date') }}
+										</span>
+										<span class='time'>
+											{{ log.logTime | formatTimestamp('time') }}
+										</span>
+										<span class='ms'>
+											{{ log.logTime | formatTimestamp('ms') }}
+										</span>
+										Z
+									</td>
+									<td class="logType label postgres center">
+										<span>Postgres</span>
+									</td>
+									<td class="podName">{{ log.podName }}</td>
+									<td class="role label center" :class="log.role">
+										<span v-if="log.role == 'pr'">Primary</span>
+										<span v-else="log.role == 're'">Replica</span>
+									</td>
+									<td class="userName">{{ log.userName }}</td>
+									<td class="databaseName">{{ log.databaseName }}</td>
+									<td class="processId">{{ log.processId }}</td>
+									<td class="connectionFrom">{{ log.connectionFrom }}</td>
+									<td class="errorSeverity label center" :class="log.errorSeverity">{{ log.errorSeverity }}</td>
+									<td class="applicationName">{{ log.applicationName }}</td>
+									<td class="messsage">{{ log.messsage }}</td>
+								</tr>
+								<tr v-else>
+									<td class="timestamp logTime">
+										<span class='date'>
+											{{ log.logTime | formatTimestamp('date') }}
+										</span>
+										<span class='time'>
+											{{ log.logTime | formatTimestamp('time') }}
+										</span>
+										<span class='ms'>
+											{{ log.logTime | formatTimestamp('ms') }}
+										</span>
+										Z
+									</td>
+									<td class="logType label patroni center">
+										<span>Patroni</span>
+									</td>
+									<td class="podName">{{ log.podName }}</td>
+									<td class="role label center" :class="log.role">
+										<span v-if="log.role == 'pr'">Primary</span>
+										<span v-else="log.role == 're'">Replica</span>
+									</td>
+									<td class="userName"></td>
+									<td class="databaseName"></td>
+									<td class="processId"></td>
+									<td class="connectionFrom"></td>
+									<td class="errorSeverity label center" :class="log.errorSeverity">{{ log.errorSeverity }}</td>
+									<td class="applicationName"></td>
+									<td class="messsage">{{ log.message }}</td>
+								</tr>
+							</template>
 						</tbody>
 					</table>
 
@@ -137,19 +184,45 @@ var Logs = Vue.component("sg-logs", {
         logs() {
 
 			if(!store.state.logs.length) {
-				/* Logs Data */
-				axios
+
+				/* Mock Data */
+				/* axios
 				.get('js/data/logs')
 				.then( function(response){
 					store.commit('setLogs', response.data)
 				}).catch(function(err) {
 					console.log(err);
-				});
-			}
+				}); */
 
+				/* API Data */
+				/* axios
+				.get(apiURL+'sgcluster/logs/'+store.state.currentNamespace+'/'+store.state.currentCluster.name)
+				.then( function(response){
+		
+					store.commit('setLogs', response.data)
+				  
+				}).catch(function(err) {
+				  console.log(err);
+				}); */
+
+			}
+			//vm.fetchAPI('logs');
 			return store.state.logs
 
         }
+
+	},
+	mounted: function() {
+
+		axios
+		.get(apiURL+'sgcluster/logs/'+store.state.currentNamespace+'/'+store.state.currentCluster.name+'?records=10')
+		.then( function(response){
+			store.commit('setLogs', response.data)
+			console.log(response.data);
+		}).catch(function(err) {
+			store.commit('setLogs', [])
+		});
+
 
 	},
 	methods: {
