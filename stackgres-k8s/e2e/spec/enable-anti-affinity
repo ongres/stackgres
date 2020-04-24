@@ -26,10 +26,8 @@ test_anti_affinity_is_blocking_pod_creation() {
 }
 
 is_anti_affinity_blocking_pod_creation() {
-  local MESSAGE="nodes are available: 1 node(s) didn't match pod affinity/anti-affinity"
-  MESSAGE="${MESSAGE}, 1 node(s) didn't satisfy existing pods anti-affinity rules."
   kubectl get events -n "$CLUSTER_NAMESPACE" \
     | grep "FailedScheduling" \
     | grep "\spod/$CLUSTER_NAME-[1-9]\+\s" \
-    | grep -F -q "$MESSAGE"
+    | grep -F -q "node(s) didn't match pod affinity/anti-affinity"
 }
