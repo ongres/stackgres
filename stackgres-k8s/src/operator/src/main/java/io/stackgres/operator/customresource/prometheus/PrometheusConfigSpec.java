@@ -8,14 +8,15 @@ package io.stackgres.operator.customresource.prometheus;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+
 import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.fabric8.kubernetes.api.model.LabelSelector;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class PrometheusConfigSpec implements KubernetesResource {
 
   private static final long serialVersionUID = 1L;

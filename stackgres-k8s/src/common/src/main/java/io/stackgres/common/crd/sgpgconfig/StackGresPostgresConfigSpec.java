@@ -7,7 +7,6 @@ package io.stackgres.common.crd.sgpgconfig;
 
 import java.util.Map;
 import java.util.Objects;
-
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 

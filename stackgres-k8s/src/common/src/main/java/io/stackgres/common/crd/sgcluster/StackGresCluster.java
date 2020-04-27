@@ -6,17 +6,14 @@
 package io.stackgres.common.crd.sgcluster;
 
 import java.util.Objects;
-
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.MoreObjects;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
-@JsonDeserialize
 @RegisterForReflection
 public class StackGresCluster extends CustomResource {
 

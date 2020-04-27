@@ -60,7 +60,6 @@
     <mockito.version>3.0.0</mockito.version>
     <log4j.version>2.11.2</log4j.version>
     <jooq.version>3.13.1</jooq.version>
-    <javax.persistence-api.version>2.2</javax.persistence-api.version>
     <!-- Plugins versions -->
     <compiler-plugin.version>3.8.1</compiler-plugin.version>
     <jar-plugin.version>3.2.0</jar-plugin.version>
@@ -140,11 +139,6 @@
             <artifactId>jaxb-api</artifactId>
           </exclusion>
         </exclusions>
-      </dependency>
-      <dependency>
-        <groupId>javax.persistence</groupId>
-        <artifactId>javax.persistence-api</artifactId>
-        <version>${javax.persistence-api.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>

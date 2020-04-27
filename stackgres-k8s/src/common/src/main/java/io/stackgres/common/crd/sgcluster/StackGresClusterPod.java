@@ -6,7 +6,6 @@
 package io.stackgres.common.crd.sgcluster;
 
 import java.util.Objects;
-
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 

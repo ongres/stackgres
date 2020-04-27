@@ -7,14 +7,12 @@ package io.stackgres.operator.customresource.prometheus;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.MoreObjects;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
-@JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
+@JsonIgnoreProperties(ignoreUnknown = true)
 @RegisterForReflection
 public class Endpoint {
 
