@@ -7,10 +7,12 @@ package io.stackgres.operator.rest.dto;
 
 import javax.validation.constraints.NotNull;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.google.common.base.MoreObjects;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
+@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
 public class SecretKeySelector {
 

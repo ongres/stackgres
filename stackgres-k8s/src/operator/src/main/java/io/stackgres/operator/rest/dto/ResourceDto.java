@@ -6,11 +6,12 @@
 package io.stackgres.operator.rest.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
+import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
-@RegisterForReflection
 @JsonIgnoreProperties(ignoreUnknown = true, value = { "kind", "apiVersion" })
+@JsonInclude(JsonInclude.Include.NON_DEFAULT)
+@RegisterForReflection
 public abstract class ResourceDto {
 
   private Metadata metadata = new Metadata();

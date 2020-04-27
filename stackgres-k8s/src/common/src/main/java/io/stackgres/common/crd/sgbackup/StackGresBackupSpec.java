@@ -6,6 +6,7 @@
 package io.stackgres.common.crd.sgbackup;
 
 import java.util.Objects;
+
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonInclude;

@@ -7,8 +7,10 @@ package io.stackgres.operator.rest.distributedlogs;
 
 import java.beans.ConstructorProperties;
 
+import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.operator.rest.dto.cluster.ClusterLogEntryDto;
 
+@RegisterForReflection
 public class MappedClusterLogEntryDto extends ClusterLogEntryDto {
 
   @ConstructorProperties({
