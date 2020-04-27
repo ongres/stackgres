@@ -278,7 +278,8 @@ public class DistributedLogsFetcher {
         }
       }
       for (Tuple2<String, String> filter : Seq.seq(filters)
-          .map(filter -> Tuple.tuple(FILTER_CONVERSION_MAP.get(filter.v1), filter.v2))) {
+          .map(filter -> Tuple.tuple(FILTER_CONVERSION_MAP.get(filter.v1), filter.v2))
+          .toList()) {
         selectFromLogPatroni = applyFilterForFields(
             selectFromLogPatroni, filter, PATRONI_FIELDS);
         selectFromLogPostgres = applyFilterForFields(
