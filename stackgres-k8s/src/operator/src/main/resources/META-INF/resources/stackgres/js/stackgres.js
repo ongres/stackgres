@@ -153,6 +153,13 @@ const router = new VueRouter({
         conditionalRoute: false
       },
     },
+    { 
+      path: '/:cluster/logs/:namespace/:name/:log', 
+      component: Logs,
+      meta: {
+        conditionalRoute: false
+      },
+    },
     {  
       path: '/backups/:namespace/', 
       component: Backups,
@@ -520,6 +527,10 @@ const store = new Vuex.Store({
 
     setLogs (state, logs) {
       state.logs = logs;
+    },
+
+    appendLogs (state, logs) {
+      state.logs = state.logs.concat(logs);
     },
 
     setTooltips (state, tooltips) {

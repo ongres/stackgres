@@ -217,15 +217,22 @@ var ClusterStatus = Vue.component("cluster-status", {
 			return store.state.currentNamespace
 		},
 		diskUsed () {
-			let used = getBytes(store.state.currentCluster.status.diskUsed);
-			let available = getBytes(store.state.currentCluster.data.spec.pods.persistentVolume.size);
-			let percentage = Math.round((used*63)/available);
+			
+			if( store.state.currentCluster.status.hasOwnProperty('diskUsed') ) {
+				let used = getBytes(store.state.currentCluster.status.diskUsed);
+				let available = getBytes(store.state.currentCluster.data.spec.pods.persistentVolume.size);
+				let percentage = Math.round((used*63)/available);
 
+				return percentage
+			} else
+				return 0
+
+			
 			/*
 			console.log("Used: "+used+" / Available: "+available);
 			console.log("Percentage: "+percentage+"%");
 			*/
-			return percentage;
+			
 		}
 	},
 	beforeDestroy () {

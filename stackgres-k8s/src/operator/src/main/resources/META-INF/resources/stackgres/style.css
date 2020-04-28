@@ -583,7 +583,7 @@ aside {
     width: calc(100% - 350px);
     display: block;
     min-height: 100vh;
-    padding: 60px 40px;
+    padding: 60px 40px 0;
 }
 
 .cta {
@@ -3073,12 +3073,26 @@ tr.no-results:first-child:last-child {
 
 /* Centralized Log */
 
-table.logs {
-    margin-top: 30px;
+#log {
+    margin: 30px -15px 0;
+    padding: 0 15px;
 }
 
-table.logs td.timestamp {
-    width: 13vw;
+table.logs {
+    margin-top: 30px;
+    margin-bottom: 0;
+}
+
+table.logs tbody {
+    max-height: calc(100vh - 353px);
+    max-width: calc(100vw - 430px);
+    display: inline-block;
+    overflow: auto;
+    width: 100%;
+}
+
+table.logs thead {
+    display: inline-block;
 }
 
 th.number, th.fraction {
