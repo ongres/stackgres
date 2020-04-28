@@ -65,83 +65,257 @@ var Logs = Vue.component("sg-logs", {
 					<table class="logs">
 						<thead>
 							<th class="timestamp logTime">Log Time</th>
-							<th class="logType center">Type</th>
+							<th class="logType center label">Type</th>
 							<th class="podName">Pod</th>
-							<th class="role center">Role</th>
+							<th class="role center label">Role</th>
 							<th class="userName">User</th>
 							<th class="databaseName">Database</th>
 							<th class="processId">Process ID</th>
 							<th class="connectionFrom">Connection From</th>
 							<th class="errorSeverity center">Error Severity</th>
 							<th class="applicationName">Application</th>
-							<th class="messsage">Message</th>
+							<th class="logMesssage">Message</th>
 							<th class="actions"></th>
 						</thead>
 						<tbody>
 							<template v-for="log in logs">
-								<tr v-if="log.logType === 'pg'" :class="($route.params.name == log.name) ? 'open' : ''">
-									<td class="timestamp logTime">
-										<span class='date'>
-											{{ log.logTime | formatTimestamp('date') }}
-										</span>
-										<span class='time'>
-											{{ log.logTime | formatTimestamp('time') }}
-										</span>
-										<span class='ms'>
-											{{ log.logTime | formatTimestamp('ms') }}
-										</span>
-										Z
-									</td>
-									<td class="logType label postgres center">
-										<span>Postgres</span>
-									</td>
-									<td class="podName">{{ log.podName }}</td>
-									<td class="role label center" :class="log.role">
-										<span v-if="log.role == 'pr'">Primary</span>
-										<span v-else="log.role == 're'">Replica</span>
-									</td>
-									<td class="userName">{{ log.userName }}</td>
-									<td class="databaseName">{{ log.databaseName }}</td>
-									<td class="processId">{{ log.processId }}</td>
-									<td class="connectionFrom">{{ log.connectionFrom }}</td>
-									<td class="errorSeverity label center" :class="log.errorSeverity">{{ log.errorSeverity }}</td>
-									<td class="applicationName">{{ log.applicationName }}</td>
-									<td class="messsage">{{ log.messsage }}</td>
-								</tr>
-								<tr v-else>
-									<td class="timestamp logTime">
-										<span class='date'>
-											{{ log.logTime | formatTimestamp('date') }}
-										</span>
-										<span class='time'>
-											{{ log.logTime | formatTimestamp('time') }}
-										</span>
-										<span class='ms'>
-											{{ log.logTime | formatTimestamp('ms') }}
-										</span>
-										Z
-									</td>
-									<td class="logType label patroni center">
-										<span>Patroni</span>
-									</td>
-									<td class="podName">{{ log.podName }}</td>
-									<td class="role label center" :class="log.role">
-										<span v-if="log.role == 'pr'">Primary</span>
-										<span v-else="log.role == 're'">Replica</span>
-									</td>
-									<td class="userName"></td>
-									<td class="databaseName"></td>
-									<td class="processId"></td>
-									<td class="connectionFrom"></td>
-									<td class="errorSeverity label center" :class="log.errorSeverity">{{ log.errorSeverity }}</td>
-									<td class="applicationName"></td>
-									<td class="messsage">{{ log.message }}</td>
-								</tr>
+								<template v-if="$route.params.log != log.logTime">
+									<tr v-if="log.logType === 'pg'" :id="log.logTimeIndex">
+										<td class="timestamp logTime">
+											<span class='date'>
+												{{ log.logTimeIndex }}
+												{{ log.logTime | formatTimestamp('date') }}
+											</span>
+											<span class='time'>
+												{{ log.logTime | formatTimestamp('time') }}
+											</span>
+											<span class='ms'>
+												{{ log.logTime | formatTimestamp('ms') }}
+											</span>
+											Z
+										</td>
+										<td class="logType label postgres center">
+											<span>Postgres</span>
+										</td>
+										<td class="podName">{{ log.podName }}</td>
+										<td class="role label center" :class="log.role">
+											<span v-if="log.role == 'pr'">Primary</span>
+											<span v-else="log.role == 're'">Replica</span>
+										</td>
+										<td class="userName">{{ log.userName }}</td>
+										<td class="databaseName">{{ log.databaseName }}</td>
+										<td class="processId">{{ log.processId }}</td>
+										<td class="connectionFrom">{{ log.connectionFrom }}</td>
+										<td class="errorSeverity label center" :class="log.errorSeverity">{{ log.errorSeverity }}</td>
+										<td class="applicationName">{{ log.applicationName }}</td>
+										<td class="messsage">{{ log.messsage }}</td>
+										<td class="actions">
+											<a @click="showDetails(log.logTimeIndex)" class="open" title="Log Details">
+												<svg xmlns="http://www.w3.org/2000/svg" width="18.556" height="14.004" viewBox="0 0 18.556 14.004"><g transform="translate(0 -126.766)"><path d="M18.459,133.353c-.134-.269-3.359-6.587-9.18-6.587S.232,133.084.1,133.353a.93.93,0,0,0,0,.831c.135.269,3.36,6.586,9.18,6.586s9.046-6.317,9.18-6.586A.93.93,0,0,0,18.459,133.353Zm-9.18,5.558c-3.9,0-6.516-3.851-7.284-5.142.767-1.293,3.382-5.143,7.284-5.143s6.516,3.85,7.284,5.143C15.795,135.06,13.18,138.911,9.278,138.911Z" transform="translate(0 0)"/><path d="M9.751,130.857a3.206,3.206,0,1,0,3.207,3.207A3.21,3.21,0,0,0,9.751,130.857Z" transform="translate(-0.472 -0.295)"/></g></svg>
+											</a>
+										</td>
+									</tr>
+									<tr v-else :id="log.logTimeIndex">
+										<td class="timestamp logTime">
+											{{ log.logTimeIndex }}
+											<span class='date'>
+												{{ log.logTime | formatTimestamp('date') }}
+											</span>
+											<span class='time'>
+												{{ log.logTime | formatTimestamp('time') }}
+											</span>
+											<span class='ms'>
+												{{ log.logTime | formatTimestamp('ms') }}
+											</span>
+											Z
+										</td>
+										<td class="logType label patroni center">
+											<span>Patroni</span>
+										</td>
+										<td class="podName">{{ log.podName }}</td>
+										<td class="role label center" :class="log.role">
+											<span v-if="log.role == 'pr'">Primary</span>
+											<span v-else="log.role == 're'">Replica</span>
+										</td>
+										<td class="userName"></td>
+										<td class="databaseName"></td>
+										<td class="processId"></td>
+										<td class="connectionFrom"></td>
+										<td class="errorSeverity label center" :class="log.errorSeverity">{{ log.errorSeverity }}</td>
+										<td class="applicationName"></td>
+										<td class="logMesssage">{{ log.message }}</td>
+										<td class="actions">
+											<router-link :to="'/cluster/logs/'+$route.params.namespace+'/'+$route.params.name+'/'+log.logTime" class="open" title="Log Details">
+												<svg xmlns="http://www.w3.org/2000/svg" width="18.556" height="14.004" viewBox="0 0 18.556 14.004"><g transform="translate(0 -126.766)"><path d="M18.459,133.353c-.134-.269-3.359-6.587-9.18-6.587S.232,133.084.1,133.353a.93.93,0,0,0,0,.831c.135.269,3.36,6.586,9.18,6.586s9.046-6.317,9.18-6.586A.93.93,0,0,0,18.459,133.353Zm-9.18,5.558c-3.9,0-6.516-3.851-7.284-5.142.767-1.293,3.382-5.143,7.284-5.143s6.516,3.85,7.284,5.143C15.795,135.06,13.18,138.911,9.278,138.911Z" transform="translate(0 0)"/><path d="M9.751,130.857a3.206,3.206,0,1,0,3.207,3.207A3.21,3.21,0,0,0,9.751,130.857Z" transform="translate(-0.472 -0.295)"/></g></svg>
+											</router-link>
+										</td>
+									</tr>
+								</template>
+								<template v-else-if="$route.params.log === log.logTime">
+									<tr class="logInfo">
+										<td colspan="999">
+											<div class="header">
+												<span class="timestamp">
+													<span class='date'>
+														{{ log.logTime | formatTimestamp('date') }}
+													</span>
+													<span class='time'>
+														{{ log.logTime | formatTimestamp('time') }}
+													</span>
+													<span class='ms'>
+														{{ log.logTime | formatTimestamp('ms') }}
+													</span>
+													Z
+												</span>
+												<span class="actions">
+													<router-link :to="'/cluster/logs/'+$route.params.namespace+'/'+$route.params.name" class="open" title="Hide Details">
+														<svg xmlns="http://www.w3.org/2000/svg" width="18.556" height="14.004" viewBox="0 0 18.556 14.004"><g transform="translate(0 -126.766)"><path d="M18.459,133.353c-.134-.269-3.359-6.587-9.18-6.587S.232,133.084.1,133.353a.93.93,0,0,0,0,.831c.135.269,3.36,6.586,9.18,6.586s9.046-6.317,9.18-6.586A.93.93,0,0,0,18.459,133.353Zm-9.18,5.558c-3.9,0-6.516-3.851-7.284-5.142.767-1.293,3.382-5.143,7.284-5.143s6.516,3.85,7.284,5.143C15.795,135.06,13.18,138.911,9.278,138.911Z" transform="translate(0 0)"/><path d="M9.751,130.857a3.206,3.206,0,1,0,3.207,3.207A3.21,3.21,0,0,0,9.751,130.857Z" transform="translate(-0.472 -0.295)"/></g></svg>
+													</router-link>
+												</span>
+											</div>
+											<div class="logMessage">
+												<strong class="param">Message</strong>
+												<p>{{ log.message }}</p>
+											</div>
+											<div class="logDetails postgres" v-if="log.logType === 'pg'">
+												<table>
+													<tbody>
+														<tr>
+															<td class="param">Type</td>
+															<td class="value">{{ log.logType }}</td>
+														</tr>
+														<tr>
+															<td class="param">Pod Name</td>
+															<td class="value">{{ log.podName }}</td>
+														</tr>
+														<tr>
+															<td class="param">Role</td>
+															<td class="value">{{ log.role }}</td>
+														</tr>
+														<tr>
+															<td class="param">User</td>
+															<td class="value">{{ log.userName }}</td>
+														</tr>
+														<tr>
+															<td class="param">Database</td>
+															<td class="value">{{ log.databaseName }}</td>
+														</tr>
+														<tr>
+															<td class="param">Process ID</td>
+															<td class="value">{{ log.processId }}</td>
+														</tr>
+														<tr>
+															<td class="param">Connection From</td>
+															<td class="value">{{ log.connectionFrom }}</td>
+														</tr>
+														<tr>
+															<td class="param">Session ID</td>
+															<td class="value">{{ log.sessionId }}</td>
+														</tr>
+														<tr>
+															<td class="param">Session Line Number</td>
+															<td class="value">{{ log.sessionLineNum }}</td>
+														</tr>
+														<tr>
+															<td class="param">Command Tag</td>
+															<td class="value">{{ log.commandTag }}</td>
+														</tr>
+														<tr>
+															<td class="param">Session Start Time</td>
+															<td class="value">{{ log.sessionStartTime }}</td>
+														</tr>
+														<tr>
+															<td class="param">Virtual Transaction ID</td>
+															<td class="value">{{ log.virtualTransactionId }}</td>
+														</tr>
+													</tbody>
+												</table>
+												
+												<table>
+													<tbody>
+														<tr>
+															<td class="param">Transaction ID</td>
+															<td class="value">{{ log.transactionId }}</td>
+														</tr>
+														<tr>
+															<td class="param">Error Severity</td>
+															<td class="value">{{ log.errorSeverity }}</td>
+														</tr>
+														<tr>
+															<td class="param">SQL State Code</td>
+															<td class="value">{{ log.sqlStateCode }}</td>
+														</tr>
+														<tr>
+															<td class="param">Detail</td>
+															<td class="value">{{ log.detail }}</td>
+														</tr>
+														<tr>
+															<td class="param">Hint</td>
+															<td class="value">{{ log.hint }}</td>
+														</tr>
+														<tr>
+															<td class="param">Internal Query</td>
+															<td class="value">{{ log.internalQuery }}</td>
+														</tr>
+														<tr>
+															<td class="param">Internal Query Pos</td>
+															<td class="value">{{ log.internalQueryPos }}</td>
+														</tr>
+														<tr>
+															<td class="param">Context</td>
+															<td class="value">{{ log.context }}</td>
+														</tr>
+														<tr>
+															<td class="param">Query</td>
+															<td class="value">{{ log.query }}</td>
+														</tr>
+														<tr>
+															<td class="param">Query Pos</td>
+															<td class="value">{{ log.queryPos }}</td>
+														</tr>
+														<tr>
+															<td class="param">Location</td>
+															<td class="value">{{ log.location }}</td>
+														</tr>
+														<tr>
+															<td class="param">Application Name</td>
+															<td class="value">{{ log.applicationName }}</td>
+														</tr>
+													</tbody>
+												</table>
+											</div>
+											<div v-else-if="log.logType === 'pa'" class="logDetails patroni">
+												<table>
+													<tbody>
+														<tr>
+															<td class="param">Type</td>
+															<td class="value">{{ log.logType }}</td>
+														</tr>
+													</tbody>
+												</table>
+												<table>
+													<tbody>
+														<tr>
+															<td class="param">Pod Name</td>
+															<td class="value">{{ log.podName }}</td>
+														</tr>
+													</tbody>
+												</table>
+												<table>
+													<tbody>
+														<tr>
+															<td class="param">Role</td>
+															<td class="value">{{ log.role }}</td>
+														</tr>
+													</tbody>
+												</table>
+											</div>
+										</td>
+									</tr>
+								</template>
 							</template>
 						</tbody>
 					</table>
-
-					
 				</div>
 			</div>
 		</div>`,
@@ -182,46 +356,41 @@ var Logs = Vue.component("sg-logs", {
         },
         
         logs() {
-
-			if(!store.state.logs.length) {
-
-				/* Mock Data */
-				/* axios
-				.get('js/data/logs')
-				.then( function(response){
-					store.commit('setLogs', response.data)
-				}).catch(function(err) {
-					console.log(err);
-				}); */
-
-				/* API Data */
-				/* axios
-				.get(apiURL+'sgcluster/logs/'+store.state.currentNamespace+'/'+store.state.currentCluster.name)
-				.then( function(response){
-		
-					store.commit('setLogs', response.data)
-				  
-				}).catch(function(err) {
-				  console.log(err);
-				}); */
-
-			}
-			//vm.fetchAPI('logs');
 			return store.state.logs
-
         }
 
 	},
 	mounted: function() {
 
+		let records = parseInt((window.innerHeight - 350) / 30);
+		//let records = 5;
+
 		axios
-		.get(apiURL+'sgcluster/logs/'+store.state.currentNamespace+'/'+store.state.currentCluster.name+'?records=10')
+		.get(apiURL+'sgcluster/logs/'+store.state.currentNamespace+'/'+store.state.currentCluster.name+'?records='+records)
 		.then( function(response){
 			store.commit('setLogs', response.data)
-			console.log(response.data);
+			//console.log(response.data);
 		}).catch(function(err) {
-			store.commit('setLogs', [])
+			store.commit('setLogs', []);
+			console.log(err);
 		});
+
+		$('table.logs tbody').on('scroll', function() {
+			if($(this).scrollTop() + $(this).innerHeight() >= $(this)[0].scrollHeight) {
+				
+				let fromLogTime = store.state.logs[store.state.logs.length-1].logTime;
+
+				axios
+				.get(apiURL+'sgcluster/logs/'+store.state.currentNamespace+'/'+store.state.currentCluster.name+'?records='+records+'&fromLogTime='+fromLogTime)
+				.then( function(response){
+					store.commit('appendLogs', response.data)
+					//console.log(store.state.logs.length);
+					
+				}).catch(function(err) {
+					console.log(err);
+				});
+			}
+		})
 
 
 	},
@@ -301,5 +470,8 @@ var Logs = Vue.component("sg-logs", {
 			});
 			
 		}
+	},
+	beforeDestroy: function() {
+		store.commit('setLogs', []);
 	}
 })
