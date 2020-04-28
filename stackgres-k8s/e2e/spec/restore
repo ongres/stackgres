@@ -10,7 +10,8 @@ buckets:
     purge: true
 EOF
 
-  kubectl create namespace "$CLUSTER_NAME-backup"
+  kubectl create namespace "$CLUSTER_NAMESPACE-backup"
+
   helm install "$CLUSTER_NAME-backup-minio" stable/minio \
     --namespace "$CLUSTER_NAMESPACE-backup" -f "$LOG_PATH/minio-values.yaml"
 
