@@ -58,8 +58,8 @@ public class DistributedLogsFetcher {
   public static final String LOG_PATRONI_TABLE = "log_patroni";
   public static final String LOG_POSTGRES_WINDOW = "log_postgres_window";
   public static final String LOG_PATRONI_WINDOW = "log_patroni_window";
-  public static final String LOG_PATRONI_TSVECTOR_FUNCTION = "log_patroni_tsvector";
   public static final String LOG_POSTGRES_TSVECTOR_FUNCTION = "log_postgres_tsvector";
+  public static final String LOG_PATRONI_TSVECTOR_FUNCTION = "log_patroni_tsvector";
 
   public static final Param<String> PATRONI_LOG_TYPE_VALUE = DSL.value("pa");
   public static final Param<String> POSTGRES_LOG_TYPE_VALUE = DSL.value("pg");
