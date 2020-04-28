@@ -8,7 +8,12 @@ export K8S_MINISHIFT_DISK="${K8S_MINISHIFT_DISK:-20GB}"
 update_minishift_config() {
   eval "$(minishift oc-env)"
   wait_until eval 'oc login -u system:admin'
-  oc adm policy add-scc-to-group anyuid system:authenticated
+  for addon in anyuid admissions-webhook
+  do
+    minishift addons list | grep -q "^- $addon\s\+: enabled " \
+     || ( minishift addons enable "$addon" && minishift addons apply "$addon" ) \
+     || minishift addons disable "$addon"
+  done
 }
 
 update_k8s_config() {
