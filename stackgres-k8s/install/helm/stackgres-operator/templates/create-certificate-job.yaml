@@ -106,6 +106,6 @@ spec:
               -n '{{ .Release.Namespace }}' '{{ .Release.Name }}-certs' --type json --patch '[
                 {"op":"replace","path":"/data/root.key","value":"'"$KEY"'"},
                 {"op":"replace","path":"/data/server.crt","value":"'"$CRT"'"}]'
-            kubectl delete pod -n '{{ .Release.Namespace }}' -l app=stackgres-operator
+            kubectl set env -n '{{ .Release.Namespace }}' 'deployment/{{ .Release.Name }}' CERTIFICATE_UPDATE="$(date +%s)"
       restartPolicy: OnFailure
 {{ end }}
