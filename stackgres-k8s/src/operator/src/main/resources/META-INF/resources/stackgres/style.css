@@ -2772,7 +2772,7 @@ tr.open ul.yaml {
 }
 
 .yaml .label {
-    color: #2A803A;
+    color: var(--blue);
 }
 
 ul.yaml ul {
