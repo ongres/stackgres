@@ -5,11 +5,13 @@ export K8S_MINISHIFT_CPUS="${K8S_MINISHIFT_CPUS:-2}"
 export K8S_MINISHIFT_MEMORY="${K8S_MINISHIFT_MEMORY:-4GB}"
 export K8S_MINISHIFT_DISK="${K8S_MINISHIFT_DISK:-20GB}"
 
-update_k8s_config() {
+update_minishift_config() {
   eval "$(minishift oc-env)"
   wait_until eval 'oc login -u system:admin'
   oc adm policy add-scc-to-group anyuid system:authenticated
+}
 
+update_k8s_config() {
   mkdir -p "$HOME/.kube"
   if [ "$K8S_FROM_DIND" = true ]
   then
@@ -33,8 +35,17 @@ update_k8s_config() {
 }
 
 reuse_k8s() {
-  if ! minishift status | grep '^OpenShift:  Running ' \
-    || ! kubectl cluster-info > /dev/null 2>&1
+  if ! minishift status | grep '^OpenShift:  Running '
+  then
+    echo "Can not reuse minishift environment"
+    exit 1
+    reset_k8s
+    return
+  fi
+
+  update_minishift_config
+
+  if ! kubectl cluster-info > /dev/null 2>&1
   then
     echo "Can not reuse minishift environment"
     exit 1
@@ -66,6 +77,8 @@ reset_k8s() {
       }
   }'
 
+  update_minishift_config
+
   update_k8s_config
 
   echo "...done"
@@ -82,7 +95,7 @@ delete_k8s() {
 load_operator_k8s() {
   echo "Loading operator image $IMAGE_NAME in minishift environemnt..."
 
-  minishift image import "$IMAGE_NAME"
+  docker save "$IMAGE_NAME" | (eval "$(minishift docker-env)"; docker load)
 
   echo "...done"
 }
