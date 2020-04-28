@@ -81,7 +81,10 @@ EOF
   then
     echo "$SPEC_NAME. FAIL. See file $LOG_PATH/$SPEC_NAME.log for details" > "$TARGET_PATH/$SPEC_NAME.failed"
     echo "$SPEC_NAME. FAIL. See file $LOG_PATH/$SPEC_NAME.log for details" >> "$TARGET_PATH/logs/results.log"
-    cleanup_spec || true
+    if [ "$E2E_SPEC_TRY_UNINSTALL_ON_FAILURE" = "true" ]
+    then
+      cleanup_spec || true
+    fi
     return "$EXIT_CODE"
   fi
   echo "$SPEC_NAME. SUCCESS. Test took $(($(date +%s)-START)) seconds" >> "$TARGET_PATH/logs"/results.log
