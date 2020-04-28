@@ -17,7 +17,7 @@ minio:
               values: [ "${KIND_NAME}-worker", "${KIND_NAME}-control-plane" ]
 EOF
   else
-    > "$LOG_PATH/minio-affinity.yaml"
+    echo -n > "$LOG_PATH/minio-affinity.yaml"
   fi
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
