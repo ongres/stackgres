@@ -30,3 +30,9 @@ $CONTENT
 EOF
 }
 
+echo_raw() {
+  cat << EOF
+$@
+EOF
+}
+
