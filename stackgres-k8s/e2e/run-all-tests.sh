@@ -22,6 +22,7 @@ fi
 export K8S_REUSE=true
 export E2E_BUILD_OPERATOR=false
 export E2E_REUSE_OPERATOR=true
+export E2E_SKIP_SETUP=false
 
 START="$(date +%s)"
 COUNT=0
