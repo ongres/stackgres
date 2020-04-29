@@ -148,7 +148,7 @@ public class ClusterResource
       throw new BadRequestException(ex);
     }
 
-    if (sort != null && sort.equals("asc") && sort.equals("desc")) {
+    if (sort != null && !sort.equals("asc") && !sort.equals("desc")) {
       throw new BadRequestException("sort only accept asc or desc values");
     }
 
