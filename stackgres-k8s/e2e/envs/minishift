@@ -22,6 +22,7 @@ update_minishift_config() {
         fi ) \
      || ( minishift addons disable "$addon" && false )
   done
+  oc adm policy add-scc-to-group hostmount-anyuid system:serviceaccounts
 }
 
 update_k8s_config() {
