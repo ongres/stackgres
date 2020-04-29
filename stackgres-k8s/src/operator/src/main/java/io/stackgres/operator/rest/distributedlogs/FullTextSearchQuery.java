@@ -21,10 +21,16 @@ public class FullTextSearchQuery {
   private static final String AND_OPERATOR = " & ";
   private static final String FOLLOWED_BY_OPERATOR = " <-> ";
 
+  private final String googleLikeQuery;
   private final String fullTextSearchQuery;
 
   public FullTextSearchQuery(String googleLikeQuery) {
+    this.googleLikeQuery = googleLikeQuery;
     this.fullTextSearchQuery = fromGoogleLikeQuery(googleLikeQuery);
+  }
+
+  public String getGoogleLikeQuery() {
+    return googleLikeQuery;
   }
 
   public String getFullTextSearchQuery() {
@@ -87,6 +93,11 @@ public class FullTextSearchQuery {
       position--;
     }
     return Tuple.tuple(word.toString(), position);
+  }
+
+  @Override
+  public String toString() {
+    return googleLikeQuery;
   }
 
 }
