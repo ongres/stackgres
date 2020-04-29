@@ -18,7 +18,6 @@ import java.util.Optional;
 import io.fabric8.kubernetes.api.model.DoneablePod;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodList;
-import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.CustomResourceList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.Watch;
@@ -38,9 +37,7 @@ import io.stackgres.operator.resource.ClusterDtoScanner;
 import io.stackgres.operator.resource.CustomResourceFinder;
 import io.stackgres.operator.resource.CustomResourceScanner;
 import io.stackgres.operator.resource.CustomResourceScheduler;
-import io.stackgres.operator.resource.ResourceFinder;
-import io.stackgres.operator.rest.distributedlogs.DistributedLogsFetcherImpl;
-import io.stackgres.operator.rest.distributedlogs.PostgresConnectionManager;
+import io.stackgres.operator.rest.distributedlogs.DistributedLogsFetcher;
 import io.stackgres.operator.rest.dto.cluster.ClusterDto;
 import io.stackgres.operator.rest.dto.cluster.ClusterResourceConsumtionDto;
 import io.stackgres.operator.rest.transformer.AbstractResourceTransformer;
@@ -63,10 +60,7 @@ class ClusterResourceTest extends AbstractCustomResourceTest<ClusterDto, StackGr
   private CustomResourceFinder<ClusterResourceConsumtionDto> statusFinder;
 
   @Mock
-  private ResourceFinder<Secret> secretFinder;
-
-  @Mock
-  private PostgresConnectionManager postgresConnectionManager;
+  private DistributedLogsFetcher distributedLogsFetcher;
 
   @Mock
   private ObjectMapperProvider objectMapperProvider;
@@ -161,7 +155,7 @@ class ClusterResourceTest extends AbstractCustomResourceTest<ClusterDto, StackGr
         dtoScanner,
         dtoFinder,
         statusFinder,
-        new DistributedLogsFetcherImpl(secretFinder, postgresConnectionManager),
+        distributedLogsFetcher,
         objectMapperProvider);
   }
 
