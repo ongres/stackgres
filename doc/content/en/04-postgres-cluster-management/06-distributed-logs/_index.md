@@ -24,7 +24,7 @@ ___
 | Property                                        | Required | Updatable | Type     | Default | Description |
 |:------------------------------------------------|----------|-----------|:---------|:--------|:------------|
 | [persistentVolume](#persistent-volume)          | ✓        |           | string   |         | {{< crd-field-description SGDistributedLogs.spec.persistentVolume >}} |
-| [nonProductionOptions](#non-production-options) |          | ✓         | array    |                                     | {{< crd-field-description SGCluster.spec.nonProductionOptions >}} |
+| [nonProductionOptions](#non-production-options) |          | ✓         | array    |         | {{< crd-field-description SGDistributedLogs.spec.nonProductionOptions >}} |
 
 ## Persistent volume
 
@@ -35,7 +35,7 @@ ___
 
 ## Non Production options
 
-Following options should be enabled only when NOT working in a production environment.
+The following options should NOT be enabled in a production environment.
 
 | Property                      | Required | Updatable | Type     | Default | Description |
 |:------------------------------|----------|-----------|:---------|:--------|:------------|

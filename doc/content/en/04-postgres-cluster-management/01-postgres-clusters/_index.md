@@ -166,7 +166,7 @@ spec:
 
 ## Non Production options
 
-Following options should be enabled only when NOT working in a production environment.
+The following options should NOT be enabled in a production environment.
 
 | Property                      | Required | Updatable | Type     | Default | Description |
 |:------------------------------|----------|-----------|:---------|:--------|:------------|
