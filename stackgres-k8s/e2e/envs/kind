@@ -1,8 +1,10 @@
 #!/bin/sh
 
 KIND_NAME="${KIND_NAME:-kind}"
+KIND_NODES="${KIND_NODES:-1}"
 
 export KIND_NAME
+export KIND_NODES
 
 update_k8s_config() {
   if cat /proc/1/cgroup | grep :memory | grep -E ":/$" > /dev/null
@@ -59,10 +61,14 @@ reset_k8s() {
   kind: Cluster
   apiVersion: kind.sigs.k8s.io/v1alpha3
   nodes:
-  - role: control-plane 
-  - role: worker
+  - role: control-plane
+EOF
+    for KIND_NODE in $(seq 2 "$KIND_NODES")
+    do
+      cat << EOF >> "$TARGET_PATH/kind-config.yaml"
   - role: worker
 EOF
+    done
   else
     cat << EOF > "$TARGET_PATH/kind-config.yaml"
   kind: Cluster
@@ -74,10 +80,13 @@ EOF
       hostPort: $(echo "$K8S_EXTRA_PORT" | cut -d : -f 2)
       listenAddress: "$(echo "$K8S_EXTRA_PORT" | cut -d : -f 3)"
       protocol: "$(echo "$K8S_EXTRA_PORT" | cut -d : -f 4)"
-  - role: worker
-  - role: worker
+EOF
+    for KIND_NODE in $(seq 2 "$KIND_NODES")
+    do
+      cat << EOF >> "$TARGET_PATH/kind-config.yaml"
   - role: worker
 EOF
+    done
   fi
 
 
