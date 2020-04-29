@@ -32,9 +32,11 @@ import io.stackgres.operator.resource.CustomResourceScanner;
 import io.stackgres.operator.resource.CustomResourceScheduler;
 import io.stackgres.operator.rest.distributedlogs.DistributedLogsFetcher;
 import io.stackgres.operator.rest.distributedlogs.FullTextSearchUtil;
+import io.stackgres.operator.rest.dto.cluster.ClusterDistributedLogs;
 import io.stackgres.operator.rest.dto.cluster.ClusterDto;
 import io.stackgres.operator.rest.dto.cluster.ClusterLogEntryDto;
 import io.stackgres.operator.rest.dto.cluster.ClusterResourceConsumtionDto;
+import io.stackgres.operator.rest.dto.cluster.ClusterSpec;
 import io.stackgres.operator.rest.transformer.ResourceTransformer;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.Unchecked;
@@ -125,6 +127,15 @@ public class ClusterResource
     final ImmutableMap<String, String> filterList;
     final Tuple2<Instant, Integer> fromTuple;
     final Tuple2<Instant, Integer> toTuple;
+
+    if (!Optional.ofNullable(cluster.getSpec())
+        .map(ClusterSpec::getDistributedLogs)
+        .map(ClusterDistributedLogs::getDistributedLogs)
+        .isPresent()) {
+      throw new BadRequestException(
+          "Distributed logs are not configured for specified cluster");
+    }
+
     try {
       filterList = Optional.ofNullable(filters)
           .map(Unchecked.function(objectMapper::readTree))
@@ -132,12 +143,23 @@ public class ClusterResource
               .collect(ImmutableMap.toImmutableMap(
                   e -> e.getKey(), e -> e.getValue().asText())))
           .orElse(ImmutableMap.of());
+    } catch (Exception ex) {
+      throw new BadRequestException("filters should be a JSON object", ex);
+    }
+
+    try {
       fromTuple = Optional.ofNullable(from)
           .map(s -> s.split(","))
           .map(ss -> Tuple.tuple(ss[0], ss.length > 1 ? ss[1] : "1"))
           .map(t -> t.map1(Instant::parse))
           .map(t -> t.map2(Integer::valueOf))
           .orElse(null);
+    } catch (Exception ex) {
+      throw new BadRequestException("from should be a timestamp"
+          + " or a timestamp and an index separated by character ','", ex);
+    }
+
+    try {
       toTuple = Optional.ofNullable(to)
           .map(s -> s.split(","))
           .map(ss -> Tuple.tuple(ss[0], ss.length > 1 ? ss[1] : String.valueOf(Integer.MAX_VALUE)))
@@ -145,24 +167,21 @@ public class ClusterResource
           .map(t -> t.map2(Integer::valueOf))
           .orElse(null);
     } catch (Exception ex) {
-      throw new BadRequestException(ex);
+      throw new BadRequestException("to should be a timestamp"
+          + " or a timestamp and an index separated by character ','", ex);
     }
 
     if (sort != null && !sort.equals("asc") && !sort.equals("desc")) {
       throw new BadRequestException("sort only accept asc or desc values");
     }
 
-    try {
-      return distributedLogsFetcher.logs(
-          cluster,
-          Optional.ofNullable(records).orElse(50),
-          fromTuple,
-          toTuple,
-          filterList,
-          Objects.equals("asc", sort),
-          FullTextSearchUtil.fromGoogleLikeQuery(text));
-    } catch (IllegalArgumentException ex) {
-      throw new BadRequestException(ex);
-    }
+    return distributedLogsFetcher.logs(
+        cluster,
+        Optional.ofNullable(records).orElse(50),
+        fromTuple,
+        toTuple,
+        filterList,
+        Objects.equals("asc", sort),
+        FullTextSearchUtil.fromGoogleLikeQuery(text));
   }
 }

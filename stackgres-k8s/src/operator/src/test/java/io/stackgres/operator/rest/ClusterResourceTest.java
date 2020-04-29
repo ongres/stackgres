@@ -39,7 +39,7 @@ import io.stackgres.operator.resource.CustomResourceFinder;
 import io.stackgres.operator.resource.CustomResourceScanner;
 import io.stackgres.operator.resource.CustomResourceScheduler;
 import io.stackgres.operator.resource.ResourceFinder;
-import io.stackgres.operator.rest.distributedlogs.DistributedLogsFetcher;
+import io.stackgres.operator.rest.distributedlogs.DistributedLogsFetcherImpl;
 import io.stackgres.operator.rest.distributedlogs.PostgresConnectionManager;
 import io.stackgres.operator.rest.dto.cluster.ClusterDto;
 import io.stackgres.operator.rest.dto.cluster.ClusterResourceConsumtionDto;
@@ -161,7 +161,7 @@ class ClusterResourceTest extends AbstractCustomResourceTest<ClusterDto, StackGr
         dtoScanner,
         dtoFinder,
         statusFinder,
-        new DistributedLogsFetcher(secretFinder, postgresConnectionManager),
+        new DistributedLogsFetcherImpl(secretFinder, postgresConnectionManager),
         objectMapperProvider);
   }
 

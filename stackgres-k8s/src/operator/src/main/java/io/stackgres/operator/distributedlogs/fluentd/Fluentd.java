@@ -40,7 +40,7 @@ import io.stackgres.operator.common.StackGresComponents;
 import io.stackgres.operator.common.StackGresDistributedLogsContext;
 import io.stackgres.operator.common.StackGresDistributedLogsGeneratorContext;
 import io.stackgres.operator.common.StackGresGeneratorContext;
-import io.stackgres.operator.rest.distributedlogs.DistributedLogsFetcher;
+import io.stackgres.operator.rest.distributedlogs.DistributedLogsFetcherImpl;
 import io.stackgres.operator.sidecars.envoy.Envoy;
 import io.stackgres.operator.sidecars.fluentbit.FluentBit;
 import io.stackgres.operatorframework.resource.ResourceUtil;
@@ -67,11 +67,11 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
 
   private static final String SUFFIX = "-fluentd";
 
-  private static final String PATRONI_TABLE_FIELDS = DistributedLogsFetcher.PATRONI_FIELDS
+  private static final String PATRONI_TABLE_FIELDS = DistributedLogsFetcherImpl.PATRONI_FIELDS
       .stream()
       .map(Field::getName)
       .collect(Collectors.joining(","));
-  private static final String POSTGRES_TABLE_FIELDS = DistributedLogsFetcher.POSTGRES_FIELDS
+  private static final String POSTGRES_TABLE_FIELDS = DistributedLogsFetcherImpl.POSTGRES_FIELDS
       .stream()
       .map(Field::getName)
       .collect(Collectors.joining(","));
