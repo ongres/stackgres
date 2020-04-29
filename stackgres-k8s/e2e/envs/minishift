@@ -7,13 +7,20 @@ export K8S_MINISHIFT_DISK="${K8S_MINISHIFT_DISK:-20GB}"
 
 update_minishift_config() {
   eval "$(minishift oc-env)"
-  wait_until eval 'oc login -u system:admin'
+  if ! oc login -u system:admin
+  then
+    wait_until eval 'oc login -u system:admin'
+  fi
   for addon in anyuid admissions-webhook
   do
-    minishift addons list | grep -q "^- $addon\s\+: enabled " \
+    minishift addons list | grep -q "^- $addon\s\+: enabled\s" \
      || ( minishift addons enable "$addon" && minishift addons apply "$addon" ) \
      || minishift addons disable "$addon"
   done
+  if ! oc login -u system:admin
+  then
+    wait_until eval 'oc login -u system:admin'
+  fi
 }
 
 update_k8s_config() {
@@ -40,17 +47,9 @@ update_k8s_config() {
 }
 
 reuse_k8s() {
-  if ! minishift status | grep '^OpenShift:  Running '
-  then
-    echo "Can not reuse minishift environment"
-    exit 1
-    reset_k8s
-    return
-  fi
+  try_function update_minishift_config
 
-  update_minishift_config
-
-  if ! kubectl cluster-info > /dev/null 2>&1
+  if ! "$RESULT" > /dev/null 2>&1
   then
     echo "Can not reuse minishift environment"
     exit 1
@@ -59,6 +58,7 @@ reuse_k8s() {
   fi
 
   echo "Reusing minishift environment"
+  update_minishift_config
   update_k8s_config
 }
 
