@@ -6,8 +6,6 @@ check_backup() {
   check_wal_archive "$NODE"
 
   check_automatic_backup "$NODE"
-
-  check_manual_backup "$NODE"
 }
 
 check_wal_archive() {
@@ -33,6 +31,7 @@ check_wal_archive() {
 check_automatic_backup() {
   local NODE="$1"
 
+  kubectl sgbackup delete -n "$CLUSTER_NAMESPACE" --all
   if wait_until eval '[ "$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" \
       -o custom-columns=BACKUP_NAME:.status.internalName,PHASE:.status.process.status,HOSTNAME:.status.backupInformation.hostname \
       | tail -n +2 | grep " Completed   ${CLUSTER_NAME}-${NODE}$" | wc -l)" -gt 0 ]'
