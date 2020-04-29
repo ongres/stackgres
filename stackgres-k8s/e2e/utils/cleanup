@@ -1,5 +1,7 @@
 #!/bin/sh
 
+export E2E_DISABLE_FAST_CLEANUP
+
 excluded_namespaces() {
   true
 }
@@ -95,6 +97,22 @@ helm_cleanup_chart() {
 
 
 k8s_finalize_namespace_script() {
+  if [ "$E2E_DISABLE_FAST_CLEANUP" = "true" ]
+  then
+    cat << EOF
+END="\$((\$(date +%s)+$E2E_TIMEOUT))"
+while kubectl get namespace "@" -o name >/dev/null 2>&1
+do
+  if [ "\$(date +%s)" -gt "\$END" ]
+  then
+    echo "Timeout while waiting for namespace @ to be removed"
+    exit 1
+  fi
+  sleep 1
+done
+EOF
+    return
+  fi
   cat << EOF
 kubectl api-resources --namespaced -o name \
   | grep -v 'reviews\.\(authentication\|authorization\)\.k8s\.io$' \
