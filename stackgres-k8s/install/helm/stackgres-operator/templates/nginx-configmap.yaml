@@ -33,7 +33,11 @@ data:
         proxy_set_header X-Forwarded-Host $host;
         proxy_set_header X-Forwarded-Server $host;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        {{- if gt (atoi .Capabilities.KubeVersion.Major) 12 }}
         proxy_pass http://{{ .Release.Name }}-api:8080;
+        {{- else }}
+        proxy_pass http://localhost:8080;
+        {{- end }}
       }
       
       location / {
