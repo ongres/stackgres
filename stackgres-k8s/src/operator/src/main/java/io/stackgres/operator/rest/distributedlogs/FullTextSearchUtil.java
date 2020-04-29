@@ -7,6 +7,7 @@ package io.stackgres.operator.rest.distributedlogs;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.jooq.lambda.tuple.Tuple;
@@ -14,10 +15,14 @@ import org.jooq.lambda.tuple.Tuple2;
 
 public class FullTextSearchUtil {
 
+  private static final Pattern UNALLOWED_CHARACTER = Pattern.compile("[^0-9a-zA-Z\"]");
+
+  private static final String ANY_PREFIX_MATCHING = ":*";
   private static final String AND_OPERATOR = " & ";
   private static final String FOLLOWED_BY_OPERATOR = " <-> ";
 
-  public static String fromGoogleLikeQuery(String query) {
+  public static String fromGoogleLikeQuery(String originalQuery) {
+    final String query = UNALLOWED_CHARACTER.matcher(originalQuery).replaceAll(" ");
     List<String> queryParts = new ArrayList<>();
     final int length = query.length();
     for (int position = 0; position < length; position++) {
@@ -26,7 +31,7 @@ public class FullTextSearchUtil {
         queryParts.add(result.v1);
         position = result.v2;
       } else {
-        Tuple2<String, Integer> result = extractWord(query, position);
+        Tuple2<String, Integer> result = extractWord(query, position, true);
         queryParts.add(result.v1);
         position = result.v2;
       }
@@ -41,28 +46,36 @@ public class FullTextSearchUtil {
     List<String> queryParts = new ArrayList<>();
     position++;
     for (;
-        query.charAt(position) != '"' && position < length;
+        position < length
+        && query.charAt(position) != '"';
         position++) {
-      Tuple2<String, Integer> result = extractWord(query, position);
+      Tuple2<String, Integer> result = extractWord(query, position, false);
       queryParts.add(result.v1);
       position = result.v2;
     }
-    position--;
     Tuple2<String, Integer> result = Tuple.tuple(queryParts.stream()
         .filter(part -> !part.isEmpty())
         .collect(Collectors.joining(FOLLOWED_BY_OPERATOR)), position);
     return result;
   }
 
-  private static Tuple2<String, Integer> extractWord(String query, int position) {
+  private static Tuple2<String, Integer> extractWord(String query, int position,
+      boolean anyPrefix) {
+    final int startPosition = position;
     final int length = query.length();
     StringBuilder word = new StringBuilder();
-    for (; query.charAt(position) != ' '
-        && query.charAt(position) != '"'
-        && position < length; position++) {
+    for (; position < length
+        && query.charAt(position) != ' '
+        && query.charAt(position) != '"';
+        position++) {
       word.append(query.charAt(position));
     }
-    position--;
+    if (anyPrefix && word.length() > 0) {
+      word.append(ANY_PREFIX_MATCHING);
+    }
+    if (startPosition < position) {
+      position--;
+    }
     return Tuple.tuple(word.toString(), position);
   }
 

@@ -31,6 +31,7 @@ import io.stackgres.operator.resource.CustomResourceFinder;
 import io.stackgres.operator.resource.CustomResourceScanner;
 import io.stackgres.operator.resource.CustomResourceScheduler;
 import io.stackgres.operator.rest.distributedlogs.DistributedLogsFetcher;
+import io.stackgres.operator.rest.distributedlogs.FullTextSearchUtil;
 import io.stackgres.operator.rest.dto.cluster.ClusterDto;
 import io.stackgres.operator.rest.dto.cluster.ClusterLogEntryDto;
 import io.stackgres.operator.rest.dto.cluster.ClusterResourceConsumtionDto;
@@ -159,7 +160,7 @@ public class ClusterResource
           toTuple,
           filterList,
           Objects.equals("asc", sort),
-          text);
+          FullTextSearchUtil.fromGoogleLikeQuery(text));
     } catch (IllegalArgumentException ex) {
       throw new BadRequestException(ex);
     }
