@@ -9,6 +9,7 @@ update_minishift_config() {
   eval "$(minishift oc-env)"
   if ! oc login -u system:admin
   then
+    minishift status | grep '^OpenShift:  Running '
     wait_until eval 'oc login -u system:admin'
   fi
   for addon in anyuid admissions-webhook
@@ -52,7 +53,6 @@ reuse_k8s() {
   if ! "$RESULT" > /dev/null 2>&1
   then
     echo "Can not reuse minishift environment"
-    exit 1
     reset_k8s
     return
   fi
