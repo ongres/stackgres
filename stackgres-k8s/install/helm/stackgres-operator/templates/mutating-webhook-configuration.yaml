@@ -5,7 +5,7 @@ metadata:
   namespace: {{ .Release.Namespace }}
 webhooks:
   - name: sgcluster.{{ .Release.Name }}.{{ .Release.Namespace }}
-    {{- if gt (atoi .Capabilities.KubeVersion.Major) 12 }}
+    {{- if gt (atoi (mustRegexReplaceAll "^([0-9]+)[^0-9]*$" .Capabilities.KubeVersion.Minor "${1}")) 12 }}
     sideEffects: None
     {{- end }}
     rules:
@@ -25,7 +25,7 @@ webhooks:
       caBundle: ""
       {{- end }}
   - name: sgpgconfig.{{ .Release.Name }}.{{ .Release.Namespace }}
-    {{- if gt (atoi .Capabilities.KubeVersion.Major) 12 }}
+    {{- if gt (atoi (mustRegexReplaceAll "^([0-9]+)[^0-9]*$" .Capabilities.KubeVersion.Minor "${1}")) 12 }}
     sideEffects: None
     {{- end }}
     rules:
@@ -45,7 +45,7 @@ webhooks:
       caBundle: ""
       {{- end }}
   - name: sgpoolconfig.{{ .Release.Name }}.{{ .Release.Namespace }}
-    {{- if gt (atoi .Capabilities.KubeVersion.Major) 12 }}
+    {{- if gt (atoi (mustRegexReplaceAll "^([0-9]+)[^0-9]*$" .Capabilities.KubeVersion.Minor "${1}")) 12 }}
     sideEffects: None
     {{- end }}
     rules:
@@ -65,7 +65,7 @@ webhooks:
       caBundle: ""
       {{- end }}
   - name: sginstanceprofile.{{ .Release.Name }}.{{ .Release.Namespace }}
-    {{- if gt (atoi .Capabilities.KubeVersion.Major) 12 }}
+    {{- if gt (atoi (mustRegexReplaceAll "^([0-9]+)[^0-9]*$" .Capabilities.KubeVersion.Minor "${1}")) 12 }}
     sideEffects: None
     {{- end }}
     rules:
@@ -85,7 +85,7 @@ webhooks:
       caBundle: ""
       {{- end }}
   - name: sgbackupconfig.{{ .Release.Name }}.{{ .Release.Namespace }}
-    {{- if gt (atoi .Capabilities.KubeVersion.Major) 12 }}
+    {{- if gt (atoi (mustRegexReplaceAll "^([0-9]+)[^0-9]*$" .Capabilities.KubeVersion.Minor "${1}")) 12 }}
     sideEffects: None
     {{- end }}
     rules:
@@ -105,7 +105,7 @@ webhooks:
       caBundle: ""
       {{- end }}
   - name: sgbackup.{{ .Release.Name }}.{{ .Release.Namespace }}
-    {{- if gt (atoi .Capabilities.KubeVersion.Major) 12 }}
+    {{- if gt (atoi (mustRegexReplaceAll "^([0-9]+)[^0-9]*$" .Capabilities.KubeVersion.Minor "${1}")) 12 }}
     sideEffects: None
     {{- end }}
     rules:
