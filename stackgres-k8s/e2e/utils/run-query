@@ -33,3 +33,30 @@ run_query() {
 
   kubectl exec -t -n "$NAMESPACE" "$NAME-$INSTANCE" -c postgres-util -- sh -c "PGPASSWORD=$(kubectl -n "$NAMESPACE" get secrets "$NAME" -o jsonpath='{.data.superuser-password}' | base64 -d) PGCONNECT_TIMEOUT=5 psql -t -A -U postgres -d '$DATABASE' -p '$PORT' -c $QUERY -h '$HOST'"
 }
+
+exec_postgresutil() {
+  local NAME="${CLUSTER_NAME:-stackgres}"
+  local INSTANCE=0
+  local NAMESPACE="${CLUSTER_NAMESPACE:-stackgres}"
+
+  while getopts ":c:n:i:q:p:h:d:" opt; do
+    case $opt in
+      c) NAME="$OPTARG"
+      shift 2
+      ;;
+      n) NAMESPACE="$OPTARG"
+      shift 2
+      ;;
+      i) INSTANCE="$OPTARG"
+      shift 2
+      ;;
+      \?) echo "Invalid option -$OPTARG" >&2
+      return 1
+      ;;
+    esac
+  done
+
+  
+  kubectl exec -t -n "$NAMESPACE" "$NAME-$INSTANCE" -c postgres-util -- sh -c "$@"
+
+}

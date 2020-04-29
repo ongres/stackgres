@@ -56,10 +56,10 @@ delete_k8s() {
   fi
   
   aws ec2 describe-volumes --region "$K8S_EKS_REGION" --filters "Name=tag-key,Values=kubernetes.io/cluster/$K8S_EKS_NAME" \
-    | jq -r '.Volumes[].VolumeId'  | xargs -r -n 1 -I % aws ec2 detach-volume --force --region "$K8S_EKS_REGION" --volume-id % || true 
+    | jq -r '.Volumes[].VolumeId' | xargs -r -n 1 -I % sh -c "aws ec2 detach-volume --force --region $K8S_EKS_REGION --volume-id % || true"
   
   aws ec2 describe-volumes --region "$K8S_EKS_REGION" --filters "Name=tag-key,Values=kubernetes.io/cluster/$K8S_EKS_NAME" \
-    | jq -r '.Volumes[].VolumeId'  | xargs -r -n 1 -I % aws ec2 delete-volume --region "$K8S_EKS_REGION" --volume-id % || true
+    | jq -r '.Volumes[].VolumeId' | xargs -r -n 1 -I % sh -c "aws ec2 delete-volume --region $K8S_EKS_REGION --volume-id % || true" 
 
   if aws s3 ls | cut -d ' ' -f 3 | grep -q stackgres-e2e
   then
