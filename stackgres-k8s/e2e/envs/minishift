@@ -7,18 +7,18 @@ export K8S_MINISHIFT_DISK="${K8S_MINISHIFT_DISK:-20GB}"
 
 update_minishift_config() {
   eval "$(minishift oc-env)"
-  if ! oc login -u system:admin > /dev/null 2>&1
+  if ! timeout 10s oc login -u system:admin > /dev/null 2>&1
   then
     minishift status | grep '^OpenShift:  Running '
-    wait_until eval 'oc login -u system:admin > /dev/null 2>&1'
+    wait_until eval 'timeout 10s oc login -u system:admin > /dev/null 2>&1'
   fi
   for addon in anyuid admissions-webhook
   do
     minishift addons list | grep -q "^- $addon\s\+: enabled\s" \
      || ( minishift addons enable "$addon" && minishift addons apply "$addon" \
-        && if ! oc login -u system:admin > /dev/null 2>&1
+        && if ! timeout 10s oc login -u system:admin > /dev/null 2>&1
         then
-          wait_until eval 'oc login -u system:admin > /dev/null 2>&1'
+          wait_until eval 'timeout 10s oc login -u system:admin > /dev/null 2>&1'
         fi ) \
      || ( minishift addons disable "$addon" && false )
   done
