@@ -143,13 +143,14 @@ public class DistributedLogsQueryGenerator {
       .map(field -> field == MAPPED_ROLE_FIELD ? ROLE_FIELD : field)
       .collect(ImmutableList.toImmutableList());
 
-  private final DistributedLogsQueryParameters parameters;
   private final DSLContext context;
+  private final DistributedLogsQueryParameters parameters;
 
-  public DistributedLogsQueryGenerator(DistributedLogsQueryParameters parameters,
-      DSLContext context) {
-    this.parameters = parameters;
+  public DistributedLogsQueryGenerator(
+      DSLContext context,
+      DistributedLogsQueryParameters parameters) {
     this.context = context;
+    this.parameters = parameters;
   }
 
   public Select<Record> generateQuery() {
@@ -179,7 +180,7 @@ public class DistributedLogsQueryGenerator {
         .where(Seq.seq(parameters.getFilters())
             .map(filter -> Tuple.tuple(FILTER_CONVERSION_MAP.get(filter.v1), filter.v2))
             .filter(filter -> filter.v1.equals(LOG_TYPE_FIELD.getName()))
-            .map(filter -> filter.v2.equals(PATRONI_LOG_TYPE_VALUE.getValue())
+            .map(filter -> filter.v2.map(PATRONI_LOG_TYPE_VALUE.getValue()::equals).orElse(false)
                 ? DSL.trueCondition() : DSL.falseCondition())
             .findAny()
             .orElse(DSL.trueCondition()));
@@ -191,7 +192,7 @@ public class DistributedLogsQueryGenerator {
         .where(Seq.seq(parameters.getFilters())
             .map(filter -> Tuple.tuple(FILTER_CONVERSION_MAP.get(filter.v1), filter.v2))
             .filter(filter -> filter.v1.equals(LOG_TYPE_FIELD.getName()))
-            .map(filter -> filter.v2.equals(POSTGRES_LOG_TYPE_VALUE.getValue())
+            .map(filter -> filter.v2.map(POSTGRES_LOG_TYPE_VALUE.getValue()::equals).orElse(false)
                 ? DSL.trueCondition() : DSL.falseCondition())
             .findAny()
             .orElse(DSL.trueCondition()));
@@ -235,7 +236,7 @@ public class DistributedLogsQueryGenerator {
       }
     }
     for (Tuple2<String, String> filter : Seq.seq(parameters.getFilters())
-        .map(filter -> Tuple.tuple(FILTER_CONVERSION_MAP.get(filter.v1), filter.v2))
+        .map(filter -> Tuple.tuple(FILTER_CONVERSION_MAP.get(filter.v1), filter.v2.orElse(null)))
         .toList()) {
       selectFromLogPatroni = applyFilterForFields(
           selectFromLogPatroni, filter, PATRONI_FIELDS);

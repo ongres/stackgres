@@ -22,6 +22,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -125,7 +126,7 @@ public class ClusterResource
       @QueryParam("sort") String sort,
       @QueryParam("text") String text) {
     final ClusterDto cluster = super.get(namespace, name);
-    final ImmutableMap<String, String> filterList;
+    final ImmutableMap<String, Optional<String>> filterList;
     final Optional<Tuple2<Instant, Integer>> fromTuple;
     final Optional<Tuple2<Instant, Integer>> toTuple;
 
@@ -142,8 +143,10 @@ public class ClusterResource
           .map(Unchecked.function(objectMapper::readTree))
           .map(node -> Seq.seq(node.fields())
               .collect(ImmutableMap.toImmutableMap(
-                  e -> e.getKey(), e -> e.getValue().asText())))
-          .orElse(ImmutableMap.of());
+                  e -> e.getKey(), e -> (Optional<String>) Optional.of(e.getValue())
+                  .filter(JsonNode::isNull)
+                  .map(JsonNode::asText))))
+          .orElse(ImmutableMap.<String, Optional<String>>of());
     } catch (Exception ex) {
       throw new BadRequestException("filters should be a JSON object", ex);
     }

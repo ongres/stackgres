@@ -24,7 +24,7 @@ public abstract class DistributedLogsQueryParameters {
 
   public abstract Optional<Tuple2<Instant, Integer>> getToTimeAndIndex();
 
-  public abstract ImmutableMap<String, String> getFilters();
+  public abstract ImmutableMap<String, Optional<String>> getFilters();
 
   public abstract boolean isSortAsc();
 

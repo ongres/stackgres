@@ -68,7 +68,8 @@ public class DistributedLogsFetcherImpl implements DistributedLogsFetcher {
       try (PreparedStatement statement = connection.prepareStatement("SET TIME ZONE 'UTC'")) {
         statement.execute();
       }
-      Select<Record> query = new DistributedLogsQueryGenerator(parameters, context).generateQuery();
+      Select<Record> query = new DistributedLogsQueryGenerator(context, parameters)
+          .generateQuery();
       if (LOGGER.isTraceEnabled()) {
         LOGGER.trace("Query for cluster logs {}.{} with params"
             + " (records: {}, from: {}, to: {}, filters: {}, asc: {}, text: {}): {}",
