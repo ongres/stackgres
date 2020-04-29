@@ -144,7 +144,7 @@ public class ClusterResource
           .map(node -> Seq.seq(node.fields())
               .collect(ImmutableMap.toImmutableMap(
                   e -> e.getKey(), e -> (Optional<String>) Optional.of(e.getValue())
-                  .filter(JsonNode::isNull)
+                  .filter(value -> !value.isNull())
                   .map(JsonNode::asText))))
           .orElse(ImmutableMap.<String, Optional<String>>of());
     } catch (Exception ex) {
