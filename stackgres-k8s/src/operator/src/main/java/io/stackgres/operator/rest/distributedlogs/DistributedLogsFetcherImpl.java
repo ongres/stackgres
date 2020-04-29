@@ -185,28 +185,21 @@ public class DistributedLogsFetcherImpl implements DistributedLogsFetcher {
     this.postgresConnectionManager = null;
   }
 
-  public List<ClusterLogEntryDto> logs(
-      ClusterDto cluster,
-      int records,
-      Tuple2<Instant, Integer> from,
-      Tuple2<Instant, Integer> to,
-      ImmutableMap<String, String> filters,
-      boolean sortAsc,
-      String text) {
+  public List<ClusterLogEntryDto> logs(DistributedLogsQueryParameters parameters) {
     final List<Field<?>> selectedFields = LOG_FIELDS;
     final Name[] selectedFieldsArray = Seq.seq(selectedFields)
         .map(Field::getQualifiedName).toArray(Name[]::new);
     final ImmutableList<OrderField<?>> orderFields;
-    if (sortAsc) {
+    if (parameters.isSortAsc()) {
       orderFields = ImmutableList.of(LOG_TIME_FIELD.asc(), LOG_TIME_INDEX_FIELD.asc());
     } else {
       orderFields = ImmutableList.of(LOG_TIME_FIELD.desc(), LOG_TIME_INDEX_FIELD.desc());
     }
-    Seq.seq(filters)
+    Seq.seq(parameters.getFilters())
         .forEach(filter -> Preconditions.checkArgument(
             FILTER_CONVERSION_MAP.containsKey(filter.v1),
             "Key " + filter.v1 + " is not a valid filter key"));
-    try (Connection connection = getConnection(cluster);
+    try (Connection connection = getConnection(parameters.getCluster());
         DSLContext context = DSL.using(connection)) {
       connection.setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);
       connection.setReadOnly(true);
@@ -224,7 +217,7 @@ public class DistributedLogsFetcherImpl implements DistributedLogsFetcher {
               .map(pgField -> DSL.castNull(pgField).as(pgField.getName())))
           .toList())
           .from(LOG_PATRONI_TABLE)
-          .where(Seq.seq(filters)
+          .where(Seq.seq(parameters.getFilters())
               .map(filter -> Tuple.tuple(FILTER_CONVERSION_MAP.get(filter.v1), filter.v2))
               .filter(filter -> filter.v1.equals(LOG_TYPE_FIELD.getName()))
               .map(filter -> filter.v2.equals(PATRONI_LOG_TYPE_VALUE.getValue())
@@ -236,15 +229,16 @@ public class DistributedLogsFetcherImpl implements DistributedLogsFetcher {
           .append(POSTGRES_FIELDS)
           .toList())
           .from(LOG_POSTGRES_TABLE)
-          .where(Seq.seq(filters)
+          .where(Seq.seq(parameters.getFilters())
               .map(filter -> Tuple.tuple(FILTER_CONVERSION_MAP.get(filter.v1), filter.v2))
               .filter(filter -> filter.v1.equals(LOG_TYPE_FIELD.getName()))
               .map(filter -> filter.v2.equals(POSTGRES_LOG_TYPE_VALUE.getValue())
                   ? DSL.trueCondition() : DSL.falseCondition())
               .findAny()
               .orElse(DSL.trueCondition()));
-      if (from != null) {
-        if (sortAsc) {
+      if (parameters.getFromTimeAndIndex().isPresent()) {
+        Tuple2<Instant, Integer> from = parameters.getFromTimeAndIndex().get();
+        if (parameters.isSortAsc()) {
           selectFromLogPatroni = selectFromLogPatroni
               .and(DSL.row(LOG_TIME_FIELD, LOG_TIME_INDEX_FIELD).greaterThan(
                   DSL.row(OffsetDateTime.ofInstant(from.v1, ZoneOffset.UTC), from.v2)));
@@ -260,24 +254,28 @@ public class DistributedLogsFetcherImpl implements DistributedLogsFetcher {
                   DSL.row(OffsetDateTime.ofInstant(from.v1, ZoneOffset.UTC), from.v2)));
         }
       }
-      if (to != null) {
-        if (sortAsc) {
+      if (parameters.getToTimeAndIndex().isPresent()) {
+        Tuple2<Instant, Integer> to = parameters.getToTimeAndIndex().get();
+        if (parameters.isSortAsc()) {
           selectFromLogPatroni = selectFromLogPatroni
               .and(DSL.row(LOG_TIME_FIELD, LOG_TIME_INDEX_FIELD).lessOrEqual(
                   DSL.row(OffsetDateTime.ofInstant(to.v1, ZoneOffset.UTC), to.v2)));
           selectFromLogPostgres = selectFromLogPostgres
               .and(DSL.row(LOG_TIME_FIELD, LOG_TIME_INDEX_FIELD).lessOrEqual(
-                  DSL.row(OffsetDateTime.ofInstant(to.v1, ZoneOffset.UTC), to.v2)));
+                  DSL.row(
+                      OffsetDateTime.ofInstant(to.v1, ZoneOffset.UTC), to.v2)));
         } else {
           selectFromLogPatroni = selectFromLogPatroni
               .and(DSL.row(LOG_TIME_FIELD, LOG_TIME_INDEX_FIELD).greaterOrEqual(
-                  DSL.row(OffsetDateTime.ofInstant(to.v1, ZoneOffset.UTC), to.v2)));
+                  DSL.row(
+                      OffsetDateTime.ofInstant(to.v1, ZoneOffset.UTC), to.v2)));
           selectFromLogPostgres = selectFromLogPostgres
               .and(DSL.row(LOG_TIME_FIELD, LOG_TIME_INDEX_FIELD).greaterOrEqual(
-                  DSL.row(OffsetDateTime.ofInstant(to.v1, ZoneOffset.UTC), to.v2)));
+                  DSL.row(
+                      OffsetDateTime.ofInstant(to.v1, ZoneOffset.UTC), to.v2)));
         }
       }
-      for (Tuple2<String, String> filter : Seq.seq(filters)
+      for (Tuple2<String, String> filter : Seq.seq(parameters.getFilters())
           .map(filter -> Tuple.tuple(FILTER_CONVERSION_MAP.get(filter.v1), filter.v2))
           .toList()) {
         selectFromLogPatroni = applyFilterForFields(
@@ -285,40 +283,54 @@ public class DistributedLogsFetcherImpl implements DistributedLogsFetcher {
         selectFromLogPostgres = applyFilterForFields(
             selectFromLogPostgres, filter, POSTGRES_FIELDS);
       }
-      if (text != null) {
+      if (parameters.getFullTextSearchQuery().isPresent()) {
+        String fullTextSearchQuery = parameters.getFullTextSearchQuery()
+            .get().getFullTextSearchQuery();
         selectFromLogPatroni = selectFromLogPatroni
             .and(DSL.condition("{0} @@ {1}::tsquery",
                 DSL.function(LOG_PATRONI_TSVECTOR_FUNCTION,
                     SQLDataType.OTHER, DSL.field(LOG_PATRONI_TABLE)),
-                DSL.value(text)));
+                DSL.value(fullTextSearchQuery)));
         selectFromLogPostgres = selectFromLogPostgres
             .and(DSL.condition("{0} @@ {1}::tsquery",
                 DSL.function(LOG_POSTGRES_TSVECTOR_FUNCTION,
                     SQLDataType.OTHER, DSL.field(LOG_POSTGRES_TABLE)),
-                DSL.value(text)));
+                DSL.value(fullTextSearchQuery)));
       }
       Select<Record> query = context
           .with(DSL.name(LOG_PATRONI_WINDOW)
               .fields(selectedFieldsArray)
-              .as(selectFromLogPatroni.orderBy(orderFields).limit(records)))
+              .as(selectFromLogPatroni.orderBy(orderFields).limit(parameters.getRecords())))
           .with(DSL.name(LOG_POSTGRES_WINDOW)
               .fields(selectedFieldsArray)
-              .as(selectFromLogPostgres.orderBy(orderFields).limit(records)))
+              .as(selectFromLogPostgres.orderBy(orderFields).limit(parameters.getRecords())))
           .select(Seq.seq(selectedFields).map(DSL::field).toList())
           .from(LOG_PATRONI_WINDOW)
           .union(DSL.select(Seq.seq(selectedFields).map(DSL::field).toList())
               .from(LOG_POSTGRES_WINDOW))
           .orderBy(orderFields)
-          .limit(records);
+          .limit(parameters.getRecords());
       if (LOGGER.isTraceEnabled()) {
         LOGGER.trace("Query for cluster logs {}.{} with params"
             + " (records: {}, from: {}, to: {}, filters: {}, asc: {}, text: {}): {}",
-            cluster.getMetadata().getNamespace(), cluster.getMetadata().getName(),
-            records, from, to, filters, sortAsc, text, query.getSQL(ParamType.INLINED));
+            parameters.getCluster().getMetadata().getNamespace(),
+            parameters.getCluster().getMetadata().getName(),
+            parameters.getRecords(), parameters.getFromTimeAndIndex(),
+            parameters.getToTimeAndIndex(),
+            parameters.getFilters(),
+            parameters.isSortAsc(),
+            parameters.getFullTextSearchQuery(),
+            query.getSQL(ParamType.INLINED));
         LOGGER.trace("Explain query for cluster logs {}.{} with params"
             + " (records: {}, from: {}, to: {}, filters: {}, asc: {}, text: {}): {}",
-            cluster.getMetadata().getNamespace(), cluster.getMetadata().getName(),
-            records, from, to, filters, sortAsc, text,
+            parameters.getCluster().getMetadata().getNamespace(),
+            parameters.getCluster().getMetadata().getName(),
+            parameters.getRecords(),
+            parameters.getFromTimeAndIndex(),
+            parameters.getToTimeAndIndex(),
+            parameters.getFilters(),
+            parameters.isSortAsc(),
+            parameters.getFullTextSearchQuery(),
             context.explain(query).toString().replace("\n", "\t"));
       }
       return Seq.seq(query.fetch())
@@ -326,8 +338,8 @@ public class DistributedLogsFetcherImpl implements DistributedLogsFetcher {
           .collect(ImmutableList.toImmutableList());
     } catch (SQLException ex) {
       final String databaseName = Fluentd.databaseName(
-          cluster.getMetadata().getNamespace(),
-          cluster.getMetadata().getName());
+          parameters.getCluster().getMetadata().getNamespace(),
+          parameters.getCluster().getMetadata().getName());
       if (Objects.equals(ex.getMessage(),
           "FATAL: database \"" + databaseName + "\" does not exist")) {
         return ImmutableList.of();

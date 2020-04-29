@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple2;
 
-public class FullTextSearchUtil {
+public class FullTextSearchQuery {
 
   private static final Pattern UNALLOWED_CHARACTER = Pattern.compile("[^0-9a-zA-Z\"]");
 
@@ -21,7 +21,17 @@ public class FullTextSearchUtil {
   private static final String AND_OPERATOR = " & ";
   private static final String FOLLOWED_BY_OPERATOR = " <-> ";
 
-  public static String fromGoogleLikeQuery(String originalQuery) {
+  private final String fullTextSearchQuery;
+
+  public FullTextSearchQuery(String googleLikeQuery) {
+    this.fullTextSearchQuery = fromGoogleLikeQuery(googleLikeQuery);
+  }
+
+  public String getFullTextSearchQuery() {
+    return fullTextSearchQuery;
+  }
+
+  private String fromGoogleLikeQuery(String originalQuery) {
     final String query = UNALLOWED_CHARACTER.matcher(originalQuery).replaceAll(" ");
     List<String> queryParts = new ArrayList<>();
     final int length = query.length();
@@ -41,7 +51,7 @@ public class FullTextSearchUtil {
         .collect(Collectors.joining(AND_OPERATOR));
   }
 
-  private static Tuple2<String, Integer> extractExactMatchPart(String query, int position) {
+  private Tuple2<String, Integer> extractExactMatchPart(String query, int position) {
     final int length = query.length();
     List<String> queryParts = new ArrayList<>();
     position++;
@@ -59,7 +69,7 @@ public class FullTextSearchUtil {
     return result;
   }
 
-  private static Tuple2<String, Integer> extractWord(String query, int position,
+  private Tuple2<String, Integer> extractWord(String query, int position,
       boolean anyPrefix) {
     final int startPosition = position;
     final int length = query.length();

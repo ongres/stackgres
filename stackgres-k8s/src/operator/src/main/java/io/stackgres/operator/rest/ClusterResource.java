@@ -31,7 +31,8 @@ import io.stackgres.operator.resource.CustomResourceFinder;
 import io.stackgres.operator.resource.CustomResourceScanner;
 import io.stackgres.operator.resource.CustomResourceScheduler;
 import io.stackgres.operator.rest.distributedlogs.DistributedLogsFetcher;
-import io.stackgres.operator.rest.distributedlogs.FullTextSearchUtil;
+import io.stackgres.operator.rest.distributedlogs.FullTextSearchQuery;
+import io.stackgres.operator.rest.distributedlogs.ImmutableDistributedLogsQueryParameters;
 import io.stackgres.operator.rest.dto.cluster.ClusterDistributedLogs;
 import io.stackgres.operator.rest.dto.cluster.ClusterDto;
 import io.stackgres.operator.rest.dto.cluster.ClusterLogEntryDto;
@@ -125,8 +126,8 @@ public class ClusterResource
       @QueryParam("text") String text) {
     final ClusterDto cluster = super.get(namespace, name);
     final ImmutableMap<String, String> filterList;
-    final Tuple2<Instant, Integer> fromTuple;
-    final Tuple2<Instant, Integer> toTuple;
+    final Optional<Tuple2<Instant, Integer>> fromTuple;
+    final Optional<Tuple2<Instant, Integer>> toTuple;
 
     if (!Optional.ofNullable(cluster.getSpec())
         .map(ClusterSpec::getDistributedLogs)
@@ -152,8 +153,7 @@ public class ClusterResource
           .map(s -> s.split(","))
           .map(ss -> Tuple.tuple(ss[0], ss.length > 1 ? ss[1] : "1"))
           .map(t -> t.map1(Instant::parse))
-          .map(t -> t.map2(Integer::valueOf))
-          .orElse(null);
+          .map(t -> t.map2(Integer::valueOf));
     } catch (Exception ex) {
       throw new BadRequestException("from should be a timestamp"
           + " or a timestamp and an index separated by character ','", ex);
@@ -164,8 +164,7 @@ public class ClusterResource
           .map(s -> s.split(","))
           .map(ss -> Tuple.tuple(ss[0], ss.length > 1 ? ss[1] : String.valueOf(Integer.MAX_VALUE)))
           .map(t -> t.map1(Instant::parse))
-          .map(t -> t.map2(Integer::valueOf))
-          .orElse(null);
+          .map(t -> t.map2(Integer::valueOf));
     } catch (Exception ex) {
       throw new BadRequestException("to should be a timestamp"
           + " or a timestamp and an index separated by character ','", ex);
@@ -176,12 +175,15 @@ public class ClusterResource
     }
 
     return distributedLogsFetcher.logs(
-        cluster,
-        Optional.ofNullable(records).orElse(50),
-        fromTuple,
-        toTuple,
-        filterList,
-        Objects.equals("asc", sort),
-        FullTextSearchUtil.fromGoogleLikeQuery(text));
+        ImmutableDistributedLogsQueryParameters.builder()
+        .cluster(cluster)
+        .records(Optional.ofNullable(records).orElse(50))
+        .fromTimeAndIndex(fromTuple)
+        .toTimeAndIndex(toTuple)
+        .filters(filterList)
+        .isSortAsc(Objects.equals("asc", sort))
+        .fullTextSearchQuery(Optional.ofNullable(text)
+            .map(FullTextSearchQuery::new))
+        .build());
   }
 }
