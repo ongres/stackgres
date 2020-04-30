@@ -26,7 +26,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class BackupResourceTest extends AbstractCustomResourceTest<BackupDto, StackGresBackup> {
+class BackupResourceTest
+    extends AbstractCustomResourceTest<BackupDto, StackGresBackup, BackupResource> {
 
   @Override
   protected CustomResourceList<StackGresBackup> getCustomResourceList() {
@@ -46,7 +47,7 @@ class BackupResourceTest extends AbstractCustomResourceTest<BackupDto, StackGres
   }
 
   @Override
-  protected AbstractRestService<BackupDto, StackGresBackup> getService(
+  protected BackupResource getService(
       CustomResourceScanner<StackGresBackup> scanner, CustomResourceFinder<StackGresBackup> finder,
       CustomResourceScheduler<StackGresBackup> scheduler,
       AbstractResourceTransformer<BackupDto, StackGresBackup> transformer) {
@@ -64,7 +65,7 @@ class BackupResourceTest extends AbstractCustomResourceTest<BackupDto, StackGres
   }
 
   @Override
-  protected void checkBackupConfig(BackupDto resource) {
+  protected void checkDto(BackupDto resource) {
     assertNotNull(resource.getMetadata());
     assertEquals("postgresql", resource.getMetadata().getNamespace());
     assertEquals("test", resource.getMetadata().getName());
@@ -116,7 +117,7 @@ class BackupResourceTest extends AbstractCustomResourceTest<BackupDto, StackGres
   }
 
   @Override
-  protected void checkBackupConfig(StackGresBackup resource, Operation operation) {
+  protected void checkCustomResource(StackGresBackup resource, Operation operation) {
     assertNotNull(resource.getMetadata());
     assertEquals("postgresql", resource.getMetadata().getNamespace());
     assertEquals("test", resource.getMetadata().getName());

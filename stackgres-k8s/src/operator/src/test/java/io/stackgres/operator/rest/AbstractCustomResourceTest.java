@@ -28,7 +28,8 @@ import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
-abstract class AbstractCustomResourceTest<T extends ResourceDto, R extends CustomResource> {
+abstract class AbstractCustomResourceTest<T extends ResourceDto, R extends CustomResource,
+    S extends AbstractRestService<T, R>> {
 
   @Mock
   protected CustomResourceScanner<R> scanner;
@@ -41,7 +42,7 @@ abstract class AbstractCustomResourceTest<T extends ResourceDto, R extends Custo
 
   protected CustomResourceList<R> customResources;
   protected T resourceDto;
-  protected AbstractRestService<T, R> service;
+  protected S service;
   protected AbstractResourceTransformer<T, R> transformer;
 
   @BeforeEach
@@ -54,23 +55,23 @@ abstract class AbstractCustomResourceTest<T extends ResourceDto, R extends Custo
   }
 
   @Test
-  void listShouldReturnAllBackupConfigs() {
+  void listShouldReturnAllDtos() {
     when(scanner.getResources()).thenReturn(customResources.getItems());
 
     List<T> resources = service.list();
 
     assertEquals(1, resources.size());
-    checkBackupConfig(resources.get(0));
+    checkDto(resources.get(0));
   }
 
   @Test
-  void getOfAnExistingBackupConfigShouldReturnTheExistingBackupConfig() {
+  void getOfAnExistingDtoShouldReturnTheExistingDto() {
     when(finder.findByNameAndNamespace(getResourceName(), getResourceNamespace()))
         .thenReturn(Optional.of(customResources.getItems().get(0)));
 
-    T backupConfig = service.get(getResourceNamespace(), getResourceName());
+    T dto = service.get(getResourceNamespace(), getResourceName());
 
-    checkBackupConfig(backupConfig);
+    checkDto(dto);
   }
 
   @Test
@@ -80,7 +81,7 @@ abstract class AbstractCustomResourceTest<T extends ResourceDto, R extends Custo
       public Void answer(InvocationOnMock invocation) throws Throwable {
         R customResource = invocation.getArgument(0);
 
-        checkBackupConfig(customResource, Operation.CREATE);
+        checkCustomResource(customResource, Operation.CREATE);
 
         return null;
       }
@@ -99,7 +100,7 @@ abstract class AbstractCustomResourceTest<T extends ResourceDto, R extends Custo
       public Void answer(InvocationOnMock invocation) throws Throwable {
         R customResource = invocation.getArgument(0);
 
-        checkBackupConfig(customResource, Operation.UPDATE);
+        checkCustomResource(customResource, Operation.UPDATE);
 
         return null;
       }
@@ -115,7 +116,7 @@ abstract class AbstractCustomResourceTest<T extends ResourceDto, R extends Custo
       public Void answer(InvocationOnMock invocation) throws Throwable {
         R customResource = invocation.getArgument(0);
 
-        checkBackupConfig(customResource, Operation.DELETE);
+        checkCustomResource(customResource, Operation.DELETE);
 
         return null;
       }
@@ -130,7 +131,7 @@ abstract class AbstractCustomResourceTest<T extends ResourceDto, R extends Custo
 
   protected abstract AbstractResourceTransformer<T, R> getTransformer();
 
-  protected abstract AbstractRestService<T, R> getService(
+  protected abstract S getService(
       CustomResourceScanner<R> scanner,
       CustomResourceFinder<R> finder,
       CustomResourceScheduler<R> scheduler,
@@ -140,9 +141,9 @@ abstract class AbstractCustomResourceTest<T extends ResourceDto, R extends Custo
 
   protected abstract String getResourceName();
 
-  protected abstract void checkBackupConfig(T resource);
+  protected abstract void checkDto(T resource);
 
-  protected abstract void checkBackupConfig(R resource, Operation operation);
+  protected abstract void checkCustomResource(R resource, Operation operation);
 
   enum Operation {
     CREATE, UPDATE, DELETE;

@@ -25,7 +25,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @ExtendWith(MockitoExtension.class)
 class PgbouncerConfigResourceTest
-    extends AbstractCustomResourceTest<PoolingConfigDto, StackGresPoolingConfig> {
+    extends AbstractCustomResourceTest<PoolingConfigDto, StackGresPoolingConfig,
+      ConnectionPoolingConfigResource> {
 
   @Override
   protected CustomResourceList<StackGresPoolingConfig> getCustomResourceList() {
@@ -43,7 +44,7 @@ class PgbouncerConfigResourceTest
   }
 
   @Override
-  protected AbstractRestService<PoolingConfigDto, StackGresPoolingConfig> getService(
+  protected ConnectionPoolingConfigResource getService(
       CustomResourceScanner<StackGresPoolingConfig> scanner,
       CustomResourceFinder<StackGresPoolingConfig> finder,
       CustomResourceScheduler<StackGresPoolingConfig> scheduler,
@@ -62,7 +63,7 @@ class PgbouncerConfigResourceTest
   }
 
   @Override
-  protected void checkBackupConfig(PoolingConfigDto resource) {
+  protected void checkDto(PoolingConfigDto resource) {
     assertNotNull(resource.getMetadata());
     assertEquals("default", resource.getMetadata().getNamespace());
     assertEquals("pgbouncerconf", resource.getMetadata().getName());
@@ -77,7 +78,7 @@ class PgbouncerConfigResourceTest
   }
 
   @Override
-  protected void checkBackupConfig(StackGresPoolingConfig resource, Operation operation) {
+  protected void checkCustomResource(StackGresPoolingConfig resource, Operation operation) {
     assertNotNull(resource.getMetadata());
     assertEquals("default", resource.getMetadata().getNamespace());
     assertEquals("pgbouncerconf", resource.getMetadata().getName());
