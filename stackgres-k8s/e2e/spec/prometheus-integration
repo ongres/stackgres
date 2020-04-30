@@ -5,11 +5,11 @@ e2e_test_install() {
 
   install_prometheus
 
-  wait_pods_running "$PROMETHEUS_NAMESPACE" 8
+  wait_pods_running "$PROMETHEUS_NAMESPACE" 6
 
   upgrade_operator \
     --set grafana.autoEmbed=true \
-    --set-string grafana.webHost="prometheus-grafana.$CLUSTER_NAMESPACE-monitor"
+    --set-string grafana.webHost="prometheus-grafana.$PROMETHEUS_NAMESPACE"
 
   wait_pods_terminated "stackgres" 1
 
@@ -26,6 +26,7 @@ install_prometheus(){
   kubectl create namespace "$PROMETHEUS_NAMESPACE" || true
 
   helm install prometheus stable/prometheus-operator \
+    --version 8.13.4 \
     --namespace "$PROMETHEUS_NAMESPACE" \
     --disable-openapi-validation \
     --set prometheusOperator.createCustomResource=false
@@ -77,7 +78,7 @@ check_exporter_service_monitor() {
   fi
 
   if wait_until kubectl exec -i -n "$CLUSTER_NAMESPACE" curl \
-    curl "http://prometheus-prometheus-oper-prometheus.prometheus-integration-monitor:9090/api/v1/query?query=pg_settings_shared_buffers_bytes"
+    curl "http://prometheus-prometheus-oper-prometheus.$PROMETHEUS_NAMESPACE:9090/api/v1/query?query=pg_settings_shared_buffers_bytes"
   then
     echo "Exporter metrics was found on prometheus"
   else
@@ -112,7 +113,7 @@ check_envoy_service_monitor() {
   fi
 
   if wait_until kubectl exec -i -n "$CLUSTER_NAMESPACE" curl -- \
-    curl "http://prometheus-prometheus-oper-prometheus.prometheus-integration-monitor:9090/api/v1/query?query=envoy_cluster_upstream_cx_rx_bytes_total"
+    curl "http://prometheus-prometheus-oper-prometheus.$PROMETHEUS_NAMESPACE:9090/api/v1/query?query=envoy_cluster_upstream_cx_rx_bytes_total"
   then
     echo "Envoy metrics was found on prometheus"
   else
