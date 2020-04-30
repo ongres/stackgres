@@ -43,9 +43,13 @@ spec:
             dashboard_id="{{ .Values.grafana.dashboardId }}"
             curl_grafana_api "$grafana_host/api/gnet/dashboards/$dashboard_id" | jq .json > /tmp/grafana-dashboard.json
             [ -s /tmp/grafana-dashboard.json ]
-            dashboard_json="$(cat << EOF
+            cat << EOF > /tmp/grafana-dashboard-import.json
             {
-              "dashboard": $(cat /tmp/grafana-dashboard.json),
+              {{- if .Values.grafana.dashboardId }}
+              "dashboard": $(cat /tmp/grafana-dashboard.json | jq .),
+              {{- else }}
+              "dashboard": $(cat /etc/grafana/grafana-dashboard.json | jq .),
+              {{- end }}
               "overwrite": true,
               "inputs": [{
                 "name": "DS_PROMETHEUS",
@@ -55,8 +59,7 @@ spec:
               }]
             }
             EOF
-            )"
-            grafana_dashboard_url="$(curl_grafana_api -X POST -d "$dashboard_json" "$grafana_host/api/dashboards/import" | jq -r .importedUrl)"
+            grafana_dashboard_url="$(curl_grafana_api -X POST -d "@/tmp/grafana-dashboard-import.json" "$grafana_host/api/dashboards/import" | jq -r .importedUrl)"
             [ -n "$grafana_dashboard_url" ]
             grafana_api_key_id="$(curl_grafana_api -X GET "$grafana_host/api/auth/keys" | jq -r 'map(select(.name = "stackgres")|.id)|first')"
             [ -z "$grafana_api_key_id" ] || curl_grafana_api -X DELETE "$grafana_host/api/auth/keys/$grafana_api_key_id" > /dev/null
@@ -72,5 +75,22 @@ spec:
               GRAFANA_WEB_HOST="{{ .Release.Name }}-grafana" \
               {{- end }}
               GRAFANA_TOKEN="$grafana_api_key_token"
+        {{- if not .Values.grafana.dashboardId }}
+        volumeMounts:
+        - name: grafana-dashboard
+          mountPath: /etc/grafana/grafana-dashboard.json
+          readOnly: true
+          subPath: grafana-dashboard.json
+        {{- end }}
+      {{- if not .Values.grafana.dashboardId }}
+      volumes:
+        - name: grafana-dashboard
+          configMap:
+            {{- if .Values.grafana.dashboardConfigMap }}
+            name: {{ .Values.grafana.dashboardConfigMap }}
+            {{- else }}
+            name: {{ .Release.Name }}-grafana-dashboard
+            {{- end }}
+      {{- end }}
       restartPolicy: OnFailure
 {{ end }}

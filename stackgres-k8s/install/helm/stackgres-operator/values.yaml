@@ -76,7 +76,8 @@ grafana:
   #secretUserKey:
   #secretPasswordKey:
   datasourceName: Prometheus
-  dashboardId: 9628
+  # dashboardConfigMap:
+  # dashboardId: 9628
   # Create grafana dashboard for postgres exporter and copy/paste share URL:
   # - Grafana > Create > Import > Grafana.com Dashboard 9628
   # Copy/paste grafana dashboard URL for postgres exporter:
