@@ -112,10 +112,10 @@ EOF
     return 1
   fi
 
-  check_is_permanent_value false
+  check_is_permanent_value true
 
   kubectl patch sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json \
-    --patch '[{"op":"replace","path":"/spec/subjectToRetentionPolicy","value":true}]'
+    --patch '[{"op":"replace","path":"/spec/subjectToRetentionPolicy","value":false}]'
 
   wait_until check_is_permanent_value true
 

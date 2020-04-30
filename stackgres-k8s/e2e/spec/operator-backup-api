@@ -35,7 +35,7 @@ EOF
     name: "$BACKUP_NAME"
   spec:
     sgCluster: "$CLUSTER_NAME"
-    subjectToRetentionPolicy: true
+    subjectToRetentionPolicy: false
 EOF
 
   wait_until eval 'kubectl get sgbackups.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
