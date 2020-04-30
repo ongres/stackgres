@@ -76,6 +76,10 @@ grafana:
   datasourceName: |
     The datasource name used by dashboard that will be created in grafana.
      By default Prometheus. (used to embed automatically grafana)
+  dashboardConfigMap: |
+    A configMap with the dashboard JSON in the key `grafana-dashboard.json`
+    that will be created in grafana. If not set the default
+    StackGres dashboard will be created. (used to embed automatically grafana)
   dashboardId: |
     The dashboard id that will be create in grafana
      (see https://grafana.com/grafana/dashboards). By default 9628. (used to embed automatically

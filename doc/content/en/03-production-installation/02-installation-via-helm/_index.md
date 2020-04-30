@@ -47,7 +47,8 @@ You can specify following parameters values:
 | `grafana.secretUserKey` | {{< description stackgres-operator.grafana.secretUserKey >}} |  |
 | `grafana.secretPasswordKey` | {{< description stackgres-operator.grafana.secretPasswordKey >}} |  |
 | `grafana.datasourceName` | {{< description stackgres-operator.grafana.datasourceName >}} | Prometheus |
-| `grafana.dashboardId` | {{< description stackgres-operator.grafana.dashboardId >}} | 9628 |
+| `grafana.dashboardConfigMap` | {{ < description stackgres-operator.grafana.dashboardConfigMap > }} |  |
+| `grafana.dashboardId` | {{< description stackgres-operator.grafana.dashboardId >}} |  |
 | `grafana.url` | {{< description stackgres-operator.grafana.url >}} |  |
 | `grafana.token` | {{< description stackgres-operator.grafana.token >}} |  |
 | `prometheus.allowAutobind` | {{< description stackgres-operator.prometheus.allowAutobind >}} | true |
