@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.rest.dto.cluster;
 
+import java.util.Objects;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.quarkus.runtime.annotations.RegisterForReflection;
@@ -24,7 +26,7 @@ public class ClusterLogEntryDto {
 
   private String role;
 
-  private String errorSeverity;
+  private String errorLevel;
 
   private String message;
 
@@ -108,12 +110,12 @@ public class ClusterLogEntryDto {
     this.role = role;
   }
 
-  public String getErrorSeverity() {
-    return errorSeverity;
+  public String getErrorLevel() {
+    return errorLevel;
   }
 
-  public void setErrorSeverity(String errorSeverity) {
-    this.errorSeverity = errorSeverity;
+  public void setErrorLevel(String errorLevel) {
+    this.errorLevel = errorLevel;
   }
 
   public String getMessage() {
@@ -282,6 +284,45 @@ public class ClusterLogEntryDto {
 
   public void setApplicationName(String applicationName) {
     this.applicationName = applicationName;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(applicationName, commandTag, connectionFrom, context, databaseName, detail,
+        errorLevel, hint, internalQuery, internalQueryPos, location, logTime, logTimeIndex, logType,
+        message, podName, processId, query, queryPos, role, sessionId, sessionLineNum,
+        sessionStartTime, sqlStateCode, transactionId, userName, virtualTransactionId);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (!(obj instanceof ClusterLogEntryDto)) {
+      return false;
+    }
+    ClusterLogEntryDto other = (ClusterLogEntryDto) obj;
+    return Objects.equals(applicationName, other.applicationName)
+        && Objects.equals(commandTag, other.commandTag)
+        && Objects.equals(connectionFrom, other.connectionFrom)
+        && Objects.equals(context, other.context)
+        && Objects.equals(databaseName, other.databaseName) && Objects.equals(detail, other.detail)
+        && Objects.equals(errorLevel, other.errorLevel) && Objects.equals(hint, other.hint)
+        && Objects.equals(internalQuery, other.internalQuery)
+        && Objects.equals(internalQueryPos, other.internalQueryPos)
+        && Objects.equals(location, other.location) && Objects.equals(logTime, other.logTime)
+        && Objects.equals(logTimeIndex, other.logTimeIndex)
+        && Objects.equals(logType, other.logType) && Objects.equals(message, other.message)
+        && Objects.equals(podName, other.podName) && Objects.equals(processId, other.processId)
+        && Objects.equals(query, other.query) && Objects.equals(queryPos, other.queryPos)
+        && Objects.equals(role, other.role) && Objects.equals(sessionId, other.sessionId)
+        && Objects.equals(sessionLineNum, other.sessionLineNum)
+        && Objects.equals(sessionStartTime, other.sessionStartTime)
+        && Objects.equals(sqlStateCode, other.sqlStateCode)
+        && Objects.equals(transactionId, other.transactionId)
+        && Objects.equals(userName, other.userName)
+        && Objects.equals(virtualTransactionId, other.virtualTransactionId);
   }
 
 }

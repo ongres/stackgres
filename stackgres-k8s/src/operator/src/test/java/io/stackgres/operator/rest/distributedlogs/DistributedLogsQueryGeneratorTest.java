@@ -70,6 +70,7 @@ public class DistributedLogsQueryGeneratorTest {
             .cluster(new ClusterDto())
             .records(1)
             .isSortAsc(false)
+            .isFromInclusive(false)
             .build()));
   }
 
@@ -80,6 +81,19 @@ public class DistributedLogsQueryGeneratorTest {
             .cluster(new ClusterDto())
             .records(1)
             .isSortAsc(false)
+            .isFromInclusive(false)
+            .fromTimeAndIndex(Tuple.tuple(Instant.EPOCH, 0))
+            .build()));
+  }
+
+  @Test
+  public void fromInclusiveDescQueryTest() {
+    assertEquals(EXPECTED.get("fromInclusiveDescQueryTest"),
+        generateQuery(ImmutableDistributedLogsQueryParameters.builder()
+            .cluster(new ClusterDto())
+            .records(1)
+            .isSortAsc(false)
+            .isFromInclusive(true)
             .fromTimeAndIndex(Tuple.tuple(Instant.EPOCH, 0))
             .build()));
   }
@@ -91,6 +105,7 @@ public class DistributedLogsQueryGeneratorTest {
             .cluster(new ClusterDto())
             .records(1)
             .isSortAsc(false)
+            .isFromInclusive(false)
             .toTimeAndIndex(Tuple.tuple(Instant.EPOCH, 0))
             .build()));
   }
@@ -102,6 +117,20 @@ public class DistributedLogsQueryGeneratorTest {
             .cluster(new ClusterDto())
             .records(1)
             .isSortAsc(false)
+            .isFromInclusive(false)
+            .fromTimeAndIndex(Tuple.tuple(Instant.EPOCH, 0))
+            .toTimeAndIndex(Tuple.tuple(Instant.EPOCH, 0))
+            .build()));
+  }
+
+  @Test
+  public void fromInclusiveToDescQueryTest() {
+    assertEquals(EXPECTED.get("fromInclusiveToDescQueryTest"),
+        generateQuery(ImmutableDistributedLogsQueryParameters.builder()
+            .cluster(new ClusterDto())
+            .records(1)
+            .isSortAsc(false)
+            .isFromInclusive(true)
             .fromTimeAndIndex(Tuple.tuple(Instant.EPOCH, 0))
             .toTimeAndIndex(Tuple.tuple(Instant.EPOCH, 0))
             .build()));
@@ -114,6 +143,7 @@ public class DistributedLogsQueryGeneratorTest {
             .cluster(new ClusterDto())
             .records(1)
             .isSortAsc(true)
+            .isFromInclusive(false)
             .build()));
   }
 
@@ -124,6 +154,19 @@ public class DistributedLogsQueryGeneratorTest {
             .cluster(new ClusterDto())
             .records(1)
             .isSortAsc(true)
+            .isFromInclusive(false)
+            .fromTimeAndIndex(Tuple.tuple(Instant.EPOCH, 0))
+            .build()));
+  }
+
+  @Test
+  public void fromInclusiveAscQueryTest() {
+    assertEquals(EXPECTED.get("fromInclusiveAscQueryTest"),
+        generateQuery(ImmutableDistributedLogsQueryParameters.builder()
+            .cluster(new ClusterDto())
+            .records(1)
+            .isSortAsc(true)
+            .isFromInclusive(true)
             .fromTimeAndIndex(Tuple.tuple(Instant.EPOCH, 0))
             .build()));
   }
@@ -135,6 +178,7 @@ public class DistributedLogsQueryGeneratorTest {
             .cluster(new ClusterDto())
             .records(1)
             .isSortAsc(true)
+            .isFromInclusive(false)
             .toTimeAndIndex(Tuple.tuple(Instant.EPOCH, 0))
             .build()));
   }
@@ -146,6 +190,20 @@ public class DistributedLogsQueryGeneratorTest {
             .cluster(new ClusterDto())
             .records(1)
             .isSortAsc(true)
+            .isFromInclusive(false)
+            .fromTimeAndIndex(Tuple.tuple(Instant.EPOCH, 0))
+            .toTimeAndIndex(Tuple.tuple(Instant.EPOCH, 0))
+            .build()));
+  }
+
+  @Test
+  public void fromInclusiveToAscQueryTest() {
+    assertEquals(EXPECTED.get("fromInclusiveToAscQueryTest"),
+        generateQuery(ImmutableDistributedLogsQueryParameters.builder()
+            .cluster(new ClusterDto())
+            .records(1)
+            .isSortAsc(true)
+            .isFromInclusive(true)
             .fromTimeAndIndex(Tuple.tuple(Instant.EPOCH, 0))
             .toTimeAndIndex(Tuple.tuple(Instant.EPOCH, 0))
             .build()));
@@ -160,6 +218,7 @@ public class DistributedLogsQueryGeneratorTest {
                   .cluster(new ClusterDto())
                   .records(1)
                   .isSortAsc(false)
+                  .isFromInclusive(false)
                   .filters(ImmutableMap.of(filter, Optional.of("")))
                   .build()),
               "Expected query filterQueryTest_" + filter + " not matching actual");
@@ -175,6 +234,7 @@ public class DistributedLogsQueryGeneratorTest {
                   .cluster(new ClusterDto())
                   .records(1)
                   .isSortAsc(false)
+                  .isFromInclusive(false)
                   .filters(ImmutableMap.of(filter, Optional.empty()))
                   .build()),
               "Expected query nullFilterQueryTest_" + filter + " not matching actual");
@@ -188,6 +248,7 @@ public class DistributedLogsQueryGeneratorTest {
             .cluster(new ClusterDto())
             .records(1)
             .isSortAsc(false)
+            .isFromInclusive(false)
             .filters(DistributedLogsQueryGenerator.FILTER_CONVERSION_MAP.keySet()
                 .stream()
                 .collect(ImmutableMap.toImmutableMap(filter -> filter, filter -> Optional.of(""))))
@@ -201,6 +262,7 @@ public class DistributedLogsQueryGeneratorTest {
             .cluster(new ClusterDto())
             .records(1)
             .isSortAsc(false)
+            .isFromInclusive(false)
             .fullTextSearchQuery(new FullTextSearchQuery("test"))
             .build()));
   }

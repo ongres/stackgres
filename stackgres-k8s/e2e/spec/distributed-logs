@@ -136,24 +136,13 @@ check_distributed_logs_query_endpoint() {
   fi
 
   for field in \
-    logTime \
-    logTimeIndex \
     logType \
     podName \
     role \
-    errorSeverity \
+    errorLevel \
     message \
     userName \
-    databaseName \
-    processId \
-    connectionFrom \
-    sessionId \
-    sessionLineNum \
-    commandTag \
-    sessionStartTime \
-    virtualTransactionId \
-    sqlStateCode \
-    applicationName
+    databaseName
   do
     if get_logs_count_with_filter_of_log_with_text distributed-logs-works "$field" | grep -q "^1$"
     then
@@ -230,9 +219,8 @@ get_logs_count_between_log_with_texts_asc() {
 }
 
 get_postgres_logs_count_with_text() {
-  local FILTER="{\"logType\":\"pg\"}"
   local RESULT="$(run_curl \
-    -r "stackgres/sgcluster/logs/$CLUSTER_NAMESPACE/$CLUSTER_NAME?text=$1&filters=$(uriencode "$FILTER")" \
+    -r "stackgres/sgcluster/logs/$CLUSTER_NAMESPACE/$CLUSTER_NAME?text=$1&logType=pg" \
     -n "$CLUSTER_NAMESPACE")"
   echo_raw "$RESULT" \
     | jq -r "map(select(.message != null and (.message | contains(\"$1\")))) | length"
@@ -241,21 +229,21 @@ get_postgres_logs_count_with_text() {
 get_patroni_logs_count_with_text() {
   local FILTER="{\"logType\":\"pa\"}"
   local RESULT="$(run_curl \
-    -r "stackgres/sgcluster/logs/$CLUSTER_NAMESPACE/$CLUSTER_NAME?text=$1&filters=$(uriencode "$FILTER")" \
+    -r "stackgres/sgcluster/logs/$CLUSTER_NAMESPACE/$CLUSTER_NAME?text=$1&logType=pa" \
     -n "$CLUSTER_NAMESPACE")"
   echo_raw "$RESULT" \
     | jq -r "map(select(.message != null and (.message | contains(\"$1\")))) | length"
 }
 
 get_logs_count_with_filter_of_log_with_text() {
-  local FILTER="{\"$2\":$(run_curl \
+  local FILTER="$(run_curl \
     -r "stackgres/sgcluster/logs/$CLUSTER_NAMESPACE/$CLUSTER_NAME?text=$1" \
     -n "$CLUSTER_NAMESPACE" \
-    | jq "map(select(.message != null and (.message | contains(\"$1\")))) | .[0] | .$2")}"
+    | jq -r "map(select(.message != null and (.message | contains(\"$1\")))) | .[0] | .$2 | select(. == null) = \"\"")"
   local RESULT="$(run_curl \
-    -r "stackgres/sgcluster/logs/$CLUSTER_NAMESPACE/$CLUSTER_NAME?text=$1&filters=$(uriencode "$FILTER")" \
+    -r "stackgres/sgcluster/logs/$CLUSTER_NAMESPACE/$CLUSTER_NAME?text=$1&$2=$FILTER" \
     -n "$CLUSTER_NAMESPACE")"
   echo_raw "$RESULT" \
-    | jq -r "map(select(.message != null and (.message | contains(\"$1\")) and (.$2|tostring) == ($FILTER.$2|tostring))) | length"
+    | jq -r "map(select(.message != null and (.message | contains(\"$1\")) and (.$2 | select(. == null) = \"\" | tostring) == \"$FILTER\")) | length"
 }
 

@@ -7,6 +7,7 @@ package io.stackgres.operator.rest.distributedlogs;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -98,6 +99,24 @@ public class FullTextSearchQuery {
   @Override
   public String toString() {
     return googleLikeQuery;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(fullTextSearchQuery, googleLikeQuery);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (!(obj instanceof FullTextSearchQuery)) {
+      return false;
+    }
+    FullTextSearchQuery other = (FullTextSearchQuery) obj;
+    return Objects.equals(fullTextSearchQuery, other.fullTextSearchQuery)
+        && Objects.equals(googleLikeQuery, other.googleLikeQuery);
   }
 
 }

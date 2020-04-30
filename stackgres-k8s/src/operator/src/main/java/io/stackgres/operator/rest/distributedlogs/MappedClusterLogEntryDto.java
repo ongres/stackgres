@@ -43,7 +43,7 @@ public class MappedClusterLogEntryDto extends ClusterLogEntryDto {
       "application_name"
   })
   public MappedClusterLogEntryDto(String logTime, Integer logTimeIndex, String logType,
-      String podName, String role, String errorSeverity, String message, String userName,
+      String podName, String role, String errorLevel, String message, String userName,
       String databaseName, Integer processId, String connectionFrom, String sessionId,
       Integer sessionLineNum, String commandTag, String sessionStartTime,
       String virtualTransactionId, Integer transactionId, String sqlStateCode, String detail,
@@ -54,7 +54,7 @@ public class MappedClusterLogEntryDto extends ClusterLogEntryDto {
     setLogType(logType);
     setPodName(podName);
     setRole(role);
-    setErrorSeverity(errorSeverity);
+    setErrorLevel(errorLevel);
     setMessage(message);
     setUserName(userName);
     setDatabaseName(databaseName);

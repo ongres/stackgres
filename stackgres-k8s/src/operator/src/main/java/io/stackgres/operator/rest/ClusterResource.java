@@ -22,11 +22,8 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.operator.app.ObjectMapperProvider;
 import io.stackgres.operator.common.ArcUtil;
 import io.stackgres.operator.resource.CustomResourceFinder;
 import io.stackgres.operator.resource.CustomResourceScanner;
@@ -40,8 +37,6 @@ import io.stackgres.operator.rest.dto.cluster.ClusterLogEntryDto;
 import io.stackgres.operator.rest.dto.cluster.ClusterResourceConsumtionDto;
 import io.stackgres.operator.rest.dto.cluster.ClusterSpec;
 import io.stackgres.operator.rest.transformer.ResourceTransformer;
-import org.jooq.lambda.Seq;
-import org.jooq.lambda.Unchecked;
 import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple2;
 
@@ -55,7 +50,6 @@ public class ClusterResource
   private final CustomResourceFinder<ClusterDto> clusterFinder;
   private final CustomResourceFinder<ClusterResourceConsumtionDto> clusterResourceConsumptionFinder;
   private final DistributedLogsFetcher distributedLogsFetcher;
-  private final ObjectMapper objectMapper;
 
   @Inject
   public ClusterResource(
@@ -65,14 +59,12 @@ public class ClusterResource
       CustomResourceScanner<ClusterDto> clusterScanner,
       CustomResourceFinder<ClusterDto> clusterFinder,
       CustomResourceFinder<ClusterResourceConsumtionDto> clusterResourceConsumptionFinder,
-      DistributedLogsFetcher distributedLogsFetcher,
-      ObjectMapperProvider objectMapperProvider) {
+      DistributedLogsFetcher distributedLogsFetcher) {
     super(null, finder, scheduler, transformer);
     this.clusterScanner = clusterScanner;
     this.clusterFinder = clusterFinder;
     this.clusterResourceConsumptionFinder = clusterResourceConsumptionFinder;
     this.distributedLogsFetcher = distributedLogsFetcher;
-    this.objectMapper = objectMapperProvider.objectMapper();
   }
 
   public ClusterResource() {
@@ -82,7 +74,6 @@ public class ClusterResource
     this.clusterFinder = null;
     this.clusterResourceConsumptionFinder = null;
     this.distributedLogsFetcher = null;
-    this.objectMapper = null;
   }
 
   @RolesAllowed(RestAuthenticationRoles.ADMIN)
@@ -122,11 +113,24 @@ public class ClusterResource
       @QueryParam("records") Integer records,
       @QueryParam("from") String from,
       @QueryParam("to") String to,
-      @QueryParam("filters") String filters,
       @QueryParam("sort") String sort,
-      @QueryParam("text") String text) {
-    final ClusterDto cluster = super.get(namespace, name);
-    final ImmutableMap<String, Optional<String>> filterList;
+      @QueryParam("text") String text,
+      @QueryParam("logType") String logType,
+      @QueryParam("podName") String podName,
+      @QueryParam("role") String role,
+      @QueryParam("errorLevel") String errorLevel,
+      @QueryParam("userName") String userName,
+      @QueryParam("databaseName") String databaseName,
+      @QueryParam("fromInclusive") Boolean fromInclusive) {
+    final ClusterDto cluster = clusterFinder.findByNameAndNamespace(name, namespace)
+        .orElseThrow(NotFoundException::new);
+
+    final int calculatedRecords = Optional.ofNullable(records).orElse(50);
+
+    if (calculatedRecords <= 0) {
+      throw new BadRequestException("records should be a positive number");
+    }
+
     final Optional<Tuple2<Instant, Integer>> fromTuple;
     final Optional<Tuple2<Instant, Integer>> toTuple;
 
@@ -138,23 +142,38 @@ public class ClusterResource
           "Distributed logs are not configured for specified cluster");
     }
 
-    try {
-      filterList = Optional.ofNullable(filters)
-          .map(Unchecked.function(objectMapper::readTree))
-          .map(node -> Seq.seq(node.fields())
-              .collect(ImmutableMap.toImmutableMap(
-                  e -> e.getKey(), e -> (Optional<String>) Optional.of(e.getValue())
-                  .filter(value -> !value.isNull())
-                  .map(JsonNode::asText))))
-          .orElse(ImmutableMap.<String, Optional<String>>of());
-    } catch (Exception ex) {
-      throw new BadRequestException("filters should be a JSON object", ex);
+    final ImmutableMap.Builder<String, Optional<String>> filters =
+        ImmutableMap.<String, Optional<String>>builder();
+    if (logType != null) {
+      filters.put("logType", Optional.of(logType)
+          .filter(value -> !value.isEmpty()));
+    }
+    if (podName != null) {
+      filters.put("podName", Optional.of(podName)
+          .filter(value -> !value.isEmpty()));
+    }
+    if (role != null) {
+      filters.put("role", Optional.of(role)
+          .filter(value -> !value.isEmpty()));
+    }
+    if (errorLevel != null) {
+      filters.put("errorLevel", Optional.of(errorLevel)
+          .filter(value -> !value.isEmpty()));
+    }
+    if (userName != null) {
+      filters.put("userName", Optional.of(userName)
+          .filter(value -> !value.isEmpty()));
+    }
+    if (databaseName != null) {
+      filters.put("databaseName", Optional.of(databaseName)
+          .filter(value -> !value.isEmpty()));
     }
 
     try {
       fromTuple = Optional.ofNullable(from)
           .map(s -> s.split(","))
-          .map(ss -> Tuple.tuple(ss[0], ss.length > 1 ? ss[1] : "1"))
+          .map(ss -> Tuple.tuple(ss[0],
+              ss.length > 1 ? ss[1] : String.valueOf(Integer.valueOf(0))))
           .map(t -> t.map1(Instant::parse))
           .map(t -> t.map2(Integer::valueOf));
     } catch (Exception ex) {
@@ -165,7 +184,8 @@ public class ClusterResource
     try {
       toTuple = Optional.ofNullable(to)
           .map(s -> s.split(","))
-          .map(ss -> Tuple.tuple(ss[0], ss.length > 1 ? ss[1] : String.valueOf(Integer.MAX_VALUE)))
+          .map(ss -> Tuple.tuple(ss[0],
+              ss.length > 1 ? ss[1] : String.valueOf(Integer.MAX_VALUE)))
           .map(t -> t.map1(Instant::parse))
           .map(t -> t.map2(Integer::valueOf));
     } catch (Exception ex) {
@@ -180,13 +200,14 @@ public class ClusterResource
     return distributedLogsFetcher.logs(
         ImmutableDistributedLogsQueryParameters.builder()
         .cluster(cluster)
-        .records(Optional.ofNullable(records).orElse(50))
+        .records(calculatedRecords)
         .fromTimeAndIndex(fromTuple)
         .toTimeAndIndex(toTuple)
-        .filters(filterList)
+        .filters(filters.build())
         .isSortAsc(Objects.equals("asc", sort))
         .fullTextSearchQuery(Optional.ofNullable(text)
             .map(FullTextSearchQuery::new))
+        .isFromInclusive(Optional.ofNullable(fromInclusive).orElse(false))
         .build());
   }
 }

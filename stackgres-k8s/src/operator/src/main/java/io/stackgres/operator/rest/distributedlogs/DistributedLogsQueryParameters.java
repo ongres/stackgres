@@ -30,4 +30,6 @@ public abstract class DistributedLogsQueryParameters {
 
   public abstract Optional<FullTextSearchQuery> getFullTextSearchQuery();
 
+  public abstract boolean isFromInclusive();
+
 }

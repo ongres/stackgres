@@ -75,7 +75,7 @@ public class DistributedLogsQueryGenerator {
       .put("logType", "log_type")
       .put("podName", "pod_name")
       .put("role", "role")
-      .put("errorSeverity", "error_severity")
+      .put("errorLevel", "error_severity")
       .put("message", "message")
       .put("userName", "user_name")
       .put("databaseName", "database_name")
@@ -198,20 +198,38 @@ public class DistributedLogsQueryGenerator {
             .orElse(DSL.trueCondition()));
     if (parameters.getFromTimeAndIndex().isPresent()) {
       Tuple2<Instant, Integer> from = parameters.getFromTimeAndIndex().get();
-      if (parameters.isSortAsc()) {
-        selectFromLogPatroni = selectFromLogPatroni
-            .and(DSL.row(LOG_TIME_FIELD, LOG_TIME_INDEX_FIELD).greaterThan(
-                DSL.row(OffsetDateTime.ofInstant(from.v1, ZoneOffset.UTC), from.v2)));
-        selectFromLogPostgres = selectFromLogPostgres
-            .and(DSL.row(LOG_TIME_FIELD, LOG_TIME_INDEX_FIELD).greaterThan(
-                DSL.row(OffsetDateTime.ofInstant(from.v1, ZoneOffset.UTC), from.v2)));
+      if (parameters.isFromInclusive()) {
+        if (parameters.isSortAsc()) {
+          selectFromLogPatroni = selectFromLogPatroni
+              .and(DSL.row(LOG_TIME_FIELD, LOG_TIME_INDEX_FIELD).greaterOrEqual(
+                  DSL.row(OffsetDateTime.ofInstant(from.v1, ZoneOffset.UTC), from.v2)));
+          selectFromLogPostgres = selectFromLogPostgres
+              .and(DSL.row(LOG_TIME_FIELD, LOG_TIME_INDEX_FIELD).greaterOrEqual(
+                  DSL.row(OffsetDateTime.ofInstant(from.v1, ZoneOffset.UTC), from.v2)));
+        } else {
+          selectFromLogPatroni = selectFromLogPatroni
+              .and(DSL.row(LOG_TIME_FIELD, LOG_TIME_INDEX_FIELD).lessOrEqual(
+                  DSL.row(OffsetDateTime.ofInstant(from.v1, ZoneOffset.UTC), from.v2)));
+          selectFromLogPostgres = selectFromLogPostgres
+              .and(DSL.row(LOG_TIME_FIELD, LOG_TIME_INDEX_FIELD).lessOrEqual(
+                  DSL.row(OffsetDateTime.ofInstant(from.v1, ZoneOffset.UTC), from.v2)));
+        }
       } else {
-        selectFromLogPatroni = selectFromLogPatroni
-            .and(DSL.row(LOG_TIME_FIELD, LOG_TIME_INDEX_FIELD).lessThan(
-                DSL.row(OffsetDateTime.ofInstant(from.v1, ZoneOffset.UTC), from.v2)));
-        selectFromLogPostgres = selectFromLogPostgres
-            .and(DSL.row(LOG_TIME_FIELD, LOG_TIME_INDEX_FIELD).lessThan(
-                DSL.row(OffsetDateTime.ofInstant(from.v1, ZoneOffset.UTC), from.v2)));
+        if (parameters.isSortAsc()) {
+          selectFromLogPatroni = selectFromLogPatroni
+              .and(DSL.row(LOG_TIME_FIELD, LOG_TIME_INDEX_FIELD).greaterThan(
+                  DSL.row(OffsetDateTime.ofInstant(from.v1, ZoneOffset.UTC), from.v2)));
+          selectFromLogPostgres = selectFromLogPostgres
+              .and(DSL.row(LOG_TIME_FIELD, LOG_TIME_INDEX_FIELD).greaterThan(
+                  DSL.row(OffsetDateTime.ofInstant(from.v1, ZoneOffset.UTC), from.v2)));
+        } else {
+          selectFromLogPatroni = selectFromLogPatroni
+              .and(DSL.row(LOG_TIME_FIELD, LOG_TIME_INDEX_FIELD).lessThan(
+                  DSL.row(OffsetDateTime.ofInstant(from.v1, ZoneOffset.UTC), from.v2)));
+          selectFromLogPostgres = selectFromLogPostgres
+              .and(DSL.row(LOG_TIME_FIELD, LOG_TIME_INDEX_FIELD).lessThan(
+                  DSL.row(OffsetDateTime.ofInstant(from.v1, ZoneOffset.UTC), from.v2)));
+        }
       }
     }
     if (parameters.getToTimeAndIndex().isPresent()) {
