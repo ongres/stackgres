@@ -140,7 +140,6 @@ check_distributed_logs_query_endpoint() {
     podName \
     role \
     errorLevel \
-    message \
     userName \
     databaseName
   do
@@ -241,7 +240,7 @@ get_logs_count_with_filter_of_log_with_text() {
     -n "$CLUSTER_NAMESPACE" \
     | jq -r "map(select(.message != null and (.message | contains(\"$1\")))) | .[0] | .$2 | select(. == null) = \"\"")"
   local RESULT="$(run_curl \
-    -r "stackgres/sgcluster/logs/$CLUSTER_NAMESPACE/$CLUSTER_NAME?text=$1&$2=$FILTER" \
+    -r "stackgres/sgcluster/logs/$CLUSTER_NAMESPACE/$CLUSTER_NAME?text=$1&$2=$(uriencode "$FILTER")" \
     -n "$CLUSTER_NAMESPACE")"
   echo_raw "$RESULT" \
     | jq -r "map(select(.message != null and (.message | contains(\"$1\")) and (.$2 | select(. == null) = \"\" | tostring) == \"$FILTER\")) | length"
