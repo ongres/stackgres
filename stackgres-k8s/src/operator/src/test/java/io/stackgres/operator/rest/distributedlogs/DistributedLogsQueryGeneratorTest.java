@@ -34,7 +34,8 @@ public class DistributedLogsQueryGeneratorTest {
 
   private static Properties loadExpected() throws IOException {
     Properties expected = new Properties();
-    expected.load(Class.class.getResourceAsStream("/cluster-logs-queries.properties"));
+    expected.load(DistributedLogsQueryGeneratorTest.class.getResourceAsStream(
+        "/cluster-logs-queries.properties"));
     while (true) {
       final Properties currentExpected = expected;
       if (!currentExpected.values()
