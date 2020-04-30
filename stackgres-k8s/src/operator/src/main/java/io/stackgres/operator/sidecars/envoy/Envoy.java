@@ -210,8 +210,7 @@ public class Envoy implements StackGresClusterSidecarResourceFactory<Void> {
                 .putAll(labels)
                 .put("container", NAME)
                 .build())
-            .withOwnerReferences(ImmutableList.of(ResourceUtil.getOwnerReference(
-                context.getClusterContext().getCluster())))
+            .withOwnerReferences(context.getClusterContext().ownerReference())
             .endMetadata()
             .withSpec(new ServiceSpecBuilder()
                 .withSelector(defaultLabels)

@@ -8,6 +8,7 @@ package io.stackgres.operator.rest;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+
 import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
@@ -15,6 +16,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
@@ -38,6 +40,7 @@ import org.jooq.lambda.tuple.Tuple;
 public class BackupConfigResource extends
     AbstractRestService<BackupConfigDto, StackGresBackupConfig> {
 
+  private final CustomResourceFinder<StackGresBackupConfig> finder;
   private final ResourceFinder<Secret> secretFinder;
   private final ResourceWriter<Secret> secretWriter;
   private final BackupConfigResourceUtil util = new BackupConfigResourceUtil();
@@ -51,6 +54,7 @@ public class BackupConfigResource extends
       ResourceFinder<Secret> secretFinder,
       ResourceWriter<Secret> secretWriter) {
     super(scanner, finder, scheduler, transformer);
+    this.finder = finder;
     this.secretFinder = secretFinder;
     this.secretWriter = secretWriter;
   }
@@ -58,6 +62,7 @@ public class BackupConfigResource extends
   public BackupConfigResource() {
     super(null, null, null, null);
     ArcUtil.checkPublicNoArgsConstructorIsCalledFromArc();
+    this.finder = null;
     this.secretFinder = null;
     this.secretWriter = null;
   }
@@ -84,6 +89,7 @@ public class BackupConfigResource extends
     setSecretKeySelectors(resource);
     createOrUpdateSecret(resource);
     super.create(resource);
+    createOrUpdateSecret(resource);
   }
 
   @RolesAllowed(RestAuthenticationRoles.ADMIN)
@@ -144,6 +150,11 @@ public class BackupConfigResource extends
               .withNewMetadata()
               .withNamespace(namespace)
               .withName(name)
+              .withOwnerReferences(finder.findByNameAndNamespace(
+                  resource.getMetadata().getName(), resource.getMetadata().getNamespace())
+                  .map(ResourceUtil::getOwnerReference)
+                  .map(ImmutableList::of)
+                  .orElse(ImmutableList.of()))
               .endMetadata()
               .withStringData(secrets)
               .build());

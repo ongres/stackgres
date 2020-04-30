@@ -231,6 +231,8 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
             .withNewMetadata()
             .withNamespace(context.getClusterContext().clusterNamespace())
             .withName(postInitName(context.getClusterContext()))
+            .withLabels(context.getClusterContext().clusterLabels())
+            .withOwnerReferences(context.getClusterContext().ownerReference())
             .endMetadata()
             .withData(ImmutableMap.of("post-init.sh",
                 Unchecked.supplier(() -> Resources

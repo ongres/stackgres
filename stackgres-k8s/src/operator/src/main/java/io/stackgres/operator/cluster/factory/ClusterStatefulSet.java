@@ -172,6 +172,7 @@ public class ClusterStatefulSet implements StackGresClusterResourceStreamFactory
                 .withNamespace(namespace)
                 .withName(dataName(clusterContext))
                 .withLabels(labels)
+                .withOwnerReferences(context.getClusterContext().ownerReference())
                 .endMetadata()
                 .withSpec(volumeClaimSpec.build())
                 .build()))
