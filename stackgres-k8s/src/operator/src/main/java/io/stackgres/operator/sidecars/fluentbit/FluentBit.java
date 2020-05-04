@@ -90,7 +90,7 @@ public class FluentBit implements StackGresClusterSidecarResourceFactory<Void> {
             + "  exit 1'\n"
             + "  do sleep 1; done)\"\n"
             + "  exec /usr/local/bin/fluent-bit \\\n"
-            + "    -v -c /etc/fluent-bit/fluentbit.conf\n"
+            + "    -c /etc/fluent-bit/fluentbit.conf\n"
             + "}\n"
             + "\n"
             + "set +x\n"

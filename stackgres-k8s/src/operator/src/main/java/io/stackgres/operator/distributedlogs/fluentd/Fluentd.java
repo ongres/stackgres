@@ -145,7 +145,7 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
             + "EOF\n"
             + "  done\n"
             + "  exec /usr/local/bin/fluentd \\\n"
-            + "    -vv -c \"$CONFIG_PATH/fluentd.conf\"\n"
+            + "    -c \"$CONFIG_PATH/fluentd.conf\"\n"
             + "}\n"
             + "\n"
             + "set +x\n"
