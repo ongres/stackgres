@@ -5,7 +5,7 @@ metadata:
   namespace: {{ .Release.Namespace }}
 webhooks:
   - name: sgcluster.{{ .Release.Name }}.{{ .Release.Namespace }}
-    {{- if gt (atoi (mustRegexReplaceAll "^([0-9]+)[^0-9]*$" .Capabilities.KubeVersion.Minor "${1}")) 12 }}
+    {{- if (semverCompare ">1.12-0" .Capabilities.KubeVersion.GitVersion) }}
     sideEffects: None
     {{- end }}
     rules:
@@ -21,11 +21,11 @@ webhooks:
         path: '/stackgres/validation/sgcluster'
       {{- if .Values.cert.crt }}
       caBundle: {{ .Values.cert.crt }}
-      {{- else }}
+      {{- else if (semverCompare "<=1.12-0" .Capabilities.KubeVersion.GitVersion) }}
       caBundle: ""
       {{- end }}
   - name: sgpgconfig.{{ .Release.Name }}.{{ .Release.Namespace }}
-    {{- if gt (atoi (mustRegexReplaceAll "^([0-9]+)[^0-9]*$" .Capabilities.KubeVersion.Minor "${1}")) 12 }}
+    {{- if (semverCompare ">1.12-0" .Capabilities.KubeVersion.GitVersion) }}
     sideEffects: None
     {{- end }}
     rules:
@@ -41,11 +41,11 @@ webhooks:
         path: '/stackgres/validation/sgpgconfig'
       {{- if .Values.cert.crt }}
       caBundle: {{ .Values.cert.crt }}
-      {{- else }}
+      {{- else if (semverCompare "<=1.12-0" .Capabilities.KubeVersion.GitVersion) }}
       caBundle: ""
       {{- end }}
   - name: sgpoolconfig.{{ .Release.Name }}.{{ .Release.Namespace }}
-    {{- if gt (atoi (mustRegexReplaceAll "^([0-9]+)[^0-9]*$" .Capabilities.KubeVersion.Minor "${1}")) 12 }}
+    {{- if (semverCompare ">1.12-0" .Capabilities.KubeVersion.GitVersion) }}
     sideEffects: None
     {{- end }}
     rules:
@@ -61,11 +61,11 @@ webhooks:
         path: '/stackgres/validation/sgpoolconfig'
       {{- if .Values.cert.crt }}
       caBundle: {{ .Values.cert.crt }}
-      {{- else }}
+      {{- else if (semverCompare "<=1.12-0" .Capabilities.KubeVersion.GitVersion) }}
       caBundle: ""
       {{- end }}
   - name: sginstanceprofile.{{ .Release.Name }}.{{ .Release.Namespace }}
-    {{- if gt (atoi (mustRegexReplaceAll "^([0-9]+)[^0-9]*$" .Capabilities.KubeVersion.Minor "${1}")) 12 }}
+    {{- if (semverCompare ">1.12-0" .Capabilities.KubeVersion.GitVersion) }}
     sideEffects: None
     {{- end }}
     rules:
@@ -81,11 +81,11 @@ webhooks:
         path: '/stackgres/validation/sginstanceprofile'
       {{- if .Values.cert.crt }}
       caBundle: {{ .Values.cert.crt }}
-      {{- else }}
+      {{- else if (semverCompare "<=1.12-0" .Capabilities.KubeVersion.GitVersion) }}
       caBundle: ""
       {{- end }}
   - name: sgbackupconfig.{{ .Release.Name }}.{{ .Release.Namespace }}
-    {{- if gt (atoi (mustRegexReplaceAll "^([0-9]+)[^0-9]*$" .Capabilities.KubeVersion.Minor "${1}")) 12 }}
+    {{- if (semverCompare ">1.12-0" .Capabilities.KubeVersion.GitVersion) }}
     sideEffects: None
     {{- end }}
     rules:
@@ -101,11 +101,11 @@ webhooks:
         path: '/stackgres/validation/sgbackupconfig'
       {{- if .Values.cert.crt }}
       caBundle: {{ .Values.cert.crt }}
-      {{- else }}
+      {{- else if (semverCompare "<=1.12-0" .Capabilities.KubeVersion.GitVersion) }}
       caBundle: ""
       {{- end }}
   - name: sgbackup.{{ .Release.Name }}.{{ .Release.Namespace }}
-    {{- if gt (atoi (mustRegexReplaceAll "^([0-9]+)[^0-9]*$" .Capabilities.KubeVersion.Minor "${1}")) 12 }}
+    {{- if (semverCompare ">1.12-0" .Capabilities.KubeVersion.GitVersion) }}
     sideEffects: None
     {{- end }}
     rules:
@@ -121,7 +121,7 @@ webhooks:
         path: '/stackgres/validation/sgbackup'
       {{- if .Values.cert.crt }}
       caBundle: {{ .Values.cert.crt }}
-      {{- else }}
+      {{- else if (semverCompare "<=1.12-0" .Capabilities.KubeVersion.GitVersion) }}
       caBundle: ""
       {{- end }}
   - name: sgdistributedlogs.{{ .Release.Name }}.{{ .Release.Namespace }}
