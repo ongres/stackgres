@@ -8,6 +8,16 @@ export K8S_MINISHIFT_VMDRIVER="${K8S_MINISHIFT_VMDRIVER:-kvm}"
 
 
 update_minishift_config() {
+  # Workaround for https://github.com/minishift/minishift/issues/3290
+  minishift openshift config set --target=kube --patch '{
+      "kubernetesMasterConfig": {
+          "controllerArguments": {
+              "cluster-signing-cert-file": ["/etc/origin/master/ca.crt"],
+              "cluster-signing-key-file": ["/etc/origin/master/ca.key"]
+          }
+      }
+  }'
+
   eval "$(minishift oc-env)"
   if ! timeout 10s oc login -u system:admin > /dev/null 2>&1
   then
@@ -79,16 +89,6 @@ reset_k8s() {
     --memory "$K8S_MINISHIFT_MEMORY" \
     --disk-size "$K8S_MINISHIFT_DISK" \
     --vm-driver "$K8S_MINISHIFT_VMDRIVER"
-
-  # Workaround for https://github.com/minishift/minishift/issues/3290
-  minishift openshift config set --target=kube --patch '{
-      "kubernetesMasterConfig": {
-          "controllerArguments": {
-              "cluster-signing-cert-file": ["/etc/origin/master/ca.crt"],
-              "cluster-signing-key-file": ["/etc/origin/master/ca.key"]
-          }
-      }
-  }'
 
   update_minishift_config
 
