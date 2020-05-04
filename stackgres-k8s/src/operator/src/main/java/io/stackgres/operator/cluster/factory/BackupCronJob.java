@@ -72,7 +72,7 @@ public class BackupCronJob implements StackGresClusterResourceStreamFactory {
             .withNamespace(namespace)
             .withName(ClusterStatefulSet.backupName(clusterContext))
             .withLabels(labels)
-            .withOwnerReferences(context.getClusterContext().ownerReference())
+            .withOwnerReferences(context.getClusterContext().ownerReferences())
             .endMetadata()
             .withNewSpec()
             .withConcurrencyPolicy("Replace")

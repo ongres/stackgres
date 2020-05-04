@@ -58,7 +58,7 @@ public class PatroniRole implements StackGresClusterResourceStreamFactory {
           .withName(roleName(context.getClusterContext()))
           .withNamespace(context.getClusterContext().getCluster().getMetadata().getNamespace())
           .withLabels(context.getClusterContext().clusterLabels())
-          .withOwnerReferences(context.getClusterContext().ownerReference())
+          .withOwnerReferences(context.getClusterContext().ownerReferences())
           .endMetadata()
           .build();
   }
@@ -72,7 +72,7 @@ public class PatroniRole implements StackGresClusterResourceStreamFactory {
         .withName(roleName(context.getClusterContext()))
         .withNamespace(context.getClusterContext().getCluster().getMetadata().getNamespace())
         .withLabels(context.getClusterContext().clusterLabels())
-        .withOwnerReferences(context.getClusterContext().ownerReference())
+        .withOwnerReferences(context.getClusterContext().ownerReferences())
         .endMetadata()
         .addToRules(new PolicyRuleBuilder()
             .withApiGroups("")
@@ -126,7 +126,7 @@ public class PatroniRole implements StackGresClusterResourceStreamFactory {
         .withName(roleName(context.getClusterContext()))
         .withNamespace(context.getClusterContext().getCluster().getMetadata().getNamespace())
         .withLabels(context.getClusterContext().clusterLabels())
-        .withOwnerReferences(context.getClusterContext().ownerReference())
+        .withOwnerReferences(context.getClusterContext().ownerReferences())
         .endMetadata()
         .withSubjects(new SubjectBuilder()
             .withKind("ServiceAccount")

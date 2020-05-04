@@ -46,7 +46,7 @@ public class PatroniSecret implements StackGresClusterResourceStreamFactory {
         .withNamespace(namespace)
         .withName(name)
         .withLabels(labels)
-        .withOwnerReferences(context.getClusterContext().ownerReference())
+        .withOwnerReferences(context.getClusterContext().ownerReferences())
         .endMetadata()
         .withType("Opaque")
         .withData(data)

@@ -24,7 +24,7 @@ public class DefaultClusterResourceHandler
         .stream()
         .flatMap(resourceOperationGetter -> resourceOperationGetter.apply(client)
             .inNamespace(context.getCluster().getMetadata().getNamespace())
-            .withLabels(context.clusterLabels())
+            .withLabels(context.genericClusterLabels())
             .list()
             .getItems()
             .stream());

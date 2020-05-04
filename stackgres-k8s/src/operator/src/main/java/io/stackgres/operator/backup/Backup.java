@@ -101,7 +101,7 @@ public class Backup implements StackGresClusterResourceStreamFactory {
             .withNamespace(namespace)
             .withName(backupJobName(backup, context))
             .withLabels(labels)
-            .withOwnerReferences(context.ownerReference())
+            .withOwnerReferences(context.ownerReferences())
             .endMetadata()
             .withNewSpec()
             .withBackoffLimit(3)

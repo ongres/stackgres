@@ -232,7 +232,7 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
             .withNamespace(context.getClusterContext().clusterNamespace())
             .withName(postInitName(context.getClusterContext()))
             .withLabels(context.getClusterContext().clusterLabels())
-            .withOwnerReferences(context.getClusterContext().ownerReference())
+            .withOwnerReferences(context.getClusterContext().ownerReferences())
             .endMetadata()
             .withData(ImmutableMap.of("post-init.sh",
                 Unchecked.supplier(() -> Resources

@@ -111,7 +111,7 @@ public class PgPooling
         .withNamespace(namespace)
         .withName(configMapName)
         .withLabels(context.getClusterContext().clusterLabels())
-        .withOwnerReferences(context.getClusterContext().ownerReference())
+        .withOwnerReferences(context.getClusterContext().ownerReferences())
         .endMetadata()
         .withData(data)
         .build();

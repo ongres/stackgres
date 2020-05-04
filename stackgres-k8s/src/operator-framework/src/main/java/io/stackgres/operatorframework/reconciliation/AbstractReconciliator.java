@@ -5,6 +5,7 @@
 
 package io.stackgres.operatorframework.reconciliation;
 
+import java.util.Objects;
 import java.util.Optional;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -73,19 +74,9 @@ public abstract class AbstractReconciliator<T extends ResourceHandlerContext,
   private void deleteUnwantedResources() {
     for (Tuple2<HasMetadata, Optional<HasMetadata>> existingResource :
         context.getExistingResources()) {
-      if (existingResource.v1.getMetadata().getOwnerReferences().stream()
-          .map(ownerReference -> ownerReference.getApiVersion()
-              .equals(contextResource.getApiVersion())
-              && ownerReference.getKind()
-              .equals(contextResource.getKind())
-              && ownerReference.getName()
-              .equals(contextResource.getMetadata().getName())
-              && ownerReference.getUid()
-              .equals(contextResource.getMetadata().getUid()))
-          .map(resourceBelongsToCurrentConfig -> !resourceBelongsToCurrentConfig)
-          .findFirst()
-          .orElse(true)
-          && !handlerSelector.isManaged(context, existingResource.v1)) {
+      if (!context.getLabels().entrySet().stream().allMatch(
+          entry -> Objects.equals(entry.getValue(),
+              existingResource.v1.getMetadata().getLabels().get(entry.getKey())))) {
         if (handlerSelector.skipDeletion(context, existingResource.v1)) {
           LOGGER.trace("Skip deletion for resource {}.{} of type {}",
               existingResource.v1.getMetadata().getNamespace(),
@@ -94,7 +85,7 @@ public abstract class AbstractReconciliator<T extends ResourceHandlerContext,
           continue;
         }
         LOGGER.debug("Deleteing resource {}.{} of type {}"
-            + " since do not belong any existing " + name,
+            + " since do not belong to any existing " + name,
             existingResource.v1.getMetadata().getNamespace(),
             existingResource.v1.getMetadata().getName(),
             existingResource.v1.getKind());

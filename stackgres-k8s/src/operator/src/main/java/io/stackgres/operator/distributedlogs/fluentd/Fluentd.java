@@ -303,7 +303,7 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
         .withNamespace(namespace)
         .withName(configName(context.getDistributedLogsContext()))
         .withLabels(context.getClusterContext().clusterLabels())
-        .withOwnerReferences(context.getClusterContext().ownerReference())
+        .withOwnerReferences(context.getClusterContext().ownerReferences())
         .endMetadata()
         .withData(data)
         .build();
@@ -313,7 +313,7 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
         .withNamespace(namespace)
         .withName(serviceName(context.getDistributedLogsContext()))
         .withLabels(context.getClusterContext().patroniPrimaryLabels())
-        .withOwnerReferences(context.getClusterContext().ownerReference())
+        .withOwnerReferences(context.getClusterContext().ownerReferences())
         .endMetadata()
         .withNewSpec()
         .withSelector(context.getClusterContext().patroniPrimaryLabels())

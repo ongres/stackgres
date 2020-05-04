@@ -49,7 +49,7 @@ public class RestoreSecret extends AbstractBackupSecret
               .withNamespace(context.getClusterContext().getCluster().getMetadata().getNamespace())
               .withName(name(context.getClusterContext()))
               .withLabels(context.getClusterContext().clusterLabels())
-              .withOwnerReferences(context.getClusterContext().ownerReference())
+              .withOwnerReferences(context.getClusterContext().ownerReferences())
               .endMetadata()
               .withType("Opaque")
               .withStringData(StackGresUtil.addMd5Sum(data))

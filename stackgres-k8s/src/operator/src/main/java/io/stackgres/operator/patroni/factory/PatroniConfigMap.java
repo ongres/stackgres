@@ -111,7 +111,7 @@ public class PatroniConfigMap implements StackGresClusterResourceStreamFactory {
         .withNamespace(context.getClusterContext().getCluster().getMetadata().getNamespace())
         .withName(name(context.getClusterContext()))
         .withLabels(context.getClusterContext().patroniClusterLabels())
-        .withOwnerReferences(context.getClusterContext().ownerReference())
+        .withOwnerReferences(context.getClusterContext().ownerReferences())
         .endMetadata()
         .withData(StackGresUtil.addMd5Sum(data))
         .build());

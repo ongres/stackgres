@@ -109,7 +109,7 @@ public class PatroniConfigEndpoints implements StackGresClusterResourceStreamFac
         .withName(PatroniServices.configName(context.getClusterContext()))
         .withLabels(labels)
         .withAnnotations(ImmutableMap.of(PATRONI_CONFIG_KEY, patroniConfigJson))
-        .withOwnerReferences(context.getClusterContext().ownerReference())
+        .withOwnerReferences(context.getClusterContext().ownerReferences())
         .endMetadata()
         .build());
   }

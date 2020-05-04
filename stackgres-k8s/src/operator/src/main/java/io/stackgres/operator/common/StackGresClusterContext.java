@@ -46,6 +46,11 @@ public abstract class StackGresClusterContext implements ResourceHandlerContext 
   @Override
   public abstract ImmutableList<Tuple2<HasMetadata, Optional<HasMetadata>>> getRequiredResources();
 
+  @Override
+  public ImmutableMap<String, String> getLabels() {
+    return clusterLabels();
+  }
+
   abstract ClusterLabelMapper<?> clusterLabelMapper();
 
   public String appKey() {
@@ -110,6 +115,11 @@ public abstract class StackGresClusterContext implements ResourceHandlerContext 
   }
 
   @Derived
+  public ImmutableMap<String, String> genericClusterLabels() {
+    return clusterLabelMapper().genericClusterLabels();
+  }
+
+  @Derived
   public ImmutableMap<String, String> clusterLabels() {
     return clusterLabelMapper().clusterLabels();
   }
@@ -150,8 +160,8 @@ public abstract class StackGresClusterContext implements ResourceHandlerContext 
   }
 
   @Derived
-  public ImmutableList<OwnerReference> ownerReference() {
-    return clusterLabelMapper().ownerReference();
+  public ImmutableList<OwnerReference> ownerReferences() {
+    return clusterLabelMapper().ownerReferences();
   }
 
   public boolean isClusterPod(HasMetadata resource) {
@@ -194,6 +204,11 @@ public abstract class StackGresClusterContext implements ResourceHandlerContext 
 
     public String clusterScope() {
       return ResourceUtil.labelValue(clusterName());
+    }
+
+    public ImmutableMap<String, String> genericClusterLabels() {
+      return ImmutableMap.of(appKey(), appName(),
+          clusterNameKey(), ResourceUtil.labelValue(clusterName()));
     }
 
     public ImmutableMap<String, String> clusterLabels() {
@@ -247,7 +262,7 @@ public abstract class StackGresClusterContext implements ResourceHandlerContext 
           backupKey(), StackGresUtil.RIGHT_VALUE);
     }
 
-    public ImmutableList<OwnerReference> ownerReference() {
+    public ImmutableList<OwnerReference> ownerReferences() {
       return ImmutableList.of(ResourceUtil.getOwnerReference(clusterResource()));
     }
 
