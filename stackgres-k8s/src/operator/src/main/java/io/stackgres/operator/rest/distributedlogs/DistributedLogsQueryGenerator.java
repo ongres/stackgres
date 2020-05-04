@@ -261,9 +261,10 @@ public class DistributedLogsQueryGenerator {
       selectFromLogPostgres = applyFilterForFields(
           selectFromLogPostgres, filter, POSTGRES_FIELDS);
     }
-    if (parameters.getFullTextSearchQuery().isPresent()) {
+    if (parameters.getFullTextSearchQuery()
+        .flatMap(FullTextSearchQuery::getFullTextSearchQuery).isPresent()) {
       String fullTextSearchQuery = parameters.getFullTextSearchQuery()
-          .get().getFullTextSearchQuery();
+          .get().getFullTextSearchQuery().get();
       selectFromLogPatroni = selectFromLogPatroni
           .and(DSL.condition("{0} @@ {1}::tsquery",
               DSL.function(LOG_PATRONI_TSVECTOR_FUNCTION,

@@ -8,6 +8,7 @@ package io.stackgres.operator.rest.distributedlogs;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -23,7 +24,7 @@ public class FullTextSearchQuery {
   private static final String FOLLOWED_BY_OPERATOR = " <-> ";
 
   private final String googleLikeQuery;
-  private final String fullTextSearchQuery;
+  private final Optional<String> fullTextSearchQuery;
 
   public FullTextSearchQuery(String googleLikeQuery) {
     this.googleLikeQuery = googleLikeQuery;
@@ -34,11 +35,11 @@ public class FullTextSearchQuery {
     return googleLikeQuery;
   }
 
-  public String getFullTextSearchQuery() {
+  public Optional<String> getFullTextSearchQuery() {
     return fullTextSearchQuery;
   }
 
-  private String fromGoogleLikeQuery(String originalQuery) {
+  private Optional<String> fromGoogleLikeQuery(String originalQuery) {
     final String query = UNALLOWED_CHARACTER.matcher(originalQuery).replaceAll(" ");
     List<String> queryParts = new ArrayList<>();
     final int length = query.length();
@@ -53,9 +54,10 @@ public class FullTextSearchQuery {
         position = result.v2;
       }
     }
-    return queryParts.stream()
+    return Optional.of(queryParts.stream()
         .filter(part -> !part.isEmpty())
-        .collect(Collectors.joining(AND_OPERATOR));
+        .collect(Collectors.joining(AND_OPERATOR)))
+        .filter(generatedQuery -> !generatedQuery.isEmpty());
   }
 
   private Tuple2<String, Integer> extractExactMatchPart(String query, int position) {
