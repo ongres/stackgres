@@ -35,7 +35,7 @@ EOF
     name: "$BACKUP_NAME"
   spec:
     sgCluster: "$CLUSTER_NAME"
-    subjectToRetentionPolicy: false
+    managedLifecycle: false
 EOF
 
   wait_until eval 'kubectl get sgbackups.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
@@ -205,18 +205,18 @@ update_backup_parameter_with_api() {
 }
 
 test_api_updated_backup_is_visible() {
-  update_backup_parameter_with_api 'subjectToRetentionPolicy' 'false'
+  update_backup_parameter_with_api 'managedLifecycle' 'false'
 
   if kubectl get sgbackups.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
-    -o jsonpath='{.spec.subjectToRetentionPolicy}' | grep -q "^false$"
+    -o jsonpath='{.spec.managedLifecycle}' | grep -q "^false$"
   then
-    echo "Backup subjectToRetentionPolicy were false"
+    echo "Backup managedLifecycle were false"
   else
-    echo "Backup subjectToRetentionPolicy weren't false"
+    echo "Backup managedLifecycle weren't false"
     return 1
   fi
 
-  if run_curl -r "stackgres/sgbackup/$CLUSTER_NAMESPACE/$BACKUP_NAME" | jq '.spec.subjectToRetentionPolicy' -r \
+  if run_curl -r "stackgres/sgbackup/$CLUSTER_NAMESPACE/$BACKUP_NAME" | run_jq '.spec.managedLifecycle' -r \
     | grep -q "^false$"
   then
     echo "Backup updates are being reflected in the api"

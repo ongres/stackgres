@@ -140,9 +140,9 @@ public class Backup implements StackGresClusterResourceStreamFactory {
                         new EnvVarBuilder()
                         .withName("BACKUP_IS_PERMANENT")
                         .withValue(Optional.ofNullable(backup.getSpec()
-                            .getSubjectToRetentionPolicy())
+                            .getManagedLifecycle())
                             .map(String::valueOf)
-                            .orElse("false"))
+                            .orElse("true"))
                         .build(),
                         new EnvVarBuilder()
                         .withName("BACKUP_CONFIG_CRD_NAME")

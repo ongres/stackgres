@@ -15,7 +15,7 @@
       },
       "spec": {
         "sgCluster": "backup-with-default-storage",
-        "subjectToRetentionPolicy": true
+        "managedLifecycle": true
       },
       "status": {
         "internalName": "base_000000010000000000000007",
@@ -23,7 +23,7 @@
           "status": "Completed",
           "failure": "",
           "jobPod": "backup-with-default-storage-0-296-backup-2c45d",
-          "subjectToRetentionPolicy": true,
+          "managedLifecycle": true,
           "timing": {
             "start": "2020-01-15T09:53:24.400995Z",
             "end": "2020-01-15T09:53:26.031937Z",
@@ -90,7 +90,7 @@
       },
       "spec": {
         "sgCluster": "backup-with-default-storage",
-        "subjectToRetentionPolicy": true
+        "managedLifecycle": true
       },
       "status": {
         "internalName": "base_000000020000000000000013",
@@ -98,7 +98,7 @@
           "status": "Completed",
           "failure": "",
           "jobPod": "backup-with-default-storage-1-49590-backup-b7f7d",
-          "subjectToRetentionPolicy": true,
+          "managedLifecycle": true,
           "timing": {
             "start": "2020-01-15T09:55:34.729604Z",
             "end": "2020-01-15T09:55:36.398232Z",
@@ -163,7 +163,7 @@
       },
       "spec": {
         "sgCluster": "backup-with-default-storage",
-        "subjectToRetentionPolicy": true
+        "managedLifecycle": true
       },
       "status": {
         "sgBackupConfig": {
@@ -198,7 +198,7 @@
           "status": "Completed",
           "failure": "",
           "jobPod": "backup-with-default-storage-1-51323-backup-9r94c",
-          "subjectToRetentionPolicy": true,
+          "managedLifecycle": true,
           "timing": {
             "start": "2020-01-15T09:54:42.01932Z",
             "end": "2020-01-15T09:54:43.667726Z",
@@ -244,7 +244,7 @@
       },
       "spec": {
         "sgCluster": "backup-with-default-storage",
-        "subjectToRetentionPolicy": false
+        "managedLifecycle": false
       },
       "status": {
         "sgBackupConfig": {
@@ -279,7 +279,7 @@
           "status": "Completed",
           "failure": "",
           "jobPod": "backup-with-default-storage-backup-1579082100-ldkx6",
-          "subjectToRetentionPolicy": false,
+          "managedLifecycle": false,
           "timing": {
             "start": "2020-01-15T09:55:08.584974Z",
             "end": "2020-01-15T09:55:18.255096Z",
@@ -325,7 +325,7 @@
       },
       "spec": {
         "sgCluster": "backup-with-default-storage",
-        "subjectToRetentionPolicy": false
+        "managedLifecycle": false
       },
       "status": {
         "sgBackupConfig": {
@@ -360,7 +360,7 @@
           "status": "Completed",
           "failure": "",
           "jobPod": "backup-with-default-storage-backup-1579082160-krpbf",
-          "subjectToRetentionPolicy": false,
+          "managedLifecycle": false,
           "timing": {
             "start": "2020-01-15T09:56:08.513404Z",
             "end": "2020-01-15T09:56:10.131708Z",

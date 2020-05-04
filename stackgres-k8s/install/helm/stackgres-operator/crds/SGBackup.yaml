@@ -39,7 +39,7 @@ spec:
               type: string
               description: |
                 The name of the `SGCluster` from which this backup is/will be taken.
-            subjectToRetentionPolicy:
+            managedLifecycle:
               type: boolean
               description: |
                 Indicate if this backup is permanent and should not be removed by the automated retention policy.
@@ -66,10 +66,10 @@ spec:
                   type: string
                   description: |
                     The name of pod assigned to this backup. StackGres utilizes internally a locking mechanism based on the pod name of the job that creates the backup.
-                subjectToRetentionPolicy:
+                managedLifecycle:
                   type: boolean
                   description: |
-                    Status (may be transient) until converging to `spec.subjectToRetentionPolicy`.
+                    Status (may be transient) until converging to `spec.managedLifecycle`.
                 timing:
                   type: object
                   properties:

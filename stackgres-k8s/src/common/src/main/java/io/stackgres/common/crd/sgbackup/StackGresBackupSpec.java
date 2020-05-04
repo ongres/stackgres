@@ -26,8 +26,8 @@ public class StackGresBackupSpec implements KubernetesResource {
   @NotNull(message = "The cluster name is required")
   private String sgCluster;
 
-  @JsonProperty("subjectToRetentionPolicy")
-  private Boolean subjectToRetentionPolicy;
+  @JsonProperty("managedLifecycle")
+  private Boolean managedLifecycle;
 
   public String getSgCluster() {
     return sgCluster;
@@ -37,12 +37,12 @@ public class StackGresBackupSpec implements KubernetesResource {
     this.sgCluster = sgCluster;
   }
 
-  public Boolean getSubjectToRetentionPolicy() {
-    return subjectToRetentionPolicy;
+  public Boolean getManagedLifecycle() {
+    return managedLifecycle;
   }
 
-  public void setSubjectToRetentionPolicy(Boolean subjectToRetentionPolicy) {
-    this.subjectToRetentionPolicy = subjectToRetentionPolicy;
+  public void setManagedLifecycle(Boolean managedLifecycle) {
+    this.managedLifecycle = managedLifecycle;
   }
 
   @Override
@@ -50,7 +50,7 @@ public class StackGresBackupSpec implements KubernetesResource {
     return MoreObjects.toStringHelper(this)
         .omitNullValues()
         .add("cluster", sgCluster)
-        .add("isPermanent", subjectToRetentionPolicy)
+        .add("isPermanent", managedLifecycle)
         .toString();
   }
 
@@ -64,11 +64,11 @@ public class StackGresBackupSpec implements KubernetesResource {
     }
     StackGresBackupSpec that = (StackGresBackupSpec) o;
     return Objects.equals(sgCluster, that.sgCluster)
-        && Objects.equals(subjectToRetentionPolicy, that.subjectToRetentionPolicy);
+        && Objects.equals(managedLifecycle, that.managedLifecycle);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(sgCluster, subjectToRetentionPolicy);
+    return Objects.hash(sgCluster, managedLifecycle);
   }
 }

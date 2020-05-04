@@ -23,8 +23,8 @@ public class BackupSpec {
   @NotNull(message = "The cluster name is required")
   private String cluster;
 
-  @JsonProperty("subjectToRetentionPolicy")
-  private Boolean isPermanent;
+  @JsonProperty("managedLifecycle")
+  private Boolean managedLifecycle;
 
   public String getCluster() {
     return cluster;
@@ -34,12 +34,12 @@ public class BackupSpec {
     this.cluster = cluster;
   }
 
-  public Boolean getIsPermanent() {
-    return isPermanent;
+  public Boolean getManagedLifecycle() {
+    return managedLifecycle;
   }
 
-  public void setIsPermanent(Boolean isPermanent) {
-    this.isPermanent = isPermanent;
+  public void setManagedLifecycle(Boolean managedLifecycle) {
+    this.managedLifecycle = managedLifecycle;
   }
 
   @Override
@@ -47,7 +47,7 @@ public class BackupSpec {
     return MoreObjects.toStringHelper(this)
         .omitNullValues()
         .add("cluster", cluster)
-        .add("isPermanent", isPermanent)
+        .add("isPermanent", managedLifecycle)
         .toString();
   }
 

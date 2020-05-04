@@ -45,7 +45,7 @@
       },
       "spec": {
         "sgCluster": "backup-with-default-storage",
-        "subjectToRetentionPolicy": false
+        "managedLifecycle": false
       },
       "status": {
         "sgBackupConfig": {

@@ -72,7 +72,7 @@ metadata:
   name: "$BACKUP_NAME"
 spec:
   sgCluster: "$CLUSTER_NAME"
-  subjectToRetentionPolicy: false
+  managedLifecycle: false
 EOF
   
   wait_until is_backup_phase "Completed"

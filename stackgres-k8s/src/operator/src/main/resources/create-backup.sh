@@ -39,8 +39,8 @@ backup_cr_template="${backup_cr_template}:{{ with .status.process.status }}{{ . 
 backup_cr_template="${backup_cr_template}:{{ with .status.internalName }}{{ . }}{{ end }}"
 backup_cr_template="${backup_cr_template}:{{ with .status.process.jobPod }}{{ . }}{{ end }}"
 backup_cr_template="${backup_cr_template}:{{ with .metadata.ownerReferences }}{{ with index . 0 }}{{ .kind }}{{ end }}{{ end }}"
-backup_cr_template="${backup_cr_template}:{{ if .spec.subjectToRetentionPolicy }}true{{ else }}false{{ end }}"
-backup_cr_template="${backup_cr_template}:{{ if .status.process.subjectToRetentionPolicy }}true{{ else }}false{{ end }}"
+backup_cr_template="${backup_cr_template}:{{ if .spec.managedLifecycle }}true{{ else }}false{{ end }}"
+backup_cr_template="${backup_cr_template}:{{ if .status.process.managedLifecycle }}true{{ else }}false{{ end }}"
 backup_cr_template="${backup_cr_template}{{ printf "'"\n"'" }}{{ end }}"
 kubectl get "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" \
   --template "$backup_cr_template" > /tmp/all-backups
@@ -64,7 +64,7 @@ metadata:
   name: "$BACKUP_NAME"
 spec:
   sgCluster: "$CLUSTER_NAME"
-  subjectToRetentionPolicy: true
+  managedLifecycle: true
 status:
   process:
     status: "$BACKUP_PHASE_RUNNING"
@@ -463,7 +463,7 @@ EOF
       {"op":"replace","path":"/status/internalName","value":"'"$WAL_G_BACKUP_NAME"'"},
       {"op":"replace","path":"/status/process/status","value":"'"$BACKUP_PHASE_COMPLETED"'"},
       {"op":"replace","path":"/status/process/failure","value":""},
-      {"op":"replace","path":"/status/process/subjectToRetentionPolicy","value":'$is_backup_subject_to_retention_policy'},
+      {"op":"replace","path":"/status/process/managedLifecycle","value":'$is_backup_subject_to_retention_policy'},
       {"op":"replace","path":"/status/process/timing","value":{
           "stored":"'"$(grep "^time:" /tmp/current-backup | cut -d : -f 2-)"'",
           "start":"'"$(grep "^start_time:" /tmp/current-backup | cut -d : -f 2-)"'",
@@ -530,7 +530,7 @@ EOF
         is_backup_subject_to_retention_policy="true"
       fi
       kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$backup_cr_name" --type json --patch '[
-      {"op":"replace","path":"/status/process/subjectToRetentionPolicy","value":'$is_backup_subject_to_retention_policy'}
+      {"op":"replace","path":"/status/process/managedLifecycle","value":'$is_backup_subject_to_retention_policy'}
       ]'
     fi
   done

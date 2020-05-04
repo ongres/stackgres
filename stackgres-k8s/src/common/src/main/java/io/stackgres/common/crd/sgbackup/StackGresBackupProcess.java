@@ -20,7 +20,7 @@ public class StackGresBackupProcess {
   private String status;
   private String jobPod;
   private String failure;
-  private Boolean subjectToRetentionPolicy;
+  private Boolean managedLifecycle;
 
   private StackgresBackupTiming timing;
 
@@ -56,12 +56,12 @@ public class StackGresBackupProcess {
     this.timing = timing;
   }
 
-  public Boolean getSubjectToRetentionPolicy() {
-    return subjectToRetentionPolicy;
+  public Boolean getManagedLifecycle() {
+    return managedLifecycle;
   }
 
-  public void setSubjectToRetentionPolicy(Boolean subjectToRetentionPolicy) {
-    this.subjectToRetentionPolicy = subjectToRetentionPolicy;
+  public void setManagedLifecycle(Boolean managedLifecycle) {
+    this.managedLifecycle = managedLifecycle;
   }
 
   @Override
@@ -70,7 +70,7 @@ public class StackGresBackupProcess {
         .add("status", status)
         .add("jobPod", jobPod)
         .add("failure", failure)
-        .add("subjectToRetentionPolicy", subjectToRetentionPolicy)
+        .add("subjectToRetentionPolicy", managedLifecycle)
         .add("timing", timing)
         .toString();
   }
@@ -87,12 +87,12 @@ public class StackGresBackupProcess {
     return Objects.equals(status, that.status)
         && Objects.equals(jobPod, that.jobPod)
         && Objects.equals(failure, that.failure)
-        && Objects.equals(subjectToRetentionPolicy, that.subjectToRetentionPolicy)
+        && Objects.equals(managedLifecycle, that.managedLifecycle)
         && Objects.equals(timing, that.timing);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(status, jobPod, failure, subjectToRetentionPolicy, timing);
+    return Objects.hash(status, jobPod, failure, managedLifecycle, timing);
   }
 }

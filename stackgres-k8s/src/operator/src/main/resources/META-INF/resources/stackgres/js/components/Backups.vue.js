@@ -128,7 +128,7 @@ var Backups = Vue.component("sg-backup", {
 							<th @click="sort('data.status.process.timing.stored')" class="sorted desc timestamp">
 								<span>Timestamp</span>
 							</th>
-							<th @click="sort('data.spec.subjectToRetentionPolicy')" class="icon desc isPermanent">
+							<th @click="sort('data.spec.managedLifecycle')" class="icon desc isPermanent">
 								<span>Permanent</span>
 							</th>
 							<th @click="sort('data.status.process.status')" class="desc phase center">
@@ -173,7 +173,7 @@ var Backups = Vue.component("sg-backup", {
 												</span>
 											</template>
 										</td>
-										<td class="isPermanent center icon" :class="[(back.data.spec.subjectToRetentionPolicy) ? 'true' : 'false']"></td>
+										<td class="isPermanent center icon" :class="[(back.data.spec.managedLifecycle) ? 'true' : 'false']"></td>
 										<td class="phase center" :class="back.data.status.process.status">
 											<span>{{ back.data.status.process.status }}</span>
 										</td>
@@ -447,7 +447,7 @@ var Backups = Vue.component("sg-backup", {
 				})
 
 				/* //Filter by isPermanent
-				if(bk.subjectToRetentionPolicy.length && (!r.children(".subjectToRetentionPolicy."+bk.subjectToRetentionPolicy).length))
+				if(bk.managedLifecycle.length && (!r.children(".managedLifecycle."+bk.managedLifecycle).length))
 					show = false;
 
 				//Filter by phase
