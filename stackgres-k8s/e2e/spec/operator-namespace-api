@@ -20,10 +20,10 @@ check_namespace() {
   local NAMESPACES_IN_K8
 
   NAMESPACES_IN_RESPONSE=$(run_curl -r "stackgres/namespace" -n $CLUSTER_NAMESPACE \
-    | run_jq 'map(select(. == "default" or (. | startswith("kube-")))) | length')
+    | jq 'map(select(. == "default" or (. | startswith("kube-")))) | length')
 
   NAMESPACES_IN_K8S=$(kubectl get namespaces -o json \
-    | run_jq '.items | map(select(.metadata.name == "default")) | length')
+    | jq '.items | map(select(.metadata.name == "default")) | length')
 
   if [ "$NAMESPACES_IN_RESPONSE" = "$NAMESPACES_IN_K8S" ]
   then

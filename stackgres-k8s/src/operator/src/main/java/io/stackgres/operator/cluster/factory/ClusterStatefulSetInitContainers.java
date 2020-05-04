@@ -21,8 +21,6 @@ import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.EnvFromSourceBuilder;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
-import io.fabric8.kubernetes.api.model.VolumeMount;
-import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresRestoreContext;
 import io.stackgres.operator.patroni.factory.PatroniConfigMap;
@@ -49,7 +47,7 @@ public class ClusterStatefulSetInitContainers
 
   @Override
   public Stream<Container> streamResources(StackGresClusterContext config) {
-    return Seq.of(Optional.of(createSetDataPermissionContainer(config)),
+    return Seq.of(Optional.of(createSetupDataPathsContainer(config)),
         Optional.of(createExecWithEnvContainer(config)),
         config.getRestoreContext()
         .map(restoreContext -> createRestoreEntrypointContainer(config, restoreContext)))
@@ -57,27 +55,17 @@ public class ClusterStatefulSetInitContainers
         .map(Optional::get);
   }
 
-  private Container createSetDataPermissionContainer(StackGresClusterContext config) {
+  private Container createSetupDataPathsContainer(StackGresClusterContext config) {
     return new ContainerBuilder()
-        .withName("set-data-permissions")
+        .withName("setup-data-paths")
         .withImage("busybox")
         .withCommand("/bin/sh", "-ecx", Stream.of(
             "mkdir -p " + ClusterStatefulSetPath.PG_DATA_PATH.path(),
             "chmod -R 700 " + ClusterStatefulSetPath.PG_BASE_PATH.path(),
             "chown -R 999:999 " + ClusterStatefulSetPath.PG_BASE_PATH.path())
             .collect(Collectors.joining(" && ")))
-        .withVolumeMounts(getSetDataPermissionVolumeMounts(config))
+        .withVolumeMounts(ClusterStatefulSetVolumeConfig.DATA.volumeMount(config))
         .build();
-  }
-
-  private VolumeMount[] getSetDataPermissionVolumeMounts(StackGresClusterContext config) {
-    return Stream.of(
-        Stream.of(new VolumeMountBuilder()
-            .withName(ClusterStatefulSet.dataName(config))
-            .withMountPath(ClusterStatefulSetPath.PG_BASE_PATH.path())
-            .build()))
-        .flatMap(s -> s)
-        .toArray(VolumeMount[]::new);
   }
 
   private Container createExecWithEnvContainer(StackGresClusterContext config) {

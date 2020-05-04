@@ -40,7 +40,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class BackupConfigResourceTest
-    extends AbstractCustomResourceTest<BackupConfigDto, StackGresBackupConfig> {
+    extends AbstractCustomResourceTest<BackupConfigDto, StackGresBackupConfig,
+      BackupConfigResource> {
 
   @Mock
   private ResourceFinder<Secret> secretFinder;
@@ -84,7 +85,7 @@ class BackupConfigResourceTest
   }
 
   @Override
-  protected AbstractRestService<BackupConfigDto, StackGresBackupConfig> getService(
+  protected BackupConfigResource getService(
       CustomResourceScanner<StackGresBackupConfig> scanner,
       CustomResourceFinder<StackGresBackupConfig> finder,
       CustomResourceScheduler<StackGresBackupConfig> scheduler,
@@ -105,22 +106,22 @@ class BackupConfigResourceTest
 
   @Test
   @Override
-  void listShouldReturnAllBackupConfigs() {
+  void listShouldReturnAllDtos() {
     when(secretFinder.findByNameAndNamespace(anyString(), anyString())).thenReturn(Optional.of(secret));
 
-    super.listShouldReturnAllBackupConfigs();
+    super.listShouldReturnAllDtos();
   }
 
   @Test
   @Override
-  void getOfAnExistingBackupConfigShouldReturnTheExistingBackupConfig() {
+  void getOfAnExistingDtoShouldReturnTheExistingDto() {
     when(secretFinder.findByNameAndNamespace(anyString(), anyString())).thenReturn(Optional.of(secret));
 
-    super.getOfAnExistingBackupConfigShouldReturnTheExistingBackupConfig();
+    super.getOfAnExistingDtoShouldReturnTheExistingDto();
   }
 
   @Override
-  protected void checkBackupConfig(BackupConfigDto resource) {
+  protected void checkDto(BackupConfigDto resource) {
     assertNotNull(resource.getMetadata());
     assertEquals("stackgres", resource.getMetadata().getNamespace());
     assertEquals("backupconf", resource.getMetadata().getName());
@@ -158,7 +159,7 @@ class BackupConfigResourceTest
   }
 
   @Override
-  protected void checkBackupConfig(StackGresBackupConfig resource, Operation operation) {
+  protected void checkCustomResource(StackGresBackupConfig resource, Operation operation) {
     assertNotNull(resource.getMetadata());
     assertEquals("stackgres", resource.getMetadata().getNamespace());
     assertEquals("backupconf", resource.getMetadata().getName());

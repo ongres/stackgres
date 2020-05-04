@@ -37,40 +37,56 @@ public class StackGresOperatorEnd2EndIt extends AbstractStackGresOperatorIt {
       .orElse(System.getProperty("e2e.hang")))
       .map(Boolean::valueOf);
 
+  private static final Optional<Boolean> E2E_REPEAT_ON_ERROR = Optional.ofNullable(
+      Optional.ofNullable(System.getenv("E2E_REPEAT_ON_ERROR"))
+      .orElse(System.getProperty("e2e.repeatOnError")))
+      .map(Boolean::valueOf);
+
   @Test
   public void end2EndTest(@ContainerParam("k8s") Container k8s) throws Exception {
-    k8s.copyIn(new ByteArrayInputStream(
-        ("echo 'Running "
-            + (E2E_TEST.map(s -> s + " e2e test").orElse("all e2e tests")) + " from it'\n"
-            + "cd /resources/e2e\n"
-            + "rm -Rf /resources/e2e/target\n"
-            + ItHelper.E2E_ENVVARS + "\n"
-            + "export DOCKER_NAME=\"$(docker inspect -f '{{.Name}}' \"$(hostname)\"|cut -d '/' -f 2)\"\n"
-            + "export " + ItHelper.E2E_ENV_VAR_NAME + "="
-                + "\"" + ItHelper.E2E_ENV + "$(echo \"$DOCKER_NAME\" | sed 's/^k8s//')\"\n"
-            + "export IMAGE_TAG=" + ItHelper.IMAGE_TAG + "\n"
-            + "export K8S_REUSE=true\n"
-            + "export K8S_FROM_DIND=true\n"
-            + "export E2E_BUILD_OPERATOR=false\n"
-            + "export E2E_REUSE_OPERATOR=true\n"
-            + "export E2E_WAIT_OPERATOR=false\n"
-            + "export E2E_USE_EXTERNAL_OPERATOR=true\n"
-            + "export CLUSTER_CHART_PATH=/resources/stackgres-cluster\n"
-            + "export OPERATOR_CHART_PATH=/resources/stackgres-operator\n"
-            + (E2E_TEST.map(e2eTests -> "if ! sh " + (ItHelper.E2E_DEBUG.orElse(false) ? "-x" : "")
-            + " run-test.sh " + e2eTests + "\n"
-            + "then\n"
-            + "  sh e2e show_failed_logs\n"
-            + "  exit 1\n"
-            + "fi\n").orElseGet(() -> "if ! sh " + (ItHelper.E2E_DEBUG.orElse(false) ? "-x" : "")
-            + " run-all-tests.sh\n"
-            + "then\n"
-            + "  sh e2e show_failed_logs\n"
-            + "  exit 1\n"
-            + "fi\n"))).getBytes(StandardCharsets.UTF_8)), "/run-e2e-from-it.sh");
-    k8s.execute("sh", "-e", "/run-e2e-from-it.sh")
-        .filter(ItHelper.EXCLUDE_TTY_WARNING)
-        .forEach(LOGGER::info);
+    while (true) {
+      try {
+        k8s.copyIn(new ByteArrayInputStream(
+            ("echo 'Running "
+                + (E2E_TEST.map(s -> s + " e2e test").orElse("all e2e tests")) + " from it'\n"
+                + "cd /resources/e2e\n"
+                + "rm -Rf /resources/e2e/target\n"
+                + ItHelper.E2E_ENVVARS + "\n"
+                + "export DOCKER_NAME=\"$(docker inspect -f '{{.Name}}' \"$(hostname)\"|cut -d '/' -f 2)\"\n"
+                + "export " + ItHelper.E2E_ENV_VAR_NAME + "="
+                    + "\"" + ItHelper.E2E_ENV + "$(echo \"$DOCKER_NAME\" | sed 's/^k8s//')\"\n"
+                + "export IMAGE_TAG=" + ItHelper.IMAGE_TAG + "\n"
+                + "export K8S_REUSE=true\n"
+                + "export K8S_FROM_DIND=true\n"
+                + "export E2E_BUILD_OPERATOR=false\n"
+                + "export E2E_REUSE_OPERATOR=true\n"
+                + "export E2E_WAIT_OPERATOR=false\n"
+                + "export E2E_USE_EXTERNAL_OPERATOR=true\n"
+                + "export E2E_SKIP_SETUP=true\n"
+                + "export CLUSTER_CHART_PATH=/resources/stackgres-cluster\n"
+                + "export OPERATOR_CHART_PATH=/resources/stackgres-operator\n"
+                + (E2E_TEST.map(e2eTests -> "if ! sh " + (ItHelper.E2E_DEBUG ? "-x" : "")
+                + " run-test.sh " + e2eTests + "\n"
+                + "then\n"
+                + "  sh e2e show_failed_logs\n"
+                + "  exit 1\n"
+                + "fi\n").orElseGet(() -> "if ! sh " + (ItHelper.E2E_DEBUG ? "-x" : "")
+                + " run-all-tests.sh\n"
+                + "then\n"
+                + "  sh e2e show_failed_logs\n"
+                + "  exit 1\n"
+                + "fi\n"))).getBytes(StandardCharsets.UTF_8)), "/run-e2e-from-it.sh");
+        k8s.execute("sh", "-e", "/run-e2e-from-it.sh")
+            .filter(ItHelper.EXCLUDE_TTY_WARNING)
+            .forEach(LOGGER::info);
+      } catch (RuntimeException ex) {
+        if (E2E_REPEAT_ON_ERROR.orElse(false)) {
+          continue;
+        }
+        throw ex;
+      }
+      break;
+    }
     if (E2E_HANG.orElse(false)) {
       while(true) {
         Thread.sleep(3600);

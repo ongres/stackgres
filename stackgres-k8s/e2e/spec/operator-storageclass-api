@@ -19,9 +19,9 @@ check_storage_classes() {
   local STORAGE_CLASSES_IN_RESPONSE
   local STORAGE_CLASSES_IN_K8
 
-  STORAGE_CLASSES_IN_RESPONSE=$(run_curl -r "stackgres/storageclass" -n $CLUSTER_NAMESPACE | run_jq 'length')
+  STORAGE_CLASSES_IN_RESPONSE=$(run_curl -r "stackgres/storageclass" -n $CLUSTER_NAMESPACE | jq 'length')
 
-  STORAGE_CLASSES_IN_K8S=$(kubectl get storageclasses -o json | run_jq '.items | length')
+  STORAGE_CLASSES_IN_K8S=$(kubectl get storageclasses -o json | jq '.items | length')
 
   if [ "$STORAGE_CLASSES_IN_RESPONSE" = "$STORAGE_CLASSES_IN_K8S" ]
   then

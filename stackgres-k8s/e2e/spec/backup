@@ -14,10 +14,10 @@ minio:
           - matchExpressions:
             - key: "kubernetes.io/hostname"
               operator: "In"
-              values: [ "${KIND_NAME}-worker" ]
+              values: [ "${KIND_NAME}-worker", "${KIND_NAME}-control-plane" ]
 EOF
   else
-    > "$LOG_PATH/minio-affinity.yaml"
+    echo -n > "$LOG_PATH/minio-affinity.yaml"
   fi
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
@@ -35,6 +35,8 @@ EOF
 e2e_test() {
   run_test "Checking that backup is working before switchover" check_backup_before_switchover
 
+  run_test "Checking that manual backup is working" check_manual_backup_before_switchover
+
   run_test "Checking that switchover is working" check_switchover
 
   run_test "Checking that backup is working after switchover" check_backup_after_switchover
@@ -46,6 +48,10 @@ e2e_test() {
 
 check_backup_before_switchover() {
   check_backup 0
+}
+
+check_manual_backup_before_switchover() {
+  check_manual_backup 0
 }
 
 check_backup_after_switchover() {
@@ -65,7 +71,7 @@ check_backup_not_delect_after_cluster() {
 
   wait_pods_terminated "$CLUSTER_NAMESPACE" 2
 
-  BACKUPS_COUNT=$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" -o json | run_jq '.items | length')
+  BACKUPS_COUNT=$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" -o json | jq '.items | length')
 
   assert_greater_than 0 $BACKUPS_COUNT
 }

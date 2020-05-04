@@ -59,6 +59,7 @@
     <jersey.version>2.29</jersey.version>
     <mockito.version>3.0.0</mockito.version>
     <log4j.version>2.11.2</log4j.version>
+    <jooq.version>3.13.1</jooq.version>
     <!-- Plugins versions -->
     <compiler-plugin.version>3.8.1</compiler-plugin.version>
     <jar-plugin.version>3.2.0</jar-plugin.version>
@@ -127,6 +128,17 @@
         <artifactId>jersey-apache-connector</artifactId>
         <version>${jersey.version}</version>
         <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.jooq</groupId>
+        <artifactId>jooq</artifactId>
+        <version>${jooq.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>javax.xml.bind</groupId>
+            <artifactId>jaxb-api</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
     </dependencies>
   </dependencyManagement>

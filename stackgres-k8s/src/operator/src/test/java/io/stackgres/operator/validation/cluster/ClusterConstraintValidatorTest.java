@@ -7,16 +7,14 @@ package io.stackgres.operator.validation.cluster;
 
 import javax.validation.constraints.Pattern;
 
-import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
-import io.stackgres.common.crd.sgcluster.StackGresPodPersistenceVolume;
+import io.stackgres.common.crd.sgcluster.StackGresPodPersistentVolume;
+import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.utils.JsonUtil;
 import io.stackgres.operator.validation.ConstraintValidationTest;
 import io.stackgres.operator.validation.ConstraintValidator;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresClusterReview> {
 
@@ -63,7 +61,7 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
     StackGresClusterReview review = getValidReview();
     review.getRequest().getObject().getSpec().getPod().getPersistentVolume().setVolumeSize(null);
 
-    checkNotNullErrorCause(StackGresPodPersistenceVolume.class, "spec.pod.persistentVolume.volumeSize", review);
+    checkNotNullErrorCause(StackGresPodPersistentVolume.class, "spec.pod.persistentVolume.volumeSize", review);
   }
 
   @Test
@@ -72,7 +70,7 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
     StackGresClusterReview review = getValidReview();
     review.getRequest().getObject().getSpec().getPod().getPersistentVolume().setVolumeSize("512");
 
-    checkErrorCause(StackGresPodPersistenceVolume.class, "spec.pod.persistentVolume.volumeSize",
+    checkErrorCause(StackGresPodPersistentVolume.class, "spec.pod.persistentVolume.volumeSize",
         review, Pattern.class);
 
   }

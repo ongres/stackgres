@@ -27,7 +27,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class PostgresConfigResourceTest
-    extends AbstractCustomResourceTest<PostgresConfigDto, StackGresPostgresConfig> {
+    extends AbstractCustomResourceTest<PostgresConfigDto, StackGresPostgresConfig,
+      PostgresConfigResource> {
 
   @Override
   protected CustomResourceList<StackGresPostgresConfig> getCustomResourceList() {
@@ -45,7 +46,7 @@ class PostgresConfigResourceTest
   }
 
   @Override
-  protected AbstractRestService<PostgresConfigDto, StackGresPostgresConfig> getService(
+  protected PostgresConfigResource getService(
       CustomResourceScanner<StackGresPostgresConfig> scanner,
       CustomResourceFinder<StackGresPostgresConfig> finder,
       CustomResourceScheduler<StackGresPostgresConfig> scheduler,
@@ -64,7 +65,7 @@ class PostgresConfigResourceTest
   }
 
   @Override
-  protected void checkBackupConfig(PostgresConfigDto resource) {
+  protected void checkDto(PostgresConfigDto resource) {
     assertNotNull(resource.getMetadata());
     assertEquals("default", resource.getMetadata().getNamespace());
     assertEquals("postgresconf", resource.getMetadata().getName());
@@ -81,7 +82,7 @@ class PostgresConfigResourceTest
   }
 
   @Override
-  protected void checkBackupConfig(StackGresPostgresConfig resource, Operation operation) {
+  protected void checkCustomResource(StackGresPostgresConfig resource, Operation operation) {
     assertNotNull(resource.getMetadata());
     assertEquals("default", resource.getMetadata().getNamespace());
     assertEquals("postgresconf", resource.getMetadata().getName());

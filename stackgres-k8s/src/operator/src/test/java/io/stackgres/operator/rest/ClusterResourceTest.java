@@ -5,14 +5,27 @@
 
 package io.stackgres.operator.rest;
 
-import static org.junit.Assert.*;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertIterableEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
 
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
+import javax.ws.rs.BadRequestException;
+
+import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.DoneablePod;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodList;
@@ -24,37 +37,47 @@ import io.fabric8.kubernetes.client.dsl.FilterWatchListMultiDeletable;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
 import io.fabric8.kubernetes.client.dsl.PodResource;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterList;
 import io.stackgres.operator.app.KubernetesClientFactory;
 import io.stackgres.operator.common.ConfigContext;
 import io.stackgres.operator.common.ConfigProperty;
-import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterList;
 import io.stackgres.operator.resource.ClusterDtoFinder;
 import io.stackgres.operator.resource.ClusterDtoScanner;
 import io.stackgres.operator.resource.CustomResourceFinder;
 import io.stackgres.operator.resource.CustomResourceScanner;
 import io.stackgres.operator.resource.CustomResourceScheduler;
+import io.stackgres.operator.rest.distributedlogs.DistributedLogsFetcher;
+import io.stackgres.operator.rest.distributedlogs.DistributedLogsQueryParameters;
+import io.stackgres.operator.rest.distributedlogs.FullTextSearchQuery;
 import io.stackgres.operator.rest.dto.cluster.ClusterDto;
+import io.stackgres.operator.rest.dto.cluster.ClusterLogEntryDto;
 import io.stackgres.operator.rest.dto.cluster.ClusterResourceConsumtionDto;
 import io.stackgres.operator.rest.transformer.AbstractResourceTransformer;
 import io.stackgres.operator.rest.transformer.ClusterPodTransformer;
 import io.stackgres.operator.rest.transformer.ClusterTransformer;
 import io.stackgres.operator.utils.JsonUtil;
-
+import org.jooq.lambda.tuple.Tuple;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.mockito.stubbing.Answer;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-class ClusterResourceTest extends AbstractCustomResourceTest<ClusterDto, StackGresCluster> {
+class ClusterResourceTest
+    extends AbstractCustomResourceTest<ClusterDto, StackGresCluster, ClusterResource> {
 
   @Mock
   private CustomResourceFinder<ClusterResourceConsumtionDto> statusFinder;
+
+  @Mock
+  private DistributedLogsFetcher distributedLogsFetcher;
 
   @Mock
   private ConfigContext configContext;
@@ -75,16 +98,21 @@ class ClusterResourceTest extends AbstractCustomResourceTest<ClusterDto, StackGr
   private NonNamespaceOperation<Pod, PodList, DoneablePod, PodResource<Pod, DoneablePod>> podsList;
 
   private PodList podList;
+  private List<ClusterLogEntryDto> logList;
+  private StackGresCluster clusterWithoutDistributedLogs;
 
   @BeforeEach
   void setUp() {
     super.setUp();
     podList = JsonUtil.readFromJson("stackgres_cluster/pods.json", PodList.class);
+    logList = new ArrayList<>();
+    clusterWithoutDistributedLogs = JsonUtil.readFromJson(
+        "stackgres_cluster/without_distributed_logs.json", StackGresCluster.class);
   }
 
   @Test
   @Override
-  void listShouldReturnAllBackupConfigs() {
+  void listShouldReturnAllDtos() {
     when(configContext.getProperty(ConfigProperty.GRAFANA_EMBEDDED))
         .thenReturn(Optional.of("true"));
     when(clientFactory.create()).thenReturn(client);
@@ -92,12 +120,17 @@ class ClusterResourceTest extends AbstractCustomResourceTest<ClusterDto, StackGr
     when(podsOperation.inAnyNamespace()).thenReturn(podsList);
     when(podsList.withLabels(any())).thenReturn(podsList);
     when(podsList.list()).thenReturn(podList);
-    super.listShouldReturnAllBackupConfigs();
+    super.listShouldReturnAllDtos();
   }
 
   @Test
   @Override
-  void getOfAnExistingBackupConfigShouldReturnTheExistingBackupConfig() {
+  void getOfAnExistingDtoShouldReturnTheExistingDto() {
+    mockPodList();
+    super.getOfAnExistingDtoShouldReturnTheExistingDto();
+  }
+
+  private void mockPodList() {
     when(configContext.getProperty(ConfigProperty.GRAFANA_EMBEDDED))
         .thenReturn(Optional.of("true"));
     when(clientFactory.create()).thenReturn(client);
@@ -105,7 +138,6 @@ class ClusterResourceTest extends AbstractCustomResourceTest<ClusterDto, StackGr
     when(podsOperation.inNamespace(anyString())).thenReturn(podsList);
     when(podsList.withLabels(any())).thenReturn(podsList);
     when(podsList.list()).thenReturn(podList);
-    super.getOfAnExistingBackupConfigShouldReturnTheExistingBackupConfig();
   }
 
   @Override
@@ -127,7 +159,7 @@ class ClusterResourceTest extends AbstractCustomResourceTest<ClusterDto, StackGr
   }
 
   @Override
-  protected AbstractRestService<ClusterDto, StackGresCluster> getService(
+  protected ClusterResource getService(
       CustomResourceScanner<StackGresCluster> scanner,
       CustomResourceFinder<StackGresCluster> finder,
       CustomResourceScheduler<StackGresCluster> scheduler,
@@ -145,7 +177,8 @@ class ClusterResourceTest extends AbstractCustomResourceTest<ClusterDto, StackGr
         scheduler, transformer,
         dtoScanner,
         dtoFinder,
-        statusFinder);
+        statusFinder,
+        distributedLogsFetcher);
   }
 
   @Override
@@ -159,7 +192,7 @@ class ClusterResourceTest extends AbstractCustomResourceTest<ClusterDto, StackGr
   }
 
   @Override
-  protected void checkBackupConfig(ClusterDto resource) {
+  protected void checkDto(ClusterDto resource) {
     assertNotNull(resource.getMetadata());
     assertEquals("postgresql", resource.getMetadata().getNamespace());
     assertEquals("stackgres", resource.getMetadata().getName());
@@ -176,6 +209,8 @@ class ClusterResourceTest extends AbstractCustomResourceTest<ClusterDto, StackGr
     assertEquals("size-xs", resource.getSpec().getSgInstanceProfile());
     assertNotNull(resource.getSpec().getInitData().getRestore());
     assertEquals("d7e660a9-377c-11ea-b04b-0242ac110004", resource.getSpec().getInitData().getRestore().getBackupUid());
+    assertNotNull(resource.getSpec().getDistributedLogs());
+    assertEquals("distributedlogs", resource.getSpec().getDistributedLogs().getDistributedLogs());
     assertFalse(resource.getSpec().getPods().getDisableConnectionPooling());
     assertFalse(resource.getSpec().getPods().getDisableMetricsExporter());
     assertFalse(resource.getSpec().getPods().getDisableMetricsExporter());
@@ -199,7 +234,7 @@ class ClusterResourceTest extends AbstractCustomResourceTest<ClusterDto, StackGr
   }
 
   @Override
-  protected void checkBackupConfig(StackGresCluster resource, Operation operation) {
+  protected void checkCustomResource(StackGresCluster resource, Operation operation) {
     assertNotNull(resource.getMetadata());
     assertEquals("postgresql", resource.getMetadata().getNamespace());
     assertEquals("stackgres", resource.getMetadata().getName());
@@ -216,9 +251,1220 @@ class ClusterResourceTest extends AbstractCustomResourceTest<ClusterDto, StackGr
     assertEquals("size-xs", resource.getSpec().getResourceProfile());
     assertNotNull(resource.getSpec().getInitData().getRestore());
     assertEquals("d7e660a9-377c-11ea-b04b-0242ac110004", resource.getSpec().getInitData().getRestore().getBackupUid());
+    assertNotNull(resource.getSpec().getDistributedLogs());
+    assertEquals("distributedlogs", resource.getSpec().getDistributedLogs().getDistributedLogs());
     assertFalse(resource.getSpec().getPod().getDisableConnectionPooling());
     assertFalse(resource.getSpec().getPod().getDisableMetricsExporter());
     assertFalse(resource.getSpec().getPod().getDisableMetricsExporter());
+  }
+
+  @Test
+  void getLogsShouldNotFail() {
+    mockPodList();
+    when(finder.findByNameAndNamespace(getResourceName(), getResourceNamespace()))
+        .thenReturn(Optional.of(customResources.getItems().get(0)));
+    doAnswer(new Answer<List<ClusterLogEntryDto>>() {
+      @Override
+      public List<ClusterLogEntryDto> answer(InvocationOnMock invocation) throws Throwable {
+        DistributedLogsQueryParameters parameters = invocation.getArgument(0);
+
+        assertNotNull(parameters);
+        checkDto(parameters.getCluster());
+        assertEquals(parameters.getRecords(), 50);
+        assertEquals(parameters.getFromTimeAndIndex(), Optional.empty());
+        assertEquals(parameters.getToTimeAndIndex(), Optional.empty());
+        assertEquals(parameters.getFilters(), ImmutableMap.of());
+        assertEquals(parameters.getFullTextSearchQuery(), Optional.empty());
+        assertFalse(parameters.isSortAsc());
+        assertFalse(parameters.isFromInclusive());
+
+        return logList;
+      }
+    }).when(distributedLogsFetcher).logs(any());
+
+    Integer records = null;
+    String from = null;
+    String to = null;
+    String sort = null;
+    String text = null;
+    String logType = null;
+    String podName = null;
+    String role = null;
+    String errorLevel = null;
+    String userName = null;
+    String databaseName = null;
+    Boolean fromInclusive = null;
+    List<ClusterLogEntryDto> logs =
+        service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
+            logType, podName, role, errorLevel, userName, databaseName, fromInclusive);
+
+    assertIterableEquals(logList, logs);
+  }
+
+  @Test
+  void getLogsWithRecordsShouldNotFail() {
+    mockPodList();
+    when(finder.findByNameAndNamespace(getResourceName(), getResourceNamespace()))
+        .thenReturn(Optional.of(customResources.getItems().get(0)));
+    doAnswer(new Answer<List<ClusterLogEntryDto>>() {
+      @Override
+      public List<ClusterLogEntryDto> answer(InvocationOnMock invocation) throws Throwable {
+        DistributedLogsQueryParameters parameters = invocation.getArgument(0);
+
+        assertNotNull(parameters);
+        checkDto(parameters.getCluster());
+        assertEquals(parameters.getRecords(), 1);
+        assertEquals(parameters.getFromTimeAndIndex(), Optional.empty());
+        assertEquals(parameters.getToTimeAndIndex(), Optional.empty());
+        assertEquals(parameters.getFilters(), ImmutableMap.of());
+        assertEquals(parameters.getFullTextSearchQuery(), Optional.empty());
+        assertFalse(parameters.isSortAsc());
+        assertFalse(parameters.isFromInclusive());
+
+        return logList;
+      }
+    }).when(distributedLogsFetcher).logs(any());
+
+    Integer records = 1;
+    String from = null;
+    String to = null;
+    String sort = null;
+    String text = null;
+    String logType = null;
+    String podName = null;
+    String role = null;
+    String errorLevel = null;
+    String userName = null;
+    String databaseName = null;
+    Boolean fromInclusive = null;
+    List<ClusterLogEntryDto> logs =
+        service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
+            logType, podName, role, errorLevel, userName, databaseName, fromInclusive);
+
+    assertIterableEquals(logList, logs);
+  }
+
+  @Test
+  void getLogsWithNegativeRecordsShouldFail() {
+    mockPodList();
+    when(finder.findByNameAndNamespace(getResourceName(), getResourceNamespace()))
+        .thenReturn(Optional.of(customResources.getItems().get(0)));
+    when(distributedLogsFetcher.logs(any()))
+        .thenReturn(logList);
+
+    Integer records = -1;
+    String from = null;
+    String to = null;
+    String sort = null;
+    String text = null;
+    String logType = null;
+    String podName = null;
+    String role = null;
+    String errorLevel = null;
+    String userName = null;
+    String databaseName = null;
+    Boolean fromInclusive = null;
+    assertThrows(BadRequestException.class,
+        () -> service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
+            logType, podName, role, errorLevel, userName, databaseName, fromInclusive));
+  }
+
+  @Test
+  void getLogsWithFromShouldNotFail() {
+    mockPodList();
+    when(finder.findByNameAndNamespace(getResourceName(), getResourceNamespace()))
+        .thenReturn(Optional.of(customResources.getItems().get(0)));
+    doAnswer(new Answer<List<ClusterLogEntryDto>>() {
+      @Override
+      public List<ClusterLogEntryDto> answer(InvocationOnMock invocation) throws Throwable {
+        DistributedLogsQueryParameters parameters = invocation.getArgument(0);
+
+        assertNotNull(parameters);
+        checkDto(parameters.getCluster());
+        assertEquals(parameters.getRecords(), 50);
+        assertEquals(parameters.getFromTimeAndIndex(), Optional.of(Tuple.tuple(Instant.EPOCH, 0)));
+        assertEquals(parameters.getToTimeAndIndex(), Optional.empty());
+        assertEquals(parameters.getFilters(), ImmutableMap.of());
+        assertEquals(parameters.getFullTextSearchQuery(), Optional.empty());
+        assertFalse(parameters.isSortAsc());
+        assertFalse(parameters.isFromInclusive());
+
+        return logList;
+      }
+    }).when(distributedLogsFetcher).logs(any());
+
+    Integer records = null;
+    String from = Instant.EPOCH.toString();
+    String to = null;
+    String sort = null;
+    String text = null;
+    String logType = null;
+    String podName = null;
+    String role = null;
+    String errorLevel = null;
+    String userName = null;
+    String databaseName = null;
+    Boolean fromInclusive = null;
+    List<ClusterLogEntryDto> logs =
+        service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
+            logType, podName, role, errorLevel, userName, databaseName, fromInclusive);
+
+    assertIterableEquals(logList, logs);
+  }
+
+  @Test
+  void getLogsWithFromAndIndexShouldNotFail() {
+    mockPodList();
+    when(finder.findByNameAndNamespace(getResourceName(), getResourceNamespace()))
+        .thenReturn(Optional.of(customResources.getItems().get(0)));
+    doAnswer(new Answer<List<ClusterLogEntryDto>>() {
+      @Override
+      public List<ClusterLogEntryDto> answer(InvocationOnMock invocation) throws Throwable {
+        DistributedLogsQueryParameters parameters = invocation.getArgument(0);
+
+        assertNotNull(parameters);
+        checkDto(parameters.getCluster());
+        assertEquals(parameters.getRecords(), 50);
+        assertEquals(parameters.getFromTimeAndIndex(), Optional.of(Tuple.tuple(Instant.EPOCH, 1)));
+        assertEquals(parameters.getToTimeAndIndex(), Optional.empty());
+        assertEquals(parameters.getFilters(), ImmutableMap.of());
+        assertEquals(parameters.getFullTextSearchQuery(), Optional.empty());
+        assertFalse(parameters.isSortAsc());
+        assertFalse(parameters.isFromInclusive());
+
+        return logList;
+      }
+    }).when(distributedLogsFetcher).logs(any());
+
+    Integer records = null;
+    String from = Instant.EPOCH.toString() + "," + 1;
+    String to = null;
+    String sort = null;
+    String text = null;
+    String logType = null;
+    String podName = null;
+    String role = null;
+    String errorLevel = null;
+    String userName = null;
+    String databaseName = null;
+    Boolean fromInclusive = null;
+    List<ClusterLogEntryDto> logs =
+        service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
+            logType, podName, role, errorLevel, userName, databaseName, fromInclusive);
+
+    assertIterableEquals(logList, logs);
+  }
+
+  @Test
+  void getLogsWithWrongFromShouldFail() {
+    mockPodList();
+    when(finder.findByNameAndNamespace(getResourceName(), getResourceNamespace()))
+        .thenReturn(Optional.of(customResources.getItems().get(0)));
+    when(distributedLogsFetcher.logs(any()))
+        .thenReturn(logList);
+
+    Integer records = null;
+    String from = Instant.EPOCH.toString().substring(5) + "," + 1;
+    String to = null;
+    String sort = null;
+    String text = null;
+    String logType = null;
+    String podName = null;
+    String role = null;
+    String errorLevel = null;
+    String userName = null;
+    String databaseName = null;
+    Boolean fromInclusive = null;
+    assertThrows(BadRequestException.class,
+        () -> service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
+            logType, podName, role, errorLevel, userName, databaseName, fromInclusive));
+  }
+
+  @Test
+  void getLogsWithWrongFromIndexShouldFail() {
+    mockPodList();
+    when(finder.findByNameAndNamespace(getResourceName(), getResourceNamespace()))
+        .thenReturn(Optional.of(customResources.getItems().get(0)));
+    when(distributedLogsFetcher.logs(any()))
+        .thenReturn(logList);
+
+    Integer records = null;
+    String from = Instant.EPOCH.toString() + "," + "a";
+    String to = null;
+    String sort = null;
+    String text = null;
+    String logType = null;
+    String podName = null;
+    String role = null;
+    String errorLevel = null;
+    String userName = null;
+    String databaseName = null;
+    Boolean fromInclusive = null;
+    assertThrows(BadRequestException.class,
+        () -> service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
+            logType, podName, role, errorLevel, userName, databaseName, fromInclusive));
+  }
+
+  @Test
+  void getLogsWithToShouldNotFail() {
+    mockPodList();
+    when(finder.findByNameAndNamespace(getResourceName(), getResourceNamespace()))
+        .thenReturn(Optional.of(customResources.getItems().get(0)));
+    doAnswer(new Answer<List<ClusterLogEntryDto>>() {
+      @Override
+      public List<ClusterLogEntryDto> answer(InvocationOnMock invocation) throws Throwable {
+        DistributedLogsQueryParameters parameters = invocation.getArgument(0);
+
+        assertNotNull(parameters);
+        checkDto(parameters.getCluster());
+        assertEquals(parameters.getRecords(), 50);
+        assertEquals(parameters.getFromTimeAndIndex(), Optional.empty());
+        assertEquals(parameters.getToTimeAndIndex(), Optional.of(Tuple.tuple(Instant.EPOCH, Integer.MAX_VALUE)));
+        assertEquals(parameters.getFilters(), ImmutableMap.of());
+        assertEquals(parameters.getFullTextSearchQuery(), Optional.empty());
+        assertFalse(parameters.isSortAsc());
+        assertFalse(parameters.isFromInclusive());
+
+        return logList;
+      }
+    }).when(distributedLogsFetcher).logs(any());
+
+    Integer records = null;
+    String from = null;
+    String to = Instant.EPOCH.toString();
+    String sort = null;
+    String text = null;
+    String logType = null;
+    String podName = null;
+    String role = null;
+    String errorLevel = null;
+    String userName = null;
+    String databaseName = null;
+    Boolean fromInclusive = null;
+    List<ClusterLogEntryDto> logs =
+        service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
+            logType, podName, role, errorLevel, userName, databaseName, fromInclusive);
+
+    assertIterableEquals(logList, logs);
+  }
+
+  @Test
+  void getLogsWithToAndIndexShouldNotFail() {
+    mockPodList();
+    when(finder.findByNameAndNamespace(getResourceName(), getResourceNamespace()))
+        .thenReturn(Optional.of(customResources.getItems().get(0)));
+    doAnswer(new Answer<List<ClusterLogEntryDto>>() {
+      @Override
+      public List<ClusterLogEntryDto> answer(InvocationOnMock invocation) throws Throwable {
+        DistributedLogsQueryParameters parameters = invocation.getArgument(0);
+
+        assertNotNull(parameters);
+        checkDto(parameters.getCluster());
+        assertEquals(parameters.getRecords(), 50);
+        assertEquals(parameters.getFromTimeAndIndex(), Optional.empty());
+        assertEquals(parameters.getToTimeAndIndex(), Optional.of(Tuple.tuple(Instant.EPOCH, 1)));
+        assertEquals(parameters.getFilters(), ImmutableMap.of());
+        assertEquals(parameters.getFullTextSearchQuery(), Optional.empty());
+        assertFalse(parameters.isSortAsc());
+        assertFalse(parameters.isFromInclusive());
+
+        return logList;
+      }
+    }).when(distributedLogsFetcher).logs(any());
+
+    Integer records = null;
+    String from = null;
+    String to = Instant.EPOCH.toString() + "," + 1;
+    String sort = null;
+    String text = null;
+    String logType = null;
+    String podName = null;
+    String role = null;
+    String errorLevel = null;
+    String userName = null;
+    String databaseName = null;
+    Boolean fromInclusive = null;
+    List<ClusterLogEntryDto> logs =
+        service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
+            logType, podName, role, errorLevel, userName, databaseName, fromInclusive);
+
+    assertIterableEquals(logList, logs);
+  }
+
+  @Test
+  void getLogsWithWrongToShouldFail() {
+    mockPodList();
+    when(finder.findByNameAndNamespace(getResourceName(), getResourceNamespace()))
+        .thenReturn(Optional.of(customResources.getItems().get(0)));
+    when(distributedLogsFetcher.logs(any()))
+        .thenReturn(logList);
+
+    Integer records = null;
+    String from = null;
+    String to = Instant.EPOCH.toString().substring(5) + "," + 1;
+    String sort = null;
+    String text = null;
+    String logType = null;
+    String podName = null;
+    String role = null;
+    String errorLevel = null;
+    String userName = null;
+    String databaseName = null;
+    Boolean fromInclusive = null;
+    assertThrows(BadRequestException.class,
+        () -> service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
+            logType, podName, role, errorLevel, userName, databaseName, fromInclusive));
+  }
+
+  @Test
+  void getLogsWithWrongToIndexShouldFail() {
+    mockPodList();
+    when(finder.findByNameAndNamespace(getResourceName(), getResourceNamespace()))
+        .thenReturn(Optional.of(customResources.getItems().get(0)));
+    when(distributedLogsFetcher.logs(any()))
+        .thenReturn(logList);
+
+    Integer records = null;
+    String from = null;
+    String to = Instant.EPOCH.toString() + "," + "a";
+    String sort = null;
+    String text = null;
+    String logType = null;
+    String podName = null;
+    String role = null;
+    String errorLevel = null;
+    String userName = null;
+    String databaseName = null;
+    Boolean fromInclusive = null;
+    assertThrows(BadRequestException.class,
+        () -> service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
+            logType, podName, role, errorLevel, userName, databaseName, fromInclusive));
+  }
+
+  @Test
+  void getLogsWithClusterWithoutDistributedLogsShouldFail() {
+    mockPodList();
+    when(finder.findByNameAndNamespace(getResourceName(), getResourceNamespace()))
+        .thenReturn(Optional.of(clusterWithoutDistributedLogs));
+    when(distributedLogsFetcher.logs(any()))
+        .thenReturn(logList);
+
+    Integer records = null;
+    String from = null;
+    String to = null;
+    String sort = null;
+    String text = null;
+    String logType = null;
+    String podName = null;
+    String role = null;
+    String errorLevel = null;
+    String userName = null;
+    String databaseName = null;
+    Boolean fromInclusive = null;
+    assertThrows(BadRequestException.class,
+        () -> service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
+            logType, podName, role, errorLevel, userName, databaseName, fromInclusive));
+  }
+
+  @Test
+  void getLogsWithDescSortShouldNotFail() {
+    mockPodList();
+    when(finder.findByNameAndNamespace(getResourceName(), getResourceNamespace()))
+        .thenReturn(Optional.of(customResources.getItems().get(0)));
+    doAnswer(new Answer<List<ClusterLogEntryDto>>() {
+      @Override
+      public List<ClusterLogEntryDto> answer(InvocationOnMock invocation) throws Throwable {
+        DistributedLogsQueryParameters parameters = invocation.getArgument(0);
+
+        assertNotNull(parameters);
+        checkDto(parameters.getCluster());
+        assertEquals(parameters.getRecords(), 50);
+        assertEquals(parameters.getFromTimeAndIndex(), Optional.empty());
+        assertEquals(parameters.getToTimeAndIndex(), Optional.empty());
+        assertEquals(parameters.getFilters(), ImmutableMap.of());
+        assertEquals(parameters.getFullTextSearchQuery(), Optional.empty());
+        assertFalse(parameters.isSortAsc());
+        assertFalse(parameters.isFromInclusive());
+
+        return logList;
+      }
+    }).when(distributedLogsFetcher).logs(any());
+
+    Integer records = null;
+    String from = null;
+    String to = null;
+    String sort = "desc";
+    String text = null;
+    String logType = null;
+    String podName = null;
+    String role = null;
+    String errorLevel = null;
+    String userName = null;
+    String databaseName = null;
+    Boolean fromInclusive = null;
+    List<ClusterLogEntryDto> logs =
+        service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
+            logType, podName, role, errorLevel, userName, databaseName, fromInclusive);
+
+    assertIterableEquals(logList, logs);
+  }
+
+  @Test
+  void getLogsWithAscSortShouldNotFail() {
+    mockPodList();
+    when(finder.findByNameAndNamespace(getResourceName(), getResourceNamespace()))
+        .thenReturn(Optional.of(customResources.getItems().get(0)));
+    doAnswer(new Answer<List<ClusterLogEntryDto>>() {
+      @Override
+      public List<ClusterLogEntryDto> answer(InvocationOnMock invocation) throws Throwable {
+        DistributedLogsQueryParameters parameters = invocation.getArgument(0);
+
+        assertNotNull(parameters);
+        checkDto(parameters.getCluster());
+        assertEquals(parameters.getRecords(), 50);
+        assertEquals(parameters.getFromTimeAndIndex(), Optional.empty());
+        assertEquals(parameters.getToTimeAndIndex(), Optional.empty());
+        assertEquals(parameters.getFilters(), ImmutableMap.of());
+        assertEquals(parameters.getFullTextSearchQuery(), Optional.empty());
+        assertTrue(parameters.isSortAsc());
+        assertFalse(parameters.isFromInclusive());
+
+        return logList;
+      }
+    }).when(distributedLogsFetcher).logs(any());
+
+    Integer records = null;
+    String from = null;
+    String to = null;
+    String sort = "asc";
+    String text = null;
+    String logType = null;
+    String podName = null;
+    String role = null;
+    String errorLevel = null;
+    String userName = null;
+    String databaseName = null;
+    Boolean fromInclusive = null;
+    List<ClusterLogEntryDto> logs =
+        service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
+            logType, podName, role, errorLevel, userName, databaseName, fromInclusive);
+
+    assertIterableEquals(logList, logs);
+  }
+
+  @Test
+  void getLogsWithWrongSortShouldFail() {
+    mockPodList();
+    when(finder.findByNameAndNamespace(getResourceName(), getResourceNamespace()))
+        .thenReturn(Optional.of(customResources.getItems().get(0)));
+    when(distributedLogsFetcher.logs(any()))
+        .thenReturn(logList);
+
+    Integer records = null;
+    String from = null;
+    String to = null;
+    String sort = "down";
+    String text = null;
+    String logType = null;
+    String podName = null;
+    String role = null;
+    String errorLevel = null;
+    String userName = null;
+    String databaseName = null;
+    Boolean fromInclusive = null;
+    assertThrows(BadRequestException.class,
+        () -> service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
+            logType, podName, role, errorLevel, userName, databaseName, fromInclusive));
+  }
+
+  @Test
+  void getLogsWithTextShouldNotFail() {
+    mockPodList();
+    when(finder.findByNameAndNamespace(getResourceName(), getResourceNamespace()))
+        .thenReturn(Optional.of(customResources.getItems().get(0)));
+    doAnswer(new Answer<List<ClusterLogEntryDto>>() {
+      @Override
+      public List<ClusterLogEntryDto> answer(InvocationOnMock invocation) throws Throwable {
+        DistributedLogsQueryParameters parameters = invocation.getArgument(0);
+
+        assertNotNull(parameters);
+        checkDto(parameters.getCluster());
+        assertEquals(parameters.getRecords(), 50);
+        assertEquals(parameters.getFromTimeAndIndex(), Optional.empty());
+        assertEquals(parameters.getToTimeAndIndex(), Optional.empty());
+        assertEquals(parameters.getFilters(), ImmutableMap.of());
+        assertEquals(parameters.getFullTextSearchQuery(),
+            Optional.of(new FullTextSearchQuery("test")));
+        assertFalse(parameters.isSortAsc());
+        assertFalse(parameters.isFromInclusive());
+
+        return logList;
+      }
+    }).when(distributedLogsFetcher).logs(any());
+
+    Integer records = null;
+    String from = null;
+    String to = null;
+    String sort = null;
+    String text = "test";
+    String logType = null;
+    String podName = null;
+    String role = null;
+    String errorLevel = null;
+    String userName = null;
+    String databaseName = null;
+    Boolean fromInclusive = null;
+    List<ClusterLogEntryDto> logs =
+        service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
+            logType, podName, role, errorLevel, userName, databaseName, fromInclusive);
+
+    assertIterableEquals(logList, logs);
+  }
+
+  @Test
+  void getLogsWithEmptyTextShouldNotFail() {
+    mockPodList();
+    when(finder.findByNameAndNamespace(getResourceName(), getResourceNamespace()))
+        .thenReturn(Optional.of(customResources.getItems().get(0)));
+    doAnswer(new Answer<List<ClusterLogEntryDto>>() {
+      @Override
+      public List<ClusterLogEntryDto> answer(InvocationOnMock invocation) throws Throwable {
+        DistributedLogsQueryParameters parameters = invocation.getArgument(0);
+
+        assertNotNull(parameters);
+        checkDto(parameters.getCluster());
+        assertEquals(parameters.getRecords(), 50);
+        assertEquals(parameters.getFromTimeAndIndex(), Optional.empty());
+        assertEquals(parameters.getToTimeAndIndex(), Optional.empty());
+        assertEquals(parameters.getFilters(), ImmutableMap.of());
+        assertEquals(parameters.getFullTextSearchQuery(),
+            Optional.of(new FullTextSearchQuery("")));
+        assertFalse(parameters.isSortAsc());
+        assertFalse(parameters.isFromInclusive());
+
+        return logList;
+      }
+    }).when(distributedLogsFetcher).logs(any());
+
+    Integer records = null;
+    String from = null;
+    String to = null;
+    String sort = null;
+    String text = "";
+    String logType = null;
+    String podName = null;
+    String role = null;
+    String errorLevel = null;
+    String userName = null;
+    String databaseName = null;
+    Boolean fromInclusive = null;
+    List<ClusterLogEntryDto> logs =
+        service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
+            logType, podName, role, errorLevel, userName, databaseName, fromInclusive);
+
+    assertIterableEquals(logList, logs);
+  }
+
+  @Test
+  void getLogsWithLogTypeFilterShouldNotFail() {
+    mockPodList();
+    when(finder.findByNameAndNamespace(getResourceName(), getResourceNamespace()))
+        .thenReturn(Optional.of(customResources.getItems().get(0)));
+    doAnswer(new Answer<List<ClusterLogEntryDto>>() {
+      @Override
+      public List<ClusterLogEntryDto> answer(InvocationOnMock invocation) throws Throwable {
+        DistributedLogsQueryParameters parameters = invocation.getArgument(0);
+
+        assertNotNull(parameters);
+        checkDto(parameters.getCluster());
+        assertEquals(parameters.getRecords(), 50);
+        assertEquals(parameters.getFromTimeAndIndex(), Optional.empty());
+        assertEquals(parameters.getToTimeAndIndex(), Optional.empty());
+        assertEquals(parameters.getFilters(), ImmutableMap.of("logType", Optional.of("test")));
+        assertEquals(parameters.getFullTextSearchQuery(), Optional.empty());
+        assertFalse(parameters.isSortAsc());
+        assertFalse(parameters.isFromInclusive());
+
+        return logList;
+      }
+    }).when(distributedLogsFetcher).logs(any());
+
+    Integer records = null;
+    String from = null;
+    String to = null;
+    String sort = null;
+    String text = null;
+    String logType = "test";
+    String podName = null;
+    String role = null;
+    String errorLevel = null;
+    String userName = null;
+    String databaseName = null;
+    Boolean fromInclusive = null;
+    List<ClusterLogEntryDto> logs =
+        service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
+            logType, podName, role, errorLevel, userName, databaseName, fromInclusive);
+
+    assertIterableEquals(logList, logs);
+  }
+
+  @Test
+  void getLogsWithPodNameFilterShouldNotFail() {
+    mockPodList();
+    when(finder.findByNameAndNamespace(getResourceName(), getResourceNamespace()))
+        .thenReturn(Optional.of(customResources.getItems().get(0)));
+    doAnswer(new Answer<List<ClusterLogEntryDto>>() {
+      @Override
+      public List<ClusterLogEntryDto> answer(InvocationOnMock invocation) throws Throwable {
+        DistributedLogsQueryParameters parameters = invocation.getArgument(0);
+
+        assertNotNull(parameters);
+        checkDto(parameters.getCluster());
+        assertEquals(parameters.getRecords(), 50);
+        assertEquals(parameters.getFromTimeAndIndex(), Optional.empty());
+        assertEquals(parameters.getToTimeAndIndex(), Optional.empty());
+        assertEquals(parameters.getFilters(), ImmutableMap.of("podName", Optional.of("test")));
+        assertEquals(parameters.getFullTextSearchQuery(), Optional.empty());
+        assertFalse(parameters.isSortAsc());
+        assertFalse(parameters.isFromInclusive());
+
+        return logList;
+      }
+    }).when(distributedLogsFetcher).logs(any());
+
+    Integer records = null;
+    String from = null;
+    String to = null;
+    String sort = null;
+    String text = null;
+    String logType = null;
+    String podName = "test";
+    String role = null;
+    String errorLevel = null;
+    String userName = null;
+    String databaseName = null;
+    Boolean fromInclusive = null;
+    List<ClusterLogEntryDto> logs =
+        service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
+            logType, podName, role, errorLevel, userName, databaseName, fromInclusive);
+
+    assertIterableEquals(logList, logs);
+  }
+
+  @Test
+  void getLogsWithRoleFilterShouldNotFail() {
+    mockPodList();
+    when(finder.findByNameAndNamespace(getResourceName(), getResourceNamespace()))
+        .thenReturn(Optional.of(customResources.getItems().get(0)));
+    doAnswer(new Answer<List<ClusterLogEntryDto>>() {
+      @Override
+      public List<ClusterLogEntryDto> answer(InvocationOnMock invocation) throws Throwable {
+        DistributedLogsQueryParameters parameters = invocation.getArgument(0);
+
+        assertNotNull(parameters);
+        checkDto(parameters.getCluster());
+        assertEquals(parameters.getRecords(), 50);
+        assertEquals(parameters.getFromTimeAndIndex(), Optional.empty());
+        assertEquals(parameters.getToTimeAndIndex(), Optional.empty());
+        assertEquals(parameters.getFilters(), ImmutableMap.of("role", Optional.of("test")));
+        assertEquals(parameters.getFullTextSearchQuery(), Optional.empty());
+        assertFalse(parameters.isSortAsc());
+        assertFalse(parameters.isFromInclusive());
+
+        return logList;
+      }
+    }).when(distributedLogsFetcher).logs(any());
+
+    Integer records = null;
+    String from = null;
+    String to = null;
+    String sort = null;
+    String text = null;
+    String logType = null;
+    String podName = null;
+    String role = "test";
+    String errorLevel = null;
+    String userName = null;
+    String databaseName = null;
+    Boolean fromInclusive = null;
+    List<ClusterLogEntryDto> logs =
+        service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
+            logType, podName, role, errorLevel, userName, databaseName, fromInclusive);
+
+    assertIterableEquals(logList, logs);
+  }
+
+  @Test
+  void getLogsWithErrorLevelFilterShouldNotFail() {
+    mockPodList();
+    when(finder.findByNameAndNamespace(getResourceName(), getResourceNamespace()))
+        .thenReturn(Optional.of(customResources.getItems().get(0)));
+    doAnswer(new Answer<List<ClusterLogEntryDto>>() {
+      @Override
+      public List<ClusterLogEntryDto> answer(InvocationOnMock invocation) throws Throwable {
+        DistributedLogsQueryParameters parameters = invocation.getArgument(0);
+
+        assertNotNull(parameters);
+        checkDto(parameters.getCluster());
+        assertEquals(parameters.getRecords(), 50);
+        assertEquals(parameters.getFromTimeAndIndex(), Optional.empty());
+        assertEquals(parameters.getToTimeAndIndex(), Optional.empty());
+        assertEquals(parameters.getFilters(), ImmutableMap.of("errorLevel", Optional.of("test")));
+        assertEquals(parameters.getFullTextSearchQuery(), Optional.empty());
+        assertFalse(parameters.isSortAsc());
+        assertFalse(parameters.isFromInclusive());
+
+        return logList;
+      }
+    }).when(distributedLogsFetcher).logs(any());
+
+    Integer records = null;
+    String from = null;
+    String to = null;
+    String sort = null;
+    String text = null;
+    String logType = null;
+    String podName = null;
+    String role = null;
+    String errorLevel = "test";
+    String userName = null;
+    String databaseName = null;
+    Boolean fromInclusive = null;
+    List<ClusterLogEntryDto> logs =
+        service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
+            logType, podName, role, errorLevel, userName, databaseName, fromInclusive);
+
+    assertIterableEquals(logList, logs);
+  }
+
+  @Test
+  void getLogsWithUserNameFilterShouldNotFail() {
+    mockPodList();
+    when(finder.findByNameAndNamespace(getResourceName(), getResourceNamespace()))
+        .thenReturn(Optional.of(customResources.getItems().get(0)));
+    doAnswer(new Answer<List<ClusterLogEntryDto>>() {
+      @Override
+      public List<ClusterLogEntryDto> answer(InvocationOnMock invocation) throws Throwable {
+        DistributedLogsQueryParameters parameters = invocation.getArgument(0);
+
+        assertNotNull(parameters);
+        checkDto(parameters.getCluster());
+        assertEquals(parameters.getRecords(), 50);
+        assertEquals(parameters.getFromTimeAndIndex(), Optional.empty());
+        assertEquals(parameters.getToTimeAndIndex(), Optional.empty());
+        assertEquals(parameters.getFilters(), ImmutableMap.of("userName", Optional.of("test")));
+        assertEquals(parameters.getFullTextSearchQuery(), Optional.empty());
+        assertFalse(parameters.isSortAsc());
+        assertFalse(parameters.isFromInclusive());
+
+        return logList;
+      }
+    }).when(distributedLogsFetcher).logs(any());
+
+    Integer records = null;
+    String from = null;
+    String to = null;
+    String sort = null;
+    String text = null;
+    String logType = null;
+    String podName = null;
+    String role = null;
+    String errorLevel = null;
+    String userName = "test";
+    String databaseName = null;
+    Boolean fromInclusive = null;
+    List<ClusterLogEntryDto> logs =
+        service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
+            logType, podName, role, errorLevel, userName, databaseName, fromInclusive);
+
+    assertIterableEquals(logList, logs);
+  }
+
+  @Test
+  void getLogsWithDatabaseNameFilterShouldNotFail() {
+    mockPodList();
+    when(finder.findByNameAndNamespace(getResourceName(), getResourceNamespace()))
+        .thenReturn(Optional.of(customResources.getItems().get(0)));
+    doAnswer(new Answer<List<ClusterLogEntryDto>>() {
+      @Override
+      public List<ClusterLogEntryDto> answer(InvocationOnMock invocation) throws Throwable {
+        DistributedLogsQueryParameters parameters = invocation.getArgument(0);
+
+        assertNotNull(parameters);
+        checkDto(parameters.getCluster());
+        assertEquals(parameters.getRecords(), 50);
+        assertEquals(parameters.getFromTimeAndIndex(), Optional.empty());
+        assertEquals(parameters.getToTimeAndIndex(), Optional.empty());
+        assertEquals(parameters.getFilters(), ImmutableMap.of("databaseName", Optional.of("test")));
+        assertEquals(parameters.getFullTextSearchQuery(), Optional.empty());
+        assertFalse(parameters.isSortAsc());
+        assertFalse(parameters.isFromInclusive());
+
+        return logList;
+      }
+    }).when(distributedLogsFetcher).logs(any());
+
+    Integer records = null;
+    String from = null;
+    String to = null;
+    String sort = null;
+    String text = null;
+    String logType = null;
+    String podName = null;
+    String role = null;
+    String errorLevel = null;
+    String userName = null;
+    String databaseName = "test";
+    Boolean fromInclusive = null;
+    List<ClusterLogEntryDto> logs =
+        service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
+            logType, podName, role, errorLevel, userName, databaseName, fromInclusive);
+
+    assertIterableEquals(logList, logs);
+  }
+
+  @Test
+  void getLogsWithEmptyLogTypeFilterShouldNotFail() {
+    mockPodList();
+    when(finder.findByNameAndNamespace(getResourceName(), getResourceNamespace()))
+        .thenReturn(Optional.of(customResources.getItems().get(0)));
+    doAnswer(new Answer<List<ClusterLogEntryDto>>() {
+      @Override
+      public List<ClusterLogEntryDto> answer(InvocationOnMock invocation) throws Throwable {
+        DistributedLogsQueryParameters parameters = invocation.getArgument(0);
+
+        assertNotNull(parameters);
+        checkDto(parameters.getCluster());
+        assertEquals(parameters.getRecords(), 50);
+        assertEquals(parameters.getFromTimeAndIndex(), Optional.empty());
+        assertEquals(parameters.getToTimeAndIndex(), Optional.empty());
+        assertEquals(parameters.getFilters(), ImmutableMap.of("logType", Optional.empty()));
+        assertEquals(parameters.getFullTextSearchQuery(), Optional.empty());
+        assertFalse(parameters.isSortAsc());
+        assertFalse(parameters.isFromInclusive());
+
+        return logList;
+      }
+    }).when(distributedLogsFetcher).logs(any());
+
+    Integer records = null;
+    String from = null;
+    String to = null;
+    String sort = null;
+    String text = null;
+    String logType = "";
+    String podName = null;
+    String role = null;
+    String errorLevel = null;
+    String userName = null;
+    String databaseName = null;
+    Boolean fromInclusive = null;
+    List<ClusterLogEntryDto> logs =
+        service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
+            logType, podName, role, errorLevel, userName, databaseName, fromInclusive);
+
+    assertIterableEquals(logList, logs);
+  }
+
+  @Test
+  void getLogsWithEmptyPodNameFilterShouldNotFail() {
+    mockPodList();
+    when(finder.findByNameAndNamespace(getResourceName(), getResourceNamespace()))
+        .thenReturn(Optional.of(customResources.getItems().get(0)));
+    doAnswer(new Answer<List<ClusterLogEntryDto>>() {
+      @Override
+      public List<ClusterLogEntryDto> answer(InvocationOnMock invocation) throws Throwable {
+        DistributedLogsQueryParameters parameters = invocation.getArgument(0);
+
+        assertNotNull(parameters);
+        checkDto(parameters.getCluster());
+        assertEquals(parameters.getRecords(), 50);
+        assertEquals(parameters.getFromTimeAndIndex(), Optional.empty());
+        assertEquals(parameters.getToTimeAndIndex(), Optional.empty());
+        assertEquals(parameters.getFilters(), ImmutableMap.of("podName", Optional.empty()));
+        assertEquals(parameters.getFullTextSearchQuery(), Optional.empty());
+        assertFalse(parameters.isSortAsc());
+        assertFalse(parameters.isFromInclusive());
+
+        return logList;
+      }
+    }).when(distributedLogsFetcher).logs(any());
+
+    Integer records = null;
+    String from = null;
+    String to = null;
+    String sort = null;
+    String text = null;
+    String logType = null;
+    String podName = "";
+    String role = null;
+    String errorLevel = null;
+    String userName = null;
+    String databaseName = null;
+    Boolean fromInclusive = null;
+    List<ClusterLogEntryDto> logs =
+        service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
+            logType, podName, role, errorLevel, userName, databaseName, fromInclusive);
+
+    assertIterableEquals(logList, logs);
+  }
+
+  @Test
+  void getLogsWithEmptyRoleFilterShouldNotFail() {
+    mockPodList();
+    when(finder.findByNameAndNamespace(getResourceName(), getResourceNamespace()))
+        .thenReturn(Optional.of(customResources.getItems().get(0)));
+    doAnswer(new Answer<List<ClusterLogEntryDto>>() {
+      @Override
+      public List<ClusterLogEntryDto> answer(InvocationOnMock invocation) throws Throwable {
+        DistributedLogsQueryParameters parameters = invocation.getArgument(0);
+
+        assertNotNull(parameters);
+        checkDto(parameters.getCluster());
+        assertEquals(parameters.getRecords(), 50);
+        assertEquals(parameters.getFromTimeAndIndex(), Optional.empty());
+        assertEquals(parameters.getToTimeAndIndex(), Optional.empty());
+        assertEquals(parameters.getFilters(), ImmutableMap.of("role", Optional.empty()));
+        assertEquals(parameters.getFullTextSearchQuery(), Optional.empty());
+        assertFalse(parameters.isSortAsc());
+        assertFalse(parameters.isFromInclusive());
+
+        return logList;
+      }
+    }).when(distributedLogsFetcher).logs(any());
+
+    Integer records = null;
+    String from = null;
+    String to = null;
+    String sort = null;
+    String text = null;
+    String logType = null;
+    String podName = null;
+    String role = "";
+    String errorLevel = null;
+    String userName = null;
+    String databaseName = null;
+    Boolean fromInclusive = null;
+    List<ClusterLogEntryDto> logs =
+        service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
+            logType, podName, role, errorLevel, userName, databaseName, fromInclusive);
+
+    assertIterableEquals(logList, logs);
+  }
+
+  @Test
+  void getLogsWithEmptyErrorLevelFilterShouldNotFail() {
+    mockPodList();
+    when(finder.findByNameAndNamespace(getResourceName(), getResourceNamespace()))
+        .thenReturn(Optional.of(customResources.getItems().get(0)));
+    doAnswer(new Answer<List<ClusterLogEntryDto>>() {
+      @Override
+      public List<ClusterLogEntryDto> answer(InvocationOnMock invocation) throws Throwable {
+        DistributedLogsQueryParameters parameters = invocation.getArgument(0);
+
+        assertNotNull(parameters);
+        checkDto(parameters.getCluster());
+        assertEquals(parameters.getRecords(), 50);
+        assertEquals(parameters.getFromTimeAndIndex(), Optional.empty());
+        assertEquals(parameters.getToTimeAndIndex(), Optional.empty());
+        assertEquals(parameters.getFilters(), ImmutableMap.of("errorLevel", Optional.empty()));
+        assertEquals(parameters.getFullTextSearchQuery(), Optional.empty());
+        assertFalse(parameters.isSortAsc());
+        assertFalse(parameters.isFromInclusive());
+
+        return logList;
+      }
+    }).when(distributedLogsFetcher).logs(any());
+
+    Integer records = null;
+    String from = null;
+    String to = null;
+    String sort = null;
+    String text = null;
+    String logType = null;
+    String podName = null;
+    String role = null;
+    String errorLevel = "";
+    String userName = null;
+    String databaseName = null;
+    Boolean fromInclusive = null;
+    List<ClusterLogEntryDto> logs =
+        service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
+            logType, podName, role, errorLevel, userName, databaseName, fromInclusive);
+
+    assertIterableEquals(logList, logs);
+  }
+
+  @Test
+  void getLogsWithEmptyUserNameFilterShouldNotFail() {
+    mockPodList();
+    when(finder.findByNameAndNamespace(getResourceName(), getResourceNamespace()))
+        .thenReturn(Optional.of(customResources.getItems().get(0)));
+    doAnswer(new Answer<List<ClusterLogEntryDto>>() {
+      @Override
+      public List<ClusterLogEntryDto> answer(InvocationOnMock invocation) throws Throwable {
+        DistributedLogsQueryParameters parameters = invocation.getArgument(0);
+
+        assertNotNull(parameters);
+        checkDto(parameters.getCluster());
+        assertEquals(parameters.getRecords(), 50);
+        assertEquals(parameters.getFromTimeAndIndex(), Optional.empty());
+        assertEquals(parameters.getToTimeAndIndex(), Optional.empty());
+        assertEquals(parameters.getFilters(), ImmutableMap.of("userName", Optional.empty()));
+        assertEquals(parameters.getFullTextSearchQuery(), Optional.empty());
+        assertFalse(parameters.isSortAsc());
+        assertFalse(parameters.isFromInclusive());
+
+        return logList;
+      }
+    }).when(distributedLogsFetcher).logs(any());
+
+    Integer records = null;
+    String from = null;
+    String to = null;
+    String sort = null;
+    String text = null;
+    String logType = null;
+    String podName = null;
+    String role = null;
+    String errorLevel = null;
+    String userName = "";
+    String databaseName = null;
+    Boolean fromInclusive = null;
+    List<ClusterLogEntryDto> logs =
+        service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
+            logType, podName, role, errorLevel, userName, databaseName, fromInclusive);
+
+    assertIterableEquals(logList, logs);
+  }
+
+  @Test
+  void getLogsWithEmptyDatabaseNameFilterShouldNotFail() {
+    mockPodList();
+    when(finder.findByNameAndNamespace(getResourceName(), getResourceNamespace()))
+        .thenReturn(Optional.of(customResources.getItems().get(0)));
+    doAnswer(new Answer<List<ClusterLogEntryDto>>() {
+      @Override
+      public List<ClusterLogEntryDto> answer(InvocationOnMock invocation) throws Throwable {
+        DistributedLogsQueryParameters parameters = invocation.getArgument(0);
+
+        assertNotNull(parameters);
+        checkDto(parameters.getCluster());
+        assertEquals(parameters.getRecords(), 50);
+        assertEquals(parameters.getFromTimeAndIndex(), Optional.empty());
+        assertEquals(parameters.getToTimeAndIndex(), Optional.empty());
+        assertEquals(parameters.getFilters(), ImmutableMap.of("databaseName", Optional.empty()));
+        assertEquals(parameters.getFullTextSearchQuery(), Optional.empty());
+        assertFalse(parameters.isSortAsc());
+        assertFalse(parameters.isFromInclusive());
+
+        return logList;
+      }
+    }).when(distributedLogsFetcher).logs(any());
+
+    Integer records = null;
+    String from = null;
+    String to = null;
+    String sort = null;
+    String text = null;
+    String logType = null;
+    String podName = null;
+    String role = null;
+    String errorLevel = null;
+    String userName = null;
+    String databaseName = "";
+    Boolean fromInclusive = null;
+    List<ClusterLogEntryDto> logs =
+        service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
+            logType, podName, role, errorLevel, userName, databaseName, fromInclusive);
+
+    assertIterableEquals(logList, logs);
+  }
+
+  @Test
+  void getLogsWithFromInclusiveShouldNotFail() {
+    mockPodList();
+    when(finder.findByNameAndNamespace(getResourceName(), getResourceNamespace()))
+        .thenReturn(Optional.of(customResources.getItems().get(0)));
+    doAnswer(new Answer<List<ClusterLogEntryDto>>() {
+      @Override
+      public List<ClusterLogEntryDto> answer(InvocationOnMock invocation) throws Throwable {
+        DistributedLogsQueryParameters parameters = invocation.getArgument(0);
+
+        assertNotNull(parameters);
+        checkDto(parameters.getCluster());
+        assertEquals(parameters.getRecords(), 50);
+        assertEquals(parameters.getFromTimeAndIndex(), Optional.empty());
+        assertEquals(parameters.getToTimeAndIndex(), Optional.empty());
+        assertEquals(parameters.getFilters(), ImmutableMap.of());
+        assertEquals(parameters.getFullTextSearchQuery(), Optional.empty());
+        assertFalse(parameters.isSortAsc());
+        assertTrue(parameters.isFromInclusive());
+
+        return logList;
+      }
+    }).when(distributedLogsFetcher).logs(any());
+
+    Integer records = null;
+    String from = null;
+    String to = null;
+    String sort = null;
+    String text = null;
+    String logType = null;
+    String podName = null;
+    String role = null;
+    String errorLevel = null;
+    String userName = null;
+    String databaseName = null;
+    Boolean fromInclusive = true;
+    List<ClusterLogEntryDto> logs =
+        service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
+            logType, podName, role, errorLevel, userName, databaseName, fromInclusive);
+
+    assertIterableEquals(logList, logs);
+  }
+
+  @Test
+  void getLogsWithFromExclusiveShouldNotFail() {
+    mockPodList();
+    when(finder.findByNameAndNamespace(getResourceName(), getResourceNamespace()))
+        .thenReturn(Optional.of(customResources.getItems().get(0)));
+    doAnswer(new Answer<List<ClusterLogEntryDto>>() {
+      @Override
+      public List<ClusterLogEntryDto> answer(InvocationOnMock invocation) throws Throwable {
+        DistributedLogsQueryParameters parameters = invocation.getArgument(0);
+
+        assertNotNull(parameters);
+        checkDto(parameters.getCluster());
+        assertEquals(parameters.getRecords(), 50);
+        assertEquals(parameters.getFromTimeAndIndex(), Optional.empty());
+        assertEquals(parameters.getToTimeAndIndex(), Optional.empty());
+        assertEquals(parameters.getFilters(), ImmutableMap.of());
+        assertEquals(parameters.getFullTextSearchQuery(), Optional.empty());
+        assertFalse(parameters.isSortAsc());
+        assertFalse(parameters.isFromInclusive());
+
+        return logList;
+      }
+    }).when(distributedLogsFetcher).logs(any());
+
+    Integer records = null;
+    String from = null;
+    String to = null;
+    String sort = null;
+    String text = null;
+    String logType = null;
+    String podName = null;
+    String role = null;
+    String errorLevel = null;
+    String userName = null;
+    String databaseName = null;
+    Boolean fromInclusive = false;
+    List<ClusterLogEntryDto> logs =
+        service.logs(getResourceNamespace(), getResourceName(), records, from, to, sort, text,
+            logType, podName, role, errorLevel, userName, databaseName, fromInclusive);
+
+    assertIterableEquals(logList, logs);
   }
 
 }

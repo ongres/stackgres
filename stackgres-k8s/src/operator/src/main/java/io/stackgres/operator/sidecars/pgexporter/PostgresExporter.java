@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
+
 import javax.inject.Singleton;
 
 import com.google.common.collect.ImmutableList;
@@ -33,7 +34,6 @@ import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresClusterSidecarResourceFactory;
 import io.stackgres.operator.common.StackGresComponents;
 import io.stackgres.operator.common.StackGresGeneratorContext;
-import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operator.customresource.prometheus.Endpoint;
 import io.stackgres.operator.customresource.prometheus.NamespaceSelector;
 import io.stackgres.operator.customresource.prometheus.ServiceMonitor;
@@ -74,7 +74,7 @@ public class PostgresExporter implements StackGresClusterSidecarResourceFactory<
         .withImagePullPolicy("Always")
         .withEnv(new EnvVarBuilder()
                 .withName("DATA_SOURCE_NAME")
-                .withValue("host=/var/run/postgresql user=postgres port=" + Envoy.PG_RAW_PORT)
+                .withValue("host=/var/run/postgresql user=postgres port=" + Envoy.PG_PORT)
                 .build(),
             new EnvVarBuilder()
                 .withName("POSTGRES_EXPORTER_USERNAME")
@@ -100,11 +100,9 @@ public class PostgresExporter implements StackGresClusterSidecarResourceFactory<
 
   @Override
   public Stream<HasMetadata> streamResources(StackGresGeneratorContext context) {
-    final Map<String, String> defaultLabels = StackGresUtil.clusterLabels(
-        context.getClusterContext().getCluster());
+    final Map<String, String> defaultLabels = context.getClusterContext().clusterLabels();
     Map<String, String> labels = new ImmutableMap.Builder<String, String>()
-        .putAll(StackGresUtil.clusterCrossNamespaceLabels(
-            context.getClusterContext().getCluster()))
+        .putAll(context.getClusterContext().clusterCrossNamespaceLabels())
         .build();
 
     Optional<Prometheus> prometheus = context.getClusterContext().getPrometheus();
@@ -118,8 +116,7 @@ public class PostgresExporter implements StackGresClusterSidecarResourceFactory<
                 .putAll(labels)
                 .put("container", NAME)
                 .build())
-            .withOwnerReferences(ImmutableList.of(ResourceUtil.getOwnerReference(
-                context.getClusterContext().getCluster())))
+            .withOwnerReferences(context.getClusterContext().ownerReferences())
             .endMetadata()
             .withSpec(new ServiceSpecBuilder()
                 .withSelector(defaultLabels)
@@ -139,8 +136,7 @@ public class PostgresExporter implements StackGresClusterSidecarResourceFactory<
           serviceMonitor.setMetadata(new ObjectMetaBuilder()
               .withNamespace(pi.getNamespace())
               .withName(serviceMonitorName(context.getClusterContext()))
-              .withOwnerReferences(ImmutableList.of(ResourceUtil.getOwnerReference(
-                  context.getClusterContext().getCluster())))
+              .withOwnerReferences(context.getClusterContext().ownerReferences())
               .withLabels(ImmutableMap.<String, String>builder()
                   .putAll(pi.getMatchLabels())
                   .putAll(labels)

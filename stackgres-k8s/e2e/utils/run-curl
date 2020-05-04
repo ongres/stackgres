@@ -56,21 +56,6 @@ run_curl() {
   fi
 }
 
-run_jq() {
-  local POD=curl
-  local NAMESPACE="${CLUSTER_NAMESPACE:-stackgres}"
-  while getopts ":p:n:" opt; do
-    case $opt in
-      p) POD="$OPTARG"
-      shift 2
-      ;;
-      n) NAMESPACE="$OPTARG"
-      shift 2
-      ;;
-      \?)
-      ;;
-    esac
-  done
-
-  kubectl exec -i -n "$NAMESPACE" "$POD" -- jq "$@"
+uriencode() {
+  jq -nr --arg v "$1" '$v|@uri'
 }

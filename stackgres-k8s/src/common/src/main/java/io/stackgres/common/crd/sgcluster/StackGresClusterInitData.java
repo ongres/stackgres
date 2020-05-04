@@ -5,8 +5,10 @@
 
 package io.stackgres.common.crd.sgcluster;
 
+import java.util.List;
 import java.util.Objects;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -21,12 +23,8 @@ public class StackGresClusterInitData {
   @JsonProperty("restore")
   private ClusterRestore restore;
 
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("restore", getRestore())
-        .toString();
-  }
+  @JsonIgnore
+  private List<StackGresClusterScript> scripts;
 
   public ClusterRestore getRestore() {
     return restore;
@@ -34,6 +32,14 @@ public class StackGresClusterInitData {
 
   public void setRestore(ClusterRestore restore) {
     this.restore = restore;
+  }
+
+  public List<StackGresClusterScript> getScripts() {
+    return scripts;
+  }
+
+  public void setScripts(List<StackGresClusterScript> scripts) {
+    this.scripts = scripts;
   }
 
   @Override
@@ -45,11 +51,20 @@ public class StackGresClusterInitData {
       return false;
     }
     StackGresClusterInitData that = (StackGresClusterInitData) o;
-    return Objects.equals(restore, that.restore);
+    return Objects.equals(restore, that.restore)
+        && Objects.equals(scripts, that.scripts);
   }
 
   @Override
   public int hashCode() {
     return Objects.hash(restore);
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("restore", getRestore())
+        .add("scripts", scripts)
+        .toString();
   }
 }

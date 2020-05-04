@@ -7,7 +7,6 @@ package io.stackgres.operator.initialization;
 
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.operator.utils.JsonUtil;
-
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 

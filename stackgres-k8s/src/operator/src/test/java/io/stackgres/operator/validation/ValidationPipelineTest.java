@@ -6,7 +6,6 @@
 package io.stackgres.operator.validation;
 
 import java.util.Collections;
-import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.authentication.UserInfo;
 import io.fabric8.kubernetes.client.CustomResource;

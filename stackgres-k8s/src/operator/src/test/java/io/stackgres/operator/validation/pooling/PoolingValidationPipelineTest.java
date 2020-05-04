@@ -6,15 +6,15 @@
 package io.stackgres.operator.validation.pooling;
 
 import java.util.HashMap;
+
 import javax.inject.Inject;
 
 import io.quarkus.test.junit.QuarkusTest;
-import io.stackgres.operator.common.PoolingReview;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
+import io.stackgres.operator.common.PoolingReview;
 import io.stackgres.operator.utils.JsonUtil;
 import io.stackgres.operator.validation.ValidationPipelineTest;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationPipeline;
-import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
 @QuarkusTest

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.cluster.factory;
+package io.stackgres.operator.cluster.handler;
 
 import java.util.Map;
 import java.util.Objects;
@@ -12,19 +12,14 @@ import java.util.stream.Stream;
 import javax.enterprise.context.ApplicationScoped;
 
 import com.google.common.collect.ImmutableMap;
-
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
-import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operator.resource.AbstractClusterResourceHandler;
-import io.stackgres.operatorframework.resource.ResourceHandlerContext;
-import io.stackgres.operatorframework.resource.ResourceUtil;
 import io.stackgres.operatorframework.resource.visitor.PairVisitor;
 import io.stackgres.operatorframework.resource.visitor.ResourcePairVisitor;
-
 import org.jooq.lambda.Seq;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,14 +32,7 @@ public class ClusterStatefulSetPodHandler extends AbstractClusterResourceHandler
 
   @Override
   public boolean isHandlerForResource(StackGresClusterContext context, HasMetadata resource) {
-    return context != null
-        && resource instanceof Pod
-        && resource.getMetadata().getNamespace().equals(
-            context.getCluster().getMetadata().getNamespace())
-        && Objects.equals(resource.getMetadata().getLabels().get(StackGresUtil.CLUSTER_KEY),
-            Boolean.TRUE.toString())
-        && resource.getMetadata().getName().matches(ResourceUtil.getNameWithIndexPattern(
-            context.getCluster().getMetadata().getName()));
+    return context != null && context.isClusterPod(resource);
   }
 
   @Override
@@ -58,24 +46,26 @@ public class ClusterStatefulSetPodHandler extends AbstractClusterResourceHandler
   }
 
   @Override
-  public boolean equals(ResourceHandlerContext<StackGresClusterContext> resourceHandlerContext,
+  public boolean equals(
+      StackGresClusterContext context,
       HasMetadata existingResource, HasMetadata requiredResource) {
-    return ResourcePairVisitor.equals(new PodVisitor<>(resourceHandlerContext),
+    return ResourcePairVisitor.equals(new PodVisitor<>(context),
         existingResource, requiredResource);
   }
 
   @Override
-  public HasMetadata update(ResourceHandlerContext<StackGresClusterContext> resourceHandlerContext,
+  public HasMetadata update(
+      StackGresClusterContext context,
       HasMetadata existingResource, HasMetadata requiredResource) {
-    return ResourcePairVisitor.update(new PodVisitor<>(resourceHandlerContext),
+    return ResourcePairVisitor.update(new PodVisitor<>(context),
         existingResource, requiredResource);
   }
 
   private static class PodVisitor<T>
-      extends ResourcePairVisitor<T, ResourceHandlerContext<StackGresClusterContext>> {
+      extends ResourcePairVisitor<T, StackGresClusterContext> {
 
-    public PodVisitor(ResourceHandlerContext<StackGresClusterContext> resourceHandlerContext) {
-      super(resourceHandlerContext);
+    public PodVisitor(StackGresClusterContext context) {
+      super(context);
     }
 
     @Override
@@ -116,16 +106,16 @@ public class ClusterStatefulSetPodHandler extends AbstractClusterResourceHandler
           && (isPodIndexGreaterThanRequiredReplicas(podMetadata)
           || isPodIndexGreaterThanExistingReplicas(podMetadata))) {
         if (!Objects.equals(leftLabels.get(StackGresUtil.DISRUPTIBLE_KEY),
-            Boolean.FALSE.toString())) {
+            StackGresUtil.WRONG_VALUE)) {
           LOGGER.debug("Settind Pod {}.{} for cluster {}.{} as non disruptible since it is primary"
               + " and his index is above the maximum index for the StatefulSet",
               podMetadata.getNamespace(), podMetadata.getName(),
-              getContext().getConfig().getCluster().getMetadata().getNamespace(),
-              getContext().getConfig().getCluster().getMetadata().getName());
+              getContext().getCluster().getMetadata().getNamespace(),
+              getContext().getCluster().getMetadata().getName());
         }
-        disruptibleValue = Boolean.FALSE.toString();
+        disruptibleValue = StackGresUtil.WRONG_VALUE;
       } else {
-        disruptibleValue = Boolean.TRUE.toString();
+        disruptibleValue = StackGresUtil.RIGHT_VALUE;
       }
       return Seq.concat(
           Seq.seq(rightMap.entrySet())
@@ -158,7 +148,7 @@ public class ClusterStatefulSetPodHandler extends AbstractClusterResourceHandler
       .filter(resource -> resource instanceof StatefulSet)
       .map(resource -> (StatefulSet) resource)
       .anyMatch(statefulSet -> StackGresUtil.extractPodIndex(
-              getContext().getConfig().getCluster(),
+              getContext().getCluster(),
               podMetadata) >= statefulSet.getSpec().getReplicas());
     }
   }

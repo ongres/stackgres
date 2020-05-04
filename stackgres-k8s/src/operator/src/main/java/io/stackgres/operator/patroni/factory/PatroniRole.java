@@ -6,9 +6,9 @@
 package io.stackgres.operator.patroni.factory;
 
 import java.util.stream.Stream;
+
 import javax.enterprise.context.ApplicationScoped;
 
-import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ServiceAccount;
 import io.fabric8.kubernetes.api.model.ServiceAccountBuilder;
@@ -25,7 +25,6 @@ import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigDefinition;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresClusterResourceStreamFactory;
 import io.stackgres.operator.common.StackGresGeneratorContext;
-import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jooq.lambda.Seq;
 
@@ -58,9 +57,8 @@ public class PatroniRole implements StackGresClusterResourceStreamFactory {
           .withNewMetadata()
           .withName(roleName(context.getClusterContext()))
           .withNamespace(context.getClusterContext().getCluster().getMetadata().getNamespace())
-          .withLabels(StackGresUtil.clusterLabels(context.getClusterContext().getCluster()))
-          .withOwnerReferences(ImmutableList.of(
-              ResourceUtil.getOwnerReference(context.getClusterContext().getCluster())))
+          .withLabels(context.getClusterContext().clusterLabels())
+          .withOwnerReferences(context.getClusterContext().ownerReferences())
           .endMetadata()
           .build();
   }
@@ -73,9 +71,8 @@ public class PatroniRole implements StackGresClusterResourceStreamFactory {
         .withNewMetadata()
         .withName(roleName(context.getClusterContext()))
         .withNamespace(context.getClusterContext().getCluster().getMetadata().getNamespace())
-        .withLabels(StackGresUtil.clusterLabels(context.getClusterContext().getCluster()))
-        .withOwnerReferences(ImmutableList.of(
-            ResourceUtil.getOwnerReference(context.getClusterContext().getCluster())))
+        .withLabels(context.getClusterContext().clusterLabels())
+        .withOwnerReferences(context.getClusterContext().ownerReferences())
         .endMetadata()
         .addToRules(new PolicyRuleBuilder()
             .withApiGroups("")
@@ -128,9 +125,8 @@ public class PatroniRole implements StackGresClusterResourceStreamFactory {
         .withNewMetadata()
         .withName(roleName(context.getClusterContext()))
         .withNamespace(context.getClusterContext().getCluster().getMetadata().getNamespace())
-        .withLabels(StackGresUtil.clusterLabels(context.getClusterContext().getCluster()))
-        .withOwnerReferences(ImmutableList.of(
-            ResourceUtil.getOwnerReference(context.getClusterContext().getCluster())))
+        .withLabels(context.getClusterContext().clusterLabels())
+        .withOwnerReferences(context.getClusterContext().ownerReferences())
         .endMetadata()
         .withSubjects(new SubjectBuilder()
             .withKind("ServiceAccount")

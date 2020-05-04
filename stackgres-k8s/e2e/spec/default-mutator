@@ -39,8 +39,8 @@ create_empty_pg_config() {
     postgresVersion: "11"
 EOF
 
-  local CREATED_FIELDS=$(kubectl get sgpgconfigs.stackgres.io -n $CLUSTER_NAMESPACE $PGCONFIG -o json | run_jq '.spec["postgresql.conf"] | length')
-  local DEFAULT_FIELDS=$(get_default_pgconfig -o json | run_jq '.spec["postgresql.conf"] | length')
+  local CREATED_FIELDS=$(kubectl get sgpgconfigs.stackgres.io -n $CLUSTER_NAMESPACE $PGCONFIG -o json | jq '.spec["postgresql.conf"] | length')
+  local DEFAULT_FIELDS=$(get_default_pgconfig -o json | jq '.spec["postgresql.conf"] | length')
 
   if [ $CREATED_FIELDS = $DEFAULT_FIELDS ]
   then
@@ -50,7 +50,7 @@ EOF
     return 1
   fi
 
-  local DEFAULT_ANNOTATION=$(kubectl get sgpgconfigs.stackgres.io -n $CLUSTER_NAMESPACE $PGCONFIG -o json | run_jq '.metadata.annotations["stackgres.io/operatorVersion"]')
+  local DEFAULT_ANNOTATION=$(kubectl get sgpgconfigs.stackgres.io -n $CLUSTER_NAMESPACE $PGCONFIG -o json | jq '.metadata.annotations["stackgres.io/operatorVersion"]')
 
   if [ -z "$DEFAULT_ANNOTATION" ] || [ "$DEFAULT_ANNOTATION" = "null" ]
   then
@@ -76,8 +76,8 @@ create_empty_pg_bouncer() {
         unsignificant: true
 EOF
 
-  local CREATED_FIELDS=$(kubectl get sgpoolconfigs.stackgres.io -n $CLUSTER_NAMESPACE $PGCBOUNCER -o json | run_jq '.spec.pgBouncer["pgbouncer.ini"] | length')
-  local DEFAULT_FIELDS=$(get_default_conn_pool -o json | run_jq '.spec.pgBouncer["pgbouncer.ini"] | length')
+  local CREATED_FIELDS=$(kubectl get sgpoolconfigs.stackgres.io -n $CLUSTER_NAMESPACE $PGCBOUNCER -o json | jq '.spec.pgBouncer["pgbouncer.ini"] | length')
+  local DEFAULT_FIELDS=$(get_default_conn_pool -o json | jq '.spec.pgBouncer["pgbouncer.ini"] | length')
 
   if [ $CREATED_FIELDS = $((DEFAULT_FIELDS + 1)) ]
   then
@@ -87,7 +87,7 @@ EOF
     return 1
   fi
 
-  local DEFAULT_ANNOTATION=$(kubectl get sgpoolconfigs.stackgres.io -n $CLUSTER_NAMESPACE $PGCBOUNCER -o json | run_jq '.metadata.annotations["stackgres.io/operatorVersion"]')
+  local DEFAULT_ANNOTATION=$(kubectl get sgpoolconfigs.stackgres.io -n $CLUSTER_NAMESPACE $PGCBOUNCER -o json | jq '.metadata.annotations["stackgres.io/operatorVersion"]')
 
   if [ -z "$DEFAULT_ANNOTATION" ] || [ "$DEFAULT_ANNOTATION" = "null" ]
   then
@@ -110,8 +110,8 @@ create_empty_pg_backup_config() {
     compression: lz4
 EOF
 
-  local CREATED_FIELDS=$(kubectl get sgbackupconfigs.stackgres.io -n $CLUSTER_NAMESPACE $BACKUP_CONFIG -o json | run_jq '.spec | length')
-  local DEFAULT_FIELDS=$(get_default_backupconf | run_jq '.spec | length')
+  local CREATED_FIELDS=$(kubectl get sgbackupconfigs.stackgres.io -n $CLUSTER_NAMESPACE $BACKUP_CONFIG -o json | jq '.spec | length')
+  local DEFAULT_FIELDS=$(get_default_backupconf | jq '.spec | length')
 
   if [ $CREATED_FIELDS = $((DEFAULT_FIELDS + 1)) ]
   then
@@ -121,7 +121,7 @@ EOF
     return 1
   fi
 
-  local DEFAULT_ANNOTATION=$(kubectl get sgbackupconfigs.stackgres.io -n $CLUSTER_NAMESPACE $BACKUP_CONFIG -o json | run_jq '.metadata.annotations["stackgres.io/operatorVersion"]')
+  local DEFAULT_ANNOTATION=$(kubectl get sgbackupconfigs.stackgres.io -n $CLUSTER_NAMESPACE $BACKUP_CONFIG -o json | jq '.metadata.annotations["stackgres.io/operatorVersion"]')
 
   if [ -z "$DEFAULT_ANNOTATION" ] || [ "$DEFAULT_ANNOTATION" = "null" ]
   then
@@ -222,15 +222,15 @@ EOF
     return 1
   fi
 
-  local DISABLED_CONN_POOL=$(kubectl get sgclusters.stackgres.io -n $CLUSTER_NAMESPACE $CLUSTER_NAME-nosidecars -o json | run_jq -r '.spec.pods.disableConnectionPooling')
+  local DISABLED_CONN_POOL=$(kubectl get sgclusters.stackgres.io -n $CLUSTER_NAMESPACE $CLUSTER_NAME-nosidecars -o json | jq -r '.spec.pods.disableConnectionPooling')
 
   assert_string_equal "true" "$DISABLED_CONN_POOL"
 
-  local DISABLED_METRIC_EXPORTER=$(kubectl get sgclusters.stackgres.io -n $CLUSTER_NAMESPACE $CLUSTER_NAME-nosidecars -o json | run_jq -r '.spec.pods.disableMetricsExporter')
+  local DISABLED_METRIC_EXPORTER=$(kubectl get sgclusters.stackgres.io -n $CLUSTER_NAMESPACE $CLUSTER_NAME-nosidecars -o json | jq -r '.spec.pods.disableMetricsExporter')
 
   assert_string_equal "true" "$DISABLED_METRIC_EXPORTER"
 
-  local DISABLED_POSTGRES_UTIL=$(kubectl get sgclusters.stackgres.io -n $CLUSTER_NAMESPACE $CLUSTER_NAME-nosidecars -o json | run_jq -r '.spec.pods.disablePostgresUtil')
+  local DISABLED_POSTGRES_UTIL=$(kubectl get sgclusters.stackgres.io -n $CLUSTER_NAMESPACE $CLUSTER_NAME-nosidecars -o json | jq -r '.spec.pods.disablePostgresUtil')
 
   assert_string_equal "true" "$DISABLED_POSTGRES_UTIL"
 
@@ -266,8 +266,8 @@ EOF
     return 1;
   fi
 
-  local CREATED_PGCONFIG_FIELDS=$(kubectl get sgpgconfigs.stackgres.io -n $CLUSTER_NAMESPACE $CREATED_PGCONFIG -o json | run_jq '.spec["postgresql.conf"] | length')
-  local DEFAULT_PGCONFIG_FIELDS=$(get_default_pgconfig -o json | run_jq '.spec["postgresql.conf"] | length')
+  local CREATED_PGCONFIG_FIELDS=$(kubectl get sgpgconfigs.stackgres.io -n $CLUSTER_NAMESPACE $CREATED_PGCONFIG -o json | jq '.spec["postgresql.conf"] | length')
+  local DEFAULT_PGCONFIG_FIELDS=$(get_default_pgconfig -o json | jq '.spec["postgresql.conf"] | length')
 
   if [ "$CREATED_PGCONFIG_FIELDS" = "$DEFAULT_PGCONFIG_FIELDS" ]
   then
@@ -287,8 +287,8 @@ EOF
     return 1;
   fi
 
-  local CREATED_PROFILE_FIELDS=$(kubectl get sginstanceprofiles.stackgres.io -n $CLUSTER_NAMESPACE $CREATED_PROFILE -o json | run_jq '.spec | length')
-  local DEFAULT_PROFILE_FIELDS=$(get_default_profile -o json | run_jq '.spec | length')
+  local CREATED_PROFILE_FIELDS=$(kubectl get sginstanceprofiles.stackgres.io -n $CLUSTER_NAMESPACE $CREATED_PROFILE -o json | jq '.spec | length')
+  local DEFAULT_PROFILE_FIELDS=$(get_default_profile -o json | jq '.spec | length')
 
   if [ "$CREATED_PROFILE_FIELDS" = "$DEFAULT_PROFILE_FIELDS" ]
   then
@@ -298,7 +298,7 @@ EOF
     return 1
   fi
 
-  local DEFAULT_ANNOTATION=$(kubectl get sgclusters.stackgres.io -n $CLUSTER_NAMESPACE $CLUSTER_NAME -o json | run_jq '.metadata.annotations["stackgres.io/operatorVersion"]')
+  local DEFAULT_ANNOTATION=$(kubectl get sgclusters.stackgres.io -n $CLUSTER_NAMESPACE $CLUSTER_NAME -o json | jq '.metadata.annotations["stackgres.io/operatorVersion"]')
 
   if [ -z "$DEFAULT_ANNOTATION" ] || [ "$DEFAULT_ANNOTATION" = "null" ]
   then

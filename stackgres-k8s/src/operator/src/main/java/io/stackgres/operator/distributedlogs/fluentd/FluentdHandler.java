@@ -3,26 +3,27 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.sidecars.envoy;
+package io.stackgres.operator.distributedlogs.fluentd;
 
 import javax.enterprise.context.ApplicationScoped;
 
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.stackgres.operator.common.StackGresClusterContext;
-import io.stackgres.operator.resource.AbstractClusterResourceHandler;
+import io.stackgres.operator.common.StackGresDistributedLogsContext;
+import io.stackgres.operator.resource.AbstractDistributedLogsResourceHandler;
 
 @ApplicationScoped
-public class PrometheusEndpointsHandler extends AbstractClusterResourceHandler {
+public class FluentdHandler extends AbstractDistributedLogsResourceHandler {
 
   @Override
-  public boolean isHandlerForResource(StackGresClusterContext context, HasMetadata resource) {
+  public boolean isHandlerForResource(
+      StackGresDistributedLogsContext context, HasMetadata resource) {
     return context != null
         && resource instanceof Endpoints
         && resource.getMetadata().getNamespace().equals(
-            context.getCluster().getMetadata().getNamespace())
+            context.getDistributedLogs().getMetadata().getNamespace())
         && resource.getMetadata().getName().equals(
-            Envoy.serviceName(context));
+            Fluentd.serviceName(context));
   }
 
   @Override

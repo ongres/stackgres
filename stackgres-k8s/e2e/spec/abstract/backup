@@ -1,7 +1,16 @@
 #!/bin/sh
 
 check_backup() {
-  NODE="$1"
+  local NODE="$1"
+
+  check_wal_archive "$NODE"
+
+  check_automatic_backup "$NODE"
+}
+
+check_wal_archive() {
+  local NODE="$1"
+  local CURRENT_WAL_FILE
   CURRENT_WAL_FILE="$(kubectl exec -t -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-"$NODE" -c postgres-util -- \
     psql -t -A -U postgres -p 5435 -c \
     'SELECT r.file_name from pg_walfile_name_offset(pg_current_wal_lsn()) as r')"
@@ -17,7 +26,12 @@ check_backup() {
     echo "FAIL. The WAL is not available"
     return 1
   fi
+}
 
+check_automatic_backup() {
+  local NODE="$1"
+
+  kubectl delete sgbackup -n "$CLUSTER_NAMESPACE" --all
   if wait_until eval '[ "$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" \
       -o custom-columns=BACKUP_NAME:.status.internalName,PHASE:.status.process.status,HOSTNAME:.status.backupInformation.hostname \
       | tail -n +2 | grep " Completed   ${CLUSTER_NAME}-${NODE}$" | wc -l)" -gt 0 ]'
@@ -27,21 +41,36 @@ check_backup() {
     echo "FAIL. The backup CR is not available"
     return 1
   fi
+}
 
-  BACKUP_NAME="$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" \
-    -o custom-columns=BACKUP_NAME:.status.internalName,PHASE:.status.process.status,HOSTNAME:.status.backupInformation.hostname \
-    | tail -n +2 | grep " Completed   ${CLUSTER_NAME}-${NODE}$" | tail -n 1 | cut -d ' ' -f 1)"
-  
-  if [ "$(kubectl exec -t -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-${NODE}" -c patroni -- \
-      exec-with-env backup -- wal-g backup-list | grep "^$BACKUP_NAME " | wc -l)" -gt 0 ]
+check_automatic_backup_cr() {
+  local NODE="$1"
+
+  if wait_until is_automatic_backup_cr_completed "$NODE"
   then
     echo "SUCCESS. The full backup is available"
   else
     echo "FAIL. The full backup is not available"
     return 1
   fi
+}
 
-  BACKUP_NAME="${CLUSTER_NAME}-${NODE}-$(shuf -i 0-65535 -n 1)"
+is_automatic_backup_cr_completed() {
+  local NODE="$1"
+  local BACKUP_NAME
+
+  BACKUP_NAME="$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" \
+    -o custom-columns=BACKUP_NAME:.status.internalName,PHASE:.status.process.status,HOSTNAME:.status.backupInformation.hostname \
+    | tail -n +2 | grep " Completed   ${CLUSTER_NAME}-${NODE}$" | tail -n 1 | cut -d ' ' -f 1)"
+  
+  [ "$(kubectl exec -t -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-${NODE}" -c patroni -- \
+      exec-with-env backup -- wal-g backup-list | grep "^$BACKUP_NAME " | wc -l)" -gt 0 ]
+}
+
+check_manual_backup() {
+  local NODE="$1"
+  local BACKUP_NAME="${CLUSTER_NAME}-${NODE}-$(shuf -i 0-65535 -n 1)"
+  local ACTUAL_BACKUP_NAME
 
   cat << EOF | kubectl create -f -
 apiVersion: stackgres.io/v1beta1
@@ -90,7 +119,7 @@ EOF
 
   wait_until check_is_permanent_value true
 
-  local DEFAULT_ANNOTATION=$(kubectl get sgbackup -n $CLUSTER_NAMESPACE $BACKUP_NAME -o json | run_jq '.metadata.annotations["stackgres.io/operatorVersion"]')
+  local DEFAULT_ANNOTATION=$(kubectl get sgbackup -n $CLUSTER_NAMESPACE $BACKUP_NAME -o json | jq '.metadata.annotations["stackgres.io/operatorVersion"]')
 
   if [ -z $DEFAULT_ANNOTATION ] || [ "$DEFAULT_ANNOTATION" = "null" ]
   then

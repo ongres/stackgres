@@ -8,24 +8,23 @@ package io.stackgres.operatorframework.resource;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import com.google.common.collect.ImmutableList;
-
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.KubernetesClient;
 
-public abstract class AbstractResourceHandlerSelector<T> implements ResourceHandlerSelector<T> {
+public abstract class AbstractResourceHandlerSelector<T extends ResourceHandlerContext>
+    implements ResourceHandlerSelector<T> {
 
   @Override
-  public boolean equals(ResourceHandlerContext<T> resourceHandlerContext,
+  public boolean equals(T resourceHandlerContext,
       HasMetadata existingResource, HasMetadata requiredResource) {
-    return selectResourceHandler(resourceHandlerContext.getConfig(), requiredResource)
+    return selectResourceHandler(resourceHandlerContext, requiredResource)
         .equals(resourceHandlerContext, existingResource, requiredResource);
   }
 
   @Override
-  public HasMetadata update(ResourceHandlerContext<T> resourceHandlerContext,
+  public HasMetadata update(T resourceHandlerContext,
       HasMetadata existingResource, HasMetadata requiredResource) {
-    return selectResourceHandler(resourceHandlerContext.getConfig(), requiredResource)
+    return selectResourceHandler(resourceHandlerContext, requiredResource)
         .update(resourceHandlerContext, existingResource, requiredResource);
   }
 
@@ -48,13 +47,6 @@ public abstract class AbstractResourceHandlerSelector<T> implements ResourceHand
   public void registerKinds() {
     getResourceHandlers()
         .forEach(ResourceHandler::registerKind);
-  }
-
-  @Override
-  public Stream<HasMetadata> getOrphanResources(KubernetesClient client,
-      ImmutableList<T> existingConfigs) {
-    return getResourceHandlers()
-        .flatMap(handler -> handler.getOrphanResources(client, existingConfigs));
   }
 
   @Override
@@ -87,18 +79,6 @@ public abstract class AbstractResourceHandlerSelector<T> implements ResourceHand
     return selectResourceHandler(config, resource).delete(client, resource);
   }
 
-  @Override
-  public String getConfigNamespaceOf(HasMetadata resource) {
-    return getResourceHandler(resource)
-        .getContextNamespaceOf(resource);
-  }
-
-  @Override
-  public String getConfigNameOf(HasMetadata resource) {
-    return getResourceHandler(resource)
-        .getContextNameOf(resource);
-  }
-
   private ResourceHandler<T> selectResourceHandler(T config,
       HasMetadata resource) {
     Optional<ResourceHandler<T>> customHandler = getResourceHandlers()
@@ -108,6 +88,7 @@ public abstract class AbstractResourceHandlerSelector<T> implements ResourceHand
 
   }
 
+  @Override
   public ResourceHandler<T> getResourceHandler(HasMetadata resource) {
     Optional<ResourceHandler<T>> customHandler = getResourceHandlers()
         .filter(handler -> handler.isHandlerForResource(resource)).findAny();

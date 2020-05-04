@@ -89,21 +89,19 @@ public class Backup implements StackGresClusterResourceStreamFactory {
   }
 
   private Optional<Job> createBackupJob(StackGresBackup backup,
-      StackGresClusterContext clusterContext) {
+      StackGresClusterContext context) {
     String namespace = backup.getMetadata().getNamespace();
     String name = backup.getMetadata().getName();
     String cluster = backup.getSpec().getSgCluster();
-    ImmutableMap<String, String> labels = StackGresUtil.backupPodLabels(
-        clusterContext.getCluster());
-    return clusterContext.getBackupContext()
+    ImmutableMap<String, String> labels = context.backupPodLabels();
+    return context.getBackupContext()
         .map(StackGresBackupContext::getBackupConfig)
         .map(backupConfig -> new JobBuilder()
             .withNewMetadata()
             .withNamespace(namespace)
-            .withName(backupJobName(backup, clusterContext))
+            .withName(backupJobName(backup, context))
             .withLabels(labels)
-            .withOwnerReferences(ImmutableList.of(
-                ResourceUtil.getOwnerReference(backup)))
+            .withOwnerReferences(context.ownerReferences())
             .endMetadata()
             .withNewSpec()
             .withBackoffLimit(3)
@@ -112,17 +110,17 @@ public class Backup implements StackGresClusterResourceStreamFactory {
             .withNewTemplate()
             .withNewMetadata()
             .withNamespace(namespace)
-            .withName(backupJobName(backup, clusterContext))
+            .withName(backupJobName(backup, context))
             .withLabels(labels)
             .endMetadata()
             .withNewSpec()
             .withRestartPolicy("OnFailure")
-            .withServiceAccountName(PatroniRole.roleName(clusterContext))
+            .withServiceAccountName(PatroniRole.roleName(context))
             .withContainers(new ContainerBuilder()
                 .withName("create-backup")
                 .withImage("bitnami/kubectl:latest")
                 .withEnv(ImmutableList.<EnvVar>builder()
-                    .addAll(clusterStatefulSetEnvironmentVariables.listResources(clusterContext))
+                    .addAll(clusterStatefulSetEnvironmentVariables.listResources(context))
                     .add(new EnvVarBuilder()
                         .withName("CLUSTER_NAMESPACE")
                         .withValue(namespace)
@@ -192,8 +190,7 @@ public class Backup implements StackGresClusterResourceStreamFactory {
                         .build(),
                         new EnvVarBuilder()
                         .withName("PATRONI_CLUSTER_LABELS")
-                        .withValue(StackGresUtil.patroniClusterLabels(
-                            clusterContext.getCluster())
+                        .withValue(context.patroniClusterLabels()
                             .entrySet()
                             .stream()
                             .map(e -> e.getKey() + "=" + e.getValue())

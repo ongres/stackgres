@@ -1,0 +1,248 @@
+#!/bin/sh
+
+e2e_test_install() {
+  DISTRIBUTED_LOGS_NAME=distributedlogs
+
+  create_or_replace_cluster "$CLUSTER_NAME-for-distributedlogs" "$CLUSTER_NAMESPACE" "1" \
+    --set cluster.create=false \
+    --set config.create=false \
+    --set profiles=null \
+    --set cluster.distributedLogs.enabled=true \
+    --set cluster.distributedLogs.create=true \
+    --set-string cluster.distributedLogs.name="$DISTRIBUTED_LOGS_NAME" \
+    --set-string cluster.distributedLogs.volumeSize=128Mi
+
+  deploy_psql_pod "$CLUSTER_NAMESPACE"
+
+  deploy_curl_pod "$CLUSTER_NAMESPACE"
+
+  wait_pods_running "$CLUSTER_NAMESPACE" "3"
+}
+
+e2e_test() {
+  run_test "Checking that is possible to connect using services is working" service_check
+
+  run_test "Checking that distributed logs attach to the cluster" check_distributed_logs_attach_to_cluster
+
+  run_test "Checking that distributed logs query endpoint works correctly"  check_distributed_logs_query_endpoint
+}
+
+service_check() {
+  RESPONSE_PRIMARY="$(run_query -c "$DISTRIBUTED_LOGS_NAME" -x psql -k postgres \
+    -h "$DISTRIBUTED_LOGS_NAME"-primary -p 5432)"
+
+  if [ "$RESPONSE_PRIMARY" = "1" ]
+  then
+    echo "SUCCESS: Connections are possible using services"
+    return 0
+  else
+    echo "FAIL: Cannot connect to primary db using a kubernetes service"
+    return 1
+  fi
+}
+
+check_distributed_logs_attach_to_cluster() {
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "1" \
+    --set cluster.distributedLogs.enabled=true \
+    --set cluster.distributedLogs.create=false \
+    --set-string cluster.distributedLogs.name="$DISTRIBUTED_LOGS_NAME"
+
+  wait_pods_running "$CLUSTER_NAMESPACE" "4"
+
+  local TEXT
+  local RESPONSE
+
+  for TEXT in distributed-logs-worked distributed-logs-works distributed-logs-still-works
+  do
+    RESPONSE="$(run_query -c "$CLUSTER_NAME" -x psql -k postgres \
+      -h "$CLUSTER_NAME"-primary -p 5432 -q "\"SELECT '$TEXT'\"")"
+
+    if [ "$RESPONSE" = "$TEXT" ]
+    then
+      echo "SUCCESS: Log entry created"
+    else
+      echo "FAIL: Cannot create log entry"
+      return 1
+    fi
+  done
+
+  for TEXT in distributed-logs-worked distributed-logs-works distributed-logs-still-works
+  do
+    if wait_until eval 'get_logs_count_with_text "$TEXT" | grep -q "^1$"'
+    then
+      echo "SUCCESS: Cluster log entry included in json response"
+    else
+      echo "FAIL: Cluster log entry not included in json response"
+      return 1
+    fi
+  done
+}
+
+check_distributed_logs_query_endpoint() {
+  if get_logs_count_with_text distributed-logs-works | grep -q "^1$"
+  then
+    echo "SUCCESS: Cluster log entry included in json response"
+  else
+    echo "FAIL: Cluster log entry not included in json response"
+    return 1
+  fi
+
+  if get_logs_count_with_text_after_log_with_text distributed-logs-works distributed-logs-still-works | grep -q "^1$"
+  then
+    echo "SUCCESS: Cluster log entry included in next json response with asc ordering"
+  else
+    echo "FAIL: Cluster log entry not included in next json response with asc ordering"
+    return 1
+  fi
+
+  if get_logs_count_with_text_before_log_with_text distributed-logs-works distributed-logs-worked | grep -q "^1$"
+  then
+    echo "SUCCESS: Cluster log entry included in next json response with desc ordering"
+  else
+    echo "FAIL: Cluster log entry not included in next json response with desc ordering"
+    return 1
+  fi
+
+  if get_logs_count_between_log_with_texts_desc distributed-logs-still-works distributed-logs-works distributed-logs-worked | grep -q "^2$"
+  then
+    echo "SUCCESS: Cluster log entries included in json response with from, to and desc ordering "
+  else
+    echo "FAIL: Cluster log entries not included in json response with from, to and desc ordering"
+    return 1
+  fi
+
+  if get_logs_count_between_log_with_texts_asc distributed-logs-worked distributed-logs-works distributed-logs-still-works | grep -q "^2$"
+  then
+    echo "SUCCESS: Cluster log entries included in json response with from, to and asc ordering"
+  else
+    echo "FAIL: Cluster log entries not included in json response with from, to and asc ordering"
+    return 1
+  fi
+
+  if get_postgres_logs_count_with_text distributed-logs-works | grep -q "^1$"
+  then
+    echo "SUCCESS: Cluster log entry included in json response"
+  else
+    echo "FAIL: Cluster log entry not included in json response"
+    return 1
+  fi
+
+  if get_patroni_logs_count_with_text distributed-logs-works | grep -q "^0$"
+  then
+    echo "SUCCESS: Cluster log entry not included in json response"
+  else
+    echo "FAIL: Cluster log entry included in json response"
+    return 1
+  fi
+
+  for field in \
+    logType \
+    podName \
+    role \
+    errorLevel \
+    userName \
+    databaseName
+  do
+    if get_logs_count_with_filter_of_log_with_text distributed-logs-works "$field" | grep -q "^1$"
+    then
+      echo "SUCCESS: Cluster log entry included in json response with filter on $field"
+    else
+      echo "FAIL: Cluster log entry not included in json response with filter on $field"
+      return 1
+    fi
+  done
+}
+
+get_logs_count_with_text() {
+  local RESULT="$(run_curl \
+    -r "stackgres/sgcluster/logs/$CLUSTER_NAMESPACE/$CLUSTER_NAME?text=$1" \
+    -n "$CLUSTER_NAMESPACE")"
+  echo_raw "$RESULT" \
+    | jq -r "map(select(.message != null and (.message | contains(\"$1\")))) | length"
+}
+
+get_logs_count_with_text_after_log_with_text() {
+  local LOG_TIME="$(run_curl \
+    -r "stackgres/sgcluster/logs/$CLUSTER_NAMESPACE/$CLUSTER_NAME?text=$1" \
+    -n "$CLUSTER_NAMESPACE" \
+    | jq -r "map(select(.message != null and (.message | contains(\"$1\")))) | .[0] | .logTime + \",\" + (.logTimeIndex|tostring)")"
+  local RESULT="$(run_curl \
+    -r "stackgres/sgcluster/logs/$CLUSTER_NAMESPACE/$CLUSTER_NAME?from=$LOG_TIME&sort=asc" \
+    -n "$CLUSTER_NAMESPACE")"
+  echo_raw "$RESULT" \
+    | jq -r "map(select(.message != null and (.message | contains(\"$2\")))) | length"
+}
+
+get_logs_count_with_text_before_log_with_text() {
+  local LOG_TIME="$(run_curl \
+    -r "stackgres/sgcluster/logs/$CLUSTER_NAMESPACE/$CLUSTER_NAME?text=$1" \
+    -n "$CLUSTER_NAMESPACE" \
+    | jq -r "map(select(.message != null and (.message | contains(\"$1\")))) | .[0] | .logTime + \",\" + (.logTimeIndex|tostring)")"
+  local RESULT="$(run_curl \
+    -r "stackgres/sgcluster/logs/$CLUSTER_NAMESPACE/$CLUSTER_NAME?from=$LOG_TIME&sort=desc" \
+    -n "$CLUSTER_NAMESPACE")"
+  echo_raw "$RESULT" \
+    | jq -r "map(select(.message != null and (.message | contains(\"$2\")))) | length"
+}
+
+get_logs_count_between_log_with_texts_desc() {
+  local START_LOG_TIME="$(run_curl \
+    -r "stackgres/sgcluster/logs/$CLUSTER_NAMESPACE/$CLUSTER_NAME?text=$1&sort=desc" \
+    -n "$CLUSTER_NAMESPACE" \
+    | jq -r "map(select(.message != null and (.message | contains(\"$1\")))) | .[0] | .logTime + \",\" + (.logTimeIndex|tostring)")"
+  local END_LOG_TIME="$(run_curl \
+    -r "stackgres/sgcluster/logs/$CLUSTER_NAMESPACE/$CLUSTER_NAME?text=$3&sort=desc" \
+    -n "$CLUSTER_NAMESPACE" \
+    | jq -r "map(select(.message != null and (.message | contains(\"$3\")))) | .[0] | .logTime + \",\" + (.logTimeIndex|tostring)")"
+  local RESULT="$(run_curl \
+    -r "stackgres/sgcluster/logs/$CLUSTER_NAMESPACE/$CLUSTER_NAME?from=$START_LOG_TIME&to=$END_LOG_TIME&sort=desc" \
+    -n "$CLUSTER_NAMESPACE")"
+  echo_raw "$RESULT" \
+    | jq -r "map(select((.message != null and (.message | contains(\"$1\"))) or (.message != null and (.message | contains(\"$2\"))) or (.message != null and (.message | contains(\"$3\"))))) | length"
+}
+
+get_logs_count_between_log_with_texts_asc() {
+  local START_LOG_TIME="$(run_curl \
+    -r "stackgres/sgcluster/logs/$CLUSTER_NAMESPACE/$CLUSTER_NAME?text=$1&sort=asc" \
+    -n "$CLUSTER_NAMESPACE" \
+    | jq -r "map(select(.message != null and (.message | contains(\"$1\")))) | .[0] | .logTime + \",\" + (.logTimeIndex|tostring)")"
+  local END_LOG_TIME="$(run_curl \
+    -r "stackgres/sgcluster/logs/$CLUSTER_NAMESPACE/$CLUSTER_NAME?text=$3&sort=asc" \
+    -n "$CLUSTER_NAMESPACE" \
+    | jq -r "map(select(.message != null and (.message | contains(\"$3\")))) | .[0] | .logTime + \",\" + (.logTimeIndex|tostring)")"
+  local RESULT="$(run_curl \
+    -r "stackgres/sgcluster/logs/$CLUSTER_NAMESPACE/$CLUSTER_NAME?from=$START_LOG_TIME&to=$END_LOG_TIME&sort=asc" \
+    -n "$CLUSTER_NAMESPACE")"
+  echo_raw "$RESULT" \
+    | jq -r "map(select((.message != null and (.message | contains(\"$1\"))) or (.message != null and (.message | contains(\"$2\"))) or (.message != null and (.message | contains(\"$3\"))))) | length"
+}
+
+get_postgres_logs_count_with_text() {
+  local RESULT="$(run_curl \
+    -r "stackgres/sgcluster/logs/$CLUSTER_NAMESPACE/$CLUSTER_NAME?text=$1&logType=pg" \
+    -n "$CLUSTER_NAMESPACE")"
+  echo_raw "$RESULT" \
+    | jq -r "map(select(.message != null and (.message | contains(\"$1\")))) | length"
+}
+
+get_patroni_logs_count_with_text() {
+  local FILTER="{\"logType\":\"pa\"}"
+  local RESULT="$(run_curl \
+    -r "stackgres/sgcluster/logs/$CLUSTER_NAMESPACE/$CLUSTER_NAME?text=$1&logType=pa" \
+    -n "$CLUSTER_NAMESPACE")"
+  echo_raw "$RESULT" \
+    | jq -r "map(select(.message != null and (.message | contains(\"$1\")))) | length"
+}
+
+get_logs_count_with_filter_of_log_with_text() {
+  local FILTER="$(run_curl \
+    -r "stackgres/sgcluster/logs/$CLUSTER_NAMESPACE/$CLUSTER_NAME?text=$1" \
+    -n "$CLUSTER_NAMESPACE" \
+    | jq -r "map(select(.message != null and (.message | contains(\"$1\")))) | .[0] | .$2 | select(. == null) = \"\"")"
+  local RESULT="$(run_curl \
+    -r "stackgres/sgcluster/logs/$CLUSTER_NAMESPACE/$CLUSTER_NAME?text=$1&$2=$(uriencode "$FILTER")" \
+    -n "$CLUSTER_NAMESPACE")"
+  echo_raw "$RESULT" \
+    | jq -r "map(select(.message != null and (.message | contains(\"$1\")) and (.$2 | select(. == null) = \"\" | tostring) == \"$FILTER\")) | length"
+}
+

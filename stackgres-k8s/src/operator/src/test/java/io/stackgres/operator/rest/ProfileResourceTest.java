@@ -23,7 +23,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class ProfileResourceTest extends AbstractCustomResourceTest<ProfileDto, StackGresProfile> {
+class ProfileResourceTest
+    extends AbstractCustomResourceTest<ProfileDto, StackGresProfile, ProfileResource> {
 
   @Override
   protected CustomResourceList<StackGresProfile> getCustomResourceList() {
@@ -41,7 +42,7 @@ class ProfileResourceTest extends AbstractCustomResourceTest<ProfileDto, StackGr
   }
 
   @Override
-  protected AbstractRestService<ProfileDto, StackGresProfile> getService(
+  protected ProfileResource getService(
       CustomResourceScanner<StackGresProfile> scanner,
       CustomResourceFinder<StackGresProfile> finder,
       CustomResourceScheduler<StackGresProfile> scheduler,
@@ -60,7 +61,7 @@ class ProfileResourceTest extends AbstractCustomResourceTest<ProfileDto, StackGr
   }
 
   @Override
-  protected void checkBackupConfig(ProfileDto resource) {
+  protected void checkDto(ProfileDto resource) {
     assertNotNull(resource.getMetadata());
     assertEquals("default", resource.getMetadata().getNamespace());
     assertEquals("size-s", resource.getMetadata().getName());
@@ -71,7 +72,7 @@ class ProfileResourceTest extends AbstractCustomResourceTest<ProfileDto, StackGr
   }
 
   @Override
-  protected void checkBackupConfig(StackGresProfile resource, Operation operation) {
+  protected void checkCustomResource(StackGresProfile resource, Operation operation) {
     assertNotNull(resource.getMetadata());
     assertEquals("default", resource.getMetadata().getNamespace());
     assertEquals("size-s", resource.getMetadata().getName());

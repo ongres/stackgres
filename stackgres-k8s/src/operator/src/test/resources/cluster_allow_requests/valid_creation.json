@@ -68,6 +68,9 @@
           "disableConnectionPooling": false,
           "disableMetricsExporter": false,
           "disablePostgresUtil": false
+        },
+        "distributedLogs":{
+          "sgDistributedLogs": "distributedlogs"
         }
       },
       "status": null

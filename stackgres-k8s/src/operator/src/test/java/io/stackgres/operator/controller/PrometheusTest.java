@@ -18,6 +18,7 @@ import java.util.HashMap;
 import java.util.Optional;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.app.KubernetesClientFactory;
 import io.stackgres.operator.app.ObjectMapperProvider;
 import io.stackgres.operator.common.ConfigContext;
@@ -25,10 +26,8 @@ import io.stackgres.operator.common.ConfigProperty;
 import io.stackgres.operator.common.Prometheus;
 import io.stackgres.operator.customresource.prometheus.PrometheusConfig;
 import io.stackgres.operator.customresource.prometheus.PrometheusConfigList;
-import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.resource.CustomResourceScanner;
 import io.stackgres.operator.utils.JsonUtil;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

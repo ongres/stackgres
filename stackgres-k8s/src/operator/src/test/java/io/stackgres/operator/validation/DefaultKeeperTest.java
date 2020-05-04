@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.validation;
 
+import static org.mockito.Mockito.when;
+
 import java.util.Random;
 import java.util.stream.Stream;
 
@@ -20,11 +22,7 @@ import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFail
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
-
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public abstract class DefaultKeeperTest<R extends CustomResource, T extends AdmissionReview<R>> {
 

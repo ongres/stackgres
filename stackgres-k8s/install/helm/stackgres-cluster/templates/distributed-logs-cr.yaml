@@ -1,0 +1,33 @@
+{{ if and .Values.cluster.distributedLogs.enabled .Values.cluster.distributedLogs.create }}
+apiVersion: stackgres.io/v1beta1
+kind: SGDistributedLogs
+metadata:
+  name: {{ .Values.cluster.distributedLogs.name }}
+  labels:
+    app: {{ template "stackgres-cluster.name" . }}
+    chart: {{ template "stackgres-cluster.chart" . }}
+    heritage: {{ .Release.Service }}
+    release: {{ .Release.Name }}
+  {{- if .Values.cluster.create }}
+  annotations:
+    "helm.sh/hook": "pre-install"
+  {{- end }}
+spec:
+  persistentVolume:
+    size: {{ .Values.cluster.distributedLogs.volumeSize }}
+    {{- if .Values.cluster.distributedLogs.storageClass }}
+    {{- if eq "-" .Values.cluster.distributedLogs.storageClass }}
+    storageClass: ""
+    {{- else }}
+    storageClass: {{ .Values.cluster.distributedLogs.storageClass }}
+    {{- end }}
+    {{- end }}
+  {{- if .Values.nonProductionOptions }}
+  nonProductionOptions:
+  {{- if not .Values.nonProductionOptions.disableClusterPodAntiAffinity }}
+    disableClusterPodAntiAffinity: false
+  {{- else }}
+    disableClusterPodAntiAffinity: {{ .Values.nonProductionOptions.disableClusterPodAntiAffinity }}
+  {{- end }}
+  {{- end }}
+{{ end }}
