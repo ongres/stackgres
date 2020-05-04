@@ -4,7 +4,7 @@ IFS=$'\n'
 INIT_SCRIPT_PATH=/etc/patroni/init-script.d
 
 # check if path exist
-if [ -d "$INIT_SCRIPT_PATH" -a "$(ls -1 "$INIT_SCRIPT_PATH"|wc -l)" -ge 1 ]
+if [ -d "$INIT_SCRIPT_PATH" -a "$(ls -1 "$INIT_SCRIPT_PATH" 2>/dev/null|wc -l)" -ge 1 ]
 then
   for file in $(ls -1 "$INIT_SCRIPT_PATH")
   do
