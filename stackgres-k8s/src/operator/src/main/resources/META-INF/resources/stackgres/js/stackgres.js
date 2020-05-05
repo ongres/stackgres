@@ -154,7 +154,7 @@ const router = new VueRouter({
       },
     },
     { 
-      path: '/:cluster/logs/:namespace/:name/:log', 
+      path: '/:cluster/logs/:namespace/:name/:time/:index', 
       component: Logs,
       meta: {
         conditionalRoute: false
@@ -1653,12 +1653,12 @@ $(document).ready(function(){
     $(".sort th").toggleClass("desc asc")   
   });
 
-  $(document).on("click", "tr.base td:not(.actions)", function(){
+  $(document).on("click", "table.backups tr.base td:not(.actions)", function(){
     $(this).parent().next().toggle().addClass("open");
     $(this).parent().toggleClass("open");
   });
 
-  $(document).on("click", "tr.base a.open", function(){
+  $(document).on("click", "table.backups tr.base a.open", function(){
     $(this).parent().parent().next().toggle().addClass("open");
     $(this).parent().parent().toggleClass("open");
   });
