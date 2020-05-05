@@ -127,4 +127,4 @@ pom.xml.tag
 **/helm/*/requirements.lock
 
 doc/public
-doc/data
+doc/data/crds

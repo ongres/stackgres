@@ -21,9 +21,9 @@ There are more general fine tuning parameters that could affect backups in more 
  support parallel reads.
 * Maximum size of generated files (`config.backup.tarSizeThreshold`): could be relevant on some
  storage. Database backups can be huge so splitting is a good practice to take into account.
-* Network rate limit (`config.backup.networkRateLimit`): could be important to limit costs and/or
+* Network rate limit (`config.backup.maxNetworkBandwitdh`): could be important to limit costs and/or
  resource usage.
-* Disk rate limit (`config.backup.diskRateLimit`): could be important to limit costs and/or
+* Disk rate limit (`config.backup.maxDiskBandwitdh`): could be important to limit costs and/or
  resource usage.
 
 We reccomend to configure all those aspects by creating a YAML values file for backup
@@ -31,16 +31,16 @@ We reccomend to configure all those aspects by creating a YAML values file for b
  StackGres operator similar to the following:
 
 ``` yaml
-config:
-  backup:
-    retention: 5
-    fullSchedule: "0 5 * * *"
-    fullWindow: 60
-    compression: lz4
-    uploadDiskConcurrency: 1
-    tarSizeThreshold: 1073741823
-    # networkRateLimit:
-    # diskRateLimit:
+configurations:
+  backupconfig:
+    baseBackups:
+      retention: 5
+      cronSchedule: "0 5 * * *"
+      compression: lz4
+      performance:
+        uploadDiskConcurrency: 1
+        # maxNetworkBandwitdh:
+        # maxDiskBandwitdh:
 ```
 
 ## Storage
@@ -60,16 +60,17 @@ By default backups are stored in a [MinIO](https://min.io/) service as a separat
  StackGres operator similar to the following:
 
 ``` yaml
-config:
-  backup:
-    minio:
-      create: false
+configurations:
+  backupconfig:
     # fill the preferred storage method with
     # specific credentials and configurations
-    s3: {}
-    s3Compatible: {}
-    gcs: {}
-    azureblob: {}
+    storage:
+      s3: {}
+      s3Compatible: {}
+      gcs: {}
+      azureBlob: {}
+minio:
+  create: false
 ```
 
 ## Restore
@@ -79,8 +80,9 @@ StackGres can perfrom a database restoration from a stackgres backup by just set
 
 ``` yaml
 cluster:
-  restore:
-    fromBackup: #the backup UID to restore
+  initialData:
+    restore:
+      fromBackup: #the backup UID to restore
 ```
 
 # Monitoring

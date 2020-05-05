@@ -60,11 +60,11 @@ spec:
       enablePathStyleAddressing: true
       endpoint: http://minio:9000
       awsCredentials:
-        secretKkeySelectors:
-          accessKey:
+        secretKeySelectors:
+          accessKeyId:
             key: accesskey
             name: minio
-          secretKey:
+          secretAccessKey:
             key: secretkey
             name: minio
 EOF
