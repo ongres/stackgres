@@ -94,7 +94,7 @@ check_init_data() {
 }
 
 check_replica_data() {
-  if run_query -p 5432 -h "$CLUSTER_NAME-replica" -c "$CLUSTER_NAME" -n $CLUSTER_NAMESPACE -i 1 -q "' SELECT num FROM fibonacci ORDER BY num;'" -d "test" \
+  if run_query -p 5432 -h "$CLUSTER_NAME-replicas" -c "$CLUSTER_NAME" -n $CLUSTER_NAMESPACE -i 1 -q "' SELECT num FROM fibonacci ORDER BY num;'" -d "test" \
     | tr -d '\n' \
     | grep -q "^123$"
   then
@@ -115,7 +115,7 @@ check_replication() {
   run_query -p 5432 -h "$CLUSTER_NAME-primary" -c "$CLUSTER_NAME" -n $CLUSTER_NAMESPACE -i 0 -q "'INSERT INTO fibonacci(num) VALUES (13);'" -d test
 
   PRIMARY_RESPONSE="$(run_query -p 5432 -h "$CLUSTER_NAME-primary" -c "$CLUSTER_NAME" -n $CLUSTER_NAMESPACE -i 0 -q "' SELECT num FROM fibonacci ORDER BY num;'" -d "test" | tr -d '\n')"
-  REPLICA_RESPONSE="$(run_query -p 5432 -h "$CLUSTER_NAME-replica" -c "$CLUSTER_NAME" -n $CLUSTER_NAMESPACE -i 1 -q "' SELECT num FROM fibonacci ORDER BY num;'" -d "test" | tr -d '\n')"
+  REPLICA_RESPONSE="$(run_query -p 5432 -h "$CLUSTER_NAME-replicas" -c "$CLUSTER_NAME" -n $CLUSTER_NAMESPACE -i 1 -q "' SELECT num FROM fibonacci ORDER BY num;'" -d "test" | tr -d '\n')"
 
   if [ "$PRIMARY_RESPONSE" = "1235813" ]
   then

@@ -47,7 +47,7 @@ public class BackupSpec {
     return MoreObjects.toStringHelper(this)
         .omitNullValues()
         .add("cluster", cluster)
-        .add("isPermanent", managedLifecycle)
+        .add("managedLifecycle", managedLifecycle)
         .toString();
   }
 

@@ -142,7 +142,7 @@ EOF
 }
 
 check_restored_data() {
-  REPLICA_RESPONSE=$(run_query -p 5432 -h "restored-from-s3-replica" -c "restored-from-s3" -n $CLUSTER_NAMESPACE -i 1 -q "' SELECT num FROM fibonacci ORDER BY num;'" -d "test")
+  REPLICA_RESPONSE=$(run_query -p 5432 -h "restored-from-s3-replicas" -c "restored-from-s3" -n $CLUSTER_NAMESPACE -i 1 -q "' SELECT num FROM fibonacci ORDER BY num;'" -d "test")
   if [ "$(echo "$REPLICA_RESPONSE" | tr -d '\n')" = "123" ]
   then
     echo "SUCCESS: restore replica db restored successfully"

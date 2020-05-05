@@ -12,12 +12,12 @@ The primary service is used to connect to the master node and the replica servic
 This services will follow a convention that is based in the cluster name and the function of the service, so that, the name of our services will be:
  
  - `<cluster-name>-primary`
- - `<cluster-name>-replica`
+ - `<cluster-name>-replicas`
 
 Both services will accept connections from ports `5432` and `5433`. 
 
 Therefore, given a cluster with name "stackgres" in the namespace "demo", the master node will accessible through 
- the URL: `stackgres-primary.demo.svc:5432`.  Meanwhile, the replica node is accessible through the URL: `stackgres-replica.demo.svc:5432`
+ the URL: `stackgres-primary.demo.svc:5432`.  Meanwhile, the replica node is accessible through the URL: `stackgres-replicas.demo.svc:5432`
 
 
 ## Getting the database's password

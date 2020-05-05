@@ -27,7 +27,7 @@ import org.jooq.lambda.Seq;
 public class PatroniServices implements StackGresClusterResourceStreamFactory {
 
   public static final String READ_WRITE_SERVICE = "-primary";
-  public static final String READ_ONLY_SERVICE = "-replica";
+  public static final String READ_ONLY_SERVICE = "-replicas";
   public static final String FAILOVER_SERVICE = "-failover";
   public static final String CONFIG_SERVICE = "-config";
 

@@ -50,7 +50,7 @@ public class StackGresBackupSpec implements KubernetesResource {
     return MoreObjects.toStringHelper(this)
         .omitNullValues()
         .add("cluster", sgCluster)
-        .add("isPermanent", managedLifecycle)
+        .add("managedLifecycle", managedLifecycle)
         .toString();
   }
 

@@ -70,7 +70,7 @@ public class StackGresBackupProcess {
         .add("status", status)
         .add("jobPod", jobPod)
         .add("failure", failure)
-        .add("subjectToRetentionPolicy", managedLifecycle)
+        .add("managedLifecycle", managedLifecycle)
         .add("timing", timing)
         .toString();
   }

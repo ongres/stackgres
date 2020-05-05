@@ -216,7 +216,7 @@ test_api_updated_backup_is_visible() {
     return 1
   fi
 
-  if run_curl -r "stackgres/sgbackup/$CLUSTER_NAMESPACE/$BACKUP_NAME" | run_jq '.spec.managedLifecycle' -r \
+  if run_curl -r "stackgres/sgbackup/$CLUSTER_NAMESPACE/$BACKUP_NAME" | jq '.spec.managedLifecycle' -r \
     | grep -q "^false$"
   then
     echo "Backup updates are being reflected in the api"
