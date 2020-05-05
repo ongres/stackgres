@@ -1,5 +1,5 @@
-{{ if .Values.profiles }}
-{{- range .Values.profiles }}
+{{ if .Values.instanceProfiles }}
+{{- range .Values.instanceProfiles }}
 ---
 apiVersion: stackgres.io/v1beta1
 kind: SGInstanceProfile

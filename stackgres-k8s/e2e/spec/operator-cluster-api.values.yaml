@@ -1,14 +1,15 @@
-config:
-  postgresql:
+configurations:
+  postgresconfig:
     postgresql.conf:
       shared_buffers: '32MB'
-  backup:
+  backupconfig:
     # Avoid backups before waiting for pods (since backup pods could biase the wait)
-    fullSchedule: '0 5 31 2 *'
-    fullWindow: 1
-    diskRateLimit: 16777216
+    baseBackups:
+      cronSchedule: '0 5 31 2 *'
+      performance:
+        maxDiskBandwitdh: 16777216
 cluster:
-  volumeSize: 128Mi
-sidecar:
-  prometheus:
-    allowAutobind: false
+  pods:
+    persistentVolume:
+      size: 128Mi
+  prometheusAutobind: false

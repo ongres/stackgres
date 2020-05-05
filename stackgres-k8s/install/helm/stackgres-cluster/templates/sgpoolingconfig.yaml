@@ -1,8 +1,8 @@
-{{ if .Values.config.create }}
+{{ if .Values.configurations.create }}
 apiVersion: stackgres.io/v1beta1
 kind: SGPoolingConfig
 metadata:
-  name: {{ .Values.cluster.poolingconfig }}
+  name: {{ .Values.cluster.configurations.sgPoolingConfig }}
   labels:
     app: {{ template "stackgres-cluster.name" . }}
     chart: {{ template "stackgres-cluster.chart" . }}
@@ -14,7 +14,7 @@ metadata:
   {{- end }}
 spec:
   pgBouncer:
-    {{- with (index .Values.config.pgbouncer "pgbouncer.ini") }}
+    {{- with (index .Values.configurations.poolingconfig.pgBouncer "pgbouncer.ini") }}
     pgbouncer.ini:
     {{- range $key, $value := . }}
       {{ $key }}: '{{ $value }}'

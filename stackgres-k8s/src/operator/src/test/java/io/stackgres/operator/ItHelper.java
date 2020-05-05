@@ -315,11 +315,10 @@ public class ItHelper {
         + " stackgres-cluster-configs"
         + " --namespace " + namespace
         + " /resources/stackgres-cluster"
-        + " --set-string config.postgresql.postgresql\\.conf.shared_buffers=32MB"
+        + " --set-string configurations.postgresconfig.postgresql\\.conf.shared_buffers=32MB"
         + " --set cluster.create=false"
-        + " --set config.backup.retention=5"
-        + " --set-string config.backup.fullSchedule='*/1 * * * *'"
-        + " --set config.backup.fullWindow=1"
+        + " --set configurations.backupconfig.baseBackups.retention=5"
+        + " --set-string configurations.backupconfig.baseBackups.cronSchedule='*/1 * * * *'"
         + " --set-string minio.persistence.size=128Mi")
       .filter(EXCLUDE_TTY_WARNING)
       .forEach(LOGGER::info);
@@ -339,12 +338,12 @@ public class ItHelper {
         + name
         + " --namespace " + namespace
         + " /resources/stackgres-cluster"
-        + " --set config.create=false"
-        + " --set profiles=null"
+        + " --set configurations.create=false"
+        + " --set instanceProfiles=null"
         + " --set-string cluster.name=" + name
         + " --set cluster.instances=" + instances
-        + " --set-string cluster.volumeSize=128Mi"
-        + " --set config.backup.minio.create=false")
+        + " --set-string cluster.pods.persistentVolume.size=128Mi"
+        + " --set minio.create=false")
       .filter(EXCLUDE_TTY_WARNING)
       .forEach(line -> LOGGER.info(line));
   }
@@ -359,12 +358,12 @@ public class ItHelper {
         + name
         + " /resources/stackgres-cluster "
         + " --namespace " + namespace
-        + " --set config.create=false"
-        + " --set profiles=null"
+        + " --set configurations.create=false"
+        + " --set instanceProfiles=null"
         + " --set-string cluster.name=" + name
         + " --set cluster.instances=" + instances
-        + " --set-string cluster.volumeSize=128Mi"
-        + " --set config.backup.minio.create=false "
+        + " --set-string cluster.pods.persistentVolume.size=128Mi"
+        + " --set minio.create=false "
         + " --reuse-values")
       .filter(EXCLUDE_TTY_WARNING)
       .forEach(line -> LOGGER.info(line));

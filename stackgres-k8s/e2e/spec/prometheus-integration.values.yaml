@@ -1,14 +1,15 @@
-config:
-  postgresql:
+configurations:
+  postgresconfig:
     postgresql.conf:
       shared_buffers: '32MB'
-  backup:
+  backupconfig:
     create: false
-    minio:
-      create: false
 cluster:
-  volumeSize: 128Mi
-  backupconfig: null
-sidecar:
-  prometheus:
-    allowAutobind: true
+  pods:
+    persistentVolume:
+      size: 128Mi
+  configurations:
+    sgBackupConfig: null
+  prometheusAutobind: true
+minio:
+  create: false

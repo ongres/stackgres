@@ -1,5 +1,5 @@
-config:
-  postgresql:
+configurations:
+  postgresconfig:
     postgresql.conf:
       shared_buffers: '32MB'
       log_min_duration_statement: '0'
@@ -8,17 +8,16 @@ config:
       log_disconnections: on
       log_lock_waits: on
       log_replication_commands: on
-  backup:
-    create: false
-    minio:
-      create: false
-  restore:
+  backupconfig:
     create: false
 cluster:
-  volumeSize: 128Mi
-  backupconfig: null
-sidecar:
-  prometheus:
-    allowAutobind: false
+  pods:
+    persistentVolume:
+      size: 128Mi
+  configurations:
+    sgBackupConfig: null
+  prometheusAutobind: false
+minio:
+  create: false
 nonProductionOptions:
   disableClusterPodAntiAffinity: true
