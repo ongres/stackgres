@@ -25,7 +25,7 @@ ___
 | Property                 | Required | Updatable | Type     | Default | Description |
 |:-------------------------|----------|-----------|:---------|:--------|:------------|
 | sgCluster                | ✓        |           | string   |         | {{< crd-field-description SGBackup.spec.sgCluster >}} |
-| subjectToRetentionPolicy |          | ✓         | booolean | false   | {{< crd-field-description SGBackup.spec.subjectToRetentionPolicy >}} |
+| managedLifecycle |          | ✓         | booolean | false   | {{< crd-field-description SGBackup.spec.managedLifecycle >}} |
 
 **Status**
 
@@ -43,7 +43,7 @@ ___
 | status                           | string  | {{< crd-field-description SGBackup.status.process.status >}} |
 | jobPod                           | string  | {{< crd-field-description SGBackup.status.process.jobPod >}} |
 | failure                          | string  | {{< crd-field-description SGBackup.status.process.failure >}} |
-| subjectToRetentionPolicy         | boolean | {{< crd-field-description SGBackup.status.process.subjectToRetentionPolicy >}} |
+| managedLifecycle         | boolean | {{< crd-field-description SGBackup.status.process.managedLifecycle >}} |
 | [timing](#backup-timing)         | object  | {{< crd-field-description SGBackup.status.process.timing >}} |
 
 ### Backup Timing
@@ -88,7 +88,7 @@ metadata:
   name: backup
 spec:
   sgCluster: stackgres
-  subjectToRetentionPolicy: true
+  managedLifecycle: true
 status:
   internalName: base_00000002000000000000000E 
   sgBackupConfig:
@@ -111,7 +111,7 @@ status:
   process:
     status: Completed
     jobPod: backup-backup-q79zq
-    subjectToRetentionPolicy: true
+    managedLifecycle: true
     timing:
       start: "2020-01-22T10:17:24.983902Z"
       stored: "2020-01-22T10:17:27.183Z"

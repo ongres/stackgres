@@ -87,7 +87,7 @@ metadata:
   name: "$BACKUP_NAME"
 spec:
   sgCluster: "$CLUSTER_NAME"
-  subjectToRetentionPolicy: true
+  managedLifecycle: false
 EOF
   
   wait_until is_backup_phase "Completed"
@@ -125,7 +125,7 @@ EOF
 }
 
 check_restored_data() {
-  REPLICA_RESPONSE=$(run_query -p 5432 -h "restored-from-aks-replica" -c "restored-from-aks" -n $CLUSTER_NAMESPACE -i 1 -q "' SELECT num FROM fibonacci ORDER BY num;'" -d "test")
+  REPLICA_RESPONSE=$(run_query -p 5432 -h "restored-from-aks-replicas" -c "restored-from-aks" -n $CLUSTER_NAMESPACE -i 1 -q "' SELECT num FROM fibonacci ORDER BY num;'" -d "test")
   if [ "$(echo "$REPLICA_RESPONSE" | tr -d '\n')" = "123" ]
   then
     echo "SUCCESS: restore replica db restored successfully"

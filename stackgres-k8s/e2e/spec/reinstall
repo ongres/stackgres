@@ -59,7 +59,7 @@ check_outer_primary_connections(){
 }
 
 check_outer_replica_connections(){
-  check_service_connectivity -i 0 -h "$CLUSTER_NAME-replica"
+  check_service_connectivity -i 0 -h "$CLUSTER_NAME-replicas"
 }
 
 check_cluster_replication(){

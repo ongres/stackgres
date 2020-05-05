@@ -39,8 +39,8 @@ backup_cr_template="${backup_cr_template}:{{ with .status.process.status }}{{ . 
 backup_cr_template="${backup_cr_template}:{{ with .status.internalName }}{{ . }}{{ end }}"
 backup_cr_template="${backup_cr_template}:{{ with .status.process.jobPod }}{{ . }}{{ end }}"
 backup_cr_template="${backup_cr_template}:{{ with .metadata.ownerReferences }}{{ with index . 0 }}{{ .kind }}{{ end }}{{ end }}"
-backup_cr_template="${backup_cr_template}:{{ if .spec.subjectToRetentionPolicy }}true{{ else }}false{{ end }}"
-backup_cr_template="${backup_cr_template}:{{ if .status.process.subjectToRetentionPolicy }}true{{ else }}false{{ end }}"
+backup_cr_template="${backup_cr_template}:{{ if .spec.managedLifecycle }}true{{ else }}false{{ end }}"
+backup_cr_template="${backup_cr_template}:{{ if .status.process.managedLifecycle }}true{{ else }}false{{ end }}"
 backup_cr_template="${backup_cr_template}{{ printf "'"\n"'" }}{{ end }}"
 kubectl get "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" \
   --template "$backup_cr_template" > /tmp/all-backups
@@ -64,7 +64,7 @@ metadata:
   name: "$BACKUP_NAME"
 spec:
   sgCluster: "$CLUSTER_NAME"
-  subjectToRetentionPolicy: false
+  managedLifecycle: true
 status:
   process:
     status: "$BACKUP_PHASE_RUNNING"
@@ -451,11 +451,19 @@ EOF
     [ "$IS_CRONJOB" = true ] || sleep 15
     exit 1
   else
+    existing_backup_is_permanent="$(grep "^is_permanent:" /tmp/current-backup | cut -d : -f 2-)"
+    is_backup_subject_to_retention_policy=""
+    if [ "$existing_backup_is_permanent" = "true" ]
+    then
+      is_backup_subject_to_retention_policy="false"
+    else
+      is_backup_subject_to_retention_policy="true"
+    fi
     kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
       {"op":"replace","path":"/status/internalName","value":"'"$WAL_G_BACKUP_NAME"'"},
       {"op":"replace","path":"/status/process/status","value":"'"$BACKUP_PHASE_COMPLETED"'"},
       {"op":"replace","path":"/status/process/failure","value":""},
-      {"op":"replace","path":"/status/process/subjectToRetentionPolicy","value":'"$(grep "^is_permanent:" /tmp/current-backup | cut -d : -f 2-)"'},
+      {"op":"replace","path":"/status/process/managedLifecycle","value":'$is_backup_subject_to_retention_policy'},
       {"op":"replace","path":"/status/process/timing","value":{
           "stored":"'"$(grep "^time:" /tmp/current-backup | cut -d : -f 2-)"'",
           "start":"'"$(grep "^start_time:" /tmp/current-backup | cut -d : -f 2-)"'",
@@ -514,8 +522,15 @@ EOF
     then
       existing_backup_is_permanent="$(grep "\"backup_name\":\"$backup_name\"" /tmp/existing-backups \
         | tr -d '{}"' | tr ',' '\n' | grep "^is_permanent:" | cut -d : -f 2-)"
+      is_backup_subject_to_retention_policy=""
+      if [ "$existing_backup_is_permanent" = "true" ]
+      then
+        is_backup_subject_to_retention_policy="false"
+      else
+        is_backup_subject_to_retention_policy="true"
+      fi
       kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$backup_cr_name" --type json --patch '[
-      {"op":"replace","path":"/status/process/subjectToRetentionPolicy","value":'"$existing_backup_is_permanent"'}
+      {"op":"replace","path":"/status/process/managedLifecycle","value":'$is_backup_subject_to_retention_policy'}
       ]'
     fi
   done

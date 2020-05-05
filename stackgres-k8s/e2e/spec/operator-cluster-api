@@ -156,7 +156,7 @@ test_cluster_pod_count() {
     name: "$BACKUP_NAME"
   spec:
     sgCluster: "$CLUSTER_NAME"
-    subjectToRetentionPolicy: true
+    managedLifecycle: false
 EOF
 
   if ! wait_until eval '[ "$(get_cluster_pod_count)" -ne 2 ]'

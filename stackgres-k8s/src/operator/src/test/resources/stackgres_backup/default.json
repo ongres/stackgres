@@ -42,7 +42,7 @@
       "status": "Completed",
       "failure": "",
       "jobPod": "backup-with-default-storage-backup-1578646560-mr7pg",
-      "subjectToRetentionPolicy": false,
+      "managedLifecycle": false,
       "timing": {
         "start": "2020-01-10T08:56:06.879707Z",
         "end": "2020-01-10T08:56:09.098819Z",
@@ -53,7 +53,7 @@
       "hostname": "backup-with-default-storage-1",
       "systemIdentifier": "6780234708837765169",
       "postgresVersion": "110006",
-      "subjectToRetentionPolicy": false,
+      "managedLifecycle": false,
       "pgData": "/var/lib/postgresql/data",
       "size": {
         "compressed": 6686407,

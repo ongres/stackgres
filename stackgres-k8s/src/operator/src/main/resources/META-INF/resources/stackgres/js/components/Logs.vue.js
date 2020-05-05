@@ -185,7 +185,7 @@ var Logs = Vue.component("sg-logs", {
 				})
 
 				/* //Filter by isPermanent
-				if(bk.subjectToRetentionPolicy.length && (!r.children(".subjectToRetentionPolicy."+bk.subjectToRetentionPolicy).length))
+				if(bk.managedLifecycle.length && (!r.children(".managedLifecycle."+bk.managedLifecycle).length))
 					show = false;
 
 				//Filter by phase

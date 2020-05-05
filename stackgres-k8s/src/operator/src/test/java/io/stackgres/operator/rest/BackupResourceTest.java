@@ -72,7 +72,7 @@ class BackupResourceTest
     assertEquals("bfb53778-f59a-11e9-b1b5-0242ac110002", resource.getMetadata().getUid());
     assertNotNull(resource.getSpec());
     assertEquals("stackgres", resource.getSpec().getCluster());
-    assertEquals(false, resource.getSpec().getIsPermanent());
+    assertEquals(false, resource.getSpec().getManagedLifecycle());
     assertNotNull(resource.getStatus());
     assertNotNull(resource.getStatus().getBackupConfig());
     assertEquals("lz4", resource.getStatus().getBackupConfig().getBaseBackup().getCompressionMethod());
@@ -102,7 +102,7 @@ class BackupResourceTest
     assertEquals("218104056", resource.getStatus().getBackupInformation().getLsn().getEnd());
     assertEquals("2020-01-10T08:56:09.098819Z", resource.getStatus().getProcess().getTiming().getEnd());
     assertEquals("backup-with-default-storage-1", resource.getStatus().getBackupInformation().getHostname());
-    assertEquals(false, resource.getStatus().getProcess().getSubjectToRetentionPolicy());
+    assertEquals(false, resource.getStatus().getProcess().getManagedLifecycle());
     assertEquals("base_00000002000000000000000D", resource.getStatus().getInternalName());
     assertEquals("110006", resource.getStatus().getBackupInformation().getPostgresVersion());
     assertEquals("Completed", resource.getStatus().getProcess().getStatus());
@@ -124,7 +124,7 @@ class BackupResourceTest
     assertEquals("bfb53778-f59a-11e9-b1b5-0242ac110002", resource.getMetadata().getUid());
     assertNotNull(resource.getSpec());
     assertEquals("stackgres", resource.getSpec().getSgCluster());
-    assertEquals(false, resource.getSpec().getSubjectToRetentionPolicy());
+    assertEquals(false, resource.getSpec().getManagedLifecycle());
     switch (operation) {
       case UPDATE:
         assertNotNull(resource.getStatus());
@@ -157,7 +157,7 @@ class BackupResourceTest
         assertEquals("218104056", resource.getStatus().getBackupInformation().getLsn().getEnd());
         assertEquals("2020-01-10T08:56:09.098819Z", resource.getStatus().getProcess().getTiming().getEnd());
         assertEquals("backup-with-default-storage-1", resource.getStatus().getBackupInformation().getHostname());
-        assertEquals(false, resource.getStatus().getProcess().getSubjectToRetentionPolicy());
+        assertEquals(false, resource.getStatus().getProcess().getManagedLifecycle());
         assertEquals("base_00000002000000000000000D", resource.getStatus().getInternalName());
         assertEquals("110006", resource.getStatus().getBackupInformation().getPostgresVersion());
         assertEquals("Completed", resource.getStatus().getProcess().getStatus());

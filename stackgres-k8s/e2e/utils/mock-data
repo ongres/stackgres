@@ -49,7 +49,7 @@ check_mock_data_replication(){
   SERVER="primary"
   RESPONSE_PRIMARY=$(read_mock_table -i 1)
   
-  SERVER="replica"
+  SERVER="replicas"
   RESPONSE_REPlICA=$(read_mock_table -i 0)
   if [ "$RESPONSE_PRIMARY" = "$RESPONSE_REPlICA" ]
   then

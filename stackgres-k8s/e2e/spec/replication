@@ -24,7 +24,7 @@ create_database_primary() {
 }
 
 create_database_replica() {
-  if run_query -p 5432 -h "$CLUSTER_NAME-replica" -i 1 -q "'CREATE TABLE fibonacci(num integer);'" -d test > "${LOG_PATH}/test1.log"
+  if run_query -p 5432 -h "$CLUSTER_NAME-replicas" -i 1 -q "'CREATE TABLE fibonacci(num integer);'" -d test > "${LOG_PATH}/test1.log"
   then
     echo "FAIL: It's possible to create a table in the replica node"
     return 1
@@ -41,7 +41,7 @@ insert_data(){
   run_query -p 5432 -h "$CLUSTER_NAME-primary" -i 1 -q "'INSERT INTO fibonacci(num) VALUES (3);'" -d test
 
   PRIMARY_RESPONSE=$(run_query -p 5432 -h "$CLUSTER_NAME-primary" -i 1 -q "' SELECT num FROM fibonacci ORDER BY num;'" -d "test")
-  REPLICA_RESPONSE=$(run_query -p 5432 -h "$CLUSTER_NAME-replica" -i 1 -q "' SELECT num FROM fibonacci ORDER BY num;'" -d "test")
+  REPLICA_RESPONSE=$(run_query -p 5432 -h "$CLUSTER_NAME-replicas" -i 1 -q "' SELECT num FROM fibonacci ORDER BY num;'" -d "test")
 
   if [ "$(echo "$PRIMARY_RESPONSE" | tr -d '\n')" = "123" ]
   then

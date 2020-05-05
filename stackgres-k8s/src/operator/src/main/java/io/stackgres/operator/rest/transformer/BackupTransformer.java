@@ -61,7 +61,7 @@ public class BackupTransformer extends AbstractResourceTransformer<BackupDto, St
     }
     StackGresBackupSpec transformation = new StackGresBackupSpec();
     transformation.setSgCluster(source.getCluster());
-    transformation.setSubjectToRetentionPolicy(source.getIsPermanent());
+    transformation.setManagedLifecycle(source.getManagedLifecycle());
     return transformation;
   }
 
@@ -71,7 +71,7 @@ public class BackupTransformer extends AbstractResourceTransformer<BackupDto, St
     }
     BackupSpec transformation = new BackupSpec();
     transformation.setCluster(source.getSgCluster());
-    transformation.setIsPermanent(source.getSubjectToRetentionPolicy());
+    transformation.setManagedLifecycle(source.getManagedLifecycle());
     return transformation;
   }
 
@@ -120,7 +120,7 @@ public class BackupTransformer extends AbstractResourceTransformer<BackupDto, St
 
       final BackupProcess process = new BackupProcess();
       transformation.setProcess(process);
-      process.setSubjectToRetentionPolicy(sourceProcess.getSubjectToRetentionPolicy());
+      process.setManagedLifecycle(sourceProcess.getManagedLifecycle());
       process.setJobPod(sourceProcess.getJobPod());
       process.setStatus(sourceProcess.getStatus());
       process.setFailure(sourceProcess.getFailure());
