@@ -1,9 +1,9 @@
 ---
-title: Resource profiles
+title: Instance profiles
 weight: 3
 ---
 
-The resource profile CR represent the CPU and memory resources assigned to each Pod of the cluster.
+The instance profile CR represent the CPU and memory resources assigned to each Pod of the cluster.
 
 ___
 **Kind:** SGInstanceProfile

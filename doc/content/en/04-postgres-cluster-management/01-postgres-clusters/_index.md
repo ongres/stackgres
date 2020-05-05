@@ -22,11 +22,12 @@ ___
 |:-------------------------------------------------------------------------------------------|----------|-----------|:---------|:------------------------------------|:------------|
 | postgresVersion                                                                            | ✓        | ✓         | string   |                                     | {{< crd-field-description SGCluster.spec.postgresVersion >}} |
 | instances                                                                                  | ✓        | ✓         | integer  |                                     | {{< crd-field-description SGCluster.spec.instances >}} |
-| [sgInstanceProfile]({{% relref "/04-postgres-cluster-management/03-resource-profiles" %}}) |          |           | string   | will be generated                   | {{< crd-field-description SGCluster.spec.sgInstanceProfile >}} |
+| [sgInstanceProfile]({{% relref "/04-postgres-cluster-management/03-instance-profiles" %}}) |          |           | string   | will be generated                   | {{< crd-field-description SGCluster.spec.sgInstanceProfile >}} |
 | [pods](#pods)                                                                              | ✓        | ✓         | object   |                                     | {{< crd-field-description SGCluster.spec.pods >}} |
 | [configurations](#configurations)                                                          |          |           | object   |                                     | {{< crd-field-description SGCluster.spec.configurations >}} |
 | prometheusAutobind                                                                         |          | ✓         | boolean  | false                               | {{< crd-field-description SGCluster.spec.prometheusAutobind >}} |
 | [initialData](#initial-data-configuration)                                                 |          |           | object   |                                     | {{< crd-field-description SGCluster.spec.initialData >}} |
+| [distributedLogs](#distributed-logs)                                                       |          | ✓         | object   |                                     | {{< crd-field-description SGCluster.spec.distributedLogs >}} |
 | [nonProductionOptions](#non-production-options)                                            |          | ✓         | array    |                                     | {{< crd-field-description SGCluster.spec.nonProductionOptions >}} |
 
 Example:
@@ -65,8 +66,9 @@ A sidecar container is a container that adds functionality to PostgreSQL or to t
  a edge proxy from client to PostgreSQL instances or between PostgreSQL instances. It enables
  network metrics collection to provide connection statistics.
 * `pgbouncer`: a container with pgbouncer as the connection pooling for the PostgreSQL instances.
-* `prometheus-postgres-exporter`: a container with postgres exporter at the metrics exporter for
+* `prometheus-postgres-exporter`: a container with postgres exporter that exports metrics for
  the PostgreSQL instances.
+* `fluent-bit`: a container with fluent-bit that send logs to a distributed logs cluster.
 * `postgres-util`: a container with psql and all PostgreSQL common tools in order to connect to the
  database directly as root to perform any administration tasks.
 
@@ -162,6 +164,25 @@ spec:
     restore:
       fromBackup: d7e660a9-377c-11ea-b04b-0242ac110004
       downloadDiskConcurrency: 1
+```
+
+## Distributed logs
+Specifies the distributed logs cluster to send logs to:
+
+| Property                                                                                  | Required | Updatable | Type     | Default | Description |
+|:------------------------------------------------------------------------------------------|----------|-----------|:---------|:--------|:------------|
+| [sgDistributedLogs]({{% relref "/04-postgres-cluster-management/06-distributed-logs" %}}) |          |           | string   |         | {{< crd-field-description SGCluster.spec.distributedLogs.sgDistributedLogs >}} |
+
+Example:
+
+```yaml
+apiVersion: stackgres.io/v1beta1
+kind: SGCluster
+metadata:
+  name: stackgres
+spec:
+  distributedLogs: 
+    sgDistributedLogs: distributedlogs
 ```
 
 ## Non Production options
