@@ -415,7 +415,7 @@ var Backups = Vue.component("sg-backup", {
 									</tr>
 									<tr class="details Running" :class="'backup-'+back.data.metadata.namespace+'-'+back.data.metadata.name" v-else-if="back.data.status.process.status === 'Running'">
 										<td :colspan="(isCluster) ? 6 : 8" class="center">
-											<strong>Backup Runninge</strong><br/>
+											<strong>Backup Running</strong><br/>
 										</td>
 									</tr>
 									<tr class="details Failed" :class="'backup-'+back.data.metadata.namespace+'-'+back.data.metadata.name" v-else-if="back.data.status.process.status === 'Failed'">
