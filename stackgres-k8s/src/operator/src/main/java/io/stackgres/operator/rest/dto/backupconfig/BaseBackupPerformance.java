@@ -16,29 +16,29 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 @RegisterForReflection
 public class BaseBackupPerformance {
 
-  @JsonProperty("networkRateLimit")
-  private long networkRateLimit;
+  @JsonProperty("maxNetworkBandwitdh")
+  private long maxNetworkBandwitdh;
 
-  @JsonProperty("diskRateLimit")
-  private long diskRateLimit;
+  @JsonProperty("maxDiskBandwitdh")
+  private long maxDiskBandwitdh;
 
   @JsonProperty("uploadDiskConcurrency")
   private int uploadDiskConcurrency;
 
   public long getNetworkRateLimit() {
-    return networkRateLimit;
+    return maxNetworkBandwitdh;
   }
 
-  public void setNetworkRateLimit(long networkRateLimit) {
-    this.networkRateLimit = networkRateLimit;
+  public void setNetworkRateLimit(long maxNetworkBandwitdh) {
+    this.maxNetworkBandwitdh = maxNetworkBandwitdh;
   }
 
   public long getDiskRateLimit() {
-    return diskRateLimit;
+    return maxDiskBandwitdh;
   }
 
-  public void setDiskRateLimit(long diskRateLimit) {
-    this.diskRateLimit = diskRateLimit;
+  public void setDiskRateLimit(long maxDiskBandwitdh) {
+    this.maxDiskBandwitdh = maxDiskBandwitdh;
   }
 
   public int getUploadDiskConcurrency() {
@@ -52,8 +52,8 @@ public class BaseBackupPerformance {
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
-        .add("networkRateLimit", networkRateLimit)
-        .add("diskRateLimit", diskRateLimit)
+        .add("maxNetworkBandwitdh", maxNetworkBandwitdh)
+        .add("maxDiskBandwitdh", maxDiskBandwitdh)
         .add("uploadDiskConcurrency", uploadDiskConcurrency)
         .toString();
   }
