@@ -1,14 +1,14 @@
 {{- /*
 Throw an error if create minio without default backup options
 */ -}}
-{{- if and .Values.minio.create (not (and .Values.configurations.create .Values.configurations.backupconfig.create (not (or .Values.configurations.backupconfig.storage.s3 .Values.configurations.backupconfig.storage.s3Compatible .Values.configurations.backupconfig.storage.gcs .Values.configurations.backupconfig.storage.azureBlob)))) -}}
-{{- fail "Disable minio creation (--set minio.create=false) if not using default backup values or not creating backup configuration" -}}
+{{- if and .Values.nonProductionOptions.createMinio (not (and .Values.configurations.create .Values.configurations.backupconfig.create (not (or .Values.configurations.backupconfig.storage.s3 .Values.configurations.backupconfig.storage.s3Compatible .Values.configurations.backupconfig.storage.gcs .Values.configurations.backupconfig.storage.azureBlob)))) -}}
+{{- fail "Disable minio creation (--set nonProductionOptions.createMinio=false) if not using default backup values or not creating backup configuration" -}}
 {{- end -}}
 {{- /*
 Throw an error if not create minio with default backup options
 */ -}}
-{{- if and (not .Values.minio.create) (and .Values.configurations.create .Values.configurations.backupconfig.create (not (or .Values.configurations.backupconfig.storage.s3 .Values.configurations.backupconfig.storage.s3Compatible .Values.configurations.backupconfig.storage.gcs .Values.configurations.backupconfig.storage.azureBlob))) -}}
-{{- fail "Enable minio creation (--set minio.create=true) if using default backup values and creating backup configuration" -}}
+{{- if and (not .Values.nonProductionOptions.createMinio) (and .Values.configurations.create .Values.configurations.backupconfig.create (not (or .Values.configurations.backupconfig.storage.s3 .Values.configurations.backupconfig.storage.s3Compatible .Values.configurations.backupconfig.storage.gcs .Values.configurations.backupconfig.storage.azureBlob))) -}}
+{{- fail "Enable minio creation (--set nonProductionOptions.createMinio=true) if using default backup values and creating backup configuration" -}}
 {{- end -}}
 {{ if and .Values.configurations.create .Values.configurations.backupconfig.create }}
 apiVersion: stackgres.io/v1beta1

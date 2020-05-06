@@ -134,7 +134,6 @@ distributedLogs:
     #  storageClass: "-"
 
 minio:
-  create: true
   persistence:
     enabled: true
     size: 10Gi
@@ -146,3 +145,4 @@ minio:
 #You should only set following options for non production environment
 nonProductionOptions:
   disableClusterPodAntiAffinity: true
+  createMinio: true

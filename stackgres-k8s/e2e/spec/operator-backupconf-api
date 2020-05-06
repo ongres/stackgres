@@ -4,7 +4,7 @@ e2e_test_install() {
   BACKUPCONF="backupconf"
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 --set cluster.create=false --set cluster.configurations.sgBackupConfig="$BACKUPCONF" \
-    --set configurations.backupconfig.create=true --set minio.create=false \
+    --set configurations.backupconfig.create=true --set nonProductionOptions.createMinio=false \
     --set-string configurations.backupconfig.storage.s3Compatible.bucket=test \
     --set-string configurations.backupconfig.storage.s3Compatible.awsCredentials.secretKeySelectors.accessKeyId.name=test \
     --set-string configurations.backupconfig.storage.s3Compatible.awsCredentials.secretKeySelectors.accessKeyId.key=test \

@@ -39,6 +39,6 @@ generate_demo_yamls() {
     --set configurations.create=false \
     --set instanceProfiles=null \
     --set cluster.instances=2 \
-    --set minio.create=false \
+    --set nonProductionOptions.createMinio=false \
     > "$TARGET_PATH/demo/simple-cluster.yml"
 }
