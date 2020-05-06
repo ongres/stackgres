@@ -22,7 +22,7 @@ configurations:
               key: secretkey
         region: k8s
         enablePathStyleAddressing: true
-        endpoint: http://restore-backup-minio.restore-backup.svc.cluster.local:900
+        endpoint: http://restore-backup-minio.restore-backup.svc.cluster.local:9000
 cluster:
   pods:
     persistentVolume:

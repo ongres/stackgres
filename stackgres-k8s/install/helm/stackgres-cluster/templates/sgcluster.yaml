@@ -41,7 +41,7 @@ spec:
     disableConnectionPooling: {{ .Values.cluster.pods.disableConnectionPooling }}
     disablePostgresUtil: {{ .Values.cluster.pods.disablePostgresUtil }}
     disableMetricsExporter: {{ .Values.cluster.pods.disableMetricsExporter }}
-  {{- if .Values.cluster.distributedLogs.enabled }}
+  {{- if .Values.distributedLogs.enabled }}
   distributedLogs:
     sgDistributedLogs: {{ .Values.cluster.distributedLogs.sgDistributedLogs }}
   {{- end }}
