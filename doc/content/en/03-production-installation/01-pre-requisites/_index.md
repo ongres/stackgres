@@ -155,3 +155,7 @@ We reccomend to disable all non production options in a production environment. 
 ``` yaml
 nonProductionOptions: {}
 ```
+
+The use of MinIO in production is not considered a bad practice but we reccomend to install MinIO
+ separately to in order to be able to change version independently from the StackGres cluster helm
+ chart.
