@@ -28,7 +28,7 @@ public class BackupConfigSpec {
   @JsonProperty("baseBackups")
   @NotNull(message = "Base backup configuration is required")
   @Valid
-  private BaseBackupConfig baseBackup;
+  private BaseBackupConfig baseBackups;
 
   public BackupStorage getStorage() {
     return storage;
@@ -38,12 +38,12 @@ public class BackupConfigSpec {
     this.storage = storage;
   }
 
-  public BaseBackupConfig getBaseBackup() {
-    return baseBackup;
+  public BaseBackupConfig getBaseBackups() {
+    return baseBackups;
   }
 
-  public void setBaseBackup(BaseBackupConfig baseBackup) {
-    this.baseBackup = baseBackup;
+  public void setBaseBackup(BaseBackupConfig baseBackups) {
+    this.baseBackups = baseBackups;
   }
 
   @Override
@@ -51,7 +51,7 @@ public class BackupConfigSpec {
     return MoreObjects.toStringHelper(this)
         .omitNullValues()
         .add("storage", storage)
-        .add("baseBackup", getBaseBackup())
+        .add("baseBackups", baseBackups)
         .toString();
   }
 

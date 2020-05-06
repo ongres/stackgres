@@ -58,22 +58,22 @@ public class BackupConfigTransformer
       return null;
     }
     StackGresBackupConfigSpec transformation = new StackGresBackupConfigSpec();
-    Optional.ofNullable(source.getBaseBackup())
+    Optional.ofNullable(source.getBaseBackups())
         .ifPresent(sourceBaseBackup -> {
           final StackGresBaseBackupConfig baseBackup = new StackGresBaseBackupConfig();
           transformation.setBaseBackups(baseBackup);
-          baseBackup.setCompression(source.getBaseBackup().getCompressionMethod());
-          baseBackup.setCronSchedule(sourceBaseBackup.getFullSchedule());
+          baseBackup.setCompression(source.getBaseBackups().getCompressionMethod());
+          baseBackup.setCronSchedule(sourceBaseBackup.getCronSchedule());
           baseBackup.setRetention(sourceBaseBackup.getRetention());
         });
 
-    Optional.ofNullable(source.getBaseBackup())
+    Optional.ofNullable(source.getBaseBackups())
         .map(BaseBackupConfig::getPerformance)
         .ifPresent(sourcePerformance -> {
           final StackGresBaseBackupPerformance performance = new StackGresBaseBackupPerformance();
           transformation.getBaseBackups().setPerformance(performance);
-          performance.setMaxDiskBandwitdh(sourcePerformance.getDiskRateLimit());
-          performance.setMaxNetworkBandwitdh(sourcePerformance.getNetworkRateLimit());
+          performance.setMaxDiskBandwitdh(sourcePerformance.getMaxDiskBandwitdh());
+          performance.setMaxNetworkBandwitdh(sourcePerformance.getMaxNetworkBandwitdh());
           performance.setUploadDiskConcurrency(sourcePerformance.getUploadDiskConcurrency());
         });
 
@@ -227,7 +227,7 @@ public class BackupConfigTransformer
         .ifPresent(sourceBaseBackup -> {
           final BaseBackupConfig baseBackup = new BaseBackupConfig();
           baseBackup.setCompressionMethod(sourceBaseBackup.getCompression());
-          baseBackup.setFullSchedule(sourceBaseBackup.getCronSchedule());
+          baseBackup.setCronSchedule(sourceBaseBackup.getCronSchedule());
           baseBackup.setRetention(sourceBaseBackup.getRetention());
           transformation.setBaseBackup(baseBackup);
         });
@@ -236,11 +236,11 @@ public class BackupConfigTransformer
         .map(StackGresBaseBackupConfig::getPerformance)
         .ifPresent(sourcePerformance -> {
           final BaseBackupPerformance performance = new BaseBackupPerformance();
-          performance.setDiskRateLimit(sourcePerformance.getMaxDiskBandwitdh());
-          performance.setNetworkRateLimit(sourcePerformance.getMaxNetworkBandwitdh());
+          performance.setMaxDiskBandwitdh(sourcePerformance.getMaxDiskBandwitdh());
+          performance.setMaxNetworkBandwitdh(sourcePerformance.getMaxNetworkBandwitdh());
           performance.setUploadDiskConcurrency(sourcePerformance.getUploadDiskConcurrency());
 
-          transformation.getBaseBackup().setPerformance(performance);
+          transformation.getBaseBackups().setPerformance(performance);
         });
 
     transformation.setStorage(getResourceStorage(source.getStorage()));

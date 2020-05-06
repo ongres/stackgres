@@ -25,19 +25,19 @@ public class BaseBackupPerformance {
   @JsonProperty("uploadDiskConcurrency")
   private Integer uploadDiskConcurrency;
 
-  public Long getNetworkRateLimit() {
+  public Long getMaxNetworkBandwitdh() {
     return maxNetworkBandwitdh;
   }
 
-  public void setNetworkRateLimit(Long maxNetworkBandwitdh) {
+  public void setMaxNetworkBandwitdh(Long maxNetworkBandwitdh) {
     this.maxNetworkBandwitdh = maxNetworkBandwitdh;
   }
 
-  public Long getDiskRateLimit() {
+  public Long getMaxDiskBandwitdh() {
     return maxDiskBandwitdh;
   }
 
-  public void setDiskRateLimit(Long maxDiskBandwitdh) {
+  public void setMaxDiskBandwitdh(Long maxDiskBandwitdh) {
     this.maxDiskBandwitdh = maxDiskBandwitdh;
   }
 
