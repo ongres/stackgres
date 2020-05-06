@@ -19,15 +19,15 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 public class StackGresBaseBackupPerformance {
 
   @JsonProperty("maxNetworkBandwitdh")
-  private long maxNetworkBandwitdh;
+  private Long maxNetworkBandwitdh;
 
   @JsonProperty("maxDiskBandwitdh")
-  private long maxDiskBandwitdh;
+  private Long maxDiskBandwitdh;
 
   @JsonProperty("uploadDiskConcurrency")
-  private int uploadDiskConcurrency;
+  private Integer uploadDiskConcurrency;
 
-  public long getMaxNetworkBandwitdh() {
+  public Long getMaxNetworkBandwitdh() {
     return maxNetworkBandwitdh;
   }
 
@@ -35,7 +35,7 @@ public class StackGresBaseBackupPerformance {
     this.maxNetworkBandwitdh = maxNetworkBandwitdh;
   }
 
-  public long getMaxDiskBandwitdh() {
+  public Long getMaxDiskBandwitdh() {
     return maxDiskBandwitdh;
   }
 
@@ -43,11 +43,11 @@ public class StackGresBaseBackupPerformance {
     this.maxDiskBandwitdh = maxDiskBandwitdh;
   }
 
-  public int getUploadDiskConcurrency() {
+  public Integer getUploadDiskConcurrency() {
     return uploadDiskConcurrency;
   }
 
-  public void setUploadDiskConcurrency(int uploadDiskConcurrency) {
+  public void setUploadDiskConcurrency(Integer uploadDiskConcurrency) {
     this.uploadDiskConcurrency = uploadDiskConcurrency;
   }
 

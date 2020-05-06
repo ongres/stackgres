@@ -46,8 +46,9 @@ public class RestoreConfigMap extends AbstractBackupConfigMap
               restoreContext.getBackup().getSpec().getSgCluster(),
               restoreContext.getBackup().getStatus().getBackupConfig()));
 
-          putOrRemoveIfNull(data, "WALG_DOWNLOAD_CONCURRENCY",
-              String.valueOf(restoreContext.getRestore().getDownloadDiskConcurrency()));
+          Optional.ofNullable(restoreContext.getRestore().getDownloadDiskConcurrency())
+              .ifPresent(downloadDiskConcurrency -> data.put(
+                  "WALG_DOWNLOAD_CONCURRENCY", convertEnvValue(downloadDiskConcurrency)));
 
           return new ConfigMapBuilder()
               .withNewMetadata()
@@ -67,12 +68,8 @@ public class RestoreConfigMap extends AbstractBackupConfigMap
         + "/" + ClusterStatefulSet.GCS_CREDENTIALS_FILE_NAME;
   }
 
-  private void putOrRemoveIfNull(Map<String, String> data, String key, String value) {
-    if (value != null) {
-      data.put(key, value);
-    } else {
-      data.remove(key);
-    }
+  private <T> String convertEnvValue(T value) {
+    return value.toString();
   }
 
 }

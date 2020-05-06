@@ -30,8 +30,8 @@ ___
 
 | Property                                   | Required | Updatable | Type     | Default                      | Description |
 |:-------------------------------------------|----------|-----------|:---------|:-----------------------------|:------------|
-| size                                       | ✓        |           | string   |                              | {{< crd-field-description SGDistributedLogs.persistentVolume.size >}} |
-| storageClass                               | ✓        |           | string   | default storage class        | {{< crd-field-description SGDistributedLogs.persistentVolume.storageClass >}} |
+| size                                       | ✓        |           | string   |                              | {{< crd-field-description SGDistributedLogs.spec.persistentVolume.size >}} |
+| storageClass                               | ✓        |           | string   | default storage class        | {{< crd-field-description SGDistributedLogs.spec.persistentVolume.storageClass >}} |
 
 ## Non Production options
 

@@ -24,8 +24,8 @@ ___
 
 | Property        | Required | Updatable | Type   | Default   | Description |
 |:----------------|----------|-----------|:-------|:----------|:------------|
-| postgresVersion |          |           | string | 12        |{{< crd-field-description SGPostgresConfig.spec.postgresVersion >}} |
-| postgresql.conf |          | ✓         | object | see below |{{< crd-field-description "SGPostgresConfig.spec.postgresql\.conf" >}} |
+| postgresVersion |          |           | string | 12        | {{< crd-field-description SGPostgresConfig.spec.postgresVersion >}} |
+| postgresql.conf |          | ✓         | object | see below | {{< crd-field-description "SGPostgresConfig.spec.postgresql\.conf" >}} |
 
 Default value of `postgresql.conf` property:
 

@@ -23,7 +23,7 @@ public class BaseBackupConfig {
   private int retention;
 
   @JsonProperty("cronSchedule")
-  private String fullSchedule;
+  private String cronSchedule;
 
   @JsonProperty("compression")
   private String compressionMethod;
@@ -38,12 +38,12 @@ public class BaseBackupConfig {
     this.retention = retention;
   }
 
-  public String getFullSchedule() {
-    return fullSchedule;
+  public String getCronSchedule() {
+    return cronSchedule;
   }
 
-  public void setFullSchedule(String fullSchedule) {
-    this.fullSchedule = fullSchedule;
+  public void setCronSchedule(String cronSchedule) {
+    this.cronSchedule = cronSchedule;
   }
 
   public String getCompressionMethod() {
@@ -66,7 +66,7 @@ public class BaseBackupConfig {
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .add("retention", retention)
-        .add("fullSchedule", fullSchedule)
+        .add("cronSchedule", cronSchedule)
         .add("compression", compressionMethod)
         .add("performance", performance)
         .toString();

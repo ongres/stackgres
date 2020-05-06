@@ -3,7 +3,7 @@
 e2e_test_install() {
   PROFILE="size-xs"
 
-  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 --set cluster.create=false --set cluster.profile="$PROFILE"
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 --set cluster.create=false --set cluster.sgInstanceProfile="$PROFILE"
 
   deploy_curl_pod "$CLUSTER_NAMESPACE"
 

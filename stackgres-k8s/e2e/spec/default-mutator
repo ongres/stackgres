@@ -177,7 +177,7 @@ EOF
         size: '5Gi'
       disableConnectionPooling: false
       disableMetricsExporter: true
-      disablePostgresUtil: true        
+      disablePostgresUtil: true
     nonProductionOptions:
       disableClusterPodAntiAffinity: true
 EOF

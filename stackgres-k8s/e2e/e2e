@@ -16,7 +16,6 @@ SPEC_PATH="$(dirname "$0")/spec"
 TARGET_PATH="${TARGET_PATH:-$(dirname "$0")/target}"
 TARGET_PATH="$(realpath $TARGET_PATH)"
 LOG_PATH="$TARGET_PATH"
-TRAP_ENABLED="${TRAP_ENABLED:-false}"
 
 E2E_ENV="${E2E_ENV:-kind}"
 K8S_VERSION="${K8S_VERSION:-$DEFAULT_K8S_VERSION}"
@@ -34,7 +33,7 @@ fi
 OPERATOR_CHART_PATH="${OPERATOR_CHART_PATH:-"$STACKGRES_PATH/install/helm/stackgres-operator/"}"
 CLUSTER_CHART_PATH="${CLUSTER_CHART_PATH:-"$STACKGRES_PATH/install/helm/stackgres-cluster/"}"
 
-export SHELL IMAGE_TAG IMAGE_NAME DEFAULT_K8S_VERSION KUBECONFIG SPEC_PATH TARGET_PATH TRAP_ENABLED OPERATOR_CHART_PATH CLUSTER_CHART_PATH
+export SHELL IMAGE_TAG IMAGE_NAME DEFAULT_K8S_VERSION KUBECONFIG SPEC_PATH TARGET_PATH TRAP_FILE OPERATOR_CHART_PATH CLUSTER_CHART_PATH
 export E2E_ENV K8S_VERSION E2E_TIMEOUT E2E_SKIP_SETUP E2E_OPERATOR_PULL_POLICY E2E_BUILD_OPERATOR E2E_WAIT_OPERATOR
 
 if ! command -v local > /dev/null 2>&1
@@ -55,6 +54,7 @@ trap_kill() {
 }
 
 trap_callback() {
+  echo hello
   if [ -s "$TRAP_FILE" ]
   then
     sleep 1 || true # Let the tails write to output remaining logs.
@@ -67,8 +67,7 @@ then
   mkdir -p "$TARGET_PATH"
   TRAP_FILE="$TARGET_PATH/trap-kill-$(shuf -i 0-65535 -n 1)"
   export TRAP_FILE
-  trap 'trap_callback' EXIT
-  trap 'exit $?' HUP INT QUIT PIPE TERM
+  trap 'trap_callback $?' EXIT HUP INT QUIT PIPE TERM
 fi
 
 trap_kill_all() {
@@ -77,6 +76,7 @@ trap_kill_all() {
   do
     kill $(cat "$file") >/dev/null 2>&1 || true
   done
+  exit "$1"
 }
 
 setup_k8s() {

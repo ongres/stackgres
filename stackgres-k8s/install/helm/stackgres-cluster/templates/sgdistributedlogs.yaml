@@ -1,8 +1,8 @@
-{{ if and .Values.cluster.distributedLogs.enabled .Values.cluster.distributedLogs.create }}
+{{ if and .Values.distributedLogs.enabled .Values.distributedLogs.create }}
 apiVersion: stackgres.io/v1beta1
 kind: SGDistributedLogs
 metadata:
-  name: {{ .Values.cluster.distributedLogs.name }}
+  name: {{ .Values.cluster.distributedLogs.sgDistributedLogs }}
   labels:
     app: {{ template "stackgres-cluster.name" . }}
     chart: {{ template "stackgres-cluster.chart" . }}
@@ -14,12 +14,12 @@ metadata:
   {{- end }}
 spec:
   persistentVolume:
-    size: {{ .Values.cluster.distributedLogs.volumeSize }}
-    {{- if .Values.cluster.distributedLogs.storageClass }}
-    {{- if eq "-" .Values.cluster.distributedLogs.storageClass }}
+    size: {{ .Values.distributedLogs.persistentVolume.size }}
+    {{- if .Values.distributedLogs.persistentVolume.storageClass }}
+    {{- if eq "-" .Values.distributedLogs.persistentVolume.storageClass }}
     storageClass: ""
     {{- else }}
-    storageClass: {{ .Values.cluster.distributedLogs.storageClass }}
+    storageClass: {{ .Values.distributedLogs.persistentVolume.storageClass }}
     {{- end }}
     {{- end }}
   {{- if .Values.nonProductionOptions }}

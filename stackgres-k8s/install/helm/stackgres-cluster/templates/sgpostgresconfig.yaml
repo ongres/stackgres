@@ -1,8 +1,8 @@
-{{ if .Values.config.create }}
+{{ if .Values.configurations.create }}
 apiVersion: stackgres.io/v1beta1
 kind: SGPostgresConfig
 metadata:
-  name: {{ .Values.cluster.pgconfig }}
+  name: {{ .Values.cluster.configurations.sgPostgresConfig }}
   labels:
     app: {{ template "stackgres-cluster.name" . }}
     chart: {{ template "stackgres-cluster.chart" . }}
@@ -13,8 +13,8 @@ metadata:
     "helm.sh/hook": "pre-install"
   {{- end }}
 spec:
-  postgresVersion: "{{ index (.Values.config.postgresql.version | splitList ".") 0 }}"
-  {{- with (index .Values.config.postgresql "postgresql.conf") }}
+  postgresVersion: "{{ index (.Values.cluster.postgresVersion | splitList ".") 0 }}"
+  {{- with (index .Values.configurations.postgresconfig "postgresql.conf") }}
   postgresql.conf:
   {{- range $key, $value := . }}
     {{ $key }}: '{{ $value }}'

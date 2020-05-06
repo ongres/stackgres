@@ -44,7 +44,7 @@ EOF
 
   kubectl create namespace "$CLUSTER_NAMESPACE" || true
 
-  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 --set cluster.restore.fromBackup="$BACKUP_UID"
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 --set cluster.initialData.restore.fromBackup="$BACKUP_UID"
 
   wait_pods_running "$CLUSTER_NAMESPACE" 2
 }
