@@ -56,7 +56,8 @@ rules:
   - mutatingwebhookconfigurations
   verbs:
   - get
-  - patch
+  - create
+  - delete
 - apiGroups: ["apiextensions.k8s.io", "customresourcedefinitions.apiextensions.k8s.io"]
   resources:
   - customresourcedefinitions

@@ -1,8 +1,14 @@
+{{- if and .Values.cert.key .Values.cert.crt }}
 apiVersion: admissionregistration.k8s.io/v1beta1
 kind: MutatingWebhookConfiguration
 metadata:
   name: {{ .Release.Name }}
   namespace: {{ .Release.Namespace }}
+  annotations:
+    meta.helm.sh/release-name: {{ .Release.Name }}
+    meta.helm.sh/release-namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/managed-by: Helm
 webhooks:
   - name: sgcluster.{{ .Release.Name }}.{{ .Release.Namespace }}
     {{- if (semverCompare ">1.12-0" .Capabilities.KubeVersion.GitVersion) }}
@@ -19,11 +25,7 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/mutation/sgcluster'
-      {{- if .Values.cert.crt }}
       caBundle: {{ .Values.cert.crt }}
-      {{- else if (semverCompare "<=1.12-0" .Capabilities.KubeVersion.GitVersion) }}
-      caBundle: ""
-      {{- end }}
   - name: sgpgconfig.{{ .Release.Name }}.{{ .Release.Namespace }}
     {{- if (semverCompare ">1.12-0" .Capabilities.KubeVersion.GitVersion) }}
     sideEffects: None
@@ -39,11 +41,7 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/mutation/sgpgconfig'
-      {{- if .Values.cert.crt }}
       caBundle: {{ .Values.cert.crt }}
-      {{- else if (semverCompare "<=1.12-0" .Capabilities.KubeVersion.GitVersion) }}
-      caBundle: ""
-      {{- end }}
   - name: sgpoolconfig.{{ .Release.Name }}.{{ .Release.Namespace }}
     {{- if (semverCompare ">1.12-0" .Capabilities.KubeVersion.GitVersion) }}
     sideEffects: None
@@ -59,11 +57,7 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/mutation/sgpoolconfig'
-      {{- if .Values.cert.crt }}
       caBundle: {{ .Values.cert.crt }}
-      {{- else if (semverCompare "<=1.12-0" .Capabilities.KubeVersion.GitVersion) }}
-      caBundle: ""
-      {{- end }}
   - name: sginstanceprofile.{{ .Release.Name }}.{{ .Release.Namespace }}
     {{- if (semverCompare ">1.12-0" .Capabilities.KubeVersion.GitVersion) }}
     sideEffects: None
@@ -79,11 +73,7 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/mutation/sginstanceprofile'
-      {{- if .Values.cert.crt }}
       caBundle: {{ .Values.cert.crt }}
-      {{- else if (semverCompare "<=1.12-0" .Capabilities.KubeVersion.GitVersion) }}
-      caBundle: ""
-      {{- end }}
   - name: sgbackupconfig.{{ .Release.Name }}.{{ .Release.Namespace }}
     {{- if (semverCompare ">1.12-0" .Capabilities.KubeVersion.GitVersion) }}
     sideEffects: None
@@ -99,11 +89,7 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/mutation/sgbackupconfig'
-      {{- if .Values.cert.crt }}
       caBundle: {{ .Values.cert.crt }}
-      {{- else if (semverCompare "<=1.12-0" .Capabilities.KubeVersion.GitVersion) }}
-      caBundle: ""
-      {{- end }}
   - name: sgbackup.{{ .Release.Name }}.{{ .Release.Namespace }}
     {{- if (semverCompare ">1.12-0" .Capabilities.KubeVersion.GitVersion) }}
     sideEffects: None
@@ -119,9 +105,5 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/mutation/sgbackup'
-      {{- if .Values.cert.crt }}
       caBundle: {{ .Values.cert.crt }}
-      {{- else if (semverCompare "<=1.12-0" .Capabilities.KubeVersion.GitVersion) }}
-      caBundle: ""
-      {{- end }}
-
+{{- end }}
