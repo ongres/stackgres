@@ -8,9 +8,9 @@ cluster:
   pods:
     persistentVolume:
       size: 128Mi
+    disableConnectionPooling: true
   configurations:
     sgBackupConfig: null
-  disableConnectionPooling: true
   prometheusAutobind: false
 minio:
   create: false

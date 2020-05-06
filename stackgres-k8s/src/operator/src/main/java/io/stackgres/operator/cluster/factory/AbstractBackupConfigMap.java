@@ -45,15 +45,17 @@ public abstract class AbstractBackupConfigMap {
     Optional.ofNullable(backupConfigSpec.getBaseBackups())
         .map(StackGresBaseBackupConfig::getPerformance)
         .ifPresent(performance -> {
-          final long maxNetworkBandwitdh = performance.getMaxNetworkBandwitdh();
-          backupEnvVars.put("WALG_NETWORK_RATE_LIMIT", convertEnvValue(maxNetworkBandwitdh));
+          Optional.ofNullable(performance.getMaxNetworkBandwitdh())
+              .ifPresent(maxNetworkBandwitdh -> backupEnvVars.put(
+                  "WALG_NETWORK_RATE_LIMIT", convertEnvValue(maxNetworkBandwitdh)));
 
-          final long maxDiskBandwitdh = performance.getMaxDiskBandwitdh();
-          backupEnvVars.put("WALG_DISK_RATE_LIMIT", convertEnvValue(maxDiskBandwitdh));
+          Optional.ofNullable(performance.getMaxDiskBandwitdh())
+              .ifPresent(maxDiskBandwitdh -> backupEnvVars.put(
+                  "WALG_DISK_RATE_LIMIT", convertEnvValue(maxDiskBandwitdh)));
 
-          final int uploadDiskConcurrency = performance.getUploadDiskConcurrency();
-          backupEnvVars.put("WALG_UPLOAD_DISK_CONCURRENCY",
-                convertEnvValue(uploadDiskConcurrency));
+          Optional.ofNullable(performance.getUploadDiskConcurrency())
+              .ifPresent(uploadDiskConcurrency -> backupEnvVars.put(
+                  "WALG_UPLOAD_DISK_CONCURRENCY", convertEnvValue(uploadDiskConcurrency)));
         });
 
     Optional<AwsS3Storage> storageForS3 = getStorageFor(backupConfigSpec, BackupStorage::getS3);
