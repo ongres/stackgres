@@ -260,7 +260,6 @@ public class ItHelper {
     }
 
     LOGGER.info("Installing stackgres-operator helm chart without operator container");
-    String dockerInterfaceIp = getDockerInterfaceIp(k8s);
     k8s.execute("sh", "-l", "-c", "kubectl create namespace " + namespace + " || true")
       .filter(EXCLUDE_TTY_WARNING)
       .forEach(LOGGER::info);
@@ -268,17 +267,22 @@ public class ItHelper {
         + " stackgres-operator"
         + " --namespace stackgres"
         + " /resources/stackgres-operator"
-        + " --set deploy.create=false"
+        + getOperatorExtraOptions(k8s, port)
+        + " --set-string authentication.user=e2e"
+        + " --set-string authentication.password=test")
+      .filter(EXCLUDE_TTY_WARNING)
+      .forEach(line -> LOGGER.info(line));
+  }
+
+  public static String getOperatorExtraOptions(Container k8s, int port) throws Exception {
+    String dockerInterfaceIp = getDockerInterfaceIp(k8s);
+    return " --set deploy.create=false"
         + " --set-string developer.externalOperatorIp=" + dockerInterfaceIp
         + " --set developer.externalOperatorPort=" + port
         + " --set-string cert.crt=" + Base64.getEncoder().encodeToString(
             IOUtils.toByteArray(ItHelper.class.getResourceAsStream("/certs/server.crt")))
         + " --set-string cert.key=" + Base64.getEncoder().encodeToString(
-            IOUtils.toByteArray(ItHelper.class.getResourceAsStream("/certs/server-key.pem")))
-        + " --set-string authentication.user=e2e"
-        + " --set-string authentication.password=test")
-      .filter(EXCLUDE_TTY_WARNING)
-      .forEach(line -> LOGGER.info(line));
+            IOUtils.toByteArray(ItHelper.class.getResourceAsStream("/certs/server-key.pem")));
   }
 
   public static String getDockerInterfaceIp(Container k8s)
