@@ -5,7 +5,7 @@ metadata:
   namespace: {{ .Release.Namespace }}
   name: "{{ .Release.Name }}-integrate-grafana"
   labels:
-    app: StackGres
+    app: stackgres-integrate-grafana
     scope: integrate-grafana
   annotations:
     "helm.sh/hook": post-install,post-upgrade
@@ -14,7 +14,7 @@ spec:
   template:
     metadata:
       labels:
-        app: StackGres
+        app: stackgres-integrate-grafana
         scope: integrate-grafana
     spec:
       serviceAccountName: {{ .Release.Name }}
