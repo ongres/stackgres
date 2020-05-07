@@ -14,5 +14,5 @@ cluster:
     restore:
       downloadDiskConcurrency: 1
   prometheusAutobind: false
-minio:
-  create: false
+nonProductionOptions:
+  createMinio: false

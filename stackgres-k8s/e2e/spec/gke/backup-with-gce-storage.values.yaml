@@ -20,5 +20,5 @@ cluster:
     persistentVolume:
       size: 128Mi
   prometheusAutobind: false
-minio:
-  create: false
+nonProductionOptions:
+  createMinio: false
