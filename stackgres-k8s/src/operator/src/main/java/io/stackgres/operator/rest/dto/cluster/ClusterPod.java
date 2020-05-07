@@ -5,13 +5,13 @@
 
 package io.stackgres.operator.rest.dto.cluster;
 
+import java.util.Objects;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.google.common.base.MoreObjects;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
 @JsonDeserialize
@@ -32,6 +32,9 @@ public class ClusterPod {
 
   @JsonProperty("disablePostgresUtil")
   private Boolean disablePostgresUtil;
+
+  @JsonProperty("metadata")
+  private ClusterPodMetadata metadata;
 
   public ClusterPodPersistentVolume getPersistentVolume() {
     return persistentVolume;
@@ -65,10 +68,33 @@ public class ClusterPod {
     this.disablePostgresUtil = disablePostgresUtil;
   }
 
+  public ClusterPodMetadata getMetadata() {
+    return metadata;
+  }
+
+  public void setMetadata(ClusterPodMetadata metadata) {
+    this.metadata = metadata;
+  }
+
   @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("persistentVolume", persistentVolume)
-        .toString();
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    ClusterPod that = (ClusterPod) o;
+    return Objects.equals(persistentVolume, that.persistentVolume)
+        && Objects.equals(disableConnectionPooling, that.disableConnectionPooling)
+        && Objects.equals(disableMetricsExporter, that.disableMetricsExporter)
+        && Objects.equals(disablePostgresUtil, that.disablePostgresUtil)
+        && Objects.equals(metadata, that.metadata);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(persistentVolume, disableConnectionPooling,
+        disableMetricsExporter, disablePostgresUtil, metadata);
   }
 }

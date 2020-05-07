@@ -103,7 +103,7 @@ public class ClusterStatefulSet implements StackGresClusterResourceStreamFactory
 
     final Map<String, String> labels = clusterContext.clusterLabels();
     final Map<String, String> podLabels = clusterContext.statefulSetPodLabels();
-
+    final Map<String, String> podAnnotations = clusterContext.clusterAnnotations();
     StatefulSet clusterStatefulSet = new StatefulSetBuilder()
         .withNewMetadata()
         .withNamespace(namespace)
@@ -122,6 +122,7 @@ public class ClusterStatefulSet implements StackGresClusterResourceStreamFactory
         .withServiceName(name)
         .withTemplate(new PodTemplateSpecBuilder()
             .withMetadata(new ObjectMetaBuilder()
+                .addToAnnotations(podAnnotations)
                 .addToLabels(podLabels)
                 .build())
             .withNewSpec()

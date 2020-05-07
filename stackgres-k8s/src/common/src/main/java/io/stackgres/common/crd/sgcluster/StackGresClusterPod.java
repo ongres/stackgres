@@ -34,6 +34,9 @@ public class StackGresClusterPod {
   @JsonProperty("disablePostgresUtil")
   private Boolean disablePostgresUtil;
 
+  @JsonProperty("metadata")
+  private StackGresClusterPodMetadata metadata;
+
   public StackGresPodPersistentVolume getPersistentVolume() {
     return persistentVolume;
   }
@@ -66,10 +69,22 @@ public class StackGresClusterPod {
     this.disablePostgresUtil = disablePostgresUtil;
   }
 
+  public StackGresClusterPodMetadata getMetadata() {
+    return metadata;
+  }
+
+  public void setMetadata(StackGresClusterPodMetadata metadata) {
+    this.metadata = metadata;
+  }
+
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .add("persistentVolume", persistentVolume)
+        .add("disableConnectionPooling", disableConnectionPooling)
+        .add("disableMetricsExporter", disableMetricsExporter)
+        .add("disablePostgresUtil", disablePostgresUtil)
+        .add("metadata", metadata)
         .toString();
   }
 
@@ -85,12 +100,16 @@ public class StackGresClusterPod {
     return Objects.equals(persistentVolume, that.persistentVolume)
         && Objects.equals(disableConnectionPooling, that.disableConnectionPooling)
         && Objects.equals(disableMetricsExporter, that.disableMetricsExporter)
-        && Objects.equals(disablePostgresUtil, that.disablePostgresUtil);
+        && Objects.equals(disablePostgresUtil, that.disablePostgresUtil)
+        && Objects.equals(metadata, that.metadata);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(persistentVolume, disableConnectionPooling, disableMetricsExporter,
-        disablePostgresUtil);
+    return Objects.hash(persistentVolume,
+        disableConnectionPooling,
+        disableMetricsExporter,
+        disablePostgresUtil,
+        metadata);
   }
 }

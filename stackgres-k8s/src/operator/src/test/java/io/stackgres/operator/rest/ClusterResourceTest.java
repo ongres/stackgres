@@ -231,6 +231,8 @@ class ClusterResourceTest
     assertEquals("postgresql", resource.getPods().get(1).getNamespace());
     assertNull(resource.getPods().get(1).getRole());
     assertEquals("Pending", resource.getPods().get(1).getStatus());
+    assertEquals("customValue", resource.getSpec().getPods()
+        .getMetadata().getAnnotations().get("customAnnotation"));
   }
 
   @Override
