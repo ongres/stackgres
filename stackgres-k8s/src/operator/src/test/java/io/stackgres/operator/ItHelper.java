@@ -343,7 +343,7 @@ public class ItHelper {
         + " --set-string cluster.name=" + name
         + " --set cluster.instances=" + instances
         + " --set-string cluster.pods.persistentVolume.size=128Mi"
-        + " --set minio.create=false")
+        + " --set nonProductionOptions.createMinio=false")
       .filter(EXCLUDE_TTY_WARNING)
       .forEach(line -> LOGGER.info(line));
   }
@@ -363,7 +363,7 @@ public class ItHelper {
         + " --set-string cluster.name=" + name
         + " --set cluster.instances=" + instances
         + " --set-string cluster.pods.persistentVolume.size=128Mi"
-        + " --set minio.create=false "
+        + " --set nonProductionOptions.createMinio=false "
         + " --reuse-values")
       .filter(EXCLUDE_TTY_WARNING)
       .forEach(line -> LOGGER.info(line));

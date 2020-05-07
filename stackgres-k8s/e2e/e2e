@@ -54,7 +54,6 @@ trap_kill() {
 }
 
 trap_callback() {
-  echo hello
   if [ -s "$TRAP_FILE" ]
   then
     sleep 1 || true # Let the tails write to output remaining logs.

@@ -161,7 +161,7 @@ configurations:
 #### Backup configuration
 
 By default the chart create a storage class backed by an MinIO server. To avoid the creation of the
- MinIO server set `minio.create` to `false` and fill any of the `configurations.backupconfig.storage.s3`,
+ MinIO server set `nonProductionOptions.createMinio` to `false` and fill any of the `configurations.backupconfig.storage.s3`,
   `configurations.backupconfig.storage.gcs` or `configurations.backupconfig.storage.azureBlob` sections.
  
 | Parameter | Description | Default |
@@ -173,7 +173,6 @@ By default the chart create a storage class backed by an MinIO server. To avoid 
 | `configurations.backupconfig.baseBackups.performance.uploadDiskConcurrency` | {{< crd-field-description SGBackupConfig.spec.baseBackups.performance.uploadDiskConcurrency >}} | 1 |
 | `configurations.backupconfig.baseBackups.performance.maxNetworkBandwitdh` | {{< crd-field-description SGBackupConfig.spec.baseBackups.performance.maxDiskBandwitdh >}} | unlimited |
 | `configurations.backupconfig.baseBackups.performance.maxDiskBandwitdh` | {{< crd-field-description SGBackupConfig.spec.baseBackups.performance.maxNetworkBandwitdh >}} | unlimited |
-| `minio.create` | {{< description stackgres-cluster.minio.create >}} | true |
 
 ##### Amazon Web Services S3
 
@@ -264,3 +263,4 @@ The following options should NOT be enabled in a production environment.
 | Parameter | Description | Default |
 |:----------|:------------|:--------|
 | `nonProductionOptions.disableClusterPodAntiAffinity` | {{< crd-field-description SGCluster.spec.nonProductionOptions.disableClusterPodAntiAffinity >}} | true |
+| `nonProductionOptions.createMinio` | {{< description stackgres-cluster.nonProductionOptions.createMinio >}} | true |

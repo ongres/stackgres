@@ -15,8 +15,8 @@ configurations:
       If true create and set the backup configuration for the cluster.
 instanceProfiles: |
   An array of instance profiles (see [instance profiles](#instance-profiles)), if null or empty does not create any instance profile.
-minio:
-  create: |
+nonProductionOptions:
+  createMinio: |
     If true create a MinIO server that will be used to store backups.
 distributedLogs:
   enabled: |

@@ -12,5 +12,5 @@ cluster:
   configurations:
     sgBackupConfig: null
   prometheusAutobind: false
-minio:
-  create: false
+nonProductionOptions:
+  createMinio: false
