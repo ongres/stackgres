@@ -55,7 +55,7 @@
     <spotbugs.version>4.0.0-RC1</spotbugs.version>
     <pmd.version>6.19.0</pmd.version>
     <errorprone.version>2.3.3</errorprone.version>
-    <docker-junit-extension.version>1.2.11</docker-junit-extension.version>
+    <docker-junit-extension.version>1.2.12</docker-junit-extension.version>
     <jersey.version>2.29</jersey.version>
     <mockito.version>3.0.0</mockito.version>
     <log4j.version>2.11.2</log4j.version>
