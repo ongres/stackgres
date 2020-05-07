@@ -28,19 +28,19 @@ article,aside,details,figcaption,figure,footer,header,hgroup,hr,menu,nav,section
 ::-webkit-scrollbar-track
 {
     -webkit-box-shadow: none;
-    background-color: #F5F5F5;
+    /*background-color: #F5F5F5;*/
     border: 0;
     cursor: pointer;
-    border-left: 1px solid var(--gray1);
+    /*border-left: 1px solid var(--gray1);*/
 }
 
 ::-webkit-scrollbar
 {
-    width: 8px;
-    height: 5px;
-    background-color: #F5F5F5;
+    width: 7px;
+    height: 7px;
+    background-color: rgba(166, 167, 174, .10);
     cursor: pointer;
-    border-left: 1px solid var(--gray1);
+    /*border-left: 1px solid var(--gray1);*/
 }
 
 ::-webkit-scrollbar-thumb
@@ -180,7 +180,7 @@ svg.loader circle {
 }
 
 svg.background circle {
-    stroke: #bae6e8;
+    stroke: #00adb540;
 }
 
 
@@ -310,6 +310,10 @@ form#login .warning {
     padding-right: 10px;
 }
 
+.cron.row-20 label {
+    min-width: 90px;
+}
+
 
 /*#loader:before, #loader:after {
   content: "";
@@ -398,11 +402,11 @@ form#login .warning {
     color: #171717;
 }
 
-.darkmode .form input, .darkmode .form select, .darkmode .form textarea, .darkmode #logo h1, .darkmode .options label, .darkmode .options select, .darkmode ul.select li.selected {
+.darkmode .form input, .darkmode .form select, .darkmode .form textarea, .darkmode #logo h1, .darkmode .options label, .darkmode .options select, .darkmode ul.select li.selected, .darkmode table.clusterConfig a {
     color: #e3e3e3;
 }
 
-.darkmode #sets h4, .darkmode h4, .darkmode #sets h3, .darkmode h3, .darkmode h2, .darkmode thead, .darkmode .tabs a {
+.darkmode #sets h4, .darkmode h4, .darkmode #sets h3, .darkmode h3, .darkmode h2, .darkmode thead, .darkmode .tabs a, .darkmode #keyword, .darkmode .options li.textFilter .search  {
     color: #a5a5a5;
 }
 
@@ -410,9 +414,10 @@ form#login .warning {
     background-color: #444;
 }
 
-.darkmode #side, .darkmode #nav, .darkmode #current-namespace, .darkmode ul.breadcrumbs, .darkmode tbody, .darkmode .table .head.row, .darkmode .table .row:last-child, .darkmode .boxes .row:last-child, .darkmode .form input, .darkmode .form select, .darkmode .form textarea, .darkmode .set, .darkmode ,.form .header, .darkmode .content .box, .darkmode .box hr, .darkmode #keyword, .darkmode .toolbar .toggle, .darkmode .options, .darkmode .tooltip, .darkmode .message, .darkmode #nav .tooltip:before, .darkmode fieldset, .darkmode label.switch, .darkmode ul.select {
+.darkmode #side, .darkmode #nav, .darkmode #current-namespace, .darkmode #ns-select, .darkmode .set.active:not(.conf):not(.backups), .darkmode ul.breadcrumbs, .darkmode tbody, .darkmode .table .head.row, .darkmode .table .row:last-child, .darkmode .boxes .row:last-child, .darkmode table.clusterConfig td, .darkmode .form input, .darkmode .form select, .darkmode .form textarea, .darkmode .set, .darkmode ,.form .header, .darkmode .content .box, .darkmode .box hr, .darkmode #keyword, .darkmode .toolbar .toggle, .darkmode .options, .darkmode .tooltip, .darkmode .message, .darkmode #nav .tooltip:before, .darkmode fieldset, .darkmode label.switch, .darkmode ul.select, .darkmode .options li.textFilter .search {
     border-color: #333333;
 }
+
 
 .darkmode ul.tabs, .darkmode .content h2, .darkmode .form .header {
     border-color: #333333;
@@ -426,9 +431,20 @@ form#login .warning {
     fill: #7A7B85;
 }
 
-.darkmode .form input, .darkmode .form select, .darkmode .form textarea, .darkmode .set.active, .darkmode .set.active a:hover, .darkmode .set:hover, .darkmode .set:hover a:hover, .darkmode .set:not(.active) > ul li, .darkmode #keyword, .darkmode ul.select, .darkmode ul.select.active, .darkmode ul.select.active ul {
-    /*background-color: rgba(211, 211, 211, .10);*/
-    background-color: #1b1b1b;
+.darkmode .form input, .darkmode .form select, .darkmode .form textarea {
+    background-color: #1b1b1b;    
+}
+
+.darkmode .set.active, .darkmode .set.active a:hover, .darkmode .set:hover a:hover, .darkmode .set:not(.active) > ul li, .darkmode #keyword, .darkmode ul.select, .darkmode ul.select.active, .darkmode ul.select.active ul, .darkmode .options li.textFilter .search {
+    background-color: rgba(122, 123, 133, .10);
+}
+
+.darkmode ul#postgresVersion, .darkmode ul#postgresVersion ul {
+    background-color: #171717;
+}
+
+.darkmode ul#postgresVersion a:hover, .darkmode ul.select.active li.selected {
+    background: rgba(122, 123, 133, .10);
 }
 
 .darkmode .set.conf.active{
@@ -533,6 +549,16 @@ form#login .warning {
     border: none;
 }
 
+.darkmode .podStatus .primary span, .darkmode .pr span, .darkmode .role.pr span {
+    color: var(--gray2);
+    background: #D3D3D640;
+}
+
+.darkmode .podStatus .replica span, .darkmode .re span, .darkmode .role.re span {
+    color: var(--gray3);
+    background: #A6A7AE40;
+}
+
 
 /* Dark mode - Log in */
 
@@ -583,7 +609,7 @@ aside {
     width: calc(100% - 350px);
     display: block;
     min-height: 100vh;
-    padding: 60px 40px 0;
+    padding: 60px 40px 40px 40px;
 }
 
 .cta {
@@ -860,7 +886,7 @@ ul.zg-ul-select.active li.active:hover {
     position: relative;
 }
 
-.set.active, .set li a:hover, .set:hover {
+.set.active, .set li a:hover {
     background-color: rgba(211, 211, 211, .10);
 }
 
@@ -967,6 +993,10 @@ ul.zg-ul-select.active li.active:hover {
     z-index: 0;
 }
 
+.darkmode .set:not(.active) ul.show:before {
+    background-color: #1e1e1e;
+}
+
 .set:not(.active) > ul li {
     background: #fff;
 }
@@ -1027,6 +1057,10 @@ ul.zg-ul-select.active li.active:hover {
     margin-right: 0;
 }
 
+#side a.addnew:hover svg * {
+    stroke: var(--lblue) !important;
+}
+
 #sets > .hide {
     max-height: 60px;
     height: auto;
@@ -1054,7 +1088,9 @@ ul.zg-ul-select.active li.active:hover {
 }
 
 a.item.router-link-exact-active.router-link-active {
-    background: rgba(211,211,214,.15);
+    /*background: rgba(211,211,214,.15);*/
+    color: var(--blue);
+    font-weight: 600;
 }
 
 .set li {
@@ -1348,7 +1384,7 @@ footer .tooltip p {
 
 #notifications .tooltip {
     top: 60px;
-    right: 58px;
+    right: 40px;
     padding: 10px 20px;
 }
 
@@ -1358,6 +1394,7 @@ footer .tooltip p {
     right: 17px;
     left: auto;
     transform: rotate(135deg);
+    display: none;
 }
 
 #notifications.active .tooltip {
@@ -2469,6 +2506,7 @@ span.req {
 
 #help {
     padding-left: 75px;
+    padding-right: 45px;
 }
 #help .info {
     line-height: 1.3;
@@ -2551,10 +2589,11 @@ th {
     font-weight: normal;
     /* text-transform: uppercase; */
     color: var(--gray3);
+    min-width: 35px;
 }
 
 th:first-child, td:first-child {
-    padding-left: 15px;
+    padding-left: 20px;
 }
 
 th:last-child, td:last-child {
@@ -2663,41 +2702,45 @@ td.phase > span {
 
 td.phase.Completed > span {
     color: #03CC03;
-    background: #bcfbbc;
+    background: #00F90040;
 }
 
-td.phase.Completed > span {
-    color: #03CC03;
-    background: #bcfbbc;
+td.phase.Pending > span {
+    color: #ff7600;
+    background: #ff760040;
 }
 
 td.phase.Running > span {
     color: #DE9826;
-    background: #fbedc4;
+    background: #FCC12040;
 }
 
 td.phase.Failed > span {
     color: #FF2600;
-    background: #ffc8bf;
+    background: #FF260040;
 }
 
-td.timestamp span.time {
+td.timestamp span.time, span.timestamp span.time {
     color: var(--blue);
     display: inline-block;
     margin-right: -3px;
 }
 
-td.timestamp {
+td.timestamp, span.timestamp {
     color: var(--gray3);
 }
 
-td.timestamp span.ms {
+td.timestamp span.ms, span.timestamp span.ms {
     color: var(--gray5);
 }
 
 /* tr.details th:first-child, tr.details td:first-child {
     padding-left: 0;
 } */
+
+tr.details tr, .darkmode table.clusterConfig tr {
+    background: transparent !important;
+}
 
 table table {
     margin-left: -15px;
@@ -2789,29 +2832,29 @@ ul.yaml ul {
 }
 
 td.label span {
-    text-transform: uppercase;
+    text-transform: capitalize;
     padding: 4px 9px;
     font-size: 11px;
-    border-radius: 15px;
+    border-radius: 10px;
     width: 70px;
     display: inline-block;
     text-align: center;
-    font-weight: 400;
+    font-weight: bold;
 }
 
-.podStatus .primary span {
-    background: #cfd0d3;
+.podStatus .primary span, .pr span, .role.pr span {
+    background: #4D4F5C40;
     color: var(--gray5);
 }
 
-.podStatus .replica span {
-    background: #e8e8ea;
-    color: var(--gray5);
+.podStatus .replica span, .re span, .role.re span {
+    background: #A6A7AE40;
+    color: var(--gray4);
 }
 
 .podStatus .Active span {
     color: #03CC03;
-    background: #bffbbc;
+    background: #00F90040;
 }
 
 table.clusterConfig {
@@ -2877,6 +2920,8 @@ table.backupConfig tr.open {
     border-top: 1px solid #f0f0f1;
 }
 
+/*table.backups tr.details td:first-of-type table:first-of-type tbody {
+    border: 1px solid;*/
 
 /* Table Filters */
 .toolbar {
@@ -2888,12 +2933,12 @@ table.backupConfig tr.open {
     background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB2ZXJzaW9uPSIxLjEiIGlkPSJDYXBhXzEiIHg9IjBweCIgeT0iMHB4IiB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgdmlld0JveD0iMCAwIDI4LjkzMSAyOC45MzIiIHN0eWxlPSJlbmFibGUtYmFja2dyb3VuZDpuZXcgMCAwIDI4LjkzMSAyOC45MzI7IiB4bWw6c3BhY2U9InByZXNlcnZlIiBjbGFzcz0iIj48Zz48Zz4KCTxwYXRoIGQ9Ik0yOC4zNDQsMjUuNTE4bC02LjExNC02LjExNWMxLjQ4Ni0yLjA2NywyLjMwMy00LjUzNywyLjMwMy03LjEzN2MwLTMuMjc1LTEuMjc1LTYuMzU1LTMuNTk0LTguNjcyICAgQzE4LjYyNSwxLjI3OCwxNS41NDMsMCwxMi4yNjYsMEM4Ljk5LDAsNS45MDksMS4yNzUsMy41OTMsMy41OTRDMS4yNzcsNS45MDksMC4wMDEsOC45OSwwLjAwMSwxMi4yNjYgICBjMCwzLjI3NiwxLjI3NSw2LjM1NiwzLjU5Miw4LjY3NGMyLjMxNiwyLjMxNiw1LjM5NiwzLjU5NCw4LjY3MywzLjU5NGMyLjU5OSwwLDUuMDY3LTAuODEzLDcuMTM2LTIuMzAzbDYuMTE0LDYuMTE1ICAgYzAuMzkyLDAuMzkxLDAuOTAyLDAuNTg2LDEuNDE0LDAuNTg2YzAuNTEzLDAsMS4wMjQtMC4xOTUsMS40MTQtMC41ODZDMjkuMTI1LDI3LjU2NCwyOS4xMjUsMjYuMjk5LDI4LjM0NCwyNS41MTh6IE02LjQyMiwxOC4xMTEgICBjLTEuNTYyLTEuNTYyLTIuNDIxLTMuNjM5LTIuNDIxLTUuODQ2UzQuODYsNy45ODMsNi40MjIsNi40MjFjMS41NjEtMS41NjIsMy42MzYtMi40MjIsNS44NDQtMi40MjJzNC4yODQsMC44Niw1Ljg0NSwyLjQyMiAgIGMxLjU2MiwxLjU2MiwyLjQyMiwzLjYzOCwyLjQyMiw1Ljg0NXMtMC44NTksNC4yODMtMi40MjIsNS44NDZjLTEuNTYyLDEuNTYyLTMuNjM2LDIuNDItNS44NDUsMi40MlM3Ljk4MSwxOS42NzIsNi40MjIsMTguMTExeiIgZGF0YS1vcmlnaW5hbD0iIzAwMDAwMCIgY2xhc3M9ImFjdGl2ZS1wYXRoIiBzdHlsZT0iZmlsbDojN0E3Qjg1IiBkYXRhLW9sZF9jb2xvcj0iIzAwMDAwMCI+PC9wYXRoPgo8L2c+PC9nPiA8L3N2Zz4=);
     border: 1px solid var(--gray2);
     color: var(--gray4);
-    padding: 0 40px;
+    padding: 0 40px 0 15px;
     height: 30px;
     background-size: 13px;
-    background-position: 14px center;
+    background-position: 372px center;
     background-repeat: no-repeat;
-    border-radius: 25px;
+    border-radius: 6px;
     width: 400px;
     max-width: 50%;
 }
@@ -2913,22 +2958,27 @@ table.backupConfig tr.open {
     display: inline-block;
     padding: 0 20px 0 15px;
     border: 1px solid var(--gray2);
-    border-radius: 25px;
+    border-radius: 6px;
     height: 30px;
     line-height: 29px;
     color: var(--gray4);
     cursor: pointer;
     user-select: none;
+    position: relative;
 }
 
 .toolbar .toggle {
     margin-left: 15px;
 }
 
-.toolbar .toggle:hover, .toolbar .toggle.active{
+.toolbar .toggle:hover, .toolbar .toggle.active, .filter.filtered:not(.open) .toggle {
     color: var(--blue);
     background-color: rgba(0, 173, 181, .25);
     border: 1px solid var(--blue);
+}
+
+.toolbar .toggle:hover:after {
+    color: var(--blue);
 }
 
 .filter label {
@@ -2963,7 +3013,7 @@ table.backupConfig tr.open {
     border: 1px solid var(--gray1);
     background: #fff;
     margin-top: 10px;
-    border-radius: 10px;
+    border-radius: 6px;
     padding: 20px;
     box-shadow: 0 0 20px rgba(0,0,0,.05);
     list-style: none;
@@ -2988,6 +3038,10 @@ table.backupConfig tr.open {
 .options li * {
     display: block;
     float: left;
+}
+
+.options li.textFilter {
+    margin-bottom: 7px;
 }
 
 .options label {
@@ -3024,8 +3078,13 @@ table.backupConfig tr.open {
     cursor: pointer;
 }
 
+.darkmode .filter.columns label, .darkmode .filter.columns input[type="checkbox"] {
+    border-color: #333333;
+}
+
 .filter .options .active {
     background-color: var(--blue);
+    color: #fff;
 }
 
 .options input[type="checkbox"].active + span, .options select.active:hover {
@@ -3034,6 +3093,15 @@ table.backupConfig tr.open {
 
 .options label span {
     position: relative;
+}
+
+.options .li span, .options label span, #keyword {
+    font-size: 0.8rem;
+}
+
+.filter.columns input[type="checkbox"] {
+    top: 3px !important;
+
 }
 
 tr.no-results {
@@ -3048,16 +3116,18 @@ tr.no-results:first-child:last-child {
 
 .options select {
     position: relative;
-    top: -5px;
+    top: -3px;
+    margin-bottom: -6px;
     margin-left: 10px;
     -webkit-appearance: none;
     appearance: none;
     border: 0;
     background-color: var(--gray1);
-    padding: 5px 20px 5px 12px;
+    padding: 3px 18px 3px 9px;
     color: var(--gray4);
     border-radius: 12px;
     cursor: pointer;
+    font-size: 11px;
     line-height: 14px;
     background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB2ZXJzaW9uPSIxLjEiIGlkPSJDYXBhXzEiIHg9IjBweCIgeT0iMHB4IiB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgdmlld0JveD0iMCAwIDEyMy45NTkgMTIzLjk1OCIgc3R5bGU9ImVuYWJsZS1iYWNrZ3JvdW5kOm5ldyAwIDAgMTIzLjk1OSAxMjMuOTU4OyIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSI+PGc+PGc+Cgk8cGF0aCBkPSJNMTE3Ljk3OSwyOC4wMTdoLTExMmMtNS4zLDAtOCw2LjQtNC4yLDEwLjJsNTYsNTZjMi4zLDIuMyw2LjEsMi4zLDguNDAxLDBsNTYtNTYgICBDMTI1Ljk3OSwzNC40MTcsMTIzLjI3OSwyOC4wMTcsMTE3Ljk3OSwyOC4wMTd6IiBkYXRhLW9yaWdpbmFsPSIjMDAwMDAwIiBjbGFzcz0iYWN0aXZlLXBhdGgiIHN0eWxlPSJmaWxsOiNBNkE3QUUiIGRhdGEtb2xkX2NvbG9yPSIjMDAwMDAwIj48L3BhdGg+CjwvZz48L2c+IDwvc3ZnPg==);
     background-position: 88% center;
@@ -3074,13 +3144,71 @@ tr.no-results:first-child:last-child {
 /* Centralized Log */
 
 #log {
-    margin: 30px -15px 0;
+    margin: 0 -15px;
     padding: 0 15px;
 }
 
+.searchBar {
+    display: initial;
+}
+.searchBar #keyword {
+    background-image: none;
+    padding-left: 15px;
+}
+
+.searchBar a.button {
+    fill: #7A7B85;
+    position: relative;
+    left: -31px;
+    top: 5px;
+}
+
+.searchBar a.button:hover {
+    fill: var(--blue);
+    cursor: pointer;
+}
+
+.searchBar a.button svg {
+    width: 12.5px;
+}
+
+.options li.textFilter > span {
+    padding-right: 10px;
+    padding-top: 5px;
+}
+
+.options li.textFilter .search {
+    padding: 0 10px 0 10px;
+    border: 1px solid var(--gray2);
+    border-radius: 6px;
+    height: 25px;
+    color: var(--gray4);
+}
+
+.options li.textFilter .search:focus {
+    border-color: var(--blue);
+}
+
+.options li.textFilter a {
+    fill: #7a7b85;
+    position: relative;
+    left: -25px;
+    top: 5px;
+}
+
+.options li.textFilter a:hover{
+    fill: var(--blue);
+    cursor: pointer;
+}
+
+.options li.textFilter a svg {
+    width: 13px;
+}
+
 table.logs {
-    margin-top: 30px;
     margin-bottom: 0;
+    max-height: calc(100vh - 297px) !important;
+    border: none !important;
 }
 
 table.logs tbody {
@@ -3089,10 +3217,160 @@ table.logs tbody {
     display: inline-block;
     overflow: auto;
     width: 100%;
+    border: none;
 }
 
 table.logs thead {
     display: inline-block;
+    margin-bottom: -4px;
+    border-bottom: 1px solid #f0f0f1;
+    width: initial !important;
+}
+
+/* table.logs tbody:hover > tr.base, table.backups tbody:hover > tr.base {
+    opacity: 0.6;
+}
+
+.darkmode table.logs tbody:hover > tr.base, .darkmode table.backups tbody:hover > tr.base {
+    opacity: 0.5;
+}
+
+table.logs tbody:hover > tr.base:hover, table.backups tbody:hover > tr.base:hover {
+    opacity: 1.0;
+}
+*/
+
+table.logs .logTime {
+    min-width: 190px;
+    max-width: 190px;
+    width: 190px;
+}
+
+.patroni span {
+    color: #4f9bd8;
+    background: #4f9bd840;
+}
+
+.postgres span {
+    color: #336791;
+    background: #33679140;
+}
+
+table.logs .logMesssage{
+    min-width: 500px;
+    max-width: 500px;
+    width: 500px;
+    padding: 0 10px;
+}
+
+table.logs .userName {
+    min-width: 70px;
+    max-width: 70px;
+    width: 70px;
+    padding: 0 10px;
+}
+
+table.logs .databaseName {
+    min-width: 90px;
+    max-width: 90px;
+    width: 90px;
+    padding: 0 10px;
+}
+
+table.logs .processId {
+    min-width: 85px;
+    max-width: 85px;
+    width: 85px;
+    padding: 0 10px;
+}
+
+table.logs .connectionFrom {
+    min-width: 120px;
+    max-width: 120px;
+    width: 120px;
+    padding: 0 10px;
+}
+
+table.logs .applicationName {
+    min-width: 120px;
+    max-width: 120px;
+    width: 120px;
+    padding: 0 10px;
+}
+
+table.logs .logType, table.logs .role, table.logs .errorLevel {
+    min-width: 90px;
+    max-width: 90px;
+    width: 90px;
+}
+
+td.errorLevel > span {
+    text-transform: capitalize;
+    display: inline-block;
+    width: 70px;
+    padding: 3px 0;
+    font-size: 11px;
+    border-radius: 10px;
+    font-weight: bold;
+}
+
+td.errorLevel.INFO > span {
+    color: #03D803;
+    background: #00F50040;
+}
+
+td.errorLevel.DEBUG > span {
+    color: #1ACE97;
+    background: #21E6AA40;
+}
+
+td.errorLevel.LOG > span {
+    color: #4D4F5C;
+    background: #4D4F5C40;
+}
+
+.darkmode td.errorLevel.LOG > span {
+    color: #F0F0F1;
+    background: #F0F0F140;
+}
+
+td.errorLevel.NOTICE > span {
+    color: #228BDE;
+    background: #228BDE40;
+}
+
+td.errorLevel.WARNING > span {
+    color: #E6C50D;
+    background: #E6C50D40;
+}
+
+td.errorLevel.ERROR > span {
+    color: #FF8900;
+    background: #FF890040;
+}
+
+td.errorLevel.PANIC > span, td.errorLevel.CRITICAL > span {
+    color: #FC373E;
+    background: #FC373E40;
+}
+
+td.errorLevel.FATAL > span {
+    color: #AC42FA;
+    background: #AC42FA40;
+}
+
+td.errorLevel.NOTSET > span {
+    color: #7A7B85;
+    background: #7A7B8540;
+}
+
+td.logMessage {
+    width: 30%;
+    position: absolute;
+}
+
+table.logs td.label {
+    padding: 0 10px;
 }
 
 th.number, th.fraction {
@@ -3103,21 +3381,149 @@ th.sysId, th.operation {
     width: 8vw;
 }
 
-td.logMessage {
-    width: 30%;
-    position: absolute;
-}
-
-td.logMessage span {
+/*td.logMessage span {
     overflow: hidden; 
     text-overflow: ellipsis;
     white-space: nowrap; 
     width: 100%;
     display: inline-block;
+}*/
+
+.logInfo.open {
+    /*background: transparent;*/
+    opacity: 100% !important;
 }
 
-#logs .actions a:hover svg path {
-    fill: red;
+span.closeLog {
+    border-radius: 9px !important;
+}
+
+.logInfo.open .logMessage {
+    padding-top: 15px;
+    padding-bottom: 15px;
+    display: inline-block;
+}
+
+.logMessage .param {
+    color: var(--blue);
+    font-weight: bold;
+    width: 202px;
+    display: table-cell;
+    padding: 11px 15px;
+    border: 1px solid #f0f0f1;
+    margin-right: -4px;
+    vertical-align: middle;
+}
+
+.logInfo.open .logMessage p {
+    padding-bottom: 5px;
+    display: table-cell;
+    padding: 11px 15px;
+    border: 1px solid #f0f0f1;
+    vertical-align: top;
+    max-width: calc(100% - 202px);
+}
+
+.logDetails table {
+    margin-left: 0px;
+    margin-bottom: -1px;
+    border: 1px solid #F0F0F1;
+    width: calc(50% - 15px);
+}
+
+.logDetails table:last-of-type {
+    margin-bottom: 25px;
+}
+
+.logDetails.postgres table, .logDetails.patroni table {
+    display: inline-block;
+}
+
+.logDetails.postgres table:last-of-type, .logDetails.patroni table:last-of-type {
+    margin-left: 20px;
+}
+
+.logDetails.postgres tr:not(:last-of-type), .logDetails.patroni tr:not(:last-of-type) {
+    border-bottom: 1px solid #F0F0F1;
+}
+
+.logDetails tbody {
+    border-top: none;
+}
+
+.logDetails tr {
+    background: transparent !important;
+}
+
+.logDetails td {
+    padding-left: 15px;
+}
+
+.logDetails td.param {
+    min-width: 200px;
+    color: var(--blue);
+    font-weight: bold;
+    border-right: 1px solid #F0F0F1;
+}
+
+.logDetails td.value {
+    width: 100%;
+}
+
+.logDetails td.label {
+    vertical-align: middle;
+}
+
+.darkmode table.logs thead {
+    background: transparent;
+}
+
+table.logs th {
+    background: #fff;
+}
+
+.darkmode table.logs th {
+    background: #171717;
+}
+
+.darkmode table.logs tr {
+    background: #1e1e1e;
+}
+
+table.logs tr.item:not(:first-of-type)) {
+    margin-top: -4px;
+}
+
+table.logs tr.base {
+    margin-top: -4px;
+}
+
+table.logs tr.base td {
+    height: 39px !important; 
+}
+
+.darkmode table.logs tr:nth-child(4n), .darkmode table.logs tr:nth-child(4n) + tr.logInfo, .darkmode .logInfo.open table tr {
+    background: #171717;
+}
+
+.darkmode .logDetails table,.darkmode .logMessage .param, .darkmode .logInfo.open .logMessage p, .darkmode .logDetails td.param, .darkmode .logDetails.postgres tr:not(:last-of-type), .darkmode .logDetails.patroni tr:not(:last-of-type),.darkmode table.logs thead {
+    border-color: #333333;
+}
+
+.logs td.actions svg {
+    cursor: pointer;
+}
+
+.logs td.actions svg:hover path {
+    fill: var(--blue);
+}
+
+tr.logInfo > td {
+    padding-top: 10px;
+}
+
+tr.logInfo span.actions {
+    display: none;
 }
 
 td.operation> span {
@@ -3170,7 +3576,6 @@ td.operation.Reset > span {
     float: right;
     position: relative;
     width: auto;
-    margin-left: 25px;
 }
 
 #log .calendar {
@@ -3179,7 +3584,7 @@ td.operation.Reset > span {
     padding: 0 5px;
     margin-left: 25px;
     border: 1px solid var(--gray2);
-    border-radius: 25px;
+    border-radius: 6px;
     height: 30px;
     line-height: 29px;
     color: var(--gray4);
@@ -3226,6 +3631,14 @@ td.operation.Reset > span {
     left: auto !important;
     right: 40px !important;
     font-family: "Nunito", sans-serif !important;
+    border-radius: 6px !important;
+    border-color: var(--gray1) !important;
+    box-shadow: 0 0 20px rgba(0,0,0,.05);
+    padding: 20px !important;
+}
+
+.daterangepicker tbody {
+    color: var(--gray5);
 }
 
 .daterangepicker td.off, .daterangepicker td.off.in-range, .daterangepicker td.off.start-date, .daterangepicker td.off.end-date {
@@ -3255,6 +3668,7 @@ td.operation.Reset > span {
 
 .daterangepicker td.available:not(.in-range):hover, .daterangepicker th.available:hover, .daterangepicker td.start-date.end-date {
     border-radius: 100% !important;
+
 }
 
 .daterangepicker select.hourselect, .daterangepicker select.minuteselect, .daterangepicker select.secondselect, .daterangepicker select.ampmselect {
@@ -3273,13 +3687,17 @@ td.operation.Reset > span {
 }
 
 .daterangepicker .drp-buttons .btn {
-    border-radius: 25px;
-    padding: 5px 15px 6px;
+    border-radius: 6px;
+    padding: 5px 20px 5px !important;
     font-size: 11px;
     font-weight: 300;
+    font-family: "Nunito", "Helvetica", "Arial", sans-serif;
+    font-weight: normal !important;
 }
+
 .daterangepicker .drp-buttons {
-    padding-top: 0 !important;
+    /*padding-top: 0 !important;*/
+    border-color: var(--gray2) !important;
 }
 
 .daterangepicker:before, .daterangepicker:after {
@@ -3301,7 +3719,11 @@ td.today.available {
 }
 
 .daterangepicker td.off, .daterangepicker td.off.in-range, .daterangepicker td.off.start-date, .daterangepicker td.off.end-date {
-    color: #565656 !important;
+    color: var(--gray3) !important;
+}
+
+.darkmode .daterangepicker td.off, .darkmode .daterangepicker td.off.in-range, .darkmode .daterangepicker td.off.start-date, .darkmode .daterangepicker td.off.end-date {
+    color: #7A7B85 !important;
 }
 
 
@@ -3314,14 +3736,24 @@ td.today.available {
     border-radius: 0;
 }
 
+.daterangepicker .calendar-table th.month {
+    font-size: 13px;
+    color: var(--gray4);
+}
+
+
 .darkmode .daterangepicker td.in-range {
     background-color: #333;
     color: #fff;
 }
 
+.daterangepicker td.available:not(.off):not(.in-range):not(.active) {
+    color: var(--gray5);
+}
+
 .darkmode .daterangepicker td.available:not(.off):not(.in-range):not(.active) {
-    background: #252525 !important;
-    color: #afafaf;
+    /*background: #252525 !important;*/
+    color: #e3e3e3;
 }
 
 .darkmode .daterangepicker select.hourselect, .darkmode .daterangepicker select.minuteselect, .darkmode .daterangepicker select.secondselect, .darkmode .daterangepicker select.ampmselect {
@@ -3349,6 +3781,7 @@ td.today.available {
 
 .darkmode .daterangepicker .drp-buttons {
     border-color: #333 !important;
+    color: #e3e3e3;
 }
 
 .darkmode .daterangepicker th.available:hover {
@@ -3359,6 +3792,19 @@ td.today.available {
     background: #252525 !important;
 }
 
+.daterangepicker .calendar-time {
+    border-top: 1px solid var(--gray1);
+    padding-top: 20px;
+    margin-top: 10px !important;
+}
+
+.darkmode .daterangepicker .calendar-time {
+    border-color: #333333;
+}
+
+.darkmode #logTooltip.show {
+    background: #1b1b1b;
+}
 
 /* Tooltip Styling Luis */
 #help {
@@ -3366,12 +3812,12 @@ td.today.available {
 }
 
 #help h3.title {
-    font-size: 1.1rem;
+    font-size: 14px;
     margin-bottom: 10px;
 }
 
 .darkmode #help h3.title {
-    color: #e8e8e8;
+    color: #a5a5a5;
 }
 
 #help .info ul {
@@ -3381,4 +3827,32 @@ td.today.available {
 
 textarea + a.help {
     margin-top: -220px;
+}
+
+
+/*TABLE YAML*/
+
+tr.logInfo {
+    position: relative;
+}
+
+table.logs tr.base:hover:before {
+    content: "";
+    border: 1px solid var(--blue);
+    width: 5px;
+    display: inline-block;
+    position: absolute;
+    left: 5px;
+    top: 17px;
+}
+
+tr.logInfo.open:before {
+    width: 5px;
+    height: calc(100% - 55px);
+    position: absolute;
+    left: 5px;
+    top: 17px;
+    border: 2px solid var(--blue);
+    content: " ";
+    border-right: 0;
 }
