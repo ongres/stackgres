@@ -5,7 +5,7 @@ e2e_test_install() {
 
   install_prometheus
 
-  wait_pods_running "$PROMETHEUS_NAMESPACE" 6
+  wait_pods_running "$PROMETHEUS_NAMESPACE" 3
 
   upgrade_operator \
     --set grafana.autoEmbed=true \
@@ -29,7 +29,10 @@ install_prometheus(){
     --version 8.13.4 \
     --namespace "$PROMETHEUS_NAMESPACE" \
     --disable-openapi-validation \
-    --set prometheusOperator.createCustomResource=false
+    --set prometheusOperator.createCustomResource=false \
+    --set alertmanager.enabled=false \
+    --set kubeStateMetrics.enabled=false \
+    --set nodeExporter.enabled=false
 }
 
 e2e_test_uninstall() {
