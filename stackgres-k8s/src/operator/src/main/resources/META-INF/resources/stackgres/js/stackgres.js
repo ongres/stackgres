@@ -1663,10 +1663,33 @@ $(document).ready(function(){
     $(this).parent().parent().toggleClass("open");
   });
 
-  
-  $(document).on("click",".toggle:not(.date)",function(){
-    $(this).toggleClass("open");
-    $(this).next().toggleClass("open");
+  /* $(document).on('focus','.filter.open .options', function(){
+    if( $('.filter.open').find('.active').length )
+      $('.filter.open').addClass('filtered');
+    else
+      $('.filter.open').removeClass('filtered');
+    
+      $('.filter.open').removeClass("open");
+  }); */
+
+  $(document).mouseup(function(e) {
+    var container = $(".filter.open");
+
+    // if the target of the click isn't the container nor a descendant of the container
+    if (!container.is(e.target) && container.has(e.target).length === 0) {
+      if( $('.filter.open').find('.active').length )
+        $('.filter.open').addClass('filtered');
+      else
+        $('.filter.open').removeClass('filtered');
+      
+        $('.filter.open').removeClass("open");
+    }
+  });
+ 
+  $(document).on("click",".toggle:not(.date)",function(e){
+    e.stopPropagation();
+    $(this).parent().toggleClass("open");
+    //$(this).next().toggleClass("open");
   })
 
   /* $(document).on("change","form input, form select, form textarea",function(){

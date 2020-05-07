@@ -43,17 +43,16 @@ var Logs = Vue.component("sg-logs", {
 				<div id="log">
 					<div class="toolbar">
 						<div class="searchBar">
-							<input id="keyword" v-model="text" class="search" placeholder="Search text...">
-							<a @click="getLogs()" class="button">
-								<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 15 15"><path d="M11.906,10.528a6.353,6.353,0,0,0,1.313-3.913A6.581,6.581,0,0,0,6.656,0,6.661,6.661,0,0,0,0,6.615,6.661,6.661,0,0,0,6.656,13.23a6.25,6.25,0,0,0,3.937-1.3l2.813,2.8a.91.91,0,0,0,1.313,0,.9.9,0,0,0,0-1.3Zm-5.25.745A4.708,4.708,0,0,1,1.875,6.615a4.781,4.781,0,0,1,9.562,0A4.708,4.708,0,0,1,6.656,11.273Z" /></svg>
-							</a>
+							<input id="keyword" v-model="text" class="search" placeholder="Search text..." @keyup="toggleClear('keyword')">
+							<a @click="getLogs()" class="btn">APPLY</a>
+							<a @click="clearFilters('keyword')" class="btn clear border keyword" style="display:none">CLEAR</a>
 						</div>
 
 						<div class="filter">
 							<span class="toggle date">DATE RANGE <input v-model="datePicker" id="datePicker" autocomplete="off"></span>
 						</div>
 
-						<div class="filter">
+						<div class="filter filters">
 							<span class="toggle">FILTER</span>
 
 							<ul class="options">
@@ -87,7 +86,7 @@ var Logs = Vue.component("sg-logs", {
 
 								<li>
 									<span>Error Level</span>
-									<select v-model='errorLevel' @change="getLogs()">
+									<select v-model="errorLevel" @change="toggleClear('filters')">
 										<option value=''>All levels</option>
 										<option>PANIC</option>
 										<option>CRITICAL</option>
@@ -103,24 +102,19 @@ var Logs = Vue.component("sg-logs", {
 								</li>
 								<li class="textFilter">
 									<span>Pod Name</span>
-									<input v-model="podName" class="search">
-									<a @click="getLogs()" class="button">
-										<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 15 15"><path d="M11.906,10.528a6.353,6.353,0,0,0,1.313-3.913A6.581,6.581,0,0,0,6.656,0,6.661,6.661,0,0,0,0,6.615,6.661,6.661,0,0,0,6.656,13.23a6.25,6.25,0,0,0,3.937-1.3l2.813,2.8a.91.91,0,0,0,1.313,0,.9.9,0,0,0,0-1.3Zm-5.25.745A4.708,4.708,0,0,1,1.875,6.615a4.781,4.781,0,0,1,9.562,0A4.708,4.708,0,0,1,6.656,11.273Z" /></svg>
-									</a>
+									<input v-model="podName" class="search" @keyup="toggleClear('filters')">
 								</li>
 								<li class="textFilter">
 									<span>User Name</span>
-									<input v-model="userName" class="search">
-									<a @click="getLogs()" class="button">
-										<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 15 15"><path d="M11.906,10.528a6.353,6.353,0,0,0,1.313-3.913A6.581,6.581,0,0,0,6.656,0,6.661,6.661,0,0,0,0,6.615,6.661,6.661,0,0,0,6.656,13.23a6.25,6.25,0,0,0,3.937-1.3l2.813,2.8a.91.91,0,0,0,1.313,0,.9.9,0,0,0,0-1.3Zm-5.25.745A4.708,4.708,0,0,1,1.875,6.615a4.781,4.781,0,0,1,9.562,0A4.708,4.708,0,0,1,6.656,11.273Z" /></svg>
-									</a>
+									<input v-model="userName" class="search" @keyup="toggleClear('filters')">
 								</li>
 								<li class="textFilter">
 									<span>Database Name</span>
-									<input v-model="databaseName" class="search">
-									<a @click="getLogs()" class="button">
-										<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 15 15"><path d="M11.906,10.528a6.353,6.353,0,0,0,1.313-3.913A6.581,6.581,0,0,0,6.656,0,6.661,6.661,0,0,0,0,6.615,6.661,6.661,0,0,0,6.656,13.23a6.25,6.25,0,0,0,3.937-1.3l2.813,2.8a.91.91,0,0,0,1.313,0,.9.9,0,0,0,0-1.3Zm-5.25.745A4.708,4.708,0,0,1,1.875,6.615a4.781,4.781,0,0,1,9.562,0A4.708,4.708,0,0,1,6.656,11.273Z" /></svg>
-									</a>
+									<input v-model="databaseName" class="search" @keyup="toggleClear('filters')">
+								</li>
+								<li>
+									<hr>
+									<a class="btn" @click="getLogs()">APPLY</a> <a class="btn clear border" @click="clearFilters('filters')" style="display:none">CLEAR</a>
 								</li>
 							</ul>
 						</div>
@@ -130,69 +124,63 @@ var Logs = Vue.component("sg-logs", {
 
 							<ul class="options">
 								<li>
-									<label for="viewLogTime">
-										<span>Log Time</span>
-										<input @change="toggleColumn('logTime')" type="checkbox" name="viewLogTime" checked/>
-									</label>
-								</li>
-								<li>
 									<label for="viewLogType">
 										<span>Log Type</span>
-										<input @change="toggleColumn('logType')" type="checkbox" name="viewLogType" checked/>
+										<input @change="toggleColumn('logType')" type="checkbox" id="viewLogType" checked/>
 									</label>
 								</li>
 								<li>
-									<label for="viewErrorLabel">
-										<span>Error Label</span>
-										<input @change="toggleColumn('errorLabel')" type="checkbox" name="viewErrorLabel" checked/>
+									<label for="viewErrorLevel">
+										<span>Error Level</span>
+										<input @change="toggleColumn('errorLevel')" type="checkbox" id="viewErrorLevel" checked/>
 									</label>
 								</li>
 								<li>
 									<label for="viewPodName">
 										<span>Pod Name</span>
-										<input @change="toggleColumn('podName')" type="checkbox" name="viewPodName" checked/>
+										<input @change="toggleColumn('podName')" type="checkbox" id="viewPodName" checked/>
 									</label>
 								</li>
 								<li>
 									<label for="viewRole">
 										<span>Role</span>
-										<input @change="toggleColumn('role')" type="checkbox" name="viewRole" checked/>
+										<input @change="toggleColumn('role')" type="checkbox" id="viewRole" checked/>
 									</label>
 								</li>
 								<li>
 									<label for="viewLogMessage">
 										<span>Message</span>
-										<input @change="toggleColumn('logMessage')" type="checkbox" name="viewLogMessage" checked/>
+										<input @change="toggleColumn('logMessage')" type="checkbox" id="viewLogMessage" checked/>
 									</label>
 								</li>
 								<li>
 									<label for="viewUserName">
 										<span>User</span>
-										<input @change="toggleColumn('userName')" type="checkbox" name="viewUserName" checked/>
+										<input @change="toggleColumn('userName')" type="checkbox" id="viewUserName" checked/>
 									</label>
 								</li>
 								<li>
 									<label for="viewDatabaseName">
 										<span>Database</span>
-										<input @change="toggleColumn('databaseName')" type="checkbox" name="viewDatabaseName" checked/>
+										<input @change="toggleColumn('databaseName')" type="checkbox" id="viewDatabaseName" checked/>
 									</label>
 								</li>
 								<li>
 									<label for="viewProcessId">
 										<span>Process ID</span>
-										<input @change="toggleColumn('processId')" type="checkbox" name="viewProcessId" checked/>
+										<input @change="toggleColumn('processId')" type="checkbox" id="viewProcessId" checked/>
 									</label>
 								</li>
 								<li>
 									<label for="viewConnectionFrom">
 										<span>Connection From</span>
-										<input @change="toggleColumn('connectionFrom')" type="checkbox" name="viewConnectionFrom" checked/>
+										<input @change="toggleColumn('connectionFrom')" type="checkbox" id="viewConnectionFrom" checked/>
 									</label>
 								</li>
 								<li>
 									<label for="viewApplicationName">
 										<span>Application</span>
-										<input @change="toggleColumn('applicationName')" type="checkbox" name="viewApplicationName" checked/>
+										<input @change="toggleColumn('applicationName')" type="checkbox" id="viewApplicationName" checked/>
 									</label>
 								</li>
 							</ul>
@@ -207,25 +195,21 @@ var Logs = Vue.component("sg-logs", {
 								<li><span><svg xmlns="http://www.w3.org/2000/svg" width="15.002" height="16.503" viewBox="0 0 15.002 16.503"><g transform="translate(-3.75 -2.25)"><path d="M6,6H16.5A1.5,1.5,0,0,1,18,7.5V18a1.5,1.5,0,0,1-1.5,1.5H6A1.5,1.5,0,0,1,4.5,18V7.5A1.5,1.5,0,0,1,6,6Z" transform="translate(0 -1.499)" fill="none" stroke="#7a7b85" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/><path d="M24,3V6" transform="translate(-9.749)" fill="none" stroke="#7a7b85" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/><path d="M12,3V6" transform="translate(-3.75)" fill="none" stroke="#7a7b85" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/><path d="M4.5,15H18" transform="translate(0 -5.999)" fill="none" stroke="#7a7b85" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/></g></svg> <input v-model="datePicker" id="datePicker" autocomplete="off"></span></li>
 							</ul>
 						</div>-->
-
-						<!--<div class=visibleColumns>
-							<span class="toggle">VISIBLE COLUMNS</span>
-						</div>-->
 					</div>
 
 					<table class="logs">
 						<thead class="sort">
 							<th class="logTime sorted desc timestamp" @click="sort()"><span>Log Time</span></th>
-							<th class="logType center label">Type</th>
-							<th class="errorLevel center">Error Level</th>
-							<th class="podName">Pod Name</th>
-							<th class="role center label">Role</th>
-							<th class="logMessage">Message</th>
-							<th class="userName">User</th>
-							<th class="databaseName">Database</th>
-							<th class="processId">Process ID</th>
-							<th class="connectionFrom">Connection From</th>
-							<th class="applicationName">Application</th>
+							<th class="logType center label" v-if="showColumns.logType">Type</th>
+							<th class="errorLevel center" v-if="showColumns.errorLevel">Error Level</th>
+							<th class="podName" v-if="showColumns.podName">Pod Name</th>
+							<th class="role center label" v-if="showColumns.role">Role</th>
+							<th class="logMessage" v-if="showColumns.logMessage">Message</th>
+							<th class="userName" v-if="showColumns.userName">User</th>
+							<th class="databaseName" v-if="showColumns.databaseName">Database</th>
+							<th class="processId" v-if="showColumns.processId">Process ID</th>
+							<th class="connectionFrom" v-if="showColumns.connectionFrom">Connection From</th>
+							<th class="applicationName" v-if="showColumns.applicationName">Application</th>
 						</thead>
 						<tbody>
 							<tr class="no-results">
@@ -248,21 +232,37 @@ var Logs = Vue.component("sg-logs", {
 											</span>
 											Z
 										</td>
-										<td class="logType label postgres center">
+										<td class="logType label postgres center" v-if="showColumns.logType">
 											<span>Postgres</span>
 										</td>
-										<td class="errorLevel label center" :class="log.errorLevel"><span>{{ log.errorLevel }}</span></td>
-										<td class="podName hasTooltip"><span>{{ log.podName }}</span></td>
-										<td class="role label center" :class="log.role">
+										<td class="errorLevel label center" :class="log.errorLevel" v-if="showColumns.errorLevel">
+											<span>{{ log.errorLevel }}</span>
+										</td>
+										<td class="podName hasTooltip" v-if="showColumns.podName">
+											<span>{{ log.podName }}</span>
+										</td>
+										<td class="role label center" :class="log.role" v-if="showColumns.role">
 											<span v-if="log.role == 'pr'">Primary</span>
 											<span v-else-if="log.role == 're'">Replica</span>
 										</td>
-										<td class="logMessage hasTooltip"><span>{{ log.message }}</span></td>
-										<td class="userName hasTooltip"><span>{{ log.userName }}</span></td>
-										<td class="databaseName hasTooltip"><span>{{ log.databaseName }}</span></td>
-										<td class="processId"><span>{{ log.processId }}</span></td>
-										<td class="connectionFrom hasTooltip"><span>{{ log.connectionFrom }}</span></td>
-										<td class="applicationName hasTooltip"><span>{{ log.applicationName }}</span></td>
+										<td class="logMessage hasTooltip" v-if="showColumns.logMessage">
+											<span>{{ log.message }}</span>
+										</td>
+										<td class="userName hasTooltip" v-if="showColumns.userName">
+											<span>{{ log.userName }}</span>
+										</td>
+										<td class="databaseName hasTooltip" v-if="showColumns.databaseName">
+											<span>{{ log.databaseName }}</span>
+										</td>
+										<td class="processId" v-if="showColumns.processId">
+											<span>{{ log.processId }}</span>
+										</td>
+										<td class="connectionFrom hasTooltip" v-if="showColumns.connectionFrom">
+											<span>{{ log.connectionFrom }}</span>
+										</td>
+										<td class="applicationName hasTooltip" v-if="showColumns.applicatioName">
+											<span>{{ log.applicationName }}</span>
+										</td>
 									</tr>
 								</template>
 								<template v-else>
@@ -279,21 +279,27 @@ var Logs = Vue.component("sg-logs", {
 											</span>
 											Z
 										</td>
-										<td class="logType label patroni center">
+										<td class="logType label patroni center" v-if="showColumns.logType">
 											<span>Patroni</span>
 										</td>
-										<td class="errorLevel label center" :class="log.errorLevel"><span>{{ log.errorLevel }}</span></td>
-										<td class="podName hasTooltip"><span>{{ log.podName }}</span></td>
-										<td class="role label center" :class="log.role">
+										<td class="errorLevel label center" :class="log.errorLevel" v-if="showColumns.errorLevel">
+											<span>{{ log.errorLevel }}</span>
+										</td>
+										<td class="podName hasTooltip" v-if="showColumns.podName">
+											<span>{{ log.podName }}</span>
+										</td>
+										<td class="role label center" :class="log.role" v-if="showColumns.role">
 											<span v-if="log.role == 'pr'">Primary</span>
 											<span v-else-if="log.role == 're'">Replica</span>
 										</td>
-										<td class="logMessage hasTooltip"><span>{{ log.message }}</span></td>
-										<td class="userName"></td>
-										<td class="databaseName"></td>
-										<td class="processId"></td>
-										<td class="connectionFrom"></td>
-										<td class="applicationName"></td>
+										<td class="logMessage hasTooltip" v-if="showColumns.logMessage">
+											<span>{{ log.message }}</span>
+										</td>
+										<td class="userName" v-if="showColumns.userName"></td>
+										<td class="databaseName" v-if="showColumns.databaseName"></td>
+										<td class="processId" v-if="showColumns.processId"></td>
+										<td class="connectionFrom" v-if="showColumns.connectionFrom"></td>
+										<td class="applicationName" v-if="showColumns.applicatioName"></td>
 									</tr>
 								</template>
 								<tr class="logInfo">
@@ -311,18 +317,22 @@ var Logs = Vue.component("sg-logs", {
 												</span>
 												Z
 											</span>
-											<span class="closeLog">Close</span>
+											<span class="closeLog">✕</span>
 										</div>
-										<div class="logMessage">
-											<strong class="param">Message</strong>
-											<p>{{ log.message }}</p>
-										</div>
+										<table class="logMessage">
+											<tbody>
+												<tr>
+													<td class="param">Message</td>
+													<td class="value">{{ log.message }}</td>
+												</tr>
+											</tbody>
+										</table>
 										<div class="logDetails postgres" v-if="log.logType === 'pg'">
 											<table>
 												<tbody>
 													<tr>
 														<td class="param">Type</td>
-														<td class="value">{{ log.logType }}</td>
+														<td class="value label logType pg"><span>Postgres</span></td>
 													</tr>
 													<tr>
 														<td class="param">Pod Name</td>
@@ -330,7 +340,10 @@ var Logs = Vue.component("sg-logs", {
 													</tr>
 													<tr>
 														<td class="param">Role</td>
-														<td class="value">{{ log.role }}</td>
+														<td class="value label role" :class="log.role">
+															<span v-if="log.role == 'pr'">Primary</span>
+															<span v-else-if="log.role == 're'">Replica</span>
+														</td>
 													</tr>
 													<tr>
 														<td class="param">User</td>
@@ -379,7 +392,7 @@ var Logs = Vue.component("sg-logs", {
 													</tr>
 													<tr>
 														<td class="param">Error Level</td>
-														<td class="value">{{ log.errorLevel }}</td>
+														<td class="value label errorLevel" :class="log.errorLevel"><span>{{ log.errorLevel }}</span></td>
 													</tr>
 													<tr>
 														<td class="param">SQL State Code</td>
@@ -429,12 +442,8 @@ var Logs = Vue.component("sg-logs", {
 												<tbody>
 													<tr>
 														<td class="param">Type</td>
-														<td class="value">{{ log.logType }}</td>
+														<td class="value label logType pa"><span>Patroni</span></td>
 													</tr>
-												</tbody>
-											</table>
-											<table>
-												<tbody>
 													<tr>
 														<td class="param">Pod Name</td>
 														<td class="value">{{ log.podName }}</td>
@@ -445,7 +454,14 @@ var Logs = Vue.component("sg-logs", {
 												<tbody>
 													<tr>
 														<td class="param">Role</td>
-														<td class="value">{{ log.role }}</td>
+														<td class="value label role" :class="log.role">
+															<span v-if="log.role == 'pr'">Primary</span>
+															<span v-else-if="log.role == 're'">Replica</span>
+														</td>
+													</tr>
+													<tr>
+														<td class="param">Error Level</td>
+														<td class="value label errorLevel" :class="log.errorLevel"><span>{{ log.errorLevel }}</span></td>
 													</tr>
 												</tbody>
 											</table>
@@ -477,6 +493,18 @@ var Logs = Vue.component("sg-logs", {
 			datePicker: '',
 			dateStart: '',
 			dateEnd: '',
+			showColumns: {
+				logType: true,
+				errorLevel: true,
+				podName: true,
+				role: true,
+				logMessage: true,
+				userName: true,
+				databaseName: true,
+				processId: true,
+				connectionFrom: true,
+				applicationName: true
+			},
 		}
 	},
 	computed: {
@@ -504,7 +532,7 @@ var Logs = Vue.component("sg-logs", {
 			if( ($(this).scrollTop() + $(this).innerHeight() >= $(this)[0].scrollHeight) && store.state.logs.length ) {
 				
 				vc.dateStart = store.state.logs[store.state.logs.length-1].logTime+','+store.state.logs[store.state.logs.length-1].logTimeIndex;
-				vc.getLogs(true);
+				vc.getLogs(true, true);
 
 			}
 		})
@@ -575,7 +603,7 @@ var Logs = Vue.component("sg-logs", {
 				console.log('filter');
 
 				vc.datePicker = vc.dateStart+' / '+vc.dateEnd;
-				vc.getLogs();
+				vc.getLogs(false, true);
 			});
 			
 			$(document).on('click', '.toggle.date.open', function(){
@@ -597,6 +625,11 @@ var Logs = Vue.component("sg-logs", {
 			$('#datePicker').on('hide.daterangepicker', function(ev, picker) {
 				//console.log('hide.daterangepicker');
 				$('#datePicker').parent().removeClass('open');
+
+				if($('#datePicker').val().length)
+					$('#datePicker').parent().parent().addClass('filtered')
+				else
+					$('#datePicker').parent().parent().removeClass('filtered')
 			});
 
 			$('#datePicker').on('cancel.daterangepicker', function(ev, picker) {
@@ -604,6 +637,8 @@ var Logs = Vue.component("sg-logs", {
 				vc.datePicker = '';
 				vc.dateStart = '';
 				vc.dateEnd = '';
+
+				$('#datePicker').parent().parent().removeClass('filtered')
 				
 				vc.getLogs();
 				$('#datePicker').parent().removeClass('open');
@@ -612,6 +647,12 @@ var Logs = Vue.component("sg-logs", {
 			$('#datePicker').on('apply.daterangepicker', function(ev, picker) {
 				//console.log('apply.daterangepicker');
 				$('#datePicker').parent().removeClass('open');
+
+				if($('#datePicker').val().length)
+					$('#datePicker').parent().parent().addClass('filtered')
+				else
+					$('#datePicker').parent().parent().removeClass('filtered')
+					
 			});
 
 			$(document).on('click', '#datePicker', function(){
@@ -659,8 +700,7 @@ var Logs = Vue.component("sg-logs", {
 	methods: {
 
 		toggleColumn( column ) {
-			$('table.logs > tbody > tr > td.'+column+', table.logs > thead > th.'+column).toggle();
-			
+			this.showColumns[column] = !this.showColumns[column]
 		},
 
 		xCheckbox(param, value) {
@@ -681,10 +721,54 @@ var Logs = Vue.component("sg-logs", {
 				vc[el.data('filter')] = [];
 			}
 
-			vc.getLogs();
+			this.toggleClear('filters')
+
+			//vc.getLogs();
 		},
 
-		getLogs(append = false) {
+		toggleClear( filter ){
+
+			switch(filter) {
+				case 'keyword':
+					if($('#keyword').val().length)
+						$('.searchBar .clear').fadeIn()
+					else
+						$('.searchBar .clear').fadeOut()
+					
+						break;
+				case 'filters':
+					if($('.filters .options .active').length || $('.filters .options .search').val().length || this.errorLevel.length)
+						$('.filters .clear').fadeIn()
+					else
+						$('.filters .clear').fadeOut()
+			}
+
+		},
+
+		clearFilters ( section ) {
+
+			if(section == 'filters') {
+				this.logType = [];
+				this.errorLevel = '';
+				this.podName = '';
+				this.role = [];
+				this.userName = '';
+				this.databaseName = '';
+				$('.filter.open .active').removeClass('active');
+
+				$('.filters .clear').fadeOut()
+
+			} else if (section == 'keyword') {
+				this.text = '';
+				$('#keyword').removeClass('active')
+
+				$('.searchBar .clear').fadeOut()
+			}
+			
+			this.getLogs();
+		},
+
+		getLogs(append = false, byDate = false) {
 
 			$('table.logs').addClass('loading');
 
@@ -693,14 +777,18 @@ var Logs = Vue.component("sg-logs", {
 			params += '?records='+this.records;
 			params += '&sort='+this.currentSortDir;
 			
-			if(this.dateStart.length)
+			if(this.dateStart.length && byDate)
 				params += '&from='+this.dateStart;
 			
-			if(this.dateEnd.length)
+			if(this.dateEnd.length && byDate)
 				params += '&to='+this.dateEnd;
 
-			if(this.text.length)
+			if(this.text.length) {
 				params += '&text='+this.text;
+				$('.searchBar').addClass('filtered')
+			} else {
+				$('.searchBar').removeClass('filtered')
+			}
 
 			if(this.logType.length)
 				params += '&logType='+this.logType[0];
@@ -797,6 +885,8 @@ var Logs = Vue.component("sg-logs", {
 			row.toggle();
 			row.next().toggleClass('open'); */
 
+			$('tr.logInfo.open').prev().toggle();
+			$('tr.logInfo.open').removeClass('open');
 			$('#log-'+id).toggle();
 			$('#log-'+id).next().toggleClass('open');
 			

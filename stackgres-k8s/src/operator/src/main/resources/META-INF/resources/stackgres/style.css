@@ -54,7 +54,7 @@ article,aside,details,figcaption,figure,footer,header,hgroup,hr,menu,nav,section
 body, html {
     font-family: "Nunito", "Helvetica", "Arial", sans-serif;
     font-size: .9rem;
-    font-weight: 300;
+    font-weight: 400;
     line-height: 1.2;
     color: var(--gray5);
     overflow-x:hidden;
@@ -90,11 +90,13 @@ h1, h2, h3, h4, h5, h6 {
     display: inline-block;
     /* min-width: 200px; */
     text-align: center;
+    cursor: pointer;
 }
 
 .form button:hover, .form button:focus, .btn:hover, .btn:focus, button:hover {
     background: var(--lblue);
     border-color: var(--lblue);
+    color: #fff;
 }
 
 a {
@@ -559,6 +561,10 @@ form#login .warning {
     background: #A6A7AE40;
 }
 
+.darkmode table.loading:after {
+    background: url('img/loader.gif') center center no-repeat rgba(0,0,0,.5);
+    background-size: 80px;
+}
 
 /* Dark mode - Log in */
 
@@ -2310,9 +2316,10 @@ button {
 .form button.border, .btn.border {
     color: var(--blue);
     background: transparent;
+    border: 1px solid var(--blue);
 }
 
-.form button.border:hover, .btn.border:hover {
+.form button.border:hover, .btn.border:hover, .daterangepicker button.cancelBtn, .btn.clear:hover {
     background-color: rgba(0, 173, 181, .25);
 
 }
@@ -2933,10 +2940,10 @@ table.backupConfig tr.open {
     background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB2ZXJzaW9uPSIxLjEiIGlkPSJDYXBhXzEiIHg9IjBweCIgeT0iMHB4IiB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgdmlld0JveD0iMCAwIDI4LjkzMSAyOC45MzIiIHN0eWxlPSJlbmFibGUtYmFja2dyb3VuZDpuZXcgMCAwIDI4LjkzMSAyOC45MzI7IiB4bWw6c3BhY2U9InByZXNlcnZlIiBjbGFzcz0iIj48Zz48Zz4KCTxwYXRoIGQ9Ik0yOC4zNDQsMjUuNTE4bC02LjExNC02LjExNWMxLjQ4Ni0yLjA2NywyLjMwMy00LjUzNywyLjMwMy03LjEzN2MwLTMuMjc1LTEuMjc1LTYuMzU1LTMuNTk0LTguNjcyICAgQzE4LjYyNSwxLjI3OCwxNS41NDMsMCwxMi4yNjYsMEM4Ljk5LDAsNS45MDksMS4yNzUsMy41OTMsMy41OTRDMS4yNzcsNS45MDksMC4wMDEsOC45OSwwLjAwMSwxMi4yNjYgICBjMCwzLjI3NiwxLjI3NSw2LjM1NiwzLjU5Miw4LjY3NGMyLjMxNiwyLjMxNiw1LjM5NiwzLjU5NCw4LjY3MywzLjU5NGMyLjU5OSwwLDUuMDY3LTAuODEzLDcuMTM2LTIuMzAzbDYuMTE0LDYuMTE1ICAgYzAuMzkyLDAuMzkxLDAuOTAyLDAuNTg2LDEuNDE0LDAuNTg2YzAuNTEzLDAsMS4wMjQtMC4xOTUsMS40MTQtMC41ODZDMjkuMTI1LDI3LjU2NCwyOS4xMjUsMjYuMjk5LDI4LjM0NCwyNS41MTh6IE02LjQyMiwxOC4xMTEgICBjLTEuNTYyLTEuNTYyLTIuNDIxLTMuNjM5LTIuNDIxLTUuODQ2UzQuODYsNy45ODMsNi40MjIsNi40MjFjMS41NjEtMS41NjIsMy42MzYtMi40MjIsNS44NDQtMi40MjJzNC4yODQsMC44Niw1Ljg0NSwyLjQyMiAgIGMxLjU2MiwxLjU2MiwyLjQyMiwzLjYzOCwyLjQyMiw1Ljg0NXMtMC44NTksNC4yODMtMi40MjIsNS44NDZjLTEuNTYyLDEuNTYyLTMuNjM2LDIuNDItNS44NDUsMi40MlM3Ljk4MSwxOS42NzIsNi40MjIsMTguMTExeiIgZGF0YS1vcmlnaW5hbD0iIzAwMDAwMCIgY2xhc3M9ImFjdGl2ZS1wYXRoIiBzdHlsZT0iZmlsbDojN0E3Qjg1IiBkYXRhLW9sZF9jb2xvcj0iIzAwMDAwMCI+PC9wYXRoPgo8L2c+PC9nPiA8L3N2Zz4=);
     border: 1px solid var(--gray2);
     color: var(--gray4);
-    padding: 0 40px 0 15px;
+    padding: 0 15px 0 35px;
     height: 30px;
     background-size: 13px;
-    background-position: 372px center;
+    background-position: 10px center;
     background-repeat: no-repeat;
     border-radius: 6px;
     width: 400px;
@@ -2985,7 +2992,7 @@ table.backupConfig tr.open {
     user-select: none;
 }
 
-.toolbar .toggle.open {
+.toolbar .filter.open .toggle {
     background: var(--blue);
     color: #fff;
     border-color: var(--blue);
@@ -3000,7 +3007,11 @@ table.backupConfig tr.open {
     color: var(--gray3);
 }
 
-.toolbar .toggle.open:after {
+.toolbar .filtered .toggle:after {
+    color: var(--blue);
+}
+
+.toolbar .filter.open .toggle:after {
     transform: rotate(180deg);
     color: #fff;
 }
@@ -3151,10 +3162,10 @@ tr.no-results:first-child:last-child {
 .searchBar {
     display: initial;
 }
-.searchBar #keyword {
+/* .searchBar #keyword {
     background-image: none;
     padding-left: 15px;
-}
+} */
 
 .searchBar a.button {
     fill: #7A7B85;
@@ -3178,11 +3189,15 @@ tr.no-results:first-child:last-child {
 }
 
 .options li.textFilter .search {
-    padding: 0 10px 0 10px;
+    padding: 0 10px 0 20px;
     border: 1px solid var(--gray2);
     border-radius: 6px;
     height: 25px;
     color: var(--gray4);
+    background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB2ZXJzaW9uPSIxLjEiIGlkPSJDYXBhXzEiIHg9IjBweCIgeT0iMHB4IiB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgdmlld0JveD0iMCAwIDI4LjkzMSAyOC45MzIiIHN0eWxlPSJlbmFibGUtYmFja2dyb3VuZDpuZXcgMCAwIDI4LjkzMSAyOC45MzI7IiB4bWw6c3BhY2U9InByZXNlcnZlIiBjbGFzcz0iIj48Zz48Zz4KCTxwYXRoIGQ9Ik0yOC4zNDQsMjUuNTE4bC02LjExNC02LjExNWMxLjQ4Ni0yLjA2NywyLjMwMy00LjUzNywyLjMwMy03LjEzN2MwLTMuMjc1LTEuMjc1LTYuMzU1LTMuNTk0LTguNjcyICAgQzE4LjYyNSwxLjI3OCwxNS41NDMsMCwxMi4yNjYsMEM4Ljk5LDAsNS45MDksMS4yNzUsMy41OTMsMy41OTRDMS4yNzcsNS45MDksMC4wMDEsOC45OSwwLjAwMSwxMi4yNjYgICBjMCwzLjI3NiwxLjI3NSw2LjM1NiwzLjU5Miw4LjY3NGMyLjMxNiwyLjMxNiw1LjM5NiwzLjU5NCw4LjY3MywzLjU5NGMyLjU5OSwwLDUuMDY3LTAuODEzLDcuMTM2LTIuMzAzbDYuMTE0LDYuMTE1ICAgYzAuMzkyLDAuMzkxLDAuOTAyLDAuNTg2LDEuNDE0LDAuNTg2YzAuNTEzLDAsMS4wMjQtMC4xOTUsMS40MTQtMC41ODZDMjkuMTI1LDI3LjU2NCwyOS4xMjUsMjYuMjk5LDI4LjM0NCwyNS41MTh6IE02LjQyMiwxOC4xMTEgICBjLTEuNTYyLTEuNTYyLTIuNDIxLTMuNjM5LTIuNDIxLTUuODQ2UzQuODYsNy45ODMsNi40MjIsNi40MjFjMS41NjEtMS41NjIsMy42MzYtMi40MjIsNS44NDQtMi40MjJzNC4yODQsMC44Niw1Ljg0NSwyLjQyMiAgIGMxLjU2MiwxLjU2MiwyLjQyMiwzLjYzOCwyLjQyMiw1Ljg0NXMtMC44NTksNC4yODMtMi40MjIsNS44NDZjLTEuNTYyLDEuNTYyLTMuNjM2LDIuNDItNS44NDUsMi40MlM3Ljk4MSwxOS42NzIsNi40MjIsMTguMTExeiIgZGF0YS1vcmlnaW5hbD0iIzAwMDAwMCIgY2xhc3M9ImFjdGl2ZS1wYXRoIiBzdHlsZT0iZmlsbDojN0E3Qjg1IiBkYXRhLW9sZF9jb2xvcj0iIzAwMDAwMCI+PC9wYXRoPgo8L2c+PC9nPiA8L3N2Zz4=);
+    background-repeat: no-repeat;
+    background-size: 12px;
+    background-position: 5px center;
 }
 
 .options li.textFilter .search:focus {
@@ -3225,6 +3240,7 @@ table.logs thead {
     margin-bottom: -4px;
     border-bottom: 1px solid #f0f0f1;
     width: initial !important;
+    min-width: 100%;
 }
 
 /* table.logs tbody:hover > tr.base, table.backups tbody:hover > tr.base {
@@ -3239,6 +3255,10 @@ table.logs tbody:hover > tr.base:hover, table.backups tbody:hover > tr.base:hove
     opacity: 1.0;
 }
 */
+
+table th {
+    font-weight: bold;
+}
 
 table.logs .logTime {
     min-width: 190px;
@@ -3256,12 +3276,12 @@ table.logs .logTime {
     background: #33679140;
 }
 
-table.logs .logMesssage{
+/* table.logs .logMesssage{
     min-width: 500px;
     max-width: 500px;
     width: 500px;
     padding: 0 10px;
-}
+} */
 
 table.logs .userName {
     min-width: 70px;
@@ -3285,9 +3305,9 @@ table.logs .processId {
 }
 
 table.logs .connectionFrom {
-    min-width: 120px;
-    max-width: 120px;
-    width: 120px;
+    min-width: 130px;
+    max-width: 130px;
+    width: 130px;
     padding: 0 10px;
 }
 
@@ -3394,25 +3414,27 @@ th.sysId, th.operation {
     opacity: 100% !important;
 }
 
-span.closeLog {
-    border-radius: 9px !important;
-}
-
 .logInfo.open .logMessage {
-    padding-top: 15px;
-    padding-bottom: 15px;
+    padding-top: 0;
+    padding-bottom: 0;
     display: inline-block;
+    border: 1px solid #f0f0f1;
+    margin: 10px auto;
+    width: calc(100% - 7px);
 }
 
 .logMessage .param {
     color: var(--blue);
     font-weight: bold;
-    width: 202px;
+    width: 200px;
     display: table-cell;
-    padding: 11px 15px;
-    border: 1px solid #f0f0f1;
-    margin-right: -4px;
+    border-right: 1px solid #f0f0f1;
     vertical-align: middle;
+    padding-left: 15px;
+}
+
+table.logs table.logMessage tr {
+    background: transparent;
 }
 
 .logInfo.open .logMessage p {
@@ -3455,7 +3477,7 @@ span.closeLog {
     background: transparent !important;
 }
 
-.logDetails td {
+.logDetails td, .logMessage td {
     padding-left: 15px;
 }
 
@@ -3855,4 +3877,251 @@ tr.logInfo.open:before {
     border: 2px solid var(--blue);
     content: " ";
     border-right: 0;
+}
+
+/* Luis Logs & Filters */
+table.logs {
+    max-height: calc(100vh - 353px);
+    max-width: calc(100vw - 430px);
+    display: inline-block;
+    overflow: auto;
+    width: 100%;
+    border: 1px solid #f1f1f1;
+    position: relative;
+}
+
+table.logs:after {
+    opacity: 0;
+    display: block;
+    transition: opacity .2s ease-in;
+}
+
+table.loading:after {
+    content: " ";
+    position: fixed;
+    top: 289px;
+    right: 48px;
+    width: calc(100vw - 439px);
+    height: calc(100vh - 341px) !important;
+    background: url(img/loader.gif) center center no-repeat rgba(255,255,255,.7);
+    background-size: 80px;
+    opacity: 1;
+    transition: opacity .4s ease-in;
+}
+table.logs tbody {
+    max-height: initial;
+    max-width: initial;
+    display: initial;
+    overflow: initial;
+    width: initial;
+}
+
+table.logs thead {
+    display: inline-block;
+    position: sticky;
+    z-index: 1;
+    top: 0;
+    background: #fff;
+    width: 100%;
+}
+
+tr.logInfo {
+    display: none;
+}
+
+tr.logInfo.open {
+    display: block;
+    width: 100%;;
+}
+
+tr.logInfo span.actions {
+    float: right;
+}
+
+tr.logInfo > td {
+    display: inline-block;
+    width: 100%;
+}
+
+table.logs tr {
+    background: #fafafa;
+}
+
+table.logs tr.base {
+    display: inline-block;
+    min-width: 100%;
+    position: relative;
+}
+
+table.logs tr:nth-child(4n), table.logs tr:nth-child(4n) + tr.logInfo {
+    background: #fff;
+}
+
+table.logs tr.base td {
+    height: 50px;
+}
+
+#log > .daterangepicker {
+    margin-top: 63px;
+    margin-right: 0;
+}
+
+tr.no-results:first-child:last-child {
+    display: block;
+}
+
+tr.no-results td {
+    display: block;
+    padding: 50px 0;
+}
+
+#log .calendar li span {
+    position: relative;
+}
+
+/* table.logs td.hasTooltip > span {
+    display: block;
+    width: max-content;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+} */
+
+table.logs td.hasTooltip {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+table.logs td.hasTooltip.logMessage > span {
+    max-width: 300px;
+}
+
+table.logs th.logMessage, table.logs td.logMessage {
+    min-width: calc(100vw - 1350px);
+    width: calc(100vw - 1350px);
+    max-width: calc(100vw - 1350px);
+}
+
+td.logMessage, th.logMessage {
+    position: initial;
+    width: auto;
+}
+
+table.logs .podName {
+    min-width: 75px;
+    width: auto;
+    max-width: 75px;
+}
+
+.options label.active span {
+    color: #fff;
+}
+
+#logTooltip.show {
+    position: fixed;
+    background: #fff;
+    padding: 20px 25px;
+    border-radius: 5px;
+    box-shadow: 0 10px 20px rgba(0,0,0,.1);
+}
+
+span.closeLog {
+    font-size: 9px;
+    line-height: 17px;
+    text-transform: uppercase;
+    border-radius: 4px;
+    margin-left: 10px;
+    position: relative;
+    top: -1px;
+    cursor: pointer;
+    width: 18px;
+    height: 18px;
+    display: inline-block;
+    text-align: center;
+    padding: 0;
+    color: var(--blue);
+    border: 1px solid var(--blue);
+}
+
+span.closeLog:hover {
+    background: var(--blue);
+    color: #fff;
+}
+
+.filter.columns input[type="checkbox"]:checked:after {
+    content: " ";
+    border: 2px solid var(--blue);
+    width: 8px;
+    height: 3px;
+    display: block;
+    border-top: 0;
+    border-right: 0;
+    transform: rotate(-45deg);
+    margin: 2px;
+    border-radius: 1px;
+}
+
+.filter.columns input[type="checkbox"] {
+    right: 3px;
+    top: 2px;
+    left: auto;
+    width: 15px;
+    height: 15px;
+    margin: 0;
+    border: 1px solid var(--gray2);
+    border-radius: 3px;
+    background: transparent !important;
+}
+
+.filter.columns label {
+    background: transparent;
+    border: 1px solid var(--gray2);
+    border-radius: 3px;
+    width: 100%;
+}
+.filter.columns .options li {
+    width: 50%;
+    float: left;
+    padding: 0 5px;
+}
+
+.filter.open .options {
+    display: block;
+}
+
+.daterangepicker button.cancelBtn {
+    float: right;
+    color: var(--blue);
+    background: transparent;
+}
+
+.filter hr {
+    float: none;
+    opacity: .5;
+}
+
+.toolbar .btn {
+    padding: 7px 10px;
+    margin: 0 2px;
+    border: 1px solid var(--blue);
+}
+
+.filter select.active {
+    background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMSIgaGVpZ2h0PSI2IiB2aWV3Qm94PSIwIDAgMTEgNiI+PHBhdGggZD0iTTQuNzYzLjhBMSwxLDAsMCwxLDYuMjM3LjhsMy4yMjcsMy41MkExLDEsMCwwLDEsOC43MjcsNkgyLjI3M2ExLDEsMCwwLDEtLjczNy0xLjY3NloiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDExIDYpIHJvdGF0ZSgxODApIiBmaWxsPSIjZmZmIi8+PC9zdmc+")
+}
+
+@media screen and (min-width: 1920px) {
+    table.logs th.logMessage, table.logs td.logMessage {
+        min-width: 450px;
+        width: calc(80vw - 1400px);
+        max-width: calc(80vw - 1400px);
+    }
+}
+
+@media screen and (max-width: 1500px) {
+    table.logs th.logMessage, table.logs td.logMessage { 
+        min-width: 240px;
+    }
 }
