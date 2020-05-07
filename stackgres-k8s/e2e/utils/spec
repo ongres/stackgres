@@ -29,6 +29,14 @@ e2e_test_after_all() {
   true
 }
 
+e2e_lock_for_operator_update() {
+  echo false
+}
+
+e2e_lock_for_exclusive() {
+  echo false
+}
+
 spec() {
   SPEC_FILE="$1"
   SPEC_BEFORE_FILE="$SPEC_FILE.before"
@@ -42,6 +50,7 @@ spec() {
   E2E_SKIP_SPEC_BEFORE_ALL="${E2E_SKIP_SPEC_BEFORE_ALL:-false}"
   E2E_SKIP_SPEC_AFTER_ALL="${E2E_SKIP_SPEC_AFTER_ALL:-false}"
   LOG_PATH="$TARGET_PATH/logs/$SPEC_NAME"
+  SH_OPTS=$(! echo $- | grep -q x || echo "-x")
   export SPEC_FILE SPEC_NAME CLUSTER_NAMESPACE CLUSTER_NAME LOG_PATH
 
   mkdir -p "$LOG_PATH"
@@ -52,6 +61,23 @@ spec() {
   fi
 
   . "$SPEC_FILE"
+
+  if "${E2E_LOCK_FOR_EXCLUSIVE:-"$(e2e_lock_for_exclusive)"}"
+  then
+    E2E_LOCK_FOR_EXCLUSIVE=false E2E_LOCK_FOR_OPERATOR_UPDATE=false \
+      flock "$TARGET_PATH/lock-for-exclusive" \
+      "$SHELL" $SH_OPTS "$(dirname "$0")/e2e" spec "$1"
+    return
+  fi
+
+  if "${E2E_LOCK_FOR_OPERATOR_UPDATE:-"$(e2e_lock_for_operator_update)"}"
+  then
+    E2E_LOCK_FOR_OPERATOR_UPDATE=false \
+      flock -s "$TARGET_PATH/lock-for-exclusive" \
+      flock "$TARGET_PATH/lock-for-operator" \
+      "$SHELL" $SH_OPTS "$(dirname "$0")/e2e" spec "$1"
+    return
+  fi
 
   rm -f "$TARGET_PATH/$SPEC_NAME.failed"
 
