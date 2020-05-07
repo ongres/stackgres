@@ -19,7 +19,8 @@
           "controller-revision-hash": "stackgres-67ddbdf8f8",
           "disruptible": "true",
           "role": "master",
-          "statefulset.kubernetes.io/pod-name": "stackgres-0"
+          "statefulset.kubernetes.io/pod-name": "stackgres-0",
+          "customLabel" : "customLabelValue"
         },
         "name": "stackgres-0",
         "namespace": "postgresql",

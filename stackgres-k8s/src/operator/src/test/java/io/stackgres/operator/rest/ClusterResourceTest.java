@@ -233,6 +233,8 @@ class ClusterResourceTest
     assertEquals("Pending", resource.getPods().get(1).getStatus());
     assertEquals("customValue", resource.getSpec().getPods()
         .getMetadata().getAnnotations().get("customAnnotation"));
+    assertEquals("customLabelValue", resource.getSpec().getPods()
+        .getMetadata().getLabels().get("customLabel"));
   }
 
   @Override
@@ -258,6 +260,10 @@ class ClusterResourceTest
     assertFalse(resource.getSpec().getPod().getDisableConnectionPooling());
     assertFalse(resource.getSpec().getPod().getDisableMetricsExporter());
     assertFalse(resource.getSpec().getPod().getDisableMetricsExporter());
+    assertEquals("customValue", resource.getSpec().getPod()
+        .getMetadata().getAnnotations().get("customAnnotation"));
+    assertEquals("customLabelValue", resource.getSpec().getPod()
+        .getMetadata().getLabels().get("customLabel"));
   }
 
   @Test

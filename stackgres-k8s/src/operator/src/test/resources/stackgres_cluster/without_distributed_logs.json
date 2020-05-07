@@ -33,6 +33,9 @@
       "metadata": {
         "annotations": {
           "customAnnotation" : "customValue"
+        },
+        "labels": {
+          "customLabel" : "customLabelValue"
         }
       },
       "disableConnectionPooling": false,

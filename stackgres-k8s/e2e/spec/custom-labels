@@ -18,35 +18,35 @@ EOF
 }
 
 e2e_test() {
-  run_test "Creating a custom annotations directly on the cluster CR" direct_custom_annotations
+  run_test "Creating a custom labels directly on the cluster CR" direct_custom_labels
 
-  run_test "Creating a custom annotations with the helm chart" helm_custom_annotations
+  run_test "Creating a custom labels with the helm chart" helm_custom_labels
 
-  run_test "Creating a custom annotations with http api" create_api_custom_annotations
+  run_test "Creating a custom labels with http api" create_api_custom_labels
 
-  run_test "Getting a custom annotations with http api" get_api_custom_annotations
+  run_test "Getting a custom labels with http api" get_api_custom_labels
 }
 
 ramdom_string(){
   cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1
 }
 
-check_annotation(){
+check_label(){
   local INSTANCE="$1"
-  local EXPECTED_ANNOTATION_VALUE="$2"
+  local EXPECTED_LABEL_VALUE="$2"
 
-  local ACTUAL_ANNOTATION=$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-"$INSTANCE" -o jsonpath="{.metadata.annotations.test-annotation}")
+  local ACTUAL_LABEL=$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-"$INSTANCE" -o jsonpath="{.metadata.labels.test-label}")
 
-  if assert_string_equal "$EXPECTED_ANNOTATION_VALUE" "$ACTUAL_ANNOTATION"
+  if assert_string_equal "$EXPECTED_LABEL_VALUE" "$ACTUAL_LABEL"
   then 
-    echo "SUCCESS. Custom annotations were created"
+    echo "SUCCESS. Custom labels were created"
   else
-    echo "FAIL. Custom annotations did not match the expected value"
+    echo "FAIL. Custom labels did not match the expected value"
     return 1
   fi
 }
 
-direct_custom_annotations(){
+direct_custom_labels(){
   local RANDOM_VALUE=$(ramdom_string)
   cat <<EOF | kubectl apply -f -
 apiVersion: stackgres.io/v1beta1
@@ -59,8 +59,8 @@ spec:
   postgresVersion: 'latest'
   pods:
     metadata:
-      annotations:
-        test-annotation: '$RANDOM_VALUE'
+      labels:
+        test-label: '$RANDOM_VALUE'
     persistentVolume:
       size: '128Mi'
   sgInstanceProfile: 'size-xs'
@@ -70,8 +70,8 @@ EOF
 
   wait_pods_running "$CLUSTER_NAMESPACE" 3
 
-  check_annotation "0" "$RANDOM_VALUE"
-  check_annotation "1" "$RANDOM_VALUE"
+  check_label "0" "$RANDOM_VALUE"
+  check_label "1" "$RANDOM_VALUE"
 
   kubectl delete sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"
 
@@ -79,15 +79,15 @@ EOF
 
 }
 
-helm_custom_annotations(){
+helm_custom_labels(){
   local RANDOM_VALUE=$(ramdom_string)
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
-    --set cluster.pods.metadata.annotations.test-annotation="$RANDOM_VALUE"
+    --set cluster.pods.metadata.labels.test-label="$RANDOM_VALUE"
 
   wait_pods_running "$CLUSTER_NAMESPACE" 3
 
-  check_annotation "0" "$RANDOM_VALUE"
-  check_annotation "1" "$RANDOM_VALUE"
+  check_label "0" "$RANDOM_VALUE"
+  check_label "1" "$RANDOM_VALUE"
 
   helm uninstall "$CLUSTER_NAME" --namespace "$CLUSTER_NAMESPACE"
 
@@ -95,13 +95,13 @@ helm_custom_annotations(){
 }
 
 get_cluster_json() {
-  ANNOTATION_VALUE="$1"
+  LABEL_VALUE="$1"
 
   CLUSTER_JSON=$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
     | jq 'del(.metadata.creationTimestamp) | del(.metadata.generation)' \
     | jq 'del(.metadata.resourceVersion) | del(.metadata.selfLink) | del(.metadata.uid)' \
     | jq 'del(.apiVersion) | del(.kind)' \
-    | jq ".spec.pods.metadata.annotations[\"test-annotation\"]=\"$ANNOTATION_VALUE\"" )
+    | jq ".spec.pods.metadata.labels[\"test-label\"]=\"$LABEL_VALUE\"" )
   echo "$CLUSTER_JSON"
   
 }
@@ -123,7 +123,7 @@ create_cluster_with_api(){
   assert_http_status_succcess "$HTTP_STATUS"
 }
 
-create_api_custom_annotations(){
+create_api_custom_labels(){
   
   cat <<EOF | kubectl apply -f -
 apiVersion: stackgres.io/v1beta1
@@ -158,14 +158,14 @@ EOF
 
   wait_pods_running "$CLUSTER_NAMESPACE" 3
 
-  check_annotation "0" "$RANDOM_VALUE"
-  check_annotation "1" "$RANDOM_VALUE"
+  check_label "0" "$RANDOM_VALUE"
+  check_label "1" "$RANDOM_VALUE"
 
   kubectl delete sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"
 
 }
 
-get_api_custom_annotations() {
+get_api_custom_labels() {
 
   local RANDOM_VALUE=$(ramdom_string)
   cat <<EOF | kubectl apply -f -
@@ -179,8 +179,8 @@ spec:
   postgresVersion: 'latest'
   pods:
     metadata:
-      annotations:
-        test-annotation: '$RANDOM_VALUE'
+      labels:
+        test-label: '$RANDOM_VALUE'
     persistentVolume:
       size: '128Mi'
   sgInstanceProfile: 'size-xs'
@@ -190,8 +190,8 @@ EOF
 
   wait_pods_running "$CLUSTER_NAMESPACE" 3
 
-  local ANNOTATION_VALUE=$(run_curl -r "stackgres/sgcluster/$CLUSTER_NAMESPACE/$CLUSTER_NAME" | jq '.spec.pods.metadata.annotations["test-annotation"]' -r)
+  local LABEL_VALUE=$(run_curl -r "stackgres/sgcluster/$CLUSTER_NAMESPACE/$CLUSTER_NAME" | jq '.spec.pods.metadata.labels["test-label"]' -r)
 
-  assert_string_equal "$RANDOM_VALUE" "$ANNOTATION_VALUE"
+  assert_string_equal "$RANDOM_VALUE" "$LABEL_VALUE"
 
 }

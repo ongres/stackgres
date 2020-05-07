@@ -35,9 +35,15 @@ spec:
       annotations:
         {{- range $annot, $value := .Values.cluster.pods.metadata.annotations }}
         {{ $annot }}: {{ $value }}
-        {{- end}}
-      {{- end}}
-    {{- end}} 
+        {{- end }}
+      {{- end }}
+      {{- if .Values.cluster.pods.metadata.labels }}
+      labels:
+        {{- range $label, $value := .Values.cluster.pods.metadata.labels }}
+        {{ $label }}: {{ $value }}
+        {{- end }}  
+      {{- end }}
+    {{- end }} 
     persistentVolume:
       size: '{{ .Values.cluster.pods.persistentVolume.size }}'
       {{- if .Values.cluster.pods.persistentVolume.storageClass }}
