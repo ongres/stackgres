@@ -96,10 +96,9 @@ spec:
             cat << EOF | kubectl create -f -
             {{- include (print $.Template.BasePath "/mutating-webhook-configuration.yaml") . | indent 12 }}
             EOF
-            kubectl patch secret \
-              -n '{{ .Release.Namespace }}' '{{ .Release.Name }}-certs' --type json --patch '[
-                {"op":"replace","path":"/data/root.key","value":"'"$KEY"'"},
-                {"op":"replace","path":"/data/server.crt","value":"'"$CRT"'"}]'
+            cat << EOF | kubectl create -f -
+            {{- include (print $.Template.BasePath "/certificate-secret.yaml") . | indent 12 }}
+            EOF
             
             {{- if .Release.IsInstall }}
             kubectl scale --timeout 1h --replicas 1 -n '{{ .Release.Namespace }}' 'deployment/{{ .Release.Name }}'
