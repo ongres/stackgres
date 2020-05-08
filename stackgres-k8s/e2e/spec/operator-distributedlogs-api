@@ -237,9 +237,22 @@ test_constraint_violation_api_error() {
 
   ERROR_RESPONSE="$(run_curl -r "stackgres/sgdistributedlogs" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/invalid-distributed-logs.json" -e '-X POST')"
 
+  check_error_response_1 || check_error_response_2
+}
+
+check_error_response_1() {
   EXPECTED_ERROR_TYPE="constraint-violation"
   EXPECTED_ERROR_TITLE="do not comply with the syntactic rules"
   EXPECTED_ERROR_DETAIL="Required value"
+  EXPECTED_ERROR_FIELD="spec.persistentVolume.size"
+
+  assert_api_error "$ERROR_RESPONSE"
+}
+
+check_error_response_2() {
+  EXPECTED_ERROR_TYPE="constraint-violation"
+  EXPECTED_ERROR_TITLE="do not comply with the syntactic rules"
+  EXPECTED_ERROR_DETAIL="spec.persistentVolume.size in body is required"
   EXPECTED_ERROR_FIELD="spec.persistentVolume.size"
 
   assert_api_error "$ERROR_RESPONSE"
