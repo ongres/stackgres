@@ -14,7 +14,6 @@ import javax.enterprise.context.ApplicationScoped;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.Resources;
-
 import io.fabric8.kubernetes.api.model.ConfigMapEnvSourceBuilder;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
@@ -26,7 +25,6 @@ import io.stackgres.operator.common.StackGresRestoreContext;
 import io.stackgres.operator.patroni.factory.PatroniConfigMap;
 import io.stackgres.operator.patroni.factory.PatroniEnvironmentVariables;
 import io.stackgres.operatorframework.resource.factory.SubResourceStreamFactory;
-
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.Unchecked;
 

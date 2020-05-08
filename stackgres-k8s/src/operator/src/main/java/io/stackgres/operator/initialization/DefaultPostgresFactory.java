@@ -6,6 +6,7 @@
 package io.stackgres.operator.initialization;
 
 import java.util.List;
+
 import javax.enterprise.context.Dependent;
 
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;

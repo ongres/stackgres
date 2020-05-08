@@ -14,14 +14,12 @@ import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.ExceptionMapper;
 
 import com.google.common.base.Throwables;
-
 import io.fabric8.kubernetes.api.model.StatusBuilder;
 import io.quarkus.security.UnauthorizedException;
 import io.stackgres.operator.mutation.MutationUtil;
 import io.stackgres.operator.validation.ValidationUtil;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionResponse;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReviewResponse;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

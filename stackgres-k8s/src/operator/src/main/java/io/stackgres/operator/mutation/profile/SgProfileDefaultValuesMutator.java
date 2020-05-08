@@ -6,6 +6,7 @@
 package io.stackgres.operator.mutation.profile;
 
 import java.util.List;
+
 import javax.enterprise.context.ApplicationScoped;
 
 import com.github.fge.jsonpatch.JsonPatchOperation;

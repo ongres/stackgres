@@ -18,7 +18,6 @@ import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.validation.cluster.ClusterValidationPipeline;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReviewResponse;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationResource;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

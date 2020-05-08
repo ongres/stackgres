@@ -6,6 +6,7 @@
 package io.stackgres.operator.mutation.cluster;
 
 import java.util.List;
+
 import javax.inject.Inject;
 
 import com.github.fge.jackson.jsonpointer.JsonPointer;

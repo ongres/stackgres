@@ -51,7 +51,7 @@
     <javax.annotation-api.version>1.3.2</javax.annotation-api.version>
     <javax.validation-api.version>2.0.1.Final</javax.validation-api.version>
     <jsr305.version>3.0.2</jsr305.version>
-    <checkstyle.version>8.27</checkstyle.version>
+    <checkstyle.version>8.32</checkstyle.version>
     <spotbugs.version>4.0.0-RC1</spotbugs.version>
     <pmd.version>6.19.0</pmd.version>
     <errorprone.version>2.3.3</errorprone.version>
@@ -67,7 +67,7 @@
     <resources-plugin.version>3.1.0</resources-plugin.version>
     <surefire-plugin.version>3.0.0-M3</surefire-plugin.version>
     <failsafe-plugin.version>3.0.0-M3</failsafe-plugin.version>
-    <checkstyle-plugin.version>3.1.0</checkstyle-plugin.version>
+    <checkstyle-plugin.version>3.1.1</checkstyle-plugin.version>
     <spotbugs-plugin.version>3.1.12.2</spotbugs-plugin.version>
     <pmd-plugin.version>3.12.0</pmd-plugin.version>
     <enforcer-plugin.version>3.0.0-M3</enforcer-plugin.version>
@@ -75,10 +75,11 @@
     <docker-maven-plugin.version>0.33.0</docker-maven-plugin.version>
     <jandex-maven-plugin.version>1.0.7</jandex-maven-plugin.version>
     <!-- Checkstyle, SpotBugs and PMD properties -->
-    <checkstyle.conifg.folder.location>${project.basedir}/checks/checkstyle</checkstyle.conifg.folder.location>
-    <checkstyle.config.location>${checkstyle.conifg.folder.location}/checkstyle.xml</checkstyle.config.location>
-    <checkstyle.header.file>${checkstyle.conifg.folder.location}/header.txt</checkstyle.header.file>
-    <spotbugs.excludeFilterFile>${project.basedir}/checks/spotbugs/exclude.xml</spotbugs.excludeFilterFile>
+    <checks.location>${project.basedir}/checks</checks.location>
+    <checkstyle.config.location>${checks.location}/checkstyle/checkstyle.xml</checkstyle.config.location>
+    <checkstyle.header.file>${checks.location}/checkstyle/header.txt</checkstyle.header.file>
+    <checkstyle.suppressions.location>${checks.location}/checkstyle/suppressions.xml</checkstyle.suppressions.location>
+    <spotbugs.excludeFilterFile>${checks.location}/spotbugs/exclude.xml</spotbugs.excludeFilterFile>
   </properties>
 
   <dependencyManagement>
@@ -264,7 +265,6 @@
             <id>validate</id>
             <phase>validate</phase>
             <configuration>
-              <propertyExpansion>config_loc=${checkstyle.conifg.folder.location}</propertyExpansion>
               <violationSeverity>error</violationSeverity>
               <failOnViolation>true</failOnViolation>
               <failsOnError>true</failsOnError>

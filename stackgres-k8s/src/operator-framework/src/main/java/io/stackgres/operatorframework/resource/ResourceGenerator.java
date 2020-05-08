@@ -7,7 +7,6 @@ package io.stackgres.operatorframework.resource;
 
 import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.stackgres.operatorframework.resource.factory.SubResourceStreamFactory;
-
 import org.jooq.lambda.Seq;
 
 public class ResourceGenerator<T extends KubernetesResource, C> {

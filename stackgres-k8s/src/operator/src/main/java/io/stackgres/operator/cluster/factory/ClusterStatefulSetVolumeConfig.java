@@ -14,7 +14,6 @@ import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.VolumeConfig;
 import io.stackgres.operator.patroni.factory.PatroniConfigMap;
-
 import org.jooq.lambda.Seq;
 
 public enum ClusterStatefulSetVolumeConfig {

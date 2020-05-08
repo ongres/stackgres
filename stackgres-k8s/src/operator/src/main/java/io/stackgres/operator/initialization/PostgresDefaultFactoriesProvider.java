@@ -7,6 +7,7 @@ package io.stackgres.operator.initialization;
 
 import java.io.IOException;
 import java.util.List;
+
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Instance;

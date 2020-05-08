@@ -6,6 +6,7 @@
 package io.stackgres.operator.common;
 
 import java.util.Optional;
+
 import javax.inject.Singleton;
 
 import com.google.common.collect.ImmutableMap;

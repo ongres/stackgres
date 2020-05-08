@@ -9,7 +9,6 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import io.fabric8.kubernetes.api.model.KubernetesResource;
-
 import org.jooq.lambda.Seq;
 
 @FunctionalInterface

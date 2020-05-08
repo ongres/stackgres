@@ -9,6 +9,7 @@ import java.security.Principal;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.concurrent.CompletionStage;
+
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 

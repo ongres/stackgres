@@ -16,7 +16,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import com.google.common.collect.ImmutableList;
-
 import io.fabric8.kubernetes.api.model.Namespace;
 import io.stackgres.operator.resource.ResourceScanner;
 

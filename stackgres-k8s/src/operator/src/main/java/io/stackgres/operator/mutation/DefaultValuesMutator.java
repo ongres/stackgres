@@ -6,6 +6,7 @@
 package io.stackgres.operator.mutation;
 
 import java.util.List;
+
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 
