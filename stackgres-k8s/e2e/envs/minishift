@@ -15,7 +15,11 @@ update_minishift_config() {
       "kubernetesMasterConfig": {
           "controllerArguments": {
               "cluster-signing-cert-file": ["/etc/origin/master/ca.crt"],
-              "cluster-signing-key-file": ["/etc/origin/master/ca.key"]
+              "cluster-signing-key-file": ["/etc/origin/master/ca.key"],
+              "feature-gates": [ "PodShareProcessNamespace=true" ]
+          },
+          "apiServerArguments": {
+              "feature-gates": [ "PodShareProcessNamespace=true" ]
           }
       }
   }'
