@@ -9,7 +9,9 @@ export K8S_MINISHIFT_VMDRIVER="${K8S_MINISHIFT_VMDRIVER:-kvm}"
 
 update_minishift_config() {
   # Workaround for https://github.com/minishift/minishift/issues/3290
-  minishift openshift config set --target=kube --patch '{
+  minishift openshift config view --target=kube \
+    | grep -A 1 'cluster-signing-cert-file:' | grep -q '/etc/origin/master/ca.crt' \
+    || minishift openshift config set --target=kube --patch '{
       "kubernetesMasterConfig": {
           "controllerArguments": {
               "cluster-signing-cert-file": ["/etc/origin/master/ca.crt"],
@@ -19,18 +21,18 @@ update_minishift_config() {
   }'
 
   eval "$(minishift oc-env)"
-  if ! timeout 10s oc login -u system:admin > /dev/null 2>&1
+  if ! timeout -s KILL 10s oc login -u system:admin > /dev/null 2>&1
   then
     minishift status | grep '^OpenShift:  Running '
-    wait_until eval 'timeout 10s oc login -u system:admin > /dev/null 2>&1'
+    wait_until eval 'timeout -s KILL 10s oc login -u system:admin > /dev/null 2>&1'
   fi
   for addon in admissions-webhook
   do
     minishift addons list | grep -q "^- $addon\s\+: enabled\s" \
      || ( minishift addons enable "$addon" && minishift addons apply "$addon" \
-        && if ! timeout 10s oc login -u system:admin > /dev/null 2>&1
+        && if ! timeout -s KILL 10s oc login -u system:admin > /dev/null 2>&1
         then
-          wait_until eval 'timeout 10s oc login -u system:admin > /dev/null 2>&1'
+          wait_until eval 'timeout -s KILL 10s oc login -u system:admin > /dev/null 2>&1'
         fi ) \
      || ( minishift addons disable "$addon" && false )
   done
@@ -78,6 +80,11 @@ reuse_k8s() {
 }
 
 reset_k8s() {
+  if [ "$K8S_SKIP_RESET" = "true" ]
+  then
+    exit 1
+  fi
+
   echo "Setting up minishift environment..."
 
   minishift delete -f || true
