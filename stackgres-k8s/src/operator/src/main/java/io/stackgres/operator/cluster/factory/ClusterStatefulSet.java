@@ -30,6 +30,7 @@ import io.fabric8.kubernetes.api.model.PodTemplateSpecBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetUpdateStrategyBuilder;
+import io.stackgres.common.crd.sgcluster.NonProduction;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresClusterResourceStreamFactory;
 import io.stackgres.operator.common.StackGresGeneratorContext;
@@ -103,7 +104,8 @@ public class ClusterStatefulSet implements StackGresClusterResourceStreamFactory
 
     final Map<String, String> labels = clusterContext.clusterLabels();
     final Map<String, String> podLabels = clusterContext.statefulSetPodLabels();
-
+    final Map<String, String> podAnnotations = clusterContext.clusterAnnotations();
+    final Map<String, String> customPodLabels = clusterContext.posCustomLabels();
     StatefulSet clusterStatefulSet = new StatefulSetBuilder()
         .withNewMetadata()
         .withNamespace(namespace)
@@ -122,6 +124,8 @@ public class ClusterStatefulSet implements StackGresClusterResourceStreamFactory
         .withServiceName(name)
         .withTemplate(new PodTemplateSpecBuilder()
             .withMetadata(new ObjectMetaBuilder()
+                .addToAnnotations(podAnnotations)
+                .addToLabels(customPodLabels)
                 .addToLabels(podLabels)
                 .build())
             .withNewSpec()
@@ -147,7 +151,7 @@ public class ClusterStatefulSet implements StackGresClusterResourceStreamFactory
                 .build())
                 .filter(affinity -> Optional.ofNullable(
                     clusterContext.getCluster().getSpec().getNonProduction())
-                    .map(nonProduction -> nonProduction.getDisableClusterPodAntiAffinity())
+                    .map(NonProduction::getDisableClusterPodAntiAffinity)
                     .map(disableClusterPodAntiAffinity -> !disableClusterPodAntiAffinity)
                     .orElse(true))
                 .orElse(null))

@@ -30,6 +30,14 @@
         "size": "5Gi",
         "storageClass": "standard"
       },
+      "metadata": {
+        "annotations": {
+          "customAnnotation" : "customValue"
+        },
+        "labels": {
+          "customLabel" : "customLabelValue"
+        }
+      },
       "disableConnectionPooling": false,
       "disableMetricsExporter": false,
       "disablePostgresUtil": false

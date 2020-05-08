@@ -25,7 +25,15 @@
       },
       "disableConnectionPooling": false,
       "disableMetricsExporter": false,
-      "disablePostgresUtil": false
+      "disablePostgresUtil": false,
+      "metadata": {
+        "annotations": {
+          "customAnnotation" : "customValue"
+        },
+        "labels": {
+          "customLabel" : "customLabelValue"
+        }
+      }
     },
     "prometheusAutobind": true,
     "distributedLogs": {

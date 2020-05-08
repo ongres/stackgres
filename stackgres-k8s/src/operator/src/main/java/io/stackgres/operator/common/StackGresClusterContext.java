@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.common;
 
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -15,6 +16,9 @@ import io.fabric8.kubernetes.api.model.OwnerReference;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPodMetadata;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.operatorframework.resource.ResourceHandlerContext;
@@ -177,7 +181,7 @@ public abstract class StackGresClusterContext implements ResourceHandlerContext 
    */
   @SuppressWarnings("unchecked")
   public <C, S extends StackGresClusterSidecarResourceFactory<C>>
-        Optional<C> getSidecarConfig(S sidecar) {
+      Optional<C> getSidecarConfig(S sidecar) {
     for (SidecarEntry<?> entry : getSidecars()) {
       if (entry.getSidecar() == sidecar) {
         return entry.getConfig().map(config -> (C) config);
@@ -185,6 +189,24 @@ public abstract class StackGresClusterContext implements ResourceHandlerContext 
     }
     throw new IllegalStateException("Sidecar " + sidecar.getClass()
         + " not found in cluster configuration");
+  }
+
+  public Map<String, String> clusterAnnotations() {
+    return Optional.ofNullable(getCluster())
+        .map(StackGresCluster::getSpec)
+        .map(StackGresClusterSpec::getPod)
+        .map(StackGresClusterPod::getMetadata)
+        .map(StackGresClusterPodMetadata::getAnnotations)
+        .orElse(ImmutableMap.of());
+  }
+
+  public Map<String, String> posCustomLabels() {
+    return Optional.ofNullable(getCluster())
+        .map(StackGresCluster::getSpec)
+        .map(StackGresClusterSpec::getPod)
+        .map(StackGresClusterPod::getMetadata)
+        .map(StackGresClusterPodMetadata::getLabels)
+        .orElse(ImmutableMap.of());
   }
 
   abstract static class ClusterLabelMapper<T extends HasMetadata> extends LabelMapper {
@@ -270,16 +292,16 @@ public abstract class StackGresClusterContext implements ResourceHandlerContext 
       return resource instanceof Pod
           && resource.getMetadata().getNamespace().equals(clusterNamespace())
           && Objects.equals(resource.getMetadata().getLabels().get(clusterKey()),
-              StackGresUtil.RIGHT_VALUE)
+          StackGresUtil.RIGHT_VALUE)
           && resource.getMetadata().getName().matches(
-              ResourceUtil.getNameWithIndexPattern(clusterName()));
+          ResourceUtil.getNameWithIndexPattern(clusterName()));
     }
 
     public boolean isBackupPod(HasMetadata resource) {
       return resource instanceof Pod
           && resource.getMetadata().getNamespace().equals(clusterNamespace())
           && Objects.equals(resource.getMetadata().getLabels().get(backupKey()),
-              StackGresUtil.RIGHT_VALUE);
+          StackGresUtil.RIGHT_VALUE);
     }
   }
 
