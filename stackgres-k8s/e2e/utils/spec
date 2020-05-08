@@ -64,7 +64,9 @@ spec() {
 
   if "${E2E_LOCK_FOR_EXCLUSIVE:-"$(e2e_lock_for_exclusive)"}"
   then
-    E2E_LOCK_FOR_EXCLUSIVE=false E2E_LOCK_FOR_OPERATOR_UPDATE=false \
+    E2E_LOCK_FOR_EXCLUSIVE=false \
+      E2E_LOCK_FOR_OPERATOR_UPDATE=false \
+      E2E_LOCK_FOR_SHARED=false \
       flock "$TARGET_PATH/lock-for-exclusive" \
       "$SHELL" $SH_OPTS "$(dirname "$0")/e2e" spec "$1"
     return
@@ -73,8 +75,19 @@ spec() {
   if "${E2E_LOCK_FOR_OPERATOR_UPDATE:-"$(e2e_lock_for_operator_update)"}"
   then
     E2E_LOCK_FOR_OPERATOR_UPDATE=false \
+      E2E_LOCK_FOR_SHARED=false \
       flock -s "$TARGET_PATH/lock-for-exclusive" \
       flock "$TARGET_PATH/lock-for-operator" \
+      "$SHELL" $SH_OPTS "$(dirname "$0")/e2e" spec "$1"
+    return
+  fi
+
+  if "${E2E_LOCK_FOR_SHARED:-true}"
+  then
+    E2E_LOCK_FOR_EXCLUSIVE=false \
+      E2E_LOCK_FOR_OPERATOR_UPDATE=false \
+      E2E_LOCK_FOR_SHARED=false \
+      flock -s "$TARGET_PATH/lock-for-exclusive" \
       "$SHELL" $SH_OPTS "$(dirname "$0")/e2e" spec "$1"
     return
   fi
