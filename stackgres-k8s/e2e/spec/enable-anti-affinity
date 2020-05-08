@@ -27,7 +27,7 @@ test_anti_affinity_is_blocking_pod_creation() {
 
 is_anti_affinity_blocking_pod_creation() {
   kubectl get events -n "$CLUSTER_NAMESPACE" \
-    | grep "FailedScheduling" \
-    | grep "\spod/$CLUSTER_NAME-[1-9]\+\s" \
+    --template '{{ range .items }}{{ .reason }}/{{ .involvedObject.kind }}/{{ .involvedObject.name }}/{{ .message }}{{ printf "\n" }}{{ end }}' \
+    | grep "^FailedScheduling/Pod/$CLUSTER_NAME-[1-9]\+/" \
     | grep -F -q "node(s) didn't match pod affinity/anti-affinity"
 }
