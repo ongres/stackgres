@@ -29,22 +29,7 @@ spec:
       {{- with .Values.service.nodePort }}
       nodePort: {{ . }}
       {{- end }}
-{{ if not (and .Values.developer.externalOperatorIp .Values.developer.externalOperatorPort) }}
----
-apiVersion: v1
-kind: Service
-metadata:
-  namespace: {{ .Release.Namespace }}
-  name: {{ .Release.Name }}-api
-spec:
-  selector:
-    app: {{ .Release.Name }}
-  ports:
-    - name: http
-      protocol: TCP
-      port: 8080
-      targetPort: 8080
-{{ else }}
+{{ if and .Values.developer.externalOperatorIp .Values.developer.externalOperatorPort }}
 ---
 kind: Service
 apiVersion: v1
