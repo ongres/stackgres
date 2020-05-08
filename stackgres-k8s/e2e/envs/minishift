@@ -89,7 +89,9 @@ reset_k8s() {
 
   minishift delete -f || true
 
-  rm -Rf "$HOME/.minishift/config"
+  rm -Rf "$HOME/.minishift/config" \
+    "$HOME/.minishift/machines" \
+    "$HOME/.minishift/certs"
 
   minishift start --openshift-version "v$K8S_OPENSHIFT_VERSION" \
     --cpus "$K8S_MINISHIFT_CPUS" \
