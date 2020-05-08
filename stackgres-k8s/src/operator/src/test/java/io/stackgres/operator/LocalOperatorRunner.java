@@ -29,7 +29,6 @@ import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
@@ -43,7 +42,6 @@ import java.util.stream.Collectors;
 
 import com.google.common.io.Closer;
 import com.ongres.junit.docker.Container;
-
 import io.fabric8.kubernetes.client.Config;
 import io.quarkus.bootstrap.BootstrapClassLoaderFactory;
 import io.quarkus.bootstrap.BootstrapException;
@@ -64,7 +62,6 @@ import io.quarkus.test.common.PathTestHelper;
 import io.quarkus.test.junit.QuarkusTest;
 import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operatorframework.admissionwebhook.validating.Validator;
-
 import org.jooq.lambda.Unchecked;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
@@ -129,13 +126,6 @@ public class LocalOperatorRunner implements OperatorRunner {
   private void setup() throws Exception {
     List<String> kubeconfig = k8s.execute("sh", "-l", "-c", "kubectl config view --minify --raw")
         .collect(Collectors.toList());
-    List<String> operatorSecret = k8s.execute("sh", "-l", "-c",
-        "kubectl get secret -n stackgres -o yaml"
-            + " \"$(kubectl get secret -n stackgres"
-            + " | grep stackgres-operator-token-"
-            + " | sed 's/\\s\\+/ /g'"
-            + " | cut -d ' ' -f 1)\"")
-        .collect(Collectors.toList());
     System.setProperty("quarkus.http.ssl.certificate.file", "src/test/resources/certs/server.crt");
     System.setProperty("quarkus.http.ssl.certificate.key-file", "src/test/resources/certs/server-key.pem");
     System.setProperty(Config.KUBERNETES_AUTH_TRYKUBECONFIG_SYSTEM_PROPERTY, Boolean.FALSE.toString());
@@ -144,15 +134,6 @@ public class LocalOperatorRunner implements OperatorRunner {
         .filter(line -> line.startsWith("    server: "))
         .findAny().get()
         .substring("    server: ".length()));
-    System.setProperty(Config.KUBERNETES_CA_CERTIFICATE_DATA_SYSTEM_PROPERTY, operatorSecret.stream()
-        .filter(line -> line.startsWith("  ca.crt: "))
-        .map(line -> line.substring("  ca.crt: ".length()))
-        .findAny().get());
-    System.setProperty(Config.KUBERNETES_OAUTH_TOKEN_SYSTEM_PROPERTY, operatorSecret.stream()
-        .filter(line -> line.startsWith("  token: "))
-        .map(line -> line.substring("  token: ".length()))
-        .map(secret -> new String(Base64.getDecoder().decode(secret), StandardCharsets.UTF_8))
-        .findAny().get());
 
     LOGGER.info("Setup fabric8 to connect to {}", System.getProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY));
     System.setProperty("quarkus.http.test-port", String.valueOf(port));
