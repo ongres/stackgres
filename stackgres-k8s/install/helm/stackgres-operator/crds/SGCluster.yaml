@@ -80,6 +80,16 @@ spec:
                 disablePostgresUtil:
                   type: boolean
                   description: If is true it disable the postgres-util container
+                metadata:
+                  type: object
+                  description: Pod custom metadata information
+                  properties:
+                    annotations:
+                      type: object
+                      description: Additional annotations for StackGres Pods to have
+                    labels:
+                      type: object
+                      description: Additional labels for StackGres Pods to have
               required: ["persistentVolume"]
             configurations:
               type: object

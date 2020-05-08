@@ -56,6 +56,7 @@ Cluster's pod configuration
 | disableConnectionPooling               |          |           | boolean  | false                               | {{< crd-field-description SGCluster.spec.pods.disableConnectionPooling >}} |
 | disableMetricsExporter                 |          |           | boolean  | false                               | {{< crd-field-description SGCluster.spec.pods.disableMetricsExporter >}} |
 | disablePostgresUtil                    |          |           | boolean  | false                               | {{< crd-field-description SGCluster.spec.pods.disablePostgresUtil >}} |
+| [metadata](#metadata)                  |          |           | object   |                                     | {{< crd-field-description SGCluster.spec.pods.metadata >}} |
 
 ### Sidecar containers
 
@@ -88,7 +89,7 @@ spec:
 
 ### Persistent Volume
 
-Holds the configurations of the persistent volume that the cluster pods are going to use
+Holds the configurations of the persistent volume that the cluster pods are going to use.
 
 | Property     | Required | Updatable | Type     | Default                             | Description |
 |:-------------|----------|-----------|:---------|:------------------------------------|:------------|
@@ -107,6 +108,29 @@ spec:
       storageClass: default
 ```
 
+
+### Metadata
+
+Holds custom metadata information for StackGres pods to have.
+
+| Property     | Required | Updatable | Type     | Default                             | Description |
+|:-------------|----------|-----------|:---------|:------------------------------------|:------------|
+| annotations  | ✓        | ✓         | string   |                                     | {{< crd-field-description SGCluster.spec.pods.metadata.annotations >}} |
+| labels       |          |           | string   | default storage class               | {{< crd-field-description SGCluster.spec.pods.metadata.labels >}} |
+
+```yaml
+apiVersion: stackgres.io/v1beta1
+kind: SGCluster
+metadata:
+  name: stackgres
+spec:
+  pods:
+    metadata:
+      annotations:
+        customAnnotations: customAnnotationValue
+      labels:
+        customLabel: customLabelValue
+```
 ## Configurations
 
 Custom configurations to be applied to the cluster.
