@@ -296,7 +296,7 @@
                       <name>ongres-jvm-builder</name>
                       <build>
                         <cleanup>remove</cleanup>
-                        <from>ongres/builder</from>
+                        <from>quay.io/buildah/stable:v1.14.8</from>
                         <assembly>
                           <targetDir>/operator</targetDir>
                           <inline>
@@ -377,7 +377,7 @@
                       <name>ongres-native-builder</name>
                       <build>
                         <cleanup>remove</cleanup>
-                        <from>ongres/builder</from>
+                        <from>quay.io/buildah/stable:v1.14.8</from>
                         <assembly>
                           <targetDir>/operator</targetDir>
                           <inline>
