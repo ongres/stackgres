@@ -17,8 +17,6 @@ install_operator() {
   helm install stackgres-operator --namespace stackgres "$OPERATOR_CHART_PATH" \
     --set-string image.name="${IMAGE_NAME%:*}" --set-string image.tag="${IMAGE_NAME#*:}" \
     --set-string "image.pullPolicy=$(operator_pull_policy)" \
-    --set-string "authentication.user=e2e" \
-    --set-string "authentication.password=test" \
     "$@"
 }
 

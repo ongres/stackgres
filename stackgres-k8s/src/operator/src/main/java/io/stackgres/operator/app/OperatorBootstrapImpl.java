@@ -8,11 +8,12 @@ package io.stackgres.operator.app;
 import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.nio.charset.StandardCharsets;
-
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import com.google.common.io.Resources;
+import io.fabric8.kubernetes.api.model.Secret;
+import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.internal.KubernetesDeserializer;
@@ -30,8 +31,11 @@ import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigDefinition;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgprofile.StackGresProfileDefinition;
+import io.stackgres.operator.common.ConfigLoader;
+import io.stackgres.operator.common.ConfigProperty;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresDistributedLogsContext;
+import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operator.initialization.InitializationQueue;
 import io.stackgres.operatorframework.resource.ResourceHandlerSelector;
 import io.stackgres.operatorframework.resource.ResourceUtil;
@@ -49,15 +53,20 @@ public class OperatorBootstrapImpl implements OperatorBootstrap {
       distributedLogsHandlerSelector;
   private final InitializationQueue initializationQueue;
 
+  private final String secretName;
+
   @Inject
-  public OperatorBootstrapImpl(KubernetesClientFactory kubeClient,
+  public OperatorBootstrapImpl(
+      KubernetesClientFactory kubeClient,
       ResourceHandlerSelector<StackGresClusterContext> handlerSelector,
       ResourceHandlerSelector<StackGresDistributedLogsContext> distributedLogsHandlerSelector,
-      InitializationQueue initializationQueue) {
+      InitializationQueue initializationQueue,
+      ConfigLoader configLoader) {
     this.kubeClient = kubeClient;
     this.handlerSelector = handlerSelector;
     this.distributedLogsHandlerSelector = distributedLogsHandlerSelector;
     this.initializationQueue = initializationQueue;
+    this.secretName = configLoader.get(ConfigProperty.AUTHENTICATION_SECRET_NAME);
   }
 
   @Override
@@ -77,6 +86,7 @@ public class OperatorBootstrapImpl implements OperatorBootstrap {
       }
 
       registerResources();
+      initializeCredentials(client);
       initializationQueue.start();
 
     } catch (KubernetesClientException e) {
@@ -86,6 +96,23 @@ public class OperatorBootstrapImpl implements OperatorBootstrap {
       throw e;
     }
 
+  }
+
+  private void initializeCredentials(KubernetesClient client) {
+    if (client.secrets().withName(secretName).get() == null) {
+      LOGGER.info("No operator secret found, creating a new one");
+      final String randUser = ResourceUtil.encodeSecret(ResourceUtil.generateRandom(20));
+      final String randPassword = ResourceUtil.encodeSecret(ResourceUtil.generateRandom(40));
+      Secret secret = new SecretBuilder()
+          .withNewMetadata()
+          .withName(secretName)
+          .endMetadata()
+          .addToData(StackGresUtil.REST_USER_KEY, randUser)
+          .addToData(StackGresUtil.REST_PASSWORD_KEY, randPassword)
+          .build();
+
+      client.secrets().create(secret);
+    }
   }
 
   private void registerResources() {

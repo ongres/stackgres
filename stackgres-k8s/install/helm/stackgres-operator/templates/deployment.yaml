@@ -141,7 +141,7 @@ spec:
       volumes:
         - name: operator-certs
           secret:
-            secretName: {{ .Release.Name }}
+            secretName: {{ .Release.Name }}-certs
             optional: false
             items:
               - key: root.key

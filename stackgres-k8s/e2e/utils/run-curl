@@ -5,12 +5,14 @@ run_curl() {
   local NAMESPACE="${CLUSTER_NAMESPACE:-stackgres}"
   local SERVICE_NAMESPACE=stackgres
   local SERVICE=stackgres-operator
-  local RESOURCE_PATH="stackgres/cluster"
+  local RESOURCE_PATH="stackgres/sgcluster"
   local EXTRA_PARAMETERS=""
   local CONTENT_TYPE="application/json"
   local ACCEPT="application/json"
   local DATA_FILENAME=""
-  local AUTHORIZATION="e2e:test"
+  local USERNAME=$(kubectl get secrets --namespace "$SERVICE_NAMESPACE" "$SERVICE" -o jsonpath="{.data.user}" | base64 -d)
+  local PASSWORD=$(kubectl get secrets --namespace "$SERVICE_NAMESPACE" "$SERVICE" -o jsonpath="{.data.password}" | base64 -d)
+  local AUTHORIZATION="$USERNAME:$PASSWORD"
   while getopts ":p:n:s:N:r:c:e:d:a:" opt; do
     case $opt in
       p) POD="$OPTARG"
@@ -41,17 +43,15 @@ run_curl() {
   then
     tar cf - "$DATA_FILENAME" | kubectl exec -i -n "$NAMESPACE" "$POD" -- tar xf - -C /tmp
     kubectl exec -i -n "$NAMESPACE" "$POD" -- \
-      curl -k "https://$SERVICE.$SERVICE_NAMESPACE.svc.cluster.local/$RESOURCE_PATH" \
+      curl -u "$AUTHORIZATION" -k "https://$SERVICE.$SERVICE_NAMESPACE.svc.cluster.local/$RESOURCE_PATH" \
       -H "Content-Type: $CONTENT_TYPE" \
       -H "Accept: $ACCEPT"  \
-      -H "Authorization: Basic $(echo -n "$AUTHORIZATION" | base64)"  \
       --data @"/tmp/$DATA_FILENAME" -s $(echo $EXTRA_PARAMETERS)
   else
     kubectl exec -i -n "$NAMESPACE" "$POD" -- \
-      curl -k "https://$SERVICE.$SERVICE_NAMESPACE.svc.cluster.local/$RESOURCE_PATH" \
+      curl -u "$AUTHORIZATION" -k "https://$SERVICE.$SERVICE_NAMESPACE.svc.cluster.local/$RESOURCE_PATH" \
       -H "Content-Type: $CONTENT_TYPE" \
       -H "Accept: $ACCEPT" \
-      -H "Authorization: Basic $(echo -n "$AUTHORIZATION" | base64)"  \
       -s $(echo $EXTRA_PARAMETERS)
   fi
 }
