@@ -8,23 +8,42 @@ export K8S_MINISHIFT_VMDRIVER="${K8S_MINISHIFT_VMDRIVER:-kvm}"
 
 
 update_minishift_config() {
-  # Workaround for https://github.com/minishift/minishift/issues/3290
-  minishift openshift config view --target=kube \
-    | grep -A 1 'cluster-signing-cert-file:' | grep -q '/etc/origin/master/ca.crt' \
-    || minishift openshift config set --target=kube --patch '{
-      "kubernetesMasterConfig": {
+  eval "$(minishift oc-env)"
+
+  if ! timeout -s KILL 10s oc login -u system:admin > /dev/null 2>&1
+  then
+    minishift status | grep '^OpenShift:  Running '
+    wait_until eval 'timeout -s KILL 10s oc login -u system:admin > /dev/null 2>&1'
+  fi
+
+  local OPENSHIFT_TARGET
+  for OPENSHIFT_TARGET in kube node master
+  do
+    # Workaround for https://github.com/minishift/minishift/issues/3290
+    minishift openshift config view --target="$OPENSHIFT_TARGET" \
+      | grep -A 1 'cluster-signing-cert-file:' | grep -q '/etc/origin/master/ca.crt' \
+      || minishift openshift config set --target="$OPENSHIFT_TARGET" --patch '{
+        "kubernetesMasterConfig": {
           "controllerArguments": {
-              "cluster-signing-cert-file": ["/etc/origin/master/ca.crt"],
-              "cluster-signing-key-file": ["/etc/origin/master/ca.key"],
-              "feature-gates": [ "PodShareProcessNamespace=true" ]
+            "cluster-signing-cert-file": ["/etc/origin/master/ca.crt"],
+            "cluster-signing-key-file": ["/etc/origin/master/ca.key"],
+            "feature-gates": ["PodShareProcessNamespace=true"]
           },
           "apiServerArguments": {
-              "feature-gates": [ "PodShareProcessNamespace=true" ]
+            "feature-gates":  ["PodShareProcessNamespace=true"]
           }
-      }
-  }'
+        },
+        "kubeletArguments": {
+          "feature-gates": ["PodShareProcessNamespace=true"]
+        }
+      }'
 
-  eval "$(minishift oc-env)"
+    if ! timeout -s KILL 10s oc login -u system:admin > /dev/null 2>&1
+    then
+      wait_until eval 'timeout -s KILL 10s oc login -u system:admin > /dev/null 2>&1'
+    fi
+  done
+
   if ! timeout -s KILL 10s oc login -u system:admin > /dev/null 2>&1
   then
     minishift status | grep '^OpenShift:  Running '
