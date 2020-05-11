@@ -129,12 +129,12 @@ spec:
                         secretKeySelectors:
                           type: object
                           description: |
-                            Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core)s to reference the Secrets that contain the information about the `awsCredentials`.
+                            Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core)(s) to reference the Secrets that contain the information about the `awsCredentials`. Note that you may use the same or different Secrets for the `accessKeyId` and the `secretAccessKey`. In the former case, the `keys` that identify each must be, obviously, different.
                           properties:
                             accessKeyId:
                               type: object
                               description: |
-                                [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core) containing the AWS Access Key ID secret.
+                                AWS [access key ID](https://docs.aws.amazon.com/general/latest/gr/aws-sec-cred-types.html#access-keys-and-secret-access-keys). For example, `AKIAIOSFODNN7EXAMPLE`.
                               properties:
                                 key:
                                   type: string
@@ -143,12 +143,12 @@ spec:
                                 name:
                                   type: string
                                   description: |
-                                    Name of the referent.  [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
+                                    Name of the referent. [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
                               required: ["key", "name"]
                             secretAccessKey:
                               type: object
                               description: |
-                                [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core) containing the AWS Secret Access Key secret.
+                                AWS [secret access key](https://docs.aws.amazon.com/general/latest/gr/aws-sec-cred-types.html#access-keys-and-secret-access-keys). For example, `wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY`.
                               properties:
                                 key:
                                   type: string
@@ -157,7 +157,7 @@ spec:
                                 name:
                                   type: string
                                   description: |
-                                    Name of the referent.  [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
+                                    Name of the referent. [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
                               required: ["key", "name"]
                           required: ["accessKeyId", "secretAccessKey"]
                       required: ["secretKeySelectors"]
@@ -203,12 +203,12 @@ spec:
                         secretKeySelectors:
                           type: object
                           description: |
-                            A Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core) to reference the Secrets that contain the information about the `awsCredentials`.
+                            Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core)(s) to reference the Secret(s) that contain the information about the `awsCredentials`. Note that you may use the same or different Secrets for the `accessKeyId` and the `secretAccessKey`. In the former case, the `keys` that identify each must be, obviously, different.
                           properties:
                             accessKeyId:
                               type: object
                               description: |
-                                [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core) containing the AWS Access Key ID secret.
+                                AWS [access key ID](https://docs.aws.amazon.com/general/latest/gr/aws-sec-cred-types.html#access-keys-and-secret-access-keys). For example, `AKIAIOSFODNN7EXAMPLE`.
                               properties:
                                 key:
                                   type: string
@@ -217,12 +217,12 @@ spec:
                                 name:
                                   type: string
                                   description: |
-                                    Name of the referent.  [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
+                                    Name of the referent. [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
                               required: ["key", "name"]
                             secretAccessKey:
                               type: object
                               description: |
-                                [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core) containing the AWS Secret Access Key secret.
+                                AWS [secret access key](https://docs.aws.amazon.com/general/latest/gr/aws-sec-cred-types.html#access-keys-and-secret-access-keys). For example, `wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY`.
                               properties:
                                 key:
                                   type: string
@@ -231,7 +231,7 @@ spec:
                                 name:
                                   type: string
                                   description: |
-                                    Name of the referent.  [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
+                                    Name of the referent. [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
                               required: ["key", "name"]
                           required: ["accessKeyId", "secretAccessKey"]
                       required: ["secretKeySelectors"]
@@ -292,7 +292,7 @@ spec:
                       type: string
                       pattern: "^(/[^/]*)*$"
                       description: |
-                        Optional path within the Azure Blobk bucket. Note that StackGres generates in any case a folder per StackGres cluster, using the `SGCluster.metadata.name`.
+                        Optional path within the Azure Blob bucket. Note that StackGres generates in any case a folder per StackGres cluster, using the `SGCluster.metadata.name`.
                     azureCredentials:
                       type: object
                       description: |
@@ -301,12 +301,12 @@ spec:
                         secretKeySelectors:
                           type: object
                           description: |
-                            Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core)s to reference the Secrets that contain the information about the `azureCredentials`.
+                            Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core)(s) to reference the Secret(s) that contain the information about the `azureCredentials`. . Note that you may use the same or different Secrets for the `storageAccount` and the `accessKey`. In the former case, the `keys` that identify each must be, obviously, different.
                           properties:
                             storageAccount:
                               type: object
                               description: |
-                                [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core) containing the name of the storage account.
+                                The [Storage Account](https://docs.microsoft.com/en-us/azure/storage/common/storage-account-overview?toc=/azure/storage/blobs/toc.json) that contains the Blob bucket to be used.
                               properties:
                                 key:
                                   type: string
@@ -315,12 +315,12 @@ spec:
                                 name:
                                   type: string
                                   description: |
-                                    Name of the referent.  [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
+                                    Name of the referent. [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
                               required: ["key", "name"]
                             accessKey:
                               type: object
                               description: |
-                                [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core) containing the primary or secondary access key for the storage account.
+                                The [storage account access key](https://docs.microsoft.com/en-us/azure/storage/common/storage-account-keys-manage?tabs=azure-portal).
                               properties:
                                 key:
                                   type: string
@@ -329,7 +329,7 @@ spec:
                                 name:
                                   type: string
                                   description: |
-                                    Name of the referent.  [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
+                                    Name of the referent. [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
                               required: ["key", "name"]
                           required: ["storageAccount", "accessKey"]
                   required: ["bucket", "azureCredentials"]
