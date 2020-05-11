@@ -5,30 +5,28 @@ variables:
   # This will suppress any download for dependencies and plugins or upload messages which would clutter the console log.
   # `showDateTime` will show the passed time in milliseconds. You need to specify `--batch-mode` to make this work.
   MAVEN_OPTS: |
-               -Dhttps.protocols=TLSv1.2
-               -Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository
-               -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=WARN
-               -Dorg.slf4j.simpleLogger.showDateTime=true
-               -Djava.awt.headless=true
-               -XX:+UseParallelOldGC
+    -Dhttps.protocols=TLSv1.2
+    -Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository
+    -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=WARN
+    -Dorg.slf4j.simpleLogger.showDateTime=true
+    -Djava.awt.headless=true
   # As of Maven 3.3.0 instead of this you may define these options in `.mvn/maven.config` so the same config is used
   # when running from the command line.
   # `installAtEnd` and `deployAtEnd` are only effective with recent version of the corresponding plugins.
   MAVEN_CLI_OPTS: |
-                   -f stackgres-k8s/src/pom.xml
-                   --batch-mode
-                   --errors
-                   --fail-at-end
-                   --show-version
-                   -DinstallAtEnd=true
-                   -DdeployAtEnd=true
-                   -Dsurefire.useFile=false
-                   -Dsurefire.useFile=false
-                   -DtrimStackTrace=false
+    -f stackgres-k8s/src/pom.xml
+    --batch-mode
+    --errors
+    --fail-at-end
+    --show-version
+    -DinstallAtEnd=true
+    -DdeployAtEnd=true
+    -Dsurefire.useFile=false
+    -DtrimStackTrace=false
   DISABLE_IT: "true"
   E2E_ENV: kind
   E2E_PARALLELISM: 32
-  K8S_VERSION: 1.17.2
+  K8S_VERSION: 1.17.5
   K8S_FROM_DIND: "true"
   K8S_REUSE: "true"
 
@@ -53,7 +51,7 @@ compile:
   tags:
     - stackgres-runner
   script:
-    - 'mvn $MAVEN_CLI_OPTS clean verify -P safer'
+    - mvn $MAVEN_CLI_OPTS clean verify -P safer
   artifacts:
     paths:
       - stackgres-k8s/src/target
@@ -65,11 +63,12 @@ native image:
     - stackgres-runner
   dependencies:
     - compile
+  resource_group: stackgres-build-native
   script:
     - MAVEN_CLI_OPTS="$MAVEN_CLI_OPTS -DskipTests"
-    - 'flock -w 3600 /tmp/stackgres-build-native mvn $MAVEN_CLI_OPTS package -P native'
-    - 'cp $GRAALVM_HOME/jre/lib/amd64/libsunec.so stackgres-k8s/src/operator/target/'
-    - 'cp $GRAALVM_HOME/jre/lib/security/cacerts stackgres-k8s/src/operator/target/'
+    - flock -w 3600 /tmp/stackgres-build-native mvn $MAVEN_CLI_OPTS package -P native
+    - cp $GRAALVM_HOME/jre/lib/amd64/libsunec.so stackgres-k8s/src/operator/target/
+    - cp $GRAALVM_HOME/jre/lib/security/cacerts stackgres-k8s/src/operator/target/
   artifacts:
     paths:
       - stackgres-k8s/src/operator/target/libsunec.so
@@ -94,7 +93,7 @@ enforce release:
     - compile
   script:
     - MAVEN_CLI_OPTS="$MAVEN_CLI_OPTS -DskipTests -Dquarkus.skipAugmentation=true"
-    - 'mvn $MAVEN_CLI_OPTS enforcer:enforce@enforce-no-snapshots'
+    - mvn $MAVEN_CLI_OPTS enforcer:enforce@enforce-no-snapshots
   only:
     variables:
       - $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
@@ -108,7 +107,7 @@ build test images:
   retry: 2
   script:
     - MAVEN_CLI_OPTS="$MAVEN_CLI_OPTS -DskipTests -Dquarkus.skipAugmentation=true"
-    - 'mvn $MAVEN_CLI_OPTS pre-integration-test -P integration'
+    - mvn $MAVEN_CLI_OPTS pre-integration-test -P integration
 
 build jvm image:
   stage: pre test
@@ -117,11 +116,12 @@ build jvm image:
   dependencies:
     - compile
   retry: 2
+  resource_group: stackgres-build-jvm-image
   script:
-    - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}"-jvm'
-    - 'export IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
+    - export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}"-jvm
+    - export IMAGE_NAME="stackgres/operator:$IMAGE_TAG"
     - MAVEN_CLI_OPTS="$MAVEN_CLI_OPTS -DskipTests"
-    - 'flock -w 3600 /tmp/stackgres-build-jvm-image mvn $MAVEN_CLI_OPTS package -P build-image-jvm'
+    - mvn $MAVEN_CLI_OPTS package -P build-image-jvm
 
 build native image:
   stage: pre test
@@ -131,11 +131,12 @@ build native image:
     - compile
     - native image
   retry: 2
+  resource_group: stackgres-build-native-image
   script:
-    - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}"'
-    - 'export IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
+    - export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}"
+    - export IMAGE_NAME="stackgres/operator:$IMAGE_TAG"
     - MAVEN_CLI_OPTS="$MAVEN_CLI_OPTS -DskipTests"
-    - 'flock -w 3600 /tmp/stackgres-build-native-image mvn $MAVEN_CLI_OPTS package -P build-image-native'
+    - mvn $MAVEN_CLI_OPTS package -P build-image-native
   only:
     variables:
       - $CI_COMMIT_REF_NAME == "development"
@@ -150,10 +151,11 @@ integration test:
     - stackgres-runner
   dependencies:
     - compile
+  resource_group: stackgres-integration-test
   script:
     - |
       flock -s -w 3600 /tmp/stackgres-build-native \
-        flock -w 3600 /tmp/stackgres-integration-test mvn $MAVEN_CLI_OPTS verify -P integration \
+      mvn $MAVEN_CLI_OPTS verify -P integration \
         -Dit.skipBuildContainer=true
   only:
     variables:
@@ -168,12 +170,13 @@ integration test jvm image:
   variables:
     OPERATOR_IN_KUBERNETES: "true"
     K8S_SUFFIX: jvm-image
+  resource_group: stackgres-integration-test-jvm-image
   script:
-    - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}"-jvm'
-    - 'export IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
+    - export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}"-jvm
+    - export IMAGE_NAME="stackgres/operator:$IMAGE_TAG"
     - |
       flock -s -w 3600 /tmp/stackgres-build-native \
-        flock -w 3600 /tmp/stackgres-integration-test-jvm-image mvn $MAVEN_CLI_OPTS verify -P integration \
+      mvn $MAVEN_CLI_OPTS verify -P integration \
         -DargLine=-Dcom.ongres.junit.docker.runnerId="$K8S_SUFFIX" \
         -Dit.skipBuildContainer=true
 
@@ -187,12 +190,13 @@ integration test native image:
     OPERATOR_IN_KUBERNETES: "true"
     K8S_SUFFIX: native-image
     SKIP_QUARKUS_TEST: "true"
+  resource_group: stackgres-integration-test-native-image
   script:
-    - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}"'
-    - 'export IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
+    - export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}"
+    - export IMAGE_NAME="stackgres/operator:$IMAGE_TAG"
     - |
       flock -s -w 3600 /tmp/stackgres-build-native \
-        flock -w 3600 /tmp/stackgres-integration-test-native-image mvn $MAVEN_CLI_OPTS verify -P integration \
+      mvn $MAVEN_CLI_OPTS verify -P integration \
         -DargLine=-Dcom.ongres.junit.docker.runnerId="$K8S_SUFFIX" \
         -Dit.skipBuildContainer=true
   only:
@@ -204,17 +208,18 @@ integration test native image:
       - $DO_NATIVE
 
 deploy jvm image:
-  image: docker.io/ongres/builder:latest
+  image: quay.io/buildah/stable:v1.14.8
   stage: deploy
   tags:
     - stackgres-runner
+  resource_group: deploy-jvm-image
   script:
-    - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}"-jvm'
-    - 'export IMAGE_UPLOAD_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_REF_NAME"}"-jvm'
-    - 'export IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
-    - 'export IMAGE_UPLOAD_NAME="stackgres/operator:$IMAGE_UPLOAD_TAG"'
-    - 'buildah pull docker-daemon:"$IMAGE_NAME"'
-    - 'buildah push --format=docker --authfile $REGISTRY_AUTH_FILE $IMAGE_NAME "docker://docker.io/$IMAGE_UPLOAD_NAME"'
+    - export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}"-jvm
+    - export IMAGE_UPLOAD_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_REF_NAME"}"-jvm
+    - export IMAGE_NAME="stackgres/operator:$IMAGE_TAG"
+    - export IMAGE_UPLOAD_NAME="stackgres/operator:$IMAGE_UPLOAD_TAG"
+    - buildah pull docker-daemon:"$IMAGE_NAME"
+    - buildah push --format=docker --authfile $REGISTRY_AUTH_FILE $IMAGE_NAME "docker://docker.io/$IMAGE_UPLOAD_NAME"
   only:
     variables:
       - $CI_COMMIT_REF_NAME == "development"
@@ -222,17 +227,18 @@ deploy jvm image:
       - $DO_DEPLOY
 
 deploy native image:
-  image: docker.io/ongres/builder:latest
+  image: quay.io/buildah/stable:v1.14.8
   stage: deploy
   tags:
     - stackgres-runner
+  resource_group: deploy-native-image
   script:
-    - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}"'
-    - 'export IMAGE_UPLOAD_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_REF_NAME"}"'
-    - 'export IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
-    - 'export IMAGE_UPLOAD_NAME="stackgres/operator:$IMAGE_UPLOAD_TAG"'
-    - 'buildah pull docker-daemon:"$IMAGE_NAME"'
-    - 'buildah push --format=docker --authfile $REGISTRY_AUTH_FILE $IMAGE_NAME "docker://docker.io/$IMAGE_UPLOAD_NAME"'
+    - export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}"
+    - export IMAGE_UPLOAD_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_REF_NAME"}"
+    - export IMAGE_NAME="stackgres/operator:$IMAGE_TAG"
+    - export IMAGE_UPLOAD_NAME="stackgres/operator:$IMAGE_UPLOAD_TAG"
+    - buildah pull docker-daemon:"$IMAGE_NAME"
+    - buildah push --format=docker --authfile $REGISTRY_AUTH_FILE $IMAGE_NAME "docker://docker.io/$IMAGE_UPLOAD_NAME"
   only:
     variables:
       - $CI_COMMIT_REF_NAME == "development"
