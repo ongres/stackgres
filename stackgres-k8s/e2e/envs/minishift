@@ -44,6 +44,12 @@ update_minishift_config() {
     fi
   done
 
+  if ! minishift ssh -- ps -ef | grep '[k]ubelet' | grep -q 'PodShareProcessNamespace=true'
+  then
+    minishift stop
+    minishift start
+  fi
+
   if ! timeout -s KILL 10s oc login -u system:admin > /dev/null 2>&1
   then
     minishift status | grep '^OpenShift:  Running '
