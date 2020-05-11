@@ -114,7 +114,7 @@ public class OperatorBootstrapImpl implements OperatorBootstrap {
           .addToData(StackGresUtil.REST_PASSWORD_KEY, randPassword)
           .build();
 
-      client.secrets().create(secret);
+      client.secrets().inNamespace(secretNamespace).create(secret);
     }
   }
 
