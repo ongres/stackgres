@@ -155,7 +155,13 @@ setup_k8s() {
   if [ "$E2E_WAIT_OPERATOR" = true ]
   then
     wait_pods_running stackgres
-    wait_services_available stackgres 2
+    if helm get values -n stackgres stackgres-operator | grep -q externalOperatorIp \
+      && helm get values -n stackgres stackgres-operator | grep -q externalOperatorPort
+    then
+      wait_services_available stackgres 2
+    else
+      wait_services_available stackgres 1
+    fi
   fi
 }
 
