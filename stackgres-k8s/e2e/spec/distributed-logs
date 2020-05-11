@@ -45,7 +45,7 @@ check_distributed_logs_attach_to_cluster() {
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "1" \
     --set distributedLogs.enabled=true \
     --set distributedLogs.create=false \
-    --set-string cluster.distributedLogs.sgDistributedLogs="$DISTRIBUTED_LOGS_NAME"
+    --set-string cluster.distributedLogs.sgDistributedLogs="$CLUSTER_NAMESPACE.$DISTRIBUTED_LOGS_NAME"
 
   wait_pods_running "$CLUSTER_NAMESPACE" "4"
 
