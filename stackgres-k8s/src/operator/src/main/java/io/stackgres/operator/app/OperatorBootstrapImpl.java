@@ -53,6 +53,7 @@ public class OperatorBootstrapImpl implements OperatorBootstrap {
       distributedLogsHandlerSelector;
   private final InitializationQueue initializationQueue;
 
+  private final String secretNamespace;
   private final String secretName;
 
   @Inject
@@ -66,6 +67,7 @@ public class OperatorBootstrapImpl implements OperatorBootstrap {
     this.handlerSelector = handlerSelector;
     this.distributedLogsHandlerSelector = distributedLogsHandlerSelector;
     this.initializationQueue = initializationQueue;
+    this.secretNamespace = configLoader.get(ConfigProperty.OPERATOR_NAMESPACE);
     this.secretName = configLoader.get(ConfigProperty.AUTHENTICATION_SECRET_NAME);
   }
 
@@ -99,12 +101,13 @@ public class OperatorBootstrapImpl implements OperatorBootstrap {
   }
 
   private void initializeCredentials(KubernetesClient client) {
-    if (client.secrets().withName(secretName).get() == null) {
+    if (client.secrets().inNamespace(secretNamespace).withName(secretName).get() == null) {
       LOGGER.info("No operator secret found, creating a new one");
       final String randUser = ResourceUtil.encodeSecret(ResourceUtil.generateRandom(20));
       final String randPassword = ResourceUtil.encodeSecret(ResourceUtil.generateRandom(40));
       Secret secret = new SecretBuilder()
           .withNewMetadata()
+          .withNamespace(secretNamespace)
           .withName(secretName)
           .endMetadata()
           .addToData(StackGresUtil.REST_USER_KEY, randUser)
