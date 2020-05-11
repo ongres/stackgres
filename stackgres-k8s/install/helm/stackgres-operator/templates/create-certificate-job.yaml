@@ -96,9 +96,16 @@ spec:
                 {"op":"replace","path":"/webhooks/3/clientConfig/caBundle","value":"'"$CRT"'"},
                 {"op":"replace","path":"/webhooks/4/clientConfig/caBundle","value":"'"$CRT"'"},
                 {"op":"replace","path":"/webhooks/5/clientConfig/caBundle","value":"'"$CRT"'"}]'
-            kubectl patch secret \
-              -n '{{ .Release.Namespace }}' '{{ .Release.Name }}' --type json --patch '[
-                {"op":"replace","path":"/data/root.key","value":"'"$KEY"'"},
-                {"op":"replace","path":"/data/server.crt","value":"'"$CRT"'"}]'
+            cat << EOF | kubectl create -f -
+            apiVersion: v1
+            kind: Secret
+            metadata:
+              name: {{ .Release.Name }}-certs
+              namespace: {{ .Release.Namespace }}
+            data:
+              root.key: "$KEY"
+              server.crt: "$CRT"
+            EOF
+            
       restartPolicy: OnFailure
 {{ end }}

@@ -9,8 +9,6 @@ import java.security.Principal;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.concurrent.CompletionStage;
-import java.util.function.Supplier;
-
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
@@ -56,25 +54,22 @@ public class KubernetesSecretIdentityProvider
   @Override
   public CompletionStage<SecurityIdentity> authenticate(
       UsernamePasswordAuthenticationRequest request, AuthenticationRequestContext context) {
-    return context.runBlocking(new Supplier<SecurityIdentity>() {
-      @Override
-      public SecurityIdentity get() {
-        try (KubernetesClient client = clientFactory.create()) {
-          return Optional
-              .ofNullable(
-                  client.secrets().inNamespace(operatorNamespace).withName(secretName).get())
-              .map(Secret::getData)
-              .filter(data -> Optional.ofNullable(data.get(StackGresUtil.REST_USER_KEY))
-                  .map(ResourceUtil::dencodeSecret).map(request.getUsername()::equals)
-                  .orElse(false))
-              .map(data -> data.get(StackGresUtil.REST_PASSWORD_KEY))
-              .map(ResourceUtil::dencodeSecret).map(String::toCharArray)
-              .filter(password -> Arrays.equals(request.getPassword().getPassword(), password))
-              .map(password -> QuarkusSecurityIdentity.builder().setPrincipal(principal)
-                  .addRole(RestAuthenticationRoles.ADMIN)
-                  .addCredential(new PasswordCredential(password)).build())
-              .orElseThrow(() -> new AuthenticationFailedException());
-        }
+    return context.runBlocking(() -> {
+      try (KubernetesClient client = clientFactory.create()) {
+        return Optional
+            .ofNullable(
+                client.secrets().inNamespace(operatorNamespace).withName(secretName).get())
+            .map(Secret::getData)
+            .filter(data -> Optional.ofNullable(data.get(StackGresUtil.REST_USER_KEY))
+                .map(ResourceUtil::dencodeSecret).map(request.getUsername()::equals)
+                .orElse(false))
+            .map(data -> data.get(StackGresUtil.REST_PASSWORD_KEY))
+            .map(ResourceUtil::dencodeSecret).map(String::toCharArray)
+            .filter(password -> Arrays.equals(request.getPassword().getPassword(), password))
+            .map(password -> QuarkusSecurityIdentity.builder().setPrincipal(principal)
+                .addRole(RestAuthenticationRoles.ADMIN)
+                .addCredential(new PasswordCredential(password)).build())
+            .orElseThrow(AuthenticationFailedException::new);
       }
     });
   }
