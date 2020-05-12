@@ -51,6 +51,10 @@ public enum StackGresUtil {
   public static final String ROLE_KEY = "role";
   public static final String PRIMARY_ROLE = "master";
   public static final String REPLICA_ROLE = "replica";
+  public static final String PROMOTE_ROLE = "promote";
+  public static final String DEMOTE_ROLE = "demote";
+  public static final String UNINITIALIZED_ROLE = "uninitialized";
+  public static final String STANDBY_LEADER_ROLE = "standby_leader";
   public static final String REST_USER_KEY = "user";
   public static final String REST_PASSWORD_KEY = "password";
   public static final String DISTRIBUTED_LOGS_APP_NAME = "StackGresDistributedLogs";
