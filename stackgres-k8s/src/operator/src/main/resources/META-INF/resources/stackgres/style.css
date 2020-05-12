@@ -211,6 +211,7 @@ svg.background circle {
 
 #signup p {
     margin-bottom: 25px;
+    width: 300px;
 }
 
 #signup input {
@@ -400,7 +401,11 @@ form#login .warning {
     fill: #171717;
 }
 
-.darkmode .form button, button {
+.darkmode .form button, button, .darkmode a.btn:not(.clear), .darkmode .applyBtn, .darkmode .closeLog:hover, .darkmode .toolbar .filter.open .toggle, .darkmode .toolbar .filter.open .toggle:after, .darkmode .options label.active span, .darkmode .filter .options .active, .darkmode .options input[type="checkbox"].active + span {
+    color: #171717;
+}
+
+.darkmode .daterangepicker td.active:not(:hover) {
     color: #171717;
 }
 
@@ -2321,7 +2326,14 @@ button {
 
 .form button.border:hover, .btn.border:hover, .daterangepicker button.cancelBtn, .btn.clear:hover {
     background-color: rgba(0, 173, 181, .25);
+}
 
+button.cancelBtn:hover {
+    background-color: rgba(0, 173, 181, .25) !important;
+}
+
+.darkmode .daterangepicker td.available:hover {
+    color: #fff;
 }
 
 .list-create {
@@ -2582,9 +2594,9 @@ tr:nth-child(even), tr:nth-child(even) + tr.details {
     background: #fff;
 }
 
-#backups tr.base.Completed.open {
+/* #backups tr.base.Completed.open {
     border-top: 1px solid #f0f0f1;
-}
+} */
 
 th, td {
     /*height: 40px;*/
@@ -2735,6 +2747,7 @@ td.timestamp span.time, span.timestamp span.time {
 
 td.timestamp, span.timestamp {
     color: var(--gray3);
+    width: 190px;
 }
 
 td.timestamp span.ms, span.timestamp span.ms {
@@ -3419,7 +3432,7 @@ th.sysId, th.operation {
     padding-bottom: 0;
     display: inline-block;
     border: 1px solid #f0f0f1;
-    margin: 10px auto;
+    margin: 10px auto 20px auto;
     width: calc(100% - 7px);
 }
 
@@ -3453,8 +3466,12 @@ table.logs table.logMessage tr {
     width: calc(50% - 15px);
 }
 
+.logDetails > table {
+    vertical-align: top;
+}
+
 .logDetails table:last-of-type {
-    margin-bottom: 25px;
+    margin-bottom: 15px;
 }
 
 .logDetails.postgres table, .logDetails.patroni table {
@@ -3508,7 +3525,7 @@ table.logs th {
     background: #171717;
 }
 
-.darkmode table.logs tr {
+.darkmode table.logs tr, .darkmode .logInfo.open .logMessage tr {
     background: #1e1e1e;
 }
 
@@ -3528,7 +3545,7 @@ table.logs tr.base td {
     background: #171717;
 }
 
-.darkmode .logDetails table,.darkmode .logMessage .param, .darkmode .logInfo.open .logMessage p, .darkmode .logDetails td.param, .darkmode .logDetails.postgres tr:not(:last-of-type), .darkmode .logDetails.patroni tr:not(:last-of-type),.darkmode table.logs thead {
+.darkmode .logDetails table,.darkmode .logMessage .param, .darkmode .logInfo.open .logMessage p, .darkmode .logDetails td.param, .darkmode .logDetails.postgres tr:not(:last-of-type), .darkmode .logDetails.patroni tr:not(:last-of-type),.darkmode table.logs thead, .darkmode .logInfo.open .logMessage {
     border-color: #333333;
 }
 
@@ -3818,6 +3835,7 @@ td.today.available {
     border-top: 1px solid var(--gray1);
     padding-top: 20px;
     margin-top: 10px !important;
+    
 }
 
 .darkmode .daterangepicker .calendar-time {
@@ -3870,7 +3888,7 @@ table.logs tr.base:hover:before {
 
 tr.logInfo.open:before {
     width: 5px;
-    height: calc(100% - 55px);
+    height: calc(100% - 45px);
     position: absolute;
     left: 5px;
     top: 17px;
@@ -4112,6 +4130,10 @@ span.closeLog:hover {
     background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMSIgaGVpZ2h0PSI2IiB2aWV3Qm94PSIwIDAgMTEgNiI+PHBhdGggZD0iTTQuNzYzLjhBMSwxLDAsMCwxLDYuMjM3LjhsMy4yMjcsMy41MkExLDEsMCwwLDEsOC43MjcsNkgyLjI3M2ExLDEsMCwwLDEtLjczNy0xLjY3NloiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDExIDYpIHJvdGF0ZSgxODApIiBmaWxsPSIjZmZmIi8+PC9zdmc+")
 }
 
+.darkmode .filter select.active {
+    background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMSIgaGVpZ2h0PSI2IiB2aWV3Qm94PSIwIDAgMTEgNiI+PHBhdGggZD0iTTQuNzYzLjhBMSwxLDAsMCwxLDYuMjM3LjhsMy4yMjcsMy41MkExLDEsMCwwLDEsOC43MjcsNkgyLjI3M2ExLDEsMCwwLDEtLjczNy0xLjY3NloiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDExIDYpIHJvdGF0ZSgxODApIiBmaWxsPSIjMTcxNzE3Ii8+PC9zdmc+")
+}
+
 @media screen and (min-width: 1920px) {
     table.logs th.logMessage, table.logs td.logMessage {
         min-width: 450px;
@@ -4124,4 +4146,31 @@ span.closeLog:hover {
     table.logs th.logMessage, table.logs td.logMessage { 
         min-width: 240px;
     }
+}
+
+
+/* Backups YAML */
+
+table.backups tr.base:hover td.timestamp:before, table.backups tr.base.open td.timestamp:before {
+    content: " ";
+    width: 5px;
+    border: 1px solid var(--blue);
+    display: inline-block;
+    position: absolute;
+    top: 17px;
+    left: 5px;
+}
+table.backups td.timestamp, table.backups tr.details > td{
+    position: relative;
+}
+tr.details.open > td:first-child:before {
+    width: 7px;
+    content: " ";
+    background: transparent;
+    height: 100%;
+    left: 4px;
+    position: absolute;
+    top: -28px;
+    border: 2px solid var(--blue);
+    border-right: 0;
 }
