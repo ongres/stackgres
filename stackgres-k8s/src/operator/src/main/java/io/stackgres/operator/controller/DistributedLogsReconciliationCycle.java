@@ -241,9 +241,11 @@ public class DistributedLogsReconciliationCycle
             .stream()
             .filter(cluster -> Optional.ofNullable(cluster.getSpec().getDistributedLogs())
                 .map(StackGresClusterDistributedLogs::getDistributedLogs)
-                .map(distributedLogsRelativeId -> distributedLogsRelativeId.equals(
-                    StackGresUtil.getRelativeId(name, namespace,
-                        cluster.getMetadata().getNamespace())))
+                .map(distributedLogsRelativeId -> StackGresUtil.getNamespaceFromRelativeId(
+                    distributedLogsRelativeId,
+                    cluster.getMetadata().getNamespace()).equals(namespace)
+                    && StackGresUtil.getNameFromRelativeId(
+                        distributedLogsRelativeId).equals(name))
                 .orElse(false))
             .collect(ImmutableList.toImmutableList()))
         .orElse(ImmutableList.of());
