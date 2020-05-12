@@ -662,11 +662,11 @@ Vue.mixin({
         
         /* Tooltips Data */
         axios
-        .get('js/components/forms/help/crd-'+kind+'-description-EN.json')
+        .get('js/components/forms/help/crd-'+kind+'-EN.json')
         .then( function(response){
 
           // Include missing tooltips for storage credentials
-          if(kind == 'SGBackupConfig') {
+          /* if(kind == 'SGBackupConfig') {
             response.data["spec.storage.s3.awsCredentials.accessKeyId"] = "The AWS Access Key ID secret.";
             response.data["spec.storage.s3.awsCredentials.secretAccessKey"] = "The AWS Secret Access Key secret.";
             response.data["spec.storage.s3Compatible.awsCredentials.accessKeyId"] = "The AWS Access Key ID secret.";
@@ -674,7 +674,7 @@ Vue.mixin({
             response.data["spec.storage.gcs.gcpCredentials.serviceAccountJSON"] = "A service account key from GCP. In JSON format, as downloaded from the GCP Console.";
             response.data["spec.storage.azureBlob.azureCredentials.storageAccount"] = "The name of the storage account.";
             response.data["spec.storage.azureBlob.azureCredentials.accessKey"] = "The primary or secondary access key for the storage account.";
-          }
+          } */
 
           store.commit('setTooltips', { 
           kind: kind, 
@@ -693,7 +693,24 @@ Vue.mixin({
       const crd = store.state.tooltips[kind];
 
       $("#help .title").html(label);
-      store.commit("setTooltipDescription",crd[field]);
+
+      let param = crd;
+
+      if(field == 'spec.postgresql.conf') {
+        param =  crd.spec.properties['postgresql.conf']
+      } else if (field == 'spec.pgBouncer.pgbouncer.ini') {
+        param =  crd.spec.properties.pgBouncer.properties['pgbouncer.ini']
+      } else {
+        params = field.split('.');
+        params.forEach(function(item, index){
+          if( !index ) // First level
+            param = param[item]
+          else
+            param = param.properties[item]
+        })
+      }
+
+      store.commit("setTooltipDescription", param['description']);
 
     }
   }
