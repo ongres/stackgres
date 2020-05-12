@@ -13,6 +13,7 @@ import javax.annotation.PreDestroy;
 import javax.enterprise.context.ApplicationScoped;
 
 import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
+import io.fabric8.kubernetes.client.ConfigBuilder;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
@@ -20,6 +21,7 @@ import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
 import io.quarkus.test.Mock;
 import io.stackgres.operator.AbstractStackGresOperatorIt;
 import io.stackgres.operator.CrdMatchTest;
+import io.stackgres.operator.common.StackGresUtil;
 
 
 @Mock
@@ -31,7 +33,10 @@ public class MockKubernetesClientFactory extends KubernetesClientFactory {
   @Override
   public KubernetesClient create() {
     if (AbstractStackGresOperatorIt.isRunning()) {
-      return new DefaultKubernetesClient();
+      return new DefaultKubernetesClient(
+          new ConfigBuilder()
+          .withNamespace(StackGresUtil.OPERATOR_NAMESPACE)
+          .build());
     }
     return serverSupplier.get().getClient();
   }
