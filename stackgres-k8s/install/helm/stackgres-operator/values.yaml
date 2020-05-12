@@ -18,6 +18,8 @@ deploy:
 
 cert:
   autoapprove: true
+  # key: 
+  # crt: 
 
 service:
   loadBalancer:

@@ -1,11 +1,19 @@
+{{- if and .Values.cert.key .Values.cert.crt }}
 apiVersion: admissionregistration.k8s.io/v1beta1
 kind: ValidatingWebhookConfiguration
 metadata:
   name: {{ .Release.Name }}
   namespace: {{ .Release.Namespace }}
+  annotations:
+    meta.helm.sh/release-name: {{ .Release.Name }}
+    meta.helm.sh/release-namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/managed-by: Helm
 webhooks:
   - name: sgcluster.{{ .Release.Name }}.{{ .Release.Namespace }}
+    {{- if (semverCompare ">1.12-0" .Capabilities.KubeVersion.GitVersion) }}
     sideEffects: None
+    {{- end }}
     rules:
       - operations: ["CREATE", "UPDATE"]
         apiGroups: ["stackgres.io"]
@@ -17,11 +25,11 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/validation/sgcluster'
-      {{- if .Values.cert.crt }}
       caBundle: {{ .Values.cert.crt }}
-      {{- end }}
   - name: sgpgconfig.{{ .Release.Name }}.{{ .Release.Namespace }}
+    {{- if (semverCompare ">1.12-0" .Capabilities.KubeVersion.GitVersion) }}
     sideEffects: None
+    {{- end }}
     rules:
       - operations: ["CREATE", "UPDATE", "DELETE"]
         apiGroups: ["stackgres.io"]
@@ -33,11 +41,11 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/validation/sgpgconfig'
-      {{- if .Values.cert.crt }}
       caBundle: {{ .Values.cert.crt }}
-      {{- end }}
   - name: sgpoolconfig.{{ .Release.Name }}.{{ .Release.Namespace }}
+    {{- if (semverCompare ">1.12-0" .Capabilities.KubeVersion.GitVersion) }}
     sideEffects: None
+    {{- end }}
     rules:
       - operations: ["CREATE", "UPDATE", "DELETE"]
         apiGroups: ["stackgres.io"]
@@ -49,11 +57,11 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/validation/sgpoolconfig'
-      {{- if .Values.cert.crt }}
       caBundle: {{ .Values.cert.crt }}
-      {{- end }}
   - name: sginstanceprofile.{{ .Release.Name }}.{{ .Release.Namespace }}
+    {{- if (semverCompare ">1.12-0" .Capabilities.KubeVersion.GitVersion) }}
     sideEffects: None
+    {{- end }}
     rules:
       - operations: ["CREATE", "UPDATE", "DELETE"]
         apiGroups: ["stackgres.io"]
@@ -65,11 +73,11 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/validation/sginstanceprofile'
-      {{- if .Values.cert.crt }}
       caBundle: {{ .Values.cert.crt }}
-      {{- end }}
   - name: sgbackupconfig.{{ .Release.Name }}.{{ .Release.Namespace }}
+    {{- if (semverCompare ">1.12-0" .Capabilities.KubeVersion.GitVersion) }}
     sideEffects: None
+    {{- end }}
     rules:
       - operations: ["CREATE", "UPDATE", "DELETE"]
         apiGroups: ["stackgres.io"]
@@ -81,11 +89,11 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/validation/sgbackupconfig'
-      {{- if .Values.cert.crt }}
       caBundle: {{ .Values.cert.crt }}
-      {{- end }}
   - name: sgbackup.{{ .Release.Name }}.{{ .Release.Namespace }}
+    {{- if (semverCompare ">1.12-0" .Capabilities.KubeVersion.GitVersion) }}
     sideEffects: None
+    {{- end }}
     rules:
       - operations: ["CREATE", "UPDATE", "DELETE"]
         apiGroups: ["stackgres.io"]
@@ -97,11 +105,11 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/validation/sgbackup'
-      {{- if .Values.cert.crt }}
       caBundle: {{ .Values.cert.crt }}
-      {{- end }}
   - name: sgdistributedlogs.{{ .Release.Name }}.{{ .Release.Namespace }}
+    {{- if (semverCompare ">1.12-0" .Capabilities.KubeVersion.GitVersion) }}
     sideEffects: None
+    {{- end }}
     rules:
       - operations: ["CREATE", "UPDATE", "DELETE"]
         apiGroups: ["stackgres.io"]
@@ -113,6 +121,5 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/validation/sgdistributedlogs'
-      {{- if .Values.cert.crt }}
       caBundle: {{ .Values.cert.crt }}
-      {{- end }}
+{{- end }}

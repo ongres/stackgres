@@ -73,15 +73,15 @@ e2e_test() {
 
 
 create_mock_data() {
-  run_query -p 5432 -h "$CLUSTER_NAME-backup-primary" -n "$CLUSTER_NAMESPACE-backup" -c "$CLUSTER_NAME-backup" -q "'CREATE DATABASE test;'"
-  run_query -p 5432 -h "$CLUSTER_NAME-backup-primary" -n "$CLUSTER_NAMESPACE-backup" -c "$CLUSTER_NAME-backup" -q "'CREATE TABLE fibonacci(num integer);'" -d "test"
-  run_query -p 5432 -h "$CLUSTER_NAME-backup-primary" -n "$CLUSTER_NAMESPACE-backup" -c "$CLUSTER_NAME-backup" -q "'INSERT INTO fibonacci(num) VALUES (1);'" -d "test"
-  run_query -p 5432 -h "$CLUSTER_NAME-backup-primary" -n "$CLUSTER_NAMESPACE-backup" -c "$CLUSTER_NAME-backup" -q "'INSERT INTO fibonacci(num) VALUES (2);'" -d "test"
-  run_query -p 5432 -h "$CLUSTER_NAME-backup-primary" -n "$CLUSTER_NAMESPACE-backup" -c "$CLUSTER_NAME-backup" -q "'INSERT INTO fibonacci(num) VALUES (3);'" -d "test"
+  run_query -p 5435 -i 0 -n "$CLUSTER_NAMESPACE-backup" -c "$CLUSTER_NAME-backup" -q "'CREATE DATABASE test;'"
+  run_query -p 5435 -i 0 -n "$CLUSTER_NAMESPACE-backup" -c "$CLUSTER_NAME-backup" -q "'CREATE TABLE fibonacci(num integer);'" -d "test"
+  run_query -p 5435 -i 0 -n "$CLUSTER_NAMESPACE-backup" -c "$CLUSTER_NAME-backup" -q "'INSERT INTO fibonacci(num) VALUES (1);'" -d "test"
+  run_query -p 5435 -i 0 -n "$CLUSTER_NAMESPACE-backup" -c "$CLUSTER_NAME-backup" -q "'INSERT INTO fibonacci(num) VALUES (2);'" -d "test"
+  run_query -p 5435 -i 0 -n "$CLUSTER_NAMESPACE-backup" -c "$CLUSTER_NAME-backup" -q "'INSERT INTO fibonacci(num) VALUES (3);'" -d "test"
 }
 
 check_init_data() {
-  if run_query -p 5432 -h "$CLUSTER_NAME-primary" -c "$CLUSTER_NAME" -n $CLUSTER_NAMESPACE -i 0 -q "' SELECT num FROM fibonacci ORDER BY num;'" -d "test" \
+  if run_query -p 5432 -i 1 -h "$CLUSTER_NAME-primary" -c "$CLUSTER_NAME" -n $CLUSTER_NAMESPACE -q "' SELECT num FROM fibonacci ORDER BY num;'" -d "test" \
     | tr -d '\n' \
     | grep -q "^123$"
   then
@@ -94,7 +94,7 @@ check_init_data() {
 }
 
 check_replica_data() {
-  if run_query -p 5432 -h "$CLUSTER_NAME-replicas" -c "$CLUSTER_NAME" -n $CLUSTER_NAMESPACE -i 1 -q "' SELECT num FROM fibonacci ORDER BY num;'" -d "test" \
+  if run_query -p 5432 -i 0 -h "$CLUSTER_NAME-replicas" -c "$CLUSTER_NAME" -n $CLUSTER_NAMESPACE -q "' SELECT num FROM fibonacci ORDER BY num;'" -d "test" \
     | tr -d '\n' \
     | grep -q "^123$"
   then
@@ -110,12 +110,12 @@ check_replication() {
   local PRIMARY_RESPONSE
   local REPLICA_RESPONSE
 
-  run_query -p 5432 -h "$CLUSTER_NAME-primary" -c "$CLUSTER_NAME" -n $CLUSTER_NAMESPACE -i 0 -q "'INSERT INTO fibonacci(num) VALUES (5);'" -d test
-  run_query -p 5432 -h "$CLUSTER_NAME-primary" -c "$CLUSTER_NAME" -n $CLUSTER_NAMESPACE -i 0 -q "'INSERT INTO fibonacci(num) VALUES (8);'" -d test
-  run_query -p 5432 -h "$CLUSTER_NAME-primary" -c "$CLUSTER_NAME" -n $CLUSTER_NAMESPACE -i 0 -q "'INSERT INTO fibonacci(num) VALUES (13);'" -d test
+  run_query -p 5432 -i 1 -h "$CLUSTER_NAME-primary" -c "$CLUSTER_NAME" -n $CLUSTER_NAMESPACE -q "'INSERT INTO fibonacci(num) VALUES (5);'" -d test
+  run_query -p 5432 -i 1 -h "$CLUSTER_NAME-primary" -c "$CLUSTER_NAME" -n $CLUSTER_NAMESPACE -q "'INSERT INTO fibonacci(num) VALUES (8);'" -d test
+  run_query -p 5432 -i 1 -h "$CLUSTER_NAME-primary" -c "$CLUSTER_NAME" -n $CLUSTER_NAMESPACE -q "'INSERT INTO fibonacci(num) VALUES (13);'" -d test
 
-  PRIMARY_RESPONSE="$(run_query -p 5432 -h "$CLUSTER_NAME-primary" -c "$CLUSTER_NAME" -n $CLUSTER_NAMESPACE -i 0 -q "' SELECT num FROM fibonacci ORDER BY num;'" -d "test" | tr -d '\n')"
-  REPLICA_RESPONSE="$(run_query -p 5432 -h "$CLUSTER_NAME-replicas" -c "$CLUSTER_NAME" -n $CLUSTER_NAMESPACE -i 1 -q "' SELECT num FROM fibonacci ORDER BY num;'" -d "test" | tr -d '\n')"
+  PRIMARY_RESPONSE="$(run_query -p 5432 -i 1 -h "$CLUSTER_NAME-primary" -c "$CLUSTER_NAME" -n $CLUSTER_NAMESPACE -q "' SELECT num FROM fibonacci ORDER BY num;'" -d "test" | tr -d '\n')"
+  REPLICA_RESPONSE="$(run_query -p 5432 -i 0 -h "$CLUSTER_NAME-replicas" -c "$CLUSTER_NAME" -n $CLUSTER_NAMESPACE -q "' SELECT num FROM fibonacci ORDER BY num;'" -d "test" | tr -d '\n')"
 
   if [ "$PRIMARY_RESPONSE" = "1235813" ]
   then

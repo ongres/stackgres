@@ -1,8 +1,8 @@
 #!/bin/sh
 
 create_mock_table(){
-  run_query -p 5432 -h "$CLUSTER_NAME-primary" -i 0 -q "'CREATE DATABASE test;'"
-  run_query -p 5432 -h "$CLUSTER_NAME-primary" -i 0 -q "'CREATE TABLE fibonacci(num integer);'" -d "test"
+  run_query -p 5435 -i 0 -q "'CREATE DATABASE test;'"
+  run_query -p 5435 -i 0 -q "'CREATE TABLE fibonacci(num integer);'" -d "test"
 }
 
 insert_mock_data(){
