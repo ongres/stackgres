@@ -16,6 +16,7 @@ import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.operator.common.ConfigContext;
 import io.stackgres.operator.common.ErrorType;
 import io.stackgres.operator.common.StackGresClusterReview;
+import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operator.resource.CustomResourceFinder;
 import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
@@ -67,7 +68,9 @@ public class DistributedLogsValidator implements ClusterValidator {
     if (distributedLogs != null) {
       checkIfProvided(distributedLogs, "sgDistributedLogs");
       Optional<StackGresDistributedLogs> distributedLogsOpt = distributedLogsFinder
-          .findByNameAndNamespace(distributedLogs, namespace);
+          .findByNameAndNamespace(
+              StackGresUtil.getNameFromRelativeId(distributedLogs),
+              StackGresUtil.getNamespaceFromRelativeId(distributedLogs, namespace));
 
       if (!distributedLogsOpt.isPresent()) {
         fail(context, onError);
