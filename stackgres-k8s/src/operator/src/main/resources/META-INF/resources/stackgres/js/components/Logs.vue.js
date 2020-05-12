@@ -242,8 +242,8 @@ var Logs = Vue.component("sg-logs", {
 											<span>{{ log.podName }}</span>
 										</td>
 										<td class="role label center" :class="log.role" v-if="showColumns.role">
-											<span v-if="log.role == 'pr'">Primary</span>
-											<span v-else-if="log.role == 're'">Replica</span>
+											<span v-if="log.role == 'standbyLeader'">standby</span>
+											<span v-else>{{ log.role }}</span>
 										</td>
 										<td class="logMessage hasTooltip" v-if="showColumns.logMessage">
 											<span>{{ log.message }}</span>
@@ -289,8 +289,8 @@ var Logs = Vue.component("sg-logs", {
 											<span>{{ log.podName }}</span>
 										</td>
 										<td class="role label center" :class="log.role" v-if="showColumns.role">
-											<span v-if="log.role == 'pr'">Primary</span>
-											<span v-else-if="log.role == 're'">Replica</span>
+											<span v-if="log.role == 'standbyLeader'">standby</span>
+											<span v-else>{{ log.role }}</span>
 										</td>
 										<td class="logMessage hasTooltip" v-if="showColumns.logMessage">
 											<span>{{ log.message }}</span>
@@ -341,8 +341,8 @@ var Logs = Vue.component("sg-logs", {
 													<tr>
 														<td class="param">Role</td>
 														<td class="value label role" :class="log.role">
-															<span v-if="log.role == 'pr'">Primary</span>
-															<span v-else-if="log.role == 're'">Replica</span>
+															<span v-if="log.role == 'standbyLeader'">standby</span>
+															<span v-else>{{ log.role }}</span>
 														</td>
 													</tr>
 													<tr>
@@ -455,8 +455,8 @@ var Logs = Vue.component("sg-logs", {
 													<tr>
 														<td class="param">Role</td>
 														<td class="value label role" :class="log.role">
-															<span v-if="log.role == 'pr'">Primary</span>
-															<span v-else-if="log.role == 're'">Replica</span>
+															<span v-if="log.role == 'standbyLeader'">standby</span>
+															<span v-else>{{ log.role }}</span>
 														</td>
 													</tr>
 													<tr>
