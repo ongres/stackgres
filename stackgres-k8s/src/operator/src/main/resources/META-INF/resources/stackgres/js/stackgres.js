@@ -316,6 +316,7 @@ const store = new Vuex.Store({
     profiles: [],
     storageClasses: [],
     logs: [],
+    logsClusters: [],
     tooltips: {
       description: 'Click on a question mark to get help and tips about that field.', 
       SGCluster: {},
@@ -362,6 +363,10 @@ const store = new Vuex.Store({
 
     addNamespaces (state, namespacesList) {
       state.allNamespaces = [...namespacesList];
+    },
+
+    addLogsClusters (state, logsClusters) {
+      state.logsClusters = [...logsClusters];
     },
 
     addStorageClasses (state, storageClassesList) {
@@ -515,6 +520,10 @@ const store = new Vuex.Store({
 
     flushStorageClasses (state ) {
       state.storageClasses.length = 0;
+    },
+
+    flushLogsClusters (state ) {
+      state.logsClusters.length = 0;
     },
 
     setDeleteItem (state, item) {
@@ -1069,6 +1078,31 @@ const vm = new Vue({
           
         });
       }
+
+      if ( !kind.length || (kind == 'sgdistributedlogs') ) {
+        /* Distribude Logs Data */
+        axios
+        .get(apiURL+'sgdistributedlogs',
+          { headers: {
+              //'content-type': 'application/json'
+            }
+          }
+        )
+        .then( function(response){
+
+          // Check if there are any changes on API Data
+          if ( checkData(response.data, store.state.logsClusters) ) {
+
+            if(typeof store.state.logsClusters !== 'undefined' && response.data.length != store.state.logsClusters.length)
+              store.commit('flushLogsClusters');
+
+            store.commit('addLogsClusters', response.data);
+
+          }
+          
+        });
+      }
+
 
       if ( (kind === 'backup') || (kind === 'cluster') ) {
         // Check if current cluster has backups
