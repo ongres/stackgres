@@ -99,6 +99,8 @@ spec:
             cat << EOF | kubectl create -f -
             {{- include (print $.Template.BasePath "/certificate-secret.yaml") . | indent 12 }}
             EOF
+            {{- $_ := set $values.Values.cert "crt" nil }}
+            {{- $_ := set $values.Values.cert "key" nil }}
             
             {{- if .Release.IsInstall }}
             kubectl scale --timeout 1h --replicas 1 -n '{{ .Release.Namespace }}' 'deployment/{{ .Release.Name }}'
