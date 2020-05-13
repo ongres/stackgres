@@ -3459,55 +3459,67 @@ td.label.role span {
     width: 80px;
 }
 
-td.role.Primary {
+td.role.Primary span {
     color: #fff;
     background: #020E1466;
 }
 
-.darkmode td.role.Primary {
+.darkmode td.role.Primary span  {
     color: #020E14;
     background: #ffffff66;
 }
 
-td.role.Replica {
+td.role.Replica span {
     color: #4D4F5C;
     background: #4D4F5C66;
 }
 
-.darkmode td.role.Replica {
+.darkmode td.role.Replica span  {
     color: #F0F0F1;
     background: #F0F0F166;
 }
 
-td.role.Promote {
+td.role.Promote span  {
     color: #7A7B85;
     background: #7A7B8566;
 }
 
-.darkmode td.role.Promote {
+.darkmode td.role.Promote span  {
     color: #D3D3D6;
     background: #D3D3D666;
 }
 
-td.role.Demote {
+td.role.Demote span  {
     color: #7A7B85;
     background: #A6A7AE66;
 }
 
-.darkmode td.role.Demote {
+.darkmode td.role.Demote span  {
     color: #A6A7AE;
     background: #A6A7AE66;
 }
 
-td.role.Uninitialized {
+td.role.Uninitialized  span {
     color: #7A7B85;
     background: #D3D3D666;
     border: 1px solid #A6A7AE;
 }
 
-.darkmode td.role.Uninitialized {
+.darkmode td.role.Uninitialized span  {
     color: #7A7B85;
     background: #7A7B8566;
+    border: 1px solid #A6A7AE;
+}
+
+td.role.Standby span {
+    color: #777;
+    background: rgba(211, 211, 214, 0.2);
+    border: 1px solid #A6A7AE;
+}
+
+.darkmode td.role.Standby span {
+    color: #A6A7AE;
+    background: rgba(122, 123, 133, 0.2);
     border: 1px solid #A6A7AE;
 }
 
@@ -4046,6 +4058,15 @@ table.logs tbody {
     display: initial;
     overflow: initial;
     width: initial;
+    min-width: 100%;
+}
+
+table.logs tr.no-results td {
+    display: block;
+}
+
+table.logs tr.no-results:first-child:last-child {
+    display: block;
 }
 
 table.logs thead {
