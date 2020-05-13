@@ -531,7 +531,11 @@ var Logs = Vue.component("sg-logs", {
 		$('table.logs').on('scroll', function() {
 			if( ($(this).scrollTop() + $(this).innerHeight() >= $(this)[0].scrollHeight) && store.state.logs.length ) {
 				
-				vc.dateStart = store.state.logs[store.state.logs.length-1].logTime+','+store.state.logs[store.state.logs.length-1].logTimeIndex;
+				console.log(store.state.logs[store.state.logs.length-1]);
+
+				ltime = store.state.logs[store.state.logs.length-1].logTime;
+				lindex = store.state.logs[store.state.logs.length-1].logTimeIndex;
+				vc.dateStart = ltime+','+lindex;
 				vc.getLogs(true, true);
 
 			}
