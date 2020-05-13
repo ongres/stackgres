@@ -10,12 +10,12 @@ e2e_test_install() {
   DEFAULT_PROFILE_CR=$(kubectl get sginstanceprofiles.stackgres.io -n "$CLUSTER_NAMESPACE" "$PROFILE" -o json \
     | jq 'del(.metadata.creationTimestamp) | del(.metadata.generation) | del(.metadata.resourceVersion) | del(.metadata.selfLink) | del(.metadata.uid)')
 
-  write_into -c "$DEFAULT_PROFILE_CR" -f "$LOG_PATH/default-profile-cr.json" 
+  echo_raw "$DEFAULT_PROFILE_CR" > "$LOG_PATH/default-profile-cr.json"
 
   DEFALT_PROFILE=$(cat "$LOG_PATH/default-profile-cr.json" \
     | jq 'del(.apiVersion) | del(.kind)' )
 
-  write_into -c "$DEFALT_PROFILE" -f "$LOG_PATH/default-profile.json"
+  echo_raw "$DEFALT_PROFILE" > "$LOG_PATH/default-profile.json"
 
   kubectl delete sginstanceprofiles.stackgres.io -n "$CLUSTER_NAMESPACE" "$PROFILE"
 }

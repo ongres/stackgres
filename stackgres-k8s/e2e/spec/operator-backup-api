@@ -45,12 +45,12 @@ EOF
     | jq 'del(.metadata.creationTimestamp) | del(.metadata.generation)
       | del(.metadata.resourceVersion) | del(.metadata.selfLink) | del(.metadata.uid)' )
   
-  write_into -f "$LOG_PATH/stackgres-backup-cr.json" -c "$OPERATOR_BACKUP_CR"
+  echo_raw "$OPERATOR_BACKUP_CR" > "$LOG_PATH/stackgres-backup-cr.json"
 
   OPERATOR_BACKUP=$(cat "$LOG_PATH/stackgres-backup-cr.json" \
     | jq 'del(.apiVersion) | del(.kind) | del(.status) | del(.metadata.annotations)' )
 
-  write_into -f "$LOG_PATH/stackgres-backup.json" -c "$OPERATOR_BACKUP" 
+  echo_raw "$OPERATOR_BACKUP" > "$LOG_PATH/stackgres-backup.json"
 }
 
 e2e_test() {
@@ -184,7 +184,7 @@ update_backup_parameter_with_api() {
 
   UPDATED_STACKGRES_BACKUP=$(cat "$LOG_PATH/stackgres-backup.json" | jq ".spec[\"$1\"] = $2" )
   
-  write_into -f "$LOG_PATH/updated-stackgres-backup.json" -c "$UPDATED_STACKGRES_BACKUP"
+  echo_raw "$UPDATED_STACKGRES_BACKUP" > "$LOG_PATH/updated-stackgres-backup.json"
 
   wait_until eval 'kubectl get sgbackups.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
     --template "{{ with .status.process.status }}{{ . }}{{ end }}" | grep -q Completed'

@@ -20,13 +20,13 @@ build_default_config() {
     DEFAULT_PGCONFIG_CR=$(kubectl get sgpgconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCONFIG"  -o json \
       | jq 'del(.metadata.creationTimestamp) | del(.metadata.generation) | del(.metadata.resourceVersion) | del(.metadata.selfLink) | del(.metadata.uid)' )
     
-    write_into -f "$LOG_PATH/default-pgconfig-cr.json" -c "$DEFAULT_PGCONFIG_CR"
+    echo_raw "$DEFAULT_PGCONFIG_CR" > "$LOG_PATH/default-pgconfig-cr.json"
     
     DEFAULT_PGCONFIG=$(cat "$LOG_PATH/default-pgconfig-cr.json" \
       | jq 'del(.apiVersion) | del(.kind)'  \
       | jq '.spec."postgresql.conf" = (.spec."postgresql.conf"|to_entries|map(.key + "=" + .value)|join("\n"))')
 
-    write_into -f "$LOG_PATH/default-pgconfig.json" -c "$DEFAULT_PGCONFIG"
+    echo_raw "$DEFAULT_PGCONFIG" > "$LOG_PATH/default-pgconfig.json"
     
     kubectl delete sgpgconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCONFIG" || true
   else
@@ -201,7 +201,7 @@ update_pg_config_paramter_with_api() {
     | jq ".spec[\"postgresql.conf\"][\"$1\"] = $2" \
     | jq '.spec."postgresql.conf" = (.spec."postgresql.conf"|to_entries|map(.key + "=" + .value)|join("\n"))' )
     
-  write_into -f "$LOG_PATH/updated-pgconfig.json" -c "$UPDATED_PGCONFIG"
+  echo_raw "$UPDATED_PGCONFIG" > "$LOG_PATH/updated-pgconfig.json"
 
   HTTP_STATUS="$(run_curl -r "stackgres/sgpgconfig" -d "$LOG_PATH/updated-pgconfig.json" -e '-X PUT -w %{http_code} -o /dev/null')"
 

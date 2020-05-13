@@ -9,27 +9,6 @@ $OUTPUT
 EOF
 }
 
-write_into(){
-  local FILE
-  local CONTENT
-  while getopts ":f:c:" opt; do
-    case $opt in
-      f) FILE="$OPTARG"
-      shift 2
-      ;;
-      c) CONTENT="$OPTARG"
-      shift 2
-      ;;
-      \?)
-      ;;
-    esac
-  done
-
-  cat << EOF > "$FILE"
-$CONTENT
-EOF
-}
-
 echo_raw() {
   cat << EOF
 $@
