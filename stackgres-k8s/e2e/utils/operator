@@ -80,6 +80,7 @@ upgrade_operator() {
 }
 
 delete_operator() {
-  helm delete stackgres-operator --namespace stackgres "$@"
+  helm delete stackgres-operator --namespace stackgres "$@" || true
+  k8s_cleanup_namespace stackgres
 }
 
