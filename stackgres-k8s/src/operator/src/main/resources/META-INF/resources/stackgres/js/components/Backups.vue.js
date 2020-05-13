@@ -60,24 +60,28 @@ var Backups = Vue.component("sg-backup", {
 			<div class="content">
 				<div id="backups">
 					<div class="toolbar">
-						<input id="keyword" v-model="keyword" @keyup="filterBackups" class="search" placeholder="Search Backup..." autocomplete="off">
+						<div class="searchBar">
+							<input id="keyword" v-model="keyword" class="search" placeholder="Search Backup..." autocomplete="off" @keyup="toggleClear('keyword')">
+							<a @click="filterBackups" class="btn">APPLY</a>
+							<a @click="clearFilters('keyword')" class="btn clear border keyword" style="display:none">CLEAR</a>
+						</div>
 
 						<div class="filter">
 							<span class="toggle date">DATE RANGE <input v-model="datePicker" id="datePicker" autocomplete="off"></span>
 						</div>
 
-						<div class="filter">
+						<div class="filter filters">
 							<span class="toggle">FILTER</span>
 
 							<ul class="options">
 								<li>
-									<span>Permanent</span>
-									<label for="isPermanent">
-										<input v-model="isPermanent" data-filter="isPermanent" type="checkbox" class="xCheckbox" id="isPermanent" name="isPermanent" value="true"/>
+									<span>Managed Lifecycle</span>
+									<label for="managedLifecycle">
+										<input v-model="managedLifecycle" data-filter="managedLifecycle" type="checkbox" class="xCheckbox" id="managedLifecycle" name="managedLifecycle" value="true"/>
 										<span>YES</span>
 									</label>
 									<label for="notPermanent">
-										<input v-model="isPermanent" data-filter="isPermanent" type="checkbox" class="xCheckbox" id="notPermanent" name="notPermanent" value="false"/>
+										<input v-model="managedLifecycle" data-filter="managedLifecycle" type="checkbox" class="xCheckbox" id="notPermanent" name="notPermanent" value="false"/>
 										<span>NO</span>
 									</label>
 								</li>
@@ -124,12 +128,17 @@ var Backups = Vue.component("sg-backup", {
 
 								<li v-if="!isCluster">
 									<span>Cluster</span>
-									<select v-model="clusterName">
+									<select v-model="clusterName" @change="toggleClear('filters')">
 										<option value="">All Clusters</option>
 										<template v-for="cluster in allClusters">
 											<option v-if="cluster.data.metadata.namespace == currentNamespace">{{ cluster.data.metadata.name }}</option>
 										</template>
 									</select>
+								</li>
+
+								<li>
+									<hr>
+									<a class="btn" @click="filterBackups">APPLY</a> <a class="btn clear border" @click="clearFilters('filters')" style="display:none">CLEAR</a>
 								</li>
 							</ul>
 						</div>
@@ -139,7 +148,7 @@ var Backups = Vue.component("sg-backup", {
 							<th @click="sort('data.status.process.timing.stored')" class="sorted desc timestamp">
 								<span>Timestamp</span>
 							</th>
-							<th @click="sort('data.spec.subjectToRetentionPolicy')" class="icon desc isPermanent">
+							<th @click="sort('data.spec.managedLifecycle')" class="icon desc managedLifecycle">
 								<span>Managed Lifecycle</span>
 							</th>
 							<th @click="sort('data.status.process.status')" class="desc phase center">
@@ -165,7 +174,7 @@ var Backups = Vue.component("sg-backup", {
 						</thead>
 						<tbody>
 							<tr class="no-results">
-								<td :colspan="(isCluster) ? 6 : 8">
+								<td :colspan="999">
 									No records matched your search terms, would  you like to <router-link to="/crd/create/backup/" title="Add New Backup">create a new one?</router-link>
 								</td>
 							</tr>
@@ -186,7 +195,7 @@ var Backups = Vue.component("sg-backup", {
 													Z
 												</template>
 											</td>
-											<td class="isPermanent center icon" :class="[(back.data.spec.subjectToRetentionPolicy) ? 'true' : 'false']" :data-val="back.data.spec.subjectToRetentionPolicy"></td>
+											<td class="managedLifecycle center icon" :class="[(back.data.spec.managedLifecycle) ? 'true' : 'false']" :data-val="back.data.spec.managedLifecycle"></td>
 											<td class="phase center" :class="back.data.status.process.status">
 												<span>{{ back.data.status.process.status }}</span>
 											</td>
@@ -428,7 +437,7 @@ var Backups = Vue.component("sg-backup", {
 								<template v-else>
 									<tr>
 										<td></td>
-										<td class="isPermanent center icon" :class="[(back.data.spec.subjectToRetentionPolicy) ? 'true' : 'false']" :data-val="back.data.spec.subjectToRetentionPolicy"></td>
+										<td class="managedLifecycle center icon" :class="[(back.data.spec.managedLifecycle) ? 'true' : 'false']" :data-val="back.data.spec.managedLifecycle"></td>
 										<td class="phase center Pending">
 											<span>Pending</span>
 										</td>
@@ -452,7 +461,7 @@ var Backups = Vue.component("sg-backup", {
 			currentSortDir: 'desc',
 			clusterName: '',
 			keyword: '',
-			isPermanent: [],
+			managedLifecycle: [],
 			status: [],
 			postgresVersion: [],
 			tested: [],
@@ -464,7 +473,7 @@ var Backups = Vue.component("sg-backup", {
 	computed: {
 
 		backups () {
-			return sortTable( this.filterBackups(), this.currentSort, this.currentSortDir)
+			return sortTable( store.state.backups, this.currentSort, this.currentSortDir)
 			//return store.state.backups
 		},
 
@@ -487,6 +496,46 @@ var Backups = Vue.component("sg-backup", {
 	},
 	methods: {
 
+		toggleClear( filter ){
+
+			switch(filter) {
+				case 'keyword':
+					if($('#keyword').val().length)
+						$('.searchBar .clear').fadeIn()
+					else
+						$('.searchBar .clear').fadeOut()
+					
+						break;
+				case 'filters':
+					if($('.filters .options .active').length)
+						$('.filters .clear').fadeIn()
+					else
+						$('.filters .clear').fadeOut()
+			}
+
+		},
+
+		clearFilters: function(section) {
+			if(section == 'filters') {
+				this.clusterName = '';
+				this.managedLifecycle = [];
+				this.status = [];
+				this.postgresVersion = [];
+				this.tested = [];
+				$('.filter.open .active').removeClass('active');
+
+				$('.filters .clear').fadeOut()
+
+			} else if (section == 'keyword') {
+				this.keyword = '';
+				$('#keyword').removeClass('active')
+
+				$('.searchBar .clear').fadeOut()
+			}
+
+			this.filterBackups();
+		},
+
 		filterBackups: function() {
 
 			//console.log("filterBackups");
@@ -494,7 +543,7 @@ var Backups = Vue.component("sg-backup", {
 			let vc = this;
 			var count = 0;
 
-			//if( vc.keyword.length || vc.isPermanent || vc.datePicker.length || vc.status.length || vc.postgresVersion.length || vc.clusterName.length ) {
+			//if( vc.keyword.length || vc.managedLifecycle || vc.datePicker.length || vc.status.length || vc.postgresVersion.length || vc.clusterName.length ) {
 				
 				store.state.backups.forEach( function(bk, index) {
 					
@@ -513,10 +562,10 @@ var Backups = Vue.component("sg-backup", {
 						show = !(text.indexOf(vc.keyword) === -1);
 					}
 					
-					//Filter by isPermanent
-					if(vc.isPermanent.length && show){
-						let isPerm = bk.data.spec.subjectToRetentionPolicy;
-						show = (isPerm.toString() === vc.isPermanent[0]);
+					//Filter by managedLifecycle
+					if(vc.managedLifecycle.length && show){
+						let isPerm = bk.data.spec.managedLifecycle;
+						show = (isPerm.toString() === vc.managedLifecycle[0]);
 					}
 	
 					// Filter by Date
@@ -626,6 +675,7 @@ var Backups = Vue.component("sg-backup", {
 				//console.log('cancel.daterangepicker');
 				vc.datePicker = '';
 				$('#datePicker').parent().removeClass('open');
+				vc.filterBackups();
 			});
 
 			$('#datePicker').on('apply.daterangepicker', function(ev, picker) {
@@ -652,12 +702,15 @@ var Backups = Vue.component("sg-backup", {
 						if(vc[$(this).data('filter')].length)
 							vc[$(this).data('filter')] = [$(this).val()];
 					}
+					
 				} else {
 					$(this).removeClass('active');
 					
 					if($(this).hasClass("xCheckbox"))
 						vc[$(this).data('filter')] = [];
 				}
+
+				vc.toggleClear('filters');
 				
 			});			
 
