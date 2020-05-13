@@ -51,8 +51,7 @@ spec:
             sgInstanceProfile:
               type: string
               description: |
-                Name of the [SGInstanceProfile](https://stackgres.io/doc/latest/04-postgres-cluster-management/03-resource-profiles/) to use. A SGInstanceProfile defines CPU and memory limits. Must exist before creating the cluster. If you
-                don't select a profile, a default (currently: 1 core, 2 GiB RAM) one will be used.
+                Name of the [SGInstanceProfile](https://stackgres.io/doc/latest/04-postgres-cluster-management/03-resource-profiles/) to use. A SGInstanceProfile defines CPU and memory limits. Must exist before creating the cluster. If you don't select a profile, a default (currently: 1 core, 2 GiB RAM) one will be used.
             pods:
               type: object
               description: Cluster pod's configuration
