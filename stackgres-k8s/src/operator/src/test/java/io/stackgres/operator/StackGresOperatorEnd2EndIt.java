@@ -70,7 +70,9 @@ public class StackGresOperatorEnd2EndIt extends AbstractStackGresOperatorIt {
                 + "export E2E_SKIP_SETUP=true\n"
                 + "export CLUSTER_CHART_PATH=/resources/stackgres-cluster\n"
                 + "export OPERATOR_CHART_PATH=/resources/stackgres-operator\n"
-                + "export E2E_OPERATOR_OPTS=\"" + ItHelper.getOperatorExtraOptions(k8s, operatorPort) + "\"\n"
+                + (ItHelper.OPERATOR_IN_KUBERNETES
+                    ? ""
+                    : "export E2E_OPERATOR_OPTS=\"" + ItHelper.getOperatorExtraOptions(k8s, operatorPort) + "\"\n")
                 + (E2E_TEST.map(e2eTests -> "if ! " + E2E_SHELL + " " + (ItHelper.E2E_DEBUG ? "-x" : "")
                 + " run-test.sh " + e2eTests + "\n"
                 + "then\n"
