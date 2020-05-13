@@ -10,8 +10,8 @@ prometheus_service() {
   echo "prometheus-prometheus-oper-prometheus"
 }
 
-e2e_lock_for_operator_update() {
-  echo true
+e2e_exclusive_lock() {
+  true
 }
 
 e2e_test_install() {

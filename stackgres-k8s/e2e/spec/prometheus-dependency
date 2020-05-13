@@ -10,8 +10,8 @@ prometheus_service() {
   echo "stackgres-operator-prometh-prometheus"
 }
 
-e2e_lock_for_exclusive() {
-  echo true
+e2e_exclusive_lock() {
+  true
 }
 
 e2e_test_install() {

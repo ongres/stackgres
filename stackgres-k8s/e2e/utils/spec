@@ -29,12 +29,8 @@ e2e_test_after_all() {
   true
 }
 
-e2e_lock_for_operator_update() {
-  echo false
-}
-
-e2e_lock_for_exclusive() {
-  echo false
+e2e_exclusive_lock() {
+  false
 }
 
 spec() {
@@ -62,32 +58,16 @@ spec() {
 
   . "$SPEC_FILE"
 
-  if "${E2E_LOCK_FOR_EXCLUSIVE:-"$(e2e_lock_for_exclusive)"}"
+  if "${E2E_LOCK:-true}" && e2e_exclusive_lock
   then
-    E2E_LOCK_FOR_EXCLUSIVE=false \
-      E2E_LOCK_FOR_OPERATOR_UPDATE=false \
-      E2E_LOCK_FOR_SHARED=false \
-      flock "$TARGET_PATH/lock-for-exclusive" \
+    E2E_LOCK=false flock "$TARGET_PATH/exclusive-lock" \
       "$SHELL" $SH_OPTS "$(dirname "$0")/e2e" spec "$1"
     return
   fi
 
-  if "${E2E_LOCK_FOR_OPERATOR_UPDATE:-"$(e2e_lock_for_operator_update)"}"
+  if "${E2E_LOCK:-true}"
   then
-    E2E_LOCK_FOR_OPERATOR_UPDATE=false \
-      E2E_LOCK_FOR_SHARED=false \
-      flock -s "$TARGET_PATH/lock-for-exclusive" \
-      flock "$TARGET_PATH/lock-for-operator" \
-      "$SHELL" $SH_OPTS "$(dirname "$0")/e2e" spec "$1"
-    return
-  fi
-
-  if "${E2E_LOCK_FOR_SHARED:-true}"
-  then
-    E2E_LOCK_FOR_EXCLUSIVE=false \
-      E2E_LOCK_FOR_OPERATOR_UPDATE=false \
-      E2E_LOCK_FOR_SHARED=false \
-      flock -s "$TARGET_PATH/lock-for-exclusive" \
+    E2E_LOCK=false flock -s "$TARGET_PATH/exclusive-lock" \
       "$SHELL" $SH_OPTS "$(dirname "$0")/e2e" spec "$1"
     return
   fi
