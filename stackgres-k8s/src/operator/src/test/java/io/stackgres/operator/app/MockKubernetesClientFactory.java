@@ -21,7 +21,7 @@ import javax.annotation.PreDestroy;
 import javax.enterprise.context.ApplicationScoped;
 
 import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
-import io.fabric8.kubernetes.client.Config;
+import io.fabric8.kubernetes.client.ConfigBuilder;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
@@ -29,6 +29,7 @@ import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
 import io.quarkus.test.Mock;
 import io.stackgres.operator.AbstractStackGresOperatorIt;
 import io.stackgres.operator.CrdMatchTest;
+import io.stackgres.operator.common.StackGresUtil;
 import org.jooq.lambda.Unchecked;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,9 +59,12 @@ public class MockKubernetesClientFactory extends KubernetesClientFactory {
         updateToken();
       }
       String[] auth = this.auth.get();
-      System.setProperty(Config.KUBERNETES_CA_CERTIFICATE_DATA_SYSTEM_PROPERTY, auth[0]);
-      System.setProperty(Config.KUBERNETES_OAUTH_TOKEN_SYSTEM_PROPERTY, auth[1]);
-      return new DefaultKubernetesClient();
+      return new DefaultKubernetesClient(
+          new ConfigBuilder()
+          .withNamespace(StackGresUtil.OPERATOR_NAMESPACE)
+          .withCaCertData(auth[0])
+          .withOauthToken(auth[1])
+          .build());
     }
     return serverSupplier.get().getClient();
   }
