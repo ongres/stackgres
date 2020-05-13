@@ -71,7 +71,6 @@ if [ -z "$TRAP_FILE" ]
 then
   mkdir -p "$TARGET_PATH"
   TRAP_FILE="$TARGET_PATH/trap-kill-$(shuf -i 0-65535 -n 1)"
-  export TRAP_FILE
   trap 'trap_callback_and_exit $?' HUP INT QUIT PIPE TERM ABRT
   trap 'trap_callback $?' EXIT
 fi

@@ -56,7 +56,7 @@ do
       setup_k8s
     fi
     if ! echo "$SPECS_TO_RUN" | tr ' ' '\n' | tail -n +2 \
-      | xargs -r -n 1 -I % -P 0 "$SHELL" $SH_OPTS "$(dirname "$0")/e2e" spec "%"
+      | xargs -r -n 1 -I % -P 0 "$SHELL" $SH_OPTS -c "'$SHELL' $SH_OPTS '$(dirname "$0")/e2e' spec '%'"
     then
       if [ "$((COUNT%E2E_PARALLELISM))" -ne 0 ]
       then
