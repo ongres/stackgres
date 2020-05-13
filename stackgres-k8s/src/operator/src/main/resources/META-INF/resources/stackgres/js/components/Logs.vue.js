@@ -70,18 +70,15 @@ var Logs = Vue.component("sg-logs", {
 
 								<li>
 									<span>Role</span>
-									<label for="role">
-										<span>Primary</span>
-										<input @change="xCheckbox('role','pr')" v-model="role" data-filter="role" type="checkbox" class="xCheckbox" id="rolepr" name="rolepr" value="pr"/>
-									</label>
-									<label for="role">
-										<span>Replica</span>
-										<input @change="xCheckbox('role','re')" v-model="role" data-filter="role" type="checkbox" class="xCheckbox" id="rolere" name="rolere" value="re"/>
-									</label>
-									<label for="role">
-										<span>Empty</span>
-										<input @change="xCheckbox('role','empty')" v-model="role" data-filter="role" type="checkbox" class="xCheckbox" id="roleempty" name="roleempty" value="empty"/>
-									</label>
+									<select v-model="role" @change="toggleClear('filters')">
+										<option value=''>All Roles</option>
+										<option>Primary</option>
+										<option>Replica</option>
+										<option>Promoted</option>
+										<option>Demoted</option>
+										<option>Uninitialized</option>
+										<option>Standby</option>
+									</select>
 								</li>
 
 								<li>
@@ -242,8 +239,7 @@ var Logs = Vue.component("sg-logs", {
 											<span>{{ log.podName }}</span>
 										</td>
 										<td class="role label center" :class="log.role" v-if="showColumns.role">
-											<span v-if="log.role == 'standbyLeader'">standby</span>
-											<span v-else>{{ log.role }}</span>
+											<span>{{ log.role }}</span>
 										</td>
 										<td class="logMessage hasTooltip" v-if="showColumns.logMessage">
 											<span>{{ log.message }}</span>
@@ -289,8 +285,7 @@ var Logs = Vue.component("sg-logs", {
 											<span>{{ log.podName }}</span>
 										</td>
 										<td class="role label center" :class="log.role" v-if="showColumns.role">
-											<span v-if="log.role == 'standbyLeader'">standby</span>
-											<span v-else>{{ log.role }}</span>
+											<span>{{ log.role }}</span>
 										</td>
 										<td class="logMessage hasTooltip" v-if="showColumns.logMessage">
 											<span>{{ log.message }}</span>
@@ -341,8 +336,7 @@ var Logs = Vue.component("sg-logs", {
 													<tr>
 														<td class="param">Role</td>
 														<td class="value label role" :class="log.role">
-															<span v-if="log.role == 'standbyLeader'">standby</span>
-															<span v-else>{{ log.role }}</span>
+															<span>{{ log.role }}</span>
 														</td>
 													</tr>
 													<tr>
@@ -455,8 +449,7 @@ var Logs = Vue.component("sg-logs", {
 													<tr>
 														<td class="param">Role</td>
 														<td class="value label role" :class="log.role">
-															<span v-if="log.role == 'standbyLeader'">standby</span>
-															<span v-else>{{ log.role }}</span>
+															<span>{{ log.role }}</span>
 														</td>
 													</tr>
 													<tr>
@@ -487,7 +480,7 @@ var Logs = Vue.component("sg-logs", {
 			logType: [],
 			errorLevel: '',
 			podName: '',
-			role: [],
+			role: '',
 			userName: '',
 			databaseName: '',
 			datePicker: '',
@@ -531,7 +524,7 @@ var Logs = Vue.component("sg-logs", {
 		$('table.logs').on('scroll', function() {
 			if( ($(this).scrollTop() + $(this).innerHeight() >= $(this)[0].scrollHeight) && store.state.logs.length ) {
 				
-				console.log(store.state.logs[store.state.logs.length-1]);
+				//console.log(store.state.logs[store.state.logs.length-1]);
 
 				ltime = store.state.logs[store.state.logs.length-1].logTime;
 				lindex = store.state.logs[store.state.logs.length-1].logTimeIndex;
@@ -741,7 +734,7 @@ var Logs = Vue.component("sg-logs", {
 					
 						break;
 				case 'filters':
-					if($('.filters .options .active').length || $('.filters .options .search').val().length || this.errorLevel.length)
+					if($('.filters .options .active').length || $('.filters .options .search').val().length || this.errorLevel.length || this.role.length )
 						$('.filters .clear').fadeIn()
 					else
 						$('.filters .clear').fadeOut()
@@ -755,7 +748,7 @@ var Logs = Vue.component("sg-logs", {
 				this.logType = [];
 				this.errorLevel = '';
 				this.podName = '';
-				this.role = [];
+				this.role = '';
 				this.userName = '';
 				this.databaseName = '';
 				$('.filter.open .active').removeClass('active');
@@ -804,10 +797,7 @@ var Logs = Vue.component("sg-logs", {
 				params += '&podName='+this.podName;
 
 			if(this.role.length) {
-				if(this.role[0] === 'empty')
-					params += '&role';
-				else
-					params += '&role='+this.role[0];
+				params += '&role='+this.role;
 			}
 			
 			axios
