@@ -494,9 +494,9 @@ form#login .warning {
     border-bottom: 0;
 }
 
-.darkmode tr.details {
+/*.darkmode tr.details {
     border: 1px solid #333333;
-}
+}*/
 
 .darkmode tr:nth-child(even), .darkmode tr:nth-child(even) + tr.details {
     background: #1e1e1e;
@@ -506,9 +506,9 @@ form#login .warning {
     background: #171717;
 }
 
-.darkmode #backups tr.base.Completed.open {
+/*.darkmode #backups tr.base.Completed.open {
     border: 1px solid #333333;
-}
+}*/
 
 .darkmode table table + table {
     border-top: 1px solid #333333;
@@ -1830,7 +1830,7 @@ li.status {
 }
 
 #backups tr.details.open > td > table:last-child {
-    margin-bottom: 0px;
+    margin-bottom: 10px;
 }
 
 .content .box {
@@ -2536,6 +2536,20 @@ span.req {
     top: 60px;
 }
 
+#help p {
+    margin-bottom: 10px;
+}
+
+#help p br {
+    content: " ";
+    display: block;
+    margin-bottom: 10px;
+}
+
+code {
+    font-family: "Nunito", "Helvetica", "Arial", sans-serif;
+}
+
 a.help {
     position: absolute;
     margin-top: -48px;
@@ -2764,33 +2778,71 @@ tr.details tr, .darkmode table.clusterConfig tr {
 
 table table {
     margin-left: -15px;
-    width: calc(100% + 15px);
+    width: calc(100% - 12px);
 }
 
-body:not(.darkmode) tr.base.open {
+/*body:not(.darkmode) tr.base.open {
     border: 1px solid #f0f0f1;
 }
 
 .darkmode tr.base.open {
     border: 1px solid #333333;
-}
+}*/
 
 table table tbody {
     border-top-color: #f0f0f1;
     border-bottom: 0;
 }
 
-body:not(.darkmode) tr.details.open {
+/*body:not(.darkmode) tr.details.open {
     border: 1px solid #f0f0f1;
-}
+}*/
 
 table table + table {
     border-top: 1px solid #f0f0f1;
 }
 
+.details th {
+    color: var(--blue);
+}
+
+tr.details > td {
+    padding-top: 10px !important;
+}
+
 tr.details {
     border-top: 0;
 }
+
+tr.details table {
+    border: 1px solid #f0f0f1;
+    margin-left: 0;
+}
+
+tr.details table th, tr.details table td {
+    padding-left: 15px;
+    border: 1px solid #f0f0f1;
+    vertical-align: middle;
+}
+
+.darkmode tr.details table, .darkmode tr.details table th, .darkmode tr.details table td {
+    border-color: #333333;;
+}
+
+tr.details table td.label {
+    width: 120px;
+    color: var(--blue);
+    font-weight: bold;
+}
+
+tr.details td:last-of-type table {
+    margin-left: 12px !important;
+}
+
+
+
+
+
 
 tr.open .router-link-exact-active path {
     fill: var(--blue);
@@ -3331,10 +3383,16 @@ table.logs .applicationName {
     padding: 0 10px;
 }
 
-table.logs .logType, table.logs .role, table.logs .errorLevel {
+table.logs .logType, table.logs .errorLevel {
     min-width: 90px;
     max-width: 90px;
     width: 90px;
+}
+
+table.logs .role {
+    min-width: 100px;
+    max-width: 100px;
+    width: 100px;
 }
 
 td.errorLevel > span {
@@ -3395,6 +3453,62 @@ td.errorLevel.FATAL > span {
 td.errorLevel.NOTSET > span {
     color: #7A7B85;
     background: #7A7B8540;
+}
+
+td.label.role span {
+    width: 80px;
+}
+
+td.role.Primary {
+    color: #fff;
+    background: #020E1466;
+}
+
+.darkmode td.role.Primary {
+    color: #020E14;
+    background: #ffffff66;
+}
+
+td.role.Replica {
+    color: #4D4F5C;
+    background: #4D4F5C66;
+}
+
+.darkmode td.role.Replica {
+    color: #F0F0F1;
+    background: #F0F0F166;
+}
+
+td.role.Promote {
+    color: #7A7B85;
+    background: #7A7B8566;
+}
+
+.darkmode td.role.Promote {
+    color: #D3D3D6;
+    background: #D3D3D666;
+}
+
+td.role.Demote {
+    color: #7A7B85;
+    background: #A6A7AE66;
+}
+
+.darkmode td.role.Demote {
+    color: #A6A7AE;
+    background: #A6A7AE66;
+}
+
+td.role.Uninitialized {
+    color: #7A7B85;
+    background: #D3D3D666;
+    border: 1px solid #A6A7AE;
+}
+
+.darkmode td.role.Uninitialized {
+    color: #7A7B85;
+    background: #7A7B8566;
+    border: 1px solid #A6A7AE;
 }
 
 td.logMessage {
@@ -3985,13 +4099,16 @@ table.logs tr.base td {
 }
 
 tr.no-results:first-child:last-child {
-    display: block;
+    width: 100%;
+	display: table-row;
 }
 
 tr.no-results td {
-    display: block;
+    display: table-cell;
     padding: 50px 0;
 }
+
+
 
 #log .calendar li span {
     position: relative;
@@ -4167,7 +4284,7 @@ tr.details.open > td:first-child:before {
     width: 7px;
     content: " ";
     background: transparent;
-    height: 100%;
+    height: calc(100% + 5px);
     left: 4px;
     position: absolute;
     top: -28px;
