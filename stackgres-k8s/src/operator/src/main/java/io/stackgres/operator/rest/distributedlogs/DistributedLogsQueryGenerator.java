@@ -40,8 +40,13 @@ public class DistributedLogsQueryGenerator {
 
   public static final Param<String> PATRONI_LOG_TYPE_VALUE = DSL.value("pa");
   public static final Param<String> POSTGRES_LOG_TYPE_VALUE = DSL.value("pg");
-  public static final Param<String> PRIMARY_ROLE_VALUE = DSL.value("pr");
-  public static final Param<String> REPLICA_ROLE_VALUE = DSL.value("re");
+
+  public static final Param<String> PRIMARY_ROLE_VALUE = DSL.value("Primary");
+  public static final Param<String> REPLICA_ROLE_VALUE = DSL.value("Replica");
+  public static final Param<String> PROMOTE_ROLE_VALUE = DSL.value("Promote");
+  public static final Param<String> DEMOTE_ROLE_VALUE = DSL.value("Demote");
+  public static final Param<String> UNINITIALIZED_ROLE_VALUE = DSL.value("Uninitialized");
+  public static final Param<String> STANDBY_LEADER_ROLE_VALUE = DSL.value("Standby");
 
   public static final Field<OffsetDateTime> LOG_TIME_FIELD = DSL.field(
       "log_time", SQLDataType.TIMESTAMPWITHTIMEZONE);
@@ -60,13 +65,22 @@ public class DistributedLogsQueryGenerator {
   public static final Field<String> MAPPED_ROLE_FIELD = DSL.case_(ROLE_FIELD)
       .when(StackGresUtil.PRIMARY_ROLE, PRIMARY_ROLE_VALUE)
       .when(StackGresUtil.REPLICA_ROLE, REPLICA_ROLE_VALUE)
+      .when(StackGresUtil.PROMOTE_ROLE, PROMOTE_ROLE_VALUE)
+      .when(StackGresUtil.DEMOTE_ROLE, DEMOTE_ROLE_VALUE)
+      .when(StackGresUtil.UNINITIALIZED_ROLE, UNINITIALIZED_ROLE_VALUE)
+      .when(StackGresUtil.STANDBY_LEADER_ROLE, STANDBY_LEADER_ROLE_VALUE)
       .else_(DSL.castNull(ROLE_FIELD))
       .as(ROLE_FIELD);
 
   public static final ImmutableMap<String, String> REVERSE_ROLE_MAP =
-      ImmutableMap.of(
-          PRIMARY_ROLE_VALUE.getValue(), StackGresUtil.PRIMARY_ROLE,
-          REPLICA_ROLE_VALUE.getValue(), StackGresUtil.REPLICA_ROLE);
+      ImmutableMap.<String, String>builder()
+          .put(PRIMARY_ROLE_VALUE.getValue(), StackGresUtil.PRIMARY_ROLE)
+          .put(REPLICA_ROLE_VALUE.getValue(), StackGresUtil.REPLICA_ROLE)
+          .put(PROMOTE_ROLE_VALUE.getValue(), StackGresUtil.PROMOTE_ROLE)
+          .put(DEMOTE_ROLE_VALUE.getValue(), StackGresUtil.DEMOTE_ROLE)
+          .put(UNINITIALIZED_ROLE_VALUE.getValue(), StackGresUtil.UNINITIALIZED_ROLE)
+          .put(STANDBY_LEADER_ROLE_VALUE.getValue(), StackGresUtil.STANDBY_LEADER_ROLE)
+          .build();
 
   public static final ImmutableMap<String, String> FILTER_CONVERSION_MAP =
       ImmutableMap.<String, String>builder()
@@ -307,6 +321,13 @@ public class DistributedLogsQueryGenerator {
 
   protected Condition filterCondition(Tuple2<String, String> filter, Field<?> field) {
     if (filter.v2 == null) {
+      if (field == MAPPED_ROLE_FIELD) {
+        return DSL.field(field.getName()).isNull()
+            .or(DSL.field(field.getName()).notIn(
+                Seq.seq(REVERSE_ROLE_MAP.keySet())
+                .map(value -> DSL.cast(value, field))
+                .toArray(Field<?>[]::new)));
+      }
       return DSL.field(field.getName()).isNull();
     }
     if (field == MAPPED_ROLE_FIELD) {
