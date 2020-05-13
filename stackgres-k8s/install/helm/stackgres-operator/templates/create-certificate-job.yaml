@@ -27,8 +27,6 @@ spec:
           - "-ecx"
           - |
             kubectl delete csr --ignore-not-found '{{ .Release.Name }}'
-            kubectl delete validatingwebhookconfiguration --ignore-not-found {{ .Release.Name }}
-            kubectl delete mutatingwebhookconfiguration --ignore-not-found {{ .Release.Name }}
             cat << EOF > /tmp/csr.conf
             [req]
             req_extensions = v3_req
@@ -90,18 +88,27 @@ spec:
             {{- $values := . }}
             {{- $_ := set $values.Values.cert "crt" "${CRT}" }}
             {{- $_ := set $values.Values.cert "key" "${KEY}" }}
-            cat << EOF | kubectl create -f -
+            cat << EOF > /tmp/validating-webhook-configuration.yaml
             {{- include (print $.Template.BasePath "/validating-webhook-configuration.yaml") . | indent 12 }}
             EOF
-            cat << EOF | kubectl create -f -
+            cat << EOF > /tmp/mutating-webhook-configuration.yaml
             {{- include (print $.Template.BasePath "/mutating-webhook-configuration.yaml") . | indent 12 }}
             EOF
-            cat << EOF | kubectl create -f -
+            cat << EOF > /tmp/certificate-secret.yaml
             {{- include (print $.Template.BasePath "/certificate-secret.yaml") . | indent 12 }}
             EOF
             {{- $_ := set $values.Values.cert "crt" nil }}
             {{- $_ := set $values.Values.cert "key" nil }}
             
+            kubectl create -f /tmp/validating-webhook-configuration.yaml \
+              || kubectl patch -n '{{ .Release.Namespace }}' validatingwebhookconfiguration '{{ .Release.Name }}' \
+                -p "$(cat /tmp/validating-webhook-configuration.yaml)"
+            kubectl create -f /tmp/mutating-webhook-configuration.yaml \
+              || kubectl patch -n '{{ .Release.Namespace }}' mutatingwebhookconfiguration '{{ .Release.Name }}' \
+                -p "$(cat /tmp/mutating-webhook-configuration.yaml)"
+            kubectl create -f /tmp/certificate-secret.yaml \
+              || kubectl patch -n '{{ .Release.Namespace }}' secret '{{ .Release.Name }}-certs' \
+                -p "$(cat /tmp/certificate-secret.yaml)"
             {{- if .Release.IsInstall }}
             kubectl scale --timeout 1h --replicas 1 -n '{{ .Release.Namespace }}' 'deployment/{{ .Release.Name }}'
             {{- else }}
