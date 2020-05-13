@@ -19,7 +19,7 @@ e2e_test_install() {
   wait_pods_terminated "stackgres" 0
   install_operator \
     --set grafana.autoEmbed=true \
-    --set-string prometheus-operator.create=true \
+    --set prometheus-operator.create=true \
     --set prometheus-operator.alertmanager.enabled=false \
     --set prometheus-operator.kubeStateMetrics.enabled=false \
     --set prometheus-operator.nodeExporter.enabled=false
