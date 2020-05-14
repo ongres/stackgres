@@ -3528,6 +3528,10 @@ td.logMessage {
     position: absolute;
 }
 
+.logMessage > tbody tr {
+    background: transparent !important;
+}
+
 table.logs td.label {
     padding: 0 10px;
 }
