@@ -30,6 +30,9 @@ var ClusterInfo = Vue.component("cluster-info", {
 					<li v-if="cluster.hasBackups">
 						<router-link :to="'/cluster/backups/'+$route.params.namespace+'/'+$route.params.name" title="Backups" class="backups">Backups</router-link>
 					</li>
+					<li v-if="typeof cluster.data.spec.distributedLogs !== 'undefined'">
+						<router-link :to="'/cluster/logs/'+$route.params.namespace+'/'+$route.params.name" title="Distributed Logs" class="logs">Logs</router-link>
+					</li>
 					<li v-if="cluster.data.grafanaEmbedded">
 						<router-link id="grafana-btn" :to="'/monitor/'+$route.params.namespace+'/'+$route.params.name" title="Grafana Dashboard" class="grafana">Monitoring</router-link>
 					</li>
@@ -39,49 +42,58 @@ var ClusterInfo = Vue.component("cluster-info", {
 			<div class="content">
 				<table class="clusterConfig">
 					<thead>
-						<th>Cluster Name</th>
-						<th>Postgres Version</th>
-						<th>Number of Instances</th>
-						<th>Instance Profile</th>
-						<th>Volume Size</th>
+						<th></th>
+						<th></th>
+						<th></th>
+						<th></th>
 					</thead>
 					<tbody>
 						<tr>
-							<td>{{ cluster.name }}</td>
-							<td>{{ cluster.data.spec.postgresVersion }}</td>
-							<td>{{ cluster.data.spec.instances }}</td>
-							<td>{{ cluster.data.spec.resourceProfile }} (Cores: {{ profile.data.spec.cpu }}, RAM: {{ profile.data.spec.memory }})</td>
+							<td class="label">
+								Postgres Version
+							</td>
+							<td colspan="3">{{ cluster.data.spec.postgresVersion }}</td>
+						</tr>
+						<tr>
+							<td class="label">
+								Instances
+							</td>
+							<td colspan="3">{{ cluster.data.spec.instances }}</td>
+						</tr>
+						<tr>
+							<td class="label">
+								Instance Profile
+							</td>
+							<td colspan="3">
+								<router-link :to="'/profiles/'+currentNamespace+'/'+cluster.data.spec.sgInstanceProfile">
+									{{ cluster.data.spec.sgInstanceProfile }} (Cores: {{ profile.data.spec.cpu }}, RAM: {{ profile.data.spec.memory }})
+									<svg xmlns="http://www.w3.org/2000/svg" width="18.556" height="14.004" viewBox="0 0 18.556 14.004"><g transform="translate(0 -126.766)"><path d="M18.459,133.353c-.134-.269-3.359-6.587-9.18-6.587S.232,133.084.1,133.353a.93.93,0,0,0,0,.831c.135.269,3.36,6.586,9.18,6.586s9.046-6.317,9.18-6.586A.93.93,0,0,0,18.459,133.353Zm-9.18,5.558c-3.9,0-6.516-3.851-7.284-5.142.767-1.293,3.382-5.143,7.284-5.143s6.516,3.85,7.284,5.143C15.795,135.06,13.18,138.911,9.278,138.911Z" transform="translate(0 0)"/><path d="M9.751,130.857a3.206,3.206,0,1,0,3.207,3.207A3.21,3.21,0,0,0,9.751,130.857Z" transform="translate(-0.472 -0.295)"/></g></svg>
+								</router-link>
+							</td>
+						</tr>
+						<tr>
+							<td class="label" rowspan="3">
+								Pods
+							</td>
+							<td class="label" :rowspan="Object.keys(cluster.data.spec.pods.persistentVolume).length">
+								Persistent Volume
+							</td>
+							<td class="label">
+								Volume Size
+							</td>
 							<td>{{ cluster.data.spec.pods.persistentVolume.size }}</td>
 						</tr>
-					</tbody>
-				</table>
-
-				<table class="clusterConfig">
-					<thead>
-						<th>Storage Class</th>
-						<th>Postgres Configuration</th>
-						<th>Connection Pooling</th>
-						<th>Conn. Pooling. Configuration</th>
-						<th>
-							<template v-if="(typeof cluster.data.spec.backupConfig !== 'undefined')">
-								Automatic Backups Configuration
-							</template>
-							<template v-else>
-								Automatic Backups
-							</template>
-						</th>
-					</thead>
-					<tbody>
+						<tr v-if="(typeof cluster.data.spec.pods.persistentVolume.storageClass !== 'undefined')">
+							<td class="label">
+								Storage Class
+							</td>
+							<td>{{ cluster.data.spec.pods.persistentVolume.size }}</td>
+						</tr>
 						<tr>
-							<td>
-								<template v-if="(typeof cluster.data.spec.pods.persistentVolume.storageClass !== 'undefined')">
-									{{ cluster.data.spec.pods.persistentVolume.storageClass }}
-								</template>
+							<td class="label">
+								Connection Pooling
 							</td>
-							<td>
-								{{ cluster.data.spec.configurations.sgPostgresConfig }}
-							</td>
-							<td>
+							<td colspan="2">
 								<template v-if="(typeof cluster.data.spec.configurations.sgPoolingConfig !== 'undefined')">
 									ON
 								</template>
@@ -89,33 +101,61 @@ var ClusterInfo = Vue.component("cluster-info", {
 									OFF
 								</template>
 							</td>
-							<td>
-								<template v-if="(typeof cluster.data.spec.configurations.sgPoolingConfig !== 'undefined')">
-									{{ cluster.data.spec.configurations.sgPoolingConfig }}
-								</template>
+						</tr>
+						<tr>
+							<td class="label">
+								Metrics Exporter
 							</td>
-							<td>
-								<template v-if="(typeof cluster.data.spec.configurations.sgBackupConfig !== 'undefined')">
-									{{ cluster.data.spec.configurations.sgBackupConfig }}
+							<td colspan="2">
+								<template v-if="!cluster.data.spec.pods.disableMetricsExporter">
+									ON
 								</template>
 								<template v-else>
 									OFF
 								</template>
 							</td>
 						</tr>
-					</tbody>
-				</table>
-				<table class="clusterConfig">
-					<thead>
-						<th>Prometheus Autobind</th>
-						<th>Disable Cluster Pod Anti-Affinity</th>
-						<th></th>
-						<th></th>
-						<th></th>
-					</thead>
-					<tbody>
 						<tr>
-							<td>
+							<td class="label" :rowspan="Object.keys(cluster.data.spec.configurations).length">
+								Configurations
+							</td>
+							<td class="label">
+								Postgres
+							</td>
+							<td colspan="2">
+								<router-link :to="'/configurations/postgres/'+currentNamespace+'/'+cluster.data.spec.configurations.sgPostgresConfig">
+									{{ cluster.data.spec.configurations.sgPostgresConfig }}
+									<svg xmlns="http://www.w3.org/2000/svg" width="18.556" height="14.004" viewBox="0 0 18.556 14.004"><g transform="translate(0 -126.766)"><path d="M18.459,133.353c-.134-.269-3.359-6.587-9.18-6.587S.232,133.084.1,133.353a.93.93,0,0,0,0,.831c.135.269,3.36,6.586,9.18,6.586s9.046-6.317,9.18-6.586A.93.93,0,0,0,18.459,133.353Zm-9.18,5.558c-3.9,0-6.516-3.851-7.284-5.142.767-1.293,3.382-5.143,7.284-5.143s6.516,3.85,7.284,5.143C15.795,135.06,13.18,138.911,9.278,138.911Z" transform="translate(0 0)"/><path d="M9.751,130.857a3.206,3.206,0,1,0,3.207,3.207A3.21,3.21,0,0,0,9.751,130.857Z" transform="translate(-0.472 -0.295)"/></g></svg>
+								</router-link>								
+							</td>
+						</tr>
+						<tr v-if="(typeof cluster.data.spec.configurations.sgPoolingConfig !== 'undefined')">
+							<td class="label">
+								Connection Pooling
+							</td>
+							<td colspan="2">
+								<router-link :to="'/configurations/connectionpooling/'+currentNamespace+'/'+cluster.data.spec.configurations.sgPoolingConfig">
+									{{ cluster.data.spec.configurations.sgPoolingConfig }}
+									<svg xmlns="http://www.w3.org/2000/svg" width="18.556" height="14.004" viewBox="0 0 18.556 14.004"><g transform="translate(0 -126.766)"><path d="M18.459,133.353c-.134-.269-3.359-6.587-9.18-6.587S.232,133.084.1,133.353a.93.93,0,0,0,0,.831c.135.269,3.36,6.586,9.18,6.586s9.046-6.317,9.18-6.586A.93.93,0,0,0,18.459,133.353Zm-9.18,5.558c-3.9,0-6.516-3.851-7.284-5.142.767-1.293,3.382-5.143,7.284-5.143s6.516,3.85,7.284,5.143C15.795,135.06,13.18,138.911,9.278,138.911Z" transform="translate(0 0)"/><path d="M9.751,130.857a3.206,3.206,0,1,0,3.207,3.207A3.21,3.21,0,0,0,9.751,130.857Z" transform="translate(-0.472 -0.295)"/></g></svg>
+								</router-link>	
+							</td>
+						</tr>
+						<tr v-if="(typeof cluster.data.spec.configurations.sgBackupConfig !== 'undefined')">
+							<td class="label">
+								Managed Backups
+							</td>
+							<td colspan="2">
+								<router-link :to="'/configurations/backup/'+currentNamespace+'/'+cluster.data.spec.configurations.sgBackupConfig">
+									{{ cluster.data.spec.configurations.sgBackupConfig }}
+									<svg xmlns="http://www.w3.org/2000/svg" width="18.556" height="14.004" viewBox="0 0 18.556 14.004"><g transform="translate(0 -126.766)"><path d="M18.459,133.353c-.134-.269-3.359-6.587-9.18-6.587S.232,133.084.1,133.353a.93.93,0,0,0,0,.831c.135.269,3.36,6.586,9.18,6.586s9.046-6.317,9.18-6.586A.93.93,0,0,0,18.459,133.353Zm-9.18,5.558c-3.9,0-6.516-3.851-7.284-5.142.767-1.293,3.382-5.143,7.284-5.143s6.516,3.85,7.284,5.143C15.795,135.06,13.18,138.911,9.278,138.911Z" transform="translate(0 0)"/><path d="M9.751,130.857a3.206,3.206,0,1,0,3.207,3.207A3.21,3.21,0,0,0,9.751,130.857Z" transform="translate(-0.472 -0.295)"/></g></svg>
+								</router-link>
+							</td>
+						</tr>
+						<tr>
+							<td class="label">
+								Prometheus Autobind
+							</td>
+							<td colspan="3">
 								<template v-if="(typeof cluster.data.spec.prometheusAutobind !== 'undefined')">
 									ON
 								</template>
@@ -123,17 +163,22 @@ var ClusterInfo = Vue.component("cluster-info", {
 									OFF
 								</template>
 							</td>
-							<td>
-								<template v-if="(typeof cluster.data.spec.nonProductionOptions !== 'undefined' && typeof cluster.data.spec.nonProductionOptions.disableClusterPodAntiAffinity !== 'undefined')">
-									ON
-								</template>
-								<template v-else>
+						</tr>
+						<tr v-if="typeof cluster.data.spec.nonProductionOptions !== 'undefined'">
+							<td class="label">
+								Non-Production Settings
+							</td>
+							<td class="label">
+								Cluster Pod Anti Affinity
+							</td>
+							<td colspan="2">
+								<template v-if="typeof cluster.data.spec.nonProductionOptions.disableClusterPodAntiAffinity !== 'undefined'">
 									OFF
 								</template>
+								<template v-else>
+									ON
+								</template>
 							</td>
-							<td></td>
-							<td></td>
-							<td></td>
 						</tr>
 					</tbody>
 				</table>

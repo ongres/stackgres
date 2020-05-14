@@ -146,6 +146,20 @@ const router = new VueRouter({
         conditionalRoute: false
       },
     },
+    { 
+      path: '/:cluster/logs/:namespace/:name', 
+      component: Logs,
+      meta: {
+        conditionalRoute: false
+      },
+    },
+    { 
+      path: '/:cluster/logs/:namespace/:name/:time/:index', 
+      component: Logs,
+      meta: {
+        conditionalRoute: false
+      },
+    },
     {  
       path: '/backups/:namespace/', 
       component: Backups,
@@ -237,13 +251,6 @@ const router = new VueRouter({
         conditionalRoute: false
       },
     },
-    { 
-      path: '/logs/', 
-      component: Logs,
-      meta: {
-        conditionalRoute: false
-      },
-    },
 
   ],
 });
@@ -260,7 +267,7 @@ router.beforeEach((to, from, next) => {
     
     if ( typeof cluster !== "undefined" ) {
       
-      let backups = store.state.backups.find(b => ( (to.params.name == b.data.spec.cluster) && (to.params.namespace == b.data.metadata.namespace) ) );
+      let backups = store.state.backups.find(b => ( (to.params.name == b.data.spec.sgCluster) && (to.params.namespace == b.data.metadata.namespace) ) );
       
       if ( typeof backups !== "undefined" )
         cluster.hasBackups = true; // Enable/Disable Backups button
@@ -309,14 +316,15 @@ const store = new Vuex.Store({
     profiles: [],
     storageClasses: [],
     logs: [],
+    logsClusters: [],
     tooltips: {
       description: 'Click on a question mark to get help and tips about that field.', 
       SGCluster: {},
-      sgbackup: {},
-      sgpgconfig: {},
-      sgbackupconfig: {},
-      sgpoolconfig: {},
-      sginstanceprofile: {},
+      SGBackup: {},
+      SGPostgresConfig: {},
+      SGBackupConfig: {},
+      SGPoolingConfig: {},
+      SGInstanceProfile: {},
     },
     deleteItem: {
       kind: '',
@@ -324,10 +332,11 @@ const store = new Vuex.Store({
       name: '',
       redirect: ''
     },
+    confirmDeleteName: ''
   },
   mutations: {
 
-    setLoginToken (state, token) {
+    setLoginToken (state, token = '') {
       state.loginToken = token;
       axios.defaults.headers.common['Authorization'] = 'Basic '+store.state.loginToken;
     },
@@ -354,6 +363,10 @@ const store = new Vuex.Store({
 
     addNamespaces (state, namespacesList) {
       state.allNamespaces = [...namespacesList];
+    },
+
+    addLogsClusters (state, logsClusters) {
+      state.logsClusters = [...logsClusters];
     },
 
     addStorageClasses (state, storageClassesList) {
@@ -412,7 +425,14 @@ const store = new Vuex.Store({
           // console.log('Se agregó '+backup.name);
         }
 
-      },
+    },
+    
+    showBackup ( state, show ) {
+
+      state.backups[show.pos].show = show.isVisible;
+
+    },
+
     updatePGConfig ( state, config ) {
 
       let index = state.pgConfig.find(c => (config.data.metadata.name == c.name) && (config.data.metadata.namespace == c.data.metadata.namespace) ); 
@@ -502,12 +522,24 @@ const store = new Vuex.Store({
       state.storageClasses.length = 0;
     },
 
+    flushLogsClusters (state ) {
+      state.logsClusters.length = 0;
+    },
+
     setDeleteItem (state, item) {
       state.deleteItem = item;
     },
 
+    setConfirmDeleteName (state, name) {
+      state.confirmDeleteName = name;
+    },
+
     setLogs (state, logs) {
       state.logs = logs;
+    },
+
+    appendLogs (state, logs) {
+      state.logs = state.logs.concat(logs);
     },
 
     setTooltips (state, tooltips) {
@@ -552,12 +584,13 @@ Vue.mixin({
 
     cancelDelete: function(){
       $("#delete").removeClass("active");
-      $("#delete.warning").hide();
+      $("#delete .warning").hide();
+      store.commit('setConfirmDeleteName', '');
     },
     
     deleteCRD: function( kind, namespace, name, redirect ) {
 
-      console.log("Open delete");
+      //console.log("Open delete");
       $('#delete input').val('');
       $("#delete").addClass("active");
       $(".filter > .open").removeClass("open");
@@ -572,6 +605,8 @@ Vue.mixin({
     },
 
 		confirmDelete: function( confirmName ) {
+
+      //console.log("Name: "+confirmName);
 
       const item = store.state.deleteItem;
 
@@ -595,6 +630,7 @@ Vue.mixin({
 					notify('<span class="capitalize">'+item.kind+'</span> <strong>'+item.name+'</strong> deleted successfully', 'message', item.kind);
           
           $('.'+item.kind+'-'+item.namespace+'-'+item.name).addClass("hide");
+          //$('.'+item.kind+'-'+item.namespace+'-'+item.name+'.hide').remove();
           vm.fetchAPI(item.kind);
 
 					if( (typeof item.redirect !== 'undefined') && item.redirect.length)
@@ -618,6 +654,65 @@ Vue.mixin({
 			}
 			
     },
+
+    loadTooltips: function( kind, lang = 'EN' ) {
+
+      if( !store.state.tooltips[kind].hasOwnProperty('metadata.name') ) {
+        console.log("Reading "+kind+" tooltips");
+        
+        /* Tooltips Data */
+        axios
+        .get('js/components/forms/help/crd-'+kind+'-EN.json')
+        .then( function(response){
+
+          // Include missing tooltips for storage credentials
+          /* if(kind == 'SGBackupConfig') {
+            response.data["spec.storage.s3.awsCredentials.accessKeyId"] = "The AWS Access Key ID secret.";
+            response.data["spec.storage.s3.awsCredentials.secretAccessKey"] = "The AWS Secret Access Key secret.";
+            response.data["spec.storage.s3Compatible.awsCredentials.accessKeyId"] = "The AWS Access Key ID secret.";
+            response.data["spec.storage.s3Compatible.awsCredentials.secretAccessKey"] = "The AWS Secret Access Key secret.";
+            response.data["spec.storage.gcs.gcpCredentials.serviceAccountJSON"] = "A service account key from GCP. In JSON format, as downloaded from the GCP Console.";
+            response.data["spec.storage.azureBlob.azureCredentials.storageAccount"] = "The name of the storage account.";
+            response.data["spec.storage.azureBlob.azureCredentials.accessKey"] = "The primary or secondary access key for the storage account.";
+          } */
+
+          store.commit('setTooltips', { 
+          kind: kind, 
+          description: response.data 
+        })
+        }).catch(function(err) {
+          console.log(err);
+        });
+      }
+
+    },
+
+    showTooltip: function( kind, field ) {
+
+      const label = $("[for='"+field+"']").html();
+      const crd = store.state.tooltips[kind];
+
+      $("#help .title").html(label);
+
+      let param = crd;
+
+      if(field == 'spec.postgresql.conf') {
+        param =  crd.spec.properties['postgresql.conf']
+      } else if (field == 'spec.pgBouncer.pgbouncer.ini') {
+        param =  crd.spec.properties.pgBouncer.properties['pgbouncer.ini']
+      } else {
+        params = field.split('.');
+        params.forEach(function(item, index){
+          if( !index ) // First level
+            param = param[item]
+          else
+            param = param.properties[item]
+        })
+      }
+
+      store.commit("setTooltipDescription", param['description']);
+
+    }
   }
 });
 
@@ -657,20 +752,27 @@ const vm = new Vue({
   methods: {
     
     /* API Request */
-    fetchAPI: function(kind = '') {
+    fetchAPI: function(kind = '', params = '') {
 
       let loginToken = getCookie('sgToken');
+      //console.log("TOKEN: "+loginToken)
 
       if(!loginToken.length) {
-        $('#signup').addClass('login').fadeIn();
-        return false;
-      } else if (!store.state.loginToken.length) {
+        if(!store.state.loginToken.length) {
+          $('#signup').addClass('login').fadeIn();
+          return false;
+        }
+      } else if ( !store.state.loginToken.length && (loginToken.length > 0) ) {
         $('#signup').hide();
         store.commit('setLoginToken', loginToken);
+      } else if ( urlParams.has('localAPI') ) {
+        $('#signup').hide();
+        store.commit('setLoginToken', 'localAPI');
       }
 
-      console.log("Fetching API");
-      $("#loader").show();
+      //console.log("Fetching API");
+      //$("#loader").show();
+      $('#reload').addClass('active');
 
       if ( !kind.length || (kind == 'namespaces') ) {
         /* Namespaces Data */
@@ -740,7 +842,7 @@ const vm = new Vue({
               store.commit('updateClusters', cluster);
 
               // Set as current cluster if no other cluster has already been set
-              if(!store.state.currentCluster.length)              
+              if(!store.state.currentCluster)              
                 store.commit('setCurrentCluster', cluster);
 
             });
@@ -763,6 +865,7 @@ const vm = new Vue({
         .then( function(response) {
 
           if( checkData(response.data, apiData['backup']) ) {
+            var start, finish, duration;
 
             if(typeof apiData['backup'] !== 'undefined' && response.data.length != apiData['backup'].length)
               store.commit('flushBackups');
@@ -779,14 +882,22 @@ const vm = new Vue({
                 //console.log("Namespace ya existe");
               }
 
-              let start = moment(item.status.process.timing.start);
-              let finish = moment(item.status.process.timing.end);
-              let duration = moment.duration(finish.diff(start));
+              //console.log(item);
+
+              if( item.hasOwnProperty('status.process.status') && (item.status.process.status === 'Completed') ) {
+                start = moment(item.status.process.timing.start);
+                finish = moment(item.status.process.timing.stored);
+                duration = new Date(moment.duration(finish.diff(start))).toISOString();
+              } else {
+                duration = '';
+              }
+              
                 
               store.commit('updateBackups', { 
                 name: item.metadata.name,
                 data: item,
-                duration: new Date(duration).toISOString()
+                duration: duration,
+                show: true
               });
 
             });
@@ -985,6 +1096,30 @@ const vm = new Vue({
         });
       }
 
+      if ( !kind.length || (kind == 'sgdistributedlogs') ) {
+        /* Distribude Logs Data */
+        axios
+        .get(apiURL+'sgdistributedlogs',
+          { headers: {
+              //'content-type': 'application/json'
+            }
+          }
+        )
+        .then( function(response){
+
+          // Check if there are any changes on API Data
+          if ( checkData(response.data, store.state.logsClusters) ) {
+
+            if(typeof store.state.logsClusters !== 'undefined' && response.data.length != store.state.logsClusters.length)
+              store.commit('flushLogsClusters');
+
+            store.commit('addLogsClusters', response.data);
+
+          }
+          
+        });
+      }
+
 
       if ( (kind === 'backup') || (kind === 'cluster') ) {
         // Check if current cluster has backups
@@ -995,10 +1130,10 @@ const vm = new Vue({
       }
 
       setTimeout(function(){
-        $("#loader").fadeOut(500);
+        //$("#loader").fadeOut(500);
         $("#reload").removeClass("active");
         //$("#loader").hide();  
-      }, 1500);
+      }, 2000);
 
     },
 
@@ -1007,9 +1142,11 @@ const vm = new Vue({
     
     this.fetchAPI();
 
-    setInterval( function(){
-      this.fetchAPI();
-    }.bind(this), 10000);
+    if(store.state.loginToken.length > 0) {
+      setInterval( function(){
+        this.fetchAPI();
+      }.bind(this), 10000);
+    }
 
   }
 });
@@ -1037,17 +1174,19 @@ Vue.filter('prefix',function(s, l = 2){
 Vue.filter('formatTimestamp',function(t, part){
 
     if(part == 'date')
-      return t.substr(0, t.indexOf('T'));
+      return t.substr(0, 10);
     else if (part == 'time')
-      return t.substring( t.indexOf('T')+1, t.indexOf('.'));
+      return t.substring( 11, 19);
     else if (part == 'ms') {
-      var ms = t.substring( t.indexOf('.'), t.indexOf('Z'));
+      var ms = '.'+t.substring( 20, t.length - 1);
       
-      if(ms.length == 2)
+      if (ms == '.Z')
+        ms = '.000';
+      else if (ms.length == 2)
         ms += '00';
-      else if(ms.length == 3)
+      else if (ms.length == 4)
         ms += '0';
-
+      
       return ms.substring(0,4);
     }
       
@@ -1071,6 +1210,15 @@ function getCookie(cname) {
 
 function formatBytes (a) {
   if(0==a)return"0 Bytes";var c=1024,d=2,e=["Bytes","Ki","Mi","Gi","Ti","Pi","Ei","Zi","Yi"],f=Math.floor(Math.log(a)/Math.log(c))+1;return parseFloat((a/Math.pow(c,f)).toFixed(d))+" "+e[f];
+}
+
+function getBytes (text) {
+  var powers = {'Ki': 1, 'Mi': 2, 'Gi': 3, 'Ti': 4, 'Pi': 5};
+  var regex = /(\d+(?:\.\d+)?)\s?(Ki|Mi|Gi|Ti|Pi)?b?/i;
+
+  var res = regex.exec(text);
+
+  return res[1] * Math.pow(1024, powers[res[2]]);
 }
 
 function arraysMatch (arr1, arr2) {
@@ -1230,21 +1378,56 @@ function hideFields( fields ) {
   $(fields).slideUp();
 }
 
+function hasParams( obj, params) {
+  var valid = true;
+
+  for ( var i=0; i < params.length; i++){
+    if( !obj || !obj.hasOwnProperty(params[i]) ) {
+      return valid = false
+    }
+    else
+      obj = obj[params[i]]
+  }
+
+  return valid
+}
+
 // Sort tables by an specific parameter
 function sortTable( table, param, direction ) {
+
+  var backupFixedParams = ['data.spec.subjectToRetentionPolicy','data.metadata.name','data.spec.sgCluster','data.status.process.status'];
   
   table.sort((a,b) => {
     let modifier = 1;
     
     if(direction === 'desc') modifier = -1;
-    
-    a = eval("a."+param);
-    b = eval("b."+param);
 
-    if(a < b)
+    // If sorting backups first validate its state
+    if(a.data.hasOwnProperty('status')) {
+      // If record is not sortable by the provided param
+      if((a.data.status.process.status == 'Failed') && !backupFixedParams.includes(param)){
+        console.log('failed');
+        return 1
+      } else if ((a.data.status.process.status == 'Running') && !backupFixedParams.includes(param)){
+        return -1
+      }
+      
+    }  
+
+    if(hasParams( a, param.split(".")))
+      a = eval("a."+param);
+    else
+      a = '';
+
+    if(hasParams( b, param.split(".")))
+      b = eval("b."+param);
+    else
+      b = '';
+    
+    if( a < b )
       return -1 * modifier;
     
-    if(a > b)
+    if( a > b )
       return 1 * modifier;
     
     return 0;
@@ -1341,6 +1524,8 @@ $(document).ready(function(){
       $(".set.active:not(.conf)").removeClass("active");
       $(this).parent("div:not(.conf)").addClass("active");
     }
+    $("#current-namespace").removeClass('open');
+    $('#ns-select').slideUp();
 
     $(".set:not(.active) > ul.show").removeClass("show");
     
@@ -1349,7 +1534,7 @@ $(document).ready(function(){
   $(document).on("click", ".set .item", function(){
     $(".set.active:not(.conf)").removeClass("active");
     $(this).parent().parent().parent().addClass("active");
-
+    
     $(".set:not(.active) > ul.show").removeClass("show");
   });
 
@@ -1519,20 +1704,43 @@ $(document).ready(function(){
     $(".sort th").toggleClass("desc asc")   
   });
 
-  $(document).on("click", "tr.base td:not(.actions)", function(){
+  $(document).on("click", "table.backups tr.base td:not(.actions)", function(){
     $(this).parent().next().toggle().addClass("open");
     $(this).parent().toggleClass("open");
   });
 
-  $(document).on("click", "tr.base a.open", function(){
+  $(document).on("click", "table.backups tr.base a.open", function(){
     $(this).parent().parent().next().toggle().addClass("open");
     $(this).parent().parent().toggleClass("open");
   });
 
-  
-  $(document).on("click",".toggle",function(){
-    $(this).toggleClass("open");
-    $(this).next().toggleClass("open");
+  /* $(document).on('focus','.filter.open .options', function(){
+    if( $('.filter.open').find('.active').length )
+      $('.filter.open').addClass('filtered');
+    else
+      $('.filter.open').removeClass('filtered');
+    
+      $('.filter.open').removeClass("open");
+  }); */
+
+  $(document).mouseup(function(e) {
+    var container = $(".filter.open");
+
+    // if the target of the click isn't the container nor a descendant of the container
+    if (!container.is(e.target) && container.has(e.target).length === 0) {
+      if( $('.filter.open').find('.active').length )
+        $('.filter.open').addClass('filtered');
+      else
+        $('.filter.open').removeClass('filtered');
+      
+        $('.filter.open').removeClass("open");
+    }
+  });
+ 
+  $(document).on("click",".toggle:not(.date)",function(e){
+    e.stopPropagation();
+    $(this).parent().toggleClass("open");
+    //$(this).next().toggleClass("open");
   })
 
   /* $(document).on("change","form input, form select, form textarea",function(){
@@ -1551,9 +1759,10 @@ $(document).ready(function(){
     $(this).prop("disabled","disabled")
   });
 
-  $(document).on("click", "#current-namespace h2 > strong, #ns-select a", function(){
+  $(document).on("click", "#current-namespace , #ns-select a", function(){
     $("#current-namespace").toggleClass("open");
-    $("#ns-select").slideToggle();    
+    $("#ns-select").slideToggle();
+    $(".set.active:not(.conf)").removeClass('active');
   });
 
   $("#darkmode").click(function(){
@@ -1589,6 +1798,19 @@ $(document).ready(function(){
     $(this).toggleClass('open');
     $(this).parents('tr').toggleClass('open');
     $(this).parents('tr').find('.parameters').toggleClass('open');
+  });
+
+  $(document).on('click', 'ul.select .selected', function(){
+    $(this).parent().toggleClass('active');
+  });
+
+  $(document).on('click', '.set > .addnew', function(){
+    if(!$(this).parent().hasClass('active')) {
+      $('.set.active:not(.conf)').removeClass('active');
+      $('.set ul.show').removeClass('show');
+      $(this).parent().addClass('active');
+    }
+    
   });
 
 });

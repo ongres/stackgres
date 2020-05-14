@@ -58,10 +58,26 @@ var BackupConfig = Vue.component("backup-config", {
 						<template v-for="conf in config" v-if="conf.data.metadata.namespace == currentNamespace">
 							<tr :class="[ $route.params.name == conf.name ? 'open' : '', 'sgbackupconfig-'+conf.data.metadata.namespace+'-'+conf.name ]" class="base">
 								<td>{{ conf.name }}</td>
-								<td>{{ conf.data.spec.baseBackups.retention }}</td>
-								<td>{{ conf.data.spec.baseBackups.cronSchedule | prettyCRON }}</td>
-								<td>{{ conf.data.spec.baseBackups.compression }}</td>
-								<td>{{ conf.data.spec.baseBackups.performance.uploadDiskConcurrency }}</td>
+								<td>
+									<template v-if="typeof conf.data.spec.baseBackups.retention !== 'undefined'">
+										{{ conf.data.spec.baseBackups.retention }}
+									</template>
+								</td>
+								<td>
+									<template v-if="typeof conf.data.spec.baseBackups.retention !== 'undefined'">
+										{{ conf.data.spec.baseBackups.cronSchedule | prettyCRON }}
+									</template>
+								</td>
+								<td>
+									<template v-if="typeof conf.data.spec.baseBackups.retention !== 'undefined'">
+										{{ conf.data.spec.baseBackups.compression }}
+									</template>
+								</td>
+								<td>
+									<template v-if="( (typeof conf.data.spec.baseBackups.performance !== 'undefined') && (typeof conf.data.spec.baseBackups.performance.uploadDiskConcurrency !== 'undefined') )">
+										{{ conf.data.spec.baseBackups.performance.uploadDiskConcurrency }}
+									</template>
+								</td>
 								<td>{{ conf.data.spec.storage.type }}</td>
 								<td class="actions">
 									<router-link :to="'/configurations/backup/'+conf.data.metadata.namespace+'/'+conf.name" title="Configuration Details">

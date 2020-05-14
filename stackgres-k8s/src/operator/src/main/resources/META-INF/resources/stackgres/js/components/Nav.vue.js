@@ -52,10 +52,6 @@ var Nav = Vue.component("sg-nav", {
 					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g transform="translate(-90 -152)"><rect width="2" height="2" rx="1" transform="translate(103 152) rotate(90)"/><rect width="2" height="2" rx="1" transform="translate(103 174) rotate(90)"/><rect width="2" height="2" rx="1" transform="translate(114 165) rotate(180)"/><rect width="2" height="2" rx="1" transform="translate(92 165) rotate(180)"/><rect width="2" height="2" rx="1" transform="translate(111.778 155.636) rotate(135)"/><rect width="2" height="2" rx="1" transform="translate(95.05 172.364) rotate(135)"/><rect width="2" height="2" rx="1" transform="translate(93.636 154.222) rotate(45)"/><rect width="2" height="2" rx="1" transform="translate(110.364 170.95) rotate(45)"/><path d="M102,156a8,8,0,1,0,8,8A8,8,0,0,0,102,156Zm-5.336,8A5.343,5.343,0,0,1,102,158.664v10.672A5.343,5.343,0,0,1,96.664,164Z" transform="translate(0 0)"/></g></svg>
 				</div>
 
-				<div id="reload">
-					<svg xmlns="http://www.w3.org/2000/svg" width="20.001" height="20" viewBox="0 0 20.001 20"><g transform="translate(0 0)"><path d="M1.053,11.154A1.062,1.062,0,0,1,0,10.089,9.989,9.989,0,0,1,16.677,2.567l.484-.484a.486.486,0,0,1,.2-.121.541.541,0,0,1,.663.343l1.318,3.748a.522.522,0,0,1,.007.327.5.5,0,0,1-.627.323L18.7,6.7l-3.743-1.32a.531.531,0,0,1-.206-.13.52.52,0,0,1-.016-.733l.464-.465A7.9,7.9,0,0,0,2.092,10.1a1.04,1.04,0,0,1-1.039,1.057Z"/><path d="M18.947,8.844A1.063,1.063,0,0,1,20,9.91,9.989,9.989,0,0,1,3.323,17.434l-.484.484a.476.476,0,0,1-.2.121.541.541,0,0,1-.663-.343L.659,13.948a.522.522,0,0,1-.007-.327.5.5,0,0,1,.627-.323l.022.008,3.743,1.32a.531.531,0,0,1,.206.13.52.52,0,0,1,.016.733l-.464.465A7.9,7.9,0,0,0,17.908,9.9a1.04,1.04,0,0,1,1.039-1.057Z"/></g></svg>
-				</div>
-
 				<div id="notifications" class="hasTooltip">
 					<a href="javascript:void(0)" title="Notifications">
 						<span class="loader"></span>
@@ -69,6 +65,14 @@ var Nav = Vue.component("sg-nav", {
 					</div>
 				</div>
 
+				<div id="reload">
+					<svg xmlns="http://www.w3.org/2000/svg" width="20.001" height="20" viewBox="0 0 20.001 20"><g transform="translate(0 0)"><path d="M1.053,11.154A1.062,1.062,0,0,1,0,10.089,9.989,9.989,0,0,1,16.677,2.567l.484-.484a.486.486,0,0,1,.2-.121.541.541,0,0,1,.663.343l1.318,3.748a.522.522,0,0,1,.007.327.5.5,0,0,1-.627.323L18.7,6.7l-3.743-1.32a.531.531,0,0,1-.206-.13.52.52,0,0,1-.016-.733l.464-.465A7.9,7.9,0,0,0,2.092,10.1a1.04,1.04,0,0,1-1.039,1.057Z"/><path d="M18.947,8.844A1.063,1.063,0,0,1,20,9.91,9.989,9.989,0,0,1,3.323,17.434l-.484.484a.476.476,0,0,1-.2.121.541.541,0,0,1-.663-.343L.659,13.948a.522.522,0,0,1-.007-.327.5.5,0,0,1,.627-.323l.022.008,3.743,1.32a.531.531,0,0,1,.206.13.52.52,0,0,1,.016.733l-.464.465A7.9,7.9,0,0,0,17.908,9.9a1.04,1.04,0,0,1,1.039-1.057Z"/></g></svg>
+				</div>
+
+				<div id="logout" v-if="loggedIn">
+					<a @click="logout()">Logout <svg xmlns="http://www.w3.org/2000/svg" width="10.546" height="10.5" viewBox="0 0 10.546 10.5"><g transform="translate(-30 -181.75)"><path d="M33.92,192h-2.1a1.538,1.538,0,0,1-1.571-1.5v-7a1.538,1.538,0,0,1,1.571-1.5h2.1a.5.5,0,1,1,0,1h-2.1a.515.515,0,0,0-.527.5v7a.515.515,0,0,0,.527.5h2.1a.5.5,0,1,1,0,1Z" fill="#00adb5" stroke="#00adb5" stroke-width="0.5"/><path d="M42.157,192.074l1.965-1.965a.525.525,0,0,0,0-.741L42.157,187.4a.524.524,0,0,0-.741.74l1.072,1.071h-3.7a.524.524,0,1,0,0,1.048h3.7l-1.072,1.071a.524.524,0,0,0,.741.74Z" transform="translate(-4.026 -2.739)" fill="#00adb5" stroke="#00adb5" stroke-width="0.5"/></g></svg></a>
+				</div>
+
 				<div id="delete" class="hasTooltip">
 					<div class="tooltip">
 						<h3>This action is permanent</h3>
@@ -79,10 +83,10 @@ var Nav = Vue.component("sg-nav", {
 						<p>
 							Please type the exact name of the {{ deleteItem.kind }} to confirm.
 						</p>
-						<form @submit="confirmDelete(confirmName)">
-							<input v-model="confirmName" :placeholder="deleteItem.kind+' name'">
+						<form @submit="confirmDelete(confirmDeleteName)">
+							<input v-model="confirmDeleteName" :placeholder="deleteItem.kind+' name'">
 							<span class="warning" style="display:none">The {{ deleteItem.kind }} name does not match the name of the element requested to be deleted.</span>
-							<a @click="confirmDelete(confirmName)">DELETE ITEM</a> <a @click="cancelDelete()">CANCEL</a>
+							<a @click="confirmDelete(confirmDeleteName)">DELETE ITEM</a> <a @click="cancelDelete()">CANCEL</a>
 						</form>
 						
 					</div>
@@ -116,8 +120,6 @@ var Nav = Vue.component("sg-nav", {
 						<hr/>
 						<button @click="login">Login</button>
 					</form>
-					<div id="logout">
-					</div>
 				</div>
 
 				<!--<div id="settings">
@@ -130,10 +132,10 @@ var Nav = Vue.component("sg-nav", {
 
 	data: function() {
 		return {
-			confirmName: '',
 			loginUser: '',
 			loginPassword: '',
 			loginPasswordType: 'password',
+			confirmDeleteName: ''
 		}
 	},
 	
@@ -161,8 +163,15 @@ var Nav = Vue.component("sg-nav", {
 
 		theme () {
 			return store.state.theme
-		}
+		},
 
+		loggedIn () {
+			return store.state.loginToken.length > 0
+		},
+
+		/* confirmDeleteName() {
+			return store.state.confirmDeleteName
+		}*/
 	},
 
 	methods: {
@@ -187,6 +196,13 @@ var Nav = Vue.component("sg-nav", {
 				$('#login .warning').fadeIn();
 			});
 
+		},
+
+		logout: function() {
+			document.cookie = 'sgToken=';
+			store.commit('setLoginToken');
+			router.push('/');
+			$('#signup').addClass('login').fadeIn();
 		},
 
 		showPassword: function() {

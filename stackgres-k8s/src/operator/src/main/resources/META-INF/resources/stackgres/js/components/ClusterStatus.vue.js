@@ -30,6 +30,9 @@ var ClusterStatus = Vue.component("cluster-status", {
 					<li v-if="cluster.hasBackups">
 						<router-link :to="'/cluster/backups/'+$route.params.namespace+'/'+$route.params.name" title="Backups" class="backups">Backups</router-link>
 					</li>
+					<li v-if="typeof cluster.data.spec.distributedLogs !== 'undefined'">
+						<router-link :to="'/cluster/logs/'+$route.params.namespace+'/'+$route.params.name" title="Distributed Logs" class="logs">Logs</router-link>
+					</li>
 					<li v-if="cluster.data.grafanaEmbedded">
 						<router-link id="grafana-btn" :to="'/monitor/'+$route.params.namespace+'/'+$route.params.name" title="Grafana Dashboard" class="grafana">Monitoring</router-link>
 					</li>
@@ -37,25 +40,35 @@ var ClusterStatus = Vue.component("cluster-status", {
 			</header>
 
 			<div class="content">
-				<h2>General Information</h2>
+				<h2>Cluster</h2>
 				<table class="clusterInfo">
 					<thead>
-						<th>CPU</th>
-						<th>Memory</th>
-						<th>Disk</th>
-						<th>Health</th>
+						<th>Total CPU</th>
+						<th>Total Memory</th>
+						<th>Primary Node Disk</th>
+						<th>Instances</th>
 					</thead>
 					<tbody>
 						<tr>
 							<td>{{ cluster.status.cpuRequested }} (avg. load {{ cluster.status.averageLoad1m }})</td>
 							<td>{{ cluster.status.memoryRequested }}</td>
-							<td>{{ cluster.status.diskUsed }} / {{ cluster.status.diskFound }}</td>
+							<td class="flex-center">
+								<div class="donut">
+									<svg class="loader" xmlns="http://www.w3.org/2000/svg" version="1.1">
+										<circle cx="12.5" cy="12.5" r="10" stroke-width="5" fill="none" :stroke-dasharray="diskUsed+',63'" />
+									</svg>
+									<svg class="background" xmlns="http://www.w3.org/2000/svg" version="1.1">
+										<circle cx="12.5" cy="12.5" r="10" stroke-width="5" fill="none" />
+									</svg>
+								</div>
+								{{ cluster.status.diskUsed }} / {{ cluster.data.spec.pods.persistentVolume.size }}
+							</td>
 							<td>{{ cluster.data.podsReady }} / {{ cluster.data.pods.length }}</td>
 						</tr>
 					</tbody>
 				</table>
 
-				<h2>Pods Status</h2>
+				<h2>Pods</h2>
 				<table class="podStatus">
 					<thead>
 						<th>Pod Name</th>
@@ -203,6 +216,24 @@ var ClusterStatus = Vue.component("cluster-status", {
 		currentNamespace () {
 			return store.state.currentNamespace
 		},
+		diskUsed () {
+			
+			if( store.state.currentCluster.status.hasOwnProperty('diskUsed') ) {
+				let used = getBytes(store.state.currentCluster.status.diskUsed);
+				let available = getBytes(store.state.currentCluster.data.spec.pods.persistentVolume.size);
+				let percentage = Math.round((used*63)/available);
+
+				return percentage
+			} else
+				return 0
+
+			
+			/*
+			console.log("Used: "+used+" / Available: "+available);
+			console.log("Percentage: "+percentage+"%");
+			*/
+			
+		}
 	},
 	beforeDestroy () {
 		clearInterval(this.polling);
