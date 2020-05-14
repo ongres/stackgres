@@ -29,6 +29,10 @@ e2e_test_after_all() {
   true
 }
 
+e2e_exclusive_lock() {
+  false
+}
+
 spec() {
   SPEC_FILE="$1"
   SPEC_BEFORE_FILE="$SPEC_FILE.before"
@@ -42,6 +46,7 @@ spec() {
   E2E_SKIP_SPEC_BEFORE_ALL="${E2E_SKIP_SPEC_BEFORE_ALL:-false}"
   E2E_SKIP_SPEC_AFTER_ALL="${E2E_SKIP_SPEC_AFTER_ALL:-false}"
   LOG_PATH="$TARGET_PATH/logs/$SPEC_NAME"
+  SH_OPTS=$(! echo $- | grep -q x || echo "-x")
   export SPEC_FILE SPEC_NAME CLUSTER_NAMESPACE CLUSTER_NAME LOG_PATH
 
   mkdir -p "$LOG_PATH"
@@ -52,6 +57,20 @@ spec() {
   fi
 
   . "$SPEC_FILE"
+
+  if "${E2E_LOCK:-true}" && e2e_exclusive_lock
+  then
+    E2E_LOCK=false flock "$TARGET_PATH/exclusive-lock" \
+      "$SHELL" $SH_OPTS "$(dirname "$0")/e2e" spec "$1"
+    return
+  fi
+
+  if "${E2E_LOCK:-true}"
+  then
+    E2E_LOCK=false flock -s "$TARGET_PATH/exclusive-lock" \
+      "$SHELL" $SH_OPTS "$(dirname "$0")/e2e" spec "$1"
+    return
+  fi
 
   rm -f "$TARGET_PATH/$SPEC_NAME.failed"
 

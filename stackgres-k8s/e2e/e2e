@@ -34,7 +34,7 @@ fi
 OPERATOR_CHART_PATH="${OPERATOR_CHART_PATH:-"$STACKGRES_PATH/install/helm/stackgres-operator/"}"
 CLUSTER_CHART_PATH="${CLUSTER_CHART_PATH:-"$STACKGRES_PATH/install/helm/stackgres-cluster/"}"
 
-export SHELL IMAGE_TAG IMAGE_NAME DEFAULT_K8S_VERSION KUBECONFIG SPEC_PATH TARGET_PATH TRAP_FILE OPERATOR_CHART_PATH CLUSTER_CHART_PATH
+export SHELL IMAGE_TAG IMAGE_NAME DEFAULT_K8S_VERSION KUBECONFIG SPEC_PATH TARGET_PATH OPERATOR_CHART_PATH CLUSTER_CHART_PATH
 export E2E_ENV K8S_VERSION E2E_TIMEOUT E2E_SKIP_SETUP E2E_OPERATOR_PULL_POLICY E2E_BUILD_OPERATOR E2E_WAIT_OPERATOR
 
 if ! command -v local > /dev/null 2>&1
@@ -62,12 +62,17 @@ trap_callback() {
   fi
 }
 
+trap_callback_and_exit() {
+  trap_callback
+  exit "$1"
+}
+
 if [ -z "$TRAP_FILE" ]
 then
   mkdir -p "$TARGET_PATH"
   TRAP_FILE="$TARGET_PATH/trap-kill-$(shuf -i 0-65535 -n 1)"
-  export TRAP_FILE
-  trap 'trap_callback $?' EXIT HUP INT QUIT PIPE TERM
+  trap 'trap_callback_and_exit $?' HUP INT QUIT PIPE TERM ABRT
+  trap 'trap_callback $?' EXIT
 fi
 
 trap_kill_all() {

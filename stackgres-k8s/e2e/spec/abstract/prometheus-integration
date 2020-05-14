@@ -1,0 +1,134 @@
+#!/bin/sh
+
+check_exporter_service() {
+  local SERVICE
+
+  SERVICE="$CLUSTER_NAME-prometheus-postgres-exporter"
+
+  if wait_until kubectl get services -n "$CLUSTER_NAMESPACE" $SERVICE
+  then
+    echo "Exporter service was created"
+  else
+    echo "Exporter service was not created"
+  return 1 
+  fi
+}
+
+check_exporter_service_monitor() {
+  local SERVICE_MONITOR="$CLUSTER_NAMESPACE-$CLUSTER_NAME-stackgres-postgres-exporter"
+
+  if wait_until kubectl get servicemonitors.monitoring.coreos.com -n "$(prometheus_namespace)" $SERVICE_MONITOR
+  then
+    echo "Exporter service monitor was created"
+  else
+    echo "Exporter service monitor wasn't created"
+    return 1
+  fi
+
+  if wait_until kubectl exec -i -n "$CLUSTER_NAMESPACE" curl \
+    curl "http://$(prometheus_service).$(prometheus_namespace):9090/api/v1/query?query=pg_settings_shared_buffers_bytes"
+  then
+    echo "Exporter metrics was found on prometheus"
+  else
+    echo "Exporter metrics wasn't found on prometheus"
+    return 1
+  fi
+}
+
+check_envoy_service() {
+  local SERVICE
+
+  SERVICE="$CLUSTER_NAME-prometheus-envoy"
+
+  if wait_until kubectl get services -n "$CLUSTER_NAMESPACE" $SERVICE
+  then
+    echo "Envoy service was created"
+  else
+    echo "Envoy service was not created"
+  return 1 
+  fi
+}
+
+check_envoy_service_monitor() {
+  local SERVICE_MONITOR="$CLUSTER_NAMESPACE-$CLUSTER_NAME-stackgres-envoy"
+
+  if wait_until kubectl get servicemonitors.monitoring.coreos.com -n "$(prometheus_namespace)" $SERVICE_MONITOR
+  then
+    echo "Envoy service monitor was created"
+  else
+    echo "Envoy service monitor wasn't created"
+    return 1
+  fi
+
+  if wait_until kubectl exec -i -n "$CLUSTER_NAMESPACE" curl -- \
+    curl "http://$(prometheus_service).$(prometheus_namespace):9090/api/v1/query?query=envoy_cluster_upstream_cx_rx_bytes_total"
+  then
+    echo "Envoy metrics was found on prometheus"
+  else
+    echo "Envoy metrics wasn't found on prometheus"
+    return 1
+  fi
+}
+
+check_grafana_embedded() {
+  if wait_until kubectl exec -i -n "$CLUSTER_NAMESPACE" curl -- curl -s -k "https://stackgres-operator.stackgres/grafana" -o /dev/null --fail
+  then
+    echo "Success. Grafana URL can be retrieved"
+  else
+    echo "Fail. Grafana URL can not be retrieved"
+    return 1
+  fi
+
+  GRAFANA_URL="$(kubectl exec -i -n "$CLUSTER_NAMESPACE" curl -- curl -s -k "https://stackgres-operator.stackgres/grafana" --fail)"
+
+  if wait_until kubectl exec -i -n "$CLUSTER_NAMESPACE" curl -- curl -s -k "$GRAFANA_URL" -o /dev/null --fail
+  then
+    echo "Success. Grafana URL $GRAFANA_URL is accessible"
+  else
+    echo "Fail. Grafana URL $GRAFANA_URL is not accessible"
+    return 1
+  fi
+
+  if wait_until eval 'kubectl exec -i -n "$CLUSTER_NAMESPACE" curl -- curl -s -k "$GRAFANA_URL" --fail | grep -q "<grafana-app "'
+  then
+    echo "Success. Grafana URL $GRAFANA_URL is returning grafana Web"
+  else
+    echo "Fail. Grafana URL $GRAFANA_URL is not returning grafana Web"
+    kubectl exec -i -n "$CLUSTER_NAMESPACE" curl -- curl -s -k "$GRAFANA_URL" --fail
+    return 1
+  fi
+
+  if [ "$(kubectl get deployment -n stackgres stackgres-operator --template '{{ len .spec.template.spec.containers }}')" -ne 2 ]
+  then
+    echo "Skipping check since operator environment variable can not be changed when operator is not deployed in kubernetes"
+    return
+  fi
+
+  echo "Checking that if env variable GRAFANA_EMBEDDED is set to false any cluster shouldn't be marked with grafana embedded"
+
+  kubectl set env -n stackgres deployment/stackgres-operator GRAFANA_EMBEDDED=false
+
+  if wait_until eval '[ "$(get_grafana_embedded)" != "true" ]'
+  then
+    echo "Success. Grafana is not marked as embedded"
+  else
+    echo "Fail. Grafana is marked as embedded"
+    return 1
+  fi
+
+  echo "Checking that if env variable GRAFANA_EMBEDDED is set to true the cluster should be marked with grafana embedded"
+
+  kubectl set env -n stackgres deployment/stackgres-operator GRAFANA_EMBEDDED=true
+
+  if wait_until eval '[ "$(get_grafana_embedded)" = "true" ]'
+  then
+    echo "Success. Grafana is embedded"
+  else
+    echo "Fail. Grafana is not embedded"
+    return 1
+  fi
+}
+
+get_grafana_embedded() {
+  run_curl -r "stackgres/sgcluster/$CLUSTER_NAMESPACE/$CLUSTER_NAME" -e "-L" | jq '.grafanaEmbedded' -r
+}

@@ -57,7 +57,7 @@ rules:
   verbs:
   - get
   - create
-  - delete
+  - patch
 - apiGroups: ["apiextensions.k8s.io", "customresourcedefinitions.apiextensions.k8s.io"]
   resources:
   - customresourcedefinitions

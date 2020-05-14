@@ -4,6 +4,7 @@
 
 E2E_PARALLELISM="${E2E_PARALLELISM:-8}"
 E2E_RETRY="${E2E_RETRY:-2}"
+E2E_ONLY_INCLUDES="${E2E_ONLY_INCLUDES}"
 
 echo "Preparing environment"
 
@@ -11,12 +12,17 @@ setup_k8s
 
 echo "Functional tests results" > "$TARGET_PATH/logs/results.log"
 
-SPECS="$(find "$SPEC_PATH" -maxdepth 1 -type f | grep '^.*/[^\.]\+$')"
-
-if [ -d "$SPEC_PATH/$E2E_ENV" ]
+if [ -z "$E2E_ONLY_INCLUDES" ]
 then
-  ENV_SPECS="$(find "$SPEC_PATH/$E2E_ENV" -maxdepth 1 -type f | grep '^.*/[^\.]\+$')"
-  SPECS=$(echo "$SPECS\n$ENV_SPECS")
+  SPECS="$(find "$SPEC_PATH" -maxdepth 1 -type f | grep '^.*/[^\.]\+$')"
+  
+  if [ -d "$SPEC_PATH/$E2E_ENV" ]
+  then
+    ENV_SPECS="$(find "$SPEC_PATH/$E2E_ENV" -maxdepth 1 -type f | grep '^.*/[^\.]\+$')"
+    SPECS=$(echo "$SPECS\n$ENV_SPECS")
+  fi
+else
+  SPECS="$(echo_raw "$E2E_ONLY_INCLUDES" | tr ' ' '\n' | xargs -r -n 1 -I % echo "$SPEC_PATH/%")"
 fi
 
 export K8S_REUSE=true
@@ -50,7 +56,7 @@ do
       setup_k8s
     fi
     if ! echo "$SPECS_TO_RUN" | tr ' ' '\n' | tail -n +2 \
-      | xargs -r -n 1 -I % -P 0 "$SHELL" $SH_OPTS "$(dirname "$0")/e2e" spec "%"
+      | xargs -r -n 1 -I % -P 0 "$SHELL" $SH_OPTS -c "'$SHELL' $SH_OPTS '$(dirname "$0")/e2e' spec '%'"
     then
       if [ "$((COUNT%E2E_PARALLELISM))" -ne 0 ]
       then

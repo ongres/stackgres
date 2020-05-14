@@ -42,6 +42,11 @@ public class StackGresOperatorEnd2EndIt extends AbstractStackGresOperatorIt {
       .orElse(System.getProperty("e2e.repeatOnError")))
       .map(Boolean::valueOf);
 
+  private static final String E2E_SHELL = Optional.ofNullable(
+      Optional.ofNullable(System.getenv("E2E_SHELL"))
+      .orElse(System.getProperty("e2e.shell")))
+      .orElse("sh");
+
   @Test
   public void end2EndTest(@ContainerParam("k8s") Container k8s) throws Exception {
     while (true) {
@@ -65,15 +70,18 @@ public class StackGresOperatorEnd2EndIt extends AbstractStackGresOperatorIt {
                 + "export E2E_SKIP_SETUP=true\n"
                 + "export CLUSTER_CHART_PATH=/resources/stackgres-cluster\n"
                 + "export OPERATOR_CHART_PATH=/resources/stackgres-operator\n"
-                + (E2E_TEST.map(e2eTests -> "if ! sh " + (ItHelper.E2E_DEBUG ? "-x" : "")
+                + (ItHelper.OPERATOR_IN_KUBERNETES
+                    ? ""
+                    : "export E2E_OPERATOR_OPTS=\"" + ItHelper.getOperatorExtraOptions(k8s, operatorPort) + "\"\n")
+                + (E2E_TEST.map(e2eTests -> "if ! " + E2E_SHELL + " " + (ItHelper.E2E_DEBUG ? "-x" : "")
                 + " run-test.sh " + e2eTests + "\n"
                 + "then\n"
                 + "  sh e2e show_failed_logs\n"
                 + "  exit 1\n"
-                + "fi\n").orElseGet(() -> "if ! sh " + (ItHelper.E2E_DEBUG ? "-x" : "")
+                + "fi\n").orElseGet(() -> "if ! " + E2E_SHELL + " " + (ItHelper.E2E_DEBUG ? "-x" : "")
                 + " run-all-tests.sh\n"
                 + "then\n"
-                + "  sh e2e show_failed_logs\n"
+                + "  " + E2E_SHELL + " e2e show_failed_logs\n"
                 + "  exit 1\n"
                 + "fi\n"))).getBytes(StandardCharsets.UTF_8)), "/run-e2e-from-it.sh");
         k8s.execute("sh", "-e", "/run-e2e-from-it.sh")

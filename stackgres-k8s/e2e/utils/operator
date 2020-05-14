@@ -10,14 +10,15 @@ install_operator() {
   if [ "$E2E_USE_INTERMIDIATE_PRIVATE_REPO" = true ]
   then
     set_up_private_repo
-    install_operator_from_private_repo "$@"
+    install_operator_from_private_repo \
+      $E2E_OPERATOR_OPTS "$@"
     return
   fi
 
   helm install stackgres-operator --namespace stackgres "$OPERATOR_CHART_PATH" \
     --set-string image.name="${IMAGE_NAME%:*}" --set-string image.tag="${IMAGE_NAME#*:}" \
     --set-string "image.pullPolicy=$(operator_pull_policy)" \
-    "$@"
+    $E2E_OPERATOR_OPTS "$@"
 }
 
 install_operator_from_private_repo() {
@@ -76,5 +77,10 @@ get_private_repo_password() {
 
 upgrade_operator() {
   helm upgrade stackgres-operator --namespace stackgres "$OPERATOR_CHART_PATH" --reuse-values "$@"
+}
+
+delete_operator() {
+  helm delete stackgres-operator --namespace stackgres "$@" || true
+  k8s_cleanup_namespace stackgres
 }
 

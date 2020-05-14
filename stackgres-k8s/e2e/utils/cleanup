@@ -21,7 +21,10 @@ excluded_customresourcedefinitions() {
 helm_cleanup() {
    helm list --all-namespaces \
     | awk 'FNR > 1 { printf("helm delete %s --namespace %s\n", $1, $2) }' \
-    | xargs -r -n 1 -I % -P 0 sh -c "%"
+    | xargs -r -n 1 -I % -P 0 sh -c "%" \
+    || helm list --all-namespaces \
+      | awk 'FNR > 1 { printf("! helm status "%s" --namespace "%s" 2> /dev/null\n", $1, $2) }' \
+      | xargs -r -n 1 -I % -P 0 sh -c "%"
 }
 
 k8s_cleanup() {
@@ -57,9 +60,13 @@ k8s_webhook_cleanup() {
 
 helm_cleanup_but_operator() {
   helm list --all-namespaces \
-    | grep -v "stackgres-operator" \
+    | grep -v 'stackgres-operator\s\+stackgres\s' \
     | awk 'FNR > 1 { printf("helm delete %s --namespace %s\n", $1, $2) }' \
-    | xargs -r -n 1 -I % -P 0 sh -c "%"
+    | xargs -r -n 1 -I % -P 0 sh -c "%" \
+    || helm list --all-namespaces \
+      | grep -v 'stackgres-operator\s\+stackgres\s' \
+      | awk 'FNR > 1 { printf("! helm status "%s" --namespace "%s" 2> /dev/null\n", $1, $2) }' \
+      | xargs -r -n 1 -I % -P 0 sh -c "%"
 }
 
 k8s_cleanup_but_operator() {
@@ -92,9 +99,8 @@ k8s_cleanup_namespace() {
 
 helm_cleanup_chart() {
   helm delete "$1" --namespace "$2" \
-    || ! helm status "$1" 2> /dev/null
+    || ! helm status "$1" --namespace "$2" 2> /dev/null
 }
-
 
 k8s_finalize_namespace_script() {
   if [ "$E2E_DISABLE_FAST_CLEANUP" = "true" ]

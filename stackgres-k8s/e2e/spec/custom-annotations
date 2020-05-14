@@ -146,7 +146,7 @@ EOF
 
   CLUSTER_JSON="$(get_cluster_json $RANDOM_VALUE)"
 
-  write_into -f "$LOG_PATH/stackgres-cluster.json" -c "$CLUSTER_JSON"  
+  echo_raw "$CLUSTER_JSON" > "$LOG_PATH/stackgres-cluster.json"
 
   kubectl delete sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"
 

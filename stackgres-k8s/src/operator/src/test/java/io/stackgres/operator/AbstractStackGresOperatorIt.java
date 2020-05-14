@@ -23,11 +23,11 @@ import org.junit.jupiter.api.BeforeEach;
 
 public abstract class AbstractStackGresOperatorIt extends AbstractIt {
 
-  private static final int OPERATOR_PORT = getFreePort();
-  private static final int OPERATOR_SSL_PORT = getFreePort();
   private static AtomicBoolean IS_ABSTRACT_STACKGRES_OPERATOR_IT = new AtomicBoolean(false);
   private static AtomicReference<Container> IT_CONTAINER = new AtomicReference<>();
 
+  protected final int operatorPort = getFreePort();
+  protected final int operatorSslPort = getFreePort();
   protected final String namespace = getNamespace();
   protected final int k8sSize = getKindSize();
 
@@ -57,19 +57,19 @@ public abstract class AbstractStackGresOperatorIt extends AbstractIt {
     ItHelper.killUnwantedProcesses(k8s);
     ItHelper.copyResources(k8s);
     ItHelper.resetKind(k8s, k8sSize);
-    ItHelper.installStackGresOperatorHelmChart(k8s, namespace, OPERATOR_PORT);
+    ItHelper.installStackGresOperatorHelmChart(k8s, namespace, operatorPort);
     OperatorRunner operatorRunner = ItHelper.createOperator(
-        k8s, OPERATOR_PORT, OPERATOR_SSL_PORT, executor);
+        k8s, operatorPort, operatorSslPort, executor);
     CompletableFuture<Void> operator = runAsync(() -> operatorRunner.run());
     this.operatorClose = () -> {
       operatorRunner.close();
       operator.join();
     };
-    operatorClient = ClientBuilder.newClient().target("http://localhost:" + OPERATOR_PORT);
+    operatorClient = ClientBuilder.newClient().target("http://localhost:" + operatorPort);
     ItHelper.waitUntilOperatorIsReady(operator, operatorClient, k8s);
   }
 
-  private static int getFreePort() {
+  private int getFreePort() {
     final int freePort;
     try (ServerSocket serverSocket = new ServerSocket(0)) {
       freePort = serverSocket.getLocalPort();
