@@ -39,7 +39,7 @@
     {{ errorf "Path %s.properties was not found in CRD data/crds/%s.yaml" ($scratch.Get "CrdPath") (index $params 0) }}
     {{- end }}
     {{- if not (reflect.IsMap ($scratch.Get "CrdField").properties) }}
-    {{ errorf "Path %s is not a map in data/descriptions/%s.yaml" ($scratch.Get "Path") (index $params 0) }}
+    {{ errorf "Path %s is not a map in data/crds/%s.yaml" ($scratch.Get "CrdPath") (index $params 0) }}
     {{- end }}
     {{- with index ($scratch.Get "CrdField").properties (replace $param "·" ".") }}
     {{- else }}

@@ -30,7 +30,7 @@ spec:
               type: string
               description: |
                 The name of the StackGres cluster to be created. Following [Kubernetes naming conventions](https://github.com/kubernetes/community/blob/master/contributors/design-proposals/architecture/identifiers.md), it must be an rfc1035/rfc1123 subdomain, that is, up to 253 characters consisting of one or more lowercase labels separated by `.`. Where each label is an alphanumeric (a-z, and 0-9) string, with a maximum length of 63 characters, with the `-` character allowed anywhere except the first or last character.
-
+                
                 This name needs to be unique across all StackGres clusters in the same namespace. The full cluster name will include the namespace in which the cluster will be created.
         spec:
           type: object
@@ -103,7 +103,7 @@ spec:
                   type: string
                   description: |
                     Name of the [SGPoolingConfig](https://stackgres.io/doc/latest/04-postgres-cluster-management/02-configuration-tuning/03-connection-pooling-configuration/) to use for this cluster. Each pod contains a sidecar with a connection pooler (currently: [PgBouncer](https://www.pgbouncer.org/)). The connection pooler is implemented as a sidecar.
-
+                    
                     If not selected, a default configuration will be used. Note that you may disable connection pooling altogether by setting to false the disableConnectionPooling property of the pods object.
                 sgBackupConfig:
                   type: string
