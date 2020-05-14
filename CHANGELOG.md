@@ -1,3 +1,27 @@
+# Release 0.9-beta1
+
+## NOTES
+
+* Logs can now be collected and analyzed in the UI or REST API
+* OpenShift 3.11 support added, tested on MiniShift.
+* Custom annotations and labels can now be specified for StackGres cluster pods.
+* Patroni 1.6.5
+* WAL-G 0.2.15
+* Many UI improvements
+
+## FIXES
+
+* When deleting a `SGBackup` CR, the backup in the object storage is not deleted
+* Automatic backups are removed when the cluster is removed
+* Manual backups are apparently not working
+* Connection does not work when SG cluster pod is "Ready"
+* Creation of cluster for pg 11 with default configuration fail
+
+## KNOWN ISSUES
+
+* Kubernetes 1.18 is not supported yet, see #439 
+* Kubernetes 1.11 requires PodShareProcessNamespace feature gate to be enabled (not tested in any kubernetes environment except for MiniShift 3.11)
+
 # Release 0.9-alpha1
 
 ## NOTES
