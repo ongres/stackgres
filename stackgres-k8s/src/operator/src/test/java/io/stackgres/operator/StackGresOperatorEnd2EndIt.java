@@ -45,7 +45,7 @@ public class StackGresOperatorEnd2EndIt extends AbstractStackGresOperatorIt {
   private static final String E2E_SHELL = Optional.ofNullable(
       Optional.ofNullable(System.getenv("E2E_SHELL"))
       .orElse(System.getProperty("e2e.shell")))
-      .orElse("bash");
+      .orElse("sh");
 
   @Test
   public void end2EndTest(@ContainerParam("k8s") Container k8s) throws Exception {
