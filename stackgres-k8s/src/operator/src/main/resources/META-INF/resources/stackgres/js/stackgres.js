@@ -884,11 +884,13 @@ const vm = new Vue({
 
               //console.log(item);
 
-              if( item.hasOwnProperty('status.process.status') && (item.status.process.status === 'Completed') ) {
+              if( (typeof item.status.process.status !== 'undefined') && (item.status.process.status === 'Completed') ) {
+                console.log('setting duration');
                 start = moment(item.status.process.timing.start);
                 finish = moment(item.status.process.timing.stored);
                 duration = new Date(moment.duration(finish.diff(start))).toISOString();
               } else {
+                console.log('duration not set');
                 duration = '';
               }
               
