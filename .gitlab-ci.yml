@@ -31,6 +31,8 @@ variables:
   K8S_VERSION: 1.17.2
   K8S_FROM_DIND: "true"
   K8S_REUSE: "true"
+  DOCUMENTATION_BASE_URL: "https://ongresinc.gitlab.io/web/stackgres/doc/latest"
+  PRODUCTION_DOCUMENTATION_BASE_URL: "https://stackgres.io/doc/latest"
 
 # Cache downloaded dependencies and plugins between builds.
 # To keep cache across branches add 'key: "$CI_JOB_NAME"'
@@ -58,6 +60,24 @@ compile:
     paths:
       - stackgres-k8s/src/target
       - stackgres-k8s/src/*/target
+
+build documentation:
+  image: monachus/hugo
+  stage: compile
+  script:
+  - |
+    if [[ ! -z "$CI_COMMIT_TAG" && ! "$CI_COMMIT_TAG" =~ ^latest-.*$ ]]
+    then
+      DOCUMENTATION_BASE_URL="$PRODUCTION_DOCUMENTATION_BASE_URL"
+    fi
+  - sh -x doc/build.sh
+  - STACKGRES_VERSION="$(echo 'import xml.etree.ElementTree as ET; print ET.parse("stackgres-k8s/src/pom.xml").getroot().find("{%s}version" % "http://maven.apache.org/POM/4.0.0").text' | python)"
+  - mkdir -p "doc/public/$STACKGRES_VERSION"
+  - hugo -v --source doc --destination "$(pwd)/doc/public/$STACKGRES_VERSION" --baseURL="$DOCUMENTATION_BASE_URL"
+  - cp -a "doc/public/$STACKGRES_VERSION" doc/public/latest
+  artifacts:
+    paths:
+    - doc/public
 
 native image:
   stage: package
