@@ -5,9 +5,9 @@ K8S_AZ_RESOURCE_GROUP="${K8S_AZ_RESOURCE_GROUP:-stackgres-e2e}"
 K8S_AZ_K8S_NAME="${K8S_AZ_K8S_NAME:-stackgres}"
 K8S_VERSION="${K8S_VERSION:-1.15.10}"
 K8S_AZ_NODE_SIZE="${K8S_AZ_NODE_SIZE:-Standard_F2}"
-K8S_AZ_NODE_COUNT="${K8S_AZ_NODE_COUNT:-5}"
+K8S_AZ_NODE_COUNT="${K8S_AZ_NODE_COUNT:-3}"
 K8S_AZ_REGISTRY="${K8S_AZ_REGISTRY:-stackgrese2e}"
-USE_INTERMIDIATE_PRIVATE_REPO=true
+export E2E_USE_INTERMIDIATE_PRIVATE_REPO=true
 
 if [ "$K8S_AZ_NODE_SIZE" = "Standard_F2" ] && [ "$E2E_PARALLELISM" -gt "$K8S_AZ_NODE_COUNT" ]
 then
@@ -77,4 +77,8 @@ load_operator_k8s() {
 
 operator_pull_policy() {
   echo Always
+}
+
+get_k8s_versions() {
+  az aks get-versions --location "$K8S_AZ_LOCATION" | jq '.orchestrators[].orchestratorVersion' -r
 }

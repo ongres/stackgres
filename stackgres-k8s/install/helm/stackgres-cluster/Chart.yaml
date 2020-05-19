@@ -1,7 +1,7 @@
 apiVersion: v1
 name: stackgres-cluster
 version: 0.9-SNAPSHOT
-kubeVersion: "1.11.0-0 - 1.18.0-0"
+kubeVersion: "1.11.0-0 - 1.17.x-0"
 description: StackGres Cluster
 keyworkds:
   - stackgres
