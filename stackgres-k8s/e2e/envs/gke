@@ -1,13 +1,12 @@
 #!/bin/sh
 
 K8S_GKE_NAME="${K8S_GKE_NAME:-stackgres-e2e}"
-K8S_VERSION="${K8S_VERSION:-1.15.9}"
+K8S_VERSION="${K8S_VERSION:-1.14.10-gke.27}"
 if [ "$K8S_VERSION" = "$DEFAULT_K8S_VERSION" ]
 then
   >&2 echo "Warning: using kubernetes version 1.13.11 since e2e default $DEFAULT_K8S_VERSION is not available for gke"
-  K8S_VERSION=1.13.11
+  K8S_VERSION=1.14.10-gke.27
 fi
-K8S_GKE_VERSION="${K8S_GKE_VERSION:-gke.24}"
 K8S_GKE_REGION="${K8S_GKE_REGION:-us-west1}"
 K8S_GKE_NODE_LOCATIONS="${K8S_GKE_NODE_LOCATIONS:-us-west1-a,us-west1-b,us-west1-c}"
 K8S_GKE_MACHINE_TYPE="${K8S_GKE_MACHINE_TYPE:-n1-standard-1}"
@@ -15,9 +14,9 @@ K8S_GKE_DISK_SIZE="${K8S_GKE_DISK_SIZE:-20}"
 K8S_GKE_PROJECT="${K8S_GKE_PROJECT:-default}"
 K8S_GKE_OPTS="$K8S_GKE_OPTS"
 K8S_GKE_SERVICEACCOUNT="${K8S_GKE_SERVICEACCOUNT:-stackgres-e2e}"
-USE_INTERMIDIATE_PRIVATE_REPO=false
+E2E_USE_INTERMIDIATE_PRIVATE_REPO=false
 
-export K8S_GKE_NAME K8S_VERSION K8S_GKE_VERSION K8S_GKE_REGION K8S_GKE_NODE_LOCATIONS K8S_GKE_MACHINE_TYPE K8S_GKE_DISK_SIZE K8S_GKE_PROJECT K8S_GKE_OPTS
+export K8S_GKE_NAME K8S_VERSION K8S_GKE_REGION K8S_GKE_NODE_LOCATIONS K8S_GKE_MACHINE_TYPE K8S_GKE_DISK_SIZE K8S_GKE_PROJECT K8S_GKE_OPTS USE_INTERMIDIATE_PRIVATE_REPO
 
 reuse_k8s() {
   if ! gcloud -q beta container --project "$K8S_GKE_PROJECT" clusters describe "$K8S_GKE_NAME" --region "$K8S_GKE_REGION" 2>&1 \
@@ -43,7 +42,7 @@ reset_k8s() {
     --machine-type "$K8S_GKE_MACHINE_TYPE" \
     --disk-size "$K8S_GKE_DISK_SIZE" \
     --num-nodes 3 \
-    --cluster-version "$K8S_VERSION-$K8S_GKE_VERSION" \
+    --cluster-version "$K8S_VERSION" \
     --no-enable-autoupgrade \
     $K8S_GKE_OPTS
 
@@ -101,4 +100,18 @@ excluded_customresourcedefinitions() {
   echo "managedcertificates.networking.gke.io"
   echo "scalingpolicies.scalingpolicy.kope.io"
   echo "updateinfos.nodemanagement.gke.io"
+}
+
+get_k8s_versions() {
+  cat << EOF
+1.15.11-gke.3
+1.15.11-gke.1
+1.15.9-gke.26
+1.15.9-gke.24
+1.15.9-gke.22
+1.14.10-gke.34
+1.14.10-gke.32
+1.14.10-gke.31
+1.14.10-gke.27
+EOF
 }

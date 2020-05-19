@@ -17,7 +17,7 @@ reset_k8s() {
 
   minikube delete || true
 
-  MINUKUBE_PARALLELISM="${E2E_PARALLELISM:-1}"
+  MINUKUBE_PARALLELISM="${E2E_PARALLELISM:-2}"
 
   local MEMORY=$(printf "%sGB" "$MINUKUBE_PARALLELISM")
 
@@ -48,4 +48,20 @@ load_operator_k8s() {
   fi
 
   echo "...done"
+}
+
+get_k8s_versions() {
+  cat << EOF
+1.11.10
+1.12.10
+1.13.12
+1.14.10
+1.14.9
+1.15.11
+1.15.6
+1.16.3
+1.16.9
+1.17.5
+1.18.2
+EOF
 }
