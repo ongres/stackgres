@@ -60,7 +60,7 @@ EOF
 e2e_test_uninstall() {
   helm_cleanup_chart "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 
-  k8s_cleanup_namespace "$CLUSTER_NAMESPACE"
+  k8s_async_cleanup_namespace "$CLUSTER_NAMESPACE"
 
   local AWS_ACCOUNT="$(aws sts get-caller-identity | jq -r '.Account')"
   aws iam list-access-keys --region "$K8S_EKS_REGION" --user-name "stackgres-e2e-$CLUSTER_NAME" \

@@ -17,7 +17,9 @@ EOF
 
   SPEC_VALUES_FILE="$SPEC_FILE.backup.values.yaml"
 
-  create_or_replace_cluster "$CLUSTER_NAME-backup" "$CLUSTER_NAMESPACE-backup" 1
+  local ENDPOINT="http://restore-backup-minio.$CLUSTER_NAMESPACE-backup.svc.cluster.local:9000"
+  create_or_replace_cluster "$CLUSTER_NAME-backup" "$CLUSTER_NAMESPACE-backup" 1 \
+    --set-string "configurations.backupconfig.storage.s3Compatible.endpoint=$ENDPOINT"
 
   wait_pods_running "$CLUSTER_NAMESPACE-backup" 2
 
@@ -59,8 +61,8 @@ e2e_test_uninstall() {
   helm_cleanup_chart "$CLUSTER_NAME-backup-minio" "$CLUSTER_NAMESPACE" || true
   helm_cleanup_chart "$CLUSTER_NAME-backup-minio2" "$CLUSTER_NAMESPACE" || true
 
-  k8s_cleanup_namespace "$CLUSTER_NAMESPACE" || true
-  k8s_cleanup_namespace "$CLUSTER_NAMESPACE-backup" || true
+  k8s_async_cleanup_namespace "$CLUSTER_NAMESPACE" || true
+  k8s_async_cleanup_namespace "$CLUSTER_NAMESPACE-backup" || true
 }
 
 e2e_test() {

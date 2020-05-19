@@ -7,6 +7,7 @@ if [ "$(basename "$SHELL")" = busybox ]
 then
   SHELL=sh
 fi
+SHELL_XTRACE="$(! echo $- | grep -q x || echo "-x")"
 
 IMAGE_TAG="${IMAGE_TAG:-development-jvm}"
 IMAGE_NAME="stackgres/operator:$IMAGE_TAG"
@@ -34,7 +35,9 @@ fi
 OPERATOR_CHART_PATH="${OPERATOR_CHART_PATH:-"$STACKGRES_PATH/install/helm/stackgres-operator/"}"
 CLUSTER_CHART_PATH="${CLUSTER_CHART_PATH:-"$STACKGRES_PATH/install/helm/stackgres-cluster/"}"
 
-export SHELL IMAGE_TAG IMAGE_NAME DEFAULT_K8S_VERSION KUBECONFIG SPEC_PATH TARGET_PATH OPERATOR_CHART_PATH CLUSTER_CHART_PATH
+[ -z "$SHELL_XTRACE" ] || set +x
+
+export SHELL SHELL_XTRACE IMAGE_TAG IMAGE_NAME DEFAULT_K8S_VERSION KUBECONFIG SPEC_PATH TARGET_PATH OPERATOR_CHART_PATH CLUSTER_CHART_PATH
 export E2E_ENV K8S_VERSION E2E_TIMEOUT E2E_SKIP_SETUP E2E_OPERATOR_PULL_POLICY E2E_BUILD_OPERATOR E2E_WAIT_OPERATOR
 
 if ! command -v local > /dev/null 2>&1
@@ -49,6 +52,8 @@ do
 done
 
 . "$(dirname "$0")/envs/$E2E_ENV"
+
+[ -z "$SHELL_XTRACE" ] || set -x
 
 trap_kill() {
   echo "$1" >> "$TRAP_FILE"
@@ -141,7 +146,7 @@ setup_k8s() {
 
     k8s_webhook_cleanup
     helm_cleanup
-    k8s_cleanup
+    k8s_async_cleanup
 
     install_operator
     store_operator_values
@@ -155,7 +160,7 @@ setup_k8s() {
     fi
   else
     helm_cleanup_but_operator
-    k8s_cleanup_but_operator
+    k8s_async_cleanup_but_operator
     store_operator_values
   fi
 

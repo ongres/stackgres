@@ -22,7 +22,7 @@ e2e_test() {
 e2e_test_uninstall() {
   helm_cleanup_chart "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 
-  k8s_cleanup_namespace "$CLUSTER_NAMESPACE"
+  k8s_async_cleanup_namespace "$CLUSTER_NAMESPACE"
 }
 
 e2e_test_after_all() {
@@ -40,13 +40,12 @@ spec() {
   SPEC_VALUES_FILE="$1.values.yaml"
   SPEC_PATH="$(dirname "$SPEC_FILE")"
   SPEC_NAME="$(basename "$SPEC_FILE")"
-  CLUSTER_NAMESPACE="$SPEC_NAME"
+  CLUSTER_NAMESPACE="$SPEC_NAME-$(printf '%x' "$(date +%s)")"
   CLUSTER_NAME="$SPEC_NAME"
   E2E_SKIP_SPEC_INSTALL="${E2E_SKIP_SPEC_INSTALL:-false}"
   E2E_SKIP_SPEC_BEFORE_ALL="${E2E_SKIP_SPEC_BEFORE_ALL:-false}"
   E2E_SKIP_SPEC_AFTER_ALL="${E2E_SKIP_SPEC_AFTER_ALL:-false}"
   LOG_PATH="$TARGET_PATH/logs/$SPEC_NAME"
-  SH_OPTS=$(! echo $- | grep -q x || echo "-x")
   export SPEC_FILE SPEC_NAME CLUSTER_NAMESPACE CLUSTER_NAME LOG_PATH
 
   mkdir -p "$LOG_PATH"
@@ -61,14 +60,14 @@ spec() {
   if "${E2E_LOCK:-true}" && e2e_exclusive_lock
   then
     E2E_LOCK=false flock "$TARGET_PATH/exclusive-lock" \
-      "$SHELL" $SH_OPTS "$(dirname "$0")/e2e" spec "$1"
+      "$SHELL" $SHELL_XTRACE "$(dirname "$0")/e2e" spec "$1"
     return
   fi
 
   if "${E2E_LOCK:-true}"
   then
     E2E_LOCK=false flock -s "$TARGET_PATH/exclusive-lock" \
-      "$SHELL" $SH_OPTS "$(dirname "$0")/e2e" spec "$1"
+      "$SHELL" $SHELL_XTRACE "$(dirname "$0")/e2e" spec "$1"
     return
   fi
 

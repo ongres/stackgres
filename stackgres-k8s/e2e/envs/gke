@@ -73,7 +73,7 @@ delete_k8s() {
   gcloud -q compute disks list --project "$K8S_GKE_PROJECT" --filter "zone:($K8S_GKE_REGION)" \
     | tail -n+2 | sed 's/ \+/|/g' | cut -d '|' -f 1-2 \
     | grep '^gke-'"$K8S_GKE_NAME"'-[0-9a-f]\{4\}-pvc-[0-9a-f]\{8\}-[0-9a-f]\{4\}-[0-9a-f]\{4\}-[0-9a-f]\{4\}-[0-9a-f]\{12\}|' \
-    | xargs -r -n 1 -I % sh $(! echo $- | grep -q x || echo "-x") -ec "gcloud -q compute disks delete --project '$K8S_GKE_PROJECT' --zone \"\$(echo '%' | cut -d '|' -f 2)\" \"\$(echo '%' | cut -d '|' -f 1)\""
+    | xargs -r -n 1 -I % "$SHELL" $SHELL_XTRACE -ec "gcloud -q compute disks delete --project '$K8S_GKE_PROJECT' --zone \"\$(echo '%' | cut -d '|' -f 2)\" \"\$(echo '%' | cut -d '|' -f 1)\""
 
   echo "...done"
 }
