@@ -72,6 +72,10 @@ check_manual_backup() {
   local BACKUP_NAME="${CLUSTER_NAME}-${NODE}-$(shuf -i 0-65535 -n 1)"
   local ACTUAL_BACKUP_NAME
 
+  # Avoid automatic backups while testing manual backups
+  kubectl patch sgbackupconfig -n "$CLUSTER_NAMESPACE" backupconf --type json \
+    --patch '[{"op":"replace","path":"/spec/baseBackups/cronSchedule","value":"0 5 31 2 *"}]'
+
   cat << EOF | kubectl create -f -
 apiVersion: stackgres.io/v1beta1
 kind: SGBackup
@@ -130,6 +134,10 @@ EOF
   fi
 
   kubectl delete sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME"
+
+  # Avoid automatic backups while testing manual backups
+  kubectl patch sgbackupconfig -n "$CLUSTER_NAMESPACE" backupconf --type json \
+    --patch '[{"op":"replace","path":"/spec/baseBackups/cronSchedule","value":"*/1 * * * *"}]'
 
   if wait_until eval '[ "$(kubectl exec -t -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-${NODE}" -c patroni -- \
       exec-with-env backup -- wal-g backup-list | grep "^$ACTUAL_BACKUP_NAME " | wc -l)" -eq 0 ]'
