@@ -16,21 +16,25 @@ install_operator() {
     return
   fi
 
-  helm install stackgres-operator --namespace stackgres "$OPERATOR_CHART_PATH" \
+  install_operator_vanilla \
     --set-string image.name="${IMAGE_NAME%:*}" --set-string image.tag="${IMAGE_NAME#*:}" \
     --set-string "image.pullPolicy=$(operator_pull_policy)" \
     $E2E_OPERATOR_OPTS "$@"
 }
 
 install_operator_from_private_repo() {
-  
   export PRIVATE_REPO_URI=$(get_private_repo_uri)
   export PRIVATE_IMAGE_NAME="$PRIVATE_REPO_URI/stackgres/operator"
-  helm install stackgres-operator --namespace stackgres "$OPERATOR_CHART_PATH" \
+  install_operator_vanilla \
       --set-string image.name="$PRIVATE_IMAGE_NAME" --set-string image.tag="$IMAGE_TAG" \
       --set-string serviceAccount.repoCredentials="regcred" \
       --set-string "image.pullPolicy=$(operator_pull_policy)" \
       "$@"
+}
+
+install_operator_vanilla() {
+  helm install stackgres-operator --namespace stackgres "$OPERATOR_CHART_PATH" \
+    "$@"
 }
 
 set_up_private_repo(){
@@ -81,7 +85,7 @@ upgrade_operator() {
 }
 
 upgrade_or_install_operator() {
-  if ! helm get notes stackgres-operator --namespace stackgres
+  if ! helm get notes stackgres-operator --namespace stackgres > /dev/null
   then
     install_operator "$@"
     return
@@ -91,9 +95,47 @@ upgrade_or_install_operator() {
 }
 
 delete_operator() {
-  ! helm get notes stackgres-operator --namespace stackgres \
+  ! helm get notes stackgres-operator --namespace stackgres > /dev/null \
     || helm delete stackgres-operator --namespace stackgres "$@" \
     || true
   k8s_cleanup_namespace stackgres
 }
 
+get_installed_operator_values() {
+  helm get values --namespace stackgres stackgres-operator | tail -n +2
+}
+
+store_operator_values() {
+  get_installed_operator_values > "$TARGET_PATH/operator-values.yaml"
+}
+
+reinstall_operator_if_not_as_expected() {
+  if ! helm get notes stackgres-operator --namespace stackgres > /dev/null \
+    || [ "$(get_installed_operator_values)" != "$(cat "$TARGET_PATH/operator-values.yaml")" ]
+  then
+    if ! helm get notes stackgres-operator --namespace stackgres > /dev/null
+    then
+      echo "Re-installing operator since not installed"
+    else
+      echo "Re-installing operator since has different values"
+      echo
+      echo "Values expected:"
+      cat "$TARGET_PATH/operator-values.yaml"
+      echo
+      echo "Values found:"
+      get_installed_operator_values
+      echo
+    fi
+    delete_operator
+    kubectl create namespace stackgres
+    install_operator_vanilla -f "$TARGET_PATH/operator-values.yaml"
+    wait_pods_running stackgres
+    if helm get values -n stackgres stackgres-operator | grep -q externalOperatorIp \
+      && helm get values -n stackgres stackgres-operator | grep -q externalOperatorPort
+    then
+      wait_services_available stackgres 2
+    else
+      wait_services_available stackgres 1
+    fi
+  fi
+}
