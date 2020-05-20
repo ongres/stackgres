@@ -5,7 +5,8 @@ operator_pull_policy() {
 }
 
 install_operator() {
-  kubectl create namespace stackgres || true
+  kubectl get namespace stackgres > /dev/null 2>&1 \
+    || kubectl create namespace stackgres
 
   if [ "$E2E_USE_INTERMIDIATE_PRIVATE_REPO" = true ]
   then
@@ -79,8 +80,20 @@ upgrade_operator() {
   helm upgrade stackgres-operator --namespace stackgres "$OPERATOR_CHART_PATH" --reuse-values "$@"
 }
 
+upgrade_or_install_operator() {
+  if ! helm get notes stackgres-operator --namespace stackgres
+  then
+    install_operator "$@"
+    return
+  fi
+
+  upgrade_operator "$@"
+}
+
 delete_operator() {
-  helm delete stackgres-operator --namespace stackgres "$@" || true
+  ! helm get notes stackgres-operator --namespace stackgres \
+    || helm delete stackgres-operator --namespace stackgres "$@" \
+    || true
   k8s_cleanup_namespace stackgres
 }
 
