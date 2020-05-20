@@ -18,6 +18,7 @@ e2e_test_install() {
   delete_operator
   wait_pods_terminated "stackgres" 0
   install_operator \
+    --disable-openapi-validation \
     --set grafana.autoEmbed=true \
     --set prometheus-operator.create=true \
     --set prometheus-operator.alertmanager.enabled=false \
