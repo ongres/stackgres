@@ -15,7 +15,7 @@ import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.stackgres.operator.common.ArcUtil;
+import io.stackgres.common.ArcUtil;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresDistributedLogsContext;
 import io.stackgres.operatorframework.resource.AbstractResourceHandlerSelector;

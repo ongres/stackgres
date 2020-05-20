@@ -11,7 +11,7 @@ import java.sql.SQLException;
 import javax.enterprise.context.ApplicationScoped;
 
 import io.quarkus.test.Mock;
-import io.stackgres.operator.rest.distributedlogs.PostgresConnectionManager;
+import io.stackgres.apiweb.distributedlogs.PostgresConnectionManager;
 import org.jooq.lambda.Unchecked;
 
 @Mock

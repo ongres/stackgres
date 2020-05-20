@@ -5,8 +5,8 @@
 
 package io.stackgres.operator.validation.distributedlogs;
 
+import io.stackgres.common.ConfigContext;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsDefinition;
-import io.stackgres.operator.common.ConfigContext;
 import io.stackgres.operator.common.StackGresDistributedLogsReview;
 import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
@@ -18,9 +18,9 @@ public interface DistributedLogsValidator extends Validator<StackGresDistributed
     fail(StackGresDistributedLogsDefinition.KIND, reason, message);
   }
 
-  default void fail(ConfigContext context, String message) throws ValidationFailed {
+  default void fail(String message) throws ValidationFailed {
     ValidationType validationType = this.getClass().getAnnotation(ValidationType.class);
-    String errorTypeUri = context.getErrorTypeUri(validationType.value());
+    String errorTypeUri = ConfigContext.getErrorTypeUri(validationType.value());
     fail(errorTypeUri, message);
   }
 

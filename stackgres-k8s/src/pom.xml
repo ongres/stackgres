@@ -28,7 +28,9 @@
     <module>common</module>
     <module>operator-framework</module>
     <module>operator</module>
-    <!-- <module>cli</module> -->
+    <module>api-web</module>
+    <module>test-util</module>
+      <!-- <module>cli</module> -->
   </modules>
 
   <scm>

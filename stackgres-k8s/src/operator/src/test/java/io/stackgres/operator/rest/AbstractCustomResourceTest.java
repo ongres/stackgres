@@ -16,19 +16,19 @@ import java.util.Optional;
 
 import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.CustomResourceList;
-import io.stackgres.operator.resource.CustomResourceFinder;
-import io.stackgres.operator.resource.CustomResourceScanner;
-import io.stackgres.operator.resource.CustomResourceScheduler;
-import io.stackgres.operator.rest.dto.ResourceDto;
-import io.stackgres.operator.rest.transformer.AbstractResourceTransformer;
-
+import io.stackgres.apiweb.AbstractRestService;
+import io.stackgres.apiweb.distributedlogs.dto.ResourceDto;
+import io.stackgres.apiweb.transformer.AbstractResourceTransformer;
+import io.stackgres.common.resource.CustomResourceFinder;
+import io.stackgres.common.resource.CustomResourceScanner;
+import io.stackgres.common.resource.CustomResourceScheduler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
-abstract class AbstractCustomResourceTest<T extends ResourceDto, R extends CustomResource,
+public abstract class AbstractCustomResourceTest<T extends ResourceDto, R extends CustomResource,
     S extends AbstractRestService<T, R>> {
 
   @Mock

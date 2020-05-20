@@ -8,7 +8,8 @@ package io.stackgres.operator.resource;
 import java.util.Optional;
 
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
-import io.stackgres.operator.utils.JsonUtil;
+import io.stackgres.common.resource.CustomResourceFinder;
+import io.stackgres.testutil.JsonUtil;
 
 public class MockPostgresConfigFinder implements CustomResourceFinder<StackGresPostgresConfig> {
 

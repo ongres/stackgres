@@ -11,16 +11,17 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import io.fabric8.kubernetes.client.CustomResourceList;
+import io.stackgres.apiweb.BackupResource;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackup.StackGresBackupList;
-import io.stackgres.operator.resource.CustomResourceFinder;
-import io.stackgres.operator.resource.CustomResourceScanner;
-import io.stackgres.operator.resource.CustomResourceScheduler;
-import io.stackgres.operator.rest.dto.backup.BackupDto;
-import io.stackgres.operator.rest.transformer.AbstractResourceTransformer;
-import io.stackgres.operator.rest.transformer.BackupConfigTransformer;
-import io.stackgres.operator.rest.transformer.BackupTransformer;
-import io.stackgres.operator.utils.JsonUtil;
+import io.stackgres.common.resource.CustomResourceFinder;
+import io.stackgres.common.resource.CustomResourceScanner;
+import io.stackgres.common.resource.CustomResourceScheduler;
+import io.stackgres.apiweb.distributedlogs.dto.backup.BackupDto;
+import io.stackgres.apiweb.transformer.AbstractResourceTransformer;
+import io.stackgres.apiweb.transformer.BackupConfigTransformer;
+import io.stackgres.apiweb.transformer.BackupTransformer;
+import io.stackgres.testutil.JsonUtil;
 
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;

@@ -6,7 +6,7 @@
 package io.stackgres.operator.initialization;
 
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
-import io.stackgres.operator.utils.JsonUtil;
+import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 

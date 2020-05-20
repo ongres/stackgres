@@ -14,17 +14,19 @@ import javax.inject.Inject;
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.stackgres.apiweb.distributedlogs.dto.cluster.ClusterResourceConsumtionDto;
+import io.stackgres.common.KubernetesClientFactory;
+import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgprofile.StackGresProfileDefinition;
 import io.stackgres.common.crd.sgprofile.StackGresProfileDoneable;
 import io.stackgres.common.crd.sgprofile.StackGresProfileList;
-import io.stackgres.operator.app.KubernetesClientFactory;
-import io.stackgres.operator.common.StackGresUserClusterContext;
+import io.stackgres.common.resource.CustomResourceFinder;
+import io.stackgres.common.resource.PodExec;
+import io.stackgres.common.resource.ResourceUtil;
 import io.stackgres.operator.patroni.factory.Patroni;
 import io.stackgres.operator.rest.PatroniStatsScripts;
-import io.stackgres.operator.rest.dto.cluster.ClusterResourceConsumtionDto;
-import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jooq.lambda.Unchecked;
 
 @ApplicationScoped
@@ -57,7 +59,7 @@ public class ClusterResourceConsumptionFinder
         Optional<Pod> masterPod = client.pods()
             .inNamespace(cluster.getMetadata().getNamespace())
             .withLabels(ImmutableMap.<String, String>builder()
-                .putAll(StackGresUserClusterContext.getClusterLabelMapper(cluster).clusterLabels())
+                .putAll(clusterLabels(cluster))
                 .put("role", "master")
                 .build())
             .list()
@@ -158,6 +160,12 @@ public class ClusterResourceConsumptionFinder
   private List<String> exec(KubernetesClient client, Pod pod, String... args)
       throws Exception {
     return PodExec.exec(client, pod, Patroni.NAME, args);
+  }
+
+  public ImmutableMap<String, String> clusterLabels(StackGresCluster cluster) {
+    return ImmutableMap.of(StackGresUtil.APP_KEY, StackGresUtil.APP_NAME,
+        StackGresUtil.CLUSTER_UID_KEY, ResourceUtil.labelValue(cluster.getMetadata().getUid()),
+        StackGresUtil.CLUSTER_NAME_KEY, ResourceUtil.labelValue(cluster.getMetadata().getName()));
   }
 
 }

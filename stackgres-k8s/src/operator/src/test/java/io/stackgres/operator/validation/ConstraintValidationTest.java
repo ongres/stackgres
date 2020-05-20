@@ -5,22 +5,22 @@
 
 package io.stackgres.operator.validation;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import java.lang.annotation.Annotation;
+
 import javax.validation.Validation;
 import javax.validation.ValidatorFactory;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
 import io.fabric8.kubernetes.api.model.Status;
-import io.stackgres.operator.common.ConfigLoader;
-import io.stackgres.operator.common.ErrorType;
+import io.stackgres.common.ErrorType;
 import io.stackgres.operator.utils.ValidationUtils;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 public abstract class ConstraintValidationTest<T extends AdmissionReview<?>> {
 
@@ -34,7 +34,6 @@ public abstract class ConstraintValidationTest<T extends AdmissionReview<?>> {
 
     ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
     validator.setConstraintValidator(factory.getValidator());
-    validator.setConfigContext(new ConfigLoader());
     validator.init();
 
     this.errorTypeDocumentationUri = ValidationUtils

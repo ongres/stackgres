@@ -17,9 +17,9 @@ import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 
 import com.fasterxml.jackson.dataformat.javaprop.JavaPropsMapper;
-import io.stackgres.operator.common.ConfigContext;
-import io.stackgres.operator.common.ConfigProperty;
-import io.stackgres.operator.common.StackGresUtil;
+import io.stackgres.common.ConfigContext;
+import io.stackgres.common.OperatorProperty;
+import io.stackgres.common.StackGresUtil;
 
 public abstract class AbstractCustomResourceFactory<T>
     implements DefaultCustomResourceFactory<T> {
@@ -33,7 +33,7 @@ public abstract class AbstractCustomResourceFactory<T>
   @PostConstruct
   public void init() throws IOException {
     loadDefaultProperties(getDefaultPropertiesFile());
-    installedNamespace = context.getProperty(ConfigProperty.OPERATOR_NAMESPACE)
+    installedNamespace = context.getProperty(OperatorProperty.OPERATOR_NAMESPACE)
         .orElseThrow(() -> new IllegalStateException("Operator not configured properly"));
   }
 

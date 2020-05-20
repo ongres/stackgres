@@ -13,8 +13,8 @@ import java.util.stream.Stream;
 import javax.enterprise.inject.Instance;
 
 import io.fabric8.kubernetes.client.CustomResource;
-import io.stackgres.operator.common.ConfigLoader;
-import io.stackgres.operator.common.ErrorType;
+import io.stackgres.operator.configuration.OperatorContext;
+import io.stackgres.common.ErrorType;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
 import io.stackgres.operator.utils.ValidationUtils;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
@@ -43,7 +43,6 @@ public abstract class DefaultKeeperTest<R extends CustomResource, T extends Admi
   @BeforeEach
   void setUp() {
     validator = getValidatorInstance();
-    validator.setConfigContext(new ConfigLoader());
     when(factories.stream())
         .thenAnswer((Answer<Stream<DefaultCustomResourceFactory<R>>>) invocationOnMock
             -> Stream.of(factory));

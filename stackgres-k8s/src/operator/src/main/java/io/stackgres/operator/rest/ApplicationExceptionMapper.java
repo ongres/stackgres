@@ -12,7 +12,9 @@ import javax.ws.rs.ext.Provider;
 
 import com.google.common.base.Throwables;
 import io.fabric8.kubernetes.client.KubernetesClientException;
-import io.stackgres.operator.common.ConfigContext;
+import io.stackgres.apiweb.StatusParser;
+import io.stackgres.apiweb.StatusParserProvider;
+import io.stackgres.common.ConfigContext;
 import org.jboss.resteasy.spi.ApplicationException;
 
 @Provider

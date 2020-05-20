@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import com.google.common.collect.ImmutableList;
@@ -26,7 +27,9 @@ import io.fabric8.kubernetes.api.model.SecretKeySelectorBuilder;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.ServicePortBuilder;
 import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
+import io.stackgres.common.LabelFactory;
 import io.stackgres.common.StackGresContext;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSetVolumeConfig;
 import io.stackgres.operator.common.Prometheus;
 import io.stackgres.operator.common.Sidecar;
@@ -54,6 +57,8 @@ public class PostgresExporter implements StackGresClusterSidecarResourceFactory<
   private static final String IMAGE_NAME =
       "docker.io/ongres/prometheus-postgres-exporter:v%s-build-%s";
   private static final String DEFAULT_VERSION = StackGresComponents.get("postgres_exporter");
+
+  private LabelFactory<StackGresCluster> labelFactory;
 
   public static String serviceName(StackGresClusterContext clusterContext) {
     String name = clusterContext.getCluster().getMetadata().getName();
@@ -100,23 +105,25 @@ public class PostgresExporter implements StackGresClusterSidecarResourceFactory<
 
   @Override
   public Stream<HasMetadata> streamResources(StackGresGeneratorContext context) {
-    final Map<String, String> defaultLabels = context.getClusterContext().clusterLabels();
+    final StackGresClusterContext clusterContext = context.getClusterContext();
+    final StackGresCluster cluster = clusterContext.getCluster();
+    final Map<String, String> defaultLabels = labelFactory.clusterLabels(cluster);
     Map<String, String> labels = new ImmutableMap.Builder<String, String>()
-        .putAll(context.getClusterContext().clusterCrossNamespaceLabels())
+        .putAll(labelFactory.clusterCrossNamespaceLabels(cluster))
         .build();
 
-    Optional<Prometheus> prometheus = context.getClusterContext().getPrometheus();
+    Optional<Prometheus> prometheus = clusterContext.getPrometheus();
     ImmutableList.Builder<HasMetadata> resourcesBuilder = ImmutableList.builder();
     resourcesBuilder.add(
         new ServiceBuilder()
             .withNewMetadata()
-            .withNamespace(context.getClusterContext().getCluster().getMetadata().getNamespace())
-            .withName(serviceName(context.getClusterContext()))
+            .withNamespace(cluster.getMetadata().getNamespace())
+            .withName(serviceName(clusterContext))
             .withLabels(ImmutableMap.<String, String>builder()
                 .putAll(labels)
                 .put("container", NAME)
                 .build())
-            .withOwnerReferences(context.getClusterContext().ownerReferences())
+            .withOwnerReferences(clusterContext.getOwnerReferences())
             .endMetadata()
             .withSpec(new ServiceSpecBuilder()
                 .withSelector(defaultLabels)
@@ -135,8 +142,8 @@ public class PostgresExporter implements StackGresClusterSidecarResourceFactory<
           serviceMonitor.setApiVersion(ServiceMonitorDefinition.APIVERSION);
           serviceMonitor.setMetadata(new ObjectMetaBuilder()
               .withNamespace(pi.getNamespace())
-              .withName(serviceMonitorName(context.getClusterContext()))
-              .withOwnerReferences(context.getClusterContext().ownerReferences())
+              .withName(serviceMonitorName(clusterContext))
+              .withOwnerReferences(clusterContext.getOwnerReferences())
               .withLabels(ImmutableMap.<String, String>builder()
                   .putAll(pi.getMatchLabels())
                   .putAll(labels)
@@ -164,4 +171,8 @@ public class PostgresExporter implements StackGresClusterSidecarResourceFactory<
     return Seq.seq(resourcesBuilder.build());
   }
 
+  @Inject
+  public void setLabelFactory(LabelFactory<StackGresCluster> labelFactory) {
+    this.labelFactory = labelFactory;
+  }
 }

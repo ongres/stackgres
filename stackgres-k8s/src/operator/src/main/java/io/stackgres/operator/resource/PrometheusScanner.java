@@ -8,8 +8,9 @@ package io.stackgres.operator.resource;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import io.stackgres.operator.app.KubernetesClientFactory;
-import io.stackgres.operator.common.ArcUtil;
+import io.stackgres.common.ArcUtil;
+import io.stackgres.common.KubernetesClientFactory;
+import io.stackgres.common.resource.AbstractCustomResourceScanner;
 import io.stackgres.operator.customresource.prometheus.PrometheusConfig;
 import io.stackgres.operator.customresource.prometheus.PrometheusConfigDefinition;
 import io.stackgres.operator.customresource.prometheus.PrometheusConfigDoneable;
@@ -18,7 +19,7 @@ import io.stackgres.operator.customresource.prometheus.PrometheusConfigList;
 @ApplicationScoped
 public class PrometheusScanner
     extends AbstractCustomResourceScanner<PrometheusConfig, PrometheusConfigList,
-    PrometheusConfigDoneable> {
+        PrometheusConfigDoneable> {
 
   /**
    * Create a {@code PrometheusScanner} instance.

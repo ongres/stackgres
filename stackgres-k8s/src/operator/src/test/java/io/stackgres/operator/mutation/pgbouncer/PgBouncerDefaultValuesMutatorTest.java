@@ -13,7 +13,7 @@ import io.stackgres.operator.common.PoolingReview;
 import io.stackgres.operator.mutation.DefaultValuesMutator;
 import io.stackgres.operator.mutation.DefaultValuesMutatorTest;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
-import io.stackgres.operator.utils.JsonUtil;
+import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 

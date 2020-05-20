@@ -9,14 +9,15 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.kubernetes.internal.KubernetesDeserializer;
+import io.stackgres.operator.common.LabelFactoryDelegator;
 import io.stackgres.operator.common.StackGresClusterContext;
-import io.stackgres.operator.common.StackGresUserClusterContext;
 import io.stackgres.operator.customresource.prometheus.Endpoint;
 import io.stackgres.operator.customresource.prometheus.NamespaceSelector;
 import io.stackgres.operator.customresource.prometheus.ServiceMonitor;
@@ -32,6 +33,8 @@ import io.stackgres.operatorframework.resource.visitor.ResourcePairVisitor;
 @ApplicationScoped
 public class ServiceMonitorHandler
     implements ResourceHandler<StackGresClusterContext> {
+
+  private LabelFactoryDelegator factoryDelegator;
 
   @Override
   public boolean isHandlerForResource(HasMetadata resource) {
@@ -64,8 +67,8 @@ public class ServiceMonitorHandler
     return getServiceMonitorClient(client)
         .map(crClient -> crClient
             .inAnyNamespace()
-            .withLabels(StackGresUserClusterContext.getClusterLabelMapper(context.getCluster())
-                .clusterCrossNamespaceLabels())
+            .withLabels(factoryDelegator.pickFactory(context)
+                .clusterCrossNamespaceLabels(context.getCluster()))
             .list()
             .getItems()
             .stream()
@@ -174,4 +177,8 @@ public class ServiceMonitorHandler
 
   }
 
+  @Inject
+  public void setFactoryDelegator(LabelFactoryDelegator factoryDelegator) {
+    this.factoryDelegator = factoryDelegator;
+  }
 }

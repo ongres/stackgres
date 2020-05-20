@@ -5,26 +5,27 @@
 
 package io.stackgres.operator.rest;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import javax.ws.rs.core.Response;
 
 import io.fabric8.kubernetes.api.model.Status;
 import io.fabric8.kubernetes.api.model.StatusBuilder;
 import io.fabric8.kubernetes.api.model.StatusDetailsBuilder;
 import io.fabric8.kubernetes.client.KubernetesClientException;
-import io.stackgres.operator.common.ConfigLoader;
-import io.stackgres.operator.common.ErrorType;
-import io.stackgres.operator.utils.JsonUtil;
+import io.stackgres.common.ConfigContext;
+import io.stackgres.common.ErrorType;
+import io.stackgres.testutil.JsonUtil;
+import io.stackgres.operator.configuration.OperatorContext;
 import org.jboss.resteasy.specimpl.ResteasyUriInfo;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 class KubernetesExceptionMapperTest {
 
   private KubernetesExceptionMapper mapper;
 
-  final ConfigLoader context = new ConfigLoader();
+  final OperatorContext context = new OperatorContext();
 
   @BeforeEach
   void setUp() {
@@ -38,7 +39,7 @@ class KubernetesExceptionMapperTest {
   @Test
   void webHookErrorResponses_shouldBeParsed() {
 
-    final String errorTypeUri = context.getErrorTypeUri(ErrorType.CONSTRAINT_VIOLATION);
+    final String errorTypeUri = ConfigContext.getErrorTypeUri(ErrorType.CONSTRAINT_VIOLATION);
     final String message = "StackGresProfile has invalid properties";
     final String field = "spec.memory";
     final String detail = "spec.memory cannot be empty";
@@ -72,7 +73,7 @@ class KubernetesExceptionMapperTest {
 
     ErrorResponse errorResponse = (ErrorResponse) response.getEntity();
 
-    assertEquals(context.getErrorTypeUri(ErrorType.CONSTRAINT_VIOLATION), errorResponse.getType());
+    assertEquals(ConfigContext.getErrorTypeUri(ErrorType.CONSTRAINT_VIOLATION), errorResponse.getType());
     assertEquals(ErrorType.CONSTRAINT_VIOLATION.getTitle(), errorResponse.getTitle());
     assertEquals("spec.memory in body should match '^[0-9]+(\\\\.[0-9]+)?(Mi|Gi)$'",
         errorResponse.getDetail());
@@ -92,7 +93,7 @@ class KubernetesExceptionMapperTest {
 
     ErrorResponse errorResponse = (ErrorResponse) response.getEntity();
 
-    assertEquals(context.getErrorTypeUri(ErrorType.CONSTRAINT_VIOLATION), errorResponse.getType());
+    assertEquals(ConfigContext.getErrorTypeUri(ErrorType.CONSTRAINT_VIOLATION), errorResponse.getType());
     assertEquals(ErrorType.CONSTRAINT_VIOLATION.getTitle(), errorResponse.getTitle());
     assertEquals("spec.memory in body should match '^[0-9]+(\\\\.[0-9]+)?(Mi|Gi)$'",
         errorResponse.getDetail());

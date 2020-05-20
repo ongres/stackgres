@@ -5,8 +5,8 @@
 
 package io.stackgres.operator.validation.pgconfig;
 
+import io.stackgres.testutil.JsonUtil;
 import io.stackgres.operator.common.PgConfigReview;
-import io.stackgres.operator.utils.JsonUtil;
 import io.stackgres.operator.validation.DependenciesValidator;
 import io.stackgres.operator.validation.DependenciesValidatorTest;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;

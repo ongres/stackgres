@@ -19,19 +19,22 @@ import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.client.CustomResourceList;
+import io.stackgres.apiweb.BackupConfigResource;
+import io.stackgres.apiweb.BackupConfigResourceUtil;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigList;
-import io.stackgres.operator.resource.CustomResourceFinder;
-import io.stackgres.operator.resource.CustomResourceScanner;
-import io.stackgres.operator.resource.CustomResourceScheduler;
-import io.stackgres.operator.resource.ResourceFinder;
-import io.stackgres.operator.resource.ResourceWriter;
-import io.stackgres.operator.rest.dto.backupconfig.BackupConfigDto;
-import io.stackgres.operator.rest.transformer.AbstractResourceTransformer;
-import io.stackgres.operator.rest.transformer.BackupConfigTransformer;
-import io.stackgres.operator.utils.JsonUtil;
-import io.stackgres.operatorframework.resource.ResourceUtil;
+import io.stackgres.common.resource.CustomResourceFinder;
+import io.stackgres.common.resource.CustomResourceScanner;
+import io.stackgres.common.resource.CustomResourceScheduler;
+import io.stackgres.common.resource.ResourceFinder;
+import io.stackgres.common.resource.ResourceUtil;
+import io.stackgres.common.resource.ResourceWriter;
+import io.stackgres.apiweb.distributedlogs.dto.backupconfig.BackupConfigDto;
+import io.stackgres.apiweb.transformer.AbstractResourceTransformer;
+import io.stackgres.apiweb.transformer.BackupConfigTransformer;
+import io.stackgres.testutil.JsonUtil;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -41,7 +44,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class BackupConfigResourceTest
     extends AbstractCustomResourceTest<BackupConfigDto, StackGresBackupConfig,
-      BackupConfigResource> {
+    BackupConfigResource> {
 
   @Mock
   private ResourceFinder<Secret> secretFinder;
@@ -183,7 +186,7 @@ class BackupConfigResourceTest
     assertNotNull(resource.getSpec().getStorage().getS3Compatible().getAwsCredentials());
     assertNotNull(resource.getSpec().getStorage().getS3Compatible().getAwsCredentials().getSecretKeySelectors().getAccessKeyId());
     assertEquals("backupconf-secrets", resource.getSpec().getStorage().getS3Compatible().getAwsCredentials().getSecretKeySelectors().getAccessKeyId().getName());
-    assertEquals(BackupConfigResourceUtil.S3COMPATIBLE_ACCESS_KEY,
+    Assertions.assertEquals(BackupConfigResourceUtil.S3COMPATIBLE_ACCESS_KEY,
         resource.getSpec().getStorage().getS3Compatible().getAwsCredentials().getSecretKeySelectors().getAccessKeyId().getKey());
     assertNotNull(resource.getSpec().getStorage().getS3Compatible().getAwsCredentials().getSecretKeySelectors().getSecretAccessKey());
     assertEquals("backupconf-secrets", resource.getSpec().getStorage().getS3Compatible().getAwsCredentials().getSecretKeySelectors().getSecretAccessKey().getName());

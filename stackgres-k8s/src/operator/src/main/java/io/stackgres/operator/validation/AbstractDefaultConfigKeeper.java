@@ -15,8 +15,8 @@ import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.client.CustomResource;
-import io.stackgres.operator.common.ConfigContext;
-import io.stackgres.operator.common.ErrorType;
+import io.stackgres.common.ConfigContext;
+import io.stackgres.common.ErrorType;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionRequest;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
@@ -27,12 +27,11 @@ public abstract class AbstractDefaultConfigKeeper
     <R extends CustomResource, T extends AdmissionReview<R>>
     implements Validator<T> {
 
+  private static final String ERROR_TYPE_URI =
+      ConfigContext.getErrorTypeUri(ErrorType.DEFAULT_CONFIGURATION);
+
   private Map<String, Set<String>> installedResources;
-
   private Instance<DefaultCustomResourceFactory<R>> factories;
-  private ConfigContext configContext;
-
-  private String errorTypeUri;
 
   @PostConstruct
   public void init() {
@@ -43,7 +42,6 @@ public abstract class AbstractDefaultConfigKeeper
         .collect(Collectors.groupingBy(ObjectMeta::getNamespace,
             Collectors.mapping(ObjectMeta::getName, Collectors.toSet())));
 
-    this.errorTypeUri = configContext.getErrorTypeUri(ErrorType.DEFAULT_CONFIGURATION);
   }
 
   @Override
@@ -60,7 +58,7 @@ public abstract class AbstractDefaultConfigKeeper
         if (installedResources.containsKey(updateNamespace)
             && installedResources.get(updateNamespace).contains(updateName)) {
           final String message = "Cannot update CR " + updateName + " because is a default CR";
-          fail(request.getKind().getKind(), errorTypeUri, message);
+          fail(request.getKind().getKind(), ERROR_TYPE_URI, message);
         }
         break;
       case DELETE:
@@ -69,7 +67,7 @@ public abstract class AbstractDefaultConfigKeeper
         if (installedResources.containsKey(deleteNamespace)
             && installedResources.get(deleteNamespace).contains(deleteName)) {
           final String message = "Cannot delete CR " + deleteName + " because is a default CR";
-          fail(request.getKind().getKind(), errorTypeUri, message);
+          fail(request.getKind().getKind(), ERROR_TYPE_URI, message);
         }
         break;
       default:
@@ -81,8 +79,4 @@ public abstract class AbstractDefaultConfigKeeper
     this.factories = factories;
   }
 
-  @Inject
-  public void setConfigContext(ConfigContext configContext) {
-    this.configContext = configContext;
-  }
 }

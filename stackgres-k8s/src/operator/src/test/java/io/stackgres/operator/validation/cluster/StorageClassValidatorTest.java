@@ -16,10 +16,9 @@ import static org.mockito.Mockito.when;
 import java.util.Optional;
 
 import io.fabric8.kubernetes.api.model.storage.StorageClass;
-import io.stackgres.operator.common.ConfigLoader;
 import io.stackgres.operator.common.StackGresClusterReview;
-import io.stackgres.operator.resource.ResourceFinder;
-import io.stackgres.operator.utils.JsonUtil;
+import io.stackgres.common.resource.ResourceFinder;
+import io.stackgres.testutil.JsonUtil;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import org.junit.jupiter.api.BeforeEach;
@@ -44,8 +43,7 @@ class StorageClassValidatorTest {
 
   @BeforeEach
   void setUp() {
-    validator = new StorageClassValidator(storageClassFinder, new ConfigLoader());
-
+    validator = new StorageClassValidator(storageClassFinder);
   }
 
   @Test

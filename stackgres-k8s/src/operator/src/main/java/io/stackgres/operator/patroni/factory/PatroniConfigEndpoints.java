@@ -18,11 +18,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.EndpointsBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.stackgres.common.LabelFactory;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDistributedLogs;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.operator.app.ObjectMapperProvider;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSetEnvVars;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSetPath;
+import io.stackgres.operator.common.LabelFactoryDelegator;
+import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresClusterResourceStreamFactory;
 import io.stackgres.operator.common.StackGresGeneratorContext;
 import io.stackgres.operator.configuration.PatroniConfig;
@@ -37,10 +41,18 @@ public class PatroniConfigEndpoints implements StackGresClusterResourceStreamFac
 
   private final ObjectMapper objectMapper;
 
+  private final LabelFactoryDelegator factoryDelegator;
+
+  private final PatroniServices patroniServices;
+
   @Inject
-  public PatroniConfigEndpoints(ObjectMapperProvider objectMapperProvider) {
+  public PatroniConfigEndpoints(ObjectMapperProvider objectMapperProvider,
+                                LabelFactoryDelegator factoryDelegator,
+                                PatroniServices patroniServices) {
     super();
     this.objectMapper = objectMapperProvider.objectMapper();
+    this.factoryDelegator = factoryDelegator;
+    this.patroniServices = patroniServices;
   }
 
   /**
@@ -48,11 +60,15 @@ public class PatroniConfigEndpoints implements StackGresClusterResourceStreamFac
    */
   @Override
   public Stream<HasMetadata> streamResources(StackGresGeneratorContext context) {
-    final String namespace = context.getClusterContext().getCluster().getMetadata().getNamespace();
-    final Map<String, String> labels = context.getClusterContext().patroniClusterLabels();
+    final StackGresClusterContext clusterContext = context.getClusterContext();
+    final StackGresCluster cluster = clusterContext.getCluster();
+    final String namespace = cluster.getMetadata().getNamespace();
+    final LabelFactory<?> labelFactory = factoryDelegator.pickFactory(clusterContext);
+    final Map<String, String> labels = labelFactory
+        .patroniClusterLabels(cluster);
     Map<String, String> params = new HashMap<>(DefaultValues.getDefaultValues());
 
-    if (context.getClusterContext().getBackupContext().isPresent()) {
+    if (clusterContext.getBackupContext().isPresent()) {
       params.put("archive_command",
           "exec-with-env '" + ClusterStatefulSetEnvVars.BACKUP_ENV.value() + "'"
               + " -- wal-g wal-push %p");
@@ -61,7 +77,7 @@ public class PatroniConfigEndpoints implements StackGresClusterResourceStreamFac
     }
 
     params.put("logging_collector", "on");
-    if (Optional.ofNullable(context.getClusterContext().getCluster().getSpec().getDistributedLogs())
+    if (Optional.ofNullable(cluster.getSpec().getDistributedLogs())
         .map(StackGresClusterDistributedLogs::getDistributedLogs)
         .map(distributedLogs -> true)
         .orElse(false)) {
@@ -77,7 +93,7 @@ public class PatroniConfigEndpoints implements StackGresClusterResourceStreamFac
     params.put("wal_log_hints", "on");
     params.put("archive_mode", "on");
 
-    Optional<StackGresPostgresConfig> pgconfig = context.getClusterContext().getPostgresConfig();
+    Optional<StackGresPostgresConfig> pgconfig = clusterContext.getPostgresConfig();
     if (pgconfig.isPresent()) {
       Map<String, String> userParams = pgconfig.get().getSpec().getPostgresqlConf();
       // Blacklist removal
@@ -106,10 +122,10 @@ public class PatroniConfigEndpoints implements StackGresClusterResourceStreamFac
     return Seq.of(new EndpointsBuilder()
         .withNewMetadata()
         .withNamespace(namespace)
-        .withName(PatroniServices.configName(context.getClusterContext()))
+        .withName(patroniServices.configName(clusterContext))
         .withLabels(labels)
         .withAnnotations(ImmutableMap.of(PATRONI_CONFIG_KEY, patroniConfigJson))
-        .withOwnerReferences(context.getClusterContext().ownerReferences())
+        .withOwnerReferences(clusterContext.getOwnerReferences())
         .endMetadata()
         .build());
   }

@@ -8,8 +8,8 @@ package io.stackgres.operator.initialization;
 import javax.inject.Inject;
 
 import io.fabric8.kubernetes.client.CustomResource;
-import io.stackgres.operator.resource.CustomResourceScanner;
-import io.stackgres.operator.resource.CustomResourceScheduler;
+import io.stackgres.common.resource.CustomResourceScanner;
+import io.stackgres.common.resource.CustomResourceScheduler;
 
 public abstract class AbstractDefaultCustomResourceInitializer<T extends CustomResource>
     implements DefaultCustomResourceInitializer<T> {

@@ -6,14 +6,12 @@
 package io.stackgres.operator.mutation.profile;
 
 import com.fasterxml.jackson.databind.JsonNode;
-
-import io.stackgres.operator.common.SgProfileReview;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgprofile.StackGresProfileSpec;
+import io.stackgres.testutil.JsonUtil;
+import io.stackgres.operator.common.SgProfileReview;
 import io.stackgres.operator.mutation.DefaultValuesMutator;
 import io.stackgres.operator.mutation.DefaultValuesMutatorTest;
-import io.stackgres.operator.utils.JsonUtil;
-
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 

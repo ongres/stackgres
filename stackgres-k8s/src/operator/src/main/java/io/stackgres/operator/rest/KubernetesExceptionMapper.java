@@ -17,8 +17,9 @@ import com.fasterxml.jackson.core.io.JsonStringEncoder;
 import io.fabric8.kubernetes.api.model.Status;
 import io.fabric8.kubernetes.api.model.StatusCause;
 import io.fabric8.kubernetes.client.KubernetesClientException;
-import io.stackgres.operator.common.ConfigContext;
-import io.stackgres.operator.common.ErrorType;
+import io.stackgres.apiweb.StatusParser;
+import io.stackgres.common.ConfigContext;
+import io.stackgres.common.ErrorType;
 import io.stackgres.operator.mutation.MutationUtil;
 import io.stackgres.operator.validation.ValidationUtil;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionResponse;
@@ -65,7 +66,7 @@ public class KubernetesExceptionMapper implements ExceptionMapper<KubernetesClie
   private Response toResponse(Status status) {
 
     if (status.getCode() == UNPROCESSABLE_ENTITY_STATUS) {
-      String type = context.getErrorTypeUri(ErrorType.CONSTRAINT_VIOLATION);
+      String type = ConfigContext.getErrorTypeUri(ErrorType.CONSTRAINT_VIOLATION);
       String title = ErrorType.CONSTRAINT_VIOLATION.getTitle();
       String detail = statusParser.parseDetails(status);
       String[] fields = statusParser.parseFields(status);

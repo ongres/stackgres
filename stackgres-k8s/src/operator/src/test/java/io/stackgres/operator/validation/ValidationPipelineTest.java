@@ -9,7 +9,7 @@ import java.util.Collections;
 
 import io.fabric8.kubernetes.api.model.authentication.UserInfo;
 import io.fabric8.kubernetes.client.CustomResource;
-import io.stackgres.operator.common.ErrorType;
+import io.stackgres.common.ErrorType;
 import io.stackgres.operator.utils.ValidationUtils;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
 import io.stackgres.operatorframework.admissionwebhook.Operation;

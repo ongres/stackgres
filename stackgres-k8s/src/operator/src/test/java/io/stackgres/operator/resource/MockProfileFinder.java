@@ -8,7 +8,8 @@ package io.stackgres.operator.resource;
 import java.util.Optional;
 
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
-import io.stackgres.operator.utils.JsonUtil;
+import io.stackgres.common.resource.CustomResourceFinder;
+import io.stackgres.testutil.JsonUtil;
 
 
 public class MockProfileFinder implements CustomResourceFinder<StackGresProfile> {

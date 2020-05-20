@@ -13,13 +13,13 @@ import javax.inject.Inject;
 
 import com.github.fge.jsonpatch.JsonPatchOperation;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
-import io.stackgres.operator.app.KubernetesClientFactory;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
 import io.stackgres.operatorframework.admissionwebhook.Operation;

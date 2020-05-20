@@ -20,6 +20,11 @@ import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.stackgres.common.ArcUtil;
+import io.stackgres.common.ConfigContext;
+import io.stackgres.common.KubernetesClientFactory;
+import io.stackgres.common.LabelFactory;
+import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.crd.sgbackup.BackupPhase;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackup.StackGresBackupDefinition;
@@ -56,12 +61,10 @@ import io.stackgres.common.crd.storages.AzureBlobStorageCredentials;
 import io.stackgres.common.crd.storages.GoogleCloudCredentials;
 import io.stackgres.common.crd.storages.GoogleCloudSecretKeySelector;
 import io.stackgres.common.crd.storages.GoogleCloudStorage;
-import io.stackgres.operator.app.KubernetesClientFactory;
+import io.stackgres.common.resource.CustomResourceScanner;
+import io.stackgres.common.resource.ResourceUtil;
 import io.stackgres.operator.app.ObjectMapperProvider;
 import io.stackgres.operator.cluster.factory.Cluster;
-import io.stackgres.operator.common.ArcUtil;
-import io.stackgres.operator.common.ConfigContext;
-import io.stackgres.operator.common.ConfigProperty;
 import io.stackgres.operator.common.ImmutableStackGresUserClusterContext;
 import io.stackgres.operator.common.ImmutableStackGresUserGeneratorContext;
 import io.stackgres.operator.common.Prometheus;
@@ -77,7 +80,6 @@ import io.stackgres.operator.customresource.prometheus.PrometheusConfig;
 import io.stackgres.operator.customresource.prometheus.PrometheusInstallation;
 import io.stackgres.operator.resource.ClusterResourceHandlerSelector;
 import io.stackgres.operator.resource.ClusterSidecarFinder;
-import io.stackgres.operator.resource.CustomResourceScanner;
 import io.stackgres.operator.sidecars.fluentbit.FluentBit;
 import io.stackgres.operator.sidecars.pgexporter.PostgresExporter;
 import io.stackgres.operator.sidecars.pgutils.PostgresUtil;
@@ -85,7 +87,6 @@ import io.stackgres.operator.sidecars.pooling.PgPooling;
 import io.stackgres.operatorframework.reconciliation.AbstractReconciliationCycle;
 import io.stackgres.operatorframework.reconciliation.AbstractReconciliator;
 import io.stackgres.operatorframework.resource.ResourceGenerator;
-import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.Unchecked;
 import org.jooq.lambda.tuple.Tuple;
@@ -103,6 +104,8 @@ public class ClusterReconciliationCycle
   private final CustomResourceScanner<PrometheusConfig> prometheusScanner;
   private final ConfigContext configContext;
 
+  private final LabelFactory<StackGresCluster> labelFactory;
+
   /**
    * Create a {@code ClusterReconciliationCycle} instance.
    */
@@ -114,7 +117,7 @@ public class ClusterReconciliationCycle
       ClusterStatusManager statusManager, EventController eventController,
       ObjectMapperProvider objectMapperProvider,
       CustomResourceScanner<PrometheusConfig> prometheusScanner,
-      ConfigContext configContext) {
+      ConfigContext configContext, LabelFactory<StackGresCluster> labelFactory) {
     super("Cluster", kubClientFactory::create, StackGresClusterContext::getCluster,
         handlerSelector, objectMapperProvider.objectMapper());
     this.sidecarFinder = sidecarFinder;
@@ -123,6 +126,7 @@ public class ClusterReconciliationCycle
     this.eventController = eventController;
     this.prometheusScanner = prometheusScanner;
     this.configContext = configContext;
+    this.labelFactory = labelFactory;
   }
 
   public ClusterReconciliationCycle() {
@@ -134,6 +138,7 @@ public class ClusterReconciliationCycle
     this.eventController = null;
     this.prometheusScanner = null;
     this.configContext = null;
+    this.labelFactory = null;
   }
 
   @Override
@@ -228,6 +233,12 @@ public class ClusterReconciliationCycle
             .map(Unchecked.function(sidecar -> getSidecarEntry(cluster, client, sidecar)))
             .collect(ImmutableList.toImmutableList()))
         .backups(getBackups(cluster, client))
+        .labels(labelFactory.clusterLabels(cluster))
+        .clusterNamespace(labelFactory.clusterNamespace(cluster))
+        .clusterName(labelFactory.clusterName(cluster))
+        .clusterKey(labelFactory.getLabelMapper().clusterKey())
+        .backupKey(labelFactory.getLabelMapper().backupKey())
+        .ownerReferences(ImmutableList.of(ResourceUtil.getOwnerReference(cluster)))
         .prometheus(getPrometheus(cluster, client))
         .restoreContext(getRestoreContext(cluster, client))
         .build();
@@ -360,7 +371,7 @@ public class ClusterReconciliationCycle
   public Optional<Prometheus> getPrometheus(StackGresCluster cluster,
       KubernetesClient client) {
     boolean isAutobindAllowed = Boolean
-        .parseBoolean(configContext.getProperty(ConfigProperty.PROMETHEUS_AUTOBIND)
+        .parseBoolean(configContext.getProperty(OperatorProperty.PROMETHEUS_AUTOBIND)
             .orElse("false"));
 
     boolean isPrometheusAutobindEnabled = Optional.ofNullable(cluster.getSpec()

@@ -8,6 +8,7 @@ package io.stackgres.operator.rest;
 import java.util.Arrays;
 
 import io.fabric8.kubernetes.api.model.Status;
+import io.stackgres.apiweb.StatusParser;
 
 public class Kubernetes12StatusParser implements StatusParser {
 

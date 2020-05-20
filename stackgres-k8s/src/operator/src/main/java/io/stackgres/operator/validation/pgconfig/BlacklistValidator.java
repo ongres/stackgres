@@ -12,7 +12,7 @@ import java.util.Set;
 
 import javax.inject.Singleton;
 
-import io.stackgres.operator.common.ErrorType;
+import io.stackgres.common.ErrorType;
 import io.stackgres.operator.common.PgConfigReview;
 import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operatorframework.admissionwebhook.Operation;

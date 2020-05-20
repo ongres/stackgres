@@ -9,15 +9,16 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import io.fabric8.kubernetes.client.CustomResourceList;
+import io.stackgres.apiweb.ProfileResource;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgprofile.StackGresProfileList;
-import io.stackgres.operator.resource.CustomResourceFinder;
-import io.stackgres.operator.resource.CustomResourceScanner;
-import io.stackgres.operator.resource.CustomResourceScheduler;
-import io.stackgres.operator.rest.dto.profile.ProfileDto;
-import io.stackgres.operator.rest.transformer.AbstractResourceTransformer;
-import io.stackgres.operator.rest.transformer.ProfileTransformer;
-import io.stackgres.operator.utils.JsonUtil;
+import io.stackgres.common.resource.CustomResourceFinder;
+import io.stackgres.common.resource.CustomResourceScanner;
+import io.stackgres.common.resource.CustomResourceScheduler;
+import io.stackgres.apiweb.distributedlogs.dto.profile.ProfileDto;
+import io.stackgres.apiweb.transformer.AbstractResourceTransformer;
+import io.stackgres.apiweb.transformer.ProfileTransformer;
+import io.stackgres.testutil.JsonUtil;
 
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;

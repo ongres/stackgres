@@ -16,37 +16,49 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
 
+import io.fabric8.kubernetes.api.model.ObjectMeta;
+import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodList;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.stackgres.common.KubernetesClientFactory;
+import io.stackgres.common.LabelFactory;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsCondition;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsDefinition;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsDoneable;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsList;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsStatus;
-import io.stackgres.operator.app.KubernetesClientFactory;
 import io.stackgres.operator.common.StackGresDistributedLogsContext;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 
 @ApplicationScoped
 public class DistributedLogsStatusManager {
 
+  private final KubernetesClientFactory clientFactory;
+
+  private final LabelFactory<StackGresDistributedLogs> labelFactory;
+
   @Inject
-  KubernetesClientFactory clientFactory;
+  public DistributedLogsStatusManager(KubernetesClientFactory clientFactory,
+                                      LabelFactory<StackGresDistributedLogs> labelFactory) {
+    this.clientFactory = clientFactory;
+    this.labelFactory = labelFactory;
+  }
 
   /**
    * Send an event related to a stackgres centralized logging.
    */
   public void sendCondition(@NotNull DistributedLogsStatusCondition reason,
-      @NotNull StackGresDistributedLogsContext distributedLogsContext) {
+                            @NotNull StackGresDistributedLogsContext distributedLogsContext) {
     try (KubernetesClient client = clientFactory.create()) {
       sendCondition(reason, distributedLogsContext, client);
     }
   }
 
   private void sendCondition(DistributedLogsStatusCondition reason,
-      StackGresDistributedLogsContext distributedLogsContext,
-      KubernetesClient client) {
+                             StackGresDistributedLogsContext distributedLogsContext,
+                             KubernetesClient client) {
     StackGresDistributedLogs distributedLogs = distributedLogsContext.getDistributedLogs();
     Instant now = Instant.now();
 
@@ -66,8 +78,8 @@ public class DistributedLogsStatusManager {
     // copy list of current conditions
     List<StackGresDistributedLogsCondition> copyList =
         distributedLogs.getStatus().getConditions().stream()
-        .filter(c -> !condition.getType().equals(c.getType()))
-        .collect(Collectors.toList());
+            .filter(c -> !condition.getType().equals(c.getType()))
+            .collect(Collectors.toList());
 
     copyList.add(condition);
 
@@ -93,7 +105,7 @@ public class DistributedLogsStatusManager {
   }
 
   private void updatePendingRestart(StackGresDistributedLogsContext distributedLogsContext,
-      KubernetesClient client) {
+                                    KubernetesClient client) {
     if (isPendingRestart(distributedLogsContext, client)) {
       sendCondition(DistributedLogsStatusCondition.PATRONI_REQUIRES_RESTART,
           distributedLogsContext, client);
@@ -113,19 +125,20 @@ public class DistributedLogsStatusManager {
   }
 
   private boolean isPendingRestart(StackGresDistributedLogsContext distributedLogsContext,
-      KubernetesClient client) {
+                                   KubernetesClient client) {
     StackGresDistributedLogs distributedLogs = distributedLogsContext.getDistributedLogs();
     final String namespace = distributedLogs.getMetadata().getNamespace();
-    final Map<String, String> labels = distributedLogsContext.patroniClusterLabels();
+    final StackGresCluster cluster = distributedLogsContext.getCluster();
+    final Map<String, String> labels = labelFactory.patroniClusterLabels(cluster);
 
     PodList pods = client.pods().inNamespace(namespace).withLabels(labels).list();
 
     return pods.getItems().stream()
-        .map(m -> m.getMetadata()).filter(Objects::nonNull)
-        .map(a -> a.getAnnotations()).filter(Objects::nonNull)
-        .map(e -> e.entrySet()).filter(Objects::nonNull)
+        .map(Pod::getMetadata).filter(Objects::nonNull)
+        .map(ObjectMeta::getAnnotations).filter(Objects::nonNull)
+        .map(Map::entrySet)
         .anyMatch(p -> p.stream()
-            .map(v -> v.getValue()).filter(Objects::nonNull)
+            .map(Map.Entry::getValue).filter(Objects::nonNull)
             .anyMatch(r -> r.contains("pending_restart")));
   }
 

@@ -11,6 +11,7 @@ import java.util.regex.Pattern;
 
 import io.fabric8.kubernetes.api.model.Status;
 import io.fabric8.kubernetes.api.model.StatusCause;
+import io.stackgres.apiweb.StatusParser;
 
 public class Kubernetes16StatusParser implements StatusParser {
 

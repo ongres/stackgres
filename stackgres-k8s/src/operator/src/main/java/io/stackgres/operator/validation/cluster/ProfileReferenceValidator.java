@@ -10,12 +10,11 @@ import java.util.Optional;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
+import io.stackgres.common.ErrorType;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
-import io.stackgres.operator.common.ConfigContext;
-import io.stackgres.operator.common.ErrorType;
+import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.common.StackGresClusterReview;
-import io.stackgres.operator.resource.CustomResourceFinder;
 import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 
@@ -25,13 +24,9 @@ public class ProfileReferenceValidator implements ClusterValidator {
 
   private CustomResourceFinder<StackGresProfile> profileFinder;
 
-  private ConfigContext context;
-
   @Inject
-  public ProfileReferenceValidator(CustomResourceFinder<StackGresProfile> profileFinder,
-                                   ConfigContext context) {
+  public ProfileReferenceValidator(CustomResourceFinder<StackGresProfile> profileFinder) {
     this.profileFinder = profileFinder;
-    this.context = context;
   }
 
   @Override
@@ -63,7 +58,7 @@ public class ProfileReferenceValidator implements ClusterValidator {
         .findByNameAndNamespace(resourceProfile, namespace);
 
     if (!profileOpt.isPresent()) {
-      fail(context, onError);
+      fail(onError);
     }
 
   }

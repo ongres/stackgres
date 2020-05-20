@@ -9,8 +9,8 @@ import javax.inject.Inject;
 
 import io.quarkus.test.junit.QuarkusTest;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.testutil.JsonUtil;
 import io.stackgres.operator.common.StackGresClusterReview;
-import io.stackgres.operator.utils.JsonUtil;
 import io.stackgres.operator.validation.ValidationPipelineTest;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationPipeline;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;

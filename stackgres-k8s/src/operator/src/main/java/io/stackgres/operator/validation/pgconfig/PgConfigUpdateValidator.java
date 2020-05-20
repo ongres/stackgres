@@ -6,18 +6,17 @@
 package io.stackgres.operator.validation.pgconfig;
 
 import javax.annotation.PostConstruct;
-import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.fabric8.kubernetes.api.model.Status;
 import io.fabric8.kubernetes.api.model.StatusBuilder;
 import io.fabric8.kubernetes.api.model.StatusDetailsBuilder;
+import io.stackgres.common.ConfigContext;
+import io.stackgres.common.ErrorType;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigDefinition;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigSpec;
-import io.stackgres.operator.common.ConfigContext;
-import io.stackgres.operator.common.ErrorType;
 import io.stackgres.operator.common.PgConfigReview;
 import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
@@ -27,14 +26,7 @@ import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFail
 @ValidationType(ErrorType.FORBIDDEN_CR_UPDATE)
 public class PgConfigUpdateValidator implements PgConfigValidator {
 
-  private final ConfigContext context;
-
   private String pgVersionPath;
-
-  @Inject
-  public PgConfigUpdateValidator(ConfigContext context) {
-    this.context = context;
-  }
 
   @PostConstruct
   public void init() throws NoSuchFieldException {
@@ -59,7 +51,7 @@ public class PgConfigUpdateValidator implements PgConfigValidator {
         Status failedStatus = new StatusBuilder()
             .withCode(400)
             .withKind(StackGresPostgresConfigDefinition.KIND)
-            .withReason(context.getErrorTypeUri(ErrorType.FORBIDDEN_CR_UPDATE))
+            .withReason(ConfigContext.getErrorTypeUri(ErrorType.FORBIDDEN_CR_UPDATE))
             .withDetails(new StatusDetailsBuilder()
                 .addNewCause(pgVersionPath, detail, "FieldNotUpdatable")
                 .withKind(StackGresPostgresConfigDefinition.KIND)

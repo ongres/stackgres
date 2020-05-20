@@ -32,9 +32,12 @@ import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
+import io.stackgres.common.LabelFactory;
+import io.stackgres.common.YamlMapperProvider;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
-import io.stackgres.operator.app.YamlMapperProvider;
+import io.stackgres.operator.common.LabelFactoryDelegator;
 import io.stackgres.operator.common.Prometheus;
 import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.common.StackGresClusterContext;
@@ -74,11 +77,14 @@ public class Envoy implements StackGresClusterSidecarResourceFactory<Void> {
           "postgres_pool_port", PG_POOL_PORT,
           "postgres_port", PG_PORT);
 
-  final YamlMapperProvider yamlMapperProvider;
+  private final YamlMapperProvider yamlMapperProvider;
+
+  private final LabelFactoryDelegator factoryDelegator;
 
   @Inject
-  public Envoy(YamlMapperProvider yamlMapperProvider) {
+  public Envoy(YamlMapperProvider yamlMapperProvider, LabelFactoryDelegator factoryDelegator) {
     this.yamlMapperProvider = yamlMapperProvider;
+    this.factoryDelegator = factoryDelegator;
   }
 
   public static String configName(StackGresClusterContext clusterContext) {
@@ -131,8 +137,10 @@ public class Envoy implements StackGresClusterSidecarResourceFactory<Void> {
   @Override
   public Stream<HasMetadata> streamResources(StackGresGeneratorContext context) {
 
+    final StackGresClusterContext clusterContext = context.getClusterContext();
+    final StackGresCluster stackGresCluster = clusterContext.getCluster();
     boolean disablePgBouncer = Optional
-        .ofNullable(context.getClusterContext().getCluster().getSpec())
+        .ofNullable(stackGresCluster.getSpec())
         .map(StackGresClusterSpec::getPod)
         .map(StackGresClusterPod::getDisableConnectionPooling)
         .orElse(false);
@@ -180,37 +188,38 @@ public class Envoy implements StackGresClusterSidecarResourceFactory<Void> {
       throw new IllegalStateException("couldn't parse envoy config file", ex);
     }
 
-    String namespace = context.getClusterContext().getCluster().getMetadata().getNamespace();
-    String configMapName = configName(context.getClusterContext());
+    String namespace = stackGresCluster.getMetadata().getNamespace();
+    String configMapName = configName(clusterContext);
     ImmutableList.Builder<HasMetadata> resourcesBuilder = ImmutableList.builder();
 
+    final LabelFactory<?> labelFactory = factoryDelegator.pickFactory(clusterContext);
     ConfigMap cm = new ConfigMapBuilder()
         .withNewMetadata()
         .withNamespace(namespace)
         .withName(configMapName)
-        .withLabels(context.getClusterContext().clusterLabels())
-        .withOwnerReferences(context.getClusterContext().ownerReferences())
+        .withLabels(labelFactory.clusterLabels(stackGresCluster))
+        .withOwnerReferences(clusterContext.getOwnerReferences())
         .endMetadata()
         .withData(data)
         .build();
     resourcesBuilder.add(cm);
 
-    final Map<String, String> defaultLabels = context.getClusterContext().clusterLabels();
+    final Map<String, String> defaultLabels = labelFactory.clusterLabels(stackGresCluster);
     Map<String, String> labels = new ImmutableMap.Builder<String, String>()
-        .putAll(context.getClusterContext().clusterCrossNamespaceLabels())
+        .putAll(labelFactory.clusterCrossNamespaceLabels(stackGresCluster))
         .build();
 
-    Optional<Prometheus> prometheus = context.getClusterContext().getPrometheus();
+    Optional<Prometheus> prometheus = clusterContext.getPrometheus();
     resourcesBuilder.add(
         new ServiceBuilder()
             .withNewMetadata()
-            .withNamespace(context.getClusterContext().getCluster().getMetadata().getNamespace())
-            .withName(serviceName(context.getClusterContext()))
+            .withNamespace(stackGresCluster.getMetadata().getNamespace())
+            .withName(serviceName(clusterContext))
             .withLabels(ImmutableMap.<String, String>builder()
                 .putAll(labels)
                 .put("container", NAME)
                 .build())
-            .withOwnerReferences(context.getClusterContext().ownerReferences())
+            .withOwnerReferences(clusterContext.getOwnerReferences())
             .endMetadata()
             .withSpec(new ServiceSpecBuilder()
                 .withSelector(defaultLabels)
@@ -229,8 +238,8 @@ public class Envoy implements StackGresClusterSidecarResourceFactory<Void> {
           serviceMonitor.setApiVersion(ServiceMonitorDefinition.APIVERSION);
           serviceMonitor.setMetadata(new ObjectMetaBuilder()
               .withNamespace(pi.getNamespace())
-              .withName(serviceMonitorName(context.getClusterContext()))
-              .withOwnerReferences(context.getClusterContext().ownerReferences())
+              .withName(serviceMonitorName(clusterContext))
+              .withOwnerReferences(clusterContext.getOwnerReferences())
               .withLabels(ImmutableMap.<String, String>builder()
                   .putAll(pi.getMatchLabels())
                   .putAll(labels)

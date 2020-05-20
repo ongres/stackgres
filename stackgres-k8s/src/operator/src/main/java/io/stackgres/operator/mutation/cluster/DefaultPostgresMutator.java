@@ -12,13 +12,13 @@ import javax.inject.Inject;
 import com.github.fge.jackson.jsonpointer.JsonPointer;
 import com.github.fge.jsonpatch.JsonPatchOperation;
 import com.google.common.collect.ImmutableList;
+import io.stackgres.common.ArcUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
-import io.stackgres.operator.common.ArcUtil;
+import io.stackgres.common.resource.CustomResourceFinder;
+import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
-import io.stackgres.operator.resource.CustomResourceFinder;
-import io.stackgres.operator.resource.CustomResourceScheduler;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 
 public class DefaultPostgresMutator

@@ -16,7 +16,9 @@ import javax.inject.Inject;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.VersionInfo;
-import io.stackgres.operator.app.KubernetesClientFactory;
+import io.stackgres.apiweb.StatusParser;
+import io.stackgres.apiweb.StatusParserProvider;
+import io.stackgres.common.KubernetesClientFactory;
 
 @ApplicationScoped
 public class StatusParserProviderImpl implements StatusParserProvider {
