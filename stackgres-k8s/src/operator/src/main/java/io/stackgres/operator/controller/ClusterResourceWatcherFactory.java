@@ -6,6 +6,7 @@
 package io.stackgres.operator.controller;
 
 import java.util.function.Consumer;
+
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 

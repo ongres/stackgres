@@ -6,6 +6,7 @@
 package io.stackgres.operator.mutation;
 
 import java.util.List;
+
 import javax.inject.Inject;
 
 import com.github.fge.jsonpatch.JsonPatchOperation;

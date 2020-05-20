@@ -14,10 +14,7 @@
   <name>StackGres Common</name>
 
   <properties>
-    <checkstyle.conifg.folder.location>${project.basedir}/../checks/checkstyle</checkstyle.conifg.folder.location>
-    <checkstyle.config.location>${checkstyle.conifg.folder.location}/checkstyle.xml</checkstyle.config.location>
-    <checkstyle.header.file>${checkstyle.conifg.folder.location}/header.txt</checkstyle.header.file>
-    <spotbugs.excludeFilterFile>${project.basedir}/../checks/spotbugs/exclude.xml</spotbugs.excludeFilterFile>
+    <checks.location>${project.parent.basedir}/checks</checks.location>
   </properties>
 
   <dependencies>

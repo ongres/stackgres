@@ -15,7 +15,6 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import com.google.common.collect.ImmutableMap;
-
 import io.fabric8.kubernetes.api.model.Event;
 import io.fabric8.kubernetes.api.model.EventBuilder;
 import io.fabric8.kubernetes.api.model.EventSourceBuilder;
@@ -24,7 +23,6 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.operator.app.KubernetesClientFactory;
 import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operatorframework.resource.ResourceUtil;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

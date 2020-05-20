@@ -6,7 +6,5 @@
   <suppress checks=".*" files=".*/target/.*" />
   <suppress checks=".*" files=".*/generated/.*" />
 
-  <!-- Filters for checkstyle version mismatches -->
-  <suppress message="Extra separation in import group before .*" checks="CustomImportOrder" files=".*" />
-  <suppress message="Expected @throws tag for .*" checks="JavadocMethod" files=".*" />
+  <suppress checks="MissingJavadocMethod" files=".java" />
 </suppressions>

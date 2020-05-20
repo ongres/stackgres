@@ -6,6 +6,7 @@
 package io.stackgres.operator.validation;
 
 import java.util.Set;
+
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.validation.ConstraintViolation;

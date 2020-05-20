@@ -6,6 +6,7 @@
 package io.stackgres.operator.rest.dto.cluster;
 
 import java.util.Objects;
+
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 

@@ -6,6 +6,7 @@
 package io.stackgres.operator.patroni.factory;
 
 import java.util.Optional;
+
 import javax.enterprise.context.ApplicationScoped;
 
 import com.google.common.collect.ImmutableMap;

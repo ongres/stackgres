@@ -8,7 +8,6 @@ package io.stackgres.operator.cluster.factory;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.stackgres.operator.common.VolumePath;
-
 import org.jooq.lambda.Seq;
 
 public enum ClusterStatefulSetPath implements VolumePath {

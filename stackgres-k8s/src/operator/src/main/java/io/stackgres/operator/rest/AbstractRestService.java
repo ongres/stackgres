@@ -22,7 +22,6 @@ import io.stackgres.operator.resource.CustomResourceScanner;
 import io.stackgres.operator.resource.CustomResourceScheduler;
 import io.stackgres.operator.rest.dto.ResourceDto;
 import io.stackgres.operator.rest.transformer.ResourceTransformer;
-
 import org.jooq.lambda.Seq;
 
 public class AbstractRestService<T extends ResourceDto, R extends CustomResource>

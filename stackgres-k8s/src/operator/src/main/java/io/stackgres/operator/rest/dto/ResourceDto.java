@@ -6,7 +6,6 @@
 package io.stackgres.operator.rest.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
 @RegisterForReflection

@@ -6,6 +6,7 @@
 package io.stackgres.operator.validation.backup;
 
 import java.util.Optional;
+
 import javax.inject.Inject;
 import javax.inject.Singleton;
 

@@ -12,12 +12,10 @@ import java.util.regex.Pattern;
 import javax.enterprise.context.ApplicationScoped;
 
 import com.google.common.collect.ImmutableMap;
-
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigSpec;
 import io.stackgres.operator.rest.dto.pgconfig.PostgresConfigDto;
 import io.stackgres.operator.rest.dto.pgconfig.PostgresConfigSpec;
-
 import org.jooq.lambda.Seq;
 
 @ApplicationScoped

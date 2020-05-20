@@ -8,6 +8,7 @@ package io.stackgres.operator.validation;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+
 import javax.enterprise.inject.Instance;
 
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;

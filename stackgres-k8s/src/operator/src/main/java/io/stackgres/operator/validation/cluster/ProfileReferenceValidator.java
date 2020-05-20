@@ -6,6 +6,7 @@
 package io.stackgres.operator.validation.cluster;
 
 import java.util.Optional;
+
 import javax.inject.Inject;
 import javax.inject.Singleton;
 

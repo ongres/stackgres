@@ -7,6 +7,7 @@ package io.stackgres.operator.mutation.cluster;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 

@@ -7,6 +7,7 @@ package io.stackgres.operator.validation;
 
 import java.util.List;
 import java.util.Optional;
+
 import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.Status;

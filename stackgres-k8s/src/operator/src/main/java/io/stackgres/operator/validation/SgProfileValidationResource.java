@@ -19,7 +19,6 @@ import io.stackgres.operator.common.SgProfileReview;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReviewResponse;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationPipeline;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationResource;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

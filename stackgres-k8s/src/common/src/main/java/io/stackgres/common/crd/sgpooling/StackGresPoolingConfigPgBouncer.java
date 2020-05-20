@@ -7,6 +7,7 @@ package io.stackgres.common.crd.sgpooling;
 
 import java.util.Map;
 import java.util.Objects;
+
 import javax.validation.constraints.NotEmpty;
 
 import com.fasterxml.jackson.annotation.JsonInclude;

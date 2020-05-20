@@ -6,6 +6,7 @@
 package io.stackgres.common.crd.sgprofile;
 
 import java.util.Objects;
+
 import javax.validation.constraints.NotBlank;
 
 import com.fasterxml.jackson.annotation.JsonInclude;

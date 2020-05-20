@@ -6,6 +6,7 @@
 package io.stackgres.operator.mutation.pgbouncer;
 
 import java.util.List;
+
 import javax.enterprise.context.ApplicationScoped;
 
 import com.fasterxml.jackson.databind.JsonNode;

@@ -9,7 +9,6 @@ import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.google.common.base.MoreObjects;
-
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
 @RegisterForReflection

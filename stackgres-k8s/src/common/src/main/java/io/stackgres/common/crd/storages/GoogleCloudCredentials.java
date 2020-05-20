@@ -6,13 +6,13 @@
 package io.stackgres.common.crd.storages;
 
 import java.util.Objects;
+
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
 @JsonDeserialize

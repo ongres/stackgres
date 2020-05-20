@@ -8,7 +8,6 @@ package io.stackgres.operator.rest.dto;
 import javax.validation.constraints.NotNull;
 
 import com.google.common.base.MoreObjects;
-
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
 @RegisterForReflection
