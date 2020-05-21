@@ -177,6 +177,13 @@ setup_k8s() {
   fi
 }
 
+setup_logs() {
+  pod_logs > "$TARGET_PATH/all_pods.log" &
+  trap_kill "$!"
+  event_watch > "$TARGET_PATH/all_events.log" &
+  trap_kill "$!"
+}
+
 if [ "$(basename "$0")" = "e2e" -a ! -z "$1" ]
 then
   "$@"

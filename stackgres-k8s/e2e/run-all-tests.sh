@@ -9,6 +9,7 @@ E2E_ONLY_INCLUDES="${E2E_ONLY_INCLUDES}"
 echo "Preparing environment"
 
 setup_k8s
+setup_logs
 
 echo "Functional tests results" > "$TARGET_PATH/logs/results.log"
 

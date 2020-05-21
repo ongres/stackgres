@@ -87,6 +87,7 @@ pod_logs_pod() {
     | jq -r '.spec.containers | map(.name) | .[]' \
     | if [ -z "$filtered_container" ]; then cat; else grep '^'"$filtered_container"'$'; fi \
     | while read container; do
+        echo_raw "[${pod%/*}-$container] Start logging container $container in pod $pod"
         pod_logs_pod_container_in_trap -n "$namespace" "$pod" -c "$container"
       done
 }
