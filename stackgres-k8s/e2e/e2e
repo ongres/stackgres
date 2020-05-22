@@ -144,6 +144,7 @@ setup_k8s() {
     k8s_cleanup
 
     install_operator
+    store_operator_values
 
     if [ "$E2E_DEBUG_OPERATOR" = true ]
     then
@@ -155,6 +156,7 @@ setup_k8s() {
   else
     helm_cleanup_but_operator
     k8s_cleanup_but_operator
+    store_operator_values
   fi
 
   if [ "$E2E_WAIT_OPERATOR" = true ]

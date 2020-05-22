@@ -19,7 +19,7 @@ e2e_test_install() {
 
   wait_pods_running "$(prometheus_namespace)" 3
 
-  upgrade_operator \
+  upgrade_or_install_operator \
     --set grafana.autoEmbed=true \
     --set-string grafana.webHost="prometheus-grafana.$(prometheus_namespace)"
 
