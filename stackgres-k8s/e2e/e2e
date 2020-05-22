@@ -178,9 +178,9 @@ setup_k8s() {
 }
 
 setup_logs() {
-  pod_logs > "$TARGET_PATH/all_pods.log" &
+  pod_logs > "$TARGET_PATH/all_pods.log" 2>/dev/null &
   trap_kill "$!"
-  event_watch > "$TARGET_PATH/all_events.log" &
+  event_watch > "$TARGET_PATH/all_events.log" 2>/dev/null &
   trap_kill "$!"
 }
 
