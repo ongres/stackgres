@@ -11,18 +11,13 @@ e2e_test() {
 }
 
 test_anti_affinity_is_blocking_pod_creation() {
-  local OLD_E2E_TIMEOUT="$E2E_TIMEOUT"
-  E2E_TIMEOUT="$((E2E_TIMEOUT * 4))"
-
-  if wait_until is_anti_affinity_blocking_pod_creation
+  if wait_until -t "$((E2E_TIMEOUT * 4))" is_anti_affinity_blocking_pod_creation
   then
     echo "Cluster anti affinity is blocking pod creation"
   else
     echo "Cluster anti affinity isn't blocking pod creation"
     return 1
   fi
-
-  E2E_TIMEOUT="$OLD_E2E_TIMEOUT"
 }
 
 is_anti_affinity_blocking_pod_creation() {
