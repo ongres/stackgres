@@ -9,7 +9,10 @@ check_backup() {
 }
 
 check_wal_archive() {
-  if wait_until try_check_wal_archive "$NODE"
+  local RESULT
+  local EXIT_CODE
+  try_function wait_until try_check_wal_archive "$NODE"
+  if "$RESULT"
   then
     echo "SUCCESS. The WAL is available"
   else

@@ -34,18 +34,20 @@ e2e_exclusive_lock() {
 }
 
 spec() {
-  SPEC_FILE="$1"
-  SPEC_BEFORE_FILE="$SPEC_FILE.before"
-  SPEC_AFTER_FILE="$SPEC_FILE.after"
-  SPEC_VALUES_FILE="$1.values.yaml"
-  SPEC_PATH="$(dirname "$SPEC_FILE")"
-  SPEC_NAME="$(basename "$SPEC_FILE")"
-  CLUSTER_NAMESPACE="$SPEC_NAME-$(printf '%x' "$(date +%s)")"
-  CLUSTER_NAME="$SPEC_NAME"
-  E2E_SKIP_SPEC_INSTALL="${E2E_SKIP_SPEC_INSTALL:-false}"
-  E2E_SKIP_SPEC_BEFORE_ALL="${E2E_SKIP_SPEC_BEFORE_ALL:-false}"
-  E2E_SKIP_SPEC_AFTER_ALL="${E2E_SKIP_SPEC_AFTER_ALL:-false}"
-  LOG_PATH="$TARGET_PATH/logs/$SPEC_NAME"
+  local RESULT
+  local EXIT_CODE
+  local SPEC_FILE="$1"
+  local SPEC_BEFORE_FILE="$SPEC_FILE.before"
+  local SPEC_AFTER_FILE="$SPEC_FILE.after"
+  local SPEC_VALUES_FILE="$1.values.yaml"
+  local SPEC_PATH="$(dirname "$SPEC_FILE")"
+  local SPEC_NAME="$(basename "$SPEC_FILE")"
+  local CLUSTER_NAMESPACE="$SPEC_NAME-$(printf '%x' "$(date +%s)")"
+  local CLUSTER_NAME="$SPEC_NAME"
+  local E2E_SKIP_SPEC_INSTALL="${E2E_SKIP_SPEC_INSTALL:-false}"
+  local E2E_SKIP_SPEC_BEFORE_ALL="${E2E_SKIP_SPEC_BEFORE_ALL:-false}"
+  local E2E_SKIP_SPEC_AFTER_ALL="${E2E_SKIP_SPEC_AFTER_ALL:-false}"
+  local LOG_PATH="$TARGET_PATH/logs/$SPEC_NAME"
   export SPEC_FILE SPEC_NAME CLUSTER_NAMESPACE CLUSTER_NAME LOG_PATH
 
   mkdir -p "$LOG_PATH"

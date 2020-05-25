@@ -1,7 +1,8 @@
 #!/bin/sh
 
 wait_until() {
-  local RESULT=false
+  local RESULT
+  local EXIT_CODE
   local START="$(date +%s)"
   local TIMEOUT="$E2E_TIMEOUT"
   local OUTPUT_PATH="$LOG_PATH/wait-until-$START-$(shuf -i 0-65535 -n 1).log"
