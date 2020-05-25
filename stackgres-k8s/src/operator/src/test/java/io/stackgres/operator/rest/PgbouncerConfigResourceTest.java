@@ -5,29 +5,30 @@
 
 package io.stackgres.operator.rest;
 
+import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.client.CustomResourceList;
 import io.stackgres.apiweb.ConnectionPoolingConfigResource;
+import io.stackgres.apiweb.distributedlogs.dto.pooling.PoolingConfigDto;
+import io.stackgres.apiweb.transformer.AbstractDependencyResourceTransformer;
+import io.stackgres.apiweb.transformer.PoolingConfigTransformer;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
+import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigList;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.CustomResourceScheduler;
-import io.stackgres.apiweb.distributedlogs.dto.pooling.PoolingConfigDto;
-import io.stackgres.apiweb.transformer.AbstractResourceTransformer;
-import io.stackgres.apiweb.transformer.PoolingConfigTransformer;
-import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
-import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigList;
 import io.stackgres.testutil.JsonUtil;
 import org.jooq.lambda.Seq;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 @ExtendWith(MockitoExtension.class)
 class PgbouncerConfigResourceTest
-    extends AbstractCustomResourceTest<PoolingConfigDto, StackGresPoolingConfig,
-    ConnectionPoolingConfigResource> {
+    extends AbstractDependencyCustomResourceTest<PoolingConfigDto, StackGresPoolingConfig,
+      ConnectionPoolingConfigResource> {
 
   @Override
   protected CustomResourceList<StackGresPoolingConfig> getCustomResourceList() {
@@ -40,7 +41,7 @@ class PgbouncerConfigResourceTest
   }
 
   @Override
-  protected AbstractResourceTransformer<PoolingConfigDto, StackGresPoolingConfig> getTransformer() {
+  protected AbstractDependencyResourceTransformer<PoolingConfigDto, StackGresPoolingConfig> getTransformer() {
     return new PoolingConfigTransformer();
   }
 
@@ -49,13 +50,14 @@ class PgbouncerConfigResourceTest
       CustomResourceScanner<StackGresPoolingConfig> scanner,
       CustomResourceFinder<StackGresPoolingConfig> finder,
       CustomResourceScheduler<StackGresPoolingConfig> scheduler,
-      AbstractResourceTransformer<PoolingConfigDto, StackGresPoolingConfig> transformer) {
-    return new ConnectionPoolingConfigResource(scanner, finder, scheduler, transformer);
+      CustomResourceScanner<StackGresCluster> clusterScanner,
+      AbstractDependencyResourceTransformer<PoolingConfigDto, StackGresPoolingConfig> transformer) {
+    return new ConnectionPoolingConfigResource(scanner, finder, scheduler, clusterScanner, transformer);
   }
 
   @Override
   protected String getResourceNamespace() {
-    return "default";
+    return "stackgres";
   }
 
   @Override
@@ -66,7 +68,7 @@ class PgbouncerConfigResourceTest
   @Override
   protected void checkDto(PoolingConfigDto resource) {
     assertNotNull(resource.getMetadata());
-    assertEquals("default", resource.getMetadata().getNamespace());
+    assertEquals("stackgres", resource.getMetadata().getNamespace());
     assertEquals("pgbouncerconf", resource.getMetadata().getName());
     assertEquals("ceaa793f-2d97-48b7-91e4-8086b22f1c4c", resource.getMetadata().getUid());
     assertNotNull(resource.getSpec());
@@ -76,12 +78,16 @@ class PgbouncerConfigResourceTest
         "pool_mode='transaction'")
         .toString("\n"),
         resource.getSpec().getPgBouncer().getPgbouncerConf());
+    assertNotNull(resource.getStatus());
+    assertNotNull(resource.getStatus().getClusters());
+    assertEquals(1, resource.getStatus().getClusters().size());
+    assertEquals("stackgres", resource.getStatus().getClusters().get(0));
   }
 
   @Override
   protected void checkCustomResource(StackGresPoolingConfig resource, Operation operation) {
     assertNotNull(resource.getMetadata());
-    assertEquals("default", resource.getMetadata().getNamespace());
+    assertEquals("stackgres", resource.getMetadata().getNamespace());
     assertEquals("pgbouncerconf", resource.getMetadata().getName());
     assertEquals("ceaa793f-2d97-48b7-91e4-8086b22f1c4c", resource.getMetadata().getUid());
     assertNotNull(resource.getSpec());

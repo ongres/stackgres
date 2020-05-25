@@ -15,25 +15,24 @@ import static org.mockito.Mockito.when;
 import java.util.Optional;
 
 import com.google.common.collect.ImmutableMap;
-
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.client.CustomResourceList;
 import io.stackgres.apiweb.BackupConfigResource;
 import io.stackgres.apiweb.BackupConfigResourceUtil;
+import io.stackgres.apiweb.distributedlogs.dto.backupconfig.BackupConfigDto;
+import io.stackgres.apiweb.transformer.AbstractDependencyResourceTransformer;
+import io.stackgres.apiweb.transformer.BackupConfigTransformer;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigList;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceUtil;
 import io.stackgres.common.resource.ResourceWriter;
-import io.stackgres.apiweb.distributedlogs.dto.backupconfig.BackupConfigDto;
-import io.stackgres.apiweb.transformer.AbstractResourceTransformer;
-import io.stackgres.apiweb.transformer.BackupConfigTransformer;
 import io.stackgres.testutil.JsonUtil;
-
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -43,8 +42,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class BackupConfigResourceTest
-    extends AbstractCustomResourceTest<BackupConfigDto, StackGresBackupConfig,
-    BackupConfigResource> {
+    extends AbstractDependencyCustomResourceTest<BackupConfigDto, StackGresBackupConfig,
+      BackupConfigResource> {
 
   @Mock
   private ResourceFinder<Secret> secretFinder;
@@ -83,7 +82,7 @@ class BackupConfigResourceTest
   }
 
   @Override
-  protected AbstractResourceTransformer<BackupConfigDto, StackGresBackupConfig> getTransformer() {
+  protected AbstractDependencyResourceTransformer<BackupConfigDto, StackGresBackupConfig> getTransformer() {
     return new BackupConfigTransformer();
   }
 
@@ -92,8 +91,9 @@ class BackupConfigResourceTest
       CustomResourceScanner<StackGresBackupConfig> scanner,
       CustomResourceFinder<StackGresBackupConfig> finder,
       CustomResourceScheduler<StackGresBackupConfig> scheduler,
-      AbstractResourceTransformer<BackupConfigDto, StackGresBackupConfig> transformer) {
-    return new BackupConfigResource(scanner, finder, scheduler, transformer,
+      CustomResourceScanner<StackGresCluster> clusterScanner,
+      AbstractDependencyResourceTransformer<BackupConfigDto, StackGresBackupConfig> transformer) {
+    return new BackupConfigResource(scanner, finder, scheduler, clusterScanner, transformer,
         secretFinder, secretWriter);
   }
 
@@ -160,6 +160,10 @@ class BackupConfigResourceTest
     assertEquals("k8s", resource.getSpec().getStorage().getS3Compatible().getRegion());
     assertNull(resource.getSpec().getStorage().getS3Compatible().getStorageClass());
     assertTrue(resource.getSpec().getStorage().getS3Compatible().isForcePathStyle());
+    assertNotNull(resource.getStatus());
+    assertNotNull(resource.getStatus().getClusters());
+    assertEquals(1, resource.getStatus().getClusters().size());
+    assertEquals("stackgres", resource.getStatus().getClusters().get(0));
   }
 
   @Override

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.apiweb.distributedlogs.dto.distributedlogs;
+package io.stackgres.apiweb.distributedlogs.dto.pooling;
 
 import java.util.List;
 
@@ -18,7 +18,7 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class DistributedLogsStatus {
+public class PoolingConfigStatus {
 
   @JsonProperty("clusters")
   @NotNull(message = "clusters is required")

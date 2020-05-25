@@ -7,6 +7,7 @@ package io.stackgres.apiweb;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 import javax.annotation.security.RolesAllowed;
@@ -22,9 +23,10 @@ import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.stackgres.apiweb.distributedlogs.dto.SecretKeySelector;
 import io.stackgres.apiweb.distributedlogs.dto.backupconfig.BackupConfigDto;
-import io.stackgres.apiweb.transformer.ResourceTransformer;
+import io.stackgres.apiweb.transformer.DependencyResourceTransformer;
 import io.stackgres.common.ArcUtil;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.CustomResourceScheduler;
@@ -38,7 +40,7 @@ import org.jooq.lambda.tuple.Tuple;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class BackupConfigResource extends
-    AbstractRestService<BackupConfigDto, StackGresBackupConfig> {
+    AbstractDependencyRestService<BackupConfigDto, StackGresBackupConfig> {
 
   private final CustomResourceFinder<StackGresBackupConfig> finder;
   private final ResourceFinder<Secret> secretFinder;
@@ -50,21 +52,30 @@ public class BackupConfigResource extends
       CustomResourceScanner<StackGresBackupConfig> scanner,
       CustomResourceFinder<StackGresBackupConfig> finder,
       CustomResourceScheduler<StackGresBackupConfig> scheduler,
-      ResourceTransformer<BackupConfigDto, StackGresBackupConfig> transformer,
+      CustomResourceScanner<StackGresCluster> clusterScanner,
+      DependencyResourceTransformer<BackupConfigDto, StackGresBackupConfig> transformer,
       ResourceFinder<Secret> secretFinder,
       ResourceWriter<Secret> secretWriter) {
-    super(scanner, finder, scheduler, transformer);
+    super(scanner, finder, scheduler, clusterScanner, transformer);
     this.finder = finder;
     this.secretFinder = secretFinder;
     this.secretWriter = secretWriter;
   }
 
   public BackupConfigResource() {
-    super(null, null, null, null);
+    super(null, null, null, null, null);
     ArcUtil.checkPublicNoArgsConstructorIsCalledFromArc();
     this.finder = null;
     this.secretFinder = null;
     this.secretWriter = null;
+  }
+
+  @Override
+  public boolean belongsToCluster(StackGresBackupConfig resource, StackGresCluster cluster) {
+    return cluster.getMetadata().getNamespace().equals(
+        resource.getMetadata().getNamespace())
+        && Objects.equals(cluster.getSpec().getConfiguration().getBackupConfig(),
+            resource.getMetadata().getName());
   }
 
   @RolesAllowed(RestAuthenticationRoles.ADMIN)

@@ -19,6 +19,9 @@ public class BackupConfigDto extends ResourceDto {
   @Valid
   private BackupConfigSpec spec;
 
+  @Valid
+  private BackupConfigStatus status;
+
   public BackupConfigSpec getSpec() {
     return spec;
   }
@@ -27,12 +30,21 @@ public class BackupConfigDto extends ResourceDto {
     this.spec = spec;
   }
 
+  public BackupConfigStatus getStatus() {
+    return status;
+  }
+
+  public void setStatus(BackupConfigStatus status) {
+    this.status = status;
+  }
+
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .omitNullValues()
         .add("metadata", getMetadata())
         .add("spec", spec)
+        .add("status", status)
         .toString();
   }
 

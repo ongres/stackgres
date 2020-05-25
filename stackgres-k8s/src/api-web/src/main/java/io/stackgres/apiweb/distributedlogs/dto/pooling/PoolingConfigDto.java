@@ -19,6 +19,9 @@ public class PoolingConfigDto extends ResourceDto {
   @Valid
   private PoolingConfigSpec spec;
 
+  @Valid
+  private PoolingConfigStatus status;
+
   public PoolingConfigSpec getSpec() {
     return spec;
   }
@@ -27,12 +30,21 @@ public class PoolingConfigDto extends ResourceDto {
     this.spec = spec;
   }
 
+  public PoolingConfigStatus getStatus() {
+    return status;
+  }
+
+  public void setStatus(PoolingConfigStatus status) {
+    this.status = status;
+  }
+
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .omitNullValues()
         .add("metadata", getMetadata())
         .add("spec", spec)
+        .add("status", status)
         .toString();
   }
 

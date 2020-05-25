@@ -8,7 +8,7 @@
         "creationTimestamp": "2019-09-30T11:10:03Z",
         "generation": 1,
         "name": "pgbouncerconf",
-        "namespace": "default",
+        "namespace": "stackgres",
         "resourceVersion": "214286",
         "selfLink": "/apis/stackgres.io/v1beta1/namespaces/default/sgpoolconfigs/pgbouncerconf",
         "uid": "ceaa793f-2d97-48b7-91e4-8086b22f1c4c"

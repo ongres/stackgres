@@ -1,0 +1,46 @@
+{
+  "apiVersion": "v1",
+  "items": [
+    {
+        "apiVersion": "stackgres.io/v1beta1",
+        "kind": "SGDistributedLogs",
+        "metadata": {
+            "creationTimestamp": "2020-04-23T11:06:26Z",
+            "generation": 2,
+            "labels": {
+                "app": "distributed-logs-for-distributedlogs",
+                "chart": "stackgres-cluster-0.9-SNAPSHOT",
+                "heritage": "Helm",
+                "release": "distributed-logs-for-distributedlogs"
+            },
+            "name": "distributedlogs",
+            "namespace": "stackgres",
+            "resourceVersion": "2780",
+            "selfLink": "/apis/stackgres.io/v1beta1/namespaces/stackgres/sgdistributedlogs/distributedlogs",
+            "uid": "008af052-7fcd-4665-b3b9-6d7dedbc543c"
+        },
+        "spec": {
+            "nonProductionOptions": {
+                "disableClusterPodAntiAffinity": true
+            },
+            "persistentVolume": {
+                "size": "128Mi"
+            }
+        },
+        "status": {
+            "conditions": [
+                {
+                    "lastTransitionTime": "2020-04-23T11:06:37.236147Z",
+                    "status": "False",
+                    "type": "Failed"
+                }
+            ]
+        }
+    }
+  ],
+  "kind": "List",
+  "metadata": {
+    "resourceVersion": "",
+    "selfLink": ""
+  }
+}

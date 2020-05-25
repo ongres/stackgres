@@ -1,7 +1,7 @@
 {
   "metadata": {
     "name": "pgbouncerconf",
-    "namespace": "default",
+    "namespace": "stackgres",
     "uid": "ceaa793f-2d97-48b7-91e4-8086b22f1c4c"
   },
   "spec": {

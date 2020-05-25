@@ -19,6 +19,9 @@ public class PostgresConfigDto extends ResourceDto {
   @Valid
   private PostgresConfigSpec spec;
 
+  @Valid
+  private PostgresConfigStatus status;
+
   public PostgresConfigSpec getSpec() {
     return spec;
   }
@@ -27,12 +30,21 @@ public class PostgresConfigDto extends ResourceDto {
     this.spec = spec;
   }
 
+  public PostgresConfigStatus getStatus() {
+    return status;
+  }
+
+  public void setStatus(PostgresConfigStatus status) {
+    this.status = status;
+  }
+
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .omitNullValues()
         .add("metadata", getMetadata())
         .add("spec", spec)
+        .add("status", status)
         .toString();
   }
 

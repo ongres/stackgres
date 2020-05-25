@@ -5,6 +5,7 @@
 
 package io.stackgres.apiweb.transformer;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 
@@ -13,6 +14,7 @@ import javax.enterprise.context.ApplicationScoped;
 import io.stackgres.apiweb.distributedlogs.dto.SecretKeySelector;
 import io.stackgres.apiweb.distributedlogs.dto.backupconfig.BackupConfigDto;
 import io.stackgres.apiweb.distributedlogs.dto.backupconfig.BackupConfigSpec;
+import io.stackgres.apiweb.distributedlogs.dto.backupconfig.BackupConfigStatus;
 import io.stackgres.apiweb.distributedlogs.dto.backupconfig.BaseBackupConfig;
 import io.stackgres.apiweb.distributedlogs.dto.backupconfig.BaseBackupPerformance;
 import io.stackgres.apiweb.distributedlogs.dto.storages.AwsCredentials;
@@ -33,7 +35,7 @@ import io.stackgres.common.crd.storages.AwsSecretKeySelector;
 
 @ApplicationScoped
 public class BackupConfigTransformer
-    extends AbstractResourceTransformer<BackupConfigDto, StackGresBackupConfig> {
+    extends AbstractDependencyResourceTransformer<BackupConfigDto, StackGresBackupConfig> {
 
   @Override
   public StackGresBackupConfig toCustomResource(BackupConfigDto source,
@@ -46,10 +48,11 @@ public class BackupConfigTransformer
   }
 
   @Override
-  public BackupConfigDto toResource(StackGresBackupConfig source) {
+  public BackupConfigDto toResource(StackGresBackupConfig source, List<String> clusters) {
     BackupConfigDto transformation = new BackupConfigDto();
     transformation.setMetadata(getResourceMetadata(source));
     transformation.setSpec(getResourceSpec(source.getSpec()));
+    transformation.setStatus(getResourceStatus(clusters));
     return transformation;
   }
 
@@ -244,6 +247,12 @@ public class BackupConfigTransformer
         });
 
     transformation.setStorage(getResourceStorage(source.getStorage()));
+    return transformation;
+  }
+
+  public BackupConfigStatus getResourceStatus(List<String> clusters) {
+    BackupConfigStatus transformation = new BackupConfigStatus();
+    transformation.setClusters(clusters);
     return transformation;
   }
 

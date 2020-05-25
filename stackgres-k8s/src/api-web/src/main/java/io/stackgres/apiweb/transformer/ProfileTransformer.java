@@ -5,18 +5,20 @@
 
 package io.stackgres.apiweb.transformer;
 
+import java.util.List;
 import java.util.Optional;
 
 import javax.enterprise.context.ApplicationScoped;
 
 import io.stackgres.apiweb.distributedlogs.dto.profile.ProfileDto;
 import io.stackgres.apiweb.distributedlogs.dto.profile.ProfileSpec;
+import io.stackgres.apiweb.distributedlogs.dto.profile.ProfileStatus;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgprofile.StackGresProfileSpec;
 
 @ApplicationScoped
 public class ProfileTransformer
-    extends AbstractResourceTransformer<ProfileDto, StackGresProfile> {
+    extends AbstractDependencyResourceTransformer<ProfileDto, StackGresProfile> {
 
   @Override
   public StackGresProfile toCustomResource(ProfileDto source, StackGresProfile original) {
@@ -28,10 +30,11 @@ public class ProfileTransformer
   }
 
   @Override
-  public ProfileDto toResource(StackGresProfile source) {
+  public ProfileDto toResource(StackGresProfile source, List<String> clusters) {
     ProfileDto transformation = new ProfileDto();
     transformation.setMetadata(getResourceMetadata(source));
     transformation.setSpec(getResourceSpec(source.getSpec()));
+    transformation.setStatus(getResourceStatus(clusters));
     return transformation;
   }
 
@@ -52,6 +55,12 @@ public class ProfileTransformer
     ProfileSpec transformation = new ProfileSpec();
     transformation.setCpu(source.getCpu());
     transformation.setMemory(source.getMemory());
+    return transformation;
+  }
+
+  private ProfileStatus getResourceStatus(List<String> clusters) {
+    ProfileStatus transformation = new ProfileStatus();
+    transformation.setClusters(clusters);
     return transformation;
   }
 

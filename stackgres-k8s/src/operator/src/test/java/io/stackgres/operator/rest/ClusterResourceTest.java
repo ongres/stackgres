@@ -191,7 +191,7 @@ class ClusterResourceTest
 
   @Override
   protected String getResourceNamespace() {
-    return "postgresql";
+    return "stackgres";
   }
 
   @Override
@@ -202,7 +202,7 @@ class ClusterResourceTest
   @Override
   protected void checkDto(ClusterDto resource) {
     assertNotNull(resource.getMetadata());
-    assertEquals("postgresql", resource.getMetadata().getNamespace());
+    assertEquals("stackgres", resource.getMetadata().getNamespace());
     assertEquals("stackgres", resource.getMetadata().getName());
     assertEquals("bfb53778-f59a-11e9-b1b5-0242ac110002", resource.getMetadata().getUid());
     assertNotNull(resource.getSpec());
@@ -229,14 +229,14 @@ class ClusterResourceTest
     assertEquals(4, resource.getPods().get(0).getContainersReady());
     assertEquals("10.244.3.23", resource.getPods().get(0).getIp());
     assertEquals("stackgres-0", resource.getPods().get(0).getName());
-    assertEquals("postgresql", resource.getPods().get(0).getNamespace());
+    assertEquals("stackgres", resource.getPods().get(0).getNamespace());
     assertEquals("primary", resource.getPods().get(0).getRole());
     assertEquals("Active", resource.getPods().get(0).getStatus());
     assertEquals(4, resource.getPods().get(1).getContainers());
     assertEquals(0, resource.getPods().get(1).getContainersReady());
     assertNull(resource.getPods().get(1).getIp());
     assertEquals("stackgres-1", resource.getPods().get(1).getName());
-    assertEquals("postgresql", resource.getPods().get(1).getNamespace());
+    assertEquals("stackgres", resource.getPods().get(1).getNamespace());
     assertNull(resource.getPods().get(1).getRole());
     assertEquals("Pending", resource.getPods().get(1).getStatus());
     assertEquals("customValue", resource.getSpec().getPods()
@@ -248,7 +248,7 @@ class ClusterResourceTest
   @Override
   protected void checkCustomResource(StackGresCluster resource, Operation operation) {
     assertNotNull(resource.getMetadata());
-    assertEquals("postgresql", resource.getMetadata().getNamespace());
+    assertEquals("stackgres", resource.getMetadata().getNamespace());
     assertEquals("stackgres", resource.getMetadata().getName());
     assertEquals("bfb53778-f59a-11e9-b1b5-0242ac110002", resource.getMetadata().getUid());
     assertNotNull(resource.getSpec());

@@ -5,6 +5,8 @@
 
 package io.stackgres.apiweb;
 
+import java.util.Objects;
+
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.Path;
@@ -12,8 +14,9 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import io.stackgres.apiweb.distributedlogs.dto.pooling.PoolingConfigDto;
-import io.stackgres.apiweb.transformer.ResourceTransformer;
+import io.stackgres.apiweb.transformer.DependencyResourceTransformer;
 import io.stackgres.common.ArcUtil;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
@@ -23,20 +26,29 @@ import io.stackgres.common.resource.CustomResourceScheduler;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class ConnectionPoolingConfigResource extends
-    AbstractRestService<PoolingConfigDto, StackGresPoolingConfig> {
+    AbstractDependencyRestService<PoolingConfigDto, StackGresPoolingConfig> {
 
   @Inject
   public ConnectionPoolingConfigResource(
       CustomResourceScanner<StackGresPoolingConfig> scanner,
       CustomResourceFinder<StackGresPoolingConfig> finder,
       CustomResourceScheduler<StackGresPoolingConfig> scheduler,
-      ResourceTransformer<PoolingConfigDto, StackGresPoolingConfig> transformer) {
-    super(scanner, finder, scheduler, transformer);
+      CustomResourceScanner<StackGresCluster> clusterScanner,
+      DependencyResourceTransformer<PoolingConfigDto, StackGresPoolingConfig> transformer) {
+    super(scanner, finder, scheduler, clusterScanner, transformer);
   }
 
   public ConnectionPoolingConfigResource() {
-    super(null, null, null, null);
+    super(null, null, null, null, null);
     ArcUtil.checkPublicNoArgsConstructorIsCalledFromArc();
+  }
+
+  @Override
+  public boolean belongsToCluster(StackGresPoolingConfig resource, StackGresCluster cluster) {
+    return cluster.getMetadata().getNamespace().equals(
+        resource.getMetadata().getNamespace())
+        && Objects.equals(cluster.getSpec().getConfiguration().getConnectionPoolingConfig(),
+            resource.getMetadata().getName());
   }
 
 }

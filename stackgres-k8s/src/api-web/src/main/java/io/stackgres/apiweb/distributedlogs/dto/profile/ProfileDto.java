@@ -19,6 +19,9 @@ public class ProfileDto extends ResourceDto {
   @Valid
   private ProfileSpec spec;
 
+  @Valid
+  private ProfileStatus status;
+
   public ProfileSpec getSpec() {
     return spec;
   }
@@ -27,12 +30,21 @@ public class ProfileDto extends ResourceDto {
     this.spec = spec;
   }
 
+  public ProfileStatus getStatus() {
+    return status;
+  }
+
+  public void setStatus(ProfileStatus status) {
+    this.status = status;
+  }
+
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .omitNullValues()
         .add("metadata", getMetadata())
         .add("spec", spec)
+        .add("status", status)
         .toString();
   }
 

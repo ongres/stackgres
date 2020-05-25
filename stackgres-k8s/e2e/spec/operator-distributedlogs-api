@@ -22,7 +22,7 @@ e2e_test_install() {
   echo_raw "$OPERATOR_DISTRIBUTED_LOGS_CR" > "$LOG_PATH/distributed-logs-cr.json"
 
   OPERATOR_DISTRIBUTED_LOGS=$(cat "$LOG_PATH/distributed-logs-cr.json" \
-    | jq 'del(.apiVersion) | del(.kind)' )
+    | jq 'del(.apiVersion) | del(.kind) | del(.status)' )
 
   echo_raw "$OPERATOR_DISTRIBUTED_LOGS" > "$LOG_PATH/distributed-logs.json"
 }
