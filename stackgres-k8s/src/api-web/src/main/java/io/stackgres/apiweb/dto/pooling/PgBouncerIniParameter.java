@@ -16,24 +16,39 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class PolingConfigPgBouncer {
+public class PgBouncerIniParameter {
 
-  @JsonProperty("pgbouncer.ini")
-  @NotNull(message = "pgbouncer.ini is required")
-  private String pgbouncerConf;
+  @JsonProperty("parameter")
+  @NotNull(message = "parameter is required")
+  private String parameter;
 
-  public String getPgbouncerConf() {
-    return pgbouncerConf;
+  @JsonProperty("value")
+  @NotNull(message = "value is required")
+  private String value;
+
+  public String getParameter() {
+    return parameter;
   }
 
-  public void setPgbouncerConf(String pgbouncerConf) {
-    this.pgbouncerConf = pgbouncerConf;
+  public void setParameter(String parameter) {
+    this.parameter = parameter;
+  }
+
+  public String getValue() {
+    return value;
+  }
+
+  public void setValue(String value) {
+    this.value = value;
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
-        .add("pgbouncerConf", pgbouncerConf)
+        .omitNullValues()
+        .add("parameter", parameter)
+        .add("value", value)
         .toString();
   }
+
 }

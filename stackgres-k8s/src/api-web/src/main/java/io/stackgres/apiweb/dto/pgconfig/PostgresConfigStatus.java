@@ -7,6 +7,7 @@ package io.stackgres.apiweb.dto.pgconfig;
 
 import java.util.List;
 
+import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -24,6 +25,11 @@ public class PostgresConfigStatus {
   @NotNull(message = "clusters is required")
   private List<String> clusters;
 
+  @JsonProperty("postgresql.conf")
+  @NotNull(message = "postgresql.conf is required")
+  @Valid
+  private List<PostgresqlConfParameter> postgresqlConf;
+
   public List<String> getClusters() {
     return clusters;
   }
@@ -32,11 +38,20 @@ public class PostgresConfigStatus {
     this.clusters = clusters;
   }
 
+  public List<PostgresqlConfParameter> getPostgresqlConf() {
+    return postgresqlConf;
+  }
+
+  public void setPostgresqlConf(List<PostgresqlConfParameter> postgresqlConf) {
+    this.postgresqlConf = postgresqlConf;
+  }
+
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .omitNullValues()
         .add("clusters", clusters)
+        .add("postgresql.conf", postgresqlConf)
         .toString();
   }
 

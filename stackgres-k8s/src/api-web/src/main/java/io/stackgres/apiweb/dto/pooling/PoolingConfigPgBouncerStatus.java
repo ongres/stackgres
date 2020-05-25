@@ -19,40 +19,25 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class PoolingConfigStatus {
+public class PoolingConfigPgBouncerStatus {
 
-  @JsonProperty("clusters")
-  @NotNull(message = "clusters is required")
-  private List<String> clusters;
-
-  @JsonProperty("pgBouncer")
-  @NotNull(message = "pgBouncer is required")
+  @JsonProperty("pgbouncer.ini")
+  @NotNull(message = "pgbouncer.ini is required")
   @Valid
-  private PoolingConfigPgBouncerStatus pgBouncer;
+  private List<PgBouncerIniParameter> pgbouncerConf;
 
-  public List<String> getClusters() {
-    return clusters;
+  public List<PgBouncerIniParameter> getPgbouncerConf() {
+    return pgbouncerConf;
   }
 
-  public void setClusters(List<String> clusters) {
-    this.clusters = clusters;
-  }
-
-  public PoolingConfigPgBouncerStatus getPgBouncer() {
-    return pgBouncer;
-  }
-
-  public void setPgBouncer(PoolingConfigPgBouncerStatus pgBouncer) {
-    this.pgBouncer = pgBouncer;
+  public void setPgbouncerConf(List<PgBouncerIniParameter> pgbouncerConf) {
+    this.pgbouncerConf = pgbouncerConf;
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
-        .omitNullValues()
-        .add("clusters", clusters)
-        .add("pgBouncer", pgBouncer)
+        .add("pgbouncerConf", pgbouncerConf)
         .toString();
   }
-
 }

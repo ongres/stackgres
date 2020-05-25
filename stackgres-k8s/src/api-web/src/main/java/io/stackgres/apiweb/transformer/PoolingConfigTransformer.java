@@ -13,14 +13,17 @@ import java.util.regex.Pattern;
 import javax.enterprise.context.ApplicationScoped;
 
 import com.google.common.collect.ImmutableMap;
-import io.stackgres.apiweb.dto.pooling.PolingConfigPgBouncer;
+import io.stackgres.apiweb.dto.pooling.PgBouncerIniParameter;
 import io.stackgres.apiweb.dto.pooling.PoolingConfigDto;
+import io.stackgres.apiweb.dto.pooling.PoolingConfigPgBouncer;
+import io.stackgres.apiweb.dto.pooling.PoolingConfigPgBouncerStatus;
 import io.stackgres.apiweb.dto.pooling.PoolingConfigSpec;
 import io.stackgres.apiweb.dto.pooling.PoolingConfigStatus;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncer;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigSpec;
 import org.jooq.lambda.Seq;
+import org.jooq.lambda.tuple.Tuple3;
 
 @ApplicationScoped
 public class PoolingConfigTransformer
@@ -47,7 +50,7 @@ public class PoolingConfigTransformer
     PoolingConfigDto transformation = new PoolingConfigDto();
     transformation.setMetadata(getResourceMetadata(source));
     transformation.setSpec(getResourceSpec(source.getSpec()));
-    transformation.setStatus(getResourceStatus(clusters));
+    transformation.setStatus(getResourceStatus(clusters, source.getSpec()));
     return transformation;
   }
 
@@ -55,7 +58,7 @@ public class PoolingConfigTransformer
     StackGresPoolingConfigSpec transformation = new StackGresPoolingConfigSpec();
     Optional.ofNullable(source)
         .map(PoolingConfigSpec::getPgBouncer)
-        .map(PolingConfigPgBouncer::getPgbouncerConf)
+        .map(PoolingConfigPgBouncer::getPgbouncerConf)
         .ifPresent(pgbouncerConf -> {
           transformation.setPgBouncer(new StackGresPoolingConfigPgBouncer());
           transformation.getPgBouncer().setPgbouncerConf(Seq.of(pgbouncerConf.split("\n"))
@@ -76,7 +79,7 @@ public class PoolingConfigTransformer
 
   private PoolingConfigSpec getResourceSpec(StackGresPoolingConfigSpec source) {
     PoolingConfigSpec transformation = new PoolingConfigSpec();
-    transformation.setPgBouncer(new PolingConfigPgBouncer());
+    transformation.setPgBouncer(new PoolingConfigPgBouncer());
     transformation.getPgBouncer().setPgbouncerConf(
         Seq.seq(source.getPgBouncer().getPgbouncerConf().entrySet())
             .map(e -> e.getKey() + "=" + e.getValue())
@@ -84,9 +87,18 @@ public class PoolingConfigTransformer
     return transformation;
   }
 
-  private PoolingConfigStatus getResourceStatus(List<String> clusters) {
+  private PoolingConfigStatus getResourceStatus(List<String> clusters,
+      StackGresPoolingConfigSpec source) {
     PoolingConfigStatus transformation = new PoolingConfigStatus();
     transformation.setClusters(clusters);
+    transformation.setPgBouncer(new PoolingConfigPgBouncerStatus());
+    transformation.getPgBouncer().setPgbouncerConf(
+        Seq.seq(source.getPgBouncer().getPgbouncerConf())
+          .map(t -> t.concat(new PgBouncerIniParameter()))
+          .peek(t -> t.v3.setParameter(t.v1))
+          .peek(t -> t.v3.setValue(t.v2))
+          .map(Tuple3::v3)
+          .toList());
     return transformation;
   }
 
