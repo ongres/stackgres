@@ -534,13 +534,13 @@ form#login .warning {
     background: #171717;
 }
 
-.darkmode table.backupConfig tr.open {
-    border-top: 1px solid #171717;
+.darkmode table.backupConfig tr.base.open {
+    border-top: 1px solid #333333;
 }
 
-.darkmode table.backupConfig tr.details.open, .darkmode table.backupConfig tr.base.open {
+/*.darkmode table.backupConfig tr.details.open, .darkmode table.backupConfig tr.base.open {
     border: 1px solid #333333;
-}
+}*/
 
 .darkmode #delete .tooltip  h3 {
     border-bottom: 1px solid #333333;
@@ -2988,7 +2988,7 @@ table.backupConfig tr:nth-child(4n-2), table.backupConfig tr:nth-child(4n-2) + t
     background: #fff;
 }
 
-table.backupConfig tr.open {
+table.backupConfig tr.base.open {
     border-top: 1px solid #f0f0f1;
 }
 
