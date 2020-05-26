@@ -16,7 +16,9 @@ e2e_exclusive_lock() {
 
 e2e_test_install() {
   delete_operator
+
   wait_pods_terminated "stackgres" 0
+
   install_operator \
     --disable-openapi-validation \
     --set grafana.autoEmbed=true \
@@ -24,6 +26,7 @@ e2e_test_install() {
     --set prometheus-operator.alertmanager.enabled=false \
     --set prometheus-operator.kubeStateMetrics.enabled=false \
     --set prometheus-operator.nodeExporter.enabled=false
+
   wait_pods_running "stackgres" 4
 
   kubectl create namespace "$CLUSTER_NAMESPACE"
@@ -42,7 +45,7 @@ e2e_test_uninstall() {
 
   helm_cleanup_chart "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 
-  k8s_cleanup_namespace "$CLUSTER_NAMESPACE"
+  k8s_async_cleanup_namespace "$CLUSTER_NAMESPACE"
 }
 
 e2e_test() {

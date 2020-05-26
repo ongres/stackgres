@@ -33,7 +33,6 @@ export E2E_SKIP_SETUP=false
 START="$(date +%s)"
 COUNT=0
 SPECS_TO_RUN=""
-SH_OPTS=$(! echo $- | grep -q x || echo "-x")
 OVERALL_RESULT=true
 CLEANUP=false
 find "$TARGET_PATH" -maxdepth 1 -type f -name '*.retries' -delete
@@ -56,7 +55,7 @@ do
       setup_k8s
     fi
     if ! echo "$SPECS_TO_RUN" | tr ' ' '\n' | tail -n +2 \
-      | xargs -r -n 1 -I % -P 0 "$SHELL" $SH_OPTS -c "'$SHELL' $SH_OPTS '$(dirname "$0")/e2e' spec '%'"
+      | xargs -r -n 1 -I % -P 0 "$SHELL" $SHELL_XTRACE -c "'$SHELL' $SHELL_XTRACE '$(dirname "$0")/e2e' spec '%'"
     then
       if [ "$((COUNT%E2E_PARALLELISM))" -ne 0 ]
       then

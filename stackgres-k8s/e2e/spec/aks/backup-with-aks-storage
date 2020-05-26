@@ -38,7 +38,7 @@ e2e_test_install() {
 e2e_test_uninstall(){
   helm_cleanup_chart "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 
-  k8s_cleanup_namespace "$CLUSTER_NAMESPACE"
+  k8s_async_cleanup_namespace "$CLUSTER_NAMESPACE"
 
   ACCOUNT_KEY=$(az storage account keys list --account-name "$K8S_AZ_K8S_NAME" \
     --resource-group "$K8S_AZ_RESOURCE_GROUP" --output tsv \

@@ -89,3 +89,7 @@ get_k8s_versions() {
 1.13.12
 EOF
 }
+
+excluded_podsecuritypolicies() {
+  echo 'eks\.privileged'
+}

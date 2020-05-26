@@ -41,7 +41,7 @@ EOF
   wait_pods_running "$CLUSTER_NAMESPACE" 1
 
   VOLUME_CLAIM_CAPACITY=$(kubectl get persistentvolumeclaims -n "$CLUSTER_NAMESPACE" \
-    "$CLUSTER_NAMESPACE-data-$CLUSTER_NAME-0" \
+    "$CLUSTER_NAME-data-$CLUSTER_NAME-0" \
     -o jsonpath='{.spec.resources.requests.storage}')
 
   if [ "$VOLUME_CLAIM_CAPACITY" = "512Mi" ]
