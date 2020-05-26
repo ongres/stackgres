@@ -28,7 +28,7 @@ public class PostgresConfigTransformer
 
   private static final Pattern PARAMETER_PATTERN = Pattern.compile(
       "^\\s*([^\\s=]+)\\s*=\\s*(:?'([^']+)'|([^ ]+))\\s*$");
-  private static final String POSTGRESQLCO_NF_URL = "https://postgresqlco.nf/en/doc/param/%s/%s";
+  private static final String POSTGRESQLCO_NF_URL = "https://postgresqlco.nf/en/doc/param/%s/%s/";
 
   @Override
   public StackGresPostgresConfig toCustomResource(PostgresConfigDto source,
