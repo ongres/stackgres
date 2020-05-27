@@ -53,9 +53,9 @@ public class VolumeConfig {
 
   public static VolumeConfig persistentVolumeClaim(String name, VolumePath path,
       Function<StackGresClusterContext, String> getName,
-      Predicate<StackGresClusterContext> filter) {
+      BiFunction<StackGresClusterContext, VolumeBuilder, VolumeBuilder> volumeBuilderChange) {
     return new VolumeConfig(name, path, config ->  Optional.empty(), context -> name,
-        UNCHANGED_VOLUME_BUILDER, filter);
+        volumeBuilderChange, context -> true);
   }
 
   public static VolumeConfig emptyDir(String name, VolumePath path) {

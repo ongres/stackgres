@@ -54,24 +54,21 @@ public class ClusterStatefulSet implements StackGresClusterResourceStreamFactory
 
   public static final String GCS_CREDENTIALS_FILE_NAME = "gcs-credentials.json";
 
-  private Patroni patroni;
-  private ClusterStatefulSetInitContainers initContainerFactory;
-  private ClusterStatefulSetVolumes volumesFactory;
+  private final Patroni patroni;
+  private final ClusterPodSecurityContext clusterPodSecurityContext;
+  private final ClusterStatefulSetInitContainers initContainerFactory;
+  private final ClusterStatefulSetVolumes volumesFactory;
 
   private LabelFactoryDelegator factoryDelegator;
 
   @Inject
-  public void setPatroni(Patroni patroni) {
+  public ClusterStatefulSet(Patroni patroni, ClusterPodSecurityContext clusterPodSecurityContext,
+      ClusterStatefulSetInitContainers initContainerFactory,
+      ClusterStatefulSetVolumes volumesFactory) {
+    super();
     this.patroni = patroni;
-  }
-
-  @Inject
-  public void setInitContainerFactory(ClusterStatefulSetInitContainers initContainerFactory) {
+    this.clusterPodSecurityContext = clusterPodSecurityContext;
     this.initContainerFactory = initContainerFactory;
-  }
-
-  @Inject
-  public void setVolumesFactory(ClusterStatefulSetVolumes volumesFactory) {
     this.volumesFactory = volumesFactory;
   }
 
@@ -169,6 +166,7 @@ public class ClusterStatefulSet implements StackGresClusterResourceStreamFactory
                 .orElse(null))
             .withShareProcessNamespace(Boolean.TRUE)
             .withServiceAccountName(PatroniRole.roleName(clusterContext))
+            .withSecurityContext(clusterPodSecurityContext.createResource(clusterContext))
             .withVolumes(volumesFactory.listResources(clusterContext))
             .withTerminationGracePeriodSeconds(60L)
             .addToContainers(patroni.getContainer(context))

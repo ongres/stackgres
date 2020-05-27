@@ -26,6 +26,10 @@ spec:
         group:  stackgres.io
     spec:
       serviceAccountName: {{ .Release.Name }}
+      securityContext:
+        runAsUser: 999
+        runAsGroup: 999
+        fsGroup: 999
       containers:
       {{- if .Values.deploy.create }}
       - name: {{ .Release.Name }}
@@ -64,13 +68,6 @@ spec:
           {{ end }}
           - name: AUTHENTICATION_SECRET_NAME
             value: "{{ .Release.Name }}"
-        ports:
-        - containerPort: 8080
-          name: "http"
-          protocol: "TCP"
-        - containerPort: 8443
-          name: "https"
-          protocol: "TCP"
         livenessProbe:
           httpGet:
             path: "/health/live"
@@ -132,16 +129,28 @@ spec:
             cat /etc/nginx/conf.d/stackgres-operator.conf
             exec nginx-debug -g 'daemon off;'
         ports:
-        - containerPort: 443
+        - containerPort: 9443
           name: "https"
           protocol: "TCP"
         volumeMounts:
           - name: operator-certs
             mountPath: /etc/operator/certs
             readOnly: true
-          - name: operator-nginx
+          - name: operator-nginx-template
             mountPath: /etc/nginx/template.d
             readOnly: true
+          - name: operator-nginx
+            subPath: etc/nginx/conf.d
+            mountPath: /etc/nginx/conf.d
+            readOnly: false
+          - name: operator-nginx
+            subPath: var/cache/nginx
+            mountPath: /var/cache/nginx
+            readOnly: false
+          - name: operator-nginx
+            subPath: var/run
+            mountPath: /var/run
+            readOnly: false
       volumes:
         - name: operator-certs
           secret:
@@ -152,10 +161,12 @@ spec:
                 path: root.key
               - key: server.crt
                 path: server.crt
-        - name: operator-nginx
+        - name: operator-nginx-template
           configMap:
             name: {{ .Release.Name }}-nginx
             optional: false
             items:
               - key: stackgres-operator.template
                 path: stackgres-operator.template
+        - name: operator-nginx
+          emptyDir: {}

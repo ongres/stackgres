@@ -13,7 +13,8 @@ import org.jooq.lambda.Seq;
 public enum ClusterStatefulSetPath implements VolumePath {
 
   LOCAL_BIN_PATH("/usr/local/bin"),
-  PG_BASE_PATH("/var/lib/postgresql"),
+  PV_MOUNT_PATH("/var/lib"),
+  PG_BASE_PATH(PV_MOUNT_PATH, "postgresql"),
   PG_RUN_PATH("/var/run/postgresql"),
   PG_DATA_PATH(PG_BASE_PATH, "data"),
   PG_LOG_PATH("/tmp"),

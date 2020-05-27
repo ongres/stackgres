@@ -33,7 +33,7 @@
 
     <checks.location>${project.parent.basedir}/checks</checks.location>
 
-    <it.image>stackgres/it:5.0</it.image>
+    <it.image>stackgres/it:6.0</it.image>
   </properties>
 
   <dependencies>

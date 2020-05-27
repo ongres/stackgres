@@ -26,7 +26,6 @@ import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.ProbeBuilder;
-import io.fabric8.kubernetes.api.model.SecurityContextBuilder;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.ServicePortBuilder;
@@ -154,10 +153,6 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
             + "  sleep 5\n"
             + "done\n")
       .withImagePullPolicy("Always")
-      .withSecurityContext(new SecurityContextBuilder()
-          .withRunAsUser(999L)
-          .withAllowPrivilegeEscalation(Boolean.FALSE)
-          .build())
       .withPorts(
           new ContainerPortBuilder()
               .withName(FluentdUtil.FORWARD_PORT_NAME)

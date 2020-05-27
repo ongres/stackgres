@@ -30,7 +30,6 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.ProbeBuilder;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
-import io.fabric8.kubernetes.api.model.SecurityContextBuilder;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
@@ -124,10 +123,6 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
                 StandardCharsets.UTF_8)
             .read()).get())
         .withImagePullPolicy("Always")
-        .withSecurityContext(new SecurityContextBuilder()
-            .withRunAsUser(999L)
-            .withAllowPrivilegeEscalation(Boolean.FALSE)
-            .build())
         .withPorts(
             new ContainerPortBuilder()
                 .withName(PatroniConfigMap.POSTGRES_PORT_NAME)

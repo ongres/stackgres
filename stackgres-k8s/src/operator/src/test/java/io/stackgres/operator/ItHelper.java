@@ -288,7 +288,7 @@ public class ItHelper {
   public static String getDockerInterfaceIp(Container k8s)
       throws DockerException, InterruptedException {
     return k8s.execute("sh", "-l", "-c",
-        "docker network inspect bridge -f '{{ (index .IPAM.Config 0).Gateway }}'")
+        "docker network inspect kind -f '{{ (index .IPAM.Config 0).Gateway }}'")
     .filter(EXCLUDE_TTY_WARNING)
     .collect(Collectors.joining());
   }

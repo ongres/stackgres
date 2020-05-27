@@ -17,7 +17,15 @@ update_k8s_config() {
   mkdir -p "$HOME/.kube"
   if [ "$K8S_FROM_DIND" = true ]
   then
+    local CONTAINER_NAME="$(docker inspect -f '{{.Name}}' "$(hostname)"|cut -d '/' -f 2)"
+    docker inspect "$CONTAINER_NAME" \
+      -f '{{ range $key,$value := .NetworkSettings.Networks }}{{ printf "%s\n" $key }}{{ end }}' \
+      | grep -q '^kind$' \
+      || docker network connect kind "$CONTAINER_NAME"
+    local KIND_CONTROL_PLANE_IP="$(docker inspect "$KIND_NAME-control-plane" \
+      -f '{{ .NetworkSettings.Networks.kind.IPAddress }}')"
     kind get kubeconfig --name "$KIND_NAME" --internal \
+      | sed "s/$KIND_NAME-control-plane/$KIND_CONTROL_PLANE_IP/" \
       > "$HOME/.kube/config-$KIND_NAME"
   else
     kind get kubeconfig --name "$KIND_NAME" \
@@ -60,6 +68,8 @@ reset_k8s() {
     cat << EOF > "$TARGET_PATH/kind-config.yaml"
   kind: Cluster
   apiVersion: kind.sigs.k8s.io/v1alpha3
+  networking:
+    apiServerAddress: "0.0.0.0"
   nodes:
   - role: control-plane
 EOF
@@ -73,6 +83,8 @@ EOF
     cat << EOF > "$TARGET_PATH/kind-config.yaml"
   kind: Cluster
   apiVersion: kind.sigs.k8s.io/v1alpha3
+  networking:
+    apiServerAddress: "0.0.0.0"
   nodes:
   - role: control-plane 
     extraPortMappings:
@@ -144,6 +156,10 @@ load_certificate_k8s() {
       "
 
   echo "...done"
+}
+
+excluded_namespaces() {
+  echo 'local-path-storage'
 }
 
 get_k8s_versions() {
