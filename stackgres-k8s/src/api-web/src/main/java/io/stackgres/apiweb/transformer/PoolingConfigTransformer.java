@@ -13,10 +13,10 @@ import java.util.regex.Pattern;
 import javax.enterprise.context.ApplicationScoped;
 
 import com.google.common.collect.ImmutableMap;
-import io.stackgres.apiweb.distributedlogs.dto.pooling.PolingConfigPgBouncer;
-import io.stackgres.apiweb.distributedlogs.dto.pooling.PoolingConfigDto;
-import io.stackgres.apiweb.distributedlogs.dto.pooling.PoolingConfigSpec;
-import io.stackgres.apiweb.distributedlogs.dto.pooling.PoolingConfigStatus;
+import io.stackgres.apiweb.dto.pooling.PolingConfigPgBouncer;
+import io.stackgres.apiweb.dto.pooling.PoolingConfigDto;
+import io.stackgres.apiweb.dto.pooling.PoolingConfigSpec;
+import io.stackgres.apiweb.dto.pooling.PoolingConfigStatus;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncer;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigSpec;

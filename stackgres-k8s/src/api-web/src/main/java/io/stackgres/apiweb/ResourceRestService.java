@@ -7,7 +7,7 @@ package io.stackgres.apiweb;
 
 import java.util.List;
 
-import io.stackgres.apiweb.distributedlogs.dto.ResourceDto;
+import io.stackgres.apiweb.dto.ResourceDto;
 
 public interface ResourceRestService<T extends ResourceDto> {
 

@@ -13,9 +13,9 @@ import java.util.regex.Pattern;
 import javax.enterprise.context.ApplicationScoped;
 
 import com.google.common.collect.ImmutableMap;
-import io.stackgres.apiweb.distributedlogs.dto.pgconfig.PostgresConfigDto;
-import io.stackgres.apiweb.distributedlogs.dto.pgconfig.PostgresConfigSpec;
-import io.stackgres.apiweb.distributedlogs.dto.pgconfig.PostgresConfigStatus;
+import io.stackgres.apiweb.dto.pgconfig.PostgresConfigDto;
+import io.stackgres.apiweb.dto.pgconfig.PostgresConfigSpec;
+import io.stackgres.apiweb.dto.pgconfig.PostgresConfigStatus;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigSpec;
 import org.jooq.lambda.Seq;

@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import io.fabric8.kubernetes.client.CustomResourceList;
 import io.stackgres.apiweb.DistributedLogsResource;
-import io.stackgres.apiweb.distributedlogs.dto.distributedlogs.DistributedLogsDto;
+import io.stackgres.apiweb.dto.distributedlogs.DistributedLogsDto;
 import io.stackgres.apiweb.transformer.AbstractDependencyResourceTransformer;
 import io.stackgres.apiweb.transformer.DistributedLogsTransformer;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;

@@ -10,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import io.fabric8.kubernetes.client.CustomResourceList;
 import io.stackgres.apiweb.ProfileResource;
-import io.stackgres.apiweb.distributedlogs.dto.profile.ProfileDto;
+import io.stackgres.apiweb.dto.profile.ProfileDto;
 import io.stackgres.apiweb.transformer.AbstractDependencyResourceTransformer;
 import io.stackgres.apiweb.transformer.ProfileTransformer;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;

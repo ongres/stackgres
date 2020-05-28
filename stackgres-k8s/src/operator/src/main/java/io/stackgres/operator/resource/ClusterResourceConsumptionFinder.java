@@ -14,7 +14,7 @@ import javax.inject.Inject;
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.stackgres.apiweb.distributedlogs.dto.cluster.ClusterResourceConsumtionDto;
+import io.stackgres.apiweb.dto.cluster.ClusterResourceConsumtionDto;
 import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;

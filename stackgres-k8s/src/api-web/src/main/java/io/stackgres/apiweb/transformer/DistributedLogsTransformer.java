@@ -10,11 +10,11 @@ import java.util.Optional;
 
 import javax.enterprise.context.ApplicationScoped;
 
-import io.stackgres.apiweb.distributedlogs.dto.distributedlogs.DistributedLogsDto;
-import io.stackgres.apiweb.distributedlogs.dto.distributedlogs.DistributedLogsPersistentVolume;
-import io.stackgres.apiweb.distributedlogs.dto.distributedlogs.DistributedLogsSpec;
-import io.stackgres.apiweb.distributedlogs.dto.distributedlogs.DistributedLogsStatus;
-import io.stackgres.apiweb.distributedlogs.dto.distributedlogs.NonProduction;
+import io.stackgres.apiweb.dto.distributedlogs.DistributedLogsDto;
+import io.stackgres.apiweb.dto.distributedlogs.DistributedLogsPersistentVolume;
+import io.stackgres.apiweb.dto.distributedlogs.DistributedLogsSpec;
+import io.stackgres.apiweb.dto.distributedlogs.DistributedLogsStatus;
+import io.stackgres.apiweb.dto.distributedlogs.NonProduction;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsPersistentVolume;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsSpec;

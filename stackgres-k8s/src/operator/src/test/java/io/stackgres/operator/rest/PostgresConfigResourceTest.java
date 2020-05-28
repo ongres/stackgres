@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.client.CustomResourceList;
 import io.stackgres.apiweb.PostgresConfigResource;
-import io.stackgres.apiweb.distributedlogs.dto.pgconfig.PostgresConfigDto;
+import io.stackgres.apiweb.dto.pgconfig.PostgresConfigDto;
 import io.stackgres.apiweb.transformer.AbstractDependencyResourceTransformer;
 import io.stackgres.apiweb.transformer.PostgresConfigTransformer;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;

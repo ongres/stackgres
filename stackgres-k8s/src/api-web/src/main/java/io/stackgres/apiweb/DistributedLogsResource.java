@@ -14,7 +14,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
-import io.stackgres.apiweb.distributedlogs.dto.distributedlogs.DistributedLogsDto;
+import io.stackgres.apiweb.dto.distributedlogs.DistributedLogsDto;
 import io.stackgres.apiweb.transformer.DependencyResourceTransformer;
 import io.stackgres.common.ArcUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;

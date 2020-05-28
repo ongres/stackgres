@@ -14,7 +14,7 @@ import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.stackgres.apiweb.distributedlogs.dto.cluster.ClusterDto;
+import io.stackgres.apiweb.dto.cluster.ClusterDto;
 import io.stackgres.apiweb.transformer.ClusterTransformer;
 import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.LabelFactory;

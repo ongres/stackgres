@@ -20,7 +20,7 @@ import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.client.CustomResourceList;
 import io.stackgres.apiweb.BackupConfigResource;
 import io.stackgres.apiweb.BackupConfigResourceUtil;
-import io.stackgres.apiweb.distributedlogs.dto.backupconfig.BackupConfigDto;
+import io.stackgres.apiweb.dto.backupconfig.BackupConfigDto;
 import io.stackgres.apiweb.transformer.AbstractDependencyResourceTransformer;
 import io.stackgres.apiweb.transformer.BackupConfigTransformer;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;

@@ -10,9 +10,9 @@ import java.util.Optional;
 
 import javax.enterprise.context.ApplicationScoped;
 
-import io.stackgres.apiweb.distributedlogs.dto.profile.ProfileDto;
-import io.stackgres.apiweb.distributedlogs.dto.profile.ProfileSpec;
-import io.stackgres.apiweb.distributedlogs.dto.profile.ProfileStatus;
+import io.stackgres.apiweb.dto.profile.ProfileDto;
+import io.stackgres.apiweb.dto.profile.ProfileSpec;
+import io.stackgres.apiweb.dto.profile.ProfileStatus;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgprofile.StackGresProfileSpec;
 

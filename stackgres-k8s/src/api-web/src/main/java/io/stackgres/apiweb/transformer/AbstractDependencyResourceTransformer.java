@@ -7,8 +7,8 @@ package io.stackgres.apiweb.transformer;
 
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.client.CustomResource;
-import io.stackgres.apiweb.distributedlogs.dto.Metadata;
-import io.stackgres.apiweb.distributedlogs.dto.ResourceDto;
+import io.stackgres.apiweb.dto.Metadata;
+import io.stackgres.apiweb.dto.ResourceDto;
 
 public abstract class AbstractDependencyResourceTransformer<T extends ResourceDto,
     R extends CustomResource> implements DependencyResourceTransformer<T, R> {

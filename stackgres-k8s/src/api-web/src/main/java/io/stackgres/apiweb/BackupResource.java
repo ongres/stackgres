@@ -11,7 +11,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
-import io.stackgres.apiweb.distributedlogs.dto.backup.BackupDto;
+import io.stackgres.apiweb.dto.backup.BackupDto;
 import io.stackgres.apiweb.transformer.ResourceTransformer;
 import io.stackgres.common.ArcUtil;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
