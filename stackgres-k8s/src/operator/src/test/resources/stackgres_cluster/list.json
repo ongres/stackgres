@@ -8,9 +8,9 @@
         "creationTimestamp": "2019-10-23T13:41:00Z",
         "generation": 1,
         "name": "stackgres",
-        "namespace": "postgresql",
+        "namespace": "stackgres",
         "resourceVersion": "629",
-        "selfLink": "/apis/stackgres.io/v1beta1/namespaces/postgresql/sgclusters/stackgres",
+        "selfLink": "/apis/stackgres.io/v1beta1/namespaces/stackgres/sgclusters/stackgres",
         "uid": "bfb53778-f59a-11e9-b1b5-0242ac110002"
       },
       "spec": {

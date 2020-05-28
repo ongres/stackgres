@@ -5,15 +5,18 @@
 
 package io.stackgres.apiweb;
 
+import java.util.Objects;
+
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
-import io.stackgres.apiweb.distributedlogs.dto.profile.ProfileDto;
-import io.stackgres.apiweb.transformer.ResourceTransformer;
+import io.stackgres.apiweb.dto.profile.ProfileDto;
+import io.stackgres.apiweb.transformer.DependencyResourceTransformer;
 import io.stackgres.common.ArcUtil;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
@@ -23,19 +26,29 @@ import io.stackgres.common.resource.CustomResourceScheduler;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class ProfileResource
-    extends AbstractRestService<ProfileDto, StackGresProfile> {
+    extends AbstractDependencyRestService<ProfileDto, StackGresProfile> {
 
   @Inject
-  public ProfileResource(CustomResourceScanner<StackGresProfile> scanner,
+  public ProfileResource(
+      CustomResourceScanner<StackGresProfile> scanner,
       CustomResourceFinder<StackGresProfile> finder,
       CustomResourceScheduler<StackGresProfile> scheduler,
-      ResourceTransformer<ProfileDto, StackGresProfile> transformer) {
-    super(scanner, finder, scheduler, transformer);
+      CustomResourceScanner<StackGresCluster> clusterScanner,
+      DependencyResourceTransformer<ProfileDto, StackGresProfile> transformer) {
+    super(scanner, finder, scheduler, clusterScanner, transformer);
   }
 
   public ProfileResource() {
-    super(null, null, null, null);
+    super(null, null, null, null, null);
     ArcUtil.checkPublicNoArgsConstructorIsCalledFromArc();
+  }
+
+  @Override
+  public boolean belongsToCluster(StackGresProfile resource, StackGresCluster cluster) {
+    return cluster.getMetadata().getNamespace().equals(
+        resource.getMetadata().getNamespace())
+        && Objects.equals(cluster.getSpec().getResourceProfile(),
+            resource.getMetadata().getName());
   }
 
 }

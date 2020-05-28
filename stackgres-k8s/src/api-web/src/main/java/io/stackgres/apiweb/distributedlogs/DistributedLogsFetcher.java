@@ -7,7 +7,7 @@ package io.stackgres.apiweb.distributedlogs;
 
 import java.util.List;
 
-import io.stackgres.apiweb.distributedlogs.dto.cluster.ClusterLogEntryDto;
+import io.stackgres.apiweb.dto.cluster.ClusterLogEntryDto;
 
 public interface DistributedLogsFetcher {
 

@@ -1,0 +1,15 @@
+{
+    "metadata": {
+        "name": "distributedlogs",
+        "namespace": "stackgres",
+        "uid": "008af052-7fcd-4665-b3b9-6d7dedbc543c"
+    },
+    "spec": {
+        "nonProductionOptions": {
+            "disableClusterPodAntiAffinity": true
+        },
+        "persistentVolume": {
+            "size": "128Mi"
+        }
+    }
+}

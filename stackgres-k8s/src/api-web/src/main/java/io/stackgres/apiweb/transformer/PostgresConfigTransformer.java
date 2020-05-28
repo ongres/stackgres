@@ -5,6 +5,7 @@
 
 package io.stackgres.apiweb.transformer;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -12,15 +13,16 @@ import java.util.regex.Pattern;
 import javax.enterprise.context.ApplicationScoped;
 
 import com.google.common.collect.ImmutableMap;
-import io.stackgres.apiweb.distributedlogs.dto.pgconfig.PostgresConfigDto;
-import io.stackgres.apiweb.distributedlogs.dto.pgconfig.PostgresConfigSpec;
+import io.stackgres.apiweb.dto.pgconfig.PostgresConfigDto;
+import io.stackgres.apiweb.dto.pgconfig.PostgresConfigSpec;
+import io.stackgres.apiweb.dto.pgconfig.PostgresConfigStatus;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigSpec;
 import org.jooq.lambda.Seq;
 
 @ApplicationScoped
 public class PostgresConfigTransformer
-    extends AbstractResourceTransformer<PostgresConfigDto, StackGresPostgresConfig> {
+    extends AbstractDependencyResourceTransformer<PostgresConfigDto, StackGresPostgresConfig> {
 
   private static final Pattern PARAMETER_PATTERN = Pattern.compile(
       "^\\s*([^\\s=]+)\\s*=\\s*(:?'([^']+)'|([^ ]+))\\s*$");
@@ -36,10 +38,11 @@ public class PostgresConfigTransformer
   }
 
   @Override
-  public PostgresConfigDto toResource(StackGresPostgresConfig source) {
+  public PostgresConfigDto toResource(StackGresPostgresConfig source, List<String> clusters) {
     PostgresConfigDto transformation = new PostgresConfigDto();
     transformation.setMetadata(getResourceMetadata(source));
     transformation.setSpec(getResourceSpec(source.getSpec()));
+    transformation.setStatus(getResourceStatus(clusters));
     return transformation;
   }
 
@@ -72,6 +75,12 @@ public class PostgresConfigTransformer
         Seq.seq(source.getPostgresqlConf().entrySet())
             .map(e -> e.getKey() + "=" + e.getValue())
             .toString("\n"));
+    return transformation;
+  }
+
+  private PostgresConfigStatus getResourceStatus(List<String> clusters) {
+    PostgresConfigStatus transformation = new PostgresConfigStatus();
+    transformation.setClusters(clusters);
     return transformation;
   }
 

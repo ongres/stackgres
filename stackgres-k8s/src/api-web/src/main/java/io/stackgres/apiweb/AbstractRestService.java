@@ -17,7 +17,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 
 import io.fabric8.kubernetes.client.CustomResource;
-import io.stackgres.apiweb.distributedlogs.dto.ResourceDto;
+import io.stackgres.apiweb.dto.ResourceDto;
 import io.stackgres.apiweb.transformer.ResourceTransformer;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;

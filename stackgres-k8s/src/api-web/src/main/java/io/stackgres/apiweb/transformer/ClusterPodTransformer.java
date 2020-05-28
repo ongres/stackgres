@@ -9,7 +9,7 @@ import javax.enterprise.context.ApplicationScoped;
 
 import io.fabric8.kubernetes.api.model.ContainerStatus;
 import io.fabric8.kubernetes.api.model.Pod;
-import io.stackgres.apiweb.distributedlogs.dto.cluster.KubernetesPod;
+import io.stackgres.apiweb.dto.cluster.KubernetesPod;
 import io.stackgres.common.StackGresUtil;
 
 @ApplicationScoped

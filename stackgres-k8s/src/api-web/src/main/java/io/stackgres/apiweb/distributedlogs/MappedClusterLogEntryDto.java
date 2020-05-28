@@ -8,7 +8,7 @@ package io.stackgres.apiweb.distributedlogs;
 import java.beans.ConstructorProperties;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
-import io.stackgres.apiweb.distributedlogs.dto.cluster.ClusterLogEntryDto;
+import io.stackgres.apiweb.dto.cluster.ClusterLogEntryDto;
 
 @RegisterForReflection
 public class MappedClusterLogEntryDto extends ClusterLogEntryDto {

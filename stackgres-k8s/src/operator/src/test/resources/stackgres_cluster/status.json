@@ -11,7 +11,7 @@
   "averageLoad10m": "0.97",
   "pods": [
     {
-      "namespace": "postgresql",
+      "namespace": "stackgres",
       "name": "stackgres-0",
       "role": "master",
       "ip": "10.244.2.8",
@@ -20,7 +20,7 @@
       "containersReady": "5"
     },
     {
-      "namespace": "postgresql",
+      "namespace": "stackgres",
       "name": "stackgres-1",
       "role": "replica",
       "ip": "10.244.1.6",

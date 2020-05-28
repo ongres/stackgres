@@ -8,7 +8,7 @@ package io.stackgres.apiweb.transformer;
 import javax.annotation.Nullable;
 
 import io.fabric8.kubernetes.client.CustomResource;
-import io.stackgres.apiweb.distributedlogs.dto.ResourceDto;
+import io.stackgres.apiweb.dto.ResourceDto;
 
 public interface ResourceTransformer<T extends ResourceDto, R extends CustomResource> {
 

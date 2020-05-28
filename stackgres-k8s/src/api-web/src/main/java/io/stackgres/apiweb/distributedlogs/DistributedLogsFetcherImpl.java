@@ -18,10 +18,10 @@ import javax.ws.rs.NotFoundException;
 
 import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.Secret;
-import io.stackgres.apiweb.distributedlogs.dto.cluster.ClusterDistributedLogs;
-import io.stackgres.apiweb.distributedlogs.dto.cluster.ClusterDto;
-import io.stackgres.apiweb.distributedlogs.dto.cluster.ClusterLogEntryDto;
-import io.stackgres.apiweb.distributedlogs.dto.cluster.ClusterSpec;
+import io.stackgres.apiweb.dto.cluster.ClusterDistributedLogs;
+import io.stackgres.apiweb.dto.cluster.ClusterDto;
+import io.stackgres.apiweb.dto.cluster.ClusterLogEntryDto;
+import io.stackgres.apiweb.dto.cluster.ClusterSpec;
 import io.stackgres.common.ArcUtil;
 import io.stackgres.common.FluentdUtil;
 import io.stackgres.common.PatroniUtil;

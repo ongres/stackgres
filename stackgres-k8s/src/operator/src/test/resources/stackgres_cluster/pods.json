@@ -23,7 +23,7 @@
           "customLabel" : "customLabelValue"
         },
         "name": "stackgres-0",
-        "namespace": "postgresql",
+        "namespace": "stackgres",
         "ownerReferences": [
           {
             "apiVersion": "apps/v1",
@@ -751,7 +751,7 @@
           "statefulset.kubernetes.io/pod-name": "stackgres-1"
         },
         "name": "stackgres-1",
-        "namespace": "postgresql",
+        "namespace": "stackgres",
         "ownerReferences": [
           {
             "apiVersion": "apps/v1",

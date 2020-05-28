@@ -11,7 +11,7 @@ import java.util.Optional;
 import java.util.Properties;
 
 import com.google.common.collect.ImmutableMap;
-import io.stackgres.apiweb.distributedlogs.dto.cluster.ClusterDto;
+import io.stackgres.apiweb.dto.cluster.ClusterDto;
 import org.jooq.DSLContext;
 import org.jooq.SQLDialect;
 import org.jooq.conf.ParamType;

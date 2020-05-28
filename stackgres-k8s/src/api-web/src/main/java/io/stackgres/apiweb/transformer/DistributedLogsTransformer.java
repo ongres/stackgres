@@ -5,21 +5,23 @@
 
 package io.stackgres.apiweb.transformer;
 
+import java.util.List;
 import java.util.Optional;
 
 import javax.enterprise.context.ApplicationScoped;
 
-import io.stackgres.apiweb.distributedlogs.dto.distributedlogs.DistributedLogsDto;
-import io.stackgres.apiweb.distributedlogs.dto.distributedlogs.DistributedLogsPersistentVolume;
-import io.stackgres.apiweb.distributedlogs.dto.distributedlogs.DistributedLogsSpec;
-import io.stackgres.apiweb.distributedlogs.dto.distributedlogs.NonProduction;
+import io.stackgres.apiweb.dto.distributedlogs.DistributedLogsDto;
+import io.stackgres.apiweb.dto.distributedlogs.DistributedLogsPersistentVolume;
+import io.stackgres.apiweb.dto.distributedlogs.DistributedLogsSpec;
+import io.stackgres.apiweb.dto.distributedlogs.DistributedLogsStatus;
+import io.stackgres.apiweb.dto.distributedlogs.NonProduction;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsPersistentVolume;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsSpec;
 
 @ApplicationScoped
 public class DistributedLogsTransformer
-    extends AbstractResourceTransformer<DistributedLogsDto, StackGresDistributedLogs> {
+    extends AbstractDependencyResourceTransformer<DistributedLogsDto, StackGresDistributedLogs> {
 
   @Override
   public StackGresDistributedLogs toCustomResource(DistributedLogsDto source,
@@ -35,10 +37,11 @@ public class DistributedLogsTransformer
   }
 
   @Override
-  public DistributedLogsDto toResource(StackGresDistributedLogs source) {
+  public DistributedLogsDto toResource(StackGresDistributedLogs source, List<String> clusters) {
     DistributedLogsDto transformation = new DistributedLogsDto();
     transformation.setMetadata(getResourceMetadata(source));
     transformation.setSpec(getResourceSpec(source.getSpec()));
+    transformation.setStatus(getResourceStatus(clusters));
     return transformation;
   }
 
@@ -77,6 +80,12 @@ public class DistributedLogsTransformer
         getResourcePersistentVolume(source.getPersistentVolume()));
     transformation.setNonProduction(
         getResourceNonProduction(source.getNonProduction()));
+    return transformation;
+  }
+
+  private DistributedLogsStatus getResourceStatus(List<String> clusters) {
+    DistributedLogsStatus transformation = new DistributedLogsStatus();
+    transformation.setClusters(clusters);
     return transformation;
   }
 

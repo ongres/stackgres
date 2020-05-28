@@ -5,6 +5,7 @@
 
 package io.stackgres.apiweb.transformer;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -12,9 +13,10 @@ import java.util.regex.Pattern;
 import javax.enterprise.context.ApplicationScoped;
 
 import com.google.common.collect.ImmutableMap;
-import io.stackgres.apiweb.distributedlogs.dto.pooling.PolingConfigPgBouncer;
-import io.stackgres.apiweb.distributedlogs.dto.pooling.PoolingConfigDto;
-import io.stackgres.apiweb.distributedlogs.dto.pooling.PoolingConfigSpec;
+import io.stackgres.apiweb.dto.pooling.PolingConfigPgBouncer;
+import io.stackgres.apiweb.dto.pooling.PoolingConfigDto;
+import io.stackgres.apiweb.dto.pooling.PoolingConfigSpec;
+import io.stackgres.apiweb.dto.pooling.PoolingConfigStatus;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncer;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigSpec;
@@ -22,7 +24,7 @@ import org.jooq.lambda.Seq;
 
 @ApplicationScoped
 public class PoolingConfigTransformer
-    extends AbstractResourceTransformer<PoolingConfigDto, StackGresPoolingConfig> {
+    extends AbstractDependencyResourceTransformer<PoolingConfigDto, StackGresPoolingConfig> {
 
   private static final Pattern PARAMETER_PATTERN = Pattern.compile(
       "^\\s*([^\\s=]+)\\s*=\\s*(:?'([^']+)'|([^ ]+))\\s*$");
@@ -41,10 +43,11 @@ public class PoolingConfigTransformer
   }
 
   @Override
-  public PoolingConfigDto toResource(StackGresPoolingConfig source) {
+  public PoolingConfigDto toResource(StackGresPoolingConfig source, List<String> clusters) {
     PoolingConfigDto transformation = new PoolingConfigDto();
     transformation.setMetadata(getResourceMetadata(source));
     transformation.setSpec(getResourceSpec(source.getSpec()));
+    transformation.setStatus(getResourceStatus(clusters));
     return transformation;
   }
 
@@ -78,6 +81,12 @@ public class PoolingConfigTransformer
         Seq.seq(source.getPgBouncer().getPgbouncerConf().entrySet())
             .map(e -> e.getKey() + "=" + e.getValue())
             .toString("\n"));
+    return transformation;
+  }
+
+  private PoolingConfigStatus getResourceStatus(List<String> clusters) {
+    PoolingConfigStatus transformation = new PoolingConfigStatus();
+    transformation.setClusters(clusters);
     return transformation;
   }
 
