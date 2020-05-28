@@ -11,15 +11,16 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.google.common.collect.ImmutableMap;
 
 import io.fabric8.kubernetes.client.CustomResourceList;
+import io.stackgres.apiweb.PostgresConfigResource;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigList;
-import io.stackgres.operator.resource.CustomResourceFinder;
-import io.stackgres.operator.resource.CustomResourceScanner;
-import io.stackgres.operator.resource.CustomResourceScheduler;
-import io.stackgres.operator.rest.dto.pgconfig.PostgresConfigDto;
-import io.stackgres.operator.rest.transformer.AbstractResourceTransformer;
-import io.stackgres.operator.rest.transformer.PostgresConfigTransformer;
-import io.stackgres.operator.utils.JsonUtil;
+import io.stackgres.common.resource.CustomResourceFinder;
+import io.stackgres.common.resource.CustomResourceScanner;
+import io.stackgres.common.resource.CustomResourceScheduler;
+import io.stackgres.apiweb.distributedlogs.dto.pgconfig.PostgresConfigDto;
+import io.stackgres.apiweb.transformer.AbstractResourceTransformer;
+import io.stackgres.apiweb.transformer.PostgresConfigTransformer;
+import io.stackgres.testutil.JsonUtil;
 
 import org.jooq.lambda.Seq;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,7 +29,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class PostgresConfigResourceTest
     extends AbstractCustomResourceTest<PostgresConfigDto, StackGresPostgresConfig,
-      PostgresConfigResource> {
+    PostgresConfigResource> {
 
   @Override
   protected CustomResourceList<StackGresPostgresConfig> getCustomResourceList() {

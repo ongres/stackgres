@@ -17,10 +17,9 @@ import static org.mockito.Mockito.when;
 import java.util.Optional;
 
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
-import io.stackgres.operator.common.ConfigLoader;
 import io.stackgres.operator.common.StackGresClusterReview;
-import io.stackgres.operator.resource.AbstractCustomResourceFinder;
-import io.stackgres.operator.utils.JsonUtil;
+import io.stackgres.common.resource.AbstractCustomResourceFinder;
+import io.stackgres.testutil.JsonUtil;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import org.junit.jupiter.api.BeforeEach;
@@ -44,7 +43,7 @@ class DistributedLogsReferenceValidatorTest {
 
   @BeforeEach
   void setUp() throws Exception {
-    validator = new DistributedLogsValidator(distributedLogsFinder, new ConfigLoader());
+    validator = new DistributedLogsValidator(distributedLogsFinder);
 
     distributedLogs = JsonUtil.readFromJson("distributedlogs/default.json",
         StackGresDistributedLogs.class);

@@ -7,7 +7,7 @@ package io.stackgres.operator.validation.pooling;
 
 import io.stackgres.operator.common.PoolingReview;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
-import io.stackgres.operator.utils.JsonUtil;
+import io.stackgres.testutil.JsonUtil;
 import io.stackgres.operator.validation.AbstractDefaultConfigKeeper;
 import io.stackgres.operator.validation.DefaultKeeperTest;
 

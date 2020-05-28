@@ -9,8 +9,8 @@ import java.util.List;
 import java.util.Optional;
 
 import io.fabric8.kubernetes.client.CustomResource;
-import io.stackgres.operator.resource.CustomResourceScanner;
-import io.stackgres.operator.resource.CustomResourceScheduler;
+import io.stackgres.common.resource.CustomResourceScanner;
+import io.stackgres.common.resource.CustomResourceScheduler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

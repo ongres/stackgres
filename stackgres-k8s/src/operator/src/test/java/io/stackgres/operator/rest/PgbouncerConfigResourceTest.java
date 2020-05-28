@@ -7,15 +7,16 @@ package io.stackgres.operator.rest;
 
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.client.CustomResourceList;
-import io.stackgres.operator.resource.CustomResourceFinder;
-import io.stackgres.operator.resource.CustomResourceScanner;
-import io.stackgres.operator.resource.CustomResourceScheduler;
-import io.stackgres.operator.rest.dto.pooling.PoolingConfigDto;
-import io.stackgres.operator.rest.transformer.AbstractResourceTransformer;
-import io.stackgres.operator.rest.transformer.PoolingConfigTransformer;
+import io.stackgres.apiweb.ConnectionPoolingConfigResource;
+import io.stackgres.common.resource.CustomResourceFinder;
+import io.stackgres.common.resource.CustomResourceScanner;
+import io.stackgres.common.resource.CustomResourceScheduler;
+import io.stackgres.apiweb.distributedlogs.dto.pooling.PoolingConfigDto;
+import io.stackgres.apiweb.transformer.AbstractResourceTransformer;
+import io.stackgres.apiweb.transformer.PoolingConfigTransformer;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigList;
-import io.stackgres.operator.utils.JsonUtil;
+import io.stackgres.testutil.JsonUtil;
 import org.jooq.lambda.Seq;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -26,7 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @ExtendWith(MockitoExtension.class)
 class PgbouncerConfigResourceTest
     extends AbstractCustomResourceTest<PoolingConfigDto, StackGresPoolingConfig,
-      ConnectionPoolingConfigResource> {
+    ConnectionPoolingConfigResource> {
 
   @Override
   protected CustomResourceList<StackGresPoolingConfig> getCustomResourceList() {

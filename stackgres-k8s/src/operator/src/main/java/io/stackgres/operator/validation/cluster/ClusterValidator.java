@@ -5,8 +5,8 @@
 
 package io.stackgres.operator.validation.cluster;
 
+import io.stackgres.common.ConfigContext;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDefinition;
-import io.stackgres.operator.common.ConfigContext;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
@@ -18,9 +18,9 @@ public interface ClusterValidator extends Validator<StackGresClusterReview> {
     fail(StackGresClusterDefinition.KIND, reason, message);
   }
 
-  default void fail(ConfigContext context, String message) throws ValidationFailed {
+  default void fail(String message) throws ValidationFailed {
     ValidationType validationType = this.getClass().getAnnotation(ValidationType.class);
-    String errorTypeUri = context.getErrorTypeUri(validationType.value());
+    String errorTypeUri = ConfigContext.getErrorTypeUri(validationType.value());
     fail(errorTypeUri, message);
   }
 

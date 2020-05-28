@@ -15,6 +15,7 @@ import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.stackgres.operator.common.ImmutableStackGresUserClusterContext;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresRestoreContext;
+import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.Unchecked;
@@ -185,6 +186,10 @@ public class ClusterStatefulSetVolumeConfigTest {
               .build());
           return cluster;
         }).get())
+        .clusterNamespace("test")
+        .clusterName("test")
+        .backupKey(StackGresUtil.BACKUP_KEY)
+        .clusterKey(StackGresUtil.CLUSTER_KEY)
         .restoreContext(Optional.empty())
         .build();
   }
@@ -200,6 +205,10 @@ public class ClusterStatefulSetVolumeConfigTest {
               .build());
           return cluster;
         }).get())
+        .clusterNamespace("test")
+        .clusterName("test")
+        .backupKey(StackGresUtil.BACKUP_KEY)
+        .clusterKey(StackGresUtil.CLUSTER_KEY)
         .restoreContext(Optional.of(StackGresRestoreContext.builder()
             .build()))
         .build();

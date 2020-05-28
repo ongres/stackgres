@@ -5,10 +5,14 @@
 
 package io.stackgres.operator.distributedlogs.fluentd;
 
+import static io.stackgres.common.FluentdUtil.PATRONI_LOG_TYPE;
+import static io.stackgres.common.FluentdUtil.POSTGRES_LOG_TYPE;
+
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import com.google.common.collect.ImmutableList;
@@ -30,17 +34,21 @@ import io.fabric8.kubernetes.api.model.TCPSocketActionBuilder;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
+import io.stackgres.apiweb.distributedlogs.DistributedLogsQueryGenerator;
+import io.stackgres.common.FluentdUtil;
+import io.stackgres.common.LabelFactory;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSetPath;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSetVolumeConfig;
+import io.stackgres.operator.common.LabelFactoryDelegator;
+import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresClusterSidecarResourceFactory;
 import io.stackgres.operator.common.StackGresComponents;
 import io.stackgres.operator.common.StackGresDistributedLogsContext;
 import io.stackgres.operator.common.StackGresDistributedLogsGeneratorContext;
 import io.stackgres.operator.common.StackGresGeneratorContext;
-import io.stackgres.operator.rest.distributedlogs.DistributedLogsQueryGenerator;
 import io.stackgres.operator.sidecars.envoy.Envoy;
 import io.stackgres.operator.sidecars.fluentbit.FluentBit;
 import io.stackgres.operatorframework.resource.ResourceUtil;
@@ -51,30 +59,19 @@ import org.jooq.lambda.Seq;
 @Singleton
 public class Fluentd implements ContainerResourceFactory<StackGresDistributedLogs,
     StackGresDistributedLogsGeneratorContext, StackGresDistributedLogs> {
-
-  public static final String NAME = "fluentd";
-
-  public static final String POSTGRES_LOG_TYPE = "postgres";
-  public static final String PATRONI_LOG_TYPE = "patroni";
-  // list of log_patroni table fields
-
-  public static final int FORWARD_PORT = 12225;
-  public static final String FORWARD_PORT_NAME = "fluentd-forward";
-
   public static final String IMAGE_NAME = "docker.io/ongres/fluentd:v%s-build-%s";
-
-  private static final String DEFAULT_VERSION = StackGresComponents.get("fluentd");
-
+  static final String DEFAULT_VERSION = StackGresComponents.get("fluentd");
+  static final String PATRONI_TABLE_FIELDS = DistributedLogsQueryGenerator.PATRONI_FIELDS
+      .stream()
+      .map(Field::getName)
+      .collect(Collectors.joining(","));
+  static final String POSTGRES_TABLE_FIELDS = DistributedLogsQueryGenerator.POSTGRES_FIELDS
+          .stream()
+          .map(Field::getName)
+          .collect(Collectors.joining(","));
   private static final String SUFFIX = "-fluentd";
 
-  private static final String PATRONI_TABLE_FIELDS = DistributedLogsQueryGenerator.PATRONI_FIELDS
-      .stream()
-      .map(Field::getName)
-      .collect(Collectors.joining(","));
-  private static final String POSTGRES_TABLE_FIELDS = DistributedLogsQueryGenerator.POSTGRES_FIELDS
-      .stream()
-      .map(Field::getName)
-      .collect(Collectors.joining(","));
+  private LabelFactoryDelegator factoryDelegator;
 
   public static String configName(StackGresDistributedLogsContext context) {
     return ResourceUtil.resourceName(context.getDistributedLogs().getMetadata().getName() + SUFFIX);
@@ -88,19 +85,11 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
     return ResourceUtil.resourceName(distributedLogsName + SUFFIX);
   }
 
-  public static String databaseName(StackGresCluster cluster) {
-    return databaseName(cluster.getMetadata().getNamespace(),
-        cluster.getMetadata().getName());
-  }
-
-  public static String databaseName(String clusterNamespace, String clusterName) {
-    return clusterNamespace + "_" + clusterName;
-  }
-
+  // list of log_patroni table fields
   @Override
   public Container getContainer(StackGresDistributedLogsGeneratorContext context) {
     return new ContainerBuilder()
-      .withName(NAME)
+      .withName(FluentdUtil.NAME)
       .withImage(String.format(IMAGE_NAME, DEFAULT_VERSION, StackGresContext.CONTAINER_BUILD))
       .withCommand("/bin/sh", "-exc")
       .withArgs(""
@@ -171,11 +160,11 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
           .build())
       .withPorts(
           new ContainerPortBuilder()
-              .withName(FORWARD_PORT_NAME)
-              .withContainerPort(FORWARD_PORT).build())
+              .withName(FluentdUtil.FORWARD_PORT_NAME)
+              .withContainerPort(FluentdUtil.FORWARD_PORT).build())
       .withLivenessProbe(new ProbeBuilder()
           .withTcpSocket(new TCPSocketActionBuilder()
-              .withPort(new IntOrString(FORWARD_PORT))
+              .withPort(new IntOrString(FluentdUtil.FORWARD_PORT))
               .build())
           .withInitialDelaySeconds(15)
           .withPeriodSeconds(20)
@@ -183,7 +172,7 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
           .build())
       .withReadinessProbe(new ProbeBuilder()
           .withTcpSocket(new TCPSocketActionBuilder()
-              .withPort(new IntOrString(FORWARD_PORT))
+              .withPort(new IntOrString(FluentdUtil.FORWARD_PORT))
               .build())
           .withInitialDelaySeconds(5)
           .withPeriodSeconds(10)
@@ -191,7 +180,7 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
       .withVolumeMounts(ClusterStatefulSetVolumeConfig.SOCKET
           .volumeMount(context.getClusterContext()),
           new VolumeMountBuilder()
-          .withName(NAME)
+          .withName(FluentdUtil.NAME)
           .withMountPath("/etc/fluentd")
           .withReadOnly(Boolean.TRUE)
           .build())
@@ -201,7 +190,7 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
   @Override
   public ImmutableList<Volume> getVolumes(StackGresDistributedLogsGeneratorContext context) {
     return ImmutableList.of(new VolumeBuilder()
-        .withName(NAME)
+        .withName(FluentdUtil.NAME)
         .withConfigMap(new ConfigMapVolumeSourceBuilder()
             .withName(configName(context.getDistributedLogsContext()))
             .build())
@@ -210,15 +199,17 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
 
   @Override
   public Stream<HasMetadata> streamResources(StackGresDistributedLogsGeneratorContext context) {
+    final StackGresDistributedLogsContext distributedLogsContext = context
+        .getDistributedLogsContext();
     final StackGresDistributedLogs distributedLogs =
-        context.getDistributedLogsContext().getDistributedLogs();
+        distributedLogsContext.getDistributedLogs();
     final String namespace = distributedLogs.getMetadata().getNamespace();
 
     final String configFile = ""
             + "<source>\n"
             + "  @type forward\n"
             + "  bind 0.0.0.0\n"
-            + "  port " + FORWARD_PORT + "\n"
+            + "  port " + FluentdUtil.FORWARD_PORT + "\n"
             + "</source>\n"
             + "\n"
             + "<filter *.*.*.*.*>\n"
@@ -232,12 +223,12 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
             + "  </record>\n"
             + "</filter>"
             + "\n"
-            + context.getDistributedLogsContext().getConnectedClusters()
+            + distributedLogsContext.getConnectedClusters()
             .stream()
             .map(cluster -> ""
                 + "<match " + FluentBit.tagName(cluster, "*") + ".*.*>\n"
                 + "  @type relabel\n"
-                + "  @label @" + databaseName(cluster) + "\n"
+                + "  @label @" + FluentdUtil.databaseName(cluster) + "\n"
                 + "</match>\n"
                 + "\n")
             .collect(Collectors.joining("\n"))
@@ -251,20 +242,20 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
             + "    <server>\n"
             + "      name localhost\n"
             + "      host 127.0.0.1\n"
-            + "      port " + FORWARD_PORT + "\n"
+            + "      port " + FluentdUtil.FORWARD_PORT + "\n"
             + "    </server>\n"
             + "  </match>\n"
             + "</label>\n"
             + "\n"
-            + context.getDistributedLogsContext().getConnectedClusters()
+            + distributedLogsContext.getConnectedClusters()
             .stream()
             .map(cluster -> ""
-                + "<label @" + databaseName(cluster) + ">\n"
+                + "<label @" + FluentdUtil.databaseName(cluster) + ">\n"
                 + "  <match " + FluentBit.tagName(cluster, POSTGRES_LOG_TYPE) + ".*.*>\n"
                 + "    @type sql\n"
                 + "    host /var/run/postgresql\n"
                 + "    port " + Envoy.PG_PORT + "\n"
-                + "    database " + databaseName(cluster) + "\n"
+                + "    database " + FluentdUtil.databaseName(cluster) + "\n"
                 + "    adapter postgresql\n"
                 + "    username postgres\n"
                 + "    <table>\n"
@@ -278,7 +269,7 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
                 + "    @type sql\n"
                 + "    host /var/run/postgresql\n"
                 + "    port " + Envoy.PG_PORT + "\n"
-                + "    database " + databaseName(cluster) + "\n"
+                + "    database " + FluentdUtil.databaseName(cluster) + "\n"
                 + "    adapter postgresql\n"
                 + "    username postgres\n"
                 + "    <table>\n"
@@ -290,38 +281,46 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
                 + "</label>\n"
                 + "\n")
             .collect(Collectors.joining("\n"));
-    final String databaseList = context.getDistributedLogsContext().getConnectedClusters()
+    final String databaseList = distributedLogsContext.getConnectedClusters()
         .stream()
-        .map(cluster -> databaseName(cluster))
+        .map(FluentdUtil::databaseName)
         .collect(Collectors.joining("\n"));
     final Map<String, String> data = ImmutableMap.of(
         "fluentd.conf", configFile,
         "databases", databaseList);
 
+    final StackGresClusterContext clusterContext = context.getClusterContext();
+    final StackGresCluster cluster = clusterContext.getCluster();
+    final LabelFactory<?> labelFactory = factoryDelegator
+        .pickFactory(clusterContext);
+    final Map<String, String> clusterLabels = labelFactory
+        .clusterLabels(cluster);
     final ConfigMap configMap = new ConfigMapBuilder()
         .withNewMetadata()
         .withNamespace(namespace)
-        .withName(configName(context.getDistributedLogsContext()))
-        .withLabels(context.getClusterContext().clusterLabels())
-        .withOwnerReferences(context.getClusterContext().ownerReferences())
+        .withName(configName(distributedLogsContext))
+        .withLabels(clusterLabels)
+        .withOwnerReferences(clusterContext.getOwnerReferences())
         .endMetadata()
         .withData(data)
         .build();
 
+    final Map<String, String> patroniPrimaryLabels = labelFactory
+        .patroniPrimaryLabels(cluster);
     final Service service = new ServiceBuilder()
         .withNewMetadata()
         .withNamespace(namespace)
-        .withName(serviceName(context.getDistributedLogsContext()))
-        .withLabels(context.getClusterContext().patroniPrimaryLabels())
-        .withOwnerReferences(context.getClusterContext().ownerReferences())
+        .withName(serviceName(distributedLogsContext))
+        .withLabels(patroniPrimaryLabels)
+        .withOwnerReferences(clusterContext.getOwnerReferences())
         .endMetadata()
         .withNewSpec()
-        .withSelector(context.getClusterContext().patroniPrimaryLabels())
+        .withSelector(patroniPrimaryLabels)
         .withPorts(new ServicePortBuilder()
                 .withProtocol("TCP")
-                .withName(FORWARD_PORT_NAME)
-                .withPort(FORWARD_PORT)
-                .withTargetPort(new IntOrString(FORWARD_PORT_NAME))
+                .withName(FluentdUtil.FORWARD_PORT_NAME)
+                .withPort(FluentdUtil.FORWARD_PORT)
+                .withTargetPort(new IntOrString(FluentdUtil.FORWARD_PORT_NAME))
                 .build())
         .withType("ClusterIP")
         .endSpec()
@@ -353,4 +352,8 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
     }
   }
 
+  @Inject
+  public void setFactoryDelegator(LabelFactoryDelegator factoryDelegator) {
+    this.factoryDelegator = factoryDelegator;
+  }
 }

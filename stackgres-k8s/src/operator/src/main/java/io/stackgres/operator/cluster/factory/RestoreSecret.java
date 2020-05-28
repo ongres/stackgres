@@ -11,13 +11,16 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
+import io.stackgres.common.LabelFactory;
+import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresClusterOptionalResourceStreamFactory;
 import io.stackgres.operator.common.StackGresGeneratorContext;
-import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jooq.lambda.Seq;
 
@@ -27,6 +30,8 @@ public class RestoreSecret extends AbstractBackupSecret
 
   private static final String RESTORE_SECRET_SUFFIX = "-restore";
 
+  private LabelFactory<StackGresCluster> labelFactory;
+
   public static String name(StackGresClusterContext context) {
     return ResourceUtil.resourceName(
         context.getCluster().getMetadata().getName() + RESTORE_SECRET_SUFFIX);
@@ -34,7 +39,8 @@ public class RestoreSecret extends AbstractBackupSecret
 
   @Override
   public Stream<Optional<HasMetadata>> streamOptionalResources(StackGresGeneratorContext context) {
-    return Seq.of(context.getClusterContext().getRestoreContext()
+    final StackGresClusterContext clusterContext = context.getClusterContext();
+    return Seq.of(clusterContext.getRestoreContext()
         .map(restoreContext -> {
           Map<String, String> data = new HashMap<String, String>();
 
@@ -44,12 +50,13 @@ public class RestoreSecret extends AbstractBackupSecret
           data.putAll(getBackupSecrets(restoreContext.getBackup().getStatus().getBackupConfig(),
               restoreContext.getSecrets()));
 
+          final StackGresCluster cluster = clusterContext.getCluster();
           return new SecretBuilder()
               .withNewMetadata()
-              .withNamespace(context.getClusterContext().getCluster().getMetadata().getNamespace())
-              .withName(name(context.getClusterContext()))
-              .withLabels(context.getClusterContext().clusterLabels())
-              .withOwnerReferences(context.getClusterContext().ownerReferences())
+              .withNamespace(cluster.getMetadata().getNamespace())
+              .withName(name(clusterContext))
+              .withLabels(labelFactory.clusterLabels(cluster))
+              .withOwnerReferences(clusterContext.getOwnerReferences())
               .endMetadata()
               .withType("Opaque")
               .withStringData(StackGresUtil.addMd5Sum(data))
@@ -57,4 +64,8 @@ public class RestoreSecret extends AbstractBackupSecret
         }));
   }
 
+  @Inject
+  public void setLabelFactory(LabelFactory<StackGresCluster> labelFactory) {
+    this.labelFactory = labelFactory;
+  }
 }

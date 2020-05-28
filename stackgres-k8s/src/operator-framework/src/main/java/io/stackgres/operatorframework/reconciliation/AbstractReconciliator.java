@@ -9,6 +9,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -74,7 +75,8 @@ public abstract class AbstractReconciliator<T extends ResourceHandlerContext,
   private void deleteUnwantedResources() {
     for (Tuple2<HasMetadata, Optional<HasMetadata>> existingResource :
         context.getExistingResources()) {
-      if (!context.getLabels().entrySet().stream().allMatch(
+      final ImmutableMap<String, String> labels = context.getLabels();
+      if (!labels.entrySet().stream().allMatch(
           entry -> Objects.equals(entry.getValue(),
               existingResource.v1.getMetadata().getLabels().get(entry.getKey())))) {
         if (handlerSelector.skipDeletion(context, existingResource.v1)) {

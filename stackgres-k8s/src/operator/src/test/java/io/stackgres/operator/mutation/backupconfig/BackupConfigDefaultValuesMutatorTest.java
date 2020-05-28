@@ -10,9 +10,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import io.stackgres.operator.common.BackupConfigReview;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigSpec;
+import io.stackgres.testutil.JsonUtil;
 import io.stackgres.operator.mutation.DefaultValuesMutator;
 import io.stackgres.operator.mutation.DefaultValuesMutatorTest;
-import io.stackgres.operator.utils.JsonUtil;
 
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;

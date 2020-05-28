@@ -17,7 +17,7 @@ import io.stackgres.common.StackGresContext;
 
 import io.stackgres.operator.app.StackGresOperatorApp;
 import io.stackgres.operator.common.StackGresComponents;
-import io.stackgres.operator.common.StackGresUtil;
+import io.stackgres.common.StackGresUtil;
 
 import org.jooq.lambda.Seq;
 import org.junit.Assert;
@@ -33,10 +33,10 @@ public class CheckOperatorValuesTest {
     JsonNode operatorConfig = objectMapper.readTree(
         Paths.get("../../install/helm/stackgres-operator/values.yaml").toFile());
     final String imageTag;
-    if (StackGresUtil.OPERATOR_VERSION.endsWith("-SNAPSHOT")) {
+    if (StackGresContext.OPERATOR_VERSION.endsWith("-SNAPSHOT")) {
       imageTag = "development-jvm";
     } else {
-      imageTag = StackGresUtil.OPERATOR_VERSION + "-jvm";
+      imageTag = StackGresContext.OPERATOR_VERSION + "-jvm";
     }
     Assert.assertEquals(imageTag,
         operatorConfig.get("image").get("tag").asText());

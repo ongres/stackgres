@@ -16,10 +16,9 @@ import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackup.StackGresBackupList;
 import io.stackgres.common.crd.sgcluster.ClusterRestore;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.operator.common.ConfigLoader;
 import io.stackgres.operator.common.StackGresClusterReview;
-import io.stackgres.operator.resource.CustomResourceScanner;
-import io.stackgres.operator.utils.JsonUtil;
+import io.stackgres.common.resource.CustomResourceScanner;
+import io.stackgres.testutil.JsonUtil;
 import io.stackgres.operator.utils.ValidationUtils;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import org.junit.jupiter.api.BeforeEach;
@@ -42,7 +41,7 @@ class RestoreConfigValidatorTest {
   @BeforeEach
   void setUp() {
 
-    validator = new RestoreConfigValidator(scanner, new ConfigLoader());
+    validator = new RestoreConfigValidator(scanner);
     backupList = JsonUtil
         .readFromJson("backup/list.json", StackGresBackupList.class);
   }

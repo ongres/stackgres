@@ -10,12 +10,11 @@ import java.util.Optional;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
+import io.stackgres.common.ErrorType;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
-import io.stackgres.operator.common.ConfigContext;
-import io.stackgres.operator.common.ErrorType;
+import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.common.StackGresClusterReview;
-import io.stackgres.operator.resource.CustomResourceFinder;
 import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 
@@ -25,13 +24,10 @@ public class PoolingConfigValidator implements ClusterValidator {
 
   private CustomResourceFinder<StackGresPoolingConfig> configFinder;
 
-  private ConfigContext context;
-
   @Inject
   public PoolingConfigValidator(
-      CustomResourceFinder<StackGresPoolingConfig> configFinder, ConfigContext context) {
+      CustomResourceFinder<StackGresPoolingConfig> configFinder) {
     this.configFinder = configFinder;
-    this.context = context;
   }
 
   @Override
@@ -67,7 +63,7 @@ public class PoolingConfigValidator implements ClusterValidator {
           .findByNameAndNamespace(poolingConfig, namespace);
 
       if (!poolingConfigOpt.isPresent()) {
-        fail(context, onError);
+        fail(onError);
       }
     }
   }

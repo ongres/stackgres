@@ -8,6 +8,7 @@ package io.stackgres.operator.sidecars.fluentbit;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import com.google.common.collect.ImmutableList;
@@ -22,15 +23,18 @@ import io.fabric8.kubernetes.api.model.SecurityContextBuilder;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
+import io.stackgres.common.FluentdUtil;
+import io.stackgres.common.LabelFactory;
 import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSetPath;
+import io.stackgres.operator.common.LabelFactoryDelegator;
 import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresClusterSidecarResourceFactory;
 import io.stackgres.operator.common.StackGresComponents;
 import io.stackgres.operator.common.StackGresGeneratorContext;
-import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operator.distributedlogs.fluentd.Fluentd;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jooq.lambda.Seq;
@@ -45,7 +49,11 @@ public class FluentBit implements StackGresClusterSidecarResourceFactory<Void> {
 
   private static final String CONFIG_SUFFIX = "-fluent-bit";
 
-  public FluentBit() {
+  private final LabelFactoryDelegator factoryDelegator;
+
+  @Inject
+  public FluentBit(LabelFactoryDelegator factoryDelegator) {
+    this.factoryDelegator = factoryDelegator;
   }
 
   @Override
@@ -131,7 +139,8 @@ public class FluentBit implements StackGresClusterSidecarResourceFactory<Void> {
 
   @Override
   public Stream<HasMetadata> streamResources(StackGresGeneratorContext context) {
-    final StackGresCluster cluster = context.getClusterContext().getCluster();
+    final StackGresClusterContext clusterContext = context.getClusterContext();
+    final StackGresCluster cluster = clusterContext.getCluster();
     final String namespace = cluster.getMetadata().getNamespace();
     final String fluentdRelativeId = cluster.getSpec()
         .getDistributedLogs().getDistributedLogs();
@@ -168,6 +177,8 @@ public class FluentBit implements StackGresClusterSidecarResourceFactory<Void> {
         + "    Regex       ^[^.]+\\.[^.]+\\.[^.]+\\."
           + "(?<namespace_name>[^.]+)\\.(?<pod_name>[^.]+)$\n"
         + "\n";
+    final LabelFactory<?> labelFactory = factoryDelegator.pickFactory(clusterContext);
+    final String clusterNamespace = labelFactory.clusterNamespace(cluster);
     String fluentBitConfigFile = ""
         + "[SERVICE]\n"
         + "    Parsers_File      /etc/fluent-bit/parsers.conf\n"
@@ -177,7 +188,7 @@ public class FluentBit implements StackGresClusterSidecarResourceFactory<Void> {
         + "    Path              "
           + "/proc/${PATRONI_PID}/root/"
           + ClusterStatefulSetPath.PG_LOG_PATH.path() + "/postgres*.csv\n"
-        + "    Tag               " + Fluentd.POSTGRES_LOG_TYPE + "\n"
+        + "    Tag               " + FluentdUtil.POSTGRES_LOG_TYPE + "\n"
         + "    DB                /tmp/postgreslog.db\n"
         + "    Multiline         On\n"
         + "    Parser_Firstline  postgreslog_firstline\n"
@@ -189,24 +200,24 @@ public class FluentBit implements StackGresClusterSidecarResourceFactory<Void> {
         + "    Path              "
           + "/proc/${PATRONI_PID}/root/"
           + ClusterStatefulSetPath.PG_LOG_PATH.path() + "/patroni*.log\n"
-        + "    Tag               " + Fluentd.PATRONI_LOG_TYPE + "\n"
+        + "    Tag               " + FluentdUtil.PATRONI_LOG_TYPE + "\n"
         + "    DB                /tmp/patronilog.db\n"
         + "    Parser            patronilog\n"
         + "\n"
         + "[FILTER]\n"
         + "    Name         rewrite_tag\n"
-        + "    Match        " + Fluentd.POSTGRES_LOG_TYPE + "\n"
+        + "    Match        " + FluentdUtil.POSTGRES_LOG_TYPE + "\n"
         + "    Rule         $message ^.*$ "
-          + tagName(cluster, Fluentd.POSTGRES_LOG_TYPE)
-          + "." + context.getClusterContext().clusterNamespace() + ".${HOSTNAME} false\n"
+          + tagName(cluster, FluentdUtil.POSTGRES_LOG_TYPE)
+          + "." + clusterNamespace + ".${HOSTNAME} false\n"
         + "    Emitter_Name postgres_re_emitted"
         + "\n"
         + "[FILTER]\n"
         + "    Name         rewrite_tag\n"
-        + "    Match        " + Fluentd.PATRONI_LOG_TYPE + "\n"
+        + "    Match        " + FluentdUtil.PATRONI_LOG_TYPE + "\n"
         + "    Rule         $message ^.*$ "
-          + tagName(cluster, Fluentd.PATRONI_LOG_TYPE)
-          + "." + context.getClusterContext().clusterNamespace() + ".${HOSTNAME} false\n"
+          + tagName(cluster, FluentdUtil.PATRONI_LOG_TYPE)
+          + "." + clusterNamespace + ".${HOSTNAME} false\n"
         + "    Emitter_Name patroni_re_emitted"
         + "\n"
         + "[FILTER]\n"
@@ -220,7 +231,7 @@ public class FluentBit implements StackGresClusterSidecarResourceFactory<Void> {
         + "    Name              forward\n"
         + "    Match             " + tagName(cluster, "*") + "\n"
         + "    Host              " + fluentdServiceName + "." + fluentdNamespace + "\n"
-        + "    Port              " + Fluentd.FORWARD_PORT + "\n"
+        + "    Port              " + FluentdUtil.FORWARD_PORT + "\n"
         + "\n"
         + "[OUTPUT]\n"
         + "    Name              stdout\n"
@@ -233,9 +244,9 @@ public class FluentBit implements StackGresClusterSidecarResourceFactory<Void> {
     ConfigMap configMap = new ConfigMapBuilder()
         .withNewMetadata()
         .withNamespace(namespace)
-        .withName(configName(context.getClusterContext()))
-        .withLabels(context.getClusterContext().clusterLabels())
-        .withOwnerReferences(context.getClusterContext().ownerReferences())
+        .withName(configName(clusterContext))
+        .withLabels(labelFactory.clusterLabels(cluster))
+        .withOwnerReferences(clusterContext.getOwnerReferences())
         .endMetadata()
         .withData(data)
         .build();

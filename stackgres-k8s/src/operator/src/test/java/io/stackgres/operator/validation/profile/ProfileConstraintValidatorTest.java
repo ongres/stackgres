@@ -7,10 +7,10 @@ package io.stackgres.operator.validation.profile;
 
 import javax.validation.constraints.NotBlank;
 
-import io.stackgres.operator.common.SgProfileReview;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgprofile.StackGresProfileSpec;
-import io.stackgres.operator.utils.JsonUtil;
+import io.stackgres.testutil.JsonUtil;
+import io.stackgres.operator.common.SgProfileReview;
 import io.stackgres.operator.validation.ConstraintValidationTest;
 import io.stackgres.operator.validation.ConstraintValidator;
 import org.junit.jupiter.api.Test;

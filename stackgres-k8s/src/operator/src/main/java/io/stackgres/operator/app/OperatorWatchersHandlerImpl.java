@@ -19,6 +19,7 @@ import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.Watcher.Action;
 import io.quarkus.runtime.Application;
+import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackup.StackGresBackupDefinition;
 import io.stackgres.common.crd.sgbackup.StackGresBackupDoneable;

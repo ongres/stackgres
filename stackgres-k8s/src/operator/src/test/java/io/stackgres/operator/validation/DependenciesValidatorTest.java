@@ -7,19 +7,16 @@ package io.stackgres.operator.validation;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import java.util.Optional;
 
+import io.stackgres.common.ErrorType;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDefinition;
 import io.stackgres.common.crd.sgcluster.StackGresClusterList;
-import io.stackgres.operator.common.ConfigLoader;
-import io.stackgres.operator.common.ErrorType;
-import io.stackgres.operator.resource.CustomResourceScanner;
-import io.stackgres.operator.utils.JsonUtil;
+import io.stackgres.common.resource.CustomResourceScanner;
+import io.stackgres.testutil.JsonUtil;
 import io.stackgres.operator.utils.ValidationUtils;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
@@ -40,7 +37,6 @@ public abstract class DependenciesValidatorTest<T extends AdmissionReview<?>, V 
   void setUp() {
     validator = setUpValidation();
     validator.setClusterScanner(clusterScanner);
-    validator.init(new ConfigLoader());
   }
 
   @Test

@@ -6,8 +6,8 @@
 package io.stackgres.operator.validation.backupconfig;
 
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
+import io.stackgres.testutil.JsonUtil;
 import io.stackgres.operator.common.BackupConfigReview;
-import io.stackgres.operator.utils.JsonUtil;
 import io.stackgres.operator.validation.AbstractDefaultConfigKeeper;
 import io.stackgres.operator.validation.DefaultKeeperTest;
 import org.junit.jupiter.api.extension.ExtendWith;

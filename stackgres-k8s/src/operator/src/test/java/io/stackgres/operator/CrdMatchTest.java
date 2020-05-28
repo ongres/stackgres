@@ -22,7 +22,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.reflect.ClassPath;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.StackGresContext;
-import io.stackgres.operator.app.YamlMapperProvider;
+import io.stackgres.common.YamlMapperProvider;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.opentest4j.AssertionFailedError;

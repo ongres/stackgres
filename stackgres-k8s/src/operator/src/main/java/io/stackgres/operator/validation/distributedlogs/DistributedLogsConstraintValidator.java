@@ -7,7 +7,7 @@ package io.stackgres.operator.validation.distributedlogs;
 
 import javax.inject.Singleton;
 
-import io.stackgres.operator.common.ErrorType;
+import io.stackgres.common.ErrorType;
 import io.stackgres.operator.common.StackGresDistributedLogsReview;
 import io.stackgres.operator.validation.ConstraintValidator;
 import io.stackgres.operator.validation.ValidationType;

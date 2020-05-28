@@ -11,17 +11,17 @@ import java.util.Optional;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
+import io.stackgres.common.ConfigContext;
+import io.stackgres.common.ErrorType;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackup.StackGresBackupProcess;
 import io.stackgres.common.crd.sgcluster.ClusterRestore;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
-import io.stackgres.operator.common.ConfigContext;
-import io.stackgres.operator.common.ErrorType;
+import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.common.StackGresComponents;
-import io.stackgres.operator.resource.CustomResourceScanner;
 import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
@@ -30,17 +30,20 @@ import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFail
 @ValidationType(ErrorType.INVALID_CR_REFERENCE)
 public class RestoreConfigValidator implements ClusterValidator {
 
+  private static final String errorCrReferencerUri = ConfigContext
+      .getErrorTypeUri(ErrorType.INVALID_CR_REFERENCE);
+  private static final String errorPostgresMismatch = ConfigContext
+      .getErrorTypeUri(ErrorType.PG_VERSION_MISMATCH);
+
   private CustomResourceScanner<StackGresBackup> backupScanner;
 
-  private String errorCrReferencerUri;
-  private String errorPostgresMismatch;
-
   @Inject
-  public RestoreConfigValidator(CustomResourceScanner<StackGresBackup> backupScanner,
-                                ConfigContext context) {
+  public RestoreConfigValidator(CustomResourceScanner<StackGresBackup> backupScanner) {
     this.backupScanner = backupScanner;
-    errorCrReferencerUri = context.getErrorTypeUri(ErrorType.INVALID_CR_REFERENCE);
-    errorPostgresMismatch = context.getErrorTypeUri(ErrorType.PG_VERSION_MISMATCH);
+  }
+
+  private static String getMajorVersion(StackGresBackup backup) {
+    return backup.getStatus().getBackupInformation().getPostgresVersion().substring(0, 2);
   }
 
   @Override
@@ -112,10 +115,6 @@ public class RestoreConfigValidator implements ClusterValidator {
         break;
       default:
     }
-  }
-
-  private static String getMajorVersion(StackGresBackup backup) {
-    return backup.getStatus().getBackupInformation().getPostgresVersion().substring(0, 2);
   }
 
   private void checkRestoreConfig(StackGresClusterReview review,

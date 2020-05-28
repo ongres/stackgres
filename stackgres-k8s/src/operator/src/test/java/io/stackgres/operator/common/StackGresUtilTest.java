@@ -10,6 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 
+import io.stackgres.common.StackGresUtil;
 import org.junit.jupiter.api.Test;
 
 class StackGresUtilTest {

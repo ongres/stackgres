@@ -39,7 +39,7 @@
   <dependencies>
     <dependency>
       <groupId>io.stackgres</groupId>
-      <artifactId>stackgres-common</artifactId>
+      <artifactId>stackgres-api-web</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
@@ -52,23 +52,11 @@
       <artifactId>quarkus-security</artifactId>
     </dependency>
     <dependency>
-        <groupId>io.quarkus</groupId>
-        <artifactId>quarkus-jdbc-postgresql</artifactId>
+      <groupId>io.stackgres</groupId>
+      <artifactId>stackgres-test-util</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
     </dependency>
-    <dependency>
-      <groupId>org.jooq</groupId>
-      <artifactId>jooq</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.oracle.substratevm</groupId>
-      <artifactId>svm</artifactId>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>jakarta.persistence</groupId>
-      <artifactId>jakarta.persistence-api</artifactId>
-    </dependency>
-
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>

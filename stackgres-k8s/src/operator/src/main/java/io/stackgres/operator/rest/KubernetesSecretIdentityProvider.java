@@ -23,11 +23,12 @@ import io.quarkus.security.identity.SecurityIdentity;
 import io.quarkus.security.identity.request.UsernamePasswordAuthenticationRequest;
 import io.quarkus.security.runtime.QuarkusPrincipal;
 import io.quarkus.security.runtime.QuarkusSecurityIdentity;
-import io.stackgres.operator.app.KubernetesClientFactory;
-import io.stackgres.operator.common.ConfigLoader;
-import io.stackgres.operator.common.ConfigProperty;
-import io.stackgres.operator.common.StackGresUtil;
-import io.stackgres.operatorframework.resource.ResourceUtil;
+import io.stackgres.apiweb.RestAuthenticationRoles;
+import io.stackgres.common.KubernetesClientFactory;
+import io.stackgres.common.OperatorProperty;
+import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.resource.ResourceUtil;
+import io.stackgres.operator.configuration.OperatorContext;
 
 @ApplicationScoped
 public class KubernetesSecretIdentityProvider
@@ -40,11 +41,11 @@ public class KubernetesSecretIdentityProvider
 
   @Inject
   public KubernetesSecretIdentityProvider(KubernetesClientFactory clientFactory,
-      ConfigLoader configLoader) {
+      OperatorContext operatorContext) {
     super();
     this.clientFactory = clientFactory;
-    this.operatorNamespace = configLoader.get(ConfigProperty.OPERATOR_NAMESPACE);
-    this.secretName = configLoader.get(ConfigProperty.AUTHENTICATION_SECRET_NAME);
+    this.operatorNamespace = operatorContext.get(OperatorProperty.OPERATOR_NAMESPACE);
+    this.secretName = operatorContext.get(OperatorProperty.AUTHENTICATION_SECRET_NAME);
   }
 
   @Override

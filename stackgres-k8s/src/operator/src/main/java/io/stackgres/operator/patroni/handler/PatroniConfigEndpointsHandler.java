@@ -39,10 +39,14 @@ public class PatroniConfigEndpointsHandler extends AbstractClusterResourceHandle
 
   private final ObjectMapper objectMapper;
 
+  private final PatroniServices patroniServices;
+
   @Inject
-  public PatroniConfigEndpointsHandler(ObjectMapperProvider objectMapperProvider) {
+  public PatroniConfigEndpointsHandler(ObjectMapperProvider objectMapperProvider,
+                                       PatroniServices patroniServices) {
     super();
     this.objectMapper = objectMapperProvider.objectMapper();
+    this.patroniServices = patroniServices;
   }
 
   @Override
@@ -52,7 +56,7 @@ public class PatroniConfigEndpointsHandler extends AbstractClusterResourceHandle
         && resource.getMetadata().getNamespace().equals(
             context.getCluster().getMetadata().getNamespace())
         && resource.getMetadata().getName().equals(
-            PatroniServices.configName(context));
+            patroniServices.configName(context));
   }
 
   @Override

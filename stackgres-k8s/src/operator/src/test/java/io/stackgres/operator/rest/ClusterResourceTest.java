@@ -37,26 +37,29 @@ import io.fabric8.kubernetes.client.dsl.FilterWatchListMultiDeletable;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
 import io.fabric8.kubernetes.client.dsl.PodResource;
+import io.stackgres.apiweb.ClusterResource;
+import io.stackgres.common.ClusterLabelFactory;
+import io.stackgres.common.ClusterLabelMapper;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterList;
-import io.stackgres.operator.app.KubernetesClientFactory;
-import io.stackgres.operator.common.ConfigContext;
-import io.stackgres.operator.common.ConfigProperty;
-import io.stackgres.operator.resource.ClusterDtoFinder;
-import io.stackgres.operator.resource.ClusterDtoScanner;
-import io.stackgres.operator.resource.CustomResourceFinder;
-import io.stackgres.operator.resource.CustomResourceScanner;
-import io.stackgres.operator.resource.CustomResourceScheduler;
-import io.stackgres.operator.rest.distributedlogs.DistributedLogsFetcher;
-import io.stackgres.operator.rest.distributedlogs.DistributedLogsQueryParameters;
-import io.stackgres.operator.rest.distributedlogs.FullTextSearchQuery;
-import io.stackgres.operator.rest.dto.cluster.ClusterDto;
-import io.stackgres.operator.rest.dto.cluster.ClusterLogEntryDto;
-import io.stackgres.operator.rest.dto.cluster.ClusterResourceConsumtionDto;
-import io.stackgres.operator.rest.transformer.AbstractResourceTransformer;
-import io.stackgres.operator.rest.transformer.ClusterPodTransformer;
-import io.stackgres.operator.rest.transformer.ClusterTransformer;
-import io.stackgres.operator.utils.JsonUtil;
+import io.stackgres.common.KubernetesClientFactory;
+import io.stackgres.common.ConfigContext;
+import io.stackgres.common.OperatorProperty;
+import io.stackgres.apiweb.resource.ClusterDtoFinder;
+import io.stackgres.apiweb.resource.ClusterDtoScanner;
+import io.stackgres.common.resource.CustomResourceFinder;
+import io.stackgres.common.resource.CustomResourceScanner;
+import io.stackgres.common.resource.CustomResourceScheduler;
+import io.stackgres.apiweb.distributedlogs.DistributedLogsFetcher;
+import io.stackgres.apiweb.distributedlogs.DistributedLogsQueryParameters;
+import io.stackgres.apiweb.distributedlogs.FullTextSearchQuery;
+import io.stackgres.apiweb.distributedlogs.dto.cluster.ClusterDto;
+import io.stackgres.apiweb.distributedlogs.dto.cluster.ClusterLogEntryDto;
+import io.stackgres.apiweb.distributedlogs.dto.cluster.ClusterResourceConsumtionDto;
+import io.stackgres.apiweb.transformer.AbstractResourceTransformer;
+import io.stackgres.apiweb.transformer.ClusterPodTransformer;
+import io.stackgres.apiweb.transformer.ClusterTransformer;
+import io.stackgres.testutil.JsonUtil;
 import org.jooq.lambda.tuple.Tuple;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -113,7 +116,7 @@ class ClusterResourceTest
   @Test
   @Override
   void listShouldReturnAllDtos() {
-    when(configContext.getProperty(ConfigProperty.GRAFANA_EMBEDDED))
+    when(configContext.getProperty(OperatorProperty.GRAFANA_EMBEDDED))
         .thenReturn(Optional.of("true"));
     when(clientFactory.create()).thenReturn(client);
     when(client.pods()).thenReturn(podsOperation);
@@ -131,7 +134,7 @@ class ClusterResourceTest
   }
 
   private void mockPodList() {
-    when(configContext.getProperty(ConfigProperty.GRAFANA_EMBEDDED))
+    when(configContext.getProperty(OperatorProperty.GRAFANA_EMBEDDED))
         .thenReturn(Optional.of("true"));
     when(clientFactory.create()).thenReturn(client);
     when(client.pods()).thenReturn(podsOperation);
@@ -168,10 +171,15 @@ class ClusterResourceTest
     dtoFinder.setClusterFinder(finder);
     dtoFinder.setClientFactory(clientFactory);
     dtoFinder.setClusterTransformer(getTransformer());
+    final ClusterLabelFactory labelFactory = new ClusterLabelFactory();
+    labelFactory.setLabelMapper(new ClusterLabelMapper());
+    dtoFinder.setLabelFactory(labelFactory);
     final ClusterDtoScanner dtoScanner = new ClusterDtoScanner();
     dtoScanner.setClusterScanner(scanner);
     dtoScanner.setClientFactory(clientFactory);
     dtoScanner.setClusterTransformer(getTransformer());
+    dtoScanner.setLabelFactory(labelFactory);
+
     return new ClusterResource(
         finder,
         scheduler, transformer,

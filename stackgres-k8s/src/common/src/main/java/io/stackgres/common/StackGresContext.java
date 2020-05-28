@@ -18,10 +18,17 @@ public enum StackGresContext {
 
   public static final String CONTAINER_BUILD = INSTANCE.containerBuild;
 
+  public static final String OPERATOR_VERSION = INSTANCE.operatorVersion;
+  public static final String DOCUMENTATION_URI = INSTANCE.documentationUri;
+  public static final String DOCUMENTATION_ERRORS_PATH = INSTANCE.documentationErrorsPath;
+
   private final String group;
   private final String version;
 
   private final String containerBuild;
+  private final String operatorVersion;
+  private final String documentationUri;
+  private final String documentationErrorsPath;
 
   StackGresContext() {
     try {
@@ -32,6 +39,10 @@ public enum StackGresContext {
       group = getProperty(properties, StackGresProperty.CRD_GROUP);
       version = getProperty(properties, StackGresProperty.CRD_VERSION);
       containerBuild = getProperty(properties, StackGresProperty.CONTAINER_BUILD);
+      operatorVersion = getProperty(properties, StackGresProperty.OPERATOR_VERSION);
+      documentationUri = getProperty(properties, StackGresProperty.DOCUMENTATION_URI);
+      documentationErrorsPath = getProperty(properties,
+          StackGresProperty.DOCUMENTATION_ERRORS_PATH);
       Preconditions.checkNotNull(group);
       Preconditions.checkNotNull(version);
       Preconditions.checkNotNull(containerBuild);

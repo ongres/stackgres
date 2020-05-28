@@ -18,6 +18,9 @@ import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.internal.KubernetesDeserializer;
+import io.stackgres.common.KubernetesClientFactory;
+import io.stackgres.common.OperatorProperty;
+import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackup.StackGresBackupDefinition;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
@@ -32,11 +35,9 @@ import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigDefinition;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgprofile.StackGresProfileDefinition;
-import io.stackgres.operator.common.ConfigLoader;
-import io.stackgres.operator.common.ConfigProperty;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresDistributedLogsContext;
-import io.stackgres.operator.common.StackGresUtil;
+import io.stackgres.operator.configuration.OperatorContext;
 import io.stackgres.operator.initialization.InitializationQueue;
 import io.stackgres.operatorframework.resource.ResourceHandlerSelector;
 import io.stackgres.operatorframework.resource.ResourceUtil;
@@ -62,12 +63,12 @@ public class OperatorBootstrapImpl implements OperatorBootstrap {
       ResourceHandlerSelector<StackGresClusterContext> handlerSelector,
       ResourceHandlerSelector<StackGresDistributedLogsContext> distributedLogsHandlerSelector,
       InitializationQueue initializationQueue,
-      ConfigLoader configLoader) {
+      OperatorContext operatorContext) {
     this.kubeClient = kubeClient;
     this.handlerSelector = handlerSelector;
     this.distributedLogsHandlerSelector = distributedLogsHandlerSelector;
     this.initializationQueue = initializationQueue;
-    this.secretName = configLoader.get(ConfigProperty.AUTHENTICATION_SECRET_NAME);
+    this.secretName = operatorContext.get(OperatorProperty.AUTHENTICATION_SECRET_NAME);
   }
 
   @Override

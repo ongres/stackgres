@@ -15,6 +15,10 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.io.Resources;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.stackgres.common.ArcUtil;
+import io.stackgres.common.KubernetesClientFactory;
+import io.stackgres.common.LabelFactory;
+import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.NonProduction;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDefinition;
@@ -30,17 +34,14 @@ import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsDefinition;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsDoneable;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsList;
-import io.stackgres.operator.app.KubernetesClientFactory;
 import io.stackgres.operator.app.ObjectMapperProvider;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSet;
-import io.stackgres.operator.common.ArcUtil;
 import io.stackgres.operator.common.ImmutableStackGresDistributedLogsContext;
 import io.stackgres.operator.common.ImmutableStackGresDistributedLogsGeneratorContext;
 import io.stackgres.operator.common.SidecarEntry;
 import io.stackgres.operator.common.StackGresComponents;
 import io.stackgres.operator.common.StackGresDistributedLogsContext;
 import io.stackgres.operator.common.StackGresDistributedLogsGeneratorContext;
-import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operator.distributedlogs.factory.DistributeLogs;
 import io.stackgres.operator.distributedlogs.fluentd.Fluentd;
 import io.stackgres.operator.resource.DistributedLogsResourceHandlerSelector;
@@ -60,6 +61,7 @@ public class DistributedLogsReconciliationCycle
   private final Fluentd fluentd;
   private final DistributedLogsStatusManager statusManager;
   private final EventController eventController;
+  private final LabelFactory<StackGresDistributedLogs> labelFactory;
 
   /**
    * Create a {@code DistributeLogsReconciliationCycle} instance.
@@ -70,7 +72,8 @@ public class DistributedLogsReconciliationCycle
       DistributeLogs distributeLogs, Fluentd fluentd,
       DistributedLogsResourceHandlerSelector handlerSelector,
       DistributedLogsStatusManager statusManager, EventController eventController,
-      ObjectMapperProvider objectMapperProvider) {
+      ObjectMapperProvider objectMapperProvider,
+      LabelFactory<StackGresDistributedLogs> labelFactory) {
     super("DistributeLogs", clientFactory::create,
         StackGresDistributedLogsContext::getDistributedLogs,
         handlerSelector, objectMapperProvider.objectMapper());
@@ -78,6 +81,7 @@ public class DistributedLogsReconciliationCycle
     this.fluentd = fluentd;
     this.statusManager = statusManager;
     this.eventController = eventController;
+    this.labelFactory = labelFactory;
   }
 
   public DistributedLogsReconciliationCycle() {
@@ -87,6 +91,7 @@ public class DistributedLogsReconciliationCycle
     this.fluentd = null;
     this.statusManager = null;
     this.eventController = null;
+    this.labelFactory = null;
   }
 
   @Override
@@ -171,15 +176,22 @@ public class DistributedLogsReconciliationCycle
 
   private StackGresDistributedLogsContext getDistributedLogsContext(
       StackGresDistributedLogs distributedLogs, KubernetesClient client) {
+    final StackGresCluster cluster = getStackGresCLusterForDistributedLogs(distributedLogs);
     return ImmutableStackGresDistributedLogsContext.builder()
         .distributedLogs(distributedLogs)
         .connectedClusters(getConnectedClusters(distributedLogs, client))
-        .cluster(getStackGresCLusterForDistributedLogs(distributedLogs))
+        .cluster(cluster)
         .backupContext(Optional.empty())
         .restoreContext(Optional.empty())
         .postgresConfig(Optional.empty())
         .profile(Optional.empty())
         .prometheus(Optional.empty())
+        .labels(labelFactory.clusterLabels(cluster))
+        .clusterNamespace(labelFactory.clusterNamespace(cluster))
+        .clusterName(labelFactory.clusterName(cluster))
+        .clusterKey(labelFactory.getLabelMapper().clusterKey())
+        .backupKey(labelFactory.getLabelMapper().backupKey())
+        .ownerReferences(ImmutableList.of(ResourceUtil.getOwnerReference(distributedLogs)))
         .addBackups()
         .addSidecars(new SidecarEntry<>(
             fluentd.toStackGresClusterSidecarResourceFactory(),

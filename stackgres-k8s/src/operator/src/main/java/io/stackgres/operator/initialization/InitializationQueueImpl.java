@@ -28,10 +28,10 @@ import io.fabric8.kubernetes.api.model.ContainerStatus;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.quarkus.runtime.Application;
-import io.stackgres.operator.app.KubernetesClientFactory;
-import io.stackgres.operator.common.ConfigContext;
-import io.stackgres.operator.common.ConfigProperty;
-import io.stackgres.operator.common.StackGresUtil;
+import io.stackgres.common.ConfigContext;
+import io.stackgres.common.KubernetesClientFactory;
+import io.stackgres.common.OperatorProperty;
+import io.stackgres.common.StackGresUtil;
 import org.jooq.lambda.Seq;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,11 +61,11 @@ public class InitializationQueueImpl implements InitializationQueue {
   public InitializationQueueImpl(KubernetesClientFactory clientFactory, ConfigContext context,
                                  @Any Instance<Initializer> initializers) {
     this.clientFactory = clientFactory;
-    operatorName = context.getProperty(ConfigProperty.OPERATOR_NAME)
+    operatorName = context.getProperty(OperatorProperty.OPERATOR_NAME)
         .orElseThrow(() -> new IllegalStateException("Operator name is not configured"));
-    operatorNamespace = context.getProperty(ConfigProperty.OPERATOR_NAMESPACE)
+    operatorNamespace = context.getProperty(OperatorProperty.OPERATOR_NAMESPACE)
         .orElseThrow(() -> new IllegalStateException("Operator namespace is not configured"));
-    operatorIP = context.getProperty(ConfigProperty.OPERATOR_IP)
+    operatorIP = context.getProperty(OperatorProperty.OPERATOR_IP)
         .orElseThrow(() -> new IllegalStateException("Operator ip is not configured"));
     this.initializers = new ArrayList<>(Seq.seq(initializers).toList());
     if (operatorIP.equals(LOCALHOST)) {

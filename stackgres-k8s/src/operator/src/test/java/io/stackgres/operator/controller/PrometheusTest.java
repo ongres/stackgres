@@ -18,16 +18,17 @@ import java.util.HashMap;
 import java.util.Optional;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.stackgres.common.LabelFactory;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.operator.app.KubernetesClientFactory;
+import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.operator.app.ObjectMapperProvider;
-import io.stackgres.operator.common.ConfigContext;
-import io.stackgres.operator.common.ConfigProperty;
+import io.stackgres.common.ConfigContext;
+import io.stackgres.common.OperatorProperty;
 import io.stackgres.operator.common.Prometheus;
 import io.stackgres.operator.customresource.prometheus.PrometheusConfig;
 import io.stackgres.operator.customresource.prometheus.PrometheusConfigList;
-import io.stackgres.operator.resource.CustomResourceScanner;
-import io.stackgres.operator.utils.JsonUtil;
+import io.stackgres.common.resource.CustomResourceScanner;
+import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -57,6 +58,9 @@ class PrometheusTest {
   @Mock
   private ConfigContext configContext;
 
+  @Mock
+  private LabelFactory<StackGresCluster> labelFactory;
+
 
   private PrometheusConfigList prometheusConfigList;
 
@@ -73,7 +77,7 @@ class PrometheusTest {
 
     reconciliationCycle = new ClusterReconciliationCycle(
         clientFactory, null, null, null, null, null, objectMapperProvider,
-        prometheusScanner, configContext);
+        prometheusScanner, configContext, labelFactory);
   }
 
   @Test
@@ -97,7 +101,7 @@ class PrometheusTest {
   void givenNoPrometheusInTheClusterAndAutobindSettled_itShouldNotFlagTheCreationOfServiceMonitor() {
 
     when(prometheusScanner.findResources()).thenReturn(Optional.empty());
-    when(configContext.getProperty(ConfigProperty.PROMETHEUS_AUTOBIND))
+    when(configContext.getProperty(OperatorProperty.PROMETHEUS_AUTOBIND))
         .thenReturn(Optional.of(Boolean.TRUE.toString()));
 
     Prometheus prometheus = invokeGetConfig();
@@ -113,7 +117,7 @@ class PrometheusTest {
   @Test
   void givenAutobindSettledToFalse_ItShouldNotEvenLookForPrometheusInstallations() {
 
-    when(configContext.getProperty(ConfigProperty.PROMETHEUS_AUTOBIND))
+    when(configContext.getProperty(OperatorProperty.PROMETHEUS_AUTOBIND))
         .thenReturn(Optional.of(Boolean.TRUE.toString()));
 
     cluster.getSpec().setPrometheusAutobind(false);
@@ -129,7 +133,7 @@ class PrometheusTest {
 
     when(prometheusScanner.findResources()).thenReturn(Optional.of(prometheusConfigList.getItems()));
 
-    when(configContext.getProperty(ConfigProperty.PROMETHEUS_AUTOBIND))
+    when(configContext.getProperty(OperatorProperty.PROMETHEUS_AUTOBIND))
         .thenReturn(Optional.of(Boolean.TRUE.toString()));
 
     Prometheus prometheus = invokeGetConfig();
@@ -149,7 +153,7 @@ class PrometheusTest {
   @Test
   void givenPrometheusInTheClusterButNotMatchLabelConfiguredAndAutobindSettled__itShouldNotFlagTheCreationOfServiceMonitor() {
 
-    when(configContext.getProperty(ConfigProperty.PROMETHEUS_AUTOBIND))
+    when(configContext.getProperty(OperatorProperty.PROMETHEUS_AUTOBIND))
         .thenReturn(Optional.of(Boolean.TRUE.toString()));
 
     when(prometheusScanner.findResources()).thenReturn(Optional.of(prometheusConfigList.getItems()));
@@ -170,7 +174,7 @@ class PrometheusTest {
   @Test
   void givenAutobindSettledButNotAllowed_ItShouldNotEvenLookForPrometheusInstallations() {
 
-    when(configContext.getProperty(ConfigProperty.PROMETHEUS_AUTOBIND))
+    when(configContext.getProperty(OperatorProperty.PROMETHEUS_AUTOBIND))
         .thenReturn(Optional.of(Boolean.FALSE.toString()));
 
     Prometheus prometheus = invokeGetConfig();

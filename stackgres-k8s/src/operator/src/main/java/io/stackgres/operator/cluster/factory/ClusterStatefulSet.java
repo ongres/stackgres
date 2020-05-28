@@ -30,11 +30,14 @@ import io.fabric8.kubernetes.api.model.PodTemplateSpecBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetUpdateStrategyBuilder;
+import io.stackgres.common.LabelFactory;
+import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.NonProduction;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.operator.common.LabelFactoryDelegator;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresClusterResourceStreamFactory;
 import io.stackgres.operator.common.StackGresGeneratorContext;
-import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operator.configuration.ImmutableStorageConfig;
 import io.stackgres.operator.configuration.StorageConfig;
 import io.stackgres.operator.patroni.factory.Patroni;
@@ -55,6 +58,8 @@ public class ClusterStatefulSet implements StackGresClusterResourceStreamFactory
   private ClusterStatefulSetInitContainers initContainerFactory;
   private ClusterStatefulSetVolumes volumesFactory;
 
+  private LabelFactoryDelegator factoryDelegator;
+
   @Inject
   public void setPatroni(Patroni patroni) {
     this.patroni = patroni;
@@ -68,6 +73,11 @@ public class ClusterStatefulSet implements StackGresClusterResourceStreamFactory
   @Inject
   public void setVolumesFactory(ClusterStatefulSetVolumes volumesFactory) {
     this.volumesFactory = volumesFactory;
+  }
+
+  @Inject
+  public void setFactoryDelegator(LabelFactoryDelegator factoryDelegator) {
+    this.factoryDelegator = factoryDelegator;
   }
 
   public static String dataName(StackGresClusterContext clusterContext) {
@@ -87,13 +97,14 @@ public class ClusterStatefulSet implements StackGresClusterResourceStreamFactory
   public Stream<HasMetadata> streamResources(StackGresGeneratorContext context) {
     StackGresClusterContext clusterContext = context.getClusterContext();
 
-    final String name = clusterContext.getCluster().getMetadata().getName();
-    final String namespace = clusterContext.getCluster().getMetadata().getNamespace();
+    final StackGresCluster cluster = clusterContext.getCluster();
+    final String name = cluster.getMetadata().getName();
+    final String namespace = cluster.getMetadata().getNamespace();
 
     StorageConfig dataStorageConfig = ImmutableStorageConfig.builder()
-        .size(clusterContext.getCluster().getSpec().getPod().getPersistentVolume().getVolumeSize())
+        .size(cluster.getSpec().getPod().getPersistentVolume().getVolumeSize())
         .storageClass(Optional.ofNullable(
-            clusterContext.getCluster().getSpec().getPod().getPersistentVolume().getStorageClass())
+            cluster.getSpec().getPod().getPersistentVolume().getStorageClass())
             .orElse(null))
         .build();
 
@@ -102,8 +113,9 @@ public class ClusterStatefulSet implements StackGresClusterResourceStreamFactory
         .withResources(dataStorageConfig.getResourceRequirements())
         .withStorageClassName(dataStorageConfig.getStorageClass());
 
-    final Map<String, String> labels = clusterContext.clusterLabels();
-    final Map<String, String> podLabels = clusterContext.statefulSetPodLabels();
+    final LabelFactory<?> labelFactory = factoryDelegator.pickFactory(clusterContext);
+    final Map<String, String> labels = labelFactory.clusterLabels(cluster);
+    final Map<String, String> podLabels = labelFactory.statefulSetPodLabels(cluster);
     final Map<String, String> podAnnotations = clusterContext.clusterAnnotations();
     final Map<String, String> customPodLabels = clusterContext.posCustomLabels();
     StatefulSet clusterStatefulSet = new StatefulSetBuilder()
@@ -111,10 +123,10 @@ public class ClusterStatefulSet implements StackGresClusterResourceStreamFactory
         .withNamespace(namespace)
         .withName(name)
         .withLabels(labels)
-        .withOwnerReferences(context.getClusterContext().ownerReferences())
+        .withOwnerReferences(context.getClusterContext().getOwnerReferences())
         .endMetadata()
         .withNewSpec()
-        .withReplicas(clusterContext.getCluster().getSpec().getInstances())
+        .withReplicas(cluster.getSpec().getInstances())
         .withSelector(new LabelSelectorBuilder()
             .addToMatchLabels(podLabels)
             .build())
@@ -137,7 +149,7 @@ public class ClusterStatefulSet implements StackGresClusterResourceStreamFactory
                                 .withMatchExpressions(new LabelSelectorRequirementBuilder()
                                         .withKey(StackGresUtil.APP_KEY)
                                         .withOperator("In")
-                                        .withValues(clusterContext.appName())
+                                        .withValues(labelFactory.getLabelMapper().appName())
                                         .build(),
                                     new LabelSelectorRequirementBuilder()
                                         .withKey("cluster")
@@ -150,7 +162,7 @@ public class ClusterStatefulSet implements StackGresClusterResourceStreamFactory
                     .build())
                 .build())
                 .filter(affinity -> Optional.ofNullable(
-                    clusterContext.getCluster().getSpec().getNonProduction())
+                    cluster.getSpec().getNonProduction())
                     .map(NonProduction::getDisableClusterPodAntiAffinity)
                     .map(disableClusterPodAntiAffinity -> !disableClusterPodAntiAffinity)
                     .orElse(true))
@@ -176,7 +188,7 @@ public class ClusterStatefulSet implements StackGresClusterResourceStreamFactory
                 .withNamespace(namespace)
                 .withName(dataName(clusterContext))
                 .withLabels(labels)
-                .withOwnerReferences(context.getClusterContext().ownerReferences())
+                .withOwnerReferences(context.getClusterContext().getOwnerReferences())
                 .endMetadata()
                 .withSpec(volumeClaimSpec.build())
                 .build()))

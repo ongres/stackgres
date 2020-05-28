@@ -14,10 +14,10 @@ import com.github.fge.jackson.jsonpointer.JsonPointer;
 import com.github.fge.jsonpatch.JsonPatchOperation;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.resource.CustomResourceFinder;
+import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
-import io.stackgres.operator.resource.CustomResourceFinder;
-import io.stackgres.operator.resource.CustomResourceScheduler;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 
 public abstract class AbstractDefaultResourceMutator<R extends CustomResource>

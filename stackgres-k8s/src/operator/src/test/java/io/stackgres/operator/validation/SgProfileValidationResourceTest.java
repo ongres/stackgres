@@ -5,8 +5,8 @@
 
 package io.stackgres.operator.validation;
 
+import io.stackgres.testutil.JsonUtil;
 import io.stackgres.operator.common.SgProfileReview;
-import io.stackgres.operator.utils.JsonUtil;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 
 import org.junit.jupiter.api.BeforeEach;

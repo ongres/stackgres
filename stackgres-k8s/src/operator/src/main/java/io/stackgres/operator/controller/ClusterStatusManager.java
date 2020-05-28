@@ -16,36 +16,47 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
 
+import io.fabric8.kubernetes.api.model.ObjectMeta;
+import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodList;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.stackgres.common.KubernetesClientFactory;
+import io.stackgres.common.LabelFactory;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterCondition;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDefinition;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDoneable;
 import io.stackgres.common.crd.sgcluster.StackGresClusterList;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
-import io.stackgres.operator.app.KubernetesClientFactory;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 
 @ApplicationScoped
 public class ClusterStatusManager {
 
+  private final KubernetesClientFactory clientFactory;
+
+  private final LabelFactory<StackGresCluster> labelFactory;
+
   @Inject
-  KubernetesClientFactory clientFactory;
+  public ClusterStatusManager(KubernetesClientFactory clientFactory,
+                              LabelFactory<StackGresCluster> labelFactory) {
+    this.clientFactory = clientFactory;
+    this.labelFactory = labelFactory;
+  }
 
   /**
    * Send an event related to a stackgres cluster.
    */
   public void sendCondition(@NotNull ClusterStatusCondition reason,
-      @NotNull StackGresClusterContext context) {
+                            @NotNull StackGresClusterContext context) {
     try (KubernetesClient client = clientFactory.create()) {
       sendCondition(reason, context, client);
     }
   }
 
   private void sendCondition(ClusterStatusCondition reason, StackGresClusterContext context,
-      KubernetesClient client) {
+                             KubernetesClient client) {
     final StackGresCluster cluster = context.getCluster();
     final Instant now = Instant.now();
     final StackGresClusterCondition condition = reason.getCondition();
@@ -72,12 +83,12 @@ public class ClusterStatusManager {
 
     ResourceUtil.getCustomResource(client, StackGresClusterDefinition.NAME)
         .map(crd -> client.customResources(crd,
-          StackGresCluster.class,
-          StackGresClusterList.class,
-          StackGresClusterDoneable.class)
-          .inNamespace(cluster.getMetadata().getNamespace())
-          .withName(cluster.getMetadata().getName())
-          .patch(cluster))
+            StackGresCluster.class,
+            StackGresClusterList.class,
+            StackGresClusterDoneable.class)
+            .inNamespace(cluster.getMetadata().getNamespace())
+            .withName(cluster.getMetadata().getName())
+            .patch(cluster))
         .orElseThrow(() -> new IllegalStateException("StackGres is not correctly installed:"
             + " CRD " + StackGresClusterDefinition.NAME + " not found."));
   }
@@ -109,17 +120,18 @@ public class ClusterStatusManager {
   }
 
   private boolean isPendingRestart(StackGresClusterContext context, KubernetesClient client) {
-    final String namespace = context.getCluster().getMetadata().getNamespace();
-    final Map<String, String> labels = context.patroniClusterLabels();
+    final StackGresCluster cluster = context.getCluster();
+    final String namespace = cluster.getMetadata().getNamespace();
+    final Map<String, String> labels = labelFactory.patroniClusterLabels(cluster);
 
     PodList pods = client.pods().inNamespace(namespace).withLabels(labels).list();
 
     return pods.getItems().stream()
-        .map(m -> m.getMetadata()).filter(Objects::nonNull)
-        .map(a -> a.getAnnotations()).filter(Objects::nonNull)
-        .map(e -> e.entrySet()).filter(Objects::nonNull)
+        .map(Pod::getMetadata).filter(Objects::nonNull)
+        .map(ObjectMeta::getAnnotations).filter(Objects::nonNull)
+        .map(Map::entrySet)
         .anyMatch(p -> p.stream()
-            .map(v -> v.getValue()).filter(Objects::nonNull)
+            .map(Map.Entry::getValue).filter(Objects::nonNull)
             .anyMatch(r -> r.contains("pending_restart")));
   }
 

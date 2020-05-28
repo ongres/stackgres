@@ -11,6 +11,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import com.google.common.collect.ImmutableList;
@@ -26,6 +27,7 @@ import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.stackgres.common.LabelFactory;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
@@ -57,6 +59,8 @@ public class PgPooling
   private static final String DEFAULT_VERSION = StackGresComponents.get("pgbouncer");
   private static final String CONFIG_SUFFIX = "-connection-pooling-config";
 
+  private LabelFactory<StackGresCluster> labelFactory;
+
   public static String configName(StackGresClusterContext clusterContext) {
     String name = clusterContext.getCluster().getMetadata().getName();
     return ResourceUtil.resourceName(name + CONFIG_SUFFIX);
@@ -64,10 +68,12 @@ public class PgPooling
 
   @Override
   public Stream<HasMetadata> streamResources(StackGresGeneratorContext context) {
-    String namespace = context.getClusterContext().getCluster().getMetadata().getNamespace();
-    String configMapName = configName(context.getClusterContext());
+    final StackGresClusterContext clusterContext = context.getClusterContext();
+    final StackGresCluster stackGresCluster = clusterContext.getCluster();
+    String namespace = stackGresCluster.getMetadata().getNamespace();
+    String configMapName = configName(clusterContext);
     Optional<StackGresPoolingConfig> pgbouncerConfig =
-        context.getClusterContext().getSidecarConfig(this);
+        clusterContext.getSidecarConfig(this);
     Map<String, String> newParams = pgbouncerConfig.map(StackGresPoolingConfig::getSpec)
         .map(StackGresPoolingConfigSpec::getPgBouncer)
         .map(StackGresPoolingConfigPgBouncer::getPgbouncerConf)
@@ -110,8 +116,8 @@ public class PgPooling
         .withNewMetadata()
         .withNamespace(namespace)
         .withName(configMapName)
-        .withLabels(context.getClusterContext().clusterLabels())
-        .withOwnerReferences(context.getClusterContext().ownerReferences())
+        .withLabels(labelFactory.clusterLabels(stackGresCluster))
+        .withOwnerReferences(clusterContext.getOwnerReferences())
         .endMetadata()
         .withData(data)
         .build();
@@ -171,4 +177,8 @@ public class PgPooling
     return Optional.empty();
   }
 
+  @Inject
+  public void setLabelFactory(LabelFactory<StackGresCluster> labelFactory) {
+    this.labelFactory = labelFactory;
+  }
 }

@@ -10,7 +10,7 @@ import java.util.HashMap;
 import io.stackgres.operator.common.PoolingReview;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncer;
-import io.stackgres.operator.utils.JsonUtil;
+import io.stackgres.testutil.JsonUtil;
 import io.stackgres.operator.validation.ConstraintValidationTest;
 import io.stackgres.operator.validation.ConstraintValidator;
 import org.junit.jupiter.api.Test;

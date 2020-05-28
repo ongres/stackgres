@@ -18,12 +18,12 @@ import com.github.fge.jsonpatch.JsonPatchOperation;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
+import io.stackgres.common.resource.CustomResourceFinder;
+import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.common.StackGresComponents;
 import io.stackgres.operator.initialization.PostgresConfigurationFactory;
 import io.stackgres.operator.initialization.PostgresDefaultFactoriesProvider;
-import io.stackgres.operator.resource.CustomResourceFinder;
-import io.stackgres.operator.resource.CustomResourceScheduler;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionRequest;
 
 @ApplicationScoped

@@ -9,7 +9,10 @@ public enum StackGresProperty {
 
   CRD_GROUP("stackgres.group"),
   CRD_VERSION("stackgres.crd.version"),
-  CONTAINER_BUILD("stackgres.containerBuild");
+  CONTAINER_BUILD("stackgres.containerBuild"),
+  OPERATOR_VERSION("stackgres.operatorVersion"),
+  DOCUMENTATION_URI("stackgres.documentation.uri"),
+  DOCUMENTATION_ERRORS_PATH("stackgres.documentation.errorsPath");
 
   private final String systemProperty;
 
