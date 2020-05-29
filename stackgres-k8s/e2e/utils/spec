@@ -74,7 +74,7 @@ spec() {
   fi
 
   flock "$TARGET_PATH/check-operator-lock" \
-      "$SHELL" $SH_OPTS "$(dirname "$0")/e2e" reinstall_operator_if_not_as_expected
+      "$SHELL" $SHELL_XTRACE "$(dirname "$0")/e2e" reinstall_operator_if_not_as_expected
 
   rm -f "$TARGET_PATH/$SPEC_NAME.failed"
 

@@ -62,7 +62,10 @@ k8s_async_cleanup() {
     | grep -v "^namespace/\(default\|kube-.*\)$" \
     | grep -v "^namespace/\($(excluded_namespaces | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
     | cut -d / -f 2 \
-    | xargs -r -n 1 -I % -P 0 kubectl delete namespace %
+    | xargs -r -n 1 -I % -P 0 "$SHELL" $SHELL_XTRACE \
+        -ec "kubectl delete namespace --wait=false % \
+          || kubectl get namespace % --template '{{ .status.phase }}' | grep -q 'Terminating' \
+          || ! kubectl get namespace % >/dev/null 2>&1"
   ! kubectl api-resources | grep -q '^podsecuritypolicies ' \
     || kubectl get podsecuritypolicies -o name \
       | grep -v "^podsecuritypolicy.extensions/\($(excluded_podsecuritypolicies | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
@@ -126,7 +129,10 @@ k8s_async_cleanup_but_operator() {
     | grep -v "^namespace/\(default\|kube-.*\|stackgres\)$" \
     | grep -v "^namespace/\($(excluded_namespaces | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
     | cut -d / -f 2 \
-    | xargs -r -n 1 -I % -P 0 kubectl delete namespace %
+    | xargs -r -n 1 -I % -P 0 "$SHELL" $SHELL_XTRACE \
+        -ec "kubectl delete namespace --wait=false % \
+          || kubectl get namespace % --template '{{ .status.phase }}' | grep -q 'Terminating' \
+          || ! kubectl get namespace % >/dev/null 2>&1"
   ! kubectl api-resources | grep -q '^podsecuritypolicies ' \
     || kubectl get podsecuritypolicies -o name \
       | grep -v "^podsecuritypolicy.extensions/\($(excluded_podsecuritypolicies | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
@@ -144,7 +150,9 @@ k8s_cleanup_namespace() {
 
 k8s_async_cleanup_namespace() {
   ! kubectl get namespace "$1" -o name >/dev/null 2>&1 \
-    || kubectl delete namespace "$1"
+    || kubectl delete namespace --wait=false "$1" \
+    || kubectl get namespace "$1" --template '{{ .status.phase }}' | grep -q 'Terminating' \
+    || ! kubectl get namespace "$1" >/dev/null 2>&1
 }
 
 helm_cleanup_chart() {
@@ -170,8 +178,9 @@ EOF
 kubectl api-resources --namespaced -o name \
   | grep -v 'reviews\.\(authentication\|authorization\)\.k8s\.io$' \
   | xargs -r -n 1 -I + -P 0 '$SHELL' $SHELL_XTRACE -ec 'kubectl get "+" -n "@" -o name \
-    | xargs -r -n 1 -I % kubectl delete -n "@" "%" --grace-period=0 --force' \
-  || true
+    | xargs -r -n 1 -I % '"'$SHELL'"' $SHELL_XTRACE -ec \
+      '"'"'kubectl delete -n "@" "%" --now \
+        || echo "Failed to remove +/% in namespace @"'"'"
 kubectl get namespace "@" -o json \
   | tr -d "\n" | sed "s/\"finalizers\": \[[^]]\+\]/\"finalizers\": []/" \
   | kubectl replace --raw /api/v1/namespaces/@/finalize -f - >/dev/null 2>&1 \

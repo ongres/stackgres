@@ -126,7 +126,10 @@ reinstall_operator_if_not_as_expected() {
       get_installed_operator_values
       echo
     fi
-    delete_operator
+    k8s_webhook_cleanup
+    helm_cleanup
+    k8s_async_cleanup
+
     kubectl create namespace stackgres
     install_operator_vanilla -f "$TARGET_PATH/operator-values.yaml"
     wait_pods_running stackgres
