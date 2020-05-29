@@ -1,4 +1,4 @@
-{{- if and .Values.cert.key .Values.cert.crt }}
+{{- if or (and (not .Release.IsInstall) (not .Release.IsUpgrade)) (and .Values.cert.key .Values.cert.crt) }}
 apiVersion: admissionregistration.k8s.io/v1beta1
 kind: MutatingWebhookConfiguration
 metadata:
