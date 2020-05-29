@@ -82,6 +82,15 @@ class PgbouncerConfigResourceTest
     assertNotNull(resource.getStatus().getClusters());
     assertEquals(1, resource.getStatus().getClusters().size());
     assertEquals("stackgres", resource.getStatus().getClusters().get(0));
+    assertNotNull(resource.getStatus().getPgBouncer());
+    assertNotNull(resource.getStatus().getPgBouncer().getPgbouncerConf());
+    assertEquals(3, resource.getStatus().getPgBouncer().getPgbouncerConf().size());
+    assertEquals("default_pool_size", resource.getStatus().getPgBouncer().getPgbouncerConf().get(0).getParameter());
+    assertEquals("200", resource.getStatus().getPgBouncer().getPgbouncerConf().get(0).getValue());
+    assertEquals("max_client_conn", resource.getStatus().getPgBouncer().getPgbouncerConf().get(1).getParameter());
+    assertEquals("200", resource.getStatus().getPgBouncer().getPgbouncerConf().get(1).getValue());
+    assertEquals("pool_mode", resource.getStatus().getPgBouncer().getPgbouncerConf().get(2).getParameter());
+    assertEquals("'transaction'", resource.getStatus().getPgBouncer().getPgbouncerConf().get(2).getValue());
   }
 
   @Override

@@ -15,7 +15,7 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 @RegisterForReflection
 public class PoolingConfigSpec {
 
-  private PolingConfigPgBouncer pgBouncer;
+  private PoolingConfigPgBouncer pgBouncer;
 
   @Override
   public String toString() {
@@ -25,11 +25,11 @@ public class PoolingConfigSpec {
         .toString();
   }
 
-  public PolingConfigPgBouncer getPgBouncer() {
+  public PoolingConfigPgBouncer getPgBouncer() {
     return pgBouncer;
   }
 
-  public void setPgBouncer(PolingConfigPgBouncer pgBouncer) {
+  public void setPgBouncer(PoolingConfigPgBouncer pgBouncer) {
     this.pgBouncer = pgBouncer;
   }
 }

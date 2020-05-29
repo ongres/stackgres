@@ -16,9 +16,11 @@ import com.google.common.collect.ImmutableMap;
 import io.stackgres.apiweb.dto.pgconfig.PostgresConfigDto;
 import io.stackgres.apiweb.dto.pgconfig.PostgresConfigSpec;
 import io.stackgres.apiweb.dto.pgconfig.PostgresConfigStatus;
+import io.stackgres.apiweb.dto.pgconfig.PostgresqlConfParameter;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigSpec;
 import org.jooq.lambda.Seq;
+import org.jooq.lambda.tuple.Tuple3;
 
 @ApplicationScoped
 public class PostgresConfigTransformer
@@ -26,6 +28,7 @@ public class PostgresConfigTransformer
 
   private static final Pattern PARAMETER_PATTERN = Pattern.compile(
       "^\\s*([^\\s=]+)\\s*=\\s*(:?'([^']+)'|([^ ]+))\\s*$");
+  private static final String POSTGRESQLCO_NF_URL = "https://postgresqlco.nf/en/doc/param/%s/%s/";
 
   @Override
   public StackGresPostgresConfig toCustomResource(PostgresConfigDto source,
@@ -42,7 +45,7 @@ public class PostgresConfigTransformer
     PostgresConfigDto transformation = new PostgresConfigDto();
     transformation.setMetadata(getResourceMetadata(source));
     transformation.setSpec(getResourceSpec(source.getSpec()));
-    transformation.setStatus(getResourceStatus(clusters));
+    transformation.setStatus(getResourceStatus(clusters, source.getSpec()));
     return transformation;
   }
 
@@ -78,9 +81,22 @@ public class PostgresConfigTransformer
     return transformation;
   }
 
-  private PostgresConfigStatus getResourceStatus(List<String> clusters) {
+  private PostgresConfigStatus getResourceStatus(List<String> clusters,
+      StackGresPostgresConfigSpec source) {
     PostgresConfigStatus transformation = new PostgresConfigStatus();
     transformation.setClusters(clusters);
+    if (source != null) {
+      transformation.setPostgresqlConf(
+          Seq.seq(source.getPostgresqlConf())
+              .map(t -> t.concat(new PostgresqlConfParameter()))
+              .peek(t -> t.v3.setParameter(t.v1))
+              .peek(t -> t.v3.setValue(t.v2))
+              .peek(t -> t.v3.setDocumentationLink(String.format(
+                  POSTGRESQLCO_NF_URL,
+                  t.v1, source.getPostgresVersion())))
+              .map(Tuple3::v3)
+              .toList());
+    }
     return transformation;
   }
 

@@ -84,6 +84,24 @@ class PostgresConfigResourceTest
     assertNotNull(resource.getStatus().getClusters());
     assertEquals(1, resource.getStatus().getClusters().size());
     assertEquals("stackgres", resource.getStatus().getClusters().get(0));
+    assertNotNull(resource.getStatus().getPostgresqlConf());
+    assertEquals(4, resource.getStatus().getPostgresqlConf().size());
+    assertEquals("password_encryption", resource.getStatus().getPostgresqlConf().get(0).getParameter());
+    assertEquals("'scram-sha-256'", resource.getStatus().getPostgresqlConf().get(0).getValue());
+    assertEquals("https://postgresqlco.nf/en/doc/param/password_encryption/12/",
+        resource.getStatus().getPostgresqlConf().get(0).getDocumentationLink());
+    assertEquals("random_page_cost", resource.getStatus().getPostgresqlConf().get(1).getParameter());
+    assertEquals("1.5", resource.getStatus().getPostgresqlConf().get(1).getValue());
+    assertEquals("https://postgresqlco.nf/en/doc/param/random_page_cost/12/",
+        resource.getStatus().getPostgresqlConf().get(1).getDocumentationLink());
+    assertEquals("shared_buffers", resource.getStatus().getPostgresqlConf().get(2).getParameter());
+    assertEquals("256MB", resource.getStatus().getPostgresqlConf().get(2).getValue());
+    assertEquals("https://postgresqlco.nf/en/doc/param/shared_buffers/12/",
+        resource.getStatus().getPostgresqlConf().get(2).getDocumentationLink());
+    assertEquals("wal_compression", resource.getStatus().getPostgresqlConf().get(3).getParameter());
+    assertEquals("on", resource.getStatus().getPostgresqlConf().get(3).getValue());
+    assertEquals("https://postgresqlco.nf/en/doc/param/wal_compression/12/",
+        resource.getStatus().getPostgresqlConf().get(3).getDocumentationLink());
   }
 
   @Override
