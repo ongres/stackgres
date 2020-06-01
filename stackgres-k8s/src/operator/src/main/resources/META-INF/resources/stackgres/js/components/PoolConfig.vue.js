@@ -40,8 +40,10 @@ var PoolConfig = Vue.component("pool-config", {
 							</td>
 						</tr>
 						<template v-for="conf in config" v-if="(conf.data.metadata.namespace == currentNamespace)">
-						<tr :class="[ $route.params.name == conf.name ? 'open' : '', 'sgpoolconfig-'+conf.data.metadata.namespace+'-'+conf.name ]">
-								<td>{{ conf.name }}</td>
+						<tr class="toggle" :class="[ $route.params.name == conf.name ? 'open' : '', 'sgpoolconfig-'+conf.data.metadata.namespace+'-'+conf.name ]">
+								<td class="hasTooltip">
+									<span>{{ conf.name }}</span>
+								</td>
 								<td class="parameters">
 									<ul class="yaml" v-html="parseParams(conf.data.spec.pgBouncer['pgbouncer.ini'])"></ul>
 								</td>
@@ -61,6 +63,9 @@ var PoolConfig = Vue.component("pool-config", {
 					</tbody>
 				</table>
 			</div>
+			<div id="nameTooltip">
+				<div class="info"></div>
+			</div>
 		</div>`,
 	data: function() {
 		return {
@@ -79,7 +84,41 @@ var PoolConfig = Vue.component("pool-config", {
 		},
 
 	},
-	methods: {
+	mounted: function() {
+		onmousemove = function (e) {
+
+			if( (window.innerWidth - e.clientX) > 420 ) {
+				$('#nameTooltip').css({
+					"top": e.clientY+20, 
+					"right": "auto",
+					"left": e.clientX+20
+				})
+			} else {
+				$('#nameTooltip').css({
+					"top": e.clientY+20, 
+					"left": "auto",
+					"right": window.innerWidth - e.clientX + 20
+				})
+			}
+		}
 		
+		$(document).on('mouseenter', 'td.hasTooltip', function(){
+			c = $(this).children('span');
+			if(c.width() > $(this).width()){
+				$('#nameTooltip .info').text(c.text());
+				$('#nameTooltip').addClass('show');
+			}
+				
+		});
+
+		$(document).on('mouseleave', 'td.hasTooltip', function(){ 
+			$('#nameTooltip .info').text('');
+			$('#nameTooltip').removeClass('show');
+		});
+
+		$('tr.toggle').click(function() {
+			$(this).toggleClass("open");
+			$('tr.toggle').not(this).removeClass("open");
+		});
 	}
 })

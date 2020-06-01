@@ -210,8 +210,8 @@ var Backups = Vue.component("sg-backup", {
 												</template>											
 											</td>
 											<!--<td class="tested center icon" :class="[(back.data.status.tested) ? 'true' : 'false']"></td>-->
-											<td class="name" :data-val="back.data.metadata.name">
-												{{ back.data.metadata.name }}
+											<td class="name hasTooltip" :data-val="back.data.metadata.name">
+												<span>{{ back.data.metadata.name }}</span>
 											</td>
 											<td class="clusterName" :class="back.data.spec.sgCluster" v-if="!isCluster" :data-val="back.data.spec.sgCluster">
 												{{ back.data.spec.sgCluster }}
@@ -453,6 +453,9 @@ var Backups = Vue.component("sg-backup", {
 					</table>
 				</div>
 			</div>
+			<div id="nameTooltip">
+				<div class="info"></div>
+			</div>
 		</div>`,
 	data: function() {
 
@@ -493,6 +496,38 @@ var Backups = Vue.component("sg-backup", {
 			return  vm.$route.params.cluster !== undefined
 		}
 
+	},
+	mounted: function() {
+		onmousemove = function (e) {
+
+			if( (window.innerWidth - e.clientX) > 420 ) {
+				$('#nameTooltip').css({
+					"top": e.clientY+20, 
+					"right": "auto",
+					"left": e.clientX+20
+				})
+			} else {
+				$('#nameTooltip').css({
+					"top": e.clientY+20, 
+					"left": "auto",
+					"right": window.innerWidth - e.clientX + 20
+				})
+			}
+		}
+		
+		$(document).on('mouseenter', 'td.hasTooltip', function(){
+			c = $(this).children('span');
+			if(c.width() > $(this).width()){
+				$('#nameTooltip .info').text(c.text());
+				$('#nameTooltip').addClass('show');
+			}
+				
+		});
+
+		$(document).on('mouseleave', 'td.hasTooltip', function(){ 
+			$('#nameTooltip .info').text('');
+			$('#nameTooltip').removeClass('show');
+		});
 	},
 	methods: {
 

@@ -141,6 +141,11 @@ table.clusterOverview a.no-color {
     display: block;
     color: inherit;
 }
+
+a.no-color{
+    color: inherit;
+}
+
 .center {
     text-align: center;
 }
@@ -2854,7 +2859,7 @@ td.parameters {
 
 ul.yaml {
     list-style: none;
-    margin: 10px 0;
+    /*margin: 10px 0;*/
     line-height: 1.5;
 }
 
@@ -2905,7 +2910,7 @@ ul.yaml ul {
 
 td.label span {
     text-transform: capitalize;
-    padding: 4px 9px;
+    padding: 3px 9px;
     font-size: 11px;
     border-radius: 10px;
     width: 70px;
@@ -3972,7 +3977,7 @@ td.today.available {
     border-color: #333333;
 }
 
-.darkmode #logTooltip.show {
+.darkmode #logTooltip.show, .darkmode #nameTooltip.show {
     background: #1b1b1b;
 }
 
@@ -4148,13 +4153,13 @@ tr.no-results td {
     white-space: nowrap;
 } */
 
-table.logs td.hasTooltip {
+table.logs td.hasTooltip, table.pgConfig tr:not(.open) td.hasTooltip, table.poolConfig tr:not(.open) td.hasTooltip, table.backupConfig tr:not(.open) td.hasTooltip, table.backups td.hasTooltip {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
-table.logs td.hasTooltip.logMessage > span {
+table.logs td.hasTooltip.logMessage > span, table.pgConfig td.hasTooltip > span, table.poolConfig td.hasTooltip > span, table.backupConfig td.hasTooltip > span {
     max-width: 300px;
 }
 
@@ -4179,7 +4184,7 @@ table.logs .podName {
     color: #fff;
 }
 
-#logTooltip.show {
+#logTooltip.show, #nameTooltip.show {
     position: fixed;
     background: #fff;
     padding: 20px 25px;
@@ -4293,7 +4298,7 @@ span.closeLog:hover {
 
 /* Backups YAML */
 
-table.backups tr.base:hover td.timestamp:before, table.backups tr.base.open td.timestamp:before {
+table.backups tr.base:hover td.timestamp:before, table.backups tr.base.open td.timestamp:before, table.pgConfig tr.toggle:not(.open):hover td:first-of-type:before, table.poolConfig tr.toggle:not(.open):hover td:first-of-type:before, table.backupConfig tr:not(.no-results):hover td:first-of-type:before, table.profiles tr:not(.no-results):hover td:first-of-type:before, table.clusterOverview tr:not(.no-results):hover td:first-of-type:before {
     content: " ";
     width: 5px;
     border: 1px solid var(--blue);
@@ -4315,4 +4320,87 @@ tr.details.open > td:first-child:before {
     top: -28px;
     border: 2px solid var(--blue);
     border-right: 0;
+}
+
+/* */
+table.pgConfig tr:hover, table.poolConfig tr:hover {
+    cursor: pointer;
+}
+
+table.clusterOverview td.actions a:first-of-type, table.backups td.actions a:first-of-type, table.pgConfig td.actions a:first-of-type, table.poolConfig td.actions a:first-of-type, table.backupConfig td.actions a:first-of-type {
+    display: none;
+}
+
+table.backupConfig tr.details.show td:first-of-type {
+    position: relative;
+    padding-top: 0 !important;
+}
+
+table.pgConfig tr.toggle:not(.open) td:first-of-type {
+    display: initial;
+}
+
+table.backupConfig tr.details.show td:first-of-type:before {
+    width: 7px;
+    content: " ";
+    background: transparent;
+    height: calc(100% + 5px);
+    left: 4px;
+    position: absolute;
+    top: -22px;
+    border: 2px solid var(--blue);
+    border-right: 0;
+}
+
+table.pgConfig tr.open td.hasTooltip:before, table.poolConfig tr.open td.hasTooltip:before {
+    width: 7px;
+    content: " ";
+    background: transparent;
+    height: calc(100% - 33px);
+    left: 4px;
+    position: absolute;
+    top: 17px;
+    border: 2px solid var(--blue);
+    border-right: 0;
+}
+
+
+/* Tooltips for table height */
+
+table.pgConfig .hasTooltip, table.poolConfig .hasTooltip, table.backupConfig .hasTooltip {
+    position: absolute;
+    width: 275px;
+}
+
+table.pgConfig tr.open > td, table.poolConfig tr.open > td {
+    padding-top: 10px;
+}
+
+table.pgConfig th.desc.postgresVersion {
+    width: 35px;
+}
+
+table.backupConfig th.sorted.desc.name {
+    width: 300px;
+}
+
+table.backupConfig tr.details.show {
+    display: table-row;
+}
+
+table.backups th.desc.name {
+    width: 130px;
+}
+
+table.backups .hasTooltip {
+    width: 120px;
+    position: absolute;
+}
+
+table.backups td.hasTooltip > span {
+    max-width: 120px;
+}
+
+table.profiles td, table.clusterOverview td, table.pgConfig tr.open td.hasTooltip, table.poolConfig tr.open td.hasTooltip {
+    position: relative;
 }
