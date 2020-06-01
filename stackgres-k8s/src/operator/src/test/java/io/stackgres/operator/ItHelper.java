@@ -50,13 +50,10 @@ public class ItHelper {
       .orElse("development-jvm");
   public final static Predicate<String> EXCLUDE_TTY_WARNING = line -> !line.equals("stdin: is not a tty");
 
-  public static final String E2E_ENV_VAR_NAME = Optional.ofNullable(System.getenv("E2E_ENV"))
-      .map(env -> env.toUpperCase(Locale.US))
-      .map(env -> env + "_NAME")
-      .orElse("KIND_NAME");
-
   public static final String E2E_ENV = Optional.ofNullable(System.getenv("E2E_ENV"))
       .orElse("kind");
+
+  public static final String E2E_ENV_VAR_NAME = E2E_ENV.toUpperCase(Locale.US) + "_NAME";
 
   public static final String E2E_ENVVARS = Seq.seq(System.getenv().entrySet())
       .filter(e -> e.getKey().startsWith("E2E_") || e.getKey().startsWith("K8S_")
@@ -287,8 +284,13 @@ public class ItHelper {
 
   public static String getDockerInterfaceIp(Container k8s)
       throws DockerException, InterruptedException {
-    return k8s.execute("sh", "-l", "-c",
-        "docker network inspect kind -f '{{ (index .IPAM.Config 0).Gateway }}'")
+    return k8s.execute("sh", "-l", "-c", ""
+        + "CONTAINER_NAME=\"$(docker inspect -f '{{.Name}}' \"$(hostname)\"|cut -d '/' -f 2)\"\n"
+        + "ENV_NAME=\"" + E2E_ENV + "$(echo \"$CONTAINER_NAME\" | sed 's/^k8s//')\"\n"
+        + "NETWORK_NAME=\"$(docker inspect \"$ENV_NAME-control-plane\""
+        + " -f '{{ range $key, $value := .NetworkSettings.Networks }}{{ printf \"%s\\n\" $key }}{{ end }}'"
+        + " | head -n 1)\"\n"
+        + "docker network inspect \"$NETWORK_NAME\" -f '{{ (index .IPAM.Config 0).Gateway }}'")
     .filter(EXCLUDE_TTY_WARNING)
     .collect(Collectors.joining());
   }
