@@ -28,7 +28,7 @@ variables:
   DISABLE_IT: "true"
   E2E_ENV: kind
   E2E_PARALLELISM: 32
-  K8S_VERSION: 1.17.5
+  K8S_VERSION: 1.13.12
   K8S_FROM_DIND: "true"
   K8S_REUSE: "true"
   DOCUMENTATION_BASE_URL: "https://ongresinc.gitlab.io/web/stackgres/doc/latest"
