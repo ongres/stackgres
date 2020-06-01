@@ -51,7 +51,13 @@ var PgConfig = Vue.component("pg-config", {
 									{{ conf.data.spec.postgresVersion }}
 								</td>
 								<td class="parameters">
-									<ul class="yaml" v-html="parseParams(conf.data.spec['postgresql.conf'])"></ul>
+									<ul class="yaml">
+										<template v-for="param in conf.data.status['postgresql.conf']">
+											<li>
+												<strong class="label"><a :href="param.documentationLink" target="_blank" title="Documentation">{{ param.parameter }}:</a></strong> {{ param.value }}
+											</li>
+										</template>
+									</ul>
 								</td>
 								<td class="actions">
 									<router-link :to="'/configurations/postgres/'+conf.data.metadata.namespace+'/'+conf.name" title="Configuration Details" class="no-color">
