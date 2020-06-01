@@ -885,12 +885,12 @@ const vm = new Vue({
               //console.log(item);
 
               if( (typeof item.status.process.status !== 'undefined') && (item.status.process.status === 'Completed') ) {
-                console.log('setting duration');
+                //console.log('setting duration');
                 start = moment(item.status.process.timing.start);
                 finish = moment(item.status.process.timing.stored);
                 duration = new Date(moment.duration(finish.diff(start))).toISOString();
               } else {
-                console.log('duration not set');
+                //console.log('duration not set');
                 duration = '';
               }
               
@@ -1405,10 +1405,10 @@ function sortTable( table, param, direction ) {
     if(direction === 'desc') modifier = -1;
 
     // If sorting backups first validate its state
-    if(a.data.hasOwnProperty('status')) {
+    if(a.data.hasOwnProperty('status') && a.hasOwnProperty('duration')) {
       // If record is not sortable by the provided param
       if((a.data.status.process.status == 'Failed') && !backupFixedParams.includes(param)){
-        console.log('failed');
+        //console.log('failed');
         return 1
       } else if ((a.data.status.process.status == 'Running') && !backupFixedParams.includes(param)){
         return -1
