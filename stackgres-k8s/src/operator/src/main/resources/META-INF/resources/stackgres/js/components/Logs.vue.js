@@ -100,14 +100,17 @@ var Logs = Vue.component("sg-logs", {
 								<li class="textFilter">
 									<span>Pod Name</span>
 									<input v-model="podName" class="search" @keyup="toggleClear('filters')">
+									<span class="btn clear border" @click="clearFilters('podName')" v-if="podName.length">×</span>
 								</li>
 								<li class="textFilter">
 									<span>User Name</span>
 									<input v-model="userName" class="search" @keyup="toggleClear('filters')">
+									<span class="btn clear border" @click="clearFilters('userName')" v-if="userName.length">×</span>
 								</li>
 								<li class="textFilter">
 									<span>Database Name</span>
 									<input v-model="databaseName" class="search" @keyup="toggleClear('filters')">
+									<span class="btn clear border" @click="clearFilters('databaseName')" v-if="databaseName.length">×</span>
 								</li>
 								<li>
 									<hr>
@@ -760,6 +763,8 @@ var Logs = Vue.component("sg-logs", {
 				$('#keyword').removeClass('active')
 
 				$('.searchBar .clear').fadeOut()
+			} else {
+				this[section] = '';
 			}
 			
 			this.getLogs();
