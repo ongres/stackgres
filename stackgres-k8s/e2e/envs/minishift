@@ -46,7 +46,8 @@ update_minishift_config() {
 
   if ! minishift ssh -- ps -ef | grep '[k]ubelet' | grep -q 'PodShareProcessNamespace=true'
   then
-    minishift stop
+    minishift stop || true
+    wait_until minishift stop
     minishift start
   fi
 
@@ -62,12 +63,8 @@ update_minishift_config() {
         && if ! timeout -s KILL 10s oc login -u system:admin > /dev/null 2>&1
         then
           wait_until eval 'timeout -s KILL 10s oc login -u system:admin > /dev/null 2>&1'
-        fi ) \
-     || ( minishift addons disable "$addon" && false )
+        fi )
   done
-
-  oc adm policy add-scc-to-group anyuid system:authenticated
-  oc adm policy add-scc-to-group hostmount-anyuid system:serviceaccounts
 }
 
 update_k8s_config() {
