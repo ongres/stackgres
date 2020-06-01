@@ -15,7 +15,6 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Status;
 import io.fabric8.kubernetes.api.model.StatusBuilder;
 import io.fabric8.kubernetes.api.model.StatusDetailsBuilder;
-import io.stackgres.common.ConfigContext;
 import io.stackgres.common.ErrorType;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
@@ -29,7 +28,7 @@ public abstract class ConstraintValidator<T extends AdmissionReview<?>> implemen
 
   @PostConstruct
   public void init() {
-    constraintViolationDocumentationUri = ConfigContext
+    constraintViolationDocumentationUri = ErrorType
         .getErrorTypeUri(ErrorType.CONSTRAINT_VIOLATION);
   }
 

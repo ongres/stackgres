@@ -11,19 +11,19 @@ import io.stackgres.common.resource.ResourceUtil;
 public interface LabelMapper<T extends CustomResource> {
 
   default String appKey() {
-    return StackGresUtil.APP_KEY;
+    return StackGresContext.APP_KEY;
   }
 
   default String clusterKey() {
-    return StackGresUtil.CLUSTER_KEY;
+    return StackGresContext.CLUSTER_KEY;
   }
 
   default String disruptibleKey() {
-    return StackGresUtil.DISRUPTIBLE_KEY;
+    return StackGresContext.DISRUPTIBLE_KEY;
   }
 
   default String backupKey() {
-    return StackGresUtil.BACKUP_KEY;
+    return StackGresContext.BACKUP_KEY;
   }
 
   default String clusterScopeKey() {

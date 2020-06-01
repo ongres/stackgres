@@ -11,7 +11,6 @@ import java.util.Optional;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import io.stackgres.common.ConfigContext;
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackup.StackGresBackupStatus;
@@ -28,7 +27,7 @@ public class BackupNameValidator implements BackupValidator {
 
   @Inject
   public BackupNameValidator() {
-    errorTypeUri = ConfigContext.getErrorTypeUri(ErrorType.FORBIDDEN_CR_UPDATE);
+    errorTypeUri = ErrorType.getErrorTypeUri(ErrorType.FORBIDDEN_CR_UPDATE);
   }
 
   @Override

@@ -78,10 +78,10 @@ delete_k8s() {
 }
 
 load_operator_k8s() {
-  echo "Loading operator image $IMAGE_NAME in gke environemnt $K8S_GKE_NAME..."
+  echo "Loading operator image $OPERATOR_IMAGE_NAME in gke environemnt $K8S_GKE_NAME..."
 
-  docker tag "$IMAGE_NAME" "gcr.io/$K8S_GKE_PROJECT/$IMAGE_NAME"
-  gcloud -q docker -- push "gcr.io/$K8S_GKE_PROJECT/$IMAGE_NAME"
+  docker tag "$OPERATOR_IMAGE_NAME" "gcr.io/$K8S_GKE_PROJECT/$OPERATOR_IMAGE_NAME"
+  gcloud -q docker -- push "gcr.io/$K8S_GKE_PROJECT/$OPERATOR_IMAGE_NAME"
 
   echo "...done"
 }

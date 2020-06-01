@@ -24,7 +24,7 @@ class WatcherMonitorTest {
 
     AtomicReference<WatcherListener<StackGresCluster>> watcherListener = new AtomicReference<>();
 
-    try (WatcherMonitor<StackGresCluster> monitor = new WatcherMonitor<>(wl -> {
+    try (WatcherMonitor<StackGresCluster> ignored = new WatcherMonitor<>(wl -> {
       watcherListener.set(wl);
       return () -> {
       };

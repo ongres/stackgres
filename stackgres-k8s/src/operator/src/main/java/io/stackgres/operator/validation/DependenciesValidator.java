@@ -12,7 +12,6 @@ import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.Status;
 import io.fabric8.kubernetes.api.model.StatusBuilder;
-import io.stackgres.common.ConfigContext;
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDefinition;
@@ -25,7 +24,7 @@ import io.stackgres.operatorframework.admissionwebhook.validating.Validator;
 
 public abstract class DependenciesValidator<T extends AdmissionReview<?>> implements Validator<T> {
 
-  private static final String ERROR_TYPE_URI = ConfigContext
+  private static final String ERROR_TYPE_URI = ErrorType
       .getErrorTypeUri(ErrorType.FORBIDDEN_CR_DELETION);
 
   private CustomResourceScanner<StackGresCluster> clusterScanner;

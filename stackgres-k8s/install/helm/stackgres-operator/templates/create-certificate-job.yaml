@@ -1,4 +1,4 @@
-{{ if and (or (not .Values.cert.key) (not .Values.cert.crt)) .Values.deploy.create }}
+{{ if and (or (not .Values.cert.key) (not .Values.cert.crt)) ( or .Values.deploy.operator .Values.deploy.restapi ) }}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -111,9 +111,12 @@ spec:
                 -p "$(cat /tmp/certificate-secret.yaml)"
             {{- if .Release.IsInstall }}
             kubectl scale --timeout 1h --replicas 1 -n '{{ .Release.Namespace }}' 'deployment/{{ .Release.Name }}'
+            kubectl scale --timeout 1h --replicas 1 -n '{{ .Release.Namespace }}' 'deployment/{{ .Values.restapi.name }}'
             {{- else }}
             kubectl rollout restart -n '{{ .Release.Namespace }}' 'deployment/{{ .Release.Name }}'
+            kubectl rollout restart -n '{{ .Release.Namespace }}' 'deployment/{{ .Values.restapi.name }}'
             {{- end }}
             kubectl wait --timeout 1h --for=condition=Ready -n '{{ .Release.Namespace }}' pod -l app=stackgres-operator --all
+            kubectl wait --timeout 1h --for=condition=Ready -n '{{ .Release.Namespace }}' pod -l app='{{ .Values.restapi.name }}' --all
       restartPolicy: OnFailure
 {{ end }}

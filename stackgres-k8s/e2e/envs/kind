@@ -169,10 +169,10 @@ delete_k8s() {
 
 load_operator_k8s() {
   check_kind_version
+  echo "Loading operator image $OPERATOR_IMAGE_NAME in kind environemnt $KIND_NAME..."
 
-  echo "Loading operator image $IMAGE_NAME in kind environemnt $KIND_NAME..."
-
-  kind load docker-image --name "$KIND_NAME" "$IMAGE_NAME"
+  kind load docker-image --name "$KIND_NAME" "$OPERATOR_IMAGE_NAME"
+  kind load docker-image --name "$KIND_NAME" "$RESTAPI_IMAGE_NAME"
 
   echo "...done"
 }

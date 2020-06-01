@@ -17,7 +17,6 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import com.google.common.collect.ImmutableMap;
 import io.stackgres.common.StackGresContext;
-import io.stackgres.common.StackGresUtil;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple3;
@@ -35,7 +34,7 @@ public enum StackGresComponents {
   StackGresComponents() {
     try {
       Properties properties = new Properties();
-      properties.load(StackGresUtil.class.getResourceAsStream("/versions.properties"));
+      properties.load(OperatorConfigDefaults.class.getResourceAsStream("/versions.properties"));
       this.componentVersions = Seq.seq(properties)
           .collect(ImmutableMap.toImmutableMap(
               t -> t.v1.toString(), t -> t.v2.toString()));

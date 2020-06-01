@@ -1,7 +1,14 @@
-image:
-  name: "stackgres/operator"
-  tag: "development-jvm"
-  pullPolicy: "IfNotPresent"
+operator:
+  image:
+    name: "stackgres/operator"
+    tag: "development-jvm"
+    pullPolicy: "IfNotPresent"
+restapi:
+  name: stackgres-restapi
+  image:
+    name: "stackgres/restapi"
+    tag: "development-jvm"
+    pullPolicy: "IfNotPresent"
 
 service:
   type: ClusterIP
@@ -14,7 +21,8 @@ rbac:
   create: true
 
 deploy:
-  create: true
+  operator: true
+  restapi: true
 
 cert:
   autoapprove: true

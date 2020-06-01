@@ -33,12 +33,13 @@ import io.fabric8.kubernetes.api.model.TCPSocketActionBuilder;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
-import io.stackgres.apiweb.distributedlogs.DistributedLogsQueryGenerator;
 import io.stackgres.common.FluentdUtil;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
+import io.stackgres.common.distributedlogs.PatroniTableFields;
+import io.stackgres.common.distributedlogs.PostgresTableFields;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSetPath;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSetVolumeConfig;
 import io.stackgres.operator.common.LabelFactoryDelegator;
@@ -52,7 +53,6 @@ import io.stackgres.operator.sidecars.envoy.Envoy;
 import io.stackgres.operator.sidecars.fluentbit.FluentBit;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import io.stackgres.operatorframework.resource.factory.ContainerResourceFactory;
-import org.jooq.Field;
 import org.jooq.lambda.Seq;
 
 @Singleton
@@ -60,14 +60,13 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
     StackGresDistributedLogsGeneratorContext, StackGresDistributedLogs> {
   public static final String IMAGE_NAME = "docker.io/ongres/fluentd:v%s-build-%s";
   static final String DEFAULT_VERSION = StackGresComponents.get("fluentd");
-  static final String PATRONI_TABLE_FIELDS = DistributedLogsQueryGenerator.PATRONI_FIELDS
-      .stream()
-      .map(Field::getName)
+  static final String PATRONI_TABLE_FIELDS = Stream.of(PatroniTableFields.values())
+      .map(PatroniTableFields::getFieldName)
       .collect(Collectors.joining(","));
-  static final String POSTGRES_TABLE_FIELDS = DistributedLogsQueryGenerator.POSTGRES_FIELDS
-          .stream()
-          .map(Field::getName)
-          .collect(Collectors.joining(","));
+  static final String POSTGRES_TABLE_FIELDS = Stream.of(PostgresTableFields.values())
+      .map(PostgresTableFields::getFieldName)
+      .collect(Collectors.joining(","));
+
   private static final String SUFFIX = "-fluentd";
 
   private LabelFactoryDelegator factoryDelegator;

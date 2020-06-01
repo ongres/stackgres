@@ -12,7 +12,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.fabric8.kubernetes.api.model.Status;
 import io.fabric8.kubernetes.api.model.StatusBuilder;
 import io.fabric8.kubernetes.api.model.StatusDetailsBuilder;
-import io.stackgres.common.ConfigContext;
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigDefinition;
@@ -51,7 +50,7 @@ public class PgConfigUpdateValidator implements PgConfigValidator {
         Status failedStatus = new StatusBuilder()
             .withCode(400)
             .withKind(StackGresPostgresConfigDefinition.KIND)
-            .withReason(ConfigContext.getErrorTypeUri(ErrorType.FORBIDDEN_CR_UPDATE))
+            .withReason(ErrorType.getErrorTypeUri(ErrorType.FORBIDDEN_CR_UPDATE))
             .withDetails(new StatusDetailsBuilder()
                 .addNewCause(pgVersionPath, detail, "FieldNotUpdatable")
                 .withKind(StackGresPostgresConfigDefinition.KIND)

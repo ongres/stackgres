@@ -13,7 +13,7 @@ import javax.enterprise.context.ApplicationScoped;
 
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
-import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.StackGresContext;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operatorframework.resource.factory.SubResourceStreamFactory;
 import org.jooq.lambda.Seq;
@@ -42,7 +42,7 @@ public class ClusterStatefulSetInitContainers
   private Container createSetupDataPathsContainer(StackGresClusterContext config) {
     return new ContainerBuilder()
         .withName("setup-data-paths")
-        .withImage(StackGresUtil.BUSYBOX_IMAGE)
+        .withImage(StackGresContext.BUSYBOX_IMAGE)
         .withCommand("/bin/sh", "-ecx", Stream.of(
             "mkdir -p \"$PG_DATA_PATH\"",
             "chmod -R 700 \"$PG_DATA_PATH\"")
@@ -55,7 +55,7 @@ public class ClusterStatefulSetInitContainers
   private Container createSetupArbitraryUser(StackGresClusterContext config) {
     return new ContainerBuilder()
         .withName("setup-arbitrary-user")
-        .withImage(StackGresUtil.BUSYBOX_IMAGE)
+        .withImage(StackGresContext.BUSYBOX_IMAGE)
         .withCommand("/bin/sh", "-ecx", Seq.of(
             "USER=postgres",
             "UID=$(id -u)",
@@ -88,7 +88,7 @@ public class ClusterStatefulSetInitContainers
   private Container setupScriptsContainer(StackGresClusterContext config) {
     return new ContainerBuilder()
         .withName("setup-scripts")
-        .withImage(StackGresUtil.BUSYBOX_IMAGE)
+        .withImage(StackGresContext.BUSYBOX_IMAGE)
         .withCommand("/bin/sh", "-ecx", Seq.of(
             "cp $TEMPLATES_PATH/start-patroni.sh \"$LOCAL_BIN_PATH\"",
             "cp $TEMPLATES_PATH/start-patroni-with-restore.sh \"$LOCAL_BIN_PATH\"",

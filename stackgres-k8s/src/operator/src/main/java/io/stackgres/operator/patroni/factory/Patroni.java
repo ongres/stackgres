@@ -31,6 +31,7 @@ import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSetEnvironmentVariables;
@@ -48,7 +49,6 @@ import org.jooq.lambda.Seq;
 @Singleton
 public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
 
-  public static final String NAME = "patroni";
   public static final String POST_INIT_SUFFIX = "-post-init";
 
   private static final String IMAGE_NAME = "docker.io/ongres/patroni:v%s-pg%s-build-%s";
@@ -108,7 +108,7 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
     final String startScript = context.getClusterContext().getRestoreContext().isPresent()
         ? "/start-patroni-with-restore.sh" : "/start-patroni.sh";
     return new ContainerBuilder()
-        .withName(NAME)
+        .withName(StackgresClusterContainers.PATRONI)
         .withImage(String.format(IMAGE_NAME,
             DEFAULT_VERSION, pgVersion, StackGresContext.CONTAINER_BUILD))
         .withCommand("/bin/sh", "-ex",

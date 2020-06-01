@@ -33,6 +33,7 @@ import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.LabelFactory;
+import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.YamlMapperProvider;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
@@ -63,7 +64,7 @@ public class Envoy implements StackGresClusterSidecarResourceFactory<Void> {
   public static final int PG_REPL_ENTRY_PORT = 5433;
   public static final int PG_POOL_PORT = 5434;
   public static final int PG_PORT = 5435;
-  public static final String NAME = "envoy";
+  public static final String NAME = StackgresClusterContainers.ENVOY;
 
   private static final String IMAGE_NAME = "docker.io/envoyproxy/envoy:v%s";
   private static final String DEFAULT_VERSION = StackGresComponents.get("envoy");

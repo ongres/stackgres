@@ -10,7 +10,8 @@ fi
 SHELL_XTRACE="$(! echo $- | grep -q x || echo "-x")"
 
 IMAGE_TAG="${IMAGE_TAG:-development-jvm}"
-IMAGE_NAME="stackgres/operator:$IMAGE_TAG"
+OPERATOR_IMAGE_NAME="stackgres/operator:$IMAGE_TAG"
+RESTAPI_IMAGE_NAME="stackgres/restapi:$IMAGE_TAG"
 DEFAULT_K8S_VERSION="1.13.12"
 KUBECONFIG="${KUBECONFIG:-$HOME/.kube/config}"
 SPEC_PATH="$(dirname "$0")/spec"
@@ -37,7 +38,7 @@ CLUSTER_CHART_PATH="${CLUSTER_CHART_PATH:-"$STACKGRES_PATH/install/helm/stackgre
 
 [ -z "$SHELL_XTRACE" ] || set +x
 
-export SHELL SHELL_XTRACE IMAGE_TAG IMAGE_NAME DEFAULT_K8S_VERSION KUBECONFIG SPEC_PATH TARGET_PATH OPERATOR_CHART_PATH CLUSTER_CHART_PATH
+export SHELL SHELL_XTRACE IMAGE_TAG OPERATOR_IMAGE_NAME DEFAULT_K8S_VERSION KUBECONFIG SPEC_PATH TARGET_PATH OPERATOR_CHART_PATH CLUSTER_CHART_PATH
 export E2E_ENV K8S_VERSION E2E_TIMEOUT E2E_SKIP_SETUP E2E_OPERATOR_PULL_POLICY E2E_BUILD_OPERATOR E2E_WAIT_OPERATOR
 
 if ! command -v local > /dev/null 2>&1
@@ -134,12 +135,12 @@ setup_k8s() {
   then
     if [ "$E2E_FORCE_IMAGE_PULL" = "true" ]
     then
-      docker pull "$IMAGE_NAME"
+      docker pull "$OPERATOR_IMAGE_NAME"
     fi
 
     if [ "$E2E_USE_INTERMIDIATE_PRIVATE_REPO" != true \
         -a "$E2E_SKIP_OPERATOR_LOAD" != true ] \
-      && docker image inspect "$IMAGE_NAME" >/dev/null 2>&1
+      && docker image inspect "$OPERATOR_IMAGE_NAME" >/dev/null 2>&1
     then 
       load_operator_k8s
     fi

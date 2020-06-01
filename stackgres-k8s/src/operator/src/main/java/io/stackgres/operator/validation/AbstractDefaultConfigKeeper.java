@@ -15,7 +15,6 @@ import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.client.CustomResource;
-import io.stackgres.common.ConfigContext;
 import io.stackgres.common.ErrorType;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionRequest;
@@ -28,7 +27,7 @@ public abstract class AbstractDefaultConfigKeeper
     implements Validator<T> {
 
   private static final String ERROR_TYPE_URI =
-      ConfigContext.getErrorTypeUri(ErrorType.DEFAULT_CONFIGURATION);
+      ErrorType.getErrorTypeUri(ErrorType.DEFAULT_CONFIGURATION);
 
   private Map<String, Set<String>> installedResources;
   private Instance<DefaultCustomResourceFactory<R>> factories;

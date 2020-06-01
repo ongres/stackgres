@@ -10,7 +10,6 @@ import java.util.Optional;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import io.stackgres.common.ConfigContext;
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -25,7 +24,7 @@ public class ClusterValidator implements BackupValidator {
 
   private final CustomResourceFinder<StackGresCluster> clusterFinder;
 
-  private static final String errorTypeUri = ConfigContext
+  private static final String errorTypeUri = ErrorType
       .getErrorTypeUri(ErrorType.INVALID_CR_REFERENCE);
 
   @Inject

@@ -15,6 +15,7 @@ import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
+import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.resource.AbstractClusterResourceHandler;
@@ -101,30 +102,30 @@ public class ClusterStatefulSetPodHandler extends AbstractClusterResourceHandler
         Map<String, String> leftLabels, Map<String, String> rightMap, ObjectMeta podMetadata) {
       final String disruptibleValue;
       if (Objects.equals(
-              leftLabels.get(StackGresUtil.ROLE_KEY),
-              StackGresUtil.PRIMARY_ROLE)
+              leftLabels.get(StackGresContext.ROLE_KEY),
+              StackGresContext.PRIMARY_ROLE)
           && (isPodIndexGreaterThanRequiredReplicas(podMetadata)
           || isPodIndexGreaterThanExistingReplicas(podMetadata))) {
-        if (!Objects.equals(leftLabels.get(StackGresUtil.DISRUPTIBLE_KEY),
-            StackGresUtil.WRONG_VALUE)) {
+        if (!Objects.equals(leftLabels.get(StackGresContext.DISRUPTIBLE_KEY),
+            StackGresContext.WRONG_VALUE)) {
           LOGGER.debug("Settind Pod {}.{} for cluster {}.{} as non disruptible since it is primary"
               + " and his index is above the maximum index for the StatefulSet",
               podMetadata.getNamespace(), podMetadata.getName(),
               getContext().getCluster().getMetadata().getNamespace(),
               getContext().getCluster().getMetadata().getName());
         }
-        disruptibleValue = StackGresUtil.WRONG_VALUE;
+        disruptibleValue = StackGresContext.WRONG_VALUE;
       } else {
-        disruptibleValue = StackGresUtil.RIGHT_VALUE;
+        disruptibleValue = StackGresContext.RIGHT_VALUE;
       }
       return Seq.concat(
           Seq.seq(rightMap.entrySet())
-          .filter(e -> !e.getKey().equals(StackGresUtil.DISRUPTIBLE_KEY)),
+          .filter(e -> !e.getKey().equals(StackGresContext.DISRUPTIBLE_KEY)),
           Seq.seq(leftLabels.entrySet())
-          .filter(e -> !e.getKey().equals(StackGresUtil.DISRUPTIBLE_KEY))
+          .filter(e -> !e.getKey().equals(StackGresContext.DISRUPTIBLE_KEY))
           .filter(e -> !rightMap.containsKey(e.getKey())),
           Seq.seq(ImmutableMap.<String, String>of(
-              StackGresUtil.DISRUPTIBLE_KEY, disruptibleValue)
+              StackGresContext.DISRUPTIBLE_KEY, disruptibleValue)
               .entrySet())
           )
           .collect(ImmutableMap.toImmutableMap(e -> e.getKey(), e -> e.getValue()));

@@ -29,6 +29,7 @@ import io.fabric8.kubernetes.api.model.ServicePortBuilder;
 import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSetVolumeConfig;
 import io.stackgres.operator.common.Prometheus;
@@ -47,12 +48,12 @@ import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jooq.lambda.Seq;
 
 @Singleton
-@Sidecar("prometheus-postgres-exporter")
+@Sidecar(PostgresExporter.NAME)
 public class PostgresExporter implements StackGresClusterSidecarResourceFactory<Void> {
 
   public static final String SERVICE_MONITOR = "-stackgres-postgres-exporter";
   public static final String SERVICE = "-prometheus-postgres-exporter";
-  public static final String NAME = "prometheus-postgres-exporter";
+  public static final String NAME = StackgresClusterContainers.POSTGRES_EXPORTER;
 
   private static final String IMAGE_NAME =
       "docker.io/ongres/prometheus-postgres-exporter:v%s-build-%s";

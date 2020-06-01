@@ -92,9 +92,9 @@ delete_k8s() {
 }
 
 load_operator_k8s() {
-  echo "Loading operator image $IMAGE_NAME in k3d environemnt $K8S_K3D_NAME..."
+  echo "Loading operator image $OPERATOR_IMAGE_NAME in k3d environemnt $K8S_K3D_NAME..."
   
-  k3d import-images --name "$K8S_K3D_NAME" "$IMAGE_NAME"
+  k3d import-images --name "$K8S_K3D_NAME" "$OPERATOR_IMAGE_NAME"
 
   echo "...done"
 }

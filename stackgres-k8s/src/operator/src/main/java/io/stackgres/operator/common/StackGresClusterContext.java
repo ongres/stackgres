@@ -14,7 +14,7 @@ import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.OwnerReference;
 import io.fabric8.kubernetes.api.model.Pod;
-import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
@@ -70,7 +70,7 @@ public abstract class StackGresClusterContext implements ResourceHandlerContext 
     return resource instanceof Pod
         && resource.getMetadata().getNamespace().equals(getClusterNamespace())
         && Objects.equals(resource.getMetadata().getLabels().get(getClusterKey()),
-        StackGresUtil.RIGHT_VALUE)
+        StackGresContext.RIGHT_VALUE)
         && resource.getMetadata().getName().matches(
         ResourceUtil.getNameWithIndexPattern(getClusterName()));
   }
@@ -79,7 +79,7 @@ public abstract class StackGresClusterContext implements ResourceHandlerContext 
     return resource instanceof Pod
         && resource.getMetadata().getNamespace().equals(getClusterNamespace())
         && Objects.equals(resource.getMetadata().getLabels().get(getBackupKey()),
-        StackGresUtil.RIGHT_VALUE);
+        StackGresContext.RIGHT_VALUE);
   }
 
   /**

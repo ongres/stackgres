@@ -14,22 +14,22 @@ public class DistributedLogsLabelMapper implements LabelMapper<StackGresDistribu
 
   @Override
   public String appName() {
-    return StackGresUtil.DISTRIBUTED_LOGS_APP_NAME;
+    return StackGresContext.DISTRIBUTED_LOGS_APP_NAME;
   }
 
   @Override
   public String clusterNameKey() {
-    return StackGresUtil.DISTRIBUTED_LOGS_CLUSTER_NAME_KEY;
+    return StackGresContext.DISTRIBUTED_LOGS_CLUSTER_NAME_KEY;
   }
 
   @Override
   public String clusterNamespaceKey() {
-    return StackGresUtil.DISTRIBUTED_LOGS_CLUSTER_NAMESPACE_KEY;
+    return StackGresContext.DISTRIBUTED_LOGS_CLUSTER_NAMESPACE_KEY;
   }
 
   @Override
   public String clusterUidKey() {
-    return StackGresUtil.DISTRIBUTED_LOGS_CLUSTER_UID_KEY;
+    return StackGresContext.DISTRIBUTED_LOGS_CLUSTER_UID_KEY;
   }
 
 }

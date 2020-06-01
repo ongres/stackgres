@@ -26,7 +26,7 @@ import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.batch.Job;
 import io.fabric8.kubernetes.api.model.batch.JobBuilder;
 import io.stackgres.common.LabelFactory;
-import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.sgbackup.BackupPhase;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackup.StackGresBackupDefinition;
@@ -130,7 +130,7 @@ public class Backup implements StackGresClusterResourceStreamFactory {
             .withServiceAccountName(PatroniRole.roleName(context))
             .withContainers(new ContainerBuilder()
                 .withName("create-backup")
-                .withImage(StackGresUtil.KUBECTL_IMAGE)
+                .withImage(StackGresContext.KUBECTL_IMAGE)
                 .withEnv(ImmutableList.<EnvVar>builder()
                     .addAll(clusterStatefulSetEnvironmentVariables.listResources(context))
                     .add(new EnvVarBuilder()
@@ -190,15 +190,15 @@ public class Backup implements StackGresClusterResourceStreamFactory {
                         .build(),
                         new EnvVarBuilder()
                         .withName("PATRONI_ROLE_KEY")
-                        .withValue(StackGresUtil.ROLE_KEY)
+                        .withValue(StackGresContext.ROLE_KEY)
                         .build(),
                         new EnvVarBuilder()
                         .withName("PATRONI_PRIMARY_ROLE")
-                        .withValue(StackGresUtil.PRIMARY_ROLE)
+                        .withValue(StackGresContext.PRIMARY_ROLE)
                         .build(),
                         new EnvVarBuilder()
                         .withName("PATRONI_REPLICA_ROLE")
-                        .withValue(StackGresUtil.REPLICA_ROLE)
+                        .withValue(StackGresContext.REPLICA_ROLE)
                         .build(),
                         new EnvVarBuilder()
                         .withName("PATRONI_CLUSTER_LABELS")

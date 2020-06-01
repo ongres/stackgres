@@ -15,22 +15,12 @@
 
   <properties>
     <stackgres.operatorName>stackgres-operator</stackgres.operatorName>
+    <stackgres.authentication.secretName>stackgres-restapi</stackgres.authentication.secretName>
     <stackgres.operatorNamespace>stackgres</stackgres.operatorNamespace>
     <stackgres.operatorIP>localhost</stackgres.operatorIP>
-    <stackgres.operatorVersion>${project.version}</stackgres.operatorVersion>
-    <stackgres.containerBuild>4</stackgres.containerBuild>
-    <stackgres.group>stackgres.io</stackgres.group>
-    <stackgres.crd.version>v1beta1</stackgres.crd.version>
     <stackgres.prometheus.allowAutobind>true</stackgres.prometheus.allowAutobind>
     <stackgres.prometheus.grafanaEmbedded>false</stackgres.prometheus.grafanaEmbedded>
-    <stackgres.documentation.uri>https://stackgres.io/doc/</stackgres.documentation.uri>
-    <stackgres.documentation.errorsPath>/07-developer-documentation/01-error-types#</stackgres.documentation.errorsPath>
-    <stackgres.authentication.secretName>stackgres-operator</stackgres.authentication.secretName>
-
-    <quarkus.http.ssl.certificate.file>/etc/operator/certs/server.crt</quarkus.http.ssl.certificate.file>
-    <quarkus.http.ssl.certificate.key-file>/etc/operator/certs/root.key</quarkus.http.ssl.certificate.key-file>
     <quarkus.skipAugmentation>false</quarkus.skipAugmentation>
-
     <checks.location>${project.parent.basedir}/checks</checks.location>
 
     <it.image>stackgres/it:6.0</it.image>
@@ -39,7 +29,7 @@
   <dependencies>
     <dependency>
       <groupId>io.stackgres</groupId>
-      <artifactId>stackgres-api-web</artifactId>
+      <artifactId>stackgres-common</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
@@ -314,7 +304,7 @@
                           <date>default</date>
                         </log>
                         <env>
-                          <IMAGE_NAME>${env.IMAGE_NAME}</IMAGE_NAME>
+                          <OPERATOR_IMAGE_NAME>${env.OPERATOR_IMAGE_NAME}</OPERATOR_IMAGE_NAME>
                           <DOCKER_HOST>${env.DOCKER_HOST}</DOCKER_HOST>
                         </env>
                         <volumes>
@@ -395,7 +385,7 @@
                           <date>default</date>
                         </log>
                         <env>
-                          <IMAGE_NAME>${env.IMAGE_NAME}</IMAGE_NAME>
+                          <OPERATOR_IMAGE_NAME>${env.OPERATOR_IMAGE_NAME}</OPERATOR_IMAGE_NAME>
                           <DOCKER_HOST>${env.DOCKER_HOST}</DOCKER_HOST>
                         </env>
                         <volumes>
@@ -442,9 +432,9 @@
                           <arg>/bin/sh</arg>
                           <arg>-exc</arg>
                           <arg>
-                        IMAGE_NAME="${IMAGE_NAME:-"stackgres/operator:development-jvm"}"
+                        OPERATOR_IMAGE_NAME="${OPERATOR_IMAGE_NAME:-"stackgres/operator:development-jvm"}"
                         CONTAINER_NAME="$(docker inspect -f '{{.Name}}' "$(hostname)"|cut -d '/' -f 2|sed 's/^kind-load/kind/')"
-                        kind load docker-image --name "$CONTAINER_NAME" "$IMAGE_NAME" || true
+                        kind load docker-image --name "$CONTAINER_NAME" "$OPERATOR_IMAGE_NAME" || true
                           </arg>
                         </entrypoint>
                         <wait>
@@ -456,7 +446,7 @@
                           <date>default</date>
                         </log>
                         <env>
-                          <IMAGE_NAME>${env.IMAGE_NAME}</IMAGE_NAME>
+                          <OPERATOR_IMAGE_NAME>${env.OPERATOR_IMAGE_NAME}</OPERATOR_IMAGE_NAME>
                           <DOCKER_HOST>${env.DOCKER_HOST}</DOCKER_HOST>
                         </env>
                         <volumes>
@@ -503,9 +493,9 @@
                           <arg>/bin/sh</arg>
                           <arg>-exc</arg>
                           <arg>
-                        IMAGE_NAME="${IMAGE_NAME:-"stackgres/operator:development"}"
+                        OPERATOR_IMAGE_NAME="${OPERATOR_IMAGE_NAME:-"stackgres/operator:development"}"
                         CONTAINER_NAME="$(docker inspect -f '{{.Name}}' "$(hostname)"|cut -d '/' -f 2|sed 's/^kind-load/kind/')"
-                        kind load docker-image --name "$CONTAINER_NAME" "$IMAGE_NAME" || true
+                        kind load docker-image --name "$CONTAINER_NAME" "$OPERATOR_IMAGE_NAME" || true
                           </arg>
                         </entrypoint>
                         <wait>
@@ -517,7 +507,7 @@
                           <date>default</date>
                         </log>
                         <env>
-                          <IMAGE_NAME>${env.IMAGE_NAME}</IMAGE_NAME>
+                          <OPERATOR_IMAGE_NAME>${env.OPERATOR_IMAGE_NAME}</OPERATOR_IMAGE_NAME>
                           <DOCKER_HOST>${env.DOCKER_HOST}</DOCKER_HOST>
                         </env>
                         <volumes>

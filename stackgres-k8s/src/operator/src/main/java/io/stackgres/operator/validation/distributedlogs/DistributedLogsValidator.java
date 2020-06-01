@@ -5,7 +5,7 @@
 
 package io.stackgres.operator.validation.distributedlogs;
 
-import io.stackgres.common.ConfigContext;
+import io.stackgres.common.ErrorType;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsDefinition;
 import io.stackgres.operator.common.StackGresDistributedLogsReview;
 import io.stackgres.operator.validation.ValidationType;
@@ -20,7 +20,7 @@ public interface DistributedLogsValidator extends Validator<StackGresDistributed
 
   default void fail(String message) throws ValidationFailed {
     ValidationType validationType = this.getClass().getAnnotation(ValidationType.class);
-    String errorTypeUri = ConfigContext.getErrorTypeUri(validationType.value());
+    String errorTypeUri = ErrorType.getErrorTypeUri(validationType.value());
     fail(errorTypeUri, message);
   }
 

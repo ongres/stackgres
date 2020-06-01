@@ -93,6 +93,8 @@ native image:
     - 'flock -w 3600 /tmp/stackgres-build-native mvn $MAVEN_CLI_OPTS package -P native'
     - 'cp $GRAALVM_HOME/jre/lib/amd64/libsunec.so stackgres-k8s/src/operator/target/'
     - 'cp $GRAALVM_HOME/jre/lib/security/cacerts stackgres-k8s/src/operator/target/'
+    - 'cp $GRAALVM_HOME/jre/lib/amd64/libsunec.so stackgres-k8s/src/api-web/target/'
+    - 'cp $GRAALVM_HOME/jre/lib/security/cacerts stackgres-k8s/src/api-web/target/'
   artifacts:
     expire_in: 1 week
     paths:
@@ -101,6 +103,11 @@ native image:
       - stackgres-k8s/src/operator/target/stackgres-operator-runner
       - stackgres-k8s/src/operator/target/lib/
       - stackgres-k8s/src/operator/target/stackgres-operator-runner.jar
+      - stackgres-k8s/src/api-web/target/libsunec.so
+      - stackgres-k8s/src/api-web/target/cacerts
+      - stackgres-k8s/src/api-web/target/stackgres-restapi-runner
+      - stackgres-k8s/src/api-web/target/lib/
+      - stackgres-k8s/src/api-web/target/stackgres-restapi-runner.jar
   only:
     variables:
       - $CI_COMMIT_REF_NAME == "development"
@@ -144,7 +151,8 @@ build jvm image:
   retry: 2
   script:
     - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}"-jvm'
-    - 'export IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
+    - 'export OPERATOR_IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
+    - 'export RESTAPI_IMAGE_NAME="stackgres/restapi:$IMAGE_TAG"'
     - MAVEN_CLI_OPTS="$MAVEN_CLI_OPTS -DskipTests"
     - 'flock -w 3600 /tmp/stackgres-build-jvm-image mvn $MAVEN_CLI_OPTS package -P build-image-jvm'
 
@@ -159,7 +167,8 @@ build native image:
   retry: 2
   script:
     - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}"'
-    - 'export IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
+    - 'export OPERATOR_IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
+    - 'export RESTAPI_IMAGE_NAME="stackgres/restapi:$IMAGE_TAG"'
     - MAVEN_CLI_OPTS="$MAVEN_CLI_OPTS -DskipTests"
     - 'flock -w 3600 /tmp/stackgres-build-native-image mvn $MAVEN_CLI_OPTS package -P build-image-native'
   only:
@@ -202,7 +211,8 @@ integration test jvm image:
   timeout: 1 hour
   script:
     - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}"-jvm'
-    - 'export IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
+    - 'export OPERATOR_IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
+    - 'export RESTAPI_IMAGE_NAME="stackgres/restapi:$IMAGE_TAG"'
     - |
       flock -s -w 3600 /tmp/stackgres-build-native \
         flock -w 3600 /tmp/stackgres-integration-test-jvm-image mvn $MAVEN_CLI_OPTS verify -P integration \
@@ -226,7 +236,8 @@ integration test native image:
   timeout: 1 hour
   script:
     - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}"'
-    - 'export IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
+    - 'export OPERATOR_IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
+    - 'export RESTAPI_IMAGE_NAME="stackgres/restapi:$IMAGE_TAG"'
     - |
       flock -s -w 3600 /tmp/stackgres-build-native \
         flock -w 3600 /tmp/stackgres-integration-test-native-image mvn $MAVEN_CLI_OPTS verify -P integration \
@@ -252,10 +263,15 @@ deploy jvm image:
   script:
     - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}"-jvm'
     - 'export IMAGE_UPLOAD_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_REF_NAME"}"-jvm'
-    - 'export IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
-    - 'export IMAGE_UPLOAD_NAME="stackgres/operator:$IMAGE_UPLOAD_TAG"'
-    - 'buildah pull docker-daemon:"$IMAGE_NAME"'
-    - 'buildah push --format=docker --authfile $REGISTRY_AUTH_FILE $IMAGE_NAME "docker://docker.io/$IMAGE_UPLOAD_NAME"'
+    - 'export OPERATOR_IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
+    - 'export RESTAPI_IMAGE_NAME="stackgres/restapi:$IMAGE_TAG"'
+    - 'export OPERATOR_IMAGE_UPLOAD_NAME="stackgres/operator:$IMAGE_UPLOAD_TAG"'
+    - 'export RESTAPI_IMAGE_UPLOAD_NAME="stackgres/restapi:$IMAGE_UPLOAD_TAG"'
+    - 'buildah pull docker-daemon:"$OPERATOR_IMAGE_NAME"'
+    - 'buildah push --format=docker --authfile $REGISTRY_AUTH_FILE $OPERATOR_IMAGE_NAME "docker://docker.io/$OPERATOR_IMAGE_UPLOAD_NAME"'
+    - 'buildah pull docker-daemon:"$RESTAPI_IMAGE_NAME"'
+    - 'buildah push --format=docker --authfile $REGISTRY_AUTH_FILE $RESTAPI_IMAGE_NAME "docker://docker.io/$RESTAPI_IMAGE_UPLOAD_NAME"'
+    
   only:
     variables:
       - $CI_COMMIT_REF_NAME == "development"
@@ -270,10 +286,14 @@ deploy native image:
   script:
     - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}"'
     - 'export IMAGE_UPLOAD_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_REF_NAME"}"'
-    - 'export IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
-    - 'export IMAGE_UPLOAD_NAME="stackgres/operator:$IMAGE_UPLOAD_TAG"'
-    - 'buildah pull docker-daemon:"$IMAGE_NAME"'
-    - 'buildah push --format=docker --authfile $REGISTRY_AUTH_FILE $IMAGE_NAME "docker://docker.io/$IMAGE_UPLOAD_NAME"'
+    - 'export OPERATOR_IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
+    - 'export RESTAPI_IMAGE_NAME="stackgres/restapi:$IMAGE_TAG"'
+    - 'export OPERATOR_IMAGE_UPLOAD_NAME="stackgres/operator:$IMAGE_UPLOAD_TAG"'
+    - 'export RESTAPI_IMAGE_UPLOAD_NAME="stackgres/restapi:$IMAGE_UPLOAD_TAG"'
+    - 'buildah pull docker-daemon:"$OPERATOR_IMAGE_NAME"'
+    - 'buildah push --format=docker --authfile $REGISTRY_AUTH_FILE $OPERATOR_IMAGE_NAME "docker://docker.io/$OPERATOR_IMAGE_UPLOAD_NAME"'
+    - 'buildah pull docker-daemon:"$RESTAPI_IMAGE_NAME"'
+    - 'buildah push --format=docker --authfile $REGISTRY_AUTH_FILE $RESTAPI_IMAGE_NAME "docker://docker.io/$RESTAPI_IMAGE_UPLOAD_NAME"'
   only:
     variables:
       - $CI_COMMIT_REF_NAME == "development"
