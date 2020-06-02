@@ -11,7 +11,8 @@ public enum OperatorProperty {
   OPERATOR_IP("stackgres.operatorIP"),
   PROMETHEUS_AUTOBIND("stackgres.prometheus.allowAutobind"),
   GRAFANA_EMBEDDED("stackgres.prometheus.grafanaEmbedded"),
-  AUTHENTICATION_SECRET_NAME("stackgres.authentication.secretName");
+  AUTHENTICATION_SECRET_NAME("stackgres.authentication.secretName"),
+  USE_ARBITRARY_USER("stackgres.useArbitraryUser");
 
   private final String systemProperty;
 

@@ -1,3 +1,6 @@
+export PATRONI_POSTGRESQL_LISTEN="$(eval "echo $PATRONI_POSTGRESQL_LISTEN")"
+export PATRONI_POSTGRESQL_CONNECT_ADDRESS="$(eval "echo $PATRONI_POSTGRESQL_CONNECT_ADDRESS")"
+export HOME="$PG_BASE_PATH"
 
 if [ -n "$RESTORE_ENDPOINT_HOSTNAME" ] && [ -n "$RESTORE_ENDPOINT_PORT" ]
 then
@@ -10,18 +13,18 @@ then
   fi
 fi
 
-cat << EOF > "$RESTORE_ENTRYPOINT_PATH/postgres.yml"
+cat << EOF > "$PATRONI_CONFIG_PATH/postgres.yml"
 scope: ${PATRONI_SCOPE}
 name: ${PATRONI_NAME}
 
 bootstrap:
-  post_init: '/etc/patroni/post-init.sh'
+  post_init: '${LOCAL_BIN_PATH}/post-init.sh'
   dcs:
     postgresql:
       use_pg_rewind: true
   method: wal_g
   wal_g:
-    command: '${RESTORE_ENTRYPOINT_PATH}/bootstrap'
+    command: '${PATRONI_CONFIG_PATH}/bootstrap'
     keep_existing_recovery_conf: False
     recovery_conf:
       restore_command: 'exec-with-env "${RESTORE_ENV}" -- wal-g wal-fetch %f %p'
@@ -54,20 +57,16 @@ watchdog:
   mode: off
 EOF
 
-cat << EOF > "$RESTORE_ENTRYPOINT_PATH/bootstrap"
+cat << EOF > "$PATRONI_CONFIG_PATH/bootstrap"
 #!/bin/sh
 
 exec-with-env "$RESTORE_ENV" \\
   -- wal-g backup-fetch "$PG_DATA_PATH" "$RESTORE_BACKUP_ID"
 EOF
+chmod a+x "$PATRONI_CONFIG_PATH/bootstrap"
 
-cat << EOF > "$RESTORE_ENTRYPOINT_PATH/entrypoint"
 export LC_ALL=C.UTF-8
 
 unset PATRONI_SUPERUSER_PASSWORD PATRONI_REPLICATION_PASSWORD
 
-/usr/bin/patroni "${RESTORE_ENTRYPOINT_PATH}/postgres.yml"
-EOF
-
-chmod a+x "$RESTORE_ENTRYPOINT_PATH/entrypoint"
-chmod a+x "$RESTORE_ENTRYPOINT_PATH/bootstrap"
+exec /usr/bin/patroni "$PATRONI_CONFIG_PATH/postgres.yml"

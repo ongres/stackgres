@@ -38,6 +38,7 @@ import io.stackgres.operator.common.LabelFactoryDelegator;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresClusterResourceStreamFactory;
 import io.stackgres.operator.common.StackGresGeneratorContext;
+import io.stackgres.operator.common.StackGresPodSecurityContext;
 import io.stackgres.operator.configuration.ImmutableStorageConfig;
 import io.stackgres.operator.configuration.StorageConfig;
 import io.stackgres.operator.patroni.factory.Patroni;
@@ -55,21 +56,24 @@ public class ClusterStatefulSet implements StackGresClusterResourceStreamFactory
   public static final String GCS_CREDENTIALS_FILE_NAME = "gcs-credentials.json";
 
   private final Patroni patroni;
-  private final ClusterPodSecurityContext clusterPodSecurityContext;
+  private final StackGresPodSecurityContext clusterPodSecurityContext;
   private final ClusterStatefulSetInitContainers initContainerFactory;
   private final ClusterStatefulSetVolumes volumesFactory;
+  private final TemplatesConfigMap templatesConfigMap;
 
   private LabelFactoryDelegator factoryDelegator;
 
   @Inject
-  public ClusterStatefulSet(Patroni patroni, ClusterPodSecurityContext clusterPodSecurityContext,
+  public ClusterStatefulSet(Patroni patroni, StackGresPodSecurityContext clusterPodSecurityContext,
       ClusterStatefulSetInitContainers initContainerFactory,
-      ClusterStatefulSetVolumes volumesFactory) {
+      ClusterStatefulSetVolumes volumesFactory,
+      TemplatesConfigMap templatesConfigMap) {
     super();
     this.patroni = patroni;
     this.clusterPodSecurityContext = clusterPodSecurityContext;
     this.initContainerFactory = initContainerFactory;
     this.volumesFactory = volumesFactory;
+    this.templatesConfigMap = templatesConfigMap;
   }
 
   @Inject
@@ -196,6 +200,7 @@ public class ClusterStatefulSet implements StackGresClusterResourceStreamFactory
         .build();
 
     return Seq.<HasMetadata>empty()
+        .append(templatesConfigMap.streamResources(context))
         .append(patroni.streamResources(context))
         .append(clusterContext.getSidecars().stream()
             .flatMap(sidecarEntry -> sidecarEntry.getSidecar().streamResources(context)))

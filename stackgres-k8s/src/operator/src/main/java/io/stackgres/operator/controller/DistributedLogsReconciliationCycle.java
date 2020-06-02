@@ -42,6 +42,7 @@ import io.stackgres.operator.common.SidecarEntry;
 import io.stackgres.operator.common.StackGresComponents;
 import io.stackgres.operator.common.StackGresDistributedLogsContext;
 import io.stackgres.operator.common.StackGresDistributedLogsGeneratorContext;
+import io.stackgres.operator.configuration.OperatorContext;
 import io.stackgres.operator.distributedlogs.factory.DistributeLogs;
 import io.stackgres.operator.distributedlogs.fluentd.Fluentd;
 import io.stackgres.operator.resource.DistributedLogsResourceHandlerSelector;
@@ -61,6 +62,7 @@ public class DistributedLogsReconciliationCycle
   private final Fluentd fluentd;
   private final DistributedLogsStatusManager statusManager;
   private final EventController eventController;
+  private final OperatorContext operatorContext;
   private final LabelFactory<StackGresDistributedLogs> labelFactory;
 
   /**
@@ -73,6 +75,7 @@ public class DistributedLogsReconciliationCycle
       DistributedLogsResourceHandlerSelector handlerSelector,
       DistributedLogsStatusManager statusManager, EventController eventController,
       ObjectMapperProvider objectMapperProvider,
+      OperatorContext operatorContext,
       LabelFactory<StackGresDistributedLogs> labelFactory) {
     super("DistributeLogs", clientFactory::create,
         StackGresDistributedLogsContext::getDistributedLogs,
@@ -81,6 +84,7 @@ public class DistributedLogsReconciliationCycle
     this.fluentd = fluentd;
     this.statusManager = statusManager;
     this.eventController = eventController;
+    this.operatorContext = operatorContext;
     this.labelFactory = labelFactory;
   }
 
@@ -91,6 +95,7 @@ public class DistributedLogsReconciliationCycle
     this.fluentd = null;
     this.statusManager = null;
     this.eventController = null;
+    this.operatorContext = null;
     this.labelFactory = null;
   }
 
@@ -178,6 +183,7 @@ public class DistributedLogsReconciliationCycle
       StackGresDistributedLogs distributedLogs, KubernetesClient client) {
     final StackGresCluster cluster = getStackGresCLusterForDistributedLogs(distributedLogs);
     return ImmutableStackGresDistributedLogsContext.builder()
+        .operatorContext(operatorContext)
         .distributedLogs(distributedLogs)
         .connectedClusters(getConnectedClusters(distributedLogs, client))
         .cluster(cluster)

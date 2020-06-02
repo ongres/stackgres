@@ -9,4 +9,6 @@ public interface VolumePath {
 
   String path();
 
+  String subPath();
+
 }

@@ -27,9 +27,12 @@ spec:
     spec:
       serviceAccountName: {{ .Release.Name }}
       securityContext:
+        runAsNonRoot: true
+        {{- if not (.Capabilities.APIVersions.Has "project.openshift.io/v1") }}
         runAsUser: 999
         runAsGroup: 999
         fsGroup: 999
+        {{- end }}
       containers:
       {{- if .Values.deploy.create }}
       - name: {{ .Release.Name }}
@@ -65,9 +68,13 @@ spec:
           {{- if and .Values.grafana.url .Values.grafana.token .Values.grafana.webHost }}
           - name: GRAFANA_EMBEDDED
             value: "true"
-          {{ end }}
+          {{- end }}
           - name: AUTHENTICATION_SECRET_NAME
             value: "{{ .Release.Name }}"
+          {{- if .Capabilities.APIVersions.Has "project.openshift.io/v1" }}
+          - name: USE_ARBITRARY_USER
+            value: "true"
+          {{- end }}
         livenessProbe:
           httpGet:
             path: "/health/live"

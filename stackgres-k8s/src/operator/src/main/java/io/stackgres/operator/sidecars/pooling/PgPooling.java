@@ -100,7 +100,6 @@ public class PgPooling
         + "auth_query = SELECT usename, passwd FROM pg_shadow WHERE usename=$1\n"
         + "admin_users = postgres\n"
         + "stats_users = postgres\n"
-        + "user = postgres\n"
         + "application_name_add_host = 1\n"
         + "ignore_startup_parameters = extra_float_digits\n"
         + "max_db_connections = 100\n"

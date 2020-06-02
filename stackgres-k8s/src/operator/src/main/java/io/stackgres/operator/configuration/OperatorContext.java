@@ -44,4 +44,9 @@ public class OperatorContext implements ConfigContext {
         .orElseGet(() -> DEFAULT_CONTEXT.get(configProperty));
   }
 
+  @Override
+  public boolean getAsBoolean(OperatorProperty configProperty) {
+    return Boolean.parseBoolean(get(configProperty));
+  }
+
 }

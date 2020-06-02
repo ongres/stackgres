@@ -3,17 +3,17 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.cluster.factory;
+package io.stackgres.operator.common;
 
 import javax.enterprise.context.ApplicationScoped;
 
 import io.fabric8.kubernetes.api.model.PodSecurityContext;
 import io.fabric8.kubernetes.api.model.PodSecurityContextBuilder;
-import io.stackgres.operator.common.StackGresClusterContext;
+import io.stackgres.common.OperatorProperty;
 import io.stackgres.operatorframework.resource.factory.SubResourceFactory;
 
 @ApplicationScoped
-public class ClusterPodSecurityContext
+public class StackGresPodSecurityContext
     implements SubResourceFactory<PodSecurityContext, StackGresClusterContext> {
 
   public static final Long USER = 999L;
@@ -21,12 +21,15 @@ public class ClusterPodSecurityContext
 
   @Override
   public PodSecurityContext createResource(StackGresClusterContext config) {
-    return new PodSecurityContextBuilder()
-        .withRunAsUser(USER)
-        .withRunAsGroup(GROUP)
-        .withRunAsNonRoot(true)
-        .withFsGroup(GROUP)
-        .build();
+    PodSecurityContextBuilder podSecurityContextBuilder = new PodSecurityContextBuilder()
+        .withRunAsNonRoot(true);
+    if (!config.getOperatorContext().getAsBoolean(OperatorProperty.USE_ARBITRARY_USER)) {
+      podSecurityContextBuilder
+          .withRunAsUser(USER)
+          .withRunAsGroup(GROUP)
+          .withFsGroup(GROUP);
+    }
+    return podSecurityContextBuilder.build();
   }
 
 }

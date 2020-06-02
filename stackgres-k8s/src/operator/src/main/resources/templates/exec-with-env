@@ -1,4 +1,3 @@
-cat << 'EOF' > /usr/local/bin/exec-with-env
 #!/bin/sh
 
 set -e
@@ -71,7 +70,7 @@ if [ -n "$REPLACES" ]
 then
   for REPLACE in $(echo "$REPLACES" | tr ',' '\n')
   do
-    eval "export ${REPLACE%=*}=\"\$$${REPLACE#*=}\""
+    eval "export ${REPLACE%=*}=\"\$${REPLACE#*=}\""
   done
 fi
 
@@ -79,9 +78,3 @@ if [ -n "$1" ]
 then
   exec "$@"
 fi
-EOF
-
-sed -i "s#\${BASE_ENV_PATH}#${BASE_ENV_PATH}#g" /usr/local/bin/exec-with-env
-sed -i "s#\${BASE_SECRET_PATH}#${BASE_SECRET_PATH}#g" /usr/local/bin/exec-with-env
-
-chmod a+x /usr/local/bin/exec-with-env
