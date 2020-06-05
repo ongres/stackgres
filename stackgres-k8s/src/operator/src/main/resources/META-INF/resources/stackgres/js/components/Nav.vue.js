@@ -127,13 +127,17 @@ var Nav = Vue.component("sg-nav", {
 						<div class="header">
 							<h2>Clone {{ clone.kind }}</h2>
 						</div>
-						<select v-model="cloneNamespace">
-							<option v-for="namespace in namespaces" :selected="(namespace == currentNamespace) ? 'selected' : ''">{{ namespace }}</option>
+						<select @change="setCloneNamespace" id="cloneNamespace">
+							<option v-for="namespace in namespaces">{{ namespace }}</option>
 						</select>
 
-						<input v-model="cloneName">
+						<input @keyup="setCloneName" id="cloneName">
 
-						<!--<button @click="clone">CLONE</button> <a class="btn border" @click="cancelClone">CANCEL</a>-->
+						<span class="warning" v-if="nameColission">
+							There's already a <strong>{{ clone.kind }}</strong> with the same name on the specified namespace. Please specify a different name or choose another namespace
+						</span>
+
+						<button @click="cloneCRD" :disabled="nameColission">CLONE</button> <a class="btn border" @click="cancelClone">CANCEL</a>
 					</form>
 				</div>
 
@@ -151,8 +155,7 @@ var Nav = Vue.component("sg-nav", {
 			loginPassword: '',
 			loginPasswordType: 'password',
 			confirmDeleteName: '',
-			cloneNamespace: '',
-			cloneName: ''
+			nameColission: false,
 		}
 	},
 	
@@ -188,7 +191,7 @@ var Nav = Vue.component("sg-nav", {
 
 		clone () {
 			return store.state.cloneCRD
-		}
+		},
 
 		/* confirmDeleteName() {
 			return store.state.confirmDeleteName
@@ -235,7 +238,60 @@ var Nav = Vue.component("sg-nav", {
 				this.loginPasswordType = 'text';
 				$('#showPassword').addClass('active');
 			}
+		},
+
+		setCloneName: function() {
+
+			var nameColission = false;
+
+			console.log($('#cloneName').val())
+			store.commit('setCloneName', $('#cloneName').val());
+			
+			store.state.clusters.forEach(function(item, index){
+				if( (item.name == $('#cloneName').val()) && (item.data.metadata.namespace == $('#cloneNamespace').val() ) )
+					nameColission = true
+			})
+
+			this.nameColission = nameColission;
+		},
+
+		setCloneNamespace: function() {
+			store.commit('setCloneNamespace', $('#cloneNamespace').val());
+		},
+
+		cancelClone: function() {
+			$('#clone').hide();
+			store.commit('setCloneCRD', {});
+		},
+
+		cloneCRD: function() {
+			console.log($('#cloneName').val() + ' / '+ store.state.cloneCRD.data.metadata.name)
+			const res = axios
+			.post(
+				apiURL+store.state.cloneCRD.kind.toLowerCase(), 
+				store.state.cloneCRD.data 
+			)
+			.then(function (response) {
+				//console.log("GOOD");
+				notify(store.state.cloneCRD.kind+' <strong>"'+store.state.cloneCRD.data.metadata.name+'"</strong> cloned successfully', 'message', store.state.cloneCRD.kind.toLowerCase());
+
+				vm.fetchAPI(store.state.cloneCRD.kind.toLowerCase());
+				router.push('/cluster/status/'+store.state.cloneCRD.data.metadata.namespace+'/'+store.state.cloneCRD.data.metadata.name);
+				
+			})
+			.catch(function (error) {
+				console.log(error.response);
+				notify(error.response.data,'error',store.state.cloneCRD.kind.toLowerCase());
+			});
 		}
 
+
+	},
+	mounted: function() {
+		/* if( store.state.cloneCRD.data.length ) {
+			//console.log('clone creado');
+			this.cloneNamespace = store.state.cloneCRD.data.metadata.namespace;
+			this.cloneName = store.state.cloneCRD.data.metadata.name;
+		} */
 	}
 })

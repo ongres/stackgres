@@ -317,10 +317,7 @@ const store = new Vuex.Store({
     storageClasses: [],
     logs: [],
     logsClusters: [],
-    cloneCRD: {
-      kind: '',
-      data: {}
-    },
+    cloneCRD: {},
     tooltips: {
       description: 'Click on a question mark to get help and tips about that field.', 
       SGCluster: {},
@@ -560,7 +557,14 @@ const store = new Vuex.Store({
 
     setCloneCRD (state, crd) {
       state.cloneCRD = crd;
-      $('#clone').fadeIn();
+    },
+
+    setCloneName (state, name) {
+      state.cloneCRD.data.metadata.name = name;
+    },
+
+    setCloneNamespace (state, namespace) {
+      state.cloneCRD.data.metadata.namespace = namespace;
     },
     
   }
@@ -731,11 +735,16 @@ Vue.mixin({
         case 'SGCluster':
           crd = store.state.clusters.find(c => ( (namespace == c.data.metadata.namespace) && (name == c.name) ))
           break;
-
       }
       
-      if(typeof crd !== 'undefined')
-        store.commit('setCloneCRD',crd);
+      if(typeof crd !== 'undefined') {
+        crd.kind = kind;
+        store.commit('setCloneCRD', crd);
+        
+        $('#cloneName').val('Copy of '+crd.data.metadata.name)
+        $('#cloneNamespace').val(crd.data.metadata.namespace);
+        $('#clone').fadeIn();
+      }
     }
   }
 });
