@@ -317,6 +317,10 @@ const store = new Vuex.Store({
     storageClasses: [],
     logs: [],
     logsClusters: [],
+    cloneCRD: {
+      kind: '',
+      data: {}
+    },
     tooltips: {
       description: 'Click on a question mark to get help and tips about that field.', 
       SGCluster: {},
@@ -553,6 +557,11 @@ const store = new Vuex.Store({
     showLogs (state, show) {
       state.showLogs = show;
     },
+
+    setCloneCRD (state, crd) {
+      state.cloneCRD = crd;
+      $('#clone').fadeIn();
+    },
     
   }
 });
@@ -712,6 +721,21 @@ Vue.mixin({
 
       store.commit("setTooltipDescription", param['description']);
 
+    },
+
+    cloneCRD: function(kind, namespace, name) {
+
+      var crd = {};
+
+      switch(kind) {
+        case 'SGCluster':
+          crd = store.state.clusters.find(c => ( (namespace == c.data.metadata.namespace) && (name == c.name) ))
+          break;
+
+      }
+      
+      if(typeof crd !== 'undefined')
+        store.commit('setCloneCRD',crd);
     }
   }
 });
