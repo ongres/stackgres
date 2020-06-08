@@ -65,6 +65,8 @@ update_minishift_config() {
           wait_until eval 'timeout -s KILL 10s oc login -u system:admin > /dev/null 2>&1'
         fi )
   done
+
+  oc adm policy add-scc-to-group hostmount-anyuid -n default -z pvinstaller
 }
 
 update_k8s_config() {
