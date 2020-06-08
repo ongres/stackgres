@@ -4,10 +4,10 @@ export K8S_MINIKUBE_CPUS="${K8S_MINIKUBE_CPUS:-2}"
 export K8S_MINIKUBE_MEMORY="${K8S_MINIKUBE_MEMORY:-4GB}"
 export K8S_MINIKUBE_DISK="${K8S_MINIKUBE_DISK:-20GB}"
 export K8S_MINIKUBE_DRIVER="${K8S_MINIKUBE_DRIVER:-virtualbox}"
+export K8S_MINIKUBE_FEATURE_GATES="${K8S_MINIKUBE_FEATURE_GATES:-x}"
 
 reuse_k8s() {
-  if ! minikube status > /dev/null 2>&1 \
-    || ! kubectl cluster-info > /dev/null 2>&1
+  if ! minikube status > /dev/null 2>&1
   then
     echo "Can not reuse minikube environment"
     reset_k8s
@@ -20,13 +20,23 @@ reuse_k8s() {
 reset_k8s() {
   echo "Setting up minikube environment..."
 
-  minikube delete || true
+  delete_k8s
+
+  if [ "$K8S_MINIKUBE_FEATURE_GATES" = "x" ]
+  then
+    K8S_MINIKUBE_FEATURE_GATES=""
+    if [ "${K8S_VERSION%.*}" = 1.11 ]
+    then
+      K8S_MINIKUBE_FEATURE_GATES="PodShareProcessNamespace=true"
+    fi
+  fi
 
   minikube start --kubernetes-version "$K8S_VERSION" \
     --cpus "$K8S_MINIKUBE_CPUS" \
     --memory "$K8S_MINIKUBE_MEMORY" \
     --disk-size "$K8S_MINIKUBE_DISK" \
-    --vm-driver "$K8S_MINIKUBE_DRIVER"
+    --vm-driver "$K8S_MINIKUBE_DRIVER" \
+    --feature-gates "$K8S_MINIKUBE_FEATURE_GATES"
 
   echo "...done"
 }
@@ -34,7 +44,10 @@ reset_k8s() {
 delete_k8s() {
   echo "Deleting minikube environment..."
 
-  minikube delete || true
+  if minikube status > /dev/null 2>&1
+  then
+    minikube delete
+  fi
 
   echo "...done"
 }
