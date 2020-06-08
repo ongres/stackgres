@@ -6,7 +6,6 @@ export K8S_MINISHIFT_MEMORY="${K8S_MINISHIFT_MEMORY:-4GB}"
 export K8S_MINISHIFT_DISK="${K8S_MINISHIFT_DISK:-20GB}"
 export K8S_MINISHIFT_VMDRIVER="${K8S_MINISHIFT_VMDRIVER:-kvm}"
 
-
 update_minishift_config() {
   eval "$(minishift oc-env)"
 
@@ -66,7 +65,7 @@ update_minishift_config() {
         fi )
   done
 
-  oc adm policy add-scc-to-group hostmount-anyuid -n default -z pvinstaller
+  oc adm policy add-scc-to-user hostmount-anyuid -n default -z default
 }
 
 update_k8s_config() {
