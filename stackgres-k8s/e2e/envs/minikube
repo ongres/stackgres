@@ -1,5 +1,10 @@
 #!/bin/sh
 
+export K8S_MINIKUBE_CPUS="${K8S_MINIKUBE_CPUS:-2}"
+export K8S_MINIKUBE_MEMORY="${K8S_MINIKUBE_MEMORY:-4GB}"
+export K8S_MINIKUBE_DISK="${K8S_MINIKUBE_DISK:-20GB}"
+export K8S_MINIKUBE_DRIVER="${K8S_MINIKUBE_DRIVER:-virtualbox}"
+
 reuse_k8s() {
   if ! minikube status > /dev/null 2>&1 \
     || ! kubectl cluster-info > /dev/null 2>&1
@@ -17,11 +22,11 @@ reset_k8s() {
 
   minikube delete || true
 
-  MINUKUBE_PARALLELISM="${E2E_PARALLELISM:-2}"
-
-  local MEMORY=$(printf "%sGB" "$MINUKUBE_PARALLELISM")
-
-  minikube start --kubernetes-version $K8S_VERSION --memory "$MEMORY" --cpus $MINUKUBE_PARALLELISM
+  minikube start --kubernetes-version "$K8S_VERSION" \
+    --cpus "$K8S_MINIKUBE_CPUS" \
+    --memory "$K8S_MINIKUBE_MEMORY" \
+    --disk-size "$K8S_MINIKUBE_DISK" \
+    --vm-driver "$K8S_MINIKUBE_DRIVER"
 
   echo "...done"
 }
