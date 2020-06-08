@@ -13,7 +13,6 @@ import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
-import io.stackgres.common.OperatorProperty;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.VolumeConfig;
 import io.stackgres.operator.common.VolumeConfig.VolumePathConfig;
@@ -31,20 +30,16 @@ public enum ClusterStatefulSetVolumeConfig {
       "local", ImmutableList.of(
           VolumePathConfig.of(ClusterStatefulSetPath.LOCAL_BIN_PATH),
           VolumePathConfig.of(ClusterStatefulSetPath.ETC_PASSWD_PATH,
-              context -> context.getOperatorContext()
-              .getAsBoolean(OperatorProperty.USE_ARBITRARY_USER),
+              context -> true,
               volumeMountBuilder -> volumeMountBuilder.withReadOnly(true)),
           VolumePathConfig.of(ClusterStatefulSetPath.ETC_GROUP_PATH,
-              context -> context.getOperatorContext()
-              .getAsBoolean(OperatorProperty.USE_ARBITRARY_USER),
+              context -> true,
               volumeMountBuilder -> volumeMountBuilder.withReadOnly(true)),
           VolumePathConfig.of(ClusterStatefulSetPath.ETC_SHADOW_PATH,
-              context -> context.getOperatorContext()
-              .getAsBoolean(OperatorProperty.USE_ARBITRARY_USER),
+              context -> true,
               volumeMountBuilder -> volumeMountBuilder.withReadOnly(true)),
           VolumePathConfig.of(ClusterStatefulSetPath.ETC_GSHADOW_PATH,
-              context -> context.getOperatorContext()
-              .getAsBoolean(OperatorProperty.USE_ARBITRARY_USER),
+              context -> true,
               volumeMountBuilder -> volumeMountBuilder.withReadOnly(true))))),
   PATRONI_ENV(VolumeConfig.configMap(
       "patroni-env", ClusterStatefulSetPath.PATRONI_ENV_PATH,

@@ -13,7 +13,6 @@ import javax.enterprise.context.ApplicationScoped;
 
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
-import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operatorframework.resource.factory.SubResourceStreamFactory;
@@ -35,9 +34,7 @@ public class ClusterStatefulSetInitContainers
   public Stream<Container> streamResources(StackGresClusterContext config) {
     return Seq.of(Optional.of(createSetupDataPathsContainer(config)),
         Optional.of(setupScriptsContainer(config)),
-        Optional.of(config.getOperatorContext().getAsBoolean(OperatorProperty.USE_ARBITRARY_USER))
-            .filter(flag -> flag)
-            .map(flag -> createSetupArbitraryUser(config)))
+        Optional.of(createSetupArbitraryUser(config)))
         .filter(Optional::isPresent)
         .map(Optional::get);
   }

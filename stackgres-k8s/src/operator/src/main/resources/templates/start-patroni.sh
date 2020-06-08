@@ -11,7 +11,6 @@ bootstrap:
   dcs:
     postgresql:
       use_pg_rewind: true
-
   initdb:
   - auth-host: md5
   - auth-local: trust
@@ -19,8 +18,8 @@ bootstrap:
   - locale: C.UTF-8
   - data-checksums
   pg_hba:
-  - host all all 0.0.0.0/0 md5
-  - host replication ${PATRONI_REPLICATION_USERNAME} 0.0.0.0/0 md5
+  - 'host all all 0.0.0.0/0 md5'
+  - 'host replication ${PATRONI_REPLICATION_USERNAME} 0.0.0.0/0 md5'
 restapi:
   connect_address: '${PATRONI_KUBERNETES_POD_IP}:8008'
   listen: 0.0.0.0:8008
