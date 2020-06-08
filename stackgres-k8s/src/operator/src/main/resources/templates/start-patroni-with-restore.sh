@@ -2,16 +2,18 @@ export PATRONI_POSTGRESQL_LISTEN="$(eval "echo $PATRONI_POSTGRESQL_LISTEN")"
 export PATRONI_POSTGRESQL_CONNECT_ADDRESS="$(eval "echo $PATRONI_POSTGRESQL_CONNECT_ADDRESS")"
 export HOME="$PG_BASE_PATH"
 
-if [ -n "$RESTORE_ENDPOINT_HOSTNAME" ] && [ -n "$RESTORE_ENDPOINT_PORT" ]
+cat << 'EOF' | exec-with-env "${RESTORE_ENV}" -- sh -ex
+if [ -n "$ENDPOINT_HOSTNAME" ] && [ -n "$ENDPOINT_PORT" ]
 then
-  if nc -z "$RESTORE_ENDPOINT_HOSTNAME" "$RESTORE_ENDPOINT_PORT"
+  if cat < /dev/null > "/dev/tcp/$ENDPOINT_HOSTNAME/$ENDPOINT_PORT"
   then
-    echo "Host $RESTORE_ENDPOINT_HOSTNAME:$RESTORE_ENDPOINT_PORT reachable"
+    echo "Host $ENDPOINT_HOSTNAME:$ENDPOINT_PORT reachable"
   else
-    echo "ERROR: Host $RESTORE_ENDPOINT_HOSTNAME:$RESTORE_ENDPOINT_PORT not reachable"
+    echo "ERROR: Host $ENDPOINT_HOSTNAME:$ENDPOINT_PORT not reachable"
     exit 1
   fi
 fi
+EOF
 
 cat << EOF > "$PATRONI_CONFIG_PATH/postgres.yml"
 scope: ${PATRONI_SCOPE}
@@ -61,7 +63,7 @@ cat << EOF > "$PATRONI_CONFIG_PATH/bootstrap"
 #!/bin/sh
 
 exec-with-env "$RESTORE_ENV" \\
-  -- wal-g backup-fetch "$PG_DATA_PATH" "$RESTORE_BACKUP_ID"
+  -- sh -ec 'wal-g backup-fetch "\$PG_DATA_PATH" "\$RESTORE_BACKUP_ID"'
 EOF
 chmod a+x "$PATRONI_CONFIG_PATH/bootstrap"
 
