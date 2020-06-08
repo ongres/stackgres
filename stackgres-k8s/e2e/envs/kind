@@ -140,6 +140,13 @@ EOF
 
   update_k8s_config
 
+  if [ "${K8S_VERSION%.*}" = 1.12 ]
+  then
+    # Patch coredns to version 1.3.1 (see https://github.com/coredns/coredns/issues/2391)
+    kubectl patch deployment -n kube-system coredns --type json \
+      --patch '[{"op":"replace","path":"/spec/template/spec/containers/0/image","value":"k8s.gcr.io/coredns:1.3.1"}]'
+  fi
+
   if [ "${K8S_VERSION%.*}" = 1.11 ]
   then
     set_local_path_storage_as_default
