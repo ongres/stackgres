@@ -15,6 +15,15 @@ e2e_exclusive_lock() {
 }
 
 e2e_test_install() {
+  if [ "$E2E_ENV" = "minishift" ]
+  then
+    eval "$(minishift oc-env)"
+    oc adm policy add-scc-to-user anyuid -n "$(prometheus_namespace)" -z prometheus-prometheus-oper-admission
+    oc adm policy add-scc-to-user anyuid -n "$(prometheus_namespace)" -z prometheus-grafana
+    oc adm policy add-scc-to-user anyuid -n "$(prometheus_namespace)" -z prometheus-prometheus-oper-operator
+    oc adm policy add-scc-to-user anyuid -n "$(prometheus_namespace)" -z prometheus-prometheus-oper-prometheus
+  fi
+
   install_prometheus
 
   wait_pods_running "$(prometheus_namespace)" 3

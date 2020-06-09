@@ -17,6 +17,11 @@ EOF
   else
     echo -n > "$LOG_PATH/minio-affinity.yaml"
   fi
+  if [ "$E2E_ENV" = "minishift" ]
+  then
+    eval "$(minishift oc-env)"
+    oc adm policy add-scc-to-user anyuid -n "$CLUSTER_NAMESPACE" -z "$CLUSTER_NAME-minio"
+  fi
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 \
     -f "$LOG_PATH/minio-affinity.yaml"
