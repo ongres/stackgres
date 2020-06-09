@@ -15,6 +15,10 @@ var CreatePoolConfig = Vue.component("create-poolconfig", {
                         {{ $route.params.name }}
                     </li>
                 </ul>
+
+                <div class="actions">
+                    <a class="documentation" href="https://stackgres.io/doc/latest/04-postgres-cluster-management/02-configuration-tuning/03-connection-pooling-configuration/" target="_blank" title="SGPoolingConfig Documentation">SGPoolingConfig Documentation</a>
+                </div>
             </header>
             
             <div class="form">

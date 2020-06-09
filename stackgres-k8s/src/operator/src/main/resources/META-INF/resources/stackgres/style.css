@@ -426,7 +426,7 @@ form#login .warning {
     background-color: #444;
 }
 
-.darkmode #side, .darkmode #nav, .darkmode #current-namespace, .darkmode #ns-select, .darkmode .set.active:not(.conf):not(.backups), .darkmode ul.breadcrumbs, .darkmode tbody, .darkmode .table .head.row, .darkmode .table .row:last-child, .darkmode .boxes .row:last-child, .darkmode table.clusterConfig td, .darkmode .form input, .darkmode .form select, .darkmode .form textarea, .darkmode .set, .darkmode ,.form .header, .darkmode .content .box, .darkmode .box hr, .darkmode #keyword, .darkmode .toolbar .toggle, .darkmode .options, .darkmode .tooltip, .darkmode .message, .darkmode #nav .tooltip:before, .darkmode fieldset, .darkmode label.switch, .darkmode ul.select, .darkmode .options li.textFilter .search {
+.darkmode #side, .darkmode #nav, .darkmode #current-namespace, .darkmode #ns-select, .darkmode .set.active:not(.conf):not(.backups), .darkmode ul.breadcrumbs, .darkmode tbody, .darkmode .table .head.row, .darkmode .table .row:last-child, .darkmode .boxes .row:last-child, .darkmode table.clusterConfig td, .darkmode .form input, .darkmode .form select, .darkmode .form textarea, .darkmode .set, .darkmode ,.form .header, .darkmode .content .box, .darkmode .box hr, .darkmode #keyword, .darkmode .toolbar .toggle, .darkmode .options, .darkmode .tooltip, .darkmode .message, .darkmode #nav .tooltip:before, .darkmode fieldset, .darkmode label.switch, .darkmode ul.select, .darkmode .options li.textFilter .search, .darkmode #nav .right > div#clone, .darkmode header .actions {
     border-color: #333333;
 }
 
@@ -435,7 +435,7 @@ form#login .warning {
     border-color: #333333;
 }
 
-.darkmode tr:nth-child(4n+2), .darkmode .options, .darkmode .tooltip, .darkmode #nav .tooltip:before, .darkmode table tr:nth-child(even):not(.base) {
+.darkmode tr:nth-child(4n+2), .darkmode .options, .darkmode .tooltip, .darkmode #nav .tooltip:before, .darkmode table tr:nth-child(even):not(.base), .darkmode #nav .right > div#clone {
     background: #1e1e1e;
 }
 
@@ -1600,9 +1600,9 @@ footer .tooltip p {
 }
 
 header .add {
-    position: absolute;
+    /*position: absolute;
     top: 0;
-    right: 0;
+    right: 0;*/
     background: none;
     color: var(--blue);
     font-size: 1rem;
@@ -1622,10 +1622,31 @@ header .add:hover {
 }
 
 header .actions {
-    position: absolute;
+    /*position: absolute;
     top: 0;
-    right: 0;
+    right: 0;*/
     text-transform: uppercase;
+    display: block;
+    width: 100%;
+    padding: 12px 0 15px;    
+    border-bottom: 1px solid var(--gray1);
+
+}
+
+header .actions a.documentation {
+    text-transform: none;
+    margin: 0;
+}
+
+header .actions a.documentation:before {
+    display: inline-block;
+    content: "";
+    position: relative;
+    background: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgdmlld0JveD0iMCAwIDIwIDIwIj4KPGc+Cgk8cGF0aCBmaWxsPSIjMDBBREI1IiBkPSJNNy4xLDE0LjhIMi45Yy0wLjcsMC0xLTAuMy0xLTAuNlYyLjVjMC0wLjQsMC4zLTAuNiwwLjYtMC42SDExYzAuMywwLDAuNiwwLjMsMC42LDAuNnY1LjQKCQljMCwwLjEsMC4xLDAuMiwwLjIsMC4yYzAsMCwwLjEsMCwwLjEsMGMwLjQtMC4yLDAuOS0wLjMsMS4zLTAuNGMwLjEsMCwwLjItMC4xLDAuMi0wLjJWMC45YzAtMC41LTAuNC0wLjktMC45LTAuOUgwLjkKCQlDMC40LDAsMCwwLjQsMCwxdjE0LjhjMCwwLjUsMC40LDEsMC45LDFoNi42YzAuMSwwLDAuMi0wLjEsMC4yLTAuMmMwLDAsMCwwLDAtMC4xYy0wLjEtMC40LTAuMS0wLjctMC4yLTEuMQoJCUM3LjYsMTUsNy40LDE0LjgsNy4xLDE0Ljh6Ii8+Cgk8cGF0aCBmaWxsPSIjMDBBREI1IiBkPSJNNC42LDMuN2g0LjJjMC41LDAsMC45LDAuNCwwLjksMC45bDAsMGMwLDAuNS0wLjQsMC45LTAuOSwwLjlINC42CgkJYy0wLjUsMC0wLjktMC40LTAuOS0wLjlsMCwwQzMuNyw0LjEsNC4xLDMuNyw0LjYsMy43eiIvPgoJPHBhdGggZmlsbD0iIzAwQURCNSIgZD0iTTQuNiw3LjRoNC4yYzAuNSwwLDAuOSwwLjQsMC45LDAuOWwwLDBjMCwwLjUtMC40LDAuOS0wLjksMC45SDQuNgoJCWMtMC41LDAtMC45LTAuNC0wLjktMC45bDAsMEMzLjcsNy44LDQuMSw3LjQsNC42LDcuNHoiLz4KCTxwYXRoIGZpbGw9IiMwMEFEQjUiIGQ9Ik04LjQsMTEuNWMwLjEtMC4xLDAtMC4zLTAuMS0wLjNjMCwwLTAuMSwwLTAuMSwwSDQuNmMtMC41LDAtMC45LDAuNC0wLjksMC45UzQuMSwxMyw0LjYsMTMKCQloM2MwLjEsMCwwLjItMC4xLDAuMi0wLjJDOCwxMi4zLDguMiwxMS45LDguNCwxMS41eiIvPgoJPHBhdGggZmlsbD0iIzAwQURCNSIgZD0iTTE4LjUsMTEuMWMtMi0yLTUuMy0yLTcuNCwwcy0yLDUuNCwwLDcuNHM1LjMsMiw3LjQsMGMxLTEsMS41LTIuMywxLjUtMy43CgkJQzIwLDEzLjQsMTkuNSwxMi4xLDE4LjUsMTEuMXogTTE0LjgsMTguMmMtMS45LDAtMy40LTEuNi0zLjQtMy41YzAtMS45LDEuNS0zLjQsMy40LTMuNGMxLjksMCwzLjQsMS42LDMuNCwzLjUKCQljMCwwLjctMC4yLDEuMy0wLjUsMS44QzE3LjEsMTcuNiwxNiwxOC4yLDE0LjgsMTguMnoiLz4KCTxwYXRoIGZpbGw9IiMwMEFEQjUiIGQ9Ik0xNC45LDEzLjdjMC40LDAsMC43LTAuMywwLjctMC43YzAsMCwwLDAsMCwwYzAtMC4zLTAuMy0wLjYtMC42LTAuNmMwLDAtMC4xLDAtMC4xLDAKCQljLTAuNCwwLTAuNywwLjMtMC43LDAuN0MxNC4yLDEzLjQsMTQuNSwxMy43LDE0LjksMTMuN0MxNC44LDEzLjcsMTQuOCwxMy43LDE0LjksMTMuN3oiLz4KCTxwYXRoIGZpbGw9IiMwMEFEQjUiIGQ9Ik0xNS45LDE2LjlDMTUuOSwxNi45LDE1LjksMTYuOSwxNS45LDE2LjljMCwwLjEtMC4xLDAuMi0wLjEsMC4yYy0wLjEsMC0wLjIsMC0wLjIsMC4xCgkJYy0wLjEsMC0wLjIsMC4xLTAuMywwLjFjLTAuMiwwLTAuNCwwLTAuNywwYy0wLjIsMC0wLjMtMC4xLTAuNC0wLjJjLTAuMS0wLjEtMC4yLTAuMi0wLjMtMC40YzAtMC4xLTAuMS0wLjItMC4xLTAuNAoJCWMwLTAuMSwwLTAuMywwLjEtMC40YzAuMS0wLjMsMC4xLTAuNSwwLjItMC44YzAtMC4xLDAtMC4xLDAtMC4yYzAsMC0wLjEtMC4xLTAuMS0wLjFoLTAuNWMwLDAtMC4xLDAtMC4xLDBjLTAuMSwwLTAuMS0wLjEtMC4xLTAuMQoJCWMwLTAuMiwwLTAuMywwLjEtMC41YzAsMCwwLTAuMSwwLTAuMWMwLTAuMSwwLjEtMC4xLDAuMi0wLjFoMS42YzAuMSwwLDAuMiwwLjEsMC4yLDAuMmMwLDAsMCwwLDAsMC4xbC0wLjQsMS44YzAsMCwwLDAuMSwwLDAuMQoJCWMwLDAuMSwwLDAuMiwwLjIsMC4yYzAuMSwwLDAuMiwwLDAuMy0wLjFjMC4xLDAsMC4xLDAsMC4yLDBjMC4xLDAsMC4xLDAsMC4xLDAuMWMwLjEsMC4yLDAuMSwwLjMsMC4xLDAuNQoJCUMxNS45LDE2LjgsMTUuOSwxNi44LDE1LjksMTYuOXoiLz4KPC9nPgo8L3N2Zz4=);
+    width: 20px;
+    height: 20px;
+    top: 5px;
+    margin-right: 5px;
 }
 
 header .actions a {
@@ -1634,9 +1655,14 @@ header .actions a {
     margin-left: 15px;
 }
 
+header .actions > div {
+    float: right;
+    margin-top: 5px;
+}
+
 ul.breadcrumbs {
     list-style: none;
-    margin-top: 20px;
+    margin-top: 15px;
     display: block;
     width: 100%;
     border-bottom: 1px solid var(--gray1);
@@ -1959,7 +1985,7 @@ ul.params .params li {
 ul.selector {
     display: inline-block;
     right: 0;
-    top: 70px;
+    top: 120px;
     list-style: none;
     position: absolute;
 }
@@ -2317,19 +2343,21 @@ button {
     border-radius: 6px;
     text-align: center;
     width: auto;
+    font-size: .9rem;
 }
 
 .form button + button, .form .btn + button, .btn + .btn, button + .btn {
     margin-left: 10px;
 }
 
-.form button.border, .btn.border {
+.form button.border, .btn.border, .darkmode #clone a.btn.border {
     color: var(--blue);
     background: transparent;
     border: 1px solid var(--blue);
+    font-size: .9rem;
 }
 
-.form button.border:hover, .btn.border:hover, .daterangepicker button.cancelBtn, .btn.clear:hover {
+.form button.border:hover, .btn.border:hover, .daterangepicker button.cancelBtn, .btn.clear:hover, .darkmode #clone a.btn.border:hover {
     background-color: rgba(0, 173, 181, .25);
 }
 
@@ -4323,6 +4351,10 @@ tr.details.open > td:first-child:before {
 }
 
 /* */
+table.pgConfig, table.poolConfig {
+    table-layout: fixed;
+}
+
 table.pgConfig tr:hover, table.poolConfig tr:hover {
     cursor: pointer;
 }
@@ -4369,7 +4401,8 @@ table.pgConfig tr.open td.hasTooltip:before, table.poolConfig tr.open td.hasTool
 
 table.pgConfig .hasTooltip, table.poolConfig .hasTooltip, table.backupConfig .hasTooltip {
     position: absolute;
-    width: 275px;
+    width: 20%;
+    padding-right: 10px;
 }
 
 table.pgConfig tr.open > td, table.poolConfig tr.open > td {
@@ -4403,4 +4436,29 @@ table.backups td.hasTooltip > span {
 
 table.profiles td, table.clusterOverview td, table.pgConfig tr.open td.hasTooltip, table.poolConfig tr.open td.hasTooltip {
     position: relative;
+}
+
+
+/*Clone*/
+
+#nav .right > div#clone {
+    display: none;
+    position: fixed;
+    background: #fff;
+    padding: 10px 20px;
+    border: 1px solid var(--gray1);
+    border-radius: 10px;
+    box-shadow: 0 0px 20px rgba(0,0,0,.05);
+    margin-left: 70px;
+    display: none;
+    line-height: 1;
+    width: 320px;
+    top: 178px;
+    right: 30px;
+}
+
+#nav .right > div#clone form {
+    max-width: 320px;
+    padding: 15px 0;
+    width: 280px;
 }

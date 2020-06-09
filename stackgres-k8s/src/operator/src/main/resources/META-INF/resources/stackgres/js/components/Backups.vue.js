@@ -17,7 +17,12 @@ var Backups = Vue.component("sg-backup", {
 				</ul>
 
 				<div class="actions">
-					<router-link :to="'/crd/edit/cluster/'+$route.params.namespace+'/'+$route.params.name">Edit Cluster</router-link> <a v-on:click="deleteCRD('sgcluster', currentNamespace, currentCluster.name, '/overview/'+currentNamespace)" :class="'/overview/'+currentNamespace">Delete Cluster</a>
+					<a class="documentation" href="https://stackgres.io/doc/latest/04-postgres-cluster-management/01-postgres-clusters/" target="_blank" title="SGCluster Documentation">SGCluster Documentation</a>
+					<div>
+						<a @click="cloneCRD('SGCluster', currentNamespace, $route.params.name)">Clone Cluster</a>
+						<router-link :to="'/crd/edit/cluster/'+$route.params.namespace+'/'+$route.params.name">Edit Cluster</router-link>
+						<a v-on:click="deleteCRD('sgcluster', currentNamespace, currentCluster.name, '/overview/'+currentNamespace)" :class="'/overview/'+currentNamespace">Delete Cluster</a>
+					</div>
 				</div>
 
 				<ul class="tabs">
@@ -54,7 +59,13 @@ var Backups = Vue.component("sg-backup", {
 						</template>
 					</li>
 				</ul>
-				<router-link :to="'/crd/create/backup/'+currentNamespace" class="add">Add New</router-link>
+
+				<div class="actions">
+					<a class="documentation" href="https://stackgres.io/doc/latest/04-postgres-cluster-management/04-backups/" target="_blank" title="SGBackup Documentation">SGBackup Documentation</a>
+					<div>
+						<router-link :to="'/crd/create/backup/'+currentNamespace" class="add">Add New</router-link>
+					</div>
+				</div>	
 			</header>
 
 			<div class="content">

@@ -15,6 +15,10 @@ var CreateCluster = Vue.component("create-cluster", {
                         {{ $route.params.name }}
                     </li>
                 </ul>
+
+                <div class="actions">
+                    <a class="documentation" href="https://stackgres.io/doc/latest/04-postgres-cluster-management/01-postgres-clusters/" target="_blank" title="SGCluster Documentation">SGCluster Documentation</a>
+                </div>
             </header>
             <div class="form">
                 

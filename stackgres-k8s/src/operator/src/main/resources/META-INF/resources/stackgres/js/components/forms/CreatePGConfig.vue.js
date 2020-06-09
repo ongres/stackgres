@@ -15,6 +15,10 @@ var CreatePGConfig = Vue.component("create-pgconfig", {
                         {{ $route.params.name }}
                     </li>
                 </ul>
+
+                <div class="actions">
+                    <a class="documentation" href="https://stackgres.io/doc/latest/04-postgres-cluster-management/02-configuration-tuning/02-postgres-configuration/" target="_blank" title="SGPostgresConfig Documentation">SGPostgresConfig Documentation</a>
+                </div>
             </header>
 
             <div class="form">

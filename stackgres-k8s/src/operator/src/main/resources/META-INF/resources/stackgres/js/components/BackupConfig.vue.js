@@ -19,7 +19,13 @@ var BackupConfig = Vue.component("backup-config", {
 						{{ $route.params.name }}
 					</li>
 				</ul>
-				<router-link to="/crd/create/backupconfig/" class="add">Add New</router-link>
+
+				<div class="actions">
+					<a class="documentation" href="https://stackgres.io/doc/latest/04-postgres-cluster-management/04-backups/#configuration" target="_blank" title="SGBackupConfig Documentation">SGBackupConfig Documentation</a>
+					<div>
+						<router-link to="/crd/create/backupconfig/" class="add">Add New</router-link>
+					</div>	
+				</div>	
 			</header>
 
 
