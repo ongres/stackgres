@@ -142,10 +142,6 @@ test_cluster_pod_config_are_loaded() {
 }
 
 test_cluster_pod_count() {
-  local OLD_E2E_TIMEOUT="$E2E_TIMEOUT"
-
-  E2E_TIMEOUT=60
-
   BACKUP_NAME="${CLUSTER_NAME}-0-$(shuf -i 0-65535 -n 1)"
 
     cat << EOF | kubectl create -f -
@@ -159,15 +155,13 @@ test_cluster_pod_count() {
     managedLifecycle: false
 EOF
 
-  if ! wait_until eval '[ "$(get_cluster_pod_count)" -ne 2 ]'
+  if ! wait_until -t 60 eval '[ "$(get_cluster_pod_count)" -ne 2 ]'
   then
     echo "Good. User initiated backups didn't appear as cluster pods"
   else
     echo "Pods in cluster should be 2. User initiated backups could have being shown as cluster pods"
     return 1
   fi
-
-  E2E_TIMEOUT="$OLD_E2E_TIMEOUT"
 }
 
 remove_cluster_cr_if_exists() {

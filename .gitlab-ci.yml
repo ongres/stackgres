@@ -57,6 +57,7 @@ compile:
   script:
     - 'mvn $MAVEN_CLI_OPTS clean verify -P safer'
   artifacts:
+    expire_in: 1 week
     paths:
       - stackgres-k8s/src/target
       - stackgres-k8s/src/*/target
@@ -76,6 +77,7 @@ build documentation:
   - hugo -v --source doc --destination "$(pwd)/doc/public/$STACKGRES_VERSION" --baseURL="$DOCUMENTATION_BASE_URL"
   - cp -a "doc/public/$STACKGRES_VERSION" doc/public/latest
   artifacts:
+    expire_in: 1 week
     paths:
     - doc/public
 
@@ -92,13 +94,13 @@ native image:
     - 'cp $GRAALVM_HOME/jre/lib/amd64/libsunec.so stackgres-k8s/src/operator/target/'
     - 'cp $GRAALVM_HOME/jre/lib/security/cacerts stackgres-k8s/src/operator/target/'
   artifacts:
+    expire_in: 1 week
     paths:
       - stackgres-k8s/src/operator/target/libsunec.so
       - stackgres-k8s/src/operator/target/cacerts
       - stackgres-k8s/src/operator/target/stackgres-operator-runner
       - stackgres-k8s/src/operator/target/lib/
       - stackgres-k8s/src/operator/target/stackgres-operator-runner.jar
-    expire_in: 1 day
   only:
     variables:
       - $CI_COMMIT_REF_NAME == "development"
@@ -183,6 +185,10 @@ integration test:
   only:
     variables:
       - $DO_EXTERNAL
+  artifacts:
+    expire_in: 1 week
+    paths:
+    - stackgres-k8s/src/operator/target/e2e
 
 integration test jvm image:
   stage: test
@@ -202,6 +208,10 @@ integration test jvm image:
         flock -w 3600 /tmp/stackgres-integration-test-jvm-image mvn $MAVEN_CLI_OPTS verify -P integration \
         -DargLine=-Dcom.ongres.junit.docker.runnerId="$K8S_SUFFIX" \
         -Dit.skipBuildContainer=true
+  artifacts:
+    expire_in: 1 week
+    paths:
+    - stackgres-k8s/src/operator/target/e2e
 
 integration test native image:
   stage: test
@@ -229,6 +239,10 @@ integration test native image:
       - $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
       - $DO_DEPLOY
       - $DO_NATIVE
+  artifacts:
+    expire_in: 1 week
+    paths:
+    - stackgres-k8s/src/operator/target/e2e
 
 deploy jvm image:
   image: docker.io/ongres/builder:latest

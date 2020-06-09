@@ -76,11 +76,11 @@ public class PatroniConfigEndpoints implements StackGresClusterResourceStreamFac
       params.put("archive_command", "/bin/true");
     }
 
-    params.put("logging_collector", "on");
     if (Optional.ofNullable(cluster.getSpec().getDistributedLogs())
         .map(StackGresClusterDistributedLogs::getDistributedLogs)
         .map(distributedLogs -> true)
         .orElse(false)) {
+      params.put("logging_collector", "on");
       params.put("log_destination", "csvlog");
       params.put("log_directory", ClusterStatefulSetPath.PG_LOG_PATH.path());
       params.put("log_filename", "postgres-%M.log");

@@ -1,0 +1,20 @@
+#!/bin/sh
+
+event_watch() {
+  local namespace
+  while [ "$#" -gt 0 ]
+  do
+    case "$1" in
+      -n|--namespace)
+        shift
+        namespace="$1"
+        shift
+        ;;
+      *)
+        echo >&2 "Unknown parameter $1 (use: --namespace <namespace>;)"
+        return 1
+        ;;
+    esac
+  done
+  kubectl get event $(if [ -z "$namespace" ]; then echo '--all-namespaces'; else echo '-n '"$namespace"; fi) -o wide --watch
+}

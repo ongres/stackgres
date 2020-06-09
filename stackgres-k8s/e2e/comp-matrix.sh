@@ -64,6 +64,8 @@ get_spec_name(){
 }
 
 run_tests(){
+  local RESULT
+  local EXIT_CODE
   try_function reset_k8s >> "$TARGET_PATH/$K8S_VERSION.log" 2>&1
   if "$RESULT"
   then

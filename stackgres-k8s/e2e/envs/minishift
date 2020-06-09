@@ -94,6 +94,8 @@ update_k8s_config() {
 }
 
 reuse_k8s() {
+  local RESULT
+  local EXIT_CODE
   try_function update_minishift_config
 
   if ! "$RESULT" > /dev/null 2>&1
