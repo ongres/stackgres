@@ -19,7 +19,6 @@ import io.fabric8.kubernetes.api.model.ConfigMapVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.kubernetes.api.model.SecurityContextBuilder;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
@@ -62,10 +61,6 @@ public class FluentBit implements StackGresClusterSidecarResourceFactory<Void> {
         .withName(NAME)
         .withImage(String.format(IMAGE_NAME, DEFAULT_VERSION, StackGresContext.CONTAINER_BUILD))
         .withImagePullPolicy("Always")
-        .withSecurityContext(new SecurityContextBuilder()
-            .withRunAsUser(999L)
-            .withAllowPrivilegeEscalation(Boolean.FALSE)
-            .build())
         .withStdin(Boolean.TRUE)
         .withTty(Boolean.TRUE)
         .withCommand("/bin/sh", "-exc")

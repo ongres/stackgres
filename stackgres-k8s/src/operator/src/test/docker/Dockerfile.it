@@ -3,14 +3,14 @@
 #
 # Build the image with:
 #
-# docker build -f src/test/docker/Dockerfile.it -t stackgres/it:5.0 .
+# docker build -f src/test/docker/Dockerfile.it -t stackgres/it:6.0 .
 #
 ###
 FROM docker:19.03
 
 RUN wget -q -O /bin/kubectl https://storage.googleapis.com/kubernetes-release/release/v1.17.0/bin/linux/amd64/kubectl
 RUN chmod a+x /bin/kubectl
-RUN wget -q -O /bin/kind  https://github.com/kubernetes-sigs/kind/releases/download/v0.6.0/kind-$(uname)-amd64
+RUN wget -q -O /bin/kind  https://github.com/kubernetes-sigs/kind/releases/download/v0.7.0/kind-$(uname)-amd64
 RUN chmod a+x /bin/kind
 RUN wget -q -O /bin/k3d https://github.com/rancher/k3d/releases/download/v1.5.1/k3d-linux-amd64
 RUN chmod a+x /bin/k3d

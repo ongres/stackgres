@@ -63,6 +63,9 @@ public enum StackGresUtil {
   public static final String DISTRIBUTED_LOGS_CLUSTER_KEY = "distributed-logs-cluster";
   public static final String DISTRIBUTED_LOGS_BACKUP_KEY = "distributed-logs-backup";
 
+  public static final String KUBECTL_IMAGE = "bitnami/kubectl:1.18.3";
+  public static final String BUSYBOX_IMAGE = "busybox:1.31.1";
+
   public static final String OPERATOR_NAME = INSTANCE.operatorName;
   public static final String OPERATOR_NAMESPACE = INSTANCE.operatorNamespace;
 

@@ -55,7 +55,7 @@ done
 To connect to the Web UI of the operator you may forward port 443 of the operator pod:
 
 ```
-kubectl port-forward "$(kubectl get pod --selector=app=stackgres-operator -o name)" 8443:443
+kubectl port-forward "$(kubectl get pod --selector=app=stackgres-operator -o name)" 8443:9443
 ```
 
 Then open the browser at following address `https://localhost:8443/stackgres`

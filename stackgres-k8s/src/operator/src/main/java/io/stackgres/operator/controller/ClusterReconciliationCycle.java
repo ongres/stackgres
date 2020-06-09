@@ -76,6 +76,7 @@ import io.stackgres.operator.common.StackGresClusterSidecarResourceFactory;
 import io.stackgres.operator.common.StackGresGeneratorContext;
 import io.stackgres.operator.common.StackGresRestoreContext;
 import io.stackgres.operator.common.StackGresUserClusterContext;
+import io.stackgres.operator.configuration.OperatorContext;
 import io.stackgres.operator.customresource.prometheus.PrometheusConfig;
 import io.stackgres.operator.customresource.prometheus.PrometheusInstallation;
 import io.stackgres.operator.resource.ClusterResourceHandlerSelector;
@@ -103,6 +104,7 @@ public class ClusterReconciliationCycle
   private final EventController eventController;
   private final CustomResourceScanner<PrometheusConfig> prometheusScanner;
   private final ConfigContext configContext;
+  private final OperatorContext operatorContext;
 
   private final LabelFactory<StackGresCluster> labelFactory;
 
@@ -117,7 +119,8 @@ public class ClusterReconciliationCycle
       ClusterStatusManager statusManager, EventController eventController,
       ObjectMapperProvider objectMapperProvider,
       CustomResourceScanner<PrometheusConfig> prometheusScanner,
-      ConfigContext configContext, LabelFactory<StackGresCluster> labelFactory) {
+      ConfigContext configContext, OperatorContext operatorContext,
+      LabelFactory<StackGresCluster> labelFactory) {
     super("Cluster", kubClientFactory::create, StackGresClusterContext::getCluster,
         handlerSelector, objectMapperProvider.objectMapper());
     this.sidecarFinder = sidecarFinder;
@@ -126,6 +129,7 @@ public class ClusterReconciliationCycle
     this.eventController = eventController;
     this.prometheusScanner = prometheusScanner;
     this.configContext = configContext;
+    this.operatorContext = operatorContext;
     this.labelFactory = labelFactory;
   }
 
@@ -138,6 +142,7 @@ public class ClusterReconciliationCycle
     this.eventController = null;
     this.prometheusScanner = null;
     this.configContext = null;
+    this.operatorContext = null;
     this.labelFactory = null;
   }
 
@@ -224,6 +229,7 @@ public class ClusterReconciliationCycle
   private StackGresClusterContext getClusterConfig(StackGresCluster cluster,
       KubernetesClient client) {
     return ImmutableStackGresUserClusterContext.builder()
+        .operatorContext(operatorContext)
         .cluster(cluster)
         .profile(getProfile(cluster, client))
         .postgresConfig(getPostgresConfig(cluster, client))

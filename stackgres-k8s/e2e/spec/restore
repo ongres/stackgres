@@ -9,6 +9,11 @@ buckets:
     policy: none
     purge: true
 EOF
+  if [ "$E2E_ENV" = "minishift" ]
+  then
+    eval "$(minishift oc-env)"
+    oc adm policy add-scc-to-user anyuid -n "$CLUSTER_NAMESPACE-backup" -z "$CLUSTER_NAME-backup-minio"
+  fi
 
   kubectl create namespace "$CLUSTER_NAMESPACE-backup"
 

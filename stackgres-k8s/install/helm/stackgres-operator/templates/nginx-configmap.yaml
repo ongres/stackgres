@@ -10,7 +10,7 @@ data:
       
       server_name  localhost;
       
-      listen       443 ssl;
+      listen       9443 ssl;
       ssl_certificate         /etc/operator/certs/server.crt;
       ssl_certificate_key     /etc/operator/certs/root.key;
       

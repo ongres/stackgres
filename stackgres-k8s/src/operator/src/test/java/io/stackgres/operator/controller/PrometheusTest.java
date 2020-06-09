@@ -18,16 +18,17 @@ import java.util.HashMap;
 import java.util.Optional;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.stackgres.common.LabelFactory;
-import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.KubernetesClientFactory;
-import io.stackgres.operator.app.ObjectMapperProvider;
 import io.stackgres.common.ConfigContext;
+import io.stackgres.common.KubernetesClientFactory;
+import io.stackgres.common.LabelFactory;
 import io.stackgres.common.OperatorProperty;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.resource.CustomResourceScanner;
+import io.stackgres.operator.app.ObjectMapperProvider;
 import io.stackgres.operator.common.Prometheus;
+import io.stackgres.operator.configuration.OperatorContext;
 import io.stackgres.operator.customresource.prometheus.PrometheusConfig;
 import io.stackgres.operator.customresource.prometheus.PrometheusConfigList;
-import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -59,6 +60,9 @@ class PrometheusTest {
   private ConfigContext configContext;
 
   @Mock
+  private OperatorContext operatorContext;
+
+  @Mock
   private LabelFactory<StackGresCluster> labelFactory;
 
 
@@ -77,7 +81,7 @@ class PrometheusTest {
 
     reconciliationCycle = new ClusterReconciliationCycle(
         clientFactory, null, null, null, null, null, objectMapperProvider,
-        prometheusScanner, configContext, labelFactory);
+        prometheusScanner, configContext, operatorContext, labelFactory);
   }
 
   @Test

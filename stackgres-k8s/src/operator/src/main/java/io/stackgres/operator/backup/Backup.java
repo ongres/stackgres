@@ -40,6 +40,7 @@ import io.stackgres.operator.common.StackGresBackupContext;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresClusterResourceStreamFactory;
 import io.stackgres.operator.common.StackGresGeneratorContext;
+import io.stackgres.operator.common.StackGresPodSecurityContext;
 import io.stackgres.operator.patroni.factory.PatroniRole;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jooq.lambda.Seq;
@@ -52,14 +53,17 @@ public class Backup implements StackGresClusterResourceStreamFactory {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(Backup.class);
 
+  private final StackGresPodSecurityContext clusterPodSecurityContext;
   private final ClusterStatefulSetEnvironmentVariables clusterStatefulSetEnvironmentVariables;
 
   private final LabelFactory<StackGresCluster> labelFactory;
 
   @Inject
-  public Backup(ClusterStatefulSetEnvironmentVariables clusterStatefulSetEnvironmentVariables,
-                LabelFactory<StackGresCluster> labelFactory) {
+  public Backup(StackGresPodSecurityContext clusterPodSecurityContext,
+      ClusterStatefulSetEnvironmentVariables clusterStatefulSetEnvironmentVariables,
+      LabelFactory<StackGresCluster> labelFactory) {
     super();
+    this.clusterPodSecurityContext = clusterPodSecurityContext;
     this.clusterStatefulSetEnvironmentVariables = clusterStatefulSetEnvironmentVariables;
     this.labelFactory = labelFactory;
   }
@@ -121,11 +125,12 @@ public class Backup implements StackGresClusterResourceStreamFactory {
             .withLabels(labels)
             .endMetadata()
             .withNewSpec()
+            .withSecurityContext(clusterPodSecurityContext.createResource(context))
             .withRestartPolicy("OnFailure")
             .withServiceAccountName(PatroniRole.roleName(context))
             .withContainers(new ContainerBuilder()
                 .withName("create-backup")
-                .withImage("bitnami/kubectl:latest")
+                .withImage(StackGresUtil.KUBECTL_IMAGE)
                 .withEnv(ImmutableList.<EnvVar>builder()
                     .addAll(clusterStatefulSetEnvironmentVariables.listResources(context))
                     .add(new EnvVarBuilder()

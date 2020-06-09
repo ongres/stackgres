@@ -13,6 +13,8 @@ public interface ConfigContext {
 
   String get(OperatorProperty configProperty);
 
+  boolean getAsBoolean(OperatorProperty configProperty);
+
   static String getErrorTypeUriPrefix() {
 
     String documentationUri = StackGresContext.DOCUMENTATION_URI;

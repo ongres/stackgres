@@ -47,6 +47,8 @@ public class RestoreConfigMap extends AbstractBackupConfigMap
 
           data.put("BACKUP_RESOURCE_VERSION",
               restoreContext.getBackup().getMetadata().getResourceVersion());
+          data.put("RESTORE_BACKUP_ID",
+              restoreContext.getBackup().getStatus().getInternalName());
 
           data.putAll(getBackupEnvVars(
               restoreContext.getBackup().getMetadata().getNamespace(),
