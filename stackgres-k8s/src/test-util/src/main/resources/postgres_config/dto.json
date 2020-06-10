@@ -6,6 +6,6 @@
   },
   "spec": {
     "postgresVersion": "12",
-    "postgresql.conf": "password_encryption='scram-sha-256'\nrandom_page_cost=1.5\nshared_buffers=256MB\nwal_compression=on"
+    "postgresql.conf": "password_encryption='scram-sha-256'\nrandom_page_cost=1.5\nshared_buffers=256MB\nwal_compression=on\npg_stat_statements.max=10000"
   }
 }
