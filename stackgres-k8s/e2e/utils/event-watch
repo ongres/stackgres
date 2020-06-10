@@ -31,5 +31,5 @@ event_watch() {
       else
         echo 'kubectl get event -o "$output" --no-headers -n "'"$namespace"'" "%"'
       fi
-    )"
+    ) 2>/dev/null || true"
 }
