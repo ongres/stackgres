@@ -136,11 +136,13 @@ setup_k8s() {
     if [ "$E2E_FORCE_IMAGE_PULL" = "true" ]
     then
       docker pull "$OPERATOR_IMAGE_NAME"
+      docker pull "$RESTAPI_IMAGE_NAME"
     fi
 
     if [ "$E2E_USE_INTERMIDIATE_PRIVATE_REPO" != true \
         -a "$E2E_SKIP_OPERATOR_LOAD" != true ] \
-      && docker image inspect "$OPERATOR_IMAGE_NAME" >/dev/null 2>&1
+      && docker image inspect "$OPERATOR_IMAGE_NAME" >/dev/null 2>&1 \
+      && docker image inspect "$RESTAPI_IMAGE_NAME" >/dev/null 2>&1
     then 
       load_operator_k8s
     fi

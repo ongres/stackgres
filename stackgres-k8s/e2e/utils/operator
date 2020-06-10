@@ -17,7 +17,8 @@ install_operator() {
   fi
 
   install_operator_vanilla \
-    --set-string image.name="${OPERATOR_IMAGE_NAME%:*}" --set-string image.tag="${OPERATOR_IMAGE_NAME#*:}" \
+    --set-string operator.image.name="${OPERATOR_IMAGE_NAME%:*}" --set-string operator.image.tag="${OPERATOR_IMAGE_NAME#*:}" \
+    --set-string restapi.image.name="${RESTAPI_IMAGE_NAME%:*}" --set-string restapi.image.tag="${RESTAPI_IMAGE_NAME#*:}" \
     --set-string "image.pullPolicy=$(operator_pull_policy)" \
     $E2E_OPERATOR_OPTS "$@"
 }
