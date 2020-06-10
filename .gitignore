@@ -128,3 +128,4 @@ pom.xml.tag
 
 doc/public
 doc/data/crds
+doc/data/versions.yml

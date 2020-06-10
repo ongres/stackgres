@@ -18,7 +18,7 @@ Install the operator with the following command:
 ```shell
 helm install --namespace stackgres stackgres-operator \
   --values my-operator-values.yml \
-  https://stackgres.io/downloads/stackgres-k8s/stackgres/latest/helm-operator.tgz
+  {{< download-url >}}/helm-operator.tgz
 ```
 
 ### Parameters
@@ -56,7 +56,7 @@ To install the operator use the following command:
 ```shell
 helm install --namespace my-namespace my-cluster \
   --values my-cluster-values.yml \
-  https://stackgres.io/downloads/stackgres-k8s/stackgres/latest/helm-cluster.tgz
+  {{< download-url >}}/helm-cluster.tgz
 ```
 
 ### Parameters
