@@ -43,6 +43,7 @@ public class ClusterStatefulSetInitContainers
     return new ContainerBuilder()
         .withName("setup-data-paths")
         .withImage(StackGresContext.BUSYBOX_IMAGE)
+        .withImagePullPolicy("IfNotPresent")
         .withCommand("/bin/sh", "-ecx", Stream.of(
             "mkdir -p \"$PG_DATA_PATH\"",
             "chmod -R 700 \"$PG_DATA_PATH\"")
@@ -56,6 +57,7 @@ public class ClusterStatefulSetInitContainers
     return new ContainerBuilder()
         .withName("setup-arbitrary-user")
         .withImage(StackGresContext.BUSYBOX_IMAGE)
+        .withImagePullPolicy("IfNotPresent")
         .withCommand("/bin/sh", "-ecx", Seq.of(
             "USER=postgres",
             "UID=$(id -u)",
@@ -89,6 +91,7 @@ public class ClusterStatefulSetInitContainers
     return new ContainerBuilder()
         .withName("setup-scripts")
         .withImage(StackGresContext.BUSYBOX_IMAGE)
+        .withImagePullPolicy("IfNotPresent")
         .withCommand("/bin/sh", "-ecx", Seq.of(
             "cp $TEMPLATES_PATH/start-patroni.sh \"$LOCAL_BIN_PATH\"",
             "cp $TEMPLATES_PATH/start-patroni-with-restore.sh \"$LOCAL_BIN_PATH\"",

@@ -131,6 +131,7 @@ public class Backup implements StackGresClusterResourceStreamFactory {
             .withContainers(new ContainerBuilder()
                 .withName("create-backup")
                 .withImage(StackGresContext.KUBECTL_IMAGE)
+                .withImagePullPolicy("IfNotPresent")
                 .withEnv(ImmutableList.<EnvVar>builder()
                     .addAll(clusterStatefulSetEnvironmentVariables.listResources(context))
                     .add(new EnvVarBuilder()

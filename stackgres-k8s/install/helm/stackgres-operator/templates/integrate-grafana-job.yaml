@@ -20,12 +20,13 @@ spec:
       serviceAccountName: {{ .Release.Name }}
       containers:
       - name: "integrate-grafana"
-        image: "janwh/k8s-inithelper:latest"
-        imagePullPolicy: "Always"
+        image: "bitnami/kubectl:1.18.3"
+        imagePullPolicy: "IfNotPresent"
         command:
           - "/bin/bash"
           - "-ecx"
           - |
+            {{- .Files.Get "scripts/ticktick.sh" | indent 12 }}
             {{- if and .Values.grafana.namespace .Values.grafana.secretName .Values.grafana.secretUserKey .Values.grafana.secretPasswordKey }}
             grafana_credentials="$(kubectl get secret -n {{ .Values.grafana.namespace }} {{ .Values.grafana.secretName }} --template {{ "'{{ .data." }}{{ .Values.grafana.secretUserKey }}{{ " }}'" }}"):$(kubectl get secret -n {{ .Release.Namespace }} {{ .Values.grafana.secretName }} --template {{ "'{{ .data." }}{{ .Values.grafana.secretPasswordKey }}{{ " }}'" }}")"
             {{- else }}
@@ -41,7 +42,8 @@ spec:
               curl -sk -H "Accept: application/json" -H "Content-Type: application/json" -u "$grafana_credentials" --fail "$@"
             }
             dashboard_id="{{ .Values.grafana.dashboardId }}"
-            curl_grafana_api "$grafana_host/api/gnet/dashboards/$dashboard_id" | jq .json > /tmp/grafana-dashboard.json
+            tickParse "$(curl_grafana_api "$grafana_host/api/gnet/dashboards/$dashboard_id")"
+            `` json `` > /tmp/grafana-dashboard.json
             [ -s /tmp/grafana-dashboard.json ]
             dashboard_json="$(cat << EOF
             {
@@ -56,7 +58,8 @@ spec:
             }
             EOF
             )"
-            grafana_dashboard_url="$(curl_grafana_api -X POST -d "$dashboard_json" "$grafana_host/api/dashboards/import" | jq -r .importedUrl)"
+            tickParse "$(curl_grafana_api -X POST -d "$dashboard_json" "$grafana_host/api/dashboards/import")"
+            grafana_dashboard_url="$(`` importedUrl ``)"
             [ -n "$grafana_dashboard_url" ]
             grafana_api_key_id="$(curl_grafana_api -X GET "$grafana_host/api/auth/keys" | jq -r 'map(select(.name = "stackgres")|.id)|first')"
             [ -z "$grafana_api_key_id" ] || curl_grafana_api -X DELETE "$grafana_host/api/auth/keys/$grafana_api_key_id" > /dev/null

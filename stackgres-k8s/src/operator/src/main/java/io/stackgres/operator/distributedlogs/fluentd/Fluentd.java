@@ -89,6 +89,7 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
     return new ContainerBuilder()
       .withName(FluentdUtil.NAME)
       .withImage(String.format(IMAGE_NAME, DEFAULT_VERSION, StackGresContext.CONTAINER_BUILD))
+      .withImagePullPolicy("IfNotPresent")
       .withCommand("/bin/sh", "-exc")
       .withArgs(""
             + "CONFIG_PATH=/etc/fluentd\n"
@@ -151,7 +152,6 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
             + "  fi\n"
             + "  sleep 5\n"
             + "done\n")
-      .withImagePullPolicy("Always")
       .withPorts(
           new ContainerPortBuilder()
               .withName(FluentdUtil.FORWARD_PORT_NAME)

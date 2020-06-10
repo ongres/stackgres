@@ -35,7 +35,7 @@ public class PostgresUtil implements StackGresClusterSidecarResourceFactory<Void
     return new ContainerBuilder()
         .withName(NAME)
         .withImage(String.format(IMAGE_NAME, pgVersion, StackGresContext.CONTAINER_BUILD))
-        .withImagePullPolicy("Always")
+        .withImagePullPolicy("IfNotPresent")
         .withStdin(Boolean.TRUE)
         .withTty(Boolean.TRUE)
         .withCommand("/bin/sh")

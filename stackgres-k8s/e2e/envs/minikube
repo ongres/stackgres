@@ -52,17 +52,17 @@ delete_k8s() {
   echo "...done"
 }
 
-load_operator_k8s() {
-  echo "Loading operator image $OPERATOR_IMAGE_NAME in minikube environemnt..."
+load_image_k8s() {
+  echo "Loading operator image $1 in minikube environemnt..."
 
-  local IMAGE_USER="$(dirname "$OPERATOR_IMAGE_NAME")"
-  local IMAGE_MINIKUBE_NAME="$(basename "$OPERATOR_IMAGE_NAME"|tr ':' '_')"
+  local IMAGE_USER="$(dirname "$1")"
+  local IMAGE_MINIKUBE_NAME="$(basename "$1"|tr ':' '_')"
   mkdir -p "$HOME/.minikube/cache/images/$IMAGE_USER"
-  docker save "$OPERATOR_IMAGE_NAME" > "$HOME/.minikube/cache/images/$IMAGE_USER/$IMAGE_MINIKUBE_NAME"
-  minikube cache add "$OPERATOR_IMAGE_NAME"
+  docker save "$1" > "$HOME/.minikube/cache/images/$IMAGE_USER/$IMAGE_MINIKUBE_NAME"
+  minikube cache add "$1"
   if [ "$USE_MINIKUBE_CRIO" = true ]
   then
-    minikube ssh -- su root -l -c "'podman tag \"localhost/$OPERATOR_IMAGE_NAME\" \"docker.io/$OPERATOR_IMAGE_NAME\"'"
+    minikube ssh -- su root -l -c "'podman tag \"localhost/$1\" \"docker.io/$1\"'"
   fi
 
   echo "...done"

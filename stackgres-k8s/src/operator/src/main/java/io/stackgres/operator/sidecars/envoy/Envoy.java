@@ -109,7 +109,7 @@ public class Envoy implements StackGresClusterSidecarResourceFactory<Void> {
     ContainerBuilder container = new ContainerBuilder();
     container.withName(NAME)
         .withImage(String.format(IMAGE_NAME, DEFAULT_VERSION))
-        .withImagePullPolicy("Always")
+        .withImagePullPolicy("IfNotPresent")
         .withVolumeMounts(new VolumeMountBuilder()
             .withName(NAME)
             .withMountPath("/etc/envoy")

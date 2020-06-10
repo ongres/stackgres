@@ -2,7 +2,7 @@
 
 . "$(dirname "$0")/e2e"
 
-E2E_BUILD_OPERATOR="${E2E_BUILD_OPERATOR:-false}"
+E2E_BUILD_IMAGES="${E2E_BUILD_IMAGES:-false}"
 E2E_INCLUDE_NATIVE="${E2E_INCLUDE_NATIVE:-true}"
 GRAALVM_HOME="${GRAALVM_HOME:-/usr/lib/jvm/graalvm}"
 MATRIX_FORMAT="| %-11s | %-16s | %16s | %-28s | %8s |\n"
@@ -70,7 +70,7 @@ run_tests(){
   if "$RESULT"
   then
     export K8S_REUSE=true
-    export E2E_BUILD_OPERATOR=false
+    export E2E_BUILD_IMAGES=false
 
     get_stackgres_images | while read sv
     do
@@ -143,7 +143,7 @@ generate_matrix(){
   print_matrix_line "Environment" "Stackgres" "Kubernetes" "Test" "Result"
   print_matrix_line "-----------" "----------------" "----------------" "----------------------------" "--------"
 
-  if [ $E2E_BUILD_OPERATOR = true ]
+  if [ $E2E_BUILD_IMAGES = true ]
   then
     build_images
   fi 

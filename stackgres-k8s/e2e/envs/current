@@ -14,7 +14,7 @@ delete_k8s() {
   exit 1
 }
 
-load_operator_k8s() {
+load_image_k8s() {
   echo "Can not load operator to k8s cluster when using current configured k8s cluster"
   exit 1
 }

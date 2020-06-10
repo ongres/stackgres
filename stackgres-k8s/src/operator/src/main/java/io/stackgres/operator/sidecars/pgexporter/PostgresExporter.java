@@ -77,7 +77,7 @@ public class PostgresExporter implements StackGresClusterSidecarResourceFactory<
     ContainerBuilder container = new ContainerBuilder();
     container.withName(NAME)
         .withImage(String.format(IMAGE_NAME, DEFAULT_VERSION, StackGresContext.CONTAINER_BUILD))
-        .withImagePullPolicy("Always")
+        .withImagePullPolicy("IfNotPresent")
         .withEnv(new EnvVarBuilder()
                 .withName("DATA_SOURCE_NAME")
                 .withValue("host=/var/run/postgresql user=postgres port=" + Envoy.PG_PORT)

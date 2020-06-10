@@ -20,8 +20,8 @@ spec:
       serviceAccountName: {{ .Release.Name }}
       containers:
       - name: "{{ .Release.Name }}-create-certificate"
-        image: "bitnami/kubectl:latest"
-        imagePullPolicy: "Always"
+        image: "bitnami/kubectl:1.18.3"
+        imagePullPolicy: "IfNotPresent"
         command:
           - "/bin/bash"
           - "-ecx"

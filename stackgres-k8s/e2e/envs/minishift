@@ -143,10 +143,10 @@ delete_k8s() {
   echo "...done"
 }
 
-load_operator_k8s() {
-  echo "Loading operator image $OPERATOR_IMAGE_NAME in minishift environemnt..."
+load_image_k8s() {
+  echo "Loading operator image $1 in minishift environemnt..."
 
-  docker save "$OPERATOR_IMAGE_NAME" | (eval "$(minishift docker-env)"; docker load)
+  docker save "$1" | (eval "$(minishift docker-env)"; docker load)
 
   echo "...done"
 }
