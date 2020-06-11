@@ -27,7 +27,7 @@ public abstract class AbstractCustomResourceFactory<T>
   protected static final JavaPropsMapper MAPPER = new JavaPropsMapper();
   protected Properties defaultValues;
 
-  private ConfigContext context;
+  private ConfigContext<OperatorProperty> context;
   private transient String installedNamespace;
 
   @PostConstruct
@@ -56,7 +56,7 @@ public abstract class AbstractCustomResourceFactory<T>
   }
 
   @Inject
-  public void setContext(ConfigContext context) {
+  public void setContext(ConfigContext<OperatorProperty> context) {
     this.context = context;
   }
 

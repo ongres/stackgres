@@ -45,7 +45,7 @@ public class ItHelper {
 
   private final static Logger LOGGER = LoggerFactory.getLogger("ItHelper");
 
-  public final static boolean OPERATOR_IN_KUBERNETES = Boolean.valueOf(System.getenv("OPERATOR_IN_KUBERNETES"));
+  public final static boolean OPERATOR_IN_KUBERNETES = Boolean.parseBoolean(System.getenv("OPERATOR_IN_KUBERNETES"));
   public final static String IMAGE_TAG = Optional.ofNullable(System.getenv("IMAGE_TAG"))
       .orElse("development-jvm");
   public final static Predicate<String> EXCLUDE_TTY_WARNING = line -> !line.equals("stdin: is not a tty");
@@ -247,12 +247,14 @@ public class ItHelper {
           + " stackgres-operator"
           + " --namespace " + namespace
           + " /resources/stackgres-operator"
-          + " --set-string image.tag=" + IMAGE_TAG
-          + " --set-string image.pullPolicy=Never"
+          + " --set-string operator.image.tag=" + IMAGE_TAG
+          + " --set-string operator.image.pullPolicy=Never"
+          + " --set-string restapi.image.tag=" + IMAGE_TAG
+          + " --set-string restapi.image.pullPolicy=Never"
           + " --set-string authentication.user=e2e"
           + " --set-string authentication.password=test")
         .filter(EXCLUDE_TTY_WARNING)
-        .forEach(line -> LOGGER.info(line));
+        .forEach(LOGGER::info);
       return;
     }
 
@@ -268,7 +270,7 @@ public class ItHelper {
         + " --set-string authentication.user=e2e"
         + " --set-string authentication.password=test")
       .filter(EXCLUDE_TTY_WARNING)
-      .forEach(line -> LOGGER.info(line));
+      .forEach(LOGGER::info);
   }
 
   public static String getOperatorExtraOptions(Container k8s, int port) throws Exception {

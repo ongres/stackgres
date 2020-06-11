@@ -18,7 +18,7 @@ import io.stackgres.apiweb.dto.cluster.ClusterDto;
 import io.stackgres.apiweb.transformer.ClusterTransformer;
 import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.LabelFactory;
-import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.resource.CustomResourceScanner;
 import org.jooq.lambda.Seq;
@@ -68,7 +68,7 @@ public class ClusterDtoScanner implements CustomResourceScanner<ClusterDto> {
   private Transformer createTransformer() {
     try (KubernetesClient client = clientFactory.create()) {
       return new Transformer(Seq.seq(getAllClusterPods(client))
-          .groupBy(pod -> pod.getMetadata().getLabels().get(StackGresUtil.CLUSTER_UID_KEY)));
+          .groupBy(pod -> pod.getMetadata().getLabels().get(StackGresContext.CLUSTER_UID_KEY)));
     }
   }
 

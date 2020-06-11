@@ -17,16 +17,19 @@ install_operator() {
   fi
 
   install_operator_vanilla \
-    --set-string image.name="${IMAGE_NAME%:*}" --set-string image.tag="${IMAGE_NAME#*:}" \
+    --set-string operator.image.name="${OPERATOR_IMAGE_NAME%:*}" --set-string operator.image.tag="${OPERATOR_IMAGE_NAME#*:}" \
+    --set-string restapi.image.name="${RESTAPI_IMAGE_NAME%:*}" --set-string restapi.image.tag="${RESTAPI_IMAGE_NAME#*:}" \
     --set-string "image.pullPolicy=$(operator_pull_policy)" \
     $E2E_OPERATOR_OPTS "$@"
 }
 
 install_operator_from_private_repo() {
   export PRIVATE_REPO_URI=$(get_private_repo_uri)
-  export PRIVATE_IMAGE_NAME="$PRIVATE_REPO_URI/stackgres/operator"
+  export PRIVATE_OPERATOR_IMAGE_NAME="$PRIVATE_REPO_URI/stackgres/operator"
+  export PRIVATE_RESTAPI_IMAGE_NAME="$PRIVATE_REPO_URI/stackgres/restapi"
   install_operator_vanilla \
-      --set-string image.name="$PRIVATE_IMAGE_NAME" --set-string image.tag="$IMAGE_TAG" \
+      --set-string operator.image.name="$PRIVATE_OPERATOR_IMAGE_NAME" --set-string operator.image.tag="$IMAGE_TAG" \
+      --set-string restapi.image.name="$PRIVATE_RESTAPI_IMAGE_NAME" --set-string restapi.image.tag="$IMAGE_TAG" \
       --set-string serviceAccount.repoCredentials="regcred" \
       --set-string "image.pullPolicy=$(operator_pull_policy)" \
       "$@"
@@ -43,16 +46,23 @@ set_up_private_repo(){
     aws ecr create-repository --repository-name "stackgres/operator" 
   fi  
   
+  if ! aws ecr describe-repositories --repository-name "stackgres/restapi" > /dev/null
+  then
+    aws ecr create-repository --repository-name "stackgres/restapi" 
+  fi  
+
   export PRIVATE_REPO_URI=$(get_private_repo_uri)
-  export PRIVATE_IMAGE_NAME="$PRIVATE_REPO_URI/$IMAGE_NAME"
+  export PRIVATE_OPERATOR_IMAGE_NAME="$PRIVATE_REPO_URI/$OPERATOR_IMAGE_NAME"
+  export PRIVATE_RESTAPI_IMAGE_NAME="$PRIVATE_REPO_URI/$RESTAPI_IMAGE_NAME"
 
   get_private_repo_password | docker login --username AWS --password-stdin "$PRIVATE_REPO_URI"
   
-  docker tag "$IMAGE_NAME" "$PRIVATE_IMAGE_NAME"
+  docker tag "$OPERATOR_IMAGE_NAME" "$PRIVATE_OPERATOR_IMAGE_NAME"
+  docker tag "$RESTAPI_IMAGE_NAME" "$PRIVATE_RESTAPI_IMAGE_NAME"
 
-  echo "$PRIVATE_IMAGE_NAME"
+  docker push "$PRIVATE_OPERATOR_IMAGE_NAME"
+  docker push "$PRIVATE_RESTAPI_IMAGE_NAME"
 
-  docker push "$PRIVATE_IMAGE_NAME"  
   if kubectl get namespace stackgres > /dev/null
   then  
     kubectl get secret -n stackgres regcred > /dev/null && kubectl delete secret -n stackgres regcred

@@ -13,7 +13,9 @@ import java.util.List;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.StackGresContext;
+import io.stackgres.common.distributedlogs.LogTableFields;
+import io.stackgres.common.distributedlogs.PostgresTableFields;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Field;
@@ -48,69 +50,102 @@ public class DistributedLogsQueryGenerator {
   public static final Param<String> UNINITIALIZED_ROLE_VALUE = DSL.value("Uninitialized");
   public static final Param<String> STANDBY_LEADER_ROLE_VALUE = DSL.value("Standby");
 
-  public static final Field<OffsetDateTime> LOG_TIME_FIELD = DSL.field(
-      "log_time", SQLDataType.TIMESTAMPWITHTIMEZONE);
-  public static final Field<Integer> LOG_TIME_INDEX_FIELD = DSL.field(
-      "log_time_index", SQLDataType.INTEGER);
+  public static final String LOG_TIME = LogTableFields.LOG_TIME;
+  public static final String LOG_TIME_INDEX = LogTableFields.LOG_TIME_INDEX;
+  public static final String LOG_TYPE = "log_type";
+  public static final String MESSAGE = LogTableFields.MESSAGE;
+  public static final String POD_NAME = LogTableFields.POD_NAME;
+  public static final String ROLE = LogTableFields.ROLE;
+  public static final String ERROR_SEVERITY = LogTableFields.ERROR_SEVERITY;
+
+  public static final String USER_NAME = PostgresTableFields.USER_NAME.getFieldName();
+  public static final String DATABASE_NAME = PostgresTableFields.DATABASE_NAME.getFieldName();
+  public static final String PROCESS_ID = PostgresTableFields.PROCESS_ID.getFieldName();
+
+  public static final String CONNECTION_FROM = PostgresTableFields.CONNECTION_FROM.getFieldName();
+  public static final String SESSION_ID = PostgresTableFields.SESSION_ID.getFieldName();
+  public static final String SESSION_LINE_NUM = PostgresTableFields.SESSION_LINE_NUM.getFieldName();
+  public static final String COMMAND_TAG = PostgresTableFields.COMMAND_TAG.getFieldName();
+  public static final String SESSION_START_TIME = PostgresTableFields.SESSION_START_TIME
+      .getFieldName();
+  public static final String VIRTUAL_TRANSACTION_ID = PostgresTableFields.VIRTUAL_TRANSACTION_ID
+      .getFieldName();
+  public static final String TRANSACTION_ID = PostgresTableFields.TRANSACTION_ID.getFieldName();
+  public static final String SQL_STATE_CODE = PostgresTableFields.SQL_STATE_CODE.getFieldName();
+  public static final String DETAIL = PostgresTableFields.DETAIL.getFieldName();
+  public static final String HINT = PostgresTableFields.HINT.getFieldName();
+  public static final String INTERNAL_QUERY = PostgresTableFields.INTERNAL_QUERY.getFieldName();
+  public static final String INTERNAL_QUERY_POS = PostgresTableFields.INTERNAL_QUERY_POS
+      .getFieldName();
+  public static final String CONTEXT = PostgresTableFields.CONTEXT.getFieldName();
+  public static final String QUERY = PostgresTableFields.QUERY.getFieldName();
+  public static final String QUERY_POS = PostgresTableFields.QUERY_POS.getFieldName();
+  public static final String LOCATION = PostgresTableFields.LOCATION.getFieldName();
+  public static final String APPLICATION_NAME = PostgresTableFields.APPLICATION_NAME.getFieldName();
+
   public static final Field<String> LOG_TYPE_FIELD = DSL.field(
-      "log_type", SQLDataType.VARCHAR);
+      LOG_TYPE, SQLDataType.VARCHAR);
+  public static final Field<OffsetDateTime> LOG_TIME_FIELD = DSL.field(
+      LOG_TIME, SQLDataType.TIMESTAMPWITHTIMEZONE);
+  public static final Field<Integer> LOG_TIME_INDEX_FIELD = DSL.field(
+      LOG_TIME_INDEX, SQLDataType.INTEGER);
   public static final Field<String> MESSAGE_FIELD = DSL.field(
-      "message", SQLDataType.VARCHAR);
-  public static final Field<String> POD_NAME_FIELD = DSL.field("pod_name", SQLDataType.VARCHAR);
-  public static final Field<String> ROLE_FIELD = DSL.field("role", SQLDataType.VARCHAR);
+      MESSAGE, SQLDataType.VARCHAR);
+  public static final Field<String> POD_NAME_FIELD = DSL.field(POD_NAME, SQLDataType.VARCHAR);
+  public static final Field<String> ROLE_FIELD = DSL.field(ROLE, SQLDataType.VARCHAR);
   public static final Field<String> PATRONI_LOG_TYPE_FIELD = PATRONI_LOG_TYPE_VALUE
       .as(LOG_TYPE_FIELD);
   public static final Field<String> POSTGRES_LOG_TYPE_FIELD = POSTGRES_LOG_TYPE_VALUE
       .as(LOG_TYPE_FIELD);
   public static final Field<String> MAPPED_ROLE_FIELD = DSL.case_(ROLE_FIELD)
-      .when(StackGresUtil.PRIMARY_ROLE, PRIMARY_ROLE_VALUE)
-      .when(StackGresUtil.REPLICA_ROLE, REPLICA_ROLE_VALUE)
-      .when(StackGresUtil.PROMOTE_ROLE, PROMOTE_ROLE_VALUE)
-      .when(StackGresUtil.DEMOTE_ROLE, DEMOTE_ROLE_VALUE)
-      .when(StackGresUtil.UNINITIALIZED_ROLE, UNINITIALIZED_ROLE_VALUE)
-      .when(StackGresUtil.STANDBY_LEADER_ROLE, STANDBY_LEADER_ROLE_VALUE)
+      .when(StackGresContext.PRIMARY_ROLE, PRIMARY_ROLE_VALUE)
+      .when(StackGresContext.REPLICA_ROLE, REPLICA_ROLE_VALUE)
+      .when(StackGresContext.PROMOTE_ROLE, PROMOTE_ROLE_VALUE)
+      .when(StackGresContext.DEMOTE_ROLE, DEMOTE_ROLE_VALUE)
+      .when(StackGresContext.UNINITIALIZED_ROLE, UNINITIALIZED_ROLE_VALUE)
+      .when(StackGresContext.STANDBY_LEADER_ROLE, STANDBY_LEADER_ROLE_VALUE)
       .else_(DSL.castNull(ROLE_FIELD))
       .as(ROLE_FIELD);
 
   public static final ImmutableMap<String, String> REVERSE_ROLE_MAP =
       ImmutableMap.<String, String>builder()
-          .put(PRIMARY_ROLE_VALUE.getValue(), StackGresUtil.PRIMARY_ROLE)
-          .put(REPLICA_ROLE_VALUE.getValue(), StackGresUtil.REPLICA_ROLE)
-          .put(PROMOTE_ROLE_VALUE.getValue(), StackGresUtil.PROMOTE_ROLE)
-          .put(DEMOTE_ROLE_VALUE.getValue(), StackGresUtil.DEMOTE_ROLE)
-          .put(UNINITIALIZED_ROLE_VALUE.getValue(), StackGresUtil.UNINITIALIZED_ROLE)
-          .put(STANDBY_LEADER_ROLE_VALUE.getValue(), StackGresUtil.STANDBY_LEADER_ROLE)
+          .put(PRIMARY_ROLE_VALUE.getValue(), StackGresContext.PRIMARY_ROLE)
+          .put(REPLICA_ROLE_VALUE.getValue(), StackGresContext.REPLICA_ROLE)
+          .put(PROMOTE_ROLE_VALUE.getValue(), StackGresContext.PROMOTE_ROLE)
+          .put(DEMOTE_ROLE_VALUE.getValue(), StackGresContext.DEMOTE_ROLE)
+          .put(UNINITIALIZED_ROLE_VALUE.getValue(), StackGresContext.UNINITIALIZED_ROLE)
+          .put(STANDBY_LEADER_ROLE_VALUE.getValue(), StackGresContext.STANDBY_LEADER_ROLE)
           .build();
 
   public static final ImmutableMap<String, String> FILTER_CONVERSION_MAP =
       ImmutableMap.<String, String>builder()
-      .put("logTime", "log_time")
-      .put("logTimeIndex", "log_time_index")
-      .put("logType", "log_type")
-      .put("podName", "pod_name")
-      .put("role", "role")
-      .put("errorLevel", "error_severity")
-      .put("message", "message")
-      .put("userName", "user_name")
-      .put("databaseName", "database_name")
-      .put("processId", "process_id")
-      .put("connectionFrom", "connection_from")
-      .put("sessionId", "session_id")
-      .put("sessionLineNum", "session_line_num")
-      .put("commandTag", "command_tag")
-      .put("sessionStartTime", "session_start_time")
-      .put("virtualTransactionId", "virtual_transaction_id")
-      .put("transactionId", "transaction_id")
-      .put("sqlStateCode", "sql_state_code")
-      .put("detail", "detail")
-      .put("hint", "hint")
-      .put("internalQuery", "internal_query")
-      .put("internalQueryPos", "internal_query_pos")
-      .put("context", "context")
-      .put("query", "query")
-      .put("queryPos", "query_pos")
-      .put("location", "location")
-      .put("applicationName", "application_name")
+      .put("logTime", LOG_TIME)
+      .put("logTimeIndex", LOG_TIME_INDEX)
+      .put("logType", LOG_TYPE)
+      .put("podName", POD_NAME)
+      .put("role", ROLE)
+      .put("errorLevel", ERROR_SEVERITY)
+      .put("message", MESSAGE)
+      .put("userName", USER_NAME)
+      .put("databaseName", DATABASE_NAME)
+      .put("processId", PROCESS_ID)
+      .put("connectionFrom", CONNECTION_FROM)
+      .put("sessionId", SESSION_ID)
+      .put("sessionLineNum", SESSION_LINE_NUM)
+      .put("commandTag", COMMAND_TAG)
+      .put("sessionStartTime", SESSION_START_TIME)
+      .put("virtualTransactionId", VIRTUAL_TRANSACTION_ID)
+      .put("transactionId", TRANSACTION_ID)
+      .put("sqlStateCode", SQL_STATE_CODE)
+      .put("detail", DETAIL)
+      .put("hint", HINT)
+      .put("internalQuery", INTERNAL_QUERY)
+      .put("internalQueryPos", INTERNAL_QUERY_POS)
+      .put("context", CONTEXT)
+      .put("query", QUERY)
+      .put("queryPos", QUERY_POS)
+      .put("location", LOCATION)
+      .put("applicationName", APPLICATION_NAME)
       .build();
 
   public static final ImmutableList<Field<?>> POSTGRES_FIELDS = ImmutableList.of(
@@ -118,28 +153,28 @@ public class DistributedLogsQueryGenerator {
       LOG_TIME_INDEX_FIELD,
       POD_NAME_FIELD,
       MAPPED_ROLE_FIELD,
-      DSL.field("error_severity", SQLDataType.VARCHAR),
+      DSL.field(ERROR_SEVERITY, SQLDataType.VARCHAR),
       MESSAGE_FIELD,
-      DSL.field("user_name", SQLDataType.VARCHAR),
-      DSL.field("database_name", SQLDataType.VARCHAR),
-      DSL.field("process_id", SQLDataType.INTEGER),
-      DSL.field("connection_from", SQLDataType.VARCHAR),
-      DSL.field("session_id", SQLDataType.VARCHAR),
-      DSL.field("session_line_num", SQLDataType.BIGINT),
-      DSL.field("command_tag", SQLDataType.VARCHAR),
-      DSL.field("session_start_time", SQLDataType.TIMESTAMPWITHTIMEZONE),
-      DSL.field("virtual_transaction_id", SQLDataType.VARCHAR),
-      DSL.field("transaction_id", SQLDataType.INTEGER),
-      DSL.field("sql_state_code", SQLDataType.VARCHAR),
-      DSL.field("detail", SQLDataType.VARCHAR),
-      DSL.field("hint", SQLDataType.VARCHAR),
-      DSL.field("internal_query", SQLDataType.VARCHAR),
-      DSL.field("internal_query_pos", SQLDataType.INTEGER),
-      DSL.field("context", SQLDataType.VARCHAR),
-      DSL.field("query", SQLDataType.VARCHAR),
-      DSL.field("query_pos", SQLDataType.INTEGER),
-      DSL.field("location", SQLDataType.VARCHAR),
-      DSL.field("application_name", SQLDataType.VARCHAR)
+      DSL.field(USER_NAME, SQLDataType.VARCHAR),
+      DSL.field(DATABASE_NAME, SQLDataType.VARCHAR),
+      DSL.field(PROCESS_ID, SQLDataType.INTEGER),
+      DSL.field(CONNECTION_FROM, SQLDataType.VARCHAR),
+      DSL.field(SESSION_ID, SQLDataType.VARCHAR),
+      DSL.field(SESSION_LINE_NUM, SQLDataType.BIGINT),
+      DSL.field(COMMAND_TAG, SQLDataType.VARCHAR),
+      DSL.field(SESSION_START_TIME, SQLDataType.TIMESTAMPWITHTIMEZONE),
+      DSL.field(VIRTUAL_TRANSACTION_ID, SQLDataType.VARCHAR),
+      DSL.field(TRANSACTION_ID, SQLDataType.INTEGER),
+      DSL.field(SQL_STATE_CODE, SQLDataType.VARCHAR),
+      DSL.field(DETAIL, SQLDataType.VARCHAR),
+      DSL.field(HINT, SQLDataType.VARCHAR),
+      DSL.field(INTERNAL_QUERY, SQLDataType.VARCHAR),
+      DSL.field(INTERNAL_QUERY_POS, SQLDataType.INTEGER),
+      DSL.field(CONTEXT, SQLDataType.VARCHAR),
+      DSL.field(QUERY, SQLDataType.VARCHAR),
+      DSL.field(QUERY_POS, SQLDataType.INTEGER),
+      DSL.field(LOCATION, SQLDataType.VARCHAR),
+      DSL.field(APPLICATION_NAME, SQLDataType.VARCHAR)
       );
 
   public static final ImmutableList<Field<?>> PATRONI_FIELDS = ImmutableList.of(
@@ -147,7 +182,7 @@ public class DistributedLogsQueryGenerator {
       LOG_TIME_INDEX_FIELD,
       POD_NAME_FIELD,
       MAPPED_ROLE_FIELD,
-      DSL.field("error_severity", SQLDataType.VARCHAR),
+      DSL.field(ERROR_SEVERITY, SQLDataType.VARCHAR),
       MESSAGE_FIELD
       );
 

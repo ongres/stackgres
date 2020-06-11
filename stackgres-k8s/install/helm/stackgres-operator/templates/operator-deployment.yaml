@@ -1,0 +1,111 @@
+{{- if .Values.deploy.operator }}
+apiVersion: "apps/v1"
+kind: "Deployment"
+metadata:
+  labels:
+    app: {{ .Release.Name }}
+    version: "{{ .Chart.Version }}"
+    group:  stackgres.io
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  {{- if and .Release.IsInstall (or (not .Values.cert.key) (not .Values.cert.crt)) }}
+  replicas: 0
+  {{- else }}
+  replicas: 1
+  {{- end }}
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}
+      version: "{{ .Chart.Version }}"
+      group:  stackgres.io
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}
+        version: "{{ .Chart.Version }}"
+        group:  stackgres.io
+    spec:
+      serviceAccountName: {{ .Release.Name }}
+      securityContext:
+        runAsNonRoot: true
+        {{- if not (.Capabilities.APIVersions.Has "project.openshift.io/v1") }}
+        runAsUser: 999
+        runAsGroup: 999
+        fsGroup: 999
+        {{- end }}
+      containers:
+      - name: {{ .Release.Name }}
+        image: "{{ .Values.operator.image.name }}:{{ .Values.operator.image.tag }}"
+        imagePullPolicy: {{ .Values.operator.image.pullPolicy }}
+        env:
+          - name: OPERATOR_NAME
+            value: "{{ .Release.Name }}"
+          - name: OPERATOR_NAMESPACE
+            value: "{{ .Release.Namespace }}"
+          - name: PROMETHEUS_AUTOBIND
+            value: "{{ .Values.prometheus.allowAutobind }}"
+          {{- if .Values.developer.logLevel }}
+          - name: OPERATOR_LOG_LEVEL
+            value: "{{ .Values.developer.logLevel }}"
+          {{- end }}
+          {{- if .Values.developer.showStackTraces }}
+          - name: OPERATOR_SHOW_STACK_TRACES
+            value: "{{ .Values.developer.showStackTraces }}"
+          {{- end }}
+          {{- if .Values.developer.enableJvmDebug }}
+          - name: DEBUG_OPERATOR
+            value: "{{ .Values.developer.enableJvmDebug }}"
+          {{- end }}
+          {{- if .Values.developer.enableJvmDebugSuspend }}
+          - name: DEBUG_OPERATOR_SUSPEND
+            value: "{{ .Values.developer.enableJvmDebugSuspend }}"
+          {{- end }}
+          - name: OPERATOR_IP
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
+          {{- if and .Values.grafana.url .Values.grafana.token .Values.grafana.webHost }}
+          - name: GRAFANA_EMBEDDED
+            value: "true"
+          {{ end }}
+          - name: AUTHENTICATION_SECRET_NAME
+            value: "{{ .Values.restapi.name }}"
+        ports:
+        - containerPort: 8080
+          name: "http"
+          protocol: "TCP"
+        - containerPort: 8443
+          name: "https"
+          protocol: "TCP"
+        livenessProbe:
+          httpGet:
+            path: "/health/live"
+            port: 8080
+            scheme: "HTTP"
+          initialDelaySeconds: 5
+          periodSeconds: 30
+          timeoutSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: "/health/ready"
+            port: 8080
+            scheme: "HTTP"
+          initialDelaySeconds: 5
+          periodSeconds: 30
+          timeoutSeconds: 2
+        volumeMounts:
+          - name: operator-certs
+            mountPath: /etc/operator/certs
+            readOnly: true
+      volumes:
+        - name: operator-certs
+          secret:
+            secretName: {{ .Release.Name }}-certs
+            optional: false
+            items:
+              - key: root.key
+                path: root.key
+              - key: server.crt
+                path: server.crt
+{{- end }}

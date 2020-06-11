@@ -26,6 +26,7 @@ import io.stackgres.common.FluentdUtil;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSetPath;
 import io.stackgres.operator.common.LabelFactoryDelegator;
@@ -38,11 +39,11 @@ import io.stackgres.operator.distributedlogs.fluentd.Fluentd;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jooq.lambda.Seq;
 
-@Sidecar("fluent-bit")
+@Sidecar(FluentBit.NAME)
 @Singleton
 public class FluentBit implements StackGresClusterSidecarResourceFactory<Void> {
 
-  public static final String NAME = "fluent-bit";
+  public static final String NAME = StackgresClusterContainers.FLUENT_BIT;
   public static final String IMAGE_NAME = "docker.io/ongres/fluentbit:v%s-build-%s";
   private static final String DEFAULT_VERSION = StackGresComponents.get("fluentbit");
 

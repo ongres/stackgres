@@ -34,6 +34,41 @@ public enum ErrorType {
     this.title = title;
   }
 
+  public static String getErrorTypeUriPrefix() {
+
+    String documentationUri = StackGresContext.DOCUMENTATION_URI;
+    String errorsPath = StackGresContext.DOCUMENTATION_ERRORS_PATH;
+    String operatorVersion = StackGresContext.OPERATOR_VERSION;
+
+    return documentationUri + operatorVersion + errorsPath;
+  }
+
+  public static String getErrorTypeUri(ErrorType constraintViolation) {
+
+    String documentationUri = StackGresContext.DOCUMENTATION_URI;
+    String errorsPath = StackGresContext.DOCUMENTATION_ERRORS_PATH;
+    String operatorVersion = StackGresContext.OPERATOR_VERSION;
+
+    return String
+        .format("%s%s%s%s",
+            documentationUri,
+            operatorVersion,
+            errorsPath,
+            constraintViolation.getUri());
+  }
+
+  public static boolean isDocumentationUri(String uri) {
+    return uri.startsWith(getErrorTypeUriPrefix());
+  }
+
+  public static ErrorType parseErrorType(String uri) {
+
+    String uriPrefix = getErrorTypeUriPrefix();
+    String errorTypeUri = uri.substring(uriPrefix.length());
+
+    return parseUri(errorTypeUri);
+  }
+
   public String getUri() {
     return uri;
   }

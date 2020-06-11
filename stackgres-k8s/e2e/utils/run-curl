@@ -4,7 +4,7 @@ run_curl() {
   local POD=curl
   local NAMESPACE="${CLUSTER_NAMESPACE:-stackgres}"
   local SERVICE_NAMESPACE=stackgres
-  local SERVICE=stackgres-operator
+  local SERVICE=stackgres-restapi
   local RESOURCE_PATH="stackgres/sgcluster"
   local EXTRA_PARAMETERS=""
   local CONTENT_TYPE="application/json"

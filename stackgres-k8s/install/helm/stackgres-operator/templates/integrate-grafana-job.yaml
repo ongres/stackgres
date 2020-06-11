@@ -62,7 +62,7 @@ spec:
             [ -z "$grafana_api_key_id" ] || curl_grafana_api -X DELETE "$grafana_host/api/auth/keys/$grafana_api_key_id" > /dev/null
             grafana_api_key_token="$(curl_grafana_api -X POST -d '{"name":"stackgres", "role": "Viewer"}' "$grafana_host/api/auth/keys" | jq -r .key)"
             [ -n "$grafana_api_key_token" ]
-            kubectl set env -n {{ .Release.Namespace }} deployment/{{ .Release.Name }} \
+            kubectl set env -n {{ .Release.Namespace }} deployment/{{ .Values.restapi.name }} \
               GRAFANA_EMBEDDED=true \
               GRAFANA_URL_PATH="$grafana_dashboard_url" \
               GRAFANA_SCHEMA="{{ .Values.grafana.schema }}" \

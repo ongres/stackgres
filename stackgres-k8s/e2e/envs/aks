@@ -71,7 +71,7 @@ delete_k8s(){
 }
 
 load_operator_k8s() {
-  echo "Loading operator image $IMAGE_NAME in aks environemnt $K8S_AZ_K8S_NAME..."
+  echo "Loading operator image $OPERATOR_IMAGE_NAME in aks environemnt $K8S_AZ_K8S_NAME..."
   echo "Cannot load images to $K8S_AZ_K8S_NAME.  Using public images :("  
 }
 

@@ -12,18 +12,17 @@ import javax.inject.Singleton;
 import com.google.common.collect.ImmutableMap;
 import io.stackgres.common.ConfigContext;
 import io.stackgres.common.OperatorProperty;
-import io.stackgres.common.StackGresUtil;
+import io.stackgres.operator.common.OperatorConfigDefaults;
 
 @Singleton
-public class OperatorContext implements ConfigContext {
+public class OperatorContext implements ConfigContext<OperatorProperty> {
 
   private static final ImmutableMap<OperatorProperty, String> DEFAULT_CONTEXT = ImmutableMap
       .<OperatorProperty, String>builder()
-      .put(OperatorProperty.OPERATOR_NAMESPACE, StackGresUtil.OPERATOR_NAMESPACE)
-      .put(OperatorProperty.OPERATOR_NAME, StackGresUtil.OPERATOR_NAME)
-      .put(OperatorProperty.PROMETHEUS_AUTOBIND, StackGresUtil.PROMETHEUS_AUTOBIND)
-      .put(OperatorProperty.OPERATOR_IP, StackGresUtil.OPERATOR_IP)
-      .put(OperatorProperty.AUTHENTICATION_SECRET_NAME, StackGresUtil.AUTHENTICATION_SECRET_NAME)
+      .put(OperatorProperty.OPERATOR_NAMESPACE, OperatorConfigDefaults.OPERATOR_NAMESPACE)
+      .put(OperatorProperty.OPERATOR_NAME, OperatorConfigDefaults.OPERATOR_NAME)
+      .put(OperatorProperty.PROMETHEUS_AUTOBIND, OperatorConfigDefaults.PROMETHEUS_AUTOBIND)
+      .put(OperatorProperty.OPERATOR_IP, OperatorConfigDefaults.OPERATOR_IP)
       .build();
 
   @Override

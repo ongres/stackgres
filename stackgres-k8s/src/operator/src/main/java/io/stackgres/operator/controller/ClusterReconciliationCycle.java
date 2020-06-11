@@ -21,7 +21,6 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.ArcUtil;
-import io.stackgres.common.ConfigContext;
 import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.OperatorProperty;
@@ -103,7 +102,6 @@ public class ClusterReconciliationCycle
   private final ClusterStatusManager statusManager;
   private final EventController eventController;
   private final CustomResourceScanner<PrometheusConfig> prometheusScanner;
-  private final ConfigContext configContext;
   private final OperatorContext operatorContext;
 
   private final LabelFactory<StackGresCluster> labelFactory;
@@ -119,7 +117,7 @@ public class ClusterReconciliationCycle
       ClusterStatusManager statusManager, EventController eventController,
       ObjectMapperProvider objectMapperProvider,
       CustomResourceScanner<PrometheusConfig> prometheusScanner,
-      ConfigContext configContext, OperatorContext operatorContext,
+      OperatorContext operatorContext,
       LabelFactory<StackGresCluster> labelFactory) {
     super("Cluster", kubClientFactory::create, StackGresClusterContext::getCluster,
         handlerSelector, objectMapperProvider.objectMapper());
@@ -128,7 +126,6 @@ public class ClusterReconciliationCycle
     this.statusManager = statusManager;
     this.eventController = eventController;
     this.prometheusScanner = prometheusScanner;
-    this.configContext = configContext;
     this.operatorContext = operatorContext;
     this.labelFactory = labelFactory;
   }
@@ -141,7 +138,6 @@ public class ClusterReconciliationCycle
     this.statusManager = null;
     this.eventController = null;
     this.prometheusScanner = null;
-    this.configContext = null;
     this.operatorContext = null;
     this.labelFactory = null;
   }
@@ -377,7 +373,7 @@ public class ClusterReconciliationCycle
   public Optional<Prometheus> getPrometheus(StackGresCluster cluster,
       KubernetesClient client) {
     boolean isAutobindAllowed = Boolean
-        .parseBoolean(configContext.getProperty(OperatorProperty.PROMETHEUS_AUTOBIND)
+        .parseBoolean(operatorContext.getProperty(OperatorProperty.PROMETHEUS_AUTOBIND)
             .orElse("false"));
 
     boolean isPrometheusAutobindEnabled = Optional.ofNullable(cluster.getSpec()

@@ -30,7 +30,7 @@ import io.quarkus.test.Mock;
 import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.operator.AbstractStackGresOperatorIt;
 import io.stackgres.operator.CrdMatchTest;
-import io.stackgres.common.StackGresUtil;
+import io.stackgres.operator.common.OperatorConfigDefaults;
 import org.jooq.lambda.Unchecked;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,7 +62,7 @@ public class MockKubernetesClientFactory extends KubernetesClientFactory {
       String[] auth = this.auth.get();
       return new DefaultKubernetesClient(
           new ConfigBuilder()
-          .withNamespace(StackGresUtil.OPERATOR_NAMESPACE)
+          .withNamespace(OperatorConfigDefaults.OPERATOR_NAMESPACE)
           .withCaCertData(auth[0])
           .withOauthToken(auth[1])
           .build());

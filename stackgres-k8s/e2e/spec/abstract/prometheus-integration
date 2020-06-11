@@ -71,7 +71,7 @@ check_envoy_service_monitor() {
 }
 
 check_grafana_embedded() {
-  if wait_until kubectl exec -i -n "$CLUSTER_NAMESPACE" curl -- curl -s -k "https://stackgres-operator.stackgres/grafana" -o /dev/null --fail
+  if wait_until kubectl exec -i -n "$CLUSTER_NAMESPACE" curl -- curl -s -k "https://stackgres-restapi.stackgres/grafana" -o /dev/null --fail
   then
     echo "Success. Grafana URL can be retrieved"
   else
@@ -79,7 +79,7 @@ check_grafana_embedded() {
     return 1
   fi
 
-  GRAFANA_URL="$(kubectl exec -i -n "$CLUSTER_NAMESPACE" curl -- curl -s -k "https://stackgres-operator.stackgres/grafana" --fail)"
+  GRAFANA_URL="$(kubectl exec -i -n "$CLUSTER_NAMESPACE" curl -- curl -s -k "https://stackgres-restapi.stackgres/grafana" --fail)"
 
   if wait_until kubectl exec -i -n "$CLUSTER_NAMESPACE" curl -- curl -s -k "$GRAFANA_URL" -o /dev/null --fail
   then
@@ -106,7 +106,7 @@ check_grafana_embedded() {
 
   echo "Checking that if env variable GRAFANA_EMBEDDED is set to false any cluster shouldn't be marked with grafana embedded"
 
-  kubectl set env -n stackgres deployment/stackgres-operator GRAFANA_EMBEDDED=false
+  kubectl set env -n stackgres deployment/stackgres-restapi GRAFANA_EMBEDDED=false
 
   if wait_until eval '[ "$(get_grafana_embedded)" != "true" ]'
   then
@@ -118,7 +118,7 @@ check_grafana_embedded() {
 
   echo "Checking that if env variable GRAFANA_EMBEDDED is set to true the cluster should be marked with grafana embedded"
 
-  kubectl set env -n stackgres deployment/stackgres-operator GRAFANA_EMBEDDED=true
+  kubectl set env -n stackgres deployment/stackgres-restapi GRAFANA_EMBEDDED=true
 
   if wait_until eval '[ "$(get_grafana_embedded)" = "true" ]'
   then

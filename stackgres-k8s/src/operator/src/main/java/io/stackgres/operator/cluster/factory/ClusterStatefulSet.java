@@ -31,7 +31,7 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetUpdateStrategyBuilder;
 import io.stackgres.common.LabelFactory;
-import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.sgcluster.NonProduction;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.common.LabelFactoryDelegator;
@@ -61,23 +61,19 @@ public class ClusterStatefulSet implements StackGresClusterResourceStreamFactory
   private final ClusterStatefulSetVolumes volumesFactory;
   private final TemplatesConfigMap templatesConfigMap;
 
-  private LabelFactoryDelegator factoryDelegator;
+  private final LabelFactoryDelegator factoryDelegator;
 
   @Inject
   public ClusterStatefulSet(Patroni patroni, StackGresPodSecurityContext clusterPodSecurityContext,
       ClusterStatefulSetInitContainers initContainerFactory,
       ClusterStatefulSetVolumes volumesFactory,
-      TemplatesConfigMap templatesConfigMap) {
+      TemplatesConfigMap templatesConfigMap, LabelFactoryDelegator factoryDelegator) {
     super();
     this.patroni = patroni;
     this.clusterPodSecurityContext = clusterPodSecurityContext;
     this.initContainerFactory = initContainerFactory;
     this.volumesFactory = volumesFactory;
     this.templatesConfigMap = templatesConfigMap;
-  }
-
-  @Inject
-  public void setFactoryDelegator(LabelFactoryDelegator factoryDelegator) {
     this.factoryDelegator = factoryDelegator;
   }
 
@@ -148,7 +144,7 @@ public class ClusterStatefulSet implements StackGresClusterResourceStreamFactory
                         new PodAffinityTermBuilder()
                             .withLabelSelector(new LabelSelectorBuilder()
                                 .withMatchExpressions(new LabelSelectorRequirementBuilder()
-                                        .withKey(StackGresUtil.APP_KEY)
+                                        .withKey(StackGresContext.APP_KEY)
                                         .withOperator("In")
                                         .withValues(labelFactory.getLabelMapper().appName())
                                         .build(),
@@ -209,8 +205,8 @@ public class ClusterStatefulSet implements StackGresClusterResourceStreamFactory
             .filter(existingResource -> existingResource instanceof Pod)
             .map(HasMetadata::getMetadata)
             .filter(existingPodMetadata -> Objects.equals(
-                existingPodMetadata.getLabels().get(StackGresUtil.CLUSTER_KEY),
-                StackGresUtil.RIGHT_VALUE))
+                existingPodMetadata.getLabels().get(StackGresContext.CLUSTER_KEY),
+                StackGresContext.RIGHT_VALUE))
             .map(existingPodMetadata -> new PodBuilder()
                 .withNewMetadata()
                 .withNamespace(existingPodMetadata.getNamespace())

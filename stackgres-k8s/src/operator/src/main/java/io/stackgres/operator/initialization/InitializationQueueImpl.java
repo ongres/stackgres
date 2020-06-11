@@ -31,7 +31,7 @@ import io.quarkus.runtime.Application;
 import io.stackgres.common.ConfigContext;
 import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.OperatorProperty;
-import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.StackGresContext;
 import org.jooq.lambda.Seq;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,7 +58,8 @@ public class InitializationQueueImpl implements InitializationQueue {
   private InitializationStage stage = InitializationStage.STARTING;
 
   @Inject
-  public InitializationQueueImpl(KubernetesClientFactory clientFactory, ConfigContext context,
+  public InitializationQueueImpl(KubernetesClientFactory clientFactory,
+                                 ConfigContext<OperatorProperty> context,
                                  @Any Instance<Initializer> initializers) {
     this.clientFactory = clientFactory;
     operatorName = context.getProperty(OperatorProperty.OPERATOR_NAME)
@@ -194,7 +195,7 @@ public class InitializationQueueImpl implements InitializationQueue {
     try (KubernetesClient client = clientFactory.create()) {
       Optional<Pod> pod = Optional.ofNullable(client.pods()
           .inNamespace(operatorNamespace)
-          .withLabel(StackGresUtil.APP_KEY, operatorName)
+          .withLabel(StackGresContext.APP_KEY, operatorName)
           .list())
           .flatMap(podList -> {
             if (podList.getItems().isEmpty()) {

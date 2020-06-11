@@ -25,7 +25,7 @@ import io.fabric8.kubernetes.api.model.ObjectFieldSelectorBuilder;
 import io.fabric8.kubernetes.api.model.batch.CronJobBuilder;
 import io.fabric8.kubernetes.api.model.batch.JobTemplateSpecBuilder;
 import io.stackgres.common.LabelFactory;
-import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.sgbackup.BackupPhase;
 import io.stackgres.common.crd.sgbackup.StackGresBackupDefinition;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
@@ -157,15 +157,15 @@ public class BackupCronJob implements StackGresClusterResourceStreamFactory {
                                 .build(),
                             new EnvVarBuilder()
                                 .withName("PATRONI_ROLE_KEY")
-                                .withValue(StackGresUtil.ROLE_KEY)
+                                .withValue(StackGresContext.ROLE_KEY)
                                 .build(),
                             new EnvVarBuilder()
                                 .withName("PATRONI_PRIMARY_ROLE")
-                                .withValue(StackGresUtil.PRIMARY_ROLE)
+                                .withValue(StackGresContext.PRIMARY_ROLE)
                                 .build(),
                             new EnvVarBuilder()
                                 .withName("PATRONI_REPLICA_ROLE")
-                                .withValue(StackGresUtil.REPLICA_ROLE)
+                                .withValue(StackGresContext.REPLICA_ROLE)
                                 .build(),
                             new EnvVarBuilder()
                                 .withName("IS_CRONJOB")

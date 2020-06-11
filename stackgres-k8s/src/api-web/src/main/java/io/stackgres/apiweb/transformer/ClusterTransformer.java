@@ -12,6 +12,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.Pod;
+import io.stackgres.apiweb.config.WebApiProperty;
 import io.stackgres.apiweb.dto.cluster.ClusterConfiguration;
 import io.stackgres.apiweb.dto.cluster.ClusterDistributedLogs;
 import io.stackgres.apiweb.dto.cluster.ClusterDto;
@@ -23,7 +24,6 @@ import io.stackgres.apiweb.dto.cluster.ClusterRestore;
 import io.stackgres.apiweb.dto.cluster.ClusterSpec;
 import io.stackgres.apiweb.dto.cluster.NonProduction;
 import io.stackgres.common.ConfigContext;
-import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDistributedLogs;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
@@ -38,7 +38,7 @@ import org.jooq.lambda.Seq;
 public class ClusterTransformer
     extends AbstractResourceTransformer<ClusterDto, StackGresCluster> {
 
-  private ConfigContext context;
+  private ConfigContext<WebApiProperty> context;
   private ClusterPodTransformer clusterPodTransformer;
 
   @Override
@@ -75,7 +75,7 @@ public class ClusterTransformer
   }
 
   private boolean isGrafanaEmbeddedEnabled() {
-    return context.getProperty(OperatorProperty.GRAFANA_EMBEDDED)
+    return context.getProperty(WebApiProperty.GRAFANA_EMBEDDED)
         .map(Boolean::parseBoolean)
         .orElse(false);
   }
@@ -257,7 +257,7 @@ public class ClusterTransformer
   }
 
   @Inject
-  public void setContext(ConfigContext context) {
+  public void setContext(ConfigContext<WebApiProperty> context) {
     this.context = context;
   }
 

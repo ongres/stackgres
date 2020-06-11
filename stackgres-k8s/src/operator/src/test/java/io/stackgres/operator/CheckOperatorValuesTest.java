@@ -17,7 +17,7 @@ import io.stackgres.common.StackGresContext;
 
 import io.stackgres.operator.app.StackGresOperatorApp;
 import io.stackgres.operator.common.StackGresComponents;
-import io.stackgres.common.StackGresUtil;
+import io.stackgres.operator.common.OperatorConfigDefaults;
 
 import org.jooq.lambda.Seq;
 import org.junit.Assert;
@@ -39,8 +39,8 @@ public class CheckOperatorValuesTest {
       imageTag = StackGresContext.OPERATOR_VERSION + "-jvm";
     }
     Assert.assertEquals(imageTag,
-        operatorConfig.get("image").get("tag").asText());
-    Assert.assertEquals(StackGresUtil.PROMETHEUS_AUTOBIND,
+        operatorConfig.get("operator").get("image").get("tag").asText());
+    Assert.assertEquals(OperatorConfigDefaults.PROMETHEUS_AUTOBIND,
         operatorConfig.get("prometheus").get("allowAutobind").asText());
   }
 

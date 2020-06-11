@@ -20,7 +20,6 @@ import io.fabric8.kubernetes.api.model.StatusCause;
 import io.fabric8.kubernetes.api.model.StatusDetails;
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.StackGresContext;
-import io.stackgres.common.StackGresUtil;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import org.junit.jupiter.api.function.Executable;
 import org.opentest4j.AssertionFailedError;

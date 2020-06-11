@@ -5,10 +5,8 @@
 
 package io.stackgres.operator.validation.pgconfig;
 
-import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
-import io.stackgres.common.ConfigContext;
-import io.stackgres.operator.configuration.OperatorContext;
 import io.stackgres.common.ErrorType;
+import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.testutil.JsonUtil;
 import io.stackgres.operator.common.PgConfigReview;
 import io.stackgres.operator.utils.ValidationUtils;
@@ -20,8 +18,6 @@ import org.junit.jupiter.api.Test;
 class PgConfigUpdateValidatorTest {
 
   private PgConfigReview review;
-
-  private ConfigContext context = new OperatorContext();
 
   private PgConfigUpdateValidator validator;
 

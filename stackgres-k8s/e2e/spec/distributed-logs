@@ -20,11 +20,25 @@ e2e_test_install() {
 }
 
 e2e_test() {
+  run_test "Checking that default annotations where created" default_annotations
+
   run_test "Checking that is possible to connect using services is working" service_check
 
   run_test "Checking that distributed logs attach to the cluster" check_distributed_logs_attach_to_cluster
 
   run_test "Checking that distributed logs query endpoint works correctly"  check_distributed_logs_query_endpoint
+}
+
+default_annotations(){
+  local DEFAULT_ANNOTATION=$(kubectl get sgdistributedlogs.stackgres.io -n $CLUSTER_NAMESPACE $DISTRIBUTED_LOGS_NAME -o json | jq '.metadata.annotations["stackgres.io/operatorVersion"]')
+
+  if [ -z "$DEFAULT_ANNOTATION" ] || [ "$DEFAULT_ANNOTATION" = "null" ]
+  then
+    echo "Fail. Default annotations not created"
+    return 1
+  else
+    echo "Success. Defaults annotations created"    
+  fi
 }
 
 service_check() {

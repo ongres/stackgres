@@ -8,7 +8,6 @@ package io.stackgres.operator.validation.backupconfig;
 import javax.inject.Singleton;
 
 import com.google.common.collect.ImmutableList;
-import io.stackgres.common.ConfigContext;
 import io.stackgres.common.ErrorType;
 import io.stackgres.operator.common.BackupConfigReview;
 import io.stackgres.operator.validation.ValidationType;
@@ -19,7 +18,7 @@ import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFail
 @ValidationType(ErrorType.CONSTRAINT_VIOLATION)
 public class StorageTypeValidator implements BackupConfigValidator {
 
-  private static final String errorTypeUri = ConfigContext
+  private static final String errorTypeUri = ErrorType
       .getErrorTypeUri(ErrorType.CONSTRAINT_VIOLATION);
 
   @Override

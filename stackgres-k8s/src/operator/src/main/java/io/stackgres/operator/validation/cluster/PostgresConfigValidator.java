@@ -13,7 +13,6 @@ import java.util.Set;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import io.stackgres.common.ConfigContext;
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
@@ -39,9 +38,9 @@ public class PostgresConfigValidator implements ClusterValidator {
   public PostgresConfigValidator(
       CustomResourceFinder<StackGresPostgresConfig> configFinder) {
     this(configFinder, StackGresComponents.getAllOrderedPostgresVersions().toList());
-    errorCrReferencerUri = ConfigContext.getErrorTypeUri(ErrorType.INVALID_CR_REFERENCE);
-    errorPostgresMismatchUri = ConfigContext.getErrorTypeUri(ErrorType.PG_VERSION_MISMATCH);
-    errorForbiddenUpdateUri = ConfigContext.getErrorTypeUri(ErrorType.FORBIDDEN_CR_UPDATE);
+    errorCrReferencerUri = ErrorType.getErrorTypeUri(ErrorType.INVALID_CR_REFERENCE);
+    errorPostgresMismatchUri = ErrorType.getErrorTypeUri(ErrorType.PG_VERSION_MISMATCH);
+    errorForbiddenUpdateUri = ErrorType.getErrorTypeUri(ErrorType.FORBIDDEN_CR_UPDATE);
   }
 
   public PostgresConfigValidator(

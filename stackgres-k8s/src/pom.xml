@@ -40,6 +40,16 @@
   </scm>
 
   <properties>
+    <stackgres.containerBuild>4</stackgres.containerBuild>
+    <stackgres.group>stackgres.io</stackgres.group>
+    <stackgres.crd.version>v1beta1</stackgres.crd.version>
+    <stackgres.operatorVersion>${project.version}</stackgres.operatorVersion>
+    <stackgres.documentation.uri>https://stackgres.io/doc/</stackgres.documentation.uri>
+    <stackgres.documentation.errorsPath>/07-developer-documentation/01-error-types#</stackgres.documentation.errorsPath>
+    <it.image>stackgres/it:5.0</it.image>
+    <quarkus.http.ssl.certificate.file>/etc/operator/certs/server.crt</quarkus.http.ssl.certificate.file>
+    <quarkus.http.ssl.certificate.key-file>/etc/operator/certs/root.key</quarkus.http.ssl.certificate.key-file>
+
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <!-- Java compilation -->
     <java.version>1.8</java.version>

@@ -11,7 +11,6 @@ import java.util.Optional;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import io.stackgres.common.ConfigContext;
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackup.StackGresBackupProcess;
@@ -30,9 +29,9 @@ import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFail
 @ValidationType(ErrorType.INVALID_CR_REFERENCE)
 public class RestoreConfigValidator implements ClusterValidator {
 
-  private static final String errorCrReferencerUri = ConfigContext
+  private static final String errorCrReferencerUri = ErrorType
       .getErrorTypeUri(ErrorType.INVALID_CR_REFERENCE);
-  private static final String errorPostgresMismatch = ConfigContext
+  private static final String errorPostgresMismatch = ErrorType
       .getErrorTypeUri(ErrorType.PG_VERSION_MISMATCH);
 
   private CustomResourceScanner<StackGresBackup> backupScanner;
