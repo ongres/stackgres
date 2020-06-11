@@ -91,9 +91,13 @@ public class PostgresConfigTransformer
               .map(t -> t.concat(new PostgresqlConfParameter()))
               .peek(t -> t.v3.setParameter(t.v1))
               .peek(t -> t.v3.setValue(t.v2))
-              .peek(t -> t.v3.setDocumentationLink(String.format(
-                  POSTGRESQLCO_NF_URL,
-                  t.v1, source.getPostgresVersion())))
+              .peek(t -> {
+                if (!t.v1.contains(".")) {
+                  t.v3.setDocumentationLink(String.format(
+                      POSTGRESQLCO_NF_URL,
+                      t.v1, source.getPostgresVersion()));
+                }
+              })
               .map(Tuple3::v3)
               .toList());
     }

@@ -6,6 +6,7 @@
 package io.stackgres.apiweb.rest;
 
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.common.collect.ImmutableMap;
@@ -27,7 +28,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class PostgresConfigResourceTest
     extends AbstractDependencyCustomResourceTest<PostgresConfigDto, StackGresPostgresConfig,
-    PostgresConfigResource> {
+      PostgresConfigResource> {
 
   @Override
   protected CustomResourceList<StackGresPostgresConfig> getCustomResourceList() {
@@ -76,7 +77,8 @@ class PostgresConfigResourceTest
         "password_encryption='scram-sha-256'",
         "random_page_cost=1.5",
         "shared_buffers=256MB",
-        "wal_compression=on")
+        "wal_compression=on",
+        "pg_stat_statements.max=10000")
         .toString("\n"),
         resource.getSpec().getPostgresqlConf());
     assertNotNull(resource.getStatus());
@@ -84,7 +86,7 @@ class PostgresConfigResourceTest
     assertEquals(1, resource.getStatus().getClusters().size());
     assertEquals("stackgres", resource.getStatus().getClusters().get(0));
     assertNotNull(resource.getStatus().getPostgresqlConf());
-    assertEquals(4, resource.getStatus().getPostgresqlConf().size());
+    assertEquals(5, resource.getStatus().getPostgresqlConf().size());
     assertEquals("password_encryption", resource.getStatus().getPostgresqlConf().get(0).getParameter());
     assertEquals("'scram-sha-256'", resource.getStatus().getPostgresqlConf().get(0).getValue());
     assertEquals("https://postgresqlco.nf/en/doc/param/password_encryption/12/",
@@ -101,6 +103,9 @@ class PostgresConfigResourceTest
     assertEquals("on", resource.getStatus().getPostgresqlConf().get(3).getValue());
     assertEquals("https://postgresqlco.nf/en/doc/param/wal_compression/12/",
         resource.getStatus().getPostgresqlConf().get(3).getDocumentationLink());
+    assertEquals("pg_stat_statements.max", resource.getStatus().getPostgresqlConf().get(4).getParameter());
+    assertEquals("10000", resource.getStatus().getPostgresqlConf().get(4).getValue());
+    assertNull(resource.getStatus().getPostgresqlConf().get(4).getDocumentationLink());
   }
 
   @Override
@@ -115,7 +120,8 @@ class PostgresConfigResourceTest
         "password_encryption", "'scram-sha-256'",
         "random_page_cost", "1.5",
         "shared_buffers", "256MB",
-        "wal_compression", "on"),
+        "wal_compression", "on",
+        "pg_stat_statements.max", "10000"),
         resource.getSpec().getPostgresqlConf());
  }
 
