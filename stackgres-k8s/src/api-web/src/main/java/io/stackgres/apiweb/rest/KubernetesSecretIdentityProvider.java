@@ -90,11 +90,11 @@ public class KubernetesSecretIdentityProvider
   }
 
   private char[] getStoredPassword(Secret secret) {
-    return ResourceUtil.dencodeSecret(secret.getData().get(StackGresContext.REST_PASSWORD_KEY))
+    return ResourceUtil.decodeSecret(secret.getData().get(StackGresContext.REST_PASSWORD_KEY))
         .toCharArray();
   }
 
   private String getStoredUsername(Secret secret) {
-    return ResourceUtil.dencodeSecret(secret.getData().get(StackGresContext.REST_USER_KEY));
+    return ResourceUtil.decodeSecret(secret.getData().get(StackGresContext.REST_APIUSER_KEY));
   }
 }

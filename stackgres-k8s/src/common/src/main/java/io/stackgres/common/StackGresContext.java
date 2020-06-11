@@ -30,7 +30,8 @@ public enum StackGresContext {
   public static final String DEMOTE_ROLE = "demote";
   public static final String UNINITIALIZED_ROLE = "uninitialized";
   public static final String STANDBY_LEADER_ROLE = "standby_leader";
-  public static final String REST_USER_KEY = "user";
+  public static final String REST_APIUSER_KEY = "apiUsername";
+  public static final String REST_K8SUSER_KEY = "k8sUsername";
   public static final String REST_PASSWORD_KEY = "password";
   public static final String DISTRIBUTED_LOGS_APP_NAME = "StackGresDistributedLogs";
   public static final String DISTRIBUTED_LOGS_CLUSTER_NAME_KEY = "distributed-logs-name";

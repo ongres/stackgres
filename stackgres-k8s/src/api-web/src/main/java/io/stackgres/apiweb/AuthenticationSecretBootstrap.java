@@ -18,6 +18,7 @@ import io.stackgres.apiweb.config.WebApiProperty;
 import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.resource.ResourceUtil;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,12 +30,15 @@ public class AuthenticationSecretBootstrap {
   private KubernetesClientFactory kubeClient;
   private WebApiContext context;
 
+  @ConfigProperty(name = "stackgres.restapiNamespace")
+  String namespace;
+
   public void init(@Observes StartupEvent ev) {
 
     LOGGER.info("Initializing authentication secret");
     String secretName = context.get(WebApiProperty.AUTHENTICATION_SECRET_NAME);
     try (KubernetesClient client = kubeClient.create()) {
-      if (client.secrets().withName(secretName).get() != null) {
+      if (client.secrets().inNamespace(namespace).withName(secretName).get() != null) {
         LOGGER.info("Authentication secret found. Skipping creation.");
         return;
       }
@@ -45,8 +49,9 @@ public class AuthenticationSecretBootstrap {
       Secret secret = new SecretBuilder()
           .withNewMetadata()
           .withName(secretName)
+          .withNamespace(namespace)
           .endMetadata()
-          .addToData(StackGresContext.REST_USER_KEY, randUser)
+          .addToData(StackGresContext.REST_APIUSER_KEY, randUser)
           .addToData(StackGresContext.REST_PASSWORD_KEY, randPassword)
           .build();
 

@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
-import javax.annotation.security.RolesAllowed;
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.Path;
@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
+import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.dto.SecretKeySelector;
 import io.stackgres.apiweb.dto.backupconfig.BackupConfigDto;
 import io.stackgres.apiweb.transformer.DependencyResourceTransformer;
@@ -37,6 +38,7 @@ import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple;
 
 @Path("/stackgres/sgbackupconfig")
+@RequestScoped
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class BackupConfigResource extends
@@ -78,7 +80,7 @@ public class BackupConfigResource extends
             resource.getMetadata().getName());
   }
 
-  @RolesAllowed(RestAuthenticationRoles.ADMIN)
+  @Authenticated
   @Override
   public List<BackupConfigDto> list() {
     return Seq.seq(super.list())
@@ -86,7 +88,7 @@ public class BackupConfigResource extends
         .toList();
   }
 
-  @RolesAllowed(RestAuthenticationRoles.ADMIN)
+  @Authenticated
   @Override
   public BackupConfigDto get(String namespace, String name) {
     return Optional.of(super.get(namespace, name))
@@ -94,7 +96,7 @@ public class BackupConfigResource extends
         .get();
   }
 
-  @RolesAllowed(RestAuthenticationRoles.ADMIN)
+  @Authenticated
   @Override
   public void create(BackupConfigDto resource) {
     setSecretKeySelectors(resource);
@@ -103,7 +105,7 @@ public class BackupConfigResource extends
     createOrUpdateSecret(resource);
   }
 
-  @RolesAllowed(RestAuthenticationRoles.ADMIN)
+  @Authenticated
   @Override
   public void delete(BackupConfigDto resource) {
     setSecretKeySelectors(resource);
@@ -111,7 +113,7 @@ public class BackupConfigResource extends
     deleteSecret(resource);
   }
 
-  @RolesAllowed(RestAuthenticationRoles.ADMIN)
+  @Authenticated
   @Override
   public void update(BackupConfigDto resource) {
     setSecretKeySelectors(resource);
@@ -130,7 +132,7 @@ public class BackupConfigResource extends
               .map(Secret::getData);
           return secrets
               .map(s -> t.v2.map(tt -> Tuple.tuple(
-                  ResourceUtil.dencodeSecret(s.get(tt.v2.v3.getKey())), tt.v2.v2)))
+                  ResourceUtil.decodeSecret(s.get(tt.v2.v3.getKey())), tt.v2.v2)))
               .orElse(Seq.empty());
         })
         .forEach(t -> t.v2.accept(t.v1));
