@@ -813,23 +813,34 @@ var Logs = Vue.component("sg-logs", {
 				params += '&role='+this.role;
 			}
 			
-			axios
-			.get(apiURL+'sgcluster/logs/'+store.state.currentNamespace+'/'+store.state.currentCluster.name+params)
-			.then( function(response){
+			if(store.state.loginToken.search('Authentication Error') == -1) {
+				axios
+				.get(apiURL+'sgcluster/logs/'+store.state.currentNamespace+'/'+store.state.currentCluster.name+params)
+				.then( function(response){
 
-				if(append)
-					store.commit('appendLogs', response.data)
-				else
-					store.commit('setLogs', response.data)
+					if(append)
+						store.commit('appendLogs', response.data)
+					else
+						store.commit('setLogs', response.data)
 
-				$('table.logs').removeClass('loading');
-				
-			}).catch(function(err) {
-				store.commit('setLogs', []);
-				console.log(err);
+					$('table.logs').removeClass('loading');
+					
+				}).catch(function(err) {
+					store.commit('setLogs', []);
+					console.log(err);
+					checkAuthError(err);
 
-				$('table.logs').removeClass('loading');
-			});
+					$('table.logs').removeClass('loading');
+				});
+			} else {
+				notify(
+					{
+					  title: store.state.loginToken,
+					  detail: 'There was an authentication error while trying to fetch the information from the API, please refresh the window and try again.'
+					},
+					'error'
+				  );
+			}
 
 			$('.logInfo.open').prev().toggle();
 			$('.logInfo.open').toggleClass('open');

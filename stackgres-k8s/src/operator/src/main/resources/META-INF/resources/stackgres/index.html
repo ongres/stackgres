@@ -59,6 +59,114 @@
 				line-height: 1;
 				width: 320px;
 			}*/
+
+			tr.details.pgConfig.open div {
+				width: 50%;
+				float: left;
+				display: block;
+			}
+
+			table.pgConfig tr.base.open td.parameters, table.pgConfig tr.base.open td.pgVersion, table.poolConfig tr.base.open td.parameters {
+				font-size: 0;
+			}
+
+			td.usedOn {
+				padding: 0 !important;
+			}
+			
+			td.usedOn li {
+				list-style: none;
+				height: 41px;
+				vertical-align: middle;
+				width: 100%;
+				border-bottom: 1px solid #f0f0f1;
+				padding-top: 12px;
+				padding-left: 10px;
+			}
+
+			td.usedOn li:last-child {
+				border-bottom: 0;
+			}
+
+			table.pgConfig tr.details a, table.poolConfig tr.details a {
+				float: right;
+				display: inline-block;
+				padding: 2px 10px;
+			}
+
+			table.pgConfig tr.details a svg path, table.poolConfig tr.details a svg path {
+				fill: var(--blue);
+			}
+
+			table.pgConfig tr.details .configurationDetails table td.label, table.poolConfig tr.details .configurationDetails table td.label {
+				padding-right: 10px;
+				width: 140px;
+			}
+
+			table.pgConfig tr.details .paramDetails table td.label, table.poolConfig tr.details .paramDetails table td.label {
+				width: auto;
+				padding-right: 10px;
+			}
+
+			tr.details.pgConfig .title {
+				padding: 5px 27px 10px;
+				display: inline-block;
+				font-weight: bold;
+			}
+
+			.paramDetails table {
+				max-height: 240px;
+				overflow: auto;
+				display: block;
+				width: 100%;
+			}
+
+			.paramDetails table tbody {
+				width: 100%;
+				display: inline-table;
+			}
+	
+			tr.details.pgConfig.open > td:first-child {
+				position: relative;
+			}
+
+			table.pgConfig tr.base.open td:before, table.poolConfig tr.base.open td:before {
+				border: 0;
+			}
+
+			table.pgConfig tr.details td.paramValue a, table.poolConfig tr.details td.paramValue a {
+				padding: 0;
+			}
+
+			table.pgConfig tr.details .paramDetails table td, table.poolConfig tr.details .paramDetails table td {
+				padding: 10px;
+			}
+	
+			table.pgConfig tr.details .paramDetails table, table.poolConfig tr.details .paramDetails table {
+				border: 0;
+				border-bottom: 1px solid #f0f0f1;
+			}
+	
+			table.pgConfig tr:nth-child(4n-2), table.pgConfig tr:nth-child(4n-2) + tr.details, table.pgConfig tr:nth-child(4n-2), table.poolConfig tr:nth-child(4n-2), table.poolConfig tr:nth-child(4n-2) + tr.details, table.poolConfig tr:nth-child(4n-2) {
+				background: #fff;
+			}
+
+			table.pgConfig tr.details .configurationDetails table, table.poolConfig tr.details .configurationDetails table {
+				margin-left: 0 !important;
+			}
+
+			tr.details.pgConfig .configurationDetails .title, tr.details.poolConfig .configurationDetails .title {
+				padding-left: 15px;
+			}
+
+			table.pgConfig tr.open td.configName, table.poolConfig tr.open td.configName {
+				position: absolute;
+				width: 100%;
+			}
+	
+			table.pgConfig tr.details.open > td:first-child:before, table.poolConfig tr.details.open > td:first-child:before {
+				top: -23px;
+			}
 		</style>
 	</head>
 <body>
