@@ -56,15 +56,15 @@ run_curl() {
     kubectl exec -i -n "$NAMESPACE" "$POD" -- \
       curl -k "https://$SERVICE.$SERVICE_NAMESPACE.svc.cluster.local/$RESOURCE_PATH" \
       $(if [ -z "$JWT" ]; then true; else echo "-H \"Authorization: Bearer $JWT\""; fi) \
-      -H "Content-Type: $CONTENT_TYPE" \
-      -H "Accept: $ACCEPT"  \
+      -H "\"Content-Type: $CONTENT_TYPE\"" \
+      -H "\"Accept: $ACCEPT\""  \
       --data @"/tmp/$DATA_FILENAME" -s $(echo $EXTRA_PARAMETERS)
   else
     kubectl exec -i -n "$NAMESPACE" "$POD" -- \
       curl -k "https://$SERVICE.$SERVICE_NAMESPACE.svc.cluster.local/$RESOURCE_PATH" \
       $(if [ -z "$JWT" ]; then true; else echo "-H \"Authorization: Bearer $JWT\""; fi) \
-      -H "Content-Type: $CONTENT_TYPE" \
-      -H "Accept: $ACCEPT" \
+      -H "\"Content-Type: $CONTENT_TYPE\"" \
+      -H "\"Accept: $ACCEPT\"" \
       -s $(echo $EXTRA_PARAMETERS)
   fi
 }
