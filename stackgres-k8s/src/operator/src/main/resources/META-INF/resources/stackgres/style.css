@@ -1198,6 +1198,10 @@ footer {
     fill: var(--blue);
 }
 
+#nav .remove svg {
+    fill: var(--gray4);
+}
+
 #nav:not(.disabled) .top .router-link-active svg, #nav .view.router-link-active svg {
     fill: var(--blue);
 }
@@ -1314,9 +1318,9 @@ footer {
 }
 
 #delete .tooltip {
-    right: 30px;
+    right: 40px;
     padding: 20px;
-    top: 65px;
+    top: 60px;
 }
 
 #delete .tooltip  h3 {
@@ -4435,7 +4439,7 @@ table.backups th.desc.name {
 
 table.backups .hasTooltip {
     width: 120px;
-    position: absolute;
+    /*position: absolute;*/
 }
 
 table.backups td.hasTooltip > span {
@@ -4444,6 +4448,16 @@ table.backups td.hasTooltip > span {
 
 table.profiles td, table.clusterOverview td, table.pgConfig tr.open td.hasTooltip, table.poolConfig tr.open td.hasTooltip {
     position: relative;
+}
+
+table.backups .clusterName {
+    padding-left: 15px;
+    max-width: 120px;
+   
+}
+
+table.backups .name {
+    max-width: 250px;
 }
 
 
@@ -4461,7 +4475,7 @@ table.profiles td, table.clusterOverview td, table.pgConfig tr.open td.hasToolti
     display: none;
     line-height: 1;
     width: 320px;
-    top: 178px;
+    top: 57px;
     right: 30px;
 }
 

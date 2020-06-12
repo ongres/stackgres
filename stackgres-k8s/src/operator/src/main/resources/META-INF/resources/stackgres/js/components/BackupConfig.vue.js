@@ -258,6 +258,7 @@ var BackupConfig = Vue.component("backup-config", {
 			var backupDetails = $(this).next();
 			backupDetails.toggleClass("show");
 			$('tr.details').not(backupDetails).removeClass("show");
+			$(this).find('td:first').removeClass("hasTooltip");
 		});
 	}
 })
