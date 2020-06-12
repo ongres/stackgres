@@ -17,8 +17,6 @@ public class WebApiContext implements ConfigContext<WebApiProperty> {
 
   private static final ImmutableMap<WebApiProperty, String> DEFAULT_CONTEXT = ImmutableMap
       .<WebApiProperty, String>builder()
-      .put(WebApiProperty.AUTHENTICATION_SECRET_NAME,
-          WebApiConfigDefaults.AUTHENTICATION_SECRET_NAME)
       .put(WebApiProperty.GRAFANA_EMBEDDED, WebApiConfigDefaults.GRAFANA_EMBEDDED)
       .put(WebApiProperty.RESTAPI_NAMESPACE, WebApiConfigDefaults.RESTAPI_NAMESPACE)
       .build();
