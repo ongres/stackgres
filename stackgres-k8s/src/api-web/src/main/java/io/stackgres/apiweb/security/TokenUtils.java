@@ -8,10 +8,10 @@ package io.stackgres.apiweb.security;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
-import java.security.MessageDigest;
 import java.security.PrivateKey;
 import java.util.UUID;
 
+import com.google.common.hash.Hashing;
 import io.quarkus.security.AuthenticationFailedException;
 import io.smallrye.jwt.KeyUtils;
 import io.smallrye.jwt.build.Jwt;
@@ -66,13 +66,9 @@ public class TokenUtils {
    * @return SHA256 of password
    */
   public static String sha256(String password) {
-    try {
-      MessageDigest digest = MessageDigest.getInstance("SHA-256");
-      return new String(digest.digest(
-          password.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8);
-    } catch (Exception ex) {
-      throw new RuntimeException(ex);
-    }
+    return Hashing.sha256()
+        .hashString(password, StandardCharsets.UTF_8)
+        .toString();
   }
 
   /**

@@ -59,7 +59,7 @@ public class SecretVerification {
         .filter(s -> Objects.equals(passwordHash, getStoredPassword(s)))
         .map(this::getK8sUsername)
         .findFirst()
-        .orElseThrow(() -> new AuthenticationFailedException());
+        .orElseThrow(AuthenticationFailedException::new);
   }
 
   private String getStoredPassword(Secret secret) {
