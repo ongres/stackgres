@@ -12,7 +12,7 @@ var CreateProfile = Vue.component("create-profile", {
 					<router-link :to="'/profiles/'+currentNamespace" title="SGInstanceProfiles">SGInstanceProfiles</router-link>
 					</li>
                     <li v-if="editMode">
-                        {{ $route.params.name }}
+                        <router-link :to="'/profiles/'+currentNamespace+'/'+$route.params.name" title="SGInstanceProfile Details">{{ $route.params.name }}</router-link
                     </li>
                     <li class="action">
                         {{ $route.params.action }}

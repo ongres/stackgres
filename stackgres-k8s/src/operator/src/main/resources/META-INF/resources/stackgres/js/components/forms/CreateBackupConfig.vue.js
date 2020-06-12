@@ -12,7 +12,7 @@ var CreateBackupConfig = Vue.component("create-backup-config", {
                         <router-link :to="'/configurations/backup/'+currentNamespace" title="SGBackupConfigs">SGBackupConfigs</router-link>
                     </li>
                     <li v-if="editMode">
-                        {{ $route.params.name }}
+                        <router-link :to="'/configurations/backup/'+currentNamespace+'/'+$route.params.name" title="Configuration Details">{{ $route.params.name }}</router-link>
                     </li>
                     <li class="action">
                         {{ $route.params.action }}

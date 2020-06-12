@@ -12,7 +12,7 @@ var CreateCluster = Vue.component("create-cluster", {
 						<router-link :to="'/overview/'+currentNamespace" title="Namespace Overview">SGClusters</router-link>
 					</li>
 					<li v-if="editMode">
-						<router-link :to="'/cluster/status/'+$route.params.namespace+'/'+$route.params.name" title="Status">{{ $route.params.name }}</router-link>
+						<router-link :to="'/cluster/status/'+$route.params.namespace+'/'+$route.params.name" title="Cluster Details">{{ $route.params.name }}</router-link>
 					</li>
                     <li class="action">
                         {{ $route.params.action }}

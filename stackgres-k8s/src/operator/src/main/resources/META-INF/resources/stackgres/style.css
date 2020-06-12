@@ -1105,7 +1105,8 @@ ul.zg-ul-select.active li.active:hover {
 
 a.item.router-link-exact-active.router-link-active {
     /*background: rgba(211,211,214,.15);*/
-    color: var(--blue);
+    /*color: var(--blue);*/
+    color: #4D4F5C;
     font-weight: 600;
 }
 
@@ -2836,7 +2837,8 @@ table table + table {
 }
 
 .details th {
-    color: var(--blue);
+    /*color: var(--blue);*/
+    color: #4D4F5C;
 }
 
 tr.details > td {
@@ -2864,7 +2866,8 @@ tr.details table th, tr.details table td {
 
 tr.details table td.label {
     width: 120px;
-    color: var(--blue);
+    /*color: var(--blue);*/
+    color: #4D4F5C;
     font-weight: bold;
 }
 
@@ -2919,8 +2922,10 @@ tr.open ul.yaml {
     margin-top: -4px;
 }
 
+
 .yaml .label {
-    color: var(--blue);
+    /*color: var(--blue);*/
+    color: #4D4F5C;
 }
 
 ul.yaml ul {
@@ -2982,7 +2987,8 @@ table.clusterConfig td {
 
 table.clusterConfig td.label {
     font-weight: bold;
-    color: var(--blue);
+    /*color: var(--blue);*/
+    color: #4D4F5C;
 }
 
 table.clusterConfig td:not([colspan]) {
@@ -3031,7 +3037,7 @@ table.backupConfig tr.base.open {
 /* Table Filters */
 .toolbar {
     font-size: 12px;
-    margin-bottom: 30px;
+    margin-bottom: 20px;
 }
 
 #keyword {
@@ -3320,7 +3326,7 @@ tr.no-results:first-child:last-child {
 
 table.logs {
     margin-bottom: 0;
-    max-height: calc(100vh - 297px) !important;
+    max-height: calc(100vh - 310px) !important;
     border: none !important;
 }
 
@@ -3600,7 +3606,8 @@ th.sysId, th.operation {
 }
 
 .logMessage .param {
-    color: var(--blue);
+    /*color: var(--blue);*/
+    color: #4D4F5C;
     font-weight: bold;
     width: 200px;
     display: table-cell;
@@ -3663,7 +3670,8 @@ table.logs table.logMessage tr {
 
 .logDetails td.param {
     min-width: 200px;
-    color: var(--blue);
+    /*color: var(--blue);*/
+    color: #4D4F5C;
     font-weight: bold;
     border-right: 1px solid #F0F0F1;
 }
@@ -4326,7 +4334,7 @@ span.closeLog:hover {
 
 /* Backups YAML */
 
-table.backups tr.base:hover td.timestamp:before, table.backups tr.base.open td.timestamp:before, table.pgConfig tr.toggle:not(.open):hover td:first-of-type:before, table.poolConfig tr.toggle:not(.open):hover td:first-of-type:before, table.backupConfig tr:not(.no-results):hover td:first-of-type:before, table.profiles tr:not(.no-results):hover td:first-of-type:before, table.clusterOverview tr:not(.no-results):hover td:first-of-type:before {
+table.backups tr.base:hover td.timestamp:before, table.backups tr.base.open td.timestamp:before, table.pgConfig tr.toggle:not(.open):hover td:first-of-type:before, table.poolConfig tr.toggle:not(.open):hover td:first-of-type:before, table.backupConfig tr:not(.no-results):hover td:first-of-type:before, table.profiles tr:not(.no-results):hover td:first-of-type:before, table.clusterOverview tr:not(.no-results):hover td:first-of-type:before, table.profiles tr.open-profile td:first-of-type:before {
     content: " ";
     width: 5px;
     border: 1px solid var(--blue);
