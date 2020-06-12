@@ -336,31 +336,31 @@ test_constraint_violation_api_error() {
 test_authentication_api_error() {
   local HTTP_STATUS
 
-  HTTP_STATUS="$(run_curl -a e2e:tets -r "stackgres/sgcluster"  -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
+  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/sgcluster"  -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
 
   check_authentication_error
 
-  HTTP_STATUS="$(run_curl -a e2e:tets -r "stackgres/sgcluster/$CLUSTER_NAMESPACE/$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
+  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/sgcluster/$CLUSTER_NAMESPACE/$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
 
   check_authentication_error
 
-  HTTP_STATUS="$(run_curl -a e2e:tets -r "stackgres/sgcluster/status/$CLUSTER_NAMESPACE/$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
+  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/sgcluster/status/$CLUSTER_NAMESPACE/$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
 
   check_authentication_error
 
-  HTTP_STATUS="$(run_curl -a e2e:tets -r "stackgres/sgcluster/logs/$CLUSTER_NAMESPACE/$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
+  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/sgcluster/logs/$CLUSTER_NAMESPACE/$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
 
   check_authentication_error
 
-  HTTP_STATUS="$(run_curl -a e2e:tets -r "stackgres/sgcluster" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/stackgres-cluster.json" -e '-X POST -w %{http_code} -o /dev/null')"
+  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/sgcluster" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/stackgres-cluster.json" -e '-X POST -w %{http_code} -o /dev/null')"
 
   check_authentication_error
 
-  HTTP_STATUS="$(run_curl -a e2e:tets -r "stackgres/sgcluster" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/stackgres-cluster.json" -e '-X PUT -w %{http_code} -o /dev/null')"
+  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/sgcluster" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/stackgres-cluster.json" -e '-X PUT -w %{http_code} -o /dev/null')"
 
   check_authentication_error
 
-  HTTP_STATUS="$(run_curl -a e2e:tets -r "stackgres/sgcluster" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/stackgres-cluster.json" -e '-X DELETE -w %{http_code} -o /dev/null')"
+  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/sgcluster" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/stackgres-cluster.json" -e '-X DELETE -w %{http_code} -o /dev/null')"
 
   check_authentication_error
 }

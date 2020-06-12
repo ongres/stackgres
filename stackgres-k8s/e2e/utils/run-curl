@@ -1,5 +1,7 @@
 #!/bin/sh
 
+FAKE_JWT='eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJodHRwczovL2FwaS5zdGFja2dyZXMuaW8vYXV0aCIsImF1ZCI6ImFwaS13ZWJzZWN1cml0eSIsImp0aSI6IjdmNjY1ZDgyLTk5NDUtNDVlNi04ZDJmLWNhZDUzZjAwZTM4MiIsInN1YiI6ImFkbWluIiwicHJlZmVycmVkX3VzZXJuYW1lIjoiYWRtaW4iLCJpYXQiOjE1OTE5NzYyNTMsImF1dGhfdGltZSI6MTU5MTk3NjI1MywiZXhwIjoxNTkyMDA1MDUzfQ.SVklYKeAgR2Mh47lBI_IR6u3wdWFK-nY4oUlPRevejrw232lZClePW1fHwl557KRhT5th-zAI1O-o6_x9b_owO8JzNaN3jsPiFrraXCbDgT3aP_Q2xA8I5KMwhZUs8XSxriAP2L2MUO4ePP29iK1k3av0Yl4XuVwvdJoujwoehy15b4km8GpStHLGSnGi6mt6utTQEvy03B7Afe5oIhLrjLwl00cblZ-q1ZT2TbtMKdtikSGupq0Qfe6itxO3dE40-iodVieAcSInpr3m7gcflGdTcyVWR7kfxx5oaC8S8b0GoPgvj85nGAR-O05qqBsXehNtLXO_qrR3ShqhKzucw'
+
 run_curl() {
   local POD=curl
   local NAMESPACE="${CLUSTER_NAMESPACE:-stackgres}"
@@ -10,9 +12,9 @@ run_curl() {
   local CONTENT_TYPE="application/json"
   local ACCEPT="application/json"
   local DATA_FILENAME=""
-  local K8S_USERNAME=$(kubectl get secrets --namespace "$SERVICE_NAMESPACE" "$SERVICE" -o jsonpath="{.data.k8sUsername}" | base64 -d)
-  local PASSWORD="admin" #$(kubectl get secrets --namespace "$SERVICE_NAMESPACE" "$SERVICE" -o jsonpath="{.data.password}" | base64 -d)
-  local AUTHORIZATION="{ \"username\": \"$K8S_USERNAME\", \"password\": \"$PASSWORD\" }"
+  local USERNAME="admin"
+  local PASSWORD="$(kubectl get secrets --namespace "$SERVICE_NAMESPACE" "$SERVICE" -o jsonpath="{.data.clearPassword}" | base64 -d)"
+  local AUTHORIZATION="{ \"username\": \"$USERNAME\", \"password\": \"$PASSWORD\" }"
   local JWT=""
   while getopts ":p:n:s:N:r:c:e:d:a:j:" opt; do
     case $opt in
@@ -55,16 +57,16 @@ run_curl() {
     tar cf - "$DATA_FILENAME" | kubectl exec -i -n "$NAMESPACE" "$POD" -- tar xf - -C /tmp
     kubectl exec -i -n "$NAMESPACE" "$POD" -- \
       curl -k "https://$SERVICE.$SERVICE_NAMESPACE.svc.cluster.local/$RESOURCE_PATH" \
-      $(if [ -z "$JWT" ]; then true; else echo "-H \"Authorization: Bearer $JWT\""; fi) \
-      -H "\"Content-Type: $CONTENT_TYPE\"" \
-      -H "\"Accept: $ACCEPT\""  \
+      -H "Authorization: Bearer $JWT" \
+      -H "Content-Type: $CONTENT_TYPE" \
+      -H "Accept: $ACCEPT"  \
       --data @"/tmp/$DATA_FILENAME" -s $(echo $EXTRA_PARAMETERS)
   else
     kubectl exec -i -n "$NAMESPACE" "$POD" -- \
       curl -k "https://$SERVICE.$SERVICE_NAMESPACE.svc.cluster.local/$RESOURCE_PATH" \
-      $(if [ -z "$JWT" ]; then true; else echo "-H \"Authorization: Bearer $JWT\""; fi) \
-      -H "\"Content-Type: $CONTENT_TYPE\"" \
-      -H "\"Accept: $ACCEPT\"" \
+      -H "Authorization: Bearer $JWT" \
+      -H "Content-Type: $CONTENT_TYPE" \
+      -H "Accept: $ACCEPT" \
       -s $(echo $EXTRA_PARAMETERS)
   fi
 }
