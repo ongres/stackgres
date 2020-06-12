@@ -11,61 +11,55 @@ import java.util.Optional;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import at.favre.lib.crypto.bcrypt.BCrypt;
 import com.google.common.base.Strings;
 import io.fabric8.kubernetes.api.model.Secret;
-import io.fabric8.kubernetes.client.KubernetesClient;
 import io.quarkus.security.AuthenticationFailedException;
-import io.stackgres.common.KubernetesClientFactory;
+import io.stackgres.apiweb.config.WebApiContext;
+import io.stackgres.apiweb.config.WebApiProperty;
 import io.stackgres.common.StackGresContext;
+import io.stackgres.common.resource.ResourceScanner;
 import io.stackgres.common.resource.ResourceUtil;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 @ApplicationScoped
 public class SecretVerification {
 
-  @ConfigProperty(name = "stackgres.restapiNamespace")
-  String namespace;
-
-  private final KubernetesClientFactory clientFactory;
+  private final ResourceScanner<Secret> secretScanner;
+  private final String namespace;
 
   @Inject
-  public SecretVerification(KubernetesClientFactory clientFactory) {
+  public SecretVerification(ResourceScanner<Secret> secretScanner,
+      WebApiContext webApiContext) {
     super();
-    this.clientFactory = clientFactory;
+    this.secretScanner = secretScanner;
+    this.namespace = webApiContext.get(WebApiProperty.RESTAPI_NAMESPACE);
   }
 
   /**
    * Get the K8s username if the api Username and password match.
    */
   public String verifyCredentials(String apiUsername, String password) {
-    Objects.requireNonNull(apiUsername, "apiUsername");
-    Objects.requireNonNull(password, "password");
-    try (KubernetesClient client = clientFactory.create()) {
-      Optional<Secret> user = client.secrets()
-          .inNamespace(namespace)
-          .withLabel("api.stackgres.io/auth", "user")
-          .list().getItems().stream()
-          .filter(s -> s.getMetadata().getName().startsWith("stackgres-api-"))
-          .filter(s -> Optional.ofNullable(s.getData().get(StackGresContext.REST_APIUSER_KEY))
-              .map(ResourceUtil::decodeSecret)
-              .map(apiUsername::equals)
-              .orElse(Optional.ofNullable(s.getData().get(StackGresContext.REST_K8SUSER_KEY))
-                  .map(ResourceUtil::decodeSecret)
-                  .map(apiUsername::equals)
-                  .orElse(Boolean.FALSE)))
-          .filter(s -> !Strings.isNullOrEmpty(s.getData().get(StackGresContext.REST_PASSWORD_KEY)))
-          .findFirst();
-
-      if (user.isPresent()) {
-        char[] bcryptHash = getStoredPassword(user.get()).toCharArray();
-        BCrypt.Result verify = BCrypt.verifyer().verify(password.toCharArray(), bcryptHash);
-        if (verify.verified) {
-          return getK8sUsername(user.get());
-        }
-      }
-      throw new AuthenticationFailedException();
-    }
+    Objects.requireNonNull(apiUsername, StackGresContext.REST_APIUSER_KEY);
+    Objects.requireNonNull(password, StackGresContext.REST_PASSWORD_KEY);
+    String passwordHash = TokenUtils.sha256(password);
+    return secretScanner.findResourcesInNamespace(namespace)
+        .stream()
+        .filter(s -> s.getMetadata().getLabels() != null)
+        .filter(s -> Objects.equals(
+            s.getMetadata().getLabels().get(StackGresContext.AUTH_KEY),
+            StackGresContext.AUTH_USER_VALUE))
+        .filter(s -> !Strings.isNullOrEmpty(s.getData().get(StackGresContext.REST_K8SUSER_KEY)))
+        .filter(s -> !Strings.isNullOrEmpty(s.getData().get(StackGresContext.REST_PASSWORD_KEY)))
+        .filter(s -> Optional.ofNullable(s.getData().get(StackGresContext.REST_APIUSER_KEY))
+            .map(ResourceUtil::decodeSecret)
+            .map(apiUsername::equals)
+            .orElse(Optional.of(s.getData().get(StackGresContext.REST_K8SUSER_KEY))
+                .map(ResourceUtil::decodeSecret)
+                .map(apiUsername::equals)
+                .orElse(Boolean.FALSE)))
+        .filter(s -> Objects.equals(passwordHash, getStoredPassword(s)))
+        .map(this::getK8sUsername)
+        .findFirst()
+        .orElseThrow(() -> new AuthenticationFailedException());
   }
 
   private String getStoredPassword(Secret secret) {

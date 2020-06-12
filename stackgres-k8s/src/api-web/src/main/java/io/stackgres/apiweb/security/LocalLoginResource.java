@@ -35,7 +35,7 @@ public class LocalLoginResource {
   private static final long DURATION = 28800; // 8h
 
   @POST
-  @Path("authenticate")
+  @Path("login")
   public Response login(@Valid UserPassword credentials) {
     try {
       String k8sUsername =

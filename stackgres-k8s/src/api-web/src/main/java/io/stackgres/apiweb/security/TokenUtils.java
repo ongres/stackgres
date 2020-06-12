@@ -6,7 +6,9 @@
 package io.stackgres.apiweb.security;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
+import java.security.MessageDigest;
 import java.security.PrivateKey;
 import java.util.UUID;
 
@@ -55,6 +57,22 @@ public class TokenUtils {
         .expiresAt(exp);
 
     return claims.jws().sign(privateKey);
+  }
+
+  /**
+   * Return SHA256 of a password.
+   *
+   * @param password the password
+   * @return SHA256 of password
+   */
+  public static String sha256(String password) {
+    try {
+      MessageDigest digest = MessageDigest.getInstance("SHA-256");
+      return new String(digest.digest(
+          password.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8);
+    } catch (Exception ex) {
+      throw new RuntimeException(ex);
+    }
   }
 
   /**
