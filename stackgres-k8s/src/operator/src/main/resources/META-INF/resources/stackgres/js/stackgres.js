@@ -660,7 +660,8 @@ Vue.mixin({
 				})
 				.catch(function (error) {
 				  console.log(error);
-				  notify(error.response.data,'error',item.kind);
+          notify(error.response.data,'error',item.kind);
+          checkAuthError(error)
 				});
 			} else {
 				$("#delete .warning").fadeIn();
@@ -695,6 +696,7 @@ Vue.mixin({
         })
         }).catch(function(err) {
           console.log(err);
+          checkAuthError(err)
         });
       }
 
@@ -759,9 +761,10 @@ Vue.mixin({
       
       if(typeof crd !== 'undefined') {
         crd.kind = kind;
+        crd.data.metadata.name = 'copy-of-'+crd.data.metadata.name;
         store.commit('setCloneCRD', crd);
         
-        $('#cloneName').val('copy-of-'+crd.data.metadata.name)
+        $('#cloneName').val(crd.data.metadata.name)
         $('#cloneNamespace').val(crd.data.metadata.namespace);
         $("#notifications.hasTooltip.active").removeClass("active");
         $("#notifications.hasTooltip .message.show").removeClass("show");
@@ -802,6 +805,7 @@ const vm = new Vue({
     currentCluster: '',
     currentPods: '',
     clustersData: {},
+    pooling: '',
     //clusters: []
   },
   methods: {
@@ -812,7 +816,18 @@ const vm = new Vue({
       let loginToken = getCookie('sgToken');
       //console.log("TOKEN: "+loginToken)
 
-      if(!loginToken.length) {
+      if(store.state.loginToken.search('Authentication Error') !== -1) {
+        notify(
+          {
+            title: store.state.loginToken,
+            detail: 'There was an authentication error while trying to fetch the information from the API, please refresh the window and try again.'
+          },
+          'error'
+        );
+
+        clearInterval(this.pooling);
+
+      } else if (!loginToken.length) {
         if(!store.state.loginToken.length) {
           $('#signup').addClass('login').fadeIn();
           return false;
@@ -828,7 +843,7 @@ const vm = new Vue({
       //console.log("Fetching API");
       //$("#loader").show();
       $('#reload').addClass('active');
-
+      
       if ( !kind.length || (kind == 'namespaces') ) {
         /* Namespaces Data */
         axios
@@ -847,6 +862,7 @@ const vm = new Vue({
           
         }).catch(function(err) {
           console.log(err);
+          checkAuthError(err);
         });
       }
 
@@ -892,6 +908,9 @@ const vm = new Vue({
                 .then( function(response){
                   //console.log(response.data);
                   cluster.status = response.data;
+                }).catch(function(err) {
+                  console.log(err);
+                  checkAuthError(err);
                 });
                 
               store.commit('updateClusters', cluster);
@@ -904,6 +923,9 @@ const vm = new Vue({
 
           }
           
+        }).catch(function(err) {
+          console.log(err);
+          checkAuthError(err);
         });
 
       }
@@ -962,6 +984,9 @@ const vm = new Vue({
             //console.log("Backups Data updated");
 
           }
+        }).catch(function(err) {
+          console.log(err);
+          checkAuthError(err);
         });
       }
 
@@ -1003,6 +1028,9 @@ const vm = new Vue({
             // console.log("PGconf Data updated");
 
           }
+        }).catch(function(err) {
+          console.log(err);
+          checkAuthError(err);
         });
       }
 
@@ -1044,6 +1072,9 @@ const vm = new Vue({
             // console.log("PoolConf Data updated");
 
           }
+        }).catch(function(err) {
+          console.log(err);
+          checkAuthError(err);
         });
       }
 
@@ -1085,6 +1116,9 @@ const vm = new Vue({
             // console.log("BackupConfig Data updated");
 
           }
+        }).catch(function(err) {
+          console.log(err);
+          checkAuthError(err);
         });
       }
 
@@ -1126,6 +1160,9 @@ const vm = new Vue({
             // console.log("Profiles Data updated");
 
           }
+        }).catch(function(err) {
+          console.log(err);
+          checkAuthError(err);
         });
       }
 
@@ -1150,6 +1187,9 @@ const vm = new Vue({
 
           }
           
+        }).catch(function(err) {
+          console.log(err);
+          checkAuthError(err);
         });
       }
 
@@ -1174,6 +1214,9 @@ const vm = new Vue({
 
           }
           
+        }).catch(function(err) {
+          console.log(err);
+          checkAuthError(err);
         });
       }
 
@@ -1200,7 +1243,7 @@ const vm = new Vue({
     this.fetchAPI();
 
     if(store.state.loginToken.length > 0) {
-      setInterval( function(){
+      this.pooling = setInterval( function(){
         this.fetchAPI();
       }.bind(this), 10000);
     }
@@ -1247,8 +1290,16 @@ Vue.filter('formatTimestamp',function(t, part){
       return ms.substring(0,4);
     }
       
-
 });
+
+
+function checkAuthError(error) {
+  if(error.response && ((error.response.status == 401) || (error.response.status == 403) )) {
+      document.cookie = 'sgToken=authError';
+			store.commit('setLoginToken',error.response.status+' Authentication Error');
+  }
+
+}
 
 function getCookie(cname) {
   var name = cname + "=";
@@ -1367,11 +1418,13 @@ function notify (message, kind = 'message', crd = 'general') {
           `+kind+`
         </span>
         <h4 class="title">`+message.title+`</h4>
-        <p class="detail">`+message.detail+`</p>
-        <a href="`+message.type+`" title="More Info" target="_blank" class="doclink">More Info <svg xmlns="http://www.w3.org/2000/svg" width="15.001" height="12.751" viewBox="0 0 15.001 12.751"><g transform="translate(167.001 -31.5) rotate(90)"><path d="M37.875,168.688a.752.752,0,0,1-.53-.219l-5.625-5.626a.75.75,0,0,1,0-1.061l2.813-2.813a.75.75,0,0,1,1.06,1.061l-2.283,2.282,4.566,4.566,4.566-4.566-2.283-2.282a.75.75,0,0,1,1.06-1.061l2.813,2.813a.75.75,0,0,1,0,1.061l-5.625,5.626A.752.752,0,0,1,37.875,168.688Z" transform="translate(0 -1.687)" fill="#00adb5"/><path d="M42.156,155.033l-2.813-2.813a.752.752,0,0,0-1.061,0l-2.813,2.813a.75.75,0,1,0,1.06,1.061l1.533-1.534v5.3a.75.75,0,1,0,1.5,0v-5.3l1.533,1.534a.75.75,0,1,0,1.06-1.061Z" transform="translate(-0.937 0)" fill="#00adb5"/></g></svg></a>
-      </div>
-    `;
+        <p class="detail">`+message.detail+`</p>`;
 
+      if(message.title.search('Authentication Error') == -1)
+        details += `<a href="`+message.type+`" title="More Info" target="_blank" class="doclink">More Info <svg xmlns="http://www.w3.org/2000/svg" width="15.001" height="12.751" viewBox="0 0 15.001 12.751"><g transform="translate(167.001 -31.5) rotate(90)"><path d="M37.875,168.688a.752.752,0,0,1-.53-.219l-5.625-5.626a.75.75,0,0,1,0-1.061l2.813-2.813a.75.75,0,0,1,1.06,1.061l-2.283,2.282,4.566,4.566,4.566-4.566-2.283-2.282a.75.75,0,0,1,1.06-1.061l2.813,2.813a.75.75,0,0,1,0,1.061l-5.625,5.626A.752.752,0,0,1,37.875,168.688Z" transform="translate(0 -1.687)" fill="#00adb5"/><path d="M42.156,155.033l-2.813-2.813a.752.752,0,0,0-1.061,0l-2.813,2.813a.75.75,0,1,0,1.06,1.061l1.533-1.534v5.3a.75.75,0,1,0,1.5,0v-5.3l1.533,1.534a.75.75,0,1,0,1.06-1.061Z" transform="translate(-0.937 0)" fill="#00adb5"/></g></svg></a>`;
+      
+      details += `</div>`;
+    
     if(!!message.fields) {
       message.fields.forEach( function(item, index) {
         $(".form [data-field='"+item+"']").addClass("alert");
@@ -1566,13 +1619,15 @@ $(document).ready(function(){
   
   });
 
-  $(document).on("click", "#main, #side", function() {
+  $(document).on("click", "#main, #side", function(e) {
+
     if($(this).prop("id") != "notifications") {
       $("#notifications.hasTooltip.active").removeClass("active");
       $("#notifications.hasTooltip .message.show").removeClass("show");
       $("#selected--zg-ul-select.open").removeClass("open");
       $("#be-select.active").removeClass("active");
-    } 
+    }
+
   });
 
 
@@ -1761,7 +1816,7 @@ $(document).ready(function(){
     $(".sort th").toggleClass("desc asc")   
   });
 
-  $(document).on("click", "table.backups tr.base td:not(.actions)", function(){
+  $(document).on("click", "table.backups tr.base td:not(.actions), table.pgConfig tr.base td:not(.actions), table.poolConfig tr.base td:not(.actions)", function(){
     $(this).parent().next().toggle().addClass("open");
     $(this).parent().toggleClass("open");
   });

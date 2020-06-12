@@ -220,11 +220,7 @@ var Nav = Vue.component("sg-nav", {
 			}
 			).catch(function(err) {
 				$('#login .warning').fadeIn();
-				if (err.response) {
-					alert(err.response.data);
-					alert(err.response.status);
-					alert(err.response.headers);
-				}
+				//checkAuthError(err);
 			});
 
 		},
@@ -272,10 +268,12 @@ var Nav = Vue.component("sg-nav", {
 		},
 
 		cloneCRD: function() {
-			console.log($('#cloneName').val() + ' / '+ store.state.cloneCRD.data.metadata.name)
+			//console.log($('#cloneName').val() + ' / '+ store.state.cloneCRD.data.metadata.name)
 			
 			if(store.state.cloneCRD.kind == 'SGPoolingConfig')
 				var endpoint = 'sgpoolconfig'
+			else if (store.state.cloneCRD.kind == 'SGPostgresConfig')
+				var endpoint = 'sgpgconfig'
 			else
 				var endpoint = store.state.cloneCRD.kind.toLowerCase()
 
@@ -297,7 +295,13 @@ var Nav = Vue.component("sg-nav", {
 			.catch(function (error) {
 				console.log(error.response);
 				notify(error.response.data,'error',endpoint);
+				$('#clone').fadeOut();
 			});
+		},
+		flushToken: function() {
+			document.cookie = 'sgToken=';
+			store.commit('setLoginToken','401 Authentication Error');
+			console.log('Flushed');
 		}
 
 
