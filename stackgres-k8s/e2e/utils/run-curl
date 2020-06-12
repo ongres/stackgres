@@ -10,10 +10,11 @@ run_curl() {
   local CONTENT_TYPE="application/json"
   local ACCEPT="application/json"
   local DATA_FILENAME=""
-  local USERNAME=$(kubectl get secrets --namespace "$SERVICE_NAMESPACE" "$SERVICE" -o jsonpath="{.data.user}" | base64 -d)
+  local K8S_USERNAME=$(kubectl get secrets --namespace "$SERVICE_NAMESPACE" "$SERVICE" -o jsonpath="{.data.k8sUsername}" | base64 -d)
   local PASSWORD=$(kubectl get secrets --namespace "$SERVICE_NAMESPACE" "$SERVICE" -o jsonpath="{.data.password}" | base64 -d)
-  local AUTHORIZATION="$USERNAME:$PASSWORD"
-  while getopts ":p:n:s:N:r:c:e:d:a:" opt; do
+  local AUTHORIZATION="{ \"apiUsername\": \"$K8S_USERNAME\", \"password\": \"$PASSWORD\" }"
+  local JWT=""
+  while getopts ":p:n:s:N:r:c:e:d:a:j:" opt; do
     case $opt in
       p) POD="$OPTARG"
       ;;
@@ -33,23 +34,35 @@ run_curl() {
       ;;
       a) AUTHORIZATION="$OPTARG";
       ;;
+      j) JWT="$OPTARG";
+      ;;
       \?) echo "Invalid option -$OPTARG" >&2
       return 1
       ;;
     esac
   done
 
+  if [ -n "$AUTHORIZATION" -a -z "$JWT" ]
+  then
+    JWT="$(kubectl exec -i -n "$NAMESPACE" "$POD" -- \
+      curl -d "$AUTHORIZATION" -k "https://$SERVICE.$SERVICE_NAMESPACE.svc.cluster.local/stackgres/auth/login" \
+      -H "Content-Type: $CONTENT_TYPE" \
+      -H "Accept: $ACCEPT" | jq -r .access_token)"
+  fi
+
   if [ -n "${DATA_FILENAME}" ]
   then
     tar cf - "$DATA_FILENAME" | kubectl exec -i -n "$NAMESPACE" "$POD" -- tar xf - -C /tmp
     kubectl exec -i -n "$NAMESPACE" "$POD" -- \
-      curl -u "$AUTHORIZATION" -k "https://$SERVICE.$SERVICE_NAMESPACE.svc.cluster.local/$RESOURCE_PATH" \
+      curl -k "https://$SERVICE.$SERVICE_NAMESPACE.svc.cluster.local/$RESOURCE_PATH" \
+      $(if [ -z "$JWT" ]; then true; else echo "-H \"Authorization: Bearer $JWT\""; fi) \
       -H "Content-Type: $CONTENT_TYPE" \
       -H "Accept: $ACCEPT"  \
       --data @"/tmp/$DATA_FILENAME" -s $(echo $EXTRA_PARAMETERS)
   else
     kubectl exec -i -n "$NAMESPACE" "$POD" -- \
-      curl -u "$AUTHORIZATION" -k "https://$SERVICE.$SERVICE_NAMESPACE.svc.cluster.local/$RESOURCE_PATH" \
+      curl -k "https://$SERVICE.$SERVICE_NAMESPACE.svc.cluster.local/$RESOURCE_PATH" \
+      $(if [ -z "$JWT" ]; then true; else echo "-H \"Authorization: Bearer $JWT\""; fi) \
       -H "Content-Type: $CONTENT_TYPE" \
       -H "Accept: $ACCEPT" \
       -s $(echo $EXTRA_PARAMETERS)
