@@ -28,6 +28,10 @@ You can specify following parameters values:
 | Parameter | Description | Default |
 |:----------|:------------|:--------|
 | `cert.autoapprove` | {{< description stackgres-operator.cert.autoapprove >}} | true |
+| `cert.key` | {{< description stackgres-operator.cert.key >}} | true |
+| `cert.crt` | {{< description stackgres-operator.cert.crt >}} | true |
+| `cert.jwtRsaKey` | {{< description stackgres-operator.cert.jwtRsaKey >}} | true |
+| `cert.jwtRsaPub` | {{< description stackgres-operator.cert.jwtRsaPub >}} | true |
 | `service.loadBalancer.enabled` | {{< description stackgres-operator.service.loadBalancer.enabled >}} | true |
 | `service.loadBalancer.loadBalancerIP` | {{< description stackgres-operator.service.loadBalancer.loadBalancerIP >}} |  |
 | `service.loadBalancer.loadBalancerSourceRanges` | {{< description stackgres-operator.service.loadBalancer.loadBalancerSourceRanges >}} |  |
