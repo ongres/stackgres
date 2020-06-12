@@ -28,6 +28,8 @@ cert:
   autoapprove: true
   # key:
   # crt:
+  # jwtRsaKey:
+  # jwtRsaPub:
 
 service:
   loadBalancer:
@@ -47,8 +49,8 @@ service:
 
 # Custom credentials for the operator's admin user
 authentication:
-#  user: <operator admin user>
-  password: admin
+  user: admin
+#  password: <operator admin password>
 
 prometheus:
   allowAutobind: true

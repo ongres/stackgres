@@ -42,7 +42,8 @@ public class LocalLoginResource {
           verify.verifyCredentials(credentials.getUsername(), credentials.getPassword());
       LOGGER.info("Kubernetes user: {}", k8sUsername);
       String accessToken =
-          TokenUtils.generateTokenString(k8sUsername, credentials.getUsername(), DURATION);
+          TokenUtils.generateTokenString(k8sUsername, credentials.getUsername(), DURATION,
+              "/etc/operator/certs/jwt-rsa.key");
 
       TokenResponse tokenResponse = new ImmutableTokenResponse.Builder()
           .accessToken(accessToken)

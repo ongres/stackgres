@@ -7,11 +7,13 @@ package io.stackgres.apiweb.security;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Paths;
 import java.security.GeneralSecurityException;
 import java.security.PrivateKey;
 import java.util.UUID;
 
 import com.google.common.hash.Hashing;
+import com.google.common.io.Files;
 import io.quarkus.security.AuthenticationFailedException;
 import io.smallrye.jwt.KeyUtils;
 import io.smallrye.jwt.build.Jwt;
@@ -34,11 +36,12 @@ public class TokenUtils {
    * @return the JWT string
    */
   public static String generateTokenString(String k8sUsername,
-      String preferredUsername, long duration) {
+      String preferredUsername, long duration, String privateKeyPath) {
     PrivateKey privateKey;
     try {
-      // TODO: Move path outside (smallrye.jwt.sign.key-location)
-      privateKey = KeyUtils.readPrivateKey("/META-INF/jwt/rsa_private.key");
+      privateKey = KeyUtils.decodePrivateKey(Files.asCharSource(
+          Paths.get(privateKeyPath).toFile(), StandardCharsets.UTF_8)
+          .read());
     } catch (IOException | GeneralSecurityException e) {
       throw new AuthenticationFailedException();
     }

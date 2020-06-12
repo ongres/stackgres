@@ -48,6 +48,7 @@ spec:
                 -subj "/CN={{ .Release.Name }}.{{ .Release.Namespace }}.svc" \
                 -out /tmp/server.csr \
                 -config /tmp/csr.conf
+            openssl rsa -in /tmp/root.key -pubout -out /tmp/root.pem
             
             cat << EOF | kubectl create -f -
             apiVersion: certificates.k8s.io/v1beta1
@@ -77,6 +78,7 @@ spec:
               echo approved
             fi
             KEY="$(cat /tmp/root.key | base64 | tr -d '\n')"
+            PUB="$(cat /tmp/root.pem | base64 | tr -d '\n')"
             CRT="$(kubectl get csr '{{ .Release.Name }}' -o jsonpath='{.status.certificate}')"
             
             if [ -z "$CRT" ]
@@ -88,6 +90,8 @@ spec:
             {{- $values := . }}
             {{- $_ := set $values.Values.cert "crt" "${CRT}" }}
             {{- $_ := set $values.Values.cert "key" "${KEY}" }}
+            {{- $_ := set $values.Values.cert "jwtRsaKey" "${KEY}" }}
+            {{- $_ := set $values.Values.cert "jwtRsaPub" "${PUB}" }}
             cat << EOF > /tmp/validating-webhook-configuration.yaml
             {{- include (print $.Template.BasePath "/validating-webhook-configuration.yaml") . | indent 12 }}
             EOF
@@ -99,6 +103,8 @@ spec:
             EOF
             {{- $_ := set $values.Values.cert "crt" nil }}
             {{- $_ := set $values.Values.cert "key" nil }}
+            {{- $_ := set $values.Values.cert "jwtRsaKey" nil }}
+            {{- $_ := set $values.Values.cert "jwtRsaPub" nil }}
             
             kubectl create -f /tmp/validating-webhook-configuration.yaml \
               || kubectl patch -n '{{ .Release.Namespace }}' validatingwebhookconfiguration '{{ .Release.Name }}' \
