@@ -127,10 +127,12 @@ var Nav = Vue.component("sg-nav", {
 						<div class="header">
 							<h2>Clone {{ clone.kind }}</h2>
 						</div>
+						<label for="cloneNamespace">Namespace <span class="req">*</span></label>
 						<select @change="setCloneNamespace" id="cloneNamespace">
 							<option v-for="namespace in namespaces">{{ namespace }}</option>
 						</select>
 
+						<label for="cloneName">Name <span class="req">*</span></label>
 						<input @keyup="setCloneName" id="cloneName">
 
 						<span class="warning" v-if="nameColission">
@@ -218,6 +220,11 @@ var Nav = Vue.component("sg-nav", {
 			}
 			).catch(function(err) {
 				$('#login .warning').fadeIn();
+				if (err.response) {
+					alert(err.response.data);
+					alert(err.response.status);
+					alert(err.response.headers);
+				}
 			});
 
 		},
@@ -244,7 +251,7 @@ var Nav = Vue.component("sg-nav", {
 
 			var nameColission = false;
 
-			console.log($('#cloneName').val())
+			//console.log($('#cloneName').val())
 			store.commit('setCloneName', $('#cloneName').val());
 			
 			store.state.clusters.forEach(function(item, index){
@@ -266,22 +273,30 @@ var Nav = Vue.component("sg-nav", {
 
 		cloneCRD: function() {
 			console.log($('#cloneName').val() + ' / '+ store.state.cloneCRD.data.metadata.name)
+			
+			if(store.state.cloneCRD.kind == 'SGPoolingConfig')
+				var endpoint = 'sgpoolconfig'
+			else
+				var endpoint = store.state.cloneCRD.kind.toLowerCase()
+
 			const res = axios
 			.post(
-				apiURL+store.state.cloneCRD.kind.toLowerCase(), 
+				apiURL+endpoint, 
 				store.state.cloneCRD.data 
 			)
 			.then(function (response) {
 				//console.log("GOOD");
 				notify(store.state.cloneCRD.kind+' <strong>"'+store.state.cloneCRD.data.metadata.name+'"</strong> cloned successfully', 'message', store.state.cloneCRD.kind.toLowerCase());
 
-				vm.fetchAPI(store.state.cloneCRD.kind.toLowerCase());
-				router.push('/cluster/status/'+store.state.cloneCRD.data.metadata.namespace+'/'+store.state.cloneCRD.data.metadata.name);
+				vm.fetchAPI(endpoint);
+				$('#clone').fadeOut();
+				$('#cloneName, #cloneNamespace').val('');
+				//router.push('/cluster/status/'+store.state.cloneCRD.data.metadata.namespace+'/'+store.state.cloneCRD.data.metadata.name);
 				
 			})
 			.catch(function (error) {
 				console.log(error.response);
-				notify(error.response.data,'error',store.state.cloneCRD.kind.toLowerCase());
+				notify(error.response.data,'error',endpoint);
 			});
 		}
 
