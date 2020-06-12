@@ -11,8 +11,8 @@ run_curl() {
   local ACCEPT="application/json"
   local DATA_FILENAME=""
   local K8S_USERNAME=$(kubectl get secrets --namespace "$SERVICE_NAMESPACE" "$SERVICE" -o jsonpath="{.data.k8sUsername}" | base64 -d)
-  local PASSWORD=$(kubectl get secrets --namespace "$SERVICE_NAMESPACE" "$SERVICE" -o jsonpath="{.data.password}" | base64 -d)
-  local AUTHORIZATION="{ \"apiUsername\": \"$K8S_USERNAME\", \"password\": \"$PASSWORD\" }"
+  local PASSWORD="admin" #$(kubectl get secrets --namespace "$SERVICE_NAMESPACE" "$SERVICE" -o jsonpath="{.data.password}" | base64 -d)
+  local AUTHORIZATION="{ \"username\": \"$K8S_USERNAME\", \"password\": \"$PASSWORD\" }"
   local JWT=""
   while getopts ":p:n:s:N:r:c:e:d:a:j:" opt; do
     case $opt in
