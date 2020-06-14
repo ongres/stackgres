@@ -41,7 +41,7 @@ public class SecretVerificationTest {
         .withData(ImmutableMap.of(
             StackGresContext.REST_K8SUSER_KEY, ResourceUtil.encodeSecret("test"),
             StackGresContext.REST_PASSWORD_KEY,
-            ResourceUtil.encodeSecret(TokenUtils.sha256("test"))))
+            ResourceUtil.encodeSecret(TokenUtils.sha256("testtest"))))
         .build();
     secretVerification = new SecretVerification(secretScanner, new WebApiContext());
   }
@@ -100,7 +100,7 @@ public class SecretVerificationTest {
         .thenReturn(ImmutableList.of(new SecretBuilder(secret)
             .withData(ImmutableMap.of(
                 StackGresContext.REST_PASSWORD_KEY,
-                ResourceUtil.encodeSecret(TokenUtils.sha256("test"))))
+                ResourceUtil.encodeSecret(TokenUtils.sha256("testtest"))))
             .build()));
     assertThrows(AuthenticationFailedException.class,
         () -> secretVerification.verifyCredentials("test", "test"));
@@ -125,7 +125,7 @@ public class SecretVerificationTest {
             .withData(ImmutableMap.of(
                 StackGresContext.REST_K8SUSER_KEY, ResourceUtil.encodeSecret(""),
                 StackGresContext.REST_PASSWORD_KEY,
-                ResourceUtil.encodeSecret(TokenUtils.sha256("test"))))
+                ResourceUtil.encodeSecret(TokenUtils.sha256("testtest"))))
             .build()));
     assertThrows(AuthenticationFailedException.class,
         () -> secretVerification.verifyCredentials("test", "test"));
@@ -139,17 +139,17 @@ public class SecretVerificationTest {
                 StackGresContext.REST_K8SUSER_KEY, ResourceUtil.encodeSecret("test2"),
                 StackGresContext.REST_APIUSER_KEY, ResourceUtil.encodeSecret("test"),
                 StackGresContext.REST_PASSWORD_KEY,
-                ResourceUtil.encodeSecret(TokenUtils.sha256("test"))))
+                ResourceUtil.encodeSecret(TokenUtils.sha256("testtest"))))
             .build()));
     assertEquals("test2", secretVerification.verifyCredentials("test", "test"));
   }
 
   @Test
   public void sha256Encoding_shouldSucceedTest() throws Exception {
-    String sha256enc = TokenUtils.sha256("test");
-    assertEquals("9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08", sha256enc);
-    sha256enc = TokenUtils.sha256("123");
-    assertEquals("a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3", sha256enc);
+    String sha256enc = TokenUtils.sha256("testtest");
+    assertEquals("37268335dd6931045bdcdf92623ff819a64244b53d0e746d438797349d4da578", sha256enc);
+    sha256enc = TokenUtils.sha256("test123");
+    assertEquals("ecd71870d1963316a97e3ac3408c9835ad8cf0f3c1bc703527c30265534f75ae", sha256enc);
   }
 
 }

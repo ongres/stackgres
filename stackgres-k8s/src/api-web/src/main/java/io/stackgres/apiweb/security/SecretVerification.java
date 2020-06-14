@@ -40,7 +40,7 @@ public class SecretVerification {
   public String verifyCredentials(String apiUsername, String password) {
     Objects.requireNonNull(apiUsername, StackGresContext.REST_APIUSER_KEY);
     Objects.requireNonNull(password, StackGresContext.REST_PASSWORD_KEY);
-    String passwordHash = TokenUtils.sha256(password);
+    String passwordHash = TokenUtils.sha256(apiUsername + password);
     return secretScanner.findResourcesInNamespace(namespace)
         .stream()
         .filter(s -> s.getMetadata().getLabels() != null)
