@@ -250,9 +250,7 @@ public class ItHelper {
           + " --set-string operator.image.tag=" + IMAGE_TAG
           + " --set-string operator.image.pullPolicy=Never"
           + " --set-string restapi.image.tag=" + IMAGE_TAG
-          + " --set-string restapi.image.pullPolicy=Never"
-          + " --set-string authentication.user=e2e"
-          + " --set-string authentication.password=test")
+          + " --set-string restapi.image.pullPolicy=Never")
         .filter(EXCLUDE_TTY_WARNING)
         .forEach(LOGGER::info);
       return;
@@ -266,9 +264,7 @@ public class ItHelper {
         + " stackgres-operator"
         + " --namespace stackgres"
         + " /resources/stackgres-operator"
-        + getOperatorExtraOptions(k8s, port)
-        + " --set-string authentication.user=e2e"
-        + " --set-string authentication.password=test")
+        + getOperatorExtraOptions(k8s, port))
       .filter(EXCLUDE_TTY_WARNING)
       .forEach(LOGGER::info);
   }
