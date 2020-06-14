@@ -45,11 +45,10 @@ public class LocalLoginResource {
           TokenUtils.generateTokenString(k8sUsername, credentials.getUsername(), DURATION,
               "/etc/operator/certs/jwt-rsa.key");
 
-      TokenResponse tokenResponse = new ImmutableTokenResponse.Builder()
-          .accessToken(accessToken)
-          .expiresIn(DURATION)
-          .tokenType("Bearer")
-          .build();
+      TokenResponse tokenResponse = new TokenResponse();
+      tokenResponse.setAccessToken(accessToken);
+      tokenResponse.setExpiresIn(DURATION);
+      tokenResponse.setTokenType("Bearer");
 
       return Response.ok(tokenResponse)
           .cacheControl(noCache())

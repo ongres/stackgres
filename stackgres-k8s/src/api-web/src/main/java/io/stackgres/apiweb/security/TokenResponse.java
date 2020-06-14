@@ -10,26 +10,51 @@ import javax.validation.constraints.NotBlank;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.quarkus.runtime.annotations.RegisterForReflection;
-import org.immutables.value.Value;
 
-@Value.Immutable
-@Value.Style(builder = "new")
-@JsonDeserialize(builder = ImmutableTokenResponse.Builder.class)
 @JsonInclude(Include.NON_DEFAULT)
 @RegisterForReflection
-public interface TokenResponse {
+public class TokenResponse {
 
   @JsonProperty(value = "access_token", required = true)
   @NotBlank
-  String getAccessToken();
+  private String accessToken;
 
   @JsonProperty(value = "token_type", required = true)
   @NotBlank
-  String getTokenType();
+  private String tokenType;
 
   @JsonProperty(value = "expires_in", required = true)
-  long getExpiresIn();
+  private long expiresIn;
+
+  public String getAccessToken() {
+    return accessToken;
+  }
+
+  public void setAccessToken(String accessToken) {
+    this.accessToken = accessToken;
+  }
+
+  public String getTokenType() {
+    return tokenType;
+  }
+
+  public void setTokenType(String tokenType) {
+    this.tokenType = tokenType;
+  }
+
+  public long getExpiresIn() {
+    return expiresIn;
+  }
+
+  public void setExpiresIn(long expiresIn) {
+    this.expiresIn = expiresIn;
+  }
+
+  @Override
+  public String toString() {
+    return "TokenResponse [accessToken=" + accessToken + ", tokenType=" + tokenType + ", expiresIn="
+        + expiresIn + "]";
+  }
 
 }

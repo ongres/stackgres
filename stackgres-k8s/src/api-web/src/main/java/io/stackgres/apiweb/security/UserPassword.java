@@ -10,23 +10,39 @@ import javax.validation.constraints.NotBlank;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.quarkus.runtime.annotations.RegisterForReflection;
-import org.immutables.value.Value;
 
-@Value.Immutable
-@Value.Style(builder = "new")
-@JsonDeserialize(builder = ImmutableUserPassword.Builder.class)
 @JsonInclude(Include.NON_DEFAULT)
 @RegisterForReflection
-public interface UserPassword {
+public class UserPassword {
 
   @JsonProperty(value = "username", required = true)
   @NotBlank
-  String getUsername();
+  private String username;
 
   @JsonProperty(value = "password", required = true)
   @NotBlank
-  String getPassword();
+  private String password;
+
+  public String getUsername() {
+    return username;
+  }
+
+  public void setUsername(String username) {
+    this.username = username;
+  }
+
+  public String getPassword() {
+    return password;
+  }
+
+  public void setPassword(String password) {
+    this.password = password;
+  }
+
+  @Override
+  public String toString() {
+    return "UserPassword [username=" + username + ", password=" + password + "]";
+  }
 
 }
