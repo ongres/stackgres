@@ -59,19 +59,19 @@
     <quarkus.version>1.2.1.Final</quarkus.version>
     <kubernetes-client.version>4.7.1</kubernetes-client.version>
     <jool.version>0.9.14</jool.version>
-    <immutables.version>2.8.1</immutables.version>
+    <immutables.version>2.8.8</immutables.version>
     <javax.annotation-api.version>1.3.2</javax.annotation-api.version>
     <javax.validation-api.version>2.0.1.Final</javax.validation-api.version>
     <jsr305.version>3.0.2</jsr305.version>
-    <checkstyle.version>8.32</checkstyle.version>
-    <spotbugs.version>4.0.0-RC1</spotbugs.version>
-    <pmd.version>6.19.0</pmd.version>
+    <checkstyle.version>8.33</checkstyle.version>
+    <spotbugs.version>4.0.3</spotbugs.version>
+    <pmd.version>6.24.0</pmd.version>
     <errorprone.version>2.3.3</errorprone.version>
     <docker-junit-extension.version>1.2.13</docker-junit-extension.version>
     <jersey.version>2.29</jersey.version>
     <mockito.version>3.0.0</mockito.version>
     <log4j.version>2.11.2</log4j.version>
-    <jooq.version>3.13.1</jooq.version>
+    <jooq.version>3.13.2</jooq.version>
     <!-- Plugins versions -->
     <compiler-plugin.version>3.8.1</compiler-plugin.version>
     <jar-plugin.version>3.2.0</jar-plugin.version>
@@ -80,12 +80,12 @@
     <surefire-plugin.version>3.0.0-M3</surefire-plugin.version>
     <failsafe-plugin.version>3.0.0-M3</failsafe-plugin.version>
     <checkstyle-plugin.version>3.1.1</checkstyle-plugin.version>
-    <spotbugs-plugin.version>3.1.12.2</spotbugs-plugin.version>
-    <pmd-plugin.version>3.12.0</pmd-plugin.version>
+    <spotbugs-plugin.version>4.0.0</spotbugs-plugin.version>
+    <pmd-plugin.version>3.13.0</pmd-plugin.version>
     <enforcer-plugin.version>3.0.0-M3</enforcer-plugin.version>
     <dependency-plugin.version>3.1.1</dependency-plugin.version>
     <docker-maven-plugin.version>0.33.0</docker-maven-plugin.version>
-    <jandex-maven-plugin.version>1.0.7</jandex-maven-plugin.version>
+    <jandex-maven-plugin.version>1.0.8</jandex-maven-plugin.version>
     <!-- Checkstyle, SpotBugs and PMD properties -->
     <checks.location>${project.basedir}/checks</checks.location>
     <checkstyle.config.location>${checks.location}/checkstyle/checkstyle.xml</checkstyle.config.location>
@@ -392,6 +392,11 @@
               <linkXRef>false</linkXRef>
             </configuration>
             <dependencies>
+              <dependency>
+                <groupId>net.sourceforge.pmd</groupId>
+                <artifactId>pmd-core</artifactId>
+                <version>${pmd.version}</version>
+              </dependency>
               <dependency>
                 <groupId>net.sourceforge.pmd</groupId>
                 <artifactId>pmd-java</artifactId>

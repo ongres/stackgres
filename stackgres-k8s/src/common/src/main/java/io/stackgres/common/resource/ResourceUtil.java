@@ -139,7 +139,7 @@ public class ResourceUtil {
     return Base64.getEncoder().encodeToString(string.getBytes(StandardCharsets.UTF_8));
   }
 
-  public static String dencodeSecret(String string) {
+  public static String decodeSecret(String string) {
     return new String(Base64.getDecoder().decode(string.getBytes(StandardCharsets.UTF_8)),
         StandardCharsets.UTF_8);
   }

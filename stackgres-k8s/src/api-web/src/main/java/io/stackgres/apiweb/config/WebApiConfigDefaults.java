@@ -11,13 +11,9 @@ public enum WebApiConfigDefaults {
 
   INSTANCE;
 
-  public static final String AUTHENTICATION_SECRET_NAME = INSTANCE.authenticationSecretName;
-
   public static final String RESTAPI_NAMESPACE = INSTANCE.restApiNamespace;
 
   public static final String GRAFANA_EMBEDDED = INSTANCE.grafanaEmbedded;
-
-  private final String authenticationSecretName;
 
   private final String restApiNamespace;
 
@@ -27,8 +23,6 @@ public enum WebApiConfigDefaults {
     try {
       Properties properties = new Properties();
       properties.load(WebApiConfigDefaults.class.getResourceAsStream("/application.properties"));
-      authenticationSecretName = properties
-          .getProperty(WebApiProperty.AUTHENTICATION_SECRET_NAME.systemProperty());
       restApiNamespace = properties.getProperty(WebApiProperty.RESTAPI_NAMESPACE.systemProperty());
       grafanaEmbedded = properties.getProperty(WebApiProperty.GRAFANA_EMBEDDED.systemProperty());
 

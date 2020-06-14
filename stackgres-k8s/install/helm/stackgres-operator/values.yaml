@@ -26,14 +26,16 @@ deploy:
 
 cert:
   autoapprove: true
-  # key: 
-  # crt: 
+  # key:
+  # crt:
+  # jwtRsaKey:
+  # jwtRsaPub:
 
 service:
   loadBalancer:
     # Set to true to expose operator with a load balancer
     enabled: false
-    # LoadBalancer will get created with the IP specified in this field. 
+    # LoadBalancer will get created with the IP specified in this field.
     # This feature depends on whether the underlying cloud-provider supports
     # specifying the loadBalancerIP when a load balancer is created. This field
     # will be ignored if the cloud-provider does not support the feature.
@@ -46,8 +48,8 @@ service:
     # loadBalancerSourceRanges:
 
 # Custom credentials for the operator's admin user
-#authentication:
-#  user: <operator admin user>
+authentication:
+  user: admin
 #  password: <operator admin password>
 
 prometheus:
@@ -64,10 +66,10 @@ grafana:
   # - kubectl get service prometheus-operator-grafana --template $'{{ .metadata.name }}.{{ .metadata.namespace }}.svc\n'
   # webHost: "prometheus-operator-grafana.default.svc"
   #Use follwing fields to indicate a secret where the grafana admin credentials are stored (replace user/password)
-  #secretNamespace: 
-  #secretName: 
-  #secretUserKey: 
-  #secretPasswordKey: 
+  #secretNamespace:
+  #secretName:
+  #secretUserKey:
+  #secretPasswordKey:
   datasourceName: Prometheus
   dashboardId: 9628
   # Create grafana dashboard for postgres exporter and copy/paste share URL:
@@ -83,7 +85,7 @@ grafana:
 developer: {}
   # logLevel: trace
   # showStackTraces: true
-  # enableJvmDebug: false # Only work with JVM version and allow connect 
+  # enableJvmDebug: false # Only work with JVM version and allow connect
   #                       # on port 8000 of operator Pod with jdb or similar
   # enableJvmDebugSuspend: false
   # externalOperatorIp: 172.17.0.1

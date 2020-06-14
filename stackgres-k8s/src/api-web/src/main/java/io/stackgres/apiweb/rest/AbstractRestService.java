@@ -7,7 +7,6 @@ package io.stackgres.apiweb.rest;
 
 import java.util.List;
 
-import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.NotFoundException;
@@ -17,6 +16,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 
 import io.fabric8.kubernetes.client.CustomResource;
+import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.dto.ResourceDto;
 import io.stackgres.apiweb.transformer.ResourceTransformer;
 import io.stackgres.common.resource.CustomResourceFinder;
@@ -48,7 +48,7 @@ public abstract class AbstractRestService<T extends ResourceDto, R extends Custo
    * @throws RuntimeException if no custom resource of type <code>{R}</code> is defined
    */
   @GET
-  @RolesAllowed(RestAuthenticationRoles.ADMIN)
+  @Authenticated
   @Override
   public List<T> list() {
     return Seq.seq(scanner.getResources())
@@ -65,7 +65,7 @@ public abstract class AbstractRestService<T extends ResourceDto, R extends Custo
    */
   @Path("/{namespace}/{name}")
   @GET
-  @RolesAllowed(RestAuthenticationRoles.ADMIN)
+  @Authenticated
   @Override
   public T get(@PathParam("namespace") String namespace, @PathParam("name") String name) {
     return finder.findByNameAndNamespace(name, namespace)
@@ -78,7 +78,7 @@ public abstract class AbstractRestService<T extends ResourceDto, R extends Custo
    * @param resource the resource to create
    */
   @POST
-  @RolesAllowed(RestAuthenticationRoles.ADMIN)
+  @Authenticated
   @Override
   public void create(T resource) {
     scheduler.create(transformer.toCustomResource(resource, null));
@@ -89,7 +89,7 @@ public abstract class AbstractRestService<T extends ResourceDto, R extends Custo
    * @param resource the resource to delete
    */
   @DELETE
-  @RolesAllowed(RestAuthenticationRoles.ADMIN)
+  @Authenticated
   @Override
   public void delete(T resource) {
     scheduler.delete(transformer.toCustomResource(resource, null));
@@ -100,7 +100,7 @@ public abstract class AbstractRestService<T extends ResourceDto, R extends Custo
    * @param resource the resource to delete
    */
   @PUT
-  @RolesAllowed(RestAuthenticationRoles.ADMIN)
+  @Authenticated
   @Override
   public void update(T resource) {
     scheduler.update(transformer.toCustomResource(resource,

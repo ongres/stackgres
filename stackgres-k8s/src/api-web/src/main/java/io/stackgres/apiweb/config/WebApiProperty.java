@@ -8,8 +8,7 @@ package io.stackgres.apiweb.config;
 public enum WebApiProperty {
 
   RESTAPI_NAMESPACE("stackgres.restapiNamespace"),
-  GRAFANA_EMBEDDED("stackgres.prometheus.grafanaEmbedded"),
-  AUTHENTICATION_SECRET_NAME("stackgres.authentication.secretName");
+  GRAFANA_EMBEDDED("stackgres.prometheus.grafanaEmbedded");
 
   private final String systemProperty;
 

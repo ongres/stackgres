@@ -309,23 +309,23 @@ test_dependency_api_error(){
 test_authentication_api_error() {
   local HTTP_STATUS
 
-  HTTP_STATUS="$(run_curl -a e2e:tets -r "stackgres/sgpoolconfig"  -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
+  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/sgpoolconfig"  -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
 
   check_authentication_error
 
-  HTTP_STATUS="$(run_curl -a e2e:tets -r "stackgres/sgpoolconfig/$CLUSTER_NAMESPACE/$PGPOOLING" -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
+  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/sgpoolconfig/$CLUSTER_NAMESPACE/$PGPOOLING" -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
 
   check_authentication_error
 
-  HTTP_STATUS="$(run_curl -a e2e:tets -r "stackgres/sgpoolconfig" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-pgpooling.json" -e '-X POST -w %{http_code} -o /dev/null')"
+  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/sgpoolconfig" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-pgpooling.json" -e '-X POST -w %{http_code} -o /dev/null')"
 
   check_authentication_error
 
-  HTTP_STATUS="$(run_curl -a e2e:tets -r "stackgres/sgpoolconfig" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-pgpooling.json" -e '-X PUT -w %{http_code} -o /dev/null')"
+  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/sgpoolconfig" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-pgpooling.json" -e '-X PUT -w %{http_code} -o /dev/null')"
 
   check_authentication_error
 
-  HTTP_STATUS="$(run_curl -a e2e:tets -r "stackgres/sgpoolconfig" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-pgpooling.json" -e '-X DELETE -w %{http_code} -o /dev/null')"
+  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/sgpoolconfig" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-pgpooling.json" -e '-X DELETE -w %{http_code} -o /dev/null')"
 
   check_authentication_error
 }

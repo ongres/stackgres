@@ -58,6 +58,7 @@ compile:
     - 'mvn $MAVEN_CLI_OPTS clean verify -P safer'
   artifacts:
     expire_in: 1 week
+    when: always
     paths:
       - stackgres-k8s/src/target
       - stackgres-k8s/src/*/target
@@ -78,6 +79,7 @@ build documentation:
   - cp -a "doc/public/$STACKGRES_VERSION" doc/public/latest
   artifacts:
     expire_in: 1 week
+    when: always
     paths:
     - doc/public
 
@@ -97,6 +99,7 @@ native image:
     - 'cp $GRAALVM_HOME/jre/lib/security/cacerts stackgres-k8s/src/api-web/target/'
   artifacts:
     expire_in: 1 week
+    when: always
     paths:
       - stackgres-k8s/src/operator/target/libsunec.so
       - stackgres-k8s/src/operator/target/cacerts
@@ -196,6 +199,7 @@ integration test:
       - $DO_EXTERNAL
   artifacts:
     expire_in: 1 week
+    when: always
     paths:
     - stackgres-k8s/src/operator/target/e2e
 
@@ -220,6 +224,7 @@ integration test jvm image:
         -Dit.skipBuildContainer=true
   artifacts:
     expire_in: 1 week
+    when: always
     paths:
     - stackgres-k8s/src/operator/target/e2e
 
@@ -252,6 +257,7 @@ integration test native image:
       - $DO_NATIVE
   artifacts:
     expire_in: 1 week
+    when: always
     paths:
     - stackgres-k8s/src/operator/target/e2e
 
@@ -271,7 +277,7 @@ deploy jvm image:
     - 'buildah push --format=docker --authfile $REGISTRY_AUTH_FILE $OPERATOR_IMAGE_NAME "docker://docker.io/$OPERATOR_IMAGE_UPLOAD_NAME"'
     - 'buildah pull docker-daemon:"$RESTAPI_IMAGE_NAME"'
     - 'buildah push --format=docker --authfile $REGISTRY_AUTH_FILE $RESTAPI_IMAGE_NAME "docker://docker.io/$RESTAPI_IMAGE_UPLOAD_NAME"'
-    
+
   only:
     variables:
       - $CI_COMMIT_REF_NAME == "development"

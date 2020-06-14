@@ -284,7 +284,7 @@ public class ClusterReconciliationCycle
       StackGresCluster cluster, KubernetesClient client,
       StackGresClusterSidecarResourceFactory<T> sidecar) throws Exception {
     Optional<T> sidecarConfig = sidecar.getConfig(cluster, client);
-    return new SidecarEntry<T>(sidecar, sidecarConfig);
+    return new SidecarEntry<>(sidecar, sidecarConfig);
   }
 
   private Optional<StackGresPostgresConfig> getPostgresConfig(StackGresCluster cluster,
@@ -497,7 +497,7 @@ public class ClusterReconciliationCycle
                 .map(secret -> secret
                     .getData()
                     .get(secretKeySelector.getKey()))
-                .map(ResourceUtil::dencodeSecret)
+                .map(ResourceUtil::decodeSecret)
                 .orElseThrow(() -> new IllegalStateException(
                     "Key " + secretKeySelector.getKey()
                         + " not found in secret " + namespace + "."

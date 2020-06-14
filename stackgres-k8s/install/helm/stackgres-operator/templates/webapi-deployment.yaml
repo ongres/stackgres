@@ -168,6 +168,10 @@ spec:
                 path: root.key
               - key: server.crt
                 path: server.crt
+              - key: jwt-rsa.key
+                path: jwt-rsa.key
+              - key: jwt-rsa.pub
+                path: jwt-rsa.pub
         - name: operator-nginx-template
           configMap:
             name: {{ .Values.restapi.name }}-nginx

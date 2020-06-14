@@ -124,7 +124,7 @@ public class DistributedLogsFetcherImpl implements DistributedLogsFetcher {
     return postgresConnectionManager.getConnection(
         serviceName + "." + namespace,
         "postgres",
-        ResourceUtil.dencodeSecret(secret.getData().get("superuser-password")),
+        ResourceUtil.decodeSecret(secret.getData().get("superuser-password")),
         FluentdUtil.databaseName(
             cluster.getMetadata().getNamespace(),
             cluster.getMetadata().getName()));

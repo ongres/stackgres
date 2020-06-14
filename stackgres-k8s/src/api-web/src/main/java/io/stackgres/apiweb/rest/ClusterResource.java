@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-import javax.annotation.security.RolesAllowed;
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.Consumes;
@@ -23,6 +23,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
 import com.google.common.collect.ImmutableMap;
+import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.distributedlogs.DistributedLogsFetcher;
 import io.stackgres.apiweb.distributedlogs.FullTextSearchQuery;
 import io.stackgres.apiweb.distributedlogs.ImmutableDistributedLogsQueryParameters;
@@ -41,6 +42,7 @@ import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple2;
 
 @Path("/stackgres/sgcluster")
+@RequestScoped
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class ClusterResource
@@ -76,13 +78,13 @@ public class ClusterResource
     this.distributedLogsFetcher = null;
   }
 
-  @RolesAllowed(RestAuthenticationRoles.ADMIN)
+  @Authenticated
   @Override
   public List<ClusterDto> list() {
     return clusterScanner.getResources();
   }
 
-  @RolesAllowed(RestAuthenticationRoles.ADMIN)
+  @Authenticated
   @Override
   public ClusterDto get(String namespace, String name) {
     return clusterFinder.findByNameAndNamespace(name, namespace)
@@ -94,7 +96,7 @@ public class ClusterResource
    */
   @GET
   @Path("/status/{namespace}/{name}")
-  @RolesAllowed(RestAuthenticationRoles.ADMIN)
+  @Authenticated
   public ClusterResourceConsumtionDto status(@PathParam("namespace") String namespace,
                                              @PathParam("name") String name) {
     return clusterResourceConsumptionFinder.findByNameAndNamespace(name, namespace)
@@ -106,7 +108,7 @@ public class ClusterResource
    */
   @GET
   @Path("/logs/{namespace}/{name}")
-  @RolesAllowed(RestAuthenticationRoles.ADMIN)
+  @Authenticated
   public List<ClusterLogEntryDto> logs(
       @PathParam("namespace") String namespace,
       @PathParam("name") String name,

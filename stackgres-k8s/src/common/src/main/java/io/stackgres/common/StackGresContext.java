@@ -30,7 +30,8 @@ public enum StackGresContext {
   public static final String DEMOTE_ROLE = "demote";
   public static final String UNINITIALIZED_ROLE = "uninitialized";
   public static final String STANDBY_LEADER_ROLE = "standby_leader";
-  public static final String REST_USER_KEY = "user";
+  public static final String REST_APIUSER_KEY = "apiUsername";
+  public static final String REST_K8SUSER_KEY = "k8sUsername";
   public static final String REST_PASSWORD_KEY = "password";
   public static final String DISTRIBUTED_LOGS_APP_NAME = "StackGresDistributedLogs";
   public static final String DISTRIBUTED_LOGS_CLUSTER_NAME_KEY = "distributed-logs-name";
@@ -38,6 +39,9 @@ public enum StackGresContext {
   public static final String DISTRIBUTED_LOGS_CLUSTER_UID_KEY = "distributed-logs-uid";
   public static final String DISTRIBUTED_LOGS_CLUSTER_KEY = "distributed-logs-cluster";
   public static final String DISTRIBUTED_LOGS_BACKUP_KEY = "distributed-logs-backup";
+
+  public static final String AUTH_KEY = "api.stackgres.io/auth";
+  public static final String AUTH_USER_VALUE = "user";
 
   public static final String KUBECTL_IMAGE = "bitnami/kubectl:1.18.3";
   public static final String BUSYBOX_IMAGE = "busybox:1.31.1";
