@@ -1,0 +1,39 @@
+#!/bin/sh
+
+e2e_exclusive_lock() {
+  true
+}
+
+e2e_test_install() {
+  delete_operator
+
+  install_operator \
+    --set wait=false \
+    --disable-openapi-validation
+
+  kubectl wait -n stackgres pod/stackgres-operator --for=condition=Completed
+}
+
+e2e_test_uninstall() {
+  delete_operator
+  install_operator
+}
+
+e2e_test() {
+  run_test "Check if the '--set wait=false' works properly" check_wait_false
+}
+
+
+check_wait_false() {
+  local SERVICE
+
+  SERVICE="$CLUSTER_NAME-stackgres-operator"
+
+  if wait_until kubectl get services -n "$CLUSTER_NAMESPACE" $SERVICE
+  then
+    echo "Exporter service was created"
+  else
+    echo "Exporter service was not created"
+    return 1 
+  fi
+}
