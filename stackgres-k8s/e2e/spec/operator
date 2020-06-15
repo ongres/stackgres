@@ -1,0 +1,51 @@
+#!/bin/sh
+
+e2e_exclusive_lock() {
+  true
+}
+
+e2e_test_install() {
+  delete_operator
+}
+
+e2e_test_uninstall() {
+  delete_operator
+  install_operator
+  wait_pods_running "stackgres" 2
+
+  helm_cleanup_chart "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+
+  k8s_async_cleanup_namespace "$CLUSTER_NAMESPACE"
+}
+
+e2e_test() {
+  run_test "Check that operator can be installed" check_operator_install
+  run_test "Check that operator can be upgrade with same values" check_operator_upgrade
+  run_test "Check that operator can be deleted" check_operator_delete
+  run_test "Check that operator can be installed from outside" check_operator_install_outside
+  run_test "Check that operator can be installed with load balancer" check_operator_install_load_balancer
+}
+
+check_operator_install() {
+  install_operator
+}
+
+check_operator_upgrade() {
+  upgrade_operator
+}
+
+check_operator_delete() {
+  delete_operator
+}
+
+check_operator_install_outside() {
+  delete_operator
+
+  install_operator --set-string service.type=NodePort --set service.nodePort=31111
+}
+
+check_operator_install_load_balancer() {
+  delete_operator
+
+  install_operator --set service.loadBalancer.enabled=true
+}
