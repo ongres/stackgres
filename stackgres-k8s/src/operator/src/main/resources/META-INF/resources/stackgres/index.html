@@ -167,6 +167,18 @@
 			table.pgConfig tr.details.open > td:first-child:before, table.poolConfig tr.details.open > td:first-child:before {
 				top: -23px;
 			}
+
+			td.inlineList ul {
+				list-style: none;
+			}
+
+			td.inlineList li {
+				display: inline-block;
+			}
+
+			td.inlineList li:not(:last-child):after {
+				content: ', ';
+			}
 		</style>
 	</head>
 <body>
