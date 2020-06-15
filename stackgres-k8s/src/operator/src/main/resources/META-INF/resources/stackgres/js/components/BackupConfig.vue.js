@@ -62,27 +62,27 @@ var BackupConfig = Vue.component("backup-config", {
 								<td class="hasTooltip">
 									<span>{{ conf.name }}</span>
 								</td>
-								<td>
+								<td class="fontZero">
 									<template v-if="typeof conf.data.spec.baseBackups.retention !== 'undefined'">
 										{{ conf.data.spec.baseBackups.retention }}
 									</template>
 								</td>
-								<td>
+								<td class="fontZero">
 									<template v-if="typeof conf.data.spec.baseBackups.retention !== 'undefined'">
 										{{ conf.data.spec.baseBackups.cronSchedule | prettyCRON }}
 									</template>
 								</td>
-								<td>
+								<td class="fontZero">
 									<template v-if="typeof conf.data.spec.baseBackups.retention !== 'undefined'">
 										{{ conf.data.spec.baseBackups.compression }}
 									</template>
 								</td>
-								<td>
+								<td class="fontZero">
 									<template v-if="( (typeof conf.data.spec.baseBackups.performance !== 'undefined') && (typeof conf.data.spec.baseBackups.performance.uploadDiskConcurrency !== 'undefined') )">
 										{{ conf.data.spec.baseBackups.performance.uploadDiskConcurrency }}
 									</template>
 								</td>
-								<td>
+								<td class="fontZero">
 									{{ conf.data.spec.storage.type }}
 								</td>
 								<td class="actions">
@@ -99,111 +99,159 @@ var BackupConfig = Vue.component("backup-config", {
 								</td>
 							</tr>
 							<tr :class="[ $route.params.name == conf.name ? 'open' : '', 'sgbackupconfig-'+conf.data.metadata.namespace+'-'+conf.name ]" class="details" :style="$route.params.name == conf.name ? 'display: table-row;' : ''">
-								<td colspan="4">
-									<ul class="yaml">
-										<template v-if="conf.data.spec.storage.type === 's3'">
-											<li>
-												<strong class="label">bucket:</strong> {{ conf.data.spec.storage.s3.bucket }}
-											</li>
-											<li v-if="typeof conf.data.spec.storage.s3.path !== 'undefined'">
-												<strong class="label">path:</strong> {{ conf.data.spec.storage.s3.path }}
-											</li>
-											<li>
-												<strong class="label">awsCredentials:</strong> 
-												<ul>
-													<li>
-														<strong class="label">accessKeyId:</strong> ****
-													</li>
-													<li>
-														<strong class="label">secretAccessKey:</strong> ****
-													</li>
-												</ul>
-											</li>
-											<li v-if="typeof conf.data.spec.storage.s3.region !== 'undefined'">
-												<strong class="label">region:</strong> {{ conf.data.spec.storage.s3.region }}
-											</li>
-											<li v-if="typeof conf.data.spec.storage.s3.storageClass !== 'undefined'">
-												<strong class="label">storageClass:</strong> {{ conf.data.spec.storage.s3.storageClass }}
-											</li>
-										</template>
-										<template v-else-if="conf.data.spec.storage.type === 's3Compatible'">
-											<li>
-												<strong class="label">bucket:</strong> {{ conf.data.spec.storage.s3Compatible.bucket }}
-											</li>
-											<li v-if="typeof conf.data.spec.storage.s3Compatible.path !== 'undefined'">
-												<strong class="label">path:</strong> {{ conf.data.spec.storage.s3Compatible.path }}
-											</li>
-											<li>
-												<strong class="label">awsCredentials:</strong> 
-												<ul>
-													<li>
-														<strong class="label">accessKeyId:</strong> ****
-													</li>
-													<li>
-														<strong class="label">secretAccessKey:</strong> ****
-													</li>
-												</ul>
-											</li>
-											<li v-if="typeof conf.data.spec.storage.s3Compatible.region !== 'undefined'">
-												<strong class="label">region:</strong> {{ conf.data.spec.storage.s3Compatible.region }}
-											</li>
-											<li v-if="typeof conf.data.spec.storage.s3Compatible.storageClass !== 'undefined'">
-												<strong class="label">storageClass:</strong> {{ conf.data.spec.storage.s3Compatible.storageClass }}
-											</li>
-											<li v-if="typeof conf.data.spec.storage.s3Compatible.endpoint !== 'undefined'">
-												<strong class="label">endpoint:</strong> {{ conf.data.spec.storage.s3Compatible.endpoint }}
-											</li>
-											<li v-if="typeof conf.data.spec.storage.s3Compatible.enablePathStyleAddressing !== 'undefined'">
-												<strong class="label">enablePathStyleAddressing:</strong> {{ conf.data.spec.storage.s3Compatible.enablePathStyleAddressing }}
-											</li>
-										</template>
-										<template v-else-if="conf.data.spec.storage.type === 'gcs'">
-											<li>
-												<strong class="label">bucket:</strong> {{ conf.data.spec.storage.gcs.bucket }}
-											</li>
-											<li v-if="typeof conf.data.spec.storage.gcs.path !== 'undefined'">
-												<strong class="label">path:</strong> {{ conf.data.spec.storage.gcs.path }}
-											</li>
-											<li>
-												<strong class="label">gcpCredentials:</strong> 
-												<ul>
-													<li>
-														<strong class="label">serviceAccountJSON:</strong> ****
-													</li>
-												</ul>
-											</li>
-										</template>
-										<template v-else-if="conf.data.spec.storage.type === 'azureBlob'">
-											<li>
-												<strong class="label">bucket:</strong> {{ conf.data.spec.storage.azureBlob.bucket }}
-											</li>
-											<li v-if="typeof conf.data.spec.storage.azureBlob.path !== 'undefined'">
-												<strong class="label">path:</strong> {{ conf.data.spec.storage.azureBlob.path }}
-											</li>
-											<li>
-												<strong class="label">azureCredentials:</strong> 
-												<ul>
-													<li>
-														<strong class="label">storageAccount:</strong> ****
-													</li>
-													<li>
-														<strong class="label">accessKey:</strong> ****
-													</li>
-												</ul>
-											</li>
-										</template>
-									</ul>
-								</td>
-								<td colspan="4" v-if="conf.data.status.clusters.length" style="vertical-align: top">
-									<span class="title">Used On</span>
-									<ul class="usedOn">
-										<li v-for="c in conf.data.status.clusters">
-											{{ c }}
-											<router-link :to="'/cluster/status/'+currentNamespace+'/'+c" title="Cluster Details">
-												<svg xmlns="http://www.w3.org/2000/svg" width="18.556" height="14.004" viewBox="0 0 18.556 14.004"><g transform="translate(0 -126.766)"><path d="M18.459,133.353c-.134-.269-3.359-6.587-9.18-6.587S.232,133.084.1,133.353a.93.93,0,0,0,0,.831c.135.269,3.36,6.586,9.18,6.586s9.046-6.317,9.18-6.586A.93.93,0,0,0,18.459,133.353Zm-9.18,5.558c-3.9,0-6.516-3.851-7.284-5.142.767-1.293,3.382-5.143,7.284-5.143s6.516,3.85,7.284,5.143C15.795,135.06,13.18,138.911,9.278,138.911Z" transform="translate(0 0)"/><path d="M9.751,130.857a3.206,3.206,0,1,0,3.207,3.207A3.21,3.21,0,0,0,9.751,130.857Z" transform="translate(-0.472 -0.295)"/></g></svg>
-											</router-link>
-										</li>
-									</ul>
+								<td colspan="7">
+									<div class="configurationDetails">
+										<span class="title">Configuration Details</span>	
+										<table>
+											<tbody>
+												<tr v-if="typeof conf.data.spec.baseBackups.retention !== 'undefined'">
+													<td class="label">Retention</td>
+													<td>
+														{{ conf.data.spec.baseBackups.retention }}
+													</td>
+												</tr>
+												<tr v-if="typeof conf.data.spec.baseBackups.retention !== 'undefined'">
+													<td class="label">Full Schedule</td>
+													<td>
+														{{ conf.data.spec.baseBackups.cronSchedule | prettyCRON }}
+													</td>
+												</tr>
+												<tr v-if="typeof conf.data.spec.baseBackups.retention !== 'undefined'">
+													<td class="label">
+														Compression Method
+													</td>
+													<td>
+														{{ conf.data.spec.baseBackups.compression }}
+													</td>
+												</tr>
+												<tr v-if="( (typeof conf.data.spec.baseBackups.performance !== 'undefined') && (typeof conf.data.spec.baseBackups.performance.uploadDiskConcurrency !== 'undefined') )">
+													<td class="label">
+														Upload Disk Concurrency
+													</td>
+													<td>
+														{{ conf.data.spec.baseBackups.performance.uploadDiskConcurrency }}
+													</td>
+												</tr>
+												<tr>
+													<td class="label">
+														Storage Type
+													</td>
+													<td>
+														{{ conf.data.spec.storage.type }}
+													</td>
+												</tr>
+												<tr v-if="conf.data.status.clusters.length">
+													<td class="label">Used on</td>
+													<td class="usedOn">
+														<ul>
+															<li v-for="c in conf.data.status.clusters">
+																{{ c }}
+																<router-link :to="'/cluster/status/'+currentNamespace+'/'+c" title="Cluster Details">
+																	<svg xmlns="http://www.w3.org/2000/svg" width="18.556" height="14.004" viewBox="0 0 18.556 14.004"><g transform="translate(0 -126.766)"><path d="M18.459,133.353c-.134-.269-3.359-6.587-9.18-6.587S.232,133.084.1,133.353a.93.93,0,0,0,0,.831c.135.269,3.36,6.586,9.18,6.586s9.046-6.317,9.18-6.586A.93.93,0,0,0,18.459,133.353Zm-9.18,5.558c-3.9,0-6.516-3.851-7.284-5.142.767-1.293,3.382-5.143,7.284-5.143s6.516,3.85,7.284,5.143C15.795,135.06,13.18,138.911,9.278,138.911Z" transform="translate(0 0)"/><path d="M9.751,130.857a3.206,3.206,0,1,0,3.207,3.207A3.21,3.21,0,0,0,9.751,130.857Z" transform="translate(-0.472 -0.295)"/></g></svg>
+																</router-link>
+															</li>
+														</ul>
+													</td>
+												</tr>
+											</tbody>
+										</table>
+									</div>
+									<div class="configurationDetails storageDetails">
+										<span class="title">Storage Details</span>	
+										<ul class="yaml">
+											<template v-if="conf.data.spec.storage.type === 's3'">
+												<li>
+													<strong class="label">bucket:</strong> {{ conf.data.spec.storage.s3.bucket }}
+												</li>
+												<li v-if="typeof conf.data.spec.storage.s3.path !== 'undefined'">
+													<strong class="label">path:</strong> {{ conf.data.spec.storage.s3.path }}
+												</li>
+												<li>
+													<strong class="label">awsCredentials:</strong> 
+													<ul>
+														<li>
+															<strong class="label">accessKeyId:</strong> ****
+														</li>
+														<li>
+															<strong class="label">secretAccessKey:</strong> ****
+														</li>
+													</ul>
+												</li>
+												<li v-if="typeof conf.data.spec.storage.s3.region !== 'undefined'">
+													<strong class="label">region:</strong> {{ conf.data.spec.storage.s3.region }}
+												</li>
+												<li v-if="typeof conf.data.spec.storage.s3.storageClass !== 'undefined'">
+													<strong class="label">storageClass:</strong> {{ conf.data.spec.storage.s3.storageClass }}
+												</li>
+											</template>
+											<template v-else-if="conf.data.spec.storage.type === 's3Compatible'">
+												<li>
+													<strong class="label">bucket:</strong> {{ conf.data.spec.storage.s3Compatible.bucket }}
+												</li>
+												<li v-if="typeof conf.data.spec.storage.s3Compatible.path !== 'undefined'">
+													<strong class="label">path:</strong> {{ conf.data.spec.storage.s3Compatible.path }}
+												</li>
+												<li>
+													<strong class="label">awsCredentials:</strong> 
+													<ul>
+														<li>
+															<strong class="label">accessKeyId:</strong> ****
+														</li>
+														<li>
+															<strong class="label">secretAccessKey:</strong> ****
+														</li>
+													</ul>
+												</li>
+												<li v-if="typeof conf.data.spec.storage.s3Compatible.region !== 'undefined'">
+													<strong class="label">region:</strong> {{ conf.data.spec.storage.s3Compatible.region }}
+												</li>
+												<li v-if="typeof conf.data.spec.storage.s3Compatible.storageClass !== 'undefined'">
+													<strong class="label">storageClass:</strong> {{ conf.data.spec.storage.s3Compatible.storageClass }}
+												</li>
+												<li v-if="typeof conf.data.spec.storage.s3Compatible.endpoint !== 'undefined'">
+													<strong class="label">endpoint:</strong> {{ conf.data.spec.storage.s3Compatible.endpoint }}
+												</li>
+												<li v-if="typeof conf.data.spec.storage.s3Compatible.enablePathStyleAddressing !== 'undefined'">
+													<strong class="label">enablePathStyleAddressing:</strong> {{ conf.data.spec.storage.s3Compatible.enablePathStyleAddressing }}
+												</li>
+											</template>
+											<template v-else-if="conf.data.spec.storage.type === 'gcs'">
+												<li>
+													<strong class="label">bucket:</strong> {{ conf.data.spec.storage.gcs.bucket }}
+												</li>
+												<li v-if="typeof conf.data.spec.storage.gcs.path !== 'undefined'">
+													<strong class="label">path:</strong> {{ conf.data.spec.storage.gcs.path }}
+												</li>
+												<li>
+													<strong class="label">gcpCredentials:</strong> 
+													<ul>
+														<li>
+															<strong class="label">serviceAccountJSON:</strong> ****
+														</li>
+													</ul>
+												</li>
+											</template>
+											<template v-else-if="conf.data.spec.storage.type === 'azureBlob'">
+												<li>
+													<strong class="label">bucket:</strong> {{ conf.data.spec.storage.azureBlob.bucket }}
+												</li>
+												<li v-if="typeof conf.data.spec.storage.azureBlob.path !== 'undefined'">
+													<strong class="label">path:</strong> {{ conf.data.spec.storage.azureBlob.path }}
+												</li>
+												<li>
+													<strong class="label">azureCredentials:</strong> 
+													<ul>
+														<li>
+															<strong class="label">storageAccount:</strong> ****
+														</li>
+														<li>
+															<strong class="label">accessKey:</strong> ****
+														</li>
+													</ul>
+												</li>
+											</template>
+										</ul>
+									</div>
 								</td>
 							</tr>
 						</template>
@@ -267,8 +315,9 @@ var BackupConfig = Vue.component("backup-config", {
 
 		$('tr.base').click(function() {
 			var backupDetails = $(this).next();
-			backupDetails.toggleClass("show");
-			$('tr.details').not(backupDetails).removeClass("show");
+			$(this).toggleClass("open");
+			backupDetails.toggleClass("show open");
+			$('tr.details').not(backupDetails).removeClass("show open");
 			$(this).find('td:first').removeClass("hasTooltip");
 		});
 	}

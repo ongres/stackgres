@@ -817,16 +817,7 @@ const vm = new Vue({
       //console.log("TOKEN: "+loginToken)
 
       if(store.state.loginToken.search('Authentication Error') !== -1) {
-        notify(
-          {
-            title: store.state.loginToken,
-            detail: 'There was an authentication error while trying to fetch the information from the API, please refresh the window and try again.'
-          },
-          'error'
-        );
-
         clearInterval(this.pooling);
-
       } else if (!loginToken.length) {
         if(!store.state.loginToken.length) {
           $('#signup').addClass('login').fadeIn();
@@ -1296,7 +1287,18 @@ Vue.filter('formatTimestamp',function(t, part){
 function checkAuthError(error) {
   if(error.response && ((error.response.status == 401) || (error.response.status == 403) )) {
       document.cookie = 'sgToken=authError';
-			store.commit('setLoginToken',error.response.status+' Authentication Error');
+      if(store.state.loginToken.search('Authentication Error') == -1) {
+        notify(
+          {
+            title: error.response.status+' Authentication Error',
+            detail: 'There was an authentication error while trying to fetch the information from the API, please logout and try again.'
+          },
+          'error'
+        )
+      }
+      store.commit('setLoginToken',error.response.status+' Authentication Error');
+      
+
   }
 
 }
@@ -1823,7 +1825,7 @@ $(document).ready(function(){
     $(".sort th").toggleClass("desc asc")   
   });
 
-  $(document).on("click", "table.backups tr.base td:not(.actions), table.pgConfig tr.base td:not(.actions), table.poolConfig tr.base td:not(.actions)", function(){
+  $(document).on("click", "table.backups tr.base td:not(.actions), table.profiles tr.base td:not(.actions), table.pgConfig tr.base td:not(.actions), table.poolConfig tr.base td:not(.actions)", function(){
     $(this).parent().next().toggle().addClass("open");
     $(this).parent().toggleClass("open");
   });
