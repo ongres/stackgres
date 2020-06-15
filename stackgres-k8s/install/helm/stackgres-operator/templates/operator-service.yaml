@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: {{ .Release.Name }}
+spec:
+  type: ClusterIP
+  selector:
+    app: {{ .Release.Name }}
+  ports:
+    - name: https
+      protocol: TCP
+      port: 443
+      targetPort: https
+{{ if and .Values.developer.externalOperatorIp .Values.developer.externalOperatorPort }}
+---
+kind: Service
+apiVersion: v1
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: {{ .Release.Name }}-api
+spec:
+  ports:
+   - port: 8080
+     targetPort: {{ .Values.developer.externalOperatorPort }}
+---
+kind: Endpoints
+apiVersion: v1
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: {{ .Release.Name }}-api
+subsets:
+ - addresses:
+    - ip: "{{ .Values.developer.externalOperatorIp }}"
+   ports:
+    - port: {{ .Values.developer.externalOperatorPort }}
+{{ end }}
