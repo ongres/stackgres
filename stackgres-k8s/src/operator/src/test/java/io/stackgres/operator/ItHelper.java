@@ -94,14 +94,14 @@ public class ItHelper {
             + "  echo 'Timeout while trying to kill unwanted processes'\n"
             + "  exit 1\n"
             + "fi\n")
-      .forEach(line -> LOGGER.info(line));
+      .forEach(LOGGER::info);
   }
 
   /**
    * IT helper method.
    */
   public static void copyResources(Container k8s) throws Exception {
-    k8s.execute("rm", "-Rf", "/resources").forEach(line -> LOGGER.info(line));
+    k8s.execute("rm", "-Rf", "/resources").forEach(LOGGER::info);
     Path k8sPath = Paths.get("../..");
     k8s.copyIn(k8sPath.resolve("install/helm/stackgres-operator"),
         "/resources/stackgres-operator");
@@ -109,6 +109,8 @@ public class ItHelper {
         "/resources/stackgres-cluster");
     k8s.copyIn(k8sPath.resolve("e2e"), "/resources/e2e");
     k8s.copyIn(Paths.get("src/test/resources/certs"), "/resources/certs");
+    k8s.copyIn(k8sPath.resolve("src/ui/cypress"), "/resources/ui/cypress");
+    k8s.copyIn(k8sPath.resolve("src/ui/cypress.json"), "/resources/ui/cypress.json");
   }
 
   /**
@@ -129,6 +131,7 @@ public class ItHelper {
               + "export IMAGE_TAG=" + ItHelper.IMAGE_TAG + "\n"
               + "export CLUSTER_CHART_PATH=/resources/stackgres-cluster\n"
               + "export OPERATOR_CHART_PATH=/resources/stackgres-operator\n"
+              + "export UI_TESTS_RESOURCES_PATH=/resources/ui\n"
               + "sh " + (E2E_DEBUG ? "-x" : "") + " e2e reuse_k8s\n"
               + "sh " + (E2E_DEBUG ? "-x" : "") + " e2e setup_helm\n"
               + "sh " + (E2E_DEBUG ? "-x" : "") + " e2e setup_default_limits 0.1 0.1 16Mi 16Mi\n"
@@ -157,6 +160,7 @@ public class ItHelper {
         + "export IMAGE_TAG=" + ItHelper.IMAGE_TAG + "\n"
         + "export CLUSTER_CHART_PATH=/resources/stackgres-cluster\n"
         + "export OPERATOR_CHART_PATH=/resources/stackgres-operator\n"
+        + "export UI_TESTS_RESOURCES_PATH=/resources/ui\n"
         + "sh " + (E2E_DEBUG ? "-x" : "") + " e2e reset_k8s\n"
         + "sh " + (E2E_DEBUG ? "-x" : "") + " e2e setup_helm\n"
         + "sh " + (E2E_DEBUG ? "-x" : "") + " e2e setup_default_limits 0.1 0.1 16Mi 16Mi\n"

@@ -1,0 +1,54 @@
+#!/bin/sh
+e2e_test_install() {
+  kubectl create namespace "$CLUSTER_NAMESPACE"
+  
+  local SERVICE="stackgres-restapi"
+  local OPERATOR_NAMESPACE="stackgres"
+  local USERNAME="admin"
+  local PASSWORD="$(kubectl get secrets -n $OPERATOR_NAMESPACE $SERVICE -o jsonpath="{.data.clearPassword}" | base64 -d)"
+  CYPRESS_POD="cypress"
+  
+  cat << EOF | kubectl apply -f -
+  apiVersion: v1
+  kind: Pod
+  metadata:
+    name: $CYPRESS_POD
+    namespace: $CLUSTER_NAMESPACE
+  spec:
+    containers:
+    - name: $CYPRESS_POD
+      image: cypress/included:4.8.0
+      command: [ "sh", "-c", "while true; do sleep 300; done" ]
+      imagePullPolicy: IfNotPresent
+      env:
+      - name: CYPRESS_host
+        value: "https://$SERVICE.$OPERATOR_NAMESPACE/stackgres"
+      - name: CYPRESS_username
+        value: "$USERNAME"
+      - name: CYPRESS_password
+        value: "$PASSWORD"
+      - name: CYPRESS_VIDEO
+        value: "false" 
+    restartPolicy: Always
+    terminationGracePeriodSeconds: 0
+EOF
+
+  wait_pods_running "$CLUSTER_NAMESPACE" 1
+
+  kubectl cp "$UI_TESTS_RESOURCES_PATH/cypress" "$CLUSTER_NAMESPACE/$CYPRESS_POD":/
+  kubectl cp "$UI_TESTS_RESOURCES_PATH/cypress.json" "$CLUSTER_NAMESPACE/$CYPRESS_POD":/
+   
+}
+
+e2e_test() {  
+  run_test "Cypress chrome tests should pass" cypress_chrome_tests
+  run_test "Cypress firefox tests should pass" cypress_firefox_tests
+}
+
+cypress_chrome_tests(){
+  kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CYPRESS_POD" -- cypress run --headless  --browser chrome
+}
+
+cypress_firefox_tests(){
+  kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CYPRESS_POD" -- cypress run --headless  --browser firefox
+}

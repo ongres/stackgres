@@ -1,14 +1,16 @@
-var express = require("express")
-var proxy = require('express-http-proxy');
-var app = express();
+require('dotenv').config()
+const express = require("express")
+const proxy = require('express-http-proxy');
+const app = express();
 
 app.use(express.static('public'));
 
-var target = 'https://ongres.mooo.com:8371/stackgres/';
+const target = process.env.SERVER;
 
-var server = app.listen(8081, function(){
-    var port = server.address().port;
+const server = app.listen(8081, function(){
+    let port = server.address().port;
     console.log("Server started at http://localhost:%s", port);
+    console.log("Proxy targeting to %s", target)
 });
 
 app.use((req, res, next) => {

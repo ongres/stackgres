@@ -4,16 +4,26 @@
   "description": "StackGres UI",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "cypress:open": "cypress open",
+    "test:e2e": "cypress run --headless",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "node server.js"
   },
   "keywords": [
     "UI",
     "Vue"
   ],
   "author": "Ongres",
-  "license": "GNU",
+  "license": "AGPL-3.0-or-later",
+  "repository": {
+    "url": "https://gitlab.com/ongresinc/stackgres.git"
+  },
   "dependencies": {
+    "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "express-http-proxy": "^1.6.0"
+  },
+  "devDependencies": {
+    "cypress": "^4.8.0"
   }
 }

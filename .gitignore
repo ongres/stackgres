@@ -134,3 +134,7 @@ doc/data/versions.yml
 node_modules/
 package-lock.json
 stackgres-k8s/src/api-web/src/main/resources/META-INF/resources/stackgres
+.env
+cypress.env.json
+videos/
+*.mp4

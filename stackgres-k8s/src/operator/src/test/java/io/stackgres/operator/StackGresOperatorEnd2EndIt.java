@@ -82,6 +82,7 @@ public class StackGresOperatorEnd2EndIt extends AbstractStackGresOperatorIt {
                   + "export E2E_SKIP_SETUP=true\n"
                   + "export CLUSTER_CHART_PATH=/resources/stackgres-cluster\n"
                   + "export OPERATOR_CHART_PATH=/resources/stackgres-operator\n"
+                  + "export UI_TESTS_RESOURCES_PATH=/resources/ui\n"
                   + (ItHelper.OPERATOR_IN_KUBERNETES
                       ? ""
                       : "export E2E_OPERATOR_OPTS=\"" + ItHelper.getOperatorExtraOptions(k8s, operatorPort) + "\"\n")
@@ -101,6 +102,7 @@ public class StackGresOperatorEnd2EndIt extends AbstractStackGresOperatorIt {
               .filter(ItHelper.EXCLUDE_TTY_WARNING)
               .forEach(LOGGER::info);
         } catch (RuntimeException ex) {
+          LOGGER.error("exception running tests", ex);
           if (E2E_REPEAT_ON_ERROR.orElse(false)) {
             continue;
           }
