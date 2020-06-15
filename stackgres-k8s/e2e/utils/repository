@@ -11,11 +11,11 @@ set_up_private_repository() {
     aws ecr create-repository --repository-name "stackgres/restapi" 
   fi  
 
-  export PRIVATE_REPO_URI=$(get_private_repo_uri)
+  export PRIVATE_REPO_URI=$(get_private_repository_uri)
   export PRIVATE_OPERATOR_IMAGE_NAME="$PRIVATE_REPO_URI/$OPERATOR_IMAGE_NAME"
   export PRIVATE_RESTAPI_IMAGE_NAME="$PRIVATE_REPO_URI/$RESTAPI_IMAGE_NAME"
 
-  get_private_repo_password | docker login --username AWS --password-stdin "$PRIVATE_REPO_URI"
+  get_private_repository_password | docker login --username AWS --password-stdin "$PRIVATE_REPO_URI"
   
   docker tag "$OPERATOR_IMAGE_NAME" "$PRIVATE_OPERATOR_IMAGE_NAME"
   docker tag "$RESTAPI_IMAGE_NAME" "$PRIVATE_RESTAPI_IMAGE_NAME"
@@ -29,13 +29,13 @@ set_up_private_repository() {
     kubectl create secret docker-registry -n stackgres regcred \
       --docker-server="$PRIVATE_REPO_URI" \
       --docker-username="AWS" \
-      --docker-password="$(get_private_repo_password)"
+      --docker-password="$(get_private_repository_password)"
   else
     kubectl create namespace stackgres
     kubectl create secret docker-registry -n stackgres regcred \
     --docker-server="$PRIVATE_REPO_URI" \
     --docker-username="AWS" \
-    --docker-password="$(get_private_repo_password)"
+    --docker-password="$(get_private_repository_password)"
   fi
 }
 
@@ -98,8 +98,8 @@ cache_pulled_images_to_local_repository() {
 
 load_failed_to_pull_images_from_local_repository() {
   event_watch \
-    | stdbuf -o0 grep '\sFailed:Failed to pull image "[^"]\+":.*$' \
-    | stdbuf -o0 sed 's/.*\sFailed:Failed to pull image "\([^"]\+\)":.*/\1/' \
+    | stdbuf -o0 grep '\sFailed to pull image "[^"]\+":.*$' \
+    | stdbuf -o0 sed 's/.*\sFailed to pull image "\([^"]\+\)":.*/\1/' \
     | (
       while read IMAGE_NAME
       do
