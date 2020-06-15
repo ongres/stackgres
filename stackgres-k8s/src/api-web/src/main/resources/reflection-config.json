@@ -1,0 +1,11 @@
+[
+  {
+    "name" : "io.smallrye.jwt.build.impl.JwtProviderImpl",
+    "allDeclaredConstructors" : true,
+    "allPublicConstructors" : true,
+    "allDeclaredMethods" : true,
+    "allPublicMethods" : true,
+    "allDeclaredFields" : true,
+    "allPublicFields" : true
+  }
+]
