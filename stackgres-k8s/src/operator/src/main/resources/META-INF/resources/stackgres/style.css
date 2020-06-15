@@ -1198,6 +1198,10 @@ footer {
     fill: var(--blue);
 }
 
+#nav .remove svg {
+    fill: var(--gray4);
+}
+
 #nav:not(.disabled) .top .router-link-active svg, #nav .view.router-link-active svg {
     fill: var(--blue);
 }
@@ -1314,9 +1318,9 @@ footer {
 }
 
 #delete .tooltip {
-    right: 30px;
+    right: 40px;
     padding: 20px;
-    top: 65px;
+    top: 60px;
 }
 
 #delete .tooltip  h3 {
@@ -2685,11 +2689,11 @@ td.actions a {
 }
 
 .actions svg path {
-    fill: #7a7b85;
+    fill: var(--blue);
 }
 
 .actions a:hover svg path {
-    fill: var(--blue);
+    fill: var(--lblue);
 }
 
 table .icon {
@@ -3001,11 +3005,11 @@ table.clusterConfig a {
 }
 
 table.clusterConfig a:hover svg {
-    fill: var(--blue);
+    fill: var(--lblue);
 }
 
 table.clusterConfig svg {
-    fill: var(--gray4);
+    fill: var(--blue);
     width: 14px;
     display: inline-block;
     margin-left: 5px;
@@ -4435,7 +4439,7 @@ table.backups th.desc.name {
 
 table.backups .hasTooltip {
     width: 120px;
-    position: absolute;
+    /*position: absolute;*/
 }
 
 table.backups td.hasTooltip > span {
@@ -4446,6 +4450,27 @@ table.profiles td, table.clusterOverview td, table.pgConfig tr.open td.hasToolti
     position: relative;
 }
 
+table.backups .clusterName {
+    padding-left: 15px;
+    max-width: 120px;
+   
+}
+
+table.backups .name {
+    max-width: 250px;
+}
+
+table.profiles td.inlineList svg, table.backupConfig ul.usedOn svg {
+    width: 14px;
+}
+
+table.profiles td.inlineList svg path, table.backupConfig ul.usedOn svg path {
+    fill: var(--blue);
+}
+
+table.profiles td.inlineList svg:hover path, table.backupConfig ul.usedOn svg:hover path {
+    fill: var(--lblue);
+}
 
 /*Clone*/
 
@@ -4461,7 +4486,7 @@ table.profiles td, table.clusterOverview td, table.pgConfig tr.open td.hasToolti
     display: none;
     line-height: 1;
     width: 320px;
-    top: 178px;
+    top: 57px;
     right: 30px;
 }
 

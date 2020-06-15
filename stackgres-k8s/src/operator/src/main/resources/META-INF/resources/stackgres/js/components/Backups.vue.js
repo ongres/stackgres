@@ -227,8 +227,8 @@ var Backups = Vue.component("sg-backup", {
 											<td class="name hasTooltip" :data-val="back.data.metadata.name">
 												<span>{{ back.data.metadata.name }}</span>
 											</td>
-											<td class="clusterName" :class="back.data.spec.sgCluster" v-if="!isCluster" :data-val="back.data.spec.sgCluster">
-												{{ back.data.spec.sgCluster }}
+											<td class="clusterName hasTooltip" :class="back.data.spec.sgCluster" v-if="!isCluster" :data-val="back.data.spec.sgCluster">
+												<span>{{ back.data.spec.sgCluster }}</span>
 											</td>
 										<td class="actions">
 											<a class="open" title="Backup Details">
@@ -542,6 +542,8 @@ var Backups = Vue.component("sg-backup", {
 			$('#nameTooltip .info').text('');
 			$('#nameTooltip').removeClass('show');
 		});
+
+		
 	},
 	methods: {
 
@@ -761,7 +763,12 @@ var Backups = Vue.component("sg-backup", {
 
 				vc.toggleClear('filters');
 				
-			});			
+			});		
+
+			$('tr.base').click(function() {
+				$(this).find('td.name').toggleClass("hasTooltip");
+				$(this).find('td.clusterName').toggleClass("hasTooltip");
+			});
 
 		});
 
