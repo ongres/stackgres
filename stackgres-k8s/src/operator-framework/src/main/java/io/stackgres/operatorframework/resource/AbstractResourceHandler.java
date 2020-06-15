@@ -9,73 +9,28 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-
-import io.fabric8.kubernetes.api.model.ConfigMap;
-import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesResourceList;
-import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
-import io.fabric8.kubernetes.api.model.Pod;
-import io.fabric8.kubernetes.api.model.Secret;
-import io.fabric8.kubernetes.api.model.Service;
-import io.fabric8.kubernetes.api.model.ServiceAccount;
-import io.fabric8.kubernetes.api.model.apps.StatefulSet;
-import io.fabric8.kubernetes.api.model.batch.CronJob;
-import io.fabric8.kubernetes.api.model.rbac.Role;
-import io.fabric8.kubernetes.api.model.rbac.RoleBinding;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.stackgres.operatorframework.resource.visitor.ResourcePairVisitor;
 
-public abstract class AbstractResourceHandler<T> implements ResourceHandler<T> {
-
-  protected static final ImmutableMap<Class<? extends HasMetadata>,
-      Function<KubernetesClient,
-      MixedOperation<? extends HasMetadata,
-          ? extends KubernetesResourceList<? extends HasMetadata>, ?,
-          ? extends Resource<? extends HasMetadata, ?>>>> STACKGRES_RESOURCE_OPERATIONS =
-      ImmutableMap.<Class<? extends HasMetadata>, Function<KubernetesClient,
-          MixedOperation<? extends HasMetadata,
-              ? extends KubernetesResourceList<? extends HasMetadata>, ?,
-              ? extends Resource<? extends HasMetadata, ?>>>>builder()
-      .put(StatefulSet.class, client -> client.apps().statefulSets())
-      .put(Service.class, KubernetesClient::services)
-      .put(ServiceAccount.class, KubernetesClient::serviceAccounts)
-      .put(Role.class, client -> client.rbac().roles())
-      .put(RoleBinding.class, client -> client.rbac().roleBindings())
-      .put(Secret.class, KubernetesClient::secrets)
-      .put(ConfigMap.class, KubernetesClient::configMaps)
-      .put(Endpoints.class, KubernetesClient::endpoints)
-      .put(CronJob.class, client -> client.batch().cronjobs())
-      .put(Pod.class, client -> client.pods())
-      .put(PersistentVolumeClaim.class, client -> client.persistentVolumeClaims())
-      .build();
+public abstract class AbstractResourceHandler<T extends ResourceHandlerContext>
+    implements ResourceHandler<T> {
 
   @Override
-  public boolean equals(ResourceHandlerContext<T> resourceHandlerContext,
-      HasMetadata existingResource, HasMetadata requiredResource) {
-    return ResourcePairVisitor.equals(resourceHandlerContext,
-        existingResource, requiredResource);
+  public boolean equals(T context, HasMetadata existingResource, HasMetadata requiredResource) {
+    return ResourcePairVisitor.equals(context, existingResource, requiredResource);
   }
 
   @Override
-  public HasMetadata update(ResourceHandlerContext<T> resourceHandlerContext,
-      HasMetadata existingResource, HasMetadata requiredResource) {
-    return ResourcePairVisitor.update(resourceHandlerContext,
-        existingResource, requiredResource);
+  public HasMetadata update(T context, HasMetadata existingResource, HasMetadata requiredResource) {
+    return ResourcePairVisitor.update(context, existingResource, requiredResource);
   }
 
   @Override
   public void registerKind() {
-  }
-
-  @Override
-  public Stream<HasMetadata> getOrphanResources(KubernetesClient client,
-      ImmutableList<T> existingContexts) {
-    return Stream.empty();
   }
 
   @Override

@@ -9,16 +9,16 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import io.stackgres.operator.common.ConfigContext;
-import io.stackgres.operator.common.ErrorType;
+import io.stackgres.common.ErrorType;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
+import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.common.StackGresComponents;
-import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
-import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfig;
-import io.stackgres.operator.resource.CustomResourceFinder;
 import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 
@@ -36,11 +36,11 @@ public class PostgresConfigValidator implements ClusterValidator {
 
   @Inject
   public PostgresConfigValidator(
-      CustomResourceFinder<StackGresPostgresConfig> configFinder, ConfigContext context) {
+      CustomResourceFinder<StackGresPostgresConfig> configFinder) {
     this(configFinder, StackGresComponents.getAllOrderedPostgresVersions().toList());
-    errorCrReferencerUri = context.getErrorTypeUri(ErrorType.INVALID_CR_REFERENCE);
-    errorPostgresMismatchUri = context.getErrorTypeUri(ErrorType.PG_VERSION_MISMATCH);
-    errorForbiddenUpdateUri = context.getErrorTypeUri(ErrorType.FORBIDDEN_CR_UPDATE);
+    errorCrReferencerUri = ErrorType.getErrorTypeUri(ErrorType.INVALID_CR_REFERENCE);
+    errorPostgresMismatchUri = ErrorType.getErrorTypeUri(ErrorType.PG_VERSION_MISMATCH);
+    errorForbiddenUpdateUri = ErrorType.getErrorTypeUri(ErrorType.FORBIDDEN_CR_UPDATE);
   }
 
   public PostgresConfigValidator(

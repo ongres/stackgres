@@ -11,13 +11,13 @@ We ship some kubernetes resources files in order to allow installation of the St
  operator with the following command:
 
 ```
-kubectl apply -f https://stackgres.io/downloads/stackgres-k8s/stackgres/latest/demo-operator.yml
+kubectl apply -f {{< download-url >}}/demo-operator.yml
 ```
 
 To clean up the resources created by the demo just run:
 
 ```
-kubectl delete --ignore-not-found -f https://stackgres.io/downloads/stackgres-k8s/stackgres/latest/demo-operator.yml
+kubectl delete --ignore-not-found -f {{< download-url >}}/demo-operator.yml
 ```
 
 # Installation with helm
@@ -26,8 +26,10 @@ You can also install the StackGres operator using [helm vesion 3.1.x](https://gi
  with the following command:
 
 ```
+kubectl create namespace stackgres
+
 helm install stackgres-operator \
-  https://stackgres.io/downloads/stackgres-k8s/stackgres/latest/helm-operator.tgz
+  {{< download-url >}}/helm-operator.tgz
 ```
 
 To clean up the resources created by the demo just run:
@@ -53,7 +55,7 @@ done
 To connect to the Web UI of the operator you may forward port 443 of the operator pod:
 
 ```
-kubectl port-forward "$(kubectl get pod --selector=app=stackgres-operator -o name)" 8443:443
+kubectl port-forward "$(kubectl get pod --selector=app=stackgres-operator -o name)" 8443:9443
 ```
 
 Then open the browser at following address `https://localhost:8443/stackgres`

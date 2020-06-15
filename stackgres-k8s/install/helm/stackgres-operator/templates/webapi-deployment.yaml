@@ -1,0 +1,184 @@
+{{- if .Values.deploy.restapi }}
+apiVersion: "apps/v1"
+kind: "Deployment"
+metadata:
+  labels:
+    app: {{ .Values.restapi.name }}
+    version: "{{ .Chart.Version }}"
+    group:  stackgres.io
+  name: {{ .Values.restapi.name }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  {{- if and .Release.IsInstall (or (not .Values.cert.key) (not .Values.cert.crt)) }}
+  replicas: 0
+  {{- else }}
+  replicas: 1
+  {{- end }}
+  selector:
+    matchLabels:
+      app: {{ .Values.restapi.name }}
+      version: "{{ .Chart.Version }}"
+      group:  stackgres.io
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.restapi.name }}
+        version: "{{ .Chart.Version }}"
+        group:  stackgres.io
+    spec:
+      serviceAccountName: {{ .Release.Name }}
+      securityContext:
+        runAsNonRoot: true
+        {{- if not (.Capabilities.APIVersions.Has "project.openshift.io/v1") }}
+        runAsUser: 999
+        runAsGroup: 999
+        fsGroup: 999
+        {{- end }}
+      containers:
+      - name: {{ .Values.restapi.name }}
+        image: "{{ .Values.restapi.image.name }}:{{ .Values.restapi.image.tag }}"
+        imagePullPolicy: {{ .Values.restapi.image.pullPolicy }}
+        env:
+          {{- if .Values.developer.logLevel }}
+          - name: RESTAPI_LOG_LEVEL
+            value: "{{ .Values.developer.logLevel }}"
+          {{- end }}
+          {{- if .Values.developer.showStackTraces }}
+          - name: RESTAPI_SHOW_STACK_TRACES
+            value: "{{ .Values.developer.showStackTraces }}"
+          {{- end }}
+          {{- if .Values.developer.enableJvmDebug }}
+          - name: DEBUG_RESTAPI
+            value: "{{ .Values.developer.enableJvmDebug }}"
+          {{- end }}
+          {{- if .Values.developer.enableJvmDebugSuspend }}
+          - name: DEBUG_RESTAPI_SUSPEND
+            value: "{{ .Values.developer.enableJvmDebugSuspend }}"
+          {{- end }}
+          - name: RESTAPI_IP
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
+          {{- if and .Values.grafana.url .Values.grafana.token .Values.grafana.webHost }}
+          - name: GRAFANA_EMBEDDED
+            value: "true"
+          {{- end }}
+          - name: AUTHENTICATION_SECRET_NAME
+            value: "{{ .Values.restapi.name }}"
+          {{- if .Capabilities.APIVersions.Has "project.openshift.io/v1" }}
+          - name: USE_ARBITRARY_USER
+            value: "true"
+          {{- end }}
+        ports:
+        - containerPort: 8080
+          name: "resthttp"
+          protocol: "TCP"
+        - containerPort: 8443
+          name: "resthttps"
+          protocol: "TCP"
+        livenessProbe:
+          httpGet:
+            path: "/health/live"
+            port: 8080
+            scheme: "HTTP"
+          initialDelaySeconds: 5
+          periodSeconds: 30
+          timeoutSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: "/health/ready"
+            port: 8080
+            scheme: "HTTP"
+          initialDelaySeconds: 5
+          periodSeconds: 30
+          timeoutSeconds: 2
+        volumeMounts:
+          - name: operator-certs
+            mountPath: /etc/operator/certs
+            readOnly: true
+      - name: {{ .Values.restapi.name }}-nginx
+        image: "nginx:1.17.4-alpine"
+        imagePullPolicy: IfNotPresent
+        env:
+          {{- if and .Values.grafana.url .Values.grafana.token .Values.grafana.webHost }}
+          - name: GRAFANA_EMBEDDED
+            value: "true"
+          - name: GRAFANA_URL_PATH
+            value: "{{ regexReplaceAll "^https?://[^/]+(/.*)$" .Values.grafana.url "${1}" }}"
+          - name: GRAFANA_SCHEMA
+            value: "{{ default "http" .Values.grafana.scheme }}"
+          - name: GRAFANA_WEB_HOST
+            value: "{{ regexReplaceAll "/" .Values.grafana.webHost "" }}"
+          - name: GRAFANA_TOKEN
+            value: "{{ .Values.grafana.token }}"
+          {{- else }}
+          - name: GRAFANA_URL_PATH
+            value: "/"
+          - name: GRAFANA_SCHEMA
+            value: "http"
+          - name: GRAFANA_WEB_HOST
+            value: "localhost:8080"
+          - name: GRAFANA_TOKEN
+            value: "unknown"
+          {{- end }}
+        args:
+          - '/bin/sh'
+          - '-exc'
+          - |
+            envsubst '
+              $GRAFANA_EMBEDDED
+              $GRAFANA_URL_PATH
+              $GRAFANA_SCHEMA
+              $GRAFANA_WEB_HOST
+              $GRAFANA_TOKEN' \
+              < /etc/nginx/template.d/stackgres-operator.template \
+              > /etc/nginx/conf.d/stackgres-operator.conf
+            cat /etc/nginx/conf.d/stackgres-operator.conf
+            exec nginx-debug -g 'daemon off;'
+        ports:
+        - containerPort: 9443
+          name: "https"
+          protocol: "TCP"
+        volumeMounts:
+          - name: operator-certs
+            mountPath: /etc/operator/certs
+            readOnly: true
+          - name: operator-nginx-template
+            mountPath: /etc/nginx/template.d
+            readOnly: true
+          - name: operator-nginx
+            subPath: etc/nginx/conf.d
+            mountPath: /etc/nginx/conf.d
+            readOnly: false
+          - name: operator-nginx
+            subPath: var/cache/nginx
+            mountPath: /var/cache/nginx
+            readOnly: false
+          - name: operator-nginx
+            subPath: var/run
+            mountPath: /var/run
+            readOnly: false
+      volumes:
+        - name: operator-certs
+          secret:
+            secretName: {{ .Release.Name }}-certs
+            optional: false
+            items:
+              - key: root.key
+                path: root.key
+              - key: server.crt
+                path: server.crt
+              - key: jwt-rsa.key
+                path: jwt-rsa.key
+              - key: jwt-rsa.pub
+                path: jwt-rsa.pub
+        - name: operator-nginx-template
+          configMap:
+            name: {{ .Values.restapi.name }}-nginx
+            optional: false
+            items:
+              - key: stackgres-operator.template
+                path: stackgres-operator.template
+        - name: operator-nginx
+          emptyDir: {}
+{{- end }}

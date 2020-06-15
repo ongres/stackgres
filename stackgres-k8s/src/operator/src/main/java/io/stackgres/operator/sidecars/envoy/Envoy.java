@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
+
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
@@ -31,21 +32,24 @@ import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
-import io.stackgres.operator.app.YamlMapperProvider;
+import io.stackgres.common.LabelFactory;
+import io.stackgres.common.StackgresClusterContainers;
+import io.stackgres.common.YamlMapperProvider;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
+import io.stackgres.operator.common.LabelFactoryDelegator;
 import io.stackgres.operator.common.Prometheus;
 import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresClusterSidecarResourceFactory;
 import io.stackgres.operator.common.StackGresComponents;
 import io.stackgres.operator.common.StackGresGeneratorContext;
-import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operator.customresource.prometheus.Endpoint;
 import io.stackgres.operator.customresource.prometheus.NamespaceSelector;
 import io.stackgres.operator.customresource.prometheus.ServiceMonitor;
 import io.stackgres.operator.customresource.prometheus.ServiceMonitorDefinition;
 import io.stackgres.operator.customresource.prometheus.ServiceMonitorSpec;
-import io.stackgres.operator.customresource.sgcluster.StackGresClusterPod;
-import io.stackgres.operator.customresource.sgcluster.StackGresClusterSpec;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jooq.lambda.Seq;
 
@@ -57,10 +61,10 @@ public class Envoy implements StackGresClusterSidecarResourceFactory<Void> {
   public static final String SERVICE = "-prometheus-envoy";
 
   public static final int PG_ENTRY_PORT = 5432;
-  public static final int PG_RAW_ENTRY_PORT = 5433;
-  public static final int PG_PORT = 5434;
-  public static final int PG_RAW_PORT = 5435;
-  public static final String NAME = "envoy";
+  public static final int PG_REPL_ENTRY_PORT = 5433;
+  public static final int PG_POOL_PORT = 5434;
+  public static final int PG_PORT = 5435;
+  public static final String NAME = StackgresClusterContainers.ENVOY;
 
   private static final String IMAGE_NAME = "docker.io/envoyproxy/envoy:v%s";
   private static final String DEFAULT_VERSION = StackGresComponents.get("envoy");
@@ -68,17 +72,20 @@ public class Envoy implements StackGresClusterSidecarResourceFactory<Void> {
   private static final ImmutableMap<String, Integer> LISTEN_SOCKET_ADDRESS_PORT_MAPPING =
       ImmutableMap.of(
           "postgres_entry_port", PG_ENTRY_PORT,
-          "postgres_raw_entry_port", PG_RAW_ENTRY_PORT);
+          "postgres_repl_entry_port", PG_REPL_ENTRY_PORT);
   private static final ImmutableMap<String, Integer> CLUSTER_SOCKET_ADDRESS_PORT_MAPPING =
       ImmutableMap.of(
-          "postgres_port", PG_PORT,
-          "postgres_raw_port", PG_RAW_PORT);
+          "postgres_pool_port", PG_POOL_PORT,
+          "postgres_port", PG_PORT);
 
-  final YamlMapperProvider yamlMapperProvider;
+  private final YamlMapperProvider yamlMapperProvider;
+
+  private final LabelFactoryDelegator factoryDelegator;
 
   @Inject
-  public Envoy(YamlMapperProvider yamlMapperProvider) {
+  public Envoy(YamlMapperProvider yamlMapperProvider, LabelFactoryDelegator factoryDelegator) {
     this.yamlMapperProvider = yamlMapperProvider;
+    this.factoryDelegator = factoryDelegator;
   }
 
   public static String configName(StackGresClusterContext clusterContext) {
@@ -102,7 +109,7 @@ public class Envoy implements StackGresClusterSidecarResourceFactory<Void> {
     ContainerBuilder container = new ContainerBuilder();
     container.withName(NAME)
         .withImage(String.format(IMAGE_NAME, DEFAULT_VERSION))
-        .withImagePullPolicy("Always")
+        .withImagePullPolicy("IfNotPresent")
         .withVolumeMounts(new VolumeMountBuilder()
             .withName(NAME)
             .withMountPath("/etc/envoy")
@@ -110,7 +117,7 @@ public class Envoy implements StackGresClusterSidecarResourceFactory<Void> {
             .build())
         .withPorts(
             new ContainerPortBuilder().withContainerPort(PG_ENTRY_PORT).build(),
-            new ContainerPortBuilder().withContainerPort(PG_RAW_ENTRY_PORT).build())
+            new ContainerPortBuilder().withContainerPort(PG_REPL_ENTRY_PORT).build())
         .withCommand("/usr/local/bin/envoy")
         .withArgs("-c", "/etc/envoy/default_envoy.yaml", "-l", "debug");
 
@@ -131,8 +138,10 @@ public class Envoy implements StackGresClusterSidecarResourceFactory<Void> {
   @Override
   public Stream<HasMetadata> streamResources(StackGresGeneratorContext context) {
 
+    final StackGresClusterContext clusterContext = context.getClusterContext();
+    final StackGresCluster stackGresCluster = clusterContext.getCluster();
     boolean disablePgBouncer = Optional
-        .ofNullable(context.getClusterContext().getCluster().getSpec())
+        .ofNullable(stackGresCluster.getSpec())
         .map(StackGresClusterSpec::getPod)
         .map(StackGresClusterPod::getDisableConnectionPooling)
         .orElse(false);
@@ -180,41 +189,38 @@ public class Envoy implements StackGresClusterSidecarResourceFactory<Void> {
       throw new IllegalStateException("couldn't parse envoy config file", ex);
     }
 
-    String namespace = context.getClusterContext().getCluster().getMetadata().getNamespace();
-    String configMapName = configName(context.getClusterContext());
+    String namespace = stackGresCluster.getMetadata().getNamespace();
+    String configMapName = configName(clusterContext);
     ImmutableList.Builder<HasMetadata> resourcesBuilder = ImmutableList.builder();
 
+    final LabelFactory<?> labelFactory = factoryDelegator.pickFactory(clusterContext);
     ConfigMap cm = new ConfigMapBuilder()
         .withNewMetadata()
         .withNamespace(namespace)
         .withName(configMapName)
-        .withLabels(StackGresUtil.clusterLabels(context.getClusterContext().getCluster()))
-        .withOwnerReferences(ImmutableList.of(ResourceUtil.getOwnerReference(
-            context.getClusterContext().getCluster())))
+        .withLabels(labelFactory.clusterLabels(stackGresCluster))
+        .withOwnerReferences(clusterContext.getOwnerReferences())
         .endMetadata()
         .withData(data)
         .build();
     resourcesBuilder.add(cm);
 
-    final Map<String, String> defaultLabels = StackGresUtil.clusterLabels(
-        context.getClusterContext().getCluster());
+    final Map<String, String> defaultLabels = labelFactory.clusterLabels(stackGresCluster);
     Map<String, String> labels = new ImmutableMap.Builder<String, String>()
-        .putAll(StackGresUtil.clusterCrossNamespaceLabels(
-            context.getClusterContext().getCluster()))
+        .putAll(labelFactory.clusterCrossNamespaceLabels(stackGresCluster))
         .build();
 
-    Optional<Prometheus> prometheus = context.getClusterContext().getPrometheus();
+    Optional<Prometheus> prometheus = clusterContext.getPrometheus();
     resourcesBuilder.add(
         new ServiceBuilder()
             .withNewMetadata()
-            .withNamespace(context.getClusterContext().getCluster().getMetadata().getNamespace())
-            .withName(serviceName(context.getClusterContext()))
+            .withNamespace(stackGresCluster.getMetadata().getNamespace())
+            .withName(serviceName(clusterContext))
             .withLabels(ImmutableMap.<String, String>builder()
                 .putAll(labels)
                 .put("container", NAME)
                 .build())
-            .withOwnerReferences(ImmutableList.of(ResourceUtil.getOwnerReference(
-                context.getClusterContext().getCluster())))
+            .withOwnerReferences(clusterContext.getOwnerReferences())
             .endMetadata()
             .withSpec(new ServiceSpecBuilder()
                 .withSelector(defaultLabels)
@@ -233,9 +239,8 @@ public class Envoy implements StackGresClusterSidecarResourceFactory<Void> {
           serviceMonitor.setApiVersion(ServiceMonitorDefinition.APIVERSION);
           serviceMonitor.setMetadata(new ObjectMetaBuilder()
               .withNamespace(pi.getNamespace())
-              .withName(serviceMonitorName(context.getClusterContext()))
-              .withOwnerReferences(ImmutableList.of(ResourceUtil.getOwnerReference(
-                  context.getClusterContext().getCluster())))
+              .withName(serviceMonitorName(clusterContext))
+              .withOwnerReferences(clusterContext.getOwnerReferences())
               .withLabels(ImmutableMap.<String, String>builder()
                   .putAll(pi.getMatchLabels())
                   .putAll(labels)

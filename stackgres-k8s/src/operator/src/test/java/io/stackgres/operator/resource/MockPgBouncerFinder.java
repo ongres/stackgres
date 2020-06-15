@@ -7,8 +7,9 @@ package io.stackgres.operator.resource;
 
 import java.util.Optional;
 
-import io.stackgres.operator.sidecars.pooling.customresources.StackGresPoolingConfig;
-import io.stackgres.operator.utils.JsonUtil;
+import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
+import io.stackgres.common.resource.CustomResourceFinder;
+import io.stackgres.testutil.JsonUtil;
 
 public class MockPgBouncerFinder implements CustomResourceFinder<StackGresPoolingConfig> {
   @Override

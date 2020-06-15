@@ -10,6 +10,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import com.google.common.collect.ImmutableList;
@@ -25,6 +27,15 @@ import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.stackgres.common.LabelFactory;
+import io.stackgres.common.StackGresContext;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
+import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigDefinition;
+import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigDoneable;
+import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigList;
+import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncer;
+import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigSpec;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSetPath;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSetVolumeConfig;
 import io.stackgres.operator.common.Sidecar;
@@ -32,15 +43,7 @@ import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresClusterSidecarResourceFactory;
 import io.stackgres.operator.common.StackGresComponents;
 import io.stackgres.operator.common.StackGresGeneratorContext;
-import io.stackgres.operator.common.StackGresUtil;
-import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
 import io.stackgres.operator.sidecars.envoy.Envoy;
-import io.stackgres.operator.sidecars.pooling.customresources.StackGresPoolingConfig;
-import io.stackgres.operator.sidecars.pooling.customresources.StackGresPoolingConfigDefinition;
-import io.stackgres.operator.sidecars.pooling.customresources.StackGresPoolingConfigDoneable;
-import io.stackgres.operator.sidecars.pooling.customresources.StackGresPoolingConfigList;
-import io.stackgres.operator.sidecars.pooling.customresources.StackGresPoolingConfigPgBouncer;
-import io.stackgres.operator.sidecars.pooling.customresources.StackGresPoolingConfigSpec;
 import io.stackgres.operator.sidecars.pooling.parameters.Blacklist;
 import io.stackgres.operator.sidecars.pooling.parameters.DefaultValues;
 import io.stackgres.operatorframework.resource.ResourceUtil;
@@ -56,6 +59,8 @@ public class PgPooling
   private static final String DEFAULT_VERSION = StackGresComponents.get("pgbouncer");
   private static final String CONFIG_SUFFIX = "-connection-pooling-config";
 
+  private LabelFactory<StackGresCluster> labelFactory;
+
   public static String configName(StackGresClusterContext clusterContext) {
     String name = clusterContext.getCluster().getMetadata().getName();
     return ResourceUtil.resourceName(name + CONFIG_SUFFIX);
@@ -63,10 +68,12 @@ public class PgPooling
 
   @Override
   public Stream<HasMetadata> streamResources(StackGresGeneratorContext context) {
-    String namespace = context.getClusterContext().getCluster().getMetadata().getNamespace();
-    String configMapName = configName(context.getClusterContext());
+    final StackGresClusterContext clusterContext = context.getClusterContext();
+    final StackGresCluster stackGresCluster = clusterContext.getCluster();
+    String namespace = stackGresCluster.getMetadata().getNamespace();
+    String configMapName = configName(clusterContext);
     Optional<StackGresPoolingConfig> pgbouncerConfig =
-        context.getClusterContext().getSidecarConfig(this);
+        clusterContext.getSidecarConfig(this);
     Map<String, String> newParams = pgbouncerConfig.map(StackGresPoolingConfig::getSpec)
         .map(StackGresPoolingConfigSpec::getPgBouncer)
         .map(StackGresPoolingConfigPgBouncer::getPgbouncerConf)
@@ -82,10 +89,10 @@ public class PgPooling
     }
 
     String configFile = "[databases]\n"
-        + " * = port = " + Envoy.PG_RAW_PORT + "\n"
+        + " * = port = " + Envoy.PG_PORT + "\n"
         + "\n"
         + "[pgbouncer]\n"
-        + "listen_port = " + Envoy.PG_PORT + "\n"
+        + "listen_port = " + Envoy.PG_POOL_PORT + "\n"
         + "listen_addr = 127.0.0.1\n"
         + "unix_socket_dir = " + ClusterStatefulSetPath.PG_RUN_PATH.path() + "\n"
         + "auth_type = md5\n"
@@ -93,7 +100,6 @@ public class PgPooling
         + "auth_query = SELECT usename, passwd FROM pg_shadow WHERE usename=$1\n"
         + "admin_users = postgres\n"
         + "stats_users = postgres\n"
-        + "user = postgres\n"
         + "application_name_add_host = 1\n"
         + "ignore_startup_parameters = extra_float_digits\n"
         + "max_db_connections = 100\n"
@@ -109,9 +115,8 @@ public class PgPooling
         .withNewMetadata()
         .withNamespace(namespace)
         .withName(configMapName)
-        .withLabels(StackGresUtil.clusterLabels(context.getClusterContext().getCluster()))
-        .withOwnerReferences(ImmutableList.of(ResourceUtil.getOwnerReference(
-            context.getClusterContext().getCluster())))
+        .withLabels(labelFactory.clusterLabels(stackGresCluster))
+        .withOwnerReferences(clusterContext.getOwnerReferences())
         .endMetadata()
         .withData(data)
         .build();
@@ -124,8 +129,8 @@ public class PgPooling
     ContainerBuilder container = new ContainerBuilder();
     container.withName(NAME)
         .withImage(String.format(IMAGE_PREFIX,
-            DEFAULT_VERSION, StackGresUtil.CONTAINER_BUILD))
-        .withImagePullPolicy("Always")
+            DEFAULT_VERSION, StackGresContext.CONTAINER_BUILD))
+        .withImagePullPolicy("IfNotPresent")
         .withVolumeMounts(ClusterStatefulSetVolumeConfig.SOCKET
                 .volumeMount(context.getClusterContext()),
             new VolumeMountBuilder()
@@ -171,4 +176,8 @@ public class PgPooling
     return Optional.empty();
   }
 
+  @Inject
+  public void setLabelFactory(LabelFactory<StackGresCluster> labelFactory) {
+    this.labelFactory = labelFactory;
+  }
 }

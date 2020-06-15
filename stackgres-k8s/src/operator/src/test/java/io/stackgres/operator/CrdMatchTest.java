@@ -5,6 +5,8 @@
 
 package io.stackgres.operator;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -19,22 +21,17 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.reflect.ClassPath;
 import io.fabric8.kubernetes.client.CustomResource;
-import io.stackgres.operator.app.YamlMapperProvider;
-import io.stackgres.operator.common.ConfigLoader;
-import io.stackgres.operator.common.ConfigProperty;
+import io.stackgres.common.StackGresContext;
+import io.stackgres.common.YamlMapperProvider;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.opentest4j.AssertionFailedError;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 public class CrdMatchTest {
 
-  private static final ConfigLoader configLoader = new ConfigLoader();
+  private static final String crdPomVersion = StackGresContext.CRD_VERSION;
 
-  private static String crdPomVersion;
-
-  private static String crdPomGroup;
+  private static final String crdPomGroup = StackGresContext.CRD_GROUP;
 
   private static File[] crdFiles;
 
@@ -42,12 +39,6 @@ public class CrdMatchTest {
 
   @BeforeAll
   static void beforeAll() throws Exception {
-
-    crdPomVersion = configLoader.getProperty(ConfigProperty.CRD_VERSION)
-        .orElseThrow(() -> new IllegalStateException("Crd version not configured"));
-
-    crdPomGroup = configLoader.getProperty(ConfigProperty.CRD_GROUP)
-        .orElseThrow(() -> new IllegalStateException("Crd group not configured"));
 
     File crdFolder = getCrdsFolder();
 
@@ -75,7 +66,7 @@ public class CrdMatchTest {
     ClassPath CLASSPATH_SCANNER = ClassPath.from(LOADER);
 
     ImmutableSet<ClassPath.ClassInfo> clazzes = CLASSPATH_SCANNER
-        .getTopLevelClassesRecursive("io.stackgres.operator");
+        .getTopLevelClassesRecursive("io.stackgres.common.crd");
 
     return clazzes.stream()
         .map(classInfo -> classInfo.load())

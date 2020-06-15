@@ -125,3 +125,7 @@ pom.xml.tag
 # End of https://www.gitignore.io/api/java,eclipse,java-web,code-java
 **/helm/*/charts/*.tgz
 **/helm/*/requirements.lock
+
+doc/public
+doc/data/crds
+doc/data/versions.yml

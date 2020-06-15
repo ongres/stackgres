@@ -12,7 +12,6 @@ import javax.enterprise.context.ApplicationScoped;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operatorframework.resource.factory.SubResourceStreamFactory;
-
 import org.jooq.lambda.Seq;
 
 @ApplicationScoped

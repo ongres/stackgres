@@ -2,7 +2,7 @@
 
 set -e
 
-IMAGE_NAME="${IMAGE_NAME:-"stackgres/operator:development"}"
+OPERATOR_IMAGE_NAME="${OPERATOR_IMAGE_NAME:-"stackgres/operator:development"}"
 CONTAINER_BASE=$(buildah from "registry.access.redhat.com/ubi8-minimal:8.0")
 
 APP_OPTS="-Dquarkus.http.host=0.0.0.0 -Dquarkus.http.port=8080 -Dquarkus.http.ssl-port=8443 -Djava.util.logging.manager=org.jboss.logmanager.LogManager"
@@ -27,5 +27,5 @@ buildah config --port 8080 "$CONTAINER_BASE"
 buildah config --user stackgres:stackgres "$CONTAINER_BASE"
 
 ## Commit this container to an image name
-buildah commit --squash "$CONTAINER_BASE" "$IMAGE_NAME"
-buildah push "$IMAGE_NAME" docker-daemon:$IMAGE_NAME
+buildah commit --squash "$CONTAINER_BASE" "$OPERATOR_IMAGE_NAME"
+buildah push "$OPERATOR_IMAGE_NAME" docker-daemon:$OPERATOR_IMAGE_NAME

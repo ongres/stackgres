@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import com.google.common.collect.ImmutableList;
-
 import io.fabric8.kubernetes.api.model.KubernetesResource;
 
 @FunctionalInterface

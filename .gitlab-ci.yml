@@ -22,12 +22,17 @@ variables:
                    --show-version
                    -DinstallAtEnd=true
                    -DdeployAtEnd=true
+                   -Dsurefire.useFile=false
+                   -Dsurefire.useFile=false
+                   -DtrimStackTrace=false
   DISABLE_IT: "true"
   E2E_ENV: kind
   E2E_PARALLELISM: 32
-  K8S_VERSION: 1.17.2
+  K8S_VERSION: 1.13.12
   K8S_FROM_DIND: "true"
   K8S_REUSE: "true"
+  DOCUMENTATION_BASE_URL: "https://ongresinc.gitlab.io/web/stackgres/doc/latest"
+  PRODUCTION_DOCUMENTATION_BASE_URL: "https://stackgres.io/doc/latest"
 
 # Cache downloaded dependencies and plugins between builds.
 # To keep cache across branches add 'key: "$CI_JOB_NAME"'
@@ -45,14 +50,38 @@ stages:
 
 compile:
   stage: compile
+  variables:
+    QUARKUS_PROFILE: "test"
   tags:
     - stackgres-runner
   script:
     - 'mvn $MAVEN_CLI_OPTS clean verify -P safer'
   artifacts:
+    expire_in: 1 week
+    when: always
     paths:
       - stackgres-k8s/src/target
       - stackgres-k8s/src/*/target
+
+build documentation:
+  image: monachus/hugo
+  stage: compile
+  script:
+  - |
+    if [[ ! -z "$CI_COMMIT_TAG" && ! "$CI_COMMIT_TAG" =~ ^latest-.*$ ]]
+    then
+      DOCUMENTATION_BASE_URL="$PRODUCTION_DOCUMENTATION_BASE_URL"
+    fi
+  - sh -x doc/build.sh
+  - STACKGRES_VERSION="$(echo 'import xml.etree.ElementTree as ET; print ET.parse("stackgres-k8s/src/pom.xml").getroot().find("{%s}version" % "http://maven.apache.org/POM/4.0.0").text' | python)"
+  - mkdir -p "doc/public/$STACKGRES_VERSION"
+  - hugo -v --source doc --destination "$(pwd)/doc/public/$STACKGRES_VERSION" --baseURL="$DOCUMENTATION_BASE_URL"
+  - cp -a "doc/public/$STACKGRES_VERSION" doc/public/latest
+  artifacts:
+    expire_in: 1 week
+    when: always
+    paths:
+    - doc/public
 
 native image:
   stage: package
@@ -60,19 +89,31 @@ native image:
     - stackgres-runner
   dependencies:
     - compile
+  timeout: 12 hour
   script:
     - MAVEN_CLI_OPTS="$MAVEN_CLI_OPTS -DskipTests"
-    - 'flock -w 3600 /tmp/stackgres-build-native mvn $MAVEN_CLI_OPTS package -P native'
+    - |
+      flock /tmp/stackgres-build-native  \
+        timeout -s KILL 3600 \
+        mvn $MAVEN_CLI_OPTS package -P native
     - 'cp $GRAALVM_HOME/jre/lib/amd64/libsunec.so stackgres-k8s/src/operator/target/'
     - 'cp $GRAALVM_HOME/jre/lib/security/cacerts stackgres-k8s/src/operator/target/'
+    - 'cp $GRAALVM_HOME/jre/lib/amd64/libsunec.so stackgres-k8s/src/api-web/target/'
+    - 'cp $GRAALVM_HOME/jre/lib/security/cacerts stackgres-k8s/src/api-web/target/'
   artifacts:
+    expire_in: 1 week
+    when: always
     paths:
       - stackgres-k8s/src/operator/target/libsunec.so
       - stackgres-k8s/src/operator/target/cacerts
       - stackgres-k8s/src/operator/target/stackgres-operator-runner
       - stackgres-k8s/src/operator/target/lib/
       - stackgres-k8s/src/operator/target/stackgres-operator-runner.jar
-    expire_in: 1 day
+      - stackgres-k8s/src/api-web/target/libsunec.so
+      - stackgres-k8s/src/api-web/target/cacerts
+      - stackgres-k8s/src/api-web/target/stackgres-restapi-runner
+      - stackgres-k8s/src/api-web/target/lib/
+      - stackgres-k8s/src/api-web/target/stackgres-restapi-runner.jar
   only:
     variables:
       - $CI_COMMIT_REF_NAME == "development"
@@ -100,10 +141,14 @@ build test images:
     - stackgres-runner
   dependencies:
     - compile
+  timeout: 12 hour
   retry: 2
   script:
     - MAVEN_CLI_OPTS="$MAVEN_CLI_OPTS -DskipTests -Dquarkus.skipAugmentation=true"
-    - 'mvn $MAVEN_CLI_OPTS pre-integration-test -P integration'
+    - |
+      flock /tmp/stackgres-build-it-image  \
+        timeout -s KILL 3600 \
+        mvn $MAVEN_CLI_OPTS pre-integration-test -P integration
 
 build jvm image:
   stage: pre test
@@ -111,12 +156,17 @@ build jvm image:
     - stackgres-runner
   dependencies:
     - compile
+  timeout: 12 hour
   retry: 2
   script:
     - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}"-jvm'
-    - 'export IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
+    - 'export OPERATOR_IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
+    - 'export RESTAPI_IMAGE_NAME="stackgres/restapi:$IMAGE_TAG"'
     - MAVEN_CLI_OPTS="$MAVEN_CLI_OPTS -DskipTests"
-    - 'flock -w 3600 /tmp/stackgres-build-jvm-image mvn $MAVEN_CLI_OPTS package -P build-image-jvm'
+    - |
+      flock /tmp/stackgres-build-jvm-image  \
+        timeout -s KILL 3600 \
+        mvn $MAVEN_CLI_OPTS package -P build-image-jvm
 
 build native image:
   stage: pre test
@@ -125,12 +175,17 @@ build native image:
   dependencies:
     - compile
     - native image
+  timeout: 12 hour
   retry: 2
   script:
     - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}"'
-    - 'export IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
+    - 'export OPERATOR_IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
+    - 'export RESTAPI_IMAGE_NAME="stackgres/restapi:$IMAGE_TAG"'
     - MAVEN_CLI_OPTS="$MAVEN_CLI_OPTS -DskipTests"
-    - 'flock -w 3600 /tmp/stackgres-build-native-image mvn $MAVEN_CLI_OPTS package -P build-image-native'
+    - |
+      flock /tmp/stackgres-build-native-image  \
+        timeout -s KILL 3600 \
+        mvn $MAVEN_CLI_OPTS package -P build-image-native
   only:
     variables:
       - $CI_COMMIT_REF_NAME == "development"
@@ -145,14 +200,21 @@ integration test:
     - stackgres-runner
   dependencies:
     - compile
+  timeout: 12 hour
   script:
     - |
-      flock -s -w 3600 /tmp/stackgres-build-native \
-        flock -w 3600 /tmp/stackgres-integration-test mvn $MAVEN_CLI_OPTS verify -P integration \
-        -Dit.skipBuildContainer=true
+      flock -s /tmp/stackgres-build-native \
+        flock /tmp/stackgres-integration-test \
+        timeout -s KILL 3600 \
+        mvn $MAVEN_CLI_OPTS verify -P integration -Dit.skipBuildContainer=true
   only:
     variables:
       - $DO_EXTERNAL
+  artifacts:
+    expire_in: 1 week
+    when: always
+    paths:
+    - stackgres-k8s/src/operator/target/e2e
 
 integration test jvm image:
   stage: test
@@ -163,14 +225,23 @@ integration test jvm image:
   variables:
     OPERATOR_IN_KUBERNETES: "true"
     K8S_SUFFIX: jvm-image
+  timeout: 12 hour
   script:
     - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}"-jvm'
-    - 'export IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
+    - 'export OPERATOR_IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
+    - 'export RESTAPI_IMAGE_NAME="stackgres/restapi:$IMAGE_TAG"'
     - |
-      flock -s -w 3600 /tmp/stackgres-build-native \
-        flock -w 3600 /tmp/stackgres-integration-test-jvm-image mvn $MAVEN_CLI_OPTS verify -P integration \
-        -DargLine=-Dcom.ongres.junit.docker.runnerId="$K8S_SUFFIX" \
-        -Dit.skipBuildContainer=true
+      flock -s /tmp/stackgres-build-native \
+        flock /tmp/stackgres-integration-test-jvm-image  \
+        timeout -s KILL 3600 \
+        mvn $MAVEN_CLI_OPTS verify -P integration \
+          -DargLine=-Dcom.ongres.junit.docker.runnerId="$K8S_SUFFIX" \
+          -Dit.skipBuildContainer=true
+  artifacts:
+    expire_in: 1 week
+    when: always
+    paths:
+    - stackgres-k8s/src/operator/target/e2e
 
 integration test native image:
   stage: test
@@ -181,14 +252,19 @@ integration test native image:
   variables:
     OPERATOR_IN_KUBERNETES: "true"
     K8S_SUFFIX: native-image
+    SKIP_QUARKUS_TEST: "true"
+  timeout: 12 hour
   script:
     - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}"'
-    - 'export IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
+    - 'export OPERATOR_IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
+    - 'export RESTAPI_IMAGE_NAME="stackgres/restapi:$IMAGE_TAG"'
     - |
-      flock -s -w 3600 /tmp/stackgres-build-native \
-        flock -w 3600 /tmp/stackgres-integration-test-native-image mvn $MAVEN_CLI_OPTS verify -P integration \
-        -DargLine=-Dcom.ongres.junit.docker.runnerId="$K8S_SUFFIX" \
-        -Dit.skipBuildContainer=true
+      flock -s /tmp/stackgres-build-native \
+        flock /tmp/stackgres-integration-test-native-image \
+        timeout -s KILL 3600 \
+        mvn $MAVEN_CLI_OPTS verify -P integration \
+          -DargLine=-Dcom.ongres.junit.docker.runnerId="$K8S_SUFFIX" \
+          -Dit.skipBuildContainer=true
   only:
     variables:
       - $CI_COMMIT_REF_NAME == "development"
@@ -196,6 +272,11 @@ integration test native image:
       - $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
       - $DO_DEPLOY
       - $DO_NATIVE
+  artifacts:
+    expire_in: 1 week
+    when: always
+    paths:
+    - stackgres-k8s/src/operator/target/e2e
 
 deploy jvm image:
   image: docker.io/ongres/builder:latest
@@ -205,10 +286,15 @@ deploy jvm image:
   script:
     - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}"-jvm'
     - 'export IMAGE_UPLOAD_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_REF_NAME"}"-jvm'
-    - 'export IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
-    - 'export IMAGE_UPLOAD_NAME="stackgres/operator:$IMAGE_UPLOAD_TAG"'
-    - 'buildah pull docker-daemon:"$IMAGE_NAME"'
-    - 'buildah push --format=docker --authfile $REGISTRY_AUTH_FILE $IMAGE_NAME "docker://docker.io/$IMAGE_UPLOAD_NAME"'
+    - 'export OPERATOR_IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
+    - 'export RESTAPI_IMAGE_NAME="stackgres/restapi:$IMAGE_TAG"'
+    - 'export OPERATOR_IMAGE_UPLOAD_NAME="stackgres/operator:$IMAGE_UPLOAD_TAG"'
+    - 'export RESTAPI_IMAGE_UPLOAD_NAME="stackgres/restapi:$IMAGE_UPLOAD_TAG"'
+    - 'buildah pull docker-daemon:"$OPERATOR_IMAGE_NAME"'
+    - 'buildah push --format=docker --authfile $REGISTRY_AUTH_FILE $OPERATOR_IMAGE_NAME "docker://docker.io/$OPERATOR_IMAGE_UPLOAD_NAME"'
+    - 'buildah pull docker-daemon:"$RESTAPI_IMAGE_NAME"'
+    - 'buildah push --format=docker --authfile $REGISTRY_AUTH_FILE $RESTAPI_IMAGE_NAME "docker://docker.io/$RESTAPI_IMAGE_UPLOAD_NAME"'
+
   only:
     variables:
       - $CI_COMMIT_REF_NAME == "development"
@@ -223,10 +309,14 @@ deploy native image:
   script:
     - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}"'
     - 'export IMAGE_UPLOAD_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_REF_NAME"}"'
-    - 'export IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
-    - 'export IMAGE_UPLOAD_NAME="stackgres/operator:$IMAGE_UPLOAD_TAG"'
-    - 'buildah pull docker-daemon:"$IMAGE_NAME"'
-    - 'buildah push --format=docker --authfile $REGISTRY_AUTH_FILE $IMAGE_NAME "docker://docker.io/$IMAGE_UPLOAD_NAME"'
+    - 'export OPERATOR_IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
+    - 'export RESTAPI_IMAGE_NAME="stackgres/restapi:$IMAGE_TAG"'
+    - 'export OPERATOR_IMAGE_UPLOAD_NAME="stackgres/operator:$IMAGE_UPLOAD_TAG"'
+    - 'export RESTAPI_IMAGE_UPLOAD_NAME="stackgres/restapi:$IMAGE_UPLOAD_TAG"'
+    - 'buildah pull docker-daemon:"$OPERATOR_IMAGE_NAME"'
+    - 'buildah push --format=docker --authfile $REGISTRY_AUTH_FILE $OPERATOR_IMAGE_NAME "docker://docker.io/$OPERATOR_IMAGE_UPLOAD_NAME"'
+    - 'buildah pull docker-daemon:"$RESTAPI_IMAGE_NAME"'
+    - 'buildah push --format=docker --authfile $REGISTRY_AUTH_FILE $RESTAPI_IMAGE_NAME "docker://docker.io/$RESTAPI_IMAGE_UPLOAD_NAME"'
   only:
     variables:
       - $CI_COMMIT_REF_NAME == "development"

@@ -5,7 +5,6 @@
 
 package io.stackgres.operator.validation.cluster;
 
-import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
@@ -21,18 +20,6 @@ public class ClusterValidationPipeline implements ValidationPipeline<StackGresCl
 
   private SimpleValidationPipeline<StackGresClusterReview, ClusterValidator> genericPipeline;
 
-  private Instance<ClusterValidator> validators;
-
-  @PostConstruct
-  public void init() {
-    genericPipeline = new SimpleValidationPipeline<>(validators);
-  }
-
-  @Inject
-  public void setValidators(@Any Instance<ClusterValidator> validators) {
-    this.validators = validators;
-  }
-
   /**
    * Validate all {@code Validator}s in sequence.
    */
@@ -40,6 +27,11 @@ public class ClusterValidationPipeline implements ValidationPipeline<StackGresCl
   public void validate(StackGresClusterReview review) throws ValidationFailed {
     genericPipeline.validate(review);
 
+  }
+
+  @Inject
+  public void setValidators(@Any Instance<ClusterValidator> validators) {
+    this.genericPipeline = new SimpleValidationPipeline<>(validators);
   }
 
 }

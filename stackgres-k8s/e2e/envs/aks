@@ -3,11 +3,11 @@
 K8S_AZ_LOCATION="${K8S_AZ_LOCATION:-northeurope}"
 K8S_AZ_RESOURCE_GROUP="${K8S_AZ_RESOURCE_GROUP:-stackgres-e2e}"
 K8S_AZ_K8S_NAME="${K8S_AZ_K8S_NAME:-stackgres}"
-K8S_VERSION="${K8S_VERSION:-1.13.11}"
+K8S_VERSION="${K8S_VERSION:-1.15.10}"
 K8S_AZ_NODE_SIZE="${K8S_AZ_NODE_SIZE:-Standard_F2}"
-K8S_AZ_NODE_COUNT="${K8S_AZ_NODE_COUNT:-5}"
+K8S_AZ_NODE_COUNT="${K8S_AZ_NODE_COUNT:-3}"
 K8S_AZ_REGISTRY="${K8S_AZ_REGISTRY:-stackgrese2e}"
-USE_INTERMIDIATE_PRIVATE_REPO=true
+export E2E_USE_INTERMIDIATE_PRIVATE_REPO=true
 
 if [ "$K8S_AZ_NODE_SIZE" = "Standard_F2" ] && [ "$E2E_PARALLELISM" -gt "$K8S_AZ_NODE_COUNT" ]
 then
@@ -16,7 +16,7 @@ fi
 
 if [ "$K8S_VERSION" = "$DEFAULT_K8S_VERSION" ]
 then
-  >&2 echo "Warning: using kubernetes version 1.13.11 since e2e default $DEFAULT_K8S_VERSION is not available for eks"
+  >&2 echo "Warning: using kubernetes version 1.13.11 since e2e default $DEFAULT_K8S_VERSION is not available for aks"
   K8S_VERSION=1.13.11
 fi
 
@@ -70,11 +70,15 @@ delete_k8s(){
    az group delete --name "$K8S_AZ_RESOURCE_GROUP" --yes
 }
 
-load_operator_k8s() {
-  echo "Loading operator image $IMAGE_NAME in aks environemnt $K8S_AZ_K8S_NAME..."
-  echo "Cannot load images to $K8S_AZ_K8S_NAME.  Using public images :("  
+load_image_k8s() {
+  echo "Cannot load images directly to k8s in a aks environment"
+  exit 1
 }
 
 operator_pull_policy() {
-  echo IfNotPresent
+  echo Always
+}
+
+get_k8s_versions() {
+  az aks get-versions --location "$K8S_AZ_LOCATION" | jq '.orchestrators[].orchestratorVersion' -r
 }

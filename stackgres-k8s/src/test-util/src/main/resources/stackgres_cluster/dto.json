@@ -1,0 +1,44 @@
+{
+  "metadata": {
+    "name": "stackgres",
+    "namespace": "stackgres",
+    "uid": "bfb53778-f59a-11e9-b1b5-0242ac110002"
+  },
+  "spec": {
+    "instances": 1,
+    "postgresVersion": "11.5",
+    "sgInstanceProfile": "size-xs",
+    "initialData": {
+      "restore": {
+        "fromBackup": "d7e660a9-377c-11ea-b04b-0242ac110004"
+      }
+    },
+    "configurations": {
+      "sgPostgresConfig": "postgresconf",
+      "sgPoolingConfig": "pgbouncerconf",
+      "sgBackupConfig": "backupconf"
+    },
+    "pods":{
+      "persistentVolume": {
+        "size": "5Gi",
+        "storageClass": "standard"
+      },
+      "disableConnectionPooling": false,
+      "disableMetricsExporter": false,
+      "disablePostgresUtil": false,
+      "metadata": {
+        "annotations": {
+          "customAnnotation" : "customValue"
+        },
+        "labels": {
+          "customLabel" : "customLabelValue"
+        }
+      }
+    },
+    "prometheusAutobind": true,
+    "distributedLogs": {
+      "sgDistributedLogs": "distributedlogs"
+    }
+  },
+  "status": null
+}

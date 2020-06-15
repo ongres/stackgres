@@ -11,9 +11,34 @@ StackGres Version: {{ .Chart.Version }}
 
 {{- if not .Values.cert.autoapprove }}
 To complete the process approve operator certificate signing request:
-- kubectl certificate approve {{ .Release.Name }}
+    kubectl certificate approve {{ .Release.Name }}
 {{- end }}
 
 Check if the operator was successfuly deployed:
-- kubectl describe deployment -n {{ .Release.Namespace }}
+    kubectl describe deployment -n {{ .Release.Namespace }}
 
+{{- if .Values.deploy.restapi }}
+To access StackGres Operator UI from localhost, run the below commands:
+
+    export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
+
+    kubectl port-forward $POD_NAME 8433:9433 --namespace {{ .Release.Namespace }}
+
+Read more about port forwarding here: http://kubernetes.io/docs/user-guide/kubectl/kubectl_port-forward/
+
+Now you can access the StackGres Operator UI on https://localhost:8433. 
+
+To get the username, run the command:
+
+    kubectl get secrets --namespace {{ .Release.Namespace }} {{ .Values.restapi.name }} -o jsonpath="{.data.user}" | base64 -d
+
+{{- if not .Values.authentication.password }}
+To get the password, run the command:
+
+    kubectl get secrets --namespace {{ .Release.Namespace }} {{ .Values.restapi.name }} -o jsonpath="{.data.clearPassword}" | base64 -d
+
+Remember to remove `crealPassword` key from the secret to avoid security flaws:
+
+    kubectl patch secrets --namespace {{ .Release.Namespace }} {{ .Values.restapi.name }} --type json -p '[{"op":"remove","path":"/data/clearPassword"}]'
+{{- end }}
+{{- end }}

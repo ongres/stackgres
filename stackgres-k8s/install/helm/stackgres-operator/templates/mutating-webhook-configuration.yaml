@@ -1,11 +1,19 @@
+{{- if or (and (not .Release.IsInstall) (not .Release.IsUpgrade)) (and .Values.cert.key .Values.cert.crt) }}
 apiVersion: admissionregistration.k8s.io/v1beta1
 kind: MutatingWebhookConfiguration
 metadata:
   name: {{ .Release.Name }}
   namespace: {{ .Release.Namespace }}
+  annotations:
+    meta.helm.sh/release-name: {{ .Release.Name }}
+    meta.helm.sh/release-namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/managed-by: Helm
 webhooks:
   - name: sgcluster.{{ .Release.Name }}.{{ .Release.Namespace }}
+    {{- if (semverCompare ">1.12-0" .Capabilities.KubeVersion.GitVersion) }}
     sideEffects: None
+    {{- end }}
     rules:
       - operations: ["CREATE"]
         apiGroups: ["stackgres.io"]
@@ -17,11 +25,11 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/mutation/sgcluster'
-      {{- if .Values.cert.crt }}
       caBundle: {{ .Values.cert.crt }}
-      {{- end }}
   - name: sgpgconfig.{{ .Release.Name }}.{{ .Release.Namespace }}
+    {{- if (semverCompare ">1.12-0" .Capabilities.KubeVersion.GitVersion) }}
     sideEffects: None
+    {{- end }}
     rules:
       - operations: ["CREATE"]
         apiGroups: ["stackgres.io"]
@@ -33,11 +41,11 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/mutation/sgpgconfig'
-      {{- if .Values.cert.crt }}
       caBundle: {{ .Values.cert.crt }}
-      {{- end }}
   - name: sgpoolconfig.{{ .Release.Name }}.{{ .Release.Namespace }}
+    {{- if (semverCompare ">1.12-0" .Capabilities.KubeVersion.GitVersion) }}
     sideEffects: None
+    {{- end }}
     rules:
       - operations: ["CREATE"]
         apiGroups: ["stackgres.io"]
@@ -49,11 +57,11 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/mutation/sgpoolconfig'
-      {{- if .Values.cert.crt }}
       caBundle: {{ .Values.cert.crt }}
-      {{- end }}
   - name: sginstanceprofile.{{ .Release.Name }}.{{ .Release.Namespace }}
+    {{- if (semverCompare ">1.12-0" .Capabilities.KubeVersion.GitVersion) }}
     sideEffects: None
+    {{- end }}
     rules:
       - operations: ["CREATE"]
         apiGroups: ["stackgres.io"]
@@ -65,11 +73,11 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/mutation/sginstanceprofile'
-      {{- if .Values.cert.crt }}
       caBundle: {{ .Values.cert.crt }}
-      {{- end }}
   - name: sgbackupconfig.{{ .Release.Name }}.{{ .Release.Namespace }}
+    {{- if (semverCompare ">1.12-0" .Capabilities.KubeVersion.GitVersion) }}
     sideEffects: None
+    {{- end }}
     rules:
       - operations: ["CREATE"]
         apiGroups: ["stackgres.io"]
@@ -81,11 +89,11 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/mutation/sgbackupconfig'
-      {{- if .Values.cert.crt }}
       caBundle: {{ .Values.cert.crt }}
-      {{- end }}
   - name: sgbackup.{{ .Release.Name }}.{{ .Release.Namespace }}
+    {{- if (semverCompare ">1.12-0" .Capabilities.KubeVersion.GitVersion) }}
     sideEffects: None
+    {{- end }}
     rules:
       - operations: ["CREATE"]
         apiGroups: ["stackgres.io"]
@@ -97,7 +105,21 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/mutation/sgbackup'
-      {{- if .Values.cert.crt }}
       caBundle: {{ .Values.cert.crt }}
-      {{- end }}
-
+  - name: sgdistributedlogs.{{ .Release.Name }}.{{ .Release.Namespace }}
+    {{- if (semverCompare ">1.12-0" .Capabilities.KubeVersion.GitVersion) }}
+    sideEffects: None
+    {{- end }}
+    rules:
+      - operations: ["CREATE"]
+        apiGroups: ["stackgres.io"]
+        apiVersions: ["*"]
+        resources: ["sgdistributedlogs"]
+    failurePolicy: Fail
+    clientConfig:
+      service:
+        namespace: {{ .Release.Namespace }}
+        name: {{ .Release.Name }}
+        path: '/stackgres/mutation/sgdistributedlogs'
+      caBundle: {{ .Values.cert.crt }}
+{{- end }}

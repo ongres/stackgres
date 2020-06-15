@@ -5,10 +5,10 @@
 
 package io.stackgres.operator.validation.backup;
 
+import io.stackgres.common.crd.sgbackup.StackGresBackup;
+import io.stackgres.common.crd.sgbackup.StackGresBackupSpec;
+import io.stackgres.testutil.JsonUtil;
 import io.stackgres.operator.common.BackupReview;
-import io.stackgres.operator.customresource.sgbackup.StackGresBackup;
-import io.stackgres.operator.customresource.sgbackup.StackGresBackupSpec;
-import io.stackgres.operator.utils.JsonUtil;
 import io.stackgres.operator.validation.ConstraintValidationTest;
 import io.stackgres.operator.validation.ConstraintValidator;
 import org.junit.jupiter.api.Test;

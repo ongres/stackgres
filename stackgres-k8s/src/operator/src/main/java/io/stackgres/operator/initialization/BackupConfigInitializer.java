@@ -7,7 +7,7 @@ package io.stackgres.operator.initialization;
 
 import javax.enterprise.context.ApplicationScoped;
 
-import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfig;
+import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 
 @ApplicationScoped
 public class BackupConfigInitializer extends

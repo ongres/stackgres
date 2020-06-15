@@ -14,5 +14,6 @@ public interface MutationUtil {
   String BACKUPCONFIG_MUTATION_PATH = MUTATION_PATH + "/sgbackupconfig";
   String BACKUP_MUTATION_PATH = MUTATION_PATH + "/sgbackup";
   String PROFILE_MUTATION_PATH = MUTATION_PATH + "/sginstanceprofile";
+  String DISTRIBUTED_LOGS_MUTATION_PATH = MUTATION_PATH + "/sgdistributedlogs";
 
 }

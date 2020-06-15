@@ -5,122 +5,113 @@
 
 package io.stackgres.operator.cluster.factory;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.enterprise.context.ApplicationScoped;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.io.Resources;
-
-import io.fabric8.kubernetes.api.model.ConfigMapEnvSourceBuilder;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
-import io.fabric8.kubernetes.api.model.EnvFromSourceBuilder;
-import io.fabric8.kubernetes.api.model.EnvVar;
-import io.fabric8.kubernetes.api.model.EnvVarBuilder;
-import io.fabric8.kubernetes.api.model.VolumeMount;
-import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
+import io.stackgres.common.StackGresContext;
 import io.stackgres.operator.common.StackGresClusterContext;
-import io.stackgres.operator.common.StackGresRestoreContext;
-import io.stackgres.operator.patroni.factory.PatroniConfigMap;
-import io.stackgres.operator.patroni.factory.PatroniEnvironmentVariables;
 import io.stackgres.operatorframework.resource.factory.SubResourceStreamFactory;
-
 import org.jooq.lambda.Seq;
-import org.jooq.lambda.Unchecked;
 
 @ApplicationScoped
 public class ClusterStatefulSetInitContainers
     implements SubResourceStreamFactory<Container, StackGresClusterContext> {
 
   private final ClusterStatefulSetEnvironmentVariables clusterStatefulSetEnvironmentVariables;
-  private final PatroniEnvironmentVariables patroniEnvironmentVariables;
 
   public ClusterStatefulSetInitContainers(
-      ClusterStatefulSetEnvironmentVariables clusterStatefulSetEnvironmentVariables,
-      PatroniEnvironmentVariables patroniEnvironmentVariables) {
+      ClusterStatefulSetEnvironmentVariables clusterStatefulSetEnvironmentVariables) {
     super();
     this.clusterStatefulSetEnvironmentVariables = clusterStatefulSetEnvironmentVariables;
-    this.patroniEnvironmentVariables = patroniEnvironmentVariables;
   }
 
   @Override
   public Stream<Container> streamResources(StackGresClusterContext config) {
-    return Seq.of(Optional.of(createSetDataPermissionContainer(config)),
-        Optional.of(createExecWithEnvContainer(config)),
-        config.getRestoreContext()
-        .map(restoreContext -> createRestoreEntrypointContainer(config, restoreContext)))
+    return Seq.of(Optional.of(createSetupDataPathsContainer(config)),
+        Optional.of(setupScriptsContainer(config)),
+        Optional.of(createSetupArbitraryUser(config)))
         .filter(Optional::isPresent)
         .map(Optional::get);
   }
 
-  private Container createSetDataPermissionContainer(StackGresClusterContext config) {
+  private Container createSetupDataPathsContainer(StackGresClusterContext config) {
     return new ContainerBuilder()
-        .withName("set-data-permissions")
-        .withImage("busybox")
+        .withName("setup-data-paths")
+        .withImage(StackGresContext.BUSYBOX_IMAGE)
+        .withImagePullPolicy("IfNotPresent")
         .withCommand("/bin/sh", "-ecx", Stream.of(
-            "mkdir -p " + ClusterStatefulSetPath.PG_DATA_PATH.path(),
-            "chmod -R 700 " + ClusterStatefulSetPath.PG_BASE_PATH.path(),
-            "chown -R 999:999 " + ClusterStatefulSetPath.PG_BASE_PATH.path())
+            "mkdir -p \"$PG_DATA_PATH\"",
+            "chmod -R 700 \"$PG_DATA_PATH\"")
             .collect(Collectors.joining(" && ")))
-        .withVolumeMounts(getSetDataPermissionVolumeMounts(config))
-        .build();
-  }
-
-  private VolumeMount[] getSetDataPermissionVolumeMounts(StackGresClusterContext config) {
-    return Stream.of(
-        Stream.of(new VolumeMountBuilder()
-            .withName(ClusterStatefulSet.dataName(config))
-            .withMountPath(ClusterStatefulSetPath.PG_BASE_PATH.path())
-            .build()))
-        .flatMap(s -> s)
-        .toArray(VolumeMount[]::new);
-  }
-
-  private Container createExecWithEnvContainer(StackGresClusterContext config) {
-    return new ContainerBuilder()
-        .withName("exec-with-env")
-        .withImage("busybox")
-        .withCommand("/bin/sh", "-ecx", Unchecked.supplier(() -> Resources
-            .asCharSource(
-                ClusterStatefulSet.class.getResource("/create-exec-with-env.sh"),
-                StandardCharsets.UTF_8)
-            .read()).get())
         .withEnv(clusterStatefulSetEnvironmentVariables.listResources(config))
-        .withVolumeMounts(ClusterStatefulSetVolumeConfig.LOCAL_BIN.volumeMount(config))
+        .withVolumeMounts(ClusterStatefulSetVolumeConfig.DATA.volumeMount(config))
         .build();
   }
 
-  private Container createRestoreEntrypointContainer(StackGresClusterContext config,
-      StackGresRestoreContext restoreContext) {
+  private Container createSetupArbitraryUser(StackGresClusterContext config) {
     return new ContainerBuilder()
-        .withName("restore-entrypoint")
-        .withImage("busybox")
-        .withCommand("/bin/sh", "-ecx", Unchecked.supplier(() -> Resources
-            .asCharSource(
-                ClusterStatefulSet.class.getResource("/create-restore-entrypoint.sh"),
-                StandardCharsets.UTF_8)
-            .read()).get())
-        .withEnvFrom(new EnvFromSourceBuilder()
-            .withConfigMapRef(new ConfigMapEnvSourceBuilder()
-                .withName(PatroniConfigMap.name(config)).build())
-            .build(),
-            new EnvFromSourceBuilder()
-            .withConfigMapRef(new ConfigMapEnvSourceBuilder()
-                .withName(RestoreConfigMap.name(config)).build())
-            .build())
-        .withEnv(ImmutableList.<EnvVar>builder()
-            .addAll(clusterStatefulSetEnvironmentVariables.listResources(config))
-            .addAll(patroniEnvironmentVariables.listResources(config))
-            .add(new EnvVarBuilder()
-                .withName("RESTORE_BACKUP_ID")
-                .withValue(restoreContext.getBackup().getStatus().getInternalName())
-                .build())
-            .build())
-        .withVolumeMounts(ClusterStatefulSetVolumeConfig.RESTORE_ENTRYPOINT.volumeMount(config))
+        .withName("setup-arbitrary-user")
+        .withImage(StackGresContext.BUSYBOX_IMAGE)
+        .withImagePullPolicy("IfNotPresent")
+        .withCommand("/bin/sh", "-ecx", Seq.of(
+            "USER=postgres",
+            "UID=$(id -u)",
+            "GID=$(id -g)",
+            "SHELL=/bin/sh",
+            "cp \"$TEMPLATES_PATH/passwd\" /local/etc/.",
+            "cp \"$TEMPLATES_PATH/group\" /local/etc/.",
+            "cp \"$TEMPLATES_PATH/shadow\" /local/etc/.",
+            "cp \"$TEMPLATES_PATH/gshadow\" /local/etc/.",
+            "echo \"$USER:x:$UID:$GID::$PG_BASE_PATH:$SHELL\" >> /local/etc/passwd",
+            "chmod 644 /local/etc/passwd",
+            "echo \"$USER:x:$GID:\" >> /local/etc/group",
+            "chmod 644 /local/etc/group",
+            "echo \"$USER\"':!!:18179:0:99999:7:::' >> /local/etc/shadow",
+            "chmod 000 /local/etc/shadow",
+            "echo \"$USER\"':!::' >> /local/etc/gshadow",
+            "chmod 000 /local/etc/gshadow")
+            .collect(Collectors.joining(" && ")))
+        .withEnv(clusterStatefulSetEnvironmentVariables.listResources(config))
+        .withVolumeMounts(
+            ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(config),
+            ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
+            config, volumeMountBuilder -> volumeMountBuilder
+                .withSubPath("etc")
+                .withMountPath("/local/etc")
+                .withReadOnly(false)))
+        .build();
+  }
+
+  private Container setupScriptsContainer(StackGresClusterContext config) {
+    return new ContainerBuilder()
+        .withName("setup-scripts")
+        .withImage(StackGresContext.BUSYBOX_IMAGE)
+        .withImagePullPolicy("IfNotPresent")
+        .withCommand("/bin/sh", "-ecx", Seq.of(
+            "cp $TEMPLATES_PATH/start-patroni.sh \"$LOCAL_BIN_PATH\"",
+            "cp $TEMPLATES_PATH/start-patroni-with-restore.sh \"$LOCAL_BIN_PATH\"",
+            "cp $TEMPLATES_PATH/post-init.sh \"$LOCAL_BIN_PATH\"",
+            "cp $TEMPLATES_PATH/exec-with-env \"$LOCAL_BIN_PATH\"",
+            "sed -i \"s#\\${POSTGRES_PORT}#${POSTGRES_PORT}#g\""
+                + " \"$LOCAL_BIN_PATH/post-init.sh\"",
+            "sed -i \"s#\\${BASE_ENV_PATH}#${BASE_ENV_PATH}#g\""
+                + " \"$LOCAL_BIN_PATH/exec-with-env\"",
+            "sed -i \"s#\\${BASE_SECRET_PATH}#${BASE_SECRET_PATH}#g\""
+                + " \"$LOCAL_BIN_PATH/exec-with-env\"",
+            "chmod a+x \"$LOCAL_BIN_PATH/start-patroni.sh\"",
+            "chmod a+x \"$LOCAL_BIN_PATH/start-patroni-with-restore.sh\"",
+            "chmod a+x \"$LOCAL_BIN_PATH/post-init.sh\"",
+            "chmod a+x \"$LOCAL_BIN_PATH/exec-with-env\"")
+            .collect(Collectors.joining(" && ")))
+        .withEnv(clusterStatefulSetEnvironmentVariables.listResources(config))
+        .withVolumeMounts(ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(config),
+            ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
+                ClusterStatefulSetPath.LOCAL_BIN_PATH, config))
         .build();
   }
 

@@ -28,7 +28,9 @@
     <module>common</module>
     <module>operator-framework</module>
     <module>operator</module>
-    <!-- <module>cli</module> -->
+    <module>api-web</module>
+    <module>test-util</module>
+      <!-- <module>cli</module> -->
   </modules>
 
   <scm>
@@ -38,6 +40,16 @@
   </scm>
 
   <properties>
+    <stackgres.containerBuild>4</stackgres.containerBuild>
+    <stackgres.group>stackgres.io</stackgres.group>
+    <stackgres.crd.version>v1beta1</stackgres.crd.version>
+    <stackgres.operatorVersion>${project.version}</stackgres.operatorVersion>
+    <stackgres.documentation.uri>https://stackgres.io/doc/</stackgres.documentation.uri>
+    <stackgres.documentation.errorsPath>/07-developer-documentation/01-error-types#</stackgres.documentation.errorsPath>
+    <it.image>stackgres/it:5.0</it.image>
+    <quarkus.http.ssl.certificate.file>/etc/operator/certs/server.crt</quarkus.http.ssl.certificate.file>
+    <quarkus.http.ssl.certificate.key-file>/etc/operator/certs/root.key</quarkus.http.ssl.certificate.key-file>
+
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <!-- Java compilation -->
     <java.version>1.8</java.version>
@@ -47,18 +59,19 @@
     <quarkus.version>1.2.1.Final</quarkus.version>
     <kubernetes-client.version>4.7.1</kubernetes-client.version>
     <jool.version>0.9.14</jool.version>
-    <immutables.version>2.8.1</immutables.version>
+    <immutables.version>2.8.8</immutables.version>
     <javax.annotation-api.version>1.3.2</javax.annotation-api.version>
     <javax.validation-api.version>2.0.1.Final</javax.validation-api.version>
     <jsr305.version>3.0.2</jsr305.version>
-    <checkstyle.version>8.27</checkstyle.version>
-    <spotbugs.version>4.0.0-RC1</spotbugs.version>
-    <pmd.version>6.19.0</pmd.version>
+    <checkstyle.version>8.33</checkstyle.version>
+    <spotbugs.version>4.0.3</spotbugs.version>
+    <pmd.version>6.24.0</pmd.version>
     <errorprone.version>2.3.3</errorprone.version>
-    <docker-junit-extension.version>1.2.11</docker-junit-extension.version>
+    <docker-junit-extension.version>1.2.13</docker-junit-extension.version>
     <jersey.version>2.29</jersey.version>
     <mockito.version>3.0.0</mockito.version>
     <log4j.version>2.11.2</log4j.version>
+    <jooq.version>3.13.2</jooq.version>
     <!-- Plugins versions -->
     <compiler-plugin.version>3.8.1</compiler-plugin.version>
     <jar-plugin.version>3.2.0</jar-plugin.version>
@@ -66,18 +79,19 @@
     <resources-plugin.version>3.1.0</resources-plugin.version>
     <surefire-plugin.version>3.0.0-M3</surefire-plugin.version>
     <failsafe-plugin.version>3.0.0-M3</failsafe-plugin.version>
-    <checkstyle-plugin.version>3.1.0</checkstyle-plugin.version>
-    <spotbugs-plugin.version>3.1.12.2</spotbugs-plugin.version>
-    <pmd-plugin.version>3.12.0</pmd-plugin.version>
+    <checkstyle-plugin.version>3.1.1</checkstyle-plugin.version>
+    <spotbugs-plugin.version>4.0.0</spotbugs-plugin.version>
+    <pmd-plugin.version>3.13.0</pmd-plugin.version>
     <enforcer-plugin.version>3.0.0-M3</enforcer-plugin.version>
     <dependency-plugin.version>3.1.1</dependency-plugin.version>
     <docker-maven-plugin.version>0.33.0</docker-maven-plugin.version>
-    <jandex-maven-plugin.version>1.0.7</jandex-maven-plugin.version>
+    <jandex-maven-plugin.version>1.0.8</jandex-maven-plugin.version>
     <!-- Checkstyle, SpotBugs and PMD properties -->
-    <checkstyle.conifg.folder.location>${project.basedir}/checks/checkstyle</checkstyle.conifg.folder.location>
-    <checkstyle.config.location>${checkstyle.conifg.folder.location}/checkstyle.xml</checkstyle.config.location>
-    <checkstyle.header.file>${checkstyle.conifg.folder.location}/header.txt</checkstyle.header.file>
-    <spotbugs.excludeFilterFile>${project.basedir}/checks/spotbugs/exclude.xml</spotbugs.excludeFilterFile>
+    <checks.location>${project.basedir}/checks</checks.location>
+    <checkstyle.config.location>${checks.location}/checkstyle/checkstyle.xml</checkstyle.config.location>
+    <checkstyle.header.file>${checks.location}/checkstyle/header.txt</checkstyle.header.file>
+    <checkstyle.suppressions.location>${checks.location}/checkstyle/suppressions.xml</checkstyle.suppressions.location>
+    <spotbugs.excludeFilterFile>${checks.location}/spotbugs/exclude.xml</spotbugs.excludeFilterFile>
   </properties>
 
   <dependencyManagement>
@@ -127,6 +141,17 @@
         <artifactId>jersey-apache-connector</artifactId>
         <version>${jersey.version}</version>
         <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.jooq</groupId>
+        <artifactId>jooq</artifactId>
+        <version>${jooq.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>javax.xml.bind</groupId>
+            <artifactId>jaxb-api</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
     </dependencies>
   </dependencyManagement>
@@ -252,7 +277,6 @@
             <id>validate</id>
             <phase>validate</phase>
             <configuration>
-              <propertyExpansion>config_loc=${checkstyle.conifg.folder.location}</propertyExpansion>
               <violationSeverity>error</violationSeverity>
               <failOnViolation>true</failOnViolation>
               <failsOnError>true</failsOnError>
@@ -368,6 +392,11 @@
               <linkXRef>false</linkXRef>
             </configuration>
             <dependencies>
+              <dependency>
+                <groupId>net.sourceforge.pmd</groupId>
+                <artifactId>pmd-core</artifactId>
+                <version>${pmd.version}</version>
+              </dependency>
               <dependency>
                 <groupId>net.sourceforge.pmd</groupId>
                 <artifactId>pmd-java</artifactId>

@@ -95,17 +95,6 @@ class ResourcesSerializationTest {
         });
   }
 
-  @Test
-  void errorResponse_mustBeAnnotatedWithRegisterForReflection(){
-    GenericExceptionMapper genericExceptionMapper = new GenericExceptionMapper();
-    Response response = genericExceptionMapper.toResponse(new RuntimeException());
-
-    Class<?> entityClazz = response.getEntity().getClass();
-    assertNotNull(entityClazz.getAnnotation(RegisterForReflection.class), "class "
-        + entityClazz.getName() + " must be annotated with register for reflection");
-  }
-
-
   static Stream<Tuple2<Class<?>, Method>> getRestMethods() {
     return getClassesInStackGres()
         .filter(classInfo -> {

@@ -5,12 +5,10 @@
 
 package io.stackgres.operator.validation.pgconfig;
 
-import io.stackgres.operator.common.ConfigContext;
-import io.stackgres.operator.common.ConfigLoader;
-import io.stackgres.operator.common.ErrorType;
+import io.stackgres.common.ErrorType;
+import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
+import io.stackgres.testutil.JsonUtil;
 import io.stackgres.operator.common.PgConfigReview;
-import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfig;
-import io.stackgres.operator.utils.JsonUtil;
 import io.stackgres.operator.utils.ValidationUtils;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionRequest;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
@@ -21,8 +19,6 @@ class PgConfigUpdateValidatorTest {
 
   private PgConfigReview review;
 
-  private ConfigContext context = new ConfigLoader();
-
   private PgConfigUpdateValidator validator;
 
   @BeforeEach
@@ -30,7 +26,7 @@ class PgConfigUpdateValidatorTest {
     review = JsonUtil.readFromJson("pgconfig_allow_request/valid_pgconfig_update.json",
         PgConfigReview.class);
 
-    validator = new PgConfigUpdateValidator(context);
+    validator = new PgConfigUpdateValidator();
     validator.init();
   }
 

@@ -5,13 +5,17 @@
 
 package io.stackgres.operator.validation;
 
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import javax.annotation.PostConstruct;
+import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.client.CustomResource;
-import io.stackgres.operator.common.ConfigContext;
-import io.stackgres.operator.common.ErrorType;
+import io.stackgres.common.ErrorType;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionRequest;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
@@ -22,21 +26,21 @@ public abstract class AbstractDefaultConfigKeeper
     <R extends CustomResource, T extends AdmissionReview<R>>
     implements Validator<T> {
 
-  private volatile String installedNamespace;
-  private volatile String defaultResourceName;
+  private static final String ERROR_TYPE_URI =
+      ErrorType.getErrorTypeUri(ErrorType.DEFAULT_CONFIGURATION);
 
-  private DefaultCustomResourceFactory<R> factory;
-  private ConfigContext configContext;
-
-  private String errorTypeUri;
+  private Map<String, Set<String>> installedResources;
+  private Instance<DefaultCustomResourceFactory<R>> factories;
 
   @PostConstruct
   public void init() {
-    R defaultResource = factory.buildResource();
-    ObjectMeta metadata = defaultResource.getMetadata();
-    this.installedNamespace = metadata.getNamespace();
-    this.defaultResourceName = metadata.getName();
-    this.errorTypeUri = configContext.getErrorTypeUri(ErrorType.DEFAULT_CONFIGURATION);
+
+    this.installedResources = factories.stream()
+        .map(DefaultCustomResourceFactory::buildResource)
+        .map(CustomResource::getMetadata)
+        .collect(Collectors.groupingBy(ObjectMeta::getNamespace,
+            Collectors.mapping(ObjectMeta::getName, Collectors.toSet())));
+
   }
 
   @Override
@@ -45,19 +49,24 @@ public abstract class AbstractDefaultConfigKeeper
     final AdmissionRequest<R> request = review.getRequest();
     switch (request.getOperation()) {
       case UPDATE:
-        String updateNamespace = request.getObject().getMetadata().getNamespace();
-        String updateName = request.getObject().getMetadata().getName();
-        if (installedNamespace.equals(updateNamespace) && defaultResourceName.equals(updateName)) {
+
+        final R object = request.getObject();
+
+        String updateNamespace = object.getMetadata().getNamespace();
+        String updateName = object.getMetadata().getName();
+        if (installedResources.containsKey(updateNamespace)
+            && installedResources.get(updateNamespace).contains(updateName)) {
           final String message = "Cannot update CR " + updateName + " because is a default CR";
-          fail(request.getKind().getKind(), errorTypeUri, message);
+          fail(request.getKind().getKind(), ERROR_TYPE_URI, message);
         }
         break;
       case DELETE:
         String deleteNamespace = request.getNamespace();
         String deleteName = request.getName();
-        if (installedNamespace.equals(deleteNamespace) && defaultResourceName.equals(deleteName)) {
+        if (installedResources.containsKey(deleteNamespace)
+            && installedResources.get(deleteNamespace).contains(deleteName)) {
           final String message = "Cannot delete CR " + deleteName + " because is a default CR";
-          fail(request.getKind().getKind(), errorTypeUri, message);
+          fail(request.getKind().getKind(), ERROR_TYPE_URI, message);
         }
         break;
       default:
@@ -65,12 +74,8 @@ public abstract class AbstractDefaultConfigKeeper
   }
 
   @Inject
-  public void setFactory(DefaultCustomResourceFactory<R> factory) {
-    this.factory = factory;
+  public void setFactories(Instance<DefaultCustomResourceFactory<R>> factories) {
+    this.factories = factories;
   }
 
-  @Inject
-  public void setConfigContext(ConfigContext configContext) {
-    this.configContext = configContext;
-  }
 }

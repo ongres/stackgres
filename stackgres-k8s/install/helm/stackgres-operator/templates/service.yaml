@@ -25,26 +25,45 @@ spec:
     - name: https
       protocol: TCP
       port: 443
-      targetPort: 443
+      targetPort: https
       {{- with .Values.service.nodePort }}
       nodePort: {{ . }}
       {{- end }}
-{{ if not (and .Values.developer.externalOperatorIp .Values.developer.externalOperatorPort) }}
+{{- if .Values.deploy.restapi }}
 ---
 apiVersion: v1
 kind: Service
 metadata:
   namespace: {{ .Release.Namespace }}
-  name: {{ .Release.Name }}-api
+  name: {{ .Values.restapi.name  }}
 spec:
+  {{- if .Values.service.loadBalancer.enabled }}
+  type: LoadBalancer
+  {{- with .Values.service.loadBalancer.loadBalancerIP }}
+  loadBalancerIP: "{{ . }}"
+  {{- end }}
+  {{- with .Values.service.loadBalancer.loadBalancerSourceRanges }}
+  loadBalancerSourceRanges:
+    {{- range . }}
+    - "{{ . }}"
+    {{- end }}
+  {{- end }}
+  {{- else }}
+  type: ClusterIP
+  {{- end }}
   selector:
-    app: {{ .Release.Name }}
+    app: {{ .Values.restapi.name }}
+  type: '{{ .Values.service.type }}'
   ports:
-    - name: http
+    - name: https
       protocol: TCP
-      port: 8080
-      targetPort: 8080
-{{ else }}
+      port: 443
+      targetPort: https
+      {{- with .Values.service.nodePort }}
+      nodePort: {{ . }}
+      {{- end }}
+{{- end }}
+{{ if and .Values.developer.externalOperatorIp .Values.developer.externalOperatorPort }}
 ---
 kind: Service
 apiVersion: v1

@@ -7,15 +7,13 @@ try_function() {
     return 1
   fi
 
-  local FUNCTION="$1"
-  shift
   local E_UNSET=true
   if echo "$-" | grep -q e
   then
     E_UNSET=false
   fi
   "$E_UNSET" || set +e
-  (set -e; "$FUNCTION" "$@")
+  (set -e; "$@")
   EXIT_CODE="$?"
   "$E_UNSET" || set -e
   RESULT=false

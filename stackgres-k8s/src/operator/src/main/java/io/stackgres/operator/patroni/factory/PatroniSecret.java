@@ -11,21 +11,22 @@ import java.util.UUID;
 import java.util.stream.Stream;
 
 import javax.enterprise.context.ApplicationScoped;
-
-import com.google.common.collect.ImmutableList;
+import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.operator.common.LabelFactoryDelegator;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresClusterResourceStreamFactory;
 import io.stackgres.operator.common.StackGresGeneratorContext;
-import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operatorframework.resource.ResourceUtil;
-
 import org.jooq.lambda.Seq;
 
 @ApplicationScoped
 public class PatroniSecret implements StackGresClusterResourceStreamFactory {
+
+  private LabelFactoryDelegator factoryDelegator;
 
   public static String name(StackGresClusterContext clusterContext) {
     return ResourceUtil.resourceName(clusterContext.getCluster().getMetadata().getName());
@@ -34,11 +35,14 @@ public class PatroniSecret implements StackGresClusterResourceStreamFactory {
   /**
    * Create the Secret for patroni associated to the cluster.
    */
+  @Override
   public Stream<HasMetadata> streamResources(StackGresGeneratorContext context) {
-    final String name = context.getClusterContext().getCluster().getMetadata().getName();
-    final String namespace = context.getClusterContext().getCluster().getMetadata().getNamespace();
-    final Map<String, String> labels = StackGresUtil.clusterLabels(
-        context.getClusterContext().getCluster());
+    final StackGresClusterContext clusterContext = context.getClusterContext();
+    final StackGresCluster cluster = clusterContext.getCluster();
+    final String name = cluster.getMetadata().getName();
+    final String namespace = cluster.getMetadata().getNamespace();
+    final Map<String, String> labels = factoryDelegator.pickFactory(clusterContext)
+        .clusterLabels(cluster);
 
     Map<String, String> data = new HashMap<>();
     data.put("superuser-password", generatePassword());
@@ -50,8 +54,7 @@ public class PatroniSecret implements StackGresClusterResourceStreamFactory {
         .withNamespace(namespace)
         .withName(name)
         .withLabels(labels)
-        .withOwnerReferences(ImmutableList.of(
-            ResourceUtil.getOwnerReference(context.getClusterContext().getCluster())))
+        .withOwnerReferences(clusterContext.getOwnerReferences())
         .endMetadata()
         .withType("Opaque")
         .withData(data)
@@ -63,4 +66,8 @@ public class PatroniSecret implements StackGresClusterResourceStreamFactory {
     return ResourceUtil.encodeSecret(UUID.randomUUID().toString().substring(4, 22));
   }
 
+  @Inject
+  public void setFactoryDelegator(LabelFactoryDelegator factoryDelegator) {
+    this.factoryDelegator = factoryDelegator;
+  }
 }

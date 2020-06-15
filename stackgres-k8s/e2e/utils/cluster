@@ -22,13 +22,6 @@ remove_cluster_if_exists() {
   fi
 }
 
-create_namespace_if_not_exists(){
-  if ! kubectl get namespace "$1" > /dev/null
-  then
-    kubectl create namespace "$1"
-  fi
-}
-
 create_or_replace_cluster() {
   local RELEASE="$1"
   local NAMESPACE="$2"
@@ -44,15 +37,5 @@ create_or_replace_cluster() {
     helm install "$RELEASE" "$CLUSTER_CHART_PATH" \
       --namespace "$NAMESPACE" \
       --set cluster.instances="$INSTANCES" -f "$SPEC_VALUES_FILE" "$@"
-  fi
-}
-
-delete_namespace_if_exists() {
-  local NAMESPACE="$1"
-  shift 1
-
-  if kubectl get namespaces $NAMESPACE  > /dev/null 2>&1
-  then
-    kubectl delete namespace $NAMESPACE
   fi
 }

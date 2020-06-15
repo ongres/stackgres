@@ -17,7 +17,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
@@ -26,10 +25,8 @@ import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.patroni.factory.PatroniConfigEndpoints;
 import io.stackgres.operator.patroni.factory.PatroniServices;
 import io.stackgres.operator.resource.AbstractClusterResourceHandler;
-import io.stackgres.operatorframework.resource.ResourceHandlerContext;
 import io.stackgres.operatorframework.resource.visitor.PairVisitor;
 import io.stackgres.operatorframework.resource.visitor.ResourcePairVisitor;
-
 import org.jooq.lambda.Seq;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,10 +39,14 @@ public class PatroniConfigEndpointsHandler extends AbstractClusterResourceHandle
 
   private final ObjectMapper objectMapper;
 
+  private final PatroniServices patroniServices;
+
   @Inject
-  public PatroniConfigEndpointsHandler(ObjectMapperProvider objectMapperProvider) {
+  public PatroniConfigEndpointsHandler(ObjectMapperProvider objectMapperProvider,
+                                       PatroniServices patroniServices) {
     super();
     this.objectMapper = objectMapperProvider.objectMapper();
+    this.patroniServices = patroniServices;
   }
 
   @Override
@@ -55,29 +56,30 @@ public class PatroniConfigEndpointsHandler extends AbstractClusterResourceHandle
         && resource.getMetadata().getNamespace().equals(
             context.getCluster().getMetadata().getNamespace())
         && resource.getMetadata().getName().equals(
-            PatroniServices.configName(context));
+            patroniServices.configName(context));
   }
 
   @Override
-  public boolean equals(ResourceHandlerContext<StackGresClusterContext> resourceHandlerContext,
+  public boolean equals(
+      StackGresClusterContext context,
       HasMetadata existingResource, HasMetadata requiredResource) {
-    return ResourcePairVisitor.equals(new EndpointsVisitor<>(resourceHandlerContext),
+    return ResourcePairVisitor.equals(new EndpointsVisitor<>(context),
         existingResource, requiredResource);
   }
 
   @Override
-  public HasMetadata update(ResourceHandlerContext<StackGresClusterContext> resourceHandlerContext,
+  public HasMetadata update(
+      StackGresClusterContext context,
       HasMetadata existingResource, HasMetadata requiredResource) {
-    return ResourcePairVisitor.update(new EndpointsVisitor<>(resourceHandlerContext),
+    return ResourcePairVisitor.update(new EndpointsVisitor<>(context),
         existingResource, requiredResource);
   }
 
   private class EndpointsVisitor<T>
-      extends ResourcePairVisitor<T, ResourceHandlerContext<StackGresClusterContext>> {
+      extends ResourcePairVisitor<T, StackGresClusterContext> {
 
-    public EndpointsVisitor(
-        ResourceHandlerContext<StackGresClusterContext> resourceHandlerContext) {
-      super(resourceHandlerContext);
+    public EndpointsVisitor(StackGresClusterContext context) {
+      super(context);
     }
 
     @Override

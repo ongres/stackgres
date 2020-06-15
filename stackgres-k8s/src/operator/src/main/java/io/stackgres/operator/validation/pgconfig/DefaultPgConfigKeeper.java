@@ -7,9 +7,9 @@ package io.stackgres.operator.validation.pgconfig;
 
 import javax.inject.Singleton;
 
-import io.stackgres.operator.common.ErrorType;
+import io.stackgres.common.ErrorType;
+import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.operator.common.PgConfigReview;
-import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.operator.validation.AbstractDefaultConfigKeeper;
 import io.stackgres.operator.validation.ValidationType;
 

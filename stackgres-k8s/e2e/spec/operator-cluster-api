@@ -12,10 +12,15 @@ minio:
           - matchExpressions:
             - key: "kubernetes.io/hostname"
               operator: "In"
-              values: [ "${KIND_NAME}-worker" ]
+              values: [ "${KIND_NAME}-worker", "${KIND_NAME}-control-plane" ]
 EOF
   else
-    > "$LOG_PATH/minio-affinity.yaml"
+    echo -n > "$LOG_PATH/minio-affinity.yaml"
+  fi
+  if [ "$E2E_ENV" = "minishift" ]
+  then
+    eval "$(minishift oc-env)"
+    oc adm policy add-scc-to-user anyuid -n "$CLUSTER_NAMESPACE" -z "$CLUSTER_NAME-minio"
   fi
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
@@ -26,14 +31,14 @@ EOF
   wait_pods_running "$CLUSTER_NAMESPACE" 4
 
   OPERATOR_CLUSTER_CR=$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
-    | run_jq 'del(.metadata.creationTimestamp) | del(.metadata.generation) | del(.metadata.resourceVersion) | del(.metadata.selfLink) | del(.metadata.uid)' )
+    | jq 'del(.metadata.creationTimestamp) | del(.metadata.generation) | del(.metadata.resourceVersion) | del(.metadata.selfLink) | del(.metadata.uid)' )
   
-  write_into -f "$LOG_PATH/stackgres-cluster-cr.json" -c "$OPERATOR_CLUSTER_CR"
+  echo_raw "$OPERATOR_CLUSTER_CR" > "$LOG_PATH/stackgres-cluster-cr.json"
 
   OPERATOR_CLUSTER=$(cat "$LOG_PATH/stackgres-cluster-cr.json" \
-    | run_jq 'del(.apiVersion) | del(.kind)' )
+    | jq 'del(.apiVersion) | del(.kind)' )
 
-  write_into -f "$LOG_PATH/stackgres-cluster.json" -c "$OPERATOR_CLUSTER" 
+  echo_raw "$OPERATOR_CLUSTER" > "$LOG_PATH/stackgres-cluster.json"
   
   kubectl patch sgbackupconfig -n "$CLUSTER_NAMESPACE" backupconf --type json \
     --patch '[{"op":"replace","path":"/spec/baseBackups/cronSchedule","value":"*/1 * * * *"}]'
@@ -69,7 +74,7 @@ e2e_test() {
 
 check_cluster_in_list() {
   if run_curl -r "stackgres/sgcluster" \
-    | run_jq -r ".[] | select ( .metadata.namespace == \"$CLUSTER_NAMESPACE\" and .metadata.name == \"$CLUSTER_NAME\") | .metadata.name" \
+    | jq -r ".[] | select ( .metadata.namespace == \"$CLUSTER_NAMESPACE\" and .metadata.name == \"$CLUSTER_NAME\") | .metadata.name" \
     | grep -q "^$CLUSTER_NAME$"
   then
     echo "Cluster $CLUSTER_NAME included in json response"
@@ -93,7 +98,7 @@ get_cluster_pod_configs_health() {
 }
 
 get_cluster_pod_count() {
-  run_curl -r "stackgres/sgcluster/$CLUSTER_NAMESPACE/$CLUSTER_NAME" | run_jq '.pods | length'
+  run_curl -r "stackgres/sgcluster/$CLUSTER_NAMESPACE/$CLUSTER_NAME" | jq '.pods | length'
 }
 
 check_cluster_directly() {
@@ -142,10 +147,6 @@ test_cluster_pod_config_are_loaded() {
 }
 
 test_cluster_pod_count() {
-  local OLD_E2E_TIMEOUT="$E2E_TIMEOUT"
-
-  E2E_TIMEOUT=60
-
   BACKUP_NAME="${CLUSTER_NAME}-0-$(shuf -i 0-65535 -n 1)"
 
     cat << EOF | kubectl create -f -
@@ -156,18 +157,16 @@ test_cluster_pod_count() {
     name: "$BACKUP_NAME"
   spec:
     sgCluster: "$CLUSTER_NAME"
-    subjectToRetentionPolicy: true
+    managedLifecycle: false
 EOF
 
-  if ! wait_until eval '[ "$(get_cluster_pod_count)" -ne 2 ]'
+  if ! wait_until -t 60 eval '[ "$(get_cluster_pod_count)" -ne 2 ]'
   then
     echo "Good. User initiated backups didn't appear as cluster pods"
   else
     echo "Pods in cluster should be 2. User initiated backups could have being shown as cluster pods"
     return 1
   fi
-
-  E2E_TIMEOUT="$OLD_E2E_TIMEOUT"
 }
 
 remove_cluster_cr_if_exists() {
@@ -185,7 +184,7 @@ check_cluster_removed() {
   remove_cluster_cr_if_exists
 
   if run_curl -r "stackgres/sgcluster" \
-    | run_jq -r ".[] | select ( .metadata.namespace == \"$CLUSTER_NAMESPACE\" and .metadata.name == \"$CLUSTER_NAME\") | .metadata.name" \
+    | jq -r ".[] | select ( .metadata.namespace == \"$CLUSTER_NAMESPACE\" and .metadata.name == \"$CLUSTER_NAME\") | .metadata.name" \
     | grep -q "^$CLUSTER_NAME$"
   then
     echo "Cluster $CLUSTER_NAME wasn't removed from cache"
@@ -243,10 +242,10 @@ update_cluster_parameter_with_api() {
   local HTTP_STATUS
 
   UPDATED_STACKGRES_CLUSTER=$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
-    | run_jq 'del(.metadata.creationTimestamp) | del(.metadata.generation) | del(.metadata.resourceVersion) | del(.metadata.selfLink) | del(.metadata.uid)' \
-    | run_jq ".spec[\"$1\"] = $2" )
+    | jq 'del(.metadata.creationTimestamp) | del(.metadata.generation) | del(.metadata.resourceVersion) | del(.metadata.selfLink) | del(.metadata.uid)' \
+    | jq ".spec[\"$1\"] = $2" )
   
-  write_into -f "$LOG_PATH/updated-stackgres-cluster.json" -c "$UPDATED_STACKGRES_CLUSTER"
+  echo_raw "$UPDATED_STACKGRES_CLUSTER" > "$LOG_PATH/updated-stackgres-cluster.json"
 
   HTTP_STATUS="$(run_curl -r "stackgres/sgcluster" -d "$LOG_PATH/updated-stackgres-cluster.json" -e '-X PUT -w %{http_code} -o /dev/null')"
 
@@ -273,7 +272,7 @@ test_api_updated_cluster_is_visible() {
     return 1
   fi
 
-  if run_curl -r "stackgres/sgcluster/$CLUSTER_NAMESPACE/$CLUSTER_NAME" | run_jq '.spec.instances' -r \
+  if run_curl -r "stackgres/sgcluster/$CLUSTER_NAMESPACE/$CLUSTER_NAME" | jq '.spec.instances' -r \
     | grep -q "^2$"
   then
     echo "Cluster updates are being reflected in the api"
@@ -313,7 +312,7 @@ test_api_delete_cluster_is_visible() {
 
 test_constraint_violation_api_error() {
 
-  INVALID_PGCONFIG=$(cat "$LOG_PATH/stackgres-cluster.json" | run_jq '.spec.instances = -1' )
+  INVALID_PGCONFIG=$(cat "$LOG_PATH/stackgres-cluster.json" | jq '.spec.instances = -1' )
 
   echo "$INVALID_PGCONFIG" > "$LOG_PATH/invalid-cluster.json"
   
@@ -337,27 +336,31 @@ test_constraint_violation_api_error() {
 test_authentication_api_error() {
   local HTTP_STATUS
 
-  HTTP_STATUS="$(run_curl -a e2e:tets -r "stackgres/sgcluster"  -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
+  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/sgcluster"  -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
 
   check_authentication_error
 
-  HTTP_STATUS="$(run_curl -a e2e:tets -r "stackgres/sgcluster/$CLUSTER_NAMESPACE/$BACKUPCONF"  -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
+  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/sgcluster/$CLUSTER_NAMESPACE/$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
 
   check_authentication_error
 
-  HTTP_STATUS="$(run_curl -a e2e:tets -r "stackgres/sgcluster/status/$CLUSTER_NAMESPACE/$BACKUPCONF"  -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
+  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/sgcluster/status/$CLUSTER_NAMESPACE/$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
 
   check_authentication_error
 
-  HTTP_STATUS="$(run_curl -a e2e:tets -r "stackgres/sgcluster" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/stackgres-cluster.json" -e '-X POST -w %{http_code} -o /dev/null')"
+  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/sgcluster/logs/$CLUSTER_NAMESPACE/$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
 
   check_authentication_error
 
-  HTTP_STATUS="$(run_curl -a e2e:tets -r "stackgres/sgcluster" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/stackgres-cluster.json" -e '-X PUT -w %{http_code} -o /dev/null')"
+  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/sgcluster" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/stackgres-cluster.json" -e '-X POST -w %{http_code} -o /dev/null')"
 
   check_authentication_error
 
-  HTTP_STATUS="$(run_curl -a e2e:tets -r "stackgres/sgcluster" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/stackgres-cluster.json" -e '-X DELETE -w %{http_code} -o /dev/null')"
+  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/sgcluster" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/stackgres-cluster.json" -e '-X PUT -w %{http_code} -o /dev/null')"
+
+  check_authentication_error
+
+  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/sgcluster" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/stackgres-cluster.json" -e '-X DELETE -w %{http_code} -o /dev/null')"
 
   check_authentication_error
 }

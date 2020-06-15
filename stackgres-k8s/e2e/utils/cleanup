@@ -1,5 +1,11 @@
 #!/bin/sh
 
+export E2E_DISABLE_FAST_CLEANUP
+
+excluded_namespaces() {
+  true
+}
+
 excluded_validatingwebhookconfigurations() {
   true
 }
@@ -12,28 +18,64 @@ excluded_customresourcedefinitions() {
   true
 }
 
+excluded_podsecuritypolicies() {
+  true
+}
+
 helm_cleanup() {
    helm list --all-namespaces \
     | awk 'FNR > 1 { printf("helm delete %s --namespace %s\n", $1, $2) }' \
-    | xargs -r -n 1 -I % -P 0 sh -c "%"
+    | xargs -r -n 1 -I % -P 0 sh -c "%" \
+    || helm list --all-namespaces \
+      | awk 'FNR > 1 { printf("! helm status "%s" --namespace "%s" 2> /dev/null\n", $1, $2) }' \
+      | xargs -r -n 1 -I % -P 0 sh -c "%"
 }
 
 k8s_cleanup() {
-  helm template stackgres-operator --namespace stackgres "$OPERATOR_CHART_PATH" \
-    | kubectl delete -f - --ignore-not-found
   k8s_webhook_cleanup
   kubectl get crd -o name \
     | grep -v "^customresourcedefinition.apiextensions.k8s.io/\($(excluded_customresourcedefinitions | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
     | xargs -r -n 1 -I % -P 0 kubectl delete %
   kubectl get namespace -o name \
-    | grep -v "^namespace/\(default\|kube-system\|kube-node-lease\|kube-public\)$" | cut -d / -f 2 \
+    | grep -v "^namespace/\(default\|kube-.*\)$" \
+    | grep -v "^namespace/\($(excluded_namespaces | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+    | cut -d / -f 2 \
     | xargs -r -n 1 -I % -P 0 kubectl delete namespace % --timeout="$((1 + E2E_TIMEOUT / 10))s" \
     || kubectl get namespace -o name \
-      | grep -v "^namespace/\(default\|kube-system\|kube-node-lease\|kube-public\)$" | cut -d / -f 2 \
-      | xargs -r -n 1 -I @ -P 0 "$SHELL" $(! echo $- | grep -q x || echo "-x") \
+      | grep -v "^namespace/\(default\|kube-.*\)$" \
+      | grep -v "^namespace/\($(excluded_namespaces | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+      | cut -d / -f 2 \
+      | xargs -r -n 1 -I @ -P 0 "$SHELL" $SHELL_XTRACE \
         -ec "$(k8s_finalize_namespace_script)"
   ! kubectl api-resources | grep -q '^podsecuritypolicies ' \
-    || kubectl get podsecuritypolicies -o name | xargs -r -n 1 -I % kubectl delete '%'
+    || kubectl get podsecuritypolicies -o name \
+      | grep -v "^podsecuritypolicy.extensions/\($(excluded_podsecuritypolicies | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+      | xargs -r -n 1 -I % kubectl delete '%'
+}
+
+k8s_async_cleanup() {
+  k8s_webhook_cleanup
+  kubectl get crd -o name \
+    | grep -v "^customresourcedefinition.apiextensions.k8s.io/\($(excluded_customresourcedefinitions | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+    | xargs -r -n 1 -I % -P 0 kubectl delete %
+  kubectl get namespace -o name \
+    | grep -v "^namespace/\(default\|kube-.*\)$" \
+    | grep -v "^namespace/\($(excluded_namespaces | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+    | cut -d / -f 2 \
+    | xargs -r -n 1 -I % -P 0 "$SHELL" $SHELL_XTRACE \
+        -ec "kubectl delete namespace --wait=false % \
+          || kubectl get namespace % --template '{{ .status.phase }}' | grep -q 'Terminating' \
+          || ! kubectl get namespace % >/dev/null 2>&1"
+  ! kubectl api-resources | grep -q '^podsecuritypolicies ' \
+    || kubectl get podsecuritypolicies -o name \
+      | grep -v "^podsecuritypolicy.extensions/\($(excluded_podsecuritypolicies | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+      | xargs -r -n 1 -I % kubectl delete '%'
+  local TIMEOUT="$( (echo 3; echo "$((E2E_TIMEOUT / 40))") | sort -n -r | head -n 1)"
+  if ! kubectl wait namespace/stackgres --for=delete --timeout="${TIMEOUT}s" >/dev/null 2>&1 \
+    && kubectl get namespace stackgres -o name
+  then
+   eval "$(k8s_finalize_namespace_script | sed 's/@/stackgres/g')"
+  fi
 }
 
 k8s_webhook_cleanup() {
@@ -47,9 +89,13 @@ k8s_webhook_cleanup() {
 
 helm_cleanup_but_operator() {
   helm list --all-namespaces \
-    | grep -v "stackgres-operator" \
+    | grep -v 'stackgres-operator\s\+stackgres\s' \
     | awk 'FNR > 1 { printf("helm delete %s --namespace %s\n", $1, $2) }' \
-    | xargs -r -n 1 -I % -P 0 sh -c "%"
+    | xargs -r -n 1 -I % -P 0 "$SHELL" $SHELL_XTRACE -c "%" \
+    || helm list --all-namespaces \
+      | grep -v 'stackgres-operator\s\+stackgres\s' \
+      | awk 'FNR > 1 { printf("! helm status "%s" --namespace "%s" 2> /dev/null\n", $1, $2) }' \
+      | xargs -r -n 1 -I % -P 0 "$SHELL" $SHELL_XTRACE -c "%"
 }
 
 k8s_cleanup_but_operator() {
@@ -58,50 +104,94 @@ k8s_cleanup_but_operator() {
     | grep -v "^customresourcedefinition.apiextensions.k8s.io/\($(excluded_customresourcedefinitions | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
     | xargs -r -n 1 -I % -P 0 kubectl delete %
   kubectl get namespace -o name \
-    | grep -v "^namespace/\(default\|kube-system\|kube-node-lease\|kube-public\|stackgres\)$" | cut -d / -f 2 \
+    | grep -v "^namespace/\(default\|kube-.*\|stackgres\)$" \
+    | grep -v "^namespace/\($(excluded_namespaces | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+    | cut -d / -f 2 \
     | xargs -r -n 1 -I % -P 0 kubectl delete namespace % --timeout="$((1 + E2E_TIMEOUT / 10))s" \
     || kubectl get namespace -o name \
-      | grep -v "^namespace/\(default\|kube-system\|kube-node-lease\|kube-public\|stackgres\)$" | cut -d / -f 2 \
-      | xargs -r -n 1 -I @ -P 0 "$SHELL" $(! echo $- | grep -q x || echo "-x") \
+      | grep -v "^namespace/\(default\|kube-.*\|stackgres\)$" \
+      | grep -v "^namespace/\($(excluded_namespaces | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+      | cut -d / -f 2 \
+      | xargs -r -n 1 -I @ -P 0 "$SHELL" $SHELL_XTRACE \
         -ec "$(k8s_finalize_namespace_script)"
   ! kubectl api-resources | grep -q '^podsecuritypolicies ' \
-    || kubectl get podsecuritypolicies -o name | xargs -r -n 1 -I % kubectl delete '%'
+    || kubectl get podsecuritypolicies -o name \
+      | grep -v "^podsecuritypolicy.extensions/\($(excluded_podsecuritypolicies | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+      | xargs -r -n 1 -I % kubectl delete '%'
+}
+
+k8s_async_cleanup_but_operator() {
+  kubectl get crd -o name \
+    | grep -v '\.stackgres\.io$' \
+    | grep -v "^customresourcedefinition.apiextensions.k8s.io/\($(excluded_customresourcedefinitions | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+    | xargs -r -n 1 -I % -P 0 kubectl delete %
+  kubectl get namespace -o name \
+    | grep -v "^namespace/\(default\|kube-.*\|stackgres\)$" \
+    | grep -v "^namespace/\($(excluded_namespaces | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+    | cut -d / -f 2 \
+    | xargs -r -n 1 -I % -P 0 "$SHELL" $SHELL_XTRACE \
+        -ec "kubectl delete namespace --wait=false % \
+          || kubectl get namespace % --template '{{ .status.phase }}' | grep -q 'Terminating' \
+          || ! kubectl get namespace % >/dev/null 2>&1"
+  ! kubectl api-resources | grep -q '^podsecuritypolicies ' \
+    || kubectl get podsecuritypolicies -o name \
+      | grep -v "^podsecuritypolicy.extensions/\($(excluded_podsecuritypolicies | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+      | xargs -r -n 1 -I % kubectl delete '%'
 }
 
 k8s_cleanup_namespace() {
   local TIMEOUT="$( (echo 6; echo "$((E2E_TIMEOUT / 40))") | sort -n -r | head -n 1)"
-  kubectl delete namespace "$1" --timeout="${TIMEOUT}s" \
-  || kubectl get namespace "$1" -o name | cut -d / -f 2 \
-    | xargs -r -n 1 -I @ -P 0 "$SHELL" $(! echo $- | grep -q x || echo "-x") \
-      -ec "$(k8s_finalize_namespace_script)"
+  ! kubectl get namespace "$1" -o name >/dev/null 2>&1 \
+    || kubectl delete namespace "$1" --timeout="${TIMEOUT}s" \
+    || kubectl get namespace "$1" -o name | cut -d / -f 2 \
+      | xargs -r -n 1 -I @ -P 0 "$SHELL" $SHELL_XTRACE \
+        -ec "$(k8s_finalize_namespace_script)"
+}
+
+k8s_async_cleanup_namespace() {
+  ! kubectl get namespace "$1" -o name >/dev/null 2>&1 \
+    || kubectl delete namespace --wait=false "$1" \
+    || kubectl get namespace "$1" --template '{{ .status.phase }}' | grep -q 'Terminating' \
+    || ! kubectl get namespace "$1" >/dev/null 2>&1
 }
 
 helm_cleanup_chart() {
-  helm delete "$1" --namespace "$2" \
-    || ! helm status "$1" 2> /dev/null
+  ! helm status "$1" --namespace "$2" 2> /dev/null \
+    || helm delete "$1" --namespace "$2" \
+    || ! helm status "$1" --namespace "$2" 2> /dev/null
 }
 
-
 k8s_finalize_namespace_script() {
+  if [ "$E2E_DISABLE_FAST_CLEANUP" = "true" ]
+  then
+    cat << EOF
+if ! kubectl wait "namespace/@" --for=delete --timeout="${E2E_TIMEOUT}s" >/dev/null 2>&1 \
+  && kubectl get namespace "@" -o name
+then
+  echo "Timeout while waiting for namespace @ to be removed"
+  exit 1
+fi
+EOF
+    return
+  fi
   cat << EOF
 kubectl api-resources --namespaced -o name \
   | grep -v 'reviews\.\(authentication\|authorization\)\.k8s\.io$' \
-  | xargs -r -n 1 -I + -P 0 sh -ec 'kubectl get "+" -n "@" -o name \
-    | xargs -r -n 1 -I % kubectl delete -n "@" "%" --grace-period=0 --force' >/dev/null 2>&1 \
-  || true
+  | xargs -r -n 1 -I + -P 0 '$SHELL' $SHELL_XTRACE -ec 'kubectl get "+" -n "@" -o name \
+    | xargs -r -n 1 -I % '"'$SHELL'"' $SHELL_XTRACE -ec \
+      '"'"'kubectl delete -n "@" "%" --now 2>/dev/null \
+        || ! kubectl get -n "@" "%" > /dev/null 2>&1 \
+        || echo "Failed to remove +/% in namespace @"'"'"
 kubectl get namespace "@" -o json \
   | tr -d "\n" | sed "s/\"finalizers\": \[[^]]\+\]/\"finalizers\": []/" \
   | kubectl replace --raw /api/v1/namespaces/@/finalize -f - >/dev/null 2>&1 \
   || ! kubectl get namespace "@" -o name >/dev/null 2>&1
 END="\$((\$(date +%s)+$E2E_TIMEOUT))"
-while kubectl get namespace "@" -o name >/dev/null 2>&1
-do
-  if [ "\$(date +%s)" -gt "\$END" ]
-  then
-    echo "Timeout while waiting for namespace @ to be removed"
-    exit 1
-  fi
-  sleep 1
-done
+if ! kubectl wait "namespace/@" --for=delete --timeout="${E2E_TIMEOUT}s" >/dev/null 2>&1 \
+  && kubectl get namespace "@" -o name
+then
+  echo "Timeout while waiting for namespace @ to be removed"
+  exit 1
+fi
 EOF
 }

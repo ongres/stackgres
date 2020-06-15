@@ -2,8 +2,8 @@
 
 set -e
 
-IMAGE_NAME="${IMAGE_NAME:-"stackgres/operator:development-jvm"}"
-CONTAINER_BASE=$(buildah from "azul/zulu-openjdk-alpine:8-jre")
+OPERATOR_IMAGE_NAME="${OPERATOR_IMAGE_NAME:-"stackgres/operator:development-jvm"}"
+CONTAINER_BASE=$(buildah from "azul/zulu-openjdk-alpine:8u242-jre")
 
 # Include binaries
 buildah config --workingdir='/app/' "$CONTAINER_BASE"
@@ -72,5 +72,5 @@ buildah config --port 8443 "$CONTAINER_BASE"
 buildah config --user nobody:nobody "$CONTAINER_BASE"
 
 ## Commit this container to an image name
-buildah commit --squash "$CONTAINER_BASE" "$IMAGE_NAME"
-buildah push "$IMAGE_NAME" docker-daemon:$IMAGE_NAME
+buildah commit --squash "$CONTAINER_BASE" "$OPERATOR_IMAGE_NAME"
+buildah push "$OPERATOR_IMAGE_NAME" docker-daemon:$OPERATOR_IMAGE_NAME

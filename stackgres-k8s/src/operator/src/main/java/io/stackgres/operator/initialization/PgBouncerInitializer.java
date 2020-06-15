@@ -7,7 +7,7 @@ package io.stackgres.operator.initialization;
 
 import javax.enterprise.context.ApplicationScoped;
 
-import io.stackgres.operator.sidecars.pooling.customresources.StackGresPoolingConfig;
+import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 
 @ApplicationScoped
 public class PgBouncerInitializer extends

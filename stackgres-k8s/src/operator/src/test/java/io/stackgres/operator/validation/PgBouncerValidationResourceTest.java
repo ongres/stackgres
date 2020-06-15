@@ -5,10 +5,9 @@
 
 package io.stackgres.operator.validation;
 
+import io.stackgres.testutil.JsonUtil;
 import io.stackgres.operator.common.PoolingReview;
-import io.stackgres.operator.utils.JsonUtil;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,7 +21,9 @@ class PgBouncerValidationResourceTest extends ValidationResourceTest<PoolingRevi
 
     @BeforeEach
     public void setUp() {
-        resource = new PgBouncerValidationResource(pipeline);
+        final PgBouncerValidationResource resource = new PgBouncerValidationResource();
+        resource.setPipeline(pipeline);
+        this.resource = resource;
 
         review = JsonUtil
                 .readFromJson("pooling_allow_request/create.json", PoolingReview.class);

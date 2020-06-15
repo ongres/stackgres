@@ -38,7 +38,7 @@ e2e_test_install() {
 e2e_test_uninstall(){
   helm_cleanup_chart "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 
-  k8s_cleanup_namespace "$CLUSTER_NAMESPACE"
+  k8s_async_cleanup_namespace "$CLUSTER_NAMESPACE"
 
   ACCOUNT_KEY=$(az storage account keys list --account-name "$K8S_AZ_K8S_NAME" \
     --resource-group "$K8S_AZ_RESOURCE_GROUP" --output tsv \
@@ -73,10 +73,10 @@ create_mock_data() {
   run_query -p 5432 -h "$CLUSTER_NAME-primary" -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -q "'INSERT INTO fibonacci(num) VALUES (3);'" -d "test"
 }
 
-get_backup_phase() {
-  BACKUP_PHASE=$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" -o=jsonpath='{.status.phase}')
-  echo "$BACKUP_PHASE"
+is_backup_phase() {
+  [ "$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" -o=jsonpath='{.status.process.status}')" = "$1" ]
 }
+
 
 execute_backup() {
   cat << EOF | kubectl create -f -
@@ -86,11 +86,11 @@ metadata:
   namespace: "$CLUSTER_NAMESPACE"
   name: "$BACKUP_NAME"
 spec:
-  cluster: "$CLUSTER_NAME"
-  isPermanent: true
+  sgCluster: "$CLUSTER_NAME"
+  managedLifecycle: false
 EOF
   
-  wait_until eval '[ "$(get_backup_phase)" = "Completed" ]'  
+  wait_until is_backup_phase "Completed"
 
   echo "Success. Backup completed"
 }
@@ -109,6 +109,7 @@ metadata:
 spec:
   instances: 2
   postgresVersion: '12.2'
+  sgInstanceProfile: size-xs
   pods:
     persistentVolume:
       size: '512Mi'
@@ -124,7 +125,7 @@ EOF
 }
 
 check_restored_data() {
-  REPLICA_RESPONSE=$(run_query -p 5432 -h "restored-from-aks-replica" -c "restored-from-aks" -n $CLUSTER_NAMESPACE -i 1 -q "' SELECT num FROM fibonacci ORDER BY num;'" -d "test")
+  REPLICA_RESPONSE=$(run_query -p 5432 -h "restored-from-aks-replicas" -c "restored-from-aks" -n $CLUSTER_NAMESPACE -i 1 -q "' SELECT num FROM fibonacci ORDER BY num;'" -d "test")
   if [ "$(echo "$REPLICA_RESPONSE" | tr -d '\n')" = "123" ]
   then
     echo "SUCCESS: restore replica db restored successfully"

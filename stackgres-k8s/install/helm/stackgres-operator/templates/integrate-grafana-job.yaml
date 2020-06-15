@@ -5,24 +5,23 @@ metadata:
   namespace: {{ .Release.Namespace }}
   name: "{{ .Release.Name }}-integrate-grafana"
   labels:
-    app: StackGres
+    app: stackgres-integrate-grafana
     scope: integrate-grafana
   annotations:
-    "helm.sh/hook": post-install
-    "helm.sh/hook": post-upgrade
-    "helm.sh/hook-delete-policy": hook-succeeded
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
 spec:
   template:
     metadata:
       labels:
-        app: StackGres
+        app: stackgres-integrate-grafana
         scope: integrate-grafana
     spec:
       serviceAccountName: {{ .Release.Name }}
       containers:
       - name: "integrate-grafana"
         image: "janwh/k8s-inithelper:latest"
-        imagePullPolicy: "Always"
+        imagePullPolicy: "IfNotPresent"
         command:
           - "/bin/bash"
           - "-ecx"
@@ -39,12 +38,14 @@ spec:
             {{- end }}
             grafana_prometheus_datasource_name="{{ .Values.grafana.datasourceName }}"
             curl_grafana_api() {
-              curl -sk -H "Accept: application/json" -H "Content-Type: application/json" -u "$grafana_credentials" "$@"
+              curl -sk -H "Accept: application/json" -H "Content-Type: application/json" -u "$grafana_credentials" --fail "$@"
             }
             dashboard_id="{{ .Values.grafana.dashboardId }}"
+            curl_grafana_api "$grafana_host/api/gnet/dashboards/$dashboard_id" | jq .json > /tmp/grafana-dashboard.json
+            [ -s /tmp/grafana-dashboard.json ]
             dashboard_json="$(cat << EOF
             {
-              "dashboard": $(curl_grafana_api "$grafana_host/api/gnet/dashboards/$dashboard_id" | jq .json),
+              "dashboard": $(cat /tmp/grafana-dashboard.json),
               "overwrite": true,
               "inputs": [{
                 "name": "DS_PROMETHEUS",
@@ -56,10 +57,12 @@ spec:
             EOF
             )"
             grafana_dashboard_url="$(curl_grafana_api -X POST -d "$dashboard_json" "$grafana_host/api/dashboards/import" | jq -r .importedUrl)"
+            [ -n "$grafana_dashboard_url" ]
             grafana_api_key_id="$(curl_grafana_api -X GET "$grafana_host/api/auth/keys" | jq -r 'map(select(.name = "stackgres")|.id)|first')"
             [ -z "$grafana_api_key_id" ] || curl_grafana_api -X DELETE "$grafana_host/api/auth/keys/$grafana_api_key_id" > /dev/null
             grafana_api_key_token="$(curl_grafana_api -X POST -d '{"name":"stackgres", "role": "Viewer"}' "$grafana_host/api/auth/keys" | jq -r .key)"
-            kubectl set env -n {{ .Release.Namespace }} deployment/{{ .Release.Name }} \
+            [ -n "$grafana_api_key_token" ]
+            kubectl set env -n {{ .Release.Namespace }} deployment/{{ .Values.restapi.name }} \
               GRAFANA_EMBEDDED=true \
               GRAFANA_URL_PATH="$grafana_dashboard_url" \
               GRAFANA_SCHEMA="{{ .Values.grafana.schema }}" \

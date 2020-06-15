@@ -17,8 +17,8 @@ import com.github.fge.jsonpatch.JsonPatchOperation;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.client.CustomResource;
-import io.stackgres.operator.common.ConfigContext;
-import io.stackgres.operator.common.ConfigProperty;
+import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresProperty;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
 import io.stackgres.operatorframework.admissionwebhook.mutating.JsonPatchMutator;
 
@@ -29,7 +29,7 @@ public interface DefaultAnnotationMutator<R extends CustomResource, T extends Ad
 
   String STACKGRES_PREFIX = "stackgres.io/";
 
-  default List<JsonPatchOperation> getAnnotationsToAdd(R resouce, ConfigContext configContext) {
+  default List<JsonPatchOperation> getAnnotationsToAdd(R resouce) {
 
     Optional<Map<String, String>> crAnnotations = Optional
         .ofNullable(resouce.getMetadata().getAnnotations());
@@ -42,7 +42,7 @@ public interface DefaultAnnotationMutator<R extends CustomResource, T extends Ad
         .map(k -> k.substring(STACKGRES_PREFIX.length()))
         .collect(Collectors.toList());
 
-    Map<String, String> defaultAnnotations = getDefaultAnnotationValues(configContext);
+    Map<String, String> defaultAnnotations = getDefaultAnnotationValues();
 
     Map<String, String> annotationsToAdd = defaultAnnotations.entrySet().stream()
         .filter(e -> !existentAnnotations.contains(e.getKey()))
@@ -69,12 +69,12 @@ public interface DefaultAnnotationMutator<R extends CustomResource, T extends Ad
 
   }
 
-  default Map<String, String> getDefaultAnnotationValues(ConfigContext configContext) {
+  default Map<String, String> getDefaultAnnotationValues() {
 
-    String operatorVersion = configContext.getProperty(ConfigProperty.OPERATOR_VERSION)
-        .orElseThrow(() -> new IllegalStateException("Operator version not configured"));
+    String operatorVersion = StackGresContext.OPERATOR_VERSION;
 
-    String operatorVersionKey = ConfigProperty.OPERATOR_VERSION.systemProperty().split("\\.")[1];
+    String operatorVersionKey = StackGresProperty.OPERATOR_VERSION.systemProperty()
+        .split("\\.")[1];
 
     return ImmutableMap.<String, String>builder()
         .put(operatorVersionKey, operatorVersion)

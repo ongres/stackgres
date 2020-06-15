@@ -1,17 +1,27 @@
 #!/bin/sh
 
 wait_until() {
-  local RESULT=false
+  local RESULT
+  local EXIT_CODE
   local START="$(date +%s)"
-  >"$LOG_PATH/wait-until.log"
-  while [ "$((START + E2E_TIMEOUT))" -gt "$(date +%s)" ]
+  local TIMEOUT="$E2E_TIMEOUT"
+  local OUTPUT_PATH="$LOG_PATH/wait-until-$START-$(shuf -i 0-65535 -n 1).log"
+  if [ "$1" = "-t" ]
+  then
+    shift
+    TIMEOUT="$1"
+    shift
+  fi
+  echo -n >"$OUTPUT_PATH"
+  while [ "$((START + TIMEOUT))" -gt "$(date +%s)" ]
   do
-    if "$@" >>"$LOG_PATH/wait-until.log" 2>&1
+    try_function "$@" >>"$OUTPUT_PATH" 2>&1
+    if "$RESULT"
     then
       return
     fi
     sleep 2
   done
-  cat "$LOG_PATH/wait-until.log"
+  cat "$OUTPUT_PATH"
   return 1
 }

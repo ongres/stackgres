@@ -1,26 +1,28 @@
-config:
-  postgresql:
+configurations:
+  postgresconfig:
     postgresql.conf:
       shared_buffers: '32MB'
-  backup:
+  backupconfig:
     create: true
     # Avoid backups before waiting for pods (since backup pods could biase the wait)
-    fullSchedule: '0 5 31 2 *'
-    fullWindow: 1
-    diskRateLimit: 16777216
-    minio:
-      create: false
-    azureblob:
-      bucket: backup-with-aks-storage
-      path: /backups 
-      account:
-        name: storage-account
-        key: account
-      accessKey:
-        name: storage-account
-        key: accessKey
+    baseBackups:
+      cronSchedule: '0 5 31 2 *'
+    storage:
+      azureBlob:
+        bucket: backup-with-aks-storage
+        path: /backups
+        azureCredentials:
+          secretKeySelectors:
+            storageAccount:
+              name: storage-account
+              key: account
+            accessKey:
+              name: storage-account
+              key: accessKey
 cluster:
-  volumeSize: 128Mi
-sidecar:
-  prometheus:
-    allowAutobind: false
+  pods:
+    persistentVolume:
+      size: 128Mi
+  prometheusAutobind: false
+nonProductionOptions:
+  createMinio: false

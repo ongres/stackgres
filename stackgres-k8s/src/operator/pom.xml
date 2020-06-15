@@ -15,37 +15,23 @@
 
   <properties>
     <stackgres.operatorName>stackgres-operator</stackgres.operatorName>
+    <stackgres.authentication.secretName>stackgres-restapi</stackgres.authentication.secretName>
     <stackgres.operatorNamespace>stackgres</stackgres.operatorNamespace>
     <stackgres.operatorIP>localhost</stackgres.operatorIP>
-    <stackgres.operatorVersion>${project.version}</stackgres.operatorVersion>
-    <stackgres.containerBuild>4-dev</stackgres.containerBuild>
-    <stackgres.group>stackgres.io</stackgres.group>
-    <stackgres.crd.version>v1beta1</stackgres.crd.version>
     <stackgres.prometheus.allowAutobind>true</stackgres.prometheus.allowAutobind>
     <stackgres.prometheus.grafanaEmbedded>false</stackgres.prometheus.grafanaEmbedded>
-    <stackgres.documentation.uri>https://stackgres.io/doc/</stackgres.documentation.uri>
-    <stackgres.documentation.errorsPath>/07-developer-documentation/01-error-types#</stackgres.documentation.errorsPath>
-    <stackgres.authentication.secretName>stackgres-operator</stackgres.authentication.secretName>
-
-    <quarkus.http.ssl.certificate.file>/etc/operator/certs/server.crt</quarkus.http.ssl.certificate.file>
-    <quarkus.http.ssl.certificate.key-file>/etc/operator/certs/root.key</quarkus.http.ssl.certificate.key-file>
     <quarkus.skipAugmentation>false</quarkus.skipAugmentation>
+    <checks.location>${project.parent.basedir}/checks</checks.location>
 
-    <checkstyle.conifg.folder.location>${project.basedir}/../checks/checkstyle</checkstyle.conifg.folder.location>
-    <checkstyle.config.location>${checkstyle.conifg.folder.location}/checkstyle.xml</checkstyle.config.location>
-    <checkstyle.header.file>${checkstyle.conifg.folder.location}/header.txt</checkstyle.header.file>
-    <spotbugs.excludeFilterFile>${project.basedir}/../checks/spotbugs/exclude.xml</spotbugs.excludeFilterFile>
-
-    <it.image>stackgres/it:3.0</it.image>
+    <it.image>stackgres/it:7.0</it.image>
   </properties>
 
   <dependencies>
-<!-- IT fails with a: org.eclipse.aether.transfer.ArtifactNotFoundException: Could not find artifact
     <dependency>
       <groupId>io.stackgres</groupId>
       <artifactId>stackgres-common</artifactId>
       <version>${project.version}</version>
-    </dependency>-->
+    </dependency>
     <dependency>
       <groupId>io.stackgres</groupId>
       <artifactId>stackgres-operator-framework</artifactId>
@@ -55,7 +41,12 @@
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-security</artifactId>
     </dependency>
-
+    <dependency>
+      <groupId>io.stackgres</groupId>
+      <artifactId>stackgres-test-util</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
@@ -313,7 +304,7 @@
                           <date>default</date>
                         </log>
                         <env>
-                          <IMAGE_NAME>${env.IMAGE_NAME}</IMAGE_NAME>
+                          <OPERATOR_IMAGE_NAME>${env.OPERATOR_IMAGE_NAME}</OPERATOR_IMAGE_NAME>
                           <DOCKER_HOST>${env.DOCKER_HOST}</DOCKER_HOST>
                         </env>
                         <volumes>
@@ -394,7 +385,7 @@
                           <date>default</date>
                         </log>
                         <env>
-                          <IMAGE_NAME>${env.IMAGE_NAME}</IMAGE_NAME>
+                          <OPERATOR_IMAGE_NAME>${env.OPERATOR_IMAGE_NAME}</OPERATOR_IMAGE_NAME>
                           <DOCKER_HOST>${env.DOCKER_HOST}</DOCKER_HOST>
                         </env>
                         <volumes>
@@ -441,9 +432,9 @@
                           <arg>/bin/sh</arg>
                           <arg>-exc</arg>
                           <arg>
-                        IMAGE_NAME="${IMAGE_NAME:-"stackgres/operator:development-jvm"}"
+                        OPERATOR_IMAGE_NAME="${OPERATOR_IMAGE_NAME:-"stackgres/operator:development-jvm"}"
                         CONTAINER_NAME="$(docker inspect -f '{{.Name}}' "$(hostname)"|cut -d '/' -f 2|sed 's/^kind-load/kind/')"
-                        kind load docker-image --name "$CONTAINER_NAME" "$IMAGE_NAME" || true
+                        kind load docker-image --name "$CONTAINER_NAME" "$OPERATOR_IMAGE_NAME" || true
                           </arg>
                         </entrypoint>
                         <wait>
@@ -455,7 +446,7 @@
                           <date>default</date>
                         </log>
                         <env>
-                          <IMAGE_NAME>${env.IMAGE_NAME}</IMAGE_NAME>
+                          <OPERATOR_IMAGE_NAME>${env.OPERATOR_IMAGE_NAME}</OPERATOR_IMAGE_NAME>
                           <DOCKER_HOST>${env.DOCKER_HOST}</DOCKER_HOST>
                         </env>
                         <volumes>
@@ -502,9 +493,9 @@
                           <arg>/bin/sh</arg>
                           <arg>-exc</arg>
                           <arg>
-                        IMAGE_NAME="${IMAGE_NAME:-"stackgres/operator:development"}"
+                        OPERATOR_IMAGE_NAME="${OPERATOR_IMAGE_NAME:-"stackgres/operator:development"}"
                         CONTAINER_NAME="$(docker inspect -f '{{.Name}}' "$(hostname)"|cut -d '/' -f 2|sed 's/^kind-load/kind/')"
-                        kind load docker-image --name "$CONTAINER_NAME" "$IMAGE_NAME" || true
+                        kind load docker-image --name "$CONTAINER_NAME" "$OPERATOR_IMAGE_NAME" || true
                           </arg>
                         </entrypoint>
                         <wait>
@@ -516,7 +507,7 @@
                           <date>default</date>
                         </log>
                         <env>
-                          <IMAGE_NAME>${env.IMAGE_NAME}</IMAGE_NAME>
+                          <OPERATOR_IMAGE_NAME>${env.OPERATOR_IMAGE_NAME}</OPERATOR_IMAGE_NAME>
                           <DOCKER_HOST>${env.DOCKER_HOST}</DOCKER_HOST>
                         </env>
                         <volumes>

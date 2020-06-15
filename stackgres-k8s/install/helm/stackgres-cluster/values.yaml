@@ -1,92 +1,33 @@
-config:
-  create: true
-  postgresql:
-    version: "12.2"
-    postgresql.conf:
-      shared_buffers: '256MB'
-      random_page_cost: '1.5'
-      password_encryption: 'scram-sha-256'
-      wal_compression: 'on'
-      checkpoint_timeout: '30'
-  pgbouncer:
-    pgbouncer.ini:
-      pool_mode: transaction
-      max_client_conn: '200'
-      default_pool_size: '200'
-  backup:
-    create: true
-    retention: 5
-    fullSchedule: "*/2 * * * *"
-    fullWindow: 2
-    compression: lz4
-    uploadDiskConcurrency: 1
-    tarSizeThreshold: 1073741823
-    minio:
-      create: true
-    #networkRateLimit:
-    #diskRateLimit:
-    s3: {}
-    #  bucket: stackgres
-    #  path: /mypath
-    #  accessKey:
-    #    name: awscredentials
-    #    key: accesskey
-    #  secretKey:
-    #    name: awscredentials
-    #    key: secretkey
-    s3Compatible: {}
-    #  bucket: stackgres
-    #  path: /mypath
-    #  accessKey:
-    #    name: minio
-    #    key: accesskey
-    #  secretKey:
-    #    name: minio
-    #    key: secretkey
-    #  region: k8s
-    #  endpoint: minio.stackgres.svc
-    #  enablePathStyleAddressing: true
-    #  storageClass:
-    gcs: {}
-    #  bucket: stackgres
-    #  path: /mypath
-    #  serviceAccountJsonKey:
-    #    name: gcscredentials
-    #    key: key
-    azureblob: {}
-    #  bucket: stackgres
-    #  path: /mypath
-    #  account:
-    #    name: azureblobcredentials
-    #    key: account
-    #  accessKey:
-    #    name: azureblobcredentials
-    #    key: accesskey
-  
-
 cluster:
   create: true
+  postgresVersion: '12.2'
   instances: 1
-  pgconfig: postgresconf
-  poolingconfig: pgbouncerconf
-  backupconfig: backupconf
-  profile: size-xs
-  volumeSize: 5Gi  
-  ## If defined, storageClassName: <storageClass>
-  ## If set to "-", storageClassName: "", which disables dynamic provisioning
-  ## If undefined (the default) or set to null, no storageClassName spec is
-  ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
-  ##   GKE, AWS & OpenStack)
-  #storageClass: "-"
+  sgInstanceProfile: size-xs
+  pods:
+    persistentVolume:
+      size: 5Gi
+      ## If defined, storageClassName: <storageClass>
+      ## If set to "-", storageClassName: "", which disables dynamic provisioning
+      ## If undefined (the default) or set to null, no storageClassName spec is
+      ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
+      ##   GKE, AWS & OpenStack)
+      #storageClass: "-"
+    disableConnectionPooling: false
+    disablePostgresUtil: false
+    disableMetricsExporter: false
+  configurations:
+    sgPostgresConfig: postgresconf
+    sgPoolingConfig: pgbouncerconf
+    sgBackupConfig: backupconf
+  distributedLogs:
+    sgDistributedLogs: distributedlogs
+  #initialData:
+  #  restore:
+  #    fromBackup:
+  #    downloadDiskConcurrency:
+  prometheusAutobind: true
 
-sidecar:
-  pooling: true
-  util: true
-  prometheus:
-    enabled: true
-    allowAutobind: true
-
-profiles:
+instanceProfiles:
   - name: size-xs
     cpu: "500m"
     memory: "512Mi"
@@ -106,6 +47,92 @@ profiles:
     cpu: "8"
     memory: "32Gi"
 
+configurations:
+  create: true
+  postgresconfig:
+    postgresql.conf:
+      shared_buffers: '256MB'
+      random_page_cost: '1.5'
+      password_encryption: 'scram-sha-256'
+      wal_compression: 'on'
+      checkpoint_timeout: '30'
+  poolingconfig:
+    pgBouncer:
+      pgbouncer.ini:
+        pool_mode: transaction
+        max_client_conn: '200'
+        default_pool_size: '200'
+  backupconfig:
+    create: true
+    baseBackups:
+      retention: 5
+      cronSchedule: "*/2 * * * *"
+      compression: lz4
+      performance:
+        uploadDiskConcurrency: 1
+        #maxNetworkBandwitdh:
+        #maxDiskBandwitdh:
+    storage:
+      s3: {}
+      #  bucket: stackgres
+      #  path: /mypath
+      #  awsCredentials:
+      #    secretKeySelectors:
+      #      accessKeyId:
+      #        name: awscredentials
+      #        key: accesskey
+      #      secretAccessKey:
+      #        name: awscredentials
+      #        key: secretkey
+      #  region:
+      #  storageClass:
+      s3Compatible: {}
+      #  bucket: stackgres
+      #  path: /mypath
+      #  awsCredentials:
+      #    secretKeySelectors:
+      #      accessKeyId:
+      #        name: minio
+      #        key: accesskey
+      #      secretAccessKey:
+      #        name: minio
+      #        key: secretkey
+      #  region: k8s
+      #  endpoint: minio.stackgres.svc
+      #  enablePathStyleAddressing: true
+      #  storageClass:
+      gcs: {}
+      #  bucket: stackgres
+      #  path: /mypath
+      #  gcpCredentials:
+      #    secretKeySelectors:
+      #      serviceAccountJSON:
+      #        name: gcscredentials
+      #        key: key
+      azureBlob: {}
+      #  bucket: stackgres
+      #  path: /mypath
+      #  azureCredentials:
+      #    secretKeySelectors:
+      #      storageAccount:
+      #        name: azureblobcredentials
+      #        key: storageaccount
+      #      accessKey:
+      #        name: azureblobcredentials
+      #        key: accesskey
+
+distributedLogs:
+  enabled: false
+  create: true
+  persistentVolume:
+    size: 5Gi
+    ## If defined, storageClassName: <storageClass>
+    ## If set to "-", storageClassName: "", which disables dynamic provisioning
+    ## If undefined (the default) or set to null, no storageClassName spec is
+    ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
+    ##   GKE, AWS & OpenStack)
+    #  storageClass: "-"
+
 minio:
   persistence:
     enabled: true
@@ -118,3 +145,4 @@ minio:
 #You should only set following options for non production environment
 nonProductionOptions:
   disableClusterPodAntiAffinity: true
+  createMinio: true

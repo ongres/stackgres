@@ -13,7 +13,7 @@ import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
-import io.stackgres.operator.common.ArcUtil;
+import io.stackgres.common.ArcUtil;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operatorframework.resource.AbstractResourceHandlerSelector;
 import io.stackgres.operatorframework.resource.ResourceHandler;
@@ -36,12 +36,14 @@ public class ClusterResourceHandlerSelector
   }
 
   @Override
-  protected Stream<ResourceHandler<StackGresClusterContext>> getResourceHandlers() {
+  protected Stream<ResourceHandler<StackGresClusterContext>>
+      getResourceHandlers() {
     return handlers.stream();
   }
 
   @Override
-  protected Optional<ResourceHandler<StackGresClusterContext>> getDefaultResourceHandler() {
+  protected Optional<ResourceHandler<StackGresClusterContext>>
+      getDefaultResourceHandler() {
     Instance<DefaultClusterResourceHandler> instance = handlers.select(
         DefaultClusterResourceHandler.class);
     return instance.isResolvable() ? Optional.of(instance.get()) : Optional.empty();

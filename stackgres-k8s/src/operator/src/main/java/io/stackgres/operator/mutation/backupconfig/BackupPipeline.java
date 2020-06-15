@@ -14,7 +14,6 @@ import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
 import com.github.fge.jsonpatch.JsonPatchOperation;
-
 import io.stackgres.operator.common.BackupConfigReview;
 import io.stackgres.operatorframework.admissionwebhook.mutating.JsonPatchMutationPipeline;
 

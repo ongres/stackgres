@@ -6,6 +6,7 @@
 package io.stackgres.operator.resource;
 
 import java.util.List;
+
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;

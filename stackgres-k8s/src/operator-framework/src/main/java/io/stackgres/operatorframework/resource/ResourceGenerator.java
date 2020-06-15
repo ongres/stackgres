@@ -7,7 +7,6 @@ package io.stackgres.operatorframework.resource;
 
 import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.stackgres.operatorframework.resource.factory.SubResourceStreamFactory;
-
 import org.jooq.lambda.Seq;
 
 public class ResourceGenerator<T extends KubernetesResource, C> {
@@ -33,8 +32,8 @@ public class ResourceGenerator<T extends KubernetesResource, C> {
     return new ResourceGenerator<>(context);
   }
 
-  public <H extends T, F extends SubResourceStreamFactory<H, C>> ResourceGenerator<H, C> append(
-      F resourceSeqFactory) {
+  public <H extends T, F extends SubResourceStreamFactory<H, ? super C>>
+      ResourceGenerator<H, C> append(F resourceSeqFactory) {
     return new ResourceGenerator<>(
         context, seq.append(resourceSeqFactory.streamResources(context)));
   }

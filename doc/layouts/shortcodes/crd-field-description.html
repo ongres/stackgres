@@ -1,0 +1,60 @@
+{{- with .Get 0 }}
+{{- else }}
+{{ errorf "You should pass the CRD field path with following format: <CRD name>.<field>[.<field>[...]]" }}
+{{- end }}
+{{- $params := (.Get 0) -}}
+{{- $params := (replace $params "\\." "·") -}}
+{{- $params := (split $params ".") -}}
+{{- with index $params 1 }}
+{{- else }}
+{{ errorf "You should pass the CRD field path with following format: <CRD name>.<field>[.<field>[...]]" }}
+{{- end }}
+{{- with index $.Site.Data.crds (index $params 0) }}
+{{- else }}
+{{ errorf "CRD data/crds/%s.yaml not found" (index $params 0) }}
+{{- end }}
+{{- with (index $.Site.Data.crds (index $params 0)).spec }}
+{{- else }}
+{{ errorf "CRD data/crds/%s.yaml has wrong format (spec not found)" (index $params 0) }}
+{{- end }}
+{{- with (index $.Site.Data.crds (index $params 0)).spec.validation }}
+{{- else }}
+{{ errorf "CRD data/crds/%s.yaml has wrong format (spec.validation not found)" (index $params 0) }}
+{{- end }}
+{{- with (index $.Site.Data.crds (index $params 0)).spec.validation.openAPIV3Schema }}
+{{- else }}
+{{ errorf "CRD data/crds/%s.yaml has wrong format (spec.validation.openAPIV3Schema not found)" (index $params 0) }}
+{{- end }}
+{{- $scratch := newScratch -}}
+{{- $scratch.Set "CrdField" ((index $.Site.Data.crds (index $params 0)).spec.validation.openAPIV3Schema) -}}
+{{- $scratch.Set "CrdPath" ".spec.validation.openAPIV3Schema" -}}
+{{- range $index,$param := $params -}}
+  {{- if gt $index 0 -}}
+    {{- with $scratch.Get "CrdField" }}
+    {{- else }}
+    {{ errorf "Path %s was not found in CRD data/crds/%s.yaml" ($scratch.Get "CrdPath") (index $params 0) }}
+    {{- end }}
+    {{- with ($scratch.Get "CrdField").properties }}
+    {{- else }}
+    {{ errorf "Path %s.properties was not found in CRD data/crds/%s.yaml" ($scratch.Get "CrdPath") (index $params 0) }}
+    {{- end }}
+    {{- if not (reflect.IsMap ($scratch.Get "CrdField").properties) }}
+    {{ errorf "Path %s is not a map in data/crds/%s.yaml" ($scratch.Get "CrdPath") (index $params 0) }}
+    {{- end }}
+    {{- with index ($scratch.Get "CrdField").properties (replace $param "·" ".") }}
+    {{- else }}
+    {{ errorf "Path %s.properties.%s was not found in CRD data/crds/%s.yaml" ($scratch.Get "CrdPath") (replace $param "·" ".") (index $params 0) }}
+    {{- end }}
+    {{- $scratch.Set "CrdField" (index ($scratch.Get "CrdField").properties (replace $param "·" ".")) -}}
+    {{- $scratch.Set "CrdPath" (printf "%s.%s.%s" ($scratch.Get "CrdPath") "properties" (replace $param "·" ".")) -}}
+  {{- end -}}
+{{- end -}}
+{{- with $scratch.Get "CrdField" }}
+{{- else }}
+{{ errorf "Path %s was not found in CRD data/crds/%s.yaml" ($scratch.Get "CrdPath") (index $params 0) }}
+{{- end }}
+{{- with ($scratch.Get "CrdField").description }}
+<div>{{- ($scratch.Get "CrdField").description | markdownify -}}</div>
+{{- else }}
+<div></div>
+{{- end }}

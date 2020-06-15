@@ -5,8 +5,8 @@
 
 package io.stackgres.operator.validation;
 
+import io.stackgres.testutil.JsonUtil;
 import io.stackgres.operator.common.SgProfileReview;
-import io.stackgres.operator.utils.JsonUtil;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -22,7 +22,9 @@ class SgProfileValidationResourceTest extends ValidationResourceTest<SgProfileRe
 
     @BeforeEach
     public void setUp() {
-        resource = new SgProfileValidationResource(pipeline);
+        final SgProfileValidationResource resource = new SgProfileValidationResource();
+        resource.setPipeline(pipeline);
+        this.resource = resource;
 
         review = JsonUtil
                 .readFromJson("sgprofile_allow_request/create.json", SgProfileReview.class);

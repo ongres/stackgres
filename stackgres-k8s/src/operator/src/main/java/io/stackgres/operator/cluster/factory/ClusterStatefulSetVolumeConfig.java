@@ -6,14 +6,17 @@
 package io.stackgres.operator.cluster.factory;
 
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
+import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeMount;
+import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.VolumeConfig;
+import io.stackgres.operator.common.VolumeConfig.VolumePathConfig;
 import io.stackgres.operator.patroni.factory.PatroniConfigMap;
-
 import org.jooq.lambda.Seq;
 
 public enum ClusterStatefulSetVolumeConfig {
@@ -21,30 +24,45 @@ public enum ClusterStatefulSetVolumeConfig {
   DATA(VolumeConfig.persistentVolumeClaim(
       "data", ClusterStatefulSetPath.PG_BASE_PATH,
       ClusterStatefulSet::dataName)),
-  SOCKET(VolumeConfig.emptyDir(
+  SOCKET(VolumeConfig.inMemoryEmptyDir(
       "socket", ClusterStatefulSetPath.PG_RUN_PATH)),
-  LOCAL_BIN(VolumeConfig.emptyDir(
-      "local-bin", ClusterStatefulSetPath.LOCAL_BIN_PATH)),
-  PATRONI_CONFIG(VolumeConfig.configMap(
-      "patroni-config", ClusterStatefulSetPath.PATRONI_ENV_PATH,
+  LOCAL(VolumeConfig.onDiskEmptyDir(
+      "local", ImmutableList.of(
+          VolumePathConfig.of(ClusterStatefulSetPath.LOCAL_BIN_PATH),
+          VolumePathConfig.of(ClusterStatefulSetPath.ETC_PASSWD_PATH,
+              context -> true,
+              volumeMountBuilder -> volumeMountBuilder.withReadOnly(true)),
+          VolumePathConfig.of(ClusterStatefulSetPath.ETC_GROUP_PATH,
+              context -> true,
+              volumeMountBuilder -> volumeMountBuilder.withReadOnly(true)),
+          VolumePathConfig.of(ClusterStatefulSetPath.ETC_SHADOW_PATH,
+              context -> true,
+              volumeMountBuilder -> volumeMountBuilder.withReadOnly(true)),
+          VolumePathConfig.of(ClusterStatefulSetPath.ETC_GSHADOW_PATH,
+              context -> true,
+              volumeMountBuilder -> volumeMountBuilder.withReadOnly(true))))),
+  PATRONI_ENV(VolumeConfig.configMap(
+      "patroni-env", ClusterStatefulSetPath.PATRONI_ENV_PATH,
       PatroniConfigMap::name)),
-  BACKUP_CONFIG(VolumeConfig.configMap(
-      "backup-config", ClusterStatefulSetPath.BACKUP_ENV_PATH,
+  PATRONI_CONFIG(VolumeConfig.onDiskEmptyDir(
+      "patroni-config", ClusterStatefulSetPath.PATRONI_CONFIG_PATH)),
+  BACKUP_ENV(VolumeConfig.configMap(
+      "backup-env", ClusterStatefulSetPath.BACKUP_ENV_PATH,
       BackupConfigMap::name)),
   BACKUP_SECRET(VolumeConfig.secret(
       "backup-secret", ClusterStatefulSetPath.BACKUP_SECRET_PATH,
       BackupSecret::name)),
-  RESTORE_CONFIG(VolumeConfig.configMap(
-      "restore-config", ClusterStatefulSetPath.RESTORE_ENV_PATH,
+  RESTORE_ENV(VolumeConfig.configMap(
+      "restore-env", ClusterStatefulSetPath.RESTORE_ENV_PATH,
       RestoreConfigMap::name,
       context ->  context.getRestoreContext().isPresent())),
   RESTORE_SECRET(VolumeConfig.secret(
       "restore-secret", ClusterStatefulSetPath.RESTORE_SECRET_PATH,
       RestoreSecret::name,
       context ->  context.getRestoreContext().isPresent())),
-  RESTORE_ENTRYPOINT(VolumeConfig.emptyDir(
-      "restore-entrypoint", ClusterStatefulSetPath.RESTORE_ENTRYPOINT_PATH,
-      context ->  context.getRestoreContext().isPresent()));
+  TEMPLATES(VolumeConfig.configMap(
+      "templates", ClusterStatefulSetPath.TEMPLATES_PATH,
+      TemplatesConfigMap::name));
 
   private final VolumeConfig volumeConfig;
 
@@ -57,9 +75,41 @@ public enum ClusterStatefulSetVolumeConfig {
   }
 
   public VolumeMount volumeMount(StackGresClusterContext context) {
-    return volumeConfig.volumeMount(context)
+    return volumeConfig.volumeMounts(context)
+        .stream()
+        .findFirst()
         .orElseThrow(() -> new IllegalStateException(
             "Volume mount " + volumeConfig.name() + " is not available for this context"));
+  }
+
+  public VolumeMount volumeMount(StackGresClusterContext context,
+      Function<VolumeMountBuilder, VolumeMountBuilder> volumeMountOverride) {
+    return volumeConfig.volumeMounts(context)
+        .stream()
+        .map(volumeMount -> new VolumeMountBuilder(volumeMount))
+        .map(volumeMountOverride)
+        .map(VolumeMountBuilder::build)
+        .findFirst()
+        .orElseThrow(() -> new IllegalStateException(
+            "Volume mount " + volumeConfig.name() + " is not available for this context"));
+  }
+
+  public VolumeMount volumeMount(ClusterStatefulSetPath path, StackGresClusterContext context) {
+    return volumeConfig.volumeMount(path, context)
+        .orElseThrow(() -> new IllegalStateException(
+            "Volume mount " + volumeConfig.name() + " with path " + path.path()
+            + " and subPath " + path.subPath() + " is not available for this context"));
+  }
+
+  public VolumeMount volumeMount(ClusterStatefulSetPath path, StackGresClusterContext context,
+      Function<VolumeMountBuilder, VolumeMountBuilder> volumeMountOverride) {
+    return volumeConfig.volumeMount(path, context)
+        .map(volumeMount -> new VolumeMountBuilder(volumeMount))
+        .map(volumeMountOverride)
+        .map(VolumeMountBuilder::build)
+        .orElseThrow(() -> new IllegalStateException(
+            "Volume mount " + volumeConfig.name() + " with path " + path.path()
+            + " and subPath " + path.subPath() + " is not available for this context"));
   }
 
   public Volume volume(StackGresClusterContext context) {
@@ -70,11 +120,14 @@ public enum ClusterStatefulSetVolumeConfig {
   }
 
   public static Stream<VolumeMount> volumeMounts(StackGresClusterContext context) {
-    return Seq.of(values())
+    return volumeMounts(context, values());
+  }
+
+  public static Stream<VolumeMount> volumeMounts(StackGresClusterContext context,
+      ClusterStatefulSetVolumeConfig...configs) {
+    return Seq.of(configs)
         .map(ClusterStatefulSetVolumeConfig::config)
-        .map(volumeConfig -> volumeConfig.volumeMount(context))
-        .filter(Optional::isPresent)
-        .map(Optional::get);
+        .flatMap(volumeConfig -> volumeConfig.volumeMounts(context).stream());
   }
 
   public static Stream<Volume> volumes(StackGresClusterContext context) {
