@@ -60,7 +60,7 @@ run_curl() {
     JWT="$(kubectl exec -i -n "$NAMESPACE" "$POD" -- \
       curl -d "$AUTHORIZATION" -k "https://$SERVICE.$SERVICE_NAMESPACE.svc.cluster.local/stackgres/auth/login" \
       -H "Content-Type: $CONTENT_TYPE" \
-      -H "Accept: $ACCEPT" | jq -r .access_token)"
+      -H "Accept: $ACCEPT" -s | jq -r .access_token)"
   fi
 
   if [ -n "${DATA_FILENAME}" ]
