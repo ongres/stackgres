@@ -122,7 +122,7 @@ var Nav = Vue.component("sg-nav", {
 					</form>
 				</div>
 
-				<div id="clone">
+				<div id="clone" style="display:none">
 					<form class="form noSubmit">
 						<div class="header">
 							<h2>Clone {{ clone.kind }}</h2>
@@ -188,7 +188,10 @@ var Nav = Vue.component("sg-nav", {
 		},
 
 		loggedIn () {
-			return store.state.loginToken.length > 0
+			if (typeof store.state.loginToken !== 'undefined')
+				return store.state.loginToken.length > 0
+			else
+				return false
 		},
 
 		clone () {
@@ -204,7 +207,7 @@ var Nav = Vue.component("sg-nav", {
 
 		login: function() {
 
-			let token = btoa(this.loginUser+':'+this.loginPassword);
+			/* let token = btoa(this.loginUser+':'+this.loginPassword);
 
 			axios
 			.get(apiURL+'namespace',{
@@ -221,7 +224,26 @@ var Nav = Vue.component("sg-nav", {
 			).catch(function(err) {
 				$('#login .warning').fadeIn();
 				//checkAuthError(err);
+			}); */
+
+			axios
+			.post(apiURL+'auth/login',{
+				username: this.loginUser,
+				password: this.loginPassword	
+			})
+			.then( function(response){
+				console.log(response);
+				store.commit('setLoginToken', response.data.access_token);
+				$('#signup').fadeOut();
+				document.cookie = "sgToken="+response.data.access_token;
+				vm.fetchAPI();
+			}
+			).catch(function(err) {
+				$('#login .warning').fadeIn();
+				//checkAuthError(err);
 			});
+
+
 
 		},
 
@@ -229,6 +251,7 @@ var Nav = Vue.component("sg-nav", {
 			document.cookie = 'sgToken=';
 			store.commit('setLoginToken');
 			router.push('/');
+			store.replaceState({})
 			$('#signup').addClass('login').fadeIn();
 		},
 
@@ -287,7 +310,7 @@ var Nav = Vue.component("sg-nav", {
 				notify(store.state.cloneCRD.kind+' <strong>"'+store.state.cloneCRD.data.metadata.name+'"</strong> cloned successfully', 'message', store.state.cloneCRD.kind.toLowerCase());
 
 				vm.fetchAPI(endpoint);
-				$('#clone').fadeOut();
+				$('#clone').fadeOut().removeClass('show');
 				$('#cloneName, #cloneNamespace').val('');
 				//router.push('/cluster/status/'+store.state.cloneCRD.data.metadata.namespace+'/'+store.state.cloneCRD.data.metadata.name);
 				
@@ -295,7 +318,7 @@ var Nav = Vue.component("sg-nav", {
 			.catch(function (error) {
 				console.log(error.response);
 				notify(error.response.data,'error',endpoint);
-				$('#clone').fadeOut();
+				$('#clone').fadeOut().removeClass('show');
 			});
 		},
 		flushToken: function() {

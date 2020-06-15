@@ -339,7 +339,7 @@ const store = new Vuex.Store({
 
     setLoginToken (state, token = '') {
       state.loginToken = token;
-      axios.defaults.headers.common['Authorization'] = 'Basic '+store.state.loginToken;
+      axios.defaults.headers.common['Authorization'] = 'Bearer '+store.state.loginToken;
     },
 
     setTheme (state, theme) {
@@ -768,7 +768,7 @@ Vue.mixin({
         $('#cloneNamespace').val(crd.data.metadata.namespace);
         $("#notifications.hasTooltip.active").removeClass("active");
         $("#notifications.hasTooltip .message.show").removeClass("show");
-        $('#clone').fadeIn();
+        $('#clone').fadeIn().addClass('show');
       }
     }
   }
@@ -1628,6 +1628,13 @@ $(document).ready(function(){
       $("#be-select.active").removeClass("active");
     }
 
+    if (!$(e.target).parents().addBack().is('.cloneCRD') && $('#clone').hasClass('show'))
+      $('#clone.show').fadeOut().removeClass('show');
+
+  });
+  
+  $("#clone").click(function(e){
+    e.stopPropagation();
   });
 
 
