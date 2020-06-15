@@ -98,7 +98,7 @@ var BackupConfig = Vue.component("backup-config", {
 									</a>
 								</td>
 							</tr>
-							<tr :class="[ $route.params.name == conf.name ? 'open' : '', 'sgbackupconfig-'+conf.data.metadata.namespace+'-'+conf.name ]" class="details" :style="$route.params.name == conf.name ? 'display: table-row;' : ''">
+							<tr :class="[ $route.params.name == conf.name ? 'open show' : '', 'sgbackupconfig-'+conf.data.metadata.namespace+'-'+conf.name ]" class="details" :style="$route.params.name == conf.name ? 'display: table-row;' : ''">
 								<td colspan="7">
 									<div class="configurationDetails">
 										<span class="title">Configuration Details</span>	
