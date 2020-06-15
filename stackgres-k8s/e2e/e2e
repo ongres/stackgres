@@ -7,25 +7,27 @@ if [ "$(basename "$SHELL")" = busybox ]
 then
   SHELL=sh
 fi
+SHELL_XTRACE="$(! echo $- | grep -q x || echo "-x")"
 
 IMAGE_TAG="${IMAGE_TAG:-development-jvm}"
-IMAGE_NAME="stackgres/operator:$IMAGE_TAG"
+OPERATOR_IMAGE_NAME="stackgres/operator:$IMAGE_TAG"
+RESTAPI_IMAGE_NAME="stackgres/restapi:$IMAGE_TAG"
 DEFAULT_K8S_VERSION="1.13.12"
 KUBECONFIG="${KUBECONFIG:-$HOME/.kube/config}"
 SPEC_PATH="$(dirname "$0")/spec"
 TARGET_PATH="${TARGET_PATH:-$(dirname "$0")/target}"
-TARGET_PATH="$(realpath $TARGET_PATH)"
+TARGET_PATH="$(realpath "$TARGET_PATH")"
 LOG_PATH="$TARGET_PATH"
-TRAP_ENABLED="${TRAP_ENABLED:-false}"
 
 E2E_ENV="${E2E_ENV:-kind}"
 K8S_VERSION="${K8S_VERSION:-$DEFAULT_K8S_VERSION}"
 E2E_TIMEOUT="${E2E_TIMEOUT:-180}"
 E2E_SKIP_SETUP="${E2E_SKIP_SETUP:-false}"
 E2E_OPERATOR_PULL_POLICY="${E2E_OPERATOR_PULL_POLICY:-Never}"
-E2E_BUILD_OPERATOR="${E2E_BUILD_OPERATOR:-true}"
+E2E_BUILD_IMAGES="${E2E_BUILD_IMAGES:-true}"
 E2E_WAIT_OPERATOR="${E2E_WAIT_OPERATOR:-true}"
 E2E_USE_INTERMIDIATE_PRIVATE_REPO="${E2E_USE_INTERMIDIATE_PRIVATE_REPO:-false}"
+E2E_SKIP_OPERATOR_LOAD="${E2E_SKIP_OPERATOR_LOAD:-false}"
 
 if [ -z "$STACKGRES_PATH" ]
 then
@@ -34,8 +36,26 @@ fi
 OPERATOR_CHART_PATH="${OPERATOR_CHART_PATH:-"$STACKGRES_PATH/install/helm/stackgres-operator/"}"
 CLUSTER_CHART_PATH="${CLUSTER_CHART_PATH:-"$STACKGRES_PATH/install/helm/stackgres-cluster/"}"
 
-export SHELL IMAGE_TAG IMAGE_NAME DEFAULT_K8S_VERSION KUBECONFIG SPEC_PATH TARGET_PATH TRAP_ENABLED OPERATOR_CHART_PATH CLUSTER_CHART_PATH
-export E2E_ENV K8S_VERSION E2E_TIMEOUT E2E_SKIP_SETUP E2E_OPERATOR_PULL_POLICY E2E_BUILD_OPERATOR E2E_WAIT_OPERATOR
+[ -z "$SHELL_XTRACE" ] || set +x
+
+export SHELL \
+  SHELL_XTRACE \
+  IMAGE_TAG \
+  OPERATOR_IMAGE_NAME \
+  RESTAPI_IMAGE_NAME \
+  KUBECONFIG \
+  SPEC_PATH \
+  TARGET_PATH \
+  OPERATOR_CHART_PATH \
+  CLUSTER_CHART_PATH \
+  DEFAULT_K8S_VERSION \
+  K8S_VERSION \
+  E2E_ENV \
+  E2E_TIMEOUT \
+  E2E_SKIP_SETUP \
+  E2E_OPERATOR_PULL_POLICY \
+  E2E_BUILD_IMAGES \
+  E2E_WAIT_OPERATOR
 
 if ! command -v local > /dev/null 2>&1
 then
@@ -50,6 +70,8 @@ done
 
 . "$(dirname "$0")/envs/$E2E_ENV"
 
+[ -z "$SHELL_XTRACE" ] || set -x
+
 trap_kill() {
   echo "$1" >> "$TRAP_FILE"
 }
@@ -62,13 +84,17 @@ trap_callback() {
   fi
 }
 
+trap_callback_and_exit() {
+  trap_callback
+  exit "$1"
+}
+
 if [ -z "$TRAP_FILE" ]
 then
   mkdir -p "$TARGET_PATH"
   TRAP_FILE="$TARGET_PATH/trap-kill-$(shuf -i 0-65535 -n 1)"
-  export TRAP_FILE
-  trap 'trap_callback' EXIT
-  trap 'exit $?' HUP INT QUIT PIPE TERM
+  trap 'trap_callback_and_exit $?' HUP INT QUIT PIPE TERM ABRT
+  trap 'trap_callback $?' EXIT
 fi
 
 trap_kill_all() {
@@ -77,6 +103,21 @@ trap_kill_all() {
   do
     kill $(cat "$file") >/dev/null 2>&1 || true
   done
+  exit "$1"
+}
+
+setup_images() {
+  if [ "$E2E_BUILD_IMAGES" = true ] \
+    && (
+      [ "$E2E_REUSE_OPERATOR_PODS" != true ] \
+      || ! helm list --all-namespaces | grep -q "^stackgres-operator\s"
+    )
+  then
+    (
+    cd "$STACKGRES_PATH/src"
+    ./mvnw -q clean package -P build-image-jvm
+    )
+  fi
 }
 
 setup_k8s() {
@@ -94,6 +135,11 @@ setup_k8s() {
     reuse_k8s
   fi
 
+  if [ "$E2E_DISABLE_CACHE" != "true" ]
+  then
+    load_cached_images_from_local_repository
+  fi
+
   if [ "$E2E_SKIP_HELM_SETUP" != true ]
   then
     setup_helm
@@ -101,42 +147,40 @@ setup_k8s() {
     setup_default_limits 0.1 0.1 16Mi 16Mi
   fi
 
-  if [ "$E2E_BUILD_OPERATOR" = true ] \
-    && (
-      [ "$E2E_REUSE_OPERATOR" != true ] \
-      || ! helm list --all-namespaces | grep -q "^stackgres-operator\s"
-    )
-  then
-    (
-    cd "$STACKGRES_PATH/src"
-    ./mvnw -q clean package -P build-image-jvm
-    )
-  fi
-
   if ! helm list --all-namespaces | grep -q "^stackgres-operator\s" \
     || ! kubectl get namespaces stackgres -o name \
       | grep -q "^namespace/stackgres$" \
-    || (([ "$(kubectl get deployments.apps -n stackgres -l app=stackgres-operator -o name | wc -l)" -ne 1 ] \
-      || [ "$(kubectl get deployments.apps -n stackgres -l app=stackgres-operator --template '{{ len (index .items 0).spec.template.spec.containers }}')" -ne 2 ]) \
-      && [ "$E2E_USE_EXTERNAL_OPERATOR" != true ])\
-    || [ "$E2E_REUSE_OPERATOR" != true ]
+    || ( ( [ "$(kubectl get deployments.apps -n stackgres -l app=stackgres-operator -o name | wc -l)" -ne 1 ] \
+      || [ "$(kubectl get deployments.apps -n stackgres -l app=stackgres-operator \
+        --template '{{ len (index .items 0).spec.template.spec.containers }}')" -ne 2 ] ) \
+      && [ "$E2E_USE_EXTERNAL_OPERATOR" != true ] ) \
+    || [ "$E2E_REUSE_OPERATOR_PODS" != true ]
   then
     if [ "$E2E_FORCE_IMAGE_PULL" = "true" ]
     then
-      docker pull $IMAGE_NAME
+      docker pull "$OPERATOR_IMAGE_NAME"
+      docker pull "$RESTAPI_IMAGE_NAME"
     fi
 
-    if [ "$E2E_USE_INTERMIDIATE_PRIVATE_REPO" != true ] \
-      && docker image inspect "$IMAGE_NAME" >/dev/null 2>&1
-    then 
-      load_operator_k8s
+    if [ "$E2E_USE_INTERMIDIATE_PRIVATE_REPO" != true \
+        -a "$E2E_SKIP_OPERATOR_LOAD" != true ]
+    then
+      if docker image inspect "$OPERATOR_IMAGE_NAME" >/dev/null 2>&1
+      then 
+        load_image_k8s "$OPERATOR_IMAGE_NAME"
+      fi
+      if docker image inspect "$RESTAPI_IMAGE_NAME" >/dev/null 2>&1
+      then 
+        load_image_k8s "$RESTAPI_IMAGE_NAME"
+      fi
     fi
 
     k8s_webhook_cleanup
     helm_cleanup
-    k8s_cleanup
+    k8s_async_cleanup
 
     install_operator
+    store_operator_values
 
     if [ "$E2E_DEBUG_OPERATOR" = true ]
     then
@@ -147,14 +191,42 @@ setup_k8s() {
     fi
   else
     helm_cleanup_but_operator
-    k8s_cleanup_but_operator
+    k8s_async_cleanup_but_operator
   fi
 
   if [ "$E2E_WAIT_OPERATOR" = true ]
   then
     wait_pods_running stackgres
-    wait_services_available stackgres 2
+    if helm get values -n stackgres stackgres-operator | grep -q externalOperatorIp \
+      && helm get values -n stackgres stackgres-operator | grep -q externalOperatorPort
+    then
+      wait_services_available stackgres 2
+    else
+      wait_services_available stackgres 1
+    fi
   fi
+}
+
+setup_logs() {
+  if [ "$E2E_DISABLE_LOGS" = "true" ]
+  then
+    return
+  fi
+  pod_logs > "$TARGET_PATH/all_pods.log" 2>/dev/null &
+  trap_kill "$!"
+  event_watch -o wide > "$TARGET_PATH/all_events.log" 2>/dev/null &
+  trap_kill "$!"
+}
+
+setup_cache() {
+  if [ "$E2E_DISABLE_CACHE" = "true" ]
+  then
+    return
+  fi
+  cache_pulled_images_to_local_repository &
+  trap_kill "$!"
+  load_failed_to_pull_images_from_local_repository &
+  trap_kill "$!"
 }
 
 if [ "$(basename "$0")" = "e2e" -a ! -z "$1" ]

@@ -10,22 +10,24 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
 
 import com.ongres.junit.docker.Container;
 import com.ongres.junit.docker.ContainerParam;
-
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
 public abstract class AbstractStackGresOperatorIt extends AbstractIt {
 
-  private static final int OPERATOR_PORT = getFreePort();
-  private static final int OPERATOR_SSL_PORT = getFreePort();
-  private static boolean IS_ABSTRACT_STACKGRES_OPERATOR_IT = false;
+  private static AtomicBoolean IS_ABSTRACT_STACKGRES_OPERATOR_IT = new AtomicBoolean(false);
+  private static AtomicReference<Container> IT_CONTAINER = new AtomicReference<>();
 
+  protected final int operatorPort = getFreePort();
+  protected final int operatorSslPort = getFreePort();
   protected final String namespace = getNamespace();
   protected final int k8sSize = getKindSize();
 
@@ -33,7 +35,11 @@ public abstract class AbstractStackGresOperatorIt extends AbstractIt {
   private WebTarget operatorClient;
 
   public static boolean isRunning() {
-    return IS_ABSTRACT_STACKGRES_OPERATOR_IT;
+    return IS_ABSTRACT_STACKGRES_OPERATOR_IT.get();
+  }
+
+  public static Container getContainer() {
+    return IT_CONTAINER.get();
   }
 
   protected String getNamespace() {
@@ -46,23 +52,24 @@ public abstract class AbstractStackGresOperatorIt extends AbstractIt {
 
   @BeforeEach
   public void setupOperator(@ContainerParam("k8s") Container k8s) throws Exception {
-    IS_ABSTRACT_STACKGRES_OPERATOR_IT = true;
+    IS_ABSTRACT_STACKGRES_OPERATOR_IT.set(true);
+    IT_CONTAINER.set(k8s);
     ItHelper.killUnwantedProcesses(k8s);
     ItHelper.copyResources(k8s);
     ItHelper.resetKind(k8s, k8sSize);
-    ItHelper.installStackGresOperatorHelmChart(k8s, namespace, OPERATOR_PORT, executor);
+    ItHelper.installStackGresOperatorHelmChart(k8s, namespace, operatorPort);
     OperatorRunner operatorRunner = ItHelper.createOperator(
-        k8s, OPERATOR_PORT, OPERATOR_SSL_PORT, executor);
+        k8s, operatorPort, operatorSslPort, executor);
     CompletableFuture<Void> operator = runAsync(() -> operatorRunner.run());
     this.operatorClose = () -> {
       operatorRunner.close();
       operator.join();
     };
-    operatorClient = ClientBuilder.newClient().target("http://localhost:" + OPERATOR_PORT);
+    operatorClient = ClientBuilder.newClient().target("http://localhost:" + operatorPort);
     ItHelper.waitUntilOperatorIsReady(operator, operatorClient, k8s);
   }
 
-  private static int getFreePort() {
+  private int getFreePort() {
     final int freePort;
     try (ServerSocket serverSocket = new ServerSocket(0)) {
       freePort = serverSocket.getLocalPort();
@@ -77,7 +84,7 @@ public abstract class AbstractStackGresOperatorIt extends AbstractIt {
     if (operatorClose != null) {
       runAsync(() -> operatorClose.close()).get(10, TimeUnit.SECONDS);
     }
-    IS_ABSTRACT_STACKGRES_OPERATOR_IT = false;
+    IS_ABSTRACT_STACKGRES_OPERATOR_IT.set(false);
   }
 
 }

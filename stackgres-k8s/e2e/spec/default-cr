@@ -139,7 +139,7 @@ default_backup(){
 
 default_backup_update(){
   local DEFAULT_BACKUP="$(get_default_backupconf -o jsonpath='{.items[0].metadata.name}')"
-  check_update sgbackupconfigs "$DEFAULT_BACKUP" '[{"op":"replace", "path": "/spec/fullWindow", "value":10}]'
+  check_update sgbackupconfigs "$DEFAULT_BACKUP" '[{"op":"replace", "path": "/spec/baseBackups/retention", "value":10}]'
 
 }
 

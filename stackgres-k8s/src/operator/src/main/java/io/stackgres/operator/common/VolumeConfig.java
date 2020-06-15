@@ -5,15 +5,21 @@
 
 package io.stackgres.operator.common;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
+import org.jooq.lambda.Seq;
+import org.jooq.lambda.tuple.Tuple;
+import org.jooq.lambda.tuple.Tuple3;
 
 public class VolumeConfig {
 
@@ -21,8 +27,8 @@ public class VolumeConfig {
       UNCHANGED_VOLUME_BUILDER = (context, volumeBuilder) -> volumeBuilder;
 
   private final String name;
-  private final VolumePath path;
-  private final Function<StackGresClusterContext, Optional<VolumeMount>> volumeMountFactory;
+  private final List<VolumePath> paths;
+  private final Function<StackGresClusterContext, List<VolumeMount>> volumeMountFactory;
   private final Function<StackGresClusterContext, Optional<Volume>> volumeFactory;
 
   private VolumeConfig(String name, VolumePath path,
@@ -31,18 +37,92 @@ public class VolumeConfig {
       BiFunction<StackGresClusterContext, VolumeBuilder, VolumeBuilder> volumeBuilderConsumer,
       Predicate<StackGresClusterContext> filter) {
     this.name = name;
-    this.path = path;
-    this.volumeMountFactory = context -> Optional.of(context)
+    this.paths = ImmutableList.of(path);
+    this.volumeMountFactory = context -> Seq.of(Optional.of(context)
         .filter(filter)
         .map(c -> new VolumeMountBuilder()
             .withName(getName.apply(context))
             .withMountPath(path.path())
-            .build());
+            .build()))
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .toList();
     this.volumeFactory = context -> Optional.of(context)
         .filter(filter)
         .flatMap(c -> volumeFactory.apply(this))
         .map(volumeBuilder -> volumeBuilderConsumer.apply(context, volumeBuilder))
         .map(VolumeBuilder::build);
+  }
+
+  private VolumeConfig(String name,
+      List<VolumePathConfig> paths,
+      Function<VolumeConfig, Optional<VolumeBuilder>> volumeFactory,
+      Function<StackGresClusterContext, String> getName,
+      BiFunction<StackGresClusterContext, VolumeBuilder, VolumeBuilder> volumeBuilderConsumer) {
+    Preconditions.checkArgument(paths.size() > 0);
+    this.name = name;
+    this.paths = Seq.seq(paths).map(VolumePathConfig::volumePath).toList();
+    this.volumeMountFactory = context -> Seq.seq(paths)
+        .map(volumePathConfig -> Optional.of(context)
+            .filter(volumePathConfig.filter())
+            .map(c -> new VolumeMountBuilder()
+                .withName(getName.apply(context))
+                .withSubPath(volumePathConfig.volumePath().subPath())
+                .withMountPath(volumePathConfig.volumePath().path()))
+            .map(volumePathConfig.volumeMounthOverwrite())
+            .map(VolumeMountBuilder::build))
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .toList();
+    this.volumeFactory = context -> Optional.of(context)
+        .filter(c -> paths.stream().anyMatch(t -> t.v2.test(context)))
+        .flatMap(c -> volumeFactory.apply(this))
+        .map(volumeBuilder -> volumeBuilderConsumer.apply(context, volumeBuilder))
+        .map(VolumeBuilder::build);
+  }
+
+  public static class VolumePathConfig
+      extends Tuple3<VolumePath,
+        Predicate<StackGresClusterContext>,
+        Function<VolumeMountBuilder, VolumeMountBuilder>> {
+
+    private static final long serialVersionUID = 1L;
+
+    private VolumePathConfig(Tuple3<VolumePath,
+        Predicate<StackGresClusterContext>,
+        Function<VolumeMountBuilder, VolumeMountBuilder>> tuple) {
+      super(tuple);
+    }
+
+    public VolumePath volumePath() {
+      return v1;
+    }
+
+    public Predicate<StackGresClusterContext> filter() {
+      return v2;
+    }
+
+    public Function<VolumeMountBuilder, VolumeMountBuilder> volumeMounthOverwrite() {
+      return v3;
+    }
+
+    public static VolumePathConfig of(VolumePath path) {
+      return new VolumePathConfig(Tuple.tuple(
+          path, context -> true, volumeMountBuilder -> volumeMountBuilder));
+    }
+
+    public static VolumePathConfig of(VolumePath path,
+        Predicate<StackGresClusterContext> filter) {
+      return new VolumePathConfig(Tuple.tuple(
+          path, filter, volumeMountBuilder -> volumeMountBuilder));
+    }
+
+    public static VolumePathConfig of(VolumePath path,
+        Predicate<StackGresClusterContext> filter,
+        Function<VolumeMountBuilder, VolumeMountBuilder> volumeMounthOverwrite) {
+      return new VolumePathConfig(Tuple.tuple(
+          path, filter, volumeMounthOverwrite));
+    }
   }
 
   public static VolumeConfig persistentVolumeClaim(String name, VolumePath path,
@@ -51,22 +131,20 @@ public class VolumeConfig {
         UNCHANGED_VOLUME_BUILDER, context -> true);
   }
 
-  public static VolumeConfig persistentVolumeClaim(String name, VolumePath path,
-      Function<StackGresClusterContext, String> getName,
-      Predicate<StackGresClusterContext> filter) {
-    return new VolumeConfig(name, path, config ->  Optional.empty(), context -> name,
-        UNCHANGED_VOLUME_BUILDER, filter);
-  }
-
-  public static VolumeConfig emptyDir(String name, VolumePath path) {
-    return new VolumeConfig(name, path, VolumeConfig::createEmptyDirVolume, context -> name,
+  public static VolumeConfig inMemoryEmptyDir(String name, VolumePath path) {
+    return new VolumeConfig(name, path, VolumeConfig::createInMemoryEmptyDirVolume, context -> name,
         UNCHANGED_VOLUME_BUILDER, context -> true);
   }
 
-  public static VolumeConfig emptyDir(String name, VolumePath path,
-      Predicate<StackGresClusterContext> filter) {
-    return new VolumeConfig(name, path, VolumeConfig::createEmptyDirVolume, context -> name,
-        UNCHANGED_VOLUME_BUILDER, filter);
+  public static VolumeConfig onDiskEmptyDir(String name, VolumePath path) {
+    return new VolumeConfig(name, path, VolumeConfig::createOnDiskEmptyDirVolume, context -> name,
+        UNCHANGED_VOLUME_BUILDER, context -> true);
+  }
+
+  public static VolumeConfig onDiskEmptyDir(String name,
+      List<VolumePathConfig> paths) {
+    return new VolumeConfig(name, paths, VolumeConfig::createOnDiskEmptyDirVolume, context -> name,
+        UNCHANGED_VOLUME_BUILDER);
   }
 
   public static VolumeConfig configMap(String name, VolumePath path,
@@ -103,11 +181,18 @@ public class VolumeConfig {
         filter);
   }
 
-  private static Optional<VolumeBuilder> createEmptyDirVolume(VolumeConfig config) {
+  private static Optional<VolumeBuilder> createInMemoryEmptyDirVolume(VolumeConfig config) {
     return Optional.of(new VolumeBuilder()
         .withName(config.name)
         .withNewEmptyDir()
         .withMedium("Memory")
+        .endEmptyDir());
+  }
+
+  private static Optional<VolumeBuilder> createOnDiskEmptyDirVolume(VolumeConfig config) {
+    return Optional.of(new VolumeBuilder()
+        .withName(config.name)
+        .withNewEmptyDir()
         .endEmptyDir());
   }
 
@@ -132,10 +217,25 @@ public class VolumeConfig {
   }
 
   public String path() {
-    return path.path();
+    return paths.get(0).path();
   }
 
-  public Optional<VolumeMount> volumeMount(StackGresClusterContext context) {
+  public List<VolumePath> paths() {
+    return paths;
+  }
+
+  public Optional<VolumeMount> volumeMount(VolumePath path, StackGresClusterContext context) {
+    return volumeMountFactory.apply(context).stream()
+        .filter(volumeMount -> paths.contains(path))
+        .skip(paths.indexOf(path))
+        .findFirst();
+  }
+
+  public List<VolumeMount> volumeMounts(StackGresClusterContext context) {
+    return volumeMountFactory.apply(context);
+  }
+
+  public List<VolumeMount> volumeMounts(StackGresClusterContext context, String subPath) {
     return volumeMountFactory.apply(context);
   }
 

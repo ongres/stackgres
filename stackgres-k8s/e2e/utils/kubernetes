@@ -1,0 +1,17 @@
+#!/bin/sh
+
+create_namespace_if_not_exists(){
+  if ! kubectl get namespace "$1" > /dev/null
+  then
+    kubectl create namespace "$1"
+  fi
+}
+
+delete_namespace_if_exists() {
+  local NAMESPACE="$1"
+
+  if kubectl get namespaces $NAMESPACE  > /dev/null 2>&1
+  then
+    kubectl delete namespace $NAMESPACE
+  fi
+}

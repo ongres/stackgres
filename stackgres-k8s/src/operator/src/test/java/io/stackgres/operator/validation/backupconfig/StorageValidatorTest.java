@@ -8,16 +8,14 @@ package io.stackgres.operator.validation.backupconfig;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import io.stackgres.testutil.JsonUtil;
 import io.stackgres.operator.common.BackupConfigReview;
-import io.stackgres.operator.common.ConfigLoader;
-import io.stackgres.operator.utils.JsonUtil;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
-
 import org.junit.jupiter.api.Test;
 
 class StorageValidatorTest {
 
-  private StorageTypeValidator validator = new StorageTypeValidator(new ConfigLoader());
+  private final StorageTypeValidator validator = new StorageTypeValidator();
 
   @Test
   void givenCreationWithoutVolumeProperties_shouldFail() {

@@ -1,5 +1,5 @@
 dependencies:
   - name: minio
-    version: 2.5.18
+    version: 5.0.26
     repository: https://kubernetes-charts.storage.googleapis.com/
-    condition: config.backup.minio.create
+    condition: nonProductionOptions.createMinio

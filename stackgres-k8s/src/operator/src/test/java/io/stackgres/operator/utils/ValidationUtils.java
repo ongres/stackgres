@@ -18,8 +18,8 @@ import javax.validation.constraints.Positive;
 import io.fabric8.kubernetes.api.model.Status;
 import io.fabric8.kubernetes.api.model.StatusCause;
 import io.fabric8.kubernetes.api.model.StatusDetails;
-import io.stackgres.operator.common.ErrorType;
-import io.stackgres.operator.common.StackGresUtil;
+import io.stackgres.common.ErrorType;
+import io.stackgres.common.StackGresContext;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import org.junit.jupiter.api.function.Executable;
 import org.opentest4j.AssertionFailedError;
@@ -77,9 +77,9 @@ public class ValidationUtils {
   }
 
   public static String generateErrorTypeDocumentationUri(ErrorType constraintViolation) {
-    String documentationUri = StackGresUtil.DOCUMENTATION_URI;
-    String operatorVersion = StackGresUtil.OPERATOR_VERSION;
-    String errorsPath = StackGresUtil.DOCUMENTATION_ERRORS_PATH;
+    String documentationUri = StackGresContext.DOCUMENTATION_URI;
+    String operatorVersion = StackGresContext.OPERATOR_VERSION;
+    String errorsPath = StackGresContext.DOCUMENTATION_ERRORS_PATH;
 
     return String
         .format("%s%s%s%s",

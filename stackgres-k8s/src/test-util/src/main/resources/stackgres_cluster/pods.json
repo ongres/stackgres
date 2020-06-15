@@ -1,0 +1,1347 @@
+{
+  "apiVersion": "v1",
+  "items": [
+    {
+      "apiVersion": "v1",
+      "kind": "Pod",
+      "metadata": {
+        "annotations": {
+          "status": "{\"conn_url\":\"postgres://10.244.3.23:5433/postgres\",\"api_url\":\"http://10.244.3.23:8008/patroni\",\"timeline\":1,\"state\":\"running\",\"version\":\"1.6.4\",\"role\":\"master\",\"xlog_location\":50331976}",
+          "customAnnotation": "customValue"
+        },
+        "creationTimestamp": "2020-03-13T12:32:51Z",
+        "generateName": "stackgres-",
+        "labels": {
+          "app": "StackGres",
+          "cluster": "true",
+          "cluster-name": "stackgres",
+          "cluster-uid": "bfb53778-f59a-11e9-b1b5-0242ac110002",
+          "controller-revision-hash": "stackgres-67ddbdf8f8",
+          "disruptible": "true",
+          "role": "master",
+          "statefulset.kubernetes.io/pod-name": "stackgres-0",
+          "customLabel" : "customLabelValue"
+        },
+        "name": "stackgres-0",
+        "namespace": "stackgres",
+        "ownerReferences": [
+          {
+            "apiVersion": "apps/v1",
+            "blockOwnerDeletion": true,
+            "controller": true,
+            "kind": "StatefulSet",
+            "name": "stackgres",
+            "uid": "5626576b-a051-49ff-8908-43212a5e5fbc"
+          }
+        ],
+        "resourceVersion": "525904",
+        "selfLink": "/api/v1/namespaces/stackgres/pods/stackgres-0",
+        "uid": "a14b1439-7ac0-45e9-9b64-791dbf91a2e9"
+      },
+      "spec": {
+        "affinity": {
+          "podAntiAffinity": {
+            "requiredDuringSchedulingIgnoredDuringExecution": [
+              {
+                "labelSelector": {
+                  "matchExpressions": [
+                    {
+                      "key": "app",
+                      "operator": "In",
+                      "values": [
+                        "StackGres"
+                      ]
+                    },
+                    {
+                      "key": "cluster",
+                      "operator": "In",
+                      "values": [
+                        "true"
+                      ]
+                    }
+                  ]
+                },
+                "topologyKey": "kubernetes.io/hostname"
+              }
+            ]
+          }
+        },
+        "containers": [
+          {
+            "command": [
+              "/bin/sh",
+              "-exc",
+              "cat \u003c\u003c EOF \u003e /tmp/env\nexport PATRONI_POSTGRESQL_LISTEN=$PATRONI_POSTGRESQL_LISTEN\nexport PATRONI_POSTGRESQL_CONNECT_ADDRESS=$PATRONI_POSTGRESQL_CONNECT_ADDRESS\nEOF\nsource /tmp/env\nif [ -f /etc/patroni/restore/entrypoint ]\nthen\n  exec /etc/patroni/restore/entrypoint\nelse\n  exec /entrypoint\nfi"
+            ],
+            "env": [
+              {
+                "name": "LOCAL_BIN_PATH",
+                "value": "/usr/local/bin"
+              },
+              {
+                "name": "PG_BASE_PATH",
+                "value": "/var/lib/postgresql"
+              },
+              {
+                "name": "PG_RUN_PATH",
+                "value": "/var/run/postgresql"
+              },
+              {
+                "name": "PG_DATA_PATH",
+                "value": "/var/lib/postgresql/data"
+              },
+              {
+                "name": "BASE_ENV_PATH",
+                "value": "/etc/env"
+              },
+              {
+                "name": "BASE_SECRET_PATH",
+                "value": "/etc/env/.secret"
+              },
+              {
+                "name": "PATRONI_ENV_PATH",
+                "value": "/etc/env/patroni"
+              },
+              {
+                "name": "BACKUP_ENV_PATH",
+                "value": "/etc/env/backup"
+              },
+              {
+                "name": "BACKUP_SECRET_PATH",
+                "value": "/etc/env/.secret/backup"
+              },
+              {
+                "name": "RESTORE_ENTRYPOINT_PATH",
+                "value": "/etc/patroni/restore"
+              },
+              {
+                "name": "RESTORE_ENV_PATH",
+                "value": "/etc/env/restore"
+              },
+              {
+                "name": "RESTORE_SECRET_PATH",
+                "value": "/etc/env/.secret/restore"
+              },
+              {
+                "name": "PATRONI_ENV",
+                "value": "patroni"
+              },
+              {
+                "name": "BACKUP_ENV",
+                "value": "backup"
+              },
+              {
+                "name": "RESTORE_ENV",
+                "value": "restore"
+              },
+              {
+                "name": "PATRONI_NAME",
+                "valueFrom": {
+                  "fieldRef": {
+                    "apiVersion": "v1",
+                    "fieldPath": "metadata.name"
+                  }
+                }
+              },
+              {
+                "name": "PATRONI_KUBERNETES_NAMESPACE",
+                "valueFrom": {
+                  "fieldRef": {
+                    "apiVersion": "v1",
+                    "fieldPath": "metadata.namespace"
+                  }
+                }
+              },
+              {
+                "name": "PATRONI_KUBERNETES_POD_IP",
+                "valueFrom": {
+                  "fieldRef": {
+                    "apiVersion": "v1",
+                    "fieldPath": "status.podIP"
+                  }
+                }
+              },
+              {
+                "name": "PATRONI_SUPERUSER_PASSWORD",
+                "valueFrom": {
+                  "secretKeyRef": {
+                    "key": "superuser-password",
+                    "name": "stackgres"
+                  }
+                }
+              },
+              {
+                "name": "PATRONI_REPLICATION_PASSWORD",
+                "valueFrom": {
+                  "secretKeyRef": {
+                    "key": "replication-password",
+                    "name": "stackgres"
+                  }
+                }
+              },
+              {
+                "name": "PATRONI_authenticator_PASSWORD",
+                "valueFrom": {
+                  "secretKeyRef": {
+                    "key": "authenticator-password",
+                    "name": "stackgres"
+                  }
+                }
+              },
+              {
+                "name": "PATRONI_authenticator_OPTIONS",
+                "value": "superuser"
+              }
+            ],
+            "envFrom": [
+              {
+                "configMapRef": {
+                  "name": "stackgres"
+                }
+              }
+            ],
+            "image": "docker.io/ongres/patroni:v1.6.4-pg12.2-build-3-dev",
+            "imagePullPolicy": "Always",
+            "livenessProbe": {
+              "failureThreshold": 6,
+              "initialDelaySeconds": 15,
+              "periodSeconds": 20,
+              "successThreshold": 1,
+              "tcpSocket": {
+                "port": 5432
+              },
+              "timeoutSeconds": 1
+            },
+            "name": "patroni",
+            "ports": [
+              {
+                "containerPort": 5432,
+                "name": "pgport",
+                "protocol": "TCP"
+              },
+              {
+                "containerPort": 5433,
+                "name": "pgreplication",
+                "protocol": "TCP"
+              },
+              {
+                "containerPort": 8008,
+                "protocol": "TCP"
+              }
+            ],
+            "readinessProbe": {
+              "failureThreshold": 3,
+              "httpGet": {
+                "path": "/health",
+                "port": 8008,
+                "scheme": "HTTP"
+              },
+              "initialDelaySeconds": 5,
+              "periodSeconds": 10,
+              "successThreshold": 1,
+              "timeoutSeconds": 1
+            },
+            "resources": {
+              "limits": {
+                "cpu": "500m",
+                "memory": "512Mi"
+              },
+              "requests": {
+                "cpu": "500m",
+                "memory": "512Mi"
+              }
+            },
+            "securityContext": {
+              "allowPrivilegeEscalation": false,
+              "runAsUser": 999
+            },
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "volumeMounts": [
+              {
+                "mountPath": "/var/lib/postgresql",
+                "name": "stackgres-data"
+              },
+              {
+                "mountPath": "/var/run/postgresql",
+                "name": "socket"
+              },
+              {
+                "mountPath": "/usr/local/bin",
+                "name": "local-bin"
+              },
+              {
+                "mountPath": "/etc/env/patroni",
+                "name": "patroni-config"
+              },
+              {
+                "mountPath": "/etc/env/backup",
+                "name": "backup-config"
+              },
+              {
+                "mountPath": "/etc/env/.secret/backup",
+                "name": "backup-secret"
+              },
+              {
+                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                "name": "stackgres-patroni-token-89tz8",
+                "readOnly": true
+              }
+            ]
+          },
+          {
+            "args": [
+              "-c",
+              "/etc/envoy/default_envoy.yaml",
+              "-l",
+              "debug"
+            ],
+            "command": [
+              "/usr/local/bin/envoy"
+            ],
+            "image": "docker.io/envoyproxy/envoy:v1.13.1",
+            "imagePullPolicy": "Always",
+            "name": "envoy",
+            "ports": [
+              {
+                "containerPort": 5432,
+                "protocol": "TCP"
+              },
+              {
+                "containerPort": 5433,
+                "protocol": "TCP"
+              }
+            ],
+            "resources": {},
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "volumeMounts": [
+              {
+                "mountPath": "/etc/envoy",
+                "name": "envoy",
+                "readOnly": true
+              },
+              {
+                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                "name": "stackgres-patroni-token-89tz8",
+                "readOnly": true
+              }
+            ]
+          },
+          {
+            "env": [
+              {
+                "name": "DATA_SOURCE_NAME",
+                "value": "host=/var/run/postgresql user=postgres port=5435"
+              },
+              {
+                "name": "POSTGRES_EXPORTER_USERNAME",
+                "value": "postgres"
+              },
+              {
+                "name": "POSTGRES_EXPORTER_PASSWORD",
+                "valueFrom": {
+                  "secretKeyRef": {
+                    "key": "superuser-password",
+                    "name": "stackgres"
+                  }
+                }
+              }
+            ],
+            "image": "docker.io/ongres/prometheus-postgres-exporter:v0.8.0-build-3-dev",
+            "imagePullPolicy": "Always",
+            "name": "prometheus-postgres-exporter",
+            "ports": [
+              {
+                "containerPort": 9187,
+                "protocol": "TCP"
+              }
+            ],
+            "resources": {},
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "volumeMounts": [
+              {
+                "mountPath": "/var/run/postgresql",
+                "name": "socket"
+              },
+              {
+                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                "name": "stackgres-patroni-token-89tz8",
+                "readOnly": true
+              }
+            ]
+          },
+          {
+            "args": [
+              "-c",
+              "while true; do sleep 10; done"
+            ],
+            "command": [
+              "/bin/sh"
+            ],
+            "image": "docker.io/ongres/postgres-util:v12.2-build-3-dev",
+            "imagePullPolicy": "Always",
+            "name": "postgres-util",
+            "resources": {},
+            "stdin": true,
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "tty": true,
+            "volumeMounts": [
+              {
+                "mountPath": "/var/run/postgresql",
+                "name": "socket"
+              },
+              {
+                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                "name": "stackgres-patroni-token-89tz8",
+                "readOnly": true
+              }
+            ]
+          }
+        ],
+        "dnsPolicy": "ClusterFirst",
+        "enableServiceLinks": true,
+        "hostname": "stackgres-0",
+        "initContainers": [
+          {
+            "command": [
+              "/bin/sh",
+              "-ecx",
+              "mkdir -p /var/lib/postgresql/data \u0026\u0026 chmod -R 700 /var/lib/postgresql \u0026\u0026 chown -R 999:999 /var/lib/postgresql"
+            ],
+            "image": "busybox",
+            "imagePullPolicy": "Always",
+            "name": "set-data-permissions",
+            "resources": {},
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "volumeMounts": [
+              {
+                "mountPath": "/var/lib/postgresql",
+                "name": "stackgres-data"
+              },
+              {
+                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                "name": "stackgres-patroni-token-89tz8",
+                "readOnly": true
+              }
+            ]
+          },
+          {
+            "command": [
+              "/bin/sh",
+              "-ecx",
+              "cat \u003c\u003c 'EOF' \u003e /usr/local/bin/exec-with-env\n#!/bin/sh\n\nset -e\n\ndie() {\n  \u003e\u00262 echo \"$@\"\n  exit 1\n}\n\nREPLACES=\"\"\nOVERWRITE=false\n\nwhile [ \"$#\" -gt 0 ]\ndo\n  case \"$1\" in\n  -r|--replace)\n    shift\n    if [ -z \"$REPLACES\" ]\n    then\n      REPLACES=\"$1\"\n    else\n      REPLACES=\"$REPLACES,$1\"\n    fi\n    shift\n    ;;\n  -o|--overwrite)\n    shift\n    OVERWRITE=true\n    ;;\n  --)\n    shift\n    break\n    ;;\n  *)\n    if echo \"$1\" | grep -q \"^/\"\n    then\n      plain_envdir=\"$1\"\n      secret_envdir=\"\"\n      [ -d \"$plain_envdir\" ] \\\n        || die \"$plain_envdir is not a directory\"\n    else\n      secret_envdir=\"${BASE_SECRET_PATH}/$1\"\n      plain_envdir=\"${BASE_ENV_PATH}/$1\"\n      [ -d \"$plain_envdir\" -o -d \"$secret_envdir\" ] \\\n        || die \"None of $plain_envdir or $secret_envdir is a directory\"\n    fi\n    shift\n    for envdir in \"$plain_envdir\" \"$secret_envdir\"\n    do\n      [ -d \"$envdir\" ] || continue\n      # When md5sum of values of environment variables ordered alphabetically (excluding variable\n      # MD5SUM) does not match variable MD5SUM we fail since in transition state\n      [ \"$(ls -1a \"$envdir\" | grep -v \"^MD5SUM$\" \\\n        | while read envvar; do [ ! -f \"$envdir/$envvar\" ] || cat \"$envdir/$envvar\"; done \\\n        | md5sum | cut -d ' ' -f 1 | tr 'a-z' 'A-Z')\" = \"$(cat \"$envdir/MD5SUM\")\" ] \\\n        || die \"Environment variable in transient state\"\n      for envvar in $(ls -1a \"$envdir\")\n      do\n        # Only export if \"$envdir/$envvar\" is a file\n        # and environment variable with name $envvar is not set\n        [ ! -f \"$envdir/$envvar\" ] || [ \"$OVERWRITE\" != \"true\" -a -n \"$(eval \"echo \\\"\\$$envvar\\\"\")\" ] \\\n          || eval \"export $envvar='$(cat \"$envdir/$envvar\")'\"\n      done\n    done\n    ;;\n  esac\ndone\n\nif [ -n \"$REPLACES\" ]\nthen\n  for REPLACE in $(echo \"$REPLACES\" | tr ',' '\\n')\n  do\n    eval \"export ${REPLACE%=*}=\\\"\\$$${REPLACE#*=}\\\"\"\n  done\nfi\n\nif [ -n \"$1\" ]\nthen\n  exec \"$@\"\nfi\nEOF\n\nsed -i \"s#\\${BASE_ENV_PATH}#${BASE_ENV_PATH}#g\" /usr/local/bin/exec-with-env\nsed -i \"s#\\${BASE_SECRET_PATH}#${BASE_SECRET_PATH}#g\" /usr/local/bin/exec-with-env\n\nchmod a+x /usr/local/bin/exec-with-env\n"
+            ],
+            "env": [
+              {
+                "name": "LOCAL_BIN_PATH",
+                "value": "/usr/local/bin"
+              },
+              {
+                "name": "PG_BASE_PATH",
+                "value": "/var/lib/postgresql"
+              },
+              {
+                "name": "PG_RUN_PATH",
+                "value": "/var/run/postgresql"
+              },
+              {
+                "name": "PG_DATA_PATH",
+                "value": "/var/lib/postgresql/data"
+              },
+              {
+                "name": "BASE_ENV_PATH",
+                "value": "/etc/env"
+              },
+              {
+                "name": "BASE_SECRET_PATH",
+                "value": "/etc/env/.secret"
+              },
+              {
+                "name": "PATRONI_ENV_PATH",
+                "value": "/etc/env/patroni"
+              },
+              {
+                "name": "BACKUP_ENV_PATH",
+                "value": "/etc/env/backup"
+              },
+              {
+                "name": "BACKUP_SECRET_PATH",
+                "value": "/etc/env/.secret/backup"
+              },
+              {
+                "name": "RESTORE_ENTRYPOINT_PATH",
+                "value": "/etc/patroni/restore"
+              },
+              {
+                "name": "RESTORE_ENV_PATH",
+                "value": "/etc/env/restore"
+              },
+              {
+                "name": "RESTORE_SECRET_PATH",
+                "value": "/etc/env/.secret/restore"
+              },
+              {
+                "name": "PATRONI_ENV",
+                "value": "patroni"
+              },
+              {
+                "name": "BACKUP_ENV",
+                "value": "backup"
+              },
+              {
+                "name": "RESTORE_ENV",
+                "value": "restore"
+              }
+            ],
+            "image": "busybox",
+            "imagePullPolicy": "Always",
+            "name": "exec-with-env",
+            "resources": {},
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "volumeMounts": [
+              {
+                "mountPath": "/usr/local/bin",
+                "name": "local-bin"
+              },
+              {
+                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                "name": "stackgres-patroni-token-89tz8",
+                "readOnly": true
+              }
+            ]
+          }
+        ],
+        "nodeName": "kind-web-worker2",
+        "priority": 0,
+        "restartPolicy": "Always",
+        "schedulerName": "default-scheduler",
+        "securityContext": {},
+        "serviceAccount": "stackgres-patroni",
+        "serviceAccountName": "stackgres-patroni",
+        "shareProcessNamespace": true,
+        "subdomain": "stackgres",
+        "terminationGracePeriodSeconds": 60,
+        "tolerations": [
+          {
+            "effect": "NoExecute",
+            "key": "node.kubernetes.io/not-ready",
+            "operator": "Exists",
+            "tolerationSeconds": 300
+          },
+          {
+            "effect": "NoExecute",
+            "key": "node.kubernetes.io/unreachable",
+            "operator": "Exists",
+            "tolerationSeconds": 300
+          }
+        ],
+        "volumes": [
+          {
+            "name": "stackgres-data",
+            "persistentVolumeClaim": {
+              "claimName": "stackgres-data-stackgres-0"
+            }
+          },
+          {
+            "emptyDir": {
+              "medium": "Memory"
+            },
+            "name": "socket"
+          },
+          {
+            "emptyDir": {
+              "medium": "Memory"
+            },
+            "name": "local-bin"
+          },
+          {
+            "configMap": {
+              "defaultMode": 444,
+              "name": "stackgres"
+            },
+            "name": "patroni-config"
+          },
+          {
+            "configMap": {
+              "defaultMode": 444,
+              "name": "stackgres-backup"
+            },
+            "name": "backup-config"
+          },
+          {
+            "name": "backup-secret",
+            "secret": {
+              "defaultMode": 444,
+              "secretName": "stackgres-backup"
+            }
+          },
+          {
+            "configMap": {
+              "defaultMode": 420,
+              "name": "stackgres-envoy-config"
+            },
+            "name": "envoy"
+          },
+          {
+            "name": "stackgres-patroni-token-89tz8",
+            "secret": {
+              "defaultMode": 420,
+              "secretName": "stackgres-patroni-token-89tz8"
+            }
+          }
+        ]
+      },
+      "status": {
+        "conditions": [
+          {
+            "lastProbeTime": null,
+            "lastTransitionTime": "2020-03-13T12:32:59Z",
+            "status": "True",
+            "type": "Initialized"
+          },
+          {
+            "lastProbeTime": null,
+            "lastTransitionTime": "2020-03-13T12:33:28Z",
+            "status": "True",
+            "type": "Ready"
+          },
+          {
+            "lastProbeTime": null,
+            "lastTransitionTime": "2020-03-13T12:33:28Z",
+            "status": "True",
+            "type": "ContainersReady"
+          },
+          {
+            "lastProbeTime": null,
+            "lastTransitionTime": "2020-03-13T12:32:53Z",
+            "status": "True",
+            "type": "PodScheduled"
+          }
+        ],
+        "containerStatuses": [
+          {
+            "containerID": "containerd://7a5bb329e35203be0a7fded656dcc065fa2838133cb485fce37cc4700a2acacd",
+            "image": "docker.io/envoyproxy/envoy:v1.13.1",
+            "imageID": "docker.io/envoyproxy/envoy@sha256:11022c45843f3649a8f4ec6a7b5da32c3699a3522b724c42af671229d5bdfacc",
+            "lastState": {},
+            "name": "envoy",
+            "ready": true,
+            "restartCount": 0,
+            "started": true,
+            "state": {
+              "running": {
+                "startedAt": "2020-03-13T12:33:14Z"
+              }
+            }
+          },
+          {
+            "containerID": "containerd://29942f6ba61d4b9b2cfc768d4756de32a07767885763dc7d894a4ce21bd93025",
+            "image": "docker.io/ongres/patroni:v1.6.4-pg12.2-build-3-dev",
+            "imageID": "docker.io/ongres/patroni@sha256:f6102f36894b2c7cc9637a6de49779f2fd1480d11a3706465333fc7dc0bc4f20",
+            "lastState": {},
+            "name": "patroni",
+            "ready": true,
+            "restartCount": 0,
+            "started": true,
+            "state": {
+              "running": {
+                "startedAt": "2020-03-13T12:33:08Z"
+              }
+            }
+          },
+          {
+            "containerID": "containerd://6fe8203bfbdea71ced677ed37e53de393a6e3ef4f8cdf478e9b4726b7ff3ca82",
+            "image": "docker.io/ongres/postgres-util:v12.2-build-3-dev",
+            "imageID": "docker.io/ongres/postgres-util@sha256:0f460d70cb122903f748ec5836e96e264c8a1617a1a34ee367e27b6b8e43b327",
+            "lastState": {},
+            "name": "postgres-util",
+            "ready": true,
+            "restartCount": 0,
+            "started": true,
+            "state": {
+              "running": {
+                "startedAt": "2020-03-13T12:33:26Z"
+              }
+            }
+          },
+          {
+            "containerID": "containerd://482411c405386aada0fb36fde1c913cbfe0380895de5495c50a2a1170c1fa64f",
+            "image": "docker.io/ongres/prometheus-postgres-exporter:v0.8.0-build-3-dev",
+            "imageID": "docker.io/ongres/prometheus-postgres-exporter@sha256:fbef618f0419560e537856aea0de0bc867377f84a995c716c74a73445511aeba",
+            "lastState": {},
+            "name": "prometheus-postgres-exporter",
+            "ready": true,
+            "restartCount": 0,
+            "started": true,
+            "state": {
+              "running": {
+                "startedAt": "2020-03-13T12:33:19Z"
+              }
+            }
+          }
+        ],
+        "hostIP": "172.17.0.8",
+        "initContainerStatuses": [
+          {
+            "containerID": "containerd://bbad1de92e9d4ca192e33a370377e5fab0f18295be3ce4378f838f590dc222b3",
+            "image": "docker.io/library/busybox:lastackgres",
+            "imageID": "docker.io/library/busybox@sha256:b26cd013274a657b86e706210ddd5cc1f82f50155791199d29b9e86e935ce135",
+            "lastState": {},
+            "name": "set-data-permissions",
+            "ready": true,
+            "restartCount": 0,
+            "state": {
+              "terminated": {
+                "containerID": "containerd://bbad1de92e9d4ca192e33a370377e5fab0f18295be3ce4378f838f590dc222b3",
+                "exitCode": 0,
+                "finishedAt": "2020-03-13T12:32:56Z",
+                "reason": "Completed",
+                "startedAt": "2020-03-13T12:32:56Z"
+              }
+            }
+          },
+          {
+            "containerID": "containerd://959c6f86a347210416869b59412b4db9821d2d6e5ea71953f9c87bb40a396cbe",
+            "image": "docker.io/library/busybox:lastackgres",
+            "imageID": "docker.io/library/busybox@sha256:b26cd013274a657b86e706210ddd5cc1f82f50155791199d29b9e86e935ce135",
+            "lastState": {},
+            "name": "exec-with-env",
+            "ready": true,
+            "restartCount": 0,
+            "state": {
+              "terminated": {
+                "containerID": "containerd://959c6f86a347210416869b59412b4db9821d2d6e5ea71953f9c87bb40a396cbe",
+                "exitCode": 0,
+                "finishedAt": "2020-03-13T12:32:58Z",
+                "reason": "Completed",
+                "startedAt": "2020-03-13T12:32:58Z"
+              }
+            }
+          }
+        ],
+        "phase": "Running",
+        "podIP": "10.244.3.23",
+        "podIPs": [
+          {
+            "ip": "10.244.3.23"
+          }
+        ],
+        "qosClass": "Burstable",
+        "startTime": "2020-03-13T12:32:53Z"
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Pod",
+      "metadata": {
+        "creationTimestamp": "2020-03-13T12:33:28Z",
+        "generateName": "stackgres-",
+        "labels": {
+          "app": "StackGres",
+          "cluster": "true",
+          "cluster-name": "stackgres",
+          "cluster-uid": "bfb53778-f59a-11e9-b1b5-0242ac110002",
+          "controller-revision-hash": "stackgres-67ddbdf8f8",
+          "disruptible": "true",
+          "statefulset.kubernetes.io/pod-name": "stackgres-1"
+        },
+        "name": "stackgres-1",
+        "namespace": "stackgres",
+        "ownerReferences": [
+          {
+            "apiVersion": "apps/v1",
+            "blockOwnerDeletion": true,
+            "controller": true,
+            "kind": "StatefulSet",
+            "name": "stackgres",
+            "uid": "5626576b-a051-49ff-8908-43212a5e5fbc"
+          }
+        ],
+        "resourceVersion": "521152",
+        "selfLink": "/api/v1/namespaces/stackgres/pods/stackgres-1",
+        "uid": "8d26282a-4945-4546-b8a4-45888ff13df5"
+      },
+      "spec": {
+        "affinity": {
+          "podAntiAffinity": {
+            "requiredDuringSchedulingIgnoredDuringExecution": [
+              {
+                "labelSelector": {
+                  "matchExpressions": [
+                    {
+                      "key": "app",
+                      "operator": "In",
+                      "values": [
+                        "StackGres"
+                      ]
+                    },
+                    {
+                      "key": "cluster",
+                      "operator": "In",
+                      "values": [
+                        "true"
+                      ]
+                    }
+                  ]
+                },
+                "topologyKey": "kubernetes.io/hostname"
+              }
+            ]
+          }
+        },
+        "containers": [
+          {
+            "command": [
+              "/bin/sh",
+              "-exc",
+              "cat \u003c\u003c EOF \u003e /tmp/env\nexport PATRONI_POSTGRESQL_LISTEN=$PATRONI_POSTGRESQL_LISTEN\nexport PATRONI_POSTGRESQL_CONNECT_ADDRESS=$PATRONI_POSTGRESQL_CONNECT_ADDRESS\nEOF\nsource /tmp/env\nif [ -f /etc/patroni/restore/entrypoint ]\nthen\n  exec /etc/patroni/restore/entrypoint\nelse\n  exec /entrypoint\nfi"
+            ],
+            "env": [
+              {
+                "name": "LOCAL_BIN_PATH",
+                "value": "/usr/local/bin"
+              },
+              {
+                "name": "PG_BASE_PATH",
+                "value": "/var/lib/postgresql"
+              },
+              {
+                "name": "PG_RUN_PATH",
+                "value": "/var/run/postgresql"
+              },
+              {
+                "name": "PG_DATA_PATH",
+                "value": "/var/lib/postgresql/data"
+              },
+              {
+                "name": "BASE_ENV_PATH",
+                "value": "/etc/env"
+              },
+              {
+                "name": "BASE_SECRET_PATH",
+                "value": "/etc/env/.secret"
+              },
+              {
+                "name": "PATRONI_ENV_PATH",
+                "value": "/etc/env/patroni"
+              },
+              {
+                "name": "BACKUP_ENV_PATH",
+                "value": "/etc/env/backup"
+              },
+              {
+                "name": "BACKUP_SECRET_PATH",
+                "value": "/etc/env/.secret/backup"
+              },
+              {
+                "name": "RESTORE_ENTRYPOINT_PATH",
+                "value": "/etc/patroni/restore"
+              },
+              {
+                "name": "RESTORE_ENV_PATH",
+                "value": "/etc/env/restore"
+              },
+              {
+                "name": "RESTORE_SECRET_PATH",
+                "value": "/etc/env/.secret/restore"
+              },
+              {
+                "name": "PATRONI_ENV",
+                "value": "patroni"
+              },
+              {
+                "name": "BACKUP_ENV",
+                "value": "backup"
+              },
+              {
+                "name": "RESTORE_ENV",
+                "value": "restore"
+              },
+              {
+                "name": "PATRONI_NAME",
+                "valueFrom": {
+                  "fieldRef": {
+                    "apiVersion": "v1",
+                    "fieldPath": "metadata.name"
+                  }
+                }
+              },
+              {
+                "name": "PATRONI_KUBERNETES_NAMESPACE",
+                "valueFrom": {
+                  "fieldRef": {
+                    "apiVersion": "v1",
+                    "fieldPath": "metadata.namespace"
+                  }
+                }
+              },
+              {
+                "name": "PATRONI_KUBERNETES_POD_IP",
+                "valueFrom": {
+                  "fieldRef": {
+                    "apiVersion": "v1",
+                    "fieldPath": "status.podIP"
+                  }
+                }
+              },
+              {
+                "name": "PATRONI_SUPERUSER_PASSWORD",
+                "valueFrom": {
+                  "secretKeyRef": {
+                    "key": "superuser-password",
+                    "name": "stackgres"
+                  }
+                }
+              },
+              {
+                "name": "PATRONI_REPLICATION_PASSWORD",
+                "valueFrom": {
+                  "secretKeyRef": {
+                    "key": "replication-password",
+                    "name": "stackgres"
+                  }
+                }
+              },
+              {
+                "name": "PATRONI_authenticator_PASSWORD",
+                "valueFrom": {
+                  "secretKeyRef": {
+                    "key": "authenticator-password",
+                    "name": "stackgres"
+                  }
+                }
+              },
+              {
+                "name": "PATRONI_authenticator_OPTIONS",
+                "value": "superuser"
+              }
+            ],
+            "envFrom": [
+              {
+                "configMapRef": {
+                  "name": "stackgres"
+                }
+              }
+            ],
+            "image": "docker.io/ongres/patroni:v1.6.4-pg12.2-build-3-dev",
+            "imagePullPolicy": "Always",
+            "livenessProbe": {
+              "failureThreshold": 6,
+              "initialDelaySeconds": 15,
+              "periodSeconds": 20,
+              "successThreshold": 1,
+              "tcpSocket": {
+                "port": 5432
+              },
+              "timeoutSeconds": 1
+            },
+            "name": "patroni",
+            "ports": [
+              {
+                "containerPort": 5432,
+                "name": "pgport",
+                "protocol": "TCP"
+              },
+              {
+                "containerPort": 5433,
+                "name": "pgreplication",
+                "protocol": "TCP"
+              },
+              {
+                "containerPort": 8008,
+                "protocol": "TCP"
+              }
+            ],
+            "readinessProbe": {
+              "failureThreshold": 3,
+              "httpGet": {
+                "path": "/health",
+                "port": 8008,
+                "scheme": "HTTP"
+              },
+              "initialDelaySeconds": 5,
+              "periodSeconds": 10,
+              "successThreshold": 1,
+              "timeoutSeconds": 1
+            },
+            "resources": {
+              "limits": {
+                "cpu": "500m",
+                "memory": "512Mi"
+              },
+              "requests": {
+                "cpu": "500m",
+                "memory": "512Mi"
+              }
+            },
+            "securityContext": {
+              "allowPrivilegeEscalation": false,
+              "runAsUser": 999
+            },
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "volumeMounts": [
+              {
+                "mountPath": "/var/lib/postgresql",
+                "name": "stackgres-data"
+              },
+              {
+                "mountPath": "/var/run/postgresql",
+                "name": "socket"
+              },
+              {
+                "mountPath": "/usr/local/bin",
+                "name": "local-bin"
+              },
+              {
+                "mountPath": "/etc/env/patroni",
+                "name": "patroni-config"
+              },
+              {
+                "mountPath": "/etc/env/backup",
+                "name": "backup-config"
+              },
+              {
+                "mountPath": "/etc/env/.secret/backup",
+                "name": "backup-secret"
+              },
+              {
+                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                "name": "stackgres-patroni-token-89tz8",
+                "readOnly": true
+              }
+            ]
+          },
+          {
+            "args": [
+              "-c",
+              "/etc/envoy/default_envoy.yaml",
+              "-l",
+              "debug"
+            ],
+            "command": [
+              "/usr/local/bin/envoy"
+            ],
+            "image": "docker.io/envoyproxy/envoy:v1.13.1",
+            "imagePullPolicy": "Always",
+            "name": "envoy",
+            "ports": [
+              {
+                "containerPort": 5432,
+                "protocol": "TCP"
+              },
+              {
+                "containerPort": 5433,
+                "protocol": "TCP"
+              }
+            ],
+            "resources": {},
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "volumeMounts": [
+              {
+                "mountPath": "/etc/envoy",
+                "name": "envoy",
+                "readOnly": true
+              },
+              {
+                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                "name": "stackgres-patroni-token-89tz8",
+                "readOnly": true
+              }
+            ]
+          },
+          {
+            "env": [
+              {
+                "name": "DATA_SOURCE_NAME",
+                "value": "host=/var/run/postgresql user=postgres port=5435"
+              },
+              {
+                "name": "POSTGRES_EXPORTER_USERNAME",
+                "value": "postgres"
+              },
+              {
+                "name": "POSTGRES_EXPORTER_PASSWORD",
+                "valueFrom": {
+                  "secretKeyRef": {
+                    "key": "superuser-password",
+                    "name": "stackgres"
+                  }
+                }
+              }
+            ],
+            "image": "docker.io/ongres/prometheus-postgres-exporter:v0.8.0-build-3-dev",
+            "imagePullPolicy": "Always",
+            "name": "prometheus-postgres-exporter",
+            "ports": [
+              {
+                "containerPort": 9187,
+                "protocol": "TCP"
+              }
+            ],
+            "resources": {},
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "volumeMounts": [
+              {
+                "mountPath": "/var/run/postgresql",
+                "name": "socket"
+              },
+              {
+                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                "name": "stackgres-patroni-token-89tz8",
+                "readOnly": true
+              }
+            ]
+          },
+          {
+            "args": [
+              "-c",
+              "while true; do sleep 10; done"
+            ],
+            "command": [
+              "/bin/sh"
+            ],
+            "image": "docker.io/ongres/postgres-util:v12.2-build-3-dev",
+            "imagePullPolicy": "Always",
+            "name": "postgres-util",
+            "resources": {},
+            "stdin": true,
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "tty": true,
+            "volumeMounts": [
+              {
+                "mountPath": "/var/run/postgresql",
+                "name": "socket"
+              },
+              {
+                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                "name": "stackgres-patroni-token-89tz8",
+                "readOnly": true
+              }
+            ]
+          }
+        ],
+        "dnsPolicy": "ClusterFirst",
+        "enableServiceLinks": true,
+        "hostname": "stackgres-1",
+        "initContainers": [
+          {
+            "command": [
+              "/bin/sh",
+              "-ecx",
+              "mkdir -p /var/lib/postgresql/data \u0026\u0026 chmod -R 700 /var/lib/postgresql \u0026\u0026 chown -R 999:999 /var/lib/postgresql"
+            ],
+            "image": "busybox",
+            "imagePullPolicy": "Always",
+            "name": "set-data-permissions",
+            "resources": {},
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "volumeMounts": [
+              {
+                "mountPath": "/var/lib/postgresql",
+                "name": "stackgres-data"
+              },
+              {
+                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                "name": "stackgres-patroni-token-89tz8",
+                "readOnly": true
+              }
+            ]
+          },
+          {
+            "command": [
+              "/bin/sh",
+              "-ecx",
+              "cat \u003c\u003c 'EOF' \u003e /usr/local/bin/exec-with-env\n#!/bin/sh\n\nset -e\n\ndie() {\n  \u003e\u00262 echo \"$@\"\n  exit 1\n}\n\nREPLACES=\"\"\nOVERWRITE=false\n\nwhile [ \"$#\" -gt 0 ]\ndo\n  case \"$1\" in\n  -r|--replace)\n    shift\n    if [ -z \"$REPLACES\" ]\n    then\n      REPLACES=\"$1\"\n    else\n      REPLACES=\"$REPLACES,$1\"\n    fi\n    shift\n    ;;\n  -o|--overwrite)\n    shift\n    OVERWRITE=true\n    ;;\n  --)\n    shift\n    break\n    ;;\n  *)\n    if echo \"$1\" | grep -q \"^/\"\n    then\n      plain_envdir=\"$1\"\n      secret_envdir=\"\"\n      [ -d \"$plain_envdir\" ] \\\n        || die \"$plain_envdir is not a directory\"\n    else\n      secret_envdir=\"${BASE_SECRET_PATH}/$1\"\n      plain_envdir=\"${BASE_ENV_PATH}/$1\"\n      [ -d \"$plain_envdir\" -o -d \"$secret_envdir\" ] \\\n        || die \"None of $plain_envdir or $secret_envdir is a directory\"\n    fi\n    shift\n    for envdir in \"$plain_envdir\" \"$secret_envdir\"\n    do\n      [ -d \"$envdir\" ] || continue\n      # When md5sum of values of environment variables ordered alphabetically (excluding variable\n      # MD5SUM) does not match variable MD5SUM we fail since in transition state\n      [ \"$(ls -1a \"$envdir\" | grep -v \"^MD5SUM$\" \\\n        | while read envvar; do [ ! -f \"$envdir/$envvar\" ] || cat \"$envdir/$envvar\"; done \\\n        | md5sum | cut -d ' ' -f 1 | tr 'a-z' 'A-Z')\" = \"$(cat \"$envdir/MD5SUM\")\" ] \\\n        || die \"Environment variable in transient state\"\n      for envvar in $(ls -1a \"$envdir\")\n      do\n        # Only export if \"$envdir/$envvar\" is a file\n        # and environment variable with name $envvar is not set\n        [ ! -f \"$envdir/$envvar\" ] || [ \"$OVERWRITE\" != \"true\" -a -n \"$(eval \"echo \\\"\\$$envvar\\\"\")\" ] \\\n          || eval \"export $envvar='$(cat \"$envdir/$envvar\")'\"\n      done\n    done\n    ;;\n  esac\ndone\n\nif [ -n \"$REPLACES\" ]\nthen\n  for REPLACE in $(echo \"$REPLACES\" | tr ',' '\\n')\n  do\n    eval \"export ${REPLACE%=*}=\\\"\\$$${REPLACE#*=}\\\"\"\n  done\nfi\n\nif [ -n \"$1\" ]\nthen\n  exec \"$@\"\nfi\nEOF\n\nsed -i \"s#\\${BASE_ENV_PATH}#${BASE_ENV_PATH}#g\" /usr/local/bin/exec-with-env\nsed -i \"s#\\${BASE_SECRET_PATH}#${BASE_SECRET_PATH}#g\" /usr/local/bin/exec-with-env\n\nchmod a+x /usr/local/bin/exec-with-env\n"
+            ],
+            "env": [
+              {
+                "name": "LOCAL_BIN_PATH",
+                "value": "/usr/local/bin"
+              },
+              {
+                "name": "PG_BASE_PATH",
+                "value": "/var/lib/postgresql"
+              },
+              {
+                "name": "PG_RUN_PATH",
+                "value": "/var/run/postgresql"
+              },
+              {
+                "name": "PG_DATA_PATH",
+                "value": "/var/lib/postgresql/data"
+              },
+              {
+                "name": "BASE_ENV_PATH",
+                "value": "/etc/env"
+              },
+              {
+                "name": "BASE_SECRET_PATH",
+                "value": "/etc/env/.secret"
+              },
+              {
+                "name": "PATRONI_ENV_PATH",
+                "value": "/etc/env/patroni"
+              },
+              {
+                "name": "BACKUP_ENV_PATH",
+                "value": "/etc/env/backup"
+              },
+              {
+                "name": "BACKUP_SECRET_PATH",
+                "value": "/etc/env/.secret/backup"
+              },
+              {
+                "name": "RESTORE_ENTRYPOINT_PATH",
+                "value": "/etc/patroni/restore"
+              },
+              {
+                "name": "RESTORE_ENV_PATH",
+                "value": "/etc/env/restore"
+              },
+              {
+                "name": "RESTORE_SECRET_PATH",
+                "value": "/etc/env/.secret/restore"
+              },
+              {
+                "name": "PATRONI_ENV",
+                "value": "patroni"
+              },
+              {
+                "name": "BACKUP_ENV",
+                "value": "backup"
+              },
+              {
+                "name": "RESTORE_ENV",
+                "value": "restore"
+              }
+            ],
+            "image": "busybox",
+            "imagePullPolicy": "Always",
+            "name": "exec-with-env",
+            "resources": {},
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "volumeMounts": [
+              {
+                "mountPath": "/usr/local/bin",
+                "name": "local-bin"
+              },
+              {
+                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                "name": "stackgres-patroni-token-89tz8",
+                "readOnly": true
+              }
+            ]
+          }
+        ],
+        "priority": 0,
+        "restartPolicy": "Always",
+        "schedulerName": "default-scheduler",
+        "securityContext": {},
+        "serviceAccount": "stackgres-patroni",
+        "serviceAccountName": "stackgres-patroni",
+        "shareProcessNamespace": true,
+        "subdomain": "stackgres",
+        "terminationGracePeriodSeconds": 60,
+        "tolerations": [
+          {
+            "effect": "NoExecute",
+            "key": "node.kubernetes.io/not-ready",
+            "operator": "Exists",
+            "tolerationSeconds": 300
+          },
+          {
+            "effect": "NoExecute",
+            "key": "node.kubernetes.io/unreachable",
+            "operator": "Exists",
+            "tolerationSeconds": 300
+          }
+        ],
+        "volumes": [
+          {
+            "name": "stackgres-data",
+            "persistentVolumeClaim": {
+              "claimName": "stackgres-data-stackgres-1"
+            }
+          },
+          {
+            "emptyDir": {
+              "medium": "Memory"
+            },
+            "name": "socket"
+          },
+          {
+            "emptyDir": {
+              "medium": "Memory"
+            },
+            "name": "local-bin"
+          },
+          {
+            "configMap": {
+              "defaultMode": 444,
+              "name": "stackgres"
+            },
+            "name": "patroni-config"
+          },
+          {
+            "configMap": {
+              "defaultMode": 444,
+              "name": "stackgres-backup"
+            },
+            "name": "backup-config"
+          },
+          {
+            "name": "backup-secret",
+            "secret": {
+              "defaultMode": 444,
+              "secretName": "stackgres-backup"
+            }
+          },
+          {
+            "configMap": {
+              "defaultMode": 420,
+              "name": "stackgres-envoy-config"
+            },
+            "name": "envoy"
+          },
+          {
+            "name": "stackgres-patroni-token-89tz8",
+            "secret": {
+              "defaultMode": 420,
+              "secretName": "stackgres-patroni-token-89tz8"
+            }
+          }
+        ]
+      },
+      "status": {
+        "conditions": [
+          {
+            "lastProbeTime": null,
+            "lastTransitionTime": "2020-03-13T12:33:28Z",
+            "message": "0/4 nodes are available: 1 node(s) had taints that the pod didn't tolerate, 3 node(s) didn't match pod affinity/anti-affinity.",
+            "reason": "Unschedulable",
+            "status": "False",
+            "type": "PodScheduled"
+          }
+        ],
+        "phase": "Pending",
+        "qosClass": "Burstable"
+      }
+    }
+  ],
+  "kind": "List",
+  "metadata": {
+    "resourceVersion": "",
+    "selfLink": ""
+  }
+}

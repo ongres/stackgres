@@ -14,7 +14,6 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import com.google.common.collect.ImmutableList;
-
 import io.fabric8.kubernetes.api.model.AffinityBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.LabelSelectorBuilder;
@@ -31,17 +30,22 @@ import io.fabric8.kubernetes.api.model.PodTemplateSpecBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetUpdateStrategyBuilder;
+import io.stackgres.common.LabelFactory;
+import io.stackgres.common.StackGresContext;
+import io.stackgres.common.crd.sgcluster.NonProduction;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.operator.common.LabelFactoryDelegator;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresClusterResourceStreamFactory;
 import io.stackgres.operator.common.StackGresGeneratorContext;
-import io.stackgres.operator.common.StackGresUtil;
+import io.stackgres.operator.common.StackGresPodSecurityContext;
 import io.stackgres.operator.configuration.ImmutableStorageConfig;
 import io.stackgres.operator.configuration.StorageConfig;
 import io.stackgres.operator.patroni.factory.Patroni;
 import io.stackgres.operator.patroni.factory.PatroniRole;
 import io.stackgres.operatorframework.resource.ResourceUtil;
-
 import org.jooq.lambda.Seq;
+import org.jooq.lambda.tuple.Tuple2;
 
 @ApplicationScoped
 public class ClusterStatefulSet implements StackGresClusterResourceStreamFactory {
@@ -51,23 +55,26 @@ public class ClusterStatefulSet implements StackGresClusterResourceStreamFactory
 
   public static final String GCS_CREDENTIALS_FILE_NAME = "gcs-credentials.json";
 
-  private Patroni patroni;
-  private ClusterStatefulSetInitContainers initContainerFactory;
-  private ClusterStatefulSetVolumes volumesFactory;
+  private final Patroni patroni;
+  private final StackGresPodSecurityContext clusterPodSecurityContext;
+  private final ClusterStatefulSetInitContainers initContainerFactory;
+  private final ClusterStatefulSetVolumes volumesFactory;
+  private final TemplatesConfigMap templatesConfigMap;
+
+  private final LabelFactoryDelegator factoryDelegator;
 
   @Inject
-  public void setPatroni(Patroni patroni) {
+  public ClusterStatefulSet(Patroni patroni, StackGresPodSecurityContext clusterPodSecurityContext,
+      ClusterStatefulSetInitContainers initContainerFactory,
+      ClusterStatefulSetVolumes volumesFactory,
+      TemplatesConfigMap templatesConfigMap, LabelFactoryDelegator factoryDelegator) {
+    super();
     this.patroni = patroni;
-  }
-
-  @Inject
-  public void setInitContainerFactory(ClusterStatefulSetInitContainers initContainerFactory) {
+    this.clusterPodSecurityContext = clusterPodSecurityContext;
     this.initContainerFactory = initContainerFactory;
-  }
-
-  @Inject
-  public void setVolumesFactory(ClusterStatefulSetVolumes volumesFactory) {
     this.volumesFactory = volumesFactory;
+    this.templatesConfigMap = templatesConfigMap;
+    this.factoryDelegator = factoryDelegator;
   }
 
   public static String dataName(StackGresClusterContext clusterContext) {
@@ -87,13 +94,14 @@ public class ClusterStatefulSet implements StackGresClusterResourceStreamFactory
   public Stream<HasMetadata> streamResources(StackGresGeneratorContext context) {
     StackGresClusterContext clusterContext = context.getClusterContext();
 
-    final String name = clusterContext.getCluster().getMetadata().getName();
-    final String namespace = clusterContext.getCluster().getMetadata().getNamespace();
+    final StackGresCluster cluster = clusterContext.getCluster();
+    final String name = cluster.getMetadata().getName();
+    final String namespace = cluster.getMetadata().getNamespace();
 
     StorageConfig dataStorageConfig = ImmutableStorageConfig.builder()
-        .size(clusterContext.getCluster().getSpec().getPod().getPersistentVolume().getVolumeSize())
+        .size(cluster.getSpec().getPod().getPersistentVolume().getVolumeSize())
         .storageClass(Optional.ofNullable(
-            clusterContext.getCluster().getSpec().getPod().getPersistentVolume().getStorageClass())
+            cluster.getSpec().getPod().getPersistentVolume().getStorageClass())
             .orElse(null))
         .build();
 
@@ -102,20 +110,20 @@ public class ClusterStatefulSet implements StackGresClusterResourceStreamFactory
         .withResources(dataStorageConfig.getResourceRequirements())
         .withStorageClassName(dataStorageConfig.getStorageClass());
 
-    final Map<String, String> labels = StackGresUtil.clusterLabels(clusterContext.getCluster());
-    final Map<String, String> podLabels = StackGresUtil.statefulSetPodLabels(
-        clusterContext.getCluster());
-
+    final LabelFactory<?> labelFactory = factoryDelegator.pickFactory(clusterContext);
+    final Map<String, String> labels = labelFactory.clusterLabels(cluster);
+    final Map<String, String> podLabels = labelFactory.statefulSetPodLabels(cluster);
+    final Map<String, String> podAnnotations = clusterContext.clusterAnnotations();
+    final Map<String, String> customPodLabels = clusterContext.posCustomLabels();
     StatefulSet clusterStatefulSet = new StatefulSetBuilder()
         .withNewMetadata()
         .withNamespace(namespace)
         .withName(name)
         .withLabels(labels)
-        .withOwnerReferences(ImmutableList.of(ResourceUtil.getOwnerReference(
-            clusterContext.getCluster())))
+        .withOwnerReferences(context.getClusterContext().getOwnerReferences())
         .endMetadata()
         .withNewSpec()
-        .withReplicas(clusterContext.getCluster().getSpec().getInstances())
+        .withReplicas(cluster.getSpec().getInstances())
         .withSelector(new LabelSelectorBuilder()
             .addToMatchLabels(podLabels)
             .build())
@@ -125,6 +133,8 @@ public class ClusterStatefulSet implements StackGresClusterResourceStreamFactory
         .withServiceName(name)
         .withTemplate(new PodTemplateSpecBuilder()
             .withMetadata(new ObjectMetaBuilder()
+                .addToAnnotations(podAnnotations)
+                .addToLabels(customPodLabels)
                 .addToLabels(podLabels)
                 .build())
             .withNewSpec()
@@ -134,9 +144,9 @@ public class ClusterStatefulSet implements StackGresClusterResourceStreamFactory
                         new PodAffinityTermBuilder()
                             .withLabelSelector(new LabelSelectorBuilder()
                                 .withMatchExpressions(new LabelSelectorRequirementBuilder()
-                                        .withKey(StackGresUtil.APP_KEY)
+                                        .withKey(StackGresContext.APP_KEY)
                                         .withOperator("In")
-                                        .withValues(StackGresUtil.APP_NAME)
+                                        .withValues(labelFactory.getLabelMapper().appName())
                                         .build(),
                                     new LabelSelectorRequirementBuilder()
                                         .withKey("cluster")
@@ -149,13 +159,14 @@ public class ClusterStatefulSet implements StackGresClusterResourceStreamFactory
                     .build())
                 .build())
                 .filter(affinity -> Optional.ofNullable(
-                    clusterContext.getCluster().getSpec().getNonProduction())
-                    .map(nonProduction -> nonProduction.getDisableClusterPodAntiAffinity())
+                    cluster.getSpec().getNonProduction())
+                    .map(NonProduction::getDisableClusterPodAntiAffinity)
                     .map(disableClusterPodAntiAffinity -> !disableClusterPodAntiAffinity)
                     .orElse(true))
                 .orElse(null))
             .withShareProcessNamespace(Boolean.TRUE)
             .withServiceAccountName(PatroniRole.roleName(clusterContext))
+            .withSecurityContext(clusterPodSecurityContext.createResource(clusterContext))
             .withVolumes(volumesFactory.listResources(clusterContext))
             .withTerminationGracePeriodSeconds(60L)
             .addToContainers(patroni.getContainer(context))
@@ -175,6 +186,7 @@ public class ClusterStatefulSet implements StackGresClusterResourceStreamFactory
                 .withNamespace(namespace)
                 .withName(dataName(clusterContext))
                 .withLabels(labels)
+                .withOwnerReferences(context.getClusterContext().getOwnerReferences())
                 .endMetadata()
                 .withSpec(volumeClaimSpec.build())
                 .build()))
@@ -184,15 +196,17 @@ public class ClusterStatefulSet implements StackGresClusterResourceStreamFactory
         .build();
 
     return Seq.<HasMetadata>empty()
+        .append(templatesConfigMap.streamResources(context))
         .append(patroni.streamResources(context))
         .append(clusterContext.getSidecars().stream()
             .flatMap(sidecarEntry -> sidecarEntry.getSidecar().streamResources(context)))
-        .append(Seq.seq(context.getExistingResources())
+        .append(Seq.seq(context.getClusterContext().getExistingResources())
+            .map(Tuple2::v1)
             .filter(existingResource -> existingResource instanceof Pod)
             .map(HasMetadata::getMetadata)
             .filter(existingPodMetadata -> Objects.equals(
-                existingPodMetadata.getLabels().get(StackGresUtil.CLUSTER_KEY),
-                Boolean.TRUE.toString()))
+                existingPodMetadata.getLabels().get(StackGresContext.CLUSTER_KEY),
+                StackGresContext.RIGHT_VALUE))
             .map(existingPodMetadata -> new PodBuilder()
                 .withNewMetadata()
                 .withNamespace(existingPodMetadata.getNamespace())

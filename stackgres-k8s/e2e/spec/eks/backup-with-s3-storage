@@ -12,7 +12,8 @@ e2e_test_install() {
       "Effect": "Allow",
       "Action": [
         "s3:PutObject",
-        "s3:GetObject"
+        "s3:GetObject",
+        "s3:DeleteObject"
       ],
       "Resource": [
         "arn:aws:s3:::stackgres-e2e/*"
@@ -59,7 +60,7 @@ EOF
 e2e_test_uninstall() {
   helm_cleanup_chart "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 
-  k8s_cleanup_namespace "$CLUSTER_NAMESPACE"
+  k8s_async_cleanup_namespace "$CLUSTER_NAMESPACE"
 
   local AWS_ACCOUNT="$(aws sts get-caller-identity | jq -r '.Account')"
   aws iam list-access-keys --region "$K8S_EKS_REGION" --user-name "stackgres-e2e-$CLUSTER_NAME" \
@@ -90,8 +91,8 @@ create_mock_data() {
   run_query -p 5432 -h "$CLUSTER_NAME-primary" -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -q "'INSERT INTO fibonacci(num) VALUES (3);'" -d "test"
 }
 
-get_backup_phase() {
-  kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" -o=jsonpath='{.status.phase}'
+is_backup_phase() {
+  [ "$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" -o=jsonpath='{.status.process.status}')" = "$1" ]
 }
 
 execute_backup() {
@@ -102,11 +103,11 @@ metadata:
   namespace: "$CLUSTER_NAMESPACE"
   name: "$BACKUP_NAME"
 spec:
-  cluster: "$CLUSTER_NAME"
-  isPermanent: true
+  sgCluster: "$CLUSTER_NAME"
+  managedLifecycle: false
 EOF
   
-  wait_until eval '[ "$(get_backup_phase)" = "Completed" ]'  
+  wait_until is_backup_phase "Completed"
 
   echo "Success. Backup completed"
 }
@@ -125,8 +126,10 @@ metadata:
 spec:
   instances: 2
   postgresVersion: '12.2'
-
-  size: '512Mi'
+  sgInstanceProfile: size-xs
+  pods:
+    persistentVolume:
+      size: '512Mi'
   initialData:
     restore:
       downloadDiskConcurrency: 10
@@ -139,7 +142,7 @@ EOF
 }
 
 check_restored_data() {
-  REPLICA_RESPONSE=$(run_query -p 5432 -h "restored-from-s3-replica" -c "restored-from-s3" -n $CLUSTER_NAMESPACE -i 1 -q "' SELECT num FROM fibonacci ORDER BY num;'" -d "test")
+  REPLICA_RESPONSE=$(run_query -p 5432 -h "restored-from-s3-replicas" -c "restored-from-s3" -n $CLUSTER_NAMESPACE -i 1 -q "' SELECT num FROM fibonacci ORDER BY num;'" -d "test")
   if [ "$(echo "$REPLICA_RESPONSE" | tr -d '\n')" = "123" ]
   then
     echo "SUCCESS: restore replica db restored successfully"

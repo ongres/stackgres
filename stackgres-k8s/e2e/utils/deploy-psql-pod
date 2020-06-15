@@ -1,0 +1,23 @@
+#!/bin/sh
+
+deploy_psql_pod() {
+  local NAMESPACE="${1:-default}"
+
+  cat << EOF | kubectl apply -f -
+  apiVersion: v1
+  kind: Pod
+  metadata:
+    name: psql
+    namespace: $NAMESPACE
+  spec:
+    containers:
+    - image: postgres
+      command: [ "sh", "-c", "while true; do sleep 300; done" ]
+      imagePullPolicy: IfNotPresent
+      name: postgres
+    restartPolicy: Always
+    terminationGracePeriodSeconds: 0
+EOF
+
+  wait_until eval 'kubectl get pods -n "$NAMESPACE" psql | grep Running | grep 1/1'
+}

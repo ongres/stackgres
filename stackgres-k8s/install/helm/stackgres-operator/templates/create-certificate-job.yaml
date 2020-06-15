@@ -1,27 +1,27 @@
-{{- if and (or (not .Values.cert.key) (not .Values.cert.crt)) .Values.deploy.create }}
+{{ if and (or (not .Values.cert.key) (not .Values.cert.crt)) ( or .Values.deploy.operator .Values.deploy.restapi ) }}
 apiVersion: batch/v1
 kind: Job
 metadata:
   name: "{{ .Release.Name }}-create-certificate"
   namespace: {{ .Release.Namespace }}
   labels:
-    app: StackGres
+    app: stackgres-create-certificate
     scope: init
   annotations:
     "helm.sh/hook": post-install
-    "helm.sh/hook-delete-policy": hook-succeeded
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
 spec:
   template:
     metadata:
       labels:
-        app: StackGres
+        app: stackgres-create-certificate
         scope: init
     spec:
       serviceAccountName: {{ .Release.Name }}
       containers:
       - name: "{{ .Release.Name }}-create-certificate"
-        image: "bitnami/kubectl:latest"
-        imagePullPolicy: "Always"
+        image: "bitnami/kubectl:1.18.3"
+        imagePullPolicy: "IfNotPresent"
         command:
           - "/bin/bash"
           - "-ecx"
@@ -48,6 +48,7 @@ spec:
                 -subj "/CN={{ .Release.Name }}.{{ .Release.Namespace }}.svc" \
                 -out /tmp/server.csr \
                 -config /tmp/csr.conf
+            openssl rsa -in /tmp/root.key -pubout -out /tmp/root.pem
             
             cat << EOF | kubectl create -f -
             apiVersion: certificates.k8s.io/v1beta1
@@ -77,27 +78,51 @@ spec:
               echo approved
             fi
             KEY="$(cat /tmp/root.key | base64 | tr -d '\n')"
+            PUB="$(cat /tmp/root.pem | base64 | tr -d '\n')"
             CRT="$(kubectl get csr '{{ .Release.Name }}' -o jsonpath='{.status.certificate}')"
             
-            kubectl patch validatingwebhookconfiguration \
-              -n '{{ .Release.Namespace }}' '{{ .Release.Name }}' --type json --patch '[
-                {"op":"replace","path":"/webhooks/0/clientConfig/caBundle","value":"'"$CRT"'"},
-                {"op":"replace","path":"/webhooks/1/clientConfig/caBundle","value":"'"$CRT"'"},
-                {"op":"replace","path":"/webhooks/2/clientConfig/caBundle","value":"'"$CRT"'"},
-                {"op":"replace","path":"/webhooks/3/clientConfig/caBundle","value":"'"$CRT"'"},
-                {"op":"replace","path":"/webhooks/4/clientConfig/caBundle","value":"'"$CRT"'"},
-                {"op":"replace","path":"/webhooks/5/clientConfig/caBundle","value":"'"$CRT"'"}]'
-            kubectl patch mutatingwebhookconfiguration \
-              -n '{{ .Release.Namespace }}' '{{ .Release.Name }}' --type json --patch '[
-                {"op":"replace","path":"/webhooks/0/clientConfig/caBundle","value":"'"$CRT"'"},
-                {"op":"replace","path":"/webhooks/1/clientConfig/caBundle","value":"'"$CRT"'"},
-                {"op":"replace","path":"/webhooks/2/clientConfig/caBundle","value":"'"$CRT"'"},
-                {"op":"replace","path":"/webhooks/3/clientConfig/caBundle","value":"'"$CRT"'"},
-                {"op":"replace","path":"/webhooks/4/clientConfig/caBundle","value":"'"$CRT"'"},
-                {"op":"replace","path":"/webhooks/5/clientConfig/caBundle","value":"'"$CRT"'"}]'
-            kubectl patch secret \
-              -n '{{ .Release.Namespace }}' '{{ .Release.Name }}' --type json --patch '[
-                {"op":"replace","path":"/data/root.key","value":"'"$KEY"'"},
-                {"op":"replace","path":"/data/server.crt","value":"'"$CRT"'"}]'
+            if [ -z "$CRT" ]
+            then
+              echo "Certificate not found in CSR!"
+              exit 1
+            fi
+            
+            {{- $values := . }}
+            {{- $_ := set $values.Values.cert "crt" "${CRT}" }}
+            {{- $_ := set $values.Values.cert "key" "${KEY}" }}
+            {{- $_ := set $values.Values.cert "jwtRsaKey" "${KEY}" }}
+            {{- $_ := set $values.Values.cert "jwtRsaPub" "${PUB}" }}
+            cat << EOF > /tmp/validating-webhook-configuration.yaml
+            {{- include (print $.Template.BasePath "/validating-webhook-configuration.yaml") . | indent 12 }}
+            EOF
+            cat << EOF > /tmp/mutating-webhook-configuration.yaml
+            {{- include (print $.Template.BasePath "/mutating-webhook-configuration.yaml") . | indent 12 }}
+            EOF
+            cat << EOF > /tmp/certificate-secret.yaml
+            {{- include (print $.Template.BasePath "/certificate-secret.yaml") . | indent 12 }}
+            EOF
+            {{- $_ := set $values.Values.cert "crt" nil }}
+            {{- $_ := set $values.Values.cert "key" nil }}
+            {{- $_ := set $values.Values.cert "jwtRsaKey" nil }}
+            {{- $_ := set $values.Values.cert "jwtRsaPub" nil }}
+            
+            kubectl create -f /tmp/validating-webhook-configuration.yaml \
+              || kubectl patch -n '{{ .Release.Namespace }}' validatingwebhookconfiguration '{{ .Release.Name }}' \
+                -p "$(cat /tmp/validating-webhook-configuration.yaml)"
+            kubectl create -f /tmp/mutating-webhook-configuration.yaml \
+              || kubectl patch -n '{{ .Release.Namespace }}' mutatingwebhookconfiguration '{{ .Release.Name }}' \
+                -p "$(cat /tmp/mutating-webhook-configuration.yaml)"
+            kubectl create -f /tmp/certificate-secret.yaml \
+              || kubectl patch -n '{{ .Release.Namespace }}' secret '{{ .Release.Name }}-certs' \
+                -p "$(cat /tmp/certificate-secret.yaml)"
+            {{- if .Release.IsInstall }}
+            kubectl scale --timeout 1h --replicas 1 -n '{{ .Release.Namespace }}' 'deployment/{{ .Release.Name }}'
+            kubectl scale --timeout 1h --replicas 1 -n '{{ .Release.Namespace }}' 'deployment/{{ .Values.restapi.name }}'
+            {{- else }}
+            kubectl rollout restart -n '{{ .Release.Namespace }}' 'deployment/{{ .Release.Name }}'
+            kubectl rollout restart -n '{{ .Release.Namespace }}' 'deployment/{{ .Values.restapi.name }}'
+            {{- end }}
+            kubectl wait --timeout 1h --for=condition=Ready -n '{{ .Release.Namespace }}' pod -l app=stackgres-operator --all
+            kubectl wait --timeout 1h --for=condition=Ready -n '{{ .Release.Namespace }}' pod -l app='{{ .Values.restapi.name }}' --all
       restartPolicy: OnFailure
 {{ end }}

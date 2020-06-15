@@ -44,7 +44,7 @@ kubectl delete sgcluster simple
 Create the minio service and the backup configuration with default parameters:
 
 ```shell
-kubectl create -f https://stackgres.io/downloads/stackgres-k8s/stackgres/latest/demo-minio.yml
+kubectl create -f {{< download-url >}}/demo-minio.yml
 
 cat << 'EOF' | kubectl create -f -
 apiVersion: stackgres.io/v1beta1
@@ -55,17 +55,18 @@ spec:
   storage:
     type: s3Compatible
     s3Compatible:
-      credentials:
-        accessKey:
-          key: accesskey
-          name: minio
-        secretKey:
-          key: secretkey
-          name: minio
-      endpoint: http://minio:9000
-      enablePathStyleAddressing: true
       bucket: stackgres
       region: k8s
+      enablePathStyleAddressing: true
+      endpoint: http://minio:9000
+      awsCredentials:
+        secretKeySelectors:
+          accessKeyId:
+            key: accesskey
+            name: minio
+          secretAccessKey:
+            key: secretkey
+            name: minio
 EOF
 ```
 
@@ -93,7 +94,7 @@ To clean up the resources created by this demo just run:
 ```
 kubectl delete sgcluster simple
 kubectl delete sgbackupconfig simple
-kubectl delete -f https://stackgres.io/downloads/stackgres-k8s/stackgres/latest/demo-minio.yml
+kubectl delete -f {{< download-url >}}/demo-minio.yml
 ```
 
 # Installation with helm
@@ -103,7 +104,7 @@ You can also install a StackGres cluster using [helm vesion 2.x](https://github.
 
 ```
 helm install --name simple \
-  https://stackgres.io/downloads/stackgres-k8s/stackgres/latest/helm-cluster.tgz
+  {{< download-url >}}/helm-cluster.tgz
 ```
 
 To clean up the resources created by the demo just run:

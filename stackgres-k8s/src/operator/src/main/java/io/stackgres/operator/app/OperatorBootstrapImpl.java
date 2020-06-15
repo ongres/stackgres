@@ -8,6 +8,7 @@ package io.stackgres.operator.app;
 import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.nio.charset.StandardCharsets;
+
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
@@ -15,20 +16,24 @@ import com.google.common.io.Resources;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.internal.KubernetesDeserializer;
+import io.stackgres.common.KubernetesClientFactory;
+import io.stackgres.common.crd.sgbackup.StackGresBackup;
+import io.stackgres.common.crd.sgbackup.StackGresBackupDefinition;
+import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
+import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigDefinition;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterDefinition;
+import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
+import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsDefinition;
+import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
+import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigDefinition;
+import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
+import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigDefinition;
+import io.stackgres.common.crd.sgprofile.StackGresProfile;
+import io.stackgres.common.crd.sgprofile.StackGresProfileDefinition;
 import io.stackgres.operator.common.StackGresClusterContext;
-import io.stackgres.operator.customresource.sgbackup.StackGresBackup;
-import io.stackgres.operator.customresource.sgbackup.StackGresBackupDefinition;
-import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfig;
-import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfigDefinition;
-import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
-import io.stackgres.operator.customresource.sgcluster.StackGresClusterDefinition;
-import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfig;
-import io.stackgres.operator.customresource.sgpgconfig.StackGresPostgresConfigDefinition;
-import io.stackgres.operator.customresource.sgprofile.StackGresProfile;
-import io.stackgres.operator.customresource.sgprofile.StackGresProfileDefinition;
+import io.stackgres.operator.common.StackGresDistributedLogsContext;
 import io.stackgres.operator.initialization.InitializationQueue;
-import io.stackgres.operator.sidecars.pooling.customresources.StackGresPoolingConfig;
-import io.stackgres.operator.sidecars.pooling.customresources.StackGresPoolingConfigDefinition;
 import io.stackgres.operatorframework.resource.ResourceHandlerSelector;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.slf4j.Logger;
@@ -41,14 +46,19 @@ public class OperatorBootstrapImpl implements OperatorBootstrap {
 
   private final KubernetesClientFactory kubeClient;
   private final ResourceHandlerSelector<StackGresClusterContext> handlerSelector;
+  private final ResourceHandlerSelector<StackGresDistributedLogsContext>
+      distributedLogsHandlerSelector;
   private final InitializationQueue initializationQueue;
 
   @Inject
-  public OperatorBootstrapImpl(KubernetesClientFactory kubeClient,
-                               ResourceHandlerSelector<StackGresClusterContext> handlerSelector,
-                               InitializationQueue initializationQueue) {
+  public OperatorBootstrapImpl(
+      KubernetesClientFactory kubeClient,
+      ResourceHandlerSelector<StackGresClusterContext> handlerSelector,
+      ResourceHandlerSelector<StackGresDistributedLogsContext> distributedLogsHandlerSelector,
+      InitializationQueue initializationQueue) {
     this.kubeClient = kubeClient;
     this.handlerSelector = handlerSelector;
+    this.distributedLogsHandlerSelector = distributedLogsHandlerSelector;
     this.initializationQueue = initializationQueue;
   }
 
@@ -99,7 +109,11 @@ public class OperatorBootstrapImpl implements OperatorBootstrap {
     KubernetesDeserializer.registerCustomKind(StackGresBackupDefinition.APIVERSION,
         StackGresBackupDefinition.KIND, StackGresBackup.class);
 
+    KubernetesDeserializer.registerCustomKind(StackGresDistributedLogsDefinition.APIVERSION,
+        StackGresDistributedLogsDefinition.KIND, StackGresDistributedLogs.class);
+
     handlerSelector.registerKinds();
+    distributedLogsHandlerSelector.registerKinds();
   }
 
   private boolean hasCustomResource(KubernetesClient client, String crdName) {

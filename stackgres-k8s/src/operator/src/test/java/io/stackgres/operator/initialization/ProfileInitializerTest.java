@@ -5,16 +5,13 @@
 
 package io.stackgres.operator.initialization;
 
-import io.stackgres.operator.customresource.sgprofile.StackGresProfile;
-import io.stackgres.operator.resource.CustomResourceFinder;
-import io.stackgres.operator.resource.CustomResourceScheduler;
-import io.stackgres.operator.utils.JsonUtil;
-
+import io.stackgres.common.crd.sgprofile.StackGresProfile;
+import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class ProfileInitializerTest extends AbstractInitializerTest<StackGresProfile> {
+class ProfileInitializerTest extends InitializerTest<StackGresProfile> {
 
   @Override
   AbstractDefaultCustomResourceInitializer<StackGresProfile> getInstance() {

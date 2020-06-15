@@ -6,6 +6,7 @@
 package io.stackgres.operator.validation;
 
 import javax.enterprise.event.Observes;
+import javax.enterprise.inject.Any;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
@@ -18,7 +19,6 @@ import io.stackgres.operator.common.BackupConfigReview;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReviewResponse;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationPipeline;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationResource;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,11 +32,6 @@ public class BackupConfigValidationResource implements ValidationResource<Backup
 
   private ValidationPipeline<BackupConfigReview> validationPipeline;
 
-  @Inject
-  public BackupConfigValidationResource(ValidationPipeline<BackupConfigReview> validationPipeline) {
-    this.validationPipeline = validationPipeline;
-  }
-
   void onStart(@Observes StartupEvent ev) {
     LOGGER.info("Backup configuration validation resource started");
   }
@@ -49,5 +44,11 @@ public class BackupConfigValidationResource implements ValidationResource<Backup
   public AdmissionReviewResponse validate(BackupConfigReview admissionReview) {
     return validate(admissionReview, validationPipeline);
 
+  }
+
+  @Inject
+  public void setValidationPipeline(
+      @Any ValidationPipeline<BackupConfigReview> validationPipeline) {
+    this.validationPipeline = validationPipeline;
   }
 }

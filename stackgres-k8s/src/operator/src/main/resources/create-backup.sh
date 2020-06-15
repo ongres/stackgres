@@ -39,8 +39,8 @@ backup_cr_template="${backup_cr_template}:{{ with .status.process.status }}{{ . 
 backup_cr_template="${backup_cr_template}:{{ with .status.internalName }}{{ . }}{{ end }}"
 backup_cr_template="${backup_cr_template}:{{ with .status.process.jobPod }}{{ . }}{{ end }}"
 backup_cr_template="${backup_cr_template}:{{ with .metadata.ownerReferences }}{{ with index . 0 }}{{ .kind }}{{ end }}{{ end }}"
-backup_cr_template="${backup_cr_template}:{{ if .spec.subjectToRetentionPolicy }}true{{ else }}false{{ end }}"
-backup_cr_template="${backup_cr_template}:{{ if .status.process.subjectToRetentionPolicy }}true{{ else }}false{{ end }}"
+backup_cr_template="${backup_cr_template}:{{ if .spec.managedLifecycle }}true{{ else }}false{{ end }}"
+backup_cr_template="${backup_cr_template}:{{ if .status.process.managedLifecycle }}true{{ else }}false{{ end }}"
 backup_cr_template="${backup_cr_template}{{ printf "'"\n"'" }}{{ end }}"
 kubectl get "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" \
   --template "$backup_cr_template" > /tmp/all-backups
@@ -62,16 +62,9 @@ kind: $BACKUP_CRD_KIND
 metadata:
   namespace: "$CLUSTER_NAMESPACE"
   name: "$BACKUP_NAME"
-  ownerReferences:
-$(kubectl get cronjob -n "$CLUSTER_NAMESPACE" "$CRONJOB_NAME" \
-  --template '  - apiVersion: {{ .apiVersion }}
-    kind: {{ .kind }}
-    name: {{ .metadata.name }}
-    uid: {{ .metadata.uid }}
-')
 spec:
   sgCluster: "$CLUSTER_NAME"
-  subjectToRetentionPolicy: false
+  managedLifecycle: true
 status:
   process:
     status: "$BACKUP_PHASE_RUNNING"
@@ -127,9 +120,9 @@ $(kubectl get "$BACKUP_CONFIG_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG"
         {{ with .path }}path: "{{ . }}"{{ end }}
         gcpCredentials:
           secretKeySelectors:
-            serviceAccountJsonKey:
-              key: "{{ .gcpCredentials.secretKeySelectors.serviceAccountJsonKey.key }}"
-              name: "{{ .gcpCredentials.secretKeySelectors.serviceAccountJsonKey.name }}"
+            serviceAccountJSON:
+              key: "{{ .gcpCredentials.secretKeySelectors.serviceAccountJSON.key }}"
+              name: "{{ .gcpCredentials.secretKeySelectors.serviceAccountJSON.name }}"
       {{- end }}
       {{- with .spec.storage.azureBlob }}
       azureBlob:
@@ -168,7 +161,7 @@ else
         "bucket": "{{ .bucket }}",
         {{ with .path }}"path": "{{ . }}",{{ end }}
         "awsCredentials": {
-          "secretKeySelectors: {
+          "secretKeySelectors": {
             "accessKeyId": {
               "key": "{{ .awsCredentials.secretKeySelectors.accessKeyId.key }}",
               "name": "{{ .awsCredentials.secretKeySelectors.accessKeyId.name }}"
@@ -211,7 +204,7 @@ else
         {{ with .path }}"path": "{{ . }}",{{ end }}
         "gcpCredentials": {
           "secretKeySelectors": {
-            "serviceAccountJsonKey": {
+            "serviceAccountJSON": {
               "key": "{{ .gcpCredentials.secretKeySelectors.serviceAccountJSON.key }}",
               "name": "{{ .gcpCredentials.secretKeySelectors.serviceAccountJSON.name }}"
             }
@@ -223,15 +216,15 @@ else
       "azureBlob": {
         "bucket": "{{ .bucket }}",
         {{ with .path }}"path": "{{ . }}",{{ end }}
-        "azureredentials": {
+        "azureCredentials": {
           "secretKeySelectors": {
             "storageAccount": {
-              "key": "{{ .storageAccount.secretKeySelectors.storageAccount.key }}",
-              "name": "{{ .storageAccount.secretKeySelectors.storageAccount.name }}"
+              "key": "{{ .azureCredentials.secretKeySelectors.storageAccount.key }}",
+              "name": "{{ .azureCredentials.secretKeySelectors.storageAccount.name }}"
             },
             "accessKey": {
-              "key": "{{ .storageAccount.secretKeySelectors.accessKey.key }}",
-              "name": "{{ .storageAccount.secretKeySelectors.accessKey.name }}"
+              "key": "{{ .azureCredentials.secretKeySelectors.accessKey.key }}",
+              "name": "{{ .azureCredentials.secretKeySelectors.accessKey.name }}"
             }
           }
         }
@@ -458,11 +451,19 @@ EOF
     [ "$IS_CRONJOB" = true ] || sleep 15
     exit 1
   else
+    existing_backup_is_permanent="$(grep "^is_permanent:" /tmp/current-backup | cut -d : -f 2-)"
+    is_backup_subject_to_retention_policy=""
+    if [ "$existing_backup_is_permanent" = "true" ]
+    then
+      is_backup_subject_to_retention_policy="false"
+    else
+      is_backup_subject_to_retention_policy="true"
+    fi
     kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
       {"op":"replace","path":"/status/internalName","value":"'"$WAL_G_BACKUP_NAME"'"},
       {"op":"replace","path":"/status/process/status","value":"'"$BACKUP_PHASE_COMPLETED"'"},
       {"op":"replace","path":"/status/process/failure","value":""},
-      {"op":"replace","path":"/status/process/subjectToRetentionPolicy","value":'"$(grep "^is_permanent:" /tmp/current-backup | cut -d : -f 2-)"'},
+      {"op":"replace","path":"/status/process/managedLifecycle","value":'$is_backup_subject_to_retention_policy'},
       {"op":"replace","path":"/status/process/timing","value":{
           "stored":"'"$(grep "^time:" /tmp/current-backup | cut -d : -f 2-)"'",
           "start":"'"$(grep "^start_time:" /tmp/current-backup | cut -d : -f 2-)"'",
@@ -521,8 +522,15 @@ EOF
     then
       existing_backup_is_permanent="$(grep "\"backup_name\":\"$backup_name\"" /tmp/existing-backups \
         | tr -d '{}"' | tr ',' '\n' | grep "^is_permanent:" | cut -d : -f 2-)"
+      is_backup_subject_to_retention_policy=""
+      if [ "$existing_backup_is_permanent" = "true" ]
+      then
+        is_backup_subject_to_retention_policy="false"
+      else
+        is_backup_subject_to_retention_policy="true"
+      fi
       kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$backup_cr_name" --type json --patch '[
-      {"op":"replace","path":"/status/process/subjectToRetentionPolicy","value":'"$existing_backup_is_permanent"'}
+      {"op":"replace","path":"/status/process/managedLifecycle","value":'$is_backup_subject_to_retention_policy'}
       ]'
     fi
   done

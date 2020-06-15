@@ -16,7 +16,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import com.google.common.collect.ImmutableMap;
-
+import io.stackgres.common.StackGresContext;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple3;
@@ -34,7 +34,7 @@ public enum StackGresComponents {
   StackGresComponents() {
     try {
       Properties properties = new Properties();
-      properties.load(StackGresUtil.class.getResourceAsStream("/versions.properties"));
+      properties.load(OperatorConfigDefaults.class.getResourceAsStream("/versions.properties"));
       this.componentVersions = Seq.seq(properties)
           .collect(ImmutableMap.toImmutableMap(
               t -> t.v1.toString(), t -> t.v2.toString()));
@@ -100,20 +100,17 @@ public enum StackGresComponents {
     ObjectMapper objectMapper = new YAMLMapper();
     JsonNode versions = objectMapper.readTree(
         new URL("https://stackgres.io/downloads/stackgres-k8s/stackgres/components/"
-            + StackGresUtil.CONTAINER_BUILD + "/versions.yaml"));
+            + StackGresContext.CONTAINER_BUILD + "/versions.yaml"));
     Properties properties = new Properties();
-    properties.put("postgresql",
-        Seq.seq((ArrayNode) versions.get("components").get("postgresql").get("versions"))
-        .map(JsonNode::asText)
-        .toString(","));
-    properties.put("patroni",
-        versions.get("components").get("patroni").get("versions").get(0).asText());
-    properties.put("wal_g",
-        versions.get("components").get("wal_g").get("versions").asText());
-    properties.put("pgbouncer",
-        versions.get("components").get("pgbouncer").get("versions").get(0).asText());
-    properties.put("postgres_exporter",
-        versions.get("components").get("postgres_exporter").get("versions").get(0).asText());
+    Seq.seq(versions.get("components").fields())
+        .map(component -> Tuple.tuple(
+          component.getKey(), component.getValue().get("versions")))
+        .forEach(t -> properties.put(t.v1,
+            t.v2.isArray()
+            ? Seq.seq((ArrayNode) t.v2)
+              .map(JsonNode::asText)
+              .toString(",")
+            : t.v2.asText()));
     properties.put("envoy", "1.13.1");
     File file = new File(args[0]);
     try (FileOutputStream fileOutputStream = new FileOutputStream(file)) {

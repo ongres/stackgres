@@ -18,7 +18,6 @@ import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReviewResponse;
 import io.stackgres.operatorframework.admissionwebhook.mutating.JsonPatchMutationPipeline;
 import io.stackgres.operatorframework.admissionwebhook.mutating.MutationResource;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,7 +27,7 @@ import org.slf4j.LoggerFactory;
 public class ClusterMutationResource implements MutationResource<StackGresClusterReview> {
 
   private static final Logger LOGGER = LoggerFactory
-      .getLogger(SgPgBouncerMutationResource.class);
+      .getLogger(ClusterMutationResource.class);
 
   private JsonPatchMutationPipeline<StackGresClusterReview> pipeline;
 

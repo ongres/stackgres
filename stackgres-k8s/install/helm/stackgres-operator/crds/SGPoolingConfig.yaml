@@ -27,13 +27,7 @@ spec:
             name:
               type: string
               description: |
-                The name of this Connection Pooling Configuration. This configuration may be referenced by zero or more
-                SGClusters, and if so it would be referenced by this name. Following
-                [Kubernetes naming conventions](https://github.com/kubernetes/community/blob/master/contributors/design-proposals/architecture/identifiers.md),
-                it must be an rfc1035/rfc1123 subdomain, that is, up to 253 characters consisting of one or more
-                lowercase labels separated by `.`. Where each label is an alphanumeric (a-z, and 0-9) string, with a
-                maximum length of 63 characters, with the `-` character allowed anywhere except the first or last
-                character.
+                The name of this Connection Pooling Configuration. This configuration may be referenced by zero or more SGClusters, and if so it would be referenced by this name. Following [Kubernetes naming conventions](https://github.com/kubernetes/community/blob/master/contributors/design-proposals/architecture/identifiers.md), it must be an rfc1035/rfc1123 subdomain, that is, up to 253 characters consisting of one or more lowercase labels separated by `.`. Where each label is an alphanumeric (a-z, and 0-9) string, with a maximum length of 63 characters, with the `-` character allowed anywhere except the first or last character.
 
                 This name needs to be unique across all Connection Pooling configurations in the same namespace.
         spec:
@@ -47,8 +41,6 @@ spec:
                 pgbouncer.ini:
                   type: object
                   description: |
-                    The `pgbouncer.ini` parameters of this given configuration. They are represented as an object,
-                    where the keys are valid names for the `pgbouncer.ini` configuration file parameters.
+                    The `pgbouncer.ini` parameters of this given configuration. They are represented as an object, where the keys are valid names for the `pgbouncer.ini` configuration file parameters.
 
-                    Check [pgbouncer configuration](https://www.pgbouncer.org/config.html) for more information about
-                    supported parameters.
+                    Check [pgbouncer configuration](https://www.pgbouncer.org/config.html) for more information about supported parameters.

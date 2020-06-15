@@ -7,8 +7,8 @@ package io.stackgres.operator.mutation.cluster;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.github.fge.jackson.jsonpointer.JsonPointer;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.operator.common.StackGresClusterReview;
-import io.stackgres.operator.customresource.sgcluster.StackGresClusterSpec;
 import io.stackgres.operatorframework.admissionwebhook.mutating.JsonPatchMutator;
 
 public interface ClusterMutator extends JsonPatchMutator<StackGresClusterReview> {

@@ -1,23 +1,47 @@
 #!/bin/sh
 
 check_backup() {
-  NODE="$1"
-  CURRENT_WAL_FILE="$(kubectl exec -t -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-"$NODE" -c postgres-util -- \
-    psql -t -A -U postgres -p 5435 -c \
-    'SELECT r.file_name from pg_walfile_name_offset(pg_current_wal_lsn()) as r')"
-  wait_until eval '[ "$(kubectl exec -t -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-"$NODE" -c postgres-util -- \
-      psql -t -A -U postgres -p 5435 -c \
-      "SELECT r.file_name from pg_walfile_name_offset(pg_switch_wal()) as r")" != "$CURRENT_WAL_FILE" ]'
+  local NODE="$1"
 
-  if wait_until kubectl exec -t -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-"$NODE" -c patroni -- \
-    exec-with-env backup -- wal-g wal-fetch "$CURRENT_WAL_FILE" "/tmp/$CURRENT_WAL_FILE"
+  check_wal_archive "$NODE"
+
+  check_automatic_backup "$NODE"
+}
+
+check_wal_archive() {
+  local RESULT
+  local EXIT_CODE
+  try_function wait_until try_check_wal_archive "$NODE"
+  if "$RESULT"
   then
     echo "SUCCESS. The WAL is available"
   else
     echo "FAIL. The WAL is not available"
     return 1
   fi
+}
 
+try_check_wal_archive() {
+  local NODE="$1"
+  local CURRENT_WAL_FILE
+  CURRENT_WAL_FILE="$(kubectl exec -t -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-"$NODE" -c postgres-util -- \
+    psql -t -A -U postgres -p 5435 -c \
+    'SELECT r.file_name from pg_walfile_name_offset(pg_current_wal_lsn()) as r')"
+  kubectl exec -t -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-"$NODE" -c postgres-util -- \
+    psql -t -A -U postgres -p 5435 -c 'CHECKPOINT'
+  wait_until -t "$((E2E_TIMEOUT / 10))" eval '[ "$(kubectl exec -t -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-"$NODE" -c postgres-util -- \
+      psql -t -A -U postgres -p 5435 -c \
+      "SELECT r.file_name from pg_walfile_name_offset(pg_switch_wal()) as r")" != "$CURRENT_WAL_FILE" ]'
+
+  wait_until -t "$((E2E_TIMEOUT / 10))" timeout -s KILL "$((E2E_TIMEOUT / 20))" \
+    kubectl exec -t -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-"$NODE" -c patroni -- \
+    exec-with-env backup -- wal-g wal-fetch "$CURRENT_WAL_FILE" "/tmp/$CURRENT_WAL_FILE"
+}
+
+check_automatic_backup() {
+  local NODE="$1"
+
+  kubectl delete sgbackup -n "$CLUSTER_NAMESPACE" --all
   if wait_until eval '[ "$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" \
       -o custom-columns=BACKUP_NAME:.status.internalName,PHASE:.status.process.status,HOSTNAME:.status.backupInformation.hostname \
       | tail -n +2 | grep " Completed   ${CLUSTER_NAME}-${NODE}$" | wc -l)" -gt 0 ]'
@@ -27,21 +51,40 @@ check_backup() {
     echo "FAIL. The backup CR is not available"
     return 1
   fi
+}
 
-  BACKUP_NAME="$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" \
-    -o custom-columns=BACKUP_NAME:.status.internalName,PHASE:.status.process.status,HOSTNAME:.status.backupInformation.hostname \
-    | tail -n +2 | grep " Completed   ${CLUSTER_NAME}-${NODE}$" | tail -n 1 | cut -d ' ' -f 1)"
-  
-  if [ "$(kubectl exec -t -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-${NODE}" -c patroni -- \
-      exec-with-env backup -- wal-g backup-list | grep "^$BACKUP_NAME " | wc -l)" -gt 0 ]
+check_automatic_backup_cr() {
+  local NODE="$1"
+
+  if wait_until is_automatic_backup_cr_completed "$NODE"
   then
     echo "SUCCESS. The full backup is available"
   else
     echo "FAIL. The full backup is not available"
     return 1
   fi
+}
 
-  BACKUP_NAME="${CLUSTER_NAME}-${NODE}-$(shuf -i 0-65535 -n 1)"
+is_automatic_backup_cr_completed() {
+  local NODE="$1"
+  local BACKUP_NAME
+
+  BACKUP_NAME="$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" \
+    -o custom-columns=BACKUP_NAME:.status.internalName,PHASE:.status.process.status,HOSTNAME:.status.backupInformation.hostname \
+    | tail -n +2 | grep " Completed   ${CLUSTER_NAME}-${NODE}$" | tail -n 1 | cut -d ' ' -f 1)"
+  
+  [ "$(kubectl exec -t -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-${NODE}" -c patroni -- \
+      exec-with-env backup -- wal-g backup-list | grep "^$BACKUP_NAME " | wc -l)" -gt 0 ]
+}
+
+check_manual_backup() {
+  local NODE="$1"
+  local BACKUP_NAME="${CLUSTER_NAME}-${NODE}-$(shuf -i 0-65535 -n 1)"
+  local ACTUAL_BACKUP_NAME
+
+  # Avoid automatic backups while testing manual backups
+  kubectl patch sgbackupconfig -n "$CLUSTER_NAMESPACE" backupconf --type json \
+    --patch '[{"op":"replace","path":"/spec/baseBackups/cronSchedule","value":"0 5 31 2 *"}]'
 
   cat << EOF | kubectl create -f -
 apiVersion: stackgres.io/v1beta1
@@ -51,7 +94,7 @@ metadata:
   name: "$BACKUP_NAME"
 spec:
   sgCluster: "$CLUSTER_NAME"
-  subjectToRetentionPolicy: false
+  managedLifecycle: false
 EOF
 
   if wait_until eval '[ "$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
@@ -83,14 +126,14 @@ EOF
     return 1
   fi
 
-  check_is_permanent_value false
+  check_is_permanent_value true
 
   kubectl patch sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json \
-    --patch '[{"op":"replace","path":"/spec/subjectToRetentionPolicy","value":true}]'
+    --patch '[{"op":"replace","path":"/spec/managedLifecycle","value":false}]'
 
   wait_until check_is_permanent_value true
 
-  local DEFAULT_ANNOTATION=$(kubectl get sgbackup -n $CLUSTER_NAMESPACE $BACKUP_NAME -o json | run_jq '.metadata.annotations["stackgres.io/operatorVersion"]')
+  local DEFAULT_ANNOTATION=$(kubectl get sgbackup -n $CLUSTER_NAMESPACE $BACKUP_NAME -o json | jq '.metadata.annotations["stackgres.io/operatorVersion"]')
 
   if [ -z $DEFAULT_ANNOTATION ] || [ "$DEFAULT_ANNOTATION" = "null" ]
   then
@@ -101,6 +144,10 @@ EOF
   fi
 
   kubectl delete sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME"
+
+  # Avoid automatic backups while testing manual backups
+  kubectl patch sgbackupconfig -n "$CLUSTER_NAMESPACE" backupconf --type json \
+    --patch '[{"op":"replace","path":"/spec/baseBackups/cronSchedule","value":"*/1 * * * *"}]'
 
   if wait_until eval '[ "$(kubectl exec -t -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-${NODE}" -c patroni -- \
       exec-with-env backup -- wal-g backup-list | grep "^$ACTUAL_BACKUP_NAME " | wc -l)" -eq 0 ]'
@@ -114,15 +161,15 @@ EOF
 
 check_is_permanent_value() {
   ACTUAL_IS_PERMANENT="$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
-    -o custom-columns=IS_PERMANENT:.status.process.subjectToRetentionPolicy,PHASE:.status.process.status,HOSTNAME:.status.backupInformation.hostname \
+    -o custom-columns=IS_PERMANENT:.status.process.managedLifecycle,PHASE:.status.process.status,HOSTNAME:.status.backupInformation.hostname \
     | tail -n +2 | grep " Completed   ${CLUSTER_NAME}-${NODE}$" | tail -n 1 | cut -d ' ' -f 1)"
 
   if [ "$ACTUAL_IS_PERMANENT" != "$1" ]
   then
-    echo "FAIL. Backup /status/process/subjectToRetentionPolicy expected to be $1 but was $ACTUAL_IS_PERMANENT"
+    echo "FAIL. Backup /status/process/managedLifecycle expected to be $1 but was $ACTUAL_IS_PERMANENT"
     return 1
   else
-    echo "SUCCESS. Backup /status/process/subjectToRetentionPolicy was $1"
+    echo "SUCCESS. Backup /status/process/managedLifecycle was $1"
   fi
 }
 

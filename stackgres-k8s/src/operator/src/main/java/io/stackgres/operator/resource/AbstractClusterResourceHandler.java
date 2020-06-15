@@ -8,7 +8,6 @@ package io.stackgres.operator.resource;
 import java.util.function.Function;
 
 import com.google.common.collect.ImmutableMap;
-
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.HasMetadata;
@@ -27,7 +26,6 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.stackgres.operator.common.StackGresClusterContext;
-import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operatorframework.resource.AbstractResourceHandler;
 
 public abstract class AbstractClusterResourceHandler
@@ -61,16 +59,6 @@ public abstract class AbstractClusterResourceHandler
       MixedOperation<? extends HasMetadata, ? extends KubernetesResourceList<? extends HasMetadata>,
           ?, ? extends Resource<? extends HasMetadata, ?>>> getResourceOperations(M resource) {
     return STACKGRES_CLUSTER_RESOURCE_OPERATIONS.get(resource.getClass());
-  }
-
-  @Override
-  public String getContextNamespaceOf(HasMetadata resource) {
-    return resource.getMetadata().getNamespace();
-  }
-
-  @Override
-  public String getContextNameOf(HasMetadata resource) {
-    return resource.getMetadata().getLabels().get(StackGresUtil.CLUSTER_NAME_KEY);
   }
 
 }

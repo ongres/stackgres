@@ -8,7 +8,6 @@ package io.stackgres.operatorframework.resource.factory;
 import java.util.stream.Stream;
 
 import io.fabric8.kubernetes.api.model.KubernetesResource;
-
 import org.jooq.lambda.Seq;
 
 @FunctionalInterface

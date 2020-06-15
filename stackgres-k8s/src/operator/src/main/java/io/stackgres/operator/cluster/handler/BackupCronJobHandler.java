@@ -13,7 +13,6 @@ import io.fabric8.kubernetes.api.model.batch.CronJob;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSet;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.resource.AbstractClusterResourceHandler;
-import io.stackgres.operatorframework.resource.ResourceHandlerContext;
 import io.stackgres.operatorframework.resource.visitor.PairVisitor;
 import io.stackgres.operatorframework.resource.visitor.ResourcePairVisitor;
 
@@ -31,24 +30,26 @@ public class BackupCronJobHandler extends AbstractClusterResourceHandler {
   }
 
   @Override
-  public boolean equals(ResourceHandlerContext<StackGresClusterContext> resourceHandlerContext,
+  public boolean equals(
+      StackGresClusterContext context,
       HasMetadata existingResource, HasMetadata requiredResource) {
-    return ResourcePairVisitor.equals(new CronJobVisitor<>(resourceHandlerContext),
+    return ResourcePairVisitor.equals(new CronJobVisitor<>(context),
         existingResource, requiredResource);
   }
 
   @Override
-  public HasMetadata update(ResourceHandlerContext<StackGresClusterContext> resourceHandlerContext,
+  public HasMetadata update(
+      StackGresClusterContext context,
       HasMetadata existingResource, HasMetadata requiredResource) {
-    return ResourcePairVisitor.update(new CronJobVisitor<>(resourceHandlerContext),
+    return ResourcePairVisitor.update(new CronJobVisitor<>(context),
         existingResource, requiredResource);
   }
 
   private class CronJobVisitor<T>
-      extends ResourcePairVisitor<T, ResourceHandlerContext<StackGresClusterContext>> {
+      extends ResourcePairVisitor<T, StackGresClusterContext> {
 
-    public CronJobVisitor(ResourceHandlerContext<StackGresClusterContext> resourceHandlerContext) {
-      super(resourceHandlerContext);
+    public CronJobVisitor(StackGresClusterContext context) {
+      super(context);
     }
 
     @Override

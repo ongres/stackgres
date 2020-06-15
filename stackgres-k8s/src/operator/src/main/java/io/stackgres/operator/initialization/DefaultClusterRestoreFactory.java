@@ -7,7 +7,7 @@ package io.stackgres.operator.initialization;
 
 import javax.enterprise.context.ApplicationScoped;
 
-import io.stackgres.operator.customresource.sgcluster.ClusterRestore;
+import io.stackgres.common.crd.sgcluster.ClusterRestore;
 
 @ApplicationScoped
 public class DefaultClusterRestoreFactory

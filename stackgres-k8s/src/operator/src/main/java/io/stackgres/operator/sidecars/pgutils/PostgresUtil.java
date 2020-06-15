@@ -9,18 +9,19 @@ import javax.inject.Singleton;
 
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
+import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSetVolumeConfig;
 import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.common.StackGresClusterSidecarResourceFactory;
 import io.stackgres.operator.common.StackGresComponents;
 import io.stackgres.operator.common.StackGresGeneratorContext;
-import io.stackgres.operator.common.StackGresUtil;
 
-@Sidecar("postgres-util")
+@Sidecar(StackgresClusterContainers.POSTGRES_UTIL)
 @Singleton
 public class PostgresUtil implements StackGresClusterSidecarResourceFactory<Void> {
 
-  private static final String NAME = "postgres-util";
+  private static final String NAME = StackgresClusterContainers.POSTGRES_UTIL;
   private static final String IMAGE_NAME = "docker.io/ongres/postgres-util:v%s-build-%s";
 
   public PostgresUtil() {
@@ -33,8 +34,8 @@ public class PostgresUtil implements StackGresClusterSidecarResourceFactory<Void
 
     return new ContainerBuilder()
         .withName(NAME)
-        .withImage(String.format(IMAGE_NAME, pgVersion, StackGresUtil.CONTAINER_BUILD))
-        .withImagePullPolicy("Always")
+        .withImage(String.format(IMAGE_NAME, pgVersion, StackGresContext.CONTAINER_BUILD))
+        .withImagePullPolicy("IfNotPresent")
         .withStdin(Boolean.TRUE)
         .withTty(Boolean.TRUE)
         .withCommand("/bin/sh")

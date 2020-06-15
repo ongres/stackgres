@@ -6,15 +6,15 @@
 package io.stackgres.operator.validation.cluster;
 
 import java.util.Optional;
+
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import io.stackgres.operator.common.ConfigContext;
-import io.stackgres.operator.common.ErrorType;
+import io.stackgres.common.ErrorType;
+import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.common.StackGresClusterReview;
-import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfig;
-import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
-import io.stackgres.operator.resource.CustomResourceFinder;
 import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 
@@ -24,13 +24,10 @@ public class BackupConfigValidator implements ClusterValidator {
 
   private CustomResourceFinder<StackGresBackupConfig> configFinder;
 
-  private ConfigContext context;
-
   @Inject
   public BackupConfigValidator(
-      CustomResourceFinder<StackGresBackupConfig> configFinder, ConfigContext context) {
+      CustomResourceFinder<StackGresBackupConfig> configFinder) {
     this.configFinder = configFinder;
-    this.context = context;
   }
 
   @Override
@@ -65,7 +62,7 @@ public class BackupConfigValidator implements ClusterValidator {
           .findByNameAndNamespace(backupConfig, namespace);
 
       if (!backupConfigOpt.isPresent()) {
-        fail(context, onError);
+        fail(onError);
       }
     }
   }

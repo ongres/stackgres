@@ -7,10 +7,10 @@ package io.stackgres.operator.initialization;
 
 import javax.enterprise.context.ApplicationScoped;
 
-import io.stackgres.operator.sidecars.pooling.customresources.StackGresPoolingConfig;
-import io.stackgres.operator.sidecars.pooling.customresources.StackGresPoolingConfigDefinition;
-import io.stackgres.operator.sidecars.pooling.customresources.StackGresPoolingConfigPgBouncer;
-import io.stackgres.operator.sidecars.pooling.customresources.StackGresPoolingConfigSpec;
+import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
+import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigDefinition;
+import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncer;
+import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigSpec;
 
 @ApplicationScoped
 public class DefaultPoolingFactory

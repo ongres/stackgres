@@ -37,11 +37,19 @@ public class KubernetesOperatorRunner implements OperatorRunner {
     CompletableFuture<Void> runnerLogFuture = CompletableFuture.runAsync(() -> {
       try {
         k8s.execute("sh", "-l", "-c",
-            " kubectl get pod -n stackgres"
-                + " | grep 'stackgres-operator'"
-                + " | grep -v 'stackgres-operator-init'"
-                + " | cut -d ' ' -f 1"
-                + " | xargs kubectl logs -n stackgres -c stackgres-operator -f ")
+            "while kubectl get pod -n stackgres"
+                + " -l app=stackgres-operator -o name; do sleep 1; done"
+                + " | cut -d '/' -f 2"
+                + " | (while read POD\n"
+                + "  do"
+                + "    if echo $PODS | grep -q :$POD:\n"
+                + "    then\n"
+                + "      continue\n"
+                + "    fi\n"
+                + "    PODS=$PODS:$POD:\n"
+                + "    echo $POD\n"
+                + " done)"
+                + " | xargs -r -n 1 kubectl logs -n stackgres -c stackgres-operator -f || true")
             .filter(ItHelper.EXCLUDE_TTY_WARNING)
             .forEach(line -> LOGGER.info(line));
       } catch (Exception ex) {
@@ -54,17 +62,18 @@ public class KubernetesOperatorRunner implements OperatorRunner {
     CompletableFuture<Void> runnerLogKiller = CompletableFuture.runAsync(Unchecked.runnable(() -> {
       while (!runnerLogKillerStopper.isDone()) {
         k8s.execute("sh", "-l", "-c",
-            "ps | grep ' kubectl logs ' | grep -v ' grep '"
-                + " | grep -v ' xargs kubectl logs '"
-                + " | sed 's/\\s\\+/ /g' | sed 's/^ //'"
-                + " | cut -d ' ' -f 1 | xargs -r kill")
+            "ps -e -o pid,args"
+                + " | grep -v ' xargs [k]ubectl logs '"
+                + " | grep ' [k]ubectl logs '"
+                + " | (while read PID ARGS; do echo $PID; done)"
+                + " | xargs -r kill || true")
             .filter(ItHelper.EXCLUDE_TTY_WARNING)
             .forEach(line -> LOGGER.info(line));
         TimeUnit.SECONDS.sleep(1);
       }
     }), executor);
-     runnerLogFuture.join();
-     runnerLogKillerStopper.complete(null);
-     runnerLogKiller.join();
+    runnerLogFuture.join();
+    runnerLogKillerStopper.complete(null);
+    runnerLogKiller.join();
   }
 }

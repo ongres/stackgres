@@ -5,38 +5,35 @@
 
 package io.stackgres.operatorframework.reconciliation;
 
+import java.util.Objects;
 import java.util.Optional;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableList;
-
+import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.operatorframework.resource.ResourceHandlerContext;
 import io.stackgres.operatorframework.resource.ResourceHandlerSelector;
-
 import org.jooq.lambda.Unchecked;
 import org.jooq.lambda.tuple.Tuple2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class AbstractReconciliator<T> implements ResourceHandlerContext<T> {
+public abstract class AbstractReconciliator<T extends ResourceHandlerContext,
+    H extends CustomResource, S extends ResourceHandlerSelector<T>> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(AbstractReconciliator.class);
 
   protected final String name;
-  protected final ResourceHandlerSelector<T> handlerSelector;
+  protected final S handlerSelector;
   protected final KubernetesClient client;
   protected final ObjectMapper objectMapper;
   protected final T context;
-  protected final HasMetadata contextResource;
-  protected final ImmutableList<Tuple2<HasMetadata, Optional<HasMetadata>>> requiredResources;
-  protected final ImmutableList<Tuple2<HasMetadata, Optional<HasMetadata>>> existingResources;
+  protected final H contextResource;
 
-  protected AbstractReconciliator(String name, ResourceHandlerSelector<T> handlerSelector,
-      KubernetesClient client, ObjectMapper objectMapper, T context, HasMetadata contextResource,
-      ImmutableList<Tuple2<HasMetadata, Optional<HasMetadata>>> requiredResources,
-      ImmutableList<Tuple2<HasMetadata, Optional<HasMetadata>>> existingResources) {
+  protected AbstractReconciliator(String name, S handlerSelector,
+      KubernetesClient client, ObjectMapper objectMapper, T context, H contextResource) {
     super();
     this.name = name;
     this.handlerSelector = handlerSelector;
@@ -44,23 +41,6 @@ public abstract class AbstractReconciliator<T> implements ResourceHandlerContext
     this.objectMapper = objectMapper;
     this.context = context;
     this.contextResource = contextResource;
-    this.requiredResources = requiredResources;
-    this.existingResources = existingResources;
-  }
-
-  @Override
-  public T getConfig() {
-    return context;
-  }
-
-  @Override
-  public ImmutableList<Tuple2<HasMetadata, Optional<HasMetadata>>> getExistingResources() {
-    return existingResources;
-  }
-
-  @Override
-  public ImmutableList<Tuple2<HasMetadata, Optional<HasMetadata>>> getRequiredResources() {
-    return requiredResources;
   }
 
   private enum Operation {
@@ -93,20 +73,12 @@ public abstract class AbstractReconciliator<T> implements ResourceHandlerContext
   }
 
   private void deleteUnwantedResources() {
-    for (Tuple2<HasMetadata, Optional<HasMetadata>> existingResource : existingResources) {
-      if (existingResource.v1.getMetadata().getOwnerReferences().stream()
-          .map(ownerReference -> ownerReference.getApiVersion()
-              .equals(contextResource.getApiVersion())
-              && ownerReference.getKind()
-              .equals(contextResource.getKind())
-              && ownerReference.getName()
-              .equals(contextResource.getMetadata().getName())
-              && ownerReference.getUid()
-              .equals(contextResource.getMetadata().getUid()))
-          .map(resourceBelongsToCurrentConfig -> !resourceBelongsToCurrentConfig)
-          .findFirst()
-          .orElse(true)
-          && !handlerSelector.isManaged(context, existingResource.v1)) {
+    for (Tuple2<HasMetadata, Optional<HasMetadata>> existingResource :
+        context.getExistingResources()) {
+      final ImmutableMap<String, String> labels = context.getLabels();
+      if (!labels.entrySet().stream().allMatch(
+          entry -> Objects.equals(entry.getValue(),
+              existingResource.v1.getMetadata().getLabels().get(entry.getKey())))) {
         if (handlerSelector.skipDeletion(context, existingResource.v1)) {
           LOGGER.trace("Skip deletion for resource {}.{} of type {}",
               existingResource.v1.getMetadata().getNamespace(),
@@ -115,7 +87,7 @@ public abstract class AbstractReconciliator<T> implements ResourceHandlerContext
           continue;
         }
         LOGGER.debug("Deleteing resource {}.{} of type {}"
-            + " since do not belong any existing " + name,
+            + " since do not belong to any existing " + name,
             existingResource.v1.getMetadata().getNamespace(),
             existingResource.v1.getMetadata().getName(),
             existingResource.v1.getKind());
@@ -142,11 +114,12 @@ public abstract class AbstractReconciliator<T> implements ResourceHandlerContext
   private Operation createOrUpdateRequiredResources() {
     boolean created = false;
     boolean updated = false;
-    for (Tuple2<HasMetadata, Optional<HasMetadata>> requiredResource : requiredResources) {
+    for (Tuple2<HasMetadata, Optional<HasMetadata>> requiredResource :
+        context.getRequiredResources()) {
       Optional<HasMetadata> matchingResource = requiredResource.v2;
       if (matchingResource
           .map(existingResource -> handlerSelector.equals(
-              this, existingResource, requiredResource.v1))
+              context, existingResource, requiredResource.v1))
           .orElse(false)) {
         LOGGER.trace("Found resource {}.{} of type {}",
             requiredResource.v1.getMetadata().getNamespace(),
@@ -163,7 +136,7 @@ public abstract class AbstractReconciliator<T> implements ResourceHandlerContext
             existingResource.getKind());
         HasMetadata updatedExistingResource = Unchecked.supplier(() -> objectMapper.treeToValue(
             objectMapper.valueToTree(existingResource), existingResource.getClass())).get();
-        handlerSelector.update(this, updatedExistingResource, requiredResource.v1);
+        handlerSelector.update(context, updatedExistingResource, requiredResource.v1);
         handlerSelector.patch(client, context, updatedExistingResource);
         updated = true;
       } else {
@@ -180,7 +153,7 @@ public abstract class AbstractReconciliator<T> implements ResourceHandlerContext
             requiredResource.v1.getKind());
         HasMetadata updatedRequiredResource = Unchecked.supplier(() -> objectMapper.treeToValue(
             objectMapper.valueToTree(requiredResource.v1), requiredResource.v1.getClass())).get();
-        handlerSelector.update(this, updatedRequiredResource, requiredResource.v1);
+        handlerSelector.update(context, updatedRequiredResource, requiredResource.v1);
         handlerSelector.create(client, context, updatedRequiredResource);
         created = true;
       }

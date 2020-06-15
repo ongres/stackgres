@@ -18,6 +18,10 @@ public enum EventReason {
   BACKUP_UPDATED(NORMAL, "BackupUpdated"),
   BACKUP_DELETED(NORMAL, "BackupDeleted"),
   BACKUP_CONFIG_ERROR(WARNING, "BackupConfigFailed"),
+  DISTRIBUTED_LOGS_CREATED(NORMAL, "DistributedLogsCreated"),
+  DISTRIBUTED_LOGS_UPDATED(NORMAL, "DistributedLogsUpdated"),
+  DISTRIBUTED_LOGS_DELETED(NORMAL, "DistributedLogsDeleted"),
+  DISTRIBUTED_LOGS_CONFIG_ERROR(WARNING, "DistributedLogsConfigFailed"),
   OPERATOR_ERROR(WARNING, "OperatorError");
 
   private final String type;

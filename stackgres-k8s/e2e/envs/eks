@@ -1,7 +1,7 @@
 #!/bin/sh
 
 K8S_EKS_NAME="${K8S_EKS_NAME:-stackgres-e2e}"
-K8S_VERSION="${K8S_VERSION:-1.13.11}"
+K8S_VERSION="${K8S_VERSION:-1.15.10}"
 if [ "$K8S_VERSION" = "$DEFAULT_K8S_VERSION" ]
 then
   >&2 echo "Warning: using kubernetes version 1.13.11 since e2e default $DEFAULT_K8S_VERSION is not available for eks"
@@ -11,8 +11,9 @@ K8S_EKS_REGION="${K8S_EKS_REGION:-us-west-2}"
 K8S_EKS_NODE_TYPE="${K8S_EKS_NODE_TYPE:-m5.large}"
 K8S_EKS_DISK_SIZE="${K8S_EKS_DISK_SIZE:-20}"
 K8S_EKS_OPTS="$K8S_EKS_OPTS"
-export K8S_EKS_NAME K8S_VERSION K8S_EKS_REGION K8S_EKS_NODE_LOCATIONS K8S_EKS_NODE_TYPE K8S_EKS_OPTS
-USE_INTERMIDIATE_PRIVATE_REPO=true
+E2E_USE_INTERMIDIATE_PRIVATE_REPO=true
+
+export K8S_EKS_NAME K8S_VERSION K8S_EKS_REGION K8S_EKS_NODE_LOCATIONS K8S_EKS_NODE_TYPE K8S_EKS_OPTS E2E_USE_INTERMIDIATE_PRIVATE_REPO
 
 reuse_k8s() {
   if ! eksctl get cluster --name "$K8S_EKS_NAME" --region "$K8S_EKS_REGION" 2>&1 \
@@ -54,8 +55,12 @@ delete_k8s() {
   then
     eksctl delete cluster --wait --name "$K8S_EKS_NAME" --region "$K8S_EKS_REGION" || true
   fi
+  
   aws ec2 describe-volumes --region "$K8S_EKS_REGION" --filters "Name=tag-key,Values=kubernetes.io/cluster/$K8S_EKS_NAME" \
-    | jq -r '.Volumes[].VolumeId' | xargs -r -n 1 -I % aws ec2 delete-volume --region "$K8S_EKS_REGION" --volume-id %
+    | jq -r '.Volumes[].VolumeId' | xargs -r -n 1 -I % sh -c "aws ec2 detach-volume --force --region $K8S_EKS_REGION --volume-id % || true"
+  
+  aws ec2 describe-volumes --region "$K8S_EKS_REGION" --filters "Name=tag-key,Values=kubernetes.io/cluster/$K8S_EKS_NAME" \
+    | jq -r '.Volumes[].VolumeId' | xargs -r -n 1 -I % sh -c "aws ec2 delete-volume --region $K8S_EKS_REGION --volume-id % || true" 
 
   if aws s3 ls | cut -d ' ' -f 3 | grep -q stackgres-e2e
   then
@@ -65,14 +70,24 @@ delete_k8s() {
   echo "...done"
 }
 
-load_operator_k8s() {
-
-  echo "ERROR: Cannot load images directly to k8s in a eks environment"
+load_image_k8s() {
+  echo "Cannot load images directly to k8s in a eks environment"
   exit 1
-  
 }
 
 operator_pull_policy() {
-  echo IfNotPresent
+  echo Always
 }
 
+get_k8s_versions() {
+  cat << EOF
+1.16.8
+1.15.11
+1.14.9
+1.13.12
+EOF
+}
+
+excluded_podsecuritypolicies() {
+  echo 'eks\.privileged'
+}

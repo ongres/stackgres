@@ -1,0 +1,72 @@
+{{ if .Values.cluster.create }}
+apiVersion: stackgres.io/v1beta1
+kind: SGCluster
+metadata:
+  name: {{ .Release.Name }}
+  labels:
+    app: {{ template "stackgres-cluster.name" . }}
+    chart: {{ template "stackgres-cluster.chart" . }}
+    heritage: {{ .Release.Service }}
+    release: {{ .Release.Name }}
+spec:
+  instances: {{ .Values.cluster.instances }}
+  postgresVersion: '{{ .Values.cluster.postgresVersion }}'
+  configurations: 
+    sgPostgresConfig: '{{ .Values.cluster.configurations.sgPostgresConfig }}'
+    sgPoolingConfig: '{{ .Values.cluster.configurations.sgPoolingConfig }}'
+    {{- if .Values.cluster.configurations.sgBackupConfig }}
+    sgBackupConfig: '{{ .Values.cluster.configurations.sgBackupConfig }}'
+    {{- end }}
+  sgInstanceProfile: '{{ .Values.cluster.sgInstanceProfile }}'
+  {{- if .Values.cluster.initialData }}
+  {{- if .Values.cluster.initialData.restore }}
+  initialData:
+    restore:
+      fromBackup: {{ .Values.cluster.initialData.restore.fromBackup }}
+      {{- if .Values.cluster.initialData.restore.downloadDiskConcurrency }}
+      downloadDiskConcurrency: {{ .Values.cluster.initialData.restore.downloadDiskConcurrency }}
+    {{- end }}
+  {{- end }}
+  {{- end }}
+  pods:
+    {{- if .Values.cluster.pods.metadata }}
+    metadata:
+      {{- if .Values.cluster.pods.metadata.annotations }}
+      annotations:
+        {{- range $annot, $value := .Values.cluster.pods.metadata.annotations }}
+        {{ $annot }}: {{ $value }}
+        {{- end }}
+      {{- end }}
+      {{- if .Values.cluster.pods.metadata.labels }}
+      labels:
+        {{- range $label, $value := .Values.cluster.pods.metadata.labels }}
+        {{ $label }}: {{ $value }}
+        {{- end }}  
+      {{- end }}
+    {{- end }} 
+    persistentVolume:
+      size: '{{ .Values.cluster.pods.persistentVolume.size }}'
+      {{- if .Values.cluster.pods.persistentVolume.storageClass }}
+      {{- if eq "-" .Values.cluster.pods.persistentVolume.storageClass }}
+      storageClass: ""
+      {{- else }}
+      storageClass: {{ .Values.cluster.pods.persistentVolume.storageClass }}
+      {{- end }}
+      {{- end }}
+    disableConnectionPooling: {{ .Values.cluster.pods.disableConnectionPooling }}
+    disablePostgresUtil: {{ .Values.cluster.pods.disablePostgresUtil }}
+    disableMetricsExporter: {{ .Values.cluster.pods.disableMetricsExporter }}
+  {{- if .Values.distributedLogs.enabled }}
+  distributedLogs:
+    sgDistributedLogs: {{ .Values.cluster.distributedLogs.sgDistributedLogs }}
+  {{- end }}
+  prometheusAutobind: {{ .Values.cluster.prometheusAutobind }}
+  {{- if .Values.nonProductionOptions }}
+  nonProductionOptions:
+  {{- if not .Values.nonProductionOptions.disableClusterPodAntiAffinity }}
+    disableClusterPodAntiAffinity: false
+  {{- else }}
+    disableClusterPodAntiAffinity: {{ .Values.nonProductionOptions.disableClusterPodAntiAffinity }}
+  {{- end }}
+  {{- end }}
+{{ end }}

@@ -6,15 +6,15 @@
 package io.stackgres.operator.validation.backup;
 
 import java.util.Optional;
+
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
+import io.stackgres.common.ErrorType;
+import io.stackgres.common.crd.sgbackup.StackGresBackup;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.common.BackupReview;
-import io.stackgres.operator.common.ConfigContext;
-import io.stackgres.operator.common.ErrorType;
-import io.stackgres.operator.customresource.sgbackup.StackGresBackup;
-import io.stackgres.operator.customresource.sgcluster.StackGresCluster;
-import io.stackgres.operator.resource.CustomResourceFinder;
 import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 
@@ -24,13 +24,13 @@ public class ClusterValidator implements BackupValidator {
 
   private final CustomResourceFinder<StackGresCluster> clusterFinder;
 
-  private String errorTypeUri;
+  private static final String errorTypeUri = ErrorType
+      .getErrorTypeUri(ErrorType.INVALID_CR_REFERENCE);
 
   @Inject
   public ClusterValidator(
-      CustomResourceFinder<StackGresCluster> clusterFinder, ConfigContext context) {
+      CustomResourceFinder<StackGresCluster> clusterFinder) {
     this.clusterFinder = clusterFinder;
-    errorTypeUri = context.getErrorTypeUri(ErrorType.INVALID_CR_REFERENCE);
 
   }
 

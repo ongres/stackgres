@@ -19,9 +19,9 @@ check_storage_classes() {
   local STORAGE_CLASSES_IN_RESPONSE
   local STORAGE_CLASSES_IN_K8
 
-  STORAGE_CLASSES_IN_RESPONSE=$(run_curl -r "stackgres/storageclass" -n $CLUSTER_NAMESPACE | run_jq 'length')
+  STORAGE_CLASSES_IN_RESPONSE=$(run_curl -r "stackgres/storageclass" -n $CLUSTER_NAMESPACE | jq 'length')
 
-  STORAGE_CLASSES_IN_K8S=$(kubectl get storageclasses -o json | run_jq '.items | length')
+  STORAGE_CLASSES_IN_K8S=$(kubectl get storageclasses -o json | jq '.items | length')
 
   if [ "$STORAGE_CLASSES_IN_RESPONSE" = "$STORAGE_CLASSES_IN_K8S" ]
   then
@@ -53,7 +53,7 @@ check_storage_classes_status() {
 test_authentication_api_error() {
   local HTTP_STATUS
 
-  HTTP_STATUS="$(run_curl -a e2e:tets -r "stackgres/storageclass"  -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
+  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/storageclass"  -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
 
   check_authentication_error
 }

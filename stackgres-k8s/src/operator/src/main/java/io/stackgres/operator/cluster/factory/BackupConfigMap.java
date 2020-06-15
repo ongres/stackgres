@@ -10,17 +10,18 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import javax.enterprise.context.ApplicationScoped;
-
-import com.google.common.collect.ImmutableList;
+import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.stackgres.common.LabelFactory;
+import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.operator.common.LabelFactoryDelegator;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresClusterResourceStreamFactory;
 import io.stackgres.operator.common.StackGresGeneratorContext;
-import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operatorframework.resource.ResourceUtil;
-
 import org.jooq.lambda.Seq;
 
 @ApplicationScoped
@@ -28,6 +29,8 @@ public class BackupConfigMap extends AbstractBackupConfigMap
     implements StackGresClusterResourceStreamFactory {
 
   private static final String BACKUP_SUFFIX = "-backup";
+
+  private LabelFactoryDelegator factoryDelegator;
 
   public static String name(StackGresClusterContext clusterContext) {
     return ResourceUtil.resourceName(clusterContext.getCluster().getMetadata().getName()
@@ -38,26 +41,32 @@ public class BackupConfigMap extends AbstractBackupConfigMap
   public Stream<HasMetadata> streamResources(StackGresGeneratorContext context) {
     final Map<String, String> data = new HashMap<>();
 
-    context.getClusterContext().getBackupContext()
+    final StackGresClusterContext clusterContext = context.getClusterContext();
+    final StackGresCluster cluster = clusterContext.getCluster();
+    clusterContext.getBackupContext()
         .ifPresent(backupContext -> {
           data.put("BACKUP_CONFIG_RESOURCE_VERSION",
               backupContext.getBackupConfig().getMetadata().getResourceVersion());
           data.putAll(getBackupEnvVars(
-              context.getClusterContext().getCluster().getMetadata().getNamespace(),
-              context.getClusterContext().getCluster().getMetadata().getName(),
+              cluster.getMetadata().getNamespace(),
+              cluster.getMetadata().getName(),
               backupContext.getBackupConfig().getSpec()));
         });
 
+    final LabelFactory<?> labelFactory = factoryDelegator.pickFactory(clusterContext);
     return Seq.of(new ConfigMapBuilder()
         .withNewMetadata()
-        .withNamespace(context.getClusterContext().getCluster().getMetadata().getNamespace())
-        .withName(name(context.getClusterContext()))
-        .withLabels(StackGresUtil.patroniClusterLabels(context.getClusterContext().getCluster()))
-        .withOwnerReferences(ImmutableList.of(
-            ResourceUtil.getOwnerReference(context.getClusterContext().getCluster())))
+        .withNamespace(cluster.getMetadata().getNamespace())
+        .withName(name(clusterContext))
+        .withLabels(labelFactory.patroniClusterLabels(cluster))
+        .withOwnerReferences(clusterContext.getOwnerReferences())
         .endMetadata()
         .withData(StackGresUtil.addMd5Sum(data))
         .build());
   }
 
+  @Inject
+  public void setFactoryDelegator(LabelFactoryDelegator factoryDelegator) {
+    this.factoryDelegator = factoryDelegator;
+  }
 }

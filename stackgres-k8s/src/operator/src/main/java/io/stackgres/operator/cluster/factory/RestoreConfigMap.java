@@ -11,17 +11,18 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import javax.enterprise.context.ApplicationScoped;
-
-import com.google.common.collect.ImmutableList;
+import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.stackgres.common.LabelFactory;
+import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.operator.common.LabelFactoryDelegator;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresClusterOptionalResourceStreamFactory;
 import io.stackgres.operator.common.StackGresGeneratorContext;
-import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operatorframework.resource.ResourceUtil;
-
 import org.jooq.lambda.Seq;
 
 @ApplicationScoped
@@ -30,6 +31,8 @@ public class RestoreConfigMap extends AbstractBackupConfigMap
 
   private static final String RESTORE_SUFFIX = "-restore";
 
+  private LabelFactoryDelegator factoryDelegator;
+
   public static String name(StackGresClusterContext clusterContext) {
     return ResourceUtil.resourceName(clusterContext.getCluster().getMetadata().getName()
         + RESTORE_SUFFIX);
@@ -37,29 +40,33 @@ public class RestoreConfigMap extends AbstractBackupConfigMap
 
   @Override
   public Stream<Optional<HasMetadata>> streamOptionalResources(StackGresGeneratorContext context) {
-    return Seq.of(context.getClusterContext().getRestoreContext()
+    final StackGresClusterContext clusterContext = context.getClusterContext();
+    return Seq.of(clusterContext.getRestoreContext()
         .map(restoreContext -> {
           final Map<String, String> data = new HashMap<>();
 
           data.put("BACKUP_RESOURCE_VERSION",
               restoreContext.getBackup().getMetadata().getResourceVersion());
+          data.put("RESTORE_BACKUP_ID",
+              restoreContext.getBackup().getStatus().getInternalName());
 
           data.putAll(getBackupEnvVars(
               restoreContext.getBackup().getMetadata().getNamespace(),
               restoreContext.getBackup().getSpec().getSgCluster(),
               restoreContext.getBackup().getStatus().getBackupConfig()));
 
-          putOrRemoveIfNull(data, "WALG_DOWNLOAD_CONCURRENCY",
-              String.valueOf(restoreContext.getRestore().getDownloadDiskConcurrency()));
+          Optional.ofNullable(restoreContext.getRestore().getDownloadDiskConcurrency())
+              .ifPresent(downloadDiskConcurrency -> data.put(
+                  "WALG_DOWNLOAD_CONCURRENCY", convertEnvValue(downloadDiskConcurrency)));
 
+          final StackGresCluster cluster = clusterContext.getCluster();
+          final LabelFactory<?> labelFactory = factoryDelegator.pickFactory(clusterContext);
           return new ConfigMapBuilder()
               .withNewMetadata()
-              .withNamespace(context.getClusterContext().getCluster().getMetadata().getNamespace())
-              .withName(name(context.getClusterContext()))
-              .withLabels(StackGresUtil.patroniClusterLabels(
-                  context.getClusterContext().getCluster()))
-              .withOwnerReferences(ImmutableList.of(
-                  ResourceUtil.getOwnerReference(context.getClusterContext().getCluster())))
+              .withNamespace(cluster.getMetadata().getNamespace())
+              .withName(name(clusterContext))
+              .withLabels(labelFactory.patroniClusterLabels(cluster))
+              .withOwnerReferences(clusterContext.getOwnerReferences())
               .endMetadata()
               .withData(StackGresUtil.addMd5Sum(data))
               .build();
@@ -72,12 +79,12 @@ public class RestoreConfigMap extends AbstractBackupConfigMap
         + "/" + ClusterStatefulSet.GCS_CREDENTIALS_FILE_NAME;
   }
 
-  private void putOrRemoveIfNull(Map<String, String> data, String key, String value) {
-    if (value != null) {
-      data.put(key, value);
-    } else {
-      data.remove(key);
-    }
+  private <T> String convertEnvValue(T value) {
+    return value.toString();
   }
 
+  @Inject
+  public void setFactoryDelegator(LabelFactoryDelegator factoryDelegator) {
+    this.factoryDelegator = factoryDelegator;
+  }
 }

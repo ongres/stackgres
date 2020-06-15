@@ -19,7 +19,6 @@ import io.stackgres.operator.common.SgProfileReview;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReviewResponse;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationPipeline;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationResource;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,11 +31,6 @@ public class SgProfileValidationResource implements ValidationResource<SgProfile
 
   private ValidationPipeline<SgProfileReview> pipeline;
 
-  @Inject
-  public SgProfileValidationResource(@Any ValidationPipeline<SgProfileReview> pipeline) {
-    this.pipeline = pipeline;
-  }
-
   void onStart(@Observes StartupEvent ev) {
     LOGGER.info("SgProfile validation resource started");
   }
@@ -47,4 +41,8 @@ public class SgProfileValidationResource implements ValidationResource<SgProfile
     return validate(admissionReview, pipeline);
   }
 
+  @Inject
+  public void setPipeline(@Any ValidationPipeline<SgProfileReview> pipeline) {
+    this.pipeline = pipeline;
+  }
 }

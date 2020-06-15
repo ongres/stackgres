@@ -1,0 +1,11 @@
+{
+  "metadata": {
+    "name": "size-xs",
+    "namespace": "stackgres",
+    "uid": "44f1f832-37a0-4346-9876-be4a9135dca5"
+  },
+  "spec": {
+    "cpu": "1",
+    "memory": "2Gi"
+  }
+}

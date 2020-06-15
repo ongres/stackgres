@@ -11,13 +11,11 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetSpec;
+import io.stackgres.common.StackGresUtil;
 import io.stackgres.operator.common.StackGresClusterContext;
-import io.stackgres.operator.common.StackGresUtil;
 import io.stackgres.operator.resource.AbstractClusterResourceHandler;
-import io.stackgres.operatorframework.resource.ResourceHandlerContext;
 import io.stackgres.operatorframework.resource.visitor.PairVisitor;
 import io.stackgres.operatorframework.resource.visitor.ResourcePairVisitor;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,25 +35,26 @@ public class ClusterStatefulSetHandler extends AbstractClusterResourceHandler {
   }
 
   @Override
-  public boolean equals(ResourceHandlerContext<StackGresClusterContext> resourceHandlerContext,
+  public boolean equals(
+      StackGresClusterContext context,
       HasMetadata existingResource, HasMetadata requiredResource) {
-    return ResourcePairVisitor.equals(new StatefulSetVisitor<>(resourceHandlerContext),
+    return ResourcePairVisitor.equals(new StatefulSetVisitor<>(context),
         existingResource, requiredResource);
   }
 
   @Override
-  public HasMetadata update(ResourceHandlerContext<StackGresClusterContext> resourceHandlerContext,
+  public HasMetadata update(
+      StackGresClusterContext context,
       HasMetadata existingResource, HasMetadata requiredResource) {
-    return ResourcePairVisitor.update(new StatefulSetVisitor<>(resourceHandlerContext),
+    return ResourcePairVisitor.update(new StatefulSetVisitor<>(context),
         existingResource, requiredResource);
   }
 
   private static class StatefulSetVisitor<T>
-      extends ResourcePairVisitor<T, ResourceHandlerContext<StackGresClusterContext>> {
+      extends ResourcePairVisitor<T, StackGresClusterContext> {
 
-    public StatefulSetVisitor(
-        ResourceHandlerContext<StackGresClusterContext> resourceHandlerContext) {
-      super(resourceHandlerContext);
+    public StatefulSetVisitor(StackGresClusterContext context) {
+      super(context);
     }
 
     @Override
@@ -104,8 +103,8 @@ public class ClusterStatefulSetHandler extends AbstractClusterResourceHandler {
           && existsPrimaryPodWithIndexGreaterThanRequiredReplicas(requiredReplicas)) {
         LOGGER.debug("Not downscaling cluster {}.{} since there is no primary Pod "
             + " or is not marked as non disruptible",
-            getContext().getConfig().getCluster().getMetadata().getNamespace(),
-            getContext().getConfig().getCluster().getMetadata().getName());
+            getContext().getCluster().getMetadata().getNamespace(),
+            getContext().getCluster().getMetadata().getName());
         return existingReplicas;
       }
 
@@ -113,8 +112,8 @@ public class ClusterStatefulSetHandler extends AbstractClusterResourceHandler {
         if (existingReplicas > requiredReplicas) {
           LOGGER.debug("Downscaling StatefulSet for cluster {}.{} to requested instances minus 1"
               + " since the primary Pod has an index above the maximum index for the statefulset",
-              getContext().getConfig().getCluster().getMetadata().getNamespace(),
-              getContext().getConfig().getCluster().getMetadata().getName());
+              getContext().getCluster().getMetadata().getNamespace(),
+              getContext().getCluster().getMetadata().getName());
         }
         return requiredReplicas - 1;
       }
@@ -134,7 +133,7 @@ public class ClusterStatefulSetHandler extends AbstractClusterResourceHandler {
           .map(t -> t.v1)
           .filter(this::isPrimary)
           .anyMatch(existingResource -> StackGresUtil.extractPodIndex(
-              getContext().getConfig().getCluster(),
+              getContext().getCluster(),
               existingResource.getMetadata()) >= requiredReplicas);
     }
 

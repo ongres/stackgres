@@ -9,17 +9,15 @@ import java.util.Optional;
 import java.util.function.Function;
 
 import com.google.common.collect.ImmutableMap;
-
-import io.stackgres.operator.common.StackGresUtil;
-import io.stackgres.operator.customresource.sgbackupconfig.StackGresBackupConfigSpec;
-import io.stackgres.operator.customresource.sgbackupconfig.StackGresBaseBackupConfig;
-import io.stackgres.operator.customresource.storages.AwsS3CompatibleStorage;
-import io.stackgres.operator.customresource.storages.AwsS3Storage;
-import io.stackgres.operator.customresource.storages.AzureBlobStorage;
-import io.stackgres.operator.customresource.storages.BackupStorage;
-import io.stackgres.operator.customresource.storages.GoogleCloudStorage;
+import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigSpec;
+import io.stackgres.common.crd.sgbackupconfig.StackGresBaseBackupConfig;
+import io.stackgres.common.crd.storages.AwsS3CompatibleStorage;
+import io.stackgres.common.crd.storages.AwsS3Storage;
+import io.stackgres.common.crd.storages.AzureBlobStorage;
+import io.stackgres.common.crd.storages.BackupStorage;
+import io.stackgres.common.crd.storages.GoogleCloudStorage;
 import io.stackgres.operator.sidecars.envoy.Envoy;
-
 import org.jooq.lambda.Unchecked;
 import org.jooq.lambda.fi.util.function.CheckedFunction;
 import org.slf4j.Logger;
@@ -35,7 +33,7 @@ public abstract class AbstractBackupConfigMap {
     ImmutableMap.Builder<String, String> backupEnvVars = ImmutableMap.builder();
 
     backupEnvVars.put("PGDATA", ClusterStatefulSetPath.PG_DATA_PATH.path());
-    backupEnvVars.put("PGPORT", String.valueOf(Envoy.PG_RAW_PORT));
+    backupEnvVars.put("PGPORT", String.valueOf(Envoy.PG_PORT));
     backupEnvVars.put("PGUSER", "postgres");
     backupEnvVars.put("PGDATABASE", "postgres");
     backupEnvVars.put("PGHOST", ClusterStatefulSetPath.PG_RUN_PATH.path());
@@ -47,15 +45,17 @@ public abstract class AbstractBackupConfigMap {
     Optional.ofNullable(backupConfigSpec.getBaseBackups())
         .map(StackGresBaseBackupConfig::getPerformance)
         .ifPresent(performance -> {
-          final long networkRateLimit = performance.getMaxNetworkBandwitdh();
-          backupEnvVars.put("WALG_NETWORK_RATE_LIMIT", convertEnvValue(networkRateLimit));
+          Optional.ofNullable(performance.getMaxNetworkBandwitdh())
+              .ifPresent(maxNetworkBandwitdh -> backupEnvVars.put(
+                  "WALG_NETWORK_RATE_LIMIT", convertEnvValue(maxNetworkBandwitdh)));
 
-          final long diskRateLimit = performance.getMaxDiskBandwitdh();
-          backupEnvVars.put("WALG_DISK_RATE_LIMIT", convertEnvValue(diskRateLimit));
+          Optional.ofNullable(performance.getMaxDiskBandwitdh())
+              .ifPresent(maxDiskBandwitdh -> backupEnvVars.put(
+                  "WALG_DISK_RATE_LIMIT", convertEnvValue(maxDiskBandwitdh)));
 
-          final int uploadDiskConcurrency = performance.getUploadDiskConcurrency();
-          backupEnvVars.put("WALG_UPLOAD_DISK_CONCURRENCY",
-                convertEnvValue(uploadDiskConcurrency));
+          Optional.ofNullable(performance.getUploadDiskConcurrency())
+              .ifPresent(uploadDiskConcurrency -> backupEnvVars.put(
+                  "WALG_UPLOAD_DISK_CONCURRENCY", convertEnvValue(uploadDiskConcurrency)));
         });
 
     Optional<AwsS3Storage> storageForS3 = getStorageFor(backupConfigSpec, BackupStorage::getS3);
@@ -126,7 +126,7 @@ public abstract class AbstractBackupConfigMap {
   private void setGcsStorageEnvVars(String namespace, String name,
                                     ImmutableMap.Builder<String, String> backupEnvVars,
                                     Optional<GoogleCloudStorage> storageForGcs) {
-    backupEnvVars.put("WALG_GCS_PREFIX", getFromGcs(storageForGcs, GoogleCloudStorage::getPrefix)
+    backupEnvVars.put("WALG_GS_PREFIX", getFromGcs(storageForGcs, GoogleCloudStorage::getPrefix)
         + "/" + namespace + "/" + name);
     backupEnvVars.put("GOOGLE_APPLICATION_CREDENTIALS", getGcsCredentialsFilePath());
   }

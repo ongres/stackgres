@@ -12,10 +12,15 @@ minio:
           - matchExpressions:
             - key: "kubernetes.io/hostname"
               operator: "In"
-              values: [ "${KIND_NAME}-worker" ]
+              values: [ "${KIND_NAME}-worker", "${KIND_NAME}-control-plane" ]
 EOF
   else
-    > "$LOG_PATH/minio-affinity.yaml"
+    echo -n > "$LOG_PATH/minio-affinity.yaml"
+  fi
+  if [ "$E2E_ENV" = "minishift" ]
+  then
+    eval "$(minishift oc-env)"
+    oc adm policy add-scc-to-user anyuid -n "$CLUSTER_NAMESPACE" -z "$CLUSTER_NAME-minio"
   fi
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 \
@@ -35,22 +40,22 @@ EOF
     name: "$BACKUP_NAME"
   spec:
     sgCluster: "$CLUSTER_NAME"
-    subjectToRetentionPolicy: true
+    managedLifecycle: false
 EOF
 
   wait_until eval 'kubectl get sgbackups.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
     --template "{{ with .status.process.status }}{{ . }}{{ end }}" | grep -q Completed'
 
   OPERATOR_BACKUP_CR=$(kubectl get sgbackups.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" -o json \
-    | run_jq 'del(.metadata.creationTimestamp) | del(.metadata.generation)
+    | jq 'del(.metadata.creationTimestamp) | del(.metadata.generation)
       | del(.metadata.resourceVersion) | del(.metadata.selfLink) | del(.metadata.uid)' )
   
-  write_into -f "$LOG_PATH/stackgres-backup-cr.json" -c "$OPERATOR_BACKUP_CR"
+  echo_raw "$OPERATOR_BACKUP_CR" > "$LOG_PATH/stackgres-backup-cr.json"
 
   OPERATOR_BACKUP=$(cat "$LOG_PATH/stackgres-backup-cr.json" \
-    | run_jq 'del(.apiVersion) | del(.kind) | del(.status) | del(.metadata.annotations)' )
+    | jq 'del(.apiVersion) | del(.kind) | del(.status) | del(.metadata.annotations)' )
 
-  write_into -f "$LOG_PATH/stackgres-backup.json" -c "$OPERATOR_BACKUP" 
+  echo_raw "$OPERATOR_BACKUP" > "$LOG_PATH/stackgres-backup.json"
 }
 
 e2e_test() {
@@ -74,7 +79,7 @@ e2e_test() {
 
 check_backup_in_list() {
   if run_curl -r "stackgres/sgbackup" \
-    | run_jq -r ".[] | select ( .metadata.namespace == \"$CLUSTER_NAMESPACE\"
+    | jq -r ".[] | select ( .metadata.namespace == \"$CLUSTER_NAMESPACE\"
       and .metadata.name == \"$BACKUP_NAME\") | .metadata.name" \
     | grep -q "^$BACKUP_NAME$"
   then
@@ -121,7 +126,7 @@ check_backup_removed() {
   remove_backup_cr_if_exists
 
   if run_curl -r "stackgres/sgbackup" \
-    | run_jq -r ".[] | select ( .metadata.namespace == \"$CLUSTER_NAMESPACE\"
+    | jq -r ".[] | select ( .metadata.namespace == \"$CLUSTER_NAMESPACE\"
       and .metadata.name == \"$BACKUP_NAME\") | .metadata.name" \
     | grep -q "^$BACKUP_NAME$"
   then
@@ -182,9 +187,9 @@ test_api_created_backup_is_visible() {
 update_backup_parameter_with_api() {
   local HTTP_STATUS
 
-  UPDATED_STACKGRES_BACKUP=$(cat "$LOG_PATH/stackgres-backup.json" | run_jq ".spec[\"$1\"] = $2" )
+  UPDATED_STACKGRES_BACKUP=$(cat "$LOG_PATH/stackgres-backup.json" | jq ".spec[\"$1\"] = $2" )
   
-  write_into -f "$LOG_PATH/updated-stackgres-backup.json" -c "$UPDATED_STACKGRES_BACKUP"
+  echo_raw "$UPDATED_STACKGRES_BACKUP" > "$LOG_PATH/updated-stackgres-backup.json"
 
   wait_until eval 'kubectl get sgbackups.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
     --template "{{ with .status.process.status }}{{ . }}{{ end }}" | grep -q Completed'
@@ -205,18 +210,18 @@ update_backup_parameter_with_api() {
 }
 
 test_api_updated_backup_is_visible() {
-  update_backup_parameter_with_api 'subjectToRetentionPolicy' 'false'
+  update_backup_parameter_with_api 'managedLifecycle' 'false'
 
   if kubectl get sgbackups.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
-    -o jsonpath='{.spec.subjectToRetentionPolicy}' | grep -q "^false$"
+    -o jsonpath='{.spec.managedLifecycle}' | grep -q "^false$"
   then
-    echo "Backup subjectToRetentionPolicy were false"
+    echo "Backup managedLifecycle were false"
   else
-    echo "Backup subjectToRetentionPolicy weren't false"
+    echo "Backup managedLifecycle weren't false"
     return 1
   fi
 
-  if run_curl -r "stackgres/sgbackup/$CLUSTER_NAMESPACE/$BACKUP_NAME" | run_jq '.spec.subjectToRetentionPolicy' -r \
+  if run_curl -r "stackgres/sgbackup/$CLUSTER_NAMESPACE/$BACKUP_NAME" | jq '.spec.managedLifecycle' -r \
     | grep -q "^false$"
   then
     echo "Backup updates are being reflected in the api"
@@ -258,7 +263,7 @@ test_api_delete_backup_is_visible() {
 
 test_constraint_violation_api_error() {
 
-  INVALID_PGCONFIG=$(cat "$LOG_PATH/stackgres-backup.json" | run_jq '.spec.sgCluster = null' )
+  INVALID_PGCONFIG=$(cat "$LOG_PATH/stackgres-backup.json" | jq '.spec.sgCluster = null' )
 
   echo "$INVALID_PGCONFIG" > "$LOG_PATH/invalid-backup.json"
   
@@ -284,23 +289,23 @@ test_constraint_violation_api_error() {
 test_authentication_api_error() {
   local HTTP_STATUS
 
-  HTTP_STATUS="$(run_curl -a e2e:tets -r "stackgres/sgbackup"  -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
+  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/sgbackup"  -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
 
   check_authentication_error
 
-  HTTP_STATUS="$(run_curl -a e2e:tets -r "stackgres/sgbackup/$CLUSTER_NAMESPACE/$BACKUPCONF"  -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
+  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/sgbackup/$CLUSTER_NAMESPACE/$BACKUP_NAME" -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
 
   check_authentication_error
 
-  HTTP_STATUS="$(run_curl -a e2e:tets -r "stackgres/sgbackup" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/stackgres-backup.json" -e '-X POST -w %{http_code} -o /dev/null')"
+  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/sgbackup" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/stackgres-backup.json" -e '-X POST -w %{http_code} -o /dev/null')"
 
   check_authentication_error
 
-  HTTP_STATUS="$(run_curl -a e2e:tets -r "stackgres/sgbackup" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/stackgres-backup.json" -e '-X PUT -w %{http_code} -o /dev/null')"
+  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/sgbackup" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/stackgres-backup.json" -e '-X PUT -w %{http_code} -o /dev/null')"
 
   check_authentication_error
 
-  HTTP_STATUS="$(run_curl -a e2e:tets -r "stackgres/sgbackup" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/stackgres-backup.json" -e '-X DELETE -w %{http_code} -o /dev/null')"
+  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/sgbackup" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/stackgres-backup.json" -e '-X DELETE -w %{http_code} -o /dev/null')"
 
   check_authentication_error
 }

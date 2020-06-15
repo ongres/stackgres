@@ -7,14 +7,14 @@ package io.stackgres.operator.validation.backup;
 
 import java.util.Objects;
 import java.util.Optional;
+
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
+import io.stackgres.common.ErrorType;
+import io.stackgres.common.crd.sgbackup.StackGresBackup;
+import io.stackgres.common.crd.sgbackup.StackGresBackupStatus;
 import io.stackgres.operator.common.BackupReview;
-import io.stackgres.operator.common.ConfigContext;
-import io.stackgres.operator.common.ErrorType;
-import io.stackgres.operator.customresource.sgbackup.StackGresBackup;
-import io.stackgres.operator.customresource.sgbackup.StackGresBackupStatus;
 import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
@@ -26,8 +26,8 @@ public class BackupNameValidator implements BackupValidator {
   private String errorTypeUri;
 
   @Inject
-  public BackupNameValidator(ConfigContext context) {
-    errorTypeUri = context.getErrorTypeUri(ErrorType.FORBIDDEN_CR_UPDATE);
+  public BackupNameValidator() {
+    errorTypeUri = ErrorType.getErrorTypeUri(ErrorType.FORBIDDEN_CR_UPDATE);
   }
 
   @Override

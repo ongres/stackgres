@@ -14,8 +14,6 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.Watcher;
 import io.fabric8.kubernetes.client.Watcher.Action;
-import io.quarkus.runtime.Application;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,16 +36,33 @@ public class ClusterResourceWatcherFactory {
   }
 
   public <T extends HasMetadata> Watcher<T> createWatcher(Consumer<Action> actionConsumer) {
-    return new WatcherInstance<>(actionConsumer);
+    return new WatcherInstance<>(actionConsumer, new WatcherListener<T>() {
+      @Override
+      public void eventReceived(Action action, T resource) {
+
+      }
+
+      @Override
+      public void watcherClosed(Exception ex) {
+
+      }
+    });
+  }
+
+  public <T extends HasMetadata> Watcher<T> createWatcher(Consumer<Action> actionConsumer,
+                                                          WatcherListener<T> watcherListener) {
+    return new WatcherInstance<>(actionConsumer, watcherListener);
   }
 
   private class WatcherInstance<T extends HasMetadata> implements Watcher<T> {
 
     private final Consumer<Action> actionConsumer;
+    private final WatcherListener<T> watcherListener;
 
-    public WatcherInstance(Consumer<Action> actionConsumer) {
+    public WatcherInstance(Consumer<Action> actionConsumer, WatcherListener<T> watcherListener) {
       super();
       this.actionConsumer = actionConsumer;
+      this.watcherListener = watcherListener;
     }
 
     @Override
@@ -56,6 +71,7 @@ public class ClusterResourceWatcherFactory {
           resource.getMetadata().getNamespace(), resource.getMetadata().getName());
       try {
         actionConsumer.accept(action);
+        watcherListener.eventReceived(action, resource);
       } catch (Exception ex) {
         LOGGER.error("Error while performing action: <{}>", action, ex);
       }
@@ -68,9 +84,9 @@ public class ClusterResourceWatcherFactory {
       } else {
         LOGGER.error("onClose was called, ", cause);
         eventController.sendEvent(EventReason.OPERATOR_ERROR,
-            "Watcher was closed unexpectedly: " + (cause != null && cause.getMessage() != null
-            ? cause.getMessage() : "unknown reason"));
-        new Thread(() -> Application.currentApplication().stop()).start();
+            "Watcher was closed unexpectedly: " + (cause.getMessage() != null
+                ? cause.getMessage() : "unknown reason"));
+        watcherListener.watcherClosed(cause);
       }
     }
   }
