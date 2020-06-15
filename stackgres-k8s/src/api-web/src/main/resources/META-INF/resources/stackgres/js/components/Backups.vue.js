@@ -9,15 +9,23 @@ var Backups = Vue.component("sg-backup", {
 					</li>
 					<li>
 						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M10 0C4.9 0 .9 2.218.9 5.05v11.49C.9 19.272 6.621 20 10 20s9.1-.728 9.1-3.46V5.05C19.1 2.218 15.1 0 10 0zm7.1 11.907c0 1.444-2.917 3.052-7.1 3.052s-7.1-1.608-7.1-3.052v-.375a12.883 12.883 0 007.1 1.823 12.891 12.891 0 007.1-1.824zm0-3.6c0 1.443-2.917 3.052-7.1 3.052s-7.1-1.61-7.1-3.053v-.068A12.806 12.806 0 0010 10.1a12.794 12.794 0 007.1-1.862zM10 8.1c-4.185 0-7.1-1.607-7.1-3.05S5.815 2 10 2s7.1 1.608 7.1 3.051S14.185 8.1 10 8.1zm-7.1 8.44v-1.407a12.89 12.89 0 007.1 1.823 12.874 12.874 0 007.106-1.827l.006 1.345C16.956 16.894 14.531 18 10 18c-4.822 0-6.99-1.191-7.1-1.46z"/></svg>
-						StackGres Clusters
+						<router-link :to="'/overview/'+currentNamespace" title="Namespace Overview">SGClusters</router-link>
 					</li>
 					<li>
-						{{ $route.params.name }}
+						<router-link :to="'/cluster/status/'+$route.params.namespace+'/'+$route.params.name" title="Status">{{ $route.params.name }}</router-link>
+					</li>
+					<li>
+						Backups
 					</li>
 				</ul>
 
 				<div class="actions">
-					<router-link :to="'/crd/edit/cluster/'+$route.params.namespace+'/'+$route.params.name">Edit Cluster</router-link> <a v-on:click="deleteCRD('sgcluster', currentNamespace, currentCluster.name, '/overview/'+currentNamespace)" :class="'/overview/'+currentNamespace">Delete Cluster</a>
+					<a class="documentation" href="https://stackgres.io/doc/latest/04-postgres-cluster-management/01-postgres-clusters/" target="_blank" title="SGCluster Documentation">SGCluster Documentation</a>
+					<div>
+						<a @click="cloneCRD('SGCluster', currentNamespace, $route.params.name)">Clone Cluster</a>
+						<router-link :to="'/crd/edit/cluster/'+$route.params.namespace+'/'+$route.params.name">Edit Cluster</router-link>
+						<a v-on:click="deleteCRD('sgcluster', currentNamespace, currentCluster.name, '/overview/'+currentNamespace)" :class="'/overview/'+currentNamespace">Delete Cluster</a>
+					</div>
 				</div>
 
 				<ul class="tabs">
@@ -50,11 +58,17 @@ var Backups = Vue.component("sg-backup", {
 							{{ $route.params.name }}
 						</template>
 						<template v-else>
-							Cluster Backups
+							SGBackupList
 						</template>
 					</li>
 				</ul>
-				<router-link :to="'/crd/create/backup/'+currentNamespace" class="add">Add New</router-link>
+
+				<div class="actions">
+					<a class="documentation" href="https://stackgres.io/doc/latest/04-postgres-cluster-management/04-backups/" target="_blank" title="SGBackup Documentation">SGBackup Documentation</a>
+					<div>
+						<router-link :to="'/crd/create/backup/'+currentNamespace" class="add">Add New</router-link>
+					</div>
+				</div>	
 			</header>
 
 			<div class="content">
@@ -210,11 +224,11 @@ var Backups = Vue.component("sg-backup", {
 												</template>											
 											</td>
 											<!--<td class="tested center icon" :class="[(back.data.status.tested) ? 'true' : 'false']"></td>-->
-											<td class="name" :data-val="back.data.metadata.name">
-												{{ back.data.metadata.name }}
+											<td class="name hasTooltip" :data-val="back.data.metadata.name">
+												<span>{{ back.data.metadata.name }}</span>
 											</td>
-											<td class="clusterName" :class="back.data.spec.sgCluster" v-if="!isCluster" :data-val="back.data.spec.sgCluster">
-												{{ back.data.spec.sgCluster }}
+											<td class="clusterName hasTooltip" :class="back.data.spec.sgCluster" v-if="!isCluster" :data-val="back.data.spec.sgCluster">
+												<span>{{ back.data.spec.sgCluster }}</span>
 											</td>
 										<td class="actions">
 											<a class="open" title="Backup Details">
@@ -453,6 +467,9 @@ var Backups = Vue.component("sg-backup", {
 					</table>
 				</div>
 			</div>
+			<div id="nameTooltip">
+				<div class="info"></div>
+			</div>
 		</div>`,
 	data: function() {
 
@@ -493,6 +510,40 @@ var Backups = Vue.component("sg-backup", {
 			return  vm.$route.params.cluster !== undefined
 		}
 
+	},
+	mounted: function() {
+		onmousemove = function (e) {
+
+			if( (window.innerWidth - e.clientX) > 420 ) {
+				$('#nameTooltip').css({
+					"top": e.clientY+20, 
+					"right": "auto",
+					"left": e.clientX+20
+				})
+			} else {
+				$('#nameTooltip').css({
+					"top": e.clientY+20, 
+					"left": "auto",
+					"right": window.innerWidth - e.clientX + 20
+				})
+			}
+		}
+		
+		$(document).on('mouseenter', 'td.hasTooltip', function(){
+			c = $(this).children('span');
+			if(c.width() > $(this).width()){
+				$('#nameTooltip .info').text(c.text());
+				$('#nameTooltip').addClass('show');
+			}
+				
+		});
+
+		$(document).on('mouseleave', 'td.hasTooltip', function(){ 
+			$('#nameTooltip .info').text('');
+			$('#nameTooltip').removeClass('show');
+		});
+
+		
 	},
 	methods: {
 
@@ -712,7 +763,12 @@ var Backups = Vue.component("sg-backup", {
 
 				vc.toggleClear('filters');
 				
-			});			
+			});		
+
+			$('tr.base').click(function() {
+				$(this).find('td.name').toggleClass("hasTooltip");
+				$(this).find('td.clusterName').toggleClass("hasTooltip");
+			});
 
 		});
 

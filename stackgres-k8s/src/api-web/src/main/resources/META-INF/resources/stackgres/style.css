@@ -141,6 +141,11 @@ table.clusterOverview a.no-color {
     display: block;
     color: inherit;
 }
+
+a.no-color{
+    color: inherit;
+}
+
 .center {
     text-align: center;
 }
@@ -421,7 +426,7 @@ form#login .warning {
     background-color: #444;
 }
 
-.darkmode #side, .darkmode #nav, .darkmode #current-namespace, .darkmode #ns-select, .darkmode .set.active:not(.conf):not(.backups), .darkmode ul.breadcrumbs, .darkmode tbody, .darkmode .table .head.row, .darkmode .table .row:last-child, .darkmode .boxes .row:last-child, .darkmode table.clusterConfig td, .darkmode .form input, .darkmode .form select, .darkmode .form textarea, .darkmode .set, .darkmode ,.form .header, .darkmode .content .box, .darkmode .box hr, .darkmode #keyword, .darkmode .toolbar .toggle, .darkmode .options, .darkmode .tooltip, .darkmode .message, .darkmode #nav .tooltip:before, .darkmode fieldset, .darkmode label.switch, .darkmode ul.select, .darkmode .options li.textFilter .search {
+.darkmode #side, .darkmode #nav, .darkmode #current-namespace, .darkmode #ns-select, .darkmode .set.active:not(.conf):not(.backups), .darkmode ul.breadcrumbs, .darkmode tbody, .darkmode .table .head.row, .darkmode .table .row:last-child, .darkmode .boxes .row:last-child, .darkmode table.clusterConfig td, .darkmode .form input, .darkmode .form select, .darkmode .form textarea, .darkmode .set, .darkmode ,.form .header, .darkmode .content .box, .darkmode .box hr, .darkmode #keyword, .darkmode .toolbar .toggle, .darkmode .options, .darkmode .tooltip, .darkmode .message, .darkmode #nav .tooltip:before, .darkmode fieldset, .darkmode label.switch, .darkmode ul.select, .darkmode .options li.textFilter .search, .darkmode #nav .right > div#clone, .darkmode header .actions {
     border-color: #333333;
 }
 
@@ -430,7 +435,7 @@ form#login .warning {
     border-color: #333333;
 }
 
-.darkmode tr:nth-child(4n+2), .darkmode .options, .darkmode .tooltip, .darkmode #nav .tooltip:before, .darkmode table tr:nth-child(even):not(.base) {
+.darkmode tr:nth-child(4n+2), .darkmode .options, .darkmode .tooltip, .darkmode #nav .tooltip:before, .darkmode table tr:nth-child(even):not(.base), .darkmode #nav .right > div#clone {
     background: #1e1e1e;
 }
 
@@ -534,13 +539,13 @@ form#login .warning {
     background: #171717;
 }
 
-.darkmode table.backupConfig tr.open {
-    border-top: 1px solid #171717;
+.darkmode table.backupConfig tr.base.open {
+    border-top: 1px solid #333333;
 }
 
-.darkmode table.backupConfig tr.details.open, .darkmode table.backupConfig tr.base.open {
+/*.darkmode table.backupConfig tr.details.open, .darkmode table.backupConfig tr.base.open {
     border: 1px solid #333333;
-}
+}*/
 
 .darkmode #delete .tooltip  h3 {
     border-bottom: 1px solid #333333;
@@ -1100,7 +1105,8 @@ ul.zg-ul-select.active li.active:hover {
 
 a.item.router-link-exact-active.router-link-active {
     /*background: rgba(211,211,214,.15);*/
-    color: var(--blue);
+    /*color: var(--blue);*/
+    color: #4D4F5C;
     font-weight: 600;
 }
 
@@ -1190,6 +1196,10 @@ footer {
 #nav svg:hover {
     transition: fill .2s ease-in;
     fill: var(--blue);
+}
+
+#nav .remove svg {
+    fill: var(--gray4);
 }
 
 #nav:not(.disabled) .top .router-link-active svg, #nav .view.router-link-active svg {
@@ -1308,9 +1318,9 @@ footer {
 }
 
 #delete .tooltip {
-    right: 30px;
+    right: 40px;
     padding: 20px;
-    top: 65px;
+    top: 60px;
 }
 
 #delete .tooltip  h3 {
@@ -1595,9 +1605,9 @@ footer .tooltip p {
 }
 
 header .add {
-    position: absolute;
+    /*position: absolute;
     top: 0;
-    right: 0;
+    right: 0;*/
     background: none;
     color: var(--blue);
     font-size: 1rem;
@@ -1617,10 +1627,31 @@ header .add:hover {
 }
 
 header .actions {
-    position: absolute;
+    /*position: absolute;
     top: 0;
-    right: 0;
+    right: 0;*/
     text-transform: uppercase;
+    display: block;
+    width: 100%;
+    padding: 12px 0 15px;    
+    border-bottom: 1px solid var(--gray1);
+
+}
+
+header .actions a.documentation {
+    text-transform: none;
+    margin: 0;
+}
+
+header .actions a.documentation:before {
+    display: inline-block;
+    content: "";
+    position: relative;
+    background: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgdmlld0JveD0iMCAwIDIwIDIwIj4KPGc+Cgk8cGF0aCBmaWxsPSIjMDBBREI1IiBkPSJNNy4xLDE0LjhIMi45Yy0wLjcsMC0xLTAuMy0xLTAuNlYyLjVjMC0wLjQsMC4zLTAuNiwwLjYtMC42SDExYzAuMywwLDAuNiwwLjMsMC42LDAuNnY1LjQKCQljMCwwLjEsMC4xLDAuMiwwLjIsMC4yYzAsMCwwLjEsMCwwLjEsMGMwLjQtMC4yLDAuOS0wLjMsMS4zLTAuNGMwLjEsMCwwLjItMC4xLDAuMi0wLjJWMC45YzAtMC41LTAuNC0wLjktMC45LTAuOUgwLjkKCQlDMC40LDAsMCwwLjQsMCwxdjE0LjhjMCwwLjUsMC40LDEsMC45LDFoNi42YzAuMSwwLDAuMi0wLjEsMC4yLTAuMmMwLDAsMCwwLDAtMC4xYy0wLjEtMC40LTAuMS0wLjctMC4yLTEuMQoJCUM3LjYsMTUsNy40LDE0LjgsNy4xLDE0Ljh6Ii8+Cgk8cGF0aCBmaWxsPSIjMDBBREI1IiBkPSJNNC42LDMuN2g0LjJjMC41LDAsMC45LDAuNCwwLjksMC45bDAsMGMwLDAuNS0wLjQsMC45LTAuOSwwLjlINC42CgkJYy0wLjUsMC0wLjktMC40LTAuOS0wLjlsMCwwQzMuNyw0LjEsNC4xLDMuNyw0LjYsMy43eiIvPgoJPHBhdGggZmlsbD0iIzAwQURCNSIgZD0iTTQuNiw3LjRoNC4yYzAuNSwwLDAuOSwwLjQsMC45LDAuOWwwLDBjMCwwLjUtMC40LDAuOS0wLjksMC45SDQuNgoJCWMtMC41LDAtMC45LTAuNC0wLjktMC45bDAsMEMzLjcsNy44LDQuMSw3LjQsNC42LDcuNHoiLz4KCTxwYXRoIGZpbGw9IiMwMEFEQjUiIGQ9Ik04LjQsMTEuNWMwLjEtMC4xLDAtMC4zLTAuMS0wLjNjMCwwLTAuMSwwLTAuMSwwSDQuNmMtMC41LDAtMC45LDAuNC0wLjksMC45UzQuMSwxMyw0LjYsMTMKCQloM2MwLjEsMCwwLjItMC4xLDAuMi0wLjJDOCwxMi4zLDguMiwxMS45LDguNCwxMS41eiIvPgoJPHBhdGggZmlsbD0iIzAwQURCNSIgZD0iTTE4LjUsMTEuMWMtMi0yLTUuMy0yLTcuNCwwcy0yLDUuNCwwLDcuNHM1LjMsMiw3LjQsMGMxLTEsMS41LTIuMywxLjUtMy43CgkJQzIwLDEzLjQsMTkuNSwxMi4xLDE4LjUsMTEuMXogTTE0LjgsMTguMmMtMS45LDAtMy40LTEuNi0zLjQtMy41YzAtMS45LDEuNS0zLjQsMy40LTMuNGMxLjksMCwzLjQsMS42LDMuNCwzLjUKCQljMCwwLjctMC4yLDEuMy0wLjUsMS44QzE3LjEsMTcuNiwxNiwxOC4yLDE0LjgsMTguMnoiLz4KCTxwYXRoIGZpbGw9IiMwMEFEQjUiIGQ9Ik0xNC45LDEzLjdjMC40LDAsMC43LTAuMywwLjctMC43YzAsMCwwLDAsMCwwYzAtMC4zLTAuMy0wLjYtMC42LTAuNmMwLDAtMC4xLDAtMC4xLDAKCQljLTAuNCwwLTAuNywwLjMtMC43LDAuN0MxNC4yLDEzLjQsMTQuNSwxMy43LDE0LjksMTMuN0MxNC44LDEzLjcsMTQuOCwxMy43LDE0LjksMTMuN3oiLz4KCTxwYXRoIGZpbGw9IiMwMEFEQjUiIGQ9Ik0xNS45LDE2LjlDMTUuOSwxNi45LDE1LjksMTYuOSwxNS45LDE2LjljMCwwLjEtMC4xLDAuMi0wLjEsMC4yYy0wLjEsMC0wLjIsMC0wLjIsMC4xCgkJYy0wLjEsMC0wLjIsMC4xLTAuMywwLjFjLTAuMiwwLTAuNCwwLTAuNywwYy0wLjIsMC0wLjMtMC4xLTAuNC0wLjJjLTAuMS0wLjEtMC4yLTAuMi0wLjMtMC40YzAtMC4xLTAuMS0wLjItMC4xLTAuNAoJCWMwLTAuMSwwLTAuMywwLjEtMC40YzAuMS0wLjMsMC4xLTAuNSwwLjItMC44YzAtMC4xLDAtMC4xLDAtMC4yYzAsMC0wLjEtMC4xLTAuMS0wLjFoLTAuNWMwLDAtMC4xLDAtMC4xLDBjLTAuMSwwLTAuMS0wLjEtMC4xLTAuMQoJCWMwLTAuMiwwLTAuMywwLjEtMC41YzAsMCwwLTAuMSwwLTAuMWMwLTAuMSwwLjEtMC4xLDAuMi0wLjFoMS42YzAuMSwwLDAuMiwwLjEsMC4yLDAuMmMwLDAsMCwwLDAsMC4xbC0wLjQsMS44YzAsMCwwLDAuMSwwLDAuMQoJCWMwLDAuMSwwLDAuMiwwLjIsMC4yYzAuMSwwLDAuMiwwLDAuMy0wLjFjMC4xLDAsMC4xLDAsMC4yLDBjMC4xLDAsMC4xLDAsMC4xLDAuMWMwLjEsMC4yLDAuMSwwLjMsMC4xLDAuNQoJCUMxNS45LDE2LjgsMTUuOSwxNi44LDE1LjksMTYuOXoiLz4KPC9nPgo8L3N2Zz4=);
+    width: 20px;
+    height: 20px;
+    top: 5px;
+    margin-right: 5px;
 }
 
 header .actions a {
@@ -1629,9 +1660,14 @@ header .actions a {
     margin-left: 15px;
 }
 
+header .actions > div {
+    float: right;
+    margin-top: 5px;
+}
+
 ul.breadcrumbs {
     list-style: none;
-    margin-top: 20px;
+    margin-top: 15px;
     display: block;
     width: 100%;
     border-bottom: 1px solid var(--gray1);
@@ -1954,7 +1990,7 @@ ul.params .params li {
 ul.selector {
     display: inline-block;
     right: 0;
-    top: 70px;
+    top: 120px;
     list-style: none;
     position: absolute;
 }
@@ -2312,19 +2348,21 @@ button {
     border-radius: 6px;
     text-align: center;
     width: auto;
+    font-size: .9rem;
 }
 
 .form button + button, .form .btn + button, .btn + .btn, button + .btn {
     margin-left: 10px;
 }
 
-.form button.border, .btn.border {
+.form button.border, .btn.border, .darkmode #clone a.btn.border {
     color: var(--blue);
     background: transparent;
     border: 1px solid var(--blue);
+    font-size: .9rem;
 }
 
-.form button.border:hover, .btn.border:hover, .daterangepicker button.cancelBtn, .btn.clear:hover {
+.form button.border:hover, .btn.border:hover, .daterangepicker button.cancelBtn, .btn.clear:hover, .darkmode #clone a.btn.border:hover {
     background-color: rgba(0, 173, 181, .25);
 }
 
@@ -2651,11 +2689,11 @@ td.actions a {
 }
 
 .actions svg path {
-    fill: #7a7b85;
+    fill: var(--blue);
 }
 
 .actions a:hover svg path {
-    fill: var(--blue);
+    fill: var(--lblue);
 }
 
 table .icon {
@@ -2803,7 +2841,8 @@ table table + table {
 }
 
 .details th {
-    color: var(--blue);
+    /*color: var(--blue);*/
+    color: #4D4F5C;
 }
 
 tr.details > td {
@@ -2831,7 +2870,8 @@ tr.details table th, tr.details table td {
 
 tr.details table td.label {
     width: 120px;
-    color: var(--blue);
+    /*color: var(--blue);*/
+    color: #4D4F5C;
     font-weight: bold;
 }
 
@@ -2854,7 +2894,7 @@ td.parameters {
 
 ul.yaml {
     list-style: none;
-    margin: 10px 0;
+    /*margin: 10px 0;*/
     line-height: 1.5;
 }
 
@@ -2886,8 +2926,10 @@ tr.open ul.yaml {
     margin-top: -4px;
 }
 
+
 .yaml .label {
-    color: var(--blue);
+    /*color: var(--blue);*/
+    color: #4D4F5C;
 }
 
 ul.yaml ul {
@@ -2905,7 +2947,7 @@ ul.yaml ul {
 
 td.label span {
     text-transform: capitalize;
-    padding: 4px 9px;
+    padding: 3px 9px;
     font-size: 11px;
     border-radius: 10px;
     width: 70px;
@@ -2949,7 +2991,8 @@ table.clusterConfig td {
 
 table.clusterConfig td.label {
     font-weight: bold;
-    color: var(--blue);
+    /*color: var(--blue);*/
+    color: #4D4F5C;
 }
 
 table.clusterConfig td:not([colspan]) {
@@ -2962,11 +3005,11 @@ table.clusterConfig a {
 }
 
 table.clusterConfig a:hover svg {
-    fill: var(--blue);
+    fill: var(--lblue);
 }
 
 table.clusterConfig svg {
-    fill: var(--gray4);
+    fill: var(--blue);
     width: 14px;
     display: inline-block;
     margin-left: 5px;
@@ -2988,7 +3031,7 @@ table.backupConfig tr:nth-child(4n-2), table.backupConfig tr:nth-child(4n-2) + t
     background: #fff;
 }
 
-table.backupConfig tr.open {
+table.backupConfig tr.base.open {
     border-top: 1px solid #f0f0f1;
 }
 
@@ -2998,7 +3041,7 @@ table.backupConfig tr.open {
 /* Table Filters */
 .toolbar {
     font-size: 12px;
-    margin-bottom: 30px;
+    margin-bottom: 20px;
 }
 
 #keyword {
@@ -3287,7 +3330,7 @@ tr.no-results:first-child:last-child {
 
 table.logs {
     margin-bottom: 0;
-    max-height: calc(100vh - 297px) !important;
+    max-height: calc(100vh - 310px) !important;
     border: none !important;
 }
 
@@ -3567,7 +3610,8 @@ th.sysId, th.operation {
 }
 
 .logMessage .param {
-    color: var(--blue);
+    /*color: var(--blue);*/
+    color: #4D4F5C;
     font-weight: bold;
     width: 200px;
     display: table-cell;
@@ -3630,7 +3674,8 @@ table.logs table.logMessage tr {
 
 .logDetails td.param {
     min-width: 200px;
-    color: var(--blue);
+    /*color: var(--blue);*/
+    color: #4D4F5C;
     font-weight: bold;
     border-right: 1px solid #F0F0F1;
 }
@@ -3972,7 +4017,7 @@ td.today.available {
     border-color: #333333;
 }
 
-.darkmode #logTooltip.show {
+.darkmode #logTooltip.show, .darkmode #nameTooltip.show {
     background: #1b1b1b;
 }
 
@@ -4148,13 +4193,13 @@ tr.no-results td {
     white-space: nowrap;
 } */
 
-table.logs td.hasTooltip {
+table.logs td.hasTooltip, table.pgConfig tr:not(.open) td.hasTooltip, table.poolConfig tr:not(.open) td.hasTooltip, table.backupConfig tr:not(.open) td.hasTooltip, table.backups td.hasTooltip {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
-table.logs td.hasTooltip.logMessage > span {
+table.logs td.hasTooltip.logMessage > span, table.pgConfig td.hasTooltip > span, table.poolConfig td.hasTooltip > span, table.backupConfig td.hasTooltip > span {
     max-width: 300px;
 }
 
@@ -4179,7 +4224,7 @@ table.logs .podName {
     color: #fff;
 }
 
-#logTooltip.show {
+#logTooltip.show, #nameTooltip.show {
     position: fixed;
     background: #fff;
     padding: 20px 25px;
@@ -4293,7 +4338,7 @@ span.closeLog:hover {
 
 /* Backups YAML */
 
-table.backups tr.base:hover td.timestamp:before, table.backups tr.base.open td.timestamp:before {
+table.backups tr.base:hover td.timestamp:before, table.backups tr.base.open td.timestamp:before, table.pgConfig tr.toggle:not(.open):hover td:first-of-type:before, table.poolConfig tr.toggle:not(.open):hover td:first-of-type:before, table.backupConfig tr:not(.no-results):hover td:first-of-type:before, table.profiles tr.base:hover td:first-of-type:before, table.clusterOverview tr:not(.no-results):hover td:first-of-type:before, table.profiles tr.open-profile td:first-of-type:before {
     content: " ";
     width: 5px;
     border: 1px solid var(--blue);
@@ -4315,4 +4360,304 @@ tr.details.open > td:first-child:before {
     top: -28px;
     border: 2px solid var(--blue);
     border-right: 0;
+}
+
+/* */
+table.pgConfig, table.poolConfig {
+    table-layout: fixed;
+}
+
+table.pgConfig tr:hover, table.poolConfig tr:hover {
+    cursor: pointer;
+}
+
+table.clusterOverview td.actions a:first-of-type, table.backups td.actions a:first-of-type, table.pgConfig td.actions a:first-of-type, table.poolConfig td.actions a:first-of-type, table.backupConfig td.actions a:first-of-type {
+    display: none;
+}
+
+table.backupConfig tr.details.show td:first-of-type {
+    position: relative;
+    padding-top: 0 !important;
+}
+
+table.pgConfig tr.toggle:not(.open) td:first-of-type {
+    display: initial;
+}
+
+table.backupConfig tr.details.show td:first-of-type:before {
+    width: 7px;
+    content: " ";
+    background: transparent;
+    height: calc(100% + 5px);
+    left: 4px;
+    position: absolute;
+    top: -22px;
+    border: 2px solid var(--blue);
+    border-right: 0;
+}
+
+table.pgConfig tr.open td.hasTooltip:before, table.poolConfig tr.open td.hasTooltip:before {
+    width: 7px;
+    content: " ";
+    background: transparent;
+    height: calc(100% - 33px);
+    left: 4px;
+    position: absolute;
+    top: 17px;
+    border: 2px solid var(--blue);
+    border-right: 0;
+}
+
+
+/* Tooltips for table height */
+
+table.pgConfig .hasTooltip, table.poolConfig .hasTooltip, table.backupConfig .hasTooltip {
+    position: absolute;
+    width: 20%;
+    padding-right: 10px;
+}
+
+table.pgConfig tr.open > td, table.poolConfig tr.open > td {
+    padding-top: 10px;
+}
+
+table.pgConfig th.desc.postgresVersion {
+    width: 35px;
+}
+
+table.backupConfig th.sorted.desc.name {
+    width: 300px;
+}
+
+table.backupConfig tr.details.show {
+    display: table-row;
+}
+
+table.backups th.desc.name {
+    width: 130px;
+}
+
+table.backups .hasTooltip {
+    width: 120px;
+    /*position: absolute;*/
+}
+
+table.backups td.hasTooltip > span {
+    max-width: 120px;
+}
+
+table.profiles td, table.clusterOverview td, table.pgConfig tr.open td.hasTooltip, table.poolConfig tr.open td.hasTooltip {
+    position: relative;
+}
+
+table.backups .clusterName {
+    padding-left: 15px;
+    max-width: 120px;
+   
+}
+
+table.backups .name {
+    max-width: 250px;
+}
+
+table.profiles td.inlineList svg, table.backupConfig td.usedOn svg {
+    width: 14px;
+}
+
+table.profiles td.inlineList svg path, table.backupConfig td.usedOn svg path {
+    fill: var(--blue);
+}
+
+table.profiles td.inlineList svg:hover path, table.backupConfig td.usedOn svg:hover path {
+    fill: var(--lblue);
+}
+
+/*Clone*/
+
+#nav .right > div#clone {
+    display: none;
+    position: fixed;
+    background: #fff;
+    padding: 10px 20px;
+    border: 1px solid var(--gray1);
+    border-radius: 10px;
+    box-shadow: 0 0px 20px rgba(0,0,0,.05);
+    margin-left: 70px;
+    display: none;
+    line-height: 1;
+    width: 320px;
+    top: 57px;
+    right: 30px;
+}
+
+#nav .right > div#clone form {
+    max-width: 320px;
+    padding: 15px 0;
+    width: 280px;
+}
+
+
+/* Extra Styling | June 15, 2020 */
+
+
+td.actions {
+    position: relative;
+    z-index: 1;
+}
+
+table.pgConfig.profiles td.actions a:first-of-type {
+    display: inline-block;
+}
+
+tr.details.pgConfig.open div, table.backupConfig .configurationDetails, table.backupConfig .storageDetails{
+    width: 50%;
+    float: left;
+    display: block;
+} 
+
+table.pgConfig tr.base.open td.parameters, table.pgConfig tr.base.open td.pgVersion, table.poolConfig tr.base.open td.parameters, table tr.open .fontZero {
+    font-size: 0;
+}
+
+td.usedOn {
+    padding: 0 !important;
+}
+
+td.usedOn li {
+    list-style: none;
+    height: 41px;
+    vertical-align: middle;
+    width: 100%;
+    border-bottom: 1px solid #f0f0f1;
+    padding-top: 12px;
+    padding-left: 10px;
+}
+
+td.usedOn li:last-child {
+    border-bottom: 0;
+}
+
+table tr.details .configurationDetails a, table tr.details .paramDetails a {
+    float: right;
+    display: inline-block;
+    padding: 2px 10px;
+}
+
+table.pgConfig tr.details a svg path, table.poolConfig tr.details a svg path {
+    fill: var(--blue);
+}
+
+table.pgConfig tr.details .configurationDetails table td.label, table.poolConfig tr.details .configurationDetails table td.label {
+    padding-right: 10px;
+    width: 140px;
+}
+
+table.pgConfig tr.details .paramDetails table td.label, table.poolConfig tr.details .paramDetails table td.label {
+    width: auto;
+    padding-right: 10px;
+}
+
+tr.details.pgConfig .title {
+    padding: 5px 27px 10px;
+    display: inline-block;
+    font-weight: bold;
+}
+
+.paramDetails table {
+    max-height: 240px;
+    overflow: auto;
+    display: block;
+    width: 100%;
+}
+
+.paramDetails table tbody {
+    width: 100%;
+    display: inline-table;
+}
+
+tr.details.pgConfig.open > td:first-child {
+    position: relative;
+}
+
+table.pgConfig tr.base.open td:before, table.poolConfig tr.base.open td:before {
+    border: 0;
+}
+
+table.pgConfig tr.details td.paramValue a, table.poolConfig tr.details td.paramValue a {
+    padding: 0;
+}
+
+table.pgConfig tr.details .paramDetails table td, table.poolConfig tr.details .paramDetails table td {
+    padding: 10px;
+}
+
+table.pgConfig tr.details .paramDetails table, table.poolConfig tr.details .paramDetails table {
+    border: 0;
+    border-bottom: 1px solid #f0f0f1;
+}
+
+table.pgConfig tr:nth-child(4n-2), table.pgConfig tr:nth-child(4n-2) + tr.details, table.pgConfig tr:nth-child(4n-2), table.poolConfig tr:nth-child(4n-2), table.poolConfig tr:nth-child(4n-2) + tr.details, table.poolConfig tr:nth-child(4n-2), table.backupConfig tr:nth-child(4n-2), table.backupConfig tr:nth-child(4n-2) + tr.details, table.backupConfig tr:nth-child(4n-2) {
+    background: #fff;
+}
+
+table.pgConfig tr.details .configurationDetails table, table.poolConfig tr.details .configurationDetails table {
+    margin-left: 0 !important;
+}
+
+tr.details.pgConfig .configurationDetails .title, tr.details.poolConfig .configurationDetails .title {
+    padding-left: 15px;
+}
+
+table.pgConfig tr.open td.configName, table.poolConfig tr.open td.configName {
+    position: absolute;
+    width: 100%;
+}
+
+table.pgConfig tr.details.open > td:first-child:before, table.poolConfig tr.details.open > td:first-child:before {
+    top: -23px;
+}
+
+td.inlineList ul {
+    list-style: none;
+}
+
+td.inlineList li {
+    display: inline-block;
+}
+
+td.inlineList li:not(:last-child):after {
+    content: ', ';
+}
+
+table.backupConfig span.title {
+    font-weight: bold;
+}
+
+table.backupConfig tr.details.show .configurationDetails td:first-of-type:before {
+    display:none;
+}
+
+table.backupConfig tr.details.show td:first-of-type {
+    padding-top: 10px !important;
+}
+
+tr.details td:last-of-type .configurationDetails table {
+    margin: 0 !important;
+}
+
+.configurationDetails span.title {
+    font-weight: bold;
+    display: inline-block;
+    padding: 10px 15px;
+}
+
+.backupConfig .storageDetails ul.yaml {
+    border: 1px solid #f0f0f1;
+    margin-top: 0;
+    padding: 10px 15px;
+}
+
+.paramValue svg.grayscale {
+    display: inline-block;
+    float: right;
 }

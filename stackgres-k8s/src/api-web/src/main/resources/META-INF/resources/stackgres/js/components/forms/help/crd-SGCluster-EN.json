@@ -23,7 +23,7 @@
       },
       "sgInstanceProfile": {
         "type": "string",
-        "description": "Name of the [SGInstanceProfile](https://stackgres.io/doc/latest/04-postgres-cluster-management/03-resource-profiles/) to use. A SGInstanceProfile defines CPU and memory limits. Must exist before creating the cluster. If you don't select a profile, a default (currently: 1 core, 2 GiB RAM) one will be used.\n"
+        "description": "Name of the [SGInstanceProfile](https://stackgres.io/doc/latest/04-postgres-cluster-management/03-resource-profiles/) to use. A SGInstanceProfile defines CPU and memory limits. Must exist before creating the cluster. If you\ndon't select a profile, a default (currently: 1 core, 2 GiB RAM) one will be used.\n"
       },
       "pods": {
         "type": "object",
@@ -58,20 +58,6 @@
           "disablePostgresUtil": {
             "type": "boolean",
             "description": "If is true it disable the postgres-util container"
-          },
-          "metadata": {
-            "type": "object",
-            "description": "Pod custom metadata information",
-            "properties": {
-              "annotations": {
-                "type": "object",
-                "description": "Additional annotations for StackGres Pods to have"
-              },
-              "labels": {
-                "type": "object",
-                "description": "Additional labels for StackGres Pods to have"
-              }
-            }
           }
         },
         "required": [

@@ -317,6 +317,7 @@ const store = new Vuex.Store({
     storageClasses: [],
     logs: [],
     logsClusters: [],
+    cloneCRD: {},
     tooltips: {
       description: 'Click on a question mark to get help and tips about that field.', 
       SGCluster: {},
@@ -338,7 +339,7 @@ const store = new Vuex.Store({
 
     setLoginToken (state, token = '') {
       state.loginToken = token;
-      axios.defaults.headers.common['Authorization'] = 'Basic '+store.state.loginToken;
+      axios.defaults.headers.common['Authorization'] = 'Bearer '+store.state.loginToken;
     },
 
     setTheme (state, theme) {
@@ -553,6 +554,18 @@ const store = new Vuex.Store({
     showLogs (state, show) {
       state.showLogs = show;
     },
+
+    setCloneCRD (state, crd) {
+      state.cloneCRD = crd;
+    },
+
+    setCloneName (state, name) {
+      state.cloneCRD.data.metadata.name = name;
+    },
+
+    setCloneNamespace (state, namespace) {
+      state.cloneCRD.data.metadata.namespace = namespace;
+    },
     
   }
 });
@@ -647,7 +660,8 @@ Vue.mixin({
 				})
 				.catch(function (error) {
 				  console.log(error);
-				  notify(error.response.data,'error',item.kind);
+          notify(error.response.data,'error',item.kind);
+          checkAuthError(error)
 				});
 			} else {
 				$("#delete .warning").fadeIn();
@@ -682,6 +696,7 @@ Vue.mixin({
         })
         }).catch(function(err) {
           console.log(err);
+          checkAuthError(err)
         });
       }
 
@@ -712,6 +727,49 @@ Vue.mixin({
 
       store.commit("setTooltipDescription", param['description']);
 
+    },
+
+    cloneCRD: function(kind, namespace, name) {
+
+      var crd = {};
+
+      switch(kind) {
+        case 'SGCluster':
+          crd = store.state.clusters.find(c => ( (namespace == c.data.metadata.namespace) && (name == c.name) ))
+          break;
+        
+        case 'SGBackupConfig':
+          crd = store.state.backupConfig.find(c => ( (namespace == c.data.metadata.namespace) && (name == c.name) ))
+          break;
+
+        case 'SGBackup':
+          crd = store.state.backups.find(c => ( (namespace == c.data.metadata.namespace) && (name == c.name) ))
+          break;
+        
+        case 'SGInstanceProfile':
+          crd = store.state.profiles.find(c => ( (namespace == c.data.metadata.namespace) && (name == c.name) ))
+          break;
+        
+        case 'SGPoolingConfig':
+          crd = store.state.poolConfig.find(c => ( (namespace == c.data.metadata.namespace) && (name == c.name) ))
+          break;
+        
+        case 'SGPostgresConfig':
+          crd = store.state.pgConfig.find(c => ( (namespace == c.data.metadata.namespace) && (name == c.name) ))
+          break;
+      }
+      
+      if(typeof crd !== 'undefined') {
+        crd.kind = kind;
+        crd.data.metadata.name = 'copy-of-'+crd.data.metadata.name;
+        store.commit('setCloneCRD', crd);
+        
+        $('#cloneName').val(crd.data.metadata.name)
+        $('#cloneNamespace').val(crd.data.metadata.namespace);
+        $("#notifications.hasTooltip.active").removeClass("active");
+        $("#notifications.hasTooltip .message.show").removeClass("show");
+        $('#clone').fadeIn().addClass('show');
+      }
     }
   }
 });
@@ -747,6 +805,7 @@ const vm = new Vue({
     currentCluster: '',
     currentPods: '',
     clustersData: {},
+    pooling: '',
     //clusters: []
   },
   methods: {
@@ -757,7 +816,9 @@ const vm = new Vue({
       let loginToken = getCookie('sgToken');
       //console.log("TOKEN: "+loginToken)
 
-      if(!loginToken.length) {
+      if(store.state.loginToken.search('Authentication Error') !== -1) {
+        clearInterval(this.pooling);
+      } else if (!loginToken.length) {
         if(!store.state.loginToken.length) {
           $('#signup').addClass('login').fadeIn();
           return false;
@@ -773,7 +834,7 @@ const vm = new Vue({
       //console.log("Fetching API");
       //$("#loader").show();
       $('#reload').addClass('active');
-
+      
       if ( !kind.length || (kind == 'namespaces') ) {
         /* Namespaces Data */
         axios
@@ -792,6 +853,7 @@ const vm = new Vue({
           
         }).catch(function(err) {
           console.log(err);
+          checkAuthError(err);
         });
       }
 
@@ -837,6 +899,9 @@ const vm = new Vue({
                 .then( function(response){
                   //console.log(response.data);
                   cluster.status = response.data;
+                }).catch(function(err) {
+                  console.log(err);
+                  checkAuthError(err);
                 });
                 
               store.commit('updateClusters', cluster);
@@ -849,6 +914,9 @@ const vm = new Vue({
 
           }
           
+        }).catch(function(err) {
+          console.log(err);
+          checkAuthError(err);
         });
 
       }
@@ -885,12 +953,12 @@ const vm = new Vue({
               //console.log(item);
 
               if( (typeof item.status.process.status !== 'undefined') && (item.status.process.status === 'Completed') ) {
-                console.log('setting duration');
+                //console.log('setting duration');
                 start = moment(item.status.process.timing.start);
                 finish = moment(item.status.process.timing.stored);
                 duration = new Date(moment.duration(finish.diff(start))).toISOString();
               } else {
-                console.log('duration not set');
+                //console.log('duration not set');
                 duration = '';
               }
               
@@ -907,6 +975,9 @@ const vm = new Vue({
             //console.log("Backups Data updated");
 
           }
+        }).catch(function(err) {
+          console.log(err);
+          checkAuthError(err);
         });
       }
 
@@ -948,6 +1019,9 @@ const vm = new Vue({
             // console.log("PGconf Data updated");
 
           }
+        }).catch(function(err) {
+          console.log(err);
+          checkAuthError(err);
         });
       }
 
@@ -989,6 +1063,9 @@ const vm = new Vue({
             // console.log("PoolConf Data updated");
 
           }
+        }).catch(function(err) {
+          console.log(err);
+          checkAuthError(err);
         });
       }
 
@@ -1030,6 +1107,9 @@ const vm = new Vue({
             // console.log("BackupConfig Data updated");
 
           }
+        }).catch(function(err) {
+          console.log(err);
+          checkAuthError(err);
         });
       }
 
@@ -1071,6 +1151,9 @@ const vm = new Vue({
             // console.log("Profiles Data updated");
 
           }
+        }).catch(function(err) {
+          console.log(err);
+          checkAuthError(err);
         });
       }
 
@@ -1095,6 +1178,9 @@ const vm = new Vue({
 
           }
           
+        }).catch(function(err) {
+          console.log(err);
+          checkAuthError(err);
         });
       }
 
@@ -1119,6 +1205,9 @@ const vm = new Vue({
 
           }
           
+        }).catch(function(err) {
+          console.log(err);
+          checkAuthError(err);
         });
       }
 
@@ -1145,7 +1234,7 @@ const vm = new Vue({
     this.fetchAPI();
 
     if(store.state.loginToken.length > 0) {
-      setInterval( function(){
+      this.pooling = setInterval( function(){
         this.fetchAPI();
       }.bind(this), 10000);
     }
@@ -1192,8 +1281,27 @@ Vue.filter('formatTimestamp',function(t, part){
       return ms.substring(0,4);
     }
       
-
 });
+
+
+function checkAuthError(error) {
+  if(error.response && ((error.response.status == 401) || (error.response.status == 403) )) {
+      document.cookie = 'sgToken=authError';
+      if(store.state.loginToken.search('Authentication Error') == -1) {
+        notify(
+          {
+            title: error.response.status+' Authentication Error',
+            detail: 'There was an authentication error while trying to fetch the information from the API, please logout and try again.'
+          },
+          'error'
+        )
+      }
+      store.commit('setLoginToken',error.response.status+' Authentication Error');
+      
+
+  }
+
+}
 
 function getCookie(cname) {
   var name = cname + "=";
@@ -1285,7 +1393,7 @@ function notify (message, kind = 'message', crd = 'general') {
     case 'sgpgconfig':
       icon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 26.7 20"><path d="M10.946 18.7a.841.841 0 01-.622-.234.862.862 0 01-.234-.635v-7.817a.8.8 0 01.221-.6.834.834 0 01.608-.214h3.29a3.4 3.4 0 012.353.755 2.7 2.7 0 01.843 2.12 2.72 2.72 0 01-.843 2.126 3.379 3.379 0 01-2.353.764h-2.394v2.875a.8.8 0 01-.869.867zM14 13.637q1.778 0 1.778-1.551T14 10.535h-2.18v3.1zm11.968-.107a.683.683 0 01.494.181.625.625 0 01.191.477v2.875a1.717 1.717 0 01-.16.87 1.174 1.174 0 01-.655.414 6.882 6.882 0 01-1.242.294 9.023 9.023 0 01-1.364.107 5.252 5.252 0 01-2.527-.573 3.883 3.883 0 01-1.638-1.665 5.548 5.548 0 01-.569-2.6 5.5 5.5 0 01.569-2.575 3.964 3.964 0 011.611-1.671 4.965 4.965 0 012.455-.59 4.62 4.62 0 013.089 1.016 1.058 1.058 0 01.234.294.854.854 0 01-.087.843.479.479 0 01-.388.2.737.737 0 01-.267-.047 1.5 1.5 0 01-.281-.153 4.232 4.232 0 00-1.1-.582 3.648 3.648 0 00-1.146-.167 2.747 2.747 0 00-2.2.859 3.834 3.834 0 00-.742 2.561q0 3.477 3.049 3.477a6.752 6.752 0 001.815-.254v-2.36h-1.517a.737.737 0 01-.5-.161.664.664 0 010-.909.732.732 0 01.5-.161zM.955 4.762h10.5a.953.953 0 100-1.9H.955a.953.953 0 100 1.9zM14.8 7.619a.954.954 0 00.955-.952V4.762h4.3a.953.953 0 100-1.9h-4.3V.952a.955.955 0 00-1.909 0v5.715a.953.953 0 00.954.952zM.955 10.952h4.3v1.9a.955.955 0 001.909 0V7.143a.955.955 0 00-1.909 0v1.9h-4.3a.953.953 0 100 1.9zm6.681 4.286H.955a.953.953 0 100 1.905h6.681a.953.953 0 100-1.905z" class="a"></path></svg>';
       break;
-    case 'sgpoolconfig':
+    case 'sgpoolconfig' || 'sgpoolingconfig':
       icon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 26.5 20"><path d="M14.305 18.749a4.7 4.7 0 01-2.388-.589 3.91 3.91 0 01-1.571-1.685 5.668 5.668 0 01-.546-2.568 5.639 5.639 0 01.548-2.561 3.916 3.916 0 011.571-1.678 4.715 4.715 0 012.388-.593 5.189 5.189 0 011.658.261 4.324 4.324 0 011.378.756.758.758 0 01.24.281.859.859 0 01.067.361.768.768 0 01-.16.495.479.479 0 01-.388.2.984.984 0 01-.548-.191 4 4 0 00-1.07-.595 3.405 3.405 0 00-1.1-.167 2.571 2.571 0 00-2.106.869 3.943 3.943 0 00-.72 2.562 3.963 3.963 0 00.716 2.568 2.568 2.568 0 002.106.869 3.147 3.147 0 001.063-.173 5.112 5.112 0 001.1-.589 2.018 2.018 0 01.267-.134.751.751 0 01.29-.048.477.477 0 01.388.2.767.767 0 01.16.494.863.863 0 01-.067.355.739.739 0 01-.24.286 4.308 4.308 0 01-1.378.757 5.161 5.161 0 01-1.658.257zm5.71-.04a.841.841 0 01-.622-.234.856.856 0 01-.234-.636v-7.824a.8.8 0 01.22-.6.835.835 0 01.609-.214h3.29a3.4 3.4 0 012.354.755 2.7 2.7 0 01.842 2.12 2.725 2.725 0 01-.842 2.127 3.386 3.386 0 01-2.354.764h-2.393v2.875a.8.8 0 01-.87.868zm3.05-5.069q1.779 0 1.779-1.552t-1.779-1.551h-2.18v3.1zM.955 4.762h10.5a.953.953 0 100-1.9H.955a.953.953 0 100 1.9zM14.8 7.619a.954.954 0 00.955-.952V4.762h4.3a.953.953 0 100-1.9h-4.3V.952a.955.955 0 00-1.909 0v5.715a.953.953 0 00.954.952zM.955 10.952h4.3v1.9a.955.955 0 001.909 0V7.143a.955.955 0 00-1.909 0v1.9h-4.3a.953.953 0 100 1.9zm6.681 4.286H.955a.953.953 0 100 1.905h6.681a.953.953 0 100-1.905z"></path></svg>';
       break;
     case 'sgbackupconfig':
@@ -1312,11 +1420,13 @@ function notify (message, kind = 'message', crd = 'general') {
           `+kind+`
         </span>
         <h4 class="title">`+message.title+`</h4>
-        <p class="detail">`+message.detail+`</p>
-        <a href="`+message.type+`" title="More Info" target="_blank" class="doclink">More Info <svg xmlns="http://www.w3.org/2000/svg" width="15.001" height="12.751" viewBox="0 0 15.001 12.751"><g transform="translate(167.001 -31.5) rotate(90)"><path d="M37.875,168.688a.752.752,0,0,1-.53-.219l-5.625-5.626a.75.75,0,0,1,0-1.061l2.813-2.813a.75.75,0,0,1,1.06,1.061l-2.283,2.282,4.566,4.566,4.566-4.566-2.283-2.282a.75.75,0,0,1,1.06-1.061l2.813,2.813a.75.75,0,0,1,0,1.061l-5.625,5.626A.752.752,0,0,1,37.875,168.688Z" transform="translate(0 -1.687)" fill="#00adb5"/><path d="M42.156,155.033l-2.813-2.813a.752.752,0,0,0-1.061,0l-2.813,2.813a.75.75,0,1,0,1.06,1.061l1.533-1.534v5.3a.75.75,0,1,0,1.5,0v-5.3l1.533,1.534a.75.75,0,1,0,1.06-1.061Z" transform="translate(-0.937 0)" fill="#00adb5"/></g></svg></a>
-      </div>
-    `;
+        <p class="detail">`+message.detail+`</p>`;
 
+      if(message.title.search('Authentication Error') == -1)
+        details += `<a href="`+message.type+`" title="More Info" target="_blank" class="doclink">More Info <svg xmlns="http://www.w3.org/2000/svg" width="15.001" height="12.751" viewBox="0 0 15.001 12.751"><g transform="translate(167.001 -31.5) rotate(90)"><path d="M37.875,168.688a.752.752,0,0,1-.53-.219l-5.625-5.626a.75.75,0,0,1,0-1.061l2.813-2.813a.75.75,0,0,1,1.06,1.061l-2.283,2.282,4.566,4.566,4.566-4.566-2.283-2.282a.75.75,0,0,1,1.06-1.061l2.813,2.813a.75.75,0,0,1,0,1.061l-5.625,5.626A.752.752,0,0,1,37.875,168.688Z" transform="translate(0 -1.687)" fill="#00adb5"/><path d="M42.156,155.033l-2.813-2.813a.752.752,0,0,0-1.061,0l-2.813,2.813a.75.75,0,1,0,1.06,1.061l1.533-1.534v5.3a.75.75,0,1,0,1.5,0v-5.3l1.533,1.534a.75.75,0,1,0,1.06-1.061Z" transform="translate(-0.937 0)" fill="#00adb5"/></g></svg></a>`;
+      
+      details += `</div>`;
+    
     if(!!message.fields) {
       message.fields.forEach( function(item, index) {
         $(".form [data-field='"+item+"']").addClass("alert");
@@ -1405,10 +1515,10 @@ function sortTable( table, param, direction ) {
     if(direction === 'desc') modifier = -1;
 
     // If sorting backups first validate its state
-    if(a.data.hasOwnProperty('status')) {
+    if(a.data.hasOwnProperty('status') && a.hasOwnProperty('duration')) {
       // If record is not sortable by the provided param
       if((a.data.status.process.status == 'Failed') && !backupFixedParams.includes(param)){
-        console.log('failed');
+        //console.log('failed');
         return 1
       } else if ((a.data.status.process.status == 'Running') && !backupFixedParams.includes(param)){
         return -1
@@ -1511,13 +1621,22 @@ $(document).ready(function(){
   
   });
 
-  $(document).on("click", "#main, #side", function() {
+  $(document).on("click", "#main, #side", function(e) {
+
     if($(this).prop("id") != "notifications") {
       $("#notifications.hasTooltip.active").removeClass("active");
       $("#notifications.hasTooltip .message.show").removeClass("show");
       $("#selected--zg-ul-select.open").removeClass("open");
       $("#be-select.active").removeClass("active");
-    } 
+    }
+
+    if (!$(e.target).parents().addBack().is('.cloneCRD') && $('#clone').hasClass('show'))
+      $('#clone.show').fadeOut().removeClass('show');
+
+  });
+  
+  $("#clone").click(function(e){
+    e.stopPropagation();
   });
 
 
@@ -1706,7 +1825,7 @@ $(document).ready(function(){
     $(".sort th").toggleClass("desc asc")   
   });
 
-  $(document).on("click", "table.backups tr.base td:not(.actions)", function(){
+  $(document).on("click", "table.backups tr.base td:not(.actions), table.profiles tr.base td:not(.actions), table.pgConfig tr.base td:not(.actions), table.poolConfig tr.base td:not(.actions)", function(){
     $(this).parent().next().toggle().addClass("open");
     $(this).parent().toggleClass("open");
   });

@@ -122,6 +122,27 @@ var Nav = Vue.component("sg-nav", {
 					</form>
 				</div>
 
+				<div id="clone" style="display:none">
+					<form class="form noSubmit">
+						<div class="header">
+							<h2>Clone {{ clone.kind }}</h2>
+						</div>
+						<label for="cloneNamespace">Namespace <span class="req">*</span></label>
+						<select @change="setCloneNamespace" id="cloneNamespace">
+							<option v-for="namespace in namespaces">{{ namespace }}</option>
+						</select>
+
+						<label for="cloneName">Name <span class="req">*</span></label>
+						<input @keyup="setCloneName" id="cloneName">
+
+						<span class="warning" v-if="nameColission">
+							There's already a <strong>{{ clone.kind }}</strong> with the same name on the specified namespace. Please specify a different name or choose another namespace
+						</span>
+
+						<button @click="cloneCRD" :disabled="nameColission">CLONE</button> <a class="btn border" @click="cancelClone">CANCEL</a>
+					</form>
+				</div>
+
 				<!--<div id="settings">
 					<a href="javascript:void(0)" title="Settings" class="nav-item">
 						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path class="a" d="M13.193 10A3.193 3.193 0 1010 13.2a3.2 3.2 0 003.193-3.2zm-1.809 0A1.384 1.384 0 1110 8.614 1.386 1.386 0 0111.384 10z"/><path class="a" d="M16.961 12.835a.443.443 0 01.44-.246 2.6 2.6 0 000-5.2h-.136a.4.4 0 01-.318-.157.988.988 0 00-.055-.164.427.427 0 01.122-.486A2.6 2.6 0 1013.3 2.937a.414.414 0 01-.287.116.4.4 0 01-.292-.12.455.455 0 01-.123-.357 2.591 2.591 0 00-.762-1.84 2.659 2.659 0 00-3.675 0 2.6 2.6 0 00-.76 1.84v.137a.406.406 0 01-.158.318 1.078 1.078 0 00-.163.055.41.41 0 01-.465-.1l-.076-.077a2.5 2.5 0 00-1.853-.729 2.576 2.576 0 00-1.822.8 2.632 2.632 0 00.1 3.71.434.434 0 01.058.5.423.423 0 01-.422.265 2.6 2.6 0 000 5.2h.133a.41.41 0 01.285.117.43.43 0 01-.035.629l-.079.079v.005A2.61 2.61 0 003 17.135a2.479 2.479 0 001.853.728 2.614 2.614 0 001.847-.827.429.429 0 01.5-.057.419.419 0 01.264.42 2.6 2.6 0 105.2 0v-.132a.414.414 0 01.116-.284.421.421 0 01.3-.126.356.356 0 01.278.113l.1.1a2.731 2.731 0 001.852.728 2.6 2.6 0 002.55-2.65 2.611 2.611 0 00-.825-1.857.4.4 0 01-.081-.444zm-6.2 4.422v.143a.691.691 0 01-.69.691.718.718 0 01-.692-.788 2.289 2.289 0 00-1.457-2.095 2.274 2.274 0 00-.919-.2 2.427 2.427 0 00-1.7.728.7.7 0 01-.5.213.652.652 0 01-.482-.194.676.676 0 01-.208-.477.749.749 0 01.217-.53l.064-.064a2.323 2.323 0 00-1.654-3.938H2.6a.692.692 0 01-.489-1.18.755.755 0 01.587-.2A2.286 2.286 0 004.788 7.9a2.306 2.306 0 00-.467-2.556l-.069-.069a.693.693 0 01.478-1.191.655.655 0 01.5.213l.069.071a2.257 2.257 0 002.334.536.92.92 0 00.27-.071 2.312 2.312 0 001.4-2.121v-.134a.687.687 0 01.2-.489.705.705 0 01.977 0 .751.751 0 01.2.571 2.3 2.3 0 00.705 1.64 2.331 2.331 0 001.649.665 2.369 2.369 0 001.652-.713.691.691 0 011.181.488.753.753 0 01-.259.547 2.253 2.253 0 00-.538 2.334.932.932 0 00.072.274 2.313 2.313 0 002.119 1.4h.139a.691.691 0 01.69.692.717.717 0 01-.768.691 2.312 2.312 0 00-2.113 1.395 2.345 2.345 0 00.533 2.619.693.693 0 01-.45 1.192.749.749 0 01-.506-.19l-.1-.1a2.4 2.4 0 00-1.653-.654 2.325 2.325 0 00-2.283 2.312zM5.5 4.177z"/></svg>
@@ -135,7 +156,8 @@ var Nav = Vue.component("sg-nav", {
 			loginUser: '',
 			loginPassword: '',
 			loginPasswordType: 'password',
-			confirmDeleteName: ''
+			confirmDeleteName: '',
+			nameColission: false,
 		}
 	},
 	
@@ -166,7 +188,14 @@ var Nav = Vue.component("sg-nav", {
 		},
 
 		loggedIn () {
-			return store.state.loginToken.length > 0
+			if (typeof store.state.loginToken !== 'undefined')
+				return store.state.loginToken.length > 0
+			else
+				return false
+		},
+
+		clone () {
+			return store.state.cloneCRD
 		},
 
 		/* confirmDeleteName() {
@@ -178,7 +207,7 @@ var Nav = Vue.component("sg-nav", {
 
 		login: function() {
 
-			let token = btoa(this.loginUser+':'+this.loginPassword);
+			/* let token = btoa(this.loginUser+':'+this.loginPassword);
 
 			axios
 			.get(apiURL+'namespace',{
@@ -194,7 +223,27 @@ var Nav = Vue.component("sg-nav", {
 			}
 			).catch(function(err) {
 				$('#login .warning').fadeIn();
+				//checkAuthError(err);
+			}); */
+
+			axios
+			.post(apiURL+'auth/login',{
+				username: this.loginUser,
+				password: this.loginPassword	
+			})
+			.then( function(response){
+				console.log(response);
+				store.commit('setLoginToken', response.data.access_token);
+				$('#signup').fadeOut();
+				document.cookie = "sgToken="+response.data.access_token;
+				vm.fetchAPI();
+			}
+			).catch(function(err) {
+				$('#login .warning').fadeIn();
+				//checkAuthError(err);
 			});
+
+
 
 		},
 
@@ -202,6 +251,7 @@ var Nav = Vue.component("sg-nav", {
 			document.cookie = 'sgToken=';
 			store.commit('setLoginToken');
 			router.push('/');
+			store.replaceState({})
 			$('#signup').addClass('login').fadeIn();
 		},
 
@@ -214,7 +264,76 @@ var Nav = Vue.component("sg-nav", {
 				this.loginPasswordType = 'text';
 				$('#showPassword').addClass('active');
 			}
+		},
+
+		setCloneName: function() {
+
+			var nameColission = false;
+
+			//console.log($('#cloneName').val())
+			store.commit('setCloneName', $('#cloneName').val());
+			
+			store.state.clusters.forEach(function(item, index){
+				if( (item.name == $('#cloneName').val()) && (item.data.metadata.namespace == $('#cloneNamespace').val() ) )
+					nameColission = true
+			})
+
+			this.nameColission = nameColission;
+		},
+
+		setCloneNamespace: function() {
+			store.commit('setCloneNamespace', $('#cloneNamespace').val());
+		},
+
+		cancelClone: function() {
+			$('#clone').hide();
+			store.commit('setCloneCRD', {});
+		},
+
+		cloneCRD: function() {
+			//console.log($('#cloneName').val() + ' / '+ store.state.cloneCRD.data.metadata.name)
+			
+			if(store.state.cloneCRD.kind == 'SGPoolingConfig')
+				var endpoint = 'sgpoolconfig'
+			else if (store.state.cloneCRD.kind == 'SGPostgresConfig')
+				var endpoint = 'sgpgconfig'
+			else
+				var endpoint = store.state.cloneCRD.kind.toLowerCase()
+
+			const res = axios
+			.post(
+				apiURL+endpoint, 
+				store.state.cloneCRD.data 
+			)
+			.then(function (response) {
+				//console.log("GOOD");
+				notify(store.state.cloneCRD.kind+' <strong>"'+store.state.cloneCRD.data.metadata.name+'"</strong> cloned successfully', 'message', store.state.cloneCRD.kind.toLowerCase());
+
+				vm.fetchAPI(endpoint);
+				$('#clone').fadeOut().removeClass('show');
+				$('#cloneName, #cloneNamespace').val('');
+				//router.push('/cluster/status/'+store.state.cloneCRD.data.metadata.namespace+'/'+store.state.cloneCRD.data.metadata.name);
+				
+			})
+			.catch(function (error) {
+				console.log(error.response);
+				notify(error.response.data,'error',endpoint);
+				$('#clone').fadeOut().removeClass('show');
+			});
+		},
+		flushToken: function() {
+			document.cookie = 'sgToken=';
+			store.commit('setLoginToken','401 Authentication Error');
+			console.log('Flushed');
 		}
 
+
+	},
+	mounted: function() {
+		/* if( store.state.cloneCRD.data.length ) {
+			//console.log('clone creado');
+			this.cloneNamespace = store.state.cloneCRD.data.metadata.namespace;
+			this.cloneName = store.state.cloneCRD.data.metadata.name;
+		} */
 	}
 })

@@ -228,7 +228,10 @@ var Side = Vue.component("sg-side", {
 		},
 
 		loggedIn () {
-			return store.state.loginToken.length > 0
+			if (typeof store.state.loginToken !== 'undefined')
+				return store.state.loginToken.length > 0
+			else
+				return false
 		},
 
 		showLogs () {
