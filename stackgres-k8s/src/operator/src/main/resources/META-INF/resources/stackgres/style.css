@@ -2689,11 +2689,11 @@ td.actions a {
 }
 
 .actions svg path {
-    fill: #7a7b85;
+    fill: var(--blue);
 }
 
 .actions a:hover svg path {
-    fill: var(--blue);
+    fill: var(--lblue);
 }
 
 table .icon {
@@ -3005,11 +3005,11 @@ table.clusterConfig a {
 }
 
 table.clusterConfig a:hover svg {
-    fill: var(--blue);
+    fill: var(--lblue);
 }
 
 table.clusterConfig svg {
-    fill: var(--gray4);
+    fill: var(--blue);
     width: 14px;
     display: inline-block;
     margin-left: 5px;
@@ -4460,6 +4460,17 @@ table.backups .name {
     max-width: 250px;
 }
 
+table.profiles td.inlineList svg, table.backupConfig ul.usedOn svg {
+    width: 14px;
+}
+
+table.profiles td.inlineList svg path, table.backupConfig ul.usedOn svg path {
+    fill: var(--blue);
+}
+
+table.profiles td.inlineList svg:hover path, table.backupConfig ul.usedOn svg:hover path {
+    fill: var(--lblue);
+}
 
 /*Clone*/
 

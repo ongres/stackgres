@@ -772,6 +772,5 @@ var Backups = Vue.component("sg-backup", {
 
 		});
 
-
 	}
 })
