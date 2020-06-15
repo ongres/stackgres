@@ -130,7 +130,7 @@ public class PgPooling
     container.withName(NAME)
         .withImage(String.format(IMAGE_PREFIX,
             DEFAULT_VERSION, StackGresContext.CONTAINER_BUILD))
-        .withImagePullPolicy("Always")
+        .withImagePullPolicy("IfNotPresent")
         .withVolumeMounts(ClusterStatefulSetVolumeConfig.SOCKET
                 .volumeMount(context.getClusterContext()),
             new VolumeMountBuilder()

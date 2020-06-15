@@ -14,6 +14,12 @@ sh run-test.sh <spec script file path>
 sh run-all-tests.sh
 ```
 
+## Run compatibility matrix
+
+```
+sh comp-matrix.sh
+```
+
 ## Run a util function
 
 For ease of use there are some functions to inspect and watch kubernetes cluster status and e2e
@@ -50,8 +56,8 @@ Some environment variables allow to control how e2e test behave:
 * `E2E_DEBUG_OPERATOR`: Enable operator debug (you must rebuild the operator image for this to work).
 * `E2E_DEBUG_OPERATOR_SUSPEND`: Suspend operator JVM Enable operator debug (you must rebuild the operator image for this to work).
 * `K8S_REUSE`: Kubernetes cluster setup can be very expensive in terms of time. Set this environment variable to true to reuse a kubernetes cluster if already exists.
-* `E2E_REUSE_OPERATOR`: To avoid recreating the operator set this environment variable to true to reuse an installed operator if already exists.
-* `E2E_BUILD_OPERATOR`: To avoid rebuilding the operator set this environment variable to false.
+* `E2E_REUSE_OPERATOR_PODS`: To avoid recreating the operator set this environment variable to true to reuse an installed operator if already exists.
+* `E2E_BUILD_IMAGES`: To avoid rebuilding the operator set this environment variable to false.
 * `K8S_FROM_DIND`: Set to true to use docker internal IPs for kubernetes configuration to access the kind cluster
  (some systems like macos or windows will not work with this but it is useful to run e2e in docker).
 * `SKIP_SPEC_INSTALL`: Set this to true to skip call of function `e2e_test_install`.
@@ -96,9 +102,11 @@ The default kubernetes cluster is kind but there are some more available:
 * [kind](https://kind.sigs.k8s.io/)
 * [k3d](https://github.com/rancher/k3d)
 * [minikube](https://github.com/kubernetes/minikube)
+* [minishift](https://github.com/kubernetes/minikube)
 * [gke](https://cloud.google.com/kubernetes-engine)
 * [eks](https://aws.amazon.com/eks/)
 * [aks](https://docs.microsoft.com/en-us/azure/aks/)
+* current (use currently configured k8s cluster)
 
 Docker is required in order to use the kind and k3d environments.
 
@@ -114,5 +122,5 @@ Kubernetes cluster support can be achieved by creating a new environment script 
 * `reuse_k8s`: Setup the system in order to access the kubernetes cluster using
  `kubectl`.
 * `delete_k8s`: Delete the kubernetes cluster.
-* `load_operator_k8s`: Load an image from a local docker registry (currently the
+* `load_image_k8s`: Load an image from a local docker registry (currently the
  project build the image and store it there) to the kubernetes cluster.

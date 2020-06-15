@@ -107,7 +107,8 @@ public class BackupCronJob implements StackGresClusterResourceStreamFactory {
                 .withServiceAccountName(PatroniRole.roleName(clusterContext))
                 .withContainers(new ContainerBuilder()
                     .withName("create-backup")
-                    .withImage("bitnami/kubectl:latest")
+                    .withImage(StackGresContext.KUBECTL_IMAGE)
+                    .withImagePullPolicy("IfNotPresent")
                     .withEnv(ImmutableList.<EnvVar>builder()
                         .addAll(clusterStatefulSetEnvironmentVariables.listResources(
                             clusterContext))

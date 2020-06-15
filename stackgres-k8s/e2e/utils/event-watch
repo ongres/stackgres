@@ -2,6 +2,7 @@
 
 event_watch() {
   local namespace
+  local output
   while [ "$#" -gt 0 ]
   do
     case "$1" in
@@ -10,11 +11,25 @@ event_watch() {
         namespace="$1"
         shift
         ;;
+      -o)
+        shift
+        output="$1"
+        shift
+        ;;
       *)
         echo >&2 "Unknown parameter $1 (use: --namespace <namespace>;)"
         return 1
         ;;
     esac
   done
-  kubectl get event $(if [ -z "$namespace" ]; then echo '--all-namespaces'; else echo '-n '"$namespace"; fi) -o wide --watch
+  exec kubectl get event $(if [ -z "$namespace" ]; then echo '--all-namespaces'; else echo '-n '"$namespace"; fi) --watch-only --no-headers \
+    | stdbuf -o0 sed 's/\s/ /g' \
+    | xargs -r -n 1 -I % sh -ec "$(
+      if [ -z "$namespace" ]
+      then
+        echo 'kubectl get event -o "$output" --no-headers -n "$(echo %|cut -d " " -f 1)" "$(echo %|cut -d " " -f 2)"'
+      else
+        echo 'kubectl get event -o "$output" --no-headers -n "'"$namespace"'" "%"'
+      fi
+    ) 2>/dev/null || true"
 }

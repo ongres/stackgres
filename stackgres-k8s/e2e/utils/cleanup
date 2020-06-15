@@ -179,7 +179,8 @@ kubectl api-resources --namespaced -o name \
   | grep -v 'reviews\.\(authentication\|authorization\)\.k8s\.io$' \
   | xargs -r -n 1 -I + -P 0 '$SHELL' $SHELL_XTRACE -ec 'kubectl get "+" -n "@" -o name \
     | xargs -r -n 1 -I % '"'$SHELL'"' $SHELL_XTRACE -ec \
-      '"'"'kubectl delete -n "@" "%" --now \
+      '"'"'kubectl delete -n "@" "%" --now 2>/dev/null \
+        || ! kubectl get -n "@" "%" > /dev/null 2>&1 \
         || echo "Failed to remove +/% in namespace @"'"'"
 kubectl get namespace "@" -o json \
   | tr -d "\n" | sed "s/\"finalizers\": \[[^]]\+\]/\"finalizers\": []/" \

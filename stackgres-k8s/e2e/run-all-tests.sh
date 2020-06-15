@@ -8,8 +8,10 @@ E2E_ONLY_INCLUDES="${E2E_ONLY_INCLUDES}"
 
 echo "Preparing environment"
 
+setup_images
 setup_k8s
 setup_logs
+setup_cache
 
 echo "Functional tests results" > "$TARGET_PATH/logs/results.log"
 
@@ -27,8 +29,7 @@ else
 fi
 
 export K8S_REUSE=true
-export E2E_BUILD_OPERATOR=false
-export E2E_REUSE_OPERATOR=true
+export E2E_REUSE_OPERATOR_PODS=true
 export E2E_SKIP_SETUP=false
 
 START="$(date +%s)"

@@ -21,7 +21,7 @@ spec:
       containers:
       - name: "integrate-grafana"
         image: "janwh/k8s-inithelper:latest"
-        imagePullPolicy: "Always"
+        imagePullPolicy: "IfNotPresent"
         command:
           - "/bin/bash"
           - "-ecx"

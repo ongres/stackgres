@@ -70,11 +70,9 @@ delete_k8s() {
   echo "...done"
 }
 
-load_operator_k8s() {
-
-  echo "ERROR: Cannot load images directly to k8s in a eks environment"
+load_image_k8s() {
+  echo "Cannot load images directly to k8s in a eks environment"
   exit 1
-  
 }
 
 operator_pull_policy() {

@@ -113,7 +113,7 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
             DEFAULT_VERSION, pgVersion, StackGresContext.CONTAINER_BUILD))
         .withCommand("/bin/sh", "-ex",
             ClusterStatefulSetPath.LOCAL_BIN_PATH.path() + startScript)
-        .withImagePullPolicy("Always")
+        .withImagePullPolicy("IfNotPresent")
         .withPorts(
             new ContainerPortBuilder()
                 .withName(PatroniConfigMap.POSTGRES_PORT_NAME)
