@@ -24,7 +24,7 @@ e2e_test() {
 
   run_test "Checking that is possible to connect using services is working" service_check
 
-  run_test "Checking that distributed logs attach to the cluster" check_distributed_logs_attach_to_cluster
+  run_test "Checking that distributed logs attach to clusters" check_distributed_logs_attach_to_clusters
 
   run_test "Checking that distributed logs query endpoint works correctly"  check_distributed_logs_query_endpoint
 }
@@ -55,13 +55,20 @@ service_check() {
   fi
 }
 
-check_distributed_logs_attach_to_cluster() {
+check_distributed_logs_attach_to_clusters() {
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "1" \
     --set distributedLogs.enabled=true \
     --set distributedLogs.create=false \
     --set-string cluster.distributedLogs.sgDistributedLogs="$CLUSTER_NAMESPACE.$DISTRIBUTED_LOGS_NAME"
 
-  wait_pods_running "$CLUSTER_NAMESPACE" "4"
+  create_or_replace_cluster "$CLUSTER_NAME-copy" "$CLUSTER_NAMESPACE" "1" \
+    --set distributedLogs.enabled=true \
+    --set distributedLogs.create=false \
+    --set instanceProfiles=null \
+    --set configurations.create=false \
+    --set-string cluster.distributedLogs.sgDistributedLogs="$CLUSTER_NAMESPACE.$DISTRIBUTED_LOGS_NAME"
+
+  wait_pods_running "$CLUSTER_NAMESPACE" "5"
 
   local TEXT
   local RESPONSE
@@ -80,13 +87,60 @@ check_distributed_logs_attach_to_cluster() {
     fi
   done
 
+  for TEXT in distributed-logs-copy-worked distributed-logs-copy-works distributed-logs-copy-still-works
+  do
+    RESPONSE="$(run_query -c "$CLUSTER_NAME-copy" -x psql -k postgres \
+      -h "$CLUSTER_NAME-copy"-primary -p 5432 -q "\"SELECT '$TEXT'\"")"
+
+    if [ "$RESPONSE" = "$TEXT" ]
+    then
+      echo "SUCCESS: Log entry created"
+    else
+      echo "FAIL: Cannot create log entry"
+      return 1
+    fi
+  done
+
   for TEXT in distributed-logs-worked distributed-logs-works distributed-logs-still-works
   do
     if wait_until eval 'get_logs_count_with_text "$TEXT" | grep -q "^1$"'
     then
-      echo "SUCCESS: Cluster log entry included in json response"
+      echo "SUCCESS: Cluster log entry included in json response for cluster $CLUSTER_NAME"
     else
-      echo "FAIL: Cluster log entry not included in json response"
+      echo "FAIL: Cluster log entry not included in json response for cluster $CLUSTER_NAME"
+      return 1
+    fi
+  done
+
+  for TEXT in distributed-logs-copy-worked distributed-logs-copy-works distributed-logs-copy-still-works
+  do
+    if wait_until eval 'get_logs_count_with_text "$TEXT" -copy | grep -q "^1$"'
+    then
+      echo "SUCCESS: Cluster log entry included in json response for cluster $CLUSTER_NAME-copy"
+    else
+      echo "FAIL: Cluster log entry not included in json response for cluster $CLUSTER_NAME-copy"
+      return 1
+    fi
+  done
+
+  for TEXT in distributed-logs-copy-worked distributed-logs-copy-works distributed-logs-copy-still-works
+  do
+    if get_logs_count_with_text "$TEXT" | grep -q "^0$"
+    then
+      echo "SUCCESS: Cluster log entry of cluster $CLUSTER_NAME-copy not included in json response for cluster $CLUSTER_NAME"
+    else
+      echo "FAIL: Cluster log entry of cluster $CLUSTER_NAME-copy included in json response for cluster $CLUSTER_NAME"
+      return 1
+    fi
+  done
+
+  for TEXT in distributed-logs-worked distributed-logs-works distributed-logs-still-works
+  do
+    if get_logs_count_with_text "$TEXT" -copy | grep -q "^0$"
+    then
+      echo "SUCCESS: Cluster log entry of cluster $CLUSTER_NAME not included in json response for cluster $CLUSTER_NAME-copy"
+    else
+      echo "FAIL: Cluster log entry of cluster $CLUSTER_NAME included in json response for cluster $CLUSTER_NAME-copy"
       return 1
     fi
   done
@@ -169,7 +223,7 @@ check_distributed_logs_query_endpoint() {
 
 get_logs_count_with_text() {
   local RESULT="$(run_curl \
-    -r "stackgres/sgcluster/logs/$CLUSTER_NAMESPACE/$CLUSTER_NAME?text=$1" \
+    -r "stackgres/sgcluster/logs/$CLUSTER_NAMESPACE/$CLUSTER_NAME$2?text=$1" \
     -n "$CLUSTER_NAMESPACE")"
   echo_raw "$RESULT" \
     | jq -r "map(select(.message != null and (.message | contains(\"$1\")))) | length"
