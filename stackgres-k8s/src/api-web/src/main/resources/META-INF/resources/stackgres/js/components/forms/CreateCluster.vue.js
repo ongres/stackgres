@@ -296,6 +296,14 @@ var CreateCluster = Vue.component("create-cluster", {
             }
         } else if (vm.$route.params.action == 'edit') {
 
+            if( (typeof store.state.currentCluster.name == 'undefined') || (store.state.currentCluster.name !== vm.$route.params.name) ){
+                let cluster = store.state.clusters.find(c => ( (vm.$route.params.name == c.name) && (vm.$route.params.namespace == c.data.metadata.namespace) ) );
+    
+                if ( typeof cluster !== "undefined" )
+                  store.commit('setCurrentCluster', cluster);
+            } 
+
+
             let volumeSize = store.state.currentCluster.data.spec.pods.persistentVolume.size.match(/\d+/g);
             let volumeUnit = store.state.currentCluster.data.spec.pods.persistentVolume.size.match(/[a-zA-Z]+/g);
 
@@ -317,10 +325,10 @@ var CreateCluster = Vue.component("create-cluster", {
                 connectionPoolingConfig: (!store.state.currentCluster.data.spec.pods.disableConnectionPooling) ? store.state.currentCluster.data.spec.configurations.sgPoolingConfig : '',
                 restoreBackup: '',
                 downloadDiskConcurrency: '',
-                backupConfig: (store.state.currentCluster.data.spec.backupConfig !== undefined) ? store.state.currentCluster.data.spec.configurations.sgBackupConfig : '',
-                distributedLogs: '',
-                prometheusAutobind:  (store.state.currentCluster.data.spec.prometheusAutobind !== undefined) ? store.state.currentCluster.data.spec.prometheusAutobind : false,
-                disableClusterPodAntiAffinity: (store.state.currentCluster.data.spec.disableClusterPodAntiAffinity !== undefined) ? store.state.currentCluster.data.spec.disableClusterPodAntiAffinity : false,
+                backupConfig: (store.state.currentCluster.data.spec.backupConfig !== 'undefined') ? store.state.currentCluster.data.spec.configurations.sgBackupConfig : '',
+                distributedLogs: (store.state.currentCluster.data.spec.distributedLogs !== 'undefined') ? store.state.currentCluster.data.spec.distributedLogs.sgDistributedLogs : '',
+                prometheusAutobind:  (store.state.currentCluster.data.spec.prometheusAutobind !== 'undefined') ? store.state.currentCluster.data.spec.prometheusAutobind : false,
+                disableClusterPodAntiAffinity: (store.state.currentCluster.data.spec.nonProductionOptions.disableClusterPodAntiAffinity !== 'undefined') ? store.state.currentCluster.data.spec.nonProductionOptions.disableClusterPodAntiAffinity : false,
                 metricsExporter: true,
                 postgresUtil: true,
                 pgConfigExists: true,
