@@ -1,13 +1,13 @@
 operator:
   image:
     name: "stackgres/operator"
-    tag: "0.9-beta2-jvm"
+    tag: "development-jvm"
     pullPolicy: "IfNotPresent"
 restapi:
   name: stackgres-restapi
   image:
     name: "stackgres/restapi"
-    tag: "0.9-beta2-jvm"
+    tag: "development-jvm"
     pullPolicy: "IfNotPresent"
 
 service:
