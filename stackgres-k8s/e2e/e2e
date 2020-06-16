@@ -134,10 +134,12 @@ setup_k8s() {
   else
     reuse_k8s
   fi
+}
 
-  if [ "$E2E_DISABLE_CACHE" != "true" ]
+setup_operator() {
+  if [ "$E2E_SKIP_SETUP" = true ]
   then
-    load_cached_images_from_local_repository
+    return
   fi
 
   if [ "$E2E_SKIP_HELM_SETUP" != true ]
@@ -223,6 +225,7 @@ setup_cache() {
   then
     return
   fi
+  load_cached_images_from_local_repository
   cache_pulled_images_to_local_repository &
   trap_kill "$!"
   load_failed_to_pull_images_from_local_repository &

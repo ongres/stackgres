@@ -10,8 +10,9 @@ echo "Preparing environment"
 
 setup_images
 setup_k8s
-setup_logs
 setup_cache
+setup_operator
+setup_logs
 
 echo "Functional tests results" > "$TARGET_PATH/logs/results.log"
 
