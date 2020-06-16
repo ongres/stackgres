@@ -1,3 +1,18 @@
+# Release 0.9-beta2
+
+## NOTES
+
+* StackGres pods now run with non-root user (or arbitrary user in OpenShift)
+* StackGres run without anyuid in OpenShift
+* UI and REST API now run in its own pod
+* UI authentication not uses JWT instead of basic authentication
+* Many more UI improvements
+
+## FIXES
+
+* Using fixed version 8.13.4 for prometheus-operator dependency
+* Using fixed version 5.0.26 for MinIO dependency
+
 # Release 0.9-beta1
 
 ## NOTES
