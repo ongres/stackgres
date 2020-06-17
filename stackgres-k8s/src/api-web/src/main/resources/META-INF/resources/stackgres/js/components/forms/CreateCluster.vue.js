@@ -325,7 +325,7 @@ var CreateCluster = Vue.component("create-cluster", {
                 connectionPoolingConfig: (!store.state.currentCluster.data.spec.pods.disableConnectionPooling) ? store.state.currentCluster.data.spec.configurations.sgPoolingConfig : '',
                 restoreBackup: '',
                 downloadDiskConcurrency: '',
-                backupConfig: (typeof store.state.currentCluster.data.spec.backupConfig !== 'undefined') ? store.state.currentCluster.data.spec.configurations.sgBackupConfig : '',
+                backupConfig: (typeof store.state.currentCluster.data.spec.configurations.sgBackupConfig !== 'undefined') ? store.state.currentCluster.data.spec.configurations.sgBackupConfig : '',
                 distributedLogs: (typeof store.state.currentCluster.data.spec.distributedLogs !== 'undefined') ? store.state.currentCluster.data.spec.distributedLogs.sgDistributedLogs : '',
                 prometheusAutobind:  (typeof store.state.currentCluster.data.spec.prometheusAutobind !== 'undefined') ? store.state.currentCluster.data.spec.prometheusAutobind : false,
                 disableClusterPodAntiAffinity: (typeof store.state.currentCluster.data.spec.nonProductionOptions.disableClusterPodAntiAffinity !== 'undefined') ? store.state.currentCluster.data.spec.nonProductionOptions.disableClusterPodAntiAffinity : false,
