@@ -15,8 +15,17 @@ To complete the process approve operator certificate signing request:
     kubectl certificate approve {{ .Release.Name }}
 {{- end }}
 
-Check if the operator was successfuly deployed:
-    kubectl describe deployment -n {{ .Release.Namespace }}
+Check if the operator was successfully deployed and is available:
+
+    kubectl describe deployment -n {{ .Release.Namespace }} {{ .Release.Name }}
+
+    kubectl wait -n {{ .Release.Namespace }} deployment/{{ .Release.Name }} --for condition=Available
+
+Check if the restapi was successfully deployed and is available:
+
+    kubectl describe deployment -n {{ .Release.Namespace }} {{ .Values.restapi.name }}
+
+    kubectl wait -n {{ .Release.Namespace }} deployment/{{ .Values.restapi.name }} --for condition=Available
 {{- if .Values.deploy.restapi }}
 
 To access StackGres Operator UI from localhost, run the below commands:
