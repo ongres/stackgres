@@ -5,12 +5,12 @@
 
 package io.stackgres.operator.validation.profile;
 
-import io.stackgres.testutil.JsonUtil;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.common.SgProfileReview;
 import io.stackgres.operator.validation.DependenciesValidator;
 import io.stackgres.operator.validation.DependenciesValidatorTest;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
-import org.junit.jupiter.api.Test;
+import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -27,44 +27,38 @@ class SgProfileDependenciesValidatorTest
     }
 
     @Override
-    @Test
-    protected void givenAReviewCreation_itShouldDoNothing() throws ValidationFailed {
-        SgProfileReview review = JsonUtil.readFromJson("sgprofile_allow_request/create.json",
-                SgProfileReview.class);
-
-        givenAReviewCreation_itShouldDoNothing(review);
+    protected SgProfileReview getReview_givenAReviewCreation_itShouldDoNothing() {
+      return JsonUtil.readFromJson("sgprofile_allow_request/create.json",
+          SgProfileReview.class);
     }
 
     @Override
-    @Test
-    protected void givenAReviewUpdate_itShouldDoNothing() throws ValidationFailed {
-
-        SgProfileReview review = JsonUtil.readFromJson("sgprofile_allow_request/update.json",
-                SgProfileReview.class);
-
-        givenAReviewUpdate_itShouldDoNothing(review);
-
+    protected SgProfileReview getReview_givenAReviewUpdate_itShouldDoNothing() {
+      return JsonUtil.readFromJson("sgprofile_allow_request/update.json",
+          SgProfileReview.class);
     }
 
     @Override
-    @Test
-    protected void givenAReviewDelete_itShouldFailIfIsAClusterDependsOnIt() {
-
-        SgProfileReview review = JsonUtil.readFromJson("sgprofile_allow_request/delete.json",
-                SgProfileReview.class);
-
-        givenAReviewDelete_itShouldFailIfIsAClusterDependsOnIt(review);
-
+    protected SgProfileReview getReview_givenAReviewDelete_itShouldFailIfAClusterDependsOnIt() {
+      return JsonUtil.readFromJson("sgprofile_allow_request/delete.json",
+          SgProfileReview.class);
     }
 
     @Override
-    @Test
-    protected void givenAReviewDelete_itShouldNotFailIfNotClusterDependsOnIt() throws ValidationFailed {
+    protected SgProfileReview getReview_givenAReviewDelete_itShouldNotFailIfNoClusterDependsOnIt()
+        throws ValidationFailed {
+      return JsonUtil.readFromJson("sgprofile_allow_request/delete.json",
+          SgProfileReview.class);
+    }
 
-        SgProfileReview review = JsonUtil.readFromJson("sgprofile_allow_request/delete.json",
-                SgProfileReview.class);
+    @Override
+    protected SgProfileReview getReview_givenAReviewDelete_itShouldNotFailIfNoClusterExists() {
+      return JsonUtil.readFromJson("sgprofile_allow_request/delete.json",
+          SgProfileReview.class);
+    }
 
-        givenAReviewDelete_itShouldNotFailIfNotClusterDependsOnIt(review);
-
+    @Override
+    protected void makeClusterNotDependant(StackGresCluster cluster) {
+      cluster.getSpec().setResourceProfile(null);
     }
 }

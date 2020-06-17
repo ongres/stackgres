@@ -5,13 +5,12 @@
 
 package io.stackgres.operator.validation.pooling;
 
-import io.stackgres.testutil.JsonUtil;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.operator.common.PoolingReview;
 import io.stackgres.operator.validation.DependenciesValidator;
 import io.stackgres.operator.validation.DependenciesValidatorTest;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
-import io.stackgres.operator.common.PoolingReview;
-
-import org.junit.jupiter.api.Test;
+import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -30,46 +29,38 @@ class PoolingDependenciesValidatorTest
     }
 
     @Override
-    @Test
-    protected void givenAReviewCreation_itShouldDoNothing() throws ValidationFailed {
-
-        PoolingReview review = JsonUtil.readFromJson("pooling_allow_request/create.json",
-                PoolingReview.class);
-
-        givenAReviewCreation_itShouldDoNothing(review);
-
+    protected PoolingReview getReview_givenAReviewCreation_itShouldDoNothing() {
+      return JsonUtil.readFromJson("pooling_allow_request/create.json",
+          PoolingReview.class);
     }
 
     @Override
-    @Test
-    protected void givenAReviewUpdate_itShouldDoNothing() throws ValidationFailed {
-
-        PoolingReview review = JsonUtil.readFromJson("pooling_allow_request/update.json",
-                PoolingReview.class);
-
-        givenAReviewUpdate_itShouldDoNothing(review);
-
+    protected PoolingReview getReview_givenAReviewUpdate_itShouldDoNothing() {
+      return JsonUtil.readFromJson("pooling_allow_request/update.json",
+          PoolingReview.class);
     }
 
     @Override
-    @Test
-    protected void givenAReviewDelete_itShouldFailIfIsAClusterDependsOnIt() {
-
-        PoolingReview review = JsonUtil.readFromJson("pooling_allow_request/delete.json",
-                PoolingReview.class);
-
-        givenAReviewDelete_itShouldFailIfIsAClusterDependsOnIt(review);
-
+    protected PoolingReview getReview_givenAReviewDelete_itShouldFailIfAClusterDependsOnIt() {
+      return JsonUtil.readFromJson("pooling_allow_request/delete.json",
+          PoolingReview.class);
     }
 
     @Override
-    @Test
-    protected void givenAReviewDelete_itShouldNotFailIfNotClusterDependsOnIt() throws ValidationFailed {
+    protected PoolingReview getReview_givenAReviewDelete_itShouldNotFailIfNoClusterDependsOnIt()
+        throws ValidationFailed {
+      return JsonUtil.readFromJson("pooling_allow_request/delete.json",
+          PoolingReview.class);
+    }
 
-        PoolingReview review = JsonUtil.readFromJson("pooling_allow_request/delete.json",
-                PoolingReview.class);
+    @Override
+    protected PoolingReview getReview_givenAReviewDelete_itShouldNotFailIfNoClusterExists() {
+      return JsonUtil.readFromJson("pooling_allow_request/delete.json",
+          PoolingReview.class);
+    }
 
-        givenAReviewDelete_itShouldNotFailIfNotClusterDependsOnIt(review);
-
+    @Override
+    protected void makeClusterNotDependant(StackGresCluster cluster) {
+      cluster.getSpec().getConfiguration().setConnectionPoolingConfig(null);
     }
 }

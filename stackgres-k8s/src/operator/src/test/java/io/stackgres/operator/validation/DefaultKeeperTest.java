@@ -13,7 +13,6 @@ import java.util.stream.Stream;
 import javax.enterprise.inject.Instance;
 
 import io.fabric8.kubernetes.client.CustomResource;
-import io.stackgres.operator.configuration.OperatorContext;
 import io.stackgres.common.ErrorType;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
 import io.stackgres.operator.utils.ValidationUtils;

@@ -5,12 +5,12 @@
 
 package io.stackgres.operator.validation.pgconfig;
 
-import io.stackgres.testutil.JsonUtil;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.common.PgConfigReview;
 import io.stackgres.operator.validation.DependenciesValidator;
 import io.stackgres.operator.validation.DependenciesValidatorTest;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
-import org.junit.jupiter.api.Test;
+import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -27,48 +27,40 @@ class PgConfigDependenciesValidatorTest extends DependenciesValidatorTest<PgConf
     }
 
     @Override
-    @Test
-    public void givenAReviewCreation_itShouldDoNothing() throws ValidationFailed {
-
-        PgConfigReview review = JsonUtil.readFromJson("pgconfig_allow_request/valid_pgconfig.json",
-                PgConfigReview.class);
-
-        givenAReviewCreation_itShouldDoNothing(review);
-
+    protected PgConfigReview getReview_givenAReviewCreation_itShouldDoNothing() {
+      return JsonUtil.readFromJson("pgconfig_allow_request/valid_pgconfig.json",
+          PgConfigReview.class);
     }
 
     @Override
-    @Test
-    public void givenAReviewUpdate_itShouldDoNothing() throws ValidationFailed {
-
-        PgConfigReview review = JsonUtil.readFromJson("pgconfig_allow_request/valid_pgconfig_update.json",
-                PgConfigReview.class);
-
-        givenAReviewUpdate_itShouldDoNothing(review);
-
+    protected PgConfigReview getReview_givenAReviewUpdate_itShouldDoNothing() {
+      return JsonUtil.readFromJson("pgconfig_allow_request/valid_pgconfig_update.json",
+          PgConfigReview.class);
     }
 
     @Override
-    @Test
-    public void givenAReviewDelete_itShouldFailIfIsAClusterDependsOnIt() {
-
-        PgConfigReview review = JsonUtil
-                .readFromJson("pgconfig_allow_request/pgconfig_delete.json",
-                        PgConfigReview.class);
-
-        givenAReviewDelete_itShouldFailIfIsAClusterDependsOnIt(review);
-
+    protected PgConfigReview getReview_givenAReviewDelete_itShouldFailIfAClusterDependsOnIt() {
+      return JsonUtil
+          .readFromJson("pgconfig_allow_request/pgconfig_delete.json", PgConfigReview.class);
     }
 
     @Override
-    @Test
-    public void givenAReviewDelete_itShouldNotFailIfNotClusterDependsOnIt() throws ValidationFailed {
+    protected PgConfigReview getReview_givenAReviewDelete_itShouldNotFailIfNoClusterDependsOnIt()
+        throws ValidationFailed {
+      return JsonUtil
+          .readFromJson("pgconfig_allow_request/pgconfig_delete.json",
+              PgConfigReview.class);
+    }
 
-        PgConfigReview review = JsonUtil
-                .readFromJson("pgconfig_allow_request/pgconfig_delete.json",
-                        PgConfigReview.class);
+    @Override
+    protected PgConfigReview getReview_givenAReviewDelete_itShouldNotFailIfNoClusterExists() {
+      return JsonUtil
+          .readFromJson("pgconfig_allow_request/pgconfig_delete.json",
+              PgConfigReview.class);
+    }
 
-        givenAReviewDelete_itShouldNotFailIfNotClusterDependsOnIt(review);
-
+    @Override
+    protected void makeClusterNotDependant(StackGresCluster cluster) {
+      cluster.getSpec().getConfiguration().setPostgresConfig(null);
     }
 }
