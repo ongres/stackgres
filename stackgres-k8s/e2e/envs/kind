@@ -23,11 +23,14 @@ update_k8s_config() {
   mkdir -p "$HOME/.kube"
   if [ "$K8S_FROM_DIND" = true ]
   then
-    local CONTAINER_NAME="$(docker inspect -f '{{.Name}}' "$(hostname)"|cut -d '/' -f 2)"
-    docker inspect "$CONTAINER_NAME" \
-      -f '{{ range $key,$value := .NetworkSettings.Networks }}{{ printf "%s\n" $key }}{{ end }}' \
-      | grep -q '^kind$' \
-      || docker network connect kind "$CONTAINER_NAME"
+    if docker network ls --format '{{ .Name }}' | grep -q '^kind$'
+    then
+      local CONTAINER_NAME="$(docker inspect -f '{{.Name}}' "$(hostname)"|cut -d '/' -f 2)"
+      docker inspect "$CONTAINER_NAME" \
+        -f '{{ range $key,$value := .NetworkSettings.Networks }}{{ printf "%s\n" $key }}{{ end }}' \
+        | grep -q '^kind$' \
+        || docker network connect kind "$CONTAINER_NAME"
+    fi
     local KIND_CONTROL_PLANE_IP="$(docker inspect "$KIND_NAME-control-plane" \
       -f '{{ .NetworkSettings.Networks.kind.IPAddress }}')"
     kind get kubeconfig --name "$KIND_NAME" --internal \
