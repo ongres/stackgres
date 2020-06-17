@@ -36,7 +36,9 @@ To access StackGres Operator UI from localhost, run the below commands:
 
 Read more about port forwarding here: http://kubernetes.io/docs/user-guide/kubectl/kubectl_port-forward/
 
-Now you can access the StackGres Operator UI on https://localhost:8443. 
+Now you can access the StackGres Operator UI on:
+
+https://localhost:8443
 
 To get the username, run the command:
 
