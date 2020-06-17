@@ -20,7 +20,9 @@ if [ -z "$E2E_ONLY_INCLUDES" ]
 then
   SPECS="$(printf "%s\n%s" "$(get_all_specs)" "$(get_all_env_specs)")"
 else
-  SPECS="$(echo_raw "$E2E_ONLY_INCLUDES" | tr ' ' '\n' | xargs -r -n 1 -I % echo "$SPEC_PATH/%")"
+  SPECS="$(echo_raw "$E2E_ONLY_INCLUDES" | tr ' ' '\n' \
+    | xargs -r -n 1 -I % sh -c "basename '%'" \
+    | xargs -r -n 1 -I % echo "$SPEC_PATH/%")"
 fi
 
 export K8S_REUSE=true
