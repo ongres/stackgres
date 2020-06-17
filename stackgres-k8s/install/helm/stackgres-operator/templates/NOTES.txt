@@ -30,9 +30,9 @@ Check if the restapi was successfully deployed and is available:
 
 To access StackGres Operator UI from localhost, run the below commands:
 
-    export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app={{ .Values.restapi.name }}" -o jsonpath="{.items[0].metadata.name}")
+    POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app={{ .Values.restapi.name }}" -o jsonpath="{.items[0].metadata.name}")
 
-    kubectl port-forward $POD_NAME 8443:9443 --namespace {{ .Release.Namespace }}
+    kubectl port-forward "$POD_NAME" 8443:9443 --namespace {{ .Release.Namespace }}
 
 Read more about port forwarding here: http://kubernetes.io/docs/user-guide/kubectl/kubectl_port-forward/
 
