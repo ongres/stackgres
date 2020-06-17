@@ -12,10 +12,6 @@ e2e_test_uninstall() {
   delete_operator
   install_operator
   wait_pods_running "stackgres" 2
-
-  helm_cleanup_chart "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
-
-  k8s_async_cleanup_namespace "$CLUSTER_NAMESPACE"
 }
 
 e2e_test() {
