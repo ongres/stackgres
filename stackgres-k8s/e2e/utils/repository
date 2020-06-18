@@ -112,3 +112,18 @@ load_failed_to_pull_images_from_local_repository() {
       done
       )
 }
+
+load_operator_k8s() {
+  if docker image inspect "$OPERATOR_IMAGE_NAME" >/dev/null 2>&1
+  then 
+    load_image_k8s "$OPERATOR_IMAGE_NAME"
+  else
+    echo "Image $OPERATOR_IMAGE_NAME not found in cache!"
+  fi
+  if docker image inspect "$RESTAPI_IMAGE_NAME" >/dev/null 2>&1
+  then 
+    load_image_k8s "$RESTAPI_IMAGE_NAME"
+  else
+    echo "Image $OPERATOR_IMAGE_NAME not found in cache!"
+  fi
+}
