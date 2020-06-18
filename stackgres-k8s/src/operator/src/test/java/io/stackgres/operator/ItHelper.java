@@ -136,9 +136,7 @@ public class ItHelper {
               + "sh " + (E2E_DEBUG ? "-x" : "") + " e2e helm_cleanup\n"
               + "sh " + (E2E_DEBUG ? "-x" : "") + " e2e k8s_async_cleanup\n"
               + (OPERATOR_IN_KUBERNETES
-                  ? "sh " + (E2E_DEBUG ? "-x" : "") + " e2e load_image_k8s \"stackgres/operator:$IMAGE_TAG\"\n" : "")
-              + (OPERATOR_IN_KUBERNETES
-                  ? "sh " + (E2E_DEBUG ? "-x" : "") + " e2e load_image_k8s \"stackgres/restapi:$IMAGE_TAG\"\n" : "")
+                  ? "sh " + (E2E_DEBUG ? "-x" : "") + " e2e load_operator_k8s\n" : "")
               + (OPERATOR_IN_KUBERNETES ? ""
                   : "sh " + (E2E_DEBUG ? "-x" : "")
                   + " e2e load_certificate_k8s /resources/certs/server.crt\n"))
