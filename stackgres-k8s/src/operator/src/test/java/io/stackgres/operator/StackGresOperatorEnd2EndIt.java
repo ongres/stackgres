@@ -7,6 +7,7 @@ package io.stackgres.operator;
 
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Optional;
 
@@ -109,6 +110,7 @@ public class StackGresOperatorEnd2EndIt extends AbstractStackGresOperatorIt {
       }
     } finally {
       try {
+        Files.deleteIfExists(Paths.get("target/e2e"));
         k8s.copyOut("/resources/e2e/target", Paths.get("target/e2e"));
       } catch (Exception ex) {
         LOGGER.error("An error occurred while copying e2e test results", ex);

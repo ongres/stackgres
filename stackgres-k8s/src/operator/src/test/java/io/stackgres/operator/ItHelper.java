@@ -285,7 +285,11 @@ public class ItHelper {
         + " --set-string cert.crt=" + Base64.getEncoder().encodeToString(
             IOUtils.toByteArray(ItHelper.class.getResourceAsStream("/certs/server.crt")))
         + " --set-string cert.key=" + Base64.getEncoder().encodeToString(
-            IOUtils.toByteArray(ItHelper.class.getResourceAsStream("/certs/server-key.pem")));
+            IOUtils.toByteArray(ItHelper.class.getResourceAsStream("/certs/server-key.pem")))
+        + " --set-string cert.jwtRsaKey=" + Base64.getEncoder().encodeToString(
+            IOUtils.toByteArray(ItHelper.class.getResourceAsStream("/certs/server-key.pem")))
+        + " --set-string cert.jwtRsaPub=" + Base64.getEncoder().encodeToString(
+            IOUtils.toByteArray(ItHelper.class.getResourceAsStream("/certs/server-pub.pem")));
   }
 
   public static String getDockerInterfaceIp(Container k8s)
