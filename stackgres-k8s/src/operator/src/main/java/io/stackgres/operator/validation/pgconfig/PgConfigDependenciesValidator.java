@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.validation.pgconfig;
 
+import java.util.Objects;
+
 import javax.inject.Singleton;
 
 import io.stackgres.common.ErrorType;
@@ -21,7 +23,8 @@ public class PgConfigDependenciesValidator extends DependenciesValidator<PgConfi
 
   @Override
   public void validate(PgConfigReview review, StackGresCluster i) throws ValidationFailed {
-    if (review.getRequest().getName().equals(i.getSpec().getConfiguration().getPostgresConfig())) {
+    if (Objects.equals(i.getSpec().getConfiguration().getPostgresConfig(),
+        review.getRequest().getName())) {
       fail(review, i);
     }
   }

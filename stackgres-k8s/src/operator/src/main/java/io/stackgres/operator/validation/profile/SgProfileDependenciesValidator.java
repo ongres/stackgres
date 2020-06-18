@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.validation.profile;
 
+import java.util.Objects;
+
 import javax.inject.Singleton;
 
 import io.stackgres.common.ErrorType;
@@ -21,7 +23,7 @@ public class SgProfileDependenciesValidator extends DependenciesValidator<SgProf
 
   @Override
   protected void validate(SgProfileReview review, StackGresCluster i) throws ValidationFailed {
-    if (i.getSpec().getResourceProfile().equals(review.getRequest().getName())) {
+    if (Objects.equals(i.getSpec().getResourceProfile(), review.getRequest().getName())) {
       fail(review, i);
     }
   }

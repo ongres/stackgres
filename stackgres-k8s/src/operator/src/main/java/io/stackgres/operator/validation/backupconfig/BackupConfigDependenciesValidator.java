@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.validation.backupconfig;
 
+import java.util.Objects;
+
 import javax.inject.Singleton;
 
 import io.stackgres.common.ErrorType;
@@ -21,7 +23,8 @@ public class BackupConfigDependenciesValidator extends DependenciesValidator<Bac
 
   @Override
   public void validate(BackupConfigReview review, StackGresCluster i) throws ValidationFailed {
-    if (review.getRequest().getName().equals(i.getSpec().getConfiguration().getBackupConfig())) {
+    if (Objects.equals(i.getSpec().getConfiguration().getBackupConfig(),
+        review.getRequest().getName())) {
       fail(review, i);
     }
   }

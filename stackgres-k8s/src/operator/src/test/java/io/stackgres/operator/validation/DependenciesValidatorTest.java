@@ -7,7 +7,9 @@ package io.stackgres.operator.validation;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.Optional;
 
@@ -16,10 +18,10 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDefinition;
 import io.stackgres.common.crd.sgcluster.StackGresClusterList;
 import io.stackgres.common.resource.CustomResourceScanner;
-import io.stackgres.testutil.JsonUtil;
 import io.stackgres.operator.utils.ValidationUtils;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
+import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -40,9 +42,8 @@ public abstract class DependenciesValidatorTest<T extends AdmissionReview<?>, V 
   }
 
   @Test
-  protected abstract void givenAReviewCreation_itShouldDoNothing() throws ValidationFailed;
-
-  protected void givenAReviewCreation_itShouldDoNothing(T review) throws ValidationFailed {
+  public void givenAReviewCreation_itShouldDoNothing() throws ValidationFailed {
+    T review = getReview_givenAReviewCreation_itShouldDoNothing();
 
     validator.validate(review);
 
@@ -51,20 +52,23 @@ public abstract class DependenciesValidatorTest<T extends AdmissionReview<?>, V 
 
   }
 
-  @Test
-  protected abstract void givenAReviewUpdate_itShouldDoNothing() throws ValidationFailed;
+  protected abstract T getReview_givenAReviewCreation_itShouldDoNothing();
 
-  protected void givenAReviewUpdate_itShouldDoNothing(T review) throws ValidationFailed {
+  @Test
+  public void givenAReviewUpdate_itShouldDoNothing() throws ValidationFailed {
+    T review = getReview_givenAReviewUpdate_itShouldDoNothing();
+
     validator.validate(review);
 
     verify(clusterScanner, never()).findResources();
     verify(clusterScanner, never()).findResources(anyString());
   }
 
-  @Test
-  protected abstract void givenAReviewDelete_itShouldFailIfIsAClusterDependsOnIt();
+  protected abstract T getReview_givenAReviewUpdate_itShouldDoNothing();
 
-  protected void givenAReviewDelete_itShouldFailIfIsAClusterDependsOnIt(T review) {
+  @Test
+  public void givenAReviewDelete_itShouldFailIfAClusterDependsOnIt() {
+    T review = getReview_givenAReviewDelete_itShouldFailIfAClusterDependsOnIt();
 
     StackGresClusterList clusterList = JsonUtil.readFromJson("stackgres_cluster/list.json",
         StackGresClusterList.class);
@@ -82,13 +86,37 @@ public abstract class DependenciesValidatorTest<T extends AdmissionReview<?>, V 
             + StackGresClusterDefinition.NAME + " "
             + clusterList.getItems().get(0).getMetadata().getName() + " depends on it"
         , ex.getResult().getMessage());
-
   }
 
-  @Test
-  protected abstract void givenAReviewDelete_itShouldNotFailIfNotClusterDependsOnIt() throws ValidationFailed;
+  protected abstract T getReview_givenAReviewDelete_itShouldFailIfAClusterDependsOnIt();
 
-  protected void givenAReviewDelete_itShouldNotFailIfNotClusterDependsOnIt(T review) throws ValidationFailed {
+  @Test
+  public void givenAReviewDelete_itShouldNotFailIfNoClusterDependsOnIt() throws ValidationFailed {
+    T review = getReview_givenAReviewDelete_itShouldNotFailIfNoClusterDependsOnIt();
+
+    StackGresClusterList clusterList = JsonUtil.readFromJson("stackgres_cluster/list.json",
+        StackGresClusterList.class);
+    clusterList
+        .getItems()
+        .stream()
+        .forEach(this::makeClusterNotDependant);
+
+    when(clusterScanner.findResources(review.getRequest().getNamespace()))
+        .thenReturn(Optional.of(clusterList.getItems()));
+
+    validator.validate(review);
+
+    verify(clusterScanner, never()).findResources();
+    verify(clusterScanner).findResources(review.getRequest().getNamespace());
+  }
+
+  protected abstract T getReview_givenAReviewDelete_itShouldNotFailIfNoClusterDependsOnIt() throws ValidationFailed;
+
+  protected abstract void makeClusterNotDependant(StackGresCluster cluster);
+
+  @Test
+  public void givenAReviewDelete_itShouldNotFailIfNoClusterExists() throws ValidationFailed {
+    T review = getReview_givenAReviewDelete_itShouldNotFailIfNoClusterExists();
 
     when(clusterScanner.findResources(review.getRequest().getNamespace()))
         .thenReturn(Optional.empty());
@@ -97,6 +125,8 @@ public abstract class DependenciesValidatorTest<T extends AdmissionReview<?>, V 
 
     verify(clusterScanner, never()).findResources();
     verify(clusterScanner).findResources(review.getRequest().getNamespace());
-
   }
+
+  protected abstract T getReview_givenAReviewDelete_itShouldNotFailIfNoClusterExists();
+
 }

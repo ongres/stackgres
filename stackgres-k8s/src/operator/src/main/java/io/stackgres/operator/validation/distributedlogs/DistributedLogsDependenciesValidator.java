@@ -25,7 +25,7 @@ public class DistributedLogsDependenciesValidator
   @Override
   public void validate(StackGresDistributedLogsReview review, StackGresCluster i)
       throws ValidationFailed {
-    if (Optional.of(i.getSpec().getDistributedLogs())
+    if (Optional.ofNullable(i.getSpec().getDistributedLogs())
         .map(distributedLogs -> review.getRequest().getName().equals(
             distributedLogs.getDistributedLogs()))
         .orElse(false)) {
