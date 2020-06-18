@@ -253,6 +253,10 @@ public class ItHelper {
           + " --set-string restapi.image.pullPolicy=Never")
         .filter(EXCLUDE_TTY_WARNING)
         .forEach(LOGGER::info);
+      k8s.execute("sh", "-l", "-c",
+          "sh " + (E2E_DEBUG ? "-x" : "") + " /resources/e2e/e2e store_operator_values\n")
+        .filter(EXCLUDE_TTY_WARNING)
+        .forEach(LOGGER::info);
       return;
     }
 
@@ -265,6 +269,10 @@ public class ItHelper {
         + " --namespace stackgres"
         + " /resources/stackgres-operator"
         + getOperatorExtraOptions(k8s, port))
+      .filter(EXCLUDE_TTY_WARNING)
+      .forEach(LOGGER::info);
+    k8s.execute("sh", "-l", "-c",
+        "sh " + (E2E_DEBUG ? "-x" : "") + " /resources/e2e/e2e store_operator_values\n")
       .filter(EXCLUDE_TTY_WARNING)
       .forEach(LOGGER::info);
   }
