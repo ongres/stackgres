@@ -1,3 +1,12 @@
+# Release 0.9-beta3
+
+## FIXES
+
+* Backup configuration is not shown on edit cluster form
+* Edit form of a cluster is not filled when no distributed logs exists
+* Internal error when deleting a distributed log CR
+* Wrong notes in operator helm chart
+
 # Release 0.9-beta2
 
 ## NOTES
@@ -5,7 +14,7 @@
 * StackGres pods now run with non-root user (or arbitrary user in OpenShift)
 * StackGres run without anyuid in OpenShift
 * UI and REST API now run in its own pod
-* UI authentication not uses JWT instead of basic authentication
+* UI authentication now uses JWT instead of basic authentication
 * Many more UI improvements
 
 ## FIXES
