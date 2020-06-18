@@ -18,15 +18,11 @@ echo "Functional tests results" > "$TARGET_PATH/logs/results.log"
 
 if [ -z "$E2E_ONLY_INCLUDES" ]
 then
-  SPECS="$(find "$SPEC_PATH" -maxdepth 1 -type f | grep '^.*/[^\.]\+$')"
-  
-  if [ -d "$SPEC_PATH/$E2E_ENV" ]
-  then
-    ENV_SPECS="$(find "$SPEC_PATH/$E2E_ENV" -maxdepth 1 -type f | grep '^.*/[^\.]\+$')"
-    SPECS=$(echo "$SPECS\n$ENV_SPECS")
-  fi
+  SPECS="$(printf "%s\n%s" "$(get_all_specs)" "$(get_all_env_specs)")"
 else
-  SPECS="$(echo_raw "$E2E_ONLY_INCLUDES" | tr ' ' '\n' | xargs -r -n 1 -I % echo "$SPEC_PATH/%")"
+  SPECS="$(echo_raw "$E2E_ONLY_INCLUDES" | tr ' ' '\n' \
+    | xargs -r -n 1 -I % sh -c "basename '%'" \
+    | xargs -r -n 1 -I % echo "$SPEC_PATH/%")"
 fi
 
 export K8S_REUSE=true

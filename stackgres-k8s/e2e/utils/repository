@@ -58,7 +58,6 @@ load_cached_images_from_local_repository() {
       do
         if docker image inspect "$IMAGE_NAME" >/dev/null 2>&1
         then
-          echo "Loading image $IMAGE_NAME to k8s env $E2E_ENV"
           load_image_k8s "$IMAGE_NAME"
         else
           echo "Image $IMAGE_NAME not found in cache!"
@@ -106,11 +105,25 @@ load_failed_to_pull_images_from_local_repository() {
         echo "Detected failed to pull image $IMAGE_NAME to k8s env $E2E_ENV"
         if docker image inspect "$IMAGE_NAME" >/dev/null 2>&1
         then
-          echo "Loading image $IMAGE_NAME to k8s env $E2E_ENV"
           load_image_k8s "$IMAGE_NAME"
         else
           echo "Image $IMAGE_NAME not found in cache!"
         fi
       done
       )
+}
+
+load_operator_k8s() {
+  if docker image inspect "$OPERATOR_IMAGE_NAME" >/dev/null 2>&1
+  then 
+    load_image_k8s "$OPERATOR_IMAGE_NAME"
+  else
+    echo "Image $OPERATOR_IMAGE_NAME not found in cache!"
+  fi
+  if docker image inspect "$RESTAPI_IMAGE_NAME" >/dev/null 2>&1
+  then 
+    load_image_k8s "$RESTAPI_IMAGE_NAME"
+  else
+    echo "Image $OPERATOR_IMAGE_NAME not found in cache!"
+  fi
 }

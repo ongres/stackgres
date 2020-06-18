@@ -33,6 +33,75 @@ e2e_exclusive_lock() {
   false
 }
 
+get_all_specs() {
+  find "$SPEC_PATH" -maxdepth 1 -type f | grep '^.*/[^\.]\+$'
+}
+
+get_all_env_specs() {
+  if [ -d "$SPEC_PATH/$E2E_ENV" ]
+  then
+    find "$SPEC_PATH/$E2E_ENV" -maxdepth 1 -type f | grep '^.*/[^\.]\+$'
+  fi
+}
+
+get_all_exclusive_specs() {
+  local SPEC_FILE
+  get_all_specs \
+    | while IFS="$(printf '\n')" read SPEC_FILE
+      do
+        (
+        . "$SPEC_FILE"
+        if e2e_exclusive_lock
+        then
+          echo_raw "$SPEC_FILE"
+        fi
+        )
+      done
+}
+
+get_all_non_exclusive_specs() {
+  local SPEC_FILE
+  get_all_specs \
+    | while IFS="$(printf '\n')" read SPEC_FILE
+      do
+        (
+        . "$SPEC_FILE"
+        if ! e2e_exclusive_lock
+        then
+          echo_raw "$SPEC_FILE"
+        fi
+        )
+      done
+}
+
+get_all_exclusive_env_specs() {
+  local SPEC_FILE
+  get_all_env_specs \
+    | while IFS="$(printf '\n')" read SPEC_FILE
+      do
+        (
+        . "$SPEC_FILE"
+        if e2e_exclusive_lock
+        then
+          echo_raw "$SPEC_FILE"
+        fi
+        )
+      done
+}
+
+get_all_non_exclusive_env_specs() {
+  local SPEC_FILE
+  get_all_env_specs \
+    | while IFS="$(printf '\n')" read SPEC_FILE
+      do
+        . "$SPEC_FILE"
+        if ! e2e_exclusive_lock
+        then
+          echo_raw "$SPEC_FILE"
+        fi
+      done
+}
+
 spec() {
   local RESULT
   local EXIT_CODE

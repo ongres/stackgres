@@ -136,9 +136,7 @@ public class ItHelper {
               + "sh " + (E2E_DEBUG ? "-x" : "") + " e2e helm_cleanup\n"
               + "sh " + (E2E_DEBUG ? "-x" : "") + " e2e k8s_async_cleanup\n"
               + (OPERATOR_IN_KUBERNETES
-                  ? "sh " + (E2E_DEBUG ? "-x" : "") + " e2e load_image_k8s \"stackgres/operator:$IMAGE_TAG\"\n" : "")
-              + (OPERATOR_IN_KUBERNETES
-                  ? "sh " + (E2E_DEBUG ? "-x" : "") + " e2e load_image_k8s \"stackgres/restapi:$IMAGE_TAG\"\n" : "")
+                  ? "sh " + (E2E_DEBUG ? "-x" : "") + " e2e load_operator_k8s\n" : "")
               + (OPERATOR_IN_KUBERNETES ? ""
                   : "sh " + (E2E_DEBUG ? "-x" : "")
                   + " e2e load_certificate_k8s /resources/certs/server.crt\n"))
@@ -255,6 +253,10 @@ public class ItHelper {
           + " --set-string restapi.image.pullPolicy=Never")
         .filter(EXCLUDE_TTY_WARNING)
         .forEach(LOGGER::info);
+      k8s.execute("sh", "-l", "-c",
+          "sh " + (E2E_DEBUG ? "-x" : "") + " /resources/e2e/e2e store_operator_values\n")
+        .filter(EXCLUDE_TTY_WARNING)
+        .forEach(LOGGER::info);
       return;
     }
 
@@ -269,6 +271,10 @@ public class ItHelper {
         + getOperatorExtraOptions(k8s, port))
       .filter(EXCLUDE_TTY_WARNING)
       .forEach(LOGGER::info);
+    k8s.execute("sh", "-l", "-c",
+        "sh " + (E2E_DEBUG ? "-x" : "") + " /resources/e2e/e2e store_operator_values\n")
+      .filter(EXCLUDE_TTY_WARNING)
+      .forEach(LOGGER::info);
   }
 
   public static String getOperatorExtraOptions(Container k8s, int port) throws Exception {
@@ -279,7 +285,11 @@ public class ItHelper {
         + " --set-string cert.crt=" + Base64.getEncoder().encodeToString(
             IOUtils.toByteArray(ItHelper.class.getResourceAsStream("/certs/server.crt")))
         + " --set-string cert.key=" + Base64.getEncoder().encodeToString(
-            IOUtils.toByteArray(ItHelper.class.getResourceAsStream("/certs/server-key.pem")));
+            IOUtils.toByteArray(ItHelper.class.getResourceAsStream("/certs/server-key.pem")))
+        + " --set-string cert.jwtRsaKey=" + Base64.getEncoder().encodeToString(
+            IOUtils.toByteArray(ItHelper.class.getResourceAsStream("/certs/server-key.pem")))
+        + " --set-string cert.jwtRsaPub=" + Base64.getEncoder().encodeToString(
+            IOUtils.toByteArray(ItHelper.class.getResourceAsStream("/certs/server-pub.pem")));
   }
 
   public static String getDockerInterfaceIp(Container k8s)

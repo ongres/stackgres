@@ -216,7 +216,7 @@ integration test:
     paths:
     - stackgres-k8s/src/operator/target/e2e
 
-integration test jvm image:
+e2e tests jvm image:
   stage: test
   tags:
     - stackgres-runner
@@ -230,9 +230,10 @@ integration test jvm image:
     - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}"-jvm'
     - 'export OPERATOR_IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
     - 'export RESTAPI_IMAGE_NAME="stackgres/restapi:$IMAGE_TAG"'
+    - 'export E2E_RUN_ONLY="non_exclusive"'
     - |
       flock -s /tmp/stackgres-build-native \
-        flock /tmp/stackgres-integration-test-jvm-image  \
+        flock /tmp/stackgres-integration-test-jvm-image \
         timeout -s KILL 3600 \
         mvn $MAVEN_CLI_OPTS verify -P integration \
           -DargLine=-Dcom.ongres.junit.docker.runnerId="$K8S_SUFFIX" \
@@ -243,7 +244,35 @@ integration test jvm image:
     paths:
     - stackgres-k8s/src/operator/target/e2e
 
-integration test native image:
+e2e exclusive tests jvm image:
+  stage: test
+  tags:
+    - stackgres-runner
+  dependencies:
+    - compile
+  variables:
+    OPERATOR_IN_KUBERNETES: "true"
+    K8S_SUFFIX: jvm-image-exclusive
+  timeout: 12 hour
+  script:
+    - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}"-jvm'
+    - 'export OPERATOR_IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
+    - 'export RESTAPI_IMAGE_NAME="stackgres/restapi:$IMAGE_TAG"'
+    - 'export E2E_RUN_ONLY="exclusive"'
+    - |
+      flock -s /tmp/stackgres-build-native \
+        flock /tmp/stackgres-integration-test-jvm-image-exclusive \
+        timeout -s KILL 3600 \
+        mvn $MAVEN_CLI_OPTS verify -P integration \
+          -DargLine=-Dcom.ongres.junit.docker.runnerId="$K8S_SUFFIX" \
+          -Dit.skipBuildContainer=true
+  artifacts:
+    expire_in: 1 week
+    when: always
+    paths:
+    - stackgres-k8s/src/operator/target/e2e
+
+e2e tests native image:
   stage: test
   tags:
     - stackgres-runner
@@ -258,9 +287,46 @@ integration test native image:
     - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}"'
     - 'export OPERATOR_IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
     - 'export RESTAPI_IMAGE_NAME="stackgres/restapi:$IMAGE_TAG"'
+    - 'export E2E_RUN_ONLY="non_exclusive"'
     - |
       flock -s /tmp/stackgres-build-native \
         flock /tmp/stackgres-integration-test-native-image \
+        timeout -s KILL 3600 \
+        mvn $MAVEN_CLI_OPTS verify -P integration \
+          -DargLine=-Dcom.ongres.junit.docker.runnerId="$K8S_SUFFIX" \
+          -Dit.skipBuildContainer=true
+  only:
+    variables:
+      - $CI_COMMIT_REF_NAME == "development"
+      - $CI_COMMIT_REF_NAME == "master"
+      - $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
+      - $DO_DEPLOY
+      - $DO_NATIVE
+  artifacts:
+    expire_in: 1 week
+    when: always
+    paths:
+    - stackgres-k8s/src/operator/target/e2e
+
+e2e exclusive tests native image:
+  stage: test
+  tags:
+    - stackgres-runner
+  dependencies:
+    - compile
+  variables:
+    OPERATOR_IN_KUBERNETES: "true"
+    K8S_SUFFIX: native-image-exclusive
+    SKIP_QUARKUS_TEST: "true"
+  timeout: 12 hour
+  script:
+    - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}"'
+    - 'export OPERATOR_IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
+    - 'export RESTAPI_IMAGE_NAME="stackgres/restapi:$IMAGE_TAG"'
+    - 'export E2E_RUN_ONLY="exclusive"'
+    - |
+      flock -s /tmp/stackgres-build-native \
+        flock /tmp/stackgres-integration-test-native-image-exclusive \
         timeout -s KILL 3600 \
         mvn $MAVEN_CLI_OPTS verify -P integration \
           -DargLine=-Dcom.ongres.junit.docker.runnerId="$K8S_SUFFIX" \
@@ -294,7 +360,6 @@ deploy jvm image:
     - 'buildah push --format=docker --authfile $REGISTRY_AUTH_FILE $OPERATOR_IMAGE_NAME "docker://docker.io/$OPERATOR_IMAGE_UPLOAD_NAME"'
     - 'buildah pull docker-daemon:"$RESTAPI_IMAGE_NAME"'
     - 'buildah push --format=docker --authfile $REGISTRY_AUTH_FILE $RESTAPI_IMAGE_NAME "docker://docker.io/$RESTAPI_IMAGE_UPLOAD_NAME"'
-
   only:
     variables:
       - $CI_COMMIT_REF_NAME == "development"

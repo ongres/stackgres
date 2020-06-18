@@ -8,36 +8,48 @@ StackGres Version: {{ .Chart.Version }}
   ____) | || (_| | (__|   <| |__| | | |  __/\__ \
  |_____/ \__\__,_|\___|_|\_\\_____|_|  \___||___/
                                   by OnGres, Inc.
-
 {{- if not .Values.cert.autoapprove }}
+
 To complete the process approve operator certificate signing request:
+
     kubectl certificate approve {{ .Release.Name }}
 {{- end }}
 
-Check if the operator was successfuly deployed:
-    kubectl describe deployment -n {{ .Release.Namespace }}
+Check if the operator was successfully deployed and is available:
 
+    kubectl describe deployment -n {{ .Release.Namespace }} {{ .Release.Name }}
+
+    kubectl wait -n {{ .Release.Namespace }} deployment/{{ .Release.Name }} --for condition=Available
+
+Check if the restapi was successfully deployed and is available:
+
+    kubectl describe deployment -n {{ .Release.Namespace }} {{ .Values.restapi.name }}
+
+    kubectl wait -n {{ .Release.Namespace }} deployment/{{ .Values.restapi.name }} --for condition=Available
 {{- if .Values.deploy.restapi }}
+
 To access StackGres Operator UI from localhost, run the below commands:
 
-    export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
+    POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app={{ .Values.restapi.name }}" -o jsonpath="{.items[0].metadata.name}")
 
-    kubectl port-forward $POD_NAME 8433:9433 --namespace {{ .Release.Namespace }}
+    kubectl port-forward "$POD_NAME" 8443:9443 --namespace {{ .Release.Namespace }}
 
 Read more about port forwarding here: http://kubernetes.io/docs/user-guide/kubectl/kubectl_port-forward/
 
-Now you can access the StackGres Operator UI on https://localhost:8433. 
+Now you can access the StackGres Operator UI on:
+
+https://localhost:8443
 
 To get the username, run the command:
 
-    kubectl get secrets --namespace {{ .Release.Namespace }} {{ .Values.restapi.name }} -o jsonpath="{.data.user}" | base64 -d
-
+    kubectl get secret -n {{ .Release.Namespace }} {{ .Values.restapi.name }} --template '{{ "{{" }} printf "username = %s\n" (.data.k8sUsername | base64decode) {{ "}}" }}'
 {{- if not .Values.authentication.password }}
-To get the password, run the command:
 
-    kubectl get secrets --namespace {{ .Release.Namespace }} {{ .Values.restapi.name }} -o jsonpath="{.data.clearPassword}" | base64 -d
+To get the generated password, run the command:
 
-Remember to remove `crealPassword` key from the secret to avoid security flaws:
+    kubectl get secret -n {{ .Release.Namespace }} {{ .Values.restapi.name }} --template '{{ "{{" }} printf "password = %s\n" (.data.clearPassword | base64decode) {{ "}}" }}'
+
+Remember to remove the generated password hint from the secret to avoid security flaws:
 
     kubectl patch secrets --namespace {{ .Release.Namespace }} {{ .Values.restapi.name }} --type json -p '[{"op":"remove","path":"/data/clearPassword"}]'
 {{- end }}

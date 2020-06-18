@@ -167,14 +167,7 @@ setup_operator() {
     if [ "$E2E_USE_INTERMIDIATE_PRIVATE_REPO" != true \
         -a "$E2E_SKIP_OPERATOR_LOAD" != true ]
     then
-      if docker image inspect "$OPERATOR_IMAGE_NAME" >/dev/null 2>&1
-      then 
-        load_image_k8s "$OPERATOR_IMAGE_NAME"
-      fi
-      if docker image inspect "$RESTAPI_IMAGE_NAME" >/dev/null 2>&1
-      then 
-        load_image_k8s "$RESTAPI_IMAGE_NAME"
-      fi
+      load_operator_k8s
     fi
 
     k8s_webhook_cleanup
