@@ -251,7 +251,7 @@ var Nav = Vue.component("sg-nav", {
 			document.cookie = 'sgToken=';
 			store.commit('setLoginToken');
 			router.push('/');
-			store.replaceState({})
+			//store.replaceState({})
 			$('#signup').addClass('login').fadeIn();
 		},
 
