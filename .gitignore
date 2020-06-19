@@ -129,3 +129,12 @@ pom.xml.tag
 doc/public
 doc/data/crds
 doc/data/versions.yml
+
+# Node exclusions
+node_modules/
+package-lock.json
+stackgres-k8s/src/api-web/src/main/resources/META-INF/resources/stackgres
+.env
+cypress.env.json
+videos/
+*.mp4
