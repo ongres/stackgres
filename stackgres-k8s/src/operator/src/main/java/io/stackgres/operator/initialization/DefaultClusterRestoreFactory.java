@@ -7,11 +7,11 @@ package io.stackgres.operator.initialization;
 
 import javax.enterprise.context.ApplicationScoped;
 
-import io.stackgres.common.crd.sgcluster.ClusterRestore;
+import io.stackgres.common.crd.sgcluster.StackGresClusterRestore;
 
 @ApplicationScoped
 public class DefaultClusterRestoreFactory
-    extends AbstractCustomResourceFactory<ClusterRestore> {
+    extends AbstractCustomResourceFactory<StackGresClusterRestore> {
 
   private static final String DEFAULT_RESTORE_VALUES_FILE = "restore-default-values.properties";
 
@@ -21,8 +21,8 @@ public class DefaultClusterRestoreFactory
   }
 
   @Override
-  ClusterRestore buildResource(String namespace) {
-    return buildSpec(ClusterRestore.class);
+  StackGresClusterRestore buildResource(String namespace) {
+    return buildSpec(StackGresClusterRestore.class);
   }
 
 }

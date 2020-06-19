@@ -58,7 +58,7 @@ public class StackGresClusterSpec implements KubernetesResource {
   private Boolean prometheusAutobind;
 
   @JsonProperty("nonProductionOptions")
-  private NonProduction nonProduction;
+  private StackGresClusterNonProduction stackGresClusterNonProduction;
 
   public int getInstances() {
     return instances;
@@ -108,12 +108,12 @@ public class StackGresClusterSpec implements KubernetesResource {
     this.prometheusAutobind = prometheusAutobind;
   }
 
-  public NonProduction getNonProduction() {
-    return nonProduction;
+  public StackGresClusterNonProduction getNonProduction() {
+    return stackGresClusterNonProduction;
   }
 
-  public void setNonProduction(NonProduction nonProduction) {
-    this.nonProduction = nonProduction;
+  public void setNonProduction(StackGresClusterNonProduction stackGresClusterNonProduction) {
+    this.stackGresClusterNonProduction = stackGresClusterNonProduction;
   }
 
   public StackGresClusterInitData getInitData() {
@@ -143,7 +143,7 @@ public class StackGresClusterSpec implements KubernetesResource {
         .add("configurations", configuration)
         .add("initData", initData)
         .add("distributedLogs", distributedLogs)
-        .add("nonProductionOptions", nonProduction)
+        .add("nonProductionOptions", stackGresClusterNonProduction)
         .toString();
   }
 
@@ -162,12 +162,12 @@ public class StackGresClusterSpec implements KubernetesResource {
         && Objects.equals(initData, that.initData) && Objects.equals(pod, that.pod)
         && Objects.equals(prometheusAutobind, that.prometheusAutobind)
         && Objects.equals(distributedLogs, that.distributedLogs)
-        && Objects.equals(nonProduction, that.nonProduction);
+        && Objects.equals(stackGresClusterNonProduction, that.stackGresClusterNonProduction);
   }
 
   @Override
   public int hashCode() {
     return Objects.hash(instances, postgresVersion, configuration, resourceProfile,
-        initData, pod, prometheusAutobind, distributedLogs, nonProduction);
+        initData, pod, prometheusAutobind, distributedLogs, stackGresClusterNonProduction);
   }
 }

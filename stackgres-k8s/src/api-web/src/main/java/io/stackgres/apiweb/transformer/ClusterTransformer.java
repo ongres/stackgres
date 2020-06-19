@@ -135,24 +135,24 @@ public class ClusterTransformer
     return transformation;
   }
 
-  private io.stackgres.common.crd.sgcluster.NonProduction
+  private io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction
       getCustomResourceNonProduction(NonProduction source) {
     if (source == null) {
       return null;
     }
-    io.stackgres.common.crd.sgcluster.NonProduction transformation =
-        new io.stackgres.common.crd.sgcluster.NonProduction();
+    io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction transformation =
+        new io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction();
     transformation.setDisableClusterPodAntiAffinity(source.getDisableClusterPodAntiAffinity());
     return transformation;
   }
 
-  private io.stackgres.common.crd.sgcluster.ClusterRestore getCustomResourceRestore(
+  private io.stackgres.common.crd.sgcluster.StackGresClusterRestore getCustomResourceRestore(
       ClusterRestore source) {
     if (source == null) {
       return null;
     }
-    io.stackgres.common.crd.sgcluster.ClusterRestore transformation =
-        new io.stackgres.common.crd.sgcluster.ClusterRestore();
+    io.stackgres.common.crd.sgcluster.StackGresClusterRestore transformation =
+        new io.stackgres.common.crd.sgcluster.StackGresClusterRestore();
     transformation.setDownloadDiskConcurrency(source.getDownloadDiskConcurrency());
     transformation.setBackupUid(source.getBackupUid());
     return transformation;
@@ -226,7 +226,7 @@ public class ClusterTransformer
   }
 
   private NonProduction getResourceNonProduction(
-      io.stackgres.common.crd.sgcluster.NonProduction source) {
+      io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction source) {
     if (source == null) {
       return null;
     }
@@ -236,7 +236,7 @@ public class ClusterTransformer
   }
 
   private ClusterRestore getResourceRestore(
-      io.stackgres.common.crd.sgcluster.ClusterRestore source) {
+      io.stackgres.common.crd.sgcluster.StackGresClusterRestore source) {
     if (source == null) {
       return null;
     }

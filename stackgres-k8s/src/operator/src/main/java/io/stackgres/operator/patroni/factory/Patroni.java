@@ -149,6 +149,7 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
                 .map(Optional::get)
                 .flatMap(List::stream)
                 .zipWithIndex()
+                .filter(t -> t.v1.getScript() != null)
                 .map(t -> new VolumeMountBuilder()
                     .withName(PatroniScriptsConfigMap.name(
                         clusterContext, t.v2, t.v1.getName(), t.v1.getDatabase()))
@@ -201,6 +202,7 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
         .map(Optional::get)
         .flatMap(List::stream)
         .zipWithIndex()
+        .filter(t -> t.v1.getScript() != null)
         .map(t -> new VolumeBuilder()
             .withName(PatroniScriptsConfigMap.name(clusterContext,
                 t.v2, t.v1.getName(), t.v1.getDatabase()))

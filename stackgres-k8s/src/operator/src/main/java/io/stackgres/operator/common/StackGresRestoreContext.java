@@ -8,11 +8,11 @@ package io.stackgres.operator.common;
 import java.util.Map;
 
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
-import io.stackgres.common.crd.sgcluster.ClusterRestore;
+import io.stackgres.common.crd.sgcluster.StackGresClusterRestore;
 
 public class StackGresRestoreContext {
 
-  private final ClusterRestore restore;
+  private final StackGresClusterRestore restore;
   private final StackGresBackup backup;
   private final Map<String, Map<String, String>> secrets;
 
@@ -22,7 +22,7 @@ public class StackGresRestoreContext {
     this.secrets = builder.secrets;
   }
 
-  public ClusterRestore getRestore() {
+  public StackGresClusterRestore getRestore() {
     return restore;
   }
 
@@ -46,13 +46,13 @@ public class StackGresRestoreContext {
    * Builder to build {@link StackGresRestoreContext}.
    */
   public static final class Builder {
-    private ClusterRestore restore;
+    private StackGresClusterRestore restore;
     private StackGresBackup backup;
     private Map<String, Map<String, String>> secrets;
 
     private Builder() {}
 
-    public Builder withRestore(ClusterRestore restore) {
+    public Builder withRestore(StackGresClusterRestore restore) {
       this.restore = restore;
       return this;
     }

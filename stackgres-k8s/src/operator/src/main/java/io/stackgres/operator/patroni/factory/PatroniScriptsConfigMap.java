@@ -80,7 +80,7 @@ public class PatroniScriptsConfigMap implements StackGresClusterResourceStreamFa
               .withOwnerReferences(clusterContext.getOwnerReferences())
               .endMetadata()
               .withData(ImmutableMap.of(
-                  scriptName(t.v2, t.v1.getName(), t.v1.getDatabase()), t.v1.getValue()))
+                  scriptName(t.v2, t.v1.getName(), t.v1.getDatabase()), t.v1.getScript()))
               .build();
         });
   }

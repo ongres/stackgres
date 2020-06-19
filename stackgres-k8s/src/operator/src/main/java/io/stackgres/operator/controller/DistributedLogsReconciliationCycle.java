@@ -19,15 +19,15 @@ import io.stackgres.common.ArcUtil;
 import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.StackGresUtil;
-import io.stackgres.common.crd.sgcluster.NonProduction;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDefinition;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDistributedLogs;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDoneable;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterList;
+import io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
-import io.stackgres.common.crd.sgcluster.StackGresClusterScript;
+import io.stackgres.common.crd.sgcluster.StackGresClusterScriptEntry;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresPodPersistentVolume;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
@@ -226,16 +226,16 @@ public class DistributedLogsReconciliationCycle
     pod.setPersistentVolume(persistentVolume);
     spec.setPod(pod);
     final StackGresClusterInitData initData = new StackGresClusterInitData();
-    final StackGresClusterScript script = new StackGresClusterScript();
+    final StackGresClusterScriptEntry script = new StackGresClusterScriptEntry();
     script.setName("distributed-logs-template");
     script.setDatabase("template1");
-    script.setValue(Unchecked.supplier(() -> Resources
+    script.setScript(Unchecked.supplier(() -> Resources
           .asCharSource(ClusterStatefulSet.class.getResource("/distributed-logs-template.sql"),
               StandardCharsets.UTF_8)
           .read()).get());
     initData.setScripts(ImmutableList.of(script));
     spec.setInitData(initData);
-    final NonProduction nonProduction = new NonProduction();
+    final StackGresClusterNonProduction nonProduction = new StackGresClusterNonProduction();
     nonProduction.setDisableClusterPodAntiAffinity(
         distributedLogs.getSpec().getNonProduction().getDisableClusterPodAntiAffinity());
     spec.setNonProduction(nonProduction);
