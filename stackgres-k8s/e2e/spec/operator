@@ -20,6 +20,7 @@ e2e_test() {
   run_test "Check that operator can be deleted" check_operator_delete
   run_test "Check that operator can be installed from outside" check_operator_install_outside
   run_test "Check that operator can be installed with load balancer" check_operator_install_load_balancer
+  run_test "Check that operator can be installed with the '--wait' option" check_operator_install_with_wait
 }
 
 check_operator_install() {
@@ -44,4 +45,21 @@ check_operator_install_load_balancer() {
   delete_operator
 
   install_operator --set service.loadBalancer.enabled=true
+}
+
+check_operator_install_with_wait() {
+  delete_operator
+
+  install_operator \
+    --wait
+
+  for app in operator restapi; do
+    if kubectl wait --timeout 0 --for=condition=Ready -n stackgres -l app="stackgres-${app}" pod; then
+      echo "SUCCESS. The stackgres '${app}' pod was ready after using --wait parameter."
+      continue
+    fi
+
+    echo "FAILED. The stackgres '${app}' pod was not ready after using --wait parameter."
+    return 1
+  done
 }
