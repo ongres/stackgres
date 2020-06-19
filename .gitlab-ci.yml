@@ -116,9 +116,9 @@ native image:
       - stackgres-k8s/src/api-web/target/stackgres-restapi-runner.jar
   only:
     variables:
-      - $CI_COMMIT_REF_NAME == "development"
-      - $CI_COMMIT_REF_NAME == "master"
-      - $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
+      - ! $SKIP_E2E && ! $SKIP_NATIVE && $CI_COMMIT_REF_NAME == "development"
+      - ! $SKIP_E2E && ! $SKIP_NATIVE && $CI_COMMIT_REF_NAME == "master"
+      - ! $SKIP_E2E && ! $SKIP_NATIVE && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
       - $DO_DEPLOY
       - $DO_NATIVE
 
@@ -149,6 +149,9 @@ build test images:
       flock /tmp/stackgres-build-it-image  \
         timeout -s KILL 3600 \
         mvn $MAVEN_CLI_OPTS pre-integration-test -P integration
+  only:
+    variables:
+      - ! $SKIP_E2E
 
 build jvm image:
   stage: pre test
@@ -167,6 +170,9 @@ build jvm image:
       flock /tmp/stackgres-build-jvm-image  \
         timeout -s KILL 3600 \
         mvn $MAVEN_CLI_OPTS package -P build-image-jvm
+  only:
+    variables:
+      - ! $SKIP_E2E
 
 build native image:
   stage: pre test
@@ -188,9 +194,9 @@ build native image:
         mvn $MAVEN_CLI_OPTS package -P build-image-native
   only:
     variables:
-      - $CI_COMMIT_REF_NAME == "development"
-      - $CI_COMMIT_REF_NAME == "master"
-      - $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
+      - ! $SKIP_E2E && ! $SKIP_NATIVE && $CI_COMMIT_REF_NAME == "development"
+      - ! $SKIP_E2E && ! $SKIP_NATIVE && $CI_COMMIT_REF_NAME == "master"
+      - ! $SKIP_E2E && ! $SKIP_NATIVE && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
       - $DO_DEPLOY
       - $DO_NATIVE
 
@@ -252,6 +258,9 @@ e2e tests jvm image:
         mvn $MAVEN_CLI_OPTS verify -P integration \
           -DargLine=-Dcom.ongres.junit.docker.runnerId="$K8S_SUFFIX" \
           -Dit.skipBuildContainer=true
+  only:
+    variables:
+      - ! $SKIP_E2E
   artifacts:
     expire_in: 1 week
     when: always
@@ -280,6 +289,9 @@ e2e exclusive tests jvm image:
         mvn $MAVEN_CLI_OPTS verify -P integration \
           -DargLine=-Dcom.ongres.junit.docker.runnerId="$K8S_SUFFIX" \
           -Dit.skipBuildContainer=true
+  only:
+    variables:
+      - ! $SKIP_E2E
   artifacts:
     expire_in: 1 week
     when: always
@@ -311,9 +323,9 @@ e2e tests native image:
           -Dit.skipBuildContainer=true
   only:
     variables:
-      - $CI_COMMIT_REF_NAME == "development"
-      - $CI_COMMIT_REF_NAME == "master"
-      - $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
+      - ! $SKIP_E2E && ! $SKIP_NATIVE && $CI_COMMIT_REF_NAME == "development"
+      - ! $SKIP_E2E && ! $SKIP_NATIVE && $CI_COMMIT_REF_NAME == "master"
+      - ! $SKIP_E2E && ! $SKIP_NATIVE && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
       - $DO_DEPLOY
       - $DO_NATIVE
   artifacts:
@@ -347,9 +359,9 @@ e2e exclusive tests native image:
           -Dit.skipBuildContainer=true
   only:
     variables:
-      - $CI_COMMIT_REF_NAME == "development"
-      - $CI_COMMIT_REF_NAME == "master"
-      - $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
+      - ! $SKIP_E2E && ! $SKIP_NATIVE && $CI_COMMIT_REF_NAME == "development"
+      - ! $SKIP_E2E && ! $SKIP_NATIVE && $CI_COMMIT_REF_NAME == "master"
+      - ! $SKIP_E2E && ! $SKIP_NATIVE && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
       - $DO_DEPLOY
       - $DO_NATIVE
   artifacts:
@@ -376,8 +388,8 @@ deploy jvm image:
     - 'buildah push --format=docker --authfile $REGISTRY_AUTH_FILE $RESTAPI_IMAGE_NAME "docker://docker.io/$RESTAPI_IMAGE_UPLOAD_NAME"'
   only:
     variables:
-      - $CI_COMMIT_REF_NAME == "development"
-      - $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
+      - ! $SKIP_DEPLOY && $CI_COMMIT_REF_NAME == "development"
+      - ! $SKIP_DEPLOY && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
       - $DO_DEPLOY
 
 deploy native image:
@@ -398,8 +410,8 @@ deploy native image:
     - 'buildah push --format=docker --authfile $REGISTRY_AUTH_FILE $RESTAPI_IMAGE_NAME "docker://docker.io/$RESTAPI_IMAGE_UPLOAD_NAME"'
   only:
     variables:
-      - $CI_COMMIT_REF_NAME == "development"
-      - $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
+      - ! $SKIP_DEPLOY && ! $SKIP_NATIVE && $CI_COMMIT_REF_NAME == "development"
+      - ! $SKIP_DEPLOY && ! $SKIP_NATIVE && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
       - $DO_DEPLOY
 
 deploy adminui image:
