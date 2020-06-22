@@ -20,8 +20,7 @@ cluster:
     - name: create-sakila-database
       script: |
         CREATE DATABASE sakila WITH OWNER sakila;
-    - name: create-sakila-schema
-      database: sakila
+    - database: sakila
       scriptFrom:
         configMapKeyRef: # read long script from a ConfigMap to avoid have to much data in the helm releasea and the sgcluster CR
           name: sakila-sqls-scripts

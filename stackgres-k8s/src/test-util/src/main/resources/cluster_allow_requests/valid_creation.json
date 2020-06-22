@@ -57,6 +57,13 @@
           "scripts": [{
             "name": "test",
             "script": "CREATE DATABASE test;"
+          },{
+            "scriptFrom": {
+              "secretKeyRef": {
+                "name": "test",
+                "key": "test"
+              }
+            }
           }]
         },
         "configurations": {
