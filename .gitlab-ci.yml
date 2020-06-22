@@ -33,6 +33,9 @@ variables:
   K8S_REUSE: "true"
   DOCUMENTATION_BASE_URL: "https://ongresinc.gitlab.io/web/stackgres/doc/latest"
   PRODUCTION_DOCUMENTATION_BASE_URL: "https://stackgres.io/doc/latest"
+  SKIP_NATIVE: "false"
+  SKIP_E2E: "false"
+  SKIP_DEPLOY: "false"
 
 # Cache downloaded dependencies and plugins between builds.
 # To keep cache across branches add 'key: "$CI_JOB_NAME"'
@@ -116,9 +119,9 @@ native image:
       - stackgres-k8s/src/api-web/target/stackgres-restapi-runner.jar
   only:
     variables:
-      - ! $SKIP_E2E && ! $SKIP_NATIVE && $CI_COMMIT_REF_NAME == "development"
-      - ! $SKIP_E2E && ! $SKIP_NATIVE && $CI_COMMIT_REF_NAME == "master"
-      - ! $SKIP_E2E && ! $SKIP_NATIVE && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
+      - $SKIP_E2E != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME == "development"
+      - $SKIP_E2E != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME == "master"
+      - $SKIP_E2E != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
       - $DO_DEPLOY
       - $DO_NATIVE
 
@@ -151,7 +154,7 @@ build test images:
         mvn $MAVEN_CLI_OPTS pre-integration-test -P integration
   only:
     variables:
-      - ! $SKIP_E2E
+      - $SKIP_E2E != "true"
 
 build jvm image:
   stage: pre test
@@ -172,7 +175,7 @@ build jvm image:
         mvn $MAVEN_CLI_OPTS package -P build-image-jvm
   only:
     variables:
-      - ! $SKIP_E2E
+      - $SKIP_E2E != "true"
 
 build native image:
   stage: pre test
@@ -194,9 +197,9 @@ build native image:
         mvn $MAVEN_CLI_OPTS package -P build-image-native
   only:
     variables:
-      - ! $SKIP_E2E && ! $SKIP_NATIVE && $CI_COMMIT_REF_NAME == "development"
-      - ! $SKIP_E2E && ! $SKIP_NATIVE && $CI_COMMIT_REF_NAME == "master"
-      - ! $SKIP_E2E && ! $SKIP_NATIVE && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
+      - $SKIP_E2E != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME == "development"
+      - $SKIP_E2E != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME == "master"
+      - $SKIP_E2E != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
       - $DO_DEPLOY
       - $DO_NATIVE
 
@@ -260,7 +263,7 @@ e2e tests jvm image:
           -Dit.skipBuildContainer=true
   only:
     variables:
-      - ! $SKIP_E2E
+      - $SKIP_E2E != "true"
   artifacts:
     expire_in: 1 week
     when: always
@@ -291,7 +294,7 @@ e2e exclusive tests jvm image:
           -Dit.skipBuildContainer=true
   only:
     variables:
-      - ! $SKIP_E2E
+      - $SKIP_E2E != "true"
   artifacts:
     expire_in: 1 week
     when: always
@@ -323,9 +326,9 @@ e2e tests native image:
           -Dit.skipBuildContainer=true
   only:
     variables:
-      - ! $SKIP_E2E && ! $SKIP_NATIVE && $CI_COMMIT_REF_NAME == "development"
-      - ! $SKIP_E2E && ! $SKIP_NATIVE && $CI_COMMIT_REF_NAME == "master"
-      - ! $SKIP_E2E && ! $SKIP_NATIVE && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
+      - $SKIP_E2E != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME == "development"
+      - $SKIP_E2E != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME == "master"
+      - $SKIP_E2E != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
       - $DO_DEPLOY
       - $DO_NATIVE
   artifacts:
@@ -359,9 +362,9 @@ e2e exclusive tests native image:
           -Dit.skipBuildContainer=true
   only:
     variables:
-      - ! $SKIP_E2E && ! $SKIP_NATIVE && $CI_COMMIT_REF_NAME == "development"
-      - ! $SKIP_E2E && ! $SKIP_NATIVE && $CI_COMMIT_REF_NAME == "master"
-      - ! $SKIP_E2E && ! $SKIP_NATIVE && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
+      - $SKIP_E2E != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME == "development"
+      - $SKIP_E2E != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME == "master"
+      - $SKIP_E2E != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
       - $DO_DEPLOY
       - $DO_NATIVE
   artifacts:
@@ -388,8 +391,8 @@ deploy jvm image:
     - 'buildah push --format=docker --authfile $REGISTRY_AUTH_FILE $RESTAPI_IMAGE_NAME "docker://docker.io/$RESTAPI_IMAGE_UPLOAD_NAME"'
   only:
     variables:
-      - ! $SKIP_DEPLOY && $CI_COMMIT_REF_NAME == "development"
-      - ! $SKIP_DEPLOY && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
+      - $SKIP_DEPLOY != "true" && $CI_COMMIT_REF_NAME == "development"
+      - $SKIP_DEPLOY != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
       - $DO_DEPLOY
 
 deploy native image:
@@ -410,8 +413,8 @@ deploy native image:
     - 'buildah push --format=docker --authfile $REGISTRY_AUTH_FILE $RESTAPI_IMAGE_NAME "docker://docker.io/$RESTAPI_IMAGE_UPLOAD_NAME"'
   only:
     variables:
-      - ! $SKIP_DEPLOY && ! $SKIP_NATIVE && $CI_COMMIT_REF_NAME == "development"
-      - ! $SKIP_DEPLOY && ! $SKIP_NATIVE && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
+      - $SKIP_DEPLOY != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME == "development"
+      - $SKIP_DEPLOY != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
       - $DO_DEPLOY
 
 deploy adminui image:
