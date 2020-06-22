@@ -31,8 +31,8 @@ public class StackGresClusterScriptFrom {
   @AssertTrue(message = "secretKeyRef and configMapKeyRef are mutually exclusive and one of them is"
       + " required.")
   public boolean areSecretKeySelectorAndConfigMapKeySelectorMutuallyExclusiveAndOneRequired() {
-    return (secretKeyRef != null && configMapKeyRef == null)
-        || (secretKeyRef == null && configMapKeyRef != null);
+    return (secretKeyRef != null && configMapKeyRef == null) // NOPMD
+        || (secretKeyRef == null && configMapKeyRef != null); //NOPMD
   }
 
   public SecretKeySelector getSecretKeyRef() {

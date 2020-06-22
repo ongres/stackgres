@@ -134,8 +134,9 @@ spec:
                     properties:
                       name:
                         type: string
+                        pattern: '[-._a-zA-Z0-9]+'
                         description: |
-                          The name of the script.
+                          The name of the script that have to follow the same syntax rules of a configmap key ([-._a-zA-Z0-9]+).
                       database:
                         type: string
                         description: |
@@ -175,7 +176,6 @@ spec:
                                 type: string
                                 description: |
                                   The key of the ConfigMap that contains the SQL script to execute.
-                    required: ["name"]
             prometheusAutobind:
               type: boolean
               description: |

@@ -1,0 +1,26 @@
+{{ if and .Values.deploy.operator .Values.developer.externalOperatorIp .Values.developer.externalOperatorPort }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-nginx
+  namespace: {{ .Release.Namespace }}
+data:
+  stackgres-operator.conf: |
+    server {
+      server_name  localhost;
+      
+      listen       9443 ssl;
+      ssl_certificate         /etc/operator/certs/server.crt;
+      ssl_certificate_key     /etc/operator/certs/root.key;
+      
+      location ~ ^/stackgres {
+        proxy_redirect off;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Server $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_pass http://{{ .Release.Name }}-api:8080;
+      }
+    }
+{{- end }}

@@ -25,6 +25,7 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.ProbeBuilder;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
+import io.fabric8.kubernetes.api.model.SecretVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
@@ -149,15 +150,18 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
                 .map(Optional::get)
                 .flatMap(List::stream)
                 .zipWithIndex()
-                .filter(t -> t.v1.getScript() != null)
                 .map(t -> new VolumeMountBuilder()
                     .withName(PatroniScriptsConfigMap.name(
                         clusterContext, t.v2, t.v1.getName(), t.v1.getDatabase()))
                     .withMountPath("/etc/patroni/init-script.d/"
                         + PatroniScriptsConfigMap.scriptName(
                         t.v2, t.v1.getName(), t.v1.getDatabase()))
-                    .withSubPath(PatroniScriptsConfigMap.scriptName(
-                        t.v2, t.v1.getName(), t.v1.getDatabase()))
+                    .withSubPath(t.v1.getScript() != null
+                        ? PatroniScriptsConfigMap.scriptName(
+                            t.v2, t.v1.getName(), t.v1.getDatabase())
+                        : t.v1.getScriptFrom().getConfigMapKeyRef() != null
+                            ? t.v1.getScriptFrom().getConfigMapKeyRef().getKey()
+                            : t.v1.getScriptFrom().getSecretKeyRef().getKey())
                     .withReadOnly(true)
                     .build())
                 .toArray(VolumeMount[]::new))
@@ -212,6 +216,40 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
                 .withOptional(false)
                 .build())
             .build())
+        .append(Seq.of(Optional.ofNullable(
+            clusterContext.getCluster().getSpec().getInitData())
+            .map(StackGresClusterInitData::getScripts))
+            .filter(Optional::isPresent)
+            .map(Optional::get)
+            .flatMap(List::stream)
+            .zipWithIndex()
+            .filter(t -> t.v1.getScriptFrom() != null)
+            .filter(t -> t.v1.getScriptFrom().getConfigMapKeyRef() != null)
+            .map(t -> new VolumeBuilder()
+                .withName(PatroniScriptsConfigMap.name(clusterContext,
+                    t.v2, t.v1.getName(), t.v1.getDatabase()))
+                .withConfigMap(new ConfigMapVolumeSourceBuilder()
+                    .withName(t.v1.getScriptFrom().getConfigMapKeyRef().getName())
+                    .withOptional(false)
+                    .build())
+                .build()))
+        .append(Seq.of(Optional.ofNullable(
+            clusterContext.getCluster().getSpec().getInitData())
+            .map(StackGresClusterInitData::getScripts))
+            .filter(Optional::isPresent)
+            .map(Optional::get)
+            .flatMap(List::stream)
+            .zipWithIndex()
+            .filter(t -> t.v1.getScriptFrom() != null)
+            .filter(t -> t.v1.getScriptFrom().getSecretKeyRef() != null)
+            .map(t -> new VolumeBuilder()
+                .withName(PatroniScriptsConfigMap.name(clusterContext,
+                    t.v2, t.v1.getName(), t.v1.getDatabase()))
+                .withSecret(new SecretVolumeSourceBuilder()
+                    .withSecretName(t.v1.getScriptFrom().getSecretKeyRef().getName())
+                    .withOptional(false)
+                    .build())
+                .build()))
         .collect(ImmutableList.toImmutableList());
   }
 

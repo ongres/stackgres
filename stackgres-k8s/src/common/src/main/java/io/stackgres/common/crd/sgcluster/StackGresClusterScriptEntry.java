@@ -34,8 +34,8 @@ public class StackGresClusterScriptEntry {
 
   @AssertTrue(message = "script and scriptFrom are mutually exclusive and one of them is required.")
   public boolean areScriptAndScriptFromMutuallyExclusiveAndOneRequired() {
-    return (script != null && scriptFrom == null)
-        || (script == null && scriptFrom != null);
+    return (script != null && scriptFrom == null) // NOPMD
+        || (script == null && scriptFrom != null); // NOPMD
   }
 
   public String getName() {

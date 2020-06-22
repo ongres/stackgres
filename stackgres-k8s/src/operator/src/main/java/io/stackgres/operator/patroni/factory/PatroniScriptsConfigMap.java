@@ -49,7 +49,7 @@ public class PatroniScriptsConfigMap implements StackGresClusterResourceStreamFa
   }
 
   private static String baseName(Long index, String name, String database) {
-    name = name.replace('.', '_');
+    name = name.replaceAll("[^-._a-zA-Z0-9]", "-");
     if (database == null) {
       return String.format(SCRIPT_NAME, index, name);
     }
@@ -70,6 +70,7 @@ public class PatroniScriptsConfigMap implements StackGresClusterResourceStreamFa
         .map(Optional::get)
         .flatMap(List::stream)
         .zipWithIndex()
+        .filter(t -> t.v1.getScript() != null)
         .map(t -> {
           final LabelFactory<?> labelFactory = factoryDelegator.pickFactory(clusterContext);
           return new ConfigMapBuilder()

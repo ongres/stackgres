@@ -32,7 +32,7 @@ spec:
   {{- if .Values.cluster.initialData.scripts }}
     scripts:
   {{- range .Values.cluster.initialData.scripts }}
-      name: {{ .name }}
+    - name: {{ .name }}
       {{- if .database }}
       database: {{ .database }}
       {{- end }}
