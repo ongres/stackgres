@@ -138,6 +138,7 @@ spec:
                 path: root.key
               - key: server.crt
                 path: server.crt
+        {{- if and .Values.developer.externalOperatorIp .Values.developer.externalOperatorPort }}
         - name: operator-nginx-conf
           configMap:
             name: {{ .Release.Name }}-nginx
@@ -147,4 +148,5 @@ spec:
                 path: stackgres-operator.conf
         - name: operator-nginx
           emptyDir: {}
+        {{- end }}
 {{- end }}

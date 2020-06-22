@@ -128,9 +128,13 @@ spec:
                 scripts:
                   type: array
                   description: |
-                    A list of SQL scripts that will be executed once in secuence when the database bootstrap and after restore is completed
+                    A list of SQL scripts that will be executed once in secuence when the database bootstrap and after restore is completed.
                   items:
                     type: object
+                    description: |
+                      Scripts are executed in autocommit mode with the user `postgres` in the specified database (or in database `postgres` if not specified).
+                      
+                      Fields `script` and `scriptFrom` are mutually exclusive and one of them is required.
                     properties:
                       name:
                         type: string
@@ -139,7 +143,7 @@ spec:
                       database:
                         type: string
                         description: |
-                          The database where the script will be executed.
+                          The database where the script will be executed. If not specified will be the `postgres` database.
                       script:
                         type: string
                         description: |
@@ -148,6 +152,8 @@ spec:
                         type: object
                         description: |
                           Reference that contains the SQL script to execute. This field is mutually exclusive with `script` field.
+                          
+                          Fields `secretKeyRef` and `configMapKeyRef` are mutually exclusive and one of them is required.
                         properties:
                           secretKeyRef:
                             type: object
