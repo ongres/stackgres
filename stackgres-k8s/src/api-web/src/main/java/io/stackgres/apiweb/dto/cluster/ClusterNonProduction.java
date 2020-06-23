@@ -14,7 +14,7 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class NonProduction {
+public class ClusterNonProduction {
 
   @JsonProperty("disableClusterPodAntiAffinity")
   public Boolean disableClusterPodAntiAffinity;

@@ -30,7 +30,7 @@ public class StackGresDistributedLogsSpec implements KubernetesResource {
   private StackGresDistributedLogsPersistentVolume persistentVolume;
 
   @JsonProperty("nonProductionOptions")
-  private NonProduction nonProduction;
+  private StackGresDistributedNonProduction nonProduction;
 
   public StackGresDistributedLogsPersistentVolume getPersistentVolume() {
     return persistentVolume;
@@ -41,11 +41,11 @@ public class StackGresDistributedLogsSpec implements KubernetesResource {
     this.persistentVolume = persistentVolume;
   }
 
-  public NonProduction getNonProduction() {
+  public StackGresDistributedNonProduction getNonProduction() {
     return nonProduction;
   }
 
-  public void setNonProduction(NonProduction nonProduction) {
+  public void setNonProduction(StackGresDistributedNonProduction nonProduction) {
     this.nonProduction = nonProduction;
   }
 

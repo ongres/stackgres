@@ -3,9 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.common.crd.sgdistributedlogs;
-
-import java.util.Objects;
+package io.stackgres.apiweb.dto.distributedlogs;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -16,7 +14,7 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class NonProduction {
+public class DistributedLogsNonProduction {
 
   @JsonProperty("disableClusterPodAntiAffinity")
   public Boolean disableClusterPodAntiAffinity;
@@ -35,22 +33,5 @@ public class NonProduction {
         .omitNullValues()
         .add("disableClusterPodAntiAffinity", getDisableClusterPodAntiAffinity())
         .toString();
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    NonProduction that = (NonProduction) o;
-    return Objects.equals(disableClusterPodAntiAffinity, that.disableClusterPodAntiAffinity);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(disableClusterPodAntiAffinity);
   }
 }

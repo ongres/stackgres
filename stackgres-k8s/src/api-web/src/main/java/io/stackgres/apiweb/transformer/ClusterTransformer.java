@@ -17,12 +17,12 @@ import io.stackgres.apiweb.dto.cluster.ClusterConfiguration;
 import io.stackgres.apiweb.dto.cluster.ClusterDistributedLogs;
 import io.stackgres.apiweb.dto.cluster.ClusterDto;
 import io.stackgres.apiweb.dto.cluster.ClusterInitData;
+import io.stackgres.apiweb.dto.cluster.ClusterNonProduction;
 import io.stackgres.apiweb.dto.cluster.ClusterPod;
 import io.stackgres.apiweb.dto.cluster.ClusterPodMetadata;
 import io.stackgres.apiweb.dto.cluster.ClusterPodPersistentVolume;
 import io.stackgres.apiweb.dto.cluster.ClusterRestore;
 import io.stackgres.apiweb.dto.cluster.ClusterSpec;
-import io.stackgres.apiweb.dto.cluster.NonProduction;
 import io.stackgres.common.ConfigContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDistributedLogs;
@@ -136,7 +136,7 @@ public class ClusterTransformer
   }
 
   private io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction
-      getCustomResourceNonProduction(NonProduction source) {
+      getCustomResourceNonProduction(ClusterNonProduction source) {
     if (source == null) {
       return null;
     }
@@ -225,12 +225,12 @@ public class ClusterTransformer
     return transformation;
   }
 
-  private NonProduction getResourceNonProduction(
+  private ClusterNonProduction getResourceNonProduction(
       io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction source) {
     if (source == null) {
       return null;
     }
-    NonProduction transformation = new NonProduction();
+    ClusterNonProduction transformation = new ClusterNonProduction();
     transformation.setDisableClusterPodAntiAffinity(source.getDisableClusterPodAntiAffinity());
     return transformation;
   }
