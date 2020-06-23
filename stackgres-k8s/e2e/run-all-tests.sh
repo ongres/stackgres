@@ -25,6 +25,8 @@ else
     | xargs -r -n 1 -I % echo "$SPEC_PATH/%")"
 fi
 
+echo_raw "Running tests: $SPECS"
+
 export K8S_REUSE=true
 export E2E_REUSE_OPERATOR_PODS=true
 export E2E_SKIP_SETUP=false
