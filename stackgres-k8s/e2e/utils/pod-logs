@@ -37,7 +37,7 @@ pod_logs() {
     esac
   done
   rm -f "$pods_file"
-  exec kubectl get pod $(if [ -z "$namespace" ]; then echo '--all-namespaces'; else echo '-n '"$namespace"; fi) -o json --watch \
+  trap_exec kubectl get pod $(if [ -z "$namespace" ]; then echo '--all-namespaces'; else echo '-n '"$namespace"; fi) -o json --watch \
     | jq --unbuffered -r '.metadata.namespace + "/" + .metadata.name + "/" + .metadata.uid + "," + (.metadata.ownerReferences | map(.kind) | .[] | tostring)' \
     | while read pod; do
         if [ -n "$filtered_pod" ] \
@@ -126,7 +126,7 @@ pod_logs_pod_container_in_trap() {
         fi
         sleep 1
       done
-      exec kubectl logs -n "'"$namespace"'" "'"$pod"'" -c "'"$container"'" -f' \
+      trap_exec kubectl logs -n "'"$namespace"'" "'"$pod"'" -c "'"$container"'" -f' \
       | (
       read pid
       trap_kill "$pid"

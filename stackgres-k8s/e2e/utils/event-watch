@@ -22,7 +22,7 @@ event_watch() {
         ;;
     esac
   done
-  exec kubectl get event $(if [ -z "$namespace" ]; then echo '--all-namespaces'; else echo '-n '"$namespace"; fi) --watch-only --no-headers \
+  trap_exec  kubectl get event $(if [ -z "$namespace" ]; then echo '--all-namespaces'; else echo '-n '"$namespace"; fi) --watch-only --no-headers \
     | stdbuf -o0 sed 's/\s\+/ /g' \
     | xargs -r -n 1 -I % sh $SHELL_XTRACE -ec "$(
       if [ -z "$namespace" ]
