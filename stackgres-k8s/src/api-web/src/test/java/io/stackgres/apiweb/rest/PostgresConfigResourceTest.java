@@ -77,6 +77,7 @@ class PostgresConfigResourceTest
         "password_encryption='scram-sha-256'",
         "random_page_cost=1.5",
         "shared_buffers=256MB",
+        "wal_compression=on",
         "pg_stat_statements.max=10000")
         .toString("\n"),
         resource.getSpec().getPostgresqlConf());
