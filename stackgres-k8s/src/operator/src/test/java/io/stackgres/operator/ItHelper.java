@@ -116,7 +116,7 @@ public class ItHelper {
   /**
    * It helper method.
    */
-  public static void resetKind(Container k8s, int size) throws Exception {
+  public static void resetKind(Container k8s) throws Exception {
     if (Optional.ofNullable(System.getenv("K8S_REUSE"))
         .map(Boolean::parseBoolean)
         .orElse(true)) {
