@@ -292,7 +292,7 @@ e2e tests jvm image part 3:
     E2E_RUN_BATCH_INDEX: 2
     E2E_RUN_BATCH_COUNT: 3
 
-e2e exclusive tests jvm image:
+e2e exclusive tests jvm image part 1:
   extends: .e2e tests jvm image
   variables:
     E2E_RUN_BATCH_INDEX: 0
@@ -300,7 +300,7 @@ e2e exclusive tests jvm image:
     E2E_EXTRA_SUFFIX: "-exclusive"
     E2E_RUN_ONLY: exclusive
 
-e2e exclusive tests jvm image:
+e2e exclusive tests jvm image part 2:
   extends: .e2e tests jvm image
   variables:
     E2E_RUN_BATCH_INDEX: 1
@@ -366,7 +366,7 @@ e2e tests native image part 3:
     E2E_RUN_BATCH_INDEX: 2
     E2E_RUN_BATCH_COUNT: 3
 
-e2e exclusive tests native image:
+e2e exclusive tests native image part 1:
   extends: .e2e tests native image
   variables:
     E2E_RUN_BATCH_INDEX: 0
@@ -374,7 +374,7 @@ e2e exclusive tests native image:
     E2E_EXTRA_SUFFIX: "-exclusive"
     E2E_RUN_ONLY: exclusive
 
-e2e exclusive tests native image:
+e2e exclusive tests native image part 2:
   extends: .e2e tests native image
   variables:
     E2E_RUN_BATCH_INDEX: 1
