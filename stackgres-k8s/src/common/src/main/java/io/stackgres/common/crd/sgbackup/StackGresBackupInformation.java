@@ -28,6 +28,7 @@ public class StackGresBackupInformation {
 
   private Map<String, String> controlData;
   private String startWalFile;
+  private Long timeline;
 
   public String getHostname() {
     return hostname;
@@ -91,6 +92,14 @@ public class StackGresBackupInformation {
 
   public void setSize(StackgresBackupSize size) {
     this.size = size;
+  }
+
+  public Long getTimeline() {
+    return timeline;
+  }
+
+  public void setTimeline(Long timeline) {
+    this.timeline = timeline;
   }
 
   @Override

@@ -29,6 +29,8 @@ public class BackupInformation {
   private BackupSize size;
   private Map<String, String> controlData;
 
+  private Long timeline;
+
   public void setControlData(Map<String, String> controlData) {
     this.controlData = controlData;
   }
@@ -91,6 +93,14 @@ public class BackupInformation {
 
   public void setLsn(BackupLsn lsn) {
     this.lsn = lsn;
+  }
+
+  public Long getTimeline() {
+    return timeline;
+  }
+
+  public void setTimeline(Long timeline) {
+    this.timeline = timeline;
   }
 
   @Override
