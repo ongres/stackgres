@@ -64,7 +64,17 @@ public class StackGresOperatorEnd2EndIt extends AbstractStackGresOperatorIt {
                   + "rm -Rf /resources/e2e/target\n"
                   + ItHelper.E2E_ENVVARS + "\n"
                   + E2E_RUN_ONLY.map(runOnly -> {
-                    if (runOnly.equals("exclusive") || runOnly.equals("non_exclusive")) {
+                    if (runOnly.matches("(non_)?exclusive(:[0-9]+/[0-9]+)?")) {
+                      if (runOnly.contains(":")) {
+                        int indexOfColon = runOnly.indexOf(":");
+                        int indexOfSlash = runOnly.indexOf("/");
+                        return "COUNT=$(sh e2e get_all_" + runOnly.substring(0, indexOfColon) + "_specs | wc -l)\n"
+                            + "export E2E_ONLY_INCLUDES=$("
+                            + "sh e2e get_all_" + runOnly.substring(0, indexOfColon) + "_specs"
+                            + " | tail -n +\"$((COUNT * " + runOnly.substring(indexOfColon + 1, indexOfSlash) + ""
+                                + " / " + runOnly.substring(indexOfSlash + 1) + "))\""
+                            + " | head -n \"$((COUNT / " + runOnly.substring(indexOfSlash + 1) + "))\")\n";
+                      }
                       return "export E2E_ONLY_INCLUDES=$(sh e2e get_all_" + runOnly + "_specs)\n";
                     }
                     return "export E2E_ONLY_INCLUDES=" + runOnly + "\n";
