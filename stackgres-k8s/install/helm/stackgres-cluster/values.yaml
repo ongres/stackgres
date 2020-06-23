@@ -54,7 +54,6 @@ configurations:
       shared_buffers: '256MB'
       random_page_cost: '1.5'
       password_encryption: 'scram-sha-256'
-      wal_compression: 'on'
       checkpoint_timeout: '30'
   poolingconfig:
     pgBouncer:
