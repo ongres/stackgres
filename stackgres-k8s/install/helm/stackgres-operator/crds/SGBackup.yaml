@@ -135,6 +135,10 @@ spec:
                   type: string
                   description: |
                     The WAL segment file name when backup was started.
+                timeline:
+                  type: string
+                  description: |
+                    The backup timeline.
                 controlData:
                   type: object
                   description: |
