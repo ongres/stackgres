@@ -15,7 +15,7 @@ cluster:
     - name: create-sakila-user
       scriptFrom:
         secretKeyRef: # read the user from a Secret to maintain credentials in a safe place
-          name: sakila-secret-sqls-scripts
+          name: sqls-scripts-sakila
           key: create-sakila-user.sql
     - name: create-sakila-database
       script: |
@@ -23,7 +23,7 @@ cluster:
     - database: sakila
       scriptFrom:
         configMapKeyRef: # read long script from a ConfigMap to avoid have to much data in the helm releasea and the sgcluster CR
-          name: sakila-sqls-scripts
+          name: sqls-scripts-sakila
           key: create-sakila-schema.sql
   prometheusAutobind: false
 nonProductionOptions:
