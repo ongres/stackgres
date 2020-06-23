@@ -248,18 +248,19 @@ integration test:
   variables:
     OPERATOR_IN_KUBERNETES: "true"
     K8S_SUFFIX: jvm-image
-    E2E_RUN_BATCH_COUNT: 3
+    E2E_EXTRA_SUFFIX: ""
+    E2E_RUN_ONLY: non_exclusive
   timeout: 12 hour
   script:
     - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}"-jvm'
     - 'export OPERATOR_IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
     - 'export RESTAPI_IMAGE_NAME="stackgres/restapi:$IMAGE_TAG"'
-    - 'export E2E_RUN_ONLY="non_exclusive:$E2E_RUN_BATCH_INDEX/$E2E_RUN_BATCH_COUNT"'
-    - 'export E2E_PULLED_IMAGES_PATH="/tmp/pulled-images-jvm-image-$E2E_RUN_BATCH_INDEX"'
-    - 'export K8S_SUFFIX="$K8S_SUFFIX-$E2E_RUN_BATCH_INDEX"'
+    - 'export E2E_RUN_ONLY="$E2E_RUN_ONLY:$E2E_RUN_BATCH_INDEX/$E2E_RUN_BATCH_COUNT"'
+    - 'export E2E_PULLED_IMAGES_PATH="/tmp/pulled-images-jvm-image$E2E_EXTRA_SUFFIX-$E2E_RUN_BATCH_INDEX"'
+    - 'export K8S_SUFFIX="$K8S_SUFFIX$E2E_EXTRA_SUFFIX-$E2E_RUN_BATCH_INDEX"'
     - |
       flock -s /tmp/stackgres-build-native \
-        flock "/tmp/stackgres-integration-test-jvm-image-$E2E_RUN_BATCH_INDEX" \
+        flock "/tmp/stackgres-integration-test-jvm-image$E2E_EXTRA_SUFFIX-$E2E_RUN_BATCH_INDEX" \
         timeout -s KILL 3600 \
         mvn $MAVEN_CLI_OPTS verify -P integration \
           -DargLine=-Dcom.ongres.junit.docker.runnerId="$K8S_SUFFIX" \
@@ -277,48 +278,35 @@ e2e tests jvm image part 1:
   extends: .e2e tests jvm image
   variables:
     E2E_RUN_BATCH_INDEX: 0
+    E2E_RUN_BATCH_COUNT: 3
 
 e2e tests jvm image part 2:
   extends: .e2e tests jvm image
   variables:
     E2E_RUN_BATCH_INDEX: 1
+    E2E_RUN_BATCH_COUNT: 3
 
 e2e tests jvm image part 3:
   extends: .e2e tests jvm image
   variables:
     E2E_RUN_BATCH_INDEX: 2
+    E2E_RUN_BATCH_COUNT: 3
 
 e2e exclusive tests jvm image:
-  stage: test
-  tags:
-    - stackgres-runner
-  dependencies:
-    - compile
+  extends: .e2e tests jvm image
   variables:
-    OPERATOR_IN_KUBERNETES: "true"
-    K8S_SUFFIX: jvm-image-exclusive
-    E2E_PULLED_IMAGES_PATH: /tmp/pulled-images-jvm-image-exclusive
-  timeout: 12 hour
-  script:
-    - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}"-jvm'
-    - 'export OPERATOR_IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
-    - 'export RESTAPI_IMAGE_NAME="stackgres/restapi:$IMAGE_TAG"'
-    - 'export E2E_RUN_ONLY="exclusive"'
-    - |
-      flock -s /tmp/stackgres-build-native \
-        flock /tmp/stackgres-integration-test-jvm-image-exclusive \
-        timeout -s KILL 3600 \
-        mvn $MAVEN_CLI_OPTS verify -P integration \
-          -DargLine=-Dcom.ongres.junit.docker.runnerId="$K8S_SUFFIX" \
-          -Dit.skipBuildContainer=true
-  only:
-    variables:
-      - $SKIP_E2E != "true"
-  artifacts:
-    expire_in: 1 week
-    when: always
-    paths:
-    - stackgres-k8s/src/operator/target/e2e
+    E2E_RUN_BATCH_INDEX: 0
+    E2E_RUN_BATCH_COUNT: 2
+    E2E_EXTRA_SUFFIX: "-exclusive"
+    E2E_RUN_ONLY: exclusive
+
+e2e exclusive tests jvm image:
+  extends: .e2e tests jvm image
+  variables:
+    E2E_RUN_BATCH_INDEX: 1
+    E2E_RUN_BATCH_COUNT: 2
+    E2E_EXTRA_SUFFIX: "-exclusive"
+    E2E_RUN_ONLY: exclusive
 
 .e2e tests native image:
   stage: test
@@ -330,18 +318,19 @@ e2e exclusive tests jvm image:
     OPERATOR_IN_KUBERNETES: "true"
     K8S_SUFFIX: native-image
     SKIP_QUARKUS_TEST: "true"
-    E2E_RUN_BATCH_COUNT: 3
+    E2E_EXTRA_SUFFIX: ""
+    E2E_RUN_ONLY: non_exclusive
   timeout: 12 hour
   script:
     - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}"'
     - 'export OPERATOR_IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
     - 'export RESTAPI_IMAGE_NAME="stackgres/restapi:$IMAGE_TAG"'
-    - 'export E2E_RUN_ONLY="non_exclusive:$E2E_RUN_BATCH_INDEX/$E2E_RUN_BATCH_COUNT"'
-    - 'export E2E_PULLED_IMAGES_PATH="/tmp/pulled-images-native-image-$E2E_RUN_BATCH_INDEX"'
-    - 'export K8S_SUFFIX="$K8S_SUFFIX-$E2E_RUN_BATCH_INDEX"'
+    - 'export E2E_RUN_ONLY="$E2E_RUN_ONLY:$E2E_RUN_BATCH_INDEX/$E2E_RUN_BATCH_COUNT"'
+    - 'export E2E_PULLED_IMAGES_PATH="/tmp/pulled-images-native-image$E2E_EXTRA_SUFFIX-$E2E_RUN_BATCH_INDEX"'
+    - 'export K8S_SUFFIX="$K8S_SUFFIX$E2E_EXTRA_SUFFIX-$E2E_RUN_BATCH_INDEX"'
     - |
       flock -s /tmp/stackgres-build-native \
-        flock "/tmp/stackgres-integration-test-native-image-$E2E_RUN_BATCH_INDEX" \
+        flock "/tmp/stackgres-integration-test-native-image$E2E_EXTRA_SUFFIX-$E2E_RUN_BATCH_INDEX" \
         timeout -s KILL 3600 \
         mvn $MAVEN_CLI_OPTS verify -P integration \
           -DargLine=-Dcom.ongres.junit.docker.runnerId="$K8S_SUFFIX" \
@@ -363,53 +352,35 @@ e2e tests native image part 1:
   extends: .e2e tests native image
   variables:
     E2E_RUN_BATCH_INDEX: 0
+    E2E_RUN_BATCH_COUNT: 3
 
 e2e tests native image part 2:
   extends: .e2e tests native image
   variables:
     E2E_RUN_BATCH_INDEX: 1
+    E2E_RUN_BATCH_COUNT: 3
 
 e2e tests native image part 3:
   extends: .e2e tests native image
   variables:
     E2E_RUN_BATCH_INDEX: 2
+    E2E_RUN_BATCH_COUNT: 3
 
 e2e exclusive tests native image:
-  stage: test
-  tags:
-    - stackgres-runner
-  dependencies:
-    - compile
+  extends: .e2e tests native image
   variables:
-    OPERATOR_IN_KUBERNETES: "true"
-    K8S_SUFFIX: native-image-exclusive
-    E2E_PULLED_IMAGES_PATH: /tmp/pulled-images-native-image-exclusive
-    SKIP_QUARKUS_TEST: "true"
-  timeout: 12 hour
-  script:
-    - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}"'
-    - 'export OPERATOR_IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
-    - 'export RESTAPI_IMAGE_NAME="stackgres/restapi:$IMAGE_TAG"'
-    - 'export E2E_RUN_ONLY="exclusive"'
-    - |
-      flock -s /tmp/stackgres-build-native \
-        flock /tmp/stackgres-integration-test-native-image-exclusive \
-        timeout -s KILL 3600 \
-        mvn $MAVEN_CLI_OPTS verify -P integration \
-          -DargLine=-Dcom.ongres.junit.docker.runnerId="$K8S_SUFFIX" \
-          -Dit.skipBuildContainer=true
-  only:
-    variables:
-      - $SKIP_E2E != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME == "development"
-      - $SKIP_E2E != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME == "master"
-      - $SKIP_E2E != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
-      - $DO_DEPLOY
-      - $DO_NATIVE
-  artifacts:
-    expire_in: 1 week
-    when: always
-    paths:
-    - stackgres-k8s/src/operator/target/e2e
+    E2E_RUN_BATCH_INDEX: 0
+    E2E_RUN_BATCH_COUNT: 2
+    E2E_EXTRA_SUFFIX: "-exclusive"
+    E2E_RUN_ONLY: exclusive
+
+e2e exclusive tests native image:
+  extends: .e2e tests native image
+  variables:
+    E2E_RUN_BATCH_INDEX: 1
+    E2E_RUN_BATCH_COUNT: 2
+    E2E_EXTRA_SUFFIX: "-exclusive"
+    E2E_RUN_ONLY: exclusive
 
 deploy jvm image:
   image: docker.io/ongres/builder:latest
