@@ -58,7 +58,7 @@ public class StackGresClusterSpec implements KubernetesResource {
   private Boolean prometheusAutobind;
 
   @JsonProperty("nonProductionOptions")
-  private StackGresClusterNonProduction stackGresClusterNonProduction;
+  private StackGresClusterNonProduction nonProduction;
 
   public int getInstances() {
     return instances;
@@ -109,11 +109,11 @@ public class StackGresClusterSpec implements KubernetesResource {
   }
 
   public StackGresClusterNonProduction getNonProduction() {
-    return stackGresClusterNonProduction;
+    return nonProduction;
   }
 
-  public void setNonProduction(StackGresClusterNonProduction stackGresClusterNonProduction) {
-    this.stackGresClusterNonProduction = stackGresClusterNonProduction;
+  public void setNonProduction(StackGresClusterNonProduction nonProduction) {
+    this.nonProduction = nonProduction;
   }
 
   public StackGresClusterInitData getInitData() {
@@ -143,7 +143,7 @@ public class StackGresClusterSpec implements KubernetesResource {
         .add("configurations", configuration)
         .add("initData", initData)
         .add("distributedLogs", distributedLogs)
-        .add("nonProductionOptions", stackGresClusterNonProduction)
+        .add("nonProductionOptions", nonProduction)
         .toString();
   }
 
@@ -162,12 +162,12 @@ public class StackGresClusterSpec implements KubernetesResource {
         && Objects.equals(initData, that.initData) && Objects.equals(pod, that.pod)
         && Objects.equals(prometheusAutobind, that.prometheusAutobind)
         && Objects.equals(distributedLogs, that.distributedLogs)
-        && Objects.equals(stackGresClusterNonProduction, that.stackGresClusterNonProduction);
+        && Objects.equals(nonProduction, that.nonProduction);
   }
 
   @Override
   public int hashCode() {
     return Objects.hash(instances, postgresVersion, configuration, resourceProfile,
-        initData, pod, prometheusAutobind, distributedLogs, stackGresClusterNonProduction);
+        initData, pod, prometheusAutobind, distributedLogs, nonProduction);
   }
 }
