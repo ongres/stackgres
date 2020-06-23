@@ -153,8 +153,6 @@ metadata:
   namespace: $CLUSTER_NAMESPACE
 spec:
   postgresVersion: '$ALTERNATIVE_MAYOR_PG_VERSION'
-  postgresql.conf:
-    wal_compression: "on"
 EOF
 
   cat << EOF > "$LOG_PATH/alter-restore-cluster.yaml"
