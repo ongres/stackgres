@@ -29,3 +29,15 @@ app.use('/stackgres', proxy(target, {
         return url;
       }
   }));
+
+app.use('/grafana', proxy(target, {
+    proxyReqOptDecorator: function(proxyReqOpts, originalReq) {
+      proxyReqOpts.rejectUnauthorized = false
+      return proxyReqOpts;
+    },
+    proxyReqPathResolver: function (req) {
+        let url = req.url
+        url = "/stackgres" + url; 
+        return url;
+      }
+  }));

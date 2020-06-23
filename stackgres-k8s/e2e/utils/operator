@@ -18,8 +18,11 @@ install_operator() {
 
   install_operator_vanilla \
     --set-string operator.image.name="${OPERATOR_IMAGE_NAME%:*}" --set-string operator.image.tag="${OPERATOR_IMAGE_NAME#*:}" \
+    --set-string "operator.image.pullPolicy=$(operator_pull_policy)" \
     --set-string restapi.image.name="${RESTAPI_IMAGE_NAME%:*}" --set-string restapi.image.tag="${RESTAPI_IMAGE_NAME#*:}" \
-    --set-string "image.pullPolicy=$(operator_pull_policy)" \
+    --set-string "restapi.image.pullPolicy=$(operator_pull_policy)" \
+    --set-string adminui.image.name="${ADMINUI_IMAGE_NAME%:*}" --set-string adminui.image.tag="${ADMINUI_IMAGE_NAME#*:}" \
+    --set-string "adminui.image.pullPolicy=$(operator_pull_policy)" \
     $E2E_OPERATOR_OPTS "$@"
 }
 
@@ -27,11 +30,15 @@ install_operator_from_private_repository() {
   export PRIVATE_REPO_URI=$(get_private_repository_uri)
   export PRIVATE_OPERATOR_IMAGE_NAME="$PRIVATE_REPO_URI/stackgres/operator"
   export PRIVATE_RESTAPI_IMAGE_NAME="$PRIVATE_REPO_URI/stackgres/restapi"
+  export PRIVATE_ADMINUI_IMAGE_NAME="$PRIVATE_REPO_URI/stackgres/admin-ui"
   install_operator_vanilla \
       --set-string operator.image.name="$PRIVATE_OPERATOR_IMAGE_NAME" --set-string operator.image.tag="$IMAGE_TAG" \
+      --set-string "operator.image.pullPolicy=$(operator_pull_policy)" \
       --set-string restapi.image.name="$PRIVATE_RESTAPI_IMAGE_NAME" --set-string restapi.image.tag="$IMAGE_TAG" \
+      --set-string "restapi.image.pullPolicy=$(operator_pull_policy)" \
+      --set-string adminui.image.name="$PRIVATE_ADMINUI_IMAGE_NAME" --set-string adminui.image.tag="$ADMINUI_IMAGE_TAG" \
+      --set-string "adminui.image.pullPolicy=$(operator_pull_policy)" \
       --set-string serviceAccount.repoCredentials="regcred" \
-      --set-string "image.pullPolicy=$(operator_pull_policy)" \
       "$@"
 }
 

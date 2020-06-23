@@ -124,6 +124,12 @@ load_operator_k8s() {
   then 
     load_image_k8s "$RESTAPI_IMAGE_NAME"
   else
-    echo "Image $OPERATOR_IMAGE_NAME not found in cache!"
+    echo "Image $RESTAPI_IMAGE_NAME not found in cache!"
+  fi
+  if docker image inspect "$ADMINUI_IMAGE_NAME" >/dev/null 2>&1
+  then 
+    load_image_k8s "$ADMINUI_IMAGE_NAME"
+  else
+    echo "Image $ADMINUI_IMAGE_NAME not found in cache!"
   fi
 }

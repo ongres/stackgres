@@ -10,8 +10,17 @@ fi
 SHELL_XTRACE="$(! echo $- | grep -q x || echo "-x")"
 
 IMAGE_TAG="${IMAGE_TAG:-development-jvm}"
+
+if echo "$IMAGE_TAG" | grep "\-jvm$" > /dev/null
+then
+  export ADMINUI_IMAGE_TAG="$(echo $IMAGE_TAG | awk -F '-' '{print $1}')"
+else
+  export ADMINUI_IMAGE_TAG="$IMAGE_TAG"
+fi
+
 OPERATOR_IMAGE_NAME="stackgres/operator:$IMAGE_TAG"
 RESTAPI_IMAGE_NAME="stackgres/restapi:$IMAGE_TAG"
+ADMINUI_IMAGE_NAME="stackgres/admin-ui:$ADMINUI_IMAGE_TAG"
 DEFAULT_K8S_VERSION="1.13.12"
 KUBECONFIG="${KUBECONFIG:-$HOME/.kube/config}"
 SPEC_PATH="$(dirname "$0")/spec"
@@ -35,7 +44,7 @@ then
 fi
 OPERATOR_CHART_PATH="${OPERATOR_CHART_PATH:-"$STACKGRES_PATH/install/helm/stackgres-operator/"}"
 CLUSTER_CHART_PATH="${CLUSTER_CHART_PATH:-"$STACKGRES_PATH/install/helm/stackgres-cluster/"}"
-UI_TESTS_RESOURCES_PATH="${UI_TESTS_RESOURCES_PATH:-"$STACKGRES_PATH/src/ui"}"
+UI_TESTS_RESOURCES_PATH="${UI_TESTS_RESOURCES_PATH:-"$STACKGRES_PATH/src/admin-ui"}"
 
 [ -z "$SHELL_XTRACE" ] || set +x
 
@@ -117,6 +126,7 @@ setup_images() {
     (
     cd "$STACKGRES_PATH/src"
     ./mvnw -q clean package -P build-image-jvm
+    sh admin-ui/buildah/build.sh
     )
   fi
 }

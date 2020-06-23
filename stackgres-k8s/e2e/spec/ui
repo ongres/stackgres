@@ -22,7 +22,7 @@ e2e_test_install() {
       imagePullPolicy: IfNotPresent
       env:
       - name: CYPRESS_host
-        value: "https://$SERVICE.$OPERATOR_NAMESPACE/stackgres"
+        value: "https://$SERVICE.$OPERATOR_NAMESPACE/admin"
       - name: CYPRESS_username
         value: "$USERNAME"
       - name: CYPRESS_password
