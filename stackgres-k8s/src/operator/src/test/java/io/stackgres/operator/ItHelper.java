@@ -109,8 +109,8 @@ public class ItHelper {
         "/resources/stackgres-cluster");
     k8s.copyIn(k8sPath.resolve("e2e"), "/resources/e2e");
     k8s.copyIn(Paths.get("src/test/resources/certs"), "/resources/certs");
-    k8s.copyIn(k8sPath.resolve("src/ui/cypress"), "/resources/ui/cypress");
-    k8s.copyIn(k8sPath.resolve("src/ui/cypress.json"), "/resources/ui/cypress.json");
+    k8s.copyIn(k8sPath.resolve("src/admin-ui/cypress"), "/resources/admin-ui/cypress");
+    k8s.copyIn(k8sPath.resolve("src/admin-ui/cypress.json"), "/resources/admin-ui/cypress.json");
   }
 
   /**
@@ -131,7 +131,7 @@ public class ItHelper {
               + "export IMAGE_TAG=" + ItHelper.IMAGE_TAG + "\n"
               + "export CLUSTER_CHART_PATH=/resources/stackgres-cluster\n"
               + "export OPERATOR_CHART_PATH=/resources/stackgres-operator\n"
-              + "export UI_TESTS_RESOURCES_PATH=/resources/ui\n"
+              + "export UI_TESTS_RESOURCES_PATH=/resources/admin-ui\n"
               + "sh " + (E2E_DEBUG ? "-x" : "") + " e2e reuse_k8s\n"
               + "sh " + (E2E_DEBUG ? "-x" : "") + " e2e setup_helm\n"
               + "sh " + (E2E_DEBUG ? "-x" : "") + " e2e setup_default_limits 0.1 0.1 16Mi 16Mi\n"
@@ -160,7 +160,7 @@ public class ItHelper {
         + "export IMAGE_TAG=" + ItHelper.IMAGE_TAG + "\n"
         + "export CLUSTER_CHART_PATH=/resources/stackgres-cluster\n"
         + "export OPERATOR_CHART_PATH=/resources/stackgres-operator\n"
-        + "export UI_TESTS_RESOURCES_PATH=/resources/ui\n"
+        + "export UI_TESTS_RESOURCES_PATH=/resources/admin-ui\n"
         + "sh " + (E2E_DEBUG ? "-x" : "") + " e2e reset_k8s\n"
         + "sh " + (E2E_DEBUG ? "-x" : "") + " e2e setup_helm\n"
         + "sh " + (E2E_DEBUG ? "-x" : "") + " e2e setup_default_limits 0.1 0.1 16Mi 16Mi\n"
@@ -229,7 +229,7 @@ public class ItHelper {
             + " do [ \"$(date +%s)\" -lt \"$END\" ]; sleep 1; done;"
             )
         .filter(EXCLUDE_TTY_WARNING)
-        .forEach(line -> LOGGER.info(line));
+        .forEach(LOGGER::info);
     return getKubernetesMasterIp(k8s) + ":" + k8s.execute("sh", "-l", "-c",
         "kubectl get service -n " + namespace + " " + exposedServiceName
             + " -o jsonpath='{ .spec.ports[?(@.port==" + port + ")].nodePort }'")
@@ -243,6 +243,7 @@ public class ItHelper {
   public static void installStackGresOperatorHelmChart(Container k8s, String namespace,
       int port) throws Exception {
     if (OPERATOR_IN_KUBERNETES) {
+      String adminUiImageTag = IMAGE_TAG.endsWith("-jvm") ? IMAGE_TAG.split("-")[0] : IMAGE_TAG;
       LOGGER.info("Installing stackgres-operator helm chart");
       k8s.execute("sh", "-l", "-c", "kubectl create namespace " + namespace + " || true")
         .filter(EXCLUDE_TTY_WARNING)
@@ -254,7 +255,9 @@ public class ItHelper {
           + " --set-string operator.image.tag=" + IMAGE_TAG
           + " --set-string operator.image.pullPolicy=Never"
           + " --set-string restapi.image.tag=" + IMAGE_TAG
-          + " --set-string restapi.image.pullPolicy=Never")
+          + " --set-string restapi.image.pullPolicy=Never"
+          + " --set-string adminui.image.tag=" + adminUiImageTag
+          + " --set-string adminui.image.pullPolicy=Never")
         .filter(EXCLUDE_TTY_WARNING)
         .forEach(LOGGER::info);
       k8s.execute("sh", "-l", "-c",
@@ -352,7 +355,7 @@ public class ItHelper {
     LOGGER.info("Deleting if exists stackgres-cluster helm chart for cluster with name " + name);
     k8s.execute("sh", "-l", "-c", "helm delete " + name + " --namespace " + namespace + "|| true")
         .filter(EXCLUDE_TTY_WARNING)
-        .forEach(line -> LOGGER.info(line));
+        .forEach(LOGGER::info);
     LOGGER.info("Installing stackgres-cluster helm chart for cluster with name " + name);
     k8s.execute("sh", "-l", "-c", "helm install "
         + name
@@ -365,7 +368,7 @@ public class ItHelper {
         + " --set-string cluster.pods.persistentVolume.size=128Mi"
         + " --set nonProductionOptions.createMinio=false")
       .filter(EXCLUDE_TTY_WARNING)
-      .forEach(line -> LOGGER.info(line));
+      .forEach(LOGGER::info);
   }
 
   /**
@@ -386,7 +389,7 @@ public class ItHelper {
         + " --set nonProductionOptions.createMinio=false "
         + " --reuse-values")
       .filter(EXCLUDE_TTY_WARNING)
-      .forEach(line -> LOGGER.info(line));
+      .forEach(LOGGER::info);
   }
 
   /**
@@ -396,7 +399,7 @@ public class ItHelper {
     LOGGER.info("Delete stackgres-cluster helm chart for cluster with name " + name);
     k8s.execute("sh", "-l", "-c", "helm delete " + name + " --namespace " + namespace)
       .filter(EXCLUDE_TTY_WARNING)
-      .forEach(line -> LOGGER.info(line));
+      .forEach(LOGGER::info);
   }
 
   /**

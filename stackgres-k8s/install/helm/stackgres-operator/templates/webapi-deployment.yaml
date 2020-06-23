@@ -30,9 +30,9 @@ spec:
       securityContext:
         runAsNonRoot: true
         {{- if not (.Capabilities.APIVersions.Has "project.openshift.io/v1") }}
-        runAsUser: 999
-        runAsGroup: 999
-        fsGroup: 999
+        runAsUser: 101
+        runAsGroup: 101
+        fsGroup: 101
         {{- end }}
       containers:
       - name: {{ .Values.restapi.name }}
@@ -96,9 +96,9 @@ spec:
           - name: operator-certs
             mountPath: /etc/operator/certs
             readOnly: true
-      - name: {{ .Values.restapi.name }}-nginx
-        image: "nginx:1.17.4-alpine"
-        imagePullPolicy: IfNotPresent
+      - name: {{ .Values.adminui.name }}
+        image: '{{ .Values.adminui.image.name }}:{{ .Values.adminui.image.tag }}'
+        imagePullPolicy: {{ .Values.adminui.pullPolicy }}
         env:
           {{- if and .Values.grafana.url .Values.grafana.token .Values.grafana.webHost }}
           - name: GRAFANA_EMBEDDED
@@ -158,6 +158,10 @@ spec:
             subPath: var/run
             mountPath: /var/run
             readOnly: false
+          - name: operator-nginx-conf
+            mountPath: /etc/nginx/nginx.conf
+            subPath: nginx.conf
+            readOnly: true
       volumes:
         - name: operator-certs
           secret:
@@ -179,6 +183,13 @@ spec:
             items:
               - key: stackgres-operator.template
                 path: stackgres-operator.template
+        - name: operator-nginx-conf
+          configMap:
+            name: {{ .Values.restapi.name }}-nginxconf
+            optional: false
+            items:
+              - key: nginx.conf
+                path: nginx.conf
         - name: operator-nginx
           emptyDir: {}
 {{- end }}

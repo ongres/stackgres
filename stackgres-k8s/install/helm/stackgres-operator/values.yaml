@@ -9,7 +9,12 @@ restapi:
     name: "stackgres/restapi"
     tag: "development-jvm"
     pullPolicy: "IfNotPresent"
-
+adminui:
+  name: stackgres-adminui
+  image:
+    name: "stackgres/admin-ui"
+    tag: "development"
+    pullPolicy: "IfNotPresent"
 service:
   type: ClusterIP
   #nodePort:

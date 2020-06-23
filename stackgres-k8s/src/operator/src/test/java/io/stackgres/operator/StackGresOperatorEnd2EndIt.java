@@ -82,7 +82,7 @@ public class StackGresOperatorEnd2EndIt extends AbstractStackGresOperatorIt {
                   + "export E2E_SKIP_SETUP=true\n"
                   + "export CLUSTER_CHART_PATH=/resources/stackgres-cluster\n"
                   + "export OPERATOR_CHART_PATH=/resources/stackgres-operator\n"
-                  + "export UI_TESTS_RESOURCES_PATH=/resources/ui\n"
+                  + "export UI_TESTS_RESOURCES_PATH=/resources/admin-ui\n"
                   + (ItHelper.OPERATOR_IN_KUBERNETES
                       ? ""
                       : "export E2E_OPERATOR_OPTS=\"" + ItHelper.getOperatorExtraOptions(k8s, operatorPort) + "\"\n")
