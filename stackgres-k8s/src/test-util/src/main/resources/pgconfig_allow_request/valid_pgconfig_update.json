@@ -54,7 +54,8 @@
         "postgresql.conf": {
           "password_encryption": "scram-sha-256",
           "random_page_cost": "1.5",
-          "shared_buffers": "512MB"
+          "shared_buffers": "512MB",
+          "max_wal_senders": "10"
         }
       }
     },
@@ -74,7 +75,9 @@
         "postgresql.conf": {
           "password_encryption": "scram-sha-256",
           "random_page_cost": "1.5",
-          "shared_buffers": "256MB"
+          "shared_buffers": "256MB",
+          "max_wal_senders": "10",
+          "wal_keep_segments": "10"
         }
       }
     },

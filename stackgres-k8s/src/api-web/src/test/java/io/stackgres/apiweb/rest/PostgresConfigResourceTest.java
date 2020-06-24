@@ -77,7 +77,7 @@ class PostgresConfigResourceTest
         "password_encryption='scram-sha-256'",
         "random_page_cost=1.5",
         "shared_buffers=256MB",
-        "wal_compression=on",
+        "max_wal_senders=10",
         "pg_stat_statements.max=10000")
         .toString("\n"),
         resource.getSpec().getPostgresqlConf());
@@ -99,9 +99,9 @@ class PostgresConfigResourceTest
     assertEquals("256MB", resource.getStatus().getPostgresqlConf().get(2).getValue());
     assertEquals("https://postgresqlco.nf/en/doc/param/shared_buffers/12/",
         resource.getStatus().getPostgresqlConf().get(2).getDocumentationLink());
-    assertEquals("wal_compression", resource.getStatus().getPostgresqlConf().get(3).getParameter());
-    assertEquals("on", resource.getStatus().getPostgresqlConf().get(3).getValue());
-    assertEquals("https://postgresqlco.nf/en/doc/param/wal_compression/12/",
+    assertEquals("max_wal_senders", resource.getStatus().getPostgresqlConf().get(3).getParameter());
+    assertEquals("10", resource.getStatus().getPostgresqlConf().get(3).getValue());
+    assertEquals("https://postgresqlco.nf/en/doc/param/max_wal_senders/12/",
         resource.getStatus().getPostgresqlConf().get(3).getDocumentationLink());
     assertEquals("pg_stat_statements.max", resource.getStatus().getPostgresqlConf().get(4).getParameter());
     assertEquals("10000", resource.getStatus().getPostgresqlConf().get(4).getValue());
@@ -120,7 +120,7 @@ class PostgresConfigResourceTest
         "password_encryption", "'scram-sha-256'",
         "random_page_cost", "1.5",
         "shared_buffers", "256MB",
-        "wal_compression", "on",
+        "max_wal_senders", "10",
         "pg_stat_statements.max", "10000"),
         resource.getSpec().getPostgresqlConf());
  }
