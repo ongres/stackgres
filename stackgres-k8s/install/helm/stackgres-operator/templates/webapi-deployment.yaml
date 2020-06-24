@@ -143,25 +143,25 @@ spec:
           - name: operator-certs
             mountPath: /etc/operator/certs
             readOnly: true
-          - name: operator-nginx-template
-            mountPath: /etc/nginx/template.d
-            readOnly: true
           - name: operator-nginx
-            subPath: etc/nginx/conf.d
-            mountPath: /etc/nginx/conf.d
-            readOnly: false
-          - name: operator-nginx
-            subPath: var/cache/nginx
-            mountPath: /var/cache/nginx
-            readOnly: false
-          - name: operator-nginx
-            subPath: var/run
-            mountPath: /var/run
-            readOnly: false
-          - name: operator-nginx-conf
             mountPath: /etc/nginx/nginx.conf
             subPath: nginx.conf
             readOnly: true
+          - name: operator-nginx
+            mountPath: /etc/nginx/template.d
+            readOnly: true
+          - name: operator-nginx-etc
+            subPath: etc/nginx/conf.d
+            mountPath: /etc/nginx/conf.d
+            readOnly: false
+          - name: operator-nginx-etc
+            subPath: var/cache/nginx
+            mountPath: /var/cache/nginx
+            readOnly: false
+          - name: operator-nginx-etc
+            subPath: var/run
+            mountPath: /var/run
+            readOnly: false
       volumes:
         - name: operator-certs
           secret:
@@ -176,20 +176,15 @@ spec:
                 path: jwt-rsa.key
               - key: jwt-rsa.pub
                 path: jwt-rsa.pub
-        - name: operator-nginx-template
+        - name: operator-nginx
           configMap:
             name: {{ .Values.restapi.name }}-nginx
             optional: false
             items:
-              - key: stackgres-operator.template
-                path: stackgres-operator.template
-        - name: operator-nginx-conf
-          configMap:
-            name: {{ .Values.restapi.name }}-nginxconf
-            optional: false
-            items:
               - key: nginx.conf
                 path: nginx.conf
-        - name: operator-nginx
+              - key: stackgres-operator.template
+                path: stackgres-operator.template
+        - name: operator-nginx-etc
           emptyDir: {}
 {{- end }}
