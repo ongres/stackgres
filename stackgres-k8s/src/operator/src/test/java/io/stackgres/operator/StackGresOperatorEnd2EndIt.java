@@ -71,7 +71,7 @@ public class StackGresOperatorEnd2EndIt extends AbstractStackGresOperatorIt {
                         return "COUNT=$(sh e2e get_all_" + runOnly.substring(0, indexOfColon) + "_specs | wc -l)\n"
                             + "export E2E_ONLY_INCLUDES=$("
                             + "sh e2e get_all_" + runOnly.substring(0, indexOfColon) + "_specs"
-                            + " | tail -n +\"$((COUNT * " + runOnly.substring(indexOfColon + 1, indexOfSlash) + ""
+                            + " | tail -n +\"$((COUNT * (" + runOnly.substring(indexOfColon + 1, indexOfSlash) + " - 1)"
                                 + " / " + runOnly.substring(indexOfSlash + 1) + "))\""
                             + " | head -n \"$((COUNT / " + runOnly.substring(indexOfSlash + 1) + "))\")\n";
                       }
