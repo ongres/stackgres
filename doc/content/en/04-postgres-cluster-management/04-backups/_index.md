@@ -56,7 +56,8 @@ ___
 ## Backup Intormation
 | Property                         | Type    | Description |
 |:---------------------------------|:--------|:------------|
-| hostname                         | string  | {{< crd-field-description SGBackup.status.backupInformation.hostname >}} |
+| hostname (deprecated)            | string  | {{< crd-field-description SGBackup.status.backupInformation.hostname >}} |
+| sourcePod                        | string  | {{< crd-field-description SGBackup.status.backupInformation.sourcePod >}} |
 | systemIdentifier                 | string  | {{< crd-field-description SGBackup.status.backupInformation.systemIdentifier >}} |
 | postgresVersion                  | string  | {{< crd-field-description SGBackup.status.backupInformation.postgresVersion >}} |
 | pgData                           | string  | {{< crd-field-description SGBackup.status.backupInformation.pgData >}} |

@@ -94,6 +94,7 @@ public class BackupTransformer extends AbstractResourceTransformer<BackupDto, St
       backupInformation.setControlData(sourceBackupInformation.getControlData());
       backupInformation.setPgData(sourceBackupInformation.getPgData());
       backupInformation.setHostname(sourceBackupInformation.getHostname());
+      backupInformation.setSourcePod(sourceBackupInformation.getSourcePod());
       backupInformation.setPostgresVersion(sourceBackupInformation.getPostgresVersion());
       backupInformation.setSystemIdentifier(sourceBackupInformation.getSystemIdentifier());
       backupInformation.setStartWalFile(sourceBackupInformation.getStartWalFile());
