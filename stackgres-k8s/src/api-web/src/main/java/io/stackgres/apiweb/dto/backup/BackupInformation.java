@@ -30,6 +30,7 @@ public class BackupInformation {
   private Map<String, String> controlData;
 
   private Long timeline;
+  private String sourcePod;
 
   public void setControlData(Map<String, String> controlData) {
     this.controlData = controlData;
@@ -63,10 +64,12 @@ public class BackupInformation {
     return pgData;
   }
 
+  @Deprecated
   public void setHostname(String hostname) {
     this.hostname = hostname;
   }
 
+  @Deprecated
   public String getHostname() {
     return hostname;
   }
@@ -103,6 +106,14 @@ public class BackupInformation {
     this.timeline = timeline;
   }
 
+  public String getSourcePod() {
+    return sourcePod;
+  }
+
+  public void setSourcePod(String sourcePod) {
+    this.sourcePod = sourcePod;
+  }
+
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
@@ -114,6 +125,8 @@ public class BackupInformation {
         .add("systemIdentifier", systemIdentifier)
         .add("size", size)
         .add("controlData", controlData)
+        .add("timeline", timeline)
+        .add("sourcePod", sourcePod)
         .toString();
   }
 }

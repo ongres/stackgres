@@ -29,11 +29,14 @@ public class StackGresBackupInformation {
   private Map<String, String> controlData;
   private String startWalFile;
   private Long timeline;
+  private String sourcePod;
 
+  @Deprecated
   public String getHostname() {
     return hostname;
   }
 
+  @Deprecated
   public void setHostname(String hostname) {
     this.hostname = hostname;
   }
@@ -100,6 +103,14 @@ public class StackGresBackupInformation {
 
   public void setTimeline(Long timeline) {
     this.timeline = timeline;
+  }
+
+  public String getSourcePod() {
+    return sourcePod;
+  }
+
+  public void setSourcePod(String sourcePod) {
+    this.sourcePod = sourcePod;
   }
 
   @Override

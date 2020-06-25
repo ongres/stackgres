@@ -95,6 +95,10 @@ spec:
                   type: string
                   description: |
                     The hostname of instance where the backup is taken.
+                sourcePod:
+                  type: string
+                  description: |
+                    The pod where the backup is taken.                
                 systemIdentifier:
                   type: string
                   description: |

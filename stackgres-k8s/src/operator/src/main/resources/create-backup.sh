@@ -437,7 +437,7 @@ EOF
       {"op":"replace","path":"/status/process/failure","value":"Backup configuration '"$BACKUP_CONFIG"' changed during backup"}
       ]'
     cat /tmp/backup-list
-    echo "Backup configuration '"$BACKUP_CONFIG"' changed during backup"
+    echo "Backup configuration '$BACKUP_CONFIG' changed during backup"
     [ "$IS_CRONJOB" = true ] || sleep 15
     exit 1
   elif ! grep -q "^backup_name:${WAL_G_BACKUP_NAME}$" /tmp/current-backup
@@ -474,6 +474,7 @@ EOF
           "startWalFile":"'"$(grep "^wal_file_name:" /tmp/current-backup | cut -d : -f 2-)"'",
           "timeline":"'"$(grep "^wal_file_name:" /tmp/current-backup | cut -d : -f 2- | awk '{startWal=substr($0, 0, 9); timeline=startWal+0; print timeline}')"'",
           "hostname":"'"$(grep "^hostname:" /tmp/current-backup | cut -d : -f 2-)"'",
+          "sourcePod":"'"$(grep "^hostname:" /tmp/current-backup | cut -d : -f 2-)"'",
           "pgData":"'"$(grep "^data_dir:" /tmp/current-backup | cut -d : -f 2-)"'",
           "postgresVersion":"'"$(grep "^pg_version:" /tmp/current-backup | cut -d : -f 2-)"'",
           "systemIdentifier":"'"$(grep "^system_identifier:" /tmp/current-backup | cut -d : -f 2-)"'",

@@ -5,6 +5,7 @@
 
 package io.stackgres.operatorframework.resource.visitor;
 
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import io.fabric8.kubernetes.api.model.Affinity;
@@ -421,7 +422,7 @@ public class ResourcePairVisitor<T, C> {
           ? new SecretBuilder(secret)
               .withData(secret.getStringData().entrySet().stream()
                   .collect(Collectors.toMap(
-                      e -> e.getKey(),
+                      Map.Entry::getKey,
                       e -> ResourceUtil.encodeSecret(e.getValue()))))
               .withStringData(null)
               .build()
@@ -567,7 +568,7 @@ public class ResourcePairVisitor<T, C> {
             PodSpec::setTerminationGracePeriodSeconds, 30L)
         .visitWithUsingDefaultFrom(PodSpec::getSecurityContext, PodSpec::setSecurityContext,
             this::visitPodSecurityContext,
-            () -> new PodSecurityContext())
+            PodSecurityContext::new)
         .visitList(PodSpec::getHostAliases, PodSpec::setHostAliases)
         .visitList(PodSpec::getImagePullSecrets, PodSpec::setImagePullSecrets)
         .visitList(PodSpec::getReadinessGates, PodSpec::setReadinessGates)
@@ -683,7 +684,7 @@ public class ResourcePairVisitor<T, C> {
         .visitWith(Container::getReadinessProbe, Container::setReadinessProbe,
             this::visitProbe)
         .visitWithUsingDefaultFrom(Container::getResources, Container::setResources,
-            this::visitResourceRequirements, () -> new ResourceRequirements())
+            this::visitResourceRequirements, ResourceRequirements::new)
         .visit(Container::getSecurityContext, Container::setSecurityContext)
         .visit(Container::getStdin, Container::setStdin)
         .visit(Container::getStdinOnce, Container::setStdinOnce)
@@ -970,8 +971,8 @@ public class ResourcePairVisitor<T, C> {
         .visit(ObjectMeta::getClusterName, ObjectMeta::setClusterName)
         .visit(ObjectMeta::getName)
         .visit(ObjectMeta::getNamespace)
-        .visitMap(ObjectMeta::getAdditionalProperties, (objectMeta, map) -> map.entrySet()
-            .forEach(e -> objectMeta.setAdditionalProperty(e.getKey(), e.getValue())))
+        .visitMap(ObjectMeta::getAdditionalProperties, (objectMeta, map) -> map
+            .forEach(objectMeta::setAdditionalProperty))
         .visitMap(ObjectMeta::getLabels, ObjectMeta::setLabels);
   }
 
@@ -984,8 +985,8 @@ public class ResourcePairVisitor<T, C> {
         .visit(ObjectMeta::getClusterName, ObjectMeta::setClusterName)
         .visit(ObjectMeta::getName)
         .visit(ObjectMeta::getNamespace)
-        .visitMap(ObjectMeta::getAdditionalProperties, (objectMeta, map) -> map.entrySet()
-            .forEach(e -> objectMeta.setAdditionalProperty(e.getKey(), e.getValue())));
+        .visitMap(ObjectMeta::getAdditionalProperties, (objectMeta, map) -> map
+            .forEach(objectMeta::setAdditionalProperty));
   }
 
 }
