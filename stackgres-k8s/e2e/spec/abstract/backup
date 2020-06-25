@@ -6,6 +6,14 @@ check_backup() {
   check_wal_archive "$NODE"
 
   check_automatic_backup "$NODE"
+
+  if check_timelines
+  then
+    echo "SECCESS. All timelines are correct"
+  else
+    echo "FAIL. Some timelines are not correct"
+    return 1
+  fi
 }
 
 check_wal_archive() {
@@ -32,7 +40,6 @@ try_check_wal_archive() {
   wait_until -t "$((E2E_TIMEOUT / 10))" eval '[ "$(kubectl exec -t -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-"$NODE" -c postgres-util -- \
       psql -t -A -U postgres -p 5435 -c \
       "SELECT r.file_name from pg_walfile_name_offset(pg_switch_wal()) as r")" != "$CURRENT_WAL_FILE" ]'
-
   wait_until -t "$((E2E_TIMEOUT / 10))" timeout -s KILL "$((E2E_TIMEOUT / 20))" \
     kubectl exec -t -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-"$NODE" -c patroni -- \
     exec-with-env backup -- wal-g wal-fetch "$CURRENT_WAL_FILE" "/tmp/$CURRENT_WAL_FILE"
@@ -51,6 +58,26 @@ check_automatic_backup() {
     echo "FAIL. The backup CR is not available"
     return 1
   fi
+}
+
+check_timelines(){
+  kubectl get sgbackup -n "$CLUSTER_NAMESPACE" \
+    -o custom-columns=NAME:.metadata.name,PHASE:.status.process.status,WAL_FILE:.status.backupInformation.startWalFile,TIMELINE:.status.backupInformation.timeline \
+    | tail -n +2 | grep "Completed" | awk '{
+      backup=$1
+      walFile=$3
+      actualTimeline=$4
+
+      subWalFile=substr(walFile,0,8)
+      formattedTimeline=sprintf("%08d", actualTimeline)
+
+      if (formattedTimeline != subWalFile) {
+         print "FAIL. Timeline of ", backup, " with walFile ", walFile, " is incorrect. Actual timeline: ", actualTimeline
+         exit 1
+      }
+      print "Backup ", backup, " timeline is correct"
+    }'
+
 }
 
 check_automatic_backup_cr() {

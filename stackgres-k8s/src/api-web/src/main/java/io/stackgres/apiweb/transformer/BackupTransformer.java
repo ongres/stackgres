@@ -97,6 +97,7 @@ public class BackupTransformer extends AbstractResourceTransformer<BackupDto, St
       backupInformation.setPostgresVersion(sourceBackupInformation.getPostgresVersion());
       backupInformation.setSystemIdentifier(sourceBackupInformation.getSystemIdentifier());
       backupInformation.setStartWalFile(sourceBackupInformation.getStartWalFile());
+      backupInformation.setTimeline(sourceBackupInformation.getTimeline());
 
       final StackgresBackupSize sourceSize = sourceBackupInformation.getSize();
       if (sourceSize != null) {
