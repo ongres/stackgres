@@ -35,7 +35,7 @@ class BackupResourceTest
   }
 
   @Override
-  protected BackupDto getResourceDto() {
+  protected BackupDto getDto() {
     return JsonUtil.readFromJson("stackgres_backup/dto.json", BackupDto.class);
   }
 

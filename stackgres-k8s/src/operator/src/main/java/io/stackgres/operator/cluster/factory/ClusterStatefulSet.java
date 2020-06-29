@@ -32,6 +32,7 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetUpdateStrategyBuilder;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction;
 import io.stackgres.operator.common.LabelFactoryDelegator;
@@ -43,15 +44,11 @@ import io.stackgres.operator.configuration.ImmutableStorageConfig;
 import io.stackgres.operator.configuration.StorageConfig;
 import io.stackgres.operator.patroni.factory.Patroni;
 import io.stackgres.operator.patroni.factory.PatroniRole;
-import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple2;
 
 @ApplicationScoped
 public class ClusterStatefulSet implements StackGresClusterResourceStreamFactory {
-
-  public static final String DATA_SUFFIX = "-data";
-  public static final String BACKUP_SUFFIX = "-backup";
 
   public static final String GCS_CREDENTIALS_FILE_NAME = "gcs-credentials.json";
 
@@ -78,13 +75,11 @@ public class ClusterStatefulSet implements StackGresClusterResourceStreamFactory
   }
 
   public static String dataName(StackGresClusterContext clusterContext) {
-    String name = clusterContext.getCluster().getMetadata().getName();
-    return ResourceUtil.resourceName(name + ClusterStatefulSet.DATA_SUFFIX);
+    return StackGresUtil.statefulSetDataPersistentVolumeName(clusterContext.getCluster());
   }
 
   public static String backupName(StackGresClusterContext clusterContext) {
-    String name = clusterContext.getCluster().getMetadata().getName();
-    return ResourceUtil.resourceName(name + ClusterStatefulSet.BACKUP_SUFFIX);
+    return StackGresUtil.statefulSetBackupPersistentVolumeName(clusterContext.getCluster());
   }
 
   /**

@@ -30,8 +30,8 @@ import io.stackgres.apiweb.distributedlogs.ImmutableDistributedLogsQueryParamete
 import io.stackgres.apiweb.dto.cluster.ClusterDistributedLogs;
 import io.stackgres.apiweb.dto.cluster.ClusterDto;
 import io.stackgres.apiweb.dto.cluster.ClusterLogEntryDto;
-import io.stackgres.apiweb.dto.cluster.ClusterResourceConsumtionDto;
 import io.stackgres.apiweb.dto.cluster.ClusterSpec;
+import io.stackgres.apiweb.dto.cluster.ClusterStatsDto;
 import io.stackgres.apiweb.transformer.ResourceTransformer;
 import io.stackgres.common.ArcUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -50,7 +50,7 @@ public class ClusterResource
 
   private final CustomResourceScanner<ClusterDto> clusterScanner;
   private final CustomResourceFinder<ClusterDto> clusterFinder;
-  private final CustomResourceFinder<ClusterResourceConsumtionDto> clusterResourceConsumptionFinder;
+  private final CustomResourceFinder<ClusterStatsDto> clusterResourceStatsFinder;
   private final DistributedLogsFetcher distributedLogsFetcher;
 
   @Inject
@@ -60,12 +60,12 @@ public class ClusterResource
       ResourceTransformer<ClusterDto, StackGresCluster> transformer,
       CustomResourceScanner<ClusterDto> clusterScanner,
       CustomResourceFinder<ClusterDto> clusterFinder,
-      CustomResourceFinder<ClusterResourceConsumtionDto> clusterResourceConsumptionFinder,
+      CustomResourceFinder<ClusterStatsDto> clusterResourceStatsFinder,
       DistributedLogsFetcher distributedLogsFetcher) {
     super(null, finder, scheduler, transformer);
     this.clusterScanner = clusterScanner;
     this.clusterFinder = clusterFinder;
-    this.clusterResourceConsumptionFinder = clusterResourceConsumptionFinder;
+    this.clusterResourceStatsFinder = clusterResourceStatsFinder;
     this.distributedLogsFetcher = distributedLogsFetcher;
   }
 
@@ -74,7 +74,7 @@ public class ClusterResource
     ArcUtil.checkPublicNoArgsConstructorIsCalledFromArc();
     this.clusterScanner = null;
     this.clusterFinder = null;
-    this.clusterResourceConsumptionFinder = null;
+    this.clusterResourceStatsFinder = null;
     this.distributedLogsFetcher = null;
   }
 
@@ -95,11 +95,11 @@ public class ClusterResource
    * Return a {@code ClusterStatus}.
    */
   @GET
-  @Path("/status/{namespace}/{name}")
+  @Path("/stats/{namespace}/{name}")
   @Authenticated
-  public ClusterResourceConsumtionDto status(@PathParam("namespace") String namespace,
-                                             @PathParam("name") String name) {
-    return clusterResourceConsumptionFinder.findByNameAndNamespace(name, namespace)
+  public ClusterStatsDto stats(@PathParam("namespace") String namespace,
+      @PathParam("name") String name) {
+    return clusterResourceStatsFinder.findByNameAndNamespace(name, namespace)
         .orElseThrow(NotFoundException::new);
   }
 

@@ -25,39 +25,37 @@ import java.util.Optional;
 
 import javax.ws.rs.BadRequestException;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import io.fabric8.kubernetes.api.model.DoneablePod;
-import io.fabric8.kubernetes.api.model.Pod;
+import io.fabric8.kubernetes.api.model.PersistentVolumeClaimBuilder;
 import io.fabric8.kubernetes.api.model.PodList;
+import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.client.CustomResourceList;
-import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.Watch;
-import io.fabric8.kubernetes.client.Watcher;
-import io.fabric8.kubernetes.client.dsl.FilterWatchListMultiDeletable;
-import io.fabric8.kubernetes.client.dsl.MixedOperation;
-import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
-import io.fabric8.kubernetes.client.dsl.PodResource;
 import io.stackgres.apiweb.config.WebApiProperty;
-import io.stackgres.common.ClusterLabelFactory;
-import io.stackgres.common.ClusterLabelMapper;
-import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterList;
-import io.stackgres.common.KubernetesClientFactory;
-import io.stackgres.common.ConfigContext;
-import io.stackgres.apiweb.resource.ClusterDtoFinder;
-import io.stackgres.apiweb.resource.ClusterDtoScanner;
-import io.stackgres.common.resource.CustomResourceFinder;
-import io.stackgres.common.resource.CustomResourceScanner;
-import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.apiweb.distributedlogs.DistributedLogsFetcher;
 import io.stackgres.apiweb.distributedlogs.DistributedLogsQueryParameters;
 import io.stackgres.apiweb.distributedlogs.FullTextSearchQuery;
 import io.stackgres.apiweb.dto.cluster.ClusterDto;
 import io.stackgres.apiweb.dto.cluster.ClusterLogEntryDto;
-import io.stackgres.apiweb.dto.cluster.ClusterResourceConsumtionDto;
+import io.stackgres.apiweb.dto.cluster.ClusterStatsDto;
+import io.stackgres.apiweb.resource.ClusterDtoFinder;
+import io.stackgres.apiweb.resource.ClusterDtoScanner;
+import io.stackgres.apiweb.resource.ClusterStatsDtoFinder;
 import io.stackgres.apiweb.transformer.AbstractResourceTransformer;
 import io.stackgres.apiweb.transformer.ClusterPodTransformer;
+import io.stackgres.apiweb.transformer.ClusterStatsTransformer;
 import io.stackgres.apiweb.transformer.ClusterTransformer;
+import io.stackgres.common.ClusterLabelFactory;
+import io.stackgres.common.ClusterLabelMapper;
+import io.stackgres.common.ConfigContext;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterList;
+import io.stackgres.common.resource.CustomResourceFinder;
+import io.stackgres.common.resource.CustomResourceScanner;
+import io.stackgres.common.resource.CustomResourceScheduler;
+import io.stackgres.common.resource.PersistentVolumeClaimFinder;
+import io.stackgres.common.resource.PodExecutor;
+import io.stackgres.common.resource.PodFinder;
 import io.stackgres.testutil.JsonUtil;
 import org.jooq.lambda.tuple.Tuple;
 import org.junit.jupiter.api.BeforeEach;
@@ -76,28 +74,19 @@ class ClusterResourceTest
     extends AbstractCustomResourceTest<ClusterDto, StackGresCluster, ClusterResource> {
 
   @Mock
-  private CustomResourceFinder<ClusterResourceConsumtionDto> statusFinder;
-
-  @Mock
   private DistributedLogsFetcher distributedLogsFetcher;
 
   @Mock
   private ConfigContext<WebApiProperty> configContext;
 
   @Mock
-  private KubernetesClientFactory clientFactory;
+  private PodFinder podFinder;
 
   @Mock
-  private KubernetesClient client;
+  private PodExecutor podExecutor;
 
   @Mock
-  private MixedOperation<Pod, PodList, DoneablePod, PodResource<Pod, DoneablePod>> podsOperation;
-
-  @Mock
-  private FilterWatchListMultiDeletable<Pod, PodList, Boolean, Watch, Watcher<Pod>> anyNamespacePodsList;
-
-  @Mock
-  private NonNamespaceOperation<Pod, PodList, DoneablePod, PodResource<Pod, DoneablePod>> podsList;
+  private PersistentVolumeClaimFinder persistentVolumeClaimFinder;
 
   private PodList podList;
   private List<ClusterLogEntryDto> logList;
@@ -117,29 +106,77 @@ class ClusterResourceTest
   void listShouldReturnAllDtos() {
     when(configContext.getProperty(WebApiProperty.GRAFANA_EMBEDDED))
         .thenReturn(Optional.of("true"));
-    when(clientFactory.create()).thenReturn(client);
-    when(client.pods()).thenReturn(podsOperation);
-    when(podsOperation.inAnyNamespace()).thenReturn(podsList);
-    when(podsList.withLabels(any())).thenReturn(podsList);
-    when(podsList.list()).thenReturn(podList);
+    when(podFinder.findResourcesWithLabels(any())).thenReturn(podList.getItems());
     super.listShouldReturnAllDtos();
   }
 
   @Test
   @Override
   void getOfAnExistingDtoShouldReturnTheExistingDto() {
-    mockPodList();
+    clusterMocks();
     super.getOfAnExistingDtoShouldReturnTheExistingDto();
   }
 
-  private void mockPodList() {
+  @Test
+  void getOfAnExistingDtoStatsShouldReturnTheExistingDtoStats() {
+    clusterMocks();
+    mockPodExecutor();
+
+    when(finder.findByNameAndNamespace(getResourceName(), getResourceNamespace()))
+        .thenReturn(Optional.of(customResources.getItems().get(0)));
+
+    ClusterStatsDto dto = service.stats(getResourceNamespace(), getResourceName());
+
+    checkStatsDto(dto);
+  }
+
+  private void clusterMocks() {
     when(configContext.getProperty(WebApiProperty.GRAFANA_EMBEDDED))
         .thenReturn(Optional.of("true"));
-    when(clientFactory.create()).thenReturn(client);
-    when(client.pods()).thenReturn(podsOperation);
-    when(podsOperation.inNamespace(anyString())).thenReturn(podsList);
-    when(podsList.withLabels(any())).thenReturn(podsList);
-    when(podsList.list()).thenReturn(podList);
+    when(podFinder.findResourcesInNamespaceWithLabels(anyString(), any()))
+        .thenReturn(podList.getItems());
+    when(persistentVolumeClaimFinder.findByNameAndNamespace(anyString(), anyString()))
+        .thenReturn(Optional.of(new PersistentVolumeClaimBuilder()
+            .withNewSpec()
+            .withNewResources()
+            .withRequests(ImmutableMap.of("storage", Quantity.parse("5Gi")))
+            .endResources()
+            .endSpec()
+            .build()));
+  }
+
+  private void mockPodExecutor() {
+    when(podExecutor.exec(any(), anyString(), any())).thenReturn(ImmutableList.of(
+        "cpuFound:4",
+        "cpuQuota:50000",
+        "cpuPeriod:100000",
+        "cpuPsiAvg10:0.50",
+        "cpuPsiAvg60:cat: /sys/fs/cgroup/cpu.pressure: No such file or directory",
+        "cpuPsiAvg300:1.50",
+        "cpuPsiTotal:10000000000",
+        "memoryFound:" + (512L * 1024 * 1024),
+        "memoryUsed:" + (278L * 1024 * 1024),
+        "memoryPsiAvg10:0.50",
+        "memoryPsiAvg60:1.00",
+        "memoryPsiAvg300:1.50",
+        "memoryPsiTotal:10000000000",
+        "memoryPsiFullAvg10:0.50",
+        "memoryPsiFullAvg60:1.00",
+        "memoryPsiFullAvg300:1.50",
+        "memoryPsiFullTotal:10000000000",
+        "diskFound:" + (5L * 1024 * 1024 * 1024),
+        "diskUsed:" + (1L * 1024 * 1024 * 1024 + 410L * 1024 * 1024),
+        "diskPsiAvg10:0.50",
+        "diskPsiAvg60:1.00",
+        "diskPsiAvg300:1.50",
+        "diskPsiTotal:10000000000",
+        "diskPsiFullAvg10:0.50",
+        "diskPsiFullAvg60:1.00",
+        "diskPsiFullAvg300:1.50",
+        "diskPsiFullTotal:10000000000",
+        "load1m:0.5",
+        "load5m:1.0",
+        "load10m:1.5"));
   }
 
   @Override
@@ -148,15 +185,14 @@ class ClusterResourceTest
   }
 
   @Override
-  protected ClusterDto getResourceDto() {
+  protected ClusterDto getDto() {
     return JsonUtil.readFromJson("stackgres_cluster/dto.json", ClusterDto.class);
   }
 
   @Override
   protected ClusterTransformer getTransformer() {
-    final ClusterTransformer clusterTransformer = new ClusterTransformer();
-    clusterTransformer.setContext(configContext);
-    clusterTransformer.setClusterPodTransformer(new ClusterPodTransformer());
+    final ClusterTransformer clusterTransformer = new ClusterTransformer(
+        configContext, new ClusterPodTransformer());
     return clusterTransformer;
   }
 
@@ -166,25 +202,24 @@ class ClusterResourceTest
       CustomResourceFinder<StackGresCluster> finder,
       CustomResourceScheduler<StackGresCluster> scheduler,
       AbstractResourceTransformer<ClusterDto, StackGresCluster> transformer) {
-    final ClusterDtoFinder dtoFinder = new ClusterDtoFinder();
-    dtoFinder.setClusterFinder(finder);
-    dtoFinder.setClientFactory(clientFactory);
-    dtoFinder.setClusterTransformer(getTransformer());
-    final ClusterLabelFactory labelFactory = new ClusterLabelFactory();
-    labelFactory.setLabelMapper(new ClusterLabelMapper());
-    dtoFinder.setLabelFactory(labelFactory);
-    final ClusterDtoScanner dtoScanner = new ClusterDtoScanner();
-    dtoScanner.setClusterScanner(scanner);
-    dtoScanner.setClientFactory(clientFactory);
-    dtoScanner.setClusterTransformer(getTransformer());
-    dtoScanner.setLabelFactory(labelFactory);
+    ClusterTransformer clusterTransformer = getTransformer();
+    final ClusterLabelFactory labelFactory = new ClusterLabelFactory(new ClusterLabelMapper());
+    final ClusterDtoFinder dtoFinder = new ClusterDtoFinder(
+        finder, podFinder, clusterTransformer, labelFactory);
+    final ClusterDtoScanner dtoScanner = new ClusterDtoScanner(
+        scanner, podFinder, clusterTransformer, labelFactory);
+    final ClusterStatsTransformer clusterStatsTransformer = new ClusterStatsTransformer(
+        new ClusterPodTransformer());
+    final ClusterStatsDtoFinder statsDtoFinder = new ClusterStatsDtoFinder(
+        finder, podFinder, podExecutor, persistentVolumeClaimFinder,
+        labelFactory, clusterStatsTransformer);
 
     return new ClusterResource(
         finder,
-        scheduler, transformer,
+        scheduler, clusterTransformer,
         dtoScanner,
         dtoFinder,
-        statusFinder,
+        statsDtoFinder,
         distributedLogsFetcher);
   }
 
@@ -273,9 +308,126 @@ class ClusterResourceTest
         .getMetadata().getLabels().get("customLabel"));
   }
 
+  private void checkStatsDto(ClusterStatsDto resource) {
+    assertNotNull(resource.getMetadata());
+    assertEquals("stackgres", resource.getMetadata().getNamespace());
+    assertEquals("stackgres", resource.getMetadata().getName());
+    assertEquals("bfb53778-f59a-11e9-b1b5-0242ac110002", resource.getMetadata().getUid());
+    assertEquals("1000m", resource.getCpuRequested());
+    assertEquals("1000m", resource.getCpuFound());
+    assertEquals("0.50", resource.getCpuPsiAvg10());
+    assertNull(resource.getCpuPsiAvg60());
+    assertEquals("1.50", resource.getCpuPsiAvg300());
+    assertEquals("20000000000", resource.getCpuPsiTotal());
+    assertEquals("1.00Gi", resource.getMemoryRequested());
+    assertEquals("1.00Gi", resource.getMemoryFound());
+    assertEquals("556.00Mi", resource.getMemoryUsed());
+    assertEquals("0.50", resource.getMemoryPsiAvg10());
+    assertEquals("1.00", resource.getMemoryPsiAvg60());
+    assertEquals("1.50", resource.getMemoryPsiAvg300());
+    assertEquals("20000000000", resource.getMemoryPsiTotal());
+    assertEquals("0.50", resource.getMemoryPsiFullAvg10());
+    assertEquals("1.00", resource.getMemoryPsiFullAvg60());
+    assertEquals("1.50", resource.getMemoryPsiFullAvg300());
+    assertEquals("20000000000", resource.getMemoryPsiFullTotal());
+    assertEquals("10.00Gi", resource.getDiskRequested());
+    assertEquals("10.00Gi", resource.getDiskFound());
+    assertEquals("2.80Gi", resource.getDiskUsed());
+    assertEquals("0.50", resource.getDiskPsiAvg10());
+    assertEquals("1.00", resource.getDiskPsiAvg60());
+    assertEquals("1.50", resource.getDiskPsiAvg300());
+    assertEquals("20000000000", resource.getDiskPsiTotal());
+    assertEquals("0.50", resource.getDiskPsiFullAvg10());
+    assertEquals("1.00", resource.getDiskPsiFullAvg60());
+    assertEquals("1.50", resource.getDiskPsiFullAvg300());
+    assertEquals("20000000000", resource.getDiskPsiFullTotal());
+    assertEquals("0.50", resource.getAverageLoad1m());
+    assertEquals("1.00", resource.getAverageLoad5m());
+    assertEquals("1.50", resource.getAverageLoad10m());
+    assertEquals(1, resource.getPodsReady());
+    assertNotNull(resource.getPods());
+    assertEquals(2, resource.getPods().size());
+    assertEquals(4, resource.getPods().get(0).getContainers());
+    assertEquals(4, resource.getPods().get(0).getContainersReady());
+    assertEquals("10.244.3.23", resource.getPods().get(0).getIp());
+    assertEquals("stackgres-0", resource.getPods().get(0).getName());
+    assertEquals("stackgres", resource.getPods().get(0).getNamespace());
+    assertEquals("primary", resource.getPods().get(0).getRole());
+    assertEquals("Active", resource.getPods().get(0).getStatus());
+    assertEquals("500m", resource.getPods().get(0).getCpuRequested());
+    assertEquals("500m", resource.getPods().get(0).getCpuFound());
+    assertEquals("0.50", resource.getPods().get(0).getCpuPsiAvg10());
+    assertNull(resource.getPods().get(0).getCpuPsiAvg60());
+    assertEquals("1.50", resource.getPods().get(0).getCpuPsiAvg300());
+    assertEquals("10000000000", resource.getPods().get(0).getCpuPsiTotal());
+    assertEquals("512.00Mi", resource.getPods().get(0).getMemoryRequested());
+    assertEquals("512.00Mi", resource.getPods().get(0).getMemoryFound());
+    assertEquals("278.00Mi", resource.getPods().get(0).getMemoryUsed());
+    assertEquals("0.50", resource.getPods().get(0).getMemoryPsiAvg10());
+    assertEquals("1.00", resource.getPods().get(0).getMemoryPsiAvg60());
+    assertEquals("1.50", resource.getPods().get(0).getMemoryPsiAvg300());
+    assertEquals("10000000000", resource.getPods().get(0).getMemoryPsiTotal());
+    assertEquals("0.50", resource.getPods().get(0).getMemoryPsiFullAvg10());
+    assertEquals("1.00", resource.getPods().get(0).getMemoryPsiFullAvg60());
+    assertEquals("1.50", resource.getPods().get(0).getMemoryPsiFullAvg300());
+    assertEquals("10000000000", resource.getPods().get(0).getMemoryPsiFullTotal());
+    assertEquals("5.00Gi", resource.getPods().get(0).getDiskRequested());
+    assertEquals("5.00Gi", resource.getPods().get(0).getDiskFound());
+    assertEquals("1.40Gi", resource.getPods().get(0).getDiskUsed());
+    assertEquals("0.50", resource.getPods().get(0).getDiskPsiAvg10());
+    assertEquals("1.00", resource.getPods().get(0).getDiskPsiAvg60());
+    assertEquals("1.50", resource.getPods().get(0).getDiskPsiAvg300());
+    assertEquals("10000000000", resource.getPods().get(0).getDiskPsiTotal());
+    assertEquals("0.50", resource.getPods().get(0).getDiskPsiFullAvg10());
+    assertEquals("1.00", resource.getPods().get(0).getDiskPsiFullAvg60());
+    assertEquals("1.50", resource.getPods().get(0).getDiskPsiFullAvg300());
+    assertEquals("10000000000", resource.getPods().get(0).getDiskPsiFullTotal());
+    assertEquals("0.50", resource.getPods().get(0).getAverageLoad1m());
+    assertEquals("1.00", resource.getPods().get(0).getAverageLoad5m());
+    assertEquals("1.50", resource.getPods().get(0).getAverageLoad10m());
+    assertEquals(4, resource.getPods().get(1).getContainers());
+    assertEquals(0, resource.getPods().get(1).getContainersReady());
+    assertNull(resource.getPods().get(1).getIp());
+    assertEquals("stackgres-1", resource.getPods().get(1).getName());
+    assertEquals("stackgres", resource.getPods().get(1).getNamespace());
+    assertNull(resource.getPods().get(1).getRole());
+    assertEquals("Pending", resource.getPods().get(1).getStatus());
+    assertEquals("500m", resource.getPods().get(1).getCpuRequested());
+    assertEquals("500m", resource.getPods().get(1).getCpuFound());
+    assertEquals("0.50", resource.getPods().get(1).getCpuPsiAvg10());
+    assertNull(resource.getPods().get(1).getCpuPsiAvg60());
+    assertEquals("1.50", resource.getPods().get(1).getCpuPsiAvg300());
+    assertEquals("10000000000", resource.getPods().get(1).getCpuPsiTotal());
+    assertEquals("512.00Mi", resource.getPods().get(1).getMemoryRequested());
+    assertEquals("512.00Mi", resource.getPods().get(1).getMemoryFound());
+    assertEquals("278.00Mi", resource.getPods().get(1).getMemoryUsed());
+    assertEquals("0.50", resource.getPods().get(1).getMemoryPsiAvg10());
+    assertEquals("1.00", resource.getPods().get(1).getMemoryPsiAvg60());
+    assertEquals("1.50", resource.getPods().get(1).getMemoryPsiAvg300());
+    assertEquals("10000000000", resource.getPods().get(1).getMemoryPsiTotal());
+    assertEquals("0.50", resource.getPods().get(1).getMemoryPsiFullAvg10());
+    assertEquals("1.00", resource.getPods().get(1).getMemoryPsiFullAvg60());
+    assertEquals("1.50", resource.getPods().get(1).getMemoryPsiFullAvg300());
+    assertEquals("10000000000", resource.getPods().get(1).getMemoryPsiFullTotal());
+    assertEquals("5.00Gi", resource.getPods().get(1).getDiskRequested());
+    assertEquals("5.00Gi", resource.getPods().get(1).getDiskFound());
+    assertEquals("1.40Gi", resource.getPods().get(1).getDiskUsed());
+    assertEquals("0.50", resource.getPods().get(1).getDiskPsiAvg10());
+    assertEquals("1.00", resource.getPods().get(1).getDiskPsiAvg60());
+    assertEquals("1.50", resource.getPods().get(1).getDiskPsiAvg300());
+    assertEquals("10000000000", resource.getPods().get(1).getDiskPsiTotal());
+    assertEquals("0.50", resource.getPods().get(1).getDiskPsiFullAvg10());
+    assertEquals("1.00", resource.getPods().get(1).getDiskPsiFullAvg60());
+    assertEquals("1.50", resource.getPods().get(1).getDiskPsiFullAvg300());
+    assertEquals("10000000000", resource.getPods().get(1).getDiskPsiFullTotal());
+    assertEquals("0.50", resource.getPods().get(1).getAverageLoad1m());
+    assertEquals("1.00", resource.getPods().get(1).getAverageLoad5m());
+    assertEquals("1.50", resource.getPods().get(1).getAverageLoad10m());
+  }
+
   @Test
   void getLogsShouldNotFail() {
-    mockPodList();
+    clusterMocks();
     when(finder.findByNameAndNamespace(getResourceName(), getResourceNamespace()))
         .thenReturn(Optional.of(customResources.getItems().get(0)));
     doAnswer(new Answer<List<ClusterLogEntryDto>>() {
@@ -318,7 +470,7 @@ class ClusterResourceTest
 
   @Test
   void getLogsWithRecordsShouldNotFail() {
-    mockPodList();
+    clusterMocks();
     when(finder.findByNameAndNamespace(getResourceName(), getResourceNamespace()))
         .thenReturn(Optional.of(customResources.getItems().get(0)));
     doAnswer(new Answer<List<ClusterLogEntryDto>>() {
@@ -361,7 +513,7 @@ class ClusterResourceTest
 
   @Test
   void getLogsWithNegativeRecordsShouldFail() {
-    mockPodList();
+    clusterMocks();
     when(finder.findByNameAndNamespace(getResourceName(), getResourceNamespace()))
         .thenReturn(Optional.of(customResources.getItems().get(0)));
     when(distributedLogsFetcher.logs(any()))
@@ -386,7 +538,7 @@ class ClusterResourceTest
 
   @Test
   void getLogsWithFromShouldNotFail() {
-    mockPodList();
+    clusterMocks();
     when(finder.findByNameAndNamespace(getResourceName(), getResourceNamespace()))
         .thenReturn(Optional.of(customResources.getItems().get(0)));
     doAnswer(new Answer<List<ClusterLogEntryDto>>() {
@@ -429,7 +581,7 @@ class ClusterResourceTest
 
   @Test
   void getLogsWithFromAndIndexShouldNotFail() {
-    mockPodList();
+    clusterMocks();
     when(finder.findByNameAndNamespace(getResourceName(), getResourceNamespace()))
         .thenReturn(Optional.of(customResources.getItems().get(0)));
     doAnswer(new Answer<List<ClusterLogEntryDto>>() {
@@ -472,7 +624,7 @@ class ClusterResourceTest
 
   @Test
   void getLogsWithWrongFromShouldFail() {
-    mockPodList();
+    clusterMocks();
     when(finder.findByNameAndNamespace(getResourceName(), getResourceNamespace()))
         .thenReturn(Optional.of(customResources.getItems().get(0)));
     when(distributedLogsFetcher.logs(any()))
@@ -497,7 +649,7 @@ class ClusterResourceTest
 
   @Test
   void getLogsWithWrongFromIndexShouldFail() {
-    mockPodList();
+    clusterMocks();
     when(finder.findByNameAndNamespace(getResourceName(), getResourceNamespace()))
         .thenReturn(Optional.of(customResources.getItems().get(0)));
     when(distributedLogsFetcher.logs(any()))
@@ -522,7 +674,7 @@ class ClusterResourceTest
 
   @Test
   void getLogsWithToShouldNotFail() {
-    mockPodList();
+    clusterMocks();
     when(finder.findByNameAndNamespace(getResourceName(), getResourceNamespace()))
         .thenReturn(Optional.of(customResources.getItems().get(0)));
     doAnswer(new Answer<List<ClusterLogEntryDto>>() {
@@ -565,7 +717,7 @@ class ClusterResourceTest
 
   @Test
   void getLogsWithToAndIndexShouldNotFail() {
-    mockPodList();
+    clusterMocks();
     when(finder.findByNameAndNamespace(getResourceName(), getResourceNamespace()))
         .thenReturn(Optional.of(customResources.getItems().get(0)));
     doAnswer(new Answer<List<ClusterLogEntryDto>>() {
@@ -608,7 +760,7 @@ class ClusterResourceTest
 
   @Test
   void getLogsWithWrongToShouldFail() {
-    mockPodList();
+    clusterMocks();
     when(finder.findByNameAndNamespace(getResourceName(), getResourceNamespace()))
         .thenReturn(Optional.of(customResources.getItems().get(0)));
     when(distributedLogsFetcher.logs(any()))
@@ -633,7 +785,7 @@ class ClusterResourceTest
 
   @Test
   void getLogsWithWrongToIndexShouldFail() {
-    mockPodList();
+    clusterMocks();
     when(finder.findByNameAndNamespace(getResourceName(), getResourceNamespace()))
         .thenReturn(Optional.of(customResources.getItems().get(0)));
     when(distributedLogsFetcher.logs(any()))
@@ -658,7 +810,7 @@ class ClusterResourceTest
 
   @Test
   void getLogsWithClusterWithoutDistributedLogsShouldFail() {
-    mockPodList();
+    clusterMocks();
     when(finder.findByNameAndNamespace(getResourceName(), getResourceNamespace()))
         .thenReturn(Optional.of(clusterWithoutDistributedLogs));
     when(distributedLogsFetcher.logs(any()))
@@ -683,7 +835,7 @@ class ClusterResourceTest
 
   @Test
   void getLogsWithDescSortShouldNotFail() {
-    mockPodList();
+    clusterMocks();
     when(finder.findByNameAndNamespace(getResourceName(), getResourceNamespace()))
         .thenReturn(Optional.of(customResources.getItems().get(0)));
     doAnswer(new Answer<List<ClusterLogEntryDto>>() {
@@ -726,7 +878,7 @@ class ClusterResourceTest
 
   @Test
   void getLogsWithAscSortShouldNotFail() {
-    mockPodList();
+    clusterMocks();
     when(finder.findByNameAndNamespace(getResourceName(), getResourceNamespace()))
         .thenReturn(Optional.of(customResources.getItems().get(0)));
     doAnswer(new Answer<List<ClusterLogEntryDto>>() {
@@ -769,7 +921,7 @@ class ClusterResourceTest
 
   @Test
   void getLogsWithWrongSortShouldFail() {
-    mockPodList();
+    clusterMocks();
     when(finder.findByNameAndNamespace(getResourceName(), getResourceNamespace()))
         .thenReturn(Optional.of(customResources.getItems().get(0)));
     when(distributedLogsFetcher.logs(any()))
@@ -794,7 +946,7 @@ class ClusterResourceTest
 
   @Test
   void getLogsWithTextShouldNotFail() {
-    mockPodList();
+    clusterMocks();
     when(finder.findByNameAndNamespace(getResourceName(), getResourceNamespace()))
         .thenReturn(Optional.of(customResources.getItems().get(0)));
     doAnswer(new Answer<List<ClusterLogEntryDto>>() {
@@ -838,7 +990,7 @@ class ClusterResourceTest
 
   @Test
   void getLogsWithEmptyTextShouldNotFail() {
-    mockPodList();
+    clusterMocks();
     when(finder.findByNameAndNamespace(getResourceName(), getResourceNamespace()))
         .thenReturn(Optional.of(customResources.getItems().get(0)));
     doAnswer(new Answer<List<ClusterLogEntryDto>>() {
@@ -882,7 +1034,7 @@ class ClusterResourceTest
 
   @Test
   void getLogsWithLogTypeFilterShouldNotFail() {
-    mockPodList();
+    clusterMocks();
     when(finder.findByNameAndNamespace(getResourceName(), getResourceNamespace()))
         .thenReturn(Optional.of(customResources.getItems().get(0)));
     doAnswer(new Answer<List<ClusterLogEntryDto>>() {
@@ -925,7 +1077,7 @@ class ClusterResourceTest
 
   @Test
   void getLogsWithPodNameFilterShouldNotFail() {
-    mockPodList();
+    clusterMocks();
     when(finder.findByNameAndNamespace(getResourceName(), getResourceNamespace()))
         .thenReturn(Optional.of(customResources.getItems().get(0)));
     doAnswer(new Answer<List<ClusterLogEntryDto>>() {
@@ -968,7 +1120,7 @@ class ClusterResourceTest
 
   @Test
   void getLogsWithRoleFilterShouldNotFail() {
-    mockPodList();
+    clusterMocks();
     when(finder.findByNameAndNamespace(getResourceName(), getResourceNamespace()))
         .thenReturn(Optional.of(customResources.getItems().get(0)));
     doAnswer(new Answer<List<ClusterLogEntryDto>>() {
@@ -1011,7 +1163,7 @@ class ClusterResourceTest
 
   @Test
   void getLogsWithErrorLevelFilterShouldNotFail() {
-    mockPodList();
+    clusterMocks();
     when(finder.findByNameAndNamespace(getResourceName(), getResourceNamespace()))
         .thenReturn(Optional.of(customResources.getItems().get(0)));
     doAnswer(new Answer<List<ClusterLogEntryDto>>() {
@@ -1054,7 +1206,7 @@ class ClusterResourceTest
 
   @Test
   void getLogsWithUserNameFilterShouldNotFail() {
-    mockPodList();
+    clusterMocks();
     when(finder.findByNameAndNamespace(getResourceName(), getResourceNamespace()))
         .thenReturn(Optional.of(customResources.getItems().get(0)));
     doAnswer(new Answer<List<ClusterLogEntryDto>>() {
@@ -1097,7 +1249,7 @@ class ClusterResourceTest
 
   @Test
   void getLogsWithDatabaseNameFilterShouldNotFail() {
-    mockPodList();
+    clusterMocks();
     when(finder.findByNameAndNamespace(getResourceName(), getResourceNamespace()))
         .thenReturn(Optional.of(customResources.getItems().get(0)));
     doAnswer(new Answer<List<ClusterLogEntryDto>>() {
@@ -1140,7 +1292,7 @@ class ClusterResourceTest
 
   @Test
   void getLogsWithEmptyLogTypeFilterShouldNotFail() {
-    mockPodList();
+    clusterMocks();
     when(finder.findByNameAndNamespace(getResourceName(), getResourceNamespace()))
         .thenReturn(Optional.of(customResources.getItems().get(0)));
     doAnswer(new Answer<List<ClusterLogEntryDto>>() {
@@ -1183,7 +1335,7 @@ class ClusterResourceTest
 
   @Test
   void getLogsWithEmptyPodNameFilterShouldNotFail() {
-    mockPodList();
+    clusterMocks();
     when(finder.findByNameAndNamespace(getResourceName(), getResourceNamespace()))
         .thenReturn(Optional.of(customResources.getItems().get(0)));
     doAnswer(new Answer<List<ClusterLogEntryDto>>() {
@@ -1226,7 +1378,7 @@ class ClusterResourceTest
 
   @Test
   void getLogsWithEmptyRoleFilterShouldNotFail() {
-    mockPodList();
+    clusterMocks();
     when(finder.findByNameAndNamespace(getResourceName(), getResourceNamespace()))
         .thenReturn(Optional.of(customResources.getItems().get(0)));
     doAnswer(new Answer<List<ClusterLogEntryDto>>() {
@@ -1269,7 +1421,7 @@ class ClusterResourceTest
 
   @Test
   void getLogsWithEmptyErrorLevelFilterShouldNotFail() {
-    mockPodList();
+    clusterMocks();
     when(finder.findByNameAndNamespace(getResourceName(), getResourceNamespace()))
         .thenReturn(Optional.of(customResources.getItems().get(0)));
     doAnswer(new Answer<List<ClusterLogEntryDto>>() {
@@ -1312,7 +1464,7 @@ class ClusterResourceTest
 
   @Test
   void getLogsWithEmptyUserNameFilterShouldNotFail() {
-    mockPodList();
+    clusterMocks();
     when(finder.findByNameAndNamespace(getResourceName(), getResourceNamespace()))
         .thenReturn(Optional.of(customResources.getItems().get(0)));
     doAnswer(new Answer<List<ClusterLogEntryDto>>() {
@@ -1355,7 +1507,7 @@ class ClusterResourceTest
 
   @Test
   void getLogsWithEmptyDatabaseNameFilterShouldNotFail() {
-    mockPodList();
+    clusterMocks();
     when(finder.findByNameAndNamespace(getResourceName(), getResourceNamespace()))
         .thenReturn(Optional.of(customResources.getItems().get(0)));
     doAnswer(new Answer<List<ClusterLogEntryDto>>() {
@@ -1398,7 +1550,7 @@ class ClusterResourceTest
 
   @Test
   void getLogsWithFromInclusiveShouldNotFail() {
-    mockPodList();
+    clusterMocks();
     when(finder.findByNameAndNamespace(getResourceName(), getResourceNamespace()))
         .thenReturn(Optional.of(customResources.getItems().get(0)));
     doAnswer(new Answer<List<ClusterLogEntryDto>>() {
@@ -1441,7 +1593,7 @@ class ClusterResourceTest
 
   @Test
   void getLogsWithFromExclusiveShouldNotFail() {
-    mockPodList();
+    clusterMocks();
     when(finder.findByNameAndNamespace(getResourceName(), getResourceNamespace()))
         .thenReturn(Optional.of(customResources.getItems().get(0)));
     doAnswer(new Answer<List<ClusterLogEntryDto>>() {
