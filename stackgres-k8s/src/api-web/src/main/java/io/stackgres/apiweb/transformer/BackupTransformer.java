@@ -75,6 +75,7 @@ public class BackupTransformer extends AbstractResourceTransformer<BackupDto, St
     return transformation;
   }
 
+  @SuppressWarnings("deprecation")
   private BackupStatus getResourceStatus(StackGresBackupStatus source) {
     if (source == null) {
       return null;
