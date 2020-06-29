@@ -60,10 +60,10 @@ public class Envoy implements StackGresClusterSidecarResourceFactory<Void> {
   public static final String SERVICE_MONITOR = "-stackgres-envoy";
   public static final String SERVICE = "-prometheus-envoy";
 
-  public static final int PG_ENTRY_PORT = 5432;
-  public static final int PG_REPL_ENTRY_PORT = 5433;
-  public static final int PG_POOL_PORT = 5434;
-  public static final int PG_PORT = 5435;
+  public static final int PG_ENTRY_PORT = 7432;
+  public static final int PG_REPL_ENTRY_PORT = 7433;
+  public static final int PG_POOL_PORT = 6432;
+  public static final int PG_PORT = 5432;
   public static final String NAME = StackgresClusterContainers.ENVOY;
 
   private static final String IMAGE_NAME = "docker.io/envoyproxy/envoy:v%s";

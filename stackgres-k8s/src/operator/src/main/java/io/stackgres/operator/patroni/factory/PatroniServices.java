@@ -23,13 +23,14 @@ import io.stackgres.operator.common.LabelFactoryDelegator;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresClusterResourceStreamFactory;
 import io.stackgres.operator.common.StackGresGeneratorContext;
-import io.stackgres.operator.sidecars.envoy.Envoy;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jooq.lambda.Seq;
 
 @ApplicationScoped
 public class PatroniServices implements StackGresClusterResourceStreamFactory {
 
+  public static final int POSTGRES_SERVICE_PORT = 5432;
+  public static final int REPLICATION_SERVICE_PORT = 5433;
   private LabelFactoryDelegator factoryDelegator;
 
   public static String readWriteName(StackGresClusterContext clusterContext) {
@@ -113,13 +114,13 @@ public class PatroniServices implements StackGresClusterResourceStreamFactory {
         .withPorts(new ServicePortBuilder()
                 .withProtocol("TCP")
                 .withName(PatroniConfigMap.POSTGRES_PORT_NAME)
-                .withPort(Envoy.PG_ENTRY_PORT)
+                .withPort(POSTGRES_SERVICE_PORT)
                 .withTargetPort(new IntOrString(PatroniConfigMap.POSTGRES_PORT_NAME))
                 .build(),
             new ServicePortBuilder()
                 .withProtocol("TCP")
                 .withName(PatroniConfigMap.POSTGRES_REPLICATION_PORT_NAME)
-                .withPort(Envoy.PG_REPL_ENTRY_PORT)
+                .withPort(REPLICATION_SERVICE_PORT)
                 .withTargetPort(new IntOrString(PatroniConfigMap.POSTGRES_REPLICATION_PORT_NAME))
                 .build())
         .withType("ClusterIP")

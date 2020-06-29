@@ -33,12 +33,12 @@ try_check_wal_archive() {
   local NODE="$1"
   local CURRENT_WAL_FILE
   CURRENT_WAL_FILE="$(kubectl exec -t -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-"$NODE" -c postgres-util -- \
-    psql -t -A -U postgres -p 5435 -c \
+    psql -t -A -U postgres -p 5432 -c \
     'SELECT r.file_name from pg_walfile_name_offset(pg_current_wal_lsn()) as r')"
   kubectl exec -t -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-"$NODE" -c postgres-util -- \
-    psql -t -A -U postgres -p 5435 -c 'CHECKPOINT'
+    psql -t -A -U postgres -p 5432 -c 'CHECKPOINT'
   wait_until -t "$((E2E_TIMEOUT / 10))" eval '[ "$(kubectl exec -t -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-"$NODE" -c postgres-util -- \
-      psql -t -A -U postgres -p 5435 -c \
+      psql -t -A -U postgres -p 5432 -c \
       "SELECT r.file_name from pg_walfile_name_offset(pg_switch_wal()) as r")" != "$CURRENT_WAL_FILE" ]'
   wait_until -t "$((E2E_TIMEOUT / 10))" timeout -s KILL "$((E2E_TIMEOUT / 20))" \
     kubectl exec -t -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-"$NODE" -c patroni -- \
