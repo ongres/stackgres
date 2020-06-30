@@ -45,7 +45,7 @@
   </scm>
 
   <properties>
-    <stackgres.containerBuild>4</stackgres.containerBuild>
+    <stackgres.containerBuild>5-dev</stackgres.containerBuild>
     <stackgres.group>stackgres.io</stackgres.group>
     <stackgres.crd.version>v1beta1</stackgres.crd.version>
     <stackgres.operatorVersion>${project.version}</stackgres.operatorVersion>
