@@ -2,8 +2,8 @@
 e2e_test_install() {
   kubectl create namespace "$CLUSTER_NAMESPACE"
   
-  local SERVICE="stackgres-restapi"
-  local OPERATOR_NAMESPACE="stackgres"
+  SERVICE="stackgres-restapi"
+  OPERATOR_NAMESPACE="stackgres"
   local USERNAME="admin"
   local PASSWORD="$(kubectl get secrets -n $OPERATOR_NAMESPACE $SERVICE -o jsonpath="{.data.clearPassword}" | base64 -d)"
   CYPRESS_POD="cypress"
@@ -43,6 +43,7 @@ EOF
 e2e_test() {  
   run_test "Cypress chrome tests should pass" cypress_chrome_tests
   run_test "Cypress firefox tests should pass" cypress_firefox_tests
+  run_test "Nginx must return the index page when a resource is not found" check_index_on_not_found_resource
 }
 
 cypress_chrome_tests(){
@@ -51,4 +52,21 @@ cypress_chrome_tests(){
 
 cypress_firefox_tests(){
   kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CYPRESS_POD" -- cypress run --headless  --browser firefox
+}
+
+check_index_on_not_found_resource(){
+  random_resource=$(cat /dev/urandom | tr -dc 'a-z' | fold -w 8 | head -n 1)
+  HTTP_STATUS=$(kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CYPRESS_POD" -- curl -k "https://$SERVICE.$OPERATOR_NAMESPACE/admin/$random_resource" -X GET -LI -o /dev/null -w %{http_code})
+
+  assert_string_equal "200" "$HTTP_STATUS"
+
+  HTTP_RESPONSE=$(kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CYPRESS_POD" -- curl -k "https://$SERVICE.$OPERATOR_NAMESPACE/admin/$random_resource -X GET -LI")
+
+  if echo "$HTTP_RESPONSE" | grep -E "<meta.+index" > /dev/null
+  then
+    echo "SUCCESS. Returned index page on not found resource"
+  else
+    echo "FAIL. Index page not returned on not found resource"
+    return 1
+  fi
 }

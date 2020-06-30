@@ -19,7 +19,7 @@ data:
       index index.html;
  
       location /admin/ {
-        try_files $uri admin/$uri $uri/index.html;
+        try_files $uri $uri/index.html /admin/index.html;
       }
 
       location ~ ^(/|/admin|/admin/)$ {
