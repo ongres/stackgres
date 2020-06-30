@@ -9,7 +9,7 @@ public enum ErrorType {
 
   CONSTRAINT_VIOLATION("constraint-violation",
       "Some fields do not comply with the syntactic rules"),
-  PG_CONFIG_BLACKLIST("postgres-blacklist",
+  PG_CONFIG_BLOCKLIST("postgres-blocklist",
       "The postgres configuration contains blacklisted parameters"),
   PG_VERSION_MISMATCH("postgres-major-version-mismatch", "Postgres versions doesn't match"),
   INVALID_CR_REFERENCE("invalid-configuration-reference",

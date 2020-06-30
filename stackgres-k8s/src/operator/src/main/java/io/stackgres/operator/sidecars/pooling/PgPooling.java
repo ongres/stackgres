@@ -44,7 +44,7 @@ import io.stackgres.operator.common.StackGresClusterSidecarResourceFactory;
 import io.stackgres.operator.common.StackGresComponents;
 import io.stackgres.operator.common.StackGresGeneratorContext;
 import io.stackgres.operator.sidecars.envoy.Envoy;
-import io.stackgres.operator.sidecars.pooling.parameters.Blacklist;
+import io.stackgres.operator.sidecars.pooling.parameters.Blocklist;
 import io.stackgres.operator.sidecars.pooling.parameters.DefaultValues;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jooq.lambda.Seq;
@@ -79,7 +79,7 @@ public class PgPooling
         .map(StackGresPoolingConfigPgBouncer::getPgbouncerConf)
         .orElseGet(HashMap::new);
     // Blacklist removal
-    for (String bl : Blacklist.getBlacklistParameters()) {
+    for (String bl : Blocklist.getBlocklistParameters()) {
       newParams.remove(bl);
     }
     Map<String, String> params = new HashMap<>(DefaultValues.getDefaultValues());

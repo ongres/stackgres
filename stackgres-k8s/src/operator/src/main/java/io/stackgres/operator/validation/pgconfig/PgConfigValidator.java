@@ -6,11 +6,11 @@
 package io.stackgres.operator.validation.pgconfig;
 
 import io.stackgres.operator.common.PgConfigReview;
-import io.stackgres.operator.patroni.factory.parameters.Blacklist;
+import io.stackgres.operator.patroni.factory.parameters.Blocklist;
 import io.stackgres.operatorframework.admissionwebhook.validating.Validator;
 
 public interface PgConfigValidator extends Validator<PgConfigReview> {
 
-  String[] BLACKLIST_PROPERTIES = Blacklist.getBlacklistParameters().toArray(new String[0]);
+  String[] BLOCKLIST_PROPERTIES = Blocklist.getBlocklistParameters().toArray(new String[0]);
 
 }
