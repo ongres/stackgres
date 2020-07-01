@@ -58,7 +58,7 @@ public class StackGresClusterSpec implements KubernetesResource {
   private Boolean prometheusAutobind;
 
   @JsonProperty("nonProductionOptions")
-  private NonProduction nonProduction;
+  private StackGresClusterNonProduction nonProduction;
 
   public int getInstances() {
     return instances;
@@ -108,11 +108,11 @@ public class StackGresClusterSpec implements KubernetesResource {
     this.prometheusAutobind = prometheusAutobind;
   }
 
-  public NonProduction getNonProduction() {
+  public StackGresClusterNonProduction getNonProduction() {
     return nonProduction;
   }
 
-  public void setNonProduction(NonProduction nonProduction) {
+  public void setNonProduction(StackGresClusterNonProduction nonProduction) {
     this.nonProduction = nonProduction;
   }
 

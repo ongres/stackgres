@@ -17,7 +17,7 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class ClusterRestore implements KubernetesResource {
+public class StackGresClusterRestore implements KubernetesResource {
 
   private static final long serialVersionUID = 1L;
 
@@ -60,7 +60,7 @@ public class ClusterRestore implements KubernetesResource {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    ClusterRestore that = (ClusterRestore) o;
+    StackGresClusterRestore that = (StackGresClusterRestore) o;
     return Objects.equals(downloadDiskConcurrency, that.downloadDiskConcurrency)
         && Objects.equals(backupUid, that.backupUid);
   }

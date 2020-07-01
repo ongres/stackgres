@@ -53,7 +53,7 @@ public class ClusterSpec {
   private Boolean prometheusAutobind;
 
   @JsonProperty("nonProductionOptions")
-  private NonProduction nonProduction;
+  private ClusterNonProduction nonProduction;
 
   public int getInstances() {
     return instances;
@@ -95,11 +95,11 @@ public class ClusterSpec {
     this.prometheusAutobind = prometheusAutobind;
   }
 
-  public NonProduction getNonProduction() {
+  public ClusterNonProduction getNonProduction() {
     return nonProduction;
   }
 
-  public void setNonProduction(NonProduction nonProduction) {
+  public void setNonProduction(ClusterNonProduction nonProduction) {
     this.nonProduction = nonProduction;
   }
 

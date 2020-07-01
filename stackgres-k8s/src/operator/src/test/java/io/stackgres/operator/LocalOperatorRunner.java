@@ -61,8 +61,6 @@ import io.quarkus.runtime.LaunchMode;
 import io.quarkus.test.common.PathTestHelper;
 import io.quarkus.test.junit.QuarkusTest;
 import io.stackgres.common.StackGresUtil;
-import io.stackgres.operator.common.OperatorConfigDefaults;
-import io.stackgres.operatorframework.admissionwebhook.validating.Validator;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jooq.lambda.Unchecked;
 import org.objectweb.asm.ClassReader;

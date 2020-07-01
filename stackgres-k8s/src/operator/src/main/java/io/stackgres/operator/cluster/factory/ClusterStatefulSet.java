@@ -32,8 +32,8 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetUpdateStrategyBuilder;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.StackGresContext;
-import io.stackgres.common.crd.sgcluster.NonProduction;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction;
 import io.stackgres.operator.common.LabelFactoryDelegator;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresClusterResourceStreamFactory;
@@ -160,7 +160,7 @@ public class ClusterStatefulSet implements StackGresClusterResourceStreamFactory
                 .build())
                 .filter(affinity -> Optional.ofNullable(
                     cluster.getSpec().getNonProduction())
-                    .map(NonProduction::getDisableClusterPodAntiAffinity)
+                    .map(StackGresClusterNonProduction::getDisableClusterPodAntiAffinity)
                     .map(disableClusterPodAntiAffinity -> !disableClusterPodAntiAffinity)
                     .orElse(true))
                 .orElse(null))

@@ -1,5 +1,7 @@
 #!/bin/sh
 
+E2E_PULLED_IMAGES_PATH="${E2E_PULLED_IMAGES_PATH:-$TARGET_PATH/pulled-images}"
+
 set_up_private_repository() {
   if ! aws ecr describe-repositories --repository-name "stackgres/operator" > /dev/null
   then
@@ -51,7 +53,7 @@ get_private_repo_password() {
 }
 
 load_cached_images_from_local_repository() {
-  cat "$TARGET_PATH/pulled-images" \
+  cat "$E2E_PULLED_IMAGES_PATH" \
     | cut -d : -f 2-3 | sort | uniq \
     | (
       while read IMAGE_NAME
@@ -74,19 +76,19 @@ cache_pulled_images_to_local_repository() {
       while read IMAGE_NAME
       do
         echo "Detected pulled image $IMAGE_NAME to k8s env $E2E_ENV"
-        if [ ! -f "$TARGET_PATH/pulled-images" ]
+        if [ ! -f "$E2E_PULLED_IMAGES_PATH" ]
         then
-          rm -f "$TARGET_PATH/pulled-images"
-          touch "$TARGET_PATH/pulled-images"
+          rm -f "$E2E_PULLED_IMAGES_PATH"
+          touch "$E2E_PULLED_IMAGES_PATH"
         fi
-        if [ "$(grep -F "$IMAGE_NAME" "$TARGET_PATH/pulled-images" \
+        if [ "$(grep -F "$IMAGE_NAME" "$E2E_PULLED_IMAGES_PATH" \
           | sort | tail -n 1 | cut -d : -f 1 | grep '\d+' || echo 0)" \
           -lt "$(($(date +%s)-30))" ]
         then
           echo "Pulling image $IMAGE_NAME to cache"
           if docker pull -q "$IMAGE_NAME"
           then
-            echo "$(date +%s):$IMAGE_NAME" >> "$TARGET_PATH/pulled-images"
+            echo "$(date +%s):$IMAGE_NAME" >> "$E2E_PULLED_IMAGES_PATH"
           else
             echo "Pulling image $IMAGE_NAME to cache failed!"
           fi

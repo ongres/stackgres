@@ -1,3 +1,4 @@
+{{ if not (and .Values.developer.externalOperatorIp .Values.developer.externalOperatorPort) }}
 apiVersion: v1
 kind: Service
 metadata:
@@ -12,7 +13,21 @@ spec:
       protocol: TCP
       port: 443
       targetPort: https
-{{ if and .Values.developer.externalOperatorIp .Values.developer.externalOperatorPort }}
+{{ else }}
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: {{ .Release.Name }}
+spec:
+  type: ClusterIP
+  selector:
+    app: {{ .Release.Name }}
+  ports:
+    - name: https
+      protocol: TCP
+      port: 443
+      targetPort: proxyhttps
 ---
 kind: Service
 apiVersion: v1

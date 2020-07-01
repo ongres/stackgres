@@ -96,6 +96,8 @@ developer: {}
   # enableJvmDebugSuspend: false
   # externalOperatorIp: 172.17.0.1
   # externalOperatorPort: 8080
+  # externalRestApiIp: 172.17.0.1
+  # externalRestApiPort: 8081
 
 #Setting prometheus-operator.create to true will install prometheus-operator and embed grafana in the stackgres UI
 prometheus-operator:

@@ -16,8 +16,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.fge.jackson.jsonpointer.JsonPointer;
 import com.github.fge.jsonpatch.JsonPatchOperation;
 import com.google.common.collect.ImmutableList;
-import io.stackgres.common.crd.sgcluster.ClusterRestore;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
+import io.stackgres.common.crd.sgcluster.StackGresClusterRestore;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
@@ -31,7 +31,7 @@ public class DefaultRestoreMutator implements ClusterMutator {
   private JsonPointer restorePointer;
   private JsonNode defaultNode;
 
-  private DefaultCustomResourceFactory<ClusterRestore> defaultRestoreFactory;
+  private DefaultCustomResourceFactory<StackGresClusterRestore> defaultRestoreFactory;
 
   @PostConstruct
   public void init() throws NoSuchFieldException {
@@ -44,7 +44,7 @@ public class DefaultRestoreMutator implements ClusterMutator {
     restorePointer = ClusterMutator.CLUSTER_CONFIG_POINTER
         .append(initDataJson).append(restoreJsonField);
 
-    ClusterRestore defaultRestore = defaultRestoreFactory.buildResource();
+    StackGresClusterRestore defaultRestore = defaultRestoreFactory.buildResource();
     defaultNode = mapper.valueToTree(defaultRestore);
 
   }
@@ -57,7 +57,7 @@ public class DefaultRestoreMutator implements ClusterMutator {
 
     if (review.getRequest().getOperation() == Operation.CREATE
         && initData != null) {
-      ClusterRestore restore = initData.getRestore();
+      StackGresClusterRestore restore = initData.getRestore();
 
       if (restore != null) {
 
@@ -75,7 +75,7 @@ public class DefaultRestoreMutator implements ClusterMutator {
 
   @Inject
   public void setDefaultRestoreFactory(
-      DefaultCustomResourceFactory<ClusterRestore> defaultRestoreFactory) {
+      DefaultCustomResourceFactory<StackGresClusterRestore> defaultRestoreFactory) {
     this.defaultRestoreFactory = defaultRestoreFactory;
   }
 }

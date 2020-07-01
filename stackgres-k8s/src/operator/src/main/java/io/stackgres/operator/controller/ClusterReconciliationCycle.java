@@ -34,7 +34,6 @@ import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigDefinition;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigDoneable;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigList;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigSpec;
-import io.stackgres.common.crd.sgcluster.ClusterRestore;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDefinition;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDistributedLogs;
@@ -42,6 +41,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterDoneable;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterList;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
+import io.stackgres.common.crd.sgcluster.StackGresClusterRestore;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigDefinition;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigDoneable;
@@ -413,12 +413,12 @@ public class ClusterReconciliationCycle
 
   private Optional<StackGresRestoreContext> getRestoreContext(StackGresCluster cluster,
       KubernetesClient client) {
-    Optional<ClusterRestore> restoreOpt = Optional
+    Optional<StackGresClusterRestore> restoreOpt = Optional
         .ofNullable(cluster.getSpec().getInitData())
         .map(StackGresClusterInitData::getRestore);
 
     if (restoreOpt.isPresent()) {
-      ClusterRestore restore = restoreOpt.get();
+      StackGresClusterRestore restore = restoreOpt.get();
       return ResourceUtil.getCustomResource(client, StackGresBackupDefinition.NAME)
           .flatMap(crd -> client
               .customResources(crd,

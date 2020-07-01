@@ -28,7 +28,7 @@ public class DistributedLogsSpec implements KubernetesResource {
   private DistributedLogsPersistentVolume persistentVolume;
 
   @JsonProperty("nonProductionOptions")
-  private NonProduction nonProduction;
+  private DistributedLogsNonProduction nonProduction;
 
   public DistributedLogsPersistentVolume getPersistentVolume() {
     return persistentVolume;
@@ -39,11 +39,11 @@ public class DistributedLogsSpec implements KubernetesResource {
     this.persistentVolume = persistentVolume;
   }
 
-  public NonProduction getNonProduction() {
+  public DistributedLogsNonProduction getNonProduction() {
     return nonProduction;
   }
 
-  public void setNonProduction(NonProduction nonProduction) {
+  public void setNonProduction(DistributedLogsNonProduction nonProduction) {
     this.nonProduction = nonProduction;
   }
 

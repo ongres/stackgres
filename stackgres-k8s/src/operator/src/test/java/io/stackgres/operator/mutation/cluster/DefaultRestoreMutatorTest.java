@@ -23,7 +23,7 @@ import com.github.fge.jsonpatch.JsonPatchException;
 import com.github.fge.jsonpatch.JsonPatchOperation;
 
 import io.stackgres.operator.common.StackGresClusterReview;
-import io.stackgres.common.crd.sgcluster.ClusterRestore;
+import io.stackgres.common.crd.sgcluster.StackGresClusterRestore;
 import io.stackgres.testutil.JsonUtil;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
 
@@ -43,7 +43,7 @@ class DefaultRestoreMutatorTest {
   private StackGresClusterReview review;
 
   @Mock
-  private DefaultCustomResourceFactory<ClusterRestore> defaultRestoreFactory;
+  private DefaultCustomResourceFactory<StackGresClusterRestore> defaultRestoreFactory;
 
   private DefaultRestoreMutator mutator;
 
@@ -62,8 +62,8 @@ class DefaultRestoreMutatorTest {
       defaultRestoreValues.load(defaultPropertiesStream);
     }
 
-    ClusterRestore restore = PROPS_MAPPER
-        .readPropertiesAs(defaultRestoreValues, ClusterRestore.class);
+    StackGresClusterRestore restore = PROPS_MAPPER
+        .readPropertiesAs(defaultRestoreValues, StackGresClusterRestore.class);
     when(defaultRestoreFactory.buildResource()).thenReturn(restore);
 
     mutator = new DefaultRestoreMutator();
@@ -85,7 +85,7 @@ class DefaultRestoreMutatorTest {
   @Test
   void clusteRestorerWithNoDownloadDiskConcurrency_shouldSetDefaultValue() throws JsonPatchException {
 
-    ClusterRestore restore = new ClusterRestore();
+    StackGresClusterRestore restore = new StackGresClusterRestore();
     restore.setDownloadDiskConcurrency(null);
     restore.setBackupUid(UUID.randomUUID().toString());
 

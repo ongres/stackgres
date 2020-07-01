@@ -1,0 +1,48 @@
+#!/bin/sh
+
+trap_kill() {
+  echo "$1" >> "$TRAP_FILE"
+}
+
+trap_callback() {
+  if [ -s "$TRAP_FILE" ]
+  then
+    sleep 1 || true # Let the tails write to output remaining logs.
+    kill $(cat "$TRAP_FILE") >/dev/null 2>&1 || true
+  fi
+}
+
+trap_callback_and_exit() {
+  trap_callback
+  exit "$1"
+}
+
+trap_kill_all() {
+  local file
+  for file in $(find "$TARGET_PATH" -name 'trap-kill-*')
+  do
+    kill $(cat "$file") >/dev/null 2>&1 || true
+  done
+  exit "$1"
+}
+
+trap_exec() {
+  "$SHELL" $SHELL_XTRACE -c 'echo $$;'"$(
+    for ARG in "$@"
+    do
+      echo -n "'$ARG' "
+    done)" \
+    | (
+    read PID
+    trap_kill "$PID"
+    cat
+    )
+}
+
+if [ -z "$TRAP_FILE" ]
+then
+  mkdir -p "$TARGET_PATH"
+  TRAP_FILE="$TARGET_PATH/trap-kill-$(shuf -i 0-65535 -n 1)"
+  trap 'trap_callback_and_exit $?' HUP INT QUIT PIPE TERM ABRT
+  trap 'trap_callback $?' EXIT
+fi

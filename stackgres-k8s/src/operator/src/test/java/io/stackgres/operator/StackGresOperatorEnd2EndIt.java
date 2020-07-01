@@ -7,7 +7,6 @@ package io.stackgres.operator;
 
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Optional;
 
@@ -16,6 +15,7 @@ import com.ongres.junit.docker.ContainerParam;
 import com.ongres.junit.docker.DockerContainer;
 import com.ongres.junit.docker.DockerExtension;
 import com.ongres.junit.docker.WhenReuse;
+import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 
@@ -64,7 +64,17 @@ public class StackGresOperatorEnd2EndIt extends AbstractStackGresOperatorIt {
                   + "rm -Rf /resources/e2e/target\n"
                   + ItHelper.E2E_ENVVARS + "\n"
                   + E2E_RUN_ONLY.map(runOnly -> {
-                    if (runOnly.equals("exclusive") || runOnly.equals("non_exclusive")) {
+                    if (runOnly.matches("(non_)?exclusive(:[0-9]+/[0-9]+)?")) {
+                      if (runOnly.contains(":")) {
+                        int indexOfColon = runOnly.indexOf(":");
+                        int indexOfSlash = runOnly.indexOf("/");
+                        return "COUNT=$(sh e2e get_all_" + runOnly.substring(0, indexOfColon) + "_specs | wc -l)\n"
+                            + "export E2E_ONLY_INCLUDES=$("
+                            + "sh e2e get_all_" + runOnly.substring(0, indexOfColon) + "_specs"
+                            + " | tail -n +\"$((COUNT * (" + runOnly.substring(indexOfColon + 1, indexOfSlash) + " - 1)"
+                                + " / " + runOnly.substring(indexOfSlash + 1) + "))\""
+                            + " | head -n \"$((COUNT / " + runOnly.substring(indexOfSlash + 1) + "))\")\n";
+                      }
                       return "export E2E_ONLY_INCLUDES=$(sh e2e get_all_" + runOnly + "_specs)\n";
                     }
                     return "export E2E_ONLY_INCLUDES=" + runOnly + "\n";
@@ -112,7 +122,9 @@ public class StackGresOperatorEnd2EndIt extends AbstractStackGresOperatorIt {
       }
     } finally {
       try {
-        Files.deleteIfExists(Paths.get("target/e2e"));
+        if (Paths.get("target/e2e").toFile().exists()) {
+          FileUtils.deleteDirectory(Paths.get("target/e2e").toFile());
+        }
         k8s.copyOut("/resources/e2e/target", Paths.get("target/e2e"));
       } catch (Exception ex) {
         LOGGER.error("An error occurred while copying e2e test results", ex);

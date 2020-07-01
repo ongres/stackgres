@@ -125,6 +125,62 @@ spec:
                       minimum: 1
                       description: |
                         The backup fetch process may fetch several streams in parallel. Specify a value larger than one for parallel fetching.
+                scripts:
+                  type: array
+                  description: |
+                    A list of SQL scripts that will be executed once in secuence when the database bootstrap and after restore is completed.
+                  items:
+                    type: object
+                    description: |
+                      Scripts are executed in autocommit mode with the user `postgres` in the specified database (or in database `postgres` if not specified).
+                      
+                      Fields `script` and `scriptFrom` are mutually exclusive and one of them is required.
+                    properties:
+                      name:
+                        type: string
+                        description: |
+                          The name of the script.
+                      database:
+                        type: string
+                        description: |
+                          The database where the script will be executed. If not specified will be the `postgres` database.
+                      script:
+                        type: string
+                        description: |
+                          The SQL script to execute. This field is mutually exclusive with `scriptFrom` field.
+                      scriptFrom:
+                        type: object
+                        description: |
+                          Reference that contains the SQL script to execute. This field is mutually exclusive with `script` field.
+                          
+                          Fields `secretKeyRef` and `configMapKeyRef` are mutually exclusive and one of them is required.
+                        properties:
+                          secretKeyRef:
+                            type: object
+                            description: |
+                              A Secret key reference that contains the SQL script to execute. This field is mutually exclusive with `configMapKeyRef` field.
+                            properties:
+                              name:
+                                type: string
+                                description: |
+                                  The name of the Secret that contains the SQL script to execute.
+                              key:
+                                type: string
+                                description: |
+                                  The key of the Secret that contains the SQL script to execute.
+                          configMapKeyRef:
+                            type: object
+                            description: |
+                              A ConfigMap key reference that contains the SQL script to execute. This field is mutually exclusive with `secretKeyRef` field.
+                            properties:
+                              name:
+                                type: string
+                                description: |
+                                  The name of the ConfigMap that contains the SQL script to execute.
+                              key:
+                                type: string
+                                description: |
+                                  The key of the ConfigMap that contains the SQL script to execute.
             prometheusAutobind:
               type: boolean
               description: |
