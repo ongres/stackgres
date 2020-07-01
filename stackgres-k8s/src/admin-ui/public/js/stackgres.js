@@ -761,9 +761,12 @@ Vue.mixin({
       
       if(typeof crd !== 'undefined') {
         crd.kind = kind;
-        crd.data.metadata.name = 'copy-of-'+crd.data.metadata.name;
-        store.commit('setCloneCRD', crd);
         
+        if(!crd.data.metadata.name.includes('copy-of'))
+          crd.data.metadata.name = 'copy-of-'+crd.data.metadata.name;
+        
+        store.commit('setCloneCRD', crd);
+      
         $('#cloneName').val(crd.data.metadata.name)
         $('#cloneNamespace').val(crd.data.metadata.namespace);
         $("#notifications.hasTooltip.active").removeClass("active");
