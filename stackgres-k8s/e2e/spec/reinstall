@@ -24,8 +24,6 @@ e2e_test(){
 check_cluster_reset() {
   generate_mock_data
   check_mock_data
-  
-  #remove_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 
   helm uninstall "$CLUSTER_NAME" --namespace "$CLUSTER_NAMESPACE"
 
@@ -37,7 +35,7 @@ check_cluster_reset() {
 
 check_cluster_clean(){
   
-  if exec_postgresutil 'psql -p 5435 -lqt | cut -d \| -f 1 | grep -qw "test"'
+  if exec_postgresutil 'psql -lqt | cut -d \| -f 1 | grep -qw "test"'
   then
     echo "FAIL. Reset cluster is not clean"
     return 1

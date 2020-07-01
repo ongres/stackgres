@@ -39,9 +39,9 @@ At this point we already checked that sidecar `postgres-util` is up and running.
 
 1. **Access directly from the** `kubectl` **commmand**
 
-`kubectl exec -it stackgres-0 -c postgres-util -- psql -p 5435`
+`kubectl exec -it stackgres-0 -c postgres-util -- psql`
 
-Then you will be into the postgresql console. You can access through the port `5435` this will connect via unix socket directly to postgres instances and will not required a password or you can use the port `5434` and the connection will  be through the conection pooling tool (pgbouncer) and you will be ask for the password to connect.
+Then you will be into the postgresql console. You can access through the port `5432` this will connect via unix socket directly to postgres instances and will not required a password or you can use the port `6432` and the connection will  be through the conection pooling tool (pgbouncer) and you will be ask for the password to connect.
 
 ```
 psql (11.6 OnGres Inc.)
@@ -65,7 +65,7 @@ bash-4.4$
 Connect to postgres console:
 
 ```
-bash-4.4$ psql -p 5435
+bash-4.4$ psql
 psql (11.6 OnGres Inc.)
 Type "help" for help.
 

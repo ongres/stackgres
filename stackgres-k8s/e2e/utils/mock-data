@@ -1,14 +1,14 @@
 #!/bin/sh
 
 create_mock_table(){
-  run_query -p 5435 -i 0 -q "'CREATE DATABASE test;'"
-  run_query -p 5435 -i 0 -q "'CREATE TABLE fibonacci(num integer);'" -d "test"
+  run_query -p 5432 -i 0 -q "'CREATE DATABASE test;'"
+  run_query -p 5432 -i 0 -q "'CREATE TABLE fibonacci(num integer);'" -d "test"
 }
 
 insert_mock_data(){
-  run_query -p 5435 -i 0 -q "'INSERT INTO fibonacci(num) VALUES (1);'" -d test
-  run_query -p 5435 -i 0 -q "'INSERT INTO fibonacci(num) VALUES (2);'" -d test
-  run_query -p 5435 -i 0 -q "'INSERT INTO fibonacci(num) VALUES (3);'" -d test
+  run_query -p 5432 -i 0 -q "'INSERT INTO fibonacci(num) VALUES (1);'" -d test
+  run_query -p 5432 -i 0 -q "'INSERT INTO fibonacci(num) VALUES (2);'" -d test
+  run_query -p 5432 -i 0 -q "'INSERT INTO fibonacci(num) VALUES (3);'" -d test
 }
 
 generate_mock_data(){
@@ -58,20 +58,4 @@ check_mock_data_replication(){
     echo "FAIL. data not replication"
     return 1
   fi
-}
-
-check_connectivity(){
-
-  check_service_connectivity
-
-  RESPONSE_5434="$(run_query -p 5434 $@)"
-  RESPONSE_5435="$(run_query -p 5435 $@)"
-  
-  if [ "$RESPONSE_5434" = "1" ] && [ "$RESPONSE_5435" = "1" ]
-  then
-    return 0
-  else 
-    return 1
-  fi
-
 }
