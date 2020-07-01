@@ -20,7 +20,7 @@ public enum ClusterStatefulSetPath implements VolumePath {
   PG_BASE_PATH("/var/lib/postgresql"),
   PG_DATA_PATH(PG_BASE_PATH, "data"),
   PG_RUN_PATH("/var/run/postgresql"),
-  PG_LOG_PATH("/tmp"),
+  PG_LOG_PATH("/var/log/postgresql"),
   BASE_ENV_PATH("/etc/env"),
   BASE_SECRET_PATH(BASE_ENV_PATH, ".secret"),
   PATRONI_ENV_PATH(BASE_ENV_PATH, ClusterStatefulSetEnvVars.PATRONI_ENV.value()),

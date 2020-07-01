@@ -28,7 +28,9 @@ import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.operator.cluster.factory.ClusterStatefulSetEnvironmentVariables;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSetPath;
+import io.stackgres.operator.cluster.factory.ClusterStatefulSetVolumeConfig;
 import io.stackgres.operator.common.LabelFactoryDelegator;
 import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.common.StackGresClusterContext;
@@ -49,10 +51,14 @@ public class FluentBit implements StackGresClusterSidecarResourceFactory<Void> {
 
   private static final String CONFIG_SUFFIX = "-fluent-bit";
 
+  private final ClusterStatefulSetEnvironmentVariables clusterStatefulSetEnvironmentVariables;
   private final LabelFactoryDelegator factoryDelegator;
 
   @Inject
-  public FluentBit(LabelFactoryDelegator factoryDelegator) {
+  public FluentBit(ClusterStatefulSetEnvironmentVariables clusterStatefulSetEnvironmentVariables,
+      LabelFactoryDelegator factoryDelegator) {
+    super();
+    this.clusterStatefulSetEnvironmentVariables = clusterStatefulSetEnvironmentVariables;
     this.factoryDelegator = factoryDelegator;
   }
 
@@ -68,15 +74,15 @@ public class FluentBit implements StackGresClusterSidecarResourceFactory<Void> {
         .withArgs(""
             + "CONFIG_PATH=/etc/fluent-bit\n"
             + "update_config() {\n"
-            + "  rm -Rf /tmp/last_config\n"
-            + "  cp -Lr \"$CONFIG_PATH\" /tmp/last_config\n"
+            + "  rm -Rf \"$PG_LOG_PATH/last_config\"\n"
+            + "  cp -Lr \"$CONFIG_PATH\" \"$PG_LOG_PATH/last_config\"\n"
             + "}\n"
             + "\n"
             + "has_config_changed() {\n"
             + "  for file in $(ls -1 \"$CONFIG_PATH\")\n"
             + "  do\n"
             + "    [ \"$(cat \"$CONFIG_PATH/$file\" | md5sum)\" \\\n"
-            + "      != \"$(cat \"/tmp/last_config/$file\" | md5sum)\" ] \\\n"
+            + "      != \"$(cat \"$PG_LOG_PATH/last_config/$file\" | md5sum)\" ] \\\n"
             + "      && return || true\n"
             + "  done\n"
             + "  return 1\n"
@@ -84,15 +90,6 @@ public class FluentBit implements StackGresClusterSidecarResourceFactory<Void> {
             + "\n"
             + "run_fluentbit() {\n"
             + "  set -x\n"
-            + "  export PATRONI_PID=\"$$(until sh -xc '\n"
-            + "  for PID in $(ls -1 /proc | grep \"^[0-9]\\+$\")\n"
-            + "  do\n"
-            + "    cat /proc/$PID/cmdline | tr \"\\0\" \" \" \\\n"
-            + "      | grep -v \"^$\" | grep -q \"[/]usr/bin/patroni\" \\\n"
-            + "      && echo \"$PID\" && exit\n"
-            + "  done\n"
-            + "  exit 1'\n"
-            + "  do sleep 1; done)\"\n"
             + "  exec /usr/local/bin/fluent-bit \\\n"
             + "    -c /etc/fluent-bit/fluentbit.conf\n"
             + "}\n"
@@ -113,7 +110,10 @@ public class FluentBit implements StackGresClusterSidecarResourceFactory<Void> {
             + "  fi\n"
             + "  sleep 5\n"
             + "done\n")
+        .withEnv(clusterStatefulSetEnvironmentVariables.listResources(context.getClusterContext()))
         .withVolumeMounts(
+            ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
+                ClusterStatefulSetPath.PG_LOG_PATH, context.getClusterContext()),
             new VolumeMountBuilder()
             .withName(NAME)
             .withMountPath("/etc/fluent-bit")
@@ -188,11 +188,9 @@ public class FluentBit implements StackGresClusterSidecarResourceFactory<Void> {
         + "\n"
         + "[INPUT]\n"
         + "    Name              tail\n"
-        + "    Path              "
-          + "/proc/${PATRONI_PID}/root/"
-          + ClusterStatefulSetPath.PG_LOG_PATH.path() + "/postgres*.csv\n"
+        + "    Path              " + ClusterStatefulSetPath.PG_LOG_PATH.path() + "/postgres*.csv\n"
         + "    Tag               " + FluentdUtil.POSTGRES_LOG_TYPE + "\n"
-        + "    DB                /tmp/postgreslog.db\n"
+        + "    DB                " + ClusterStatefulSetPath.PG_LOG_PATH.path() + "/postgreslog.db\n"
         + "    Multiline         On\n"
         + "    Parser_Firstline  postgreslog_firstline\n"
         + "    Parser_1          postgreslog_1\n"
@@ -200,11 +198,9 @@ public class FluentBit implements StackGresClusterSidecarResourceFactory<Void> {
         + "[INPUT]\n"
         + "    Name              tail\n"
         + "    Key               message\n"
-        + "    Path              "
-          + "/proc/${PATRONI_PID}/root/"
-          + ClusterStatefulSetPath.PG_LOG_PATH.path() + "/patroni*.log\n"
+        + "    Path              " + ClusterStatefulSetPath.PG_LOG_PATH.path() + "/patroni*.log\n"
         + "    Tag               " + FluentdUtil.PATRONI_LOG_TYPE + "\n"
-        + "    DB                /tmp/patronilog.db\n"
+        + "    DB                " + ClusterStatefulSetPath.PG_LOG_PATH.path() + "/patronilog.db\n"
         + "    Multiline         On\n"
         + "    Parser_Firstline  patronilog_firstline\n"
         + "    Parser_1          patronilog_1\n"
