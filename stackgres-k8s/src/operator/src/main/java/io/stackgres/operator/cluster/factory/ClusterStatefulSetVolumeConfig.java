@@ -29,6 +29,7 @@ public enum ClusterStatefulSetVolumeConfig {
   LOCAL(VolumeConfig.onDiskEmptyDir(
       "local", ImmutableList.of(
           VolumePathConfig.of(ClusterStatefulSetPath.LOCAL_BIN_PATH),
+          VolumePathConfig.of(ClusterStatefulSetPath.PG_LOG_PATH),
           VolumePathConfig.of(ClusterStatefulSetPath.ETC_PASSWD_PATH,
               context -> true,
               volumeMountBuilder -> volumeMountBuilder.withReadOnly(true)),
