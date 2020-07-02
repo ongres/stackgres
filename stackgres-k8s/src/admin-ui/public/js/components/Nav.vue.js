@@ -139,6 +139,10 @@ var Nav = Vue.component("sg-nav", {
 							There's already a <strong>{{ clone.kind }}</strong> with the same name on the specified namespace. Please specify a different name or choose another namespace
 						</span>
 
+						<span class="warning" v-if="clone.kind == 'SGCluster'">
+							This action will create a new cluster with the same configuration as the source cluster. Please note that the cluster will be created as soon as this configuration is copied and no source data is copied whatsoever.
+						</span>
+
 						<button @click="cloneCRD" :disabled="nameColission">CLONE</button> <a class="btn border" @click="cancelClone">CANCEL</a>
 					</form>
 				</div>
