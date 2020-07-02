@@ -19,10 +19,10 @@ import io.stackgres.operatorframework.admissionwebhook.Operation;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 
 @Singleton
-@ValidationType(ErrorType.PG_CONFIG_BLACKLIST)
-public class BlacklistValidator implements PgConfigValidator {
+@ValidationType(ErrorType.PG_CONFIG_BLOCKLIST)
+public class BlocklistValidator implements PgConfigValidator {
 
-  private static final Set<String> BLACKLIST = new HashSet<>(Arrays.asList(BLACKLIST_PROPERTIES));
+  private static final Set<String> BLOCKLIST = new HashSet<>(Arrays.asList(BLOCKLIST_PROPERTIES));
 
   @Override
   public void validate(PgConfigReview review) throws ValidationFailed {
@@ -33,7 +33,7 @@ public class BlacklistValidator implements PgConfigValidator {
           .getObject().getSpec().getPostgresqlConf();
 
       String[] blacklistedProperties = confProperties.keySet().stream()
-          .filter(BLACKLIST::contains).toArray(String[]::new);
+          .filter(BLOCKLIST::contains).toArray(String[]::new);
       int blacklistCount = blacklistedProperties.length;
 
       if (blacklistCount > 0) {

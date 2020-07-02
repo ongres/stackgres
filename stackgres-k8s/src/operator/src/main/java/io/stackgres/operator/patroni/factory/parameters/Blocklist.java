@@ -11,12 +11,12 @@ import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableList;
 
-public class Blacklist {
+public class Blocklist {
 
-  private static final List<String> BLACKLIST;
+  private static final List<String> BLOCKLIST;
 
   static {
-    BLACKLIST = ImmutableList.<String>builder()
+    BLOCKLIST = ImmutableList.<String>builder()
         .addAll(readResource().entrySet().stream()
             .filter(e -> !e.getKey().toString().isEmpty())
             .map(e -> e.getKey().toString())
@@ -24,21 +24,21 @@ public class Blacklist {
         .build();
   }
 
-  private Blacklist() {}
+  private Blocklist() {}
 
   private static Properties readResource() {
     Properties properties = new Properties();
     try {
-      properties.load(Blacklist.class.getResourceAsStream(
-          "/postgresql-blacklist.properties"));
+      properties.load(Blocklist.class.getResourceAsStream(
+          "/postgresql-blocklist.properties"));
     } catch (Exception ex) {
       throw new RuntimeException(ex);
     }
     return properties;
   }
 
-  public static List<String> getBlacklistParameters() {
-    return BLACKLIST;
+  public static List<String> getBlocklistParameters() {
+    return BLOCKLIST;
   }
 
 }

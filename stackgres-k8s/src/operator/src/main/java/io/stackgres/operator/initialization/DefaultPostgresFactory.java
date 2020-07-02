@@ -13,7 +13,7 @@ import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigDefinition;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigSpec;
 import io.stackgres.operator.common.StackGresComponents;
-import io.stackgres.operator.patroni.factory.parameters.Blacklist;
+import io.stackgres.operator.patroni.factory.parameters.Blocklist;
 
 @Dependent
 public class DefaultPostgresFactory extends AbstractCustomResourceFactory<StackGresPostgresConfig>
@@ -36,7 +36,7 @@ public class DefaultPostgresFactory extends AbstractCustomResourceFactory<StackG
 
   @Override
   List<String> getExclusionProperties() {
-    return Blacklist.getBlacklistParameters();
+    return Blocklist.getBlocklistParameters();
   }
 
   @Override

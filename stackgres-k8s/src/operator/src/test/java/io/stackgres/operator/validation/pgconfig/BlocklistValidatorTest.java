@@ -18,11 +18,11 @@ import io.stackgres.operator.common.PgConfigReview;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import org.junit.jupiter.api.Test;
 
-class BlacklistValidatorTest {
+class BlocklistValidatorTest {
 
-  private static String[] BLACKLISTED_PROPERTIES = PgConfigValidator.BLACKLIST_PROPERTIES;
+  private static String[] BLOCKLISTED_PROPERTIES = PgConfigValidator.BLOCKLIST_PROPERTIES;
 
-  private BlacklistValidator validator = new BlacklistValidator();
+  private BlocklistValidator validator = new BlocklistValidator();
 
 
   @Test
@@ -56,13 +56,13 @@ class BlacklistValidatorTest {
   }
 
   @Test
-  void givenCreationWithBlacklistedProperties_shouldFail(){
+  void givenCreationWithBlocklistedProperties_shouldFail(){
 
     PgConfigReview review = JsonUtil.readFromJson("pgconfig_allow_request/valid_pgconfig.json",
         PgConfigReview.class);
 
     StackGresPostgresConfig pgConfig = review.getRequest().getObject();
-    String[] blacklistedProperties = addBlacklistProperties(pgConfig);
+    String[] blacklistedProperties = addBlocklistProperties(pgConfig);
 
     ValidationFailed ex = assertThrows(ValidationFailed.class, () -> {
       validator.validate(review);
@@ -75,13 +75,13 @@ class BlacklistValidatorTest {
   }
 
   @Test
-  void givenUpdateWithBlacklistedProperties_shouldFail(){
+  void givenUpdateWithBlocklistedProperties_shouldFail(){
 
     PgConfigReview review = JsonUtil.readFromJson("pgconfig_allow_request/valid_pgconfig_update.json",
         PgConfigReview.class);
 
     StackGresPostgresConfig pgConfig = review.getRequest().getObject();
-    String[] blacklistedProperties = addBlacklistProperties(pgConfig);
+    String[] blacklistedProperties = addBlocklistProperties(pgConfig);
 
     assertThrows(ValidationFailed.class, () -> {
       validator.validate(review);
@@ -98,14 +98,14 @@ class BlacklistValidatorTest {
 
   }
 
-  private String[] addBlacklistProperties(StackGresPostgresConfig pgConfig) {
+  private String[] addBlocklistProperties(StackGresPostgresConfig pgConfig) {
     Random r = new Random();
-    int howManyBlacklistPropertiesToAdd = r.nextInt(BLACKLISTED_PROPERTIES.length) + 1;
+    int howManyBlacklistPropertiesToAdd = r.nextInt(BLOCKLISTED_PROPERTIES.length) + 1;
 
     Set<String> blacklistProperties = new HashSet<>();
 
     do {
-      String randomProperty = BLACKLISTED_PROPERTIES[r.nextInt(BLACKLISTED_PROPERTIES.length)];
+      String randomProperty = BLOCKLISTED_PROPERTIES[r.nextInt(BLOCKLISTED_PROPERTIES.length)];
       blacklistProperties.add(randomProperty);
     } while (blacklistProperties.size() == howManyBlacklistPropertiesToAdd);
 
