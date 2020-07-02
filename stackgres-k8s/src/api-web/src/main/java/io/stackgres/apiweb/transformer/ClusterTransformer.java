@@ -38,8 +38,16 @@ import org.jooq.lambda.Seq;
 public class ClusterTransformer
     extends AbstractResourceTransformer<ClusterDto, StackGresCluster> {
 
-  private ConfigContext<WebApiProperty> context;
-  private ClusterPodTransformer clusterPodTransformer;
+  private final ConfigContext<WebApiProperty> context;
+  private final ClusterPodTransformer clusterPodTransformer;
+
+  @Inject
+  public ClusterTransformer(ConfigContext<WebApiProperty> context,
+      ClusterPodTransformer clusterPodTransformer) {
+    super();
+    this.context = context;
+    this.clusterPodTransformer = clusterPodTransformer;
+  }
 
   @Override
   public StackGresCluster toCustomResource(ClusterDto source, StackGresCluster original) {
@@ -51,16 +59,16 @@ public class ClusterTransformer
   }
 
   @Override
-  public ClusterDto toResource(StackGresCluster source) {
+  public ClusterDto toDto(StackGresCluster source) {
     ClusterDto transformation = new ClusterDto();
-    transformation.setMetadata(getResourceMetadata(source));
+    transformation.setMetadata(getDtoMetadata(source));
     transformation.setSpec(getResourceSpec(source.getSpec()));
     transformation.setGrafanaEmbedded(isGrafanaEmbeddedEnabled());
     return transformation;
   }
 
   public ClusterDto toResourceWithPods(StackGresCluster source, List<Pod> pods) {
-    ClusterDto clusterDto = toResource(source);
+    ClusterDto clusterDto = toDto(source);
 
     clusterDto.setPods(Seq.seq(pods)
         .map(clusterPodTransformer::toResource)
@@ -256,13 +264,4 @@ public class ClusterTransformer
     return transformation;
   }
 
-  @Inject
-  public void setContext(ConfigContext<WebApiProperty> context) {
-    this.context = context;
-  }
-
-  @Inject
-  public void setClusterPodTransformer(ClusterPodTransformer clusterPodTransformer) {
-    this.clusterPodTransformer = clusterPodTransformer;
-  }
 }

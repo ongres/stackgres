@@ -6,22 +6,21 @@
 package io.stackgres.common;
 
 import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
 
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 
 @ApplicationScoped
 public class DistributedLogsLabelFactory extends AbstractLabelFactory<StackGresDistributedLogs> {
 
-  private LabelMapper<StackGresDistributedLogs> labelMapper;
+  private final LabelMapper<StackGresDistributedLogs> labelMapper;
+
+  public DistributedLogsLabelFactory(LabelMapper<StackGresDistributedLogs> labelMapper) {
+    this.labelMapper = labelMapper;
+  }
 
   @Override
   public LabelMapper<StackGresDistributedLogs> getLabelMapper() {
     return labelMapper;
   }
 
-  @Inject
-  public void setLabelMapper(LabelMapper<StackGresDistributedLogs> labelMapper) {
-    this.labelMapper = labelMapper;
-  }
 }

@@ -12,10 +12,8 @@ import java.util.List;
 
 import io.fabric8.kubernetes.api.model.Namespace;
 import io.fabric8.kubernetes.api.model.NamespaceList;
-import io.stackgres.apiweb.rest.NamespaceResource;
 import io.stackgres.common.resource.ResourceScanner;
 import io.stackgres.testutil.JsonUtil;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

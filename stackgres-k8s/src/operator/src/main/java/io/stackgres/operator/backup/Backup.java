@@ -27,6 +27,7 @@ import io.fabric8.kubernetes.api.model.batch.Job;
 import io.fabric8.kubernetes.api.model.batch.JobBuilder;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgbackup.BackupPhase;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackup.StackGresBackupDefinition;
@@ -72,7 +73,7 @@ public class Backup implements StackGresClusterResourceStreamFactory {
       StackGresClusterContext clusterContext) {
     String name = backup.getMetadata().getName();
     return ResourceUtil.resourceName(
-        name + ClusterStatefulSet.BACKUP_SUFFIX);
+        name + StackGresUtil.BACKUP_SUFFIX);
   }
 
   public Stream<HasMetadata> streamResources(
@@ -148,7 +149,7 @@ public class Backup implements StackGresClusterResourceStreamFactory {
                         .build(),
                         new EnvVarBuilder()
                         .withName("CRONJOB_NAME")
-                        .withValue(cluster + ClusterStatefulSet.BACKUP_SUFFIX)
+                        .withValue(cluster + StackGresUtil.BACKUP_SUFFIX)
                         .build(),
                         new EnvVarBuilder()
                         .withName("BACKUP_IS_PERMANENT")
