@@ -126,6 +126,7 @@ configurations:
       #  bucket: stackgres
       #  path: /mypath
       #  gcpCredentials:
+      #    fetchCredentialsFromMetadataService: false
       #    secretKeySelectors:
       #      serviceAccountJSON:
       #        name: gcscredentials

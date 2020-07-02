@@ -16,6 +16,7 @@ import io.stackgres.common.crd.storages.AwsS3CompatibleStorage;
 import io.stackgres.common.crd.storages.AwsS3Storage;
 import io.stackgres.common.crd.storages.AzureBlobStorage;
 import io.stackgres.common.crd.storages.BackupStorage;
+import io.stackgres.common.crd.storages.GoogleCloudCredentials;
 import io.stackgres.common.crd.storages.GoogleCloudStorage;
 import io.stackgres.operator.sidecars.envoy.Envoy;
 import org.jooq.lambda.Unchecked;
@@ -128,7 +129,17 @@ public abstract class AbstractBackupConfigMap {
                                     Optional<GoogleCloudStorage> storageForGcs) {
     backupEnvVars.put("WALG_GS_PREFIX", getFromGcs(storageForGcs, GoogleCloudStorage::getPrefix)
         + "/" + namespace + "/" + name);
-    backupEnvVars.put("GOOGLE_APPLICATION_CREDENTIALS", getGcsCredentialsFilePath());
+    if (!storageForGcs
+        .map(GoogleCloudStorage::getCredentials)
+        .map(GoogleCloudCredentials::isFetchCredentialsFromMetadataService)
+        .orElse(false)) {
+      backupEnvVars.put("GOOGLE_APPLICATION_CREDENTIALS", getGcsCredentialsFilePath());
+    }
+  }
+
+  protected String getGcsCredentialsFilePath() {
+    return ClusterStatefulSetPath.BACKUP_SECRET_PATH.path()
+        + "/" + ClusterStatefulSet.GCS_CREDENTIALS_FILE_NAME;
   }
 
   private void setAzureBlobStorageEnvVars(String namespace, String name,
@@ -137,11 +148,6 @@ public abstract class AbstractBackupConfigMap {
     backupEnvVars.put("WALG_AZ_PREFIX", getFromAzureBlob(
         storageForAzureBlob, AzureBlobStorage::getPrefix)
         + "/" + namespace + "/" + name);
-  }
-
-  protected String getGcsCredentialsFilePath() {
-    return ClusterStatefulSetPath.BACKUP_SECRET_PATH.path()
-        + "/" + ClusterStatefulSet.GCS_CREDENTIALS_FILE_NAME;
   }
 
   private <T> Optional<T> getStorageFor(StackGresBackupConfigSpec configSpec,

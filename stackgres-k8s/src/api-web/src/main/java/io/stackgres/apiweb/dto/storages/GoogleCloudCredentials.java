@@ -19,6 +19,9 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 @RegisterForReflection
 public class GoogleCloudCredentials {
 
+  @JsonProperty("fetchCredentialsFromMetadataService")
+  private boolean fetchCredentialsFromMetadataService;
+
   @JsonProperty("serviceAccountJSON")
   private String serviceAccountJsonKey;
 
@@ -26,6 +29,14 @@ public class GoogleCloudCredentials {
   @NotNull(message = "The secretKeySelectors are required")
   @Valid
   private GoogleCloudSecretKeySelector secretKeySelectors;
+
+  public boolean isFetchCredentialsFromMetadataService() {
+    return fetchCredentialsFromMetadataService;
+  }
+
+  public void setFetchCredentialsFromMetadataService(boolean fetchCredentialsFromMetadataService) {
+    this.fetchCredentialsFromMetadataService = fetchCredentialsFromMetadataService;
+  }
 
   public String getServiceAccountJsonKey() {
     return serviceAccountJsonKey;
@@ -47,6 +58,7 @@ public class GoogleCloudCredentials {
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .omitNullValues()
+        .add("fetchCredentialsFromMetadataService", fetchCredentialsFromMetadataService)
         .add("serviceAccountJsonKey", serviceAccountJsonKey)
         .add("secretKeySelectors", secretKeySelectors)
         .toString();
