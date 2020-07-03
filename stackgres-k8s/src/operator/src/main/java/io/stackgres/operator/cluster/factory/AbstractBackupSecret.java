@@ -12,6 +12,8 @@ import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.SecretKeySelector;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigSpec;
 import io.stackgres.common.crd.storages.BackupStorage;
+import io.stackgres.common.crd.storages.GoogleCloudCredentials;
+import io.stackgres.common.crd.storages.GoogleCloudStorage;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple2;
@@ -42,10 +44,12 @@ public abstract class AbstractBackupSecret {
         Optional.of(backupConfigSpec)
         .map(StackGresBackupConfigSpec::getStorage)
         .map(BackupStorage::getGcs)
-        .map(gcsConfig -> Seq.of(
+        .map(GoogleCloudStorage::getCredentials)
+        .map(GoogleCloudCredentials::getSecretKeySelectors)
+        .map(gcsConfigSecretKeySelectors -> Seq.of(
             getSecretEntry(
                 ClusterStatefulSet.GCS_CREDENTIALS_FILE_NAME,
-                gcsConfig.getCredentials().getSecretKeySelectors().getServiceAccountJsonKey(),
+                gcsConfigSecretKeySelectors.getServiceAccountJsonKey(),
                 secrets))),
         Optional.of(backupConfigSpec)
         .map(StackGresBackupConfigSpec::getStorage)
