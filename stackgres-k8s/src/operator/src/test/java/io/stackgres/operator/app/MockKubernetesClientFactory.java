@@ -7,6 +7,8 @@ package io.stackgres.operator.app;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
@@ -17,9 +19,11 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.enterprise.context.ApplicationScoped;
 
+import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.ConfigBuilder;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
@@ -53,6 +57,19 @@ public class MockKubernetesClientFactory implements KubernetesClientFactory {
     executor.schedule(this::updateTokenPeriodically, 0, TimeUnit.MILLISECONDS);
   }
 
+  @PostConstruct
+  public void setup() throws Exception {
+    if (AbstractStackGresOperatorIt.isRunning()) {
+      return;
+    }
+    YAMLMapper yamlMapper = new YAMLMapper();
+    try (KubernetesClient client = serverSupplier.get().getClient()) {
+      Files.list(Paths.get("../../install/helm/stackgres-operator/crds"))
+        .forEach(Unchecked.consumer(path -> client.customResourceDefinitions()
+            .create(yamlMapper.readValue(path.toFile(), CustomResourceDefinition.class))));
+    }
+  }
+
   @Override
   public KubernetesClient create() {
     if (AbstractStackGresOperatorIt.isRunning()) {
@@ -71,10 +88,12 @@ public class MockKubernetesClientFactory implements KubernetesClientFactory {
   }
 
   private void updateTokenPeriodically() {
-    try {
-      updateToken();
-    } catch (Exception ex) {
-      LOGGER.warn("Error while updating the token {}", ex.getMessage());
+    if (AbstractStackGresOperatorIt.isRunning()) {
+      try {
+        updateToken();
+      } catch (Exception ex) {
+        LOGGER.warn("Error while updating the token {}", ex.getMessage());
+      }
     }
     if (!executor.isShutdown() && !executor.isTerminated()) {
       executor.schedule(this::updateTokenPeriodically, 1000, TimeUnit.MILLISECONDS);
