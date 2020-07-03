@@ -22,6 +22,8 @@ public enum ErrorType {
       "Forbidden configuration update"),
   FORBIDDEN_CLUSTER_UPDATE("forbidden-cluster-update",
       "Forbidden cluster update"),
+  FORBIDDEN_AUTHORIZATION("forbidden-authorization",
+      "Forbidden API role-based access control"),
   INVALID_STORAGE_CLASS("invalid-storage-class",
       "Invalid storage class"),
   INVALID_SECRET("invalid-secret",

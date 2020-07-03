@@ -24,7 +24,7 @@ public class KubernetesExceptionMapper implements ExceptionMapper<KubernetesClie
 
   private static final Logger LOGGER = LoggerFactory.getLogger(KubernetesExceptionMapper.class);
 
-  //Status is not present in javax.ws.rs.core.Response.Status
+  // Status 422 not present in javax.ws.rs.core.Response.Status
   public static final int UNPROCESSABLE_ENTITY_STATUS = 422;
 
   private StatusParser statusParser;
@@ -35,13 +35,13 @@ public class KubernetesExceptionMapper implements ExceptionMapper<KubernetesClie
 
   @Override
   public Response toResponse(KubernetesClientException e) {
+    LOGGER.debug("Error on request", e);
 
     final Status status = e.getStatus();
 
     String reason = status.getReason();
 
     if (reason != null && ErrorType.isDocumentationUri(reason)) {
-
       return toErrorTypeResponse(status, reason);
     }
 
@@ -68,6 +68,23 @@ public class KubernetesExceptionMapper implements ExceptionMapper<KubernetesClie
       return Response.status(status.getCode()).type(MediaType.APPLICATION_JSON)
           .entity(response).build();
     }
+
+    if (status.getCode() == javax.ws.rs.core.Response.Status.FORBIDDEN.getStatusCode()) {
+      LOGGER.debug("Kubernetes responded with FORBIDDEN status. Parsing response");
+      String type = ErrorType.getErrorTypeUri(ErrorType.FORBIDDEN_AUTHORIZATION);
+      String title = ErrorType.FORBIDDEN_AUTHORIZATION.getTitle();
+      String detail = status.getMessage();
+
+      ErrorResponse response = new ErrorResponseBuilder(type)
+          .setStatus(status.getCode())
+          .setTitle(title)
+          .setDetail(new String(JsonStringEncoder.getInstance().quoteAsString(detail)))
+          .build();
+
+      return Response.status(status.getCode()).type(MediaType.APPLICATION_JSON)
+          .entity(response).build();
+    }
+
     LOGGER.debug("Parsing unexpected error response from kubernetes");
     List<String> fields = new ArrayList<>();
     List<String> fieldCauses = new ArrayList<>();

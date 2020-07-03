@@ -11,6 +11,8 @@ import io.quarkus.arc.Arc;
 
 public class ArcUtil {
 
+  private ArcUtil() {}
+
   public static void checkPublicNoArgsConstructorIsCalledFromArc() {
     if (Arrays.asList(new Exception().fillInStackTrace()
         .getStackTrace())

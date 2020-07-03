@@ -75,8 +75,8 @@ public class ClusterStatsDtoFinder
 
     ImmutableList<PodStats> allPodStats = pods
         .stream()
-        .parallel()
-        .map(pod -> Tuple.tuple(pod))
+        // .parallel() // Fails with RequestScoped
+        .map(Tuple::tuple)
         .map(t -> t.concat(getPodStats(t.v1)))
         .map(t -> t.concat(getPodPersitentVolumeClaim(cluster, t.v1)))
         .map(PodStats::fromTuple)
@@ -117,17 +117,17 @@ public class ClusterStatsDtoFinder
   private Optional<PersistentVolumeClaim> getPodPersitentVolumeClaim(
       StackGresCluster cluster, Pod pod) {
     return Optional.of(pod)
-      .map(Pod::getSpec)
-      .map(PodSpec::getVolumes)
-      .flatMap(volumes -> Seq.seq(volumes)
-          .filter(volumeName -> volumeName.getName().equals(
-              StackGresUtil.statefulSetDataPersistentVolumeName(cluster)))
-          .findAny())
-      .filter(volume -> volume.getPersistentVolumeClaim() != null)
-      .map(Volume::getPersistentVolumeClaim)
-      .map(PersistentVolumeClaimVolumeSource::getClaimName)
-      .flatMap(podDataPvcName -> persistentVolumeClaimFinder
-          .findByNameAndNamespace(podDataPvcName, pod.getMetadata().getNamespace()));
+        .map(Pod::getSpec)
+        .map(PodSpec::getVolumes)
+        .flatMap(volumes -> Seq.seq(volumes)
+            .filter(volumeName -> volumeName.getName().equals(
+                StackGresUtil.statefulSetDataPersistentVolumeName(cluster)))
+            .findAny())
+        .filter(volume -> volume.getPersistentVolumeClaim() != null)
+        .map(Volume::getPersistentVolumeClaim)
+        .map(PersistentVolumeClaimVolumeSource::getClaimName)
+        .flatMap(podDataPvcName -> persistentVolumeClaimFinder
+            .findByNameAndNamespace(podDataPvcName, pod.getMetadata().getNamespace()));
   }
 
 }

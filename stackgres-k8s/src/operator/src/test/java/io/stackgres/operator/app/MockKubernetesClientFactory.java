@@ -38,7 +38,7 @@ import org.slf4j.LoggerFactory;
 
 @Mock
 @ApplicationScoped
-public class MockKubernetesClientFactory extends KubernetesClientFactory {
+public class MockKubernetesClientFactory implements KubernetesClientFactory {
 
   private final static Logger LOGGER = LoggerFactory.getLogger(MockKubernetesClientFactory.class);
 
