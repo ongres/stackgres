@@ -16,7 +16,7 @@ K8S_GKE_OPTS="$K8S_GKE_OPTS"
 K8S_GKE_SERVICEACCOUNT="${K8S_GKE_SERVICEACCOUNT:-stackgres-e2e}"
 K8S_GKE_ACCOUNT_EMAIL=$K8S_GKE_SERVICEACCOUNT@$K8S_GKE_PROJECT.iam.gserviceaccount.com
 K8S_GKE_ACCOUNT_MEMBER="serviceAccount:$K8S_GKE_ACCOUNT_EMAIL"
-
+E2E_USE_INTERMIDIATE_PRIVATE_REPO=true
 
 export K8S_GKE_NAME K8S_VERSION K8S_GKE_REGION K8S_GKE_NODE_LOCATIONS K8S_GKE_MACHINE_TYPE K8S_GKE_DISK_SIZE K8S_GKE_PROJECT K8S_GKE_OPTS USE_INTERMIDIATE_PRIVATE_REPO
 
@@ -78,12 +78,8 @@ delete_k8s() {
 }
 
 load_image_k8s() {
-  echo "Loading image $1 in gke environemnt $K8S_GKE_NAME..."
-
-  docker tag "$1" "gcr.io/$K8S_GKE_PROJECT/$1"
-  gcloud -q docker -- push "gcr.io/$K8S_GKE_PROJECT/$1"
-
-  echo "...done"
+  echo "Cannot load images directly to k8s in a gke environment."
+  exit 1
 }
 
 operator_pull_policy() {
