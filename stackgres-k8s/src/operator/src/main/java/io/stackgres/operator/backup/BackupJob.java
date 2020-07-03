@@ -32,6 +32,8 @@ import io.stackgres.common.crd.sgbackup.StackGresBackupDefinition;
 import io.stackgres.common.crd.sgbackup.StackGresBackupProcess;
 import io.stackgres.common.crd.sgbackup.StackGresBackupStatus;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigDefinition;
+import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigSpec;
+import io.stackgres.common.crd.sgbackupconfig.StackGresBaseBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSetEnvironmentVariables;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSetPath;
@@ -219,8 +221,9 @@ public class BackupJob implements StackGresClusterResourceStreamFactory {
                         .build(),
                         new EnvVarBuilder()
                         .withName("RETAIN")
-                        .withValue(Optional.of(backupConfig
-                            .getSpec().getBaseBackups().getRetention())
+                        .withValue(Optional.of(backupConfig.getSpec())
+                            .map(StackGresBackupConfigSpec::getBaseBackups)
+                            .map(StackGresBaseBackupConfig::getRetention)
                             .map(String::valueOf)
                             .orElse("5"))
                         .build(),

@@ -22,6 +22,7 @@ public class DistributedLogsDto extends ResourceDto {
   private DistributedLogsSpec spec;
 
   @JsonProperty("status")
+  @Valid
   private DistributedLogsStatus status;
 
   public DistributedLogsSpec getSpec() {

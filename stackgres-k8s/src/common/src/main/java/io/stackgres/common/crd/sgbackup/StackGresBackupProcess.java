@@ -7,6 +7,8 @@ package io.stackgres.common.crd.sgbackup;
 
 import java.util.Objects;
 
+import javax.validation.Valid;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.MoreObjects;
@@ -22,6 +24,7 @@ public class StackGresBackupProcess {
   private String failure;
   private Boolean managedLifecycle;
 
+  @Valid
   private StackgresBackupTiming timing;
 
   public String getStatus() {

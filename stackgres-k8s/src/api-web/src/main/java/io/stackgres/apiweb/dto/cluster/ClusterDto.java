@@ -24,6 +24,7 @@ public class ClusterDto extends ResourceDto {
   private ClusterSpec spec;
 
   @JsonProperty("pods")
+  @Valid
   private List<KubernetesPod> pods;
 
   @JsonProperty("podsReady")

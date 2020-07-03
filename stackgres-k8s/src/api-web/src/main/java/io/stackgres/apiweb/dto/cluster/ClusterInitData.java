@@ -5,6 +5,8 @@
 
 package io.stackgres.apiweb.dto.cluster;
 
+import javax.validation.Valid;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -16,6 +18,7 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 public class ClusterInitData {
 
   @JsonProperty("restore")
+  @Valid
   private ClusterRestore restore;
 
   public ClusterRestore getRestore() {

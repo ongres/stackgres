@@ -7,6 +7,7 @@ package io.stackgres.common.crd.sgcluster;
 
 import java.util.Objects;
 
+import javax.validation.Valid;
 import javax.validation.constraints.AssertTrue;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -23,9 +24,11 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 public class StackGresClusterScriptFrom {
 
   @JsonProperty("secretKeyRef")
+  @Valid
   private SecretKeySelector secretKeyRef;
 
   @JsonProperty("configMapKeyRef")
+  @Valid
   private ConfigMapKeySelector configMapKeyRef;
 
   @AssertTrue(message = "secretKeyRef and configMapKeyRef are mutually exclusive and one of them is"

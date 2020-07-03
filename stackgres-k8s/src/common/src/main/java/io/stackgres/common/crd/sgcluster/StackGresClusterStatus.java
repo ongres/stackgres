@@ -9,6 +9,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import javax.validation.Valid;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -25,6 +27,7 @@ public class StackGresClusterStatus implements KubernetesResource {
 
   @JsonProperty("conditions")
   @JsonInclude(JsonInclude.Include.NON_EMPTY)
+  @Valid
   private List<StackGresClusterCondition> conditions = new ArrayList<>();
 
   public List<StackGresClusterCondition> getConditions() {

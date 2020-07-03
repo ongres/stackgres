@@ -39,6 +39,7 @@ public class ClusterSpec {
   private String sgInstanceProfile;
 
   @JsonProperty("initialData")
+  @Valid
   private ClusterInitData initData;
 
   @JsonProperty("distributedLogs")

@@ -7,6 +7,7 @@ package io.stackgres.common.crd.storages;
 
 import java.util.Objects;
 
+import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -25,15 +26,19 @@ public class BackupStorage {
   private String type;
 
   @JsonProperty("s3")
+  @Valid
   private AwsS3Storage s3;
 
   @JsonProperty("s3Compatible")
+  @Valid
   private AwsS3CompatibleStorage s3Compatible;
 
   @JsonProperty("gcs")
+  @Valid
   private GoogleCloudStorage gcs;
 
   @JsonProperty("azureBlob")
+  @Valid
   private AzureBlobStorage azureBlob;
 
   public String getType() {

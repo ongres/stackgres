@@ -22,6 +22,7 @@ public class BackupConfigSpec {
 
   @JsonProperty("storage")
   @NotNull(message = "The storage is required")
+  @Valid
   private BackupStorage storage;
 
   @JsonProperty("baseBackups")

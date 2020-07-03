@@ -7,8 +7,10 @@ package io.stackgres.common.crd.sgcluster;
 
 import java.util.Objects;
 
+import javax.validation.Valid;
 import javax.validation.constraints.AssertTrue;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -30,8 +32,10 @@ public class StackGresClusterScriptEntry {
   private String script;
 
   @JsonProperty("scriptFrom")
+  @Valid
   private StackGresClusterScriptFrom scriptFrom;
 
+  @JsonIgnore
   @AssertTrue(message = "script and scriptFrom are mutually exclusive and one of them is required.")
   public boolean areScriptAndScriptFromMutuallyExclusiveAndOneRequired() {
     return (script != null && scriptFrom == null) // NOPMD
