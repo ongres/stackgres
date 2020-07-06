@@ -4,7 +4,11 @@ kind: ClusterRoleBinding
 metadata:
   name: {{ (printf "%s-%s" .Values.restapi.name .Values.authentication.user) }}
   namespace: {{ .Release.Namespace }}
+  annotations:
+    meta.helm.sh/release-name: {{ .Release.Name }}
+    meta.helm.sh/release-namespace: {{ .Release.Namespace }}
   labels:
+    app.kubernetes.io/managed-by: Helm
     api.stackgres.io/auth: rolebinding
 roleRef:
   kind: ClusterRole

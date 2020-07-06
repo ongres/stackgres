@@ -2,7 +2,11 @@
 apiVersion: "apps/v1"
 kind: "Deployment"
 metadata:
+  annotations:
+    meta.helm.sh/release-name: {{ .Release.Name }}
+    meta.helm.sh/release-namespace: {{ .Release.Namespace }}
   labels:
+    app.kubernetes.io/managed-by: Helm
     app: {{ .Values.restapi.name }}
     version: "{{ .Chart.Version }}"
     group:  stackgres.io
