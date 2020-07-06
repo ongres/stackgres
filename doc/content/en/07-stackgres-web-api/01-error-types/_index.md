@@ -3,22 +3,22 @@ title: Error Responses
 weight: 1
 ---
 
-The operator error responses follows the (RFC 7807)[https://datatracker.ietf.org/doc/rfc7807/?include_text=1]. 
+The operator error responses follows the (RFC 7807)[https://datatracker.ietf.org/doc/rfc7807/?include_text=1].
 
-That means that all of error messages follows the following structure: 
+That means that all of error messages follows the following structure:
 
 ``` json
 {
   "type": "https://StackGres.io/doc/<operator-version>/07-operator-api/01-error-types/#<error-type>",
   "title": "The title of the error message",
   "detail": "A human readable description of what is the problem",
-  "field": "If applicable the field that is causing the issue"  
+  "field": "If applicable the field that is causing the issue"
 }
 ```
 
 # Error types
 
-| Type | Summary | 
+| Type | Summary |
 | ---- | ----------- |
 | [postgres-blacklist](#postgres-blacklist) | The postgres configuration that is trying to be created or update contains blacklisted parameters |
 | [postgres-major-version-mismatch](#postgres-major-version-mismatch) | The postgres configuration that you are using is targeted to a different major version that the one that your cluster has. |
@@ -29,10 +29,11 @@ That means that all of error messages follows the following structure:
 | [forbidden-cluster-update](#forbidden-cluster-update) | You are trying to update a cluster property that should not be updated |
 | [invalid-storage-class](#invalid-storage-class) | You are trying to create a cluster using a storage class that doesn't exists |
 | [constraint-violation](#constraint-violation) | One of the properties of the CR that you are creating or updating violates its syntactic rules. |
+| [forbidden-authorization](#forbidden-authorization) | You don't have the permisions to access the Kubernetes resource based on the RBAC rules. |
 
 ## Postgres Blacklist
 
-Some postgres configuration properties are managed automatically by StackGres, therefore you cannot include them. 
+Some postgres configuration properties are managed automatically by StackGres, therefore you cannot include them.
 
 The blacklisted configuration properties are:
 
@@ -56,10 +57,10 @@ The blacklisted configuration properties are:
 
 ## Invalid Configuration Reference
 
-This error means that you are trying to create or update a StackGres cluster using a reference to a 
- custom resource that doesn't exists in the same namespace. 
+This error means that you are trying to create or update a StackGres cluster using a reference to a
+ custom resource that doesn't exists in the same namespace.
 
-For example: 
+For example:
 
 Supose that we are trying to create a StackGres cluster with the following json.
 
@@ -74,9 +75,9 @@ Supose that we are trying to create a StackGres cluster with the following json.
     "pods": {
       "persistentVolume": {
         "size": "5Gi",
-    
+
       }
-    },    
+    },
     "configurations": {
       "sgPostgresConfig": "postgresconf"
     }
@@ -84,26 +85,26 @@ Supose that we are trying to create a StackGres cluster with the following json.
 }
 ```
 
-In order to create the cluster successfully, a postgres configuration with the name "postgresconf" 
+In order to create the cluster successfully, a postgres configuration with the name "postgresconf"
  must exists in the same namespace of the cluster that is being created.
 
 The same principle applies for the properties: sgPoolingConfig, sgInstanceProfile, sgBackupConfig.
 
 ## Default configuration
 
-When the operator is first installed a set of default configurations objects that are created in the namespace in which the 
- operator is installed. 
+When the operator is first installed a set of default configurations objects that are created in the namespace in which the
+ operator is installed.
 
-If you try to update or delete any of those configuraions, you will get this error. 
+If you try to update or delete any of those configuraions, you will get this error.
 
 ## Forbidden Configuration Deletion
 
-A StackGres cluster configuration is composed in several configuration objects. When you create a 
- postgres, connection pooling, resource profile or backup configuration, you can delete them 
- if you loke to, until you create a cluster that references one of these objets. 
+A StackGres cluster configuration is composed in several configuration objects. When you create a
+ postgres, connection pooling, resource profile or backup configuration, you can delete them
+ if you loke to, until you create a cluster that references one of these objets.
 
-Once a StackGres cluster references any of the above mentioned objects those become protected against 
- deletion. 
+Once a StackGres cluster references any of the above mentioned objects those become protected against
+ deletion.
 
 Suppose that you send a the following request:
 
@@ -111,21 +112,21 @@ Suppose that you send a the following request:
 uri: /stackgres/pgconfig
 method: POST
 payload:
-``` 
+```
 ``` json
 {
   "metadata": {
     "name": "postgresconf"
   },
   "spec": {
-    "postgresVersion": "12", 
+    "postgresVersion": "12",
     "postgresql.conf": "password_encryption: 'scram-sha-256'\nrandom_page_cost: '1.5'"
   }
 }
 ```
 
-This will create a postgres configuration object with the name postgresconf. 
-At this point, you can delete the created object without any issue. 
+This will create a postgres configuration object with the name postgresconf.
+At this point, you can delete the created object without any issue.
 
 Nonetheless, if you send the request to the path /stackgres/cluster:
 
@@ -138,22 +139,22 @@ payload:
 {
   "metadata": {
     "name": "StackGres"
-  }, 
+  },
   "spec": {
     "instances": 1,
     "postgresVersion": "12.1",
     "pods": {
       "persistentVolume": {
         "size": "5Gi",
-    
+
       }
-    }, 
+    },
     "sgPostgresConfig": "postgresconf"
   }
 }
 ```
 
-The postgresconf object becomes protected against deletion, and if you try to delete it you will get an 
+The postgresconf object becomes protected against deletion, and if you try to delete it you will get an
  error of this type to prevent deletion of postgresql configuration used by an existing cluster.
 
 
@@ -162,14 +163,14 @@ The postgresconf object becomes protected against deletion, and if you try to de
 Whole or parts of some objects cannot be updated. This is because changing it would require some
  particular handling that is not possible or not supported at this time.
 
-In future versions we expect to do these types of operation automatically, and planned. But, since we 
+In future versions we expect to do these types of operation automatically, and planned. But, since we
  are not there yet, must of out configuration object cannot be updated.
 
 ## Forbidden Cluster Update
 
-After a StackGres cluster is created some of it's properties cannot be updated. 
+After a StackGres cluster is created some of it's properties cannot be updated.
 
-These properties are: 
+These properties are:
 
 * postgresVersion
 * size
@@ -178,31 +179,31 @@ These properties are:
 * pods
 * restore
 
-If you try to update any of these properties, you will receive a error of this type. 
+If you try to update any of these properties, you will receive a error of this type.
 
 ## Invalid Storage Class
 
-If you specify a storage class in the cluster creation, that storage have to be already configured. 
+If you specify a storage class in the cluster creation, that storage have to be already configured.
 
 If it doesn't you will get an error.
 
 ## Constraint Violations
 
-All fields of all StackGres objects have some limitations regarding of the value type, maximum, minimum 
- values, etc. All these of limitations are described in the documentation of each object. 
+All fields of all StackGres objects have some limitations regarding of the value type, maximum, minimum
+ values, etc. All these of limitations are described in the documentation of each object.
 
-Any violation of these limitations will trigger an error of these. 
+Any violation of these limitations will trigger an error of these.
 
 The details of the error should indicate which configuration limitation are you violating.
 
 ## Postgres Major Version Mismatch
 
-When you create a StackGres cluster you have to specify the postgres version do you want to use. Also you 
- can specify which postgres configuration do you want to use. 
+When you create a StackGres cluster you have to specify the postgres version do you want to use. Also you
+ can specify which postgres configuration do you want to use.
 
-Postgres configurations are targeted to a specific postgres major version. Therefore in order to use a 
- postgres configuration, cluster's postgres version and the postgres configuration's target version 
- should match. 
+Postgres configurations are targeted to a specific postgres major version. Therefore in order to use a
+ postgres configuration, cluster's postgres version and the postgres configuration's target version
+ should match.
 
 Suppose that create a postgres configuration with the following request:
 
@@ -210,21 +211,21 @@ Suppose that create a postgres configuration with the following request:
 uri: /stackgres/pgconfig
 method: POST
 payload:
-``` 
+```
 ``` json
 {
   "metadata": {
     "name": "postgresconf"
   },
   "spec": {
-    "postgresVersion": "12", 
+    "postgresVersion": "12",
     "postgresql.conf": "password_encryption: 'scram-sha-256'\nrandom_page_cost: '1.5'"
   }
 }
 ```
 
 Notice that the postgresVersion property says "12". This means that this configuration is
- targeted for postgresql versions 12.x. 
+ targeted for postgresql versions 12.x.
 
 In order to use that postgres configuration, your StackGres cluster should have postgres version 12,
  like the following:
@@ -233,14 +234,14 @@ In order to use that postgres configuration, your StackGres cluster should have 
 {
   "metadata": {
     "name": "StackGres"
-  }, 
+  },
   "spec": {
     "instances": 1,
     "postgresVersion": "12.1",
     "pods": {
       "persistentVolume": {
         "size": "5Gi",
-    
+
       }
     },
     "sgPostgresConfig": "postgresconf"
@@ -261,14 +262,14 @@ payload:
 {
   "metadata": {
     "name": "StackGres"
-  }, 
+  },
   "spec": {
     "instances": 1,
     "postgresVersion": "12.1",
     "pods": {
       "persistentVolume": {
         "size": "5Gi",
-    
+
       }
     },
     "sgPostgresConfig": "postgresconf"
@@ -276,5 +277,16 @@ payload:
 }
 ```
 
-You will receive an error. This is because the cluster wants to use postgres 11 and your the postgres 
+You will receive an error. This is because the cluster wants to use postgres 11 and your the postgres
  configuration is targeted for postgres 12.
+
+## Forbidden Authorization
+
+Role-based access control (`RBAC`) is a method of regulating access to computer or network resources
+ based on the roles of individual users within your organization.
+
+The REST API uses the RBAC Authorization from Kubernetes, so you should define correctly the subject `User`
+ in the `RoleBinding` or `ClusterRoleBinding` with the correct set of permisions in a `Role` or `ClusterRole`
+
+This error means that you either don't have access to the corresponding resource or that your permisions
+ are not set correctly.
