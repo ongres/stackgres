@@ -46,10 +46,8 @@ public class PostgresDefaultFactoriesProvider
   }
 
   public List<DefaultCustomResourceFactory<StackGresPostgresConfig>> getFactories() {
-    return factories.stream().map(postgresConfigurationFactory -> {
-      DefaultCustomResourceFactory<StackGresPostgresConfig> dcrf = postgresConfigurationFactory;
-      return dcrf;
-    }).collect(ImmutableList.toImmutableList());
+    return factories.stream()
+        .collect(ImmutableList.toImmutableList());
   }
 
   public List<PostgresConfigurationFactory> getPostgresFactories() {

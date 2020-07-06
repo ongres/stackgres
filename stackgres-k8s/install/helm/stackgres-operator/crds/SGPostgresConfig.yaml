@@ -46,3 +46,15 @@ spec:
               description: |
                 The `postgresql.conf` parameters that this configuration contains. They are represented as an object, where the keys are valid names for the `postgresql.conf` configuration file parameters of the given `postgresVersion`. You may check [postgresqlco.nf](https://postgresqlco.nf) as a reference on how to tune and find the valid parameters for a given major version.
           required: ["postgresVersion", "postgresql.conf"]
+        status:
+          type: object
+          properties:
+            defaultParameters:
+              type: array
+              description: |
+                A list of names of parameters that are set to theirs default value.
+              items:
+                type: string
+                description: |
+                  Name of a parameter that is set to his default value.
+          required: ["defaultParameters"]

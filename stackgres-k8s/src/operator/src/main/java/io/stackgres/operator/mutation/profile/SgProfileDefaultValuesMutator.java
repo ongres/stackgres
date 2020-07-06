@@ -9,6 +9,7 @@ import java.util.List;
 
 import javax.enterprise.context.ApplicationScoped;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.github.fge.jsonpatch.JsonPatchOperation;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.operator.common.SgProfileReview;
@@ -18,6 +19,12 @@ import io.stackgres.operator.mutation.DefaultValuesMutator;
 public class SgProfileDefaultValuesMutator
     extends DefaultValuesMutator<StackGresProfile, SgProfileReview>
     implements ProfileMutator {
+
+  @Override
+  public JsonNode getTargetNode(StackGresProfile resource) {
+    return super.getTargetNode(resource)
+        .get("spec");
+  }
 
   @Override
   public List<JsonPatchOperation> mutate(SgProfileReview review) {

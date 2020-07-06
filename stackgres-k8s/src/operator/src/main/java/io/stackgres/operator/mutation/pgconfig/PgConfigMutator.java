@@ -12,5 +12,6 @@ import io.stackgres.operatorframework.admissionwebhook.mutating.JsonPatchMutator
 public interface PgConfigMutator extends JsonPatchMutator<PgConfigReview> {
 
   JsonPointer PG_CONFIG_POINTER = JsonPointer.of("spec", "postgresql.conf");
+  JsonPointer PG_CONFIG_DEFAULT_PARAMETERS_POINTER = JsonPointer.of("status", "defaultParameters");
 
 }

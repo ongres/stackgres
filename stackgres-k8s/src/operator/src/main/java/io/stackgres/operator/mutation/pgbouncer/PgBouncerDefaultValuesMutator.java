@@ -27,7 +27,8 @@ public class PgBouncerDefaultValuesMutator
 
   @Override
   public JsonNode getTargetNode(StackGresPoolingConfig resource) {
-    return super.getTargetNode(resource).get("pgBouncer").get("pgbouncer.ini");
+    return super.getTargetNode(resource)
+        .get("spec").get("pgBouncer").get("pgbouncer.ini");
   }
 
   @Override

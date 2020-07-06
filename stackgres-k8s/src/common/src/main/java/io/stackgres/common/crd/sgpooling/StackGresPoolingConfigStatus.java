@@ -19,19 +19,19 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class StackGresPoolingConfigSpec implements KubernetesResource {
+public class StackGresPoolingConfigStatus implements KubernetesResource {
 
   private static final long serialVersionUID = 2000013861182789247L;
 
-  @NotNull(message = "pgBouncer configuration should not be empty")
+  @NotNull(message = "pgBouncer is required")
   @Valid
-  private StackGresPoolingConfigPgBouncer pgBouncer;
+  private StackGresPoolingConfigPgBouncerStatus pgBouncer;
 
-  public StackGresPoolingConfigPgBouncer getPgBouncer() {
+  public StackGresPoolingConfigPgBouncerStatus getPgBouncer() {
     return pgBouncer;
   }
 
-  public void setPgBouncer(StackGresPoolingConfigPgBouncer pgBouncer) {
+  public void setPgBouncer(StackGresPoolingConfigPgBouncerStatus pgBouncer) {
     this.pgBouncer = pgBouncer;
   }
 
@@ -43,7 +43,7 @@ public class StackGresPoolingConfigSpec implements KubernetesResource {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    StackGresPoolingConfigSpec that = (StackGresPoolingConfigSpec) o;
+    StackGresPoolingConfigStatus that = (StackGresPoolingConfigStatus) o;
     return Objects.equals(pgBouncer, that.pgBouncer);
   }
 
