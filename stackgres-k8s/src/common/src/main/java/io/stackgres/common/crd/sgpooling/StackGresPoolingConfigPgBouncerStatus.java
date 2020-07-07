@@ -3,11 +3,11 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.apiweb.dto.pooling;
+package io.stackgres.common.crd.sgpooling;
 
 import java.util.List;
+import java.util.Objects;
 
-import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -19,24 +19,11 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class PoolingConfigPgBouncerStatus {
-
-  @JsonProperty("pgbouncer.ini")
-  @NotNull(message = "pgbouncer.ini is required")
-  @Valid
-  private List<PgBouncerIniParameter> pgbouncerConf;
+public class StackGresPoolingConfigPgBouncerStatus {
 
   @JsonProperty("defaultParameters")
   @NotNull(message = "defaultParameters is required")
   private List<String> defaultParameters;
-
-  public List<PgBouncerIniParameter> getPgbouncerConf() {
-    return pgbouncerConf;
-  }
-
-  public void setPgbouncerConf(List<PgBouncerIniParameter> pgbouncerConf) {
-    this.pgbouncerConf = pgbouncerConf;
-  }
 
   public List<String> getDefaultParameters() {
     return defaultParameters;
@@ -47,9 +34,26 @@ public class PoolingConfigPgBouncerStatus {
   }
 
   @Override
+  public int hashCode() {
+    return Objects.hash(defaultParameters);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (!(obj instanceof StackGresPoolingConfigPgBouncerStatus)) {
+      return false;
+    }
+    StackGresPoolingConfigPgBouncerStatus other = (StackGresPoolingConfigPgBouncerStatus) obj;
+    return Objects.equals(defaultParameters, other.defaultParameters);
+  }
+
+  @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
-        .add("pgbouncerConf", pgbouncerConf)
+        .omitNullValues()
         .add("defaultParameters", defaultParameters)
         .toString();
   }

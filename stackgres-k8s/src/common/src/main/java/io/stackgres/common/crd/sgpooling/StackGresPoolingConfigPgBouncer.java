@@ -13,6 +13,7 @@ import javax.validation.constraints.NotEmpty;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.google.common.base.MoreObjects;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
 @JsonDeserialize
@@ -33,19 +34,27 @@ public class StackGresPoolingConfigPgBouncer {
   }
 
   @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    StackGresPoolingConfigPgBouncer that = (StackGresPoolingConfigPgBouncer) o;
-    return Objects.equals(pgbouncerConf, that.pgbouncerConf);
+  public int hashCode() {
+    return Objects.hash(pgbouncerConf);
   }
 
   @Override
-  public int hashCode() {
-    return Objects.hash(pgbouncerConf);
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (!(obj instanceof StackGresPoolingConfigPgBouncer)) {
+      return false;
+    }
+    StackGresPoolingConfigPgBouncer other = (StackGresPoolingConfigPgBouncer) obj;
+    return Objects.equals(pgbouncerConf, other.pgbouncerConf);
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .omitNullValues()
+        .add("pgbouncerConf", pgbouncerConf)
+        .toString();
   }
 }

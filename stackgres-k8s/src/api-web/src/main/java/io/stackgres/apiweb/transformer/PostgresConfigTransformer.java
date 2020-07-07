@@ -19,6 +19,7 @@ import io.stackgres.apiweb.dto.pgconfig.PostgresConfigStatus;
 import io.stackgres.apiweb.dto.pgconfig.PostgresqlConfParameter;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigSpec;
+import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigStatus;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple3;
 
@@ -45,7 +46,7 @@ public class PostgresConfigTransformer
     PostgresConfigDto transformation = new PostgresConfigDto();
     transformation.setMetadata(getResourceMetadata(source));
     transformation.setSpec(getResourceSpec(source.getSpec()));
-    transformation.setStatus(getResourceStatus(clusters, source.getSpec()));
+    transformation.setStatus(getResourceStatus(clusters, source.getStatus(), source.getSpec()));
     return transformation;
   }
 
@@ -82,12 +83,12 @@ public class PostgresConfigTransformer
   }
 
   private PostgresConfigStatus getResourceStatus(List<String> clusters,
-      StackGresPostgresConfigSpec source) {
+      StackGresPostgresConfigStatus source, StackGresPostgresConfigSpec sourceSpec) {
     PostgresConfigStatus transformation = new PostgresConfigStatus();
     transformation.setClusters(clusters);
-    if (source != null) {
+    if (sourceSpec != null) {
       transformation.setPostgresqlConf(
-          Seq.seq(source.getPostgresqlConf())
+          Seq.seq(sourceSpec.getPostgresqlConf())
               .map(t -> t.concat(new PostgresqlConfParameter()))
               .peek(t -> t.v3.setParameter(t.v1))
               .peek(t -> t.v3.setValue(t.v2))
@@ -95,11 +96,14 @@ public class PostgresConfigTransformer
                 if (!t.v1.contains(".")) {
                   t.v3.setDocumentationLink(String.format(
                       POSTGRESQLCO_NF_URL,
-                      t.v1, source.getPostgresVersion()));
+                      t.v1, sourceSpec.getPostgresVersion()));
                 }
               })
               .map(Tuple3::v3)
               .toList());
+    }
+    if (source != null) {
+      transformation.setDefaultParameters(source.getDefaultParameters());
     }
     return transformation;
   }

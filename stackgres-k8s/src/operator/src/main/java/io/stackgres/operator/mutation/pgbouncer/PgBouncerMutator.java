@@ -14,4 +14,8 @@ public interface PgBouncerMutator extends JsonPatchMutator<PoolingReview> {
   JsonPointer PG_BOUNCER_CONFIG_POINTER = JsonPointer.of("spec",
       "pgBouncer",
       "pgbouncer.ini");
+
+  JsonPointer PG_BOUNCER_DEFAULT_PARAMETERS_POINTER = JsonPointer.of("status",
+      "pgBouncer",
+      "defaultParameters");
 }

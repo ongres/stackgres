@@ -14,6 +14,7 @@ import com.github.fge.jackson.JacksonUtils;
 import com.github.fge.jackson.jsonpointer.JsonPointer;
 import com.github.fge.jsonpatch.AddOperation;
 import com.github.fge.jsonpatch.JsonPatchOperation;
+import com.github.fge.jsonpatch.ReplaceOperation;
 
 public interface JsonPatchMutator<T> {
 
@@ -26,7 +27,19 @@ public interface JsonPatchMutator<T> {
   }
 
   default JsonPatchOperation buildAddOperation(JsonPointer path, String value) {
-    return new AddOperation(path, FACTORY.textNode(value));
+    return buildAddOperation(path, FACTORY.textNode(value));
+  }
+
+  default JsonPatchOperation buildAddOperation(JsonPointer path, JsonNode value) {
+    return new AddOperation(path, value);
+  }
+
+  default JsonPatchOperation buildReplaceOperation(JsonPointer path, String value) {
+    return buildReplaceOperation(path, FACTORY.textNode(value));
+  }
+
+  default JsonPatchOperation buildReplaceOperation(JsonPointer path, JsonNode value) {
+    return new ReplaceOperation(path, value);
   }
 
   default List<JsonPatchOperation> applyDefaults(JsonPointer basePointer,

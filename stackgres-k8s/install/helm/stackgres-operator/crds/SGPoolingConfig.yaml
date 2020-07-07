@@ -44,3 +44,20 @@ spec:
                     The `pgbouncer.ini` parameters of this given configuration. They are represented as an object, where the keys are valid names for the `pgbouncer.ini` configuration file parameters.
 
                     Check [pgbouncer configuration](https://www.pgbouncer.org/config.html) for more information about supported parameters.
+        status:
+          type: object
+          properties:
+            pgBoucer:
+              type: object
+              description: |
+                Connection pooling configuration status based on PgBouncer.
+              properties:
+                defaultParameters:
+                  type: array
+                  description: |
+                    A list of names of parameters that are set to theirs default value.
+                  items:
+                    type: string
+                    description: |
+                      Name of a parameter that is set to his default value.
+              required: ["defaultParameters"]

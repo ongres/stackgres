@@ -6,7 +6,6 @@
 package io.stackgres.operator.mutation.cluster;
 
 import java.util.List;
-import java.util.Optional;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -16,8 +15,6 @@ import com.github.fge.jsonpatch.JsonPatchOperation;
 import com.google.common.collect.ImmutableList;
 import io.stackgres.common.ArcUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
-import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScheduler;
@@ -60,16 +57,6 @@ public class DefaultPoolingMutator
   @Override
   protected String getTargetPropertyValue(StackGresCluster targetCluster) {
     return targetCluster.getSpec().getConfiguration().getConnectionPoolingConfig();
-  }
-
-  @Override
-  protected boolean applyDefault(StackGresCluster targetCluster) {
-
-    return Optional.ofNullable(targetCluster.getSpec())
-        .map(StackGresClusterSpec::getPod)
-        .map(StackGresClusterPod::getDisableConnectionPooling)
-        .map(d -> super.applyDefault(targetCluster))
-        .orElse(false);
   }
 
   @Override

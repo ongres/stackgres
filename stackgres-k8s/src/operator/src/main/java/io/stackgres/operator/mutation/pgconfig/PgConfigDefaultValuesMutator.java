@@ -23,7 +23,8 @@ public class PgConfigDefaultValuesMutator
 
   @Override
   public JsonNode getTargetNode(StackGresPostgresConfig resource) {
-    return super.getTargetNode(resource).get("postgresql.conf");
+    return super.getTargetNode(resource)
+        .get("spec").get("postgresql.conf");
   }
 
   @Override

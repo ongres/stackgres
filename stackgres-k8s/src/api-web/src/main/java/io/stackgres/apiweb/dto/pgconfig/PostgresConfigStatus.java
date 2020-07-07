@@ -30,6 +30,10 @@ public class PostgresConfigStatus {
   @Valid
   private List<PostgresqlConfParameter> postgresqlConf;
 
+  @JsonProperty("defaultParameters")
+  @NotNull(message = "defaultParameters is required")
+  private List<String> defaultParameters;
+
   public List<String> getClusters() {
     return clusters;
   }
@@ -46,12 +50,21 @@ public class PostgresConfigStatus {
     this.postgresqlConf = postgresqlConf;
   }
 
+  public List<String> getDefaultParameters() {
+    return defaultParameters;
+  }
+
+  public void setDefaultParameters(List<String> defaultParameters) {
+    this.defaultParameters = defaultParameters;
+  }
+
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .omitNullValues()
         .add("clusters", clusters)
         .add("postgresql.conf", postgresqlConf)
+        .add("defaultParameters", defaultParameters)
         .toString();
   }
 
