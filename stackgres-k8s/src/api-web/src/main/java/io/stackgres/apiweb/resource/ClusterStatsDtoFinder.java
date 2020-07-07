@@ -7,6 +7,7 @@ package io.stackgres.apiweb.resource;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -28,6 +29,7 @@ import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.PersistentVolumeClaimFinder;
 import io.stackgres.common.resource.PodExecutor;
 import io.stackgres.common.resource.PodFinder;
+import org.eclipse.microprofile.context.ManagedExecutor;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple2;
@@ -40,6 +42,7 @@ public class ClusterStatsDtoFinder
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ClusterStatsDtoFinder.class);
 
+  private final ManagedExecutor managedExecutor;
   private final CustomResourceFinder<StackGresCluster> clusterFinder;
   private final PodFinder podFinder;
   private final PodExecutor podExecutor;
@@ -51,8 +54,10 @@ public class ClusterStatsDtoFinder
   public ClusterStatsDtoFinder(CustomResourceFinder<StackGresCluster> clusterFinder,
       PodFinder podFinder, PodExecutor podExecutor,
       PersistentVolumeClaimFinder persistentVolumeClaimFinder,
-      ClusterLabelFactory clusterLabelFactory, ClusterStatsTransformer clusterStatsTransformer) {
+      ClusterLabelFactory clusterLabelFactory, ClusterStatsTransformer clusterStatsTransformer,
+      ManagedExecutor managedExecutor) {
     super();
+    this.managedExecutor = managedExecutor;
     this.clusterFinder = clusterFinder;
     this.podFinder = podFinder;
     this.podExecutor = podExecutor;
@@ -75,10 +80,10 @@ public class ClusterStatsDtoFinder
 
     ImmutableList<PodStats> allPodStats = pods
         .stream()
-        // .parallel() // Fails with RequestScoped
         .map(Tuple::tuple)
-        .map(t -> t.concat(getPodStats(t.v1)))
-        .map(t -> t.concat(getPodPersitentVolumeClaim(cluster, t.v1)))
+        .map(t -> CompletableFuture.supplyAsync(() -> t.concat(getPodStats(t.v1))
+            .concat(getPodPersitentVolumeClaim(cluster, t.v1)), managedExecutor))
+        .map(CompletableFuture::join)
         .map(PodStats::fromTuple)
         .collect(ImmutableList.toImmutableList());
 
