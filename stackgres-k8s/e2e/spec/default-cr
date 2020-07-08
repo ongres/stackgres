@@ -1,9 +1,11 @@
 #!/bin/sh
 
 e2e_test_install() {
+  return
 }
 
-e2e_test_after_all(){
+e2e_test_after_all() {
+  return
 }
 
 

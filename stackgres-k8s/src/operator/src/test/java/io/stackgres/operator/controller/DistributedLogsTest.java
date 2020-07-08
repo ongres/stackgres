@@ -64,7 +64,7 @@ class DistributedLogsTest {
 
     reconciliationCycle = new DistributedLogsReconciliationCycle(
         clientFactory, null, fluentd, null, null, null, 
-        objectMapperProvider, labelFactory,
+        objectMapperProvider, operatorContext, labelFactory,
         distributedLogsScanner, clusterScanner);
   }
 

@@ -39,6 +39,8 @@ spec:
         image: "{{ .Values.restapi.image.name }}:{{ .Values.restapi.image.tag }}"
         imagePullPolicy: {{ .Values.restapi.image.pullPolicy }}
         env:
+          - name: RESTAPI_NAMESPACE
+            value: "{{ .Release.Namespace }}"
           {{- if .Values.developer.logLevel }}
           - name: RESTAPI_LOG_LEVEL
             value: "{{ .Values.developer.logLevel }}"

@@ -38,6 +38,7 @@ import io.stackgres.operator.common.SidecarEntry;
 import io.stackgres.operator.common.StackGresComponents;
 import io.stackgres.operator.common.StackGresDistributedLogsContext;
 import io.stackgres.operator.common.StackGresDistributedLogsGeneratorContext;
+import io.stackgres.operator.configuration.OperatorPropertyContext;
 import io.stackgres.operator.distributedlogs.factory.DistributedLogs;
 import io.stackgres.operator.distributedlogs.fluentd.Fluentd;
 import io.stackgres.operator.resource.DistributedLogsResourceHandlerSelector;
@@ -57,6 +58,7 @@ public class DistributedLogsReconciliationCycle
   private final Fluentd fluentd;
   private final DistributedLogsStatusManager statusManager;
   private final EventController eventController;
+  private final OperatorPropertyContext operatorContext;
   private final LabelFactory<StackGresDistributedLogs> labelFactory;
   private final CustomResourceScanner<StackGresDistributedLogs> distributedLogsScanner;
   private final CustomResourceScanner<StackGresCluster> clusterScanner;
@@ -71,6 +73,7 @@ public class DistributedLogsReconciliationCycle
       DistributedLogsResourceHandlerSelector handlerSelector,
       DistributedLogsStatusManager statusManager, EventController eventController,
       ObjectMapperProvider objectMapperProvider,
+      OperatorPropertyContext operatorContext,
       LabelFactory<StackGresDistributedLogs> labelFactory,
       CustomResourceScanner<StackGresDistributedLogs> distributedLogsScanner,
       CustomResourceScanner<StackGresCluster> clusterScanner) {
@@ -81,6 +84,7 @@ public class DistributedLogsReconciliationCycle
     this.fluentd = fluentd;
     this.statusManager = statusManager;
     this.eventController = eventController;
+    this.operatorContext = operatorContext;
     this.labelFactory = labelFactory;
     this.distributedLogsScanner = distributedLogsScanner;
     this.clusterScanner = clusterScanner;
@@ -93,6 +97,7 @@ public class DistributedLogsReconciliationCycle
     this.fluentd = null;
     this.statusManager = null;
     this.eventController = null;
+    this.operatorContext = null;
     this.labelFactory = null;
     this.distributedLogsScanner = null;
     this.clusterScanner = null;
@@ -171,6 +176,7 @@ public class DistributedLogsReconciliationCycle
       StackGresDistributedLogs distributedLogs) {
     final StackGresCluster cluster = getStackGresCLusterForDistributedLogs(distributedLogs);
     return ImmutableStackGresDistributedLogsContext.builder()
+        .operatorContext(operatorContext)
         .distributedLogs(distributedLogs)
         .connectedClusters(getConnectedClusters(distributedLogs))
         .cluster(cluster)
