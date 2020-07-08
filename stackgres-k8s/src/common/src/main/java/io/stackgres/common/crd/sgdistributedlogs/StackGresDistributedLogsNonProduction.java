@@ -16,7 +16,7 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class StackGresDistributedNonProduction {
+public class StackGresDistributedLogsNonProduction {
 
   @JsonProperty("disableClusterPodAntiAffinity")
   public Boolean disableClusterPodAntiAffinity;
@@ -45,7 +45,7 @@ public class StackGresDistributedNonProduction {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    StackGresDistributedNonProduction that = (StackGresDistributedNonProduction) o;
+    StackGresDistributedLogsNonProduction that = (StackGresDistributedLogsNonProduction) o;
     return Objects.equals(disableClusterPodAntiAffinity, that.disableClusterPodAntiAffinity);
   }
 

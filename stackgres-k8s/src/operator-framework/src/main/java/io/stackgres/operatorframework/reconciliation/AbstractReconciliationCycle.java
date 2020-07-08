@@ -97,16 +97,16 @@ public abstract class AbstractReconciliationCycle<T extends ResourceHandlerConte
     String cycleName = cycleId + "| " + name + " reconciliation cycle";
 
     LOGGER.trace(cycleName + " starting");
-    try (KubernetesClient client = clientSupplier.get()) {
-      LOGGER.trace(cycleName + " getting existing " + name.toLowerCase(Locale.US) + " list");
-      ImmutableList<T> existingContexts = getExistingConfigs(client);
+    LOGGER.trace(cycleName + " getting existing " + name.toLowerCase(Locale.US) + " list");
+    ImmutableList<T> existingContexts = getExistingConfigs();
+    try {
       for (T context : existingContexts) {
         HasMetadata contextResource = resourceGetter.apply(context);
 
         String contextId = contextResource.getMetadata().getNamespace() + "."
             + contextResource.getMetadata().getName();
 
-        try {
+        try (KubernetesClient client = clientSupplier.get()) {
           LOGGER.trace(cycleName + " working on " + contextId);
           ImmutableList<HasMetadata> existingResourcesOnly = getExistingResources(
               client, context);
@@ -179,7 +179,7 @@ public abstract class AbstractReconciliationCycle<T extends ResourceHandlerConte
         .findAny();
   }
 
-  protected abstract ImmutableList<T> getExistingConfigs(KubernetesClient client);
+  protected abstract ImmutableList<T> getExistingConfigs();
 
   private ImmutableList<HasMetadata> getExistingResources(KubernetesClient client,
       T context) {
