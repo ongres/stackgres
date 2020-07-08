@@ -17,7 +17,6 @@ import com.github.fge.jsonpatch.JsonPatchOperation;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.client.CustomResource;
-import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresProperty;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
 import io.stackgres.operatorframework.admissionwebhook.mutating.JsonPatchMutator;
@@ -71,9 +70,9 @@ public interface DefaultAnnotationMutator<R extends CustomResource, T extends Ad
 
   default Map<String, String> getDefaultAnnotationValues() {
 
-    String operatorVersion = StackGresContext.OPERATOR_VERSION;
+    String operatorVersion = StackGresProperty.OPERATOR_VERSION.getString();
 
-    String operatorVersionKey = StackGresProperty.OPERATOR_VERSION.systemProperty()
+    String operatorVersionKey = StackGresProperty.OPERATOR_VERSION.getPropertyName()
         .split("\\.")[1];
 
     return ImmutableMap.<String, String>builder()

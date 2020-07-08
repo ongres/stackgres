@@ -35,7 +35,7 @@ import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.FluentdUtil;
 import io.stackgres.common.LabelFactory;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.distributedlogs.PatroniTableFields;
@@ -88,7 +88,8 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
   public Container getContainer(StackGresDistributedLogsGeneratorContext context) {
     return new ContainerBuilder()
       .withName(FluentdUtil.NAME)
-      .withImage(String.format(IMAGE_NAME, DEFAULT_VERSION, StackGresContext.CONTAINER_BUILD))
+      .withImage(String.format(IMAGE_NAME, DEFAULT_VERSION,
+          StackGresProperty.CONTAINER_BUILD.getString()))
       .withImagePullPolicy("IfNotPresent")
       .withCommand("/bin/sh", "-exc")
       .withArgs(""

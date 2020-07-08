@@ -10,7 +10,7 @@ import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.quarkus.security.AuthenticationFailedException;
-import io.stackgres.apiweb.config.WebApiContext;
+import io.stackgres.apiweb.config.WebApiPropertyContext;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.resource.ResourceScanner;
 import io.stackgres.common.resource.ResourceUtil;
@@ -43,7 +43,7 @@ public class SecretVerificationTest {
             StackGresContext.REST_PASSWORD_KEY,
             ResourceUtil.encodeSecret(TokenUtils.sha256("testtest"))))
         .build();
-    secretVerification = new SecretVerification(secretScanner, new WebApiContext());
+    secretVerification = new SecretVerification(secretScanner, new WebApiPropertyContext());
   }
 
   @Test

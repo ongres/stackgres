@@ -21,7 +21,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.reflect.ClassPath;
 import io.fabric8.kubernetes.client.CustomResource;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.YamlMapperProvider;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -29,9 +29,9 @@ import org.opentest4j.AssertionFailedError;
 
 public class CrdMatchTest {
 
-  private static final String crdPomVersion = StackGresContext.CRD_VERSION;
+  private static final String CRD_POD_VERSION = StackGresProperty.CRD_VERSION.getString();
 
-  private static final String crdPomGroup = StackGresContext.CRD_GROUP;
+  private static final String CRD_POD_GROUP = StackGresProperty.CRD_GROUP.getString();
 
   private static File[] crdFiles;
 
@@ -119,7 +119,7 @@ public class CrdMatchTest {
       JsonNode crdInstallVersions = crdTree.get("spec").get("versions");
 
       for (JsonNode crdInstallVersion : crdInstallVersions) {
-        assertEquals(crdPomVersion, crdInstallVersion.get("name").asText());
+        assertEquals(CRD_POD_VERSION, crdInstallVersion.get("name").asText());
 
       }
     });
@@ -132,7 +132,7 @@ public class CrdMatchTest {
     withEveryYaml((crdTree) -> {
       String yamlGroup = crdTree.get("spec").get("group").asText();
 
-      assertEquals(crdPomGroup, yamlGroup);
+      assertEquals(CRD_POD_GROUP, yamlGroup);
 
     });
 

@@ -1,5 +1,7 @@
 #!/bin/sh
 
+export SPEC_PATH="$(dirname "$0")/spec"
+
 e2e_test_before_all() {
   true
 }

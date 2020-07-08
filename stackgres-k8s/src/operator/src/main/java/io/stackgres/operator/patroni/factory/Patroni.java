@@ -31,7 +31,7 @@ import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.LabelFactory;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
@@ -111,7 +111,7 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
     return new ContainerBuilder()
         .withName(StackgresClusterContainers.PATRONI)
         .withImage(String.format(IMAGE_NAME,
-            DEFAULT_VERSION, pgVersion, StackGresContext.CONTAINER_BUILD))
+            DEFAULT_VERSION, pgVersion, StackGresProperty.CONTAINER_BUILD.getString()))
         .withCommand("/bin/sh", "-ex",
             ClusterStatefulSetPath.LOCAL_BIN_PATH.path() + startScript)
         .withImagePullPolicy("IfNotPresent")

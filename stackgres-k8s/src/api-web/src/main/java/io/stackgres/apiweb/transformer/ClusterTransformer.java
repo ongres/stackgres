@@ -27,7 +27,7 @@ import io.stackgres.apiweb.dto.cluster.ClusterRestore;
 import io.stackgres.apiweb.dto.cluster.ClusterSpec;
 import io.stackgres.apiweb.dto.cluster.ClusterSpecAnnotations;
 import io.stackgres.apiweb.dto.cluster.ClusterSpecMetadata;
-import io.stackgres.common.ConfigContext;
+import io.stackgres.common.StackGresPropertyContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDistributedLogs;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
@@ -46,11 +46,11 @@ import org.jooq.lambda.Seq;
 public class ClusterTransformer
     extends AbstractResourceTransformer<ClusterDto, StackGresCluster> {
 
-  private final ConfigContext<WebApiProperty> context;
+  private final StackGresPropertyContext<WebApiProperty> context;
   private final ClusterPodTransformer clusterPodTransformer;
 
   @Inject
-  public ClusterTransformer(ConfigContext<WebApiProperty> context,
+  public ClusterTransformer(StackGresPropertyContext<WebApiProperty> context,
       ClusterPodTransformer clusterPodTransformer) {
     super();
     this.context = context;
@@ -91,9 +91,7 @@ public class ClusterTransformer
   }
 
   private boolean isGrafanaEmbeddedEnabled() {
-    return context.getProperty(WebApiProperty.GRAFANA_EMBEDDED)
-        .map(Boolean::parseBoolean)
-        .orElse(false);
+    return context.getBoolean(WebApiProperty.GRAFANA_EMBEDDED);
   }
 
   public StackGresClusterSpec getCustomResourceSpec(ClusterSpec source) {

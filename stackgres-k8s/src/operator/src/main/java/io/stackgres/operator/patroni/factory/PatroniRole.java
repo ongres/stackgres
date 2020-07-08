@@ -22,7 +22,7 @@ import io.fabric8.kubernetes.api.model.rbac.RoleBuilder;
 import io.fabric8.kubernetes.api.model.rbac.RoleRefBuilder;
 import io.fabric8.kubernetes.api.model.rbac.SubjectBuilder;
 import io.stackgres.common.LabelFactory;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.crd.sgbackup.StackGresBackupDefinition;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigDefinition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -121,12 +121,12 @@ public class PatroniRole implements StackGresClusterResourceStreamFactory {
             .withVerbs("create")
             .build())
         .addToRules(new PolicyRuleBuilder()
-            .withApiGroups(StackGresContext.CRD_GROUP)
+            .withApiGroups(StackGresProperty.CRD_GROUP.getString())
             .withResources(StackGresBackupDefinition.PLURAL)
             .withVerbs("list", "get", "create", "patch", "delete")
             .build())
         .addToRules(new PolicyRuleBuilder()
-            .withApiGroups(StackGresContext.CRD_GROUP)
+            .withApiGroups(StackGresProperty.CRD_GROUP.getString())
             .withResources(StackGresBackupConfigDefinition.PLURAL)
             .withVerbs("get")
             .build())

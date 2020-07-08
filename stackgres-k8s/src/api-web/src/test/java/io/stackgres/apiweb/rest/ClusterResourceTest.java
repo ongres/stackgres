@@ -47,7 +47,7 @@ import io.stackgres.apiweb.transformer.ClusterStatsTransformer;
 import io.stackgres.apiweb.transformer.ClusterTransformer;
 import io.stackgres.common.ClusterLabelFactory;
 import io.stackgres.common.ClusterLabelMapper;
-import io.stackgres.common.ConfigContext;
+import io.stackgres.common.StackGresPropertyContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterList;
 import io.stackgres.common.resource.CustomResourceFinder;
@@ -77,7 +77,7 @@ class ClusterResourceTest
   private DistributedLogsFetcher distributedLogsFetcher;
 
   @Mock
-  private ConfigContext<WebApiProperty> configContext;
+  private StackGresPropertyContext<WebApiProperty> configContext;
 
   @Mock
   private PodFinder podFinder;
@@ -104,7 +104,7 @@ class ClusterResourceTest
   @Test
   @Override
   void listShouldReturnAllDtos() {
-    when(configContext.getProperty(WebApiProperty.GRAFANA_EMBEDDED))
+    when(configContext.get(WebApiProperty.GRAFANA_EMBEDDED))
         .thenReturn(Optional.of("true"));
     when(podFinder.findResourcesWithLabels(any())).thenReturn(podList.getItems());
     super.listShouldReturnAllDtos();
@@ -131,7 +131,7 @@ class ClusterResourceTest
   }
 
   private void clusterMocks() {
-    when(configContext.getProperty(WebApiProperty.GRAFANA_EMBEDDED))
+    when(configContext.get(WebApiProperty.GRAFANA_EMBEDDED))
         .thenReturn(Optional.of("true"));
     when(podFinder.findResourcesInNamespaceWithLabels(anyString(), any()))
         .thenReturn(podList.getItems());

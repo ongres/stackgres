@@ -23,13 +23,13 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.resource.ResourceUtil;
-import io.stackgres.operator.configuration.OperatorContext;
+import io.stackgres.operator.configuration.OperatorPropertyContext;
 import io.stackgres.operatorframework.resource.ResourceHandlerContext;
 import org.jooq.lambda.tuple.Tuple2;
 
 public abstract class StackGresClusterContext implements ResourceHandlerContext {
 
-  public abstract OperatorContext getOperatorContext();
+  public abstract OperatorPropertyContext getOperatorContext();
 
   public abstract StackGresCluster getCluster();
 

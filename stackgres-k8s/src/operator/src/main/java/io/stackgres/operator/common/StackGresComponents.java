@@ -16,7 +16,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import com.google.common.collect.ImmutableMap;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresProperty;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple3;
@@ -34,7 +34,7 @@ public enum StackGresComponents {
   StackGresComponents() {
     try {
       Properties properties = new Properties();
-      properties.load(OperatorConfigDefaults.class.getResourceAsStream("/versions.properties"));
+      properties.load(StackGresComponents.class.getResourceAsStream("/versions.properties"));
       this.componentVersions = Seq.seq(properties)
           .collect(ImmutableMap.toImmutableMap(
               t -> t.v1.toString(), t -> t.v2.toString()));
@@ -100,7 +100,7 @@ public enum StackGresComponents {
     ObjectMapper objectMapper = new YAMLMapper();
     JsonNode versions = objectMapper.readTree(
         new URL("https://stackgres.io/downloads/stackgres-k8s/stackgres/components/"
-            + StackGresContext.CONTAINER_BUILD + "/versions.yaml"));
+            + StackGresProperty.CONTAINER_BUILD.getString() + "/versions.yaml"));
     Properties properties = new Properties();
     Seq.seq(versions.get("components").fields())
         .map(component -> Tuple.tuple(

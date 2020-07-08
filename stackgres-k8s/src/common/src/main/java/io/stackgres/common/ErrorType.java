@@ -38,18 +38,18 @@ public enum ErrorType {
 
   public static String getErrorTypeUriPrefix() {
 
-    String documentationUri = StackGresContext.DOCUMENTATION_URI;
-    String errorsPath = StackGresContext.DOCUMENTATION_ERRORS_PATH;
-    String operatorVersion = StackGresContext.OPERATOR_VERSION;
+    String documentationUri = StackGresProperty.DOCUMENTATION_URI.getString();
+    String errorsPath = StackGresProperty.DOCUMENTATION_ERRORS_PATH.getString();
+    String operatorVersion = StackGresProperty.OPERATOR_VERSION.getString();
 
     return documentationUri + operatorVersion + errorsPath;
   }
 
   public static String getErrorTypeUri(ErrorType constraintViolation) {
 
-    String documentationUri = StackGresContext.DOCUMENTATION_URI;
-    String errorsPath = StackGresContext.DOCUMENTATION_ERRORS_PATH;
-    String operatorVersion = StackGresContext.OPERATOR_VERSION;
+    String documentationUri = StackGresProperty.DOCUMENTATION_URI.getString();
+    String errorsPath = StackGresProperty.DOCUMENTATION_ERRORS_PATH.getString();
+    String operatorVersion = StackGresProperty.OPERATOR_VERSION.getString();
 
     return String
         .format("%s%s%s%s",

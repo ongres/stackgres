@@ -1,12 +1,178 @@
 #!/bin/sh
 
+export IMAGE_TAG="${IMAGE_TAG:-development-jvm}"
+export OPERATOR_IMAGE_NAME="stackgres/operator:$IMAGE_TAG"
+export RESTAPI_IMAGE_NAME="stackgres/restapi:$IMAGE_TAG"
+export ADMINUI_IMAGE_NAME="stackgres/admin-ui:${IMAGE_TAG%-jvm}"
+
+export STACKGRES_PATH="${STACKGRES_PATH:-$(dirname "$0")/..}"
+export OPERATOR_CHART_PATH="${OPERATOR_CHART_PATH:-"$STACKGRES_PATH/install/helm/stackgres-operator/"}"
+export CLUSTER_CHART_PATH="${CLUSTER_CHART_PATH:-"$STACKGRES_PATH/install/helm/stackgres-cluster/"}"
+export UI_TESTS_RESOURCES_PATH="${UI_TESTS_RESOURCES_PATH:-"$STACKGRES_PATH/src/admin-ui"}"
+
+export E2E_SKIP_SETUP="${E2E_SKIP_SETUP:-false}"
+export E2E_OPERATOR_PULL_POLICY="${E2E_OPERATOR_PULL_POLICY:-Never}"
+export E2E_BUILD_IMAGES="${E2E_BUILD_IMAGES:-true}"
+export E2E_SKIP_OPERATOR_LOAD="${E2E_SKIP_OPERATOR_LOAD:-false}"
+export E2E_WAIT_OPERATOR="${E2E_WAIT_OPERATOR:-true}"
+
+generate_operator_namespace() {
+  echo stackgres-$(printf '%x' "$(date +%s)")
+}
+
+export OPERATOR_NAMESPACE="${OPERATOR_NAMESPACE:-$(generate_operator_namespace)}"
+
+setup_images() {
+  if [ "$E2E_BUILD_IMAGES" = true ] \
+    && (
+      [ "$E2E_REUSE_OPERATOR_PODS" != true ] \
+      || ! helm list --all-namespaces | grep -q "^stackgres-operator\s"
+    )
+  then
+    (
+    cd "$STACKGRES_PATH/src"
+    ./mvnw -q clean package -P build-image-jvm
+    sh admin-ui/buildah/build.sh
+    )
+  fi
+}
+
+create_operator_certificate() {
+  kubectl delete csr --ignore-not-found 'stackgres-operator'
+  rm -f \
+    "$TARGET_PATH/csr.conf" \
+    "$TARGET_PATH/server-key.pem" \
+    "$TARGET_PATH/server-pub.pem" \
+    "$TARGET_PATH/server.csr" \
+    "$TARGET_PATH/server.crt"
+  cat << EOF > "$TARGET_PATH/csr.conf"
+[req]
+req_extensions = v3_req
+distinguished_name = req_distinguished_name
+[req_distinguished_name]
+[ v3_req ]
+basicConstraints = CA:FALSE
+keyUsage = nonRepudiation, digitalSignature, keyEncipherment
+extendedKeyUsage = serverAuth
+subjectAltName = @alt_names
+[alt_names]
+DNS.1 = stackgres-operator
+DNS.2 = stackgres-operator.$OPERATOR_NAMESPACE
+DNS.3 = stackgres-operator.$OPERATOR_NAMESPACE.svc
+DNS.4 = stackgres-operator.$OPERATOR_NAMESPACE.svc.cluster.local
+EOF
+
+  openssl req -new -nodes -text -keyout "$TARGET_PATH/server-key.pem" \
+      -subj "/CN=stackgres-operator.$OPERATOR_NAMESPACE.svc" \
+      -out "$TARGET_PATH/server.csr" \
+      -config "$TARGET_PATH/csr.conf"
+  openssl rsa -in "$TARGET_PATH/server-key.pem" -pubout -out "$TARGET_PATH/server-pub.pem"
+
+  cat << EOF | kubectl create -f -
+apiVersion: certificates.k8s.io/v1beta1
+kind: CertificateSigningRequest
+metadata:
+  name: stackgres-operator
+spec:
+  request: "$(cat "$TARGET_PATH/server.csr" | base64 | tr -d '\n')"
+  usages:
+  - digital signature
+  - key encipherment
+  - server auth
+EOF
+
+  kubectl certificate approve 'stackgres-operator'
+  kubectl get csr 'stackgres-operator' -o jsonpath='{.status.certificate}' | base64 -d > "$TARGET_PATH/server.crt"
+}
+
+setup_operator() {
+  if [ "$E2E_SKIP_SETUP" = true ]
+  then
+    return
+  fi
+
+  if ! helm list --all-namespaces | grep -q "^stackgres-operator\s" \
+    || ! kubectl get namespaces "$OPERATOR_NAMESPACE" -o name \
+      | grep -q "^namespace/$OPERATOR_NAMESPACE$" \
+    || ( ( [ "$(kubectl get deployments.apps -n "$OPERATOR_NAMESPACE" -l app=stackgres-operator -o name | wc -l)" -ne 1 ] \
+      || [ "$(kubectl get deployments.apps -n "$OPERATOR_NAMESPACE" -l app=stackgres-operator \
+        --template '{{ len (index .items 0).spec.template.spec.containers }}')" -ne 2 ] ) \
+      && [ "$E2E_USE_EXTERNAL_OPERATOR" != true ] ) \
+    || [ "$E2E_REUSE_OPERATOR_PODS" != true ]
+  then
+    if [ "$E2E_FORCE_IMAGE_PULL" = "true" ]
+    then
+      docker pull "$OPERATOR_IMAGE_NAME"
+      docker pull "$RESTAPI_IMAGE_NAME"
+      docker pull "$ADMINUI_IMAGE_NAME"
+    fi
+
+    if [ "$E2E_USE_INTERMIDIATE_PRIVATE_REPO" != true \
+        -a "$E2E_SKIP_OPERATOR_LOAD" != true ]
+    then
+      load_operator_k8s
+    fi
+
+    k8s_webhook_cleanup
+    helm_cleanup
+    k8s_async_cleanup
+
+    install_operator
+    store_operator_values
+
+    if [ "$E2E_DEBUG_OPERATOR" = true ]
+    then
+      wait_pods_running "$OPERATOR_NAMESPACE"
+      kubectl set env -n "$OPERATOR_NAMESPACE" deployment/stackgres-operator \
+        DEBUG_OPERATOR="$E2E_DEBUG_OPERATOR" DEBUG_OPERATOR_SUSPEND="$E2E_DEBUG_OPERATOR_SUSPEND"
+      kubectl delete pod -n "$OPERATOR_NAMESPACE" -l app=stackgres-operator
+    fi
+  else
+    helm_cleanup_but_operator
+    k8s_async_cleanup_but_operator
+  fi
+
+  if [ "$E2E_WAIT_OPERATOR" = true ]
+  then
+    wait_pods_running "$OPERATOR_NAMESPACE"
+    if helm get values -n "$OPERATOR_NAMESPACE" stackgres-operator | grep -q externalOperatorIp \
+      && helm get values -n "$OPERATOR_NAMESPACE" stackgres-operator | grep -q externalOperatorPort
+    then
+      wait_services_available "$OPERATOR_NAMESPACE" 2
+    else
+      wait_services_available "$OPERATOR_NAMESPACE" 1
+    fi
+  fi
+}
+
+load_operator_k8s() {
+  if docker image inspect "$OPERATOR_IMAGE_NAME" >/dev/null 2>&1
+  then 
+    load_image_k8s "$OPERATOR_IMAGE_NAME"
+  else
+    echo "Image $OPERATOR_IMAGE_NAME not found in cache!"
+  fi
+  if docker image inspect "$RESTAPI_IMAGE_NAME" >/dev/null 2>&1
+  then 
+    load_image_k8s "$RESTAPI_IMAGE_NAME"
+  else
+    echo "Image $RESTAPI_IMAGE_NAME not found in cache!"
+  fi
+  if docker image inspect "$ADMINUI_IMAGE_NAME" >/dev/null 2>&1
+  then 
+    load_image_k8s "$ADMINUI_IMAGE_NAME"
+  else
+    echo "Image $ADMINUI_IMAGE_NAME not found in cache!"
+  fi
+}
+
 operator_pull_policy() {
   echo $E2E_OPERATOR_PULL_POLICY
 }
 
 install_operator() {
-  kubectl get namespace stackgres > /dev/null 2>&1 \
-    || kubectl create namespace stackgres
+  kubectl get namespace "$OPERATOR_NAMESPACE" > /dev/null 2>&1 \
+    || kubectl create namespace "$OPERATOR_NAMESPACE"
 
   if [ "$E2E_USE_INTERMIDIATE_PRIVATE_REPO" = true ]
   then
@@ -43,16 +209,16 @@ install_operator_from_private_repository() {
 }
 
 install_operator_vanilla() {
-  helm install stackgres-operator --namespace stackgres "$OPERATOR_CHART_PATH" \
+  helm install stackgres-operator --namespace "$OPERATOR_NAMESPACE" "$OPERATOR_CHART_PATH" \
     "$@"
 }
 
 upgrade_operator() {
-  helm upgrade stackgres-operator --namespace stackgres "$OPERATOR_CHART_PATH" --reuse-values "$@"
+  helm upgrade stackgres-operator --namespace "$OPERATOR_NAMESPACE" "$OPERATOR_CHART_PATH" --reuse-values "$@"
 }
 
 upgrade_or_install_operator() {
-  if ! helm get notes stackgres-operator --namespace stackgres > /dev/null
+  if ! helm get notes stackgres-operator --namespace "$OPERATOR_NAMESPACE" > /dev/null
   then
     install_operator "$@"
     return
@@ -62,14 +228,14 @@ upgrade_or_install_operator() {
 }
 
 delete_operator() {
-  ! helm get notes stackgres-operator --namespace stackgres > /dev/null \
-    || helm delete stackgres-operator --namespace stackgres "$@" \
+  ! helm get notes stackgres-operator --namespace "$OPERATOR_NAMESPACE" > /dev/null \
+    || helm delete stackgres-operator --namespace "$OPERATOR_NAMESPACE" "$@" \
     || true
-  k8s_cleanup_namespace stackgres
+  k8s_cleanup_namespace "$OPERATOR_NAMESPACE"
 }
 
 get_installed_operator_values() {
-  helm get values --namespace stackgres stackgres-operator | tail -n +2
+  helm get values --namespace "$OPERATOR_NAMESPACE" stackgres-operator | tail -n +2
 }
 
 store_operator_values() {
@@ -77,10 +243,10 @@ store_operator_values() {
 }
 
 reinstall_operator_if_not_as_expected() {
-  if ! helm get notes stackgres-operator --namespace stackgres > /dev/null \
+  if ! helm get notes stackgres-operator --namespace "$OPERATOR_NAMESPACE" > /dev/null \
     || [ "$(get_installed_operator_values)" != "$(cat "$TARGET_PATH/operator-values.yaml")" ]
   then
-    if ! helm get notes stackgres-operator --namespace stackgres > /dev/null
+    if ! helm get notes stackgres-operator --namespace "$OPERATOR_NAMESPACE" > /dev/null
     then
       echo "Re-installing operator since not installed"
     else
@@ -97,15 +263,15 @@ reinstall_operator_if_not_as_expected() {
     helm_cleanup
     k8s_async_cleanup
 
-    kubectl create namespace stackgres
+    kubectl create namespace "$OPERATOR_NAMESPACE"
     install_operator_vanilla -f "$TARGET_PATH/operator-values.yaml"
-    wait_pods_running stackgres
-    if helm get values -n stackgres stackgres-operator | grep -q externalOperatorIp \
-      && helm get values -n stackgres stackgres-operator | grep -q externalOperatorPort
+    wait_pods_running "$OPERATOR_NAMESPACE"
+    if helm get values -n "$OPERATOR_NAMESPACE" stackgres-operator | grep -q externalOperatorIp \
+      && helm get values -n "$OPERATOR_NAMESPACE" stackgres-operator | grep -q externalOperatorPort
     then
-      wait_services_available stackgres 2
+      wait_services_available "$OPERATOR_NAMESPACE" 2
     else
-      wait_services_available stackgres 1
+      wait_services_available "$OPERATOR_NAMESPACE" 1
     fi
   fi
 }

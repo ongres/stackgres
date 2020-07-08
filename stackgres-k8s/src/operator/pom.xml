@@ -23,7 +23,7 @@
     <quarkus.skipAugmentation>false</quarkus.skipAugmentation>
     <checks.location>${project.parent.basedir}/checks</checks.location>
 
-    <it.image>stackgres/it:7.0</it.image>
+    <it.image>stackgres/it:8.0</it.image>
   </properties>
 
   <dependencies>

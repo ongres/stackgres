@@ -5,22 +5,38 @@
 
 package io.stackgres.apiweb.config;
 
-public enum WebApiProperty {
+import java.util.Properties;
+
+import io.stackgres.common.StackGresPropertyGetter;
+import org.jooq.lambda.Unchecked;
+
+public enum WebApiProperty implements StackGresPropertyGetter {
 
   RESTAPI_NAMESPACE("stackgres.restapiNamespace"),
   GRAFANA_EMBEDDED("stackgres.prometheus.grafanaEmbedded");
 
-  private final String systemProperty;
+  private static final Properties APPLICATION_PROPERTIES =
+      Unchecked.supplier(() -> StackGresPropertyGetter
+          .readApplicationProperties(WebApiProperty.class)).get();
 
-  WebApiProperty(String systemProperty) {
-    this.systemProperty = systemProperty;
+  private final String propertyName;
+
+  WebApiProperty(String propertyName) {
+    this.propertyName = propertyName;
   }
 
-  public String property() {
+  @Override
+  public String getEnvironmentVariableName() {
     return name();
   }
 
-  public String systemProperty() {
-    return systemProperty;
+  @Override
+  public String getPropertyName() {
+    return propertyName;
+  }
+
+  @Override
+  public Properties getApplicationProperties() {
+    return APPLICATION_PROPERTIES;
   }
 }

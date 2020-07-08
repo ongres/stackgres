@@ -87,6 +87,7 @@ public class StackGresOperatorEnd2EndIt extends AbstractStackGresOperatorIt {
                   + "export K8S_FROM_DIND=true\n"
                   + "export E2E_BUILD_IMAGES=false\n"
                   + "export E2E_REUSE_OPERATOR_PODS=true\n"
+                  + "export OPERATOR_NAMESPACE=" + namespace + "\n"
                   + "export E2E_WAIT_OPERATOR=false\n"
                   + "export E2E_USE_EXTERNAL_OPERATOR=true\n"
                   + "export E2E_SKIP_SETUP=true\n"

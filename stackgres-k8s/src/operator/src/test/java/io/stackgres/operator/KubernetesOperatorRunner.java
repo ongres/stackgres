@@ -18,11 +18,13 @@ public class KubernetesOperatorRunner implements OperatorRunner {
   private final CompletableFuture<Void> future = new CompletableFuture<Void>();
 
   private final Container k8s;
+  private final String namespace;
   private final Executor executor;
 
-  public KubernetesOperatorRunner(Container k8s, Executor executor) {
+  public KubernetesOperatorRunner(Container k8s, String namespace, Executor executor) {
     super();
     this.k8s = k8s;
+    this.namespace = namespace;
     this.executor = executor;
   }
 
@@ -33,11 +35,11 @@ public class KubernetesOperatorRunner implements OperatorRunner {
 
   @Override
   public void run() throws Throwable {
-    ItHelper.waitUntilOperatorIsReady(future, null, k8s);
+    ItHelper.waitUntilOperatorIsReady(future, null, k8s, namespace);
     CompletableFuture<Void> runnerLogFuture = CompletableFuture.runAsync(() -> {
       try {
         k8s.execute("sh", "-l", "-c",
-            "while kubectl get pod -n stackgres"
+            "while kubectl get pod -n " + namespace
                 + " -l app=stackgres-operator -o name; do sleep 1; done"
                 + " | cut -d '/' -f 2"
                 + " | (while read POD\n"
@@ -49,7 +51,7 @@ public class KubernetesOperatorRunner implements OperatorRunner {
                 + "    PODS=$PODS:$POD:\n"
                 + "    echo $POD\n"
                 + " done)"
-                + " | xargs -r -n 1 kubectl logs -n stackgres -c stackgres-operator -f || true")
+                + " | xargs -r -n 1 kubectl logs -n " + namespace + " -c stackgres-operator -f || true")
             .filter(ItHelper.EXCLUDE_TTY_WARNING)
             .forEach(line -> LOGGER.info(line));
       } catch (Exception ex) {

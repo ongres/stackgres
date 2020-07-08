@@ -18,8 +18,8 @@ import javax.ws.rs.core.MediaType;
 import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.Namespace;
 import io.quarkus.security.Authenticated;
-import io.stackgres.apiweb.config.WebApiContext;
 import io.stackgres.apiweb.config.WebApiProperty;
+import io.stackgres.apiweb.config.WebApiPropertyContext;
 import io.stackgres.common.resource.ResourceScanner;
 
 @Path("/stackgres/namespace")
@@ -34,10 +34,10 @@ public class NamespaceResource {
 
   @Inject
   public NamespaceResource(ResourceScanner<Namespace> namespaceScanner,
-      WebApiContext webApiContext) {
+      WebApiPropertyContext webApiContext) {
     super();
     this.namespaceScanner = namespaceScanner;
-    this.restApiNamespace = webApiContext.get(WebApiProperty.RESTAPI_NAMESPACE);
+    this.restApiNamespace = webApiContext.getString(WebApiProperty.RESTAPI_NAMESPACE);
   }
 
   @GET

@@ -5,11 +5,16 @@
 
 package io.stackgres.operator.utils;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ThreadLocalRandom;
+
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
@@ -19,12 +24,10 @@ import io.fabric8.kubernetes.api.model.Status;
 import io.fabric8.kubernetes.api.model.StatusCause;
 import io.fabric8.kubernetes.api.model.StatusDetails;
 import io.stackgres.common.ErrorType;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresProperty;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import org.junit.jupiter.api.function.Executable;
 import org.opentest4j.AssertionFailedError;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 public class ValidationUtils {
 
@@ -77,9 +80,9 @@ public class ValidationUtils {
   }
 
   public static String generateErrorTypeDocumentationUri(ErrorType constraintViolation) {
-    String documentationUri = StackGresContext.DOCUMENTATION_URI;
-    String operatorVersion = StackGresContext.OPERATOR_VERSION;
-    String errorsPath = StackGresContext.DOCUMENTATION_ERRORS_PATH;
+    String documentationUri = StackGresProperty.DOCUMENTATION_URI.getString();
+    String operatorVersion = StackGresProperty.OPERATOR_VERSION.getString();
+    String errorsPath = StackGresProperty.DOCUMENTATION_ERRORS_PATH.getString();
 
     return String
         .format("%s%s%s%s",

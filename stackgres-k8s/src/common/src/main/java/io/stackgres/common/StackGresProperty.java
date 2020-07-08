@@ -5,7 +5,11 @@
 
 package io.stackgres.common;
 
-public enum StackGresProperty {
+import java.util.Properties;
+
+import org.jooq.lambda.Unchecked;
+
+public enum StackGresProperty implements StackGresPropertyGetter {
 
   CRD_GROUP("stackgres.group"),
   CRD_VERSION("stackgres.crd.version"),
@@ -14,14 +18,29 @@ public enum StackGresProperty {
   DOCUMENTATION_URI("stackgres.documentation.uri"),
   DOCUMENTATION_ERRORS_PATH("stackgres.documentation.errorsPath");
 
-  private final String systemProperty;
+  private static final Properties APPLICATION_PROPERTIES =
+      Unchecked.supplier(() -> StackGresPropertyGetter
+          .readApplicationProperties(StackGresProperty.class)).get();
 
-  StackGresProperty(String systemProperty) {
-    this.systemProperty = systemProperty;
+  private final String propertyName;
+
+  StackGresProperty(String propertyName) {
+    this.propertyName = propertyName;
   }
 
-  public String systemProperty() {
-    return systemProperty;
+  @Override
+  public String getEnvironmentVariableName() {
+    return name();
+  }
+
+  @Override
+  public String getPropertyName() {
+    return propertyName;
+  }
+
+  @Override
+  public Properties getApplicationProperties() {
+    return APPLICATION_PROPERTIES;
   }
 
 }
