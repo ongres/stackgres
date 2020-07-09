@@ -52,6 +52,55 @@ spec:
               type: string
               description: |
                 Name of the [SGInstanceProfile](https://stackgres.io/doc/latest/04-postgres-cluster-management/03-resource-profiles/) to use. A SGInstanceProfile defines CPU and memory limits. Must exist before creating the cluster. If you don't select a profile, a default (currently: 1 core, 2 GiB RAM) one will be used.
+            metadata:
+              type: object
+              description: stackgres cluster created resources metadata information
+              properties:
+                annotations:
+                  type: object
+                  description: Additional annotations for StackGres resources to have
+                  properties:
+                    allResources:
+                      type: object
+                      description: "Custom annotations for all stackgres resources to have"
+                    pods:
+                      type: object
+                      description: "Custom annotations for stackgres pods to have"
+                    services:
+                      type: object
+                      description: "Custom annotations for stackgres services to have"
+            postgresServices:
+              type: object
+              description: Postgres services configurations
+              properties:
+                primary:
+                  type: object
+                  description: Primary service configurations
+                  properties:
+                    enabled:
+                      type: boolean
+                      description: Specify if the service should be created or not
+                    type:
+                      type: string
+                      enum: ["ClusterIP", "LoadBalancer", "NodePort"]
+                      description: Type of primary service
+                    annotations:
+                      type: object
+                      description: Primary services annotations
+                replicas:
+                  type: object
+                  description: Replicas service configurations
+                  properties:
+                    enabled:
+                      type: boolean
+                      description: Specify if the service should be created or not
+                    type:
+                      type: string
+                      enum: ["ClusterIP", "LoadBalancer", "NodePort"]
+                      description: Type of replicas service
+                    annotations:
+                      type: object
+                      description: Replicas service annotations
             pods:
               type: object
               description: Cluster pod's configuration
@@ -83,9 +132,6 @@ spec:
                   type: object
                   description: Pod custom metadata information
                   properties:
-                    annotations:
-                      type: object
-                      description: Additional annotations for StackGres Pods to have
                     labels:
                       type: object
                       description: Additional labels for StackGres Pods to have

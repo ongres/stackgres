@@ -60,6 +60,10 @@ public class StackGresClusterSpec implements KubernetesResource {
   @JsonProperty("nonProductionOptions")
   private StackGresClusterNonProduction nonProduction;
 
+  private StackGresClusterPostgresServices postgresServices;
+
+  private StackGresClusterSpecMetadata metadata;
+
   public int getInstances() {
     return instances;
   }
@@ -132,6 +136,22 @@ public class StackGresClusterSpec implements KubernetesResource {
     this.distributedLogs = distributedLogs;
   }
 
+  public StackGresClusterPostgresServices getPostgresServices() {
+    return postgresServices;
+  }
+
+  public void setPostgresServices(StackGresClusterPostgresServices postgresServices) {
+    this.postgresServices = postgresServices;
+  }
+
+  public StackGresClusterSpecMetadata getMetadata() {
+    return metadata;
+  }
+
+  public void setMetadata(StackGresClusterSpecMetadata metadata) {
+    this.metadata = metadata;
+  }
+
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
@@ -144,6 +164,8 @@ public class StackGresClusterSpec implements KubernetesResource {
         .add("initData", initData)
         .add("distributedLogs", distributedLogs)
         .add("nonProductionOptions", nonProduction)
+        .add("postgresServices", postgresServices)
+        .add("metadata", metadata)
         .toString();
   }
 
@@ -162,12 +184,14 @@ public class StackGresClusterSpec implements KubernetesResource {
         && Objects.equals(initData, that.initData) && Objects.equals(pod, that.pod)
         && Objects.equals(prometheusAutobind, that.prometheusAutobind)
         && Objects.equals(distributedLogs, that.distributedLogs)
-        && Objects.equals(nonProduction, that.nonProduction);
+        && Objects.equals(nonProduction, that.nonProduction)
+        && Objects.equals(postgresServices, that.postgresServices)
+        && Objects.equals(metadata, that.metadata);
   }
 
   @Override
   public int hashCode() {
     return Objects.hash(instances, postgresVersion, configuration, resourceProfile,
-        initData, pod, prometheusAutobind, distributedLogs, nonProduction);
+        initData, pod, prometheusAutobind, distributedLogs, nonProduction, metadata);
   }
 }

@@ -97,15 +97,6 @@ public abstract class StackGresClusterContext implements ResourceHandlerContext 
         + " not found in cluster configuration");
   }
 
-  public Map<String, String> clusterAnnotations() {
-    return Optional.ofNullable(getCluster())
-        .map(StackGresCluster::getSpec)
-        .map(StackGresClusterSpec::getPod)
-        .map(StackGresClusterPod::getMetadata)
-        .map(StackGresClusterPodMetadata::getAnnotations)
-        .orElse(ImmutableMap.of());
-  }
-
   public Map<String, String> posCustomLabels() {
     return Optional.ofNullable(getCluster())
         .map(StackGresCluster::getSpec)

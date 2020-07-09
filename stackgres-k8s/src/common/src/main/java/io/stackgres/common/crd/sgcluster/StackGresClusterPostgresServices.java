@@ -5,11 +5,9 @@
 
 package io.stackgres.common.crd.sgcluster;
 
-import java.util.Map;
 import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.MoreObjects;
 import io.quarkus.runtime.annotations.RegisterForReflection;
@@ -17,17 +15,26 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class StackGresClusterPodMetadata {
+public class StackGresClusterPostgresServices {
 
-  @JsonProperty("labels")
-  private Map<String, String> labels;
+  private StackGresClusterPostgresService primary;
 
-  public Map<String, String> getLabels() {
-    return labels;
+  private StackGresClusterPostgresService replicas;
+
+  public StackGresClusterPostgresService getPrimary() {
+    return primary;
   }
 
-  public void setLabels(Map<String, String> labels) {
-    this.labels = labels;
+  public void setPrimary(StackGresClusterPostgresService primary) {
+    this.primary = primary;
+  }
+
+  public StackGresClusterPostgresService getReplicas() {
+    return replicas;
+  }
+
+  public void setReplicas(StackGresClusterPostgresService replicas) {
+    this.replicas = replicas;
   }
 
   @Override
@@ -38,19 +45,20 @@ public class StackGresClusterPodMetadata {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    StackGresClusterPodMetadata that = (StackGresClusterPodMetadata) o;
-    return Objects.equals(labels, that.labels);
+    StackGresClusterPostgresServices that = (StackGresClusterPostgresServices) o;
+    return Objects.equals(primary, that.primary) && Objects.equals(replicas, that.replicas);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(labels);
+    return Objects.hash(primary, replicas);
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
-        .add("labels", labels)
+        .add("primary", primary)
+        .add("replicas", replicas)
         .toString();
   }
 }
