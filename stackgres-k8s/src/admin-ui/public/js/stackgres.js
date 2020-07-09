@@ -33,238 +33,298 @@ var apiURL = '/stackgres/';
 var urlParams = new URLSearchParams(window.location.search);
 
 const router = new VueRouter({
+  mode: 'history',
   routes: [
     { 
-      path: '/crd/:action/cluster', 
+      path: '/admin/crd/:action/cluster', 
       component: CreateCluster,
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/crd/:action/cluster/:namespace/:name', 
+      path: '/admin/crd/:action/cluster/:namespace/:name', 
       component: CreateCluster,
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/crd/:action/profile', 
+      path: '/admin/crd/:action/profile', 
       component: CreateProfile,
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/crd/:action/profile/:namespace/:name', 
+      path: '/admin/crd/:action/profile/:namespace/:name', 
       component: CreateProfile,
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/crd/:action/pgconfig', 
+      path: '/admin/crd/:action/pgconfig', 
       component: CreatePGConfig,
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/crd/:action/pgconfig/:namespace/:name', 
+      path: '/admin/crd/:action/pgconfig/:namespace/:name', 
       component: CreatePGConfig,
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/crd/:action/connectionpooling', 
+      path: '/admin/crd/:action/connectionpooling', 
       component: CreatePoolConfig,
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/crd/:action/connectionpooling/:namespace/:name', 
+      path: '/admin/crd/:action/connectionpooling/:namespace/:name', 
       component: CreatePoolConfig,
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/crd/:action/backupconfig', 
+      path: '/admin/crd/:action/backupconfig', 
       component: CreateBackupConfig,
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/crd/:action/backupconfig/:namespace/:name', 
+      path: '/admin/crd/:action/backupconfig/:namespace/:name', 
       component: CreateBackupConfig,
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/crd/:action/backup/:namespace', 
+      path: '/admin/crd/:action/backup/:namespace', 
       component: CreateBackup,
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/crd/:action/backup/:namespace/:cluster/:name', 
+      path: '/admin/crd/:action/backup/:namespace/:cluster/:name', 
       component: CreateBackup,
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/overview/:namespace', 
+      path: '/admin', 
       component: ClusterOverview,
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/:cluster/configuration/:namespace/:name', 
+      path: '/admin/overview/:namespace', 
+      component: ClusterOverview,
+      meta: {
+        conditionalRoute: false
+      },
+    },
+    { 
+      path: '/admin/:cluster/configuration/:namespace/:name', 
       component: ClusterInfo,
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/:cluster/status/:namespace/:name', 
+      path: '/admin/:cluster/status/:namespace/:name', 
       component: ClusterStatus,
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/:cluster/backups/:namespace/:name', 
+      path: '/admin/:cluster/backups/:namespace/:name', 
       component: Backups,
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/:cluster/logs/:namespace/:name', 
+      path: '/admin/:cluster/logs/:namespace/:name', 
       component: Logs,
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/:cluster/logs/:namespace/:name/:time/:index', 
+      path: '/admin/:cluster/logs/:namespace/:name/:time/:index', 
       component: Logs,
       meta: {
         conditionalRoute: false
       },
     },
     {  
-      path: '/backups/:namespace/', 
+      path: '/admin/backups/:namespace/', 
       component: Backups,
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/backups/:namespace/:name', 
+      path: '/admin/backups/:namespace/:name', 
       component: Backups,
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/configurations/postgres/:namespace', 
+      path: '/admin/configurations/postgres/:namespace', 
       component: PgConfig,
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/configurations/postgres/:namespace/:name', 
+      path: '/admin/configurations/postgres/:namespace/:name', 
       component: PgConfig,
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/configurations/connectionpooling/:namespace', 
+      path: '/admin/configurations/connectionpooling/:namespace', 
       component: PoolConfig,
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/configurations/connectionpooling/:namespace/:name', 
+      path: '/admin/configurations/connectionpooling/:namespace/:name', 
       component: PoolConfig,
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/configurations/backup/:namespace', 
+      path: '/admin/configurations/backup/:namespace', 
       component: BackupConfig,
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/configurations/backup/:namespace/:name', 
+      path: '/admin/configurations/backup/:namespace/:name', 
       component: BackupConfig,
       meta: {
         conditionalRoute: false
       },
     },
     {  
-      path: '/profiles/:namespace/', 
+      path: '/admin/profiles/:namespace/', 
       component: SGProfiles,
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/profiles/:namespace/:name', 
+      path: '/admin/profiles/:namespace/:name', 
       component: SGProfiles,
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/monitor/', 
+      path: '/admin/monitor/', 
       component: Grafana,
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/monitor/:namespace/:name', 
+      path: '/admin/monitor/:namespace/:name', 
       component: Grafana,
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/grafana/:namespace/:name/:pod', 
+      path: '/admin/grafana/:namespace/:name/:pod', 
       component: Grafana,
       meta: {
         conditionalRoute: false
       },
     },
+    {
+      path: '*',
+      component: NotFound
+    }
 
   ],
 });
 
-router.replace({ path: '', redirect: '/'});
+//router.replace({ path: '', redirect: '/admin/'});
+
+//console.log(router)
+
 
 router.beforeEach((to, from, next) => { 
 
+  // If loading CRD from direct URL validate if CRD exists on the API
+  if( from.path == '/') {
+
+    checkLogin();
+
+    console.log(from);
+    console.log(to);
+
+    /* Check if Namespace exist */
+    if(to.params.hasOwnProperty('namespace')) {
+      axios
+      .get(apiURL+'namespace')
+      .then( function(response){
+        if(response.data.includes(to.params.namespace)) {
+          store.commit('setCurrentNamespace', to.params.namespace);
+          next()
+        }
+        else
+          router.push('/admin/not-found.html')
+      }).catch(function(err) {
+        console.log(err);
+      });
+    }
+      
+    switch(to.matched[0].components.default.options.name) {
+      
+      case 'ClusterStatus':
+        /* Check if Cluster exists */
+        axios
+        .get(apiURL+'sgcluster/stats/'+to.params.namespace+'/'+to.params.name)
+        .then( function(response){
+          next()
+        }).catch(function(err) {
+          //router.push('/admin/not-found.html')
+          alert('404')
+        });
+        
+        break;
+
+    }
+
+  }
+  
   // If entering a Cluster, setup as current
   //console.log(to);
   if ( to.params.cluster === "cluster" ) {
 
     let cluster = store.state.clusters.find(c => ( (to.params.name == c.name) && (to.params.namespace == c.data.metadata.namespace) ) );
     
+    //console.log(cluster);
+
     if ( typeof cluster !== "undefined" ) {
       
       let backups = store.state.backups.find(b => ( (to.params.name == b.data.spec.sgCluster) && (to.params.namespace == b.data.metadata.namespace) ) );
@@ -273,10 +333,13 @@ router.beforeEach((to, from, next) => {
         cluster.hasBackups = true; // Enable/Disable Backups button
 
       store.commit('setCurrentCluster', cluster);
-    }  
+    }  else {
+      //alert("Not found");
+      //window.location.href = '/admin/not-found.html';
+    }
 
     $('.clu li.current').removeClass('current');
-		$('li.cluster-'+store.state.currentNamespace+'-'+store.state.currentCluster.name).addClass('current');
+	$('li.cluster-'+store.state.currentNamespace+'-'+store.state.currentCluster.name).addClass('current');
     
   }
 
@@ -287,8 +350,11 @@ router.beforeEach((to, from, next) => {
 
       //console.log(to);
 
-      if (store.state.currentCluster == {} && ( from.path.includes("profiles") || from.path.includes("configurations") ) && (to.path != ('/configuration/'+to.params.name)) ) { 
-          next({ path: '/'}) 
+	    //console.log(router.history.current);
+
+
+      if (store.state.currentCluster == {} && ( from.path.includes("profiles") || from.path.includes("configurations") ) && (to.path != ('/admin/configuration/'+to.params.name)) ) { 
+          next({ path: '/admin/'}) 
       } else { 
           next() 
       } 
@@ -303,7 +369,7 @@ const store = new Vuex.Store({
     theme: 'light',
     loginToken: '',
     showLogs: false,
-    currentNamespace: ' ',
+    currentNamespace: '',
     currentCluster: {},
     currentPods: [],
     namespaces: [],
@@ -354,11 +420,9 @@ const store = new Vuex.Store({
       //state.namespaces.length = 0;
       state.namespaces.push(namespace);
 
-      if( store.state.currentNamespace == ' ') {
-        store.commit('setCurrentNamespace', namespace);
-        router.push('/overview/'+store.state.currentNamespace);
+      /* if( (store.state.currentNamespace == ' ') && (router.history.current.params.namespace == namespace) ) {   
         $('#selected--zg-ul-select').addClass('active');
-      }
+      } */
       
     },
 
@@ -405,10 +469,8 @@ const store = new Vuex.Store({
 
       if ( typeof index !== "undefined" ) {
         index.data = cluster.data;
-        //console.log(cluster.name+" ya existe");
       } else {
         state.clusters.splice( cluster );    
-        //console.log('Se agregó '+cluster.name);
       }
 
     },*/
@@ -569,6 +631,12 @@ const store = new Vuex.Store({
     
   }
 });
+
+// Set "default" as default landing Namespace
+if( (window.location.pathname === '/admin/index.html') && ( (store.state.loginToken.length) || (getCookie('sgToken')) )  ) {
+  store.commit('setCurrentNamespace', 'default');
+  router.push('/admin/overview/default');
+}  
 
 Vue.mixin({
   data: function(){
@@ -809,6 +877,7 @@ const vm = new Vue({
     currentPods: '',
     clustersData: {},
     pooling: '',
+    init: false
     //clusters: []
   },
   methods: {
@@ -893,7 +962,7 @@ const vm = new Vue({
                 store.commit('updateNamespaces', item.metadata.namespace);
 
               axios
-                .get(apiURL+'sgcluster/status/'+item.metadata.namespace+'/'+item.metadata.name,
+                .get(apiURL+'sgcluster/stats/'+item.metadata.namespace+'/'+item.metadata.name,
                     { headers: {
                         'content-type': 'application/json'
                     }
@@ -1226,6 +1295,7 @@ const vm = new Vue({
       setTimeout(function(){
         //$("#loader").fadeOut(500);
         $("#reload").removeClass("active");
+        this.init = true;
         //$("#loader").hide();  
       }, 2000);
 
@@ -1286,10 +1356,28 @@ Vue.filter('formatTimestamp',function(t, part){
       
 });
 
+function checkLogin() {
+  let loginToken = getCookie('sgToken');
+  //console.log("TOKEN: "+loginToken)
+
+  if (!loginToken.length) {
+    if(!store.state.loginToken.length) {
+      $('#signup').addClass('login').fadeIn();
+      return false;
+    }
+  } else if ( !store.state.loginToken.length && (loginToken.length > 0) ) {
+    $('#signup').hide();
+    store.commit('setLoginToken', loginToken);
+  } else if ( urlParams.has('localAPI') ) {
+    $('#signup').hide();
+    store.commit('setLoginToken', 'localAPI');
+  }
+}
+
 
 function checkAuthError(error) {
   if(error.response && ((error.response.status == 401) || (error.response.status == 403) )) {
-      document.cookie = 'sgToken=authError';
+      /* document.cookie = 'sgToken=authError';
       if(store.state.loginToken.search('Authentication Error') == -1) {
         notify(
           {
@@ -1299,9 +1387,14 @@ function checkAuthError(error) {
           'error'
         )
       }
-      store.commit('setLoginToken',error.response.status+' Authentication Error');
-      
+      store.commit('setLoginToken',error.response.status+' Authentication Error'); */
 
+      document.cookie = 'sgToken=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+			store.commit('setLoginToken');
+			router.push('/admin/index.html');
+			//store.replaceState({})
+      $('#signup').addClass('login').fadeIn();
+      
   }
 
 }

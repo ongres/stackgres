@@ -193,8 +193,8 @@ svg.background circle {
 
 /* Log in */
 
-#signup {
-    display: block;
+#nav .right > div#signup {
+    display: none;
     position: fixed;
     left: 50%;
     top: 50%;
@@ -962,6 +962,10 @@ ul.zg-ul-select.active li.active:hover {
     cursor: pointer;
 }
 
+.set.conf > .nav-item, .set.conf > .nav-item h3 {
+    cursor: initial !important;
+}
+
 /* .item:hover {
     background-color: rgba(211, 211, 211, .15) !important;
 }*/
@@ -1103,7 +1107,7 @@ ul.zg-ul-select.active li.active:hover {
     padding-left: 80px;
 }
 
-a.item.router-link-exact-active.router-link-active {
+a.item.namespace.router-link-exact-active {
     /*background: rgba(211,211,214,.15);*/
     /*color: var(--blue);*/
     color: #4D4F5C;
@@ -1144,6 +1148,7 @@ a.addnew {
     right: 0;
     background: transparent !important;
     display: none;
+    height: 52px;
 }
 
 .set:hover > .addnew, .set.active > .addnew {
