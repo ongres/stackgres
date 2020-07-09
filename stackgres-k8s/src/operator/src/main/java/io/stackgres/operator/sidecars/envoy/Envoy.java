@@ -117,13 +117,7 @@ public class Envoy implements StackGresClusterSidecarResourceFactory<Void> {
             .withName(NAME)
             .withMountPath("/etc/envoy")
             .withNewReadOnly(true)
-            .build())
-        .withPorts(
-            new ContainerPortBuilder().withContainerPort(PG_ENTRY_PORT).build(),
-            new ContainerPortBuilder().withContainerPort(PG_REPL_ENTRY_PORT).build())
-        .withCommand("/usr/local/bin/envoy-static")
-        .withArgs("-c", "/etc/envoy/default_envoy.yaml", "-l", "debug")
-        .withVolumeMounts(
+            .build(),
             ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
                 ClusterStatefulSetPath.ETC_PASSWD_PATH, context.getClusterContext()),
             ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
@@ -131,7 +125,12 @@ public class Envoy implements StackGresClusterSidecarResourceFactory<Void> {
             ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
                 ClusterStatefulSetPath.ETC_SHADOW_PATH, context.getClusterContext()),
             ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
-                ClusterStatefulSetPath.ETC_GSHADOW_PATH, context.getClusterContext()));
+                ClusterStatefulSetPath.ETC_GSHADOW_PATH, context.getClusterContext()))
+        .withPorts(
+            new ContainerPortBuilder().withContainerPort(PG_ENTRY_PORT).build(),
+            new ContainerPortBuilder().withContainerPort(PG_REPL_ENTRY_PORT).build())
+        .withCommand("/usr/local/bin/envoy-static")
+        .withArgs("-c", "/etc/envoy/default_envoy.yaml", "-l", "debug");
     return container.build();
   }
 
