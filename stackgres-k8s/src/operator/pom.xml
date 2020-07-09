@@ -165,7 +165,7 @@
             <configuration>
               <resources>
                 <resource>
-                  <directory>${project.build.directory}/generated-sources/components</directory>
+                  <directory>${project.build.directory}/generated-resources/components</directory>
                 </resource>
               </resources>
             </configuration>

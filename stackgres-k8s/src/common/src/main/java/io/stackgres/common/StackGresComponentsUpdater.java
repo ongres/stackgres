@@ -20,7 +20,7 @@ import org.jooq.lambda.tuple.Tuple;
 
 public interface StackGresComponentsUpdater {
 
-  public static void main(String[] args) throws Exception {
+  static void main(String[] args) throws Exception {
     ObjectMapper objectMapper = new YAMLMapper();
     JsonNode versions = objectMapper.readTree(
         new URL("https://stackgres.io/downloads/stackgres-k8s/stackgres/components/"
