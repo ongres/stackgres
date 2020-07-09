@@ -50,12 +50,16 @@ pod_logs() {
         then
           continue
         fi
-        if grep -q -F "$(echo_raw "$pod" | cut -d , -f 1)" "$pods_file"
+        if grep -q -F "${pod%%/*}" "$pods_file"
+        then
+          continue
+        fi
+        if ! kubectl wait -n "${pod%%/*}" pod/"$(echo "$pod" | cut -d / -f 2)" --for condition=Ready --timeout=0
         then
           continue
         fi
         echo_raw "$pod" | cut -d , -f 1 >> "$pods_file"
-        pod_logs_pod -c "$filtered_container" -n "$(echo "$pod" | cut -d / -f 1)" "$(echo "$pod" | cut -d / -f 2)" &
+        pod_logs_pod -c "$filtered_container" -n "${pod%%/*}" "$(echo "$pod" | cut -d / -f 2)" &
         trap_kill "$!"
       done
 }
@@ -115,25 +119,9 @@ pod_logs_pod_container_in_trap() {
         ;;
     esac
   done
-  (set +ex
-    "$SHELL" +x -c '
-      echo $$
-      until kubectl logs -n "'"$namespace"'" "'"$pod"'" -c "'"$container"'" --limit-bytes 1 > /dev/null 2>&1
-      do
-        if ! kubectl get pod -n "'"$namespace"'" "'"$pod"'" > /dev/null 2>&1
-        then
-          exit 1
-        fi
-        sleep 1
-      done
-      trap_exec kubectl logs -n "'"$namespace"'" "'"$pod"'" -c "'"$container"'" -f' \
-      | (
-      read pid
-      trap_kill "$pid"
-      while read line
+  trap_exec kubectl logs -n "$namespace" "$pod" -c "$container" -f \
+    | while read line
       do
         echo_raw "[${pod%/*}:$container] $(date --iso-8601=seconds) $line"
-      done
-      )
-  ) &
+      done &
 }

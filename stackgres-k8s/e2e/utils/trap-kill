@@ -30,7 +30,7 @@ trap_exec() {
   "$SHELL" $SHELL_XTRACE -c 'echo $$;'"$(
     for ARG in "$@"
     do
-      echo -n "'$ARG' "
+      printf "'%s' " "$ARG"
     done)" \
     | (
     read PID
