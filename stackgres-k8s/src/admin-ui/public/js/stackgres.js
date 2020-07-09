@@ -546,6 +546,8 @@ router.beforeEach((to, from, next) => {
 
     let cluster = store.state.clusters.find(c => ( (to.params.name == c.name) && (to.params.namespace == c.data.metadata.namespace) ) );
     
+    //console.log(cluster);
+
     if ( typeof cluster !== "undefined" ) {
       
       store.commit('setCurrentCluster', cluster);
