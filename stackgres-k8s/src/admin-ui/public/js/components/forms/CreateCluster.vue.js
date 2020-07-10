@@ -267,7 +267,7 @@ var CreateCluster = Vue.component("create-cluster", {
 		</form>`,
 	data: function() {
 
-        if (vm.$route.params.action == 'create') {
+        if (this.$route.params.action == 'create') {
             return {
                 help: 'Click on a question mark to get help and tips about that field.',
                 advancedMode: false,
@@ -294,7 +294,7 @@ var CreateCluster = Vue.component("create-cluster", {
                 metricsExporter: true,
                 pgConfigExists: true,
             }
-        } else if (vm.$route.params.action == 'edit') {
+        } else if (this.$route.params.action == 'edit') {
 
             if( (typeof store.state.currentCluster.name == 'undefined') || (store.state.currentCluster.name !== vm.$route.params.name) ){
                 let cluster = store.state.clusters.find(c => ( (vm.$route.params.name == c.name) && (vm.$route.params.namespace == c.data.metadata.namespace) ) );
@@ -328,7 +328,7 @@ var CreateCluster = Vue.component("create-cluster", {
                 backupConfig: (typeof store.state.currentCluster.data.spec.configurations.sgBackupConfig !== 'undefined') ? store.state.currentCluster.data.spec.configurations.sgBackupConfig : '',
                 distributedLogs: (typeof store.state.currentCluster.data.spec.distributedLogs !== 'undefined') ? store.state.currentCluster.data.spec.distributedLogs.sgDistributedLogs : '',
                 prometheusAutobind:  (typeof store.state.currentCluster.data.spec.prometheusAutobind !== 'undefined') ? store.state.currentCluster.data.spec.prometheusAutobind : false,
-                disableClusterPodAntiAffinity: (typeof store.state.currentCluster.data.spec.nonProductionOptions.disableClusterPodAntiAffinity !== 'undefined') ? store.state.currentCluster.data.spec.nonProductionOptions.disableClusterPodAntiAffinity : false,
+                disableClusterPodAntiAffinity: ( (typeof store.state.currentCluster.data.spec.nonProductionOptions !== 'undefined') && (typeof store.state.currentCluster.data.spec.nonProductionOptions.disableClusterPodAntiAffinity !== 'undefined') ) ? store.state.currentCluster.data.spec.nonProductionOptions.disableClusterPodAntiAffinity : false,
                 metricsExporter: true,
                 postgresUtil: true,
                 pgConfigExists: true,

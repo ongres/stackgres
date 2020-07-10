@@ -36,7 +36,7 @@ const router = new VueRouter({
   mode: 'history',
   routes: [
     { 
-      path: '/admin/crd/:action/cluster', 
+      path: '/admin/crd/:action/:cluster', 
       component: CreateCluster,
       meta: {
         conditionalRoute: false
@@ -253,7 +253,7 @@ const router = new VueRouter({
       },
     },
     { 
-      path: '/admin/grafana/:namespace/:name/:pod', 
+      path: '/admin/monitor/:namespace/:name/:pod', 
       component: Grafana,
       meta: {
         conditionalRoute: false
@@ -289,26 +289,28 @@ router.beforeEach((to, from, next) => {
       .then( function(response){
         if(response.data.includes(to.params.namespace)) {
           store.commit('setCurrentNamespace', to.params.namespace);
-          next()
         }
         else
-          router.push('/admin/not-found.html')
+          notFound();
       }).catch(function(err) {
         console.log(err);
       });
     }
       
     switch(to.matched[0].components.default.options.name) {
-      
+
       case 'ClusterStatus':
+      case 'ClusterInfo':
+      case 'Backups':
+      case 'Logs':
+      case 'Grafana':
         /* Check if Cluster exists */
         axios
         .get(apiURL+'sgcluster/stats/'+to.params.namespace+'/'+to.params.name)
         .then( function(response){
           next()
         }).catch(function(err) {
-          //router.push('/admin/not-found.html')
-          alert('404')
+          notFound()
         });
         
         break;
@@ -327,11 +329,6 @@ router.beforeEach((to, from, next) => {
 
     if ( typeof cluster !== "undefined" ) {
       
-      let backups = store.state.backups.find(b => ( (to.params.name == b.data.spec.sgCluster) && (to.params.namespace == b.data.metadata.namespace) ) );
-      
-      if ( typeof backups !== "undefined" )
-        cluster.hasBackups = true; // Enable/Disable Backups button
-
       store.commit('setCurrentCluster', cluster);
     }  else {
       //alert("Not found");
@@ -339,7 +336,7 @@ router.beforeEach((to, from, next) => {
     }
 
     $('.clu li.current').removeClass('current');
-	$('li.cluster-'+store.state.currentNamespace+'-'+store.state.currentCluster.name).addClass('current');
+	  $('li.cluster-'+store.state.currentNamespace+'-'+store.state.currentCluster.name).addClass('current');
     
   }
 
@@ -369,6 +366,7 @@ const store = new Vuex.Store({
     theme: 'light',
     loginToken: '',
     showLogs: false,
+    notFound: false,
     currentNamespace: '',
     currentCluster: {},
     currentPods: [],
@@ -402,6 +400,10 @@ const store = new Vuex.Store({
     confirmDeleteName: ''
   },
   mutations: {
+
+    notFound (state, notFound) {
+      state.notFound = notFound;
+    }, 
 
     setLoginToken (state, token = '') {
       state.loginToken = token;
@@ -1041,6 +1043,16 @@ const vm = new Vue({
 
             });
 
+            store.state.clusters.forEach(function(cluster, index){
+              let backups = store.state.backups.find(b => ( (cluster.name == b.data.spec.sgCluster) && (cluster.data.metadata.namespace == b.data.metadata.namespace) ) );
+      
+              if ( typeof backups !== "undefined" )
+                cluster.hasBackups = true; // Enable/Disable Backups button
+
+            });
+
+            
+
             //console.log("Backups Data updated");
 
           }
@@ -1352,6 +1364,11 @@ Vue.filter('formatTimestamp',function(t, part){
     }
       
 });
+
+function notFound() {
+  store.commit('notFound',true)
+  router.push('/admin/not-found.html')
+}
 
 function checkLogin() {
   let loginToken = getCookie('sgToken');

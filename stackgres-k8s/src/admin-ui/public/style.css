@@ -4666,3 +4666,9 @@ tr.details td:last-of-type .configurationDetails table {
     display: inline-block;
     float: right;
 }
+
+/* 404 Not Found */
+#notFound {
+    text-align: center;
+    padding: 100px;
+}
