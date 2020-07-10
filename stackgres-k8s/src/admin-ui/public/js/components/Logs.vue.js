@@ -1,6 +1,7 @@
-var Logs = Vue.component("sg-logs", {
+var Logs = Vue.component("Logs", {
 	template: `
 		<div id="sg-logs">
+		<template v-for="cluster in clusters" v-if="(cluster.name == $route.params.name) && (cluster.data.metadata.namespace == $route.params.namespace)">
 			<header>
 				<ul class="breadcrumbs">
 					<li class="namespace">
@@ -24,7 +25,7 @@ var Logs = Vue.component("sg-logs", {
 					<div>
 						<a class="cloneCRD" @click="cloneCRD('SGCluster', currentNamespace, $route.params.name)">Clone Cluster Configuration</a>
 						<router-link :to="'/admin/crd/edit/cluster/'+$route.params.namespace+'/'+$route.params.name">Edit Cluster</router-link>
-						<a v-on:click="deleteCRD('sgcluster', currentNamespace, currentCluster.name, '/overview/'+currentNamespace)" :class="'/overview/'+currentNamespace">Delete Cluster</a>
+						<a v-on:click="deleteCRD('sgcluster', currentNamespace, cluster.name, '/overview/'+currentNamespace)" :class="'/overview/'+currentNamespace">Delete Cluster</a>
 					</div>
 				</div>
 
@@ -35,13 +36,13 @@ var Logs = Vue.component("sg-logs", {
 					<li>
 						<router-link :to="'/admin/cluster/configuration/'+$route.params.namespace+'/'+$route.params.name" title="Configuration" class="info">Configuration</router-link>
 					</li>
-					<li v-if="currentCluster.hasBackups">
+					<li v-if="cluster.hasBackups">
 						<router-link :to="'/admin/cluster/backups/'+$route.params.namespace+'/'+$route.params.name" title="Backups" class="backups">Backups</router-link>
 					</li>
 					<li>
 						<router-link :to="'/admin/cluster/logs/'+$route.params.namespace+'/'+$route.params.name" title="Distributed Logs" class="logs">Logs</router-link>
 					</li>
-					<li v-if="currentCluster.data.grafanaEmbedded">
+					<li v-if="cluster.data.grafanaEmbedded">
 						<router-link id="grafana-btn" :to="'/admin/monitor/'+$route.params.namespace+'/'+$route.params.name" title="Grafana Dashboard" class="grafana">Monitoring</router-link>
 					</li>
 				</ul>
@@ -480,6 +481,7 @@ var Logs = Vue.component("sg-logs", {
 			<div id="logTooltip">
 				<div class="info"></div>
 			</div>
+		</template>
 		</div>
 		`,
 	data: function() {
@@ -517,8 +519,8 @@ var Logs = Vue.component("sg-logs", {
 			return store.state.currentNamespace
 		},
 
-		currentCluster () {
-			return store.state.currentCluster
+		clusters () {
+			return store.state.clusters
 		},
 
         logs() {
@@ -815,7 +817,7 @@ var Logs = Vue.component("sg-logs", {
 			
 			if(store.state.loginToken.search('Authentication Error') == -1) {
 				axios
-				.get(apiURL+'sgcluster/logs/'+store.state.currentNamespace+'/'+store.state.currentCluster.name+params)
+				.get(apiURL+'sgcluster/logs/'+this.$route.params.namespace+'/'+this.$route.params.name+params)
 				.then( function(response){
 
 					if(append)

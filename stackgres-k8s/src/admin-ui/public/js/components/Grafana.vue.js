@@ -1,6 +1,7 @@
-var Grafana = Vue.component("grafana", {
+var Grafana = Vue.component("Grafana", {
 	template: `
 		<div id="grafana">
+		<template v-for="cluster in clusters" v-if="(cluster.name == $route.params.name) && (cluster.data.metadata.namespace == $route.params.namespace)">
 			<header>
 				<ul class="breadcrumbs">
 					<li class="namespace">
@@ -23,45 +24,46 @@ var Grafana = Vue.component("grafana", {
 				<a class="documentation" href="https://stackgres.io/doc/latest/04-postgres-cluster-management/01-postgres-clusters/" target="_blank" title="SGCluster Documentation">SGCluster Documentation</a>
 					<div>
 						<a class="cloneCRD" @click="cloneCRD('SGCluster', currentNamespace, $route.params.name)">Clone Cluster Configuration</a>
-						<router-link :to="'/admin/crd/edit/cluster/'+$route.params.namespace+'/'+currentCluster.name">Edit Cluster</router-link>
-						<a v-on:click="deleteCRD('sgcluster', currentNamespace, currentCluster.name, '/overview/'+currentNamespace)" :class="'/overview/'+currentNamespace">Delete Cluster</a>
+						<router-link :to="'/admin/crd/edit/cluster/'+$route.params.namespace+'/'+cluster.name">Edit Cluster</router-link>
+						<a v-on:click="deleteCRD('sgcluster', currentNamespace, cluster.name, '/overview/'+currentNamespace)" :class="'/overview/'+currentNamespace">Delete Cluster</a>
 					</div>
 				</div>
 
 				<ul class="tabs">
 					<li>
-						<router-link :to="'/admin/cluster/status/'+$route.params.namespace+'/'+currentCluster.name" title="Status" class="status">Status</router-link>
+						<router-link :to="'/admin/cluster/status/'+$route.params.namespace+'/'+cluster.name" title="Status" class="status">Status</router-link>
 					</li>
 					<li>
-						<router-link :to="'/admin/cluster/configuration/'+$route.params.namespace+'/'+currentCluster.name" title="Configuration" class="info">Configuration</router-link>
+						<router-link :to="'/admin/cluster/configuration/'+$route.params.namespace+'/'+cluster.name" title="Configuration" class="info">Configuration</router-link>
 					</li>
-					<li v-if="currentCluster.hasBackups">
-						<router-link :to="'/admin/cluster/backups/'+$route.params.namespace+'/'+currentCluster.name" title="Backups" class="backups">Backups</router-link>
+					<li v-if="cluster.hasBackups">
+						<router-link :to="'/admin/cluster/backups/'+$route.params.namespace+'/'+cluster.name" title="Backups" class="backups">Backups</router-link>
 					</li>
-					<li v-if="typeof currentCluster.data.spec.distributedLogs !== 'undefined'">
+					<li v-if="typeof cluster.data.spec.distributedLogs !== 'undefined'">
 						<router-link :to="'/admin/cluster/logs/'+$route.params.namespace+'/'+$route.params.name" title="Distributed Logs" class="logs">Logs</router-link>
 					</li>
-					<li v-if="currentCluster.data.grafanaEmbedded">
-						<router-link id="grafana-btn" :to="'/admin/monitor/'+$route.params.namespace+'/'+currentCluster.name" title="Grafana Dashboard" class="grafana">Monitoring</router-link>
+					<li v-if="cluster.data.grafanaEmbedded">
+						<router-link id="grafana-btn" :to="'/admin/monitor/'+$route.params.namespace+'/'+cluster.name" title="Grafana Dashboard" class="grafana">Monitoring</router-link>
 					</li>
 				</ul>
 
 				<ul class="selector">
 					<li><strong>Select a node:</strong></li>
-					<li v-for="pod in pods">
-						<router-link :to="'/admin/monitor/'+currentCluster.name+'/'+pod.ip+':9187'">{{ pod.name }}</router-link>
+					<li v-for="pod in cluster.data.pods">
+						<router-link :to="'/admin/monitor/'+$route.params.namespace+'/'+cluster.name+'/'+pod.ip+':9187'">{{ pod.name }}</router-link>
 					</li>
 				</ul>
 			</header>
 
 			<div class="content grafana">
-				<iframe :src="grafana" id="grafana"></iframe>
+				<iframe :src="($route.params.hasOwnProperty('pod') && $vc.route.params.pod.length) ? grafana+$vc.route.params.pod : grafana+cluster.data.pods[0].ip+':9187'" id="grafana"></iframe>
 			</div>
+		</template>
 		</div>`,
 	data: function() {
 
 		return {
-			grafana: ""
+			//grafana: ""
 		}
 	},
 	created: function() {
@@ -69,39 +71,44 @@ var Grafana = Vue.component("grafana", {
 	},
 	computed: {
 
-		pods () {
-			return store.state.currentCluster.data.pods
-		},
-
 		currentNamespace () {
 			return store.state.currentNamespace
 		},
 
-		currentCluster () {
-			return store.state.currentCluster
+		clusters () {
+			return store.state.clusters
 		},
 
 		theme () {
 			return store.state.theme
+		},
+
+		grafana () {
+			// Grafana service
+			let vc = this;
+			var url = '';
+			//const cluster = store.state.clusters.find(c => ( (vc.$route.params.namespace == c.data.metadata.namespace) && (vc.$route.params.name == c.name) ))
+
+			$.get("/grafana", function(data) {
+				console.log(data);
+				url = data;
+				url += (url.includes('?') ? '&' : '?') + 'theme='+vc.theme+'&kiosk&var-instance=';
+
+				/* if(vc.$route.params.pod && vc.$route.params.pod.length)
+					url = url+'&var-instance='+vc.$route.params.pod;
+				else
+					url = url+'&var-instance='+cluster.data.pods[0].ip+':9187'; */
+				//vc.grafana = url;
+				//$(".grafana iframe").prop("src", url);
+				//return url
+			});
+
+			return url
 		}
 
 	},
 	methods: {
 		fetchData () {
-			// Grafana service
-			let vc = this;
-
-			$.get("/grafana", function(data) {
-				let url = data;
-				url += (url.includes('?') ? '&' : '?') + 'theme='+vc.theme+'&kiosk';
-
-				if(vc.$route.params.pod && vc.$route.params.pod.length)
-					url = url+'&var-instance='+vc.$route.params.pod;
-				else
-					url = url+'&var-instance='+vc.pods[0].ip+':9187';
-				vc.grafana = url;
-				$(".grafana iframe").prop("src", url);
-			});
-		}
+		}		
 	}
 })
