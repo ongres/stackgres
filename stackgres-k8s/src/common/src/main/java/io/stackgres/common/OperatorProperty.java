@@ -9,7 +9,7 @@ import java.util.Properties;
 
 import org.jooq.lambda.Unchecked;
 
-public enum OperatorProperty implements StackGresPropertyGetter {
+public enum OperatorProperty implements StackGresPropertyReader {
 
   OPERATOR_NAME("stackgres.operatorName"),
   OPERATOR_NAMESPACE("stackgres.operatorNamespace"),
@@ -20,7 +20,7 @@ public enum OperatorProperty implements StackGresPropertyGetter {
   USE_ARBITRARY_USER("stackgres.useArbitraryUser");
 
   private static final Properties APPLICATION_PROPERTIES =
-      Unchecked.supplier(() -> StackGresPropertyGetter
+      Unchecked.supplier(() -> StackGresPropertyReader
           .readApplicationProperties(OperatorProperty.class)).get();
 
   private final String propertyName;

@@ -7,7 +7,7 @@ package io.stackgres.common;
 
 import java.util.Optional;
 
-public interface StackGresPropertyContext<T extends StackGresPropertyGetter> {
+public interface StackGresPropertyContext<T extends StackGresPropertyReader> {
 
   default boolean getBoolean(T propertyGetter) {
     return propertyGetter.getBoolean();

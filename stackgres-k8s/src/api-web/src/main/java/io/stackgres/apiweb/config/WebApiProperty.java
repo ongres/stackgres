@@ -7,16 +7,16 @@ package io.stackgres.apiweb.config;
 
 import java.util.Properties;
 
-import io.stackgres.common.StackGresPropertyGetter;
+import io.stackgres.common.StackGresPropertyReader;
 import org.jooq.lambda.Unchecked;
 
-public enum WebApiProperty implements StackGresPropertyGetter {
+public enum WebApiProperty implements StackGresPropertyReader {
 
   RESTAPI_NAMESPACE("stackgres.restapiNamespace"),
   GRAFANA_EMBEDDED("stackgres.prometheus.grafanaEmbedded");
 
   private static final Properties APPLICATION_PROPERTIES =
-      Unchecked.supplier(() -> StackGresPropertyGetter
+      Unchecked.supplier(() -> StackGresPropertyReader
           .readApplicationProperties(WebApiProperty.class)).get();
 
   private final String propertyName;

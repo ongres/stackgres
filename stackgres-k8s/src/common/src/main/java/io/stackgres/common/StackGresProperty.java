@@ -9,7 +9,7 @@ import java.util.Properties;
 
 import org.jooq.lambda.Unchecked;
 
-public enum StackGresProperty implements StackGresPropertyGetter {
+public enum StackGresProperty implements StackGresPropertyReader {
 
   CRD_GROUP("stackgres.group"),
   CRD_VERSION("stackgres.crd.version"),
@@ -19,7 +19,7 @@ public enum StackGresProperty implements StackGresPropertyGetter {
   DOCUMENTATION_ERRORS_PATH("stackgres.documentation.errorsPath");
 
   private static final Properties APPLICATION_PROPERTIES =
-      Unchecked.supplier(() -> StackGresPropertyGetter
+      Unchecked.supplier(() -> StackGresPropertyReader
           .readApplicationProperties(StackGresProperty.class)).get();
 
   private final String propertyName;
