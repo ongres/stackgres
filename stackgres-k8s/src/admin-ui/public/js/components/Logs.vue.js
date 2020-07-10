@@ -36,7 +36,7 @@ var Logs = Vue.component("Logs", {
 					<li>
 						<router-link :to="'/admin/cluster/configuration/'+$route.params.namespace+'/'+$route.params.name" title="Configuration" class="info">Configuration</router-link>
 					</li>
-					<li v-if="cluster.hasBackups">
+					<li>
 						<router-link :to="'/admin/cluster/backups/'+$route.params.namespace+'/'+$route.params.name" title="Backups" class="backups">Backups</router-link>
 					</li>
 					<li>

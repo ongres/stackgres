@@ -279,8 +279,8 @@ router.beforeEach((to, from, next) => {
 
     checkLogin();
 
-    console.log(from);
-    console.log(to);
+    //console.log(from);
+    //console.log(to);
 
     /* Check if Namespace exist */
     if(to.params.hasOwnProperty('namespace')) {
@@ -293,7 +293,7 @@ router.beforeEach((to, from, next) => {
         else
           notFound();
       }).catch(function(err) {
-        console.log(err);
+        notFound()
       });
     }
       
@@ -301,10 +301,9 @@ router.beforeEach((to, from, next) => {
 
       case 'ClusterStatus':
       case 'ClusterInfo':
-      case 'Backups':
       case 'Logs':
       case 'Grafana':
-        /* Check if Cluster exists */
+         /* Check if Cluster exists */
         axios
         .get(apiURL+'sgcluster/stats/'+to.params.namespace+'/'+to.params.name)
         .then( function(response){
@@ -312,6 +311,109 @@ router.beforeEach((to, from, next) => {
         }).catch(function(err) {
           notFound()
         });
+
+        break;
+
+      case 'InstanceProfile':
+        /* Check if Profile exists */
+        axios
+        .get(apiURL+'sginstanceprofile')
+        .then( function(response){
+          
+          let c = {};
+          
+          if(to.params.hasOwnProperty('name')) {
+            c = response.data.find(c => ( (to.params.name == c.metadata.name) && (to.params.namespace == c.metadata.namespace) ) );
+
+            if(typeof c !== 'undefined')
+              next()
+            else
+              notFound()
+          }
+        }).catch(function(err) {
+          notFound()
+        });
+
+        break;
+
+      case 'PostgresConfig':
+        /* Check if Postgres Config exists */
+        axios
+        .get(apiURL+'sgpgconfig')
+        .then( function(response){
+          
+          let c = {};
+          
+          if(to.params.hasOwnProperty('name')) {
+            c = response.data.find(c => ( (to.params.name == c.metadata.name) && (to.params.namespace == c.metadata.namespace) ) );
+
+            if(typeof c !== 'undefined')
+              next()
+            else
+              notFound()
+          }
+        }).catch(function(err) {
+          notFound()
+        });
+
+        break;
+
+      case 'PoolConfig':
+        /* Check if PgBouncer Config exists */
+        axios
+        .get(apiURL+'sgpoolconfig')
+        .then( function(response){
+          
+          let c = {};
+          
+          if(to.params.hasOwnProperty('name')) {
+            c = response.data.find(c => ( (to.params.name == c.metadata.name) && (to.params.namespace == c.metadata.namespace) ) );
+
+            if(typeof c !== 'undefined')
+              next()
+            else
+              notFound()
+          }
+        }).catch(function(err) {
+          notFound()
+        });
+
+        break;
+      
+      case 'BackupConfig':
+        /* Check if BackupConfig Config exists */
+        axios
+        .get(apiURL+'sgbackupconfig')
+        .then( function(response){
+
+          let c = {};
+          
+          if(to.params.hasOwnProperty('name')) {
+            c = response.data.find(c => ( (to.params.name == c.metadata.name) && (to.params.namespace == c.metadata.namespace) ) );
+
+            if(typeof c !== 'undefined')
+              next()
+            else
+              notFound()
+          }
+
+        }).catch(function(err) {
+          notFound()
+        });
+
+        break;
+
+      case 'Backups':
+        /* If filtered by Cluster, first check if Cluster exists */
+        if(to.params.hasOwnProperty('cluster')) {
+          axios
+          .get(apiURL+'sgcluster/stats/'+to.params.namespace+'/'+to.params.name)
+          .then( function(response){
+            next()
+          }).catch(function(err) {
+            notFound()
+          });
+        }
         
         break;
 
@@ -320,13 +422,10 @@ router.beforeEach((to, from, next) => {
   }
   
   // If entering a Cluster, setup as current
-  //console.log(to);
   if ( to.params.cluster === "cluster" ) {
 
     let cluster = store.state.clusters.find(c => ( (to.params.name == c.name) && (to.params.namespace == c.data.metadata.namespace) ) );
     
-    //console.log(cluster);
-
     if ( typeof cluster !== "undefined" ) {
       
       store.commit('setCurrentCluster', cluster);
@@ -1751,6 +1850,9 @@ $(document).ready(function(){
 
 
   $(document).on("click", "#sets .nav-item", function(){
+    if(!$(this).parents().hasClass("clu"))
+        $('.clu.active').removeClass('active');
+    
     if(!($(this).parent().hasClass("active"))) {
       $(".set.active:not(.conf)").removeClass("active");
       $(this).parent("div:not(.conf)").addClass("active");
@@ -1765,6 +1867,9 @@ $(document).ready(function(){
   $(document).on("click", ".set .item", function(){
     $(".set.active:not(.conf)").removeClass("active");
     $(this).parent().parent().parent().addClass("active");
+
+    if(!$(this).parents().hasClass("clu"))
+      $('.clu.active').removeClass('active');
     
     $(".set:not(.active) > ul.show").removeClass("show");
   });
