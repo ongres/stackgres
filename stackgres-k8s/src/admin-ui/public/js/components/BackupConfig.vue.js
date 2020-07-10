@@ -1,4 +1,4 @@
-var BackupConfig = Vue.component("backup-config", {
+var BackupConfig = Vue.component("BackupConfig", {
 	template: `
 		<div id="bk-config">
 			<header>

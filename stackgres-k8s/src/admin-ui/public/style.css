@@ -1988,7 +1988,7 @@ ul.params .params li {
 /* Grafana */
 .grafana iframe {
     width: 100%;
-    height: 79vh;
+    height: calc(100vh - 285px);
     border: 1px solid #f0f0f1;
 }
 

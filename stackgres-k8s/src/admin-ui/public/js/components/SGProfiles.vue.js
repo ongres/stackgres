@@ -1,4 +1,4 @@
-var SGProfiles = Vue.component("sg-profile", {
+var SGProfiles = Vue.component("InstanceProfile", {
 	template: `
 		<div id="sg-profile">
 			<header>

@@ -1,4 +1,4 @@
-var PoolConfig = Vue.component("pool-config", {
+var PoolConfig = Vue.component("PoolConfig", {
 	template: `
 		<div id="pool-config">
 			<header>

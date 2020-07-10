@@ -36,7 +36,7 @@ var Grafana = Vue.component("Grafana", {
 					<li>
 						<router-link :to="'/admin/cluster/configuration/'+$route.params.namespace+'/'+cluster.name" title="Configuration" class="info">Configuration</router-link>
 					</li>
-					<li v-if="cluster.hasBackups">
+					<li>
 						<router-link :to="'/admin/cluster/backups/'+$route.params.namespace+'/'+cluster.name" title="Backups" class="backups">Backups</router-link>
 					</li>
 					<li v-if="typeof cluster.data.spec.distributedLogs !== 'undefined'">
@@ -72,13 +72,14 @@ var Grafana = Vue.component("Grafana", {
 		let vc = this;
 		var url = '';
 
-		console.log(url)
 		$.get("/grafana", function(data) {
 			url = data;
 			url += (url.includes('?') ? '&' : '?') + 'theme='+vc.theme+'&kiosk&var-instance=';
 
 			vc.grafana = url;
 		});
+
+		console.log(this.$route)
 	},
 	computed: {
 		currentNamespace () {

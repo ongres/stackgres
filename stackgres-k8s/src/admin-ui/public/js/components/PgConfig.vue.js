@@ -1,4 +1,4 @@
-var PgConfig = Vue.component("pg-config", {
+var PgConfig = Vue.component("PostgresConfig", {
 	template: `
 		<div id="pg-config">
 			<header>
