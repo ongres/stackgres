@@ -17,6 +17,10 @@ import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.PodTemplateSpec;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetSpec;
+import io.fabric8.kubernetes.api.model.batch.CronJob;
+import io.fabric8.kubernetes.api.model.batch.CronJobSpec;
+import io.fabric8.kubernetes.api.model.batch.JobSpec;
+import io.fabric8.kubernetes.api.model.batch.JobTemplateSpec;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresService;
@@ -100,17 +104,56 @@ public class AnnotationDecoratorImpl implements AnnotationDecorator {
           Optional.ofNullable(statefulSet.getSpec())
               .map(StatefulSetSpec::getTemplate)
               .ifPresent(template -> {
-                if (template.getMetadata() != null) {
-                  template.getMetadata()
-                      .setAnnotations(podTemplateAnnotations);
-                } else {
-                  final ObjectMeta metadata = new ObjectMeta();
-                  metadata.setAnnotations(podTemplateAnnotations);
-                  template.setMetadata(metadata);
-                }
+                final ObjectMeta metadata = Optional
+                    .ofNullable(template.getMetadata())
+                    .orElse(new ObjectMeta());
+                metadata.setAnnotations(podTemplateAnnotations);
+                template.setMetadata(metadata);
               });
 
           decorate(cluster, statefulSet.getSpec().getVolumeClaimTemplates());
+          resourceAnnotations.putAll(allResourcesAnnotations);
+          break;
+        case "CronJob":
+          CronJob cronJob = (CronJob) resource;
+
+          Map<String, String> jobTemplateAnnotations = Optional.ofNullable(cronJob.getSpec())
+              .map(CronJobSpec::getJobTemplate)
+              .map(JobTemplateSpec::getMetadata)
+              .map(ObjectMeta::getAnnotations)
+              .orElse(new HashMap<>());
+          jobTemplateAnnotations.putAll(allResourcesAnnotations);
+
+          Optional.ofNullable(cronJob.getSpec())
+              .map(CronJobSpec::getJobTemplate)
+              .ifPresent(template -> {
+                final ObjectMeta metadata = Optional
+                    .ofNullable(template.getMetadata())
+                    .orElse(new ObjectMeta());
+                metadata.setAnnotations(jobTemplateAnnotations);
+                template.setMetadata(metadata);
+
+                Map<String, String> cronJobPodTemplateAnnotations = Optional
+                    .ofNullable(cronJob.getSpec())
+                    .map(CronJobSpec::getJobTemplate)
+                    .map(JobTemplateSpec::getSpec)
+                    .map(JobSpec::getTemplate)
+                    .map(PodTemplateSpec::getMetadata)
+                    .map(ObjectMeta::getAnnotations)
+                    .orElse(new HashMap<>());
+
+                cronJobPodTemplateAnnotations.putAll(podAnnotations);
+
+                Optional.ofNullable(template.getSpec())
+                    .map(JobSpec::getTemplate)
+                    .ifPresent(podTemplate -> {
+                      final ObjectMeta podTemplateMetadata = Optional
+                          .ofNullable(podTemplate.getMetadata())
+                          .orElse(new ObjectMeta());
+                      podTemplateMetadata.setAnnotations(cronJobPodTemplateAnnotations);
+                      podTemplate.setMetadata(podTemplateMetadata);
+                    });
+              });
           resourceAnnotations.putAll(allResourcesAnnotations);
           break;
         default:
@@ -121,4 +164,5 @@ public class AnnotationDecoratorImpl implements AnnotationDecorator {
     });
 
   }
+
 }

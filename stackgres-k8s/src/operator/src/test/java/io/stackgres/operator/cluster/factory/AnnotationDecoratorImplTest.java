@@ -28,6 +28,11 @@ import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
+import io.fabric8.kubernetes.api.model.batch.CronJob;
+import io.fabric8.kubernetes.api.model.batch.CronJobBuilder;
+import io.fabric8.kubernetes.api.model.batch.JobBuilder;
+import io.fabric8.kubernetes.api.model.batch.JobTemplateSpec;
+import io.fabric8.kubernetes.api.model.batch.JobTemplateSpecBuilder;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.testutil.JsonUtil;
@@ -90,7 +95,37 @@ class AnnotationDecoratorImplTest {
             .build(),
         new PodBuilder()
             .withNewMetadata().withName("testpod")
-            .endMetadata().build()
+            .endMetadata().build(),
+        new CronJobBuilder()
+            .withNewMetadata().withName("testcronjob")
+            .endMetadata()
+            .withNewSpec()
+            .withJobTemplate(new JobTemplateSpecBuilder()
+                .withNewSpec()
+                .withNewTemplate()
+                .withNewSpec()
+                .addNewContainer()
+                .withImage("randomimage")
+                .endContainer()
+                .endSpec()
+                .endTemplate()
+                .endSpec()
+                .build())
+            .endSpec()
+            .build(),
+        new JobBuilder()
+            .withNewMetadata()
+            .withName("testjob")
+            .endMetadata()
+            .withNewSpec()
+            .withNewTemplateLike(new PodTemplateSpecBuilder()
+                .withNewSpec().addNewContainer()
+                .withImage("randomimage")
+                .endContainer().endSpec()
+                .build())
+            .endTemplate()
+            .endSpec()
+            .build()
     ).collect(Collectors.toList());
   }
 
@@ -304,7 +339,29 @@ class AnnotationDecoratorImplTest {
                 new Tuple2<>(allResourceAnnotationKey, allResourceAnnotationValue));
           });
         });
+  }
 
+  @Test
+  void allResourcesAnnotations_shouldBePresentInCronJobsPodTemplate() {
+    String allResourceAnnotationKey = getRandomString();
+    String allResourceAnnotationValue = getRandomString();
+
+    defaultCluster.getSpec().getMetadata().getAnnotations()
+        .setAllResources(ImmutableMap.of(allResourceAnnotationKey, allResourceAnnotationValue));
+
+    annotationDecorator.decorate(defaultCluster, resources);
+
+    resources.stream()
+        .filter(r -> r.getKind().equals("CronJob"))
+        .forEach(resource -> {
+          CronJob cronJob = (CronJob) resource;
+          final JobTemplateSpec jobTemplate = cronJob.getSpec().getJobTemplate();
+          checkResourceAnnotations(jobTemplate,
+              new Tuple2<>(allResourceAnnotationKey, allResourceAnnotationValue));
+          PodTemplateSpec template = jobTemplate.getSpec().getTemplate();
+          checkResourceAnnotations(template,
+              new Tuple2<>(allResourceAnnotationKey, allResourceAnnotationValue));
+        });
   }
 
   @SafeVarargs
@@ -324,6 +381,21 @@ class AnnotationDecoratorImplTest {
 
   @SafeVarargs
   private final void checkResourceAnnotations(PodTemplateSpec resource,
+                                              Tuple2<String, String>... annotations) {
+
+    Map<String, String> resourceAnnotation = Optional.ofNullable(resource.getMetadata())
+        .map(ObjectMeta::getAnnotations)
+        .orElseGet(() -> fail("No annotations found for resource " + resource.toString()));
+
+    Arrays.asList(annotations).forEach(annotation -> {
+      assertTrue(resourceAnnotation.containsKey(annotation.getFirst()));
+      assertEquals(annotation.getSecond(), resourceAnnotation.get(annotation.getFirst()));
+    });
+
+  }
+
+  @SafeVarargs
+  private final void checkResourceAnnotations(JobTemplateSpec resource,
                                               Tuple2<String, String>... annotations) {
 
     Map<String, String> resourceAnnotation = Optional.ofNullable(resource.getMetadata())
