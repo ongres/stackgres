@@ -56,21 +56,31 @@ var Grafana = Vue.component("Grafana", {
 			</header>
 
 			<div class="content grafana">
-				<iframe :src="($route.params.hasOwnProperty('pod') && $vc.route.params.pod.length) ? grafana+$vc.route.params.pod : grafana+cluster.data.pods[0].ip+':9187'" id="grafana"></iframe>
+				<iframe :src="($route.params.hasOwnProperty('pod') && $route.params.pod.length) ? grafana+$route.params.pod : grafana+cluster.data.pods[0].ip+':9187'" id="grafana"></iframe>
 			</div>
 		</template>
 		</div>`,
 	data: function() {
 
 		return {
-			//grafana: ""
+			grafana: ""
 		}
 	},
 	created: function() {
-		this.fetchData()
+
+		// Read Grafana URL
+		let vc = this;
+		var url = '';
+
+		console.log(url)
+		$.get("/grafana", function(data) {
+			url = data;
+			url += (url.includes('?') ? '&' : '?') + 'theme='+vc.theme+'&kiosk&var-instance=';
+
+			vc.grafana = url;
+		});
 	},
 	computed: {
-
 		currentNamespace () {
 			return store.state.currentNamespace
 		},
@@ -81,34 +91,6 @@ var Grafana = Vue.component("Grafana", {
 
 		theme () {
 			return store.state.theme
-		},
-
-		grafana () {
-			// Grafana service
-			let vc = this;
-			var url = '';
-			//const cluster = store.state.clusters.find(c => ( (vc.$route.params.namespace == c.data.metadata.namespace) && (vc.$route.params.name == c.name) ))
-
-			$.get("/grafana", function(data) {
-				console.log(data);
-				url = data;
-				url += (url.includes('?') ? '&' : '?') + 'theme='+vc.theme+'&kiosk&var-instance=';
-
-				/* if(vc.$route.params.pod && vc.$route.params.pod.length)
-					url = url+'&var-instance='+vc.$route.params.pod;
-				else
-					url = url+'&var-instance='+cluster.data.pods[0].ip+':9187'; */
-				//vc.grafana = url;
-				//$(".grafana iframe").prop("src", url);
-				//return url
-			});
-
-			return url
 		}
-
-	},
-	methods: {
-		fetchData () {
-		}		
 	}
 })
