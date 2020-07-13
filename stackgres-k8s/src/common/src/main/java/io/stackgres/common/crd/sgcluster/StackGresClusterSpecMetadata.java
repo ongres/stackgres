@@ -5,11 +5,9 @@
 
 package io.stackgres.common.crd.sgcluster;
 
-import java.util.Map;
 import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.MoreObjects;
 import io.quarkus.runtime.annotations.RegisterForReflection;
@@ -17,17 +15,16 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class StackGresClusterPodMetadata {
+public class StackGresClusterSpecMetadata {
 
-  @JsonProperty("labels")
-  private Map<String, String> labels;
+  private StackGresClusterSpecAnnotations annotations;
 
-  public Map<String, String> getLabels() {
-    return labels;
+  public StackGresClusterSpecAnnotations getAnnotations() {
+    return annotations;
   }
 
-  public void setLabels(Map<String, String> labels) {
-    this.labels = labels;
+  public void setAnnotations(StackGresClusterSpecAnnotations annotations) {
+    this.annotations = annotations;
   }
 
   @Override
@@ -38,19 +35,19 @@ public class StackGresClusterPodMetadata {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    StackGresClusterPodMetadata that = (StackGresClusterPodMetadata) o;
-    return Objects.equals(labels, that.labels);
+    StackGresClusterSpecMetadata that = (StackGresClusterSpecMetadata) o;
+    return Objects.equals(annotations, that.annotations);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(labels);
+    return Objects.hash(annotations);
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
-        .add("labels", labels)
+        .add("annotations", annotations)
         .toString();
   }
 }

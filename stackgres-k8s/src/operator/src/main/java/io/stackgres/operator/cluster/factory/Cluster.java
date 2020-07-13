@@ -5,11 +5,13 @@
 
 package io.stackgres.operator.cluster.factory;
 
+import java.util.List;
 import java.util.stream.Stream;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.operator.backup.Backup;
 import io.stackgres.operator.common.StackGresGeneratorContext;
@@ -19,7 +21,7 @@ import io.stackgres.operatorframework.resource.factory.SubResourceStreamFactory;
 @ApplicationScoped
 public class Cluster
     implements SubResourceStreamFactory<HasMetadata,
-        StackGresGeneratorContext> {
+    StackGresGeneratorContext> {
 
   private final ClusterStatefulSet clusterStatefulSet;
   private final BackupCronJob backupCronJob;
@@ -28,12 +30,17 @@ public class Cluster
   private final RestoreConfigMap restoreConfigMap;
   private final RestoreSecret restoreSecret;
   private final Backup backup;
+  private final AnnotationDecorator annotationDecorator;
 
   @Inject
   public Cluster(ClusterStatefulSet clusterStatefulSet,
-      BackupConfigMap backupConfigMap, RestoreConfigMap restoreConfigMap,
-      BackupSecret backupSecret, RestoreSecret restoreSecret,
-      BackupCronJob backupCronJob, Backup backup) {
+                 BackupConfigMap backupConfigMap,
+                 RestoreConfigMap restoreConfigMap,
+                 BackupSecret backupSecret,
+                 RestoreSecret restoreSecret,
+                 BackupCronJob backupCronJob,
+                 Backup backup,
+                 AnnotationDecorator annotationDecorator) {
     super();
     this.clusterStatefulSet = clusterStatefulSet;
     this.backupCronJob = backupCronJob;
@@ -42,11 +49,12 @@ public class Cluster
     this.restoreConfigMap = restoreConfigMap;
     this.restoreSecret = restoreSecret;
     this.backup = backup;
+    this.annotationDecorator = annotationDecorator;
   }
 
   @Override
   public Stream<HasMetadata> streamResources(StackGresGeneratorContext context) {
-    return ResourceGenerator
+    final List<HasMetadata> resources = ResourceGenerator
         .with(context)
         .of(HasMetadata.class)
         .append(clusterStatefulSet)
@@ -56,7 +64,10 @@ public class Cluster
         .append(restoreConfigMap)
         .append(restoreSecret)
         .append(backup)
-        .stream();
+        .stream()
+        .collect(ImmutableList.toImmutableList());
+    annotationDecorator.decorate(context.getClusterContext().getCluster(), resources);
+    return resources.stream();
   }
 
 }

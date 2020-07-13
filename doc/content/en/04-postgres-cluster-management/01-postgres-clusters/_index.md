@@ -115,7 +115,6 @@ Holds custom metadata information for StackGres pods to have.
 
 | Property     | Required | Updatable | Type     | Default                             | Description |
 |:-------------|----------|-----------|:---------|:------------------------------------|:------------|
-| annotations  | ✓        | ✓         | string   |                                     | {{< crd-field-description SGCluster.spec.pods.metadata.annotations >}} |
 | labels       |          |           | string   | default storage class               | {{< crd-field-description SGCluster.spec.pods.metadata.labels >}} |
 
 ```yaml

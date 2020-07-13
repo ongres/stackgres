@@ -3,6 +3,14 @@ cluster:
   postgresVersion: '12.2'
   instances: 1
   sgInstanceProfile: size-xs
+  postgresServices:
+    primary:
+      enabled: true
+      type: ClusterIP
+    replicas:
+      enabled: true
+      type: ClusterIP
+    
   pods:
     persistentVolume:
       size: 5Gi

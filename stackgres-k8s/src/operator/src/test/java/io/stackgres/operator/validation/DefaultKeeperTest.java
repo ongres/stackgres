@@ -7,13 +7,13 @@ package io.stackgres.operator.validation;
 
 import static org.mockito.Mockito.when;
 
-import java.util.Random;
 import java.util.stream.Stream;
 
 import javax.enterprise.inject.Instance;
 
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.ErrorType;
+import io.stackgres.testutil.StringUtils;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
 import io.stackgres.operator.utils.ValidationUtils;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
@@ -32,12 +32,6 @@ public abstract class DefaultKeeperTest<R extends CustomResource, T extends Admi
   private Instance<DefaultCustomResourceFactory<R>> factories;
 
   private AbstractDefaultConfigKeeper<R, T> validator;
-
-  private static String getRandomString() {
-    int length = new Random().nextInt(128) + 1;
-    byte[] stringBuffer = new byte[length];
-    return new String(stringBuffer);
-  }
 
   @BeforeEach
   void setUp() {
@@ -82,7 +76,7 @@ public abstract class DefaultKeeperTest<R extends CustomResource, T extends Admi
     R defaultResource = getDefault();
 
     defaultResource.getMetadata().setNamespace(sample.getRequest().getObject().getMetadata().getNamespace());
-    defaultResource.getMetadata().setName(getRandomString());
+    defaultResource.getMetadata().setName(StringUtils.getRandomString());
 
     when(factory.buildResource()).thenReturn(defaultResource);
 
@@ -97,7 +91,7 @@ public abstract class DefaultKeeperTest<R extends CustomResource, T extends Admi
     T sample = getUpdateSample();
     R defaultResource = getDefault();
 
-    defaultResource.getMetadata().setNamespace(getRandomString());
+    defaultResource.getMetadata().setNamespace(StringUtils.getRandomString());
     defaultResource.getMetadata().setName(sample.getRequest().getObject().getMetadata().getName());
 
     when(factory.buildResource()).thenReturn(defaultResource);
@@ -130,7 +124,7 @@ public abstract class DefaultKeeperTest<R extends CustomResource, T extends Admi
     R defaultResource = getDefault();
 
     defaultResource.getMetadata().setNamespace(sample.getRequest().getNamespace());
-    defaultResource.getMetadata().setName(getRandomString());
+    defaultResource.getMetadata().setName(StringUtils.getRandomString());
 
     when(factory.buildResource()).thenReturn(defaultResource);
     validator.init();
@@ -144,7 +138,7 @@ public abstract class DefaultKeeperTest<R extends CustomResource, T extends Admi
     T sample = getDeleteSample();
     R defaultResource = getDefault();
 
-    defaultResource.getMetadata().setNamespace(getRandomString());
+    defaultResource.getMetadata().setNamespace(StringUtils.getRandomString());
     defaultResource.getMetadata().setName(sample.getRequest().getName());
 
     when(factory.buildResource()).thenReturn(defaultResource);
