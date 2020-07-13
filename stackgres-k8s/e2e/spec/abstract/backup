@@ -150,14 +150,14 @@ check_manual_backup() {
     return 1
   fi
 
-  check_is_managed_lifecycle_value true
+  check_is_managed_lifecycle_value false
 
   kubectl patch sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json \
-    --patch '[{"op":"replace","path":"/spec/managedLifecycle","value":false}]'
+    --patch '[{"op":"replace","path":"/spec/managedLifecycle","value":true}]'
 
   create_backup "$BACKUP_NAME-2" true
 
-  wait_until check_is_managed_lifecycle_value false
+  wait_until check_is_managed_lifecycle_value true
 
   local DEFAULT_ANNOTATION=$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" -o json | jq '.metadata.annotations["stackgres.io/operatorVersion"]')
 
