@@ -23,7 +23,9 @@ public enum ErrorType {
   FORBIDDEN_CLUSTER_UPDATE("forbidden-cluster-update",
       "Forbidden cluster update"),
   INVALID_STORAGE_CLASS("invalid-storage-class",
-      "Invalid storage class");
+      "Invalid storage class"),
+  INVALID_SECRET("invalid-secret",
+      "Invalid secret");
 
 
   private String uri;

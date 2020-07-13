@@ -348,8 +348,8 @@
                   <containerNamePattern>%a</containerNamePattern>
                   <images>
                     <image>
-                      <alias>ongres-native-builder</alias>
-                      <name>ongres-native-builder</name>
+                      <alias>operator-native-builder</alias>
+                      <name>operator-native-builder</name>
                       <build>
                         <cleanup>remove</cleanup>
                         <from>ongres/builder</from>
