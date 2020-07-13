@@ -47,10 +47,11 @@ try_check_wal_archive() {
 
 check_automatic_backup() {
   local NODE="$1"
+  local CUSTOM_COLUMNS=BACKUP_NAME:.status.internalName,PHASE:.status.process.status,HOSTNAME:.status.backupInformation.sourcePod
 
   kubectl delete sgbackup -n "$CLUSTER_NAMESPACE" --all
   if wait_until eval '[ "$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" \
-      -o custom-columns=BACKUP_NAME:.status.internalName,PHASE:.status.process.status,HOSTNAME:.status.backupInformation.sourcePod \
+      -o custom-columns="$CUSTOM_COLUMNS" \
       | tail -n +2 | grep " Completed   ${CLUSTER_NAME}-${NODE}$" | wc -l)" -gt 0 ]'
   then
     echo "SUCCESS. The backup CR is available"
@@ -61,8 +62,9 @@ check_automatic_backup() {
 }
 
 check_timelines(){
+  local CUSTOM_COLUMNS=NAME:.metadata.name,PHASE:.status.process.status,WAL_FILE:.status.backupInformation.startWalFile,TIMELINE:.status.backupInformation.timeline
   kubectl get sgbackup -n "$CLUSTER_NAMESPACE" \
-    -o custom-columns=NAME:.metadata.name,PHASE:.status.process.status,WAL_FILE:.status.backupInformation.startWalFile,TIMELINE:.status.backupInformation.timeline \
+    -o custom-columns="$CUSTOM_COLUMNS" \
     | tail -n +2 | grep "Completed" | awk '{
       backup=$1
       walFile=$3
@@ -94,10 +96,11 @@ check_automatic_backup_cr() {
 
 is_automatic_backup_cr_completed() {
   local NODE="$1"
+  local CUSTOM_COLUMNS=BACKUP_NAME:.status.internalName,PHASE:.status.process.status,HOSTNAME:.status.backupInformation.sourcePod
   local BACKUP_NAME
 
   BACKUP_NAME="$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" \
-    -o custom-columns=BACKUP_NAME:.status.internalName,PHASE:.status.process.status,HOSTNAME:.status.backupInformation.sourcePod \
+    -o custom-columns="$CUSTOM_COLUMNS" \
     | tail -n +2 | grep " Completed   ${CLUSTER_NAME}-${NODE}$" | tail -n 1 | cut -d ' ' -f 1)"
   
   [ "$(kubectl exec -t -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-${NODE}" -c patroni -- \
@@ -108,24 +111,18 @@ check_manual_backup() {
   local NODE="$1"
   local BACKUP_NAME="${CLUSTER_NAME}-${NODE}-$(shuf -i 0-65535 -n 1)"
   local ACTUAL_BACKUP_NAME
+  local CUSTOM_COLUMNS=BACKUP_NAME:.status.internalName,PHASE:.status.process.status,HOSTNAME:.status.backupInformation.sourcePod
 
   # Avoid automatic backups while testing manual backups
   kubectl patch sgbackupconfig -n "$CLUSTER_NAMESPACE" backupconf --type json \
     --patch '[{"op":"replace","path":"/spec/baseBackups/cronSchedule","value":"0 5 31 2 *"}]'
 
-  cat << EOF | kubectl create -f -
-apiVersion: stackgres.io/v1beta1
-kind: SGBackup
-metadata:
-  namespace: "$CLUSTER_NAMESPACE"
-  name: "$BACKUP_NAME"
-spec:
-  sgCluster: "$CLUSTER_NAME"
-  managedLifecycle: false
-EOF
+  kubectl delete sgbackup -n "$CLUSTER_NAMESPACE" --all
+
+  create_backup "$BACKUP_NAME" false
 
   if wait_until eval '[ "$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
-      -o custom-columns=BACKUP_NAME:.status.internalName,PHASE:.status.process.status,HOSTNAME:.status.backupInformation.sourcePod \
+      -o custom-columns="$CUSTOM_COLUMNS" \
       | tail -n +2 | grep " Completed   ${CLUSTER_NAME}-${NODE}$" | wc -l)" -gt 0 ]'
   then
     echo "SUCCESS. The created backup CR did complete"
@@ -135,7 +132,7 @@ EOF
   fi
 
   ACTUAL_BACKUP_NAME="$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
-    -o custom-columns=BACKUP_NAME:.status.internalName,PHASE:.status.process.status,HOSTNAME:.status.backupInformation.sourcePod \
+    -o custom-columns="$CUSTOM_COLUMNS" \
     | tail -n +2 | grep " Completed   ${CLUSTER_NAME}-${NODE}$" | tail -n 1 | cut -d ' ' -f 1)"
 
   if [ -z "$ACTUAL_BACKUP_NAME" ]
@@ -153,16 +150,18 @@ EOF
     return 1
   fi
 
-  check_is_permanent_value true
+  check_is_managed_lifecycle_value true
 
   kubectl patch sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json \
     --patch '[{"op":"replace","path":"/spec/managedLifecycle","value":false}]'
 
-  wait_until check_is_permanent_value true
+  create_backup "$BACKUP_NAME-2" true
 
-  local DEFAULT_ANNOTATION=$(kubectl get sgbackup -n $CLUSTER_NAMESPACE $BACKUP_NAME -o json | jq '.metadata.annotations["stackgres.io/operatorVersion"]')
+  wait_until check_is_managed_lifecycle_value false
 
-  if [ -z $DEFAULT_ANNOTATION ] || [ "$DEFAULT_ANNOTATION" = "null" ]
+  local DEFAULT_ANNOTATION=$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" -o json | jq '.metadata.annotations["stackgres.io/operatorVersion"]')
+
+  if [ -z "$DEFAULT_ANNOTATION" ] || [ "$DEFAULT_ANNOTATION" = "null" ]
   then
     echo "Fail. Default annotations not created"
     return 1
@@ -170,7 +169,27 @@ EOF
     echo "Success. Defaults annotations created"
   fi
 
-  kubectl delete sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME"
+  create_backup "$BACKUP_NAME-3" true
+
+  if wait_until eval '! kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" > /dev/null 2>&1'
+  then
+    echo "SUCCESS. The backup retention has been honored. Old backups deleted"
+  else
+    echo "FAIL. The backup retention has not been honored. Old backups not deleted"
+    return 1
+  fi
+
+  local REMAINING_BACKUPS=$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" -o name | wc -l)
+  if [ "$REMAINING_BACKUPS" = "2" ]
+  then
+    echo "SUCCESS. The backup retention has been honored. Remaining backups are 2"
+  else
+    echo "FAIL. The backup retention has not been honored. Remaining backups are $REMAINING_BACKUPS"
+    return 1
+  fi
+
+  kubectl delete sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME-2"
+  kubectl delete sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME-3"
 
   # Avoid automatic backups while testing manual backups
   kubectl patch sgbackupconfig -n "$CLUSTER_NAMESPACE" backupconf --type json \
@@ -186,17 +205,66 @@ EOF
   fi
 }
 
-check_is_permanent_value() {
-  ACTUAL_IS_PERMANENT="$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
-    -o custom-columns=IS_PERMANENT:.status.process.managedLifecycle,PHASE:.status.process.status,HOSTNAME:.status.backupInformation.sourcePod \
+create_backup() {
+  cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/v1beta1
+kind: SGBackup
+metadata:
+  namespace: "$CLUSTER_NAMESPACE"
+  name: "$1"
+spec:
+  sgCluster: "$CLUSTER_NAME"
+  managedLifecycle: $2
+EOF
+}
+
+check_is_managed_lifecycle_value() {
+  local CUSTOM_COLUMNS=MANAGED_LYFECYCLE:.status.process.managedLifecycle,PHASE:.status.process.status,HOSTNAME:.status.backupInformation.sourcePod
+  local ACTUAL_MANAGED_LYFECYCLE="$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
+    -o custom-columns="$CUSTOM_COLUMNS" \
     | tail -n +2 | grep " Completed   ${CLUSTER_NAME}-${NODE}$" | tail -n 1 | cut -d ' ' -f 1)"
 
-  if [ "$ACTUAL_IS_PERMANENT" != "$1" ]
+  if [ "$ACTUAL_MANAGED_LYFECYCLE" != "$1" ]
   then
-    echo "FAIL. Backup /status/process/managedLifecycle expected to be $1 but was $ACTUAL_IS_PERMANENT"
+    echo "FAIL. Backup /status/process/managedLifecycle expected to be $1 but was $ACTUAL_MANAGED_LYFECYCLE"
     return 1
   else
     echo "SUCCESS. Backup /status/process/managedLifecycle was $1"
+  fi
+}
+
+check_backup_retention() {
+  local NODE="$1"
+  local CUSTOM_COLUMNS=NAME:.metadata.name,BACKUP_NAME:.status.internalName,PHASE:.status.process.status,HOSTNAME:.status.backupInformation.sourcePod
+
+  if wait_until eval '[ "$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" \
+      -o custom-columns="$CUSTOM_COLUMNS" | tail -n +2 | grep " Completed   ${CLUSTER_NAME}-${NODE}$" | wc -l)" -ge 2 ]'
+  then
+    echo "SUCCESS. The maximum retainable backups are available"
+  else
+    echo "FAIL. The maximum retainable backups are not available"
+    return 1
+  fi
+
+  local BACKUP_NAME="$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" --sort-by '{.metadata.creationTimestamp}' \
+      -o custom-columns="$CUSTOM_COLUMNS" \
+      | tail -n +2 | grep " Completed   ${CLUSTER_NAME}-${NODE}$" | tail -n 1 | cut -d ' ' -f 1)"
+
+  if wait_until eval '! kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" > /dev/null 2>&1'
+  then
+    echo "SUCCESS. The backup retention has been honored. Old backups deleted"
+  else
+    echo "FAIL. The backup retention has not been honored. Old backups not deleted"
+    return 1
+  fi
+
+  local REMAINING_BACKUPS=$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" -o name | wc -l)
+  if [ "$REMAINING_BACKUPS" = "2" ]
+  then
+    echo "SUCCESS. The backup retention has been honored. Remaining backups are 2"
+  else
+    echo "FAIL. The backup retention has not been honored. Remaining backups are $REMAINING_BACKUPS"
+    return 1
   fi
 }
 
