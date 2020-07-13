@@ -183,6 +183,13 @@ const router = new VueRouter({
       },
     },
     { 
+      path: '/admin/backups/:namespace/:name/:uid', 
+      component: Backups,
+      meta: {
+        conditionalRoute: false
+      },
+    },
+    { 
       path: '/admin/configurations/postgres/:namespace', 
       component: PgConfig,
       meta: {
@@ -2043,16 +2050,12 @@ $(document).ready(function(){
     $(".sort th").toggleClass("desc asc")   
   });
 
-  $(document).on("click", "table.backups tr.base td:not(.actions), table.profiles tr.base td:not(.actions), table.pgConfig tr.base td:not(.actions), table.poolConfig tr.base td:not(.actions)", function(){
+/*   $(document).on("click", "table.backups tr.base td:not(.actions), table.profiles tr.base td:not(.actions), table.pgConfig tr.base td:not(.actions), table.poolConfig tr.base td:not(.actions)", function(){
     $(this).parent().next().toggle().addClass("open");
     $(this).parent().toggleClass("open");
   });
 
-  $(document).on("click", "table.backups tr.base a.open", function(){
-    $(this).parent().parent().next().toggle().addClass("open");
-    $(this).parent().parent().toggleClass("open");
-  });
-
+ */
   /* $(document).on('focus','.filter.open .options', function(){
     if( $('.filter.open').find('.active').length )
       $('.filter.open').addClass('filtered');
@@ -2061,6 +2064,22 @@ $(document).ready(function(){
     
       $('.filter.open').removeClass("open");
   }); */
+
+  // Show configurations details when the row is clicked
+  $(document).on('click', 'table:not(.backups):not(.logs) tr.base > td:not(.actions)', function(){    
+    const table = $(this).parents('table');
+    if(!$(this).parent().hasClass('open')) {
+      if(table.hasClass('configurations'))
+        router.push('/admin/configurations/'+table.prop('id')+'/'+store.state.currentNamespace+'/'+$(this).parent().data('name'))
+      else
+        router.push('/admin/'+table.prop('id')+'/'+store.state.currentNamespace+'/'+$(this).parent().data('name'))
+    } else {
+      if(table.hasClass('configurations'))
+        router.push('/admin/configurations/'+table.prop('id')+'/'+store.state.currentNamespace)
+      else
+        router.push('/admin/'+$(this).parents('table').prop('id')+'/'+store.state.currentNamespace)
+    }
+  })
 
   $(document).mouseup(function(e) {
     var container = $(".filter.open");

@@ -196,7 +196,7 @@ var Backups = Vue.component("Backups", {
 							</tr>
 							<template v-for="back in backups" v-if="( ( (back.data.metadata.namespace == currentNamespace) && !isCluster && back.show ) || (isCluster && (back.data.spec.sgCluster == $route.params.name ) && (back.data.metadata.namespace == $route.params.namespace ) && back.show ) )">
 								<template v-if="back.data.status">
-									<tr :class="[ back.data.status.process.status != 'Running' ? 'base' : '', back.data.status.process.status+' sgbackup-'+back.data.metadata.namespace+'-'+back.data.metadata.name]">
+									<tr :class="[ back.data.status.process.status != 'Running' ? 'base' : '', back.data.status.process.status+' sgbackup-'+back.data.metadata.namespace+'-'+back.data.metadata.name, $route.params.uid == back.data.metadata.uid ? 'open' : '']" :data-cluster="back.data.spec.sgCluster" :data-uid="back.data.metadata.uid">
 											<td class="timestamp" :data-val="(back.data.status.process.status == 'Completed') ? back.data.status.process.timing.stored.substr(0,19).replace('T',' ') : ''">
 												<template v-if="back.data.status.process.status == 'Completed'">
 													<span class='date'>
@@ -244,7 +244,7 @@ var Backups = Vue.component("Backups", {
 											</a>
 										</td>
 									</tr>
-									<tr class="details" :class="'sgbackup-'+back.data.metadata.namespace+'-'+back.data.metadata.name" v-if="back.data.status.process.status === 'Completed'">
+									<tr class="details" :class="[ $route.params.uid == back.data.metadata.uid ? 'open' : '', 'sgbackup-'+back.data.metadata.namespace+'-'+back.data.metadata.name]" :style="$route.params.uid == back.data.metadata.uid ? 'display: table-row;' : ''" v-if="back.data.status.process.status === 'Completed'">
 										<td :colspan="(isCluster) ? 3 : 4">
 											<table>
 												<thead>
@@ -443,7 +443,7 @@ var Backups = Vue.component("Backups", {
 											<strong>Backup Running</strong><br/>
 										</td>
 									</tr>
-									<tr class="details Failed" :class="'backup-'+back.data.metadata.namespace+'-'+back.data.metadata.name" v-else-if="back.data.status.process.status === 'Failed'">
+									<tr class="details Failed" :class="[ $route.params.uid == back.data.metadata.uid ? 'open' : '', 'sgbackup-'+back.data.metadata.namespace+'-'+back.data.metadata.name]" :style="$route.params.uid == back.data.metadata.uid ? 'display: table-row;' : ''" v-else-if="back.data.status.process.status === 'Failed'">
 										<td :colspan="(isCluster) ? 6 : 8" class="center">
 											<strong>Failure Cause</strong><br/>
 											<vue-markdown :source="back.data.status.process.failure"></vue-markdown>
@@ -766,6 +766,26 @@ var Backups = Vue.component("Backups", {
 			$('tr.base').click(function() {
 				$(this).find('td.name').toggleClass("hasTooltip");
 				$(this).find('td.clusterName').toggleClass("hasTooltip");
+			});
+
+			$(document).on("click", "table.backups tr.base a.open", function(){
+				$(this).parent().parent().next().toggle().addClass("open");
+				$(this).parent().parent().toggleClass("open");
+			});
+
+			$(document).on("click", "table.backups tr.base td:not(.actions)", function() {
+				if(!$(this).parent().hasClass('open')) {
+					router.push('/admin/backups/'+store.state.currentNamespace+'/'+$(this).parent().data('cluster')+'/'+$(this).parent().data('uid'))
+				}
+				else {
+					if(vc.$route.params.hasOwnProperty('name'))
+						router.push('/admin/backups/'+store.state.currentNamespace+'/'+$(this).parent().data('cluster'))
+					else
+						router.push('/admin/backups/'+store.state.currentNamespace)
+				}
+
+				/* $(this).parent().next().toggle().addClass("open");
+				$(this).parent().toggleClass("open"); */
 			});
 
 		});

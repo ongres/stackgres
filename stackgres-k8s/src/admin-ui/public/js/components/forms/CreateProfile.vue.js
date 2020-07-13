@@ -109,7 +109,6 @@ var CreateProfile = Vue.component("create-profile", {
             
             store.state.profiles.forEach(function( profile ){
                 if( (profile.data.metadata.name === vm.$route.params.name) && (profile.data.metadata.namespace === vm.$route.params.namespace) ) {
-                    console.log(profile);
                     cpu = profile.data.spec.cpu;
                     ram = profile.data.spec.memory.match(/\d+/g);
                     unit = profile.data.spec.memory.match(/[a-zA-Z]+/g);
