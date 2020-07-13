@@ -5,11 +5,125 @@
             "apiVersion": "v1",
             "kind": "Namespace",
             "metadata": {
-                "creationTimestamp": "2020-02-24T08:57:07Z",
+                "creationTimestamp": "2020-04-15T14:16:24Z",
                 "name": "default",
-                "resourceVersion": "146",
+                "resourceVersion": "143",
                 "selfLink": "/api/v1/namespaces/default",
-                "uid": "b1f76574-6da8-4259-8a95-81fdaaf9a150"
+                "uid": "3a4c7ef3-c729-4d2b-8e64-cb6fe34d09c6"
+            },
+            "spec": {
+                "finalizers": [
+                    "kubernetes"
+                ]
+            },
+            "status": {
+                "phase": "Active"
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Namespace",
+            "metadata": {
+                "creationTimestamp": "2020-04-15T14:16:22Z",
+                "name": "kube-node-lease",
+                "resourceVersion": "6",
+                "selfLink": "/api/v1/namespaces/kube-node-lease",
+                "uid": "ba2b8fb8-4e5e-4b9d-ba2e-a7abacb44d70"
+            },
+            "spec": {
+                "finalizers": [
+                    "kubernetes"
+                ]
+            },
+            "status": {
+                "phase": "Active"
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Namespace",
+            "metadata": {
+                "creationTimestamp": "2020-04-15T14:16:22Z",
+                "name": "kube-public",
+                "resourceVersion": "5",
+                "selfLink": "/api/v1/namespaces/kube-public",
+                "uid": "a67d681d-db3c-4993-b7ab-37c9a481d114"
+            },
+            "spec": {
+                "finalizers": [
+                    "kubernetes"
+                ]
+            },
+            "status": {
+                "phase": "Active"
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Namespace",
+            "metadata": {
+                "creationTimestamp": "2020-04-15T14:16:22Z",
+                "name": "kube-system",
+                "resourceVersion": "4",
+                "selfLink": "/api/v1/namespaces/kube-system",
+                "uid": "f2ef50d5-7c83-4b95-bb40-04bc270bab17"
+            },
+            "spec": {
+                "finalizers": [
+                    "kubernetes"
+                ]
+            },
+            "status": {
+                "phase": "Active"
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Namespace",
+            "metadata": {
+                "creationTimestamp": "2020-04-16T15:51:30Z",
+                "name": "odoo",
+                "resourceVersion": "220682",
+                "selfLink": "/api/v1/namespaces/odoo",
+                "uid": "ae7b3a37-4838-4d3d-bae7-6172e165a6a2"
+            },
+            "spec": {
+                "finalizers": [
+                    "kubernetes"
+                ]
+            },
+            "status": {
+                "phase": "Active"
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Namespace",
+            "metadata": {
+                "creationTimestamp": "2020-06-17T11:31:49Z",
+                "name": "pgconf-staging",
+                "resourceVersion": "14118277",
+                "selfLink": "/api/v1/namespaces/pgconf-staging",
+                "uid": "fe65919d-e9da-4964-9381-c92af7acf706"
+            },
+            "spec": {
+                "finalizers": [
+                    "kubernetes"
+                ]
+            },
+            "status": {
+                "phase": "Active"
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Namespace",
+            "metadata": {
+                "creationTimestamp": "2020-04-16T09:23:53Z",
+                "name": "stackgres",
+                "resourceVersion": "159292",
+                "selfLink": "/api/v1/namespaces/stackgres",
+                "uid": "fbcf165a-446d-4827-a65c-1eb4032a866d"
             },
             "spec": {
                 "finalizers": [
