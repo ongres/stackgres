@@ -182,8 +182,14 @@ public class Envoy implements StackGresClusterSidecarResourceFactory<Void> {
                 .asText())));
 
     Seq.seq(envoyConfig.get("static_resources").get("clusters"))
-        .map(cluster -> cluster
-            .get("hosts")
+        .flatMap(cluster -> Seq.seq(cluster
+            .get("load_assignment")
+            .get("endpoints").elements()))
+        .flatMap(endpoint -> Seq.seq(endpoint
+            .get("lb_endpoints").elements()))
+        .map(endpoint -> endpoint
+            .get("endpoint")
+            .get("address")
             .get("socket_address"))
         .cast(ObjectNode.class)
         .forEach(socketAddress -> socketAddress.put("port_value",
