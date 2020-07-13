@@ -291,8 +291,8 @@
                   <containerNamePattern>%a</containerNamePattern>
                   <images>
                     <image>
-                      <alias>ongres-native-builder</alias>
-                      <name>ongres-native-builder</name>
+                      <alias>restapi-native-builder</alias>
+                      <name>restapi-native-builder</name>
                       <build>
                         <cleanup>remove</cleanup>
                         <from>ongres/builder</from>
