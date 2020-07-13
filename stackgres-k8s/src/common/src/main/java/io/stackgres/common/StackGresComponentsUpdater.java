@@ -29,6 +29,7 @@ public interface StackGresComponentsUpdater {
     Seq.seq(versions.get("components").fields())
         .map(component -> Tuple.tuple(
           component.getKey(), component.getValue().get("versions")))
+        .filter(t -> t.v2 != null)
         .map(t -> t.map2(v2 -> v2.isArray()
             ? Seq.seq((ArrayNode) v2)
                 .map(JsonNode::asText)
