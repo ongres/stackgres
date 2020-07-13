@@ -25,7 +25,7 @@ var SGProfiles = Vue.component("InstanceProfile", {
 			</header>
 
 			<div class="content">
-				<table class="profiles pgConfig">
+				<table id="profiles" class="profiles pgConfig">
 					<thead class="sort">
 						<th @click="sort('data.metadata.name')" class="sorted desc name">
 							<span>Name</span>
@@ -45,7 +45,7 @@ var SGProfiles = Vue.component("InstanceProfile", {
 							</td>
 						</tr>
 						<template v-for="conf in config" v-if="(conf.data.metadata.namespace == currentNamespace)">
-							<tr class="base" :class="[ $route.params.name == conf.name ? 'open' : '', 'profile-'+conf.data.metadata.namespace+'-'+conf.name ]" >
+							<tr class="base" :class="[ $route.params.name == conf.name ? 'open' : '', 'profile-'+conf.data.metadata.namespace+'-'+conf.name ]" :data-name="conf.name">
 								<td>{{ conf.name }}</td>
 								<td class="fontZero">{{ conf.data.spec.memory }}</td>
 								<td class="fontZero">{{ conf.data.spec.cpu }}</td>
@@ -122,5 +122,6 @@ var SGProfiles = Vue.component("InstanceProfile", {
 			$(this).toggleClass("open-profile");
 			$('tr.toggle').not(this).removeClass("open-profile");
 		});
+
 	}
 })

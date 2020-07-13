@@ -79,7 +79,7 @@ var Grafana = Vue.component("Grafana", {
 			vc.grafana = url;
 		});
 
-		console.log(this.$route)
+		//console.log(this.$route)
 	},
 	computed: {
 		currentNamespace () {

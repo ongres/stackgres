@@ -25,7 +25,7 @@ var PgConfig = Vue.component("PostgresConfig", {
 			</header>
 
 			<div class="content">
-				<table class="pgConfig">
+				<table id="postgres" class="configurations pgConfig">
 					<thead class="sort">
 						<th @click="sort('data.metadata.name')" class="sorted desc name">
 							<span>Name</span>
@@ -45,7 +45,7 @@ var PgConfig = Vue.component("PostgresConfig", {
 							</td>
 						</tr>
 						<template v-for="conf in config" v-if="(conf.data.metadata.namespace == currentNamespace)">
-							<tr class="base" :class="[ $route.params.name == conf.name ? 'open' : '', 'sgpgconfig-'+conf.data.metadata.namespace+'-'+conf.name ]">
+							<tr class="base" :class="[ $route.params.name == conf.name ? 'open' : '', 'sgpgconfig-'+conf.data.metadata.namespace+'-'+conf.name ]" :data-name="conf.name">
 								<td class="hasTooltip configName">
 									<span>{{ conf.name }}</span>
 								</td>

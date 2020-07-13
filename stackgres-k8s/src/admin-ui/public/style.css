@@ -4372,7 +4372,7 @@ table.pgConfig, table.poolConfig {
     table-layout: fixed;
 }
 
-table.pgConfig tr:hover, table.poolConfig tr:hover {
+tr.base > td:not(.actions):hover {
     cursor: pointer;
 }
 

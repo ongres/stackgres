@@ -26,7 +26,7 @@ var BackupConfig = Vue.component("BackupConfig", {
 
 
 			<div class="content">
-				<table class="backupConfig">
+				<table id="backup" class="configurations backupConfig">
 					<thead class="sort">
 						<th @click="sort('data.metadata.name')" class="sorted desc name">
 							<span>Name</span>
@@ -58,7 +58,7 @@ var BackupConfig = Vue.component("BackupConfig", {
 							</td>
 						</tr>
 						<template v-for="conf in config" v-if="conf.data.metadata.namespace == currentNamespace">
-							<tr :class="[ $route.params.name == conf.name ? 'open' : '', 'sgbackupconfig-'+conf.data.metadata.namespace+'-'+conf.name ]" class="base">
+							<tr :class="[ $route.params.name == conf.name ? 'open' : '', 'sgbackupconfig-'+conf.data.metadata.namespace+'-'+conf.name ]" class="base" :data-name="conf.name">
 								<td class="hasTooltip">
 									<span>{{ conf.name }}</span>
 								</td>
@@ -313,12 +313,12 @@ var BackupConfig = Vue.component("BackupConfig", {
 			$('#nameTooltip').removeClass('show');
 		});
 
-		$('tr.base').click(function() {
+		/* $('tr.base').click(function() {
 			var backupDetails = $(this).next();
 			$(this).toggleClass("open");
 			backupDetails.toggleClass("show open");
 			$('tr.details').not(backupDetails).removeClass("show open");
 			$(this).find('td:first').removeClass("hasTooltip");
-		});
+		}); */
 	}
 })

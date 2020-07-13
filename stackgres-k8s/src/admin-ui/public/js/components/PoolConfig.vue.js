@@ -25,7 +25,7 @@ var PoolConfig = Vue.component("PoolConfig", {
 			</header>
 
 			<div class="content">
-				<table class="poolConfig">
+				<table id="connectionpooling" class="configurations poolConfig">
 					<thead class="sort">
 						<th @click="sort('data.metadata.name')" class="sorted desc name">
 							<span>Name</span>
@@ -42,7 +42,7 @@ var PoolConfig = Vue.component("PoolConfig", {
 							</td>
 						</tr>
 						<template v-for="conf in config" v-if="(conf.data.metadata.namespace == currentNamespace)">
-							<tr class="base" :class="[ $route.params.name == conf.name ? 'open' : '', 'sgpoolconfig-'+conf.data.metadata.namespace+'-'+conf.name ]">
+							<tr class="base" :class="[ $route.params.name == conf.name ? 'open' : '', 'sgpoolconfig-'+conf.data.metadata.namespace+'-'+conf.name ]" :data-name="conf.name">
 								<td class="hasTooltip">
 									<span>{{ conf.name }}</span>
 								</td>
