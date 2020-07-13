@@ -17,14 +17,14 @@ import io.stackgres.operatorframework.resource.ResourceGenerator;
 import io.stackgres.operatorframework.resource.factory.SubResourceStreamFactory;
 
 @ApplicationScoped
-public class DistributeLogs
+public class DistributedLogs
     implements SubResourceStreamFactory<HasMetadata,
       StackGresDistributedLogsGeneratorContext> {
 
   private final Cluster cluster;
 
   @Inject
-  public DistributeLogs(Cluster cluster) {
+  public DistributedLogs(Cluster cluster) {
     super();
     this.cluster = cluster;
   }

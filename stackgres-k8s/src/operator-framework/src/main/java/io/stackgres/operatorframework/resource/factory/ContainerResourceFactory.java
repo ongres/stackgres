@@ -12,7 +12,6 @@ import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Volume;
-import io.fabric8.kubernetes.client.KubernetesClient;
 import org.jooq.lambda.Seq;
 
 public interface ContainerResourceFactory<T, C, E>
@@ -28,7 +27,7 @@ public interface ContainerResourceFactory<T, C, E>
     return Seq.empty();
   }
 
-  default Optional<T> getConfig(E config, KubernetesClient client) throws Exception {
+  default Optional<T> getConfig(E config) throws Exception {
     return Optional.empty();
   }
 

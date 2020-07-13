@@ -3,17 +3,16 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.common;
+package io.stackgres.common;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 
-import io.stackgres.common.StackGresUtil;
 import org.junit.jupiter.api.Test;
 
-class OperatorConfigDefaultsTest {
+class StackGresUtilTest {
 
   @Test
   void getHostname_shouldReturnTheHostnameOfAURL() throws URISyntaxException {

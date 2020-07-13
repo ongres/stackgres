@@ -63,13 +63,13 @@ public class DistributedLogsTransformer
     return transformation;
   }
 
-  private io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedNonProduction
+  private io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsNonProduction
       getCustomResourceNonProduction(DistributedLogsNonProduction source) {
     if (source == null) {
       return null;
     }
-    io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedNonProduction transformation =
-        new io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedNonProduction();
+    io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsNonProduction transformation =
+        new io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsNonProduction();
     transformation.setDisableClusterPodAntiAffinity(source.getDisableClusterPodAntiAffinity());
     return transformation;
   }
@@ -98,7 +98,7 @@ public class DistributedLogsTransformer
   }
 
   private DistributedLogsNonProduction getResourceNonProduction(
-      io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedNonProduction source) {
+      io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsNonProduction source) {
     if (source == null) {
       return null;
     }
