@@ -311,7 +311,7 @@ exec-with-env "$BACKUP_ENV" \\
       elif [ "\$RETAIN" -le 0 ]
       then
         if echo '$(cat /tmp/backups)' \\
-          | grep -v '^[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:true' \\
+          | grep -v '^[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:false' \\
           | cut -d : -f 4 \\
           | grep -v '^\$' \\
           | grep -q "^\$backup_name\$" \\
@@ -320,7 +320,7 @@ exec-with-env "$BACKUP_ENV" \\
           exec-with-env "$BACKUP_ENV" \\
             -- wal-g backup-mark -i "\$backup_name"
         elif echo '$(cat /tmp/backups)' \\
-          | grep '^[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:true' \\
+          | grep '^[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:false' \\
           | cut -d : -f 4 \\
           | grep -v '^\$' \\
           | grep -q "^\$backup_name\$" \\
@@ -345,7 +345,7 @@ exec-with-env "$BACKUP_ENV" \\
           | grep 'backup_name' | cut -d : -f 2-)"
       if [ "\$backup_name" = "$WAL_G_BACKUP_NAME" -a "$BACKUP_IS_PERMANENT" != true ] \\
         || (echo '$(cat /tmp/backups)' \\
-        | grep -v '^[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:true' \\
+        | grep -v '^[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:false' \\
         | cut -d : -f 4 \\
         | grep -v '^\$' \\
         | grep -q "^\$backup_name\$" \\
@@ -354,7 +354,7 @@ exec-with-env "$BACKUP_ENV" \\
         exec-with-env "$BACKUP_ENV" \\
           -- wal-g backup-mark -i "\$backup_name"
       elif echo '$(cat /tmp/backups)' \\
-        | grep '^[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:true' \\
+        | grep '^[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:false' \\
         | cut -d : -f 4 \\
         | grep -v '^\$' \\
         | grep -q "^\$backup_name\$" \\
