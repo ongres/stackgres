@@ -278,6 +278,7 @@ set +e
 echo "Cleaning up old backups"
 cat << EOF | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-replica-or-primary)" -c patroni \
   -- sh -e $(! echo $- | grep -q x || echo " -x")
+# for each existing backup sorted by backup name ascending (this also mean sorted by creation date ascending)
 exec-with-env "$BACKUP_ENV" \\
   -- wal-g backup-list --detail --json \\
   | tr -d '[]' | sed 's/},{/}|{/g' | tr '|' '\\n' \\
@@ -288,6 +289,7 @@ exec-with-env "$BACKUP_ENV" \\
     do
       backup_name="\$(echo "\$backup" | tr -d '{}\\42' | tr ',' '\\n' \\
           | grep 'backup_name' | cut -d : -f 2-)"
+      # if is not the created backup and is not in backup CR list, mark as impermanent
       if [ "\$backup_name" != "$WAL_G_BACKUP_NAME" ] \\
         && ! echo '$(cat /tmp/backups)' \\
         | cut -d : -f 4 \\
@@ -299,6 +301,7 @@ exec-with-env "$BACKUP_ENV" \\
           exec-with-env "$BACKUP_ENV" \\
             -- wal-g backup-mark -i "\$backup_name"
         fi
+      # if is inside the retain window, mark as permanent and decrease RETAIN counter
       elif [ "\$RETAIN" -gt 0 ]
       then
         if [ "\$backup_name" = "$WAL_G_BACKUP_NAME" -a "$BACKUP_IS_PERMANENT" != true ] \\
@@ -308,10 +311,12 @@ exec-with-env "$BACKUP_ENV" \\
             -- wal-g backup-mark "\$backup_name"
         fi
         RETAIN="\$((RETAIN-1))"
+      # if is outside the retain window...
       elif [ "\$RETAIN" -le 0 ]
       then
+        # ... and has a managed lifecycle, mark as impermanent
         if echo '$(cat /tmp/backups)' \\
-          | grep -v '^[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:false' \\
+          | grep '^[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:true' \\
           | cut -d : -f 4 \\
           | grep -v '^\$' \\
           | grep -q "^\$backup_name\$" \\
@@ -319,8 +324,9 @@ exec-with-env "$BACKUP_ENV" \\
         then
           exec-with-env "$BACKUP_ENV" \\
             -- wal-g backup-mark -i "\$backup_name"
+        # ... and has not a managed lifecycle, mark as permanent
         elif echo '$(cat /tmp/backups)' \\
-          | grep '^[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:false' \\
+          | grep -v '^[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:true' \\
           | cut -d : -f 4 \\
           | grep -v '^\$' \\
           | grep -q "^\$backup_name\$" \\
@@ -332,9 +338,11 @@ exec-with-env "$BACKUP_ENV" \\
       fi
     done)
 
+# removes all backups that are marked as impermanent
 exec-with-env "$BACKUP_ENV" \\
   -- wal-g delete retain FIND_FULL "0" --confirm
 
+# for each existing backup
 exec-with-env "$BACKUP_ENV" \\
   -- wal-g backup-list --detail --json \\
   | tr -d '[]' | sed 's/},{/}|{/g' | tr '|' '\\n' \\
@@ -343,9 +351,10 @@ exec-with-env "$BACKUP_ENV" \\
     do
       backup_name="\$(echo "\$backup" | tr -d '{}\\42' | tr ',' '\\n' \\
           | grep 'backup_name' | cut -d : -f 2-)"
+      # if is the created backup and has a managed lifecycle, mark as impermanent
       if [ "\$backup_name" = "$WAL_G_BACKUP_NAME" -a "$BACKUP_IS_PERMANENT" != true ] \\
         || (echo '$(cat /tmp/backups)' \\
-        | grep -v '^[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:false' \\
+        | grep '^[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:true' \\
         | cut -d : -f 4 \\
         | grep -v '^\$' \\
         | grep -q "^\$backup_name\$" \\
@@ -353,8 +362,9 @@ exec-with-env "$BACKUP_ENV" \\
       then
         exec-with-env "$BACKUP_ENV" \\
           -- wal-g backup-mark -i "\$backup_name"
+      # if has not a managed lifecycle, mark as permanent
       elif echo '$(cat /tmp/backups)' \\
-        | grep '^[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:false' \\
+        | grep -v '^[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:true' \\
         | cut -d : -f 4 \\
         | grep -v '^\$' \\
         | grep -q "^\$backup_name\$" \\
