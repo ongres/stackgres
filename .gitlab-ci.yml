@@ -65,6 +65,9 @@ compile:
     paths:
       - stackgres-k8s/src/target
       - stackgres-k8s/src/*/target
+    reports:
+      junit:
+        - stackgres-k8s/src/*/target/surefire-reports/TEST-*.xml
 
 build documentation:
   image: monachus/hugo
