@@ -20,7 +20,7 @@ import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFail
 @ValidationType(ErrorType.INVALID_STORAGE_CLASS)
 public class StorageClassValidator implements ClusterValidator {
 
-  private ResourceFinder<StorageClass> finder;
+  private final ResourceFinder<StorageClass> finder;
 
   @Inject
   public StorageClassValidator(ResourceFinder<StorageClass> finder) {

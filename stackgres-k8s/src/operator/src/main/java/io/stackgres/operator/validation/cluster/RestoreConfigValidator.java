@@ -34,7 +34,7 @@ public class RestoreConfigValidator implements ClusterValidator {
   private static final String errorPostgresMismatch = ErrorType
       .getErrorTypeUri(ErrorType.PG_VERSION_MISMATCH);
 
-  private CustomResourceScanner<StackGresBackup> backupScanner;
+  private final CustomResourceScanner<StackGresBackup> backupScanner;
 
   @Inject
   public RestoreConfigValidator(CustomResourceScanner<StackGresBackup> backupScanner) {
