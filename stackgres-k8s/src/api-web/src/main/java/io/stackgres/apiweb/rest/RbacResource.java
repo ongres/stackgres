@@ -5,6 +5,8 @@
 
 package io.stackgres.apiweb.rest;
 
+import java.util.Optional;
+
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
@@ -21,7 +23,7 @@ import io.fabric8.kubernetes.api.model.authorization.SubjectAccessReview;
 import io.fabric8.kubernetes.api.model.authorization.SubjectAccessReviewBuilder;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresProperty;
 import org.eclipse.microprofile.jwt.Claim;
 import org.eclipse.microprofile.jwt.Claims;
 import org.slf4j.Logger;
@@ -42,7 +44,7 @@ public class RbacResource {
   @GET
   @Path("/can-i/{verb}/{resource}")
   public Response verb(@PathParam("verb") String verb, @PathParam("resource") String resource,
-      @QueryParam("namespace") String namespace) {
+      @QueryParam("namespace") String namespace, @QueryParam("group") Optional<String> group) {
     LOGGER.debug("User to review access {}", user);
     try (KubernetesClient client = new DefaultKubernetesClient()) {
 
@@ -51,7 +53,7 @@ public class RbacResource {
           .withUser(user)
           .withNewResourceAttributes()
           .withNamespace(namespace)
-          .withGroup(StackGresContext.CRD_GROUP)
+          .withGroup(group.orElse(StackGresProperty.CRD_GROUP.getString()))
           .withResource(resource)
           .withVerb(verb)
           .endResourceAttributes()
