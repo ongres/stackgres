@@ -16,6 +16,9 @@ e2e_test() {
 }
 
 check_namespace() {
+  local NAMESPACES_IN_RESPONSE
+  local NAMESPACES_IN_K8S
+
   if wait_until check_returned_namespaces
   then
     echo "Success. Namespace endpoint returned all namespaces"
@@ -27,14 +30,11 @@ check_namespace() {
 }
 
 check_returned_namespaces() {
-  local NAMESPACES_IN_RESPONSE
-  local NAMESPACES_IN_K8S
-
   NAMESPACES_IN_RESPONSE=$(run_curl -r "stackgres/namespace" -n $CLUSTER_NAMESPACE \
     | jq -M -S 'sort_by(.)[]' )
 
   NAMESPACES_IN_K8S=$(kubectl get ns -o json \
-    | jq -M -S '.items[].metadata |  select(.name | startswith("kube") | not) | select(.name != "stackgres").name')
+    | jq -M -S '.items[].metadata |  select(.name | startswith("kube") or startswith("stackgres") | not).name')
 
   [ "$NAMESPACES_IN_RESPONSE" = "$NAMESPACES_IN_K8S" ]
 }
