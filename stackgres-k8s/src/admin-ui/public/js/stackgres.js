@@ -294,6 +294,7 @@ router.beforeEach((to, from, next) => {
       axios
       .get(apiURL+'namespace')
       .then( function(response){
+        store.commit('addNamespaces',response.data)
         if(response.data.includes(to.params.namespace)) {
           store.commit('setCurrentNamespace', to.params.namespace);
         }
@@ -305,6 +306,62 @@ router.beforeEach((to, from, next) => {
     }
       
     switch(to.matched[0].components.default.options.name) {
+
+      case 'CreateCluster':
+        axios
+        .get(apiURL+'sgcluster',
+          { headers: {
+              'content-type': 'application/json'
+            }
+          }
+        )
+        .then( function(response){
+
+          var found = false;
+
+          response.data.forEach( function(item, index) {
+
+            var cluster = {
+              name: item.metadata.name,
+              data: item,
+              hasBackups: false,
+              status: {},
+            };
+            
+            axios
+              .get(apiURL+'sgcluster/stats/'+item.metadata.namespace+'/'+item.metadata.name,
+                { 
+                  headers: {
+                      'content-type': 'application/json'
+                  }
+                }
+              )
+              .then( function(response){
+                //console.log(response.data);
+                cluster.status = response.data;
+              }).catch(function(err) {
+                console.log(err);
+                checkAuthError(err);
+              });
+              
+            store.commit('updateClusters', cluster);
+
+            // Set as current cluster if no other cluster has already been set
+            if( (to.params.name == cluster.name) && (to.params.namespace == cluster.data.metadata.namespace) ) {
+              found = true;
+              store.commit('setCurrentCluster', cluster);
+            }
+
+          });
+
+          next()
+
+        })
+        .catch(function(err) {
+          notFound()
+        });
+        
+        break;
 
       case 'ClusterStatus':
       case 'ClusterInfo':
