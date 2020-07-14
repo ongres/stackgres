@@ -36,7 +36,7 @@ const router = new VueRouter({
   mode: 'history',
   routes: [
     { 
-      path: '/admin/crd/:action/:cluster', 
+      path: '/admin/crd/:action/cluster', 
       component: CreateCluster,
       meta: {
         conditionalRoute: false
@@ -308,59 +308,50 @@ router.beforeEach((to, from, next) => {
     switch(to.matched[0].components.default.options.name) {
 
       case 'CreateCluster':
-        axios
-        .get(apiURL+'sgcluster',
-          { headers: {
-              'content-type': 'application/json'
-            }
-          }
-        )
-        .then( function(response){
+        var found = false;
 
-          var found = false;
-
-          response.data.forEach( function(item, index) {
-
-            var cluster = {
-              name: item.metadata.name,
-              data: item,
-              hasBackups: false,
-              status: {},
-            };
-            
-            axios
-              .get(apiURL+'sgcluster/stats/'+item.metadata.namespace+'/'+item.metadata.name,
-                { 
+        if(!store.state.clusters.length) {        
+        
+          axios
+          .get(apiURL+'sgcluster',
+              {
                   headers: {
                       'content-type': 'application/json'
                   }
-                }
-              )
-              .then( function(response){
-                //console.log(response.data);
-                cluster.status = response.data;
-              }).catch(function(err) {
-                console.log(err);
-                checkAuthError(err);
+              }
+          )
+          .then( function(response) {
+
+            const data = response.data;
+
+              data.forEach( function(item, index) {
+
+                  var cluster = {
+                      name: item.metadata.name,
+                      data: item,
+                      hasBackups: false,
+                      status: {},
+                  };
+
+                  //console.log(cluster)
+                  
+                  // Set as current cluster if no other cluster has already been set
+                  if( (to.params.name == cluster.name) && (to.params.namespace == cluster.data.metadata.namespace) ) {
+                      found = true;
+                      store.commit('setCurrentCluster', cluster);
+                  }
+
               });
-              
-            store.commit('updateClusters', cluster);
 
-            // Set as current cluster if no other cluster has already been set
-            if( (to.params.name == cluster.name) && (to.params.namespace == cluster.data.metadata.namespace) ) {
-              found = true;
-              store.commit('setCurrentCluster', cluster);
-            }
+              if(!found)
+                  notFound()
 
+          })
+          .catch(function(err) {
+              notFound()
           });
+        } 
 
-          next()
-
-        })
-        .catch(function(err) {
-          notFound()
-        });
-        
         break;
 
       case 'ClusterStatus':
@@ -531,6 +522,7 @@ const store = new Vuex.Store({
     showLogs: false,
     notFound: false,
     currentNamespace: '',
+    ready: false,
     currentCluster: {},
     currentPods: [],
     namespaces: [],
@@ -566,6 +558,10 @@ const store = new Vuex.Store({
 
     notFound (state, notFound) {
       state.notFound = notFound;
+    }, 
+
+    setReady (state, ready) {
+      state.ready = ready;
     }, 
 
     setLoginToken (state, token = '') {
@@ -1474,6 +1470,9 @@ const vm = new Vue({
         //$("#loader").hide();  
       }, 2000);
 
+      if(!store.state.ready)
+        store.commit('setReady',true)
+
     },
 
   },
@@ -1532,8 +1531,9 @@ Vue.filter('formatTimestamp',function(t, part){
 });
 
 function notFound() {
-  store.commit('notFound',true)
-  router.push('/admin/not-found.html')
+  //store.commit('notFound',true)
+  //console.log('notfound')
+  //router.push('/admin/not-found.html')
 }
 
 function checkLogin() {
@@ -1571,7 +1571,8 @@ function checkAuthError(error) {
 
       document.cookie = 'sgToken=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
 			store.commit('setLoginToken');
-			router.push('/admin/index.html');
+      router.push('/admin/index.html');
+      clearInterval(vm.pooling);
 			//store.replaceState({})
       $('#signup').addClass('login').fadeIn();
       
@@ -2225,7 +2226,10 @@ $(document).ready(function(){
       $('.set ul.show').removeClass('show');
       $(this).parent().addClass('active');
     }
-    
+  });
+
+  $('form.noSubmit').on('submit',function(e){
+    e.preventDefault
   });
 
 });
