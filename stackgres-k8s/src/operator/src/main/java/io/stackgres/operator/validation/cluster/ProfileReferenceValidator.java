@@ -22,7 +22,7 @@ import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFail
 @ValidationType(ErrorType.INVALID_CR_REFERENCE)
 public class ProfileReferenceValidator implements ClusterValidator {
 
-  private CustomResourceFinder<StackGresProfile> profileFinder;
+  private final CustomResourceFinder<StackGresProfile> profileFinder;
 
   @Inject
   public ProfileReferenceValidator(CustomResourceFinder<StackGresProfile> profileFinder) {

@@ -24,7 +24,7 @@ import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFail
 @ValidationType(ErrorType.INVALID_CR_REFERENCE)
 public class DistributedLogsValidator implements ClusterValidator {
 
-  private CustomResourceFinder<StackGresDistributedLogs> distributedLogsFinder;
+  private final CustomResourceFinder<StackGresDistributedLogs> distributedLogsFinder;
 
   @Inject
   public DistributedLogsValidator(

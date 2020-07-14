@@ -31,12 +31,6 @@ import org.opentest4j.AssertionFailedError;
 
 public class ValidationUtils {
 
-  public static String getRandomString(int length) {
-    byte[] array = new byte[length];
-    ThreadLocalRandom.current().nextBytes(array);
-    return new String(array, StandardCharsets.UTF_8);
-  }
-
   public static void assertValidationFailed(Executable executable, String message, Integer code) {
     ValidationFailed validation = assertThrows(ValidationFailed.class, executable);
     assertEquals(message, validation.getResult().getMessage());
@@ -45,6 +39,15 @@ public class ValidationUtils {
 
   public static void assertValidationFailed(Executable executable, String message) {
     assertValidationFailed(executable, message, 400);
+  }
+
+  public static void assertValidationFailed(Executable executable, ErrorType errorType,
+                                            String message) {
+    ValidationFailed validation = assertThrows(ValidationFailed.class, executable);
+    assertEquals(message, validation.getResult().getMessage());
+    assertEquals(400, validation.getResult().getCode());
+
+    assertErrorType(validation, errorType);
   }
 
   public static void assertErrorType(ValidationFailed ex, ErrorType errorType) {
