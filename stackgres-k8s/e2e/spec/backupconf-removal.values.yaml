@@ -14,3 +14,6 @@ cluster:
 minio:
   persistence:
     size: 128Mi
+
+nonProductionOptions:
+  createMinio: true

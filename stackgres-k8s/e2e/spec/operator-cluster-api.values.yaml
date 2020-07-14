@@ -14,3 +14,5 @@ cluster:
 minio:
   readinessProbe:
     initialDelaySeconds: 5
+nonProductionOptions:
+  createMinio: true
