@@ -28,9 +28,9 @@ import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
 import io.quarkus.test.Mock;
 import io.stackgres.common.KubernetesClientFactory;
+import io.stackgres.common.OperatorProperty;
 import io.stackgres.operator.AbstractStackGresOperatorIt;
 import io.stackgres.operator.CrdMatchTest;
-import io.stackgres.operator.common.OperatorConfigDefaults;
 import org.jooq.lambda.Unchecked;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,7 +62,7 @@ public class MockKubernetesClientFactory extends KubernetesClientFactory {
       String[] auth = this.auth.get();
       return new DefaultKubernetesClient(
           new ConfigBuilder()
-          .withNamespace(OperatorConfigDefaults.OPERATOR_NAMESPACE)
+          .withNamespace(OperatorProperty.OPERATOR_NAMESPACE.getString())
           .withCaCertData(auth[0])
           .withOauthToken(auth[1])
           .build());
@@ -84,8 +84,8 @@ public class MockKubernetesClientFactory extends KubernetesClientFactory {
   private void updateToken() {
     List<String> operatorSecret = Unchecked.supplier(
         () -> AbstractStackGresOperatorIt.getContainer().execute("sh", "-l", "-c",
-            "kubectl get secret -n stackgres -o yaml"
-                + " \"$(kubectl get secret -n stackgres"
+            "kubectl get secret -n " + OperatorProperty.OPERATOR_NAMESPACE.getString() + " -o yaml"
+                + " \"$(kubectl get secret -n " + OperatorProperty.OPERATOR_NAMESPACE.getString()
                 + " | grep stackgres-operator-token-"
                 + " | sed 's/\\s\\+/ /g'"
                 + " | cut -d ' ' -f 1)\""))

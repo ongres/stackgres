@@ -55,7 +55,6 @@ spec:
             kind: CertificateSigningRequest
             metadata:
               name: {{ .Release.Name }}
-              namespace: {{ .Release.Namespace }}
             spec:
               request: "$(cat /tmp/server.csr | base64 | tr -d '\n')"
               usages:

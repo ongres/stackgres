@@ -28,7 +28,7 @@ public abstract class AbstractStackGresOperatorIt extends AbstractIt {
 
   protected final int operatorPort = getFreePort();
   protected final int operatorSslPort = getFreePort();
-  protected final String namespace = getNamespace();
+  protected String namespace;
 
   private Closeable operatorClose;
   private WebTarget operatorClient;
@@ -41,27 +41,24 @@ public abstract class AbstractStackGresOperatorIt extends AbstractIt {
     return IT_CONTAINER.get();
   }
 
-  protected String getNamespace() {
-    return "stackgres";
-  }
-
   @BeforeEach
   public void setupOperator(@ContainerParam("k8s") Container k8s) throws Exception {
     IS_ABSTRACT_STACKGRES_OPERATOR_IT.set(true);
     IT_CONTAINER.set(k8s);
     ItHelper.killUnwantedProcesses(k8s);
     ItHelper.copyResources(k8s);
-    ItHelper.resetKind(k8s);
+    namespace = ItHelper.generateOperatorNamespace(k8s);
+    ItHelper.resetKind(k8s, namespace);
     ItHelper.installStackGresOperatorHelmChart(k8s, namespace, operatorPort);
     OperatorRunner operatorRunner = ItHelper.createOperator(
-        k8s, operatorPort, operatorSslPort, executor);
+        k8s, namespace, operatorPort, operatorSslPort, executor);
     CompletableFuture<Void> operator = runAsync(() -> operatorRunner.run());
     this.operatorClose = () -> {
       operatorRunner.close();
       operator.join();
     };
     operatorClient = ClientBuilder.newClient().target("http://localhost:" + operatorPort);
-    ItHelper.waitUntilOperatorIsReady(operator, operatorClient, k8s);
+    ItHelper.waitUntilOperatorIsReady(operator, operatorClient, k8s, namespace);
   }
 
   private int getFreePort() {

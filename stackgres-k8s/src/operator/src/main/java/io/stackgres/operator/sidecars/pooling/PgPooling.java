@@ -26,7 +26,7 @@ import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.LabelFactory;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncer;
@@ -134,7 +134,7 @@ public class PgPooling
     ContainerBuilder container = new ContainerBuilder();
     container.withName(NAME)
         .withImage(String.format(IMAGE_PREFIX,
-            DEFAULT_VERSION, StackGresContext.CONTAINER_BUILD))
+            DEFAULT_VERSION, StackGresProperty.CONTAINER_BUILD.getString()))
         .withImagePullPolicy("IfNotPresent")
         .withVolumeMounts(ClusterStatefulSetVolumeConfig.SOCKET
                 .volumeMount(context.getClusterContext()),

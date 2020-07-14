@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2019 OnGres, Inc.
+  ~ SPDX-License-Identifier: AGPL-3.0-or-later
+  -->
+
 <project xmlns="http://maven.apache.org/POM/4.0.0"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -23,7 +28,7 @@
     <quarkus.skipAugmentation>false</quarkus.skipAugmentation>
     <checks.location>${project.parent.basedir}/checks</checks.location>
 
-    <it.image>stackgres/it:7.0</it.image>
+    <it.image>stackgres/it:8.0</it.image>
   </properties>
 
   <dependencies>

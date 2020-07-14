@@ -14,8 +14,8 @@ import javax.inject.Inject;
 import com.google.common.base.Strings;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.quarkus.security.AuthenticationFailedException;
-import io.stackgres.apiweb.config.WebApiContext;
 import io.stackgres.apiweb.config.WebApiProperty;
+import io.stackgres.apiweb.config.WebApiPropertyContext;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.resource.ResourceScanner;
 import io.stackgres.common.resource.ResourceUtil;
@@ -28,10 +28,10 @@ public class SecretVerification {
 
   @Inject
   public SecretVerification(ResourceScanner<Secret> secretScanner,
-      WebApiContext webApiContext) {
+      WebApiPropertyContext webApiContext) {
     super();
     this.secretScanner = secretScanner;
-    this.namespace = webApiContext.get(WebApiProperty.RESTAPI_NAMESPACE);
+    this.namespace = webApiContext.getString(WebApiProperty.RESTAPI_NAMESPACE);
   }
 
   /**

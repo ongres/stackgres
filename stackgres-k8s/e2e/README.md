@@ -73,7 +73,8 @@ Those environment variable affect the e2e test only if kind environment is used.
 ## Write a test
 
 A test is a sequence of commands that must pass some checks written in a spec script file inside the `spec` folder.
-Each test start a stackgres cluster in the namespace with the same name of the spec script.
+Each test start a stackgres cluster in the namespace with the same name of the spec script plus a prefix of the
+ current timestamp in hexadecimal.
 To write a test create a spec script file in `spec` folder and implement following functions (they must be posix 
  compatible shell scripts):
 

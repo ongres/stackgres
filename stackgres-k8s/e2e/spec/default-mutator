@@ -1,7 +1,6 @@
 #!/bin/sh
 
 e2e_test_install() {
-  OPERATOR_NAMESPACE="stackgres"
   DEFAULT_PGCONFIG="defaultpgconfig"
   PGCBOUNCER="pgbouncer"
   PGCONFIG="postgresconf"

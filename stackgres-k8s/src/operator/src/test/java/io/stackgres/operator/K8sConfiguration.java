@@ -12,7 +12,7 @@ import com.ongres.junit.docker.Port;
 import com.ongres.junit.docker.WaitFor;
 
 @DockerContainer(
-    image = "stackgres/it:7.0",
+    image = "stackgres/it:8.0",
     arguments = { "/bin/sh", "-c",
         "set -e;"
             + "echo 'K8s cluster started';"
@@ -20,8 +20,6 @@ import com.ongres.junit.docker.WaitFor;
     waitFor = @WaitFor(value = "K8s cluster started", timeout = 1_200_000),
     environments = { @Environment(key = "DOCKER_HOST", value = "${DOCKER_HOST}") },
     mounts = {
-        @Mount(reference = K8sConfiguration.class,
-            path = "/certs", value = "/certs/server.crt"),
         @Mount(reference = K8sConfiguration.class,
             path = "/var/run/docker.sock", value = "/var/run/docker.sock", system = true),
     },

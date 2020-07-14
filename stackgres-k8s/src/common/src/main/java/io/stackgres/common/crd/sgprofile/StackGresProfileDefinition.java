@@ -5,7 +5,7 @@
 
 package io.stackgres.common.crd.sgprofile;
 
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresProperty;
 
 public enum StackGresProfileDefinition {
 
@@ -14,8 +14,8 @@ public enum StackGresProfileDefinition {
   public static final String KIND = "SGInstanceProfile";
   public static final String SINGULAR = "sginstanceprofile";
   public static final String PLURAL = "sginstanceprofiles";
-  public static final String NAME = PLURAL + "." + StackGresContext.CRD_GROUP;
-  public static final String APIVERSION = StackGresContext.CRD_GROUP
-      + "/" + StackGresContext.CRD_VERSION;
+  public static final String NAME = PLURAL + "." + StackGresProperty.CRD_GROUP.getString();
+  public static final String APIVERSION = StackGresProperty.CRD_GROUP.getString()
+      + "/" + StackGresProperty.CRD_VERSION.getString();
 
 }

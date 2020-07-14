@@ -1,0 +1,12 @@
+#!/bin/sh
+
+setup_logs() {
+  if [ "$E2E_DISABLE_LOGS" = "true" ]
+  then
+    return
+  fi
+  pod_logs > "$TARGET_PATH/all_pods.log" 2>/dev/null &
+  trap_kill "$!"
+  event_watch -o wide > "$TARGET_PATH/all_events.log" 2>/dev/null &
+  trap_kill "$!"
+}

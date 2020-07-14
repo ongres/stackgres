@@ -13,7 +13,7 @@ import io.fabric8.kubernetes.api.model.Status;
 import io.fabric8.kubernetes.api.model.StatusBuilder;
 import io.fabric8.kubernetes.api.model.StatusDetailsBuilder;
 import io.stackgres.common.ErrorType;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigDefinition;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigSpec;
 import io.stackgres.operator.common.PgConfigReview;
@@ -54,7 +54,7 @@ public class PgConfigUpdateValidator implements PgConfigValidator {
             .withDetails(new StatusDetailsBuilder()
                 .addNewCause(pgVersionPath, detail, "FieldNotUpdatable")
                 .withKind(StackGresPostgresConfigDefinition.KIND)
-                .withGroup(StackGresContext.CRD_GROUP)
+                .withGroup(StackGresProperty.CRD_GROUP.getString())
                 .withName(pgVersionPath)
                 .build())
             .build();

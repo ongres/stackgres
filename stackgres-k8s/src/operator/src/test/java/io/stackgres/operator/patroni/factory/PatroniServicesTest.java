@@ -6,8 +6,12 @@
 package io.stackgres.operator.patroni.factory;
 
 import static io.stackgres.testutil.StringUtils.getRandomString;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.when;
 
 import java.util.Map;
 import java.util.stream.Stream;
@@ -24,12 +28,12 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresService;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresServiceType;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresServices;
 import io.stackgres.common.resource.ResourceUtil;
-import io.stackgres.testutil.JsonUtil;
 import io.stackgres.operator.common.ImmutableStackGresUserClusterContext;
 import io.stackgres.operator.common.LabelFactoryDelegator;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresGeneratorContext;
-import io.stackgres.operator.configuration.OperatorContext;
+import io.stackgres.operator.configuration.OperatorPropertyContext;
+import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -259,7 +263,7 @@ class PatroniServicesTest {
     return ImmutableStackGresUserClusterContext.builder()
         .ownerReferences(ImmutableList.of(ResourceUtil.getOwnerReference(defaultCluster)))
         .cluster(defaultCluster)
-        .operatorContext(new OperatorContext())
+        .operatorContext(new OperatorPropertyContext())
         .clusterNamespace(defaultCluster.getMetadata().getNamespace())
         .clusterKey(StackGresContext.CLUSTER_KEY)
         .clusterName(defaultCluster.getMetadata().getName())

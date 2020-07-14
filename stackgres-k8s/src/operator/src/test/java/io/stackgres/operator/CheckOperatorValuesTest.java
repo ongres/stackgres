@@ -13,11 +13,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
-import io.stackgres.common.StackGresContext;
-
+import io.stackgres.common.OperatorProperty;
+import io.stackgres.common.StackGresProperty;
 import io.stackgres.operator.app.StackGresOperatorApp;
 import io.stackgres.operator.common.StackGresComponents;
-import io.stackgres.operator.common.OperatorConfigDefaults;
 
 import org.jooq.lambda.Seq;
 import org.junit.Assert;
@@ -33,14 +32,14 @@ public class CheckOperatorValuesTest {
     JsonNode operatorConfig = objectMapper.readTree(
         Paths.get("../../install/helm/stackgres-operator/values.yaml").toFile());
     final String imageTag;
-    if (StackGresContext.OPERATOR_VERSION.endsWith("-SNAPSHOT")) {
+    if (StackGresProperty.OPERATOR_VERSION.getString().endsWith("-SNAPSHOT")) {
       imageTag = "development-jvm";
     } else {
-      imageTag = StackGresContext.OPERATOR_VERSION + "-jvm";
+      imageTag = StackGresProperty.OPERATOR_VERSION.getString() + "-jvm";
     }
     Assert.assertEquals(imageTag,
         operatorConfig.get("operator").get("image").get("tag").asText());
-    Assert.assertEquals(OperatorConfigDefaults.PROMETHEUS_AUTOBIND,
+    Assert.assertEquals(OperatorProperty.PROMETHEUS_AUTOBIND.getString(),
         operatorConfig.get("prometheus").get("allowAutobind").asText());
   }
 
@@ -49,7 +48,7 @@ public class CheckOperatorValuesTest {
     ObjectMapper objectMapper = new YAMLMapper();
     JsonNode versions = objectMapper.readTree(
         new URL("https://stackgres.io/downloads/stackgres-k8s/stackgres/components/"
-            + StackGresContext.CONTAINER_BUILD + "/versions.yaml"));
+            + StackGresProperty.CONTAINER_BUILD.getString() + "/versions.yaml"));
     Properties properties = new Properties();
     properties.load(StackGresOperatorApp.class.getResourceAsStream("/versions.properties"));
     Assert.assertArrayEquals(

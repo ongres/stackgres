@@ -16,7 +16,7 @@ import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsList;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.operator.app.ObjectMapperProvider;
-import io.stackgres.operator.configuration.OperatorContext;
+import io.stackgres.operator.configuration.OperatorPropertyContext;
 import io.stackgres.operator.distributedlogs.fluentd.Fluentd;
 import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,7 +43,7 @@ class DistributedLogsTest {
   private ObjectMapperProvider objectMapperProvider;
 
   @Mock
-  private OperatorContext operatorContext;
+  private OperatorPropertyContext operatorContext;
 
   private LabelFactory<StackGresDistributedLogs> labelFactory;
 

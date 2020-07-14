@@ -38,7 +38,7 @@ import io.stackgres.operator.common.SidecarEntry;
 import io.stackgres.operator.common.StackGresComponents;
 import io.stackgres.operator.common.StackGresDistributedLogsContext;
 import io.stackgres.operator.common.StackGresDistributedLogsGeneratorContext;
-import io.stackgres.operator.configuration.OperatorContext;
+import io.stackgres.operator.configuration.OperatorPropertyContext;
 import io.stackgres.operator.distributedlogs.factory.DistributedLogs;
 import io.stackgres.operator.distributedlogs.fluentd.Fluentd;
 import io.stackgres.operator.resource.DistributedLogsResourceHandlerSelector;
@@ -58,7 +58,7 @@ public class DistributedLogsReconciliationCycle
   private final Fluentd fluentd;
   private final DistributedLogsStatusManager statusManager;
   private final EventController eventController;
-  private final OperatorContext operatorContext;
+  private final OperatorPropertyContext operatorContext;
   private final LabelFactory<StackGresDistributedLogs> labelFactory;
   private final CustomResourceScanner<StackGresDistributedLogs> distributedLogsScanner;
   private final CustomResourceScanner<StackGresCluster> clusterScanner;
@@ -73,7 +73,7 @@ public class DistributedLogsReconciliationCycle
       DistributedLogsResourceHandlerSelector handlerSelector,
       DistributedLogsStatusManager statusManager, EventController eventController,
       ObjectMapperProvider objectMapperProvider,
-      OperatorContext operatorContext,
+      OperatorPropertyContext operatorContext,
       LabelFactory<StackGresDistributedLogs> labelFactory,
       CustomResourceScanner<StackGresDistributedLogs> distributedLogsScanner,
       CustomResourceScanner<StackGresCluster> clusterScanner) {

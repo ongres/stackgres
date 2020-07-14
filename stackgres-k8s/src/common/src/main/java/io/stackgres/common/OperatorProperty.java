@@ -5,7 +5,12 @@
 
 package io.stackgres.common;
 
-public enum OperatorProperty {
+import java.util.Properties;
+
+import org.jooq.lambda.Unchecked;
+
+public enum OperatorProperty implements StackGresPropertyReader {
+
   OPERATOR_NAME("stackgres.operatorName"),
   OPERATOR_NAMESPACE("stackgres.operatorNamespace"),
   OPERATOR_IP("stackgres.operatorIP"),
@@ -14,17 +19,28 @@ public enum OperatorProperty {
   AUTHENTICATION_SECRET_NAME("stackgres.authentication.secretName"),
   USE_ARBITRARY_USER("stackgres.useArbitraryUser");
 
-  private final String systemProperty;
+  private static final Properties APPLICATION_PROPERTIES =
+      Unchecked.supplier(() -> StackGresPropertyReader
+          .readApplicationProperties(OperatorProperty.class)).get();
 
-  OperatorProperty(String systemProperty) {
-    this.systemProperty = systemProperty;
+  private final String propertyName;
+
+  OperatorProperty(String propertyName) {
+    this.propertyName = propertyName;
   }
 
-  public String property() {
+  @Override
+  public String getEnvironmentVariableName() {
     return name();
   }
 
-  public String systemProperty() {
-    return systemProperty;
+  @Override
+  public String getPropertyName() {
+    return propertyName;
+  }
+
+  @Override
+  public Properties getApplicationProperties() {
+    return APPLICATION_PROPERTIES;
   }
 }

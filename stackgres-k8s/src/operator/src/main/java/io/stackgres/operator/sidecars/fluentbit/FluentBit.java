@@ -24,7 +24,7 @@ import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.FluentdUtil;
 import io.stackgres.common.LabelFactory;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -66,7 +66,8 @@ public class FluentBit implements StackGresClusterSidecarResourceFactory<Void> {
   public Container getContainer(StackGresGeneratorContext context) {
     return new ContainerBuilder()
         .withName(NAME)
-        .withImage(String.format(IMAGE_NAME, DEFAULT_VERSION, StackGresContext.CONTAINER_BUILD))
+        .withImage(String.format(IMAGE_NAME, DEFAULT_VERSION,
+            StackGresProperty.CONTAINER_BUILD.getString()))
         .withImagePullPolicy("IfNotPresent")
         .withStdin(Boolean.TRUE)
         .withTty(Boolean.TRUE)

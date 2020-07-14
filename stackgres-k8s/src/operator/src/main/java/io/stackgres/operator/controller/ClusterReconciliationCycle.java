@@ -62,7 +62,7 @@ import io.stackgres.operator.common.StackGresClusterSidecarResourceFactory;
 import io.stackgres.operator.common.StackGresGeneratorContext;
 import io.stackgres.operator.common.StackGresRestoreContext;
 import io.stackgres.operator.common.StackGresUserClusterContext;
-import io.stackgres.operator.configuration.OperatorContext;
+import io.stackgres.operator.configuration.OperatorPropertyContext;
 import io.stackgres.operator.customresource.prometheus.PrometheusConfig;
 import io.stackgres.operator.customresource.prometheus.PrometheusInstallation;
 import io.stackgres.operator.resource.ClusterResourceHandlerSelector;
@@ -88,7 +88,7 @@ public class ClusterReconciliationCycle
   private final Cluster cluster;
   private final ClusterStatusManager statusManager;
   private final EventController eventController;
-  private final OperatorContext operatorContext;
+  private final OperatorPropertyContext operatorContext;
   private final CustomResourceScanner<StackGresCluster> clusterScanner;
   private final CustomResourceFinder<StackGresProfile> profileFinder;
   private final CustomResourceFinder<StackGresPostgresConfig> postgresConfigFinder;
@@ -109,7 +109,7 @@ public class ClusterReconciliationCycle
       ClusterResourceHandlerSelector handlerSelector,
       ClusterStatusManager statusManager, EventController eventController,
       ObjectMapperProvider objectMapperProvider,
-      OperatorContext operatorContext,
+      OperatorPropertyContext operatorContext,
       LabelFactory<StackGresCluster> labelFactory,
       CustomResourceScanner<StackGresCluster> clusterScanner,
       CustomResourceFinder<StackGresProfile> profileFinder,
@@ -316,9 +316,7 @@ public class ClusterReconciliationCycle
   }
 
   public Optional<Prometheus> getPrometheus(StackGresCluster cluster) {
-    boolean isAutobindAllowed = Boolean
-        .parseBoolean(operatorContext.getProperty(OperatorProperty.PROMETHEUS_AUTOBIND)
-            .orElse("false"));
+    boolean isAutobindAllowed = operatorContext.getBoolean(OperatorProperty.PROMETHEUS_AUTOBIND);
 
     boolean isPrometheusAutobindEnabled = Optional.ofNullable(cluster.getSpec()
         .getPrometheusAutobind()).orElse(false);

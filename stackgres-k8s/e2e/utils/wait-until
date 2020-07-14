@@ -1,5 +1,7 @@
 #!/bin/sh
 
+export E2E_TIMEOUT="${E2E_TIMEOUT:-180}"
+
 wait_until() {
   local RESULT
   local EXIT_CODE

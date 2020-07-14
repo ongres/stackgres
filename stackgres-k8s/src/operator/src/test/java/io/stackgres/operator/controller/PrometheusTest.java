@@ -31,7 +31,7 @@ import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.operator.app.ObjectMapperProvider;
 import io.stackgres.operator.common.Prometheus;
-import io.stackgres.operator.configuration.OperatorContext;
+import io.stackgres.operator.configuration.OperatorPropertyContext;
 import io.stackgres.operator.customresource.prometheus.PrometheusConfig;
 import io.stackgres.operator.customresource.prometheus.PrometheusConfigList;
 import io.stackgres.testutil.JsonUtil;
@@ -77,7 +77,7 @@ class PrometheusTest {
   private CustomResourceScanner<PrometheusConfig> prometheusScanner;
 
   @Mock
-  private OperatorContext operatorContext;
+  private OperatorPropertyContext operatorContext;
 
   @Mock
   private LabelFactory<StackGresCluster> labelFactory;
@@ -123,8 +123,8 @@ class PrometheusTest {
   void givenNoPrometheusInTheClusterAndAutobindSettled_itShouldNotFlagTheCreationOfServiceMonitor() {
 
     when(prometheusScanner.findResources()).thenReturn(Optional.empty());
-    when(operatorContext.getProperty(OperatorProperty.PROMETHEUS_AUTOBIND))
-        .thenReturn(Optional.of(Boolean.TRUE.toString()));
+    when(operatorContext.getBoolean(OperatorProperty.PROMETHEUS_AUTOBIND))
+        .thenReturn(true);
 
     Prometheus prometheus = invokeGetConfig();
 
@@ -139,8 +139,8 @@ class PrometheusTest {
   @Test
   void givenAutobindSettledToFalse_ItShouldNotEvenLookForPrometheusInstallations() {
 
-    when(operatorContext.getProperty(OperatorProperty.PROMETHEUS_AUTOBIND))
-        .thenReturn(Optional.of(Boolean.TRUE.toString()));
+    when(operatorContext.getBoolean(OperatorProperty.PROMETHEUS_AUTOBIND))
+        .thenReturn(true);
 
     cluster.getSpec().setPrometheusAutobind(false);
 
@@ -155,8 +155,8 @@ class PrometheusTest {
 
     when(prometheusScanner.findResources()).thenReturn(Optional.of(prometheusConfigList.getItems()));
 
-    when(operatorContext.getProperty(OperatorProperty.PROMETHEUS_AUTOBIND))
-        .thenReturn(Optional.of(Boolean.TRUE.toString()));
+    when(operatorContext.getBoolean(OperatorProperty.PROMETHEUS_AUTOBIND))
+        .thenReturn(true);
 
     Prometheus prometheus = invokeGetConfig();
 
@@ -175,8 +175,8 @@ class PrometheusTest {
   @Test
   void givenPrometheusInTheClusterButNotMatchLabelConfiguredAndAutobindSettled__itShouldNotFlagTheCreationOfServiceMonitor() {
 
-    when(operatorContext.getProperty(OperatorProperty.PROMETHEUS_AUTOBIND))
-        .thenReturn(Optional.of(Boolean.TRUE.toString()));
+    when(operatorContext.getBoolean(OperatorProperty.PROMETHEUS_AUTOBIND))
+        .thenReturn(true);
 
     when(prometheusScanner.findResources()).thenReturn(Optional.of(prometheusConfigList.getItems()));
 
@@ -196,8 +196,8 @@ class PrometheusTest {
   @Test
   void givenAutobindSettledButNotAllowed_ItShouldNotEvenLookForPrometheusInstallations() {
 
-    when(operatorContext.getProperty(OperatorProperty.PROMETHEUS_AUTOBIND))
-        .thenReturn(Optional.of(Boolean.FALSE.toString()));
+    when(operatorContext.getBoolean(OperatorProperty.PROMETHEUS_AUTOBIND))
+        .thenReturn(false);
 
     Prometheus prometheus = invokeGetConfig();
 
