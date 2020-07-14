@@ -16,6 +16,17 @@ e2e_test() {
 }
 
 check_namespace() {
+  if wait_until check_returned_namespaces
+  then
+    echo "Success. Namespace endpoint returned all namespaces"
+    return 0
+  else
+    echo "Fail. Namespace endpoint not return all namespaces. Expected $NAMESPACES_IN_K8S, actual $NAMESPACES_IN_K8S"
+    return 1
+  fi
+}
+
+check_returned_namespaces() {
   local NAMESPACES_IN_RESPONSE
   local NAMESPACES_IN_K8S
 
@@ -25,14 +36,7 @@ check_namespace() {
   NAMESPACES_IN_K8S=$(kubectl get ns -o json \
     | jq -M -S '.items[].metadata |  select(.name | startswith("kube") | not) | select(.name != "stackgres").name')
 
-  if [ "$NAMESPACES_IN_RESPONSE" = "$NAMESPACES_IN_K8S" ]
-  then
-    echo "Success. Namespace endpoint returned all namespaces"
-    return 0
-  else
-    echo "Fail. Namespace endpoint not return all namespaces. Expected $NAMESPACES_IN_K8S, actual $NAMESPACES_IN_K8S"
-    return 1
-  fi
+  [ "$NAMESPACES_IN_RESPONSE" = "$NAMESPACES_IN_K8S" ]
 }
 
 get_namespace_status() {
