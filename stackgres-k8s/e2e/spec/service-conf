@@ -54,7 +54,6 @@ services_annotations(){
     --set cluster.postgresServices.primary.annotations.primary-annotation="$PRIMARY_RANDOM_VALUE" \
     --set cluster.postgresServices.replicas.annotations.replica-annotation="$REPLICA_RANDOM_VALUE"
 
-  wait_pods_running "$CLUSTER_NAMESPACE" 2
   wait_services_available "$CLUSTER_NAMESPACE" 2 "\($CLUSTER_NAME-primary\|$CLUSTER_NAME-replicas\)"
 
   SERVICE_ANNOTATION="primary-annotation"
@@ -64,17 +63,13 @@ services_annotations(){
   check_service_annotation "replicas" "$REPLICA_RANDOM_VALUE"
 
   remove_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
-  wait_pods_terminated "$CLUSTER_NAMESPACE" 0
-
 }
 
 node_port_services(){
-
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
     --set cluster.postgresServices.primary.type="NodePort" \
     --set cluster.postgresServices.replicas.type="NodePort"
 
-  wait_pods_running "$CLUSTER_NAMESPACE" 2
   wait_services_available "$CLUSTER_NAMESPACE" 2 "\($CLUSTER_NAME-primary\|$CLUSTER_NAME-replicas\)"
 
   kubectl get service -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-"primary"
@@ -85,6 +80,7 @@ node_port_services(){
   assert_string_equal "NodePort" "$PRIMARY_SERVICE_TYPE"
   assert_string_equal "NodePort" "$REPLICA_SERVICE_TYPE"
 
+  remove_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 }
 
 load_balancer_services(){
@@ -93,7 +89,6 @@ load_balancer_services(){
     --set cluster.postgresServices.primary.type="LoadBalancer" \
     --set cluster.postgresServices.replicas.type="LoadBalancer"
 
-  wait_pods_running "$CLUSTER_NAMESPACE" 2
   wait_services_available "$CLUSTER_NAMESPACE" 2 "\($CLUSTER_NAME-primary\|$CLUSTER_NAME-replicas\)"
 
   kubectl get service -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-"primary"
@@ -104,4 +99,5 @@ load_balancer_services(){
   assert_string_equal "LoadBalancer" "$PRIMARY_SERVICE_TYPE"
   assert_string_equal "LoadBalancer" "$REPLICA_SERVICE_TYPE"
 
+  remove_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 }
