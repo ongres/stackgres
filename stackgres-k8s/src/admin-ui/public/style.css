@@ -906,7 +906,7 @@ ul.zg-ul-select.active li.active:hover {
     background-color: rgba(211, 211, 211, .10);
 }
 
-#ns-select, .set.active:not(.conf):not(.backups) {
+#ns-select, .set.active:not(.conf) {
     border-bottom: 1px solid #f1f1f1;
     border-top: 1px solid #f1f1f1;
     max-height: calc(100vh - 475px);
@@ -4426,11 +4426,11 @@ table.pgConfig tr.open > td, table.poolConfig tr.open > td {
     padding-top: 10px;
 }
 
-table.pgConfig th.desc.postgresVersion {
+table.pgConfig th.postgresVersion {
     width: 35px;
 }
 
-table.backupConfig th.sorted.desc.name {
+table.backupConfig th.name {
     width: 300px;
 }
 
@@ -4438,7 +4438,7 @@ table.backupConfig tr.details.show {
     display: table-row;
 }
 
-table.backups th.desc.name {
+table.backups th.name {
     width: 130px;
 }
 

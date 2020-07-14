@@ -1,6 +1,7 @@
-var CreateCluster = Vue.component("create-cluster", {
+var CreateCluster = Vue.component("CreateCluster", {
     template: `
         <form id="create-cluster">
+        <template v-for="cluster in clusters" v-if="(cluster.name == $route.params.name) && (cluster.data.metadata.namespace == $route.params.namespace)">
             <header>
                 <ul class="breadcrumbs">
                     <li class="namespace">
@@ -24,7 +25,6 @@ var CreateCluster = Vue.component("create-cluster", {
                 </div>
             </header>
             <div class="form">
-                
                 <div class="header">
                     <h2>Cluster Details</h2>
                     <label for="advancedMode" :class="(advancedMode) ? 'active' : ''">
@@ -263,7 +263,8 @@ var CreateCluster = Vue.component("create-cluster", {
                     <vue-markdown :source=tooltips></vue-markdown>
                 </div>
             </div>
-                        
+                  
+        </template>
 		</form>`,
 	data: function() {
 
@@ -322,7 +323,7 @@ var CreateCluster = Vue.component("create-cluster", {
                 volumeSize: volumeSize,
                 volumeUnit: ''+volumeUnit,
                 connPooling: !store.state.currentCluster.data.spec.pods.disableConnectionPooling,
-                connectionPoolingConfig: (!store.state.currentCluster.data.spec.pods.disableConnectionPooling) ? store.state.currentCluster.data.spec.configurations.sgPoolingConfig : '',
+                connectionPoolingConfig: (typeof store.state.currentCluster.data.spec.configurations.sgPoolingConfig !== 'undefined') ? store.state.currentCluster.data.spec.configurations.sgPoolingConfig : '',
                 restoreBackup: '',
                 downloadDiskConcurrency: '',
                 backupConfig: (typeof store.state.currentCluster.data.spec.configurations.sgBackupConfig !== 'undefined') ? store.state.currentCluster.data.spec.configurations.sgBackupConfig : '',
@@ -365,8 +366,8 @@ var CreateCluster = Vue.component("create-cluster", {
             else
                 return this.postgresVersion.substring(0,2)
         },
-        currentCluster() {
-            return store.state.currentCluster
+        clusters () {
+            return store.state.clusters
         },
         storageClasses() {
             return store.state.storageClasses
