@@ -21,3 +21,4 @@ minio:
     initialDelaySeconds: 5
 nonProductionOptions:
   createMinio: true
+  disableClusterPodAntiAffinity: true
