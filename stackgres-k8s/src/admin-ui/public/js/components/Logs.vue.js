@@ -1,7 +1,6 @@
 var Logs = Vue.component("Logs", {
 	template: `
 		<div id="sg-logs">
-		<template v-for="cluster in clusters" v-if="(cluster.name == $route.params.name) && (cluster.data.metadata.namespace == $route.params.namespace)">
 			<header>
 				<ul class="breadcrumbs">
 					<li class="namespace">
@@ -25,7 +24,7 @@ var Logs = Vue.component("Logs", {
 					<div>
 						<a class="cloneCRD" @click="cloneCRD('SGCluster', currentNamespace, $route.params.name)">Clone Cluster Configuration</a>
 						<router-link :to="'/admin/crd/edit/cluster/'+$route.params.namespace+'/'+$route.params.name">Edit Cluster</router-link>
-						<a v-on:click="deleteCRD('sgcluster', currentNamespace, cluster.name, '/overview/'+currentNamespace)" :class="'/overview/'+currentNamespace">Delete Cluster</a>
+						<a v-on:click="deleteCRD('sgcluster', currentNamespace, $route.params.name, '/overview/'+currentNamespace)" :class="'/overview/'+currentNamespace">Delete Cluster</a>
 					</div>
 				</div>
 
@@ -42,7 +41,7 @@ var Logs = Vue.component("Logs", {
 					<li>
 						<router-link :to="'/admin/cluster/logs/'+$route.params.namespace+'/'+$route.params.name" title="Distributed Logs" class="logs">Logs</router-link>
 					</li>
-					<li v-if="cluster.data.grafanaEmbedded">
+					<li v-if="grafanaEmbedded">
 						<router-link id="grafana-btn" :to="'/admin/monitor/'+$route.params.namespace+'/'+$route.params.name" title="Grafana Dashboard" class="grafana">Monitoring</router-link>
 					</li>
 				</ul>
@@ -481,7 +480,6 @@ var Logs = Vue.component("Logs", {
 			<div id="logTooltip">
 				<div class="info"></div>
 			</div>
-		</template>
 		</div>
 		`,
 	data: function() {
@@ -525,70 +523,26 @@ var Logs = Vue.component("Logs", {
 
         logs() {
 			return store.state.logs
-        }
+		},
+		
+		grafanaEmbedded() {
+			var grafana = false;
+			store.state.clusters.forEach(function( c ){
+                if( (c.data.metadata.name === vm.$route.params.name) && (c.data.metadata.namespace === vm.$route.params.namespace) ) {
+                    grafana = true;
+                    return false;
+                }
+			});
+			
+			return grafana            
+		}
 
 	},
 	mounted: function() {
-		vc = this;
 		
-		vc.records = parseInt((window.innerHeight - 350) / 30);
-		vc.getLogs(this.records);
-
-		$('table.logs').on('scroll', function() {
-			if( ($(this).scrollTop() + $(this).innerHeight() >= $(this)[0].scrollHeight) && store.state.logs.length ) {
-				
-				//console.log(store.state.logs[store.state.logs.length-1]);
-
-				ltime = store.state.logs[store.state.logs.length-1].logTime;
-				lindex = store.state.logs[store.state.logs.length-1].logTimeIndex;
-				vc.dateStart = ltime+','+lindex;
-				vc.getLogs(true, true);
-
-			}
-		})
-
-		onmousemove = function (e) {
-
-			if( (window.innerWidth - e.clientX) > 420 ) {
-				$('#logTooltip').css({
-					"top": e.clientY+20, 
-					"right": "auto",
-					"left": e.clientX+20
-				})
-			} else {
-				$('#logTooltip').css({
-					"top": e.clientY+20, 
-					"left": "auto",
-					"right": window.innerWidth - e.clientX + 20
-				})
-			}
-		}
-
-		$(document).on('mouseenter', 'td.hasTooltip', function(){
-			c = $(this).children('span');
-			if(c.width() > $(this).width()){
-				$('#logTooltip .info').text(c.text());
-				$('#logTooltip').addClass('show');
-			}
-				
-		});
-
-		$(document).on('mouseleave', 'td.hasTooltip', function(){ 
-			$('#logTooltip .info').text('');
-			$('#logTooltip').removeClass('show');
-		});
-
-		$(document).on('click', '.closeLog', function(){
-			$(this).parents('tr').prev().toggle();
-			$(this).parents('tr').toggleClass('open');
-		});
+		const vc = this;
 
 		$(document).ready(function(){
-
-			$(document).on('keyup', 'input.search', function(e){
-				if (e.keyCode === 13)
-					vc.getLogs();
-			});
 
 			$('#datePicker').daterangepicker({
 				"parentEl": "#log",
@@ -610,10 +564,66 @@ var Logs = Vue.component("Logs", {
 					vc.dateStart = end.format('YYYY-MM-DDTHH:mm:ss')+'Z';
 				}
 
-				console.log('filter');
-
 				vc.datePicker = vc.dateStart+' / '+vc.dateEnd;
 				vc.getLogs(false, true);
+			});
+		
+			vc.records = parseInt((window.innerHeight - 350) / 30);
+			vc.getLogs(this.records);
+
+
+			$('table.logs').on('scroll', function() {
+				if( ($(this).scrollTop() + $(this).innerHeight() >= $(this)[0].scrollHeight) && store.state.logs.length ) {
+					
+					//console.log(store.state.logs[store.state.logs.length-1]);
+
+					ltime = store.state.logs[store.state.logs.length-1].logTime;
+					lindex = store.state.logs[store.state.logs.length-1].logTimeIndex;
+					vc.dateStart = ltime+','+lindex;
+					vc.getLogs(true, true);
+
+				}
+			})
+
+			onmousemove = function (e) {
+
+				if( (window.innerWidth - e.clientX) > 420 ) {
+					$('#logTooltip').css({
+						"top": e.clientY+20, 
+						"right": "auto",
+						"left": e.clientX+20
+					})
+				} else {
+					$('#logTooltip').css({
+						"top": e.clientY+20, 
+						"left": "auto",
+						"right": window.innerWidth - e.clientX + 20
+					})
+				}
+			}
+
+			$(document).on('mouseenter', 'td.hasTooltip', function(){
+				c = $(this).children('span');
+				if(c.width() > $(this).width()){
+					$('#logTooltip .info').text(c.text());
+					$('#logTooltip').addClass('show');
+				}
+					
+			});
+
+			$(document).on('mouseleave', 'td.hasTooltip', function(){ 
+				$('#logTooltip .info').text('');
+				$('#logTooltip').removeClass('show');
+			});
+
+			$(document).on('click', '.closeLog', function(){
+				$(this).parents('tr').prev().toggle();
+				$(this).parents('tr').toggleClass('open');
+			});
+
+			$(document).on('keyup', 'input.search', function(e){
+				if (e.keyCode === 13)
+					vc.getLogs();
 			});
 			
 			$(document).on('click', '.toggle.date.open', function(){
@@ -675,34 +685,6 @@ var Logs = Vue.component("Logs", {
 				else
 					$(this).removeClass('active')
 			});
-
-			/* $(document).on('click', 'input[type="checkbox"]', function () {
-
-				if($(this).is(':checked')) {
-
-					console.log("checked"); 
-
-					$(this).addClass('active');
-
-					//console.log("L: "+vc[$(this).data('filter')].length);
-					if($(this).hasClass("xCheckbox")) {
-						$(this).parents('li').find(':checked:not(#'+$(this).prop('id')+')').removeClass('active').prop('checked', false);
-					
-						if(vc[$(this).data('filter')].length)
-							vc[$(this).data('filter')] = [$(this).val()];
-					}
-				} else {
-					$(this).removeClass('active');
-
-					console.log("unchecked")
-					
-					if($(this).hasClass("xCheckbox"))
-						vc[$(this).data('filter')] = [];
-				}
-
-				vc.getLogs();
-				
-			});	 */		
 
 		});
 
