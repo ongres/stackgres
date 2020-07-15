@@ -786,9 +786,6 @@ var Backups = Vue.component("Backups", {
 					else
 						router.push('/admin/backups/'+store.state.currentNamespace)
 				}
-
-				/* $(this).parent().next().toggle().addClass("open");
-				$(this).parent().toggleClass("open"); */
 			});
 
 		});
