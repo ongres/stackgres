@@ -30,6 +30,8 @@ public interface LabelFactory<T extends CustomResource> {
 
   Map<String, String> backupPodLabels(StackGresCluster resource);
 
+  Map<String, String> scheduledBackupPodLabels(StackGresCluster resource);
+
   Map<String, String> anyPatroniClusterLabels();
 
   Map<String, String> clusterCrossNamespaceLabels(StackGresCluster resource);

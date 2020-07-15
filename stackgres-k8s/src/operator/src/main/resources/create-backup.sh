@@ -46,7 +46,7 @@ kubectl get "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" \
   --template "$backup_cr_template" > /tmp/all-backups
 grep "^$CLUSTER_NAME:" /tmp/all-backups > /tmp/backups || true
 
-if [ "$IS_CRONJOB" = true ]
+if [ -n "$SCHEDULED_BACKUP_KEY" ]
 then
   BACKUP_NAME="${CLUSTER_NAME}-$(date +%Y-%m-%d-%H-%M-%S)"
 fi
@@ -62,6 +62,8 @@ kind: $BACKUP_CRD_KIND
 metadata:
   namespace: "$CLUSTER_NAMESPACE"
   name: "$BACKUP_NAME"
+  annotations:
+    $SCHEDULED_BACKUP_KEY: "$RIGHT_VALUE"
 spec:
   sgCluster: "$CLUSTER_NAME"
   managedLifecycle: true
@@ -251,7 +253,7 @@ then
   kubectl get pod -n "$CLUSTER_NAMESPACE" -l "${PATRONI_CLUSTER_LABELS}" >&2
   echo > /tmp/backup-push
   echo "Unable to find primary, backup aborted" >> /tmp/backup-push
-  [ "$IS_CRONJOB" = true ] || sleep 15
+  [ -n "$SCHEDULED_BACKUP_KEY" ] || sleep 15
   exit 1
 fi
 if [ ! -s /tmp/current-replica-or-primary ]
@@ -407,7 +409,7 @@ else
       ]'
     cat /tmp/backup-push
     echo "Backup failed"
-    [ "$IS_CRONJOB" = true ] || sleep 15
+    [ -n "$SCHEDULED_BACKUP_KEY" ] || sleep 15
     exit 1
   fi
 fi
@@ -435,7 +437,7 @@ EOF
       ]'
     cat /tmp/backup-list
     echo "Backups can not be listed after creation"
-    [ "$IS_CRONJOB" = true ] || sleep 15
+    [ -n "$SCHEDULED_BACKUP_KEY" ] || sleep 15
     exit 1
   fi
   cat /tmp/backup-list | tr -d '[]' | sed 's/},{/}|{/g' | tr '|' '\n' \
@@ -448,7 +450,7 @@ EOF
       ]'
     cat /tmp/backup-list
     echo "Backup configuration '$BACKUP_CONFIG' changed during backup"
-    [ "$IS_CRONJOB" = true ] || sleep 15
+    [ -n "$SCHEDULED_BACKUP_KEY" ] || sleep 15
     exit 1
   elif ! grep -q "^backup_name:${WAL_G_BACKUP_NAME}$" /tmp/current-backup
   then
@@ -458,7 +460,7 @@ EOF
       ]'
     cat /tmp/backup-list
     echo "Backup '$WAL_G_BACKUP_NAME' was not found after creation"
-    [ "$IS_CRONJOB" = true ] || sleep 15
+    [ -n "$SCHEDULED_BACKUP_KEY" ] || sleep 15
     exit 1
   else
     existing_backup_is_permanent="$(grep "^is_permanent:" /tmp/current-backup | cut -d : -f 2-)"
@@ -553,6 +555,6 @@ else
     ]'
   cat /tmp/backup-push
   echo "Backup name not found in backup-push log"
-  [ "$IS_CRONJOB" = true ] || sleep 15
+  [ -n "$SCHEDULED_BACKUP_KEY" ] || sleep 15
   exit 1
 fi

@@ -16,6 +16,7 @@ public interface StackGresContext {
   String WRONG_VALUE = Boolean.FALSE.toString();
   String CLUSTER_KEY = "cluster";
   String BACKUP_KEY = "backup";
+  String SCHEDULED_BACKUP_KEY = "scheduled-backup";
   String DISRUPTIBLE_KEY = "disruptible";
   String ROLE_KEY = "role";
   String PRIMARY_ROLE = "master";
