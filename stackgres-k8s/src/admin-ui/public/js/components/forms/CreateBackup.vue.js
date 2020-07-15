@@ -12,7 +12,7 @@ var CreateBackup = Vue.component("create-backup", {
                         <router-link :to="'/admin/backups/'+currentNamespace" title="SGBackups">SGBackups</router-link>
                     </li>
                     <li v-if="editMode">
-                    <router-link :to="'/admin/backups/'+currentNamespace+'/'+$route.params.uid" title="Backup Details">{{ $route.params.uid }}</router-link>
+                        <router-link :to="'/admin/backups/'+currentNamespace+'/'+$route.params.cluster+'/'+$route.params.uid" title="Backup Details">{{ $route.params.uid }}</router-link>
                     </li>
                     <li class="action">
                         {{ $route.params.action }}
@@ -94,7 +94,7 @@ var CreateBackup = Vue.component("create-backup", {
             let bk = {};
             
             store.state.backups.forEach(function( b ){
-                if( (b.data.metadata.name === vm.$route.params.name) && (b.data.metadata.namespace === vm.$route.params.namespace) ) {
+                if( (b.data.metadata.uid === vm.$route.params.uid) && (b.data.metadata.namespace === vm.$route.params.namespace) ) {
                     bk = b;
                     return false;
                 }
@@ -103,7 +103,7 @@ var CreateBackup = Vue.component("create-backup", {
             return {
                 editMode: true,
                 advancedMode: false,
-                backupName: vm.$route.params.name,
+                backupName: bk.data.metadata.name,
                 backupNamespace: store.state.currentNamespace,
                 backupCluster: vm.$route.params.cluster,
                 managedLifecycle: bk.data.spec.managedLifecycle
