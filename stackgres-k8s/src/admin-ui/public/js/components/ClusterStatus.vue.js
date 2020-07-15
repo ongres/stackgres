@@ -96,10 +96,6 @@ var ClusterStatus = Vue.component("ClusterStatus", {
 				</table>
 			</div>
 		</template>
-		<template v-else>
-			<!--{{ notFound }}-->
-			<!-- <iframe src="/admin/not-found.html" /> -->
-		</template>
 		</div>`,
 	data: function() {
 		return {
