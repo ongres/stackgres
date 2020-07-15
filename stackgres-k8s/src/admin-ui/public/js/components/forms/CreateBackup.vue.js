@@ -12,7 +12,7 @@ var CreateBackup = Vue.component("create-backup", {
                         <router-link :to="'/admin/backups/'+currentNamespace" title="SGBackups">SGBackups</router-link>
                     </li>
                     <li v-if="editMode">
-                    <router-link :to="'/admin/backups/'+currentNamespace+'/'+$route.params.name" title="Backup Details">{{ $route.params.name }}</router-link>
+                    <router-link :to="'/admin/backups/'+currentNamespace+'/'+$route.params.uid" title="Backup Details">{{ $route.params.uid }}</router-link>
                     </li>
                     <li class="action">
                         {{ $route.params.action }}

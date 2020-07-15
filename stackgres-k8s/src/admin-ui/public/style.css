@@ -418,7 +418,7 @@ form#login .warning {
     color: #e3e3e3;
 }
 
-.darkmode #sets h4, .darkmode h4, .darkmode #sets h3, .darkmode h3, .darkmode h2, .darkmode thead, .darkmode .tabs a, .darkmode #keyword, .darkmode .options li.textFilter .search  {
+.darkmode #sets h4, .darkmode h4, .darkmode #sets h3, .darkmode h3, .darkmode h2, .darkmode thead, .darkmode .tabs a, .darkmode #keyword, .darkmode .options li.textFilter .search, .darkmode #help h3.title, .darkmode table.clusterConfig td.label, .darkmode .details th, .darkmode tr.details table td.label, .darkmode .yaml .label, .darkmode .logMessage .param, .darkmode .logDetails td.param {
     color: #a5a5a5;
 }
 
@@ -431,7 +431,7 @@ form#login .warning {
 }
 
 
-.darkmode ul.tabs, .darkmode .content h2, .darkmode .form .header {
+.darkmode ul.tabs, .darkmode .content h2, .darkmode .form .header, .darkmode .set.active:not(.conf), .darkmode table.poolConfig tr.details .paramDetails table, .darkmode table.pgConfig tr.details .paramDetails table {
     border-color: #333333;
 }
 
@@ -439,9 +439,9 @@ form#login .warning {
     background: #1e1e1e;
 }
 
-.darkmode .actions svg path {
+/*.darkmode .actions svg path {
     fill: #7A7B85;
-}
+}*/
 
 .darkmode .form input, .darkmode .form select, .darkmode .form textarea {
     background-color: #1b1b1b;    
@@ -451,7 +451,7 @@ form#login .warning {
     background-color: rgba(122, 123, 133, .10);
 }
 
-.darkmode ul#postgresVersion, .darkmode ul#postgresVersion ul {
+.darkmode ul#postgresVersion, .darkmode ul#postgresVersion ul, .darkmode table.pgConfig tr:nth-child(4n-2), .darkmode table.pgConfig tr:nth-child(4n-2) + tr.details, .darkmode table.poolConfig tr:nth-child(4n-2), .darkmode table.poolConfig tr:nth-child(4n-2) + tr.details, .darkmode table.backupConfig tr:nth-child(4n-2), .darkmode table.backupConfig tr:nth-child(4n-2) + tr.details {
     background-color: #171717;
 }
 
@@ -641,6 +641,9 @@ aside {
     text-align: left;
     line-height: 30px;
     margin-right: 20px;
+}
+
+#logo a {
     color: var(--gray5);
     font-size: 1.3rem;
 }
@@ -649,6 +652,8 @@ aside {
     font-weight: 300;
     display: inline-block;
     font-size: 20px;
+    margin-top: 1px;
+    position: absolute;
 }
 
 #nav #logo svg {
@@ -1107,7 +1112,7 @@ ul.zg-ul-select.active li.active:hover {
     padding-left: 80px;
 }
 
-a.item.namespace.router-link-exact-active {
+#side a.router-link-exact-active {
     /*background: rgba(211,211,214,.15);*/
     /*color: var(--blue);*/
     color: #4D4F5C;
@@ -2375,7 +2380,7 @@ button.cancelBtn:hover {
     background-color: rgba(0, 173, 181, .25) !important;
 }
 
-.darkmode .daterangepicker td.available:hover {
+.darkmode .daterangepicker td.available:hover, .darkmode #side a.router-link-exact-active {
     color: #fff;
 }
 
@@ -2869,7 +2874,7 @@ tr.details table th, tr.details table td {
     vertical-align: middle;
 }
 
-.darkmode tr.details table, .darkmode tr.details table th, .darkmode tr.details table td {
+.darkmode tr.details table, .darkmode tr.details table th, .darkmode tr.details table td, .darkmode .backupConfig .storageDetails ul.yaml {
     border-color: #333333;;
 }
 
@@ -3009,13 +3014,13 @@ table.clusterConfig a {
     display: inline-flex;
 }
 
-table.clusterConfig a:hover svg {
+table.clusterConfig a:hover svg, td.usedOn a:hover svg path{
     fill: var(--lblue);
 }
 
-table.clusterConfig svg {
+table.clusterConfig svg, td.usedOn svg {
     fill: var(--blue);
-    width: 14px;
+    width: 15px;
     display: inline-block;
     margin-left: 5px;
 }
@@ -4036,10 +4041,6 @@ td.today.available {
     margin-bottom: 10px;
 }
 
-.darkmode #help h3.title {
-    color: #a5a5a5;
-}
-
 #help .info ul {
     padding-left: 20px;
     margin: 10px 0;
@@ -4343,7 +4344,7 @@ span.closeLog:hover {
 
 /* Backups YAML */
 
-table.backups tr.base:hover td.timestamp:before, table.backups tr.base.open td.timestamp:before, table.pgConfig tr.toggle:not(.open):hover td:first-of-type:before, table.poolConfig tr.toggle:not(.open):hover td:first-of-type:before, table.backupConfig tr:not(.no-results):hover td:first-of-type:before, table.profiles tr.base:hover td:first-of-type:before, table.clusterOverview tr:not(.no-results):hover td:first-of-type:before, table.profiles tr.open-profile td:first-of-type:before {
+table.backups tr.base:hover td.timestamp:before, table.backups tr.base.open td.timestamp:before, table.pgConfig tr.base:not(.open):hover td:first-of-type:before, table.poolConfig tr.base:not(.open):hover td:first-of-type:before, table.backupConfig tr.base:not(.open):hover td:first-of-type:before, table.profiles tr.base:not(.open):hover td:first-of-type:before, table.clusterOverview tr:not(.no-results):hover td:first-of-type:before, table.profiles tr.open-profile td:first-of-type:before {
     content: " ";
     width: 5px;
     border: 1px solid var(--blue);
