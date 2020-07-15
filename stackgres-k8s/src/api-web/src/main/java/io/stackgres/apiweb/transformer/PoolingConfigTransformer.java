@@ -101,7 +101,6 @@ public class PoolingConfigTransformer
           .map(Tuple3::v3)
           .toList());
     if (source != null && source.getPgBouncer() != null) {
-      transformation.setPgBouncer(new PoolingConfigPgBouncerStatus());
       transformation.getPgBouncer().setDefaultParameters(
           source.getPgBouncer().getDefaultParameters());
     }
