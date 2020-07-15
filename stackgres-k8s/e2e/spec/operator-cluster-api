@@ -127,8 +127,8 @@ test_cluster_stats_are_loaded() {
   STATUS_RESPONSE=$(run_curl -r "stackgres/sgcluster/stats/$CLUSTER_NAMESPACE/$CLUSTER_NAME")
 
   if [ "$(echo_raw "$STATUS_RESPONSE" \
-    | jq 'select(.cpuFound != null && .memoryUsed != null && .diskUsed != null && .averageLoad1m != null)' \
-    | jq 'select(.pods[0].cpuFound != null && .pods[0].memoryUsed != null && .pods[0].diskUsed != null && .pods[0].averageLoad1m != null)' \
+    | jq 'select(.cpuFound != null and .memoryUsed != null and .diskUsed != null and .averageLoad1m != null)' \
+    | jq 'select(.pods[0].cpuFound != null and .pods[0].memoryUsed != null and .pods[0].diskUsed != null and .pods[0].averageLoad1m != null)' \
     | wc -l)" -ne 0 ]
   then
     echo "Cluster $CLUSTER_NAME stats was returned by the api"
