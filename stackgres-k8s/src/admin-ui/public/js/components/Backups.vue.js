@@ -191,7 +191,7 @@ var Backups = Vue.component("Backups", {
 						<tbody>
 							<tr class="no-results">
 								<td :colspan="999">
-									No records matched your search terms, would  you like to <router-link to="/admin/crd/create/backup/" title="Add New Backup">create a new one?</router-link>
+									No records matched your search terms, would  you like to <router-link :to="'/admin/crd/create/backup/'+$route.params.namespace" title="Add New Backup">create a new one?</router-link>
 								</td>
 							</tr>
 							<template v-for="back in backups" v-if="( ( (back.data.metadata.namespace == currentNamespace) && !isCluster && back.show ) || (isCluster && (back.data.spec.sgCluster == $route.params.name ) && (back.data.metadata.namespace == $route.params.namespace ) && back.show ) )">
@@ -775,11 +775,14 @@ var Backups = Vue.component("Backups", {
 
 			$(document).on("click", "table.backups tr.base td:not(.actions)", function() {
 				if(!$(this).parent().hasClass('open')) {
-					router.push('/admin/backups/'+store.state.currentNamespace+'/'+$(this).parent().data('cluster')+'/'+$(this).parent().data('uid')+'#'+$(this).parent().prop('id'))
+					if(vc.$route.params.hasOwnProperty('cluster'))
+						router.push('/admin/cluster/backups/'+store.state.currentNamespace+'/'+$(this).parent().data('cluster')+'/'+$(this).parent().data('uid'))
+					else
+						router.push('/admin/backups/'+store.state.currentNamespace+'/'+$(this).parent().data('cluster')+'/'+$(this).parent().data('uid'))
 				}
 				else {
-					if(vc.$route.params.hasOwnProperty('name'))
-						router.push('/admin/backups/'+store.state.currentNamespace+'/'+$(this).parent().data('cluster'))
+					if(vc.$route.params.hasOwnProperty('cluster'))
+						router.push('/admin/cluster/backups/'+store.state.currentNamespace+'/'+$(this).parent().data('cluster'))
 					else
 						router.push('/admin/backups/'+store.state.currentNamespace)
 				}

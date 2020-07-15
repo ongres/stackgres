@@ -36,7 +36,7 @@ const router = new VueRouter({
   mode: 'history',
   routes: [
     { 
-      path: '/admin/crd/:action/cluster', 
+      path: '/admin/crd/:action/cluster/:namespace', 
       component: CreateCluster,
       meta: {
         conditionalRoute: false
@@ -50,7 +50,7 @@ const router = new VueRouter({
       },
     },
     { 
-      path: '/admin/crd/:action/profile', 
+      path: '/admin/crd/:action/profile/:namespace', 
       component: CreateProfile,
       meta: {
         conditionalRoute: false
@@ -64,7 +64,7 @@ const router = new VueRouter({
       },
     },
     { 
-      path: '/admin/crd/:action/pgconfig', 
+      path: '/admin/crd/:action/pgconfig/:namespace', 
       component: CreatePGConfig,
       meta: {
         conditionalRoute: false
@@ -78,7 +78,7 @@ const router = new VueRouter({
       },
     },
     { 
-      path: '/admin/crd/:action/connectionpooling', 
+      path: '/admin/crd/:action/connectionpooling/:namespace', 
       component: CreatePoolConfig,
       meta: {
         conditionalRoute: false
@@ -92,7 +92,7 @@ const router = new VueRouter({
       },
     },
     { 
-      path: '/admin/crd/:action/backupconfig', 
+      path: '/admin/crd/:action/backupconfig/:namespace', 
       component: CreateBackupConfig,
       meta: {
         conditionalRoute: false
@@ -148,13 +148,6 @@ const router = new VueRouter({
       },
     },
     { 
-      path: '/admin/:cluster/backups/:namespace/:name', 
-      component: Backups,
-      meta: {
-        conditionalRoute: false
-      },
-    },
-    { 
       path: '/admin/:cluster/logs/:namespace/:name', 
       component: Logs,
       meta: {
@@ -176,14 +169,21 @@ const router = new VueRouter({
       },
     },
     { 
-      path: '/admin/backups/:namespace/:name', 
+      path: '/admin/backups/:namespace/:name/:uid', 
       component: Backups,
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/admin/backups/:namespace/:name/:uid', 
+      path: '/admin/:cluster/backups/:namespace/:name', 
+      component: Backups,
+      meta: {
+        conditionalRoute: false
+      },
+    },
+    { 
+      path: '/admin/:cluster/backups/:namespace/:name/:uid', 
       component: Backups,
       meta: {
         conditionalRoute: false
@@ -1528,9 +1528,9 @@ Vue.filter('formatTimestamp',function(t, part){
 });
 
 function notFound() {
-  //store.commit('notFound',true)
+  store.commit('notFound',true)
   //console.log('notfound')
-  //router.push('/admin/not-found.html')
+  router.push('/admin/not-found.html')
 }
 
 function checkLogin() {
