@@ -25,6 +25,8 @@ cluster:
   pods:
     persistentVolume:
       size: 128Mi
+  configurations:
+    sgBackupConfig: backupconf
   prometheusAutobind: false
 nonProductionOptions:
   createMinio: false
