@@ -21,9 +21,22 @@ then
   exit 1
 fi
 
+E2E_SOURCES="0"
+
+e2e_add_source() {
+  eval "E2E_SOURCES_$E2E_SOURCES=$1"
+  E2E_SOURCES="$((E2E_SOURCES + 1))"
+}
+
 for util in $(find "$(dirname "$0")/utils" -type f)
 do
   . "$util"
+done
+
+while [ "$E2E_SOURCES" -gt 0 ]
+do
+  E2E_SOURCES="$((E2E_SOURCES - 1))"
+  eval ". \"$(dirname "$0")/\$E2E_SOURCES_$E2E_SOURCES\""
 done
 
 [ -z "$SHELL_XTRACE" ] || set -x
