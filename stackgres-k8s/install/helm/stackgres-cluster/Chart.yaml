@@ -21,3 +21,8 @@ engine: gotpl
 icon: https://assets.gitlab-static.net/uploads/-/system/project/avatar/12584701/logo-stackgres.png?width=64
 appVersion: 0.9-beta3
 deprecated: false
+dependencies:
+  - name: minio
+    version: 5.0.26
+    repository: https://kubernetes-charts.storage.googleapis.com/
+    condition: nonProductionOptions.createMinio
