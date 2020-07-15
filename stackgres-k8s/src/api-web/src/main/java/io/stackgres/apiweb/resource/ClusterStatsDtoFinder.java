@@ -22,6 +22,7 @@ import io.stackgres.apiweb.dto.cluster.ClusterStatsDto;
 import io.stackgres.apiweb.transformer.ClusterStatsTransformer;
 import io.stackgres.common.ClusterLabelFactory;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.PersistentVolumeClaimFinder;
@@ -30,10 +31,14 @@ import io.stackgres.common.resource.PodFinder;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple2;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
 public class ClusterStatsDtoFinder
     implements CustomResourceFinder<ClusterStatsDto> {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(ClusterStatsDtoFinder.class);
 
   private final CustomResourceFinder<StackGresCluster> clusterFinder;
   private final PodFinder podFinder;
@@ -82,16 +87,29 @@ public class ClusterStatsDtoFinder
 
   private ImmutableMap<PatroniStatsScripts, String> getPodStats(Pod pod) {
     try {
-      return Seq.seq(podExecutor.exec(pod, "sh", "-c",
+      return Seq.seq(podExecutor.exec(pod, StackgresClusterContainers.PATRONI, "sh", "-c",
           Seq.seq(PatroniStatsScripts.getScripts())
-          .map(tt -> "echo \"" + tt.v1.getName() + ":$(" + tt.v2 + " || true)\";\n")
+          .map(tt -> "echo \"" + tt.v1.getName() + ":$( (" + tt.v2 + ") 2>&1 | tr -d '\\n')\"\n")
           .toString()))
-      .map(line -> Tuple.tuple(line, line.indexOf(":")))
-      .map(tt -> Tuple.tuple(
-          PatroniStatsScripts.fromName(tt.v1.substring(0, tt.v2)),
-          tt.v1.substring(tt.v2 + 1)))
-      .collect(ImmutableMap.toImmutableMap(Tuple2::v1, Tuple2::v2));
+          .peek(line -> {
+            if (LOGGER.isTraceEnabled() && line.endsWith("#failed")) {
+              LOGGER.trace("An error accurred while retrieving stats for pod {}.{}: {}",
+                  pod.getMetadata().getNamespace(),
+                  pod.getMetadata().getName(),
+                  line.substring(0, line.indexOf("#failed")));
+            }
+          })
+          .filter(line -> !line.endsWith("#failed"))
+          .map(line -> Tuple.tuple(line, line.indexOf(":")))
+          .map(tt -> Tuple.tuple(
+              PatroniStatsScripts.fromName(tt.v1.substring(0, tt.v2)),
+              tt.v1.substring(tt.v2 + 1)))
+          .collect(ImmutableMap.toImmutableMap(Tuple2::v1, Tuple2::v2));
     } catch (Exception ex) {
+      LOGGER.debug("An error accurred while retrieving stats for pod {}.{}: {}",
+          pod.getMetadata().getNamespace(),
+          pod.getMetadata().getName(),
+          ex.getMessage());
       return ImmutableMap.<PatroniStatsScripts, String>of();
     }
   }
