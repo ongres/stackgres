@@ -17,9 +17,18 @@
         "pgBouncer": {
           "pgbouncer.ini": {
             "default_pool_size": "200",
-            "max_client_conn": "200",
+            "max_client_conn": "100",
             "pool_mode": "'transaction'"
           }
+        }
+      },
+      "status": {
+        "pgBouncer": {
+          "defaultParameters": [
+            "default_pool_size",
+            "max_client_conn",
+            "pool_mode"
+          ]
         }
       }
     }

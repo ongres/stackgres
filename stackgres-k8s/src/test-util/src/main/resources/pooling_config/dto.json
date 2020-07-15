@@ -6,7 +6,7 @@
   },
   "spec": {
     "pgBouncer": {
-      "pgbouncer.ini": "default_pool_size=200\nmax_client_conn=200\npool_mode='transaction'"
+      "pgbouncer.ini": "default_pool_size=200\nmax_client_conn=100\npool_mode='transaction'"
     }
   }
 }
