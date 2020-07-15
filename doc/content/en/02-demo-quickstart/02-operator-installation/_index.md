@@ -60,6 +60,19 @@ kubectl port-forward "$(kubectl get pod --selector=app=stackgres-operator -o nam
 
 Then open the browser at following address [`localhost:8443/admin/`]](`https://localhost:8443/admin/`)
 
-The UI will ask for a username and a password. By default those are `admin` and `st4ckgr3s`
- respectively. See [installation via helm]({{% relref "/03-production-installation/02-installation-via-helm" %}})
+The UI will ask for a username and a password. By default those are `admin` and a randomly generated password.
+
+To get the username, run the command:
+
+    kubectl get secret -n stackgres stackgres-restapi --template '{{ printf "username = %s\n" (.data.k8sUsername | base64decode) }}'
+
+To get the generated password, run the command:
+
+    kubectl get secret -n stackgres stackgres-restapi --template '{{ printf "password = %s\n" (.data.clearPassword | base64decode) }}'
+
+Remember to remove the generated password hint from the secret to avoid security flaws:
+
+    kubectl patch secrets --namespace stackgres stackgres-restapi --type json -p '[{"op":"remove","path":"/data/clearPassword"}]'
+
+ See [installation via helm]({{% relref "/03-production-installation/02-installation-via-helm" %}})
  section in order to change those.
