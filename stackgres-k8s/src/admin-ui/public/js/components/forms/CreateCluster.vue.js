@@ -1,7 +1,6 @@
 var CreateCluster = Vue.component("CreateCluster", {
     template: `
-        <form id="create-cluster">
-        <template v-for="cluster in clusters" v-if="(cluster.name == $route.params.name) && (cluster.data.metadata.namespace == $route.params.namespace)">
+        <form id="create-cluster" class="noSubmit">
             <header>
                 <ul class="breadcrumbs">
                     <li class="namespace">
@@ -263,8 +262,6 @@ var CreateCluster = Vue.component("CreateCluster", {
                     <vue-markdown :source=tooltips></vue-markdown>
                 </div>
             </div>
-                  
-        </template>
 		</form>`,
 	data: function() {
 
@@ -302,8 +299,7 @@ var CreateCluster = Vue.component("CreateCluster", {
     
                 if ( typeof cluster !== "undefined" )
                   store.commit('setCurrentCluster', cluster);
-            } 
-
+            }
 
             let volumeSize = store.state.currentCluster.data.spec.pods.persistentVolume.size.match(/\d+/g);
             let volumeUnit = store.state.currentCluster.data.spec.pods.persistentVolume.size.match(/[a-zA-Z]+/g);
@@ -366,9 +362,6 @@ var CreateCluster = Vue.component("CreateCluster", {
             else
                 return this.postgresVersion.substring(0,2)
         },
-        clusters () {
-            return store.state.clusters
-        },
         storageClasses() {
             return store.state.storageClasses
         },
@@ -379,7 +372,6 @@ var CreateCluster = Vue.component("CreateCluster", {
         logsClusters(){
             return store.state.logsClusters
         },
-
         nameColission() {
 
             const vc = this;
@@ -391,6 +383,12 @@ var CreateCluster = Vue.component("CreateCluster", {
 			})
 
 			return nameColission
+        },
+        isReady() {
+            return store.state.ready
+        },
+        currentCluster () {
+            return store.state.currentCluster
         }
 
     },
@@ -467,7 +465,7 @@ var CreateCluster = Vue.component("CreateCluster", {
                         notify('Cluster <strong>"'+cluster.metadata.name+'"</strong> updated successfully', 'message', 'sgcluster');
 
                         vm.fetchAPI('sgcluster');
-                        router.push('/admin/cluster/status/'+cluster.metadata.namespace+'/'+cluster.metadata.name);
+                        router.push('/admin/overview/'+cluster.metadata.namespace);
                         
                     })
                     .catch(function (error) {
@@ -485,7 +483,7 @@ var CreateCluster = Vue.component("CreateCluster", {
                         notify('Cluster <strong>"'+cluster.metadata.name+'"</strong> created successfully', 'message', 'sgcluster');
 
                         vm.fetchAPI('sgcluster');
-                        router.push('/admin/cluster/status/'+cluster.metadata.namespace+'/'+cluster.metadata.name);
+                        router.push('/admin/overview/'+cluster.metadata.namespace);
                         
                         /* store.commit('updateClusters', { 
                             name: cluster.metadata.name,
