@@ -268,6 +268,22 @@ check_backup_retention() {
   fi
 }
 
+check_single_backup_job() {
+  if ! wait_until -t 60 -i 0 eval '[ "$(get_manual_backup_pod_count)" -gt 0 ]'
+  then
+    echo "Good. Only 1 running backup job"
+  else
+    echo "Only 1 backup job should be running"
+    return 1
+  fi
+}
+
+get_manual_backup_pod_count() {
+  kubectl get pod -n "$CLUSTER_NAMESPACE" -l backup=true \
+    --template '{{ range .items }}{{ printf "%s %s\n" .metadata.ownerReferences .metadata.labels }}{{ end }}' \
+    | grep ' kind:Job ' | wc -l
+}
+
 check_switchover() {
   if kubectl exec -t -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-0 -c patroni -- \
     patronictl switchover --master "$CLUSTER_NAME"-0 --candidate "$CLUSTER_NAME"-1 --force

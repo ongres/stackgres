@@ -40,6 +40,8 @@ EOF
 e2e_test() {
   run_test "Checking that backup is working before switchover" check_backup_before_switchover
 
+  run_test "Checking single backup job is running at a time" check_single_backup_job
+
   run_test "Checking that backup retention is working before switchover" check_backup_retention_before_switchover
 
   run_test "Checking that manual backup is working" check_manual_backup_before_switchover
