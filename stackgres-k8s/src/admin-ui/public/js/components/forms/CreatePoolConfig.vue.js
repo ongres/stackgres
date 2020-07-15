@@ -1,6 +1,8 @@
-var CreatePoolConfig = Vue.component("create-poolconfig", {
+var CreatePoolConfig = Vue.component("CreatePoolConfig", {
     template: `
         <form id="create-poolConfig">
+            <!-- Vue reactivity hack -->
+            <template v-if="Object.keys(config).length > 0"></template>
             <header>
                 <ul class="breadcrumbs">
                     <li class="namespace">
@@ -66,36 +68,16 @@ var CreatePoolConfig = Vue.component("create-poolconfig", {
             </div>
 		</form>`,
 	data: function() {
-            
-        if (vm.$route.params.action == 'create') {
-            return {
-                editMode: false,
-                poolConfigName: '',
-                poolConfigNamespace: store.state.currentNamespace,
-                poolConfigParams: '',
-            }
-        } else if (vm.$route.params.action == 'edit') {
-            
-            var configParams = '';
-            
-            store.state.poolConfig.forEach(function( conf ){
-                if( (conf.data.metadata.name === vm.$route.params.name) && (conf.data.metadata.namespace === vm.$route.params.namespace) ) {
-                    configParams = conf.data.spec.pgBouncer["pgbouncer.ini"];
-                    /* $.each( conf.data.spec["pgbouncer.ini"], function( index, value ){
-                        configParams += index+' = '+value+'\n';
-                    }); */
-                    return false;
-                }
-            });
-            
-            return {
-                editMode: true,
-                poolConfigName: vm.$route.params.name,
-                poolConfigNamespace: store.state.currentNamespace,
-                poolConfigParams: configParams,
-            }
-        
+
+        const vm = this;
+
+        return {
+            editMode: (vm.$route.params.action === 'edit'),
+            poolConfigName: vm.$route.params.hasOwnProperty('name') ? vm.$route.params.name : '',
+            poolConfigNamespace: vm.$route.params.hasOwnProperty('namespace') ? vm.$route.params.namespace : '',
+            poolConfigParams: '',
         }
+
 	},
 	computed: {
         allNamespaces () {
@@ -120,6 +102,21 @@ var CreatePoolConfig = Vue.component("create-poolconfig", {
 			})
 
 			return nameColission
+        },
+
+        config() {
+            var vm = this;
+            var config = {};
+            
+            store.state.poolConfig.forEach(function( conf ){
+                if( (conf.data.metadata.name === vm.$route.params.name) && (conf.data.metadata.namespace === vm.$route.params.namespace) ) {
+                    vm.poolConfigParams = conf.data.spec.pgBouncer["pgbouncer.ini"];
+                    config = conf;
+                    return false;
+                }
+            });
+        
+            return config
         }
     },
     methods: {
