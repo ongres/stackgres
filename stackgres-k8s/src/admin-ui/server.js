@@ -9,7 +9,7 @@ const target = process.env.SERVER;
 
 const server = app.listen(8081, function(){
     let port = server.address().port;
-    console.log("Server started at http://localhost:%s", port);
+    console.log("Server started at http://localhost:%s/admin", port);
     console.log("Proxy targeting to %s", target)
 });
 
@@ -18,26 +18,18 @@ app.use((req, res, next) => {
     next()
 });
 
-app.use('/stackgres', proxy(target, {
-    proxyReqOptDecorator: function(proxyReqOpts, originalReq) {
-      proxyReqOpts.rejectUnauthorized = false
-      return proxyReqOpts;
-    },
-    proxyReqPathResolver: function (req) {
-        let url = req.url
-        url = "/stackgres" + url; 
-        return url;
-      }
-  }));
+const proxyPaths = ['/stackgres', '/grafana', "/api", "/d", "/public"]
 
-app.use('/grafana', proxy(target, {
+proxyPaths.forEach((proxyPath) => {
+  app.use(proxyPath, proxy(target, {
     proxyReqOptDecorator: function(proxyReqOpts, originalReq) {
       proxyReqOpts.rejectUnauthorized = false
       return proxyReqOpts;
     },
     proxyReqPathResolver: function (req) {
         let url = req.url
-        url = "/stackgres" + url; 
+        url = proxyPath + url; 
         return url;
       }
   }));
+});
