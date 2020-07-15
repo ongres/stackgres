@@ -309,48 +309,44 @@ router.beforeEach((to, from, next) => {
 
       case 'CreateCluster':
         var found = false;
+        axios
+        .get(apiURL+'sgcluster',
+            {
+                headers: {
+                    'content-type': 'application/json'
+                }
+            }
+        )
+        .then( function(response) {
 
-        if(!store.state.clusters.length) {        
-        
-          axios
-          .get(apiURL+'sgcluster',
-              {
-                  headers: {
-                      'content-type': 'application/json'
-                  }
-              }
-          )
-          .then( function(response) {
+          const data = response.data;
 
-            const data = response.data;
+            data.forEach( function(item, index) {
 
-              data.forEach( function(item, index) {
+                var cluster = {
+                    name: item.metadata.name,
+                    data: item,
+                    hasBackups: false,
+                    status: {},
+                };
 
-                  var cluster = {
-                      name: item.metadata.name,
-                      data: item,
-                      hasBackups: false,
-                      status: {},
-                  };
+                //console.log(cluster)
+                
+                // Set as current cluster if no other cluster has already been set
+                if( (to.params.name == cluster.name) && (to.params.namespace == cluster.data.metadata.namespace) ) {
+                    found = true;
+                    store.commit('setCurrentCluster', cluster);
+                }
 
-                  //console.log(cluster)
-                  
-                  // Set as current cluster if no other cluster has already been set
-                  if( (to.params.name == cluster.name) && (to.params.namespace == cluster.data.metadata.namespace) ) {
-                      found = true;
-                      store.commit('setCurrentCluster', cluster);
-                  }
+            });
 
-              });
+            if(!found)
+                notFound()
 
-              if(!found)
-                  notFound()
-
-          })
-          .catch(function(err) {
-              notFound()
-          });
-        } 
+        })
+        .catch(function(err) {
+            notFound()
+        });
 
         break;
 
@@ -392,21 +388,32 @@ router.beforeEach((to, from, next) => {
         break;
 
       case 'PostgresConfig':
+      case 'CreatePgConfig':
+        
         /* Check if Postgres Config exists */
         axios
         .get(apiURL+'sgpgconfig')
         .then( function(response){
-          
-          let c = {};
-          
-          if(to.params.hasOwnProperty('name')) {
-            c = response.data.find(c => ( (to.params.name == c.metadata.name) && (to.params.namespace == c.metadata.namespace) ) );
 
-            if(typeof c !== 'undefined')
-              next()
-            else
-              notFound()
-          }
+          var found = false
+
+          response.data.forEach( function(item, index) {
+              
+            store.commit('updatePGConfig', { 
+              name: item.metadata.name,
+              data: item
+            }); 
+
+            if( to.params.hasOwnProperty('name') && (to.params.name == item.metadata.name) && (to.params.namespace == item.metadata.namespace) )
+              found = true;
+
+          });
+
+          if( to.params.hasOwnProperty('name') && !found)
+            notFound()
+          else
+            next()
+
         }).catch(function(err) {
           notFound()
         });
@@ -414,21 +421,32 @@ router.beforeEach((to, from, next) => {
         break;
 
       case 'PoolConfig':
+      case 'CreatePoolConfig':
+
         /* Check if PgBouncer Config exists */
         axios
         .get(apiURL+'sgpoolconfig')
         .then( function(response){
-          
-          let c = {};
-          
-          if(to.params.hasOwnProperty('name')) {
-            c = response.data.find(c => ( (to.params.name == c.metadata.name) && (to.params.namespace == c.metadata.namespace) ) );
 
-            if(typeof c !== 'undefined')
-              next()
-            else
-              notFound()
-          }
+          var found = false
+
+          response.data.forEach( function(item, index) {
+              
+            store.commit('updatePoolConfig', { 
+              name: item.metadata.name,
+              data: item
+            }); 
+
+            if( to.params.hasOwnProperty('name') && (to.params.name == item.metadata.name) && (to.params.namespace == item.metadata.namespace) )
+              found = true;
+
+          });
+
+          if( to.params.hasOwnProperty('name') && !found)
+            notFound()
+          else
+            next()
+
         }).catch(function(err) {
           notFound()
         });
