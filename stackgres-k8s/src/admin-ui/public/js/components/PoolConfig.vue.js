@@ -19,7 +19,7 @@ var PoolConfig = Vue.component("PoolConfig", {
 				<div class="actions">
 					<a class="documentation" href="https://stackgres.io/doc/latest/04-postgres-cluster-management/02-configuration-tuning/03-connection-pooling-configuration/" target="_blank" title="SGPoolingConfig Documentation">SGPoolingConfig Documentation</a>
 					<div>
-						<router-link to="/admin/crd/create/connectionpooling/" class="add">Add New</router-link>
+						<router-link :to="'/admin/crd/create/connectionpooling/'+$route.params.namespace" class="add">Add New</router-link>
 					</div>		
 				</div>	
 			</header>

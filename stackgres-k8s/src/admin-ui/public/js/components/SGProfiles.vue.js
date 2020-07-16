@@ -19,7 +19,7 @@ var SGProfiles = Vue.component("InstanceProfile", {
 				<div class="actions">
 					<a class="documentation" href="https://stackgres.io/doc/latest/04-postgres-cluster-management/03-instance-profiles/" target="_blank" title="SGInstanceProfile Documentation">SGInstanceProfile Documentation</a>
 					<div>
-						<router-link to="/admin/crd/create/profile/" class="add">Add New</router-link>
+						<router-link :to="'/admin/crd/create/profile/'+$route.params.namespace" class="add">Add New</router-link>
 					</div>	
 				</div>		
 			</header>

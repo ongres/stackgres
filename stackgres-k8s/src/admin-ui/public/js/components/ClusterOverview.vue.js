@@ -17,7 +17,7 @@ var ClusterOverview = Vue.component("ClusterOverview", {
 				<div class="actions">
 				<a class="documentation" href="https://stackgres.io/doc/latest/04-postgres-cluster-management/01-postgres-clusters/" target="_blank" title="SGCluster Documentation">SGCluster Documentation</a>
 					<div>
-						<router-link to="/admin/crd/create/cluster/" class="add">Add New</router-link>
+						<router-link :to="'/admin/crd/create/cluster/'+$route.params.namespace" class="add">Add New</router-link>
 					</div>	
 				</div>	
 			</header>
