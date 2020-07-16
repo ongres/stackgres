@@ -9,7 +9,6 @@ import java.util.Comparator;
 import java.util.Properties;
 
 import com.google.common.collect.ImmutableMap;
-import io.stackgres.common.StackGresProperty;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple3;
