@@ -113,7 +113,7 @@ const router = new VueRouter({
       },
     },
     { 
-      path: '/admin/crd/:action/backup/:namespace/:cluster/:uid', 
+      path: '/admin/crd/:action/backup/:namespace/:uid', 
       component: CreateBackup,
       meta: {
         conditionalRoute: false
@@ -274,20 +274,13 @@ const router = new VueRouter({
   ],
 });
 
-//router.replace({ path: '', redirect: '/admin/'});
-
-//console.log(router)
-
 
 router.beforeEach((to, from, next) => { 
 
-  // If loading CRD from direct URL validate if CRD exists on the API
+  // If loading CRD from direct URL validate if CRD exists on the API before loading
   if( from.path == '/') {
 
     checkLogin();
-
-    //console.log(from);
-    //console.log(to);
 
     /* Check if Namespace exist */
     if(to.params.hasOwnProperty('namespace')) {
@@ -490,12 +483,53 @@ router.beforeEach((to, from, next) => {
         break;
 
       case 'Backups':
+      case 'CreateBackup':
         /* If filtered by Cluster, first check if Cluster exists */
         if(to.params.hasOwnProperty('cluster')) {
           axios
           .get(apiURL+'sgcluster/stats/'+to.params.namespace+'/'+to.params.name)
           .then( function(response){
             next()
+          }).catch(function(err) {
+            notFound()
+          });
+        } else {
+          axios
+          .get(apiURL+'sgbackup')
+          .then( function(response){
+
+            var found = false
+
+            response.data.forEach( function(item, index) {
+                
+              if( (typeof item.status.process.status !== 'undefined') && (item.status.process.status === 'Completed') ) {
+                //console.log('setting duration');
+                start = moment(item.status.process.timing.start);
+                finish = moment(item.status.process.timing.stored);
+                duration = new Date(moment.duration(finish.diff(start))).toISOString();
+              } else {
+                //console.log('duration not set');
+                duration = '';
+              }
+              
+                
+              store.commit('updateBackups', { 
+                name: item.metadata.name,
+                data: item,
+                duration: duration,
+                show: true
+              });
+
+              if( to.params.hasOwnProperty('uid') && (to.params.uid == item.metadata.uid) && (to.params.namespace == item.metadata.namespace) )
+                found = true;
+
+            });
+
+            if( to.params.hasOwnProperty('uid') && !found)
+              notFound()
+            else
+              next()
+
           }).catch(function(err) {
             notFound()
           });
