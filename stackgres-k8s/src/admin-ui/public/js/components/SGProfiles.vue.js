@@ -46,9 +46,9 @@ var SGProfiles = Vue.component("InstanceProfile", {
 						</tr>
 						<template v-for="conf in config" v-if="(conf.data.metadata.namespace == currentNamespace)">
 							<tr class="base" :class="[ $route.params.name == conf.name ? 'open' : '', 'profile-'+conf.data.metadata.namespace+'-'+conf.name ]" :data-name="conf.name">
-								<td>{{ conf.name }}</td>
-								<td class="fontZero">{{ conf.data.spec.memory }}</td>
-								<td class="fontZero">{{ conf.data.spec.cpu }}</td>
+								<td class="hasTooltip configName"><span>{{ conf.name }}</span></td>
+								<td class="memory fontZero">{{ conf.data.spec.memory }}</td>
+								<td class="cpu fontZero">{{ conf.data.spec.cpu }}</td>
 								<td class="actions">
 									<router-link :to="'/admin/crd/edit/profile/'+currentNamespace+'/'+conf.name" title="Edit Configuration">
 										<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14"><path d="M90,135.721v2.246a.345.345,0,0,0,.345.345h2.246a.691.691,0,0,0,.489-.2l8.042-8.041a.346.346,0,0,0,0-.489l-2.39-2.389a.345.345,0,0,0-.489,0L90.2,135.232A.691.691,0,0,0,90,135.721Zm13.772-8.265a.774.774,0,0,0,0-1.095h0l-1.82-1.82a.774.774,0,0,0-1.095,0h0l-1.175,1.176a.349.349,0,0,0,0,.495l2.421,2.421a.351.351,0,0,0,.5,0Z" transform="translate(-90 -124.313)"/></svg>
@@ -96,6 +96,9 @@ var SGProfiles = Vue.component("InstanceProfile", {
 						</template>
 					</tbody>
 				</table>
+			</div>
+			<div id="nameTooltip">
+				<div class="info"></div>
 			</div>
 		</div>`,
 	data: function() {
