@@ -460,21 +460,30 @@ router.beforeEach((to, from, next) => {
         break;
       
       case 'BackupConfig':
+      case 'CreateBackupConfig':
         /* Check if BackupConfig Config exists */
         axios
         .get(apiURL+'sgbackupconfig')
         .then( function(response){
 
-          let c = {};
-          
-          if(to.params.hasOwnProperty('name')) {
-            c = response.data.find(c => ( (to.params.name == c.metadata.name) && (to.params.namespace == c.metadata.namespace) ) );
+          var found = false
 
-            if(typeof c !== 'undefined')
-              next()
-            else
-              notFound()
-          }
+          response.data.forEach( function(item, index) {
+              
+            store.commit('updateBackupConfig', { 
+              name: item.metadata.name,
+              data: item
+            }); 
+
+            if( to.params.hasOwnProperty('name') && (to.params.name == item.metadata.name) && (to.params.namespace == item.metadata.namespace) )
+              found = true;
+
+          });
+
+          if( to.params.hasOwnProperty('name') && !found)
+            notFound()
+          else
+            next()
 
         }).catch(function(err) {
           notFound()
