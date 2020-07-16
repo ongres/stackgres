@@ -18,5 +18,7 @@ cluster:
 minio:
   persistence:
     size: 2Gi
+  readinessProbe:
+    initialDelaySeconds: 5
 nonProductionOptions:
   createMinio: true

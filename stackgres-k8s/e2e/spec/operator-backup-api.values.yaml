@@ -16,3 +16,6 @@ cluster:
   prometheusAutobind: false
 nonProductionOptions:
   createMinio: true
+minio:
+  readinessProbe:
+    initialDelaySeconds: 5

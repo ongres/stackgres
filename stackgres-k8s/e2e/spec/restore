@@ -8,6 +8,8 @@ buckets:
   - name: $CLUSTER_NAME-backup
     policy: none
     purge: true
+readinessProbe:
+  initialDelaySeconds: 5
 EOF
   if [ "$E2E_ENV" = "minishift" ]
   then
