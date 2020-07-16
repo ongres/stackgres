@@ -26,7 +26,6 @@ cluster:
   configurations:
     sgPostgresConfig: postgresconf
     sgPoolingConfig: pgbouncerconf
-    sgBackupConfig: backupconf
   distributedLogs:
     sgDistributedLogs: distributedlogs
   #restore:
@@ -85,7 +84,7 @@ configurations:
         max_client_conn: '200'
         default_pool_size: '200'
   backupconfig:
-    create: true
+    create: false
     baseBackups:
       retention: 5
       cronSchedule: "*/2 * * * *"
@@ -167,4 +166,4 @@ minio:
 #You should only set following options for non production environment
 nonProductionOptions:
   disableClusterPodAntiAffinity: true
-  createMinio: true
+  createMinio: false

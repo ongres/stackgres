@@ -18,7 +18,9 @@ EOF
   kubectl create namespace "$CLUSTER_NAMESPACE-backup"
 
   helm install "$CLUSTER_NAME-backup-minio" stable/minio \
-    --namespace "$CLUSTER_NAMESPACE-backup" -f "$LOG_PATH/minio-values.yaml"
+    --namespace "$CLUSTER_NAMESPACE-backup" \
+    --version 5.0.26 \
+    -f "$LOG_PATH/minio-values.yaml"
 
   SPEC_VALUES_FILE="$SPEC_FILE.backup.values.yaml"
 
