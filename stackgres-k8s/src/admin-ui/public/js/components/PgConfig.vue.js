@@ -19,7 +19,7 @@ var PgConfig = Vue.component("PostgresConfig", {
 				<div class="actions">
 					<a class="documentation" href="https://stackgres.io/doc/latest/04-postgres-cluster-management/02-configuration-tuning/02-postgres-configuration/" target="_blank" title="SGPostgresConfig Documentation">SGPostgresConfig Documentation</a>
 					<div>
-						<router-link to="/admin/crd/create/pgconfig/" class="add">Add New</router-link>
+						<router-link :to="'/admin/crd/create/pgconfig/'+$route.params.namespace" class="add">Add New</router-link>
 					</div>
 				</div>	
 			</header>

@@ -2192,7 +2192,7 @@ ul.select a.active {
 }
 
 /* ul.select a.active:before {
-    content: "–";
+    content: "â€“";
     color: var(--blue);
     font-weight: bold;
     margin-right: 5px;
@@ -3015,7 +3015,7 @@ table.clusterConfig a {
 }
 
 table.clusterConfig a:hover svg, td.usedOn a:hover svg path{
-    fill: var(--lblue);
+    fill: var(--lblue) !important;
 }
 
 table.clusterConfig svg, td.usedOn svg {
