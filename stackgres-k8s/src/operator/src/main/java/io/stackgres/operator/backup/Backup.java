@@ -22,7 +22,6 @@ import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.EnvVarSourceBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectFieldSelectorBuilder;
-import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.batch.Job;
 import io.fabric8.kubernetes.api.model.batch.JobBuilder;
 import io.stackgres.common.LabelFactory;
@@ -31,8 +30,6 @@ import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgbackup.BackupPhase;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackup.StackGresBackupDefinition;
-import io.stackgres.common.crd.sgbackup.StackGresBackupProcess;
-import io.stackgres.common.crd.sgbackup.StackGresBackupStatus;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigDefinition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSet;
@@ -46,6 +43,7 @@ import io.stackgres.operator.patroni.factory.PatroniRole;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.Unchecked;
+import org.jooq.lambda.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -85,16 +83,9 @@ public class Backup implements StackGresClusterResourceStreamFactory {
     }
 
     return Seq.seq(clusterContext.getBackups())
-        .filter(backup -> !(Optional.ofNullable(backup.getStatus())
-            .map(StackGresBackupStatus::getProcess)
-            .map(StackGresBackupProcess::getStatus)
-            .map(phase -> !phase.equals(BackupPhase.RUNNING.label()))
-            .orElse(false)
-            || Optional.ofNullable(backup.getMetadata())
-            .map(ObjectMeta::getOwnerReferences)
-            .map(owners -> owners.stream()
-                .anyMatch(owner -> owner.getKind().equals("CronJob")))
-            .orElse(false)))
+        .filter(backup -> !Seq.seq(backup.getMetadata().getAnnotations())
+            .anyMatch(Tuple.tuple(
+                StackGresContext.SCHEDULED_BACKUP_KEY, StackGresContext.RIGHT_VALUE)::equals))
         .map(backup -> createBackupJob(backup, clusterContext))
         .filter(Optional::isPresent)
         .map(Optional::get);

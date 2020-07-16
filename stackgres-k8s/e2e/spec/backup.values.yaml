@@ -6,6 +6,7 @@ configurations:
     create: true
     # Avoid backups before waiting for pods (since backup pods could biase the wait)
     baseBackups:
+      retention: 2
       cronSchedule: '0 5 31 2 *'
 cluster:
   pods:
@@ -17,5 +18,7 @@ cluster:
 minio:
   persistence:
     size: 2Gi
+  readinessProbe:
+    initialDelaySeconds: 5
 nonProductionOptions:
   createMinio: true

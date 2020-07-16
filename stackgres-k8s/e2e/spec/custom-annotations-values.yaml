@@ -16,3 +16,6 @@ cluster:
   prometheusAutobind: false
 nonProductionOptions:
   disableClusterPodAntiAffinity: true
+minio:
+  readinessProbe:
+    initialDelaySeconds: 5

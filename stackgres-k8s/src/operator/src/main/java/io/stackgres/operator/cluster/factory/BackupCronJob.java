@@ -70,7 +70,7 @@ public class BackupCronJob implements StackGresClusterResourceStreamFactory {
     String namespace = clusterContext.getCluster().getMetadata().getNamespace();
     String name = clusterContext.getCluster().getMetadata().getName();
     final StackGresCluster cluster = clusterContext.getCluster();
-    Map<String, String> labels = labelFactory.backupPodLabels(cluster);
+    Map<String, String> labels = labelFactory.scheduledBackupPodLabels(cluster);
     return Seq.of(clusterContext.getBackupContext())
         .filter(Optional::isPresent)
         .map(Optional::get)
@@ -95,12 +95,14 @@ public class BackupCronJob implements StackGresClusterResourceStreamFactory {
                 .withNewMetadata()
                 .withNamespace(namespace)
                 .withName(ClusterStatefulSet.backupName(clusterContext))
+                .withLabels(labels)
                 .endMetadata()
                 .withNewSpec()
                 .withNewTemplate()
                 .withNewMetadata()
                 .withNamespace(namespace)
                 .withName(ClusterStatefulSet.backupName(clusterContext))
+                .withLabels(labels)
                 .endMetadata()
                 .withNewSpec()
                 .withRestartPolicy("OnFailure")
@@ -169,8 +171,12 @@ public class BackupCronJob implements StackGresClusterResourceStreamFactory {
                                 .withValue(StackGresContext.REPLICA_ROLE)
                                 .build(),
                             new EnvVarBuilder()
-                                .withName("IS_CRONJOB")
-                                .withValue("true")
+                                .withName("SCHEDULED_BACKUP_KEY")
+                                .withValue(StackGresContext.SCHEDULED_BACKUP_KEY)
+                                .build(),
+                            new EnvVarBuilder()
+                                .withName("RIGHT_VALUE")
+                                .withValue(StackGresContext.RIGHT_VALUE)
                                 .build(),
                             new EnvVarBuilder()
                                 .withName("PATRONI_CLUSTER_LABELS")

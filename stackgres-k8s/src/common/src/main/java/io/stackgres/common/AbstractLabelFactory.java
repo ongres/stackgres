@@ -66,6 +66,14 @@ public abstract class AbstractLabelFactory<T extends CustomResource> implements 
   }
 
   @Override
+  public Map<String, String> scheduledBackupPodLabels(StackGresCluster resource) {
+    return ImmutableMap.of(getLabelMapper().appKey(), getLabelMapper().appName(),
+        getLabelMapper().clusterUidKey(), ResourceUtil.labelValue(clusterUid(resource)),
+        getLabelMapper().clusterNameKey(), ResourceUtil.labelValue(clusterName(resource)),
+        getLabelMapper().scheduledBackupKey(), StackGresContext.RIGHT_VALUE);
+  }
+
+  @Override
   public Map<String, String> anyPatroniClusterLabels() {
     return ImmutableMap.of(getLabelMapper().appKey(), getLabelMapper().appName(),
         getLabelMapper().clusterKey(), StackGresContext.RIGHT_VALUE);
