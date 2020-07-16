@@ -499,11 +499,11 @@ var CreateCluster = Vue.component("CreateCluster", {
         },
 
         cancel: function() {
-            if(this.editMode)
-                router.push('/admin/cluster/status/'+store.state.currentNamespace+'/'+c.name);
+            if(this.$route.params.action == 'create')
+                router.push('/admin/overview/'+this.$route.params.namespace);
             else
-                router.push('/admin/overview/'+store.state.currentNamespace);
-        },
+                router.push('/admin/cluster/status/'+this.$route.params.namespace+'/'+this.$route.params.name);
+        },  
 
         showFields: function( fields ) {
             $(fields).slideDown();
