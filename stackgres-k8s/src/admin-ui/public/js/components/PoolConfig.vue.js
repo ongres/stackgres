@@ -89,7 +89,7 @@ var PoolConfig = Vue.component("PoolConfig", {
 											<span class="title">Parameters</span>	
 											<table>
 												<tbody>
-													<tr v-for="param in conf.data.spec.pgBouncer['pgbouncer.ini']" v-if="!conf.data.status.pgBouncer.defaultParameters.includes(param.parameter)">
+													<tr v-for="param in conf.data.status.pgBouncer['pgbouncer.ini']" v-if="!conf.data.status.pgBouncer.defaultParameters.includes(param.parameter)">
 														<td class="label">
 															{{ param.parameter }}
 														</td>
@@ -105,7 +105,7 @@ var PoolConfig = Vue.component("PoolConfig", {
 											<span class="title">Default Parameters</span>	
 											<table>
 												<tbody>
-													<tr v-for="param in conf.data.spec.pgBouncer['pgbouncer.ini']" v-if="conf.data.status.pgBouncer.defaultParameters.includes(param.parameter)">
+													<tr v-for="param in conf.data.status.pgBouncer['pgbouncer.ini']" v-if="conf.data.status.pgBouncer.defaultParameters.includes(param.parameter)">
 														<td class="label">
 															{{ param.parameter }}
 														</td>
