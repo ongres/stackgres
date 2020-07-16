@@ -36,6 +36,7 @@ import io.stackgres.operator.common.StackGresBackupContext;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresClusterResourceStreamFactory;
 import io.stackgres.operator.common.StackGresGeneratorContext;
+import io.stackgres.operator.common.StackGresPodSecurityContext;
 import io.stackgres.operator.patroni.factory.PatroniRole;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.Unchecked;
@@ -51,13 +52,17 @@ public class BackupCronJob implements StackGresClusterResourceStreamFactory {
 
   private final LabelFactory<StackGresCluster> labelFactory;
 
+  private final StackGresPodSecurityContext clusterPodSecurityContext;
+
   @Inject
   public BackupCronJob(
       ClusterStatefulSetEnvironmentVariables clusterStatefulSetEnvironmentVariables,
-      LabelFactory<StackGresCluster> labelFactory) {
+      LabelFactory<StackGresCluster> labelFactory,
+      StackGresPodSecurityContext clusterPodSecurityContext) {
     super();
     this.clusterStatefulSetEnvironmentVariables = clusterStatefulSetEnvironmentVariables;
     this.labelFactory = labelFactory;
+    this.clusterPodSecurityContext = clusterPodSecurityContext;
   }
 
   /**
@@ -107,6 +112,7 @@ public class BackupCronJob implements StackGresClusterResourceStreamFactory {
                 .withLabels(labels)
                 .endMetadata()
                 .withNewSpec()
+                .withSecurityContext(clusterPodSecurityContext.createResource(clusterContext))
                 .withRestartPolicy("OnFailure")
                 .withServiceAccountName(PatroniRole.roleName(clusterContext))
                 .withContainers(new ContainerBuilder()
