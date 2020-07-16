@@ -11,6 +11,8 @@ e2e_test() {
   run_test "RBAC can-i endpoint should success" check_rbac_success
 
   run_test "RBAC can-i endpoint should fail" check_rbac_failure
+
+  run_test "RBAC can-i permissions list should success" check_rbac_list
 }
 
 get_rbac_status() {
@@ -32,9 +34,10 @@ check_rbac_success() {
 }
 
 check_rbac_failure() {
+  local HTTP_STATUS
+
   kubectl delete clusterrolebinding stackgres-restapi-admin
   kubectl create clusterrolebinding stackgres-restapi-admin --clusterrole=view --user=admin
-  local HTTP_STATUS
 
   HTTP_STATUS="$(get_rbac_status "create")"
 
@@ -46,6 +49,21 @@ check_rbac_failure() {
     echo "Success. rbac can-i endpoint is available"
   else
     echo "Fail. rbac can-i endpoint is not available"
+    return 1
+  fi
+}
+
+check_rbac_list() {
+  local PERMISSIONS_IN_RESPONSE
+
+  PERMISSIONS_IN_RESPONSE=$(run_curl -r "stackgres/auth/rbac/can-i" -n $CLUSTER_NAMESPACE -e "-L" \
+   | jq --compact-output -M -S '.unnamespaced.namespaces')
+
+  if [ "$PERMISSIONS_IN_RESPONSE" = '["get","list","create","patch","delete"]' ]
+  then
+    echo "Success. rbac can-i permissions list is available"
+  else
+    echo "Fail. rbac can-i permissions list is available"
     return 1
   fi
 }
