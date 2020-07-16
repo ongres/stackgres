@@ -1,6 +1,9 @@
-var CreateBackupConfig = Vue.component("create-backup-config", {
+var CreateBackupConfig = Vue.component("CreateBackupConfig", {
     template: `
         <form id="create-backup-config">
+            <!-- Vue reactivity hack -->
+            <template v-if="Object.keys(config).length > 0"></template>
+
             <header>
                 <ul class="breadcrumbs">
                     <li class="namespace">
@@ -343,138 +346,49 @@ var CreateBackupConfig = Vue.component("create-backup-config", {
         </form>`,
 	data: function() {
         
-        if (vm.$route.params.action == 'create') {
-            
-            return {
-                editMode: false,
-                advancedMode: false,
-                advancedModeStorage: false,
-                backupConfigName: vm.$route.params.name,
-                backupConfigNamespace: store.state.currentNamespace,
-                backupConfigCompressionMethod: 'lz4',
-                backupConfigFullSchedule: '*/2 * * * *',
-                backupConfigFullScheduleMin: '*/2',
-                backupConfigFullScheduleHour: '*',
-                backupConfigFullScheduleDOM: '*',
-                backupConfigFullScheduleMonth: '*',
-                backupConfigFullScheduleDOW: '*',
-                //backupConfigFullWindow: 1,
-                backupConfigRetention: 5,
-                backupConfigTarSizeThreshold: 1,
-                backupConfigTarSizeThresholdUnit: 1073741824,
-                backupConfigUploadDiskConcurrency: 1,
-                backupConfigStorageType: '',
-                backupS3Bucket: '',
-                backupS3Path: '',
-                backupS3Region: '',
-                backupS3AccessKeyId: '',
-                backupS3SecretAccessKey: '',
-                backupS3StorageClass: '',
-                backupS3CompatibleBucket: '',
-                backupS3CompatiblePath: '',
-                backupS3CompatibleEndpoint: '',
-                backupS3CompatibleRegion: '',
-                backupS3CompatibleAccessKeyId: '',
-                backupS3CompatibleSecretAccessKey: '',
-                backupS3CompatibleStorageClass: '',
-                backupS3CompatibleEnablePathStyleAddressing: false,
-                backupGCSBucket: '',
-                backupGCSPath: '',
-                backupGCSServiceAccountJSON: '',
-                backupAzureBucket: '',
-                backupAzurePath: '',
-                backupAzureAccount: '',
-                backupAzureAccessKey: '',
-            }
-        } else if (vm.$route.params.action == 'edit') {
-            
-            let config = {};
-            
-            store.state.backupConfig.forEach(function( conf ){
-                if( (conf.data.metadata.name === vm.$route.params.name) && (conf.data.metadata.namespace === vm.$route.params.namespace) ) {
-                    config = conf;
-                    return false;
-                }
-            });
+        const vm = this;
 
-            
-            let tresholdSize = formatBytes(config.data.spec.tarSizeThreshold);
-            let tresholdUnit = '';            
-            let unitSizes = {
-                "Ki": 1024, 
-                "Mi": 1048576,
-                "Gi": 1073741824,
-                "Ti": 1099511627776,
-                "Pi": 1125899906842624,
-                "Ei": 1152921504606846976,
-                "Zi": 1180591620717411303424,
-                "Yi": 1208925819614629174706176
-            };
-            
-            $.each( unitSizes, function( index, value ){
-                if( tresholdSize.match(/[a-zA-Z]+/g)[0] === index ) {
-                    tresholdUnit = value;
-                    return false;
-                }
-            });
-            
-            // console.log(tresholdSize);
-            // console.log(tresholdSize.match(/[a-zA-Z]+/g));
-            // console.log(tresholdSize.match(/[a-zA-Z]+/g)[0]);
-
-            // Cron to Human
-            let cron = config.data.spec.baseBackups.cronSchedule.split(" ");
-
-            return {
-                editMode: true,
-                advancedMode: false,
-                advancedModeStorage: false,
-                backupConfigName: vm.$route.params.name,
-                backupConfigNamespace: store.state.currentNamespace,
-                backupConfigCompressionMethod: config.data.spec.baseBackups.compression,
-                backupConfigFullSchedule: config.data.spec.baseBackups.cronSchedule,
-                backupConfigFullScheduleMin: cron[0],
-                backupConfigFullScheduleHour: cron[1],
-                backupConfigFullScheduleDOM: cron[2],
-                backupConfigFullScheduleMonth: cron[3],
-                backupConfigFullScheduleDOW: cron[4],
-                //backupConfigFullWindow: config.data.spec.fullWindow,
-                backupConfigRetention: config.data.spec.baseBackups.retention,
-                backupConfigTarSizeThreshold: tresholdSize.match(/\d+/g),
-                backupConfigTarSizeThresholdUnit: tresholdUnit,
-                backupConfigUploadDiskConcurrency: config.data.spec.baseBackups.performance.uploadDiskConcurrency,
-                backupConfigStorageType: config.data.spec.storage.type,
-
-                //s3
-                backupS3Bucket: (config.data.spec.storage.type === 's3') ? config.data.spec.storage.s3.bucket : '',
-                backupS3Path: ( (config.data.spec.storage.type === 's3') && (typeof config.data.spec.storage.s3.path !== 'undefined') ) ? config.data.spec.storage.s3.path : '',
-                backupS3Region: ( (config.data.spec.storage.type === 's3') && (typeof config.data.spec.storage.s3.region !== 'undefined') ) ? config.data.spec.storage.s3.region : '',
-                backupS3AccessKeyId: (config.data.spec.storage.type === 's3') ? config.data.spec.storage.s3.awsCredentials.accessKeyId : '',
-                backupS3SecretAccessKey: (config.data.spec.storage.type === 's3') ? config.data.spec.storage.s3.awsCredentials.secretAccessKey : '',
-                backupS3StorageClass: ( (config.data.spec.storage.type === 's3') && (typeof config.data.spec.storage.s3.storageClass !== 'undefined') ) ? config.data.spec.storage.s3.storageClass : '',
-                
-                //s3Compatible
-                backupS3CompatibleBucket: (config.data.spec.storage.type === 's3Compatible') ? config.data.spec.storage.s3Compatible.bucket : '',
-                backupS3CompatiblePath: ( (config.data.spec.storage.type === 's3Compatible') && (typeof config.data.spec.storage.s3Compatible.path !== 'undefined') ) ? config.data.spec.storage.s3Compatible.path : '',
-                backupS3CompatibleEndpoint: ( (config.data.spec.storage.type === 's3Compatible') && (typeof config.data.spec.storage.s3Compatible.endpoint !== 'undefined') ) ? config.data.spec.storage.s3Compatible.endpoint : '',
-                backupS3CompatibleRegion: ( (config.data.spec.storage.type === 's3Compatible') && (typeof config.data.spec.storage.s3Compatible.region !== 'undefined') ) ? config.data.spec.storage.s3Compatible.region : '',
-                backupS3CompatibleAccessKeyId: (config.data.spec.storage.type === 's3Compatible') ? config.data.spec.storage.s3Compatible.awsCredentials.accessKeyId : '',
-                backupS3CompatibleSecretAccessKey: (config.data.spec.storage.type === 's3Compatible') ? config.data.spec.storage.s3Compatible.awsCredentials.secretAccessKey : '',
-                backupS3CompatibleStorageClass: ( (config.data.spec.storage.type === 's3Compatible') && (typeof config.data.spec.storage.s3Compatible.storageClass !== 'undefined') ) ? config.data.spec.storage.s3Compatible.storageClass : '',
-                backupS3CompatibleEnablePathStyleAddressing: (config.data.spec.storage.type === 's3Compatible') ? config.data.spec.storage.s3Compatible.enablePathStyleAddressing : false,
-
-                //gcs
-                backupGCSBucket: (config.data.spec.storage.type === 'gcs') ? config.data.spec.storage.gcs.bucket : '',
-                backupGCSPath: ( (config.data.spec.storage.type === 'gcs') && (typeof config.data.spec.storage.gcs.path !== 'undefined') ) ? config.data.spec.storage.gcs.path : '',
-                backupGCSServiceAccountJSON: (config.data.spec.storage.type === 'gcs') ? config.data.spec.storage.gcs.gcpCredentials.serviceAccountJSON : '',
-                
-                //azure
-                backupAzureBucket: (config.data.spec.storage.type === 'azureBlob') ? config.data.spec.storage.azureBlob.bucket : '',
-                backupAzurePath:  ( (config.data.spec.storage.type === 'azureBlob') && (typeof config.data.spec.storage.azureBlob.path !== 'undefined') ) ? config.data.spec.storage.azureBlob.path : '',
-                backupAzureAccount: (config.data.spec.storage.type === 'azureBlob') ? config.data.spec.storage.azureBlob.azureCredentials.storageAccount : '',
-                backupAzureAccessKey: (config.data.spec.storage.type === 'azureBlob') ? config.data.spec.storage.azureBlob.azureCredentials.accessKey : '',
-            } 
+        return {
+            editMode: (vm.$route.params.action === 'edit'),
+            advancedMode: false,
+            advancedModeStorage: false,
+            backupConfigName: vm.$route.params.hasOwnProperty('name') ? vm.$route.params.name : '',
+            backupConfigNamespace: vm.$route.params.hasOwnProperty('namespace') ? vm.$route.params.namespace : '',
+            backupConfigCompressionMethod: 'lz4',
+            backupConfigFullSchedule: '*/2 * * * *',
+            backupConfigFullScheduleMin: '*/2',
+            backupConfigFullScheduleHour: '*',
+            backupConfigFullScheduleDOM: '*',
+            backupConfigFullScheduleMonth: '*',
+            backupConfigFullScheduleDOW: '*',
+            backupConfigRetention: 5,
+            backupConfigTarSizeThreshold: 1,
+            backupConfigTarSizeThresholdUnit: 1073741824,
+            backupConfigUploadDiskConcurrency: 1,
+            backupConfigStorageType: '',
+            backupS3Bucket: '',
+            backupS3Path: '',
+            backupS3Region: '',
+            backupS3AccessKeyId: '',
+            backupS3SecretAccessKey: '',
+            backupS3StorageClass: '',
+            backupS3CompatibleBucket: '',
+            backupS3CompatiblePath: '',
+            backupS3CompatibleEndpoint: '',
+            backupS3CompatibleRegion: '',
+            backupS3CompatibleAccessKeyId: '',
+            backupS3CompatibleSecretAccessKey: '',
+            backupS3CompatibleStorageClass: '',
+            backupS3CompatibleEnablePathStyleAddressing: false,
+            backupGCSBucket: '',
+            backupGCSPath: '',
+            backupGCSServiceAccountJSON: '',
+            backupAzureBucket: '',
+            backupAzurePath: '',
+            backupAzureAccount: '',
+            backupAzureAccessKey: '',
         }
+            
 	},
 	computed: {
         allNamespaces () {
@@ -500,6 +414,103 @@ var CreateBackupConfig = Vue.component("create-backup-config", {
 			})
 
 			return nameColission
+        },
+
+        config() {
+
+            var vm = this;
+            var conf = {};
+            
+            if(vm.$route.params.action === 'edit') {
+                store.state.backupConfig.forEach(function( config ){
+                    if( (config.data.metadata.name === vm.$route.params.name) && (config.data.metadata.namespace === vm.$route.params.namespace) ) {
+                        
+                        let tresholdSize = formatBytes(config.data.spec.tarSizeThreshold);
+                        let tresholdUnit = '';            
+                        let unitSizes = {
+                            "Ki": 1024, 
+                            "Mi": 1048576,
+                            "Gi": 1073741824,
+                            "Ti": 1099511627776,
+                            "Pi": 1125899906842624,
+                            "Ei": 1152921504606846976,
+                            "Zi": 1180591620717411303424,
+                            "Yi": 1208925819614629174706176
+                        };
+                        
+                        $.each( unitSizes, function( index, value ){
+                            if( tresholdSize.match(/[a-zA-Z]+/g)[0] === index ) {
+                                tresholdUnit = value;
+                                return false;
+                            }
+                        });
+                        
+                        // console.log(tresholdSize);
+                        // console.log(tresholdSize.match(/[a-zA-Z]+/g));
+                        // console.log(tresholdSize.match(/[a-zA-Z]+/g)[0]);
+    
+                        // Cron to Human
+                        let cron = config.data.spec.baseBackups.cronSchedule.split(" ");
+    
+                        vm.backupConfigCompressionMethod = config.data.spec.baseBackups.compression;
+                        vm.backupConfigFullSchedule = config.data.spec.baseBackups.cronSchedule
+                        vm.backupConfigFullScheduleMin = cron[0];
+                        vm.backupConfigFullScheduleHour = cron[1];
+                        vm.backupConfigFullScheduleDOM = cron[2];
+                        vm.backupConfigFullScheduleMonth = cron[3];
+                        vm.backupConfigFullScheduleDOW = cron[4];
+                        //backupConfigFullWindow = config.data.spec.fullWindow;
+                        vm.backupConfigRetention = config.data.spec.baseBackups.retention;
+                        vm.backupConfigTarSizeThreshold = tresholdSize.match(/\d+/g);
+                        vm.backupConfigTarSizeThresholdUnit = tresholdUnit;
+                        vm.backupConfigUploadDiskConcurrency = config.data.spec.baseBackups.performance.uploadDiskConcurrency;
+                        vm.backupConfigStorageType = config.data.spec.storage.type;
+    
+                        //s3
+                        if(config.data.spec.storage.type === 's3') {
+                            vm.backupS3Bucket = config.data.spec.storage.s3.bucket;
+                            vm.backupS3Path =  (typeof config.data.spec.storage.s3.path !== 'undefined') ? config.data.spec.storage.s3.path : '';
+                            vm.backupS3Region =  (typeof config.data.spec.storage.s3.region !== 'undefined') ? config.data.spec.storage.s3.region : '';
+                            vm.backupS3AccessKeyId = config.data.spec.storage.s3.awsCredentials.accessKeyId;
+                            vm.backupS3SecretAccessKey = config.data.spec.storage.s3.awsCredentials.secretAccessKey  = '';
+                            vm.backupS3StorageClass = (typeof config.data.spec.storage.s3.storageClass !== 'undefined') ? config.data.spec.storage.s3.storageClass : '';
+                        }
+                        
+                        //s3Compatible
+                        if(config.data.spec.storage.type === 's3Compatible') {
+                            vm.backupS3CompatibleBucket = config.data.spec.storage.s3Compatible.bucket;
+                            vm.backupS3CompatiblePath = (typeof config.data.spec.storage.s3Compatible.path !== 'undefined') ? config.data.spec.storage.s3Compatible.path : '';
+                            vm.backupS3CompatibleEndpoint = (typeof config.data.spec.storage.s3Compatible.endpoint !== 'undefined') ? config.data.spec.storage.s3Compatible.endpoint : '';
+                            vm.backupS3CompatibleRegion = (typeof config.data.spec.storage.s3Compatible.region !== 'undefined') ? config.data.spec.storage.s3Compatible.region : '';
+                            vm.backupS3CompatibleAccessKeyId = config.data.spec.storage.s3Compatible.awsCredentials.accessKeyId;
+                            vm.backupS3CompatibleSecretAccessKey = config.data.spec.storage.s3Compatible.awsCredentials.secretAccessKey;
+                            vm.backupS3CompatibleStorageClass = (typeof config.data.spec.storage.s3Compatible.storageClass !== 'undefined') ? config.data.spec.storage.s3Compatible.storageClass : '';
+                            vm.backupS3CompatibleEnablePathStyleAddressing = config.data.spec.storage.s3Compatible.enablePathStyleAddressing;
+                        }
+                        
+                        //gcs
+                        if(config.data.spec.storage.type === 'gcs') {
+                            vm.backupGCSBucket = config.data.spec.storage.gcs.bucket;
+                            vm.backupGCSPath = (typeof config.data.spec.storage.gcs.path !== 'undefined') ? config.data.spec.storage.gcs.path : '';
+                            vm.backupGCSServiceAccountJSON = config.data.spec.storage.gcs.gcpCredentials.serviceAccountJSON;
+                        }
+                        
+                        //azure
+                        if(config.data.spec.storage.type === 'azureBlob') {
+                            vm.backupAzureBucket = config.data.spec.storage.azureBlob.bucket;
+                            vm.backupAzurePath = (typeof config.data.spec.storage.azureBlob.path !== 'undefined') ? config.data.spec.storage.azureBlob.path : '';
+                            vm.backupAzureAccount = config.data.spec.storage.azureBlob.azureCredentials.storageAccount;
+                            vm.backupAzureAccessKey = config.data.spec.storage.azureBlob.azureCredentials.accessKey;
+                        }
+    
+                        conf = config;
+                        return false;
+                    }
+                });
+            } 
+        
+            return conf
+
         }
     },
     methods: {
