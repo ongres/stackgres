@@ -25,7 +25,7 @@ var Backups = Vue.component("Backups", {
 						<div>
 							<a class="cloneCRD" @click="cloneCRD('SGCluster', currentNamespace, $route.params.name)">Clone Cluster Configuration</a>
 							<router-link :to="'/admin/crd/edit/cluster/'+$route.params.namespace+'/'+$route.params.name">Edit Cluster</router-link>
-							<a v-on:click="deleteCRD('sgcluster', currentNamespace, cluster.name, '/overview/'+currentNamespace)" :class="'/overview/'+currentNamespace">Delete Cluster</a>
+							<a v-on:click="deleteCRD('sgcluster', currentNamespace, cluster.name, '/admin/overview/'+currentNamespace)" :class="'/overview/'+currentNamespace">Delete Cluster</a>
 						</div>
 					</div>
 
