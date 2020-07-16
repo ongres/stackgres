@@ -124,16 +124,18 @@ var CreateBackup = Vue.component("CreateBackup", {
             var vm = this;
             var backup = {};
             
-            store.state.backups.forEach(function( bk ){
-                if( (bk.data.metadata.uid === vm.$route.params.uid) && (bk.data.metadata.namespace === vm.$route.params.namespace) ) {
-                    vm.backupName = bk.name;
-                    vm.backupCluster = bk.data.spec.sgCluster;
-                    vm.managedLifecycle = bk.data.spec.managedLifecycle
-                    backup = bk;
-                    return false;
-                }
-            });
-        
+            if(vm.$route.params.action === 'edit') {
+                store.state.backups.forEach(function( bk ){
+                    if( (bk.data.metadata.uid === vm.$route.params.uid) && (bk.data.metadata.namespace === vm.$route.params.namespace) ) {
+                        vm.backupName = bk.name;
+                        vm.backupCluster = bk.data.spec.sgCluster;
+                        vm.managedLifecycle = bk.data.spec.managedLifecycle
+                        backup = bk;
+                        return false;
+                    }
+                });    
+            }
+
             return backup
         }
     },

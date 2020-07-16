@@ -127,15 +127,17 @@ var CreateProfile = Vue.component("CreateProfile", {
             var vm = this;
             var config = {};
             
-            store.state.profiles.forEach(function( conf ){
-                if( (conf.data.metadata.name === vm.$route.params.name) && (conf.data.metadata.namespace === vm.$route.params.namespace) ) {
-                    vm.profileCPU = conf.data.spec.cpu;
-                    vm.profileRAM = conf.data.spec.memory.match(/\d+/g);
-                    vm.profileRAMUnit = conf.data.spec.memory.match(/[a-zA-Z]+/g);
-                    config = conf;
-                    return false;
-                }
-            });
+            if(vm.$route.params.action === 'edit') {
+                store.state.profiles.forEach(function( conf ){
+                    if( (conf.data.metadata.name === vm.$route.params.name) && (conf.data.metadata.namespace === vm.$route.params.namespace) ) {
+                        vm.profileCPU = conf.data.spec.cpu;
+                        vm.profileRAM = conf.data.spec.memory.match(/\d+/g);
+                        vm.profileRAMUnit = conf.data.spec.memory.match(/[a-zA-Z]+/g);
+                        config = conf;
+                        return false;
+                    }
+                });
+            }
         
             return config
         }
