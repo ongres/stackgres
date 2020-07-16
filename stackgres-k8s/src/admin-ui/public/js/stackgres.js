@@ -308,45 +308,48 @@ router.beforeEach((to, from, next) => {
     switch(to.matched[0].components.default.options.name) {
 
       case 'CreateCluster':
-        var found = false;
-        axios
-        .get(apiURL+'sgcluster',
-            {
-                headers: {
-                    'content-type': 'application/json'
-                }
-            }
-        )
-        .then( function(response) {
 
-          const data = response.data;
+        if(to.params.action === 'edit') {
+          var found = false;
+          axios
+          .get(apiURL+'sgcluster',
+              {
+                  headers: {
+                      'content-type': 'application/json'
+                  }
+              }
+          )
+          .then( function(response) {
 
-            data.forEach( function(item, index) {
+            const data = response.data;
 
-                var cluster = {
-                    name: item.metadata.name,
-                    data: item,
-                    hasBackups: false,
-                    status: {},
-                };
+              data.forEach( function(item, index) {
 
-                //console.log(cluster)
-                
-                // Set as current cluster if no other cluster has already been set
-                if( (to.params.name == cluster.name) && (to.params.namespace == cluster.data.metadata.namespace) ) {
-                    found = true;
-                    store.commit('setCurrentCluster', cluster);
-                }
+                  var cluster = {
+                      name: item.metadata.name,
+                      data: item,
+                      hasBackups: false,
+                      status: {},
+                  };
 
-            });
+                  //console.log(cluster)
+                  
+                  // Set as current cluster if no other cluster has already been set
+                  if( (to.params.name == cluster.name) && (to.params.namespace == cluster.data.metadata.namespace) ) {
+                      found = true;
+                      store.commit('setCurrentCluster', cluster);
+                  }
 
-            if(!found)
-                notFound()
+              });
 
-        })
-        .catch(function(err) {
-            notFound()
-        });
+              if(!found)
+                  notFound()
+
+          })
+          .catch(function(err) {
+              notFound()
+          });
+        }
 
         break;
 
@@ -366,26 +369,36 @@ router.beforeEach((to, from, next) => {
         break;
 
       case 'InstanceProfile':
+      case 'CreateProfile':
         /* Check if Profile exists */
         axios
         .get(apiURL+'sginstanceprofile')
         .then( function(response){
-          
-          let c = {};
-          
-          if(to.params.hasOwnProperty('name')) {
-            c = response.data.find(c => ( (to.params.name == c.metadata.name) && (to.params.namespace == c.metadata.namespace) ) );
 
-            if(typeof c !== 'undefined')
-              next()
-            else
-              notFound()
-          }
+          var found = false
+
+          response.data.forEach( function(item, index) {
+              
+            store.commit('updateProfiles', { 
+              name: item.metadata.name,
+              data: item
+            }); 
+
+            if( to.params.hasOwnProperty('name') && (to.params.name == item.metadata.name) && (to.params.namespace == item.metadata.namespace) )
+              found = true;
+
+          });
+
+          if( to.params.hasOwnProperty('name') && !found)
+            notFound()
+          else
+            next()
+
         }).catch(function(err) {
           notFound()
         });
 
-        break;
+        break
 
       case 'PostgresConfig':
       case 'CreatePgConfig':
