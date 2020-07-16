@@ -1,9 +1,10 @@
 #!/bin/sh
 
 export IMAGE_TAG="${IMAGE_TAG:-development-jvm}"
+export ADMINUI_IMAGE_TAG="${IMAGE_TAG%-jvm}"
 export OPERATOR_IMAGE_NAME="stackgres/operator:$IMAGE_TAG"
 export RESTAPI_IMAGE_NAME="stackgres/restapi:$IMAGE_TAG"
-export ADMINUI_IMAGE_NAME="stackgres/admin-ui:${IMAGE_TAG%-jvm}"
+export ADMINUI_IMAGE_NAME="stackgres/admin-ui:$ADMINUI_IMAGE_TAG"
 
 export STACKGRES_PATH="${STACKGRES_PATH:-$(dirname "$0")/..}"
 export OPERATOR_CHART_PATH="${OPERATOR_CHART_PATH:-"$STACKGRES_PATH/install/helm/stackgres-operator/"}"
