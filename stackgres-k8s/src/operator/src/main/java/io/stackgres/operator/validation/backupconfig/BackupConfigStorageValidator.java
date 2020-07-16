@@ -80,8 +80,9 @@ public class BackupConfigStorageValidator implements BackupConfigValidator {
       }
 
       if (storageType.equals("gcs")
-          && review.getRequest().getObject().getSpec()
-          .getStorage().getGcs() != null) {
+          && review.getRequest().getObject().getSpec().getStorage().getGcs() != null
+          && review.getRequest().getObject().getSpec().getStorage().getGcs().getCredentials()
+          .getSecretKeySelectors() != null) {
         GoogleCloudCredentials credentials = review.getRequest().getObject().getSpec()
             .getStorage().getGcs().getCredentials();
         checkSecret(namespace, storageType,
