@@ -302,49 +302,40 @@ router.beforeEach((to, from, next) => {
 
       case 'CreateCluster':
 
-        if(to.params.action === 'edit') {
-          var found = false;
-          axios
-          .get(apiURL+'sgcluster',
-              {
-                  headers: {
-                      'content-type': 'application/json'
-                  }
-              }
-          )
-          .then( function(response) {
+        axios
+        .get(apiURL+'sgcluster')
+        .then( function(response){
 
-            const data = response.data;
+          var found = false
 
-              data.forEach( function(item, index) {
+          response.data.forEach( function(item, index) {
 
-                  var cluster = {
-                      name: item.metadata.name,
-                      data: item,
-                      hasBackups: false,
-                      status: {},
-                  };
+            var cluster = {
+              name: item.metadata.name,
+              data: item,
+              hasBackups: false,
+              status: {},
+            };
+              
+            store.commit('updateClusters', cluster);
 
-                  //console.log(cluster)
-                  
-                  // Set as current cluster if no other cluster has already been set
-                  if( (to.params.name == cluster.name) && (to.params.namespace == cluster.data.metadata.namespace) ) {
-                      found = true;
-                      store.commit('setCurrentCluster', cluster);
-                  }
+            if( to.params.hasOwnProperty('name') && (to.params.name == item.metadata.name) && (to.params.namespace == item.metadata.namespace) ) {
+              store.commit('setCurrentCluster', cluster);
+              found = true;
+            }
 
-              });
-
-              if(!found)
-                  notFound()
-
-          })
-          .catch(function(err) {
-              notFound()
           });
-        }
 
-        break;
+          if( to.params.hasOwnProperty('name') && !found)
+            notFound()
+          else
+            next()
+
+        }).catch(function(err) {
+          notFound()
+        });
+
+        break
 
       case 'ClusterStatus':
       case 'ClusterInfo':
