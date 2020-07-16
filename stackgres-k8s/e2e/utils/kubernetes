@@ -5,7 +5,7 @@ export KUBECONFIG="${KUBECONFIG:-$HOME/.kube/config}"
 export DEFAULT_K8S_VERSION="1.13.12"
 export K8S_VERSION="${K8S_VERSION:-$DEFAULT_K8S_VERSION}"
 
-. "$(dirname "$0")/envs/$E2E_ENV"
+e2e_add_source "envs/$E2E_ENV"
 
 setup_k8s() {
   mkdir -p "$TARGET_PATH/logs"
@@ -23,7 +23,7 @@ setup_k8s() {
   fi
 }
 
-create_namespace_if_not_exists(){
+create_namespace_if_not_exists() {
   if ! kubectl get namespace "$1" > /dev/null
   then
     kubectl create namespace "$1"

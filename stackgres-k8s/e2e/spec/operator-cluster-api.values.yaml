@@ -11,3 +11,6 @@ cluster:
     persistentVolume:
       size: 128Mi
   prometheusAutobind: false
+minio:
+  readinessProbe:
+    initialDelaySeconds: 5
