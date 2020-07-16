@@ -967,23 +967,20 @@ Vue.mixin({
 
       if( !store.state.tooltips[kind].hasOwnProperty('metadata.name') ) {
         console.log("Reading "+kind+" tooltips");
+
+        fetch('/admin/js/components/forms/help/crd-'+kind+'-EN.json')
+        .then(response => response.json())
+        .then(data => 
+            store.commit('setTooltips', { 
+              kind: kind, 
+              description: data 
+            })
+          );
         
         /* Tooltips Data */
-        axios
+        /* axios
         .get('js/components/forms/help/crd-'+kind+'-EN.json')
         .then( function(response){
-
-          // Include missing tooltips for storage credentials
-          /* if(kind == 'SGBackupConfig') {
-            response.data["spec.storage.s3.awsCredentials.accessKeyId"] = "The AWS Access Key ID secret.";
-            response.data["spec.storage.s3.awsCredentials.secretAccessKey"] = "The AWS Secret Access Key secret.";
-            response.data["spec.storage.s3Compatible.awsCredentials.accessKeyId"] = "The AWS Access Key ID secret.";
-            response.data["spec.storage.s3Compatible.awsCredentials.secretAccessKey"] = "The AWS Secret Access Key secret.";
-            response.data["spec.storage.gcs.gcpCredentials.serviceAccountJSON"] = "A service account key from GCP. In JSON format, as downloaded from the GCP Console.";
-            response.data["spec.storage.azureBlob.azureCredentials.storageAccount"] = "The name of the storage account.";
-            response.data["spec.storage.azureBlob.azureCredentials.accessKey"] = "The primary or secondary access key for the storage account.";
-          } */
-
           store.commit('setTooltips', { 
           kind: kind, 
           description: response.data 
@@ -991,7 +988,7 @@ Vue.mixin({
         }).catch(function(err) {
           console.log(err);
           checkAuthError(err)
-        });
+        }); */
       }
 
     },
@@ -2293,5 +2290,37 @@ $(document).ready(function(){
   $('form.noSubmit').on('submit',function(e){
     e.preventDefault
   });
+
+  onmousemove = function (e) {
+
+    if( (window.innerWidth - e.clientX) > 420 ) {
+      $('#nameTooltip').css({
+        "top": e.clientY+20, 
+        "right": "auto",
+        "left": e.clientX+20
+      })
+    } else {
+      $('#nameTooltip').css({
+        "top": e.clientY+20, 
+        "left": "auto",
+        "right": window.innerWidth - e.clientX + 20
+      })
+    }
+  }
+  
+  $(document).on('mouseenter', 'td.hasTooltip', function(){
+    c = $(this).children('span');
+    if(c.width() > $(this).width()){
+      $('#nameTooltip .info').text(c.text());
+      $('#nameTooltip').addClass('show');
+    }
+      
+  });
+
+  $(document).on('mouseleave', 'td.hasTooltip', function(){ 
+    $('#nameTooltip .info').text('');
+    $('#nameTooltip').removeClass('show');
+  });
+
 
 });
