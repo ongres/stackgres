@@ -1052,7 +1052,9 @@ Vue.mixin({
       
       if(typeof crd !== 'undefined') {
         crd.kind = kind;
-        crd.data.metadata.name = 'copy-of-'+crd.data.metadata.name;
+        if(!$('#cloneName').val().includes('copy-of-'))
+          crd.data.metadata.name = 'copy-of-'+crd.data.metadata.name;
+
         store.commit('setCloneCRD', crd);
         
         $('#cloneName').val(crd.data.metadata.name)

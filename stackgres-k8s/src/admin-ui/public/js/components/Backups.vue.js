@@ -508,37 +508,6 @@ var Backups = Vue.component("Backups", {
 
 	},
 	mounted: function() {
-		onmousemove = function (e) {
-
-			if( (window.innerWidth - e.clientX) > 420 ) {
-				$('#nameTooltip').css({
-					"top": e.clientY+20, 
-					"right": "auto",
-					"left": e.clientX+20
-				})
-			} else {
-				$('#nameTooltip').css({
-					"top": e.clientY+20, 
-					"left": "auto",
-					"right": window.innerWidth - e.clientX + 20
-				})
-			}
-		}
-		
-		$(document).on('mouseenter', 'td.hasTooltip', function(){
-			c = $(this).children('span');
-			if(c.width() > $(this).width()){
-				$('#nameTooltip .info').text(c.text());
-				$('#nameTooltip').addClass('show');
-			}
-				
-		});
-
-		$(document).on('mouseleave', 'td.hasTooltip', function(){ 
-			$('#nameTooltip .info').text('');
-			$('#nameTooltip').removeClass('show');
-		});
-
 		
 	},
 	methods: {
