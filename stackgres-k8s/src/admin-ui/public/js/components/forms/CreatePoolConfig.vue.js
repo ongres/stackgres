@@ -107,15 +107,17 @@ var CreatePoolConfig = Vue.component("CreatePoolConfig", {
         config() {
             var vm = this;
             var config = {};
+
+            if(vm.$route.params.action === 'edit') {
+                store.state.poolConfig.forEach(function( conf ){
+                    if( (conf.data.metadata.name === vm.$route.params.name) && (conf.data.metadata.namespace === vm.$route.params.namespace) ) {
+                        vm.poolConfigParams = conf.data.spec.pgBouncer["pgbouncer.ini"];
+                        config = conf;
+                        return false;
+                    }
+                });    
+            }
             
-            store.state.poolConfig.forEach(function( conf ){
-                if( (conf.data.metadata.name === vm.$route.params.name) && (conf.data.metadata.namespace === vm.$route.params.namespace) ) {
-                    vm.poolConfigParams = conf.data.spec.pgBouncer["pgbouncer.ini"];
-                    config = conf;
-                    return false;
-                }
-            });
-        
             return config
         }
     },

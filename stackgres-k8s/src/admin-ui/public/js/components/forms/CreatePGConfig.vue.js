@@ -118,16 +118,18 @@ var CreatePGConfig = Vue.component("CreatePgConfig", {
         config() {
             var vm = this;
             var config = {};
-            
-            store.state.pgConfig.forEach(function( conf ){
-                if( (conf.data.metadata.name === vm.$route.params.name) && (conf.data.metadata.namespace === vm.$route.params.namespace) ) {
-                    vm.pgConfigVersion = conf.data.spec.postgresVersion;
-                    vm.pgConfigParams = conf.data.spec["postgresql.conf"];
-                    config = conf;
-                    return false;
-                }
-            });
-        
+
+            if(vm.$route.params.action === 'edit') {
+                store.state.pgConfig.forEach(function( conf ){
+                    if( (conf.data.metadata.name === vm.$route.params.name) && (conf.data.metadata.namespace === vm.$route.params.namespace) ) {
+                        vm.pgConfigVersion = conf.data.spec.postgresVersion;
+                        vm.pgConfigParams = conf.data.spec["postgresql.conf"];
+                        config = conf;
+                        return false;
+                    }
+                });    
+            }
+
             return config
         }
     },
