@@ -1,6 +1,8 @@
-var CreateBackup = Vue.component("create-backup", {
+var CreateBackup = Vue.component("CreateBackup", {
     template: `
         <form id="create-backup">
+            <!-- Vue reactivity hack -->
+            <template v-if="Object.keys(backup).length > 0"></template>
             <header>
                 <ul class="breadcrumbs">
                     <li class="namespace">
@@ -77,37 +79,16 @@ var CreateBackup = Vue.component("create-backup", {
             </div>
         </form>`,
 	data: function() {
-        
-        if (vm.$route.params.action == 'create') {
-            
-            return {
-                editMode: false,
-                advancedMode: false,
-                backupName: '',
-                backupNamespace: store.state.currentNamespace,
-                backupCluster: '',
-                managedLifecycle: false
-            }
 
-        } else if (vm.$route.params.action == 'edit') {
+        const vm = this;
 
-            let bk = {};
-            
-            store.state.backups.forEach(function( b ){
-                if( (b.data.metadata.uid === vm.$route.params.uid) && (b.data.metadata.namespace === vm.$route.params.namespace) ) {
-                    bk = b;
-                    return false;
-                }
-            });
-            
-            return {
-                editMode: true,
-                advancedMode: false,
-                backupName: bk.data.metadata.name,
-                backupNamespace: store.state.currentNamespace,
-                backupCluster: vm.$route.params.cluster,
-                managedLifecycle: bk.data.spec.managedLifecycle
-            }
+        return {
+            editMode: (vm.$route.params.action === 'edit'),
+            advancedMode: false,
+            backupName: '',
+            backupNamespace: vm.$route.params.hasOwnProperty('namespace') ? vm.$route.params.namespace : '',
+            backupCluster: '',
+            managedLifecycle: ''
         }
 	},
 	computed: {
@@ -137,6 +118,23 @@ var CreateBackup = Vue.component("create-backup", {
 			})
 
 			return nameColission
+        },
+
+        backup() {
+            var vm = this;
+            var backup = {};
+            
+            store.state.backups.forEach(function( bk ){
+                if( (bk.data.metadata.uid === vm.$route.params.uid) && (bk.data.metadata.namespace === vm.$route.params.namespace) ) {
+                    vm.backupName = bk.name;
+                    vm.backupCluster = bk.data.spec.sgCluster;
+                    vm.managedLifecycle = bk.data.spec.managedLifecycle
+                    backup = bk;
+                    return false;
+                }
+            });
+        
+            return backup
         }
     },
     methods: {
