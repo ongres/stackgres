@@ -70,9 +70,9 @@ var BackupConfig = Vue.component("BackupConfig", {
 										{{ conf.data.spec.baseBackups.retention }}
 									</template>
 								</td>
-								<td class="fontZero">
+								<td class="fontZero hasTooltip">
 									<template v-if="typeof conf.data.spec.baseBackups.retention !== 'undefined'">
-										{{ conf.data.spec.baseBackups.cronSchedule | prettyCRON }}
+										<span>{{ conf.data.spec.baseBackups.cronSchedule | prettyCRON }}</span>
 									</template>
 								</td>
 								<td class="fontZero">
