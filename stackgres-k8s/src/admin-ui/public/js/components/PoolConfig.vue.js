@@ -85,7 +85,7 @@ var PoolConfig = Vue.component("PoolConfig", {
 										</table>
 									</div>
 									<div class="paramDetails" v-if="conf.data.spec.pgBouncer['pgbouncer.ini'].length">
-										<template v-if="conf.data.spec.pgBouncer['pgbouncer.ini'].length != conf.data.status.pgBouncer.defaultParameters.length">
+										<template v-if="conf.data.status.pgBouncer['pgbouncer.ini'].length != conf.data.status.pgBouncer.defaultParameters.length">
 											<span class="title">Parameters</span>	
 											<table>
 												<tbody>
