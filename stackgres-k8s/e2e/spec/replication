@@ -13,7 +13,9 @@ e2e_test() {
 }
 
 create_database_primary() {
-  if   run_query -p 5432 -h "$CLUSTER_NAME-primary" -i 1 -q "'CREATE DATABASE test;'"
+  wait_until check_connectivity -i 0
+  try_function run_query -p 5432 -h "$CLUSTER_NAME-primary" -i 1 -q "'CREATE DATABASE test;'"
+  if "$RESULT"
   then
     echo "SUCCESS: It's possible to create a database in the primary node"
     return 0
@@ -24,7 +26,9 @@ create_database_primary() {
 }
 
 create_database_replica() {
-  if run_query -p 5432 -i 0 -h "$CLUSTER_NAME-replicas" -q "'CREATE TABLE fibonacci(num integer);'" -d test > "${LOG_PATH}/test1.log"
+  wait_until check_connectivity -i 1
+  try_function run_query -p 5432 -i 0 -h "$CLUSTER_NAME-replicas" -q "'CREATE TABLE fibonacci(num integer);'" -d test > "${LOG_PATH}/test1.log"
+  if "$RESULT"
   then
     echo "FAIL: It's possible to create a table in the replica node"
     return 1
