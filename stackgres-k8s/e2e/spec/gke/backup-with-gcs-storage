@@ -25,7 +25,8 @@ e2e_test_install() {
     --from-file="$TARGET_PATH/gke-service-account.json" \
     -n "$CLUSTER_NAMESPACE"
 
-  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 \
+    --set-string cluster.configurations.shBackupConfig=backupconf
 
   wait_pods_running "$CLUSTER_NAMESPACE" 1
 

@@ -31,11 +31,13 @@ e2e_test_install() {
     -n "$CLUSTER_NAMESPACE"
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 \
+    --set-string cluster.configurations.shBackupConfig=backupconf \
     --set-string cluster.metadata.annotations.allResources.iam\\.gke\\.io/gcp-service-account="$K8S_GKE_SERVICEACCOUNT@$K8S_GKE_PROJECT.iam.gserviceaccount.com"
 
 
   wait_pods_running "$CLUSTER_NAMESPACE" 1
 
+  wait_until check_connectivity -i 0
   create_mock_data
 
   BACKUP_NAME="${CLUSTER_NAME}-0-$(shuf -i 0-65535 -n 1)"

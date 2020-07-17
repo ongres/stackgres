@@ -26,7 +26,8 @@ e2e_test_install() {
     --from-literal=account="$K8S_AZ_K8S_NAME" \
     --from-literal=accessKey="$ACCOUNT_KEY"
 
-  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 \
+    --set-string cluster.configurations.shBackupConfig=backupconf
 
   wait_pods_running "$CLUSTER_NAMESPACE" 1
 
