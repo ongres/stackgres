@@ -23,27 +23,27 @@ var Grafana = Vue.component("Grafana", {
 				<div class="actions">
 				<a class="documentation" href="https://stackgres.io/doc/latest/04-postgres-cluster-management/01-postgres-clusters/" target="_blank" title="SGCluster Documentation">SGCluster Documentation</a>
 					<div>
-						<a class="cloneCRD" @click="cloneCRD('SGCluster', currentNamespace, $route.params.name)">Clone Cluster Configuration</a>
-						<router-link :to="'/admin/crd/edit/cluster/'+$route.params.namespace+'/'+cluster.name">Edit Cluster</router-link>
-						<a v-on:click="deleteCRD('sgcluster', currentNamespace, cluster.name, '/admin/overview/'+currentNamespace)" :class="'/overview/'+currentNamespace">Delete Cluster</a>
+						<a v-if="iCan('create','sgclusters',$route.params.namespace)" class="cloneCRD" @click="cloneCRD('SGCluster', currentNamespace, $route.params.name)">Clone Cluster Configuration</a>
+						<router-link v-if="iCan('patch','sgclusters',$route.params.namespace)" :to="'/admin/crd/edit/cluster/'+$route.params.namespace+'/'+$route.params.name">Edit Cluster</router-link>
+						<a v-if="iCan('delete','sgclusters',$route.params.namespace)" v-on:click="deleteCRD('sgcluster', currentNamespace, $route.params.name, '/admin/overview/'+currentNamespace)" :class="'/overview/'+currentNamespace">Delete Cluster</a>
 					</div>
 				</div>
 
 				<ul class="tabs">
 					<li>
-						<router-link :to="'/admin/cluster/status/'+$route.params.namespace+'/'+cluster.name" title="Status" class="status">Status</router-link>
+						<router-link :to="'/admin/cluster/status/'+$route.params.namespace+'/'+$route.params.name" title="Status" class="status">Status</router-link>
 					</li>
 					<li>
-						<router-link :to="'/admin/cluster/configuration/'+$route.params.namespace+'/'+cluster.name" title="Configuration" class="info">Configuration</router-link>
+						<router-link :to="'/admin/cluster/configuration/'+$route.params.namespace+'/'+$route.params.name" title="Configuration" class="info">Configuration</router-link>
 					</li>
-					<li>
-						<router-link :to="'/admin/cluster/backups/'+$route.params.namespace+'/'+cluster.name" title="Backups" class="backups">Backups</router-link>
+					<li v-if="iCan('list','sgbackups',$route.params.namespace)">
+						<router-link :to="'/admin/cluster/backups/'+$route.params.namespace+'/'+$route.params.name" title="Backups" class="backups">Backups</router-link>
 					</li>
-					<li v-if="typeof cluster.data.spec.distributedLogs !== 'undefined'">
+					<li v-if="iCan('list','sgdistributedlogs',$route.params.namespace) && cluster.data.spec.hasOwnProperty('distributedLogs')">
 						<router-link :to="'/admin/cluster/logs/'+$route.params.namespace+'/'+$route.params.name" title="Distributed Logs" class="logs">Logs</router-link>
 					</li>
 					<li v-if="cluster.data.grafanaEmbedded">
-						<router-link id="grafana-btn" :to="'/admin/cluster/monitor/'+$route.params.namespace+'/'+cluster.name" title="Grafana Dashboard" class="grafana">Monitoring</router-link>
+						<router-link id="grafana-btn" :to="'/admin/cluster/monitor/'+$route.params.namespace+'/'+$route.params.name" title="Grafana Dashboard" class="grafana">Monitoring</router-link>
 					</li>
 				</ul>
 

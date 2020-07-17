@@ -1758,7 +1758,7 @@ ul.tabs {
     color: var(--blue);
 }
 
-.tabs a.router-link-exact-active.router-link-active {
+.tabs a.router-link-active {
     color: var(--blue);
     border-bottom-color: var(--blue);
     font-weight: bold;
@@ -1872,7 +1872,7 @@ li.status {
 
 
 .content table {
-    margin-bottom: 50px;
+    margin-bottom: 10px;
 }
 
 #backups tr.details.open > td > table:last-child {
@@ -2947,7 +2947,7 @@ ul.yaml ul {
     list-style: none;
 }
 
-.clusterInfo th, .podStatus th {
+.clusterInfo th {
     width: 25%;
 }
 
@@ -4209,6 +4209,10 @@ table.logs td.hasTooltip.logMessage > span, table.pgConfig td.hasTooltip > span,
     max-width: 300px;
 }
 
+table.profiles td.hasTooltip > span {
+    width: 100%;
+}
+
 table.logs th.logMessage, table.logs td.logMessage {
     min-width: calc(100vw - 1350px);
     width: calc(100vw - 1350px);
@@ -4420,7 +4424,7 @@ table.pgConfig tr.open td.hasTooltip:before, table.poolConfig tr.open td.hasTool
 table.pgConfig .hasTooltip, table.poolConfig .hasTooltip, table.backupConfig .hasTooltip {
     position: absolute;
     width: 20%;
-    padding-right: 10px;
+    padding-right: 35px;
 }
 
 table.pgConfig tr.open > td, table.poolConfig tr.open > td {
@@ -4516,9 +4520,11 @@ table.pgConfig.profiles td.actions a:first-of-type {
 }
 
 tr.details.pgConfig.open div, table.backupConfig .configurationDetails, table.backupConfig .storageDetails{
-    width: 50%;
+    width: 49%;
     float: left;
     display: block;
+    margin-bottom: 10px;
+    margin-top: -10px;
 } 
 
 table.pgConfig tr.base.open td.parameters, table.pgConfig tr.base.open td.pgVersion, table.poolConfig tr.base.open td.parameters, table tr.open .fontZero {
@@ -4574,6 +4580,14 @@ tr.details.pgConfig .title {
     overflow: auto;
     display: block;
     width: 100%;
+}
+
+tr.details .paramDetails table {
+    margin-bottom: 30px;
+}
+
+tr.details .paramDetails table.defaultParams {
+    margin-bottom: 10px;
 }
 
 .paramDetails table tbody {
@@ -4633,6 +4647,11 @@ td.inlineList li {
 
 td.inlineList li:not(:last-child):after {
     content: ', ';
+}
+
+table.backupConfig td.fontZero.hasTooltip, table.backupConfig th.cronSchedule {
+    width: 135px;
+    padding-right: 5px;
 }
 
 table.backupConfig span.title {
