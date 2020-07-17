@@ -119,7 +119,7 @@ BACKUP_CONFIG_YAML=$(cat << BACKUP_CONFIG_YAML
         bucket: "{{ .bucket }}"
         {{ with .path }}path: "{{ . }}"{{ end }}
         gcpCredentials:
-          {{- if .gcpCredentials.secretKeySelectors.fetchCredentialsFromMetadataService }}
+          {{- if .gcpCredentials.fetchCredentialsFromMetadataService }}
           fetchCredentialsFromMetadataService: true
           {{- else }}
           secretKeySelectors:

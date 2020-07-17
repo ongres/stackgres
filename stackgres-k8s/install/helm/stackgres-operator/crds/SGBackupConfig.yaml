@@ -259,7 +259,7 @@ spec:
                         fetchCredentialsFromMetadataService:
                           type: boolean
                           description: |
-                            If true, the credentials will be fetched from the GCE/GKE metadata service and the credentials from `secretKeySelectors` field will not be used.
+                            If true, the credentials will be fetched from the GCE/GKE metadata service and the field `secretKeySelectors` have to be set to null or omitted.
                             
                             This is useful when running StackGres inside a GKE cluster using [Workload Identity](https://cloud.google.com/kubernetes-engine/docs/how-to/workload-identity).
                         secretKeySelectors:

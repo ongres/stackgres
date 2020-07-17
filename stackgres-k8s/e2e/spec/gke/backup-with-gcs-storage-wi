@@ -8,6 +8,11 @@ e2e_test_install() {
     --member "serviceAccount:$K8S_GKE_PROJECT.svc.id.goog[$CLUSTER_NAMESPACE/$CLUSTER_NAME-patroni]" \
     "$K8S_GKE_ACCOUNT_EMAIL"
 
+  gcloud iam --project "$K8S_GKE_PROJECT" service-accounts add-iam-policy-binding \
+    --role roles/iam.workloadIdentityUser \
+    --member "serviceAccount:$K8S_GKE_PROJECT.svc.id.goog[$CLUSTER_NAMESPACE/restored-from-gcs-patroni]" \
+    "$K8S_GKE_ACCOUNT_EMAIL"
+
   if [ "$K8S_GKE_PROJECT" = "default" ]
   then  
     echo "Creating bucket in default project"
@@ -104,6 +109,10 @@ spec:
   instances: 2
   postgresVersion: '12.2'
   sgInstanceProfile: size-xs
+  metadata:
+    annotations:
+      allResources:
+        "iam.gke.io/gcp-service-account": "$K8S_GKE_SERVICEACCOUNT@$K8S_GKE_PROJECT.iam.gserviceaccount.com"
   pods:
     persistentVolume:
       size: '512Mi'
