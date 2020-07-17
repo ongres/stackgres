@@ -22,6 +22,9 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import javax.ws.rs.BadRequestException;
 
@@ -57,7 +60,9 @@ import io.stackgres.common.resource.PersistentVolumeClaimFinder;
 import io.stackgres.common.resource.PodExecutor;
 import io.stackgres.common.resource.PodFinder;
 import io.stackgres.testutil.JsonUtil;
+import org.eclipse.microprofile.context.ManagedExecutor;
 import org.jooq.lambda.tuple.Tuple;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -88,6 +93,11 @@ class ClusterResourceTest
   @Mock
   private PersistentVolumeClaimFinder persistentVolumeClaimFinder;
 
+  @Mock
+  ManagedExecutor managedExecutor;
+
+  private ExecutorService executorService;
+
   private PodList podList;
   private List<ClusterLogEntryDto> logList;
   private StackGresCluster clusterWithoutDistributedLogs;
@@ -99,6 +109,20 @@ class ClusterResourceTest
     logList = new ArrayList<>();
     clusterWithoutDistributedLogs = JsonUtil.readFromJson(
         "stackgres_cluster/without_distributed_logs.json", StackGresCluster.class);
+    executorService = Executors.newWorkStealingPool();
+    doAnswer(new Answer<Void>() {
+      @Override
+      public Void answer(InvocationOnMock invocation) throws Throwable {
+        executorService.execute(Runnable.class.cast(invocation.getArgument(0)));
+        return null;
+      }
+    }).when(managedExecutor).execute(any());
+  }
+
+  @AfterEach
+  public void tearDown() throws Exception {
+    executorService.shutdown();
+    executorService.awaitTermination(1, TimeUnit.SECONDS);
   }
 
   @Test
@@ -212,7 +236,8 @@ class ClusterResourceTest
         new ClusterPodTransformer());
     final ClusterStatsDtoFinder statsDtoFinder = new ClusterStatsDtoFinder(
         finder, podFinder, podExecutor, persistentVolumeClaimFinder,
-        labelFactory, clusterStatsTransformer);
+        labelFactory, clusterStatsTransformer,
+        managedExecutor);
 
     return new ClusterResource(
         finder,
@@ -250,7 +275,8 @@ class ClusterResourceTest
     assertEquals("postgresconf", resource.getSpec().getConfigurations().getSgPostgresConfig());
     assertEquals("size-xs", resource.getSpec().getSgInstanceProfile());
     assertNotNull(resource.getSpec().getInitData().getRestore());
-    assertEquals("d7e660a9-377c-11ea-b04b-0242ac110004", resource.getSpec().getInitData().getRestore().getBackupUid());
+    assertEquals("d7e660a9-377c-11ea-b04b-0242ac110004",
+        resource.getSpec().getInitData().getRestore().getBackupUid());
     assertNotNull(resource.getSpec().getDistributedLogs());
     assertEquals("distributedlogs", resource.getSpec().getDistributedLogs().getDistributedLogs());
     assertFalse(resource.getSpec().getPods().getDisableConnectionPooling());
@@ -285,7 +311,8 @@ class ClusterResourceTest
     assertEquals("bfb53778-f59a-11e9-b1b5-0242ac110002", resource.getMetadata().getUid());
     assertNotNull(resource.getSpec());
     assertEquals("backupconf", resource.getSpec().getConfiguration().getBackupConfig());
-    assertEquals("pgbouncerconf", resource.getSpec().getConfiguration().getConnectionPoolingConfig());
+    assertEquals("pgbouncerconf",
+        resource.getSpec().getConfiguration().getConnectionPoolingConfig());
     assertEquals("5Gi", resource.getSpec().getPod().getPersistentVolume().getVolumeSize());
     assertEquals("standard", resource.getSpec().getPod().getPersistentVolume().getStorageClass());
     assertEquals(true, resource.getSpec().getPrometheusAutobind());
@@ -294,7 +321,8 @@ class ClusterResourceTest
     assertEquals("postgresconf", resource.getSpec().getConfiguration().getPostgresConfig());
     assertEquals("size-xs", resource.getSpec().getResourceProfile());
     assertNotNull(resource.getSpec().getInitData().getRestore());
-    assertEquals("d7e660a9-377c-11ea-b04b-0242ac110004", resource.getSpec().getInitData().getRestore().getBackupUid());
+    assertEquals("d7e660a9-377c-11ea-b04b-0242ac110004",
+        resource.getSpec().getInitData().getRestore().getBackupUid());
     assertNotNull(resource.getSpec().getDistributedLogs());
     assertEquals("distributedlogs", resource.getSpec().getDistributedLogs().getDistributedLogs());
     assertFalse(resource.getSpec().getPod().getDisableConnectionPooling());
@@ -682,7 +710,8 @@ class ClusterResourceTest
         checkDto(parameters.getCluster());
         assertEquals(parameters.getRecords(), 50);
         assertEquals(parameters.getFromTimeAndIndex(), Optional.empty());
-        assertEquals(parameters.getToTimeAndIndex(), Optional.of(Tuple.tuple(Instant.EPOCH, Integer.MAX_VALUE)));
+        assertEquals(parameters.getToTimeAndIndex(),
+            Optional.of(Tuple.tuple(Instant.EPOCH, Integer.MAX_VALUE)));
         assertEquals(parameters.getFilters(), ImmutableMap.of());
         assertEquals(parameters.getFullTextSearchQuery(), Optional.empty());
         assertFalse(parameters.isSortAsc());

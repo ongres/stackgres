@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.apiweb.security;
+package io.stackgres.apiweb.rest;
 
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
@@ -18,6 +18,10 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import io.quarkus.security.AuthenticationFailedException;
+import io.stackgres.apiweb.security.SecretVerification;
+import io.stackgres.apiweb.security.TokenResponse;
+import io.stackgres.apiweb.security.TokenUtils;
+import io.stackgres.apiweb.security.UserPassword;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

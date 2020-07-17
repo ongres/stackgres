@@ -10,8 +10,10 @@ import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.Base64;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.Random;
 import java.util.regex.Pattern;
@@ -227,7 +229,7 @@ public class ResourceUtil {
   }
 
   public static DecimalFormat getDecimalFormat() {
-    return new DecimalFormat("#0.00");
+    return new DecimalFormat("#0.00", new DecimalFormatSymbols(Locale.US));
   }
 
 }

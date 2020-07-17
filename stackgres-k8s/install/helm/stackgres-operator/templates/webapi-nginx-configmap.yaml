@@ -4,6 +4,11 @@ kind: ConfigMap
 metadata:
   name: {{ .Values.restapi.name }}-nginx
   namespace: {{ .Release.Namespace }}
+  annotations:
+    meta.helm.sh/release-name: {{ .Release.Name }}
+    meta.helm.sh/release-namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/managed-by: Helm
 data:
   nginx.conf: |
     pid        /tmp/nginx.pid;
@@ -26,7 +31,7 @@ data:
         access_log  /var/log/nginx/access.log  main;
 
         sendfile        on;
-        
+
         keepalive_timeout  65;
 
         include /etc/nginx/conf.d/*.conf;
@@ -34,15 +39,15 @@ data:
   stackgres-operator.template: |
     server {
       set $grafana_embedded '${GRAFANA_EMBEDDED}';
-      
+
       server_name  localhost;
-      
+
       listen       9443 ssl;
       ssl_certificate         /etc/operator/certs/server.crt;
       ssl_certificate_key     /etc/operator/certs/root.key;
       root   /usr/share/nginx/html;
       index index.html;
- 
+
       location /admin/ {
         try_files $uri $uri/index.html /admin/index.html;
       }
@@ -58,11 +63,11 @@ data:
         add_header Content-Type text/plain;
         return 200 "$scheme://$http_host${GRAFANA_URL_PATH}";
       }
-      
+
       location ~ ^(/|/stackgres|/stackgres/)$ {
         return 302 "$scheme://$http_host/admin/index.html";
       }
-      
+
       location ~ ^/stackgres {
         proxy_redirect off;
         proxy_set_header Host $host;
@@ -76,7 +81,7 @@ data:
         proxy_pass http://localhost:8080;
         {{- end }}
       }
-      
+
       location / {
         if ($grafana_embedded != true) {
           return 404;

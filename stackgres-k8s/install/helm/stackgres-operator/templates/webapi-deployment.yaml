@@ -2,7 +2,11 @@
 apiVersion: "apps/v1"
 kind: "Deployment"
 metadata:
+  annotations:
+    meta.helm.sh/release-name: {{ .Release.Name }}
+    meta.helm.sh/release-namespace: {{ .Release.Namespace }}
   labels:
+    app.kubernetes.io/managed-by: Helm
     app: {{ .Values.restapi.name }}
     version: "{{ .Chart.Version }}"
     group:  stackgres.io
@@ -26,7 +30,7 @@ spec:
         version: "{{ .Chart.Version }}"
         group:  stackgres.io
     spec:
-      serviceAccountName: {{ .Release.Name }}
+      serviceAccountName: {{ .Values.restapi.name  }}
       securityContext:
         runAsNonRoot: true
         {{- if not (.Capabilities.APIVersions.Has "project.openshift.io/v1") }}
