@@ -253,14 +253,14 @@ const router = new VueRouter({
       },
     },
     { 
-      path: '/admin/monitor/:namespace/:name', 
+      path: '/admin/:cluster/monitor/:namespace/:name', 
       component: Grafana,
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/admin/monitor/:namespace/:name/:pod', 
+      path: '/admin/:cluster/monitor/:namespace/:name/:pod', 
       component: Grafana,
       meta: {
         conditionalRoute: false
@@ -1052,7 +1052,7 @@ Vue.mixin({
       
       if(typeof crd !== 'undefined') {
         crd.kind = kind;
-        if(!$('#cloneName').val().includes('copy-of-'))
+        if($('#cloneName').val() !== crd.data.metadata.name)
           crd.data.metadata.name = 'copy-of-'+crd.data.metadata.name;
 
         store.commit('setCloneCRD', crd);
@@ -1979,13 +1979,13 @@ $(document).ready(function(){
 
 
   $(document).on("click", "#sets .nav-item", function(){
-    if(!$(this).parents().hasClass("clu"))
+   /*  if(!$(this).parents().hasClass("clu"))
         $('.clu.active').removeClass('active');
     
     if(!($(this).parent().hasClass("active"))) {
       $(".set.active:not(.conf)").removeClass("active");
       $(this).parent("div:not(.conf)").addClass("active");
-    }
+    } */
     $("#current-namespace").removeClass('open');
     $('#ns-select').slideUp();
 
@@ -1994,11 +1994,13 @@ $(document).ready(function(){
   });
 
   $(document).on("click", ".set .item", function(){
-    $(".set.active:not(.conf)").removeClass("active");
+   /*  $(".set.active:not(.conf)").removeClass("active");
     $(this).parent().parent().parent().addClass("active");
 
-    if(!$(this).parents().hasClass("clu"))
+    if(!$(this).parents().hasClass("clu")) {
+      $(".set.active:not(.conf)").removeClass("active");
       $('.clu.active').removeClass('active');
+    } */
     
     $(".set:not(.active) > ul.show").removeClass("show");
   });
