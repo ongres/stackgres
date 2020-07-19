@@ -33,6 +33,7 @@ try_lock() {
     if [ "$POD_NAME" = "$LOCK_POD" ]
     then
       try_lock "$WAIT"
+      return 0
     fi
     echo "Locked by $LOCK_POD at $(date -d @"$LOCK_TIMESTAMP" --iso-8601=seconds --utc)"
     if "$WAIT"
