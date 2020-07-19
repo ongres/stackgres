@@ -6,11 +6,12 @@ to_json_string() {
 
 try_lock() {
   local WAIT="$1"
-  kubectl get cronjob.batch -n "$CLUSTER_NAMESPACE" "$CRONJOB_NAME" --template '
+  local TEMPLATE='
   LOCK_POD={{ if .metadata.annotations.lockPod }}{{ .metadata.annotations.lockPod }}{{ else }}{{ end }}
   LOCK_TIMESTAMP={{ if .metadata.annotations.lockTimestamp }}{{ .metadata.annotations.lockTimestamp }}{{ else }}0{{ end }}
   RESOURCE_VERSION={{ .metadata.resourceVersion }}
-  ' > /tmp/current-backup-job
+  '
+  kubectl get cronjob.batch -n "$CLUSTER_NAMESPACE" "$CRONJOB_NAME" --template "$TEMPLATE" > /tmp/current-backup-job
   . /tmp/current-backup-job
   CURRENT_TIMESTAMP="$(date +%s)"
   if [ "$POD_NAME" != "$LOCK_POD" ] && [ "$((CURRENT_TIMESTAMP-LOCK_TIMESTAMP))" -lt 15 ]
@@ -24,8 +25,24 @@ try_lock() {
       return 1
     fi
   fi
-  kubectl annotate cronjob.batch -n "$CLUSTER_NAMESPACE" "$CRONJOB_NAME" \
+  if ! kubectl annotate cronjob.batch -n "$CLUSTER_NAMESPACE" "$CRONJOB_NAME" \
     --resource-version "$RESOURCE_VERSION" --overwrite "lockPod=$POD_NAME" "lockTimestamp=$CURRENT_TIMESTAMP"
+  then
+    kubectl get cronjob.batch -n "$CLUSTER_NAMESPACE" "$CRONJOB_NAME" --template "$TEMPLATE" > /tmp/current-backup-job
+    . /tmp/current-backup-job
+    if [ "$POD_NAME" = "$LOCK_POD" ]
+    then
+      try_lock "$WAIT"
+    fi
+    echo "Locked by $LOCK_POD at $(date -d @"$LOCK_TIMESTAMP" --iso-8601=seconds --utc)"
+    if "$WAIT"
+    then
+      sleep 20
+      try_lock true
+    else
+      return 1
+    fi
+  fi
 }
 
 try_lock true > /tmp/try-lock
