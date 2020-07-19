@@ -13,7 +13,7 @@ import javax.inject.Inject;
 
 import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.stackgres.operator.backup.Backup;
+import io.stackgres.operator.backup.BackupJob;
 import io.stackgres.operator.common.StackGresGeneratorContext;
 import io.stackgres.operatorframework.resource.ResourceGenerator;
 import io.stackgres.operatorframework.resource.factory.SubResourceStreamFactory;
@@ -29,7 +29,7 @@ public class Cluster
   private final BackupSecret backupSecret;
   private final RestoreConfigMap restoreConfigMap;
   private final RestoreSecret restoreSecret;
-  private final Backup backup;
+  private final BackupJob backupJob;
   private final AnnotationDecorator annotationDecorator;
 
   @Inject
@@ -39,7 +39,7 @@ public class Cluster
                  BackupSecret backupSecret,
                  RestoreSecret restoreSecret,
                  BackupCronJob backupCronJob,
-                 Backup backup,
+                 BackupJob backupJob,
                  AnnotationDecorator annotationDecorator) {
     super();
     this.clusterStatefulSet = clusterStatefulSet;
@@ -48,7 +48,7 @@ public class Cluster
     this.backupSecret = backupSecret;
     this.restoreConfigMap = restoreConfigMap;
     this.restoreSecret = restoreSecret;
-    this.backup = backup;
+    this.backupJob = backupJob;
     this.annotationDecorator = annotationDecorator;
   }
 
@@ -63,7 +63,7 @@ public class Cluster
         .append(backupSecret)
         .append(restoreConfigMap)
         .append(restoreSecret)
-        .append(backup)
+        .append(backupJob)
         .stream()
         .collect(ImmutableList.toImmutableList());
     annotationDecorator.decorate(context.getClusterContext().getCluster(), resources);

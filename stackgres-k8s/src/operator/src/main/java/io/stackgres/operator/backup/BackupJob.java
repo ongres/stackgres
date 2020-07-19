@@ -48,9 +48,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
-public class Backup implements StackGresClusterResourceStreamFactory {
+public class BackupJob implements StackGresClusterResourceStreamFactory {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(Backup.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(BackupJob.class);
 
   private final StackGresPodSecurityContext clusterPodSecurityContext;
   private final ClusterStatefulSetEnvironmentVariables clusterStatefulSetEnvironmentVariables;
@@ -58,7 +58,7 @@ public class Backup implements StackGresClusterResourceStreamFactory {
   private final LabelFactory<StackGresCluster> labelFactory;
 
   @Inject
-  public Backup(StackGresPodSecurityContext clusterPodSecurityContext,
+  public BackupJob(StackGresPodSecurityContext clusterPodSecurityContext,
       ClusterStatefulSetEnvironmentVariables clusterStatefulSetEnvironmentVariables,
       LabelFactory<StackGresCluster> labelFactory) {
     super();
@@ -83,7 +83,9 @@ public class Backup implements StackGresClusterResourceStreamFactory {
     }
 
     return Seq.seq(clusterContext.getBackups())
-        .filter(backup -> !Seq.seq(backup.getMetadata().getAnnotations())
+        .filter(backup -> !backup.getStatus().getProcess().getStatus()
+            .equals(BackupPhase.COMPLETED.label())
+            && !Seq.seq(backup.getMetadata().getAnnotations())
             .anyMatch(Tuple.tuple(
                 StackGresContext.SCHEDULED_BACKUP_KEY, StackGresContext.RIGHT_VALUE)::equals))
         .map(backup -> createBackupJob(backup, clusterContext))
@@ -146,6 +148,7 @@ public class Backup implements StackGresClusterResourceStreamFactory {
                         .withName("BACKUP_IS_PERMANENT")
                         .withValue(Optional.ofNullable(backup.getSpec()
                             .getManagedLifecycle())
+                            .map(managedLifecycle -> !managedLifecycle)
                             .map(String::valueOf)
                             .orElse("true"))
                         .build(),
