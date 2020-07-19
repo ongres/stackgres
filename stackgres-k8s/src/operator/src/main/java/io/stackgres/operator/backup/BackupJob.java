@@ -30,6 +30,8 @@ import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgbackup.BackupPhase;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackup.StackGresBackupDefinition;
+import io.stackgres.common.crd.sgbackup.StackGresBackupProcess;
+import io.stackgres.common.crd.sgbackup.StackGresBackupStatus;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigDefinition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSet;
@@ -83,8 +85,11 @@ public class BackupJob implements StackGresClusterResourceStreamFactory {
     }
 
     return Seq.seq(clusterContext.getBackups())
-        .filter(backup -> !backup.getStatus().getProcess().getStatus()
-            .equals(BackupPhase.COMPLETED.label())
+        .filter(backup -> !Optional.ofNullable(backup.getStatus())
+            .map(StackGresBackupStatus::getProcess)
+            .map(StackGresBackupProcess::getStatus)
+            .map(status -> status.equals(BackupPhase.COMPLETED.label()))
+            .orElse(true)
             && !Seq.seq(backup.getMetadata().getAnnotations())
             .anyMatch(Tuple.tuple(
                 StackGresContext.SCHEDULED_BACKUP_KEY, StackGresContext.RIGHT_VALUE)::equals))
