@@ -36,7 +36,7 @@ pod_logs() {
         ;;
     esac
   done
-  [ ! -f "$pods_file" ] || rm -f "$pods_file"
+  [ -f "$pods_file" ] || rm -f "$pods_file"
   trap_exec kubectl get pod $(if [ -z "$namespace" ]; then echo '--all-namespaces'; else echo '-n '"$namespace"; fi) -o json --watch \
     | jq --unbuffered -r '.metadata.namespace + "/" + .metadata.name + "/" + .metadata.uid + "," + (.metadata.ownerReferences | select(. != null) | map(.kind) | .[] | tostring)' \
     | while read pod; do
@@ -93,7 +93,7 @@ pod_logs_pod() {
     echo "Pod not specified"
     exit 1
   fi
-  [ ! -f "$pods_file" ] || rm -f "$pods_file"
+  [ -f "$pods_file" ] || rm -f "$pods_file"
   kubectl get pod -n "$namespace" "$pod" -o json \
     | jq -r '.metadata.uid as $uid|.status.containerStatuses|map(.name + "/" + $uid + "/" + (.restartCount | tostring))|.[]' \
     | if [ -z "$filtered_container" ]; then cat; else grep '^'"$filtered_container"'/'; fi \
