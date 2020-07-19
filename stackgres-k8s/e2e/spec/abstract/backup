@@ -179,8 +179,7 @@ check_manual_backup() {
     return 1
   fi
 
-  local REMAINING_BACKUPS=$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" -o name | wc -l)
-  if [ "$REMAINING_BACKUPS" = "2" ]
+  if wait_until eval '[ "$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" -o name | wc -l)" = "2" ]'
   then
     echo "SUCCESS. The backup retention has been honored. Remaining backups are 2"
   else
@@ -258,8 +257,7 @@ check_backup_retention() {
     return 1
   fi
 
-  local REMAINING_BACKUPS=$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" -o name | wc -l)
-  if [ "$REMAINING_BACKUPS" = "2" ]
+  if wait_until -t 5 eval '[ "$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" -o name | wc -l)" = "2" ]'
   then
     echo "SUCCESS. The backup retention has been honored. Remaining backups are 2"
   else
