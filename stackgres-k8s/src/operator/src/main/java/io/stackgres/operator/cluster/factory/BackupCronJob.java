@@ -5,7 +5,6 @@
 
 package io.stackgres.operator.cluster.factory;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -15,13 +14,13 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.io.Resources;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.EnvVarSourceBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectFieldSelectorBuilder;
+import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.batch.CronJobBuilder;
 import io.fabric8.kubernetes.api.model.batch.JobTemplateSpecBuilder;
 import io.stackgres.common.LabelFactory;
@@ -209,11 +208,22 @@ public class BackupCronJob implements StackGresClusterResourceStreamFactory {
                                 .withValue("3600")
                                 .build())
                         .build())
-                    .withCommand("/bin/bash", "-c" + (LOGGER.isTraceEnabled() ? "x" : ""),
-                        Resources.asCharSource(
-                            BackupCronJob.class.getResource("/create-backup.sh"),
-                            StandardCharsets.UTF_8)
-                            .read())
+                    .withCommand("/bin/bash", "-e" + (LOGGER.isTraceEnabled() ? "x" : ""),
+                        ClusterStatefulSetPath.LOCAL_BIN_CREATE_BACKUP_SH_PATH.path())
+                    .withVolumeMounts(ClusterStatefulSetVolumeConfig.TEMPLATES
+                        .volumeMount(clusterContext,
+                            volumeMountBuilder -> volumeMountBuilder
+                            .withSubPath(
+                                ClusterStatefulSetPath.LOCAL_BIN_CREATE_BACKUP_SH_PATH.filename())
+                            .withMountPath(
+                                ClusterStatefulSetPath.LOCAL_BIN_CREATE_BACKUP_SH_PATH.path())
+                            .withReadOnly(true)))
+                    .build())
+                .withVolumes(new VolumeBuilder(ClusterStatefulSetVolumeConfig.TEMPLATES
+                    .volume(clusterContext))
+                    .editConfigMap()
+                    .withDefaultMode(0555) // NOPMD
+                    .endConfigMap()
                     .build())
                 .endSpec()
                 .endTemplate()
