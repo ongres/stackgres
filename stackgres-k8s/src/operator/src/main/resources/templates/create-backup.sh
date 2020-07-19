@@ -62,7 +62,7 @@ backup_cr_template="${backup_cr_template}:{{ .metadata.name }}"
 backup_cr_template="${backup_cr_template}:{{ with .status.process.status }}{{ . }}{{ end }}"
 backup_cr_template="${backup_cr_template}:{{ with .status.internalName }}{{ . }}{{ end }}"
 backup_cr_template="${backup_cr_template}:{{ with .status.process.jobPod }}{{ . }}{{ end }}"
-backup_cr_template="${backup_cr_template}:{{ with .metadata.ownerReferences }}{{ with index . 0 }}{{ .kind }}{{ end }}{{ end }}"
+backup_cr_template="${backup_cr_template}:{{ with .metadata.labels }}{{ with index . \"$SCHEDULED_BACKUP_KEY\" }}{{ . }}{{ end }}{{ end }}"
 backup_cr_template="${backup_cr_template}:{{ if .spec.managedLifecycle }}true{{ else }}false{{ end }}"
 backup_cr_template="${backup_cr_template}:{{ if .status.process.managedLifecycle }}true{{ else }}false{{ end }}"
 backup_cr_template="${backup_cr_template}{{ printf "'"\n"'" }}{{ end }}"
@@ -455,21 +455,30 @@ EOF
     backup_phase="$(echo "$backup" | cut -d : -f 3)"
     backup_name="$(echo "$backup" | cut -d : -f 4)"
     backup_pod="$(echo "$backup" | cut -d : -f 5)"
-    backup_owner_kind="$(echo "$backup" | cut -d : -f 6)"
-    backup_is_permanent="$(echo "$backup" | cut -d : -f 8)"
+    backup_sheduled_backup="$(echo "$backup" | cut -d : -f 6)"
+    backup_managed_lifecycle="$(echo "$backup" | cut -d : -f 8)"
+    backup_is_permanent="$([ "$backup_managed_lifecycle" = true ] && echo false || echo true)"
     backup_config="$(kubectl get "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$backup_cr_name" \
       --template "{{ .status.sgBackupConfig.storage }}")"
-    if [ ! -z "$backup_name" ] && [ "$backup_phase" = "$BACKUP_PHASE_COMPLETED" ] \
+    # if backup CR has backup internal name, is marked as completed, uses the same current
+    # backup config but is not found in the storage, delete it
+    if [ -n "$backup_name" ] && [ "$backup_phase" = "$BACKUP_PHASE_COMPLETED" ] \
       && [ "$backup_config" = "$current_backup_config" ] \
       && ! grep -q "\"backup_name\":\"$backup_name\"" /tmp/existing-backups
     then
       kubectl delete "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$backup_cr_name"
-    elif [ "$backup_owner_kind" = "CronJob" ] \
+    # if backup CR is a scheduled backup, is marked as running, has no pod or pod
+    # has been terminated, delete it
+    elif [ "$backup_sheduled_backup" = "$RIGHT_VALUE" ] \
       && [ "$backup_phase" = "$BACKUP_PHASE_RUNNING" ] \
       && ([ -z "$backup_pod" ] || ! grep -q "^$backup_pod$" /tmp/pods)
     then
       kubectl delete "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$backup_cr_name"
-    elif [ ! -z "$backup_name" ] && [ "$backup_phase" = "$BACKUP_PHASE_COMPLETED" ] \
+    # if backup CR has backup internal name, is marked as completed, and is marked as
+    # stored as not managed lifecycle or managed lifecycle and is found as managed lifecycle or
+    # not managed lifecycle respectively, then mark it as stored as managed lifecycle or
+    # not managed lifecycle respectively
+    elif [ -n "$backup_name" ] && [ "$backup_phase" = "$BACKUP_PHASE_COMPLETED" ] \
       && ! grep "\"backup_name\":\"$backup_name\"" /tmp/existing-backups \
         | grep -q "\"is_permanent\":$backup_is_permanent"
     then
@@ -483,8 +492,8 @@ EOF
         is_backup_subject_to_retention_policy="true"
       fi
       kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$backup_cr_name" --type json --patch '[
-      {"op":"replace","path":"/status/process/managedLifecycle","value":'$is_backup_subject_to_retention_policy'}
-      ]'
+        {"op":"replace","path":"/status/process/managedLifecycle","value":'$is_backup_subject_to_retention_policy'}
+        ]'
     fi
   done
 else
