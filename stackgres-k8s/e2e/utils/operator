@@ -119,14 +119,6 @@ setup_operator() {
 
     install_operator
     store_operator_values
-
-    if [ "$E2E_DEBUG_OPERATOR" = true ]
-    then
-      wait_pods_running "$OPERATOR_NAMESPACE"
-      kubectl set env -n "$OPERATOR_NAMESPACE" deployment/stackgres-operator \
-        DEBUG_OPERATOR="$E2E_DEBUG_OPERATOR" DEBUG_OPERATOR_SUSPEND="$E2E_DEBUG_OPERATOR_SUSPEND"
-      kubectl delete pod -n "$OPERATOR_NAMESPACE" -l app=stackgres-operator
-    fi
   else
     helm_cleanup_but_operator
     k8s_async_cleanup_but_operator
