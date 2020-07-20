@@ -19,7 +19,7 @@ var BackupConfig = Vue.component("BackupConfig", {
 				<div class="actions">
 					<a class="documentation" href="https://stackgres.io/doc/latest/04-postgres-cluster-management/04-backups/#configuration" target="_blank" title="SGBackupConfig Documentation">SGBackupConfig Documentation</a>
 					<div>
-						<router-link :to="'/admin/crd/create/backupconfig/'+$route.params.namespace" class="add">Add New</router-link>
+						<router-link v-if="iCan('create','sgbackupconfigs',$route.params.namespace)"  :to="'/admin/crd/create/backupconfig/'+$route.params.namespace" class="add">Add New</router-link>
 					</div>	
 				</div>	
 			</header>
@@ -53,8 +53,11 @@ var BackupConfig = Vue.component("BackupConfig", {
 					</thead>
 					<tbody>
 						<tr class="no-results">
-							<td colspan="8">
-								No configurations have been found, would you like to <router-link to="/admin/crd/create/backupconfig/" title="Add New Backup Configuration">create a new one?</router-link>
+							<td colspan="8" v-if="iCan('create','sgbackupconfigs',$route.params.namespace)">
+								No configurations have been found, would you like to <router-link :to="'/admin/crd/create/backupconfig/'+$route.params.namespace" title="Add New Backup Configuration">create a new one?</router-link>
+							</td>
+							<td v-else colspan="8">
+								No configurations have been found. You don't have enough permissions to create a new one
 							</td>
 						</tr>
 						<template v-for="conf in config" v-if="conf.data.metadata.namespace == currentNamespace">

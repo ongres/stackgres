@@ -525,8 +525,8 @@ router.beforeEach((to, from, next) => {
 
               response.data.forEach( function(item, index) {
                   
-                if( item.status ) {
-                  if( (typeof item.status.process.status !== 'undefined') && (item.status.process.status === 'Completed') ) {
+                if( (item.status !== null) && item.status.hasOwnProperty('process')) {
+                  if( item.status.process.status === 'Completed' ) {
                     //console.log('setting duration');
                     start = moment(item.status.process.timing.start);
                     finish = moment(item.status.process.timing.stored);
@@ -1036,7 +1036,7 @@ Vue.mixin({
     loadTooltips: function( kind, lang = 'EN' ) {
 
       if( !store.state.tooltips[kind].hasOwnProperty('metadata.name') ) {
-        console.log("Reading "+kind+" tooltips");
+        //console.log("Reading "+kind+" tooltips");
 
         fetch('/admin/js/components/forms/help/crd-'+kind+'-EN.json')
         .then(response => response.json())
@@ -1047,18 +1047,6 @@ Vue.mixin({
             })
           );
         
-        /* Tooltips Data */
-        /* axios
-        .get('js/components/forms/help/crd-'+kind+'-EN.json')
-        .then( function(response){
-          store.commit('setTooltips', { 
-          kind: kind, 
-          description: response.data 
-        })
-        }).catch(function(err) {
-          console.log(err);
-          checkAuthError(err)
-        }); */
       }
 
     },
@@ -1326,17 +1314,18 @@ const vm = new Vue({
               }
 
               //console.log(item);
-
-              if( (typeof item.status.process.status !== 'undefined') && (item.status.process.status === 'Completed') ) {
-                //console.log('setting duration');
-                start = moment(item.status.process.timing.start);
-                finish = moment(item.status.process.timing.stored);
-                duration = new Date(moment.duration(finish.diff(start))).toISOString();
-              } else {
-                //console.log('duration not set');
-                duration = '';
+              if( (item.status !== null) && item.status.hasOwnProperty('process')) {
+                if( item.status.process.status === 'Completed' ) {
+                  //console.log('setting duration');
+                  start = moment(item.status.process.timing.start);
+                  finish = moment(item.status.process.timing.stored);
+                  duration = new Date(moment.duration(finish.diff(start))).toISOString();
+                } else {
+                  //console.log('duration not set');
+                  duration = '';
+                }
+                
               }
-              
                 
               store.commit('updateBackups', { 
                 name: item.metadata.name,
@@ -1936,11 +1925,13 @@ function sortTable( table, param, direction ) {
     // If sorting backups first validate its state
     if(a.data.hasOwnProperty('status') && a.hasOwnProperty('duration')) {
       // If record is not sortable by the provided param
-      if((a.data.status.process.status == 'Failed') && !backupFixedParams.includes(param)){
-        //console.log('failed');
-        return 1
-      } else if ((a.data.status.process.status == 'Running') && !backupFixedParams.includes(param)){
-        return -1
+      if(a.data.status !== null) {
+        if( (a.data.status.process.status == 'Failed') && !backupFixedParams.includes(param)){
+          //console.log('failed');
+          return 1
+        } else if ((a.data.status.process.status == 'Running') && !backupFixedParams.includes(param)){
+          return -1
+        }
       }
       
     }  

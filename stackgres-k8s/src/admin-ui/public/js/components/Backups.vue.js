@@ -188,8 +188,11 @@ var Backups = Vue.component("Backups", {
 						</thead>
 						<tbody>
 							<tr class="no-results">
-								<td :colspan="999">
+								<td :colspan="999" v-if="iCan('create','sgbackups',$route.params.namespace)">
 									No records matched your search terms, would  you like to <router-link :to="'/admin/crd/create/backup/'+$route.params.namespace" title="Add New Backup">create a new one?</router-link>
+								</td>
+								<td v-else colspan="999">
+									No backups have been found. You don't have enough permissions to create a new one
 								</td>
 							</tr>
 							<template v-for="back in backups" v-if="( ( (back.data.metadata.namespace == currentNamespace) && !isCluster && back.show ) || (isCluster && (back.data.spec.sgCluster == $route.params.name ) && (back.data.metadata.namespace == $route.params.namespace ) && back.show ) )">

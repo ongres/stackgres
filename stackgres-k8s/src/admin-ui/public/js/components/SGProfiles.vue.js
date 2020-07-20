@@ -40,8 +40,11 @@ var SGProfiles = Vue.component("InstanceProfile", {
 					</thead>
 					<tbody>
 						<tr class="no-results">
-							<td :colspan="5">
-								No profiles have been found, would you like to <router-link to="/admin/crd/create/profile/" title="Add New Instance Profile">create a new one?</router-link>
+							<td :colspan="5" v-if="iCan('create','sginstanceprofiles',$route.params.namespace)">
+								No profiles have been found, would you like to <router-link :to="'/admin/crd/create/profile/'+$route.params.namespace" title="Add New Instance Profile">create a new one?</router-link>
+							</td>
+							<td v-else colspan="5">
+								No configurations have been found. You don't have enough permissions to create a new one
 							</td>
 						</tr>
 						<template v-for="conf in config" v-if="(conf.data.metadata.namespace == currentNamespace)">

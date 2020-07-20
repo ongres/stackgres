@@ -40,8 +40,11 @@ var PgConfig = Vue.component("PostgresConfig", {
 					</thead>
 					<tbody>
 						<tr class="no-results">
-							<td :colspan="4">
-								No configurations have been found, would you like to <router-link to="/admin/crd/create/pgconfig/" title="Add New Postgres Configuration">create a new one?</router-link>
+							<td :colspan="4" v-if="iCan('create','sgpgconfigs',$route.params.namespace)">
+								No configurations have been found, would you like to <router-link :to="'/admin/crd/create/pgconfig/'+$route.params.namespace" title="Add New Postgres Configuration">create a new one?</router-link>
+							</td>
+							<td v-else colspan="4">
+								No configurations have been found. You don't have enough permissions to create a new one
 							</td>
 						</tr>
 						<template v-for="conf in config" v-if="(conf.data.metadata.namespace == currentNamespace)">
