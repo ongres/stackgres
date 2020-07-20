@@ -146,8 +146,8 @@ check_replication() {
 }
 
 check_backup_pg_version() {
-  ALTERNATIVE_MAYOR_PG_VERSION="11"
-  ALTERNATIVE_PG_VERSION="$ALTERNATIVE_MAYOR_PG_VERSION.7"
+  ALTERNATIVE_PG_VERSION="11.8"
+  ALTERNATIVE_MAYOR_PG_VERSION="${ALTERNATIVE_PG_VERSION%.*}"
 
   cat << EOF | kubectl apply -f -
 apiVersion: stackgres.io/v1beta1

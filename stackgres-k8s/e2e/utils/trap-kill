@@ -27,7 +27,7 @@ trap_kill_all() {
 }
 
 trap_exec() {
-  "$SHELL" $SHELL_XTRACE -c 'echo $$;'"$(
+  "$SHELL" $SHELL_XTRACE -c 'echo $$; exec '"$(
     for ARG in "$@"
     do
       printf "'%s' " "$ARG"

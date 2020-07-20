@@ -267,6 +267,7 @@ class PatroniServicesTest {
         .clusterNamespace(defaultCluster.getMetadata().getNamespace())
         .clusterKey(StackGresContext.CLUSTER_KEY)
         .clusterName(defaultCluster.getMetadata().getName())
+        .scheduledBackupKey(StackGresContext.SCHEDULED_BACKUP_KEY)
         .backupKey(StackGresContext.BACKUP_KEY)
         .build();
   }

@@ -33,11 +33,14 @@ import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.LabelFactory;
+import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.YamlMapperProvider;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
+import io.stackgres.operator.cluster.factory.ClusterStatefulSetPath;
+import io.stackgres.operator.cluster.factory.ClusterStatefulSetVolumeConfig;
 import io.stackgres.operator.common.LabelFactoryDelegator;
 import io.stackgres.operator.common.Prometheus;
 import io.stackgres.operator.common.Sidecar;
@@ -66,7 +69,7 @@ public class Envoy implements StackGresClusterSidecarResourceFactory<Void> {
   public static final int PG_PORT = 5432;
   public static final String NAME = StackgresClusterContainers.ENVOY;
 
-  private static final String IMAGE_NAME = "docker.io/envoyproxy/envoy:v%s";
+  private static final String IMAGE_NAME = "docker.io/ongres/envoy:v%s-build-%s";
   private static final String DEFAULT_VERSION = StackGresComponents.get("envoy");
   private static final String CONFIG_SUFFIX = "-envoy-config";
   private static final ImmutableMap<String, Integer> LISTEN_SOCKET_ADDRESS_PORT_MAPPING =
@@ -108,19 +111,27 @@ public class Envoy implements StackGresClusterSidecarResourceFactory<Void> {
   public Container getContainer(StackGresGeneratorContext context) {
     ContainerBuilder container = new ContainerBuilder();
     container.withName(NAME)
-        .withImage(String.format(IMAGE_NAME, DEFAULT_VERSION))
+        .withImage(String.format(
+            IMAGE_NAME, DEFAULT_VERSION, StackGresProperty.CONTAINER_BUILD.getString()))
         .withImagePullPolicy("IfNotPresent")
         .withVolumeMounts(new VolumeMountBuilder()
             .withName(NAME)
             .withMountPath("/etc/envoy")
             .withNewReadOnly(true)
-            .build())
+            .build(),
+            ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
+                ClusterStatefulSetPath.ETC_PASSWD_PATH, context.getClusterContext()),
+            ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
+                ClusterStatefulSetPath.ETC_GROUP_PATH, context.getClusterContext()),
+            ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
+                ClusterStatefulSetPath.ETC_SHADOW_PATH, context.getClusterContext()),
+            ClusterStatefulSetVolumeConfig.LOCAL.volumeMount(
+                ClusterStatefulSetPath.ETC_GSHADOW_PATH, context.getClusterContext()))
         .withPorts(
             new ContainerPortBuilder().withContainerPort(PG_ENTRY_PORT).build(),
             new ContainerPortBuilder().withContainerPort(PG_REPL_ENTRY_PORT).build())
-        .withCommand("/usr/local/bin/envoy")
+        .withCommand("/usr/local/bin/envoy-static")
         .withArgs("-c", "/etc/envoy/default_envoy.yaml", "-l", "debug");
-
     return container.build();
   }
 
@@ -172,8 +183,14 @@ public class Envoy implements StackGresClusterSidecarResourceFactory<Void> {
                 .asText())));
 
     Seq.seq(envoyConfig.get("static_resources").get("clusters"))
-        .map(cluster -> cluster
-            .get("hosts")
+        .flatMap(cluster -> Seq.seq(cluster
+            .get("load_assignment")
+            .get("endpoints").elements()))
+        .flatMap(endpoint -> Seq.seq(endpoint
+            .get("lb_endpoints").elements()))
+        .map(endpoint -> endpoint
+            .get("endpoint")
+            .get("address")
             .get("socket_address"))
         .cast(ObjectNode.class)
         .forEach(socketAddress -> socketAddress.put("port_value",

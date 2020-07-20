@@ -5,29 +5,54 @@ to_json_string() {
 }
 
 try_lock() {
-  kubectl get cronjob.batch -n "$CLUSTER_NAMESPACE" "$CRONJOB_NAME" --template '
+  local WAIT="$1"
+  local TEMPLATE='
   LOCK_POD={{ if .metadata.annotations.lockPod }}{{ .metadata.annotations.lockPod }}{{ else }}{{ end }}
   LOCK_TIMESTAMP={{ if .metadata.annotations.lockTimestamp }}{{ .metadata.annotations.lockTimestamp }}{{ else }}0{{ end }}
   RESOURCE_VERSION={{ .metadata.resourceVersion }}
-  ' > /tmp/current-backup-job
+  '
+  kubectl get cronjob.batch -n "$CLUSTER_NAMESPACE" "$CRONJOB_NAME" --template "$TEMPLATE" > /tmp/current-backup-job
   . /tmp/current-backup-job
   CURRENT_TIMESTAMP="$(date +%s)"
   if [ "$POD_NAME" != "$LOCK_POD" ] && [ "$((CURRENT_TIMESTAMP-LOCK_TIMESTAMP))" -lt 15 ]
   then
     echo "Locked already by $LOCK_POD at $(date -d @"$LOCK_TIMESTAMP" --iso-8601=seconds --utc)"
-    exit 1
+    if "$WAIT"
+    then
+      sleep 20
+      try_lock true
+    else
+      return 1
+    fi
   fi
-  kubectl annotate cronjob.batch -n "$CLUSTER_NAMESPACE" "$CRONJOB_NAME" \
+  if ! kubectl annotate cronjob.batch -n "$CLUSTER_NAMESPACE" "$CRONJOB_NAME" \
     --resource-version "$RESOURCE_VERSION" --overwrite "lockPod=$POD_NAME" "lockTimestamp=$CURRENT_TIMESTAMP"
+  then
+    kubectl get cronjob.batch -n "$CLUSTER_NAMESPACE" "$CRONJOB_NAME" --template "$TEMPLATE" > /tmp/current-backup-job
+    . /tmp/current-backup-job
+    if [ "$POD_NAME" = "$LOCK_POD" ]
+    then
+      try_lock "$WAIT"
+      return 0
+    fi
+    echo "Locked by $LOCK_POD at $(date -d @"$LOCK_TIMESTAMP" --iso-8601=seconds --utc)"
+    if "$WAIT"
+    then
+      sleep 20
+      try_lock true
+    else
+      return 1
+    fi
+  fi
 }
 
-try_lock > /tmp/try-lock
+try_lock true > /tmp/try-lock
 echo "Lock acquired"
 (
 while true
 do
   sleep 5
-  try_lock > /tmp/try-lock
+  try_lock false > /tmp/try-lock
 done
 ) &
 try_lock_pid=$!
@@ -38,7 +63,7 @@ backup_cr_template="${backup_cr_template}:{{ .metadata.name }}"
 backup_cr_template="${backup_cr_template}:{{ with .status.process.status }}{{ . }}{{ end }}"
 backup_cr_template="${backup_cr_template}:{{ with .status.internalName }}{{ . }}{{ end }}"
 backup_cr_template="${backup_cr_template}:{{ with .status.process.jobPod }}{{ . }}{{ end }}"
-backup_cr_template="${backup_cr_template}:{{ with .metadata.ownerReferences }}{{ with index . 0 }}{{ .kind }}{{ end }}{{ end }}"
+backup_cr_template="${backup_cr_template}:{{ with .metadata.labels }}{{ with index . \"$SCHEDULED_BACKUP_KEY\" }}{{ . }}{{ end }}{{ end }}"
 backup_cr_template="${backup_cr_template}:{{ if .spec.managedLifecycle }}true{{ else }}false{{ end }}"
 backup_cr_template="${backup_cr_template}:{{ if .status.process.managedLifecycle }}true{{ else }}false{{ end }}"
 backup_cr_template="${backup_cr_template}{{ printf "'"\n"'" }}{{ end }}"
@@ -52,35 +77,8 @@ then
 fi
 
 BACKUP_CONFIG_RESOURCE_VERSION="$(kubectl get "$BACKUP_CONFIG_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" --template '{{ .metadata.resourceVersion }}')"
-
-if ! kubectl get "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" -o name >/dev/null 2>&1
-then
-  echo "Creating backup CR"
-  cat << EOF | kubectl create -f -
-apiVersion: $BACKUP_CRD_APIVERSION
-kind: $BACKUP_CRD_KIND
-metadata:
-  namespace: "$CLUSTER_NAMESPACE"
-  name: "$BACKUP_NAME"
-  annotations:
-    $SCHEDULED_BACKUP_KEY: "$RIGHT_VALUE"
-spec:
-  sgCluster: "$CLUSTER_NAME"
-  managedLifecycle: true
-status:
-  process:
-    status: "$BACKUP_PHASE_RUNNING"
-    jobPod: "$POD_NAME"
-    timing:
-      stored: "N/A"
-  backupInformation:
-    size:
-      compressed: 0
-    lsn:
-      start: ""
-  sgBackupConfig:
-$(kubectl get "$BACKUP_CONFIG_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" \
-  --template '    baseBackups:
+BACKUP_CONFIG_YAML=$(cat << BACKUP_CONFIG_YAML
+    baseBackups:
       compression: "{{ .spec.baseBackups.compression }}"
     storage:
       type: "{{ .spec.storage.type }}"
@@ -139,102 +137,44 @@ $(kubectl get "$BACKUP_CONFIG_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG"
               key: "{{ .azureCredentials.secretKeySelectors.accessKey.key }}"
               name: "{{ .azureCredentials.secretKeySelectors.accessKey.name }}"
       {{- end }}
-')
+BACKUP_CONFIG_YAML
+)
+BACKUP_STATUS_YAML=$(cat << BACKUP_STATUS_YAML
+status:
+  process:
+    status: "$BACKUP_PHASE_RUNNING"
+    jobPod: "$POD_NAME"
+  sgBackupConfig:
+$(kubectl get "$BACKUP_CONFIG_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" --template "$BACKUP_CONFIG_YAML")
+BACKUP_STATUS_YAML
+)
+
+if ! kubectl get "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" -o name >/dev/null 2>&1
+then
+  echo "Creating backup CR"
+  cat << EOF | kubectl create -f - -o yaml
+apiVersion: $BACKUP_CRD_APIVERSION
+kind: $BACKUP_CRD_KIND
+metadata:
+  namespace: "$CLUSTER_NAMESPACE"
+  name: "$BACKUP_NAME"
+  annotations:
+    $SCHEDULED_BACKUP_KEY: "$RIGHT_VALUE"
+spec:
+  sgCluster: "$CLUSTER_NAME"
+  managedLifecycle: true
+$BACKUP_STATUS_YAML
 EOF
 else
   if ! kubectl get "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --template "{{ .status.process.status }}" \
     | grep -q "^$BACKUP_PHASE_COMPLETED$"
   then
     echo "Updating backup CR"
-    kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
-      {"op":"replace","path":"/status","value":{
-        "process": {
-          "status": "'"$BACKUP_PHASE_RUNNING"'",
-          "jobPod": "'"$POD_NAME"'" 
-        },
-        "sgBackupConfig":{'"$(kubectl get "$BACKUP_CONFIG_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" \
-  --template '    "baseBackups": {
-      "compression": "{{ .spec.baseBackups.compression }}"
-    },
-    "storage": {
-      "type": "{{ .spec.storage.type }}",
-      {{- with .spec.storage.s3 }}
-      "s3": {
-        "bucket": "{{ .bucket }}",
-        {{ with .path }}"path": "{{ . }}",{{ end }}
-        "awsCredentials": {
-          "secretKeySelectors": {
-            "accessKeyId": {
-              "key": "{{ .awsCredentials.secretKeySelectors.accessKeyId.key }}",
-              "name": "{{ .awsCredentials.secretKeySelectors.accessKeyId.name }}"
-            },
-            "secretAccessKey": {
-              "key": "{{ .awsCredentials.secretKeySelectors.secretAccessKey.key }}",
-              "name": "{{ .awsCredentials.secretKeySelectors.secretAccessKey.name }}"
-            }
-          }
-        }
-        {{ with .region }},"region": "{{ . }}"{{ end }}
-        {{ with .storageClass }},"storageClass": "{{ . }}"{{ end }}
-      }
-      {{- end }}
-      {{- with .spec.storage.s3Compatible }}
-      "s3Compatible": {
-        "bucket": "{{ .bucket }}",
-        {{ with .path }}"path": "{{ . }}",{{ end }}
-        "awsCredentials": {
-          "secretKeySelectors":{
-            "accessKeyId": {
-              "key": "{{ .awsCredentials.secretKeySelectors.accessKeyId.key }}",
-              "name": "{{ .awsCredentials.secretKeySelectors.accessKeyId.name }}"
-            },
-            "secretAccessKey": {
-              "key": "{{ .awsCredentials.secretKeySelectors.secretAccessKey.key }}",
-              "name": "{{ .awsCredentials.secretKeySelectors.secretAccessKey.name }}"
-            }
-          }
-        }
-        {{ with .region }},"region": "{{ . }}"{{ end }}
-        {{ with .endpoint }},"endpoint": "{{ . }}"{{ end }}
-        {{ with .enablePathStyleAddressing }},"enablePathStyleAddressing": {{ . }}{{ end }}
-        {{ with .storageClass }},"storageClass": "{{ . }}"{{ end }}
-      }
-      {{- end }}
-      {{- with .spec.storage.gcs }}
-      "gcs": {
-        "bucket": "{{ .bucket }}",
-        {{ with .path }}"path": "{{ . }}",{{ end }}
-        "gcpCredentials": {
-          "secretKeySelectors": {
-            "serviceAccountJSON": {
-              "key": "{{ .gcpCredentials.secretKeySelectors.serviceAccountJSON.key }}",
-              "name": "{{ .gcpCredentials.secretKeySelectors.serviceAccountJSON.name }}"
-            }
-          }
-        }
-      }
-      {{- end }}
-      {{- with .spec.storage.azureBlob }}
-      "azureBlob": {
-        "bucket": "{{ .bucket }}",
-        {{ with .path }}"path": "{{ . }}",{{ end }}
-        "azureCredentials": {
-          "secretKeySelectors": {
-            "storageAccount": {
-              "key": "{{ .azureCredentials.secretKeySelectors.storageAccount.key }}",
-              "name": "{{ .azureCredentials.secretKeySelectors.storageAccount.name }}"
-            },
-            "accessKey": {
-              "key": "{{ .azureCredentials.secretKeySelectors.accessKey.key }}",
-              "name": "{{ .azureCredentials.secretKeySelectors.accessKey.name }}"
-            }
-          }
-        }
-      }
-      {{- end }}
-    }
-')"'}}}
-      ]'
+    kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" -o yaml --type merge --patch "$(
+      (
+        kubectl get "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" -o yaml
+        echo "$BACKUP_STATUS_YAML"
+      ) | kubectl create --dry-run=client -f - -o json)"
   else
     echo "Already completed backup. Nothing to do!"
     exit
@@ -253,7 +193,7 @@ then
   kubectl get pod -n "$CLUSTER_NAMESPACE" -l "${PATRONI_CLUSTER_LABELS}" >&2
   echo > /tmp/backup-push
   echo "Unable to find primary, backup aborted" >> /tmp/backup-push
-  [ -n "$SCHEDULED_BACKUP_KEY" ] || sleep 15
+  [ -n "$SCHEDULED_BACKUP_KEY" ] || sleep 20
   exit 1
 fi
 if [ ! -s /tmp/current-replica-or-primary ]
@@ -409,7 +349,7 @@ else
       ]'
     cat /tmp/backup-push
     echo "Backup failed"
-    [ -n "$SCHEDULED_BACKUP_KEY" ] || sleep 15
+    [ -n "$SCHEDULED_BACKUP_KEY" ] || sleep 20
     exit 1
   fi
 fi
@@ -437,7 +377,7 @@ EOF
       ]'
     cat /tmp/backup-list
     echo "Backups can not be listed after creation"
-    [ -n "$SCHEDULED_BACKUP_KEY" ] || sleep 15
+    [ -n "$SCHEDULED_BACKUP_KEY" ] || sleep 20
     exit 1
   fi
   cat /tmp/backup-list | tr -d '[]' | sed 's/},{/}|{/g' | tr '|' '\n' \
@@ -450,7 +390,7 @@ EOF
       ]'
     cat /tmp/backup-list
     echo "Backup configuration '$BACKUP_CONFIG' changed during backup"
-    [ -n "$SCHEDULED_BACKUP_KEY" ] || sleep 15
+    [ -n "$SCHEDULED_BACKUP_KEY" ] || sleep 20
     exit 1
   elif ! grep -q "^backup_name:${WAL_G_BACKUP_NAME}$" /tmp/current-backup
   then
@@ -460,7 +400,7 @@ EOF
       ]'
     cat /tmp/backup-list
     echo "Backup '$WAL_G_BACKUP_NAME' was not found after creation"
-    [ -n "$SCHEDULED_BACKUP_KEY" ] || sleep 15
+    [ -n "$SCHEDULED_BACKUP_KEY" ] || sleep 20
     exit 1
   else
     existing_backup_is_permanent="$(grep "^is_permanent:" /tmp/current-backup | cut -d : -f 2-)"
@@ -516,21 +456,30 @@ EOF
     backup_phase="$(echo "$backup" | cut -d : -f 3)"
     backup_name="$(echo "$backup" | cut -d : -f 4)"
     backup_pod="$(echo "$backup" | cut -d : -f 5)"
-    backup_owner_kind="$(echo "$backup" | cut -d : -f 6)"
-    backup_is_permanent="$(echo "$backup" | cut -d : -f 8)"
+    backup_sheduled_backup="$(echo "$backup" | cut -d : -f 6)"
+    backup_managed_lifecycle="$(echo "$backup" | cut -d : -f 8)"
+    backup_is_permanent="$([ "$backup_managed_lifecycle" = true ] && echo false || echo true)"
     backup_config="$(kubectl get "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$backup_cr_name" \
       --template "{{ .status.sgBackupConfig.storage }}")"
-    if [ ! -z "$backup_name" ] && [ "$backup_phase" = "$BACKUP_PHASE_COMPLETED" ] \
+    # if backup CR has backup internal name, is marked as completed, uses the same current
+    # backup config but is not found in the storage, delete it
+    if [ -n "$backup_name" ] && [ "$backup_phase" = "$BACKUP_PHASE_COMPLETED" ] \
       && [ "$backup_config" = "$current_backup_config" ] \
       && ! grep -q "\"backup_name\":\"$backup_name\"" /tmp/existing-backups
     then
       kubectl delete "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$backup_cr_name"
-    elif [ "$backup_owner_kind" = "CronJob" ] \
+    # if backup CR is a scheduled backup, is marked as running, has no pod or pod
+    # has been terminated, delete it
+    elif [ "$backup_sheduled_backup" = "$RIGHT_VALUE" ] \
       && [ "$backup_phase" = "$BACKUP_PHASE_RUNNING" ] \
       && ([ -z "$backup_pod" ] || ! grep -q "^$backup_pod$" /tmp/pods)
     then
       kubectl delete "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$backup_cr_name"
-    elif [ ! -z "$backup_name" ] && [ "$backup_phase" = "$BACKUP_PHASE_COMPLETED" ] \
+    # if backup CR has backup internal name, is marked as completed, and is marked as
+    # stored as not managed lifecycle or managed lifecycle and is found as managed lifecycle or
+    # not managed lifecycle respectively, then mark it as stored as managed lifecycle or
+    # not managed lifecycle respectively
+    elif [ -n "$backup_name" ] && [ "$backup_phase" = "$BACKUP_PHASE_COMPLETED" ] \
       && ! grep "\"backup_name\":\"$backup_name\"" /tmp/existing-backups \
         | grep -q "\"is_permanent\":$backup_is_permanent"
     then
@@ -544,8 +493,8 @@ EOF
         is_backup_subject_to_retention_policy="true"
       fi
       kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$backup_cr_name" --type json --patch '[
-      {"op":"replace","path":"/status/process/managedLifecycle","value":'$is_backup_subject_to_retention_policy'}
-      ]'
+        {"op":"replace","path":"/status/process/managedLifecycle","value":'$is_backup_subject_to_retention_policy'}
+        ]'
     fi
   done
 else
@@ -555,6 +504,6 @@ else
     ]'
   cat /tmp/backup-push
   echo "Backup name not found in backup-push log"
-  [ -n "$SCHEDULED_BACKUP_KEY" ] || sleep 15
+  [ -n "$SCHEDULED_BACKUP_KEY" ] || sleep 20
   exit 1
 fi

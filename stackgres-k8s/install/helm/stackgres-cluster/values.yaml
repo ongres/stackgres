@@ -1,6 +1,6 @@
 cluster:
   create: true
-  postgresVersion: '12.2'
+  postgresVersion: '12.3'
   instances: 1
   sgInstanceProfile: size-xs
   postgresServices:

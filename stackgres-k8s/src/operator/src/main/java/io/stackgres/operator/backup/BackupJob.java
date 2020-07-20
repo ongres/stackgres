@@ -5,7 +5,6 @@
 
 package io.stackgres.operator.backup;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -15,13 +14,13 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.io.Resources;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.EnvVarSourceBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectFieldSelectorBuilder;
+import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.batch.Job;
 import io.fabric8.kubernetes.api.model.batch.JobBuilder;
 import io.stackgres.common.LabelFactory;
@@ -30,10 +29,13 @@ import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgbackup.BackupPhase;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackup.StackGresBackupDefinition;
+import io.stackgres.common.crd.sgbackup.StackGresBackupProcess;
+import io.stackgres.common.crd.sgbackup.StackGresBackupStatus;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigDefinition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.operator.cluster.factory.ClusterStatefulSet;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSetEnvironmentVariables;
+import io.stackgres.operator.cluster.factory.ClusterStatefulSetPath;
+import io.stackgres.operator.cluster.factory.ClusterStatefulSetVolumeConfig;
 import io.stackgres.operator.common.StackGresBackupContext;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresClusterResourceStreamFactory;
@@ -42,15 +44,14 @@ import io.stackgres.operator.common.StackGresPodSecurityContext;
 import io.stackgres.operator.patroni.factory.PatroniRole;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jooq.lambda.Seq;
-import org.jooq.lambda.Unchecked;
 import org.jooq.lambda.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
-public class Backup implements StackGresClusterResourceStreamFactory {
+public class BackupJob implements StackGresClusterResourceStreamFactory {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(Backup.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(BackupJob.class);
 
   private final StackGresPodSecurityContext clusterPodSecurityContext;
   private final ClusterStatefulSetEnvironmentVariables clusterStatefulSetEnvironmentVariables;
@@ -58,7 +59,7 @@ public class Backup implements StackGresClusterResourceStreamFactory {
   private final LabelFactory<StackGresCluster> labelFactory;
 
   @Inject
-  public Backup(StackGresPodSecurityContext clusterPodSecurityContext,
+  public BackupJob(StackGresPodSecurityContext clusterPodSecurityContext,
       ClusterStatefulSetEnvironmentVariables clusterStatefulSetEnvironmentVariables,
       LabelFactory<StackGresCluster> labelFactory) {
     super();
@@ -83,7 +84,12 @@ public class Backup implements StackGresClusterResourceStreamFactory {
     }
 
     return Seq.seq(clusterContext.getBackups())
-        .filter(backup -> !Seq.seq(backup.getMetadata().getAnnotations())
+        .filter(backup -> !Optional.ofNullable(backup.getStatus())
+            .map(StackGresBackupStatus::getProcess)
+            .map(StackGresBackupProcess::getStatus)
+            .map(status -> status.equals(BackupPhase.COMPLETED.label()))
+            .orElse(false)
+            && !Seq.seq(backup.getMetadata().getAnnotations())
             .anyMatch(Tuple.tuple(
                 StackGresContext.SCHEDULED_BACKUP_KEY, StackGresContext.RIGHT_VALUE)::equals))
         .map(backup -> createBackupJob(backup, clusterContext))
@@ -146,6 +152,7 @@ public class Backup implements StackGresClusterResourceStreamFactory {
                         .withName("BACKUP_IS_PERMANENT")
                         .withValue(Optional.ofNullable(backup.getSpec()
                             .getManagedLifecycle())
+                            .map(managedLifecycle -> !managedLifecycle)
                             .map(String::valueOf)
                             .orElse("true"))
                         .build(),
@@ -222,11 +229,18 @@ public class Backup implements StackGresClusterResourceStreamFactory {
                         .withValue("3600")
                         .build())
                     .build())
-                .withCommand("/bin/bash", "-c" + (LOGGER.isTraceEnabled() ? "x" : ""),
-                    Unchecked.supplier(() -> Resources.asCharSource(
-                        ClusterStatefulSet.class.getResource("/create-backup.sh"),
-                        StandardCharsets.UTF_8)
-                    .read()).get())
+                .withCommand("/bin/bash", "-e" + (LOGGER.isTraceEnabled() ? "x" : ""),
+                    ClusterStatefulSetPath.LOCAL_BIN_CREATE_BACKUP_SH_PATH.path())
+                .withVolumeMounts(ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(context,
+                    volumeMountBuilder -> volumeMountBuilder
+                    .withSubPath(ClusterStatefulSetPath.LOCAL_BIN_CREATE_BACKUP_SH_PATH.filename())
+                    .withMountPath(ClusterStatefulSetPath.LOCAL_BIN_CREATE_BACKUP_SH_PATH.path())
+                    .withReadOnly(true)))
+                .build())
+            .withVolumes(new VolumeBuilder(ClusterStatefulSetVolumeConfig.TEMPLATES.volume(context))
+                .editConfigMap()
+                .withDefaultMode(0555) // NOPMD
+                .endConfigMap()
                 .build())
             .endSpec()
             .endTemplate()

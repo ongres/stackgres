@@ -62,24 +62,24 @@ check_automatic_backup() {
 }
 
 check_timelines(){
+  local BACKUP_LINE
+  local EXPECTED_TIMELINE
+  local ACTUAL_TIMELINE
   local CUSTOM_COLUMNS=NAME:.metadata.name,PHASE:.status.process.status,WAL_FILE:.status.backupInformation.startWalFile,TIMELINE:.status.backupInformation.timeline
-  kubectl get sgbackup -n "$CLUSTER_NAMESPACE" \
+  BACKUP_LINE=$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" \
     -o custom-columns="$CUSTOM_COLUMNS" \
-    | tail -n +2 | grep "Completed" | awk '{
-      backup=$1
-      walFile=$3
-      actualTimeline=$4
+    | tail -n +2 | sed 's/\s\+/ /g' | grep "Completed")
 
-      subWalFile=substr(walFile,0,8)
-      formattedTimeline=sprintf("%08d", actualTimeline)
+  EXPECTED_TIMELINE=$(printf "%d" "0x$(echo "$BACKUP_LINE" | cut -d ' ' -f 3 | grep -o '^.\{8\}')")
+  ACTUAL_TIMELINE=$(echo "$BACKUP_LINE" | cut -d ' ' -f 4)
 
-      if (formattedTimeline != subWalFile) {
-         print "FAIL. Timeline of ", backup, " with walFile ", walFile, " is incorrect. Actual timeline: ", actualTimeline
-         exit 1
-      }
-      print "Backup ", backup, " timeline is correct"
-    }'
-
+  if [ "$EXPECTED_TIMELINE" != "$ACTUAL_TIMELINE" ]
+  then
+   echo "FAIL. Timeline of $(echo "$BACKUP_LINE" | cut -d ' ' -f 1) with walFile $(echo "$BACKUP_LINE" | cut -d ' ' -f 3) is incorrect. Actual timeline: $ACTUAL_TIMELINE"
+   return 1
+  else
+    echo "Backup $(echo "$BACKUP_LINE" | cut -d ' ' -f 1) timeline is correct"
+  fi
 }
 
 check_automatic_backup_cr() {
@@ -179,12 +179,11 @@ check_manual_backup() {
     return 1
   fi
 
-  local REMAINING_BACKUPS=$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" -o name | wc -l)
-  if [ "$REMAINING_BACKUPS" = "2" ]
+  if wait_until eval '[ "$(get_completed_backup_count)" = "2" ]'
   then
     echo "SUCCESS. The backup retention has been honored. Remaining backups are 2"
   else
-    echo "FAIL. The backup retention has not been honored. Remaining backups are $REMAINING_BACKUPS"
+    echo "FAIL. The backup retention has not been honored. Remaining backups are $(get_completed_backup_count)"
     return 1
   fi
 
@@ -258,14 +257,18 @@ check_backup_retention() {
     return 1
   fi
 
-  local REMAINING_BACKUPS=$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" -o name | wc -l)
-  if [ "$REMAINING_BACKUPS" = "2" ]
+  if wait_until -t 5 eval '[ "$(get_completed_backup_count)" = "2" ]'
   then
     echo "SUCCESS. The backup retention has been honored. Remaining backups are 2"
   else
-    echo "FAIL. The backup retention has not been honored. Remaining backups are $REMAINING_BACKUPS"
+    echo "FAIL. The backup retention has not been honored. Remaining backups are $(get_completed_backup_count)"
     return 1
   fi
+}
+
+get_completed_backup_count() {
+  kubectl get sgbackup -n "$CLUSTER_NAMESPACE" -o custom-columns=PHASE:.status.process.status \
+    | grep 'Completed' | wc -l
 }
 
 check_single_backup_job() {

@@ -7,6 +7,8 @@ package io.stackgres.operator.common;
 
 public interface VolumePath {
 
+  String filename();
+
   String path();
 
   String subPath();

@@ -45,7 +45,7 @@
   </scm>
 
   <properties>
-    <stackgres.containerBuild>4</stackgres.containerBuild>
+    <stackgres.containerBuild>5</stackgres.containerBuild>
     <stackgres.group>stackgres.io</stackgres.group>
     <stackgres.crd.version>v1beta1</stackgres.crd.version>
     <stackgres.operatorVersion>${project.version}</stackgres.operatorVersion>
@@ -90,6 +90,8 @@
     <dependency-plugin.version>3.1.1</dependency-plugin.version>
     <docker-maven-plugin.version>0.33.0</docker-maven-plugin.version>
     <jandex-maven-plugin.version>1.0.8</jandex-maven-plugin.version>
+    <exec-maven-plugin.version>3.0.0</exec-maven-plugin.version>
+    <build-helper-maven-plugin.version>3.2.0</build-helper-maven-plugin.version>
     <!-- Checkstyle, SpotBugs and PMD properties -->
     <checks.location>${project.basedir}/checks</checks.location>
     <checkstyle.config.location>${checks.location}/checkstyle/checkstyle.xml</checkstyle.config.location>
@@ -299,6 +301,16 @@
     </plugins>
     <pluginManagement>
       <plugins>
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>exec-maven-plugin</artifactId>
+          <version>${exec-maven-plugin.version}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>build-helper-maven-plugin</artifactId>
+          <version>${build-helper-maven-plugin.version}</version>
+        </plugin>
         <plugin>
           <groupId>org.jboss.jandex</groupId>
           <artifactId>jandex-maven-plugin</artifactId>

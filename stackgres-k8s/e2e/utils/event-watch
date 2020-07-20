@@ -29,7 +29,7 @@ event_watch() {
       then
         echo 'kubectl get event -o '"'$output'"' --no-headers -n "$(echo "%" | cut -d " " -f 1)" "$(echo "%" | cut -d " " -f 2)"'
       else
-        echo 'kubectl get event -o '"'$output'"' --no-headers -n '"'$namespace'"' '"'%'"
+        echo 'kubectl get event -o '"'$output'"' --no-headers -n '"'$namespace'"' "$(echo "%" | cut -d " " -f 1)"'
       fi
     ) 2>/dev/null || true" \
     | xargs -r -n 1 -I % sh $SHELL_XTRACE -ec "echo \"$(date --iso-8601=seconds)\"' %'"
