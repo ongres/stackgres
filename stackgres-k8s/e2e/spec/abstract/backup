@@ -179,11 +179,11 @@ check_manual_backup() {
     return 1
   fi
 
-  if wait_until eval '[ "$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" -o name | wc -l)" = "2" ]'
+  if wait_until eval '[ "$(get_completed_backup_count)" = "2" ]'
   then
     echo "SUCCESS. The backup retention has been honored. Remaining backups are 2"
   else
-    echo "FAIL. The backup retention has not been honored. Remaining backups are $(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" -o name | wc -l)"
+    echo "FAIL. The backup retention has not been honored. Remaining backups are $(get_completed_backup_count)"
     return 1
   fi
 
@@ -257,13 +257,18 @@ check_backup_retention() {
     return 1
   fi
 
-  if wait_until -t 5 eval '[ "$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" -o name | wc -l)" = "2" ]'
+  if wait_until -t 5 eval '[ "$(get_completed_backup_count)" = "2" ]'
   then
     echo "SUCCESS. The backup retention has been honored. Remaining backups are 2"
   else
-    echo "FAIL. The backup retention has not been honored. Remaining backups are $(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" -o name | wc -l)"
+    echo "FAIL. The backup retention has not been honored. Remaining backups are $(get_completed_backup_count)"
     return 1
   fi
+}
+
+get_completed_backup_count() {
+  kubectl get sgbackup -n "$CLUSTER_NAMESPACE" -o custom-columns=PHASE:.status.process.status \
+    | grep 'Completed' | wc -l
 }
 
 check_single_backup_job() {
