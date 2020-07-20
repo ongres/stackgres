@@ -137,8 +137,11 @@ public abstract class AbstractReconciliator<T extends ResourceHandlerContext,
         HasMetadata updatedExistingResource = Unchecked.supplier(() -> objectMapper.treeToValue(
             objectMapper.valueToTree(existingResource), existingResource.getClass())).get();
         handlerSelector.update(context, updatedExistingResource, requiredResource.v1);
-        handlerSelector.patch(client, context, updatedExistingResource);
-        updated = true;
+        HasMetadata patchedResource = handlerSelector
+            .patch(client, context, updatedExistingResource);
+        if (!handlerSelector.equals(context, existingResource, patchedResource)) {
+          updated = true;
+        }
       } else {
         if (handlerSelector.skipCreation(context, requiredResource.v1)) {
           LOGGER.trace("Skip creation for resource {}.{} of type {}",
