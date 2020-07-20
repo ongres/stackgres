@@ -246,6 +246,20 @@ const router = new VueRouter({
       },
     },
     { 
+      path: '/admin/logs/:namespace', 
+      component: LogsCluster,
+      meta: {
+        conditionalRoute: false
+      },
+    },
+    { 
+      path: '/admin/logs/:namespace/:name', 
+      component: LogsCluster,
+      meta: {
+        conditionalRoute: false
+      },
+    },
+    { 
       path: '/admin/monitor/', 
       component: Grafana,
       meta: {
