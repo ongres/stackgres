@@ -189,6 +189,7 @@ public class DistributedLogsReconciliationCycle
         .clusterNamespace(labelFactory.clusterNamespace(cluster))
         .clusterName(labelFactory.clusterName(cluster))
         .clusterKey(labelFactory.getLabelMapper().clusterKey())
+        .scheduledBackupKey(labelFactory.getLabelMapper().scheduledBackupKey())
         .backupKey(labelFactory.getLabelMapper().backupKey())
         .ownerReferences(ImmutableList.of(ResourceUtil.getOwnerReference(distributedLogs)))
         .addBackups()
