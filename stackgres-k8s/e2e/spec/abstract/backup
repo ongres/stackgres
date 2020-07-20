@@ -183,7 +183,7 @@ check_manual_backup() {
   then
     echo "SUCCESS. The backup retention has been honored. Remaining backups are 2"
   else
-    echo "FAIL. The backup retention has not been honored. Remaining backups are $REMAINING_BACKUPS"
+    echo "FAIL. The backup retention has not been honored. Remaining backups are $(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" -o name | wc -l)"
     return 1
   fi
 
@@ -261,7 +261,7 @@ check_backup_retention() {
   then
     echo "SUCCESS. The backup retention has been honored. Remaining backups are 2"
   else
-    echo "FAIL. The backup retention has not been honored. Remaining backups are $REMAINING_BACKUPS"
+    echo "FAIL. The backup retention has not been honored. Remaining backups are $(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" -o name | wc -l)"
     return 1
   fi
 }
