@@ -50,65 +50,22 @@ pod_logs() {
         then
           continue
         fi
-        if ! kubectl logs -n "${pod%%/*}" "$(echo "$pod" | cut -d / -f 2)" --all-containers --limit-bytes=1 >/dev/null 2>&1
-        then
-          continue
-        fi
-        pod_logs_pod -c "$filtered_container" -n "${pod%%/*}" "$(echo "$pod" | cut -d / -f 2)" &
-        trap_kill "$!"
-      done
-}
-
-pod_logs_pod() {
-  local namespace
-  local pod
-  local filtered_container
-  local pods_file="${pods_file:-$TARGET_PATH/pod-logs-$(shuf -i 0-65535 -n 1)}"
-  while [ "$#" -gt 0 ]
-  do
-    case "$1" in
-      -n|--namespace)
-        shift
-        namespace="$1"
-        shift
-        ;;
-      -c|--container)
-        shift
-        filtered_container="$1"
-        shift
-        ;;
-      *)
-        pod="$1"
-        shift
-        ;;
-    esac
-  done
-  if [ -z "$namespace" ]
-  then
-    echo "Namespace not specified"
-    exit 1
-  fi
-  if [ -z "$pod" ]
-  then
-    echo "Pod not specified"
-    exit 1
-  fi
-  [ -f "$pods_file" ] || rm -f "$pods_file"
-  kubectl get pod -n "$namespace" "$pod" -o json \
-    | jq -r '.metadata.uid as $uid|.status.containerStatuses|map(.name + "/" + $uid + "/" + (.restartCount | tostring))|.[]' \
-    | if [ -z "$filtered_container" ]; then cat; else grep '^'"$filtered_container"'/'; fi \
-    | while read container; do
-        if [ -f "$pods_file" ] && grep -q -F "$namespace/$pod/$container" "$pods_file"
-        then
-          continue
-        fi
-        if ! kubectl logs -n "$namespace" "$pod" -c "${container%%/*}" --limit-bytes=1 >/dev/null 2>&1
-        then
-          continue
-        fi
-        echo_raw "$pod" | cut -d , -f 1 >> "$pods_file"
-        echo_raw "[$pod-${container%%/*}] Start logging container ${container%%/*} in pod $pod"
-        pod_logs_pod_container_in_trap -n "$namespace" "$pod" -c "${container%%/*}"
+        kubectl get pod -n "${pod%%/*}" "$(echo "$pod" | cut -d / -f 2)" -o json \
+          | jq -r '.metadata.uid as $uid|.status.containerStatuses|map(.name + "/" + $uid + "/" + (.restartCount | tostring))|.[]' \
+          | if [ -z "$filtered_container" ]; then cat; else grep '^'"$filtered_container"'/'; fi \
+          | while read container; do
+              if [ -f "$pods_file" ] && grep -q -F "${pod%%/*}/$(echo "$pod" | cut -d / -f 2)/$container" "$pods_file"
+              then
+                continue
+              fi
+              if ! kubectl logs -n "${pod%%/*}" "$(echo "$pod" | cut -d / -f 2)" -c "${container%%/*}" --limit-bytes=1 >/dev/null 2>&1
+              then
+                continue
+              fi
+              echo_raw "${pod%%/*}/$(echo "$pod" | cut -d / -f 2)/$container" >> "$pods_file"
+              echo_raw "[$(echo "$pod" | cut -d / -f 2)-${container%%/*}] Start logging container ${container%%/*} in pod $(echo "$pod" | cut -d / -f 2)"
+              pod_logs_pod_container_in_trap -n "${pod%%/*}" "$(echo "$pod" | cut -d / -f 2)" -c "${container%%/*}"
+            done
       done
 }
 
