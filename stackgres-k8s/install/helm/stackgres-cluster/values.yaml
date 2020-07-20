@@ -165,5 +165,5 @@ minio:
 
 #You should only set following options for non production environment
 nonProductionOptions:
-  disableClusterPodAntiAffinity: true
+  disableClusterPodAntiAffinity: false
   createMinio: false
