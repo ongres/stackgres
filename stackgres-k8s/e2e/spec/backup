@@ -38,6 +38,8 @@ EOF
 }
 
 e2e_test() {
+  run_test "Backup Cron Job should have a security context" check_cron_job_security_context
+
   run_test "Checking that backup is working before switchover" check_backup_before_switchover
 
   run_test "Checking single backup job is running at a time" check_single_backup_job
@@ -54,6 +56,12 @@ e2e_test() {
 
   run_test "Checking that backups aren't being deleted after the cluster is deleted" check_backup_not_delect_after_cluster
 }
+
+check_cron_job_security_context() {
+  local RUN_AS_NON_ROOT=$(kubectl get cronjobs.batch -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-backup -o jsonpath='{.spec.jobTemplate.spec.template.spec.securityContext.runAsNonRoot}')
+  assert_string_equal "true" "$RUN_AS_NON_ROOT"
+}
+
 
 check_backup_before_switchover() {
   check_backup 0
