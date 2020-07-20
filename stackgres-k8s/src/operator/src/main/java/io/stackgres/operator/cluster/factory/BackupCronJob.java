@@ -82,7 +82,7 @@ public class BackupCronJob implements StackGresClusterResourceStreamFactory {
             .withOwnerReferences(context.getClusterContext().getOwnerReferences())
             .endMetadata()
             .withNewSpec()
-            .withConcurrencyPolicy("Replace")
+            .withConcurrencyPolicy("Allow")
             .withFailedJobsHistoryLimit(10)
             .withStartingDeadlineSeconds(5 * 60L)
             .withSchedule(Optional.of(backupConfig)
