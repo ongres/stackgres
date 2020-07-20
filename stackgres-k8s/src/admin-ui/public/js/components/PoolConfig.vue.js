@@ -37,8 +37,11 @@ var PoolConfig = Vue.component("PoolConfig", {
 					</thead>
 					<tbody>
 						<tr class="no-results">
-							<td :colspan="3">
-								No configurations have been found, would you like to <router-link to="/admin/crd/create/connectionpooling/" title="Add New Connection Pooling Configuration">create a new one?</router-link>
+							<td :colspan="3" v-if="iCan('create','sgpoolconfigs',$route.params.namespace)">
+								No configurations have been found, would you like to <router-link :to="'/admin/crd/create/connectionpooling/'+$route.params.namespace" title="Add New Connection Pooling Configuration">create a new one?</router-link>
+							</td>
+							<td v-else colspan="3">
+								No configurations have been found. You don't have enough permissions to create a new one
 							</td>
 						</tr>
 						<template v-for="conf in config" v-if="(conf.data.metadata.namespace == currentNamespace)">

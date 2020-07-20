@@ -54,7 +54,7 @@ var ClusterOverview = Vue.component("ClusterOverview", {
 					<tbody>
 						<tr class="no-results">
 							<td colspan="7" v-if="iCan('create','sgclusters',$route.params.namespace)">
-								No clusters have been found, would you like to <router-link to="/admin/crd/create/cluster/" title="Add New Cluster">create a new one?</router-link>
+								No clusters have been found, would you like to <router-link :to="'/admin/crd/create/cluster/'+$route.params.namespace" title="Add New Cluster">create a new one?</router-link>
 							</td>
 							<td v-else colspan="7">
 								No clusters have been found. You don't have enough permissions to create a new one
