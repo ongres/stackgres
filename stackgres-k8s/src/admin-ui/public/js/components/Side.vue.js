@@ -116,19 +116,22 @@ var Side = Vue.component("sg-side", {
 						</div>
 					</ul>
 				</div>
-				<div v-if="iCan('','sgbackups')" class="set backups"  :class="currentComponent == 'Backups' || currentComponent == 'CreateBackups' ? 'active' : ''">
+				<div v-if="iCan('', 'sgdistributedlogs')" class="set logs" :class="currentComponent == 'LogsCluster' || currentComponent == 'CreateLogsCluster' ? 'active' : ''">
+					<router-link :to="'/admin/logs/'+currentNamespace" title="Centralized Logs Clusters" class="nav-item">
+						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path class="a" d="M19,15H5c-0.6,0-1-0.4-1-1v0c0-0.6,0.4-1,1-1h14c0.6,0,1,0.4,1,1v0C20,14.6,19.6,15,19,15z"/><path class="a" d="M1,15L1,15c-0.6,0-1-0.4-1-1v0c0-0.6,0.4-1,1-1h0c0.6,0,1,0.4,1,1v0C2,14.6,1.6,15,1,15z"/><path class="a" d="M19,11H5c-0.6,0-1-0.4-1-1v0c0-0.6,0.4-1,1-1h14c0.6,0,1,0.4,1,1v0C20,10.6,19.6,11,19,11z"/><path class="a" d="M1,11L1,11c-0.6,0-1-0.4-1-1v0c0-0.6,0.4-1,1-1h0c0.6,0,1,0.4,1,1v0C2,10.6,1.6,11,1,11z"/><path class="a" d="M19,7H5C4.4,7,4,6.6,4,6v0c0-0.6,0.4-1,1-1h14c0.6,0,1,0.4,1,1v0C20,6.6,19.6,7,19,7z"/><path d="M1,7L1,7C0.4,7,0,6.6,0,6v0c0-0.6,0.4-1,1-1h0c0.6,0,1,0.4,1,1v0C2,6.6,1.6,7,1,7z"/></svg>
+						<h3>Distributed Logs Server</h3>
+					</router-link>
+					<router-link :to="'/admin/crd/create/logs/'+currentNamespace" class="addnew" v-if="iCan('create', 'sgdistributedlogs', currentNamespace)">
+						<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 19 19"><g transform="translate(-573 -706)"><g transform="translate(573 706)" fill="none" stroke="#00adb5" stroke-width="2"><circle cx="9.5" cy="9.5" r="9.5" stroke="none"/><circle cx="9.5" cy="9.5" r="8.5" fill="none"/></g><g transform="translate(-30.5 28.8)"><g transform="translate(609 686)" fill="#00adb5" stroke="#00adb5" stroke-width="1"><rect width="8" height="1.4" rx="0.7" stroke="none"/><rect x="0.5" y="0.5" width="7" height="0.4" rx="0.2" fill="none"/></g><g transform="translate(613.7 682.7) rotate(90)" fill="#00adb5" stroke="#00adb5" stroke-width="1"><rect width="8" height="1.4" rx="0.7" stroke="none"/><rect x="0.5" y="0.5" width="7" height="0.4" rx="0.2" fill="none"/></g></g></g></svg>
+					</router-link>
+				</div>
+				<div v-if="iCan('','sgbackups')" class="set backups" :class="currentComponent == 'Backups' || currentComponent == 'CreateBackups' ? 'active' : ''">
 					<router-link :to="'/admin/backups/'+currentNamespace" title="Backups" class="nav-item">
 						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path class="a" d="M10.55.55A9.454 9.454 0 001.125 9.5H.479a.458.458 0 00-.214.053.51.51 0 00-.214.671l1.621 3.382a.49.49 0 00.213.223.471.471 0 00.644-.223l1.62-3.382A.51.51 0 004.2 10a.49.49 0 00-.479-.5H3.1a7.47 7.47 0 117.449 7.974 7.392 7.392 0 01-3.332-.781.988.988 0 00-.883 1.767 9.356 9.356 0 004.215.99 9.45 9.45 0 000-18.9z"/><path class="a" d="M13.554 10a3 3 0 10-3 3 3 3 0 003-3z"/></svg>
 						<h3>Cluster Backups</h3>
 					</router-link>
 					<router-link :to="'/admin/crd/create/backup/'+currentNamespace" class="addnew" v-if="iCan('create', 'sgbackups', currentNamespace)">
 						<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 19 19"><g transform="translate(-573 -706)"><g transform="translate(573 706)" fill="none" stroke="#00adb5" stroke-width="2"><circle cx="9.5" cy="9.5" r="9.5" stroke="none"/><circle cx="9.5" cy="9.5" r="8.5" fill="none"/></g><g transform="translate(-30.5 28.8)"><g transform="translate(609 686)" fill="#00adb5" stroke="#00adb5" stroke-width="1"><rect width="8" height="1.4" rx="0.7" stroke="none"/><rect x="0.5" y="0.5" width="7" height="0.4" rx="0.2" fill="none"/></g><g transform="translate(613.7 682.7) rotate(90)" fill="#00adb5" stroke="#00adb5" stroke-width="1"><rect width="8" height="1.4" rx="0.7" stroke="none"/><rect x="0.5" y="0.5" width="7" height="0.4" rx="0.2" fill="none"/></g></g></g></svg>
-					</router-link>
-				</div>
-				<div class="set logs" v-if="showLogs">
-					<router-link :to="'/admin/logs/'" title="Centralized Logs" class="nav-item">
-					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path class="a" d="M19,15H5c-0.6,0-1-0.4-1-1v0c0-0.6,0.4-1,1-1h14c0.6,0,1,0.4,1,1v0C20,14.6,19.6,15,19,15z"/><path class="a" d="M1,15L1,15c-0.6,0-1-0.4-1-1v0c0-0.6,0.4-1,1-1h0c0.6,0,1,0.4,1,1v0C2,14.6,1.6,15,1,15z"/><path class="a" d="M19,11H5c-0.6,0-1-0.4-1-1v0c0-0.6,0.4-1,1-1h14c0.6,0,1,0.4,1,1v0C20,10.6,19.6,11,19,11z"/><path class="a" d="M1,11L1,11c-0.6,0-1-0.4-1-1v0c0-0.6,0.4-1,1-1h0c0.6,0,1,0.4,1,1v0C2,10.6,1.6,11,1,11z"/><path class="a" d="M19,7H5C4.4,7,4,6.6,4,6v0c0-0.6,0.4-1,1-1h14c0.6,0,1,0.4,1,1v0C20,6.6,19.6,7,19,7z"/><path d="M1,7L1,7C0.4,7,0,6.6,0,6v0c0-0.6,0.4-1,1-1h0c0.6,0,1,0.4,1,1v0C2,6.6,1.6,7,1,7z"/></svg>
-						<h3>Centralized Logs</h3>
 					</router-link>
 				</div>
 			</div>
@@ -244,10 +247,6 @@ var Side = Vue.component("sg-side", {
 				return store.state.loginToken.length > 0
 			else
 				return false
-		},
-
-		showLogs () {
-			return store.state.showLogs
 		},
 
 		notFound () {
