@@ -107,7 +107,7 @@ metadata:
   namespace: $CLUSTER_NAMESPACE
 spec:
   instances: 2
-  postgresVersion: '12.2'
+  postgresVersion: '12.3'
   sgInstanceProfile: size-xs
   metadata:
     annotations:
