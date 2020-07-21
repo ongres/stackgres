@@ -1,18 +1,21 @@
-var CreateCluster = Vue.component("create-cluster", {
+var CreateCluster = Vue.component("CreateCluster", {
     template: `
-        <form id="create-cluster">
+        <form id="create-cluster" class="noSubmit">
+            <!-- Vue reactivity hack -->
+            <template v-if="Object.keys(cluster).length > 0"></template>
+
             <header>
                 <ul class="breadcrumbs">
                     <li class="namespace">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20.026" height="27"><g fill="#00adb5"><path d="M1.513.9l-1.5 13a.972.972 0 001 1.1h18a.972.972 0 001-1.1l-1.5-13a1.063 1.063 0 00-1-.9h-15a1.063 1.063 0 00-1 .9zm.6 11.5l.9-8c0-.2.3-.4.5-.4h12.9a.458.458 0 01.5.4l.9 8a.56.56 0 01-.5.6h-14.7a.56.56 0 01-.5-.6zM1.113 17.9a1.063 1.063 0 011-.9h15.8a1.063 1.063 0 011 .9.972.972 0 01-1 1.1h-15.8a1.028 1.028 0 01-1-1.1zM3.113 23h13.8a.972.972 0 001-1.1 1.063 1.063 0 00-1-.9h-13.8a1.063 1.063 0 00-1 .9 1.028 1.028 0 001 1.1zM3.113 25.9a1.063 1.063 0 011-.9h11.8a1.063 1.063 0 011 .9.972.972 0 01-1 1.1h-11.8a1.028 1.028 0 01-1-1.1z"/></g></svg>
-                        <router-link :to="'/overview/'+currentNamespace" title="Namespace Overview">{{ currentNamespace }}</router-link>
+                        <router-link :to="'/admin/overview/'+currentNamespace" title="Namespace Overview">{{ currentNamespace }}</router-link>
                     </li>
                     <li>
 						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M10 0C4.9 0 .9 2.218.9 5.05v11.49C.9 19.272 6.621 20 10 20s9.1-.728 9.1-3.46V5.05C19.1 2.218 15.1 0 10 0zm7.1 11.907c0 1.444-2.917 3.052-7.1 3.052s-7.1-1.608-7.1-3.052v-.375a12.883 12.883 0 007.1 1.823 12.891 12.891 0 007.1-1.824zm0-3.6c0 1.443-2.917 3.052-7.1 3.052s-7.1-1.61-7.1-3.053v-.068A12.806 12.806 0 0010 10.1a12.794 12.794 0 007.1-1.862zM10 8.1c-4.185 0-7.1-1.607-7.1-3.05S5.815 2 10 2s7.1 1.608 7.1 3.051S14.185 8.1 10 8.1zm-7.1 8.44v-1.407a12.89 12.89 0 007.1 1.823 12.874 12.874 0 007.106-1.827l.006 1.345C16.956 16.894 14.531 18 10 18c-4.822 0-6.99-1.191-7.1-1.46z"/></svg>
-						<router-link :to="'/overview/'+currentNamespace" title="Namespace Overview">SGClusters</router-link>
+						<router-link :to="'/admin/overview/'+currentNamespace" title="Namespace Overview">SGClusters</router-link>
 					</li>
 					<li v-if="editMode">
-						<router-link :to="'/cluster/status/'+$route.params.namespace+'/'+$route.params.name" title="Cluster Details">{{ $route.params.name }}</router-link>
+						<router-link :to="'/admin/cluster/status/'+$route.params.namespace+'/'+$route.params.name" title="Cluster Details">{{ $route.params.name }}</router-link>
 					</li>
                     <li class="action">
                         {{ $route.params.action }}
@@ -24,7 +27,6 @@ var CreateCluster = Vue.component("create-cluster", {
                 </div>
             </header>
             <div class="form">
-                
                 <div class="header">
                     <h2>Cluster Details</h2>
                     <label for="advancedMode" :class="(advancedMode) ? 'active' : ''">
@@ -263,77 +265,37 @@ var CreateCluster = Vue.component("create-cluster", {
                     <vue-markdown :source=tooltips></vue-markdown>
                 </div>
             </div>
-                        
 		</form>`,
 	data: function() {
 
-        if (vm.$route.params.action == 'create') {
-            return {
-                help: 'Click on a question mark to get help and tips about that field.',
-                advancedMode: false,
-                cluster: {},
-                editMode: false,
-                name: '',
-                namespace: store.state.currentNamespace,
-                postgresVersion: 'latest',
-                instances: '',
-                resourceProfile: '',
-                pgConfig: '',
-                storageClass: '',
-                volumeSize: '',
-                volumeUnit: 'Gi',
-                connPooling: true,
-                connectionPoolingConfig: '',
-                restoreBackup: '',
-                downloadDiskConcurrency: '',
-                backupConfig: '',
-                distributedLogs: '',
-                prometheusAutobind: false,
-                disableClusterPodAntiAffinity: false,
-                postgresUtil: true,
-                metricsExporter: true,
-                pgConfigExists: true,
-            }
-        } else if (vm.$route.params.action == 'edit') {
+        const vm = this;
 
-            if( (typeof store.state.currentCluster.name == 'undefined') || (store.state.currentCluster.name !== vm.$route.params.name) ){
-                let cluster = store.state.clusters.find(c => ( (vm.$route.params.name == c.name) && (vm.$route.params.namespace == c.data.metadata.namespace) ) );
-    
-                if ( typeof cluster !== "undefined" )
-                  store.commit('setCurrentCluster', cluster);
-            } 
-
-
-            let volumeSize = store.state.currentCluster.data.spec.pods.persistentVolume.size.match(/\d+/g);
-            let volumeUnit = store.state.currentCluster.data.spec.pods.persistentVolume.size.match(/[a-zA-Z]+/g);
-
-            return {
-                help: 'Click on a question mark to get help and tips about that field.',
-                advancedMode: false,
-                cluster: {},
-                editMode: true,
-                name: vm.$route.params.name,
-                namespace: store.state.currentNamespace,
-                postgresVersion: store.state.currentCluster.data.spec.postgresVersion,
-                instances: store.state.currentCluster.data.spec.instances,
-                resourceProfile: store.state.currentCluster.data.spec.sgInstanceProfile,
-                pgConfig: store.state.currentCluster.data.spec.configurations.sgPostgresConfig,
-                storageClass: store.state.currentCluster.data.spec.pods.persistentVolume.storageClass,
-                volumeSize: volumeSize,
-                volumeUnit: ''+volumeUnit,
-                connPooling: !store.state.currentCluster.data.spec.pods.disableConnectionPooling,
-                connectionPoolingConfig: (!store.state.currentCluster.data.spec.pods.disableConnectionPooling) ? store.state.currentCluster.data.spec.configurations.sgPoolingConfig : '',
-                restoreBackup: '',
-                downloadDiskConcurrency: '',
-                backupConfig: (typeof store.state.currentCluster.data.spec.configurations.sgBackupConfig !== 'undefined') ? store.state.currentCluster.data.spec.configurations.sgBackupConfig : '',
-                distributedLogs: (typeof store.state.currentCluster.data.spec.distributedLogs !== 'undefined') ? store.state.currentCluster.data.spec.distributedLogs.sgDistributedLogs : '',
-                prometheusAutobind:  (typeof store.state.currentCluster.data.spec.prometheusAutobind !== 'undefined') ? store.state.currentCluster.data.spec.prometheusAutobind : false,
-                disableClusterPodAntiAffinity: (typeof store.state.currentCluster.data.spec.nonProductionOptions.disableClusterPodAntiAffinity !== 'undefined') ? store.state.currentCluster.data.spec.nonProductionOptions.disableClusterPodAntiAffinity : false,
-                metricsExporter: true,
-                postgresUtil: true,
-                pgConfigExists: true,
-            }
+        return {
+            editMode: (vm.$route.params.action === 'edit'),
+            help: 'Click on a question mark to get help and tips about that field.',
+            advancedMode: false,
+            name: vm.$route.params.hasOwnProperty('name') ? vm.$route.params.name : '',
+            namespace: vm.$route.params.hasOwnProperty('namespace') ? vm.$route.params.namespace : '',
+            postgresVersion: 'latest',
+            instances: '',
+            resourceProfile: '',
+            pgConfig: '',
+            storageClass: '',
+            volumeSize: '',
+            volumeUnit: 'Gi',
+            connPooling: true,
+            connectionPoolingConfig: '',
+            restoreBackup: '',
+            downloadDiskConcurrency: '',
+            backupConfig: '',
+            distributedLogs: '',
+            prometheusAutobind: false,
+            disableClusterPodAntiAffinity: false,
+            postgresUtil: true,
+            metricsExporter: true,
+            pgConfigExists: true,
         }
+
     },
     
 	computed: {
@@ -365,9 +327,6 @@ var CreateCluster = Vue.component("create-cluster", {
             else
                 return this.postgresVersion.substring(0,2)
         },
-        currentCluster() {
-            return store.state.currentCluster
-        },
         storageClasses() {
             return store.state.storageClasses
         },
@@ -378,7 +337,6 @@ var CreateCluster = Vue.component("create-cluster", {
         logsClusters(){
             return store.state.logsClusters
         },
-
         nameColission() {
 
             const vc = this;
@@ -390,6 +348,44 @@ var CreateCluster = Vue.component("create-cluster", {
 			})
 
 			return nameColission
+        },
+        isReady() {
+            return store.state.ready
+        },
+        cluster () {
+
+            var vm = this;
+            var cluster = {};
+            
+            if(vm.$route.params.action === 'edit') {
+                store.state.clusters.forEach(function( c ){
+                    if( (c.data.metadata.name === vm.$route.params.name) && (c.data.metadata.namespace === vm.$route.params.namespace) ) {
+                      
+                        let volumeSize = c.data.spec.pods.persistentVolume.size.match(/\d+/g);
+                        let volumeUnit = c.data.spec.pods.persistentVolume.size.match(/[a-zA-Z]+/g);
+
+                        vm.postgresVersion = c.data.spec.postgresVersion;
+                        vm.instances = c.data.spec.instances;
+                        vm.resourceProfile = c.data.spec.sgInstanceProfile;
+                        vm.pgConfig = c.data.spec.configurations.sgPostgresConfig;
+                        vm.storageClass = c.data.spec.pods.persistentVolume.storageClass;
+                        vm.volumeSize = volumeSize;
+                        vm.volumeUnit = ''+volumeUnit;
+                        vm.connPooling = !c.data.spec.pods.disableConnectionPooling,
+                        vm.connectionPoolingConfig = (typeof c.data.spec.configurations.sgPoolingConfig !== 'undefined') ? c.data.spec.configurations.sgPoolingConfig : '';
+                        vm.backupConfig = (typeof c.data.spec.configurations.sgBackupConfig !== 'undefined') ? c.data.spec.configurations.sgBackupConfig : '';
+                        vm.distributedLogs = (typeof c.data.spec.distributedLogs !== 'undefined') ? c.data.spec.distributedLogs.sgDistributedLogs : '';
+                        vm.prometheusAutobind =  (typeof c.data.spec.prometheusAutobind !== 'undefined') ? c.data.spec.prometheusAutobind : false;
+                        vm.disableClusterPodAntiAffinity = ( (typeof c.data.spec.nonProductionOptions !== 'undefined') && (typeof c.data.spec.nonProductionOptions.disableClusterPodAntiAffinity !== 'undefined') ) ? c.data.spec.nonProductionOptions.disableClusterPodAntiAffinity : false;
+                        vm.metricsExporter = true;
+                        vm.postgresUtil = true;
+                        vm.pgConfigExists = true;
+                        
+                    }
+                });
+            }
+
+            return cluster
         }
 
     },
@@ -466,7 +462,7 @@ var CreateCluster = Vue.component("create-cluster", {
                         notify('Cluster <strong>"'+cluster.metadata.name+'"</strong> updated successfully', 'message', 'sgcluster');
 
                         vm.fetchAPI('sgcluster');
-                        router.push('/cluster/status/'+cluster.metadata.namespace+'/'+cluster.metadata.name);
+                        router.push('/admin/overview/'+cluster.metadata.namespace);
                         
                     })
                     .catch(function (error) {
@@ -484,7 +480,7 @@ var CreateCluster = Vue.component("create-cluster", {
                         notify('Cluster <strong>"'+cluster.metadata.name+'"</strong> created successfully', 'message', 'sgcluster');
 
                         vm.fetchAPI('sgcluster');
-                        router.push('/cluster/status/'+cluster.metadata.namespace+'/'+cluster.metadata.name);
+                        router.push('/admin/overview/'+cluster.metadata.namespace);
                         
                         /* store.commit('updateClusters', { 
                             name: cluster.metadata.name,
@@ -503,11 +499,11 @@ var CreateCluster = Vue.component("create-cluster", {
         },
 
         cancel: function() {
-            if(this.editMode)
-                router.push('/cluster/status/'+store.state.currentNamespace+'/'+store.state.currentCluster.name);
+            if(this.$route.params.action == 'create')
+                router.push('/admin/overview/'+this.$route.params.namespace);
             else
-                router.push('/overview/'+store.state.currentNamespace);
-        },
+                router.push('/admin/cluster/status/'+this.$route.params.namespace+'/'+this.$route.params.name);
+        },  
 
         showFields: function( fields ) {
             $(fields).slideDown();

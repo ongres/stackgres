@@ -33,250 +33,529 @@ var apiURL = '/stackgres/';
 var urlParams = new URLSearchParams(window.location.search);
 
 const router = new VueRouter({
+  mode: 'history',
   routes: [
     { 
-      path: '/crd/:action/cluster', 
+      path: '/admin/crd/:action/cluster/:namespace', 
       component: CreateCluster,
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/crd/:action/cluster/:namespace/:name', 
+      path: '/admin/crd/:action/cluster/:namespace/:name', 
       component: CreateCluster,
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/crd/:action/profile', 
+      path: '/admin/crd/:action/profile/:namespace', 
       component: CreateProfile,
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/crd/:action/profile/:namespace/:name', 
+      path: '/admin/crd/:action/profile/:namespace/:name', 
       component: CreateProfile,
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/crd/:action/pgconfig', 
+      path: '/admin/crd/:action/pgconfig/:namespace', 
       component: CreatePGConfig,
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/crd/:action/pgconfig/:namespace/:name', 
+      path: '/admin/crd/:action/pgconfig/:namespace/:name', 
       component: CreatePGConfig,
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/crd/:action/connectionpooling', 
+      path: '/admin/crd/:action/connectionpooling/:namespace', 
       component: CreatePoolConfig,
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/crd/:action/connectionpooling/:namespace/:name', 
+      path: '/admin/crd/:action/connectionpooling/:namespace/:name', 
       component: CreatePoolConfig,
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/crd/:action/backupconfig', 
+      path: '/admin/crd/:action/backupconfig/:namespace', 
       component: CreateBackupConfig,
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/crd/:action/backupconfig/:namespace/:name', 
+      path: '/admin/crd/:action/backupconfig/:namespace/:name', 
       component: CreateBackupConfig,
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/crd/:action/backup/:namespace', 
+      path: '/admin/crd/:action/backup/:namespace', 
       component: CreateBackup,
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/crd/:action/backup/:namespace/:cluster/:name', 
+      path: '/admin/crd/:action/backup/:namespace/:uid', 
       component: CreateBackup,
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/overview/:namespace', 
+      path: '/admin', 
       component: ClusterOverview,
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/:cluster/configuration/:namespace/:name', 
+      path: '/admin/overview/:namespace', 
+      component: ClusterOverview,
+      meta: {
+        conditionalRoute: false
+      },
+    },
+    { 
+      path: '/admin/:cluster/configuration/:namespace/:name', 
       component: ClusterInfo,
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/:cluster/status/:namespace/:name', 
+      path: '/admin/:cluster/status/:namespace/:name', 
       component: ClusterStatus,
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/:cluster/backups/:namespace/:name', 
-      component: Backups,
-      meta: {
-        conditionalRoute: false
-      },
-    },
-    { 
-      path: '/:cluster/logs/:namespace/:name', 
+      path: '/admin/:cluster/logs/:namespace/:name', 
       component: Logs,
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/:cluster/logs/:namespace/:name/:time/:index', 
+      path: '/admin/:cluster/logs/:namespace/:name/:time/:index', 
       component: Logs,
       meta: {
         conditionalRoute: false
       },
     },
     {  
-      path: '/backups/:namespace/', 
+      path: '/admin/backups/:namespace/', 
       component: Backups,
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/backups/:namespace/:name', 
+      path: '/admin/backups/:namespace/:name/:uid', 
       component: Backups,
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/configurations/postgres/:namespace', 
+      path: '/admin/:cluster/backups/:namespace/:name', 
+      component: Backups,
+      meta: {
+        conditionalRoute: false
+      },
+    },
+    { 
+      path: '/admin/:cluster/backups/:namespace/:name/:uid', 
+      component: Backups,
+      meta: {
+        conditionalRoute: false
+      },
+    },
+    { 
+      path: '/admin/configurations/postgres/:namespace', 
       component: PgConfig,
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/configurations/postgres/:namespace/:name', 
+      path: '/admin/configurations/postgres/:namespace/:name', 
       component: PgConfig,
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/configurations/connectionpooling/:namespace', 
+      path: '/admin/configurations/connectionpooling/:namespace', 
       component: PoolConfig,
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/configurations/connectionpooling/:namespace/:name', 
+      path: '/admin/configurations/connectionpooling/:namespace/:name', 
       component: PoolConfig,
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/configurations/backup/:namespace', 
+      path: '/admin/configurations/backup/:namespace', 
       component: BackupConfig,
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/configurations/backup/:namespace/:name', 
+      path: '/admin/configurations/backup/:namespace/:name', 
       component: BackupConfig,
       meta: {
         conditionalRoute: false
       },
     },
     {  
-      path: '/profiles/:namespace/', 
+      path: '/admin/profiles/:namespace/', 
       component: SGProfiles,
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/profiles/:namespace/:name', 
+      path: '/admin/profiles/:namespace/:name', 
       component: SGProfiles,
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/monitor/', 
+      path: '/admin/monitor/', 
       component: Grafana,
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/monitor/:namespace/:name', 
+      path: '/admin/:cluster/monitor/:namespace/:name', 
       component: Grafana,
       meta: {
         conditionalRoute: false
       },
     },
     { 
-      path: '/grafana/:namespace/:name/:pod', 
+      path: '/admin/:cluster/monitor/:namespace/:name/:pod', 
       component: Grafana,
       meta: {
         conditionalRoute: false
       },
     },
+    {
+      path: '*',
+      component: NotFound
+    }
 
   ],
 });
 
-router.replace({ path: '', redirect: '/'});
 
 router.beforeEach((to, from, next) => { 
 
+  // If loading CRD from direct URL validate if CRD exists on the API before loading
+  if( from.path == '/') {
+
+    checkLogin();
+
+    /* Check if Namespace exist */
+    if(to.params.hasOwnProperty('namespace')) {
+      axios
+      .get(apiURL+'namespace')
+      .then( function(response){
+        store.commit('addNamespaces',response.data)
+        if(response.data.includes(to.params.namespace)) {
+          store.commit('setCurrentNamespace', to.params.namespace);
+        }
+        else
+          notFound();
+      }).catch(function(err) {
+        notFound()
+      });
+    }
+      
+    switch(to.matched[0].components.default.options.name) {
+
+      case 'CreateCluster':
+
+        axios
+        .get(apiURL+'sgcluster')
+        .then( function(response){
+
+          var found = false
+
+          response.data.forEach( function(item, index) {
+
+            var cluster = {
+              name: item.metadata.name,
+              data: item,
+              hasBackups: false,
+              status: {},
+            };
+              
+            store.commit('updateClusters', cluster);
+
+            if( to.params.hasOwnProperty('name') && (to.params.name == item.metadata.name) && (to.params.namespace == item.metadata.namespace) ) {
+              store.commit('setCurrentCluster', cluster);
+              found = true;
+            }
+
+          });
+
+          if( to.params.hasOwnProperty('name') && !found)
+            notFound()
+          else
+            next()
+
+        }).catch(function(err) {
+          notFound()
+        });
+
+        break
+
+      case 'ClusterStatus':
+      case 'ClusterInfo':
+      case 'Logs':
+      case 'Grafana':
+         /* Check if Cluster exists */
+        axios
+        .get(apiURL+'sgcluster/stats/'+to.params.namespace+'/'+to.params.name)
+        .then( function(response){
+          next()
+        }).catch(function(err) {
+          notFound()
+        });
+
+        break;
+
+      case 'InstanceProfile':
+      case 'CreateProfile':
+        /* Check if Profile exists */
+        axios
+        .get(apiURL+'sginstanceprofile')
+        .then( function(response){
+
+          var found = false
+
+          response.data.forEach( function(item, index) {
+              
+            store.commit('updateProfiles', { 
+              name: item.metadata.name,
+              data: item
+            }); 
+
+            if( to.params.hasOwnProperty('name') && (to.params.name == item.metadata.name) && (to.params.namespace == item.metadata.namespace) )
+              found = true;
+
+          });
+
+          if( to.params.hasOwnProperty('name') && !found)
+            notFound()
+          else
+            next()
+
+        }).catch(function(err) {
+          notFound()
+        });
+
+        break
+
+      case 'PostgresConfig':
+      case 'CreatePgConfig':
+        
+        /* Check if Postgres Config exists */
+        axios
+        .get(apiURL+'sgpgconfig')
+        .then( function(response){
+
+          var found = false
+
+          response.data.forEach( function(item, index) {
+              
+            store.commit('updatePGConfig', { 
+              name: item.metadata.name,
+              data: item
+            }); 
+
+            if( to.params.hasOwnProperty('name') && (to.params.name == item.metadata.name) && (to.params.namespace == item.metadata.namespace) )
+              found = true;
+
+          });
+
+          if( to.params.hasOwnProperty('name') && !found)
+            notFound()
+          else
+            next()
+
+        }).catch(function(err) {
+          notFound()
+        });
+
+        break;
+
+      case 'PoolConfig':
+      case 'CreatePoolConfig':
+
+        /* Check if PgBouncer Config exists */
+        axios
+        .get(apiURL+'sgpoolconfig')
+        .then( function(response){
+
+          var found = false
+
+          response.data.forEach( function(item, index) {
+              
+            store.commit('updatePoolConfig', { 
+              name: item.metadata.name,
+              data: item
+            }); 
+
+            if( to.params.hasOwnProperty('name') && (to.params.name == item.metadata.name) && (to.params.namespace == item.metadata.namespace) )
+              found = true;
+
+          });
+
+          if( to.params.hasOwnProperty('name') && !found)
+            notFound()
+          else
+            next()
+
+        }).catch(function(err) {
+          notFound()
+        });
+
+        break;
+      
+      case 'BackupConfig':
+      case 'CreateBackupConfig':
+        /* Check if BackupConfig Config exists */
+        axios
+        .get(apiURL+'sgbackupconfig')
+        .then( function(response){
+
+          var found = false
+
+          response.data.forEach( function(item, index) {
+              
+            store.commit('updateBackupConfig', { 
+              name: item.metadata.name,
+              data: item
+            }); 
+
+            if( to.params.hasOwnProperty('name') && (to.params.name == item.metadata.name) && (to.params.namespace == item.metadata.namespace) )
+              found = true;
+
+          });
+
+          if( to.params.hasOwnProperty('name') && !found)
+            notFound()
+          else
+            next()
+
+        }).catch(function(err) {
+          notFound()
+        });
+
+        break;
+
+      case 'Backups':
+      case 'CreateBackup':
+        /* If filtered by Cluster, first check if Cluster exists */
+        if(to.params.hasOwnProperty('cluster')) {
+          axios
+          .get(apiURL+'sgcluster/stats/'+to.params.namespace+'/'+to.params.name)
+          .then( function(response){
+            next()
+          }).catch(function(err) {
+            notFound()
+          });
+        } else {
+          axios
+          .get(apiURL+'sgbackup')
+          .then( function(response){
+
+            var found = false
+
+            response.data.forEach( function(item, index) {
+                
+              if( (typeof item.status.process.status !== 'undefined') && (item.status.process.status === 'Completed') ) {
+                //console.log('setting duration');
+                start = moment(item.status.process.timing.start);
+                finish = moment(item.status.process.timing.stored);
+                duration = new Date(moment.duration(finish.diff(start))).toISOString();
+              } else {
+                //console.log('duration not set');
+                duration = '';
+              }
+              
+                
+              store.commit('updateBackups', { 
+                name: item.metadata.name,
+                data: item,
+                duration: duration,
+                show: true
+              });
+
+              if( to.params.hasOwnProperty('uid') && (to.params.uid == item.metadata.uid) && (to.params.namespace == item.metadata.namespace) )
+                found = true;
+
+            });
+
+            if( to.params.hasOwnProperty('uid') && !found)
+              notFound()
+            else
+              next()
+
+          }).catch(function(err) {
+            notFound()
+          });
+        }
+        
+        break;
+
+    }
+
+  }
+  
   // If entering a Cluster, setup as current
-  //console.log(to);
   if ( to.params.cluster === "cluster" ) {
 
     let cluster = store.state.clusters.find(c => ( (to.params.name == c.name) && (to.params.namespace == c.data.metadata.namespace) ) );
     
     if ( typeof cluster !== "undefined" ) {
       
-      let backups = store.state.backups.find(b => ( (to.params.name == b.data.spec.sgCluster) && (to.params.namespace == b.data.metadata.namespace) ) );
-      
-      if ( typeof backups !== "undefined" )
-        cluster.hasBackups = true; // Enable/Disable Backups button
-
       store.commit('setCurrentCluster', cluster);
-    }  
+    }  else {
+      //alert("Not found");
+      //window.location.href = '/admin/not-found.html';
+    }
 
     $('.clu li.current').removeClass('current');
-		$('li.cluster-'+store.state.currentNamespace+'-'+store.state.currentCluster.name).addClass('current');
+	  $('li.cluster-'+store.state.currentNamespace+'-'+store.state.currentCluster.name).addClass('current');
     
   }
 
@@ -287,8 +566,11 @@ router.beforeEach((to, from, next) => {
 
       //console.log(to);
 
-      if (store.state.currentCluster == {} && ( from.path.includes("profiles") || from.path.includes("configurations") ) && (to.path != ('/configuration/'+to.params.name)) ) { 
-          next({ path: '/'}) 
+	    //console.log(router.history.current);
+
+
+      if (store.state.currentCluster == {} && ( from.path.includes("profiles") || from.path.includes("configurations") ) && (to.path != ('/admin/configuration/'+to.params.name)) ) { 
+          next({ path: '/admin/'}) 
       } else { 
           next() 
       } 
@@ -303,7 +585,9 @@ const store = new Vuex.Store({
     theme: 'light',
     loginToken: '',
     showLogs: false,
-    currentNamespace: ' ',
+    notFound: false,
+    currentNamespace: '',
+    ready: false,
     currentCluster: {},
     currentPods: [],
     namespaces: [],
@@ -337,6 +621,14 @@ const store = new Vuex.Store({
   },
   mutations: {
 
+    notFound (state, notFound) {
+      state.notFound = notFound;
+    }, 
+
+    setReady (state, ready) {
+      state.ready = ready;
+    }, 
+
     setLoginToken (state, token = '') {
       state.loginToken = token;
       axios.defaults.headers.common['Authorization'] = 'Bearer '+store.state.loginToken;
@@ -354,11 +646,9 @@ const store = new Vuex.Store({
       //state.namespaces.length = 0;
       state.namespaces.push(namespace);
 
-      if( store.state.currentNamespace == ' ') {
-        store.commit('setCurrentNamespace', namespace);
-        router.push('/overview/'+store.state.currentNamespace);
+      /* if( (store.state.currentNamespace == ' ') && (router.history.current.params.namespace == namespace) ) {   
         $('#selected--zg-ul-select').addClass('active');
-      }
+      } */
       
     },
 
@@ -405,10 +695,8 @@ const store = new Vuex.Store({
 
       if ( typeof index !== "undefined" ) {
         index.data = cluster.data;
-        //console.log(cluster.name+" ya existe");
       } else {
         state.clusters.splice( cluster );    
-        //console.log('Se agregó '+cluster.name);
       }
 
     },*/
@@ -570,6 +858,12 @@ const store = new Vuex.Store({
   }
 });
 
+// Set "default" as default landing Namespace
+if( (window.location.pathname === '/admin/index.html') && ( (store.state.loginToken.length) || (getCookie('sgToken')) )  ) {
+  store.commit('setCurrentNamespace', 'default');
+  router.push('/admin/overview/default');
+}  
+
 Vue.mixin({
   data: function(){
     return {
@@ -673,23 +967,20 @@ Vue.mixin({
 
       if( !store.state.tooltips[kind].hasOwnProperty('metadata.name') ) {
         console.log("Reading "+kind+" tooltips");
+
+        fetch('/admin/js/components/forms/help/crd-'+kind+'-EN.json')
+        .then(response => response.json())
+        .then(data => 
+            store.commit('setTooltips', { 
+              kind: kind, 
+              description: data 
+            })
+          );
         
         /* Tooltips Data */
-        axios
+        /* axios
         .get('js/components/forms/help/crd-'+kind+'-EN.json')
         .then( function(response){
-
-          // Include missing tooltips for storage credentials
-          /* if(kind == 'SGBackupConfig') {
-            response.data["spec.storage.s3.awsCredentials.accessKeyId"] = "The AWS Access Key ID secret.";
-            response.data["spec.storage.s3.awsCredentials.secretAccessKey"] = "The AWS Secret Access Key secret.";
-            response.data["spec.storage.s3Compatible.awsCredentials.accessKeyId"] = "The AWS Access Key ID secret.";
-            response.data["spec.storage.s3Compatible.awsCredentials.secretAccessKey"] = "The AWS Secret Access Key secret.";
-            response.data["spec.storage.gcs.gcpCredentials.serviceAccountJSON"] = "A service account key from GCP. In JSON format, as downloaded from the GCP Console.";
-            response.data["spec.storage.azureBlob.azureCredentials.storageAccount"] = "The name of the storage account.";
-            response.data["spec.storage.azureBlob.azureCredentials.accessKey"] = "The primary or secondary access key for the storage account.";
-          } */
-
           store.commit('setTooltips', { 
           kind: kind, 
           description: response.data 
@@ -697,7 +988,7 @@ Vue.mixin({
         }).catch(function(err) {
           console.log(err);
           checkAuthError(err)
-        });
+        }); */
       }
 
     },
@@ -761,8 +1052,7 @@ Vue.mixin({
       
       if(typeof crd !== 'undefined') {
         crd.kind = kind;
-        
-        if(!crd.data.metadata.name.includes('copy-of'))
+        if($('#cloneName').val() !== crd.data.metadata.name)
           crd.data.metadata.name = 'copy-of-'+crd.data.metadata.name;
         
         store.commit('setCloneCRD', crd);
@@ -809,6 +1099,7 @@ const vm = new Vue({
     currentPods: '',
     clustersData: {},
     pooling: '',
+    init: false
     //clusters: []
   },
   methods: {
@@ -893,7 +1184,7 @@ const vm = new Vue({
                 store.commit('updateNamespaces', item.metadata.namespace);
 
               axios
-                .get(apiURL+'sgcluster/status/'+item.metadata.namespace+'/'+item.metadata.name,
+                .get(apiURL+'sgcluster/stats/'+item.metadata.namespace+'/'+item.metadata.name,
                     { headers: {
                         'content-type': 'application/json'
                     }
@@ -974,6 +1265,16 @@ const vm = new Vue({
               });
 
             });
+
+            store.state.clusters.forEach(function(cluster, index){
+              let backups = store.state.backups.find(b => ( (cluster.name == b.data.spec.sgCluster) && (cluster.data.metadata.namespace == b.data.metadata.namespace) ) );
+      
+              if ( typeof backups !== "undefined" )
+                cluster.hasBackups = true; // Enable/Disable Backups button
+
+            });
+
+            
 
             //console.log("Backups Data updated");
 
@@ -1226,8 +1527,12 @@ const vm = new Vue({
       setTimeout(function(){
         //$("#loader").fadeOut(500);
         $("#reload").removeClass("active");
+        this.init = true;
         //$("#loader").hide();  
       }, 2000);
+
+      if(!store.state.ready)
+        store.commit('setReady',true)
 
     },
 
@@ -1286,10 +1591,34 @@ Vue.filter('formatTimestamp',function(t, part){
       
 });
 
+function notFound() {
+  store.commit('notFound',true)
+  //console.log('notfound')
+  router.push('/admin/not-found.html')
+}
+
+function checkLogin() {
+  let loginToken = getCookie('sgToken');
+  //console.log("TOKEN: "+loginToken)
+
+  if (!loginToken.length) {
+    if(!store.state.loginToken.length) {
+      $('#signup').addClass('login').fadeIn();
+      return false;
+    }
+  } else if ( !store.state.loginToken.length && (loginToken.length > 0) ) {
+    $('#signup').hide();
+    store.commit('setLoginToken', loginToken);
+  } else if ( urlParams.has('localAPI') ) {
+    $('#signup').hide();
+    store.commit('setLoginToken', 'localAPI');
+  }
+}
+
 
 function checkAuthError(error) {
   if(error.response && ((error.response.status == 401) || (error.response.status == 403) )) {
-      document.cookie = 'sgToken=authError';
+      /* document.cookie = 'sgToken=authError';
       if(store.state.loginToken.search('Authentication Error') == -1) {
         notify(
           {
@@ -1299,9 +1628,15 @@ function checkAuthError(error) {
           'error'
         )
       }
-      store.commit('setLoginToken',error.response.status+' Authentication Error');
-      
+      store.commit('setLoginToken',error.response.status+' Authentication Error'); */
 
+      document.cookie = 'sgToken=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+			store.commit('setLoginToken');
+      router.push('/admin/index.html');
+      clearInterval(vm.pooling);
+			//store.replaceState({})
+      $('#signup').addClass('login').fadeIn();
+      
   }
 
 }
@@ -1644,10 +1979,13 @@ $(document).ready(function(){
 
 
   $(document).on("click", "#sets .nav-item", function(){
+   /*  if(!$(this).parents().hasClass("clu"))
+        $('.clu.active').removeClass('active');
+    
     if(!($(this).parent().hasClass("active"))) {
       $(".set.active:not(.conf)").removeClass("active");
       $(this).parent("div:not(.conf)").addClass("active");
-    }
+    } */
     $("#current-namespace").removeClass('open');
     $('#ns-select').slideUp();
 
@@ -1656,8 +1994,13 @@ $(document).ready(function(){
   });
 
   $(document).on("click", ".set .item", function(){
-    $(".set.active:not(.conf)").removeClass("active");
+   /*  $(".set.active:not(.conf)").removeClass("active");
     $(this).parent().parent().parent().addClass("active");
+
+    if(!$(this).parents().hasClass("clu")) {
+      $(".set.active:not(.conf)").removeClass("active");
+      $('.clu.active').removeClass('active');
+    } */
     
     $(".set:not(.active) > ul.show").removeClass("show");
   });
@@ -1828,16 +2171,12 @@ $(document).ready(function(){
     $(".sort th").toggleClass("desc asc")   
   });
 
-  $(document).on("click", "table.backups tr.base td:not(.actions), table.profiles tr.base td:not(.actions), table.pgConfig tr.base td:not(.actions), table.poolConfig tr.base td:not(.actions)", function(){
+/*   $(document).on("click", "table.backups tr.base td:not(.actions), table.profiles tr.base td:not(.actions), table.pgConfig tr.base td:not(.actions), table.poolConfig tr.base td:not(.actions)", function(){
     $(this).parent().next().toggle().addClass("open");
     $(this).parent().toggleClass("open");
   });
 
-  $(document).on("click", "table.backups tr.base a.open", function(){
-    $(this).parent().parent().next().toggle().addClass("open");
-    $(this).parent().parent().toggleClass("open");
-  });
-
+ */
   /* $(document).on('focus','.filter.open .options', function(){
     if( $('.filter.open').find('.active').length )
       $('.filter.open').addClass('filtered');
@@ -1846,6 +2185,22 @@ $(document).ready(function(){
     
       $('.filter.open').removeClass("open");
   }); */
+
+  // Show configurations details when the row is clicked
+  $(document).on('click', 'table:not(.backups):not(.logs) tr.base > td:not(.actions)', function(){    
+    const table = $(this).parents('table');
+    if(!$(this).parent().hasClass('open')) {
+      if(table.hasClass('configurations'))
+        router.push('/admin/configurations/'+table.prop('id')+'/'+store.state.currentNamespace+'/'+$(this).parent().data('name'))
+      else
+        router.push('/admin/'+table.prop('id')+'/'+store.state.currentNamespace+'/'+$(this).parent().data('name'))
+    } else {
+      if(table.hasClass('configurations'))
+        router.push('/admin/configurations/'+table.prop('id')+'/'+store.state.currentNamespace)
+      else
+        router.push('/admin/'+$(this).parents('table').prop('id')+'/'+store.state.currentNamespace)
+    }
+  })
 
   $(document).mouseup(function(e) {
     var container = $(".filter.open");
@@ -1934,7 +2289,42 @@ $(document).ready(function(){
       $('.set ul.show').removeClass('show');
       $(this).parent().addClass('active');
     }
-    
   });
+
+  $('form.noSubmit').on('submit',function(e){
+    e.preventDefault
+  });
+
+  onmousemove = function (e) {
+
+    if( (window.innerWidth - e.clientX) > 420 ) {
+      $('#nameTooltip').css({
+        "top": e.clientY+20, 
+        "right": "auto",
+        "left": e.clientX+20
+      })
+    } else {
+      $('#nameTooltip').css({
+        "top": e.clientY+20, 
+        "left": "auto",
+        "right": window.innerWidth - e.clientX + 20
+      })
+    }
+  }
+  
+  $(document).on('mouseenter', 'td.hasTooltip', function(){
+    c = $(this).children('span');
+    if(c.width() > $(this).width()){
+      $('#nameTooltip .info').text(c.text());
+      $('#nameTooltip').addClass('show');
+    }
+      
+  });
+
+  $(document).on('mouseleave', 'td.hasTooltip', function(){ 
+    $('#nameTooltip .info').text('');
+    $('#nameTooltip').removeClass('show');
+  });
+
 
 });

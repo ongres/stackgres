@@ -1,72 +1,72 @@
-var Backups = Vue.component("sg-backup", {
+var Backups = Vue.component("Backups", {
 	template: `
 		<div id="sg-backup">
 			<header v-if="isCluster">
-				<ul class="breadcrumbs">
-					<li class="namespace">
-						<svg xmlns="http://www.w3.org/2000/svg" width="20.026" height="27"><g fill="#00adb5"><path d="M1.513.9l-1.5 13a.972.972 0 001 1.1h18a.972.972 0 001-1.1l-1.5-13a1.063 1.063 0 00-1-.9h-15a1.063 1.063 0 00-1 .9zm.6 11.5l.9-8c0-.2.3-.4.5-.4h12.9a.458.458 0 01.5.4l.9 8a.56.56 0 01-.5.6h-14.7a.56.56 0 01-.5-.6zM1.113 17.9a1.063 1.063 0 011-.9h15.8a1.063 1.063 0 011 .9.972.972 0 01-1 1.1h-15.8a1.028 1.028 0 01-1-1.1zM3.113 23h13.8a.972.972 0 001-1.1 1.063 1.063 0 00-1-.9h-13.8a1.063 1.063 0 00-1 .9 1.028 1.028 0 001 1.1zM3.113 25.9a1.063 1.063 0 011-.9h11.8a1.063 1.063 0 011 .9.972.972 0 01-1 1.1h-11.8a1.028 1.028 0 01-1-1.1z"/></g></svg>
-						<router-link :to="'/overview/'+currentNamespace" title="Namespace Overview">{{ currentNamespace }}</router-link>
-					</li>
-					<li>
-						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M10 0C4.9 0 .9 2.218.9 5.05v11.49C.9 19.272 6.621 20 10 20s9.1-.728 9.1-3.46V5.05C19.1 2.218 15.1 0 10 0zm7.1 11.907c0 1.444-2.917 3.052-7.1 3.052s-7.1-1.608-7.1-3.052v-.375a12.883 12.883 0 007.1 1.823 12.891 12.891 0 007.1-1.824zm0-3.6c0 1.443-2.917 3.052-7.1 3.052s-7.1-1.61-7.1-3.053v-.068A12.806 12.806 0 0010 10.1a12.794 12.794 0 007.1-1.862zM10 8.1c-4.185 0-7.1-1.607-7.1-3.05S5.815 2 10 2s7.1 1.608 7.1 3.051S14.185 8.1 10 8.1zm-7.1 8.44v-1.407a12.89 12.89 0 007.1 1.823 12.874 12.874 0 007.106-1.827l.006 1.345C16.956 16.894 14.531 18 10 18c-4.822 0-6.99-1.191-7.1-1.46z"/></svg>
-						<router-link :to="'/overview/'+currentNamespace" title="Namespace Overview">SGClusters</router-link>
-					</li>
-					<li>
-						<router-link :to="'/cluster/status/'+$route.params.namespace+'/'+$route.params.name" title="Status">{{ $route.params.name }}</router-link>
-					</li>
-					<li>
-						Backups
-					</li>
-				</ul>
+				<template v-for="cluster in clusters" v-if="(cluster.name == $route.params.name) && (cluster.data.metadata.namespace == $route.params.namespace)">
+					<ul class="breadcrumbs">
+						<li class="namespace">
+							<svg xmlns="http://www.w3.org/2000/svg" width="20.026" height="27"><g fill="#00adb5"><path d="M1.513.9l-1.5 13a.972.972 0 001 1.1h18a.972.972 0 001-1.1l-1.5-13a1.063 1.063 0 00-1-.9h-15a1.063 1.063 0 00-1 .9zm.6 11.5l.9-8c0-.2.3-.4.5-.4h12.9a.458.458 0 01.5.4l.9 8a.56.56 0 01-.5.6h-14.7a.56.56 0 01-.5-.6zM1.113 17.9a1.063 1.063 0 011-.9h15.8a1.063 1.063 0 011 .9.972.972 0 01-1 1.1h-15.8a1.028 1.028 0 01-1-1.1zM3.113 23h13.8a.972.972 0 001-1.1 1.063 1.063 0 00-1-.9h-13.8a1.063 1.063 0 00-1 .9 1.028 1.028 0 001 1.1zM3.113 25.9a1.063 1.063 0 011-.9h11.8a1.063 1.063 0 011 .9.972.972 0 01-1 1.1h-11.8a1.028 1.028 0 01-1-1.1z"/></g></svg>
+							<router-link :to="'/admin/overview/'+currentNamespace" title="Namespace Overview">{{ currentNamespace }}</router-link>
+						</li>
+						<li>
+							<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M10 0C4.9 0 .9 2.218.9 5.05v11.49C.9 19.272 6.621 20 10 20s9.1-.728 9.1-3.46V5.05C19.1 2.218 15.1 0 10 0zm7.1 11.907c0 1.444-2.917 3.052-7.1 3.052s-7.1-1.608-7.1-3.052v-.375a12.883 12.883 0 007.1 1.823 12.891 12.891 0 007.1-1.824zm0-3.6c0 1.443-2.917 3.052-7.1 3.052s-7.1-1.61-7.1-3.053v-.068A12.806 12.806 0 0010 10.1a12.794 12.794 0 007.1-1.862zM10 8.1c-4.185 0-7.1-1.607-7.1-3.05S5.815 2 10 2s7.1 1.608 7.1 3.051S14.185 8.1 10 8.1zm-7.1 8.44v-1.407a12.89 12.89 0 007.1 1.823 12.874 12.874 0 007.106-1.827l.006 1.345C16.956 16.894 14.531 18 10 18c-4.822 0-6.99-1.191-7.1-1.46z"/></svg>
+							<router-link :to="'/admin/overview/'+currentNamespace" title="Namespace Overview">SGClusters</router-link>
+						</li>
+						<li>
+							<router-link :to="'/admin/cluster/status/'+$route.params.namespace+'/'+$route.params.name" title="Status">{{ $route.params.name }}</router-link>
+						</li>
+						<li>
+							Backups
+						</li>
+					</ul>
 
-				<div class="actions">
-					<a class="documentation" href="https://stackgres.io/doc/latest/04-postgres-cluster-management/01-postgres-clusters/" target="_blank" title="SGCluster Documentation">SGCluster Documentation</a>
-					<div>
-						<a class="cloneCRD" @click="cloneCRD('SGCluster', currentNamespace, $route.params.name)">Clone Cluster Configuration</a>
-						<router-link :to="'/crd/edit/cluster/'+$route.params.namespace+'/'+$route.params.name">Edit Cluster</router-link>
-						<a v-on:click="deleteCRD('sgcluster', currentNamespace, currentCluster.name, '/overview/'+currentNamespace)" :class="'/overview/'+currentNamespace">Delete Cluster</a>
+					<div class="actions" v-if="typeof cluster.data !== 'undefined'">
+						<a class="documentation" href="https://stackgres.io/doc/latest/04-postgres-cluster-management/01-postgres-clusters/" target="_blank" title="SGCluster Documentation">SGCluster Documentation</a>
+						<div>
+							<a class="cloneCRD" @click="cloneCRD('SGCluster', currentNamespace, $route.params.name)">Clone Cluster Configuration</a>
+							<router-link :to="'/admin/crd/edit/cluster/'+$route.params.namespace+'/'+$route.params.name">Edit Cluster</router-link>
+							<a v-on:click="deleteCRD('sgcluster', currentNamespace, cluster.name, '/admin/overview/'+currentNamespace)" :class="'/overview/'+currentNamespace">Delete Cluster</a>
+						</div>
 					</div>
-				</div>
 
-				<ul class="tabs">
-					<li>
-						<router-link :to="'/cluster/status/'+$route.params.namespace+'/'+$route.params.name" title="Status" class="status">Status</router-link>
-					</li>
-					<li>
-						<router-link :to="'/cluster/configuration/'+$route.params.namespace+'/'+$route.params.name" title="Configuration" class="info">Configuration</router-link>
-					</li>
-					<li v-if="currentCluster.hasBackups">
-						<router-link :to="'/cluster/backups/'+$route.params.namespace+'/'+$route.params.name" title="Backups" class="backups">Backups</router-link>
-					</li>
-					<li v-if="typeof currentCluster.data.spec.distributedLogs !== 'undefined'">
-						<router-link :to="'/cluster/logs/'+$route.params.namespace+'/'+$route.params.name" title="Distributed Logs" class="logs">Logs</router-link>
-					</li>
-					<li v-if="currentCluster.data.grafanaEmbedded">
-						<router-link id="grafana-btn" :to="'/monitor/'+$route.params.namespace+'/'+$route.params.name" title="Grafana Dashboard" class="grafana">Monitoring</router-link>
-					</li>
-				</ul>
+					<ul class="tabs">
+						<li>
+							<router-link :to="'/admin/cluster/status/'+$route.params.namespace+'/'+$route.params.name" title="Status" class="status">Status</router-link>
+						</li>
+						<li>
+							<router-link :to="'/admin/cluster/configuration/'+$route.params.namespace+'/'+$route.params.name" title="Configuration" class="info">Configuration</router-link>
+						</li>
+						<li>
+							<router-link :to="'/admin/cluster/backups/'+$route.params.namespace+'/'+$route.params.name" title="Backups" class="backups">Backups</router-link>
+						</li>
+						<li v-if="(typeof cluster.data !== 'undefined') && (typeof cluster.data.spec.distributedLogs !== 'undefined')">
+							<router-link :to="'/admin/cluster/logs/'+$route.params.namespace+'/'+$route.params.name" title="Distributed Logs" class="logs">Logs</router-link>
+						</li>
+						<li v-if="(typeof cluster.data !== 'undefined') && cluster.data.grafanaEmbedded">
+							<router-link id="grafana-btn" :to="'/admin/cluster/monitor/'+$route.params.namespace+'/'+$route.params.name" title="Grafana Dashboard" class="grafana">Monitoring</router-link>
+						</li>
+					</ul>
+				</template>
 			</header>
 			<header v-else>
 				<ul class="breadcrumbs">
 					<li class="namespace">
 						<svg xmlns="http://www.w3.org/2000/svg" width="20.026" height="27"><g fill="#00adb5"><path d="M1.513.9l-1.5 13a.972.972 0 001 1.1h18a.972.972 0 001-1.1l-1.5-13a1.063 1.063 0 00-1-.9h-15a1.063 1.063 0 00-1 .9zm.6 11.5l.9-8c0-.2.3-.4.5-.4h12.9a.458.458 0 01.5.4l.9 8a.56.56 0 01-.5.6h-14.7a.56.56 0 01-.5-.6zM1.113 17.9a1.063 1.063 0 011-.9h15.8a1.063 1.063 0 011 .9.972.972 0 01-1 1.1h-15.8a1.028 1.028 0 01-1-1.1zM3.113 23h13.8a.972.972 0 001-1.1 1.063 1.063 0 00-1-.9h-13.8a1.063 1.063 0 00-1 .9 1.028 1.028 0 001 1.1zM3.113 25.9a1.063 1.063 0 011-.9h11.8a1.063 1.063 0 011 .9.972.972 0 01-1 1.1h-11.8a1.028 1.028 0 01-1-1.1z"/></g></svg>
-						<router-link :to="'/overview/'+currentNamespace" title="Namespace Overview">{{ currentNamespace }}</router-link>
+						<router-link :to="'/admin/overview/'+currentNamespace" title="Namespace Overview">{{ currentNamespace }}</router-link>
 					</li>
 					<li>
 						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M10.55.55A9.454 9.454 0 001.125 9.5H.479a.458.458 0 00-.214.053.51.51 0 00-.214.671l1.621 3.382a.49.49 0 00.213.223.471.471 0 00.644-.223l1.62-3.382A.51.51 0 004.2 10a.49.49 0 00-.479-.5H3.1a7.47 7.47 0 117.449 7.974 7.392 7.392 0 01-3.332-.781.988.988 0 00-.883 1.767 9.356 9.356 0 004.215.99 9.45 9.45 0 000-18.9z" class="a"></path><path d="M13.554 10a3 3 0 10-3 3 3 3 0 003-3z" class="a"></path></svg>
-						<template v-if="typeof $route.params.name !== 'undefined'">
-							{{ $route.params.name }}
-						</template>
-						<template v-else>
 							SGBackupList
-						</template>
+					</li>
+					<li v-if="typeof $route.params.uid !== 'undefined'">
+							{{ $route.params.uid }}
 					</li>
 				</ul>
 
 				<div class="actions">
 					<a class="documentation" href="https://stackgres.io/doc/latest/04-postgres-cluster-management/04-backups/" target="_blank" title="SGBackup Documentation">SGBackup Documentation</a>
 					<div>
-						<router-link :to="'/crd/create/backup/'+currentNamespace" class="add">Add New</router-link>
+						<router-link :to="'/admin/crd/create/backup/'+currentNamespace" class="add">Add New</router-link>
 					</div>
 				</div>	
 			</header>
@@ -144,7 +144,7 @@ var Backups = Vue.component("sg-backup", {
 									<span>Cluster</span>
 									<select v-model="clusterName" @change="toggleClear('filters')">
 										<option value="">All Clusters</option>
-										<template v-for="cluster in allClusters">
+										<template v-for="cluster in clusters">
 											<option v-if="cluster.data.metadata.namespace == currentNamespace">{{ cluster.data.metadata.name }}</option>
 										</template>
 									</select>
@@ -189,12 +189,12 @@ var Backups = Vue.component("sg-backup", {
 						<tbody>
 							<tr class="no-results">
 								<td :colspan="999">
-									No records matched your search terms, would  you like to <router-link to="/crd/create/backup/" title="Add New Backup">create a new one?</router-link>
+									No records matched your search terms, would  you like to <router-link :to="'/admin/crd/create/backup/'+$route.params.namespace" title="Add New Backup">create a new one?</router-link>
 								</td>
 							</tr>
-							<template v-for="back in backups" v-if="( ( (back.data.metadata.namespace == currentNamespace) && !isCluster && back.show ) || (isCluster && (back.data.spec.sgCluster == currentCluster.name ) && (back.data.metadata.namespace == currentCluster.data.metadata.namespace ) && back.show ) )">
+							<template v-for="back in backups" v-if="( ( (back.data.metadata.namespace == currentNamespace) && !isCluster && back.show ) || (isCluster && (back.data.spec.sgCluster == $route.params.name ) && (back.data.metadata.namespace == $route.params.namespace ) && back.show ) )">
 								<template v-if="back.data.status">
-									<tr :class="[ back.data.status.process.status != 'Running' ? 'base' : '', back.data.status.process.status+' sgbackup-'+back.data.metadata.namespace+'-'+back.data.metadata.name]">
+									<tr :id="back.data.metadata.uid" :class="[ back.data.status.process.status != 'Running' ? 'base' : '', back.data.status.process.status+' sgbackup-'+back.data.metadata.namespace+'-'+back.data.metadata.name, $route.params.uid == back.data.metadata.uid ? 'open' : '']" :data-cluster="back.data.spec.sgCluster" :data-uid="back.data.metadata.uid">
 											<td class="timestamp" :data-val="(back.data.status.process.status == 'Completed') ? back.data.status.process.timing.stored.substr(0,19).replace('T',' ') : ''">
 												<template v-if="back.data.status.process.status == 'Completed'">
 													<span class='date'>
@@ -234,7 +234,7 @@ var Backups = Vue.component("sg-backup", {
 											<a class="open" title="Backup Details">
 												<svg xmlns="http://www.w3.org/2000/svg" width="18.556" height="14.004" viewBox="0 0 18.556 14.004"><g transform="translate(0 -126.766)"><path d="M18.459,133.353c-.134-.269-3.359-6.587-9.18-6.587S.232,133.084.1,133.353a.93.93,0,0,0,0,.831c.135.269,3.36,6.586,9.18,6.586s9.046-6.317,9.18-6.586A.93.93,0,0,0,18.459,133.353Zm-9.18,5.558c-3.9,0-6.516-3.851-7.284-5.142.767-1.293,3.382-5.143,7.284-5.143s6.516,3.85,7.284,5.143C15.795,135.06,13.18,138.911,9.278,138.911Z" transform="translate(0 0)"/><path d="M9.751,130.857a3.206,3.206,0,1,0,3.207,3.207A3.21,3.21,0,0,0,9.751,130.857Z" transform="translate(-0.472 -0.295)"/></g></svg>
 											</a>
-											<router-link :to="'/crd/edit/backup/'+$route.params.namespace+'/'+back.data.spec.sgCluster+'/'+back.name" title="Edit Backup">
+											<router-link :to="'/admin/crd/edit/backup/'+$route.params.namespace+'/'+back.data.metadata.uid" title="Edit Backup">
 												<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14"><path d="M90,135.721v2.246a.345.345,0,0,0,.345.345h2.246a.691.691,0,0,0,.489-.2l8.042-8.041a.346.346,0,0,0,0-.489l-2.39-2.389a.345.345,0,0,0-.489,0L90.2,135.232A.691.691,0,0,0,90,135.721Zm13.772-8.265a.774.774,0,0,0,0-1.095h0l-1.82-1.82a.774.774,0,0,0-1.095,0h0l-1.175,1.176a.349.349,0,0,0,0,.495l2.421,2.421a.351.351,0,0,0,.5,0Z" transform="translate(-90 -124.313)"/></svg>
 											</router-link>
 											<a v-on:click="deleteCRD('sgbackup',currentNamespace, back.data.metadata.name)" class="delete" title="Delete Backup">
@@ -242,7 +242,7 @@ var Backups = Vue.component("sg-backup", {
 											</a>
 										</td>
 									</tr>
-									<tr class="details" :class="'sgbackup-'+back.data.metadata.namespace+'-'+back.data.metadata.name" v-if="back.data.status.process.status === 'Completed'">
+									<tr class="details" :class="[ $route.params.uid == back.data.metadata.uid ? 'open' : '', 'sgbackup-'+back.data.metadata.namespace+'-'+back.data.metadata.name]" :style="$route.params.uid == back.data.metadata.uid ? 'display: table-row;' : ''" v-if="back.data.status.process.status === 'Completed'">
 										<td :colspan="(isCluster) ? 3 : 4">
 											<table>
 												<thead>
@@ -441,7 +441,7 @@ var Backups = Vue.component("sg-backup", {
 											<strong>Backup Running</strong><br/>
 										</td>
 									</tr>
-									<tr class="details Failed" :class="'backup-'+back.data.metadata.namespace+'-'+back.data.metadata.name" v-else-if="back.data.status.process.status === 'Failed'">
+									<tr class="details Failed" :class="[ $route.params.uid == back.data.metadata.uid ? 'open' : '', 'sgbackup-'+back.data.metadata.namespace+'-'+back.data.metadata.name]" :style="$route.params.uid == back.data.metadata.uid ? 'display: table-row;' : ''" v-else-if="back.data.status.process.status === 'Failed'">
 										<td :colspan="(isCluster) ? 6 : 8" class="center">
 											<strong>Failure Cause</strong><br/>
 											<vue-markdown :source="back.data.status.process.failure"></vue-markdown>
@@ -498,51 +498,16 @@ var Backups = Vue.component("sg-backup", {
 			return store.state.currentNamespace
 		},
 
-		allClusters () {
+		clusters () {
 			return store.state.clusters
 		},
 
-		currentCluster () {
-			return store.state.currentCluster
-		},
-
 		isCluster() {
-			return  vm.$route.params.cluster !== undefined
+			return this.$route.params.hasOwnProperty('cluster')
 		}
 
 	},
 	mounted: function() {
-		onmousemove = function (e) {
-
-			if( (window.innerWidth - e.clientX) > 420 ) {
-				$('#nameTooltip').css({
-					"top": e.clientY+20, 
-					"right": "auto",
-					"left": e.clientX+20
-				})
-			} else {
-				$('#nameTooltip').css({
-					"top": e.clientY+20, 
-					"left": "auto",
-					"right": window.innerWidth - e.clientX + 20
-				})
-			}
-		}
-		
-		$(document).on('mouseenter', 'td.hasTooltip', function(){
-			c = $(this).children('span');
-			if(c.width() > $(this).width()){
-				$('#nameTooltip .info').text(c.text());
-				$('#nameTooltip').addClass('show');
-			}
-				
-		});
-
-		$(document).on('mouseleave', 'td.hasTooltip', function(){ 
-			$('#nameTooltip .info').text('');
-			$('#nameTooltip').removeClass('show');
-		});
-
 		
 	},
 	methods: {
@@ -768,6 +733,26 @@ var Backups = Vue.component("sg-backup", {
 			$('tr.base').click(function() {
 				$(this).find('td.name').toggleClass("hasTooltip");
 				$(this).find('td.clusterName').toggleClass("hasTooltip");
+			});
+
+			$(document).on("click", "table.backups tr.base a.open", function(){
+				$(this).parent().parent().next().toggle().addClass("open");
+				$(this).parent().parent().toggleClass("open");
+			});
+
+			$(document).on("click", "table.backups tr.base td:not(.actions)", function() {
+				if(!$(this).parent().hasClass('open')) {
+					if(vc.$route.params.hasOwnProperty('cluster'))
+						router.push('/admin/cluster/backups/'+store.state.currentNamespace+'/'+$(this).parent().data('cluster')+'/'+$(this).parent().data('uid'))
+					else
+						router.push('/admin/backups/'+store.state.currentNamespace+'/'+$(this).parent().data('cluster')+'/'+$(this).parent().data('uid'))
+				}
+				else {
+					if(vc.$route.params.hasOwnProperty('cluster'))
+						router.push('/admin/cluster/backups/'+store.state.currentNamespace+'/'+$(this).parent().data('cluster'))
+					else
+						router.push('/admin/backups/'+store.state.currentNamespace)
+				}
 			});
 
 		});

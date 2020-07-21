@@ -25,7 +25,7 @@ Once you have the environment variables in place, simply run:
 npm run dev
 ```
 
-Then, you access the UI at http://localhost:8081
+Then, you access the UI at http://localhost:8081/admin/
 
 # Tests
 

@@ -1,18 +1,18 @@
-var Logs = Vue.component("sg-logs", {
+var Logs = Vue.component("Logs", {
 	template: `
 		<div id="sg-logs">
 			<header>
 				<ul class="breadcrumbs">
 					<li class="namespace">
 						<svg xmlns="http://www.w3.org/2000/svg" width="20.026" height="27"><g fill="#00adb5"><path d="M1.513.9l-1.5 13a.972.972 0 001 1.1h18a.972.972 0 001-1.1l-1.5-13a1.063 1.063 0 00-1-.9h-15a1.063 1.063 0 00-1 .9zm.6 11.5l.9-8c0-.2.3-.4.5-.4h12.9a.458.458 0 01.5.4l.9 8a.56.56 0 01-.5.6h-14.7a.56.56 0 01-.5-.6zM1.113 17.9a1.063 1.063 0 011-.9h15.8a1.063 1.063 0 011 .9.972.972 0 01-1 1.1h-15.8a1.028 1.028 0 01-1-1.1zM3.113 23h13.8a.972.972 0 001-1.1 1.063 1.063 0 00-1-.9h-13.8a1.063 1.063 0 00-1 .9 1.028 1.028 0 001 1.1zM3.113 25.9a1.063 1.063 0 011-.9h11.8a1.063 1.063 0 011 .9.972.972 0 01-1 1.1h-11.8a1.028 1.028 0 01-1-1.1z"/></g></svg>
-						<router-link :to="'/overview/'+currentNamespace" title="Namespace Overview">{{ currentNamespace }}</router-link>
+						<router-link :to="'/admin/overview/'+currentNamespace" title="Namespace Overview">{{ currentNamespace }}</router-link>
 					</li>
 					<li>
 						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M10 0C4.9 0 .9 2.218.9 5.05v11.49C.9 19.272 6.621 20 10 20s9.1-.728 9.1-3.46V5.05C19.1 2.218 15.1 0 10 0zm7.1 11.907c0 1.444-2.917 3.052-7.1 3.052s-7.1-1.608-7.1-3.052v-.375a12.883 12.883 0 007.1 1.823 12.891 12.891 0 007.1-1.824zm0-3.6c0 1.443-2.917 3.052-7.1 3.052s-7.1-1.61-7.1-3.053v-.068A12.806 12.806 0 0010 10.1a12.794 12.794 0 007.1-1.862zM10 8.1c-4.185 0-7.1-1.607-7.1-3.05S5.815 2 10 2s7.1 1.608 7.1 3.051S14.185 8.1 10 8.1zm-7.1 8.44v-1.407a12.89 12.89 0 007.1 1.823 12.874 12.874 0 007.106-1.827l.006 1.345C16.956 16.894 14.531 18 10 18c-4.822 0-6.99-1.191-7.1-1.46z"/></svg>
-						<router-link :to="'/overview/'+currentNamespace" title="Namespace Overview">SGClusters</router-link>
+						<router-link :to="'/admin/overview/'+currentNamespace" title="Namespace Overview">SGClusters</router-link>
 					</li>
 					<li>
-						<router-link :to="'/cluster/status/'+$route.params.namespace+'/'+$route.params.name" title="Status">{{ $route.params.name }}</router-link>
+						<router-link :to="'/admin/cluster/status/'+$route.params.namespace+'/'+$route.params.name" title="Status">{{ $route.params.name }}</router-link>
 					</li>
 					<li>
 						Logs
@@ -23,26 +23,26 @@ var Logs = Vue.component("sg-logs", {
 				<a class="documentation" href="https://stackgres.io/doc/latest/04-postgres-cluster-management/01-postgres-clusters/" target="_blank" title="SGCluster Documentation">SGCluster Documentation</a>
 					<div>
 						<a class="cloneCRD" @click="cloneCRD('SGCluster', currentNamespace, $route.params.name)">Clone Cluster Configuration</a>
-						<router-link :to="'/crd/edit/cluster/'+$route.params.namespace+'/'+$route.params.name">Edit Cluster</router-link>
-						<a v-on:click="deleteCRD('sgcluster', currentNamespace, currentCluster.name, '/overview/'+currentNamespace)" :class="'/overview/'+currentNamespace">Delete Cluster</a>
+						<router-link :to="'/admin/crd/edit/cluster/'+$route.params.namespace+'/'+$route.params.name">Edit Cluster</router-link>
+						<a v-on:click="deleteCRD('sgcluster', currentNamespace, $route.params.name, '/admin/overview/'+currentNamespace)" :class="'/overview/'+currentNamespace">Delete Cluster</a>
 					</div>
 				</div>
 
 				<ul class="tabs">
 					<li>
-						<router-link :to="'/cluster/status/'+$route.params.namespace+'/'+$route.params.name" title="Status" class="status">Status</router-link>
+						<router-link :to="'/admin/cluster/status/'+$route.params.namespace+'/'+$route.params.name" title="Status" class="status">Status</router-link>
 					</li>
 					<li>
-						<router-link :to="'/cluster/configuration/'+$route.params.namespace+'/'+$route.params.name" title="Configuration" class="info">Configuration</router-link>
-					</li>
-					<li v-if="currentCluster.hasBackups">
-						<router-link :to="'/cluster/backups/'+$route.params.namespace+'/'+$route.params.name" title="Backups" class="backups">Backups</router-link>
+						<router-link :to="'/admin/cluster/configuration/'+$route.params.namespace+'/'+$route.params.name" title="Configuration" class="info">Configuration</router-link>
 					</li>
 					<li>
-						<router-link :to="'/cluster/logs/'+$route.params.namespace+'/'+$route.params.name" title="Distributed Logs" class="logs">Logs</router-link>
+						<router-link :to="'/admin/cluster/backups/'+$route.params.namespace+'/'+$route.params.name" title="Backups" class="backups">Backups</router-link>
 					</li>
-					<li v-if="currentCluster.data.grafanaEmbedded">
-						<router-link id="grafana-btn" :to="'/monitor/'+$route.params.namespace+'/'+$route.params.name" title="Grafana Dashboard" class="grafana">Monitoring</router-link>
+					<li>
+						<router-link :to="'/admin/cluster/logs/'+$route.params.namespace+'/'+$route.params.name" title="Distributed Logs" class="logs">Logs</router-link>
+					</li>
+					<li v-if="grafanaEmbedded">
+						<router-link id="grafana-btn" :to="'/admin/cluster/monitor/'+$route.params.namespace+'/'+$route.params.name" title="Grafana Dashboard" class="grafana">Monitoring</router-link>
 					</li>
 				</ul>
 			</header>
@@ -517,76 +517,32 @@ var Logs = Vue.component("sg-logs", {
 			return store.state.currentNamespace
 		},
 
-		currentCluster () {
-			return store.state.currentCluster
+		clusters () {
+			return store.state.clusters
 		},
 
         logs() {
 			return store.state.logs
-        }
+		},
+		
+		grafanaEmbedded() {
+			var grafana = false;
+			store.state.clusters.forEach(function( c ){
+                if( (c.data.metadata.name === vm.$route.params.name) && (c.data.metadata.namespace === vm.$route.params.namespace) ) {
+                    grafana = true;
+                    return false;
+                }
+			});
+			
+			return grafana            
+		}
 
 	},
 	mounted: function() {
-		vc = this;
 		
-		vc.records = parseInt((window.innerHeight - 350) / 30);
-		vc.getLogs(this.records);
-
-		$('table.logs').on('scroll', function() {
-			if( ($(this).scrollTop() + $(this).innerHeight() >= $(this)[0].scrollHeight) && store.state.logs.length ) {
-				
-				//console.log(store.state.logs[store.state.logs.length-1]);
-
-				ltime = store.state.logs[store.state.logs.length-1].logTime;
-				lindex = store.state.logs[store.state.logs.length-1].logTimeIndex;
-				vc.dateStart = ltime+','+lindex;
-				vc.getLogs(true, true);
-
-			}
-		})
-
-		onmousemove = function (e) {
-
-			if( (window.innerWidth - e.clientX) > 420 ) {
-				$('#logTooltip').css({
-					"top": e.clientY+20, 
-					"right": "auto",
-					"left": e.clientX+20
-				})
-			} else {
-				$('#logTooltip').css({
-					"top": e.clientY+20, 
-					"left": "auto",
-					"right": window.innerWidth - e.clientX + 20
-				})
-			}
-		}
-
-		$(document).on('mouseenter', 'td.hasTooltip', function(){
-			c = $(this).children('span');
-			if(c.width() > $(this).width()){
-				$('#logTooltip .info').text(c.text());
-				$('#logTooltip').addClass('show');
-			}
-				
-		});
-
-		$(document).on('mouseleave', 'td.hasTooltip', function(){ 
-			$('#logTooltip .info').text('');
-			$('#logTooltip').removeClass('show');
-		});
-
-		$(document).on('click', '.closeLog', function(){
-			$(this).parents('tr').prev().toggle();
-			$(this).parents('tr').toggleClass('open');
-		});
+		const vc = this;
 
 		$(document).ready(function(){
-
-			$(document).on('keyup', 'input.search', function(e){
-				if (e.keyCode === 13)
-					vc.getLogs();
-			});
 
 			$('#datePicker').daterangepicker({
 				"parentEl": "#log",
@@ -608,10 +564,66 @@ var Logs = Vue.component("sg-logs", {
 					vc.dateStart = end.format('YYYY-MM-DDTHH:mm:ss')+'Z';
 				}
 
-				console.log('filter');
-
 				vc.datePicker = vc.dateStart+' / '+vc.dateEnd;
 				vc.getLogs(false, true);
+			});
+		
+			vc.records = parseInt((window.innerHeight - 350) / 30);
+			vc.getLogs(this.records);
+
+
+			$('table.logs').on('scroll', function() {
+				if( ($(this).scrollTop() + $(this).innerHeight() >= $(this)[0].scrollHeight) && store.state.logs.length ) {
+					
+					//console.log(store.state.logs[store.state.logs.length-1]);
+
+					ltime = store.state.logs[store.state.logs.length-1].logTime;
+					lindex = store.state.logs[store.state.logs.length-1].logTimeIndex;
+					vc.dateStart = ltime+','+lindex;
+					vc.getLogs(true, true);
+
+				}
+			})
+
+			onmousemove = function (e) {
+
+				if( (window.innerWidth - e.clientX) > 420 ) {
+					$('#logTooltip').css({
+						"top": e.clientY+20, 
+						"right": "auto",
+						"left": e.clientX+20
+					})
+				} else {
+					$('#logTooltip').css({
+						"top": e.clientY+20, 
+						"left": "auto",
+						"right": window.innerWidth - e.clientX + 20
+					})
+				}
+			}
+
+			$(document).on('mouseenter', 'td.hasTooltip', function(){
+				c = $(this).children('span');
+				if(c.width() > $(this).width()){
+					$('#logTooltip .info').text(c.text());
+					$('#logTooltip').addClass('show');
+				}
+					
+			});
+
+			$(document).on('mouseleave', 'td.hasTooltip', function(){ 
+				$('#logTooltip .info').text('');
+				$('#logTooltip').removeClass('show');
+			});
+
+			$(document).on('click', '.closeLog', function(){
+				$(this).parents('tr').prev().toggle();
+				$(this).parents('tr').toggleClass('open');
+			});
+
+			$(document).on('keyup', 'input.search', function(e){
+				if (e.keyCode === 13)
+					vc.getLogs();
 			});
 			
 			$(document).on('click', '.toggle.date.open', function(){
@@ -673,34 +685,6 @@ var Logs = Vue.component("sg-logs", {
 				else
 					$(this).removeClass('active')
 			});
-
-			/* $(document).on('click', 'input[type="checkbox"]', function () {
-
-				if($(this).is(':checked')) {
-
-					console.log("checked"); 
-
-					$(this).addClass('active');
-
-					//console.log("L: "+vc[$(this).data('filter')].length);
-					if($(this).hasClass("xCheckbox")) {
-						$(this).parents('li').find(':checked:not(#'+$(this).prop('id')+')').removeClass('active').prop('checked', false);
-					
-						if(vc[$(this).data('filter')].length)
-							vc[$(this).data('filter')] = [$(this).val()];
-					}
-				} else {
-					$(this).removeClass('active');
-
-					console.log("unchecked")
-					
-					if($(this).hasClass("xCheckbox"))
-						vc[$(this).data('filter')] = [];
-				}
-
-				vc.getLogs();
-				
-			});	 */		
 
 		});
 
@@ -815,7 +799,7 @@ var Logs = Vue.component("sg-logs", {
 			
 			if(store.state.loginToken.search('Authentication Error') == -1) {
 				axios
-				.get(apiURL+'sgcluster/logs/'+store.state.currentNamespace+'/'+store.state.currentCluster.name+params)
+				.get(apiURL+'sgcluster/logs/'+this.$route.params.namespace+'/'+this.$route.params.name+params)
 				.then( function(response){
 
 					if(append)
