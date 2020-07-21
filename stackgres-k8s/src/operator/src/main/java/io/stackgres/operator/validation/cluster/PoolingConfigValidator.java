@@ -22,7 +22,7 @@ import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFail
 @ValidationType(ErrorType.INVALID_CR_REFERENCE)
 public class PoolingConfigValidator implements ClusterValidator {
 
-  private CustomResourceFinder<StackGresPoolingConfig> configFinder;
+  private final CustomResourceFinder<StackGresPoolingConfig> configFinder;
 
   @Inject
   public PoolingConfigValidator(

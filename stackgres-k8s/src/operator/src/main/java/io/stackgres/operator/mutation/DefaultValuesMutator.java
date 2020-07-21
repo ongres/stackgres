@@ -36,7 +36,7 @@ public abstract class DefaultValuesMutator<R extends CustomResource, T extends A
 
   public JsonNode getTargetNode(R resource) {
     JsonNode resourceNode = mapper.valueToTree(resource);
-    return resourceNode.get("spec");
+    return resourceNode;
   }
 
   protected List<JsonPatchOperation> mutate(JsonPointer basePointer,

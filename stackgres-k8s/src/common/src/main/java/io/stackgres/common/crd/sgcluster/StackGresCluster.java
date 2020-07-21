@@ -10,11 +10,13 @@ import java.util.Objects;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @RegisterForReflection
 public class StackGresCluster extends CustomResource {
 
@@ -26,6 +28,7 @@ public class StackGresCluster extends CustomResource {
   private StackGresClusterSpec spec;
 
   @JsonProperty("status")
+  @Valid
   private StackGresClusterStatus status;
 
   public StackGresCluster() {

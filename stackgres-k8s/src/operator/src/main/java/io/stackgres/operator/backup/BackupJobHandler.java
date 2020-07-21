@@ -26,7 +26,7 @@ public class BackupJobHandler extends AbstractClusterResourceHandler {
         && resource.getMetadata().getNamespace().equals(
             context.getCluster().getMetadata().getNamespace())
         && context.getBackups().stream().anyMatch(backup -> resource.getMetadata().getName().equals(
-            Backup.backupJobName(backup, context)))
+            BackupJob.backupJobName(backup, context)))
         && resource.getMetadata().getOwnerReferences().stream()
         .anyMatch(owner -> owner.getKind().equals(StackGresBackupDefinition.KIND));
   }

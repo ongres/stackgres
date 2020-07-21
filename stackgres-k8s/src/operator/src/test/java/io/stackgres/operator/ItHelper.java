@@ -8,6 +8,7 @@ package io.stackgres.operator;
 import java.io.ByteArrayInputStream;
 import java.net.ConnectException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
@@ -34,7 +35,7 @@ import javax.ws.rs.core.Response.Status;
 import com.github.dockerjava.api.exception.DockerException;
 import com.google.common.collect.ImmutableList;
 import com.ongres.junit.docker.Container;
-import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.FileUtils;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.Unchecked;
 import org.junit.jupiter.api.Assertions;
@@ -108,15 +109,21 @@ public class ItHelper {
     k8s.copyIn(k8sPath.resolve("install/helm/stackgres-cluster"),
         "/resources/stackgres-cluster");
     k8s.copyIn(k8sPath.resolve("e2e"), "/resources/e2e");
-    k8s.copyIn(Paths.get("src/test/resources/certs"), "/resources/certs");
     k8s.copyIn(k8sPath.resolve("src/admin-ui/cypress"), "/resources/admin-ui/cypress");
     k8s.copyIn(k8sPath.resolve("src/admin-ui/cypress.json"), "/resources/admin-ui/cypress.json");
+  }
+
+  public static String generateOperatorNamespace(Container k8s) throws Exception {
+    return k8s.execute("sh", "/resources/e2e/e2e", "generate_operator_namespace")
+        .filter(ItHelper.EXCLUDE_TTY_WARNING)
+        .peek(line -> LOGGER.info("Generated operator namespace: " + line))
+        .collect(Collectors.joining());
   }
 
   /**
    * It helper method.
    */
-  public static void resetKind(Container k8s, int size) throws Exception {
+  public static void resetKind(Container k8s, String namespace) throws Exception {
     if (Optional.ofNullable(System.getenv("K8S_REUSE"))
         .map(Boolean::parseBoolean)
         .orElse(true)) {
@@ -132,21 +139,33 @@ public class ItHelper {
               + "export CLUSTER_CHART_PATH=/resources/stackgres-cluster\n"
               + "export OPERATOR_CHART_PATH=/resources/stackgres-operator\n"
               + "export UI_TESTS_RESOURCES_PATH=/resources/admin-ui\n"
+              + "export OPERATOR_NAMESPACE=" + namespace + "\n"
               + "sh " + (E2E_DEBUG ? "-x" : "") + " e2e reuse_k8s\n"
               + "sh " + (E2E_DEBUG ? "-x" : "") + " e2e setup_helm\n"
-              + "sh " + (E2E_DEBUG ? "-x" : "") + " e2e setup_default_limits 0.1 0.1 16Mi 16Mi\n"
               + "sh " + (E2E_DEBUG ? "-x" : "") + " e2e k8s_webhook_cleanup\n"
               + "sh " + (E2E_DEBUG ? "-x" : "") + " e2e helm_cleanup\n"
               + "sh " + (E2E_DEBUG ? "-x" : "") + " e2e k8s_async_cleanup\n"
+              + "sh " + (E2E_DEBUG ? "-x" : "") + " e2e create_operator_certificate\n"
+              + "mkdir -p /resources/certs\n"
+              + "cp -v /resources/e2e/target/server-key.pem /resources/certs\n"
+              + "cp -v /resources/e2e/target/server-pub.pem /resources/certs\n"
+              + "cp -v /resources/e2e/target/server.crt /resources/certs\n"
               + (OPERATOR_IN_KUBERNETES
                   ? "sh " + (E2E_DEBUG ? "-x" : "") + " e2e load_operator_k8s\n" : "")
               + (OPERATOR_IN_KUBERNETES ? ""
                   : "sh " + (E2E_DEBUG ? "-x" : "")
-                  + " e2e load_certificate_k8s /resources/certs/server.crt\n"))
+                  + " e2e load_certificate_k8s /resources/e2e/target/server.crt\n"))
               .getBytes(StandardCharsets.UTF_8)), "/reuse-k8s.sh");
       k8s.execute("sh", "-e", "/reuse-k8s.sh")
           .filter(ItHelper.EXCLUDE_TTY_WARNING)
           .forEach(LOGGER::info);
+      if (Paths.get("target/certs").toFile().exists()) {
+        FileUtils.deleteDirectory(Paths.get("target/certs").toFile());
+      }
+      Files.createDirectory(Paths.get("target/certs"));
+      Seq.of("server-key.pem", "server-pub.pem", "server.crt")
+          .forEach(Unchecked.consumer(file -> k8s.copyOut(
+              "/resources/e2e/target/" + file, Paths.get("target/certs", file))));
       return;
     }
     LOGGER.info("Restarting " + E2E_ENV);
@@ -163,7 +182,6 @@ public class ItHelper {
         + "export UI_TESTS_RESOURCES_PATH=/resources/admin-ui\n"
         + "sh " + (E2E_DEBUG ? "-x" : "") + " e2e reset_k8s\n"
         + "sh " + (E2E_DEBUG ? "-x" : "") + " e2e setup_helm\n"
-        + "sh " + (E2E_DEBUG ? "-x" : "") + " e2e setup_default_limits 0.1 0.1 16Mi 16Mi\n"
         + (OPERATOR_IN_KUBERNETES
             ? "sh " + (E2E_DEBUG ? "-x" : "") + " e2e load_operator_k8s\n" : "")
         + (OPERATOR_IN_KUBERNETES ? ""
@@ -273,7 +291,7 @@ public class ItHelper {
       .forEach(LOGGER::info);
     k8s.execute("sh", "-l", "-c", "helm upgrade --install"
         + " stackgres-operator"
-        + " --namespace stackgres"
+        + " --namespace " + namespace
         + " /resources/stackgres-operator"
         + getOperatorExtraOptions(k8s, port))
       .filter(EXCLUDE_TTY_WARNING)
@@ -290,13 +308,13 @@ public class ItHelper {
         + " --set-string developer.externalOperatorIp=" + dockerInterfaceIp
         + " --set developer.externalOperatorPort=" + port
         + " --set-string cert.crt=" + Base64.getEncoder().encodeToString(
-            IOUtils.toByteArray(ItHelper.class.getResourceAsStream("/certs/server.crt")))
+            Files.readAllBytes(Paths.get("target/certs/server.crt")))
         + " --set-string cert.key=" + Base64.getEncoder().encodeToString(
-            IOUtils.toByteArray(ItHelper.class.getResourceAsStream("/certs/server-key.pem")))
+            Files.readAllBytes(Paths.get("target/certs/server-key.pem")))
         + " --set-string cert.jwtRsaKey=" + Base64.getEncoder().encodeToString(
-            IOUtils.toByteArray(ItHelper.class.getResourceAsStream("/certs/server-key.pem")))
+            Files.readAllBytes(Paths.get("target/certs/server-key.pem")))
         + " --set-string cert.jwtRsaPub=" + Base64.getEncoder().encodeToString(
-            IOUtils.toByteArray(ItHelper.class.getResourceAsStream("/certs/server-pub.pem")));
+            Files.readAllBytes(Paths.get("target/certs/server-pub.pem")));
   }
 
   public static String getDockerInterfaceIp(Container k8s)
@@ -406,9 +424,9 @@ public class ItHelper {
    * It helper method.
    */
   public static void waitUntilOperatorIsReady(CompletableFuture<Void> operator,
-      WebTarget operatorClient, Container k8s) throws Exception {
+      WebTarget operatorClient, Container k8s, String namespace) throws Exception {
     if (OPERATOR_IN_KUBERNETES) {
-      waitUntilKubernetesOperatorIsReady(k8s);
+      waitUntilKubernetesOperatorIsReady(k8s, namespace);
       return;
     }
     waitUntilLocalOperatorIsReady(operator, operatorClient);
@@ -446,10 +464,10 @@ public class ItHelper {
   /**
    * It helper method.
    */
-  public static void waitUntilKubernetesOperatorIsReady(Container k8s) throws Exception {
+  public static void waitUntilKubernetesOperatorIsReady(Container k8s, String namespace) throws Exception {
     waitUntil(Unchecked.supplier(() -> k8s.execute("sh", "-l", "-c",
-        "kubectl get pod -n stackgres -l app=stackgres-operator -o name"
-            + " | xargs -r kubectl describe -n  stackgres ")),
+        "kubectl get pod -n " + namespace + " -l app=stackgres-operator -o name"
+            + " | xargs -r kubectl describe -n " + namespace)),
         s -> s.anyMatch(line -> line.matches("^  Ready\\s+True\\s*")), 120, ChronoUnit.SECONDS,
         s -> Assertions.fail(
             "Timeout while checking availability of"
@@ -462,13 +480,13 @@ public class ItHelper {
    * Code has been copied and adapted from {@code QuarkusTestExtension} to allow start/stop
    * quarkus application inside a test.
    */
-  public static OperatorRunner createOperator(Container k8s, int port,
+  public static OperatorRunner createOperator(Container k8s, String namespace, int port,
       int sslPort, Executor executor) throws Exception {
     if (OPERATOR_IN_KUBERNETES) {
-      return new KubernetesOperatorRunner(k8s, executor);
+      return new KubernetesOperatorRunner(k8s, namespace, executor);
     }
 
-    return new LocalOperatorRunner(k8s, ItHelper.class, port, sslPort);
+    return new LocalOperatorRunner(k8s, namespace, ItHelper.class, port, sslPort);
   }
 
   public static <T> void waitUntil(Supplier<T> supplier, Predicate<T> condition, int timeout,

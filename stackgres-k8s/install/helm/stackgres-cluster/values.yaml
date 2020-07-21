@@ -1,8 +1,16 @@
 cluster:
   create: true
-  postgresVersion: '12.2'
+  postgresVersion: '12.3'
   instances: 1
   sgInstanceProfile: size-xs
+  postgresServices:
+    primary:
+      enabled: true
+      type: ClusterIP
+    replicas:
+      enabled: true
+      type: ClusterIP
+    
   pods:
     persistentVolume:
       size: 5Gi
@@ -18,13 +26,27 @@ cluster:
   configurations:
     sgPostgresConfig: postgresconf
     sgPoolingConfig: pgbouncerconf
-    sgBackupConfig: backupconf
   distributedLogs:
     sgDistributedLogs: distributedlogs
-  #initialData:
-  #  restore:
+  #restore:
+  #  initialData:
   #    fromBackup:
   #    downloadDiskConcurrency:
+  #  scripts:
+  #  - name: create-stackgres-user
+  #    scriptFrom:
+  #      secretKeyRef: # read the user from a Secret to maintain credentials in a safe place
+  #        name: stackgres-secret-sqls-scripts
+  #        key: create-stackgres-user.sql
+  #  - name: create-stackgres-database
+  #    script: |
+  #      CREATE DATABASE stackgres WITH OWNER stackgres;
+  #  - name: create-stackgres-schema
+  #    database: stackgres
+  #    scriptFrom:
+  #      configMapKeyRef: # read long script from a ConfigMap to avoid have to much data in the helm releasea and the sgcluster CR
+  #        name: stackgres-sqls-scripts
+  #        key: create-stackgres-schema.sql
   prometheusAutobind: true
 
 instanceProfiles:
@@ -62,7 +84,7 @@ configurations:
         max_client_conn: '200'
         default_pool_size: '200'
   backupconfig:
-    create: true
+    create: false
     baseBackups:
       retention: 5
       cronSchedule: "*/2 * * * *"
@@ -104,6 +126,7 @@ configurations:
       #  bucket: stackgres
       #  path: /mypath
       #  gcpCredentials:
+      #    fetchCredentialsFromMetadataService: false
       #    secretKeySelectors:
       #      serviceAccountJSON:
       #        name: gcscredentials
@@ -143,5 +166,5 @@ minio:
 
 #You should only set following options for non production environment
 nonProductionOptions:
-  disableClusterPodAntiAffinity: true
-  createMinio: true
+  disableClusterPodAntiAffinity: false
+  createMinio: false

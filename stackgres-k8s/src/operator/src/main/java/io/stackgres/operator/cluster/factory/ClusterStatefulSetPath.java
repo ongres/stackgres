@@ -17,10 +17,15 @@ public enum ClusterStatefulSetPath implements VolumePath {
   ETC_SHADOW_PATH("/etc/shadow"),
   ETC_GSHADOW_PATH("/etc/gshadow"),
   LOCAL_BIN_PATH("/usr/local/bin"),
+  LOCAL_BIN_START_PATRONI_SH_PATH(LOCAL_BIN_PATH, "start-patroni.sh"),
+  LOCAL_BIN_START_PATRONI_WITH_RESTORE_SH_PATH(LOCAL_BIN_PATH, "start-patroni-with-restore.sh"),
+  LOCAL_BIN_POST_INIT_SH_PATH(LOCAL_BIN_PATH, "post-init.sh"),
+  LOCAL_BIN_EXEC_WITH_ENV_PATH(LOCAL_BIN_PATH, "exec-with-env"),
+  LOCAL_BIN_CREATE_BACKUP_SH_PATH(LOCAL_BIN_PATH, "create-backup.sh"),
   PG_BASE_PATH("/var/lib/postgresql"),
   PG_DATA_PATH(PG_BASE_PATH, "data"),
   PG_RUN_PATH("/var/run/postgresql"),
-  PG_LOG_PATH("/tmp"),
+  PG_LOG_PATH("/var/log/postgresql"),
   BASE_ENV_PATH("/etc/env"),
   BASE_SECRET_PATH(BASE_ENV_PATH, ".secret"),
   PATRONI_ENV_PATH(BASE_ENV_PATH, ClusterStatefulSetEnvVars.PATRONI_ENV.value()),
@@ -46,6 +51,12 @@ public enum ClusterStatefulSetPath implements VolumePath {
 
   ClusterStatefulSetPath(ClusterStatefulSetPath parent, String...paths) {
     this(Seq.of(parent.path).append(paths).toString("/"));
+  }
+
+  @Override
+  public String filename() {
+    int indexOfLastSlash = path.lastIndexOf('/');
+    return indexOfLastSlash != -1 ? path.substring(indexOfLastSlash + 1) : path;
   }
 
   @Override

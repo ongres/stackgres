@@ -39,6 +39,7 @@ public class ClusterSpec {
   private String sgInstanceProfile;
 
   @JsonProperty("initialData")
+  @Valid
   private ClusterInitData initData;
 
   @JsonProperty("distributedLogs")
@@ -53,7 +54,11 @@ public class ClusterSpec {
   private Boolean prometheusAutobind;
 
   @JsonProperty("nonProductionOptions")
-  private NonProduction nonProduction;
+  private ClusterNonProduction nonProduction;
+
+  private ClusterPostgresServices postgresServices;
+
+  private ClusterSpecMetadata metadata;
 
   public int getInstances() {
     return instances;
@@ -95,11 +100,11 @@ public class ClusterSpec {
     this.prometheusAutobind = prometheusAutobind;
   }
 
-  public NonProduction getNonProduction() {
+  public ClusterNonProduction getNonProduction() {
     return nonProduction;
   }
 
-  public void setNonProduction(NonProduction nonProduction) {
+  public void setNonProduction(ClusterNonProduction nonProduction) {
     this.nonProduction = nonProduction;
   }
 
@@ -127,6 +132,22 @@ public class ClusterSpec {
     this.distributedLogs = distributedLogs;
   }
 
+  public ClusterPostgresServices getPostgresServices() {
+    return postgresServices;
+  }
+
+  public void setPostgresServices(ClusterPostgresServices postgresServices) {
+    this.postgresServices = postgresServices;
+  }
+
+  public ClusterSpecMetadata getMetadata() {
+    return metadata;
+  }
+
+  public void setMetadata(ClusterSpecMetadata metadata) {
+    this.metadata = metadata;
+  }
+
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
@@ -139,6 +160,8 @@ public class ClusterSpec {
         .add("distributedLogs", getDistributedLogs())
         .add("pod", getPods())
         .add("nonProductionOptions", nonProduction)
+        .add("postgresServices", postgresServices)
+        .add("metadata", metadata)
         .toString();
   }
 }

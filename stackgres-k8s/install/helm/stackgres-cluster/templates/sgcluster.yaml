@@ -19,24 +19,102 @@ spec:
     {{- end }}
   sgInstanceProfile: '{{ .Values.cluster.sgInstanceProfile }}'
   {{- if .Values.cluster.initialData }}
-  {{- if .Values.cluster.initialData.restore }}
+  {{- if or .Values.cluster.initialData.restore .Values.cluster.initialData.scripts }}
   initialData:
+  {{- end }}
+  {{- if .Values.cluster.initialData.restore }}
     restore:
       fromBackup: {{ .Values.cluster.initialData.restore.fromBackup }}
       {{- if .Values.cluster.initialData.restore.downloadDiskConcurrency }}
       downloadDiskConcurrency: {{ .Values.cluster.initialData.restore.downloadDiskConcurrency }}
     {{- end }}
   {{- end }}
+  {{- if .Values.cluster.initialData.scripts }}
+    scripts:
+  {{- range .Values.cluster.initialData.scripts }}
+    - {{- if .name }}
+      name: {{ .name }}
+      {{- end }}
+      {{- if .database }}
+      database: {{ .database }}
+      {{- end }}
+      {{- if .script }}
+      script: {{ .script }}
+      {{- end }}
+      {{- if .scriptFrom }}
+      {{- if or .scriptFrom.secretKeyRef .scriptFrom.configMapKeyRef }}
+      scriptFrom:
+        {{- if .scriptFrom.secretKeyRef }}
+        secretKeyRef:
+          name: {{ .scriptFrom.secretKeyRef.name }}
+          key: {{ .scriptFrom.secretKeyRef.key }}
+        {{- end }}
+        {{- if .scriptFrom.configMapKeyRef }}
+        configMapKeyRef:
+          name: {{ .scriptFrom.configMapKeyRef.name }}
+          key: {{ .scriptFrom.configMapKeyRef.key }}
+        {{- end }}
+      {{- end }}
+      {{- end }}
+  {{- end }}
+  {{- end }}
+  {{- end }}
+  {{- if .Values.cluster.postgresServices }}
+  postgresServices:
+    {{- if .Values.cluster.postgresServices.primary }}
+    primary:
+      enabled: {{ .Values.cluster.postgresServices.primary.enabled }}
+      {{- if .Values.cluster.postgresServices.primary.type }}
+      type:  {{ .Values.cluster.postgresServices.primary.type }}
+      {{- end }}
+      {{- if .Values.cluster.postgresServices.primary.annotations }}
+      annotations:
+        {{- range $annot, $value := .Values.cluster.postgresServices.primary.annotations }}
+        {{ $annot }}: {{ $value }}
+        {{- end }}
+      {{- end }}
+    {{- end }}    
+    {{- if .Values.cluster.postgresServices.replicas }}
+    replicas:
+      enabled: {{ .Values.cluster.postgresServices.replicas.enabled }}
+      {{- if .Values.cluster.postgresServices.replicas.type }}
+      type:  {{ .Values.cluster.postgresServices.replicas.type }}
+      {{- end }}
+      {{- if .Values.cluster.postgresServices.replicas.annotations }}
+      annotations:
+        {{- range $annot, $value := .Values.cluster.postgresServices.replicas.annotations }}
+        {{ $annot }}: {{ $value }}
+        {{- end }}
+      {{- end }}
+    {{- end }}    
+  {{- end }}
+  {{- if .Values.cluster.metadata }}
+  metadata:
+    {{- if .Values.cluster.metadata.annotations }}
+    annotations:
+      {{- if .Values.cluster.metadata.annotations.allResources }}
+      allResources: 
+        {{- range $annot, $value := .Values.cluster.metadata.annotations.allResources }}
+        {{ $annot }}: {{ $value }}
+        {{- end }}
+      {{- end }}
+      {{- if .Values.cluster.metadata.annotations.pods }}
+      pods:
+        {{- range $annot, $value := .Values.cluster.metadata.annotations.pods }}
+        {{ $annot }}: {{ $value }}
+        {{- end }}
+      {{- end }}
+      {{- if .Values.cluster.metadata.annotations.services }}
+      services:
+        {{- range $annot, $value := .Values.cluster.metadata.annotations.services }}
+        {{ $annot }}: {{ $value }}
+        {{- end }}
+      {{- end }}
+    {{- end }}
   {{- end }}
   pods:
     {{- if .Values.cluster.pods.metadata }}
     metadata:
-      {{- if .Values.cluster.pods.metadata.annotations }}
-      annotations:
-        {{- range $annot, $value := .Values.cluster.pods.metadata.annotations }}
-        {{ $annot }}: {{ $value }}
-        {{- end }}
-      {{- end }}
       {{- if .Values.cluster.pods.metadata.labels }}
       labels:
         {{- range $label, $value := .Values.cluster.pods.metadata.labels }}

@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test;
 
 class StorageValidatorTest {
 
-  private final StorageTypeValidator validator = new StorageTypeValidator();
+  private final BackupConfigStorageTypeValidator validator = new BackupConfigStorageTypeValidator();
 
   @Test
   void givenCreationWithoutVolumeProperties_shouldFail() {

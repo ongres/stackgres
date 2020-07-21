@@ -23,7 +23,7 @@ public class StackGresPodSecurityContext
   public PodSecurityContext createResource(StackGresClusterContext config) {
     PodSecurityContextBuilder podSecurityContextBuilder = new PodSecurityContextBuilder()
         .withRunAsNonRoot(true);
-    if (!config.getOperatorContext().getAsBoolean(OperatorProperty.USE_ARBITRARY_USER)) {
+    if (!config.getOperatorContext().getBoolean(OperatorProperty.USE_ARBITRARY_USER)) {
       podSecurityContextBuilder
           .withRunAsUser(USER)
           .withRunAsGroup(GROUP)

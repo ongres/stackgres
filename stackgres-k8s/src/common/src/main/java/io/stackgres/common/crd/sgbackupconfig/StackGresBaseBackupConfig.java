@@ -23,7 +23,7 @@ public class StackGresBaseBackupConfig {
 
   @JsonProperty("retention")
   @Positive(message = "retention should be greater than zero")
-  private int retention;
+  private Integer retention;
 
   @JsonProperty("cronSchedule")
   private String cronSchedule;
@@ -35,11 +35,11 @@ public class StackGresBaseBackupConfig {
   @Valid
   private StackGresBaseBackupPerformance performance;
 
-  public int getRetention() {
+  public Integer getRetention() {
     return retention;
   }
 
-  public void setRetention(int retention) {
+  public void setRetention(Integer retention) {
     this.retention = retention;
   }
 

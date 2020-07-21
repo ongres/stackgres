@@ -47,9 +47,9 @@ public class BackupTransformer extends AbstractResourceTransformer<BackupDto, St
   }
 
   @Override
-  public BackupDto toResource(StackGresBackup source) {
+  public BackupDto toDto(StackGresBackup source) {
     BackupDto transformation = new BackupDto();
-    transformation.setMetadata(getResourceMetadata(source));
+    transformation.setMetadata(getDtoMetadata(source));
     transformation.setSpec(getResourceSpec(source.getSpec()));
     transformation.setStatus(getResourceStatus(source.getStatus()));
     return transformation;
@@ -75,6 +75,7 @@ public class BackupTransformer extends AbstractResourceTransformer<BackupDto, St
     return transformation;
   }
 
+  @SuppressWarnings("deprecation")
   private BackupStatus getResourceStatus(StackGresBackupStatus source) {
     if (source == null) {
       return null;

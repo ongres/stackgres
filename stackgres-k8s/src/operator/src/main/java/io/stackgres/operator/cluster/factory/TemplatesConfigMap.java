@@ -45,14 +45,15 @@ public class TemplatesConfigMap
     Map<String, String> data = new HashMap<String, String>();
 
     for (String resource : new String[] {
-        "start-patroni.sh",
-        "start-patroni-with-restore.sh",
-        "post-init.sh",
-        "exec-with-env",
-        "passwd",
-        "group",
-        "shadow",
-        "gshadow"
+        ClusterStatefulSetPath.LOCAL_BIN_START_PATRONI_SH_PATH.filename(),
+        ClusterStatefulSetPath.LOCAL_BIN_START_PATRONI_WITH_RESTORE_SH_PATH.filename(),
+        ClusterStatefulSetPath.LOCAL_BIN_POST_INIT_SH_PATH.filename(),
+        ClusterStatefulSetPath.LOCAL_BIN_CREATE_BACKUP_SH_PATH.filename(),
+        ClusterStatefulSetPath.LOCAL_BIN_EXEC_WITH_ENV_PATH.filename(),
+        ClusterStatefulSetPath.ETC_PASSWD_PATH.filename(),
+        ClusterStatefulSetPath.ETC_GROUP_PATH.filename(),
+        ClusterStatefulSetPath.ETC_SHADOW_PATH.filename(),
+        ClusterStatefulSetPath.ETC_GSHADOW_PATH.filename()
     }) {
       data.put(resource, Unchecked.supplier(() -> Resources
           .asCharSource(ClusterStatefulSet.class.getResource("/templates/" + resource),

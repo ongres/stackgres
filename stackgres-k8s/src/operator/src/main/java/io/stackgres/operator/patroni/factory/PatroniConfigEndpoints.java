@@ -30,7 +30,7 @@ import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresClusterResourceStreamFactory;
 import io.stackgres.operator.common.StackGresGeneratorContext;
 import io.stackgres.operator.configuration.PatroniConfig;
-import io.stackgres.operator.patroni.factory.parameters.Blacklist;
+import io.stackgres.operator.patroni.factory.parameters.Blocklist;
 import io.stackgres.operator.patroni.factory.parameters.DefaultValues;
 import org.jooq.lambda.Seq;
 
@@ -97,7 +97,7 @@ public class PatroniConfigEndpoints implements StackGresClusterResourceStreamFac
     if (pgconfig.isPresent()) {
       Map<String, String> userParams = pgconfig.get().getSpec().getPostgresqlConf();
       // Blacklist removal
-      for (String bl : Blacklist.getBlacklistParameters()) {
+      for (String bl : Blocklist.getBlocklistParameters()) {
         userParams.remove(bl);
       }
       for (Map.Entry<String, String> userParam : userParams.entrySet()) {

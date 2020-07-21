@@ -11,10 +11,10 @@ import java.util.Optional;
 import javax.enterprise.context.ApplicationScoped;
 
 import io.stackgres.apiweb.dto.distributedlogs.DistributedLogsDto;
+import io.stackgres.apiweb.dto.distributedlogs.DistributedLogsNonProduction;
 import io.stackgres.apiweb.dto.distributedlogs.DistributedLogsPersistentVolume;
 import io.stackgres.apiweb.dto.distributedlogs.DistributedLogsSpec;
 import io.stackgres.apiweb.dto.distributedlogs.DistributedLogsStatus;
-import io.stackgres.apiweb.dto.distributedlogs.NonProduction;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsPersistentVolume;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsSpec;
@@ -63,13 +63,13 @@ public class DistributedLogsTransformer
     return transformation;
   }
 
-  private io.stackgres.common.crd.sgdistributedlogs.NonProduction
-      getCustomResourceNonProduction(NonProduction source) {
+  private io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsNonProduction
+      getCustomResourceNonProduction(DistributedLogsNonProduction source) {
     if (source == null) {
       return null;
     }
-    io.stackgres.common.crd.sgdistributedlogs.NonProduction transformation =
-        new io.stackgres.common.crd.sgdistributedlogs.NonProduction();
+    io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsNonProduction transformation =
+        new io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsNonProduction();
     transformation.setDisableClusterPodAntiAffinity(source.getDisableClusterPodAntiAffinity());
     return transformation;
   }
@@ -97,12 +97,12 @@ public class DistributedLogsTransformer
     return transformation;
   }
 
-  private NonProduction getResourceNonProduction(
-      io.stackgres.common.crd.sgdistributedlogs.NonProduction source) {
+  private DistributedLogsNonProduction getResourceNonProduction(
+      io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsNonProduction source) {
     if (source == null) {
       return null;
     }
-    NonProduction transformation = new NonProduction();
+    DistributedLogsNonProduction transformation = new DistributedLogsNonProduction();
     transformation.setDisableClusterPodAntiAffinity(source.getDisableClusterPodAntiAffinity());
     return transformation;
   }

@@ -5,16 +5,22 @@
 
 package io.stackgres.common.resource;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.Base64;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.Random;
 import java.util.regex.Pattern;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.ObjectReference;
@@ -24,12 +30,17 @@ import io.fabric8.kubernetes.api.model.OwnerReferenceBuilder;
 import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.internal.SerializationUtils;
+import org.jooq.lambda.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ResourceUtil {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ResourceUtil.class);
+
+  public static final BigDecimal MILLICPU_MULTIPLIER = new BigDecimal(1000);
+  public static final BigDecimal LOAD_MULTIPLIER = new BigDecimal(1000);
+  public static final BigDecimal KILOBYTE = new BigDecimal(1024);
 
   private ResourceUtil() {
   }
@@ -155,6 +166,70 @@ public class ResourceUtil {
         .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
         .toString();
 
+  }
+
+  public static Optional<BigInteger> toBigInteger(String value) {
+    try {
+      return Optional.of(new BigInteger(value));
+    } catch (Exception ex) {
+      return Optional.empty();
+    }
+  }
+
+  public static Optional<BigInteger> toMillicpus(String cpus) {
+    try {
+      return Optional.of(new BigDecimal(cpus).multiply(MILLICPU_MULTIPLIER).toBigInteger());
+    } catch (Exception ex) {
+      return Optional.empty();
+    }
+  }
+
+  public static Optional<BigInteger> toMillicpus(BigInteger cpus) {
+    try {
+      return Optional.of(new BigDecimal(cpus).multiply(MILLICPU_MULTIPLIER).toBigInteger());
+    } catch (Exception ex) {
+      return Optional.empty();
+    }
+  }
+
+  public static Optional<BigInteger> kilobytesToBytes(String kilobytes) {
+    try {
+      return Optional.of(new BigDecimal(kilobytes).multiply(KILOBYTE).toBigInteger());
+    } catch (Exception ex) {
+      return Optional.empty();
+    }
+  }
+
+  public static Optional<BigInteger> toMilliload(String load) {
+    try {
+      return Optional.of(new BigDecimal(load).multiply(LOAD_MULTIPLIER).toBigInteger());
+    } catch (Exception ex) {
+      return Optional.empty();
+    }
+  }
+
+  public static String asMillicpusWithUnit(BigInteger millicpus) {
+    return millicpus + "m";
+  }
+
+  public static String asBytesWithUnit(BigInteger bytes) {
+    ImmutableList<String> units = ImmutableList.of(
+        "Ki", "Mi", "Gi", "Ti", "Pi", "Ei");
+    return units.stream().reduce(
+        Tuple.tuple(new BigDecimal(bytes), ""),
+        (t, unit) -> t.v1.compareTo(KILOBYTE) >= 0
+        ? Tuple.tuple(t.v1.divide(KILOBYTE), unit)
+            : t,
+        (u, v) -> v)
+        .map((value, unit) -> getDecimalFormat().format(value) + unit);
+  }
+
+  public static String asLoad(BigInteger milliload) {
+    return getDecimalFormat().format(new BigDecimal(milliload).divide(LOAD_MULTIPLIER));
+  }
+
+  public static DecimalFormat getDecimalFormat() {
+    return new DecimalFormat("#0.00", new DecimalFormatSymbols(Locale.US));
   }
 
 }

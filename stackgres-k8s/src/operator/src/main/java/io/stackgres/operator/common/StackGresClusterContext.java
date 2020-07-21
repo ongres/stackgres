@@ -23,13 +23,13 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.resource.ResourceUtil;
-import io.stackgres.operator.configuration.OperatorContext;
+import io.stackgres.operator.configuration.OperatorPropertyContext;
 import io.stackgres.operatorframework.resource.ResourceHandlerContext;
 import org.jooq.lambda.tuple.Tuple2;
 
 public abstract class StackGresClusterContext implements ResourceHandlerContext {
 
-  public abstract OperatorContext getOperatorContext();
+  public abstract OperatorPropertyContext getOperatorContext();
 
   public abstract StackGresCluster getCluster();
 
@@ -59,6 +59,8 @@ public abstract class StackGresClusterContext implements ResourceHandlerContext 
 
   public abstract String getClusterName();
 
+  public abstract String getScheduledBackupKey();
+
   public abstract String getBackupKey();
 
   @Override
@@ -78,8 +80,10 @@ public abstract class StackGresClusterContext implements ResourceHandlerContext 
   public boolean isBackupPod(HasMetadata resource) {
     return resource instanceof Pod
         && resource.getMetadata().getNamespace().equals(getClusterNamespace())
-        && Objects.equals(resource.getMetadata().getLabels().get(getBackupKey()),
-        StackGresContext.RIGHT_VALUE);
+        && (Objects.equals(resource.getMetadata().getLabels().get(getScheduledBackupKey()),
+        StackGresContext.RIGHT_VALUE)
+            || Objects.equals(resource.getMetadata().getLabels().get(getBackupKey()),
+                StackGresContext.RIGHT_VALUE));
   }
 
   /**
@@ -95,15 +99,6 @@ public abstract class StackGresClusterContext implements ResourceHandlerContext 
     }
     throw new IllegalStateException("Sidecar " + sidecar.getClass()
         + " not found in cluster configuration");
-  }
-
-  public Map<String, String> clusterAnnotations() {
-    return Optional.ofNullable(getCluster())
-        .map(StackGresCluster::getSpec)
-        .map(StackGresClusterSpec::getPod)
-        .map(StackGresClusterPod::getMetadata)
-        .map(StackGresClusterPodMetadata::getAnnotations)
-        .orElse(ImmutableMap.of());
   }
 
   public Map<String, String> posCustomLabels() {

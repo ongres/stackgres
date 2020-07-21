@@ -21,8 +21,8 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 public class ClusterPod {
 
   @JsonProperty("persistentVolume")
-  @Valid
   @NotNull(message = "Pod's persistent volume must be specified")
+  @Valid
   private ClusterPodPersistentVolume persistentVolume;
 
   @JsonProperty("disableConnectionPooling")
@@ -35,6 +35,7 @@ public class ClusterPod {
   private Boolean disablePostgresUtil;
 
   @JsonProperty("metadata")
+  @Valid
   private ClusterPodMetadata metadata;
 
   public ClusterPodPersistentVolume getPersistentVolume() {

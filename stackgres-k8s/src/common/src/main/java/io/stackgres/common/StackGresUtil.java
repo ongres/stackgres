@@ -32,6 +32,18 @@ import io.stackgres.common.resource.ResourceUtil;
 import org.jooq.lambda.Unchecked;
 
 public class StackGresUtil {
+
+  public static final String DATA_SUFFIX = "-data";
+  public static final String BACKUP_SUFFIX = "-backup";
+
+  public static String statefulSetDataPersistentVolumeName(StackGresCluster cluster) {
+    return ResourceUtil.resourceName(cluster.getMetadata().getName() + DATA_SUFFIX);
+  }
+
+  public static String statefulSetBackupPersistentVolumeName(StackGresCluster cluster) {
+    return ResourceUtil.resourceName(cluster.getMetadata().getName() + BACKUP_SUFFIX);
+  }
+
   /**
    * This function return the namespace of the relativeId if present or the namespace.
    * <br />
@@ -182,4 +194,5 @@ public class StackGresUtil {
           + pojoObject.getClass().getName(), ex);
     }
   }
+
 }

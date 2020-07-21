@@ -35,6 +35,7 @@ spec:
         fsGroup: 999
         {{- end }}
       containers:
+      {{- if not (and .Values.developer.externalOperatorIp .Values.developer.externalOperatorPort) }}
       - name: {{ .Release.Name }}
         image: "{{ .Values.operator.image.name }}:{{ .Values.operator.image.tag }}"
         imagePullPolicy: {{ .Values.operator.image.pullPolicy }}
@@ -98,6 +99,35 @@ spec:
           - name: operator-certs
             mountPath: /etc/operator/certs
             readOnly: true
+      {{- else }}
+      - name: {{ .Release.Name }}-nginx
+        image: "nginx:1.17.4-alpine"
+        imagePullPolicy: IfNotPresent
+        args:
+          - '/bin/sh'
+          - '-exc'
+          - |
+            exec nginx-debug -g 'daemon off;'
+        ports:
+        - containerPort: 9443
+          name: "proxyhttps"
+          protocol: "TCP"
+        volumeMounts:
+          - name: operator-certs
+            mountPath: /etc/operator/certs
+            readOnly: true
+          - name: operator-nginx-conf
+            mountPath: /etc/nginx/conf.d
+            readOnly: true
+          - name: operator-nginx
+            subPath: var/cache/nginx
+            mountPath: /var/cache/nginx
+            readOnly: false
+          - name: operator-nginx
+            subPath: var/run
+            mountPath: /var/run
+            readOnly: false
+      {{- end }}
       volumes:
         - name: operator-certs
           secret:
@@ -108,4 +138,15 @@ spec:
                 path: root.key
               - key: server.crt
                 path: server.crt
+        {{- if and .Values.developer.externalOperatorIp .Values.developer.externalOperatorPort }}
+        - name: operator-nginx-conf
+          configMap:
+            name: {{ .Release.Name }}-nginx
+            optional: false
+            items:
+              - key: stackgres-operator.conf
+                path: stackgres-operator.conf
+        - name: operator-nginx
+          emptyDir: {}
+        {{- end }}
 {{- end }}

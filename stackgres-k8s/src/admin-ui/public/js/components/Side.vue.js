@@ -249,6 +249,13 @@ var Side = Vue.component("sg-side", {
 				return false
 		},
 
+<<<<<<< HEAD
+=======
+		showLogs () {
+			return store.state.showLogs
+		},
+
+>>>>>>> 77f020e205d063bdb7c39134de579c414689e572
 		notFound () {
 			return store.state.notFound
 		},

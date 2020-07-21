@@ -115,7 +115,6 @@ Holds custom metadata information for StackGres pods to have.
 
 | Property     | Required | Updatable | Type     | Default                             | Description |
 |:-------------|----------|-----------|:---------|:------------------------------------|:------------|
-| annotations  | ✓        | ✓         | string   |                                     | {{< crd-field-description SGCluster.spec.pods.metadata.annotations >}} |
 | labels       |          |           | string   | default storage class               | {{< crd-field-description SGCluster.spec.pods.metadata.labels >}} |
 
 ```yaml
@@ -163,7 +162,7 @@ Specifies the cluster initialization data configurations
 | Property                          | Required | Updatable | Type     | Default | Description |
 |:----------------------------------|----------|-----------|:---------|:--------|:------------|
 | [restore](#restore-configuration) |          |           | object   |         | {{< crd-field-description SGCluster.spec.initialData.restore >}} |
-
+| [scripts](#scripts-configuration) |          |           | object   |         | {{< crd-field-description SGCluster.spec.initialData.scripts >}} |
 
 ## Restore configuration
 
@@ -189,6 +188,66 @@ spec:
       fromBackup: d7e660a9-377c-11ea-b04b-0242ac110004
       downloadDiskConcurrency: 1
 ```
+
+## Scripts configuration
+
+By default, stackgres creates as an empty database. To execute some scripts, we have the scripts
+ options where you can specify a script or reference a key in a ConfigMap or a Secret that contains
+ the script to execute.
+
+| Property                   | Required | Updatable | Type     | Default  | Description |
+|:---------------------------|----------|-----------|:---------|:---------|:------------|
+| name                       |          |           | string   |          | {{< crd-field-description SGCluster.spec.initialData.scripts.items.name >}} |
+| database                   |          |           | string   | postgres | {{< crd-field-description SGCluster.spec.initialData.scripts.items.database >}} |
+| script                     |          |           | string   |          | {{< crd-field-description SGCluster.spec.initialData.scripts.items.script >}} |
+| [scriptFrom](#script-from) |          |           | object   |          | {{< crd-field-description SGCluster.spec.initialData.scripts.items.scriptFrom >}} |
+
+Example:
+
+```yaml
+apiVersion: stackgres.io/v1beta1
+kind: SGCluster
+metadata:
+  name: stackgres
+spec:
+  initialData: 
+    scripts:
+    - name: create-stackgres-user
+      scriptFrom:
+        secretKeyRef: # read the user from a Secret to maintain credentials in a safe place
+          name: stackgres-secret-sqls-scripts
+          key: create-stackgres-user.sql
+    - name: create-stackgres-database
+      script: |
+        CREATE DATABASE stackgres WITH OWNER stackgres;
+    - name: create-stackgres-schema
+      database: stackgres
+      scriptFrom:
+        configMapKeyRef: # read long script from a ConfigMap to avoid have to much data in the helm releasea and the sgcluster CR
+          name: stackgres-sqls-scripts
+          key: create-stackgres-schema.sql
+```
+
+### Script from
+
+| Property                                  | Required | Updatable | Type     | Default  | Description |
+|:------------------------------------------|----------|-----------|:---------|:---------|:------------|
+| [configMapKeyRef](#script-from-configmap) |          |           | object   |          | {{< crd-field-description SGCluster.spec.initialData.scripts.items.scriptFrom.configMapKeyRef >}} |
+| [secretKeyRef](#script-from-configmap)    |          |           | object   |          | {{< crd-field-description SGCluster.spec.initialData.scripts.items.scriptFrom.secretKeyRef >}} |
+
+#### Script from ConfigMap
+
+| Property  | Required | Updatable | Type     | Default  | Description |
+|:----------|----------|-----------|:---------|:---------|:------------|
+| name      |          |           | string   |          | {{< crd-field-description SGCluster.spec.initialData.scripts.items.scriptFrom.configMapKeyRef.name >}} |
+| key       |          |           | string   |          | {{< crd-field-description SGCluster.spec.initialData.scripts.items.scriptFrom.configMapKeyRef.key >}} |
+
+#### Script from Secret
+
+| Property  | Required | Updatable | Type     | Default  | Description |
+|:----------|----------|-----------|:---------|:---------|:------------|
+| name      |          |           | string   |          | {{< crd-field-description SGCluster.spec.initialData.scripts.items.scriptFrom.secretKeyRef.name >}} |
+| key       |          |           | string   |          | {{< crd-field-description SGCluster.spec.initialData.scripts.items.scriptFrom.secretKeyRef.key >}} |
 
 ## Distributed logs
 Specifies the distributed logs cluster to send logs to:

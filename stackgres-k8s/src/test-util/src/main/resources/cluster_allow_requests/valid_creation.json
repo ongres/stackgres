@@ -53,7 +53,18 @@
         "initialData": {
           "restore": {
             "fromBackup": "d7e660a9-377c-11ea-b04b-0242ac110004"
-          }
+          },
+          "scripts": [{
+            "name": "test",
+            "script": "CREATE DATABASE test;"
+          },{
+            "scriptFrom": {
+              "secretKeyRef": {
+                "name": "test",
+                "key": "test"
+              }
+            }
+          }]
         },
         "configurations": {
           "sgPostgresConfig": "postgresconf",

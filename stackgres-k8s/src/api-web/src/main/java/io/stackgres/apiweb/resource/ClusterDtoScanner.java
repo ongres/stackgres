@@ -13,23 +13,33 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.Pod;
-import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.apiweb.dto.cluster.ClusterDto;
 import io.stackgres.apiweb.transformer.ClusterTransformer;
-import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.resource.CustomResourceScanner;
+import io.stackgres.common.resource.PodFinder;
 import org.jooq.lambda.Seq;
 
 @ApplicationScoped
 public class ClusterDtoScanner implements CustomResourceScanner<ClusterDto> {
 
-  private CustomResourceScanner<StackGresCluster> clusterScanner;
-  private KubernetesClientFactory clientFactory;
-  private ClusterTransformer clusterTransformer;
-  private LabelFactory<StackGresCluster> labelFactory;
+  private final CustomResourceScanner<StackGresCluster> clusterScanner;
+  private final PodFinder podFinder;
+  private final ClusterTransformer clusterTransformer;
+  private final LabelFactory<StackGresCluster> labelFactory;
+
+  @Inject
+  public ClusterDtoScanner(CustomResourceScanner<StackGresCluster> clusterScanner,
+      PodFinder podFinder, ClusterTransformer clusterTransformer,
+      LabelFactory<StackGresCluster> labelFactory) {
+    super();
+    this.clusterScanner = clusterScanner;
+    this.podFinder = podFinder;
+    this.clusterTransformer = clusterTransformer;
+    this.labelFactory = labelFactory;
+  }
 
   @Override
   public List<ClusterDto> getResources() {
@@ -66,10 +76,8 @@ public class ClusterDtoScanner implements CustomResourceScanner<ClusterDto> {
   }
 
   private Transformer createTransformer() {
-    try (KubernetesClient client = clientFactory.create()) {
-      return new Transformer(Seq.seq(getAllClusterPods(client))
-          .groupBy(pod -> pod.getMetadata().getLabels().get(StackGresContext.CLUSTER_UID_KEY)));
-    }
+    return new Transformer(Seq.seq(getAllClusterPods())
+        .groupBy(pod -> pod.getMetadata().getLabels().get(StackGresContext.CLUSTER_UID_KEY)));
   }
 
   private class Transformer {
@@ -85,31 +93,8 @@ public class ClusterDtoScanner implements CustomResourceScanner<ClusterDto> {
     }
   }
 
-  private List<Pod> getAllClusterPods(KubernetesClient client) {
-    return client.pods()
-        .inAnyNamespace()
-        .withLabels(labelFactory.anyPatroniClusterLabels())
-        .list()
-        .getItems();
+  private List<Pod> getAllClusterPods() {
+    return podFinder.findResourcesWithLabels(labelFactory.anyPatroniClusterLabels());
   }
 
-  @Inject
-  public void setClusterScanner(CustomResourceScanner<StackGresCluster> clusterScanner) {
-    this.clusterScanner = clusterScanner;
-  }
-
-  @Inject
-  public void setClientFactory(KubernetesClientFactory clientFactory) {
-    this.clientFactory = clientFactory;
-  }
-
-  @Inject
-  public void setClusterTransformer(ClusterTransformer clusterTransformer) {
-    this.clusterTransformer = clusterTransformer;
-  }
-
-  @Inject
-  public void setLabelFactory(LabelFactory<StackGresCluster> labelFactory) {
-    this.labelFactory = labelFactory;
-  }
 }

@@ -52,7 +52,7 @@ public abstract class AbstractRestService<T extends ResourceDto, R extends Custo
   @Override
   public List<T> list() {
     return Seq.seq(scanner.getResources())
-        .map(transformer::toResource)
+        .map(transformer::toDto)
         .toList();
   }
 
@@ -69,7 +69,7 @@ public abstract class AbstractRestService<T extends ResourceDto, R extends Custo
   @Override
   public T get(@PathParam("namespace") String namespace, @PathParam("name") String name) {
     return finder.findByNameAndNamespace(name, namespace)
-        .map(transformer::toResource)
+        .map(transformer::toDto)
         .orElseThrow(NotFoundException::new);
   }
 

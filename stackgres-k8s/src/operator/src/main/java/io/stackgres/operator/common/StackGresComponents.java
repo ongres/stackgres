@@ -5,18 +5,10 @@
 
 package io.stackgres.operator.common;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.net.URL;
 import java.util.Comparator;
 import java.util.Properties;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import com.google.common.collect.ImmutableMap;
-import io.stackgres.common.StackGresContext;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple3;
@@ -34,7 +26,7 @@ public enum StackGresComponents {
   StackGresComponents() {
     try {
       Properties properties = new Properties();
-      properties.load(OperatorConfigDefaults.class.getResourceAsStream("/versions.properties"));
+      properties.load(StackGresComponents.class.getResourceAsStream("/versions.properties"));
       this.componentVersions = Seq.seq(properties)
           .collect(ImmutableMap.toImmutableMap(
               t -> t.v1.toString(), t -> t.v2.toString()));
@@ -96,25 +88,4 @@ public enum StackGresComponents {
             .flatMap(version -> Seq.of(getPostgresMajorVersion(version), version)));
   }
 
-  public static void main(String[] args) throws Exception {
-    ObjectMapper objectMapper = new YAMLMapper();
-    JsonNode versions = objectMapper.readTree(
-        new URL("https://stackgres.io/downloads/stackgres-k8s/stackgres/components/"
-            + StackGresContext.CONTAINER_BUILD + "/versions.yaml"));
-    Properties properties = new Properties();
-    Seq.seq(versions.get("components").fields())
-        .map(component -> Tuple.tuple(
-          component.getKey(), component.getValue().get("versions")))
-        .forEach(t -> properties.put(t.v1,
-            t.v2.isArray()
-            ? Seq.seq((ArrayNode) t.v2)
-              .map(JsonNode::asText)
-              .toString(",")
-            : t.v2.asText()));
-    properties.put("envoy", "1.13.1");
-    File file = new File(args[0]);
-    try (FileOutputStream fileOutputStream = new FileOutputStream(file)) {
-      properties.store(fileOutputStream, null);
-    }
-  }
 }

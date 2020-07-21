@@ -3,9 +3,8 @@ e2e_test_install() {
   kubectl create namespace "$CLUSTER_NAMESPACE"
   
   SERVICE="stackgres-restapi"
-  OPERATOR_NAMESPACE="stackgres"
   local USERNAME="admin"
-  local PASSWORD="$(kubectl get secrets -n $OPERATOR_NAMESPACE $SERVICE -o jsonpath="{.data.clearPassword}" | base64 -d)"
+  local PASSWORD="$(kubectl get secrets -n "$OPERATOR_NAMESPACE" "$SERVICE" -o jsonpath="{.data.clearPassword}" | base64 -d)"
   CYPRESS_POD="cypress"
   
   cat << EOF | kubectl apply -f -

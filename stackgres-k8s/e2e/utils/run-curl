@@ -15,8 +15,8 @@ NtLXO_qrR3ShqhKzucw
 
 run_curl() {
   local POD=curl
-  local NAMESPACE="${CLUSTER_NAMESPACE:-stackgres}"
-  local SERVICE_NAMESPACE=stackgres
+  local NAMESPACE="${CLUSTER_NAMESPACE:-$OPERATOR_NAMESPACE}"
+  local SERVICE_NAMESPACE="$OPERATOR_NAMESPACE"
   local SERVICE=stackgres-restapi
   local RESOURCE_PATH="stackgres/sgcluster"
   local EXTRA_PARAMETERS=""

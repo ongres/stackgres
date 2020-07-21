@@ -17,20 +17,26 @@ e2e_test() {
 
 check_namespace() {
   local NAMESPACES_IN_RESPONSE
-  local NAMESPACES_IN_K8
+  local NAMESPACES_IN_K8S
 
-  NAMESPACES_IN_RESPONSE=$(run_curl -r "stackgres/namespace" -n $CLUSTER_NAMESPACE \
-    | jq 'map(select(. == "default" or (. | startswith("kube-")))) | length')
-
-  NAMESPACES_IN_K8S=$(kubectl get namespaces -o json \
-    | jq '.items | map(select(.metadata.name == "default")) | length')
-
-  if [ "$NAMESPACES_IN_RESPONSE" = "$NAMESPACES_IN_K8S" ]
+  if wait_until check_returned_namespaces
   then
     echo "Success. Namespace endpoint returned all namespaces"
+    return 0
   else
     echo "Fail. Namespace endpoint not return all namespaces. Expected $NAMESPACES_IN_K8S, actual $NAMESPACES_IN_K8S"
+    return 1
   fi
+}
+
+check_returned_namespaces() {
+  NAMESPACES_IN_RESPONSE=$(run_curl -r "stackgres/namespace" -n $CLUSTER_NAMESPACE \
+    | jq -M -S 'sort_by(.)[]' )
+
+  NAMESPACES_IN_K8S=$(kubectl get ns -o json \
+    | jq -M -S '.items[].metadata |  select(.name | startswith("kube") or startswith("stackgres") | not).name')
+
+  [ "$NAMESPACES_IN_RESPONSE" = "$NAMESPACES_IN_K8S" ]
 }
 
 get_namespace_status() {
@@ -45,6 +51,7 @@ check_namespace_status() {
   if [ "$HTTP_STATUS" = "200" ] || [ "$HTTP_STATUS" = "202" ] || [ "$HTTP_STATUS" = "204" ]
   then
     echo "Success. Namespace endpoint is available"
+    return 0
   else
     echo "Fail. Namespace endpoint is not available"
     return 1

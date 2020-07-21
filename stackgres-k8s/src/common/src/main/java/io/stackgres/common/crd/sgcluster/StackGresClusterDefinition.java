@@ -5,7 +5,7 @@
 
 package io.stackgres.common.crd.sgcluster;
 
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresProperty;
 
 public enum StackGresClusterDefinition {
 
@@ -14,8 +14,8 @@ public enum StackGresClusterDefinition {
   public static final String KIND = "SGCluster";
   public static final String SINGULAR = "sgcluster";
   public static final String PLURAL = "sgclusters";
-  public static final String NAME = PLURAL + "." + StackGresContext.CRD_GROUP;
-  public static final String APIVERSION = StackGresContext.CRD_GROUP
-      + "/" + StackGresContext.CRD_VERSION;
+  public static final String NAME = PLURAL + "." + StackGresProperty.CRD_GROUP.getString();
+  public static final String APIVERSION = StackGresProperty.CRD_GROUP.getString()
+      + "/" + StackGresProperty.CRD_VERSION.getString();
 
 }

@@ -22,8 +22,8 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 public class StackGresClusterPod {
 
   @JsonProperty("persistentVolume")
-  @Valid
   @NotNull(message = "Pod's persistent volume must be specified")
+  @Valid
   private StackGresPodPersistentVolume persistentVolume;
 
   @JsonProperty("disableConnectionPooling")
@@ -36,6 +36,7 @@ public class StackGresClusterPod {
   private Boolean disablePostgresUtil;
 
   @JsonProperty("metadata")
+  @Valid
   private StackGresClusterPodMetadata metadata;
 
   public StackGresPodPersistentVolume getPersistentVolume() {

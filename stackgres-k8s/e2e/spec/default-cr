@@ -1,11 +1,11 @@
 #!/bin/sh
 
 e2e_test_install() {
-  OPERATOR_NAMESPACE="stackgres"
+  return
 }
 
-e2e_test_after_all(){
-  unset OPERATOR_NAMESPACE
+e2e_test_after_all() {
+  return
 }
 
 
@@ -39,7 +39,7 @@ e2e_test() {
 check_existence(){
 
   
-  if wait_until eval "get_default_cr $1.stackgres.io"
+  if wait_until eval "get_default_cr '$1.stackgres.io'"
   then
     echo "$2 found" 
   else
@@ -49,7 +49,7 @@ check_existence(){
 }
 
 check_update(){
-  if kubectl patch "$1.stackgres.io" -n $OPERATOR_NAMESPACE $2 --type='json' -p="$3"
+  if kubectl patch "$1.stackgres.io" -n "$OPERATOR_NAMESPACE" "$2" --type='json' -p="$3"
   then
     echo "$2 Updated. Shold not be able to update $2"
     return 1
@@ -61,7 +61,7 @@ check_update(){
 
 check_delete(){
 
-   if kubectl delete "$1.stackgres.io" -n $OPERATOR_NAMESPACE $2
+   if kubectl delete "$1.stackgres.io" -n "$OPERATOR_NAMESPACE" "$2"
   then
     echo "$2 deleted. Should not be able to delete the $2"
     return 1

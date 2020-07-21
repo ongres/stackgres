@@ -26,6 +26,10 @@ public interface LabelMapper<T extends CustomResource> {
     return StackGresContext.BACKUP_KEY;
   }
 
+  default String scheduledBackupKey() {
+    return StackGresContext.SCHEDULED_BACKUP_KEY;
+  }
+
   default String clusterScopeKey() {
     return ResourceUtil.labelKey(clusterNameKey());
   }

@@ -1,0 +1,100 @@
+{{- if .Values.deploy.restapi }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.restapi.name }}-nginx
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    meta.helm.sh/release-name: {{ .Release.Name }}
+    meta.helm.sh/release-namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/managed-by: Helm
+data:
+  nginx.conf: |
+    pid        /tmp/nginx.pid;
+    events{
+    }
+    http {
+        client_body_temp_path /tmp/client_temp;
+        proxy_temp_path       /tmp/proxy_temp_path;
+        fastcgi_temp_path     /tmp/fastcgi_temp;
+        uwsgi_temp_path       /tmp/uwsgi_temp;
+        scgi_temp_path        /tmp/scgi_temp;
+
+        include       /etc/nginx/mime.types;
+        default_type  application/octet-stream;
+
+        log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+                        '$status $body_bytes_sent "$http_referer" '
+                        '"$http_user_agent" "$http_x_forwarded_for"';
+
+        access_log  /var/log/nginx/access.log  main;
+
+        sendfile        on;
+
+        keepalive_timeout  65;
+
+        include /etc/nginx/conf.d/*.conf;
+    }
+  stackgres-operator.template: |
+    server {
+      set $grafana_embedded '${GRAFANA_EMBEDDED}';
+
+      server_name  localhost;
+
+      listen       9443 ssl;
+      ssl_certificate         /etc/operator/certs/server.crt;
+      ssl_certificate_key     /etc/operator/certs/root.key;
+      root   /usr/share/nginx/html;
+      index index.html;
+
+      location /admin/ {
+        try_files $uri $uri/index.html /admin/index.html;
+      }
+
+      location ~ ^(/|/admin|/admin/)$ {
+        return 302 "$scheme://$http_host/admin/index.html";
+      }
+
+      location /grafana {
+        if ($grafana_embedded != true) {
+          return 404;
+        }
+        add_header Content-Type text/plain;
+        return 200 "$scheme://$http_host${GRAFANA_URL_PATH}";
+      }
+
+      location ~ ^(/|/stackgres|/stackgres/)$ {
+        return 302 "$scheme://$http_host/admin/index.html";
+      }
+
+      location ~ ^/stackgres {
+        proxy_redirect off;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Server $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        {{ if and .Values.developer.externalRestApiIp .Values.developer.externalRestApiPort }}
+        proxy_pass http://{{ .Values.restapi.name }}-api:8080;
+        {{- else }}
+        proxy_pass http://localhost:8080;
+        {{- end }}
+      }
+
+      location / {
+        if ($grafana_embedded != true) {
+          return 404;
+        }
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Server $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        index index.html index.htm;
+        proxy_set_header Authorization "Bearer ${GRAFANA_TOKEN}";
+        proxy_hide_header X-Frame-Options;
+        proxy_pass "${GRAFANA_SCHEMA}://${GRAFANA_WEB_HOST}";
+      }
+    }
+{{- end }}

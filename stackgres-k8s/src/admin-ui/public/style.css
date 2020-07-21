@@ -1667,7 +1667,7 @@ header .actions a.documentation:before {
 header .actions a {
     cursor: pointer;
     font-weight: 600;
-    margin-left: 15px;
+    margin-left: 20px;
 }
 
 header .actions > div {

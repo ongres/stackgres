@@ -26,6 +26,10 @@ public class PoolingConfigPgBouncerStatus {
   @Valid
   private List<PgBouncerIniParameter> pgbouncerConf;
 
+  @JsonProperty("defaultParameters")
+  @NotNull(message = "defaultParameters is required")
+  private List<String> defaultParameters;
+
   public List<PgBouncerIniParameter> getPgbouncerConf() {
     return pgbouncerConf;
   }
@@ -34,10 +38,19 @@ public class PoolingConfigPgBouncerStatus {
     this.pgbouncerConf = pgbouncerConf;
   }
 
+  public List<String> getDefaultParameters() {
+    return defaultParameters;
+  }
+
+  public void setDefaultParameters(List<String> defaultParameters) {
+    this.defaultParameters = defaultParameters;
+  }
+
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .add("pgbouncerConf", pgbouncerConf)
+        .add("defaultParameters", defaultParameters)
         .toString();
   }
 }

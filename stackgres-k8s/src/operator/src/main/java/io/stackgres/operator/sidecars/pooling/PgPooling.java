@@ -25,17 +25,13 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
-import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
-import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.LabelFactory;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
-import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigDefinition;
-import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigDoneable;
-import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigList;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncer;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigSpec;
+import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSetPath;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSetVolumeConfig;
 import io.stackgres.operator.common.Sidecar;
@@ -44,7 +40,7 @@ import io.stackgres.operator.common.StackGresClusterSidecarResourceFactory;
 import io.stackgres.operator.common.StackGresComponents;
 import io.stackgres.operator.common.StackGresGeneratorContext;
 import io.stackgres.operator.sidecars.envoy.Envoy;
-import io.stackgres.operator.sidecars.pooling.parameters.Blacklist;
+import io.stackgres.operator.sidecars.pooling.parameters.Blocklist;
 import io.stackgres.operator.sidecars.pooling.parameters.DefaultValues;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jooq.lambda.Seq;
@@ -59,7 +55,16 @@ public class PgPooling
   private static final String DEFAULT_VERSION = StackGresComponents.get("pgbouncer");
   private static final String CONFIG_SUFFIX = "-connection-pooling-config";
 
-  private LabelFactory<StackGresCluster> labelFactory;
+  private final LabelFactory<StackGresCluster> labelFactory;
+  private final CustomResourceFinder<StackGresPoolingConfig> poolingConfigScanner;
+
+  @Inject
+  public PgPooling(LabelFactory<StackGresCluster> labelFactory,
+      CustomResourceFinder<StackGresPoolingConfig> poolingConfigScanner) {
+    super();
+    this.labelFactory = labelFactory;
+    this.poolingConfigScanner = poolingConfigScanner;
+  }
 
   public static String configName(StackGresClusterContext clusterContext) {
     String name = clusterContext.getCluster().getMetadata().getName();
@@ -79,7 +84,7 @@ public class PgPooling
         .map(StackGresPoolingConfigPgBouncer::getPgbouncerConf)
         .orElseGet(HashMap::new);
     // Blacklist removal
-    for (String bl : Blacklist.getBlacklistParameters()) {
+    for (String bl : Blocklist.getBlocklistParameters()) {
       newParams.remove(bl);
     }
     Map<String, String> params = new HashMap<>(DefaultValues.getDefaultValues());
@@ -129,7 +134,7 @@ public class PgPooling
     ContainerBuilder container = new ContainerBuilder();
     container.withName(NAME)
         .withImage(String.format(IMAGE_PREFIX,
-            DEFAULT_VERSION, StackGresContext.CONTAINER_BUILD))
+            DEFAULT_VERSION, StackGresProperty.CONTAINER_BUILD.getString()))
         .withImagePullPolicy("IfNotPresent")
         .withVolumeMounts(ClusterStatefulSetVolumeConfig.SOCKET
                 .volumeMount(context.getClusterContext()),
@@ -154,30 +159,11 @@ public class PgPooling
   }
 
   @Override
-  public Optional<StackGresPoolingConfig> getConfig(StackGresCluster cluster,
-                                                    KubernetesClient client) throws Exception {
+  public Optional<StackGresPoolingConfig> getConfig(StackGresCluster cluster) throws Exception {
     final String namespace = cluster.getMetadata().getNamespace();
-    final String pgbouncerConfig = cluster.getSpec()
-        .getConfiguration().getConnectionPoolingConfig();
-    if (pgbouncerConfig != null) {
-      Optional<CustomResourceDefinition> crd =
-          ResourceUtil.getCustomResource(client, StackGresPoolingConfigDefinition.NAME);
-      if (crd.isPresent()) {
-        return Optional.ofNullable(client
-            .customResources(crd.get(),
-                StackGresPoolingConfig.class,
-                StackGresPoolingConfigList.class,
-                StackGresPoolingConfigDoneable.class)
-            .inNamespace(namespace)
-            .withName(pgbouncerConfig)
-            .get());
-      }
-    }
-    return Optional.empty();
+    return Optional.ofNullable(cluster.getSpec().getConfiguration().getConnectionPoolingConfig())
+        .flatMap(pgbouncerConfigName -> poolingConfigScanner.findByNameAndNamespace(
+            pgbouncerConfigName, namespace));
   }
 
-  @Inject
-  public void setLabelFactory(LabelFactory<StackGresCluster> labelFactory) {
-    this.labelFactory = labelFactory;
-  }
 }

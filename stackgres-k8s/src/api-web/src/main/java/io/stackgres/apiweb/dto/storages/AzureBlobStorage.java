@@ -5,6 +5,7 @@
 
 package io.stackgres.apiweb.dto.storages;
 
+import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -27,6 +28,7 @@ public class AzureBlobStorage {
 
   @JsonProperty("azureCredentials")
   @NotNull(message = "The credentials is required")
+  @Valid
   private AzureBlobStorageCredentials credentials;
 
   public String getBucket() {

@@ -5,6 +5,8 @@
 
 package io.stackgres.apiweb.dto.pooling;
 
+import javax.validation.Valid;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.MoreObjects;
@@ -15,6 +17,7 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 @RegisterForReflection
 public class PoolingConfigSpec {
 
+  @Valid
   private PoolingConfigPgBouncer pgBouncer;
 
   @Override

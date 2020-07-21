@@ -7,6 +7,7 @@ package io.stackgres.common.crd.storages;
 
 import java.util.Objects;
 
+import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -23,10 +24,12 @@ public class AwsSecretKeySelector {
 
   @JsonProperty("accessKeyId")
   @NotNull(message = "The accessKey is required")
+  @Valid
   private SecretKeySelector accessKeyId;
 
   @JsonProperty("secretAccessKey")
   @NotNull(message = "The secretKey is required")
+  @Valid
   private SecretKeySelector secretAccessKey;
 
   public SecretKeySelector getAccessKeyId() {

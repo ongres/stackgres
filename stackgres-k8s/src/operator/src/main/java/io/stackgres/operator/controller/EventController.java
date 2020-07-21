@@ -21,7 +21,7 @@ import io.fabric8.kubernetes.api.model.EventSourceBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.KubernetesClientFactory;
-import io.stackgres.operator.common.OperatorConfigDefaults;
+import io.stackgres.common.OperatorProperty;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,8 +46,8 @@ public class EventController {
   public void sendEvent(EventReason reason, String message) {
     try (KubernetesClient client = kubClientFactory.create()) {
       sendEvent(reason, message, client.services()
-          .inNamespace(OperatorConfigDefaults.OPERATOR_NAMESPACE)
-          .withName(OperatorConfigDefaults.OPERATOR_NAME)
+          .inNamespace(OperatorProperty.OPERATOR_NAMESPACE.getString())
+          .withName(OperatorProperty.OPERATOR_NAME.getString())
           .get(), client);
     }
   }
@@ -141,7 +141,7 @@ public class EventController {
           .withFirstTimestamp(DateTimeFormatter.ISO_INSTANT.format(now))
           .withLastTimestamp(DateTimeFormatter.ISO_INSTANT.format(now))
           .withSource(new EventSourceBuilder()
-              .withComponent(OperatorConfigDefaults.OPERATOR_NAME)
+              .withComponent(OperatorProperty.OPERATOR_NAME.getString())
               .build())
           .withInvolvedObject(ResourceUtil.getObjectReference(involvedObject))
           .build());

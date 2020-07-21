@@ -3,6 +3,19 @@ title: "Versions"
 weight: 6
 ---
 
+# StackGres 0.9
+
+| Component | Versions |
+| ------ | ----------- |
+| PostgreSQL | 12.3 and 11.8 |
+| Patroni | 1.6.5 |
+| WAL-G | 0.2.15 |
+| PgBouncer | 1.13.0 |
+| Postgres Exporter | 0.8.0 |
+| Envoy | 1.15.0 |
+| Fluent-Bit | 1.4.4 |
+| Fluentd | 1.9.3 |
+
 # StackGres 0.9-beta3
 
 | Component | Versions |

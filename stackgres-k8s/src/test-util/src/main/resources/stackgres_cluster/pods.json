@@ -332,7 +332,7 @@
             "env": [
               {
                 "name": "DATA_SOURCE_NAME",
-                "value": "host=/var/run/postgresql user=postgres port=5435"
+                "value": "host=/var/run/postgresql user=postgres port=5432"
               },
               {
                 "name": "POSTGRES_EXPORTER_USERNAME",
@@ -1060,7 +1060,7 @@
             "env": [
               {
                 "name": "DATA_SOURCE_NAME",
-                "value": "host=/var/run/postgresql user=postgres port=5435"
+                "value": "host=/var/run/postgresql user=postgres port=5432"
               },
               {
                 "name": "POSTGRES_EXPORTER_USERNAME",

@@ -3,15 +3,17 @@
 wait_services_available() {
   local NAMESPACE_OPT="$([ -z "$1" ] && echo "--all-namespaces" || echo "--namespace=$1")"
   local EXPECTED_AVAILABLE_SERVICES="${2:-1}"
-  if [ "$EXPECTED_AVAILABLE_SERVICES" -lt 1 ]
+  local EXPECTED_AVAILABLE_SERVICES_EXPRESSION="${3:-.*}"
+  if ! [ "$EXPECTED_AVAILABLE_SERVICES" -ge 1 ] 2>/dev/null
   then
-    >&2 echo "Must specify a number of expected available services of 1 or more"
+    >&2 echo "Must specify a number of expected available services of 1 or more or a grep regular expression that identify expected available service names"
     return 1
   fi
   local END="$(($(date +%s) + (E2E_TIMEOUT * EXPECTED_AVAILABLE_SERVICES)))"
   while [ "$(date +%s)" -lt "$END" ]
   do
-    AVAILABLE_SERVICES="$(kubectl get endpoints "$NAMESPACE_OPT" -o name | wc -l)"
+    AVAILABLE_SERVICES="$(kubectl get endpoints "$NAMESPACE_OPT" -o name \
+      | grep "$EXPECTED_AVAILABLE_SERVICES_EXPRESSION" | wc -l)"
     if [ "$AVAILABLE_SERVICES" -ge "$EXPECTED_AVAILABLE_SERVICES" ]
     then
       echo "$([ -z "$1" ] && echo "All services available" || echo "All services available in namespace $1")"

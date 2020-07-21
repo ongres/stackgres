@@ -6,6 +6,7 @@ echo "Preparing environment"
 setup_images
 setup_k8s
 setup_cache
+setup_helm
 setup_operator
 setup_logs
 

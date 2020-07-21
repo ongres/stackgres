@@ -22,23 +22,12 @@ public class StackGresClusterPodMetadata {
   @JsonProperty("labels")
   private Map<String, String> labels;
 
-  @JsonProperty("annotations")
-  private Map<String, String> annotations;
-
   public Map<String, String> getLabels() {
     return labels;
   }
 
   public void setLabels(Map<String, String> labels) {
     this.labels = labels;
-  }
-
-  public Map<String, String> getAnnotations() {
-    return annotations;
-  }
-
-  public void setAnnotations(Map<String, String> annotations) {
-    this.annotations = annotations;
   }
 
   @Override
@@ -50,20 +39,18 @@ public class StackGresClusterPodMetadata {
       return false;
     }
     StackGresClusterPodMetadata that = (StackGresClusterPodMetadata) o;
-    return Objects.equals(labels, that.labels)
-        && Objects.equals(annotations, that.annotations);
+    return Objects.equals(labels, that.labels);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(labels, annotations);
+    return Objects.hash(labels);
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .add("labels", labels)
-        .add("annotations", annotations)
         .toString();
   }
 }

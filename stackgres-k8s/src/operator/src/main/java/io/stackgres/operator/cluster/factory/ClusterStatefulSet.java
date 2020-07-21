@@ -32,8 +32,9 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetUpdateStrategyBuilder;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.StackGresContext;
-import io.stackgres.common.crd.sgcluster.NonProduction;
+import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction;
 import io.stackgres.operator.common.LabelFactoryDelegator;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresClusterResourceStreamFactory;
@@ -43,15 +44,11 @@ import io.stackgres.operator.configuration.ImmutableStorageConfig;
 import io.stackgres.operator.configuration.StorageConfig;
 import io.stackgres.operator.patroni.factory.Patroni;
 import io.stackgres.operator.patroni.factory.PatroniRole;
-import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple2;
 
 @ApplicationScoped
 public class ClusterStatefulSet implements StackGresClusterResourceStreamFactory {
-
-  public static final String DATA_SUFFIX = "-data";
-  public static final String BACKUP_SUFFIX = "-backup";
 
   public static final String GCS_CREDENTIALS_FILE_NAME = "gcs-credentials.json";
 
@@ -78,13 +75,11 @@ public class ClusterStatefulSet implements StackGresClusterResourceStreamFactory
   }
 
   public static String dataName(StackGresClusterContext clusterContext) {
-    String name = clusterContext.getCluster().getMetadata().getName();
-    return ResourceUtil.resourceName(name + ClusterStatefulSet.DATA_SUFFIX);
+    return StackGresUtil.statefulSetDataPersistentVolumeName(clusterContext.getCluster());
   }
 
   public static String backupName(StackGresClusterContext clusterContext) {
-    String name = clusterContext.getCluster().getMetadata().getName();
-    return ResourceUtil.resourceName(name + ClusterStatefulSet.BACKUP_SUFFIX);
+    return StackGresUtil.statefulSetBackupPersistentVolumeName(clusterContext.getCluster());
   }
 
   /**
@@ -113,7 +108,6 @@ public class ClusterStatefulSet implements StackGresClusterResourceStreamFactory
     final LabelFactory<?> labelFactory = factoryDelegator.pickFactory(clusterContext);
     final Map<String, String> labels = labelFactory.clusterLabels(cluster);
     final Map<String, String> podLabels = labelFactory.statefulSetPodLabels(cluster);
-    final Map<String, String> podAnnotations = clusterContext.clusterAnnotations();
     final Map<String, String> customPodLabels = clusterContext.posCustomLabels();
     StatefulSet clusterStatefulSet = new StatefulSetBuilder()
         .withNewMetadata()
@@ -133,7 +127,6 @@ public class ClusterStatefulSet implements StackGresClusterResourceStreamFactory
         .withServiceName(name)
         .withTemplate(new PodTemplateSpecBuilder()
             .withMetadata(new ObjectMetaBuilder()
-                .addToAnnotations(podAnnotations)
                 .addToLabels(customPodLabels)
                 .addToLabels(podLabels)
                 .build())
@@ -160,7 +153,7 @@ public class ClusterStatefulSet implements StackGresClusterResourceStreamFactory
                 .build())
                 .filter(affinity -> Optional.ofNullable(
                     cluster.getSpec().getNonProduction())
-                    .map(NonProduction::getDisableClusterPodAntiAffinity)
+                    .map(StackGresClusterNonProduction::getDisableClusterPodAntiAffinity)
                     .map(disableClusterPodAntiAffinity -> !disableClusterPodAntiAffinity)
                     .orElse(true))
                 .orElse(null))

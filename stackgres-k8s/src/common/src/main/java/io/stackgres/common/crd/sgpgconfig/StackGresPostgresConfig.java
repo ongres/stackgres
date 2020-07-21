@@ -10,10 +10,12 @@ import java.util.Objects;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.google.common.base.MoreObjects;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @RegisterForReflection
 public class StackGresPostgresConfig extends CustomResource {
 
@@ -22,6 +24,9 @@ public class StackGresPostgresConfig extends CustomResource {
   @NotNull(message = "The specification is required")
   @Valid
   private StackGresPostgresConfigSpec spec;
+
+  @Valid
+  private StackGresPostgresConfigStatus status;
 
   public StackGresPostgresConfig() {
     super(StackGresPostgresConfigDefinition.KIND);
@@ -35,6 +40,31 @@ public class StackGresPostgresConfig extends CustomResource {
     this.spec = spec;
   }
 
+  public StackGresPostgresConfigStatus getStatus() {
+    return status;
+  }
+
+  public void setStatus(StackGresPostgresConfigStatus status) {
+    this.status = status;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(spec, status);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (!(obj instanceof StackGresPostgresConfig)) {
+      return false;
+    }
+    StackGresPostgresConfig other = (StackGresPostgresConfig) obj;
+    return Objects.equals(spec, other.spec) && Objects.equals(status, other.status);
+  }
+
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
@@ -43,23 +73,7 @@ public class StackGresPostgresConfig extends CustomResource {
         .add("kind", getKind())
         .add("metadata", getMetadata())
         .add("spec", spec)
+        .add("status", status)
         .toString();
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    StackGresPostgresConfig that = (StackGresPostgresConfig) o;
-    return spec.equals(that.spec);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(spec);
   }
 }

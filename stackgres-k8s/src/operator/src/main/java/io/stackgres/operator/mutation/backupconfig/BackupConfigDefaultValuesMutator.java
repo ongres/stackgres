@@ -9,6 +9,7 @@ import java.util.List;
 
 import javax.enterprise.context.ApplicationScoped;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.github.fge.jsonpatch.JsonPatchOperation;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.operator.common.BackupConfigReview;
@@ -18,6 +19,12 @@ import io.stackgres.operator.mutation.DefaultValuesMutator;
 public class BackupConfigDefaultValuesMutator
     extends DefaultValuesMutator<StackGresBackupConfig, BackupConfigReview>
     implements BackupMutator {
+
+  @Override
+  public JsonNode getTargetNode(StackGresBackupConfig resource) {
+    return super.getTargetNode(resource)
+        .get("spec");
+  }
 
   @Override
   public List<JsonPatchOperation> mutate(BackupConfigReview review) {

@@ -17,15 +17,12 @@ import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 @ApplicationScoped
 public class LabelFactoryDelegator {
 
-  private final LabelFactory<StackGresCluster> clusterLabelFactory;
+  private LabelFactory<StackGresCluster> clusterLabelFactory;
 
-  private final LabelFactory<StackGresDistributedLogs> distributedLogsLabelFactory;
+  private LabelFactory<StackGresDistributedLogs> distributedLogsLabelFactory;
 
-  @Inject
-  public LabelFactoryDelegator(LabelFactory<StackGresCluster> clusterLabelFactory,
-                               LabelFactory<StackGresDistributedLogs> distributedLogsLabelFactory) {
-    this.clusterLabelFactory = clusterLabelFactory;
-    this.distributedLogsLabelFactory = distributedLogsLabelFactory;
+  public void init(){
+    // For some reason quarkus needs this method to be created, otherwise it doesn't build
   }
 
   public Map<String, String> patroniClusterLabels(StackGresClusterContext context) {
@@ -46,5 +43,16 @@ public class LabelFactoryDelegator {
     } else {
       return clusterLabelFactory;
     }
+  }
+
+  @Inject
+  public void setClusterLabelFactory(LabelFactory<StackGresCluster> clusterLabelFactory) {
+    this.clusterLabelFactory = clusterLabelFactory;
+  }
+
+  @Inject
+  public void setDistributedLogsLabelFactory(
+      LabelFactory<StackGresDistributedLogs> distributedLogsLabelFactory) {
+    this.distributedLogsLabelFactory = distributedLogsLabelFactory;
   }
 }

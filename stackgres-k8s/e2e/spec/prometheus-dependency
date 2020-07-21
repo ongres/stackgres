@@ -3,7 +3,7 @@
 . "$SPEC_PATH/abstract/prometheus-integration"
 
 prometheus_namespace() {
-  echo "stackgres"
+  echo "$OPERATOR_NAMESPACE"
 }
 
 prometheus_service() {
@@ -17,15 +17,15 @@ e2e_exclusive_lock() {
 e2e_test_install() {
   delete_operator
 
-  wait_pods_terminated "stackgres" 0
+  wait_pods_terminated "$OPERATOR_NAMESPACE" 0
 
   if [ "$E2E_ENV" = "minishift" ]
   then
     eval "$(minishift oc-env)"
-    oc adm policy add-scc-to-user anyuid -n stackgres -z stackgres-operator-prometh-admission
-    oc adm policy add-scc-to-user anyuid -n stackgres -z stackgres-operator-grafana
-    oc adm policy add-scc-to-user anyuid -n stackgres -z stackgres-operator-prometh-operator
-    oc adm policy add-scc-to-user anyuid -n stackgres -z stackgres-operator-prometh-prometheus
+    oc adm policy add-scc-to-user anyuid -n "$OPERATOR_NAMESPACE" -z stackgres-operator-prometh-admission
+    oc adm policy add-scc-to-user anyuid -n "$OPERATOR_NAMESPACE" -z stackgres-operator-grafana
+    oc adm policy add-scc-to-user anyuid -n "$OPERATOR_NAMESPACE" -z stackgres-operator-prometh-operator
+    oc adm policy add-scc-to-user anyuid -n "$OPERATOR_NAMESPACE" -z stackgres-operator-prometh-prometheus
   fi
 
   install_operator \
@@ -36,7 +36,7 @@ e2e_test_install() {
     --set prometheus-operator.kubeStateMetrics.enabled=false \
     --set prometheus-operator.nodeExporter.enabled=false
 
-  wait_pods_running "stackgres" 4
+  wait_pods_running "$OPERATOR_NAMESPACE" 4
 
   kubectl create namespace "$CLUSTER_NAMESPACE"
 
@@ -50,7 +50,7 @@ e2e_test_install() {
 e2e_test_uninstall() {
   delete_operator
   install_operator
-  wait_pods_running "stackgres" 1
+  wait_pods_running "$OPERATOR_NAMESPACE" 1
 
   helm_cleanup_chart "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 

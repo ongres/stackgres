@@ -53,9 +53,7 @@ e2e_test() {
 
   run_test "Check that a created cluster is included in the response" check_cluster_in_list
 
-  run_test "Check that the status endpoint are returning the master stats" test_cluster_stats_are_loaded
-
-  run_test "Check that the pod config endpoint are returning the pod details" test_cluster_pod_config_are_loaded
+  run_test "Check that the stats endpoint are returning the master stats" test_cluster_stats_are_loaded
 
   run_test "Check that the number of pods match with the master and replicas" test_cluster_pod_count
 
@@ -89,12 +87,8 @@ get_cluster_http_status() {
   run_curl -r "stackgres/sgcluster/$CLUSTER_NAMESPACE/$CLUSTER_NAME" -e "-LI -o /dev/null -w %{http_code}"
 }
 
-get_cluster_stats() {
-  run_curl -r "stackgres/sgcluster/status/$CLUSTER_NAMESPACE/$CLUSTER_NAME" -e "-LI -o /dev/null -w %{http_code}"
-}
-
-get_cluster_pod_configs_health() {
-  run_curl -r "stackgres/sgcluster/$CLUSTER_NAMESPACE/$CLUSTER_NAME" -e "-LI -o /dev/null -w %{http_code}"
+get_cluster_stats_http_status() {
+  run_curl -r "stackgres/sgcluster/stats/$CLUSTER_NAMESPACE/$CLUSTER_NAME" -e "-LI -o /dev/null -w %{http_code}"
 }
 
 get_cluster_pod_count() {
@@ -119,29 +113,27 @@ check_cluster_directly() {
 test_cluster_stats_are_loaded() {
   local HTTP_STATUS
 
-  HTTP_STATUS="$(get_cluster_stats)"
+  HTTP_STATUS="$(get_cluster_stats_http_status)"
 
   if [ "$HTTP_STATUS" -eq "200" ]
   then
-    echo "Cluster $CLUSTER_NAME status was found by the api"
-    return 0
+    echo "Cluster $CLUSTER_NAME stats was found by the api"
   else
     echo "Cluster $CLUSTER_NAME stats was not found by the api"
     return 1
   fi
-}
 
-test_cluster_pod_config_are_loaded() {
-  local HTTP_STATUS
+  local STATUS_RESPONSE
+  STATUS_RESPONSE=$(run_curl -r "stackgres/sgcluster/stats/$CLUSTER_NAMESPACE/$CLUSTER_NAME")
 
-  HTTP_STATUS="$(get_cluster_pod_configs_health)"
-
-  if [ "$HTTP_STATUS" -eq "200" ]
+  if [ "$(echo_raw "$STATUS_RESPONSE" \
+    | jq 'select(.cpuFound != null and .memoryUsed != null and .diskUsed != null and .averageLoad1m != null)' \
+    | jq 'select(.pods[0].cpuFound != null and .pods[0].memoryUsed != null and .pods[0].diskUsed != null and .pods[0].averageLoad1m != null)' \
+    | wc -l)" -ne 0 ]
   then
-    echo "Cluster $CLUSTER_NAME pod configs was found by the api"
-    return 0
+    echo "Cluster $CLUSTER_NAME stats was returned by the api"
   else
-    echo "Cluster $CLUSTER_NAME pod configs was not found by the api"
+    echo "Cluster $CLUSTER_NAME stats was not returned by the api"
     return 1
   fi
 }
@@ -344,7 +336,7 @@ test_authentication_api_error() {
 
   check_authentication_error
 
-  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/sgcluster/status/$CLUSTER_NAMESPACE/$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
+  HTTP_STATUS="$(run_curl -j "$FAKE_JWT" -r "stackgres/sgcluster/stats/$CLUSTER_NAMESPACE/$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -e "-LI -o /dev/null -w %{http_code}")"
 
   check_authentication_error
 

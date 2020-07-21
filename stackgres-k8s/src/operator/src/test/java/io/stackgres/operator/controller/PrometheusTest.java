@@ -5,24 +5,36 @@
 
 package io.stackgres.operator.controller;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.HashMap;
 import java.util.Optional;
 
-import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.api.model.Secret;
 import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.OperatorProperty;
+import io.stackgres.common.crd.sgbackup.StackGresBackup;
+import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
+import io.stackgres.common.crd.sgprofile.StackGresProfile;
+import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
-import io.stackgres.testutil.JsonUtil;
+import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.operator.app.ObjectMapperProvider;
 import io.stackgres.operator.common.Prometheus;
-import io.stackgres.operator.configuration.OperatorContext;
+import io.stackgres.operator.configuration.OperatorPropertyContext;
 import io.stackgres.operator.customresource.prometheus.PrometheusConfig;
 import io.stackgres.operator.customresource.prometheus.PrometheusConfigList;
+import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -44,13 +56,28 @@ class PrometheusTest {
   private ObjectMapperProvider objectMapperProvider;
 
   @Mock
-  private KubernetesClient client;
+  private CustomResourceScanner<StackGresCluster> clusterScanner;
+
+  @Mock
+  private CustomResourceFinder<StackGresProfile> profileFinder;
+
+  @Mock
+  private CustomResourceFinder<StackGresPostgresConfig> postgresConfigFinder;
+
+  @Mock
+  private CustomResourceFinder<StackGresBackupConfig> backupConfigFinder;
+
+  @Mock
+  private CustomResourceScanner<StackGresBackup> backupScanner;
+
+  @Mock
+  private ResourceFinder<Secret> secretFinder;
 
   @Mock
   private CustomResourceScanner<PrometheusConfig> prometheusScanner;
 
   @Mock
-  private OperatorContext operatorContext;
+  private OperatorPropertyContext operatorContext;
 
   @Mock
   private LabelFactory<StackGresCluster> labelFactory;
@@ -71,7 +98,8 @@ class PrometheusTest {
 
     reconciliationCycle = new ClusterReconciliationCycle(
         clientFactory, null, null, null, null, null, objectMapperProvider,
-        prometheusScanner, operatorContext, labelFactory);
+        operatorContext, labelFactory, clusterScanner, profileFinder, postgresConfigFinder,
+        backupConfigFinder, backupScanner, secretFinder, prometheusScanner);
   }
 
   @Test
@@ -82,7 +110,7 @@ class PrometheusTest {
   }
 
   private Prometheus invokeGetConfig() {
-    Optional<Prometheus> prometheus = reconciliationCycle.getPrometheus(cluster, client);
+    Optional<Prometheus> prometheus = reconciliationCycle.getPrometheus(cluster);
     if (prometheus.isPresent()) {
       return prometheus.get();
     } else {
@@ -95,8 +123,8 @@ class PrometheusTest {
   void givenNoPrometheusInTheClusterAndAutobindSettled_itShouldNotFlagTheCreationOfServiceMonitor() {
 
     when(prometheusScanner.findResources()).thenReturn(Optional.empty());
-    when(operatorContext.getProperty(OperatorProperty.PROMETHEUS_AUTOBIND))
-        .thenReturn(Optional.of(Boolean.TRUE.toString()));
+    when(operatorContext.getBoolean(OperatorProperty.PROMETHEUS_AUTOBIND))
+        .thenReturn(true);
 
     Prometheus prometheus = invokeGetConfig();
 
@@ -111,8 +139,8 @@ class PrometheusTest {
   @Test
   void givenAutobindSettledToFalse_ItShouldNotEvenLookForPrometheusInstallations() {
 
-    when(operatorContext.getProperty(OperatorProperty.PROMETHEUS_AUTOBIND))
-        .thenReturn(Optional.of(Boolean.TRUE.toString()));
+    when(operatorContext.getBoolean(OperatorProperty.PROMETHEUS_AUTOBIND))
+        .thenReturn(true);
 
     cluster.getSpec().setPrometheusAutobind(false);
 
@@ -127,8 +155,8 @@ class PrometheusTest {
 
     when(prometheusScanner.findResources()).thenReturn(Optional.of(prometheusConfigList.getItems()));
 
-    when(operatorContext.getProperty(OperatorProperty.PROMETHEUS_AUTOBIND))
-        .thenReturn(Optional.of(Boolean.TRUE.toString()));
+    when(operatorContext.getBoolean(OperatorProperty.PROMETHEUS_AUTOBIND))
+        .thenReturn(true);
 
     Prometheus prometheus = invokeGetConfig();
 
@@ -147,8 +175,8 @@ class PrometheusTest {
   @Test
   void givenPrometheusInTheClusterButNotMatchLabelConfiguredAndAutobindSettled__itShouldNotFlagTheCreationOfServiceMonitor() {
 
-    when(operatorContext.getProperty(OperatorProperty.PROMETHEUS_AUTOBIND))
-        .thenReturn(Optional.of(Boolean.TRUE.toString()));
+    when(operatorContext.getBoolean(OperatorProperty.PROMETHEUS_AUTOBIND))
+        .thenReturn(true);
 
     when(prometheusScanner.findResources()).thenReturn(Optional.of(prometheusConfigList.getItems()));
 
@@ -168,8 +196,8 @@ class PrometheusTest {
   @Test
   void givenAutobindSettledButNotAllowed_ItShouldNotEvenLookForPrometheusInstallations() {
 
-    when(operatorContext.getProperty(OperatorProperty.PROMETHEUS_AUTOBIND))
-        .thenReturn(Optional.of(Boolean.FALSE.toString()));
+    when(operatorContext.getBoolean(OperatorProperty.PROMETHEUS_AUTOBIND))
+        .thenReturn(false);
 
     Prometheus prometheus = invokeGetConfig();
 

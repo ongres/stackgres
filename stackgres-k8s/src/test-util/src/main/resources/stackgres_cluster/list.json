@@ -40,11 +40,24 @@
           "disableMetricsExporter": false,
           "disablePostgresUtil": false,
           "metadata": {
-            "annotations": {
-              "customAnnotation" : "customValue"
-            },
             "labels": {
               "customLabel" : "customLabelValue"
+            }
+          }
+        },
+        "postgresServices": {
+          "primary": {
+            "enabled": true,
+            "type": "ClusterIP",
+            "annotations": {
+              "customAnnotation" : "customValue"
+            }
+          },
+          "replicas": {
+            "enabled": true,
+            "type": "ClusterIP",
+            "annotations": {
+              "customAnnotation" : "customValue"
             }
           }
         }

@@ -22,7 +22,7 @@ import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFail
 @ValidationType(ErrorType.INVALID_CR_REFERENCE)
 public class BackupConfigValidator implements ClusterValidator {
 
-  private CustomResourceFinder<StackGresBackupConfig> configFinder;
+  private final CustomResourceFinder<StackGresBackupConfig> configFinder;
 
   @Inject
   public BackupConfigValidator(

@@ -1,38 +1,67 @@
 #!/bin/sh
 
+export E2E_PULLED_IMAGES_PATH="${E2E_PULLED_IMAGES_PATH:-$TARGET_PATH/pulled-images}"
+export E2E_USE_INTERMIDIATE_PRIVATE_REPO="${E2E_USE_INTERMIDIATE_PRIVATE_REPO:-false}"
+
+setup_cache() {
+  if [ "$E2E_DISABLE_CACHE" = "true" ]
+  then
+    return
+  fi
+  load_cached_images_from_local_repository
+  cache_pulled_images_to_local_repository &
+  trap_kill "$!"
+  load_failed_to_pull_images_from_local_repository &
+  trap_kill "$!"
+}
+
 set_up_private_repository() {
   if ! aws ecr describe-repositories --repository-name "stackgres/operator" > /dev/null
   then
     aws ecr create-repository --repository-name "stackgres/operator" 
-  fi  
-  
+  fi
+
   if ! aws ecr describe-repositories --repository-name "stackgres/restapi" > /dev/null
   then
     aws ecr create-repository --repository-name "stackgres/restapi" 
+  fi
+
+  if ! aws ecr describe-repositories --repository-name "stackgres/admin-ui" > /dev/null
+  then
+    aws ecr create-repository --repository-name "stackgres/admin-ui" 
+  fi
+
+  if ! aws ecr describe-repositories --repository-name "stackgres/admin-ui" > /dev/null
+  then
+    aws ecr create-repository --repository-name "stackgres/admin-ui" 
   fi  
+
 
   export PRIVATE_REPO_URI=$(get_private_repository_uri)
   export PRIVATE_OPERATOR_IMAGE_NAME="$PRIVATE_REPO_URI/$OPERATOR_IMAGE_NAME"
   export PRIVATE_RESTAPI_IMAGE_NAME="$PRIVATE_REPO_URI/$RESTAPI_IMAGE_NAME"
+  export PRIVATE_ADMINUI_IMAGE_NAME="$PRIVATE_REPO_URI/$ADMINUI_IMAGE_NAME"
 
   get_private_repository_password | docker login --username AWS --password-stdin "$PRIVATE_REPO_URI"
   
   docker tag "$OPERATOR_IMAGE_NAME" "$PRIVATE_OPERATOR_IMAGE_NAME"
   docker tag "$RESTAPI_IMAGE_NAME" "$PRIVATE_RESTAPI_IMAGE_NAME"
+  docker tag "$ADMINUI_IMAGE_NAME" "$PRIVATE_ADMINUI_IMAGE_NAME"
 
   docker push "$PRIVATE_OPERATOR_IMAGE_NAME"
   docker push "$PRIVATE_RESTAPI_IMAGE_NAME"
+  docker push "$PRIVATE_ADMINUI_IMAGE_NAME"
 
-  if kubectl get namespace stackgres > /dev/null
+  if kubectl get namespace "$OPERATOR_NAMESPACE" > /dev/null
   then  
-    kubectl get secret -n stackgres regcred > /dev/null && kubectl delete secret -n stackgres regcred
-    kubectl create secret docker-registry -n stackgres regcred \
+    kubectl get secret -n "$OPERATOR_NAMESPACE" regcred > /dev/null && kubectl delete secret -n "$OPERATOR_NAMESPACE" regcred
+    kubectl create secret docker-registry -n "$OPERATOR_NAMESPACE" regcred \
       --docker-server="$PRIVATE_REPO_URI" \
       --docker-username="AWS" \
       --docker-password="$(get_private_repository_password)"
   else
-    kubectl create namespace stackgres
-    kubectl create secret docker-registry -n stackgres regcred \
+    kubectl create namespace "$OPERATOR_NAMESPACE"
+    kubectl create secret docker-registry -n "$OPERATOR_NAMESPACE" regcred \
     --docker-server="$PRIVATE_REPO_URI" \
     --docker-username="AWS" \
     --docker-password="$(get_private_repository_password)"
@@ -46,12 +75,12 @@ get_private_repository_uri() {
   echo "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com"
 }
 
-get_private_repo_password() {
+get_private_repository_password() {
   echo "$(aws ecr get-login-password)"
 }
 
 load_cached_images_from_local_repository() {
-  cat "$TARGET_PATH/pulled-images" \
+  cat "$E2E_PULLED_IMAGES_PATH" \
     | cut -d : -f 2-3 | sort | uniq \
     | (
       while read IMAGE_NAME
@@ -74,19 +103,19 @@ cache_pulled_images_to_local_repository() {
       while read IMAGE_NAME
       do
         echo "Detected pulled image $IMAGE_NAME to k8s env $E2E_ENV"
-        if [ ! -f "$TARGET_PATH/pulled-images" ]
+        if [ ! -f "$E2E_PULLED_IMAGES_PATH" ]
         then
-          rm -f "$TARGET_PATH/pulled-images"
-          touch "$TARGET_PATH/pulled-images"
+          rm -f "$E2E_PULLED_IMAGES_PATH"
+          touch "$E2E_PULLED_IMAGES_PATH"
         fi
-        if [ "$(grep -F "$IMAGE_NAME" "$TARGET_PATH/pulled-images" \
+        if [ "$(grep -F "$IMAGE_NAME" "$E2E_PULLED_IMAGES_PATH" \
           | sort | tail -n 1 | cut -d : -f 1 | grep '\d+' || echo 0)" \
           -lt "$(($(date +%s)-30))" ]
         then
           echo "Pulling image $IMAGE_NAME to cache"
           if docker pull -q "$IMAGE_NAME"
           then
-            echo "$(date +%s):$IMAGE_NAME" >> "$TARGET_PATH/pulled-images"
+            echo "$(date +%s):$IMAGE_NAME" >> "$E2E_PULLED_IMAGES_PATH"
           else
             echo "Pulling image $IMAGE_NAME to cache failed!"
           fi
@@ -111,25 +140,4 @@ load_failed_to_pull_images_from_local_repository() {
         fi
       done
       )
-}
-
-load_operator_k8s() {
-  if docker image inspect "$OPERATOR_IMAGE_NAME" >/dev/null 2>&1
-  then 
-    load_image_k8s "$OPERATOR_IMAGE_NAME"
-  else
-    echo "Image $OPERATOR_IMAGE_NAME not found in cache!"
-  fi
-  if docker image inspect "$RESTAPI_IMAGE_NAME" >/dev/null 2>&1
-  then 
-    load_image_k8s "$RESTAPI_IMAGE_NAME"
-  else
-    echo "Image $RESTAPI_IMAGE_NAME not found in cache!"
-  fi
-  if docker image inspect "$ADMINUI_IMAGE_NAME" >/dev/null 2>&1
-  then 
-    load_image_k8s "$ADMINUI_IMAGE_NAME"
-  else
-    echo "Image $ADMINUI_IMAGE_NAME not found in cache!"
-  fi
 }

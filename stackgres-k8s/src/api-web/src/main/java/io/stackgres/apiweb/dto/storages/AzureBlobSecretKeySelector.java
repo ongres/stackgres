@@ -7,6 +7,7 @@ package io.stackgres.apiweb.dto.storages;
 
 import java.util.Objects;
 
+import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -23,10 +24,12 @@ public class AzureBlobSecretKeySelector {
 
   @JsonProperty("storageAccount")
   @NotNull(message = "The account is required")
+  @Valid
   private SecretKeySelector account;
 
   @JsonProperty("accessKey")
   @NotNull(message = "The accessKey is required")
+  @Valid
   private SecretKeySelector accessKey;
 
   public SecretKeySelector getAccount() {

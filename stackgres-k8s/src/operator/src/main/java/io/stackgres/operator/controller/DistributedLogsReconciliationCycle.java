@@ -19,21 +19,17 @@ import io.stackgres.common.ArcUtil;
 import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.StackGresUtil;
-import io.stackgres.common.crd.sgcluster.NonProduction;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterDefinition;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDistributedLogs;
-import io.stackgres.common.crd.sgcluster.StackGresClusterDoneable;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
-import io.stackgres.common.crd.sgcluster.StackGresClusterList;
+import io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
-import io.stackgres.common.crd.sgcluster.StackGresClusterScript;
+import io.stackgres.common.crd.sgcluster.StackGresClusterScriptEntry;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresPodPersistentVolume;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
-import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsDefinition;
-import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsDoneable;
-import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsList;
+import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsNonProduction;
+import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.operator.app.ObjectMapperProvider;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSet;
 import io.stackgres.operator.common.ImmutableStackGresDistributedLogsContext;
@@ -42,8 +38,8 @@ import io.stackgres.operator.common.SidecarEntry;
 import io.stackgres.operator.common.StackGresComponents;
 import io.stackgres.operator.common.StackGresDistributedLogsContext;
 import io.stackgres.operator.common.StackGresDistributedLogsGeneratorContext;
-import io.stackgres.operator.configuration.OperatorContext;
-import io.stackgres.operator.distributedlogs.factory.DistributeLogs;
+import io.stackgres.operator.configuration.OperatorPropertyContext;
+import io.stackgres.operator.distributedlogs.factory.DistributedLogs;
 import io.stackgres.operator.distributedlogs.fluentd.Fluentd;
 import io.stackgres.operator.resource.DistributedLogsResourceHandlerSelector;
 import io.stackgres.operatorframework.reconciliation.AbstractReconciliationCycle;
@@ -58,12 +54,14 @@ public class DistributedLogsReconciliationCycle
     extends AbstractReconciliationCycle<StackGresDistributedLogsContext,
       StackGresDistributedLogs, DistributedLogsResourceHandlerSelector> {
 
-  private final DistributeLogs distributeLogs;
+  private final DistributedLogs distributeLogs;
   private final Fluentd fluentd;
   private final DistributedLogsStatusManager statusManager;
   private final EventController eventController;
-  private final OperatorContext operatorContext;
+  private final OperatorPropertyContext operatorContext;
   private final LabelFactory<StackGresDistributedLogs> labelFactory;
+  private final CustomResourceScanner<StackGresDistributedLogs> distributedLogsScanner;
+  private final CustomResourceScanner<StackGresCluster> clusterScanner;
 
   /**
    * Create a {@code DistributeLogsReconciliationCycle} instance.
@@ -71,12 +69,14 @@ public class DistributedLogsReconciliationCycle
   @Inject
   public DistributedLogsReconciliationCycle(
       KubernetesClientFactory clientFactory,
-      DistributeLogs distributeLogs, Fluentd fluentd,
+      DistributedLogs distributeLogs, Fluentd fluentd,
       DistributedLogsResourceHandlerSelector handlerSelector,
       DistributedLogsStatusManager statusManager, EventController eventController,
       ObjectMapperProvider objectMapperProvider,
-      OperatorContext operatorContext,
-      LabelFactory<StackGresDistributedLogs> labelFactory) {
+      OperatorPropertyContext operatorContext,
+      LabelFactory<StackGresDistributedLogs> labelFactory,
+      CustomResourceScanner<StackGresDistributedLogs> distributedLogsScanner,
+      CustomResourceScanner<StackGresCluster> clusterScanner) {
     super("DistributeLogs", clientFactory::create,
         StackGresDistributedLogsContext::getDistributedLogs,
         handlerSelector, objectMapperProvider.objectMapper());
@@ -86,6 +86,8 @@ public class DistributedLogsReconciliationCycle
     this.eventController = eventController;
     this.operatorContext = operatorContext;
     this.labelFactory = labelFactory;
+    this.distributedLogsScanner = distributedLogsScanner;
+    this.clusterScanner = clusterScanner;
   }
 
   public DistributedLogsReconciliationCycle() {
@@ -97,6 +99,8 @@ public class DistributedLogsReconciliationCycle
     this.eventController = null;
     this.operatorContext = null;
     this.labelFactory = null;
+    this.distributedLogsScanner = null;
+    this.clusterScanner = null;
   }
 
   @Override
@@ -161,31 +165,20 @@ public class DistributedLogsReconciliationCycle
   }
 
   @Override
-  protected ImmutableList<StackGresDistributedLogsContext> getExistingConfigs(
-      KubernetesClient client) {
-    return ResourceUtil.getCustomResource(client, StackGresDistributedLogsDefinition.NAME)
-        .map(crd -> client
-            .customResources(crd,
-                StackGresDistributedLogs.class,
-                StackGresDistributedLogsList.class,
-                StackGresDistributedLogsDoneable.class)
-            .inAnyNamespace()
-            .list()
-            .getItems()
-            .stream()
-            .map(distributedLogs -> getDistributedLogsContext(distributedLogs, client))
-            .collect(ImmutableList.toImmutableList()))
-        .orElseThrow(() -> new IllegalStateException("StackGres is not correctly installed:"
-            + " CRD " + StackGresDistributedLogsDefinition.NAME + " not found."));
+  protected ImmutableList<StackGresDistributedLogsContext> getExistingConfigs() {
+    return distributedLogsScanner.getResources()
+        .stream()
+        .map(distributedLogs -> getDistributedLogsContext(distributedLogs))
+        .collect(ImmutableList.toImmutableList());
   }
 
   private StackGresDistributedLogsContext getDistributedLogsContext(
-      StackGresDistributedLogs distributedLogs, KubernetesClient client) {
+      StackGresDistributedLogs distributedLogs) {
     final StackGresCluster cluster = getStackGresCLusterForDistributedLogs(distributedLogs);
     return ImmutableStackGresDistributedLogsContext.builder()
         .operatorContext(operatorContext)
         .distributedLogs(distributedLogs)
-        .connectedClusters(getConnectedClusters(distributedLogs, client))
+        .connectedClusters(getConnectedClusters(distributedLogs))
         .cluster(cluster)
         .backupContext(Optional.empty())
         .restoreContext(Optional.empty())
@@ -196,6 +189,7 @@ public class DistributedLogsReconciliationCycle
         .clusterNamespace(labelFactory.clusterNamespace(cluster))
         .clusterName(labelFactory.clusterName(cluster))
         .clusterKey(labelFactory.getLabelMapper().clusterKey())
+        .scheduledBackupKey(labelFactory.getLabelMapper().scheduledBackupKey())
         .backupKey(labelFactory.getLabelMapper().backupKey())
         .ownerReferences(ImmutableList.of(ResourceUtil.getOwnerReference(distributedLogs)))
         .addBackups()
@@ -226,46 +220,39 @@ public class DistributedLogsReconciliationCycle
     pod.setPersistentVolume(persistentVolume);
     spec.setPod(pod);
     final StackGresClusterInitData initData = new StackGresClusterInitData();
-    final StackGresClusterScript script = new StackGresClusterScript();
+    final StackGresClusterScriptEntry script = new StackGresClusterScriptEntry();
     script.setName("distributed-logs-template");
     script.setDatabase("template1");
-    script.setValue(Unchecked.supplier(() -> Resources
+    script.setScript(Unchecked.supplier(() -> Resources
           .asCharSource(ClusterStatefulSet.class.getResource("/distributed-logs-template.sql"),
               StandardCharsets.UTF_8)
           .read()).get());
     initData.setScripts(ImmutableList.of(script));
     spec.setInitData(initData);
-    final NonProduction nonProduction = new NonProduction();
+    final StackGresClusterNonProduction nonProduction = new StackGresClusterNonProduction();
     nonProduction.setDisableClusterPodAntiAffinity(
-        distributedLogs.getSpec().getNonProduction().getDisableClusterPodAntiAffinity());
+        Optional.ofNullable(distributedLogs.getSpec().getNonProduction())
+        .map(StackGresDistributedLogsNonProduction::getDisableClusterPodAntiAffinity)
+        .orElse(false));
     spec.setNonProduction(nonProduction);
     distributedLogsCluster.setSpec(spec);
     return distributedLogsCluster;
   }
 
   private ImmutableList<StackGresCluster> getConnectedClusters(
-      StackGresDistributedLogs distributedLogs, KubernetesClient client) {
+      StackGresDistributedLogs distributedLogs) {
     final String namespace = distributedLogs.getMetadata().getNamespace();
     final String name = distributedLogs.getMetadata().getName();
-    return ResourceUtil.getCustomResource(client, StackGresClusterDefinition.NAME)
-        .map(crd -> client
-            .customResources(crd,
-                StackGresCluster.class,
-                StackGresClusterList.class,
-                StackGresClusterDoneable.class)
-            .inAnyNamespace()
-            .list()
-            .getItems()
-            .stream()
-            .filter(cluster -> Optional.ofNullable(cluster.getSpec().getDistributedLogs())
-                .map(StackGresClusterDistributedLogs::getDistributedLogs)
-                .map(distributedLogsRelativeId -> StackGresUtil.getNamespaceFromRelativeId(
-                    distributedLogsRelativeId,
-                    cluster.getMetadata().getNamespace()).equals(namespace)
-                    && StackGresUtil.getNameFromRelativeId(
-                        distributedLogsRelativeId).equals(name))
-                .orElse(false))
-            .collect(ImmutableList.toImmutableList()))
-        .orElse(ImmutableList.of());
+    return clusterScanner.getResources()
+        .stream()
+        .filter(cluster -> Optional.ofNullable(cluster.getSpec().getDistributedLogs())
+            .map(StackGresClusterDistributedLogs::getDistributedLogs)
+            .map(distributedLogsRelativeId -> StackGresUtil.getNamespaceFromRelativeId(
+                distributedLogsRelativeId,
+                cluster.getMetadata().getNamespace()).equals(namespace)
+                && StackGresUtil.getNameFromRelativeId(
+                    distributedLogsRelativeId).equals(name))
+            .orElse(false))
+        .collect(ImmutableList.toImmutableList());
   }
 }

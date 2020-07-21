@@ -9,7 +9,7 @@ public enum ErrorType {
 
   CONSTRAINT_VIOLATION("constraint-violation",
       "Some fields do not comply with the syntactic rules"),
-  PG_CONFIG_BLACKLIST("postgres-blacklist",
+  PG_CONFIG_BLOCKLIST("postgres-blocklist",
       "The postgres configuration contains blacklisted parameters"),
   PG_VERSION_MISMATCH("postgres-major-version-mismatch", "Postgres versions doesn't match"),
   INVALID_CR_REFERENCE("invalid-configuration-reference",
@@ -22,8 +22,12 @@ public enum ErrorType {
       "Forbidden configuration update"),
   FORBIDDEN_CLUSTER_UPDATE("forbidden-cluster-update",
       "Forbidden cluster update"),
+  FORBIDDEN_AUTHORIZATION("forbidden-authorization",
+      "Forbidden API role-based access control"),
   INVALID_STORAGE_CLASS("invalid-storage-class",
-      "Invalid storage class");
+      "Invalid storage class"),
+  INVALID_SECRET("invalid-secret",
+      "Invalid secret");
 
 
   private String uri;
@@ -36,18 +40,18 @@ public enum ErrorType {
 
   public static String getErrorTypeUriPrefix() {
 
-    String documentationUri = StackGresContext.DOCUMENTATION_URI;
-    String errorsPath = StackGresContext.DOCUMENTATION_ERRORS_PATH;
-    String operatorVersion = StackGresContext.OPERATOR_VERSION;
+    String documentationUri = StackGresProperty.DOCUMENTATION_URI.getString();
+    String errorsPath = StackGresProperty.DOCUMENTATION_ERRORS_PATH.getString();
+    String operatorVersion = StackGresProperty.OPERATOR_VERSION.getString();
 
     return documentationUri + operatorVersion + errorsPath;
   }
 
   public static String getErrorTypeUri(ErrorType constraintViolation) {
 
-    String documentationUri = StackGresContext.DOCUMENTATION_URI;
-    String errorsPath = StackGresContext.DOCUMENTATION_ERRORS_PATH;
-    String operatorVersion = StackGresContext.OPERATOR_VERSION;
+    String documentationUri = StackGresProperty.DOCUMENTATION_URI.getString();
+    String errorsPath = StackGresProperty.DOCUMENTATION_ERRORS_PATH.getString();
+    String operatorVersion = StackGresProperty.OPERATOR_VERSION.getString();
 
     return String
         .format("%s%s%s%s",

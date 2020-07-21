@@ -25,17 +25,14 @@
         "fromBackup": "d7e660a9-377c-11ea-b04b-0242ac110004"
       }
     },
-    "pods":{
+    "pods": {
       "persistentVolume": {
         "size": "5Gi",
         "storageClass": "standard"
       },
       "metadata": {
-        "annotations": {
-          "customAnnotation" : "customValue"
-        },
         "labels": {
-          "customLabel" : "customLabelValue"
+          "customLabel": "customLabelValue"
         }
       },
       "disableConnectionPooling": false,

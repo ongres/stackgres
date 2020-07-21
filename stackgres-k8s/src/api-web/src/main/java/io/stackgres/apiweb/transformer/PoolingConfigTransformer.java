@@ -22,6 +22,7 @@ import io.stackgres.apiweb.dto.pooling.PoolingConfigStatus;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncer;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigSpec;
+import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigStatus;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple3;
 
@@ -38,10 +39,7 @@ public class PoolingConfigTransformer
     StackGresPoolingConfig transformation = Optional.ofNullable(original)
         .orElseGet(StackGresPoolingConfig::new);
     transformation.setMetadata(getCustomResourceMetadata(source, original));
-    final PoolingConfigSpec spec = source.getSpec();
-    if (spec != null) {
-      transformation.setSpec(getCustomResourceSpec(spec));
-    }
+    transformation.setSpec(getCustomResourceSpec(source.getSpec()));
     return transformation;
   }
 
@@ -50,11 +48,14 @@ public class PoolingConfigTransformer
     PoolingConfigDto transformation = new PoolingConfigDto();
     transformation.setMetadata(getResourceMetadata(source));
     transformation.setSpec(getResourceSpec(source.getSpec()));
-    transformation.setStatus(getResourceStatus(clusters, source.getSpec()));
+    transformation.setStatus(getResourceStatus(clusters, source.getStatus(), source.getSpec()));
     return transformation;
   }
 
   private StackGresPoolingConfigSpec getCustomResourceSpec(PoolingConfigSpec source) {
+    if (source == null) {
+      return null;
+    }
     StackGresPoolingConfigSpec transformation = new StackGresPoolingConfigSpec();
     Optional.ofNullable(source)
         .map(PoolingConfigSpec::getPgBouncer)
@@ -88,17 +89,21 @@ public class PoolingConfigTransformer
   }
 
   private PoolingConfigStatus getResourceStatus(List<String> clusters,
-      StackGresPoolingConfigSpec source) {
+      StackGresPoolingConfigStatus source, StackGresPoolingConfigSpec sourceSpec) {
     PoolingConfigStatus transformation = new PoolingConfigStatus();
     transformation.setClusters(clusters);
     transformation.setPgBouncer(new PoolingConfigPgBouncerStatus());
     transformation.getPgBouncer().setPgbouncerConf(
-        Seq.seq(source.getPgBouncer().getPgbouncerConf())
+        Seq.seq(sourceSpec.getPgBouncer().getPgbouncerConf())
           .map(t -> t.concat(new PgBouncerIniParameter()))
           .peek(t -> t.v3.setParameter(t.v1))
           .peek(t -> t.v3.setValue(t.v2))
           .map(Tuple3::v3)
           .toList());
+    if (source != null && source.getPgBouncer() != null) {
+      transformation.getPgBouncer().setDefaultParameters(
+          source.getPgBouncer().getDefaultParameters());
+    }
     return transformation;
   }
 

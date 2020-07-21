@@ -5,7 +5,7 @@
 
 package io.stackgres.common.crd.sgbackupconfig;
 
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresProperty;
 
 public enum StackGresBackupConfigDefinition {
 
@@ -14,8 +14,8 @@ public enum StackGresBackupConfigDefinition {
   public static final String KIND = "SGBackupConfig";
   public static final String SINGULAR = "sgbackupconfig";
   public static final String PLURAL = "sgbackupconfigs";
-  public static final String NAME = PLURAL + "." + StackGresContext.CRD_GROUP;
-  public static final String APIVERSION = StackGresContext.CRD_GROUP
-      + "/" + StackGresContext.CRD_VERSION;
+  public static final String NAME = PLURAL + "." + StackGresProperty.CRD_GROUP.getString();
+  public static final String APIVERSION = StackGresProperty.CRD_GROUP.getString()
+      + "/" + StackGresProperty.CRD_VERSION.getString();
 
 }

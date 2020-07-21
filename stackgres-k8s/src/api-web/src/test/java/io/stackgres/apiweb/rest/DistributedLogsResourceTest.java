@@ -72,8 +72,7 @@ class DistributedLogsResourceTest
     assertEquals("distributedlogs", resource.getMetadata().getName());
     assertEquals("008af052-7fcd-4665-b3b9-6d7dedbc543c", resource.getMetadata().getUid());
     assertNotNull(resource.getSpec());
-    assertNotNull(resource.getSpec().getNonProduction());
-    assertEquals(true, resource.getSpec().getNonProduction().getDisableClusterPodAntiAffinity());
+    assertNull(resource.getSpec().getNonProduction());
     assertNotNull(resource.getSpec().getPersistentVolume());
     assertEquals("128Mi", resource.getSpec().getPersistentVolume().getVolumeSize());
     assertNull(resource.getSpec().getPersistentVolume().getStorageClass());
@@ -90,8 +89,7 @@ class DistributedLogsResourceTest
     assertEquals("distributedlogs", resource.getMetadata().getName());
     assertEquals("008af052-7fcd-4665-b3b9-6d7dedbc543c", resource.getMetadata().getUid());
     assertNotNull(resource.getSpec());
-    assertNotNull(resource.getSpec().getNonProduction());
-    assertEquals(true, resource.getSpec().getNonProduction().getDisableClusterPodAntiAffinity());
+    assertNull(resource.getSpec().getNonProduction());
     assertNotNull(resource.getSpec().getPersistentVolume());
     assertEquals("128Mi", resource.getSpec().getPersistentVolume().getVolumeSize());
     assertNull(resource.getSpec().getPersistentVolume().getStorageClass());

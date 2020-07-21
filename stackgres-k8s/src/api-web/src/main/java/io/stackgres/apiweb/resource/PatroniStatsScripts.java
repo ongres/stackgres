@@ -5,28 +5,55 @@
 
 package io.stackgres.apiweb.resource;
 
-import java.util.Map;
 import java.util.Properties;
-import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableMap;
+import org.jooq.lambda.Seq;
+import org.jooq.lambda.tuple.Tuple;
+import org.jooq.lambda.tuple.Tuple2;
 
-public class PatroniStatsScripts {
+public enum PatroniStatsScripts {
 
-  private static final Map<String, String> STATS_SCRIPTS;
+  CPU_FOUND("cpuFound"),
+  CPU_QUOTA("cpuQuota"),
+  CPU_PERIOD("cpuPeriod"),
+  CPU_PSI_AVG10("cpuPsiAvg10"),
+  CPU_PSI_AVG60("cpuPsiAvg60"),
+  CPU_PSI_AVG300("cpuPsiAvg300"),
+  CPU_PSI_TOTAL("cpuPsiTotal"),
+  MEMORY_FOUND("memoryFound"),
+  MEMORY_USED("memoryUsed"),
+  MEMORY_PSI_AVG10("memoryPsiAvg10"),
+  MEMORY_PSI_AVG60("memoryPsiAvg60"),
+  MEMORY_PSI_AVG300("memoryPsiAvg300"),
+  MEMORY_PSI_TOTAL("memoryPsiTotal"),
+  MEMORY_PSI_FULL_AVG10("memoryPsiFullAvg10"),
+  MEMORY_PSI_FULL_AVG60("memoryPsiFullAvg60"),
+  MEMORY_PSI_FULL_AVG300("memoryPsiFullAvg300"),
+  MEMORY_PSI_FULL_TOTAL("memoryPsiFullTotal"),
+  DISK_FOUND("diskFound"),
+  DISK_USED("diskUsed"),
+  DISK_PSI_AVG10("diskPsiAvg10"),
+  DISK_PSI_AVG60("diskPsiAvg60"),
+  DISK_PSI_AVG300("diskPsiAvg300"),
+  DISK_PSI_TOTAL("diskPsiTotal"),
+  DISK_PSI_FULL_AVG10("diskPsiFullAvg10"),
+  DISK_PSI_FULL_AVG60("diskPsiFullAvg60"),
+  DISK_PSI_FULL_AVG300("diskPsiFullAvg300"),
+  DISK_PSI_FULL_TOTAL("diskPsiFullTotal"),
+  LOAD_1M("load1m"),
+  LOAD_5M("load5m"),
+  LOAD_10M("load10m");
 
-  static {
-    STATS_SCRIPTS = ImmutableMap.<String, String>builder()
-        .putAll(readResource().entrySet().stream()
-            .filter(e -> !e.getKey().toString().isEmpty())
-            .collect(Collectors.toMap(
-                e -> e.getKey().toString(), e -> e.getValue().toString())))
-        .build();
+  private static final ImmutableMap<PatroniStatsScripts, String> SCRIPTS = readScripts();
+
+  private final String name;
+
+  PatroniStatsScripts(String name) {
+    this.name = name;
   }
 
-  private PatroniStatsScripts() {}
-
-  private static Properties readResource() {
+  private static ImmutableMap<PatroniStatsScripts, String> readScripts() {
     Properties properties = new Properties();
     try {
       properties.load(PatroniStatsScripts.class.getResourceAsStream(
@@ -34,48 +61,24 @@ public class PatroniStatsScripts {
     } catch (Exception ex) {
       throw new RuntimeException(ex);
     }
-    return properties;
+    return Seq.of(values())
+        .map(script -> Tuple.tuple(script, properties.getProperty(script.name)))
+        .collect(ImmutableMap.toImmutableMap(Tuple2::v1, Tuple2::v2));
   }
 
-  public static String getCpuFound() {
-    return get("cpuFound");
+  public String getName() {
+    return name;
   }
 
-  public static String getMemoryFound() {
-    return get("memoryFound");
+  public static ImmutableMap<PatroniStatsScripts, String> getScripts() {
+    return SCRIPTS;
   }
 
-  public static String getMemoryUsed() {
-    return get("memoryUsed");
-  }
-
-  public static String getDiskFound() {
-    return get("diskFound");
-  }
-
-  public static String getDiskUsed() {
-    return get("diskUsed");
-  }
-
-  public static String getLoad1m() {
-    return get("load1m");
-  }
-
-  public static String getLoad5m() {
-    return get("load5m");
-  }
-
-  public static String getLoad10m() {
-    return get("load10m");
-  }
-
-  private static String get(String scriptKey) {
-    String script = STATS_SCRIPTS.get(scriptKey);
-    if (script == null) {
-      throw new IllegalStateException(
-          "Key " + scriptKey + " not found in patroni-stats.properties");
-    }
-    return script;
+  public static PatroniStatsScripts fromName(String name) {
+    return Seq.of(values())
+        .filter(e -> e.name.equals(name))
+        .findAny()
+        .orElseThrow(() -> new IllegalArgumentException("No enum with name " + name));
   }
 
 }

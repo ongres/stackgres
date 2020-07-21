@@ -84,6 +84,17 @@ You can specify following parameters values:
 | `configurations.poolingconfig` | {{< description stackgres-cluster.configurations.poolingconfig >}} | See [connection pooling configuration](#connection-pooling-configuration) |
 | `configurations.backupconfig` | {{< description stackgres-cluster.configurations.backupconfig.description >}} | See [backup configuration](#backup-configuration) |
 
+#### Postgres Services
+
+| Parameter | Description | Default |
+|:----------|:------------|:--------|
+| `cluster.postgresServices.primary.enabled` | {{< crd-field-description SGCluster.spec.postgresServices.primary.enabled >}} | true |
+| `cluster.postgresServices.primary.type` | {{< crd-field-description SGCluster.spec.postgresServices.primary.type >}} | ClusterIP |
+| `cluster.postgresServices.primary.annotations` | {{< crd-field-description SGCluster.spec.postgresServices.primary.annotations >}} | |
+| `cluster.postgresServices.replicas.enabled` | {{< crd-field-description SGCluster.spec.postgresServices.replicas.enabled >}} | true |
+| `cluster.postgresServices.replicas.type` | {{< crd-field-description SGCluster.spec.postgresServices.replicas.type >}} | ClusterIP |
+| `cluster.postgresServices.replicas.annotations` | {{< crd-field-description SGCluster.spec.postgresServices.replicas.annotations >}} | |
+
 #### Pods
 
 | Parameter | Description | Default |
@@ -93,8 +104,15 @@ You can specify following parameters values:
 | `cluster.pods.disableConnectionPooling` | {{< crd-field-description SGCluster.spec.pods.disableConnectionPooling >}} | false |
 | `cluster.pods.disableMetricsExporter` | {{< crd-field-description SGCluster.spec.pods.disableMetricsExporter >}} | false |
 | `cluster.pods.disablePostgresUtil` | {{< crd-field-description SGCluster.spec.pods.disablePostgresUtil >}} | false |
-| `cluster.pods.metadata.annotations` | {{< crd-field-description SGCluster.spec.pods.metadata.annotations >}} | false |
 | `cluster.pods.metadata.labels` | {{< crd-field-description SGCluster.spec.pods.metadata.labels >}} | false |
+
+#### Resources metadata
+
+| Parameter | Description | Default |
+|:----------|:------------|:--------|
+| `cluster.metadata.annotations.allResources` | {{< crd-field-description SGCluster.spec.metadata.annotations.allResources >}} | |
+| `cluster.metadata.annotations.pods` | {{< crd-field-description SGCluster.spec.metadata.annotations.pods >}} |  |
+| `cluster.metadata.annotations.services` | {{< crd-field-description SGCluster.spec.metadata.annotations.services >}} | false |
 
 #### Instance profiles
 
@@ -248,6 +266,25 @@ By default, stackgres creates as an empty database. To create a cluster with dat
 |:----------|:------------|:--------|
 | `cluster.initialData.restore.fromBackup` | {{< crd-field-description SGCluster.spec.initialData.restore.fromBackup >}} |  |
 | `cluster.initialData.restore.downloadDiskConcurrency` | {{< crd-field-description SGCluster.spec.initialData.restore.downloadDiskConcurrency >}} |  |
+
+#### Scripts configuration
+
+By default, stackgres creates as an empty database. To execute some scripts, we have the scripts
+ options where you can specify a script or reference a key in a ConfigMap or a Secret that contains
+ the script to execute.
+
+| Parameter | Description | Default |
+|:----------|:------------|:--------|
+| `cluster.initialData.scripts.<index>.name` | {{< crd-field-description SGCluster.spec.initialData.scripts.items.name >}} |  |
+| `cluster.initialData.scripts.<index>.database` | {{< crd-field-description SGCluster.spec.initialData.scripts.items.database >}} | postgres |
+| `cluster.initialData.scripts.<index>.script` | {{< crd-field-description SGCluster.spec.initialData.scripts.items.script >}} |  |
+| `cluster.initialData.scripts.<index>.scriptFrom` | {{< crd-field-description SGCluster.spec.initialData.scripts.items.scriptFrom >}} |  |
+| `cluster.initialData.scripts.<index>.scriptFrom.configMapKeyRef` | {{< crd-field-description SGCluster.spec.initialData.scripts.items.scriptFrom.configMapKeyRef >}} |  |
+| `cluster.initialData.scripts.<index>.scriptFrom.configMapKeyRef.name` | {{< crd-field-description SGCluster.spec.initialData.scripts.items.scriptFrom.configMapKeyRef.name >}} |  |
+| `cluster.initialData.scripts.<index>.scriptFrom.configMapKeyRef.key` | {{< crd-field-description SGCluster.spec.initialData.scripts.items.scriptFrom.configMapKeyRef.key >}} |  |
+| `cluster.initialData.scripts.<index>.scriptFrom.secretKeyRef` | {{< crd-field-description SGCluster.spec.initialData.scripts.items.scriptFrom.secretKeyRef >}} |  |
+| `cluster.initialData.scripts.<index>.scriptFrom.secretKeyRef.name` | {{< crd-field-description SGCluster.spec.initialData.scripts.items.scriptFrom.secretKeyRef.name >}} |  |
+| `cluster.initialData.scripts.<index>.scriptFrom.secretKeyRef.key` | {{< crd-field-description SGCluster.spec.initialData.scripts.items.scriptFrom.secretKeyRef.key >}} |  |
 
 #### Distributed logs
 

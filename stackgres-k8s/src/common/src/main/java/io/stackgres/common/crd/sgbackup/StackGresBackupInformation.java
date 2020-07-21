@@ -8,6 +8,8 @@ package io.stackgres.common.crd.sgbackup;
 import java.util.Map;
 import java.util.Objects;
 
+import javax.validation.Valid;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.MoreObjects;
@@ -23,7 +25,9 @@ public class StackGresBackupInformation {
   private String postgresVersion;
   private String systemIdentifier;
 
+  @Valid
   private StackgresBackupLsn lsn;
+  @Valid
   private StackgresBackupSize size;
 
   private Map<String, String> controlData;

@@ -36,14 +36,6 @@ public class StackGresPoolingConfigSpec implements KubernetesResource {
   }
 
   @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .omitNullValues()
-        .add("pgBouncer", getPgBouncer())
-        .toString();
-  }
-
-  @Override
   public boolean equals(Object o) {
     if (this == o) {
       return true;
@@ -58,5 +50,13 @@ public class StackGresPoolingConfigSpec implements KubernetesResource {
   @Override
   public int hashCode() {
     return Objects.hash(pgBouncer);
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .omitNullValues()
+        .add("pgBouncer", pgBouncer)
+        .toString();
   }
 }

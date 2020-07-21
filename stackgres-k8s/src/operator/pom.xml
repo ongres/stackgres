@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2019 OnGres, Inc.
+  ~ SPDX-License-Identifier: AGPL-3.0-or-later
+  -->
+
 <project xmlns="http://maven.apache.org/POM/4.0.0"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -23,7 +28,7 @@
     <quarkus.skipAugmentation>false</quarkus.skipAugmentation>
     <checks.location>${project.parent.basedir}/checks</checks.location>
 
-    <it.image>stackgres/it:7.0</it.image>
+    <it.image>stackgres/it:8.0</it.image>
   </properties>
 
   <dependencies>
@@ -130,6 +135,44 @@
     </testResources>
     <plugins>
       <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>java</goal>
+            </goals>
+            <configuration>
+              <mainClass>io.stackgres.common.StackGresComponentsUpdater</mainClass>
+              <arguments>
+                <argument>${project.build.directory}/generated-resources/components/versions.properties</argument>
+              </arguments>
+              <includeProjectDependencies>true</includeProjectDependencies>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>add-resource</goal>
+            </goals>
+            <configuration>
+              <resources>
+                <resource>
+                  <directory>${project.build.directory}/generated-resources/components</directory>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
         <groupId>io.quarkus</groupId>
         <artifactId>quarkus-maven-plugin</artifactId>
         <version>${quarkus.version}</version>
@@ -146,6 +189,35 @@
         </executions>
       </plugin>
     </plugins>
+    <pluginManagement>
+      <plugins>
+        <!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
+        <plugin>
+          <groupId>org.eclipse.m2e</groupId>
+          <artifactId>lifecycle-mapping</artifactId>
+          <version>1.0.0</version>
+          <configuration>
+            <lifecycleMappingMetadata>
+              <pluginExecutions>
+                <pluginExecution>
+                  <pluginExecutionFilter>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>exec-maven-plugin</artifactId>
+                    <versionRange>[3.0.0,)</versionRange>
+                    <goals>
+                      <goal>java</goal>
+                    </goals>
+                  </pluginExecutionFilter>
+                  <action>
+                    <execute></execute>
+                  </action>
+                </pluginExecution>
+              </pluginExecutions>
+            </lifecycleMappingMetadata>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
   </build>
 
   <profiles>
@@ -348,8 +420,8 @@
                   <containerNamePattern>%a</containerNamePattern>
                   <images>
                     <image>
-                      <alias>ongres-native-builder</alias>
-                      <name>ongres-native-builder</name>
+                      <alias>operator-native-builder</alias>
+                      <name>operator-native-builder</name>
                       <build>
                         <cleanup>remove</cleanup>
                         <from>ongres/builder</from>
@@ -519,32 +591,6 @@
                       </run>
                     </image>
                   </images>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-    <profile>
-      <id>update-versions</id>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>exec-maven-plugin</artifactId>
-            <version>1.1.1</version>
-            <executions>
-              <execution>
-                <phase>package</phase>
-                <goals>
-                  <goal>java</goal>
-                </goals>
-                <configuration>
-                  <mainClass>io.stackgres.operator.common.StackGresComponents</mainClass>
-                  <arguments>
-                    <argument>${project.basedir}/src/main/resources/versions.properties</argument>
-                  </arguments>
                 </configuration>
               </execution>
             </executions>

@@ -35,7 +35,7 @@ class BackupResourceTest
   }
 
   @Override
-  protected BackupDto getResourceDto() {
+  protected BackupDto getDto() {
     return JsonUtil.readFromJson("stackgres_backup/dto.json", BackupDto.class);
   }
 
@@ -80,7 +80,7 @@ class BackupResourceTest
     assertNull(resource.getStatus().getBackupConfig().getBaseBackups().getPerformance().getMaxNetworkBandwitdh());
     assertEquals(1, resource.getStatus().getBackupConfig().getBaseBackups().getPerformance().getUploadDiskConcurrency());
     assertNull(resource.getStatus().getBackupConfig().getBaseBackups().getCronSchedule());
-    assertEquals(0, resource.getStatus().getBackupConfig().getBaseBackups().getRetention());
+    assertNull(resource.getStatus().getBackupConfig().getBaseBackups().getRetention());
     assertNotNull(resource.getStatus().getBackupConfig().getStorage());
     assertNull(resource.getStatus().getBackupConfig().getStorage().getAzureBlob());
     assertNull(resource.getStatus().getBackupConfig().getStorage().getGcs());
@@ -135,7 +135,7 @@ class BackupResourceTest
         assertNull(resource.getStatus().getBackupConfig().getBaseBackups().getPerformance().getMaxNetworkBandwitdh());
         assertEquals(1, resource.getStatus().getBackupConfig().getBaseBackups().getPerformance().getUploadDiskConcurrency());
         assertNull(resource.getStatus().getBackupConfig().getBaseBackups().getCronSchedule());
-        assertEquals(0, resource.getStatus().getBackupConfig().getBaseBackups().getRetention());
+        assertNull(resource.getStatus().getBackupConfig().getBaseBackups().getRetention());
         assertNotNull(resource.getStatus().getBackupConfig().getStorage());
         assertNull(resource.getStatus().getBackupConfig().getStorage().getAzureBlob());
         assertNull(resource.getStatus().getBackupConfig().getStorage().getGcs());

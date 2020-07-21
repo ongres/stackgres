@@ -16,7 +16,6 @@ import java.util.Optional;
 
 import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.CustomResourceList;
-import io.stackgres.apiweb.rest.AbstractRestService;
 import io.stackgres.apiweb.dto.ResourceDto;
 import io.stackgres.apiweb.transformer.AbstractResourceTransformer;
 import io.stackgres.common.resource.CustomResourceFinder;
@@ -41,14 +40,14 @@ public abstract class AbstractCustomResourceTest<T extends ResourceDto, R extend
   protected CustomResourceScheduler<R> scheduler;
 
   protected CustomResourceList<R> customResources;
-  protected T resourceDto;
+  protected T dto;
   protected S service;
   protected AbstractResourceTransformer<T, R> transformer;
 
   @BeforeEach
   void setUp() {
     customResources = getCustomResourceList();
-    resourceDto = getResourceDto();
+    dto = getDto();
 
     transformer = getTransformer();
     service = getService(scanner, finder, scheduler, transformer);
@@ -87,7 +86,7 @@ public abstract class AbstractCustomResourceTest<T extends ResourceDto, R extend
       }
     }).when(scheduler).create(any());
 
-    service.create(resourceDto);
+    service.create(dto);
   }
 
   @Test
@@ -106,7 +105,7 @@ public abstract class AbstractCustomResourceTest<T extends ResourceDto, R extend
       }
     }).when(scheduler).update(any());
 
-    service.update(resourceDto);
+    service.update(dto);
   }
 
   @Test
@@ -122,12 +121,12 @@ public abstract class AbstractCustomResourceTest<T extends ResourceDto, R extend
       }
     }).when(scheduler).delete(any());
 
-    service.delete(resourceDto);
+    service.delete(dto);
   }
 
   protected abstract CustomResourceList<R> getCustomResourceList();
 
-  protected abstract T getResourceDto();
+  protected abstract T getDto();
 
   protected abstract AbstractResourceTransformer<T, R> getTransformer();
 

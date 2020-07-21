@@ -11,6 +11,7 @@ echo "Preparing environment"
 setup_images
 setup_k8s
 setup_cache
+setup_helm
 setup_operator
 setup_logs
 
@@ -24,6 +25,8 @@ else
     | xargs -r -n 1 -I % sh -c "basename '%'" \
     | xargs -r -n 1 -I % echo "$SPEC_PATH/%")"
 fi
+
+echo_raw "Running tests: $SPECS"
 
 export K8S_REUSE=true
 export E2E_REUSE_OPERATOR_PODS=true

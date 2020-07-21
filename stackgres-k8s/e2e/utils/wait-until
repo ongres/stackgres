@@ -1,17 +1,29 @@
 #!/bin/sh
 
+export E2E_TIMEOUT="${E2E_TIMEOUT:-180}"
+
 wait_until() {
   local RESULT
   local EXIT_CODE
   local START="$(date +%s)"
   local TIMEOUT="$E2E_TIMEOUT"
+  local INTERVAL=2
   local OUTPUT_PATH="$LOG_PATH/wait-until-$START-$(shuf -i 0-65535 -n 1).log"
-  if [ "$1" = "-t" ]
-  then
-    shift
-    TIMEOUT="$1"
-    shift
-  fi
+  while echo_raw "$1" | grep -q '^-'
+  do
+    if [ "$1" = "-t" ]
+    then
+      shift
+      TIMEOUT="$1"
+      shift
+    fi
+    if [ "$1" = "-i" ]
+    then
+      shift
+      INTERVAL="$1"
+      shift
+    fi
+  done
   echo -n >"$OUTPUT_PATH"
   while [ "$((START + TIMEOUT))" -gt "$(date +%s)" ]
   do
@@ -20,7 +32,7 @@ wait_until() {
     then
       return
     fi
-    sleep 2
+    sleep "$INTERVAL"
   done
   cat "$OUTPUT_PATH"
   return 1

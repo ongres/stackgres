@@ -60,9 +60,8 @@ import io.quarkus.runner.TransformerTarget;
 import io.quarkus.runtime.LaunchMode;
 import io.quarkus.test.common.PathTestHelper;
 import io.quarkus.test.junit.QuarkusTest;
+import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresUtil;
-import io.stackgres.operator.common.OperatorConfigDefaults;
-import io.stackgres.operatorframework.admissionwebhook.validating.Validator;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jooq.lambda.Unchecked;
 import org.objectweb.asm.ClassReader;
@@ -87,6 +86,7 @@ public class LocalOperatorRunner implements OperatorRunner {
   private static final String CREATED_FILES = "CREATED_FILES.txt";
 
   private final Container k8s;
+  private final String namespace;
   private final Class<?> testClass;
   private final int port;
   private final int sslPort;
@@ -96,9 +96,11 @@ public class LocalOperatorRunner implements OperatorRunner {
   private RuntimeRunner runtimeRunner;
   private CompletableFuture<Void> running = new CompletableFuture<>();
 
-  public LocalOperatorRunner(Container k8s, Class<?> testClass, int port, int sslPort) {
+  public LocalOperatorRunner(Container k8s, String namespace, Class<?> testClass, int port,
+      int sslPort) {
     super();
     this.k8s = k8s;
+    this.namespace = namespace;
     this.testClass = testClass;
     this.port = port;
     this.sslPort = sslPort;
@@ -128,8 +130,8 @@ public class LocalOperatorRunner implements OperatorRunner {
   private void setup() throws Exception {
     List<String> kubeconfig = k8s.execute("sh", "-l", "-c", "kubectl config view --minify --raw")
         .collect(Collectors.toList());
-    System.setProperty("quarkus.http.ssl.certificate.file", "src/test/resources/certs/server.crt");
-    System.setProperty("quarkus.http.ssl.certificate.key-file", "src/test/resources/certs/server-key.pem");
+    System.setProperty("%test.quarkus.http.ssl.certificate.file", "target/certs/server.crt");
+    System.setProperty("%test.quarkus.http.ssl.certificate.key-file", "target/certs/server-key.pem");
     System.setProperty(Config.KUBERNETES_AUTH_TRYKUBECONFIG_SYSTEM_PROPERTY, Boolean.FALSE.toString());
     System.setProperty(Config.KUBERNETES_AUTH_TRYSERVICEACCOUNT_SYSTEM_PROPERTY, Boolean.FALSE.toString());
     System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, kubeconfig.stream()
@@ -140,6 +142,7 @@ public class LocalOperatorRunner implements OperatorRunner {
     LOGGER.info("Setup fabric8 to connect to {}", System.getProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY));
     System.setProperty("quarkus.http.test-port", String.valueOf(port));
     System.setProperty("quarkus.http.test-ssl-port", String.valueOf(sslPort));
+    System.setProperty(OperatorProperty.OPERATOR_NAMESPACE.getPropertyName(), namespace);
 
     final Path appClassLocation = getAppClassLocation(testClass);
     final Path testClassLocation = getTestClassesLocation(testClass);

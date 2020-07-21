@@ -1,5 +1,7 @@
 #!/bin/sh
 
+export SPEC_PATH="$(dirname "$0")/spec"
+
 e2e_test_before_all() {
   true
 }
@@ -155,18 +157,14 @@ spec() {
 
   local START="$(date +%s)"
   echo -n > "$LOG_PATH/$SPEC_NAME.log"
-  (
-    set +ex
-    "$SHELL" +x -c 'echo $$; exec tail -f '"$LOG_PATH/$SPEC_NAME.log" \
-      | (
-      read pid
-      trap_kill "$pid"
-      while IFS="\n" read -r line
-      do
-        echo_raw "$(date +"%Y-%m-%d %H:%M:%S") [$SPEC_NAME] $line"
-      done
-      )
-  ) &
+  trap_exec tail -f "$LOG_PATH/$SPEC_NAME.log" \
+    | (
+    set +x
+    while IFS="\n" read -r line
+    do
+      echo_raw "$(date +"%Y-%m-%d %H:%M:%S") [$SPEC_NAME] $line"
+    done
+    ) &
   try_function run_spec >> "$LOG_PATH/$SPEC_NAME.log" 2>&1
   if ! "$RESULT"
   then

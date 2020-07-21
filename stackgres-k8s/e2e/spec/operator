@@ -11,7 +11,7 @@ e2e_test_install() {
 e2e_test_uninstall() {
   delete_operator
   install_operator
-  wait_pods_running "stackgres" 2
+  wait_pods_running "$OPERATOR_NAMESPACE" 2
 }
 
 e2e_test() {
@@ -54,7 +54,7 @@ check_operator_install_with_wait() {
     --wait
 
   for app in operator restapi; do
-    if kubectl wait --timeout 0 --for=condition=Ready -n stackgres -l app="stackgres-${app}" pod; then
+    if kubectl wait --timeout 0 --for=condition=Ready -n "$OPERATOR_NAMESPACE" -l app="stackgres-${app}" pod; then
       echo "SUCCESS. The stackgres '${app}' pod was ready after using --wait parameter."
       continue
     fi

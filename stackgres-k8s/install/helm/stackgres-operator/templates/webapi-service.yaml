@@ -5,6 +5,11 @@ kind: Service
 metadata:
   namespace: {{ .Release.Namespace }}
   name: {{ .Values.restapi.name  }}
+  annotations:
+    meta.helm.sh/release-name: {{ .Release.Name }}
+    meta.helm.sh/release-namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/managed-by: Helm
 spec:
   {{- if .Values.service.loadBalancer.enabled }}
   type: LoadBalancer

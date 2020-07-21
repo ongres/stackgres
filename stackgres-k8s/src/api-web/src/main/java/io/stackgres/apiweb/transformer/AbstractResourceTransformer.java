@@ -7,24 +7,13 @@ package io.stackgres.apiweb.transformer;
 
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.client.CustomResource;
-import io.stackgres.apiweb.dto.Metadata;
 import io.stackgres.apiweb.dto.ResourceDto;
 
 public abstract class AbstractResourceTransformer<T extends ResourceDto, R extends CustomResource>
-    implements ResourceTransformer<T, R> {
+    extends AbstractDtoTransformer<T, R> implements ResourceTransformer<T, R> {
 
   protected ObjectMeta getCustomResourceMetadata(T source, R original) {
     ObjectMeta metadata = original != null ? original.getMetadata() : new ObjectMeta();
-    if (source.getMetadata() != null) {
-      metadata.setNamespace(source.getMetadata().getNamespace());
-      metadata.setName(source.getMetadata().getName());
-      metadata.setUid(source.getMetadata().getUid());
-    }
-    return metadata;
-  }
-
-  protected Metadata getResourceMetadata(R source) {
-    Metadata metadata = new Metadata();
     if (source.getMetadata() != null) {
       metadata.setNamespace(source.getMetadata().getNamespace());
       metadata.setName(source.getMetadata().getName());

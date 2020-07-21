@@ -21,15 +21,21 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
+import io.stackgres.common.crd.sgcluster.StackGresClusterScriptEntry;
 import io.stackgres.operator.common.LabelFactoryDelegator;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresClusterResourceStreamFactory;
 import io.stackgres.operator.common.StackGresGeneratorContext;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jooq.lambda.Seq;
+import org.jooq.lambda.tuple.Tuple2;
 
 @ApplicationScoped
 public class PatroniScriptsConfigMap implements StackGresClusterResourceStreamFactory {
+
+  public static final String SCRIPT_BASIC_NAME = "%05d";
+
+  public static final String SCRIPT_BASIC_NAME_FOR_DATABASE = "%05d.%s";
 
   public static final String SCRIPT_NAME = "%05d-%s";
 
@@ -38,22 +44,40 @@ public class PatroniScriptsConfigMap implements StackGresClusterResourceStreamFa
   private LabelFactoryDelegator factoryDelegator;
 
   public static String name(StackGresClusterContext clusterContext,
-                            Long index, String name, String database) {
+                            Tuple2<StackGresClusterScriptEntry, Long> indexedScript) {
     return ResourceUtil.resourceName(clusterContext.getCluster().getMetadata().getName()
-        + "-" + baseName(index, name, database)
-        .toLowerCase(Locale.US).replaceAll("[^a-z0-9-]", "-"));
+        + "-" + normalizedResourceName(indexedScript));
   }
 
-  public static String scriptName(Long index, String name, String database) {
-    return baseName(index, name, database) + ".sql";
+  public static String scriptName(Tuple2<StackGresClusterScriptEntry, Long> indexedScript) {
+    return normalizedKeyName(indexedScript) + ".sql";
   }
 
-  private static String baseName(Long index, String name, String database) {
-    name = name.replace('.', '_');
-    if (database == null) {
-      return String.format(SCRIPT_NAME, index, name);
+  private static String normalizedResourceName(
+      Tuple2<StackGresClusterScriptEntry, Long> indexedScript) {
+    return baseName(indexedScript)
+        .toLowerCase(Locale.US).replaceAll("[^a-z0-9-]", "-");
+  }
+
+  private static String normalizedKeyName(
+      Tuple2<StackGresClusterScriptEntry, Long> indexedScript) {
+    return baseName(indexedScript)
+        .toLowerCase(Locale.US).replaceAll("[^a-zA-Z0-9-_.]", "-");
+  }
+
+  private static String baseName(Tuple2<StackGresClusterScriptEntry, Long> indexedScript) {
+    if (indexedScript.v1.getName() == null) {
+      if (indexedScript.v1.getDatabase() == null) {
+        return String.format(SCRIPT_BASIC_NAME, indexedScript.v2);
+      }
+      return String.format(SCRIPT_BASIC_NAME_FOR_DATABASE,
+          indexedScript.v2, indexedScript.v1.getDatabase());
     }
-    return String.format(SCRIPT_NAME_FOR_DATABASE, index, name, database);
+    if (indexedScript.v1.getDatabase() == null) {
+      return String.format(SCRIPT_NAME, indexedScript.v2, indexedScript.v1.getName());
+    }
+    return String.format(SCRIPT_NAME_FOR_DATABASE,
+        indexedScript.v2, indexedScript.v1.getName(), indexedScript.v1.getDatabase());
   }
 
   @Override
@@ -70,17 +94,17 @@ public class PatroniScriptsConfigMap implements StackGresClusterResourceStreamFa
         .map(Optional::get)
         .flatMap(List::stream)
         .zipWithIndex()
+        .filter(t -> t.v1.getScript() != null)
         .map(t -> {
           final LabelFactory<?> labelFactory = factoryDelegator.pickFactory(clusterContext);
           return new ConfigMapBuilder()
               .withNewMetadata()
               .withNamespace(cluster.getMetadata().getNamespace())
-              .withName(name(clusterContext, t.v2, t.v1.getName(), t.v1.getDatabase()))
+              .withName(name(clusterContext, t))
               .withLabels(labelFactory.patroniClusterLabels(cluster))
               .withOwnerReferences(clusterContext.getOwnerReferences())
               .endMetadata()
-              .withData(ImmutableMap.of(
-                  scriptName(t.v2, t.v1.getName(), t.v1.getDatabase()), t.v1.getValue()))
+              .withData(ImmutableMap.of(scriptName(t), t.v1.getScript()))
               .build();
         });
   }

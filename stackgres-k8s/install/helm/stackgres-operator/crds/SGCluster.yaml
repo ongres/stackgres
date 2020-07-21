@@ -52,6 +52,55 @@ spec:
               type: string
               description: |
                 Name of the [SGInstanceProfile](https://stackgres.io/doc/latest/04-postgres-cluster-management/03-resource-profiles/) to use. A SGInstanceProfile defines CPU and memory limits. Must exist before creating the cluster. If you don't select a profile, a default (currently: 1 core, 2 GiB RAM) one will be used.
+            metadata:
+              type: object
+              description: StackGres cluster created resources metadata information
+              properties:
+                annotations:
+                  type: object
+                  description: Additional annotations for StackGres resources to have
+                  properties:
+                    allResources:
+                      type: object
+                      description: "Custom annotations for all StackGres resources to have"
+                    pods:
+                      type: object
+                      description: "Custom annotations for StackGres pods to have"
+                    services:
+                      type: object
+                      description: "Custom annotations for StackGres services to have"
+            postgresServices:
+              type: object
+              description: Postgres services configurations
+              properties:
+                primary:
+                  type: object
+                  description: Primary service configurations
+                  properties:
+                    enabled:
+                      type: boolean
+                      description: Specify if the service should be created or not
+                    type:
+                      type: string
+                      enum: ["ClusterIP", "LoadBalancer", "NodePort"]
+                      description: Type of primary service
+                    annotations:
+                      type: object
+                      description: Primary services annotations
+                replicas:
+                  type: object
+                  description: Replicas service configurations
+                  properties:
+                    enabled:
+                      type: boolean
+                      description: Specify if the service should be created or not
+                    type:
+                      type: string
+                      enum: ["ClusterIP", "LoadBalancer", "NodePort"]
+                      description: Type of replicas service
+                    annotations:
+                      type: object
+                      description: Replicas service annotations
             pods:
               type: object
               description: Cluster pod's configuration
@@ -83,9 +132,6 @@ spec:
                   type: object
                   description: Pod custom metadata information
                   properties:
-                    annotations:
-                      type: object
-                      description: Additional annotations for StackGres Pods to have
                     labels:
                       type: object
                       description: Additional labels for StackGres Pods to have
@@ -125,6 +171,62 @@ spec:
                       minimum: 1
                       description: |
                         The backup fetch process may fetch several streams in parallel. Specify a value larger than one for parallel fetching.
+                scripts:
+                  type: array
+                  description: |
+                    A list of SQL scripts that will be executed once in secuence when the database bootstrap and after restore is completed.
+                  items:
+                    type: object
+                    description: |
+                      Scripts are executed in autocommit mode with the user `postgres` in the specified database (or in database `postgres` if not specified).
+                      
+                      Fields `script` and `scriptFrom` are mutually exclusive and one of them is required.
+                    properties:
+                      name:
+                        type: string
+                        description: |
+                          The name of the script.
+                      database:
+                        type: string
+                        description: |
+                          The database where the script will be executed. If not specified will be the `postgres` database.
+                      script:
+                        type: string
+                        description: |
+                          The SQL script to execute. This field is mutually exclusive with `scriptFrom` field.
+                      scriptFrom:
+                        type: object
+                        description: |
+                          Reference that contains the SQL script to execute. This field is mutually exclusive with `script` field.
+                          
+                          Fields `secretKeyRef` and `configMapKeyRef` are mutually exclusive and one of them is required.
+                        properties:
+                          secretKeyRef:
+                            type: object
+                            description: |
+                              A Secret key reference that contains the SQL script to execute. This field is mutually exclusive with `configMapKeyRef` field.
+                            properties:
+                              name:
+                                type: string
+                                description: |
+                                  The name of the Secret that contains the SQL script to execute.
+                              key:
+                                type: string
+                                description: |
+                                  The key of the Secret that contains the SQL script to execute.
+                          configMapKeyRef:
+                            type: object
+                            description: |
+                              A ConfigMap key reference that contains the SQL script to execute. This field is mutually exclusive with `secretKeyRef` field.
+                            properties:
+                              name:
+                                type: string
+                                description: |
+                                  The name of the ConfigMap that contains the SQL script to execute.
+                              key:
+                                type: string
+                                description: |
+                                  The key of the ConfigMap that contains the SQL script to execute.
             prometheusAutobind:
               type: boolean
               description: |

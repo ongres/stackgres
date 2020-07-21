@@ -8,6 +8,8 @@ buckets:
   - name: $CLUSTER_NAME-backup
     policy: none
     purge: true
+readinessProbe:
+  initialDelaySeconds: 5
 EOF
   if [ "$E2E_ENV" = "minishift" ]
   then
@@ -18,7 +20,9 @@ EOF
   kubectl create namespace "$CLUSTER_NAMESPACE-backup"
 
   helm install "$CLUSTER_NAME-backup-minio" stable/minio \
-    --namespace "$CLUSTER_NAMESPACE-backup" -f "$LOG_PATH/minio-values.yaml"
+    --namespace "$CLUSTER_NAMESPACE-backup" \
+    --version 5.0.26 \
+    -f "$LOG_PATH/minio-values.yaml"
 
   SPEC_VALUES_FILE="$SPEC_FILE.backup.values.yaml"
 
@@ -80,11 +84,11 @@ e2e_test() {
 
 
 create_mock_data() {
-  run_query -p 5435 -i 0 -n "$CLUSTER_NAMESPACE-backup" -c "$CLUSTER_NAME-backup" -q "'CREATE DATABASE test;'"
-  run_query -p 5435 -i 0 -n "$CLUSTER_NAMESPACE-backup" -c "$CLUSTER_NAME-backup" -q "'CREATE TABLE fibonacci(num integer);'" -d "test"
-  run_query -p 5435 -i 0 -n "$CLUSTER_NAMESPACE-backup" -c "$CLUSTER_NAME-backup" -q "'INSERT INTO fibonacci(num) VALUES (1);'" -d "test"
-  run_query -p 5435 -i 0 -n "$CLUSTER_NAMESPACE-backup" -c "$CLUSTER_NAME-backup" -q "'INSERT INTO fibonacci(num) VALUES (2);'" -d "test"
-  run_query -p 5435 -i 0 -n "$CLUSTER_NAMESPACE-backup" -c "$CLUSTER_NAME-backup" -q "'INSERT INTO fibonacci(num) VALUES (3);'" -d "test"
+  run_query -p 5432 -i 0 -n "$CLUSTER_NAMESPACE-backup" -c "$CLUSTER_NAME-backup" -q "'CREATE DATABASE test;'"
+  run_query -p 5432 -i 0 -n "$CLUSTER_NAMESPACE-backup" -c "$CLUSTER_NAME-backup" -q "'CREATE TABLE fibonacci(num integer);'" -d "test"
+  run_query -p 5432 -i 0 -n "$CLUSTER_NAMESPACE-backup" -c "$CLUSTER_NAME-backup" -q "'INSERT INTO fibonacci(num) VALUES (1);'" -d "test"
+  run_query -p 5432 -i 0 -n "$CLUSTER_NAMESPACE-backup" -c "$CLUSTER_NAME-backup" -q "'INSERT INTO fibonacci(num) VALUES (2);'" -d "test"
+  run_query -p 5432 -i 0 -n "$CLUSTER_NAMESPACE-backup" -c "$CLUSTER_NAME-backup" -q "'INSERT INTO fibonacci(num) VALUES (3);'" -d "test"
 }
 
 check_init_data() {
@@ -142,8 +146,8 @@ check_replication() {
 }
 
 check_backup_pg_version() {
-  ALTERNATIVE_MAYOR_PG_VERSION="11"
-  ALTERNATIVE_PG_VERSION="$ALTERNATIVE_MAYOR_PG_VERSION.7"
+  ALTERNATIVE_PG_VERSION="11.8"
+  ALTERNATIVE_MAYOR_PG_VERSION="${ALTERNATIVE_PG_VERSION%.*}"
 
   cat << EOF | kubectl apply -f -
 apiVersion: stackgres.io/v1beta1

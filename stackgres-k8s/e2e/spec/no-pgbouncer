@@ -5,7 +5,7 @@ e2e_test_install_pods() {
 }
 
 e2e_test() {
-  run_test "Checking that all 3 ports (5432, 5433, 5434) in the patroni pods are openned and listeing for queries" ports_check
+  run_test "Checking that all 3 ports (5432, 7432, 7433) in the patroni pods are openned and listeing for queries" ports_check
 
   run_test "Checking that is possible to connect using services is working" service_check
 
@@ -14,16 +14,16 @@ e2e_test() {
 
 ports_check() {
   RESPONSE_5432="$(run_query -i 0 -p 5432)"
-  RESPONSE_5433="$(run_query -i 0 -p 5433)"
-  RESPONSE_5435="$(run_query -i 0 -p 5435)"
+  RESPONSE_7432="$(run_query -i 0 -p 7432)"
+  RESPONSE_7433="$(run_query -i 0 -p 7433)"
 
-  if [ "$RESPONSE_5432" = "1" ] && [ "$RESPONSE_5433" = "1" ] && [ "$RESPONSE_5435" = "1" ]
+  if [ "$RESPONSE_5432" = "1" ] && [ "$RESPONSE_7432" = "1" ] && [ "$RESPONSE_7433" = "1" ]
   then
     RESPONSE_5432="$(run_query -i 1 -p 5432)"
-    RESPONSE_5433="$(run_query -i 1 -p 5433)"
-    RESPONSE_5435="$(run_query -i 1 -p 5435)"
+    RESPONSE_7432="$(run_query -i 1 -p 7432)"
+    RESPONSE_7433="$(run_query -i 1 -p 7433)"
 
-    if [ "$RESPONSE_5432" = "1" ] && [ "$RESPONSE_5433" = "1" ] && [ "$RESPONSE_5435" = "1" ]
+    if [ "$RESPONSE_5432" = "1" ] && [ "$RESPONSE_7432" = "1" ] && [ "$RESPONSE_7433" = "1" ]
     then
       echo "SUCCESS: All ports are ok"
     else 
@@ -56,12 +56,12 @@ service_check() {
 }
 
 check_pgbouncer() {
-  if run_query -i 0 -p 5434 > /dev/null
+  if run_query -i 0 -p 6432 > /dev/null
   then
     echo "FAIL: pgbouncer port on primary server is open"
     return 1
   else
-    if run_query -i 1 -p 5434 > /dev/null
+    if run_query -i 1 -p 6432 > /dev/null
     then
       echo "FAIL: pgbouncer port on replica server is open"
       return 1

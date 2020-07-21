@@ -5,16 +5,10 @@
 
 package io.stackgres.common;
 
-import javax.enterprise.context.ApplicationScoped;
-
-import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
 
-@ApplicationScoped
-public class KubernetesClientFactory {
+public interface KubernetesClientFactory {
 
-  public KubernetesClient create() {
-    return new DefaultKubernetesClient();
-  }
+  KubernetesClient create();
 
 }
