@@ -78,6 +78,10 @@
             "type": "string",
             "description": "The hostname of instance where the backup is taken.\n"
           },
+          "sourcePod": {
+            "type": "string",
+            "description": "The pod where the backup is taken.\n"
+          },
           "systemIdentifier": {
             "type": "string",
             "description": "The Postgres *system identifier* of the cluster this backup is taken from.\n"
@@ -121,6 +125,10 @@
           "startWalFile": {
             "type": "string",
             "description": "The WAL segment file name when backup was started.\n"
+          },
+          "timeline": {
+            "type": "string",
+            "description": "The backup timeline.\n"
           },
           "controlData": {
             "type": "object",
@@ -347,6 +355,10 @@
                     "type": "object",
                     "description": "The credentials to access GCS for writing and reading.\n",
                     "properties": {
+                      "fetchCredentialsFromMetadataService": {
+                        "type": "boolean",
+                        "description": "If true, the credentials will be fetched from the GCE/GKE metadata service and the credentials from `secretKeySelectors` field will not be used.\n\nThis is useful when running StackGres inside a GKE cluster using [Workload Identity](https://cloud.google.com/kubernetes-engine/docs/how-to/workload-identity).\n"
+                      },
                       "secretKeySelectors": {
                         "type": "object",
                         "description": "A Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core) to reference the Secrets that contain the information about the Service Account to access GCS.\n",
@@ -375,9 +387,7 @@
                         ]
                       }
                     },
-                    "required": [
-                      "secretKeySelectors"
-                    ]
+                    "required": []
                   }
                 },
                 "required": [

@@ -22,5 +22,27 @@
         }
       }
     }
+  },
+  "status": {
+    "type": "object",
+    "properties": {
+      "pgBoucer": {
+        "type": "object",
+        "description": "Connection pooling configuration status based on PgBouncer.\n",
+        "properties": {
+          "defaultParameters": {
+            "type": "array",
+            "description": "A list of names of parameters that are set to theirs default value.\n",
+            "items": {
+              "type": "string",
+              "description": "Name of a parameter that is set to his default value.\n"
+            }
+          }
+        },
+        "required": [
+          "defaultParameters"
+        ]
+      }
+    }
   }
 }
