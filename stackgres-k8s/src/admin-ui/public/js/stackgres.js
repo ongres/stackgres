@@ -277,6 +277,8 @@ const router = new VueRouter({
 
 router.beforeEach((to, from, next) => { 
 
+  const component = to.matched[0].components.default.options.name;
+  
   // If loading CRD from direct URL validate if CRD exists on the API before loading
   if( from.path == '/') {
 
@@ -298,9 +300,11 @@ router.beforeEach((to, from, next) => {
       });
     }
       
-    switch(to.matched[0].components.default.options.name) {
+    switch(component) {
 
       case 'CreateCluster':
+      case 'Logs':
+      case 'Grafana':    
 
         axios
         .get(apiURL+'sgcluster')
@@ -339,9 +343,7 @@ router.beforeEach((to, from, next) => {
 
       case 'ClusterStatus':
       case 'ClusterInfo':
-      case 'Logs':
-      case 'Grafana':
-         /* Check if Cluster exists */
+        /* Check if Cluster exists */
         axios
         .get(apiURL+'sgcluster/stats/'+to.params.namespace+'/'+to.params.name)
         .then( function(response){
@@ -486,49 +488,75 @@ router.beforeEach((to, from, next) => {
       case 'CreateBackup':
         /* If filtered by Cluster, first check if Cluster exists */
         if(to.params.hasOwnProperty('cluster')) {
-          axios
-          .get(apiURL+'sgcluster/stats/'+to.params.namespace+'/'+to.params.name)
-          .then( function(response){
-            next()
-          }).catch(function(err) {
-            notFound()
+          var found = false
+
+          response.data.forEach( function(item, index) {
+
+            var cluster = {
+              name: item.metadata.name,
+              data: item,
+              hasBackups: false,
+              status: {},
+            };
+              
+            store.commit('updateClusters', cluster);
+
+            if( to.params.hasOwnProperty('name') && (to.params.name == item.metadata.name) && (to.params.namespace == item.metadata.namespace) ) {
+              store.commit('setCurrentCluster', cluster);
+              found = true;
+            }
+
           });
+
+          if( to.params.hasOwnProperty('name') && !found)
+            notFound()
+          else
+            next()
+
         } else {
+          
           axios
           .get(apiURL+'sgbackup')
           .then( function(response){
 
             var found = false
 
-            response.data.forEach( function(item, index) {
+            if(response.data.length) {
+
+              response.data.forEach( function(item, index) {
+                  
+                if( (item.status !== null) && item.status.hasOwnProperty('process')) {
+                  if( item.status.process.status === 'Completed' ) {
+                    //console.log('setting duration');
+                    start = moment(item.status.process.timing.start);
+                    finish = moment(item.status.process.timing.stored);
+                    duration = new Date(moment.duration(finish.diff(start))).toISOString();
+                  } 
+                } else {
+                  //console.log('duration not set');
+                  duration = '';
+                }
                 
-              if( (typeof item.status.process.status !== 'undefined') && (item.status.process.status === 'Completed') ) {
-                //console.log('setting duration');
-                start = moment(item.status.process.timing.start);
-                finish = moment(item.status.process.timing.stored);
-                duration = new Date(moment.duration(finish.diff(start))).toISOString();
-              } else {
-                //console.log('duration not set');
-                duration = '';
-              }
-              
-                
-              store.commit('updateBackups', { 
-                name: item.metadata.name,
-                data: item,
-                duration: duration,
-                show: true
+                  
+                store.commit('updateBackups', { 
+                  name: item.metadata.name,
+                  data: item,
+                  duration: duration,
+                  show: true
+                });
+
+                if( to.params.hasOwnProperty('uid') && (to.params.uid == item.metadata.uid) && (to.params.namespace == item.metadata.namespace) )
+                  found = true;
+
               });
+            }
 
-              if( to.params.hasOwnProperty('uid') && (to.params.uid == item.metadata.uid) && (to.params.namespace == item.metadata.namespace) )
-                found = true;
-
-            });
-
-            if( to.params.hasOwnProperty('uid') && !found)
+            if( to.params.hasOwnProperty('uid') && !found) {
               notFound()
-            else
+            }
+            else {
               next()
+            }
 
           }).catch(function(err) {
             notFound()
@@ -546,6 +574,8 @@ router.beforeEach((to, from, next) => {
 
     let cluster = store.state.clusters.find(c => ( (to.params.name == c.name) && (to.params.namespace == c.data.metadata.namespace) ) );
     
+    //console.log(cluster);
+
     if ( typeof cluster !== "undefined" ) {
       
       store.commit('setCurrentCluster', cluster);
@@ -602,6 +632,13 @@ const store = new Vuex.Store({
     logs: [],
     logsClusters: [],
     cloneCRD: {},
+    permissions: {
+      allowed: {
+        namespaced: [],
+        unnamespaced: []
+      },
+      forbidden: []
+    },
     tooltips: {
       description: 'Click on a question mark to get help and tips about that field.', 
       SGCluster: {},
@@ -623,7 +660,16 @@ const store = new Vuex.Store({
 
     notFound (state, notFound) {
       state.notFound = notFound;
-    }, 
+    },
+    
+    setPermissions (state, permissions) {
+      state.permissions.allowed = permissions;
+    },
+
+    setNoPermissions (state, kind) {
+      if(!state.permissions.forbidden.includes(kind))
+        state.permissions.forbidden.push(kind)
+    },
 
     setReady (state, ready) {
       state.ready = ready;
@@ -869,7 +915,33 @@ Vue.mixin({
     return {
     }
   },
+  computed: {
+   
+  },
   methods: {
+
+    iCan( action, kind, namespace = '' ) {
+      
+      if(namespace.length) {
+        var iCan = false;
+        
+        store.state.permissions.allowed.namespaced.forEach(function( ns ){
+          if( (ns.namespace == namespace) && ns.resources.hasOwnProperty(kind) && (ns.resources[kind].includes(action)) ) {
+            iCan = true;
+            return false
+          }
+        });
+        
+        return iCan
+      } else {
+        return !store.state.permissions.forbidden.includes(kind)
+      }
+
+    },
+
+    iCant ( ) {
+      return "<p>You don't have enough permissions to access this resource</p>"
+    },
 
     parseParams: function(params) {
       params = params.replace(/=/g, ':</strong> ');
@@ -966,7 +1038,7 @@ Vue.mixin({
     loadTooltips: function( kind, lang = 'EN' ) {
 
       if( !store.state.tooltips[kind].hasOwnProperty('metadata.name') ) {
-        console.log("Reading "+kind+" tooltips");
+        //console.log("Reading "+kind+" tooltips");
 
         fetch('/admin/js/components/forms/help/crd-'+kind+'-EN.json')
         .then(response => response.json())
@@ -977,18 +1049,6 @@ Vue.mixin({
             })
           );
         
-        /* Tooltips Data */
-        /* axios
-        .get('js/components/forms/help/crd-'+kind+'-EN.json')
-        .then( function(response){
-          store.commit('setTooltips', { 
-          kind: kind, 
-          description: response.data 
-        })
-        }).catch(function(err) {
-          console.log(err);
-          checkAuthError(err)
-        }); */
       }
 
     },
@@ -1128,8 +1188,19 @@ const vm = new Vue({
       //console.log("Fetching API");
       //$("#loader").show();
       $('#reload').addClass('active');
+
+      // Read and set user permissions
+      axios
+      .get(apiURL+'auth/rbac/can-i')
+      .then( function(response) {
+        //console.log(response.data)
+        store.commit('setPermissions', response.data);
+      }).catch(function(err) {
+        console.log(err);
+        checkAuthError(err);
+      });
       
-      if ( !kind.length || (kind == 'namespaces') ) {
+      if ( !store.state.permissions.forbidden.includes('namespaces') && ( !kind.length || (kind == 'namespaces') ) ) {
         /* Namespaces Data */
         axios
         .get(apiURL+'namespace')
@@ -1151,7 +1222,7 @@ const vm = new Vue({
         });
       }
 
-      if ( !kind.length || (kind == 'cluster') ) {
+      if ( !store.state.permissions.forbidden.includes('sgclusters') && ( !kind.length || (kind == 'cluster') ) ){
         /* Clusters Data */
         axios
         .get(apiURL+'sgcluster',
@@ -1215,7 +1286,7 @@ const vm = new Vue({
 
       }
 
-      if ( !kind.length || (kind == 'backup') ) {
+      if (!store.state.permissions.forbidden.includes('sgbackups') && ( !kind.length || (kind == 'backup') )) {
         
         /* Backups */
         axios
@@ -1245,17 +1316,18 @@ const vm = new Vue({
               }
 
               //console.log(item);
-
-              if( (typeof item.status.process.status !== 'undefined') && (item.status.process.status === 'Completed') ) {
-                //console.log('setting duration');
-                start = moment(item.status.process.timing.start);
-                finish = moment(item.status.process.timing.stored);
-                duration = new Date(moment.duration(finish.diff(start))).toISOString();
-              } else {
-                //console.log('duration not set');
-                duration = '';
+              if( (item.status !== null) && item.status.hasOwnProperty('process')) {
+                if( item.status.process.status === 'Completed' ) {
+                  //console.log('setting duration');
+                  start = moment(item.status.process.timing.start);
+                  finish = moment(item.status.process.timing.stored);
+                  duration = new Date(moment.duration(finish.diff(start))).toISOString();
+                } else {
+                  //console.log('duration not set');
+                  duration = '';
+                }
+                
               }
-              
                 
               store.commit('updateBackups', { 
                 name: item.metadata.name,
@@ -1285,7 +1357,7 @@ const vm = new Vue({
         });
       }
 
-      if ( !kind.length || (kind == 'sgpgconfig') ) {
+      if ( !store.state.permissions.forbidden.includes('sgpgconfigs') && (!kind.length || (kind == 'sgpgconfig') ) ){
 
         /* PostgreSQL Config */
         axios
@@ -1329,7 +1401,7 @@ const vm = new Vue({
         });
       }
 
-      if ( !kind.length || (kind == 'sgpoolconfig') ) {
+      if (!store.state.permissions.forbidden.includes('sgpoolonfigs') && ( !kind.length || (kind == 'sgpoolconfig') ) ){
 
         /* Connection Pooling Config */
         axios
@@ -1373,7 +1445,7 @@ const vm = new Vue({
         });
       }
 
-      if ( !kind.length || (kind == 'sgbackupconfig') ) {
+      if ( !store.state.permissions.forbidden.includes('sgbackupconfigs') && ( !kind.length || (kind == 'sgbackupconfig')) ) {
 
         /* Backup Config */
         axios
@@ -1417,7 +1489,7 @@ const vm = new Vue({
         });
       }
 
-      if ( !kind.length || (kind == 'sginstanceprofile') ) {
+      if ( !store.state.permissions.forbidden.includes('sginstanceprofiles') && (!kind.length || (kind == 'sginstanceprofile') ) ) {
 
         /* Profiles */
         axios
@@ -1461,7 +1533,7 @@ const vm = new Vue({
         });
       }
 
-      if ( !kind.length || (kind == 'storageclass') ) {
+      if (!store.state.permissions.forbidden.includes('storageclasss') && ( !kind.length || (kind == 'storageclass') )) {
         /* Storage Classes Data */
         axios
         .get(apiURL+'storageclass',
@@ -1488,7 +1560,7 @@ const vm = new Vue({
         });
       }
 
-      if ( !kind.length || (kind == 'sgdistributedlogs') ) {
+      if (!store.state.permissions.forbidden.includes('sgdistributedlogs') && ( !kind.length || (kind == 'sgdistributedlogs') ) ){
         /* Distribude Logs Data */
         axios
         .get(apiURL+'sgdistributedlogs',
@@ -1516,7 +1588,7 @@ const vm = new Vue({
       }
 
 
-      if ( (kind === 'backup') || (kind === 'cluster') ) {
+      if (!store.state.permissions.forbidden.includes('sgbackups') && ( (kind === 'backup') || (kind === 'cluster') ) ) {
         // Check if current cluster has backups
         let currentClusterBackups = store.state.backups.find(b => ( (store.state.currentCluster.name == b.data.spec.cluster) && (store.state.currentCluster.data.metadata.namespace == b.data.metadata.namespace) ) );
           
@@ -1617,28 +1689,28 @@ function checkLogin() {
 
 
 function checkAuthError(error) {
-  if(error.response && ((error.response.status == 401) || (error.response.status == 403) )) {
-      /* document.cookie = 'sgToken=authError';
-      if(store.state.loginToken.search('Authentication Error') == -1) {
-        notify(
-          {
-            title: error.response.status+' Authentication Error',
-            detail: 'There was an authentication error while trying to fetch the information from the API, please logout and try again.'
-          },
-          'error'
-        )
-      }
-      store.commit('setLoginToken',error.response.status+' Authentication Error'); */
-
+  if(error.response) {
+    if(error.response.status == 401 ) {
       document.cookie = 'sgToken=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
-			store.commit('setLoginToken');
+      store.commit('setLoginToken');
       router.push('/admin/index.html');
       clearInterval(vm.pooling);
-			//store.replaceState({})
+      //store.replaceState({})
       $('#signup').addClass('login').fadeIn();
+        
+    } else if(error.response.status == 403 ) {
+      //console.log(error.response)
       
+      // Little hack to store the right plural kind to validate RBAC permissions
+      if(error.response.config.url.includes('sgcluster/stats'))
+        kind = 'stats'
+      else
+        kind = error.response.config.url.replace('/stackgres/','')+'s';
+      
+      store.commit('setNoPermissions', kind);
+    }
   }
-
+  
 }
 
 function getCookie(cname) {
@@ -1855,11 +1927,13 @@ function sortTable( table, param, direction ) {
     // If sorting backups first validate its state
     if(a.data.hasOwnProperty('status') && a.hasOwnProperty('duration')) {
       // If record is not sortable by the provided param
-      if((a.data.status.process.status == 'Failed') && !backupFixedParams.includes(param)){
-        //console.log('failed');
-        return 1
-      } else if ((a.data.status.process.status == 'Running') && !backupFixedParams.includes(param)){
-        return -1
+      if(a.data.status !== null) {
+        if( (a.data.status.process.status == 'Failed') && !backupFixedParams.includes(param)){
+          //console.log('failed');
+          return 1
+        } else if ((a.data.status.process.status == 'Running') && !backupFixedParams.includes(param)){
+          return -1
+        }
       }
       
     }  
