@@ -25,7 +25,8 @@ e2e_test_install() {
     --from-file="$TARGET_PATH/gke-service-account.json" \
     -n "$CLUSTER_NAMESPACE"
 
-  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 \
+    --set-string cluster.configurations.shBackupConfig=backupconf
 
   wait_pods_running "$CLUSTER_NAMESPACE" 1
 
@@ -89,7 +90,7 @@ restore_from_backup() {
 apiVersion: stackgres.io/v1beta1
 kind: SGCluster
 metadata:
-  name: restored-from-gce
+  name: restored-from-gcs
   namespace: $CLUSTER_NAMESPACE
 spec:
   instances: 2
@@ -110,7 +111,7 @@ EOF
 }
 
 check_restored_data() {
-  REPLICA_RESPONSE=$(run_query -p 5432 -h "restored-from-gce-replicas" -c "restored-from-gce" -n $CLUSTER_NAMESPACE -i 1 -q "' SELECT num FROM fibonacci ORDER BY num;'" -d "test")
+  REPLICA_RESPONSE=$(run_query -p 5432 -h "restored-from-gcs-replicas" -c "restored-from-gcs" -n $CLUSTER_NAMESPACE -i 1 -q "' SELECT num FROM fibonacci ORDER BY num;'" -d "test")
   if [ "$(echo "$REPLICA_RESPONSE" | tr -d '\n')" = "123" ]
   then
     echo "SUCCESS: restore replica db restored successfully"

@@ -30,7 +30,7 @@ spec:
         version: "{{ .Chart.Version }}"
         group:  stackgres.io
     spec:
-      serviceAccountName: {{ .Values.restapi.name  }}
+      serviceAccountName: {{ .Values.restapi.name }}
       securityContext:
         runAsNonRoot: true
         {{- if not (.Capabilities.APIVersions.Has "project.openshift.io/v1") }}

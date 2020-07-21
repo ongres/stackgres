@@ -7,6 +7,7 @@ package io.stackgres.common.crd.storages;
 
 import java.util.Objects;
 
+import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -27,6 +28,7 @@ public class AzureBlobSecretKeySelector {
 
   @JsonProperty("accessKey")
   @NotNull(message = "The accessKey is required")
+  @Valid
   private SecretKeySelector accessKey;
 
   public SecretKeySelector getAccount() {

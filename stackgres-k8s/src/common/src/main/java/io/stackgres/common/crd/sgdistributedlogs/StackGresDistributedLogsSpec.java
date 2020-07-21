@@ -25,11 +25,12 @@ public class StackGresDistributedLogsSpec implements KubernetesResource {
   private static final long serialVersionUID = 1L;
 
   @JsonProperty("persistentVolume")
-  @Valid
   @NotNull(message = "Persistent volume must be specified")
+  @Valid
   private StackGresDistributedLogsPersistentVolume persistentVolume;
 
   @JsonProperty("nonProductionOptions")
+  @Valid
   private StackGresDistributedLogsNonProduction nonProduction;
 
   public StackGresDistributedLogsPersistentVolume getPersistentVolume() {

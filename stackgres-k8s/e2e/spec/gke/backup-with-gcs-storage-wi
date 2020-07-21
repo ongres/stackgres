@@ -1,79 +1,59 @@
 #!/bin/sh
 
 e2e_test_install() {
-  local AWS_ACCOUNT="$(aws sts get-caller-identity | jq -r '.Account')"
-  e2e_test_uninstall || true
+  gsutil -m rm -r "gs://stackgres-e2e-$CLUSTER_NAME/" || true
 
-  cat << EOF > "$LOG_PATH/policy.json"
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Action": [
-        "s3:PutObject",
-        "s3:GetObject",
-        "s3:DeleteObject"
-      ],
-      "Resource": [
-        "arn:aws:s3:::stackgres-e2e/*"
-      ]
-    },
-    {
-      "Effect": "Allow",
-      "Action": [
-        "s3:ListBucket",
-        "s3:GetBucketLocation"
-      ],
-      "Resource": [
-        "arn:aws:s3:::stackgres-e2e"
-      ]
-    }
-  ]
-}
-EOF
+  gcloud iam --project "$K8S_GKE_PROJECT" service-accounts add-iam-policy-binding \
+    --role roles/iam.workloadIdentityUser \
+    --member "serviceAccount:$K8S_GKE_PROJECT.svc.id.goog[$CLUSTER_NAMESPACE/$CLUSTER_NAME-patroni]" \
+    "$K8S_GKE_ACCOUNT_EMAIL"
 
-  aws iam create-policy --region "$K8S_EKS_REGION" --policy-name "stackgres-e2e-$CLUSTER_NAME" \
-    --policy-document "file://$LOG_PATH/policy.json"
-  aws iam create-user --region "$K8S_EKS_REGION" --user-name "stackgres-e2e-$CLUSTER_NAME"
-  aws iam attach-user-policy --region "$K8S_EKS_REGION" --user-name "stackgres-e2e-$CLUSTER_NAME" \
-    --policy-arn "arn:aws:iam::$AWS_ACCOUNT:policy/stackgres-e2e-$CLUSTER_NAME"
-  aws iam create-access-key --region "$K8S_EKS_REGION" --user-name "stackgres-e2e-$CLUSTER_NAME" \
-    > "$LOG_PATH/credentials.json"
+  gcloud iam --project "$K8S_GKE_PROJECT" service-accounts add-iam-policy-binding \
+    --role roles/iam.workloadIdentityUser \
+    --member "serviceAccount:$K8S_GKE_PROJECT.svc.id.goog[$CLUSTER_NAMESPACE/restored-from-gcs-patroni]" \
+    "$K8S_GKE_ACCOUNT_EMAIL"
+
+  if [ "$K8S_GKE_PROJECT" = "default" ]
+  then  
+    echo "Creating bucket in default project"
+    gsutil mb -l "$K8S_GKE_REGION" \
+      -c "standard" \
+      "gs://stackgres-e2e-$CLUSTER_NAME/"
+  else
+    echo "Creating bucket in project $K8S_GKE_PROJECT in region $K8S_GKE_REGION"
+    gsutil mb -l "$K8S_GKE_REGION" \
+      -p "$K8S_GKE_PROJECT" \
+      -c "standard" \
+      "gs://stackgres-e2e-$CLUSTER_NAME/"
+
+    echo "Bucket created"
+  fi
 
   kubectl create namespace "$CLUSTER_NAMESPACE"
     
-  kubectl create secret generic s3-credentials \
-    --from-literal="accessKeyId=$(jq -r '.AccessKey.AccessKeyId' "$LOG_PATH/credentials.json")" \
-    --from-literal="secretAccessKey=$(jq -r '.AccessKey.SecretAccessKey' "$LOG_PATH/credentials.json")" \
+  kubectl create secret generic gke-service-account \
+    --from-file="$TARGET_PATH/gke-service-account.json" \
     -n "$CLUSTER_NAMESPACE"
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 \
-    --set-string cluster.configurations.shBackupConfig=backupconf
+    --set-string cluster.configurations.shBackupConfig=backupconf \
+    --set-string cluster.metadata.annotations.allResources.iam\\.gke\\.io/gcp-service-account="$K8S_GKE_SERVICEACCOUNT@$K8S_GKE_PROJECT.iam.gserviceaccount.com"
+
 
   wait_pods_running "$CLUSTER_NAMESPACE" 1
 
+  wait_until check_connectivity -i 0
   create_mock_data
 
   BACKUP_NAME="${CLUSTER_NAME}-0-$(shuf -i 0-65535 -n 1)"
 }
 
-e2e_test_uninstall() {
+e2e_test_uninstall(){
   helm_cleanup_chart "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 
   k8s_async_cleanup_namespace "$CLUSTER_NAMESPACE"
 
-  local AWS_ACCOUNT="$(aws sts get-caller-identity | jq -r '.Account')"
-  aws iam list-access-keys --region "$K8S_EKS_REGION" --user-name "stackgres-e2e-$CLUSTER_NAME" \
-    | jq -r '.AccessKeyMetadata[].AccessKeyId' \
-    | xargs -r -n 1 -I % aws iam delete-access-key --region "$K8S_EKS_REGION" \
-      --user-name "stackgres-e2e-$CLUSTER_NAME" --access-key-id %
-  aws iam detach-user-policy --region "$K8S_EKS_REGION" --user-name "stackgres-e2e-$CLUSTER_NAME" \
-    --policy-arn "arn:aws:iam::$AWS_ACCOUNT:policy/stackgres-e2e-$CLUSTER_NAME"
-  aws iam delete-user --region "$K8S_EKS_REGION" --user-name "stackgres-e2e-$CLUSTER_NAME"
-  aws iam delete-policy --region "$K8S_EKS_REGION" \
-    --policy-arn "arn:aws:iam::$AWS_ACCOUNT:policy/stackgres-e2e-$CLUSTER_NAME"
-  aws s3 rm --recursive "s3://stackgres-e2e/$CLUSTER_NAMESPACE/$CLUSTER_NAME"
+  gsutil -m rm -r "gs://stackgres-e2e-$CLUSTER_NAME/" || true
 }
 
 e2e_test() {
@@ -82,6 +62,7 @@ e2e_test() {
   run_test "Check that restoration is executed successfully" restore_from_backup
 
   run_test "Check restored data integrity" check_restored_data
+
 }
 
 create_mock_data() {
@@ -122,12 +103,16 @@ restore_from_backup() {
 apiVersion: stackgres.io/v1beta1
 kind: SGCluster
 metadata:
-  name: restored-from-s3
+  name: restored-from-gcs
   namespace: $CLUSTER_NAMESPACE
 spec:
   instances: 2
   postgresVersion: '12.3'
   sgInstanceProfile: size-xs
+  metadata:
+    annotations:
+      allResources:
+        "iam.gke.io/gcp-service-account": "$K8S_GKE_SERVICEACCOUNT@$K8S_GKE_PROJECT.iam.gserviceaccount.com"
   pods:
     persistentVolume:
       size: '512Mi'
@@ -143,7 +128,7 @@ EOF
 }
 
 check_restored_data() {
-  REPLICA_RESPONSE=$(run_query -p 5432 -h "restored-from-s3-replicas" -c "restored-from-s3" -n $CLUSTER_NAMESPACE -i 1 -q "' SELECT num FROM fibonacci ORDER BY num;'" -d "test")
+  REPLICA_RESPONSE=$(run_query -p 5432 -h "restored-from-gcs-replicas" -c "restored-from-gcs" -n $CLUSTER_NAMESPACE -i 1 -q "' SELECT num FROM fibonacci ORDER BY num;'" -d "test")
   if [ "$(echo "$REPLICA_RESPONSE" | tr -d '\n')" = "123" ]
   then
     echo "SUCCESS: restore replica db restored successfully"

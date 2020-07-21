@@ -7,6 +7,7 @@ package io.stackgres.common.crd.storages;
 
 import java.util.Objects;
 
+import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -29,6 +30,7 @@ public class GoogleCloudStorage implements PrefixedStorage {
 
   @JsonProperty("gcpCredentials")
   @NotNull(message = "The credentials is required")
+  @Valid
   private GoogleCloudCredentials credentials;
 
   @Override

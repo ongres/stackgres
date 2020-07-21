@@ -28,6 +28,7 @@ public class StackGresDistributedLogs extends CustomResource {
   private StackGresDistributedLogsSpec spec;
 
   @JsonProperty("status")
+  @Valid
   private StackGresDistributedLogsStatus status;
 
   public StackGresDistributedLogs() {

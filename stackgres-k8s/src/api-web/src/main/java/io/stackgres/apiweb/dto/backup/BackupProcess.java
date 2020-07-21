@@ -5,6 +5,8 @@
 
 package io.stackgres.apiweb.dto.backup;
 
+import javax.validation.Valid;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.MoreObjects;
@@ -19,6 +21,7 @@ public class BackupProcess {
   private String jobPod;
   private String failure;
   private Boolean managedLifecycle;
+  @Valid
   private BackupTiming timing;
 
   public String getStatus() {

@@ -28,6 +28,7 @@ public class StackGresCluster extends CustomResource {
   private StackGresClusterSpec spec;
 
   @JsonProperty("status")
+  @Valid
   private StackGresClusterStatus status;
 
   public StackGresCluster() {

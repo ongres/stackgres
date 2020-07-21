@@ -7,6 +7,8 @@ package io.stackgres.apiweb.dto.backup;
 
 import java.util.Map;
 
+import javax.validation.Valid;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.MoreObjects;
@@ -23,9 +25,11 @@ public class BackupInformation {
   private String pgData;
   private String postgresVersion;
 
+  @Valid
   private BackupLsn lsn;
   private String systemIdentifier;
 
+  @Valid
   private BackupSize size;
   private Map<String, String> controlData;
 

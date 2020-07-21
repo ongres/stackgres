@@ -119,10 +119,14 @@ BACKUP_CONFIG_YAML=$(cat << BACKUP_CONFIG_YAML
         bucket: "{{ .bucket }}"
         {{ with .path }}path: "{{ . }}"{{ end }}
         gcpCredentials:
+          {{- if .gcpCredentials.fetchCredentialsFromMetadataService }}
+          fetchCredentialsFromMetadataService: true
+          {{- else }}
           secretKeySelectors:
             serviceAccountJSON:
               key: "{{ .gcpCredentials.secretKeySelectors.serviceAccountJSON.key }}"
               name: "{{ .gcpCredentials.secretKeySelectors.serviceAccountJSON.name }}"
+          {{- end }}
       {{- end }}
       {{- with .spec.storage.azureBlob }}
       azureBlob:

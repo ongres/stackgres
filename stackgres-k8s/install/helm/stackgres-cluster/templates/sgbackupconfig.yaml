@@ -112,10 +112,14 @@ spec:
       path: "{{ .Values.configurations.backupconfig.storage.gcs.path }}"
       {{- end }}
       gcpCredentials:
+        {{- if .Values.configurations.backupconfig.storage.gcs.gcpCredentials.fetchCredentialsFromMetadataService }}
+        fetchCredentialsFromMetadataService: {{ .Values.configurations.backupconfig.storage.gcs.gcpCredentials.fetchCredentialsFromMetadataService }}
+        {{- else }}
         secretKeySelectors:
           serviceAccountJSON:
             name: "{{ .Values.configurations.backupconfig.storage.gcs.gcpCredentials.secretKeySelectors.serviceAccountJSON.name }}"
             key: "{{ .Values.configurations.backupconfig.storage.gcs.gcpCredentials.secretKeySelectors.serviceAccountJSON.key }}"
+        {{- end }}
     {{- end }}
     {{- if .Values.configurations.backupconfig.storage.azureBlob }}
     type: azureBlob

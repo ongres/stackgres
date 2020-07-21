@@ -7,6 +7,7 @@ package io.stackgres.apiweb.dto.storages;
 
 import java.util.Objects;
 
+import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -29,6 +30,7 @@ public class AwsS3CompatibleStorage {
 
   @JsonProperty("awsCredentials")
   @NotNull(message = "The credentials is required")
+  @Valid
   private AwsCredentials credentials;
 
   @JsonProperty("region")

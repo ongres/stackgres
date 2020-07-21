@@ -35,8 +35,8 @@ public class StackGresClusterSpec implements KubernetesResource {
   private String postgresVersion;
 
   @JsonProperty("configurations")
-  @Valid
   @NotNull(message = "cluster configuration cannot be null")
+  @Valid
   private StackgresClusterConfiguration configuration;
 
   @JsonProperty("sgInstanceProfile")
@@ -44,20 +44,23 @@ public class StackGresClusterSpec implements KubernetesResource {
   private String resourceProfile;
 
   @JsonProperty("initialData")
+  @Valid
   private StackGresClusterInitData initData;
 
   @JsonProperty("pods")
-  @Valid
   @NotNull(message = "pod description must be specified")
+  @Valid
   private StackGresClusterPod pod;
 
   @JsonProperty("distributedLogs")
+  @Valid
   private StackGresClusterDistributedLogs distributedLogs;
 
   @JsonProperty("prometheusAutobind")
   private Boolean prometheusAutobind;
 
   @JsonProperty("nonProductionOptions")
+  @Valid
   private StackGresClusterNonProduction nonProduction;
 
   private StackGresClusterPostgresServices postgresServices;

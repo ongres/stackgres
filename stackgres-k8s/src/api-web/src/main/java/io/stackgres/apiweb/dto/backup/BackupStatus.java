@@ -5,6 +5,8 @@
 
 package io.stackgres.apiweb.dto.backup;
 
+import javax.validation.Valid;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -18,12 +20,15 @@ import io.stackgres.apiweb.dto.backupconfig.BackupConfigSpec;
 public class BackupStatus {
 
   @JsonProperty("sgBackupConfig")
+  @Valid
   private BackupConfigSpec backupConfig;
 
   private String internalName;
 
+  @Valid
   private BackupProcess process;
 
+  @Valid
   private BackupInformation backupInformation;
 
   private Boolean tested;

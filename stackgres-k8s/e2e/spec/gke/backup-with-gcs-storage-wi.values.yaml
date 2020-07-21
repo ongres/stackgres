@@ -8,16 +8,10 @@ configurations:
     baseBackups:
       cronSchedule: '0 5 31 2 *'
     storage:
-      s3:
-        bucket: stackgres-e2e
-        awsCredentials:
-          secretKeySelectors:
-            accessKeyId:
-              name: s3-credentials
-              key: accessKeyId
-            secretAccessKey:
-              name: s3-credentials
-              key: secretAccessKey
+      gcs:
+        bucket: stackgres-e2e-backup-with-gcs-storage-wi
+        gcpCredentials:
+          fetchCredentialsFromMetadataService: true
 cluster:
   pods:
     persistentVolume:
