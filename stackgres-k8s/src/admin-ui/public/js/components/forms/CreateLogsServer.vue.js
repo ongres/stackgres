@@ -143,7 +143,7 @@ var CreateLogsServer = Vue.component("CreateLogsServer", {
             var nameColission = false;
             
             store.state.logsClusters.forEach(function(item, index){
-				if( (item.metadata.name == vc.$route.params.name) && (item.metadata.namespace == vc.$route.params.namespace ) )
+				if( (item.data.metadata.name == vc.$route.params.name) && (item.data.metadata.namespace == vc.$route.params.namespace ) )
 					nameColission = true
 			})
 
@@ -160,19 +160,19 @@ var CreateLogsServer = Vue.component("CreateLogsServer", {
             if(vm.$route.params.action === 'edit') {
                 vm.advancedMode = true;
                 store.state.logsClusters.forEach(function( c ){
-                    if( (c.metadata.name === vm.$route.params.name) && (c.metadata.namespace === vm.$route.params.namespace) ) {
+                    if( (c.data.metadata.name === vm.$route.params.name) && (c.data.metadata.namespace === vm.$route.params.namespace) ) {
                       
-                        let volumeSize = c.spec.persistentVolume.size.match(/\d+/g);
-                        let volumeUnit = c.spec.persistentVolume.size.match(/[a-zA-Z]+/g);
+                        let volumeSize = c.data.spec.persistentVolume.size.match(/\d+/g);
+                        let volumeUnit = c.data.spec.persistentVolume.size.match(/[a-zA-Z]+/g);
 
-                        vm.storageClass = c.spec.persistentVolume.hasOwnProperty('storageClass') ? c.spec.persistentVolume.storageClass : '';
+                        vm.storageClass = c.data.spec.persistentVolume.hasOwnProperty('storageClass') ? c.data.spec.persistentVolume.storageClass : '';
 
                         if(!vm.storageClass.length)
                             vm.hasStorageClass = false
 
                         vm.volumeSize = volumeSize;
                         vm.volumeUnit = ''+volumeUnit;
-                        vm.disableClusterPodAntiAffinity = ( (typeof c.spec.nonProductionOptions !== 'undefined') && (typeof c.spec.nonProductionOptions.disableClusterPodAntiAffinity !== 'undefined') ) ? c.spec.nonProductionOptions.disableClusterPodAntiAffinity : false;
+                        vm.disableClusterPodAntiAffinity = ( (typeof c.data.spec.nonProductionOptions !== 'undefined') && (typeof c.data.spec.nonProductionOptions.disableClusterPodAntiAffinity !== 'undefined') ) ? c.data.spec.nonProductionOptions.disableClusterPodAntiAffinity : false;
                     }
                 });
             }
@@ -221,10 +221,10 @@ var CreateLogsServer = Vue.component("CreateLogsServer", {
                     )
                     .then(function (response) {
                         console.log("GOOD");
-                        notify('Logs server <strong>"'+cluster.metadata.name+'"</strong> updated successfully', 'message', 'sgcluster');
+                        notify('Logs server <strong>"'+cluster.data.metadata.name+'"</strong> updated successfully', 'message', 'sgcluster');
 
                         vm.fetchAPI('sgdistributedlogs');
-                        router.push('/admin/logs/'+cluster.metadata.namespace);
+                        router.push('/admin/logs/'+cluster.data.metadata.namespace);
                         
                     })
                     .catch(function (error) {
@@ -239,13 +239,13 @@ var CreateLogsServer = Vue.component("CreateLogsServer", {
                     )
                     .then(function (response) {
                         console.log("GOOD");
-                        notify('Logs server <strong>"'+cluster.metadata.name+'"</strong> created successfully', 'message', 'sgcluster');
+                        notify('Logs server <strong>"'+cluster.data.metadata.name+'"</strong> created successfully', 'message', 'sgcluster');
 
                         vm.fetchAPI('sgdistributedlogs');
-                        router.push('/admin/logs/'+cluster.metadata.namespace);
+                        router.push('/admin/logs/'+cluster.data.metadata.namespace);
                         
                         /* store.commit('updateClusters', { 
-                            name: cluster.metadata.name,
+                            name: cluster.data.metadata.name,
                             data: item
                         });*/
                         

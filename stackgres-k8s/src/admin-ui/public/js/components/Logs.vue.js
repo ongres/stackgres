@@ -528,7 +528,7 @@ var Logs = Vue.component("Logs", {
 		grafanaEmbedded() {
 			var grafana = false;
 			store.state.clusters.forEach(function( c ){
-                if( (c.data.metadata.name === vm.$route.params.name) && (c.data.metadata.namespace === vm.$route.params.namespace) ) {
+                if( (c.data.metadata.name === vm.$route.params.name) && (c.data.metadata.namespace === vm.$route.params.namespace) && c.data.grafanaEmbedded ) {
                     grafana = true;
                     return false;
                 }
