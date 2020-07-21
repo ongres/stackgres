@@ -516,30 +516,84 @@ router.beforeEach((to, from, next) => {
       case 'CreateBackup':
         /* If filtered by Cluster, first check if Cluster exists */
         if(to.params.hasOwnProperty('cluster')) {
-          var found = false
 
-          response.data.forEach( function(item, index) {
-
-            var cluster = {
-              name: item.metadata.name,
-              data: item,
-              hasBackups: false,
-              status: {},
-            };
-              
-            store.commit('updateClusters', cluster);
-
-            if( to.params.hasOwnProperty('name') && (to.params.name == item.metadata.name) && (to.params.namespace == item.metadata.namespace) ) {
-              store.commit('setCurrentCluster', cluster);
-              found = true;
-            }
-
+          axios
+          .get(apiURL+'sgcluster')
+          .then( function(response){
+  
+            var found = false
+  
+            response.data.forEach( function(item, index) {
+  
+              var cluster = {
+                name: item.metadata.name,
+                data: item,
+                hasBackups: false,
+                status: {},
+              };
+                
+              store.commit('updateClusters', cluster);
+  
+              if( to.params.hasOwnProperty('name') && (to.params.name == item.metadata.name) && (to.params.namespace == item.metadata.namespace) ) {
+                store.commit('setCurrentCluster', cluster);
+                found = true;
+              }
+  
+            });
+  
+            if( to.params.hasOwnProperty('name') && !found)
+              notFound()
+            else
+              next()
+  
+          }).catch(function(err) {
+            notFound()
           });
 
-          if( to.params.hasOwnProperty('name') && !found)
+          axios
+          .get(apiURL+'sgbackup')
+          .then( function(response){ 
+            var found = false
+
+            if(response.data.length) {
+
+              response.data.forEach( function(item, index) {
+                  
+                if( (item.status !== null) && item.status.hasOwnProperty('process')) {
+                  if( item.status.process.status === 'Completed' ) {
+                    //console.log('setting duration');
+                    start = moment(item.status.process.timing.start);
+                    finish = moment(item.status.process.timing.stored);
+                    duration = new Date(moment.duration(finish.diff(start))).toISOString();
+                  } 
+                } else {
+                  //console.log('duration not set');
+                  duration = '';
+                }
+                
+                  
+                store.commit('updateBackups', { 
+                  name: item.metadata.name,
+                  data: item,
+                  duration: duration,
+                  show: true
+                });
+
+                if( to.params.hasOwnProperty('uid') && (to.params.uid == item.metadata.uid) && (to.params.namespace == item.metadata.namespace) )
+                  found = true;
+
+              });
+            }
+
+            if( to.params.hasOwnProperty('uid') && !found) {
+              notFound()
+            }
+            else {
+              next()
+            }
+          }).catch(function(err) {
             notFound()
-          else
-            next()
+          });
 
         } else {
           
@@ -1113,27 +1167,31 @@ Vue.mixin({
 
       switch(kind) {
         case 'SGCluster':
-          crd = store.state.clusters.find(c => ( (namespace == c.data.metadata.namespace) && (name == c.name) ))
+          crd = JSON.parse(JSON.stringify(store.state.clusters.find(c => ( (namespace == c.data.metadata.namespace) && (name == c.name) ))))
           break;
         
         case 'SGBackupConfig':
-          crd = store.state.backupConfig.find(c => ( (namespace == c.data.metadata.namespace) && (name == c.name) ))
+          crd = JSON.parse(JSON.stringify(store.state.backupConfig.find(c => ( (namespace == c.data.metadata.namespace) && (name == c.name) ))))
           break;
 
         case 'SGBackup':
-          crd = store.state.backups.find(c => ( (namespace == c.data.metadata.namespace) && (name == c.name) ))
+          crd = JSON.parse(JSON.stringify(store.state.backups.find(c => ( (namespace == c.data.metadata.namespace) && (name == c.name) ))))
           break;
         
         case 'SGInstanceProfile':
-          crd = store.state.profiles.find(c => ( (namespace == c.data.metadata.namespace) && (name == c.name) ))
+          crd = JSON.parse(JSON.stringify(store.state.profiles.find(c => ( (namespace == c.data.metadata.namespace) && (name == c.name) ))))
           break;
         
         case 'SGPoolingConfig':
-          crd = store.state.poolConfig.find(c => ( (namespace == c.data.metadata.namespace) && (name == c.name) ))
+          crd = JSON.parse(JSON.stringify(store.state.poolConfig.find(c => ( (namespace == c.data.metadata.namespace) && (name == c.name) ))))
           break;
         
         case 'SGPostgresConfig':
-          crd = store.state.pgConfig.find(c => ( (namespace == c.data.metadata.namespace) && (name == c.name) ))
+          crd = JSON.parse(JSON.stringify(store.state.pgConfig.find(c => ( (namespace == c.data.metadata.namespace) && (name == c.name) ))))
+          break;
+        
+        case 'SGDistributedLogs':
+          crd = JSON.parse(JSON.stringify(store.state.logsClusters.find(c => ( (namespace == c.data.metadata.namespace) && (name == c.name) ))))
           break;
       }
       
@@ -1144,7 +1202,7 @@ Vue.mixin({
 
         store.commit('setCloneCRD', crd);
         
-        $('#cloneName').val(crd.data.metadata.name)
+        $('#cloneName').val(crd.data.metadata.name);
         $('#cloneNamespace').val(crd.data.metadata.namespace);
         $("#notifications.hasTooltip.active").removeClass("active");
         $("#notifications.hasTooltip .message.show").removeClass("show");
@@ -1604,7 +1662,16 @@ const vm = new Vue({
             if(typeof store.state.logsClusters !== 'undefined' && response.data.length != store.state.logsClusters.length)
               store.commit('flushLogsClusters');
 
-            store.commit('addLogsClusters', response.data);
+            var logs = [];
+
+            response.data.forEach(function(item, index){
+              logs.push({
+                name: item.metadata.name,
+                data: item
+              })
+            })
+
+            store.commit('addLogsClusters', logs);
 
           }
           
