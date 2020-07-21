@@ -41,7 +41,7 @@ var Logs = Vue.component("Logs", {
 					<li v-if="iCan('list','sgdistributedlogs',$route.params.namespace) && cluster.data.spec.hasOwnProperty('distributedLogs')">
 						<router-link :to="'/admin/cluster/logs/'+$route.params.namespace+'/'+$route.params.name" title="Distributed Logs" class="logs">Logs</router-link>
 					</li>
-					<li v-if="cluster.data.grafanaEmbedded">
+					<li v-if="grafanaEmbedded">
 						<router-link id="grafana-btn" :to="'/admin/cluster/monitor/'+$route.params.namespace+'/'+$route.params.name" title="Grafana Dashboard" class="grafana">Monitoring</router-link>
 					</li>
 				</ul>
@@ -528,7 +528,7 @@ var Logs = Vue.component("Logs", {
 		grafanaEmbedded() {
 			var grafana = false;
 			store.state.clusters.forEach(function( c ){
-                if( (c.data.metadata.name === vm.$route.params.name) && (c.data.metadata.namespace === vm.$route.params.namespace) ) {
+                if( (c.data.metadata.name === vm.$route.params.name) && (c.data.metadata.namespace === vm.$route.params.namespace) && c.data.grafanaEmbedded ) {
                     grafana = true;
                     return false;
                 }
