@@ -449,8 +449,6 @@ var CreateCluster = Vue.component("CreateCluster", {
                     }
                 }  
                 
-                console.log(cluster);
-
                 if(this.editMode) {
                     const res = axios
                     .put(
