@@ -120,6 +120,20 @@ const router = new VueRouter({
       },
     },
     { 
+      path: '/admin/crd/:action/logs/:namespace', 
+      component: CreateLogsServer,
+      meta: {
+        conditionalRoute: false
+      },
+    },
+    { 
+      path: '/admin/crd/:action/logs/:namespace/:name', 
+      component: CreateLogsServer,
+      meta: {
+        conditionalRoute: false
+      },
+    },
+    { 
       path: '/admin', 
       component: ClusterOverview,
       meta: {
@@ -247,14 +261,14 @@ const router = new VueRouter({
     },
     { 
       path: '/admin/logs/:namespace', 
-      component: LogsCluster,
+      component: LogsServer,
       meta: {
         conditionalRoute: false
       },
     },
     { 
       path: '/admin/logs/:namespace/:name', 
-      component: LogsCluster,
+      component: LogsServer,
       meta: {
         conditionalRoute: false
       },
@@ -661,6 +675,7 @@ const store = new Vuex.Store({
       SGBackupConfig: {},
       SGPoolingConfig: {},
       SGInstanceProfile: {},
+      SGDistributedLogs: {}
     },
     deleteItem: {
       kind: '',
@@ -1069,7 +1084,7 @@ Vue.mixin({
 
     showTooltip: function( kind, field ) {
 
-      const label = $("[for='"+field+"']").html();
+      const label = $("[for='"+field+"']").text();
       const crd = store.state.tooltips[kind];
 
       $("#help .title").html(label);
@@ -1828,6 +1843,9 @@ function notify (message, kind = 'message', crd = 'general') {
       break;
     case 'sgbackup':
       icon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M10.55.55A9.454 9.454 0 001.125 9.5H.479a.458.458 0 00-.214.053.51.51 0 00-.214.671l1.621 3.382a.49.49 0 00.213.223.471.471 0 00.644-.223l1.62-3.382A.51.51 0 004.2 10a.49.49 0 00-.479-.5H3.1a7.47 7.47 0 117.449 7.974 7.392 7.392 0 01-3.332-.781.988.988 0 00-.883 1.767 9.356 9.356 0 004.215.99 9.45 9.45 0 000-18.9z" class="a"></path><path d="M13.554 10a3 3 0 10-3 3 3 3 0 003-3z" class="a"></path></svg>';
+      break;
+    case 'sgdistributedlogs':
+      icon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path class="a" d="M19,15H5c-0.6,0-1-0.4-1-1v0c0-0.6,0.4-1,1-1h14c0.6,0,1,0.4,1,1v0C20,14.6,19.6,15,19,15z"/><path class="a" d="M1,15L1,15c-0.6,0-1-0.4-1-1v0c0-0.6,0.4-1,1-1h0c0.6,0,1,0.4,1,1v0C2,14.6,1.6,15,1,15z"/><path class="a" d="M19,11H5c-0.6,0-1-0.4-1-1v0c0-0.6,0.4-1,1-1h14c0.6,0,1,0.4,1,1v0C20,10.6,19.6,11,19,11z"/><path class="a" d="M1,11L1,11c-0.6,0-1-0.4-1-1v0c0-0.6,0.4-1,1-1h0c0.6,0,1,0.4,1,1v0C2,10.6,1.6,11,1,11z"/><path class="a" d="M19,7H5C4.4,7,4,6.6,4,6v0c0-0.6,0.4-1,1-1h14c0.6,0,1,0.4,1,1v0C20,6.6,19.6,7,19,7z"/><path d="M1,7L1,7C0.4,7,0,6.6,0,6v0c0-0.6,0.4-1,1-1h0c0.6,0,1,0.4,1,1v0C2,6.6,1.6,7,1,7z"/></svg>';
       break;
   }
 
