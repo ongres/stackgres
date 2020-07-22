@@ -58,7 +58,7 @@ var Nav = Vue.component("sg-nav", {
 							Please type the exact name of the {{ deleteItem.kind }} to confirm.
 						</p>
 						<form @submit="confirmDelete(confirmDeleteName)">
-							<input v-model="confirmDeleteName" :placeholder="deleteItem.kind+' name'">
+							<input id="deleteName" v-model="confirmDeleteName" :placeholder="deleteItem.kind+' name'">
 							<span class="warning" style="display:none">The {{ deleteItem.kind }} name does not match the name of the element requested to be deleted.</span>
 							<a @click="confirmDelete(confirmDeleteName)">DELETE ITEM</a> <a @click="cancelDelete()">CANCEL</a>
 						</form>
@@ -134,7 +134,6 @@ var Nav = Vue.component("sg-nav", {
 			loginUser: '',
 			loginPassword: '',
 			loginPasswordType: 'password',
-			confirmDeleteName: '',
 			nameColission: false,
 		}
 	},
@@ -301,6 +300,12 @@ var Nav = Vue.component("sg-nav", {
 			document.cookie = 'sgToken=';
 			store.commit('setLoginToken','401 Authentication Error');
 			console.log('Flushed');
+		},
+		cancelDelete: function(){
+			$("#delete").removeClass("active");
+			$("#delete .warning").hide();
+			this.confirmDeleteName = '';
+			store.commit('setConfirmDeleteName', '');
 		}
 
 
