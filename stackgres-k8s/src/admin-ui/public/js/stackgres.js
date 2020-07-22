@@ -2084,6 +2084,25 @@ function discoverText(e) {
   }
 }
 
+function hasProp(obj, propertyPath){
+  if(!propertyPath)
+      return false;
+
+  var properties = propertyPath.split('.');
+
+  for (var i = 0; i < properties.length; i++) {
+      var prop = properties[i];
+
+      if(!obj || !obj.hasOwnProperty(prop)){
+          return false;
+      } else {
+          obj = obj[prop];
+      }
+  }
+
+  return true;
+};
+
 
 /* jQuery Init */
 
@@ -2095,22 +2114,6 @@ $(document).ready(function(){
     store.commit('setCurrentNamespace',$(this).text());
     $("#backup-btn, #graffana-btn").css("display","none");
   });
-
-  /* $(document).on("click", ".clu a", function(){
-    $(".clu .router-link-active:not(.router-link-exact-active)").removeClass("router-link-active");
-    $("#grafana-button").css("display", "none");
-    //store.commit('setCurrentClusterName', $(this).text());
-
-
-    $("#nav").removeClass("disabled");
-    //console.log(currentCluster);
-    //console.log(router.history.current.params.name);
-  }); */
-/* 
-  $(document).on("click", ".conf a, .prof a", function(){
-    store.commit('setCurrentCluster', {});
-    $("#nav").addClass("disabled");
-  }); */
 
   $(document).on("click", ".box h4", function() {
     
@@ -2173,15 +2176,7 @@ $(document).ready(function(){
     
   });
 
-  $(document).on("click", ".set .item", function(){
-   /*  $(".set.active:not(.conf)").removeClass("active");
-    $(this).parent().parent().parent().addClass("active");
-
-    if(!$(this).parents().hasClass("clu")) {
-      $(".set.active:not(.conf)").removeClass("active");
-      $('.clu.active').removeClass('active');
-    } */
-    
+  $(document).on("click", ".set .item", function(){    
     $(".set:not(.active) > ul.show").removeClass("show");
   });
 
@@ -2222,17 +2217,6 @@ $(document).ready(function(){
   $("#nav .view").click(function(){
     $("#nav .tooltip.show").prop("class","tooltip").hide();
     $("#nav .top a.nav-item").removeClass("router-link-active");
-    //$("#nav").addClass("disabled");
-    //$(".clu a").removeClass("router-link-active").removeClass("router-link-exact-active");
-    //$(".set.active").removeClass("active");
-
-
-    if(store.state.currentCluster.length) {
-      //$(".clu a[href$='"+currentCluster+"']").addClass("router-link-active");
-      /*$("#nav .top a").each(function(){
-        $(this).attr("href", $(this).attr("href")+currentCluster);
-      });*/
-    }
   });
 
   $("#nav.disabled .top a.nav-item").click(function(){
@@ -2253,14 +2237,6 @@ $(document).ready(function(){
     }      
   });
 
-  /* $("#sets h3").click(function(){
-    $(this).parent().toggleClass("hide");
-  }); */
-
-/*   $(".clu .item").click(function(){
-    $("#nav").removeClass("disabled");
-  });
- */
   /* Disable Grafana KEY functions */
   $(".grafana iframe").contents().find("body").keyup( function(e) {
     switch (e.keyCode) {
@@ -2271,15 +2247,6 @@ $(document).ready(function(){
         break;
     }
   });
-
-  /*$(".grafana iframe").load( function() {
-
-    setTimeout(function(){
-      $(".grafana iframe").contents().find("head")
-      .append($("<style type='text/css' id='hideBars'>  .navbar, .sidemenu {display:none !important;}  </style>"));
-    }, 3000);
-    
-  });*/
 
 
   $.fn.ulSelect = function(){
