@@ -24,5 +24,21 @@
       "postgresVersion",
       "postgresql.conf"
     ]
+  },
+  "status": {
+    "type": "object",
+    "properties": {
+      "defaultParameters": {
+        "type": "array",
+        "description": "A list of names of parameters that are set to theirs default value.\n",
+        "items": {
+          "type": "string",
+          "description": "Name of a parameter that is set to his default value.\n"
+        }
+      }
+    },
+    "required": [
+      "defaultParameters"
+    ]
   }
 }

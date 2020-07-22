@@ -30,7 +30,7 @@ spec:
               type: string
               description: |
                 The name of the StackGres cluster to be created. Following [Kubernetes naming conventions](https://github.com/kubernetes/community/blob/master/contributors/design-proposals/architecture/identifiers.md), it must be an rfc1035/rfc1123 subdomain, that is, up to 253 characters consisting of one or more lowercase labels separated by `.`. Where each label is an alphanumeric (a-z, and 0-9) string, with a maximum length of 63 characters, with the `-` character allowed anywhere except the first or last character.
-                
+
                 This name needs to be unique across all StackGres clusters in the same namespace. The full cluster name will include the namespace in which the cluster will be created.
         spec:
           type: object
@@ -54,53 +54,53 @@ spec:
                 Name of the [SGInstanceProfile](https://stackgres.io/doc/latest/04-postgres-cluster-management/03-resource-profiles/) to use. A SGInstanceProfile defines CPU and memory limits. Must exist before creating the cluster. If you don't select a profile, a default (currently: 1 core, 2 GiB RAM) one will be used.
             metadata:
               type: object
-              description: StackGres cluster created resources metadata information
+              description: StackGres cluster created resources metadata information.
               properties:
                 annotations:
                   type: object
-                  description: Additional annotations for StackGres resources to have
+                  description: Custom Kubernetes [annotations](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/) to be passed to resources created and managed by StackGres.
                   properties:
                     allResources:
                       type: object
-                      description: "Custom annotations for all StackGres resources to have"
+                      description: Annotations to attach to any resource created or managed by StackGres.
                     pods:
                       type: object
-                      description: "Custom annotations for StackGres pods to have"
+                      description: Annotations to attach to pods created or managed by StackGres.
                     services:
                       type: object
-                      description: "Custom annotations for StackGres services to have"
+                      description: Annotations to attach to services created or managed by StackGres.
             postgresServices:
               type: object
-              description: Postgres services configurations
+              description: Kubernetes [services](https://kubernetes.io/docs/concepts/services-networking/service/) created or managed by StackGres.
               properties:
                 primary:
                   type: object
-                  description: Primary service configurations
+                  description: Configuration for the `-primary` service. It provides a stable connection (regardless of primary failures or switchovers) to the read-write Postgres server of the cluster.
                   properties:
                     enabled:
                       type: boolean
-                      description: Specify if the service should be created or not
+                      description: Specify if the `-primary` service should be created or not.
                     type:
                       type: string
                       enum: ["ClusterIP", "LoadBalancer", "NodePort"]
-                      description: Type of primary service
+                      description: Specify the type of K8s service to create.
                     annotations:
                       type: object
-                      description: Primary services annotations
+                      description: Custom Kubernetes [annotations](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/) to be passed to the `-primary` service.
                 replicas:
                   type: object
-                  description: Replicas service configurations
+                  description: Configuration for the `-replicas` service. It provides a stable connection (regardless of replica node failures) to any read-only Postgres server of the cluster. Read-only servers are load-balanced via this service.
                   properties:
                     enabled:
                       type: boolean
-                      description: Specify if the service should be created or not
+                      description: SSpecify if the `-replicas` service should be created or not.
                     type:
                       type: string
                       enum: ["ClusterIP", "LoadBalancer", "NodePort"]
-                      description: Type of replicas service
+                      description: Specify the type of K8s service to create.
                     annotations:
                       type: object
-                      description: Replicas service annotations
+                      description: Custom Kubernetes [annotations](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/) to be passed to the `-replicas` service.
             pods:
               type: object
               description: Cluster pod's configuration
@@ -121,13 +121,13 @@ spec:
                   required: ["size"]
                 disableConnectionPooling:
                   type: boolean
-                  description: If is true it disable pgbouncer
+                  description: Set to `false` to avoid creating a connection pooling (using [PgBouncer](https://www.pgbouncer.org/)) sidecar.
                 disableMetricsExporter:
                   type: boolean
-                  description: If is true it disable the prometherus exporter container
+                  description: Set to `false` to avoid creating the Prometheus exporter sidecar. Recommended if you don't intent to use Prometheus for monitoring.
                 disablePostgresUtil:
                   type: boolean
-                  description: If is true it disable the postgres-util container
+                  description: Set to `false` to avoid creating the `postgres-util` sidecar. This sidecar contains usual Postgres administration utilities *that are not present in the main (`patroni`) container*, like `psql`. Only disable if you know what you are doing.
                 metadata:
                   type: object
                   description: Pod custom metadata information
@@ -149,7 +149,7 @@ spec:
                   type: string
                   description: |
                     Name of the [SGPoolingConfig](https://stackgres.io/doc/latest/04-postgres-cluster-management/02-configuration-tuning/03-connection-pooling-configuration/) to use for this cluster. Each pod contains a sidecar with a connection pooler (currently: [PgBouncer](https://www.pgbouncer.org/)). The connection pooler is implemented as a sidecar.
-                    
+
                     If not selected, a default configuration will be used. Note that you may disable connection pooling altogether by setting to false the disableConnectionPooling property of the pods object.
                 sgBackupConfig:
                   type: string
@@ -157,7 +157,7 @@ spec:
                     Name of the [SGBackupConfig](https://stackgres.io/doc/latest/04-postgres-cluster-management/04-backups/) to use for this cluster. This will define the backups policy, storage and retention, among others, to apply to this cluster. If not set, a default backup config will be used.
             initialData:
               type: object
-              description: Cluster initialization data options
+              description: Cluster initialization data options. Cluster may be initialized empty, or from a backup restoration. You may also specify scripts to run on the database after cluster creation.
               properties:
                 restore:
                   type: object
@@ -174,50 +174,48 @@ spec:
                 scripts:
                   type: array
                   description: |
-                    A list of SQL scripts that will be executed once in secuence when the database bootstrap and after restore is completed.
+                    A list of SQL scripts that will be executed in sequence, exactly once, when the database is bootstrap and/or after restore is completed.
                   items:
                     type: object
                     description: |
-                      Scripts are executed in autocommit mode with the user `postgres` in the specified database (or in database `postgres` if not specified).
-                      
-                      Fields `script` and `scriptFrom` are mutually exclusive and one of them is required.
+                      Scripts are executed in auto-commit mode with the user `postgres` in the specified database (or in database `postgres` if not specified).
+
+                      Fields `script` and `scriptFrom` are mutually exclusive and only one of them is required.
                     properties:
                       name:
                         type: string
                         description: |
-                          The name of the script.
+                          The name of the script. Must be unique across this SGCluster.
                       database:
                         type: string
                         description: |
-                          The database where the script will be executed. If not specified will be the `postgres` database.
+                          The database where the script will be executed. Defaults to the `postgres` database, if not specified.
                       script:
                         type: string
                         description: |
-                          The SQL script to execute. This field is mutually exclusive with `scriptFrom` field.
+                          The raw SQL script to execute. This field is mutually exclusive with `scriptFrom` field.
                       scriptFrom:
                         type: object
                         description: |
-                          Reference that contains the SQL script to execute. This field is mutually exclusive with `script` field.
-                          
-                          Fields `secretKeyRef` and `configMapKeyRef` are mutually exclusive and one of them is required.
+                          Reference to either a Kubernetes [Secret](https://kubernetes.io/docs/concepts/configuration/secret/) or a [ConfigMap](https://kubernetes.io/docs/concepts/configuration/configmap/) that contains the SQL script to execute. This field is mutually exclusive with `script` field.
+
+                          Fields `secretKeyRef` and `configMapKeyRef` are mutually exclusive, and one of them is required.
                         properties:
                           secretKeyRef:
                             type: object
                             description: |
-                              A Secret key reference that contains the SQL script to execute. This field is mutually exclusive with `configMapKeyRef` field.
+                              A Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core) that contains the SQL script to execute. This field is mutually exclusive with `configMapKeyRef` field.
                             properties:
                               name:
                                 type: string
-                                description: |
-                                  The name of the Secret that contains the SQL script to execute.
+                                description: Name of the referent. [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
                               key:
                                 type: string
-                                description: |
-                                  The key of the Secret that contains the SQL script to execute.
+                                description: The key of the secret to select from. Must be a valid secret key.
                           configMapKeyRef:
                             type: object
                             description: |
-                              A ConfigMap key reference that contains the SQL script to execute. This field is mutually exclusive with `secretKeyRef` field.
+                              A [ConfigMap](https://kubernetes.io/docs/concepts/configuration/configmap/) reference that contains the SQL script to execute. This field is mutually exclusive with `secretKeyRef` field.
                             properties:
                               name:
                                 type: string
@@ -226,7 +224,7 @@ spec:
                               key:
                                 type: string
                                 description: |
-                                  The key of the ConfigMap that contains the SQL script to execute.
+                                  The key name within the ConfigMap that contains the SQL script to execute.
             prometheusAutobind:
               type: boolean
               description: |
@@ -242,10 +240,10 @@ spec:
                     The same best practice applies to databases on containers. By default, StackGres will not allow to run more than one StackGres pod on a given K8s node. Set this property to true to allow more than one StackGres pod per node.
             distributedLogs:
               type: object
-              description: Options to distribute cluster logs.
+              description: StackGres features a functionality for all pods to send Postgres, Patroni and PgBouncer logs to a central (distributed) location, which is in turn another Postgres database. Logs can then be accessed via SQL interface or from the web UI. This section controls whether to enable this feature or not. If not enabled, logs are send to the pod's standard output.
               properties:
                 sgDistributedLogs:
                   type: string
                   description: |
-                    Name of the [SGDistributedLogs](https://stackgres.io/doc/latest/04-postgres-cluster-management/06-distributed-logs/) to use for this cluster. It must exists. If not set, logs will be written to stdout.
+                    Name of the [SGDistributedLogs](https://stackgres.io/doc/latest/04-postgres-cluster-management/06-distributed-logs/) to use for this cluster. It must exist.
           required: ["instances", "postgresVersion", "pods"]
