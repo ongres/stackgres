@@ -2380,7 +2380,7 @@ $(document).ready(function(){
       if( $('.filter.open').find('.active').length )
         $('.filter.open').addClass('filtered');
       else
-        $('.filter.open').removeClass('filtered');
+        $('.filter:not(.columns).open').removeClass('filtered');
       
         $('.filter.open').removeClass("open");
     }
