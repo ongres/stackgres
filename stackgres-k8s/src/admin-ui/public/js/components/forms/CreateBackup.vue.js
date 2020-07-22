@@ -59,13 +59,13 @@ var CreateBackup = Vue.component("CreateBackup", {
                 </a>
                 
                 <template v-if="editMode">
-                    <button @click="createBackup">Update Backup</button>
+                    <a class="btn" @click="createBackup">Update Backup</a>
                 </template>
                 <template v-else>
-                    <button @click="createBackup">Create Backup</button>
+                    <a class="btn" @click="createBackup">Create Backup</a>
                 </template>
 
-                <button @click="cancel" class="border">Cancel</button>
+                <a class="btn border" @click="cancel">Cancel</a>
             </div>
             <div id="help" class="form">
                 <div class="header">

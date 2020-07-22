@@ -64,13 +64,13 @@ var CreateProfile = Vue.component("CreateProfile", {
                 </a>
 
                 <template v-if="editMode">
-                    <button @click="createProfile">Update Profile</button>
+                    <a class="btn" @click="createProfile">Update Profile</a>
                 </template>
                 <template v-else>
-                    <button @click="createProfile">Create Profile</button>
+                    <a class="btn" @click="createProfile">Create Profile</a>
                 </template>
 
-                <button @click="cancel" class="border">Cancel</button>
+                <a @click="cancel" class="btn border">Cancel</a>
             </div>
             <div id="help" class="form">
                 <div class="header">
@@ -132,7 +132,7 @@ var CreateProfile = Vue.component("CreateProfile", {
                     if( (conf.data.metadata.name === vm.$route.params.name) && (conf.data.metadata.namespace === vm.$route.params.namespace) ) {
                         vm.profileCPU = conf.data.spec.cpu;
                         vm.profileRAM = conf.data.spec.memory.match(/\d+/g);
-                        vm.profileRAMUnit = conf.data.spec.memory.match(/[a-zA-Z]+/g);
+                        vm.profileRAMUnit = conf.data.spec.memory.match(/[a-zA-Z]+/g)[0];
                         config = conf;
                         return false;
                     }
@@ -177,7 +177,6 @@ var CreateProfile = Vue.component("CreateProfile", {
                         profile 
                     )
                     .then(function (response) {
-                        console.log("GOOD");
                         notify('Profile <strong>"'+profile.metadata.name+'"</strong> updated successfully', 'message','profile');
 
                         vm.fetchAPI();
@@ -196,7 +195,6 @@ var CreateProfile = Vue.component("CreateProfile", {
                         profile 
                     )
                     .then(function (response) {
-                        console.log("GOOD");
                         notify('Profile <strong>"'+profile.metadata.name+'"</strong> created successfully', 'message','profile');
         
                         /* store.commit('updateProfiles', { 

@@ -323,7 +323,8 @@ router.beforeEach((to, from, next) => {
         }
         else
           notFound();
-      }).catch(function(err) {
+      }).catch(function(error) {
+        checkAuthError(error)
         notFound()
       });
     }
@@ -363,7 +364,8 @@ router.beforeEach((to, from, next) => {
           else
             next()
 
-        }).catch(function(err) {
+        }).catch(function(error) {
+            checkAuthError(error)
           notFound()
         });
 
@@ -376,7 +378,8 @@ router.beforeEach((to, from, next) => {
         .get(apiURL+'sgcluster/stats/'+to.params.namespace+'/'+to.params.name)
         .then( function(response){
           next()
-        }).catch(function(err) {
+        }).catch(function(error) {
+          checkAuthError(error)
           notFound()
         });
 
@@ -408,7 +411,8 @@ router.beforeEach((to, from, next) => {
           else
             next()
 
-        }).catch(function(err) {
+        }).catch(function(error) {
+          checkAuthError(error)
           notFound()
         });
 
@@ -441,7 +445,8 @@ router.beforeEach((to, from, next) => {
           else
             next()
 
-        }).catch(function(err) {
+        }).catch(function(error) {
+          checkAuthError(error)
           notFound()
         });
 
@@ -474,7 +479,8 @@ router.beforeEach((to, from, next) => {
           else
             next()
 
-        }).catch(function(err) {
+        }).catch(function(error) {
+          checkAuthError(error)
           notFound()
         });
 
@@ -506,7 +512,8 @@ router.beforeEach((to, from, next) => {
           else
             next()
 
-        }).catch(function(err) {
+        }).catch(function(error) {
+          checkAuthError(error)
           notFound()
         });
 
@@ -546,7 +553,8 @@ router.beforeEach((to, from, next) => {
             else
               next()
   
-          }).catch(function(err) {
+          }).catch(function(error) {
+            checkAuthError(error)
             notFound()
           });
 
@@ -591,7 +599,8 @@ router.beforeEach((to, from, next) => {
             else {
               next()
             }
-          }).catch(function(err) {
+          }).catch(function(error) {
+            checkAuthError(error)
             notFound()
           });
 
@@ -640,7 +649,8 @@ router.beforeEach((to, from, next) => {
               next()
             }
 
-          }).catch(function(err) {
+          }).catch(function(error) {
+            checkAuthError(error)
             notFound()
           });
         }
@@ -1086,7 +1096,6 @@ Vue.mixin({
             }
 				)
 				.then(function (response) {
-					console.log("DELETED");
 					notify('<span class="capitalize">'+item.kind+'</span> <strong>'+item.name+'</strong> deleted successfully', 'message', item.kind);
           
           $('.'+item.kind+'-'+item.namespace+'-'+item.name).addClass("hide");

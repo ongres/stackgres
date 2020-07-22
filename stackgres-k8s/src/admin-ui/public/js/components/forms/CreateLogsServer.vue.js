@@ -84,13 +84,13 @@ var CreateLogsServer = Vue.component("CreateLogsServer", {
                     </template>
                     
                     <template v-if="editMode">
-                        <button @click="createCluster" type="submit">Update Server</button>
+                        <a class="btn" @click="createCluster">Update Server</a>
                     </template>
                     <template v-else>
-                        <button @click="createCluster" type="submit">Create Server</button>
+                        <a class="btn" @click="createCluster">Create Server</a>
                     </template>
 
-                    <button @click="cancel" class="border">Cancel</button>
+                    <a @click="cancel" class="btn border">Cancel</a>
                 </div>   
             </div>
             <div id="help" class="form">

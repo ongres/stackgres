@@ -326,12 +326,12 @@ var CreateBackupConfig = Vue.component("CreateBackupConfig", {
                 </fieldset>
 
                 
-                <button @click="createBackupConfig">
+                <a class="btn" @click="createBackupConfig">
                     <template v-if="editMode">Update Configuration</template>
                     <template v-else>Create Configuration</template>
-                </button>
+                </a>
 
-                <button @click="cancel" class="border">Cancel</button>
+                <a class="btn border" @click="cancel">Cancel</a>
             </div>
             <div id="help" class="form">
                 <div class="header">

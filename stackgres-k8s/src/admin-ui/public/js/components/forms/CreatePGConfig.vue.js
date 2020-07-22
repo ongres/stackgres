@@ -1,6 +1,6 @@
 var CreatePGConfig = Vue.component("CreatePgConfig", {
     template: `
-        <form id="create-pgconfig">
+        <form id="create-pgconfig" class="noSubmit">
             <!-- Vue reactivity hack -->
             <template v-if="Object.keys(config).length > 0"></template>
             <header>
@@ -58,13 +58,13 @@ var CreatePGConfig = Vue.component("CreatePgConfig", {
                 </a>
 
                 <template v-if="editMode">
-                    <button @click="createPGConfig">Update Configuration</button>
+                    <a class="btn" @click="createPGConfig">Update Configuration</a>
                 </template>
                 <template v-else>
-                    <button @click="createPGConfig">Create Configuration</button>
+                    <a class="btn" @click="createPGConfig">Create Configuration</a>
                 </template>
                 
-                <button @click="cancel" class="border">Cancel</button>
+                <a class="btn border" @click="cancel">Cancel</a>
             </div>
             <div id="help" class="form">
                 <div class="header">
@@ -160,8 +160,6 @@ var CreatePGConfig = Vue.component("CreatePgConfig", {
                     }
                 }
 
-                console.log(config);
-
                 if(this.editMode) {
                     const res = axios
                     .put(
@@ -169,7 +167,6 @@ var CreatePGConfig = Vue.component("CreatePgConfig", {
                         config 
                     )
                     .then(function (response) {
-                        console.log("GOOD");
                         notify('Postgres configuration <strong>"'+config.metadata.name+'"</strong> updated successfully', 'message', 'sgpgconfig');
 
                         vm.fetchAPI('sgpgconfig');
@@ -186,7 +183,6 @@ var CreatePGConfig = Vue.component("CreatePgConfig", {
                         config 
                     )
                     .then(function (response) {
-                        console.log("GOOD");
                         notify('Postgres configuration <strong>"'+config.metadata.name+'"</strong> created successfully', 'message', 'sgpgconfig');
         
                         vm.fetchAPI('sgpgconfig');
