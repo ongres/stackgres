@@ -151,8 +151,6 @@ var CreatePoolConfig = Vue.component("CreatePoolConfig", {
                     }
                 }
 
-                console.log(config);
-
                 if(this.editMode) {
                     const res = axios
                     .put(
@@ -160,7 +158,6 @@ var CreatePoolConfig = Vue.component("CreatePoolConfig", {
                         config 
                     )
                     .then(function (response) {
-                        console.log("GOOD");
                         notify('Connection pooling configuration <strong>"'+config.metadata.name+'"</strong> updated successfully', 'message','sgpoolconfig');
 
                         vm.fetchAPI('sgpoolconfig');
@@ -178,7 +175,6 @@ var CreatePoolConfig = Vue.component("CreatePoolConfig", {
                         config 
                     )
                     .then(function (response) {
-                        console.log("GOOD");
                         notify('Connection pooling configuration <strong>"'+config.metadata.name+'"</strong> created successfully', 'message','sgpoolconfig');
 
                         vm.fetchAPI('sgpoolconfig');

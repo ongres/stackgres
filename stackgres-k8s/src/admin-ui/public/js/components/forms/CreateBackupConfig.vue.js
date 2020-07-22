@@ -48,7 +48,7 @@ var CreateBackupConfig = Vue.component("CreateBackupConfig", {
 
                 <fieldset class="cron row-20" data-field="spec.baseBackups.cronSchedule">
                     <div class="header">
-                        <h3 for="spec.baseBackups.cronSchedule">Base Backup Schedule</h3> <span class="req">*</span>
+                        <h3 for="spec.baseBackups.cronSchedule">Base Backup Schedule <span class="req">*</span></h3>
                     </div>                    
                     
                     <div class="col">
@@ -607,8 +607,6 @@ var CreateBackupConfig = Vue.component("CreateBackupConfig", {
                     }
                 }
 
-                console.log(config);
-
                 if(this.editMode) {
                     
                     const res = axios
@@ -617,7 +615,6 @@ var CreateBackupConfig = Vue.component("CreateBackupConfig", {
                         config 
                     )
                     .then(function (response) {
-                        console.log("GOOD");
                         notify('Backup configuration <strong>"'+config.metadata.name+'"</strong> updated successfully', 'message','sgbackupconfig');
 
                         vm.fetchAPI('sgbackupconfig');
@@ -635,7 +632,6 @@ var CreateBackupConfig = Vue.component("CreateBackupConfig", {
                         config 
                     )
                     .then(function (response) {
-                        console.log("GOOD");
                         notify('Backup configuration <strong>"'+config.metadata.name+'"</strong> created successfully', 'message','sgbackupconfig');
 
                         vm.fetchAPI('sgbackupconfig');

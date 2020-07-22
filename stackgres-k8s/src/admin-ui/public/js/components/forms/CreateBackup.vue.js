@@ -176,7 +176,6 @@ var CreateBackup = Vue.component("CreateBackup", {
                         backup 
                     )
                     .then(function (response) {
-                        console.log("GOOD");
                         notify('Backup <strong>"'+backup.metadata.name+'"</strong> updated successfully', 'message', 'sgbackup');
 
                         vm.fetchAPI('sgbackup');
@@ -194,7 +193,6 @@ var CreateBackup = Vue.component("CreateBackup", {
                         backup 
                     )
                     .then(function (response) {
-                        console.log("GOOD");
                         notify('Backup <strong>"'+backup.metadata.name+'"</strong> started successfully.', 'message', 'sgbackup');
 
                         vm.fetchAPI('sgbackup');

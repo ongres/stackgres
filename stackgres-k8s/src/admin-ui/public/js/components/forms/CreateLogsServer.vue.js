@@ -220,7 +220,6 @@ var CreateLogsServer = Vue.component("CreateLogsServer", {
                         cluster 
                     )
                     .then(function (response) {
-                        console.log("GOOD");
                         notify('Logs server <strong>"'+cluster.data.metadata.name+'"</strong> updated successfully', 'message', 'sgcluster');
 
                         vm.fetchAPI('sgdistributedlogs');
@@ -238,7 +237,6 @@ var CreateLogsServer = Vue.component("CreateLogsServer", {
                         cluster 
                     )
                     .then(function (response) {
-                        console.log("GOOD");
                         notify('Logs server <strong>"'+cluster.data.metadata.name+'"</strong> created successfully', 'message', 'sgcluster');
 
                         vm.fetchAPI('sgdistributedlogs');
