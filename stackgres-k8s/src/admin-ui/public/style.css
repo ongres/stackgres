@@ -578,7 +578,7 @@ form#login .warning {
 
 /* Dark mode - Log in */
 
-.darkmode #signup {
+.darkmode #nav .right > div#signup {
     background: #1e1e1e;
     border-color: #333333;
 
@@ -587,6 +587,11 @@ form#login .warning {
 .darkmode #signup input {
     background: #1b1b1b;
     border-color: #333333;
+    color: #e3e3e3;
+}
+
+#signup input:focus {
+    border-color: var(--blue);
 }
 
 
@@ -2947,6 +2952,10 @@ ul.yaml ul {
     list-style: none;
 }
 
+table.clusterInfo{
+    margin-bottom: 30px;
+}
+
 .clusterInfo th {
     width: 25%;
 }
@@ -3207,7 +3216,7 @@ table.backupConfig tr.base.open {
     cursor: pointer;
 }
 
-.darkmode .filter.columns label, .darkmode .filter.columns input[type="checkbox"] {
+.darkmode .filter.columns label, .darkmode .filter.columns input[type="checkbox"], .darkmode td.usedOn li {
     border-color: #333333;
 }
 
@@ -4381,9 +4390,9 @@ tr.base > td:not(.actions):hover {
     cursor: pointer;
 }
 
-table.clusterOverview td.actions a:first-of-type, table.backups td.actions a:first-of-type, table.pgConfig td.actions a:first-of-type, table.poolConfig td.actions a:first-of-type, table.backupConfig td.actions a:first-of-type {
+/*table.clusterOverview td.actions a:first-of-type, table.backups td.actions a:first-of-type, table.pgConfig td.actions a:first-of-type, table.poolConfig td.actions a:first-of-type, table.backupConfig td.actions a:first-of-type {
     display: none;
-}
+}*/
 
 table.backupConfig tr.details.show td:first-of-type {
     position: relative;

@@ -113,7 +113,7 @@ const router = new VueRouter({
       },
     },
     { 
-      path: '/admin/crd/:action/backup/:namespace/:uid', 
+      path: '/admin/crd/:action/backup/:namespace/:cluster/:uid', 
       component: CreateBackup,
       meta: {
         conditionalRoute: false
@@ -996,6 +996,7 @@ if( (window.location.pathname === '/admin/index.html') && ( (store.state.loginTo
 Vue.mixin({
   data: function(){
     return {
+      confirmDeleteName: ''
     }
   },
   computed: {
@@ -1044,16 +1045,10 @@ Vue.mixin({
 
 		},
 
-    cancelDelete: function(){
-      $("#delete").removeClass("active");
-      $("#delete .warning").hide();
-      store.commit('setConfirmDeleteName', '');
-    },
-    
     deleteCRD: function( kind, namespace, name, redirect ) {
 
       //console.log("Open delete");
-      $('#delete input').val('');
+      this.confirmDeleteName = '';
       $("#delete").addClass("active");
       $(".filter > .open").removeClass("open");
 
@@ -1070,6 +1065,7 @@ Vue.mixin({
 
       //console.log("Name: "+confirmName);
 
+      const vc = this;
       const item = store.state.deleteItem;
 
 			if(confirmName == item.name) { 
@@ -1105,7 +1101,8 @@ Vue.mixin({
             redirect: ''
           });
 
-					$("#delete").removeClass("active");
+          $("#delete").removeClass("active");
+          vc.confirmDeleteName = '';
 				})
 				.catch(function (error) {
 				  console.log(error);
@@ -2383,7 +2380,7 @@ $(document).ready(function(){
       if( $('.filter.open').find('.active').length )
         $('.filter.open').addClass('filtered');
       else
-        $('.filter.open').removeClass('filtered');
+        $('.filter:not(.columns).open').removeClass('filtered');
       
         $('.filter.open').removeClass("open");
     }
