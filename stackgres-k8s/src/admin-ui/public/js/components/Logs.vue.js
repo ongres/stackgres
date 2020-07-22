@@ -690,6 +690,13 @@ var Logs = Vue.component("Logs", {
 					$(this).removeClass('active')
 			});
 
+			$(document).on('click', '.filter.columns.open', function(){
+				if( $('.filter.columns input:checked').length != $('.filter.columns input:not(:checked)').length )
+					$(this).addClass('filtered');
+				else
+					$(this).removeClass('filtered');
+			});
+
 		});
 
 	},
