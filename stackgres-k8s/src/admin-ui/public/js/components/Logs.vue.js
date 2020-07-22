@@ -127,7 +127,7 @@ var Logs = Vue.component("Logs", {
 							</ul>
 						</div>
 
-						<div class="filter columns">
+						<div class="filter columns" :class="filteredColumns ? 'filtered' : ''">
 							<span class="toggle">VISIBLE COLUMNS</span>
 
 							<ul class="options">
@@ -535,6 +535,20 @@ var Logs = Vue.component("Logs", {
 			});
 			
 			return grafana            
+		},
+
+		filteredColumns() {
+			var filtered = false;
+			const vm = this;
+
+			Object.entries(vm.showColumns).forEach(([key, value]) => {
+				if(!value) {
+					filtered = true;
+					return false;
+				}
+			});
+				
+			return filtered
 		},
 
 		cluster() {
