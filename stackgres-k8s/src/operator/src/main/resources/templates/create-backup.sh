@@ -215,6 +215,23 @@ cat << EOF | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-primary
 exec-with-env "$BACKUP_ENV" \\
   -- wal-g backup-push "$PG_DATA_PATH" -f $([ "$BACKUP_IS_PERMANENT" = true ] && echo '-p' || true)
 EOF
+echo "Extracting pg_controldata"
+set +x
+cat << EOF | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-replica-or-primary)" -c patroni \
+    -- sh -e > /tmp/pg_controldata 2>&1
+pg_controldata --pgdata="$PG_DATA_PATH"
+EOF
+set -x
+cat /tmp/pg_controldata | awk '{ $2=$2;print }'| awk -F ': ' '
+      BEGIN { print "\n            {"}
+      {
+        if (NR > 1)
+          printf ",\n             \"%s\": \"%s\"", $1, $2
+        else
+          printf "             \"%s\": \"%s\"", $1, $2
+      }
+      END { print "\n            }" }' > /tmp/json_controldata
+      
 if grep -q " Wrote backup with name " /tmp/backup-push
 then
   WAL_G_BACKUP_NAME="$(grep " Wrote backup with name " /tmp/backup-push | sed 's/.* \([^ ]\+\)$/\1/')"
@@ -415,6 +432,7 @@ EOF
     else
       is_backup_subject_to_retention_policy="true"
     fi
+
     kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
       {"op":"replace","path":"/status/internalName","value":"'"$WAL_G_BACKUP_NAME"'"},
       {"op":"replace","path":"/status/process/status","value":"'"$BACKUP_PHASE_COMPLETED"'"},
@@ -441,7 +459,8 @@ EOF
           "size":{
             "uncompressed":'"$(grep "^uncompressed_size:" /tmp/current-backup | cut -d : -f 2-)"',
             "compressed":'"$(grep "^compressed_size:" /tmp/current-backup | cut -d : -f 2-)"'
-          }
+          },
+          "controlData": '"$(cat /tmp/json_controldata)"'
         }
       }
     ]'
