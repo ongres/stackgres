@@ -1145,7 +1145,7 @@ Vue.mixin({
 
     showTooltip: function( kind, field ) {
 
-      const label = $("[for='"+field+"']").text();
+      const label = $("[for='"+field+"']").first().text();
       const crd = store.state.tooltips[kind];
 
       $("#help .title").html(label);
