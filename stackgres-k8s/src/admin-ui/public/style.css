@@ -2210,6 +2210,7 @@ ul.select a.active {
     max-height: 220px;
     border-radius: 0;
     max-width: 100%;
+    min-width: 100%;
 }
 
 .form input:focus, .form select:focus, .form textarea:focus, ul.select.active {
@@ -2573,6 +2574,84 @@ span.req {
     padding-right: 25px;
 }
 
+a.addRow {
+    font-weight: 600;
+    text-transform: uppercase;
+    float: right;
+    display: inline-block;
+    cursor: pointer;
+}
+
+.row {
+    width: 100%;
+    display: block;
+}
+
+input.annotation, input.annotationValue {
+    width: 47%;
+    position: relative;
+    float: left;
+    margin-bottom: 10px;
+}
+
+input.annotationValue {
+    top: -15px;
+}
+
+span.eqSign {
+    float: left;
+    width: 6%;
+    text-align: center;
+    height: 38px;
+    padding-top: 8px;
+}
+
+span.eqSign:before {
+    background: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNSAyNSI+CjxwYXRoIGZpbGw9IiM0RDRGNUMiIGQ9Ik04LjMsMTEuNmMtMC40LDAtMC43LTAuMS0wLjktMC40QzcuMSwxMSw3LDEwLjYsNywxMC4zYzAtMC40LDAuMS0wLjcsMC40LTEKCUM3LjYsOSw4LDguOSw4LjMsOC45aDguM2MwLjQsMCwwLjcsMC4xLDAuOSwwLjRjMC4zLDAuMiwwLjQsMC42LDAuNCwwLjljMCwwLjQtMC4xLDAuNy0wLjQsMWMtMC4yLDAuMy0wLjYsMC40LTAuOSwwLjRMOC4zLDExLjZ6CgkgTTguMywxNi4xYy0wLjQsMC0wLjctMC4xLTAuOS0wLjRDNy4xLDE1LjUsNywxNS4xLDcsMTQuOGMwLTAuNCwwLjEtMC43LDAuNC0xYzAuMi0wLjMsMC42LTAuNCwwLjktMC40aDguM2MwLjQsMCwwLjcsMC4xLDAuOSwwLjQKCWMwLjMsMC4yLDAuNCwwLjYsMC40LDAuOWMwLDAuNC0wLjEsMC43LTAuNCwxYy0wLjIsMC4zLTAuNiwwLjQtMC45LDAuNEg4LjN6Ii8+Cjwvc3ZnPg==);
+    display: inline-block;
+    content: "";
+    position: relative;
+    width: 20px;
+    height: 20px;
+}
+
+.darkmode span.eqSign:before {
+    background: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNSAyNSI+CjxwYXRoIGZpbGw9IiM3QTdCODUiIGQ9Ik04LjMsMTEuNmMtMC40LDAtMC43LTAuMS0wLjktMC40QzcuMSwxMSw3LDEwLjYsNywxMC4zYzAtMC40LDAuMS0wLjcsMC40LTEKCUM3LjYsOSw4LDguOSw4LjMsOC45aDguM2MwLjQsMCwwLjcsMC4xLDAuOSwwLjRjMC4zLDAuMiwwLjQsMC42LDAuNCwwLjljMCwwLjQtMC4xLDAuNy0wLjQsMWMtMC4yLDAuMy0wLjYsMC40LTAuOSwwLjRMOC4zLDExLjZ6CgkgTTguMywxNi4xYy0wLjQsMC0wLjctMC4xLTAuOS0wLjRDNy4xLDE1LjUsNywxNS4xLDcsMTQuOGMwLTAuNCwwLjEtMC43LDAuNC0xYzAuMi0wLjMsMC42LTAuNCwwLjktMC40aDguM2MwLjQsMCwwLjcsMC4xLDAuOSwwLjQKCWMwLjMsMC4yLDAuNCwwLjYsMC40LDAuOWMwLDAuNC0wLjEsMC43LTAuNCwxYy0wLjIsMC4zLTAuNiwwLjQtMC45LDAuNEg4LjN6Ii8+Cjwvc3ZnPg==);
+}
+
+.annotation.repeater .row label:last-of-type {
+    display: inline;
+    position: relative;
+    top: -17px;
+}
+
+.resourcesMetadata a.help {
+    margin-top: 5px;
+}
+
+.script.repeater textarea {
+    margin-bottom: 20px;
+    width: 100%;
+    max-width: 468px;
+}
+
+fieldset.scriptFieldset .header a.help {
+    margin-top: 0px;
+}
+
+label.script {
+    display: inline-block;
+    width: auto;
+}
+
+.uploadScript {
+    float: right;
+    display: inline;
+}
+
+fieldset.postgresServicesPrimary .header a.help, fieldset.postgresServicesReplicas .header a.help, fieldset.postgresServicesPrimary fieldset a.help, fieldset.postgresServicesReplicas fieldset a.help {
+    margin-top: 0;
+}
 
 /* Help Tooltips */
 
@@ -3134,7 +3213,7 @@ table.backupConfig tr.base.open {
     color: var(--gray3);
 }
 
-.toolbar .filtered .toggle:after {
+.toolbar .filtered .toggle:after, .darkmode a.btn.border {
     color: var(--blue);
 }
 
