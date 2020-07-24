@@ -58,7 +58,6 @@
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-junit-jupiter</artifactId>
-      <version>${mockito.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -114,6 +113,12 @@
       <groupId>io.fabric8</groupId>
       <artifactId>kubernetes-server-mock</artifactId>
       <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>io.sundr</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
   </dependencies>
 
@@ -282,8 +287,8 @@
             <version>${docker-maven-plugin.version}</version>
             <configuration>
               <restartPolicy>
-                  <name>on-failure</name>
-                  <retry>3</retry>
+                <name>on-failure</name>
+                <retry>3</retry>
               </restartPolicy>
             </configuration>
             <executions>
@@ -291,7 +296,7 @@
                 <id>build-stackgres-it-container</id>
                 <phase>pre-integration-test</phase>
                 <goals>
-                    <goal>build</goal>
+                  <goal>build</goal>
                 </goals>
                 <configuration>
                   <skip>${it.skipBuildContainer}</skip>
@@ -502,9 +507,9 @@
                           <arg>/bin/sh</arg>
                           <arg>-exc</arg>
                           <arg>
-                        OPERATOR_IMAGE_NAME="${OPERATOR_IMAGE_NAME:-"stackgres/operator:development-jvm"}"
-                        CONTAINER_NAME="$(docker inspect -f '{{.Name}}' "$(hostname)"|cut -d '/' -f 2|sed 's/^kind-load/kind/')"
-                        kind load docker-image --name "$CONTAINER_NAME" "$OPERATOR_IMAGE_NAME" || true
+                            OPERATOR_IMAGE_NAME="${OPERATOR_IMAGE_NAME:-"stackgres/operator:development-jvm"}"
+                            CONTAINER_NAME="$(docker inspect -f '{{.Name}}' "$(hostname)"|cut -d '/' -f 2|sed 's/^kind-load/kind/')"
+                            kind load docker-image --name "$CONTAINER_NAME" "$OPERATOR_IMAGE_NAME" || true
                           </arg>
                         </entrypoint>
                         <wait>
@@ -563,9 +568,9 @@
                           <arg>/bin/sh</arg>
                           <arg>-exc</arg>
                           <arg>
-                        OPERATOR_IMAGE_NAME="${OPERATOR_IMAGE_NAME:-"stackgres/operator:development"}"
-                        CONTAINER_NAME="$(docker inspect -f '{{.Name}}' "$(hostname)"|cut -d '/' -f 2|sed 's/^kind-load/kind/')"
-                        kind load docker-image --name "$CONTAINER_NAME" "$OPERATOR_IMAGE_NAME" || true
+                            OPERATOR_IMAGE_NAME="${OPERATOR_IMAGE_NAME:-"stackgres/operator:development"}"
+                            CONTAINER_NAME="$(docker inspect -f '{{.Name}}' "$(hostname)"|cut -d '/' -f 2|sed 's/^kind-load/kind/')"
+                            kind load docker-image --name "$CONTAINER_NAME" "$OPERATOR_IMAGE_NAME" || true
                           </arg>
                         </entrypoint>
                         <wait>
