@@ -561,7 +561,8 @@ router.beforeEach((to, from, next) => {
           axios
           .get(apiURL+'sgbackup')
           .then( function(response){ 
-            var found = false
+            var found = false,
+                duration = '';
 
             if(response.data.length) {
 
@@ -610,7 +611,8 @@ router.beforeEach((to, from, next) => {
           .get(apiURL+'sgbackup')
           .then( function(response){
 
-            var found = false
+            var found = false,
+                duration = ''
 
             if(response.data.length) {
 
