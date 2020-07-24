@@ -333,13 +333,28 @@ router.beforeEach((to, from, next) => {
 
       case 'CreateCluster':
       case 'Logs':
-      case 'Grafana':    
+      case 'ClusterInfo':
+      case 'Grafana':
+      case 'ClusterStatus':
 
         axios
         .get(apiURL+'sgcluster')
         .then( function(response){
 
-          var found = false
+          var found = false,
+              stats = {};
+
+            if(component == 'ClusterStatus') {
+              /* Check for Cluster status */
+              axios
+              .get(apiURL+'sgcluster/stats/'+to.params.namespace+'/'+to.params.name)
+              .then( function(resp){
+                stats = resp.data;
+              }).catch(function(error) {
+                checkAuthError(error)
+                notFound()
+              });
+            } 
 
           response.data.forEach( function(item, index) {
 
@@ -349,13 +364,14 @@ router.beforeEach((to, from, next) => {
               hasBackups: false,
               status: {},
             };
-              
-            store.commit('updateClusters', cluster);
 
             if( to.params.hasOwnProperty('name') && (to.params.name == item.metadata.name) && (to.params.namespace == item.metadata.namespace) ) {
+              cluster.status = stats;
               store.commit('setCurrentCluster', cluster);
               found = true;
             }
+
+            store.commit('updateClusters', cluster);
 
           });
 
@@ -370,20 +386,6 @@ router.beforeEach((to, from, next) => {
         });
 
         break
-
-      case 'ClusterStatus':
-      case 'ClusterInfo':
-        /* Check if Cluster exists */
-        axios
-        .get(apiURL+'sgcluster/stats/'+to.params.namespace+'/'+to.params.name)
-        .then( function(response){
-          next()
-        }).catch(function(error) {
-          checkAuthError(error)
-          notFound()
-        });
-
-        break;
 
       case 'InstanceProfile':
       case 'CreateProfile':
@@ -1013,6 +1015,25 @@ Vue.mixin({
   },
   methods: {
 
+    hasProp (obj, propertyPath) {
+      if(!propertyPath)
+          return false;
+
+      var properties = propertyPath.split('.');
+
+      for (var i = 0; i < properties.length; i++) {
+          var prop = properties[i];
+
+          if(!obj || !obj.hasOwnProperty(prop)){
+              return false;
+          } else {
+              obj = obj[prop];
+          }
+      }
+
+      return true;
+    },
+
     iCan( action, kind, namespace = '' ) {
       
       if(namespace.length) {
@@ -1334,11 +1355,8 @@ const vm = new Vue({
           // Check if there are any changes on API Data
           if ( checkData(response.data, apiData['cluster']) ) {
 
-            if(typeof apiData['cluster'] !== 'undefined' && response.data.length != apiData['cluster'].length)
-              store.commit('flushClusters');
-
-            apiData['cluster'] = response.data;
-      
+            store.commit('flushClusters');
+            apiData['cluster'] = response.data;      
             apiData['cluster'].forEach( function(item, index) {
 
               var cluster = {
@@ -1359,9 +1377,9 @@ const vm = new Vue({
                     }
                     }
                 )
-                .then( function(response){
+                .then( function(resp){
                   //console.log(response.data);
-                  cluster.status = response.data;
+                  cluster.status = resp.data;
                 }).catch(function(err) {
                   console.log(err);
                   checkAuthError(err);
