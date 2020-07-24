@@ -228,9 +228,40 @@ var CreateCluster = Vue.component("CreateCluster", {
                             </a>
                         </fieldset>
 
-                        <!--<label>Enable Postgres Utils</label>  
-                        <label for="postgresUtil" class="switch">Postgres Utils <input type="checkbox" id="postgresUtil" v-model="postgresUtil" data-switch="OFF"></label>-->                        
+                        <label for="spec.pods.disablePostgresUtil">Postgres Utils</label>  
+                        <label for="postgresUtil" class="switch">Postgres Utils <input type="checkbox" id="postgresUtil" v-model="postgresUtil" data-switch="ON"></label>
+                        <a class="help" @click="showTooltip( 'SGCluster', 'spec.pods.disablePostgresUtil')">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14.993" height="14.993" viewBox="0 0 14.993 14.993"><path d="M75.9-30a7.5,7.5,0,0,0-7.5,7.5,7.5,7.5,0,0,0,7.5,7.5,7.5,7.5,0,0,0,7.5-7.5A7.5,7.5,0,0,0,75.9-30Z" transform="translate(-68.4 30)" fill="#7a7b85"/><g transform="translate(4.938 3.739)"><path d="M78.008-17.11a.881.881,0,0,0-.629.248.833.833,0,0,0-.259.612.819.819,0,0,0,.271.653.906.906,0,0,0,.6.224H78a.864.864,0,0,0,.6-.226.813.813,0,0,0,.267-.639.847.847,0,0,0-.25-.621A.9.9,0,0,0,78.008-17.11Z" transform="translate(-75.521 23.034)" fill="#fff"/><path d="M79.751-23.993a2.13,2.13,0,0,0-.882-.749,3.07,3.07,0,0,0-1.281-.27,2.978,2.978,0,0,0-1.376.322,2.4,2.4,0,0,0-.906.822,1.881,1.881,0,0,0-.318,1v.009a.734.734,0,0,0,.231.511.762.762,0,0,0,.549.238h.017a.778.778,0,0,0,.767-.652,1.92,1.92,0,0,1,.375-.706.871.871,0,0,1,.668-.221.891.891,0,0,1,.618.22.687.687,0,0,1,.223.527.572.572,0,0,1-.073.283,1.194,1.194,0,0,1-.2.265c-.088.088-.232.22-.43.394a7.645,7.645,0,0,0-.565.538,1.905,1.905,0,0,0-.356.566,1.893,1.893,0,0,0-.134.739.8.8,0,0,0,.217.607.751.751,0,0,0,.519.206h.046a.689.689,0,0,0,.454-.171.662.662,0,0,0,.229-.452c.031-.149.055-.255.073-.315a.827.827,0,0,1,.061-.153.878.878,0,0,1,.124-.175,3.05,3.05,0,0,1,.246-.247c.39-.345.665-.6.818-.75a2.3,2.3,0,0,0,.42-.565,1.635,1.635,0,0,0,.183-.782A1.859,1.859,0,0,0,79.751-23.993Z" transform="translate(-74.987 25.012)" fill="#fff"/></g></svg>
+                        </a>
 
+                        <label for="spec.pods.disableMetricsExporter">Metrics Exporter</label>  
+                        <label for="metricsExporter" class="switch">Metrics Exporter <input type="checkbox" id="metricsExporter" v-model="metricsExporter" data-switch="ON"></label>
+                        <a class="help" @click="showTooltip( 'SGCluster', 'spec.pods.disableMetricsExporter')">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14.993" height="14.993" viewBox="0 0 14.993 14.993"><path d="M75.9-30a7.5,7.5,0,0,0-7.5,7.5,7.5,7.5,0,0,0,7.5,7.5,7.5,7.5,0,0,0,7.5-7.5A7.5,7.5,0,0,0,75.9-30Z" transform="translate(-68.4 30)" fill="#7a7b85"/><g transform="translate(4.938 3.739)"><path d="M78.008-17.11a.881.881,0,0,0-.629.248.833.833,0,0,0-.259.612.819.819,0,0,0,.271.653.906.906,0,0,0,.6.224H78a.864.864,0,0,0,.6-.226.813.813,0,0,0,.267-.639.847.847,0,0,0-.25-.621A.9.9,0,0,0,78.008-17.11Z" transform="translate(-75.521 23.034)" fill="#fff"/><path d="M79.751-23.993a2.13,2.13,0,0,0-.882-.749,3.07,3.07,0,0,0-1.281-.27,2.978,2.978,0,0,0-1.376.322,2.4,2.4,0,0,0-.906.822,1.881,1.881,0,0,0-.318,1v.009a.734.734,0,0,0,.231.511.762.762,0,0,0,.549.238h.017a.778.778,0,0,0,.767-.652,1.92,1.92,0,0,1,.375-.706.871.871,0,0,1,.668-.221.891.891,0,0,1,.618.22.687.687,0,0,1,.223.527.572.572,0,0,1-.073.283,1.194,1.194,0,0,1-.2.265c-.088.088-.232.22-.43.394a7.645,7.645,0,0,0-.565.538,1.905,1.905,0,0,0-.356.566,1.893,1.893,0,0,0-.134.739.8.8,0,0,0,.217.607.751.751,0,0,0,.519.206h.046a.689.689,0,0,0,.454-.171.662.662,0,0,0,.229-.452c.031-.149.055-.255.073-.315a.827.827,0,0,1,.061-.153.878.878,0,0,1,.124-.175,3.05,3.05,0,0,1,.246-.247c.39-.345.665-.6.818-.75a2.3,2.3,0,0,0,.42-.565,1.635,1.635,0,0,0,.183-.782A1.859,1.859,0,0,0,79.751-23.993Z" transform="translate(-74.987 25.012)" fill="#fff"/></g></svg>
+                        </a>
+
+                        <fieldset class="podsMetadata" v-if="!editMode || (editMode && podsMetadata.length)">
+                            <div class="header">
+                                <h3 for="spec.pods.metadata">Pods Metadata</h3>
+                                <a v-if="!editMode" class="addRow" @click="pushLabel('podsMetadata')">Add Label</a>
+                                <a class="help" @click="showTooltip( 'SGCluster', 'spec.pods.metadata')">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14.993" height="14.993" viewBox="0 0 14.993 14.993"><path d="M75.9-30a7.5,7.5,0,0,0-7.5,7.5,7.5,7.5,0,0,0,7.5,7.5,7.5,7.5,0,0,0,7.5-7.5A7.5,7.5,0,0,0,75.9-30Z" transform="translate(-68.4 30)" fill="#7a7b85"/><g transform="translate(4.938 3.739)"><path d="M78.008-17.11a.881.881,0,0,0-.629.248.833.833,0,0,0-.259.612.819.819,0,0,0,.271.653.906.906,0,0,0,.6.224H78a.864.864,0,0,0,.6-.226.813.813,0,0,0,.267-.639.847.847,0,0,0-.25-.621A.9.9,0,0,0,78.008-17.11Z" transform="translate(-75.521 23.034)" fill="#fff"/><path d="M79.751-23.993a2.13,2.13,0,0,0-.882-.749,3.07,3.07,0,0,0-1.281-.27,2.978,2.978,0,0,0-1.376.322,2.4,2.4,0,0,0-.906.822,1.881,1.881,0,0,0-.318,1v.009a.734.734,0,0,0,.231.511.762.762,0,0,0,.549.238h.017a.778.778,0,0,0,.767-.652,1.92,1.92,0,0,1,.375-.706.871.871,0,0,1,.668-.221.891.891,0,0,1,.618.22.687.687,0,0,1,.223.527.572.572,0,0,1-.073.283,1.194,1.194,0,0,1-.2.265c-.088.088-.232.22-.43.394a7.645,7.645,0,0,0-.565.538,1.905,1.905,0,0,0-.356.566,1.893,1.893,0,0,0-.134.739.8.8,0,0,0,.217.607.751.751,0,0,0,.519.206h.046a.689.689,0,0,0,.454-.171.662.662,0,0,0,.229-.452c.031-.149.055-.255.073-.315a.827.827,0,0,1,.061-.153.878.878,0,0,1,.124-.175,3.05,3.05,0,0,1,.246-.247c.39-.345.665-.6.818-.75a2.3,2.3,0,0,0,.42-.565,1.635,1.635,0,0,0,.183-.782A1.859,1.859,0,0,0,79.751-23.993Z" transform="translate(-74.987 25.012)" fill="#fff"/></g></svg>
+                                </a> 
+                            </div>
+                    
+                            <div class="metadata repeater">
+                                <div class="row" v-for="field in podsMetadata">
+                                    <label>Label</label>
+                                    <input class="label" v-model="field.label" :disabled="editMode">
+
+                                    <span class="eqSign"></span>
+
+                                    <label>Value</label>
+                                    <input class="labelValue" v-model="field.value" :disabled="editMode">
+                                </div>
+                            </div>
+                        </fieldset>
+                    
                         <label for="spec.prometheusAutobind">Prometheus Autobind</label>  
                         <label for="prometheusAutobind" class="switch" data-field="spec.prometheusAutobind">Prometheus Autobind <input type="checkbox" id="prometheusAutobind" v-model="prometheusAutobind" data-switch="OFF"></label>
                         <a class="help" @click="showTooltip( 'SGCluster', 'spec.prometheusAutobind')">
@@ -520,6 +551,7 @@ var CreateCluster = Vue.component("CreateCluster", {
             disableClusterPodAntiAffinity: false,
             postgresUtil: true,
             metricsExporter: true,
+            podsMetadata: [ { label: '', value: ''} ],
             pgConfigExists: true,
             currentScriptIndex: 0,
             initScripts: [ { name: '', database: '', script: ''} ],
@@ -624,19 +656,20 @@ var CreateCluster = Vue.component("CreateCluster", {
                         vm.distributedLogs = (typeof c.data.spec.distributedLogs !== 'undefined') ? c.data.spec.distributedLogs.sgDistributedLogs : '';
                         vm.prometheusAutobind =  (typeof c.data.spec.prometheusAutobind !== 'undefined') ? c.data.spec.prometheusAutobind : false;
                         vm.disableClusterPodAntiAffinity = ( (typeof c.data.spec.nonProductionOptions !== 'undefined') && (typeof c.data.spec.nonProductionOptions.disableClusterPodAntiAffinity !== 'undefined') ) ? c.data.spec.nonProductionOptions.disableClusterPodAntiAffinity : false;
-                        vm.metricsExporter = true;
-                        vm.postgresUtil = true;
+                        vm.metricsExporter = hasProp(c, 'data.spec.pods.disableMetricsExporter') ? !c.data.spec.pods.disableMetricsExporter : true ;
+                        vm.postgresUtil = hasProp(c, 'data.spec.pods.disablePostgresUtil') ? !c.data.spec.pods.disablePostgresUtil : true ;
+                        vm.podsMetadata = hasProp(c, 'data.spec.pods.metadata.labels') ? vm.unparseProps(c.data.spec.pods.metadata.labels, 'label') : [];
                         vm.pgConfigExists = true;
                         vm.initScripts = hasProp(c, 'data.spec.initialData.scripts') ? c.data.spec.initialData.scripts : [];
-                        vm.annotationsAll = hasProp(c, 'data.spec.metadata.annotations.allResources') ? vm.unparseProps(c.data.spec.metadata.annotations.allResources) : '';
-                        vm.annotationsPods = hasProp(c, 'data.spec.metadata.annotations.pods') ? vm.unparseProps(c.data.spec.metadata.annotations.pods) : '';
-                        vm.annotationsServices = hasProp(c, 'data.spec.metadata.annotations.services') ? vm.unparseProps(c.data.spec.metadata.annotations.services) : '';
-                        vm.postgresServicesPrimary = hasProp(c, 'data.spec.postgresServices.primary.enabled') ? c.data.spec.postgresServices.primary.enable : false;
+                        vm.annotationsAll = hasProp(c, 'data.spec.metadata.annotations.allResources') ? vm.unparseProps(c.data.spec.metadata.annotations.allResources) : [];
+                        vm.annotationsPods = hasProp(c, 'data.spec.metadata.annotations.pods') ? vm.unparseProps(c.data.spec.metadata.annotations.pods) : [];
+                        vm.annotationsServices = hasProp(c, 'data.spec.metadata.annotations.services') ? vm.unparseProps(c.data.spec.metadata.annotations.services) : [];
+                        vm.postgresServicesPrimary = hasProp(c, 'data.spec.postgresServices.primary.enabled') ? c.data.spec.postgresServices.primary.enabled : false;
                         vm.postgresServicesPrimaryType = hasProp(c, 'data.spec.postgresServices.primary.type') ? c.data.spec.postgresServices.primary.type : 'ClusterIP';
-                        vm.postgresServicesPrimaryAnnotations = hasProp(c, 'data.spec.postgresServices.primary.annotations') ? c.data.spec.postgresServices.primary.annotations : {};
-                        vm.postgresServicesReplicas = hasProp(c, 'data.spec.postgresServices.replicas.enabled') ? c.data.spec.postgresServices.replicas.enable : false;
+                        vm.postgresServicesPrimaryAnnotations = hasProp(c, 'data.spec.postgresServices.primary.annotations') ?  vm.unparseProps(c.data.spec.postgresServices.primary.annotations) : [];
+                        vm.postgresServicesReplicas = hasProp(c, 'data.spec.postgresServices.replicas.enabled') ? c.data.spec.postgresServices.replicas.enabled : false;
                         vm.postgresServicesReplicasType = hasProp(c, 'data.spec.postgresServices.replicas.type') ? c.data.spec.postgresServices.replicas.type : 'ClusterIP';
-                        vm.postgresServicesReplicasAnnotations = hasProp(c, 'data.spec.postgresServices.replicas.annotations') ? c.data.spec.postgresServices.replicas.annotations : {};
+                        vm.postgresServicesReplicasAnnotations = hasProp(c, 'data.spec.postgresServices.replicas.annotations') ?  vm.unparseProps(c.data.spec.postgresServices.replicas.annotations) : [];
                         
                     }
                 });
@@ -692,6 +725,10 @@ var CreateCluster = Vue.component("CreateCluster", {
             }
         },
 
+        pushLabel: function( prop ) {
+            this[prop].push( { label: '', value: '' } )
+        },
+
         pushAnnotation: function( prop ) {
             this[prop].push( { annotation: '', value: '' } )
         },
@@ -729,7 +766,12 @@ var CreateCluster = Vue.component("CreateCluster", {
                             },
                             "disableConnectionPooling": !this.connPooling,
                             "disableMetricsExporter": !this.metricsExporter,
-                            "disablePostgresUtil": !this.postgresUtil                        
+                            "disablePostgresUtil": !this.postgresUtil,
+                            ...(!jQuery.isEmptyObject(this.parseProps(this.podsMetadata, 'label')) && ({
+                                "metadata": {
+                                    "labels": this.parseProps(this.podsMetadata, 'label')
+                                }
+                            }) )                  
                         },
                         "configurations": {
                             ...(this.pgConfig.length && ( {"sgPostgresConfig": this.pgConfig }) ),
@@ -757,15 +799,18 @@ var CreateCluster = Vue.component("CreateCluster", {
                         ),                      
                         ...(this.prometheusAutobind && ( {"prometheusAutobind": this.prometheusAutobind }) ),
                         ...(this.disableClusterPodAntiAffinity && ( {"nonProductionOptions": { "disableClusterPodAntiAffinity": this.disableClusterPodAntiAffinity } }) ),
-                        ...( (!jQuery.isEmptyObject(this.parseProps(this.annotationsAll)) || !jQuery.isEmptyObject(this.parseProps(this.annotationsPods)) || !jQuery.isEmptyObject(this.parseProps(this.annotationsServices))) && ({
-                            "metadata": {
-                                "annotations": {
-                                    ...(!jQuery.isEmptyObject(this.parseProps(this.annotationsAll)) && ( {"allResources": this.parseProps(this.annotationsAll) }) ),
-                                    ...(!jQuery.isEmptyObject(this.parseProps(this.annotationsPods)) && ( {"pods": this.parseProps(this.annotationsPods) }) ),
-                                    ...(!jQuery.isEmptyObject(this.parseProps(this.annotationsServices)) && ( {"services": this.parseProps(this.annotationsServices) }) ),
-                                }
+                        "postgresServices": {
+                            "primary": {
+                                "enabled": this.postgresServicesPrimary,
+                                "type": this.postgresServicesPrimaryType,
+                                "annotations": this.parseProps(this.postgresServicesPrimaryAnnotations)
+                            },
+                            "replicas": {
+                                "enabled": this.postgresServicesReplicas,
+                                "type": this.postgresServicesReplicasType,
+                                "annotations": this.parseProps(this.postgresServicesReplicasAnnotations)
                             }
-                        }) )
+                        },
                     }
                 }  
 
@@ -849,26 +894,30 @@ var CreateCluster = Vue.component("CreateCluster", {
             $('#postgresVersion [data-val="'+version+'"]').addClass('active');
         },
 
-        parseProps ( props ) {
+        parseProps ( props, key = 'annotation' ) {
             var jsonString = '{';
             props.forEach(function(p, i){
-                if(p.annotation.length && p.value.length) {                    
+                if(p[key].length && p.value.length) {                    
                     if(i)
                         jsonString += ','
                     
-                    jsonString += '"'+p.annotation+'":"'+p.value+'"'
-                }
+                    jsonString += '"'+p[key]+'":"'+p.value+'"'
+                }                
             })
             jsonString += '}'
 
 			return JSON.parse(jsonString)
         },
         
-        unparseProps ( props ) {
+        unparseProps ( props, key = 'annotation' ) {
             var propsArray = [];
 
-            Object.entries(props).forEach(([key, value]) => {
-                propsArray.push({ "annotation": key, "value": value })
+            Object.entries(props).forEach(([k, v]) => {
+                var prop = {};
+                prop[key] = k;
+                prop['value'] = v;
+
+                propsArray.push(prop)
             });
             return propsArray
 		}
