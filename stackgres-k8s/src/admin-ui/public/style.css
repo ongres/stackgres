@@ -923,6 +923,10 @@ ul.zg-ul-select.active li.active:hover {
     overflow: auto;
 }
 
+.set.active:not(.conf) { 
+    min-height: 100px; 
+}
+
 .set.clu.active {
     border-top: 0 !important;
 }
@@ -2587,14 +2591,14 @@ a.addRow {
     display: block;
 }
 
-input.annotation, input.annotationValue {
+input.annotation, input.annotationValue, input.label, input.labelValue {
     width: 47%;
     position: relative;
     float: left;
     margin-bottom: 10px;
 }
 
-input.annotationValue {
+input.annotationValue, input.labelValue {
     top: -15px;
 }
 
@@ -2619,7 +2623,7 @@ span.eqSign:before {
     background: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNSAyNSI+CjxwYXRoIGZpbGw9IiM3QTdCODUiIGQ9Ik04LjMsMTEuNmMtMC40LDAtMC43LTAuMS0wLjktMC40QzcuMSwxMSw3LDEwLjYsNywxMC4zYzAtMC40LDAuMS0wLjcsMC40LTEKCUM3LjYsOSw4LDguOSw4LjMsOC45aDguM2MwLjQsMCwwLjcsMC4xLDAuOSwwLjRjMC4zLDAuMiwwLjQsMC42LDAuNCwwLjljMCwwLjQtMC4xLDAuNy0wLjQsMWMtMC4yLDAuMy0wLjYsMC40LTAuOSwwLjRMOC4zLDExLjZ6CgkgTTguMywxNi4xYy0wLjQsMC0wLjctMC4xLTAuOS0wLjRDNy4xLDE1LjUsNywxNS4xLDcsMTQuOGMwLTAuNCwwLjEtMC43LDAuNC0xYzAuMi0wLjMsMC42LTAuNCwwLjktMC40aDguM2MwLjQsMCwwLjcsMC4xLDAuOSwwLjQKCWMwLjMsMC4yLDAuNCwwLjYsMC40LDAuOWMwLDAuNC0wLjEsMC43LTAuNCwxYy0wLjIsMC4zLTAuNiwwLjQtMC45LDAuNEg4LjN6Ii8+Cjwvc3ZnPg==);
 }
 
-.annotation.repeater .row label:last-of-type {
+.repeater .row label:last-of-type {
     display: inline;
     position: relative;
     top: -17px;
@@ -2649,7 +2653,7 @@ label.script {
     display: inline;
 }
 
-fieldset.postgresServicesPrimary .header a.help, fieldset.postgresServicesReplicas .header a.help, fieldset.postgresServicesPrimary fieldset a.help, fieldset.postgresServicesReplicas fieldset a.help {
+fieldset.postgresServicesPrimary .header a.help, fieldset.postgresServicesReplicas .header a.help, fieldset.postgresServicesPrimary fieldset a.help, fieldset.postgresServicesReplicas fieldset a.help, fieldset.podsMetadata a.help {
     margin-top: 0;
 }
 
@@ -2699,7 +2703,7 @@ a.help:hover {
     cursor: pointer;
 }
 
-a.help:hover svg > path {
+a.help:hover svg > path, a.help.active svg > path {
     fill: var(--blue);
 }
 
@@ -2803,7 +2807,7 @@ tbody {
     border-bottom: 1px solid #F0F0F1;
 }
 
-table .sort {
+table .sort, a.uploadLink {
     cursor: pointer;
 }
 
@@ -3071,6 +3075,16 @@ td.label span {
 
 table.clusterConfig {
     max-width: 1000px;
+    margin-bottom: 30px;
+    margin-top: 15px;
+}
+
+.resourcesMetadata table, .postgresServices table {
+    margin-bottom: 15px;
+}
+
+table.clusterConfig thead {
+    display: none;
 }
 
 table.clusterConfig th:first-child, table.clusterConfig td:first-child {

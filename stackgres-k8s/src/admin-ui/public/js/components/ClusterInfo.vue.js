@@ -49,6 +49,7 @@ var ClusterInfo = Vue.component("ClusterInfo", {
 			</header>
 
 			<div class="content">
+				<h2>Cluster Details</h2>
 				<table class="clusterConfig">
 					<thead>
 						<th></th>
@@ -191,6 +192,174 @@ var ClusterInfo = Vue.component("ClusterInfo", {
 						</tr>
 					</tbody>
 				</table>
+
+				<div class="podsMetadata" v-if="hasProp(cluster, 'data.spec.pods.metadata')">
+					<h2>Pods Metadata</h2>
+					<table v-if="hasProp(cluster, 'data.spec.pods.metadata.labels')" class="clusterConfig">
+						<thead>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+						</thead>
+						<tbody>
+							<tr v-for="(item, index) in unparseProps(cluster.data.spec.pods.metadata.labels)">
+								<td v-if="!index" class="label" :rowspan="Object.keys(cluster.data.spec.pods.metadata.labels).length">
+									Pods Metadata
+								</td>
+								<td v-if="!index" class="label" :rowspan="Object.keys(cluster.data.spec.pods.metadata.labels).length">
+									Labels
+								</td>
+								<td class="label">
+									{{ item.annotation }}
+								</td>
+								<td>
+									{{ item.value }}
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+
+				<div class="resourcesMetadata" v-if="hasProp(cluster, 'data.spec.metadata.annotations')">
+					<h2>Resources Metadata</h2>
+					<table v-if="hasProp(cluster, 'data.spec.metadata.annotations.allResources')" class="clusterConfig">
+						<thead>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+						</thead>
+						<tbody>
+							<tr v-for="(item, index) in unparseProps(cluster.data.spec.metadata.annotations.allResources)">
+								<td v-if="!index" class="label" :rowspan="Object.keys(cluster.data.spec.metadata.annotations.allResources).length">
+									All Resources
+								</td>
+								<td class="label">
+									{{ item.annotation }}
+								</td>
+								<td colspan="2">
+									{{ item.value }}
+								</td>
+							</tr>
+						</tbody>
+					</table>
+
+					<table v-if="hasProp(cluster, 'data.spec.metadata.annotations.pods')" class="clusterConfig">
+						<thead>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+						</thead>
+						<tbody>
+							<tr v-for="(item, index) in unparseProps(cluster.data.spec.metadata.annotations.pods)">
+								<td v-if="!index" class="label" :rowspan="Object.keys(cluster.data.spec.metadata.annotations.pods).length">
+									Pods
+								</td>
+								<td class="label">
+									{{ item.annotation }}
+								</td>
+								<td colspan="2">
+									{{ item.value }}
+								</td>
+							</tr>
+						</tbody>
+					</table>
+
+					<table v-if="hasProp(cluster, 'data.spec.metadata.annotations.services')" class="clusterConfig">
+						<thead>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+						</thead>
+						<tbody>
+							<tr v-for="(item, index) in unparseProps(cluster.data.spec.metadata.annotations.services)">
+								<td v-if="!index" class="label" :rowspan="Object.keys(cluster.data.spec.metadata.annotations.services).length">
+									Services
+								</td>
+								<td class="label">
+									{{ item.annotation }}
+								</td>
+								<td colspan="2">
+									{{ item.value }}
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>	
+
+				<div class="postgresServices" v-if="hasProp(cluster, 'data.spec.postgresServices')">
+					<h2>Postgres Services</h2>
+					<table v-if="hasProp(cluster, 'data.spec.postgresServices.primary') && cluster.data.spec.postgresServices.primary.enabled" class="clusterConfig">
+						<thead>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+						</thead>
+						<tbody>
+							<tr>
+								<td v-if="!index" class="label" :rowspan="Object.keys(cluster.data.spec.postgresServices.primary.annotations).length+1">
+									Primary
+								</td>
+								<td class="label">
+									Type
+								</td>
+								<td colspan="2">
+									{{ cluster.data.spec.postgresServices.primary.type }}
+								</td>
+							</tr>
+							<tr v-for="(item, index) in unparseProps(cluster.data.spec.postgresServices.primary.annotations)">
+								<td v-if="!index" class="label" :rowspan="Object.keys(cluster.data.spec.postgresServices.primary.annotations).length">
+									Annotations
+								</td>
+								<td class="label">
+									{{ item.annotation }}
+								</td>
+								<td>
+									{{ item.value }}
+								</td>
+							</tr>
+							
+						</tbody>
+					</table>
+
+					<table v-if="hasProp(cluster, 'data.spec.postgresServices.replicas') && cluster.data.spec.postgresServices.replicas.enabled" class="clusterConfig">
+						<thead>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+						</thead>
+						<tbody>
+							<tr>
+								<td v-if="!index" class="label" :rowspan="Object.keys(cluster.data.spec.postgresServices.replicas.annotations).length+1">
+									Replicas
+								</td>
+								<td class="label">
+									Type
+								</td>
+								<td colspan="2">
+									{{ cluster.data.spec.postgresServices.replicas.type }}
+								</td>
+							</tr>
+							<tr v-for="(item, index) in unparseProps(cluster.data.spec.postgresServices.replicas.annotations)">
+								<td v-if="!index" class="label" :rowspan="Object.keys(cluster.data.spec.postgresServices.replicas.annotations).length">
+									Annotations
+								</td>
+								<td class="label">
+									{{ item.annotation }}
+								</td>
+								<td>
+									{{ item.value }}
+								</td>
+							</tr>
+							
+						</tbody>
+					</table>
+				</div>		
 			</div>
 		</template>
 		</div>`,
@@ -200,7 +369,17 @@ var ClusterInfo = Vue.component("ClusterInfo", {
 	    }
 	},
 	methods: {
-		
+
+		unparseProps ( props, key = 'annotation' ) {
+            var propsArray = [];
+            Object.entries(props).forEach(([k, v]) => {
+                var prop = {};
+                prop[key] = k;
+                prop['value'] = v;
+                propsArray.push(prop)
+            });
+            return propsArray
+		}
 
 	},
 	created: function() {
