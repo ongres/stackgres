@@ -21,6 +21,6 @@ buildah config --user nobody:nobody "$CONTAINER_BASE"
 buildah config --env LANG="C.UTF-8" --env LC_ALL="C.UTF-8" "$CONTAINER_BASE"
 
 ## Commit this container to an image name
-buildah commit --squash "$CONTAINER_BASE" "$RESTAPI_IMAGE_NAME"
+buildah commit "$CONTAINER_BASE" "$RESTAPI_IMAGE_NAME"
 buildah push -f "${BUILDAH_PUSH_FORMAT:-docker}" "$RESTAPI_IMAGE_NAME" "$TARGET_RESTAPI_IMAGE_NAME"
 buildah delete "$CONTAINER_BASE"
