@@ -3,7 +3,7 @@
 set -e
 
 RESTAPI_IMAGE_NAME="${RESTAPI_IMAGE_NAME:-"stackgres/restapi:development-jvm"}"
-CONTAINER_BASE=$(buildah from "azul/zulu-openjdk-alpine:8u242-jre")
+CONTAINER_BASE=$(buildah from "azul/zulu-openjdk-alpine:11.0.8-jre-headless")
 TARGET_RESTAPI_IMAGE_NAME="${TARGET_RESTAPI_IMAGE_NAME:-docker-daemon:$RESTAPI_IMAGE_NAME}"
 
 # Include binaries
@@ -13,14 +13,14 @@ buildah copy --chown nobody:nobody "$CONTAINER_BASE" 'api-web/target/lib/*' '/ap
 cat << 'EOF' > api-web/target/stackgres-restapi.sh
 #!/bin/sh
 
-JAVA_OPTS="${JAVA_OPTS:-"-Djava.net.preferIPv4Stack=true -XX:MaxRAMPercentage=85.0"}"
+JAVA_OPTS="${JAVA_OPTS:-"-Djava.net.preferIPv4Stack=true -Djava.awt.headless=true -XX:MaxRAMPercentage=75.0"}"
 APP_OPTS="${APP_OPTS:-"-Dquarkus.http.host=0.0.0.0 -Dquarkus.http.port=8080 -Dquarkus.http.ssl-port=8443 -Djava.util.logging.manager=org.jboss.logmanager.LogManager"}"
 if [ "$DEBUG_RESTAPI" = true ]
 then
   set -x
   JAVA_OPTS="$JAVA_OPTS -agentlib:jdwp=transport=dt_socket,server=y,address=8000,suspend=$([ "$DEBUG_RESTAPI_SUSPEND" = true ] && echo y || echo n)"
 fi
-if [ ! -z "RESTAPI_LOG_LEVEL" ]
+if [ -n "$RESTAPI_LOG_LEVEL" ]
 then
   JAVA_OPTS="$JAVA_OPTS -Dquarkus.log.level=$RESTAPI_LOG_LEVEL"
 fi

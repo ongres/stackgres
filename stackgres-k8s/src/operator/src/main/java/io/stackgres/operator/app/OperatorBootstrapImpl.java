@@ -65,8 +65,6 @@ public class OperatorBootstrapImpl implements OperatorBootstrap {
   @Override
   public void bootstrap() {
 
-    printArt();
-
     try (KubernetesClient client = kubeClient.create()) {
       if (client.getVersion() != null) {
         LOGGER.info("Kubernetes version: {}", client.getVersion().getGitVersion());
@@ -122,16 +120,6 @@ public class OperatorBootstrapImpl implements OperatorBootstrap {
       return false;
     }
     return true;
-  }
-
-  private void printArt() {
-    try {
-      System.out.println(Resources.toString(
-          Resources.getResource(StackGresOperatorApp.class, "/META-INF/banner.txt"),
-          StandardCharsets.UTF_8));
-    } catch (IOException ignored) {
-      // ignored, not important if we can't print the ASCII-art.
-    }
   }
 
 }
