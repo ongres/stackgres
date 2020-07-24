@@ -2499,5 +2499,10 @@ $(document).ready(function(){
     $('#nameTooltip').removeClass('show');
   });
 
+  $(document).on('click','a.help', function(){
+    $('a.help.active').removeClass('active')
+    $(this).addClass('active')
+  })
+
 
 });
