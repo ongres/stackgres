@@ -21,6 +21,7 @@ import io.stackgres.apiweb.transformer.AbstractResourceTransformer;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.CustomResourceScheduler;
+import org.jooq.lambda.Seq;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -59,8 +60,11 @@ public abstract class AbstractCustomResourceTest<T extends ResourceDto, R extend
 
     List<T> resources = service.list();
 
-    assertEquals(1, resources.size());
-    checkDto(resources.get(0));
+    assertEquals(customResources.getItems().size(), resources.size());
+
+    Seq.zip(customResources.getItems(), resources).forEach(tuple -> {
+      checkDto(tuple.v2, tuple.v1);
+    });
   }
 
   @Test
@@ -70,7 +74,7 @@ public abstract class AbstractCustomResourceTest<T extends ResourceDto, R extend
 
     T dto = service.get(getResourceNamespace(), getResourceName());
 
-    checkDto(dto);
+    checkDto(dto, customResources.getItems().get(0));
   }
 
   @Test
@@ -80,7 +84,7 @@ public abstract class AbstractCustomResourceTest<T extends ResourceDto, R extend
       public Void answer(InvocationOnMock invocation) throws Throwable {
         R customResource = invocation.getArgument(0);
 
-        checkCustomResource(customResource, Operation.CREATE);
+        checkCustomResource(customResource, dto, Operation.CREATE);
 
         return null;
       }
@@ -99,7 +103,7 @@ public abstract class AbstractCustomResourceTest<T extends ResourceDto, R extend
       public Void answer(InvocationOnMock invocation) throws Throwable {
         R customResource = invocation.getArgument(0);
 
-        checkCustomResource(customResource, Operation.UPDATE);
+        checkCustomResource(customResource, dto, Operation.UPDATE);
 
         return null;
       }
@@ -110,15 +114,12 @@ public abstract class AbstractCustomResourceTest<T extends ResourceDto, R extend
 
   @Test
   void deleteShouldNotFail() {
-    doAnswer(new Answer<Void>() {
-      @Override
-      public Void answer(InvocationOnMock invocation) throws Throwable {
-        R customResource = invocation.getArgument(0);
+    doAnswer((Answer<Void>) invocation -> {
+      R customResource = invocation.getArgument(0);
 
-        checkCustomResource(customResource, Operation.DELETE);
+      checkCustomResource(customResource, dto, Operation.DELETE);
 
-        return null;
-      }
+      return null;
     }).when(scheduler).delete(any());
 
     service.delete(dto);
@@ -140,9 +141,9 @@ public abstract class AbstractCustomResourceTest<T extends ResourceDto, R extend
 
   protected abstract String getResourceName();
 
-  protected abstract void checkDto(T resource);
+  protected abstract void checkDto(T dto, R resource);
 
-  protected abstract void checkCustomResource(R resource, Operation operation);
+  protected abstract void checkCustomResource(R resource, T resourceDto, Operation operation);
 
   enum Operation {
     CREATE, UPDATE, DELETE;

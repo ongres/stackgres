@@ -64,10 +64,14 @@ e2e_test() {
   run_test "Check cluster is updated with the API are reflected in the API" test_api_updated_cluster_is_visible
 
   run_test "Check cluster is deleted with the API are reflected in the API" test_api_delete_cluster_is_visible
-
+  
   run_test "Constraint violations should be detected" test_constraint_violation_api_error
 
   run_test "User with wrong credentials should not be authenticated" test_authentication_api_error
+
+  run_test "Create cluster with inline scripts" check_create_cluster_with_inline_script
+
+  
 }
 
 check_cluster_in_list() {
@@ -366,4 +370,28 @@ check_authentication_error() {
     echo "Request returned unexpected response status $HTTP_STATUS instead of the expected authentication error."
     return 1
   fi
+}
+
+check_create_cluster_with_inline_script() {
+
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2
+
+  OPERATOR_CLUSTER_CR=$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
+    | jq 'del(.metadata.creationTimestamp) | del(.metadata.generation) | del(.metadata.resourceVersion) | del(.metadata.selfLink) | del(.metadata.uid)' \
+    | jq '.spec.initialData={}' | jq '.spec.initialData.scripts=[]' \
+    | jq '.spec.initialData.scripts[0].name = "init"' \
+    | jq '.spec.initialData.scripts[0].script = "CREATE DATABASE test"' \
+    | jq '.spec.initialData.scripts[1].name = "table"' \
+    | jq '.spec.initialData.scripts[1].database = "test"' \
+    | jq '.spec.initialData.scripts[1].script = "CREATE TABLE fibonacci(num integer)"') 
+
+  echo_raw "$OPERATOR_CLUSTER_CR" > "$LOG_PATH/stackgres-cluster.json"
+
+  create_cluster_with_api
+
+  wait_pods_running "$CLUSTER_NAMESPACE" 4
+
+  insert_mock_data
+
+  check_mock_data
 }

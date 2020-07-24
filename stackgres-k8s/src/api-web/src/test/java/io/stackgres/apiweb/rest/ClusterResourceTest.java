@@ -6,13 +6,7 @@
 package io.stackgres.apiweb.rest;
 
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertIterableEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
@@ -30,6 +24,7 @@ import javax.ws.rs.BadRequestException;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaimBuilder;
 import io.fabric8.kubernetes.api.model.PodList;
 import io.fabric8.kubernetes.api.model.Quantity;
@@ -38,8 +33,17 @@ import io.stackgres.apiweb.config.WebApiProperty;
 import io.stackgres.apiweb.distributedlogs.DistributedLogsFetcher;
 import io.stackgres.apiweb.distributedlogs.DistributedLogsQueryParameters;
 import io.stackgres.apiweb.distributedlogs.FullTextSearchQuery;
+import io.stackgres.apiweb.dto.Metadata;
+import io.stackgres.apiweb.dto.cluster.ClusterConfiguration;
 import io.stackgres.apiweb.dto.cluster.ClusterDto;
+import io.stackgres.apiweb.dto.cluster.ClusterInitData;
 import io.stackgres.apiweb.dto.cluster.ClusterLogEntryDto;
+import io.stackgres.apiweb.dto.cluster.ClusterPod;
+import io.stackgres.apiweb.dto.cluster.ClusterPodMetadata;
+import io.stackgres.apiweb.dto.cluster.ClusterPodPersistentVolume;
+import io.stackgres.apiweb.dto.cluster.ClusterRestore;
+import io.stackgres.apiweb.dto.cluster.ClusterScriptEntry;
+import io.stackgres.apiweb.dto.cluster.ClusterSpec;
 import io.stackgres.apiweb.dto.cluster.ClusterStatsDto;
 import io.stackgres.apiweb.resource.ClusterDtoFinder;
 import io.stackgres.apiweb.resource.ClusterDtoScanner;
@@ -52,7 +56,15 @@ import io.stackgres.common.ClusterLabelFactory;
 import io.stackgres.common.ClusterLabelMapper;
 import io.stackgres.common.StackGresPropertyContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterList;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPodMetadata;
+import io.stackgres.common.crd.sgcluster.StackGresClusterRestore;
+import io.stackgres.common.crd.sgcluster.StackGresClusterScriptEntry;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
+import io.stackgres.common.crd.sgcluster.StackGresPodPersistentVolume;
+import io.stackgres.common.crd.sgcluster.StackgresClusterConfiguration;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.CustomResourceScheduler;
@@ -61,6 +73,7 @@ import io.stackgres.common.resource.PodExecutor;
 import io.stackgres.common.resource.PodFinder;
 import io.stackgres.testutil.JsonUtil;
 import org.eclipse.microprofile.context.ManagedExecutor;
+import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -79,23 +92,17 @@ class ClusterResourceTest
     extends AbstractCustomResourceTest<ClusterDto, StackGresCluster, ClusterResource> {
 
   @Mock
+  ManagedExecutor managedExecutor;
+  @Mock
   private DistributedLogsFetcher distributedLogsFetcher;
-
   @Mock
   private StackGresPropertyContext<WebApiProperty> configContext;
-
   @Mock
   private PodFinder podFinder;
-
   @Mock
   private PodExecutor podExecutor;
-
   @Mock
   private PersistentVolumeClaimFinder persistentVolumeClaimFinder;
-
-  @Mock
-  ManagedExecutor managedExecutor;
-
   private ExecutorService executorService;
 
   private PodList podList;
@@ -110,12 +117,9 @@ class ClusterResourceTest
     clusterWithoutDistributedLogs = JsonUtil.readFromJson(
         "stackgres_cluster/without_distributed_logs.json", StackGresCluster.class);
     executorService = Executors.newWorkStealingPool();
-    doAnswer(new Answer<Void>() {
-      @Override
-      public Void answer(InvocationOnMock invocation) throws Throwable {
-        executorService.execute(Runnable.class.cast(invocation.getArgument(0)));
-        return null;
-      }
+    doAnswer((Answer<Void>) invocation -> {
+      executorService.execute(Runnable.class.cast(invocation.getArgument(0)));
+      return null;
     }).when(managedExecutor).execute(any());
   }
 
@@ -152,6 +156,18 @@ class ClusterResourceTest
     ClusterStatsDto dto = service.stats(getResourceNamespace(), getResourceName());
 
     checkStatsDto(dto);
+  }
+
+  @Test
+  void createClusterWithInlineScript_shouldNotFail() {
+    dto = getClusterInlineScripts();
+    super.createShouldNotFail();
+  }
+
+  @Test
+  void updateClusterWithInlineScript_shouldNotFail() {
+    dto = getClusterInlineScripts();
+    super.updateShouldNotFail();
   }
 
   private void clusterMocks() {
@@ -213,11 +229,14 @@ class ClusterResourceTest
     return JsonUtil.readFromJson("stackgres_cluster/dto.json", ClusterDto.class);
   }
 
+  private ClusterDto getClusterInlineScripts() {
+    return JsonUtil.readFromJson("stackgres_cluster/inline_scripts.json", ClusterDto.class);
+  }
+
   @Override
   protected ClusterTransformer getTransformer() {
-    final ClusterTransformer clusterTransformer = new ClusterTransformer(
+    return new ClusterTransformer(
         configContext, new ClusterPodTransformer());
-    return clusterTransformer;
   }
 
   @Override
@@ -259,77 +278,235 @@ class ClusterResourceTest
   }
 
   @Override
-  protected void checkDto(ClusterDto resource) {
-    assertNotNull(resource.getMetadata());
-    assertEquals("stackgres", resource.getMetadata().getNamespace());
-    assertEquals("stackgres", resource.getMetadata().getName());
-    assertEquals("bfb53778-f59a-11e9-b1b5-0242ac110002", resource.getMetadata().getUid());
-    assertNotNull(resource.getSpec());
-    assertEquals("backupconf", resource.getSpec().getConfigurations().getSgBackupConfig());
-    assertEquals("pgbouncerconf", resource.getSpec().getConfigurations().getSgPoolingConfig());
-    assertEquals("5Gi", resource.getSpec().getPods().getPersistentVolume().getVolumeSize());
-    assertEquals("standard", resource.getSpec().getPods().getPersistentVolume().getStorageClass());
-    assertEquals(true, resource.getSpec().getPrometheusAutobind());
-    assertEquals(1, resource.getSpec().getInstances());
-    assertEquals("11.5", resource.getSpec().getPostgresVersion());
-    assertEquals("postgresconf", resource.getSpec().getConfigurations().getSgPostgresConfig());
-    assertEquals("size-xs", resource.getSpec().getSgInstanceProfile());
-    assertNotNull(resource.getSpec().getInitData().getRestore());
-    assertEquals("d7e660a9-377c-11ea-b04b-0242ac110004",
-        resource.getSpec().getInitData().getRestore().getBackupUid());
-    assertNotNull(resource.getSpec().getDistributedLogs());
-    assertEquals("distributedlogs", resource.getSpec().getDistributedLogs().getDistributedLogs());
-    assertFalse(resource.getSpec().getPods().getDisableConnectionPooling());
-    assertFalse(resource.getSpec().getPods().getDisableMetricsExporter());
-    assertFalse(resource.getSpec().getPods().getDisableMetricsExporter());
-    assertEquals(1, resource.getPodsReady());
-    assertNotNull(resource.getPods());
-    assertEquals(2, resource.getPods().size());
-    assertEquals(4, resource.getPods().get(0).getContainers());
-    assertEquals(4, resource.getPods().get(0).getContainersReady());
-    assertEquals("10.244.3.23", resource.getPods().get(0).getIp());
-    assertEquals("stackgres-0", resource.getPods().get(0).getName());
-    assertEquals("stackgres", resource.getPods().get(0).getNamespace());
-    assertEquals("primary", resource.getPods().get(0).getRole());
-    assertEquals("Active", resource.getPods().get(0).getStatus());
-    assertEquals(4, resource.getPods().get(1).getContainers());
-    assertEquals(0, resource.getPods().get(1).getContainersReady());
-    assertNull(resource.getPods().get(1).getIp());
-    assertEquals("stackgres-1", resource.getPods().get(1).getName());
-    assertEquals("stackgres", resource.getPods().get(1).getNamespace());
-    assertNull(resource.getPods().get(1).getRole());
-    assertEquals("Pending", resource.getPods().get(1).getStatus());
-    assertEquals("customLabelValue", resource.getSpec().getPods()
-        .getMetadata().getLabels().get("customLabel"));
+  protected void checkDto(ClusterDto dto, StackGresCluster resource) {
+    if (resource.getMetadata() != null) {
+      assertNotNull(dto.getMetadata());
+      assertEquals(resource.getMetadata().getNamespace(), dto.getMetadata().getNamespace());
+      assertEquals(resource.getMetadata().getName(), dto.getMetadata().getName());
+      assertEquals(resource.getMetadata().getUid(), dto.getMetadata().getUid());
+    } else {
+      assertNull(dto.getMetadata());
+    }
+
+    final StackGresClusterSpec resourceSpec = resource.getSpec();
+    final ClusterSpec dtoSpec = dto.getSpec();
+    if (resourceSpec != null) {
+      assertNotNull(dtoSpec);
+      assertEquals(resourceSpec.getInstances(), dtoSpec.getInstances());
+      assertEquals(resourceSpec.getPostgresVersion(), dtoSpec.getPostgresVersion());
+      assertEquals(resourceSpec.getPrometheusAutobind(), dtoSpec.getPrometheusAutobind());
+      assertEquals(resourceSpec.getResourceProfile(), dtoSpec.getSgInstanceProfile());
+
+      final ClusterConfiguration dtoClusterConfigurations = dtoSpec.getConfigurations();
+      final StackgresClusterConfiguration resourceClusterConfiguration = resourceSpec.getConfiguration();
+      if (resourceClusterConfiguration != null) {
+        assertNotNull(dtoClusterConfigurations);
+        assertEquals(resourceClusterConfiguration.getBackupConfig(), dtoClusterConfigurations.getSgBackupConfig());
+        assertEquals(resourceClusterConfiguration.getConnectionPoolingConfig(), dtoClusterConfigurations.getSgPoolingConfig());
+        assertEquals(resourceClusterConfiguration.getPostgresConfig(), dtoClusterConfigurations.getSgPostgresConfig());
+      } else {
+        assertNull(dtoClusterConfigurations);
+      }
+
+      final ClusterPod dtoSpecPods = dtoSpec.getPods();
+      final StackGresClusterPod resourcePod = resourceSpec.getPod();
+      if (resourcePod != null) {
+        assertNotNull(dtoSpecPods);
+        assertEquals(resourcePod.getDisableConnectionPooling(), dtoSpecPods.getDisableConnectionPooling());
+        assertEquals(resourcePod.getDisableMetricsExporter(), dtoSpecPods.getDisableMetricsExporter());
+        assertEquals(resourcePod.getDisablePostgresUtil(), dtoSpecPods.getDisablePostgresUtil());
+
+        final ClusterPodPersistentVolume resourcePV = dtoSpecPods.getPersistentVolume();
+        final StackGresPodPersistentVolume dtoPV = resourcePod.getPersistentVolume();
+        if (dtoPV != null) {
+          assertNotNull(resourcePV);
+          assertEquals(dtoPV.getVolumeSize(), resourcePV.getVolumeSize());
+          assertEquals(dtoPV.getStorageClass(), resourcePV.getStorageClass());
+        } else {
+          assertNull(resourcePV);
+        }
+
+        if (resourcePod.getMetadata() != null) {
+          assertNotNull(dtoSpecPods.getMetadata());
+          assertEquals(resourcePod.getMetadata().getLabels(), dtoSpecPods.getMetadata().getLabels());
+        } else {
+          assertNull(dtoSpecPods.getMetadata());
+        }
+      } else {
+        assertNull(dtoSpecPods);
+      }
+
+      if (resourceSpec.getDistributedLogs() != null) {
+        assertNotNull(dtoSpec.getDistributedLogs());
+        assertEquals(resourceSpec.getDistributedLogs().getDistributedLogs(), dtoSpec.getDistributedLogs().getDistributedLogs());
+      } else {
+        assertNull(dtoSpec.getDistributedLogs());
+      }
+
+      final StackGresClusterInitData resourceInitData = resourceSpec.getInitData();
+      if (resourceInitData != null) {
+        final ClusterInitData dtoInitData = dtoSpec.getInitData();
+        assertNotNull(dtoInitData);
+        if (resourceInitData.getRestore() != null) {
+          assertNotNull(dtoInitData.getRestore());
+          assertEquals(resourceInitData.getRestore().getBackupUid(),
+              dtoInitData.getRestore().getBackupUid());
+          assertEquals(resourceInitData.getRestore().getDownloadDiskConcurrency(),
+              dtoInitData.getRestore().getDownloadDiskConcurrency());
+        } else {
+          assertNull(dtoInitData.getRestore());
+        }
+
+        if (resourceInitData.getScripts() != null) {
+          assertNotNull(dtoInitData.getScripts());
+          Seq.zip(resourceInitData.getScripts(), dtoInitData.getScripts())
+              .forEach(tuple -> {
+                assertEquals(tuple.v1.getDatabase(), tuple.v2.getDatabase());
+                assertEquals(tuple.v2.getName(), tuple.v2.getName());
+                assertEquals(tuple.v2.getScript(), tuple.v2.getScript());
+              });
+        }
+      }
+
+    } else {
+      assertNull(dtoSpec);
+    }
+
+    if (dto.getPods() != null) {
+      assertEquals(1, dto.getPodsReady());
+      assertEquals(2, dto.getPods().size());
+      assertEquals(4, dto.getPods().get(0).getContainers());
+      assertEquals(4, dto.getPods().get(0).getContainersReady());
+      assertEquals("10.244.3.23", dto.getPods().get(0).getIp());
+      assertEquals("stackgres-0", dto.getPods().get(0).getName());
+      assertEquals("stackgres", dto.getPods().get(0).getNamespace());
+      assertEquals("primary", dto.getPods().get(0).getRole());
+      assertEquals("Active", dto.getPods().get(0).getStatus());
+      assertEquals(4, dto.getPods().get(1).getContainers());
+      assertEquals(0, dto.getPods().get(1).getContainersReady());
+      assertNull(dto.getPods().get(1).getIp());
+      assertEquals("stackgres-1", dto.getPods().get(1).getName());
+      assertEquals("stackgres", dto.getPods().get(1).getNamespace());
+      assertNull(dto.getPods().get(1).getRole());
+      assertEquals("Pending", dto.getPods().get(1).getStatus());
+    }
+
   }
 
   @Override
-  protected void checkCustomResource(StackGresCluster resource, Operation operation) {
-    assertNotNull(resource.getMetadata());
-    assertEquals("stackgres", resource.getMetadata().getNamespace());
-    assertEquals("stackgres", resource.getMetadata().getName());
-    assertEquals("bfb53778-f59a-11e9-b1b5-0242ac110002", resource.getMetadata().getUid());
-    assertNotNull(resource.getSpec());
-    assertEquals("backupconf", resource.getSpec().getConfiguration().getBackupConfig());
-    assertEquals("pgbouncerconf",
-        resource.getSpec().getConfiguration().getConnectionPoolingConfig());
-    assertEquals("5Gi", resource.getSpec().getPod().getPersistentVolume().getVolumeSize());
-    assertEquals("standard", resource.getSpec().getPod().getPersistentVolume().getStorageClass());
-    assertEquals(true, resource.getSpec().getPrometheusAutobind());
-    assertEquals(1, resource.getSpec().getInstances());
-    assertEquals("11.5", resource.getSpec().getPostgresVersion());
-    assertEquals("postgresconf", resource.getSpec().getConfiguration().getPostgresConfig());
-    assertEquals("size-xs", resource.getSpec().getResourceProfile());
-    assertNotNull(resource.getSpec().getInitData().getRestore());
-    assertEquals("d7e660a9-377c-11ea-b04b-0242ac110004",
-        resource.getSpec().getInitData().getRestore().getBackupUid());
-    assertNotNull(resource.getSpec().getDistributedLogs());
-    assertEquals("distributedlogs", resource.getSpec().getDistributedLogs().getDistributedLogs());
-    assertFalse(resource.getSpec().getPod().getDisableConnectionPooling());
-    assertFalse(resource.getSpec().getPod().getDisableMetricsExporter());
-    assertFalse(resource.getSpec().getPod().getDisableMetricsExporter());
-    assertEquals("customLabelValue", resource.getSpec().getPod()
-        .getMetadata().getLabels().get("customLabel"));
+  protected void checkCustomResource(StackGresCluster resource,
+                                     ClusterDto resourceDto,
+                                     Operation operation) {
+
+    final Metadata dtoMetadata = resourceDto.getMetadata();
+    final ObjectMeta resourceMetadata = resource.getMetadata();
+    if (dtoMetadata != null) {
+      assertNotNull(resourceMetadata);
+      assertEquals(dtoMetadata.getName(), resourceMetadata.getName());
+      assertEquals(dtoMetadata.getNamespace(), resourceMetadata.getNamespace());
+      assertEquals(dtoMetadata.getUid(), resourceMetadata.getUid());
+    } else {
+      assertNull(resourceMetadata);
+    }
+
+    final ClusterSpec dtoSpec = resourceDto.getSpec();
+    final StackGresClusterSpec resourceSpec = resource.getSpec();
+
+    if (dtoSpec != null) {
+      assertNotNull(resourceSpec);
+      assertEquals(dtoSpec.getPrometheusAutobind(), resourceSpec.getPrometheusAutobind());
+      assertEquals(dtoSpec.getInstances(), resourceSpec.getInstances());
+      assertEquals(dtoSpec.getPostgresVersion(), resourceSpec.getPostgresVersion());
+      assertEquals(dtoSpec.getSgInstanceProfile(), resourceSpec.getResourceProfile());
+
+      final ClusterConfiguration dtoSpecConfigurations = dtoSpec.getConfigurations();
+
+      final StackgresClusterConfiguration resourceSpecConfiguration = resourceSpec
+          .getConfiguration();
+
+      if (dtoSpecConfigurations != null) {
+        assertNotNull(resourceSpecConfiguration);
+        assertEquals(dtoSpecConfigurations.getSgBackupConfig(),
+            resourceSpecConfiguration.getBackupConfig());
+        assertEquals(dtoSpecConfigurations.getSgPoolingConfig(),
+            resourceSpecConfiguration.getConnectionPoolingConfig());
+        assertEquals(dtoSpecConfigurations.getSgPostgresConfig(),
+            resourceSpecConfiguration.getPostgresConfig());
+      } else {
+        assertNull(resourceSpecConfiguration);
+      }
+
+      final ClusterPod dtoSpecPods = dtoSpec.getPods();
+      if (dtoSpecPods != null) {
+        final StackGresClusterPod resourceSpecPod = resourceSpec.getPod();
+        assertNotNull(resourceSpecPod);
+        assertEquals(dtoSpecPods.getDisableConnectionPooling(), resourceSpecPod.getDisableConnectionPooling());
+        assertEquals(dtoSpecPods.getDisableMetricsExporter(), resourceSpecPod.getDisableMetricsExporter());
+        assertEquals(dtoSpecPods.getDisableMetricsExporter(), resourceSpecPod.getDisableMetricsExporter());
+
+        final ClusterPodPersistentVolume dtoPV = dtoSpecPods.getPersistentVolume();
+        final StackGresPodPersistentVolume resourcePV = resourceSpecPod.getPersistentVolume();
+        if (dtoPV != null) {
+          assertNotNull(resourcePV);
+          assertEquals(dtoPV.getVolumeSize(), resourcePV.getVolumeSize());
+          assertEquals(dtoPV.getStorageClass(), resourcePV.getStorageClass());
+        } else {
+          assertNull(resourcePV);
+        }
+
+        final StackGresClusterPodMetadata resourcePodMetadata = resourceSpecPod
+            .getMetadata();
+        final ClusterPodMetadata dtoPodsMetadata = dtoSpecPods.getMetadata();
+        if (dtoPodsMetadata != null) {
+          assertNotNull(resourcePodMetadata);
+          assertEquals(dtoPodsMetadata.getLabels(), resourcePodMetadata.getLabels());
+        } else {
+          assertNull(resourcePodMetadata);
+        }
+
+      }
+
+      final ClusterInitData dtoInitData = dtoSpec.getInitData();
+      final StackGresClusterInitData resourceInitData = resourceSpec.getInitData();
+      if (dtoInitData != null) {
+        assertNotNull(resourceInitData);
+        final ClusterRestore dtoRestore = dtoInitData.getRestore();
+        final StackGresClusterRestore resourceRestore = resourceInitData.getRestore();
+        if (dtoRestore != null) {
+          assertNotNull(resourceRestore);
+          assertEquals(dtoRestore.getBackupUid(),
+              resourceRestore.getBackupUid());
+        } else {
+          assertNull(resourceRestore);
+        }
+
+        if (dtoInitData.getScripts() != null) {
+          assertNotNull(resourceInitData.getScripts());
+          assertEquals(dtoInitData.getScripts().size(), resourceInitData.getScripts().size());
+
+          Seq.zip(dtoInitData.getScripts(), resourceInitData.getScripts())
+              .forEach(entryTuple -> {
+                ClusterScriptEntry dtoEntry = entryTuple.v1;
+                StackGresClusterScriptEntry resourceEntry = entryTuple.v2;
+                assertEquals(dtoEntry.getDatabase(), resourceEntry.getDatabase());
+                assertEquals(dtoEntry.getName(), resourceEntry.getName());
+                assertEquals(dtoEntry.getScript(), resourceEntry.getScript());
+              });
+        }
+      } else {
+        assertNull(resourceInitData);
+      }
+
+      if (dtoSpec.getDistributedLogs() != null) {
+        assertNotNull(resourceSpec.getDistributedLogs());
+        assertEquals(dtoSpec.getDistributedLogs().getDistributedLogs(), resourceSpec.getDistributedLogs().getDistributedLogs());
+      } else {
+        assertNull(resourceSpec.getDistributedLogs());
+      }
+
+    } else {
+      assertNull(resourceSpec);
+    }
   }
 
   private void checkStatsDto(ClusterStatsDto resource) {
@@ -460,7 +637,7 @@ class ClusterResourceTest
         DistributedLogsQueryParameters parameters = invocation.getArgument(0);
 
         assertNotNull(parameters);
-        checkDto(parameters.getCluster());
+        checkDto(parameters.getCluster(), customResources.getItems().get(0));
         assertEquals(parameters.getRecords(), 50);
         assertEquals(parameters.getFromTimeAndIndex(), Optional.empty());
         assertEquals(parameters.getToTimeAndIndex(), Optional.empty());
@@ -503,7 +680,7 @@ class ClusterResourceTest
         DistributedLogsQueryParameters parameters = invocation.getArgument(0);
 
         assertNotNull(parameters);
-        checkDto(parameters.getCluster());
+        checkDto(parameters.getCluster(), customResources.getItems().get(0));
         assertEquals(parameters.getRecords(), 1);
         assertEquals(parameters.getFromTimeAndIndex(), Optional.empty());
         assertEquals(parameters.getToTimeAndIndex(), Optional.empty());
@@ -571,7 +748,7 @@ class ClusterResourceTest
         DistributedLogsQueryParameters parameters = invocation.getArgument(0);
 
         assertNotNull(parameters);
-        checkDto(parameters.getCluster());
+        checkDto(parameters.getCluster(), customResources.getItems().get(0));
         assertEquals(parameters.getRecords(), 50);
         assertEquals(parameters.getFromTimeAndIndex(), Optional.of(Tuple.tuple(Instant.EPOCH, 0)));
         assertEquals(parameters.getToTimeAndIndex(), Optional.empty());
@@ -614,7 +791,7 @@ class ClusterResourceTest
         DistributedLogsQueryParameters parameters = invocation.getArgument(0);
 
         assertNotNull(parameters);
-        checkDto(parameters.getCluster());
+        checkDto(parameters.getCluster(), customResources.getItems().get(0));
         assertEquals(parameters.getRecords(), 50);
         assertEquals(parameters.getFromTimeAndIndex(), Optional.of(Tuple.tuple(Instant.EPOCH, 1)));
         assertEquals(parameters.getToTimeAndIndex(), Optional.empty());
@@ -707,7 +884,7 @@ class ClusterResourceTest
         DistributedLogsQueryParameters parameters = invocation.getArgument(0);
 
         assertNotNull(parameters);
-        checkDto(parameters.getCluster());
+        checkDto(parameters.getCluster(), customResources.getItems().get(0));
         assertEquals(parameters.getRecords(), 50);
         assertEquals(parameters.getFromTimeAndIndex(), Optional.empty());
         assertEquals(parameters.getToTimeAndIndex(),
@@ -751,7 +928,7 @@ class ClusterResourceTest
         DistributedLogsQueryParameters parameters = invocation.getArgument(0);
 
         assertNotNull(parameters);
-        checkDto(parameters.getCluster());
+        checkDto(parameters.getCluster(), customResources.getItems().get(0));
         assertEquals(parameters.getRecords(), 50);
         assertEquals(parameters.getFromTimeAndIndex(), Optional.empty());
         assertEquals(parameters.getToTimeAndIndex(), Optional.of(Tuple.tuple(Instant.EPOCH, 1)));
@@ -869,7 +1046,7 @@ class ClusterResourceTest
         DistributedLogsQueryParameters parameters = invocation.getArgument(0);
 
         assertNotNull(parameters);
-        checkDto(parameters.getCluster());
+        checkDto(parameters.getCluster(), customResources.getItems().get(0));
         assertEquals(parameters.getRecords(), 50);
         assertEquals(parameters.getFromTimeAndIndex(), Optional.empty());
         assertEquals(parameters.getToTimeAndIndex(), Optional.empty());
@@ -912,7 +1089,7 @@ class ClusterResourceTest
         DistributedLogsQueryParameters parameters = invocation.getArgument(0);
 
         assertNotNull(parameters);
-        checkDto(parameters.getCluster());
+        checkDto(parameters.getCluster(), customResources.getItems().get(0));
         assertEquals(parameters.getRecords(), 50);
         assertEquals(parameters.getFromTimeAndIndex(), Optional.empty());
         assertEquals(parameters.getToTimeAndIndex(), Optional.empty());
@@ -980,7 +1157,7 @@ class ClusterResourceTest
         DistributedLogsQueryParameters parameters = invocation.getArgument(0);
 
         assertNotNull(parameters);
-        checkDto(parameters.getCluster());
+        checkDto(parameters.getCluster(), customResources.getItems().get(0));
         assertEquals(parameters.getRecords(), 50);
         assertEquals(parameters.getFromTimeAndIndex(), Optional.empty());
         assertEquals(parameters.getToTimeAndIndex(), Optional.empty());
@@ -1024,7 +1201,7 @@ class ClusterResourceTest
         DistributedLogsQueryParameters parameters = invocation.getArgument(0);
 
         assertNotNull(parameters);
-        checkDto(parameters.getCluster());
+        checkDto(parameters.getCluster(), customResources.getItems().get(0));
         assertEquals(parameters.getRecords(), 50);
         assertEquals(parameters.getFromTimeAndIndex(), Optional.empty());
         assertEquals(parameters.getToTimeAndIndex(), Optional.empty());
@@ -1068,7 +1245,7 @@ class ClusterResourceTest
         DistributedLogsQueryParameters parameters = invocation.getArgument(0);
 
         assertNotNull(parameters);
-        checkDto(parameters.getCluster());
+        checkDto(parameters.getCluster(), customResources.getItems().get(0));
         assertEquals(parameters.getRecords(), 50);
         assertEquals(parameters.getFromTimeAndIndex(), Optional.empty());
         assertEquals(parameters.getToTimeAndIndex(), Optional.empty());
@@ -1111,7 +1288,7 @@ class ClusterResourceTest
         DistributedLogsQueryParameters parameters = invocation.getArgument(0);
 
         assertNotNull(parameters);
-        checkDto(parameters.getCluster());
+        checkDto(parameters.getCluster(), customResources.getItems().get(0));
         assertEquals(parameters.getRecords(), 50);
         assertEquals(parameters.getFromTimeAndIndex(), Optional.empty());
         assertEquals(parameters.getToTimeAndIndex(), Optional.empty());
@@ -1154,7 +1331,7 @@ class ClusterResourceTest
         DistributedLogsQueryParameters parameters = invocation.getArgument(0);
 
         assertNotNull(parameters);
-        checkDto(parameters.getCluster());
+        checkDto(parameters.getCluster(), customResources.getItems().get(0));
         assertEquals(parameters.getRecords(), 50);
         assertEquals(parameters.getFromTimeAndIndex(), Optional.empty());
         assertEquals(parameters.getToTimeAndIndex(), Optional.empty());
@@ -1197,7 +1374,7 @@ class ClusterResourceTest
         DistributedLogsQueryParameters parameters = invocation.getArgument(0);
 
         assertNotNull(parameters);
-        checkDto(parameters.getCluster());
+        checkDto(parameters.getCluster(), customResources.getItems().get(0));
         assertEquals(parameters.getRecords(), 50);
         assertEquals(parameters.getFromTimeAndIndex(), Optional.empty());
         assertEquals(parameters.getToTimeAndIndex(), Optional.empty());
@@ -1240,7 +1417,7 @@ class ClusterResourceTest
         DistributedLogsQueryParameters parameters = invocation.getArgument(0);
 
         assertNotNull(parameters);
-        checkDto(parameters.getCluster());
+        checkDto(parameters.getCluster(), customResources.getItems().get(0));
         assertEquals(parameters.getRecords(), 50);
         assertEquals(parameters.getFromTimeAndIndex(), Optional.empty());
         assertEquals(parameters.getToTimeAndIndex(), Optional.empty());
@@ -1283,7 +1460,7 @@ class ClusterResourceTest
         DistributedLogsQueryParameters parameters = invocation.getArgument(0);
 
         assertNotNull(parameters);
-        checkDto(parameters.getCluster());
+        checkDto(parameters.getCluster(), customResources.getItems().get(0));
         assertEquals(parameters.getRecords(), 50);
         assertEquals(parameters.getFromTimeAndIndex(), Optional.empty());
         assertEquals(parameters.getToTimeAndIndex(), Optional.empty());
@@ -1326,7 +1503,7 @@ class ClusterResourceTest
         DistributedLogsQueryParameters parameters = invocation.getArgument(0);
 
         assertNotNull(parameters);
-        checkDto(parameters.getCluster());
+        checkDto(parameters.getCluster(), customResources.getItems().get(0));
         assertEquals(parameters.getRecords(), 50);
         assertEquals(parameters.getFromTimeAndIndex(), Optional.empty());
         assertEquals(parameters.getToTimeAndIndex(), Optional.empty());
@@ -1369,7 +1546,7 @@ class ClusterResourceTest
         DistributedLogsQueryParameters parameters = invocation.getArgument(0);
 
         assertNotNull(parameters);
-        checkDto(parameters.getCluster());
+        checkDto(parameters.getCluster(), customResources.getItems().get(0));
         assertEquals(parameters.getRecords(), 50);
         assertEquals(parameters.getFromTimeAndIndex(), Optional.empty());
         assertEquals(parameters.getToTimeAndIndex(), Optional.empty());
@@ -1412,7 +1589,7 @@ class ClusterResourceTest
         DistributedLogsQueryParameters parameters = invocation.getArgument(0);
 
         assertNotNull(parameters);
-        checkDto(parameters.getCluster());
+        checkDto(parameters.getCluster(), customResources.getItems().get(0));
         assertEquals(parameters.getRecords(), 50);
         assertEquals(parameters.getFromTimeAndIndex(), Optional.empty());
         assertEquals(parameters.getToTimeAndIndex(), Optional.empty());
@@ -1455,7 +1632,7 @@ class ClusterResourceTest
         DistributedLogsQueryParameters parameters = invocation.getArgument(0);
 
         assertNotNull(parameters);
-        checkDto(parameters.getCluster());
+        checkDto(parameters.getCluster(), customResources.getItems().get(0));
         assertEquals(parameters.getRecords(), 50);
         assertEquals(parameters.getFromTimeAndIndex(), Optional.empty());
         assertEquals(parameters.getToTimeAndIndex(), Optional.empty());
@@ -1498,7 +1675,7 @@ class ClusterResourceTest
         DistributedLogsQueryParameters parameters = invocation.getArgument(0);
 
         assertNotNull(parameters);
-        checkDto(parameters.getCluster());
+        checkDto(parameters.getCluster(), customResources.getItems().get(0));
         assertEquals(parameters.getRecords(), 50);
         assertEquals(parameters.getFromTimeAndIndex(), Optional.empty());
         assertEquals(parameters.getToTimeAndIndex(), Optional.empty());
@@ -1541,7 +1718,7 @@ class ClusterResourceTest
         DistributedLogsQueryParameters parameters = invocation.getArgument(0);
 
         assertNotNull(parameters);
-        checkDto(parameters.getCluster());
+        checkDto(parameters.getCluster(), customResources.getItems().get(0));
         assertEquals(parameters.getRecords(), 50);
         assertEquals(parameters.getFromTimeAndIndex(), Optional.empty());
         assertEquals(parameters.getToTimeAndIndex(), Optional.empty());
@@ -1584,7 +1761,7 @@ class ClusterResourceTest
         DistributedLogsQueryParameters parameters = invocation.getArgument(0);
 
         assertNotNull(parameters);
-        checkDto(parameters.getCluster());
+        checkDto(parameters.getCluster(), customResources.getItems().get(0));
         assertEquals(parameters.getRecords(), 50);
         assertEquals(parameters.getFromTimeAndIndex(), Optional.empty());
         assertEquals(parameters.getToTimeAndIndex(), Optional.empty());
@@ -1627,7 +1804,7 @@ class ClusterResourceTest
         DistributedLogsQueryParameters parameters = invocation.getArgument(0);
 
         assertNotNull(parameters);
-        checkDto(parameters.getCluster());
+        checkDto(parameters.getCluster(), customResources.getItems().get(0));
         assertEquals(parameters.getRecords(), 50);
         assertEquals(parameters.getFromTimeAndIndex(), Optional.empty());
         assertEquals(parameters.getToTimeAndIndex(), Optional.empty());

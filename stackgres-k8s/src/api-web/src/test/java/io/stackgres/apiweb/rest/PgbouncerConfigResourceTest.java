@@ -81,7 +81,7 @@ class PgbouncerConfigResourceTest
         resource.getSpec().getPgBouncer().getPgbouncerConf());
     assertNotNull(resource.getStatus());
     assertNotNull(resource.getStatus().getClusters());
-    assertEquals(1, resource.getStatus().getClusters().size());
+    assertEquals(2, resource.getStatus().getClusters().size());
     assertEquals("stackgres", resource.getStatus().getClusters().get(0));
     assertNotNull(resource.getStatus().getPgBouncer());
     assertNotNull(resource.getStatus().getPgBouncer().getPgbouncerConf());
