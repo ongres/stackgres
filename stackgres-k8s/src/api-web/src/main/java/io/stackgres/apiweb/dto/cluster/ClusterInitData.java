@@ -5,11 +5,14 @@
 
 package io.stackgres.apiweb.dto.cluster;
 
+import java.util.List;
+import java.util.Objects;
+
 import javax.validation.Valid;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.google.common.base.MoreObjects;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
 @JsonDeserialize
@@ -17,9 +20,11 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 @RegisterForReflection
 public class ClusterInitData {
 
-  @JsonProperty("restore")
   @Valid
   private ClusterRestore restore;
+
+  @Valid
+  private List<ClusterScriptEntry> scripts;
 
   public ClusterRestore getRestore() {
     return restore;
@@ -27,5 +32,38 @@ public class ClusterInitData {
 
   public void setRestore(ClusterRestore restore) {
     this.restore = restore;
+  }
+
+  public List<ClusterScriptEntry> getScripts() {
+    return scripts;
+  }
+
+  public void setScripts(List<ClusterScriptEntry> scripts) {
+    this.scripts = scripts;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    ClusterInitData that = (ClusterInitData) o;
+    return Objects.equals(restore, that.restore) && Objects.equals(scripts, that.scripts);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(restore, scripts);
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("restore", restore)
+        .add("scripts", scripts)
+        .toString();
   }
 }

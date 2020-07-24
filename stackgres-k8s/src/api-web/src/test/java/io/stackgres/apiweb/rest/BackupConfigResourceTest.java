@@ -120,6 +120,18 @@ class BackupConfigResourceTest
     super.getOfAnExistingDtoShouldReturnTheExistingDto();
   }
 
+  @Test
+  void createBackupConfigWithGoogleIdentity_shouldNotFail() {
+
+    BackupConfigDto backupConfigDto = JsonUtil
+        .readFromJson("backup_config/google_identity_config.json", BackupConfigDto.class);
+
+    resourceDto = backupConfigDto;
+
+    service.create(resourceDto);
+
+  }
+
   @Override
   protected void checkDto(BackupConfigDto resource) {
     assertNotNull(resource.getMetadata());

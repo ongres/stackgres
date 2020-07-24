@@ -11,6 +11,7 @@ import java.util.Optional;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.stackgres.apiweb.config.WebApiProperty;
 import io.stackgres.apiweb.dto.cluster.ClusterConfiguration;
@@ -24,6 +25,7 @@ import io.stackgres.apiweb.dto.cluster.ClusterPodPersistentVolume;
 import io.stackgres.apiweb.dto.cluster.ClusterPostgresService;
 import io.stackgres.apiweb.dto.cluster.ClusterPostgresServices;
 import io.stackgres.apiweb.dto.cluster.ClusterRestore;
+import io.stackgres.apiweb.dto.cluster.ClusterScriptEntry;
 import io.stackgres.apiweb.dto.cluster.ClusterSpec;
 import io.stackgres.apiweb.dto.cluster.ClusterSpecAnnotations;
 import io.stackgres.apiweb.dto.cluster.ClusterSpecMetadata;
@@ -35,6 +37,8 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodMetadata;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresService;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresServices;
+import io.stackgres.common.crd.sgcluster.StackGresClusterRestore;
+import io.stackgres.common.crd.sgcluster.StackGresClusterScriptEntry;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecAnnotations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecMetadata;
@@ -99,16 +103,21 @@ public class ClusterTransformer
       return null;
     }
     StackGresClusterSpec transformation = new StackGresClusterSpec();
-    transformation.setConfiguration(new StackgresClusterConfiguration());
-    transformation.getConfiguration().setBackupConfig(
-        source.getConfigurations().getSgBackupConfig());
-    transformation.getConfiguration()
-        .setConnectionPoolingConfig(source.getConfigurations().getSgPoolingConfig());
+
+    final ClusterConfiguration sourceClusterConfiguration = source.getConfigurations();
+
+    if (sourceClusterConfiguration != null) {
+      transformation.setConfiguration(new StackgresClusterConfiguration());
+      transformation.getConfiguration().setBackupConfig(
+          source.getConfigurations().getSgBackupConfig());
+      transformation.getConfiguration()
+          .setConnectionPoolingConfig(source.getConfigurations().getSgPoolingConfig());
+      transformation.getConfiguration().setPostgresConfig(
+          source.getConfigurations().getSgPostgresConfig());
+    }
     transformation.setInstances(source.getInstances());
     transformation.setNonProduction(
         getCustomResourceNonProduction(source.getNonProduction()));
-    transformation.getConfiguration().setPostgresConfig(
-        source.getConfigurations().getSgPostgresConfig());
     transformation.setPostgresVersion(source.getPostgresVersion());
     transformation.setPrometheusAutobind(source.getPrometheusAutobind());
     transformation.setResourceProfile(source.getSgInstanceProfile());
@@ -139,13 +148,23 @@ public class ClusterTransformer
         targetReplicaService.setType(sourceReplicaService.getType());
       }
     }
-    Optional.ofNullable(source.getInitData())
-        .map(ClusterInitData::getRestore)
-        .ifPresent(clusterRestore -> {
-          transformation.setInitData(new StackGresClusterInitData());
-          transformation.getInitData().setRestore(
-              getCustomResourceRestore(source.getInitData().getRestore()));
-        });
+
+    final ClusterInitData sourceInitData = source.getInitData();
+    if (sourceInitData != null) {
+
+      final StackGresClusterInitData targetInitData = new StackGresClusterInitData();
+      transformation.setInitData(targetInitData);
+
+      if (sourceInitData.getRestore() != null) {
+        targetInitData.setRestore(
+            getCustomResourceRestore(sourceInitData.getRestore()));
+      }
+
+      if (sourceInitData.getScripts() != null) {
+        targetInitData.setScripts(getCustomResourceScripts(sourceInitData.getScripts()));
+      }
+
+    }
 
     Optional.ofNullable(source.getMetadata())
         .map(ClusterSpecMetadata::getAnnotations)
@@ -195,6 +214,17 @@ public class ClusterTransformer
     return transformation;
   }
 
+  private List<StackGresClusterScriptEntry> getCustomResourceScripts(
+      List<ClusterScriptEntry> scripts) {
+    return scripts.stream().map(entry -> {
+      StackGresClusterScriptEntry targetEntry = new StackGresClusterScriptEntry();
+      targetEntry.setName(entry.getName());
+      targetEntry.setDatabase(entry.getDatabase());
+      targetEntry.setScript(entry.getScript());
+      return targetEntry;
+    }).collect(ImmutableList.toImmutableList());
+  }
+
   private io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction
       getCustomResourceNonProduction(ClusterNonProduction source) {
     if (source == null) {
@@ -206,13 +236,12 @@ public class ClusterTransformer
     return transformation;
   }
 
-  private io.stackgres.common.crd.sgcluster.StackGresClusterRestore getCustomResourceRestore(
+  private StackGresClusterRestore getCustomResourceRestore(
       ClusterRestore source) {
     if (source == null) {
       return null;
     }
-    io.stackgres.common.crd.sgcluster.StackGresClusterRestore transformation =
-        new io.stackgres.common.crd.sgcluster.StackGresClusterRestore();
+    StackGresClusterRestore transformation = new StackGresClusterRestore();
     transformation.setDownloadDiskConcurrency(source.getDownloadDiskConcurrency());
     transformation.setBackupUid(source.getBackupUid());
     return transformation;
@@ -248,13 +277,25 @@ public class ClusterTransformer
     transformation.setPrometheusAutobind(source.getPrometheusAutobind());
     transformation.setSgInstanceProfile(source.getResourceProfile());
 
-    Optional.ofNullable(source.getInitData())
-        .map(StackGresClusterInitData::getRestore)
-        .ifPresent(clusterRestore -> {
-          transformation.setInitData(new ClusterInitData());
-          transformation.getInitData().setRestore(
-              getResourceRestore(source.getInitData().getRestore()));
-        });
+    final StackGresClusterInitData sourceInitData = source.getInitData();
+    if (sourceInitData != null) {
+      ClusterInitData targetInitData = new ClusterInitData();
+      transformation.setInitData(targetInitData);
+      final StackGresClusterRestore sourceRestore = sourceInitData.getRestore();
+      if (sourceRestore != null) {
+        targetInitData.setRestore(getResourceRestore(sourceRestore));
+      }
+
+      if (sourceInitData.getScripts() != null) {
+        targetInitData.setScripts(sourceInitData.getScripts().stream().map(sourceEntry -> {
+          ClusterScriptEntry targetEntry = new ClusterScriptEntry();
+          targetEntry.setScript(sourceEntry.getScript());
+          targetEntry.setDatabase(sourceEntry.getDatabase());
+          targetEntry.setName(sourceEntry.getName());
+          return targetEntry;
+        }).collect(ImmutableList.toImmutableList()));
+      }
+    }
 
     final ClusterPod targetPod = new ClusterPod();
     final StackGresClusterPod sourcePod = source.getPod();
@@ -342,7 +383,7 @@ public class ClusterTransformer
   }
 
   private ClusterRestore getResourceRestore(
-      io.stackgres.common.crd.sgcluster.StackGresClusterRestore source) {
+      StackGresClusterRestore source) {
     if (source == null) {
       return null;
     }

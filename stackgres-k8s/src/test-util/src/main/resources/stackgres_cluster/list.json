@@ -62,6 +62,65 @@
           }
         }
       }
+    }, {
+      "apiVersion": "stackgres.io/v1beta1",
+      "kind": "SGCluster",
+      "metadata": {
+        "creationTimestamp": "2019-10-23T13:41:00Z",
+        "generation": 1,
+        "name": "stackgres",
+        "namespace": "stackgres",
+        "resourceVersion": "629",
+        "selfLink": "/apis/stackgres.io/v1beta1/namespaces/stackgres/sgclusters/stackgres",
+        "uid": "bfb53778-f59a-11e9-b1b5-0242ac110002"
+      },
+      "spec": {
+        "instances": 1,
+        "postgresVersion": "11.5",
+        "configurations": {
+          "sgPostgresConfig": "postgresconf",
+          "sgPoolingConfig": "pgbouncerconf"
+        },
+        "prometheusAutobind": true,
+        "sgInstanceProfile": "size-xs",
+        "initialData": {
+          "scripts": [{
+            "name": "init",
+            "database": "stackgres",
+            "script": "CREATE TABLE table();"
+          }]
+        },
+        "pods":{
+          "persistentVolume": {
+            "size": "5Gi",
+            "storageClass": "standard"
+          },
+          "disableConnectionPooling": false,
+          "disableMetricsExporter": false,
+          "disablePostgresUtil": false,
+          "metadata": {
+            "labels": {
+              "customLabel" : "customLabelValue"
+            }
+          }
+        },
+        "postgresServices": {
+          "primary": {
+            "enabled": true,
+            "type": "ClusterIP",
+            "annotations": {
+              "customAnnotation" : "customValue"
+            }
+          },
+          "replicas": {
+            "enabled": true,
+            "type": "ClusterIP",
+            "annotations": {
+              "customAnnotation" : "customValue"
+            }
+          }
+        }
+      }
     }
   ],
   "kind": "List",

@@ -83,7 +83,7 @@ class PostgresConfigResourceTest
         resource.getSpec().getPostgresqlConf());
     assertNotNull(resource.getStatus());
     assertNotNull(resource.getStatus().getClusters());
-    assertEquals(1, resource.getStatus().getClusters().size());
+    assertEquals(2, resource.getStatus().getClusters().size());
     assertEquals("stackgres", resource.getStatus().getClusters().get(0));
     assertNotNull(resource.getStatus().getPostgresqlConf());
     assertEquals(5, resource.getStatus().getPostgresqlConf().size());
