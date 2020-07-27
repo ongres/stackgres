@@ -721,6 +721,12 @@ var CreateCluster = Vue.component("CreateCluster", {
                 vm.initScripts.forEach(function(script, index){
                     if(!script.script.length)
                         vm.initScripts.splice( index, 1 )
+                    
+                    if(!script.name.length)
+                        delete script.name
+
+                    if(!script.database.length)
+                        delete script.database
                 })
             }
         },
@@ -788,7 +794,9 @@ var CreateCluster = Vue.component("CreateCluster", {
                                     ...( this.restoreBackup.length && ({
                                         "restore": { 
                                             "fromBackup": this.restoreBackup, 
-                                            "downloadDiskConcurrency": this.downloadDiskConcurrency 
+                                            ...(this.downloadDiskConcurrency.length  && ({
+                                                "downloadDiskConcurrency": this.downloadDiskConcurrency 
+                                            }) )
                                         },
                                     }) ),
                                     ...( this.initScripts.length && ({
@@ -823,7 +831,7 @@ var CreateCluster = Vue.component("CreateCluster", {
                     }
                 }  
 
-                console.log(cluster)
+                //console.log(cluster)
                 
                 if(this.editMode) {
                     const res = axios
