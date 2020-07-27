@@ -147,6 +147,15 @@ spec() {
   rm -f "$TARGET_PATH/$SPEC_NAME.failed"
   echo -n > "$LOG_PATH/$SPEC_NAME.log"
 
+  trap_exec tail -f "$LOG_PATH/$SPEC_NAME.log" \
+    | (
+    set +x
+    while IFS="\n" read -r line
+    do
+      echo_raw "$(date +"%Y-%m-%d %H:%M:%S") [$SPEC_NAME] $line"
+    done
+    ) &
+
   if ! flock "$TARGET_PATH/check-operator-lock" \
       "$SHELL" $SHELL_XTRACE "$(dirname "$0")/e2e" reinstall_operator_if_not_as_expected >> "$LOG_PATH/$SPEC_NAME.log"
   then
@@ -162,14 +171,6 @@ spec() {
   echo
 
   local START="$(date +%s)"
-  trap_exec tail -f "$LOG_PATH/$SPEC_NAME.log" \
-    | (
-    set +x
-    while IFS="\n" read -r line
-    do
-      echo_raw "$(date +"%Y-%m-%d %H:%M:%S") [$SPEC_NAME] $line"
-    done
-    ) &
   try_function run_spec >> "$LOG_PATH/$SPEC_NAME.log" 2>&1
   if ! "$RESULT"
   then
