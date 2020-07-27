@@ -796,9 +796,18 @@ var CreateCluster = Vue.component("CreateCluster", {
                                     }) )
                                 }
                             }) 
-                        ),                      
+                        ),
                         ...(this.prometheusAutobind && ( {"prometheusAutobind": this.prometheusAutobind }) ),
                         ...(this.disableClusterPodAntiAffinity && ( {"nonProductionOptions": { "disableClusterPodAntiAffinity": this.disableClusterPodAntiAffinity } }) ),
+                        ...( (!jQuery.isEmptyObject(this.parseProps(this.annotationsAll)) || !jQuery.isEmptyObject(this.parseProps(this.annotationsPods)) || !jQuery.isEmptyObject(this.parseProps(this.annotationsServices))) && ({
+                            "metadata": {
+                                "annotations": {
+                                    ...(!jQuery.isEmptyObject(this.parseProps(this.annotationsAll)) && ( {"allResources": this.parseProps(this.annotationsAll) }) ),
+                                    ...(!jQuery.isEmptyObject(this.parseProps(this.annotationsPods)) && ( {"pods": this.parseProps(this.annotationsPods) }) ),
+                                    ...(!jQuery.isEmptyObject(this.parseProps(this.annotationsServices)) && ( {"services": this.parseProps(this.annotationsServices) }) ),
+                                }
+                            }
+                        }) ),
                         "postgresServices": {
                             "primary": {
                                 "enabled": this.postgresServicesPrimary,
