@@ -1,7 +1,7 @@
 #!/bin/sh
 
 set -e
-ADMIN_IMAGE_NAME="${ADMIN_IMAGE_NAME:-"stackgres/admin-ui:development"}"
+ADMIN_IMAGE_NAME="${ADMIN_IMAGE_NAME:-"stackgres/admin-ui:${IMAGE_TAG%-jvm}"}"
 CONTAINER_BASE=$(buildah from "nginx:1.18.0-alpine")
 
 #Overriding default listen from port 80 to port 8080
