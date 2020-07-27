@@ -1,8 +1,26 @@
 #!/bin/sh
+# Standalone execution: sh e2e generate_demo_yamls
+# Other execution ways:
+# E2E_ENV=kind K8S_REUSE=false E2E_BUILD_OPERATOR=false E2E_REUSE_OPERATOR_PODS=false sh e2e generate_demo_yamls
+
+# kubectl create -f crds.yml  
+# kubectl create -f operator.yml
+# kubectl create -f simple-config.yml
+# kubectl create -f simple-cluster.yml
 
 generate_demo_yamls() {
-  mkdir -p "$TARGET_PATH/demo"
+  . "$(dirname "$0")/e2e"
 
+  # WARNING: This assumes that you are running this with git repository
+  export STACKGRES_PATH=$(git rev-parse --show-toplevel)
+  export OPERATOR_CHART_PATH="${OPERATOR_CHART_PATH:-"${STACKGRES_PATH}/stackgres-k8s/install/helm/stackgres-operator/"}"
+  export CLUSTER_CHART_PATH="${CLUSTER_CHART_PATH:-"${STACKGRES_PATH}/stackgres-k8s/install/helm/stackgres-cluster/"}"
+  export CRDS_CHART_PATH="${CRDS_CHART_PATH:-"${STACKGRES_PATH}/stackgres-k8s/install/helm/stackgres-crds/"}"
+  export NAMESPACE=stackgres
+
+  mkdir -p "$TARGET_PATH/demo"
+  rm -rf "$TARGET_PATH/demo/*.yml"
+  echo "Current dir $PWD"
   echo "Setting up k8s cluster"
   (
   if [ "$K8S_REUSE" != true ]
@@ -19,26 +37,64 @@ generate_demo_yamls() {
   k8s_cleanup
   )  > /dev/null
 
-  echo "Generating operator.yml"
-  (NAMESPACE=stackgres operator_to_yaml --name stackgres-operator \
-    > "$TARGET_PATH/demo/operator.yml")
+  echo "Generating crds.yml CRDs"
+  (helm template --skip-log-headers --skip-headers \
+    stackgres-crds ${CRDS_CHART_PATH} 1> "$TARGET_PATH/demo/crds.yml" ) 2>&1
 
+  echo "Installing crds.yml"
+  ( kubectl create -f "$TARGET_PATH/demo/crds.yml" ) > /dev/null 
+
+  echo "Generating operator.yml"
+  (NAMESPACE=stackgres operator_to_yaml \
+    stackgres-operator \
+    --set service.type=LoadBalancer \
+    --set service.loadBalancer.enabled=true 1> "$TARGET_PATH/demo/operator.yml" )  2>&1 
+  
   echo "Installing operator.yml"
   (
   kubectl create -f "$TARGET_PATH/demo/operator.yml"
 
   wait_pods_running stackgres 1
+
+  # We check that the operator is ready to accept requests
+  until kubectl describe pod --namespace ${NAMESPACE} \
+    --selector=app=stackgres-operator | grep '  Ready\s\+True'; do sleep 1; done
+
   ) > /dev/null
 
+  # Generate configurations pre-cluster
   echo "Generating simple-config.yml"
-  cluster_to_yaml --name simple \
+  cluster_to_yaml simple \
     --set cluster.create=false \
     > "$TARGET_PATH/demo/simple-config.yml"
+
   echo "Generating simple-cluster.yml"
-  cluster_to_yaml --name simple \
+  cluster_to_yaml simple \
     --set configurations.create=false \
     --set instanceProfiles=null \
     --set cluster.instances=2 \
     --set nonProductionOptions.createMinio=false \
-    > "$TARGET_PATH/demo/simple-cluster.yml"
+    --set nonProductionOptions.disableClusterPodAntiAffinity=true > "$TARGET_PATH/demo/simple-cluster.yml"
+
+  echo "Testing Cluster simple-cluster.yml with simple-config.yml"
+  (
+    kind export kubeconfig
+    kubectl create -f "$TARGET_PATH/demo/simple-config.yml"
+    kubectl create -f "$TARGET_PATH/demo/simple-cluster.yml"
+  ) > /dev/null
+
+  until kubectl get pods -n default -l role=replica -o json | jq -r '.items[]."status"."phase"' | grep Running ; do sleep 1; done
+
+  echo "Testing Cluster simple-cluster.yml with simple-config.yml"
+  (
+  kubectl exec -it simple-0 -c postgres-util -- psql -c 'Select 1'
+  kubectl exec -it simple-1 -c postgres-util -- psql -c 'Select 1'
+  ) && (
+    kind export kubeconfig
+    kubectl delete -f "$TARGET_PATH/demo/simple-cluster.yml"
+    kubectl delete -f "$TARGET_PATH/demo/simple-config.yml"
+  ) || ( 
+    echo "Couldn't connect to pods"
+  ) > /dev/null
+
 }
