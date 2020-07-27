@@ -13,11 +13,9 @@
       }
     ]
   },
-  "description": "This dashboard works with postgres_exporter for prometheus",
+  "description": "This dashboard works with [StackGres](https://stackgres.io)",
   "editable": true,
-  "gnetId": 9628,
   "graphTooltip": 0,
-  "id": 14,
   "iteration": 1594983403585,
   "links": [],
   "panels": [
@@ -8201,8 +8199,7 @@
     ]
   },
   "timezone": "",
-  "title": "PostgreSQL Database",
-  "uid": "000000040",
+  "title": "StackGres Dashboard",
   "variables": {
     "list": []
   },
