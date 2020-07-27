@@ -1,0 +1,28 @@
+apiVersion: v1
+name: stackgres-crds
+version: 0.9-SNAPSHOT
+kubeVersion: "1.11.0-0 - 1.17.x-O"
+description: StackGres CRDs
+keyworkds:
+  - stackgres
+  - postgresql
+  - postgres
+  - cluster
+  - stack
+  - opinionated
+home: https://stackgres.io
+sources:
+  - https://gitlab.com/ongresinc/stackgres
+maintainers: 
+  - name: OnGres Inc.
+    email: info@ongres.com
+    url: https://ongres.com
+engine: gotpl
+icon: https://assets.gitlab-static.net/uploads/-/system/project/avatar/12584701/logo-stackgres.png?width=64
+appVersion: 0.9-SNAPSHOT
+deprecated: false
+# dependencies:
+#   - name: prometheus-operator
+#     version: 8.13.4
+#     repository: https://kubernetes-charts.storage.googleapis.com/
+#     condition: prometheus-operator.create

@@ -30,6 +30,12 @@ To use these functions just run the following command:
 sh e2e <function name>
 ```
 
+e.g. (see `utils/generate-demo-yamls`):
+
+```
+E2E_ENV=kind K8S_REUSE=false E2E_BUILD_OPERATOR=false E2E_REUSE_OPERATOR_PODS=false sh e2e generate_demo_yamls
+```
+
 ## Run on CI
 
 CI uses a meven profile to run e2e tests in docker. You can test e2e locally using docker with the following command:
