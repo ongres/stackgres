@@ -8,6 +8,7 @@ TARGET_ADMINUI_IMAGE_NAME="${TARGET_ADMINUI_IMAGE_NAME:-docker-daemon:$ADMINUI_I
 #Overriding default listen from port 80 to port 8080
 buildah run "$CONTAINER_BASE" sed 's/listen       80;/listen       8080;/' -i /etc/nginx/conf.d/default.conf
 buildah run "$CONTAINER_BASE" sed 's/listen  \[::\]:80;/listen  [::]:8080;/' -i /etc/nginx/conf.d/default.conf
+buildah run "$CONTAINER_BASE" sed 's/user  nginx;//' -i /etc/nginx/nginx.conf
 
 # Copying admin static resources to ngnix
 buildah copy --chown nginx:nginx "$CONTAINER_BASE" 'admin-ui/target/public' '/usr/share/nginx/html/admin'
@@ -15,7 +16,6 @@ buildah copy --chown nginx:nginx "$CONTAINER_BASE" 'admin-ui/target/public' '/us
 #Expose port and default user
 buildah config --port 8080 "$CONTAINER_BASE"
 buildah config --user nginx:nginx "$CONTAINER_BASE"
-buildah config --env LANG="C.UTF-8" --env LC_ALL="C.UTF-8" "$CONTAINER_BASE"
 
 # Commit this container to an image name
 buildah commit "$CONTAINER_BASE" "$ADMINUI_IMAGE_NAME"

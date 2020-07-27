@@ -20,6 +20,7 @@ import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodList;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
 import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -82,6 +83,7 @@ public class ClusterStatusManager {
     cluster.getStatus().setConditions(copyList);
 
     ResourceUtil.getCustomResource(client, StackGresClusterDefinition.NAME)
+        .map(CustomResourceDefinitionContext::fromCrd)
         .map(crd -> client.customResources(crd,
             StackGresCluster.class,
             StackGresClusterList.class,

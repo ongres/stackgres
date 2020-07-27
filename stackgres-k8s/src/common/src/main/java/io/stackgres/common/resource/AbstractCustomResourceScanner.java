@@ -12,6 +12,7 @@ import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.CustomResourceDoneable;
 import io.fabric8.kubernetes.client.CustomResourceList;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
 import io.stackgres.common.KubernetesClientFactory;
 
 public abstract class AbstractCustomResourceScanner<T extends CustomResource,
@@ -25,10 +26,10 @@ public abstract class AbstractCustomResourceScanner<T extends CustomResource,
   private final Class<D> customResourceDoneClass;
 
   protected AbstractCustomResourceScanner(KubernetesClientFactory clientFactory,
-                                          String customResourceName,
-                                          Class<T> customResourceClass,
-                                          Class<L> customResourceListClass,
-                                          Class<D> customResourceDoneClass) {
+      String customResourceName,
+      Class<T> customResourceClass,
+      Class<L> customResourceListClass,
+      Class<D> customResourceDoneClass) {
     super();
     this.clientFactory = clientFactory;
     this.customResourceName = customResourceName;
@@ -41,6 +42,7 @@ public abstract class AbstractCustomResourceScanner<T extends CustomResource,
   public Optional<List<T>> findResources() {
     try (KubernetesClient client = clientFactory.create()) {
       return ResourceUtil.getCustomResource(client, customResourceName)
+          .map(CustomResourceDefinitionContext::fromCrd)
           .map(crd -> client.customResources(crd,
               customResourceClass,
               customResourceListClass,
@@ -55,6 +57,7 @@ public abstract class AbstractCustomResourceScanner<T extends CustomResource,
   public Optional<List<T>> findResources(String namespace) {
     try (KubernetesClient client = clientFactory.create()) {
       return ResourceUtil.getCustomResource(client, customResourceName)
+          .map(CustomResourceDefinitionContext::fromCrd)
           .map(crd -> client.customResources(crd,
               customResourceClass,
               customResourceListClass,
