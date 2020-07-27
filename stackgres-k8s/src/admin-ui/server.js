@@ -1,9 +1,13 @@
+const history = require('connect-history-api-fallback');
 require('dotenv').config()
 const express = require("express")
 const proxy = require('express-http-proxy');
 const app = express();
 
 app.use("/admin",express.static('public'));
+app.use(history({
+  index:"admin/index.html"
+}));
 
 const target = process.env.SERVER;
 

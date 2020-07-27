@@ -69,7 +69,7 @@ abstract class AbstractDependencyCustomResourceTest<T extends ResourceDto, R ext
 
     List<T> resources = service.list();
 
-    assertEquals(1, resources.size());
+    assertEquals(customResources.getItems().size(), resources.size());
     checkDto(resources.get(0));
   }
 
@@ -86,15 +86,12 @@ abstract class AbstractDependencyCustomResourceTest<T extends ResourceDto, R ext
 
   @Test
   void createShouldNotFail() {
-    doAnswer(new Answer<Void>() {
-      @Override
-      public Void answer(InvocationOnMock invocation) throws Throwable {
-        R customResource = invocation.getArgument(0);
+    doAnswer((Answer<Void>) invocation -> {
+      R customResource = invocation.getArgument(0);
 
-        checkCustomResource(customResource, Operation.CREATE);
+      checkCustomResource(customResource, Operation.CREATE);
 
-        return null;
-      }
+      return null;
     }).when(scheduler).create(any());
 
     service.create(resourceDto);
@@ -105,15 +102,12 @@ abstract class AbstractDependencyCustomResourceTest<T extends ResourceDto, R ext
     when(finder.findByNameAndNamespace(anyString(), anyString())).thenReturn(
         customResources.getItems().stream().findFirst());
 
-    doAnswer(new Answer<Void>() {
-      @Override
-      public Void answer(InvocationOnMock invocation) throws Throwable {
-        R customResource = invocation.getArgument(0);
+    doAnswer((Answer<Void>) invocation -> {
+      R customResource = invocation.getArgument(0);
 
-        checkCustomResource(customResource, Operation.UPDATE);
+      checkCustomResource(customResource, Operation.UPDATE);
 
-        return null;
-      }
+      return null;
     }).when(scheduler).update(any());
 
     service.update(resourceDto);
@@ -121,15 +115,12 @@ abstract class AbstractDependencyCustomResourceTest<T extends ResourceDto, R ext
 
   @Test
   void deleteShouldNotFail() {
-    doAnswer(new Answer<Void>() {
-      @Override
-      public Void answer(InvocationOnMock invocation) throws Throwable {
-        R customResource = invocation.getArgument(0);
+    doAnswer((Answer<Void>) invocation -> {
+      R customResource = invocation.getArgument(0);
 
-        checkCustomResource(customResource, Operation.DELETE);
+      checkCustomResource(customResource, Operation.DELETE);
 
-        return null;
-      }
+      return null;
     }).when(scheduler).delete(any());
 
     service.delete(resourceDto);

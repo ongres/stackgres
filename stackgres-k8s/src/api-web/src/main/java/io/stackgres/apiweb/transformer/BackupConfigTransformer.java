@@ -161,14 +161,19 @@ public class BackupConfigTransformer
         new io.stackgres.common.crd.storages.GoogleCloudCredentials();
     transformation.setFetchCredentialsFromMetadataService(
         source.isFetchCredentialsFromMetadataService());
-    if (source.getSecretKeySelectors().getServiceAccountJsonKey() != null) {
-      final io.stackgres.common.crd.storages.GoogleCloudSecretKeySelector
-          secretKeySelectors =
-          new io.stackgres.common.crd.storages.GoogleCloudSecretKeySelector();
-      transformation.setSecretKeySelectors(secretKeySelectors);
-      setSecretKeySelector(secretKeySelectors::setServiceAccountJsonKey,
-          source.getSecretKeySelectors().getServiceAccountJsonKey());
-    }
+    final GoogleCloudSecretKeySelector sourceSecretKeySelectors = source.getSecretKeySelectors();
+
+    Optional.ofNullable(source.getSecretKeySelectors())
+        .map(GoogleCloudSecretKeySelector::getServiceAccountJsonKey)
+        .ifPresent(sourceServiceAccountJsonKey -> {
+          final io.stackgres.common.crd.storages.GoogleCloudSecretKeySelector
+              targetSecretKeySelectors =
+              new io.stackgres.common.crd.storages.GoogleCloudSecretKeySelector();
+          transformation.setSecretKeySelectors(targetSecretKeySelectors);
+          setSecretKeySelector(targetSecretKeySelectors::setServiceAccountJsonKey,
+              sourceSecretKeySelectors.getServiceAccountJsonKey());
+
+        });
     return transformation;
   }
 

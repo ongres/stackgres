@@ -98,7 +98,7 @@ spec:
                 sourcePod:
                   type: string
                   description: |
-                    The pod where the backup is taken.                
+                    The pod where the backup is taken.
                 systemIdentifier:
                   type: string
                   description: |
@@ -332,7 +332,7 @@ spec:
                               type: boolean
                               description: |
                                 If true, the credentials will be fetched from the GCE/GKE metadata service and the credentials from `secretKeySelectors` field will not be used.
-                                
+
                                 This is useful when running StackGres inside a GKE cluster using [Workload Identity](https://cloud.google.com/kubernetes-engine/docs/how-to/workload-identity).
                             secretKeySelectors:
                               type: object

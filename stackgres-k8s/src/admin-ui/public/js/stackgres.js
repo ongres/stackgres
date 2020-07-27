@@ -1008,7 +1008,7 @@ if( (window.location.pathname === '/admin/index.html') && ( (store.state.loginTo
 Vue.mixin({
   data: function(){
     return {
-      confirmDeleteName: '',
+      confirmDeleteName: ''
     }
   },
   computed: {

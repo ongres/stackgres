@@ -72,7 +72,7 @@ class   ProfileResourceTest
     assertEquals("2Gi", resource.getSpec().getMemory());
     assertNotNull(resource.getStatus());
     assertNotNull(resource.getStatus().getClusters());
-    assertEquals(1, resource.getStatus().getClusters().size());
+    assertEquals(2, resource.getStatus().getClusters().size());
     assertEquals("stackgres", resource.getStatus().getClusters().get(0));
   }
 

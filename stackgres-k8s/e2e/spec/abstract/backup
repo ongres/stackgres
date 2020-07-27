@@ -9,9 +9,17 @@ check_backup() {
 
   if check_timelines
   then
-    echo "SECCESS. All timelines are correct"
+    echo "SUCCESS. All timelines are correct"
   else
     echo "FAIL. Some timelines are not correct"
+    return 1
+  fi
+
+  if check_control_data
+  then
+    echo "SUCCESS. All backups have valid control data"
+  else
+    echo "FAIL. Some backups have invalid controld data"
     return 1
   fi
 }
@@ -80,6 +88,30 @@ check_timelines(){
   else
     echo "Backup $(echo "$BACKUP_LINE" | cut -d ' ' -f 1) timeline is correct"
   fi
+}
+
+check_control_data(){
+  local CUSTOM_COLUMNS=NAME:.metadata.name,PHASE:.status.process.status
+  
+  local EXPECTED_CONTROL_DATA_LENGTH=$(kubectl exec -it -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c patroni \
+    -- bash -c 'pg_controldata --pgdata=$PG_DATA_PATH' | wc -l)
+  kubectl get sgbackup -n "$CLUSTER_NAMESPACE" -o custom-columns="$CUSTOM_COLUMNS" \
+    | tail -n +2 | grep "Completed" | awk '{print $1}' | while read bn
+    do
+      local BACKUP_NAME="$bn"
+      local ACTUAL_CONTROL_DATA_LENGTH=$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" -o json \
+        | jq '.status.backupInformation.controlData | length')
+
+      if [ "$EXPECTED_CONTROL_DATA_LENGTH" != "$ACTUAL_CONTROL_DATA_LENGTH" ]
+      then
+        echo "FAIL. Backup $BACKUP_NAME has invalid controlData. Expected $EXPECTED_CONTROL_DATA_LENGTH fields, found $ACTUAL_CONTROL_DATA_LENGTH"
+        return 1
+      else
+        echo "Backup $BACKUP_NAME has valid controlData"
+      fi
+
+    done
+
 }
 
 check_automatic_backup_cr() {
