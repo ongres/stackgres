@@ -254,7 +254,7 @@ reinstall_operator_if_not_as_expected() {
     fi
     k8s_webhook_cleanup
     helm_cleanup
-    k8s_async_cleanup
+    k8s_cleanup
 
     kubectl create namespace "$OPERATOR_NAMESPACE"
     install_operator_vanilla -f "$TARGET_PATH/operator-values.yaml"

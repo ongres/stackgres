@@ -49,6 +49,7 @@ var ClusterInfo = Vue.component("ClusterInfo", {
 			</header>
 
 			<div class="content">
+				<h2>Cluster Details</h2>
 				<table class="clusterConfig">
 					<thead>
 						<th></th>
@@ -189,8 +190,317 @@ var ClusterInfo = Vue.component("ClusterInfo", {
 								</template>
 							</td>
 						</tr>
+						<template v-if="hasProp(cluster, 'data.spec.initialData.restore')">
+							<template v-for="(backup, index) in backups">
+								<template v-if="backup.data.metadata.uid == cluster.data.spec.initialData.restore.fromBackup">
+									<tr>
+										<td class="label" rowspan="3">
+											Initial Data
+										</td>
+										<td class="label">
+											Download Disk Concurrency
+										</td>
+										<td colspan="2">
+											{{ cluster.data.spec.initialData.restore.downloadDiskConcurrency }}
+										</td>
+									</tr>
+									<tr>
+										<td class="label" rowspan="2">
+											Restored from Backup
+										</td>
+										<td class="label">
+											Backup UID
+										</td>
+										<td>
+											<router-link :to="'/admin/cluster/backups/'+$route.params.namespace+'/'+backup.data.spec.sgCluster+'/'+backup.data.metadata.uid"> 
+												{{ cluster.data.spec.initialData.restore.fromBackup }}
+												<svg xmlns="http://www.w3.org/2000/svg" width="18.556" height="14.004" viewBox="0 0 18.556 14.004"><g transform="translate(0 -126.766)"><path d="M18.459,133.353c-.134-.269-3.359-6.587-9.18-6.587S.232,133.084.1,133.353a.93.93,0,0,0,0,.831c.135.269,3.36,6.586,9.18,6.586s9.046-6.317,9.18-6.586A.93.93,0,0,0,18.459,133.353Zm-9.18,5.558c-3.9,0-6.516-3.851-7.284-5.142.767-1.293,3.382-5.143,7.284-5.143s6.516,3.85,7.284,5.143C15.795,135.06,13.18,138.911,9.278,138.911Z" transform="translate(0 0)"/><path d="M9.751,130.857a3.206,3.206,0,1,0,3.207,3.207A3.21,3.21,0,0,0,9.751,130.857Z" transform="translate(-0.472 -0.295)"/></g></svg>
+											</router-link>
+										</td>
+									</tr>
+									<tr>
+										<td class="label">
+											Date
+										</td>
+										<td class="timestamp">
+											<template v-if="backup.data.status.process.status == 'Completed'">
+												<span class='date'>
+													{{ backup.data.status.process.timing.stored | formatTimestamp('date') }}
+												</span>
+												<span class='time'>
+													{{ backup.data.status.process.timing.stored | formatTimestamp('time') }}
+												</span>
+												<span class='ms'>
+													{{ backup.data.status.process.timing.stored | formatTimestamp('ms') }}
+												</span>
+												Z
+											</template>
+										</td>
+									</tr>
+								</template>
+								<template v-else-if="index+1 == backups.length">
+									<tr>
+										<td class="label" rowspan="3">
+											Initial Data
+										</td>
+										<td class="label">
+											Download Disk Concurrency
+										</td>
+										<td colspan="2">
+											{{ cluster.data.spec.initialData.restore.downloadDiskConcurrency }}
+										</td>
+									</tr>
+									<tr>
+										<td class="label" rowspan="2">
+											Restored from Backup
+										</td>
+										<td class="label">
+											Backup UID
+										</td>
+										<td>
+											{{ cluster.data.spec.initialData.restore.fromBackup }}
+										</td>
+									</tr>
+									<tr>
+										<td colspan="2">
+											No further information available.
+										</td>
+									</tr>
+								</template>
+							</template>
+						</template>	
 					</tbody>
 				</table>
+
+				<div class="podsMetadata" v-if="hasProp(cluster, 'data.spec.pods.metadata')">
+					<h2>Pods Metadata</h2>
+					<table v-if="hasProp(cluster, 'data.spec.pods.metadata.labels')" class="clusterConfig">
+						<thead>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+						</thead>
+						<tbody>
+							<tr v-for="(item, index) in unparseProps(cluster.data.spec.pods.metadata.labels)">
+								<td v-if="!index" class="label" :rowspan="Object.keys(cluster.data.spec.pods.metadata.labels).length">
+									Pods Metadata
+								</td>
+								<td v-if="!index" class="label" :rowspan="Object.keys(cluster.data.spec.pods.metadata.labels).length">
+									Labels
+								</td>
+								<td class="label">
+									{{ item.annotation }}
+								</td>
+								<td>
+									{{ item.value }}
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+
+				<div class="scripts" v-if="hasProp(cluster, 'data.spec.initialData.scripts')">
+					<h2>Scripts</h2>
+					<table class="clusterConfig">
+						<thead>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+						</thead>
+						<tbody>
+							<template v-for="(item, index) in cluster.data.spec.initialData.scripts">
+								<template v-if="hasProp(item, 'database')">
+									<tr>
+										<td class="label" rowspan="2">
+											Script #{{ index+1 }} <template v-if="hasProp(item, 'name')">– {{ item.name }} </template> 
+										</td>
+										<td class="label">
+											Database
+										</td>
+										<td colspan="2">
+											{{ item.database }}
+										</td>
+									</tr>
+									<tr>
+										<td class="label">
+											Script Details 
+										</td>
+										<td colspan="2">
+											<a @click="setContentTooltip('#script-'+index)"> 
+												View Script
+												<svg xmlns="http://www.w3.org/2000/svg" width="18.556" height="14.004" viewBox="0 0 18.556 14.004"><g transform="translate(0 -126.766)"><path d="M18.459,133.353c-.134-.269-3.359-6.587-9.18-6.587S.232,133.084.1,133.353a.93.93,0,0,0,0,.831c.135.269,3.36,6.586,9.18,6.586s9.046-6.317,9.18-6.586A.93.93,0,0,0,18.459,133.353Zm-9.18,5.558c-3.9,0-6.516-3.851-7.284-5.142.767-1.293,3.382-5.143,7.284-5.143s6.516,3.85,7.284,5.143C15.795,135.06,13.18,138.911,9.278,138.911Z" transform="translate(0 0)"/><path d="M9.751,130.857a3.206,3.206,0,1,0,3.207,3.207A3.21,3.21,0,0,0,9.751,130.857Z" transform="translate(-0.472 -0.295)"/></g></svg>
+											</a>
+											<div :id="'script-'+index" class="hidden" v-html="item.script"></div>
+										</td>
+									</tr>
+								</template>		
+								<template v-else>
+									<tr>
+										<td class="label">
+											Script #{{ index+1 }} <template v-if="hasProp(item, 'name')">– {{ item.name }} </template> 
+										</td>
+										<td class="label">
+											Script Details
+										</td>
+										<td colspan="2">
+											<a @click="setContentTooltip('#script-'+index)"> 
+												View Script
+												<svg xmlns="http://www.w3.org/2000/svg" width="18.556" height="14.004" viewBox="0 0 18.556 14.004"><g transform="translate(0 -126.766)"><path d="M18.459,133.353c-.134-.269-3.359-6.587-9.18-6.587S.232,133.084.1,133.353a.93.93,0,0,0,0,.831c.135.269,3.36,6.586,9.18,6.586s9.046-6.317,9.18-6.586A.93.93,0,0,0,18.459,133.353Zm-9.18,5.558c-3.9,0-6.516-3.851-7.284-5.142.767-1.293,3.382-5.143,7.284-5.143s6.516,3.85,7.284,5.143C15.795,135.06,13.18,138.911,9.278,138.911Z" transform="translate(0 0)"/><path d="M9.751,130.857a3.206,3.206,0,1,0,3.207,3.207A3.21,3.21,0,0,0,9.751,130.857Z" transform="translate(-0.472 -0.295)"/></g></svg>
+											</a>
+											<div :id="'script-'+index" class="hidden" v-html="item.script"></div>
+										</td>
+									</tr>
+								</template>
+							</template>
+						</tbody>
+					</table>
+				</div>
+
+				<div class="resourcesMetadata" v-if="hasProp(cluster, 'data.spec.metadata.annotations')">
+					<h2>Resources Metadata</h2>
+					<table v-if="hasProp(cluster, 'data.spec.metadata.annotations.allResources')" class="clusterConfig">
+						<thead>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+						</thead>
+						<tbody>
+							<tr v-for="(item, index) in unparseProps(cluster.data.spec.metadata.annotations.allResources)">
+								<td v-if="!index" class="label" :rowspan="Object.keys(cluster.data.spec.metadata.annotations.allResources).length">
+									All Resources
+								</td>
+								<td class="label">
+									{{ item.annotation }}
+								</td>
+								<td colspan="2">
+									{{ item.value }}
+								</td>
+							</tr>
+						</tbody>
+					</table>
+
+					<table v-if="hasProp(cluster, 'data.spec.metadata.annotations.pods')" class="clusterConfig">
+						<thead>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+						</thead>
+						<tbody>
+							<tr v-for="(item, index) in unparseProps(cluster.data.spec.metadata.annotations.pods)">
+								<td v-if="!index" class="label" :rowspan="Object.keys(cluster.data.spec.metadata.annotations.pods).length">
+									Pods
+								</td>
+								<td class="label">
+									{{ item.annotation }}
+								</td>
+								<td colspan="2">
+									{{ item.value }}
+								</td>
+							</tr>
+						</tbody>
+					</table>
+
+					<table v-if="hasProp(cluster, 'data.spec.metadata.annotations.services')" class="clusterConfig">
+						<thead>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+						</thead>
+						<tbody>
+							<tr v-for="(item, index) in unparseProps(cluster.data.spec.metadata.annotations.services)">
+								<td v-if="!index" class="label" :rowspan="Object.keys(cluster.data.spec.metadata.annotations.services).length">
+									Services
+								</td>
+								<td class="label">
+									{{ item.annotation }}
+								</td>
+								<td colspan="2">
+									{{ item.value }}
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>	
+
+				<div class="postgresServices" v-if="hasProp(cluster, 'data.spec.postgresServices') && ((hasProp(cluster, 'data.spec.postgresServices.primary') && cluster.data.spec.postgresServices.primary.enabled) || (hasProp(cluster, 'data.spec.postgresServices.replicas') && cluster.data.spec.postgresServices.replicas.enabled))">
+					<h2>Postgres Services</h2>
+					<table v-if="hasProp(cluster, 'data.spec.postgresServices.primary') && cluster.data.spec.postgresServices.primary.enabled" class="clusterConfig">
+						<thead>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+						</thead>
+						<tbody>
+							<tr>
+								<td class="label" v-if="!hasProp(cluster, 'data.spec.postgresServices.primary.annotations')">
+									Primary
+								</td>
+								<td class="label" v-else :rowspan="Object.keys(cluster.data.spec.postgresServices.primary.annotations).length+1">
+									Primary
+								</td>
+								<td class="label">
+									Type
+								</td>
+								<td colspan="2">
+									{{ cluster.data.spec.postgresServices.primary.type }}
+								</td>
+							</tr>
+							<tr v-for="(item, index) in unparseProps(cluster.data.spec.postgresServices.primary.annotations)">
+								<td v-if="index == 0" class="label" :rowspan="Object.keys(cluster.data.spec.postgresServices.primary.annotations).length">
+									Annotations
+								</td>
+								<td class="label">
+									{{ item.annotation }}
+								</td>
+								<td>
+									{{ item.value }}
+								</td>
+							</tr>
+						</tbody>
+					</table>
+
+					<table v-if="hasProp(cluster, 'data.spec.postgresServices.replicas') && cluster.data.spec.postgresServices.replicas.enabled" class="clusterConfig">
+						<thead>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+						</thead>
+						<tbody>
+							<tr>
+								<td class="label" v-if="!hasProp(cluster, 'data.spec.postgresServices.replicas.annotations')">
+									Replicas
+								</td>
+								<td class="label" v-else :rowspan="Object.keys(cluster.data.spec.postgresServices.replicas.annotations).length+1">
+									Replicas
+								</td>
+								<td class="label">
+									Type
+								</td>
+								<td colspan="2">
+									{{ cluster.data.spec.postgresServices.replicas.type }}
+								</td>
+							</tr>
+							<tr v-for="(item, index) in unparseProps(cluster.data.spec.postgresServices.replicas.annotations)">
+								<td v-if="!index" class="label" :rowspan="Object.keys(cluster.data.spec.postgresServices.replicas.annotations).length">
+									Annotations
+								</td>
+								<td class="label">
+									{{ item.annotation }}
+								</td>
+								<td>
+									{{ item.value }}
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>		
 			</div>
 		</template>
 		</div>`,
@@ -200,7 +510,20 @@ var ClusterInfo = Vue.component("ClusterInfo", {
 	    }
 	},
 	methods: {
-		
+
+		unparseProps ( props, key = 'annotation' ) {
+			var propsArray = [];
+			if(!jQuery.isEmptyObject(props)) {
+				Object.entries(props).forEach(([k, v]) => {
+					var prop = {};
+					prop[key] = k;
+					prop['value'] = v;
+					propsArray.push(prop)
+				});
+			}
+			
+            return propsArray
+		}
 
 	},
 	created: function() {
@@ -224,6 +547,10 @@ var ClusterInfo = Vue.component("ClusterInfo", {
 			
 			//let profile = store.state.profiles.find(p => ( (this.$route.params.namespace == p.data.metadata.namespace) && (store.state.currentCluster.data.spec.sgInstanceProfile == p.name) ) );
 			return store.state.profiles
+		},
+
+		backups () {
+			return store.state.backups
 		}
 	},
 	beforeDestroy () {

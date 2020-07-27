@@ -266,20 +266,24 @@ public class ItHelper {
       k8s.execute("sh", "-l", "-c", "kubectl create namespace " + namespace + " || true")
         .filter(EXCLUDE_TTY_WARNING)
         .forEach(LOGGER::info);
-      k8s.execute("sh", "-l", "-c", "helm upgrade --install"
+      k8s.execute("sh", "-l", "-c" + (E2E_DEBUG ? "x" : ""), "helm upgrade --install"
           + " stackgres-operator"
           + " --namespace " + namespace
           + " /resources/stackgres-operator"
+          + " --set-string operator.image.name=stackgres/operator"
           + " --set-string operator.image.tag=" + IMAGE_TAG
           + " --set-string operator.image.pullPolicy=Never"
+          + " --set-string restapi.image.name=stackgres/restapi"
           + " --set-string restapi.image.tag=" + IMAGE_TAG
           + " --set-string restapi.image.pullPolicy=Never"
+          + " --set-string adminui.image.name=stackgres/admin-ui"
           + " --set-string adminui.image.tag=" + adminUiImageTag
           + " --set-string adminui.image.pullPolicy=Never")
         .filter(EXCLUDE_TTY_WARNING)
         .forEach(LOGGER::info);
       k8s.execute("sh", "-l", "-c",
-          "sh " + (E2E_DEBUG ? "-x" : "") + " /resources/e2e/e2e store_operator_values\n")
+          "OPERATOR_NAMESPACE='" + namespace + "' sh " + (E2E_DEBUG ? "-x" : "")
+          + " /resources/e2e/e2e store_operator_values\n")
         .filter(EXCLUDE_TTY_WARNING)
         .forEach(LOGGER::info);
       return;
@@ -297,7 +301,8 @@ public class ItHelper {
       .filter(EXCLUDE_TTY_WARNING)
       .forEach(LOGGER::info);
     k8s.execute("sh", "-l", "-c",
-        "sh " + (E2E_DEBUG ? "-x" : "") + " /resources/e2e/e2e store_operator_values\n")
+        "OPERATOR_NAMESPACE='" + namespace + "' sh " + (E2E_DEBUG ? "-x" : "")
+        + " /resources/e2e/e2e store_operator_values\n")
       .filter(EXCLUDE_TTY_WARNING)
       .forEach(LOGGER::info);
   }
