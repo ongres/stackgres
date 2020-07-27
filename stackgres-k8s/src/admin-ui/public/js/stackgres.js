@@ -1008,12 +1008,18 @@ if( (window.location.pathname === '/admin/index.html') && ( (store.state.loginTo
 Vue.mixin({
   data: function(){
     return {
+      confirmDeleteName: '',
     }
   },
   computed: {
    
   },
   methods: {
+
+    setContentTooltip( el ) {
+      $('#contentTooltip .info .content').html($(el).html());
+      $('#contentTooltip').addClass('show');
+    },
 
     hasProp (obj, propertyPath) {
       if(!propertyPath)
@@ -1078,6 +1084,7 @@ Vue.mixin({
     cancelDelete: function(){
       $("#delete").removeClass("active");
       $("#delete .warning").hide();
+      this.confirmDeleteName = '';
       store.commit('setConfirmDeleteName', '');
     },
     
@@ -1098,8 +1105,6 @@ Vue.mixin({
     },
 
 		confirmDelete: function( confirmName ) {
-
-      //console.log("Name: "+confirmName);
 
       const item = store.state.deleteItem;
 
@@ -2504,5 +2509,17 @@ $(document).ready(function(){
     $(this).addClass('active')
   })
 
+  $('#contentTooltip .close').click(function(){
+    $('#contentTooltip').removeClass('show');
+    $('#contentTooltip .info .content').html('');
+  })
+
+  $(document).on("click", "#side", function(e) {
+
+    if($('#contentTooltip').hasClass('show')) {
+      $('#contentTooltip').removeClass('show')
+      $('#contentTooltip .content').html('');
+    }
+  });
 
 });

@@ -45,8 +45,7 @@
 		<!-- Datepicker Styling -->
 		<link rel="stylesheet" type="text/css" href="/admin/assets/css/daterangepicker.css" />
 
-		<style>
-		</style>
+		<style></style>
 	</head>
 <body>
 
@@ -56,6 +55,13 @@
 		<sg-nav></sg-nav>
 		<sg-side></sg-side>
 		<router-view id="main" :key="$route.path"></router-view>
+		<div id="contentTooltip">
+			<div class="close"></div>
+			<div class="info">
+				<span class="close">CLOSE</span>
+				<div class="content"></div>
+			</div>
+		</div>
 	</div>
 
 	<!-- Extra Libraries -->
