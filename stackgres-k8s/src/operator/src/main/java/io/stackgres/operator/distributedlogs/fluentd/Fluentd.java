@@ -93,6 +93,8 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
       .withImagePullPolicy("IfNotPresent")
       .withCommand("/bin/sh", "-exc")
       .withArgs(""
+            + "echo 'Wait for postgres to be up, running and initialized!'\n"
+            + "until curl -s localhost:8008/read-only --fail > /dev/null; do sleep 1; done\n"
             + "CONFIG_PATH=/etc/fluentd\n"
             + "update_config() {\n"
             + "  rm -Rf /tmp/last_config\n"
@@ -113,6 +115,7 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
             + "  set -x\n"
             + "  for database in $(cat \"$CONFIG_PATH/databases\")\n"
             + "  do\n"
+            + "    echo \"Create database ${database} if not exists\"\n"
             + "    cat << EOF | ruby -e '\n"
             + "require \"pg\"\n"
             + "conn = PG.connect(host: \"" + ClusterStatefulSetPath.PG_RUN_PATH.path() + "\""
@@ -142,6 +145,7 @@ public class Fluentd implements ContainerResourceFactory<StackGresDistributedLog
             + "do\n"
             + "  if has_config_changed || [ ! -d \"/proc/$PID\" ]\n"
             + "  then\n"
+            + "    echo 'Configuration has changed, restarting fluentd'\n"
             + "    update_config\n"
             + "    if [ -n \"$PID\" ]\n"
             + "    then\n"
