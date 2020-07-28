@@ -258,6 +258,8 @@ var CreateCluster = Vue.component("CreateCluster", {
 
                                     <label>Value</label>
                                     <input class="labelValue" v-model="field.value" :disabled="editMode">
+
+                                    <a v-if="!editMode" class="addRow" @click="spliceArray('podsMetadata', index)">Delete</a>
                                 </div>
                             </div>
                         </fieldset>

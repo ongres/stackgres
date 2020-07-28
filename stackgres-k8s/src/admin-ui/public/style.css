@@ -2595,6 +2595,16 @@ a.addRow {
     display: block;
 }
 
+.repeater .row {
+    position: relative;
+}
+
+.repeater .row  a.addRow {
+    position: absolute;
+    top: 0;
+    right: 0;
+}
+
 input.annotation, input.annotationValue, input.label, input.labelValue {
     width: 47%;
     position: relative;
