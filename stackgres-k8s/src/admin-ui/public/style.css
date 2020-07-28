@@ -2647,6 +2647,10 @@ span.eqSign:before {
     margin-top: 5px;
 }
 
+.scriptFieldset .repeater a.help {
+    right: -67px;
+}
+
 .script.repeater textarea {
     margin-bottom: 20px;
     width: 100%;
