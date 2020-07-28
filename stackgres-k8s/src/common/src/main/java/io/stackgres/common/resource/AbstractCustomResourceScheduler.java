@@ -65,6 +65,7 @@ public abstract class AbstractCustomResourceScheduler<T extends CustomResource,
       getCustomResourceEndpoints(client)
           .inNamespace(resource.getMetadata().getNamespace())
           .withName(resource.getMetadata().getName())
+          .withPropagationPolicy("Background")
           .delete();
     }
   }
