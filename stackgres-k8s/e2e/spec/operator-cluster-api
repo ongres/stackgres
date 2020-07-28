@@ -65,13 +65,13 @@ e2e_test() {
 
   run_test "Check cluster is deleted with the API are reflected in the API" test_api_delete_cluster_is_visible
   
+  run_test "Check that when cluster is deleted with the API generated resources are also deleted" test_api_deleted_cluster_deletes_generated_resources
+  
   run_test "Constraint violations should be detected" test_constraint_violation_api_error
 
   run_test "User with wrong credentials should not be authenticated" test_authentication_api_error
 
   run_test "Create cluster with inline scripts" check_create_cluster_with_inline_script
-
-  
 }
 
 check_cluster_in_list() {
@@ -304,6 +304,20 @@ test_api_delete_cluster_is_visible() {
     echo "Cluster wasn't removed from the API"
     return 1
   fi
+}
+
+test_api_deleted_cluster_deletes_generated_resources() {
+  if wait_until has_no_cluster_generated_resources
+  then
+    echo "Cluster resources where removed"
+  else
+    echo "Cluster resources wheren't removed"
+    return 1
+  fi
+}
+
+has_no_cluster_generated_resources() {
+  ! kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"
 }
 
 test_constraint_violation_api_error() {
