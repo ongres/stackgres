@@ -38,11 +38,13 @@ spec:
             {{- end }}
             grafana_prometheus_datasource_name="{{ .Values.grafana.datasourceName }}"
             curl_grafana_api() {
-              curl -sk -H "Accept: application/json" -H "Content-Type: application/json" -u "$grafana_credentials" --fail "$@"
+              curl -vk -H "Accept: application/json" -H "Content-Type: application/json" -u "$grafana_credentials" --fail "$@"
             }
+            {{- if .Values.grafana.dashboardId }}
             dashboard_id="{{ .Values.grafana.dashboardId }}"
             curl_grafana_api "$grafana_host/api/gnet/dashboards/$dashboard_id" | jq .json > /tmp/grafana-dashboard.json
             [ -s /tmp/grafana-dashboard.json ]
+            {{- end }}
             cat << EOF > /tmp/grafana-dashboard-import.json
             {
               {{- if .Values.grafana.dashboardId }}
@@ -56,7 +58,8 @@ spec:
                 "type": "datasource",
                 "pluginId": "prometheus",
                 "value": "$grafana_prometheus_datasource_name"
-              }]
+              }],
+              "folderId": -1
             }
             EOF
             grafana_dashboard_url="$(curl_grafana_api -X POST -d "@/tmp/grafana-dashboard-import.json" "$grafana_host/api/dashboards/import" | jq -r .importedUrl)"

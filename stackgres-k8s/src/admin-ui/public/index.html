@@ -8,11 +8,11 @@
 		<meta name="author" content="">
 		<meta name="robots" content="index, follow">
 
-		<link rel="apple-touch-icon" sizes="180x180" href="img/favicon/apple-touch-icon.png">
-		<link rel="icon" type="image/png" sizes="32x32" href="img/favicon/favicon-32x32.png">
-		<link rel="icon" type="image/png" sizes="16x16" href="img/favicon/favicon-16x16.png">
-		<link rel="manifest" href="img/favicon/site.webmanifest">
-		<link rel="mask-icon" href="img/favicon/safari-pinned-tab.svg" color="#00adb5">
+		<link rel="apple-touch-icon" sizes="180x180" href="/admin/img/favicon/apple-touch-icon.png">
+		<link rel="icon" type="image/png" sizes="32x32" href="/admin/img/favicon/favicon-32x32.png">
+		<link rel="icon" type="image/png" sizes="16x16" href="/admin/img/favicon/favicon-16x16.png">
+		<link rel="manifest" href="/admin/img/favicon/site.webmanifest">
+		<link rel="mask-icon" href="/admin/img/favicon/safari-pinned-tab.svg" color="#00adb5">
 		<meta name="msapplication-TileColor" content="#00adb5">
 		<meta name="theme-color" content="#f0f0f0">
 
@@ -45,8 +45,7 @@
 		<!-- Datepicker Styling -->
 		<link rel="stylesheet" type="text/css" href="/admin/assets/css/daterangepicker.css" />
 
-		<style>
-		</style>
+		<style></style>
 	</head>
 <body>
 
@@ -56,6 +55,13 @@
 		<sg-nav></sg-nav>
 		<sg-side></sg-side>
 		<router-view id="main" :key="$route.path"></router-view>
+		<div id="contentTooltip">
+			<div class="close"></div>
+			<div class="info">
+				<span class="close">CLOSE</span>
+				<div class="content"></div>
+			</div>
+		</div>
 	</div>
 
 	<!-- Extra Libraries -->

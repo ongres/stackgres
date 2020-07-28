@@ -48,13 +48,13 @@ var CreatePoolConfig = Vue.component("CreatePoolConfig", {
                 </a>
 
                 <template v-if="editMode">
-                    <button @click="createPoolConfig">Update Configuration</button>
+                    <a class="btn" @click="createPoolConfig">Update Configuration</a>
                 </template>
                 <template v-else>
-                    <button @click="createPoolConfig">Create Configuration</button>
+                    <a class="btn" @click="createPoolConfig">Create Configuration</a>
                 </template>
                 
-                <button @click="cancel" class="border">Cancel</button>
+                <a @click="cancel" class="btn border">Cancel</a>
             </div>
             <div id="help" class="form">
                 <div class="header">
@@ -151,8 +151,6 @@ var CreatePoolConfig = Vue.component("CreatePoolConfig", {
                     }
                 }
 
-                console.log(config);
-
                 if(this.editMode) {
                     const res = axios
                     .put(
@@ -160,7 +158,6 @@ var CreatePoolConfig = Vue.component("CreatePoolConfig", {
                         config 
                     )
                     .then(function (response) {
-                        console.log("GOOD");
                         notify('Connection pooling configuration <strong>"'+config.metadata.name+'"</strong> updated successfully', 'message','sgpoolconfig');
 
                         vm.fetchAPI('sgpoolconfig');
@@ -178,7 +175,6 @@ var CreatePoolConfig = Vue.component("CreatePoolConfig", {
                         config 
                     )
                     .then(function (response) {
-                        console.log("GOOD");
                         notify('Connection pooling configuration <strong>"'+config.metadata.name+'"</strong> created successfully', 'message','sgpoolconfig');
 
                         vm.fetchAPI('sgpoolconfig');

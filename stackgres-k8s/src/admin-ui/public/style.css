@@ -191,6 +191,10 @@ svg.background circle {
 }
 
 
+.hidden {
+    display: none;
+}
+
 /* Log in */
 
 #nav .right > div#signup {
@@ -921,6 +925,10 @@ ul.zg-ul-select.active li.active:hover {
     border-top: 1px solid #f1f1f1;
     max-height: calc(100vh - 475px);
     overflow: auto;
+}
+
+.set.active:not(.conf):not(.backups):not(.logs) { 
+    min-height: 100px; 
 }
 
 .set.clu.active {
@@ -1672,7 +1680,7 @@ header .actions a.documentation:before {
 header .actions a {
     cursor: pointer;
     font-weight: 600;
-    margin-left: 20px;
+    margin-left: 15px;
 }
 
 header .actions > div {
@@ -2210,6 +2218,7 @@ ul.select a.active {
     max-height: 220px;
     border-radius: 0;
     max-width: 100%;
+    min-width: 100%;
 }
 
 .form input:focus, .form select:focus, .form textarea:focus, ul.select.active {
@@ -2353,7 +2362,7 @@ button {
     cursor: pointer;
 }
 
-.form button, button {
+.form button, button, .form .btn, form .btn {
     background: var(--blue);
     color: #fff;
     margin-top: 10px;
@@ -2573,6 +2582,84 @@ span.req {
     padding-right: 25px;
 }
 
+a.addRow {
+    font-weight: 600;
+    text-transform: uppercase;
+    float: right;
+    display: inline-block;
+    cursor: pointer;
+}
+
+.row {
+    width: 100%;
+    display: block;
+}
+
+input.annotation, input.annotationValue, input.label, input.labelValue {
+    width: 47%;
+    position: relative;
+    float: left;
+    margin-bottom: 10px;
+}
+
+input.annotationValue, input.labelValue {
+    top: -15px;
+}
+
+span.eqSign {
+    float: left;
+    width: 6%;
+    text-align: center;
+    height: 38px;
+    padding-top: 8px;
+}
+
+span.eqSign:before {
+    background: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNSAyNSI+CjxwYXRoIGZpbGw9IiM0RDRGNUMiIGQ9Ik04LjMsMTEuNmMtMC40LDAtMC43LTAuMS0wLjktMC40QzcuMSwxMSw3LDEwLjYsNywxMC4zYzAtMC40LDAuMS0wLjcsMC40LTEKCUM3LjYsOSw4LDguOSw4LjMsOC45aDguM2MwLjQsMCwwLjcsMC4xLDAuOSwwLjRjMC4zLDAuMiwwLjQsMC42LDAuNCwwLjljMCwwLjQtMC4xLDAuNy0wLjQsMWMtMC4yLDAuMy0wLjYsMC40LTAuOSwwLjRMOC4zLDExLjZ6CgkgTTguMywxNi4xYy0wLjQsMC0wLjctMC4xLTAuOS0wLjRDNy4xLDE1LjUsNywxNS4xLDcsMTQuOGMwLTAuNCwwLjEtMC43LDAuNC0xYzAuMi0wLjMsMC42LTAuNCwwLjktMC40aDguM2MwLjQsMCwwLjcsMC4xLDAuOSwwLjQKCWMwLjMsMC4yLDAuNCwwLjYsMC40LDAuOWMwLDAuNC0wLjEsMC43LTAuNCwxYy0wLjIsMC4zLTAuNiwwLjQtMC45LDAuNEg4LjN6Ii8+Cjwvc3ZnPg==);
+    display: inline-block;
+    content: "";
+    position: relative;
+    width: 20px;
+    height: 20px;
+}
+
+.darkmode span.eqSign:before {
+    background: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNSAyNSI+CjxwYXRoIGZpbGw9IiM3QTdCODUiIGQ9Ik04LjMsMTEuNmMtMC40LDAtMC43LTAuMS0wLjktMC40QzcuMSwxMSw3LDEwLjYsNywxMC4zYzAtMC40LDAuMS0wLjcsMC40LTEKCUM3LjYsOSw4LDguOSw4LjMsOC45aDguM2MwLjQsMCwwLjcsMC4xLDAuOSwwLjRjMC4zLDAuMiwwLjQsMC42LDAuNCwwLjljMCwwLjQtMC4xLDAuNy0wLjQsMWMtMC4yLDAuMy0wLjYsMC40LTAuOSwwLjRMOC4zLDExLjZ6CgkgTTguMywxNi4xYy0wLjQsMC0wLjctMC4xLTAuOS0wLjRDNy4xLDE1LjUsNywxNS4xLDcsMTQuOGMwLTAuNCwwLjEtMC43LDAuNC0xYzAuMi0wLjMsMC42LTAuNCwwLjktMC40aDguM2MwLjQsMCwwLjcsMC4xLDAuOSwwLjQKCWMwLjMsMC4yLDAuNCwwLjYsMC40LDAuOWMwLDAuNC0wLjEsMC43LTAuNCwxYy0wLjIsMC4zLTAuNiwwLjQtMC45LDAuNEg4LjN6Ii8+Cjwvc3ZnPg==);
+}
+
+.repeater .row label:last-of-type:not(.script) {
+    display: inline;
+    position: relative;
+    top: -17px;
+}
+
+.resourcesMetadata a.help {
+    margin-top: 5px;
+}
+
+.script.repeater textarea {
+    margin-bottom: 20px;
+    width: 100%;
+    max-width: 468px;
+}
+
+fieldset.scriptFieldset .header a.help {
+    margin-top: 0px;
+}
+
+label.script {
+    display: inline-block;
+    width: auto;
+}
+
+.uploadScript {
+    float: right;
+    display: inline;
+}
+
+fieldset.postgresServicesPrimary .header a.help, fieldset.postgresServicesReplicas .header a.help, fieldset.postgresServicesPrimary fieldset a.help, fieldset.postgresServicesReplicas fieldset a.help, fieldset.podsMetadata a.help {
+    margin-top: 0;
+}
 
 /* Help Tooltips */
 
@@ -2620,7 +2707,7 @@ a.help:hover {
     cursor: pointer;
 }
 
-a.help:hover svg > path {
+a.help:hover svg > path, a.help.active svg > path {
     fill: var(--blue);
 }
 
@@ -2724,7 +2811,7 @@ tbody {
     border-bottom: 1px solid #F0F0F1;
 }
 
-table .sort {
+table .sort, a.uploadLink {
     cursor: pointer;
 }
 
@@ -2992,6 +3079,16 @@ td.label span {
 
 table.clusterConfig {
     max-width: 1000px;
+    margin-bottom: 30px;
+    margin-top: 15px;
+}
+
+.resourcesMetadata table, .postgresServices table {
+    margin-bottom: 15px;
+}
+
+table.clusterConfig thead {
+    display: none;
 }
 
 table.clusterConfig th:first-child, table.clusterConfig td:first-child {
@@ -3015,12 +3112,13 @@ table.clusterConfig td.label {
 }
 
 table.clusterConfig td:not([colspan]) {
-    width: 200px;
+    width: 25%;
 }
 
 table.clusterConfig a {
     color: initial;
     display: inline-flex;
+    cursor: pointer;
 }
 
 table.clusterConfig a:hover svg, td.usedOn a:hover svg path{
@@ -3134,7 +3232,7 @@ table.backupConfig tr.base.open {
     color: var(--gray3);
 }
 
-.toolbar .filtered .toggle:after {
+.toolbar .filtered .toggle:after, .darkmode a.btn.border {
     color: var(--blue);
 }
 
@@ -4700,4 +4798,75 @@ tr.details td:last-of-type .configurationDetails table {
 #notFound {
     text-align: center;
     padding: 100px;
+}
+
+/*Tooltips*/
+#contentTooltip {
+    position: fixed;
+    top: 50px;
+    left: 350px;
+    background: rgba(255,255,255,0.8);
+    width: calc(100vw - 350px);
+    height: calc(100vh - 50px);
+    display: none;
+    align-items: center;
+    opacity: 0;
+    transition: opacity .2s ease-in;
+}
+
+#contentTooltip.show {
+    display: flex !important;
+    opacity: 1;
+    z-index: 10;
+    transition: opacity .4s ease-out;
+}
+
+#contentTooltip > .close {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+
+#contentTooltip .info {
+    display: block;
+    float: none;
+    margin: 0 auto;
+    background: #fff;
+    padding: 30px;
+    border: 1px solid var(--gray1);
+    border-radius: 10px;
+    max-width: 75%;
+    max-height: 70vh;
+    position: relative;
+    z-index: 2;
+    min-width: 400px;
+}
+
+#contentTooltip .content {
+    max-height: 60vh;
+    display: inline-block;
+    overflow-y: auto;
+    min-height: 100px;
+    width: 100%;
+}
+
+#contentTooltip .info span.close {
+    position: absolute;
+    color: var(--blue);
+    font-weight: bold;
+    cursor: pointer;
+    top: -20px;
+    right: 10px;
+}
+
+#contentTooltip .content pre {
+    white-space: pre-wrap;
+    white-space: -moz-pre-wrap;
+    white-space: -pre-wrap;
+    white-space: -o-pre-wrap;
+    word-wrap: break-word;
+    padding-right: 15px;
 }

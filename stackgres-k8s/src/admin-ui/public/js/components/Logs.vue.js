@@ -542,7 +542,6 @@ var Logs = Vue.component("Logs", {
 			const vm = this;
 
 			Object.entries(vm.showColumns).forEach(([key, value]) => {
-				console.log(value)
 				if(!value) {
 					filtered = true;
 					return false;
@@ -550,6 +549,10 @@ var Logs = Vue.component("Logs", {
 			});
 				
 			return filtered
+		},
+
+		cluster() {
+			return store.state.currentCluster
 		}
 
 	},

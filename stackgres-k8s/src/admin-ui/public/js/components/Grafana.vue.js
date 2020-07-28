@@ -50,13 +50,13 @@ var Grafana = Vue.component("Grafana", {
 				<ul class="selector">
 					<li><strong>Select a node:</strong></li>
 					<li v-for="pod in cluster.data.pods">
-						<router-link :to="'/admin/cluster/monitor/'+$route.params.namespace+'/'+cluster.name+'/'+pod.ip+':9187'">{{ pod.name }}</router-link>
+						<router-link :to="'/admin/cluster/monitor/'+$route.params.namespace+'/'+cluster.name+'/'+pod.ip">{{ pod.name }}</router-link>
 					</li>
 				</ul>
 			</header>
 
 			<div class="content grafana">
-				<iframe :src="($route.params.hasOwnProperty('pod') && $route.params.pod.length) ? grafana+$route.params.pod : grafana+cluster.data.pods[0].ip+':9187'" id="grafana"></iframe>
+				<iframe :src="($route.params.hasOwnProperty('pod') && $route.params.pod.length) ? grafana+$route.params.pod : grafana+cluster.data.pods[0].ip" id="grafana"></iframe>
 			</div>
 		</template>
 		</div>`,

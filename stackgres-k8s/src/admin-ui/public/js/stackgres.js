@@ -113,7 +113,7 @@ const router = new VueRouter({
       },
     },
     { 
-      path: '/admin/crd/:action/backup/:namespace/:cluster/:uid', 
+      path: '/admin/crd/:action/backup/:namespace/:uid', 
       component: CreateBackup,
       meta: {
         conditionalRoute: false
@@ -323,7 +323,8 @@ router.beforeEach((to, from, next) => {
         }
         else
           notFound();
-      }).catch(function(err) {
+      }).catch(function(error) {
+        checkAuthError(error)
         notFound()
       });
     }
@@ -332,13 +333,28 @@ router.beforeEach((to, from, next) => {
 
       case 'CreateCluster':
       case 'Logs':
-      case 'Grafana':    
+      case 'ClusterInfo':
+      case 'Grafana':
+      case 'ClusterStatus':
 
         axios
         .get(apiURL+'sgcluster')
         .then( function(response){
 
-          var found = false
+          var found = false,
+              stats = {};
+
+            if(component == 'ClusterStatus') {
+              /* Check for Cluster status */
+              axios
+              .get(apiURL+'sgcluster/stats/'+to.params.namespace+'/'+to.params.name)
+              .then( function(resp){
+                stats = resp.data;
+              }).catch(function(error) {
+                checkAuthError(error)
+                notFound()
+              });
+            } 
 
           response.data.forEach( function(item, index) {
 
@@ -348,13 +364,14 @@ router.beforeEach((to, from, next) => {
               hasBackups: false,
               status: {},
             };
-              
-            store.commit('updateClusters', cluster);
 
             if( to.params.hasOwnProperty('name') && (to.params.name == item.metadata.name) && (to.params.namespace == item.metadata.namespace) ) {
+              cluster.status = stats;
               store.commit('setCurrentCluster', cluster);
               found = true;
             }
+
+            store.commit('updateClusters', cluster);
 
           });
 
@@ -363,24 +380,12 @@ router.beforeEach((to, from, next) => {
           else
             next()
 
-        }).catch(function(err) {
+        }).catch(function(error) {
+            checkAuthError(error)
           notFound()
         });
 
         break
-
-      case 'ClusterStatus':
-      case 'ClusterInfo':
-        /* Check if Cluster exists */
-        axios
-        .get(apiURL+'sgcluster/stats/'+to.params.namespace+'/'+to.params.name)
-        .then( function(response){
-          next()
-        }).catch(function(err) {
-          notFound()
-        });
-
-        break;
 
       case 'InstanceProfile':
       case 'CreateProfile':
@@ -408,7 +413,8 @@ router.beforeEach((to, from, next) => {
           else
             next()
 
-        }).catch(function(err) {
+        }).catch(function(error) {
+          checkAuthError(error)
           notFound()
         });
 
@@ -441,7 +447,8 @@ router.beforeEach((to, from, next) => {
           else
             next()
 
-        }).catch(function(err) {
+        }).catch(function(error) {
+          checkAuthError(error)
           notFound()
         });
 
@@ -474,7 +481,8 @@ router.beforeEach((to, from, next) => {
           else
             next()
 
-        }).catch(function(err) {
+        }).catch(function(error) {
+          checkAuthError(error)
           notFound()
         });
 
@@ -506,7 +514,8 @@ router.beforeEach((to, from, next) => {
           else
             next()
 
-        }).catch(function(err) {
+        }).catch(function(error) {
+          checkAuthError(error)
           notFound()
         });
 
@@ -546,14 +555,16 @@ router.beforeEach((to, from, next) => {
             else
               next()
   
-          }).catch(function(err) {
+          }).catch(function(error) {
+            checkAuthError(error)
             notFound()
           });
 
           axios
           .get(apiURL+'sgbackup')
           .then( function(response){ 
-            var found = false
+            var found = false,
+                duration = '';
 
             if(response.data.length) {
 
@@ -591,7 +602,8 @@ router.beforeEach((to, from, next) => {
             else {
               next()
             }
-          }).catch(function(err) {
+          }).catch(function(error) {
+            checkAuthError(error)
             notFound()
           });
 
@@ -601,7 +613,8 @@ router.beforeEach((to, from, next) => {
           .get(apiURL+'sgbackup')
           .then( function(response){
 
-            var found = false
+            var found = false,
+                duration = ''
 
             if(response.data.length) {
 
@@ -640,7 +653,8 @@ router.beforeEach((to, from, next) => {
               next()
             }
 
-          }).catch(function(err) {
+          }).catch(function(error) {
+            checkAuthError(error)
             notFound()
           });
         }
@@ -656,8 +670,6 @@ router.beforeEach((to, from, next) => {
 
     let cluster = store.state.clusters.find(c => ( (to.params.name == c.name) && (to.params.namespace == c.data.metadata.namespace) ) );
     
-    //console.log(cluster);
-
     if ( typeof cluster !== "undefined" ) {
       
       store.commit('setCurrentCluster', cluster);
@@ -1004,6 +1016,30 @@ Vue.mixin({
   },
   methods: {
 
+    setContentTooltip( el ) {
+      $('#contentTooltip .info .content').html($(el).html());
+      $('#contentTooltip').addClass('show');
+    },
+
+    hasProp (obj, propertyPath) {
+      if(!propertyPath)
+          return false;
+
+      var properties = propertyPath.split('.');
+
+      for (var i = 0; i < properties.length; i++) {
+          var prop = properties[i];
+
+          if(!obj || !obj.hasOwnProperty(prop)){
+              return false;
+          } else {
+              obj = obj[prop];
+          }
+      }
+
+      return true;
+    },
+
     iCan( action, kind, namespace = '' ) {
       
       if(namespace.length) {
@@ -1045,10 +1081,17 @@ Vue.mixin({
 
 		},
 
+    cancelDelete: function(){
+      $("#delete").removeClass("active");
+      $("#delete .warning").hide();
+      this.confirmDeleteName = '';
+      store.commit('setConfirmDeleteName', '');
+    },
+    
     deleteCRD: function( kind, namespace, name, redirect ) {
 
       //console.log("Open delete");
-      this.confirmDeleteName = '';
+      $('#delete input').val('');
       $("#delete").addClass("active");
       $(".filter > .open").removeClass("open");
 
@@ -1063,9 +1106,6 @@ Vue.mixin({
 
 		confirmDelete: function( confirmName ) {
 
-      //console.log("Name: "+confirmName);
-
-      const vc = this;
       const item = store.state.deleteItem;
 
 			if(confirmName == item.name) { 
@@ -1084,7 +1124,6 @@ Vue.mixin({
             }
 				)
 				.then(function (response) {
-					console.log("DELETED");
 					notify('<span class="capitalize">'+item.kind+'</span> <strong>'+item.name+'</strong> deleted successfully', 'message', item.kind);
           
           $('.'+item.kind+'-'+item.namespace+'-'+item.name).addClass("hide");
@@ -1101,8 +1140,7 @@ Vue.mixin({
             redirect: ''
           });
 
-          $("#delete").removeClass("active");
-          vc.confirmDeleteName = '';
+					$("#delete").removeClass("active");
 				})
 				.catch(function (error) {
 				  console.log(error);
@@ -1135,7 +1173,7 @@ Vue.mixin({
 
     showTooltip: function( kind, field ) {
 
-      const label = $("[for='"+field+"']").text();
+      const label = $("[for='"+field+"']").first().text();
       const crd = store.state.tooltips[kind];
 
       $("#help .title").html(label);
@@ -1151,8 +1189,10 @@ Vue.mixin({
         params.forEach(function(item, index){
           if( !index ) // First level
             param = param[item]
-          else
+          else if (param.type == 'object')
             param = param.properties[item]
+          else if (param.type == 'array')
+            param = param.items.properties[item]
         })
       }
 
@@ -1198,10 +1238,10 @@ Vue.mixin({
         crd.kind = kind;
         if($('#cloneName').val() !== crd.data.metadata.name)
           crd.data.metadata.name = 'copy-of-'+crd.data.metadata.name;
-        
+
         store.commit('setCloneCRD', crd);
-      
-        $('#cloneName').val(crd.data.metadata.name)
+        
+        $('#cloneName').val(crd.data.metadata.name);
         $('#cloneNamespace').val(crd.data.metadata.namespace);
         $("#notifications.hasTooltip.active").removeClass("active");
         $("#notifications.hasTooltip .message.show").removeClass("show");
@@ -1320,11 +1360,8 @@ const vm = new Vue({
           // Check if there are any changes on API Data
           if ( checkData(response.data, apiData['cluster']) ) {
 
-            if(typeof apiData['cluster'] !== 'undefined' && response.data.length != apiData['cluster'].length)
-              store.commit('flushClusters');
-
-            apiData['cluster'] = response.data;
-      
+            store.commit('flushClusters');
+            apiData['cluster'] = response.data;      
             apiData['cluster'].forEach( function(item, index) {
 
               var cluster = {
@@ -1345,9 +1382,9 @@ const vm = new Vue({
                     }
                     }
                 )
-                .then( function(response){
+                .then( function(resp){
                   //console.log(response.data);
-                  cluster.status = response.data;
+                  cluster.status = resp.data;
                 }).catch(function(err) {
                   console.log(err);
                   checkAuthError(err);
@@ -1924,14 +1961,18 @@ function notify (message, kind = 'message', crd = 'general') {
         </span>
         <span class="kind `+kind+`">
           `+kind+`
-        </span>
-        <h4 class="title">`+message.title+`</h4>
-        <p class="detail">`+message.detail+`</p>`;
+        </span>`;
 
-      if(message.title.search('Authentication Error') == -1)
-        details += `<a href="`+message.type+`" title="More Info" target="_blank" class="doclink">More Info <svg xmlns="http://www.w3.org/2000/svg" width="15.001" height="12.751" viewBox="0 0 15.001 12.751"><g transform="translate(167.001 -31.5) rotate(90)"><path d="M37.875,168.688a.752.752,0,0,1-.53-.219l-5.625-5.626a.75.75,0,0,1,0-1.061l2.813-2.813a.75.75,0,0,1,1.06,1.061l-2.283,2.282,4.566,4.566,4.566-4.566-2.283-2.282a.75.75,0,0,1,1.06-1.061l2.813,2.813a.75.75,0,0,1,0,1.061l-5.625,5.626A.752.752,0,0,1,37.875,168.688Z" transform="translate(0 -1.687)" fill="#00adb5"/><path d="M42.156,155.033l-2.813-2.813a.752.752,0,0,0-1.061,0l-2.813,2.813a.75.75,0,1,0,1.06,1.061l1.533-1.534v5.3a.75.75,0,1,0,1.5,0v-5.3l1.533,1.534a.75.75,0,1,0,1.06-1.061Z" transform="translate(-0.937 0)" fill="#00adb5"/></g></svg></a>`;
-      
-      details += `</div>`;
+    console.log(message.status)
+
+    if( (message.status !== 500) && (message.status !== 401) ) {
+      details += `
+      <h4 class="title">`+message.title+`</h4>
+      <p class="detail">`+message.detail+`</p>
+      <a href="`+message.type+`" title="More Info" target="_blank" class="doclink">More Info <svg xmlns="http://www.w3.org/2000/svg" width="15.001" height="12.751" viewBox="0 0 15.001 12.751"><g transform="translate(167.001 -31.5) rotate(90)"><path d="M37.875,168.688a.752.752,0,0,1-.53-.219l-5.625-5.626a.75.75,0,0,1,0-1.061l2.813-2.813a.75.75,0,0,1,1.06,1.061l-2.283,2.282,4.566,4.566,4.566-4.566-2.283-2.282a.75.75,0,0,1,1.06-1.061l2.813,2.813a.75.75,0,0,1,0,1.061l-5.625,5.626A.752.752,0,0,1,37.875,168.688Z" transform="translate(0 -1.687)" fill="#00adb5"/><path d="M42.156,155.033l-2.813-2.813a.752.752,0,0,0-1.061,0l-2.813,2.813a.75.75,0,1,0,1.06,1.061l1.533-1.534v5.3a.75.75,0,1,0,1.5,0v-5.3l1.533,1.534a.75.75,0,1,0,1.06-1.061Z" transform="translate(-0.937 0)" fill="#00adb5"/></g></svg></a>`;
+    }
+
+    details += `</div>`;
     
     if(!!message.fields) {
       message.fields.forEach( function(item, index) {
@@ -2074,6 +2115,25 @@ function discoverText(e) {
   }
 }
 
+function hasProp(obj, propertyPath){
+  if(!propertyPath)
+      return false;
+
+  var properties = propertyPath.split('.');
+
+  for (var i = 0; i < properties.length; i++) {
+      var prop = properties[i];
+
+      if(!obj || !obj.hasOwnProperty(prop)){
+          return false;
+      } else {
+          obj = obj[prop];
+      }
+  }
+
+  return true;
+};
+
 
 /* jQuery Init */
 
@@ -2085,22 +2145,6 @@ $(document).ready(function(){
     store.commit('setCurrentNamespace',$(this).text());
     $("#backup-btn, #graffana-btn").css("display","none");
   });
-
-  /* $(document).on("click", ".clu a", function(){
-    $(".clu .router-link-active:not(.router-link-exact-active)").removeClass("router-link-active");
-    $("#grafana-button").css("display", "none");
-    //store.commit('setCurrentClusterName', $(this).text());
-
-
-    $("#nav").removeClass("disabled");
-    //console.log(currentCluster);
-    //console.log(router.history.current.params.name);
-  }); */
-/* 
-  $(document).on("click", ".conf a, .prof a", function(){
-    store.commit('setCurrentCluster', {});
-    $("#nav").addClass("disabled");
-  }); */
 
   $(document).on("click", ".box h4", function() {
     
@@ -2163,15 +2207,7 @@ $(document).ready(function(){
     
   });
 
-  $(document).on("click", ".set .item", function(){
-   /*  $(".set.active:not(.conf)").removeClass("active");
-    $(this).parent().parent().parent().addClass("active");
-
-    if(!$(this).parents().hasClass("clu")) {
-      $(".set.active:not(.conf)").removeClass("active");
-      $('.clu.active').removeClass('active');
-    } */
-    
+  $(document).on("click", ".set .item", function(){    
     $(".set:not(.active) > ul.show").removeClass("show");
   });
 
@@ -2212,17 +2248,6 @@ $(document).ready(function(){
   $("#nav .view").click(function(){
     $("#nav .tooltip.show").prop("class","tooltip").hide();
     $("#nav .top a.nav-item").removeClass("router-link-active");
-    //$("#nav").addClass("disabled");
-    //$(".clu a").removeClass("router-link-active").removeClass("router-link-exact-active");
-    //$(".set.active").removeClass("active");
-
-
-    if(store.state.currentCluster.length) {
-      //$(".clu a[href$='"+currentCluster+"']").addClass("router-link-active");
-      /*$("#nav .top a").each(function(){
-        $(this).attr("href", $(this).attr("href")+currentCluster);
-      });*/
-    }
   });
 
   $("#nav.disabled .top a.nav-item").click(function(){
@@ -2243,14 +2268,6 @@ $(document).ready(function(){
     }      
   });
 
-  /* $("#sets h3").click(function(){
-    $(this).parent().toggleClass("hide");
-  }); */
-
-/*   $(".clu .item").click(function(){
-    $("#nav").removeClass("disabled");
-  });
- */
   /* Disable Grafana KEY functions */
   $(".grafana iframe").contents().find("body").keyup( function(e) {
     switch (e.keyCode) {
@@ -2261,15 +2278,6 @@ $(document).ready(function(){
         break;
     }
   });
-
-  /*$(".grafana iframe").load( function() {
-
-    setTimeout(function(){
-      $(".grafana iframe").contents().find("head")
-      .append($("<style type='text/css' id='hideBars'>  .navbar, .sidemenu {display:none !important;}  </style>"));
-    }, 3000);
-    
-  });*/
 
 
   $.fn.ulSelect = function(){
@@ -2380,7 +2388,7 @@ $(document).ready(function(){
       if( $('.filter.open').find('.active').length )
         $('.filter.open').addClass('filtered');
       else
-        $('.filter:not(.columns).open').removeClass('filtered');
+        $('.filter.open').removeClass('filtered');
       
         $('.filter.open').removeClass("open");
     }
@@ -2496,5 +2504,22 @@ $(document).ready(function(){
     $('#nameTooltip').removeClass('show');
   });
 
+  $(document).on('click','a.help', function(){
+    $('a.help.active').removeClass('active')
+    $(this).addClass('active')
+  })
+
+  $('#contentTooltip .close').click(function(){
+    $('#contentTooltip').removeClass('show');
+    $('#contentTooltip .info .content').html('');
+  })
+
+  $(document).on("click", "#side", function(e) {
+
+    if($('#contentTooltip').hasClass('show')) {
+      $('#contentTooltip').removeClass('show')
+      $('#contentTooltip .content').html('');
+    }
+  });
 
 });

@@ -82,7 +82,7 @@
             "properties": {
               "enabled": {
                 "type": "boolean",
-                "description": "SSpecify if the `-replicas` service should be created or not."
+                "description": "Specify if the `-replicas` service should be created or not."
               },
               "type": {
                 "type": "string",
