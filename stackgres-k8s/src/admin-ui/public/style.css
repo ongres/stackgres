@@ -927,9 +927,9 @@ ul.zg-ul-select.active li.active:hover {
     overflow: auto;
 }
 
-.set.active:not(.conf):not(.backups):not(.logs) { 
+/* .set.active:not(.conf):not(.backups):not(.logs) { 
     min-height: 100px; 
-}
+} */
 
 .set.clu.active {
     border-top: 0 !important;
