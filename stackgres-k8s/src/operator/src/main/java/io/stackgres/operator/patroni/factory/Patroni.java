@@ -182,7 +182,7 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
             .build())
         .withReadinessProbe(new ProbeBuilder()
             .withHttpGet(new HTTPGetActionBuilder()
-                .withPath("/health")
+                .withPath("/read-only")
                 .withPort(new IntOrString(8008))
                 .withScheme("HTTP")
                 .build())
