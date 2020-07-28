@@ -16,7 +16,8 @@ adminui:
     tag: "development"
     pullPolicy: "IfNotPresent"
 service:
-  type: ClusterIP
+  name: stackgres-restapi-endpoint
+  type: LoadBalancer
   #nodePort:
 
 serviceAccount:

@@ -1,19 +1,21 @@
 #!/bin/sh
 
 operator_to_yaml() {
+  export CREATE_NS=true
   helm_to_yaml "$OPERATOR_CHART_PATH" "$@"
 }
 
 cluster_to_yaml() {
+  export CREATE_NS=false
   helm_to_yaml "$CLUSTER_CHART_PATH" "$@"
 }
 
+#
 helm_to_yaml() {
-  local CREATE_NAMESPACE="$([ -z "$NAMESPACE" ] && echo false || echo true)"
-  local NAMESPACE="${NAMESPACE:-default}"
+  local NAMESPACE="${NAMESPACE:-default}" # FIXME! this should be a global e2e namespace as a default and export
   local CHART="$1"
   shift
-
+  
   if [ -z "$CHART" ]
   then
     >&2 echo "Chart $CHART is not defined"
@@ -21,7 +23,7 @@ helm_to_yaml() {
   fi
 
   (
-  if "$CREATE_NAMESPACE"
+  if $CREATE_NS
   then
     cat << EOF
 ---
@@ -31,26 +33,13 @@ kind: Namespace
 metadata:
   name: $NAMESPACE
 EOF
+  true
   fi
-  helm install --dry-run --debug --namespace "$NAMESPACE" "$CHART" "$@" \
-    | ("$CREATE_NAMESPACE" && cat || grep -v "^  namespace: \"$NAMESPACE\"$") \
-    | (
-      PRINT=false
-      while IFS="$(echo ' ' | tr ' ' '\n')" read -r line
-      do
-        if echo "$line" | grep -q '\(^HOOKS:\|^MANIFEST:\)'
-        then
-          PRINT=true
-        elif echo "$line" | grep -q '^WARNING:'
-        then
-          PRINT=false
-        elif "$PRINT"
-        then
-          cat << EOF
-$line
-EOF
-        fi
-      done
-    )
+  helm template --namespace "$NAMESPACE" "$@" "$CHART" | ($CREATE_NS && cat || grep -v "^  namespace: \"$NAMESPACE\"$")
+
   )
+}
+
+test_chart() {
+  helm install --namespace "$NAMESPACE" "$@" "$CHART" | ($CREATE_NS && cat || grep -v "^  namespace: \"$NAMESPACE\"$")
 }
