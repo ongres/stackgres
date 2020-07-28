@@ -4850,6 +4850,7 @@ tr.details td:last-of-type .configurationDetails table {
     display: inline-block;
     overflow-y: auto;
     min-height: 100px;
+    width: 100%;
 }
 
 #contentTooltip .info span.close {
@@ -4859,4 +4860,13 @@ tr.details td:last-of-type .configurationDetails table {
     cursor: pointer;
     top: -20px;
     right: 10px;
+}
+
+#contentTooltip .content pre {
+    white-space: pre-wrap;
+    white-space: -moz-pre-wrap;
+    white-space: -pre-wrap;
+    white-space: -o-pre-wrap;
+    word-wrap: break-word;
+    padding-right: 15px;
 }
