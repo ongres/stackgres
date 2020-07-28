@@ -293,7 +293,7 @@ var CreateCluster = Vue.component("CreateCluster", {
                                     <fieldset v-for="(script, index) in initScripts">
                                         <div class="header">
                                             <h3>Script #{{ index+1 }} <template v-if="script.name.length">–</template> <span class="scriptTitle">{{ script.name }}</span></h3>
-                                            <a v-if="!editMode" class="addRow" @click="spliceScript('initScripts', index)">Delete</a>
+                                            <a v-if="!editMode" class="addRow" @click="spliceArray('initScripts', index)">Delete</a>
                                         </div>    
                                         <div class="row">
                                             <label for="spec.initialData.scripts.name">Name</label>
@@ -338,7 +338,7 @@ var CreateCluster = Vue.component("CreateCluster", {
                                         </a>    
                                     </div>
                                     <div class="annotation repeater">
-                                        <div class="row" v-for="field in annotationsAll">
+                                        <div class="row" v-for="(field, index) in annotationsAll">
                                             <label>Annotation</label>
                                             <input class="annotation" v-model="field.annotation" :disabled="editMode">
 
@@ -346,6 +346,8 @@ var CreateCluster = Vue.component("CreateCluster", {
 
                                             <label>Value</label>
                                             <input class="annotationValue" v-model="field.value" :disabled="editMode">
+
+                                            <a v-if="!editMode" class="addRow" @click="spliceArray('annotationsAll', index)">Delete</a>
                                         </div>
                                     </div>
                                 </fieldset>
@@ -361,7 +363,7 @@ var CreateCluster = Vue.component("CreateCluster", {
                                         </a>    
                                     </div>
                                     <div class="annotation repeater">
-                                        <div class="row" v-for="field in annotationsPods">
+                                        <div class="row" v-for="(field, index) in annotationsPods">
                                             <label>Annotation</label>
                                             <input class="annotation" v-model="field.annotation" :disabled="editMode">
 
@@ -369,6 +371,8 @@ var CreateCluster = Vue.component("CreateCluster", {
 
                                             <label>Value</label>
                                             <input class="annotationValue" v-model="field.value" :disabled="editMode">
+
+                                            <a v-if="!editMode" class="addRow" @click="spliceArray('annotationsPods', index)">Delete</a>
                                         </div>
                                     </div>
                                 </fieldset>
@@ -384,7 +388,7 @@ var CreateCluster = Vue.component("CreateCluster", {
                                         </a>  
                                     </div>
                                     <div class="annotation repeater">
-                                        <div class="row" v-for="field in annotationsServices">
+                                        <div class="row" v-for="(field, index) in annotationsServices">
                                             <label>Annotation</label>
                                             <input class="annotation" v-model="field.annotation" :disabled="editMode">
 
@@ -392,7 +396,9 @@ var CreateCluster = Vue.component("CreateCluster", {
 
                                             <label>Value</label>
                                             <input class="annotationValue" v-model="field.value" :disabled="editMode">
-                                        </div>  
+
+                                            <a v-if="!editMode" class="addRow" @click="spliceArray('annotationsServices', index)">Delete</a>
+                                        </div>
                                     </div>
                                 </fieldset>
                             </template>
@@ -438,7 +444,7 @@ var CreateCluster = Vue.component("CreateCluster", {
                                             </a>
                                         </div>
                                         <div class="annotation repeater">
-                                            <div class="row" v-for="field in postgresServicesPrimaryAnnotations">
+                                            <div class="row" v-for="(field, index) in postgresServicesPrimaryAnnotations">
                                                 <label>Annotation</label>
                                                 <input class="annotation" v-model="field.annotation" :disabled="editMode">
 
@@ -446,6 +452,8 @@ var CreateCluster = Vue.component("CreateCluster", {
 
                                                 <label>Value</label>
                                                 <input class="annotationValue" v-model="field.value" :disabled="editMode">
+
+                                                <a v-if="!editMode" class="addRow" @click="spliceArray('postgresServicesPrimaryAnnotations', index)">Delete</a>
                                             </div>
                                         </div>
                                     </fieldset>
@@ -487,7 +495,7 @@ var CreateCluster = Vue.component("CreateCluster", {
                                             </a>
                                         </div>
                                         <div class="annotation repeater">
-                                            <div class="row" v-for="field in postgresServicesReplicasAnnotations">
+                                            <div class="row" v-for="(field, index) in postgresServicesReplicasAnnotations">
                                                 <label>Annotation</label>
                                                 <input class="annotation" v-model="field.annotation" :disabled="editMode">
 
@@ -495,6 +503,8 @@ var CreateCluster = Vue.component("CreateCluster", {
 
                                                 <label>Value</label>
                                                 <input class="annotationValue" v-model="field.value" :disabled="editMode">
+
+                                                <a v-if="!editMode" class="addRow" @click="spliceArray('postgresServicesReplicasAnnotations', index)">Delete</a>
                                             </div>
                                         </div>
                                     </fieldset>
@@ -710,7 +720,7 @@ var CreateCluster = Vue.component("CreateCluster", {
             this[prop].push( { name: '', database: '', script: ''} )
         },
 
-        spliceScript: function( prop, index ) {
+        spliceArray: function( prop, index ) {
             this[prop].splice( index, 1 )
         },
 
@@ -918,7 +928,7 @@ var CreateCluster = Vue.component("CreateCluster", {
                     if(i)
                         jsonString += ','
                     
-                    jsonString += '"'+p[key]+'":"'+p.value+'"'
+                    jsonString += '"'+p[key]+'":"'+p.value.replace(/"/g,'\\"')+'"'
                 }                
             })
             jsonString += '}'
