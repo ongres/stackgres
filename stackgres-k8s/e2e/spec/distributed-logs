@@ -27,8 +27,6 @@ e2e_test_install() {
 e2e_test() {
   run_test "Checking that default annotations where created" default_annotations
 
-  run_test "Checking that is possible to connect using services is working" service_check
-
   run_test "Checking that distributed logs attach to clusters" check_distributed_logs_attach_to_clusters
 
   run_test "Checking that distributed logs query endpoint works correctly"  check_distributed_logs_query_endpoint
@@ -46,20 +44,6 @@ default_annotations(){
   fi
 }
 
-service_check() {
-  RESPONSE_PRIMARY="$(run_query -c "$DISTRIBUTED_LOGS_NAME" -x psql -k postgres \
-    -h "$DISTRIBUTED_LOGS_NAME"-primary -p 5432)"
-
-  if [ "$RESPONSE_PRIMARY" = "1" ]
-  then
-    echo "SUCCESS: Connections are possible using services"
-    return 0
-  else
-    echo "FAIL: Cannot connect to primary db using a kubernetes service"
-    return 1
-  fi
-}
-
 check_distributed_logs_attach_to_clusters() {
   create_or_replace_cluster "$CLUSTER_NAME-copy" "$CLUSTER_NAMESPACE" "1" \
     --set distributedLogs.enabled=true \
@@ -69,6 +53,7 @@ check_distributed_logs_attach_to_clusters() {
     --set-string cluster.distributedLogs.sgDistributedLogs="$CLUSTER_NAMESPACE.$DISTRIBUTED_LOGS_NAME"
 
   wait_pods_running "$CLUSTER_NAMESPACE" "5"
+  wait_services_available "$CLUSTER_NAMESPACE" "1" "$CLUSTER_NAME-primary"
 
   local TEXT
   local RESPONSE
@@ -87,6 +72,8 @@ check_distributed_logs_attach_to_clusters() {
     fi
   done
 
+  wait_services_available "$CLUSTER_NAMESPACE" "1" "$CLUSTER_NAME-copy-primary"
+
   for TEXT in distributed-logs-copy-worked distributed-logs-copy-works distributed-logs-copy-still-works
   do
     RESPONSE="$(run_query -c "$CLUSTER_NAME-copy" -x psql -k postgres \
@@ -100,6 +87,8 @@ check_distributed_logs_attach_to_clusters() {
       return 1
     fi
   done
+
+  wait_services_available "$CLUSTER_NAMESPACE" "1" "$DISTRIBUTED_LOGS_NAME-primary"
 
   for TEXT in distributed-logs-worked distributed-logs-works distributed-logs-still-works
   do
