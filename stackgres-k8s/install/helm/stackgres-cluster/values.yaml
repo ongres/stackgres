@@ -82,7 +82,7 @@ configurations:
       pgbouncer.ini:
         pool_mode: transaction
         max_client_conn: '200'
-        default_pool_size: '200'
+        default_pool_size: '50'
   backupconfig:
     create: false
     baseBackups:

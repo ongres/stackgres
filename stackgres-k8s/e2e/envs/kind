@@ -191,6 +191,14 @@ excluded_namespaces() {
   echo 'local-path-storage'
 }
 
+excluded_clusterroles() {
+  echo 'local-path-provisioner-role'
+}
+
+excluded_clusterrolebindings() {
+  echo 'local-path-provisioner-bind'
+}
+
 get_k8s_versions() {
   get_kind_images | cut -d @ -f 1 | sed 's/^v//'
 }

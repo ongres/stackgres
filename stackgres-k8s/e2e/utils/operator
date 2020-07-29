@@ -10,6 +10,9 @@ export STACKGRES_PATH="${STACKGRES_PATH:-$(dirname "$0")/..}"
 export OPERATOR_CHART_PATH="${OPERATOR_CHART_PATH:-"$STACKGRES_PATH/install/helm/stackgres-operator/"}"
 export CLUSTER_CHART_PATH="${CLUSTER_CHART_PATH:-"$STACKGRES_PATH/install/helm/stackgres-cluster/"}"
 export UI_TESTS_RESOURCES_PATH="${UI_TESTS_RESOURCES_PATH:-"$STACKGRES_PATH/src/admin-ui"}"
+export STACKGRES_HELM_PATH="${STACKGRES_PATH}/install/helm"
+export STACKGRES_PACKAGES="${STACKGRES_HELM_PATH}/target/packages"
+export STACKGRES_YAMLS="${STACKGRES_HELM_PATH}/target/templates"
 
 export E2E_SKIP_SETUP="${E2E_SKIP_SETUP:-false}"
 export E2E_OPERATOR_PULL_POLICY="${E2E_OPERATOR_PULL_POLICY:-Never}"
@@ -112,23 +115,20 @@ setup_operator() {
     helm_cleanup
     k8s_async_cleanup
 
-    install_operator
-    store_operator_values
+    if [ "$E2E_SKIP_OPERATOR_INSTALL" != true ]
+    then
+      install_operator
+      store_operator_values
+      if [ "$E2E_WAIT_OPERATOR" = true ]
+      then
+        wait_pods_running "$OPERATOR_NAMESPACE"
+        wait_services_available "$OPERATOR_NAMESPACE" 1 "^endpoints/stackgres-operator$"
+        wait_services_available "$OPERATOR_NAMESPACE" 1 "^endpoints/stackgres-restapi$"
+      fi
+    fi
   else
     helm_cleanup_but_operator
     k8s_async_cleanup_but_operator
-  fi
-
-  if [ "$E2E_WAIT_OPERATOR" = true ]
-  then
-    wait_pods_running "$OPERATOR_NAMESPACE"
-    if helm get values -n "$OPERATOR_NAMESPACE" stackgres-operator | grep -q externalOperatorIp \
-      && helm get values -n "$OPERATOR_NAMESPACE" stackgres-operator | grep -q externalOperatorPort
-    then
-      wait_services_available "$OPERATOR_NAMESPACE" 2
-    else
-      wait_services_available "$OPERATOR_NAMESPACE" 1
-    fi
   fi
 }
 
@@ -250,6 +250,10 @@ store_operator_values() {
 }
 
 reinstall_operator_if_not_as_expected() {
+  if [ "$E2E_SKIP_OPERATOR_INSTALL" = true ]
+  then
+    return
+  fi
   if ! helm get notes stackgres-operator --namespace "$OPERATOR_NAMESPACE" > /dev/null \
     || [ "$(get_installed_operator_values)" != "$(cat "$TARGET_PATH/operator-values.yaml")" ]
   then

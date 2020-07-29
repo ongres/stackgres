@@ -20,6 +20,9 @@ unit tests:
   image: registry.gitlab.com/ongresinc/stackgres/stackgres/it:latest
   tags:
     - stackgres-runner
+  dependencies:
+    - build helm packages
+    - build helm templates
   variables:
     OPERATOR_IN_KUBERNETES: "true"
     IMAGE_TAG_SUFFIX: ""
@@ -95,6 +98,7 @@ e2e exclusive tests jvm image:
   extends: .e2e tests jvm image
   variables:
     E2E_RUN_ONLY: exclusive:1/1
+    E2E_SKIP_OPERATOR_INSTALL: "true"
 
 .e2e tests native image:
   extends: .e2e tests
@@ -128,3 +132,4 @@ e2e exclusive tests native image:
   extends: .e2e tests native image
   variables:
     E2E_RUN_ONLY: exclusive:1/1
+    E2E_SKIP_OPERATOR_INSTALL: "true"

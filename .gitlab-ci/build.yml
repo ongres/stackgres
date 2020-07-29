@@ -63,7 +63,7 @@ build helm packages:
     expire_in: 1 week
     when: always
     paths:
-    - stackgres-k8s/install/helm/target/public
+    - stackgres-k8s/install/helm/target
 
 build helm templates:
   image: dtzar/helm-kubectl:3.1.1
@@ -80,4 +80,4 @@ build helm templates:
     expire_in: 1 week
     when: always
     paths:
-    - stackgres-k8s/install/helm/target/public
+    - stackgres-k8s/install/helm/target

@@ -15,9 +15,8 @@ e2e_exclusive_lock() {
 }
 
 e2e_test_install() {
-  delete_operator
-
-  wait_pods_terminated "$OPERATOR_NAMESPACE" 0
+  k8s_cleanup_namespace "$OPERATOR_NAMESPACE"
+  k8s_async_cleanup
 
   if [ "$E2E_ENV" = "minishift" ]
   then

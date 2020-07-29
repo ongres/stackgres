@@ -1,0 +1,196 @@
+#!/bin/sh
+
+e2e_exclusive_lock() {
+  true
+}
+
+e2e_test_install() {
+  STACKGRES_YAML_NAMESPACE=stackgres
+  k8s_cleanup_namespace "$OPERATOR_NAMESPACE"
+  k8s_cleanup_namespace "$STACKGRES_YAML_NAMESPACE"
+  k8s_async_cleanup
+  kubectl create namespace "$CLUSTER_NAMESPACE"
+}
+
+e2e_test_uninstall() {
+  helm_cleanup_chart stackgres-cluster "${CLUSTER_NAMESPACE}"
+  helm_cleanup_chart stackgres-operator "${OPERATOR_NAMESPACE}"
+  k8s_cleanup_namespace "${CLUSTER_NAMESPACE}"
+  k8s_cleanup_namespace "${OPERATOR_NAMESPACE}"
+  k8s_cleanup_namespace "${STACKGRES_YAML_NAMESPACE}"
+
+  install_operator
+  wait_pods_running "$OPERATOR_NAMESPACE" 2
+}
+
+e2e_test() {
+  run_test "Check that generated demo yamls are functional" test_yamls
+  run_test "Check that generated demo packages are functional" test_packages
+}
+
+
+test_yamls() {
+  echo "Installing operator.yml"
+  kubectl create -n "${STACKGRES_YAML_NAMESPACE}" -f "${STACKGRES_YAMLS}/demo-operator.yml"
+
+  if ! wait_services_available "$STACKGRES_YAML_NAMESPACE" 1 "^endpoints/stackgres-operator$"
+  then
+    echo "FAILED. The demo StackGres operator service was not available."
+    return 1
+  else
+    echo "SUCCESS. The demo StackGres operator service was available."
+  fi
+
+  if ! wait_services_available "$STACKGRES_YAML_NAMESPACE" 1 "^endpoints/stackgres-restapi$"
+  then
+    echo "FAILED. The demo StackGres restapi service was not available."
+    return 1
+  else
+    echo "SUCCESS. The demo StackGres restapi service was available."
+  fi
+
+  echo "Creating demo cluster"
+  kubectl create --namespace "${CLUSTER_NAMESPACE}" -f "${STACKGRES_YAMLS}/demo-simple-config.yml" 
+  kubectl create --namespace "${CLUSTER_NAMESPACE}" -f "${STACKGRES_YAMLS}/demo-simple-cluster.yml"
+
+  if wait_pods_running "${CLUSTER_NAMESPACE}" 2
+  then
+    echo "SUCCESS. The demo StackGres cluster pods are running."
+  else
+    echo "FAILED. The demo StackGres cluster pods are not running."
+    return 1
+  fi
+
+  echo "Creating MinIO resources"
+  kubectl create --namespace "${CLUSTER_NAMESPACE}" -f "${STACKGRES_YAMLS}/demo-minio.yml"
+
+  if wait_pods_running "${CLUSTER_NAMESPACE}" 3
+  then
+    echo "SUCCESS. The demo MinIO pod is running."
+  else
+    echo "FAILED. The demo MinIO pod is not running."
+    return 1
+  fi
+
+  echo "Testing Cluster readability"
+  if kubectl exec simple-0 -n "${CLUSTER_NAMESPACE}" -c postgres-util -- psql -Antqc 'Select 1'
+  then
+    echo "SUCCESS. The demo StackGres cluster primary is available."
+  else
+    echo "FAILED. The demo StackGres cluster primary is not available."
+    return 1
+  fi
+  if kubectl exec simple-1 -n "${CLUSTER_NAMESPACE}" -c postgres-util -- psql -Antqc 'Select 1'
+  then
+    echo "SUCCESS. The demo StackGres cluster secondary is available."
+  else
+    echo "FAILED. The demo StackGres cluster secondary is not available."
+    return 1
+  fi
+
+  echo "Deleting MinIO resources"
+  kubectl delete --namespace "${CLUSTER_NAMESPACE}" -f "${STACKGRES_YAMLS}/demo-minio.yml"
+
+  if wait_pods_terminated "${CLUSTER_NAMESPACE}" 2
+  then
+    echo "SUCCESS. The demo MinIO pod has been terminated."
+  else
+    echo "FAILED. The demo MinIO pod has not been terminated."
+    return 1
+  fi
+
+  echo "Deleting demo cluster"
+  kubectl delete --namespace "${CLUSTER_NAMESPACE}" -f "${STACKGRES_YAMLS}/demo-simple-cluster.yml"
+  kubectl delete --namespace "${CLUSTER_NAMESPACE}" -f "${STACKGRES_YAMLS}/demo-simple-config.yml" 
+
+  if wait_pods_terminated "${CLUSTER_NAMESPACE}" 0
+  then
+    echo "SUCCESS. The demo StackGres cluster pods have been terminated."
+  else
+    echo "FAILED. The demo StackGres cluster pods have not been terminated."
+    return 1
+  fi
+
+  echo "Deleting demo operator"
+  kubectl delete --namespace "${STACKGRES_YAML_NAMESPACE}" -f "${STACKGRES_YAMLS}/demo-operator.yml"
+
+  if wait_until is_demo_operator_namespace_removed
+  then
+    echo "SUCCESS. The demo StackGres operator namespace has been removed."
+  else
+    echo "FAILED. The demo StackGres operator namespace has not been removed."
+    return 1
+  fi
+}
+
+is_demo_operator_namespace_removed() {
+  ! kubectl get namespace "${STACKGRES_YAML_NAMESPACE}"
+}
+
+test_packages() {
+  echo "Installing operator package"
+  kubectl create namespace "${OPERATOR_NAMESPACE}"
+
+  helm install --namespace "${OPERATOR_NAMESPACE}" stackgres-operator \
+    "${STACKGRES_PACKAGES}/helm-operator.tgz" \
+    --set adminui.service.type=LoadBalancer
+
+  if ! wait_services_available "$OPERATOR_NAMESPACE" 1 "^endpoints/stackgres-operator$"
+  then
+    echo "FAILED. The StackGres operator service was not available."
+    return 1
+  else
+    echo "SUCCESS. The StackGres operator service was available."
+  fi
+
+  if ! wait_services_available "$OPERATOR_NAMESPACE" 1 "^endpoints/stackgres-restapi$"
+  then
+    echo "FAILED. The StackGres restapi service was not available."
+    return 1
+  else
+    echo "SUCCESS. The StackGres restapi service was available."
+  fi
+
+  echo "Creating demo package cluster"
+  helm install --namespace "${CLUSTER_NAMESPACE}" "${CLUSTER_NAME}" \
+    "${STACKGRES_PACKAGES}/demo-helm-cluster.tgz" \
+    --set cluster.sgInstanceProfile=size-xs \
+    --set cluster.instances=2 \
+    --set nonProductionOptions.createMinio=false \
+    --set nonProductionOptions.disableClusterPodAntiAffinity=true
+
+  if wait_pods_running "${CLUSTER_NAMESPACE}" 2
+  then
+    echo "SUCCESS. The demo StackGres cluster pods are running."
+  else
+    echo "FAILED. The demo StackGres cluster pods are not running."
+    return 1
+  fi
+
+  echo "Testing Cluster readability"
+  if kubectl exec "${CLUSTER_NAME}-0" -n "${CLUSTER_NAMESPACE}" -c postgres-util -- psql -Antqc 'Select 1'
+  then
+    echo "SUCCESS. The demo package StackGres cluster primary is available."
+  else
+    echo "FAILED. The demo package StackGres cluster primary is not available."
+    return 1
+  fi
+  if kubectl exec "${CLUSTER_NAME}-1" -n "${CLUSTER_NAMESPACE}" -c postgres-util -- psql -Antqc 'Select 1'
+  then
+    echo "SUCCESS. The demo package StackGres cluster secondary is available."
+  else
+    echo "FAILED. The demo package StackGres cluster secondary is not available."
+    return 1
+  fi
+
+  echo "Deleting demo package cluster"
+  helm uninstall --namespace "${CLUSTER_NAMESPACE}" "${CLUSTER_NAME}"
+
+  if wait_pods_terminated "${CLUSTER_NAMESPACE}" 0
+  then
+    echo "SUCCESS. The demo package StackGres cluster pods have been terminated."
+  else
+    echo "FAILED. The demo package StackGres cluster pods have not been terminated."
+    return 1
+  fi
+}
