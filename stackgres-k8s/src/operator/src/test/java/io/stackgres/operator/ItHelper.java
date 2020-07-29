@@ -261,7 +261,9 @@ public class ItHelper {
   public static void installStackGresOperatorHelmChart(Container k8s, String namespace,
       int port) throws Exception {
     if (OPERATOR_IN_KUBERNETES) {
-      String adminUiImageTag = IMAGE_TAG.endsWith("-jvm") ? IMAGE_TAG.split("-")[0] : IMAGE_TAG;
+      final String jvmSuffix = "-jvm";
+      String adminUiImageTag = IMAGE_TAG.endsWith(jvmSuffix)
+          ? IMAGE_TAG.substring(0, IMAGE_TAG.length() - jvmSuffix.length()) : IMAGE_TAG;
       LOGGER.info("Installing stackgres-operator helm chart");
       k8s.execute("sh", "-l", "-c", "kubectl create namespace " + namespace + " || true")
         .filter(EXCLUDE_TTY_WARNING)

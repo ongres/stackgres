@@ -26,7 +26,8 @@ helm dependency update stackgres-operator
 helm dependency update stackgres-cluster
 
 helm template --namespace stackgres stackgres-operator \
-  stackgres-cluster \
+  stackgres-operator \
+  --set-string adminui.service.type=LoadBalancer \
   >> "target/public/downloads/stackgres-k8s/stackgres/$STACKGRES_VERSION/demo-operator.yml"
 
 helm template --namespace default simple \
@@ -42,6 +43,7 @@ helm template --namespace default simple \
   --set nonProductionOptions.createMinio=false \
   > "target/public/downloads/stackgres-k8s/stackgres/$STACKGRES_VERSION/demo-simple-cluster.yml"
 
+rm -rf target/minio
 helm fetch stable/minio \
   --version 5.0.26 \
   --untar --untardir target

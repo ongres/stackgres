@@ -97,7 +97,7 @@ build helm packages:
   - |
     if [[ ! -z "$CI_COMMIT_TAG" && ! "$CI_COMMIT_TAG" =~ ^latest-.*$ ]]
     then
-      cp -a "target/public/downloads/stackgres-k8s/stackgres"/* target/public/downloads/stackgres-k8s/stackgres/latest
+      cp -a "stackgres-k8s/install/helm/target/public/downloads/stackgres-k8s/stackgres"/* stackgres-k8s/install/helm/target/public/downloads/stackgres-k8s/stackgres/latest
     fi
   - find stackgres-k8s/install/helm/target/public | sed -e "s/[^-][^\/]*\// |/g" -e "s/|\([^ ]\)/|-\1/"
   artifacts:
@@ -114,7 +114,7 @@ build helm templates:
   - |
     if [[ ! -z "$CI_COMMIT_TAG" && ! "$CI_COMMIT_TAG" =~ ^latest-.*$ ]]
     then
-      cp -a "target/public/downloads/stackgres-k8s/stackgres"/* target/public/downloads/stackgres-k8s/stackgres/latest
+      cp -a "stackgres-k8s/install/helm/target/public/downloads/stackgres-k8s/stackgres"/* stackgres-k8s/install/helm/target/public/downloads/stackgres-k8s/stackgres/latest
     fi
   - find stackgres-k8s/install/helm/target/public | sed -e "s/[^-][^\/]*\// |/g" -e "s/|\([^ ]\)/|-\1/"
   artifacts:
