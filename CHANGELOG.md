@@ -1,3 +1,22 @@
+# Release 0.9-RC1
+
+## NOTES
+
+* Clusters uses Postgres version 11.8 and 12.3
+* Clusters uses Envoy version 1.15.0 with new [postgres Envoy network filter](https://www.envoyproxy.io/docs/envoy/v1.15.0/configuration/listeners/network_filters/postgres_proxy_filter)
+* Reorganization of internal pod ports so that 5432 now points to postgres instance.
+* Added scripts section for cluster initialization to load SQL snippets or small SQL files from ConfigMaps or Secrets
+* UI authentication / authorization based on JWT token and backed by kubernetes RBAC
+* UI's URLs reload to the same page so they can be used for collaboration
+* UI include now interface to create/edit/delete Logs CRDs
+* Match functionality between CRDs and UI
+* Stats are now shown per Pod and have been improved
+* Added distributed logs create/edit/view to the UI
+* Custom Grafana dashboard is used by default when enabling Grafana integration
+* Timeline is now exposed in backup status
+* Allow GCP workload identity configuration for Postgres Backups
+* Update default values for nonProductionOptions to be production oriented by default
+
 # Release 0.9-beta3
 
 ## FIXES

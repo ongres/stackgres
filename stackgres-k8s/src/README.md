@@ -58,17 +58,6 @@ by kubernetes. Then to deploy the operator run from the project roor folder:
 helm install stackgres-cluster --namespace stackgres stackgres-k8s/install/helm/stackgres-cluster
 ```
 
-#### Update container components versions
-
-To update container components version you have to run `update-versions` profile as follow:
-
-```
-mvn package -P update-versions
-```
-
-This will download the container components versions.yaml file from https://stackgres.io and
- update the versions.properties file in the working copy of the project.
-
 #### Integration tests
 
 Integration tests requires docker to be installed (if not on Linux set the environment variable `DOCKER_HOST` pointing to the protocol, host and port of the docker daemon). To run the ITs:
