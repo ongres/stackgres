@@ -20,6 +20,6 @@ helm repo update
 helm dependency update stackgres-operator
 helm dependency update stackgres-cluster
 mkdir -p "target/public/downloads/stackgres-k8s/stackgres/$STACKGRES_VERSION" target/public/downloads/stackgres-k8s/stackgres/latest
-tar czf "target/public/downloads/stackgres-k8s/stackgres/$STACKGRES_VERSION/helm-operator.tgz" -C stackgres-operator
-tar czf "target/public/downloads/stackgres-k8s/stackgres/$STACKGRES_VERSION/helm-cluster.tgz" -C stackgres-cluster
+tar czf "target/public/downloads/stackgres-k8s/stackgres/$STACKGRES_VERSION/helm-operator.tgz" -C stackgres-operator .
+tar czf "target/public/downloads/stackgres-k8s/stackgres/$STACKGRES_VERSION/helm-cluster.tgz" -C stackgres-cluster .
 cp -a "target/public/downloads/stackgres-k8s/stackgres/$STACKGRES_VERSION/." target/public/downloads/stackgres-k8s/stackgres/latest
