@@ -44,15 +44,15 @@ cache:
     - .m2/repository
 
 stages:
-  - compile
-  - package
+  - build
+  - native build
   - pre test
   - test
   - check-release
   - deploy
 
-compile:
-  stage: compile
+build:
+  stage: build
   variables:
     QUARKUS_PROFILE: "test"
   tags:
@@ -71,7 +71,7 @@ compile:
 
 build documentation:
   image: monachus/hugo
-  stage: compile
+  stage: build
   script:
   - |
     if [[ ! -z "$CI_COMMIT_TAG" && ! "$CI_COMMIT_TAG" =~ ^latest-.*$ ]]
@@ -89,12 +89,46 @@ build documentation:
     paths:
     - doc/public
 
-.compile native image:
-  stage: package
+build helm packages:
+  image: dtzar/helm-kubectl:3.1.1
+  stage: build
+  script:
+  - sh -x stackgres-k8s/install/helm/build-helm-packages.sh
+  - |
+    if [[ ! -z "$CI_COMMIT_TAG" && ! "$CI_COMMIT_TAG" =~ ^latest-.*$ ]]
+    then
+      cp -a "target/public/downloads/stackgres-k8s/stackgres"/* target/public/downloads/stackgres-k8s/stackgres/latest
+    fi
+  - find stackgres-k8s/install/helm/target/public | sed -e "s/[^-][^\/]*\// |/g" -e "s/|\([^ ]\)/|-\1/"
+  artifacts:
+    expire_in: 1 week
+    when: always
+    paths:
+    - stackgres-k8s/install/helm/target/public
+
+build helm templates:
+  image: dtzar/helm-kubectl:3.1.1
+  stage: build
+  script:
+  - sh -x stackgres-k8s/install/helm/build-helm-templates.sh
+  - |
+    if [[ ! -z "$CI_COMMIT_TAG" && ! "$CI_COMMIT_TAG" =~ ^latest-.*$ ]]
+    then
+      cp -a "target/public/downloads/stackgres-k8s/stackgres"/* target/public/downloads/stackgres-k8s/stackgres/latest
+    fi
+  - find stackgres-k8s/install/helm/target/public | sed -e "s/[^-][^\/]*\// |/g" -e "s/|\([^ ]\)/|-\1/"
+  artifacts:
+    expire_in: 1 week
+    when: always
+    paths:
+    - stackgres-k8s/install/helm/target/public
+
+.build native executable:
+  stage: native build
   tags:
     - stackgres-runner
   dependencies:
-    - compile
+    - build
   variables:
     NATIVE_IMAGE_EXTRA_PREFIX: ""
     MAVEN_EXTRA_ARGS: ""
@@ -102,7 +136,7 @@ build documentation:
   script:
     - MAVEN_CLI_OPTS="$MAVEN_CLI_OPTS -DskipTests"
     - |
-      flock "/tmp/stackgres-compile$NATIVE_IMAGE_EXTRA_PREFIX-native-image" \
+      flock "/tmp/stackgres-build$NATIVE_IMAGE_EXTRA_PREFIX-native-executable" \
         timeout -s KILL 3600 \
         mvn $MAVEN_CLI_OPTS package -P native $MAVEN_EXTRA_ARGS
     - 'cp $GRAALVM_HOME/jre/lib/amd64/libsunec.so stackgres-k8s/src/operator/target/'
@@ -126,14 +160,14 @@ build documentation:
       - $DO_DEPLOY
       - $DO_NATIVE
 
-compile operator native image:
-  extends: .compile native image
+build operator native executable:
+  extends: .build native executable
   variables:
     NATIVE_IMAGE_EXTRA_PREFIX: "-operator"
     MAVEN_EXTRA_ARGS: "-pl .,common,operator-framework,test-util,operator"
 
-compile restapi native image:
-  extends: .compile native image
+build restapi native executable:
+  extends: .build native executable
   variables:
     NATIVE_IMAGE_EXTRA_PREFIX: "-restapi"
     MAVEN_EXTRA_ARGS: "-pl .,common,operator-framework,test-util,api-web"
@@ -143,7 +177,7 @@ compile restapi native image:
   tags:
     - stackgres-runner
   dependencies:
-    - compile
+    - build
   variables:
     NATIVE_IMAGE_EXTRA_PREFIX: ""
     MAVEN_EXTRA_ARGS: ""
@@ -169,8 +203,8 @@ compile restapi native image:
 build operator native image:
   extends: .build native image
   dependencies:
-    - compile
-    - compile operator native image
+    - build
+    - build operator native executable
   variables:
     NATIVE_IMAGE_EXTRA_PREFIX: "-operator"
     MAVEN_EXTRA_ARGS: "-pl .,common,operator-framework,test-util,operator"
@@ -178,8 +212,8 @@ build operator native image:
 build restapi native image:
   extends: .build native image
   dependencies:
-    - compile
-    - compile restapi native image
+    - build
+    - build restapi native executable
   variables:
     NATIVE_IMAGE_EXTRA_PREFIX: "-restapi"
     MAVEN_EXTRA_ARGS: "-pl .,common,operator-framework,test-util,api-web"
@@ -189,7 +223,7 @@ build jvm image:
   tags:
     - stackgres-runner
   dependencies:
-    - compile
+    - build
   timeout: 12 hour
   retry: 2
   script:
@@ -204,6 +238,7 @@ build jvm image:
   only:
     variables:
       - $SKIP_E2E != "true"
+      - $DO_DEPLOY
 
 build ui image:
   image: docker.io/ongres/builder:latest
@@ -211,20 +246,24 @@ build ui image:
   tags:
     - stackgres-runner
   dependencies:
-    - compile
+    - build
   timeout: 12 hour
   retry: 2
   script:
     - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}"'
     - 'export ADMIN_IMAGE_NAME="stackgres/admin-ui:$IMAGE_TAG"'
     - ( cd stackgres-k8s/src; sh admin-ui/buildah/build.sh )
+  only:
+    variables:
+      - $SKIP_E2E != "true"
+      - $DO_DEPLOY
 
 build test images:
   stage: pre test
   tags:
     - stackgres-runner
   dependencies:
-    - compile
+    - build
   timeout: 12 hour
   retry: 2
   script:
@@ -242,12 +281,12 @@ integration test:
   tags:
     - stackgres-runner
   dependencies:
-    - compile
+    - build
   timeout: 12 hour
   script:
     - |
-      flock -s /tmp/stackgres-compile-operator-native-image \
-        flock -s /tmp/stackgres-compile-restapi-native-image \
+      flock -s /tmp/stackgres-build-operator-native-executable \
+        flock -s /tmp/stackgres-build-restapi-native-executable \
         flock /tmp/stackgres-integration-test \
         timeout -s KILL 3600 \
         mvn $MAVEN_CLI_OPTS verify -P integration -Dit.skipBuildContainer=true
@@ -265,7 +304,7 @@ integration test:
   tags:
     - stackgres-runner
   dependencies:
-    - compile
+    - build
   variables:
     OPERATOR_IN_KUBERNETES: "true"
     K8S_SUFFIX: jvm-image
@@ -280,8 +319,8 @@ integration test:
     - 'export E2E_PULLED_IMAGES_PATH="/tmp/pulled-images-jvm-image$E2E_EXTRA_SUFFIX-$E2E_RUN_BATCH_INDEX"'
     - 'export K8S_SUFFIX="$K8S_SUFFIX$E2E_EXTRA_SUFFIX-$E2E_RUN_BATCH_INDEX"'
     - |
-      flock -s /tmp/stackgres-compile-operator-native-image \
-        flock -s /tmp/stackgres-compile-restapi-native-image \
+      flock -s /tmp/stackgres-build-operator-native-executable \
+        flock -s /tmp/stackgres-build-restapi-native-executable \
         flock "/tmp/stackgres-integration-test-jvm-image$E2E_EXTRA_SUFFIX-$E2E_RUN_BATCH_INDEX" \
         timeout -s KILL 3600 \
         mvn $MAVEN_CLI_OPTS verify -P integration \
@@ -321,7 +360,7 @@ e2e exclusive tests jvm image:
   tags:
     - stackgres-runner
   dependencies:
-    - compile
+    - build
   variables:
     OPERATOR_IN_KUBERNETES: "true"
     K8S_SUFFIX: native-image
@@ -337,8 +376,8 @@ e2e exclusive tests jvm image:
     - 'export E2E_PULLED_IMAGES_PATH="/tmp/pulled-images-native-image$E2E_EXTRA_SUFFIX-$E2E_RUN_BATCH_INDEX"'
     - 'export K8S_SUFFIX="$K8S_SUFFIX$E2E_EXTRA_SUFFIX-$E2E_RUN_BATCH_INDEX"'
     - |
-      flock -s /tmp/stackgres-compile-operator-native-image \
-        flock -s /tmp/stackgres-compile-restapi-native-image \
+      flock -s /tmp/stackgres-build-operator-native-executable \
+        flock -s /tmp/stackgres-build-restapi-native-executable \
         flock "/tmp/stackgres-integration-test-native-image$E2E_EXTRA_SUFFIX-$E2E_RUN_BATCH_INDEX" \
         timeout -s KILL 3600 \
         mvn $MAVEN_CLI_OPTS verify -P integration \
@@ -382,7 +421,7 @@ enforce release:
   tags:
     - stackgres-runner
   dependencies:
-    - compile
+    - build
   script:
     - MAVEN_CLI_OPTS="$MAVEN_CLI_OPTS -DskipTests -Dquarkus.skipAugmentation=true"
     - 'mvn $MAVEN_CLI_OPTS enforcer:enforce@enforce-no-snapshots'
@@ -448,6 +487,21 @@ deploy adminui image:
     - 'buildah push --format=docker --authfile $REGISTRY_AUTH_FILE $ADMINUI_IMAGE_NAME "docker://docker.io/$ADMINUI_IMAGE_UPLOAD_NAME"'
   only:
     variables:
-      - $CI_COMMIT_REF_NAME == "development"
-      - $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
+      - $SKIP_DEPLOY != "true" && $CI_COMMIT_REF_NAME == "development"
+      - $SKIP_DEPLOY != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
+      - $DO_DEPLOY
+
+deploy helm packages and templates:
+  image: mikesir87/aws-cli:latest
+  stage: deploy
+  dependencies:
+    - build helm packages
+    - build helm templates
+  script:
+    - aws s3 sync ./stackgres-k8s/install/helm/target/public/ s3://$S3_BUCKET_NAME/
+    - aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_DISTRIBUTION_ID --paths '/*'
+  only:
+    variables:
+      - $SKIP_DEPLOY != "true" && $CI_COMMIT_REF_NAME == "development"
+      - $SKIP_DEPLOY != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
       - $DO_DEPLOY

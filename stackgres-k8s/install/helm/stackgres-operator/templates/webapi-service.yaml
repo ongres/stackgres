@@ -11,19 +11,15 @@ metadata:
   labels:
     app.kubernetes.io/managed-by: Helm
 spec:
-  {{- if .Values.service.loadBalancer.enabled }}
-  type: LoadBalancer
-  {{- with .Values.service.loadBalancer.loadBalancerIP }}
+  type: '{{ .Values.adminui.service.type }}'
+  {{- with .Values.adminui.service.loadBalancerIP }}
   loadBalancerIP: "{{ . }}"
   {{- end }}
-  {{- with .Values.service.loadBalancer.loadBalancerSourceRanges }}
+  {{- with .Values.adminui.service.loadBalancerSourceRanges }}
   loadBalancerSourceRanges:
     {{- range . }}
     - "{{ . }}"
     {{- end }}
-  {{- end }}
-  {{- else }}
-  type: '{{ .Values.service.type }}'
   {{- end }}
   selector:
     app: {{ .Values.restapi.name }}
@@ -32,7 +28,7 @@ spec:
       protocol: TCP
       port: 443
       targetPort: https
-      {{- with .Values.service.nodePort }}
+      {{- with .Values.adminui.service.nodePort }}
       nodePort: {{ . }}
       {{- end }}
 {{- end }}
