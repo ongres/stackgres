@@ -18,13 +18,15 @@ then
   exit 1
 fi
 
-if [ ! -f "$1" ]
+SPEC_TO_RUN=$(basename "$1")
+
+if [ ! -f "$SPEC_PATH/$SPEC_TO_RUN" ]
 then
-  >&2 echo "Spec $1 not found"
+  >&2 echo "Spec $SPEC_PATH/$SPEC_TO_RUN not found"
   exit 1
 fi
 
-try_function spec "$1"
+try_function spec "$SPEC_PATH/$SPEC_TO_RUN"
 if "$RESULT"
 then
   cat "$TARGET_PATH/logs/results.log"
