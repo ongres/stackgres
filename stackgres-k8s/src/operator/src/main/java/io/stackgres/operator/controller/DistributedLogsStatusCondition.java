@@ -10,9 +10,9 @@ import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsConditi
 public enum DistributedLogsStatusCondition {
 
   PATRONI_REQUIRES_RESTART(Type.PENDING_RESTART, Status.TRUE, "PatroniRequiresRestart"),
-  FALSE_PENDING_RESTART(Type.PENDING_RESTART, Status.FALSE, null),
-  CLUSTER_CONFIG_ERROR(Type.FAILED, Status.TRUE, "ClusterConfigFailed"),
-  FALSE_FAILED(Type.FAILED, Status.FALSE, null);
+  FALSE_PENDING_RESTART(Type.PENDING_RESTART, Status.FALSE, "FalsePendingRestart"),
+  DISTRIBUTED_LOGS_CONFIG_ERROR(Type.FAILED, Status.TRUE, "DistributedLogsConfigFailed"),
+  FALSE_FAILED(Type.FAILED, Status.FALSE, "FalseFailed");
 
   private final String type;
   private final String status;
