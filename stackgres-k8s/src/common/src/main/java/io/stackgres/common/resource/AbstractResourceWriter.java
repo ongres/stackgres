@@ -5,6 +5,7 @@
 
 package io.stackgres.common.resource;
 
+import io.fabric8.kubernetes.api.model.DeletionPropagation;
 import io.fabric8.kubernetes.api.model.Doneable;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesResourceList;
@@ -50,6 +51,7 @@ public abstract class AbstractResourceWriter<T extends HasMetadata,
       getResourceEndpoints(client)
           .inNamespace(resource.getMetadata().getNamespace())
           .withName(resource.getMetadata().getName())
+          .withPropagationPolicy(DeletionPropagation.BACKGROUND)
           .delete();
     }
   }

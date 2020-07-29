@@ -11,6 +11,7 @@ import java.util.stream.Stream;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import io.fabric8.kubernetes.api.model.DeletionPropagation;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
@@ -112,6 +113,7 @@ public class ServiceMonitorHandler
         .map(crClient -> crClient
             .inNamespace(resource.getMetadata().getNamespace())
             .withName(resource.getMetadata().getName())
+            .withPropagationPolicy(DeletionPropagation.BACKGROUND)
             .delete())
         .orElse(null);
   }

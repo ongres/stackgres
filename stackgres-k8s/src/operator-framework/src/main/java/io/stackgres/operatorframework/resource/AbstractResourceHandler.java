@@ -9,6 +9,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
+import io.fabric8.kubernetes.api.model.DeletionPropagation;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesResourceList;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -58,13 +59,14 @@ public abstract class AbstractResourceHandler<T extends ResourceHandlerContext>
     return getResourceOperation(client, resource)
         .inNamespace(resource.getMetadata().getNamespace())
         .withName(resource.getMetadata().getName())
-        .cascading(false)
         .patch(resource);
   }
 
   @Override
   public boolean delete(KubernetesClient client, HasMetadata resource) {
-    return client.resource(resource).delete();
+    return client.resource(resource)
+        .withPropagationPolicy(DeletionPropagation.BACKGROUND)
+        .delete();
   }
 
   @SuppressWarnings("unchecked")
