@@ -10,6 +10,9 @@ export STACKGRES_PATH="${STACKGRES_PATH:-$(dirname "$0")/..}"
 export OPERATOR_CHART_PATH="${OPERATOR_CHART_PATH:-"$STACKGRES_PATH/install/helm/stackgres-operator/"}"
 export CLUSTER_CHART_PATH="${CLUSTER_CHART_PATH:-"$STACKGRES_PATH/install/helm/stackgres-cluster/"}"
 export UI_TESTS_RESOURCES_PATH="${UI_TESTS_RESOURCES_PATH:-"$STACKGRES_PATH/src/admin-ui"}"
+export STACKGRES_HELM_PATH="${STACKGRES_PATH}/stackgres-k8s/install/helm"
+export STACKGRES_PACKAGES="${DEMOPATH}/target/packages"
+export STACKGRES_YAMLS="${DEMOPATH}/target/templates"
 
 export E2E_SKIP_SETUP="${E2E_SKIP_SETUP:-false}"
 export E2E_OPERATOR_PULL_POLICY="${E2E_OPERATOR_PULL_POLICY:-Never}"
@@ -122,13 +125,8 @@ setup_operator() {
   if [ "$E2E_WAIT_OPERATOR" = true ]
   then
     wait_pods_running "$OPERATOR_NAMESPACE"
-    if helm get values -n "$OPERATOR_NAMESPACE" stackgres-operator | grep -q externalOperatorIp \
-      && helm get values -n "$OPERATOR_NAMESPACE" stackgres-operator | grep -q externalOperatorPort
-    then
-      wait_services_available "$OPERATOR_NAMESPACE" 2
-    else
-      wait_services_available "$OPERATOR_NAMESPACE" 1
-    fi
+    wait_services_available "$OPERATOR_NAMESPACE" 1 "^endpoints/stackgres-operator$"
+    wait_services_available "$OPERATOR_NAMESPACE" 1 "^endpoints/stackgres-restapi$"
   fi
 }
 
