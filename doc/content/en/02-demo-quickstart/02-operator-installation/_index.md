@@ -14,6 +14,10 @@ We ship some kubernetes resources files in order to allow installation of the St
 kubectl apply -f {{< download-url >}}/demo-operator.yml
 ```
 
+> The `demo-operator.yml` will expose the UI as with a LoadBalancer. Note that enabling this feature
+> will probably incurr in some fee that depend on the host of the kubernetes cluster (for example
+> this is true for EKS, GKE and AKS).
+
 To clean up the resources created by the demo just run:
 
 ```
@@ -29,8 +33,13 @@ You can also install the StackGres operator using [helm vesion 3.1.x](https://gi
 kubectl create namespace stackgres
 
 helm install stackgres-operator \
-  {{< download-url >}}/helm-operator.tgz
+  {{< download-url >}}/helm-operator.tgz \
+  --set-string adminui.service.type=LoadBalancer
 ```
+
+> The `--set-string adminui.service.type=LoadBalancer` will expose the UI as with a LoadBalancer. Note that
+> enabling this feature will probably incurr in some fee that depend on the host of the kubernetes cluster
+> (for example this is true for EKS, GKE and AKS).
 
 To clean up the resources created by the demo just run:
 
