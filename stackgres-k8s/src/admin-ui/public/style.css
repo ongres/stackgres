@@ -927,9 +927,9 @@ ul.zg-ul-select.active li.active:hover {
     overflow: auto;
 }
 
-.set.active:not(.conf):not(.backups):not(.logs) { 
+/* .set.active:not(.conf):not(.backups):not(.logs) { 
     min-height: 100px; 
-}
+} */
 
 .set.clu.active {
     border-top: 0 !important;
@@ -2248,7 +2248,6 @@ label.switch {
     padding: 10px;
     position: relative;
     border-radius: 6px;
-    cursor: pointer;
     margin-bottom: 20px;
 }
 
@@ -2595,6 +2594,16 @@ a.addRow {
     display: block;
 }
 
+.repeater .row {
+    position: relative;
+}
+
+.repeater .row  a.addRow {
+    position: absolute;
+    top: 0;
+    right: 0;
+}
+
 input.annotation, input.annotationValue, input.label, input.labelValue {
     width: 47%;
     position: relative;
@@ -2635,6 +2644,10 @@ span.eqSign:before {
 
 .resourcesMetadata a.help {
     margin-top: 5px;
+}
+
+.scriptFieldset .repeater a.help {
+    right: -67px;
 }
 
 .script.repeater textarea {
@@ -4666,7 +4679,7 @@ table.pgConfig tr.details a svg path, table.poolConfig tr.details a svg path {
     fill: var(--blue);
 }
 
-table.pgConfig tr.details .configurationDetails table td.label, table.poolConfig tr.details .configurationDetails table td.label {
+table.pgConfig tr.details .configurationDetails table td.label, table.poolConfig tr.details .configurationDetails table td.label, table.backupConfig tr.details .configurationDetails table td.label {
     padding-right: 10px;
     width: 140px;
 }

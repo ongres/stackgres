@@ -89,7 +89,7 @@ var Backups = Vue.component("Backups", {
 
 							<ul class="options">
 								<li>
-									<span>Managed Lifecycle</span>
+									<span>Managed Lifecycle (request)</span>
 									<label for="managedLifecycle">
 										<input v-model="managedLifecycle" data-filter="managedLifecycle" type="checkbox" class="xCheckbox" id="managedLifecycle" name="managedLifecycle" value="true"/>
 										<span>YES</span>
@@ -163,7 +163,7 @@ var Backups = Vue.component("Backups", {
 								<span>Timestamp</span>
 							</th>
 							<th @click="sort('data.spec.managedLifecycle')" class="icon desc managedLifecycle">
-								<span>Managed Lifecycle</span>
+								<span>Managed Lifecycle (request)</span>
 							</th>
 							<th @click="sort('data.status.process.status')" class="desc phase center">
 								<span>Status</span>
@@ -324,6 +324,86 @@ var Backups = Vue.component("Backups", {
 														</td>
 														<td>
 															{{ back.data.status.sgBackupConfig.storage.type }}
+														</td>
+													</tr>
+													<tr>
+														<td class="label">
+															Job Pod
+														</td>
+														<td>
+															{{ back.data.status.process.jobPod }}
+														</td>
+													</tr>
+													<tr>
+														<td class="label">
+															Managed Lifecycle (status)
+														</td>
+														<td>
+															{{ back.data.status.process.managedLifecycle }}
+														</td>
+													</tr>
+													<tr>
+														<td class="label">
+															End Time
+														</td>
+														<td class="timestamp">
+															<span class='date'>
+																{{ back.data.status.process.timing.end | formatTimestamp('date') }}
+															</span>
+															<span class='time'>
+																{{ back.data.status.process.timing.end | formatTimestamp('time') }}
+															</span>
+															<span class='ms'>
+																{{ back.data.status.process.timing.end | formatTimestamp('ms') }} Z
+															</span>
+														</td>
+													</tr>
+													<tr>
+														<td class="label">
+															Stored Time
+														</td>
+														<td class="timestamp">
+															<span class='date'>
+																{{ back.data.status.process.timing.stored | formatTimestamp('date') }}
+															</span>
+															<span class='time'>
+																{{ back.data.status.process.timing.stored | formatTimestamp('time') }}
+															</span>
+															<span class='ms'>
+																{{ back.data.status.process.timing.stored | formatTimestamp('ms') }} Z
+															</span>
+														</td>
+													</tr>
+													<tr>
+														<td class="label">
+															Hostname
+														</td>
+														<td>
+															{{ back.data.status.backupInformation.hostname }}
+														</td>
+													</tr>
+													<tr>
+														<td class="label">
+															PG Data
+														</td>
+														<td>
+															{{ back.data.status.backupInformation.pgData }}
+														</td>
+													</tr>
+													<tr>
+														<td class="label">
+															Start Wal File
+														</td>
+														<td>
+															{{ back.data.status.backupInformation.startWalFile }}
+														</td>
+													</tr>
+													<tr v-if="(typeof back.data.status.backupInformation.controlData !== 'undefined')">
+														<td class="label">
+															Control Data
+														</td>
+														<td>
+															{{ back.data.status.backupInformation.controlData }}
 														</td>
 													</tr>
 												</tbody>

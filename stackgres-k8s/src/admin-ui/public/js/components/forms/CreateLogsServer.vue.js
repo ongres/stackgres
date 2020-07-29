@@ -220,10 +220,10 @@ var CreateLogsServer = Vue.component("CreateLogsServer", {
                         cluster 
                     )
                     .then(function (response) {
-                        notify('Logs server <strong>"'+cluster.data.metadata.name+'"</strong> updated successfully', 'message', 'sgcluster');
+                        notify('Logs server <strong>"'+cluster.metadata.name+'"</strong> updated successfully', 'message', 'sgcluster');
 
                         vm.fetchAPI('sgdistributedlogs');
-                        router.push('/admin/logs/'+cluster.data.metadata.namespace);
+                        router.push('/admin/logs/'+cluster.metadata.namespace);
                         
                     })
                     .catch(function (error) {
@@ -237,10 +237,10 @@ var CreateLogsServer = Vue.component("CreateLogsServer", {
                         cluster 
                     )
                     .then(function (response) {
-                        notify('Logs server <strong>"'+cluster.data.metadata.name+'"</strong> created successfully', 'message', 'sgcluster');
+                        notify('Logs server <strong>"'+cluster.metadata.name+'"</strong> created successfully', 'message', 'sgcluster');
 
                         vm.fetchAPI('sgdistributedlogs');
-                        router.push('/admin/logs/'+cluster.data.metadata.namespace);
+                        router.push('/admin/logs/'+cluster.metadata.namespace);
                         
                         /* store.commit('updateClusters', { 
                             name: cluster.data.metadata.name,
@@ -249,7 +249,7 @@ var CreateLogsServer = Vue.component("CreateLogsServer", {
                         
                     })
                     .catch(function (error) {
-                        console.log(error.response);
+                        console.log(error);
                         notify(error.response.data,'error','sgdistributedlogs');
                     });
                 }

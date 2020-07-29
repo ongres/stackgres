@@ -124,6 +124,22 @@ var BackupConfig = Vue.component("BackupConfig", {
 														{{ conf.data.spec.baseBackups.compression }}
 													</td>
 												</tr>
+												<tr v-if="( (typeof conf.data.spec.baseBackups.performance !== 'undefined') && (typeof conf.data.spec.baseBackups.performance.maxNetworkBandwitdh !== 'undefined') )">
+													<td class="label">
+														Max Network Bandwitdh
+													</td>
+													<td>
+														{{ conf.data.spec.baseBackups.performance.maxNetworkBandwitdh }}
+													</td>
+												</tr>
+												<tr v-if="( (typeof conf.data.spec.baseBackups.performance !== 'undefined') && (typeof conf.data.spec.baseBackups.performance.maxDiskBandwitdh !== 'undefined') )">
+													<td class="label">
+														Max Disk Bandwitdh
+													</td>
+													<td>
+														{{ conf.data.spec.baseBackups.performance.maxDiskBandwitdh }}
+													</td>
+												</tr>
 												<tr v-if="( (typeof conf.data.spec.baseBackups.performance !== 'undefined') && (typeof conf.data.spec.baseBackups.performance.uploadDiskConcurrency !== 'undefined') )">
 													<td class="label">
 														Upload Disk Concurrency
@@ -225,7 +241,10 @@ var BackupConfig = Vue.component("BackupConfig", {
 												<li>
 													<strong class="label">gcpCredentials:</strong> 
 													<ul>
-														<li>
+														<li v-if="hasProp(conf, 'data.spec.storage.gcs.gcpCredentials.fetchCredentialsFromMetadataService')">
+															<strong class="label">fetchCredentialsFromMetadataService:</strong> {{ conf.data.spec.storage.gcs.gcpCredentials.fetchCredentialsFromMetadataService }}
+														</li>
+														<li v-else>
 															<strong class="label">serviceAccountJSON:</strong> ****
 														</li>
 													</ul>
