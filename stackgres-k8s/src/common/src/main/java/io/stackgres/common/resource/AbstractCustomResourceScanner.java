@@ -70,20 +70,16 @@ public abstract class AbstractCustomResourceScanner<T extends CustomResource,
 
   @Override
   public List<T> getResources() {
-    try (KubernetesClient client = clientFactory.create()) {
-      return findResources()
-          .orElseThrow(() -> new IllegalStateException("StackGres is not correctly installed:"
-              + " CRD " + customResourceName + " not found."));
-    }
+    return findResources()
+        .orElseThrow(() -> new IllegalStateException("StackGres is not correctly installed:"
+            + " CRD " + customResourceName + " not found."));
   }
 
   @Override
   public List<T> getResources(String namespace) {
-    try (KubernetesClient client = clientFactory.create()) {
-      return findResources(namespace)
-          .orElseThrow(() -> new IllegalStateException("StackGres is not correctly installed:"
-              + " CRD " + customResourceName + " not found."));
-    }
+    return findResources(namespace)
+        .orElseThrow(() -> new IllegalStateException("StackGres is not correctly installed:"
+            + " CRD " + customResourceName + " not found."));
   }
 
 }
