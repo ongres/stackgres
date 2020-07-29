@@ -930,7 +930,7 @@ var CreateCluster = Vue.component("CreateCluster", {
                     if(i)
                         jsonString += ','
                     
-                    jsonString += '"'+p[key].replace(/"/g,'\\"')+'":"'+p.value.replace(/"/g,'\\"')+'"'
+                    jsonString += '"'+sanitizeString(p[key])+'":"'+sanitizeString(p.value)+'"'
                 }                
             })
             jsonString += '}'
