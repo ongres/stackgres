@@ -522,7 +522,7 @@ var CreateBackupConfig = Vue.component("CreateBackupConfig", {
                             vm.backupGCSBucket = config.data.spec.storage.gcs.bucket;
                             vm.backupGCSPath = (typeof config.data.spec.storage.gcs.path !== 'undefined') ? config.data.spec.storage.gcs.path : '';
                             vm.fetchGCSCredentials = hasProp(config, 'data.spec.storage.gcs.gcpCredentials.fetchCredentialsFromMetadataService') ? config.data.spec.storage.gcs.gcpCredentials.fetchCredentialsFromMetadataService : false ;
-                            vm.backupGCSServiceAccountJSON = config.data.spec.storage.gcs.gcpCredentials.serviceAccountJSON;
+                            vm.backupGCSServiceAccountJSON = hasProp(config, 'data.spec.storage.gcs.gcpCredentials.serviceAccountJSON') ? config.data.spec.storage.gcs.gcpCredentials.serviceAccountJSON : '';
                         }
                         
                         //azure

@@ -241,7 +241,10 @@ var BackupConfig = Vue.component("BackupConfig", {
 												<li>
 													<strong class="label">gcpCredentials:</strong> 
 													<ul>
-														<li>
+														<li v-if="hasProp(conf, 'data.spec.storage.gcs.gcpCredentials.fetchCredentialsFromMetadataService')">
+															<strong class="label">fetchCredentialsFromMetadataService:</strong> {{ conf.data.spec.storage.gcs.gcpCredentials.fetchCredentialsFromMetadataService }}
+														</li>
+														<li v-else>
 															<strong class="label">serviceAccountJSON:</strong> ****
 														</li>
 													</ul>
