@@ -7,7 +7,7 @@ cd "$(dirname "$0")"
 STACKGRES_VERSION=$(grep '<artifactId>stackgres-parent</artifactId>' "../../src/pom.xml" -A 2 -B 2 \
  | grep -o '<version>\([^<]\+\)</version>' | tr '<>' '  ' | cut -d ' ' -f 3)
 
-mkdir -p "target/public/downloads/stackgres-k8s/stackgres/$STACKGRES_VERSION" target/public/downloads/stackgres-k8s/stackgres/latest
+mkdir -p "target/public/downloads/stackgres-k8s/stackgres/$STACKGRES_VERSION"
 cat << EOF > "target/public/downloads/stackgres-k8s/stackgres/$STACKGRES_VERSION/demo-operator.yml"
 apiVersion: v1
 kind: Namespace
@@ -50,4 +50,3 @@ helm template minio \
   --set buckets[0].name=stackgres,buckets[0].policy=none,buckets[0].purge=true \
   > "target/public/downloads/stackgres-k8s/stackgres/$STACKGRES_VERSION/demo-minio.yml"
 
-cp -a "target/public/downloads/stackgres-k8s/stackgres/$STACKGRES_VERSION/." target/public/downloads/stackgres-k8s/stackgres/latest
