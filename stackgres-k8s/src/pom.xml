@@ -98,6 +98,9 @@
     <checkstyle.header.file>${checks.location}/checkstyle/header.txt</checkstyle.header.file>
     <checkstyle.suppressions.location>${checks.location}/checkstyle/suppressions.xml</checkstyle.suppressions.location>
     <spotbugs.excludeFilterFile>${checks.location}/spotbugs/exclude.xml</spotbugs.excludeFilterFile>
+
+    <it.image>stackgres/it:9.0</it.image>
+    <buildah.image>quay.io/buildah/stable:v1.15.0</buildah.image>
   </properties>
 
   <dependencyManagement>

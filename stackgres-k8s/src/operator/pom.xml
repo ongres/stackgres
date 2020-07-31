@@ -27,8 +27,6 @@
     <stackgres.prometheus.grafanaEmbedded>false</stackgres.prometheus.grafanaEmbedded>
     <quarkus.skipAugmentation>false</quarkus.skipAugmentation>
     <checks.location>${project.parent.basedir}/checks</checks.location>
-
-    <it.image>stackgres/it:8.0</it.image>
   </properties>
 
   <dependencies>
@@ -343,7 +341,7 @@
                       <name>ongres-jvm-builder</name>
                       <build>
                         <cleanup>remove</cleanup>
-                        <from>ongres/builder</from>
+			<from>${buildah.image}</from>
                         <assembly>
                           <targetDir>/operator</targetDir>
                           <inline>
@@ -424,7 +422,7 @@
                       <name>operator-native-builder</name>
                       <build>
                         <cleanup>remove</cleanup>
-                        <from>ongres/builder</from>
+			<from>${buildah.image}</from>
                         <assembly>
                           <targetDir>/operator</targetDir>
                           <inline>
