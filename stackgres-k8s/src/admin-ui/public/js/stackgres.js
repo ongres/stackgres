@@ -321,8 +321,10 @@ router.beforeEach((to, from, next) => {
         if(response.data.includes(to.params.namespace)) {
           store.commit('setCurrentNamespace', to.params.namespace);
         }
-        else
+        else {
+          checkAuthError(error)
           notFound();
+        }
       }).catch(function(error) {
         checkAuthError(error)
         notFound()
