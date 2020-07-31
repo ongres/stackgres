@@ -304,7 +304,7 @@ get_completed_backup_count() {
 }
 
 check_single_backup_job() {
-  if ! wait_until -t 60 -i 0 eval '[ "$(get_manual_backup_pod_count)" -gt 0 ]'
+  if ! wait_until -t 60 -i 1 eval '[ "$(get_manual_backup_pod_count)" -gt 0 ]'
   then
     echo "Good. Only 1 running backup job"
   else

@@ -1,0 +1,46 @@
+#!/bin/sh
+
+. "$SPEC_PATH/abstract/backup"
+
+e2e_test_install() {
+  if [ "$E2E_ENV" = "kind" ]
+  then
+    cat << EOF > "$LOG_PATH/minio-affinity.yaml"
+minio:
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+            - key: "kubernetes.io/hostname"
+              operator: "In"
+              values: [ "${KIND_NAME}-worker", "${KIND_NAME}-control-plane" ]
+EOF
+  else
+    echo -n > "$LOG_PATH/minio-affinity.yaml"
+  fi
+  if [ "$E2E_ENV" = "minishift" ]
+  then
+    eval "$(minishift oc-env)"
+    oc adm policy add-scc-to-user anyuid -n "$CLUSTER_NAMESPACE" -z "$CLUSTER_NAME-minio"
+  fi
+
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
+    -f "$LOG_PATH/minio-affinity.yaml"
+
+  deploy_curl_pod "$CLUSTER_NAMESPACE"
+
+  wait_pods_running "$CLUSTER_NAMESPACE" 4
+
+  # Avoid backups before waiting for pods (since backup pods could biase the wait)
+  kubectl patch sgbackupconfig -n "$CLUSTER_NAMESPACE" backupconf --type json \
+    --patch '[{"op":"replace","path":"/spec/baseBackups/cronSchedule","value":"*/1 * * * *"}]'
+}
+
+e2e_test() {
+  run_test "Checking that manual backup is working" check_manual_backup
+}
+
+check_manual_backup() {
+  check_manual_backup 0
+}

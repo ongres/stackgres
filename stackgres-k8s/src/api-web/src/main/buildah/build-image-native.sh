@@ -4,6 +4,7 @@ set -e
 
 RESTAPI_IMAGE_NAME="${RESTAPI_IMAGE_NAME:-"stackgres/restapi:development"}"
 CONTAINER_BASE=$(buildah from "registry.access.redhat.com/ubi8-minimal:8.0")
+TARGET_RESTAPI_IMAGE_NAME="${TARGET_RESTAPI_IMAGE_NAME:-docker-daemon:$RESTAPI_IMAGE_NAME}"
 
 APP_OPTS="-Dquarkus.http.host=0.0.0.0 -Dquarkus.http.port=8080 -Dquarkus.http.ssl-port=8443 -Djava.util.logging.manager=org.jboss.logmanager.LogManager"
 
@@ -28,4 +29,4 @@ buildah config --user stackgres:stackgres "$CONTAINER_BASE"
 
 ## Commit this container to an image name
 buildah commit --squash "$CONTAINER_BASE" "$RESTAPI_IMAGE_NAME"
-buildah push "$RESTAPI_IMAGE_NAME" docker-daemon:$RESTAPI_IMAGE_NAME
+buildah push -f "${BUILDAH_PUSH_FORMAT:-docker}" "$RESTAPI_IMAGE_NAME" "TARGET_RESTAPI_IMAGE_NAME"

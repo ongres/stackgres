@@ -71,10 +71,6 @@ check_backup_retention_before_switchover() {
   check_backup_retention 0
 }
 
-check_manual_backup_before_switchover() {
-  check_manual_backup 0
-}
-
 check_backup_after_switchover() {
   check_backup 1
 }

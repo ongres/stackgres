@@ -27,7 +27,7 @@ variables:
                    -DtrimStackTrace=false
   E2E_ENV: kind
   E2E_PARALLELISM: 32
-  K8S_VERSION: 1.13.12
+  K8S_VERSION: 1.15.11
   K8S_FROM_DIND: "true"
   K8S_REUSE: "true"
   DOCUMENTATION_BASE_URL: "https://ongresinc.gitlab.io/web/stackgres/doc/latest"
@@ -56,6 +56,7 @@ build:
     QUARKUS_PROFILE: "test"
   tags:
     - stackgres-runner
+    - stackgres-quarkus-test-runner
   script:
     - 'mvn $MAVEN_CLI_OPTS clean verify -P safer'
   artifacts:
@@ -184,26 +185,67 @@ build restapi native executable:
     NATIVE_IMAGE_EXTRA_PREFIX: "-restapi"
     MAVEN_EXTRA_ARGS: "-pl .,common,operator-framework,test-util,api-web"
 
-.build native image:
-  stage: pre test
+build operator jvm image:
+  image: quay.io/buildah/stable:v1.15.0
+  stage: image build
   tags:
     - stackgres-runner
   dependencies:
     - build
-  variables:
-    NATIVE_IMAGE_EXTRA_PREFIX: ""
-    MAVEN_EXTRA_ARGS: ""
-  timeout: 12 hour
-  retry: 2
+  timeout: 1 hour
+  script:
+    - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}-jvm"'
+    - 'export OPERATOR_IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
+    - 'export TARGET_OPERATOR_IMAGE_NAME="$CI_REGISTRY/ongresinc/stackgres/$OPERATOR_IMAGE_NAME"'
+    - buildah login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+    - cd stackgres-k8s/src
+    - |
+      flock /tmp/stackgres-operator-build-jvm-image \
+        sh -xe operator/src/main/buildah/build-image-jvm.sh
+  only:
+    variables:
+      - $SKIP_E2E != "true"
+      - $DO_DEPLOY
+
+build restapi jvm image:
+  image: quay.io/buildah/stable:v1.15.0
+  stage: image build
+  tags:
+    - stackgres-runner
+  dependencies:
+    - build
+  timeout: 1 hour
+  script:
+    - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}-jvm"'
+    - 'export RESTAPI_IMAGE_NAME="stackgres/restapi:$IMAGE_TAG"'
+    - 'export TARGET_RESTAPI_IMAGE_NAME="$CI_REGISTRY/ongresinc/stackgres/$RESTAPI_IMAGE_NAME"'
+    - buildah login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+    - cd stackgres-k8s/src
+    - |
+      flock /tmp/stackgres-restapi-build-jvm-image \
+        sh -xe api-web/src/main/buildah/build-image-jvm.sh
+  only:
+    variables:
+      - $SKIP_E2E != "true"
+      - $DO_DEPLOY
+
+build operator native image:
+  image: quay.io/buildah/stable:v1.15.0
+  stage: image build
+  tags:
+    - stackgres-runner
+  dependencies:
+    - build operator native executable
+  timeout: 1 hour
   script:
     - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}"'
     - 'export OPERATOR_IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
-    - 'export RESTAPI_IMAGE_NAME="stackgres/restapi:$IMAGE_TAG"'
-    - MAVEN_CLI_OPTS="$MAVEN_CLI_OPTS -DskipTests"
+    - 'export TARGET_OPERATOR_IMAGE_NAME="$CI_REGISTRY/ongresinc/stackgres/$OPERATOR_IMAGE_NAME"'
+    - buildah login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+    - cd stackgres-k8s/src
     - |
-      flock "/tmp/stackgres-build$NATIVE_IMAGE_EXTRA_PREFIX-native-image" \
-        timeout -s KILL 3600 \
-        mvn $MAVEN_CLI_OPTS package -P build-image-native $MAVEN_EXTRA_ARGS
+      flock /tmp/stackgres-operator-build-native-image \
+        sh -xe operator/src/main/buildah/build-image-native.sh
   only:
     variables:
       - $SKIP_E2E != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME == "development"
@@ -212,78 +254,68 @@ build restapi native executable:
       - $DO_DEPLOY
       - $DO_NATIVE
 
-build operator native image:
-  extends: .build native image
-  dependencies:
-    - build
-    - build operator native executable
-  variables:
-    NATIVE_IMAGE_EXTRA_PREFIX: "-operator"
-    MAVEN_EXTRA_ARGS: "-pl .,common,operator-framework,test-util,operator"
-
 build restapi native image:
-  extends: .build native image
-  dependencies:
-    - build
-    - build restapi native executable
-  variables:
-    NATIVE_IMAGE_EXTRA_PREFIX: "-restapi"
-    MAVEN_EXTRA_ARGS: "-pl .,common,operator-framework,test-util,api-web"
-
-build jvm image:
-  stage: pre test
+  image: quay.io/buildah/stable:v1.15.0
+  stage: image build
   tags:
     - stackgres-runner
   dependencies:
-    - build
-  timeout: 12 hour
-  retry: 2
+    - build restapi native executable
+  timeout: 1 hour
   script:
-    - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}"-jvm'
-    - 'export OPERATOR_IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
+    - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}"'
     - 'export RESTAPI_IMAGE_NAME="stackgres/restapi:$IMAGE_TAG"'
-    - MAVEN_CLI_OPTS="$MAVEN_CLI_OPTS -DskipTests"
+    - 'export TARGET_RESTAPI_IMAGE_NAME="$CI_REGISTRY/ongresinc/stackgres/$RESTAPI_IMAGE_NAME"'
+    - buildah login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+    - cd stackgres-k8s/src
     - |
-      flock /tmp/stackgres-build-jvm-image  \
-        timeout -s KILL 3600 \
-        mvn $MAVEN_CLI_OPTS package -P build-image-jvm
+      flock /tmp/stackgres-restapi-build-native-image \
+        sh -xe api-web/src/main/buildah/build-image-native.sh
   only:
     variables:
-      - $SKIP_E2E != "true"
+      - $SKIP_E2E != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME == "development"
+      - $SKIP_E2E != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME == "master"
+      - $SKIP_E2E != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
       - $DO_DEPLOY
+      - $DO_NATIVE
 
-build ui image:
-  image: docker.io/ongres/builder:latest
-  stage: pre test
+build admin-ui image:
+  image: quay.io/buildah/stable:v1.15.0
+  stage: image build
   tags:
     - stackgres-runner
   dependencies:
     - build ui
-  timeout: 12 hour
-  retry: 2
+  timeout: 1 hour
   script:
     - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}"'
-    - 'export ADMIN_IMAGE_NAME="stackgres/admin-ui:$IMAGE_TAG"'
-    - ( cd stackgres-k8s/src; sh admin-ui/buildah/build.sh )
+    - 'export ADMINUI_IMAGE_NAME="stackgres/admin-ui:$IMAGE_TAG"'
+    - 'export TARGET_ADMINUI_IMAGE_NAME="$CI_REGISTRY/ongresinc/stackgres/$ADMINUI_IMAGE_NAME"'
+    - buildah login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+    - cd stackgres-k8s/src
+    - |
+      flock /tmp/stackgres-adminui-build-image \
+        sh -xe admin-ui/buildah/build.sh
   only:
     variables:
       - $SKIP_E2E != "true"
       - $DO_DEPLOY
 
 build test images:
-  stage: pre test
+  image: quay.io/buildah/stable:v1.15.0
+  stage: image build
   tags:
     - stackgres-runner
   dependencies:
     - build
-  timeout: 12 hour
-  retry: 2
+  timeout: 1 hour
   script:
-    - MAVEN_CLI_OPTS="$MAVEN_CLI_OPTS -DskipTests -Dquarkus.skipAugmentation=true"
     - |
-      flock /tmp/stackgres-build-it-image  \
-        timeout -s KILL 3600 \
-        mvn $MAVEN_CLI_OPTS pre-integration-test -P integration
+      IT_IMAGE="$(STACKGRES_VERSION=$(grep -o '<it\.image>\([^<]\+\)</it\.image>' stackgres-k8s/src/pom.xml \
+        | tr '<>' '  ' | cut -d ' ' -f 3))"
+    - |
+      flock /tmp/stackgres-build-it-image \
+        buildah bud -f stackgres-k8s/src/operator/src/test/docker/Dockerfile.it -t "$IT_IMAGE" .
   only:
     variables:
       - $SKIP_E2E != "true"
@@ -319,6 +351,11 @@ build test images:
       then
         export E2E_ONLY_INCLUDE="$E2E_TEST"
       fi
+    - 'export E2E_OPERATOR_REGISTRY_USER=$CI_REGISTRY_USER'
+    - 'export E2E_OPERATOR_REGISTRY_PASSWORD=$CI_REGISTRY_PASSWORD'
+    - 'export E2E_OPERATOR_REGISTRY=$CI_REGISTRY'
+    - 'export E2E_OPERATOR_REGISTRY_PATH=/ongresinc/stackgres/'
+    - 'export E2E_FORCE_IMAGE_PULL=true'
     - |
       flock -s /tmp/stackgres-build-operator-native-executable \
         flock -s /tmp/stackgres-build-restapi-native-executable \
@@ -410,7 +447,7 @@ enforce release:
       - $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
 
 deploy jvm image:
-  image: docker.io/ongres/builder:latest
+  image: quay.io/buildah/stable:v1.15.0
   stage: deploy
   tags:
     - stackgres-runner
@@ -432,7 +469,7 @@ deploy jvm image:
       - $DO_DEPLOY
 
 deploy native image:
-  image: docker.io/ongres/builder:latest
+  image: quay.io/buildah/stable:v1.15.0
   stage: deploy
   tags:
     - stackgres-runner
@@ -454,7 +491,7 @@ deploy native image:
       - $DO_DEPLOY
 
 deploy adminui image:
-  image: docker.io/ongres/builder:latest
+  image: quay.io/buildah/stable:v1.15.0
   stage: deploy
   tags:
     - stackgres-runner

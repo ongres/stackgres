@@ -4,6 +4,7 @@ set -e
 
 OPERATOR_IMAGE_NAME="${OPERATOR_IMAGE_NAME:-"stackgres/operator:development-jvm"}"
 CONTAINER_BASE=$(buildah from "azul/zulu-openjdk-alpine:8u242-jre")
+TARGET_OPERATOR_IMAGE_NAME="${TARGET_OPERATOR_IMAGE_NAME:-docker-daemon:$OPERATOR_IMAGE_NAME}"
 
 # Include binaries
 buildah config --workingdir='/app/' "$CONTAINER_BASE"
@@ -28,38 +29,6 @@ then
   JAVA_OPTS="$JAVA_OPTS -Dquarkus.log.console.format=%d{yyyy-MM-dd HH:mm:ss,SSS} %-5p [%c{4.}] (%t) %s%e%n"
 fi
 JAVA_JAR="-jar /app/stackgres-operator.jar"
-if [ "$OPERATOR_UNCOMPRESSED" = true ]
-then
-  (
-  mkdir -p /tmp/stackgres-operator
-  cd /tmp/stackgres-operator
-  unzip /app/stackgres-operator.jar
-  cp -a /app/stackgres-operator.jar .
-  cp -a /app/lib lib
-  )
-  JAVA_OPTS="$JAVA_OPTS -cp /tmp/stackgres-operator:/tmp/stackgres-operator/stackgres-operator.jar io.quarkus.runner.GeneratedMain"
-  JAVA_JAR=""
-  set -x
-  > /tmp/inotifyd.log
-  inotifyd - $(find /tmp/stackgres-operator -type d|sed 's/$/:cDnd/') >> /tmp/inotifyd.log &
-  java $JAVA_OPTS $JAVA_JAR $APP_OPTS &
-  PID=$!
-  TIME="$(date +%s)"
-  tail -f /tmp/inotifyd.log | while IFS="$(echo " "|tr " " "\n")" read line
-  do
-    if [ "$(date +%s)" -lt "$((TIME + 3))" ]
-    then
-      continue
-    fi
-    kill "$PID"
-    wait "$PID"
-    java $JAVA_OPTS $JAVA_JAR $APP_OPTS &
-    PID=$!
-    TIME="$(date +%s)"
-  done
-  exit
-fi
-
 exec java $JAVA_OPTS $JAVA_JAR $APP_OPTS
 EOF
 buildah copy --chown nobody:nobody "$CONTAINER_BASE" 'operator/target/stackgres-operator.sh' '/app/'
@@ -73,4 +42,4 @@ buildah config --user nobody:nobody "$CONTAINER_BASE"
 
 ## Commit this container to an image name
 buildah commit --squash "$CONTAINER_BASE" "$OPERATOR_IMAGE_NAME"
-buildah push "$OPERATOR_IMAGE_NAME" docker-daemon:$OPERATOR_IMAGE_NAME
+buildah push -f "${BUILDAH_PUSH_FORMAT:-docker}" "$OPERATOR_IMAGE_NAME" "$TARGET_OPERATOR_IMAGE_NAME"
