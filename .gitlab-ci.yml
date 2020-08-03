@@ -54,7 +54,6 @@ build:
   stage: build
   tags:
     - stackgres-runner
-    - stackgres-quarkus-test-runner
   script:
     - 'mvn $MAVEN_CLI_OPTS clean verify -P safer'
   artifacts:

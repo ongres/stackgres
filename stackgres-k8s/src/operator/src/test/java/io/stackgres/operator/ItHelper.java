@@ -6,6 +6,7 @@
 package io.stackgres.operator;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.net.ConnectException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -325,7 +326,7 @@ public class ItHelper {
   }
 
   public static String getDockerInterfaceIp(Container k8s)
-      throws DockerException, InterruptedException {
+      throws DockerException, InterruptedException, IOException {
     return k8s.execute("sh", "-l", "-c", ""
         + "CONTAINER_NAME=\"$(docker inspect -f '{{.Name}}' \"$(hostname)\"|cut -d '/' -f 2)\"\n"
         + "ENV_NAME=\"" + E2E_ENV + "$(echo \"$CONTAINER_NAME\" | sed 's/^k8s//')\"\n"
@@ -338,7 +339,7 @@ public class ItHelper {
   }
 
   public static String getKubernetesMasterIp(Container k8s)
-      throws DockerException, InterruptedException {
+      throws DockerException, InterruptedException, IOException {
     return k8s.execute("sh", "-l", "-c",
         "kubectl cluster-info|grep 'Kubernetes master' | cut -d / -f  3 | cut -d : -f 1")
     .filter(EXCLUDE_TTY_WARNING)

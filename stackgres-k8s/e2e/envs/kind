@@ -83,10 +83,17 @@ reset_k8s() {
   cat << EOF > "$TARGET_PATH/kind-config.yaml"
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
+$(
+  if docker system info 2> /dev/null | grep -q "Backing Filesystem: zfs"
+  then
+    cat << INNER_EOF
 containerdConfigPatches:
 - |-
  [plugins."io.containerd.grpc.v1.cri".containerd]
  snapshotter = "native"
+INNER_EOF
+  fi
+)
 networking:
   apiServerAddress: "0.0.0.0"
 nodes:

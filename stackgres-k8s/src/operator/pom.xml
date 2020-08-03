@@ -341,7 +341,7 @@
                       <name>ongres-jvm-builder</name>
                       <build>
                         <cleanup>remove</cleanup>
-			<from>${buildah.image}</from>
+                        <from>${buildah.image}</from>
                         <assembly>
                           <targetDir>/operator</targetDir>
                           <inline>
@@ -422,7 +422,7 @@
                       <name>operator-native-builder</name>
                       <build>
                         <cleanup>remove</cleanup>
-			<from>${buildah.image}</from>
+                        <from>${buildah.image}</from>
                         <assembly>
                           <targetDir>/operator</targetDir>
                           <inline>
