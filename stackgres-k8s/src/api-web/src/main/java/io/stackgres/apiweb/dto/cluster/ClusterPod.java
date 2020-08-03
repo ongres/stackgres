@@ -13,6 +13,7 @@ import javax.validation.constraints.NotNull;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.google.common.base.MoreObjects;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
 @JsonDeserialize
@@ -37,6 +38,9 @@ public class ClusterPod {
   @JsonProperty("metadata")
   @Valid
   private ClusterPodMetadata metadata;
+
+  @Valid
+  private PodScheduling scheduling;
 
   public ClusterPodPersistentVolume getPersistentVolume() {
     return persistentVolume;
@@ -78,6 +82,14 @@ public class ClusterPod {
     this.metadata = metadata;
   }
 
+  public PodScheduling getScheduling() {
+    return scheduling;
+  }
+
+  public void setScheduling(PodScheduling scheduling) {
+    this.scheduling = scheduling;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -91,12 +103,25 @@ public class ClusterPod {
         && Objects.equals(disableConnectionPooling, that.disableConnectionPooling)
         && Objects.equals(disableMetricsExporter, that.disableMetricsExporter)
         && Objects.equals(disablePostgresUtil, that.disablePostgresUtil)
-        && Objects.equals(metadata, that.metadata);
+        && Objects.equals(metadata, that.metadata)
+        && Objects.equals(scheduling, that.scheduling);
   }
 
   @Override
   public int hashCode() {
     return Objects.hash(persistentVolume, disableConnectionPooling,
-        disableMetricsExporter, disablePostgresUtil, metadata);
+        disableMetricsExporter, disablePostgresUtil, metadata, scheduling);
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("persistentVolume", persistentVolume)
+        .add("disableConnectionPooling", disableConnectionPooling)
+        .add("disableMetricsExporter", disableMetricsExporter)
+        .add("disablePostgresUtil", disablePostgresUtil)
+        .add("metadata", metadata)
+        .add("scheduling", scheduling)
+        .toString();
   }
 }

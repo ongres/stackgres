@@ -39,6 +39,9 @@ public class StackGresClusterPod {
   @Valid
   private StackGresClusterPodMetadata metadata;
 
+  @Valid
+  private StackGresPodScheduling scheduling;
+
   public StackGresPodPersistentVolume getPersistentVolume() {
     return persistentVolume;
   }
@@ -79,6 +82,14 @@ public class StackGresClusterPod {
     this.metadata = metadata;
   }
 
+  public StackGresPodScheduling getScheduling() {
+    return scheduling;
+  }
+
+  public void setScheduling(StackGresPodScheduling scheduling) {
+    this.scheduling = scheduling;
+  }
+
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
@@ -87,6 +98,7 @@ public class StackGresClusterPod {
         .add("disableMetricsExporter", disableMetricsExporter)
         .add("disablePostgresUtil", disablePostgresUtil)
         .add("metadata", metadata)
+        .add("scheduling", scheduling)
         .toString();
   }
 
@@ -103,7 +115,8 @@ public class StackGresClusterPod {
         && Objects.equals(disableConnectionPooling, that.disableConnectionPooling)
         && Objects.equals(disableMetricsExporter, that.disableMetricsExporter)
         && Objects.equals(disablePostgresUtil, that.disablePostgresUtil)
-        && Objects.equals(metadata, that.metadata);
+        && Objects.equals(metadata, that.metadata)
+        && Objects.equals(scheduling, that.scheduling);
   }
 
   @Override
@@ -112,6 +125,7 @@ public class StackGresClusterPod {
         disableConnectionPooling,
         disableMetricsExporter,
         disablePostgresUtil,
-        metadata);
+        metadata,
+        scheduling);
   }
 }

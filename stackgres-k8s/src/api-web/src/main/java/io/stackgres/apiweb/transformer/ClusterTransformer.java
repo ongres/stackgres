@@ -29,6 +29,7 @@ import io.stackgres.apiweb.dto.cluster.ClusterScriptEntry;
 import io.stackgres.apiweb.dto.cluster.ClusterSpec;
 import io.stackgres.apiweb.dto.cluster.ClusterSpecAnnotations;
 import io.stackgres.apiweb.dto.cluster.ClusterSpecMetadata;
+import io.stackgres.apiweb.dto.cluster.PodScheduling;
 import io.stackgres.common.StackGresPropertyContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDistributedLogs;
@@ -43,6 +44,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecAnnotations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecMetadata;
 import io.stackgres.common.crd.sgcluster.StackGresPodPersistentVolume;
+import io.stackgres.common.crd.sgcluster.StackGresPodScheduling;
 import io.stackgres.common.crd.sgcluster.StackgresClusterConfiguration;
 import org.jooq.lambda.Seq;
 
@@ -208,6 +210,12 @@ public class ClusterTransformer
           return targetMetadata;
         }).orElse(null));
 
+    targetPod.setScheduling(Optional.ofNullable(source.getPods().getScheduling())
+        .map(sourceScheduling -> {
+          StackGresPodScheduling targetScheduling = new StackGresPodScheduling();
+          targetScheduling.setNodeSelector(sourceScheduling.getNodeSelector());
+          return targetScheduling;
+        }).orElse(null));
     transformation.setDistributedLogs(
         getCustomResourceDistributedLogs(source.getDistributedLogs()));
 
@@ -365,6 +373,13 @@ public class ClusterTransformer
       clusterPodMetadata.setLabels(sourcePodMetadata.getLabels());
       return clusterPodMetadata;
     }).orElse(null));
+
+    targetPod.setScheduling(Optional.ofNullable(sourcePod.getScheduling())
+        .map(sourcePodScheduling -> {
+          PodScheduling podScheduling = new PodScheduling();
+          podScheduling.setNodeSelector(sourcePodScheduling.getNodeSelector());
+          return podScheduling;
+        }).orElse(null));
 
     transformation.setDistributedLogs(
         getResourceDistributedLogs(source.getDistributedLogs()));

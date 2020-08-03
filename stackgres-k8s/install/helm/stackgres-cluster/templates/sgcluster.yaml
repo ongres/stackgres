@@ -134,6 +134,15 @@ spec:
     disableConnectionPooling: {{ .Values.cluster.pods.disableConnectionPooling }}
     disablePostgresUtil: {{ .Values.cluster.pods.disablePostgresUtil }}
     disableMetricsExporter: {{ .Values.cluster.pods.disableMetricsExporter }}
+    {{- if .Values.cluster.pods.scheduling }}
+    scheduling:
+      {{- if .Values.cluster.pods.scheduling.nodeSelector }}
+      nodeSelector:
+        {{- range $label, $value := .Values.cluster.pods.scheduling.nodeSelector }}
+        {{ $label }}: {{ $value }}
+        {{- end }}
+      {{- end }}
+    {{- end }} 
   {{- if .Values.distributedLogs.enabled }}
   distributedLogs:
     sgDistributedLogs: {{ .Values.cluster.distributedLogs.sgDistributedLogs }}

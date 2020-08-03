@@ -35,6 +35,9 @@ import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
+import io.stackgres.common.crd.sgcluster.StackGresPodScheduling;
 import io.stackgres.operator.common.LabelFactoryDelegator;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresClusterResourceStreamFactory;
@@ -156,6 +159,11 @@ public class ClusterStatefulSet implements StackGresClusterResourceStreamFactory
                     .map(StackGresClusterNonProduction::getDisableClusterPodAntiAffinity)
                     .map(disableClusterPodAntiAffinity -> !disableClusterPodAntiAffinity)
                     .orElse(true))
+                .orElse(null))
+            .withNodeSelector(Optional.ofNullable(cluster.getSpec())
+                .map(StackGresClusterSpec::getPod)
+                .map(StackGresClusterPod::getScheduling)
+                .map(StackGresPodScheduling::getNodeSelector)
                 .orElse(null))
             .withShareProcessNamespace(Boolean.TRUE)
             .withServiceAccountName(PatroniRole.roleName(clusterContext))
