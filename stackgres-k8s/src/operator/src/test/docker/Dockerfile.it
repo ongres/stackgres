@@ -6,7 +6,7 @@
 # docker build -f src/test/docker/Dockerfile.it -t stackgres/it:9.0 .
 #
 ###
-FROM docker:19.03
+FROM docker.io/docker:19.03
 
 RUN wget -q -O /bin/kubectl https://storage.googleapis.com/kubernetes-release/release/v1.18.6/bin/linux/amd64/kubectl
 RUN chmod a+x /bin/kubectl

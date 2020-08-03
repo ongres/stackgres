@@ -53,11 +53,8 @@ stages:
 
 build:
   stage: build
-  variables:
-    QUARKUS_PROFILE: "test"
   tags:
     - stackgres-runner
-    - stackgres-quarkus-test-runner
   script:
     - 'mvn $MAVEN_CLI_OPTS clean verify -P safer'
   artifacts:
@@ -299,14 +296,34 @@ build test images:
   timeout: 1 hour
   script:
     - |
-      IT_IMAGE="$(STACKGRES_VERSION=$(grep -o '<it\.image>\([^<]\+\)</it\.image>' stackgres-k8s/src/pom.xml \
-        | tr '<>' '  ' | cut -d ' ' -f 3))"
+      IT_IMAGE_NAME="$(grep -o '<it\.image>\([^<]\+\)</it\.image>' stackgres-k8s/src/pom.xml \
+        | tr '<>' '  ' | cut -d ' ' -f 3)"
+    - 'TARGET_IT_IMAGE_NAME="$CI_REGISTRY/ongresinc/stackgres/$IT_IMAGE_NAME"'
+    - buildah login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
     - |
-      flock /tmp/stackgres-build-it-image \
-        buildah bud -f stackgres-k8s/src/operator/src/test/docker/Dockerfile.it -t "$IT_IMAGE" .
+      cat << EOF | flock /tmp/stackgres-build-it-image sh -xe
+      buildah bud -f stackgres-k8s/src/operator/src/test/docker/Dockerfile.it -t "$IT_IMAGE_NAME" .
+      buildah push -f "docker" "$IT_IMAGE_NAME" "$TARGET_IT_IMAGE_NAME"
+      EOF
   only:
     variables:
       - $SKIP_E2E != "true"
+
+unit tests:
+  stage: test
+  variables:
+    QUARKUS_PROFILE: "test"
+  tags:
+    - stackgres-runner
+    - stackgres-quarkus-test-runner
+  script:
+    - 'mvn $MAVEN_CLI_OPTS clean verify'
+  artifacts:
+    expire_in: 1 week
+    when: always
+    reports:
+      junit:
+        - stackgres-k8s/src/*/target/surefire-reports/TEST-*.xml
 
 integration test:
   stage: test
