@@ -27,10 +27,6 @@ e2e_test() {
   run_test "Getting a custom labels with http api" get_api_custom_labels
 }
 
-ramdom_string(){
-  cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1
-}
-
 check_label(){
   local INSTANCE="$1"
   local EXPECTED_LABEL_VALUE="$2"

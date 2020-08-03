@@ -30,6 +30,11 @@
         "labels": {
           "customLabel" : "customLabelValue"
         }
+      },
+      "scheduling": {
+        "nodeSelector": {
+          "diskType": "hdd"
+        }
       }
     },
     "prometheusAutobind": true,

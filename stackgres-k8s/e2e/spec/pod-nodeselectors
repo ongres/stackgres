@@ -1,0 +1,65 @@
+#!/bin/sh
+
+e2e_test_install() {
+  NODE_LABEL_KEY=$(ramdom_string)
+  NODE_LABEL_VALUE=$(ramdom_string)
+  
+  kubectl create namespace "$CLUSTER_NAMESPACE"
+
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 \
+    --set "cluster.pods.scheduling.nodeSelector.$NODE_LABEL_KEY=$NODE_LABEL_VALUE"
+
+}
+
+e2e_test() {
+  run_test "Cluster with no mathing nodes should not be deployed" check_cluster_not_deployed
+
+  run_test "Adding the needed labels to the node it should be able to schedule it" check_cluster_deployed_after_node_configured
+}
+
+get_pod_phase() {
+  kubectl get pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-0 -o jsonpath='{.status.phase}'
+}
+
+get_pod_reason() {
+  kubectl get pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-0 -o jsonpath='{.status.conditions[0].reason}'
+}
+
+get_first_node_name(){
+  kubectl get nodes -o jsonpath='{.items[0].metadata.name}'
+}
+
+check_cluster_not_deployed() {
+
+  echo "Waiting for pod to be pending"  
+  wait_until eval '[ $(get_pod_phase) = "Pending" ]'
+
+  echo "Waiting for pod have a reason"
+  wait_until eval '[ $(get_pod_reason) != "" ]'
+
+  SCHEDULE_REASON=$(get_pod_reason)
+
+  assert_string_equal "Unschedulable" "$SCHEDULE_REASON"
+
+}
+
+check_cluster_deployed_after_node_configured() {
+
+  NODE_NAME=$(get_first_node_name)
+  echo "Node name: $NODE_NAME"
+  echo "Node label key: $NODE_LABEL_KEY"
+  echo "Node label value: $NODE_LABEL_VALUE"
+
+  kubectl label nodes "$NODE_NAME" "$NODE_LABEL_KEY"="$NODE_LABEL_VALUE"
+
+  wait_until eval '[ $(get_pod_phase) = "Running" ]'
+
+}
+
+e2e_test_uninstall() {
+  kubectl label nodes "$NODE_NAME" "$NODE_LABEL_KEY"- || true
+
+  helm_cleanup_chart "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+
+  k8s_async_cleanup_namespace "$CLUSTER_NAMESPACE"
+}

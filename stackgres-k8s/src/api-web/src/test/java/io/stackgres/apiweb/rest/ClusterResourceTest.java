@@ -45,6 +45,7 @@ import io.stackgres.apiweb.dto.cluster.ClusterRestore;
 import io.stackgres.apiweb.dto.cluster.ClusterScriptEntry;
 import io.stackgres.apiweb.dto.cluster.ClusterSpec;
 import io.stackgres.apiweb.dto.cluster.ClusterStatsDto;
+import io.stackgres.apiweb.dto.cluster.PodScheduling;
 import io.stackgres.apiweb.resource.ClusterDtoFinder;
 import io.stackgres.apiweb.resource.ClusterDtoScanner;
 import io.stackgres.apiweb.resource.ClusterStatsDtoFinder;
@@ -64,6 +65,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterRestore;
 import io.stackgres.common.crd.sgcluster.StackGresClusterScriptEntry;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresPodPersistentVolume;
+import io.stackgres.common.crd.sgcluster.StackGresPodScheduling;
 import io.stackgres.common.crd.sgcluster.StackgresClusterConfiguration;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
@@ -332,6 +334,14 @@ class ClusterResourceTest
         } else {
           assertNull(dtoSpecPods.getMetadata());
         }
+
+        if (resourcePod.getScheduling() != null) {
+          assertNotNull(dtoSpecPods.getScheduling());
+          assertEquals(resourcePod.getScheduling().getNodeSelector(),
+              dtoSpecPods.getScheduling().getNodeSelector());
+        } else {
+          assertNull(dtoSpecPods.getScheduling());
+        }
       } else {
         assertNull(dtoSpecPods);
       }
@@ -462,6 +472,15 @@ class ClusterResourceTest
           assertEquals(dtoPodsMetadata.getLabels(), resourcePodMetadata.getLabels());
         } else {
           assertNull(resourcePodMetadata);
+        }
+
+        final PodScheduling podScheduling = dtoSpecPods.getScheduling();
+        final StackGresPodScheduling resourceScheduling = resourceSpecPod.getScheduling();
+        if (podScheduling != null) {
+          assertNotNull(resourceScheduling);
+          assertEquals(podScheduling.getNodeSelector(), resourceScheduling.getNodeSelector());
+        } else {
+          assertNull(resourceScheduling);
         }
 
       }

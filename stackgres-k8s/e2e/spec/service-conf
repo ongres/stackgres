@@ -18,10 +18,6 @@ e2e_test() {
 
 }
 
-ramdom_string(){
-  cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1
-}
-
 services_disabled(){
 
   if kubectl get service -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-"primary" > /dev/null

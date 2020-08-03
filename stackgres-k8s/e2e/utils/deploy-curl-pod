@@ -21,3 +21,4 @@ EOF
 
   wait_until eval 'kubectl get pods -n "$NAMESPACE" curl | grep Running | grep 1/1'
 }
+
