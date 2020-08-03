@@ -325,29 +325,6 @@ unit tests:
       junit:
         - stackgres-k8s/src/*/target/surefire-reports/TEST-*.xml
 
-integration test:
-  stage: test
-  tags:
-    - stackgres-runner
-  dependencies:
-    - build
-  timeout: 12 hour
-  script:
-    - |
-      flock -s /tmp/stackgres-build-operator-native-executable \
-        flock -s /tmp/stackgres-build-restapi-native-executable \
-        flock /tmp/stackgres-integration-test \
-        timeout -s KILL 3600 \
-        mvn $MAVEN_CLI_OPTS verify -P integration -Dit.skipBuildContainer=true
-  only:
-    variables:
-      - $DO_EXTERNAL
-  artifacts:
-    expire_in: 1 week
-    when: always
-    paths:
-    - stackgres-k8s/src/operator/target/e2e
-
 .e2e tests jvm image:
   stage: test
   tags:
@@ -370,6 +347,10 @@ integration test:
     - 'export E2E_RUN_ONLY="$E2E_RUN_ONLY:$E2E_RUN_BATCH_INDEX/$E2E_RUN_BATCH_COUNT"'
     - 'export E2E_PULLED_IMAGES_PATH="/tmp/pulled-images-jvm-image$E2E_EXTRA_SUFFIX-$E2E_RUN_BATCH_INDEX"'
     - 'export K8S_SUFFIX="$K8S_SUFFIX$E2E_EXTRA_SUFFIX-$E2E_RUN_BATCH_INDEX"'
+    - 'echo "*.url=$CI_REGISTRY" > /tmp/com.ongres.junit.docker.dockerRepositoryConfig'
+    - 'echo "*.username=$CI_REGISTRY_USER" >> /tmp/com.ongres.junit.docker.dockerRepositoryConfig'
+    - 'echo "*.password=$CI_REGISTRY_PASSWORD" >> /tmp/com.ongres.junit.docker.dockerRepositoryConfig'
+    - 'echo "*.path=$E2E_OPERATOR_REGISTRY_PATH" >> /tmp/com.ongres.junit.docker.dockerRepositoryConfig'
     - |
       flock -s /tmp/stackgres-build-operator-native-executable \
         flock -s /tmp/stackgres-build-restapi-native-executable \
@@ -377,6 +358,7 @@ integration test:
         timeout -s KILL 3600 \
         mvn $MAVEN_CLI_OPTS verify -P integration \
           -DargLine=-Dcom.ongres.junit.docker.runnerId="$K8S_SUFFIX" \
+          -DargLine=-Dcom.ongres.junit.docker.dockerRepositoryConfig=/tmp/com.ongres.junit.docker.dockerRepositoryConfig \
           -Dit.skipBuildContainer=true
   only:
     variables:
@@ -430,6 +412,10 @@ e2e exclusive tests jvm image:
     - 'export E2E_RUN_ONLY="$E2E_RUN_ONLY:$E2E_RUN_BATCH_INDEX/$E2E_RUN_BATCH_COUNT"'
     - 'export E2E_PULLED_IMAGES_PATH="/tmp/pulled-images-native-image$E2E_EXTRA_SUFFIX-$E2E_RUN_BATCH_INDEX"'
     - 'export K8S_SUFFIX="$K8S_SUFFIX$E2E_EXTRA_SUFFIX-$E2E_RUN_BATCH_INDEX"'
+    - 'echo "*.url=$CI_REGISTRY" > /tmp/com.ongres.junit.docker.dockerRepositoryConfig'
+    - 'echo "*.username=$CI_REGISTRY_USER" >> /tmp/com.ongres.junit.docker.dockerRepositoryConfig'
+    - 'echo "*.password=$CI_REGISTRY_PASSWORD" >> /tmp/com.ongres.junit.docker.dockerRepositoryConfig'
+    - 'echo "*.path=$E2E_OPERATOR_REGISTRY_PATH" >> /tmp/com.ongres.junit.docker.dockerRepositoryConfig'
     - |
       flock -s /tmp/stackgres-build-operator-native-executable \
         flock -s /tmp/stackgres-build-restapi-native-executable \
@@ -437,6 +423,7 @@ e2e exclusive tests jvm image:
         timeout -s KILL 3600 \
         mvn $MAVEN_CLI_OPTS verify -P integration \
           -DargLine=-Dcom.ongres.junit.docker.runnerId="$K8S_SUFFIX" \
+          -DargLine=-Dcom.ongres.junit.docker.dockerRepositoryConfig=/tmp/com.ongres.junit.docker.dockerRepositoryConfig \
           -Dit.skipBuildContainer=true
   only:
     variables:
