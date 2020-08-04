@@ -42,29 +42,13 @@ public class ClusterStatsDtoFinder
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ClusterStatsDtoFinder.class);
 
-  private final ManagedExecutor managedExecutor;
-  private final CustomResourceFinder<StackGresCluster> clusterFinder;
-  private final PodFinder podFinder;
-  private final PodExecutor podExecutor;
-  private final PersistentVolumeClaimFinder persistentVolumeClaimFinder;
-  private final ClusterLabelFactory clusterLabelFactory;
-  private final ClusterStatsTransformer clusterStatsTransformer;
-
-  @Inject
-  public ClusterStatsDtoFinder(CustomResourceFinder<StackGresCluster> clusterFinder,
-      PodFinder podFinder, PodExecutor podExecutor,
-      PersistentVolumeClaimFinder persistentVolumeClaimFinder,
-      ClusterLabelFactory clusterLabelFactory, ClusterStatsTransformer clusterStatsTransformer,
-      ManagedExecutor managedExecutor) {
-    super();
-    this.managedExecutor = managedExecutor;
-    this.clusterFinder = clusterFinder;
-    this.podFinder = podFinder;
-    this.podExecutor = podExecutor;
-    this.persistentVolumeClaimFinder = persistentVolumeClaimFinder;
-    this.clusterLabelFactory = clusterLabelFactory;
-    this.clusterStatsTransformer = clusterStatsTransformer;
-  }
+  private ManagedExecutor managedExecutor;
+  private CustomResourceFinder<StackGresCluster> clusterFinder;
+  private PodFinder podFinder;
+  private PodExecutor podExecutor;
+  private PersistentVolumeClaimFinder persistentVolumeClaimFinder;
+  private ClusterLabelFactory clusterLabelFactory;
+  private ClusterStatsTransformer clusterStatsTransformer;
 
   @Override
   public Optional<ClusterStatsDto> findByNameAndNamespace(
@@ -94,8 +78,9 @@ public class ClusterStatsDtoFinder
     try {
       return Seq.seq(podExecutor.exec(pod, StackgresClusterContainers.PATRONI, "sh", "-c",
           Seq.seq(PatroniStatsScripts.getScripts())
-          .map(tt -> "echo \"" + tt.v1.getName() + ":$( (" + tt.v2 + ") 2>&1 | tr -d '\\n')\"\n")
-          .toString()))
+              .map(tt -> "echo \"" + tt.v1.getName() + ":$( (" + tt.v2
+                  + ") 2>&1 | tr -d '\\n')\"\n")
+              .toString()))
           .peek(line -> {
             if (LOGGER.isTraceEnabled() && line.endsWith("#failed")) {
               LOGGER.trace("An error accurred while retrieving stats for pod {}.{}: {}",
@@ -135,4 +120,39 @@ public class ClusterStatsDtoFinder
             .findByNameAndNamespace(podDataPvcName, pod.getMetadata().getNamespace()));
   }
 
+  @Inject
+  public void setManagedExecutor(ManagedExecutor managedExecutor) {
+    this.managedExecutor = managedExecutor;
+  }
+
+  @Inject
+  public void setClusterFinder(CustomResourceFinder<StackGresCluster> clusterFinder) {
+    this.clusterFinder = clusterFinder;
+  }
+
+  @Inject
+  public void setPodFinder(PodFinder podFinder) {
+    this.podFinder = podFinder;
+  }
+
+  @Inject
+  public void setPodExecutor(PodExecutor podExecutor) {
+    this.podExecutor = podExecutor;
+  }
+
+  @Inject
+  public void setPersistentVolumeClaimFinder(
+      PersistentVolumeClaimFinder persistentVolumeClaimFinder) {
+    this.persistentVolumeClaimFinder = persistentVolumeClaimFinder;
+  }
+
+  @Inject
+  public void setClusterLabelFactory(ClusterLabelFactory clusterLabelFactory) {
+    this.clusterLabelFactory = clusterLabelFactory;
+  }
+
+  @Inject
+  public void setClusterStatsTransformer(ClusterStatsTransformer clusterStatsTransformer) {
+    this.clusterStatsTransformer = clusterStatsTransformer;
+  }
 }

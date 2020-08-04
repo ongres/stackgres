@@ -43,7 +43,9 @@ public class SecretVerificationTest {
             StackGresContext.REST_PASSWORD_KEY,
             ResourceUtil.encodeSecret(TokenUtils.sha256("testtest"))))
         .build();
-    secretVerification = new SecretVerification(secretScanner, new WebApiPropertyContext());
+    secretVerification = new SecretVerification();
+    secretVerification.setSecretScanner(secretScanner);
+    secretVerification.init(new WebApiPropertyContext());
   }
 
   @Test
