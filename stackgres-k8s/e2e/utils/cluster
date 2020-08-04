@@ -31,7 +31,7 @@ create_or_replace_cluster() {
   if helm get values "$RELEASE" --namespace "$NAMESPACE" > /dev/null 2>&1
   then
     helm upgrade "$RELEASE" --namespace "$NAMESPACE" "$CLUSTER_CHART_PATH" \
-        --set cluster.instances="$INSTANCES" -f "$SPEC_VALUES_FILE" "$@"   
+        --reuse-values --set cluster.instances="$INSTANCES" -f "$SPEC_VALUES_FILE" "$@"   
   else
     create_namespace_if_not_exists "$NAMESPACE"
     helm install "$RELEASE" "$CLUSTER_CHART_PATH" \
