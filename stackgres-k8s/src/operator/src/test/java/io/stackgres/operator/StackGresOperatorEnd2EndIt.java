@@ -66,14 +66,17 @@ public class StackGresOperatorEnd2EndIt extends AbstractStackGresOperatorIt {
                   + E2E_RUN_ONLY.map(runOnly -> {
                     if (runOnly.matches("(non_)?exclusive(:[0-9]+/[0-9]+)?")) {
                       if (runOnly.contains(":")) {
-                        int indexOfColon = runOnly.indexOf(":");
-                        int indexOfSlash = runOnly.indexOf("/");
-                        return "COUNT=$(sh e2e get_all_" + runOnly.substring(0, indexOfColon) + "_specs | wc -l)\n"
+                        String[] splitColon = runOnly.split(":");
+                        String[] splitSlash = splitColon[1].split("/");
+                        return "COUNT=$(sh e2e get_all_" + splitColon[0] + "_specs | wc -l)\n"
+                            + "BATCH_INDEX=" + splitSlash[0] + "\n"
+                            + "BATCH_COUNT=" + splitSlash[1] + "\n"
                             + "export E2E_ONLY_INCLUDES=$("
-                            + "sh e2e get_all_" + runOnly.substring(0, indexOfColon) + "_specs"
-                            + " | tail -n +\"$((COUNT * (" + runOnly.substring(indexOfColon + 1, indexOfSlash) + " - 1)"
-                                + " / " + runOnly.substring(indexOfSlash + 1) + "))\""
-                            + " | head -n \"$((COUNT / " + runOnly.substring(indexOfSlash + 1) + "))\")\n";
+                            + "sh e2e get_all_" + splitColon[0] + "_specs"
+                            + " | sort"
+                            + " | tail -n +\"$(((COUNT / BATCH_COUNT) * BATCH_INDEX))\""
+                            + (splitSlash[0].equals(splitSlash[1]) ? "" : " | head -n \"$((COUNT / BATCH_COUNT))\"")
+                            + ")\n";
                       }
                       return "export E2E_ONLY_INCLUDES=$(sh e2e get_all_" + runOnly + "_specs)\n";
                     }
@@ -109,7 +112,7 @@ public class StackGresOperatorEnd2EndIt extends AbstractStackGresOperatorIt {
                   + "  " + E2E_SHELL + " e2e show_failed_logs\n"
                   + "  exit 1\n"
                   + "fi\n"))).getBytes(StandardCharsets.UTF_8)), "/run-e2e-from-it.sh");
-          k8s.execute("sh", "-e", "/run-e2e-from-it.sh")
+          k8s.execute("sh", "-e" + (ItHelper.E2E_DEBUG ? "x" : ""), "/run-e2e-from-it.sh")
               .filter(ItHelper.EXCLUDE_TTY_WARNING)
               .forEach(LOGGER::info);
         } catch (RuntimeException ex) {
