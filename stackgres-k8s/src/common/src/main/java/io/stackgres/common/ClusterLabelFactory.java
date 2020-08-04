@@ -13,16 +13,15 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 @ApplicationScoped
 public class ClusterLabelFactory extends AbstractLabelFactory<StackGresCluster> {
 
-  private final LabelMapper<StackGresCluster> labelMapper;
-
-  @Inject
-  public ClusterLabelFactory(LabelMapper<StackGresCluster> labelMapper) {
-    this.labelMapper = labelMapper;
-  }
+  private LabelMapper<StackGresCluster> labelMapper;
 
   @Override
   public LabelMapper<StackGresCluster> getLabelMapper() {
     return labelMapper;
   }
 
+  @Inject
+  public void setLabelMapper(LabelMapper<StackGresCluster> labelMapper) {
+    this.labelMapper = labelMapper;
+  }
 }

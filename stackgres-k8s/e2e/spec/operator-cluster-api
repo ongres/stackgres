@@ -74,6 +74,10 @@ e2e_test() {
   run_test "Create cluster with inline scripts" check_create_cluster_with_inline_script
 
   run_test "Create cluster with node selectors" check_create_cluster_node_selectors_script
+  
+  run_test "Create cluster with secret and configmap scripts" check_create_cluster_with_secret_and_configmap_script
+
+  run_test "Failed cluster creation should delete all created secrets and configmaps" check_failed_cluster_creation_with_secret_and_configmap_script
 }
 
 check_cluster_in_list() {
@@ -425,12 +429,93 @@ check_create_cluster_node_selectors_script() {
     | jq '.spec.pods.scheduling={}' | jq '.spec.pods.scheduling.nodeSelector={}' \
     | jq '.spec.pods.scheduling.nodeSelector["'"$NODE_LABEL_KEY"'"] = "'"$NODE_LABEL_VALUE"'"') 
 
+    ACTUAL_NODE_VALUE=$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
+    -o jsonpath='{.spec.pods.scheduling.nodeSelector.'"$NODE_LABEL_KEY"'}') 
+
+  assert_string_equal "$NODE_LABEL_VALUE" "$ACTUAL_NODE_VALUE"
+  
+  wait_pods_running "$CLUSTER_NAMESPACE" 4
+}
+
+check_create_cluster_with_secret_and_configmap_script() {
+
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2
+
+  OPERATOR_CLUSTER_CR=$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
+    | jq 'del(.metadata.creationTimestamp) | del(.metadata.generation) | del(.metadata.resourceVersion) | del(.metadata.selfLink) | del(.metadata.uid)' \
+    | jq 'del(.status)' \
+    | jq '.spec.initialData={}' | jq '.spec.initialData.scripts=[]' \
+    | jq '.spec.initialData.scripts[0].name = "init"' \
+    | jq '.spec.initialData.scripts[0].scriptFrom={}' \
+    | jq '.spec.initialData.scripts[0].scriptFrom.secretScript = "CREATE DATABASE test"' \
+    | jq '.spec.initialData.scripts[0].scriptFrom.secretKeyRef = {}' \
+    | jq '.spec.initialData.scripts[0].scriptFrom.secretKeyRef.name = "init-script"' \
+    | jq '.spec.initialData.scripts[0].scriptFrom.secretKeyRef.key = "script"' \
+    | jq '.spec.initialData.scripts[1].name = "table"' \
+    | jq '.spec.initialData.scripts[1].database = "test"' \
+    | jq '.spec.initialData.scripts[1].scriptFrom={}' \
+    | jq '.spec.initialData.scripts[1].scriptFrom.configMapScript = "CREATE TABLE fibonacci(num integer)"' \
+    | jq '.spec.initialData.scripts[1].scriptFrom.configMapKeyRef = {}' \
+    | jq '.spec.initialData.scripts[1].scriptFrom.configMapKeyRef.name = "table-script"' \
+    | jq '.spec.initialData.scripts[1].scriptFrom.configMapKeyRef.key = "script"') 
+
   echo_raw "$OPERATOR_CLUSTER_CR" > "$LOG_PATH/stackgres-cluster.json"
 
   create_cluster_with_api
 
-  ACTUAL_NODE_VALUE=$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
-    -o jsonpath='{.spec.pods.scheduling.nodeSelector.'"$NODE_LABEL_KEY"'}') 
+  insert_mock_data
 
-  assert_string_equal "$NODE_LABEL_VALUE" "$ACTUAL_NODE_VALUE"
+  check_mock_data
+
+  kubectl delete secret -n "$CLUSTER_NAMESPACE" "init-script" > /dev/null
+
+  kubectl delete configmap -n "$CLUSTER_NAMESPACE" "table-script" > /dev/null
+
+}
+
+check_failed_cluster_creation_with_secret_and_configmap_script() {
+
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2
+
+  OPERATOR_CLUSTER_CR=$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
+    | jq 'del(.metadata.creationTimestamp) | del(.metadata.generation) | del(.metadata.resourceVersion) | del(.metadata.selfLink) | del(.metadata.uid)' \
+    | jq 'del(.status)' \
+    | jq '.spec.instances = -1' \
+    | jq '.spec.initialData={}' | jq '.spec.initialData.scripts=[]' \
+    | jq '.spec.initialData.scripts[0].name = "init"' \
+    | jq '.spec.initialData.scripts[0].scriptFrom={}' \
+    | jq '.spec.initialData.scripts[0].scriptFrom.secretScript = "CREATE DATABASE test"' \
+    | jq '.spec.initialData.scripts[0].scriptFrom.secretKeyRef = {}' \
+    | jq '.spec.initialData.scripts[0].scriptFrom.secretKeyRef.name = "init-script"' \
+    | jq '.spec.initialData.scripts[0].scriptFrom.secretKeyRef.key = "script"' \
+    | jq '.spec.initialData.scripts[1].name = "table"' \
+    | jq '.spec.initialData.scripts[1].database = "test"' \
+    | jq '.spec.initialData.scripts[1].scriptFrom={}' \
+    | jq '.spec.initialData.scripts[1].scriptFrom.configMapScript = "CREATE TABLE fibonacci(num integer)"' \
+    | jq '.spec.initialData.scripts[1].scriptFrom.configMapKeyRef = {}' \
+    | jq '.spec.initialData.scripts[1].scriptFrom.configMapKeyRef.name = "table-script"' \
+    | jq '.spec.initialData.scripts[1].scriptFrom.configMapKeyRef.key = "script"') 
+
+  echo_raw "$OPERATOR_CLUSTER_CR" > "$LOG_PATH/invalid-cluster.json"
+
+  remove_cluster_cr_if_exists
+
+  run_curl -r "stackgres/sgcluster" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/invalid-cluster.json" -e '-X POST' > /dev/null
+
+  if kubectl get secrets -n "$CLUSTER_NAMESPACE" "init-script" > /dev/null
+  then
+    echo "FAIL. Failed cluster creation is not deleting all created secrets"
+    return 1
+  else
+    echo "Success. Failed cluster creation is deleting all created secrets"
+  fi
+  
+  if kubectl get configmaps -n "$CLUSTER_NAMESPACE" "table-script" > /dev/null
+  then
+    echo "FAIL. Failed cluster creation is not deleting all created configmaps"
+    return 1
+  else
+    echo "Success. Failed cluster creation is deleting all created configmaps"
+  fi
+  
 }
