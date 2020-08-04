@@ -33,9 +33,14 @@ helm_cleanup() {
 
 k8s_cleanup() {
   k8s_webhook_cleanup
+  local HELM_RESOURCES_TEMPLATE='{{ range .items }}{{ if .metadata.annotations }}{{ if index .metadata.annotations "meta.helm.sh/release-name" }}{{ printf "%s\n" .metadata.name  }}{{ end }}{{ end }}{{ end }}'
   kubectl get crd -o name \
     | grep -v "^customresourcedefinition.apiextensions.k8s.io/\($(excluded_customresourcedefinitions | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
     | xargs -r -n 1 -I % -P 0 kubectl delete %
+  kubectl get clusterrolebinding --template "$HELM_RESOURCES_TEMPLATE" \
+    | xargs -r -n 1 -I % -P 0 kubectl delete clusterrolebinding %
+  kubectl get clusterrole --template "$HELM_RESOURCES_TEMPLATE" \
+    | xargs -r -n 1 -I % -P 0 kubectl delete clusterrole %
   kubectl get namespace -o name \
     | grep -v "^namespace/\(default\|kube-.*\)$" \
     | grep -v "^namespace/\($(excluded_namespaces | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
@@ -55,9 +60,14 @@ k8s_cleanup() {
 
 k8s_async_cleanup() {
   k8s_webhook_cleanup
+  local HELM_RESOURCES_TEMPLATE='{{ range .items }}{{ if .metadata.annotations }}{{ if index .metadata.annotations "meta.helm.sh/release-name" }}{{ printf "%s\n" .metadata.name  }}{{ end }}{{ end }}{{ end }}'
   kubectl get crd -o name \
     | grep -v "^customresourcedefinition.apiextensions.k8s.io/\($(excluded_customresourcedefinitions | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
     | xargs -r -n 1 -I % -P 0 kubectl delete %
+  kubectl get clusterrolebinding --template "$HELM_RESOURCES_TEMPLATE" \
+    | xargs -r -n 1 -I % -P 0 kubectl delete clusterrolebinding %
+  kubectl get clusterrole --template "$HELM_RESOURCES_TEMPLATE" \
+    | xargs -r -n 1 -I % -P 0 kubectl delete clusterrole %
   kubectl get namespace -o name \
     | grep -v "^namespace/\(default\|kube-.*\)$" \
     | grep -v "^namespace/\($(excluded_namespaces | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
