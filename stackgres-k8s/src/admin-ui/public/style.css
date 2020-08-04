@@ -2670,7 +2670,7 @@ label.script {
     display: inline;
 }
 
-fieldset.postgresServicesPrimary .header a.help, fieldset.postgresServicesReplicas .header a.help, fieldset.postgresServicesPrimary fieldset a.help, fieldset.postgresServicesReplicas fieldset a.help, fieldset.podsMetadata a.help {
+fieldset.postgresServicesPrimary .header a.help, fieldset.postgresServicesReplicas .header a.help, fieldset.postgresServicesPrimary fieldset a.help, fieldset.postgresServicesReplicas fieldset a.help, fieldset.podsMetadata a.help, fieldset.podsScheduling a.help {
     margin-top: 0;
 }
 
@@ -3096,7 +3096,7 @@ table.clusterConfig {
     margin-top: 15px;
 }
 
-.resourcesMetadata table, .postgresServices table {
+.resourcesMetadata table:not(:last-of-type), .postgresServices table:not(:last-of-type), .podsMetadata table:not(:last-of-type) {
     margin-bottom: 15px;
 }
 
