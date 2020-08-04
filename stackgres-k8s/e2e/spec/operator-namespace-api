@@ -34,7 +34,7 @@ check_returned_namespaces() {
     | jq -M -S 'sort_by(.)[]' )
 
   NAMESPACES_IN_K8S=$(kubectl get ns -o json \
-    | jq -M -S '.items[].metadata |  select(.name | startswith("kube") or startswith("stackgres") | not).name')
+    | jq -M -S '.items[].metadata.name')
 
   [ "$NAMESPACES_IN_RESPONSE" = "$NAMESPACES_IN_K8S" ]
 }
