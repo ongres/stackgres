@@ -105,7 +105,8 @@ You can specify following parameters values:
 | `cluster.pods.disableConnectionPooling` | {{< crd-field-description SGCluster.spec.pods.disableConnectionPooling >}} | false |
 | `cluster.pods.disableMetricsExporter` | {{< crd-field-description SGCluster.spec.pods.disableMetricsExporter >}} | false |
 | `cluster.pods.disablePostgresUtil` | {{< crd-field-description SGCluster.spec.pods.disablePostgresUtil >}} | false |
-| `cluster.pods.metadata.labels` | {{< crd-field-description SGCluster.spec.pods.metadata.labels >}} | false |
+| `cluster.pods.metadata.labels` | {{< crd-field-description SGCluster.spec.pods.metadata.labels >}} | |
+| `cluster.pods.scheduling.nodeSelector` | {{< crd-field-description SGCluster.spec.pods.scheduling.nodeSelector >}} | |
 
 #### Resources metadata
 
