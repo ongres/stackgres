@@ -329,6 +329,8 @@ EOF
     echo "Success. Defaults annotations created"
   fi
 
+  wait_until eval 'kubectl get pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -o name'
+
   local INSTALLED_CONTAINERS="$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -o=jsonpath='{.spec.containers[*].name}')"
 
   if echo "$INSTALLED_CONTAINERS" | grep "prometheus-postgres-exporter" > /dev/null
