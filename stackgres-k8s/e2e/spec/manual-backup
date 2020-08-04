@@ -38,9 +38,9 @@ EOF
 }
 
 e2e_test() {
-  run_test "Checking that manual backup is working" check_manual_backup
+  run_test "Checking that manual backup is working" check_manual_backup_is_working
 }
 
-check_manual_backup() {
+check_manual_backup_is_working() {
   check_manual_backup 0
 }
