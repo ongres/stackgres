@@ -310,7 +310,10 @@ router.beforeEach((to, from, next) => {
   // If loading CRD from direct URL validate if CRD exists on the API before loading
   if( from.path == '/') {
 
-    checkLogin();
+    if(!checkLogin()) {
+      next(); 
+      return;
+    }
 
     /* Check if Namespace exist */
     if(to.params.hasOwnProperty('namespace')) {
@@ -1809,13 +1812,17 @@ function checkLogin() {
     if(!store.state.loginToken.length) {
       $('#signup').addClass('login').fadeIn();
       return false;
+    } else {
+      return true;
     }
   } else if ( !store.state.loginToken.length && (loginToken.length > 0) ) {
     $('#signup').hide();
     store.commit('setLoginToken', loginToken);
+    return true;
   } else if ( urlParams.has('localAPI') ) {
     $('#signup').hide();
     store.commit('setLoginToken', 'localAPI');
+    return true;
   }
 }
 
