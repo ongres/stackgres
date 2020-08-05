@@ -33,6 +33,7 @@ setup_images() {
     (
     cd "$STACKGRES_PATH/src"
     ./mvnw -q clean package -P build-image-jvm
+    sh admin-ui/build.sh
     sh admin-ui/buildah/build.sh
     )
   fi
