@@ -2598,9 +2598,9 @@ a.addRow {
     position: relative;
 }
 
-.repeater .row  a.addRow {
-    position: absolute;
-    top: 0;
+.repeater .row a.addRow {
+    position: relative;
+    top: -80px;
     right: 0;
 }
 
@@ -2672,6 +2672,11 @@ label.script {
 
 fieldset.postgresServicesPrimary .header a.help, fieldset.postgresServicesReplicas .header a.help, fieldset.postgresServicesPrimary fieldset a.help, fieldset.postgresServicesReplicas fieldset a.help, fieldset.podsMetadata a.help, fieldset.podsScheduling a.help {
     margin-top: 0;
+}
+
+fieldset.podsScheduling .row a.help {
+    right: -46px;
+    bottom: -15px;
 }
 
 /* Help Tooltips */
