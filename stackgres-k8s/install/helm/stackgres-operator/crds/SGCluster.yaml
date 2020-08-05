@@ -135,6 +135,13 @@ spec:
                     labels:
                       type: object
                       description: Additional labels for StackGres Pods to have
+                scheduling:
+                  type: object
+                  description: Pod custom scheduling configuration
+                  properties:
+                    nodeSelector:
+                      type: object
+                      description: Pod custom node selector                  
               required: ["persistentVolume"]
             configurations:
               type: object
