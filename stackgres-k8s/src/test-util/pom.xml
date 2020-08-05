@@ -25,7 +25,7 @@
   <dependencies>
     <dependency>
       <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-resteasy-jackson</artifactId>
+      <artifactId>quarkus-jackson</artifactId>
     </dependency>
     <dependency>
       <groupId>commons-io</groupId>

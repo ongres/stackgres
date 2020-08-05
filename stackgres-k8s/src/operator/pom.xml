@@ -41,9 +41,14 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-security</artifactId>
+      <groupId>com.fasterxml.jackson.dataformat</groupId>
+      <artifactId>jackson-dataformat-properties</artifactId>
     </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-smallrye-health</artifactId>
+    </dependency>
+
     <dependency>
       <groupId>io.stackgres</groupId>
       <artifactId>stackgres-test-util</artifactId>
@@ -51,18 +56,18 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.mockito</groupId>
-      <artifactId>mockito-core</artifactId>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-junit5</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-junit5-mockito</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-junit-jupiter</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-junit5</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -110,15 +115,9 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>io.fabric8</groupId>
-      <artifactId>kubernetes-server-mock</artifactId>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-test-kubernetes-client</artifactId>
       <scope>test</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>io.sundr</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
   </dependencies>
 
@@ -174,6 +173,10 @@
             </configuration>
           </execution>
         </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.jboss.jandex</groupId>
+        <artifactId>jandex-maven-plugin</artifactId>
       </plugin>
       <plugin>
         <groupId>io.quarkus</groupId>

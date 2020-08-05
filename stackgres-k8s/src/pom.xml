@@ -61,19 +61,17 @@
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>
     <!-- Dependencies versions -->
-    <quarkus.version>1.6.1.Final</quarkus.version>
+    <quarkus.version>1.7.0.Final</quarkus.version>
     <jool.version>0.9.14</jool.version>
     <immutables.version>2.8.8</immutables.version>
-    <javax.annotation-api.version>1.3.2</javax.annotation-api.version>
-    <javax.validation-api.version>2.0.1.Final</javax.validation-api.version>
     <checkstyle.version>8.35</checkstyle.version>
-    <spotbugs.version>4.0.6</spotbugs.version>
+    <spotbugs.version>4.1.1</spotbugs.version>
     <pmd.version>6.26.0</pmd.version>
-    <docker-junit-extension.version>1.2.14</docker-junit-extension.version>
+    <docker-junit-extension.version>1.2.15</docker-junit-extension.version>
     <jersey.version>2.29</jersey.version>
     <log4j.version>2.13.3</log4j.version>
-    <jooq.version>3.13.3</jooq.version>
-    <jetbrains-annotations.version>19.0.0</jetbrains-annotations.version>
+    <jooq.version>3.13.4</jooq.version>
+    <jetbrains-annotations.version>20.0.0</jetbrains-annotations.version>
     <!-- Plugins versions -->
     <compiler-plugin.version>3.8.1</compiler-plugin.version>
     <jar-plugin.version>3.2.0</jar-plugin.version>
@@ -88,6 +86,7 @@
     <dependency-plugin.version>3.1.1</dependency-plugin.version>
     <docker-maven-plugin.version>0.33.0</docker-maven-plugin.version>
     <jandex-maven-plugin.version>1.0.8</jandex-maven-plugin.version>
+    <jandex.version>2.2.1.Final</jandex.version>
     <exec-maven-plugin.version>3.0.0</exec-maven-plugin.version>
     <build-helper-maven-plugin.version>3.2.0</build-helper-maven-plugin.version>
     <!-- Checkstyle, SpotBugs and PMD properties -->
@@ -105,7 +104,7 @@
     <dependencies>
       <dependency>
         <groupId>io.quarkus</groupId>
-        <artifactId>quarkus-universe-bom</artifactId>
+        <artifactId>quarkus-bom</artifactId>
         <version>${quarkus.version}</version>
         <type>pom</type>
         <scope>import</scope>
@@ -167,7 +166,6 @@
         </exclusion>
       </exclusions>
     </dependency>
-
     <dependency>
       <groupId>org.jooq</groupId>
       <artifactId>jool</artifactId>
@@ -183,10 +181,8 @@
       <groupId>org.jetbrains</groupId>
       <artifactId>annotations</artifactId>
       <version>${jetbrains-annotations.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.fasterxml.jackson.dataformat</groupId>
-      <artifactId>jackson-dataformat-properties</artifactId>
+      <optional>true</optional>
+      <scope>provided</scope>
     </dependency>
   </dependencies>
 
@@ -292,6 +288,10 @@
           </execution>
         </executions>
       </plugin>
+      <plugin>
+        <groupId>org.jboss.jandex</groupId>
+        <artifactId>jandex-maven-plugin</artifactId>
+      </plugin>
     </plugins>
     <pluginManagement>
       <plugins>
@@ -317,6 +317,13 @@
               </goals>
             </execution>
           </executions>
+          <dependencies>
+            <dependency>
+              <groupId>org.jboss</groupId>
+              <artifactId>jandex</artifactId>
+              <version>${jandex.version}</version>
+            </dependency>
+          </dependencies>
         </plugin>
         <!--This plugin's configuration is used to store Eclipse m2e settings only.
             It has no influence on the Maven build itself.-->
@@ -375,6 +382,7 @@
               <threshold>Low</threshold>
               <xmlOutput>true</xmlOutput>
               <failOnError>true</failOnError>
+              <addSourceDirs>true</addSourceDirs>
             </configuration>
             <dependencies>
               <dependency>
