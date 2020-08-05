@@ -15,14 +15,13 @@ apiVersion: stackgres.io/v1beta1
 kind: SGBackupConfig
 metadata:
   name: {{ .Values.cluster.configurations.sgBackupConfig }}
-  labels:
-    app: {{ template "stackgres-cluster.name" . }}
-    chart: {{ template "stackgres-cluster.chart" . }}
-    heritage: {{ .Release.Service }}
-    release: {{ .Release.Name }}
-  {{- if .Values.cluster.create }}
+  {{- if and .Release.IsInstall .Values.cluster.create }}
   annotations:
-    "helm.sh/hook": "pre-install"
+    helm.sh/hook: "pre-install"
+    meta.helm.sh/release-name: {{ .Release.Name }}
+    meta.helm.sh/release-namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/managed-by: "Helm"
   {{- end }}
 spec:
   baseBackups:

@@ -3,11 +3,6 @@ apiVersion: stackgres.io/v1beta1
 kind: SGCluster
 metadata:
   name: {{ .Release.Name }}
-  labels:
-    app: {{ template "stackgres-cluster.name" . }}
-    chart: {{ template "stackgres-cluster.chart" . }}
-    heritage: {{ .Release.Service }}
-    release: {{ .Release.Name }}
 spec:
   instances: {{ .Values.cluster.instances }}
   postgresVersion: '{{ .Values.cluster.postgresVersion }}'

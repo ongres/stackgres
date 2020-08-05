@@ -3,6 +3,10 @@
 e2e_test_install() {
   DISTRIBUTED_LOGS_NAME=distributedlogs
 
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "1" \
+    --set distributedLogs.enabled=false \
+    --set distributedLogs.create=false
+
   create_or_replace_cluster "$CLUSTER_NAME-for-distributedlogs" "$CLUSTER_NAMESPACE" "1" \
     --set cluster.create=false \
     --set configurations.create=false \
@@ -16,6 +20,8 @@ e2e_test_install() {
     --set distributedLogs.enabled=true \
     --set distributedLogs.create=false \
     --set-string cluster.distributedLogs.sgDistributedLogs="$CLUSTER_NAMESPACE.$DISTRIBUTED_LOGS_NAME"
+
+  kubectl delete pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0"
 
   deploy_psql_pod "$CLUSTER_NAMESPACE"
 
