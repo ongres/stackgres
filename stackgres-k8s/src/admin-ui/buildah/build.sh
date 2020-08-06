@@ -9,7 +9,7 @@ buildah run "$CONTAINER_BASE" sed 's/listen       80;/listen       8080;/' -i /e
 buildah run "$CONTAINER_BASE" sed 's/listen  \[::\]:80;/listen  [::]:8080;/' -i /etc/nginx/conf.d/default.conf 
 
 # Copying admin static resources to ngnix
-buildah copy --chown nginx:nginx "$CONTAINER_BASE" 'admin-ui/public' '/usr/share/nginx/html/admin'
+buildah copy --chown nginx:nginx "$CONTAINER_BASE" 'admin-ui/target/public' '/usr/share/nginx/html/admin'
 
 #Expose port and default user
 buildah config --port 80 "$CONTAINER_BASE"

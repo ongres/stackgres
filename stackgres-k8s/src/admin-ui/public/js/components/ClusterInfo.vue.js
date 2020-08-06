@@ -272,8 +272,8 @@ var ClusterInfo = Vue.component("ClusterInfo", {
 					</tbody>
 				</table>
 
-				<div class="podsMetadata" v-if="hasProp(cluster, 'data.spec.pods.metadata')">
-					<h2>Pods Metadata</h2>
+				<div class="podsMetadata" v-if="hasProp(cluster, 'data.spec.pods.metadata') || hasProp(cluster, 'data.spec.pods.scheduling')">
+					<h2>Pods Details</h2>
 					<table v-if="hasProp(cluster, 'data.spec.pods.metadata.labels')" class="clusterConfig">
 						<thead>
 							<th></th>
@@ -288,6 +288,31 @@ var ClusterInfo = Vue.component("ClusterInfo", {
 								</td>
 								<td v-if="!index" class="label" :rowspan="Object.keys(cluster.data.spec.pods.metadata.labels).length">
 									Labels
+								</td>
+								<td class="label">
+									{{ item.annotation }}
+								</td>
+								<td>
+									{{ item.value }}
+								</td>
+							</tr>
+						</tbody>
+					</table>
+
+					<table v-if="hasProp(cluster, 'data.spec.pods.scheduling.nodeSelector')" class="clusterConfig">
+						<thead>
+							<th></th>
+							<th></th>
+							<th></th>
+							<th></th>
+						</thead>
+						<tbody>
+							<tr v-for="(item, index) in unparseProps(cluster.data.spec.pods.scheduling.nodeSelector)">
+								<td v-if="!index" class="label" :rowspan="Object.keys(cluster.data.spec.pods.scheduling.nodeSelector).length">
+									Pods Scheduling
+								</td>
+								<td v-if="!index" class="label" :rowspan="Object.keys(cluster.data.spec.pods.scheduling.nodeSelector).length">
+									Node Selectors
 								</td>
 								<td class="label">
 									{{ item.annotation }}

@@ -1,6 +1,6 @@
 #!/bin/sh
 
-set -ex
+set -e
 
 cd "$(dirname "$0")"
 
