@@ -104,14 +104,15 @@ You can also install a StackGres cluster using [helm vesion 2.x](https://github.
 
 ```
 helm install --name simple \
-  {{< download-url >}}/helm-cluster.tgz
+  {{< download-url >}}/demo-helm-cluster.tgz
 ```
 
-To clean up the resources created by the demo just run:
+To clean up the resources created by the demo run:
 
 ```
-(helm get manifest simple; helm get hooks simple) | kubectl delete --ignore-not-found -f -
-helm delete --purge simple
+helm uninstall --keep-history simple
+helm get hooks -n connectivity-5f2bb6bf connectivity | kubectl delete --ignore-not-found -n connectivity-5f2bb6bf -f -
+helm uninstall simple
 ```
 
 # Check cluster

@@ -32,7 +32,7 @@ You can also install the StackGres operator using [helm vesion 3.1.x](https://gi
 ```
 kubectl create namespace stackgres
 
-helm install stackgres-operator \
+helm install --namespace stackgres stackgres-operator \
   {{< download-url >}}/helm-operator.tgz \
   --set-string adminui.service.type=LoadBalancer
 ```
@@ -44,19 +44,7 @@ helm install stackgres-operator \
 To clean up the resources created by the demo just run:
 
 ```
-(helm get manifest simple; helm get hooks simple) | kubectl delete --ignore-not-found -f -
-helm delete --purge simple
-```
-
-# Wait for the operator to become ready
-
-You must wait for the operator to become ready in order to allow installation of a StackGres cluster:
-
-```
-until kubectl describe pod --selector=app=stackgres-operator | grep '  Ready\s\+True'
-do
-  sleep 1
-done
+helm uninstall --namespace stackgres stackgres-operator
 ```
 
 # Connect to the UI
@@ -64,7 +52,9 @@ done
 To connect to the Web UI of the operator you may forward port 443 of the operator pod:
 
 ```
-kubectl port-forward "$(kubectl get pod --selector=app=stackgres-operator -o name)" 8443:9443
+POD_NAME=$(kubectl get pods --namespace stackgres -l "app=stackgres-restapi" -o jsonpath="{.items[0].metadata.name}")
+
+kubectl port-forward "$POD_NAME" 8443:9443 --namespace stackgres
 ```
 
 Then open the browser at following address [`localhost:8443/admin/`]](`https://localhost:8443/admin/`)
