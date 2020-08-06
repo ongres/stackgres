@@ -1,3 +1,14 @@
+# Release 0.9-RC2
+
+## NOTES
+
+* Support for setting node selector for cluster pods
+
+## FIXES
+
+* UI user sent to not found page when the token is expired
+* Unable to update cluster helm charts
+
 # Release 0.9-RC1
 
 ## NOTES
