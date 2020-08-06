@@ -57,13 +57,16 @@ You can specify following parameters values:
 
 ## Create a Cluster
 
-To install the operator use the following command:
+To install a cluster you can use the following command:
 
 ```shell
 helm install --namespace my-namespace my-cluster \
   --values my-cluster-values.yml \
-  {{< download-url >}}/helm-cluster.tgz
+  {{< download-url >}}/demo-helm-cluster.tgz
 ```
+
+Helm is the recommended approach to deploy any of our CRDs, and this is a demo chart that could be
+ used as a starting point for creating your own.
 
 ### Parameters
 
