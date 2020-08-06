@@ -141,7 +141,7 @@ spec:
                   properties:
                     nodeSelector:
                       type: object
-                      description: Pod custom node selector                  
+                      description: Pod custom node selector
               required: ["persistentVolume"]
             configurations:
               type: object
