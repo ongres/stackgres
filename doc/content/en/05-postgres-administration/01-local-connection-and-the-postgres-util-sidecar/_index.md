@@ -12,9 +12,9 @@ This main container only have the required binaries and utilities to be able to 
 
 ## Access to postgres-util sidecar
 
-First we'll check the if the container is present in the pods, for these example we have a cluster of three pods:
+First we'll check the if the container is present in the pods, for these example we have a cluster named stackgres, composed of three pods and installed in the default namespace:
 
-`kubectl get pods -n default -l app=StackGres,cluster=true`
+`kubectl get pods -n default -l app=StackGresCluster,cluster=true`
 
 output:
 

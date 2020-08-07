@@ -18,7 +18,7 @@ graph TB
 
 These represents the containers of the StackGres cluster and you can list them using `kubectl` command like:
 
-`kubectl get pods -n default -l app=StackGres,cluster=true`
+`kubectl get pods -n default -l app=StackGresCluster,cluster=true`
 
 >Note: Change `-n` param to point to your namespace, in this example we use default.
 
@@ -39,7 +39,7 @@ We have two differents ways to acomplish this. The first one is with the `kubect
 
 To identify the master node:
 
-`kubectl get pods -n default -l app=StackGres -l role=master`
+`kubectl get pods -n default -l app=StackGresCluster -l role=master`
 
 output:
 
@@ -50,7 +50,7 @@ stackgres-0   5/5     Running   0          165m
 
 To identify the replica nodes:
 
-`kubectl get pods -n default -l app=StackGres -l role=replica`
+`kubectl get pods -n default -l app=StackGresCluster -l role=replica`
 
 
 output:
