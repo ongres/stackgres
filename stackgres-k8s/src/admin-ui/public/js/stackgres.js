@@ -1752,11 +1752,11 @@ const vm = new Vue({
     
     this.fetchAPI();
 
-    if(store.state.loginToken.length > 0) {
-      this.pooling = setInterval( function(){
+    this.pooling = setInterval( function(){
+      if(store.state.loginToken.length > 0) {
         this.fetchAPI();
-      }.bind(this), 10000);
-    }
+      }
+    }.bind(this), 10000);
 
   }
 });
