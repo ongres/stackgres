@@ -1086,17 +1086,18 @@ Vue.mixin({
 
 		},
 
-    cancelDelete: function(){
+    /*cancelDelete: function(){
       $("#delete").removeClass("active");
       $("#delete .warning").hide();
       this.confirmDeleteName = '';
       store.commit('setConfirmDeleteName', '');
-    },
+    },*/
     
     deleteCRD: function( kind, namespace, name, redirect ) {
 
       //console.log("Open delete");
-      $('#delete input').val('');
+      //$('#delete input').val('');
+      this.confirmDeleteName = '';
       $("#delete").addClass("active");
       $(".filter > .open").removeClass("open");
 
@@ -1111,6 +1112,7 @@ Vue.mixin({
 
 		confirmDelete: function( confirmName ) {
 
+      const vc = this;
       const item = store.state.deleteItem;
 
 			if(confirmName == item.name) { 
@@ -1145,7 +1147,9 @@ Vue.mixin({
             redirect: ''
           });
 
-					$("#delete").removeClass("active");
+          //$("#delete").removeClass("active");
+          $("#delete").removeClass("active");
+          vc.confirmDeleteName = '';
 				})
 				.catch(function (error) {
 				  console.log(error);
