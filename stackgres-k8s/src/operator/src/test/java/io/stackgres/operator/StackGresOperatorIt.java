@@ -13,18 +13,16 @@ import com.ongres.junit.docker.ContainerParam;
 import com.ongres.junit.docker.DockerContainer;
 import com.ongres.junit.docker.DockerExtension;
 import com.ongres.junit.docker.WhenReuse;
-
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Service;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSetEnvVars;
 import io.stackgres.operator.controller.EventReason;
-import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.sidecars.envoy.Envoy;
-
 import org.jooq.lambda.Unchecked;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
 @DockerExtension({
   @DockerContainer(
@@ -33,7 +31,7 @@ import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
       whenReuse = WhenReuse.ALWAYS,
       stopIfChanged = true)
 })
-@DisabledIfEnvironmentVariable(named = "DISABLE_IT", matches = "true")
+@EnabledIfEnvironmentVariable(named = "ENABLE_IT", matches = "true")
 public class StackGresOperatorIt extends AbstractStackGresOperatorIt {
 
   private final String CLUSTER_NAME = "stackgres";

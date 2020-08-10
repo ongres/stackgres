@@ -2,7 +2,7 @@
 
 event_watch() {
   local namespace
-  local output
+  local output=wide
   while [ "$#" -gt 0 ]
   do
     case "$1" in

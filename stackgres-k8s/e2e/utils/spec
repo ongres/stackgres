@@ -119,6 +119,7 @@ spec() {
   local E2E_SKIP_SPEC_BEFORE_ALL="${E2E_SKIP_SPEC_BEFORE_ALL:-false}"
   local E2E_SKIP_SPEC_AFTER_ALL="${E2E_SKIP_SPEC_AFTER_ALL:-false}"
   local LOG_PATH="$TARGET_PATH/logs/$SPEC_NAME"
+  local SPEC_TIME="0"
   export SPEC_FILE SPEC_NAME CLUSTER_NAMESPACE CLUSTER_NAME LOG_PATH
 
   mkdir -p "$LOG_PATH"
@@ -172,6 +173,8 @@ spec() {
 
   local START="$(date +%s)"
   try_function run_spec >> "$LOG_PATH/$SPEC_NAME.log" 2>&1
+  SPEC_TIME="$(($(date +%s)-START))"
+  echo "$SPEC_TIME" > "$TARGET_PATH/$SPEC_NAME.duration"
   if ! "$RESULT"
   then
     echo "$SPEC_NAME. FAIL. See file $LOG_PATH/$SPEC_NAME.log for details" > "$TARGET_PATH/$SPEC_NAME.failed"
@@ -182,7 +185,7 @@ spec() {
     fi
     return "$EXIT_CODE"
   fi
-  echo "$SPEC_NAME. SUCCESS. Test took $(($(date +%s)-START)) seconds" >> "$TARGET_PATH/logs"/results.log
+  echo "$SPEC_NAME. SUCCESS. Test took $SPEC_TIME seconds" >> "$TARGET_PATH/logs"/results.log
 }
 
 run_spec() {

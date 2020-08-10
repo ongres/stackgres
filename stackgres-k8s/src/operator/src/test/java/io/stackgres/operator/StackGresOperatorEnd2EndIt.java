@@ -48,10 +48,6 @@ public class StackGresOperatorEnd2EndIt extends AbstractStackGresOperatorIt {
       .orElse(System.getProperty("e2e.shell")))
       .orElse("sh");
 
-  private static final Optional<String> E2E_RUN_ONLY = Optional.ofNullable(
-      Optional.ofNullable(System.getenv("E2E_RUN_ONLY"))
-      .orElse(System.getProperty("e2e.runOnly")));
-
   @Test
   public void end2EndTest(@ContainerParam("k8s") Container k8s) throws Exception {
     try {
@@ -63,25 +59,6 @@ public class StackGresOperatorEnd2EndIt extends AbstractStackGresOperatorIt {
                   + "cd /resources/e2e\n"
                   + "rm -Rf /resources/e2e/target\n"
                   + ItHelper.E2E_ENVVARS + "\n"
-                  + E2E_RUN_ONLY.map(runOnly -> {
-                    if (runOnly.matches("(non_)?exclusive(:[0-9]+/[0-9]+)?")) {
-                      if (runOnly.contains(":")) {
-                        String[] splitColon = runOnly.split(":");
-                        String[] splitSlash = splitColon[1].split("/");
-                        return "COUNT=$(sh e2e get_all_" + splitColon[0] + "_specs | wc -l)\n"
-                            + "BATCH_INDEX=" + splitSlash[0] + "\n"
-                            + "BATCH_COUNT=" + splitSlash[1] + "\n"
-                            + "export E2E_ONLY_INCLUDES=$("
-                            + "sh e2e get_all_" + splitColon[0] + "_specs"
-                            + " | sort"
-                            + " | tail -n +\"$(((COUNT / BATCH_COUNT) * BATCH_INDEX))\""
-                            + (splitSlash[0].equals(splitSlash[1]) ? "" : " | head -n \"$((COUNT / BATCH_COUNT))\"")
-                            + ")\n";
-                      }
-                      return "export E2E_ONLY_INCLUDES=$(sh e2e get_all_" + runOnly + "_specs)\n";
-                    }
-                    return "export E2E_ONLY_INCLUDES=" + runOnly + "\n";
-                  }).orElse("")
                   + "export DOCKER_NAME=\"$(docker inspect -f '{{.Name}}' \"$(hostname)\"|cut -d '/' -f 2)\"\n"
                   + "export " + ItHelper.E2E_ENV_VAR_NAME + "="
                       + "\"" + ItHelper.E2E_ENV + "$(echo \"$DOCKER_NAME\" | sed 's/^k8s//')\"\n"

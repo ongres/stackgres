@@ -25,7 +25,6 @@ variables:
                    -Dsurefire.useFile=false
                    -Dsurefire.useFile=false
                    -DtrimStackTrace=false
-  DISABLE_IT: "true"
   E2E_ENV: kind
   E2E_PARALLELISM: 32
   K8S_VERSION: 1.13.12
@@ -44,10 +43,10 @@ cache:
     - .m2/repository
 
 stages:
+  - test
   - build
   - native build
   - pre test
-  - test
   - check-release
   - deploy
 
@@ -289,56 +288,57 @@ build test images:
     variables:
       - $SKIP_E2E != "true"
 
-integration test:
+.e2e tests:
   stage: test
+  image: stackgres/it:8.0
   tags:
     - stackgres-runner
-  dependencies:
-    - build
+  variables:
+    OPERATOR_IN_KUBERNETES: "true"
+    IMAGE_TAG_SUFFIX: ""
+    E2E_SUFFIX: ""
   timeout: 12 hour
   script:
+    - set -xe
+    - SUFFIX="$(echo "-$E2E_SUFFIX-$E2E_RUN_ONLY" | tr -d '\n' | tr -c 'a-z0-9' '-')"
+    - SHELL_XTRACE="$([ "$E2E_DEBUG" = true ] && echo "-x" || echo "")"
+    - export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}$IMAGE_TAG_SUFFIX"
+    - export KIND_NAME="kind$SUFFIX"
+    - export K8S_REUSE="${K8S_REUSE:-true}"
+    - export K8S_FROM_DIND=true
+    - export E2E_BUILD_IMAGES=false
+    - export E2E_WAIT_OPERATOR=false
+    - export E2E_PULLED_IMAGES_PATH="/tmp/pulled-images$SUFFIX"
+    - |
+      if [ "$E2E_CLEAN_IMAGE_CACHE" = "true" ]
+      then
+        rm -rf "$E2E_PULLED_IMAGES_PATH"
+      fi
+    - |
+      if [ -n "$E2E_TEST" ]
+      then
+        export E2E_ONLY_INCLUDE="$E2E_TEST"
+      fi
     - |
       flock -s /tmp/stackgres-build-operator-native-executable \
         flock -s /tmp/stackgres-build-restapi-native-executable \
-        flock /tmp/stackgres-integration-test \
+        flock "/tmp/stackgres-integration-test$SUFFIX" \
         timeout -s KILL 3600 \
-        mvn $MAVEN_CLI_OPTS verify -P integration -Dit.skipBuildContainer=true
-  only:
-    variables:
-      - $DO_EXTERNAL
+        sh $SHELL_XTRACE stackgres-k8s/e2e/run-all-tests.sh
   artifacts:
     expire_in: 1 week
     when: always
     paths:
-    - stackgres-k8s/src/operator/target/e2e
+    - stackgres-k8s/e2e/target
+    reports:
+      junit:
+        - stackgres-k8s/e2e/target/e2e-tests-junit-report.xml
 
 .e2e tests jvm image:
-  stage: test
-  tags:
-    - stackgres-runner
-  dependencies:
-    - build
+  extends: .e2e tests
   variables:
-    OPERATOR_IN_KUBERNETES: "true"
-    K8S_SUFFIX: jvm-image
-    E2E_EXTRA_SUFFIX: ""
-    E2E_RUN_ONLY: non_exclusive
-  timeout: 12 hour
-  script:
-    - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}"-jvm'
-    - 'export OPERATOR_IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
-    - 'export RESTAPI_IMAGE_NAME="stackgres/restapi:$IMAGE_TAG"'
-    - 'export E2E_RUN_ONLY="$E2E_RUN_ONLY:$E2E_RUN_BATCH_INDEX/$E2E_RUN_BATCH_COUNT"'
-    - 'export E2E_PULLED_IMAGES_PATH="/tmp/pulled-images-jvm-image$E2E_EXTRA_SUFFIX-$E2E_RUN_BATCH_INDEX"'
-    - 'export K8S_SUFFIX="$K8S_SUFFIX$E2E_EXTRA_SUFFIX-$E2E_RUN_BATCH_INDEX"'
-    - |
-      flock -s /tmp/stackgres-build-operator-native-executable \
-        flock -s /tmp/stackgres-build-restapi-native-executable \
-        flock "/tmp/stackgres-integration-test-jvm-image$E2E_EXTRA_SUFFIX-$E2E_RUN_BATCH_INDEX" \
-        timeout -s KILL 3600 \
-        mvn $MAVEN_CLI_OPTS verify -P integration \
-          -DargLine=-Dcom.ongres.junit.docker.runnerId="$K8S_SUFFIX" \
-          -Dit.skipBuildContainer=true
+    E2E_SUFFIX: "jvm-image"
+    IMAGE_TAG_SUFFIX: "-jvm"
   only:
     variables:
       - $SKIP_E2E != "true"
@@ -346,56 +346,28 @@ integration test:
     expire_in: 1 week
     when: always
     paths:
-    - stackgres-k8s/src/operator/target/e2e
+    - stackgres-k8s/e2e/target
 
 e2e tests jvm image part 1/2:
   extends: .e2e tests jvm image
   variables:
-    E2E_RUN_BATCH_INDEX: 1
-    E2E_RUN_BATCH_COUNT: 2
+    E2E_RUN_ONLY: non_exclusive:1/2
 
 e2e tests jvm image part 2/2:
   extends: .e2e tests jvm image
   variables:
-    E2E_RUN_BATCH_INDEX: 2
-    E2E_RUN_BATCH_COUNT: 2
+    E2E_RUN_ONLY: non_exclusive:2/2
 
 e2e exclusive tests jvm image:
   extends: .e2e tests jvm image
   variables:
-    E2E_RUN_BATCH_INDEX: 1
-    E2E_RUN_BATCH_COUNT: 1
-    E2E_EXTRA_SUFFIX: "-exclusive"
-    E2E_RUN_ONLY: exclusive
+    E2E_RUN_ONLY: exclusive:1/1
 
 .e2e tests native image:
-  stage: test
-  tags:
-    - stackgres-runner
-  dependencies:
-    - build
+  extends: .e2e tests
   variables:
-    OPERATOR_IN_KUBERNETES: "true"
-    K8S_SUFFIX: native-image
-    SKIP_QUARKUS_TEST: "true"
-    E2E_EXTRA_SUFFIX: ""
-    E2E_RUN_ONLY: non_exclusive
-  timeout: 12 hour
-  script:
-    - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}"'
-    - 'export OPERATOR_IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
-    - 'export RESTAPI_IMAGE_NAME="stackgres/restapi:$IMAGE_TAG"'
-    - 'export E2E_RUN_ONLY="$E2E_RUN_ONLY:$E2E_RUN_BATCH_INDEX/$E2E_RUN_BATCH_COUNT"'
-    - 'export E2E_PULLED_IMAGES_PATH="/tmp/pulled-images-native-image$E2E_EXTRA_SUFFIX-$E2E_RUN_BATCH_INDEX"'
-    - 'export K8S_SUFFIX="$K8S_SUFFIX$E2E_EXTRA_SUFFIX-$E2E_RUN_BATCH_INDEX"'
-    - |
-      flock -s /tmp/stackgres-build-operator-native-executable \
-        flock -s /tmp/stackgres-build-restapi-native-executable \
-        flock "/tmp/stackgres-integration-test-native-image$E2E_EXTRA_SUFFIX-$E2E_RUN_BATCH_INDEX" \
-        timeout -s KILL 3600 \
-        mvn $MAVEN_CLI_OPTS verify -P integration \
-          -DargLine=-Dcom.ongres.junit.docker.runnerId="$K8S_SUFFIX" \
-          -Dit.skipBuildContainer=true
+    E2E_SUFFIX: "native-image"
+    IMAGE_TAG_SUFFIX: ""
   only:
     variables:
       - $SKIP_E2E != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME == "development"
@@ -407,27 +379,22 @@ e2e exclusive tests jvm image:
     expire_in: 1 week
     when: always
     paths:
-    - stackgres-k8s/src/operator/target/e2e
+    - stackgres-k8s/e2e/target
 
 e2e tests native image part 1/2:
   extends: .e2e tests native image
   variables:
-    E2E_RUN_BATCH_INDEX: 1
-    E2E_RUN_BATCH_COUNT: 2
+    E2E_RUN_ONLY: non_exclusive:1/2
 
 e2e tests native image part 2/2:
   extends: .e2e tests native image
   variables:
-    E2E_RUN_BATCH_INDEX: 2
-    E2E_RUN_BATCH_COUNT: 2
+    E2E_RUN_ONLY: non_exclusive:2/2
 
 e2e exclusive tests native image:
   extends: .e2e tests native image
   variables:
-    E2E_RUN_BATCH_INDEX: 1
-    E2E_RUN_BATCH_COUNT: 1
-    E2E_EXTRA_SUFFIX: "-exclusive"
-    E2E_RUN_ONLY: exclusive
+    E2E_RUN_ONLY: exclusive:1/1
 
 enforce release:
   stage: check-release
