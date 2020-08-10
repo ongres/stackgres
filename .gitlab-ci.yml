@@ -43,10 +43,10 @@ cache:
     - .m2/repository
 
 stages:
-  - test
   - build
   - native build
   - pre test
+  - test
   - check-release
   - deploy
 
