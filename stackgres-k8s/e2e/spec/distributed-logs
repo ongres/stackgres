@@ -7,6 +7,8 @@ e2e_test_install() {
     --set distributedLogs.enabled=false \
     --set distributedLogs.create=false
 
+  wait_pods_running "$CLUSTER_NAMESPACE" "1"
+
   create_or_replace_cluster "$CLUSTER_NAME-for-distributedlogs" "$CLUSTER_NAMESPACE" "1" \
     --set cluster.create=false \
     --set configurations.create=false \
@@ -20,9 +22,6 @@ e2e_test_install() {
     --set distributedLogs.enabled=true \
     --set distributedLogs.create=false \
     --set-string cluster.distributedLogs.sgDistributedLogs="$CLUSTER_NAMESPACE.$DISTRIBUTED_LOGS_NAME"
-
-  wait_until eval '[ "$(kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"
-      --template '{{ .spec.template.spec.containers | len }}')" -eq 6 ]'
 
   kubectl delete pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0"
 
