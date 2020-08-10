@@ -303,19 +303,19 @@ build test images:
   stage: image build
   tags:
     - stackgres-runner
-  dependencies:
-    - build
   timeout: 1 hour
   script:
     - |
       IT_IMAGE_NAME="$(grep -o '<it\.image>\([^<]\+\)</it\.image>' stackgres-k8s/src/pom.xml \
         | tr '<>' '  ' | cut -d ' ' -f 3)"
-    - 'TARGET_IT_IMAGE_NAME="$CI_REGISTRY/ongresinc/stackgres/$IT_IMAGE_NAME"'
+    - TARGET_IT_IMAGE_NAME="$CI_REGISTRY/ongresinc/stackgres/$IT_IMAGE_NAME"
     - buildah login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
     - |
       cat << EOF | flock /tmp/stackgres-build-it-image sh -xe
       buildah bud -f stackgres-k8s/src/operator/src/test/docker/Dockerfile.it -t "$IT_IMAGE_NAME" .
       buildah push -f "docker" "$IT_IMAGE_NAME" "$TARGET_IT_IMAGE_NAME"
+      buildah tag "$TARGET_IT_IMAGE_NAME" "${TARGET_IT_IMAGE_NAME%:*}:latest"
+      buildah push -f "docker" "$IT_IMAGE_NAME" "${TARGET_IT_IMAGE_NAME%:*}:latest"
       EOF
   only:
     variables:
@@ -339,7 +339,7 @@ unit tests:
 
 .e2e tests:
   stage: test
-  image: stackgres/it:8.0
+  image: registry.gitlab.com/ongresinc/stackgres/stackgres/it:latest
   tags:
     - stackgres-runner
   variables:
