@@ -19,3 +19,4 @@ buildah config --user nginx:nginx "$CONTAINER_BASE"
 # Commit this container to an image name
 buildah commit --squash  "$CONTAINER_BASE" "$ADMINUI_IMAGE_NAME"
 buildah push -f "${BUILDAH_PUSH_FORMAT:-docker}" "$ADMINUI_IMAGE_NAME" "$TARGET_ADMINUI_IMAGE_NAME"
+buildah delete "$CONTAINER_BASE"

@@ -43,3 +43,4 @@ buildah config --user nobody:nobody "$CONTAINER_BASE"
 ## Commit this container to an image name
 buildah commit --squash "$CONTAINER_BASE" "$OPERATOR_IMAGE_NAME"
 buildah push -f "${BUILDAH_PUSH_FORMAT:-docker}" "$OPERATOR_IMAGE_NAME" "$TARGET_OPERATOR_IMAGE_NAME"
+buildah delete "$CONTAINER_BASE"
