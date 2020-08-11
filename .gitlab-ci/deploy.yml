@@ -1,0 +1,75 @@
+
+.deploy image:
+  image: quay.io/buildah/stable:v1.15.0
+  stage: deploy
+  tags:
+    - stackgres-runner
+  variables:
+    IMAGE_TAG_SUFFIX: ""
+  script:
+    - set -e
+    - buildah login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+    - set -x
+    - export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}$IMAGE_TAG_SUFFIX"
+    - export IMAGE_PUSH_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_REF_NAME"}$IMAGE_TAG_SUFFIX"
+    - '[ -n "$IMAGE_NAME" ]'
+    - export IMAGE_PULL_NAME="$CI_REGISTRY/ongresinc/stackgres/$IMAGE_NAME:$IMAGE_TAG"
+    - export IMAGE_PUSH_NAME="$IMAGE_NAME:$IMAGE_PUSH_TAG"
+    - buildah pull "$IMAGE_PULL_NAME"
+    - buildah push --format=docker --authfile $REGISTRY_AUTH_FILE $IMAGE_NAME "docker://docker.io/$IMAGE_PUSH_NAME"
+  only:
+    variables:
+      - $SKIP_DEPLOY != "true" && $CI_COMMIT_REF_NAME == "development"
+      - $SKIP_DEPLOY != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
+      - $DO_DEPLOY
+
+deploy operator jvm image:
+  extends: .deploy image
+  image: quay.io/buildah/stable:v1.15.0
+  variables:
+    IMAGE_TAG_SUFFIX: "-jvm"
+    IMAGE_NAME: "stackgres/operator"
+
+deploy restapi jvm image:
+  extends: .deploy image
+  image: quay.io/buildah/stable:v1.15.0
+  variables:
+    IMAGE_TAG_SUFFIX: "-jvm"
+    IMAGE_NAME: "stackgres/restapi"
+
+deploy operator native image:
+  extends: .deploy image
+  image: quay.io/buildah/stable:v1.15.0
+  variables:
+    IMAGE_TAG_SUFFIX: ""
+    IMAGE_NAME: "stackgres/operator"
+
+deploy restapi native image:
+  extends: .deploy image
+  image: quay.io/buildah/stable:v1.15.0
+  variables:
+    IMAGE_TAG_SUFFIX: ""
+    IMAGE_NAME: "stackgres/restapi"
+
+deploy adminui image:
+  extends: .deploy image
+  image: quay.io/buildah/stable:v1.15.0
+  variables:
+    IMAGE_TAG_SUFFIX: ""
+    IMAGE_NAME: "stackgres/admin-ui"
+
+deploy helm packages and templates:
+  image: mikesir87/aws-cli:latest
+  stage: deploy
+  dependencies:
+    - build helm packages
+    - build helm templates
+  script:
+    - set -e
+    - aws s3 sync ./stackgres-k8s/install/helm/target/public/ s3://$S3_BUCKET_NAME/
+    - aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_DISTRIBUTION_ID --paths '/*'
+  only:
+    variables:
+      - $SKIP_DEPLOY != "true" && $CI_COMMIT_REF_NAME == "development"
+      - $SKIP_DEPLOY != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
+      - $DO_DEPLOY

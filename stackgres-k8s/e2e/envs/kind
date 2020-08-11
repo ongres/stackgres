@@ -52,11 +52,17 @@ update_k8s_config() {
     mv "$HOME/.kube/config-$KIND_NAME" "$KUBECONFIG"
   fi
   )
+
+  # fix for Unable to connect to the server: x509: certificate is valid for <ips>, not <ip>
+  kubectl config set "clusters.kind-$KIND_NAME.insecure-skip-tls-verify" --set-raw-bytes true
+  kubectl config unset "clusters.kind-$KIND_NAME.certificate-authority-data"
 }
 
 reuse_k8s() {
   check_kind_version
   check_kind_image_exists
+
+  try_function update_k8s_config
 
   if ! kind get clusters | grep -q "^$KIND_NAME$" \
       || ! docker inspect "$KIND_NAME-control-plane" -f '{{ .State.Status }}' \
@@ -70,8 +76,6 @@ reuse_k8s() {
   fi
 
   echo "Reusing kind environment $KIND_NAME"
-
-  update_k8s_config
 }
 
 reset_k8s() {
