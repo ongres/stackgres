@@ -30,6 +30,19 @@ All extensions bellow are available for both PostgreSQL 11 and 12:
 | pg_healpix | [latest](https://gitlab.com/ongresinc/pg_healpix/-/tree/1-add-extension-compatibility) |
 | pg_q3c | [v2.0.0](https://github.com/segasai/q3c/releases/tag/v2.0.0) |
 
+# StackGres 0.9-RC3
+
+| Component | Versions |
+| ------ | ----------- |
+| PostgreSQL | 12.3 and 11.8 |
+| Patroni | 1.6.5 |
+| WAL-G | 0.2.15 |
+| PgBouncer | 1.13.0 |
+| Postgres Exporter | 0.8.0 |
+| Envoy | 1.15.0 |
+| Fluent-Bit | 1.4.4 |
+| Fluentd | 1.9.3 |
+
 # StackGres 0.9-RC2
 
 | Component | Versions |
@@ -61,7 +74,7 @@ All extensions bellow are available for both PostgreSQL 11 and 12:
 | Component | Versions |
 | ------ | ----------- |
 | PostgreSQL | 12.2 and 11.7 |
-| Patroni | 1.6.5 | 
+| Patroni | 1.6.5 |
 | WAL-G | 0.2.15 |
 | PgBouncer | 1.12.0 |
 | Postgres Exporter | 0.8.0 |

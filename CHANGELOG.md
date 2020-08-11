@@ -1,3 +1,11 @@
+# Release 0.9-RC3
+
+## FIXES
+
+* Empty deleted cluster name after deletion
+* Automatic refreshment is not working
+* Operator does not update correctly null values
+
 # Release 0.9-RC2
 
 ## NOTES
@@ -83,7 +91,7 @@
 
 ## KNOWN ISSUES
 
-* Kubernetes 1.18 is not supported yet, see #439 
+* Kubernetes 1.18 is not supported yet, see #439
 * Kubernetes 1.11 requires PodShareProcessNamespace feature gate to be enabled (not tested in any kubernetes environment except for MiniShift 3.11)
 
 # Release 0.9-alpha1
