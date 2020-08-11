@@ -82,17 +82,17 @@ get_private_repository_password() {
 load_cached_images_from_local_repository() {
   cat "$E2E_PULLED_IMAGES_PATH" \
     | cut -d : -f 2-3 | sort | uniq \
-    | (
-      while read IMAGE_NAME
-      do
-        if docker image inspect "$IMAGE_NAME" >/dev/null 2>&1
-        then
-          load_image_k8s "$IMAGE_NAME"
-        else
-          echo "Image $IMAGE_NAME not found in cache!"
-        fi
-      done
-      )
+    | xargs -r -n 1 -I % -P 0 \
+      "$SHELL" $SHELL_XTRACE "$(dirname "$0")/e2e" load_cached_image_from_local_repository '%'
+}
+
+load_cached_image_from_local_repository() {
+  if docker image inspect "$1" >/dev/null 2>&1
+  then
+    load_image_k8s "$1"
+  else
+    echo "Image $1 not found in cache!"
+  fi
 }
 
 cache_pulled_images_to_local_repository() {

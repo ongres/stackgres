@@ -46,8 +46,6 @@ e2e_test() {
 
   run_test "Checking that backup retention is working before switchover" check_backup_retention_before_switchover
 
-  run_test "Checking that manual backup is working" check_manual_backup_before_switchover
-
   run_test "Checking that switchover is working" check_switchover
 
   run_test "Checking that backup is working after switchover" check_backup_after_switchover
@@ -69,10 +67,6 @@ check_backup_before_switchover() {
 
 check_backup_retention_before_switchover() {
   check_backup_retention 0
-}
-
-check_manual_backup_before_switchover() {
-  check_manual_backup 0
 }
 
 check_backup_after_switchover() {

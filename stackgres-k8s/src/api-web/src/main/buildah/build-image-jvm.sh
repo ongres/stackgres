@@ -4,6 +4,7 @@ set -e
 
 RESTAPI_IMAGE_NAME="${RESTAPI_IMAGE_NAME:-"stackgres/restapi:development-jvm"}"
 CONTAINER_BASE=$(buildah from "azul/zulu-openjdk-alpine:8u242-jre")
+TARGET_RESTAPI_IMAGE_NAME="${TARGET_RESTAPI_IMAGE_NAME:-docker-daemon:$RESTAPI_IMAGE_NAME}"
 
 # Include binaries
 buildah config --workingdir='/app/' "$CONTAINER_BASE"
@@ -28,38 +29,6 @@ then
   JAVA_OPTS="$JAVA_OPTS -Dquarkus.log.console.format=%d{yyyy-MM-dd HH:mm:ss,SSS} %-5p [%c{4.}] (%t) %s%e%n"
 fi
 JAVA_JAR="-jar /app/stackgres-restapi.jar"
-if [ "$WEBAPI_UNCOMPRESSED" = true ]
-then
-  (
-  mkdir -p /tmp/stackgres-restapi
-  cd /tmp/stackgres-restapi
-  unzip /app/stackgres-restapi.jar
-  cp -a /app/stackgres-restapi.jar .
-  cp -a /app/lib lib
-  )
-  JAVA_OPTS="$JAVA_OPTS -cp /tmp/stackgres-restapi:/tmp/stackgres-restapi/stackgres-restapi.jar io.quarkus.runner.GeneratedMain"
-  JAVA_JAR=""
-  set -x
-  > /tmp/inotifyd.log
-  inotifyd - $(find /tmp/stackgres-restapi -type d|sed 's/$/:cDnd/') >> /tmp/inotifyd.log &
-  java $JAVA_OPTS $JAVA_JAR $APP_OPTS &
-  PID=$!
-  TIME="$(date +%s)"
-  tail -f /tmp/inotifyd.log | while IFS="$(echo " "|tr " " "\n")" read line
-  do
-    if [ "$(date +%s)" -lt "$((TIME + 3))" ]
-    then
-      continue
-    fi
-    kill "$PID"
-    wait "$PID"
-    java $JAVA_OPTS $JAVA_JAR $APP_OPTS &
-    PID=$!
-    TIME="$(date +%s)"
-  done
-  exit
-fi
-
 exec java $JAVA_OPTS $JAVA_JAR $APP_OPTS
 EOF
 buildah copy --chown nobody:nobody "$CONTAINER_BASE" 'api-web/target/stackgres-restapi.sh' '/app/'
@@ -73,4 +42,5 @@ buildah config --user nobody:nobody "$CONTAINER_BASE"
 
 ## Commit this container to an image name
 buildah commit --squash "$CONTAINER_BASE" "$RESTAPI_IMAGE_NAME"
-buildah push "$RESTAPI_IMAGE_NAME" docker-daemon:$RESTAPI_IMAGE_NAME
+buildah push -f "${BUILDAH_PUSH_FORMAT:-docker}" "$RESTAPI_IMAGE_NAME" "$TARGET_RESTAPI_IMAGE_NAME"
+buildah delete "$CONTAINER_BASE"

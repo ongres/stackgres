@@ -218,7 +218,7 @@
                       <name>ongres-jvm-builder</name>
                       <build>
                         <cleanup>remove</cleanup>
-                        <from>ongres/builder</from>
+                        <from>${buildah.image}</from>
                         <assembly>
                           <targetDir>/api-web</targetDir>
                           <inline>
@@ -299,7 +299,7 @@
                       <name>restapi-native-builder</name>
                       <build>
                         <cleanup>remove</cleanup>
-                        <from>ongres/builder</from>
+			<from>${buildah.image}</from>
                         <assembly>
                           <targetDir>/api-web</targetDir>
                           <inline>

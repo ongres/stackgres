@@ -6,16 +6,45 @@ E2E_PARALLELISM="${E2E_PARALLELISM:-8}"
 E2E_RETRY="${E2E_RETRY:-2}"
 E2E_ONLY_INCLUDES="${E2E_ONLY_INCLUDES}"
 
-echo "Preparing environment"
-
-setup_images
-setup_k8s
-setup_cache
-setup_helm
-setup_operator
-setup_logs
-
-echo "Functional tests results" > "$TARGET_PATH/logs/results.log"
+if [ -n "$E2E_RUN_ONLY" ] && [ -z "$E2E_ONLY_INCLUDES" ]
+then
+  BATCH_LIST_TEST_FUNCTION="get_all_${E2E_RUN_ONLY%:*}_specs"
+  if [ "$BATCH_LIST_TEST_FUNCTION" != "get_all_exclusive_specs" ] \
+    && [ "$BATCH_LIST_TEST_FUNCTION" != "get_all_non_exclusive_specs" ]
+  then
+    echo 'E2E_RUN_ONLY must follow pattern `(exclusive|non_exclusive)[:<batch index>/<batch count>]`, but it was '"$E2E_RUN_ONLY"
+    exit 1
+  fi
+  if echo "$E2E_RUN_ONLY" | grep -q ":"
+  then
+    BATCH_CONFIG="${E2E_RUN_ONLY##*:}"
+    BATCH_INDEX="${BATCH_CONFIG%/*}"
+    BATCH_COUNT="${BATCH_CONFIG#*/}"
+  else
+    BATCH_INDEX="1"
+    BATCH_COUNT="1"
+  fi
+  if ! [ "$BATCH_INDEX" -ge 1 ] && [ "$BATCH_INDEX" -le "$BATCH_COUNT" ]
+  then
+    echo 'Batch index start from 1 and must be less or equal than batch count, but it was '"$E2E_RUN_ONLY"
+    exit 1
+  fi
+  if ! [ "$BATCH_COUNT" -ge 1 ]
+  then
+    echo 'Batch count must be greather or equal to 1, but it was '"$E2E_RUN_ONLY"
+    exit 1
+  fi
+  COUNT="$("$BATCH_LIST_TEST_FUNCTION" | wc -l)"
+  E2E_ONLY_INCLUDES="$("$BATCH_LIST_TEST_FUNCTION" \
+    | sort \
+    | tail -n +"$(((COUNT / BATCH_COUNT) * (BATCH_INDEX - 1) + 1))" \
+    | if [ "$BATCH_INDEX" = "$BATCH_COUNT" ]
+      then
+        cat
+      else
+        head -n "$((COUNT / BATCH_COUNT))"
+      fi)"
+fi
 
 if [ -z "$E2E_ONLY_INCLUDES" ]
 then
@@ -26,7 +55,23 @@ else
     | xargs -r -n 1 -I % echo "$SPEC_PATH/%")"
 fi
 
-echo_raw "Running tests: $SPECS"
+echo_raw "Running tests:
+
+$SPECS
+"
+
+echo "Preparing environment"
+
+setup_images
+setup_k8s
+setup_cache
+setup_helm
+setup_operator
+setup_logs
+
+rm -f "$TARGET_PATH/e2e-tests-junit-report.results.xml"
+
+echo "Functional tests results" > "$TARGET_PATH/logs/results.log"
 
 export K8S_REUSE=true
 export E2E_REUSE_OPERATOR_PODS=true
@@ -49,6 +94,7 @@ do
   SPEC="$(echo "$SPECS" | tr ' ' '\n' | tail -n+"$COUNT" | head -n 1)"
   SPEC_NAME="$(basename "$SPEC")"
   SPECS_TO_RUN="$SPECS_TO_RUN $SPEC"
+  SPECS_TO_RUN="${SPECS_TO_RUN# *}"
   if [ "$((COUNT%E2E_PARALLELISM))" -eq 0 -o "$COUNT" -eq "$SPEC_COUNT" ]
   then
     if "$CLEANUP"
@@ -56,7 +102,8 @@ do
       CLEANUP=false
       setup_k8s
     fi
-    if ! echo "$SPECS_TO_RUN" | tr ' ' '\n' | tail -n +2 \
+    SPECS_FAILED=""
+    if ! echo "$SPECS_TO_RUN" | tr ' ' '\n' \
       | xargs -r -n 1 -I % -P 0 "$SHELL" $SHELL_XTRACE -c "'$SHELL' $SHELL_XTRACE '$(dirname "$0")/e2e' spec '%'"
     then
       if [ "$((COUNT%E2E_PARALLELISM))" -ne 0 ]
@@ -80,15 +127,48 @@ do
           rm "$FAILED"
           SPECS="$SPECS $SPEC_PATH/$SPEC_NAME"
         else
+          SPECS_FAILED="$SPECS_FAILED $SPEC_NAME"
+          SPECS_FAILED="${SPECS_FAILED# *}"
           OVERALL_RESULT=false
-          break
         fi
         CLEANUP=true
       done
     fi
+    RUNNED_COUNT=0
+    while [ "$RUNNED_COUNT" -lt "$(echo "$SPECS_TO_RUN" | tr ' ' '\n' | wc -l)" ]
+    do
+      RUNNED_COUNT="$((RUNNED_COUNT+1))"
+      SPEC="$(echo "$SPECS_TO_RUN" | tr ' ' '\n' | tail -n+"$RUNNED_COUNT" | head -n 1)"
+      SPEC_NAME="$(basename "$SPEC")"
+      if echo " $SPECS_FAILED " | grep -q -F " $SPEC_NAME "
+      then
+        cat << EOF >> "$TARGET_PATH/e2e-tests-junit-report.results.xml"
+    <testcase classname="$SPEC_NAME" name="$SPEC_NAME" time="$(cat "$TARGET_PATH/$SPEC_NAME.duration")">
+      <failure message="$SPEC_NAME failed" type="ERROR">
+      <![CDATA[
+      $(show_logs "$SPEC_NAME")
+      ]]>
+      </failure>
+    </testcase>
+EOF
+      else
+        cat << EOF >> "$TARGET_PATH/e2e-tests-junit-report.results.xml"
+    <testcase classname="$SPEC_NAME" name="$SPEC_NAME" time="$(cat "$TARGET_PATH/$SPEC_NAME.duration")" />
+EOF
+      fi
+    done
     SPECS_TO_RUN=""
   fi
 done
+
+cat << EOF >> "$TARGET_PATH/e2e-tests-junit-report.xml"
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="e2e tests" tests="$(echo "$SPECS" | tr ' ' '\n' | wc -l)" time="$(($(date +%s) - START))">
+$(cat "$TARGET_PATH/e2e-tests-junit-report.results.xml")
+  </testsuite>
+</testsuites>
+EOF
 
 if $OVERALL_RESULT
 then

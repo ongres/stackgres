@@ -7,6 +7,8 @@ e2e_test_install() {
     --set distributedLogs.enabled=false \
     --set distributedLogs.create=false
 
+  wait_pods_running "$CLUSTER_NAMESPACE" "1"
+
   create_or_replace_cluster "$CLUSTER_NAME-for-distributedlogs" "$CLUSTER_NAMESPACE" "1" \
     --set cluster.create=false \
     --set configurations.create=false \
