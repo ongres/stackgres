@@ -142,7 +142,7 @@ do
       SPEC_NAME="$(basename "$SPEC")"
       if echo " $SPECS_FAILED " | grep -q -F " $SPEC_NAME "
       then
-        cat << EOF >> "$TARGET_PATH/e2e-tests-junit-report.xml"
+        cat << EOF >> "$TARGET_PATH/e2e-tests-junit-report.results.xml"
     <testcase classname="$SPEC_NAME" name="$SPEC_NAME" time="$(cat "$TARGET_PATH/$SPEC_NAME.duration")">
       <failure message="$SPEC_NAME failed" type="ERROR">
       <![CDATA[
