@@ -44,6 +44,11 @@ deploy operator native image:
   variables:
     IMAGE_TAG_SUFFIX: ""
     IMAGE_NAME: "stackgres/operator"
+  only:
+    variables:
+      - $SKIP_DEPLOY != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME == "development"
+      - $SKIP_DEPLOY != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
+      - $DO_DEPLOY
 
 deploy restapi native image:
   extends: .deploy image
@@ -51,6 +56,11 @@ deploy restapi native image:
   variables:
     IMAGE_TAG_SUFFIX: ""
     IMAGE_NAME: "stackgres/restapi"
+  only:
+    variables:
+      - $SKIP_DEPLOY != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME == "development"
+      - $SKIP_DEPLOY != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
+      - $DO_DEPLOY
 
 deploy adminui image:
   extends: .deploy image

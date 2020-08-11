@@ -18,7 +18,6 @@ build operator jvm image:
         sh -xe operator/src/main/buildah/build-image-jvm.sh
   only:
     variables:
-      - $SKIP_E2E != "true"
       - $DO_DEPLOY
 
 build restapi jvm image:
@@ -40,7 +39,6 @@ build restapi jvm image:
         sh -xe api-web/src/main/buildah/build-image-jvm.sh
   only:
     variables:
-      - $SKIP_E2E != "true"
       - $DO_DEPLOY
 
 build operator native image:
@@ -62,9 +60,9 @@ build operator native image:
         sh -xe operator/src/main/buildah/build-image-native.sh
   only:
     variables:
-      - $SKIP_E2E != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME == "development"
-      - $SKIP_E2E != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME == "master"
-      - $SKIP_E2E != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
+      - $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME == "development"
+      - $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME == "master"
+      - $SKIP_NATIVE != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
       - $DO_DEPLOY
       - $DO_NATIVE
 
@@ -87,9 +85,9 @@ build restapi native image:
         sh -xe api-web/src/main/buildah/build-image-native.sh
   only:
     variables:
-      - $SKIP_E2E != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME == "development"
-      - $SKIP_E2E != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME == "master"
-      - $SKIP_E2E != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
+      - $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME == "development"
+      - $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME == "master"
+      - $SKIP_NATIVE != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
       - $DO_DEPLOY
       - $DO_NATIVE
 
@@ -112,7 +110,6 @@ build admin-ui image:
         sh -xe admin-ui/buildah/build.sh
   only:
     variables:
-      - $SKIP_E2E != "true"
       - $DO_DEPLOY
 
 build test images:
