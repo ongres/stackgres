@@ -14,9 +14,10 @@
     - export IMAGE_PUSH_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_REF_NAME"}$IMAGE_TAG_SUFFIX"
     - '[ -n "$IMAGE_NAME" ]'
     - export IMAGE_PULL_NAME="$CI_REGISTRY/ongresinc/stackgres/$IMAGE_NAME:$IMAGE_TAG"
-    - export IMAGE_PUSH_NAME="$IMAGE_NAME:$IMAGE_PUSH_TAG"
+    - export IMAGE_PUSH_NAME="docker.io/$IMAGE_NAME:$IMAGE_PUSH_TAG"
     - buildah pull "$IMAGE_PULL_NAME"
-    - buildah push --format=docker --authfile $REGISTRY_AUTH_FILE $IMAGE_NAME "docker://docker.io/$IMAGE_PUSH_NAME"
+    - buildah tag "$IMAGE_PULL_NAME" "$IMAGE_PUSH_NAME"
+    - buildah push --format=docker --authfile $REGISTRY_AUTH_FILE $IMAGE_NAME "docker://$IMAGE_PUSH_NAME"
   only:
     variables:
       - $SKIP_DEPLOY != "true" && $CI_COMMIT_REF_NAME == "development"
