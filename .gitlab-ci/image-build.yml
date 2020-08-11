@@ -16,9 +16,6 @@ build operator jvm image:
     - |
       flock /tmp/stackgres-operator-build-jvm-image \
         sh -xe operator/src/main/buildah/build-image-jvm.sh
-  only:
-    variables:
-      - $DO_DEPLOY
 
 build restapi jvm image:
   image: quay.io/buildah/stable:v1.15.0
@@ -37,9 +34,6 @@ build restapi jvm image:
     - |
       flock /tmp/stackgres-restapi-build-jvm-image \
         sh -xe api-web/src/main/buildah/build-image-jvm.sh
-  only:
-    variables:
-      - $DO_DEPLOY
 
 build operator native image:
   image: quay.io/buildah/stable:v1.15.0
@@ -108,9 +102,6 @@ build admin-ui image:
     - |
       flock /tmp/stackgres-adminui-build-image \
         sh -xe admin-ui/buildah/build.sh
-  only:
-    variables:
-      - $DO_DEPLOY
 
 build test images:
   image: quay.io/buildah/stable:v1.15.0
