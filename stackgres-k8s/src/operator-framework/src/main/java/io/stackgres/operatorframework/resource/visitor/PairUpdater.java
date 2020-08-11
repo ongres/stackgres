@@ -87,10 +87,7 @@ class PairUpdater<T> extends PairVisitor<T, T> {
 
   PairVisitor<T, T> returnRightIfNull() {
     if (left == null || right == null) {
-      if (left == null && right != null) {
-        return lastResult(right);
-      }
-      return lastResult(left);
+      return lastResult(right);
     }
     return this;
   }
