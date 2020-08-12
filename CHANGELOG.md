@@ -1,3 +1,84 @@
+# Release 0.9
+
+## NOTES
+
+Here it comes StackGres 0.9!! :tada: :bottle_with_popping_cork: 
+
+The most prominent new feature in this release is easy access to postgres logs with an easy to use interface (through the we UI). It is backed by a dedicated postgres instance, with his own special CR called `SGDistributedLogs`. But even if that is the main feature of this release there are many other new features, changes and fixes that we are proud to bring to you.
+
+To make this release our entire team did a great job, so we hope you will enjoy it!
+
+## UPGRADE
+
+To upgrade from a previous version you will have to re-install StackGres operator. Hot upgrades will be supported in the upcoming `1.0` version. Remember to backup any `SGCluster` data and StackGres CRs. For more detailed information please refer to [our documentation](https://stackgres.io/doc/latest/03-production-installation/02-installation-via-helm/#upgrade-operator).
+
+To re-install StackGres issue following commands (replace namespace and release name if you used something different):
+
+```
+NAMESPACE=stackgres
+RELEASE=stackgres-operator
+helm uninstall -n "$NAMESPACE" "$RELEASE"
+kubectl delete crd \
+  customresourcedefinition.apiextensions.k8s.io/sgbackupconfigs.stackgres.io \
+  customresourcedefinition.apiextensions.k8s.io/sgbackups.stackgres.io \
+  customresourcedefinition.apiextensions.k8s.io/sgclusters.stackgres.io \
+  customresourcedefinition.apiextensions.k8s.io/sgdistributedlogs.stackgres.io \
+  customresourcedefinition.apiextensions.k8s.io/sginstanceprofiles.stackgres.io \
+  customresourcedefinition.apiextensions.k8s.io/sgpgconfigs.stackgres.io \
+  customresourcedefinition.apiextensions.k8s.io/sgpoolconfigs.stackgres.io
+helm install -n "$NAMESPACE" "$RELEASE" https://stackgres.io/downloads/stackgres-k8s/stackgres/0.9/helm-operator.tgz
+```
+
+## CHANGES
+
+* Logs can now be collected and analyzed in the UI or REST API
+* Patroni 1.6.5
+* WAL-G 0.2.15
+* Clusters uses Postgres version 11.8 and 12.3
+* Clusters uses Envoy version 1.15.0 with new [postgres Envoy network filter](https://www.envoyproxy.io/docs/envoy/v1.15.0/configuration/listeners/network_filters/postgres_proxy_filter)
+* StackGres pods now run with non-root user (or arbitrary user in OpenShift)
+* OpenShift 3.11 support added. Also Minishift is added to StackGres integrated test suite.
+* Custom annotations and labels can now be specified for StackGres cluster pods.
+* Reorganization of internal pod ports so that 5432 now points to postgres instance.
+* Added scripts section for cluster initialization to load SQL snippets or small SQL files from ConfigMaps or Secrets
+* New UI design for the web console
+* UI and REST API now run in its own pod
+* UI authentication / authorization based on JWT token and backed by kubernetes RBAC
+* UI's URLs reload to the same page so they can be used for collaboration (share links to parts of the web console)
+* UI include now interface to create/edit/delete distributed logs CRDs
+* Match functionality between CRDs and UI (they are fully equivalent; use either, see the results on either too)
+* Stats are now shown per Pod and have been improved
+* Added distributed logs create/edit/view to the UI
+* Custom Grafana dashboard is used by default when enabling Grafana integration
+* Timeline is now exposed in backup status
+* Allow GCP workload identity configuration for Postgres Backups
+* Update default values for `nonProductionOptions` to be production oriented by default
+
+## FIXES
+
+* When deleting a SGBackup CR, the backup in the object storage is not deleted
+* Automatic backups are removed when the cluster is removed
+* Manual backups are apparently not working
+* Connection does not work when SG cluster pod is "Ready"
+* Creation of cluster for pg 11 with default configuration fail
+* Fixed retention not honored
+* Internal error when deleting a distributed logs CR
+* Cluster resources are not deleted when deleting a cluster from the REST API
+* Distributed logs REST API return an error relation does not exists
+* Control Data field is not being stored in the backup CR
+* Fields are not written in some versions of kubernetes generating cluster update events
+* Automatic backup job does not enforce a non-root security context
+* Empty deleted cluster name after deletion
+* Automatic refreshment is not working
+* Operator does not update correctly null values
+* Using fixed version 8.13.4 for prometheus-operator dependency
+* Using fixed version 5.0.26 for MinIO dependency
+
+# KNOWN ISSUES
+
+* Kubernetes 1.18 is not supported yet, see #439
+* Kubernetes 1.11 requires PodShareProcessNamespace feature gate to be enabled (not tested in any kubernetes environment except for MiniShift 3.11)
+
 # Release 0.9-RC3
 
 ## FIXES
