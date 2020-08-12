@@ -5,6 +5,16 @@ e2e_exclusive_lock() {
 }
 
 e2e_test_install() {
+  local TARGET_IMAGE_TAG=development
+  if [ "${STACKGRES_VERSION#*-}" != "SNAPSHOT" ]
+  then
+    TARGET_IMAGE_TAG="$STACKGRES_VERSION"
+  fi
+  if [ "${IMAGE_TAG#*-}" = "jvm" ]
+  then
+    TARGET_IMAGE_TAG="$TARGET_IMAGE_TAG-jvm"
+  fi
+  load_operator_k8s "$TARGET_IMAGE_TAG"
   STACKGRES_YAML_NAMESPACE=stackgres
   k8s_cleanup_namespace "$OPERATOR_NAMESPACE"
   k8s_cleanup_namespace "$STACKGRES_YAML_NAMESPACE"
