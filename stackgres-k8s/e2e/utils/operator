@@ -135,6 +135,31 @@ setup_operator() {
 }
 
 load_operator_k8s() {
+  if [ "$E2E_FORCE_IMAGE_PULL" = "true" ]
+  then
+    if ! docker inspect "$OPERATOR_IMAGE_NAME" >/dev/null 2>&1 \
+      || ! docker inspect "$RESTAPI_IMAGE_NAME" >/dev/null 2>&1 \
+      || ! docker inspect "$ADMINUI_IMAGE_NAME" >/dev/null 2>&1
+    then
+      if [ -n "$E2E_OPERATOR_REGISTRY" ]
+      then
+        docker login \
+          -u "$E2E_OPERATOR_REGISTRY_USER" \
+          -p "$E2E_OPERATOR_REGISTRY_PASSWORD" \
+          "$E2E_OPERATOR_REGISTRY"
+      fi
+      docker pull "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH$OPERATOR_IMAGE_NAME"
+      docker pull "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH$RESTAPI_IMAGE_NAME"
+      docker pull "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH$ADMINUI_IMAGE_NAME"
+      if [ -n "$E2E_OPERATOR_REGISTRY" ]
+      then
+        docker tag "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH$OPERATOR_IMAGE_NAME" "$OPERATOR_IMAGE_NAME"
+        docker tag "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH$RESTAPI_IMAGE_NAME" "$RESTAPI_IMAGE_NAME"
+        docker tag "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH$ADMINUI_IMAGE_NAME" "$ADMINUI_IMAGE_NAME"
+      fi
+    fi
+  fi
+
   if [ -n "$1" ]
   then
     local ORIGINAL_OPERATOR_IMAGE_NAME="$OPERATOR_IMAGE_NAME"
@@ -149,26 +174,6 @@ load_operator_k8s() {
     docker tag "$ORIGINAL_RESTAPI_IMAGE_NAME" "$RESTAPI_IMAGE_NAME"
     docker tag "$ORIGINAL_ADMINUI_IMAGE_NAME" "$ADMINUI_IMAGE_NAME"
     load_operator_k8s
-  fi
-
-  if [ "$E2E_FORCE_IMAGE_PULL" = "true" ]
-  then
-    if [ -n "$E2E_OPERATOR_REGISTRY" ]
-    then
-      docker login \
-        -u "$E2E_OPERATOR_REGISTRY_USER" \
-        -p "$E2E_OPERATOR_REGISTRY_PASSWORD" \
-        "$E2E_OPERATOR_REGISTRY"
-    fi
-    docker pull "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH$OPERATOR_IMAGE_NAME"
-    docker pull "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH$RESTAPI_IMAGE_NAME"
-    docker pull "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH$ADMINUI_IMAGE_NAME"
-    if [ -n "$E2E_OPERATOR_REGISTRY" ]
-    then
-      docker tag "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH$OPERATOR_IMAGE_NAME" "$OPERATOR_IMAGE_NAME"
-      docker tag "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH$RESTAPI_IMAGE_NAME" "$RESTAPI_IMAGE_NAME"
-      docker tag "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH$ADMINUI_IMAGE_NAME" "$ADMINUI_IMAGE_NAME"
-    fi
   fi
 
   if docker image inspect "$OPERATOR_IMAGE_NAME" >/dev/null 2>&1
