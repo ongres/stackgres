@@ -3,6 +3,7 @@
   stage: native build
   tags:
     - stackgres-runner
+    - stackgres-native-build-runner
   dependencies:
     - build
   variables:
