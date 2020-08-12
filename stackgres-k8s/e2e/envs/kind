@@ -7,19 +7,16 @@ export KIND_NAME
 export KIND_NODES
 
 check_kind_version() {
-  kind version | grep -q -F 'kind v0.8.1 '
+  if ! kind version | grep -q -F 'kind v0.8.1 '
+  then
+    echo "kind v0.8.1 is required"
+    return 1
+  fi
 }
 
 update_k8s_config() {
   check_kind_version
 
-  if cat /proc/1/cgroup | grep :memory | grep -E ":/$" > /dev/null
-  then 
-    echo "Running outside of a container"
-    return
-  else 
-    echo "Running inside of a container"
-  fi  
   mkdir -p "$HOME/.kube"
   if [ "$K8S_FROM_DIND" = true ]
   then
@@ -84,6 +81,7 @@ reuse_k8s() {
 
 reset_k8s() {
   check_kind_version
+  check_kind_image_exists
 
   echo "Setting up kind environment $KIND_NAME..."
 
@@ -208,7 +206,7 @@ check_kind_image_exists() {
   if ! "$RESULT"
   then
     echo "Kind image for k8s version ${K8S_VERSION} not found."
-    echo "Available images exists only for versions: $(get_k8s_versions)"
+    echo "Available images exists only for versions: $(get_k8s_versions | tr '\n' ' ' | sed 's/ /, /g')"
     exit 1
   fi
 }
