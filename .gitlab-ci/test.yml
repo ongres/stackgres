@@ -20,6 +20,9 @@ unit tests:
   image: registry.gitlab.com/ongresinc/stackgres/stackgres/it:latest
   tags:
     - stackgres-runner
+  dependencies:
+    - build helm packages
+    - build helm templates
   variables:
     OPERATOR_IN_KUBERNETES: "true"
     IMAGE_TAG_SUFFIX: ""
@@ -29,7 +32,7 @@ unit tests:
     - set -e
     - export E2E_OPERATOR_REGISTRY_PASSWORD=$CI_REGISTRY_PASSWORD
     - set -x
-    - SUFFIX="$(echo "-$E2E_SUFFIX-$E2E_RUN_ONLY" | tr -d '\n' | tr -c 'a-z0-9' '-')"
+    - SUFFIX="$(echo "-$E2E_SUFFIX-$E2E_RUN_ONLY" | tr -d '\n' | tr -c 'a-z0-9' '-' | sed 's/\(-[0-9]\+\)-[0-9]\+$/\1/')"
     - SHELL_XTRACE="$([ "$E2E_DEBUG" = true ] && echo "-x" || echo "")"
     - export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}$IMAGE_TAG_SUFFIX"
     - export KIND_NAME="kind$SUFFIX"
@@ -81,20 +84,32 @@ unit tests:
     paths:
     - stackgres-k8s/e2e/target
 
-e2e tests jvm image part 1/2:
+e2e tests jvm image part 1/3:
   extends: .e2e tests jvm image
   variables:
-    E2E_RUN_ONLY: non_exclusive:1/2
+    E2E_RUN_ONLY: non_exclusive:1/3
 
-e2e tests jvm image part 2/2:
+e2e tests jvm image part 2/3:
   extends: .e2e tests jvm image
   variables:
-    E2E_RUN_ONLY: non_exclusive:2/2
+    E2E_RUN_ONLY: non_exclusive:2/3
 
-e2e exclusive tests jvm image:
+e2e tests jvm image part 3/3:
   extends: .e2e tests jvm image
   variables:
-    E2E_RUN_ONLY: exclusive:1/1
+    E2E_RUN_ONLY: non_exclusive:3/3
+
+e2e exclusive tests jvm image part 1/2:
+  extends: .e2e tests jvm image
+  variables:
+    E2E_RUN_ONLY: exclusive:1/2
+    E2E_SKIP_OPERATOR_INSTALL: "true"
+
+e2e exclusive tests jvm image part 2/2:
+  extends: .e2e tests jvm image
+  variables:
+    E2E_RUN_ONLY: exclusive:2/2
+    E2E_SKIP_OPERATOR_INSTALL: "true"
 
 .e2e tests native image:
   extends: .e2e tests
@@ -114,17 +129,29 @@ e2e exclusive tests jvm image:
     paths:
     - stackgres-k8s/e2e/target
 
-e2e tests native image part 1/2:
+e2e tests native image part 1/3:
   extends: .e2e tests native image
   variables:
-    E2E_RUN_ONLY: non_exclusive:1/2
+    E2E_RUN_ONLY: non_exclusive:1/3
 
-e2e tests native image part 2/2:
+e2e tests native image part 2/3:
   extends: .e2e tests native image
   variables:
-    E2E_RUN_ONLY: non_exclusive:2/2
+    E2E_RUN_ONLY: non_exclusive:2/3
 
-e2e exclusive tests native image:
+e2e tests native image part 3/3:
   extends: .e2e tests native image
   variables:
-    E2E_RUN_ONLY: exclusive:1/1
+    E2E_RUN_ONLY: non_exclusive:3/3
+
+e2e exclusive tests native image part 1/2:
+  extends: .e2e tests native image
+  variables:
+    E2E_RUN_ONLY: exclusive:1/2
+    E2E_SKIP_OPERATOR_INSTALL: "true"
+
+e2e exclusive tests native image part 2/2:
+  extends: .e2e tests native image
+  variables:
+    E2E_RUN_ONLY: exclusive:2/2
+    E2E_SKIP_OPERATOR_INSTALL: "true"

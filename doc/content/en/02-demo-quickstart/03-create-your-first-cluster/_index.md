@@ -99,11 +99,11 @@ kubectl delete -f {{< download-url >}}/demo-minio.yml
 
 # Installation with helm
 
-You can also install a StackGres cluster using [helm vesion 2.x](https://github.com/helm/helm/releases)
+You can also install a StackGres cluster using [helm vesion 3.x](https://github.com/helm/helm/releases)
  with the following command:
 
 ```
-helm install --name simple \
+helm install simple \
   {{< download-url >}}/demo-helm-cluster.tgz
 ```
 

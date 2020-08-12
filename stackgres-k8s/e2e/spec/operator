@@ -5,7 +5,8 @@ e2e_exclusive_lock() {
 }
 
 e2e_test_install() {
-  delete_operator
+  k8s_cleanup_namespace "$OPERATOR_NAMESPACE"
+  k8s_async_cleanup
 }
 
 e2e_test_uninstall() {

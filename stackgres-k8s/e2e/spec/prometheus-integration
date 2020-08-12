@@ -15,6 +15,9 @@ e2e_exclusive_lock() {
 }
 
 e2e_test_install() {
+  k8s_cleanup_namespace "$OPERATOR_NAMESPACE"
+  k8s_async_cleanup
+
   if [ "$E2E_ENV" = "minishift" ]
   then
     eval "$(minishift oc-env)"
@@ -28,7 +31,7 @@ e2e_test_install() {
 
   wait_pods_running "$(prometheus_namespace)" 3
 
-  upgrade_or_install_operator \
+  install_operator \
     --set grafana.autoEmbed=true \
     --set-string grafana.webHost="prometheus-grafana.$(prometheus_namespace)"
 

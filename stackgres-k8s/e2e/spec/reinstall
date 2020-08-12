@@ -27,10 +27,12 @@ check_cluster_reset() {
 
   helm uninstall "$CLUSTER_NAME" --namespace "$CLUSTER_NAMESPACE"
 
+  wait_pods_terminated "$CLUSTER_NAMESPACE" 0
+
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2
 
   wait_pods_running "$CLUSTER_NAMESPACE" 2
- 
+
 }
 
 check_cluster_clean(){

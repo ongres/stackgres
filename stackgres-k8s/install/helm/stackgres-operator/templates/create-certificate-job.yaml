@@ -105,15 +105,9 @@ spec:
             {{- $_ := set $values.Values.cert "jwtRsaKey" nil }}
             {{- $_ := set $values.Values.cert "jwtRsaPub" nil }}
             
-            kubectl create -f /tmp/validating-webhook-configuration.yaml \
-              || kubectl patch -n '{{ .Release.Namespace }}' validatingwebhookconfiguration '{{ .Release.Name }}' \
-                -p "$(cat /tmp/validating-webhook-configuration.yaml)"
-            kubectl create -f /tmp/mutating-webhook-configuration.yaml \
-              || kubectl patch -n '{{ .Release.Namespace }}' mutatingwebhookconfiguration '{{ .Release.Name }}' \
-                -p "$(cat /tmp/mutating-webhook-configuration.yaml)"
-            kubectl create -f /tmp/certificate-secret.yaml \
-              || kubectl patch -n '{{ .Release.Namespace }}' secret '{{ .Release.Name }}-certs' \
-                -p "$(cat /tmp/certificate-secret.yaml)"
+            kubectl apply -f /tmp/validating-webhook-configuration.yaml
+            kubectl apply -f /tmp/mutating-webhook-configuration.yaml
+            kubectl apply -f /tmp/certificate-secret.yaml
             {{- if .Release.IsInstall }}
             kubectl scale --timeout 1h --replicas 1 -n '{{ .Release.Namespace }}' 'deployment/{{ .Release.Name }}'
             kubectl scale --timeout 1h --replicas 1 -n '{{ .Release.Namespace }}' 'deployment/{{ .Values.restapi.name }}'
