@@ -133,9 +133,9 @@ class PairUpdater<T> extends PairVisitor<T, T> {
       Supplier<O> defaultValue) {
     return new PairUpdater<>(
         getter.andThen(Optional::ofNullable)
-        .andThen(o -> o.orElseGet(defaultValue)).apply(left),
+            .andThen(o -> o.orElseGet(defaultValue)).apply(left),
         getter.andThen(Optional::ofNullable)
-        .andThen(o -> o.orElseGet(defaultValue)).apply(right));
+            .andThen(o -> o.orElseGet(defaultValue)).apply(right));
   }
 
   @Override
@@ -250,19 +250,21 @@ class PairUpdater<T> extends PairVisitor<T, T> {
         setter.accept(left, rightMap);
         return this;
       }
-      if (leftMap == null || leftMap.isEmpty()) {
+      if (leftMap != null && leftMap.isEmpty() && rightMap != null) {
         leftMap.putAll(rightMap);
         return this;
       }
-      leftMap.clear();
+      if (leftMap != null) {
+        leftMap.clear();
+      }
       return this;
     }
     Map<K, V> leftMapCopy = new HashMap<>(leftMap);
     rightMap.entrySet().stream()
-      .forEach(rightEntry -> leftMap.put(rightEntry.getKey(), rightEntry.getValue()));
+        .forEach(rightEntry -> leftMap.put(rightEntry.getKey(), rightEntry.getValue()));
     leftMapCopy.entrySet().stream()
-      .filter(leftEntry -> !rightMap.containsKey(leftEntry.getKey()))
-      .forEach(leftEntry -> leftMap.remove(leftEntry.getKey()));
+        .filter(leftEntry -> !rightMap.containsKey(leftEntry.getKey()))
+        .forEach(leftEntry -> leftMap.remove(leftEntry.getKey()));
     return this;
   }
 
@@ -270,8 +272,7 @@ class PairUpdater<T> extends PairVisitor<T, T> {
       Function<T, O> getter, BiConsumer<T, O> setter) {
     O leftMap = getter.apply(left);
     O rightMap = getter.apply(right);
-    if (leftMap == null || leftMap.isEmpty()
-        || rightMap == null || rightMap.isEmpty()) {
+    if (leftMap == null || leftMap.isEmpty() || rightMap == null || rightMap.isEmpty()) {
       if (leftMap == null && rightMap != null && setter == null) {
         throw new IllegalStateException();
       }
@@ -279,20 +280,22 @@ class PairUpdater<T> extends PairVisitor<T, T> {
         setter.accept(left, rightMap);
         return this;
       }
-      if (leftMap == null || leftMap.isEmpty()) {
+      if (leftMap != null && leftMap.isEmpty() && rightMap != null) {
         leftMap.putAll(rightMap);
         return this;
       }
-      leftMap.clear();
+      if (leftMap != null) {
+        leftMap.clear();
+      }
       return this;
     }
     Map<K, V> leftMapCopy = new HashMap<>(leftMap);
     rightMap.entrySet().stream()
-      .filter(rightEntry -> !leftMap.containsKey(rightEntry.getKey()))
-      .forEach(rightEntry -> leftMap.put(rightEntry.getKey(), rightEntry.getValue()));
+        .filter(rightEntry -> !leftMap.containsKey(rightEntry.getKey()))
+        .forEach(rightEntry -> leftMap.put(rightEntry.getKey(), rightEntry.getValue()));
     leftMapCopy.entrySet().stream()
-      .filter(leftEntry -> !rightMap.containsKey(leftEntry.getKey()))
-      .forEach(leftEntry -> leftMap.remove(leftEntry.getKey()));
+        .filter(leftEntry -> !rightMap.containsKey(leftEntry.getKey()))
+        .forEach(leftEntry -> leftMap.remove(leftEntry.getKey()));
     return this;
   }
 
@@ -302,8 +305,7 @@ class PairUpdater<T> extends PairVisitor<T, T> {
       BinaryOperator<Entry<K, V>> rightTransformer) {
     O leftMap = getter.apply(left);
     O rightMap = getter.apply(right);
-    if (leftMap == null || leftMap.isEmpty()
-        || rightMap == null || rightMap.isEmpty()) {
+    if (leftMap == null || leftMap.isEmpty() || rightMap == null || rightMap.isEmpty()) {
       if (leftMap == null && rightMap != null && setter == null) {
         throw new IllegalStateException();
       }
@@ -311,27 +313,29 @@ class PairUpdater<T> extends PairVisitor<T, T> {
         setter.accept(left, rightMap);
         return this;
       }
-      if (leftMap == null || leftMap.isEmpty()) {
+      if (leftMap != null && leftMap.isEmpty() && rightMap != null) {
         leftMap.putAll(rightMap);
         return this;
       }
-      leftMap.clear();
+      if (leftMap != null) {
+        leftMap.clear();
+      }
       return this;
     }
     Map<K, V> leftMapCopy = new HashMap<>(leftMap);
     rightMap.entrySet().stream()
-      .map(rightEntry -> rightTransformer.apply(
-          leftMap.entrySet()
-          .stream()
-          .filter(leftEntry -> leftEntry.getKey().equals(rightEntry.getKey()))
-          .findAny()
-          .map(leftEntry -> leftTransformer.apply(leftEntry, rightEntry))
-          .orElse(null),
-          rightEntry))
-      .forEach(rightEntry -> leftMap.put(rightEntry.getKey(), rightEntry.getValue()));
+        .map(rightEntry -> rightTransformer.apply(
+            leftMap.entrySet()
+                .stream()
+                .filter(leftEntry -> leftEntry.getKey().equals(rightEntry.getKey()))
+                .findAny()
+                .map(leftEntry -> leftTransformer.apply(leftEntry, rightEntry))
+                .orElse(null),
+            rightEntry))
+        .forEach(rightEntry -> leftMap.put(rightEntry.getKey(), rightEntry.getValue()));
     leftMapCopy.entrySet().stream()
-      .filter(leftEntry -> !rightMap.containsKey(leftEntry.getKey()))
-      .forEach(leftEntry -> leftMap.remove(leftEntry.getKey()));
+        .filter(leftEntry -> !rightMap.containsKey(leftEntry.getKey()))
+        .forEach(leftEntry -> leftMap.remove(leftEntry.getKey()));
     return this;
   }
 

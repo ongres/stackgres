@@ -16,7 +16,7 @@ import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
 public class KubernetesServerSupplier implements Supplier<KubernetesServer> {
   KubernetesServer server;
 
-  public boolean wasRetrieved() {
+  public synchronized boolean wasRetrieved() {
     return server != null;
   }
 

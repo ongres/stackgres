@@ -127,7 +127,7 @@ public class ServiceMonitorHandler
             ServiceMonitorDoneable.class));
   }
 
-  private class ServiceMonitorVisitor<T> extends ResourcePairVisitor<T, Void> {
+  private static class ServiceMonitorVisitor<T> extends ResourcePairVisitor<T, Void> {
 
     public ServiceMonitorVisitor() {
       super(null);

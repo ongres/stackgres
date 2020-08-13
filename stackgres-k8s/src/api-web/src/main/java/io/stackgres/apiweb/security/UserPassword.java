@@ -18,18 +18,18 @@ public class UserPassword {
 
   @JsonProperty(value = "username", required = true)
   @NotBlank
-  private String username;
+  private String userName;
 
   @JsonProperty(value = "password", required = true)
   @NotBlank
   private String password;
 
-  public String getUsername() {
-    return username;
+  public String getUserName() {
+    return userName;
   }
 
-  public void setUsername(String username) {
-    this.username = username;
+  public void setUserName(String username) {
+    this.userName = username;
   }
 
   public String getPassword() {
@@ -42,7 +42,7 @@ public class UserPassword {
 
   @Override
   public String toString() {
-    return "UserPassword [username=" + username + ", password=" + password + "]";
+    return "UserPassword [username=" + userName + ", password=" + password + "]";
   }
 
 }

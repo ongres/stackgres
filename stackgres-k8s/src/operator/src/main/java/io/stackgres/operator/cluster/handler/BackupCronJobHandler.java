@@ -45,7 +45,7 @@ public class BackupCronJobHandler extends AbstractClusterResourceHandler {
         existingResource, requiredResource);
   }
 
-  private class CronJobVisitor<T>
+  private static class CronJobVisitor<T>
       extends ResourcePairVisitor<T, StackGresClusterContext> {
 
     public CronJobVisitor(StackGresClusterContext context) {

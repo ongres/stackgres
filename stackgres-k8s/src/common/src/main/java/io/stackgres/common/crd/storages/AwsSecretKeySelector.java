@@ -57,8 +57,8 @@ public class AwsSecretKeySelector {
       return false;
     }
     AwsSecretKeySelector that = (AwsSecretKeySelector) o;
-    return accessKeyId.equals(that.accessKeyId)
-        && secretAccessKey.equals(that.secretAccessKey);
+    return Objects.equals(accessKeyId, that.accessKeyId)
+        && Objects.equals(secretAccessKey, that.secretAccessKey);
   }
 
   @Override

@@ -5,6 +5,7 @@
 
 package io.stackgres.operatorframework.admissionwebhook;
 
+import java.util.Objects;
 import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -62,4 +63,26 @@ public class AdmissionResponse {
   public void setPatch(String patch) {
     this.patch = patch;
   }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(allowed, patch, patchType, status, uid);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (!(obj instanceof AdmissionResponse)) {
+      return false;
+    }
+    AdmissionResponse other = (AdmissionResponse) obj;
+    return allowed == other.allowed
+        && Objects.equals(patch, other.patch)
+        && Objects.equals(patchType, other.patchType)
+        && Objects.equals(status, other.status)
+        && Objects.equals(uid, other.uid);
+  }
+
 }

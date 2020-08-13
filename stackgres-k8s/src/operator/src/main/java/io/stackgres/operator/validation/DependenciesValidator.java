@@ -48,7 +48,7 @@ public abstract class DependenciesValidator<T extends AdmissionReview<?>> implem
 
   protected void fail(T review, StackGresCluster i) throws ValidationFailed {
     final AdmissionRequest<?> request = review.getRequest();
-    final String message = "Can't " + request.getOperation().name().toLowerCase()
+    final String message = "Can't " + request.getOperation().toString()
         + " " + request.getResource().getResource()
         + "." + request.getKind().getGroup()
         + " " + request.getName() + " because the "

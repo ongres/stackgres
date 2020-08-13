@@ -5,13 +5,11 @@
 
 package io.stackgres.apiweb.rest;
 
-import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Provider;
 
 import org.jboss.resteasy.spi.ReaderException;
 
 @Provider
-public class ReaderExceptionMapper extends AbstractGenericExceptionMapper<ReaderException>
-    implements ExceptionMapper<ReaderException> {
+public class ReaderExceptionMapper extends AbstractGenericExceptionMapper<ReaderException> {
 
 }

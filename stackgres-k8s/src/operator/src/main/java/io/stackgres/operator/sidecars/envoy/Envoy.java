@@ -167,7 +167,7 @@ public class Envoy implements StackGresClusterSidecarResourceFactory<Void> {
     final ObjectNode envoyConfig;
     try {
       envoyConfig = (ObjectNode) yamlMapper
-          .readTree(getClass().getResource(envoyConfPath));
+          .readTree(Envoy.class.getResource(envoyConfPath));
     } catch (Exception ex) {
       throw new IllegalStateException("couldn't read envoy config file", ex);
     }

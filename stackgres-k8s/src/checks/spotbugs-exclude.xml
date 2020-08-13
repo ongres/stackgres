@@ -71,10 +71,18 @@
     <Bug pattern="UWF_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR" />
   </Match>
 
-  <!-- Used in the private inner class MonitorListener -->
+  <!-- Used internally -->
   <Match>
-    <Class name="io.stackgres.operator.controller.WatcherMonitor" />
-    <Method name="onEventReceived" />
     <Bug pattern="UPM_UNCALLED_PRIVATE_METHOD" />
+    <Or>
+      <And>
+        <Class name="io.stackgres.operator.controller.WatcherMonitor" />
+        <Method name="onEventReceived" />
+      </And>
+      <And>
+        <Class name="io.stackgres.apiweb.resource.ClusterDtoScanner$Transformer" />
+        <Method name="transform" />
+      </And>
+    </Or>
   </Match>
 </FindBugsFilter>

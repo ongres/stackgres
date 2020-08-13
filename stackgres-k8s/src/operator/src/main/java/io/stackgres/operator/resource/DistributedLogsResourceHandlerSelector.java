@@ -59,7 +59,7 @@ public class DistributedLogsResourceHandlerSelector
         : Optional.empty();
   }
 
-  private class StackGresClusterResourceHandlerWrapper
+  private static class StackGresClusterResourceHandlerWrapper
       implements ResourceHandler<StackGresDistributedLogsContext> {
 
     private final ResourceHandler<StackGresClusterContext> handler;
