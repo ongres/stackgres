@@ -9,6 +9,7 @@
   variables:
     NATIVE_IMAGE_EXTRA_PREFIX: ""
     MAVEN_EXTRA_ARGS: ""
+    QUARKUS_NATIVE_NATIVE_IMAGE_XMX: 18g
   timeout: 12 hour
   script:
     - MAVEN_CLI_OPTS="$MAVEN_CLI_OPTS -DskipTests"
@@ -16,16 +17,10 @@
       flock "/tmp/stackgres-build$NATIVE_IMAGE_EXTRA_PREFIX-native-executable" \
         timeout -s KILL 3600 \
         mvn $MAVEN_CLI_OPTS package -P native $MAVEN_EXTRA_ARGS
-    - 'cp $GRAALVM_HOME/jre/lib/amd64/libsunec.so stackgres-k8s/src/operator/target/'
-    - 'cp $GRAALVM_HOME/jre/lib/security/cacerts stackgres-k8s/src/operator/target/'
-    - 'cp $GRAALVM_HOME/jre/lib/amd64/libsunec.so stackgres-k8s/src/api-web/target/'
-    - 'cp $GRAALVM_HOME/jre/lib/security/cacerts stackgres-k8s/src/api-web/target/'
   artifacts:
     expire_in: 1 week
     when: always
     paths:
-      - stackgres-k8s/src/*/target/libsunec.so
-      - stackgres-k8s/src/*/target/cacerts
       - stackgres-k8s/src/*/target/stackgres-*-runner
       - stackgres-k8s/src/*/target/lib/
       - stackgres-k8s/src/*/target/stackgres-*-runner.jar

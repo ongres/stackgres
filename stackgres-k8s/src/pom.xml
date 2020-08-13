@@ -104,7 +104,7 @@
     <dependencies>
       <dependency>
         <groupId>io.quarkus</groupId>
-        <artifactId>quarkus-bom</artifactId>
+        <artifactId>quarkus-universe-bom</artifactId>
         <version>${quarkus.version}</version>
         <type>pom</type>
         <scope>import</scope>
