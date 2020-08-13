@@ -91,10 +91,10 @@
     <build-helper-maven-plugin.version>3.2.0</build-helper-maven-plugin.version>
     <!-- Checkstyle, SpotBugs and PMD properties -->
     <checks.location>${project.basedir}/checks</checks.location>
-    <checkstyle.config.location>${checks.location}/checkstyle/checkstyle.xml</checkstyle.config.location>
-    <checkstyle.header.file>${checks.location}/checkstyle/header.txt</checkstyle.header.file>
-    <checkstyle.suppressions.location>${checks.location}/checkstyle/suppressions.xml</checkstyle.suppressions.location>
-    <spotbugs.excludeFilterFile>${checks.location}/spotbugs/exclude.xml</spotbugs.excludeFilterFile>
+    <checkstyle.config.location>${checks.location}/checkstyle.xml</checkstyle.config.location>
+    <checkstyle.header.file>${checks.location}/checkstyle-header.txt</checkstyle.header.file>
+    <checkstyle.suppressions.location>${checks.location}/checkstyle-suppressions.xml</checkstyle.suppressions.location>
+    <spotbugs.excludeFilterFile>${checks.location}/spotbugs-exclude.xml</spotbugs.excludeFilterFile>
 
     <it.image>stackgres/it:10.0</it.image>
     <buildah.image>quay.io/buildah/stable:v1.15.0</buildah.image>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter>
+  <Match>
+    <Package name="~.*\.generated\..*" />
+  </Match>
+  <Match>
+    <Source name="~.*generated-sources.*\.java" />
+  </Match>
+  <!-- Ignore SpotBugs reports from Potential CRLF Injection for logs -->
+  <Match>
+    <Bug pattern="CRLF_INJECTION_LOGS" />
+  </Match>
+  <!-- False positive with Java 11 https://github.com/spotbugs/spotbugs/issues/878 -->
+  <Match>
+    <Bug pattern="RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE" />
+  </Match>
+  <Match>
+    <!-- Se: Non-transient non-serializable instance field in serializable class -->
+    <Bug pattern="SE_BAD_FIELD" />
+  </Match>
+</FindBugsFilter>
