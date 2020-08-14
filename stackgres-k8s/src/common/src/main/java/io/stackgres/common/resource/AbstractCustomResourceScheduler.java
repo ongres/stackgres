@@ -5,7 +5,6 @@
 
 package io.stackgres.common.resource;
 
-import io.fabric8.kubernetes.api.model.DeletionPropagation;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.CustomResourceDoneable;
 import io.fabric8.kubernetes.client.CustomResourceList;
@@ -65,7 +64,6 @@ public abstract class AbstractCustomResourceScheduler<T extends CustomResource,
       getCustomResourceEndpoints(client)
           .inNamespace(resource.getMetadata().getNamespace())
           .withName(resource.getMetadata().getName())
-          .withPropagationPolicy(DeletionPropagation.BACKGROUND)
           .delete();
     }
   }
