@@ -15,6 +15,7 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
+import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
 import io.fabric8.kubernetes.internal.KubernetesDeserializer;
 import io.stackgres.operator.common.LabelFactoryDelegator;
 import io.stackgres.operator.common.StackGresClusterContext;
@@ -119,6 +120,7 @@ public class ServiceMonitorHandler
       Resource<ServiceMonitor, ServiceMonitorDoneable>>> getServiceMonitorClient(
           KubernetesClient client) {
     return ResourceUtil.getCustomResource(client, ServiceMonitorDefinition.NAME)
+        .map(CustomResourceDefinitionContext::fromCrd)
         .map(crd -> client.customResources(crd,
             ServiceMonitor.class,
             ServiceMonitorList.class,

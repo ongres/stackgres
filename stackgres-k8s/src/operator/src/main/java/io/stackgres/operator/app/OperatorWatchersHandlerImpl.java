@@ -15,9 +15,9 @@ import javax.inject.Inject;
 import io.fabric8.kubernetes.api.model.Doneable;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesResourceList;
-import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.Watcher.Action;
+import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
 import io.quarkus.runtime.Application;
 import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
@@ -134,7 +134,8 @@ public class OperatorWatchersHandlerImpl implements OperatorWatcherHandler {
           Class<D> doneableClass, Consumer<Action> consumer) {
 
     try (KubernetesClient client = kubeClient.create()) {
-      CustomResourceDefinition crd = ResourceUtil.getCustomResource(client, name)
+      CustomResourceDefinitionContext crd = ResourceUtil.getCustomResource(client, name)
+          .map(CustomResourceDefinitionContext::fromCrd)
           .orElseThrow(() -> new IllegalStateException("Some required CRDs does not exists"));
       return new WatcherMonitor<>(watcherListener -> kubeClient.create()
           .customResources(crd, crClass, listClass, doneableClass)

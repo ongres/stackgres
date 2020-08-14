@@ -5,22 +5,17 @@
 
 package io.stackgres.common;
 
-import java.util.Arrays;
-
-import io.quarkus.arc.Arc;
-
-public class ArcUtil {
+public final class ArcUtil {
 
   private ArcUtil() {}
 
   public static void checkPublicNoArgsConstructorIsCalledFromArc() {
-    if (Arrays.asList(new Exception().fillInStackTrace()
-        .getStackTrace())
-        .stream()
-        .noneMatch(stackTraceElement -> stackTraceElement.getClassName()
-            .equals(Arc.class.getName()))) {
-      throw new IllegalStateException("Public no-args constructor can only be used from "
-          + Arc.class.getName() + " class");
+    StackWalker instance = StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE);
+    String callerClass = instance.getCallerClass().getName();
+    if (instance.walk(s -> s.noneMatch(p -> p.getClassName()
+        .equals(callerClass + "_Bean"))).booleanValue()) {
+      throw new IllegalStateException("Public no-args constructor can only be used "
+          + "from ArC context");
     }
   }
 

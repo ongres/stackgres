@@ -3,7 +3,7 @@
 set -e
 
 OPERATOR_IMAGE_NAME="${OPERATOR_IMAGE_NAME:-"stackgres/operator:development-jvm"}"
-CONTAINER_BASE=$(buildah from "azul/zulu-openjdk-alpine:8u242-jre")
+CONTAINER_BASE=$(buildah from "azul/zulu-openjdk-alpine:11.0.8-jre-headless")
 TARGET_OPERATOR_IMAGE_NAME="${TARGET_OPERATOR_IMAGE_NAME:-docker-daemon:$OPERATOR_IMAGE_NAME}"
 
 # Include binaries
@@ -13,14 +13,14 @@ buildah copy --chown nobody:nobody "$CONTAINER_BASE" 'operator/target/lib/*' '/a
 cat << 'EOF' > operator/target/stackgres-operator.sh
 #!/bin/sh
 
-JAVA_OPTS="${JAVA_OPTS:-"-Djava.net.preferIPv4Stack=true -XX:MaxRAMPercentage=85.0"}"
+JAVA_OPTS="${JAVA_OPTS:-"-Djava.net.preferIPv4Stack=true -Djava.awt.headless=true -XX:MaxRAMPercentage=75.0"}"
 APP_OPTS="${APP_OPTS:-"-Dquarkus.http.host=0.0.0.0 -Dquarkus.http.port=8080 -Dquarkus.http.ssl-port=8443 -Djava.util.logging.manager=org.jboss.logmanager.LogManager"}"
 if [ "$DEBUG_OPERATOR" = true ]
 then
   set -x
   JAVA_OPTS="$JAVA_OPTS -agentlib:jdwp=transport=dt_socket,server=y,address=8000,suspend=$([ "$DEBUG_OPERATOR_SUSPEND" = true ] && echo y || echo n)"
 fi
-if [ ! -z "$OPERATOR_LOG_LEVEL" ]
+if [ -n "$OPERATOR_LOG_LEVEL" ]
 then
   JAVA_OPTS="$JAVA_OPTS -Dquarkus.log.level=$OPERATOR_LOG_LEVEL"
 fi
@@ -41,6 +41,6 @@ buildah config --port 8443 "$CONTAINER_BASE"
 buildah config --user nobody:nobody "$CONTAINER_BASE"
 
 ## Commit this container to an image name
-buildah commit --squash "$CONTAINER_BASE" "$OPERATOR_IMAGE_NAME"
+buildah commit "$CONTAINER_BASE" "$OPERATOR_IMAGE_NAME"
 buildah push -f "${BUILDAH_PUSH_FORMAT:-docker}" "$OPERATOR_IMAGE_NAME" "$TARGET_OPERATOR_IMAGE_NAME"
 buildah delete "$CONTAINER_BASE"

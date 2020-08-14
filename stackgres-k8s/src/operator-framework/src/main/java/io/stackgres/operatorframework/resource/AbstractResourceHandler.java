@@ -58,7 +58,6 @@ public abstract class AbstractResourceHandler<T extends ResourceHandlerContext>
     return getResourceOperation(client, resource)
         .inNamespace(resource.getMetadata().getNamespace())
         .withName(resource.getMetadata().getName())
-        .cascading(false)
         .patch(resource);
   }
 

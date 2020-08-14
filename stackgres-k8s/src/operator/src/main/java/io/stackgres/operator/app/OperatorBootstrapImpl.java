@@ -5,14 +5,11 @@
 
 package io.stackgres.operator.app;
 
-import java.io.IOException;
 import java.net.SocketTimeoutException;
-import java.nio.charset.StandardCharsets;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import com.google.common.io.Resources;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.internal.KubernetesDeserializer;
@@ -64,8 +61,6 @@ public class OperatorBootstrapImpl implements OperatorBootstrap {
 
   @Override
   public void bootstrap() {
-
-    printArt();
 
     try (KubernetesClient client = kubeClient.create()) {
       if (client.getVersion() != null) {
@@ -122,16 +117,6 @@ public class OperatorBootstrapImpl implements OperatorBootstrap {
       return false;
     }
     return true;
-  }
-
-  private void printArt() {
-    try {
-      System.out.println(Resources.toString(
-          Resources.getResource(StackGresOperatorApp.class, "/META-INF/banner.txt"),
-          StandardCharsets.UTF_8));
-    } catch (IOException ignored) {
-      // ignored, not important if we can't print the ASCII-art.
-    }
   }
 
 }

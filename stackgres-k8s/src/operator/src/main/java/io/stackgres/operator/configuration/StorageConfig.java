@@ -7,12 +7,11 @@ package io.stackgres.operator.configuration;
 
 import java.util.Map;
 
-import javax.annotation.Nullable;
-
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import org.immutables.value.Value;
+import org.jetbrains.annotations.Nullable;
 
 @Value.Immutable
 public abstract class StorageConfig {

@@ -20,6 +20,7 @@ import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodList;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
 import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -86,6 +87,7 @@ public class DistributedLogsStatusManager {
     distributedLogs.getStatus().setConditions(copyList);
 
     ResourceUtil.getCustomResource(client, StackGresDistributedLogsDefinition.NAME)
+        .map(CustomResourceDefinitionContext::fromCrd)
         .ifPresent(crd -> client.customResources(crd,
             StackGresDistributedLogs.class,
             StackGresDistributedLogsList.class,

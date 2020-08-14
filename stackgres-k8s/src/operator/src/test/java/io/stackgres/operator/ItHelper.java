@@ -494,7 +494,8 @@ public class ItHelper {
       return new KubernetesOperatorRunner(k8s, namespace, executor);
     }
 
-    return new LocalOperatorRunner(k8s, namespace, ItHelper.class, port, sslPort);
+    //return new LocalOperatorRunner(k8s, namespace, ItHelper.class, port, sslPort);
+    throw new Exception();
   }
 
   public static <T> void waitUntil(Supplier<T> supplier, Predicate<T> condition, int timeout,

@@ -69,7 +69,7 @@ public class EventController {
     }
     final Instant now = Instant.now();
     final String namespace = involvedObject.getMetadata().getNamespace();
-    client.events()
+    client.v1().events()
         .inNamespace(namespace)
         .withLabels(Optional.ofNullable(involvedObject.getMetadata().getLabels())
             .orElse(ImmutableMap.of()))
@@ -115,7 +115,7 @@ public class EventController {
   private Event patchEvent(Event event, Instant now, KubernetesClient client) {
     event.setCount(event.getCount() + 1);
     event.setLastTimestamp(DateTimeFormatter.ISO_INSTANT.format(now));
-    return client.events()
+    return client.v1().events()
         .inNamespace(event.getMetadata().getNamespace())
         .withName(event.getMetadata().getName())
         .patch(event);
@@ -126,7 +126,7 @@ public class EventController {
       KubernetesClient client) {
     final String id = nextId();
     final String name = involvedObject.getMetadata().getName() + "." + id;
-    return client.events()
+    return client.v1().events()
         .inNamespace(namespace)
         .create(new EventBuilder()
           .withNewMetadata()

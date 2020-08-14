@@ -11,6 +11,7 @@ import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.CustomResourceDoneable;
 import io.fabric8.kubernetes.client.CustomResourceList;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
 import io.stackgres.common.KubernetesClientFactory;
 
 public abstract class AbstractCustomResourceFinder<T extends CustomResource>
@@ -43,6 +44,7 @@ public abstract class AbstractCustomResourceFinder<T extends CustomResource>
   public Optional<T> findByNameAndNamespace(String name, String namespace) {
     try (KubernetesClient client = clientFactory.create()) {
       return ResourceUtil.getCustomResource(client, customResourceName)
+          .map(CustomResourceDefinitionContext::fromCrd)
           .map(crd -> Optional.ofNullable(client.customResources(crd,
               customResourceClass,
               customResourceListClass,

@@ -5,7 +5,6 @@
 
 package io.stackgres.common.resource;
 
-import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.CustomResourceDoneable;
 import io.fabric8.kubernetes.client.CustomResourceList;
@@ -13,6 +12,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.Namespaceable;
 import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
+import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
 import io.stackgres.common.KubernetesClientFactory;
 
 public abstract class AbstractCustomResourceScheduler<T extends CustomResource,
@@ -39,7 +39,6 @@ public abstract class AbstractCustomResourceScheduler<T extends CustomResource,
     this.customResourceDoneClass = customResourceDoneClass;
   }
 
-  @SuppressWarnings("unchecked")
   @Override
   public void create(T resource) {
     try (KubernetesClient client = clientFactory.create()) {
@@ -65,17 +64,18 @@ public abstract class AbstractCustomResourceScheduler<T extends CustomResource,
       getCustomResourceEndpoints(client)
           .inNamespace(resource.getMetadata().getNamespace())
           .withName(resource.getMetadata().getName())
-          .withPropagationPolicy("Background")
           .delete();
     }
   }
 
   private Namespaceable<NonNamespaceOperation<T, L, D, Resource<T, D>>> getCustomResourceEndpoints(
       KubernetesClient client) {
-    CustomResourceDefinition crd = ResourceUtil.getCustomResource(
+    CustomResourceDefinitionContext crd = ResourceUtil.getCustomResource(
         client, customResourceName)
+        .map(CustomResourceDefinitionContext::fromCrd)
         .orElseThrow(() -> new RuntimeException("StackGres is not correctly installed:"
             + " CRD " + customResourceName + " not found."));
+
     return client.customResources(crd,
         customResourceClass,
         customResourceListClass,

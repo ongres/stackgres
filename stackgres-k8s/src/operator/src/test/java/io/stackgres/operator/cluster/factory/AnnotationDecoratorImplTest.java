@@ -16,7 +16,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.google.common.collect.ImmutableMap;
-import groovy.lang.Tuple2;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
@@ -36,6 +35,7 @@ import io.fabric8.kubernetes.api.model.batch.JobTemplateSpecBuilder;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.testutil.JsonUtil;
+import org.jooq.lambda.tuple.Tuple2;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -373,8 +373,8 @@ class AnnotationDecoratorImplTest {
         .orElseGet(() -> fail("No annotations found for resource " + resource.getKind()));
 
     Arrays.asList(annotations).forEach(annotation -> {
-      assertTrue(resourceAnnotation.containsKey(annotation.getFirst()));
-      assertEquals(annotation.getSecond(), resourceAnnotation.get(annotation.getFirst()));
+      assertTrue(resourceAnnotation.containsKey(annotation.v1));
+      assertEquals(annotation.v2, resourceAnnotation.get(annotation.v1));
     });
 
   }
@@ -388,8 +388,8 @@ class AnnotationDecoratorImplTest {
         .orElseGet(() -> fail("No annotations found for resource " + resource.toString()));
 
     Arrays.asList(annotations).forEach(annotation -> {
-      assertTrue(resourceAnnotation.containsKey(annotation.getFirst()));
-      assertEquals(annotation.getSecond(), resourceAnnotation.get(annotation.getFirst()));
+      assertTrue(resourceAnnotation.containsKey(annotation.v1));
+      assertEquals(annotation.v2, resourceAnnotation.get(annotation.v1));
     });
 
   }
@@ -403,8 +403,8 @@ class AnnotationDecoratorImplTest {
         .orElseGet(() -> fail("No annotations found for resource " + resource.toString()));
 
     Arrays.asList(annotations).forEach(annotation -> {
-      assertTrue(resourceAnnotation.containsKey(annotation.getFirst()));
-      assertEquals(annotation.getSecond(), resourceAnnotation.get(annotation.getFirst()));
+      assertTrue(resourceAnnotation.containsKey(annotation.v1));
+      assertEquals(annotation.v2, resourceAnnotation.get(annotation.v1));
     });
 
   }
