@@ -13,10 +13,11 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
+import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -34,13 +35,13 @@ class PairComparator<T> extends PairVisitor<T, Boolean> {
   }
 
   @Override
-  public PairVisitor<T, Boolean> transformRight(Function<T, T> rightTransformer) {
-    return new PairComparator<T>(left, rightTransformer.apply(right));
+  public PairVisitor<T, Boolean> transformRight(UnaryOperator<T> rightTransformer) {
+    return new PairComparator<>(left, rightTransformer.apply(right));
   }
 
   @Override
-  public PairVisitor<T, Boolean> transformLeft(Function<T, T> leftTransformer) {
-    return new PairComparator<T>(leftTransformer.apply(left), right);
+  public PairVisitor<T, Boolean> transformLeft(UnaryOperator<T> leftTransformer) {
+    return new PairComparator<>(leftTransformer.apply(left), right);
   }
 
   @Override
@@ -64,7 +65,7 @@ class PairComparator<T> extends PairVisitor<T, Boolean> {
 
   @Override
   public <O> PairVisitor<T, Boolean> visit(Function<T, O> getter,
-      BiConsumer<T, O> setter,      O defaultValue) {
+      BiConsumer<T, O> setter, O defaultValue) {
     return returnResult(equalsAnyWithDefault(getter, t -> defaultValue));
   }
 
@@ -77,14 +78,14 @@ class PairComparator<T> extends PairVisitor<T, Boolean> {
   @Override
   public <O> PairVisitor<T, Boolean> visitTransformed(
       Function<T, O> getter, BiConsumer<T, O> setter,
-      BiFunction<O, O, O> leftTransformer, BiFunction<O, O, O> rightTransformer) {
+      BinaryOperator<O> leftTransformer, BinaryOperator<O> rightTransformer) {
     return returnResult(equalsAnyTransformed(getter, leftTransformer, rightTransformer));
   }
 
   @Override
   public <O, S> PairVisitor<T, Boolean> visitWith(Function<T, O> getter,
       BiConsumer<T, O> setter,
-      Function<PairVisitor<O, S>, PairVisitor<O, S>> subVisitor) {
+      UnaryOperator<PairVisitor<O, S>> subVisitor) {
     return returnResult(equalsAnyWith(getter,
         pv -> subVisitor.apply(pv.as()).resultAs()));
   }
@@ -92,7 +93,7 @@ class PairComparator<T> extends PairVisitor<T, Boolean> {
   @Override
   public <O, S> PairVisitor<T, Boolean> visitWithUsingDefaultFrom(Function<T, O> getter,
       BiConsumer<T, O> setter,
-      Function<PairVisitor<O, S>, PairVisitor<O, S>> subVisitor,
+      UnaryOperator<PairVisitor<O, S>> subVisitor,
       Supplier<O> defaultValue) {
     return returnResult(equalsAnyWithUsingDefaultFrom(getter,
         pv -> subVisitor.apply(pv.as()).resultAs(),
@@ -110,7 +111,7 @@ class PairComparator<T> extends PairVisitor<T, Boolean> {
   }
 
   <O> boolean equalsAnyTransformed(Function<T, O> getter,
-      BiFunction<O, O, O> leftTransformer, BiFunction<O, O, O> rightTransformer) {
+      BinaryOperator<O> leftTransformer, BinaryOperator<O> rightTransformer) {
     O leftValue = getter.apply(left);
     O rightValue = getter.apply(right);
     return equals(leftTransformer.apply(leftValue, rightValue),
@@ -134,9 +135,9 @@ class PairComparator<T> extends PairVisitor<T, Boolean> {
   <O> PairComparator<O> getOrDefault(Function<T, O> getter, Supplier<O> defaultValue) {
     return new PairComparator<>(
         getter.andThen(Optional::ofNullable)
-        .andThen(o -> o.orElseGet(defaultValue)).apply(left),
+            .andThen(o -> o.orElseGet(defaultValue)).apply(left),
         getter.andThen(Optional::ofNullable)
-        .andThen(o -> o.orElseGet(defaultValue)).apply(right));
+            .andThen(o -> o.orElseGet(defaultValue)).apply(right));
   }
 
   @Override
@@ -148,7 +149,7 @@ class PairComparator<T> extends PairVisitor<T, Boolean> {
   @Override
   public <E, O extends List<E>, S> PairVisitor<T, Boolean> visitListWith(
       Function<T, O> getter, BiConsumer<T, O> setter,
-      Function<PairVisitor<E, S>, PairVisitor<E, S>> subVisitor) {
+      UnaryOperator<PairVisitor<E, S>> subVisitor) {
     return returnResult(equalsList(getter, pv -> subVisitor.apply(pv.as()).resultAs()));
   }
 
@@ -220,19 +221,18 @@ class PairComparator<T> extends PairVisitor<T, Boolean> {
   }
 
   @Override
-  public <K, V, O extends Map<K, V>>
-      PairVisitor<T, Boolean> visitMapTransformed(
-          Function<T, O> getter, BiConsumer<T, O> setter,
-          BiFunction<Entry<K, V>, Entry<K, V>, Entry<K, V>> leftTransformer,
-          BiFunction<Entry<K, V>, Entry<K, V>, Entry<K, V>> rightTransformer) {
+  public <K, V, O extends Map<K, V>> PairVisitor<T, Boolean> visitMapTransformed(
+      Function<T, O> getter, BiConsumer<T, O> setter,
+      BinaryOperator<Entry<K, V>> leftTransformer,
+      BinaryOperator<Entry<K, V>> rightTransformer) {
     return returnResult(equalsMap(getter,
         leftTransformer, rightTransformer, false));
   }
 
   <K, V, O extends Map<K, V>> boolean equalsMap(
       Function<T, O> getter,
-      BiFunction<Entry<K, V>, Entry<K, V>, Entry<K, V>> leftTransformer,
-      BiFunction<Entry<K, V>, Entry<K, V>, Entry<K, V>> rightTransformer,
+      BinaryOperator<Entry<K, V>> leftTransformer,
+      BinaryOperator<Entry<K, V>> rightTransformer,
       boolean onlyKeys) {
     Map<K, V> leftMap = Optional.ofNullable(getter.apply(left))
         .map(map -> (Map<K, V>) map)
@@ -241,29 +241,26 @@ class PairComparator<T> extends PairVisitor<T, Boolean> {
         .map(map -> (Map<K, V>) map)
         .orElseGet(() -> new HashMap<K, V>(0));
     return Stream.concat(leftMap.keySet().stream(), rightMap.keySet().stream())
-      .collect(Collectors.groupingBy(key -> key))
-      .keySet()
-      .stream()
-      .map(key -> Tuple.tuple(
-          leftMap.entrySet().stream()
-          .filter(e -> e.getKey().equals(key))
-          .findAny().orElse(null),
-          rightMap.entrySet().stream()
-          .filter(e -> e.getKey().equals(key))
-          .findAny().orElse(null)))
-      .map(t -> Tuple.tuple(
-          Optional.ofNullable(leftTransformer.apply(t.v1, t.v2))
-          .map(e -> onlyKeys ? e.getKey() : e.getValue()).orElse(null),
-          Optional.ofNullable(rightTransformer.apply(t.v1, t.v2))
-          .map(e -> onlyKeys ? e.getKey() : e.getValue()).orElse(null)))
-      .allMatch(t -> equals(t.v1, t.v2));
+        .collect(Collectors.groupingBy(key -> key))
+        .keySet()
+        .stream()
+        .map(key -> Tuple.tuple(
+            leftMap.entrySet().stream()
+                .filter(e -> e.getKey().equals(key))
+                .findAny().orElse(null),
+            rightMap.entrySet().stream()
+                .filter(e -> e.getKey().equals(key))
+                .findAny().orElse(null)))
+        .map(t -> Tuple.tuple(
+            Optional.ofNullable(leftTransformer.apply(t.v1, t.v2))
+                .map(e -> onlyKeys ? e.getKey() : e.getValue()).orElse(null),
+            Optional.ofNullable(rightTransformer.apply(t.v1, t.v2))
+                .map(e -> onlyKeys ? e.getKey() : e.getValue()).orElse(null)))
+        .allMatch(t -> equals(t.v1, t.v2));
   }
 
   private boolean equals(Object left, Object right) {
-    if (!Objects.equals(left, right)) {
-      return false;
-    }
-    return true;
+    return Objects.equals(left, right);
   }
 
   private PairVisitor<T, Boolean> returnResult(boolean equals) {
