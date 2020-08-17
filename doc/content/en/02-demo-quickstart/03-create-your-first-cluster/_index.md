@@ -111,7 +111,7 @@ To clean up the resources created by the demo run:
 
 ```
 helm uninstall --keep-history simple
-helm get hooks -n connectivity-5f2bb6bf connectivity | kubectl delete --ignore-not-found -n connectivity-5f2bb6bf -f -
+helm get hooks simple | kubectl delete --ignore-not-found -f -
 helm uninstall simple
 ```
 
@@ -137,7 +137,7 @@ To open a psql console and manage the PostgreSQL cluster you may connect to the 
  container of primary instance (with label `role: master`):
 
 ```
-kubectl exec -ti "$(kubectl get pod --selector app=StackGres,cluster=true,role=master -o name)" -c postgres-util -- psql
+kubectl exec -ti "$(kubectl get pod --selector app=StackGresCluster,cluster=true,role=master -o name)" -c postgres-util -- psql
 ```
 
 ```
@@ -155,17 +155,15 @@ CREATE DATABASE
 You can also open a shell in any instance to use patronictl and control the status of the cluster:
 
 ```
-kubectl exec -ti "$(kubectl get pod --selector app=StackGres,cluster=true -o name | head -n 1)" -c patroni -- patronictl list
+kubectl exec -ti "$(kubectl get pod --selector app=StackGresCluster,cluster=true -o name | head -n 1)" -c patroni -- patronictl list
 ```
 
 ```
-sh-4.4$ patronictl list
-+---------+----------+-----------------+--------+---------+----+-----------+
-| Cluster |  Member  |       Host      |  Role  |  State  | TL | Lag in MB |
-+---------+----------+-----------------+--------+---------+----+-----------+
-| default | simple-0 | 10.244.2.5:5433 |        | running |  2 |       0.0 |
-| default | simple-1 | 10.244.1.7:5433 | Leader | running |  2 |           |
-+---------+----------+-----------------+--------+---------+----+-----------+
++ Cluster: simple (6858282512984477821) ---------+----+-----------+
+|  Member  |       Host       |  Role  |  State  | TL | Lag in MB |
++----------+------------------+--------+---------+----+-----------+
+| simple-0 | 10.244.0.28:7433 | Leader | running |  1 |           |
++----------+------------------+--------+---------+----+-----------+
 ```
 
 # Connect from an application
