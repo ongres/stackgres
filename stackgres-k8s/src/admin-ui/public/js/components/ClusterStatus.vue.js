@@ -1,6 +1,6 @@
 var ClusterStatus = Vue.component("ClusterStatus", {
 	template: `
-		<div id="cluster-status">
+		<div id="cluster-status" v-if="loggedIn && isReady">
 		<template v-for="cluster in clusters" v-if="(cluster.name == $route.params.name) && (cluster.data.metadata.namespace == $route.params.namespace)">
 			<header>
 				<ul class="breadcrumbs">

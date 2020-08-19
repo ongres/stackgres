@@ -1,6 +1,6 @@
 var PgConfig = Vue.component("PostgresConfig", {
 	template: `
-		<div id="pg-config">
+		<div id="pg-config" v-if="loggedIn && isReady">
 			<header>
 				<ul class="breadcrumbs">
 					<li class="namespace">

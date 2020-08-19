@@ -1,6 +1,6 @@
 var Logs = Vue.component("Logs", {
 	template: `
-		<div id="sg-logs">
+		<div id="sg-logs" v-if="loggedIn && isReady">
 			<header>
 				<ul class="breadcrumbs">
 					<li class="namespace">
