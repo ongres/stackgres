@@ -54,7 +54,7 @@ build operator native image:
         sh -xe operator/src/main/buildah/build-image-native.sh
   only:
     variables:
-      - $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME == "development"
+      - $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^development.*$/
       - $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME == "master"
       - $SKIP_NATIVE != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
       - $DO_DEPLOY
@@ -79,7 +79,7 @@ build restapi native image:
         sh -xe api-web/src/main/buildah/build-image-native.sh
   only:
     variables:
-      - $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME == "development"
+      - $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^development.*$/
       - $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME == "master"
       - $SKIP_NATIVE != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
       - $DO_DEPLOY
