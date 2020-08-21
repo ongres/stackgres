@@ -415,8 +415,7 @@ check_create_cluster_with_inline_script() {
 
   insert_mock_data
 
-  kubectl get pods -n operator-cluster-api-5f3fd6c7
-  
+  check_mock_data 
 }
 
 
