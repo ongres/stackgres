@@ -26,11 +26,11 @@ import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 class ConfigMapResourceTest implements AuthenticatedResourceTest {
 
   @Inject
-  private KubernetesClientFactory factory;
+  KubernetesClientFactory factory;
 
   @BeforeEach
   void setUp() {
-    try(KubernetesClient client = factory.create()){
+    try (KubernetesClient client = factory.create()) {
       client.configMaps().inNamespace("test").delete();
     }
   }
