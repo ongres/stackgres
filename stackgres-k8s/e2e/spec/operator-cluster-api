@@ -387,6 +387,8 @@ check_authentication_error() {
 
 check_create_cluster_with_inline_script() {
 
+  remove_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+  
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2
 
   OPERATOR_CLUSTER_CR=$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
@@ -401,16 +403,19 @@ check_create_cluster_with_inline_script() {
   echo_raw "$OPERATOR_CLUSTER_CR" > "$LOG_PATH/stackgres-cluster.json"
 
   create_cluster_with_api
-
+  
   wait_pods_running "$CLUSTER_NAMESPACE" 4
 
   insert_mock_data
 
-  check_mock_data
+  kubectl get pods -n operator-cluster-api-5f3fd6c7
+  
 }
 
 
 check_create_cluster_node_selectors_script() {
+
+  remove_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2
 
@@ -422,15 +427,21 @@ check_create_cluster_node_selectors_script() {
     | jq '.spec.pods.scheduling={}' | jq '.spec.pods.scheduling.nodeSelector={}' \
     | jq '.spec.pods.scheduling.nodeSelector["'"$NODE_LABEL_KEY"'"] = "'"$NODE_LABEL_VALUE"'"') 
 
-    ACTUAL_NODE_VALUE=$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
+  echo_raw "$OPERATOR_CLUSTER_CR" > "$LOG_PATH/stackgres-cluster.json"
+
+  create_cluster_with_api
+  
+  ACTUAL_NODE_VALUE=$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
     -o jsonpath='{.spec.pods.scheduling.nodeSelector.'"$NODE_LABEL_KEY"'}') 
 
   assert_string_equal "$NODE_LABEL_VALUE" "$ACTUAL_NODE_VALUE"
   
-  wait_pods_running "$CLUSTER_NAMESPACE" 4
+  
 }
 
 check_create_cluster_with_secret_and_configmap_script() {
+
+  remove_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2
 
@@ -456,6 +467,8 @@ check_create_cluster_with_secret_and_configmap_script() {
 
   create_cluster_with_api
 
+  wait_pods_running "$CLUSTER_NAMESPACE" 4
+
   insert_mock_data
 
   check_mock_data
@@ -467,6 +480,8 @@ check_create_cluster_with_secret_and_configmap_script() {
 }
 
 check_failed_cluster_creation_with_secret_and_configmap_script() {
+
+  remove_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2
 
