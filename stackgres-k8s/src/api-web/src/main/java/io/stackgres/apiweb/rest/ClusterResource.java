@@ -5,10 +5,8 @@
 
 package io.stackgres.apiweb.rest;
 
-import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.ArrayDeque;
-import java.util.Base64;
 import java.util.Deque;
 import java.util.List;
 import java.util.Objects;
@@ -52,6 +50,7 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.CustomResourceScheduler;
+import io.stackgres.common.resource.ResourceUtil;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple2;
@@ -197,7 +196,8 @@ public class ClusterResource
               ClusterScriptFrom clusterScriptFrom = tuple.v1.getScriptFrom();
               SecretKeySelectorDto secretKeyRef = clusterScriptFrom.getSecretKeyRef();
 
-              final String secretScript = encodeScript(clusterScriptFrom.getSecretScript());
+              final String secretScript = ResourceUtil
+                  .encodeSecret(clusterScriptFrom.getSecretScript());
 
               if (secretKeyRef != null) {
                 return new SecretBuilder()
@@ -226,13 +226,6 @@ public class ClusterResource
               }
             }).collect(Collectors.toCollection(ArrayDeque::new))).orElse(new ArrayDeque<>());
   }
-
-  private static String encodeScript(String script) {
-    final byte[] encodedScript = Base64.getEncoder()
-        .encode(script.getBytes(StandardCharsets.UTF_8));
-    return new String(encodedScript, StandardCharsets.UTF_8);
-  }
-
 
   /**
    * Return a {@code ClusterStatus}.
