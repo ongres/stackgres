@@ -1,19 +1,19 @@
 operator:
   image:
     name: "stackgres/operator"
-    tag: "development-jvm"
+    tag: "development-0.9-jvm"
     pullPolicy: "IfNotPresent"
 restapi:
   name: stackgres-restapi
   image:
     name: "stackgres/restapi"
-    tag: "development-jvm"
+    tag: "development-0.9-jvm"
     pullPolicy: "IfNotPresent"
 adminui:
   name: stackgres-adminui
   image:
     name: "stackgres/admin-ui"
-    tag: "development"
+    tag: "development-0.9"
     pullPolicy: "IfNotPresent"
   service:
     # Set to LoadBalancer to expose admin UI with a load balancer

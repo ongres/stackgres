@@ -8,7 +8,7 @@ message_and_exit() {
 }
 
 usage() {
-  message_and_exit "Usage: $0 <version>" 1
+  message_and_exit "Usage: $0 <version> [<development tag version>]" 1
 }
 
 yq_update_file() {
@@ -35,7 +35,7 @@ EOF
   rm "$2.bak"
 }
 
-[ $# -eq 1 ] || usage
+[ $# -ge 1 ] || usage
 
 command -v jq > /dev/null || message_and_exit 'The program `jq` is required to be in PATH' 8
 command -v yq > /dev/null || message_and_exit 'The program `yq` (https://kislyuk.github.io/yq/) is required to be in PATH' 16
@@ -44,10 +44,11 @@ command -v yamllint > /dev/null || message_and_exit 'The program `yamllint` is r
 cd "$(dirname "$0")/../../.."
 
 VERSION="$1"
+DEVELOPMENT_IMAGE_TAG="${2:-development}"
 IMAGE_TAG="${VERSION}-jvm"
 if [ "${VERSION#*-}" = "SNAPSHOT" ]
 then
-  IMAGE_TAG=development-jvm
+  IMAGE_TAG="${DEVELOPMENT_IMAGE_TAG}-jvm"
 fi
 ADMINUI_IMAGE_TAG="${IMAGE_TAG%-jvm}"
 
