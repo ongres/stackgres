@@ -21,12 +21,7 @@ public class PodFinder implements
     ResourceFinder<Pod>,
     ResourceScanner<Pod> {
 
-  private final KubernetesClientFactory kubClientFactory;
-
-  @Inject
-  public PodFinder(KubernetesClientFactory kubClientFactory) {
-    this.kubClientFactory = kubClientFactory;
-  }
+  private KubernetesClientFactory kubClientFactory;
 
   @Override
   public Optional<Pod> findByName(String name) {
@@ -67,4 +62,8 @@ public class PodFinder implements
     }
   }
 
+  @Inject
+  public void setKubClientFactory(KubernetesClientFactory kubClientFactory) {
+    this.kubClientFactory = kubClientFactory;
+  }
 }

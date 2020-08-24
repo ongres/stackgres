@@ -22,20 +22,10 @@ import io.stackgres.common.resource.PodFinder;
 @ApplicationScoped
 public class ClusterDtoFinder implements CustomResourceFinder<ClusterDto> {
 
-  private final CustomResourceFinder<StackGresCluster> clusterFinder;
-  private final PodFinder podFinder;
-  private final ClusterTransformer clusterTransformer;
-  private final LabelFactory<StackGresCluster> labelFactory;
-
-  @Inject
-  public ClusterDtoFinder(CustomResourceFinder<StackGresCluster> clusterFinder, PodFinder podFinder,
-      ClusterTransformer clusterTransformer, LabelFactory<StackGresCluster> labelFactory) {
-    super();
-    this.clusterFinder = clusterFinder;
-    this.podFinder = podFinder;
-    this.clusterTransformer = clusterTransformer;
-    this.labelFactory = labelFactory;
-  }
+  private CustomResourceFinder<StackGresCluster> clusterFinder;
+  private PodFinder podFinder;
+  private ClusterTransformer clusterTransformer;
+  private LabelFactory<StackGresCluster> labelFactory;
 
   @Override
   public Optional<ClusterDto> findByNameAndNamespace(String name, String namespace) {
@@ -50,4 +40,23 @@ public class ClusterDtoFinder implements CustomResourceFinder<ClusterDto> {
         labelFactory.patroniClusterLabels(cluster));
   }
 
+  @Inject
+  public void setClusterFinder(CustomResourceFinder<StackGresCluster> clusterFinder) {
+    this.clusterFinder = clusterFinder;
+  }
+
+  @Inject
+  public void setPodFinder(PodFinder podFinder) {
+    this.podFinder = podFinder;
+  }
+
+  @Inject
+  public void setClusterTransformer(ClusterTransformer clusterTransformer) {
+    this.clusterTransformer = clusterTransformer;
+  }
+
+  @Inject
+  public void setLabelFactory(LabelFactory<StackGresCluster> labelFactory) {
+    this.labelFactory = labelFactory;
+  }
 }

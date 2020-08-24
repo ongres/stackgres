@@ -23,6 +23,7 @@ import com.google.common.reflect.ClassPath;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.YamlMapperProvider;
+import io.stackgres.testutil.CrdUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.opentest4j.AssertionFailedError;
@@ -40,7 +41,7 @@ public class CrdMatchTest {
   @BeforeAll
   static void beforeAll() throws Exception {
 
-    File crdFolder = getCrdsFolder();
+    File crdFolder = CrdUtils.getCrdsFolder();
 
     crdFiles = crdFolder.listFiles(file -> file.getName().endsWith(".yaml"));
 
@@ -50,13 +51,6 @@ public class CrdMatchTest {
         .stream()
         .collect(Collectors.toMap(CustomResourceDefinition::getKind, Function.identity()));
 
-  }
-
-  public static File getCrdsFolder() {
-    String projectPath = new File(new File("src").getAbsolutePath())
-        .getParentFile().getParentFile().getParentFile().getAbsolutePath();
-
-    return new File(projectPath + "/install/helm/stackgres-operator/crds");
   }
 
   private static List<CustomResourceDefinition> getCustomResourceDefinitions() throws IOException {

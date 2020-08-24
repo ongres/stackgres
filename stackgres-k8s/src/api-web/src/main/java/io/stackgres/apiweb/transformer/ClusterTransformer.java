@@ -12,7 +12,9 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import com.google.common.collect.ImmutableList;
+import io.fabric8.kubernetes.api.model.ConfigMapKeySelectorBuilder;
 import io.fabric8.kubernetes.api.model.Pod;
+import io.fabric8.kubernetes.api.model.SecretKeySelectorBuilder;
 import io.stackgres.apiweb.config.WebApiProperty;
 import io.stackgres.apiweb.dto.cluster.ClusterConfiguration;
 import io.stackgres.apiweb.dto.cluster.ClusterDistributedLogs;
@@ -29,7 +31,10 @@ import io.stackgres.apiweb.dto.cluster.ClusterScriptEntry;
 import io.stackgres.apiweb.dto.cluster.ClusterSpec;
 import io.stackgres.apiweb.dto.cluster.ClusterSpecAnnotations;
 import io.stackgres.apiweb.dto.cluster.ClusterSpecMetadata;
+import io.stackgres.apiweb.dto.cluster.ConfigMapKeySelectorDto;
 import io.stackgres.apiweb.dto.cluster.PodScheduling;
+import io.stackgres.apiweb.dto.cluster.SecretKeySelectorDto;
+import io.stackgres.common.ArcUtil;
 import io.stackgres.common.StackGresPropertyContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDistributedLogs;
@@ -40,6 +45,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresService;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresServices;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestore;
 import io.stackgres.common.crd.sgcluster.StackGresClusterScriptEntry;
+import io.stackgres.common.crd.sgcluster.StackGresClusterScriptFrom;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecAnnotations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecMetadata;
@@ -61,6 +67,12 @@ public class ClusterTransformer
     super();
     this.context = context;
     this.clusterPodTransformer = clusterPodTransformer;
+  }
+
+  public ClusterTransformer() {
+    this.context = null;
+    this.clusterPodTransformer = null;
+    ArcUtil.checkPublicNoArgsConstructorIsCalledFromArc();
   }
 
   @Override
@@ -229,6 +241,25 @@ public class ClusterTransformer
       targetEntry.setName(entry.getName());
       targetEntry.setDatabase(entry.getDatabase());
       targetEntry.setScript(entry.getScript());
+      if (entry.getScriptFrom() != null) {
+        StackGresClusterScriptFrom targetScriptFrom = new StackGresClusterScriptFrom();
+        final SecretKeySelectorDto secretKeyRef = entry.getScriptFrom().getSecretKeyRef();
+        if (secretKeyRef != null) {
+          targetScriptFrom.setSecretKeyRef(new SecretKeySelectorBuilder()
+              .withName(secretKeyRef.getName())
+              .withKey(secretKeyRef.getKey())
+              .build());
+        }
+        final ConfigMapKeySelectorDto configMapKeyRef = entry.getScriptFrom().getConfigMapKeyRef();
+        if (configMapKeyRef != null) {
+          targetScriptFrom.setConfigMapKeyRef(new ConfigMapKeySelectorBuilder()
+              .withName(configMapKeyRef.getName())
+              .withKey(configMapKeyRef.getKey())
+              .build());
+        }
+        targetEntry.setScriptFrom(targetScriptFrom);
+
+      }
       return targetEntry;
     }).collect(ImmutableList.toImmutableList());
   }

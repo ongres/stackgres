@@ -18,6 +18,7 @@ import javax.ws.rs.core.MediaType;
 import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.Namespace;
 import io.quarkus.security.Authenticated;
+import io.stackgres.common.ArcUtil;
 import io.stackgres.common.resource.ResourceScanner;
 
 @Path("/stackgres/namespace")
@@ -32,6 +33,11 @@ public class NamespaceResource {
   public NamespaceResource(ResourceScanner<Namespace> namespaceScanner) {
     super();
     this.namespaceScanner = namespaceScanner;
+  }
+
+  public NamespaceResource() {
+    this.namespaceScanner = null;
+    ArcUtil.checkPublicNoArgsConstructorIsCalledFromArc();
   }
 
   @GET

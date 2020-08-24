@@ -31,13 +31,7 @@ import okhttp3.Response;
 @ApplicationScoped
 public class PodExecutor {
 
-  private final KubernetesClientFactory clientFactory;
-
-  @Inject
-  public PodExecutor(KubernetesClientFactory clientFactory) {
-    super();
-    this.clientFactory = clientFactory;
-  }
+  private KubernetesClientFactory clientFactory;
 
   /**
    * Execute a command inside a container of a pod.
@@ -120,4 +114,8 @@ public class PodExecutor {
     }
   }
 
+  @Inject
+  public void setClientFactory(KubernetesClientFactory clientFactory) {
+    this.clientFactory = clientFactory;
+  }
 }

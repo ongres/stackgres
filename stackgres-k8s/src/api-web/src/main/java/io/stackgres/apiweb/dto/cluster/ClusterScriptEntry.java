@@ -7,8 +7,11 @@ package io.stackgres.apiweb.dto.cluster;
 
 import java.util.Objects;
 
+import javax.validation.Valid;
+import javax.validation.constraints.AssertTrue;
 import javax.validation.constraints.NotEmpty;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.MoreObjects;
@@ -27,6 +30,16 @@ public class ClusterScriptEntry {
 
   @NotEmpty
   private String script;
+
+  @Valid
+  private ClusterScriptFrom scriptFrom;
+
+  @JsonIgnore
+  @AssertTrue(message = "script and scriptFrom are mutually exclusive and one of them is required.")
+  public boolean areScriptAndScriptFromMutuallyExclusiveAndOneRequired() {
+    return (script != null && scriptFrom == null) // NOPMD
+        || (script == null && scriptFrom != null); // NOPMD
+  }
 
   public String getName() {
     return name;
@@ -52,6 +65,14 @@ public class ClusterScriptEntry {
     this.script = script;
   }
 
+  public ClusterScriptFrom getScriptFrom() {
+    return scriptFrom;
+  }
+
+  public void setScriptFrom(ClusterScriptFrom scriptFrom) {
+    this.scriptFrom = scriptFrom;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -63,7 +84,8 @@ public class ClusterScriptEntry {
     ClusterScriptEntry that = (ClusterScriptEntry) o;
     return Objects.equals(name, that.name)
         && Objects.equals(database, that.database)
-        && Objects.equals(script, that.script);
+        && Objects.equals(script, that.script)
+        && Objects.equals(scriptFrom, that.scriptFrom);
   }
 
   @Override
@@ -77,6 +99,7 @@ public class ClusterScriptEntry {
         .add("name", name)
         .add("database", database)
         .add("script", script)
+        .add("scriptFrom", scriptFrom)
         .toString();
   }
 }
