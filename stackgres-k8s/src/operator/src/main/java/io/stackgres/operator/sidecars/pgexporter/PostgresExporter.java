@@ -116,10 +116,11 @@ public class PostgresExporter implements StackGresClusterSidecarResourceFactory<
 
     Optional<Prometheus> prometheus = clusterContext.getPrometheus();
     ImmutableList.Builder<HasMetadata> resourcesBuilder = ImmutableList.builder();
+    final String clusterNamespace = cluster.getMetadata().getNamespace();
     resourcesBuilder.add(
         new ServiceBuilder()
             .withNewMetadata()
-            .withNamespace(cluster.getMetadata().getNamespace())
+            .withNamespace(clusterNamespace)
             .withName(serviceName(clusterContext))
             .withLabels(ImmutableMap.<String, String>builder()
                 .putAll(labels)
@@ -157,7 +158,7 @@ public class PostgresExporter implements StackGresClusterSidecarResourceFactory<
           LabelSelector selector = new LabelSelector();
           spec.setSelector(selector);
           NamespaceSelector namespaceSelector = new NamespaceSelector();
-          namespaceSelector.setAny(true);
+          namespaceSelector.setMatchNames(ImmutableList.of(clusterNamespace));
           spec.setNamespaceSelector(namespaceSelector);
 
           selector.setMatchLabels(labels);
