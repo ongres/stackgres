@@ -14,7 +14,9 @@ This main container only have the required binaries and utilities to be able to 
 
 First we'll check the if the container is present in the pods, for these example we have a cluster named stackgres, composed of three pods and installed in the default namespace:
 
-`kubectl get pods -n default -l app=StackGresCluster,cluster=true`
+```bash
+kubectl get pods -n default -l app=StackGresCluster,cluster=true
+```
 
 output:
 

@@ -9,14 +9,14 @@ kind is primarily designed for testing Kubernetes 1.11+, initially targeting the
 1. Download kind & install executable:
 
 ```
-sudo wget -q -L -O /usr/local/bin/kind  https://github.com/kubernetes-sigs/kind/releases/download/v0.5.1/kind-$(uname)-amd64
-sudo chmod a+x /usr/local/kind
+sudo wget -q -L -O /usr/local/bin/kind  https://github.com/kubernetes-sigs/kind/releases/download/v0.8.1/kind-$(uname)-amd64
+sudo chmod a+x /usr/local/bin/kind
 ```
 
 2. Create a kind cluster
 
 ```
-kind create cluster
+kind create cluster --image kindest/node:v1.17.5
 ```
 
 3. Install NFS utility for backups:
