@@ -1011,6 +1011,7 @@ if( (window.location.pathname === '/admin/index.html') && ( (store.state.loginTo
   router.push('/admin/overview/default');
 }  
 
+
 Vue.mixin({
   data: function(){
     return {
@@ -1018,7 +1019,24 @@ Vue.mixin({
     }
   },
   computed: {
-   
+    loggedIn () {
+			if (typeof store.state.loginToken !== 'undefined')
+				return store.state.loginToken.length > 0
+			else
+				return false
+		},
+
+		notFound () {
+			return store.state.notFound
+		},
+
+		isReady () {
+			return store.state.ready
+		},
+
+		currentComponent() {
+			return this.$route.matched[0].components.default.options.name
+		}
   },
   methods: {
 

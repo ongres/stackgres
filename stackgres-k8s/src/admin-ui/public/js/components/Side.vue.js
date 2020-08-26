@@ -253,23 +253,5 @@ var Side = Vue.component("sg-side", {
 				return false
 		},
 
-		loggedIn () {
-			if (typeof store.state.loginToken !== 'undefined')
-				return store.state.loginToken.length > 0
-			else
-				return false
-		},
-
-		notFound () {
-			return store.state.notFound
-		},
-
-		isReady () {
-			return store.state.ready
-		},
-
-		currentComponent() {
-			return this.$route.matched[0].components.default.options.name
-		}
 	}
 })

@@ -184,24 +184,7 @@ var Nav = Vue.component("sg-nav", {
 
 		login: function() {
 
-			/* let token = btoa(this.loginUser+':'+this.loginPassword);
-
-			axios
-			.get(apiURL+'namespace',{
-				headers: {
-					'Authorization': 'Basic '+token
-				}
-			})
-			.then( function(response){
-				store.commit('setLoginToken', token);
-				$('#signup').fadeOut();
-				document.cookie = "sgToken="+token;
-				vm.fetchAPI();
-			}
-			).catch(function(err) {
-				$('#login .warning').fadeIn();
-				//checkAuthError(err);
-			}); */
+			const vc = this;
 
 			axios
 			.post(apiURL+'auth/login',{
@@ -214,8 +197,14 @@ var Nav = Vue.component("sg-nav", {
 				$('#signup').fadeOut();
 				document.cookie = "sgToken="+response.data.access_token+"; Path=/";
 				vm.fetchAPI();
-				store.commit('setCurrentNamespace', 'default');
-  				router.push('/admin/overview/default');
+				
+				if(vc.$route.params.hasOwnProperty('namespace')) {
+					//console.log(vc.$route.matched[0].components.default.options.name)
+					store.commit('setCurrentNamespace', vc.$route.params.namespace);
+				} else {
+					store.commit('setCurrentNamespace', 'default');
+				  	router.push('/admin/overview/default');
+				}
 			}
 			).catch(function(err) {
 				$('#login .warning').fadeIn();
