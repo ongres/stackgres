@@ -9,11 +9,25 @@ e2e_test_install() {
   if [ "${STACKGRES_VERSION#*-}" != "SNAPSHOT" ]
   then
     TARGET_IMAGE_TAG="$STACKGRES_VERSION"
+    if [ "${IMAGE_TAG#*-}" = "jvm" ]
+    then
+      TARGET_IMAGE_TAG="$TARGET_IMAGE_TAG-jvm"
+    fi
+  else 
+    DEFAULT_IMAGE_VERSION=$(grep tag "$OPERATOR_CHART_PATH/values.yaml" | head -1 | awk '{print $2}')
+    DEFAULT_IMAGE_VERSION="${DEFAULT_IMAGE_VERSION#?}"
+    DEFAULT_IMAGE_VERSION="${DEFAULT_IMAGE_VERSION%?}"
+    TARGET_IMAGE_TAG="$DEFAULT_IMAGE_VERSION"
   fi
-  if [ "${IMAGE_TAG#*-}" = "jvm" ]
+ 
+  if [ "$IMAGE_TAG" != "$TARGET_IMAGE_TAG" ]
   then
-    TARGET_IMAGE_TAG="$TARGET_IMAGE_TAG-jvm"
+    docker tag "$OPERATOR_IMAGE_NAME" stackgres/operator:"$TARGET_IMAGE_TAG"
+    docker tag "$RESTAPI_IMAGE_NAME" stackgres/restapi:"$TARGET_IMAGE_TAG"
+    export TARGET_ADMINUI_IMAGE_TAG="${TARGET_IMAGE_TAG%-jvm}"
+    docker tag "$ADMINUI_IMAGE_NAME" stackgres/admin-ui:"$TARGET_ADMINUI_IMAGE_TAG"
   fi
+  
   load_operator_k8s "$TARGET_IMAGE_TAG"
   STACKGRES_YAML_NAMESPACE=stackgres
   k8s_cleanup_namespace "$OPERATOR_NAMESPACE"
