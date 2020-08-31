@@ -1,5 +1,4 @@
-# GraalVM Quarkus image
-image: docker.io/ongres/ubi-graalvm-maven:20.1.0-java11
+image: null
 
 variables:
   # This will suppress any download for dependencies and plugins or upload messages which would clutter the console log.

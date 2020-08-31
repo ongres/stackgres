@@ -1,5 +1,6 @@
 
 unit tests:
+  image: docker.io/ongres/ubi-graalvm-maven:20.1.0-java11
   stage: test
   variables:
     QUARKUS_PROFILE: "test"

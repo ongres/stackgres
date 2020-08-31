@@ -1,10 +1,13 @@
-
 build:
+  image: docker.io/ongres/ubi-graalvm-maven:20.1.0-java11
   stage: build
   tags:
     - stackgres-runner
   script:
     - 'mvn $MAVEN_CLI_OPTS clean verify -P safer'
+  cache:
+    paths:  
+      - $CI_PROJECT_DIR/.m2/repository
   artifacts:
     expire_in: 1 week
     when: always
