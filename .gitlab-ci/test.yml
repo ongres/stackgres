@@ -17,7 +17,7 @@ unit tests:
 
 .e2e tests:
   stage: test
-  image: registry.gitlab.com/ongresinc/stackgres/stackgres/it:latest
+  image: registry.gitlab.com/ongresinc/stackgres/stackgres/it:9.0
   tags:
     - stackgres-runner
   dependencies:
