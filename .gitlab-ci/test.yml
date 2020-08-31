@@ -17,7 +17,7 @@ unit tests:
 
 .e2e tests:
   stage: test
-  image: registry.gitlab.com/ongresinc/stackgres/stackgres/it:9.0
+  image: registry.gitlab.com/$CI_PROJECT_PATH/stackgres/it:9.0
   tags:
     - stackgres-runner
   dependencies:
@@ -53,7 +53,7 @@ unit tests:
       fi
     - export E2E_OPERATOR_REGISTRY_USER=$CI_REGISTRY_USER
     - export E2E_OPERATOR_REGISTRY=$CI_REGISTRY
-    - export E2E_OPERATOR_REGISTRY_PATH=/ongresinc/stackgres/
+    - export E2E_OPERATOR_REGISTRY_PATH=/$CI_PROJECT_PATH/
     - export E2E_FORCE_IMAGE_PULL=true
     - |
       flock -s /tmp/stackgres-build-operator-native-executable \
