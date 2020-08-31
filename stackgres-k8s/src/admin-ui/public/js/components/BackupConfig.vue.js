@@ -116,7 +116,7 @@ var BackupConfig = Vue.component("BackupConfig", {
 														{{ conf.data.spec.baseBackups.cronSchedule | prettyCRON }}
 													</td>
 												</tr>
-												<tr v-if="typeof conf.data.spec.baseBackups.retention !== 'undefined'">
+												<tr v-if="typeof conf.data.spec.baseBackups.compression !== 'undefined'">
 													<td class="label">
 														Compression Method
 													</td>
@@ -182,11 +182,11 @@ var BackupConfig = Vue.component("BackupConfig", {
 												<li v-if="typeof conf.data.spec.storage.s3.path !== 'undefined'">
 													<strong class="label">path:</strong> {{ conf.data.spec.storage.s3.path }}
 												</li>
-												<li>
+												<li v-if="hasProp(conf,'data.spec.storage.s3.awsCredentials.accessKeyId')">
 													<strong class="label">awsCredentials:</strong> 
 													<ul>
 														<li>
-															<strong class="label">accessKeyId:</strong> ****
+															<strong class="label">accessKeyId:</strong> {{ conf.data.spec.storage.s3.awsCredentials.accessKeyId }}
 														</li>
 														<li>
 															<strong class="label">secretAccessKey:</strong> ****
@@ -207,11 +207,11 @@ var BackupConfig = Vue.component("BackupConfig", {
 												<li v-if="typeof conf.data.spec.storage.s3Compatible.path !== 'undefined'">
 													<strong class="label">path:</strong> {{ conf.data.spec.storage.s3Compatible.path }}
 												</li>
-												<li>
+												<li v-if="hasProp(conf,'data.spec.storage.s3Compatible.awsCredentials.accessKeyId')">
 													<strong class="label">awsCredentials:</strong> 
 													<ul>
 														<li>
-															<strong class="label">accessKeyId:</strong> ****
+															<strong class="label">accessKeyId:</strong> {{ conf.data.spec.storage.s3Compatible.awsCredentials.accessKeyId }}
 														</li>
 														<li>
 															<strong class="label">secretAccessKey:</strong> ****
@@ -257,11 +257,11 @@ var BackupConfig = Vue.component("BackupConfig", {
 												<li v-if="typeof conf.data.spec.storage.azureBlob.path !== 'undefined'">
 													<strong class="label">path:</strong> {{ conf.data.spec.storage.azureBlob.path }}
 												</li>
-												<li>
+												<li v-if="hasProp(conf,'data.spec.storage.azureBlob.azureCredentials.storageAccount')">
 													<strong class="label">azureCredentials:</strong> 
 													<ul>
 														<li>
-															<strong class="label">storageAccount:</strong> ****
+															<strong class="label">storageAccount:</strong> {{ conf.data.spec.storage.azureBlob.azureCredentials.storageAccount }}
 														</li>
 														<li>
 															<strong class="label">accessKey:</strong> ****
