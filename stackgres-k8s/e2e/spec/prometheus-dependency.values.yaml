@@ -13,3 +13,4 @@ cluster:
   prometheusAutobind: true
 nonProductionOptions:
   createMinio: false
+  disableClusterPodAntiAffinity: true

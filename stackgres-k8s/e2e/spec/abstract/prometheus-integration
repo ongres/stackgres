@@ -98,7 +98,7 @@ check_grafana_embedded() {
     return 1
   fi
 
-  if [ "$(kubectl get deployment -n "$OPERATOR_NAMESPACE" stackgres-operator --template '{{ len .spec.template.spec.containers }}')" -ne 2 ]
+  if [ "$(kubectl get deployment -n "$OPERATOR_NAMESPACE" stackgres-operator --template '{{ len .spec.template.spec.containers }}')" -ne 1 ]
   then
     echo "Skipping check since operator environment variable can not be changed when operator is not deployed in kubernetes"
     return
