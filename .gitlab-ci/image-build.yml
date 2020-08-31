@@ -119,8 +119,6 @@ build test images:
       cat << EOF | flock /tmp/stackgres-build-it-image sh -xe
       buildah bud -f stackgres-k8s/src/operator/src/test/docker/Dockerfile.it -t "$IT_IMAGE_NAME" .
       buildah push -f "docker" "$IT_IMAGE_NAME" "$TARGET_IT_IMAGE_NAME"
-      buildah tag "$TARGET_IT_IMAGE_NAME" "${TARGET_IT_IMAGE_NAME%:*}:latest"
-      buildah push -f "docker" "$IT_IMAGE_NAME" "${TARGET_IT_IMAGE_NAME%:*}:latest"
       EOF
   only:
     variables:
