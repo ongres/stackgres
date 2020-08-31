@@ -7,14 +7,18 @@ weight: 2
 
 Once you hace a StackGres cluster installed you'll have a Full HA PostgreSQL configuration and depending of the size of your cluster you´ll have something like this:
 
-```mermaid
+{{<mermaid>}}
 graph TB
-    subgraph sgcluster["PostgreSQL StackGres Cluster"]
-        sgpg01["Master (stackgres-0)"] --> pg1S["Replica (stackgres-1)"]
-        sgpg01["Master (stackgres-0)"] -->  pg2S["Replica (stackgres-2)"]
-        sgpg01["Master (stackgres-0)"] -->  pg3S["Replica (stackgres-n)"]
+    stackgres-0 -.-> stackgres-1
+    stackgres-0 -.-> stackgres-2
+    stackgres-0 -.-> stackgres-N
+    subgraph PostgreSQL StackGres Cluster
+        stackgres-0(Primary Database)
+        stackgres-1(DB Replica 1)
+        stackgres-2(DB Replica 2)
+        stackgres-N(DB Replica<i>...N</i>)
     end
-```
+{{</mermaid>}}
 
 These represents the containers of the StackGres cluster and you can list them using `kubectl` command like:
 
