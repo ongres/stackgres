@@ -49,7 +49,7 @@ unit tests:
     - |
       if [ -n "$E2E_TEST" ]
       then
-        export E2E_ONLY_INCLUDE="$E2E_TEST"
+        export E2E_ONLY_INCLUDES="$E2E_TEST"
       fi
     - export E2E_OPERATOR_REGISTRY_USER=$CI_REGISTRY_USER
     - export E2E_OPERATOR_REGISTRY=$CI_REGISTRY
@@ -93,18 +93,27 @@ e2e tests jvm image part 2/2:
   extends: .e2e tests jvm image
   variables:
     E2E_RUN_ONLY: non_exclusive:2/2
+  except:
+    variables:
+      - $E2E_TEST
 
 e2e exclusive tests jvm image part 1/2:
   extends: .e2e tests jvm image
   variables:
     E2E_RUN_ONLY: exclusive:1/2
     E2E_SKIP_OPERATOR_INSTALL: "true"
+  except:
+    variables:
+      - $E2E_TEST
 
 e2e exclusive tests jvm image part 2/2:
   extends: .e2e tests jvm image
   variables:
     E2E_RUN_ONLY: exclusive:2/2
     E2E_SKIP_OPERATOR_INSTALL: "true"
+  except:
+    variables:
+      - $E2E_TEST
 
 .e2e tests native image:
   extends: .e2e tests
@@ -133,15 +142,24 @@ e2e tests native image part 2/2:
   extends: .e2e tests native image
   variables:
     E2E_RUN_ONLY: non_exclusive:2/2
+  except:
+    variables:
+      - $E2E_TEST
 
 e2e exclusive tests native image part 1/2:
   extends: .e2e tests native image
   variables:
     E2E_RUN_ONLY: exclusive:1/2
     E2E_SKIP_OPERATOR_INSTALL: "true"
+  except:
+    variables:
+      - $E2E_TEST
 
 e2e exclusive tests native image part 2/2:
   extends: .e2e tests native image
   variables:
     E2E_RUN_ONLY: exclusive:2/2
     E2E_SKIP_OPERATOR_INSTALL: "true"
+  except:
+    variables:
+      - $E2E_TEST
