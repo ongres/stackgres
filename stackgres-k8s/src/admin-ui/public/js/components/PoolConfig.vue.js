@@ -1,6 +1,6 @@
 var PoolConfig = Vue.component("PoolConfig", {
 	template: `
-		<div id="pool-config">
+		<div id="pool-config" v-if="loggedIn && isReady">
 			<header>
 				<ul class="breadcrumbs">
 					<li class="namespace">

@@ -1,6 +1,6 @@
 var CreateBackupConfig = Vue.component("CreateBackupConfig", {
     template: `
-        <form id="create-backup-config">
+        <form id="create-backup-config" v-if="loggedIn && isReady">
             <!-- Vue reactivity hack -->
             <template v-if="Object.keys(config).length > 0"></template>
 

@@ -1,6 +1,6 @@
 var BackupConfig = Vue.component("BackupConfig", {
 	template: `
-		<div id="bk-config">
+		<div id="bk-config" v-if="loggedIn && isReady">
 			<header>
 				<ul class="breadcrumbs">
 					<li class="namespace">

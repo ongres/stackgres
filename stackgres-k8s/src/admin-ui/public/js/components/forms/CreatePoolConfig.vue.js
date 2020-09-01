@@ -1,6 +1,6 @@
 var CreatePoolConfig = Vue.component("CreatePoolConfig", {
     template: `
-        <form id="create-poolConfig">
+        <form id="create-poolConfig" v-if="loggedIn && isReady">
             <!-- Vue reactivity hack -->
             <template v-if="Object.keys(config).length > 0"></template>
             <header>

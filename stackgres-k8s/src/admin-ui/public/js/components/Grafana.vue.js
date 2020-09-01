@@ -1,6 +1,6 @@
 var Grafana = Vue.component("Grafana", {
 	template: `
-		<div id="grafana">
+		<div id="grafana" v-if="loggedIn && isReady">
 		<template v-for="cluster in clusters" v-if="(cluster.name == $route.params.name) && (cluster.data.metadata.namespace == $route.params.namespace)">
 			<header>
 				<ul class="breadcrumbs">
