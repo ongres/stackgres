@@ -1,5 +1,7 @@
 set -e
 
+SHELL_XTRACE=$(! echo $- | grep -q x || echo " -x")
+
 to_json_string() {
   sed ':a;N;$!ba;s/\n/\\n/g' | sed 's/\(["\\\t]\)/\\\1/g' | tr '\t' 't'
 }
@@ -73,7 +75,7 @@ grep "^$CLUSTER_NAME:" /tmp/all-backups > /tmp/backups || true
 
 if [ -n "$SCHEDULED_BACKUP_KEY" ]
 then
-  BACKUP_NAME="${CLUSTER_NAME}-$(date +%Y-%m-%d-%H-%M-%S)"
+  BACKUP_NAME="${CLUSTER_NAME}-$(date +%Y-%m-%d-%H-%M-%S --utc)"
 fi
 
 BACKUP_CONFIG_RESOURCE_VERSION="$(kubectl get "$BACKUP_CONFIG_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" --template '{{ .metadata.resourceVersion }}')"
@@ -217,7 +219,7 @@ fi
 
 echo "Performing backup"
 cat << EOF | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-primary)" -c patroni \
-  -- sh -e $(! echo $- | grep -q x || echo " -x") > /tmp/backup-push 2>&1
+  -- sh -e $SHELL_XTRACE > /tmp/backup-push 2>&1
 exec-with-env "$BACKUP_ENV" \\
   -- wal-g backup-push "$PG_DATA_PATH" -f $([ "$BACKUP_IS_PERMANENT" = true ] && echo '-p' || true)
 EOF
@@ -247,7 +249,7 @@ echo "Backup completed"
 
 echo "Extracting pg_controldata"
 cat << EOF | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-primary)" -c patroni \
-    -- sh -e $(! echo $- | grep -q x || echo " -x") > /tmp/pg_controldata
+    -- sh -e $SHELL_XTRACE > /tmp/pg_controldata
 pg_controldata --pgdata="$PG_DATA_PATH"
 EOF
 if [ "$?" = 0 ]
@@ -269,7 +271,7 @@ fi
 
 echo "Reconcile backups"
 cat << EOF | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-replica-or-primary)" -c patroni \
-  -- sh -e $(! echo $- | grep -q x || echo " -x")
+  -- sh -e $SHELL_XTRACE
 # for each existing backup sorted by backup name ascending (this also mean sorted by creation date ascending)
 exec-with-env "$BACKUP_ENV" \\
   -- wal-g backup-list --detail --json \\
@@ -281,6 +283,7 @@ exec-with-env "$BACKUP_ENV" \\
     do
       BACKUP_NAME="\$(echo "\$BACKUP" | tr -d '{}\\42' | tr ',' '\\n' \\
           | grep 'backup_name' | cut -d : -f 2-)"
+      echo "Check if backup \$BACKUP_NAME has to be retained and will retain \$RETAIN backups"
       # if is not the created backup and is not in backup CR list, mark as impermanent
       if [ "\$BACKUP_NAME" != "$WAL_G_BACKUP_NAME" ] \\
         && ! echo '$(cat /tmp/backups)' \\
@@ -290,6 +293,7 @@ exec-with-env "$BACKUP_ENV" \\
       then
         if echo "\$BACKUP" | grep -q "\\"is_permanent\\":true"
         then
+          echo "Mark \$BACKUP_NAME as impermanent and will retain \$RETAIN backups"
           exec-with-env "$BACKUP_ENV" \\
             -- wal-g backup-mark -i "\$BACKUP_NAME"
         fi
@@ -299,6 +303,7 @@ exec-with-env "$BACKUP_ENV" \\
         if [ "\$BACKUP_NAME" = "$WAL_G_BACKUP_NAME" -a "$BACKUP_IS_PERMANENT" != true ] \\
           || echo "\$BACKUP" | grep -q "\\"is_permanent\\":false"
         then
+          echo "Mark \$BACKUP_NAME as permanent and will retain \$((RETAIN-1)) backups"
           exec-with-env "$BACKUP_ENV" \\
             -- wal-g backup-mark "\$BACKUP_NAME"
         fi
@@ -314,6 +319,7 @@ exec-with-env "$BACKUP_ENV" \\
           | grep -q "^\$BACKUP_NAME\$" \\
           && echo "\$BACKUP" | grep -q "\\"is_permanent\\":true"
         then
+          echo "Mark \$BACKUP_NAME as impermanent"
           exec-with-env "$BACKUP_ENV" \\
             -- wal-g backup-mark -i "\$BACKUP_NAME"
         # ... and has not a managed lifecycle, mark as permanent
@@ -324,6 +330,7 @@ exec-with-env "$BACKUP_ENV" \\
           | grep -q "^\$BACKUP_NAME\$" \\
           && echo "\$BACKUP" | grep -q "\\"is_permanent\\":false"
         then
+          echo "Mark \$BACKUP_NAME as permanent"
           exec-with-env "$BACKUP_ENV" \\
             -- wal-g backup-mark "\$BACKUP_NAME"
         fi
@@ -331,6 +338,7 @@ exec-with-env "$BACKUP_ENV" \\
     done)
 
 # removes all backups that are marked as impermanent
+echo "Cleaning up impermanent backups"
 exec-with-env "$BACKUP_ENV" \\
   -- wal-g delete retain FIND_FULL "0" --confirm
 
@@ -343,6 +351,7 @@ exec-with-env "$BACKUP_ENV" \\
     do
       BACKUP_NAME="\$(echo "\$BACKUP" | tr -d '{}\\42' | tr ',' '\\n' \\
           | grep 'backup_name' | cut -d : -f 2-)"
+      echo "Check if backup \$BACKUP_NAME has to be set permanent or impermanent"
       # if is the created backup and has a managed lifecycle, mark as impermanent
       if [ "\$BACKUP_NAME" = "$WAL_G_BACKUP_NAME" -a "$BACKUP_IS_PERMANENT" != true ] \\
         || (echo '$(cat /tmp/backups)' \\
@@ -352,6 +361,7 @@ exec-with-env "$BACKUP_ENV" \\
         | grep -q "^\$BACKUP_NAME\$" \\
         && echo "\$BACKUP" | grep -q "\\"is_permanent\\":true")
       then
+        echo "Mark \$BACKUP_NAME as impermanent"
         exec-with-env "$BACKUP_ENV" \\
           -- wal-g backup-mark -i "\$BACKUP_NAME"
       # if has not a managed lifecycle, mark as permanent
@@ -362,6 +372,7 @@ exec-with-env "$BACKUP_ENV" \\
         | grep -q "^\$BACKUP_NAME\$" \\
         && echo "\$BACKUP" | grep -q "\\"is_permanent\\":false"
       then
+        echo "Mark \$BACKUP_NAME as permanent"
         exec-with-env "$BACKUP_ENV" \\
           -- wal-g backup-mark "\$BACKUP_NAME"
       fi
@@ -376,7 +387,7 @@ fi
 
 echo "Listing existing backups"
 cat << EOF | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-replica-or-primary)" -c patroni \
-  -- sh -e $(! echo $- | grep -q x || echo " -x") > /tmp/backup-list 2>&1
+  -- sh -e $SHELL_XTRACE > /tmp/backup-list
 WALG_LOG_LEVEL= exec-with-env "$BACKUP_ENV" \\
 -- wal-g backup-list --detail --json
 EOF
@@ -422,7 +433,7 @@ else
   IS_BACKUP_SUBJECT_TO_RETENTION_POLICY="true"
 fi
 
-kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
+BACKUP_PATH='[
   {"op":"replace","path":"/status/internalName","value":"'"$WAL_G_BACKUP_NAME"'"},
   {"op":"replace","path":"/status/process/status","value":"'"$BACKUP_PHASE_COMPLETED"'"},
   {"op":"replace","path":"/status/process/failure","value":""},
@@ -453,6 +464,7 @@ kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type j
     }
   }
 ]'
+kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch "$BACKUP_PATCH"
 echo "Backup CR updated as completed"
 
 echo "Listing existing backup CRs"
