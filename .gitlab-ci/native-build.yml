@@ -1,6 +1,6 @@
 
 .build native executable:
-  image: docker.io/ongres/ubi-graalvm-maven:20.1.0-java11
+  image: docker.io/ongres/ubi-graalvm-maven:19.3.1-java8
   stage: native build
   tags:
     - stackgres-runner
