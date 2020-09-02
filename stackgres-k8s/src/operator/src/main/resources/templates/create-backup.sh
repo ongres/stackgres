@@ -231,11 +231,12 @@ then
     ]'
   exit 1
 fi
+CURRENT_BACKUP_NAME=
 if grep -q " Wrote backup with name " /tmp/backup-push
 then
-  WAL_G_BACKUP_NAME="$(grep " Wrote backup with name " /tmp/backup-push | sed 's/.* \([^ ]\+\)$/\1/')"
+  CURRENT_BACKUP_NAME="$(grep " Wrote backup with name " /tmp/backup-push | sed 's/.* \([^ ]\+\)$/\1/')"
 fi
-if [ -z "$WAL_G_BACKUP_NAME" ]
+if [ -z "$CURRENT_BACKUP_NAME" ]
 then
   kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
     {"op":"replace","path":"/status/process/status","value":"'"$BACKUP_PHASE_FAILED"'"},
@@ -285,7 +286,7 @@ exec-with-env "$BACKUP_ENV" \\
           | grep 'backup_name' | cut -d : -f 2-)"
       echo "Check if backup \$BACKUP_NAME has to be retained and will retain \$RETAIN backups"
       # if is not the created backup and is not in backup CR list, mark as impermanent
-      if [ "\$BACKUP_NAME" != "$WAL_G_BACKUP_NAME" ] \\
+      if [ "\$BACKUP_NAME" != "$CURRENT_BACKUP_NAME" ] \\
         && ! echo '$(cat /tmp/backups)' \\
         | cut -d : -f 4 \\
         | grep -v '^\$' \\
@@ -300,10 +301,10 @@ exec-with-env "$BACKUP_ENV" \\
       # if is inside the retain window, mark as permanent and decrease RETAIN counter
       elif [ "\$RETAIN" -gt 0 ]
       then
-        if [ "\$BACKUP_NAME" = "$WAL_G_BACKUP_NAME" -a "$BACKUP_IS_PERMANENT" != true ] \\
+        if [ "\$BACKUP_NAME" = "$CURRENT_BACKUP_NAME" -a "$BACKUP_IS_PERMANENT" != true ] \\
           || echo "\$BACKUP" | grep -q "\\"is_permanent\\":false"
         then
-          echo "Mark \$BACKUP_NAME as permanent and will retain \$((RETAIN-1)) backups"
+          echo "Mark \$BACKUP_NAME as permanent and will retain \$((RETAIN-1)) more backups"
           exec-with-env "$BACKUP_ENV" \\
             -- wal-g backup-mark "\$BACKUP_NAME"
         fi
@@ -353,7 +354,7 @@ exec-with-env "$BACKUP_ENV" \\
           | grep 'backup_name' | cut -d : -f 2-)"
       echo "Check if backup \$BACKUP_NAME has to be set permanent or impermanent"
       # if is the created backup and has a managed lifecycle, mark as impermanent
-      if [ "\$BACKUP_NAME" = "$WAL_G_BACKUP_NAME" -a "$BACKUP_IS_PERMANENT" != true ] \\
+      if [ "\$BACKUP_NAME" = "$CURRENT_BACKUP_NAME" -a "$BACKUP_IS_PERMANENT" != true ] \\
         || (echo '$(cat /tmp/backups)' \\
         | grep '^[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:true' \\
         | cut -d : -f 4 \\
@@ -402,7 +403,7 @@ then
   exit 1
 fi
 cat /tmp/backup-list | tr -d '[]' | sed 's/},{/}|{/g' | tr '|' '\n' \
-  | grep '"backup_name":"'"$WAL_G_BACKUP_NAME"'"' | tr -d '{}"' | tr ',' '\n' > /tmp/current-backup
+  | grep '"backup_name":"'"$CURRENT_BACKUP_NAME"'"' | tr -d '{}"' | tr ',' '\n' > /tmp/current-backup
 if [ "$BACKUP_CONFIG_RESOURCE_VERSION" != "$(kubectl get "$BACKUP_CONFIG_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" --template '{{ .metadata.resourceVersion }}')" ]
 then
   kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
@@ -412,14 +413,14 @@ then
   cat /tmp/backup-list
   echo "Backup configuration '$BACKUP_CONFIG' changed during backup"
   exit 1
-elif ! grep -q "^backup_name:${WAL_G_BACKUP_NAME}$" /tmp/current-backup
+elif ! grep -q "^backup_name:${CURRENT_BACKUP_NAME}$" /tmp/current-backup
 then
   kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
     {"op":"replace","path":"/status/process/status","value":"'"$BACKUP_PHASE_FAILED"'"},
-    {"op":"replace","path":"/status/process/failure","value":"Backup '"$WAL_G_BACKUP_NAME"' was not found after creation"}
+    {"op":"replace","path":"/status/process/failure","value":"Backup '"$CURRENT_BACKUP_NAME"' was not found after creation"}
     ]'
   cat /tmp/backup-list
-  echo "Backup '$WAL_G_BACKUP_NAME' was not found after creation"
+  echo "Backup '$CURRENT_BACKUP_NAME' was not found after creation"
   exit 1
 fi
 
@@ -433,8 +434,8 @@ else
   IS_BACKUP_SUBJECT_TO_RETENTION_POLICY="true"
 fi
 
-BACKUP_PATH='[
-  {"op":"replace","path":"/status/internalName","value":"'"$WAL_G_BACKUP_NAME"'"},
+BACKUP_PATCH='[
+  {"op":"replace","path":"/status/internalName","value":"'"$CURRENT_BACKUP_NAME"'"},
   {"op":"replace","path":"/status/process/status","value":"'"$BACKUP_PHASE_COMPLETED"'"},
   {"op":"replace","path":"/status/process/failure","value":""},
   {"op":"replace","path":"/status/process/managedLifecycle","value":'$IS_BACKUP_SUBJECT_TO_RETENTION_POLICY'},
@@ -493,7 +494,7 @@ do
   # backup config but is not found in the storage, delete it
   if [ -n "$BACKUP_NAME" ] && [ "$BACKUP_PHASE" = "$BACKUP_PHASE_COMPLETED" ] \
     && [ "$BACKUP_CONFIG" = "$CURRENT_BACKUP_CONFIG" ] \
-    && ! grep -q "\"BACKUP_NAME\":\"$BACKUP_NAME\"" /tmp/existing-backups
+    && ! grep -q "\"backup_name\":\"$BACKUP_NAME\"" /tmp/existing-backups
   then
     echo "Deleting backup CR $BACKUP_CR_NAME since backup does not exists"
     kubectl delete "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_CR_NAME"
