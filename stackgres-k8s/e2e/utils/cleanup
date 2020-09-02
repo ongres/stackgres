@@ -100,8 +100,8 @@ k8s_cleanup() {
         -ec "$(k8s_finalize_namespace_script)"
   ! kubectl api-resources | grep -q '^podsecuritypolicies ' \
     || kubectl get podsecuritypolicies -o name \
-      | grep -v "^podsecuritypolicy.extensions/\($(excluded_podsecuritypolicies | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
-      | grep -v "^podsecuritypolicy.extensions/\($(env_excluded_podsecuritypolicies | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+      | grep -v "^podsecuritypolicy.[^\/]\+/\($(excluded_podsecuritypolicies | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+      | grep -v "^podsecuritypolicy.[^\/]\+/\($(env_excluded_podsecuritypolicies | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
       | xargs -r -n 1 -I % kubectl delete '%'
 }
 
@@ -133,8 +133,8 @@ k8s_async_cleanup() {
           || ! kubectl get namespace % >/dev/null 2>&1"
   ! kubectl api-resources | grep -q '^podsecuritypolicies ' \
     || kubectl get podsecuritypolicies -o name \
-      | grep -v "^podsecuritypolicy.extensions/\($(excluded_podsecuritypolicies | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
-      | grep -v "^podsecuritypolicy.extensions/\($(env_excluded_podsecuritypolicies | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+      | grep -v "^podsecuritypolicy.[^\/]\+/\($(excluded_podsecuritypolicies | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+      | grep -v "^podsecuritypolicy.[^\/]\+/\($(env_excluded_podsecuritypolicies | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
       | xargs -r -n 1 -I % kubectl delete '%'
 }
 
@@ -207,8 +207,8 @@ k8s_async_cleanup_but_operator() {
           || ! kubectl get namespace % >/dev/null 2>&1"
   ! kubectl api-resources | grep -q '^podsecuritypolicies ' \
     || kubectl get podsecuritypolicies -o name \
-      | grep -v "^podsecuritypolicy.extensions/\($(excluded_podsecuritypolicies | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
-      | grep -v "^podsecuritypolicy.extensions/\($(env_excluded_podsecuritypolicies | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+      | grep -v "^podsecuritypolicy.[^\/]\+/\($(excluded_podsecuritypolicies | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+      | grep -v "^podsecuritypolicy.[^\/]\+/\($(env_excluded_podsecuritypolicies | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
       | xargs -r -n 1 -I % kubectl delete '%'
 }
 

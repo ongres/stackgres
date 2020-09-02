@@ -18,7 +18,8 @@ then
   exit 1
 fi
 
-SPEC_TO_RUN=$(basename "$1")
+SPEC_TO_RUN="${1#spec/}"
+SPEC_TO_RUN="${SPEC_TO_RUN#*/spec/}"
 
 if [ ! -f "$SPEC_PATH/$SPEC_TO_RUN" ]
 then
