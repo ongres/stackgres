@@ -1,5 +1,5 @@
 ---
-title: Extensions setup
+title: Database Extensions
 weight: 2
 ---
 
@@ -12,6 +12,18 @@ CREATE EXTENSION
 > Check [here for more details]({{% relref "/05-postgres-administration/01-local-connection-and-the-postgres-util-sidecar#access-to-postgres-util-sidecar" %}}) about how to connect using kubectl.
 
 ## Checking available extensions
+
+Besides the [standard PostgreSQL extensions](https://www.postgresql.org/docs/current/contrib.html), StackGres ships with the following extensions:
+
+* [PostGIS](https://github.com/postgis/postgis)
+* [TimescaleDB](https://github.com/timescale/timescaledb)
+* [pgbouncer_fdw](https://github.com/CrunchyData/pgbouncer_fdw)
+* [pgsphere](https://github.com/akorotkov/pgsphere)
+* [pg_repack](https://github.com/reorg/pg_repack)
+* [pg_healpix](https://gitlab.com/ongresinc/pg_healpix)
+* [pg_q3c](https://github.com/segasai/q3c)
+
+Check the current [version on the releases]({{% relref "/01-introduction/06-versions#additional-extensions-included-on-stackgres" %}})   page.
 
 To list all available extensions, use the view [`pg_avaiable_extensions`](https://www.postgresql.org/docs/current/view-pg-available-extensions.html), like bellow:
 
@@ -73,8 +85,9 @@ postgres=# select * from pg_available_extensions ;
  pg_freespacemap    | 1.2             |                   | examine the free space map (FSM)
  pg_prewarm         | 1.2             |                   | prewarm relation data
 (53 rows)
-
 ```
+> 
+
 
 ### Checking installed extensions
 
