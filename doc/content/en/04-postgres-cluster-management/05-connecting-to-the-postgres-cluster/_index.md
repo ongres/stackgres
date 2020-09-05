@@ -5,18 +5,21 @@ weight: 6
 
 ## DNS resolution
 
-With every stackgres cluster that you deploy a bunch of services will be deployed as well.  To connect to the database  you only need to be aware of two services: the primary and the replica service. 
+With every stackgres cluster that you deploy a few of services will be deployed.  To connect to the database you only need to be aware of two services: the primary and the replica service. 
 
-The primary service is used to connect to the master node and the replica service is used to access the replica nodes. 
+The primary service is used to connect to the primary node and the replica service is used to access any the replica nodes. 
 
 This services will follow a convention that is based in the cluster name and the function of the service, so that, the name of our services will be:
  
- - `<cluster-name>-primary`
- - `<cluster-name>-replicas`
+ - `${CLUSTER-NAME}-primary`
+ - `${CLUSTER-NAME}-replicas`
 
-Both services will accept connections from ports `5432` and `5433`. 
+Both services will accept connections from ports `5432` and `5433` where:
 
-Therefore, given a cluster with name "stackgres" in the namespace "demo", the master node will accessible through 
+1. the port `5432` will point to pgbouncer - used by the application
+1. the port `5433` will point to postgres - used for replication purposes
+
+Therefore, given a cluster with name "stackgres" in the namespace "demo", the primary node will accessible through 
  the URL: `stackgres-primary.demo.svc:5432`.  Meanwhile, the replica node is accessible through the URL: `stackgres-replicas.demo.svc:5432`
 
 
