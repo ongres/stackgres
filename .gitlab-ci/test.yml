@@ -42,6 +42,7 @@ unit tests:
     - export E2E_BUILD_IMAGES=false
     - export E2E_WAIT_OPERATOR=false
     - export E2E_PULLED_IMAGES_PATH="/tmp/pulled-images$SUFFIX"
+    - export KIND_LOCK_PATH="/tmp/kind-lock$SUFFIX"
     - |
       if [ "$E2E_CLEAN_IMAGE_CACHE" = "true" ]
       then
