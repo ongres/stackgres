@@ -1,6 +1,5 @@
 instanceProfiles: false
 configurations:
-  create: false
   postgresconfig:
     postgresql.conf:
       shared_buffers: '32MB'
@@ -12,10 +11,7 @@ cluster:
       size: 128Mi
   configurations:
     sgBackupConfig: null
-    instanceProfiles: 'size-xs'
+  sgInstanceProfiles: 'size-xs'
   prometheusAutobind: false
 nonProductionOptions:
   disableClusterPodAntiAffinity: true
-minio:
-  readinessProbe:
-    initialDelaySeconds: 5
