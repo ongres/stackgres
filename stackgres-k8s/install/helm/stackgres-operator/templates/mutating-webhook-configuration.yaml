@@ -31,7 +31,7 @@ webhooks:
     sideEffects: None
     {{- end }}
     rules:
-      - operations: ["CREATE"]
+      - operations: ["CREATE", "UPDATE"]
         apiGroups: ["stackgres.io"]
         apiVersions: ["*"]
         resources: ["sgpgconfigs"]
@@ -47,7 +47,7 @@ webhooks:
     sideEffects: None
     {{- end }}
     rules:
-      - operations: ["CREATE"]
+      - operations: ["CREATE", "UPDATE"]
         apiGroups: ["stackgres.io"]
         apiVersions: ["*"]
         resources: ["sgpoolconfigs"]
@@ -63,7 +63,7 @@ webhooks:
     sideEffects: None
     {{- end }}
     rules:
-      - operations: ["CREATE"]
+      - operations: ["CREATE", "UPDATE"]
         apiGroups: ["stackgres.io"]
         apiVersions: ["*"]
         resources: ["sginstanceprofiles"]
@@ -79,7 +79,7 @@ webhooks:
     sideEffects: None
     {{- end }}
     rules:
-      - operations: ["CREATE"]
+      - operations: ["CREATE", "UPDATE"]
         apiGroups: ["stackgres.io"]
         apiVersions: ["*"]
         resources: ["sgbackupconfigs"]
@@ -95,7 +95,7 @@ webhooks:
     sideEffects: None
     {{- end }}
     rules:
-      - operations: ["CREATE"]
+      - operations: ["CREATE", "UPDATE"]
         apiGroups: ["stackgres.io"]
         apiVersions: ["*"]
         resources: ["sgbackups"]
