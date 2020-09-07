@@ -17,8 +17,12 @@ e2e_test_uninstall() {
 }
 
 e2e_test() {
-  run_test "creating an empty pgconfig should be filled with default configurations" create_empty_pg_config
-  run_test "creating an empty pgbouncer should be filled with default configurations" create_empty_pg_bouncer
+  run_test "creating an empty sgpgconfig should be filled with default configurations" create_empty_pg_config
+  run_test "updating an empty sgpgconfig should be filled with default configurations" update_empty_pg_config
+  run_test "creating an empty sgpoolconfig should be filled with default configurations" create_empty_pg_bouncer
+  run_test "updating an empty sgpoolconfig should be filled with default configurations" update_empty_pg_bouncer
+  run_test "creating an empty sgbackupconfig should be filled with default configurations" create_empty_pg_backup_config
+  run_test "updating an empty sgbackupconfig should be filled with default configurations" update_empty_pg_backup_config
   run_test "if default configuration are already created it should create the cluster" create_empty_cluster_with_default_pgbouncer
   run_test "if the sidecars are specifically set to be empty the operator should not add any sidecar" create_empty_cluster_with_no_sidecars
   run_test "creating an empty cluster should trigger the creation of all default configurations" create_empty_cluster
@@ -43,9 +47,9 @@ EOF
 
   if [ "$CREATED_FIELDS" = "$DEFAULT_FIELDS" ]
   then
-    echo "Success. Defaults fields created"
+    echo "Success. Defaults fields filled"
   else
-    echo "Fail. Default fields not created"
+    echo "Fail. Default fields not filled"
     return 1
   fi
 
@@ -54,9 +58,9 @@ EOF
 
   if [ "$CREATED_DEFAULTS_PARAMETERS" = "$DEFAULTS_PARAMETERS" ]
   then
-    echo "Success. Defaults parameters created"
+    echo "Success. Defaults parameters filled"
   else
-    echo "Fail. Default parameters not created"
+    echo "Fail. Default parameters not filled"
     return 1
   fi
 
@@ -64,10 +68,57 @@ EOF
 
   if [ -z "$DEFAULT_ANNOTATION" ] || [ "$DEFAULT_ANNOTATION" = "null" ]
   then
-    echo "Fail. Default annotations not created"
+    echo "Fail. Default annotations not filled"
     return 1
   else
-    echo "Success. Defaults annotations created"
+    echo "Success. Defaults annotations filled"
+  fi
+
+}
+
+update_empty_pg_config() {
+
+  kubectl get sgpgconfig -n "$CLUSTER_NAMESPACE" "$PGCONFIG"
+  cat << EOF | kubectl apply -f -
+  apiVersion: stackgres.io/v1beta1
+  kind: SGPostgresConfig
+  metadata:
+    name: $PGCONFIG
+    namespace: $CLUSTER_NAMESPACE
+  spec:
+    postgresVersion: "11"
+EOF
+
+  local UPDATED_FIELDS=$(kubectl get sgpgconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCONFIG" -o json | jq '.spec["postgresql.conf"] | length')
+  local DEFAULT_FIELDS=$(get_default_pgconfig -o json | jq '.spec["postgresql.conf"] | length')
+
+  if [ "$UPDATED_FIELDS" = "$DEFAULT_FIELDS" ]
+  then
+    echo "Success. Defaults fields filled"
+  else
+    echo "Fail. Default fields not filled"
+    return 1
+  fi
+
+  local UPDATED_DEFAULTS_PARAMETERS=$(kubectl get sgpgconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCONFIG" -o json | jq '.status.defaultParameters | sort')
+  local DEFAULTS_PARAMETERS=$(get_default_pgconfig -o json | jq '.spec["postgresql.conf"] | keys | sort')
+
+  if [ "$UPDATED_DEFAULTS_PARAMETERS" = "$DEFAULTS_PARAMETERS" ]
+  then
+    echo "Success. Defaults parameters filled"
+  else
+    echo "Fail. Default parameters not filled"
+    return 1
+  fi
+
+  local DEFAULT_ANNOTATION=$(kubectl get sgpgconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCONFIG" -o json | jq '.metadata.annotations["stackgres.io/operatorVersion"]')
+
+  if [ -z "$DEFAULT_ANNOTATION" ] || [ "$DEFAULT_ANNOTATION" = "null" ]
+  then
+    echo "Fail. Default annotations not filled"
+    return 1
+  else
+    echo "Success. Defaults annotations filled"
   fi
 
 }
@@ -91,9 +142,9 @@ EOF
 
   if [ "$CREATED_FIELDS" = "$((DEFAULT_FIELDS + 1))" ]
   then
-    echo "Success. Defaults fields created"
+    echo "Success. Defaults fields filled"
   else
-    echo "Fail. Default fields not created"
+    echo "Fail. Default fields not filled"
     return 1
   fi
 
@@ -102,9 +153,9 @@ EOF
 
   if [ "$CREATED_DEFAULTS_PARAMETERS" = "$DEFAULTS_PARAMETERS" ]
   then
-    echo "Success. Defaults parameters created"
+    echo "Success. Defaults parameters filled"
   else
-    echo "Fail. Default parameters not created"
+    echo "Fail. Default parameters not filled"
     return 1
   fi
 
@@ -112,10 +163,58 @@ EOF
 
   if [ -z "$DEFAULT_ANNOTATION" ] || [ "$DEFAULT_ANNOTATION" = "null" ]
   then
-    echo "Fail. Default annotations not created"
+    echo "Fail. Default annotations not filled"
     return 1
   else
-    echo "Success. Defaults annotations created"
+    echo "Success. Defaults annotations filled"
+  fi
+}
+
+update_empty_pg_bouncer() {
+
+  kubectl get sgpoolconfig -n "$CLUSTER_NAMESPACE" "$PGCBOUNCER"
+  cat << EOF | kubectl apply -f -
+  apiVersion: stackgres.io/v1beta1
+  kind: SGPoolingConfig
+  metadata:
+    name: $PGCBOUNCER
+    namespace: $CLUSTER_NAMESPACE
+  spec:
+    pgBouncer:
+      pgbouncer.ini:
+        unsignificant: true
+EOF
+
+  local UPDATED_FIELDS=$(kubectl get sgpoolconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCBOUNCER" -o json | jq '.spec.pgBouncer["pgbouncer.ini"] | length')
+  local DEFAULT_FIELDS=$(get_default_conn_pool -o json | jq '.spec.pgBouncer["pgbouncer.ini"] | length')
+
+  if [ "$UPDATED_FIELDS" = "$((DEFAULT_FIELDS + 1))" ]
+  then
+    echo "Success. Defaults fields filled"
+  else
+    echo "Fail. Default fields not filled"
+    return 1
+  fi
+
+  local UPDATED_DEFAULTS_PARAMETERS=$(kubectl get sgpoolconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCBOUNCER" -o json | jq '.status.pgBouncer.defaultParameters | sort')
+  local DEFAULTS_PARAMETERS=$(get_default_conn_pool -o json | jq '.spec.pgBouncer["pgbouncer.ini"] | keys | sort')
+
+  if [ "$UPDATED_DEFAULTS_PARAMETERS" = "$DEFAULTS_PARAMETERS" ]
+  then
+    echo "Success. Defaults parameters filled"
+  else
+    echo "Fail. Default parameters not filled"
+    return 1
+  fi
+
+  local DEFAULT_ANNOTATION=$(kubectl get sgpoolconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCBOUNCER" -o json | jq '.metadata.annotations["stackgres.io/operatorVersion"]')
+
+  if [ -z "$DEFAULT_ANNOTATION" ] || [ "$DEFAULT_ANNOTATION" = "null" ]
+  then
+    echo "Fail. Default annotations not filled"
+    return 1
+  else
+    echo "Success. Defaults annotations filled"
   fi
 }
 
@@ -136,9 +235,9 @@ EOF
 
   if [ "$CREATED_FIELDS" = "$((DEFAULT_FIELDS + 1))" ]
   then
-    echo "Success. Defaults fields created"
+    echo "Success. Defaults fields filled"
   else
-    echo "Fail. Default fields not created"
+    echo "Fail. Default fields not filled"
     return 1
   fi
 
@@ -146,10 +245,45 @@ EOF
 
   if [ -z "$DEFAULT_ANNOTATION" ] || [ "$DEFAULT_ANNOTATION" = "null" ]
   then
-    echo "Fail. Default annotations not created"
+    echo "Fail. Default annotations not filled"
     return 1
   else
-    echo "Success. Defaults annotations created"
+    echo "Success. Defaults annotations filled"
+  fi
+}
+
+update_empty_pg_backup_config() {
+
+  kubectl get sgbackupconfig -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG"
+  cat << EOF | kubectl apply -f -
+  apiVersion: stackgres.io/v1beta1
+  kind: SGBackupConfig
+  metadata:
+    name: $BACKUP_CONFIG
+    namespace: $CLUSTER_NAMESPACE
+  spec:
+    compression: lz4
+EOF
+
+  local UPDATED_FIELDS=$(kubectl get sgbackupconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" -o json | jq '.spec | length')
+  local DEFAULT_FIELDS=$(get_default_backupconf | jq '.spec | length')
+
+  if [ "$UPDATED_FIELDS" = "$((DEFAULT_FIELDS + 1))" ]
+  then
+    echo "Success. Defaults fields filled"
+  else
+    echo "Fail. Default fields not filled"
+    return 1
+  fi
+
+  local DEFAULT_ANNOTATION=$(kubectl get sgbackupconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" -o json | jq '.metadata.annotations["stackgres.io/operatorVersion"]')
+
+  if [ -z "$DEFAULT_ANNOTATION" ] || [ "$DEFAULT_ANNOTATION" = "null" ]
+  then
+    echo "Fail. Default annotations not filled"
+    return 1
+  else
+    echo "Success. Defaults annotations filled"
   fi
 }
 
