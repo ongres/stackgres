@@ -31,6 +31,7 @@ unit tests:
   script:
     - set -e
     - test "$E2E_JOBS" -ge 1 && test "$E2E_JOBS" -le 6
+    - test "$E2E_EXCLUSIVE_JOBS" -ge 1 && test "$E2E_EXCLUSIVE_JOBS" -le 6
     - export E2E_OPERATOR_REGISTRY_PASSWORD=$CI_REGISTRY_PASSWORD
     - set -x
     - SUFFIX="$(echo "-$E2E_SUFFIX-$E2E_RUN_ONLY" | tr -d '\n' | tr -c 'a-z0-9' '-' | sed 's/\(-[0-9]\+\)-[0-9]\+$/\1/')"
@@ -139,7 +140,7 @@ e2e tests jvm image part 6:
 e2e exclusive tests jvm image part 1:
   extends: .e2e tests jvm image
   variables:
-    E2E_RUN_ONLY: exclusive:1/2
+    E2E_RUN_ONLY: exclusive:1/$E2E_EXCLUSIVE_JOBS
     E2E_SKIP_OPERATOR_INSTALL: "true"
   except:
     variables:
@@ -148,7 +149,67 @@ e2e exclusive tests jvm image part 1:
 e2e exclusive tests jvm image part 2:
   extends: .e2e tests jvm image
   variables:
-    E2E_RUN_ONLY: exclusive:2/2
+    E2E_RUN_ONLY: exclusive:2/$E2E_EXCLUSIVE_JOBS
+    E2E_SKIP_OPERATOR_INSTALL: "true"
+  except:
+    variables:
+      - $E2E_TEST
+      - $E2E_EXCLUSIVE_JOBS =~ /^[1]$/
+
+e2e exclusive tests jvm image part 3:
+  extends: .e2e tests jvm image
+  variables:
+    E2E_RUN_ONLY: exclusive:3/$E2E_EXCLUSIVE_JOBS
+    E2E_SKIP_OPERATOR_INSTALL: "true"
+  except:
+    variables:
+      - $E2E_TEST
+      - $E2E_EXCLUSIVE_JOBS =~ /^[12]$/
+
+e2e exclusive tests jvm image part 4:
+  extends: .e2e tests jvm image
+  variables:
+    E2E_RUN_ONLY: exclusive:4/$E2E_EXCLUSIVE_JOBS
+    E2E_SKIP_OPERATOR_INSTALL: "true"
+  except:
+    variables:
+      - $E2E_TEST
+      - $E2E_EXCLUSIVE_JOBS =~ /^[123]$/
+
+e2e exclusive tests jvm image part 5:
+  extends: .e2e tests jvm image
+  variables:
+    E2E_RUN_ONLY: exclusive:5/$E2E_EXCLUSIVE_JOBS
+    E2E_SKIP_OPERATOR_INSTALL: "true"
+  except:
+    variables:
+      - $E2E_TEST
+      - $E2E_EXCLUSIVE_JOBS =~ /^[1234]$/
+
+e2e exclusive tests jvm image part 6:
+  extends: .e2e tests jvm image
+  variables:
+    E2E_RUN_ONLY: exclusive:6/$E2E_EXCLUSIVE_JOBS
+    E2E_SKIP_OPERATOR_INSTALL: "true"
+  except:
+    variables:
+      - $E2E_TEST
+      - $E2E_EXCLUSIVE_JOBS =~ /^[12345]$/
+
+e2e exclusive tests jvm image part 2:
+  extends: .e2e tests jvm image
+  variables:
+    E2E_RUN_ONLY: exclusive:2/$E2E_EXCLUSIVE_JOBS
+    E2E_SKIP_OPERATOR_INSTALL: "true"
+  except:
+    variables:
+      - $E2E_TEST
+      - $E2E_EXCLUSIVE_JOBS =~ /^[12345]$/
+
+e2e exclusive tests jvm image part 2:
+  extends: .e2e tests jvm image
+  variables:
+    E2E_RUN_ONLY: exclusive:2/$E2E_EXCLUSIVE_JOBS
     E2E_SKIP_OPERATOR_INSTALL: "true"
   except:
     variables:
@@ -225,7 +286,7 @@ e2e tests native image part 6:
 e2e exclusive tests native image part 1:
   extends: .e2e tests native image
   variables:
-    E2E_RUN_ONLY: exclusive:1/2
+    E2E_RUN_ONLY: exclusive:1/$E2E_EXCLUSIVE_JOBS
     E2E_SKIP_OPERATOR_INSTALL: "true"
   except:
     variables:
@@ -234,8 +295,49 @@ e2e exclusive tests native image part 1:
 e2e exclusive tests native image part 2:
   extends: .e2e tests native image
   variables:
-    E2E_RUN_ONLY: exclusive:2/2
+    E2E_RUN_ONLY: exclusive:2/$E2E_EXCLUSIVE_JOBS
     E2E_SKIP_OPERATOR_INSTALL: "true"
   except:
     variables:
       - $E2E_TEST
+      - $E2E_EXCLUSIVE_JOBS =~ /^[1]$/
+
+e2e exclusive tests native image part 3:
+  extends: .e2e tests native image
+  variables:
+    E2E_RUN_ONLY: exclusive:3/$E2E_EXCLUSIVE_JOBS
+    E2E_SKIP_OPERATOR_INSTALL: "true"
+  except:
+    variables:
+      - $E2E_TEST
+      - $E2E_EXCLUSIVE_JOBS =~ /^[12]$/
+
+e2e exclusive tests native image part 4:
+  extends: .e2e tests native image
+  variables:
+    E2E_RUN_ONLY: exclusive:4/$E2E_EXCLUSIVE_JOBS
+    E2E_SKIP_OPERATOR_INSTALL: "true"
+  except:
+    variables:
+      - $E2E_TEST
+      - $E2E_EXCLUSIVE_JOBS =~ /^[123]$/
+
+e2e exclusive tests native image part 5:
+  extends: .e2e tests native image
+  variables:
+    E2E_RUN_ONLY: exclusive:5/$E2E_EXCLUSIVE_JOBS
+    E2E_SKIP_OPERATOR_INSTALL: "true"
+  except:
+    variables:
+      - $E2E_TEST
+      - $E2E_EXCLUSIVE_JOBS =~ /^[1234]$/
+
+e2e exclusive tests native image part 6:
+  extends: .e2e tests native image
+  variables:
+    E2E_RUN_ONLY: exclusive:6/$E2E_EXCLUSIVE_JOBS
+    E2E_SKIP_OPERATOR_INSTALL: "true"
+  except:
+    variables:
+      - $E2E_TEST
+      - $E2E_EXCLUSIVE_JOBS =~ /^[12345]$/
