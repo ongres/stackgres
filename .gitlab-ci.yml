@@ -24,16 +24,17 @@ variables:
                    -Dsurefire.useFile=false
                    -Dsurefire.useFile=false
                    -DtrimStackTrace=false
-  E2E_ENV: kind
-  E2E_PARALLELISM: 32
-  K8S_VERSION: 1.15.11
-  K8S_FROM_DIND: "true"
-  K8S_REUSE: "true"
   DOCUMENTATION_BASE_URL: "https://ongresinc.gitlab.io/web/stackgres/doc/latest"
   PRODUCTION_DOCUMENTATION_BASE_URL: "https://stackgres.io/doc/latest"
   SKIP_NATIVE: "false"
   SKIP_E2E: "false"
   SKIP_DEPLOY: "false"
+  E2E_ENV: kind
+  E2E_PARALLELISM: 32
+  E2E_JOBS: 2
+  K8S_VERSION: 1.15.11
+  K8S_FROM_DIND: "true"
+  K8S_REUSE: "true"
 
 # Cache downloaded dependencies and plugins between builds.
 # To keep cache across branches add 'key: "$CI_JOB_NAME"'
