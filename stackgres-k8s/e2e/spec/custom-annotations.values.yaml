@@ -11,7 +11,7 @@ cluster:
       size: 128Mi
   configurations:
     sgBackupConfig: null
-  sgInstanceProfiles: 'size-xs'
+  sgInstanceProfile: 'size-xs'
   prometheusAutobind: false
 nonProductionOptions:
   disableClusterPodAntiAffinity: true
