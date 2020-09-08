@@ -563,6 +563,8 @@ EOF
     echo "Success. Defaults annotations created"
   fi
 
+  wait_until eval 'kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o name'
+
   local INSTALLED_CONTAINERS="$(kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o=jsonpath='{.spec.template.spec.containers[*].name}')"
 
   if echo "$INSTALLED_CONTAINERS" | grep "prometheus-postgres-exporter" > /dev/null
@@ -619,6 +621,8 @@ EOF
   else
     echo "Success. Defaults annotations created"
   fi
+
+  wait_until eval 'kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o name'
 
   local INSTALLED_CONTAINERS="$(kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o=jsonpath='{.spec.template.spec.containers[*].name}')"
 
