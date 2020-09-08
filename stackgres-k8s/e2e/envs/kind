@@ -2,6 +2,7 @@
 
 KIND_NAME="${KIND_NAME:-kind}"
 KIND_NODES="${KIND_NODES:-1}"
+KIND_LOCK_PATH="${KIND_LOCK_PATH:-$TARGET_PATH/kind-lock}"
 
 export KIND_NAME
 export KIND_NODES
@@ -124,7 +125,8 @@ INNER_EOF
 )
 EOF
 
-  kind create cluster --name "$KIND_NAME" --config "$TARGET_PATH/kind-config.yaml" \
+  flock "$KIND_LOCK_PATH" \
+    kind create cluster --name "$KIND_NAME" --config "$TARGET_PATH/kind-config.yaml" \
     --image "kindest/node:v$(get_kind_image "${K8S_VERSION}")"
 
   if [ "$KIND_INSTALL_NFS" = "true" ]

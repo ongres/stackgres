@@ -49,6 +49,8 @@ import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceAccount;
 import io.fabric8.kubernetes.api.model.ServiceSpec;
 import io.fabric8.kubernetes.api.model.Volume;
+import io.fabric8.kubernetes.api.model.VolumeDevice;
+import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeNodeAffinity;
 import io.fabric8.kubernetes.api.model.WeightedPodAffinityTerm;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
@@ -702,8 +704,10 @@ public class ResourcePairVisitor<T, C> {
             this::visitEnvFromSource)
         .visitListWith(Container::getPorts, Container::setPorts,
             this::visitContainerPort)
-        .visitList(Container::getVolumeDevices, Container::setVolumeDevices)
-        .visitList(Container::getVolumeMounts, Container::setVolumeMounts)
+        .visitListWith(Container::getVolumeDevices, Container::setVolumeDevices,
+            this::visitVolumeDevice)
+        .visitListWith(Container::getVolumeMounts, Container::setVolumeMounts,
+            this::visitVolumeMount)
         .visitMap(Container::getAdditionalProperties);
   }
 
@@ -921,6 +925,32 @@ public class ResourcePairVisitor<T, C> {
         .visit(ContainerPort::getName, ContainerPort::setName)
         .visit(ContainerPort::getProtocol, ContainerPort::setProtocol, "TCP")
         .visitMap(ContainerPort::getAdditionalProperties);
+  }
+
+  /**
+   * Visit using a pair visitor.
+   */
+  public PairVisitor<VolumeDevice, T> visitVolumeDevice(
+      PairVisitor<VolumeDevice, T> pairVisitor) {
+    return pairVisitor.visit()
+        .visit(VolumeDevice::getName, VolumeDevice::setName)
+        .visit(VolumeDevice::getDevicePath, VolumeDevice::setDevicePath)
+        .visitMap(VolumeDevice::getAdditionalProperties);
+  }
+
+  /**
+   * Visit using a pair visitor.
+   */
+  public PairVisitor<VolumeMount, T> visitVolumeMount(
+      PairVisitor<VolumeMount, T> pairVisitor) {
+    return pairVisitor.visit()
+        .visit(VolumeMount::getName, VolumeMount::setName)
+        .visit(VolumeMount::getMountPath, VolumeMount::setMountPath)
+        .visit(VolumeMount::getMountPropagation, VolumeMount::setMountPropagation)
+        .visit(VolumeMount::getReadOnly, VolumeMount::setReadOnly, false)
+        .visit(VolumeMount::getSubPath, VolumeMount::setSubPath)
+        .visit(VolumeMount::getSubPathExpr, VolumeMount::setSubPathExpr)
+        .visitMap(VolumeMount::getAdditionalProperties);
   }
 
   /**

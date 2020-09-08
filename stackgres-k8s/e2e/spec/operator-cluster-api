@@ -39,13 +39,6 @@ EOF
     | jq 'del(.apiVersion) | del(.kind)' )
 
   echo_raw "$OPERATOR_CLUSTER" > "$LOG_PATH/stackgres-cluster.json"
-  
-  kubectl patch sgbackupconfig -n "$CLUSTER_NAMESPACE" backupconf --type json \
-    --patch '[{"op":"replace","path":"/spec/baseBackups/cronSchedule","value":"*/1 * * * *"}]'
-
-  wait_until eval '[ "$(kubectl exec -t -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-0 -c patroni -- \
-    exec-with-env backup -- wal-g backup-list | wc -l)" -gt 0 ]'
-  
 }
 
 e2e_test() {
