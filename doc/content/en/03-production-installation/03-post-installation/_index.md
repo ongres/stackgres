@@ -1,6 +1,6 @@
 ---
 title: Post-installation
-weight: 4
+weight: 3
 ---
 
 # Connect to the UI
