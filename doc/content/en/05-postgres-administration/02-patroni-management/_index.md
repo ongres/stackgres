@@ -22,13 +22,15 @@ graph TB
 
 These represents the containers of the StackGres cluster and you can list them using `kubectl` command like:
 
-`kubectl get pods -n default -l app=StackGres,cluster=true`
+```bash
+kubectl get pods -n default -l app=StackGresCluster,cluster=true
+````
 
->Note: Change `-n` param to point to your namespace, in this example we use default.
+> **Note:** Change `-n` param to point to your namespace, in this example we use default.
 
 And we'll get an output like:
 
-```
+```bash
 NAME          READY   STATUS    RESTARTS   AGE
 stackgres-0   5/5     Running   0          163m
 stackgres-1   5/5     Running   0          163m
@@ -43,18 +45,22 @@ We have two differents ways to acomplish this. The first one is with the `kubect
 
 To identify the master node:
 
-`kubectl get pods -n default -l app=StackGres -l role=master`
+```bash
+kubectl get pods -n default -l app=StackGresCluster -l role=master
+```
 
 output:
 
-```
+```bash
 NAME          READY   STATUS    RESTARTS   AGE
 stackgres-0   5/5     Running   0          165m
 ```
 
 To identify the replica nodes:
 
-`kubectl get pods -n default -l app=StackGres -l role=replica`
+```
+kubectl get pods -n default -l app=StackGresCluster,cluster=true -l role=replica
+```
 
 
 output:
@@ -67,16 +73,19 @@ stackgres-2   5/5     Running   0          165m
 
 The other way is to use the own patroni commands. But first we need to connect to the patroni container:
 
-`kubectl exec -it stackgres-0 -c patroni -- bash`
+```bash
+kubectl exec -it stackgres-0 -c patroni -- bash
+```
 
 Once you are connected to it run the patroni command:
 
-`patronictl list`
-
-output:
-
+```bash
+patronictl list
 ```
-bash-4.4$ patronictl list
+
+That will result:
+
+```bash
 +-----------+-------------+------------------+--------+---------+----+-----------+
 |  Cluster  |    Member   |       Host       |  Role  |  State  | TL | Lag in MB |
 +-----------+-------------+------------------+--------+---------+----+-----------+

@@ -2,7 +2,8 @@ unit tests:
   image: docker.io/ongres/ubi-graalvm-maven:19.3.1-java8
   stage: test
   variables:
-    QUARKUS_PROFILE: "test"
+    # skipped due to but in quarkus junit extension initialization
+    # QUARKUS_PROFILE: "test"
   tags:
     - stackgres-runner
     - stackgres-quarkus-test-runner
