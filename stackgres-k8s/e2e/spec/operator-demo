@@ -24,6 +24,7 @@ e2e_test_install() {
   then
     docker tag "$OPERATOR_IMAGE_NAME" stackgres/operator:"$TARGET_IMAGE_TAG"
     docker tag "$RESTAPI_IMAGE_NAME" stackgres/restapi:"$TARGET_IMAGE_TAG"
+    docker tag "$JOBS_IMAGE_NAME" stackgres/jobs:"$TARGET_IMAGE_TAG"
     export TARGET_ADMINUI_IMAGE_TAG="${TARGET_IMAGE_TAG%-jvm}"
     docker tag "$ADMINUI_IMAGE_NAME" stackgres/admin-ui:"$TARGET_ADMINUI_IMAGE_TAG"
   fi

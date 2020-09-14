@@ -21,12 +21,12 @@ public class CrdUtils {
     String projectPath = new File(new File("src").getAbsolutePath())
         .getParentFile().getParentFile().getParentFile().getAbsolutePath();
 
-    return new File(projectPath + "/install/helm/stackgres-operator/crds");
+    return new File(projectPath + "/src/jobs/src/main/resources/crds");
   }
 
   public static void installCrds(KubernetesClient client) throws IOException {
     YAMLMapper yamlMapper = new YAMLMapper();
-    Files.list(Paths.get("../../install/helm/stackgres-operator/crds"))
+    Files.list(Paths.get("../../src/jobs/src/main/resources/crds"))
         .forEach(Unchecked.consumer(path -> client.customResourceDefinitions()
             .create(yamlMapper.readValue(path.toFile(), CustomResourceDefinition.class))));
   }

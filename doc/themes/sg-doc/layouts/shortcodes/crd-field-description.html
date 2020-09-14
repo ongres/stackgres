@@ -15,15 +15,18 @@
 {{- if not (index $.Site.Data.crds (index $params 0)).spec }}
 {{ errorf "CRD data/crds/%s.yaml has wrong format (spec not found)" (index $params 0) }}
 {{- end }}
-{{- if not (index $.Site.Data.crds (index $params 0)).spec.validation }}
-{{ errorf "CRD data/crds/%s.yaml has wrong format (spec.validation not found)" (index $params 0) }}
+{{- if not (index $.Site.Data.crds (index $params 0)).spec.versions }}
+{{ errorf "CRD data/crds/%s.yaml has wrong format (spec.versions not found)" (index $params 0) }}
 {{- end }}
-{{- if not (index $.Site.Data.crds (index $params 0)).spec.validation.openAPIV3Schema }}
-{{ errorf "CRD data/crds/%s.yaml has wrong format (spec.validation.openAPIV3Schema not found)" (index $params 0) }}
+{{- if not (index (index $.Site.Data.crds (index $params 0)).spec.versions 0).schema }}
+{{ errorf "CRD data/crds/%s.yaml has wrong format (.spec.versions[0].schema not found)" (index $params 0) }}
+{{- end }}
+{{- if not (index (index $.Site.Data.crds (index $params 0)).spec.versions 0).schema.openAPIV3Schema }}
+{{ errorf "CRD data/crds/%s.yaml has wrong format (.spec.versions[0].schema.openAPIV3Schema not found)" (index $params 0) }}
 {{- end }}
 {{- $scratch := newScratch -}}
-{{- $scratch.Set "CrdField" ((index $.Site.Data.crds (index $params 0)).spec.validation.openAPIV3Schema) -}}
-{{- $scratch.Set "CrdPath" ".spec.validation.openAPIV3Schema" -}}
+{{- $scratch.Set "CrdField" (index (index $.Site.Data.crds (index $params 0)).spec.versions 0).schema.openAPIV3Schema -}}
+{{- $scratch.Set "CrdPath" ".spec.versions[0].schema.openAPIV3Schema" -}}
 {{- range $index,$param := $params -}}
   {{- if gt $index 0 -}}
     {{- if not ($scratch.Get "CrdField") }}

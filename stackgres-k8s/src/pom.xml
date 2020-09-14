@@ -34,7 +34,8 @@
     <module>operator</module>
     <module>api-web</module>
     <module>test-util</module>
-      <!-- <module>cli</module> -->
+    <module>jobs</module>
+    <!-- <module>cli</module> -->
   </modules>
 
   <scm>
@@ -47,11 +48,16 @@
     <stackgres.containerBuild>5.1</stackgres.containerBuild>
     <stackgres.group>stackgres.io</stackgres.group>
     <stackgres.crd.version>v1beta1</stackgres.crd.version>
+    <stackgres.operatorName>stackgres-operator</stackgres.operatorName>
+    <stackgres.operatorNamespace>stackgres</stackgres.operatorNamespace>
+    <stackgres.operatorIP>localhost</stackgres.operatorIP>
     <stackgres.operatorVersion>${project.version}</stackgres.operatorVersion>
     <stackgres.documentation.uri>https://stackgres.io/doc/</stackgres.documentation.uri>
     <stackgres.documentation.errorsPath>/07-developer-documentation/01-error-types#</stackgres.documentation.errorsPath>
     <quarkus.http.ssl.certificate.file>/etc/operator/certs/server.crt</quarkus.http.ssl.certificate.file>
     <quarkus.http.ssl.certificate.key-file>/etc/operator/certs/root.key</quarkus.http.ssl.certificate.key-file>
+    <stackgres.conversionWebhooks>false</stackgres.conversionWebhooks>
+    <stackgres.crdUpgrade>false</stackgres.crdUpgrade>
 
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <!-- Java compilation -->

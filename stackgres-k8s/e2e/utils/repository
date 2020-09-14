@@ -40,17 +40,20 @@ set_up_private_repository() {
   export PRIVATE_REPO_URI=$(get_private_repository_uri)
   export PRIVATE_OPERATOR_IMAGE_NAME="$PRIVATE_REPO_URI/$OPERATOR_IMAGE_NAME"
   export PRIVATE_RESTAPI_IMAGE_NAME="$PRIVATE_REPO_URI/$RESTAPI_IMAGE_NAME"
+  export PRIVATE_JOBS_IMAGE_NAME="$PRIVATE_REPO_URI/$JOBS_IMAGE_NAME"
   export PRIVATE_ADMINUI_IMAGE_NAME="$PRIVATE_REPO_URI/$ADMINUI_IMAGE_NAME"
 
   get_private_repository_password | docker login --username AWS --password-stdin "$PRIVATE_REPO_URI"
   
   docker tag "$OPERATOR_IMAGE_NAME" "$PRIVATE_OPERATOR_IMAGE_NAME"
   docker tag "$RESTAPI_IMAGE_NAME" "$PRIVATE_RESTAPI_IMAGE_NAME"
+  docker tag "$JOBS_IMAGE_NAME" "$PRIVATE_JOBS_IMAGE_NAME"
   docker tag "$ADMINUI_IMAGE_NAME" "$PRIVATE_ADMINUI_IMAGE_NAME"
 
   docker push "$PRIVATE_OPERATOR_IMAGE_NAME"
   docker push "$PRIVATE_RESTAPI_IMAGE_NAME"
-  docker push "$PRIVATE_ADMINUI_IMAGE_NAME"
+  docker push "$JOBS_IMAGE_NAME"
+  docker push "$PRIVATE_ADMINUI_IMAGE_NAME"  
 
   if kubectl get namespace "$OPERATOR_NAMESPACE" > /dev/null
   then  

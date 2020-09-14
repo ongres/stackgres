@@ -1,0 +1,16 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ .Release.Name }}-crd-upgrade
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "helm.sh/hook": pre-upgrade,pre-install
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+subjects:
+- kind: ServiceAccount
+  name: {{ .Release.Name }}-crd-upgrade
+  namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: ClusterRole
+  name: {{ .Release.Name }}-crd-upgrade
+  apiGroup: rbac.authorization.k8s.io

@@ -4,6 +4,7 @@ export IMAGE_TAG="${IMAGE_TAG:-development-jvm}"
 export ADMINUI_IMAGE_TAG="${IMAGE_TAG%-jvm}"
 export OPERATOR_IMAGE_NAME="stackgres/operator:$IMAGE_TAG"
 export RESTAPI_IMAGE_NAME="stackgres/restapi:$IMAGE_TAG"
+export JOBS_IMAGE_NAME="stackgres/jobs:$IMAGE_TAG"
 export ADMINUI_IMAGE_NAME="stackgres/admin-ui:$ADMINUI_IMAGE_TAG"
 
 export STACKGRES_PATH="${STACKGRES_PATH:-$E2E_PATH/..}"
@@ -141,7 +142,8 @@ load_operator_k8s() {
   then
     if ! docker inspect "$OPERATOR_IMAGE_NAME" >/dev/null 2>&1 \
       || ! docker inspect "$RESTAPI_IMAGE_NAME" >/dev/null 2>&1 \
-      || ! docker inspect "$ADMINUI_IMAGE_NAME" >/dev/null 2>&1
+      || ! docker inspect "$JOBS_IMAGE_NAME" >/dev/null 2>&1 \
+      || ! docker inspect "$ADMINUI_IMAGE_NAME" >/dev/null 2>&1 
     then
       if [ -n "$E2E_OPERATOR_REGISTRY" ]
       then
@@ -152,11 +154,13 @@ load_operator_k8s() {
       fi
       docker pull "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH$OPERATOR_IMAGE_NAME"
       docker pull "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH$RESTAPI_IMAGE_NAME"
+      docker pull "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH$JOBS_IMAGE_NAME"
       docker pull "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH$ADMINUI_IMAGE_NAME"
       if [ -n "$E2E_OPERATOR_REGISTRY" ]
       then
         docker tag "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH$OPERATOR_IMAGE_NAME" "$OPERATOR_IMAGE_NAME"
         docker tag "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH$RESTAPI_IMAGE_NAME" "$RESTAPI_IMAGE_NAME"
+        docker tag "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH$JOBS_IMAGE_NAME" "$JOBS_IMAGE_NAME"
         docker tag "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH$ADMINUI_IMAGE_NAME" "$ADMINUI_IMAGE_NAME"
       fi
     fi
@@ -166,14 +170,17 @@ load_operator_k8s() {
   then
     local ORIGINAL_OPERATOR_IMAGE_NAME="$OPERATOR_IMAGE_NAME"
     local ORIGINAL_RESTAPI_IMAGE_NAME="$RESTAPI_IMAGE_NAME"
+    local ORIGINAL_JOBS_IMAGE_NAME="$JOBS_IMAGE_NAME"
     local ORIGINAL_ADMINUI_IMAGE_NAME="$ADMINUI_IMAGE_NAME"
     local IMAGE_TAG="$1"
     local ADMINUI_IMAGE_TAG="${IMAGE_TAG%-jvm}"
     local OPERATOR_IMAGE_NAME="stackgres/operator:$IMAGE_TAG"
     local RESTAPI_IMAGE_NAME="stackgres/restapi:$IMAGE_TAG"
+    local JOBS_IMAGE_NAME="stackgres/jobs:$IMAGE_TAG"
     local ADMINUI_IMAGE_NAME="stackgres/admin-ui:$ADMINUI_IMAGE_TAG"
     docker tag "$ORIGINAL_OPERATOR_IMAGE_NAME" "$OPERATOR_IMAGE_NAME"
     docker tag "$ORIGINAL_RESTAPI_IMAGE_NAME" "$RESTAPI_IMAGE_NAME"
+    docker tag "$ORIGINAL_JOBS_IMAGE_NAME" "$JOBS_IMAGE_NAME"
     docker tag "$ORIGINAL_ADMINUI_IMAGE_NAME" "$ADMINUI_IMAGE_NAME"
     load_operator_k8s
   fi
@@ -189,6 +196,12 @@ load_operator_k8s() {
     load_image_k8s "$RESTAPI_IMAGE_NAME"
   else
     echo "Image $RESTAPI_IMAGE_NAME not found in cache!"
+  fi
+  if docker image inspect "$JOBS_IMAGE_NAME" >/dev/null 2>&1
+  then 
+    load_image_k8s "$JOBS_IMAGE_NAME"
+  else
+    echo "Image $JOBS_IMAGE_NAME not found in cache!"
   fi
   if docker image inspect "$ADMINUI_IMAGE_NAME" >/dev/null 2>&1
   then 
@@ -227,6 +240,8 @@ install_operator() {
     --set-string "operator.image.pullPolicy=$(operator_pull_policy)" \
     --set-string restapi.image.name="${RESTAPI_IMAGE_NAME%:*}" --set-string restapi.image.tag="${RESTAPI_IMAGE_NAME#*:}" \
     --set-string "restapi.image.pullPolicy=$(operator_pull_policy)" \
+    --set-string jobs.image.name="${JOBS_IMAGE_NAME%:*}" --set-string jobs.image.tag="${JOBS_IMAGE_NAME#*:}" \
+    --set-string "jobs.image.pullPolicy=$(operator_pull_policy)" \
     --set-string adminui.image.name="${ADMINUI_IMAGE_NAME%:*}" --set-string adminui.image.tag="${ADMINUI_IMAGE_NAME#*:}" \
     --set-string "adminui.image.pullPolicy=$(operator_pull_policy)" \
     $E2E_OPERATOR_OPTS "$@"
@@ -286,14 +301,18 @@ upgrade_operator_from_private_repository() {
   export PRIVATE_REPO_URI=$(get_private_repository_uri)
   export PRIVATE_OPERATOR_IMAGE_NAME="$PRIVATE_REPO_URI/stackgres/operator"
   export PRIVATE_RESTAPI_IMAGE_NAME="$PRIVATE_REPO_URI/stackgres/restapi"
+  export PRIVATE_JOBS_IMAGE_NAME="$PRIVATE_REPO_URI/stackgres/jobs"
   export PRIVATE_ADMINUI_IMAGE_NAME="$PRIVATE_REPO_URI/stackgres/admin-ui"
   upgrade_operator_vanilla \
       --set-string operator.image.name="$PRIVATE_OPERATOR_IMAGE_NAME" --set-string operator.image.tag="$IMAGE_TAG" \
       --set-string "operator.image.pullPolicy=$(operator_pull_policy)" \
       --set-string restapi.image.name="$PRIVATE_RESTAPI_IMAGE_NAME" --set-string restapi.image.tag="$IMAGE_TAG" \
       --set-string "restapi.image.pullPolicy=$(operator_pull_policy)" \
+      --set-string jobs.image.name="$PRIVATE_JOBS_IMAGE_NAME" --set-string jobs.image.tag="$IMAGE_TAG" \
+      --set-string "jobs.image.pullPolicy=$(operator_pull_policy)" \
       --set-string adminui.image.name="$PRIVATE_ADMINUI_IMAGE_NAME" --set-string adminui.image.tag="$ADMINUI_IMAGE_TAG" \
       --set-string "adminui.image.pullPolicy=$(operator_pull_policy)" \
+      --set-string serviceAccount.create="true" \
       --set-string serviceAccount.repoCredentials="regcred" \
       "$@"
 }
