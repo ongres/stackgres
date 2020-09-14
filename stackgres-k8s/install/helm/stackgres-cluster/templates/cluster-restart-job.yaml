@@ -1,0 +1,81 @@
+{{- if .Values.cluster.restart }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ .Release.Name }}-cluster-restart
+  namespace: {{ .Release.Namespace }}
+---
+{{- if .Values.cluster.restartRole }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ .Release.Name }}-cluster-restart
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "helm.sh/hook": post-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+subjects:
+- kind: ServiceAccount
+  name: {{ .Release.Name }}-cluster-restart
+  namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: Role
+  name: '{{ .Values.cluster.restartRole }}'
+  apiGroup: rbac.authorization.k8s.io
+{{- else }}
+{{- if .Values.cluster.restartClusterRole }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ .Release.Name }}-cluster-restart
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "helm.sh/hook": post-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+subjects:
+- kind: ServiceAccount
+  name: {{ .Release.Name }}-cluster-restart
+  namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: ClusterRole
+  name: '{{ .Values.cluster.restartClusterRole }}'
+  apiGroup: rbac.authorization.k8s.io
+{{- end }}
+{{- end }}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: "{{ .Release.Name }}-restart-cluster"
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: stackgres-restart-cluster
+    scope: upgrade
+  annotations:
+    "helm.sh/hook": post-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  template:
+    metadata:
+      labels:
+        app: stackgres-restart-cluster
+        scope: upgrade
+        cluster-name: '{{ .Release.Name }}'
+        cluster-namespace: '{{ .Release.Namespace }}'
+    spec:
+      serviceAccountName: {{ .Release.Name }}-cluster-restart
+      containers:
+      - name: "{{ .Release.Name }}-fix-deployment-selector"
+        image: "bitnami/kubectl:1.18.3"
+        imagePullPolicy: "IfNotPresent"
+        command:
+          - "/bin/bash"
+          - "-ecx"
+          - |
+            cat << 'EOF' > /tmp/cluster-restart.sh
+            {{ .Files.Get "cluster-restart.sh" | indent 12 }}
+            EOF
+            export REDUCED_IMPACT={{ if .Values.cluster.restartReducedImpact }}true{{ else }}false{{ end }}
+            sh -x /tmp/cluster-restart.sh '{{ .Release.Namespace }}' '{{ .Release.Name }}'
+      restartPolicy: OnFailure
+{{- end }}

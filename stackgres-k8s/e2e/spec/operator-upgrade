@@ -9,7 +9,10 @@ e2e_test_install() {
   k8s_async_cleanup
   install_operator_previous_version
   kubectl create namespace "$CLUSTER_NAMESPACE"
-  create_or_replace_cluster "$CLUSTER_NAME-1" "$CLUSTER_NAMESPACE" 1
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 \
+    --set cluster.create=false
+  create_or_replace_cluster "$CLUSTER_NAME-1" "$CLUSTER_NAMESPACE" 1 \
+    --set configurations.create=false --set instanceProfiles=false
   create_or_replace_cluster "$CLUSTER_NAME-2" "$CLUSTER_NAMESPACE" 2 \
     --set configurations.create=false --set instanceProfiles=false
   create_or_replace_cluster "$CLUSTER_NAME-3" "$CLUSTER_NAMESPACE" 3 \
@@ -58,16 +61,19 @@ check_cluster_3() {
 }
 
 check_cluster_1_restart() {
-  REDUCED_IMPACT=false "$SHELL" $SHELL_XTRACE "$CLUSTER_CHART_PATH/cluster-restart.sh" "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-1"
+  create_or_replace_cluster "$CLUSTER_NAME-1" "$CLUSTER_NAMESPACE" 1 \
+    --set cluster.restart=true --set cluster.restartReducedImpact=false
   check_mock_data_samehost "$CLUSTER_NAME-1"
 }
 
 check_cluster_2_restart() {
-  REDUCED_IMPACT=false "$SHELL" $SHELL_XTRACE "$CLUSTER_CHART_PATH/cluster-restart.sh" "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-2"
+  create_or_replace_cluster "$CLUSTER_NAME-2" "$CLUSTER_NAMESPACE" 2 \
+    --set cluster.restart=true --set cluster.restartReducedImpact=false
   check_mock_data "$CLUSTER_NAME-2"
 }
 
 check_cluster_3_restart() {
-  REDUCED_IMPACT=false "$SHELL" $SHELL_XTRACE "$CLUSTER_CHART_PATH/cluster-restart.sh" "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-3"
+  create_or_replace_cluster "$CLUSTER_NAME-3" "$CLUSTER_NAMESPACE" 3 \
+    --set cluster.restart=true --set cluster.restartReducedImpact=false
   check_mock_data "$CLUSTER_NAME-3"
 }
