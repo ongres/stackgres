@@ -206,15 +206,17 @@ install_operator() {
   kubectl get namespace "$OPERATOR_NAMESPACE" > /dev/null 2>&1 \
     || kubectl create namespace "$OPERATOR_NAMESPACE"
 
+  install_operator_previous_version "$@"
+
   if [ "$E2E_USE_INTERMIDIATE_PRIVATE_REPO" = true ]
   then
     set_up_private_repository
-    install_operator_from_private_repository \
+    upgrade_operator_from_private_repository \
       $E2E_OPERATOR_OPTS "$@"
     return
   fi
 
-  install_operator_vanilla \
+  upgrade_operator_vanilla \
     --set-string operator.image.name="${OPERATOR_IMAGE_NAME%:*}" --set-string operator.image.tag="${OPERATOR_IMAGE_NAME#*:}" \
     --set-string "operator.image.pullPolicy=$(operator_pull_policy)" \
     --set-string restapi.image.name="${RESTAPI_IMAGE_NAME%:*}" --set-string restapi.image.tag="${RESTAPI_IMAGE_NAME#*:}" \
@@ -232,12 +234,12 @@ install_operator_previous_version() {
     $E2E_OPERATOR_OPTS "$@"
 }
 
-install_operator_from_private_repository() {
+upgrade_operator_from_private_repository() {
   export PRIVATE_REPO_URI=$(get_private_repository_uri)
   export PRIVATE_OPERATOR_IMAGE_NAME="$PRIVATE_REPO_URI/stackgres/operator"
   export PRIVATE_RESTAPI_IMAGE_NAME="$PRIVATE_REPO_URI/stackgres/restapi"
   export PRIVATE_ADMINUI_IMAGE_NAME="$PRIVATE_REPO_URI/stackgres/admin-ui"
-  install_operator_vanilla \
+  upgrade_operator_vanilla \
       --set-string operator.image.name="$PRIVATE_OPERATOR_IMAGE_NAME" --set-string operator.image.tag="$IMAGE_TAG" \
       --set-string "operator.image.pullPolicy=$(operator_pull_policy)" \
       --set-string restapi.image.name="$PRIVATE_RESTAPI_IMAGE_NAME" --set-string restapi.image.tag="$IMAGE_TAG" \
@@ -260,6 +262,10 @@ install_operator_vanilla_from() {
 
 upgrade_operator() {
   helm upgrade stackgres-operator --namespace "$OPERATOR_NAMESPACE" "$OPERATOR_CHART_PATH" --reuse-values "$@"
+}
+
+upgrade_operator_vanilla() {
+  helm upgrade stackgres-operator --namespace "$OPERATOR_NAMESPACE" "$OPERATOR_CHART_PATH" "$@"
 }
 
 upgrade_or_install_operator() {
@@ -313,7 +319,7 @@ reinstall_operator_if_not_as_expected() {
     k8s_cleanup
 
     kubectl create namespace "$OPERATOR_NAMESPACE"
-    install_operator_vanilla -f "$TARGET_PATH/operator-values.yaml"
+    install_operator -f "$TARGET_PATH/operator-values.yaml"
     wait_pods_running "$OPERATOR_NAMESPACE"
     if helm get values -n "$OPERATOR_NAMESPACE" stackgres-operator | grep -q externalOperatorIp \
       && helm get values -n "$OPERATOR_NAMESPACE" stackgres-operator | grep -q externalOperatorPort
