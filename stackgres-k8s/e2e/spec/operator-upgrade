@@ -1,0 +1,73 @@
+#!/bin/sh
+
+e2e_exclusive_lock() {
+  true
+}
+
+e2e_test_install() {
+  k8s_cleanup_namespace "$OPERATOR_NAMESPACE"
+  k8s_async_cleanup
+  install_operator_previous_version
+  kubectl create namespace "$CLUSTER_NAMESPACE"
+  create_or_replace_cluster "$CLUSTER_NAME-1" "$CLUSTER_NAMESPACE" 1
+  create_or_replace_cluster "$CLUSTER_NAME-2" "$CLUSTER_NAMESPACE" 2 \
+    --set configurations.create=false --set instanceProfiles=false
+  create_or_replace_cluster "$CLUSTER_NAME-3" "$CLUSTER_NAMESPACE" 3 \
+    --set configurations.create=false --set instanceProfiles=false
+
+  wait_pods_running "$CLUSTER_NAMESPACE" 6
+
+  generate_mock_data "$CLUSTER_NAME-1"
+  check_mock_data_samehost "$CLUSTER_NAME-1"
+  generate_mock_data "$CLUSTER_NAME-2"
+  check_mock_data "$CLUSTER_NAME-2"
+  generate_mock_data "$CLUSTER_NAME-3"
+  check_mock_data "$CLUSTER_NAME-3"
+}
+
+e2e_test_uninstall() {
+  delete_operator
+  install_operator
+  wait_pods_running "$OPERATOR_NAMESPACE" 2
+}
+
+e2e_test() {
+  run_test "Check that operator can be upgraded to newver version" check_operator_upgrade
+  run_test "Check that cluster with 1 node after upgrade" check_cluster_1
+  run_test "Check that cluster with 1 node after upgrade" check_cluster_2
+  run_test "Check that cluster with 1 node after upgrade" check_cluster_3
+  run_test "Check that cluster with 1 node can be restarted after upgrade" check_cluster_1_restart
+  run_test "Check that cluster with 2 node can be restarted after upgrade" check_cluster_2_restart
+  run_test "Check that cluster with 3 node can be restarted after upgrade" check_cluster_3_restart
+}
+
+check_operator_upgrade() {
+  upgrade_operator
+}
+
+check_cluster_1() {
+  check_mock_data_samehost "$CLUSTER_NAME-1"
+}
+
+check_cluster_2() {
+  check_mock_data "$CLUSTER_NAME-2"
+}
+
+check_cluster_3() {
+  check_mock_data "$CLUSTER_NAME-3"
+}
+
+check_cluster_1_restart() {
+  REDUCED_IMPACT=false "$SHELL" $SHELL_XTRACE "$CLUSTER_CHART_PATH/cluster-restart.sh" "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-1"
+  check_mock_data_samehost "$CLUSTER_NAME-1"
+}
+
+check_cluster_2_restart() {
+  REDUCED_IMPACT=false "$SHELL" $SHELL_XTRACE "$CLUSTER_CHART_PATH/cluster-restart.sh" "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-2"
+  check_mock_data "$CLUSTER_NAME-2"
+}
+
+check_cluster_3_restart() {
+  REDUCED_IMPACT=false "$SHELL" $SHELL_XTRACE "$CLUSTER_CHART_PATH/cluster-restart.sh" "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-3"
+  check_mock_data "$CLUSTER_NAME-3"
+}

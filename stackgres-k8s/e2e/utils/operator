@@ -9,6 +9,8 @@ export ADMINUI_IMAGE_NAME="stackgres/admin-ui:$ADMINUI_IMAGE_TAG"
 export STACKGRES_PATH="${STACKGRES_PATH:-$(dirname "$0")/..}"
 export STACKGRES_VERSION=$(grep '<artifactId>stackgres-parent</artifactId>' "$STACKGRES_PATH/src/pom.xml" -A 2 -B 2 \
   | grep -o '<version>\([^<]\+\)</version>' | tr '<>' '  ' | cut -d ' ' -f 3)
+export STACKGRES_PREVIOUS_VERSION="${STACKGRES_PREVIOUS_VERSION:-0.9}"
+export OPERATOR_PREVIOUS_VERSION_HELM_URL="https://stackgres.io/downloads/stackgres-k8s/stackgres/0.9/helm-operator.tgz"
 export OPERATOR_CHART_PATH="${OPERATOR_CHART_PATH:-"$STACKGRES_PATH/install/helm/stackgres-operator/"}"
 export CLUSTER_CHART_PATH="${CLUSTER_CHART_PATH:-"$STACKGRES_PATH/install/helm/stackgres-cluster/"}"
 export UI_TESTS_RESOURCES_PATH="${UI_TESTS_RESOURCES_PATH:-"$STACKGRES_PATH/src/admin-ui"}"
@@ -222,6 +224,14 @@ install_operator() {
     $E2E_OPERATOR_OPTS "$@"
 }
 
+install_operator_previous_version() {
+  kubectl get namespace "$OPERATOR_NAMESPACE" > /dev/null 2>&1 \
+    || kubectl create namespace "$OPERATOR_NAMESPACE"
+
+  install_operator_vanilla_from "$OPERATOR_PREVIOUS_VERSION_HELM_URL" \
+    $E2E_OPERATOR_OPTS "$@"
+}
+
 install_operator_from_private_repository() {
   export PRIVATE_REPO_URI=$(get_private_repository_uri)
   export PRIVATE_OPERATOR_IMAGE_NAME="$PRIVATE_REPO_URI/stackgres/operator"
@@ -239,7 +249,12 @@ install_operator_from_private_repository() {
 }
 
 install_operator_vanilla() {
-  helm install stackgres-operator --namespace "$OPERATOR_NAMESPACE" "$OPERATOR_CHART_PATH" \
+  install_operator_vanilla_from "$OPERATOR_CHART_PATH" \
+    "$@"
+}
+
+install_operator_vanilla_from() {
+  helm install stackgres-operator --namespace "$OPERATOR_NAMESPACE" \
     "$@"
 }
 
