@@ -1,4 +1,4 @@
-{{- if .Values.deploy.operator }}
+{{- if and .Values.deploy.operator }}
 apiVersion: "apps/v1"
 kind: "Deployment"
 metadata:
@@ -17,13 +17,11 @@ spec:
   selector:
     matchLabels:
       app: {{ .Release.Name }}
-      version: "{{ .Chart.Version }}"
       group:  stackgres.io
   template:
     metadata:
       labels:
         app: {{ .Release.Name }}
-        version: "{{ .Chart.Version }}"
         group:  stackgres.io
     spec:
       serviceAccountName: {{ .Release.Name }}
@@ -43,7 +41,10 @@ spec:
           - name: OPERATOR_NAME
             value: "{{ .Release.Name }}"
           - name: OPERATOR_NAMESPACE
-            value: "{{ .Release.Namespace }}"
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
           - name: PROMETHEUS_AUTOBIND
             value: "{{ .Values.prometheus.allowAutobind }}"
           {{- if .Values.developer.logLevel }}
@@ -105,7 +106,10 @@ spec:
         imagePullPolicy: IfNotPresent
         args:
           - '/bin/sh'
-          - '-exc'
+          - '-ec'
+          {{- if .Values.developer.showDebug }}
+          - '-x'
+          {{- end }}
           - |
             exec nginx-debug -g 'daemon off;'
         ports:
