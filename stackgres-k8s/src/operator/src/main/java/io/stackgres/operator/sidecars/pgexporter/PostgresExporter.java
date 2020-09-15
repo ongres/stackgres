@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.sidecars.pgexporter;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
@@ -15,6 +16,9 @@ import javax.inject.Singleton;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.io.Resources;
+import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
+import io.fabric8.kubernetes.api.model.ConfigMapVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
@@ -27,6 +31,9 @@ import io.fabric8.kubernetes.api.model.SecretKeySelectorBuilder;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.ServicePortBuilder;
 import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
+import io.fabric8.kubernetes.api.model.Volume;
+import io.fabric8.kubernetes.api.model.VolumeBuilder;
+import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.StackgresClusterContainers;
@@ -46,6 +53,7 @@ import io.stackgres.operator.customresource.prometheus.ServiceMonitorSpec;
 import io.stackgres.operator.sidecars.envoy.Envoy;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jooq.lambda.Seq;
+import org.jooq.lambda.Unchecked;
 
 @Singleton
 @Sidecar(PostgresExporter.NAME)
@@ -53,6 +61,7 @@ public class PostgresExporter implements StackGresClusterSidecarResourceFactory<
 
   public static final String SERVICE_MONITOR = "-stackgres-postgres-exporter";
   public static final String SERVICE = "-prometheus-postgres-exporter";
+  public static final String CONFIG_MAP = "-prometheus-postgres-exporter-config";
   public static final String NAME = StackgresClusterContainers.POSTGRES_EXPORTER;
 
   private static final String IMAGE_NAME =
@@ -64,6 +73,11 @@ public class PostgresExporter implements StackGresClusterSidecarResourceFactory<
   public static String serviceName(StackGresClusterContext clusterContext) {
     String name = clusterContext.getCluster().getMetadata().getName();
     return ResourceUtil.resourceName(name + SERVICE);
+  }
+
+  public static String configName(StackGresClusterContext clusterContext) {
+    String name = clusterContext.getCluster().getMetadata().getName();
+    return ResourceUtil.resourceName(name + CONFIG_MAP);
   }
 
   public static String serviceMonitorName(StackGresClusterContext clusterContext) {
@@ -79,7 +93,10 @@ public class PostgresExporter implements StackGresClusterSidecarResourceFactory<
         .withImage(String.format(IMAGE_NAME, DEFAULT_VERSION,
             StackGresProperty.CONTAINER_BUILD.getString()))
         .withImagePullPolicy("IfNotPresent")
-        .withEnv(new EnvVarBuilder()
+        .withCommand("/usr/local/bin/postgres_exporter",
+            "--log.level=info")
+        .withEnv(
+            new EnvVarBuilder()
                 .withName("DATA_SOURCE_NAME")
                 .withValue("host=/var/run/postgresql user=postgres port=" + Envoy.PG_PORT)
                 .build(),
@@ -95,14 +112,42 @@ public class PostgresExporter implements StackGresClusterSidecarResourceFactory<
                         .withKey("superuser-password")
                         .build())
                     .build())
+                .build(),
+            new EnvVarBuilder()
+                .withName("PG_EXPORTER_EXTEND_QUERY_PATH")
+                .withValue("/var/opt/postgres-exporter/queries.yaml")
+                .build(),
+            new EnvVarBuilder()
+                .withName("PG_EXPORTER_AUTO_DISCOVER_DATABASES")
+                .withValue("true")
+                .build(),
+            new EnvVarBuilder()
+                .withName("PG_EXPORTER_EXCLUDE_DATABASES")
+                .withValue("template0,template1")
                 .build())
         .withPorts(new ContainerPortBuilder()
             .withContainerPort(9187)
             .build())
         .withVolumeMounts(ClusterStatefulSetVolumeConfig.SOCKET
-            .volumeMount(context.getClusterContext()));
+            .volumeMount(context.getClusterContext()),
+            new VolumeMountBuilder()
+                .withName("queries")
+                .withMountPath("/var/opt/postgres-exporter/queries.yaml")
+                .withSubPath("queries.yaml")
+                .withNewReadOnly(true)
+                .build());
 
     return container.build();
+  }
+
+  @Override
+  public ImmutableList<Volume> getVolumes(StackGresGeneratorContext context) {
+    return ImmutableList.of(new VolumeBuilder()
+        .withName("queries")
+        .withConfigMap(new ConfigMapVolumeSourceBuilder()
+            .withName(configName(context.getClusterContext()))
+            .build())
+        .build());
   }
 
   @Override
@@ -117,6 +162,21 @@ public class PostgresExporter implements StackGresClusterSidecarResourceFactory<
     Optional<Prometheus> prometheus = clusterContext.getPrometheus();
     ImmutableList.Builder<HasMetadata> resourcesBuilder = ImmutableList.builder();
     final String clusterNamespace = cluster.getMetadata().getNamespace();
+
+    resourcesBuilder.add(new ConfigMapBuilder()
+        .withNewMetadata()
+        .withName(configName(clusterContext))
+        .withNamespace(clusterNamespace)
+        .withLabels(labels)
+        .endMetadata()
+        .withData(ImmutableMap.of("queries.yaml",
+            Unchecked.supplier(() -> Resources
+                .asCharSource(PostgresExporter.class.getResource(
+                    "/prometheus-postgres-exporter/queries.yaml"),
+                    StandardCharsets.UTF_8)
+                .read()).get()))
+        .build());
+
     resourcesBuilder.add(
         new ServiceBuilder()
             .withNewMetadata()
