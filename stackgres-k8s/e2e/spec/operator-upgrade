@@ -53,27 +53,57 @@ check_cluster_1() {
 }
 
 check_cluster_2() {
-  check_mock_data "$CLUSTER_NAME-2"
+  check_mock_data_samehost "$CLUSTER_NAME-2"
 }
 
 check_cluster_3() {
-  check_mock_data "$CLUSTER_NAME-3"
+  check_mock_data_samehost "$CLUSTER_NAME-3"
 }
 
 check_cluster_1_restart() {
-  create_or_replace_cluster "$CLUSTER_NAME-1" "$CLUSTER_NAMESPACE" 1 \
-    --set cluster.restart=true --set cluster.restartReducedImpact=false
-  check_mock_data_samehost "$CLUSTER_NAME-1"
+  check_cluster_restart "$CLUSTER_NAME-1" 1
 }
 
 check_cluster_2_restart() {
-  create_or_replace_cluster "$CLUSTER_NAME-2" "$CLUSTER_NAMESPACE" 2 \
-    --set cluster.restart=true --set cluster.restartReducedImpact=false
-  check_mock_data "$CLUSTER_NAME-2"
+  check_cluster_restart "$CLUSTER_NAME-2" 2
 }
 
 check_cluster_3_restart() {
-  create_or_replace_cluster "$CLUSTER_NAME-3" "$CLUSTER_NAMESPACE" 3 \
+  check_cluster_restart "$CLUSTER_NAME-3" 3
+}
+
+check_cluster_restart() {
+  local CLUSTER_NAME="$1"
+  local CLUSTER_SIZE="$2"
+  local CURRENT_TIMESTAMP="$(date --utc +%s)"
+
+  try_function create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "$CLUSTER_SIZE" \
     --set cluster.restart=true --set cluster.restartReducedImpact=false
-  check_mock_data "$CLUSTER_NAME-3"
+  if "$RESULT"
+  then
+    echo "SUCCESS. Cluster restart completed sucesfully"
+  else
+    echo "FAILURE. Cluster restart did not completed sucesfully"
+    echo
+    echo "Cluster restart output:"
+    kubectl logs -n "$CLUSTER_NAMESPACE" -l app=stackgres-restart-cluster
+    return 1
+  fi
+
+  local CREATION_TIMESTAMP
+  local CREATION_TIMESTAMPS="$(kubectl get pod -n "$CLUSTER_NAMESPACE" -o json \
+    | jq ".items[]|select(.metadata.name | startswith(\"$CLUSTER_NAME\"))" \
+    | jq -r '.metadata.creationTimestamp' \
+    | xargs -r -n 1 -I @ date --utc +%s -d @)"
+
+  for CREATION_TIMESTAMP in $CREATION_TIMESTAMPS
+  do
+    if [ "$CREATION_TIMESTAMP" -le "$CURRENT_TIMESTAMP" ]
+    then
+      echo "FAILURE. Cluster restart did not updated sucesfully some pods"
+      return 1
+    fi
+  done
+
+  check_mock_data_samehost "$CLUSTER_NAME"
 }
