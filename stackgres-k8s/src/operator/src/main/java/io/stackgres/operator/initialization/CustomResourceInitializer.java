@@ -49,7 +49,8 @@ public class CustomResourceInitializer<T extends CustomResource>
         .filter(i -> i.getMetadata().getName()
             .startsWith(factory.getDefaultPrefix()))
         .filter(i -> Optional
-            .ofNullable(i.getMetadata().getAnnotations().get(StackGresContext.VERSION_KEY))
+            .ofNullable(i.getMetadata().getAnnotations())
+            .map(annotations -> annotations.get(StackGresContext.VERSION_KEY))
             .map(StackGresProperty.OPERATOR_VERSION.getString()::equals)
             .orElse(false))
         .findFirst();
