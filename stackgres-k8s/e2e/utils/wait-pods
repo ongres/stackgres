@@ -24,8 +24,8 @@ wait_pods_running() {
     fi
     sleep 2
   done
-  echo "$([ -z "$1" ] && echo "Timeout while waiting for all pods to become running" \
-    || echo "Timeout while waiting for all pods to become running in namespace $1")"
+  echo "$([ -z "$1" ] && echo "Timeout while waiting for $EXPECTED_RUNNING_PODS pods to become running" \
+    || echo "Timeout while waiting for $EXPECTED_RUNNING_PODS pods to become running in namespace $1")"
   echo
   kubectl get pods "$NAMESPACE_OPT"
   return 1
@@ -56,8 +56,8 @@ wait_pods_terminated() {
     fi
     sleep 2
   done
-  echo "$([ -z "$1" ] && echo "Timeout while waiting for all pods to terminate" \
-    || echo "Timeout while waiting for all pods to terminate in namespace $1")"
+  echo "$([ -z "$1" ] && echo "Timeout while waiting for $EXPECTED_REMAINING_PODS pods to remain running" \
+    || echo "Timeout while waiting for $EXPECTED_REMAINING_PODS pods to remain running in namespace $1")"
   echo
   kubectl get pods "$NAMESPACE_OPT"
   return 1

@@ -1,6 +1,6 @@
 var CreateBackup = Vue.component("CreateBackup", {
     template: `
-        <form id="create-backup">
+        <form id="create-backup" v-if="loggedIn && isReady">
             <!-- Vue reactivity hack -->
             <template v-if="Object.keys(backup).length > 0"></template>
             <header>

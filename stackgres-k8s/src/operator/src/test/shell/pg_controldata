@@ -1,0 +1,51 @@
+pg_control version number:            1201
+Catalog version number:               201909212
+Database system identifier:           6867902865042743411
+Database cluster state:               in production
+pg_control last modified:             Wed Sep  2 14:53:48 2020
+Latest checkpoint location:           0/9000098
+Latest checkpoint's REDO location:    0/9000060
+Latest checkpoint's REDO WAL file:    000000010000000000000009
+Latest checkpoint's TimeLineID:       1
+Latest checkpoint's PrevTimeLineID:   1
+Latest checkpoint's full_page_writes: on
+Latest checkpoint's NextXID:          0:491
+Latest checkpoint's NextOID:          24576
+Latest checkpoint's NextMultiXactId:  1
+Latest checkpoint's NextMultiOffset:  0
+Latest checkpoint's oldestXID:        480
+Latest checkpoint's oldestXID's DB:   1
+Latest checkpoint's oldestActiveXID:  491
+Latest checkpoint's oldestMultiXid:   1
+Latest checkpoint's oldestMulti's DB: 1
+Latest checkpoint's oldestCommitTsXid:487
+Latest checkpoint's newestCommitTsXid:490
+Time of latest checkpoint:            Wed Sep  2 14:53:48 2020
+Fake LSN counter for unlogged rels:   0/3E8
+Minimum recovery ending location:     0/0
+Min recovery ending loc's timeline:   0
+Backup start location:                0/0
+Backup end location:                  0/0
+End-of-backup record required:        no
+wal_level setting:                    logical
+wal_log_hints setting:                on
+max_connections setting:              100
+max_worker_processes setting:         8
+max_wal_senders setting:              20
+max_prepared_xacts setting:           32
+max_locks_per_xact setting:           128
+track_commit_timestamp setting:       on
+Maximum data alignment:               8
+Database block size:                  8192
+Blocks per segment of large relation: 131072
+WAL block size:                       8192
+Bytes per WAL segment:                16777216
+Maximum length of identifiers:        64
+Maximum columns in an index:          32
+Maximum size of a TOAST chunk:        1996
+Size of a large-object chunk:         2048
+Date/time type storage:               64-bit integers
+Float4 argument passing:              by value
+Float8 argument passing:              by value
+Data page checksum version:           1
+Mock authentication nonce:            f5f1d8a89eb2e17f58f9d48b418cec10f7860011e738590c2d15f291a5aa4911

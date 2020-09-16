@@ -10,6 +10,8 @@ import java.util.List;
 import javax.enterprise.context.ApplicationScoped;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.github.fge.jackson.jsonpointer.JsonPointer;
 import com.github.fge.jsonpatch.JsonPatchOperation;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.operator.common.BackupConfigReview;
@@ -28,8 +30,21 @@ public class BackupConfigDefaultValuesMutator
 
   @Override
   public List<JsonPatchOperation> mutate(BackupConfigReview review) {
-
     return mutate(SG_BACKUP_CONFIG_POINTER, review.getRequest().getObject());
+  }
+
+  @Override
+  public List<JsonPatchOperation> applyDefaults(JsonPointer basePointer,
+      JsonNode defaultNode,
+      JsonNode incomingNode) {
+    if (incomingNode.has("storage")
+        && incomingNode.get("storage").has("type")
+        && !incomingNode.get("storage").get("type").equals(
+        defaultNode.get("storage").get("type"))) {
+      defaultNode = defaultNode.deepCopy();
+      ((ObjectNode) defaultNode).remove("storage");
+    }
+    return super.applyDefaults(basePointer, defaultNode, incomingNode);
   }
 
 }

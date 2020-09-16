@@ -7,7 +7,7 @@ weight: 2
 
 Once you hace a StackGres cluster installed you'll have a Full HA PostgreSQL configuration and depending of the size of your cluster you´ll have something like this:
 
-```mermaid
+{{<mermaid>}}
 graph TB
     stackgres-0 -.-> stackgres-1
     stackgres-0 -.-> stackgres-2
@@ -17,9 +17,8 @@ graph TB
         stackgres-1(DB Replica 1)
         stackgres-2(DB Replica 2)
         stackgres-N(DB Replica<i>...N</i>)
-        
     end
-```
+{{</mermaid>}}
 
 These represents the containers of the StackGres cluster and you can list them using `kubectl` command like:
 
@@ -47,7 +46,7 @@ We have two differents ways to acomplish this. The first one is with the `kubect
 To identify the master node:
 
 ```bash
-kubectl get pods -n default -l app=StackGres -l role=master
+kubectl get pods -n default -l app=StackGresCluster -l role=master
 ```
 
 output:
