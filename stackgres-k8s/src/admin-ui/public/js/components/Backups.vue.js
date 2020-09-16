@@ -1,6 +1,6 @@
 var Backups = Vue.component("Backups", {
 	template: `
-		<div id="sg-backup">
+		<div id="sg-backup" v-if="loggedIn && isReady">
 			<header v-if="isCluster">
 				<template v-for="cluster in clusters" v-if="(cluster.name == $route.params.name) && (cluster.data.metadata.namespace == $route.params.namespace)">
 					<ul class="breadcrumbs">

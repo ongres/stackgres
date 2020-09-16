@@ -2,7 +2,8 @@
 
 e2e_test_install() {
   kubectl create namespace "$CLUSTER_NAMESPACE"
-    cat <<EOF | kubectl apply -f -
+
+  cat <<EOF | kubectl apply -f -
 apiVersion: stackgres.io/v1beta1
 kind: SGInstanceProfile
 metadata:
@@ -14,7 +15,6 @@ spec:
 EOF
 
   deploy_curl_pod "$CLUSTER_NAMESPACE"
-
 }
 
 e2e_test() {

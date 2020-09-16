@@ -34,6 +34,8 @@ postgresql:
       password: '${PATRONI_REPLICATION_PASSWORD}'
   parameters:
     unix_socket_directories: '${PATRONI_POSTGRES_UNIX_SOCKET_DIRECTORY}'
+  basebackup:
+    checkpoint: 'fast'
 watchdog:
   mode: off
 EOF

@@ -782,6 +782,7 @@ const store = new Vuex.Store({
 
     setTheme (state, theme) {
       state.theme = theme;
+      document.cookie = "sgTheme="+theme+"; Path=/; expires=Fri, 31 Dec 9999 23:59:59 GMT";
     },
     
     setCurrentNamespace (state, namespace) {
@@ -1010,6 +1011,7 @@ if( (window.location.pathname === '/admin/index.html') && ( (store.state.loginTo
   router.push('/admin/overview/default');
 }  
 
+
 Vue.mixin({
   data: function(){
     return {
@@ -1017,7 +1019,24 @@ Vue.mixin({
     }
   },
   computed: {
-   
+    loggedIn () {
+			if (typeof store.state.loginToken !== 'undefined')
+				return store.state.loginToken.length > 0
+			else
+				return false
+		},
+
+		notFound () {
+			return store.state.notFound
+		},
+
+		isReady () {
+			return store.state.ready
+		},
+
+		currentComponent() {
+			return this.$route.matched[0].components.default.options.name
+		}
   },
   methods: {
 
@@ -1274,7 +1293,7 @@ if( urlParams.has('showLogs') ) {
   store.commit('showLogs', true);
 }
 
-if( urlParams.has('darkmode') ) {
+if( urlParams.has('darkmode') || (getCookie('sgTheme') === 'dark') ) {
   console.log('Switching to darkmode');
   store.commit('setTheme', 'dark');
   $('body').addClass('darkmode');

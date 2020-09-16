@@ -1,6 +1,6 @@
 var ClusterInfo = Vue.component("ClusterInfo", {
 	template: `
-		<div id="cluster-info">
+		<div id="cluster-info" v-if="loggedIn && isReady">
 		<template v-for="cluster in clusters" v-if="(cluster.name == $route.params.name) && (cluster.data.metadata.namespace == $route.params.namespace)">
 			<header>
 				<ul class="breadcrumbs">

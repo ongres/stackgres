@@ -4,6 +4,9 @@ e2e_test_install() {
   DEFAULT_PGCONFIG="defaultpgconfig"
   PGCBOUNCER="pgbouncer"
   PGCONFIG="postgresconf"
+  BACKUP_CONFIG="backupconf"
+  INSTANCE_PROFILE="size-x"
+  DISTRIBUTEDLOGS_NAME="distributedlogs"
 
   kubectl create namespace "$CLUSTER_NAMESPACE"
   deploy_curl_pod "$CLUSTER_NAMESPACE"
@@ -14,193 +17,426 @@ e2e_test_uninstall() {
   k8s_async_cleanup_namespace "$CLUSTER_NAMESPACE"
 
   kubectl delete sgclusters.stackgres.io -n "$OPERATOR_NAMESPACE" "$CLUSTER_NAME"
+  kubectl delete sgdistributedlogs.stackgres.io -n "$OPERATOR_NAMESPACE" "$DISTRIBUTEDLOGS_NAME"
 }
 
 e2e_test() {
-  run_test "creating an empty pgconfig should be filled with default configurations" create_empty_pg_config
-  run_test "creating an empty pgbouncer should be filled with default configurations" create_empty_pg_bouncer
+  run_test "creating an empty sgpgconfig should be filled with default configurations" create_empty_sgpgconfig
+  run_test "updating an empty sgpgconfig should be filled with default configurations" update_empty_sgpgconfig
+  run_test "creating an empty sgpoolconfig should be filled with default configurations" create_empty_sgpoolconfig
+  run_test "updating an empty sgpoolconfig should be filled with default configurations" update_empty_sgpoolconfig
+  run_test "creating an empty sgbackupconfig should be filled with default configurations" create_empty_sgbackupconfig
+  run_test "updating an empty sgbackupconfig should be filled with default configurations" update_empty_sgbackupconfig
+  run_test "creating an empty sginstanceprofile should be filled with default configurations" create_empty_sginstanceprofile
+  run_test "updating an empty sginstanceprofile should be filled with default configurations" update_empty_sginstanceprofile
   run_test "if default configuration are already created it should create the cluster" create_empty_cluster_with_default_pgbouncer
   run_test "if the sidecars are specifically set to be empty the operator should not add any sidecar" create_empty_cluster_with_no_sidecars
   run_test "creating an empty cluster should trigger the creation of all default configurations" create_empty_cluster
-  run_test "creating en empty cluster in the operator should no fail" create_empty_cluster_on_operator_namespace
-  run_test "Creating an empty cluster with previous postgres version should not fail" create_cluster_with_previous_postgres_version
+  run_test "updating a cluster without annotations should trigger the creation of annotations" update_empty_cluster
+  run_test "creating en empty cluster in the operator should not fail" create_empty_cluster_on_operator_namespace
+  run_test "creating an empty cluster with previous postgres version should not fail" create_cluster_with_previous_postgres_version
+  run_test "creating an empty distributed logs should trigger the creation of all default configurations" create_empty_distributedlogs
+  run_test "updating a distributed logs without annotations should trigger the creation of annotations" update_empty_distributedlogs
+  run_test "creating en empty distributed logs in the operator should no fail" create_empty_distributedlogs_on_operator_namespace
 }
 
-create_empty_pg_config() {
+create_empty_sgpgconfig() {
 
-  cat << EOF | kubectl apply -f -
-  apiVersion: stackgres.io/v1beta1
-  kind: SGPostgresConfig
-  metadata:
-    name: $PGCONFIG
-    namespace: $CLUSTER_NAMESPACE
-  spec:
-    postgresVersion: "11"
+  kubectl delete sgpgconfig -n "$CLUSTER_NAMESPACE" "$PGCONFIG" --ignore-not-found
+  cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/v1beta1
+kind: SGPostgresConfig
+metadata:
+  name: $PGCONFIG
+  namespace: $CLUSTER_NAMESPACE
+spec:
+  postgresVersion: "11"
+  postgresql.conf:
+    custom.unsignificant: "true"
 EOF
 
-  local CREATED_FIELDS=$(kubectl get sgpgconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCONFIG" -o json | jq '.spec["postgresql.conf"] | length')
-  local DEFAULT_FIELDS=$(get_default_pgconfig -o json | jq '.spec["postgresql.conf"] | length')
+  local CREATED_FIELDS="$(kubectl get sgpgconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCONFIG" -o json | jq '.spec["postgresql.conf"] | length')"
+  local DEFAULT_FIELDS="$(get_default_pgconfig -o json | jq '.spec["postgresql.conf"] | length')"
+
+  if [ "$CREATED_FIELDS" = "$((DEFAULT_FIELDS + 1))" ]
+  then
+    echo "Success. Defaults fields filled"
+  else
+    echo "Fail. Default fields not filled"
+    return 1
+  fi
+
+  local CREATED_DEFAULTS_PARAMETERS="$(kubectl get sgpgconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCONFIG" -o json | jq '.status.defaultParameters | sort')"
+  local DEFAULTS_PARAMETERS="$(get_default_pgconfig -o json | jq '.spec["postgresql.conf"] | keys | sort')"
+
+  if [ "$CREATED_DEFAULTS_PARAMETERS" = "$DEFAULTS_PARAMETERS" ]
+  then
+    echo "Success. Defaults parameters filled"
+  else
+    echo "Fail. Default parameters not filled"
+    return 1
+  fi
+
+  local DEFAULT_ANNOTATION="$(kubectl get sgpgconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCONFIG" -o json | jq '.metadata.annotations["stackgres.io/operatorVersion"]')"
+
+  if [ -z "$DEFAULT_ANNOTATION" ] || [ "$DEFAULT_ANNOTATION" = "null" ]
+  then
+    echo "Fail. Default annotations not filled"
+    return 1
+  else
+    echo "Success. Defaults annotations filled"
+  fi
+
+}
+
+update_empty_sgpgconfig() {
+
+  kubectl delete sgpgconfig -n "$CLUSTER_NAMESPACE" "$PGCONFIG" --ignore-not-found
+  cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/v1beta1
+kind: SGPostgresConfig
+metadata:
+  name: $PGCONFIG
+  namespace: $CLUSTER_NAMESPACE
+spec:
+  postgresVersion: "11"
+EOF
+  local PATCH="$(kubectl get sgpgconfig -n "$CLUSTER_NAMESPACE" "$PGCONFIG" -o json \
+    | jq 'del(.metadata.resourceVersion)|del(.metadata.uid)|del(.metadata.creationTimestamp)|del(.metadata.selfLink)|del(.metadata.geneartion)' \
+    | jq 'del(.metadata.annotations["stackgres.io/operatorVersion"])|.spec["postgresql.conf"]["custom.unsignificant"] = "true"' \
+    | kubectl create -f - --dry-run=client -o yaml)"
+  kubectl patch sgpgconfig -n "$CLUSTER_NAMESPACE" "$PGCONFIG" --type merge -p "$PATCH"
+
+  local UPDATED_FIELDS="$(kubectl get sgpgconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCONFIG" -o json | jq '.spec["postgresql.conf"] | length')"
+  local DEFAULT_FIELDS="$(get_default_pgconfig -o json | jq '.spec["postgresql.conf"] | length')"
+
+  if [ "$UPDATED_FIELDS" = "$((DEFAULT_FIELDS + 1))" ]
+  then
+    echo "Success. Defaults fields filled"
+  else
+    echo "Fail. Default fields not filled"
+    return 1
+  fi
+
+  local UPDATED_DEFAULTS_PARAMETERS="$(kubectl get sgpgconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCONFIG" -o json | jq '.status.defaultParameters | sort')"
+  local DEFAULTS_PARAMETERS="$(get_default_pgconfig -o json | jq '.spec["postgresql.conf"] | keys | sort')"
+
+  if [ "$UPDATED_DEFAULTS_PARAMETERS" = "$DEFAULTS_PARAMETERS" ]
+  then
+    echo "Success. Defaults parameters filled"
+  else
+    echo "Fail. Default parameters not filled"
+    return 1
+  fi
+
+  local DEFAULT_ANNOTATION="$(kubectl get sgpgconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCONFIG" -o json | jq '.metadata.annotations["stackgres.io/operatorVersion"]')"
+
+  if [ -z "$DEFAULT_ANNOTATION" ] || [ "$DEFAULT_ANNOTATION" = "null" ]
+  then
+    echo "Fail. Default annotations not filled"
+    return 1
+  else
+    echo "Success. Defaults annotations filled"
+  fi
+
+}
+
+create_empty_sgpoolconfig() {
+
+  kubectl delete sgpoolconfig -n "$CLUSTER_NAMESPACE" "$PGCBOUNCER" --ignore-not-found
+  cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/v1beta1
+kind: SGPoolingConfig
+metadata:
+  name: $PGCBOUNCER
+  namespace: $CLUSTER_NAMESPACE
+spec:
+  pgBouncer:
+    pgbouncer.ini:
+      unsignificant: "true"
+EOF
+
+  local CREATED_FIELDS="$(kubectl get sgpoolconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCBOUNCER" -o json | jq '.spec.pgBouncer["pgbouncer.ini"] | length')"
+  local DEFAULT_FIELDS="$(get_default_conn_pool -o json | jq '.spec.pgBouncer["pgbouncer.ini"] | length')"
+
+  if [ "$CREATED_FIELDS" = "$((DEFAULT_FIELDS + 1))" ]
+  then
+    echo "Success. Defaults fields filled"
+  else
+    echo "Fail. Default fields not filled"
+    return 1
+  fi
+
+  local CREATED_DEFAULTS_PARAMETERS="$(kubectl get sgpoolconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCBOUNCER" -o json | jq '.status.pgBouncer.defaultParameters | sort')"
+  local DEFAULTS_PARAMETERS="$(get_default_conn_pool -o json | jq '.spec.pgBouncer["pgbouncer.ini"] | keys | sort')"
+
+  if [ "$CREATED_DEFAULTS_PARAMETERS" = "$DEFAULTS_PARAMETERS" ]
+  then
+    echo "Success. Defaults parameters filled"
+  else
+    echo "Fail. Default parameters not filled"
+    return 1
+  fi
+
+  local DEFAULT_ANNOTATION="$(kubectl get sgpoolconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCBOUNCER" -o json | jq '.metadata.annotations["stackgres.io/operatorVersion"]')"
+
+  if [ -z "$DEFAULT_ANNOTATION" ] || [ "$DEFAULT_ANNOTATION" = "null" ]
+  then
+    echo "Fail. Default annotations not filled"
+    return 1
+  else
+    echo "Success. Defaults annotations filled"
+  fi
+}
+
+update_empty_sgpoolconfig() {
+
+  kubectl delete sgpoolconfig -n "$CLUSTER_NAMESPACE" "$PGCBOUNCER" --ignore-not-found
+  cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/v1beta1
+kind: SGPoolingConfig
+metadata:
+  name: $PGCBOUNCER
+  namespace: $CLUSTER_NAMESPACE
+spec: {}
+EOF
+  local PATCH="$(kubectl get sgpoolconfig -n "$CLUSTER_NAMESPACE" "$PGCBOUNCER" -o json \
+    | jq 'del(.metadata.resourceVersion)|del(.metadata.uid)|del(.metadata.creationTimestamp)|del(.metadata.selfLink)|del(.metadata.geneartion)' \
+    | jq 'del(.metadata.annotations["stackgres.io/operatorVersion"])|.spec.pgBouncer["pgbouncer.ini"].unsignificant = true' \
+    | kubectl create -f - --dry-run=client -o yaml)"
+  kubectl patch sgpoolconfig -n "$CLUSTER_NAMESPACE" "$PGCBOUNCER" --type merge -p "$PATCH"
+
+  local UPDATED_FIELDS="$(kubectl get sgpoolconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCBOUNCER" -o json | jq '.spec.pgBouncer["pgbouncer.ini"] | length')"
+  local DEFAULT_FIELDS="$(get_default_conn_pool -o json | jq '.spec.pgBouncer["pgbouncer.ini"] | length')"
+
+  if [ "$UPDATED_FIELDS" = "$((DEFAULT_FIELDS + 1))" ]
+  then
+    echo "Success. Defaults fields filled"
+  else
+    echo "Fail. Default fields not filled"
+    return 1
+  fi
+
+  local UPDATED_DEFAULTS_PARAMETERS="$(kubectl get sgpoolconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCBOUNCER" -o json | jq '.status.pgBouncer.defaultParameters | sort')"
+  local DEFAULTS_PARAMETERS="$(get_default_conn_pool -o json | jq '.spec.pgBouncer["pgbouncer.ini"] | keys | sort')"
+
+  if [ "$UPDATED_DEFAULTS_PARAMETERS" = "$DEFAULTS_PARAMETERS" ]
+  then
+    echo "Success. Defaults parameters filled"
+  else
+    echo "Fail. Default parameters not filled"
+    return 1
+  fi
+
+  local DEFAULT_ANNOTATION="$(kubectl get sgpoolconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCBOUNCER" -o json | jq '.metadata.annotations["stackgres.io/operatorVersion"]')"
+
+  if [ -z "$DEFAULT_ANNOTATION" ] || [ "$DEFAULT_ANNOTATION" = "null" ]
+  then
+    echo "Fail. Default annotations not filled"
+    return 1
+  else
+    echo "Success. Defaults annotations filled"
+  fi
+}
+
+create_empty_sgbackupconfig() {
+
+  kubectl delete sgbackupconfig -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" --ignore-not-found
+  cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/v1beta1
+kind: SGBackupConfig
+metadata:
+  name: $BACKUP_CONFIG
+  namespace: $CLUSTER_NAMESPACE
+spec:
+  baseBackups:
+    compression: brotli
+EOF
+
+  local CREATED_FIELDS="$(kubectl get sgbackupconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" -o json | jq '.spec')"
+  local DEFAULT_FIELDS="$(get_default_backupconf -o json | jq '.spec.baseBackups.compression = "brotli" | .spec')"
 
   if [ "$CREATED_FIELDS" = "$DEFAULT_FIELDS" ]
   then
-    echo "Success. Defaults fields created"
+    echo "Success. Defaults fields filled"
   else
-    echo "Fail. Default fields not created"
+    echo "Fail. Default fields not filled"
     return 1
   fi
 
-  local CREATED_DEFAULTS_PARAMETERS=$(kubectl get sgpgconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCONFIG" -o json | jq '.status.defaultParameters | sort')
-  local DEFAULTS_PARAMETERS=$(get_default_pgconfig -o json | jq '.spec["postgresql.conf"] | keys | sort')
-
-  if [ "$CREATED_DEFAULTS_PARAMETERS" = "$DEFAULTS_PARAMETERS" ]
-  then
-    echo "Success. Defaults parameters created"
-  else
-    echo "Fail. Default parameters not created"
-    return 1
-  fi
-
-  local DEFAULT_ANNOTATION=$(kubectl get sgpgconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCONFIG" -o json | jq '.metadata.annotations["stackgres.io/operatorVersion"]')
+  local DEFAULT_ANNOTATION="$(kubectl get sgbackupconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" -o json | jq '.metadata.annotations["stackgres.io/operatorVersion"]')"
 
   if [ -z "$DEFAULT_ANNOTATION" ] || [ "$DEFAULT_ANNOTATION" = "null" ]
   then
-    echo "Fail. Default annotations not created"
+    echo "Fail. Default annotations not filled"
     return 1
   else
-    echo "Success. Defaults annotations created"
-  fi
-
-}
-
-create_empty_pg_bouncer() {
-
-  cat << EOF | kubectl apply -f -
-  apiVersion: stackgres.io/v1beta1
-  kind: SGPoolingConfig
-  metadata:
-    name: $PGCBOUNCER
-    namespace: $CLUSTER_NAMESPACE
-  spec:
-    pgBouncer:
-      pgbouncer.ini:
-        unsignificant: true
-EOF
-
-  local CREATED_FIELDS=$(kubectl get sgpoolconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCBOUNCER" -o json | jq '.spec.pgBouncer["pgbouncer.ini"] | length')
-  local DEFAULT_FIELDS=$(get_default_conn_pool -o json | jq '.spec.pgBouncer["pgbouncer.ini"] | length')
-
-  if [ "$CREATED_FIELDS" = "$((DEFAULT_FIELDS + 1))" ]
-  then
-    echo "Success. Defaults fields created"
-  else
-    echo "Fail. Default fields not created"
-    return 1
-  fi
-
-  local CREATED_DEFAULTS_PARAMETERS=$(kubectl get sgpoolconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCBOUNCER" -o json | jq '.status.pgBouncer.defaultParameters | sort')
-  local DEFAULTS_PARAMETERS=$(get_default_conn_pool -o json | jq '.spec.pgBouncer["pgbouncer.ini"] | keys | sort')
-
-  if [ "$CREATED_DEFAULTS_PARAMETERS" = "$DEFAULTS_PARAMETERS" ]
-  then
-    echo "Success. Defaults parameters created"
-  else
-    echo "Fail. Default parameters not created"
-    return 1
-  fi
-
-  local DEFAULT_ANNOTATION=$(kubectl get sgpoolconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCBOUNCER" -o json | jq '.metadata.annotations["stackgres.io/operatorVersion"]')
-
-  if [ -z "$DEFAULT_ANNOTATION" ] || [ "$DEFAULT_ANNOTATION" = "null" ]
-  then
-    echo "Fail. Default annotations not created"
-    return 1
-  else
-    echo "Success. Defaults annotations created"
+    echo "Success. Defaults annotations filled"
   fi
 }
 
-create_empty_pg_backup_config() {
+update_empty_sgbackupconfig() {
 
-  cat << EOF | kubectl apply -f -
-  apiVersion: stackgres.io/v1beta1
-  kind: SGBackupConfig
-  metadata:
-    name: $BACKUP_CONFIG
-    namespace: $CLUSTER_NAMESPACE
-  spec:
-    compression: lz4
+  kubectl delete sgbackupconfig -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" --ignore-not-found
+  cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/v1beta1
+kind: SGBackupConfig
+metadata:
+  name: $BACKUP_CONFIG
+  namespace: $CLUSTER_NAMESPACE
+spec: {}
 EOF
+  local PATCH="$(kubectl get sgbackupconfig -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" -o json \
+    | jq 'del(.metadata.resourceVersion)|del(.metadata.uid)|del(.metadata.creationTimestamp)|del(.metadata.selfLink)|del(.metadata.geneartion)' \
+    | jq 'del(.metadata.annotations["stackgres.io/operatorVersion"])|.spec.baseBackups.compression = "brotli"' \
+    | kubectl create -f - --dry-run=client -o yaml)"
+  kubectl patch sgbackupconfig -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" --type merge -p "$PATCH"
 
-  local CREATED_FIELDS=$(kubectl get sgbackupconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" -o json | jq '.spec | length')
-  local DEFAULT_FIELDS=$(get_default_backupconf | jq '.spec | length')
+  local UPDATED_FIELDS="$(kubectl get sgbackupconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" -o json | jq '.spec')"
+  local DEFAULT_FIELDS="$(get_default_backupconf -o json | jq '.spec.baseBackups.compression = "brotli" | .spec')"
 
-  if [ "$CREATED_FIELDS" = "$((DEFAULT_FIELDS + 1))" ]
+  if [ "$UPDATED_FIELDS" = "$DEFAULT_FIELDS" ]
   then
-    echo "Success. Defaults fields created"
+    echo "Success. Defaults fields filled"
   else
-    echo "Fail. Default fields not created"
+    echo "Fail. Default fields not filled"
     return 1
   fi
 
-  local DEFAULT_ANNOTATION=$(kubectl get sgbackupconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" -o json | jq '.metadata.annotations["stackgres.io/operatorVersion"]')
+  local DEFAULT_ANNOTATION="$(kubectl get sgbackupconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" -o json | jq '.metadata.annotations["stackgres.io/operatorVersion"]')"
 
   if [ -z "$DEFAULT_ANNOTATION" ] || [ "$DEFAULT_ANNOTATION" = "null" ]
   then
-    echo "Fail. Default annotations not created"
+    echo "Fail. Default annotations not filled"
     return 1
   else
-    echo "Success. Defaults annotations created"
+    echo "Success. Defaults annotations filled"
+  fi
+}
+
+create_empty_sginstanceprofile() {
+
+  kubectl delete sginstanceprofile -n "$CLUSTER_NAMESPACE" "$INSTANCE_PROFILE" --ignore-not-found
+  cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/v1beta1
+kind: SGInstanceProfile
+metadata:
+  name: $INSTANCE_PROFILE
+  namespace: $CLUSTER_NAMESPACE
+spec:
+  memory: '512Mi'
+EOF
+
+  local CREATED_FIELDS="$(kubectl get sginstanceprofiles.stackgres.io -n "$CLUSTER_NAMESPACE" "$INSTANCE_PROFILE" -o json | jq '.spec')"
+  local DEFAULT_FIELDS="$(get_default_profile -o json | jq '.spec.memory = "512Mi" | .spec')"
+
+  if [ "$CREATED_FIELDS" = "$DEFAULT_FIELDS" ]
+  then
+    echo "Success. Defaults fields filled"
+  else
+    echo "Fail. Default fields not filled"
+    return 1
+  fi
+
+  local DEFAULT_ANNOTATION="$(kubectl get sginstanceprofiles.stackgres.io -n "$CLUSTER_NAMESPACE" "$INSTANCE_PROFILE" -o json | jq '.metadata.annotations["stackgres.io/operatorVersion"]')"
+
+  if [ -z "$DEFAULT_ANNOTATION" ] || [ "$DEFAULT_ANNOTATION" = "null" ]
+  then
+    echo "Fail. Default annotations not filled"
+    return 1
+  else
+    echo "Success. Defaults annotations filled"
+  fi
+}
+
+update_empty_sginstanceprofile() {
+
+  kubectl delete sginstanceprofile -n "$CLUSTER_NAMESPACE" "$INSTANCE_PROFILE" --ignore-not-found
+  cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/v1beta1
+kind: SGInstanceProfile
+metadata:
+  name: $INSTANCE_PROFILE
+  namespace: $CLUSTER_NAMESPACE
+spec: {}
+EOF
+  local PATCH="$(kubectl get sginstanceprofile -n "$CLUSTER_NAMESPACE" "$INSTANCE_PROFILE" -o json \
+    | jq 'del(.metadata.resourceVersion)|del(.metadata.uid)|del(.metadata.creationTimestamp)|del(.metadata.selfLink)|del(.metadata.geneartion)' \
+    | jq 'del(.metadata.annotations["stackgres.io/operatorVersion"])|.spec.memory = "512Mi"' \
+    | kubectl create -f - --dry-run=client -o yaml)"
+  kubectl patch sginstanceprofile -n "$CLUSTER_NAMESPACE" "$INSTANCE_PROFILE" --type merge -p "$PATCH"
+
+  local UPDATED_FIELDS="$(kubectl get sginstanceprofiles.stackgres.io -n "$CLUSTER_NAMESPACE" "$INSTANCE_PROFILE" -o json | jq '.spec')"
+  local DEFAULT_FIELDS="$(get_default_profile -o json | jq '.spec.memory = "512Mi" | .spec')"
+
+  if [ "$UPDATED_FIELDS" = "$DEFAULT_FIELDS" ]
+  then
+    echo "Success. Defaults fields filled"
+  else
+    echo "Fail. Default fields not filled"
+    return 1
+  fi
+
+  local DEFAULT_ANNOTATION="$(kubectl get sginstanceprofiles.stackgres.io -n "$CLUSTER_NAMESPACE" "$INSTANCE_PROFILE" -o json | jq '.metadata.annotations["stackgres.io/operatorVersion"]')"
+
+  if [ -z "$DEFAULT_ANNOTATION" ] || [ "$DEFAULT_ANNOTATION" = "null" ]
+  then
+    echo "Fail. Default annotations not filled"
+    return 1
+  else
+    echo "Success. Defaults annotations filled"
   fi
 }
 
 create_empty_cluster_with_default_pgbouncer() {
 
-  cat <<EOF | kubectl apply -f -
-  apiVersion: stackgres.io/v1beta1
-  kind: SGCluster
-  metadata:
-    name: $CLUSTER_NAME-pgbouncer
-    namespace: $CLUSTER_NAMESPACE
-  spec:
-    instances: 1
-    postgresVersion: 'latest'
-    pods:
-      persistentVolume:
-        size: '5Gi'
-    nonProductionOptions:
-      disableClusterPodAntiAffinity: true
-
+  kubectl delete sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-pgbouncer" --ignore-not-found
+  cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/v1beta1
+kind: SGCluster
+metadata:
+  name: $CLUSTER_NAME-pgbouncer
+  namespace: $CLUSTER_NAMESPACE
+spec:
+  instances: 1
+  postgresVersion: 'latest'
+  pods:
+    persistentVolume:
+      size: '5Gi'
+  nonProductionOptions:
+    disableClusterPodAntiAffinity: true
 EOF
 
-  local CREATED_PGBOUNCER=$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-pgbouncer" -o='jsonpath={.spec.configurations.sgPoolingConfig}')
+  local CREATED_PGBOUNCER="$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-pgbouncer" -o='jsonpath={.spec.configurations.sgPoolingConfig}')"
 
   if kubectl get sgpoolconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$CREATED_PGBOUNCER"
   then
     echo "Success. Default pgbouncer was created in the cluster namespace"
   else
     echo "Fail. Default pgbouncer was not created in the cluster namespace"
-    return 1;
+    return 1
   fi
 
   kubectl delete sgclusters -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-pgbouncer"
 
-  cat <<EOF | kubectl apply -f -
-  apiVersion: stackgres.io/v1beta1
-  kind: SGCluster
-  metadata:
-    name: $CLUSTER_NAME-reused
-    namespace: $CLUSTER_NAMESPACE
-  spec:
-    instances: 1
-    postgresVersion: 'latest'
-    pods:
-      persistentVolume:
-        size: '5Gi'
-      disableConnectionPooling: false
-      disableMetricsExporter: true
-      disablePostgresUtil: true
-    nonProductionOptions:
-      disableClusterPodAntiAffinity: true
+  kubectl delete sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-reused" --ignore-not-found
+  cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/v1beta1
+kind: SGCluster
+metadata:
+  name: $CLUSTER_NAME-reused
+  namespace: $CLUSTER_NAMESPACE
+spec:
+  instances: 1
+  postgresVersion: 'latest'
+  pods:
+    persistentVolume:
+      size: '5Gi'
+    disableConnectionPooling: false
+    disableMetricsExporter: true
+    disablePostgresUtil: true
+  nonProductionOptions:
+    disableClusterPodAntiAffinity: true
 EOF
 
   if kubectl get sgclusters -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-reused"
@@ -211,28 +447,27 @@ EOF
     return 1
   fi
 
-  kubectl get sgclusters -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-reused"
-
 }
 
 create_empty_cluster_with_no_sidecars() {
-  cat <<EOF | kubectl apply -f -
-  apiVersion: stackgres.io/v1beta1
-  kind: SGCluster
-  metadata:
-    name: $CLUSTER_NAME-nosidecars
-    namespace: $CLUSTER_NAMESPACE
-  spec:
-    instances: 1
-    postgresVersion: 'latest'
-    pods:
-      persistentVolume:
-        size: '512Mi'
-      disableConnectionPooling: true
-      disableMetricsExporter: true
-      disablePostgresUtil: true
-    nonProductionOptions:
-      disableClusterPodAntiAffinity: true
+  kubectl delete sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-nosidecars" --ignore-not-found
+  cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/v1beta1
+kind: SGCluster
+metadata:
+  name: $CLUSTER_NAME-nosidecars
+  namespace: $CLUSTER_NAMESPACE
+spec:
+  instances: 1
+  postgresVersion: 'latest'
+  pods:
+    persistentVolume:
+      size: '512Mi'
+    disableConnectionPooling: true
+    disableMetricsExporter: true
+    disablePostgresUtil: true
+  nonProductionOptions:
+    disableClusterPodAntiAffinity: true
 EOF
 
   if kubectl get sgclusters -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-nosidecars"
@@ -243,25 +478,24 @@ EOF
     return 1
   fi
 
-  local DISABLED_CONN_POOL=$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-nosidecars" -o json | jq -r '.spec.pods.disableConnectionPooling')
+  local DISABLED_CONN_POOL="$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-nosidecars" -o json | jq -r '.spec.pods.disableConnectionPooling')"
 
   assert_string_equal "true" "$DISABLED_CONN_POOL"
 
-  local DISABLED_METRIC_EXPORTER=$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-nosidecars" -o json | jq -r '.spec.pods.disableMetricsExporter')
+  local DISABLED_METRIC_EXPORTER="$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-nosidecars" -o json | jq -r '.spec.pods.disableMetricsExporter')"
 
   assert_string_equal "true" "$DISABLED_METRIC_EXPORTER"
 
-  local DISABLED_POSTGRES_UTIL=$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-nosidecars" -o json | jq -r '.spec.pods.disablePostgresUtil')
+  local DISABLED_POSTGRES_UTIL="$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-nosidecars" -o json | jq -r '.spec.pods.disablePostgresUtil')"
 
   assert_string_equal "true" "$DISABLED_POSTGRES_UTIL"
-
-  kubectl delete sgclusters -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-nosidecars"
 
 }
 
 create_empty_cluster() {
 
-  cat <<EOF | kubectl apply -f -
+  kubectl delete sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --ignore-not-found
+  cat << EOF | kubectl create -f -
 apiVersion: stackgres.io/v1beta1
 kind: SGCluster
 metadata:
@@ -277,18 +511,18 @@ spec:
     disableClusterPodAntiAffinity: true
 EOF
 
-  local CREATED_PGCONFIG=$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o='jsonpath={.spec.configurations.sgPostgresConfig}')
+  local CREATED_PGCONFIG="$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o='jsonpath={.spec.configurations.sgPostgresConfig}')"
 
   if kubectl get sgpgconfigs.stackgres.io -n $CLUSTER_NAMESPACE $CREATED_PGCONFIG
   then
     echo "Success. Default pgconfig was created in the cluster namespace"
   else
     echo "Fail. Default pgconfig was not created in the cluster namespace"
-    return 1;
+    return 1
   fi
 
-  local CREATED_PGCONFIG_FIELDS=$(kubectl get sgpgconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$CREATED_PGCONFIG" -o json | jq '.spec["postgresql.conf"] | length')
-  local DEFAULT_PGCONFIG_FIELDS=$(get_default_pgconfig -o json | jq '.spec["postgresql.conf"] | length')
+  local CREATED_PGCONFIG_FIELDS="$(kubectl get sgpgconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$CREATED_PGCONFIG" -o json | jq '.spec["postgresql.conf"] | length')"
+  local DEFAULT_PGCONFIG_FIELDS="$(get_default_pgconfig -o json | jq '.spec["postgresql.conf"] | length')"
 
   if [ "$CREATED_PGCONFIG_FIELDS" = "$DEFAULT_PGCONFIG_FIELDS" ]
   then
@@ -298,18 +532,18 @@ EOF
     return 1
   fi
 
-  local CREATED_PROFILE=$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o='jsonpath={.spec.sgInstanceProfile}')
+  local CREATED_PROFILE="$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o='jsonpath={.spec.sgInstanceProfile}')"
 
   if kubectl get sginstanceprofiles.stackgres.io -n "$CLUSTER_NAMESPACE" "$CREATED_PROFILE"
   then
     echo "Success. Default profile was created in the cluster namespace"
   else
     echo "Fail. Default profile was not created in the cluster namespace"
-    return 1;
+    return 1
   fi
 
-  local CREATED_PROFILE_FIELDS=$(kubectl get sginstanceprofiles.stackgres.io -n "$CLUSTER_NAMESPACE" "$CREATED_PROFILE" -o json | jq '.spec | length')
-  local DEFAULT_PROFILE_FIELDS=$(get_default_profile -o json | jq '.spec | length')
+  local CREATED_PROFILE_FIELDS="$(kubectl get sginstanceprofiles.stackgres.io -n "$CLUSTER_NAMESPACE" "$CREATED_PROFILE" -o json | jq '.spec | length')"
+  local DEFAULT_PROFILE_FIELDS="$(get_default_profile -o json | jq '.spec | length')"
 
   if [ "$CREATED_PROFILE_FIELDS" = "$DEFAULT_PROFILE_FIELDS" ]
   then
@@ -319,7 +553,7 @@ EOF
     return 1
   fi
 
-  local DEFAULT_ANNOTATION=$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json | jq '.metadata.annotations["stackgres.io/operatorVersion"]')
+  local DEFAULT_ANNOTATION="$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json | jq '.metadata.annotations["stackgres.io/operatorVersion"]')"
 
   if [ -z "$DEFAULT_ANNOTATION" ] || [ "$DEFAULT_ANNOTATION" = "null" ]
   then
@@ -329,9 +563,9 @@ EOF
     echo "Success. Defaults annotations created"
   fi
 
-  wait_until eval 'kubectl get pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -o name'
+  wait_until eval 'kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o name'
 
-  local INSTALLED_CONTAINERS="$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -o=jsonpath='{.spec.containers[*].name}')"
+  local INSTALLED_CONTAINERS="$(kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o=jsonpath='{.spec.template.spec.containers[*].name}')"
 
   if echo "$INSTALLED_CONTAINERS" | grep "prometheus-postgres-exporter" > /dev/null
   then
@@ -352,12 +586,70 @@ EOF
   assert_string_contains "pgbouncer" "$INSTALLED_CONTAINERS"
   assert_string_contains "postgres-util" "$INSTALLED_CONTAINERS"
 
-  kubectl delete sgclusters -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"
+}
+
+update_empty_cluster() {
+
+  kubectl delete sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --ignore-not-found
+  cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/v1beta1
+kind: SGCluster
+metadata:
+  name: $CLUSTER_NAME
+  namespace: $CLUSTER_NAMESPACE
+spec:
+  instances: 1
+  postgresVersion: 'latest'
+  pods:
+    persistentVolume:
+      size: '512Mi'
+  nonProductionOptions:
+    disableClusterPodAntiAffinity: true
+EOF
+  local PATCH="$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
+    | jq 'del(.metadata.resourceVersion)|del(.metadata.uid)|del(.metadata.creationTimestamp)|del(.metadata.selfLink)|del(.metadata.geneartion)' \
+    | jq 'del(.metadata.annotations["stackgres.io/operatorVersion"])' \
+    | kubectl create -f - --dry-run=client -o yaml)"
+  kubectl patch sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type merge -p "$PATCH"
+
+  local DEFAULT_ANNOTATION="$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json | jq '.metadata.annotations["stackgres.io/operatorVersion"]')"
+
+  if [ -z "$DEFAULT_ANNOTATION" ] || [ "$DEFAULT_ANNOTATION" = "null" ]
+  then
+    echo "Fail. Default annotations not created"
+    return 1
+  else
+    echo "Success. Defaults annotations created"
+  fi
+
+  wait_until eval 'kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o name'
+
+  local INSTALLED_CONTAINERS="$(kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o=jsonpath='{.spec.template.spec.containers[*].name}')"
+
+  if echo "$INSTALLED_CONTAINERS" | grep "prometheus-postgres-exporter" > /dev/null
+  then
+    echo "Success. Promethus postgres exporter was installed"
+  else
+    echo "Fail. Promethus postgres exporter was not installed"
+    return 1
+  fi
+
+  if echo "$INSTALLED_CONTAINERS" | grep "envoy" > /dev/null
+  then
+    echo "Success. Envoy was installed"
+  else
+    echo "Fail. Envoy was not installed"
+    return 1
+  fi
+
+  assert_string_contains "pgbouncer" "$INSTALLED_CONTAINERS"
+  assert_string_contains "postgres-util" "$INSTALLED_CONTAINERS"
 
 }
 
 create_empty_cluster_on_operator_namespace() {
-  cat <<EOF | kubectl apply -f -
+  kubectl delete sgcluster -n "$OPERATOR_NAMESPACE" "$CLUSTER_NAME" --ignore-not-found
+  cat << EOF | kubectl create -f -
 apiVersion: stackgres.io/v1beta1
 kind: SGCluster
 metadata:
@@ -379,17 +671,16 @@ EOF
   if kubectl get sgclusters.stackgres.io -n "$OPERATOR_NAMESPACE" "$CLUSTER_NAME"
   then
     echo "Good. cluster was created on the operator namespace "
-    return 0
   else
     echo "Fail. cluster was not created on the operator namespace "
     return 1
   fi
 
-  kubectl delete sgclusters -n "$OPERATOR_NAMESPACE" "$CLUSTER_NAME"
 }
 
-create_cluster_with_previous_postgres_version(){
-  cat <<EOF | kubectl apply -f -
+create_cluster_with_previous_postgres_version() {
+  kubectl delete sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --ignore-not-found
+  cat << EOF | kubectl create -f -
 apiVersion: stackgres.io/v1beta1
 kind: SGCluster
 metadata:
@@ -411,12 +702,82 @@ EOF
   if kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"
   then
     echo "Good. cluster was created with previous postgres version"
-    return 0
   else
     echo "Fail. cluster was not created with previous postgres version"
     return 1
   fi
 
-  kubectl delete sgclusters -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"
+}
+
+create_empty_distributedlogs() {
+
+  kubectl delete sgdistributedlogs -n "$CLUSTER_NAMESPACE" "$DISTRIBUTEDLOGS_NAME" --ignore-not-found
+  cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/v1beta1
+kind: SGDistributedLogs
+metadata:
+  name: $DISTRIBUTEDLOGS_NAME
+  namespace: $CLUSTER_NAMESPACE
+spec:
+  persistentVolume:
+    size: 128Mi
+  nonProductionOptions:
+    disableClusterPodAntiAffinity: true
+EOF
+
+  local DEFAULT_ANNOTATION="$(kubectl get sgdistributedlogs.stackgres.io -n "$CLUSTER_NAMESPACE" "$DISTRIBUTEDLOGS_NAME" -o json | jq '.metadata.annotations["stackgres.io/operatorVersion"]')"
+
+  if [ -z "$DEFAULT_ANNOTATION" ] || [ "$DEFAULT_ANNOTATION" = "null" ]
+  then
+    echo "Fail. Default annotations not created"
+    return 1
+  else
+    echo "Success. Defaults annotations created"
+  fi
+
+}
+
+update_empty_distributedlogs() {
+
+  local PATCH="$(kubectl get sgdistributedlogs -n "$CLUSTER_NAMESPACE" "$DISTRIBUTEDLOGS_NAME" -o json \
+    | jq 'del(.metadata.resourceVersion)|del(.metadata.uid)|del(.metadata.creationTimestamp)|del(.metadata.selfLink)|del(.metadata.geneartion)' \
+    | jq 'del(.metadata.annotations["stackgres.io/operatorVersion"])' \
+    | kubectl create -f - --dry-run=client -o yaml)"
+  kubectl patch sgdistributedlogs -n "$CLUSTER_NAMESPACE" "$DISTRIBUTEDLOGS_NAME" --type merge -p "$PATCH"
+
+  local DEFAULT_ANNOTATION="$(kubectl get sgdistributedlogs.stackgres.io -n "$CLUSTER_NAMESPACE" "$DISTRIBUTEDLOGS_NAME" -o json | jq '.metadata.annotations["stackgres.io/operatorVersion"]')"
+
+  if [ -z "$DEFAULT_ANNOTATION" ] || [ "$DEFAULT_ANNOTATION" = "null" ]
+  then
+    echo "Fail. Default annotations not created"
+    return 1
+  else
+    echo "Success. Defaults annotations created"
+  fi
+
+}
+
+create_empty_distributedlogs_on_operator_namespace() {
+  kubectl delete sgdistributedlogs -n "$OPERATOR_NAMESPACE" "$DISTRIBUTEDLOGS_NAME" --ignore-not-found
+  cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/v1beta1
+kind: SGDistributedLogs
+metadata:
+  name: $DISTRIBUTEDLOGS_NAME
+  namespace: $OPERATOR_NAMESPACE
+spec:
+  persistentVolume:
+    size: 128Mi
+  nonProductionOptions:
+    disableClusterPodAntiAffinity: true
+EOF
+
+  if kubectl get sgdistributedlogs.stackgres.io -n "$OPERATOR_NAMESPACE" "$DISTRIBUTEDLOGS_NAME"
+  then
+    echo "Good. distributed logs was created on the operator namespace "
+  else
+    echo "Fail. distributed logs was not created on the operator namespace "
+    return 1
+  fi
 
 }

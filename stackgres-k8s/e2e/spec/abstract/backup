@@ -93,7 +93,7 @@ check_timelines(){
 check_control_data(){
   local CUSTOM_COLUMNS=NAME:.metadata.name,PHASE:.status.process.status
   
-  local EXPECTED_CONTROL_DATA_LENGTH=$(kubectl exec -it -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c patroni \
+  local EXPECTED_CONTROL_DATA_LENGTH=$(kubectl exec -t -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c patroni \
     -- bash -c 'pg_controldata --pgdata=$PG_DATA_PATH' | wc -l)
   kubectl get sgbackup -n "$CLUSTER_NAMESPACE" -o custom-columns="$CUSTOM_COLUMNS" \
     | tail -n +2 | grep "Completed" | awk '{print $1}' | while read bn

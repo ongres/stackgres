@@ -1,3 +1,4 @@
+instanceProfiles: false
 configurations:
   postgresconfig:
     postgresql.conf:
@@ -10,7 +11,7 @@ cluster:
       size: 128Mi
   configurations:
     sgBackupConfig: null
-  prometheusAutobind: true
+  sgInstanceProfile: 'size-xs'
+  prometheusAutobind: false
 nonProductionOptions:
-  createMinio: false
   disableClusterPodAntiAffinity: true
