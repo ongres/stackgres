@@ -3,7 +3,9 @@ get_default_cr(){
   CRD="$1"
   shift 1
 
-  CR_NAME=$(kubectl get "$CRD" -n "$OPERATOR_NAMESPACE" -o jsonpath='{.items[0].metadata.name}' )
+  CR_NAME=$(kubectl get "$CRD" -n "$OPERATOR_NAMESPACE" -o json \
+    | jq -r ".items[]|select(.metadata.annotations[\"stackgres.io/operatorVersion\"] == \"$STACKGRES_VERSION\")|.metadata.name" \
+    | head -n 1 )
 
   kubectl get "$CRD" -n "$OPERATOR_NAMESPACE" "$CR_NAME" $@
 }

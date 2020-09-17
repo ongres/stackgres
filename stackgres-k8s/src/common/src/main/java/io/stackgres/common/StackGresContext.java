@@ -35,6 +35,9 @@ public interface StackGresContext {
   String DISTRIBUTED_LOGS_CLUSTER_KEY = "distributed-logs-cluster";
   String DISTRIBUTED_LOGS_BACKUP_KEY = "distributed-logs-backup";
 
+  String STACKGRES_KEY_PREFIX = "stackgres.io/";
+  String VERSION_KEY = STACKGRES_KEY_PREFIX + "operatorVersion";
+
   String AUTH_KEY = "api.stackgres.io/auth";
   String AUTH_USER_VALUE = "user";
 

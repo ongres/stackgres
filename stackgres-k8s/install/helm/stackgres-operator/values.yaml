@@ -89,6 +89,7 @@ grafana:
 developer: {}
   # logLevel: trace
   # showStackTraces: true
+  # enableDebug: false # Show more info when starting operator and restapi
   # enableJvmDebug: false # Only work with JVM version and allow connect
   #                       # on port 8000 of operator Pod with jdb or similar
   # enableJvmDebugSuspend: false
