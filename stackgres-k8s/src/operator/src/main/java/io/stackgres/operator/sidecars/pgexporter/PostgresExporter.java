@@ -23,11 +23,13 @@ import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
-import io.fabric8.kubernetes.api.model.EnvVarSourceBuilder;
+import io.fabric8.kubernetes.api.model.ExecActionBuilder;
+import io.fabric8.kubernetes.api.model.HTTPGetActionBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.LabelSelector;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
-import io.fabric8.kubernetes.api.model.SecretKeySelectorBuilder;
+import io.fabric8.kubernetes.api.model.ProbeBuilder;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.ServicePortBuilder;
 import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
@@ -38,6 +40,7 @@ import io.stackgres.common.LabelFactory;
 import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.operator.cluster.factory.ClusterStatefulSetPath;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSetVolumeConfig;
 import io.stackgres.operator.common.Prometheus;
 import io.stackgres.operator.common.Sidecar;
@@ -98,20 +101,9 @@ public class PostgresExporter implements StackGresClusterSidecarResourceFactory<
         .withEnv(
             new EnvVarBuilder()
                 .withName("DATA_SOURCE_NAME")
-                .withValue("host=/var/run/postgresql user=postgres port=" + Envoy.PG_PORT)
-                .build(),
-            new EnvVarBuilder()
-                .withName("POSTGRES_EXPORTER_USERNAME")
-                .withValue("postgres")
-                .build(),
-            new EnvVarBuilder()
-                .withName("POSTGRES_EXPORTER_PASSWORD")
-                .withValueFrom(new EnvVarSourceBuilder().withSecretKeyRef(
-                    new SecretKeySelectorBuilder()
-                        .withName(context.getClusterContext().getCluster().getMetadata().getName())
-                        .withKey("superuser-password")
-                        .build())
-                    .build())
+                .withValue("postgresql://postgres@:" + Envoy.PG_PORT + "/postgres"
+                    + "?host=" + ClusterStatefulSetPath.PG_RUN_PATH.path()
+                    + "&sslmode=disable")
                 .build(),
             new EnvVarBuilder()
                 .withName("PG_EXPORTER_EXTEND_QUERY_PATH")
@@ -125,6 +117,28 @@ public class PostgresExporter implements StackGresClusterSidecarResourceFactory<
                 .withName("PG_EXPORTER_EXCLUDE_DATABASES")
                 .withValue("template0,template1")
                 .build())
+        .withReadinessProbe(new ProbeBuilder()
+            .withHttpGet(new HTTPGetActionBuilder()
+                .withScheme("HTTP")
+                .withHost("localhost")
+                .withPort(new IntOrString(9187))
+                .withPath("/metrics")
+                .build())
+            .withInitialDelaySeconds(15)
+            .withPeriodSeconds(20)
+            .withFailureThreshold(6)
+            .build())
+        .withLivenessProbe(new ProbeBuilder()
+            .withExec(new ExecActionBuilder()
+                .withCommand(
+                    "/bin/sh", "-c",
+                    "curl -f -s http://localhost:9187/metrics"
+                        + " | grep -q '^pg_stat_activity_count'")
+                .build())
+            .withInitialDelaySeconds(5)
+            .withPeriodSeconds(30)
+            .withFailureThreshold(2)
+            .build())
         .withPorts(new ContainerPortBuilder()
             .withContainerPort(9187)
             .build())
