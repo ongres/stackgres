@@ -1,13 +1,13 @@
 ---
 title: Installation via Helm
-weight: 3
+weight: 2
 ---
 
 StackGres operator and clusters can be installed using [helm](https://helm.sh/) version >= `3.1.1`.
 
 ## Install Operator
 
-Create stackgres namespace if doesn't exists already
+Create `stackgres` namespace if doesn't exists already
 
 ``` shell
 kubectl create namespace stackgres
@@ -20,6 +20,32 @@ helm install --namespace stackgres stackgres-operator \
   --values my-operator-values.yml \
   {{< download-url >}}/helm-operator.tgz
 ```
+
+## Upgrade Operator
+
+Upgrade the operator with the following command:
+
+```shell
+helm upgrade --namespace stackgres stackgres-operator \
+  --values my-operator-values.yml \
+  {{< download-url >}}/helm-operator.tgz
+```
+
+Upgrade of an operator can serve two purpose:
+
+* Configuration change
+* Operator upgrade
+
+### Operator upgrade
+
+After the upgrade completes any new cluster that will be created, will be created with the new
+ updated components.
+For existing clusters, there are two mechanisms in order to update components: in-place restart
+ and reduced-impact restart. In both cases there is small impact on read-only operations (we will
+ apply draining here) and a read-write controlled switchover. Both procedures are essentially the
+ same but reduced-impact restart allow to restart a cluster with minimal downtime for read-only
+ connections (we will not apply draining here) or for read-write connections when a single node
+ clusters is used.
 
 ### Parameters
 

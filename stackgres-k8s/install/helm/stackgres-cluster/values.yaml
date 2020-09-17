@@ -1,5 +1,9 @@
 cluster:
   create: true
+  # restart: true
+  # restartRole: 
+  restartClusterRole: cluster-admin
+  restartReducedImpact: true
   postgresVersion: '12.3'
   instances: 1
   sgInstanceProfile: size-xs

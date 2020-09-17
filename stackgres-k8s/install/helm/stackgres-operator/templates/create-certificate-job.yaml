@@ -8,7 +8,7 @@ metadata:
     app: stackgres-create-certificate
     scope: init
   annotations:
-    "helm.sh/hook": post-install
+    "helm.sh/hook": post-install,post-upgrade
     "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
 spec:
   template:
@@ -86,11 +86,10 @@ spec:
               exit 1
             fi
             
-            {{- $values := . }}
-            {{- $_ := set $values.Values.cert "crt" "${CRT}" }}
-            {{- $_ := set $values.Values.cert "key" "${KEY}" }}
-            {{- $_ := set $values.Values.cert "jwtRsaKey" "${KEY}" }}
-            {{- $_ := set $values.Values.cert "jwtRsaPub" "${PUB}" }}
+            {{- $_ := set .Values.cert "crt" "${CRT}" }}
+            {{- $_ := set .Values.cert "key" "${KEY}" }}
+            {{- $_ := set .Values.cert "jwtRsaKey" "${KEY}" }}
+            {{- $_ := set .Values.cert "jwtRsaPub" "${PUB}" }}
             cat << EOF > /tmp/validating-webhook-configuration.yaml
             {{- include (print $.Template.BasePath "/validating-webhook-configuration.yaml") . | indent 12 }}
             EOF
@@ -100,14 +99,15 @@ spec:
             cat << EOF > /tmp/certificate-secret.yaml
             {{- include (print $.Template.BasePath "/certificate-secret.yaml") . | indent 12 }}
             EOF
-            {{- $_ := set $values.Values.cert "crt" nil }}
-            {{- $_ := set $values.Values.cert "key" nil }}
-            {{- $_ := set $values.Values.cert "jwtRsaKey" nil }}
-            {{- $_ := set $values.Values.cert "jwtRsaPub" nil }}
+            {{- $_ := set .Values.cert "crt" nil }}
+            {{- $_ := set .Values.cert "key" nil }}
+            {{- $_ := set .Values.cert "jwtRsaKey" nil }}
+            {{- $_ := set .Values.cert "jwtRsaPub" nil }}
             
             kubectl apply -f /tmp/validating-webhook-configuration.yaml
             kubectl apply -f /tmp/mutating-webhook-configuration.yaml
             kubectl apply -f /tmp/certificate-secret.yaml
+            OPERATOR_POD="$(kubectl get pod)"
             {{- if .Release.IsInstall }}
             kubectl scale --timeout 1h --replicas 1 -n '{{ .Release.Namespace }}' 'deployment/{{ .Release.Name }}'
             kubectl scale --timeout 1h --replicas 1 -n '{{ .Release.Namespace }}' 'deployment/{{ .Values.restapi.name }}'
@@ -115,7 +115,7 @@ spec:
             kubectl rollout restart -n '{{ .Release.Namespace }}' 'deployment/{{ .Release.Name }}'
             kubectl rollout restart -n '{{ .Release.Namespace }}' 'deployment/{{ .Values.restapi.name }}'
             {{- end }}
-            kubectl wait --timeout 1h --for=condition=Ready -n '{{ .Release.Namespace }}' pod -l app=stackgres-operator --all
-            kubectl wait --timeout 1h --for=condition=Ready -n '{{ .Release.Namespace }}' pod -l app='{{ .Values.restapi.name }}' --all
+            kubectl rollout status -n '{{ .Release.Namespace }}' 'deployment/{{ .Release.Name }}'
+            kubectl rollout status -n '{{ .Release.Namespace }}' 'deployment/{{ .Values.restapi.name }}'
       restartPolicy: OnFailure
 {{ end }}

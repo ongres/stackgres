@@ -26,10 +26,30 @@ e2e_test() {
 
 check_operator_install() {
   install_operator
+
+  for app in operator restapi; do
+    if kubectl rollout status -n "$OPERATOR_NAMESPACE" "deployment/stackgres-${app}"; then
+      echo "SUCCESS. Deployment 'stackgres-${app}' was rolled out."
+      continue
+    fi
+
+    echo "FAILED. Deployment 'stackgres-${app}' was not rolled out."
+    return 1
+  done
 }
 
 check_operator_upgrade() {
   upgrade_operator
+
+  for app in operator restapi; do
+    if kubectl rollout status -n "$OPERATOR_NAMESPACE" "deployment/stackgres-${app}"; then
+      echo "SUCCESS. Deployment 'stackgres-${app}' was rolled out."
+      continue
+    fi
+
+    echo "FAILED. Deployment 'stackgres-${app}' was not rolled out."
+    return 1
+  done
 }
 
 check_operator_delete() {
@@ -40,12 +60,32 @@ check_operator_install_outside() {
   delete_operator
 
   install_operator --set-string service.type=NodePort --set service.nodePort=31111
+
+  for app in operator restapi; do
+    if kubectl rollout status -n "$OPERATOR_NAMESPACE" "deployment/stackgres-${app}"; then
+      echo "SUCCESS. Deployment 'stackgres-${app}' was rolled out."
+      continue
+    fi
+
+    echo "FAILED. Deployment 'stackgres-${app}' was not rolled out."
+    return 1
+  done
 }
 
 check_operator_install_load_balancer() {
   delete_operator
 
   install_operator --set service.loadBalancer.enabled=true
+
+  for app in operator restapi; do
+    if kubectl rollout status -n "$OPERATOR_NAMESPACE" "deployment/stackgres-${app}"; then
+      echo "SUCCESS. Deployment 'stackgres-${app}' was rolled out."
+      continue
+    fi
+
+    echo "FAILED. Deployment 'stackgres-${app}' was not rolled out."
+    return 1
+  done
 }
 
 check_operator_install_with_wait() {
@@ -55,12 +95,12 @@ check_operator_install_with_wait() {
     --wait
 
   for app in operator restapi; do
-    if kubectl wait --timeout 0 --for=condition=Ready -n "$OPERATOR_NAMESPACE" -l app="stackgres-${app}" pod; then
-      echo "SUCCESS. The stackgres '${app}' pod was ready after using --wait parameter."
+    if kubectl rollout status -n "$OPERATOR_NAMESPACE" "deployment/stackgres-${app}"; then
+      echo "SUCCESS. Deployment 'stackgres-${app}' was rolled out after using --wait parameter."
       continue
     fi
 
-    echo "FAILED. The stackgres '${app}' pod was not ready after using --wait parameter."
+    echo "FAILED. Deployment 'stackgres-${app}' was not rolled out after using --wait parameter."
     return 1
   done
 }

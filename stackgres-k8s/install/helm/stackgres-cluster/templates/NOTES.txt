@@ -1,0 +1,16 @@
+Release Name: {{ .Release.Name }}
+StackGres Version: {{ .Chart.Version }}
+
+   _____ _             _     _____
+  / ____| |           | |   / ____|
+ | (___ | |_ __ _  ___| | _| |  __ _ __ ___  ___
+  \___ \| __/ _` |/ __| |/ / | |_ | '__/ _ \/ __|
+  ____) | || (_| | (__|   <| |__| | | |  __/\__ \
+ |_____/ \__\__,_|\___|_|\_\\_____|_|  \___||___/
+                                  by OnGres, Inc.
+{{- if and .Release.IsUpgrade .Values.cluster.create }}
+
+For cluster restart instructions please refer to:
+
+  https://stackgres.io/doc/{{ regexFind "\\d+\\.\\d+" .Chart.Version }}/03-production-installation/04-cluster-restart/
+{{- end }}
