@@ -5,6 +5,9 @@ e2e_exclusive_lock() {
 }
 
 e2e_test_install() {
+  PREVIOUS_CONTAINER_BUILD="$(get_container_build "$STACKGRES_PREVIOUS_VERSION")"
+  PATRONI_IMAGE="$(get_component_images "$CONTAINER_BUILD" | grep '/patroni:' | sort | tail -n -1)"
+  PREVIOUS_PATRONI_IMAGE="$(get_component_images "$PREVIOUS_CONTAINER_BUILD" | grep '/patroni:' | sort | tail -n -1)"
   k8s_cleanup_namespace "$OPERATOR_NAMESPACE"
   k8s_async_cleanup
   install_operator_previous_version
@@ -12,11 +15,14 @@ e2e_test_install() {
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 \
     --set cluster.create=false
   create_or_replace_cluster "$CLUSTER_NAME-1" "$CLUSTER_NAMESPACE" 1 \
-    --set configurations.create=false --set instanceProfiles=false
+    --set configurations.create=false --set instanceProfiles=false \
+     --set-string cluster.postgresVersion=latest
   create_or_replace_cluster "$CLUSTER_NAME-2" "$CLUSTER_NAMESPACE" 2 \
-    --set configurations.create=false --set instanceProfiles=false
+    --set configurations.create=false --set instanceProfiles=false \
+     --set-string cluster.postgresVersion=latest
   create_or_replace_cluster "$CLUSTER_NAME-3" "$CLUSTER_NAMESPACE" 3 \
-    --set configurations.create=false --set instanceProfiles=false
+    --set configurations.create=false --set instanceProfiles=false \
+     --set-string cluster.postgresVersion=latest
 
   wait_pods_running "$CLUSTER_NAMESPACE" 6
 
@@ -77,6 +83,28 @@ check_cluster_restart() {
   local CLUSTER_SIZE="$2"
   local CURRENT_TIMESTAMP="$(date --utc +%s)"
 
+  local POD
+  local PODS="$(kubectl get pod -n "$CLUSTER_NAMESPACE" \
+    -l "app=StackGresCluster,cluster-name=$CLUSTER_NAME,cluster=true" -o name \
+    | cut -d / -f 2)"
+  for POD in $PODS
+  do
+    POD_PATRONI_IMAGE="$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$POD" \
+      --template '{{ range .spec.containers }}{{ printf "%s\n" .image }}{{ end }}' \
+       | grep '/patroni:' | sort | tail -n -1)"
+    if [ "$POD_PATRONI_IMAGE" = "$PREVIOUS_PATRONI_IMAGE" ]
+    then
+      echo "SUCCESS. Pod $POD is using the previous patroni image"
+    else
+      echo "FAILURE. Pod $POD is not using the previous patroni image"
+      echo
+      echo "Previous patroni image is $PREVIOUS_PATRONI_IMAGE"
+      echo
+      echo "Used patroni image is $POD_PATRONI_IMAGE"
+      return 1
+    fi
+  done
+
   try_function create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "$CLUSTER_SIZE" \
     --set cluster.restart=true --set cluster.restartReducedImpact=false
   if "$RESULT"
@@ -91,7 +119,8 @@ check_cluster_restart() {
   fi
 
   local CREATION_TIMESTAMP
-  local CREATION_TIMESTAMPS="$(kubectl get pod -n "$CLUSTER_NAMESPACE" -o json \
+  local CREATION_TIMESTAMPS="$(kubectl get pod -n "$CLUSTER_NAMESPACE" \
+      -l "app=StackGresCluster,cluster-name=$CLUSTER_NAME,cluster=true" -o json \
     | jq ".items[]|select(.metadata.name | startswith(\"$CLUSTER_NAME\"))" \
     | jq -r '.metadata.creationTimestamp' \
     | xargs -r -n 1 -I @ date --utc +%s -d @)"
@@ -101,6 +130,24 @@ check_cluster_restart() {
     if [ "$CREATION_TIMESTAMP" -le "$CURRENT_TIMESTAMP" ]
     then
       echo "FAILURE. Cluster restart did not updated sucesfully some pods"
+      return 1
+    fi
+  done
+
+  for POD in $PODS
+  do
+    POD_PATRONI_IMAGE="$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$POD" \
+      --template '{{ range .spec.containers }}{{ printf "%s\n" .image }}{{ end }}' \
+       | grep '/patroni:' | sort | tail -n -1)"
+    if [ "$POD_PATRONI_IMAGE" = "$PATRONI_IMAGE" ]
+    then
+      echo "SUCCESS. Pod $POD is using the new patroni image"
+    else
+      echo "FAILURE. Pod $POD is not using the new patroni image"
+      echo
+      echo "New patroni images is $PATRONI_IMAGE"
+      echo
+      echo "Used patroni image is $POD_PATRONI_IMAGE"
       return 1
     fi
   done
