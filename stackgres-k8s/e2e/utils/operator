@@ -7,8 +7,10 @@ export RESTAPI_IMAGE_NAME="stackgres/restapi:$IMAGE_TAG"
 export ADMINUI_IMAGE_NAME="stackgres/admin-ui:$ADMINUI_IMAGE_TAG"
 
 export STACKGRES_PATH="${STACKGRES_PATH:-$(dirname "$0")/..}"
-export STACKGRES_VERSION=$(grep '<artifactId>stackgres-parent</artifactId>' "$STACKGRES_PATH/src/pom.xml" -A 2 -B 2 \
-  | grep -o '<version>\([^<]\+\)</version>' | tr '<>' '  ' | cut -d ' ' -f 3)
+export STACKGRES_VERSION="$(grep '<artifactId>stackgres-parent</artifactId>' "$STACKGRES_PATH/src/pom.xml" -A 2 -B 2 \
+  | grep -o '<version>\([^<]\+\)</version>' | tr '<>' '  ' | cut -d ' ' -f 3)"
+export CONTAINER_BUILD="$(grep '<properties>' "$STACKGRES_PATH/src/pom.xml" -A 2 -B 2 \
+  | grep -o '<stackgres.containerBuild>\([^<]\+\)</stackgres.containerBuild>' | tr -d ' ' | tr '<>' '  ' | cut -d ' ' -f 3)"
 export OPERATOR_CHART_PATH="${OPERATOR_CHART_PATH:-"$STACKGRES_PATH/install/helm/stackgres-operator/"}"
 export CLUSTER_CHART_PATH="${CLUSTER_CHART_PATH:-"$STACKGRES_PATH/install/helm/stackgres-cluster/"}"
 export UI_TESTS_RESOURCES_PATH="${UI_TESTS_RESOURCES_PATH:-"$STACKGRES_PATH/src/admin-ui"}"
@@ -204,15 +206,17 @@ install_operator() {
   kubectl get namespace "$OPERATOR_NAMESPACE" > /dev/null 2>&1 \
     || kubectl create namespace "$OPERATOR_NAMESPACE"
 
+  install_operator_previous_version "$@"
+
   if [ "$E2E_USE_INTERMIDIATE_PRIVATE_REPO" = true ]
   then
     set_up_private_repository
-    install_operator_from_private_repository \
+    upgrade_operator_from_private_repository \
       $E2E_OPERATOR_OPTS "$@"
     return
   fi
 
-  install_operator_vanilla \
+  upgrade_operator_vanilla \
     --set-string operator.image.name="${OPERATOR_IMAGE_NAME%:*}" --set-string operator.image.tag="${OPERATOR_IMAGE_NAME#*:}" \
     --set-string "operator.image.pullPolicy=$(operator_pull_policy)" \
     --set-string restapi.image.name="${RESTAPI_IMAGE_NAME%:*}" --set-string restapi.image.tag="${RESTAPI_IMAGE_NAME#*:}" \
@@ -222,12 +226,20 @@ install_operator() {
     $E2E_OPERATOR_OPTS "$@"
 }
 
-install_operator_from_private_repository() {
+install_operator_previous_version() {
+  kubectl get namespace "$OPERATOR_NAMESPACE" > /dev/null 2>&1 \
+    || kubectl create namespace "$OPERATOR_NAMESPACE"
+
+  install_operator_vanilla_from "$OPERATOR_PREVIOUS_VERSION_HELM_URL" \
+    $E2E_OPERATOR_OPTS "$@"
+}
+
+upgrade_operator_from_private_repository() {
   export PRIVATE_REPO_URI=$(get_private_repository_uri)
   export PRIVATE_OPERATOR_IMAGE_NAME="$PRIVATE_REPO_URI/stackgres/operator"
   export PRIVATE_RESTAPI_IMAGE_NAME="$PRIVATE_REPO_URI/stackgres/restapi"
   export PRIVATE_ADMINUI_IMAGE_NAME="$PRIVATE_REPO_URI/stackgres/admin-ui"
-  install_operator_vanilla \
+  upgrade_operator_vanilla \
       --set-string operator.image.name="$PRIVATE_OPERATOR_IMAGE_NAME" --set-string operator.image.tag="$IMAGE_TAG" \
       --set-string "operator.image.pullPolicy=$(operator_pull_policy)" \
       --set-string restapi.image.name="$PRIVATE_RESTAPI_IMAGE_NAME" --set-string restapi.image.tag="$IMAGE_TAG" \
@@ -239,12 +251,21 @@ install_operator_from_private_repository() {
 }
 
 install_operator_vanilla() {
-  helm install stackgres-operator --namespace "$OPERATOR_NAMESPACE" "$OPERATOR_CHART_PATH" \
+  install_operator_vanilla_from "$OPERATOR_CHART_PATH" \
+    "$@"
+}
+
+install_operator_vanilla_from() {
+  helm install stackgres-operator --namespace "$OPERATOR_NAMESPACE" \
     "$@"
 }
 
 upgrade_operator() {
   helm upgrade stackgres-operator --namespace "$OPERATOR_NAMESPACE" "$OPERATOR_CHART_PATH" --reuse-values "$@"
+}
+
+upgrade_operator_vanilla() {
+  helm upgrade stackgres-operator --namespace "$OPERATOR_NAMESPACE" "$OPERATOR_CHART_PATH" "$@"
 }
 
 upgrade_or_install_operator() {
@@ -298,7 +319,7 @@ reinstall_operator_if_not_as_expected() {
     k8s_cleanup
 
     kubectl create namespace "$OPERATOR_NAMESPACE"
-    install_operator_vanilla -f "$TARGET_PATH/operator-values.yaml"
+    install_operator -f "$TARGET_PATH/operator-values.yaml"
     wait_pods_running "$OPERATOR_NAMESPACE"
     if helm get values -n "$OPERATOR_NAMESPACE" stackgres-operator | grep -q externalOperatorIp \
       && helm get values -n "$OPERATOR_NAMESPACE" stackgres-operator | grep -q externalOperatorPort
@@ -309,3 +330,285 @@ reinstall_operator_if_not_as_expected() {
     fi
   fi
 }
+
+get_pom_url() {
+  [ -n "$1" ]
+  echo "https://gitlab.com/ongresinc/stackgres/-/raw/$1/stackgres-k8s/src/pom.xml"
+}
+
+get_container_build() {
+  [ -n "$1" ]
+  curl -f -s "$(get_pom_url "$1")" | grep '<properties>' -A 2 -B 2 \
+    | grep -o '<stackgres.containerBuild>\([^<]\+\)</stackgres.containerBuild>' \
+    | tr -d ' ' | tr '<>' '  ' | cut -d ' ' -f 3
+}
+
+get_components_versions_url() {
+  [ -n "$1" ]
+  echo "https://stackgres.io/downloads/stackgres-k8s/stackgres/components/$1/versions.yaml"
+}
+
+get_component_images() {
+  [ -n "$1" ]
+  COMPONENTS_VERSIONS_YAML="$(curl -f -s "$(get_components_versions_url "$1")")"
+  COMPONENT_POSTGRESQL_VERSIONS="$(get_component_versions postgresql)"
+  COMPONENT_PATRONI_VERSIONS="$(get_component_versions patroni)"
+  COMPONENT_PGBOUNCER_VERSIONS="$(get_component_versions pgbouncer)"
+  COMPONENT_POSTGRES_EXPORTER_VERSIONS="$(get_component_versions postgres_exporter)"
+  COMPONENT_ENVOY_VERSIONS="$(get_component_versions envoy)"
+  COMPONENT_FLUENTBIT_VERSIONS="$(get_component_versions fluentbit)"
+  COMPONENT_FLUENTD_VERSIONS="$(get_component_versions fluentd)"
+  local VERSION
+  local SUBVERSION
+  for VERSION in $COMPONENT_PATRONI_VERSIONS
+  do
+    for SUBVERSION in $COMPONENT_POSTGRESQL_VERSIONS
+    do
+      echo "docker.io/ongres/patroni:v$VERSION-pg$SUBVERSION-build-$CONTAINER_BUILD"
+    done
+  done
+  for VERSION in $COMPONENT_POSTGRESQL_VERSIONS
+  do
+    echo "docker.io/ongres/postgres-util:v$VERSION-build-$CONTAINER_BUILD"
+  done
+  for VERSION in $COMPONENT_PGBOUNCER_VERSIONS
+  do
+    echo "docker.io/ongres/pgbouncer:v$VERSION-build-$CONTAINER_BUILD"
+  done
+  for VERSION in $COMPONENT_POSTGRES_EXPORTER_VERSIONS
+  do
+    echo "docker.io/ongres/prometheus-postgres-exporter:v$VERSION-build-$CONTAINER_BUILD"
+  done
+  for VERSION in $COMPONENT_ENVOY_VERSIONS
+  do
+    echo "docker.io/ongres/envoy:v$VERSION-build-$CONTAINER_BUILD"
+  done
+  for VERSION in $COMPONENT_FLUENTBIT_VERSIONS
+  do
+    echo "docker.io/ongres/fluentbit:v$VERSION-build-$CONTAINER_BUILD"
+  done
+  for VERSION in $COMPONENT_FLUENTD_VERSIONS
+  do
+    echo "docker.io/ongres/fluentd:v$VERSION-build-$CONTAINER_BUILD"
+  done
+}
+
+get_component_versions() {
+  [ -n "$COMPONENTS_VERSIONS_YAML" ]
+  echo "$COMPONENTS_VERSIONS_YAML" | tr -d '\n' \
+    | sed 's/.*\s\+'"$1"':\s\+versions:\(\(\s\+-\s\+"\([^"]\+\)"\)\+\).*/\1/g' \
+    | tr -d '" ' | sed 's/^-//' | tr '-' '\n'
+}
+
+get_previous_version() {
+  local VERSION="$1"
+
+  local CARDINALITY="$(echo "$VERSION" | tr '.' '\n' | wc -l)"
+  local MAJOR=""
+  local MINOR
+  local PATCH="0"
+  local SUFFIX=""
+  local SUFFIX_VERSION=""
+  local VERSION_SUFFIX=""
+  local i
+
+  if [ "$CARDINALITY" -eq 3 ]
+  then
+    MAJOR="$(echo "$VERSION" | tr '.' '\n' | head -n 1)"
+    MINOR="$(echo "$VERSION" | tr '.' '\n' | head -n 2 | tail -n 1)"
+    PATCH="$(echo "$VERSION" | tr '.' '\n' | tail -n 1)"
+    SUFFIX="${PATCH##*-}"
+    if [ -n "$SUFFIX" ]
+    then
+      PATCH="${PATCH%-*}"
+      for i in alpha beta
+      do
+        if [ "${SUFFIX%%[0-9]*}" = "$i" ]
+        then
+          SUFFIX=$i
+          SUFFIX_VERSION="${SUFFIX#$i}"
+        fi
+      done
+    fi
+  fi
+
+  if [ "$CARDINALITY" -eq 2 ]
+  then
+    MAJOR="$(echo "$VERSION" | tr '.' '\n' | head -n 1)"
+    MINOR="$(echo "$VERSION" | tr '.' '\n' | tail -n 1)"
+    SUFFIX="${MINOR##*-}"
+    if [ -n "$SUFFIX" ]
+    then
+      MINOR="${MINOR%-*}"
+      for i in alpha beta
+      do
+        if [ "${SUFFIX%%[0-9]*}" = "$i" ]
+        then
+          SUFFIX=$i
+          SUFFIX_VERSION="${SUFFIX#$i}"
+        fi
+      done
+    fi
+  fi
+
+  if [ -z "$MAJOR" ]
+  then
+    return 1
+  fi
+
+  if [ "$SUFFIX" = alpha ] || [ "$SUFFIX" = beta ]
+  then
+    if [ "$SUFFIX_VERSION" -gt 1 ]
+    then
+      SUFFIX_VERSION="$((SUFFIX_VERSION - 1))"
+      VERSION_SUFFIX="-$SUFFIX$SUFFIX_VERSION"
+    else
+      if [ "$SUFFIX" = "beta" ]
+      then
+        SUFFIX=alpha
+        SUFFIX_VERSION=1
+        while true
+        do
+          if curl -s -f "$(get_pom_url "$(
+            echo "$MAJOR.$MINOR.$PATCH-$SUFFIX$SUFFIX_VERSION" \
+              | fix_zero_patch_prior_0_9)")" > /dev/null 2>&1
+          then
+            VERSION_SUFFIX="-$SUFFIX$SUFFIX_VERSION"
+            SUFFIX_VERSION="$((SUFFIX_VERSION + 1))"
+          else
+            break
+          fi
+        done
+      fi
+    fi
+  fi
+
+  if [ "$SUFFIX" = "SNAPSHOT" ] && [ "$PATCH" = 0 ]
+  then
+    for SUFFIX in beta alpha
+    do
+      SUFFIX_VERSION=1
+      while true
+      do
+        if curl -s -f "$(get_pom_url "$(
+          echo "$MAJOR.$MINOR.$PATCH-$SUFFIX$SUFFIX_VERSION" \
+            | fix_zero_patch_prior_0_9)")" > /dev/null 2>&1
+        then
+          VERSION_SUFFIX="-$SUFFIX$SUFFIX_VERSION"
+          SUFFIX_VERSION="$((SUFFIX_VERSION + 1))"
+        else
+          break
+        fi
+      done
+      if [ -n "$VERSION_SUFFIX" ]
+      then
+        break
+      fi
+    done
+  fi
+
+  local FOUND=false
+  if [ -z "$VERSION_SUFFIX" ]
+  then
+    while true
+    do
+      if [ "$PATCH" -gt "0" ]
+      then
+        PATCH="$((PATCH - 1))"
+        if curl -s -f "$(get_pom_url "$(
+          echo "$MAJOR.$MINOR.$PATCH" \
+            | fix_zero_patch_prior_0_9)")" > /dev/null 2>&1
+        then
+          FOUND=true
+          break
+        fi
+      else
+        break
+      fi
+    done
+    if [ "$FOUND" != true ]
+    then
+      while true
+      do
+        if [ "$MINOR" -gt 0 ]
+        then
+          MINOR="$((MINOR - 1))"
+        else
+          if [ "$MAJOR" -gt 0 ]
+          then
+            MAJOR="$((MAJOR - 1))"
+          else
+            return 1
+          fi
+          if [ "$MAJOR" -eq 0 ]
+          then
+            MINOR=9 # Specific of StackGres project
+          else
+            MINOR=0
+          fi
+          while true
+          do
+            if curl -s -f "$(get_pom_url "$(
+              echo "$MAJOR.$MINOR.$PATCH" \
+                | fix_zero_patch_prior_0_9)")" > /dev/null 2>&1
+            then
+              FOUND=true
+              MINOR="$((MINOR + 1))"
+            else
+              break
+            fi
+          done
+          if [ "$FOUND" = true ]
+          then
+            MINOR="$((MINOR - 1))"
+          else
+            return 1
+          fi
+        fi
+        while true
+        do
+          if curl -s -f "$(get_pom_url "$(
+            echo "$MAJOR.$MINOR.$PATCH" \
+              | fix_zero_patch_prior_0_9)")" > /dev/null 2>&1
+          then
+            FOUND=true
+            PATCH="$((PATCH + 1))"
+          else
+            break
+          fi
+        done
+        if [ "$FOUND" = true ]
+        then
+          PATCH="$((PATCH - 1))"
+          break
+        fi
+      done
+      while true
+      do
+        if [ "$PATCH" -gt "0" ]
+        then
+          PATCH="$((PATCH - 1))"
+          if curl -s -f "$(get_pom_url "$(
+            echo "$MAJOR.$MINOR.$PATCH" \
+              | fix_zero_patch_prior_0_9)")" > /dev/null 2>&1
+          then
+            FOUND=true
+            break
+          fi
+        else
+          break
+        fi
+      done
+    fi
+  fi
+  echo "$MAJOR.$MINOR.$PATCH$VERSION_SUFFIX" \
+    | fix_zero_patch_prior_0_9
+}
+
+fix_zero_patch_prior_0_9() {
+  sed 's/^\(0\.[0-9]\)\.0/\1/'
+}
+
+export STACKGRES_PREVIOUS_VERSION="${STACKGRES_PREVIOUS_VERSION:-$(get_previous_version "$STACKGRES_VERSION")}"
+echo "Previous StackGres version used is $STACKGRES_PREVIOUS_VERSION"
+export OPERATOR_PREVIOUS_VERSION_HELM_URL="${OPERATOR_PREVIOUS_VERSION_HELM_URL:-https://stackgres.io/downloads/stackgres-k8s/stackgres/$STACKGRES_PREVIOUS_VERSION/helm-operator.tgz}"

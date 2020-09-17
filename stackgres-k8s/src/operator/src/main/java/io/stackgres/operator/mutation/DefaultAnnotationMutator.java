@@ -17,6 +17,7 @@ import com.github.fge.jsonpatch.JsonPatchOperation;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.client.CustomResource;
+import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresProperty;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
 import io.stackgres.operatorframework.admissionwebhook.mutating.JsonPatchMutator;
@@ -25,8 +26,6 @@ public interface DefaultAnnotationMutator<R extends CustomResource, T extends Ad
     extends JsonPatchMutator<T> {
 
   JsonPointer ANNOTATION_POINTER = JsonPointer.of("metadata", "annotations");
-
-  String STACKGRES_PREFIX = "stackgres.io/";
 
   default List<JsonPatchOperation> getAnnotationsToAdd(R resouce) {
 
@@ -37,8 +36,8 @@ public interface DefaultAnnotationMutator<R extends CustomResource, T extends Ad
 
     List<String> existentAnnotations = givenAnnotations.keySet()
         .stream()
-        .filter(k -> k.startsWith(STACKGRES_PREFIX))
-        .map(k -> k.substring(STACKGRES_PREFIX.length()))
+        .filter(k -> k.startsWith(StackGresContext.STACKGRES_KEY_PREFIX))
+        .map(k -> k.substring(StackGresContext.STACKGRES_KEY_PREFIX.length()))
         .collect(Collectors.toList());
 
     Map<String, String> defaultAnnotations = getDefaultAnnotationValues();
@@ -62,7 +61,7 @@ public interface DefaultAnnotationMutator<R extends CustomResource, T extends Ad
 
     return annotations.entrySet().stream()
         .map(entry -> new AddOperation(
-            ANNOTATION_POINTER.append(STACKGRES_PREFIX + entry.getKey()),
+            ANNOTATION_POINTER.append(entry.getKey()),
             FACTORY.textNode(entry.getValue())
         )).collect(ImmutableList.toImmutableList());
 
@@ -72,8 +71,7 @@ public interface DefaultAnnotationMutator<R extends CustomResource, T extends Ad
 
     String operatorVersion = StackGresProperty.OPERATOR_VERSION.getString();
 
-    String operatorVersionKey = StackGresProperty.OPERATOR_VERSION.getPropertyName()
-        .split("\\.")[1];
+    String operatorVersionKey = StackGresContext.VERSION_KEY;
 
     return ImmutableMap.<String, String>builder()
         .put(operatorVersionKey, operatorVersion)
