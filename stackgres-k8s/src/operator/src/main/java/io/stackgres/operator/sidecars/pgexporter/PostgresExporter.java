@@ -23,13 +23,9 @@ import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
-import io.fabric8.kubernetes.api.model.ExecActionBuilder;
-import io.fabric8.kubernetes.api.model.HTTPGetActionBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.LabelSelector;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
-import io.fabric8.kubernetes.api.model.ProbeBuilder;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.ServicePortBuilder;
 import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
@@ -96,9 +92,36 @@ public class PostgresExporter implements StackGresClusterSidecarResourceFactory<
         .withImage(String.format(IMAGE_NAME, DEFAULT_VERSION,
             StackGresProperty.CONTAINER_BUILD.getString()))
         .withImagePullPolicy("IfNotPresent")
-        .withCommand("/usr/local/bin/postgres_exporter",
-            "--log.level=info")
+        .withCommand("/bin/sh", "-exc")
+        .withArgs(""
+            + "run_postgres_exporter() {\n"
+            + "  set -x\n"
+            + "  exec /usr/local/bin/postgres_exporter \\\n"
+            + "    --log.level=info\n"
+            + "}\n"
+            + "\n"
+            + "set +x\n"
+            + "while true\n"
+            + "do\n"
+            + "  if [ -z \"$PID\" -o ! -d \"/proc/$PID\" ] \\\n"
+            + "    && [ -S '" + ClusterStatefulSetPath.PG_RUN_PATH.path()
+              + "/.s.PGSQL." + Envoy.PG_PORT + "' ]\n"
+            + "  then\n"
+            + "    if [ -n \"$PID\" ]\n"
+            + "    then\n"
+            + "      kill \"$PID\"\n"
+            + "      wait \"$PID\" || true\n"
+            + "    fi\n"
+            + "    run_postgres_exporter &\n"
+            + "    PID=\"$!\"\n"
+            + "  fi\n"
+            + "  sleep 5\n"
+            + "done\n")
         .withEnv(
+            new EnvVarBuilder()
+                .withName("PGAPPNAME")
+                .withValue(NAME)
+                .build(),
             new EnvVarBuilder()
                 .withName("DATA_SOURCE_NAME")
                 .withValue("postgresql://postgres@:" + Envoy.PG_PORT + "/postgres"
@@ -117,28 +140,6 @@ public class PostgresExporter implements StackGresClusterSidecarResourceFactory<
                 .withName("PG_EXPORTER_EXCLUDE_DATABASES")
                 .withValue("template0,template1")
                 .build())
-        .withReadinessProbe(new ProbeBuilder()
-            .withHttpGet(new HTTPGetActionBuilder()
-                .withScheme("HTTP")
-                .withHost("localhost")
-                .withPort(new IntOrString(9187))
-                .withPath("/metrics")
-                .build())
-            .withInitialDelaySeconds(15)
-            .withPeriodSeconds(20)
-            .withFailureThreshold(6)
-            .build())
-        .withLivenessProbe(new ProbeBuilder()
-            .withExec(new ExecActionBuilder()
-                .withCommand(
-                    "/bin/sh", "-c",
-                    "curl -f -s http://localhost:9187/metrics"
-                        + " | grep -q '^pg_stat_activity_count'")
-                .build())
-            .withInitialDelaySeconds(5)
-            .withPeriodSeconds(30)
-            .withFailureThreshold(2)
-            .build())
         .withPorts(new ContainerPortBuilder()
             .withContainerPort(9187)
             .build())
