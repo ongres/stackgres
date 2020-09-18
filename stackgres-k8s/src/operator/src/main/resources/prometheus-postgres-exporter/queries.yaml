@@ -18,7 +18,7 @@ pg_postmaster:
         description: "Time at which postmaster started"
 
 pg_stat_user_tables:
-  query: "SELECT current_database() datname, schemaname, relname, seq_scan, seq_tup_read, idx_scan, idx_tup_fetch, n_tup_ins, n_tup_upd, n_tup_del, n_tup_hot_upd, n_live_tup, n_dead_tup, n_mod_since_analyze, COALESCE(last_vacuum, '1970-01-01Z') as last_vacuum, COALESCE(last_autovacuum, '1970-01-01Z') as last_autovacuum, COALESCE(last_analyze, '1970-01-01Z') as last_analyze, COALESCE(last_autoanalyze, '1970-01-01Z') as last_autoanalyze, vacuum_count, autovacuum_count, analyze_count, autoanalyze_count FROM pg_stat_user_tables"
+  query: "SELECT current_database() datname, schemaname, relname, seq_scan, seq_tup_read, idx_scan, idx_tup_fetch, n_tup_ins, n_tup_upd, n_tup_del, n_tup_hot_upd, n_live_tup, n_dead_tup, n_mod_since_analyze, COALESCE(last_vacuum, '1970-01-01Z') as last_vacuum, COALESCE(last_autovacuum, '1970-01-01Z') as last_autovacuum, COALESCE(last_analyze, '1970-01-01Z') as last_analyze, COALESCE(last_autoanalyze, '1970-01-01Z') as last_autoanalyze, vacuum_count, autovacuum_count, analyze_count, autoanalyze_count FROM pg_catalog.pg_stat_user_tables"
   metrics:
     - datname:
         usage: "LABEL"
@@ -88,7 +88,7 @@ pg_stat_user_tables:
         description: "Number of times this table has been analyzed by the autovacuum daemon"
 
 pg_statio_user_tables:
-  query: "SELECT current_database() datname, schemaname, relname, heap_blks_read, heap_blks_hit, idx_blks_read, idx_blks_hit, toast_blks_read, toast_blks_hit, tidx_blks_read, tidx_blks_hit FROM pg_statio_user_tables"
+  query: "SELECT current_database() datname, schemaname, relname, heap_blks_read, heap_blks_hit, idx_blks_read, idx_blks_hit, toast_blks_read, toast_blks_hit, tidx_blks_read, tidx_blks_hit FROM pg_catalog.pg_statio_user_tables"
   metrics:
     - datname:
         usage: "LABEL"
@@ -125,7 +125,7 @@ pg_statio_user_tables:
         description: "Number of buffer hits in this table's TOAST table indexes (if any)"
 
 pg_database:
-  query: "SELECT pg_database.datname, pg_database_size(pg_database.datname) as size FROM pg_database"
+  query: "SELECT pg_database.datname, pg_database_size(pg_database.datname) as size FROM pg_catalog.pg_database"
   master: true
   cache_seconds: 30
   metrics:
@@ -155,7 +155,7 @@ pg_archiver:
           ('x'||substring(last_archived_wal,9,8))::bit(32)::int log,
           ('x'||substring(last_archived_wal,17,8))::bit(32)::int seg,
           last_archived_wal
-        FROM pg_stat_archiver
+        FROM pg_catalog.pg_stat_archiver
       )
     SELECT coalesce(((cw.log - aw.log) * 256) + (cw.seg-aw.seg),'NaN'::float) as pending_wal_count FROM current_wal cw, archive_wal aw 
   metrics:
@@ -164,7 +164,7 @@ pg_archiver:
         description: "No. of pending WAL files to be archived"
 
 pg_stat_user_indexes:
-  query: "SELECT current_database() datname, schemaname, relname, indexrelname, idx_scan, idx_tup_read, idx_tup_fetch FROM pg_stat_user_indexes"
+  query: "SELECT current_database() datname, schemaname, relname, indexrelname, idx_scan, idx_tup_read, idx_tup_fetch FROM pg_catalog.pg_stat_user_indexes"
   metrics:
     - datname:
         usage: "LABEL"
@@ -189,7 +189,7 @@ pg_stat_user_indexes:
         description: "Number of live table rows fetched by simple index scans using this index"
 
 pg_statio_user_indexes:
-  query: "SELECT current_database() datname, schemaname, relname, indexrelname, idx_blks_read, idx_blks_hit FROM pg_statio_user_indexes"
+  query: "SELECT current_database() datname, schemaname, relname, indexrelname, idx_blks_read, idx_blks_hit FROM pg_catalog.pg_statio_user_indexes"
   metrics:
     - datname:
         usage: "LABEL"
@@ -216,7 +216,7 @@ pg_total_relation_size:
            relnamespace::regnamespace as schemaname,
            relname as relname,
            pg_total_relation_size(oid) bytes
-      FROM pg_class
+      FROM pg_catalog.pg_class
      WHERE relkind = 'r';
   metrics:
     - datname:
@@ -265,10 +265,11 @@ pg_blocked:
         description: "The table on which a query is blocked"
 
 pg_oldest_blocked:
+  master: true
   query: |
     SELECT datname,
       coalesce(extract('epoch' from max(clock_timestamp() - state_change)), 0) age_seconds
-    FROM pg_stat_activity
+    FROM pg_catalog.pg_stat_activity
     WHERE wait_event_type = 'Lock'
     AND state='active'
     GROUP BY datname
@@ -281,9 +282,10 @@ pg_oldest_blocked:
         description: "Database name"
 
 pg_slow:
+  master: true
   query: |
     SELECT datname, COUNT(*) AS queries
-    FROM pg_stat_activity
+    FROM pg_catalog.pg_stat_activity
     WHERE state = 'active' AND (now() - query_start) > '1 seconds'::interval
     GROUP BY datname;
   metrics:
@@ -295,10 +297,11 @@ pg_slow:
         description: "Database name"
 
 pg_long_running_transactions:
+  master: true
   query: |
     SELECT datname, COUNT(*) as transactions,
     MAX(EXTRACT(EPOCH FROM (clock_timestamp() - xact_start))) AS age_in_seconds
-    FROM pg_stat_activity
+    FROM pg_catalog.pg_stat_activity
     WHERE state is distinct from 'idle' AND (now() - xact_start) > '1 minutes'::interval AND query not like '%VACUUM%'
     GROUP BY datname
   metrics:
@@ -313,6 +316,7 @@ pg_long_running_transactions:
         description: "The current maximum transaction age in seconds"
 
 pg_vacuum:
+  master: true
   query: |
     SELECT
       datname,
@@ -333,6 +337,7 @@ pg_vacuum:
         description: "The current maximum VACUUM query age in seconds"
 
 pg_vacuum_analyze:
+  master: true
   query: |
     SELECT
       datname,
@@ -353,10 +358,11 @@ pg_vacuum_analyze:
         description: "The current maximum VACUUM ANALYZE query age in seconds"
 
 pg_stuck_idle_in_transaction:
+  master: true
   query: |
     SELECT datname,
       COUNT(*) AS queries
-    FROM pg_stat_activity
+    FROM pg_catalog.pg_stat_activity
     WHERE state = 'idle in transaction' AND (now() - query_start) > '10 minutes'::interval
     GROUP BY datname
   metrics:
@@ -387,7 +393,7 @@ pg_txid:
 
 pg_database_datfrozenxid:
   master: true
-  query: "SELECT datname, age(datfrozenxid) AS age FROM pg_database"
+  query: "SELECT datname, age(datfrozenxid) AS age FROM pg_catalog.pg_database"
   metrics:
     - datname:
         usage: "LABEL"
@@ -419,7 +425,7 @@ pg_replication_slots:
            age(catalog_xmin) AS catalog_xmin_age,
            CASE WHEN pg_is_in_recovery() THEN pg_last_wal_receive_lsn() ELSE pg_current_wal_lsn() END - restart_lsn AS restart_lsn_bytes,
            CASE WHEN pg_is_in_recovery() THEN pg_last_wal_receive_lsn() ELSE pg_current_wal_lsn() END - confirmed_flush_lsn AS confirmed_flush_lsn_bytes
-      FROM pg_replication_slots
+      FROM pg_catalog.pg_replication_slots
   metrics:
     - slot_name:
         usage: "LABEL"
@@ -449,7 +455,7 @@ pg_stat_ssl:
     SELECT pid, bits,
            CASE WHEN ssl THEN 1.0 ELSE 0.0 END AS active,
            CASE WHEN compression THEN 1.0 ELSE 0.0 END AS compression
-           FROM pg_stat_ssl
+           FROM pg_catalog.pg_stat_ssl
   metrics:
     - pid:
         usage: "LABEL"
@@ -477,10 +483,10 @@ pg_table_bloat:
             n_live_tup::numeric as est_rows,
             pg_table_size(relid)::numeric as table_size
         FROM information_schema.columns
-            JOIN pg_stat_user_tables as psut
+            JOIN pg_catalog.pg_stat_user_tables as psut
               ON table_schema = psut.schemaname
               AND table_name = psut.relname
-            LEFT OUTER JOIN pg_stats
+            LEFT OUTER JOIN pg_catalog.pg_stats
             ON table_schema = pg_stats.schemaname
                 AND table_name = pg_stats.tablename
                 AND column_name = attname
@@ -498,7 +504,7 @@ pg_table_bloat:
             schemaname,
             tablename,
             hdr, ma, bs
-        FROM pg_stats CROSS JOIN constants
+        FROM pg_catalog.pg_stats CROSS JOIN constants
             LEFT OUTER JOIN no_stats
                 ON schemaname = no_stats.table_schema
                 AND tablename = no_stats.table_name
@@ -528,8 +534,8 @@ pg_table_bloat:
                     )/(bs-20))) * bs AS expected_bytes,
             reltoastrelid
         FROM data_headers
-            JOIN pg_class ON tablename = relname
-            JOIN pg_namespace ON relnamespace = pg_namespace.oid
+            JOIN pg_catalog.pg_class ON tablename = relname
+            JOIN pg_catalog.pg_namespace ON relnamespace = pg_namespace.oid
                 AND schemaname = nspname
         WHERE pg_class.relkind = 'r'),
     estimates_with_toast AS (
@@ -541,7 +547,7 @@ pg_table_bloat:
             est_rows,
             table_bytes + ( coalesce(toast.relpages, 0) * bs ) as table_bytes,
             expected_bytes + ( ceil( coalesce(toast.reltuples, 0) / 4 ) * bs ) as expected_bytes
-        FROM table_estimates LEFT OUTER JOIN pg_class as toast
+        FROM table_estimates LEFT OUTER JOIN pg_catalog.pg_class as toast
             ON table_estimates.reltoastrelid = toast.oid
                 AND toast.relkind = 't'),
     table_estimates_plus AS (
@@ -632,11 +638,11 @@ pg_index:
             tableclass.relname as tablename,
             regexp_split_to_table(indkey::text, ' ')::smallint AS attnum,
             indexrelid as index_oid
-        FROM pg_index
-        JOIN pg_class AS indexclass ON pg_index.indexrelid = indexclass.oid
-        JOIN pg_class AS tableclass ON pg_index.indrelid = tableclass.oid
-        JOIN pg_namespace ON pg_namespace.oid = indexclass.relnamespace
-        JOIN pg_am ON indexclass.relam = pg_am.oid
+        FROM pg_catalog.pg_index
+        JOIN pg_catalog.pg_class AS indexclass ON pg_index.indexrelid = indexclass.oid
+        JOIN pg_catalog.pg_class AS tableclass ON pg_index.indrelid = tableclass.oid
+        JOIN pg_catalog.pg_namespace ON pg_namespace.oid = indexclass.relnamespace
+        JOIN pg_catalog.pg_am ON indexclass.relam = pg_am.oid
         WHERE pg_am.amname = 'btree' and indexclass.relpages > 0
             AND nspname NOT IN ('pg_catalog','information_schema')
         ),
@@ -653,9 +659,9 @@ pg_index:
             ELSE 6
         END AS index_tuple_hdr,
         sum( (1-coalesce(pg_stats.null_frac, 0)) * coalesce(pg_stats.avg_width, 1024) ) AS nulldatawidth
-        FROM pg_attribute
+        FROM pg_catalog.pg_attribute
         JOIN btree_index_atts AS ind_atts ON pg_attribute.attrelid = ind_atts.indexrelid AND pg_attribute.attnum = ind_atts.attnum
-        JOIN pg_stats ON pg_stats.schemaname = ind_atts.nspname
+        JOIN pg_catalog.pg_stats ON pg_stats.schemaname = ind_atts.nspname
             -- stats for regular index columns
             AND ( (pg_stats.tablename = ind_atts.tablename AND pg_stats.attname = pg_catalog.pg_get_indexdef(pg_attribute.attrelid, pg_attribute.attnum, TRUE)) 
             -- stats for functional indexes
@@ -703,8 +709,8 @@ pg_index:
             pg_relation_size(index_aligned_est.table_oid) as table_bytes,
             stat.idx_scan as index_scans
         FROM index_aligned_est
-        JOIN pg_class ON pg_class.oid=index_aligned_est.table_oid
-        JOIN pg_stat_user_indexes AS stat ON index_aligned_est.index_oid = stat.indexrelid
+        JOIN pg_catalog.pg_class ON pg_class.oid=index_aligned_est.table_oid
+        JOIN pg_catalog.pg_stat_user_indexes AS stat ON index_aligned_est.index_oid = stat.indexrelid
     ),
     format_bloat AS (
     SELECT dbname as database_name, nspname as schema_name, table_name, index_name,

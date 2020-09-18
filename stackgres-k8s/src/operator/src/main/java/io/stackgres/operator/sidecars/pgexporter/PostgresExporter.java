@@ -103,7 +103,7 @@ public class PostgresExporter implements StackGresClusterSidecarResourceFactory<
             + "set +x\n"
             + "while true\n"
             + "do\n"
-            + "  if [ -z \"$PID\" -o ! -d \"/proc/$PID\" ] \\\n"
+            + "  if ( [ -z \"$PID\" ] || [ ! -d \"/proc/$PID\" ] ) \\\n"
             + "    && [ -S '" + ClusterStatefulSetPath.PG_RUN_PATH.path()
               + "/.s.PGSQL." + Envoy.PG_PORT + "' ]\n"
             + "  then\n"
