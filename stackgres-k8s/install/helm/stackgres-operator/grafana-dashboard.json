@@ -4868,7 +4868,7 @@
           "targets": [
             {
               "expr": "topk(10, pg_index_bloat_mb{instance=~\"${instance}:9187\"})",
-              "legendFormat": "DB: {{database_name}}, Schema: {{schema_name}}, Table: {{table_name}}",
+              "legendFormat": "DB: {{datname}}, Schema: {{schemaname}}, Table: {{relname}}, Index: {{indexrelname}}",
               "refId": "A"
             }
           ],
@@ -4969,7 +4969,7 @@
           "targets": [
             {
               "expr": "topk(10, pg_index_bloat_pct{instance=~\"${instance}:9187\"})",
-              "legendFormat": "DB: {{database_name}}, Schema: {{schema_name}}, Table: {{table_name}}",
+              "legendFormat": "DB: {{datname}}, Schema: {{schemaname}}, Table: {{relname}}, Index: {{indexrelname}}",
               "refId": "A"
             }
           ],
@@ -5190,7 +5190,7 @@
             {
               "expr": "topk(20, pg_table_bloat_est_rows{instance=~\"${instance}:9187\"})",
               "interval": "",
-              "legendFormat": "Database: {{databasename}}, Schema:{{schemaname}}, Table: {{tablename}}",
+              "legendFormat": "Database: {{datname}}, Schema:{{schemaname}}, Table: {{relname}}",
               "refId": "A"
             }
           ],
@@ -5295,7 +5295,7 @@
             {
               "expr": "topk(20, pg_table_bloat_pct_bloat{instance=~\"${instance}:9187\"})",
               "interval": "",
-              "legendFormat": "Database: {{databasename}}, Schema: {{schemaname}}, Table: {{tablename}}",
+              "legendFormat": "Database: {{datname}}, Schema: {{schemaname}}, Table: {{relname}}",
               "refId": "A"
             }
           ],
@@ -5398,7 +5398,7 @@
             {
               "expr": "topk(20, pg_table_bloat_size_mb{instance=~\"${instance}:9187\"})",
               "interval": "",
-              "legendFormat": "Database: {{databasename}}, Schema: {{schemaname}}, Table: {{tablename}}",
+              "legendFormat": "Database: {{datname}}, Schema: {{schemaname}}, Table: {{relname}}",
               "refId": "A"
             }
           ],

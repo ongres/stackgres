@@ -131,14 +131,6 @@ public class PostgresExporter implements StackGresClusterSidecarResourceFactory<
             new EnvVarBuilder()
                 .withName("PG_EXPORTER_EXTEND_QUERY_PATH")
                 .withValue("/var/opt/postgres-exporter/queries.yaml")
-                .build(),
-            new EnvVarBuilder()
-                .withName("PG_EXPORTER_AUTO_DISCOVER_DATABASES")
-                .withValue("true")
-                .build(),
-            new EnvVarBuilder()
-                .withName("PG_EXPORTER_EXCLUDE_DATABASES")
-                .withValue("template0,template1")
                 .build())
         .withPorts(new ContainerPortBuilder()
             .withContainerPort(9187)
