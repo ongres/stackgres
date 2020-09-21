@@ -3,8 +3,6 @@ title: Patroni management
 weight: 2
 ---
 
-# Patroni management
-
 Once you hace a StackGres cluster installed you'll have a Full HA PostgreSQL configuration and depending of the size of your cluster you´ll have something like this:
 
 {{<mermaid>}}
@@ -37,7 +35,7 @@ stackgres-1   5/5     Running   0          163m
 stackgres-2   5/5     Running   0          162m
 ```
 
-### Identifying the master and replica nodes
+## Identifying the master and replica nodes
 
 One of the most important task is to be able to identify which node is the current master and which ones the replica nodes.
 
@@ -104,7 +102,7 @@ As you can see we get the cluster status from patroni node. We can appreciate so
 - The Lag in MB in case some of the node is not up to date.
 
 
-### How to perform a Switchover to a replica
+## How to perform a Switchover to a replica
 
 A switchover (or graceful switchover) is a planned role reversal between the primary and the one of the standby databases. This is used when there is a planned outage on the primary database or primary server and you do not want to have extended downtime on the primary database. The switchover allows you to switch the roles of the databases so that the standby databases now becomes a primary databases and all your users and applications can continue operations on the "new" primary node.
 

@@ -16,7 +16,7 @@ That means that all of error messages follows the following structure:
 }
 ```
 
-# Error types
+## Error types
 
 | Type | Summary |
 | ---- | ----------- |

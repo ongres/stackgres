@@ -3,7 +3,7 @@ title: Backups
 weight: 4
 ---
 
-# Creating a backup
+## Creating a backup
 
 The backup CR represent a backup of the cluster. Backups are created automatically by the CronJob
  generated using the settings in [backup configuration](#configuration) or manually by creating a
@@ -36,7 +36,7 @@ ___
 | [backupInformation](#backup-information)   | object  | {{< crd-field-description SGBackup.status.backupInformation >}} |
 | [sgBackupConfig](#configuration)           | object  | {{< crd-field-description SGBackup.status.sgBackupConfig >}} |
 
-## Backup Process
+### Backup Process
 
 | Property                         | Type    | Description |
 |:---------------------------------|:--------|:------------|
@@ -46,14 +46,14 @@ ___
 | managedLifecycle         | boolean | {{< crd-field-description SGBackup.status.process.managedLifecycle >}} |
 | [timing](#backup-timing)         | object  | {{< crd-field-description SGBackup.status.process.timing >}} |
 
-### Backup Timing
+#### Backup Timing
 | Property                         | Type    | Description |
 |:---------------------------------|:--------|:------------|
 | start                            | string  | {{< crd-field-description SGBackup.status.process.timing.start >}} |
 | end                              | string  | {{< crd-field-description SGBackup.status.process.timing.end >}} |
 | stored                           | string  | {{< crd-field-description SGBackup.status.process.timing.stored >}} |
 
-## Backup Intormation
+### Backup Intormation
 | Property                         | Type    | Description |
 |:---------------------------------|:--------|:------------|
 | hostname (deprecated)            | string  | {{< crd-field-description SGBackup.status.backupInformation.hostname >}} |
@@ -66,14 +66,14 @@ ___
 | startWalFile                     | string  | {{< crd-field-description SGBackup.status.backupInformation.startWalFile >}} |
 | controlData                      | object  | {{< crd-field-description SGBackup.status.backupInformation.controlData >}} |
 
-### Backup Size
+#### Backup Size
 
 | Property                         | Type    | Description |
 |:---------------------------------|:--------|:------------|
 | compressed                       | integer | {{< crd-field-description SGBackup.status.backupInformation.size.compressed >}} |
 | uncompressed                     | integer | {{< crd-field-description SGBackup.status.backupInformation.size.uncompressed >}} |
 
-### Backup LSN
+#### Backup LSN
 
 | Property                      | Type    | Description |
 |:------------------------------|:--------|:------------|
@@ -131,7 +131,7 @@ status:
     startWalFile: 00000002000000000000000E
 ```
 
-# Configuration
+## Configuration
 
 Backup configuration allow to specify when and how backups are performed. By default this is done
  at 5am UTC in a window of 1 hour, you may change this value in order to perform backups for
@@ -203,7 +203,7 @@ If a backup configuration is not specified in the cluster settings, a new one wi
 
 The default name of backup configuration CR is `defaultbackupconfig`
 
-# Base Backups
+## Base Backups
 
 | Property                                 | Required | Updatable |Type     | Default   | Description |
 |:-----------------------------------------|----------|-----------|:--------|:----------|:------------|
@@ -212,7 +212,7 @@ The default name of backup configuration CR is `defaultbackupconfig`
 | compression                              |          | ✓         | string  | lz4       | {{< crd-field-description SGBackupConfig.spec.baseBackups.compression >}} |
 | [performance](#base-backup-performance)  |          | ✓         | object  |           | {{< crd-field-description SGBackupConfig.spec.baseBackups.performance >}} |
 
-# Base Backup Performance
+## Base Backup Performance
 
 | Property                               | Required | Updatable |Type     | Default   | Description |
 |:---------------------------------------|----------|-----------|:--------|:----------|:------------|
@@ -220,7 +220,7 @@ The default name of backup configuration CR is `defaultbackupconfig`
 | maxNetworkBandwitdh                    |          | ✓         | integer | unlimited | {{< crd-field-description SGBackupConfig.spec.baseBackups.performance.maxNetworkBandwitdh >}} |
 | uploadDiskConcurrency                  |          | ✓         | integer | 1         | {{< crd-field-description SGBackupConfig.spec.baseBackups.performance.uploadDiskConcurrency >}} |
 
-# Storage Configuration
+## Storage Configuration
 
 | Property                                                             | Required               | Updatable | Type   | Default | Description |
 |:---------------------------------------------------------------------|------------------------|-----------|:-------|:--------|:------------|
