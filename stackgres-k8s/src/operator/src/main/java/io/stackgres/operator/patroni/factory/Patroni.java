@@ -5,8 +5,6 @@
 
 package io.stackgres.operator.patroni.factory;
 
-import java.util.List;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 import javax.inject.Inject;
@@ -34,7 +32,6 @@ import io.stackgres.common.LabelFactory;
 import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSetEnvironmentVariables;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSetPath;
 import io.stackgres.operator.cluster.factory.ClusterStatefulSetVolumeConfig;
@@ -45,7 +42,6 @@ import io.stackgres.operator.common.StackGresComponents;
 import io.stackgres.operator.common.StackGresGeneratorContext;
 import io.stackgres.operator.sidecars.envoy.Envoy;
 import io.stackgres.operatorframework.resource.ResourceGenerator;
-import org.jooq.lambda.Seq;
 
 @Singleton
 public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
@@ -143,13 +139,7 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
             ClusterStatefulSetVolumeConfig.RESTORE_SECRET)
             .toArray(VolumeMount[]::new))
         .addToVolumeMounts(
-            Seq.of(Optional.ofNullable(
-                cluster.getSpec().getInitData())
-                .map(StackGresClusterInitData::getScripts))
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .flatMap(List::stream)
-                .zipWithIndex()
+            clusterContext.getIndexedScripts()
                 .map(t -> new VolumeMountBuilder()
                     .withName(PatroniScriptsConfigMap.name(clusterContext, t))
                     .withMountPath("/etc/patroni/init-script.d/"
@@ -196,13 +186,7 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
   @Override
   public ImmutableList<Volume> getVolumes(StackGresGeneratorContext context) {
     final StackGresClusterContext clusterContext = context.getClusterContext();
-    return Seq.of(Optional.ofNullable(
-        clusterContext.getCluster().getSpec().getInitData())
-        .map(StackGresClusterInitData::getScripts))
-        .filter(Optional::isPresent)
-        .map(Optional::get)
-        .flatMap(List::stream)
-        .zipWithIndex()
+    return clusterContext.getIndexedScripts()
         .filter(t -> t.v1.getScript() != null)
         .map(t -> new VolumeBuilder()
             .withName(PatroniScriptsConfigMap.name(clusterContext, t))
@@ -211,13 +195,7 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
                 .withOptional(false)
                 .build())
             .build())
-        .append(Seq.of(Optional.ofNullable(
-            clusterContext.getCluster().getSpec().getInitData())
-            .map(StackGresClusterInitData::getScripts))
-            .filter(Optional::isPresent)
-            .map(Optional::get)
-            .flatMap(List::stream)
-            .zipWithIndex()
+        .append(clusterContext.getIndexedScripts()
             .filter(t -> t.v1.getScriptFrom() != null)
             .filter(t -> t.v1.getScriptFrom().getConfigMapKeyRef() != null)
             .map(t -> new VolumeBuilder()
@@ -227,13 +205,7 @@ public class Patroni implements StackGresClusterSidecarResourceFactory<Void> {
                     .withOptional(false)
                     .build())
                 .build()))
-        .append(Seq.of(Optional.ofNullable(
-            clusterContext.getCluster().getSpec().getInitData())
-            .map(StackGresClusterInitData::getScripts))
-            .filter(Optional::isPresent)
-            .map(Optional::get)
-            .flatMap(List::stream)
-            .zipWithIndex()
+        .append(clusterContext.getIndexedScripts()
             .filter(t -> t.v1.getScriptFrom() != null)
             .filter(t -> t.v1.getScriptFrom().getSecretKeyRef() != null)
             .map(t -> new VolumeBuilder()

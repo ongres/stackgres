@@ -53,6 +53,18 @@ public class ResourceUtil {
     return name;
   }
 
+  public static String volumeName(String name) {
+    Preconditions.checkArgument(name.length() <= 63);
+    return name;
+  }
+
+  public static String cutVolumeName(String name) {
+    if (name.length() <= 63) {
+      return name;
+    }
+    return name.substring(0, 63);
+  }
+
   public static String containerName(String name) {
     Preconditions.checkArgument(name.length() <= 63);
     return name;
