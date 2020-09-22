@@ -66,6 +66,35 @@ set_up_private_repository() {
     --docker-username="AWS" \
     --docker-password="$(get_private_repository_password)"
   fi
+
+  if kubectl get serviceaccount -n "$OPERATOR_NAMESPACE" stackgres-operator > /dev/null
+  then
+    kubectl delete serviceaccount -n "$OPERATOR_NAMESPACE" stackgres-operator
+    cat <<EOF | kubectl apply -f -
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: stackgres-operator
+  namespace: $OPERATOR_NAMESPACE
+imagePullSecrets:
+- name: regcred
+EOF
+  fi
+
+  if kubectl get serviceaccount -n "$OPERATOR_NAMESPACE" stackgres-restapi > /dev/null
+  then
+    kubectl delete serviceaccount -n "$OPERATOR_NAMESPACE" stackgres-restapi
+    cat <<EOF | kubectl apply -f -
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: stackgres-restapi
+  namespace: $OPERATOR_NAMESPACE
+imagePullSecrets:
+- name: regcred
+EOF
+  fi
+
 }
 
 get_private_repository_uri() {

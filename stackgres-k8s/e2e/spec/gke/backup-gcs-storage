@@ -26,7 +26,7 @@ e2e_test_install() {
     -n "$CLUSTER_NAMESPACE"
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 \
-    --set-string cluster.configurations.shBackupConfig=backupconf
+    --set-string cluster.configurations.sgBackupConfig=backupconf
 
   wait_pods_running "$CLUSTER_NAMESPACE" 1
 
@@ -45,6 +45,8 @@ e2e_test_uninstall(){
 
 e2e_test() {
   run_test "Check that backup is executed successfully" execute_backup
+
+  run_test "Check that backups status contains backupconfig" compare_backup_with_backupconf
 
   run_test "Check that restoration is executed successfully" restore_from_backup
 
@@ -76,9 +78,19 @@ spec:
   managedLifecycle: false
 EOF
   
+  wait_until is_backup_phase "Running"
+
   wait_until is_backup_phase "Completed"
 
   echo "Success. Backup completed"
+}
+
+compare_backup_with_backupconf(){
+  EXPECTED_COMPRESSION=$(kubectl get sgbackupconfigs -n "$CLUSTER_NAMESPACE" backupconf -o jsonpath='{.spec.baseBackups.compression}')
+  ACTUAL_COMPRESSION=$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" -o jsonpath='{.status.sgBackupConfig.baseBackups.compression}')
+
+  assert_string_equal "$EXPECTED_COMPRESSION" "$ACTUAL_COMPRESSION"
+
 }
 
 restore_from_backup() {
