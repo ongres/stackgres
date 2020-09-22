@@ -3,8 +3,6 @@ title: Create your first cluster
 weight: 3
 ---
 
-# Installation with kubectl
-
 To create your first StackGres cluster you have to create a simple custom resource that reflect
  the cluster configuration. Assuming you have already installed the
  [kubectl CLI](https://kubernetes.io/docs/tasks/tools/install-kubectl/) you can proceed by
@@ -37,13 +35,13 @@ By default backup are not enabled. To enable them you have to provide a storage 
 
 Clean up the previously created cluster:
 
-```shell
+```bash
 kubectl delete sgcluster simple
 ```
 
 Create the minio service and the backup configuration with default parameters:
 
-```shell
+```bash
 kubectl create -f {{< download-url >}}/demo-minio.yml
 
 cat << 'EOF' | kubectl create -f -
@@ -72,7 +70,7 @@ EOF
 
 Then create the StackGres cluster indicating the previously created backup configuration:
 
-```shell
+```bash
 cat << 'EOF' | kubectl create -f -
 apiVersion: stackgres.io/v1beta1
 kind: SGCluster
@@ -91,7 +89,7 @@ EOF
 
 To clean up the resources created by this demo just run:
 
-```
+```bash
 kubectl delete sgcluster simple
 kubectl delete sgbackupconfig simple
 kubectl delete -f {{< download-url >}}/demo-minio.yml
@@ -120,7 +118,7 @@ helm uninstall simple
 A cluster called `simple` will be deployed in the default namespace
  that is configured in your environment (normally this is the namespace `default`).
 
-```
+```bash
 watch kubectl get pod -o wide
 ```
 
@@ -133,41 +131,74 @@ default     simple-minio-7dfd746f88-7ndmq   1/1     Running           0         
 
 # Open a psql console
 
-To open a psql console and manage the PostgreSQL cluster you may connect to the postgres-util
- container of primary instance (with label `role: master`):
+To open a psql console and manage the PostgreSQL cluster you may connect to the postgres-util container of primary instance (with label `role: master`):
 
+```bash
+kubectl exec -ti "$(kubectl get pod --selector app=StackGresCluster,cluster=true,role=master -o name)" -c postgres-util -- psql
 ```
-kubectl exec -ti "$(kubectl get pod --selector app=StackGres,cluster=true,role=master -o name)" -c postgres-util -- psql
-```
+> **IMPORTANT:** Connecting directly trough the `postgres-util` sidecar will grant you access with the postgres user. It will work similar to `sudo -i postgres -c psql`.
 
-```
-psql (11.6 OnGres Inc.)
+
+A full example:
+
+```bash 
+➜ kubectl exec -ti "$(kubectl get pod --selector app=StackGresCluster,cluster=true,role=master -o name)" -c postgres-util -- psql
+psql (12.3 OnGres Inc.)
 Type "help" for help.
+
+postgres=# select current_user;
+ current_user 
+--------------
+ postgres
+(1 row)
 
 postgres=# CREATE USER app WITH PASSWORD 'test';
 CREATE ROLE
 postgres=# CREATE DATABASE app WITH OWNER app;
 CREATE DATABASE
+postgres=# \q
 ```
+
+Please check [about the postgres-util side car]({{% relref "/05-postgres-administration/01-local-connection-and-the-postgres-util-sidecar" %}}) and [how to connect to the postgres cluster]({{% relref "/04-postgres-cluster-management/05-connecting-to-the-postgres-cluster" %}}) for more details.
 
 # Manage the status of the PostgreSQL cluster
 
 You can also open a shell in any instance to use patronictl and control the status of the cluster:
 
-```
-kubectl exec -ti "$(kubectl get pod --selector app=StackGres,cluster=true -o name | head -n 1)" -c patroni -- patronictl list
+```bash
+kubectl exec -ti "$(kubectl get pod --selector app=StackGresCluster,cluster=true -o name | head -n 1)" -c patroni -- patronictl list
 ```
 
-```
-sh-4.4$ patronictl list
-+---------+----------+-----------------+--------+---------+----+-----------+
-| Cluster |  Member  |       Host      |  Role  |  State  | TL | Lag in MB |
-+---------+----------+-----------------+--------+---------+----+-----------+
-| default | simple-0 | 10.244.2.5:5433 |        | running |  2 |       0.0 |
-| default | simple-1 | 10.244.1.7:5433 | Leader | running |  2 |           |
-+---------+----------+-----------------+--------+---------+----+-----------+
+Full example:
+
+```bash
+➜ kubectl exec -ti "$(kubectl get pod --selector app=StackGresCluster,cluster=true -o name | head -n 1)" -c patroni -- patronictl list
++ Cluster: simple (6868989109118287945) ---------+----+-----------+
+|  Member  |       Host       |  Role  |  State  | TL | Lag in MB |
++----------+------------------+--------+---------+----+-----------+
+| simple-0 | 10.244.0.9:7433  | Leader | running |  1 |           |
+| simple-1 | 10.244.0.11:7433 |        | running |  1 |         0 |
++----------+------------------+--------+---------+----+-----------+
 ```
 
 # Connect from an application
 
-You will be able to connect to the cluster primary instance using service DNS `simple-primary` from a pod in the same namespace.
+Each `SGCluster` will create a service for both the primary and the replicas. They will be create as `${CLUSTER-NAME}-primary` and `${CLUSTER-NAME}-replicas`.
+
+You will be able to connect to the cluster primary instance using service DNS `simple-primary` from any pod in the same namespace.
+
+For example:
+
+```bash
+➜ kubectl run -it psql-connect --rm --image=postgres:12 -- psql -U postgres -h simple-primary                    
+If you don't see a command prompt, try pressing enter.
+
+psql (12.4 (Debian 12.4-1.pgdg100+1), server 12.3 OnGres Inc.)
+Type "help" for help.
+
+postgres=# \q
+Session ended, resume using 'kubectl attach psql-connect -c psql-connect -i -t' command when the pod is running
+pod "psql-connect" deleted
+```
+
+Check [how to connect to the cluster]({{% relref "04-postgres-cluster-management/05-connecting-to-the-postgres-cluster#dns-resolution" %}}) for more details.

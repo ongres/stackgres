@@ -23,7 +23,7 @@ Besides the [standard PostgreSQL extensions](https://www.postgresql.org/docs/cur
 * [pg_healpix](https://gitlab.com/ongresinc/pg_healpix)
 * [pg_q3c](https://github.com/segasai/q3c)
 
-Check the current [version on the releases]({{% relref "/01-introduction/06-versions#additional-extensions-included-on-stackgres" %}})   page.
+Check the current [version on the releases]({{% relref "/01-introduction/06-versions#additional-extensions-included-on-stackgres" %}}) page.
 
 To list all available extensions, use the view [`pg_avaiable_extensions`](https://www.postgresql.org/docs/current/view-pg-available-extensions.html), like bellow:
 
