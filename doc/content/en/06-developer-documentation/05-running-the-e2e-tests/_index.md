@@ -16,11 +16,11 @@ The E2E tests are grouped by specs, and they are contained in the folder stackgr
 
 There is also several util functions which are localted in the folder stackgres-k8s/e2e/utils
 
-# E2E tests with kind
+## E2E tests with kind
 
 By default e2e tests are made with kind, so you don't need to specify anything to use it other than having kind installed.
 
-# E2E tests with other environment
+## E2E tests with other environment
 
 Environment can be specified using the `ENV` environment variable. Currently we support following environment:
 

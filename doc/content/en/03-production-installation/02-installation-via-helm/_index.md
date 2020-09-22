@@ -3,19 +3,19 @@ title: Installation via Helm
 weight: 2
 ---
 
-StackGres operator and clusters can be installed using [helm](https://helm.sh/) version >= `3.1.1`.
+StackGres operator and clusters can be installed using [Helm](https://helm.sh/) version >= `3.1.1`.
 
 ## Install Operator
 
 Create `stackgres` namespace if doesn't exists already
 
-``` shell
+```bash
 kubectl create namespace stackgres
 ```
 
 Install the operator with the following command:
 
-```shell
+```bash
 helm install --namespace stackgres stackgres-operator \
   --values my-operator-values.yml \
   {{< download-url >}}/helm-operator.tgz
@@ -25,7 +25,7 @@ helm install --namespace stackgres stackgres-operator \
 
 Upgrade the operator with the following command:
 
-```shell
+```bash
 helm upgrade --namespace stackgres stackgres-operator \
   --values my-operator-values.yml \
   {{< download-url >}}/helm-operator.tgz
@@ -85,7 +85,7 @@ You can specify following parameters values:
 
 To install a cluster you can use the following command:
 
-```shell
+```bash
 helm install --namespace my-namespace my-cluster \
   --values my-cluster-values.yml \
   {{< download-url >}}/demo-helm-cluster.tgz

@@ -3,7 +3,7 @@ title: RBAC Authorization Overview
 weight: 2
 ---
 
-# Authentication
+## Authentication
 
 In Kubernetes, you must be authenticated (logged in) before your request can be authorized (granted permission to
 access). The same applies to the Web UI of StackGres, you can create users to authenticate against a Kubernetes using a
@@ -30,7 +30,7 @@ data:
 You might wonder why are two username fields in the secret, the `apiUsername` is optional and is used to "customize" the
 username used for the login Web UI, the `k8sUsername` is the username that is used to impersonate the API calls to K8s.
 
-# Using RBAC Authorization
+## Using RBAC Authorization
 
 Role-based access control (RBAC) is a method of regulating access to computer or network resources based on the roles of
 individual users within your organization.
@@ -45,7 +45,7 @@ Kubernetes authorizes API requests using the API server. It evaluates all of the
 and allows or denies the request. All parts of an API request must be allowed by some policy in order to proceed. This
 means that permissions are denied by default.
 
-## API objects
+### API objects
 
 The RBAC API declares four kinds of Kubernetes object: _Role_, _ClusterRole_, _RoleBinding_ and _ClusterRoleBinding_. You can
 describe objects, or amend them, using tools such as kubectl, just like any other Kubernetes object.

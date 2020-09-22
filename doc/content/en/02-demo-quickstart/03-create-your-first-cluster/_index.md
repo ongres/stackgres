@@ -3,6 +3,8 @@ title: Create your first cluster
 weight: 3
 ---
 
+## Installation with kubectl
+
 To create your first StackGres cluster you have to create a simple custom resource that reflect
  the cluster configuration. Assuming you have already installed the
  [kubectl CLI](https://kubernetes.io/docs/tasks/tools/install-kubectl/) you can proceed by
@@ -95,7 +97,7 @@ kubectl delete sgbackupconfig simple
 kubectl delete -f {{< download-url >}}/demo-minio.yml
 ```
 
-# Installation with helm
+## Installation with helm
 
 You can also install a StackGres cluster using [helm vesion 3.x](https://github.com/helm/helm/releases)
  with the following command:
@@ -113,7 +115,7 @@ helm get hooks simple | kubectl delete --ignore-not-found -f -
 helm uninstall simple
 ```
 
-# Check cluster
+## Check cluster
 
 A cluster called `simple` will be deployed in the default namespace
  that is configured in your environment (normally this is the namespace `default`).
@@ -129,9 +131,9 @@ default     simple-1                        0/5     PodInitializing   0         
 default     simple-minio-7dfd746f88-7ndmq   1/1     Running           0          99s     10.244.1.5   kind-worker          <none>
 ```
 
-# Open a psql console
+## Open a psql console
 
-To open a psql console and manage the PostgreSQL cluster you may connect to the postgres-util container of primary instance (with label `role: master`):
+To open a psql console and manage the PostgreSQL cluster you may connect to the `postgres-util` container of primary instance (with label `role: master`):
 
 ```bash
 kubectl exec -ti "$(kubectl get pod --selector app=StackGresCluster,cluster=true,role=master -o name)" -c postgres-util -- psql
@@ -161,7 +163,7 @@ postgres=# \q
 
 Please check [about the postgres-util side car]({{% relref "/05-postgres-administration/01-local-connection-and-the-postgres-util-sidecar" %}}) and [how to connect to the postgres cluster]({{% relref "/04-postgres-cluster-management/05-connecting-to-the-postgres-cluster" %}}) for more details.
 
-# Manage the status of the PostgreSQL cluster
+## Manage the status of the PostgreSQL cluster
 
 You can also open a shell in any instance to use patronictl and control the status of the cluster:
 
@@ -181,7 +183,7 @@ Full example:
 +----------+------------------+--------+---------+----+-----------+
 ```
 
-# Connect from an application
+## Connect from an application
 
 Each `SGCluster` will create a service for both the primary and the replicas. They will be create as `${CLUSTER-NAME}-primary` and `${CLUSTER-NAME}-replicas`.
 
