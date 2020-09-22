@@ -3,7 +3,7 @@ title: "EKS"
 weight: 1
 ---
 
-This section will ilustrate how to create an AWS Elastic Kubernetes Service.
+This section will ilustrate how to create an [AWS Elastic Kubernetes Service](https://aws.amazon.com/eks/).
  Assuming you have already installed the [aws CLI](https://aws.amazon.com/cli/) and the [eksctl CLI](https://github.com/weaveworks/eksctl)
  you can proceed by creating the kubernetes cluster with following characteristics (that you may change):
 
@@ -14,7 +14,7 @@ This section will ilustrate how to create an AWS Elastic Kubernetes Service.
  * Number of nodes: 3
  * Disk size 20GB
 
-```shell
+```bash
 eksctl create cluster --name stackgres \
   --region us-west-2 \
   --node-type m5.large \
@@ -23,7 +23,7 @@ eksctl create cluster --name stackgres \
   --version 1.13
 ```
 
-```
+```bash
 [ℹ]  eksctl version 0.13.0
 [ℹ]  using region us-west-2
 [ℹ]  setting availability zones to [us-west-2a us-west-2c us-west-2b]
@@ -61,7 +61,7 @@ eksctl create cluster --name stackgres \
 
 To cleanup the kubernetes cluster you may issue following command:
 
-```shell
+```bash
 eksctl delete cluster --name stackgres \
   --region us-west-2 \
   --wait
@@ -69,7 +69,7 @@ eksctl delete cluster --name stackgres \
 
 You may also want to cleanup EBS used by persistence volumes that may have been created:
 
-```shell
+```bash
 aws ec2 describe-volumes --region us-west-2 --filters Name=tag-key,Values=kubernetes.io/cluster/stackgres \
   | jq -r '.Volumes[].VolumeId' | xargs -r -n 1 -I % aws ec2 delete-volume --region us-west-2 --volume-id %
 ```

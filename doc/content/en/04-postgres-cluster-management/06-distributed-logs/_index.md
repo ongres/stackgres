@@ -3,7 +3,7 @@ title: Distributed logs
 weight: 6
 ---
 
-# Creating a distributed logs cluster
+## Creating a distributed logs cluster
 
 The distributed logs CR represent a distributed logs cluster. When a cluster is configured to use a
  distributed logs cluster it will forward all logs to the distributed logs cluster.

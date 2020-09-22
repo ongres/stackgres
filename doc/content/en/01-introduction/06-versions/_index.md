@@ -3,7 +3,7 @@ title: "Versions"
 weight: 6
 ---
 
-# StackGres 0.9
+## StackGres 0.9
 
 | Component | Versions |
 | ------ | ----------- |
@@ -16,7 +16,7 @@ weight: 6
 | Fluent-Bit | 1.4.4 |
 | Fluentd | 1.9.3 |
 
-## Additional extensions included on StackGres
+### Additional extensions included on StackGres
 
 All extensions bellow are available for both PostgreSQL 11 and 12:
 
@@ -30,7 +30,7 @@ All extensions bellow are available for both PostgreSQL 11 and 12:
 | pg_healpix | [latest](https://gitlab.com/ongresinc/pg_healpix/-/tree/1-add-extension-compatibility) |
 | pg_q3c | [v2.0.0](https://github.com/segasai/q3c/releases/tag/v2.0.0) |
 
-# StackGres 0.9-RC3
+## StackGres 0.9-RC3
 
 | Component | Versions |
 | ------ | ----------- |
@@ -43,7 +43,7 @@ All extensions bellow are available for both PostgreSQL 11 and 12:
 | Fluent-Bit | 1.4.4 |
 | Fluentd | 1.9.3 |
 
-# StackGres 0.9-RC2
+## StackGres 0.9-RC2
 
 | Component | Versions |
 | ------ | ----------- |
@@ -56,7 +56,7 @@ All extensions bellow are available for both PostgreSQL 11 and 12:
 | Fluent-Bit | 1.4.4 |
 | Fluentd | 1.9.3 |
 
-# StackGres 0.9-RC1
+## StackGres 0.9-RC1
 
 | Component | Versions |
 | ------ | ----------- |
@@ -69,7 +69,7 @@ All extensions bellow are available for both PostgreSQL 11 and 12:
 | Fluent-Bit | 1.4.4 |
 | Fluentd | 1.9.3 |
 
-# StackGres 0.9-beta3
+## StackGres 0.9-beta3
 
 | Component | Versions |
 | ------ | ----------- |
@@ -82,7 +82,7 @@ All extensions bellow are available for both PostgreSQL 11 and 12:
 | Fluent-Bit | 1.4.1 |
 | Fluentd | 1.9.3 |
 
-# StackGres 0.9-beta2
+## StackGres 0.9-beta2
 
 | Component | Versions |
 | ------ | ----------- |
@@ -95,7 +95,7 @@ All extensions bellow are available for both PostgreSQL 11 and 12:
 | Fluent-Bit | 1.4.1 |
 | Fluentd | 1.9.3 |
 
-# StackGres 0.9-beta1
+## StackGres 0.9-beta1
 
 | Component | Versions |
 | ------ | ----------- |
@@ -108,7 +108,7 @@ All extensions bellow are available for both PostgreSQL 11 and 12:
 | Fluent-Bit | 1.4.1 |
 | Fluentd | 1.9.3 |
 
-# StackGres 0.9-alpha1
+## StackGres 0.9-alpha1
 
 | Component | Versions |
 | ------ | ----------- |
@@ -119,7 +119,7 @@ All extensions bellow are available for both PostgreSQL 11 and 12:
 | Postgres Exporter | 0.8.0 |
 | Envoy | 1.13.1 |
 
-# StackGres 0.8
+## StackGres 0.8
 
 | Component | Versions |
 | ------ | ----------- |

@@ -3,7 +3,7 @@ title: "GKE"
 weight: 1
 ---
 
-To create a Google Kubernetes Engine you have to do so in a [Google Cloud Project](https://cloud.google.com/resource-manager/docs/creating-managing-projects).
+To create a [Google Kubernetes Engine](https://cloud.google.com/kubernetes-engine/) you have to do so in a [Google Cloud Project](https://cloud.google.com/resource-manager/docs/creating-managing-projects).
  Assuming you have already do so and that you have installed the [gcloud CLI](https://cloud.google.com/sdk/gcloud/)
  you can proceed by creating the kubernetes cluster with following characteristics (that you may change):
 

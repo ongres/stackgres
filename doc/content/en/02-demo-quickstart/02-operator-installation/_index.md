@@ -3,7 +3,7 @@ title: Operator installation
 weight: 2
 ---
 
-# Installation with kubectl
+## Installation with kubectl
 
 We ship some kubernetes resources files in order to allow installation of the StackGres operator
  for demostration purpose. Assuming you have already installed the the
@@ -24,7 +24,7 @@ To clean up the resources created by the demo just run:
 kubectl delete --ignore-not-found -f {{< download-url >}}/demo-operator.yml
 ```
 
-# Installation with helm
+## Installation with helm
 
 You can also install the StackGres operator using [helm vesion 3.1.x](https://github.com/helm/helm/releases)
  with the following command:
@@ -47,7 +47,7 @@ To clean up the resources created by the demo just run:
 helm uninstall --namespace stackgres stackgres-operator
 ```
 
-# Wait for the operator start
+## Wait for the operator start
 
 Use the command below to be sure when the operation is ready to use:
 
@@ -68,7 +68,7 @@ stackgres-operator-create-certificate-2fltp   0/1     Completed   0          18m
 stackgres-restapi-66db44f45f-l5gz4            2/2     Running     0          18m
 ```
 
-# Connect to the UI
+## Connect to the UI
 
 To connect to the Web UI of the operator you may forward port 443 of the operator pod:
 

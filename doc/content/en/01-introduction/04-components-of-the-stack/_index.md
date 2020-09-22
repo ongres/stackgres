@@ -19,13 +19,13 @@ components in order to chose the ones that fit together and provide a production
 Our Postgres distribution is composed on a central core component (Postgres) and some other components that fulfill
 requirements in each different area required in the Postgres production distribution.
 
-# Core
+## Core
 
 The main container used for a Postgres cluster node uses an UBI 8 minimal image as its base to which is added a
 vanilla PostgreSQL v11, v12. It uses a persistent storage configured via StorageClass. Is always deployed with a
 sidecar util container to allow access for a system/database admisitrator.
 
-# Configuration
+## Configuration
 
 Run PostgreSQL using default configuration is a really bad idea in a production environment. PostgreSQL uses very
 conservative defaults so it must be tuned in order to achieve good performance of the database. Exists some places
@@ -38,7 +38,7 @@ where you can find information about Postgres configuration parameters and best 
 StackGres is tuned by default to achieve better performance than using the default configuration. User can still
 be configured by user in order to give the flexibility that some users needs.
 
-# Connection pooling
+## Connection pooling
 
 Connecting directly to PostgreSQL does not scale very well.
 
@@ -62,7 +62,7 @@ a cons that is the lack of multithreading that can lead to a saturation of CPU w
 that depends on the perfromnace of a sigle core of the CPU where it is running. Odyssey will be a good candidate to replace
 PgBouncer when it will become more mature.
 
-# High availability
+## High availability
 
 If a Postgres instance goes down or is not working properly we want our cluster to recover by chosing a working instance
 to convert to the new master and configure all the other instances and the application to point to this new master. We want
@@ -82,7 +82,7 @@ Patroni is the HA solution chosen for StackGres. It is a well proved solution th
 algorithms in order to provide a consistent mechanism for master election. In particular it is able to use the same
 distributed consensus algorithm used by Kubernetes so that it does not requires installation of other services.
 
-# Backup and disaster recovery
+## Backup and disaster recovery
 
 Backup tools solutions are also a very higly populated ecosystem:
 
@@ -104,14 +104,14 @@ command) and full backup support. Also, it provides out of the box features that
 (using a storage class that supports `ReadWriteMany` access mode) or a cloud storage between AWS S3, Google Cloud Storage
 or Azure Blob Storage. It also allow configure aspects like bandwidth or disk usage rate.
 
-# Log
+## Log
 
 We want to sotre our logs distributed across all our containers in a central location and be able to analyze them when
 needed. It does not exists a good solution for that so you have to build one. Exists [fluentd](https://www.fluentd.org/)
 and [Loki](https://grafana.com/oss/loki/), this last does not work very well with Postgres. An alternative is to store
 all the logs in Postgres using [Timescale](https://github.com/timescale/timescaledb).
 
-# Proxy
+## Proxy
 
 How do I locate the master, if it might be changing? How do I obtain traffic metrics? It is possible to manage traffic:
 duplicate, A/B to test cluster or event inspect it?
@@ -121,7 +121,7 @@ extensible in order to provide advanced funcionality based on the actual traffic
 in order to offer stats) or on connection characteristic (like the TLS certificate in order to chose to which node the
 connection have to be dispatched.
 
-# Monitoring
+## Monitoring
 
 Which monitoring solution can we use to monitor a Postgres cluster?
 
@@ -134,10 +134,16 @@ Which monitoring solution can we use to monitor a Postgres cluster?
 * [DataDog](https://www.datadoghq.com/)
 * [Prometheus](https://prometheus.io/)
 
-StackGres approach here is to enable as much monitoring solution as possible. Currently only Prometheus can connect
+
+StackGres approach here is to enable as much monitoring solution as possible. Currently, only Prometheus can connect
 to StackGres stats using the [PostgreSQL Server Exporter](https://github.com/wrouesnel/postgres_exporter).
 
-# User interface
+Take in account that Prometheus is a dependency and that StackGres expects that you install and configure it separately.
+
+Of course, we have provided an option to deploy Prometheus alongside with StackGres as part of the [Helm chart](/02-demo-quickstart/02-operator-installation/#installation-with-helm) (addin the flag `prometheus-operator.create=true`),
+but that is only for the [Demo/Quickstart](/02-demo-quickstart), therefore be careful to not enable it for production porpuses.
+
+## User interface
 
 Exists some user interface to interact with Postgres like pgadmin or dbviewer that allow to look at the database content
 and configuration. We need a user interface that is capable of manage an entire cluster. How do I list the clusters?
