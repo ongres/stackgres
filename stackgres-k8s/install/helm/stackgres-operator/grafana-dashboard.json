@@ -6404,7 +6404,7 @@
             {
               "expr": "pg_blocked_queries{instance=~\"${instance}:9187\"}",
               "interval": "",
-              "legendFormat": "Database: {{datname}}, Table: {{table}}",
+              "legendFormat": "Type: {{type}}, Database: {{datname}}, Schema: {{schemaname}}, RelType: {{reltype}}, Relation: {{relname}}",
               "refId": "A"
             }
           ],

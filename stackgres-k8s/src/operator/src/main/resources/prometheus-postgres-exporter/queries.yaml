@@ -1,796 +1,861 @@
-  pg_replication:
-    query: "SELECT EXTRACT(EPOCH FROM (now() - pg_last_xact_replay_timestamp())) as lag"
-    master: true
-    metrics:
-      - lag:
-          usage: "GAUGE"
-          description: "Replication lag behind master in seconds"
-      - is_replica:
-          usage: "GAUGE"
-          description: "Indicates if this host is a replica"
-  
-  pg_postmaster:
-    query: "SELECT pg_postmaster_start_time as start_time_seconds from pg_postmaster_start_time()"
-    master: true
-    metrics:
-      - start_time_seconds:
-          usage: "GAUGE"
-          description: "Time at which postmaster started"
-  
-  pg_stat_user_tables:
-    query: |
-      SELECT datname, ss.* FROM pg_database,
-        LATERAL (SELECT * FROM dblink('host=/var/run/postgresql port=5432 user=postgres dbname=' || datname,
-          'SELECT schemaname, relname, seq_scan, seq_tup_read, idx_scan, idx_tup_fetch, n_tup_ins, n_tup_upd, n_tup_del, n_tup_hot_upd, n_live_tup, n_dead_tup, n_mod_since_analyze, COALESCE(last_vacuum, ''1970-01-01Z'') as last_vacuum, COALESCE(last_autovacuum, ''1970-01-01Z'') as last_autovacuum, COALESCE(last_analyze, ''1970-01-01Z'') as last_analyze, COALESCE(last_autoanalyze, ''1970-01-01Z'') as last_autoanalyze, vacuum_count, autovacuum_count, analyze_count, autoanalyze_count FROM pg_catalog.pg_stat_user_tables')
-          AS (schemaname name, relname name, seq_scan bigint, seq_tup_read bigint, idx_scan bigint, idx_tup_fetch bigint, n_tup_ins bigint, n_tup_upd bigint, n_tup_del bigint, n_tup_hot_upd bigint, n_live_tup bigint, n_dead_tup bigint, n_mod_since_analyze bigint, last_vacuum timestamp with time zone, last_autovacuum timestamp with time zone, last_analyze timestamp with time zone, last_autoanalyze timestamp with time zone, vacuum_count bigint, autovacuum_count bigint, analyze_count bigint, autoanalyze_count bigint)) AS ss
-        WHERE datname NOT IN ('template0', 'template1');
-    master: true
-    metrics:
-      - datname:
-          usage: "LABEL"
-          description: "Name of current database"
-      - schemaname:
-          usage: "LABEL"
-          description: "Name of the schema that this table is in"
-      - relname:
-          usage: "LABEL"
-          description: "Name of this table"
-      - seq_scan:
-          usage: "COUNTER"
-          description: "Number of sequential scans initiated on this table"
-      - seq_tup_read:
-          usage: "COUNTER"
-          description: "Number of live rows fetched by sequential scans"
-      - idx_scan:
-          usage: "COUNTER"
-          description: "Number of index scans initiated on this table"
-      - idx_tup_fetch:
-          usage: "COUNTER"
-          description: "Number of live rows fetched by index scans"
-      - n_tup_ins:
-          usage: "COUNTER"
-          description: "Number of rows inserted"
-      - n_tup_upd:
-          usage: "COUNTER"
-          description: "Number of rows updated"
-      - n_tup_del:
-          usage: "COUNTER"
-          description: "Number of rows deleted"
-      - n_tup_hot_upd:
-          usage: "COUNTER"
-          description: "Number of rows HOT updated (i.e., with no separate index update required)"
-      - n_live_tup:
-          usage: "GAUGE"
-          description: "Estimated number of live rows"
-      - n_dead_tup:
-          usage: "GAUGE"
-          description: "Estimated number of dead rows"
-      - n_mod_since_analyze:
-          usage: "GAUGE"
-          description: "Estimated number of rows changed since last analyze"
-      - last_vacuum:
-          usage: "GAUGE"
-          description: "Last time at which this table was manually vacuumed (not counting VACUUM FULL)"
-      - last_autovacuum:
-          usage: "GAUGE"
-          description: "Last time at which this table was vacuumed by the autovacuum daemon"
-      - last_analyze:
-          usage: "GAUGE"
-          description: "Last time at which this table was manually analyzed"
-      - last_autoanalyze:
-          usage: "GAUGE"
-          description: "Last time at which this table was analyzed by the autovacuum daemon"
-      - vacuum_count:
-          usage: "COUNTER"
-          description: "Number of times this table has been manually vacuumed (not counting VACUUM FULL)"
-      - autovacuum_count:
-          usage: "COUNTER"
-          description: "Number of times this table has been vacuumed by the autovacuum daemon"
-      - analyze_count:
-          usage: "COUNTER"
-          description: "Number of times this table has been manually analyzed"
-      - autoanalyze_count:
-          usage: "COUNTER"
-          description: "Number of times this table has been analyzed by the autovacuum daemon"
-  
-  pg_statio_user_tables:
-    query: |
-      SELECT datname, ss.* FROM pg_database,
-        LATERAL (SELECT * FROM dblink('host=/var/run/postgresql port=5432 user=postgres dbname=' || datname,
-          'SELECT schemaname, relname, heap_blks_read, heap_blks_hit, idx_blks_read, idx_blks_hit, toast_blks_read, toast_blks_hit, tidx_blks_read, tidx_blks_hit FROM pg_catalog.pg_statio_user_tables')
-          AS (schemaname name, relname name, heap_blks_read bigint, heap_blks_hit bigint, idx_blks_read bigint, idx_blks_hit bigint, toast_blks_read bigint, toast_blks_hit bigint, tidx_blks_read bigint, tidx_blks_hit bigint)) AS ss
-        WHERE datname NOT IN ('template0', 'template1');
-    master: true
-    metrics:
-      - datname:
-          usage: "LABEL"
-          description: "Name of current database"
-      - schemaname:
-          usage: "LABEL"
-          description: "Name of the schema that this table is in"
-      - relname:
-          usage: "LABEL"
-          description: "Name of this table"
-      - heap_blks_read:
-          usage: "COUNTER"
-          description: "Number of disk blocks read from this table"
-      - heap_blks_hit:
-          usage: "COUNTER"
-          description: "Number of buffer hits in this table"
-      - idx_blks_read:
-          usage: "COUNTER"
-          description: "Number of disk blocks read from all indexes on this table"
-      - idx_blks_hit:
-          usage: "COUNTER"
-          description: "Number of buffer hits in all indexes on this table"
-      - toast_blks_read:
-          usage: "COUNTER"
-          description: "Number of disk blocks read from this table's TOAST table (if any)"
-      - toast_blks_hit:
-          usage: "COUNTER"
-          description: "Number of buffer hits in this table's TOAST table (if any)"
-      - tidx_blks_read:
-          usage: "COUNTER"
-          description: "Number of disk blocks read from this table's TOAST table indexes (if any)"
-      - tidx_blks_hit:
-          usage: "COUNTER"
-          description: "Number of buffer hits in this table's TOAST table indexes (if any)"
-  
-  pg_database:
-    query: "SELECT pg_database.datname, pg_database_size(pg_database.datname) as size FROM pg_catalog.pg_database"
-    master: true
-    cache_seconds: 30
-    metrics:
-      - datname:
-          usage: "LABEL"
-          description: "Name of the database"
-      - size_bytes:
-          usage: "GAUGE"
-          description: "Disk space used by the database"
-  
-  pg_archiver:
-    master: true
-    query: |
-      WITH
-        current_wal_file AS (
-           SELECT CASE WHEN NOT pg_is_in_recovery() THEN pg_walfile_name(pg_last_wal_replay_lsn()) ELSE NULL END pg_walfile_name
-        ),
-        current_wal AS (
-          SELECT
-            ('x'||substring(pg_walfile_name,9,8))::bit(32)::int log,
-            ('x'||substring(pg_walfile_name,17,8))::bit(32)::int seg,
-            pg_walfile_name
-          FROM current_wal_file
-        ),
-        archive_wal AS(
-          SELECT
-            ('x'||substring(last_archived_wal,9,8))::bit(32)::int log,
-            ('x'||substring(last_archived_wal,17,8))::bit(32)::int seg,
-            last_archived_wal
-          FROM pg_catalog.pg_stat_archiver
-        )
-      SELECT coalesce(((cw.log - aw.log) * 256) + (cw.seg-aw.seg),'NaN'::float) as pending_wal_count FROM current_wal cw, archive_wal aw 
-    metrics:
-      - pending_wal_count:
-          usage: "GAUGE"
-          description: "No. of pending WAL files to be archived"
-  
-  pg_stat_user_indexes:
-    query: |
-      SELECT datname, ss.* FROM pg_database,
-        LATERAL (SELECT * FROM dblink('host=/var/run/postgresql port=5432 user=postgres dbname=' || datname,
-          'SELECT schemaname, relname, indexrelname, idx_scan, idx_tup_read, idx_tup_fetch FROM pg_catalog.pg_stat_user_indexes')
-          AS (schemaname name, relname name, indexrelname name, idx_scan bigint, , idx_tup_read bigint, idx_tup_fetch bigint)) AS ss
-        WHERE datname NOT IN ('template0', 'template1');
-    master: true
-    query: "SELECT schemaname, relname, indexrelname, idx_scan, idx_tup_read, idx_tup_fetch FROM pg_catalog.pg_stat_user_indexes"
-    metrics:
-      - datname:
-          usage: "LABEL"
-          description: "Database name"
-      - schemaname:
-          usage: "LABEL"
-          description: "Name of the schema that this table is in"
-      - relname:
-          usage: "LABEL"
-          description: "Name of the table for this index"
-      - indexrelname:
-          usage: "LABEL"
-          description: "Name of this index"
-      - idx_scan:
-          usage: "COUNTER"
-          description: "Number of index scans initiated on this index"
-      - idx_tup_read:
-          usage: "COUNTER"
-          description: "Number of index entries returned by scans on this index"
-      - idx_tup_fetch:
-          usage: "COUNTER"
-          description: "Number of live table rows fetched by simple index scans using this index"
-  
-  pg_statio_user_indexes:
-    query: |
-      SELECT datname, ss.* FROM pg_database,
-        LATERAL (SELECT * FROM dblink('host=/var/run/postgresql port=5432 user=postgres dbname=' || datname,
-          'SELECT schemaname, relname, indexrelname, idx_blks_read, idx_blks_hit FROM pg_catalog.pg_statio_user_indexes')
-          AS (schemaname name, relname name, indexrelname name, idx_blks_read bigint, idx_blks_hit bigint)) AS ss
-        WHERE datname NOT IN ('template0', 'template1');
-    master: true
-    metrics:
-      - datname:
-          usage: "LABEL"
-          description: "Database name"
-      - schemaname:
-          usage: "LABEL"
-          description: "Name of the schema that this table is in"
-      - relname:
-          usage: "LABEL"
-          description: "Name of the table for this index"
-      - indexrelname:
-          usage: "LABEL"
-          description: "Name of this index"
-      - idx_blks_read:
-          usage: "COUNTER"
-          description: "Number of disk blocks read from this index"
-      - idx_blks_hit:
-          usage: "COUNTER"
-          description: "Number of buffer hits in this index"
-  
-  pg_total_relation_size:
-    query: |
-      SELECT datname, ss.* FROM pg_database,
-        LATERAL (SELECT * FROM dblink('host=/var/run/postgresql port=5432 user=postgres dbname=' || datname,
-          'SELECT relnamespace::regnamespace as schemaname, relname as relname, pg_total_relation_size(oid) bytes FROM pg_catalog.pg_class WHERE relkind = ''r''')
-          AS (schemaname name, relname name, bytes bigint)) AS ss
-        WHERE datname NOT IN ('template0', 'template1');
-    master: true
-    query: |
-      ;
-    metrics:
-      - datname:
-          usage: "LABEL"
-          description: "Database name"
-      - schemaname:
-          usage: "LABEL"
-          description: "Name of the schema that table is in"
-      - relname:
-          usage: "LABEL"
-          description: "Name of this table"
-      - bytes:
-          usage: "GAUGE"
-          description: "Total disk space usage for the specified table and associated indexes"
-  
-  pg_blocked:
-    master: true
-    query: |
-      SELECT
-        database.datname,
-        count(blocked.transactionid) AS queries,
-        '__transaction__' AS table
-      FROM pg_catalog.pg_locks blocked
-      INNER JOIN pg_catalog.pg_database database
-        ON blocked.database = database.oid
-      WHERE NOT blocked.granted AND locktype = 'transactionid'
-      GROUP BY datname, locktype
-      UNION
-      SELECT
-        database.datname,
-        count(blocked.relation) AS queries,
-        blocked.relation::regclass::text AS table
-      FROM pg_catalog.pg_locks blocked
-      INNER JOIN pg_catalog.pg_database database
-        ON blocked.database = database.oid
-      WHERE NOT blocked.granted AND locktype != 'transactionid'
-      GROUP BY datname, relation
-    metrics:
-      - datname:
-          usage: "LABEL"
-          description: "Database name"
-      - queries:
-          usage: "GAUGE"
-          description: "The current number of blocked queries"
-      - table:
-          usage: "LABEL"
-          description: "The table on which a query is blocked"
-  
-  pg_oldest_blocked:
-    master: true
-    query: |
-      SELECT datname,
-        coalesce(extract('epoch' from max(clock_timestamp() - state_change)), 0) age_seconds
-      FROM pg_catalog.pg_stat_activity
-      WHERE wait_event_type = 'Lock'
-      AND state='active'
-      GROUP BY datname
-    metrics:
-      - age_seconds:
-          usage: "GAUGE"
-          description: "Largest number of seconds any transaction is currently waiting on a lock"
-      - datname:
-          usage: "LABEL"
-          description: "Database name"
-  
-  pg_slow:
-    master: true
-    query: |
-      SELECT datname, COUNT(*) AS queries
-      FROM pg_catalog.pg_stat_activity
-      WHERE state = 'active' AND (now() - query_start) > '1 seconds'::interval
-      GROUP BY datname;
-    metrics:
-      - queries:
-          usage: "GAUGE"
-          description: "Current number of slow queries"
-      - datname:
-          usage: "LABEL"
-          description: "Database name"
-  
-  pg_long_running_transactions:
-    master: true
-    query: |
-      SELECT datname, COUNT(*) as transactions,
-      MAX(EXTRACT(EPOCH FROM (clock_timestamp() - xact_start))) AS age_in_seconds
-      FROM pg_catalog.pg_stat_activity
-      WHERE state is distinct from 'idle' AND (now() - xact_start) > '1 minutes'::interval AND query not like '%VACUUM%'
-      GROUP BY datname
-    metrics:
-      - datname:
-          usage: "LABEL"
-          description: "Database name"
-      - queries:
-          usage: "GAUGE"
-          description: "Current number of long running transactions"
-      - age_in_seconds:
-          usage: "GAUGE"
-          description: "The current maximum transaction age in seconds"
-  
-  pg_vacuum:
-    master: true
-    query: |
-      SELECT
-        datname,
-        COUNT(*) AS queries,
-        MAX(EXTRACT(EPOCH FROM (clock_timestamp() - query_start))) AS age_in_seconds
-      FROM pg_catalog.pg_stat_activity
-      WHERE state = 'active' AND trim(query) ~* '\AVACUUM (?!ANALYZE)'
-      GROUP BY datname
-    metrics:
-      - datname:
-          usage: "LABEL"
-          description: "Database name"
-      - queries:
-          usage: "GAUGE"
-          description: "The current number of VACUUM queries"
-      - age_in_seconds:
-          usage: "GAUGE"
-          description: "The current maximum VACUUM query age in seconds"
-  
-  pg_vacuum_analyze:
-    master: true
-    query: |
-      SELECT
-        datname,
-        COUNT(*) AS queries,
-        MAX(EXTRACT(EPOCH FROM (clock_timestamp() - query_start))) AS age_in_seconds
-      FROM pg_catalog.pg_stat_activity
-      WHERE state = 'active' AND trim(query) ~* '\AVACUUM ANALYZE'
-      GROUP BY datname
-    metrics:
-      - datname:
-          usage: "LABEL"
-          description: "Database name"
-      - queries:
-          usage: "GAUGE"
-          description: "The current number of VACUUM ANALYZE queries"
-      - age_in_seconds:
-          usage: "GAUGE"
-          description: "The current maximum VACUUM ANALYZE query age in seconds"
-  
-  pg_stuck_idle_in_transaction:
-    master: true
-    query: |
-      SELECT datname,
-        COUNT(*) AS queries
-      FROM pg_catalog.pg_stat_activity
-      WHERE state = 'idle in transaction' AND (now() - query_start) > '10 minutes'::interval
-      GROUP BY datname
-    metrics:
-      - datname:
-          usage: "LABEL"
-          description: "Database name"
-      - queries:
-          usage: "GAUGE"
-          description: "Current number of queries that are stuck being idle in transactions"
-  
-  pg_txid:
-    master: true
-    query: |
-      SELECT
-        CASE WHEN pg_is_in_recovery() THEN 'NaN'::float ELSE txid_current() % (2^52)::bigint END AS current,
-        CASE WHEN pg_is_in_recovery() THEN 'NaN'::float ELSE txid_snapshot_xmin(txid_current_snapshot()) % (2^52)::bigint END AS xmin,
-        CASE WHEN pg_is_in_recovery() THEN 'NaN'::float ELSE txid_current() - txid_snapshot_xmin(txid_current_snapshot()) END AS xmin_age
-    metrics:
-      - current:
-          usage: "COUNTER"
-          description: "Current 64-bit transaction id of the query used to collect this metric (truncated to low 52 bits)"
-      - xmin:
-          usage: "COUNTER"
-          description: "Oldest transaction id of a transaction still in progress, i.e. not known committed or aborted (truncated to low 52 bits)"
-      - xmin_age:
-          usage: "GAUGE"
-          description: "Age of oldest transaction still not committed or aborted measured in transaction ids"
-  
-  pg_database_datfrozenxid:
-    master: true
-    query: "SELECT datname, age(datfrozenxid) AS age FROM pg_catalog.pg_database"
-    metrics:
-      - datname:
-          usage: "LABEL"
-          description: "Database Name"
-      - age:
-          usage: "GAUGE"
-          description: "Age of the oldest transaction that has not been frozen."
-  
-  pg_wal_position:
-    master: true
-    query: |
-      SELECT CASE
-             WHEN pg_is_in_recovery()
-             THEN (pg_last_wal_receive_lsn() - '0/0') % (2^52)::bigint
-             ELSE (pg_current_wal_lsn() - '0/0') % (2^52)::bigint
-             END AS bytes
-    metrics:
-      - bytes:
-          usage: "COUNTER"
-          description: "Postgres LSN (log sequence number) being generated on primary or replayed on replica (truncated to low 52 bits)"
-  
-  
-  pg_replication_slots:
-    master: true
-    query: |
-      SELECT slot_name, slot_type,
-             case when active then 1.0 else 0.0 end AS active,
-             age(xmin) AS xmin_age,
-             age(catalog_xmin) AS catalog_xmin_age,
-             CASE WHEN pg_is_in_recovery() THEN pg_last_wal_receive_lsn() ELSE pg_current_wal_lsn() END - restart_lsn AS restart_lsn_bytes,
-             CASE WHEN pg_is_in_recovery() THEN pg_last_wal_receive_lsn() ELSE pg_current_wal_lsn() END - confirmed_flush_lsn AS confirmed_flush_lsn_bytes
-        FROM pg_catalog.pg_replication_slots
-    metrics:
-      - slot_name:
-          usage: "LABEL"
-          description: "Slot Name"
-      - slot_type:
-          usage: "LABEL"
-          description: "Slot Type"
-      - active:
-          usage: "GAUGE"
-          description: "Boolean flag indicating whether this slot has a consumer streaming from it"
-      - xmin_age:
-          usage: "GAUGE"
-          description: "Age of oldest transaction that cannot be vacuumed due to this replica"
-      - catalog_xmin_age:
-          usage: "GAUGE"
-          description: "Age of oldest transaction that cannot be vacuumed from catalogs due to this replica (used by logical replication)"
-      - restart_lsn_bytes:
-          usage: "GAUGE"
-          description: "Amount of data on in xlog that must be this replica may need to complete recovery"
-      - confirmed_flush_lsn_bytes:
-          usage: "GAUGE"
-          description: "Amount of data on in xlog that must be this replica has not yet received"
-  
-  pg_stat_ssl:
-    master: true
-    query: |
-      SELECT pid, bits,
-             CASE WHEN ssl THEN 1.0 ELSE 0.0 END AS active,
-             CASE WHEN compression THEN 1.0 ELSE 0.0 END AS compression
-             FROM pg_catalog.pg_stat_ssl
-    metrics:
-      - pid:
-          usage: "LABEL"
-          description: "Process ID of a backend or WAL sender process"
-      - active:
-          usage: "GAUGE"
-          description: "Boolean flag indicating if SSL is used on this connection"
-      - bits:
-          usage: "GAUGE"
-          description: "Number of bits in the encryption algorithm is in use"
-      - compression:
-          usage: "GAUGE"
-          description: "Boolean flag indicating if SSL compression is in use"
-  
-  pg_table_bloat:
-    master: true
-    query: |
-      SELECT datname, ss.* FROM pg_database,
-        LATERAL (SELECT * FROM dblink('host=/var/run/postgresql port=5432 user=postgres dbname=' || datname,
-          'WITH constants AS (' || E'\n'
-          || '-- define some constants for sizes of things' || E'\n'
-          || '-- for reference down the query and easy maintenance' || E'\n'
-          || 'SELECT current_setting(''block_size'')::numeric AS bs, 23 AS hdr, 8 AS ma),' || E'\n'
-          || 'no_stats AS (' || E'\n'
-          || '    -- screen out table who have attributes' || E'\n'
-          || '    -- which dont have stats, such as JSON' || E'\n'
-          || '    SELECT table_schema, table_name,' || E'\n'
-          || '        n_live_tup::numeric as est_rows,' || E'\n'
-          || '        pg_table_size(relid)::numeric as table_size' || E'\n'
-          || '    FROM information_schema.columns' || E'\n'
-          || '        JOIN pg_catalog.pg_stat_user_tables as psut' || E'\n'
-          || '          ON table_schema = psut.schemaname' || E'\n'
-          || '          AND table_name = psut.relname' || E'\n'
-          || '        LEFT OUTER JOIN pg_catalog.pg_stats' || E'\n'
-          || '        ON table_schema = pg_stats.schemaname' || E'\n'
-          || '            AND table_name = pg_stats.tablename' || E'\n'
-          || '            AND column_name = attname' || E'\n'
-          || '    WHERE attname IS NULL' || E'\n'
-          || '        AND table_schema NOT IN (''pg_catalog'', ''information_schema'')' || E'\n'
-          || '    GROUP BY table_schema, table_name, relid, n_live_tup),' || E'\n'
-          || 'null_headers AS (' || E'\n'
-          || '    -- calculate null header sizes' || E'\n'
-          || '    -- omitting tables which dont have complete stats' || E'\n'
-          || '    -- and attributes which aren''t visible' || E'\n'
-          || '    SELECT' || E'\n'
-          || '        hdr+1+(sum(case when null_frac <> 0 THEN 1 else 0 END)/8) as nullhdr,' || E'\n'
-          || '        SUM((1-null_frac)*avg_width) as datawidth,' || E'\n'
-          || '        MAX(null_frac) as maxfracsum,' || E'\n'
-          || '        schemaname,' || E'\n'
-          || '        tablename,' || E'\n'
-          || '        hdr, ma, bs' || E'\n'
-          || '    FROM pg_catalog.pg_stats CROSS JOIN constants' || E'\n'
-          || '        LEFT OUTER JOIN no_stats' || E'\n'
-          || '            ON schemaname = no_stats.table_schema' || E'\n'
-          || '            AND tablename = no_stats.table_name' || E'\n'
-          || '    WHERE schemaname NOT IN (''pg_catalog'', ''information_schema'')' || E'\n'
-          || '        AND no_stats.table_name IS NULL' || E'\n'
-          || '        AND EXISTS ( SELECT 1' || E'\n'
-          || '            FROM information_schema.columns' || E'\n'
-          || '                WHERE schemaname = columns.table_schema' || E'\n'
-          || '                    AND tablename = columns.table_name )' || E'\n'
-          || '    GROUP BY schemaname, tablename, hdr, ma, bs),' || E'\n'
-          || 'data_headers AS (' || E'\n'
-          || '    -- estimate header and row size' || E'\n'
-          || '    SELECT' || E'\n'
-          || '        ma, bs, hdr, schemaname, tablename,' || E'\n'
-          || '        (datawidth+(hdr+ma-(case when hdr%ma=0 THEN ma ELSE hdr%ma END)))::numeric AS datahdr,' || E'\n'
-          || '        (maxfracsum*(nullhdr+ma-(case when nullhdr%ma=0 THEN ma ELSE nullhdr%ma END))) AS nullhdr2' || E'\n'
-          || '    FROM null_headers),' || E'\n'
-          || 'table_estimates AS (' || E'\n'
-          || '    -- make estimates of how large the table should be' || E'\n'
-          || '    -- based on row and page size' || E'\n'
-          || '    SELECT schemaname, tablename, bs,' || E'\n'
-          || '        reltuples::numeric as est_rows, relpages * bs as table_bytes,' || E'\n'
-          || '    CEIL((reltuples*' || E'\n'
-          || '            (datahdr + nullhdr2 + 4 + ma -' || E'\n'
-          || '                (CASE WHEN datahdr%ma=0' || E'\n'
-          || '                    THEN ma ELSE datahdr%ma END)' || E'\n'
-          || '                )/(bs-20))) * bs AS expected_bytes,' || E'\n'
-          || '        reltoastrelid' || E'\n'
-          || '    FROM data_headers' || E'\n'
-          || '        JOIN pg_catalog.pg_class ON tablename = relname' || E'\n'
-          || '        JOIN pg_catalog.pg_namespace ON relnamespace = pg_namespace.oid' || E'\n'
-          || '            AND schemaname = nspname' || E'\n'
-          || '    WHERE pg_class.relkind = ''r''),' || E'\n'
-          || 'estimates_with_toast AS (' || E'\n'
-          || '    -- add in estimated TOAST table sizes' || E'\n'
-          || '    -- estimate based on 4 toast tuples per page because we dont have' || E'\n'
-          || '    -- anything better.  also append the no_data tables' || E'\n'
-          || '    SELECT schemaname, tablename,' || E'\n'
-          || '        TRUE as can_estimate,' || E'\n'
-          || '        est_rows,' || E'\n'
-          || '        table_bytes + ( coalesce(toast.relpages, 0) * bs ) as table_bytes,' || E'\n'
-          || '        expected_bytes + ( ceil( coalesce(toast.reltuples, 0) / 4 ) * bs ) as expected_bytes' || E'\n'
-          || '    FROM table_estimates LEFT OUTER JOIN pg_catalog.pg_class as toast' || E'\n'
-          || '        ON table_estimates.reltoastrelid = toast.oid' || E'\n'
-          || '            AND toast.relkind = ''t''),' || E'\n'
-          || 'table_estimates_plus AS (' || E'\n'
-          || '-- add some extra metadata to the table data' || E'\n'
-          || '-- and calculations to be reused' || E'\n'
-          || '-- including whether we cant estimate it' || E'\n'
-          || '-- or whether we think it might be compressed' || E'\n'
-          || '    SELECT schemaname, tablename, can_estimate,' || E'\n'
-          || '            est_rows,' || E'\n'
-          || '            CASE WHEN table_bytes > 0' || E'\n'
-          || '                THEN table_bytes::NUMERIC' || E'\n'
-          || '                ELSE NULL::NUMERIC END' || E'\n'
-          || '                AS table_bytes,' || E'\n'
-          || '            CASE WHEN expected_bytes > 0' || E'\n'
-          || '                THEN expected_bytes::NUMERIC' || E'\n'
-          || '                ELSE NULL::NUMERIC END' || E'\n'
-          || '                    AS expected_bytes,' || E'\n'
-          || '            CASE WHEN expected_bytes > 0 AND table_bytes > 0' || E'\n'
-          || '                AND expected_bytes <= table_bytes' || E'\n'
-          || '                THEN (table_bytes - expected_bytes)::NUMERIC' || E'\n'
-          || '                ELSE 0::NUMERIC END AS bloat_bytes' || E'\n'
-          || '    FROM estimates_with_toast' || E'\n'
-          || '    UNION ALL' || E'\n'
-          || '    SELECT table_schema, table_name, FALSE,' || E'\n'
-          || '        est_rows, table_size,' || E'\n'
-          || '        NULL::NUMERIC, NULL::NUMERIC' || E'\n'
-          || '    FROM no_stats),' || E'\n'
-          || 'bloat_data AS (' || E'\n'
-          || '    -- do final math calculations and formatting' || E'\n'
-          || '    select schemaname, tablename, can_estimate,' || E'\n'
-          || '        table_bytes, round(table_bytes/(1024^2)::NUMERIC,3) as table_size_mb,' || E'\n'
-          || '        expected_bytes, round(expected_bytes/(1024^2)::NUMERIC,3) as expected_mb,' || E'\n'
-          || '        round(bloat_bytes*100/table_bytes) as pct_bloat,' || E'\n'
-          || '        round(bloat_bytes/(1024::NUMERIC^2),2) as bloat_mb,' || E'\n'
-          || '        table_bytes, expected_bytes, est_rows' || E'\n'
-          || '    FROM table_estimates_plus' || E'\n'
-          || ')' || E'\n'
-          || '-- filter output for bloated tables' || E'\n'
-          || 'SELECT schemaname, tablename AS relname,' || E'\n'
-          || '    est_rows,' || E'\n'
-          || '    pct_bloat, bloat_mb as size_mb,' || E'\n'
-          || '    table_size_mb' || E'\n'
-          || 'FROM bloat_data' || E'\n'
-          || '-- this where clause defines which tables actually appear' || E'\n'
-          || '-- in the bloat chart' || E'\n'
-          || '-- clause below filters for tables which are either 10%' || E'\n'
-          || '-- bloated and more than 20mb in size, or more than 25%' || E'\n'
-          || '-- bloated and more than 1GB in size' || E'\n'
-          || '-- WHERE ( pct_bloat >= 5 AND bloat_mb >= 20 )' || E'\n'
-          || 'ORDER BY pct_bloat DESC;')
-          AS (schemaname name, relname name, est_rows numeric, pct_bloat numeric, size_mb numeric, table_size_mb numeric)) AS ss
-        WHERE datname NOT IN ('template0', 'template1');
-    metrics:
-      - datname:
-          usage: "LABEL"
-          description: "Database Name"
-      - schemaname:
-          usage: "LABEL"
-          description: "Schema Name"
-      - relname:
-          usage: "LABEL"
-          description: "Table Name"
-      - est_rows:
-          usage: "GAUGE"
-          description: "Estimated rows"
-      - pct_bloat:
-          usage: "GAUGE"
-          description: "Percentage of bloat"
-      - size_mb:
-          usage: "GAUGE"
-          description: "Table Bloat in MB"
-      - table_size_mb:
-          usage: "GAUGE"
-          description: "Table Size in MB"
-  
-  pg_index:
-    query: |
-    master: true
-    query: |
-      SELECT datname, ss.* FROM pg_database,
-        LATERAL (SELECT * FROM dblink('host=/var/run/postgresql port=5432 user=postgres dbname=' || datname,
-          '-- btree index stats query' || E'\n'
-          || '-- estimates bloat for btree indexes' || E'\n'
-          || 'WITH btree_index_atts AS (' || E'\n'
-          || '    SELECT nspname,' || E'\n'
-          || '        indexclass.relname as indexname,' || E'\n'
-          || '        indexclass.reltuples,' || E'\n'
-          || '        indexclass.relpages,' || E'\n'
-          || '        indrelid, indexrelid,' || E'\n'
-          || '        indexclass.relam,' || E'\n'
-          || '        tableclass.relname as tablename,' || E'\n'
-          || '        regexp_split_to_table(indkey::text, '' '')::smallint AS attnum,' || E'\n'
-          || '        indexrelid as index_oid' || E'\n'
-          || '    FROM pg_catalog.pg_index' || E'\n'
-          || '    JOIN pg_catalog.pg_class AS indexclass ON pg_index.indexrelid = indexclass.oid' || E'\n'
-          || '    JOIN pg_catalog.pg_class AS tableclass ON pg_index.indrelid = tableclass.oid' || E'\n'
-          || '    JOIN pg_catalog.pg_namespace ON pg_namespace.oid = indexclass.relnamespace' || E'\n'
-          || '    JOIN pg_catalog.pg_am ON indexclass.relam = pg_am.oid' || E'\n'
-          || '    WHERE pg_am.amname = ''btree'' and indexclass.relpages > 0' || E'\n'
-          || '        AND nspname NOT IN (''pg_catalog'',''information_schema'')' || E'\n'
-          || '    ),' || E'\n'
-          || 'index_item_sizes AS (' || E'\n'
-          || '    SELECT' || E'\n'
-          || '    ind_atts.nspname, ind_atts.indexname,' || E'\n'
-          || '    ind_atts.reltuples, ind_atts.relpages, ind_atts.relam,' || E'\n'
-          || '    indrelid AS table_oid, index_oid,' || E'\n'
-          || '    current_setting(''block_size'')::numeric AS bs,' || E'\n'
-          || '    8 AS maxalign,' || E'\n'
-          || '    24 AS pagehdr,' || E'\n'
-          || '    CASE WHEN max(coalesce(pg_stats.null_frac,0)) = 0' || E'\n'
-          || '        THEN 2' || E'\n'
-          || '        ELSE 6' || E'\n'
-          || '    END AS index_tuple_hdr,' || E'\n'
-          || '    sum( (1-coalesce(pg_stats.null_frac, 0)) * coalesce(pg_stats.avg_width, 1024) ) AS nulldatawidth' || E'\n'
-          || '    FROM pg_catalog.pg_attribute' || E'\n'
-          || '    JOIN btree_index_atts AS ind_atts ON pg_attribute.attrelid = ind_atts.indexrelid AND pg_attribute.attnum = ind_atts.attnum' || E'\n'
-          || '    JOIN pg_catalog.pg_stats ON pg_stats.schemaname = ind_atts.nspname' || E'\n'
-          || '        -- stats for regular index columns' || E'\n'
-          || '        AND ( (pg_stats.tablename = ind_atts.tablename AND pg_stats.attname = pg_catalog.pg_get_indexdef(pg_attribute.attrelid, pg_attribute.attnum, TRUE))' || E'\n' 
-          || '        -- stats for functional indexes' || E'\n'
-          || '        OR   (pg_stats.tablename = ind_atts.indexname AND pg_stats.attname = pg_attribute.attname))' || E'\n'
-          || '    WHERE pg_attribute.attnum > 0' || E'\n'
-          || '    GROUP BY 1, 2, 3, 4, 5, 6, 7, 8, 9' || E'\n'
-          || '),' || E'\n'
-          || 'index_aligned_est AS (' || E'\n'
-          || '    SELECT maxalign, bs, nspname, indexname, reltuples,' || E'\n'
-          || '        relpages, relam, table_oid, index_oid,' || E'\n'
-          || '        coalesce (' || E'\n'
-          || '            ceil (' || E'\n'
-          || '                reltuples * ( 6' || E'\n'
-          || '                    + maxalign' || E'\n'
-          || '                    - CASE' || E'\n'
-          || '                        WHEN index_tuple_hdr%maxalign = 0 THEN maxalign' || E'\n'
-          || '                        ELSE index_tuple_hdr%maxalign' || E'\n'
-          || '                    END' || E'\n'
-          || '                    + nulldatawidth' || E'\n'
-          || '                    + maxalign' || E'\n'
-          || '                    - CASE /* Add padding to the data to align on MAXALIGN */' || E'\n'
-          || '                        WHEN nulldatawidth::integer%maxalign = 0 THEN maxalign' || E'\n'
-          || '                        ELSE nulldatawidth::integer%maxalign' || E'\n'
-          || '                    END' || E'\n'
-          || '                )::numeric' || E'\n'
-          || '            / ( bs - pagehdr::NUMERIC )' || E'\n'
-          || '            +1 )' || E'\n'
-          || '        , 0 )' || E'\n'
-          || '    as expected' || E'\n'
-          || '    FROM index_item_sizes' || E'\n'
-          || '),' || E'\n'
-          || 'raw_bloat AS (' || E'\n'
-          || '    SELECT current_database() as dbname, nspname, pg_class.relname AS tablename, indexname,' || E'\n'
-          || '        bs*(index_aligned_est.relpages)::bigint AS totalbytes, expected,' || E'\n'
-          || '        CASE' || E'\n'
-          || '            WHEN index_aligned_est.relpages <= expected' || E'\n'
-          || '                THEN 0' || E'\n'
-          || '                ELSE bs*(index_aligned_est.relpages-expected)::bigint' || E'\n'
-          || '            END AS wastedbytes,' || E'\n'
-          || '        CASE' || E'\n'
-          || '            WHEN index_aligned_est.relpages <= expected' || E'\n'
-          || '                THEN 0' || E'\n'
-          || '                ELSE bs*(index_aligned_est.relpages-expected)::bigint * 100 / (bs*(index_aligned_est.relpages)::bigint)' || E'\n' 
-          || '            END AS realbloat,' || E'\n'
-          || '        pg_relation_size(index_aligned_est.table_oid) as table_bytes,' || E'\n'
-          || '        stat.idx_scan as index_scans' || E'\n'
-          || '    FROM index_aligned_est' || E'\n'
-          || '    JOIN pg_catalog.pg_class ON pg_class.oid=index_aligned_est.table_oid' || E'\n'
-          || '    JOIN pg_catalog.pg_stat_user_indexes AS stat ON index_aligned_est.index_oid = stat.indexrelid' || E'\n'
-          || '),' || E'\n'
-          || 'format_bloat AS (' || E'\n'
-          || 'SELECT nspname as schemaname, tablename, indexname,' || E'\n'
-          || '        round(realbloat) as bloat_pct, round(wastedbytes/(1024^2)::NUMERIC) as bloat_mb,' || E'\n'
-          || '        round(totalbytes/(1024^2)::NUMERIC,3) as index_mb,' || E'\n'
-          || '        round(table_bytes/(1024^2)::NUMERIC,3) as table_mb,' || E'\n'
-          || '        index_scans' || E'\n'
-          || 'FROM raw_bloat' || E'\n'
-          || ')' || E'\n'
-          || '-- final query outputting the bloated indexes' || E'\n'
-          || '-- change the where and order by to change' || E'\n'
-          || '-- what shows up as bloated' || E'\n'
-          || 'SELECT schemaname,' || E'\n'
-          || '    tablename, indexname AS indexrelname,' || E'\n'
-          || '    bloat_pct, bloat_mb,' || E'\n'
-          || '    index_mb, table_mb, index_scans' || E'\n'
-          || 'FROM format_bloat' || E'\n'
-          || '--WHERE ( bloat_pct > 50 and bloat_mb > 10 )' || E'\n'
-          || 'ORDER BY bloat_mb DESC;' || E'\n')
-          AS (schemaname name, tablename name, indexrelname name, bloat_pct numeric, bloat_mb numeric, index_mb numeric, table_mb numeric, index_scans bigint)) AS ss
-        WHERE datname NOT IN ('template0', 'template1');
-    metrics:
-      - datname:
-          usage: "LABEL"
-          description: "Database Name"
-      - schemaname:
-          usage: "LABEL"
-          description: "Schema Name"
-      - tablename:
-          usage: "LABEL"
-          description: "Table Name"
-      - indexrelname:
-          usage: "LABEL"
-          description: "Index Name"
-      - bloat_pct:
-          usage: "GAUGE"
-          description: "Percentage Bloat"
-      - bloat_mb:
-          usage: "GAUGE"
-          description: "Bloat in MB"
-      - index_mb:
-          usage: "GAUGE"
-          description: "Index size in MB"
-      - table_mb:
-          usage: "GAUGE"
-          description: "Table size in MB"
-      - index_scans:
-          usage: "GAUGE"
-          description: "Count of index scans"
+pg_replication:
+  master: true
+  query: "SELECT EXTRACT(EPOCH FROM (now() - pg_last_xact_replay_timestamp())) as lag"
+  metrics:
+    - lag:
+        usage: "GAUGE"
+        description: "Replication lag behind master in seconds"
+    - is_replica:
+        usage: "GAUGE"
+        description: "Indicates if this host is a replica"
+
+pg_postmaster:
+  master: true
+  query: "SELECT pg_postmaster_start_time as start_time_seconds from pg_postmaster_start_time()"
+  metrics:
+    - start_time_seconds:
+        usage: "GAUGE"
+        description: "Time at which postmaster started"
+
+pg_stat_user_tables:
+  master: true
+  query: |
+    SET max_parallel_workers_per_gather = 0;
+    WITH databases AS (
+      SELECT datname FROM pg_database
+      WHERE datname NOT IN ('template0', 'template1')
+    )
+    SELECT datname, ss.* FROM databases,
+      LATERAL (SELECT * FROM dblink(
+        'host=/var/run/postgresql port=5432 user=postgres sslmode=disable dbname=''' || regexp_replace(datname, '([.\\])', '\\\1', 'g') || '''',
+        'SELECT schemaname, relname, seq_scan, seq_tup_read, idx_scan, idx_tup_fetch, n_tup_ins, n_tup_upd, n_tup_del, n_tup_hot_upd, n_live_tup, n_dead_tup, n_mod_since_analyze, COALESCE(last_vacuum, ''1970-01-01Z'') as last_vacuum, COALESCE(last_autovacuum, ''1970-01-01Z'') as last_autovacuum, COALESCE(last_analyze, ''1970-01-01Z'') as last_analyze, COALESCE(last_autoanalyze, ''1970-01-01Z'') as last_autoanalyze, vacuum_count, autovacuum_count, analyze_count, autoanalyze_count FROM pg_catalog.pg_stat_user_tables')
+        AS (schemaname name, relname name, seq_scan bigint, seq_tup_read bigint, idx_scan bigint, idx_tup_fetch bigint, n_tup_ins bigint, n_tup_upd bigint, n_tup_del bigint, n_tup_hot_upd bigint, n_live_tup bigint, n_dead_tup bigint, n_mod_since_analyze bigint, last_vacuum timestamp with time zone, last_autovacuum timestamp with time zone, last_analyze timestamp with time zone, last_autoanalyze timestamp with time zone, vacuum_count bigint, autovacuum_count bigint, analyze_count bigint, autoanalyze_count bigint)) AS ss;
+  metrics:
+    - datname:
+        usage: "LABEL"
+        description: "Name of current database"
+    - schemaname:
+        usage: "LABEL"
+        description: "Name of the schema that this table is in"
+    - relname:
+        usage: "LABEL"
+        description: "Name of this table"
+    - seq_scan:
+        usage: "COUNTER"
+        description: "Number of sequential scans initiated on this table"
+    - seq_tup_read:
+        usage: "COUNTER"
+        description: "Number of live rows fetched by sequential scans"
+    - idx_scan:
+        usage: "COUNTER"
+        description: "Number of index scans initiated on this table"
+    - idx_tup_fetch:
+        usage: "COUNTER"
+        description: "Number of live rows fetched by index scans"
+    - n_tup_ins:
+        usage: "COUNTER"
+        description: "Number of rows inserted"
+    - n_tup_upd:
+        usage: "COUNTER"
+        description: "Number of rows updated"
+    - n_tup_del:
+        usage: "COUNTER"
+        description: "Number of rows deleted"
+    - n_tup_hot_upd:
+        usage: "COUNTER"
+        description: "Number of rows HOT updated (i.e., with no separate index update required)"
+    - n_live_tup:
+        usage: "GAUGE"
+        description: "Estimated number of live rows"
+    - n_dead_tup:
+        usage: "GAUGE"
+        description: "Estimated number of dead rows"
+    - n_mod_since_analyze:
+        usage: "GAUGE"
+        description: "Estimated number of rows changed since last analyze"
+    - last_vacuum:
+        usage: "GAUGE"
+        description: "Last time at which this table was manually vacuumed (not counting VACUUM FULL)"
+    - last_autovacuum:
+        usage: "GAUGE"
+        description: "Last time at which this table was vacuumed by the autovacuum daemon"
+    - last_analyze:
+        usage: "GAUGE"
+        description: "Last time at which this table was manually analyzed"
+    - last_autoanalyze:
+        usage: "GAUGE"
+        description: "Last time at which this table was analyzed by the autovacuum daemon"
+    - vacuum_count:
+        usage: "COUNTER"
+        description: "Number of times this table has been manually vacuumed (not counting VACUUM FULL)"
+    - autovacuum_count:
+        usage: "COUNTER"
+        description: "Number of times this table has been vacuumed by the autovacuum daemon"
+    - analyze_count:
+        usage: "COUNTER"
+        description: "Number of times this table has been manually analyzed"
+    - autoanalyze_count:
+        usage: "COUNTER"
+        description: "Number of times this table has been analyzed by the autovacuum daemon"
+
+pg_statio_user_tables:
+  master: true
+  query: |
+    SET max_parallel_workers_per_gather = 0;
+    WITH databases AS (
+      SELECT datname FROM pg_database
+      WHERE datname NOT IN ('template0', 'template1')
+    )
+    SELECT datname, ss.* FROM databases,
+      LATERAL (SELECT * FROM dblink(
+        'host=/var/run/postgresql port=5432 user=postgres sslmode=disable dbname=''' || regexp_replace(datname, '([.\\])', '\\\1', 'g') || '''',
+        'SELECT schemaname, relname, heap_blks_read, heap_blks_hit, idx_blks_read, idx_blks_hit, toast_blks_read, toast_blks_hit, tidx_blks_read, tidx_blks_hit FROM pg_catalog.pg_statio_user_tables')
+        AS (schemaname name, relname name, heap_blks_read bigint, heap_blks_hit bigint, idx_blks_read bigint, idx_blks_hit bigint, toast_blks_read bigint, toast_blks_hit bigint, tidx_blks_read bigint, tidx_blks_hit bigint)) AS ss;
+  metrics:
+    - datname:
+        usage: "LABEL"
+        description: "Name of current database"
+    - schemaname:
+        usage: "LABEL"
+        description: "Name of the schema that this table is in"
+    - relname:
+        usage: "LABEL"
+        description: "Name of this table"
+    - heap_blks_read:
+        usage: "COUNTER"
+        description: "Number of disk blocks read from this table"
+    - heap_blks_hit:
+        usage: "COUNTER"
+        description: "Number of buffer hits in this table"
+    - idx_blks_read:
+        usage: "COUNTER"
+        description: "Number of disk blocks read from all indexes on this table"
+    - idx_blks_hit:
+        usage: "COUNTER"
+        description: "Number of buffer hits in all indexes on this table"
+    - toast_blks_read:
+        usage: "COUNTER"
+        description: "Number of disk blocks read from this table's TOAST table (if any)"
+    - toast_blks_hit:
+        usage: "COUNTER"
+        description: "Number of buffer hits in this table's TOAST table (if any)"
+    - tidx_blks_read:
+        usage: "COUNTER"
+        description: "Number of disk blocks read from this table's TOAST table indexes (if any)"
+    - tidx_blks_hit:
+        usage: "COUNTER"
+        description: "Number of buffer hits in this table's TOAST table indexes (if any)"
+
+pg_database:
+  master: true
+  query: "SELECT pg_database.datname, pg_database_size(pg_database.datname) as size FROM pg_catalog.pg_database"
+  cache_seconds: 30
+  metrics:
+    - datname:
+        usage: "LABEL"
+        description: "Name of the database"
+    - size_bytes:
+        usage: "GAUGE"
+        description: "Disk space used by the database"
+
+pg_archiver:
+  master: true
+  query: |
+    WITH
+      current_wal_file AS (
+         SELECT CASE WHEN NOT pg_is_in_recovery() THEN pg_walfile_name(pg_last_wal_replay_lsn()) ELSE NULL END pg_walfile_name
+      ),
+      current_wal AS (
+        SELECT
+          ('x'||substring(pg_walfile_name,9,8))::bit(32)::int log,
+          ('x'||substring(pg_walfile_name,17,8))::bit(32)::int seg,
+          pg_walfile_name
+        FROM current_wal_file
+      ),
+      archive_wal AS(
+        SELECT
+          ('x'||substring(last_archived_wal,9,8))::bit(32)::int log,
+          ('x'||substring(last_archived_wal,17,8))::bit(32)::int seg,
+          last_archived_wal
+        FROM pg_catalog.pg_stat_archiver
+      )
+    SELECT coalesce(((cw.log - aw.log) * 256) + (cw.seg-aw.seg),'NaN'::float) as pending_wal_count FROM current_wal cw, archive_wal aw 
+  metrics:
+    - pending_wal_count:
+        usage: "GAUGE"
+        description: "No. of pending WAL files to be archived"
+
+pg_stat_user_indexes:
+  master: true
+  query: |
+    SET max_parallel_workers_per_gather = 0;
+    WITH databases AS (
+      SELECT datname FROM pg_database
+      WHERE datname NOT IN ('template0', 'template1')
+    )
+    SELECT datname, ss.* FROM databases,
+      LATERAL (SELECT * FROM dblink(
+        'host=/var/run/postgresql port=5432 user=postgres sslmode=disable dbname=''' || regexp_replace(datname, '([.\\])', '\\\1', 'g') || '''',
+        'SELECT schemaname, relname, indexrelname, idx_scan, idx_tup_read, idx_tup_fetch FROM pg_catalog.pg_stat_user_indexes')
+        AS (schemaname name, relname name, indexrelname name, idx_scan bigint, idx_tup_read bigint, idx_tup_fetch bigint)) AS ss;
+  metrics:
+    - datname:
+        usage: "LABEL"
+        description: "Database name"
+    - schemaname:
+        usage: "LABEL"
+        description: "Name of the schema that this table is in"
+    - relname:
+        usage: "LABEL"
+        description: "Name of the table for this index"
+    - indexrelname:
+        usage: "LABEL"
+        description: "Name of this index"
+    - idx_scan:
+        usage: "COUNTER"
+        description: "Number of index scans initiated on this index"
+    - idx_tup_read:
+        usage: "COUNTER"
+        description: "Number of index entries returned by scans on this index"
+    - idx_tup_fetch:
+        usage: "COUNTER"
+        description: "Number of live table rows fetched by simple index scans using this index"
+
+pg_statio_user_indexes:
+  master: true
+  query: |
+    SET max_parallel_workers_per_gather = 0;
+    WITH databases AS (
+      SELECT datname FROM pg_database
+      WHERE datname NOT IN ('template0', 'template1')
+    )
+    SELECT datname, ss.* FROM databases,
+      LATERAL (SELECT * FROM dblink(
+        'host=/var/run/postgresql port=5432 user=postgres sslmode=disable dbname=''' || regexp_replace(datname, '([.\\])', '\\\1', 'g') || '''',
+        'SELECT schemaname, relname, indexrelname, idx_blks_read, idx_blks_hit FROM pg_catalog.pg_statio_user_indexes')
+        AS (schemaname name, relname name, indexrelname name, idx_blks_read bigint, idx_blks_hit bigint)) AS ss;
+  metrics:
+    - datname:
+        usage: "LABEL"
+        description: "Database name"
+    - schemaname:
+        usage: "LABEL"
+        description: "Name of the schema that this table is in"
+    - relname:
+        usage: "LABEL"
+        description: "Name of the table for this index"
+    - indexrelname:
+        usage: "LABEL"
+        description: "Name of this index"
+    - idx_blks_read:
+        usage: "COUNTER"
+        description: "Number of disk blocks read from this index"
+    - idx_blks_hit:
+        usage: "COUNTER"
+        description: "Number of buffer hits in this index"
+
+pg_total_relation_size:
+  master: true
+  query: |
+    SET max_parallel_workers_per_gather = 0;
+    WITH databases AS (
+      SELECT datname FROM pg_database
+      WHERE datname NOT IN ('template0', 'template1')
+    )
+    SELECT datname, ss.* FROM databases,
+      LATERAL (SELECT * FROM dblink(
+        'host=/var/run/postgresql port=5432 user=postgres sslmode=disable dbname=''' || regexp_replace(datname, '([.\\])', '\\\1', 'g') || '''',
+        'SELECT relnamespace::regnamespace as schemaname, relname as relname, pg_total_relation_size(oid) bytes FROM pg_catalog.pg_class WHERE relkind = ''r''')
+        AS (schemaname name, relname name, bytes bigint)) AS ss;
+  metrics:
+    - datname:
+        usage: "LABEL"
+        description: "Database name"
+    - schemaname:
+        usage: "LABEL"
+        description: "Name of the schema that table is in"
+    - relname:
+        usage: "LABEL"
+        description: "Name of this table"
+    - bytes:
+        usage: "GAUGE"
+        description: "Total disk space usage for the specified table and associated indexes"
+
+pg_blocked:
+  master: true
+  query: |
+    SET max_parallel_workers_per_gather = 0;
+    WITH databases AS (
+      SELECT oid, datname FROM pg_database
+      WHERE datname NOT IN ('template0', 'template1')
+    )
+    SELECT
+      locktype AS type,
+      NULL AS datname,
+      NULL AS schemaname,
+      NULL AS reltype,
+      NULL AS relname,
+      count(*) AS queries
+    FROM pg_catalog.pg_locks blocked
+    WHERE NOT blocked.granted AND relation IS NULL
+    GROUP BY locktype
+    UNION
+    SELECT
+      locktype AS type,
+      datname,
+      schemaname,
+      CASE relkind
+        WHEN 'r' THEN 'ordinary table'
+        WHEN 'i' THEN 'index'
+        WHEN 'S' THEN 'sequence'
+        WHEN 't' THEN 'TOAST table'
+        WHEN 'v' THEN 'view'
+        WHEN 'm' THEN 'materialized view'
+        WHEN 'c' THEN 'composite type'
+        WHEN 'f' THEN 'foreign table'
+        WHEN 'p' THEN 'partitioned table'
+        WHEN 'I' THEN 'partitioned index'
+        ELSE 'unknown type ''' || relkind || ''''
+        END AS reltype,
+      relname,
+      count(*) AS queries
+    FROM pg_catalog.pg_locks blocked
+    INNER JOIN databases
+      ON blocked.database = databases.oid,
+      LATERAL (SELECT * FROM dblink(
+        'host=/var/run/postgresql port=5432 user=postgres sslmode=disable dbname=''' || regexp_replace(datname, '([.\\])', '\\\1', 'g') || '''',
+        'SELECT nspname as schemaname, relkind, relname FROM pg_catalog.pg_class LEFT JOIN pg_catalog.pg_namespace ON (pg_namespace.oid = relnamespace) WHERE pg_class.oid = ' || blocked.relation)
+        AS (schemaname name, relkind char, relname name)) AS ss
+    WHERE NOT blocked.granted AND relation IS NOT NULL
+    GROUP BY locktype, datname, schemaname, reltype, relname
+  metrics:
+    - type:
+        usage: "LABEL"
+        description: "The lock type"
+    - datname:
+        usage: "LABEL"
+        description: "Database name"
+    - schemaname:
+        usage: "LABEL"
+        description: "The schema on which a query is blocked"
+    - reltype:
+        usage: "LABEL"
+        description: "The type of relation"
+    - relname:
+        usage: "LABEL"
+        description: "The relation on which a query is blocked"
+    - queries:
+        usage: "GAUGE"
+        description: "The current number of blocked queries"
+
+pg_oldest_blocked:
+  master: true
+  query: |
+    SELECT datname,
+      coalesce(extract('epoch' from max(clock_timestamp() - state_change)), 0) age_seconds
+    FROM pg_catalog.pg_stat_activity
+    WHERE wait_event_type = 'Lock'
+    AND state='active'
+    GROUP BY datname
+  metrics:
+    - age_seconds:
+        usage: "GAUGE"
+        description: "Largest number of seconds any transaction is currently waiting on a lock"
+    - datname:
+        usage: "LABEL"
+        description: "Database name"
+
+pg_slow:
+  master: true
+  query: |
+    SELECT datname, COUNT(*) AS queries
+    FROM pg_catalog.pg_stat_activity
+    WHERE state = 'active' AND (now() - query_start) > '1 seconds'::interval
+    GROUP BY datname;
+  metrics:
+    - queries:
+        usage: "GAUGE"
+        description: "Current number of slow queries"
+    - datname:
+        usage: "LABEL"
+        description: "Database name"
+
+pg_long_running_transactions:
+  master: true
+  query: |
+    SELECT datname, COUNT(*) as transactions,
+    MAX(EXTRACT(EPOCH FROM (clock_timestamp() - xact_start))) AS age_in_seconds
+    FROM pg_catalog.pg_stat_activity
+    WHERE state is distinct from 'idle' AND (now() - xact_start) > '1 minutes'::interval AND query not like '%VACUUM%'
+    GROUP BY datname
+  metrics:
+    - datname:
+        usage: "LABEL"
+        description: "Database name"
+    - queries:
+        usage: "GAUGE"
+        description: "Current number of long running transactions"
+    - age_in_seconds:
+        usage: "GAUGE"
+        description: "The current maximum transaction age in seconds"
+
+pg_vacuum:
+  master: true
+  query: |
+    SELECT
+      datname,
+      COUNT(*) AS queries,
+      MAX(EXTRACT(EPOCH FROM (clock_timestamp() - query_start))) AS age_in_seconds
+    FROM pg_catalog.pg_stat_activity
+    WHERE state = 'active' AND trim(query) ~* '\AVACUUM (?!ANALYZE)'
+    GROUP BY datname
+  metrics:
+    - datname:
+        usage: "LABEL"
+        description: "Database name"
+    - queries:
+        usage: "GAUGE"
+        description: "The current number of VACUUM queries"
+    - age_in_seconds:
+        usage: "GAUGE"
+        description: "The current maximum VACUUM query age in seconds"
+
+pg_vacuum_analyze:
+  master: true
+  query: |
+    SELECT
+      datname,
+      COUNT(*) AS queries,
+      MAX(EXTRACT(EPOCH FROM (clock_timestamp() - query_start))) AS age_in_seconds
+    FROM pg_catalog.pg_stat_activity
+    WHERE state = 'active' AND trim(query) ~* '\AVACUUM ANALYZE'
+    GROUP BY datname
+  metrics:
+    - datname:
+        usage: "LABEL"
+        description: "Database name"
+    - queries:
+        usage: "GAUGE"
+        description: "The current number of VACUUM ANALYZE queries"
+    - age_in_seconds:
+        usage: "GAUGE"
+        description: "The current maximum VACUUM ANALYZE query age in seconds"
+
+pg_stuck_idle_in_transaction:
+  master: true
+  query: |
+    SELECT datname,
+      COUNT(*) AS queries
+    FROM pg_catalog.pg_stat_activity
+    WHERE state = 'idle in transaction' AND (now() - query_start) > '10 minutes'::interval
+    GROUP BY datname
+  metrics:
+    - datname:
+        usage: "LABEL"
+        description: "Database name"
+    - queries:
+        usage: "GAUGE"
+        description: "Current number of queries that are stuck being idle in transactions"
+
+pg_txid:
+  master: true
+  query: |
+    SELECT
+      CASE WHEN pg_is_in_recovery() THEN 'NaN'::float ELSE txid_current() % (2^52)::bigint END AS current,
+      CASE WHEN pg_is_in_recovery() THEN 'NaN'::float ELSE txid_snapshot_xmin(txid_current_snapshot()) % (2^52)::bigint END AS xmin,
+      CASE WHEN pg_is_in_recovery() THEN 'NaN'::float ELSE txid_current() - txid_snapshot_xmin(txid_current_snapshot()) END AS xmin_age
+  metrics:
+    - current:
+        usage: "COUNTER"
+        description: "Current 64-bit transaction id of the query used to collect this metric (truncated to low 52 bits)"
+    - xmin:
+        usage: "COUNTER"
+        description: "Oldest transaction id of a transaction still in progress, i.e. not known committed or aborted (truncated to low 52 bits)"
+    - xmin_age:
+        usage: "GAUGE"
+        description: "Age of oldest transaction still not committed or aborted measured in transaction ids"
+
+pg_database_datfrozenxid:
+  master: true
+  query: "SELECT datname, age(datfrozenxid) AS age FROM pg_catalog.pg_database"
+  metrics:
+    - datname:
+        usage: "LABEL"
+        description: "Database Name"
+    - age:
+        usage: "GAUGE"
+        description: "Age of the oldest transaction that has not been frozen."
+
+pg_wal_position:
+  master: true
+  query: |
+    SELECT CASE
+           WHEN pg_is_in_recovery()
+           THEN (pg_last_wal_receive_lsn() - '0/0') % (2^52)::bigint
+           ELSE (pg_current_wal_lsn() - '0/0') % (2^52)::bigint
+           END AS bytes
+  metrics:
+    - bytes:
+        usage: "COUNTER"
+        description: "Postgres LSN (log sequence number) being generated on primary or replayed on replica (truncated to low 52 bits)"
+
+
+pg_replication_slots:
+  master: true
+  query: |
+    SELECT slot_name, slot_type,
+           case when active then 1.0 else 0.0 end AS active,
+           age(xmin) AS xmin_age,
+           age(catalog_xmin) AS catalog_xmin_age,
+           CASE WHEN pg_is_in_recovery() THEN pg_last_wal_receive_lsn() ELSE pg_current_wal_lsn() END - restart_lsn AS restart_lsn_bytes,
+           CASE WHEN pg_is_in_recovery() THEN pg_last_wal_receive_lsn() ELSE pg_current_wal_lsn() END - confirmed_flush_lsn AS confirmed_flush_lsn_bytes
+      FROM pg_catalog.pg_replication_slots
+  metrics:
+    - slot_name:
+        usage: "LABEL"
+        description: "Slot Name"
+    - slot_type:
+        usage: "LABEL"
+        description: "Slot Type"
+    - active:
+        usage: "GAUGE"
+        description: "Boolean flag indicating whether this slot has a consumer streaming from it"
+    - xmin_age:
+        usage: "GAUGE"
+        description: "Age of oldest transaction that cannot be vacuumed due to this replica"
+    - catalog_xmin_age:
+        usage: "GAUGE"
+        description: "Age of oldest transaction that cannot be vacuumed from catalogs due to this replica (used by logical replication)"
+    - restart_lsn_bytes:
+        usage: "GAUGE"
+        description: "Amount of data on in xlog that must be this replica may need to complete recovery"
+    - confirmed_flush_lsn_bytes:
+        usage: "GAUGE"
+        description: "Amount of data on in xlog that must be this replica has not yet received"
+
+pg_stat_ssl:
+  master: true
+  query: |
+    SELECT pid, bits,
+           CASE WHEN ssl THEN 1.0 ELSE 0.0 END AS active,
+           CASE WHEN compression THEN 1.0 ELSE 0.0 END AS compression
+           FROM pg_catalog.pg_stat_ssl
+  metrics:
+    - pid:
+        usage: "LABEL"
+        description: "Process ID of a backend or WAL sender process"
+    - active:
+        usage: "GAUGE"
+        description: "Boolean flag indicating if SSL is used on this connection"
+    - bits:
+        usage: "GAUGE"
+        description: "Number of bits in the encryption algorithm is in use"
+    - compression:
+        usage: "GAUGE"
+        description: "Boolean flag indicating if SSL compression is in use"
+
+pg_table_bloat:
+  master: true
+  query: |
+    SET max_parallel_workers_per_gather = 0;
+    WITH databases AS (
+      SELECT datname FROM pg_database
+      WHERE datname NOT IN ('template0', 'template1')
+    )
+    SELECT datname, ss.* FROM databases,
+      LATERAL (SELECT * FROM dblink(
+        'host=/var/run/postgresql port=5432 user=postgres sslmode=disable dbname=''' || regexp_replace(datname, '([.\\])', '\\\1', 'g') || '''',
+        'WITH constants AS (' || E'\n'
+        || '-- define some constants for sizes of things' || E'\n'
+        || '-- for reference down the query and easy maintenance' || E'\n'
+        || 'SELECT current_setting(''block_size'')::numeric AS bs, 23 AS hdr, 8 AS ma),' || E'\n'
+        || 'no_stats AS (' || E'\n'
+        || '    -- screen out table who have attributes' || E'\n'
+        || '    -- which dont have stats, such as JSON' || E'\n'
+        || '    SELECT table_schema, table_name,' || E'\n'
+        || '        n_live_tup::numeric as est_rows,' || E'\n'
+        || '        pg_table_size(relid)::numeric as table_size' || E'\n'
+        || '    FROM information_schema.columns' || E'\n'
+        || '        JOIN pg_catalog.pg_stat_user_tables as psut' || E'\n'
+        || '          ON table_schema = psut.schemaname' || E'\n'
+        || '          AND table_name = psut.relname' || E'\n'
+        || '        LEFT OUTER JOIN pg_catalog.pg_stats' || E'\n'
+        || '        ON table_schema = pg_stats.schemaname' || E'\n'
+        || '            AND table_name = pg_stats.tablename' || E'\n'
+        || '            AND column_name = attname' || E'\n'
+        || '    WHERE attname IS NULL' || E'\n'
+        || '        AND table_schema NOT IN (''pg_catalog'', ''information_schema'')' || E'\n'
+        || '    GROUP BY table_schema, table_name, relid, n_live_tup),' || E'\n'
+        || 'null_headers AS (' || E'\n'
+        || '    -- calculate null header sizes' || E'\n'
+        || '    -- omitting tables which dont have complete stats' || E'\n'
+        || '    -- and attributes which aren''t visible' || E'\n'
+        || '    SELECT' || E'\n'
+        || '        hdr+1+(sum(case when null_frac <> 0 THEN 1 else 0 END)/8) as nullhdr,' || E'\n'
+        || '        SUM((1-null_frac)*avg_width) as datawidth,' || E'\n'
+        || '        MAX(null_frac) as maxfracsum,' || E'\n'
+        || '        schemaname,' || E'\n'
+        || '        tablename,' || E'\n'
+        || '        hdr, ma, bs' || E'\n'
+        || '    FROM pg_catalog.pg_stats CROSS JOIN constants' || E'\n'
+        || '        LEFT OUTER JOIN no_stats' || E'\n'
+        || '            ON schemaname = no_stats.table_schema' || E'\n'
+        || '            AND tablename = no_stats.table_name' || E'\n'
+        || '    WHERE schemaname NOT IN (''pg_catalog'', ''information_schema'')' || E'\n'
+        || '        AND no_stats.table_name IS NULL' || E'\n'
+        || '        AND EXISTS ( SELECT 1' || E'\n'
+        || '            FROM information_schema.columns' || E'\n'
+        || '                WHERE schemaname = columns.table_schema' || E'\n'
+        || '                    AND tablename = columns.table_name )' || E'\n'
+        || '    GROUP BY schemaname, tablename, hdr, ma, bs),' || E'\n'
+        || 'data_headers AS (' || E'\n'
+        || '    -- estimate header and row size' || E'\n'
+        || '    SELECT' || E'\n'
+        || '        ma, bs, hdr, schemaname, tablename,' || E'\n'
+        || '        (datawidth+(hdr+ma-(case when hdr%ma=0 THEN ma ELSE hdr%ma END)))::numeric AS datahdr,' || E'\n'
+        || '        (maxfracsum*(nullhdr+ma-(case when nullhdr%ma=0 THEN ma ELSE nullhdr%ma END))) AS nullhdr2' || E'\n'
+        || '    FROM null_headers),' || E'\n'
+        || 'table_estimates AS (' || E'\n'
+        || '    -- make estimates of how large the table should be' || E'\n'
+        || '    -- based on row and page size' || E'\n'
+        || '    SELECT schemaname, tablename, bs,' || E'\n'
+        || '        reltuples::numeric as est_rows, relpages * bs as table_bytes,' || E'\n'
+        || '    CEIL((reltuples*' || E'\n'
+        || '            (datahdr + nullhdr2 + 4 + ma -' || E'\n'
+        || '                (CASE WHEN datahdr%ma=0' || E'\n'
+        || '                    THEN ma ELSE datahdr%ma END)' || E'\n'
+        || '                )/(bs-20))) * bs AS expected_bytes,' || E'\n'
+        || '        reltoastrelid' || E'\n'
+        || '    FROM data_headers' || E'\n'
+        || '        JOIN pg_catalog.pg_class ON tablename = relname' || E'\n'
+        || '        JOIN pg_catalog.pg_namespace ON relnamespace = pg_namespace.oid' || E'\n'
+        || '            AND schemaname = nspname' || E'\n'
+        || '    WHERE pg_class.relkind = ''r''),' || E'\n'
+        || 'estimates_with_toast AS (' || E'\n'
+        || '    -- add in estimated TOAST table sizes' || E'\n'
+        || '    -- estimate based on 4 toast tuples per page because we dont have' || E'\n'
+        || '    -- anything better.  also append the no_data tables' || E'\n'
+        || '    SELECT schemaname, tablename,' || E'\n'
+        || '        TRUE as can_estimate,' || E'\n'
+        || '        est_rows,' || E'\n'
+        || '        table_bytes + ( coalesce(toast.relpages, 0) * bs ) as table_bytes,' || E'\n'
+        || '        expected_bytes + ( ceil( coalesce(toast.reltuples, 0) / 4 ) * bs ) as expected_bytes' || E'\n'
+        || '    FROM table_estimates LEFT OUTER JOIN pg_catalog.pg_class as toast' || E'\n'
+        || '        ON table_estimates.reltoastrelid = toast.oid' || E'\n'
+        || '            AND toast.relkind = ''t''),' || E'\n'
+        || 'table_estimates_plus AS (' || E'\n'
+        || '-- add some extra metadata to the table data' || E'\n'
+        || '-- and calculations to be reused' || E'\n'
+        || '-- including whether we cant estimate it' || E'\n'
+        || '-- or whether we think it might be compressed' || E'\n'
+        || '    SELECT schemaname, tablename, can_estimate,' || E'\n'
+        || '            est_rows,' || E'\n'
+        || '            CASE WHEN table_bytes > 0' || E'\n'
+        || '                THEN table_bytes::NUMERIC' || E'\n'
+        || '                ELSE NULL::NUMERIC END' || E'\n'
+        || '                AS table_bytes,' || E'\n'
+        || '            CASE WHEN expected_bytes > 0' || E'\n'
+        || '                THEN expected_bytes::NUMERIC' || E'\n'
+        || '                ELSE NULL::NUMERIC END' || E'\n'
+        || '                    AS expected_bytes,' || E'\n'
+        || '            CASE WHEN expected_bytes > 0 AND table_bytes > 0' || E'\n'
+        || '                AND expected_bytes <= table_bytes' || E'\n'
+        || '                THEN (table_bytes - expected_bytes)::NUMERIC' || E'\n'
+        || '                ELSE 0::NUMERIC END AS bloat_bytes' || E'\n'
+        || '    FROM estimates_with_toast' || E'\n'
+        || '    UNION ALL' || E'\n'
+        || '    SELECT table_schema, table_name, FALSE,' || E'\n'
+        || '        est_rows, table_size,' || E'\n'
+        || '        NULL::NUMERIC, NULL::NUMERIC' || E'\n'
+        || '    FROM no_stats),' || E'\n'
+        || 'bloat_data AS (' || E'\n'
+        || '    -- do final math calculations and formatting' || E'\n'
+        || '    select schemaname, tablename, can_estimate,' || E'\n'
+        || '        table_bytes, round(table_bytes/(1024^2)::NUMERIC,3) as table_size_mb,' || E'\n'
+        || '        expected_bytes, round(expected_bytes/(1024^2)::NUMERIC,3) as expected_mb,' || E'\n'
+        || '        round(bloat_bytes*100/table_bytes) as pct_bloat,' || E'\n'
+        || '        round(bloat_bytes/(1024::NUMERIC^2),2) as bloat_mb,' || E'\n'
+        || '        table_bytes, expected_bytes, est_rows' || E'\n'
+        || '    FROM table_estimates_plus' || E'\n'
+        || ')' || E'\n'
+        || '-- filter output for bloated tables' || E'\n'
+        || 'SELECT schemaname, tablename AS relname,' || E'\n'
+        || '    est_rows,' || E'\n'
+        || '    pct_bloat, bloat_mb as size_mb,' || E'\n'
+        || '    table_size_mb' || E'\n'
+        || 'FROM bloat_data' || E'\n'
+        || '-- this where clause defines which tables actually appear' || E'\n'
+        || '-- in the bloat chart' || E'\n'
+        || '-- clause below filters for tables which are either 10%' || E'\n'
+        || '-- bloated and more than 20mb in size, or more than 25%' || E'\n'
+        || '-- bloated and more than 1GB in size' || E'\n'
+        || '-- WHERE ( pct_bloat >= 5 AND bloat_mb >= 20 )' || E'\n'
+        || 'ORDER BY pct_bloat DESC;')
+        AS (schemaname name, relname name, est_rows numeric, pct_bloat numeric, size_mb numeric, table_size_mb numeric)) AS ss;
+  metrics:
+    - datname:
+        usage: "LABEL"
+        description: "Database Name"
+    - schemaname:
+        usage: "LABEL"
+        description: "Schema Name"
+    - relname:
+        usage: "LABEL"
+        description: "Table Name"
+    - est_rows:
+        usage: "GAUGE"
+        description: "Estimated rows"
+    - pct_bloat:
+        usage: "GAUGE"
+        description: "Percentage of bloat"
+    - size_mb:
+        usage: "GAUGE"
+        description: "Table Bloat in MB"
+    - table_size_mb:
+        usage: "GAUGE"
+        description: "Table Size in MB"
+
+pg_index:
+  master: true
+  query: |
+    SET max_parallel_workers_per_gather = 0;
+    WITH databases AS (
+      SELECT datname FROM pg_database
+      WHERE datname NOT IN ('template0', 'template1')
+    )
+    SELECT datname, ss.* FROM databases,
+      LATERAL (SELECT * FROM dblink(
+        'host=/var/run/postgresql port=5432 user=postgres sslmode=disable dbname=''' || regexp_replace(datname, '([.\\])', '\\\1', 'g') || '''',
+        '-- btree index stats query' || E'\n'
+        || '-- estimates bloat for btree indexes' || E'\n'
+        || 'WITH btree_index_atts AS (' || E'\n'
+        || '    SELECT nspname,' || E'\n'
+        || '        indexclass.relname as indexname,' || E'\n'
+        || '        indexclass.reltuples,' || E'\n'
+        || '        indexclass.relpages,' || E'\n'
+        || '        indrelid, indexrelid,' || E'\n'
+        || '        indexclass.relam,' || E'\n'
+        || '        tableclass.relname as tablename,' || E'\n'
+        || '        regexp_split_to_table(indkey::text, '' '')::smallint AS attnum,' || E'\n'
+        || '        indexrelid as index_oid' || E'\n'
+        || '    FROM pg_catalog.pg_index' || E'\n'
+        || '    JOIN pg_catalog.pg_class AS indexclass ON pg_index.indexrelid = indexclass.oid' || E'\n'
+        || '    JOIN pg_catalog.pg_class AS tableclass ON pg_index.indrelid = tableclass.oid' || E'\n'
+        || '    JOIN pg_catalog.pg_namespace ON pg_namespace.oid = indexclass.relnamespace' || E'\n'
+        || '    JOIN pg_catalog.pg_am ON indexclass.relam = pg_am.oid' || E'\n'
+        || '    WHERE pg_am.amname = ''btree'' and indexclass.relpages > 0' || E'\n'
+        || '        AND nspname NOT IN (''pg_catalog'',''information_schema'')' || E'\n'
+        || '    ),' || E'\n'
+        || 'index_item_sizes AS (' || E'\n'
+        || '    SELECT' || E'\n'
+        || '    ind_atts.nspname, ind_atts.indexname,' || E'\n'
+        || '    ind_atts.reltuples, ind_atts.relpages, ind_atts.relam,' || E'\n'
+        || '    indrelid AS table_oid, index_oid,' || E'\n'
+        || '    current_setting(''block_size'')::numeric AS bs,' || E'\n'
+        || '    8 AS maxalign,' || E'\n'
+        || '    24 AS pagehdr,' || E'\n'
+        || '    CASE WHEN max(coalesce(pg_stats.null_frac,0)) = 0' || E'\n'
+        || '        THEN 2' || E'\n'
+        || '        ELSE 6' || E'\n'
+        || '    END AS index_tuple_hdr,' || E'\n'
+        || '    sum( (1-coalesce(pg_stats.null_frac, 0)) * coalesce(pg_stats.avg_width, 1024) ) AS nulldatawidth' || E'\n'
+        || '    FROM pg_catalog.pg_attribute' || E'\n'
+        || '    JOIN btree_index_atts AS ind_atts ON pg_attribute.attrelid = ind_atts.indexrelid AND pg_attribute.attnum = ind_atts.attnum' || E'\n'
+        || '    JOIN pg_catalog.pg_stats ON pg_stats.schemaname = ind_atts.nspname' || E'\n'
+        || '        -- stats for regular index columns' || E'\n'
+        || '        AND ( (pg_stats.tablename = ind_atts.tablename AND pg_stats.attname = pg_catalog.pg_get_indexdef(pg_attribute.attrelid, pg_attribute.attnum, TRUE))' || E'\n' 
+        || '        -- stats for functional indexes' || E'\n'
+        || '        OR   (pg_stats.tablename = ind_atts.indexname AND pg_stats.attname = pg_attribute.attname))' || E'\n'
+        || '    WHERE pg_attribute.attnum > 0' || E'\n'
+        || '    GROUP BY 1, 2, 3, 4, 5, 6, 7, 8, 9' || E'\n'
+        || '),' || E'\n'
+        || 'index_aligned_est AS (' || E'\n'
+        || '    SELECT maxalign, bs, nspname, indexname, reltuples,' || E'\n'
+        || '        relpages, relam, table_oid, index_oid,' || E'\n'
+        || '        coalesce (' || E'\n'
+        || '            ceil (' || E'\n'
+        || '                reltuples * ( 6' || E'\n'
+        || '                    + maxalign' || E'\n'
+        || '                    - CASE' || E'\n'
+        || '                        WHEN index_tuple_hdr%maxalign = 0 THEN maxalign' || E'\n'
+        || '                        ELSE index_tuple_hdr%maxalign' || E'\n'
+        || '                    END' || E'\n'
+        || '                    + nulldatawidth' || E'\n'
+        || '                    + maxalign' || E'\n'
+        || '                    - CASE /* Add padding to the data to align on MAXALIGN */' || E'\n'
+        || '                        WHEN nulldatawidth::integer%maxalign = 0 THEN maxalign' || E'\n'
+        || '                        ELSE nulldatawidth::integer%maxalign' || E'\n'
+        || '                    END' || E'\n'
+        || '                )::numeric' || E'\n'
+        || '            / ( bs - pagehdr::NUMERIC )' || E'\n'
+        || '            +1 )' || E'\n'
+        || '        , 0 )' || E'\n'
+        || '    as expected' || E'\n'
+        || '    FROM index_item_sizes' || E'\n'
+        || '),' || E'\n'
+        || 'raw_bloat AS (' || E'\n'
+        || '    SELECT current_database() as dbname, nspname, pg_class.relname AS tablename, indexname,' || E'\n'
+        || '        bs*(index_aligned_est.relpages)::bigint AS totalbytes, expected,' || E'\n'
+        || '        CASE' || E'\n'
+        || '            WHEN index_aligned_est.relpages <= expected' || E'\n'
+        || '                THEN 0' || E'\n'
+        || '                ELSE bs*(index_aligned_est.relpages-expected)::bigint' || E'\n'
+        || '            END AS wastedbytes,' || E'\n'
+        || '        CASE' || E'\n'
+        || '            WHEN index_aligned_est.relpages <= expected' || E'\n'
+        || '                THEN 0' || E'\n'
+        || '                ELSE bs*(index_aligned_est.relpages-expected)::bigint * 100 / (bs*(index_aligned_est.relpages)::bigint)' || E'\n' 
+        || '            END AS realbloat,' || E'\n'
+        || '        pg_relation_size(index_aligned_est.table_oid) as table_bytes,' || E'\n'
+        || '        stat.idx_scan as index_scans' || E'\n'
+        || '    FROM index_aligned_est' || E'\n'
+        || '    JOIN pg_catalog.pg_class ON pg_class.oid=index_aligned_est.table_oid' || E'\n'
+        || '    JOIN pg_catalog.pg_stat_user_indexes AS stat ON index_aligned_est.index_oid = stat.indexrelid' || E'\n'
+        || '),' || E'\n'
+        || 'format_bloat AS (' || E'\n'
+        || 'SELECT nspname as schemaname, tablename, indexname,' || E'\n'
+        || '        round(realbloat) as bloat_pct, round(wastedbytes/(1024^2)::NUMERIC) as bloat_mb,' || E'\n'
+        || '        round(totalbytes/(1024^2)::NUMERIC,3) as index_mb,' || E'\n'
+        || '        round(table_bytes/(1024^2)::NUMERIC,3) as table_mb,' || E'\n'
+        || '        index_scans' || E'\n'
+        || 'FROM raw_bloat' || E'\n'
+        || ')' || E'\n'
+        || '-- final query outputting the bloated indexes' || E'\n'
+        || '-- change the where and order by to change' || E'\n'
+        || '-- what shows up as bloated' || E'\n'
+        || 'SELECT schemaname,' || E'\n'
+        || '    tablename, indexname AS indexrelname,' || E'\n'
+        || '    bloat_pct, bloat_mb,' || E'\n'
+        || '    index_mb, table_mb, index_scans' || E'\n'
+        || 'FROM format_bloat' || E'\n'
+        || '--WHERE ( bloat_pct > 50 and bloat_mb > 10 )' || E'\n'
+        || 'ORDER BY bloat_mb DESC;' || E'\n')
+        AS (schemaname name, tablename name, indexrelname name, bloat_pct numeric, bloat_mb numeric, index_mb numeric, table_mb numeric, index_scans bigint)) AS ss
+  metrics:
+    - datname:
+        usage: "LABEL"
+        description: "Database Name"
+    - schemaname:
+        usage: "LABEL"
+        description: "Schema Name"
+    - tablename:
+        usage: "LABEL"
+        description: "Table Name"
+    - indexrelname:
+        usage: "LABEL"
+        description: "Index Name"
+    - bloat_pct:
+        usage: "GAUGE"
+        description: "Percentage Bloat"
+    - bloat_mb:
+        usage: "GAUGE"
+        description: "Bloat in MB"
+    - index_mb:
+        usage: "GAUGE"
+        description: "Index size in MB"
+    - table_mb:
+        usage: "GAUGE"
+        description: "Table size in MB"
+    - index_scans:
+        usage: "GAUGE"
+        description: "Count of index scans"
