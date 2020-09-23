@@ -61,18 +61,21 @@ var ClusterInfo = Vue.component("ClusterInfo", {
 						<tr>
 							<td class="label">
 								Postgres Version
+								<span class="helpTooltip" @hover="helpTooltip( 'SGCluster', 'spec.postgresVersion')"></span>
 							</td>
 							<td colspan="3">{{ cluster.data.spec.postgresVersion }}</td>
 						</tr>
 						<tr>
 							<td class="label">
 								Instances
+								<span class="helpTooltip" @hover="helpTooltip( 'SGCluster', 'spec.instances')"></span>
 							</td>
 							<td colspan="3">{{ cluster.data.spec.instances }}</td>
 						</tr>
 						<tr>
 							<td class="label">
 								Instance Profile
+								<span class="helpTooltip" @hover="helpTooltip( 'SGCluster', 'spec.sgInstanceProfile')"></span>
 							</td>
 							<td colspan="3" v-for="profile in profiles" v-if="( (profile.name == cluster.data.spec.sgInstanceProfile) && (profile.data.metadata.namespace == cluster.data.metadata.namespace) )">
 								<router-link :to="'/admin/profiles/'+currentNamespace+'/'+cluster.data.spec.sgInstanceProfile">
@@ -90,18 +93,21 @@ var ClusterInfo = Vue.component("ClusterInfo", {
 							</td>
 							<td class="label">
 								Volume Size
+								<span class="helpTooltip" @hover="helpTooltip( 'SGCluster', 'spec.pods.persistentVolume.size')"></span>
 							</td>
 							<td>{{ cluster.data.spec.pods.persistentVolume.size }}</td>
 						</tr>
 						<tr v-if="(typeof cluster.data.spec.pods.persistentVolume.storageClass !== 'undefined')">
 							<td class="label">
 								Storage Class
+								<span class="helpTooltip" @hover="helpTooltip( 'SGCluster', 'spec.pods.persistentVolume.storageClass')"></span>
 							</td>
 							<td>{{ cluster.data.spec.pods.persistentVolume.size }}</td>
 						</tr>
 						<tr>
 							<td class="label">
 								Connection Pooling
+								<span class="helpTooltip" @hover="helpTooltip( 'SGCluster', 'spec.configurations.sgPoolingConfig')"></span>
 							</td>
 							<td colspan="2">
 								<template v-if="(typeof cluster.data.spec.configurations.sgPoolingConfig !== 'undefined')">
@@ -115,6 +121,7 @@ var ClusterInfo = Vue.component("ClusterInfo", {
 						<tr>
 							<td class="label">
 								Metrics Exporter
+								<span class="helpTooltip" @hover="helpTooltip( 'SGCluster', 'spec.pods.disableMetricsExporter')"></span>
 							</td>
 							<td colspan="2">
 								<template v-if="!cluster.data.spec.pods.disableMetricsExporter">
@@ -131,6 +138,7 @@ var ClusterInfo = Vue.component("ClusterInfo", {
 							</td>
 							<td class="label">
 								Postgres
+								<span class="helpTooltip" @hover="helpTooltip( 'SGCluster', 'spec.configurations.sgPostgresConfig')"></span>
 							</td>
 							<td colspan="2">
 								<router-link :to="'/admin/configurations/postgres/'+currentNamespace+'/'+cluster.data.spec.configurations.sgPostgresConfig">
@@ -142,6 +150,7 @@ var ClusterInfo = Vue.component("ClusterInfo", {
 						<tr v-if="(typeof cluster.data.spec.configurations.sgPoolingConfig !== 'undefined')">
 							<td class="label">
 								Connection Pooling
+								<span class="helpTooltip" @hover="helpTooltip( 'SGCluster', 'spec.configurations.sgPoolingConfig')"></span>
 							</td>
 							<td colspan="2">
 								<router-link :to="'/admin/configurations/connectionpooling/'+currentNamespace+'/'+cluster.data.spec.configurations.sgPoolingConfig">
@@ -153,6 +162,7 @@ var ClusterInfo = Vue.component("ClusterInfo", {
 						<tr v-if="(typeof cluster.data.spec.configurations.sgBackupConfig !== 'undefined')">
 							<td class="label">
 								Managed Backups
+								<span class="helpTooltip" @hover="helpTooltip( 'SGCluster', 'spec.configurations.sgBackupConfig')"></span>
 							</td>
 							<td colspan="2">
 								<router-link :to="'/admin/configurations/backup/'+currentNamespace+'/'+cluster.data.spec.configurations.sgBackupConfig">
@@ -164,6 +174,7 @@ var ClusterInfo = Vue.component("ClusterInfo", {
 						<tr>
 							<td class="label">
 								Prometheus Autobind
+								<span class="helpTooltip" @hover="helpTooltip( 'SGCluster', 'spec.prometheusAutobind')"></span>
 							</td>
 							<td colspan="3">
 								<template v-if="(typeof cluster.data.spec.prometheusAutobind !== 'undefined')">
@@ -180,6 +191,7 @@ var ClusterInfo = Vue.component("ClusterInfo", {
 							</td>
 							<td class="label">
 								Cluster Pod Anti Affinity
+								<span class="helpTooltip" @hover="helpTooltip( 'SGCluster', 'spec.nonProductionOptions.disableClusterPodAntiAffinity')"></span>
 							</td>
 							<td colspan="2">
 								<template v-if="typeof cluster.data.spec.nonProductionOptions.disableClusterPodAntiAffinity !== 'undefined'">
