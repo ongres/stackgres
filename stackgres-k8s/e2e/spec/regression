@@ -1,0 +1,19 @@
+#!/bin/sh
+
+e2e_test_install_pods() {
+  echo 1
+}
+
+e2e_test() {
+  run_test "Checking that JIT is working" check_jit
+}
+
+check_jit() {
+  if run_query -i 0 -p 5432 -q 'SELECT * FROM pg_class a, pg_class b, pg_class c' > /dev/null
+  then
+      echo "SUCCESS: JIT is working as expected"
+  else 
+      echo "FAIL: JIT is not working as expected"
+      return 1
+  fi
+}
