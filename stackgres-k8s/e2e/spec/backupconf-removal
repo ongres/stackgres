@@ -1,11 +1,7 @@
 #!/bin/sh
 
 e2e_test_install() {
-  if [ "$E2E_ENV" = "minishift" ]
-  then
-    eval "$(minishift oc-env)"
-    oc adm policy add-scc-to-user anyuid -n "$CLUSTER_NAMESPACE" -z "$CLUSTER_NAME-minio"
-  fi
+  install_minio
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1
 

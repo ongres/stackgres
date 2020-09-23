@@ -27,5 +27,4 @@ cluster:
           key: create-sakila-schema.sql
   prometheusAutobind: false
 nonProductionOptions:
-  createMinio: false
   disableClusterPodAntiAffinity: true

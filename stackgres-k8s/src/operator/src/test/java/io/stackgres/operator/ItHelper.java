@@ -367,8 +367,7 @@ public class ItHelper {
         + " --set-string configurations.postgresconfig.postgresql\\.conf.shared_buffers=32MB"
         + " --set cluster.create=false"
         + " --set configurations.backupconfig.baseBackups.retention=5"
-        + " --set-string configurations.backupconfig.baseBackups.cronSchedule='*/1 * * * *'"
-        + " --set-string minio.persistence.size=128Mi")
+        + " --set-string configurations.backupconfig.baseBackups.cronSchedule='*/1 * * * *'")
       .filter(EXCLUDE_TTY_WARNING)
       .forEach(LOGGER::info);
   }
@@ -391,8 +390,7 @@ public class ItHelper {
         + " --set instanceProfiles=null"
         + " --set-string cluster.name=" + name
         + " --set cluster.instances=" + instances
-        + " --set-string cluster.pods.persistentVolume.size=128Mi"
-        + " --set nonProductionOptions.createMinio=false")
+        + " --set-string cluster.pods.persistentVolume.size=128Mi")
       .filter(EXCLUDE_TTY_WARNING)
       .forEach(LOGGER::info);
   }
@@ -412,7 +410,6 @@ public class ItHelper {
         + " --set-string cluster.name=" + name
         + " --set cluster.instances=" + instances
         + " --set-string cluster.pods.persistentVolume.size=128Mi"
-        + " --set nonProductionOptions.createMinio=false "
         + " --reuse-values")
       .filter(EXCLUDE_TTY_WARNING)
       .forEach(LOGGER::info);
