@@ -167,6 +167,16 @@ var Side = Vue.component("sg-side", {
 
 	},
 
+	created: function() {
+		this.loadTooltips('SGCluster');
+		this.loadTooltips('SGBackups');
+		this.loadTooltips('SGBackupConfig');
+		this.loadTooltips('SGInstanceProfile');
+		this.loadTooltips('SGPostgresConfig');
+		this.loadTooltips('SGPoolingConfig');
+		this.loadTooltips('SGDistributedLogs');
+	},
+
 	computed: {
 		namespaces () {
 			return store.state.allNamespaces
