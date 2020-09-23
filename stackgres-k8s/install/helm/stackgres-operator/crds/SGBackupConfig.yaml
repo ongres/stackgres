@@ -57,6 +57,7 @@ spec:
                     If not provided, full backups will be performed each day at 05:00 UTC
                 retention:
                   type: integer
+                  minimum: 1
                   description: |
                     Based on this parameter, an automatic retention policy is defined to delete old base backups.
                     This parameter specifies the number of base backups to keep, in a sliding window.
@@ -80,9 +81,10 @@ spec:
                       description: |
                         Maximum disk read I/O when performing a backup. In bytes (per second).
                     uploadDiskConcurrency:
+                      minimum: 1
                       type: integer
                       description: |
-                        Backup storage may use several concurrent streams to store the data. This parameter configures the number of parallel streams to use. By default, it will use 1 (one stream).
+                        Backup storage may use several concurrent streams to store the data. This parameter configures the number of concurrent streams to use. By default, it will use 1 (one stream).
             storage:
               type: object
               description: |
