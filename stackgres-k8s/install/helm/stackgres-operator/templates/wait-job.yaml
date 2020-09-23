@@ -1,0 +1,34 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: "{{ .Release.Name }}-wait"
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: stackgres-operator
+    scope: cleanup
+    job: wait
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+    "helm.sh/hook-weigth": "100"
+spec:
+  template:
+    metadata:
+      labels:
+        app: stackgres-operator
+        scope: cleanup
+        job: wait
+    spec:
+      serviceAccountName: {{ .Release.Name }}-init
+      containers:
+      - name: "{{ .Release.Name }}-wait"
+        image: "bitnami/kubectl:1.18.3"
+        imagePullPolicy: "IfNotPresent"
+        command:
+          - "/bin/bash"
+          - "-ecx"
+          - |
+            kubectl wait job -n '{{ .Release.Namespace }}' -l app=stackgres-operator,scope=init --for condition=Complete
+            kubectl rollout status -n '{{ .Release.Namespace }}' 'deployment/{{ .Release.Name }}'
+            kubectl rollout status -n '{{ .Release.Namespace }}' 'deployment/{{ .Values.restapi.name }}'
+      restartPolicy: OnFailure
