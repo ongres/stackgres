@@ -69,6 +69,8 @@ setup_helm
 setup_operator
 setup_logs
 
+echo "Previous StackGres version used is $STACKGRES_PREVIOUS_VERSION"
+
 rm -f "$TARGET_PATH/e2e-tests-junit-report.results.xml"
 
 echo "Functional tests results" > "$TARGET_PATH/logs/results.log"
