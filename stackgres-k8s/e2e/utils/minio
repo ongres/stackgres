@@ -1,0 +1,41 @@
+#!/bin/sh
+
+install_minio(){
+  MINIO_NAME=${MINIO_NAME:-$CLUSTER_NAME-minio}
+  BUCKET_NAME=${BUCKET_NAME:-stackgres}
+  MINIO_NAMESPACE=${MINIO_NAMESPACE:-$CLUSTER_NAMESPACE}
+  kubectl create namespace "$MINIO_NAMESPACE" || true
+
+  cat << EOF > "$LOG_PATH/minio.yaml"
+persistence:
+  enabled: true
+  size: 128Mi
+buckets:
+  - name: $BUCKET_NAME
+    policy: none
+    purge: true
+readinessProbe:
+  initialDelaySeconds: 5
+EOF
+  if [ "$E2E_ENV" = "kind" ]
+  then
+    cat << EOF >> "$LOG_PATH/minio.yaml"
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+          - key: "kubernetes.io/hostname"
+            operator: "In"
+            values: [ "${KIND_NAME}-worker", "${KIND_NAME}-control-plane" ]
+EOF
+  fi
+  if [ "$E2E_ENV" = "minishift" ]
+  then
+    eval "$(minishift oc-env)"
+    oc adm policy add-scc-to-user anyuid -n "$MINIO_NAMESPACE" -z "$MINIO_NAME"
+  fi
+
+  helm install --namespace "$MINIO_NAMESPACE" "$MINIO_NAME" \
+    minio/minio --version 7.0.1 -f "$LOG_PATH/minio.yaml"
+}

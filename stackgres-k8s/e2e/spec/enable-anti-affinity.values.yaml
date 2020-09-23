@@ -12,5 +12,4 @@ cluster:
     sgBackupConfig: null
   prometheusAutobind: false
 nonProductionOptions:
-  createMinio: false
   disableClusterPodAntiAffinity: false

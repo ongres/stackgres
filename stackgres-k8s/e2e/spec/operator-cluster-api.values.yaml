@@ -14,9 +14,5 @@ cluster:
   configurations:
     sgBackupConfig: backupconf
   prometheusAutobind: false
-minio:
-  readinessProbe:
-    initialDelaySeconds: 5
 nonProductionOptions:
-  createMinio: true
   disableClusterPodAntiAffinity: true

@@ -1,9 +1,13 @@
 #!/bin/sh
 
 setup_helm() {
-  helm repo list | grep -q '^stable\s' \
-    || helm repo add stable https://kubernetes-charts.storage.googleapis.com
 
+  helm repo list | grep -q 'https://kubernetes-charts.storage.googleapis.com' \
+    || helm repo add stable https://kubernetes-charts.storage.googleapis.com
+    
+  helm repo list | grep -q 'https://helm.min.io/' \
+    || helm repo add minio https://helm.min.io/
+      
   if [ -f "$HOME/.cache/helm/repository/stable-index.yaml" ] \
     && [ "$(date -u --date="$(grep '^generated:' "$HOME/.cache/helm/repository/stable-index.yaml" \
     | cut -d ' ' -f 2 | tr 'T' ' ' | cut -d . -f 1 || echo 0)" +%s)" -lt "$(($(date +%s) - (60 * 60 * 24)))" ]
