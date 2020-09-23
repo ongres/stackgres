@@ -1026,6 +1026,30 @@ Vue.mixin({
       $('#contentTooltip').addClass('show');
     },
 
+    helpTooltip(kind, field) {
+      const crd = store.state.tooltips[kind];
+      let param = crd;
+
+      if(field == 'spec.postgresql.conf') {
+        param =  crd.spec.properties['postgresql.conf']
+      } else if (field == 'spec.pgBouncer.pgbouncer.ini') {
+        param =  crd.spec.properties.pgBouncer.properties['pgbouncer.ini']
+      } else {
+        params = field.split('.');
+        params.forEach(function(item, index){
+          if( !index ) // First level
+            param = param[item]
+          else if (param.type == 'object')
+            param = param.properties[item]
+          else if (param.type == 'array')
+            param = param.items.properties[item]
+        })
+      }
+      
+      $('#helpTooltip').html(param.description).show()
+
+    },
+
     hasProp (obj, propertyPath) {
       if(!propertyPath)
           return false;
@@ -2539,5 +2563,26 @@ $(document).ready(function(){
       $('#contentTooltip .content').html('');
     }
   });
+
+  onmousemove = function (e) {
+
+    if( (window.innerWidth - e.clientX) > 420 ) {
+      $('#helpTooltip').css({
+        "top": e.clientY+20, 
+        "right": "auto",
+        "left": e.clientX+20
+      })
+    } else {
+      $('#helpTooltip').css({
+        "top": e.clientY+20, 
+        "left": "auto",
+        "right": window.innerWidth - e.clientX + 20
+      })
+    }
+  }
+
+  $(document).on('mouseleave','.helpTooltip', function(){
+    $('#helpTooltip').hide()
+  })
 
 });

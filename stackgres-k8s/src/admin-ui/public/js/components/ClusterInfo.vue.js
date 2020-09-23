@@ -61,21 +61,21 @@ var ClusterInfo = Vue.component("ClusterInfo", {
 						<tr>
 							<td class="label">
 								Postgres Version
-								<span class="helpTooltip" @hover="helpTooltip( 'SGCluster', 'spec.postgresVersion')"></span>
+								<span class="helpTooltip"  @click="helpTooltip( 'SGCluster', 'spec.postgresVersion')"></span>
 							</td>
 							<td colspan="3">{{ cluster.data.spec.postgresVersion }}</td>
 						</tr>
 						<tr>
 							<td class="label">
 								Instances
-								<span class="helpTooltip" @hover="helpTooltip( 'SGCluster', 'spec.instances')"></span>
+								<span class="helpTooltip"  @click="helpTooltip( 'SGCluster', 'spec.instances')"></span>
 							</td>
 							<td colspan="3">{{ cluster.data.spec.instances }}</td>
 						</tr>
 						<tr>
 							<td class="label">
 								Instance Profile
-								<span class="helpTooltip" @hover="helpTooltip( 'SGCluster', 'spec.sgInstanceProfile')"></span>
+								<span class="helpTooltip"  @click="helpTooltip( 'SGCluster', 'spec.sgInstanceProfile')"></span>
 							</td>
 							<td colspan="3" v-for="profile in profiles" v-if="( (profile.name == cluster.data.spec.sgInstanceProfile) && (profile.data.metadata.namespace == cluster.data.metadata.namespace) )">
 								<router-link :to="'/admin/profiles/'+currentNamespace+'/'+cluster.data.spec.sgInstanceProfile">
@@ -87,27 +87,29 @@ var ClusterInfo = Vue.component("ClusterInfo", {
 						<tr>
 							<td class="label" rowspan="3">
 								Pods
+								<span class="helpTooltip"  @click="helpTooltip( 'SGCluster', 'spec.pods')"></span>
 							</td>
 							<td class="label" :rowspan="Object.keys(cluster.data.spec.pods.persistentVolume).length">
 								Persistent Volume
+								<span class="helpTooltip"  @click="helpTooltip( 'SGCluster', 'spec.pods.persistentVolume')"></span>
 							</td>
 							<td class="label">
 								Volume Size
-								<span class="helpTooltip" @hover="helpTooltip( 'SGCluster', 'spec.pods.persistentVolume.size')"></span>
+								<span class="helpTooltip"  @click="helpTooltip( 'SGCluster', 'spec.pods.persistentVolume.size')"></span>
 							</td>
 							<td>{{ cluster.data.spec.pods.persistentVolume.size }}</td>
 						</tr>
 						<tr v-if="(typeof cluster.data.spec.pods.persistentVolume.storageClass !== 'undefined')">
 							<td class="label">
 								Storage Class
-								<span class="helpTooltip" @hover="helpTooltip( 'SGCluster', 'spec.pods.persistentVolume.storageClass')"></span>
+								<span class="helpTooltip"  @click="helpTooltip( 'SGCluster', 'spec.pods.persistentVolume.storageClass')"></span>
 							</td>
 							<td>{{ cluster.data.spec.pods.persistentVolume.size }}</td>
 						</tr>
 						<tr>
 							<td class="label">
 								Connection Pooling
-								<span class="helpTooltip" @hover="helpTooltip( 'SGCluster', 'spec.configurations.sgPoolingConfig')"></span>
+								<span class="helpTooltip"  @click="helpTooltip( 'SGCluster', 'spec.configurations.sgPoolingConfig')"></span>
 							</td>
 							<td colspan="2">
 								<template v-if="(typeof cluster.data.spec.configurations.sgPoolingConfig !== 'undefined')">
@@ -121,7 +123,7 @@ var ClusterInfo = Vue.component("ClusterInfo", {
 						<tr>
 							<td class="label">
 								Metrics Exporter
-								<span class="helpTooltip" @hover="helpTooltip( 'SGCluster', 'spec.pods.disableMetricsExporter')"></span>
+								<span class="helpTooltip"  @click="helpTooltip( 'SGCluster', 'spec.pods.disableMetricsExporter')"></span>
 							</td>
 							<td colspan="2">
 								<template v-if="!cluster.data.spec.pods.disableMetricsExporter">
@@ -135,10 +137,11 @@ var ClusterInfo = Vue.component("ClusterInfo", {
 						<tr>
 							<td class="label" :rowspan="Object.keys(cluster.data.spec.configurations).length">
 								Configurations
+								<span class="helpTooltip"  @click="helpTooltip( 'SGCluster', 'spec.configurations')"></span>
 							</td>
 							<td class="label">
 								Postgres
-								<span class="helpTooltip" @hover="helpTooltip( 'SGCluster', 'spec.configurations.sgPostgresConfig')"></span>
+								<span class="helpTooltip"  @click="helpTooltip( 'SGCluster', 'spec.configurations.sgPostgresConfig')"></span>
 							</td>
 							<td colspan="2">
 								<router-link :to="'/admin/configurations/postgres/'+currentNamespace+'/'+cluster.data.spec.configurations.sgPostgresConfig">
@@ -150,7 +153,7 @@ var ClusterInfo = Vue.component("ClusterInfo", {
 						<tr v-if="(typeof cluster.data.spec.configurations.sgPoolingConfig !== 'undefined')">
 							<td class="label">
 								Connection Pooling
-								<span class="helpTooltip" @hover="helpTooltip( 'SGCluster', 'spec.configurations.sgPoolingConfig')"></span>
+								<span class="helpTooltip"  @click="helpTooltip( 'SGCluster', 'spec.configurations.sgPoolingConfig')"></span>
 							</td>
 							<td colspan="2">
 								<router-link :to="'/admin/configurations/connectionpooling/'+currentNamespace+'/'+cluster.data.spec.configurations.sgPoolingConfig">
@@ -162,7 +165,7 @@ var ClusterInfo = Vue.component("ClusterInfo", {
 						<tr v-if="(typeof cluster.data.spec.configurations.sgBackupConfig !== 'undefined')">
 							<td class="label">
 								Managed Backups
-								<span class="helpTooltip" @hover="helpTooltip( 'SGCluster', 'spec.configurations.sgBackupConfig')"></span>
+								<span class="helpTooltip"  @click="helpTooltip( 'SGCluster', 'spec.configurations.sgBackupConfig')"></span>
 							</td>
 							<td colspan="2">
 								<router-link :to="'/admin/configurations/backup/'+currentNamespace+'/'+cluster.data.spec.configurations.sgBackupConfig">
@@ -174,7 +177,7 @@ var ClusterInfo = Vue.component("ClusterInfo", {
 						<tr>
 							<td class="label">
 								Prometheus Autobind
-								<span class="helpTooltip" @hover="helpTooltip( 'SGCluster', 'spec.prometheusAutobind')"></span>
+								<span class="helpTooltip"  @click="helpTooltip( 'SGCluster', 'spec.prometheusAutobind')"></span>
 							</td>
 							<td colspan="3">
 								<template v-if="(typeof cluster.data.spec.prometheusAutobind !== 'undefined')">
@@ -188,10 +191,11 @@ var ClusterInfo = Vue.component("ClusterInfo", {
 						<tr v-if="typeof cluster.data.spec.nonProductionOptions !== 'undefined'">
 							<td class="label">
 								Non-Production Settings
+								<span class="helpTooltip"  @click="helpTooltip( 'SGCluster', 'spec.nonProductionOptions')"></span>
 							</td>
 							<td class="label">
 								Cluster Pod Anti Affinity
-								<span class="helpTooltip" @hover="helpTooltip( 'SGCluster', 'spec.nonProductionOptions.disableClusterPodAntiAffinity')"></span>
+								<span class="helpTooltip"  @click="helpTooltip( 'SGCluster', 'spec.nonProductionOptions.disableClusterPodAntiAffinity')"></span>
 							</td>
 							<td colspan="2">
 								<template v-if="typeof cluster.data.spec.nonProductionOptions.disableClusterPodAntiAffinity !== 'undefined'">
@@ -208,9 +212,11 @@ var ClusterInfo = Vue.component("ClusterInfo", {
 									<tr>
 										<td class="label" rowspan="3">
 											Initial Data
+											<span class="helpTooltip"  @click="helpTooltip( 'SGCluster', 'spec.initialData')"></span>
 										</td>
 										<td class="label">
 											Download Disk Concurrency
+											<span class="helpTooltip"  @click="helpTooltip( 'SGCluster', 'spec.initialData.restore.downloadDiskConcurrency')"></span>
 										</td>
 										<td colspan="2">
 											{{ cluster.data.spec.initialData.restore.downloadDiskConcurrency }}
@@ -219,6 +225,7 @@ var ClusterInfo = Vue.component("ClusterInfo", {
 									<tr>
 										<td class="label" rowspan="2">
 											Restored from Backup
+											<span class="helpTooltip"  @click="helpTooltip( 'SGCluster', 'spec.initialData.restore.fromBackup')"></span>
 										</td>
 										<td class="label">
 											Backup UID
@@ -254,9 +261,11 @@ var ClusterInfo = Vue.component("ClusterInfo", {
 									<tr>
 										<td class="label" rowspan="3">
 											Initial Data
+											<span class="helpTooltip"  @click="helpTooltip( 'SGCluster', 'spec.initialData')"></span>
 										</td>
 										<td class="label">
 											Download Disk Concurrency
+											<span class="helpTooltip"  @click="helpTooltip( 'SGCluster', 'spec.initialData.restore.downloadDiskConcurrency')"></span>
 										</td>
 										<td colspan="2">
 											{{ cluster.data.spec.initialData.restore.downloadDiskConcurrency }}
@@ -265,6 +274,7 @@ var ClusterInfo = Vue.component("ClusterInfo", {
 									<tr>
 										<td class="label" rowspan="2">
 											Restored from Backup
+											<span class="helpTooltip"  @click="helpTooltip( 'SGCluster', 'spec.initialData.restore.fromBackup')"></span>
 										</td>
 										<td class="label">
 											Backup UID
@@ -297,9 +307,11 @@ var ClusterInfo = Vue.component("ClusterInfo", {
 							<tr v-for="(item, index) in unparseProps(cluster.data.spec.pods.metadata.labels)">
 								<td v-if="!index" class="label" :rowspan="Object.keys(cluster.data.spec.pods.metadata.labels).length">
 									Pods Metadata
+									<span class="helpTooltip"  @click="helpTooltip( 'SGCluster', 'spec.pods.metadata')"></span>
 								</td>
 								<td v-if="!index" class="label" :rowspan="Object.keys(cluster.data.spec.pods.metadata.labels).length">
 									Labels
+									<span class="helpTooltip"  @click="helpTooltip( 'SGCluster', 'spec.pods.metadata.labels')"></span>
 								</td>
 								<td class="label">
 									{{ item.annotation }}
@@ -322,9 +334,11 @@ var ClusterInfo = Vue.component("ClusterInfo", {
 							<tr v-for="(item, index) in unparseProps(cluster.data.spec.pods.scheduling.nodeSelector)">
 								<td v-if="!index" class="label" :rowspan="Object.keys(cluster.data.spec.pods.scheduling.nodeSelector).length">
 									Pods Scheduling
+									<span class="helpTooltip"  @click="helpTooltip( 'SGCluster', 'spec.pods.scheduling')"></span>
 								</td>
 								<td v-if="!index" class="label" :rowspan="Object.keys(cluster.data.spec.pods.scheduling.nodeSelector).length">
 									Node Selectors
+									<span class="helpTooltip"  @click="helpTooltip( 'SGCluster', 'spec.pods.scheduling.nodeSelector')"></span>
 								</td>
 								<td class="label">
 									{{ item.annotation }}
@@ -338,7 +352,7 @@ var ClusterInfo = Vue.component("ClusterInfo", {
 				</div>
 
 				<div class="scripts" v-if="hasProp(cluster, 'data.spec.initialData.scripts')">
-					<h2>Scripts</h2>
+					<h2>Scripts <span class="helpTooltip"  @click="helpTooltip( 'SGCluster', 'spec.initialData.scripts')"></span></h2>
 					<table class="clusterConfig">
 						<thead>
 							<th></th>
@@ -465,7 +479,7 @@ var ClusterInfo = Vue.component("ClusterInfo", {
 				</div>	
 
 				<div class="postgresServices" v-if="hasProp(cluster, 'data.spec.postgresServices') && ((hasProp(cluster, 'data.spec.postgresServices.primary') && cluster.data.spec.postgresServices.primary.enabled) || (hasProp(cluster, 'data.spec.postgresServices.replicas') && cluster.data.spec.postgresServices.replicas.enabled))">
-					<h2>Postgres Services</h2>
+					<h2>Postgres Services <span class="helpTooltip"  @click="helpTooltip( 'SGCluster', 'spec.postgresServices')"></span></h2>
 					<table v-if="hasProp(cluster, 'data.spec.postgresServices.primary') && cluster.data.spec.postgresServices.primary.enabled" class="clusterConfig">
 						<thead>
 							<th></th>
@@ -477,12 +491,15 @@ var ClusterInfo = Vue.component("ClusterInfo", {
 							<tr>
 								<td class="label" v-if="!hasProp(cluster, 'data.spec.postgresServices.primary.annotations')">
 									Primary
+									<span class="helpTooltip"  @click="helpTooltip( 'SGCluster', 'spec.postgresServices.primary')"></span>
 								</td>
 								<td class="label" v-else :rowspan="Object.keys(cluster.data.spec.postgresServices.primary.annotations).length+1">
 									Primary
+									<span class="helpTooltip"  @click="helpTooltip( 'SGCluster', 'spec.postgresServices.primary')"></span>
 								</td>
 								<td class="label">
 									Type
+									<span class="helpTooltip"  @click="helpTooltip( 'SGCluster', 'spec.postgresServices.primary.type')"></span>
 								</td>
 								<td colspan="2">
 									{{ cluster.data.spec.postgresServices.primary.type }}
@@ -491,6 +508,7 @@ var ClusterInfo = Vue.component("ClusterInfo", {
 							<tr v-for="(item, index) in unparseProps(cluster.data.spec.postgresServices.primary.annotations)">
 								<td v-if="index == 0" class="label" :rowspan="Object.keys(cluster.data.spec.postgresServices.primary.annotations).length">
 									Annotations
+									<span class="helpTooltip"  @click="helpTooltip( 'SGCluster', 'spec.postgresServices.primary.annotations')"></span>
 								</td>
 								<td class="label">
 									{{ item.annotation }}
@@ -513,12 +531,15 @@ var ClusterInfo = Vue.component("ClusterInfo", {
 							<tr>
 								<td class="label" v-if="!hasProp(cluster, 'data.spec.postgresServices.replicas.annotations')">
 									Replicas
+									<span class="helpTooltip"  @click="helpTooltip( 'SGCluster', 'spec.postgresServices.replicas')"></span>
 								</td>
 								<td class="label" v-else :rowspan="Object.keys(cluster.data.spec.postgresServices.replicas.annotations).length+1">
 									Replicas
+									<span class="helpTooltip"  @click="helpTooltip( 'SGCluster', 'spec.postgresServices.replicas')"></span>
 								</td>
 								<td class="label">
 									Type
+									<span class="helpTooltip"  @click="helpTooltip( 'SGCluster', 'spec.postgresServices.replicas.type')"></span>
 								</td>
 								<td colspan="2">
 									{{ cluster.data.spec.postgresServices.replicas.type }}
@@ -527,6 +548,7 @@ var ClusterInfo = Vue.component("ClusterInfo", {
 							<tr v-for="(item, index) in unparseProps(cluster.data.spec.postgresServices.replicas.annotations)">
 								<td v-if="!index" class="label" :rowspan="Object.keys(cluster.data.spec.postgresServices.replicas.annotations).length">
 									Annotations
+									<span class="helpTooltip"  @click="helpTooltip( 'SGCluster', 'spec.postgresServices.replicas.annotations')"></span>
 								</td>
 								<td class="label">
 									{{ item.annotation }}

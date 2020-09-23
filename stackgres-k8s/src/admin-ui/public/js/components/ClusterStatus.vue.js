@@ -54,19 +54,19 @@ var ClusterStatus = Vue.component("ClusterStatus", {
 					<thead>
 						<th>
 							Total CPU 
-							<span class="helpTooltip" @hover=""></span>
+							<span class="helpTooltip" @click=""></span>
 						</th>
 						<th>
 							Total Memory
-							<span class="helpTooltip" @hover=""></span>
+							<span class="helpTooltip" @click=""></span>
 						</th>
 						<th>
 							Primary Node Disk
-							<span class="helpTooltip" @hover=""></span>
+							<span class="helpTooltip" @click=""></span>
 						</th>
 						<th>
 							Instances
-							<span class="helpTooltip" @hover=""></span>
+							<span class="helpTooltip" @click=""></span>
 						</th>
 					</thead>
 					<tbody>
@@ -104,31 +104,31 @@ var ClusterStatus = Vue.component("ClusterStatus", {
 					<thead>
 						<th>
 							Pod Name
-							<span class="helpTooltip" @hover=""></span>
+							<span class="helpTooltip" @click=""></span>
 						</th>
 						<th>
 							Role
-							<span class="helpTooltip" @hover=""></span>
+							<span class="helpTooltip" @click=""></span>
 						</th>
 						<th>
 							Status
-							<span class="helpTooltip" @hover=""></span>
+							<span class="helpTooltip" @click=""></span>
 						</th>
 						<th>
 							CPU
-							<span class="helpTooltip" @hover=""></span>
+							<span class="helpTooltip" @click=""></span>
 						</th>
 						<th>
 							Memory
-							<span class="helpTooltip" @hover=""></span>
+							<span class="helpTooltip" @click=""></span>
 						</th>
 						<th>
 							Disk
-							<span class="helpTooltip" @hover=""></span>
+							<span class="helpTooltip" @click=""></span>
 						</th>
 						<th>
 							Containers
-							<span class="helpTooltip" @hover=""></span>
+							<span class="helpTooltip" @click=""></span>
 						</th>
 					</thead>
 					<tbody>
