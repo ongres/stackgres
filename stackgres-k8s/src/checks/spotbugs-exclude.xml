@@ -25,11 +25,6 @@
     <Bug pattern="CRLF_INJECTION_LOGS" />
   </Match>
 
-  <!-- False positive with Java 11 https://github.com/spotbugs/spotbugs/issues/878 -->
-  <Match>
-    <Bug pattern="RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE" />
-  </Match>
-
   <!-- Se: Non-transient non-serializable instance field in serializable class -->
   <Match>
     <Bug pattern="SE_BAD_FIELD" />
@@ -55,10 +50,6 @@
   <Match>
     <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE" />
     <Or>
-      <And>
-        <Class name="io.stackgres.testutil.JsonUtil" />
-        <Method name="readFromJson" />
-      </And>
       <And>
         <Class name="io.stackgres.apiweb.distributedlogs.DistributedLogsFetcherImpl" />
         <Method name="logs" />
