@@ -10,7 +10,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import io.stackgres.apiweb.dto.SecretKeySelector;
+import io.fabric8.kubernetes.api.model.SecretKeySelector;
 import io.stackgres.apiweb.dto.backupconfig.BackupConfigDto;
 import io.stackgres.apiweb.dto.backupconfig.BackupConfigSpec;
 import io.stackgres.apiweb.dto.storages.AwsCredentials;

@@ -10,8 +10,8 @@ import javax.validation.Valid;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import io.fabric8.kubernetes.api.model.SecretKeySelector;
 import io.quarkus.runtime.annotations.RegisterForReflection;
-import io.stackgres.apiweb.dto.SecretKeySelector;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
