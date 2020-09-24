@@ -23,9 +23,8 @@ run_curl() {
   local CONTENT_TYPE="application/json"
   local ACCEPT="application/json"
   local DATA_FILENAME=""
-  local USERNAME="admin"
   local PASSWORD="$(kubectl get secrets --namespace "$SERVICE_NAMESPACE" "$SERVICE" -o jsonpath="{.data.clearPassword}" | base64 -d)"
-  local AUTHORIZATION="{ \"username\": \"$USERNAME\", \"password\": \"$PASSWORD\" }"
+  local AUTHORIZATION="{ \"username\": \"admin\", \"password\": \"$PASSWORD\" }"
   local JWT=""
   while getopts ":p:n:s:N:r:c:e:d:a:j:" opt; do
     case $opt in

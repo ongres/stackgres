@@ -56,7 +56,13 @@ install_prometheus(){
     --set prometheusOperator.createCustomResource=false \
     --set alertmanager.enabled=false \
     --set kubeStateMetrics.enabled=false \
-    --set nodeExporter.enabled=false
+    --set nodeExporter.enabled=false \
+    --set kubeDns.enabled=false \
+    --set kubeProxy.enabled=false \
+    --set kubeScheduler.enabled=false \
+    --set coreDns.enabled=false \
+    --set kubeControllerManager.enabled=false \
+    --set kubeEtcd.enabled=false
 }
 
 e2e_test_uninstall() {
