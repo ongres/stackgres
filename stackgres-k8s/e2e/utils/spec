@@ -1,6 +1,6 @@
 #!/bin/sh
 
-export SPEC_PATH="$(dirname "$0")/spec"
+export SPEC_PATH="$E2E_PATH/spec"
 
 e2e_test_before_all() {
   true
@@ -134,14 +134,14 @@ spec() {
   if "${E2E_LOCK:-true}" && e2e_exclusive_lock
   then
     E2E_LOCK=false flock "$TARGET_PATH/exclusive-lock" \
-      "$SHELL" $SHELL_XTRACE "$(dirname "$0")/e2e" spec "$1"
+      "$SHELL" $SHELL_XTRACE "$E2E_PATH/e2e" spec "$1"
     return
   fi
 
   if "${E2E_LOCK:-true}"
   then
     E2E_LOCK=false flock -s "$TARGET_PATH/exclusive-lock" \
-      "$SHELL" $SHELL_XTRACE "$(dirname "$0")/e2e" spec "$1"
+      "$SHELL" $SHELL_XTRACE "$E2E_PATH/e2e" spec "$1"
     return
   fi
 
@@ -151,14 +151,14 @@ spec() {
   trap_exec tail -f "$LOG_PATH/$SPEC_NAME.log" \
     | (
     set +x
-    while IFS="\n" read -r line
+    while IFS="$(printf '\n')" read -r line
     do
       echo_raw "$(date +"%Y-%m-%d %H:%M:%S") [$SPEC_NAME] $line"
     done
     ) &
 
   if ! flock "$TARGET_PATH/check-operator-lock" \
-      "$SHELL" $SHELL_XTRACE "$(dirname "$0")/e2e" reinstall_operator_if_not_as_expected >> "$LOG_PATH/$SPEC_NAME.log"
+      "$SHELL" $SHELL_XTRACE "$E2E_PATH/e2e" reinstall_operator_if_not_as_expected >> "$LOG_PATH/$SPEC_NAME.log"
   then
     echo "$SPEC_NAME. Operator re-install failed. See file $LOG_PATH/$SPEC_NAME.log for details" > "$TARGET_PATH/$SPEC_NAME.failed"
     echo "$SPEC_NAME. Operator re-install failed. See file $LOG_PATH/$SPEC_NAME.log for details" >> "$TARGET_PATH/logs/results.log"

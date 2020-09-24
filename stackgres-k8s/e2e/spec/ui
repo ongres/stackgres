@@ -55,7 +55,7 @@ cypress_firefox_tests(){
 
 check_index_on_not_found_resource(){
   random_resource=$(cat /dev/urandom | tr -dc 'a-z' | fold -w 8 | head -n 1)
-  HTTP_STATUS=$(kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CYPRESS_POD" -- curl -k "https://$SERVICE.$OPERATOR_NAMESPACE/admin/$random_resource" -X GET -LI -o /dev/null -w %{http_code})
+  HTTP_STATUS=$(kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CYPRESS_POD" -- curl -k "https://$SERVICE.$OPERATOR_NAMESPACE/admin/$random_resource" -X GET -LI -o /dev/null -w '%{http_code}')
 
   assert_string_equal "200" "$HTTP_STATUS"
 

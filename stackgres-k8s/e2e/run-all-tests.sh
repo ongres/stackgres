@@ -97,7 +97,7 @@ do
   SPEC_NAME="$(basename "$SPEC")"
   SPECS_TO_RUN="$SPECS_TO_RUN $SPEC"
   SPECS_TO_RUN="${SPECS_TO_RUN# *}"
-  if [ "$((COUNT%E2E_PARALLELISM))" -eq 0 -o "$COUNT" -eq "$SPEC_COUNT" ]
+  if [ "$((COUNT%E2E_PARALLELISM))" -eq 0 ] || [ "$COUNT" -eq "$SPEC_COUNT" ]
   then
     if "$CLEANUP"
     then
@@ -106,7 +106,7 @@ do
     fi
     SPECS_FAILED=""
     if ! echo "$SPECS_TO_RUN" | tr ' ' '\n' \
-      | xargs -r -n 1 -I % -P 0 "$SHELL" $SHELL_XTRACE -c "'$SHELL' $SHELL_XTRACE '$(dirname "$0")/e2e' spec '%'"
+      | xargs -r -n 1 -I % -P 0 "$SHELL" $SHELL_XTRACE -c "'$SHELL' $SHELL_XTRACE '$E2E_PATH/e2e' spec '%'"
     then
       if [ "$((COUNT%E2E_PARALLELISM))" -ne 0 ]
       then
