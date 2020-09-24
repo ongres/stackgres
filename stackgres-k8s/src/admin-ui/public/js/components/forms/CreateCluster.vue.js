@@ -990,7 +990,7 @@ var CreateCluster = Vue.component("CreateCluster", {
 
     created: function() {
         
-        this.loadTooltips('SGCluster');
+        //this.loadTooltips('SGCluster');
 
     },
 
