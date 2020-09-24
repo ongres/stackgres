@@ -1,11 +1,11 @@
 #!/bin/sh
 
 K8S_GKE_NAME="${K8S_GKE_NAME:-stackgres-e2e}"
-K8S_VERSION="${K8S_VERSION:-1.14.10-gke.27}"
+K8S_VERSION="${K8S_VERSION:-1.14.10-gke.50}"
 if [ "$K8S_VERSION" = "$DEFAULT_K8S_VERSION" ]
 then
   >&2 echo "Warning: using kubernetes version 1.13.11 since e2e default $DEFAULT_K8S_VERSION is not available for gke"
-  K8S_VERSION=1.14.10-gke.27
+  K8S_VERSION=1.14.10-gke.50
 fi
 K8S_GKE_REGION="${K8S_GKE_REGION:-us-west1}"
 K8S_GKE_NODE_LOCATIONS="${K8S_GKE_NODE_LOCATIONS:-us-west1-a,us-west1-b,us-west1-c}"

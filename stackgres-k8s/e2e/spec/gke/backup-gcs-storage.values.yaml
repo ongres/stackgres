@@ -9,7 +9,7 @@ configurations:
       cronSchedule: '0 5 31 2 *'
     storage:
       gcs:
-        bucket: stackgres-e2e-backup-with-gcs-storage
+        bucket: stackgres-e2e-backup-gcs-storage
         gcpCredentials:
           secretKeySelectors:
             serviceAccountJSON:
