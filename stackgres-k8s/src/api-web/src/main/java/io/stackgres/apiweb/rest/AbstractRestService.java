@@ -108,4 +108,20 @@ public abstract class AbstractRestService<T extends ResourceDto, R extends Custo
             resource.getMetadata().getName(), resource.getMetadata().getNamespace())
         .orElseThrow(NotFoundException::new)));
   }
+
+  public CustomResourceScanner<R> getScanner() {
+    return scanner;
+  }
+
+  public CustomResourceFinder<R> getFinder() {
+    return finder;
+  }
+
+  public CustomResourceScheduler<R> getScheduler() {
+    return scheduler;
+  }
+
+  public ResourceTransformer<T, R> getTransformer() {
+    return transformer;
+  }
 }

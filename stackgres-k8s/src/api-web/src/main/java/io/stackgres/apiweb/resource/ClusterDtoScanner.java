@@ -25,21 +25,10 @@ import org.jooq.lambda.Seq;
 @ApplicationScoped
 public class ClusterDtoScanner implements CustomResourceScanner<ClusterDto> {
 
-  private final CustomResourceScanner<StackGresCluster> clusterScanner;
-  private final PodFinder podFinder;
-  private final ClusterTransformer clusterTransformer;
-  private final LabelFactory<StackGresCluster> labelFactory;
-
-  @Inject
-  public ClusterDtoScanner(CustomResourceScanner<StackGresCluster> clusterScanner,
-      PodFinder podFinder, ClusterTransformer clusterTransformer,
-      LabelFactory<StackGresCluster> labelFactory) {
-    super();
-    this.clusterScanner = clusterScanner;
-    this.podFinder = podFinder;
-    this.clusterTransformer = clusterTransformer;
-    this.labelFactory = labelFactory;
-  }
+  private CustomResourceScanner<StackGresCluster> clusterScanner;
+  private PodFinder podFinder;
+  private ClusterTransformer clusterTransformer;
+  private LabelFactory<StackGresCluster> labelFactory;
 
   @Override
   public List<ClusterDto> getResources() {
@@ -97,4 +86,23 @@ public class ClusterDtoScanner implements CustomResourceScanner<ClusterDto> {
     return podFinder.findResourcesWithLabels(labelFactory.anyPatroniClusterLabels());
   }
 
+  @Inject
+  public void setClusterScanner(CustomResourceScanner<StackGresCluster> clusterScanner) {
+    this.clusterScanner = clusterScanner;
+  }
+
+  @Inject
+  public void setPodFinder(PodFinder podFinder) {
+    this.podFinder = podFinder;
+  }
+
+  @Inject
+  public void setClusterTransformer(ClusterTransformer clusterTransformer) {
+    this.clusterTransformer = clusterTransformer;
+  }
+
+  @Inject
+  public void setLabelFactory(LabelFactory<StackGresCluster> labelFactory) {
+    this.labelFactory = labelFactory;
+  }
 }

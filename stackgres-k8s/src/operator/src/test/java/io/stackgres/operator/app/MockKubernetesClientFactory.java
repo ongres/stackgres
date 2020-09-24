@@ -5,36 +5,28 @@
 
 package io.stackgres.operator.app;
 
-import java.io.File;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.Base64;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.enterprise.context.ApplicationScoped;
 
-import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
-import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.ConfigBuilder;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
-import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
 import io.quarkus.test.Mock;
 import io.stackgres.common.KubernetesClientFactory;
 import io.stackgres.common.OperatorProperty;
+import io.stackgres.testutil.CrdUtils;
+import io.stackgres.testutil.KubernetesServerSupplier;
 import io.stackgres.operator.AbstractStackGresOperatorIt;
-import io.stackgres.operator.CrdMatchTest;
 import org.jooq.lambda.Unchecked;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,9 +38,9 @@ public class MockKubernetesClientFactory implements KubernetesClientFactory {
 
   private final static Logger LOGGER = LoggerFactory.getLogger(MockKubernetesClientFactory.class);
 
-  private KubernetesServerSupplier serverSupplier = new KubernetesServerSupplier();
+  private final KubernetesServerSupplier serverSupplier = new KubernetesServerSupplier();
 
-  private AtomicReference<String[]> auth = new AtomicReference<>();
+  private final AtomicReference<String[]> auth = new AtomicReference<>();
 
   private final ScheduledExecutorService executor;
 
@@ -62,11 +54,8 @@ public class MockKubernetesClientFactory implements KubernetesClientFactory {
     if (AbstractStackGresOperatorIt.isRunning()) {
       return;
     }
-    YAMLMapper yamlMapper = new YAMLMapper();
     try (KubernetesClient client = serverSupplier.get().getClient()) {
-      Files.list(Paths.get("../../install/helm/stackgres-operator/crds"))
-        .forEach(Unchecked.consumer(path -> client.customResourceDefinitions()
-            .create(yamlMapper.readValue(path.toFile(), CustomResourceDefinition.class))));
+      CrdUtils.installCrds(client);
     }
   }
 
@@ -130,27 +119,4 @@ public class MockKubernetesClientFactory implements KubernetesClientFactory {
     }
   }
 
-  private class KubernetesServerSupplier implements Supplier<KubernetesServer> {
-    KubernetesServer server;
-
-    public boolean wasRetrieved() {
-      return server != null;
-    }
-
-    @Override
-    public synchronized KubernetesServer get() {
-      if (server == null) {
-        server = new KubernetesServer(true, true);
-        server.before();
-        final NamespacedKubernetesClient client = server.getClient();
-
-        File file = CrdMatchTest.getCrdsFolder();
-        for (File crdFile: Optional.ofNullable(file.listFiles()).orElse(new File[0])) {
-          CustomResourceDefinition crd = client.customResourceDefinitions().load(crdFile).get();
-          client.customResourceDefinitions().create(crd);
-        }
-      }
-      return server;
-    }
-  }
 }

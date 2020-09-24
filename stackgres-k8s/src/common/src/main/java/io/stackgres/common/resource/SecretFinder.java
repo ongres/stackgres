@@ -20,7 +20,7 @@ public class SecretFinder implements
     ResourceFinder<Secret>,
     ResourceScanner<Secret> {
 
-  private final KubernetesClientFactory kubClientFactory;
+  final KubernetesClientFactory kubClientFactory;
 
   @Inject
   public SecretFinder(KubernetesClientFactory kubClientFactory) {

@@ -8,6 +8,7 @@ package io.stackgres.apiweb.security;
 import java.util.Objects;
 import java.util.Optional;
 
+import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
@@ -23,14 +24,11 @@ import io.stackgres.common.resource.ResourceUtil;
 @ApplicationScoped
 public class SecretVerification {
 
-  private final ResourceScanner<Secret> secretScanner;
-  private final String namespace;
+  private ResourceScanner<Secret> secretScanner;
+  private String namespace;
 
-  @Inject
-  public SecretVerification(ResourceScanner<Secret> secretScanner,
-      WebApiPropertyContext webApiContext) {
-    super();
-    this.secretScanner = secretScanner;
+  @PostConstruct
+  public void init(WebApiPropertyContext webApiContext) {
     this.namespace = webApiContext.getString(WebApiProperty.RESTAPI_NAMESPACE);
   }
 
@@ -74,4 +72,8 @@ public class SecretVerification {
     return ResourceUtil.decodeSecret(secret.getData().get(key));
   }
 
+  @Inject
+  public void setSecretScanner(ResourceScanner<Secret> secretScanner) {
+    this.secretScanner = secretScanner;
+  }
 }
