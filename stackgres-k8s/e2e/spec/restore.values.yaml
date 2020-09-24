@@ -15,5 +15,4 @@ cluster:
       downloadDiskConcurrency: 1
   prometheusAutobind: false
 nonProductionOptions:
-  createMinio: false
   disableClusterPodAntiAffinity: true

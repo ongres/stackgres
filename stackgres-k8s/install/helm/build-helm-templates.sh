@@ -30,6 +30,8 @@ do
   echo --- >> "target/templates/demo-operator.yml"
 done
 helm repo add stable https://kubernetes-charts.storage.googleapis.com
+helm repo add minio https://helm.min.io/
+
 helm repo update
 helm dependency update target/stackgres-operator
 helm dependency update target/stackgres-cluster
@@ -41,7 +43,6 @@ helm template --namespace stackgres stackgres-operator \
 
 helm template --namespace default simple \
   "target/stackgres-cluster" \
-  --set nonProductionOptions.createMinio=false \
   --set configurations.create=true \
   --set cluster.create=false \
   > "target/templates/demo-simple-config.yml"
@@ -54,14 +55,14 @@ helm template --namespace default simple \
   --set cluster.sgInstanceProfile=size-xs \
   --set cluster.instances=2 \
   --set instanceProfiles=null \
-  --set nonProductionOptions.createMinio=false \
   --set nonProductionOptions.disableClusterPodAntiAffinity=true \
   > "target/templates/demo-simple-cluster.yml"
 
 rm -rf target/minio
-helm fetch stable/minio \
-  --version 5.0.26 \
+helm fetch minio/minio \
+  --version 7.0.1 \
   --untar --untardir target
+
 helm template --namespace default minio \
   target/minio \
   --set buckets[0].name=stackgres,buckets[0].policy=none,buckets[0].purge=true \
