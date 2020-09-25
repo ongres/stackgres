@@ -13,7 +13,7 @@ var Side = Vue.component("sg-side", {
 			<ul id="ns-select" tabindex="0" class="set namespaces">
 				<template v-for="namespace in namespaces">
 					<li v-bind:class="{'active':(namespace == currentNamespace)}">
-						<router-link :to="'/admin/overview/'+namespace" class="item namespace" :class="(namespace == currentNamespace) ? 'router-link-exact-active' : ''">{{ namespace }}</router-link>
+						<router-link :to="'/admin/overview/'+namespace" class="item namespace" :class="(namespace == currentNamespace) ? 'router-link-exact-active' : ''" :title="namespace">{{ namespace }}</router-link>
 					</li>
 				</template>
 			</ul>
