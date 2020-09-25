@@ -32,27 +32,27 @@ var ClusterOverview = Vue.component("ClusterOverview", {
 
 						<th>
 							<span>Instances</span>
-							<span class="helpTooltip"  @click="helpTooltip( 'SGCluster', 'spec.instances')"></span>
+							<span class="helpTooltip" @click="helpTooltip( 'SGCluster', 'spec.instances')"></span>
 						</th>
 
 						<th>
 							<span>CPU</span>
-							<span class="helpTooltip" @click=""></span>
+							<span class="helpTooltip" @click="helpTooltip( 'SGInstanceProfile', 'spec.cpu')"></span>
 						</th>
 
 						<th>
 							<span>Memory</span>
-							<span class="helpTooltip" @click=""></span>
+							<span class="helpTooltip" @click="helpTooltip( 'SGInstanceProfile', 'spec.memory')"></span>
 						</th>
 
 						<th>
 							<span>Disk</span>
-							<span class="helpTooltip"  @click="helpTooltip( 'SGCluster', 'spec.pods.persistentVolume.size')"></span>
+							<span class="helpTooltip" @click="helpTooltip( 'SGCluster', 'spec.pods.persistentVolume.size')"></span>
 						</th>
 
 						<th>
 							<span>Health</span>
-							<span class="helpTooltip" @click=""></span>
+							<span class="helpTooltip" @click="helpTooltip( 'SGCluster', 'status.pods.health')"></span>
 						</th>
 						
 						<th class="actions"></th>
