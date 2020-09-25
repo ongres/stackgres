@@ -839,6 +839,10 @@ ul.zg-ul-select.active li.active:hover {
 
 #ns-select a {
     padding-left: 0;
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 #ns-select li {
