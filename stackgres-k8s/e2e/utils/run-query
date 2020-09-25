@@ -36,11 +36,11 @@ run_query() {
     esac
   done
 
-  kubectl exec -t -n "$NAMESPACE" "${POD:-$NAME-$INSTANCE}" -c "$CONTAINER" -- sh -c "
-    PGPASSWORD='$(kubectl -n "$NAMESPACE" get secrets "$NAME" \
-      -o jsonpath='{.data.superuser-password}' | base64 -d)' \
+  kubectl exec -t -n "$NAMESPACE" "${POD:-$NAME-$INSTANCE}" -c "$CONTAINER" -- env \
+    PGPASSWORD="$(kubectl -n "$NAMESPACE" get secrets "$NAME" \
+      -o jsonpath='{.data.superuser-password}' | base64 -d)" \
     PGCONNECT_TIMEOUT=5 \
-    psql -t -A -U postgres -d '$DATABASE' -p '$PORT' -h '$HOST' -c $QUERY"
+    psql -t -A -U postgres -d "$DATABASE" -p "$PORT" -h "$HOST" -c "$QUERY"
 }
 
 exec_postgresutil() {

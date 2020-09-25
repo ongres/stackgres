@@ -66,11 +66,11 @@ e2e_test() {
 }
 
 create_mock_data() {
-  run_query -p 5432 -h "$CLUSTER_NAME-primary" -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -q "'CREATE DATABASE test;'"
-  run_query -p 5432 -h "$CLUSTER_NAME-primary" -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -q "'CREATE TABLE fibonacci(num integer);'" -d "test"
-  run_query -p 5432 -h "$CLUSTER_NAME-primary" -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -q "'INSERT INTO fibonacci(num) VALUES (1);'" -d "test"
-  run_query -p 5432 -h "$CLUSTER_NAME-primary" -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -q "'INSERT INTO fibonacci(num) VALUES (2);'" -d "test"
-  run_query -p 5432 -h "$CLUSTER_NAME-primary" -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -q "'INSERT INTO fibonacci(num) VALUES (3);'" -d "test"
+  run_query -p 5432 -h "$CLUSTER_NAME-primary" -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -q "CREATE DATABASE test;"
+  run_query -p 5432 -h "$CLUSTER_NAME-primary" -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -q "CREATE TABLE fibonacci(num integer);" -d "test"
+  run_query -p 5432 -h "$CLUSTER_NAME-primary" -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -q "INSERT INTO fibonacci(num) VALUES (1);" -d "test"
+  run_query -p 5432 -h "$CLUSTER_NAME-primary" -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -q "INSERT INTO fibonacci(num) VALUES (2);" -d "test"
+  run_query -p 5432 -h "$CLUSTER_NAME-primary" -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -q "INSERT INTO fibonacci(num) VALUES (3);" -d "test"
 }
 
 is_backup_phase() {
@@ -128,7 +128,7 @@ EOF
 }
 
 check_restored_data() {
-  REPLICA_RESPONSE=$(run_query -p 5432 -h "restored-from-gcs-replicas" -c "restored-from-gcs" -n $CLUSTER_NAMESPACE -i 1 -q "' SELECT num FROM fibonacci ORDER BY num;'" -d "test")
+  REPLICA_RESPONSE=$(run_query -p 5432 -h "restored-from-gcs-replicas" -c "restored-from-gcs" -n $CLUSTER_NAMESPACE -i 1 -q "SELECT num FROM fibonacci ORDER BY num;" -d "test")
   if [ "$(echo "$REPLICA_RESPONSE" | tr -d '\n')" = "123" ]
   then
     echo "SUCCESS: restore replica db restored successfully"
