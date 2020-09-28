@@ -6,8 +6,8 @@ e2e_exclusive_lock() {
 
 e2e_test_install() {
   PREVIOUS_CONTAINER_BUILD="$(get_container_build "$STACKGRES_PREVIOUS_VERSION")"
-  PATRONI_IMAGE="$(get_component_images "$CONTAINER_BUILD" | grep '/patroni:' | sort | tail -n -1)"
-  PREVIOUS_PATRONI_IMAGE="$(get_component_images "$PREVIOUS_CONTAINER_BUILD" | grep '/patroni:' | sort | tail -n -1)"
+  PATRONI_IMAGE="$(get_component_images "$CONTAINER_BUILD" | grep '/patroni:' | sort | tail -n 1)"
+  PREVIOUS_PATRONI_IMAGE="$(get_component_images "$PREVIOUS_CONTAINER_BUILD" | grep '/patroni:' | sort | tail -n 1)"
   k8s_cleanup_namespace "$OPERATOR_NAMESPACE"
   k8s_async_cleanup
   install_operator_previous_version
@@ -43,15 +43,75 @@ e2e_test_uninstall() {
 e2e_test() {
   run_test "Check that operator can be upgraded to newver version" check_operator_upgrade
   run_test "Check that cluster with 1 node after upgrade" check_cluster_1
-  run_test "Check that cluster with 1 node after upgrade" check_cluster_2
-  run_test "Check that cluster with 1 node after upgrade" check_cluster_3
+  run_test "Check that cluster with 2 node after upgrade" check_cluster_2
+  run_test "Check that cluster with 3 node after upgrade" check_cluster_3
   run_test "Check that cluster with 1 node can be restarted after upgrade" check_cluster_1_restart
   run_test "Check that cluster with 2 node can be restarted after upgrade" check_cluster_2_restart
   run_test "Check that cluster with 3 node can be restarted after upgrade" check_cluster_3_restart
 }
 
 check_operator_upgrade() {
-  upgrade_operator
+  local POD_OPERATOR_IMAGE
+  POD_OPERATOR_IMAGE="$(kubectl get pod -n "$OPERATOR_NAMESPACE" -l app=stackgres-operator \
+    --template '{{ range .items }}{{ if not .metadata.deletionTimestamp }}{{ range .spec.containers }}{{ printf "%s\n" .image }}{{ end }}{{ end }}{{ end }}' \
+    | grep '/operator:')"
+  if [ "$POD_OPERATOR_IMAGE" = "$PREVIOUS_OPERATOR_IMAGE" ]
+  then
+    echo "SUCCESS. Operator pod is using the previous operator image"
+  else
+    echo "FAILURE. Operator pod is not using the previous operator image"
+    echo
+    echo "Previous operator image is $PREVIOUS_OPERATOR_IMAGE"
+    echo
+    echo "Used operator image is $POD_OPERATOR_IMAGE"
+    return 1
+  fi
+  local POD_RESTAPI_IMAGE
+  POD_RESTAPI_IMAGE="$(kubectl get pod -n "$OPERATOR_NAMESPACE" -l app=stackgres-restapi \
+    --template '{{ range .items }}{{ if not .metadata.deletionTimestamp }}{{ range .spec.containers }}{{ printf "%s\n" .image }}{{ end }}{{ end }}{{ end }}' \
+    | grep '/restapi:')"
+  if [ "$POD_RESTAPI_IMAGE" = "$PREVIOUS_RESTAPI_IMAGE" ]
+  then
+    echo "SUCCESS. Operator pod is using the previous restapi image"
+  else
+    echo "FAILURE. Operator pod is not using the previous restapi image"
+    echo
+    echo "Previous restapi image is $PREVIOUS_RESTAPI_IMAGE"
+    echo
+    echo "Used restapi image is $POD_RESTAPI_IMAGE"
+    return 1
+  fi
+
+  upgrade_operator --reset-values
+
+  POD_OPERATOR_IMAGE="$(kubectl get pod -n "$OPERATOR_NAMESPACE" -l app=stackgres-operator \
+    --template '{{ range .items }}{{ if not .metadata.deletionTimestamp }}{{ range .spec.containers }}{{ printf "%s\n" .image }}{{ end }}{{ end }}{{ end }}' \
+    | grep '/operator:')"
+  if [ "$POD_OPERATOR_IMAGE" = "$OPERATOR_IMAGE" ]
+  then
+    echo "SUCCESS. Operator pod is using the new operator image"
+  else
+    echo "FAILURE. Operator pod is not using the new operator image"
+    echo
+    echo "New operator image is $OPERATOR_IMAGE"
+    echo
+    echo "Used operator image is $POD_OPERATOR_IMAGE"
+    return 1
+  fi
+  POD_RESTAPI_IMAGE="$(kubectl get pod -n "$OPERATOR_NAMESPACE" -l app=stackgres-restapi \
+    --template '{{ range .items }}{{ if not .metadata.deletionTimestamp }}{{ range .spec.containers }}{{ printf "%s\n" .image }}{{ end }}{{ end }}{{ end }}' \
+    | grep '/restapi:')"
+  if [ "$POD_RESTAPI_IMAGE" = "$RESTAPI_IMAGE" ]
+  then
+    echo "SUCCESS. Operator pod is using the new restapi image"
+  else
+    echo "FAILURE. Operator pod is not using the new restapi image"
+    echo
+    echo "New restapi image is $RESTAPI_IMAGE"
+    echo
+    echo "Used restapi image is $POD_RESTAPI_IMAGE"
+    return 1
+  fi
 }
 
 check_cluster_1() {
@@ -91,7 +151,7 @@ check_cluster_restart() {
   do
     POD_PATRONI_IMAGE="$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$POD" \
       --template '{{ range .spec.containers }}{{ printf "%s\n" .image }}{{ end }}' \
-       | grep '/patroni:' | sort | tail -n -1)"
+       | grep '/patroni:')"
     if [ "$POD_PATRONI_IMAGE" = "$PREVIOUS_PATRONI_IMAGE" ]
     then
       echo "SUCCESS. Pod $POD is using the previous patroni image"
@@ -138,7 +198,7 @@ check_cluster_restart() {
   do
     POD_PATRONI_IMAGE="$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$POD" \
       --template '{{ range .spec.containers }}{{ printf "%s\n" .image }}{{ end }}' \
-       | grep '/patroni:' | sort | tail -n -1)"
+       | grep '/patroni:')"
     if [ "$POD_PATRONI_IMAGE" = "$PATRONI_IMAGE" ]
     then
       echo "SUCCESS. Pod $POD is using the new patroni image"

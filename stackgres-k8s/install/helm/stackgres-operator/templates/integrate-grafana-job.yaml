@@ -5,19 +5,22 @@ metadata:
   namespace: {{ .Release.Namespace }}
   name: "{{ .Release.Name }}-integrate-grafana"
   labels:
-    app: stackgres-integrate-grafana
-    scope: integrate-grafana
+    app: stackgres-operator
+    scope: init
+    job: integrate-grafana
   annotations:
     "helm.sh/hook": post-install,post-upgrade
     "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+    "helm.sh/hook-weigth": "0"
 spec:
   template:
     metadata:
       labels:
-        app: stackgres-integrate-grafana
-        scope: integrate-grafana
+        app: stackgres-operator
+        scope: init
+        job: integrate-grafana
     spec:
-      serviceAccountName: {{ .Release.Name }}
+      serviceAccountName: {{ .Release.Name }}-init
       containers:
       - name: "integrate-grafana"
         image: "janwh/k8s-inithelper:latest"

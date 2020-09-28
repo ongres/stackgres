@@ -31,5 +31,8 @@ show_logs() {
 
 show_failed_logs() {
   find "$(realpath "$TARGET_PATH")" -name '*.failed' -type f \
-    | show_logs "$(basename "$failed" | sed 's/^\([^.]\+\)\.failed/\1/')"
+    | while read failed
+      do
+        show_logs "$(basename "$failed" | sed 's/^\([^.]\+\)\.failed/\1/')"
+      done
 }

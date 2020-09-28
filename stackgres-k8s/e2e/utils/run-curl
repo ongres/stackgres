@@ -23,9 +23,8 @@ run_curl() {
   local CONTENT_TYPE="application/json"
   local ACCEPT="application/json"
   local DATA_FILENAME=""
-  local USERNAME="admin"
   local PASSWORD="$(kubectl get secrets --namespace "$SERVICE_NAMESPACE" "$SERVICE" -o jsonpath="{.data.clearPassword}" | base64 -d)"
-  local AUTHORIZATION="{ \"username\": \"$USERNAME\", \"password\": \"$PASSWORD\" }"
+  local AUTHORIZATION="{ \"username\": \"admin\", \"password\": \"$PASSWORD\" }"
   local JWT=""
   while getopts ":p:n:s:N:r:c:e:d:a:j:" opt; do
     case $opt in
@@ -55,7 +54,7 @@ run_curl() {
     esac
   done
 
-  if [ -n "$AUTHORIZATION" -a -z "$JWT" ]
+  if [ -n "$AUTHORIZATION" ] && [ -z "$JWT" ]
   then
     JWT="$(kubectl exec -i -n "$NAMESPACE" "$POD" -- \
       curl -d "$AUTHORIZATION" -k "https://$SERVICE.$SERVICE_NAMESPACE.svc.cluster.local/stackgres/auth/login" \
@@ -71,14 +70,14 @@ run_curl() {
       -H "Authorization: Bearer $JWT" \
       -H "Content-Type: $CONTENT_TYPE" \
       -H "Accept: $ACCEPT"  \
-      --data @"/tmp/$DATA_FILENAME" -s $(echo $EXTRA_PARAMETERS)
+      --data @"/tmp/$DATA_FILENAME" -s $EXTRA_PARAMETERS
   else
     kubectl exec -i -n "$NAMESPACE" "$POD" -- \
       curl -k "https://$SERVICE.$SERVICE_NAMESPACE.svc.cluster.local/$RESOURCE_PATH" \
       -H "Authorization: Bearer $JWT" \
       -H "Content-Type: $CONTENT_TYPE" \
       -H "Accept: $ACCEPT" \
-      -s $(echo $EXTRA_PARAMETERS)
+      -s $EXTRA_PARAMETERS
   fi
 }
 

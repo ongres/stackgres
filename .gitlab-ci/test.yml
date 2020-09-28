@@ -64,7 +64,7 @@ unit tests:
         flock -s /tmp/stackgres-build-restapi-native-executable \
         flock "/tmp/stackgres-integration-test$SUFFIX" \
         timeout -s KILL 3600 \
-        sh $SHELL_XTRACE stackgres-k8s/e2e/run-all-tests.sh
+        "$E2E_SHELL" $SHELL_XTRACE stackgres-k8s/e2e/run-all-tests.sh
   artifacts:
     expire_in: 1 week
     when: always

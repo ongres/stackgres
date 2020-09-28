@@ -33,7 +33,13 @@ e2e_test_install() {
     --set prometheus-operator.create=true \
     --set prometheus-operator.alertmanager.enabled=false \
     --set prometheus-operator.kubeStateMetrics.enabled=false \
-    --set prometheus-operator.nodeExporter.enabled=false
+    --set prometheus-operator.nodeExporter.enabled=false \
+    --set prometheus-operator.kubeDns.enabled=false \
+    --set prometheus-operator.kubeProxy.enabled=false \
+    --set prometheus-operator.kubeScheduler.enabled=false \
+    --set prometheus-operator.coreDns.enabled=false \
+    --set prometheus-operator.kubeControllerManager.enabled=false \
+    --set prometheus-operator.kubeEtcd.enabled=false
 
   wait_pods_running "$OPERATOR_NAMESPACE" 4
 
