@@ -36,6 +36,8 @@ adminui:
 serviceAccount:
   create: true
 
+initClusterRole: cluster-admin
+
 rbac:
   create: true
 

@@ -29,6 +29,7 @@ variables:
   SKIP_NATIVE: "false"
   SKIP_E2E: "false"
   SKIP_DEPLOY: "false"
+  E2E_SHELL: sh
   E2E_ENV: kind
   E2E_PARALLELISM: 32
   E2E_JOBS: 2

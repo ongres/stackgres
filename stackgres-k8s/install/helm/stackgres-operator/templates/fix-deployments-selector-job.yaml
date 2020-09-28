@@ -11,19 +11,22 @@ metadata:
   name: "{{ .Release.Name }}-fix-deplpoyment-selector"
   namespace: {{ .Release.Namespace }}
   labels:
-    app: stackgres-create-certificate
+    app: stackgres-operator
     scope: init
+    job: fix-deployment-selector
   annotations:
     "helm.sh/hook": pre-upgrade
     "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+    "helm.sh/hook-weight": "0"
 spec:
   template:
     metadata:
       labels:
-        app: stackgres-fix-deployment-selector
+        app: stackgres-operator
         scope: init
+        job: fix-deployment-selector
     spec:
-      serviceAccountName: {{ .Release.Name }}
+      serviceAccountName: {{ .Release.Name }}-init
       containers:
       - name: "{{ .Release.Name }}-fix-deployment-selector"
         image: "bitnami/kubectl:1.18.3"
@@ -44,8 +47,6 @@ spec:
               -n '{{ .Release.Namespace }}' '{{ .Values.restapi.name }}'
             kubectl create -f /tmp/operator-deployment.yaml
             kubectl create -f /tmp/webapi-deployment.yaml
-            kubectl rollout status -n '{{ .Release.Namespace }}' 'deployment/{{ .Release.Name }}'
-            kubectl rollout status -n '{{ .Release.Namespace }}' 'deployment/{{ .Values.restapi.name }}'
       restartPolicy: OnFailure
 {{- end }}
 {{- $_ := set .Values.deploy "fix_0_9_deployments" nil }}
