@@ -7,6 +7,7 @@ package io.stackgres.operator.initialization;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.function.Function;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
@@ -16,6 +17,8 @@ import javax.inject.Inject;
 import com.google.common.collect.ImmutableList;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.operator.common.StackGresComponents;
+import org.jooq.lambda.Seq;
+import org.jooq.lambda.tuple.Tuple2;
 
 @ApplicationScoped
 public class PostgresDefaultFactoriesProvider
@@ -31,8 +34,10 @@ public class PostgresDefaultFactoriesProvider
   }
 
   public List<PostgresConfigurationFactory> buildFactories() {
-    return StackGresComponents.getOrderedPostgresVersions()
+    return Seq.seq(StackGresComponents.getOrderedPostgresVersions())
         .map(StackGresComponents::getPostgresMajorVersion)
+        .grouped(Function.identity())
+        .map(Tuple2::v1)
         .map(majorVersion -> {
           try {
             DefaultPostgresFactory factory = resourceFactories.get();

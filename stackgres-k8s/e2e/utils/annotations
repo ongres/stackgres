@@ -4,9 +4,10 @@ check_pod_annotation(){
   local INSTANCE="$1"
   local EXPECTED_ANNOTATION_VALUE="$2"
 
-  local POD_ANNOTATION=${POD_ANNOTATION:-"test-annotation"}
+  local POD_ANNOTATION="${POD_ANNOTATION:-"test-annotation"}"
 
-  local ACTUAL_ANNOTATION=$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-"$INSTANCE" -o jsonpath="{.metadata.annotations.$POD_ANNOTATION}")
+  local ACTUAL_ANNOTATION
+  ACTUAL_ANNOTATION="$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-"$INSTANCE" -o jsonpath="{.metadata.annotations.$POD_ANNOTATION}")"
 
   if assert_string_equal "$EXPECTED_ANNOTATION_VALUE" "$ACTUAL_ANNOTATION"
   then 
@@ -21,9 +22,10 @@ check_pod_annotation(){
 check_service_annotation(){
   local INSTANCE="$1"
   local EXPECTED_ANNOTATION_VALUE="$2"
-  local SERVICE_ANNOTATION=${SERVICE_ANNOTATION:-"service-annotation"}
+  local SERVICE_ANNOTATION="${SERVICE_ANNOTATION:-"service-annotation"}"
 
-  local ACTUAL_ANNOTATION=$(kubectl get service -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-"$INSTANCE" -o jsonpath="{.metadata.annotations.$SERVICE_ANNOTATION}")
+  local ACTUAL_ANNOTATION
+  ACTUAL_ANNOTATION="$(kubectl get service -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-"$INSTANCE" -o jsonpath="{.metadata.annotations.$SERVICE_ANNOTATION}")"
 
   if assert_string_equal "$EXPECTED_ANNOTATION_VALUE" "$ACTUAL_ANNOTATION"
   then 

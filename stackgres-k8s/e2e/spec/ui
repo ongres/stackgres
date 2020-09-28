@@ -3,7 +3,6 @@ e2e_test_install() {
   kubectl create namespace "$CLUSTER_NAMESPACE"
   
   SERVICE="stackgres-restapi"
-  local USERNAME="admin"
   local PASSWORD="$(kubectl get secrets -n "$OPERATOR_NAMESPACE" "$SERVICE" -o jsonpath="{.data.clearPassword}" | base64 -d)"
   CYPRESS_POD="cypress"
   
@@ -23,7 +22,7 @@ e2e_test_install() {
       - name: CYPRESS_host
         value: "https://$SERVICE.$OPERATOR_NAMESPACE/admin"
       - name: CYPRESS_username
-        value: "$USERNAME"
+        value: "admin"
       - name: CYPRESS_password
         value: "$PASSWORD"
       - name: CYPRESS_VIDEO
@@ -55,7 +54,7 @@ cypress_firefox_tests(){
 
 check_index_on_not_found_resource(){
   random_resource=$(cat /dev/urandom | tr -dc 'a-z' | fold -w 8 | head -n 1)
-  HTTP_STATUS=$(kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CYPRESS_POD" -- curl -k "https://$SERVICE.$OPERATOR_NAMESPACE/admin/$random_resource" -X GET -LI -o /dev/null -w %{http_code})
+  HTTP_STATUS=$(kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CYPRESS_POD" -- curl -k "https://$SERVICE.$OPERATOR_NAMESPACE/admin/$random_resource" -X GET -LI -o /dev/null -w '%{http_code}')
 
   assert_string_equal "200" "$HTTP_STATUS"
 

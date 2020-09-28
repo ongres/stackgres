@@ -16,8 +16,8 @@ wait_pods_running() {
       | grep '[0-9]\+/[0-9]\+' -o | cut -d '/' -f 1 | tr '\n' ' ')"
     EXPECTED_CONTAINERS="$(kubectl get pods "$NAMESPACE_OPT" | grep "Running" \
       | grep '[0-9]\+/[0-9]\+' -o | cut -d '/' -f 2 | tr '\n' ' ')"
-    if [ "$RUNNING_PODS" -ge "$EXPECTED_RUNNING_PODS" \
-      -a "$RUNNING_CONTAINERS" = "$EXPECTED_CONTAINERS" ]
+    if [ "$RUNNING_PODS" -ge "$EXPECTED_RUNNING_PODS" ] \
+      && [ "$RUNNING_CONTAINERS" = "$EXPECTED_CONTAINERS" ]
     then
       echo "$([ -z "$1" ] && echo "All pods running" || echo "All pods running in namespace $1")"
       return

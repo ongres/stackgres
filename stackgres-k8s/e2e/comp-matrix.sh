@@ -6,23 +6,22 @@ E2E_BUILD_IMAGES="${E2E_BUILD_IMAGES:-false}"
 E2E_INCLUDE_NATIVE="${E2E_INCLUDE_NATIVE:-true}"
 GRAALVM_HOME="${GRAALVM_HOME:-/usr/lib/jvm/graalvm}"
 MATRIX_FORMAT="| %-11s | %-16s | %16s | %-28s | %8s |\n"
-STACKGRES_VERSION=${STACKGRES_VERSION:-development}
+STACKGRES_VERSION="${STACKGRES_VERSION:-development}"
 SPEC="all"
-ROOT_TARGET_PATH=${TARGET_PATH:-$(dirname "$0")/target/}
+ROOT_TARGET_PATH="${TARGET_PATH}"
 
 if [ ! -z "$1" ]
 then
   SPEC="$1"
 fi
-print_matrix_line(){
 
+print_matrix_line(){
   if [ -z "$OUTPUT_FILE" ]
   then
     printf "$MATRIX_FORMAT" "$@"  
   else
     printf "$MATRIX_FORMAT" "$@" >> "$OUTPUT_FILE"
   fi
-  
 }
 
 print_help(){
@@ -72,7 +71,7 @@ run_tests(){
     export K8S_REUSE=true
     export E2E_BUILD_IMAGES=false
 
-    get_stackgres_images | while read sv
+    for sv in $(get_stackgres_images)
     do
       export IMAGE_TAG="$sv"
       export TARGET_PATH="$ROOT_TARGET_PATH/$IMAGE_TAG-$K8S_VERSION"
@@ -87,25 +86,23 @@ run_tests(){
       
     done
   else
-    get_stackgres_images | while read sv
+    for sv in $(get_stackgres_images)
     do
       export IMAGE_TAG="$sv"
       print_matrix_line "$E2E_ENV" "$IMAGE_TAG" "$K8S_VERSION" "$(get_spec_name)" "Skipped"
     done
   fi
-    
+
   delete_k8s >> "$TARGET_PATH/$IMAGE_TAG-$K8S_VERSION.log" 2>&1 || true
 }
 
 get_stackgres_images(){
-  IMAGES=""
-  if [ $E2E_INCLUDE_NATIVE = true ]
+  if [ "$E2E_INCLUDE_NATIVE" = true ]
   then
-    IMAGES=$(get_stackgres_images_with_native)
+    get_stackgres_images_with_native
   else
-    IMAGES=$(get_stackgres_images_without_native)
+    get_stackgres_images_without_native
   fi
-  echo "$IMAGES"
 }
 
 get_stackgres_images_with_native(){
@@ -126,7 +123,7 @@ build_images(){
     cd "$STACKGRES_PATH/stackgres-k8s/src"
     ./mvnw -q -DskipTests clean package -P build-image-jvm > "$LOG_PATH/build-image-jvm.log"
   )
-  if [ $E2E_INCLUDE_NATIVE = true ]
+  if [ "$E2E_INCLUDE_NATIVE" = true ]
   then
   (
     cd "$STACKGRES_PATH/stackgres-k8s/src"
@@ -143,25 +140,25 @@ generate_matrix(){
   print_matrix_line "Environment" "Stackgres" "Kubernetes" "Test" "Result"
   print_matrix_line "-----------" "----------------" "----------------" "----------------------------" "--------"
 
-  if [ $E2E_BUILD_IMAGES = true ]
+  if [ "$E2E_BUILD_IMAGES" = true ]
   then
     build_images
   fi 
   
-  get_k8s_versions | while read v
+  for v in $(get_k8s_versions)
   do
     export K8S_VERSION="$v"
 
     run_tests "$v"
-    
   done
 }
 
 while getopts o:h-: OPT; do
-  if [ "$OPT" = "-" ]; then   
-    OPT="${OPTARG%%=*}"       
-    OPTARG="${OPTARG#$OPT}"   
-    OPTARG="${OPTARG#=}"     
+  if [ "$OPT" = "-" ]
+  then
+    OPT="${OPTARG%%=*}"
+    OPTARG="${OPTARG#$OPT}"
+    OPTARG="${OPTARG#=}"
   fi
   case "$OPT" in
     o | outputfile ) OUTPUT_FILE="$OPTARG" ;;
@@ -176,5 +173,3 @@ while getopts o:h-: OPT; do
 done
 
 generate_matrix
-
-

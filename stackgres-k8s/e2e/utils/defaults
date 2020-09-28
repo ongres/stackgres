@@ -7,24 +7,24 @@ get_default_cr(){
     | jq -r ".items[]|select(.metadata.annotations[\"stackgres.io/operatorVersion\"] == \"$STACKGRES_VERSION\")|.metadata.name" \
     | head -n 1 )
 
-  kubectl get "$CRD" -n "$OPERATOR_NAMESPACE" "$CR_NAME" $@
+  kubectl get "$CRD" -n "$OPERATOR_NAMESPACE" "$CR_NAME" "$@"
 }
 
 get_default_pgconfig(){
-  get_default_cr "sgpgconfigs.stackgres.io" $@
+  get_default_cr "sgpgconfigs.stackgres.io" "$@"
 }
 
 
 get_default_conn_pool(){
-  get_default_cr "sgpoolconfigs.stackgres" $@
+  get_default_cr "sgpoolconfigs.stackgres" "$@"
 }
 
 get_default_backupconf(){
-  get_default_cr "sgbackupconfigs.stackgres.io" $@
+  get_default_cr "sgbackupconfigs.stackgres.io" "$@"
 }
 
 get_default_profile(){
-  get_default_cr "sginstanceprofiles.stackgres.io" $@
+  get_default_cr "sginstanceprofiles.stackgres.io" "$@"
 }
 
 get_generated_cr(){
@@ -33,25 +33,25 @@ get_generated_cr(){
   shift 1
 
   CR_NAME=$(kubectl get "$CRD" -n "$NAMESPACE" -o jsonpath='{.items[*].metadata.name}')
-  kubectl get "$CRD" -n "$OPERATOR_NAMESPACE" "$CR_NAME" $@
+  kubectl get "$CRD" -n "$OPERATOR_NAMESPACE" "$CR_NAME" "$@"
 }
 
 get_generated_pgconfig(){
-  get_generated_cr "sgpgconfigs.stackgres.io" $@
+  get_generated_cr "sgpgconfigs.stackgres.io" "$@"
 }
 
 get_generated_conn_pool(){
-  get_generated_cr "sgpoolconfigs.stackgres" $@
+  get_generated_cr "sgpoolconfigs.stackgres" "$@"
 }
 
 get_generated_backupconf(){
-  get_generated_cr "sgbackupconfigs.stackgres.io" $@
+  get_generated_cr "sgbackupconfigs.stackgres.io" "$@"
 }
 
 get_generated_pgconfig(){
-  get_generated_cr "sgpgconfigs.stackgres.io" $@
+  get_generated_cr "sgpgconfigs.stackgres.io" "$@"
 }
 
 get_generated_profile(){
-  get_generated_cr "sginstanceprofiles.stackgres.io" $@
+  get_generated_cr "sginstanceprofiles.stackgres.io" "$@"
 }

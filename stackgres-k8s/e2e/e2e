@@ -9,8 +9,8 @@ then
 fi
 SHELL_XTRACE="$(! echo $- | grep -q x || echo "-x")"
 
-export TARGET_PATH="${TARGET_PATH:-$(dirname "$0")/target}"
-export TARGET_PATH="$(realpath "$TARGET_PATH")"
+export E2E_PATH="$(realpath "$(dirname "$0")")"
+export TARGET_PATH="$(realpath "${TARGET_PATH:-$E2E_PATH/target}")"
 export LOG_PATH="$TARGET_PATH"
 
 [ -z "$SHELL_XTRACE" ] || set +x
@@ -28,7 +28,7 @@ e2e_add_source() {
   E2E_SOURCES="$((E2E_SOURCES + 1))"
 }
 
-for util in $(find "$(dirname "$0")/utils" -type f)
+for util in $(find "$E2E_PATH/utils" -type f)
 do
   . "$util"
 done
@@ -36,12 +36,12 @@ done
 while [ "$E2E_SOURCES" -gt 0 ]
 do
   E2E_SOURCES="$((E2E_SOURCES - 1))"
-  eval ". \"$(dirname "$0")/\$E2E_SOURCES_$E2E_SOURCES\""
+  eval ". \"$E2E_PATH/\$E2E_SOURCES_$E2E_SOURCES\""
 done
 
 [ -z "$SHELL_XTRACE" ] || set -x
 
-if [ "$(basename "$0")" = "e2e" -a ! -z "$1" ]
+if [ "$(basename "$0")" = "e2e" ] && [ ! -z "$1" ]
 then
   "$@"
 fi

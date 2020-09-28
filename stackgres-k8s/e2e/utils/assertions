@@ -29,32 +29,29 @@ assert_string_equal(){
 }
 
 assert_greater_than(){
+  local EXPECTED="$1"
+  local ACTUAL="$2"
 
-  EXPECTED="$1"
-  ACTUAL="$2"
-
-  if [ $ACTUAL -gt $EXPECTED ]
+  if [ "$ACTUAL" -gt "$EXPECTED" ]
   then 
     echo "Success. $ACTUAL is greater than $EXPECTED"
   else
     echo "Fail. $ACTUAL is not is greater than $EXPECTED"
     return 1
   fi
-
 }
 
 assert_api_error(){
   RESPONSE="$1"
-  EXPECTED_ERROR_TYPE=${EXPECTED_ERROR_TYPE:-"constraint-violation"}
-  EXPECTED_ERROR_TITLE=${EXPECTED_ERROR_TITLE:-"do not comply with the syntactic rules"}
-  EXPECTED_ERROR_DETAIL=${EXPECTED_ERROR_DETAIL:-"in body"}
-  EXPECTED_ERROR_FIELD=${EXPECTED_ERROR_FIELD:-""}
-  
-  ERROR_TYPE=$(echo $RESPONSE | jq '.type' )
+  EXPECTED_ERROR_TYPE="${EXPECTED_ERROR_TYPE:-"constraint-violation"}"
+  EXPECTED_ERROR_TITLE="${EXPECTED_ERROR_TITLE:-"do not comply with the syntactic rules"}"
+  EXPECTED_ERROR_DETAIL="${EXPECTED_ERROR_DETAIL:-"in body"}"
+  EXPECTED_ERROR_FIELD="${EXPECTED_ERROR_FIELD:-""}"
+  ERROR_TYPE="$(echo $RESPONSE | jq '.type' )"
 
   assert_string_contains "$EXPECTED_ERROR_TYPE" "$ERROR_TYPE"
 
-  ERROR_TITLE=$(echo "$RESPONSE" | jq '.title' )
+  ERROR_TITLE="$(echo "$RESPONSE" | jq '.title' )"
 
   assert_string_contains "$EXPECTED_ERROR_TITLE" "$ERROR_TITLE"
 
@@ -65,7 +62,6 @@ assert_api_error(){
   if [ "$EXPECTED_ERROR_FIELD" != "" ]
   then
     ERROR_FIELD="$(echo "$RESPONSE" | jq '.fields[0]' )"
-    assert_string_contains "$EXPECTED_ERROR_FIELD" "$ERROR_FIELD"    
+    assert_string_contains "$EXPECTED_ERROR_FIELD" "$ERROR_FIELD"
   fi
-
 }
