@@ -738,6 +738,7 @@ const store = new Vuex.Store({
       },
       forbidden: []
     },
+    helpTooltip: '',
     tooltips: {
       description: 'Click on a question mark to get help and tips about that field.', 
       SGCluster: {},
@@ -1001,6 +1002,9 @@ const store = new Vuex.Store({
       state.cloneCRD.data.metadata.namespace = namespace;
     },
     
+    setHelpTooltip (state, tooltip) {
+      state.helpTooltip = tooltip
+    }
   }
 });
 
@@ -1046,8 +1050,8 @@ Vue.mixin({
         })
       }
       
-      $('#helpTooltip').html(param.description).show()
-
+      store.commit('setHelpTooltip', param.description)
+      $('#helpTooltip').show()
     },
 
     hasProp (obj, propertyPath) {

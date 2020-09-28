@@ -2833,7 +2833,7 @@ table .sort, a.uploadLink {
     cursor: pointer;
 }
 
-.sort th span:after {
+.sort th > span:after {
     content: "▾";
     opacity: 0;
     display: inline-block;

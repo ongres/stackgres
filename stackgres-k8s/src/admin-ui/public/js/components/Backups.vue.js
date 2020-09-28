@@ -160,28 +160,28 @@ var Backups = Vue.component("Backups", {
 					<table class="backups">
 						<thead class="sort">
 							<th @click="sort('data.status.process.timing.stored')" class="sorted desc timestamp">
-								<span>Timestamp</span>
+								<span>Timestamp <span class="helpTooltip" @mouseover="helpTooltip( 'SGBackup', 'status.process.timing.stored')"></span></span>
 							</th>
 							<th @click="sort('data.spec.managedLifecycle')" class="icon desc managedLifecycle">
-								<span>Managed Lifecycle (request)</span>
+								<span>Managed Lifecycle (request) <span class="helpTooltip" @mouseover="helpTooltip( 'SGBackup', 'spec.managedLifecycle')"></span></span>
 							</th>
 							<th @click="sort('data.status.process.status')" class="desc phase center">
-								<span>Status</span>
+								<span>Status <span class="helpTooltip" @mouseover="helpTooltip( 'SGBackup', 'status.process.status')"></span></span>
 							</th>
 							<th @click="sort('data.status.backupInformation.size.uncompressed')" class="desc size">
-								<span>Size uncompressed (compressed)</span>
+								<span>Size uncompressed (compressed) <span class="helpTooltip" @mouseover="helpTooltip( 'SGBackup', 'status.backupInformation.size.uncompressed')"></span></span>
 							</th>
 							<th @click="sort('data.status.backupInformation.postgresVersion')" class="desc postgresVersion" v-if="!isCluster">
-								<span>PG</span>
+								<span>PG <span class="helpTooltip" @mouseover="helpTooltip( 'SGBackup', 'status.backupInformation.postgresVersion')"></span></span>
 							</th>
 							<!--<th @click="sort('data.status.tested')" class="icon desc tested">
 								<span>Tested</span>
 							</th>-->
 							<th @click="sort('data.metadata.name')" class="desc name">
-								<span>Name</span>
+								<span>Name <span class="helpTooltip" @mouseover="helpTooltip( 'SGBackup', 'metadata.name')"></span></span>
 							</th>
 							<th @click="sort('data.spec.sgCluster')" class="desc clusterName" v-if="!isCluster">
-								<span>Source Cluster</span>
+								<span>Source Cluster <span class="helpTooltip" @mouseover="helpTooltip( 'SGBackup', 'spec.sgCluster')"></span></span>
 							</th>
 							<th class="actions"></th>
 							<!--<th class="details"></th>-->
