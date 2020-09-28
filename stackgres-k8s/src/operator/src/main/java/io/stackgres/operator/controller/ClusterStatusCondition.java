@@ -9,7 +9,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterCondition;
 
 public enum ClusterStatusCondition {
 
-  PATRONI_REQUIRES_RESTART(Type.PENDING_RESTART, Status.TRUE, "PatroniRequiresRestart"),
+  POD_REQUIRES_RESTART(Type.PENDING_RESTART, Status.TRUE, "PodRequiresRestart"),
   FALSE_PENDING_RESTART(Type.PENDING_RESTART, Status.FALSE, "FalsePendingRestart"),
   CLUSTER_CONFIG_ERROR(Type.FAILED, Status.TRUE, "ClusterConfigFailed"),
   FALSE_FAILED(Type.FAILED, Status.FALSE, "FalseFailed");
