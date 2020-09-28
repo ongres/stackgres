@@ -3186,7 +3186,7 @@ table.backupConfig  {
     border-bottom: 1px solid #f0f0f1;
 }
 
-table.backupConfig tr:nth-child(4n-2), table.backupConfig tr:nth-child(4n-2) + tr.details, table.podStatus tr:nth-child(4n-2) {
+table.backupConfig tr:nth-child(4n-2), table.backupConfig tr:nth-child(4n-2) + tr.details, table.podStatus tr:nth-child(even) {
     background: #fff;
 }
 
