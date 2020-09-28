@@ -488,20 +488,20 @@ check_failed_cluster_creation_with_secret_and_configmap_script() {
 
   run_curl -r "stackgres/sgcluster" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/invalid-cluster.json" -e '-X POST' > /dev/null
 
-  if kubectl get secrets -n "$CLUSTER_NAMESPACE" "init-script" > /dev/null
+  if wait_until eval '! kubectl get secrets -n "$CLUSTER_NAMESPACE" "init-script"'
   then
+    echo "Success. Failed cluster creation is deleting all created secrets"
+  else
     echo "FAIL. Failed cluster creation is not deleting all created secrets"
     return 1
-  else
-    echo "Success. Failed cluster creation is deleting all created secrets"
   fi
   
-  if kubectl get configmaps -n "$CLUSTER_NAMESPACE" "table-script" > /dev/null
+  if wait_until eval '! kubectl get configmaps -n "$CLUSTER_NAMESPACE" "table-script"'
   then
+    echo "Success. Failed cluster creation is deleting all created configmaps"
+  else
     echo "FAIL. Failed cluster creation is not deleting all created configmaps"
     return 1
-  else
-    echo "Success. Failed cluster creation is deleting all created configmaps"
   fi
   
 }
