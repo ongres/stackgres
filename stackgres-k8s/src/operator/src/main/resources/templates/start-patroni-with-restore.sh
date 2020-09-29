@@ -21,9 +21,6 @@ name: ${PATRONI_NAME}
 
 bootstrap:
   post_init: '${LOCAL_BIN_PATH}/post-init.sh'
-  dcs:
-    postgresql:
-      use_pg_rewind: true
   method: wal_g
   wal_g:
     command: '${PATRONI_CONFIG_PATH}/bootstrap'
@@ -45,6 +42,8 @@ restapi:
   connect_address: '${PATRONI_KUBERNETES_POD_IP}:8008'
   listen: 0.0.0.0:8008
 postgresql:
+  use_pg_rewind: true
+  remove_data_directory_on_rewind_failure: true
   use_unix_socket: true
   connect_address: '${PATRONI_KUBERNETES_POD_IP}:5432'
   listen: 0.0.0.0:5432
