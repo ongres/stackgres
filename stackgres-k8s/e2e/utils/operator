@@ -634,10 +634,10 @@ fix_zero_patch_prior_0_9() {
 get_image_tag() {
   local VERSION="$1"
   local CARDINALITY="$(echo "$VERSION" | tr '.' '\n' | wc -l)"
-  local SUFFIX="${IMAGE_TAG#*-}"
-  if [ -n "$SUFFIX" ]
+  local SUFFIX=""
+  if [ "${IMAGE_TAG##*-}" = "jvm" ]
   then
-    SUFFIX="-$SUFFIX"
+    SUFFIX="-jvm"
   fi
 
   if [ "$VERSION" = "$STACKGRES_VERSION" ]

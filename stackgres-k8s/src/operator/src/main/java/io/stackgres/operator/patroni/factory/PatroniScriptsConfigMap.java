@@ -5,11 +5,7 @@
 
 package io.stackgres.operator.patroni.factory;
 
-import java.util.HashMap;
-import java.util.List;
 import java.util.Locale;
-import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -20,80 +16,72 @@ import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterScriptEntry;
 import io.stackgres.operator.common.LabelFactoryDelegator;
 import io.stackgres.operator.common.StackGresClusterContext;
 import io.stackgres.operator.common.StackGresClusterResourceStreamFactory;
 import io.stackgres.operator.common.StackGresGeneratorContext;
 import io.stackgres.operatorframework.resource.ResourceUtil;
-import org.jooq.lambda.Seq;
-import org.jooq.lambda.tuple.Tuple2;
+import org.jooq.lambda.tuple.Tuple4;
 
 @ApplicationScoped
 public class PatroniScriptsConfigMap implements StackGresClusterResourceStreamFactory {
 
+  public static final String INTERNAL_SCRIPT = "INTERNAL_SCRIPT";
+  public static final String SCRIPT = "SCRIPT";
   public static final String SCRIPT_BASIC_NAME = "%05d";
-
   public static final String SCRIPT_BASIC_NAME_FOR_DATABASE = "%05d.%s";
-
   public static final String SCRIPT_NAME = "%05d-%s";
-
   public static final String SCRIPT_NAME_FOR_DATABASE = "%05d-%s.%s";
 
   private LabelFactoryDelegator factoryDelegator;
 
   public static String name(StackGresClusterContext clusterContext,
-                            Tuple2<StackGresClusterScriptEntry, Long> indexedScript) {
-    return ResourceUtil.resourceName(clusterContext.getCluster().getMetadata().getName()
-        + "-" + normalizedResourceName(indexedScript));
+                            Tuple4<StackGresClusterScriptEntry, Long, String, Long> indexedScript) {
+    return ResourceUtil.cutVolumeName(
+        ResourceUtil.resourceName(clusterContext.getCluster().getMetadata().getName()
+            + "-" + normalizedResourceName(indexedScript)));
   }
 
-  public static String scriptName(Tuple2<StackGresClusterScriptEntry, Long> indexedScript) {
+  public static String scriptName(
+      Tuple4<StackGresClusterScriptEntry, Long, String, Long> indexedScript) {
     return normalizedKeyName(indexedScript) + ".sql";
   }
 
   private static String normalizedResourceName(
-      Tuple2<StackGresClusterScriptEntry, Long> indexedScript) {
-    return baseName(indexedScript)
+      Tuple4<StackGresClusterScriptEntry, Long, String, Long> indexedScript) {
+    return (indexedScript.v3 == INTERNAL_SCRIPT
+        ? "internal-" + baseName(indexedScript.v1, indexedScript.v2)
+        : baseName(indexedScript.v1, indexedScript.v4))
         .toLowerCase(Locale.US).replaceAll("[^a-z0-9-]", "-");
   }
 
   private static String normalizedKeyName(
-      Tuple2<StackGresClusterScriptEntry, Long> indexedScript) {
-    return baseName(indexedScript)
+      Tuple4<StackGresClusterScriptEntry, Long, String, Long> indexedScript) {
+    return baseName(indexedScript.v1, indexedScript.v4)
         .toLowerCase(Locale.US).replaceAll("[^a-zA-Z0-9-_.]", "-");
   }
 
-  private static String baseName(Tuple2<StackGresClusterScriptEntry, Long> indexedScript) {
-    if (indexedScript.v1.getName() == null) {
-      if (indexedScript.v1.getDatabase() == null) {
-        return String.format(SCRIPT_BASIC_NAME, indexedScript.v2);
+  private static String baseName(StackGresClusterScriptEntry script, Long index) {
+    if (script.getName() == null) {
+      if (script.getDatabase() == null) {
+        return String.format(SCRIPT_BASIC_NAME, index);
       }
       return String.format(SCRIPT_BASIC_NAME_FOR_DATABASE,
-          indexedScript.v2, indexedScript.v1.getDatabase());
+          index, script.getDatabase());
     }
-    if (indexedScript.v1.getDatabase() == null) {
-      return String.format(SCRIPT_NAME, indexedScript.v2, indexedScript.v1.getName());
+    if (script.getDatabase() == null) {
+      return String.format(SCRIPT_NAME, index, script.getName());
     }
     return String.format(SCRIPT_NAME_FOR_DATABASE,
-        indexedScript.v2, indexedScript.v1.getName(), indexedScript.v1.getDatabase());
+        index, script.getName(), script.getDatabase());
   }
 
   @Override
   public Stream<HasMetadata> streamResources(StackGresGeneratorContext context) {
-    Map<String, String> data = new HashMap<>();
-    data.put("PATRONI_LOG_LEVEL", "DEBUG");
-
     final StackGresClusterContext clusterContext = context.getClusterContext();
     final StackGresCluster cluster = clusterContext.getCluster();
-    return Seq.of(Optional.ofNullable(
-        cluster.getSpec().getInitData())
-        .map(StackGresClusterInitData::getScripts))
-        .filter(Optional::isPresent)
-        .map(Optional::get)
-        .flatMap(List::stream)
-        .zipWithIndex()
+    return clusterContext.getIndexedScripts()
         .filter(t -> t.v1.getScript() != null)
         .map(t -> {
           final LabelFactory<?> labelFactory = factoryDelegator.pickFactory(clusterContext);
