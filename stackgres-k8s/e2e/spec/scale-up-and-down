@@ -122,7 +122,7 @@ check_switchover() {
     return 1
   fi
 
-  if ! run_query -i 1 -p 5432 -q "'SELECT pg_is_in_recovery()'" | grep -q '^t$'
+  if ! run_query -i 1 -p 5432 -q "SELECT pg_is_in_recovery()" | grep -q '^t$'
   then
     echo "SUCCESS. The primary is now the node at index 1"
   else
@@ -130,7 +130,7 @@ check_switchover() {
     return 1
   fi
 
-  if ! run_query -i 0 -p 5432 -q "'SELECT pg_is_in_recovery()'" | grep -q '^f$'
+  if ! run_query -i 0 -p 5432 -q "SELECT pg_is_in_recovery()" | grep -q '^f$'
   then
     echo "SUCCESS. The replica is now the node at index 0"
   else

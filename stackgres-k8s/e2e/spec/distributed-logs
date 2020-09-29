@@ -69,7 +69,7 @@ check_distributed_logs_attach_to_clusters() {
   for TEXT in distributed-logs-worked distributed-logs-works distributed-logs-still-works
   do
     RESPONSE="$(run_query -c "$CLUSTER_NAME" -x psql -k postgres \
-      -h "$CLUSTER_NAME"-primary -p 5432 -q "\"SELECT '$TEXT'\"")"
+      -h "$CLUSTER_NAME"-primary -p 5432 -q "SELECT '$TEXT'")"
 
     if [ "$RESPONSE" = "$TEXT" ]
     then
@@ -85,7 +85,7 @@ check_distributed_logs_attach_to_clusters() {
   for TEXT in distributed-logs-copy-worked distributed-logs-copy-works distributed-logs-copy-still-works
   do
     RESPONSE="$(run_query -c "$CLUSTER_NAME-copy" -x psql -k postgres \
-      -h "$CLUSTER_NAME-copy"-primary -p 5432 -q "\"SELECT '$TEXT'\"")"
+      -h "$CLUSTER_NAME-copy"-primary -p 5432 -q "SELECT '$TEXT'")"
 
     if [ "$RESPONSE" = "$TEXT" ]
     then
