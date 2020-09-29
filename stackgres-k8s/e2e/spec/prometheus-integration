@@ -92,7 +92,7 @@ check_grafana_secret() {
     --set grafana.secretUserKey="admin-user" \
     --set grafana.secretPasswordKey="admin-password" 
 
-  if wait_until kubectl exec -i -n "$CLUSTER_NAMESPACE" curl -- curl -s -k "https://stackgres-restapi.$CLUSTER_NAMESPACE/grafana" -o /dev/null --fail
+  if wait_until kubectl exec -i -n "$CLUSTER_NAMESPACE" curl -- curl -s -k "https://stackgres-restapi.$OPERATOR_NAMESPACE/grafana" -o /dev/null --fail
   then
     echo "Success. Grafana URL can be retrieved"
   else
