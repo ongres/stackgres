@@ -2,15 +2,15 @@
 
 create_mock_table(){
   NAME="${1:-$CLUSTER_NAME}"
-  run_query -c "$NAME" -p 5432 -i 0 -q "'CREATE DATABASE test;'"
-  run_query -c "$NAME" -p 5432 -i 0 -q "'CREATE TABLE fibonacci(num integer);'" -d "test"
+  run_query -c "$NAME" -p 5432 -i 0 -q "CREATE DATABASE test;"
+  run_query -c "$NAME" -p 5432 -i 0 -q "CREATE TABLE fibonacci(num integer);" -d "test"
 }
 
 insert_mock_data(){
   NAME="${1:-$CLUSTER_NAME}"
-  run_query -c "$NAME" -p 5432 -i 0 -q "'INSERT INTO fibonacci(num) VALUES (1);'" -d test
-  run_query -c "$NAME" -p 5432 -i 0 -q "'INSERT INTO fibonacci(num) VALUES (2);'" -d test
-  run_query -c "$NAME" -p 5432 -i 0 -q "'INSERT INTO fibonacci(num) VALUES (3);'" -d test
+  run_query -c "$NAME" -p 5432 -i 0 -q "INSERT INTO fibonacci(num) VALUES (1);" -d test
+  run_query -c "$NAME" -p 5432 -i 0 -q "INSERT INTO fibonacci(num) VALUES (2);" -d test
+  run_query -c "$NAME" -p 5432 -i 0 -q "INSERT INTO fibonacci(num) VALUES (3);" -d test
 }
 
 generate_mock_data(){
@@ -35,7 +35,7 @@ read_mock_table(){
     esac
   done
 
-  run_query -c "$CLUSTER_NAME" -p 5432 -h "$CLUSTER_NAME-$SERVER" -i "$INSTANCE" -q "' SELECT num FROM fibonacci ORDER BY num;'" -d "test"
+  run_query -c "$CLUSTER_NAME" -p 5432 -h "$CLUSTER_NAME-$SERVER" -i "$INSTANCE" -q "SELECT num FROM fibonacci ORDER BY num;" -d "test"
 }
 
 check_mock_data_samehost(){
