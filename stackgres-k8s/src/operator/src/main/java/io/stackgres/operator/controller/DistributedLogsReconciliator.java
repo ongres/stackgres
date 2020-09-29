@@ -41,7 +41,8 @@ public class DistributedLogsReconciliator
     eventController.sendEvent(EventReason.DISTRIBUTED_LOGS_CREATED,
         "StackGres Centralized Logging " + contextResource.getMetadata().getNamespace() + "."
         + contextResource.getMetadata().getName() + " created", contextResource);
-    statusManager.sendCondition(DistributedLogsStatusCondition.FALSE_FAILED, context);
+    statusManager.sendCondition(
+        DistributedLogsStatusCondition.FALSE_FAILED.getCondition(), context);
   }
 
   @Override
@@ -49,8 +50,13 @@ public class DistributedLogsReconciliator
     eventController.sendEvent(EventReason.DISTRIBUTED_LOGS_UPDATED,
         "StackGres Centralized Logging " + contextResource.getMetadata().getNamespace() + "."
         + contextResource.getMetadata().getName() + " updated", contextResource);
+    statusManager.sendCondition(
+        DistributedLogsStatusCondition.FALSE_FAILED.getCondition(), context);
+  }
+
+  @Override
+  protected void onPostConfigReconcilied() {
     statusManager.updatePendingRestart(context);
-    statusManager.sendCondition(DistributedLogsStatusCondition.FALSE_FAILED, context);
   }
 
   /**
