@@ -17,7 +17,7 @@ then
     fi
   done
   # search for .sql file and execute them
-  for FILE in $(ls -1 "$INIT_SCRIPT_PATH")
+  for FILE in $(ls -1 "$INIT_SCRIPT_PATH" | sort -n -t -)
   do
     FILE="$(realpath "$INIT_SCRIPT_PATH/$FILE")"
     if [ "${FILE: -4}" == ".sql" -a -f "$FILE" ]

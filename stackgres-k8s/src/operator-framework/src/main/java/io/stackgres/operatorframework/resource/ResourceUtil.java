@@ -53,6 +53,22 @@ public class ResourceUtil {
     return name;
   }
 
+  public static String volumeName(String name) {
+    Preconditions.checkArgument(name.length() <= 63);
+    return name;
+  }
+
+  public static String cutVolumeName(String name) {
+    if (name.length() <= 63) {
+      return name;
+    }
+    String cutName = name.substring(0, 63);
+    if (cutName.matches("^.*[^A-Za-z0-9]$")) {
+      cutName = cutName.substring(0, 62) + 'x';
+    }
+    return cutName;
+  }
+
   public static String containerName(String name) {
     Preconditions.checkArgument(name.length() <= 63);
     return name;

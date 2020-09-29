@@ -1,4 +1,40 @@
 {
+  "__inputs": [
+    {
+      "name": "DS_PROMETHEUS",
+      "label": "Prometheus",
+      "description": "",
+      "type": "datasource",
+      "pluginId": "prometheus",
+      "pluginName": "Prometheus"
+    }
+  ],
+  "__requires": [
+    {
+      "type": "grafana",
+      "id": "grafana",
+      "name": "Grafana",
+      "version": "6.7.3"
+    },
+    {
+      "type": "panel",
+      "id": "graph",
+      "name": "Graph",
+      "version": ""
+    },
+    {
+      "type": "datasource",
+      "id": "prometheus",
+      "name": "Prometheus",
+      "version": "1.0.0"
+    },
+    {
+      "type": "panel",
+      "id": "singlestat",
+      "name": "Singlestat",
+      "version": ""
+    }
+  ],
   "annotations": {
     "list": [
       {
@@ -13,15 +49,17 @@
       }
     ]
   },
-  "description": "This dashboard works with [StackGres](https://stackgres.io)",
+  "description": "This dashboard works with postgres_exporter for prometheus",
   "editable": true,
+  "gnetId": 9628,
   "graphTooltip": 0,
-  "iteration": 1594983403585,
+  "id": null,
+  "iteration": 1600251298418,
   "links": [],
   "panels": [
     {
-      "collapsed": true,
-      "datasource": null,
+      "collapsed": false,
+      "datasource": "${DS_PROMETHEUS}",
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -29,294 +67,273 @@
         "y": 0
       },
       "id": 190,
-      "panels": [
-        {
-          "aliasColors": {},
-          "bars": false,
-          "dashLength": 10,
-          "dashes": false,
-          "datasource": null,
-          "fill": 1,
-          "fillGradient": 0,
-          "gridPos": {
-            "h": 8,
-            "w": 24,
-            "x": 0,
-            "y": 1
-          },
-          "hiddenSeries": false,
-          "id": 188,
-          "legend": {
-            "alignAsTable": true,
-            "avg": true,
-            "current": true,
-            "max": false,
-            "min": false,
-            "show": true,
-            "total": true,
-            "values": true
-          },
-          "lines": true,
-          "linewidth": 2,
-          "nullPointMode": "null",
-          "options": {
-            "dataLinks": []
-          },
-          "percentage": false,
-          "pointradius": 2,
-          "points": false,
-          "renderer": "flot",
-          "seriesOverrides": [],
-          "spaceLength": 10,
-          "stack": false,
-          "steppedLine": false,
-          "targets": [
-            {
-              "expr": "rate(envoy_postgres_ingress_postgres_transactions{instance=~\"${instance}:8001\"}[5m])",
-              "instant": false,
-              "interval": "",
-              "legendFormat": "rate 5m",
-              "refId": "B"
-            }
-          ],
-          "thresholds": [],
-          "timeFrom": null,
-          "timeRegions": [],
-          "timeShift": null,
-          "title": "# SQL transactions",
-          "tooltip": {
-            "shared": true,
-            "sort": 0,
-            "value_type": "individual"
-          },
-          "type": "graph",
-          "xaxis": {
-            "buckets": null,
-            "mode": "time",
-            "name": null,
-            "show": true,
-            "values": []
-          },
-          "yaxes": [
-            {
-              "format": "short",
-              "label": "",
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            },
-            {
-              "format": "short",
-              "label": "",
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            }
-          ],
-          "yaxis": {
-            "align": false,
-            "alignLevel": null
-          }
-        },
-        {
-          "aliasColors": {},
-          "bars": false,
-          "dashLength": 10,
-          "dashes": false,
-          "datasource": null,
-          "fill": 1,
-          "fillGradient": 0,
-          "gridPos": {
-            "h": 8,
-            "w": 12,
-            "x": 0,
-            "y": 9
-          },
-          "hiddenSeries": false,
-          "id": 192,
-          "legend": {
-            "avg": false,
-            "current": false,
-            "max": false,
-            "min": false,
-            "show": true,
-            "total": false,
-            "values": false
-          },
-          "lines": true,
-          "linewidth": 1,
-          "nullPointMode": "null",
-          "options": {
-            "dataLinks": []
-          },
-          "percentage": false,
-          "pointradius": 2,
-          "points": false,
-          "renderer": "flot",
-          "seriesOverrides": [],
-          "spaceLength": 10,
-          "stack": false,
-          "steppedLine": false,
-          "targets": [
-            {
-              "expr": "rate(envoy_postgres_ingress_postgres_transactions_commit{instance=~\"${instance}:8001\"}[5m])",
-              "interval": "",
-              "legendFormat": "rate: 5m",
-              "refId": "A"
-            }
-          ],
-          "thresholds": [],
-          "timeFrom": null,
-          "timeRegions": [],
-          "timeShift": null,
-          "title": "COMMIT transactions",
-          "tooltip": {
-            "shared": true,
-            "sort": 0,
-            "value_type": "individual"
-          },
-          "type": "graph",
-          "xaxis": {
-            "buckets": null,
-            "mode": "time",
-            "name": null,
-            "show": true,
-            "values": []
-          },
-          "yaxes": [
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            },
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            }
-          ],
-          "yaxis": {
-            "align": false,
-            "alignLevel": null
-          }
-        },
-        {
-          "aliasColors": {},
-          "bars": false,
-          "dashLength": 10,
-          "dashes": false,
-          "datasource": null,
-          "fill": 1,
-          "fillGradient": 0,
-          "gridPos": {
-            "h": 8,
-            "w": 12,
-            "x": 12,
-            "y": 9
-          },
-          "hiddenSeries": false,
-          "id": 193,
-          "legend": {
-            "avg": false,
-            "current": false,
-            "max": false,
-            "min": false,
-            "show": true,
-            "total": false,
-            "values": false
-          },
-          "lines": true,
-          "linewidth": 1,
-          "nullPointMode": "null",
-          "options": {
-            "dataLinks": []
-          },
-          "percentage": false,
-          "pointradius": 2,
-          "points": false,
-          "renderer": "flot",
-          "seriesOverrides": [],
-          "spaceLength": 10,
-          "stack": false,
-          "steppedLine": false,
-          "targets": [
-            {
-              "expr": "rate(envoy_postgres_ingress_postgres_transactions_rollback{instance=~\"${instance}:8001\"}[5m])",
-              "interval": "",
-              "legendFormat": "rate: 5m",
-              "refId": "A"
-            }
-          ],
-          "thresholds": [],
-          "timeFrom": null,
-          "timeRegions": [],
-          "timeShift": null,
-          "title": "ROLLBACK transactions",
-          "tooltip": {
-            "shared": true,
-            "sort": 0,
-            "value_type": "individual"
-          },
-          "type": "graph",
-          "xaxis": {
-            "buckets": null,
-            "mode": "time",
-            "name": null,
-            "show": true,
-            "values": []
-          },
-          "yaxes": [
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            },
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            }
-          ],
-          "yaxis": {
-            "align": false,
-            "alignLevel": null
-          }
-        }
-      ],
+      "panels": [],
       "title": "Transactions",
       "type": "row"
     },
     {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "${DS_PROMETHEUS}",
+      "decimals": 0,
+      "fieldConfig": {
+        "defaults": {
+          "custom": {},
+          "links": []
+        },
+        "overrides": []
+      },
+      "fill": 2,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 1
+      },
+      "hiddenSeries": false,
+      "id": 192,
+      "legend": {
+        "alignAsTable": true,
+        "avg": true,
+        "current": true,
+        "hideEmpty": true,
+        "hideZero": false,
+        "max": false,
+        "min": false,
+        "rightSide": false,
+        "show": true,
+        "total": false,
+        "values": true
+      },
+      "lines": true,
+      "linewidth": 2,
+      "nullPointMode": "null",
+      "options": {
+        "dataLinks": []
+      },
+      "percentage": false,
+      "pluginVersion": "7.1.5",
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "rate(envoy_postgres_ingress_postgres_transactions_commit{instance=~\"${instance}:8001\"}[5m])",
+          "interval": "",
+          "legendFormat": "namespace: {{namespace}}, pod: {{pod}} - COMMIT",
+          "refId": "A"
+        },
+        {
+          "expr": "rate(envoy_postgres_ingress_postgres_transactions_rollback{instance=~\"${instance}:8001\"}[5m])",
+          "interval": "",
+          "legendFormat": "namespace: {{namespace}}, pod: {{pod}} - ROLLBACK",
+          "refId": "B"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Transactions ( 5min rate )",
+      "tooltip": {
+        "shared": true,
+        "sort": 2,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "$$hashKey": "object:731",
+          "decimals": 0,
+          "format": "short",
+          "label": "",
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "$$hashKey": "object:732",
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "${DS_PROMETHEUS}",
+      "decimals": 0,
+      "fieldConfig": {
+        "defaults": {
+          "custom": {},
+          "links": []
+        },
+        "overrides": []
+      },
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 1
+      },
+      "hiddenSeries": false,
+      "id": 184,
+      "legend": {
+        "alignAsTable": true,
+        "avg": true,
+        "current": true,
+        "hideEmpty": true,
+        "max": false,
+        "min": false,
+        "rightSide": false,
+        "show": true,
+        "total": false,
+        "values": true
+      },
+      "lines": true,
+      "linewidth": 2,
+      "nullPointMode": "null",
+      "options": {
+        "dataLinks": []
+      },
+      "percentage": false,
+      "pluginVersion": "7.1.5",
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "rate(envoy_postgres_ingress_postgres_statements_update{instance=~\"${instance}:8001\"}[5m])",
+          "interval": "",
+          "legendFormat": "namespace: {{namespace}}, pod: {{pod}} - UPDATE",
+          "refId": "A"
+        },
+        {
+          "expr": "rate(envoy_postgres_ingress_postgres_statements_insert{instance=~\"${instance}:8001\"}[5m])",
+          "interval": "",
+          "legendFormat": "namespace: {{namespace}}, pod: {{pod}} - INSERT",
+          "refId": "B"
+        },
+        {
+          "expr": "rate(envoy_postgres_ingress_postgres_statements_delete{instance=~\"${instance}:8001\"}[5m])",
+          "interval": "",
+          "legendFormat": "namespace: {{namespace}}, pod: {{pod}} - DELETE",
+          "refId": "C"
+        },
+        {
+          "expr": "rate(envoy_postgres_ingress_postgres_statements_select{instance=~\"${instance}:8001\"}[5m])",
+          "interval": "",
+          "legendFormat": "namespace: {{namespace}}, pod: {{pod}} - SELECT",
+          "refId": "D"
+        },
+        {
+          "expr": "rate(envoy_postgres_ingress_postgres_statements_other{instance=~\"${instance}:8001\"}[5m])",
+          "interval": "",
+          "legendFormat": "namespace: {{namespace}}, pod: {{pod}} - OTHER",
+          "refId": "E"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "SQL statements ( 5min rate )",
+      "tooltip": {
+        "shared": true,
+        "sort": 2,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "$$hashKey": "object:942",
+          "decimals": 0,
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "$$hashKey": "object:943",
+          "decimals": 0,
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
       "collapsed": true,
-      "datasource": null,
+      "datasource": "${DS_PROMETHEUS}",
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 1
+        "y": 9
       },
-      "id": 179,
+      "id": 160,
       "panels": [
         {
           "aliasColors": {},
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "datasource": null,
+          "datasource": "${DS_PROMETHEUS}",
+          "decimals": 0,
+          "fieldConfig": {
+            "defaults": {
+              "custom": {},
+              "links": []
+            },
+            "overrides": []
+          },
           "fill": 1,
           "fillGradient": 0,
           "gridPos": {
@@ -326,670 +343,27 @@
             "y": 2
           },
           "hiddenSeries": false,
-          "id": 181,
-          "legend": {
-            "alignAsTable": true,
-            "avg": true,
-            "current": true,
-            "max": false,
-            "min": false,
-            "rightSide": true,
-            "show": true,
-            "total": true,
-            "values": true
-          },
-          "lines": true,
-          "linewidth": 1,
-          "nullPointMode": "null",
-          "options": {
-            "dataLinks": []
-          },
-          "percentage": false,
-          "pointradius": 2,
-          "points": false,
-          "renderer": "flot",
-          "seriesOverrides": [],
-          "spaceLength": 10,
-          "stack": false,
-          "steppedLine": false,
-          "targets": [
-            {
-              "expr": "rate(envoy_postgres_ingress_postgres_statements{instance=~\"${instance}:8001\"}[5m])",
-              "interval": "",
-              "legendFormat": "rate: 5m",
-              "refId": "A"
-            }
-          ],
-          "thresholds": [],
-          "timeFrom": null,
-          "timeRegions": [],
-          "timeShift": null,
-          "title": "SQL statements",
-          "tooltip": {
-            "shared": true,
-            "sort": 0,
-            "value_type": "individual"
-          },
-          "type": "graph",
-          "xaxis": {
-            "buckets": null,
-            "mode": "time",
-            "name": null,
-            "show": true,
-            "values": []
-          },
-          "yaxes": [
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            },
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            }
-          ],
-          "yaxis": {
-            "align": false,
-            "alignLevel": null
-          }
-        },
-        {
-          "aliasColors": {},
-          "bars": false,
-          "dashLength": 10,
-          "dashes": false,
-          "datasource": null,
-          "fill": 1,
-          "fillGradient": 0,
-          "gridPos": {
-            "h": 8,
-            "w": 12,
-            "x": 0,
-            "y": 10
-          },
-          "hiddenSeries": false,
-          "id": 184,
-          "legend": {
-            "alignAsTable": true,
-            "avg": true,
-            "current": true,
-            "max": false,
-            "min": false,
-            "rightSide": false,
-            "show": true,
-            "total": true,
-            "values": true
-          },
-          "lines": true,
-          "linewidth": 1,
-          "nullPointMode": "null",
-          "options": {
-            "dataLinks": []
-          },
-          "percentage": false,
-          "pointradius": 2,
-          "points": false,
-          "renderer": "flot",
-          "seriesOverrides": [],
-          "spaceLength": 10,
-          "stack": false,
-          "steppedLine": false,
-          "targets": [
-            {
-              "expr": "rate(envoy_postgres_ingress_postgres_statements_update{instance=~\"${instance}:8001\"}[5m])",
-              "interval": "",
-              "legendFormat": "rate: 5m",
-              "refId": "A"
-            }
-          ],
-          "thresholds": [],
-          "timeFrom": null,
-          "timeRegions": [],
-          "timeShift": null,
-          "title": "UPDATE statements",
-          "tooltip": {
-            "shared": true,
-            "sort": 0,
-            "value_type": "individual"
-          },
-          "type": "graph",
-          "xaxis": {
-            "buckets": null,
-            "mode": "time",
-            "name": null,
-            "show": true,
-            "values": []
-          },
-          "yaxes": [
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            },
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            }
-          ],
-          "yaxis": {
-            "align": false,
-            "alignLevel": null
-          }
-        },
-        {
-          "aliasColors": {},
-          "bars": false,
-          "dashLength": 10,
-          "dashes": false,
-          "datasource": null,
-          "fill": 1,
-          "fillGradient": 0,
-          "gridPos": {
-            "h": 8,
-            "w": 12,
-            "x": 12,
-            "y": 10
-          },
-          "hiddenSeries": false,
-          "id": 183,
-          "legend": {
-            "alignAsTable": true,
-            "avg": true,
-            "current": true,
-            "max": false,
-            "min": false,
-            "rightSide": false,
-            "show": true,
-            "total": true,
-            "values": true
-          },
-          "lines": true,
-          "linewidth": 1,
-          "nullPointMode": "null",
-          "options": {
-            "dataLinks": []
-          },
-          "percentage": false,
-          "pointradius": 2,
-          "points": false,
-          "renderer": "flot",
-          "seriesOverrides": [],
-          "spaceLength": 10,
-          "stack": false,
-          "steppedLine": false,
-          "targets": [
-            {
-              "expr": "rate(envoy_postgres_ingress_postgres_statements_insert{instance=~\"${instance}:8001\"}[5m])",
-              "interval": "",
-              "legendFormat": "rate: 5m",
-              "refId": "A"
-            }
-          ],
-          "thresholds": [],
-          "timeFrom": null,
-          "timeRegions": [],
-          "timeShift": null,
-          "title": "INSERT statements",
-          "tooltip": {
-            "shared": true,
-            "sort": 0,
-            "value_type": "individual"
-          },
-          "type": "graph",
-          "xaxis": {
-            "buckets": null,
-            "mode": "time",
-            "name": null,
-            "show": true,
-            "values": []
-          },
-          "yaxes": [
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            },
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            }
-          ],
-          "yaxis": {
-            "align": false,
-            "alignLevel": null
-          }
-        },
-        {
-          "aliasColors": {},
-          "bars": false,
-          "dashLength": 10,
-          "dashes": false,
-          "datasource": null,
-          "fill": 1,
-          "fillGradient": 0,
-          "gridPos": {
-            "h": 8,
-            "w": 12,
-            "x": 0,
-            "y": 18
-          },
-          "hiddenSeries": false,
-          "id": 182,
-          "legend": {
-            "alignAsTable": true,
-            "avg": true,
-            "current": true,
-            "max": false,
-            "min": false,
-            "rightSide": false,
-            "show": true,
-            "total": true,
-            "values": true
-          },
-          "lines": true,
-          "linewidth": 1,
-          "nullPointMode": "null",
-          "options": {
-            "dataLinks": []
-          },
-          "percentage": false,
-          "pointradius": 2,
-          "points": false,
-          "renderer": "flot",
-          "seriesOverrides": [],
-          "spaceLength": 10,
-          "stack": false,
-          "steppedLine": false,
-          "targets": [
-            {
-              "expr": "rate(envoy_postgres_ingress_postgres_statements_select{instance=~\"${instance}:8001\"}[5m])",
-              "interval": "",
-              "legendFormat": "rate: 5m",
-              "refId": "A"
-            }
-          ],
-          "thresholds": [],
-          "timeFrom": null,
-          "timeRegions": [],
-          "timeShift": null,
-          "title": "SELECT statements",
-          "tooltip": {
-            "shared": true,
-            "sort": 0,
-            "value_type": "individual"
-          },
-          "type": "graph",
-          "xaxis": {
-            "buckets": null,
-            "mode": "time",
-            "name": null,
-            "show": true,
-            "values": []
-          },
-          "yaxes": [
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            },
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            }
-          ],
-          "yaxis": {
-            "align": false,
-            "alignLevel": null
-          }
-        },
-        {
-          "aliasColors": {},
-          "bars": false,
-          "dashLength": 10,
-          "dashes": false,
-          "datasource": null,
-          "fill": 1,
-          "fillGradient": 0,
-          "gridPos": {
-            "h": 8,
-            "w": 12,
-            "x": 12,
-            "y": 18
-          },
-          "hiddenSeries": false,
-          "id": 185,
-          "legend": {
-            "alignAsTable": true,
-            "avg": true,
-            "current": true,
-            "max": false,
-            "min": false,
-            "rightSide": false,
-            "show": true,
-            "total": true,
-            "values": true
-          },
-          "lines": true,
-          "linewidth": 1,
-          "nullPointMode": "null",
-          "options": {
-            "dataLinks": []
-          },
-          "percentage": false,
-          "pointradius": 2,
-          "points": false,
-          "renderer": "flot",
-          "seriesOverrides": [],
-          "spaceLength": 10,
-          "stack": false,
-          "steppedLine": false,
-          "targets": [
-            {
-              "expr": "rate(envoy_postgres_ingress_postgres_statements_delete{instance=~\"${instance}:8001\"}[5m])",
-              "interval": "",
-              "legendFormat": "rate: 5m",
-              "refId": "A"
-            }
-          ],
-          "thresholds": [],
-          "timeFrom": null,
-          "timeRegions": [],
-          "timeShift": null,
-          "title": "DELETE statements",
-          "tooltip": {
-            "shared": true,
-            "sort": 0,
-            "value_type": "individual"
-          },
-          "type": "graph",
-          "xaxis": {
-            "buckets": null,
-            "mode": "time",
-            "name": null,
-            "show": true,
-            "values": []
-          },
-          "yaxes": [
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            },
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            }
-          ],
-          "yaxis": {
-            "align": false,
-            "alignLevel": null
-          }
-        },
-        {
-          "aliasColors": {},
-          "bars": false,
-          "dashLength": 10,
-          "dashes": false,
-          "datasource": null,
-          "fill": 1,
-          "fillGradient": 0,
-          "gridPos": {
-            "h": 8,
-            "w": 24,
-            "x": 0,
-            "y": 26
-          },
-          "hiddenSeries": false,
-          "id": 186,
-          "legend": {
-            "alignAsTable": true,
-            "avg": true,
-            "current": true,
-            "max": false,
-            "min": false,
-            "rightSide": false,
-            "show": true,
-            "total": true,
-            "values": true
-          },
-          "lines": true,
-          "linewidth": 1,
-          "nullPointMode": "null",
-          "options": {
-            "dataLinks": []
-          },
-          "percentage": false,
-          "pointradius": 2,
-          "points": false,
-          "renderer": "flot",
-          "seriesOverrides": [],
-          "spaceLength": 10,
-          "stack": false,
-          "steppedLine": false,
-          "targets": [
-            {
-              "expr": "rate(envoy_postgres_ingress_postgres_statements_other{instance=~\"${instance}:8001\"}[5m])",
-              "interval": "",
-              "legendFormat": "rate: 5m",
-              "refId": "A"
-            }
-          ],
-          "thresholds": [],
-          "timeFrom": null,
-          "timeRegions": [],
-          "timeShift": null,
-          "title": "Other statements",
-          "tooltip": {
-            "shared": true,
-            "sort": 0,
-            "value_type": "individual"
-          },
-          "type": "graph",
-          "xaxis": {
-            "buckets": null,
-            "mode": "time",
-            "name": null,
-            "show": true,
-            "values": []
-          },
-          "yaxes": [
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            },
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            }
-          ],
-          "yaxis": {
-            "align": false,
-            "alignLevel": null
-          }
-        }
-      ],
-      "title": "Statements",
-      "type": "row"
-    },
-    {
-      "collapsed": true,
-      "datasource": null,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 2
-      },
-      "id": 160,
-      "panels": [
-        {
-          "aliasColors": {},
-          "bars": false,
-          "dashLength": 10,
-          "dashes": false,
-          "datasource": null,
-          "fill": 1,
-          "fillGradient": 0,
-          "gridPos": {
-            "h": 8,
-            "w": 24,
-            "x": 0,
-            "y": 3
-          },
-          "hiddenSeries": false,
-          "id": 162,
-          "legend": {
-            "alignAsTable": true,
-            "avg": true,
-            "current": true,
-            "max": false,
-            "min": false,
-            "rightSide": true,
-            "show": true,
-            "total": true,
-            "values": true
-          },
-          "lines": true,
-          "linewidth": 1,
-          "nullPointMode": "null",
-          "options": {
-            "dataLinks": []
-          },
-          "percentage": false,
-          "pointradius": 2,
-          "points": false,
-          "renderer": "flot",
-          "seriesOverrides": [],
-          "spaceLength": 10,
-          "stack": false,
-          "steppedLine": false,
-          "targets": [
-            {
-              "expr": "rate(envoy_postgres_ingress_postgres_messages{instance=~\"${instance}:8001\"}[5m])",
-              "interval": "",
-              "legendFormat": "rate: 5m",
-              "refId": "A"
-            }
-          ],
-          "thresholds": [],
-          "timeFrom": null,
-          "timeRegions": [],
-          "timeShift": null,
-          "title": "Messages processed",
-          "tooltip": {
-            "shared": true,
-            "sort": 0,
-            "value_type": "individual"
-          },
-          "type": "graph",
-          "xaxis": {
-            "buckets": null,
-            "mode": "time",
-            "name": null,
-            "show": true,
-            "values": []
-          },
-          "yaxes": [
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            },
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            }
-          ],
-          "yaxis": {
-            "align": false,
-            "alignLevel": null
-          }
-        },
-        {
-          "aliasColors": {},
-          "bars": false,
-          "dashLength": 10,
-          "dashes": false,
-          "datasource": null,
-          "fill": 1,
-          "fillGradient": 0,
-          "gridPos": {
-            "h": 8,
-            "w": 12,
-            "x": 0,
-            "y": 11
-          },
-          "hiddenSeries": false,
           "id": 164,
           "legend": {
             "alignAsTable": true,
             "avg": true,
             "current": true,
+            "hideEmpty": true,
             "max": false,
             "min": false,
-            "rightSide": false,
+            "rightSide": true,
             "show": true,
-            "total": true,
+            "total": false,
             "values": true
           },
           "lines": true,
-          "linewidth": 1,
+          "linewidth": 2,
           "nullPointMode": "null",
           "options": {
             "dataLinks": []
           },
           "percentage": false,
+          "pluginVersion": "7.1.5",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -1001,105 +375,27 @@
             {
               "expr": "rate(envoy_postgres_ingress_postgres_messages_backend{instance=~\"${instance}:8001\"}[5m])",
               "interval": "",
-              "legendFormat": "rate: 5m",
+              "legendFormat": "namespace: {{namespace}}, pod: {{pod}} - BACKEND",
               "refId": "A"
-            }
-          ],
-          "thresholds": [],
-          "timeFrom": null,
-          "timeRegions": [],
-          "timeShift": null,
-          "title": "Backend messages",
-          "tooltip": {
-            "shared": true,
-            "sort": 0,
-            "value_type": "individual"
-          },
-          "type": "graph",
-          "xaxis": {
-            "buckets": null,
-            "mode": "time",
-            "name": null,
-            "show": true,
-            "values": []
-          },
-          "yaxes": [
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
             },
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            }
-          ],
-          "yaxis": {
-            "align": false,
-            "alignLevel": null
-          }
-        },
-        {
-          "aliasColors": {},
-          "bars": false,
-          "dashLength": 10,
-          "dashes": false,
-          "datasource": null,
-          "fill": 1,
-          "fillGradient": 0,
-          "gridPos": {
-            "h": 8,
-            "w": 12,
-            "x": 12,
-            "y": 11
-          },
-          "hiddenSeries": false,
-          "id": 166,
-          "legend": {
-            "alignAsTable": true,
-            "avg": true,
-            "current": true,
-            "max": false,
-            "min": false,
-            "rightSide": false,
-            "show": true,
-            "total": true,
-            "values": true
-          },
-          "lines": true,
-          "linewidth": 1,
-          "nullPointMode": "null",
-          "options": {
-            "dataLinks": []
-          },
-          "percentage": false,
-          "pointradius": 2,
-          "points": false,
-          "renderer": "flot",
-          "seriesOverrides": [],
-          "spaceLength": 10,
-          "stack": false,
-          "steppedLine": false,
-          "targets": [
             {
               "expr": "rate(envoy_postgres_ingress_postgres_messages_frontend{instance=~\"${instance}:8001\"}[5m])",
               "interval": "",
-              "legendFormat": "rate: 5m",
-              "refId": "A"
+              "legendFormat": "namespace: {{namespace}}, pod: {{pod}} - FRONTEND",
+              "refId": "B"
+            },
+            {
+              "expr": "rate(envoy_postgres_ingress_postgres_messages_unknown{instance=~\"${instance}:8001\"}[5m])",
+              "interval": "",
+              "legendFormat": "namespace: {{namespace}}, pod: {{pod}} -  UNKNOWN",
+              "refId": "C"
             }
           ],
           "thresholds": [],
           "timeFrom": null,
           "timeRegions": [],
           "timeShift": null,
-          "title": "Frontend messages",
+          "title": "Messages ( 5min rate )",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -1115,6 +411,8 @@
           },
           "yaxes": [
             {
+              "$$hashKey": "object:1978",
+              "decimals": null,
               "format": "short",
               "label": null,
               "logBase": 1,
@@ -1123,6 +421,8 @@
               "show": true
             },
             {
+              "$$hashKey": "object:1979",
+              "decimals": null,
               "format": "short",
               "label": null,
               "logBase": 1,
@@ -1141,34 +441,45 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "datasource": null,
+          "datasource": "${DS_PROMETHEUS}",
+          "decimals": 0,
+          "fieldConfig": {
+            "defaults": {
+              "custom": {},
+              "links": []
+            },
+            "overrides": []
+          },
           "fill": 1,
           "fillGradient": 0,
           "gridPos": {
             "h": 8,
             "w": 12,
             "x": 0,
-            "y": 19
+            "y": 10
           },
           "hiddenSeries": false,
-          "id": 168,
+          "id": 146,
           "legend": {
             "alignAsTable": true,
             "avg": true,
             "current": true,
+            "hideEmpty": true,
             "max": false,
             "min": false,
+            "rightSide": false,
             "show": true,
-            "total": true,
+            "total": false,
             "values": true
           },
           "lines": true,
-          "linewidth": 1,
+          "linewidth": 2,
           "nullPointMode": "null",
           "options": {
             "dataLinks": []
           },
           "percentage": false,
+          "pluginVersion": "7.1.5",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -1178,17 +489,35 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "rate(envoy_postgres_ingress_postgres_messages_unknown{instance=~\"${instance}:8001\"}[5m])",
+              "expr": "rate(envoy_postgres_ingress_postgres_errors_fatal{instance=~\"${instance}:8001\"}[5m])*300",
               "interval": "",
-              "legendFormat": "rate: 5m",
+              "legendFormat": "namespace: {{namespace}}, pod: {{pod}} - FATAL",
               "refId": "A"
+            },
+            {
+              "expr": "rate(envoy_postgres_ingress_postgres_errors_error{instance=~\"${instance}:8001\"}[5m])*300",
+              "interval": "",
+              "legendFormat": "namespace: {{namespace}}, pod: {{pod}} - ERROR",
+              "refId": "B"
+            },
+            {
+              "expr": "rate(envoy_postgres_ingress_postgres_errors_unknown{instance=~\"${instance}:8001\"}[5m])*300",
+              "interval": "",
+              "legendFormat": "namespace: {{namespace}}, pod: {{pod}} - UNKNOWN",
+              "refId": "C"
+            },
+            {
+              "expr": "rate(envoy_postgres_ingress_postgres_errors_panic{instance=~\"${instance}:8001\"}[5m])*300",
+              "interval": "",
+              "legendFormat": "namespace: {{namespace}}, pod: {{pod}} - PANIC",
+              "refId": "D"
             }
           ],
           "thresholds": [],
           "timeFrom": null,
           "timeRegions": [],
           "timeShift": null,
-          "title": "Unknown messages processed",
+          "title": "ERROR messages ( 5min rate )",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -1204,6 +533,8 @@
           },
           "yaxes": [
             {
+              "$$hashKey": "object:2664",
+              "decimals": 0,
               "format": "short",
               "label": null,
               "logBase": 1,
@@ -1212,6 +543,8 @@
               "show": true
             },
             {
+              "$$hashKey": "object:2665",
+              "decimals": 0,
               "format": "short",
               "label": null,
               "logBase": 1,
@@ -1230,14 +563,22 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "datasource": null,
+          "datasource": "${DS_PROMETHEUS}",
+          "decimals": 0,
+          "fieldConfig": {
+            "defaults": {
+              "custom": {},
+              "links": []
+            },
+            "overrides": []
+          },
           "fill": 1,
           "fillGradient": 0,
           "gridPos": {
             "h": 8,
             "w": 12,
             "x": 12,
-            "y": 19
+            "y": 10
           },
           "hiddenSeries": false,
           "id": 170,
@@ -1245,10 +586,12 @@
             "alignAsTable": true,
             "avg": true,
             "current": true,
+            "hideEmpty": true,
             "max": false,
             "min": false,
+            "rightSide": false,
             "show": true,
-            "total": true,
+            "total": false,
             "values": true
           },
           "lines": true,
@@ -1258,6 +601,7 @@
             "dataLinks": []
           },
           "percentage": false,
+          "pluginVersion": "7.1.5",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -1269,552 +613,48 @@
             {
               "expr": "rate(envoy_postgres_ingress_postgres_notices_unknown{instance=~\"${instance}:8001\"}[5m])",
               "interval": "",
-              "legendFormat": "rate: 5m",
+              "legendFormat": "namespace: {{namespace}}, pod: {{pod}} - UNKNOWN",
               "refId": "A"
-            }
-          ],
-          "thresholds": [],
-          "timeFrom": null,
-          "timeRegions": [],
-          "timeShift": null,
-          "title": "NOTICE messages Unknown",
-          "tooltip": {
-            "shared": true,
-            "sort": 0,
-            "value_type": "individual"
-          },
-          "type": "graph",
-          "xaxis": {
-            "buckets": null,
-            "mode": "time",
-            "name": null,
-            "show": true,
-            "values": []
-          },
-          "yaxes": [
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
             },
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            }
-          ],
-          "yaxis": {
-            "align": false,
-            "alignLevel": null
-          }
-        },
-        {
-          "aliasColors": {},
-          "bars": false,
-          "dashLength": 10,
-          "dashes": false,
-          "datasource": null,
-          "fill": 1,
-          "fillGradient": 0,
-          "gridPos": {
-            "h": 8,
-            "w": 12,
-            "x": 0,
-            "y": 27
-          },
-          "hiddenSeries": false,
-          "id": 172,
-          "legend": {
-            "alignAsTable": true,
-            "avg": true,
-            "current": true,
-            "max": false,
-            "min": false,
-            "show": true,
-            "total": true,
-            "values": true
-          },
-          "lines": true,
-          "linewidth": 1,
-          "nullPointMode": "null",
-          "options": {
-            "dataLinks": []
-          },
-          "percentage": false,
-          "pointradius": 2,
-          "points": false,
-          "renderer": "flot",
-          "seriesOverrides": [],
-          "spaceLength": 10,
-          "stack": false,
-          "steppedLine": false,
-          "targets": [
-            {
-              "expr": "rate(envoy_postgres_ingress_postgres_notices{instance=~\"${instance}:8001\"}[5m])",
-              "interval": "",
-              "legendFormat": "rate: 5m",
-              "refId": "A"
-            }
-          ],
-          "thresholds": [],
-          "timeFrom": null,
-          "timeRegions": [],
-          "timeShift": null,
-          "title": "NOTICE messages",
-          "tooltip": {
-            "shared": true,
-            "sort": 0,
-            "value_type": "individual"
-          },
-          "type": "graph",
-          "xaxis": {
-            "buckets": null,
-            "mode": "time",
-            "name": null,
-            "show": true,
-            "values": []
-          },
-          "yaxes": [
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            },
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            }
-          ],
-          "yaxis": {
-            "align": false,
-            "alignLevel": null
-          }
-        },
-        {
-          "aliasColors": {},
-          "bars": false,
-          "dashLength": 10,
-          "dashes": false,
-          "datasource": null,
-          "fill": 1,
-          "fillGradient": 0,
-          "gridPos": {
-            "h": 8,
-            "w": 12,
-            "x": 12,
-            "y": 27
-          },
-          "hiddenSeries": false,
-          "id": 173,
-          "legend": {
-            "alignAsTable": true,
-            "avg": true,
-            "current": true,
-            "max": false,
-            "min": false,
-            "show": true,
-            "total": true,
-            "values": true
-          },
-          "lines": true,
-          "linewidth": 1,
-          "nullPointMode": "null",
-          "options": {
-            "dataLinks": []
-          },
-          "percentage": false,
-          "pointradius": 2,
-          "points": false,
-          "renderer": "flot",
-          "seriesOverrides": [],
-          "spaceLength": 10,
-          "stack": false,
-          "steppedLine": false,
-          "targets": [
             {
               "expr": "rate(envoy_postgres_ingress_postgres_notices_notice{instance=~\"${instance}:8001\"}[5m])",
               "interval": "",
-              "legendFormat": "rate: 5m",
-              "refId": "A"
-            }
-          ],
-          "thresholds": [],
-          "timeFrom": null,
-          "timeRegions": [],
-          "timeShift": null,
-          "title": "NOTICE messages with NOTICE subtype",
-          "tooltip": {
-            "shared": true,
-            "sort": 0,
-            "value_type": "individual"
-          },
-          "type": "graph",
-          "xaxis": {
-            "buckets": null,
-            "mode": "time",
-            "name": null,
-            "show": true,
-            "values": []
-          },
-          "yaxes": [
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
+              "legendFormat": "namespace: {{namespace}}, pod: {{pod}} - NOTICE",
+              "refId": "B"
             },
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            }
-          ],
-          "yaxis": {
-            "align": false,
-            "alignLevel": null
-          }
-        },
-        {
-          "aliasColors": {},
-          "bars": false,
-          "dashLength": 10,
-          "dashes": false,
-          "datasource": null,
-          "fill": 1,
-          "fillGradient": 0,
-          "gridPos": {
-            "h": 8,
-            "w": 12,
-            "x": 0,
-            "y": 35
-          },
-          "hiddenSeries": false,
-          "id": 174,
-          "legend": {
-            "alignAsTable": true,
-            "avg": true,
-            "current": true,
-            "max": false,
-            "min": false,
-            "show": true,
-            "total": true,
-            "values": true
-          },
-          "lines": true,
-          "linewidth": 1,
-          "nullPointMode": "null",
-          "options": {
-            "dataLinks": []
-          },
-          "percentage": false,
-          "pointradius": 2,
-          "points": false,
-          "renderer": "flot",
-          "seriesOverrides": [],
-          "spaceLength": 10,
-          "stack": false,
-          "steppedLine": false,
-          "targets": [
-            {
-              "expr": "rate(envoy_postgres_ingress_postgres_notices_log{instance=~\"${instance}:8001\"}[5m])",
-              "interval": "",
-              "legendFormat": "rate: 5m",
-              "refId": "A"
-            }
-          ],
-          "thresholds": [],
-          "timeFrom": null,
-          "timeRegions": [],
-          "timeShift": null,
-          "title": "NOTICE messages with LOG subtype",
-          "tooltip": {
-            "shared": true,
-            "sort": 0,
-            "value_type": "individual"
-          },
-          "type": "graph",
-          "xaxis": {
-            "buckets": null,
-            "mode": "time",
-            "name": null,
-            "show": true,
-            "values": []
-          },
-          "yaxes": [
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            },
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            }
-          ],
-          "yaxis": {
-            "align": false,
-            "alignLevel": null
-          }
-        },
-        {
-          "aliasColors": {},
-          "bars": false,
-          "dashLength": 10,
-          "dashes": false,
-          "datasource": null,
-          "fill": 1,
-          "fillGradient": 0,
-          "gridPos": {
-            "h": 8,
-            "w": 12,
-            "x": 12,
-            "y": 35
-          },
-          "hiddenSeries": false,
-          "id": 175,
-          "legend": {
-            "alignAsTable": true,
-            "avg": true,
-            "current": true,
-            "max": false,
-            "min": false,
-            "show": true,
-            "total": true,
-            "values": true
-          },
-          "lines": true,
-          "linewidth": 1,
-          "nullPointMode": "null",
-          "options": {
-            "dataLinks": []
-          },
-          "percentage": false,
-          "pointradius": 2,
-          "points": false,
-          "renderer": "flot",
-          "seriesOverrides": [],
-          "spaceLength": 10,
-          "stack": false,
-          "steppedLine": false,
-          "targets": [
             {
               "expr": "rate(envoy_postgres_ingress_postgres_notices_warning{instance=~\"${instance}:8001\"}[5m])",
               "interval": "",
-              "legendFormat": "rate: 5m",
-              "refId": "A"
-            }
-          ],
-          "thresholds": [],
-          "timeFrom": null,
-          "timeRegions": [],
-          "timeShift": null,
-          "title": "NOTICE messages with WARNING severity",
-          "tooltip": {
-            "shared": true,
-            "sort": 0,
-            "value_type": "individual"
-          },
-          "type": "graph",
-          "xaxis": {
-            "buckets": null,
-            "mode": "time",
-            "name": null,
-            "show": true,
-            "values": []
-          },
-          "yaxes": [
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
+              "legendFormat": "namespace: {{namespace}}, pod: {{pod}} - WARNING",
+              "refId": "C"
             },
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            }
-          ],
-          "yaxis": {
-            "align": false,
-            "alignLevel": null
-          }
-        },
-        {
-          "aliasColors": {},
-          "bars": false,
-          "dashLength": 10,
-          "dashes": false,
-          "datasource": null,
-          "fill": 1,
-          "fillGradient": 0,
-          "gridPos": {
-            "h": 8,
-            "w": 12,
-            "x": 0,
-            "y": 43
-          },
-          "hiddenSeries": false,
-          "id": 176,
-          "legend": {
-            "alignAsTable": true,
-            "avg": true,
-            "current": true,
-            "max": false,
-            "min": false,
-            "show": true,
-            "total": true,
-            "values": true
-          },
-          "lines": true,
-          "linewidth": 1,
-          "nullPointMode": "null",
-          "options": {
-            "dataLinks": []
-          },
-          "percentage": false,
-          "pointradius": 2,
-          "points": false,
-          "renderer": "flot",
-          "seriesOverrides": [],
-          "spaceLength": 10,
-          "stack": false,
-          "steppedLine": false,
-          "targets": [
-            {
-              "expr": "rate(envoy_postgres_ingress_postgres_notices_debug{instance=~\"${instance}:8001\"}[5m])",
-              "interval": "",
-              "legendFormat": "rate: 5m",
-              "refId": "A"
-            }
-          ],
-          "thresholds": [],
-          "timeFrom": null,
-          "timeRegions": [],
-          "timeShift": null,
-          "title": "NOTICE messages with DEBUG severity",
-          "tooltip": {
-            "shared": true,
-            "sort": 0,
-            "value_type": "individual"
-          },
-          "type": "graph",
-          "xaxis": {
-            "buckets": null,
-            "mode": "time",
-            "name": null,
-            "show": true,
-            "values": []
-          },
-          "yaxes": [
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            },
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            }
-          ],
-          "yaxis": {
-            "align": false,
-            "alignLevel": null
-          }
-        },
-        {
-          "aliasColors": {},
-          "bars": false,
-          "dashLength": 10,
-          "dashes": false,
-          "datasource": null,
-          "fill": 1,
-          "fillGradient": 0,
-          "gridPos": {
-            "h": 8,
-            "w": 12,
-            "x": 12,
-            "y": 43
-          },
-          "hiddenSeries": false,
-          "id": 177,
-          "legend": {
-            "alignAsTable": true,
-            "avg": true,
-            "current": true,
-            "max": false,
-            "min": false,
-            "show": true,
-            "total": true,
-            "values": true
-          },
-          "lines": true,
-          "linewidth": 1,
-          "nullPointMode": "null",
-          "options": {
-            "dataLinks": []
-          },
-          "percentage": false,
-          "pointradius": 2,
-          "points": false,
-          "renderer": "flot",
-          "seriesOverrides": [],
-          "spaceLength": 10,
-          "stack": false,
-          "steppedLine": false,
-          "targets": [
             {
               "expr": "rate(envoy_postgres_ingress_postgres_notices_info{instance=~\"${instance}:8001\"}[5m])",
               "interval": "",
-              "legendFormat": "rate: 5m",
-              "refId": "A"
+              "legendFormat": "namespace: {{namespace}}, pod: {{pod}} - INFO",
+              "refId": "D"
+            },
+            {
+              "expr": "rate(envoy_postgres_ingress_postgres_notices_log{instance=~\"${instance}:8001\"}[5m])",
+              "interval": "",
+              "legendFormat": "namespace: {{namespace}}, pod: {{pod}} - LOG",
+              "refId": "E"
+            },
+            {
+              "expr": "rate(envoy_postgres_ingress_postgres_notices_debug{instance=~\"${instance}:8001\"}[5m])",
+              "interval": "",
+              "legendFormat": "namespace: {{namespace}}, pod: {{pod}} - DEBUG",
+              "refId": "F"
             }
           ],
           "thresholds": [],
           "timeFrom": null,
           "timeRegions": [],
           "timeShift": null,
-          "title": "NOTICE messages with INFO severity",
+          "title": "NOTICE ( 5min rate )",
           "tooltip": {
             "shared": true,
-            "sort": 0,
+            "sort": 2,
             "value_type": "individual"
           },
           "type": "graph",
@@ -1827,6 +667,8 @@
           },
           "yaxes": [
             {
+              "$$hashKey": "object:1635",
+              "decimals": 0,
               "format": "short",
               "label": null,
               "logBase": 1,
@@ -1835,6 +677,8 @@
               "show": true
             },
             {
+              "$$hashKey": "object:1636",
+              "decimals": 0,
               "format": "short",
               "label": null,
               "logBase": 1,
@@ -1854,12 +698,12 @@
     },
     {
       "collapsed": true,
-      "datasource": "Prometheus",
+      "datasource": "${DS_PROMETHEUS}",
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 3
+        "y": 10
       },
       "id": 152,
       "panels": [
@@ -1868,15 +712,22 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "datasource": "Prometheus",
-          "decimals": null,
+          "datasource": "${DS_PROMETHEUS}",
+          "decimals": 0,
+          "fieldConfig": {
+            "defaults": {
+              "custom": {},
+              "links": []
+            },
+            "overrides": []
+          },
           "fill": 1,
           "fillGradient": 0,
           "gridPos": {
-            "h": 7,
-            "w": 24,
+            "h": 8,
+            "w": 12,
             "x": 0,
-            "y": 4
+            "y": 3
           },
           "hiddenSeries": false,
           "id": 154,
@@ -1884,11 +735,12 @@
             "alignAsTable": true,
             "avg": true,
             "current": true,
+            "hideEmpty": true,
             "max": false,
             "min": false,
-            "rightSide": true,
+            "rightSide": false,
             "show": true,
-            "total": true,
+            "total": false,
             "values": true
           },
           "lines": true,
@@ -1898,6 +750,7 @@
             "dataLinks": []
           },
           "percentage": false,
+          "pluginVersion": "7.1.5",
           "pointradius": 2,
           "points": true,
           "renderer": "flot",
@@ -1907,9 +760,9 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "rate(envoy_postgres_ingress_postgres_sessions{instance=~\"${instance}:8001\"}[5m])",
+              "expr": "rate(envoy_postgres_ingress_postgres_sessions{instance=~\"${instance}:8001\"}[5m])*300",
               "interval": "",
-              "legendFormat": "rate: 5m",
+              "legendFormat": "namespace: {{namespace}}, pod: {{pod}} ",
               "refId": "A"
             }
           ],
@@ -1920,7 +773,7 @@
           "title": "Successful logins",
           "tooltip": {
             "shared": true,
-            "sort": 0,
+            "sort": 2,
             "value_type": "individual"
           },
           "type": "graph",
@@ -1933,6 +786,8 @@
           },
           "yaxes": [
             {
+              "$$hashKey": "object:2186",
+              "decimals": 0,
               "format": "short",
               "label": null,
               "logBase": 1,
@@ -1941,6 +796,8 @@
               "show": true
             },
             {
+              "$$hashKey": "object:2187",
+              "decimals": 0,
               "format": "short",
               "label": null,
               "logBase": 1,
@@ -1959,104 +816,22 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "datasource": null,
-          "fill": 1,
-          "fillGradient": 0,
-          "gridPos": {
-            "h": 8,
-            "w": 12,
-            "x": 0,
-            "y": 11
-          },
-          "hiddenSeries": false,
-          "id": 158,
-          "legend": {
-            "alignAsTable": true,
-            "avg": true,
-            "current": true,
-            "max": false,
-            "min": false,
-            "rightSide": false,
-            "show": true,
-            "total": true,
-            "values": true
-          },
-          "lines": true,
-          "linewidth": 1,
-          "nullPointMode": "null",
-          "options": {
-            "dataLinks": []
-          },
-          "percentage": false,
-          "pointradius": 2,
-          "points": false,
-          "renderer": "flot",
-          "seriesOverrides": [],
-          "spaceLength": 10,
-          "stack": false,
-          "steppedLine": false,
-          "targets": [
-            {
-              "expr": "rate(envoy_postgres_ingress_postgres_sessions_unencrypted{instance=~\"${instance}:8001\"}[5m])",
-              "interval": "",
-              "legendFormat": "rate: 5m",
-              "refId": "A"
-            }
-          ],
-          "thresholds": [],
-          "timeFrom": null,
-          "timeRegions": [],
-          "timeShift": null,
-          "title": "Sessions Unencrypted",
-          "tooltip": {
-            "shared": true,
-            "sort": 0,
-            "value_type": "individual"
-          },
-          "type": "graph",
-          "xaxis": {
-            "buckets": null,
-            "mode": "time",
-            "name": null,
-            "show": true,
-            "values": []
-          },
-          "yaxes": [
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
+          "datasource": "${DS_PROMETHEUS}",
+          "decimals": 0,
+          "fieldConfig": {
+            "defaults": {
+              "custom": {},
+              "links": []
             },
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            }
-          ],
-          "yaxis": {
-            "align": false,
-            "alignLevel": null
-          }
-        },
-        {
-          "aliasColors": {},
-          "bars": false,
-          "dashLength": 10,
-          "dashes": false,
-          "datasource": null,
+            "overrides": []
+          },
           "fill": 1,
           "fillGradient": 0,
           "gridPos": {
             "h": 8,
             "w": 12,
             "x": 12,
-            "y": 11
+            "y": 3
           },
           "hiddenSeries": false,
           "id": 156,
@@ -2064,20 +839,22 @@
             "alignAsTable": true,
             "avg": true,
             "current": true,
+            "hideEmpty": true,
             "max": false,
             "min": false,
             "rightSide": false,
             "show": true,
-            "total": true,
+            "total": false,
             "values": true
           },
           "lines": true,
-          "linewidth": 1,
+          "linewidth": 2,
           "nullPointMode": "null",
           "options": {
             "dataLinks": []
           },
           "percentage": false,
+          "pluginVersion": "7.1.5",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -2087,17 +864,23 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "rate(envoy_postgres_ingress_postgres_sessions_encrypted{instance=~\"${instance}:8001\"}[5m])",
+              "expr": "rate(envoy_postgres_ingress_postgres_sessions_encrypted{instance=~\"${instance}:8001\"}[5m])*300",
               "interval": "",
-              "legendFormat": "rate: 5m",
+              "legendFormat": "namespace: {{namespace}}, pod: {{pod}} - ENCRYPTED",
               "refId": "A"
+            },
+            {
+              "expr": "rate(envoy_postgres_ingress_postgres_sessions_unencrypted{instance=~\"${instance}:8001\"}[5m])*300",
+              "interval": "",
+              "legendFormat": "namespace: {{namespace}}, pod: {{pod}} - UNENCRYPTED",
+              "refId": "B"
             }
           ],
           "thresholds": [],
           "timeFrom": null,
           "timeRegions": [],
           "timeShift": null,
-          "title": "Sessions Encrypted",
+          "title": "Sessions Encryption",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -2113,6 +896,8 @@
           },
           "yaxes": [
             {
+              "$$hashKey": "object:2533",
+              "decimals": 0,
               "format": "short",
               "label": null,
               "logBase": 1,
@@ -2121,6 +906,8 @@
               "show": true
             },
             {
+              "$$hashKey": "object:2534",
+              "decimals": 0,
               "format": "short",
               "label": null,
               "logBase": 1,
@@ -2140,481 +927,12 @@
     },
     {
       "collapsed": true,
-      "datasource": "Prometheus",
+      "datasource": "${DS_PROMETHEUS}",
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 4
-      },
-      "id": 140,
-      "panels": [
-        {
-          "aliasColors": {},
-          "bars": false,
-          "dashLength": 10,
-          "dashes": false,
-          "datasource": "Prometheus",
-          "fill": 1,
-          "fillGradient": 0,
-          "gridPos": {
-            "h": 9,
-            "w": 24,
-            "x": 0,
-            "y": 5
-          },
-          "hiddenSeries": false,
-          "id": 142,
-          "legend": {
-            "alignAsTable": true,
-            "avg": true,
-            "current": true,
-            "hideEmpty": false,
-            "hideZero": false,
-            "max": false,
-            "min": false,
-            "rightSide": true,
-            "show": true,
-            "total": true,
-            "values": true
-          },
-          "lines": true,
-          "linewidth": 1,
-          "nullPointMode": "null",
-          "options": {
-            "dataLinks": []
-          },
-          "percentage": false,
-          "pointradius": 2,
-          "points": false,
-          "renderer": "flot",
-          "seriesOverrides": [],
-          "spaceLength": 10,
-          "stack": false,
-          "steppedLine": false,
-          "targets": [
-            {
-              "expr": "rate(envoy_postgres_ingress_postgres_errors{instance=~\"${instance}:8001\"}[5m])",
-              "interval": "",
-              "legendFormat": "rate: 5m",
-              "refId": "A"
-            }
-          ],
-          "thresholds": [],
-          "timeFrom": null,
-          "timeRegions": [],
-          "timeShift": null,
-          "title": "Number of ERROR messages",
-          "tooltip": {
-            "shared": true,
-            "sort": 0,
-            "value_type": "individual"
-          },
-          "type": "graph",
-          "xaxis": {
-            "buckets": null,
-            "mode": "time",
-            "name": null,
-            "show": true,
-            "values": []
-          },
-          "yaxes": [
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            },
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            }
-          ],
-          "yaxis": {
-            "align": false,
-            "alignLevel": null
-          }
-        },
-        {
-          "aliasColors": {},
-          "bars": false,
-          "dashLength": 10,
-          "dashes": false,
-          "datasource": "Prometheus",
-          "fill": 1,
-          "fillGradient": 0,
-          "gridPos": {
-            "h": 8,
-            "w": 12,
-            "x": 0,
-            "y": 14
-          },
-          "hiddenSeries": false,
-          "id": 146,
-          "legend": {
-            "alignAsTable": true,
-            "avg": true,
-            "current": true,
-            "max": false,
-            "min": false,
-            "rightSide": false,
-            "show": true,
-            "total": true,
-            "values": true
-          },
-          "lines": true,
-          "linewidth": 1,
-          "nullPointMode": "null",
-          "options": {
-            "dataLinks": []
-          },
-          "percentage": false,
-          "pointradius": 2,
-          "points": false,
-          "renderer": "flot",
-          "seriesOverrides": [],
-          "spaceLength": 10,
-          "stack": false,
-          "steppedLine": false,
-          "targets": [
-            {
-              "expr": "rate(envoy_postgres_ingress_postgres_errors_fatal{instance=~\"${instance}:8001\"}[5m])",
-              "interval": "",
-              "legendFormat": "rate: 5m",
-              "refId": "A"
-            }
-          ],
-          "thresholds": [],
-          "timeFrom": null,
-          "timeRegions": [],
-          "timeShift": null,
-          "title": "ERROR messages with FATAL severity",
-          "tooltip": {
-            "shared": true,
-            "sort": 0,
-            "value_type": "individual"
-          },
-          "type": "graph",
-          "xaxis": {
-            "buckets": null,
-            "mode": "time",
-            "name": null,
-            "show": true,
-            "values": []
-          },
-          "yaxes": [
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            },
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            }
-          ],
-          "yaxis": {
-            "align": false,
-            "alignLevel": null
-          }
-        },
-        {
-          "aliasColors": {},
-          "bars": false,
-          "dashLength": 10,
-          "dashes": false,
-          "datasource": "Prometheus",
-          "fill": 1,
-          "fillGradient": 0,
-          "gridPos": {
-            "h": 8,
-            "w": 12,
-            "x": 12,
-            "y": 14
-          },
-          "hiddenSeries": false,
-          "id": 144,
-          "legend": {
-            "alignAsTable": true,
-            "avg": true,
-            "current": true,
-            "hideEmpty": false,
-            "hideZero": false,
-            "max": false,
-            "min": false,
-            "rightSide": false,
-            "show": true,
-            "total": true,
-            "values": true
-          },
-          "lines": true,
-          "linewidth": 1,
-          "nullPointMode": "null",
-          "options": {
-            "dataLinks": []
-          },
-          "percentage": false,
-          "pointradius": 2,
-          "points": false,
-          "renderer": "flot",
-          "seriesOverrides": [],
-          "spaceLength": 10,
-          "stack": false,
-          "steppedLine": false,
-          "targets": [
-            {
-              "expr": "rate(envoy_postgres_ingress_postgres_errors_error{instance=~\"${instance}:8001\"}[5m])",
-              "interval": "",
-              "legendFormat": "rate: 5m",
-              "refId": "A"
-            }
-          ],
-          "thresholds": [],
-          "timeFrom": null,
-          "timeRegions": [],
-          "timeShift": null,
-          "title": "ERROR messages with ERROR severity",
-          "tooltip": {
-            "shared": true,
-            "sort": 0,
-            "value_type": "individual"
-          },
-          "type": "graph",
-          "xaxis": {
-            "buckets": null,
-            "mode": "time",
-            "name": null,
-            "show": true,
-            "values": []
-          },
-          "yaxes": [
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            },
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            }
-          ],
-          "yaxis": {
-            "align": false,
-            "alignLevel": null
-          }
-        },
-        {
-          "aliasColors": {},
-          "bars": false,
-          "dashLength": 10,
-          "dashes": false,
-          "datasource": "Prometheus",
-          "fill": 1,
-          "fillGradient": 0,
-          "gridPos": {
-            "h": 8,
-            "w": 12,
-            "x": 0,
-            "y": 22
-          },
-          "hiddenSeries": false,
-          "id": 148,
-          "legend": {
-            "alignAsTable": true,
-            "avg": true,
-            "current": true,
-            "max": false,
-            "min": false,
-            "rightSide": false,
-            "show": true,
-            "total": true,
-            "values": true
-          },
-          "lines": true,
-          "linewidth": 1,
-          "nullPointMode": "null",
-          "options": {
-            "dataLinks": []
-          },
-          "percentage": false,
-          "pointradius": 2,
-          "points": false,
-          "renderer": "flot",
-          "seriesOverrides": [],
-          "spaceLength": 10,
-          "stack": false,
-          "steppedLine": false,
-          "targets": [
-            {
-              "expr": "rate(envoy_postgres_ingress_postgres_errors_panic{instance=~\"${instance}:8001\"}[5m])",
-              "interval": "",
-              "legendFormat": "rate: 5m",
-              "refId": "A"
-            }
-          ],
-          "thresholds": [],
-          "timeFrom": null,
-          "timeRegions": [],
-          "timeShift": null,
-          "title": "ERROR messages with PANIC severity",
-          "tooltip": {
-            "shared": true,
-            "sort": 0,
-            "value_type": "individual"
-          },
-          "type": "graph",
-          "xaxis": {
-            "buckets": null,
-            "mode": "time",
-            "name": null,
-            "show": true,
-            "values": []
-          },
-          "yaxes": [
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            },
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            }
-          ],
-          "yaxis": {
-            "align": false,
-            "alignLevel": null
-          }
-        },
-        {
-          "aliasColors": {},
-          "bars": false,
-          "dashLength": 10,
-          "dashes": false,
-          "datasource": "Prometheus",
-          "fill": 1,
-          "fillGradient": 0,
-          "gridPos": {
-            "h": 8,
-            "w": 12,
-            "x": 12,
-            "y": 22
-          },
-          "hiddenSeries": false,
-          "id": 150,
-          "legend": {
-            "alignAsTable": true,
-            "avg": true,
-            "current": true,
-            "max": false,
-            "min": false,
-            "rightSide": false,
-            "show": true,
-            "total": true,
-            "values": true
-          },
-          "lines": true,
-          "linewidth": 1,
-          "nullPointMode": "null",
-          "options": {
-            "dataLinks": []
-          },
-          "percentage": false,
-          "pointradius": 2,
-          "points": false,
-          "renderer": "flot",
-          "seriesOverrides": [],
-          "spaceLength": 10,
-          "stack": false,
-          "steppedLine": false,
-          "targets": [
-            {
-              "expr": "rate(envoy_postgres_ingress_postgres_errors_unknown{instance=~\"${instance}:8001\"}[5m])",
-              "interval": "",
-              "legendFormat": "rate: 5m",
-              "refId": "A"
-            }
-          ],
-          "thresholds": [],
-          "timeFrom": null,
-          "timeRegions": [],
-          "timeShift": null,
-          "title": "ERROR messages Unknown",
-          "tooltip": {
-            "shared": true,
-            "sort": 0,
-            "value_type": "individual"
-          },
-          "type": "graph",
-          "xaxis": {
-            "buckets": null,
-            "mode": "time",
-            "name": null,
-            "show": true,
-            "values": []
-          },
-          "yaxes": [
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            },
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            }
-          ],
-          "yaxis": {
-            "align": false,
-            "alignLevel": null
-          }
-        }
-      ],
-      "title": "Errors",
-      "type": "row"
-    },
-    {
-      "collapsed": true,
-      "datasource": "Prometheus",
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 5
+        "y": 11
       },
       "id": 34,
       "panels": [
@@ -2627,7 +945,13 @@
             "#7eb26d",
             "#d44a3a"
           ],
-          "datasource": "Prometheus",
+          "datasource": "${DS_PROMETHEUS}",
+          "fieldConfig": {
+            "defaults": {
+              "custom": {}
+            },
+            "overrides": []
+          },
           "format": "none",
           "gauge": {
             "maxValue": 100,
@@ -2640,7 +964,7 @@
             "h": 2,
             "w": 4,
             "x": 0,
-            "y": 6
+            "y": 4
           },
           "id": 36,
           "interval": null,
@@ -2709,8 +1033,14 @@
             "rgba(237, 129, 40, 0.89)",
             "#d44a3a"
           ],
-          "datasource": "Prometheus",
+          "datasource": "${DS_PROMETHEUS}",
           "description": "start time of the process",
+          "fieldConfig": {
+            "defaults": {
+              "custom": {}
+            },
+            "overrides": []
+          },
           "format": "dateTimeFromNow",
           "gauge": {
             "maxValue": 100,
@@ -2723,7 +1053,7 @@
             "h": 2,
             "w": 4,
             "x": 4,
-            "y": 6
+            "y": 4
           },
           "id": 28,
           "interval": null,
@@ -2791,7 +1121,13 @@
             "rgba(237, 129, 40, 0.89)",
             "rgba(50, 172, 45, 0.97)"
           ],
-          "datasource": "Prometheus",
+          "datasource": "${DS_PROMETHEUS}",
+          "fieldConfig": {
+            "defaults": {
+              "custom": {}
+            },
+            "overrides": []
+          },
           "format": "decbytes",
           "gauge": {
             "maxValue": 100,
@@ -2804,7 +1140,7 @@
             "h": 2,
             "w": 4,
             "x": 8,
-            "y": 6
+            "y": 4
           },
           "height": "200px",
           "id": 10,
@@ -2873,7 +1209,13 @@
             "rgba(237, 129, 40, 0.89)",
             "rgba(50, 172, 45, 0.97)"
           ],
-          "datasource": "Prometheus",
+          "datasource": "${DS_PROMETHEUS}",
+          "fieldConfig": {
+            "defaults": {
+              "custom": {}
+            },
+            "overrides": []
+          },
           "format": "decbytes",
           "gauge": {
             "maxValue": 100,
@@ -2886,7 +1228,7 @@
             "h": 2,
             "w": 4,
             "x": 12,
-            "y": 6
+            "y": 4
           },
           "height": "200px",
           "id": 11,
@@ -2955,7 +1297,13 @@
             "rgba(237, 129, 40, 0.89)",
             "rgba(50, 172, 45, 0.97)"
           ],
-          "datasource": "Prometheus",
+          "datasource": "${DS_PROMETHEUS}",
+          "fieldConfig": {
+            "defaults": {
+              "custom": {}
+            },
+            "overrides": []
+          },
           "format": "decbytes",
           "gauge": {
             "maxValue": 100,
@@ -2968,7 +1316,7 @@
             "h": 2,
             "w": 4,
             "x": 16,
-            "y": 6
+            "y": 4
           },
           "height": "200px",
           "id": 12,
@@ -3037,7 +1385,13 @@
             "rgba(237, 129, 40, 0.89)",
             "#d44a3a"
           ],
-          "datasource": "Prometheus",
+          "datasource": "${DS_PROMETHEUS}",
+          "fieldConfig": {
+            "defaults": {
+              "custom": {}
+            },
+            "overrides": []
+          },
           "format": "none",
           "gauge": {
             "maxValue": 100,
@@ -3050,7 +1404,7 @@
             "h": 2,
             "w": 4,
             "x": 20,
-            "y": 6
+            "y": 4
           },
           "id": 38,
           "interval": null,
@@ -3113,15 +1467,22 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "datasource": "Prometheus",
+          "datasource": "${DS_PROMETHEUS}",
           "description": "Average user and system CPU time spent in seconds.",
+          "fieldConfig": {
+            "defaults": {
+              "custom": {},
+              "links": []
+            },
+            "overrides": []
+          },
           "fill": 1,
           "fillGradient": 0,
           "gridPos": {
             "h": 7,
             "w": 8,
             "x": 0,
-            "y": 8
+            "y": 6
           },
           "hiddenSeries": false,
           "id": 22,
@@ -3143,6 +1504,7 @@
             "dataLinks": []
           },
           "percentage": false,
+          "pluginVersion": "7.1.5",
           "pointradius": 5,
           "points": false,
           "renderer": "flot",
@@ -3205,15 +1567,22 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "datasource": "Prometheus",
+          "datasource": "${DS_PROMETHEUS}",
           "description": "Virtual and Resident memory size in bytes, averages over 5 min interval",
+          "fieldConfig": {
+            "defaults": {
+              "custom": {},
+              "links": []
+            },
+            "overrides": []
+          },
           "fill": 1,
           "fillGradient": 0,
           "gridPos": {
             "h": 7,
             "w": 8,
             "x": 8,
-            "y": 8
+            "y": 6
           },
           "hiddenSeries": false,
           "id": 24,
@@ -3235,6 +1604,7 @@
             "dataLinks": []
           },
           "percentage": false,
+          "pluginVersion": "7.1.5",
           "pointradius": 5,
           "points": false,
           "renderer": "flot",
@@ -3305,15 +1675,22 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "datasource": "Prometheus",
+          "datasource": "${DS_PROMETHEUS}",
           "description": "Number of open file descriptors",
+          "fieldConfig": {
+            "defaults": {
+              "custom": {},
+              "links": []
+            },
+            "overrides": []
+          },
           "fill": 1,
           "fillGradient": 0,
           "gridPos": {
             "h": 7,
             "w": 8,
             "x": 16,
-            "y": 8
+            "y": 6
           },
           "hiddenSeries": false,
           "id": 26,
@@ -3335,6 +1712,7 @@
             "dataLinks": []
           },
           "percentage": false,
+          "pluginVersion": "7.1.5",
           "pointradius": 5,
           "points": false,
           "renderer": "flot",
@@ -3399,12 +1777,12 @@
     },
     {
       "collapsed": true,
-      "datasource": "Prometheus",
+      "datasource": "${DS_PROMETHEUS}",
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 6
+        "y": 12
       },
       "id": 32,
       "panels": [
@@ -3417,7 +1795,13 @@
             "rgba(237, 129, 40, 0.89)",
             "#d44a3a"
           ],
-          "datasource": "Prometheus",
+          "datasource": "${DS_PROMETHEUS}",
+          "fieldConfig": {
+            "defaults": {
+              "custom": {}
+            },
+            "overrides": []
+          },
           "format": "bytes",
           "gauge": {
             "maxValue": 100,
@@ -3430,7 +1814,7 @@
             "h": 3,
             "w": 3,
             "x": 0,
-            "y": 7
+            "y": 5
           },
           "id": 40,
           "interval": null,
@@ -3497,7 +1881,13 @@
             "rgba(237, 129, 40, 0.89)",
             "#d44a3a"
           ],
-          "datasource": "Prometheus",
+          "datasource": "${DS_PROMETHEUS}",
+          "fieldConfig": {
+            "defaults": {
+              "custom": {}
+            },
+            "overrides": []
+          },
           "format": "bytes",
           "gauge": {
             "maxValue": 100,
@@ -3510,7 +1900,7 @@
             "h": 3,
             "w": 3,
             "x": 3,
-            "y": 7
+            "y": 5
           },
           "id": 42,
           "interval": null,
@@ -3577,7 +1967,13 @@
             "rgba(237, 129, 40, 0.89)",
             "#d44a3a"
           ],
-          "datasource": "Prometheus",
+          "datasource": "${DS_PROMETHEUS}",
+          "fieldConfig": {
+            "defaults": {
+              "custom": {}
+            },
+            "overrides": []
+          },
           "format": "bytes",
           "gauge": {
             "maxValue": 100,
@@ -3590,7 +1986,7 @@
             "h": 3,
             "w": 3,
             "x": 6,
-            "y": 7
+            "y": 5
           },
           "id": 44,
           "interval": null,
@@ -3657,7 +2053,13 @@
             "rgba(237, 129, 40, 0.89)",
             "#d44a3a"
           ],
-          "datasource": "Prometheus",
+          "datasource": "${DS_PROMETHEUS}",
+          "fieldConfig": {
+            "defaults": {
+              "custom": {}
+            },
+            "overrides": []
+          },
           "format": "bytes",
           "gauge": {
             "maxValue": 100,
@@ -3670,7 +2072,7 @@
             "h": 3,
             "w": 3,
             "x": 9,
-            "y": 7
+            "y": 5
           },
           "id": 46,
           "interval": null,
@@ -3738,8 +2140,14 @@
             "rgba(237, 129, 40, 0.89)",
             "#d44a3a"
           ],
-          "datasource": "Prometheus",
+          "datasource": "${DS_PROMETHEUS}",
           "decimals": 1,
+          "fieldConfig": {
+            "defaults": {
+              "custom": {}
+            },
+            "overrides": []
+          },
           "format": "bytes",
           "gauge": {
             "maxValue": 100,
@@ -3752,7 +2160,7 @@
             "h": 3,
             "w": 3,
             "x": 12,
-            "y": 7
+            "y": 5
           },
           "id": 48,
           "interval": null,
@@ -3819,7 +2227,13 @@
             "rgba(237, 129, 40, 0.89)",
             "#d44a3a"
           ],
-          "datasource": "Prometheus",
+          "datasource": "${DS_PROMETHEUS}",
+          "fieldConfig": {
+            "defaults": {
+              "custom": {}
+            },
+            "overrides": []
+          },
           "format": "none",
           "gauge": {
             "maxValue": 100,
@@ -3832,7 +2246,7 @@
             "h": 3,
             "w": 3,
             "x": 15,
-            "y": 7
+            "y": 5
           },
           "id": 50,
           "interval": null,
@@ -3899,7 +2313,13 @@
             "rgba(237, 129, 40, 0.89)",
             "#d44a3a"
           ],
-          "datasource": "Prometheus",
+          "datasource": "${DS_PROMETHEUS}",
+          "fieldConfig": {
+            "defaults": {
+              "custom": {}
+            },
+            "overrides": []
+          },
           "format": "none",
           "gauge": {
             "maxValue": 100,
@@ -3912,7 +2332,7 @@
             "h": 3,
             "w": 2,
             "x": 18,
-            "y": 7
+            "y": 5
           },
           "id": 52,
           "interval": null,
@@ -3951,7 +2371,7 @@
           "tableColumn": "",
           "targets": [
             {
-              "expr": "pg_settings_seq_page_cost",
+              "expr": "pg_settings_seq_page_cost{instance=~\"${instance}:9187\"}",
               "format": "time_series",
               "intervalFactor": 1,
               "refId": "A"
@@ -3979,7 +2399,13 @@
             "rgba(237, 129, 40, 0.89)",
             "#d44a3a"
           ],
-          "datasource": "Prometheus",
+          "datasource": "${DS_PROMETHEUS}",
+          "fieldConfig": {
+            "defaults": {
+              "custom": {}
+            },
+            "overrides": []
+          },
           "format": "none",
           "gauge": {
             "maxValue": 100,
@@ -3992,7 +2418,7 @@
             "h": 3,
             "w": 2,
             "x": 20,
-            "y": 7
+            "y": 5
           },
           "id": 54,
           "interval": null,
@@ -4059,7 +2485,13 @@
             "rgba(237, 129, 40, 0.89)",
             "#d44a3a"
           ],
-          "datasource": "Prometheus",
+          "datasource": "${DS_PROMETHEUS}",
+          "fieldConfig": {
+            "defaults": {
+              "custom": {}
+            },
+            "overrides": []
+          },
           "format": "none",
           "gauge": {
             "maxValue": 100,
@@ -4072,7 +2504,7 @@
             "h": 3,
             "w": 2,
             "x": 22,
-            "y": 7
+            "y": 5
           },
           "id": 56,
           "interval": null,
@@ -4136,12 +2568,12 @@
     },
     {
       "collapsed": true,
-      "datasource": "Prometheus",
+      "datasource": "${DS_PROMETHEUS}",
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 7
+        "y": 13
       },
       "id": 30,
       "panels": [
@@ -4150,14 +2582,36 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "datasource": "Prometheus",
-          "fill": 1,
+          "datasource": "${DS_PROMETHEUS}",
+          "decimals": 0,
+          "fieldConfig": {
+            "defaults": {
+              "custom": {},
+              "links": [],
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "fill": 2,
           "fillGradient": 0,
           "gridPos": {
             "h": 7,
             "w": 8,
             "x": 0,
-            "y": 8
+            "y": 6
           },
           "hiddenSeries": false,
           "id": 1,
@@ -4167,21 +2621,22 @@
             "current": true,
             "max": true,
             "min": false,
-            "rightSide": true,
+            "rightSide": false,
             "show": true,
             "sort": "current",
             "sortDesc": true,
             "total": false,
             "values": true
           },
-          "lines": false,
-          "linewidth": 1,
+          "lines": true,
+          "linewidth": 2,
           "links": [],
           "nullPointMode": "connected",
           "options": {
             "dataLinks": []
           },
           "percentage": false,
+          "pluginVersion": "7.1.5",
           "pointradius": 3,
           "points": true,
           "renderer": "flot",
@@ -4195,7 +2650,7 @@
               "format": "time_series",
               "interval": "",
               "intervalFactor": 2,
-              "legendFormat": "{{datname}}, s: {{state}}",
+              "legendFormat": "Database: {{datname}}, State: {{state}}",
               "refId": "A",
               "step": 2
             }
@@ -4220,8 +2675,9 @@
           },
           "yaxes": [
             {
+              "$$hashKey": "object:109",
               "decimals": 0,
-              "format": "none",
+              "format": "short",
               "label": null,
               "logBase": 1,
               "max": null,
@@ -4229,6 +2685,7 @@
               "show": true
             },
             {
+              "$$hashKey": "object:110",
               "format": "short",
               "label": null,
               "logBase": 1,
@@ -4247,14 +2704,21 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "datasource": "Prometheus",
+          "datasource": "${DS_PROMETHEUS}",
+          "fieldConfig": {
+            "defaults": {
+              "custom": {},
+              "links": []
+            },
+            "overrides": []
+          },
           "fill": 1,
           "fillGradient": 0,
           "gridPos": {
             "h": 7,
             "w": 8,
             "x": 8,
-            "y": 8
+            "y": 6
           },
           "hiddenSeries": false,
           "id": 60,
@@ -4262,9 +2726,11 @@
             "alignAsTable": true,
             "avg": true,
             "current": true,
+            "hideEmpty": true,
+            "hideZero": true,
             "max": false,
             "min": false,
-            "rightSide": true,
+            "rightSide": false,
             "show": true,
             "total": true,
             "values": true
@@ -4277,6 +2743,7 @@
             "dataLinks": []
           },
           "percentage": false,
+          "pluginVersion": "7.1.5",
           "pointradius": 5,
           "points": false,
           "renderer": "flot",
@@ -4296,6 +2763,7 @@
             {
               "expr": "rate(pg_stat_database_xact_rollback{instance=~\"${instance}:9187\", datname=~\"$datname\"}[5m])",
               "format": "time_series",
+              "interval": "",
               "intervalFactor": 1,
               "legendFormat": "{{datname}} rollbacks",
               "refId": "B"
@@ -4321,6 +2789,8 @@
           },
           "yaxes": [
             {
+              "$$hashKey": "object:1203",
+              "decimals": 0,
               "format": "short",
               "label": null,
               "logBase": 1,
@@ -4329,6 +2799,8 @@
               "show": true
             },
             {
+              "$$hashKey": "object:1204",
+              "decimals": 0,
               "format": "short",
               "label": null,
               "logBase": 1,
@@ -4347,14 +2819,22 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "datasource": "Prometheus",
+          "datasource": "${DS_PROMETHEUS}",
+          "decimals": 2,
+          "fieldConfig": {
+            "defaults": {
+              "custom": {},
+              "links": []
+            },
+            "overrides": []
+          },
           "fill": 1,
           "fillGradient": 0,
           "gridPos": {
             "h": 7,
             "w": 8,
             "x": 16,
-            "y": 8
+            "y": 6
           },
           "hiddenSeries": false,
           "id": 8,
@@ -4364,7 +2844,7 @@
             "current": true,
             "max": false,
             "min": false,
-            "rightSide": true,
+            "rightSide": false,
             "show": true,
             "sideWidth": null,
             "sort": "current",
@@ -4380,6 +2860,7 @@
             "dataLinks": []
           },
           "percentage": false,
+          "pluginVersion": "7.1.5",
           "pointradius": 5,
           "points": false,
           "renderer": "flot",
@@ -4391,8 +2872,9 @@
             {
               "expr": "pg_stat_database_tup_updated{datname=~\"$datname\", instance=~\"${instance}:9187\"} != 0",
               "format": "time_series",
+              "interval": "",
               "intervalFactor": 2,
-              "legendFormat": "{{datname}}",
+              "legendFormat": "Database: {{datname}}",
               "refId": "A",
               "step": 2
             }
@@ -4443,14 +2925,22 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "datasource": "Prometheus",
+          "datasource": "${DS_PROMETHEUS}",
+          "decimals": 2,
+          "fieldConfig": {
+            "defaults": {
+              "custom": {},
+              "links": []
+            },
+            "overrides": []
+          },
           "fill": 1,
           "fillGradient": 0,
           "gridPos": {
             "h": 7,
             "w": 8,
             "x": 0,
-            "y": 15
+            "y": 13
           },
           "hiddenSeries": false,
           "id": 5,
@@ -4460,7 +2950,7 @@
             "current": true,
             "max": false,
             "min": false,
-            "rightSide": true,
+            "rightSide": false,
             "show": true,
             "sort": "current",
             "sortDesc": true,
@@ -4475,6 +2965,7 @@
             "dataLinks": []
           },
           "percentage": false,
+          "pluginVersion": "7.1.5",
           "pointradius": 5,
           "points": false,
           "renderer": "flot",
@@ -4486,8 +2977,9 @@
             {
               "expr": "pg_stat_database_tup_fetched{datname=~\"$datname\", instance=~\"${instance}:9187\"} != 0",
               "format": "time_series",
+              "interval": "",
               "intervalFactor": 2,
-              "legendFormat": "{{datname}}",
+              "legendFormat": "Database: {{datname}}",
               "refId": "A",
               "step": 2
             }
@@ -4538,15 +3030,22 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "datasource": "Prometheus",
+          "datasource": "${DS_PROMETHEUS}",
           "decimals": 3,
+          "fieldConfig": {
+            "defaults": {
+              "custom": {},
+              "links": []
+            },
+            "overrides": []
+          },
           "fill": 1,
           "fillGradient": 0,
           "gridPos": {
             "h": 7,
             "w": 8,
             "x": 8,
-            "y": 15
+            "y": 13
           },
           "hiddenSeries": false,
           "id": 6,
@@ -4556,7 +3055,7 @@
             "current": true,
             "max": false,
             "min": false,
-            "rightSide": true,
+            "rightSide": false,
             "show": true,
             "sideWidth": null,
             "sort": "current",
@@ -4572,6 +3071,7 @@
             "dataLinks": []
           },
           "percentage": false,
+          "pluginVersion": "7.1.5",
           "pointradius": 5,
           "points": false,
           "renderer": "flot",
@@ -4583,8 +3083,9 @@
             {
               "expr": "pg_stat_database_tup_inserted{datname=~\"$datname\", instance=~\"${instance}:9187\"} != 0",
               "format": "time_series",
+              "interval": "",
               "intervalFactor": 2,
-              "legendFormat": "{{datname}}",
+              "legendFormat": "Database: {{datname}}",
               "refId": "A",
               "step": 2
             }
@@ -4639,15 +3140,22 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "datasource": "Prometheus",
+          "datasource": "${DS_PROMETHEUS}",
           "decimals": 0,
+          "fieldConfig": {
+            "defaults": {
+              "custom": {},
+              "links": []
+            },
+            "overrides": []
+          },
           "fill": 1,
           "fillGradient": 0,
           "gridPos": {
             "h": 7,
             "w": 8,
             "x": 16,
-            "y": 15
+            "y": 13
           },
           "hiddenSeries": false,
           "id": 3,
@@ -4658,7 +3166,7 @@
             "hideEmpty": false,
             "max": false,
             "min": false,
-            "rightSide": true,
+            "rightSide": false,
             "show": true,
             "sort": "current",
             "sortDesc": true,
@@ -4673,6 +3181,7 @@
             "dataLinks": []
           },
           "percentage": false,
+          "pluginVersion": "7.1.5",
           "pointradius": 5,
           "points": false,
           "renderer": "flot",
@@ -4684,8 +3193,9 @@
             {
               "expr": "pg_locks_count{datname=~\"$datname\", instance=~\"${instance}:9187\", mode=~\"$mode\"} != 0",
               "format": "time_series",
+              "interval": "",
               "intervalFactor": 2,
-              "legendFormat": "{{datname}},{{mode}}",
+              "legendFormat": "Database: {{datname}}, Type:{{mode}}",
               "refId": "A",
               "step": 2
             }
@@ -4737,14 +3247,22 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "datasource": "Prometheus",
+          "datasource": "${DS_PROMETHEUS}",
+          "decimals": 2,
+          "fieldConfig": {
+            "defaults": {
+              "custom": {},
+              "links": []
+            },
+            "overrides": []
+          },
           "fill": 1,
           "fillGradient": 0,
           "gridPos": {
             "h": 7,
             "w": 8,
             "x": 0,
-            "y": 22
+            "y": 20
           },
           "hiddenSeries": false,
           "id": 14,
@@ -4754,7 +3272,7 @@
             "current": true,
             "max": false,
             "min": false,
-            "rightSide": true,
+            "rightSide": false,
             "show": true,
             "sort": "total",
             "sortDesc": true,
@@ -4769,6 +3287,7 @@
             "dataLinks": []
           },
           "percentage": false,
+          "pluginVersion": "7.1.5",
           "pointradius": 5,
           "points": false,
           "renderer": "flot",
@@ -4780,8 +3299,9 @@
             {
               "expr": "pg_stat_database_tup_returned{datname=~\"$datname\", instance=~\"${instance}:9187\"} != 0",
               "format": "time_series",
+              "interval": "",
               "intervalFactor": 2,
-              "legendFormat": "{{datname}}",
+              "legendFormat": "Database: {{datname}}",
               "refId": "A",
               "step": 2
             }
@@ -4832,14 +3352,22 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "datasource": "Prometheus",
+          "datasource": "${DS_PROMETHEUS}",
+          "decimals": 2,
+          "fieldConfig": {
+            "defaults": {
+              "custom": {},
+              "links": []
+            },
+            "overrides": []
+          },
           "fill": 1,
           "fillGradient": 0,
           "gridPos": {
             "h": 7,
             "w": 8,
             "x": 8,
-            "y": 22
+            "y": 20
           },
           "hiddenSeries": false,
           "id": 4,
@@ -4847,9 +3375,11 @@
             "alignAsTable": true,
             "avg": false,
             "current": true,
+            "hideEmpty": true,
+            "hideZero": true,
             "max": true,
             "min": false,
-            "rightSide": true,
+            "rightSide": false,
             "show": true,
             "sort": "current",
             "sortDesc": false,
@@ -4864,6 +3394,7 @@
             "dataLinks": []
           },
           "percentage": false,
+          "pluginVersion": "7.1.5",
           "pointradius": 5,
           "points": false,
           "renderer": "flot",
@@ -4875,8 +3406,9 @@
             {
               "expr": "pg_stat_activity_count{datname=~\"$datname\", instance=~\"${instance}:9187\", state=~\"idle|idle in transaction|idle in transaction (aborted)\"}",
               "format": "time_series",
+              "interval": "",
               "intervalFactor": 2,
-              "legendFormat": "{{datname}}, s: {{state}}",
+              "legendFormat": "Database: {{datname}}, State: {{state}}",
               "refId": "A",
               "step": 2
             }
@@ -4927,14 +3459,22 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "datasource": "Prometheus",
+          "datasource": "${DS_PROMETHEUS}",
+          "decimals": 2,
+          "fieldConfig": {
+            "defaults": {
+              "custom": {},
+              "links": []
+            },
+            "overrides": []
+          },
           "fill": 1,
           "fillGradient": 0,
           "gridPos": {
             "h": 7,
             "w": 8,
             "x": 16,
-            "y": 22
+            "y": 20
           },
           "hiddenSeries": false,
           "id": 7,
@@ -4942,9 +3482,11 @@
             "alignAsTable": true,
             "avg": true,
             "current": true,
+            "hideEmpty": true,
+            "hideZero": true,
             "max": false,
             "min": false,
-            "rightSide": true,
+            "rightSide": false,
             "show": true,
             "sort": "current",
             "sortDesc": true,
@@ -4959,6 +3501,7 @@
             "dataLinks": []
           },
           "percentage": false,
+          "pluginVersion": "7.1.5",
           "pointradius": 5,
           "points": false,
           "renderer": "flot",
@@ -4970,8 +3513,9 @@
             {
               "expr": "pg_stat_database_tup_deleted{datname=~\"$datname\", instance=~\"${instance}:9187\"} != 0",
               "format": "time_series",
+              "interval": "",
               "intervalFactor": 2,
-              "legendFormat": "{{datname}}",
+              "legendFormat": "Database: {{datname}}",
               "refId": "A",
               "step": 2
             }
@@ -5022,15 +3566,22 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "datasource": "Prometheus",
+          "datasource": "${DS_PROMETHEUS}",
           "decimals": 2,
+          "fieldConfig": {
+            "defaults": {
+              "custom": {},
+              "links": []
+            },
+            "overrides": []
+          },
           "fill": 1,
           "fillGradient": 0,
           "gridPos": {
             "h": 7,
             "w": 8,
             "x": 0,
-            "y": 29
+            "y": 27
           },
           "hiddenSeries": false,
           "id": 62,
@@ -5038,9 +3589,10 @@
             "alignAsTable": true,
             "avg": true,
             "current": true,
+            "hideEmpty": true,
             "max": false,
             "min": false,
-            "rightSide": true,
+            "rightSide": false,
             "show": true,
             "total": false,
             "values": true
@@ -5053,6 +3605,7 @@
             "dataLinks": []
           },
           "percentage": false,
+          "pluginVersion": "7.1.5",
           "pointradius": 5,
           "points": false,
           "renderer": "flot",
@@ -5064,8 +3617,9 @@
             {
               "expr": "pg_stat_database_blks_hit{instance=~\"${instance}:9187\", datname=~\"$datname\"} / (pg_stat_database_blks_read{instance=~\"${instance}:9187\", datname=~\"$datname\"} + pg_stat_database_blks_hit{instance=~\"${instance}:9187\", datname=~\"$datname\"})",
               "format": "time_series",
+              "interval": "",
               "intervalFactor": 1,
-              "legendFormat": "{{ datname }}",
+              "legendFormat": "Database: {{ datname }}",
               "refId": "A"
             }
           ],
@@ -5089,7 +3643,8 @@
           },
           "yaxes": [
             {
-              "decimals": 4,
+              "$$hashKey": "object:281",
+              "decimals": 2,
               "format": "percentunit",
               "label": "",
               "logBase": 1,
@@ -5098,6 +3653,7 @@
               "show": true
             },
             {
+              "$$hashKey": "object:282",
               "format": "short",
               "label": null,
               "logBase": 1,
@@ -5116,14 +3672,21 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "datasource": "Prometheus",
+          "datasource": "${DS_PROMETHEUS}",
+          "fieldConfig": {
+            "defaults": {
+              "custom": {},
+              "links": []
+            },
+            "overrides": []
+          },
           "fill": 1,
           "fillGradient": 0,
           "gridPos": {
             "h": 7,
             "w": 8,
             "x": 8,
-            "y": 29
+            "y": 27
           },
           "hiddenSeries": false,
           "id": 64,
@@ -5131,9 +3694,11 @@
             "alignAsTable": true,
             "avg": true,
             "current": true,
+            "hideEmpty": true,
+            "hideZero": true,
             "max": true,
             "min": true,
-            "rightSide": true,
+            "rightSide": false,
             "show": true,
             "total": false,
             "values": true
@@ -5146,6 +3711,7 @@
             "dataLinks": []
           },
           "percentage": false,
+          "pluginVersion": "7.1.5",
           "pointradius": 5,
           "points": false,
           "renderer": "flot",
@@ -5236,15 +3802,22 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "datasource": "Prometheus",
+          "datasource": "${DS_PROMETHEUS}",
           "decimals": 0,
+          "fieldConfig": {
+            "defaults": {
+              "custom": {},
+              "links": []
+            },
+            "overrides": []
+          },
           "fill": 1,
           "fillGradient": 0,
           "gridPos": {
             "h": 7,
             "w": 8,
             "x": 16,
-            "y": 29
+            "y": 27
           },
           "hiddenSeries": false,
           "id": 66,
@@ -5267,6 +3840,7 @@
             "dataLinks": []
           },
           "percentage": false,
+          "pluginVersion": "7.1.5",
           "pointradius": 5,
           "points": false,
           "renderer": "flot",
@@ -5336,15 +3910,23 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "datasource": "Prometheus",
+          "datasource": "${DS_PROMETHEUS}",
+          "decimals": 2,
           "description": "Total amount of data written to temporary files by queries in this database. All temporary files are counted, regardless of why the temporary file was created, and regardless of the log_temp_files setting.",
+          "fieldConfig": {
+            "defaults": {
+              "custom": {},
+              "links": []
+            },
+            "overrides": []
+          },
           "fill": 1,
           "fillGradient": 0,
           "gridPos": {
             "h": 7,
             "w": 8,
             "x": 0,
-            "y": 36
+            "y": 34
           },
           "hiddenSeries": false,
           "id": 68,
@@ -5352,9 +3934,11 @@
             "alignAsTable": true,
             "avg": true,
             "current": true,
+            "hideEmpty": true,
+            "hideZero": true,
             "max": false,
             "min": false,
-            "rightSide": true,
+            "rightSide": false,
             "show": true,
             "total": true,
             "values": true
@@ -5367,6 +3951,7 @@
             "dataLinks": []
           },
           "percentage": false,
+          "pluginVersion": "7.1.5",
           "pointradius": 5,
           "points": false,
           "renderer": "flot",
@@ -5378,8 +3963,9 @@
             {
               "expr": "rate(pg_stat_database_temp_bytes{instance=~\"${instance}:9187\", datname=~\"$datname\"}[5m])",
               "format": "time_series",
+              "interval": "",
               "intervalFactor": 1,
-              "legendFormat": "{{datname}}",
+              "legendFormat": "Database: {{datname}}",
               "refId": "A"
             }
           ],
@@ -5429,14 +4015,21 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "datasource": "Prometheus",
+          "datasource": "${DS_PROMETHEUS}",
+          "fieldConfig": {
+            "defaults": {
+              "custom": {},
+              "links": []
+            },
+            "overrides": []
+          },
           "fill": 1,
           "fillGradient": 0,
           "gridPos": {
             "h": 7,
             "w": 16,
             "x": 8,
-            "y": 36
+            "y": 34
           },
           "hiddenSeries": false,
           "id": 70,
@@ -5458,6 +4051,7 @@
             "dataLinks": []
           },
           "percentage": false,
+          "pluginVersion": "7.1.5",
           "pointradius": 5,
           "points": false,
           "renderer": "flot",
@@ -5528,12 +4122,12 @@
     },
     {
       "collapsed": true,
-      "datasource": "Prometheus",
+      "datasource": "${DS_PROMETHEUS}",
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 8
+        "y": 14
       },
       "id": 92,
       "panels": [
@@ -5543,26 +4137,49 @@
           "cacheTimeout": null,
           "dashLength": 10,
           "dashes": false,
-          "datasource": "Prometheus",
+          "datasource": "${DS_PROMETHEUS}",
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "align": null
+              },
+              "links": [],
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
           "fill": 1,
           "fillGradient": 0,
           "gridPos": {
             "h": 7,
             "w": 24,
             "x": 0,
-            "y": 25
+            "y": 7
           },
           "hiddenSeries": false,
           "id": 96,
           "legend": {
-            "alignAsTable": false,
+            "alignAsTable": true,
             "avg": false,
-            "current": false,
+            "current": true,
             "max": false,
             "min": false,
             "rightSide": true,
             "show": true,
-            "total": true,
+            "total": false,
             "values": true
           },
           "lines": false,
@@ -5573,7 +4190,7 @@
             "dataLinks": []
           },
           "percentage": false,
-          "pluginVersion": "6.5.2",
+          "pluginVersion": "7.1.5",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -5584,7 +4201,9 @@
           "targets": [
             {
               "expr": "pg_database_size{instance=~\"${instance}:9187\", datname!~\"template0|template1\"}",
+              "instant": false,
               "interval": "",
+              "intervalFactor": 1,
               "legendFormat": "{{datname}}",
               "refId": "A"
             }
@@ -5606,12 +4225,14 @@
             "name": null,
             "show": true,
             "values": [
-              "total"
+              "current"
             ]
           },
           "yaxes": [
             {
-              "format": "short",
+              "$$hashKey": "object:2588",
+              "decimals": 1,
+              "format": "bytes",
               "label": null,
               "logBase": 1,
               "max": null,
@@ -5619,7 +4240,9 @@
               "show": true
             },
             {
-              "format": "short",
+              "$$hashKey": "object:2589",
+              "decimals": 1,
+              "format": "bytes",
               "label": null,
               "logBase": 1,
               "max": null,
@@ -5634,41 +4257,63 @@
         },
         {
           "aliasColors": {},
-          "bars": true,
-          "cacheTimeout": null,
+          "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "datasource": "Prometheus",
+          "datasource": "${DS_PROMETHEUS}",
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "align": null
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
           "fill": 1,
           "fillGradient": 0,
           "gridPos": {
-            "h": 7,
+            "h": 8,
             "w": 24,
             "x": 0,
-            "y": 32
+            "y": 14
           },
           "hiddenSeries": false,
-          "id": 94,
+          "id": 195,
           "legend": {
-            "alignAsTable": false,
+            "alignAsTable": true,
             "avg": false,
-            "current": false,
+            "current": true,
+            "hideEmpty": true,
+            "hideZero": true,
             "max": false,
             "min": false,
-            "rightSide": false,
-            "show": false,
+            "rightSide": true,
+            "show": true,
             "total": false,
-            "values": false
+            "values": true
           },
-          "lines": false,
+          "lines": true,
           "linewidth": 1,
-          "links": [],
           "nullPointMode": "null",
           "options": {
             "dataLinks": []
           },
           "percentage": false,
-          "pluginVersion": "6.5.2",
+          "pluginVersion": "7.1.5",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -5679,10 +4324,8 @@
           "targets": [
             {
               "expr": "topk(10, pg_total_relation_size_bytes{instance=~\"${instance}:9187\"})",
-              "format": "time_series",
-              "instant": false,
-              "intervalFactor": 1,
-              "legendFormat": "{{relname}}",
+              "interval": "",
+              "legendFormat": "Database: {{datname}}, Schema: {{schemaname}}, Table: {{relname}}",
               "refId": "A"
             }
           ],
@@ -5692,23 +4335,22 @@
           "timeShift": null,
           "title": "Top 10 bigger tables",
           "tooltip": {
-            "shared": false,
-            "sort": 0,
+            "shared": true,
+            "sort": 2,
             "value_type": "individual"
           },
           "type": "graph",
           "xaxis": {
             "buckets": null,
-            "mode": "series",
+            "mode": "time",
             "name": null,
             "show": true,
-            "values": [
-              "total"
-            ]
+            "values": []
           },
           "yaxes": [
             {
-              "format": "short",
+              "$$hashKey": "object:439",
+              "format": "bytes",
               "label": null,
               "logBase": 1,
               "max": null,
@@ -5716,6 +4358,7 @@
               "show": true
             },
             {
+              "$$hashKey": "object:440",
               "format": "short",
               "label": null,
               "logBase": 1,
@@ -5735,12 +4378,12 @@
     },
     {
       "collapsed": true,
-      "datasource": "Prometheus",
+      "datasource": "${DS_PROMETHEUS}",
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 9
+        "y": 15
       },
       "id": 116,
       "panels": [
@@ -5749,104 +4392,22 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "datasource": "Prometheus",
-          "fill": 0,
-          "fillGradient": 0,
-          "gridPos": {
-            "h": 7,
-            "w": 24,
-            "x": 0,
-            "y": 26
-          },
-          "hiddenSeries": false,
-          "id": 120,
-          "legend": {
-            "alignAsTable": true,
-            "avg": false,
-            "current": false,
-            "max": false,
-            "min": false,
-            "rightSide": true,
-            "show": true,
-            "total": false,
-            "values": false
-          },
-          "lines": true,
-          "linewidth": 2,
-          "nullPointMode": "null",
-          "options": {
-            "dataLinks": []
-          },
-          "percentage": false,
-          "pointradius": 2,
-          "points": false,
-          "renderer": "flot",
-          "seriesOverrides": [],
-          "spaceLength": 10,
-          "stack": false,
-          "steppedLine": false,
-          "targets": [
-            {
-              "expr": "topk(10, rate(pg_stat_user_indexes_idx_scan{instance=~\"${instance}:9187\"}[1m]))",
-              "interval": "",
-              "legendFormat": "Schema: {{schemaname}}, Table: {{relname}}, Index: {{indexrelname}}",
-              "refId": "A"
-            }
-          ],
-          "thresholds": [],
-          "timeFrom": null,
-          "timeRegions": [],
-          "timeShift": null,
-          "title": "Most Used Index (Top 10)",
-          "tooltip": {
-            "shared": true,
-            "sort": 0,
-            "value_type": "individual"
-          },
-          "type": "graph",
-          "xaxis": {
-            "buckets": null,
-            "mode": "time",
-            "name": null,
-            "show": true,
-            "values": []
-          },
-          "yaxes": [
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
+          "datasource": "${DS_PROMETHEUS}",
+          "decimals": 0,
+          "fieldConfig": {
+            "defaults": {
+              "custom": {},
+              "links": []
             },
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            }
-          ],
-          "yaxis": {
-            "align": false,
-            "alignLevel": null
-          }
-        },
-        {
-          "aliasColors": {},
-          "bars": false,
-          "dashLength": 10,
-          "dashes": false,
-          "datasource": "Prometheus",
+            "overrides": []
+          },
           "fill": 1,
           "fillGradient": 0,
           "gridPos": {
             "h": 8,
             "w": 12,
             "x": 0,
-            "y": 33
+            "y": 8
           },
           "hiddenSeries": false,
           "id": 122,
@@ -5869,6 +4430,7 @@
             "dataLinks": []
           },
           "percentage": false,
+          "pluginVersion": "7.1.5",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -5903,6 +4465,8 @@
           },
           "yaxes": [
             {
+              "$$hashKey": "object:761",
+              "decimals": 0,
               "format": "short",
               "label": null,
               "logBase": 1,
@@ -5911,6 +4475,8 @@
               "show": true
             },
             {
+              "$$hashKey": "object:762",
+              "decimals": 0,
               "format": "short",
               "label": null,
               "logBase": 1,
@@ -5929,14 +4495,22 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "datasource": "Prometheus",
+          "datasource": "${DS_PROMETHEUS}",
+          "decimals": 0,
+          "fieldConfig": {
+            "defaults": {
+              "custom": {},
+              "links": []
+            },
+            "overrides": []
+          },
           "fill": 1,
           "fillGradient": 0,
           "gridPos": {
             "h": 8,
             "w": 12,
             "x": 12,
-            "y": 33
+            "y": 8
           },
           "hiddenSeries": false,
           "id": 124,
@@ -5960,6 +4534,7 @@
             "dataLinks": []
           },
           "percentage": false,
+          "pluginVersion": "7.1.5",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -5970,7 +4545,8 @@
           "targets": [
             {
               "expr": "topk(10, rate(pg_stat_user_tables_n_tup_ins{instance=~\"${instance}:9187\"}[5m]))",
-              "legendFormat": "Schema: {{schemaname}}, Table: {{relname}}",
+              "interval": "",
+              "legendFormat": "Database: {{datname}}, Schema: {{schemaname}}, Table: {{relname}}",
               "refId": "A"
             }
           ],
@@ -5994,6 +4570,8 @@
           },
           "yaxes": [
             {
+              "$$hashKey": "object:813",
+              "decimals": 0,
               "format": "short",
               "label": null,
               "logBase": 1,
@@ -6002,6 +4580,8 @@
               "show": true
             },
             {
+              "$$hashKey": "object:814",
+              "decimals": 0,
               "format": "short",
               "label": null,
               "logBase": 1,
@@ -6020,14 +4600,22 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "datasource": "Prometheus",
+          "datasource": "${DS_PROMETHEUS}",
+          "decimals": 0,
+          "fieldConfig": {
+            "defaults": {
+              "custom": {},
+              "links": []
+            },
+            "overrides": []
+          },
           "fill": 1,
           "fillGradient": 0,
           "gridPos": {
             "h": 8,
             "w": 12,
             "x": 0,
-            "y": 41
+            "y": 16
           },
           "hiddenSeries": false,
           "id": 128,
@@ -6051,6 +4639,7 @@
             "dataLinks": []
           },
           "percentage": false,
+          "pluginVersion": "7.1.5",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -6061,7 +4650,8 @@
           "targets": [
             {
               "expr": "topk(10, rate(pg_stat_user_tables_n_tup_upd{instance=~\"${instance}:9187\"}[5m]))",
-              "legendFormat": "Schema: {{schemaname}}, Table: {{relname}}",
+              "interval": "",
+              "legendFormat": "Database: {{datname}}, Schema: {{schemaname}}, Table: {{relname}}",
               "refId": "A"
             }
           ],
@@ -6085,14 +4675,18 @@
           },
           "yaxes": [
             {
+              "$$hashKey": "object:865",
+              "decimals": 0,
               "format": "short",
-              "label": null,
+              "label": "",
               "logBase": 1,
               "max": null,
               "min": null,
               "show": true
             },
             {
+              "$$hashKey": "object:866",
+              "decimals": 0,
               "format": "short",
               "label": null,
               "logBase": 1,
@@ -6111,14 +4705,21 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "datasource": "Prometheus",
+          "datasource": "${DS_PROMETHEUS}",
+          "fieldConfig": {
+            "defaults": {
+              "custom": {},
+              "links": []
+            },
+            "overrides": []
+          },
           "fill": 1,
           "fillGradient": 0,
           "gridPos": {
             "h": 8,
             "w": 12,
             "x": 12,
-            "y": 41
+            "y": 16
           },
           "hiddenSeries": false,
           "id": 126,
@@ -6130,7 +4731,7 @@
             "hideZero": true,
             "max": false,
             "min": false,
-            "rightSide": true,
+            "rightSide": false,
             "show": true,
             "total": false,
             "values": true
@@ -6142,6 +4743,7 @@
             "dataLinks": []
           },
           "percentage": false,
+          "pluginVersion": "7.1.5",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -6152,7 +4754,8 @@
           "targets": [
             {
               "expr": "topk(10, rate(pg_stat_user_tables_n_tup_del{instance=~\"${instance}:9187\"}[5m]))",
-              "legendFormat": "Schema: {{schemaname}}, Table: {{relname}}",
+              "interval": "",
+              "legendFormat": "Database: {{datname}}, Schema: {{schemaname}}, Table: {{relname}}",
               "refId": "A"
             }
           ],
@@ -6203,12 +4806,12 @@
     },
     {
       "collapsed": true,
-      "datasource": "Prometheus",
+      "datasource": "${DS_PROMETHEUS}",
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 10
+        "y": 16
       },
       "id": 130,
       "panels": [
@@ -6217,14 +4820,21 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "datasource": "Prometheus",
+          "datasource": "${DS_PROMETHEUS}",
+          "fieldConfig": {
+            "defaults": {
+              "custom": {},
+              "links": []
+            },
+            "overrides": []
+          },
           "fill": 0,
           "fillGradient": 0,
           "gridPos": {
             "h": 8,
             "w": 12,
             "x": 0,
-            "y": 46
+            "y": 9
           },
           "hiddenSeries": false,
           "id": 136,
@@ -6247,6 +4857,7 @@
             "dataLinks": []
           },
           "percentage": false,
+          "pluginVersion": "7.1.5",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -6257,7 +4868,7 @@
           "targets": [
             {
               "expr": "topk(10, pg_index_bloat_mb{instance=~\"${instance}:9187\"})",
-              "legendFormat": "DB: {{database_name}}, Schema: {{schema_name}}, Table: {{table_name}}",
+              "legendFormat": "DB: {{datname}}, Schema: {{schemaname}}, Table: {{relname}}, Index: {{indexrelname}}",
               "refId": "A"
             }
           ],
@@ -6281,7 +4892,8 @@
           },
           "yaxes": [
             {
-              "format": "short",
+              "$$hashKey": "object:714",
+              "format": "decmbytes",
               "label": null,
               "logBase": 1,
               "max": null,
@@ -6289,6 +4901,7 @@
               "show": true
             },
             {
+              "$$hashKey": "object:715",
               "format": "short",
               "label": null,
               "logBase": 1,
@@ -6307,14 +4920,21 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "datasource": "Prometheus",
+          "datasource": "${DS_PROMETHEUS}",
+          "fieldConfig": {
+            "defaults": {
+              "custom": {},
+              "links": []
+            },
+            "overrides": []
+          },
           "fill": 1,
           "fillGradient": 0,
           "gridPos": {
             "h": 8,
             "w": 12,
             "x": 12,
-            "y": 46
+            "y": 9
           },
           "hiddenSeries": false,
           "id": 138,
@@ -6322,6 +4942,7 @@
             "alignAsTable": true,
             "avg": false,
             "current": true,
+            "hideEmpty": true,
             "hideZero": true,
             "max": false,
             "min": false,
@@ -6337,6 +4958,7 @@
             "dataLinks": []
           },
           "percentage": false,
+          "pluginVersion": "7.1.5",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -6347,7 +4969,7 @@
           "targets": [
             {
               "expr": "topk(10, pg_index_bloat_pct{instance=~\"${instance}:9187\"})",
-              "legendFormat": "DB: {{database_name}}, Schema: {{schema_name}}, Table: {{table_name}}",
+              "legendFormat": "DB: {{datname}}, Schema: {{schemaname}}, Table: {{relname}}, Index: {{indexrelname}}",
               "refId": "A"
             }
           ],
@@ -6371,7 +4993,8 @@
           },
           "yaxes": [
             {
-              "format": "short",
+              "$$hashKey": "object:1583",
+              "format": "percent",
               "label": null,
               "logBase": 1,
               "max": null,
@@ -6379,7 +5002,8 @@
               "show": true
             },
             {
-              "format": "short",
+              "$$hashKey": "object:1584",
+              "format": "percent",
               "label": null,
               "logBase": 1,
               "max": null,
@@ -6398,12 +5022,12 @@
     },
     {
       "collapsed": true,
-      "datasource": "Prometheus",
+      "datasource": "${DS_PROMETHEUS}",
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 11
+        "y": 17
       },
       "id": 104,
       "panels": [
@@ -6412,15 +5036,22 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "datasource": "Prometheus",
+          "datasource": "${DS_PROMETHEUS}",
           "decimals": 0,
+          "fieldConfig": {
+            "defaults": {
+              "custom": {},
+              "links": []
+            },
+            "overrides": []
+          },
           "fill": 1,
           "fillGradient": 0,
           "gridPos": {
             "h": 8,
             "w": 12,
             "x": 0,
-            "y": 55
+            "y": 10
           },
           "hiddenSeries": false,
           "id": 106,
@@ -6428,6 +5059,215 @@
             "alignAsTable": true,
             "avg": true,
             "current": true,
+            "hideEmpty": true,
+            "hideZero": true,
+            "max": false,
+            "min": false,
+            "rightSide": false,
+            "show": true,
+            "total": false,
+            "values": true
+          },
+          "lines": true,
+          "linewidth": 2,
+          "nullPointMode": "null",
+          "options": {
+            "dataLinks": []
+          },
+          "percentage": false,
+          "pluginVersion": "7.1.5",
+          "pointradius": 2,
+          "points": true,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "expr": "topk(10, rate(pg_stat_user_tables_n_dead_tup{instance=~\"${instance}:9187\"}[5m])*300)",
+              "interval": "",
+              "legendFormat": "Database: {{datname}}, Schema: {{schemaname}}, Table: {{relname}}",
+              "refId": "A"
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeRegions": [],
+          "timeShift": null,
+          "title": "Dead tuples (top 10)",
+          "tooltip": {
+            "shared": true,
+            "sort": 2,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "$$hashKey": "object:1586",
+              "decimals": 0,
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            },
+            {
+              "$$hashKey": "object:1587",
+              "decimals": 0,
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            }
+          ],
+          "yaxis": {
+            "align": false,
+            "alignLevel": null
+          }
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
+          "datasource": "${DS_PROMETHEUS}",
+          "decimals": 2,
+          "fieldConfig": {
+            "defaults": {
+              "custom": {},
+              "links": []
+            },
+            "overrides": []
+          },
+          "fill": 0,
+          "fillGradient": 0,
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 10
+          },
+          "hiddenSeries": false,
+          "id": 108,
+          "legend": {
+            "alignAsTable": true,
+            "avg": true,
+            "current": true,
+            "max": false,
+            "min": false,
+            "rightSide": false,
+            "show": true,
+            "total": false,
+            "values": true
+          },
+          "lines": true,
+          "linewidth": 2,
+          "nullPointMode": "null",
+          "options": {
+            "dataLinks": []
+          },
+          "percentage": false,
+          "pluginVersion": "7.1.5",
+          "pointradius": 2,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "expr": "topk(20, pg_table_bloat_est_rows{instance=~\"${instance}:9187\"})",
+              "interval": "",
+              "legendFormat": "Database: {{datname}}, Schema:{{schemaname}}, Table: {{relname}}",
+              "refId": "A"
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeRegions": [],
+          "timeShift": null,
+          "title": "Table Bloat Estimated Rows (top 20)",
+          "tooltip": {
+            "shared": true,
+            "sort": 2,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "$$hashKey": "object:918",
+              "decimals": null,
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            },
+            {
+              "$$hashKey": "object:919",
+              "decimals": null,
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            }
+          ],
+          "yaxis": {
+            "align": false,
+            "alignLevel": null
+          }
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
+          "datasource": "${DS_PROMETHEUS}",
+          "decimals": 2,
+          "fieldConfig": {
+            "defaults": {
+              "custom": {},
+              "links": []
+            },
+            "overrides": []
+          },
+          "fill": 0,
+          "fillGradient": 0,
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 18
+          },
+          "hiddenSeries": false,
+          "id": 110,
+          "legend": {
+            "alignAsTable": true,
+            "avg": true,
+            "current": true,
+            "hideEmpty": true,
             "hideZero": true,
             "max": false,
             "min": false,
@@ -6443,187 +5283,7 @@
             "dataLinks": []
           },
           "percentage": false,
-          "pointradius": 2,
-          "points": false,
-          "renderer": "flot",
-          "seriesOverrides": [],
-          "spaceLength": 10,
-          "stack": false,
-          "steppedLine": false,
-          "targets": [
-            {
-              "expr": "topk(10, rate(pg_stat_user_tables_n_dead_tup{instance=~\"${instance}:9187\"}[5m]))",
-              "interval": "",
-              "legendFormat": "Schema: {{schemaname}}, Table: {{relname}}",
-              "refId": "A"
-            }
-          ],
-          "thresholds": [],
-          "timeFrom": null,
-          "timeRegions": [],
-          "timeShift": null,
-          "title": "Dead tuples (top 10)",
-          "tooltip": {
-            "shared": true,
-            "sort": 0,
-            "value_type": "individual"
-          },
-          "type": "graph",
-          "xaxis": {
-            "buckets": null,
-            "mode": "time",
-            "name": null,
-            "show": true,
-            "values": []
-          },
-          "yaxes": [
-            {
-              "decimals": 0,
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            },
-            {
-              "decimals": 0,
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            }
-          ],
-          "yaxis": {
-            "align": false,
-            "alignLevel": null
-          }
-        },
-        {
-          "aliasColors": {},
-          "bars": false,
-          "dashLength": 10,
-          "dashes": false,
-          "datasource": "Prometheus",
-          "fill": 0,
-          "fillGradient": 0,
-          "gridPos": {
-            "h": 8,
-            "w": 12,
-            "x": 12,
-            "y": 55
-          },
-          "hiddenSeries": false,
-          "id": 108,
-          "legend": {
-            "alignAsTable": true,
-            "avg": true,
-            "current": false,
-            "max": false,
-            "min": false,
-            "rightSide": true,
-            "show": true,
-            "total": false,
-            "values": true
-          },
-          "lines": true,
-          "linewidth": 2,
-          "nullPointMode": "null",
-          "options": {
-            "dataLinks": []
-          },
-          "percentage": false,
-          "pointradius": 2,
-          "points": false,
-          "renderer": "flot",
-          "seriesOverrides": [],
-          "spaceLength": 10,
-          "stack": false,
-          "steppedLine": false,
-          "targets": [
-            {
-              "expr": "topk(20, pg_table_bloat_est_rows{instance=~\"${instance}:9187\"})",
-              "legendFormat": "Schema:{{schemaname}}, Table: {{tablename}}",
-              "refId": "A"
-            }
-          ],
-          "thresholds": [],
-          "timeFrom": null,
-          "timeRegions": [],
-          "timeShift": null,
-          "title": "Table Bloat Estimated Rows (top 20)",
-          "tooltip": {
-            "shared": true,
-            "sort": 0,
-            "value_type": "individual"
-          },
-          "type": "graph",
-          "xaxis": {
-            "buckets": null,
-            "mode": "time",
-            "name": null,
-            "show": true,
-            "values": []
-          },
-          "yaxes": [
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            },
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            }
-          ],
-          "yaxis": {
-            "align": false,
-            "alignLevel": null
-          }
-        },
-        {
-          "aliasColors": {},
-          "bars": false,
-          "dashLength": 10,
-          "dashes": false,
-          "datasource": "Prometheus",
-          "fill": 0,
-          "fillGradient": 0,
-          "gridPos": {
-            "h": 8,
-            "w": 12,
-            "x": 0,
-            "y": 63
-          },
-          "hiddenSeries": false,
-          "id": 110,
-          "legend": {
-            "alignAsTable": true,
-            "avg": false,
-            "current": false,
-            "max": false,
-            "min": false,
-            "rightSide": true,
-            "show": true,
-            "total": false,
-            "values": false
-          },
-          "lines": true,
-          "linewidth": 1,
-          "nullPointMode": "null",
-          "options": {
-            "dataLinks": []
-          },
-          "percentage": false,
+          "pluginVersion": "7.1.5",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -6634,7 +5294,8 @@
           "targets": [
             {
               "expr": "topk(20, pg_table_bloat_pct_bloat{instance=~\"${instance}:9187\"})",
-              "legendFormat": "Schema: {{schemaname}}, Table: {{tablename}}",
+              "interval": "",
+              "legendFormat": "Database: {{datname}}, Schema: {{schemaname}}, Table: {{relname}}",
               "refId": "A"
             }
           ],
@@ -6658,7 +5319,8 @@
           },
           "yaxes": [
             {
-              "format": "short",
+              "$$hashKey": "object:271",
+              "format": "percent",
               "label": null,
               "logBase": 1,
               "max": null,
@@ -6666,6 +5328,7 @@
               "show": true
             },
             {
+              "$$hashKey": "object:272",
               "format": "short",
               "label": null,
               "logBase": 1,
@@ -6684,27 +5347,37 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "datasource": "Prometheus",
-          "fill": 0,
+          "datasource": "${DS_PROMETHEUS}",
+          "decimals": 2,
+          "fieldConfig": {
+            "defaults": {
+              "custom": {},
+              "links": []
+            },
+            "overrides": []
+          },
+          "fill": 1,
           "fillGradient": 0,
           "gridPos": {
             "h": 8,
             "w": 12,
             "x": 12,
-            "y": 63
+            "y": 18
           },
           "hiddenSeries": false,
           "id": 112,
           "legend": {
             "alignAsTable": true,
-            "avg": false,
-            "current": false,
+            "avg": true,
+            "current": true,
+            "hideEmpty": true,
+            "hideZero": true,
             "max": false,
             "min": false,
-            "rightSide": true,
+            "rightSide": false,
             "show": true,
             "total": false,
-            "values": false
+            "values": true
           },
           "lines": true,
           "linewidth": 2,
@@ -6713,6 +5386,7 @@
             "dataLinks": []
           },
           "percentage": false,
+          "pluginVersion": "7.1.5",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -6723,7 +5397,8 @@
           "targets": [
             {
               "expr": "topk(20, pg_table_bloat_size_mb{instance=~\"${instance}:9187\"})",
-              "legendFormat": "Schema: {{schemaname}}, Table: {{tablename}}",
+              "interval": "",
+              "legendFormat": "Database: {{datname}}, Schema: {{schemaname}}, Table: {{relname}}",
               "refId": "A"
             }
           ],
@@ -6734,7 +5409,7 @@
           "title": "Top 20 Bigger Tables Size in MB",
           "tooltip": {
             "shared": true,
-            "sort": 0,
+            "sort": 2,
             "value_type": "individual"
           },
           "type": "graph",
@@ -6747,7 +5422,8 @@
           },
           "yaxes": [
             {
-              "format": "short",
+              "$$hashKey": "object:777",
+              "format": "decmbytes",
               "label": null,
               "logBase": 1,
               "max": null,
@@ -6755,6 +5431,7 @@
               "show": true
             },
             {
+              "$$hashKey": "object:778",
               "format": "short",
               "label": null,
               "logBase": 1,
@@ -6774,208 +5451,12 @@
     },
     {
       "collapsed": true,
-      "datasource": "Prometheus",
+      "datasource": "${DS_PROMETHEUS}",
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 12
-      },
-      "id": 118,
-      "panels": [
-        {
-          "aliasColors": {},
-          "bars": false,
-          "dashLength": 10,
-          "dashes": false,
-          "datasource": "Prometheus",
-          "description": "",
-          "fill": 1,
-          "fillGradient": 0,
-          "gridPos": {
-            "h": 8,
-            "w": 12,
-            "x": 0,
-            "y": 48
-          },
-          "hiddenSeries": false,
-          "id": 132,
-          "legend": {
-            "alignAsTable": true,
-            "avg": true,
-            "current": true,
-            "hideEmpty": true,
-            "hideZero": true,
-            "max": false,
-            "min": false,
-            "show": true,
-            "total": false,
-            "values": true
-          },
-          "lines": true,
-          "linewidth": 1,
-          "nullPointMode": "null",
-          "options": {
-            "dataLinks": []
-          },
-          "percentage": false,
-          "pointradius": 2,
-          "points": false,
-          "renderer": "flot",
-          "seriesOverrides": [],
-          "spaceLength": 10,
-          "stack": false,
-          "steppedLine": false,
-          "targets": [
-            {
-              "expr": "topk(10, sum by (relname, instance,datname,schemaname) (rate(pg_stat_user_tables_vacuum_count{instance=~\"${instance}:9187\"}[30m])) + sum by (relname, instance,datname,schemaname) (rate(pg_stat_user_tables_autovacuum_count{instance=~\"${instance}:9187\"}[30m])))",
-              "legendFormat": "DB: {{datname}}, Schema: {{schemaname}}, Table: {{relname}}",
-              "refId": "A"
-            }
-          ],
-          "thresholds": [],
-          "timeFrom": null,
-          "timeRegions": [],
-          "timeShift": null,
-          "title": "Top 10 VACUUM tables",
-          "tooltip": {
-            "shared": true,
-            "sort": 0,
-            "value_type": "individual"
-          },
-          "type": "graph",
-          "xaxis": {
-            "buckets": null,
-            "mode": "time",
-            "name": null,
-            "show": true,
-            "values": []
-          },
-          "yaxes": [
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            },
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            }
-          ],
-          "yaxis": {
-            "align": false,
-            "alignLevel": null
-          }
-        },
-        {
-          "aliasColors": {},
-          "bars": false,
-          "dashLength": 10,
-          "dashes": false,
-          "datasource": "Prometheus",
-          "fill": 1,
-          "fillGradient": 0,
-          "gridPos": {
-            "h": 8,
-            "w": 12,
-            "x": 12,
-            "y": 48
-          },
-          "hiddenSeries": false,
-          "id": 134,
-          "legend": {
-            "alignAsTable": true,
-            "avg": true,
-            "current": true,
-            "hideZero": true,
-            "max": false,
-            "min": false,
-            "rightSide": false,
-            "show": true,
-            "total": false,
-            "values": true
-          },
-          "lines": true,
-          "linewidth": 1,
-          "nullPointMode": "null",
-          "options": {
-            "dataLinks": []
-          },
-          "percentage": false,
-          "pointradius": 2,
-          "points": false,
-          "renderer": "flot",
-          "seriesOverrides": [],
-          "spaceLength": 10,
-          "stack": false,
-          "steppedLine": false,
-          "targets": [
-            {
-              "expr": "topk(10, sum by (relname, instance,datname,schemaname) (rate(pg_stat_user_tables_autoanalyze_count{instance=~\"${instance}:9187\"}[30m])) + sum by (relname, instance,datname,schemaname) (rate(pg_stat_user_tables_autoanalyze_count{instance=~\"${instance}:9187\"}[30m])))",
-              "legendFormat": "DB: {{datname}}, Schema: {{schemaname}}, Table: {{relname}}",
-              "refId": "A"
-            }
-          ],
-          "thresholds": [],
-          "timeFrom": null,
-          "timeRegions": [],
-          "timeShift": null,
-          "title": "Top 10  ANALYZE Tables",
-          "tooltip": {
-            "shared": true,
-            "sort": 0,
-            "value_type": "individual"
-          },
-          "type": "graph",
-          "xaxis": {
-            "buckets": null,
-            "mode": "time",
-            "name": null,
-            "show": true,
-            "values": []
-          },
-          "yaxes": [
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            },
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            }
-          ],
-          "yaxis": {
-            "align": false,
-            "alignLevel": null
-          }
-        }
-      ],
-      "title": "Maintenance Stats",
-      "type": "row"
-    },
-    {
-      "collapsed": true,
-      "datasource": "Prometheus",
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 13
+        "y": 18
       },
       "id": 88,
       "panels": [
@@ -6989,7 +5470,13 @@
             "rgba(237, 129, 40, 0.89)",
             "#d44a3a"
           ],
-          "datasource": "Prometheus",
+          "datasource": "${DS_PROMETHEUS}",
+          "fieldConfig": {
+            "defaults": {
+              "custom": {}
+            },
+            "overrides": []
+          },
           "format": "none",
           "gauge": {
             "maxValue": 100,
@@ -7002,7 +5489,7 @@
             "h": 3,
             "w": 3,
             "x": 0,
-            "y": 49
+            "y": 11
           },
           "id": 102,
           "interval": null,
@@ -7071,7 +5558,13 @@
             "rgba(237, 129, 40, 0.89)",
             "#C4162A"
           ],
-          "datasource": "Prometheus",
+          "datasource": "${DS_PROMETHEUS}",
+          "fieldConfig": {
+            "defaults": {
+              "custom": {}
+            },
+            "overrides": []
+          },
           "format": "none",
           "gauge": {
             "maxValue": 100,
@@ -7084,7 +5577,7 @@
             "h": 3,
             "w": 3,
             "x": 3,
-            "y": 49
+            "y": 11
           },
           "id": 100,
           "interval": null,
@@ -7151,14 +5644,21 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "datasource": "Prometheus",
+          "datasource": "${DS_PROMETHEUS}",
+          "fieldConfig": {
+            "defaults": {
+              "custom": {},
+              "links": []
+            },
+            "overrides": []
+          },
           "fill": 1,
           "fillGradient": 0,
           "gridPos": {
             "h": 8,
             "w": 12,
             "x": 6,
-            "y": 49
+            "y": 11
           },
           "hiddenSeries": false,
           "id": 90,
@@ -7178,6 +5678,7 @@
             "dataLinks": []
           },
           "percentage": false,
+          "pluginVersion": "7.1.5",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -7242,7 +5743,13 @@
             "rgba(237, 129, 40, 0.89)",
             "#d44a3a"
           ],
-          "datasource": "Prometheus",
+          "datasource": "${DS_PROMETHEUS}",
+          "fieldConfig": {
+            "defaults": {
+              "custom": {}
+            },
+            "overrides": []
+          },
           "format": "none",
           "gauge": {
             "maxValue": 100,
@@ -7255,7 +5762,7 @@
             "h": 5,
             "w": 6,
             "x": 0,
-            "y": 52
+            "y": 14
           },
           "id": 98,
           "interval": null,
@@ -7321,12 +5828,12 @@
     },
     {
       "collapsed": true,
-      "datasource": "Prometheus",
+      "datasource": "${DS_PROMETHEUS}",
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 14
+        "y": 19
       },
       "id": 80,
       "panels": [
@@ -7335,14 +5842,21 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "datasource": "Prometheus",
+          "datasource": "${DS_PROMETHEUS}",
+          "fieldConfig": {
+            "defaults": {
+              "custom": {},
+              "links": []
+            },
+            "overrides": []
+          },
           "fill": 1,
           "fillGradient": 0,
           "gridPos": {
             "h": 8,
             "w": 12,
             "x": 0,
-            "y": 50
+            "y": 13
           },
           "hiddenSeries": false,
           "id": 82,
@@ -7362,6 +5876,7 @@
             "dataLinks": []
           },
           "percentage": false,
+          "pluginVersion": "7.1.5",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -7423,12 +5938,12 @@
     },
     {
       "collapsed": true,
-      "datasource": "Prometheus",
+      "datasource": "${DS_PROMETHEUS}",
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 15
+        "y": 20
       },
       "id": 72,
       "panels": [
@@ -7437,25 +5952,34 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "datasource": "Prometheus",
+          "datasource": "${DS_PROMETHEUS}",
+          "decimals": 0,
+          "fieldConfig": {
+            "defaults": {
+              "custom": {},
+              "links": []
+            },
+            "overrides": []
+          },
           "fill": 1,
           "fillGradient": 0,
           "gridPos": {
             "h": 8,
             "w": 8,
             "x": 0,
-            "y": 51
+            "y": 14
           },
           "hiddenSeries": false,
           "id": 74,
           "legend": {
-            "avg": false,
-            "current": false,
+            "alignAsTable": true,
+            "avg": true,
+            "current": true,
             "max": false,
             "min": false,
             "show": true,
             "total": false,
-            "values": false
+            "values": true
           },
           "lines": true,
           "linewidth": 1,
@@ -7464,6 +5988,7 @@
             "dataLinks": []
           },
           "percentage": false,
+          "pluginVersion": "7.1.5",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -7474,8 +5999,9 @@
           "targets": [
             {
               "expr": "pg_slow_queries{instance=~\"${instance}:9187\"}",
+              "interval": "",
               "intervalFactor": 1,
-              "legendFormat": "{{server}}",
+              "legendFormat": "Database: {{datname}}",
               "refId": "A"
             }
           ],
@@ -7499,6 +6025,8 @@
           },
           "yaxes": [
             {
+              "$$hashKey": "object:760",
+              "decimals": 0,
               "format": "short",
               "label": null,
               "logBase": 1,
@@ -7507,6 +6035,7 @@
               "show": true
             },
             {
+              "$$hashKey": "object:761",
               "format": "short",
               "label": null,
               "logBase": 1,
@@ -7525,199 +6054,34 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "datasource": "Prometheus",
+          "datasource": "${DS_PROMETHEUS}",
+          "decimals": 0,
+          "fieldConfig": {
+            "defaults": {
+              "custom": {},
+              "links": []
+            },
+            "overrides": []
+          },
           "fill": 1,
           "fillGradient": 0,
           "gridPos": {
             "h": 8,
             "w": 8,
             "x": 8,
-            "y": 51
-          },
-          "hiddenSeries": false,
-          "id": 76,
-          "legend": {
-            "avg": false,
-            "current": false,
-            "max": false,
-            "min": false,
-            "show": true,
-            "total": false,
-            "values": false
-          },
-          "lines": true,
-          "linewidth": 1,
-          "nullPointMode": "null",
-          "options": {
-            "dataLinks": []
-          },
-          "percentage": false,
-          "pointradius": 2,
-          "points": false,
-          "renderer": "flot",
-          "seriesOverrides": [],
-          "spaceLength": 10,
-          "stack": false,
-          "steppedLine": false,
-          "targets": [
-            {
-              "expr": "pg_blocked_queries{instance=~\"${instance}:9187\"}",
-              "legendFormat": "{{table}}",
-              "refId": "A"
-            }
-          ],
-          "thresholds": [],
-          "timeFrom": null,
-          "timeRegions": [],
-          "timeShift": null,
-          "title": "Blocked Queries Count",
-          "tooltip": {
-            "shared": true,
-            "sort": 0,
-            "value_type": "individual"
-          },
-          "type": "graph",
-          "xaxis": {
-            "buckets": null,
-            "mode": "time",
-            "name": null,
-            "show": true,
-            "values": []
-          },
-          "yaxes": [
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            },
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            }
-          ],
-          "yaxis": {
-            "align": false,
-            "alignLevel": null
-          }
-        },
-        {
-          "aliasColors": {},
-          "bars": false,
-          "dashLength": 10,
-          "dashes": false,
-          "datasource": "Prometheus",
-          "fill": 1,
-          "fillGradient": 0,
-          "gridPos": {
-            "h": 8,
-            "w": 8,
-            "x": 16,
-            "y": 51
-          },
-          "hiddenSeries": false,
-          "id": 78,
-          "legend": {
-            "avg": false,
-            "current": false,
-            "max": false,
-            "min": false,
-            "show": true,
-            "total": false,
-            "values": false
-          },
-          "lines": true,
-          "linewidth": 1,
-          "nullPointMode": "null",
-          "options": {
-            "dataLinks": []
-          },
-          "percentage": false,
-          "pointradius": 2,
-          "points": false,
-          "renderer": "flot",
-          "seriesOverrides": [],
-          "spaceLength": 10,
-          "stack": false,
-          "steppedLine": false,
-          "targets": [
-            {
-              "expr": "pg_oldest_blocked_age_seconds{instance=~\"${instance}:9187\"}",
-              "legendFormat": "{{server}}",
-              "refId": "A"
-            }
-          ],
-          "thresholds": [],
-          "timeFrom": null,
-          "timeRegions": [],
-          "timeShift": null,
-          "title": "Queries largest  time lock",
-          "tooltip": {
-            "shared": true,
-            "sort": 0,
-            "value_type": "individual"
-          },
-          "type": "graph",
-          "xaxis": {
-            "buckets": null,
-            "mode": "time",
-            "name": null,
-            "show": true,
-            "values": []
-          },
-          "yaxes": [
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            },
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            }
-          ],
-          "yaxis": {
-            "align": false,
-            "alignLevel": null
-          }
-        },
-        {
-          "aliasColors": {},
-          "bars": false,
-          "dashLength": 10,
-          "dashes": false,
-          "datasource": "Prometheus",
-          "fill": 1,
-          "fillGradient": 0,
-          "gridPos": {
-            "h": 8,
-            "w": 8,
-            "x": 0,
-            "y": 59
+            "y": 14
           },
           "hiddenSeries": false,
           "id": 84,
           "legend": {
-            "avg": false,
-            "current": false,
+            "alignAsTable": true,
+            "avg": true,
+            "current": true,
             "max": false,
             "min": false,
             "show": true,
             "total": false,
-            "values": false
+            "values": true
           },
           "lines": true,
           "linewidth": 1,
@@ -7726,6 +6090,7 @@
             "dataLinks": []
           },
           "percentage": false,
+          "pluginVersion": "7.1.5",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -7736,7 +6101,8 @@
           "targets": [
             {
               "expr": "pg_long_running_transactions_transactions{instance=~\"${instance}:9187\"}",
-              "legendFormat": "{{server}}",
+              "interval": "",
+              "legendFormat": "Database: {{datname}}",
               "refId": "A"
             }
           ],
@@ -7760,6 +6126,8 @@
           },
           "yaxes": [
             {
+              "$$hashKey": "object:708",
+              "decimals": 0,
               "format": "short",
               "label": null,
               "logBase": 1,
@@ -7768,6 +6136,7 @@
               "show": true
             },
             {
+              "$$hashKey": "object:709",
               "format": "short",
               "label": null,
               "logBase": 1,
@@ -7786,25 +6155,33 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "datasource": "Prometheus",
+          "datasource": "${DS_PROMETHEUS}",
+          "fieldConfig": {
+            "defaults": {
+              "custom": {},
+              "links": []
+            },
+            "overrides": []
+          },
           "fill": 1,
           "fillGradient": 0,
           "gridPos": {
             "h": 8,
             "w": 8,
-            "x": 8,
-            "y": 59
+            "x": 16,
+            "y": 14
           },
           "hiddenSeries": false,
           "id": 86,
           "legend": {
+            "alignAsTable": true,
             "avg": false,
-            "current": false,
+            "current": true,
             "max": false,
             "min": false,
             "show": true,
             "total": false,
-            "values": false
+            "values": true
           },
           "lines": true,
           "linewidth": 1,
@@ -7813,6 +6190,7 @@
             "dataLinks": []
           },
           "percentage": false,
+          "pluginVersion": "7.1.5",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -7823,7 +6201,8 @@
           "targets": [
             {
               "expr": "pg_long_running_transactions_age_in_seconds{instance=~\"${instance}:9187\"}",
-              "legendFormat": "{{server}}",
+              "interval": "",
+              "legendFormat": "Database: {{datname}}",
               "refId": "A"
             }
           ],
@@ -7847,7 +6226,8 @@
           },
           "yaxes": [
             {
-              "format": "short",
+              "$$hashKey": "object:870",
+              "format": "s",
               "label": null,
               "logBase": 1,
               "max": null,
@@ -7855,6 +6235,7 @@
               "show": true
             },
             {
+              "$$hashKey": "object:871",
               "format": "short",
               "label": null,
               "logBase": 1,
@@ -7873,14 +6254,224 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "datasource": "Prometheus",
+          "datasource": "${DS_PROMETHEUS}",
+          "fieldConfig": {
+            "defaults": {
+              "custom": {},
+              "links": []
+            },
+            "overrides": []
+          },
+          "fill": 1,
+          "fillGradient": 0,
+          "gridPos": {
+            "h": 8,
+            "w": 8,
+            "x": 0,
+            "y": 22
+          },
+          "hiddenSeries": false,
+          "id": 78,
+          "legend": {
+            "alignAsTable": true,
+            "avg": false,
+            "current": true,
+            "hideEmpty": true,
+            "hideZero": true,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": true
+          },
+          "lines": true,
+          "linewidth": 1,
+          "nullPointMode": "null",
+          "options": {
+            "dataLinks": []
+          },
+          "percentage": false,
+          "pluginVersion": "7.1.5",
+          "pointradius": 2,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "expr": "pg_oldest_blocked_age_seconds{instance=~\"${instance}:9187\"}",
+              "interval": "",
+              "legendFormat": "Database: {{datname}}",
+              "refId": "A"
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeRegions": [],
+          "timeShift": null,
+          "title": "Queries largest  time lock",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "$$hashKey": "object:841",
+              "decimals": null,
+              "format": "s",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            },
+            {
+              "$$hashKey": "object:842",
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            }
+          ],
+          "yaxis": {
+            "align": false,
+            "alignLevel": null
+          }
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
+          "datasource": "${DS_PROMETHEUS}",
+          "decimals": 0,
+          "fieldConfig": {
+            "defaults": {
+              "custom": {},
+              "links": []
+            },
+            "overrides": []
+          },
+          "fill": 1,
+          "fillGradient": 0,
+          "gridPos": {
+            "h": 8,
+            "w": 8,
+            "x": 8,
+            "y": 22
+          },
+          "hiddenSeries": false,
+          "id": 76,
+          "legend": {
+            "alignAsTable": true,
+            "avg": true,
+            "current": true,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": true
+          },
+          "lines": true,
+          "linewidth": 1,
+          "nullPointMode": "null",
+          "options": {
+            "dataLinks": []
+          },
+          "percentage": false,
+          "pluginVersion": "7.1.5",
+          "pointradius": 2,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "expr": "pg_blocked_queries{instance=~\"${instance}:9187\"}",
+              "interval": "",
+              "legendFormat": "Type: {{type}}, Database: {{datname}}, Schema: {{schemaname}}, RelType: {{reltype}}, Relation: {{relname}}",
+              "refId": "A"
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeRegions": [],
+          "timeShift": null,
+          "title": "Blocked Queries Count",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "$$hashKey": "object:812",
+              "decimals": 0,
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            },
+            {
+              "$$hashKey": "object:813",
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            }
+          ],
+          "yaxis": {
+            "align": false,
+            "alignLevel": null
+          }
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
+          "datasource": "${DS_PROMETHEUS}",
+          "fieldConfig": {
+            "defaults": {
+              "custom": {},
+              "links": []
+            },
+            "overrides": []
+          },
           "fill": 1,
           "fillGradient": 0,
           "gridPos": {
             "h": 8,
             "w": 8,
             "x": 16,
-            "y": 59
+            "y": 22
           },
           "hiddenSeries": false,
           "id": 114,
@@ -7900,6 +6491,7 @@
             "dataLinks": []
           },
           "percentage": false,
+          "pluginVersion": "7.1.5",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -7910,7 +6502,8 @@
           "targets": [
             {
               "expr": "pg_stuck_idle_in_transaction_queries{instance=~\"${instance}:9187\"}",
-              "legendFormat": "{{server}}",
+              "interval": "",
+              "legendFormat": "Database: {{datname}}",
               "refId": "A"
             }
           ],
@@ -7934,14 +6527,17 @@
           },
           "yaxes": [
             {
+              "$$hashKey": "object:945",
+              "decimals": 0,
               "format": "short",
-              "label": null,
+              "label": "",
               "logBase": 1,
               "max": null,
               "min": null,
               "show": true
             },
             {
+              "$$hashKey": "object:946",
               "format": "short",
               "label": null,
               "logBase": 1,
@@ -7960,7 +6556,7 @@
       "type": "row"
     }
   ],
-  "refresh": false,
+  "refresh": "10s",
   "schemaVersion": 22,
   "style": "dark",
   "tags": [
@@ -8031,13 +6627,8 @@
       },
       {
         "allValue": null,
-        "current": {
-          "isNone": true,
-          "selected": false,
-          "text": "None",
-          "value": ""
-        },
-        "datasource": "Prometheus",
+        "current": {},
+        "datasource": "${DS_PROMETHEUS}",
         "definition": "",
         "hide": 0,
         "includeAll": false,
@@ -8059,13 +6650,8 @@
       },
       {
         "allValue": null,
-        "current": {
-          "isNone": true,
-          "selected": false,
-          "text": "None",
-          "value": ""
-        },
-        "datasource": "Prometheus",
+        "current": {},
+        "datasource": "${DS_PROMETHEUS}",
         "definition": "",
         "hide": 0,
         "includeAll": false,
@@ -8087,11 +6673,8 @@
       },
       {
         "allValue": null,
-        "current": {
-          "text": "10.244.0.17",
-          "value": "10.244.0.17"
-        },
-        "datasource": "Prometheus",
+        "current": {},
+        "datasource": "${DS_PROMETHEUS}",
         "definition": "",
         "hide": 0,
         "includeAll": false,
@@ -8113,13 +6696,8 @@
       },
       {
         "allValue": null,
-        "current": {
-          "text": "All",
-          "value": [
-            "$__all"
-          ]
-        },
-        "datasource": "Prometheus",
+        "current": {},
+        "datasource": "${DS_PROMETHEUS}",
         "definition": "label_values(datname)",
         "hide": 0,
         "includeAll": true,
@@ -8141,13 +6719,8 @@
       },
       {
         "allValue": null,
-        "current": {
-          "text": "All",
-          "value": [
-            "$__all"
-          ]
-        },
-        "datasource": "Prometheus",
+        "current": {},
+        "datasource": "${DS_PROMETHEUS}",
         "definition": "",
         "hide": 0,
         "includeAll": true,
@@ -8166,6 +6739,15 @@
         "tagsQuery": "",
         "type": "query",
         "useTags": false
+      },
+      {
+        "datasource": "Prometheus",
+        "filters": [],
+        "hide": 0,
+        "label": "",
+        "name": "Filters",
+        "skipUrlSync": false,
+        "type": "adhoc"
       }
     ]
   },
@@ -8200,8 +6782,9 @@
   },
   "timezone": "",
   "title": "StackGres Dashboard",
+  "uid": "000000040",
   "variables": {
     "list": []
   },
-  "version": 95
+  "version": 6
 }
