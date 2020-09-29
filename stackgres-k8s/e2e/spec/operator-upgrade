@@ -28,10 +28,13 @@ e2e_test_install() {
 
   generate_mock_data "$CLUSTER_NAME-1"
   check_mock_data_samehost "$CLUSTER_NAME-1"
+  ! kubectl wait --timeout=0 -n "$CLUSTER_NAMESPACE" "sgcluster/$CLUSTER_NAME-1" --for condition=PendingRestart
   generate_mock_data "$CLUSTER_NAME-2"
   check_mock_data "$CLUSTER_NAME-2"
+  ! kubectl wait --timeout=0 -n "$CLUSTER_NAMESPACE" "sgcluster/$CLUSTER_NAME-2" --for condition=PendingRestart
   generate_mock_data "$CLUSTER_NAME-3"
   check_mock_data "$CLUSTER_NAME-3"
+  ! kubectl wait --timeout=0 -n "$CLUSTER_NAMESPACE" "sgcluster/$CLUSTER_NAME-3" --for condition=PendingRestart
 }
 
 e2e_test_uninstall() {
@@ -116,26 +119,32 @@ check_operator_upgrade() {
 
 check_cluster_1() {
   check_mock_data_samehost "$CLUSTER_NAME-1"
+  wait_until kubectl wait --timeout=0 -n "$CLUSTER_NAMESPACE" "sgcluster/$CLUSTER_NAME-1" --for condition=PendingRestart
 }
 
 check_cluster_2() {
   check_mock_data_samehost "$CLUSTER_NAME-2"
+  wait_until kubectl wait --timeout=0 -n "$CLUSTER_NAMESPACE" "sgcluster/$CLUSTER_NAME-2" --for condition=PendingRestart
 }
 
 check_cluster_3() {
   check_mock_data_samehost "$CLUSTER_NAME-3"
+  wait_until kubectl wait --timeout=0 -n "$CLUSTER_NAMESPACE" "sgcluster/$CLUSTER_NAME-3" --for condition=PendingRestart
 }
 
 check_cluster_1_restart() {
   check_cluster_restart "$CLUSTER_NAME-1" 1
+  wait_until eval '! kubectl wait --timeout=0 -n "$CLUSTER_NAMESPACE" "sgcluster/$CLUSTER_NAME-1" --for condition=PendingRestart'
 }
 
 check_cluster_2_restart() {
   check_cluster_restart "$CLUSTER_NAME-2" 2
+  wait_until eval '! kubectl wait --timeout=0 -n "$CLUSTER_NAMESPACE" "sgcluster/$CLUSTER_NAME-2" --for condition=PendingRestart'
 }
 
 check_cluster_3_restart() {
   check_cluster_restart "$CLUSTER_NAME-3" 3
+  wait_until eval '! kubectl wait --timeout=0 -n "$CLUSTER_NAMESPACE" "sgcluster/$CLUSTER_NAME-3" --for condition=PendingRestart'
 }
 
 check_cluster_restart() {

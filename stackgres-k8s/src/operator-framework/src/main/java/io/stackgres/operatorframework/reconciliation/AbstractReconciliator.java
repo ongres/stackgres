@@ -53,6 +53,8 @@ public abstract class AbstractReconciliator<T extends ResourceHandlerContext,
     deleteUnwantedResources();
     Operation result = createOrUpdateRequiredResources();
 
+    onPreConfigReconcilied();
+
     if (result == Operation.UPDATED) {
       LOGGER.info(name + " updated: '{}.{}'",
           contextResource.getMetadata().getNamespace(),
@@ -66,6 +68,8 @@ public abstract class AbstractReconciliator<T extends ResourceHandlerContext,
           contextResource.getMetadata().getName());
       onConfigCreated();
     }
+
+    onPostConfigReconcilied();
 
     LOGGER.debug(name + " synced: '{}.{}'",
         contextResource.getMetadata().getNamespace(),
@@ -173,8 +177,16 @@ public abstract class AbstractReconciliator<T extends ResourceHandlerContext,
     return Operation.NONE;
   }
 
-  protected abstract void onConfigCreated();
+  protected void onPreConfigReconcilied() {
+  }
 
-  protected abstract void onConfigUpdated();
+  protected void onConfigCreated() {
+  }
+
+  protected void onConfigUpdated() {
+  }
+
+  protected void onPostConfigReconcilied() {
+  }
 
 }
